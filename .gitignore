@@ -34,3 +34,6 @@ Thumbs.db
 
 # 生成物（由工具再生成，不入库）
 webapp/src/shared/api/generated/
+
+# 会话/插件运行时状态（不入库）
+.mimosa/
