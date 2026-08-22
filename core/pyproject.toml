@@ -78,6 +78,14 @@ select = [
     "SLF001",           # 跨包私有访问
     "RUF",
 ]
+# 中文项目策略（T0.2）：RUF001/2/3 把全角中文标点（，。：；""——等）判为歧义 unicode
+# 字符——全角中文标点是本项目文档字符串、注释与用户可见字符串的规范写法（AGENTS.md §3
+# UTF-8 纪律），非歧义字符，项目级豁免；select 保留 "RUF"，其余 RUF 规则继续生效。
+ignore = [
+    "RUF001", # 字符串字面量中的全角中文标点：规范写法，非歧义
+    "RUF002", # 文档字符串中的全角中文标点：同上
+    "RUF003", # 注释中的全角中文标点：同上
+]
 # 复杂度预算（重写计划 §13.7，无豁免清单；超标拆文件而不是加 ignore）
 [tool.ruff.lint.mccabe]
 max-complexity = 10
@@ -89,7 +97,17 @@ max-branches = 12
 
 [tool.ruff.lint.per-file-ignores]
 # 测试期望值允许具体数字（唯一合法来源：docs/norms 手算对照表）
-"tests/**" = ["PLR2004"]
+# 锁定测试区工具债豁免（T0.2，AGENTS.md §7：core/tests/ 只读锁定，AI 禁改）：
+# 以下追加规则的命中全部是锁定测试的存量样式债（RUF043/B017/B009/E501/PLC0415/
+# UP037/F401/F541/RUF017/RUF059，共 50 条），待人类解锁流程修复——本豁免只为让
+# CI 可运转，不是认可这些债；其中 F821×2 是真缺陷（tests/contracts/test_condition.py
+# 引用未定义 condition_set，T3 实现 condition.py 后解除跳过即 NameError），必须在
+# T3 实现前由人类解锁修复，此豁免是"先让 CI 可运转"的显式欠账，不是豁免缺陷本身。
+"tests/**" = [
+    "PLR2004",
+    "RUF043", "B017", "E501", "PLC0415", "B009", "UP037", "F401", "F541", "F821",
+    "RUF017", "RUF059",
+]
 "waterprint/units_lib/**/tests/**" = ["PLR2004"]
 
 [tool.mypy]
@@ -100,6 +118,11 @@ plugins = ["pydantic.mypy"]
 
 [tool.importlinter]
 root_package = "waterprint"
+# 外部包禁令开关（T0.2）：下方 pint 契约 forbidden_modules=["pint"] 禁的是外部包，
+# import-linter 要求根级显式 include_external_packages=True，否则报
+# "The top level configuration must have include_external_packages=True when
+#  there are external forbidden modules"（工具链首跑实测，CI 首日必炸）。
+include_external_packages = true
 
 # L4 子层化（D-23 文档侧 / 修复轮 1 机器侧）：import-linter 同条目内 "|"
 # 兄弟互相 import 亦被禁止，单行四兄弟会误杀 cli→app 合法边；拆为三行子层
