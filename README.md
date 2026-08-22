@@ -46,8 +46,8 @@ cd server && uv sync && uv run uvicorn waterprint_server.main:app
 |------|------|--------------------|
 | PyPI 直连（files.pythonhosted.org） | 读超时 / SSL EOF 断流 | 已入库 uv 阿里云镜像（两个 pyproject） |
 | pnpm 官方 registry | 不稳 | 已入库 `.npmrc`（npmmirror） |
-| GitHub push/clone | 计划 §11 R13 记录 ~1.5KB/s 频繁重置 | git 走 SSH-443（`~/.ssh/config` 设 `Host github.com / Port 443 / HostName ssh.github.com`）或本地代理；CI 在 GitHub 云端执行不受影响 |
-| winget 源更新 | 偶发失败 | 重试或官网离线包安装 |
+| GitHub push/clone | 计划 §11 R13 记录直连 ~1.5KB/s 频繁重置；本机实测系统代理（127.0.0.1:7890）可用 | 仅对 github.com 启用代理：`git config --global http.https://github.com.proxy http://127.0.0.1:7890`（不影响其他远程；代理关闭时删除该配置）；备选 SSH-443 |
+| winget 源更新 | 偶发失败（需管理员修复 `winget source reset`） | 重试或离线包安装 |
 
 ## 目录
 
