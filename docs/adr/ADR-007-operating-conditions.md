@@ -10,8 +10,10 @@
        再对每个勾选校核的单元各跑一次"该单元 n−1、其余全池"；
   2. 运行次数 = 2 + k（k = 受检单元数，线性）；**禁止 2^n 全组合**
      （build_condition_set 输出条数断言进测试）；
-  3. 工况对参数的影响走 manifest 声明式映射（受限 DSL，如
-     `n_active = n if all else n-1`）；compute 内禁止工况 if 分支；
+  3. 工况对参数的影响走 manifest 声明式映射（受限 DSL，正典写法
+     `{"n_active": "n if pool.all_pools else n - 1"}`，DSL 规格见
+     core/waterprint/contracts/manifest.py【工况映射 DSL】节）；compute
+     内禁止工况 if 分支；
   4. 引擎逐工况整图计算，结果按 condition_key 索引；约束校核/三维/
      图纸/概算全部标注所属工况；UI 可并排对比；
   5. 远期扩展轴（季节水温等）只增枚举值与映射，不动引擎。
