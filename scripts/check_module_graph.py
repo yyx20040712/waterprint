@@ -38,9 +38,10 @@ LAYER_ORDER: tuple[str, ...] = (
     "DATA", "CONTRACT",
 )
 # 内核层 token → pyproject import-linter layers 契约（第一条）的层序号
+# （L4 为三行子层：cli=0 → app=1 → project|trace=2，与 pyproject 拆分一致）
 CORE_LAYER_OF_TOKEN: dict[str, int] = {
-    "L4.cli": 0, "L4.app": 0, "L4.project-trace": 0,
-    "L3": 1, "L2": 2, "L1": 3, "L0": 4,
+    "L4.cli": 0, "L4.app": 1, "L4.project-trace": 2,
+    "L3": 3, "L2": 4, "L1": 5, "L0": 6,
 }
 EXPECTED_UNIT_COUNT = 32
 UNIT_LINE_DIRS = ("municipal", "mine_water", "sludge", "conveyance")

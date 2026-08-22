@@ -101,11 +101,16 @@ plugins = ["pydantic.mypy"]
 [tool.importlinter]
 root_package = "waterprint"
 
+# L4 子层化（D-23 文档侧 / 修复轮 1 机器侧）：import-linter 同条目内 "|"
+# 兄弟互相 import 亦被禁止，单行四兄弟会误杀 cli→app 合法边；拆为三行子层
+# cli → app → project|trace（project 与 trace 同层互不依赖）。
 [[tool.importlinter.contracts]]
-name = "内核分层只许向下（L4→L3→L2→L1→L0）"
+name = "内核分层只许向下（L4.cli→L4.app→L4.project-trace→L3→L2→L1→L0）"
 type = "layers"
 layers = [
-    "waterprint.app | waterprint.cli | waterprint.project | waterprint.trace",
+    "waterprint.cli",
+    "waterprint.app",
+    "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.network",
     "waterprint.units_lib",
     "waterprint.registry",
