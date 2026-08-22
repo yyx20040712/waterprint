@@ -2,8 +2,9 @@
 
 React 18 + TypeScript(strict) + Vite；feature 切片结构（§13.5）。
 
-> 当前状态：M0 骨架——配置与切片规格就位，`main.tsx`/`App.tsx` 仅含
-> 最小引导（骨架屏），feature 实装按 M2+ 推进。
+> 当前状态：**M0.5 结构接线完成**——43 个源文件全部带 TS 契约头
+> （`main.tsx`/`App.tsx` 可编译骨架屏 + 37 个 feature/shared 规格骨架，
+> 由 `scripts/check_webapp.py` 门禁校验）；feature 实装按 M2+ 推进。
 
 ## 结构
 
@@ -27,6 +28,7 @@ pnpm orval            # 由 api-contracts/openapi.json 重新生成客户端
 
 ## 硬规则（CI/评审强制）
 
-- 单文件 ≤500 行；features 互相禁止 import；
+- 单文件 ≤500 行；features 互相禁止 import（`scripts/check_webapp.py` 机器强制）；
+- 每个源文件首块 `/** … */` 契约头含 职责/输入/输出（同门禁强制）；
 - 服务端类型只从 orval 生成（禁手写双份）；
 - 前端零业务计算/零业务几何推导（TS 侧复制业务逻辑 = 评审拒绝）。

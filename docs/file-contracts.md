@@ -53,11 +53,6 @@
 | `core/waterprint/network/manning.py` | L3 | 曼宁水力（充满度分档，公式溯源） | 断面+流量 | 流速/坡度/充满度 |
 | `core/waterprint/network/solver.py` | L3 | 管径枚举/并联/跌水井判定 | 管段序列 | 设计管径+衔接 |
 | `core/waterprint/network/excel_io.py` | L3 | 管网 Excel 读写（模板驱动、防弹） | .xlsx | 管段模型/结果 sheet |
-| `core/waterprint/units_lib/_template/manifest.py` | L2 | 单元清单声明模板（五件声明） | 单元工程定义 | UnitManifest 实例 |
-| `core/waterprint/units_lib/_template/compute.py` | L2 | 单元计算实现模板（向量化唯一源） | UnitContext | UnitResult |
-| `core/waterprint/units_lib/_template/constraints.py` | L2 | 单元约束声明模板 | 工程约束 | Constraint 声明表 |
-| `core/waterprint/units_lib/_template/tests/test_compute.py` | L2 | 单元 golden 测试模板（手算对照） | compute+期望值 | 测试结果 |
-| `core/waterprint/units_lib/_template/tests/properties.py` | L2 | 单元物理不变性模板 | compute+hypothesis | 性质验证 |
 | `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存） | ProjectFile/JSON | 字节级稳定 JSON |
 | `core/waterprint/project/migration.py` | L4 | format_version 迁移链（链式纯函数） | 旧版 JSON | 当前版对象+迁移日志 |
 | `core/waterprint/project/content_hash.py` | L4 | 设计态内容哈希（三元组成员） | DesignState | sha256 |
@@ -93,8 +88,43 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | 包路径 | 业务线 | 里程碑 |
 |--------|--------|--------|
 | `core/waterprint/units_lib/_template/` | 模板（不注册） | M0 |
+| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/chuchenchi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/aao/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/cass/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/gaomidu/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/vxinglvchi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/ziwai/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/erchunchi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/bashi_jiliangcao/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/wushui_tisheng/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/mine_water/input/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/tiaojiechi/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/chenshachi/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/ningjiao/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/cifenli/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/gaomidu/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/vxinglvchi/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/ziwai/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/sludge/hebing/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/shusong/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/bengzhan/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/nongsuo/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/xiaohua/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/tuoshui/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/ganhua/` | 污泥 | M3 |
+| `core/waterprint/units_lib/conveyance/jishuijing/` | 集配水 | M3 |
+| `core/waterprint/units_lib/conveyance/peishuijing/` | 集配水 | M3 |
+| `core/waterprint/units_lib/conveyance/jipeishuijing/` | 集配水 | M3 |
+| `core/waterprint/units_lib/conveyance/peishuiqu/` | 集配水 | M3 |
 
-（M2/M3 各单元包随 `wp new-unit` 生成后登记于此。）
+> 32 个单元包于 M0.5 结构接线期按 _template 模式批量落地为骨架
+> （包内仅契约头 + 单元规格，公式与数值随里程碑交付冻结）；
+> 单元业务身份总表见 `docs/structure-graph.md` §3（三方互验：
+> 本表 ↔ units_lib 目录 ↔ 结构图谱）。
 
 ## 4. scripts 门禁脚本（纯标准库）
 
@@ -105,11 +135,19 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0 |
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
+| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径） |
+| `scripts/check_webapp.py` | webapp 结构门禁（TS 契约头 + features 互不依赖分层） |
+| `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity 真源区） |
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
-## 5. webapp（非机器逐文件检查，TS 工具链负责）
+## 5. webapp（M0.5 起机器检查：scripts/check_webapp.py）
 
-结构规格见 `webapp/src/app/README.md` 与各 feature README；
-硬规则（≤500 行、features 互不 import、类型单源）由评审 + CI 构建强制。
+- **契约头**：`webapp/src` 下每个 .ts/.tsx 首块 `/** … */` 必含 职责/输入/输出
+  （`shared/api/generated/` 生成物与 `vite-env.d.ts` 豁免）；
+- **分层（§13.5）**：features 互不 import、features 不向上 import app、
+  shared 不 import features/app、入口 main.tsx 只 import app/**；
+- 逐文件职责见 `webapp/src/app/README.md` 与各 feature/shared README 的
+  文件清单（M0.5 已全部落地为规格骨架）；硬规则（≤500 行、类型单源）
+  另由行数门禁与 CI 构建强制。

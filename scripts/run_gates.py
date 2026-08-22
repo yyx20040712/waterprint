@@ -23,6 +23,9 @@ GATES = (
     "check_grep_gates.py",
     "check_structure.py",
     "check_readonly.py",
+    "check_module_graph.py",
+    "check_webapp.py",
+    "check_magic_numbers.py",
 )
 
 

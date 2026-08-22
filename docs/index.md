@@ -8,8 +8,10 @@
 
 1. `AGENTS.md`（宪法：硬规则，CI 强制）
 2. [文件职责契约](file-contracts.md)（逐文件职责表，机器校验）
-3. [ADR](adr/ADR-001-react-flow-canvas.md)（已拍板决策）
-4. [测试系统](testing.md) / [Golden Cases](golden-cases.md) / [规范摘录](norms.md)
+3. [结构图谱](structure-graph.md)（模块依赖/调用链/32 单元业务身份，机器校验）
+4. [业务逻辑规格](business-logic.md)（参数链/耦合归属/守恒点/可行解流程）
+5. [ADR](adr/ADR-001-react-flow-canvas.md)（已拍板决策，001~009）
+6. [测试系统](testing.md) / [Golden Cases](golden-cases.md) / [规范摘录](norms/README.md)
 
 ## 附录：五层规约模板（派发 AI 任务用，§6.7 / 教训 A1）
 

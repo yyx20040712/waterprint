@@ -19,6 +19,10 @@
    架构折叠为高程子系统**输入配置**（§14.3），不再作为单元节点录入。
 3. `constraint_overrides` 旧键需逐条对照 `data/constraint_kb` 新键名，
    映射关系记入 notes.md。
+4. **录入前另须定**（`docs/business-logic.md` §10 待确认项）：Q1 浓缩
+   上清液/脱水滤液回流是否入 golden 图（影响 input 边与 expected 泥量）；
+   Q2 矿井水案例"III 类"执行口径（GB 3838 环评从严 or 地方标准，
+   影响 B10 模块限值绑定）。
 
 ## 录入步骤（每案例五步，预计 0.5~1 天/案例）
 

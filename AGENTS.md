@@ -6,8 +6,11 @@
 
 ## 0. 阅读顺序（每次会话开始前）
 
-1. 本文件；2. `docs/file-contracts.md`（你要动的文件职责）；3. 目标文件头部"规格说明"；
-4. 对应镜像测试 `core/tests/**/test_*.py`（正确行为的定义，只读）。
+1. 本文件；2. `docs/file-contracts.md`（你要动的文件职责）；
+3. `docs/structure-graph.md`（依赖与调用链）与 `docs/business-logic.md`
+   （单元间业务规则：参数链/耦合归属/守恒/可行解流程）；
+4. 目标文件头部"规格说明"；5. 对应镜像测试 `core/tests/**/test_*.py`
+   （正确行为的定义，只读）。
 
 ## 1. 分层与依赖（import-linter 强制，违反即 CI 失败）
 
@@ -26,6 +29,8 @@
 - 任何文件 ≤500 行；units_lib 的 compute.py ≤400 行（超限拆文件，无豁免清单）。
 - 一个文件一个主概念：文件名 = 概念名；出现第二个主概念当天拆分。
 - 每个新文件必须先登记 `docs/file-contracts.md` 职责表（CI 双向校验：表多=失败，表少=失败）。
+- webapp 源文件的契约头（/** 职责/输入/输出 */）与 features 互不 import 分层
+  由 `scripts/check_webapp.py` 强制（§13.5，M0.5 起）。
 - 死代码即删：未被引用的文件/组件不提交；方案切换 = 删除旧方案，禁止并存。
 - 不提交运行时产物（.recent_projects、缓存、构建输出、虚拟环境）。
 
@@ -41,6 +46,10 @@
   裸数组（流量 m³/s、浓度 mg/L、几何 m），代码不出现换算逻辑；落盘一律"数值 + 显式 unit 字段"。
 - 全部源码/文档 UTF-8；写文件显式 `encoding="utf-8"`；Windows 开发设 `PYTHONUTF8=1`。
   提交前验证中文可读（乱码特征串计数 = 0）。
+- 严禁魔法数字（`scripts/check_magic_numbers.py` 强制）：内核/服务代码数值
+  字面量仅允许 0/1/2/10，其余数值只许出现在 `registry/**` 与
+  `contracts/quantity.py` 真源区或经假设清单/系数库注入（每条带出处与
+  调节影响元数据，见 `docs/business-logic.md` §1/§4/§9）。
 - ruff 复杂度预算：圈复杂度 ≤10（C901）、语句 ≤40（PLR0915）、参数 ≤5（PLR0913）、分支 ≤12（PLR0912）。
 - 每个模块契约头（§5 格式）不可省略，CI 检查存在性。
 
@@ -137,3 +146,16 @@ units_lib/<line>/<unit>/
 - 枚举语义：单单元枚举 + 全厂传播；全厂联合枚举为远期研究，禁止伪装成本轮功能。
 - 可复算三元组：结果 = f(design_hash, engine_version, data_version)；缓存只是优化不参与语义。
 - 运行中任务结果落地即绑定快照 hash；输入变更后旧结果标 stale，禁止静默覆盖。
+
+## 13. 结构图谱规则（scripts/check_module_graph.py 强制）
+
+- 三层关系的单一事实源是 `docs/structure-graph.md`：§1 模块依赖图
+  （节点表 + 依赖边表 + 层序）、§2 端到端调用链、§3 业务单元总表。
+- **改依赖先改图谱**：新增/调整模块依赖必须先改 §1 边表再写代码；
+  实现期真实 import 必须是 §1 声明边的子集（评审 + 门禁对照）。
+- 图谱 §1a 层归属与 `core/pyproject.toml` 的 import-linter 契约**双源一致**
+  （门禁双向覆盖校验；改一处必须同步另一处，否则 CI 失败）。
+- **新单元三步**：先在图谱 §3 与 file-contracts.md §3 登记 → 再建包目录
+  （_template 固定结构）→ 最后实现；三方一致性由门禁强制。业务线扩充时
+  同步更新脚本内 EXPECTED_UNIT_COUNT 断言。
+- 调用链 §2 引用的每个仓库路径必须真实存在（防链路指向幽灵文件）。

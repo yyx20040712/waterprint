@@ -3,7 +3,7 @@
 每 feature 一个 slice 文件（features/*/store/*.ts），本目录只放
 跨 feature 的公共 store 工具（持久化中间件封装、devtools 约定）。
 
-## 规划
+## 文件清单（M0.5 结构接线已创建规格骨架；实装期填充实现）
 
 | 文件 | 职责 |
 |------|------|

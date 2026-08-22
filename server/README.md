@@ -23,7 +23,7 @@ uv run uvicorn waterprint_server.main:app --reload
 ## 测试
 
 ```bash
-uv run pytest            # server/tests（12 个镜像测试文件，只读锁定）
+uv run pytest            # server/tests（镜像测试文件，数量以 CI 收集输出为准）
 ```
 
 ```

@@ -9,7 +9,9 @@
 #
 # 【公开接口】
 #   class Assumption(不可变)：key、default、dim、source（出处：规范/手册/
-#      工程惯例，必须可溯源）、note（一句话影响说明）
+#      工程惯例，必须可溯源）、note（一句话影响说明）、tuning_impact
+#      （调节影响元数据：调节方向 + 联动的约束键清单，供可行解诊断
+#      建议引擎消费——docs/business-logic.md §4/§9 五字段，缺一不可）
 #   DEFAULT_ASSUMPTIONS: AssumptionSet     启动加载的默认清单
 #   assumption(key, overrides: Mapping) -> float
 #       取值正门：项目覆盖值优先，否则默认值；两处皆无 = 领域异常
@@ -18,8 +20,11 @@
 # 【行为规格】
 #   R1 一切设计默认假设只允许存在于此（如污泥密度、安全超高、最小池深、
 #      曝气器氧利用率等）；单元代码禁止内联默认数值，必须经
-#      ctx.assumptions 取得——违反即评审拒绝。
-#   R2 每条假设必须带出处与说明；无出处不准入库（与公式 norm_ref 同门槛）。
+#      ctx.assumptions 取得——机器强制见 scripts/check_magic_numbers.py
+#      （代码数值字面量白名单门禁），违反即 CI 失败。
+#   R2 每条假设必须带出处与说明；无出处不准入库（与公式 norm_ref 同门槛）；
+#      无 tuning_impact 的条目同样拒绝（初始参数不保证可行，诊断建议
+#      依赖该元数据给出方向与幅度——business-logic.md §4）。
 #   R3 项目文件保存"假设覆盖"进 design 态（参与 content_hash）——
 #      改假设 = 改输入 = 结果过期（§12.3）。
 #   R4 UI 可查可改：server 层提供清单读写端点，本文件是唯一数据源。

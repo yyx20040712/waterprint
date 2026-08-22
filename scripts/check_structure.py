@@ -8,7 +8,8 @@
 # 规格说明：§13.7"职责漂移"行——新增/改名文件必须同步职责表。
 # 规则：
 #   a) core/waterprint 与 server/waterprint_server 下每个非 __init__.py
-#      必须出现在表中；表中 .py 路径必须存在；
+#      必须出现在表中（已登记单元包目录内文件豁免，§3 按包登记）；
+#      表中 .py 路径必须存在；
 #   b) units_lib 单元包按"包目录（带斜杠）"登记；包内结构按 §13.6 校验
 #      （manifest.py/compute.py/constraints.py/README.md/tests/ 两测试）；
 #   c) scripts/*.py 必须登记于第 4 节。
@@ -48,12 +49,17 @@ def listed_paths() -> tuple[set[str], set[str]]:
     return files, packages
 
 
-def actual_py_files(root: Path) -> set[str]:
-    return {
-        path.relative_to(REPO).as_posix()
-        for path in root.rglob("*.py")
-        if path.name != "__init__.py"
-    }
+def actual_py_files(root: Path, packages: set[str]) -> set[str]:
+    """非 __init__ 源文件集合；已登记单元包目录内文件豁免（§3 按包登记）。"""
+    found: set[str] = set()
+    for path in root.rglob("*.py"):
+        if path.name == "__init__.py":
+            continue
+        rel = path.relative_to(REPO).as_posix()
+        if any(rel.startswith(pkg + "/") for pkg in packages):
+            continue
+        found.add(rel)
+    return found
 
 
 def check_unit_package(pkg_rel: str) -> list[str]:
@@ -72,9 +78,9 @@ def main() -> int:
     problems: list[str] = []
     files, packages = listed_paths()
 
-    actual = actual_py_files(REPO / "core" / "waterprint")
-    actual |= actual_py_files(REPO / "server" / "waterprint_server")
-    actual |= actual_py_files(REPO / "scripts")
+    actual = actual_py_files(REPO / "core" / "waterprint", packages)
+    actual |= actual_py_files(REPO / "server" / "waterprint_server", packages)
+    actual |= actual_py_files(REPO / "scripts", packages)
 
     unlisted = sorted(actual - files)
     for rel in unlisted:

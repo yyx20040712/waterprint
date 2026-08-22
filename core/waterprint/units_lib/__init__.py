@@ -17,9 +17,13 @@
 #   - "同名构筑物"跨线各自成包（市政高密池 vs 矿井水高密池），
 #     禁止参数复用造成的暗耦合（§14.3）；
 #   - 单元只依赖 L0+L1，禁止 import L3（分层契约）；
-#   - 新单元 = `wp new-unit <line> <name>`（cli.py）从 _template 生成。
+#   - 新单元 = `wp new-unit <line> <name>`（cli.py）从 _template 生成；
+#   - 单元间业务规则（参数初始化链/耦合归属/守恒点/可行解流程/
+#     回路标记）统一见 docs/business-logic.md，包内规格与之对齐。
 #
-# 【单元归属（ADR-007 附表摘要，32 包）】
+# 【单元归属（ADR-007 附表摘要，32 包；M0.5 起已全部落地为骨架，
+#   业务身份总表见 docs/structure-graph.md §3，三方互验由
+#   scripts/check_module_graph.py 强制）】
 #   municipal（13）：粗格栅/细格栅/旋流沉砂池/辐流初沉池/调节池/AAO/
 #     CASS/高密沉淀池/V型滤池/紫外消毒 + 辐流二沉池/巴歇尔计量槽/
 #     污水提升泵房                                  → M2
