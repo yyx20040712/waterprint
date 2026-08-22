@@ -108,9 +108,9 @@
 
 | 包路径 | 业务线 | 中文名 | 旧 mod | 里程碑 | golden 绑定 | 典型上下游 |
 |--------|--------|--------|--------|--------|-------------|------------|
-| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | 粗格栅 | `cugeshan` | M2 | municipal_34760 | 市政输入节点或 wushui_tisheng 提升泵房 → xigeshan 细格栅 |
-| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | 细格栅 | `xigeshan` | M2 | municipal_34760 | cugeshan 粗格栅 → chenshachi 旋流沉砂池 |
-| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | 旋流沉砂池 | `chenshachi` | M2 | municipal_34760 | xigeshan 细格栅 → chuchenchi 初沉池或 tiaojiechi 调节池（按工艺配置） |
+| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | 粗格栅 | `cugeshan` | M1 先行示范 / M2 正式验收 | municipal_34760 | 市政输入节点或 wushui_tisheng 提升泵房 → xigeshan 细格栅 |
+| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | 细格栅 | `xigeshan` | M1 先行示范 / M2 正式验收 | municipal_34760 | cugeshan 粗格栅 → chenshachi 旋流沉砂池 |
+| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | 旋流沉砂池 | `chenshachi` | M1 先行示范 / M2 正式验收 | municipal_34760 | xigeshan 细格栅 → chuchenchi 初沉池或 tiaojiechi 调节池（按工艺配置） |
 | `core/waterprint/units_lib/municipal/chuchenchi/` | 市政污水 | 辐流初沉池 | `chuchenchi` | M2 | municipal_34760 | chenshachi 旋流沉砂池 → aao 生物池或 cass 生物池 |
 | `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | 调节池 | `tiaojiechi` | M2 | municipal_34760 | chenshachi 旋流沉砂池 → aao 生物池或 cass 生物池 |
 | `core/waterprint/units_lib/municipal/aao/` | 市政污水 | AAO 生物池 | `aao` | M2 | municipal_34760 | chuchenchi 初沉池或 tiaojiechi 调节池 → erchunchi 辐流二沉池 |

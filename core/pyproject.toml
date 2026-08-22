@@ -125,14 +125,45 @@ modules = [
     "waterprint.network",
 ]
 
+# 逐包列出全部 32 个单元包（DS-01 裁决：线级粒度拦不住同线互 import）；
+# 顺序同 docs/structure-graph.md §3：municipal 13 → mine_water 8 → sludge 7 → conveyance 4。
+# 包集与目录实际单元包的双向一致性由 scripts/check_module_graph.py 校验（漏列/多列 = 门禁 FAIL）。
 [[tool.importlinter.contracts]]
-name = "工艺单元包互相独立（加一个单元永远不牵动别人）"
+name = "工艺单元包互相独立（32 包逐包强制，加一个单元永不牵动别人）"
 type = "independence"
 modules = [
-    "waterprint.units_lib.municipal",
-    "waterprint.units_lib.mine_water",
-    "waterprint.units_lib.sludge",
-    "waterprint.units_lib.conveyance",
+    "waterprint.units_lib.municipal.cugeshan",
+    "waterprint.units_lib.municipal.xigeshan",
+    "waterprint.units_lib.municipal.chenshachi",
+    "waterprint.units_lib.municipal.chuchenchi",
+    "waterprint.units_lib.municipal.tiaojiechi",
+    "waterprint.units_lib.municipal.aao",
+    "waterprint.units_lib.municipal.cass",
+    "waterprint.units_lib.municipal.gaomidu",
+    "waterprint.units_lib.municipal.vxinglvchi",
+    "waterprint.units_lib.municipal.ziwai",
+    "waterprint.units_lib.municipal.erchunchi",
+    "waterprint.units_lib.municipal.bashi_jiliangcao",
+    "waterprint.units_lib.municipal.wushui_tisheng",
+    "waterprint.units_lib.mine_water.input",
+    "waterprint.units_lib.mine_water.tiaojiechi",
+    "waterprint.units_lib.mine_water.chenshachi",
+    "waterprint.units_lib.mine_water.ningjiao",
+    "waterprint.units_lib.mine_water.cifenli",
+    "waterprint.units_lib.mine_water.gaomidu",
+    "waterprint.units_lib.mine_water.vxinglvchi",
+    "waterprint.units_lib.mine_water.ziwai",
+    "waterprint.units_lib.sludge.hebing",
+    "waterprint.units_lib.sludge.shusong",
+    "waterprint.units_lib.sludge.bengzhan",
+    "waterprint.units_lib.sludge.nongsuo",
+    "waterprint.units_lib.sludge.xiaohua",
+    "waterprint.units_lib.sludge.tuoshui",
+    "waterprint.units_lib.sludge.ganhua",
+    "waterprint.units_lib.conveyance.jishuijing",
+    "waterprint.units_lib.conveyance.peishuijing",
+    "waterprint.units_lib.conveyance.jipeishuijing",
+    "waterprint.units_lib.conveyance.peishuiqu",
 ]
 
 [[tool.importlinter.contracts]]

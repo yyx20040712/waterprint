@@ -10,7 +10,10 @@
 #      其余数值（24、0.5632、3000、0.85…）一律来自 registry 真源或
 #      assumptions/coefficients 注入——工程默认值带出处是可复算前提；
 #   b) 白名单区（数值允许出现）：core/waterprint/registry/**
-#      （注册表真源）、core/waterprint/contracts/quantity.py（单位定义）；
+#      （注册表真源）、core/waterprint/contracts/quantity.py（单位定义）、
+#      core/waterprint/units_lib/**/manifest.py（单元默认值=带出处的
+#      声明式真源，B-3 裁决方案①——按"前缀+文件名"双条件精确命中，
+#      同前缀下 compute.py 等其余文件继续严管）；
 #   c) 豁免路径：任意层级 tests/ 目录（golden 期望值走 norms 手算表，
 #      由测试只读锁承担纪律）；
 #   d) server 层同规：配置数值属 settings/env/数据包，不内联代码；
@@ -31,13 +34,21 @@ SCAN_ROOTS = (
 ALLOWED_VALUES = {0, 1, 2, 10}
 WHITELIST_PREFIXES = (
     "core/waterprint/registry/",
-    "core/waterprint/contracts/quantity.py",
 )
+WHITELIST_EXACT = ("core/waterprint/contracts/quantity.py",)
+# units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
+# 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。
+WHITELIST_MANIFEST = ("core/waterprint/units_lib/", "/manifest.py")
 EXCLUDED_PARTS = {"tests", "__pycache__"}
 
 
 def is_whitelisted(rel: str) -> bool:
-    return rel.startswith(WHITELIST_PREFIXES)
+    prefix, suffix = WHITELIST_MANIFEST
+    return (
+        rel.startswith(WHITELIST_PREFIXES)
+        or rel in WHITELIST_EXACT
+        or (rel.startswith(prefix) and rel.endswith(suffix))
+    )
 
 
 def is_excluded(path: Path) -> bool:
@@ -75,13 +86,14 @@ def main() -> int:
             for lineno, value in numeric_violations(path):
                 problems.append(f"{rel}:{lineno} 魔法数字 {value}（真源区外）")
     if problems:
-        print(f"[FAIL] 魔法数字违规 {len(problems)} 处（数值只许来自 registry/假设清单/系数库）：")
+        print(f"[FAIL] 魔法数字违规 {len(problems)} 处（数值只许来自 registry/单元 manifest/假设清单/系数库）：")
         for item in problems:
             print(f"  - {item}")
         return 1
     print(
         f"[OK] 魔法数字：{scanned} 个源文件字面量合规"
-        f"（白名单区 registry/quantity 之外仅允许 {sorted(ALLOWED_VALUES)}）"
+        f"（白名单区 registry/quantity/units_lib manifest.py 之外"
+        f"仅允许 {sorted(ALLOWED_VALUES)}）"
     )
     return 0
 

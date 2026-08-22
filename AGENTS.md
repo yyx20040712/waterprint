@@ -14,8 +14,12 @@
 
 ## 1. 分层与依赖（import-linter 强制，违反即 CI 失败）
 
-- 只许向下依赖：L4 app/project/trace → L3 graph/solution/elevation/cost/drafting/geometry/network
-  → L2 units_lib → L1 registry → L0 contracts。禁止同层、禁止向上。
+- 只许向下依赖：L4 按装配顺序细分子层——L4.cli → L4.app →
+  L4.project-trace（project 与 trace 同子层）→
+  L3 graph/solution/elevation/cost/drafting/geometry/network
+  → L2 units_lib → L1 registry → L0 contracts。依赖只许沿层序（含 L4
+  子层序）向下：cli→app 合法；app→cli、project↔trace 等同/逆子层依赖
+  与一切向上依赖 = 失败。
 - L3 子系统之间互相独立（elevation/cost/drafting/geometry/graph/solution/network 互不 import），
   它们只消费 L0 的 result_schema，互不感知。
 - 工艺单元包之间互相独立：units_lib 内任意两个单元包禁止互相 import。
@@ -47,9 +51,12 @@
 - 全部源码/文档 UTF-8；写文件显式 `encoding="utf-8"`；Windows 开发设 `PYTHONUTF8=1`。
   提交前验证中文可读（乱码特征串计数 = 0）。
 - 严禁魔法数字（`scripts/check_magic_numbers.py` 强制）：内核/服务代码数值
-  字面量仅允许 0/1/2/10，其余数值只许出现在 `registry/**` 与
-  `contracts/quantity.py` 真源区或经假设清单/系数库注入（每条带出处与
-  调节影响元数据，见 `docs/business-logic.md` §1/§4/§9）。
+  字面量仅允许 0/1/2/10，其余数值只许出现在 `registry/**`、
+  `contracts/quantity.py` 与 `units_lib/**/manifest.py` 真源区（白名单按
+  "前缀+文件名"双条件精确命中——manifest.py 默认值 = 带出处的声明式真源；
+  同前缀下 compute.py 等其余 units_lib 文件继续严管），或经假设清单/
+  系数库注入（每条带出处与调节影响元数据，见 `docs/business-logic.md`
+  §1/§4/§9）。
 - ruff 复杂度预算：圈复杂度 ≤10（C901）、语句 ≤40（PLR0915）、参数 ≤5（PLR0913）、分支 ≤12（PLR0912）。
 - 每个模块契约头（§5 格式）不可省略，CI 检查存在性。
 

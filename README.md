@@ -41,10 +41,12 @@ cd server && uv sync && uv run uvicorn waterprint_server.main:app
 - [x] ~~镜像源配置~~（已入库：uv 走阿里云源见两个 pyproject 的
       `[[tool.uv.index]]`；pnpm 走 npmmirror 见根 `.npmrc`——本机网络
       实测官方源断流，见下节）
-- [ ] 安装 git（`winget install Git.Git`）。仓库已在本地 init 并提交骨架
-      基线（无 remote）；剩余动作：装 git 后**推 GitHub + CI 跑通一次**
-- [ ] 安装 uv（`winget install astral-sh.uv`），由 uv 安装 Python 3.13
-      并生成锁文件（`cd core && uv sync` 与 `cd server && uv sync`）
+- [x] ~~安装 git~~（已装；仓库本地 init 无 remote，M0.5 成果已入库
+      共 4 个提交）
+- [x] ~~安装 uv~~（0.9.9 已装：wheel 直装绕过镜像索引异常；解释器
+      版本见 `.python-version`，依赖以两个 pyproject 为准）
+- [ ] 推送 GitHub + CI 首跑（ruff/mypy/import-linter/pytest 首次基线，
+      推送代理见下节网络对策表）
 - [ ] 启用 pnpm（`corepack enable`），`pnpm install` 生成锁文件
 - [ ] Docker Desktop 推迟到 M4 部署阶段
 

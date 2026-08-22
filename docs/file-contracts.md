@@ -88,9 +88,9 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | 包路径 | 业务线 | 里程碑 |
 |--------|--------|--------|
 | `core/waterprint/units_lib/_template/` | 模板（不注册） | M0 |
-| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | M2 |
-| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M2 |
-| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | M1 先行示范 / M2 正式验收 |
+| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M1 先行示范 / M2 正式验收 |
+| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M1 先行示范 / M2 正式验收 |
 | `core/waterprint/units_lib/municipal/chuchenchi/` | 市政污水 | M2 |
 | `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | M2 |
 | `core/waterprint/units_lib/municipal/aao/` | 市政污水 | M2 |

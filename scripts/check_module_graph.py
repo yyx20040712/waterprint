@@ -12,7 +12,10 @@
 #      依赖图无环（Kahn）；
 #   c) §3 单元总表 ↔ file-contracts.md §3 包登记 ↔ units_lib 实际目录
 #      三方一致，恰好 32 包；
-#   d) §2 调用链中引用的仓库路径真实存在（防"链路指向幽灵文件"）。
+#   d) §2 调用链中引用的仓库路径真实存在（防"链路指向幽灵文件"）；
+#   e) pyproject"工艺单元包互相独立"independence 契约逐包列出实际单元包，
+#      模块集合与目录实际单元包集合双向一致（数量与名字；漏列/多列/退回
+#      线级粒度 = 失败，DS-01 裁决的机器防线）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -218,6 +221,38 @@ def check_units(graph_units: set[str]) -> list[str]:
     return problems
 
 
+def check_independence_units() -> list[str]:
+    """independence 契约（工艺单元包互相独立）模块集 ↔ 实际单元包集双向一致。
+
+    契约必须逐包列出全部实际单元包（32 个）；漏列一个包或退回线级粒度
+    （municipal 等目录模块不是单元包）都视为失败——线级粒度拦不住同线
+    单元互 import（DS-01）。
+    """
+    data = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    declared: set[str] = set()
+    for contract in data["tool"]["importlinter"]["contracts"]:
+        if contract.get("type") != "independence":
+            continue
+        declared |= {
+            mod
+            for mod in contract.get("modules", [])
+            if mod.startswith("waterprint.units_lib.")
+        }
+    actual = {
+        rel.removeprefix("core/").replace("/", ".")
+        for rel in actual_unit_dirs()
+    }
+    problems = [
+        f"independence 契约列出的不是实际单元包：{mod}"
+        for mod in sorted(declared - actual)
+    ]
+    problems += [
+        f"independence 契约漏列单元包：{mod}"
+        for mod in sorted(actual - declared)
+    ]
+    return problems
+
+
 def check_chains(body: str) -> list[str]:
     problems = []
     for token in parse_chain_paths(body):
@@ -242,6 +277,7 @@ def main() -> int:
     problems += check_acyclic(nodes, edges)
     problems += check_pyproject_sync(nodes)
     problems += check_units(parse_unit_rows(unit_sec))
+    problems += check_independence_units()
     problems += check_chains(chain_sec)
 
     if problems:
@@ -251,8 +287,8 @@ def main() -> int:
         return 1
     print(
         f"[OK] 结构图谱：{len(nodes)} 节点 / {len(edges)} 依赖边全部沿层序向下、"
-        f"无环、与 import-linter 一致；单元包三方一致（{EXPECTED_UNIT_COUNT} 包）；"
-        f"调用链路径全部存在"
+        f"无环、与 import-linter 一致；单元包三方一致（{EXPECTED_UNIT_COUNT} 包）"
+        f"且 independence 契约逐包吻合；调用链路径全部存在"
     )
     return 0
 

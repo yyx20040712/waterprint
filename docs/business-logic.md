@@ -110,8 +110,11 @@ ADR-005：单单元枚举 + 全厂传播；离散档位即 manifest 声明的 gr
 ## 9. 严禁魔法数字的执行（机器强制）
 
 - 门禁 `scripts/check_magic_numbers.py`：内核 .py 代码中数值字面量仅
-  允许 0/1/2/10，且只许出现在 `registry/**` 与 `contracts/quantity.py`
-  （真源区）；其余一律引用注册表/假设清单/系数库。
+  允许 0/1/2/10，且只许出现在 `registry/**`、`contracts/quantity.py` 与
+  `units_lib/**/manifest.py`（真源区；units_lib 白名单按"前缀+文件名"
+  双条件精确命中 manifest.py——manifest 默认值 = 带出处的声明式真源，
+  同前缀下 compute.py 等其余 units_lib 文件继续严管）；其余一律引用
+  注册表/假设清单/系数库。
 - 假设条目五字段：键 / 默认值 / 出处 / 适用条件 / **调节影响**（供 §4
   建议引擎消费）——没有调节影响元数据的默认值 = 不合格假设条目。
 - AGENTS.md §3 同步此规则；评审口径：代码里出现 24、0.5632、3000
