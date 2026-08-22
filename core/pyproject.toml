@@ -1,0 +1,167 @@
+[project]
+name = "waterprint-core"
+version = "0.1.0"
+description = "WaterPrint 计算内核（纯 Python，零框架依赖，不知道 HTTP 与 React 的存在）"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.1",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "pint>=0.24",
+    "pydantic>=2.8",
+    "openpyxl>=3.1",
+    "ezdxf>=1.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.108",
+    "syrupy>=4.7",
+    "pytest-benchmark>=4.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "import-linter>=2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# 镜像源（本机网络实测 2026-08：PyPI 直连/清华源断流，阿里云源可稳定续传；
+# 仓库级配置让 uv sync 开箱即用。CI（GitHub 云端）网络良好，此配置无副作用；
+# 个人想改回官方源：删本节或设 UV_DEFAULT_INDEX 环境变量覆盖。）
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["waterprint"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# --import-mode=importlib：允许 32 个单元包同名 tests/test_compute.py 并存收集
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
+markers = [
+    "arch: 架构与门禁自检测试（始终激活，骨架期即运行）",
+    "golden: 依赖 golden_data 数据文件的端到端测试（数据未整理时自动跳过）",
+]
+
+[tool.coverage.run]
+source = ["waterprint"]
+omit = ["*/tests/*"]  # 单元包内测试不计入覆盖率分母（防失真）
+
+[tool.coverage.report]
+# M0 骨架期无实现；M1 起改为 95（重写计划 §6.3，届时必须同步本行注释）
+fail_under = 0
+show_missing = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",      # pycodestyle / pyflakes
+    "I",                # import 排序
+    "N",                # 命名
+    "UP",               # 现代化
+    "B",                # bugbear
+    "C4",               # 推导式
+    "SIM",              # 简化
+    "PL",               # pylint 规则族（含复杂度预算）
+    "SLF001",           # 跨包私有访问
+    "RUF",
+]
+# 复杂度预算（重写计划 §13.7，无豁免清单；超标拆文件而不是加 ignore）
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-statements = 40
+max-args = 5
+max-branches = 12
+
+[tool.ruff.lint.per-file-ignores]
+# 测试期望值允许具体数字（唯一合法来源：docs/norms 手算对照表）
+"tests/**" = ["PLR2004"]
+"waterprint/units_lib/**/tests/**" = ["PLR2004"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["waterprint"]
+plugins = ["pydantic.mypy"]
+
+[tool.importlinter]
+root_package = "waterprint"
+
+[[tool.importlinter.contracts]]
+name = "内核分层只许向下（L4→L3→L2→L1→L0）"
+type = "layers"
+layers = [
+    "waterprint.app | waterprint.cli | waterprint.project | waterprint.trace",
+    "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.network",
+    "waterprint.units_lib",
+    "waterprint.registry",
+    "waterprint.contracts",
+]
+
+[[tool.importlinter.contracts]]
+name = "L3 子系统互相独立（只消费 L0 结果契约，互不感知）"
+type = "independence"
+modules = [
+    "waterprint.graph",
+    "waterprint.solution",
+    "waterprint.elevation",
+    "waterprint.cost",
+    "waterprint.drafting",
+    "waterprint.geometry",
+    "waterprint.network",
+]
+
+[[tool.importlinter.contracts]]
+name = "工艺单元包互相独立（加一个单元永远不牵动别人）"
+type = "independence"
+modules = [
+    "waterprint.units_lib.municipal",
+    "waterprint.units_lib.mine_water",
+    "waterprint.units_lib.sludge",
+    "waterprint.units_lib.conveyance",
+]
+
+[[tool.importlinter.contracts]]
+name = "装配点唯一：图引擎与各子系统不认识任何具体单元"
+type = "forbidden"
+source_modules = [
+    "waterprint.graph",
+    "waterprint.solution",
+    "waterprint.elevation",
+    "waterprint.cost",
+    "waterprint.drafting",
+    "waterprint.geometry",
+]
+forbidden_modules = ["waterprint.units_lib"]
+
+[[tool.importlinter.contracts]]
+name = "pint 只许在 contracts.quantity 边界包装中出现（ADR-002）"
+type = "forbidden"
+source_modules = [
+    "waterprint.graph",
+    "waterprint.solution",
+    "waterprint.elevation",
+    "waterprint.cost",
+    "waterprint.drafting",
+    "waterprint.geometry",
+    "waterprint.network",
+    "waterprint.units_lib",
+    "waterprint.registry",
+    "waterprint.project",
+    "waterprint.trace",
+    "waterprint.app",
+    "waterprint.cli",
+]
+forbidden_modules = ["pint"]

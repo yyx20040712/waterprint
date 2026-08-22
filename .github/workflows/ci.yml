@@ -1,0 +1,100 @@
+# CI —— 全链路门禁（重写计划 §6/§13.7；与本地 scripts/run_gates.py 同口径）
+#
+# 激活节奏（M0 骨架期 → M1 起）：
+#   - gates / core-arch / webapp-build：现在生效；
+#   - core-quality（ruff/mypy/pytest+coverage 95）：M1 起生效——先以
+#     "仅安装+收集" 模式运行，防止骨架期红；
+#   - benchmarks：手动触发（M1 性能基准落地后改 push 触发）；
+#   - contract-drift：M2 服务实现 openapi 导出后启用。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PYTHONUTF8: "1"
+
+jobs:
+  gates:
+    name: 架构门禁（零依赖，系统 Python）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python scripts/run_gates.py
+
+  core:
+    name: 内核质量（ruff/mypy/import-linter/pytest）
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: 安装依赖（锁文件入库后改 --frozen）
+        run: uv sync
+      - name: Ruff（零告警）
+        run: uv run ruff check .
+      - name: Mypy strict
+        run: uv run mypy
+      - name: import-linter 架构契约
+        run: uv run lint-imports
+      - name: Pytest（骨架期：收集+架构测试须绿；M1 起全量+覆盖率门禁）
+        run: uv run pytest -m arch
+      # M1 起替换上行（coverage 95 门禁在 pyproject 中启用）：
+      #   uv run pytest --cov --cov-report=term-missing
+
+  server:
+    name: 服务层质量
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run mypy
+      - run: uv run pytest
+
+  webapp:
+    name: 前端构建（类型检查）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+
+  # benchmarks:
+  #   M1 起启用（§18.1 性能预算：全流程<5s、万级枚举<5s、场景图<100ms、出图<5s/单元）
+  #   needs: [gates, core]
+  #   run: uv run pytest tests/benchmark --benchmark-only ...
+
+  # contract-drift:
+  #   M2 起启用：dump_openapi 与 api-contracts/openapi.json diff，
+  #   或 val 改 --frozen、orval 生成物校验

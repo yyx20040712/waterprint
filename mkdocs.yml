@@ -1,0 +1,17 @@
+site_name: WaterPrint 智水蓝图
+site_description: 污水处理工艺设计计算平台文档站
+docs_dir: docs
+nav:
+  - 导览: index.md
+  - 文件职责契约: file-contracts.md
+  - 测试系统: testing.md
+  - Golden Cases: golden-cases.md
+  - 规范摘录与手算对照: norms.md
+  - ADR:
+      - ADR-001 React Flow 画布: adr/ADR-001-react-flow-canvas.md
+      - ADR-002 单位制三层策略: adr/ADR-002-unit-strategy.md
+      - ADR-003 回路迭代策略: adr/ADR-003-loop-iteration.md
+      - ADR-004 项目文件双态结构: adr/ADR-004-project-dual-state.md
+      - ADR-005 方案枚举语义: adr/ADR-005-enumeration-semantics.md
+      - ADR-006 DXF 制图基线: adr/ADR-006-dxf-baseline.md
+      - ADR-007 工况语义: adr/ADR-007-operating-conditions.md

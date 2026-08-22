@@ -1,0 +1,4 @@
+# Excel 模板包清单（版本槽位——模板文件与占位符语法见本目录 README.md）
+data_version: "0.0.0"
+# 变更记录：
+#   - 0.0.0: M0 骨架槽位（无模板文件；calcbook_unit.xlsx 于 M1 创建后升 1.0.0）

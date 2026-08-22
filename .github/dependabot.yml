@@ -1,0 +1,25 @@
+# 供应链防线（§18）：双生态依赖告警；锁文件 + CI --frozen 是主防线
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/core"
+    schedule:
+      interval: weekly
+    groups:
+      dev-deps:
+        dependency-type: development
+  - package-ecosystem: pip
+    directory: "/server"
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: "/webapp"
+    schedule:
+      interval: weekly
+    groups:
+      dev-deps:
+        dependency-type: development
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

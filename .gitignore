@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+webapp/dist/
+webapp/node_modules/
+*.tsbuildinfo
+
+# 运行时产物（教训：.recent_projects 一类绝不入库）
+.recent_projects*
+*.log
+exports/
+output/
+
+# IDE / 系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# 生成物（由工具再生成，不入库）
+webapp/src/shared/api/generated/

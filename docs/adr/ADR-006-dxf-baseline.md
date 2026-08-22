@@ -1,0 +1,20 @@
+# ADR-006：DXF 制图基线（R2018 / UTF-8 / WP- 图层 / 国标字体 / ODA 外挂）
+
+- 状态：**已接受**（计划 §12.5；M2 起随单元交付）
+- 背景：交付现实是国内 CAD（AutoCAD/中望/浩辰）；DWG 格式封闭；
+  ezdxf 全开源可测试可快照回归（§2 图纸行）。
+- 决策：
+  1. 输出 DXF R2018（AC1032）、UTF-8；兼容目标 AutoCAD 2018+/中望/浩辰
+     （交付说明声明）；
+  2. 图层命名 `WP-<类别>-<名称>`（process/arch/anno/dim/frame），
+     颜色/线型按 GB/T 50001，样式表是唯一命名真源（drafting/styles.py）；
+  3. 文字样式 gbenor.shx + gbcbig.shx 大字体；字体文件不随图分发，
+     交付附字体清单；非 SHX 环境回退 SimSun（R6）；
+  4. 图框库 A0~A4 横竖 + 会签栏全部参数化块；m→mm 换算唯一住所
+     dxf_writer；
+  5. DWG 转换 = 部署侧 ODA File Converter 外挂（不进基础镜像，
+     EULA 约束见 R7）；DXF 本身即可交付；
+  6. 图纸是结果 schema 纯投影：dxf_writer 是全库唯一 ezdxf 接触点，
+     实体中立描述可快照回归（§6.5）。
+- 后果：M2 起每单元 DoD 含图纸（平面+剖面）；快照变更显式过审。
+- 细化归属：M2 首批单元图纸模板。
