@@ -11,10 +11,10 @@
 #   唯一允许 import pint 的文件（import-linter 强制）。
 #
 # 【导出白名单】__all__ 必须显式枚举；实现时按下列子模块聚合：
-#   quantity: Quantity, DimKey, InvalidUnitError
+#   quantity: Quantity, DimKey, InvalidUnitError, InvalidQuantityError
 #   flow: WaterFlow
 #   quality: WaterQuality, EffluentStandard, margin
-#   sludge: SludgeFlow
+#   sludge: SludgeFlow, mix
 #   ports: Port, Edge, FluidKind, InvalidConnection
 #   unit_api: UnitContext, UnitResult, Unit
 #   manifest: UnitManifest
@@ -23,3 +23,17 @@
 #   result_schema: PlantResult, TraceNode
 # 白名单外的新导出名必须先更新 docs/file-contracts.md。
 # ══════════════════════════════════════════════════════════════════
+
+from waterprint.contracts.quantity import (
+    DimKey,
+    InvalidQuantityError,
+    InvalidUnitError,
+    Quantity,
+)
+
+__all__ = [
+    "DimKey",
+    "InvalidQuantityError",
+    "InvalidUnitError",
+    "Quantity",
+]

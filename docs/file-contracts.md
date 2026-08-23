@@ -9,7 +9,7 @@
 
 | 路径 | 层 | 唯一职责 | 输入 | 输出 |
 |------|----|----------|------|------|
-| `core/waterprint/contracts/quantity.py` | L0 | 量纲与规范单位定义、pint 边界包装（唯一 pint 接触点） | 单位字符串/带单位数值 | 规范单位裸值、Quantity、InvalidUnitError |
+| `core/waterprint/contracts/quantity.py` | L0 | 量纲与规范单位定义、pint 边界包装（唯一 pint 接触点） | 单位字符串/带单位数值 | 规范单位裸值、Quantity、InvalidUnitError、InvalidQuantityError |
 | `core/waterprint/contracts/flow.py` | L0 | 水量契约与构造校验（q_design 派生消双轨） | q_avg_daily、Kz | WaterFlow |
 | `core/waterprint/contracts/quality.py` | L0 | 水质契约 + 出水标准库（标准是数据） | 六指标 + 标准名 | WaterQuality、EffluentStandard、margin |
 | `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体） | Q_wet/DS/含水率 | SludgeFlow、mix |
