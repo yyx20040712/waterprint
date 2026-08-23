@@ -216,6 +216,16 @@ forbidden_modules = ["waterprint.units_lib"]
 [[tool.importlinter.contracts]]
 name = "pint 只许在 contracts.quantity 边界包装中出现（ADR-002）"
 type = "forbidden"
+# allow_indirect_imports（T3 实现期裁决 2026-08-23，待总控追认）：
+# import-linter forbidden 契约默认检查间接链（allow_indirect_imports=false），
+# 而 DimKey/CANONICAL_UNITS 位于 quantity（唯一 pint 接触点）且是全库 L0 基座——
+# 间接口径将禁止一切上层 import 任何经 quantity 的契约（含图谱 §1b 已声明边
+# registry→contracts，T3 dimensions 首次触雷：dimensions→manifest→quantity→pint
+# 三跳即 BROKEN，实测复现）。ADR-002 意图是"pint 只许 quantity 直接使用"，
+# 直查口径（true）忠实执行该意图：任何 source 模块直接 import pint 仍即 FAIL，
+# 经 quantity 的类型面引用不构成 pint 泄漏（pint 对象不出 quantity 边界，
+# quantity.py R2 既有语义）。
+allow_indirect_imports = true
 source_modules = [
     "waterprint.graph",
     "waterprint.solution",
