@@ -46,7 +46,7 @@ def test_standards_are_data_not_branches() -> None:
     """R1：两个不同限值的标准走同一代码路径产出不同裕度（无标准名分支）。"""
     strict = _standard(10.0)
     loose = _standard(20.0)
-    assert margin(8.0, strict, "BOD5") < 0
+    assert margin(12.0, strict, "BOD5") < 0
     assert margin(8.0, loose, "BOD5") > 0
 
 
