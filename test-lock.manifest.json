@@ -20,6 +20,7 @@
   "core/tests/contracts/test_quality.py": "1a982c2a076289704f50327028c4c1611a30f9fea9b3abbfd37443d5185b6b46",
   "core/tests/contracts/test_quantity.py": "e644b1a6f5be0bce67ee3b9e9d2a89111e088068024d4dacaaa3d43c6c2a9347",
   "core/tests/contracts/test_result_schema.py": "78377a4d589d1d22759d6b22ce5c4225337a850bb7325c6e363f3b9e76878131",
+  "core/tests/contracts/test_run_env.py": "637c3cd35674f65feca9f590e0e7260622efe9642e974db10a41cb277b0c073d",
   "core/tests/contracts/test_sludge.py": "9ec5dfc6aab4dd6a1b703c9cb4099a1374b1aabfd912adb69417fa7cd164aeb3",
   "core/tests/contracts/test_trace_api.py": "9aef3808b7aebacbc44287e4ec2186879d1a89518830d8e9a030b94c70116b4a",
   "core/tests/contracts/test_unit_api.py": "f6fdacab54b0d13506f39aced83d031b0ee1af841d96b5a9efbbbf1d2a3b343e",
