@@ -10,7 +10,9 @@
 3. `docs/structure-graph.md`（依赖与调用链）与 `docs/business-logic.md`
    （单元间业务规则：参数链/耦合归属/守恒/可行解流程）；
 4. 目标文件头部"规格说明"；5. 对应镜像测试 `core/tests/**/test_*.py`
-   （正确行为的定义，只读）。
+   （正确行为的定义，只读）；6. `docs/engineering-conventions.md`
+   （规格沉默处的默认答案）与 `docs/undefined-features-register.md`
+   （未定义特性登记——发现新项先登记，禁止就地自创语义）。
 
 ### 0.1 技能盘点（任何工作启动时，先于一切执行动作）
 
