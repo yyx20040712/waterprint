@@ -30,7 +30,8 @@ pytestmark = pytest.mark.skipif(
 
 def test_allowed_funcs_exactly_five() -> None:
     """函数白名单恰五项（规格冻结值，增减 = 规格变更走显式修订）。"""
-    assert ALLOWED_FUNCS == frozenset({"min", "max", "abs", "sqrt", "log10"})
+    expected = frozenset({"min", "max", "abs", "sqrt", "log10"})
+    assert expected == ALLOWED_FUNCS
 
 
 def test_arithmetic_positive_path() -> None:
