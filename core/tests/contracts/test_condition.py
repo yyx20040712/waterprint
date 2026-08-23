@@ -48,7 +48,8 @@ def test_sensitivity_conditions_isolate_one_unit() -> None:
 def test_condition_keys_unique_and_deterministic() -> None:
     """R2：键唯一且确定（结果索引/缓存键/SSE 通道的稳定性前提）。"""
     units = ["aao", "thickener"]
-    keys = [type(condition_set).key(c) for c in build_condition_set(units).iter_all()]
+    condition_set = build_condition_set(units)
+    keys = [type(condition_set).key(c) for c in condition_set.iter_all()]
     assert len(keys) == len(set(keys))
     again = [type(condition_set).key(c) for c in build_condition_set(units).iter_all()]
     assert keys == again
