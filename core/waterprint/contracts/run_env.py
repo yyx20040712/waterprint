@@ -23,13 +23,16 @@
 #      影响元数据的引擎默认"条目入 engine_params 字段，T4/T7 冻结
 #      数值——禁散落代码字面量（GR-15 缺省须带出处同向）。
 #   R3 不可变：装配一次、执行期只读（app.py【公开接口】既有语义）；
-#      执行期改写 = 领域异常。
+#      执行期改写 = FrozenInstanceError（frozen 数据类自然防护；程序
+#      缺陷不包装——GR-08，与 test_run_env.py 镜像断言一致；
+#      SENS-R1 2026-08-23 SA-02 口径统一）。
 #   R4 trace_sink 遵循 contracts/trace_api.py 协议（registry 与迹
 #      收集器的唯一耦合面），本契约只携带不实现。
 #   R5 本文件是 L0 契约（GR-36 类②跨层协议：L3 executor/enumerate
 #      与 L4 app 共用），禁 I/O、禁运行时可变状态。
 #
-# 【测试要求】不可变性（改写抛领域异常）、字段完备、engine_params
+# 【测试要求】不可变性（改写抛 FrozenInstanceError，GR-08 程序缺陷
+#   不包装——SENS-R1 SA-02 对齐）、字段完备、engine_params
 #   条目元数据完整性（实现期随数值冻结落用例）。
 #
 # 【参照】重写计划 §13.1 装配点；UF-31/UF-08/UF-10（register）；
