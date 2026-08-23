@@ -2,14 +2,12 @@
 
 污水处理工艺设计计算平台：计算内核（纯 Python）+ FastAPI 服务 + React 前端。
 
-> 当前状态：**M0.5 结构接线 + 计算路线拍板完成**——
-> ① 三层结构关系物理化并机器强制：32 个工艺单元包骨架、结构图谱
-> （`docs/structure-graph.md`）、webapp 43 个源文件契约头+分层；
-> ② 方法路线与默认值由领域专家拍板（ADR-008 四条主线 / ADR-009 十六项）；
-> ③ 业务逻辑规格层就位（`docs/business-logic.md`：参数初始化链 /
-> 耦合单一归属 / 守恒断言 / 可行解迭代流程 / 约束联动 / 回路清单）；
-> ④ 八道门禁全绿（`scripts/run_gates.py`，含魔法数字门禁）。
-> 所有源码仍仅含"契约头 + 规格说明"，不含业务实现；实现工作自 M1 起。
+> 当前状态：**M1 启动前置全部完成**——三路架构审计（总控/DS/GLM 双层
+> 裁决，统一清单见会话工作区）、子智能体工作流上线运行、M0.5 成果入库、
+> 本地工具链就绪、**已推送 GitHub 且 CI 五 job 全绿**（详见 Actions；
+> 宪法"CI 机器强制"自此实际生效）、三单元系数与手算对照表经领域专家
+> 签字生效（coefficients 0.1.0）、两个 DSL 规格+共享受限求值器落地
+> （contracts/expr.py、trace_api.py）。实现进行中（T1 起）。
 
 ## 快速导览（新成员/AI 按此顺序阅读）
 
@@ -36,18 +34,25 @@ pnpm install && pnpm -C webapp dev
 cd server && uv sync && uv run uvicorn waterprint_server.main:app
 ```
 
+> 本地开发用已装备的 `core/.venv`（46 个 wheel）与 `server/.venv`；`uv sync`
+> 待网络恢复可生成锁文件后启用；测试入口 = 分包进入 `core/`、`server/`
+> 目录运行（根目录聚合收集有已知 conftest 冲突）。
+
 ## 环境待办（M0 第 0 天）
 
 - [x] ~~镜像源配置~~（已入库：uv 走阿里云源见两个 pyproject 的
       `[[tool.uv.index]]`；pnpm 走 npmmirror 见根 `.npmrc`——本机网络
       实测官方源断流，见下节）
-- [x] ~~安装 git~~（已装；仓库本地 init 无 remote，M0.5 成果已入库
-      共 4 个提交）
-- [x] ~~安装 uv~~（0.9.9 已装：wheel 直装绕过镜像索引异常；解释器
-      版本见 `.python-version`，依赖以两个 pyproject 为准）
-- [ ] 推送 GitHub + CI 首跑（ruff/mypy/import-linter/pytest 首次基线，
-      推送代理见下节网络对策表）
-- [ ] 启用 pnpm（`corepack enable`），`pnpm install` 生成锁文件
+- [x] ~~git 安装与 M0.5 入库~~（2026-08-22/23）
+- [x] ~~uv 0.9.9 安装~~（wheel 直装，镜像索引异常绕过——见下节网络
+      对策表；解释器版本见 `.python-version`，依赖以两个 pyproject 为准）
+- [x] ~~pnpm 经 corepack 可用~~（pnpm@10.34.5，node-linker=hoisted
+      应对 exFAT）
+- [x] ~~推 GitHub + CI 全绿~~（github.com/yyx20040712/waterprint，
+      CI 首跑 4/5 失败→修复批→run #12 五 job 成功；推送代理见下节
+      网络对策表）
+- [ ] uv.lock 生成（uv 的 TLS 通道对镜像间歇断流，挂账；CI 暂用
+      UV_DEFAULT_INDEX=官方源，`--frozen` 待锁文件后启用）
 - [ ] Docker Desktop 推迟到 M4 部署阶段
 
 ### 网络状况与对策（2026-08-22 本机实测）
@@ -58,6 +63,8 @@ cd server && uv sync && uv run uvicorn waterprint_server.main:app
 | pnpm 官方 registry | 不稳 | 已入库 `.npmrc`（npmmirror） |
 | GitHub push/clone | 计划 §11 R13 记录直连 ~1.5KB/s 频繁重置；本机实测系统代理（127.0.0.1:7890）可用 | 仅对 github.com 启用代理：`git config --global http.https://github.com.proxy http://127.0.0.1:7890`（不影响其他远程；代理关闭时删除该配置）；备选 SSH-443 |
 | winget 源更新 | 偶发失败（需管理员修复 `winget source reset`） | 重试或离线包安装 |
+| uv（rustls/native-tls）拉镜像 wheel | 间歇 TLS 断流，uv sync/lock 均不可用 | 本地依赖改 curl 拉 wheel + pip 离线装（会话工作区 fetch_deps.py）；CI 用 UV_DEFAULT_INDEX 官方源 |
+| E 盘 exFAT | 不支持符号链接，pnpm 默认 linker 失败 | .npmrc node-linker=hoisted（本地/CI 同口径） |
 
 ## 目录
 

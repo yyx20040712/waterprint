@@ -4,6 +4,9 @@
 
 ## 文件规划（M0/M1 起创建）
 
+> 状态注：removal_rates.yaml 与 factors.yaml 已于 0.1.0 生效
+> （2026-08-23 签字；其余三个规划文件随里程碑创建）。
+
 ```
 coefficients/
 ├─ manifest.yaml            # data_version + 变更记录
