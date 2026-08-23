@@ -162,7 +162,7 @@ grep -rn "保留\|清理\|retention" server/waterprint_server core/waterprint do
 
 ```bash
 # quality 规格仅一句且未写加载者；data 包无标准文件；register 无既有条目
-grep -n "coefficients\|STANDARDS" core/waterprint/contracts/quality.py   # 仅接口行 15 与参照行 30
+grep -n "coefficients\|STANDARDS" core/waterprint/contracts/quality.py   # quality 落地后 3 行命中（接口行/规格头挂起注记/UF-39 引用，行号随实现漂移）
 ls data/coefficients/                                                    # 无 standards 文件
 grep -rn "18918\|一级A\|出水标准" data/ docs/norms/                    # 仅 README 规划句与 manifest 槽位注释
 grep -n "标准库\|STANDARDS" docs/undefined-features-register.md          # 本条前零命中
