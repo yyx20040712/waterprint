@@ -26,8 +26,60 @@
 #   R5 工况关联：flow_case=design 用 q_design、avg 用 q_avg_daily
 #      （ADR-007；分支发生在图引擎/单元映射，不在本契约）。
 #
+# 【T2 预裁决注记】（总控 2026-08-23）
+#   P5 数值校验先 isfinite 再域校验（`if v < 0` 会放过 NaN——GR-02 复发
+#      路径）：kz 为裸 float，make_flow 内先 isfinite 再 kz >= 1；
+#      q_avg_daily 的有限性由 quantity.parse 的 GR-02 守卫承担
+#      （InvalidQuantityError，P5 同族防线）。
+#   P11 异常消息冻结（发布后不改文本，GR-09）：必含参数键 + 实际值
+#      （+期望域），冻结口径：
+#      "q_avg_daily 必须大于 0（厂界口径 flow.py R2/UF-03）：得到 0.0"、
+#      "kz 必须 >= 1：得到 nan（非有限值拒绝，GR-02）"。
+#   数值纪律：本文件不在魔法数字白名单——数值字面量仅 0/1；换算一律
+#      经 quantity.parse，本文件零换算系数。
+#
 # 【测试要求】双轨消除断言（q_design 派生只读）、非法构造拒绝、
 #   34760 m3/d == 34760/86400 m3/s 换算、kz=1 合法。
 #
-# 【参照】重写计划 §3-2/§14.1；ADR-002/ADR-007
+# 【参照】重写计划 §3-2/§14.1；ADR-002/ADR-007；简报 T2 预裁决 P5/P11
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from math import isfinite
+from typing import final
+
+from waterprint.contracts.quantity import DimKey, Quantity, parse
+
+
+class InvalidFlowError(Exception):
+    """水量构造非法（q_avg_daily 域 / kz 域 / 非有限值）——领域异常（GR-11 族）。"""
+
+
+@dataclass(frozen=True)
+@final
+class WaterFlow:
+    """平均日流量 + 总变化系数的不可变值对象（q_design 只读派生，R1）。"""
+
+    q_avg_daily: float
+    kz: float
+
+    @property
+    def q_design(self) -> float:
+        """设计流量 = q_avg_daily × kz（派生量：同对象上双轨不可能存在）。"""
+        return self.q_avg_daily * self.kz
+
+
+def make_flow(q_avg_daily: Quantity, kz: float) -> WaterFlow:
+    """唯一构造正门：parse 换算到规范单位 m3/s + 数学域校验（R2/R4/P5）。"""
+    if not isfinite(kz):
+        raise InvalidFlowError(f"kz 必须 >= 1：得到 {kz!r}（非有限值拒绝，GR-02）")
+    q_avg = parse(q_avg_daily.magnitude, q_avg_daily.unit, DimKey.FLOW)
+    if q_avg <= 0:
+        raise InvalidFlowError(
+            f"q_avg_daily 必须大于 0（厂界口径 flow.py R2/UF-03）：得到 {q_avg!r}"
+        )
+    if kz < 1:
+        raise InvalidFlowError(f"kz 必须 >= 1：得到 {kz!r}")
+    return WaterFlow(q_avg_daily=q_avg, kz=kz)
