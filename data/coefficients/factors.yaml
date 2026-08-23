@@ -232,11 +232,11 @@
 
 # ── 签字环节补录（二审裁决确认的缺口：概算口径系数与经验水头损失） ──
 
-- key: "factor.cugeshan.wall_thickness_coef"
+- key: "factor.screen.wall_thickness_coef"
   value: 0.3
   unit: "dimensionless"
-  source: "旧系统 mod v5.1.0 交叉基线（CG-F14 概算口径）；2026-08-23 专家审核通过补录"
-  note: "粗格栅混凝土量估算壁厚系数（概算口径，非结构计算）"
+  source: "旧系统 mod v5.1.0 交叉基线（CG-F14/XG-F14 概算口径，_BarScreenBase 共用 concrete_m3 系数）；2026-08-23 专家审核通过补录"
+  note: "粗/细格栅混凝土量估算壁厚系数（概算口径，非结构计算；共用形态 factor.screen.*）"
 
 - key: "factor.chenshachi.wall_thickness_coef"
   value: 0.4
