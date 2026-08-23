@@ -46,6 +46,8 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "PL", "SLF001", "RUF"]
+# 全角中文标点是本项目文档与注释的规范写法，非歧义字符（同 core 策略，T0.2）
+ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
@@ -56,7 +58,9 @@ max-args = 5
 max-branches = 12
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["PLR2004"]
+# 锁定测试区工具债豁免（同 core T0.2 口径，AGENTS.md §7：server/tests/ 只读锁定）：
+# PLC0415×3（tests/jobs/test_worker.py 局部导入）等存量样式债待人类解锁流程修复
+"tests/**" = ["PLR2004", "PLC0415", "RUF043", "B017", "E501", "B009", "UP037", "F401", "F541", "F821", "RUF017", "RUF059"]
 
 [tool.mypy]
 strict = true

@@ -16,6 +16,9 @@ on:
 
 env:
   PYTHONUTF8: "1"
+  # CI 在 GitHub 海外 runner 上：覆盖 pyproject 内的阿里云镜像（本机网络对策），
+  # 走官方 PyPI——UV_DEFAULT_INDEX 优先于 [[tool.uv.index]] default（README 既定开关）
+  UV_DEFAULT_INDEX: "https://pypi.org/simple"
 
 jobs:
   gates:
@@ -74,18 +77,18 @@ jobs:
   webapp:
     name: 前端构建（类型检查）
     runs-on: ubuntu-latest
+    env:
+      # 仓库 .npmrc 的 npmmirror 是本机网络对策；CI 海外 runner 走官方源
+      npm_config_registry: "https://registry.npmjs.org"
     defaults:
       run:
         working-directory: webapp
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
+      - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm build
       - run: pnpm test
