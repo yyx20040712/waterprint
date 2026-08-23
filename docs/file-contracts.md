@@ -18,7 +18,7 @@
 | `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema（加载即静态校验：R1a~R1e/R4） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig |
 | `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用 manifest 定义） |
 | `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema | 项目 JSON | ProjectFile 校验模型 |
-| `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线） | 引擎产出 | PlantResult、TraceNode |
+| `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线；确定性序列化正门 R3/R6） | 引擎产出 | PlantResult、UnitResultSnapshot、TraceNode、ReproTriple、serialize、deserialize、InvalidResultError |
 | `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
 | `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
 | `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv |
