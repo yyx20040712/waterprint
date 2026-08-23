@@ -52,6 +52,10 @@
 #     直接可比；deserialize 收 bytes，往返serialize(deserialize(x))==x。
 #   - Warning 构造面无数值字段（字符串/枚举/字符串元组）——NaN 面只在
 #     serialize/deserialize 的数值通路上（探针集中处，简报 §5）。
+#   - R1 修复轮收紧（二审 T3A-03+T3G-01，2026-08-23）：deserialize
+#     四顶层键必在（缺一拒，消息含缺失键名）+ 根级未知键拒（消息含
+#     未知键名）+ 未知键拒下推 trace/snapshot/warning/repro 节点级 +
+#     Warning.param_key/condition_key 校验 None|str（消 7→7.0 往返漂移）。
 #   - 数值纪律：本文件不在魔法数字白名单——数值字面量仅 round(x,10) 的 10。
 #
 # 【测试要求】往返无损、确定性序列化、按 condition_key 索引完整性、
@@ -78,6 +82,27 @@ _JSON_KWARGS: dict[str, Any] = {
     "ensure_ascii": False,
     "separators": (",", ":"),
 }
+# 各节点合法键集（deserialize 未知键拒的判据——与上文 dataclass 字段一一对应）
+_ROOT_KEYS: frozenset[str] = frozenset({"conditions", "summary", "trace", "repro"})
+_TRACE_NODE_KEYS: frozenset[str] = frozenset(
+    {"formula_id", "inputs", "output", "norm_ref", "unit_id", "condition_key"}
+)
+_SNAPSHOT_KEYS: frozenset[str] = frozenset(
+    {"unit_id", "outflows", "outqualities", "dims", "warnings", "formula_ids"}
+)
+_WARNING_KEYS: frozenset[str] = frozenset(
+    {
+        "severity",
+        "source",
+        "message",
+        "param_key",
+        "condition_key",
+        "affected_unit_ids",
+    }
+)
+_REPRO_KEYS: frozenset[str] = frozenset(
+    {"design_hash", "engine_version", "data_version"}
+)
 
 
 class InvalidResultError(Exception):
@@ -250,6 +275,42 @@ def _require_str(value: Any, path: str) -> str:
     return value
 
 
+def _require_opt_str(value: Any, path: str) -> str | None:
+    """结构守卫：可选字符串叶子（None|str——消 7→7.0 往返字节漂移面）。"""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise InvalidResultError(
+            f"结果数据结构非法：{path} 应为字符串或 null，得到 {value!r}"
+            "（T3A-03：可选字段只收 str|None，禁止数值静默漂移）"
+        )
+    return value
+
+
+def _reject_missing_keys(
+    raw: Mapping[str, Any], required: frozenset[str], path: str
+) -> None:
+    """结构守卫：必需键缺一即拒（消息含缺失键名——T3A-03 段级宽松封死）。"""
+    missing = sorted(key for key in required if key not in raw)
+    if missing:
+        raise InvalidResultError(
+            f"结果数据结构非法：{path} 缺失必需键 {missing}"
+            "（T3A-03——四顶层键必在，禁止段级缺省静默通过）"
+        )
+
+
+def _reject_unknown_keys(
+    raw: Mapping[str, Any], allowed: frozenset[str], path: str
+) -> None:
+    """结构守卫：未知键即拒（消息含未知键名——T3G-01 节点级下推）。"""
+    unknown = sorted(set(raw) - allowed)
+    if unknown:
+        raise InvalidResultError(
+            f"结果数据结构非法：{path} 含未知键 {unknown}（合法键 {sorted(allowed)}）"
+            "（T3G-01——与 project_schema extra=forbid 同精神）"
+        )
+
+
 def _require_number(value: Any, path: str) -> float:
     """结构守卫：数值叶子（再过有限性守卫）。"""
     if isinstance(value, bool) or not isinstance(value, int | float):
@@ -275,8 +336,9 @@ def _require_str_tuple(value: Any, path: str) -> tuple[str, ...]:
 
 
 def _warning_of(value: Any, path: str) -> Warning:
-    """Warning 节点重建：severity 枚举 + 三必带字段。"""
+    """Warning 节点重建：severity 枚举 + 三必带字段 + 未知键拒。"""
     raw = _require_mapping(value, path)
+    _reject_unknown_keys(raw, _WARNING_KEYS, path)
     severity_raw = _require_str(raw.get("severity"), f"{path}.severity")
     try:
         severity = Severity(severity_raw)
@@ -288,8 +350,10 @@ def _warning_of(value: Any, path: str) -> Warning:
         severity=severity,
         source=_require_str(raw.get("source"), f"{path}.source"),
         message=_require_str(raw.get("message"), f"{path}.message"),
-        param_key=raw.get("param_key"),
-        condition_key=raw.get("condition_key"),
+        param_key=_require_opt_str(raw.get("param_key"), f"{path}.param_key"),
+        condition_key=_require_opt_str(
+            raw.get("condition_key"), f"{path}.condition_key"
+        ),
         affected_unit_ids=_require_str_tuple(
             raw.get("affected_unit_ids", []), f"{path}.affected_unit_ids"
         ),
@@ -299,6 +363,7 @@ def _warning_of(value: Any, path: str) -> Warning:
 def _snapshot_of(value: Any, path: str) -> UnitResultSnapshot:
     """UnitResultSnapshot 节点重建。"""
     raw = _require_mapping(value, path)
+    _reject_unknown_keys(raw, _SNAPSHOT_KEYS, path)
     return UnitResultSnapshot(
         unit_id=_require_str(raw.get("unit_id"), f"{path}.unit_id"),
         outflows=_require_float_mapping(raw.get("outflows"), f"{path}.outflows"),
@@ -326,8 +391,9 @@ def _require_list(value: Any, path: str) -> list[Any]:
 
 
 def _trace_node_of(value: Any, path: str) -> TraceNode:
-    """TraceNode 节点重建（五要素完备）。"""
+    """TraceNode 节点重建（五要素完备 + 未知键拒）。"""
     raw = _require_mapping(value, path)
+    _reject_unknown_keys(raw, _TRACE_NODE_KEYS, path)
     return TraceNode(
         formula_id=_require_str(raw.get("formula_id"), f"{path}.formula_id"),
         inputs=_require_float_mapping(raw.get("inputs"), f"{path}.inputs"),
@@ -349,8 +415,10 @@ def deserialize(data: bytes) -> PlantResult:
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise InvalidResultError(f"结果数据非法 JSON（UTF-8/NaN 面）：{exc}") from exc
     root = _require_mapping(tree, "$")
-    conditions_raw = _require_mapping(root.get("conditions", {}), "$.conditions")
-    summary_raw = _require_mapping(root.get("summary", {}), "$.summary")
+    _reject_missing_keys(root, _ROOT_KEYS, "$")
+    _reject_unknown_keys(root, _ROOT_KEYS, "$")
+    conditions_raw = _require_mapping(root["conditions"], "$.conditions")
+    summary_raw = _require_mapping(root["summary"], "$.summary")
     return PlantResult(
         conditions={
             key: {
@@ -365,15 +433,16 @@ def deserialize(data: bytes) -> PlantResult:
         },
         trace=tuple(
             _trace_node_of(node, f"$.trace[{index}]")
-            for index, node in enumerate(_require_list(root.get("trace", []), "$.trace"))
+            for index, node in enumerate(_require_list(root["trace"], "$.trace"))
         ),
-        repro=_repro_of(root.get("repro"), "$.repro"),
+        repro=_repro_of(root["repro"], "$.repro"),
     )
 
 
 def _repro_of(value: Any, path: str) -> ReproTriple:
-    """三元组节点重建（三键必在，R4）。"""
+    """三元组节点重建（三键必在，R4；未知键拒）。"""
     raw = _require_mapping(value, path)
+    _reject_unknown_keys(raw, _REPRO_KEYS, path)
     return ReproTriple(
         design_hash=_require_str(raw.get("design_hash"), f"{path}.design_hash"),
         engine_version=_require_str(

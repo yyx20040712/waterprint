@@ -60,6 +60,7 @@
 #     指结构字段必带（§8 三必带逐条落字段），非值恒非空。
 #   - UnitContext/UnitResult 的 Mapping 字段构造时快照为只读
 #     （MappingProxyType，quality.py 同款防线）；tuple 字段归一为 tuple。
+#     构造即快照——先复制后代理：外部改原容器不泄漏进对象（T3A-01）。
 #   - UnitManifest 类型面经 TYPE_CHECKING 注解引用（运行时零耦合；
 #     Protocol 属性注解在 future-annotations 下不求值，T3④ 落地接线）。
 #   - 数值纪律：本文件不在魔法数字白名单——零数值字面量。
@@ -148,6 +149,19 @@ class UnitResult:
     dims: Any
     warnings: tuple[Warning, ...]
     formula_ids: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        """Mapping 只读快照冻结 + tuple 归一（与 UnitContext 同款防线，T3A-01）。
+
+        dims 不动：类型 Any（T4 dtype 冻结后只增收紧）；构造即快照——
+        外部 dict/list 传入后即与本对象解绑，后续外部修改不泄漏。
+        """
+        object.__setattr__(self, "outflows", MappingProxyType(dict(self.outflows)))
+        object.__setattr__(
+            self, "outqualities", MappingProxyType(dict(self.outqualities))
+        )
+        object.__setattr__(self, "warnings", tuple(self.warnings))
+        object.__setattr__(self, "formula_ids", tuple(self.formula_ids))
 
 
 class Unit(Protocol):
