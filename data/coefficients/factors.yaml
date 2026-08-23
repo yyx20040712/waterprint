@@ -1,6 +1,6 @@
 # factors —— 三单元经验系数（草案批）
 #
-# 状态：M1 草案（用户授权起草，领域专家签字后生效）。
+# 状态：0.1.0 已生效——领域专家 yyx20040712 于 2026-08-23 人工审核通过（含核对工作单与二审补充项）。
 # 键形态：factor.<unit>.<quantity>；粗/细格栅共用常数以 factor.screen.* 命名
 #   （旧系统 _BarScreenBase 基类共用实现，值完全相同，不按单元重复建条目）。
 # 全部数值为旧系统实际使用的基线值；正式依据待核对 GB 50014-2021 /
@@ -229,3 +229,41 @@
   unit: "dimensionless"
   source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
   note: "径深比 D/h₂ 上限"
+
+# ── 签字环节补录（二审裁决确认的缺口：概算口径系数与经验水头损失） ──
+
+- key: "factor.cugeshan.wall_thickness_coef"
+  value: 0.3
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（CG-F14 概算口径）；2026-08-23 专家审核通过补录"
+  note: "粗格栅混凝土量估算壁厚系数（概算口径，非结构计算）"
+
+- key: "factor.chenshachi.wall_thickness_coef"
+  value: 0.4
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（CS-F18 概算口径）；2026-08-23 专家审核通过补录"
+  note: "旋流沉砂池混凝土量估算壁厚系数（概算口径，非结构计算）"
+
+- key: "factor.chenshachi.hopper_upper_ratio"
+  value: 0.5
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（CS-F9 d_upper = 0.5·D）；2026-08-23 专家审核通过补录"
+  note: "砂斗上口直径与池径之比"
+
+- key: "factor.cugeshan.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（elevation_loss 经验值）；2026-08-23 专家审核通过补录"
+  note: "粗格栅过栅水头损失经验值（高程链输入；正式公式损失另由 elevation/losses 计算）"
+
+- key: "factor.xigeshan.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（elevation_loss 经验值）；2026-08-23 专家审核通过补录"
+  note: "细格栅过栅水头损失经验值（高程链输入）"
+
+- key: "factor.chenshachi.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（elevation_loss 经验值）；2026-08-23 专家审核通过补录"
+  note: "旋流沉砂池水头损失经验值（高程链输入）"
