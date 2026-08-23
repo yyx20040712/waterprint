@@ -15,7 +15,9 @@
 #
 # 【行为规格】
 #   R1 文件操作只经 core.project.io（确定性序列化/原子保存/锁探测
-#      在 core 实现）；本层加目录白名单与 id 校验（§18）。
+#      在 core 实现）；core 侧调用一律经 waterprint.app 对应用例
+#      （load_project/save_project 薄封装，SENS-B 2026-08-23 UF-33）；
+#      本层加目录白名单与 id 校验（§18）。
 #   R2 save 返回 design_changed 布尔（hash 对比）——routers 据此响应
 #      dirty 语义（§17.1 项目保存行：保存只写 view 态不触发计算）。
 #   R3 导入旧格式：core.project.migration + best-effort 字段映射，

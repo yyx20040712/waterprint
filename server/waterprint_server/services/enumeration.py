@@ -18,7 +18,10 @@
 #   R2 分页默认 200/页（§12.2）；排序参数白名单（字段 ID 或
 #      margin_min/cost），tie_break 固定（solution.ranking R1）。
 #   R3 结果存储：万级行落 arrow 文件（任务产物目录，按 task_id +
-#      三元组命名）；页请求按需重载（§16 A6——不整包回传）。
+#      三元组命名）；页请求按需重载（§16 A6——不整包回传）；core
+#      侧枚举管线调用一律经 waterprint.app 对应用例
+#      （run_enumeration，SENS-B 2026-08-23 UF-33，不直连 solution
+#      子系统）。
 #   R4 无解交付：pass_matrix 全 False → diagnosis 端点可用
 #      （最小冲突集 + 建议）；任务状态 done + feasible_count=0
 #      是合法终态（不是 failed）。

@@ -8,12 +8,22 @@
 # 规格说明（骨架冻结；镜像测试 tests/app/test_app.py）
 #
 # 【公开接口】
-#   class RunEnv(不可变)：engine_version、data_version（系数+单价聚合）、
-#       assumptions、coefficients、price_book——装配一次、执行期只读
+#   class RunEnv(不可变)：定义于 contracts/run_env.py（L0 契约），app
+#       装配并重新导出——engine_version、data_version（系数+单价聚合）、
+#       assumptions、coefficients、price_book、trace_sink、engine_params
+#       （引擎默认带调节影响元数据，UF-08 项 T4/T7 冻结数值）；装配一次、
+#       执行期只读（SENS-B 2026-08-23 UF-31）
 #   assemble(project: ProjectFile, env) -> AssembledGraph
 #       装配：units_lib.discover_units → 按 design 节点实例化 →
 #       构建图执行器入参（唯一允许接触具体单元的地点，§13.1）
 #   run_full_calc(project, conditions, env) -> ResultBundle
+#   run_enumeration(...) -> 枚举结果（SENS-B 2026-08-23 UF-33 新增）：
+#       单单元枚举管线编排薄壳 grid→enumerate→constraints→ranking→
+#       diagnose——逻辑住 solution 各子系统，本文件只穿针引线
+#   export_artifact(...) -> 产物（SENS-B 2026-08-23 UF-33 新增）：
+#       kind→calcbook/audit/dxf/estimate 渲染编排薄壳——逻辑住各子系统
+#   load_project/save_project（SENS-B 2026-08-23 UF-33 新增）：经
+#       project/io 薄封装——编排薄壳，逻辑住 L4.project-trace
 #   class ResultBundle：plant（PlantResult）、profiles（按工况）、
 #       scene（按工况 SceneGraph）、estimate（可选，需求时装配）、
 #       trace（TraceTree）、repro 三元组

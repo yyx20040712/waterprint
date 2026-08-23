@@ -10,6 +10,8 @@
 # 【公开接口】
 #   enumerate_solutions(grid: Grid, upstream: UnitContext,
 #                       unit: Unit, env: RunEnv) -> pandas.DataFrame
+#       （env: RunEnv 类型定义于 contracts/run_env.py——L0 契约，
+#        SENS-B 2026-08-23 UF-31 注记）
 #
 # 【行为规格】
 #   R1 单实现双用（§3 保证 1）：枚举调用与单点计算走**同一个向量化
@@ -23,7 +25,9 @@
 #      param 列与 margin 预备列；排序/分页在 ranking/服务层做，
 #      本文件不做截断（§12.2 分页默认 200 条在服务层）。
 #   R5 NaN 政策：约束外推导致的 NaN 不允许静默通过——显式标注列，
-#      下游过滤时计数报告。
+#      下游过滤时计数报告。口径分界（GR-37，SENS-B 2026-08-23 UF-36）：
+#      GR-02 管量与守恒路径零 NaN/Inf；本结果表 NaN 标注列是终态数据
+#      非中间量，不违 GR-02。
 #
 # 【测试要求】N=1 网格结果 == 单点 compute（防双轨）、结果行数 == total、
 #   非负性/单调性性质、condition_key 标注。

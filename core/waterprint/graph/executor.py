@@ -13,14 +13,17 @@
 #   execute_graph(design: DesignState, units: UnitRegistry,
 #                 conditions: ConditionSet, env: RunEnv) -> PlantResult
 #       唯一执行正门；RunEnv 携带 assumptions/coefficients/trace 收集器/
-#       三元组（design_hash, engine_version, data_version）
+#       三元组（design_hash, engine_version, data_version）——类型定义于
+#       contracts/run_env.py（L0 契约，SENS-B 2026-08-23 UF-31 注记）
 #
 # 【行为规格】
 #   R1 逐工况整图计算：ConditionSet.iter_all() 每个工况独立完整执行，
 #      结果按 condition_key 索引（§14.1）；工况间零共享可变状态。
-#   R2 执行序：split_graph 分层 → 逐层（可并行）执行 → propagate 组装
-#      下游输入 → SCC 回路组交 solve_loop；每单元 compute 经
-#      manifest 工况映射先变换参数（n_active 等），compute 本体无工况分支。
+#   R2 执行序：split_graph 分层 → 逐层执行（v1 串行；并行预留——上线
+#      前提=并串字节级等价常驻测试先行入锁，SENS-B 2026-08-23 UF-35）
+#      → propagate 组装下游输入 → SCC 回路组交 solve_loop；每单元
+#      compute 经 manifest 工况映射先变换参数（n_active 等），compute
+#      本体无工况分支。
 #   R3 可复算：同 (design, conditions, env 三元组) 双跑结果字节级相同
 #      （CI 常驻测试）；缓存不参与语义（incremental.py 只做等价优化）。
 #   R4 计算迹完整：每单元每次 compute 的公式应用都进 trace；

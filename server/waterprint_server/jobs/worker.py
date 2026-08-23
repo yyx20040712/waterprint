@@ -15,11 +15,14 @@
 #   R1 序列化边界（§18 IPC 行）：payload/结果只含经校验的基本类型
 #      （字符串/数值/列表/映射）——外部输入先过 schema 再进 IPC，
 #      永不 pickle 任意对象图。
-#   R2 调用映射：kind → core L4 入口（calc→app.run_full_calc、
-#      enumerate→solution 管线、export_batch→各渲染器）；
+#   R2 调用映射：kind → app L4 入口（calc→run_full_calc、enumerate→
+#      run_enumeration、export_batch→export_artifact；SENS-B 2026-08-23
+#      UF-33——一律经 waterprint.app 用例面，不直连 L3 子系统）；
 #      映射表集中一处，禁止散落 if。
 #   R3 进度上报：阶段百分比 + condition_key（逐工况粒度）；
-#      大结果写 arrow 文件返回路径句柄（§16 A6），不整包过 pickle。
+#      大结果写 arrow 文件返回路径句柄（§16 A6），不整包过 pickle；
+#      落盘一律临时文件+同分区 rename 原子写（GR-38，SENS-B
+#      2026-08-23 UF-38）。
 #   R4 取消协作：每阶段/每批迭代检查令牌；置位 → 清理临时产物 →
 #      返回 cancelled 状态（不写半途结果）。
 #   R5 导入零副作用：本模块 import 不创建池/不连队列（Windows

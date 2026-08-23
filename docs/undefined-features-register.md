@@ -43,7 +43,7 @@
 | UF-17 | 警告 | Warning 数据结构：unit_api.py 只写 `tuple[Warning, ...]`，全库无 Warning 类字段定义；business-logic §8 只定级别与必带信息，结构形态（severity/来源键/参数键/影响面字段集）未写 | 待定义→T3（result_schema/UnitResultSnapshot 冻结时） | 本批 sweep |
 | UF-18 | 警告 | 警告跨工况×单元去重聚合：同一警告在 2+k 工况重复出现，UI 汇总/去重规则无规格（grep "去重" 仅 diagnose 冲突集一处） | 待定义→T3/前端展示层 | 本批 sweep |
 | UF-19 | 水质 | 缺项指标进入下游 compute：quality.py 只定义"缺项不参与混合并记警告"；下游单元公式**需要**该指标时（如 AAO 需 BOD5 而进水缺项）异常还是跳过，无规格 | 待定义→T6/T7（propagate 派生规则同期，必要时单元 manifest 声明必需指标集） | 本批 sweep |
-| UF-20 | 单位 | pint 单位别名集：quantity.py 未定义接受写法（`m3/d` vs `m³/d` 上标、大小写）；pint 默认接受面 vs 项目白名单未拍板，边界实现者自定 | 已定义→T1 冻结白名单（ACCEPTED_INPUT_UNITS 十量类显式写法集，白名单外一律拒、pint 永不接触未审字符串；规格头新增【单位别名白名单】节；锁定测试挂人类解锁批 U-C2，当期证据=实现报告负例命令） | 本批 sweep |
+| UF-20 | 单位 | pint 单位别名集：quantity.py 未定义接受写法（`m3/d` vs `m³/d` 上标、大小写）；pint 默认接受面 vs 项目白名单未拍板，边界实现者自定 | 已定义→T1 冻结白名单（ACCEPTED_INPUT_UNITS 十量类显式写法集，白名单外一律拒、pint 永不接触未审字符串；规格头新增【单位别名白名单】节；已锁定（SENS 批 S2 落盘，用户总授权），当期证据=实现报告负例命令） | 本批 sweep |
 | UF-21 | 前端 | i18n 键命名：dimensions.py 只写 `i18n_key: str`，键格式（前缀/分隔符/命名空间）无约定；webapp 尚无 i18n 体系（grep 无 i18n_key 消费点） | 待定义→前端 i18n 层落地任务 | 本批 sweep |
 | UF-22 | 参数 | ParamSpec 范围端点语义：manifest.py 只写"范围（可选，约束层消费）"，闭/开区间未写——实现者可自创开区间误拒端点合法方案 | 已定义→GR-06（默认闭区间，开区间显式声明） | 本批 sweep |
 | UF-23 | 汇流 | 汇流 ΣQi=0 的除零：propagate.py 负荷加权 ΣCi·Qi/ΣQi，权重全零时 0/0 处置未写 | 已定义→GR-02（运算产生 NaN=compute 内转领域异常上抛） | 本批 sweep |
@@ -84,17 +84,17 @@ grep -n "Σ\|除零\|sum.*==.*0\|权重为零" core/waterprint/graph/propagate.p
 > 新增登记项同样须走上述验证；处置变更（待定义→已定义）在冻结任务的 commit
 > 中回写本表并引用任务号。
 
-## 五、ARCHDEBT 架构审查新增项（2026-08-23，全部**疑似**待总控复审）
+## 五、ARCHDEBT 架构审查新增项（2026-08-23；UF-31/33/34 已裁决落盘 SENS-B 2026-08-23，UF-32 待定义）
 
 > 来源：`.workflow/reports/task-ARCHDEBT-impl-report.md`（架构布局本征复杂度
 > 审查）。四项均为"实现开始后必然撞墙"的结构性沉默，已 grep 验证（见文末）。
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-31 | 分层 | RunEnv 类型归属：graph/executor.py(L3) 与 solution/enumerate.py(L3) 公开签名均引用 `env: RunEnv`，而该类型声明于 app.py(L4)【公开接口】——L3 实现要 import L4 即违反 layers 契约（import-linter 必拦）；类型下沉 contracts(L0)、executor 改收窄参数、还是 TYPE_CHECKING 类逃生口，规格均未写（TYPE_CHECKING 是否算违规 import 亦沉默） | **疑似**→待定义 T4/T7（与 UF-08 引擎参数落点同批冻结） | ARCHDEBT |
+| UF-31 | 分层 | RunEnv 类型归属：graph/executor.py(L3) 与 solution/enumerate.py(L3) 公开签名均引用 `env: RunEnv`，而该类型声明于 app.py(L4)【公开接口】——L3 实现要 import L4 即违反 layers 契约（import-linter 必拦）；类型下沉 contracts(L0)、executor 改收窄参数、还是 TYPE_CHECKING 类逃生口，规格均未写（TYPE_CHECKING 是否算违规 import 亦沉默） | 已定义→contracts/run_env.py：RunEnv 下沉 L0（app 装配并重新导出；engine_params 承接 UF-08 引擎参数条目，T4/T7 冻结数值）；executor/enumerate/app 规格头来源注记同步（SENS-B 2026-08-23） | ARCHDEBT |
 | UF-32 | 总线 | 跨 L3 数据流的契约载体：ElevationProfile 定义于 elevation/profile.py(L3)，而 drafting 的 `__init__`/profile_drawing.py/section_view.py(L3) 规格头明文以其为输入（"标高唯一真源"）；independence 契约禁 L3 互 import、§1b drafting 仅→contracts，contracts 目录无此类型、result_schema 规格头亦无 Profile 条目——M2/M4 出图实现无合法取数路径。SceneGraph/EstimateSheet 同为子系统自有类型（仅 app ResultBundle 聚合），总线序列化形态同样未定 | **疑似**→待定义（T3 result_schema 冻结扩展时拍板，或 M2 前专项） | ARCHDEBT |
-| UF-33 | 图谱 | server→core 依赖边缺位：调用链 §2 与规格头声明 services/projects→project/io、services/enumeration→solution/\*、services/exports→trace/calcbook+drafting、worker R2 kind 映射直连 solution/各渲染器；§1b 边表仅声明 services→app、jobs→app——按现规格实现即产生 §1b 之外的 import（违反 AGENTS §13"真实 import ⊆ 声明边"）。当前 check_module_graph 不校验"§2 链路步骤 ⊆ §1b 边表"、真实 import 扫描是 B3 待办，门禁暂不拦 | **疑似**→待定义 T4 server 实现前（二选一：扩 app.py 用例面收口一切 server→core 调用，或按"改依赖先改图谱"先补 §1b 边） | ARCHDEBT |
-| UF-34 | 分层 | L0 契约层准入标准：L0 现混合四类内容——数据 schema（flow/quality/sludge/project_schema/result_schema）、协议（ports/unit_api/trace_api）、声明 schema+DSL 文法（manifest/condition）、可执行引擎（expr.py，全库唯一真实现 331 行）与量纲真源（quantity）；"什么允许进 L0"无规格——任何"多下层都要用"的共享物都有理由下沉 L0，commons 温床风险（每文件单独看都合理，累积即成垃圾抽屉层） | **疑似**→待拍板（建议立 GR：L0 准入判据，如"仅冻结契约/协议/被 ≥2 个非 L4 层共同消费的 DSL 内核"） | ARCHDEBT |
+| UF-33 | 图谱 | server→core 依赖边缺位：调用链 §2 与规格头声明 services/projects→project/io、services/enumeration→solution/\*、services/exports→trace/calcbook+drafting、worker R2 kind 映射直连 solution/各渲染器；§1b 边表仅声明 services→app、jobs→app——按现规格实现即产生 §1b 之外的 import（违反 AGENTS §13"真实 import ⊆ 声明边"）。当前 check_module_graph 不校验"§2 链路步骤 ⊆ §1b 边表"、真实 import 扫描是 B3 待办，门禁暂不拦 | 已定义→方案 A：app.py 用例面收口（新增 run_enumeration/export_artifact/load_project+save_project 三用例），structure-graph §2 四链 server 段终点改经 app，worker R2 kind 映射与 services 三规格头调用对象表述同步，§1b 边表零新增（SENS-B 2026-08-23） | ARCHDEBT |
+| UF-34 | 分层 | L0 契约层准入标准：L0 现混合四类内容——数据 schema（flow/quality/sludge/project_schema/result_schema）、协议（ports/unit_api/trace_api）、声明 schema+DSL 文法（manifest/condition）、可执行引擎（expr.py，全库唯一真实现 331 行）与量纲真源（quantity）；"什么允许进 L0"无规格——任何"多下层都要用"的共享物都有理由下沉 L0，commons 温床风险（每文件单独看都合理，累积即成垃圾抽屉层） | 已定义→GR-36（conventions §11：L0 准入三类判据——冻结 schema/跨层协议/≥2 非 L4 层共消费的 DSL 内核或量纲真源，禁 I/O 与可变状态，file-contracts 行注明类别；run_env.py 行已按类②登记）（SENS-B 2026-08-23） | ARCHDEBT |
 
 ### 五项验证命令摘要（仓库根执行，2026-08-23）
 
@@ -118,7 +118,7 @@ grep -n "| \`waterprint_server.jobs\` |" docs/structure-graph.md
 grep -rn "准入" docs/ AGENTS.md            # 无 L0 语境命中
 ```
 
-## 六、ARCHDEBT 动态运行时补充审查新增项（2026-08-23 第二轮，全部**疑似**待总控复审）
+## 六、ARCHDEBT 动态运行时补充审查新增项（2026-08-23 第二轮；UF-35~38 已裁决落盘 SENS-B 2026-08-23）
 
 > 背景：静态门禁合规 ≠ 动态运转正确。第二轮针对**运行时行为**（并行执行、
 > 数值运行期警告、并发时序、产物落盘与留存）系统清查；来源：
@@ -128,10 +128,10 @@ grep -rn "准入" docs/ AGENTS.md            # 无 L0 语境命中
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-35 | 执行 | 层内并行的语义与等价性：executor.py R2"逐层（可并行）执行"、topo.py"同层可并行"——"可并行"是**许可**还是**要求**未定；若许可，"并行执行与串行执行字节级相同"无任何测试要求（"双跑 diff=0"只保证同模式双跑，并行路径带完成序累积 bug 时可同模式侥幸双绿）；若 v1 实为串行，规格也未写"并行是预留、v1 串行" | **疑似**→待定义 T7（executor 实现时二选一冻结：v1 串行并行预留，或并行上线+并串等价常驻测试） | ARCHDEBT |
-| UF-36 | 数值 | numpy 运行期警告/errstate 载体：GR-02 已定义 NaN/±Inf 政策（运算产生=转领域异常），但向量化 compute 的**执行载体**未写——`np.errstate(raise=...)` 上下文、算后 `isfinite` 守卫、`where=` 分母保护三种选择运行时行为不同（numpy 默认只发 warning 且值继续传播，恰是 GR-02 要禁的静默路径）；另 GR-02"禁 NaN 参与"与 enumerate.py R5"NaN 显式标注列放行"的相容口径（GR-02 管量/守恒路径、enumerate 管表格列？）未写 | **疑似**→待定义 T6/T7（首个向量化 compute 实现时冻结载体与口径分界） | ARCHDEBT |
-| UF-37 | 并发 | stale 判定时序与幂等并发窗口：calculation.py R1"完成时对比当前 hash"与 calc.py R1"完成后标 stale"是**完成时一次性标记**，exports.py R1 却是**消费时实时比对**——同一 stale 概念两种判定时机并存，标记后 design 再变则 calc 侧响应带过期 fresh 标志；"对比→标记/写入"check-then-act 窗口与 apply_solution 并发交错无规格（单进程 asyncio 假定下需写明"同一事件循环临界区"之类的保证）；幂等键并发双提交的查重窗口同样未写 | **疑似**→待定义 T4（server 实现时冻结：统一判定时机 + 临界区保证 + 幂等查重原子性） | ARCHDEBT |
-| UF-38 | 落盘 | 非项目文件的落盘原子性与产物留存：原子写目前只有 project/io.py R4（临时文件+rename 同分区）一处先例；导出产物（dxf/xlsx/计算书）与枚举 arrow 结果文件的写入原子性未写（幂等重导出"覆盖校验"未说覆盖是否原子，半截产物文件可被消费）；已完成产物（arrow/exports）的**留存/清理策略**未写（磁盘无界增长，取消清理只覆盖临时产物） | **疑似**→待定义 T4（建议立 GR：落盘一律临时文件+rename 推广 io.py R4；留存策略随 settings 上限一并冻结） | ARCHDEBT |
+| UF-35 | 执行 | 层内并行的语义与等价性：executor.py R2"逐层（可并行）执行"、topo.py"同层可并行"——"可并行"是**许可**还是**要求**未定；若许可，"并行执行与串行执行字节级相同"无任何测试要求（"双跑 diff=0"只保证同模式双跑，并行路径带完成序累积 bug 时可同模式侥幸双绿）；若 v1 实为串行，规格也未写"并行是预留、v1 串行" | 已定义→executor.py R2 措辞裁决：逐层执行（v1 串行；并行预留——上线前提=并串字节级等价常驻测试先行入锁）（SENS-B 2026-08-23） | ARCHDEBT |
+| UF-36 | 数值 | numpy 运行期警告/errstate 载体：GR-02 已定义 NaN/±Inf 政策（运算产生=转领域异常），但向量化 compute 的**执行载体**未写——`np.errstate(raise=...)` 上下文、算后 `isfinite` 守卫、`where=` 分母保护三种选择运行时行为不同（numpy 默认只发 warning 且值继续传播，恰是 GR-02 要禁的静默路径）；另 GR-02"禁 NaN 参与"与 enumerate.py R5"NaN 显式标注列放行"的相容口径（GR-02 管量/守恒路径、enumerate 管表格列？）未写 | 已定义→GR-37（conventions §11：compute 数值路径局部 np.errstate 承接、isfinite 仅二道网；GR-02 与 enumerate 结果表 NaN 标注列口径分界）；enumerate.py R5 已补引用（SENS-B 2026-08-23） | ARCHDEBT |
+| UF-37 | 并发 | stale 判定时序与幂等并发窗口：calculation.py R1"完成时对比当前 hash"与 calc.py R1"完成后标 stale"是**完成时一次性标记**，exports.py R1 却是**消费时实时比对**——同一 stale 概念两种判定时机并存，标记后 design 再变则 calc 侧响应带过期 fresh 标志；"对比→标记/写入"check-then-act 窗口与 apply_solution 并发交错无规格（单进程 asyncio 假定下需写明"同一事件循环临界区"之类的保证）；幂等键并发双提交的查重窗口同样未写 | 已定义→守门一律消费时实时比对（exports.py R1 统一口径）；calculation"完成时对比"降级为 UI 提示性标记（不作守门依据）；幂等查重与 stale 标记须在同一事件循环临界区内完成（单进程 asyncio 契约）——calculation.py R1/calc.py R1/exports.py R1 三规格头已加注（SENS-B 2026-08-23） | ARCHDEBT |
+| UF-38 | 落盘 | 非项目文件的落盘原子性与产物留存：原子写目前只有 project/io.py R4（临时文件+rename 同分区）一处先例；导出产物（dxf/xlsx/计算书）与枚举 arrow 结果文件的写入原子性未写（幂等重导出"覆盖校验"未说覆盖是否原子，半截产物文件可被消费）；已完成产物（arrow/exports）的**留存/清理策略**未写（磁盘无界增长，取消清理只覆盖临时产物） | 已定义→GR-38（conventions §11：一切落盘产物临时文件+同分区 rename 原子落盘，推广 io.py R4；留存上限与清理策略属 settings 配置，T4 冻结数值）；worker.py R3/exports.py R2 已补引用（SENS-B 2026-08-23） | ARCHDEBT |
 
 ### 六批验证命令摘要（仓库根执行，2026-08-23）
 
