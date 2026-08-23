@@ -16,7 +16,7 @@
 |------|------|----------------------------------------------|------|------|
 | UF-01 | 数值语义 | 浮点断言容差无基准：测试该用 approx 还是绝对相等、容差多少，各规格头未写，实现者随手拍 | 已定义→GR-01 | conventions §1 |
 | UF-02 | 数值语义 | NaN/±Inf 处置：规格头只列异常类型，0/0、溢出产生的 NaN 如何拦截未写（会静默流进出水裕度） | 已定义→GR-02 | conventions §1 |
-| UF-03 | 数值语义 | Q=0 与负值语义：负值拒绝已有散点（quality R2），Q=0 是否合法、与厂界 flow.py R2（q>0）的口径分界未写 | 已定义→GR-04（厂界仍按 flow.py R2，分界说明见该条绑定）→待定义 T6/T7 propagate 冻结时正式定稿厂界口径（总控 2026-08-23 已认可 GR-04 分界） | conventions §1 |
+| UF-03 | 数值语义 | Q=0 与负值语义：负值拒绝已有散点（quality R2），Q=0 是否合法、与厂界 flow.py R2（q>0）的口径分界未写 | 已定义→GR-04（厂界仍按 flow.py R2，分界说明见该条绑定；厂界口径随 T6/T7 propagate 冻结时定稿——总控 2026-08-23 已认可 GR-04 分界） | conventions §1 |
 | UF-04 | 确定性 | set 迭代序：`sorted()` 与中文键 locale 陷阱无规格（跨进程/CI 双跑字节差且不可复现） | 已定义→GR-16 | conventions §4 |
 | UF-05 | 错误处理 | 异常消息稳定性：消息可否随重构改写未定义（改写=跨版本计算迹 diff 全线飘红） | 已定义→GR-09 | conventions §2 |
 | UF-06 | 汇流 | 汇流派生规则：q_avg_total=Σ、Kz_total=max、q_design 派生与两档加权一致性，propagate 规格只写 R1/R2 语义未列派生式，实现 mix() 前须冻结 | 待定义→T6/T7（propagate 实现任务首条冻结项） | unified B1 / DS-09 |
@@ -73,7 +73,7 @@ grep -rn "去重" core/waterprint --include="*.py"          # 仅 diagnose 冲�
 grep -rn "缺项" core/waterprint --include="*.py"          # 仅 quality.py（混合跳过）
 grep -rn "别名\|³" core/waterprint/contracts/quantity.py  # 0 命中
 grep -rln "i18n_key" webapp/src                            # 0 命中
-grep -rn "闭区间\|端点\|inclusive" core/waterprint -r      # 0 命中
+grep -rn "闭区间\|端点\|inclusive" core/waterprint -r      # 0 命中（ParamSpec 范围闭/开端点语义未写，后立 GR-06）
 grep -rn "行业上下限" core/waterprint --include="*.py"     # 仅 flow.py R3（Kz 单点）
 grep -rn "重启\|restart" server/waterprint_server -r       # 0 命中
 grep -rn "percent" server/waterprint_server/jobs/*.py      # 仅"阶段百分比"粒度，无加权口径
