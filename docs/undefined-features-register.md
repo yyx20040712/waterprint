@@ -83,3 +83,71 @@ grep -n "Σ\|除零\|sum.*==.*0\|权重为零" core/waterprint/graph/propagate.p
 
 > 新增登记项同样须走上述验证；处置变更（待定义→已定义）在冻结任务的 commit
 > 中回写本表并引用任务号。
+
+## 五、ARCHDEBT 架构审查新增项（2026-08-23，全部**疑似**待总控复审）
+
+> 来源：`.workflow/reports/task-ARCHDEBT-impl-report.md`（架构布局本征复杂度
+> 审查）。四项均为"实现开始后必然撞墙"的结构性沉默，已 grep 验证（见文末）。
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-31 | 分层 | RunEnv 类型归属：graph/executor.py(L3) 与 solution/enumerate.py(L3) 公开签名均引用 `env: RunEnv`，而该类型声明于 app.py(L4)【公开接口】——L3 实现要 import L4 即违反 layers 契约（import-linter 必拦）；类型下沉 contracts(L0)、executor 改收窄参数、还是 TYPE_CHECKING 类逃生口，规格均未写（TYPE_CHECKING 是否算违规 import 亦沉默） | **疑似**→待定义 T4/T7（与 UF-08 引擎参数落点同批冻结） | ARCHDEBT |
+| UF-32 | 总线 | 跨 L3 数据流的契约载体：ElevationProfile 定义于 elevation/profile.py(L3)，而 drafting 的 `__init__`/profile_drawing.py/section_view.py(L3) 规格头明文以其为输入（"标高唯一真源"）；independence 契约禁 L3 互 import、§1b drafting 仅→contracts，contracts 目录无此类型、result_schema 规格头亦无 Profile 条目——M2/M4 出图实现无合法取数路径。SceneGraph/EstimateSheet 同为子系统自有类型（仅 app ResultBundle 聚合），总线序列化形态同样未定 | **疑似**→待定义（T3 result_schema 冻结扩展时拍板，或 M2 前专项） | ARCHDEBT |
+| UF-33 | 图谱 | server→core 依赖边缺位：调用链 §2 与规格头声明 services/projects→project/io、services/enumeration→solution/\*、services/exports→trace/calcbook+drafting、worker R2 kind 映射直连 solution/各渲染器；§1b 边表仅声明 services→app、jobs→app——按现规格实现即产生 §1b 之外的 import（违反 AGENTS §13"真实 import ⊆ 声明边"）。当前 check_module_graph 不校验"§2 链路步骤 ⊆ §1b 边表"、真实 import 扫描是 B3 待办，门禁暂不拦 | **疑似**→待定义 T4 server 实现前（二选一：扩 app.py 用例面收口一切 server→core 调用，或按"改依赖先改图谱"先补 §1b 边） | ARCHDEBT |
+| UF-34 | 分层 | L0 契约层准入标准：L0 现混合四类内容——数据 schema（flow/quality/sludge/project_schema/result_schema）、协议（ports/unit_api/trace_api）、声明 schema+DSL 文法（manifest/condition）、可执行引擎（expr.py，全库唯一真实现 331 行）与量纲真源（quantity）；"什么允许进 L0"无规格——任何"多下层都要用"的共享物都有理由下沉 L0，commons 温床风险（每文件单独看都合理，累积即成垃圾抽屉层） | **疑似**→待拍板（建议立 GR：L0 准入判据，如"仅冻结契约/协议/被 ≥2 个非 L4 层共同消费的 DSL 内核"） | ARCHDEBT |
+
+### 五项验证命令摘要（仓库根执行，2026-08-23）
+
+```bash
+# UF-31：类型声明在 L4、引用在 L3；docs 仅 UF-08/09/10 涉 RunEnv（均未涉类型家）
+grep -rn "RunEnv" core/waterprint          # app.py:11（声明）/executor.py:14-15、enumerate.py:12（引用）
+grep -rn "RunEnv" docs                     # 仅 undefined-features-register UF-08/09/10
+grep -rn "TYPE_CHECKING" docs core/pyproject.toml AGENTS.md   # 0 命中（逃生口未定义）
+
+# UF-32：drafting 侧明文引用 ElevationProfile，contracts 零命中
+grep -rn "ElevationProfile" core/waterprint   # drafting/__init__.py、profile_drawing.py、
+                                              # section_view.py 引用；contracts/ 0 命中
+grep -n "Profile\|Scene\|Estimate" core/waterprint/contracts/result_schema.py  # 0 命中
+
+# UF-33：§2 调用链 vs §1b 边表（§1b 的 services/jobs 行仅 jobs/settings/app 三向）
+sed -n '96,106p' docs/structure-graph.md   # §2 枚举/导出链直达 solution/trace/drafting
+grep -n "| \`waterprint_server.services\` |" docs/structure-graph.md
+grep -n "| \`waterprint_server.jobs\` |" docs/structure-graph.md
+
+# UF-34：全 docs 无 L0 准入判据（"准入"仅 conventions 新条目准入一义）
+grep -rn "准入" docs/ AGENTS.md            # 无 L0 语境命中
+```
+
+## 六、ARCHDEBT 动态运行时补充审查新增项（2026-08-23 第二轮，全部**疑似**待总控复审）
+
+> 背景：静态门禁合规 ≠ 动态运转正确。第二轮针对**运行时行为**（并行执行、
+> 数值运行期警告、并发时序、产物落盘与留存）系统清查；来源：
+> `.workflow/reports/task-ARCHDEBT-impl-report.md` §8。
+> 注意与 §三"多工况并行度无关性（已定义不登记）"的区分：该条覆盖
+> **工况间**，本批 UF-35 指同工况内**拓扑层内**并行，互不重叠。
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-35 | 执行 | 层内并行的语义与等价性：executor.py R2"逐层（可并行）执行"、topo.py"同层可并行"——"可并行"是**许可**还是**要求**未定；若许可，"并行执行与串行执行字节级相同"无任何测试要求（"双跑 diff=0"只保证同模式双跑，并行路径带完成序累积 bug 时可同模式侥幸双绿）；若 v1 实为串行，规格也未写"并行是预留、v1 串行" | **疑似**→待定义 T7（executor 实现时二选一冻结：v1 串行并行预留，或并行上线+并串等价常驻测试） | ARCHDEBT |
+| UF-36 | 数值 | numpy 运行期警告/errstate 载体：GR-02 已定义 NaN/±Inf 政策（运算产生=转领域异常），但向量化 compute 的**执行载体**未写——`np.errstate(raise=...)` 上下文、算后 `isfinite` 守卫、`where=` 分母保护三种选择运行时行为不同（numpy 默认只发 warning 且值继续传播，恰是 GR-02 要禁的静默路径）；另 GR-02"禁 NaN 参与"与 enumerate.py R5"NaN 显式标注列放行"的相容口径（GR-02 管量/守恒路径、enumerate 管表格列？）未写 | **疑似**→待定义 T6/T7（首个向量化 compute 实现时冻结载体与口径分界） | ARCHDEBT |
+| UF-37 | 并发 | stale 判定时序与幂等并发窗口：calculation.py R1"完成时对比当前 hash"与 calc.py R1"完成后标 stale"是**完成时一次性标记**，exports.py R1 却是**消费时实时比对**——同一 stale 概念两种判定时机并存，标记后 design 再变则 calc 侧响应带过期 fresh 标志；"对比→标记/写入"check-then-act 窗口与 apply_solution 并发交错无规格（单进程 asyncio 假定下需写明"同一事件循环临界区"之类的保证）；幂等键并发双提交的查重窗口同样未写 | **疑似**→待定义 T4（server 实现时冻结：统一判定时机 + 临界区保证 + 幂等查重原子性） | ARCHDEBT |
+| UF-38 | 落盘 | 非项目文件的落盘原子性与产物留存：原子写目前只有 project/io.py R4（临时文件+rename 同分区）一处先例；导出产物（dxf/xlsx/计算书）与枚举 arrow 结果文件的写入原子性未写（幂等重导出"覆盖校验"未说覆盖是否原子，半截产物文件可被消费）；已完成产物（arrow/exports）的**留存/清理策略**未写（磁盘无界增长，取消清理只覆盖临时产物） | **疑似**→待定义 T4（建议立 GR：落盘一律临时文件+rename 推广 io.py R4；留存策略随 settings 上限一并冻结） | ARCHDEBT |
+
+### 六批验证命令摘要（仓库根执行，2026-08-23）
+
+```bash
+# UF-35："并行"全部出现点无一处要求并串等价或声明 v1 串行
+grep -rn "并行" core/waterprint docs/*.md AGENTS.md   # topo.py:12/executor.py:21（仅"可并行"）/
+                                                      # register §三（工况间，另一维度）
+# UF-36：运行期数值警告载体 0 命中
+grep -rni "errstate\|RuntimeWarning\|seterr" core/waterprint docs scripts AGENTS.md  # 0 命中
+
+# UF-37：stale 两种判定时机并存；无锁/临界区字样
+grep -rn "stale\|幂等" server/waterprint_server --include="*.py"
+    # calculation.py:21（完成时对比）/calc.py:25（完成后标记）vs exports.py:16（消费时比对）
+grep -rni "锁\|lock\|临界" server/waterprint_server    # 0 命中（io.py"锁探测"在 core 侧）
+
+# UF-38：原子写仅 io.py 先例；留存策略 0 命中（"清理"仅断线客户端与取消临时产物）
+grep -rn "原子" core/waterprint server/waterprint_server docs/file-contracts.md
+grep -rn "保留\|清理\|retention" server/waterprint_server core/waterprint docs/file-contracts.md
+```
