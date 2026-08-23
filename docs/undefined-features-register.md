@@ -3,7 +3,9 @@
 > 业务逻辑本征复杂度高，规格不可能穷举——凡是"规格沉默、实现者会自由发挥"
 > 的特性都在此登记并给出处置。**发现新未定义项：先登记（标"疑似"）再继续，
 > 禁止就地自创语义**（接手提示词第 3 步）。
-> 处置四选一：**已定义→GR-xx**（docs/engineering-conventions.md 条号）/
+> 处置四选一：**已定义→GR-xx 或既有规格条款**（GR-xx 指
+> docs/engineering-conventions.md 条号；指向既有规格时注明文件与条号，
+> 非"本批新增惯例"）/
 > **待定义→T?**（随任务冻结）/ **显式不做**（一句理由）/ **领域专家待拍板**
 > （列入问题清单）。归引用：`unified` = 仓库外统一审计清单
 > `.workflow/review-unified.md`（A/B/C/D 编号）。
@@ -14,7 +16,7 @@
 |------|------|----------------------------------------------|------|------|
 | UF-01 | 数值语义 | 浮点断言容差无基准：测试该用 approx 还是绝对相等、容差多少，各规格头未写，实现者随手拍 | 已定义→GR-01 | conventions §1 |
 | UF-02 | 数值语义 | NaN/±Inf 处置：规格头只列异常类型，0/0、溢出产生的 NaN 如何拦截未写（会静默流进出水裕度） | 已定义→GR-02 | conventions §1 |
-| UF-03 | 数值语义 | Q=0 与负值语义：负值拒绝已有散点（quality R2），Q=0 是否合法、与厂界 flow.py R2（q>0）的口径分界未写 | 已定义→GR-04（厂界仍按 flow.py R2，分界说明见该条绑定） | conventions §1 |
+| UF-03 | 数值语义 | Q=0 与负值语义：负值拒绝已有散点（quality R2），Q=0 是否合法、与厂界 flow.py R2（q>0）的口径分界未写 | 已定义→GR-04（厂界仍按 flow.py R2，分界说明见该条绑定）→待定义 T6/T7 propagate 冻结时正式定稿厂界口径（总控 2026-08-23 已认可 GR-04 分界） | conventions §1 |
 | UF-04 | 确定性 | set 迭代序：`sorted()` 与中文键 locale 陷阱无规格（跨进程/CI 双跑字节差且不可复现） | 已定义→GR-16 | conventions §4 |
 | UF-05 | 错误处理 | 异常消息稳定性：消息可否随重构改写未定义（改写=跨版本计算迹 diff 全线飘红） | 已定义→GR-09 | conventions §2 |
 | UF-06 | 汇流 | 汇流派生规则：q_avg_total=Σ、Kz_total=max、q_design 派生与两档加权一致性，propagate 规格只写 R1/R2 语义未列派生式，实现 mix() 前须冻结 | 待定义→T6/T7（propagate 实现任务首条冻结项） | unified B1 / DS-09 |
@@ -76,6 +78,7 @@ grep -rn "行业上下限" core/waterprint --include="*.py"     # 仅 flow.py R3
 grep -rn "重启\|restart" server/waterprint_server -r       # 0 命中
 grep -rn "percent" server/waterprint_server/jobs/*.py      # 仅"阶段百分比"粒度，无加权口径
 grep -n "时间戳" core/waterprint/contracts/project_schema.py  # 只写含时间戳，无格式
+grep -n "Σ\|除零\|sum.*==.*0\|权重为零" core/waterprint/graph/propagate.py  # 仅 R3 守恒/Σ 行，无 ΣQi=0 处置 → UF-23
 ```
 
 > 新增登记项同样须走上述验证；处置变更（待定义→已定义）在冻结任务的 commit
