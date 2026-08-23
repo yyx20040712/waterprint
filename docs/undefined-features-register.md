@@ -151,3 +151,19 @@ grep -rni "锁\|lock\|临界" server/waterprint_server    # 0 命中（io.py"锁
 grep -rn "原子" core/waterprint server/waterprint_server docs/file-contracts.md
 grep -rn "保留\|清理\|retention" server/waterprint_server core/waterprint docs/file-contracts.md
 ```
+
+## 七、T2 起草期新增项（2026-08-23，疑似待总控复审→随 T2 冻结半壁）
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-39 | 数据装载 | 出水标准库装载机制：quality.py 规格仅一句"STANDARDS 数据驱动加载自 data/coefficients，构造时注入"——加载者（quality 自读 YAML？registry 注入？）、注入形态、与 GR-36"L0 禁 I/O"的调和均未写；data/coefficients 0.1.0 无标准条目（README 规划六文件亦无标准文件），镜像测试不触碰 STANDARDS（工厂内联构造 EffluentStandard） | **疑似**→T2 只交付类型+margin+守卫（STANDARDS 整体挂起）；装载机制待定义→数据工作包同期（A8 类）或 T4，落点须过 GR-36（L0 禁 I/O→倾向 registry(L1) 加载后注入） | T2 起草 |
+
+### 七批验证命令摘要（仓库根执行，2026-08-23）
+
+```bash
+# quality 规格仅一句且未写加载者；data 包无标准文件；register 无既有条目
+grep -n "coefficients\|STANDARDS" core/waterprint/contracts/quality.py   # 仅接口行 15 与参照行 30
+ls data/coefficients/                                                    # 无 standards 文件
+grep -rn "18918\|一级A\|出水标准" data/ docs/norms/                    # 仅 README 规划句与 manifest 槽位注释
+grep -n "标准库\|STANDARDS" docs/undefined-features-register.md          # 本条前零命中
+```
