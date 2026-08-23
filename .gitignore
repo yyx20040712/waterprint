@@ -37,3 +37,6 @@ webapp/src/shared/api/generated/
 
 # 会话/插件运行时状态（不入库）
 .mimosa/
+
+# 工作流产物（会话工作区在仓库外；防误入库）
+.workflow/

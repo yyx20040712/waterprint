@@ -1,0 +1,231 @@
+# factors —— 三单元经验系数（草案批）
+#
+# 状态：M1 草案（用户授权起草，领域专家签字后生效）。
+# 键形态：factor.<unit>.<quantity>；粗/细格栅共用常数以 factor.screen.* 命名
+#   （旧系统 _BarScreenBase 基类共用实现，值完全相同，不按单元重复建条目）。
+# 全部数值为旧系统实际使用的基线值；正式依据待核对 GB 50014-2021 /
+# 给水排水设计手册（草案）。带类系数拆 .min/.max 两键（多档=多键）。
+
+# ── 格栅共用（粗/细） ──
+
+- key: "factor.screen.beta.rect"
+  value: 2.42
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（_BarScreenBase._BAR_SHAPE_BETA，代码注释引 GB 50014-2021 §6.3）；条文号待核对原文"
+  note: "矩形栅条形状系数；粗/细格栅共用"
+
+- key: "factor.screen.beta.semicircle"
+  value: 1.97
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（_BarScreenBase._BAR_SHAPE_BETA）；条文号待核对原文"
+  note: "半圆形（迎水面半圆）栅条形状系数；粗/细格栅共用"
+
+- key: "factor.screen.beta.circle"
+  value: 1.83
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（_BarScreenBase._BAR_SHAPE_BETA）；条文号待核对原文"
+  note: "圆形栅条形状系数；粗/细格栅共用"
+
+- key: "factor.screen.headloss.k"
+  value: 3.0
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（_BarScreenBase 计算 h1 = 3 × h0）；出处待核对"
+  note: "过栅水头损失安全系数 k：h₁ = k·β·(s/b)^(4/3)·v²/(2g)·sinα（教材常见 k=3，待核对正式出处）"
+
+- key: "factor.screen.superheight"
+  value: 0.3
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（栅后总高 H = h + h1 + 0.3）；dimension_formulas 注释引 GB50014 超高≥0.3m，条文号待核对原文"
+  note: "栅后超高；粗/细格栅共用"
+
+- key: "factor.screen.trough_width_margin"
+  value: 0.2
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（栅槽宽 B = s·(n_gap−1) + b·n_gap + 0.2）；语义与出处待核对"
+  note: "栅槽宽度构造裕量；AI 依代码位置命名，语义待领域专家确认"
+
+- key: "factor.screen.trough_length.l3_fixed"
+  value: 1.0
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（栅槽总长 L = L1 + L2 + 1.0 + 0.5 + (0.2+h)/tanα）；语义与出处待核对"
+  note: "栅槽总长固定段常数之一；AI 依代码位置命名（疑为栅槽/设备段长），待领域专家确认"
+
+- key: "factor.screen.trough_length.l4_fixed"
+  value: 0.5
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（同上式）；语义与出处待核对"
+  note: "栅槽总长固定段常数之二；AI 依代码位置命名，待领域专家确认"
+
+- key: "factor.screen.trough_length.drop_constant"
+  value: 0.2
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（同上式 (0.2+h)/tanα 项）；语义与出处待核对"
+  note: "渐窄段起算常数；AI 依代码位置命名（数值恰与槽宽裕量相同，疑为跌落/水深常数），待领域专家确认"
+
+- key: "factor.screen.slag.moisture"
+  value: 0.80
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（calculate 中 P_slag = 0.80）；出处待核对"
+  note: "栅渣含水率（污泥口 DS = W·(1−P)·1000）；粗/细格栅共用"
+
+- key: "factor.screen.slag.vs"
+  value: 0.85
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（SludgeFlow VS_ratio=0.85）；出处待核对"
+  note: "栅渣有机分（VS 比）；粗/细格栅共用"
+
+- key: "factor.screen.mech_clean_threshold"
+  value: 0.2
+  unit: "m3/d"
+  source: "旧系统 mod v5.1.0 交叉基线（W > 0.2 → 机械清渣）；出处待核对"
+  note: "机械清渣判别阈值（日栅渣量）；粗/细格栅共用"
+
+- key: "factor.screen.velocity_band.v.min"
+  value: 0.6
+  unit: "m/s"
+  source: "旧系统 mod v5.1.0 交叉基线（mod.json 参数 min 与 discretization/校核带）；条文号待核对原文"
+  note: "过栅流速下限；粗/细格栅共用"
+
+- key: "factor.screen.velocity_band.v.max"
+  value: 1.0
+  unit: "m/s"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "过栅流速上限；粗/细格栅共用"
+
+- key: "factor.screen.velocity_band.v1.min"
+  value: 0.4
+  unit: "m/s"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "栅前流速下限；粗/细格栅共用"
+
+- key: "factor.screen.velocity_band.v1.max"
+  value: 0.9
+  unit: "m/s"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "栅前流速上限；粗/细格栅共用"
+
+# ── 粗格栅（cugeshan） ──
+
+- key: "factor.cugeshan.w1_slag"
+  value: 0.02
+  unit: "m3/1e3m3"
+  source: "旧系统 mod v5.1.0 交叉基线（CoarseBarScreenNode._W1；代码注释：粗格栅50-100mm W1≈0.01~0.03 取中值）；取值出处待核对"
+  note: "粗格栅栅渣量系数 W₁（m³ 栅渣/10³m³ 污水）；W = Q_avg_daily×W₁/1000；适用栅隙 50~100 mm"
+
+# ── 细格栅（xigeshan） ──
+
+- key: "factor.xigeshan.w1_slag"
+  value: 0.08
+  unit: "m3/1e3m3"
+  source: "旧系统 mod v5.1.0 交叉基线（FineBarScreenNode._W1；代码无出处注释）；取值出处待核对"
+  note: "细格栅栅渣量系数 W₁（m³ 栅渣/10³m³ 污水）；适用栅隙 1.5~10 mm；与粗格栅 0.02 分档，不合并"
+
+# ── 旋流沉砂池（chenshachi） ──
+
+- key: "factor.chenshachi.sand_yield_x"
+  value: 30.0
+  unit: "m3/1e6m3"
+  source: "旧系统 mod v5.1.0 交叉基线（mod.json 参数 X 默认 30，min 15 max 60；公式 (3-24) V_sand=(Q_avg/n)×X/10⁶）；单位为 AI 依量纲推断，取值出处待核对"
+  note: "沉砂量 X（m³ 砂/10⁶m³ 污水，等价 0.03 L/m³）；V_sand = (Q_avg_daily/n)·X/10⁶；适用市政污水旋流沉砂"
+
+- key: "factor.chenshachi.hopper.safety"
+  value: 1.5
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（V_hopper = V_sand×T_clean×1.5，式 (3-25)）；出处待核对"
+  note: "砂斗容积安全系数（含清砂间隔 T_clean 内贮砂裕量）"
+
+- key: "factor.chenshachi.buffer_h3"
+  value: 0.5
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（H_total = h1 + h2 + 0.5 + h4 + h_cyl 中 h3_buf=0.5）；出处待核对"
+  note: "沉砂池缓冲层高度 h₃"
+
+- key: "factor.chenshachi.superheight"
+  value: 0.3
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（mod.json 参数 h1 默认 0.3）；条文号待核对原文"
+  note: "沉砂池超高 h₁"
+
+- key: "factor.chenshachi.grit.moisture"
+  value: 0.60
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（calculate 中 P_grit = 0.60）；出处待核对"
+  note: "沉砂含水率（污泥口 DS = V_sand·(1−P)·1600）"
+
+- key: "factor.chenshachi.grit.vs"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（SludgeFlow VS_ratio=0.05）；出处待核对"
+  note: "沉砂有机分（VS 比）"
+
+- key: "factor.chenshachi.grit.density"
+  value: 1600.0
+  unit: "kg/m3"
+  source: "旧系统 mod v5.1.0 交叉基线（DS 换算系数 1600）；出处待核对"
+  note: "沉砂（湿砂折干）密度，DS = V_sand·(1−0.60)·1600"
+
+- key: "factor.chenshachi.channel.straight_mult"
+  value: 7.0
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（L直 = max(7×B渠, 4.5)，式 (4-28)，注释引中期报告）；对应正式条文待核对"
+  note: "进水直段长度与渠宽之比（旋流沉砂池进水平直段要求）"
+
+- key: "factor.chenshachi.channel.straight_min"
+  value: 4.5
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（同式 (4-28)）；对应正式条文待核对"
+  note: "进水直段长度最小值"
+
+- key: "factor.chenshachi.channel.outlet_mult"
+  value: 2.0
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（B出 = 2×B渠，式 (4-29)）；对应正式条文待核对"
+  note: "出水渠宽与进水渠宽之比"
+
+- key: "factor.chenshachi.surface_load_band.min"
+  value: 150.0
+  unit: "m3/(m2.h)"
+  source: "旧系统 mod v5.1.0 交叉基线（mod.json q_surf min 与 discretization 带宽）；条文号待核对原文"
+  note: "旋流沉砂池表面负荷下限"
+
+- key: "factor.chenshachi.surface_load_band.max"
+  value: 200.0
+  unit: "m3/(m2.h)"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "旋流沉砂池表面负荷上限"
+
+- key: "factor.chenshachi.retention_band.min"
+  value: 25.0
+  unit: "s"
+  source: "旧系统 mod v5.1.0 交叉基线（discretization 约束带与 calculate 校核 25~60 s）；条文号待核对原文"
+  note: "停留时间校核带下限；注意 mod.json 参数 t 的 min=30 与此带不一致，待领域专家裁定"
+
+- key: "factor.chenshachi.retention_band.max"
+  value: 60.0
+  unit: "s"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "停留时间校核带上限"
+
+- key: "factor.chenshachi.h2_band.min"
+  value: 1.0
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（discretization/校核带 有效水深 1.0~2.0）；条文号待核对原文"
+  note: "有效水深下限"
+
+- key: "factor.chenshachi.h2_band.max"
+  value: 2.0
+  unit: "m"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "有效水深上限"
+
+- key: "factor.chenshachi.ratio_dh2_band.min"
+  value: 2.0
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（discretization/校核带 径深比 2.0~2.5）；条文号待核对原文"
+  note: "径深比 D/h₂ 下限"
+
+- key: "factor.chenshachi.ratio_dh2_band.max"
+  value: 2.5
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（同上）；条文号待核对原文"
+  note: "径深比 D/h₂ 上限"

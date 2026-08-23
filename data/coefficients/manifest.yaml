@@ -1,4 +1,8 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.0.0"
+data_version: "0.1.0"
 # 变更记录：
+#   - 0.1.0: M1 三单元草案条目（用户授权起草，领域专家签字后生效）
+#       removal_rates.yaml（粗/细格栅、旋流沉砂池 × BOD5/COD/SS × mod_default/golden_municipal 两档）
+#       + factors.yaml（栅渣量 W1 两档、β 三档、水损 k=3、带类系数等）；
+#       全部条目 source 为旧系统 mod v5.1.0 交叉基线，正式依据待核对 GB 50014-2021（草案）
 #   - 0.0.0: M0 骨架槽位（无条目；去除率/经验系数/出水标准经规范核定后升 1.0.0）

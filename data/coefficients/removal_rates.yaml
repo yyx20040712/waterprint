@@ -1,0 +1,118 @@
+# removal_rates —— 三单元去除率（草案批）
+#
+# 状态：M1 草案（用户授权起草，领域专家签字后生效）。
+# 键形态：removal.<unit>.<indicator>.<tier>
+#   - tier=mod_default：旧系统 mod v5.1.0 代码 _default_removal_rates 实际值；
+#   - tier=golden_municipal：旧系统市政案例文件 resources/yyx.ddesign.json
+#     中该单元节点携带的 removal_rates 覆盖值（运行时实际生效档）。
+# NH3N/TN/TP：旧系统三单元显式取 0.0（无去除逻辑），依"无去除逻辑不设条目"
+# 规则不建条目；单元 manifest.removal_refs 不应引用这三项。
+# 全部数值 source 均为旧系统基线交叉引用，无条文出处——正式依据待领域专家核定。
+
+- key: "removal.cugeshan.bod5.mod_default"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（cugeshan __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "粗格栅 mod 默认档；栅条间隙 50~100 mm 工况"
+
+- key: "removal.cugeshan.cod.mod_default"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（cugeshan __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "粗格栅 mod 默认档"
+
+- key: "removal.cugeshan.ss.mod_default"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（cugeshan __init__.py _default_removal_rates / mod.json removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "粗格栅 mod 默认档"
+
+- key: "removal.cugeshan.bod5.golden_municipal"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例 municipal_34760 粗格栅节点实际生效档（与 mod 默认同值）"
+
+- key: "removal.cugeshan.cod.golden_municipal"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例 municipal_34760 粗格栅节点实际生效档（与 mod 默认同值）"
+
+- key: "removal.cugeshan.ss.golden_municipal"
+  value: 0.03
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档；注意低于 mod 默认 0.05——两档并存不合并，按工况选键"
+
+- key: "removal.xigeshan.bod5.mod_default"
+  value: 0.08
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（xigeshan __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "细格栅 mod 默认档；栅条间隙 1.5~10 mm 工况"
+
+- key: "removal.xigeshan.cod.mod_default"
+  value: 0.08
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（xigeshan __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "细格栅 mod 默认档"
+
+- key: "removal.xigeshan.ss.mod_default"
+  value: 0.08
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（xigeshan __init__.py _default_removal_rates / mod.json removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "细格栅 mod 默认档"
+
+- key: "removal.xigeshan.bod5.golden_municipal"
+  value: 0.04
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档；低于 mod 默认 0.08——两档并存不合并"
+
+- key: "removal.xigeshan.cod.golden_municipal"
+  value: 0.04
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档；低于 mod 默认 0.08——两档并存不合并"
+
+- key: "removal.xigeshan.ss.golden_municipal"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档；低于 mod 默认 0.08——两档并存不合并"
+
+- key: "removal.chenshachi.bod5.mod_default"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（chenshachi __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "旋流沉砂池 mod 默认档"
+
+- key: "removal.chenshachi.cod.mod_default"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（chenshachi __init__.py _default_removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "旋流沉砂池 mod 默认档"
+
+- key: "removal.chenshachi.ss.mod_default"
+  value: 0.10
+  unit: "dimensionless"
+  source: "旧系统 mod v5.1.0 交叉基线（chenshachi __init__.py _default_removal_rates / mod.json removal_rates）；正式依据待核对 GB 50014-2021（草案）"
+  note: "旋流沉砂池 mod 默认档"
+
+- key: "removal.chenshachi.bod5.golden_municipal"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档（与 mod 默认同值）"
+
+- key: "removal.chenshachi.cod.golden_municipal"
+  value: 0.05
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档（与 mod 默认同值）"
+
+- key: "removal.chenshachi.ss.golden_municipal"
+  value: 0.15
+  unit: "dimensionless"
+  source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
+  note: "golden 案例覆盖档；高于 mod 默认 0.10——两档并存不合并，按工况选键"
