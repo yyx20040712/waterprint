@@ -103,13 +103,15 @@ max-branches = 12
 # 测试期望值允许具体数字（唯一合法来源：docs/norms 手算对照表）
 # 锁定测试区工具债豁免（T0.2，AGENTS.md §7：core/tests/ 只读锁定，AI 禁改）：
 # 以下追加规则的命中全部是锁定测试的存量样式债（RUF043/B017/B009/E501/PLC0415/
-# UP037/F401/F541/RUF017/RUF059，共 50 条），待人类解锁流程修复——本豁免只为让
-# CI 可运转，不是认可这些债；其中 F821×2 是真缺陷（tests/contracts/test_condition.py
-# 引用未定义 condition_set，T3 实现 condition.py 后解除跳过即 NameError），必须在
-# T3 实现前由人类解锁修复，此豁免是"先让 CI 可运转"的显式欠账，不是豁免缺陷本身。
+# UP037/F401/F541/RUF017/RUF059，2026-08-23 实测 50 条：RUF043×20/PLC0415×9/
+# B009×6/E501×5/B017×4/UP037×2/F401/F541/RUF017/RUF059 各 1），待人类解锁流程
+# 修复——本豁免只为让 CI 可运转，不是认可这些债。
+# 历史注记：F821 曾在列（tests/contracts/test_condition.py 引用未定义
+# condition_set×2，台账在册真缺陷），已由 U-A 批修复（a86421f）并于 SENS 批
+# S1 核实全 tests 零命中后出列（用户总授权 2026-08-23）。
 "tests/**" = [
     "PLR2004",
-    "RUF043", "B017", "E501", "PLC0415", "B009", "UP037", "F401", "F541", "F821",
+    "RUF043", "B017", "E501", "PLC0415", "B009", "UP037", "F401", "F541",
     "RUF017", "RUF059",
 ]
 "waterprint/units_lib/**/tests/**" = ["PLR2004"]
