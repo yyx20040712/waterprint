@@ -14,7 +14,7 @@
 | `core/waterprint/contracts/quality.py` | L0 | 水质契约 + 出水标准库（标准是数据） | 六指标 + 标准名 | WaterQuality、EffluentStandard、margin、INDICATORS、InvalidQualityError |
 | `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体） | Q_wet/DS/含水率 | SludgeFlow、make_sludge、mix、InvalidSludgeError |
 | `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判） | 端口声明/连线意图 | Port、PortRef、Edge、FluidKind、Direction、validate_edge、InvalidConnection |
-| `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult） | 上游量+参数+工况 | UnitResult 结构契约 |
+| `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult）+ 警告结构（UF-17：Severity/Warning 三必带） | 上游量+参数+工况 | UnitContext、UnitResult、Unit、Severity、Warning |
 | `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema（加载即静态校验） | 清单数据 | UnitManifest |
 | `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用 manifest 定义） |
 | `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema | 项目 JSON | ProjectFile 校验模型 |
