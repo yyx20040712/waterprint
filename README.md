@@ -7,7 +7,7 @@
 > 本地工具链就绪、**已推送 GitHub 且 CI 五 job 全绿**（详见 Actions；
 > 宪法"CI 机器强制"自此实际生效）、三单元系数与手算对照表经领域专家
 > 签字生效（coefficients 0.1.0）、两个 DSL 规格+共享受限求值器落地
-> （contracts/expr.py、trace_api.py）。实现进行中（T1 起）。
+> （contracts/expr.py、trace_api.py）。实现工作自 T1 起（尚未开工）。
 
 ## 快速导览（新成员/AI 按此顺序阅读）
 
