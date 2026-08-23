@@ -22,12 +22,29 @@
 #       constraint_refs: tuple[str, ...]   （constraint_kb 键）
 #   load_manifest(data: Mapping) -> UnitManifest   加载+静态校验正门
 #
+# 【工况映射 DSL】（T0.5 冻结；求值内核 = contracts/expr.py 共享受限求值器）
+#   统一写法：目标参数 → 表达式字符串，形如
+#      {"n_active": "n if pool.all_pools else n - 1"}（本示例为正典，
+#      ADR-007 决策 3 同此写法，消除两处示例漂移的双源）。
+#   语法子集 = 公式 DSL（见 registry/formulas.py【表达式 DSL】）+ 条件
+#      扩展：IfExp（x if cond else y）、Compare（== != < > <= >=）、
+#      BoolOp（and/or）、布尔字面量。
+#   可用名 = 本单元 manifest 声明的 params 键 + 预留上下文字段 pool
+#      （含 all_pools: bool，由工况引擎按 condition 求值注入；点式引用
+#      pool.all_pools 经 expr.parse_checked 以扁平允许名校验、求值以
+#      扁平键从 bindings 取值——归一后表达式树不含 Attribute）。
+#   静态校验（load_manifest 追加，R1c 执行细则）：parse_checked 通过 +
+#      引用名 ⊆ params ∪ {pool.*}。
+#   求值时机：executor 在调 compute 前按 ADR-007 变换参数（graph/executor
+#      R2）；compute 内禁止工况 if 分支（与 ADR-007 一致）。
+#
 # 【行为规格】
 #   R1 静态校验（加载时，失败=启动失败不是运行时警告，§3 保证 2 思想）：
 #      a) 参数 field_id 必须在 dimensions 注册表登记且单位匹配 DimKey；
 #      b) 端口经 ports.validate 语义合法；
 #      c) 工况映射必须是受限 DSL 白名单表达式（禁止任意 Python——声明式，
-#         ADR-007；禁止 compute 式过程逻辑混入清单）；
+#         ADR-007；DSL 定义见【工况映射 DSL】节；禁止 compute 式过程逻辑
+#         混入清单）；
 #      d) norm_refs 非空（无条文出处的设计参数不允许——溯源最低门槛）。
 #   R2 去除率/系数只存引用键，数值在 data/coefficients 数据包（版本化，
 #      随规范版本演进），清单不含魔法数。

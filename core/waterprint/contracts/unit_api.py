@@ -15,7 +15,7 @@
 #       params:   Mapping[字段ID→float]    规范单位裸值（manifest 校验过）
 #       condition: OperatingCondition      当前工况（ADR-007）
 #       assumptions: AssumptionSet         显性化默认假设（registry 注入）
-#       trace: TraceCollector 协议引用     记录公式应用（trace/collector.py）
+#       trace: TraceSink 协议引用          记录公式应用（contracts/trace_api.py）
 #   class UnitResult(不可变)：
 #       outflows: Mapping[PortRef→WaterFlow|SludgeFlow]
 #       outqualities: Mapping[PortRef→WaterQuality]

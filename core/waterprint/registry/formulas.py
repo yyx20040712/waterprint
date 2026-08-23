@@ -18,8 +18,25 @@
 #   validate_all() -> ValidationReport
 #       启动期对全部登记项做静态校验
 #   apply(formula_id, bindings: Mapping[str→float],
-#         ctx: (unit_id, condition_key)) -> float
-#       唯一求值正门：求值同时向 TraceCollector 记录一条 TraceNode
+#         ctx: (unit_id, condition_key),
+#         sink: TraceSink | None = None) -> float
+#       唯一求值正门：内部经 contracts/expr.py eval_checked 求值（禁止
+#       Python eval/exec/lambda），同时向 sink 记录一条 TraceNodeSpec
+#       （协议见 contracts/trace_api.py；registry 只 import contracts——
+#       L1→L0 合法，永不 import L4 收集器）
+#
+# 【表达式 DSL】（T0.5 冻结；求值内核 = contracts/expr.py 共享受限求值器）
+#   语法子集：算术表达式 = Name | Constant | + - * / ** | ( ) |
+#      白名单函数 {min, max, abs, sqrt, log10}；不含比较/布尔/条件
+#      （公式 = 纯数值；Compare/BoolOp/IfExp 属工况映射 DSL，公式侧拒绝）。
+#   symbols：Mapping[符号→(DimKey, 中文含义)]；表达式引用的 Name 集合必须
+#      == symbols 键集（多声明/漏声明 = 登记失败）；output_dim 人工声明
+#      （不做量纲推导，量纲一致性由测试断言背书）。
+#   数值常量允许内联（如堰流 1.36 系数）：常量是公式自身的条文系数，
+#      出处 = FormulaSpec.norm_ref（registry 本就是数值真源区，魔法数字
+#      门禁放行）。
+#   登记期静态校验（validate_all 追加）：parse_checked 通过（在公式语法
+#      子集之内）+ Name 集与 symbols 键集一致 + 白名单函数外无 Call。
 #
 # 【行为规格】
 #   R1 量纲静态校验（§12.1 元数据层）：bindings 的 DimKey 集合与 spec.symbols
