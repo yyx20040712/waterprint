@@ -36,8 +36,7 @@
 #       warnings:  tuple[Warning, ...]
 #       formula_ids: tuple[str, ...]     本次执行实际应用的公式 ID（可审计）
 #   class Unit(Protocol)：结构协议（执行器与具体单元解耦的装配边界）
-#       manifest: UnitManifest      （属性随 T3④ manifest.py 落地接线——
-#                                    依赖序：UnitManifest 定义在后的类型面）
+#       manifest: UnitManifest
 #       def compute(self, ctx: UnitContext) -> UnitResult: ...
 #
 # 【行为规格】
@@ -61,8 +60,8 @@
 #     指结构字段必带（§8 三必带逐条落字段），非值恒非空。
 #   - UnitContext/UnitResult 的 Mapping 字段构造时快照为只读
 #     （MappingProxyType，quality.py 同款防线）；tuple 字段归一为 tuple。
-#   - UnitManifest 类型面依赖经 T3④ manifest.py 落地后接线（Protocol 的
-#     manifest 属性注解随 ④ 补齐——依赖序约束，非缩水）。
+#   - UnitManifest 类型面经 TYPE_CHECKING 注解引用（运行时零耦合；
+#     Protocol 属性注解在 future-annotations 下不求值，T3④ 落地接线）。
 #   - 数值纪律：本文件不在魔法数字白名单——零数值字面量。
 #
 # 【测试要求】协议结构契约（字段存在/不可变）、N=1 特例断言模板、
@@ -77,7 +76,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Any, Protocol, final
+from typing import TYPE_CHECKING, Any, Protocol, final
 
 from waterprint.contracts.condition import OperatingCondition
 from waterprint.contracts.flow import WaterFlow
@@ -85,6 +84,9 @@ from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.trace_api import TraceSink
+
+if TYPE_CHECKING:
+    from waterprint.contracts.manifest import UnitManifest
 
 _Flows = Mapping[PortRef, WaterFlow | SludgeFlow]
 _Qualities = Mapping[PortRef, WaterQuality]
@@ -150,5 +152,7 @@ class UnitResult:
 
 class Unit(Protocol):
     """工艺单元结构协议：装配边界（执行器据此与具体单元解耦，R2）。"""
+
+    manifest: UnitManifest
 
     def compute(self, ctx: UnitContext) -> UnitResult: ...

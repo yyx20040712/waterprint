@@ -15,7 +15,7 @@
 | `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体） | Q_wet/DS/含水率 | SludgeFlow、make_sludge、mix、InvalidSludgeError |
 | `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判） | 端口声明/连线意图 | Port、PortRef、Edge、FluidKind、Direction、validate_edge、InvalidConnection |
 | `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult）+ 警告结构（UF-17：Severity/Warning 三必带） | 上游量+参数+工况 | UnitContext、UnitResult、Unit、Severity、Warning |
-| `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema（加载即静态校验） | 清单数据 | UnitManifest |
+| `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema（加载即静态校验：R1a~R1e/R4） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig |
 | `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用 manifest 定义） |
 | `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema | 项目 JSON | ProjectFile 校验模型 |
 | `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线） | 引擎产出 | PlantResult、TraceNode |
@@ -23,7 +23,7 @@
 | `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
 | `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv |
 | `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | 查询 API、启动校验、溯源求值 |
-| `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类） | 字段声明 | 查询 API、dtype 生成 |
+| `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；T3 最小实现——dtype_of 留 T4，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配） | 字段声明 | FieldSpec、register_dimension、dimension_of、InvalidDimensionError |
 | `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处） | 假设声明+项目覆盖 | AssumptionSet |
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version |
 | `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数） | 节点/边列表 | 执行分层、回路组 |
