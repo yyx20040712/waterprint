@@ -54,4 +54,16 @@
 # 【测试要求】四类静态校验各自的拒绝路径、合法最小清单往返序列化无损。
 #
 # 【参照】重写计划 §3-5/§13.6/§14.1；数据包 data/coefficients/README.md
+#
+# 【T3 冻结注记】（总控简报 D8 裁决，2026-08-23）
+#   - 校验异常统一 InvalidUnitConfig（GR-11 Invalid* 族，定义于本文件；
+#     contracts/condition.py 同层 import——quantity→flow 先例的同层引用合法）。
+#   - 本笔先行落异常定义（condition 契约依赖），load_manifest 等正门实现
+#     随 T3④ 落地。
 # ══════════════════════════════════════════════════════════════════
+
+
+# N818 豁免理由：InvalidUnitConfig 之名由宪法 AGENTS.md §3（领域异常族例举）
+# 与锁定测试/简报 D8 裁决冻结，改名 = 违宪；GR-11 三族语义不受后缀拼写影响。
+class InvalidUnitConfig(Exception):  # noqa: N818
+    """清单/工况配置非法（加载期快速失败，非运行时警告——§3 保证 2 思想）。"""
