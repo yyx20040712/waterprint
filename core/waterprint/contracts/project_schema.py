@@ -22,11 +22,14 @@
 #       layout: dict[str → Any] = {}（画布布局）
 #       camera: dict[str → Any] = {}（相机位姿）
 #       windows: dict[str → Any] = {}（窗口布局）
-#       timestamp: str = ""（时间戳；非空必须 UTC ISO 8601——GR-19，
-#           禁本地时间字符串；空串 = 无时间戳的最小态 view={}）
+#       timestamp: str = ""（时间戳；非空必须零偏移 UTC ISO 8601
+#           （Z 或 +00:00）——GR-19 含 Z 口径，禁本地时间字符串与
+#           非零偏移时区；空串 = 无时间戳的最小态 view={}）
 #   class Metadata(BaseModel)：format_version / content_hash /
 #       engine_version / data_version（全 str 必填——可复算三元组 +
-#       版本，R3）
+#       版本，R3）+ migrated_from: str | None = None（迁移来源版，
+#       GR-21 只增；v1 无历史迁移恒 None，写入方=project/migration）
+
 #   class ProjectFile(BaseModel)：format_version: str + design + view +
 #       metadata（顶层 format_version 为权威源；metadata.format_version
 #       缺省回填自顶层、冲突拒绝——双写单源，测试锁定 hasattr 面）
@@ -48,8 +51,9 @@
 #   - 全模型 ConfigDict(strict=True, extra="forbid")——类型不 coerce、
 #     未知键拒（安全面与漂移面双杀）。
 #   - design/view 各字段值结构本任务只立容器形态（D7：留后续只增收紧，
-#     GR-21）；timestamp 非空值按 GR-19 强制 UTC ISO 8601（tz 必在——
-#     naive 串 = 本地时间字符串，拒）。
+#     GR-21）；timestamp 非空值按 GR-19 强制零偏移 UTC ISO 8601
+#     （Z 或 +00:00 过；naive 串与非零偏移时区 +08:00 等 = 拒——
+#     UF-40 收紧，T7a D3 2026-08-25）。
 #   - 数值纪律：本文件不在魔法数字白名单——零数值字面量。
 #
 # 【测试要求】view 变更不改 content_hash（与 project/io 联合，后续窗）、
@@ -62,7 +66,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -97,7 +101,7 @@ class ViewState(BaseModel):
     @field_validator("timestamp")
     @classmethod
     def _timestamp_utc_iso(cls, value: str) -> str:
-        """GR-19：非空时间戳必须 UTC ISO 8601 且带时区（禁本地时间串）。"""
+        """GR-19+UF-40：非空时间戳必须零偏移 UTC ISO 8601（Z 或 +00:00）。"""
         if not value:
             return value
         try:
@@ -110,13 +114,19 @@ class ViewState(BaseModel):
         if parsed.tzinfo is None:
             raise ValueError(
                 f"view.timestamp 缺时区：{value!r}（GR-19——naive 串即本地时间"
-                "字符串，必须带 UTC/偏移时区）"
+                "字符串，必须零偏移 UTC：Z 或 +00:00）"
+            )
+        if parsed.utcoffset() != timedelta(0):
+            raise ValueError(
+                f"view.timestamp 必须零偏移 UTC（Z 或 +00:00）：{value!r}"
+                f"（GR-19/UF-40——得到偏移 {parsed.utcoffset()}，非零偏移"
+                "时区串跨机同名不同刻，拒）"
             )
         return value
 
 
 class Metadata(BaseModel):
-    """metadata：可复算三元组 + 当前版描述（R3/R5）。"""
+    """metadata：可复算三元组 + 当前版描述 + 迁移来源（R3/R5）。"""
 
     model_config = _STRICT_FORBID
 
@@ -124,6 +134,10 @@ class Metadata(BaseModel):
     content_hash: str
     engine_version: str
     data_version: str
+    migrated_from: str | None = None
+    # GR-21 只增字段（T7a D6 2026-08-25）：v1 是产品首发版，无历史迁移
+    # 路径——恒 None；链式迁移器（project/migration）在未来版本就位后
+    # 由迁移链写入来源版号，本 schema 只承载不解释。
 
 
 class ProjectFile(BaseModel):
