@@ -18,14 +18,14 @@
 | `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema 正门（加载即静态校验：R1a~R1e/R4；校验器机器部分 T4 拆至 manifest_validation.py，公开 schema 面不动；GR-36 类①冻结 schema） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig（后两者为 manifest_validation 再导出） |
 | `core/waterprint/contracts/manifest_validation.py` | L0 | manifest 冻结 schema 的静态校验器集 + 装配槽（GR-36 类①；T4 拆分自 manifest.py 纯移动，bind_dimension_lookup 单槽 bind-once） | 清单数据节点 | 守卫器/键集常量/InvalidUnitConfig、bind_dimension_lookup（经 manifest.py 再导出） |
 | `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键；GR-36 类①冻结 schema） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用：manifest 再导出，定义在 manifest_validation） |
-| `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema（pydantic strict+extra=forbid 严格校验；GR-36 类①冻结 schema） | 项目 JSON | ProjectFile、DesignState、ViewState、Metadata、parse_project |
+| `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema（pydantic strict+extra=forbid 严格校验；UF-40 零偏移 UTC 收紧 T7a；GR-36 类①冻结 schema） | 项目 JSON | ProjectFile、DesignState、ViewState、Metadata（含 migrated_from——GR-21 只增，v1 恒 None）、parse_project |
 | `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线；确定性序列化正门 R3/R6；deserialize 内层三键必在 D4；GR-36 类①冻结 schema） | 引擎产出 | PlantResult、UnitResultSnapshot、TraceNode、ReproTriple、serialize、deserialize、InvalidResultError |
 | `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核；GR-36 类③受限 DSL 内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
 | `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面；GR-36 类②跨层协议） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
-| `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31；data_version 聚合口径=包名排序后 name@version 以 + 拼接，UF-10 T4 冻结） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv |
+| `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31；data_version 聚合口径=包名排序后 name@version 以 + 拼接，UF-10 T4 冻结；T7a 实现——L0 不 import L1，系数库经协议耦合） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv（七字段）、CoefficientsView、CoefficientValueView、EngineParam、InvalidRunEnvError |
 | `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | FormulaSpec、InvalidFormulaError、register、by_id、validate_all、apply、ValidationReport |
 | `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；dtype_of 已实现 T4 D5+dim 归一 D6，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配 bind-once） | 字段声明 | FieldSpec、register_dimension、dimension_of、dtype_of、InvalidDimensionError |
-| `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处） | 假设声明+项目覆盖 | Assumption、AssumptionSet、DEFAULT_ASSUMPTIONS、assumption、TuningImpact、InvalidAssumptionError |
+| `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处；UF-08 loop.* 引擎参数三条 T7a 冻结） | 假设声明+项目覆盖 | Assumption、AssumptionSet、DEFAULT_ASSUMPTIONS（4 条：[0] safety.superheight + loop.tolerance/max_iterations/damping）、assumption、TuningImpact、InvalidAssumptionError |
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version、CoefficientValue、load_coefficients、InvalidCoefficientError、require_keys |
 | `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数；T6 实现：环两分法——非 recycle 环拒/全边 Tarjan） | 节点/边列表 | topological_layers、strongly_connected_components、split_graph（复用 ports.InvalidConnection 拒绝） |
 | `core/waterprint/graph/propagate.py` | L3 | 沿边传播水量水质 + 汇流加权混合（工况加权 R1/Kz=max R2/通道隔离 R4/recycle 忽略 R5；T6 实现） | 上游结果+边+工况 | mix、propagate、InvalidPropagationError（污泥汇流走 contracts.sludge.mix） |
@@ -57,13 +57,13 @@
 | `core/waterprint/network/manning.py` | L3 | 曼宁水力（充满度分档，公式溯源） | 断面+流量 | 流速/坡度/充满度 |
 | `core/waterprint/network/solver.py` | L3 | 管径枚举/并联/跌水井判定 | 管段序列 | 设计管径+衔接 |
 | `core/waterprint/network/excel_io.py` | L3 | 管网 Excel 读写（模板驱动、防弹） | .xlsx | 管段模型/结果 sheet |
-| `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存） | ProjectFile/JSON | 字节级稳定 JSON |
-| `core/waterprint/project/migration.py` | L4 | format_version 迁移链（链式纯函数） | 旧版 JSON | 当前版对象+迁移日志 |
-| `core/waterprint/project/content_hash.py` | L4 | 设计态内容哈希（三元组成员） | DesignState | sha256 |
+| `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存+锁探测+大小/深度/常量防弹面；T7a 实现） | ProjectFile/DesignState/JSON | dumps、loads、save_project、load_project、dumps_design、InvalidProjectError（字节级稳定 JSON） |
+| `core/waterprint/project/migration.py` | L4 | format_version 迁移链（链式纯函数框架就位；T7a 实现——v1 零历史迁移器） | 旧版 JSON | migrate、SUPPORTED_VERSIONS、（当前版直通/未来版拒/未知历史版拒） |
+| `core/waterprint/project/content_hash.py` | L4 | 设计态内容哈希（三元组成员；T7a 实现——经 io.dumps_design 含版本头） | DesignState | design_hash（sha256 64hex） |
 | `core/waterprint/trace/collector.py` | L4 | 计算迹收集（零遗漏、确定性） | 公式应用上下文 | TraceTree |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（模板驱动、禁公式） | 迹树+结果+模板 | .xlsx |
-| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/run_enumeration/export_artifact/load_project+save_project 四用例（唯一装配点，UF-33 口径） | 项目+工况+环境 | ResultBundle、枚举结果、导出产物、项目对象 |
+| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/run_enumeration/export_artifact/load_project+save_project 四用例（唯一装配点，UF-33 口径；T7a 份额=load/save 薄封装+RunEnv 再导出已落，assemble/run 系归 T7b） | 项目+工况+环境 | ResultBundle、枚举结果、导出产物、项目对象、RunEnv |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
 ## 2. server 服务层
