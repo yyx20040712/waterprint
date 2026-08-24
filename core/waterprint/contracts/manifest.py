@@ -25,7 +25,8 @@
 #   load_manifest(data: Mapping) -> UnitManifest   加载+静态校验正门
 #   bind_dimension_lookup(lookup) —— L1 注册表安装字段查询钩子（R1a
 #       依赖倒置通道；见【T3 冻结注记】第 1 条）。T4 起定义于
-#       manifest_validation.py，本模块再导出（import 面与语义零变化）
+#       manifest_validation.py，本模块再导出（import 面与语义零变化）；
+#       bind-once：槽已非 None 再绑定=RuntimeError（T4 D2/GR-08）
 #   class InvalidUnitConfig(Exception)
 #       清单/工况配置非法（GR-11 Invalid* 族；condition.py 同层引用）。
 #       T4 起定义于 manifest_validation.py，本模块再导出

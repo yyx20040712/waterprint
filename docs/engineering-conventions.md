@@ -400,6 +400,11 @@
   累积即成垃圾抽屉层（commons 温床）；三类清单把"能不能进 L0"从
   逐案直觉变成可判定的准入判据。
 - 绑定：AGENTS §1/§2、UF-34；本条新增——填补 L0 准入沉默。
+- 记档豁免（T4 D2，2026-08-24）：contracts 装配槽
+  `bind_dimension_lookup`（单槽，manifest_validation.py）为**装配期
+  一次性注入**（bind-once，槽已非 None 再绑定 = RuntimeError）——属
+  本条"禁运行时可变状态"的记档豁免：装配期一次写入、执行期只读，
+  非执行路径状态。
 
 ### GR-37 向量化 compute 数值域错误载体：局部 np.errstate 承接
 - 规则：向量化 compute 数值域错误载体——compute 数值路径以局部

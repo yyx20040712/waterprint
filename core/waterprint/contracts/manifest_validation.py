@@ -29,7 +29,8 @@
 #   class InvalidUnitConfig(Exception)
 #       清单/工况配置非法（GR-11 Invalid* 族；condition.py 同层引用）
 #   bind_dimension_lookup(lookup) —— L1 注册表安装字段查询钩子（R1a
-#       依赖倒置通道；装配语义见 manifest.py 规格头【T3 冻结注记】第 1 条）
+#       依赖倒置通道；装配语义见 manifest.py 规格头【T3 冻结注记】第 1 条；
+#       bind-once：槽已非 None 再绑定=RuntimeError，T4 D2）
 #   其余 _ 前缀守卫器与键集常量：manifest.py 的 load_manifest 与三个
 #       装配函数内部消费，不作公开承诺
 #
@@ -79,6 +80,8 @@ class _DimensionSpec(Protocol):
 
 
 # 安装槽以单元素列表承载（免 global 语句；绑定动作是装配期一次性事件）。
+# bind-once 守卫（T4 D2）：槽已非 None 时再绑定 = RuntimeError（GR-08 装配
+# 缺陷不包装领域异常）——一次性注入语义，见 GR-36 记档豁免。
 _dimension_lookup_cell: list[Callable[[str], _DimensionSpec | None] | None] = [
     None,
 ]
@@ -87,7 +90,17 @@ _dimension_lookup_cell: list[Callable[[str], _DimensionSpec | None] | None] = [
 def bind_dimension_lookup(
     lookup: Callable[[str], _DimensionSpec | None],
 ) -> None:
-    """L1 注册表安装字段查询钩子（R1a 依赖倒置：L0 不 import L1，AGENTS §1）。"""
+    """L1 注册表安装字段查询钩子（R1a 依赖倒置：L0 不 import L1，AGENTS §1）。
+
+    装配槽一次性注入（bind-once，T4 D2）：槽已非 None 时再绑定即
+    RuntimeError——重复绑定属装配缺陷（GR-08），按 GR-36 记档豁免执行。
+    """
+    if _dimension_lookup_cell[0] is not None:
+        raise RuntimeError(
+            "装配槽重复绑定：bind_dimension_lookup 是装配期一次性注入"
+            "（bind-once，T4 D2），重复绑定=装配缺陷（GR-08 不包装）；"
+            "如需更换查询源，须重启进程重新装配，禁止运行期换绑"
+        )
     _dimension_lookup_cell[0] = lookup
 
 
