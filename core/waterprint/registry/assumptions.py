@@ -11,8 +11,9 @@
 #   class TuningImpact(不可变)：direction: str（非空——调节方向短语，如
 #       "增大超高→池体总高与造价上升"，供 §4 建议引擎展示）+
 #       constraint_keys: tuple[str, ...]（构造期 Sequence 归一 tuple；
-#       空 tuple = 显式"无已知联动约束"——GR-14 空集声明：constraint_kb
-#       现为 0.0.0 空槽，强填即编造）
+#       裸 str 拒——tuple() 会逐字符拆解为伪键，二审 I-2；归一后逐元素
+#       须非空 str，消息含元素原值；空 tuple = 显式"无已知联动约束"
+#       ——GR-14 空集声明：constraint_kb 现为 0.0.0 空槽，强填即编造）
 #   class Assumption(不可变)：key: str / default: float /
 #       dim: DimKey | str（构造期归一为 DimKey）/ source: str / note: str /
 #       tuning_impact: TuningImpact | None = None
@@ -20,7 +21,8 @@
 #       key+病因）：key 非空 str；default 非 bool 且有限（GR-02，归一
 #       float）；dim 归一（非法字符串拒，消息含原值与合法成员）；
 #       source/note 非空；tuning_impact 非 None（R2"缺一不可"——锁定
-#       用例不传该参数先被 source 空拒，顺序无关，语义完整）
+#       用例不传该参数实现序中先被 tuning_impact 守卫拒；两守卫同族
+#       异常，顺序无关语义完整）
 #   class AssumptionSet(不可变)：内部 items: tuple[Assumption, ...]
 #       （私有字段 _items；Sequence 协议 __iter__/__getitem__(int)/
 #       __len__——DEFAULT_ASSUMPTIONS[0] 与迭代即依赖）；构造期 Sequence
@@ -144,11 +146,22 @@ class TuningImpact:
     constraint_keys: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        """direction 非空；constraint_keys Sequence 归一 tuple（空=显式无联动）。"""
+        """direction 非空；裸 str 拒（I-2）；归一后逐元素非空 str；归一 tuple。"""
+        if isinstance(self.constraint_keys, str):
+            raise InvalidAssumptionError(
+                f"TuningImpact.constraint_keys 必须为键序列（tuple/list），"
+                f"不接受裸 str（会被逐字符拆解为伪键）：得到 {self.constraint_keys!r}"
+            )
         _nonempty_str(
             self.direction, "TuningImpact.direction（调节方向短语，§4 建议引擎展示）"
         )
-        object.__setattr__(self, "constraint_keys", tuple(self.constraint_keys))
+        normalized = tuple(self.constraint_keys)
+        for element in normalized:
+            if not isinstance(element, str) or not element:
+                raise InvalidAssumptionError(
+                    f"TuningImpact.constraint_keys 元素必须为非空 str：得到 {element!r}"
+                )
+        object.__setattr__(self, "constraint_keys", normalized)
 
 
 @dataclass(frozen=True)

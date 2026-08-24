@@ -55,7 +55,8 @@
 #     int|float 且非 bool、有限（GR-02），归一 float，巨 int 的
 #     OverflowError 收编为本异常（ARCH1 D1 同款）；unit/source/note
 #     非空 str（source 空白串=拒，锁定用例在册）。
-#   - YAML 解析异常一律 from exc 包装为本异常。
+#   - YAML 解析与解码异常一律 from exc 包装为本异常（消息区分
+#     "解码失败（非 UTF-8）"与"YAML 解析失败"，二审 M-2）。
 #   - Coefficients 内部 entries 映射构造即快照 MappingProxyType
 #     （T3A-01 防线首日到位：外部改原容器不泄漏）。
 #
@@ -168,13 +169,16 @@ class Coefficients:
 
 
 def _load_yaml(path: Path, what: str) -> object:
-    """yaml.safe_load 唯一入口：YAMLError 一律 from exc 包装（含文件名）。"""
+    """yaml.safe_load 唯一入口：解析/解码异常一律 from exc 包装（含文件名）。"""
     try:
         return yaml.safe_load(path.read_text(encoding="utf-8"))
-    except yaml.YAMLError as exc:
-        raise InvalidCoefficientError(
-            f"{what} {path.name} YAML 解析失败：{exc}"
-        ) from exc
+    except (yaml.YAMLError, UnicodeDecodeError) as exc:
+        reason = (
+            f"解码失败（非 UTF-8）：{exc}"
+            if isinstance(exc, UnicodeDecodeError)
+            else f"YAML 解析失败：{exc}"
+        )
+        raise InvalidCoefficientError(f"{what} {path.name} {reason}") from exc
 
 
 def _load_manifest(directory: Path) -> str:
