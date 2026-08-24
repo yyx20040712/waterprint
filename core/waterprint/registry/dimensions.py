@@ -34,6 +34,10 @@
 #      +文法要求）——依据 dtype_of 槽名==field_id 恒等假设：空串等非法
 #      名登记会使 numpy 静默改名（f0），故拒绝于登记期。pool_length 等
 #      合法名不受扰。
+#      （注：manifest 侧 _IDENTIFIER_PATTERN 允许数字开头——数字开头
+#      param name 可过 manifest 文法，但必在 R1a 报"未登记"且无法经
+#      register_dimension 补登记（本守卫拒），诊断需两跳定位文法病根；
+#      ARCH1 二审 M-3 实证，两侧消息均载文法条款。）
 #   R4 dtype_of 生成的结构化数组是 solution/enumerate.py 向量化枚举与
 #      结果 DataFrame 的统一形态（pint 不进热路径，单位在本表，§11 R1）。
 #      【T4 已落地，见【公开接口】dtype_of】

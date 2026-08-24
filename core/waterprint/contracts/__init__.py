@@ -36,7 +36,13 @@
 #   InvalidUnitConfig/bind_dimension_lookup 经 manifest 再导出已可达）；
 #   run_env（规格骨架，待 T7 装配实现后随其公开面冻结再聚合）。
 #   全库零 `from waterprint.contracts import` 包根消费（深查 B5 实证），
-#   本聚合为纯增量正门，不改变任何既有 import 路径。
+#   本聚合为纯增量正门，不改变任何既有 import 路径的语义；加载副作用
+#   除外（ARCH1 二审 I-1 实录 2026-08-24）：包 __init__ 随任何子模块
+#   import 先行执行——`from waterprint.contracts.<sub> import X` 现会
+#   加载全部聚合子模块（BASE 面=quantity 单面 3 模块/无 pydantic →
+#   HEAD 面=15 模块/pydantic 39 子模块，一次性启动开销 ~0.1s 量级）；
+#   pydantic/pint/numpy 均为既有核心依赖，无新增第三方。若未来出现
+#   "仅 quantity"的轻量消费方，再议惰性聚合（PEP 562 __getattr__）。
 #   白名单外的新导出名必须先更新 docs/file-contracts.md。
 # ══════════════════════════════════════════════════════════════════
 
