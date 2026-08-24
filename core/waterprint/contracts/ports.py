@@ -14,9 +14,11 @@
 #       连接非法领域异常（GR-11 Invalid* 族：流体不匹配/方向非 OUT→IN/
 #       端口未声明；消息必含两端 ref 与原因——GR-09）。
 #   class Port(不可变)：port_id、fluid: FluidKind、direction: Direction、
-#       recycle: bool = False（回流/内回流边标记，驱动 SCC 划分与固定点迭代）
+#       recycle: bool = False（端口回流倾向声明——manifest 侧语义，
+#       与 Edge.recycle 分工见 T6 注记）
 #   class PortRef(不可变)：unit_id + port_id 两位置构造（边的端点）
-#   class Edge(不可变)：src: PortRef、dst: PortRef
+#   class Edge(不可变)：src: PortRef、dst: PortRef、
+#       recycle: bool = False（本条边的回流拓扑标记，T6 D1）
 #   validate_edge(edge: Edge, ports_index: Mapping[(unit_id, port_id) → Port])
 #       -> None    连接合法性唯一裁判；非法抛 InvalidConnection（含人类可读原因）
 #
@@ -37,6 +39,14 @@
 #      unit_id.port_id + 实际流体/方向 + 期望语义」；三拒例
 #      （流体不匹配/方向非 OUT→IN/端口未声明）消息文本互可区分。
 #   - 数值纪律：本文件不在魔法数字白名单——零数值字面量。
+#
+# 【T6 预裁决注记】（总控简报 D1，2026-08-24——锁定测试倒逼的契约扩面）
+#   - Edge 扩尾字段 recycle: bool = False（frozen dataclass 尾部带默认：
+#     既有两字段构造零破坏）。语义分工两处各司其职：
+#     Edge.recycle = 本条边的拓扑标记（topo/loop 消费：回路进 SCC 迭代）；
+#     Port.recycle = 端口声明倾向（manifest 侧声明"这是回流端口"）。
+#   - validate_edge 不变：不校验边标与端口声明一致性（该对账归 T7 装配）。
+#   - 数值纪律不变：本文件零数值面（recycle 缺省 False 为布尔非数值）。
 #
 # 【测试要求】类型/方向非法拒绝（含错误消息可读）、recycle 标记缺省 False、
 #   不可变性（赋值即异常）。
@@ -95,10 +105,15 @@ class PortRef:
 @dataclass(frozen=True)
 @final
 class Edge:
-    """连接边（不可变）：src PortRef → dst PortRef。"""
+    """连接边（不可变）：src PortRef → dst PortRef + 回流拓扑标记（T6 D1）。
+
+    recycle=本条边的拓扑标记（topo/loop 消费：回路进 SCC 迭代）；与
+    Port.recycle（端口声明倾向）分工各司其职，validate_edge 不对账两者。
+    """
 
     src: PortRef
     dst: PortRef
+    recycle: bool = False
 
 
 def _ref(ref: PortRef) -> str:

@@ -13,7 +13,7 @@
 | `core/waterprint/contracts/flow.py` | L0 | 水量契约与构造校验（q_design 派生消双轨；GR-36 类①冻结 schema） | q_avg_daily、Kz | WaterFlow、make_flow、InvalidFlowError |
 | `core/waterprint/contracts/quality.py` | L0 | 水质契约 + 出水标准库（标准是数据；GR-36 类①冻结 schema） | 六指标 + 标准名 | WaterQuality、EffluentStandard、margin、INDICATORS、InvalidQualityError |
 | `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体；GR-36 类①冻结 schema） | Q_wet/DS/含水率 | SludgeFlow、make_sludge、mix、InvalidSludgeError |
-| `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判；GR-36 类①冻结 schema，含连接校验语义） | 端口声明/连线意图 | Port、PortRef、Edge、FluidKind、Direction、validate_edge、InvalidConnection |
+| `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判；Edge.recycle=边拓扑标记/Port.recycle=端口声明倾向分工 T6 D1；GR-36 类①冻结 schema，含连接校验语义） | 端口声明/连线意图 | Port、PortRef、Edge（含 recycle 边标记）、FluidKind、Direction、validate_edge、InvalidConnection |
 | `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult）+ 警告结构（UF-17：Severity/Warning 三必带；GR-36 类②跨层协议） | 上游量+参数+工况 | UnitContext、UnitResult、Unit、Severity、Warning |
 | `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema 正门（加载即静态校验：R1a~R1e/R4；校验器机器部分 T4 拆至 manifest_validation.py，公开 schema 面不动；GR-36 类①冻结 schema） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig（后两者为 manifest_validation 再导出） |
 | `core/waterprint/contracts/manifest_validation.py` | L0 | manifest 冻结 schema 的静态校验器集 + 装配槽（GR-36 类①；T4 拆分自 manifest.py 纯移动，bind_dimension_lookup 单槽 bind-once） | 清单数据节点 | 守卫器/键集常量/InvalidUnitConfig、bind_dimension_lookup（经 manifest.py 再导出） |
