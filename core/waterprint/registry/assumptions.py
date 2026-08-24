@@ -28,7 +28,8 @@
 #       __len__——DEFAULT_ASSUMPTIONS[0] 与迭代即依赖）；构造期 Sequence
 #       归一 tuple + 重复 key 拒；keys() -> tuple[str, ...] 排序返回
 #   DEFAULT_ASSUMPTIONS: Final[AssumptionSet]
-#       启动加载的默认清单（恰 1 条 safety.superheight，见【种子条目】）
+#       启动加载的默认清单（4 条：[0] safety.superheight 种子条目 +
+#       loop.* 引擎参数三条，见【种子条目】/【UF-08 引擎参数条目】）
 #   assumption(key: str, overrides: Mapping[str, float]) -> float
 #       取值正门：键未登记 = InvalidAssumptionError（禁静默默认——
 #       魔法数借道路径）；命中 → overrides 有值用覆盖（覆盖值非 bool/
@@ -61,6 +62,18 @@
 #   XG-F9/CS-F13 超高 0.3m）与签字系数包同源。
 #   【T5 注记】assumptions_source.yaml 不创建（README 规划件，随后续
 #   假设数据批落库）；本文件除种子条目外零数值面（数值纪律）。
+#
+# 【UF-08 引擎参数条目】（T7a D2 数值双闭案冻结 2026-08-25）
+#   三条引擎参数以 assumptions 注册表条目入库（loop.py 规格明文
+#   "tolerance 默认来自 assumptions"；本规格 R1 允许 source=工程惯例
+#   类——引擎算法参数无规范条文可引）：loop.tolerance=1e-10（相对
+#   残差，与锁定测试基准同量级）、loop.max_iterations=200（2+k 工况
+#   性能预算内安全上界）、loop.damping=0.8（ADR-003 R3"阻尼默认
+#   开启"）。app 装配（T7b）从 DEFAULT_ASSUMPTIONS 提取 loop.* 三键
+#   投影 EngineParam 构造 RunEnv.engine_params——数值真源唯一在此，
+#   禁散落代码字面量（GR-15）。registry 白名单区数值合法（门禁无
+#   冲突）。DEFAULT_ASSUMPTIONS 1→4 条，safety.superheight 仍居
+#   [0]（锁定用例依赖）。
 #
 # 【铁律】四注册表彼此独立互不 import（registry/__init__ 规格头）——
 #   dim 归一在本文件自写同款私有函数，不许 import formulas/dimensions
@@ -281,4 +294,62 @@ _SUPERHEIGHT: Final[Assumption] = Assumption(
     ),
 )
 
-DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(_items=(_SUPERHEIGHT,))
+# ── UF-08 引擎参数三条（T7a D2 冻结 2026-08-25：source=工程惯例类，
+#    数值真源唯一在此；app 装配 T7b 提取 loop.* 三键投影 EngineParam
+#    构造 RunEnv.engine_params，消费方 graph/loop.py 经 env 取用）──
+_ENGINE_SOURCE: Final[str] = (
+    "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
+)
+_LOOP_TOLERANCE: Final[Assumption] = Assumption(
+    key="loop.tolerance",
+    default=1e-10,
+    dim=DimKey.DIMENSIONLESS,
+    source=_ENGINE_SOURCE,
+    note=(
+        "回路固定点迭代相对残差收敛判据默认值（与锁定测试基准同量级，"
+        "工程惯例类——引擎算法参数无规范条文可引）；app 装配（T7b）提取"
+        "本键投影 EngineParam 入 RunEnv.engine_params"
+    ),
+    tuning_impact=TuningImpact(
+        direction="收紧容差→迭代更严但步数增多，放宽→早停有假收敛风险",
+        constraint_keys=(),
+    ),
+)
+_LOOP_MAX_ITERATIONS: Final[Assumption] = Assumption(
+    key="loop.max_iterations",
+    default=200,
+    dim=DimKey.DIMENSIONLESS,
+    source=_ENGINE_SOURCE,
+    note=(
+        "回路迭代步数上限（2+k 工况性能预算 §18.1 <5s 门禁内安全上界）；"
+        "超限即 LoopDivergence 走发散诊断，禁静默截断"
+    ),
+    tuning_impact=TuningImpact(
+        direction="增大上限→更耐慢收敛但耗时上升，减小→发散误报增多",
+        constraint_keys=(),
+    ),
+)
+_LOOP_DAMPING: Final[Assumption] = Assumption(
+    key="loop.damping",
+    default=0.8,
+    dim=DimKey.DIMENSIONLESS,
+    source=_ENGINE_SOURCE,
+    note=(
+        "回路迭代阻尼系数（ADR-003 R3：阻尼默认开启——x_new = "
+        "(1-λ)·x_old + λ·f(x_old) 抑制强耦合回路振荡）；0 等效关闭，"
+        "届时须显式覆盖并在方案文档记录"
+    ),
+    tuning_impact=TuningImpact(
+        direction="增大阻尼→收敛更稳但步数增多，减小→更快但振荡风险上升",
+        constraint_keys=(),
+    ),
+)
+
+DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
+    _items=(
+        _SUPERHEIGHT,
+        _LOOP_TOLERANCE,
+        _LOOP_MAX_ITERATIONS,
+        _LOOP_DAMPING,
+    )
+)
