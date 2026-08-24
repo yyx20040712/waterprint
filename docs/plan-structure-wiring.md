@@ -31,7 +31,7 @@
 | `wp new-unit` 脚手架命令（cli.py）——本轮 32 包为批量生成，工具化随 M1 CLI 实现补齐 | M1 |
 | 实现期起，门禁可升级为"真实 import ⊆ 图谱声明边"扫描（当前文件零 import，检查空转） | M1 |
 | 单元包内测试文件随交付编写后由人类执行 `lock_tests.py <包路径>` 转只读 | M2/M3 逐包 |
-| 推 GitHub + CI 真实跑通一次（环境依赖 git/uv/pnpm 安装，见 README 环境待办） | 环境就绪后立即 |
+| 推 GitHub + CI 真实跑通一次（环境依赖 git/uv/pnpm 安装，见 README 环境待办） | 已完成（见 README 环境待办勾选与 Actions） |
 
 ## 明确不做（本轮边界）
 

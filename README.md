@@ -2,12 +2,17 @@
 
 污水处理工艺设计计算平台：计算内核（纯 Python）+ FastAPI 服务 + React 前端。
 
-> 当前状态：**M1 启动前置全部完成**——三路架构审计（总控/DS/GLM 双层
-> 裁决，统一清单见会话工作区）、子智能体工作流上线运行、M0.5 成果入库、
-> 本地工具链就绪、**已推送 GitHub 且 CI 五 job 全绿**（详见 Actions；
-> 宪法"CI 机器强制"自此实际生效）、三单元系数与手算对照表经领域专家
-> 签字生效（coefficients 0.1.0）、两个 DSL 规格+共享受限求值器落地
-> （contracts/expr.py、trace_api.py）。实现工作自 T1 起（尚未开工）。
+> 当前状态：**实现推进中——T0 系列/T1/T2/T3 已完成，下一任务 T4**
+> （前置与拆分见台账）。此前：三路架构审计（总控/DS/GLM 双层裁决，
+> 统一清单见会话工作区）、子智能体工作流上线运行、M0.5 成果入库、
+> 本地工具链就绪、**已推送 GitHub 且 CI 全绿**（详见 Actions；宪法
+> "CI 机器强制"自此实际生效）、三单元系数与手算对照表经领域专家
+> 签字生效（coefficients 0.1.0）。L0 契约 13 文件中 12 个已真实现
+> （quantity/flow/quality/sludge/expr/trace_api/ports/condition/unit_api/
+> manifest/result_schema/project_schema；run_env.py 为规格骨架，待
+> T4/T7 装配）；registry dimensions 已最小实现（T3），
+> formulas/assumptions/coefficients 为骨架（T4/T5）。测试数/覆盖率
+> 以 CI 输出为准，文档不手写数字。
 
 ## 快速导览（新成员/AI 按此顺序阅读）
 
