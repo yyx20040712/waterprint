@@ -5,17 +5,36 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（骨架冻结；镜像测试 tests/registry/test_assumptions.py）
+# 规格说明（T5 实现；镜像测试 tests/registry/test_assumptions.py）
 #
 # 【公开接口】
-#   class Assumption(不可变)：key、default、dim、source（出处：规范/手册/
-#      工程惯例，必须可溯源）、note（一句话影响说明）、tuning_impact
-#      （调节影响元数据：调节方向 + 联动的约束键清单，供可行解诊断
-#      建议引擎消费——docs/business-logic.md §4/§9 五字段，缺一不可）
-#   DEFAULT_ASSUMPTIONS: AssumptionSet     启动加载的默认清单
-#   assumption(key, overrides: Mapping) -> float
-#       取值正门：项目覆盖值优先，否则默认值；两处皆无 = 领域异常
-#       （禁止散落魔法数——病灶 102.0m/3.0m/0.2m/4000 的根治点）
+#   class TuningImpact(不可变)：direction: str（非空——调节方向短语，如
+#       "增大超高→池体总高与造价上升"，供 §4 建议引擎展示）+
+#       constraint_keys: tuple[str, ...]（构造期 Sequence 归一 tuple；
+#       空 tuple = 显式"无已知联动约束"——GR-14 空集声明：constraint_kb
+#       现为 0.0.0 空槽，强填即编造）
+#   class Assumption(不可变)：key: str / default: float /
+#       dim: DimKey | str（构造期归一为 DimKey）/ source: str / note: str /
+#       tuning_impact: TuningImpact | None = None
+#       __post_init__ 六守卫（全走 InvalidAssumptionError，消息含
+#       key+病因）：key 非空 str；default 非 bool 且有限（GR-02，归一
+#       float）；dim 归一（非法字符串拒，消息含原值与合法成员）；
+#       source/note 非空；tuning_impact 非 None（R2"缺一不可"——锁定
+#       用例不传该参数先被 source 空拒，顺序无关，语义完整）
+#   class AssumptionSet(不可变)：内部 items: tuple[Assumption, ...]
+#       （私有字段 _items；Sequence 协议 __iter__/__getitem__(int)/
+#       __len__——DEFAULT_ASSUMPTIONS[0] 与迭代即依赖）；构造期 Sequence
+#       归一 tuple + 重复 key 拒；keys() -> tuple[str, ...] 排序返回
+#   DEFAULT_ASSUMPTIONS: Final[AssumptionSet]
+#       启动加载的默认清单（恰 1 条 safety.superheight，见【种子条目】）
+#   assumption(key: str, overrides: Mapping[str, float]) -> float
+#       取值正门：键未登记 = InvalidAssumptionError（禁静默默认——
+#       魔法数借道路径）；命中 → overrides 有值用覆盖（覆盖值非 bool/
+#       非数值/非有限 → InvalidAssumptionError 消息含 key+值，GR-02），
+#       否则默认值；overrides 非 Mapping → 原生 TypeError（GR-08 程序
+#       缺陷口径，非领域异常）
+#   class InvalidAssumptionError(Exception)
+#       登记与取值一切拒绝的统一载体（GR-11 族）
 #
 # 【行为规格】
 #   R1 一切设计默认假设只允许存在于此（如污泥密度、安全超高、最小池深、
@@ -29,8 +48,224 @@
 #      改假设 = 改输入 = 结果过期（§12.3）。
 #   R4 UI 可查可改：server 层提供清单读写端点，本文件是唯一数据源。
 #
-# 【测试要求】覆盖优先级（项目覆盖>默认）、无出处登记拒绝、
-#   未知键取值抛领域异常、覆盖参与哈希（与 project/content_hash 联合）。
+# 【种子条目】（T5 D5 数值红线裁决 2026-08-24——唯一合法路径）
+#   恰 1 条 safety.superheight（dim=LENGTH）：default 值与 source 串
+#   逐字取自 data/coefficients/factors.yaml 的 factor.screen.superheight
+#   条目（0.1.0 已签字批次 2026-08-23——旧系统交叉基线+GB50014 注释引、
+#   条文号待核对）；note 声明双真源关系与升版同步义务；tuning_impact:
+#   direction="增大超高→池体总高与造价上升"、constraint_keys=()（显式
+#   无已知联动）。依据：锁定测试要求 [0] 可取（空清单=IndexError 不可
+#   行）；数值红线禁编造——值只能来自已签材料；三张已签手算表（CG-F9/
+#   XG-F9/CS-F13 超高 0.3m）与签字系数包同源。
+#   【T5 注记】assumptions_source.yaml 不创建（README 规划件，随后续
+#   假设数据批落库）；本文件除种子条目外零数值面（数值纪律）。
 #
-# 【参照】重写计划 §3-7/§6.7；病灶"102.0m/3.0m/0.2m/4000 散落各处"
+# 【铁律】四注册表彼此独立互不 import（registry/__init__ 规格头）——
+#   dim 归一在本文件自写同款私有函数，不许 import formulas/dimensions
+#   的 _normalize_dim（B4 双胞胎代价先例在册）；本文件只依赖 L0
+#   contracts.quantity 的 DimKey（L1→L0 合法边）。
+#
+# 【测试要求】覆盖优先级（项目覆盖>默认）、无出处登记拒绝、
+#   未知键取值抛领域异常、默认清单全部带出处与说明。
+#
+# 【参照】重写计划 §3-7/§6.7；病灶"102.0m/3.0m/0.2m/4000 散落各处"；
+#   简报 T5 D3/D4/D5/D6
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from collections.abc import Iterator, Mapping
+from dataclasses import dataclass
+from math import isfinite
+from typing import Final, final
+
+from waterprint.contracts.quantity import DimKey
+
+
+class InvalidAssumptionError(Exception):
+    """假设登记/取值非法（守卫拒绝/未知键/覆盖值非法）——领域异常。"""
+
+
+def _nonempty_str(value: object, what: str) -> str:
+    """非空 str 守卫：类型不符/空串均拒，消息含字段名+原值。"""
+    if not isinstance(value, str) or not value:
+        raise InvalidAssumptionError(f"{what} 必须为非空字符串：得到 {value!r}")
+    return value
+
+
+def _normalize_dim(value: DimKey | str, key: str) -> DimKey:
+    """D3 归一：DimKey | str → DimKey（非法字符串拒，消息含原值+合法成员）。
+
+    双胞胎注记：与 dimensions/formulas 各自持有同款私有函数——四注册表
+    彼此独立互不 import（registry/__init__ 铁律），禁跨文件复用私有名。
+    """
+    if isinstance(value, DimKey):
+        return value
+    if not isinstance(value, str):
+        raise InvalidAssumptionError(
+            f"假设 {key!r} 的 dim 必须为 DimKey 或其成员名字符串：得到 {value!r}"
+        )
+    try:
+        return DimKey(value)
+    except ValueError as exc:
+        members = sorted(member.value for member in DimKey)
+        raise InvalidAssumptionError(
+            f"假设 {key!r} 的 dim 非法：{value!r}（合法 {members}）"
+        ) from exc
+
+
+def _normalize_number(value: object, key: str, what: str) -> float:
+    """数值守卫（GR-02）：bool 拒/非数值拒/非有限拒，归一 float。"""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise InvalidAssumptionError(
+            f"假设 {key!r} 的 {what} 必须为数值（int|float，bool 拒）："
+            f"得到 {value!r}"
+        )
+    try:
+        number = float(value)
+    except OverflowError as exc:
+        raise InvalidAssumptionError(
+            f"假设 {key!r} 的 {what} 超出浮点域：原值类型 {type(value).__name__}"
+            "（GR-02 输入即拒；ARCH1 D1 同款——原生异常收编）"
+        ) from exc
+    if not isfinite(number):
+        raise InvalidAssumptionError(
+            f"假设 {key!r} 的 {what} 非有限：{number!r}（GR-02 输入即拒）"
+        )
+    return number
+
+
+@dataclass(frozen=True)
+@final
+class TuningImpact:
+    """调节影响元数据（§4/§9 五字段的两个结构字段）：方向 + 联动约束键。"""
+
+    direction: str
+    constraint_keys: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        """direction 非空；constraint_keys Sequence 归一 tuple（空=显式无联动）。"""
+        _nonempty_str(
+            self.direction, "TuningImpact.direction（调节方向短语，§4 建议引擎展示）"
+        )
+        object.__setattr__(self, "constraint_keys", tuple(self.constraint_keys))
+
+
+@dataclass(frozen=True)
+@final
+class Assumption:
+    """单条设计假设：键 + 默认值 + 量纲 + 出处 + 说明 + 调节影响（六字段）。"""
+
+    key: str
+    default: float
+    dim: DimKey | str
+    source: str
+    note: str
+    tuning_impact: TuningImpact | None = None
+
+    def __post_init__(self) -> None:
+        """六守卫（全走 InvalidAssumptionError，消息含 key+病因）+ 归一。"""
+        key = _nonempty_str(self.key, "假设 key")
+        if self.tuning_impact is None:
+            raise InvalidAssumptionError(
+                f"假设 {key!r} 缺 tuning_impact（R2 缺一不可——初始参数不保证"
+                "可行，诊断建议引擎依赖该元数据给出方向与幅度，business-logic"
+                " §4）"
+            )
+        object.__setattr__(self, "key", key)
+        object.__setattr__(
+            self, "default", _normalize_number(self.default, key, "default")
+        )
+        object.__setattr__(self, "dim", _normalize_dim(self.dim, key))
+        object.__setattr__(
+            self, "source", _nonempty_str(self.source, f"假设 {key!r} 的 source")
+        )
+        object.__setattr__(
+            self, "note", _nonempty_str(self.note, f"假设 {key!r} 的 note")
+        )
+
+
+@dataclass(frozen=True)
+@final
+class AssumptionSet:
+    """假设清单只读集合：Sequence 协议 + keys()；构造期重复 key 拒。"""
+
+    _items: tuple[Assumption, ...]
+
+    def __post_init__(self) -> None:
+        """items Sequence 归一 tuple + 重复 key 拒（键=取值正门唯一索引）。"""
+        checked: list[Assumption] = []
+        seen: set[str] = set()
+        for item in self._items:
+            if item.key in seen:
+                raise InvalidAssumptionError(
+                    f"假设键重复：{item.key!r}（AssumptionSet 内键唯一——"
+                    "取值正门按键索引，重复=装配缺陷）"
+                )
+            seen.add(item.key)
+            checked.append(item)
+        object.__setattr__(self, "_items", tuple(checked))
+
+    def __iter__(self) -> Iterator[Assumption]:
+        """Sequence 协议：迭代（锁定用例依赖）。"""
+        return iter(self._items)
+
+    def __getitem__(self, index: int) -> Assumption:
+        """Sequence 协议：整数下标取条目（锁定用例 DEFAULT_ASSUMPTIONS[0]）。"""
+        return self._items[index]
+
+    def __len__(self) -> int:
+        """Sequence 协议：条目数。"""
+        return len(self._items)
+
+    def keys(self) -> tuple[str, ...]:
+        """键清单，排序返回（GR-18 确定性）。"""
+        return tuple(sorted(item.key for item in self._items))
+
+
+def assumption(key: str, overrides: Mapping[str, float]) -> float:
+    """取值正门（R1 根治点）：覆盖值优先，否则默认值；未知键 = 领域异常。
+
+    禁止散落魔法数——病灶 102.0m/3.0m/0.2m/4000 的唯一合法取值通道；
+    overrides 非 Mapping = 原生 TypeError（GR-08 程序缺陷口径）。
+    """
+    if not isinstance(overrides, Mapping):
+        raise TypeError(
+            f"overrides 必须为 Mapping[str, float]：得到 {type(overrides).__name__}"
+            "（GR-08 程序缺陷口径——原生 TypeError，非领域异常）"
+        )
+    for item in DEFAULT_ASSUMPTIONS:
+        if item.key == key:
+            if key in overrides:
+                return _normalize_number(overrides[key], key, "覆盖值")
+            return item.default
+    raise InvalidAssumptionError(
+        f"未登记假设：{key!r}（合法假设见 DEFAULT_ASSUMPTIONS——禁止静默默认，"
+        "魔法数借道路径；R1 一切默认假设只允许存在于此）"
+    )
+
+
+# ── 默认清单种子（D5 数值红线：default 与 source 逐字取自已签字数据包）──
+# data/coefficients/factors.yaml 的 factor.screen.superheight 条目
+# （0.1.0 已签字批次 2026-08-23）——双真源关系以 note 显式声明，
+# 条文核对完成后随数据批同步升版（本文件唯一数值面）。
+_SUPERHEIGHT: Final[Assumption] = Assumption(
+    key="safety.superheight",
+    default=0.3,
+    dim=DimKey.LENGTH,
+    source=(
+        "旧系统 mod v5.1.0 交叉基线（栅后总高 H = h + h1 + 0.3）；"
+        "dimension_formulas 注释引 GB50014 超高≥0.3m，条文号待核对原文"
+    ),
+    note=(
+        "跨单元安全超高默认；与 factor.screen.superheight 同源同值"
+        "（2026-08-23 签字批次）——单元专属档位仍走系数库键，"
+        "条文核对完成后随数据批同步升版"
+    ),
+    tuning_impact=TuningImpact(
+        direction="增大超高→池体总高与造价上升",
+        constraint_keys=(),
+    ),
+)
+
+DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(_items=(_SUPERHEIGHT,))
