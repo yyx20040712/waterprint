@@ -14,7 +14,9 @@
 #       symbols: Mapping[符号→(DimKey 与中文含义)]——D6 同款归一：
 #           构造收 (DimKey | str, str)，__post_init__ 归一为
 #           (DimKey, str) 并快照为 MappingProxyType（T3A-01 防线首日
-#           到位：外部改原容器不泄漏）
+#           到位：外部改原容器不泄漏）；值先过形态守卫——非二元组拒
+#           （消息含 symbol 键+原值 repr，ARCH1 D1d，杜绝 2 字符 str
+#           静默解包后消息失真）
 #       output_dim: DimKey       输出量纲签名（构造收 DimKey | str，
 #           归一为 DimKey，D6）
 #       norm_ref: str            规范条文号（GB 50014-2021 §x.x.x 等）+出处
@@ -71,8 +73,10 @@
 #      必须新增不修改。
 #   R6 apply 拒绝路径（D8）：未知 id 拒；bindings 键集 == symbols 键集
 #      （缺/多键拒，消息含 formula_id+键名）；绑定值非有限拒（GR-02
-#      输入即拒）；原生数值异常（除零/溢出/定义域，expr R5）from exc
-#      包装上抛；结果非有限拒（GR-02 运算产生转领域异常）。
+#      输入即拒）；绑定值巨 int（float() 溢出）收编为领域异常（消息含
+#      formula_id+symbol 键+原值类型，ARCH1 D1a）；原生数值异常（除零/
+#      溢出/定义域，expr R5）from exc 包装上抛；结果非有限拒（GR-02
+#      运算产生转领域异常）。
 #
 # 【T4 实现注记】（总控简报 D7/D8/D9 裁决，2026-08-24）
 #   - 不做 pint 量纲推导（规格明令 output_dim 人工声明；全量纲代数需
@@ -81,8 +85,9 @@
 #     spec+登记期缓存解析树（仅内存，不落盘）。
 #   - 零预置公式（D10）：本任务只交付机制；真实公式登记归单元包任务
 #     （数值纪律：条文系数须 norms 摘录+手算对照+签字——registry 虽在
-#     魔法数字白名单，仍禁编造）。本文件数值字面量仅 1（多 = 拒绝阈值）
-#     与槽索引 0/1（apply 的 ctx 二元组取 unit_id/condition_key）。
+#     魔法数字白名单，仍禁编造）。本文件数值字面量仅 1（多 = 拒绝阈值）、
+#     2（symbols 二元组长度 _SYMBOL_PAIR_LEN，ARCH1 D1d）与槽索引 0/1
+#     （apply 的 ctx 二元组取 unit_id/condition_key）。
 #
 # 【测试要求】登记→查询往返、量纲不匹配拒绝、norm_ref 必填、
 #   apply 产生一条完整 TraceNode。
@@ -98,7 +103,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from math import isfinite
 from types import MappingProxyType
-from typing import final
+from typing import Final, final
 
 from waterprint.contracts.expr import ExprSyntaxError, eval_checked, parse_checked
 from waterprint.contracts.quantity import DimKey
@@ -111,6 +116,9 @@ class InvalidFormulaError(Exception):
 
 # 输出符号文法（D7①）：LHS 剥离 = 后须匹配（不参与 Name 集/量纲校验）。
 _OUTPUT_SYMBOL_PATTERN: re.Pattern[str] = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
+# symbols 值二元组长度（ARCH1 D1d 形态守卫；Final 常量化解 PLR2004，
+# 字面量 2 在宪法 §3 允许集 {0,1,2,10} 内）。
+_SYMBOL_PAIR_LEN: Final[int] = 2
 
 
 def _normalize_dim(value: DimKey | str, what: str) -> DimKey:
@@ -147,9 +155,16 @@ class FormulaSpec:
     norm_ref: str
 
     def __post_init__(self) -> None:
-        """symbols/output_dim 归一（D6）+ symbols 只读快照（T3A-01）。"""
+        """symbols/output_dim 归一（D6）+ symbols 值形态守卫（ARCH1 D1d）
+        + symbols 只读快照（T3A-01）。"""
         normalized: dict[str, tuple[DimKey, str]] = {}
         for symbol, pair in self.symbols.items():
+            if not isinstance(pair, tuple) or len(pair) != _SYMBOL_PAIR_LEN:
+                raise InvalidFormulaError(
+                    f"symbols[{symbol!r}] 值形态非法：{pair!r}"
+                    "（期望 (DimKey|str, str) 二元组——ARCH1 D1d：杜绝 2 字符"
+                    " str 静默解包后消息失真）"
+                )
             dim, meaning = pair
             normalized[symbol] = (
                 _normalize_dim(dim, f"symbols[{symbol!r}].dim"),
@@ -327,12 +342,20 @@ def apply(
                 f"公式 {formula_id!r} 符号 {symbol!r} 的绑定值必须为数值："
                 f"得到 {value!r}"
             )
-        if not isfinite(value):
+        try:
+            number = float(value)
+        except OverflowError as exc:
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 符号 {symbol!r} 的绑定值超出浮点域："
+                f"原值类型 {type(value).__name__}"
+                "（GR-02 输入即拒；ARCH1 D1a——原生异常收编）"
+            ) from exc
+        if not isfinite(number):
             raise InvalidFormulaError(
                 f"公式 {formula_id!r} 符号 {symbol!r} 的绑定值非有限："
-                f"{value!r}（GR-02 输入即拒）"
+                f"{number!r}（GR-02 输入即拒）"
             )
-        values[symbol] = float(value)
+        values[symbol] = number
     try:
         outcome = eval_checked(entry.tree, values)
     except (ArithmeticError, ValueError) as exc:

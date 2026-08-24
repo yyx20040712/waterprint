@@ -44,7 +44,9 @@
 #      输入快照——审计链路（M4 验收）以此为准。
 #   R6 非有限值拒绝（D6/GR-02）：serialize 输入含 NaN/±Inf →
 #      InvalidResultError（消息含值与位置）；deserialize 对 NaN/Infinity
-#      JSON 字面量与非有限浮点同样拒绝——带病结果禁止落盘/入流。
+#      JSON 字面量与非有限浮点同样拒绝——带病结果禁止落盘/入流；
+#      巨 int（10**400 级，float() 溢出）两侧同收编（消息含 path，
+#      ARCH1 D1c；转换收拢 _finite_rounded 两路共用）。
 #
 # 【T3 冻结注记】（总控简报 D5/D6 裁决，2026-08-23）
 #   - D5：TraceNode 字段名照锁定测试——inputs/output（单数）。
@@ -191,14 +193,23 @@ class PlantResult:
         object.__setattr__(self, "trace", tuple(self.trace))
 
 
-def _finite_rounded(value: float, path: str) -> float:
-    """数值守卫：非有限拒（消息含值与位置）+ round(x,10) 定点（R3/R6）。"""
-    if not isfinite(value):
+def _finite_rounded(value: int | float, path: str) -> float:
+    """数值守卫：巨 int（float() 溢出）与非有限均拒（消息含位置，
+    ARCH1 D1c 收编；转换收拢本函数，serialize/deserialize 两路共用）
+    + round(x,10) 定点（R3/R6）。"""
+    try:
+        number = float(value)
+    except OverflowError as exc:
         raise InvalidResultError(
-            f"结果含非有限值（NaN/±Inf）：{path} 处 {value!r}"
+            f"结果含超浮点域整数：{path} 处原值类型 {type(value).__name__}"
+            "（R6/GR-02——带病结果禁止序列化）"
+        ) from exc
+    if not isfinite(number):
+        raise InvalidResultError(
+            f"结果含非有限值（NaN/±Inf）：{path} 处 {number!r}"
             "（R6/GR-02——带病结果禁止序列化）"
         )
-    return round(value, _ROUND_DIGITS)
+    return round(number, _ROUND_DIGITS)
 
 
 def _to_json(value: Any, path: str) -> Any:
@@ -207,7 +218,7 @@ def _to_json(value: Any, path: str) -> Any:
     if isinstance(value, bool) or value is None or isinstance(value, str):
         return value
     if isinstance(value, int | float):
-        return _finite_rounded(float(value), path)
+        return _finite_rounded(value, path)
     if dataclasses.is_dataclass(value) and not isinstance(value, type):
         return {
             field.name: _to_json(getattr(value, field.name), f"{path}.{field.name}")
@@ -336,7 +347,7 @@ def _require_number(value: Any, path: str) -> float:
         raise InvalidResultError(
             f"结果数据结构非法：{path} 应为数值，得到 {value!r}"
         )
-    return _finite_rounded(float(value), path)
+    return _finite_rounded(value, path)
 
 
 def _require_float_mapping(value: Any, path: str) -> Mapping[str, float]:

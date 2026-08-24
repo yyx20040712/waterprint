@@ -138,10 +138,20 @@ def _identifier(value: Any, what: str) -> str:
 
 
 def _finite(value: Any, what: str) -> float:
-    """数值守卫：int/float（非 bool）且有限（GR-02 输入即拒绝）。"""
+    """数值守卫：int/float（非 bool）且有限（GR-02 输入即拒绝）。
+
+    巨 int（float() 溢出）收编为 InvalidUnitConfig（ARCH1 D1b——
+    原生 OverflowError 逃逸收口，消息含键名）。
+    """
     if isinstance(value, bool) or not isinstance(value, int | float):
         raise InvalidUnitConfig(f"{what} 必须为数值：得到 {value!r}")
-    number = float(value)
+    try:
+        number = float(value)
+    except OverflowError as exc:
+        raise InvalidUnitConfig(
+            f"{what} 数值超出浮点域：原值类型 {type(value).__name__}"
+            "（GR-02 输入即拒绝）"
+        ) from exc
     if not isfinite(number):
         raise InvalidUnitConfig(
             f"{what} 必须为有限实数：得到 {value!r}（GR-02 输入即拒绝）"
