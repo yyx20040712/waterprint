@@ -28,6 +28,12 @@
 #   R2 unit 必须等于 quantity.CANONICAL_UNITS[dim]——登记时静态校验，
 #      单位双轨在此终结（§12.1 三层策略的元数据层）。
 #   R3 field_id 不可变更语义：只增不改名（序列化与历史计算迹依赖）。
+#      【ARCH1 D2】field_id 登记即过文法守卫：须匹配
+#      [A-Za-z_][A-Za-z0-9_]*（与 manifest 侧 _IDENTIFIER_PATTERN 对称，
+#      GR-26 推广），违反 → InvalidDimensionError（消息含 field_id 原值
+#      +文法要求）——依据 dtype_of 槽名==field_id 恒等假设：空串等非法
+#      名登记会使 numpy 静默改名（f0），故拒绝于登记期。pool_length 等
+#      合法名不受扰。
 #   R4 dtype_of 生成的结构化数组是 solution/enumerate.py 向量化枚举与
 #      结果 DataFrame 的统一形态（pint 不进热路径，单位在本表，§11 R1）。
 #      【T4 已落地，见【公开接口】dtype_of】
@@ -59,6 +65,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import final
@@ -71,6 +78,12 @@ from waterprint.contracts.quantity import CANONICAL_UNITS, DimKey
 
 class InvalidDimensionError(Exception):
     """维度字段登记/查询非法（单位不一致/重复登记/未登记）——领域异常。"""
+
+
+# field_id 文法（ARCH1 D2，GR-26 推广）：登记期守卫，与 manifest 侧
+# _IDENTIFIER_PATTERN 对称（本侧更严：首字符须字母/下划线——dtype 槽名
+# 恒等假设要求合法标识符形态）。
+_FIELD_ID_PATTERN: re.Pattern[str] = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 
 
 def _normalize_dim(value: DimKey | str, field_id: str) -> DimKey:
@@ -116,7 +129,16 @@ _FIELDS: dict[str, FieldSpec] = {}
 
 
 def register_dimension(spec: FieldSpec) -> None:
-    """登记字段：R2 单位==规范单位 + R3 唯一性双守卫，违反即拒。"""
+    """登记字段：D2 文法守卫 + R2 单位==规范单位 + R3 唯一性三守卫，违反即拒。"""
+    if not isinstance(spec.field_id, str) or not _FIELD_ID_PATTERN.fullmatch(
+        spec.field_id
+    ):
+        raise InvalidDimensionError(
+            f"字段 ID 文法非法：{spec.field_id!r}"
+            "（须匹配 [A-Za-z_][A-Za-z0-9_]*——dtype_of 槽名==field_id "
+            "恒等假设，空串/空格/中文会使 numpy 静默改名；GR-26 推广，"
+            "ARCH1 D2）"
+        )
     dim = _normalize_dim(spec.dim, spec.field_id)
     if spec.unit != CANONICAL_UNITS[dim]:
         raise InvalidDimensionError(
