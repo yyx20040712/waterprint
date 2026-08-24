@@ -13,6 +13,8 @@ import pytest
 _mod = importlib.import_module("waterprint.project.migration")
 migrate = getattr(_mod, "migrate", None)
 SUPPORTED_VERSIONS = getattr(_mod, "SUPPORTED_VERSIONS", None)
+_io = importlib.import_module("waterprint.project.io")
+InvalidProjectError = getattr(_io, "InvalidProjectError", None)
 
 pytestmark = pytest.mark.skipif(
     None in (migrate, SUPPORTED_VERSIONS),
@@ -28,13 +30,16 @@ def test_supported_versions_form_a_chain_from_current() -> None:
 
 def test_future_version_rejected_wiring() -> None:
     """R3 接线断言：format_version > 当前 → 拒绝（不降级打开）。"""
-    raise AssertionError(
-        "M1 接线断言：构造 'format_version': '999.0' 断言拒绝——不得删除"
-    )
+    with pytest.raises(InvalidProjectError, match="999.0"):
+        migrate({"format_version": "999.0", "design": {}, "view": {},
+                 "metadata": {"content_hash": "0" * 64,
+                              "engine_version": "0.1.0",
+                              "data_version": "coefficients@0.1.0"}})
 
 
 def test_unmappable_field_rejected_wiring() -> None:
     """R2 接线断言：语义不明字段 → 领域异常指明路径（禁止猜测性默认）。"""
-    raise AssertionError(
-        "M1 接线断言：构造含未知旧字段的样本断言拒绝——不得删除"
-    )
+    # v1 产品首发无历史迁移链：含未知旧字段的样本以"未知历史版本"拒
+    # 语义落（T7a D8 裁决——0.9 不在合法序列，无从映射）。
+    with pytest.raises(InvalidProjectError, match="未知历史版本"):
+        migrate({"format_version": "0.9", "legacy_field": "旧字段样本"})
