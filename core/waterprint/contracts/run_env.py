@@ -9,7 +9,10 @@
 #
 # 【公开接口】
 #   class RunEnv(不可变)：
-#       engine_version、data_version（系数+单价聚合）、assumptions、
+#       engine_version、data_version（系数+单价聚合；UF-10 聚合口径
+#       T4 D3 冻结：包名排序后 name@version 以 + 拼接——确定性、可读、
+#       审计友好，任一包版本或包集变化→聚合串变化；app 装配层 T7
+#       生成，coefficients 单包 data_version 照旧）、assumptions、
 #       coefficients、price_book、trace_sink——执行环境上下文契约；
 #       另含 engine_params 字段（引擎技术参数，见 R2）
 #   （实现期冻结字段精确类型与装配正门签名；app 装配并重新导出）

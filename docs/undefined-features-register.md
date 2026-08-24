@@ -21,9 +21,9 @@
 | UF-05 | 错误处理 | 异常消息稳定性：消息可否随重构改写未定义（改写=跨版本计算迹 diff 全线飘红） | 已定义→GR-09 | conventions §2 |
 | UF-06 | 汇流 | 汇流派生规则：q_avg_total=Σ、Kz_total=max、q_design 派生与两档加权一致性，propagate 规格只写 R1/R2 语义未列派生式，实现 mix() 前须冻结 | 待定义→T6/T7（propagate 实现任务首条冻结项） | unified B1 / DS-09 |
 | UF-07 | 工况 | sensitivity 工况 flow_case：曾未定义（DS-10 三缺口之一） | 已定义→contracts/condition.py 规格 R1（sensitivity 统一 design 档；求值细则 manifest.py R1c；T0FIX 已修） | unified A6 |
-| UF-08 | 引擎 | 引擎技术参数落点：loop 阻尼/容差、LRU 512 条/512MB 等无合规去处——assumptions 要求规范出处（给不出）vs 代码字面量撞魔法数字门禁 | 待定义→T4/T7（RunEnv/实现任务定落点） | unified B5 / GLM-01 |
+| UF-08 | 引擎 | 引擎技术参数落点：loop 阻尼/容差、LRU 512 条/512MB 等无合规去处——assumptions 要求规范出处（给不出）vs 代码字面量撞魔法数字门禁 | 已定义→RunEnv.engine_params（T4 D3 冻结，commit：T4③）：以带调节影响元数据的引擎默认条目入 engine_params 字段（run_env.py R2/app 装配 T7）；数值 T7 executor 实现期冻结，禁散落代码字面量（GR-15） | unified B5 / GLM-01 |
 | UF-09 | 契约 | 温度字段位置：契约链无温度字段（AAO Kd 修正/消化 35℃ 需要），放 WaterQuality 还是 RunEnv 未定 | 待定义→T3（冻结 result_schema 时拍板） | unified C4 / DS-24 |
-| UF-10 | 数据版本 | data_version 聚合算法：coefficients/constraint_kb/prices 多包版本如何聚成单一 data_version（max？拼接哈希？）未定义 | 待定义→T4（RunEnv 实现时冻结） | unified D / DS-23 |
+| UF-10 | 数据版本 | data_version 聚合算法：coefficients/constraint_kb/prices 多包版本如何聚成单一 data_version（max？拼接哈希？）未定义 | 已定义→T4 D3 冻结（commit：T4③）：聚合算法=包名排序后 `name@version` 以 `+` 拼接（确定性、可读、审计友好；任一包版本或包集变化→聚合串变化）；app 装配层 T7 生成；coefficients 单包 data_version 照旧 | unified D / DS-23 |
 | UF-11 | 污泥线 | 内回流 Ri 归属：business-logic §6 表/ports.py/包内部端口 vs SCC 迭代三处矛盾 | 待定义→M2 前拍板 | unified C2 / DS-17 |
 | UF-12 | 图谱 | 图谱缺边 elevation→registry、network→registry；constraint_kb 装载路径未定义 | 待定义→M2 前（先改图谱 §1 再动代码，AGENTS §13） | unified C1 / DS-02 |
 | UF-13 | 门禁 | server 层无 import-linter/行数门禁（core 有、server 无，边界随 M2 增重） | 待定义→M2 前 | unified C3 / DS-14 |

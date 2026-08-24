@@ -11,6 +11,10 @@
      登记量纲签名，**加载时静态校验，不匹配 = 启动失败**；
   4. 落盘一律"规范单位数值 + 显式 unit 字段"，读取方零换算（R15）；
   5. `contracts/quantity.py` 是全库唯一允许 import pint 的文件
-     （import-linter 强制）。
+     （import-linter 强制。forbidden 契约按**直查口径**
+     （allow_indirect_imports=true，T3-G1 追认、T4 D3 记档）——上层
+     引用 quantity 重导出的类型符号（DimKey/CANONICAL_UNITS）合法，
+     任何文件直接 import pint 仍禁；pint 对象不出 quantity 边界，
+     R2 既有语义不变）。
 - 后果：换算只发生在边界一处；手写换算系数 = 评审拒绝。
 - 细化归属：M1 quantity/dimensions/formulas 实现。
