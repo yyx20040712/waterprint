@@ -153,8 +153,11 @@ class UnitResult:
     def __post_init__(self) -> None:
         """Mapping 只读快照冻结 + tuple 归一（与 UnitContext 同款防线，T3A-01）。
 
-        dims 不动：类型 Any（T4 dtype 冻结后只增收紧）；构造即快照——
-        外部 dict/list 传入后即与本对象解绑，后续外部修改不泄漏。
+        dims 存引用（不快照）：类型 Any，dtype 由 registry/dimensions.
+        dtype_of 定义（T4 D5）；载体落地时只增收紧（GR-21）——结构化
+        数组由 numpy 承载，外部可变容器（dict/list）传入则存引用，
+        本对象不做解绑（体检 A3 异常 3 修正：此前"构造即快照"声明
+        对 dims 不实）。
         """
         object.__setattr__(self, "outflows", MappingProxyType(dict(self.outflows)))
         object.__setattr__(

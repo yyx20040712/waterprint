@@ -10,9 +10,11 @@
 # 【铁律】L1 只依赖 L0 contracts；四类注册表彼此独立、互不 import
 #   （一个文件一个注册表，§13.2）。
 #
-# 【导出白名单】
-#   formulas:     FormulaRegistry, FormulaSpec, register, by_id, validate_all
-#   dimensions:   DimensionRegistry, register_dimension, dimension_of
+# 【导出白名单】（T4 D10 校准至四注册表实际公开面）
+#   formulas:     FormulaSpec, InvalidFormulaError, ValidationReport,
+#                 register, by_id, validate_all, apply
+#   dimensions:   FieldSpec, InvalidDimensionError, register_dimension,
+#                 dimension_of, dtype_of
 #   assumptions:  AssumptionSet, DEFAULT_ASSUMPTIONS, assumption
 #   coefficients: load_coefficients, Coefficients
 # 白名单外新导出必须先更新 docs/file-contracts.md。
