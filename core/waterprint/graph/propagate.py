@@ -47,6 +47,12 @@
 #     空序列 → WaterQuality({})（单位元）。R3 夹逼的数值护栏：结果显式
 #     收束回在场股 [min, max]——加权均值数学上恒在该区间（R3 不变量），
 #     浮点直除可能越界 1 ULP（锁定性质测试实证），夹逼非语义变更。
+#   - mix 逐指标除法有限性守卫（GR-02，先拒后夹——R1 二审 I-1 终裁
+#     2026-08-24，与 _merge_water 守卫对称）：load（ΣCi·Qi）/ΣQi/商
+#     任一非有限 → InvalidPropagationError（消息含指标名+两端值，GR-09
+#     三元上下文）。杜绝三实测病灶：load 溢出被夹逼静默吸收为 high
+#     （2 倍错值）、inf/inf=NaN 穿透 WaterQuality 造成异常族错位
+#     （InvalidQualityError 冒充传播层）、Σ权溢出把商夹到 low。
 #   - propagate 语义（D4 冻结）：(a) 只沿非 recycle 边传播（recycle 边
 #     忽略——R5 纯函数边界，迭代期输入由 loop.py 驱动）；(b) 按 dst
 #     PortRef 分组，处理序与求和序一律按 (unit_id, port_id) 排序（GR-18）；
@@ -120,9 +126,12 @@ def mix(
     结果缺项（键不存在）；部分股缺项 → 在场股加权（缺项警告的**记录**
     归 executor/单元层（有 sink 通道时），mix 无 sink 不产警告）；在场权
     合计==0 → 该指标缺项（GR-14 显式，全零权即 WaterQuality({})）。
-    空序列 → WaterQuality({})（单位元）。R3 夹逼：结果显式收束回在场股
-    [min, max]——加权均值数学上恒在该区间，浮点直除可能越界 1 ULP，
-    夹逼为数值护栏（守恒断言容差 rel 1e-9 内无感）。
+    空序列 → WaterQuality({})（单位元）。逐指标除法前后有限性守卫
+    （GR-02，先拒后夹，R1 二审 I-1）：load/ΣQi/商任一非有限 →
+    InvalidPropagationError（消息含指标名+两端值）——杜绝溢出值被下述
+    夹逼静默吸收。R3 夹逼：结果显式收束回在场股 [min, max]——加权均值
+    数学上恒在该区间，浮点直除可能越界 1 ULP，夹逼为数值护栏（守恒断言
+    容差 rel 1e-9 内无感）。
     """
     if len(qualities) != len(weights):
         raise InvalidPropagationError(
@@ -144,8 +153,31 @@ def mix(
             continue
         low = min(value for value, _ in stocks)
         high = max(value for value, _ in stocks)
-        merged[indicator] = min(max(load / weight_total, low), high)
+        quotient = _finite_quotient(indicator, load, weight_total)
+        merged[indicator] = min(max(quotient, low), high)
     return WaterQuality(merged)
+
+
+def _finite_quotient(indicator: str, load: float, weight_total: float) -> float:
+    """逐指标除法有限性守卫（GR-02，先拒后夹）：load/ΣQi/商任一非有限 → 拒。
+
+    与 _merge_water 的 GR-02 守卫对称（R1 二审 I-1 终裁）：杜绝三种实测
+    病灶——load 溢出被夹逼静默吸收为 high、inf/inf=NaN 穿透到
+    WaterQuality 造成异常族错位、Σ权溢出把商夹到 low。消息含指标名与
+    两端值（GR-09 三元上下文）。
+    """
+    if not isfinite(load) or not isfinite(weight_total):
+        raise InvalidPropagationError(
+            f"{indicator} 加权求和溢出：load={load!r}, ΣQi={weight_total!r}"
+            "（非有限值拒绝，GR-02——负荷或权重和溢出）"
+        )
+    quotient = load / weight_total
+    if not isfinite(quotient):
+        raise InvalidPropagationError(
+            f"{indicator} 加权商非有限：load={load!r} / ΣQi={weight_total!r}"
+            f" = {quotient!r}（非有限值拒绝，GR-02）"
+        )
+    return quotient
 
 
 def _present_stocks(
