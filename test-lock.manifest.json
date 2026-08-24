@@ -65,7 +65,7 @@
   "core/tests/registry/test_assumptions.py": "f6d2c71dfa3707b19244fccd1ba4a12f2bca44ab11f35dbc98aae7150d28baa9",
   "core/tests/registry/test_coefficients.py": "887a7f640c93287ee18ce7c57ff439bf8900e330dd358fccb930d28d72f80339",
   "core/tests/registry/test_dimensions.py": "d3da094b41f1df6400af979981601367acf9d587c5ef2fdd0685af60cdf264f5",
-  "core/tests/registry/test_formulas.py": "e6beb772a4362897f162fa52d0e793214de495ee26f8318ca1586cbca09a2011",
+  "core/tests/registry/test_formulas.py": "778325f717cc6a0ce7edb85218bfae78624631ad9d850180944f9d2bce3575f2",
   "core/tests/snapshots/README.md": "105ee9862d092c986a3df8617700836d90112e1af1ca73fb65b6ab4c36c42444",
   "core/tests/solution/test_constraints.py": "baea055f28f4ea3deeecf3695dc2eff789bfc6700bdcc888dee764fb2f71e639",
   "core/tests/solution/test_diagnose.py": "35746d6ba53561789c30cadaa0e43b39ea71e5bd70741bddc8ba2935c880bfe1",

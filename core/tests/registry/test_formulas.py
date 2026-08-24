@@ -62,6 +62,7 @@ def test_dimension_mismatch_rejected_at_load() -> None:
 
 def test_duplicate_id_rejected() -> None:
     """formula_id 全库唯一（改名 = 破坏可复算，只能新增）。"""
-    register(_spec())
+    spec = _spec(formula_id="test-duplicate-demo")
+    register(spec)
     with pytest.raises(Exception, match=".+"):
-        register(_spec())
+        register(spec)
