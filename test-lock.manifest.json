@@ -15,6 +15,7 @@
   "core/tests/contracts/test_expr.py": "cb682145abdce02e3c2546150d10ae0bf741a35d572acb7d6b93a27659c4efd5",
   "core/tests/contracts/test_flow.py": "5a4e5686cf3e8c2c216b953322bdad980b7e56c308bef1c2f1da731614da1397",
   "core/tests/contracts/test_manifest.py": "9ee80cc638cd8e7f595cae1ea6a67535de527a6be5000b61f874dfe59ff91111",
+  "core/tests/contracts/test_manifest_validation.py": "3af0ca47ec822a06cda21d6c1eb12c65e3ed6d708201a36d43292f288910d620",
   "core/tests/contracts/test_ports.py": "3ae081d6060da783217440cef6865ae9cf3cb4a6cc5377a68999bab0764e1b4c",
   "core/tests/contracts/test_project_schema.py": "991f84626bd542102f9ff5ad70796896504f5066e9acd4093b78cd46a9c99b6d",
   "core/tests/contracts/test_quality.py": "da44cec566c47e081489d37589dd7fa120e22677b45ece8c85afce2a59d672a9",
