@@ -9,7 +9,9 @@
 #
 # 【公开接口】
 #   class RunEnv(不可变)：
-#       engine_version、data_version（系数+单价聚合；UF-10 聚合口径
+#       engine_version、data_version（系数+单价聚合——ARCH1 D4 定稿：
+#       包集={coefficients, unit_prices} 两包、name=目录实名（unit_prices
+#       非 prices），constraint_kb/templates 不进聚合；UF-10 聚合口径
 #       T4 D3 冻结：包名排序后 name@version 以 + 拼接——确定性、可读、
 #       审计友好，任一包版本或包集变化→聚合串变化；app 装配层 T7
 #       生成，coefficients 单包 data_version 照旧）、assumptions、

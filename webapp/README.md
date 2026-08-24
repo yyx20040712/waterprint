@@ -2,9 +2,10 @@
 
 React 18 + TypeScript(strict) + Vite；feature 切片结构（§13.5）。
 
-> 当前状态：**M0.5 结构接线完成**——43 个源文件全部带 TS 契约头
-> （`main.tsx`/`App.tsx` 可编译骨架屏 + 37 个 feature/shared 规格骨架，
-> 由 `scripts/check_webapp.py` 门禁校验）；feature 实装按 M2+ 推进。
+> 当前状态：**M0.5 结构接线完成**——43 源文件=入口 1+app 4+features 32+
+> shared 6，全部带 TS 契约头（`main.tsx`/`App.tsx` 可编译骨架屏 +
+> feature/shared 规格骨架，由 `scripts/check_webapp.py` 门禁校验）；
+> feature 实装按 M2+ 推进。
 
 ## 结构
 

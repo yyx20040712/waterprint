@@ -88,7 +88,8 @@
 #     函数构造公开类 ParamSpec/ConditionMapping（D1"ParamSpec 留
 #     manifest.py，公开 schema 面不动"），移入子模块将成环；单向
 #     import：manifest→manifest_validation（包内合法，先例
-#     unit_api→manifest）。
+#     unit_api→manifest（TYPE_CHECKING）与 result_schema→unit_api
+#     （运行期））。
 #
 # 【测试要求】四类静态校验各自的拒绝路径、合法最小清单往返序列化无损。
 #

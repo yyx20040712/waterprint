@@ -40,6 +40,9 @@
 > 层序（自上而下）：L6 → L5.main → L5.routers → L5.services → L5.jobs →
 > L5.settings → L4.cli → L4.app → L4.project-trace → L3 → L2 → L1 → L0 →
 > DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制）。
+>
+> `core/waterprint/ifc_export/` 为条件占位（IfcOpenShell LGPL 评估过/
+> 未过则删，见其 README），启动时登记本表，平时不入节点表。
 
 ### 1b. 依赖边表（声明允许的依赖；未声明的 import = 违规）
 

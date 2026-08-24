@@ -9,10 +9,12 @@
 #
 # 【公开接口】
 #   class RunEnv(不可变)：定义于 contracts/run_env.py（L0 契约），app
-#       装配并重新导出——engine_version、data_version（系数+单价聚合）、
-#       assumptions、coefficients、price_book、trace_sink、engine_params
-#       （引擎默认带调节影响元数据，UF-08 项 T4/T7 冻结数值）；装配一次、
-#       执行期只读（SENS-B 2026-08-23 UF-31）
+#       装配并重新导出——engine_version、data_version（系数+单价聚合
+#       ——ARCH1 D4 定稿：包集={coefficients, unit_prices} 两包、
+#       name=目录实名，见 run_env.py 规格）、assumptions、coefficients、
+#       price_book、trace_sink、engine_params（引擎默认带调节影响元数据，
+#       UF-08 项 T4/T7 冻结数值）；装配一次、执行期只读
+#       （SENS-B 2026-08-23 UF-31）
 #   assemble(project: ProjectFile, env) -> AssembledGraph
 #       装配：units_lib.discover_units → 按 design 节点实例化 →
 #       构建图执行器入参（唯一允许接触具体单元的地点，§13.1）

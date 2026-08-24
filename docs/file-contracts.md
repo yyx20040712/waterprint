@@ -9,19 +9,19 @@
 
 | 路径 | 层 | 唯一职责 | 输入 | 输出 |
 |------|----|----------|------|------|
-| `core/waterprint/contracts/quantity.py` | L0 | 量纲与规范单位定义、pint 边界包装（唯一 pint 接触点） | 单位字符串/带单位数值 | 规范单位裸值、Quantity、InvalidUnitError、InvalidQuantityError |
-| `core/waterprint/contracts/flow.py` | L0 | 水量契约与构造校验（q_design 派生消双轨） | q_avg_daily、Kz | WaterFlow、make_flow、InvalidFlowError |
-| `core/waterprint/contracts/quality.py` | L0 | 水质契约 + 出水标准库（标准是数据） | 六指标 + 标准名 | WaterQuality、EffluentStandard、margin、INDICATORS、InvalidQualityError |
-| `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体） | Q_wet/DS/含水率 | SludgeFlow、make_sludge、mix、InvalidSludgeError |
-| `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判） | 端口声明/连线意图 | Port、PortRef、Edge、FluidKind、Direction、validate_edge、InvalidConnection |
-| `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult）+ 警告结构（UF-17：Severity/Warning 三必带） | 上游量+参数+工况 | UnitContext、UnitResult、Unit、Severity、Warning |
-| `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema 正门（加载即静态校验：R1a~R1e/R4；校验器机器部分 T4 拆至 manifest_validation.py，公开 schema 面不动） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig（后两者为 manifest_validation 再导出） |
+| `core/waterprint/contracts/quantity.py` | L0 | 量纲与规范单位定义、pint 边界包装（唯一 pint 接触点；GR-36 类③量纲真源） | 单位字符串/带单位数值 | 规范单位裸值、Quantity、InvalidUnitError、InvalidQuantityError |
+| `core/waterprint/contracts/flow.py` | L0 | 水量契约与构造校验（q_design 派生消双轨；GR-36 类①冻结 schema） | q_avg_daily、Kz | WaterFlow、make_flow、InvalidFlowError |
+| `core/waterprint/contracts/quality.py` | L0 | 水质契约 + 出水标准库（标准是数据；GR-36 类①冻结 schema） | 六指标 + 标准名 | WaterQuality、EffluentStandard、margin、INDICATORS、InvalidQualityError |
+| `core/waterprint/contracts/sludge.py` | L0 | 污泥量契约（DS 守恒载体；GR-36 类①冻结 schema） | Q_wet/DS/含水率 | SludgeFlow、make_sludge、mix、InvalidSludgeError |
+| `core/waterprint/contracts/ports.py` | L0 | 端口与边契约（水/泥类型、回流标记、连接合法性唯一裁判；GR-36 类①冻结 schema，含连接校验语义） | 端口声明/连线意图 | Port、PortRef、Edge、FluidKind、Direction、validate_edge、InvalidConnection |
+| `core/waterprint/contracts/unit_api.py` | L0 | 单元计算协议（UnitContext→UnitResult）+ 警告结构（UF-17：Severity/Warning 三必带；GR-36 类②跨层协议） | 上游量+参数+工况 | UnitContext、UnitResult、Unit、Severity、Warning |
+| `core/waterprint/contracts/manifest.py` | L0 | 模组清单 schema 正门（加载即静态校验：R1a~R1e/R4；校验器机器部分 T4 拆至 manifest_validation.py，公开 schema 面不动；GR-36 类①冻结 schema） | 清单数据 | ParamSpec、ConditionMapping、UnitManifest、load_manifest、bind_dimension_lookup、InvalidUnitConfig（后两者为 manifest_validation 再导出） |
 | `core/waterprint/contracts/manifest_validation.py` | L0 | manifest 冻结 schema 的静态校验器集 + 装配槽（GR-36 类①；T4 拆分自 manifest.py 纯移动，bind_dimension_lookup 单槽 bind-once） | 清单数据节点 | 守卫器/键集常量/InvalidUnitConfig、bind_dimension_lookup（经 manifest.py 再导出） |
-| `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用 manifest 定义） |
-| `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema（pydantic strict+extra=forbid 严格校验） | 项目 JSON | ProjectFile、DesignState、ViewState、Metadata、parse_project |
-| `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线；确定性序列化正门 R3/R6；deserialize 内层三键必在 D4） | 引擎产出 | PlantResult、UnitResultSnapshot、TraceNode、ReproTriple、serialize、deserialize、InvalidResultError |
-| `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
-| `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
+| `core/waterprint/contracts/condition.py` | L0 | 工况契约（ADR-007：2+k 语义、condition_key 稳定键；GR-36 类①冻结 schema） | 工况轴取值 | FlowCase、OperatingCondition、ConditionSet、build_condition_set、InvalidUnitConfig（同层引用：manifest 再导出，定义在 manifest_validation） |
+| `core/waterprint/contracts/project_schema.py` | L0 | 项目文件 design/view 双态 schema（pydantic strict+extra=forbid 严格校验；GR-36 类①冻结 schema） | 项目 JSON | ProjectFile、DesignState、ViewState、Metadata、parse_project |
+| `core/waterprint/contracts/result_schema.py` | L0 | 全厂结果与计算迹 schema（全架构总线；确定性序列化正门 R3/R6；deserialize 内层三键必在 D4；GR-36 类①冻结 schema） | 引擎产出 | PlantResult、UnitResultSnapshot、TraceNode、ReproTriple、serialize、deserialize、InvalidResultError |
+| `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核；GR-36 类③受限 DSL 内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
+| `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面；GR-36 类②跨层协议） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
 | `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31；data_version 聚合口径=包名排序后 name@version 以 + 拼接，UF-10 T4 冻结） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv |
 | `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | FormulaSpec、InvalidFormulaError、register、by_id、validate_all、apply、ValidationReport |
 | `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；dtype_of 已实现 T4 D5+dim 归一 D6，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配 bind-once） | 字段声明 | FieldSpec、register_dimension、dimension_of、dtype_of、InvalidDimensionError |
@@ -63,7 +63,7 @@
 | `core/waterprint/trace/collector.py` | L4 | 计算迹收集（零遗漏、确定性） | 公式应用上下文 | TraceTree |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（模板驱动、禁公式） | 迹树+结果+模板 | .xlsx |
-| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc（唯一装配点） | 项目+工况+环境 | ResultBundle |
+| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/run_enumeration/export_artifact/load_project+save_project 四用例（唯一装配点，UF-33 口径） | 项目+工况+环境 | ResultBundle、枚举结果、导出产物、项目对象 |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
 ## 2. server 服务层
