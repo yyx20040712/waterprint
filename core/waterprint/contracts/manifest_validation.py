@@ -5,8 +5,9 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（T4 拆分自 manifest.py；镜像测试 tests/contracts/test_manifest.py
-#   经 load_manifest 正门全覆盖——本文件为机器部分，无独立公开面变更）
+# 规格说明（T4 拆分自 manifest.py；镜像测试 tests/contracts/test_manifest_validation.py
+#   ——T4⑧ 新增：bind-once 守卫+槽完好 2 用例；正门行为另经
+#   tests/contracts/test_manifest.py 5 用例覆盖）
 #
 # 【拆分注记】（简报 T4 D1，2026-08-24）
 #   - 本文件承接 manifest.py 原校验器机器部分（纯移动零行为变化）：
@@ -41,8 +42,9 @@
 # 【数值纪律】本文件不在魔法数字白名单——数值字面量仅 0（装配槽单元素
 #   列表索引；沿袭 manifest.py 注记），无任何换算系数。
 #
-# 【测试要求】无独立镜像测试（test_manifest 经正门 5 用例覆盖，不回退
-#   即拆分零行为漂移的实证）。
+# 【测试要求】镜像测试 tests/contracts/test_manifest_validation.py
+#   （T4⑧ 302fcb6 新增并入锁）：①rebind 双绑 RuntimeError 拒；
+#   ②被拒重绑后 R1a 查询槽完好；正门行为经 test_manifest 5 用例不变覆盖。
 #
 # 【参照】简报 T4 D1；GR-36（conventions §11）；AGENTS §2 文件预算
 # ══════════════════════════════════════════════════════════════════

@@ -74,8 +74,8 @@
 #     load_manifest 抛 RuntimeError（装配缺陷按 GR-08 不包装领域异常）。
 #   - range 存储形态 (min, max) 二元组（闭区间 GR-06）；输入 dict
 #     {"min","max"} 精确双键。
-#   - 数值纪律：本文件不在魔法数字白名单——数值字面量仅 0（isfinite/
-#     空容器判定归零处），无任何换算系数。
+#   - 数值纪律：本文件不在魔法数字白名单——拆分后本文件零数值字面量；
+#     isfinite/归零判定随守卫器移至 manifest_validation.py，无任何换算系数。
 #
 # 【T4 拆分注记】（总控简报 D1 裁决，2026-08-24）
 #   - 校验器机器部分（InvalidUnitConfig、_DimensionSpec 协议、装配槽
