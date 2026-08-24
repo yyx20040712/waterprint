@@ -56,6 +56,11 @@
 #     四顶层键必在（缺一拒，消息含缺失键名）+ 根级未知键拒（消息含
 #     未知键名）+ 未知键拒下推 trace/snapshot/warning/repro 节点级 +
 #     Warning.param_key/condition_key 校验 None|str（消 7→7.0 往返漂移）。
+#   - T4 收口（简报 D4，2026-08-24）：deserialize 内层三键必在（缺省
+#     [] 收口，T3-R1 残余）——Warning.affected_unit_ids、
+#     UnitResultSnapshot.warnings、UnitResultSnapshot.formula_ids，缺失
+#     = InvalidResultError（消息含 {path}.{键名} 缺失）；serialize 经
+#     dataclasses.fields 恒发全键（空容器也发射），往返恒等保持。
 #   - 数值纪律：本文件不在魔法数字白名单——数值字面量仅 round(x,10) 的 10。
 #
 # 【测试要求】往返无损、确定性序列化、按 condition_key 索引完整性、
@@ -311,6 +316,20 @@ def _reject_unknown_keys(
         )
 
 
+def _required_entry(raw: Mapping[str, Any], key: str, path: str) -> Any:
+    """内层键必在守卫（D4，T3A-03 同风格）：缺省 [] 收口，消息含 path.键名。
+
+    serialize 经 dataclasses.fields 恒发全键（空容器也发射），故反序列化
+    侧缺失即数据源缺陷，禁止静默补缺省值通过。
+    """
+    if key not in raw:
+        raise InvalidResultError(
+            f"结果数据结构非法：{path}.{key} 缺失"
+            "（D4——内层键必在，serialize 恒发全键，缺失即数据源缺陷）"
+        )
+    return raw[key]
+
+
 def _require_number(value: Any, path: str) -> float:
     """结构守卫：数值叶子（再过有限性守卫）。"""
     if isinstance(value, bool) or not isinstance(value, int | float):
@@ -355,7 +374,8 @@ def _warning_of(value: Any, path: str) -> Warning:
             raw.get("condition_key"), f"{path}.condition_key"
         ),
         affected_unit_ids=_require_str_tuple(
-            raw.get("affected_unit_ids", []), f"{path}.affected_unit_ids"
+            _required_entry(raw, "affected_unit_ids", path),
+            f"{path}.affected_unit_ids",
         ),
     )
 
@@ -373,10 +393,14 @@ def _snapshot_of(value: Any, path: str) -> UnitResultSnapshot:
         dims=_require_float_mapping(raw.get("dims"), f"{path}.dims"),
         warnings=tuple(
             _warning_of(item, f"{path}.warnings[{index}]")
-            for index, item in enumerate(_require_list(raw.get("warnings", []), f"{path}.warnings"))
+            for index, item in enumerate(
+                _require_list(
+                    _required_entry(raw, "warnings", path), f"{path}.warnings"
+                )
+            )
         ),
         formula_ids=_require_str_tuple(
-            raw.get("formula_ids", []), f"{path}.formula_ids"
+            _required_entry(raw, "formula_ids", path), f"{path}.formula_ids"
         ),
     )
 
