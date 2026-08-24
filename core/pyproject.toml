@@ -203,6 +203,9 @@ modules = [
 [[tool.importlinter.contracts]]
 name = "装配点唯一：图引擎与各子系统不认识任何具体单元"
 type = "forbidden"
+# ARCH1 D6(h)（2026-08-24）：source_modules += waterprint.network——AGENTS §1
+# "network/ 不共享厂区图引擎"，装配点唯一约束本就覆盖 L3 全子系统，此前
+# 独缺 network 行（network 无代码，契约恒 KEPT；补行=口径完备，非行为）。
 source_modules = [
     "waterprint.graph",
     "waterprint.solution",
@@ -210,6 +213,7 @@ source_modules = [
     "waterprint.cost",
     "waterprint.drafting",
     "waterprint.geometry",
+    "waterprint.network",
 ]
 forbidden_modules = ["waterprint.units_lib"]
 
