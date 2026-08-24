@@ -27,7 +27,7 @@
 | `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；dtype_of 已实现 T4 D5+dim 归一 D6，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配 bind-once） | 字段声明 | FieldSpec、register_dimension、dimension_of、dtype_of、InvalidDimensionError |
 | `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处） | 假设声明+项目覆盖 | Assumption、AssumptionSet、DEFAULT_ASSUMPTIONS、assumption、TuningImpact、InvalidAssumptionError |
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version、CoefficientValue、load_coefficients、InvalidCoefficientError、require_keys |
-| `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数） | 节点/边列表 | 执行分层、回路组 |
+| `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数；T6 实现：环两分法——非 recycle 环拒/全边 Tarjan） | 节点/边列表 | topological_layers、strongly_connected_components、split_graph（复用 ports.InvalidConnection 拒绝） |
 | `core/waterprint/graph/propagate.py` | L3 | 沿边传播水量水质 + 汇流加权混合 | 上游结果+边+工况 | 下游 UnitContext 输入 |
 | `core/waterprint/graph/loop.py` | L3 | 回路固定点迭代（阻尼/容差/发散诊断） | 回路组+compute 回调 | 收敛结果或 LoopDivergence |
 | `core/waterprint/graph/executor.py` | L3 | 图执行编排（工况×拓扑×传播×回路） | design 图+单元注册表+工况集 | PlantResult |
