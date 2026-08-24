@@ -167,3 +167,32 @@ ls data/coefficients/                                                    # 无 s
 grep -rn "18918\|一级A\|出水标准" data/ docs/norms/                    # 仅 README 规划句与 manifest 槽位注释
 grep -n "标准库\|STANDARDS" docs/undefined-features-register.md          # 本条前零命中
 ```
+
+## 八、交接体检批新增项（2026-08-24，T4 起点体检发现——疑似待裁决）
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-40 | 时间/序列化 | GR-19 时区口径三源不一：engineering-conventions.md:213"统一 UTC + ISO 8601（含 Z）" vs project_schema.py:25-26 规格头正文"非空必须 UTC ISO 8601" vs 同文件 :50-51 冻结注记"tz 必在"；实现 `_timestamp_utc_iso`（:97-115）取最宽口径——任意偏移时区（+08:00 等）均通过。自由发挥风险：io/migration 若按"含 Z 严格版"实现将与 project_schema 现行为互斥（旧版时区格式判别、序列化口径分裂） | **疑似**→裁决三选一（严格含 Z / 零偏移 UTC / 任意偏移宽版），GR-19 或 project_schema 单侧收敛；project 保存链（io.py，M1 窗）实现前拍板 | 交接体检 2026-08-24 |
+| UF-41 | CLI/管网 | cli.py v1 冻结子命令集（calc/export/new-unit/validate/selfcheck，:12-22）无管网子命令，而 structure-graph.md §1b:63 声明 cli→network 边（"管网子工具命令"）、§2:105 链 6 首环即"cli.py（独立命令）"——两侧规格不对齐。自由发挥风险：M3 实现管网时加子命令=擅破 v1 冻结集，不加=§1b 边永为孤边 | **疑似**→二选一：cli 冻结集扩管网子命令（升 v2）或链 6 改独立入口不经 cli；M3 前拍板 | 交接体检 2026-08-24 |
+| UF-42 | 结果投影 | UnitResult→UnitResultSnapshot 投影规则规格沉默：UnitResult.outflows 为 Mapping[PortRef→WaterFlow\|SludgeFlow]（unit_api），UnitResultSnapshot.outflows 为 Mapping[str→float]（result_schema:135/137）——PortRef→str 键化格式、WaterFlow（含 q_avg_daily/kz/q_design 三量）→单 float 的字段选择或多槽、kz/q_design 是否随行、dims Any→Mapping[str,float]，均无规格。自由发挥风险：executor（T6/T7）落快照时各自发明投影，serialize 确定性与 golden 对照将锁死错误口径 | **疑似**→T6 executor 简报起草时裁决（冻结投影表：键化格式+字段集+kz 随行与否），实现前入锁 | 交接体检 2026-08-24 |
+| UF-43 | 计算书 | 计算书链三处规格沉默：① trace_api.TraceNodeSpec 五字段 vs result_schema.TraceNode 六字段（多 norm_ref）——norm_ref 由 collector 经 formula_id 反查 FormulaSpec.norm_ref 的补齐路径无规格；② collector.py:12 规格头 record() 为 6 散参（M0 遗留）vs trace_api.py:62 TraceSink.record(node: TraceNodeSpec) 单对象——T0.5 协议下沉后 collector 规格头未同步；③ TraceTree 类型全库未定义（app.py:29/collector.py:14-15/audit.py:3 均引用，result_schema 仅 tuple[TraceNode,...] 平铺形态）——树 vs 平铺未裁决 | **疑似**→T10 前三合一拍板：collector 规格头重写随 T10 简报、norm_ref 补齐路径写入 formulas/collector 规格、TraceTree 形态裁决 | 交接体检 2026-08-24 |
+| UF-44 | 测试锁定 | test_dimensions.py 模块级 skipif（:17-20）把 dtype_of 列入就绪门，而 dtype_of 规格明定落 T4（dimensions.py 规格头"本注记即唯一占位形态"）→ 整模块 4 用例自 T3④ 起永久 skip，dimensions 已实现行为（R2 单位校验/R3 重复拒/未登记拒）零有效测试覆盖；测试锁定与规格分期矛盾 | **疑似**→T4 落 dtype_of 时自然激活，T4 实现者须实证 4 用例 skip→pass 全绿；若需提前激活，拆 skipif 属锁定区改动，按总授权三类先例核对 | T4 简报必办 |
+
+### 八批验证命令摘要（仓库根执行，2026-08-24）
+
+```bash
+# UF-40：三源原文与实现口径
+grep -n -A2 "GR-19" docs/engineering-conventions.md            # :213"统一 UTC + ISO 8601（含 Z）"
+grep -n "UTC" core/waterprint/contracts/project_schema.py       # :25-26 正文 vs :50-51 注记 vs :97-115 实现（tzinfo 非 None 即过）
+# UF-41：cli 冻结集无管网；§1b/§2 声明有
+grep -n "wp \|子命令集" core/waterprint/cli.py                   # calc/export/new-unit/validate/selfcheck 五命令
+grep -n "network" docs/structure-graph.md                       # :63 边声明 + :105 链 6 首环
+# UF-42：投影规则零规格（两侧字段声明均存在，无投影表）
+grep -n "outflows\|dims" core/waterprint/contracts/unit_api.py core/waterprint/contracts/result_schema.py
+# UF-43：三处沉默（签名漂移/反查路径/类型未定义）
+grep -n "record" core/waterprint/trace/collector.py core/waterprint/contracts/trace_api.py
+grep -rn "TraceTree" core/waterprint --include="*.py"           # 仅引用无定义
+# UF-44：skipif 门与规格分期冲突
+sed -n '14,22p' core/tests/registry/test_dimensions.py          # dtype_of 在 skipif 元组内
+grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头注记（T4 占位形态）
+```
