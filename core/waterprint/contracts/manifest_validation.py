@@ -72,11 +72,13 @@ class _DimensionSpec(Protocol):
     """已登记字段的最小结构面（registry FieldSpec 的 L0 投影——零依赖倒置）。
 
     dim 声明为只读属性：frozen 值对象（FieldSpec 等）可结构满足——
-    查询面只读，不承诺可写。
+    查询面只读，不承诺可写。类型随 T4 D6 放宽为 DimKey | str
+    （FieldSpec.__post_init__ 归一为 DimKey 后实际恒为枚举；本投影
+    按声明面放宽以保持结构可满足，StrEnum 值==名，== 比较语义不变）。
     """
 
     @property
-    def dim(self) -> DimKey: ...
+    def dim(self) -> DimKey | str: ...
 
 
 # 安装槽以单元素列表承载（免 global 语句；绑定动作是装配期一次性事件）。
@@ -228,9 +230,12 @@ def _registered_dim(field_id: str, dim: DimKey) -> DimKey:
             "（R1a——先 register_dimension 登记，D2 扩围口径）"
         )
     if spec.dim != dim:
+        registered = spec.dim
         raise InvalidUnitConfig(
             f"参数 {field_id!r} 量纲不匹配：清单声明 {dim.value}，"
-            f"注册表登记 {spec.dim.value}（R1a）"
+            f"注册表登记 "
+            f"{registered.value if isinstance(registered, DimKey) else registered}"
+            "（R1a）"
         )
     return dim
 
