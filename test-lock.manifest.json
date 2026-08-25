@@ -1,6 +1,6 @@
 {
   "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
-  "core/tests/app/test_app.py": "21ab95503d14b0212d7547a4cec7063ad1044a6debcc331746fc1188f2e8ca07",
+  "core/tests/app/test_app.py": "c38ef75482eedaaa71a47924b5fc2df5b5e6470df6d68a820b666a6be2b85ad2",
   "core/tests/app/test_cli.py": "52fce425fd3f46c85949366ece4557d08d4c4f6194abb023c1be04c25bda2e83",
   "core/tests/arch/test_file_budgets.py": "1e662e6830adc5e4a015c0a92c617784d6bc174a066d1efa64dd57f15571e49e",
   "core/tests/arch/test_hygiene.py": "63952694d7748b431dabcebc6f3b0c4291b116b97c4bfc2dd6cb1b791638e2d5",
@@ -54,6 +54,7 @@
   "core/tests/graph/test_executor.py": "4c90158c1d08e9707a60ac3150d47647ff6ec8bdbf547afce7bfdb7bec610c27",
   "core/tests/graph/test_incremental.py": "7adefb8b3502e5e75f9bb48822085855942e405c1fb3a62d9d61192c19e7bc5c",
   "core/tests/graph/test_loop.py": "198b0fa0ec1bcc7c78b5de241fd637133809644b6517f7572f3a8cedbb429147",
+  "core/tests/graph/test_nodes.py": "8946127397ea2e1d031f0054f071c08d07d4475fb05da4614849ea11c7690732",
   "core/tests/graph/test_propagate.py": "5cd363cd9341738682bd2f6200050daff2184f02cd23253945a62b524d47e35e",
   "core/tests/graph/test_topo.py": "c4ab53189dc7e0a27bd5693a28e5e4f7b1db16276fa20df5b04e3f7585bf1ba3",
   "core/tests/network/test_excel_io.py": "befaf076e03bfc6fdfc95e23f4d2704eb526314cc51f4217835521c593e28d96",
