@@ -51,7 +51,11 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.municipal.wushui_tisheng.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.municipal.wushui_tisheng.manifest import (
+    DN_RESISTANCE,
+    FORMULA_IDS,
+    manifest,
+)
 
 _UNIT_ID = "municipal_wushui_tisheng"
 _GB = "GB 50014-2021 §6.1"
@@ -68,18 +72,9 @@ _PARAMS_POSITIVE = (
     "g_gravity",
     "sec_per_hour",
 )
-# DN 档→比阻表键段（舍维列夫表覆盖面 DN300~DN800；d_pipe 按 0.1 m 档
+# DN 档→比阻表键段（DN_RESISTANCE 真源区取值：d_pipe 按 0.1 m 档
 # ceil 后的档值命中，越表=领域异常）。
-_DN_KEYS: dict[float, str] = {
-    0.3: "dn300",
-    0.35: "dn350",
-    0.4: "dn400",
-    0.45: "dn450",
-    0.5: "dn500",
-    0.6: "dn600",
-    0.7: "dn700",
-    0.8: "dn800",
-}
+_DN_KEYS: dict[float, str] = dict(DN_RESISTANCE)
 _Q_PER_PUMP = "factor.wushui_tisheng.pump.q_per_unit"
 _FREE_HEAD = "factor.wushui_tisheng.pump.free_head"
 _ZETA = "factor.wushui_tisheng.pipe.zeta_total"

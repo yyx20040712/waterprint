@@ -44,7 +44,9 @@ UNIT_ID = "municipal_bashi_jiliangcao"
 # B7 七档档名（factor.bashi_jiliangcao.flume.<档名>.* 键段）——与
 # data/coefficients 0.4.0 键名逐字对齐（手册标准型喉宽档）。
 GRADES: tuple[str, ...] = ("b025", "b045", "b075", "b100", "b120", "b150", "b210")
-_THROAT_GRID: tuple[float, ...] = (0.25, 0.45, 0.75, 1.0, 1.2, 1.5, 2.1)
+# B7 七档喉宽档位（grid 声明与 compute 档位命中的同一真源——本文件=
+# units_lib manifest 数值真源区）。
+THROAT_GRID: tuple[float, ...] = (0.25, 0.45, 0.75, 1.0, 1.2, 1.5, 2.1)
 
 _HB = (
     "《给水排水设计手册（第 5 册 城镇排水）》量水堰槽章"
@@ -169,7 +171,7 @@ manifest = load_manifest(
                 "field_id": "b_throat",
                 "dim": "LENGTH",
                 "default": 0.75,
-                "grid": list(_THROAT_GRID),
+                "grid": list(THROAT_GRID),
             },
         ],
         "ports": [

@@ -49,15 +49,15 @@ from waterprint.registry import formulas
 from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
     FORMULA_IDS,
     GRADES,
+    THROAT_GRID,
     manifest,
 )
 
 _UNIT_ID = "municipal_bashi_jiliangcao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）量水堰槽章"
-# 档位值→档名映射（B7 七档；round(b,2) 命中——grid 档位面 manifest 声明）。
-_GRADE_BY_THROAT: dict[float, str] = dict(
-    zip((0.25, 0.45, 0.75, 1.0, 1.2, 1.5, 2.1), GRADES, strict=True)
-)
+# 档位值→档名映射（B7 七档；round(b,2) 命中——档位面 manifest 声明，
+# THROAT_GRID 真源区取值，本文件零档位字面量）。
+_GRADE_BY_THROAT: dict[float, str] = dict(zip(THROAT_GRID, GRADES, strict=True))
 _KEY_C = "factor.bashi_jiliangcao.flume.{grade}.c"
 _KEY_N = "factor.bashi_jiliangcao.flume.{grade}.n"
 _KEY_HMIN = "factor.bashi_jiliangcao.flume.{grade}.hmin"

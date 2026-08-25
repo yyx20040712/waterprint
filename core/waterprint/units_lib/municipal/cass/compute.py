@@ -97,7 +97,7 @@ def _validate(params: dict[str, float]) -> None:
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
     phase_sum = params["t_react"] + params["t_settle"] + params["t_draw"]
-    if not math.isclose(phase_sum, params["t_cycle"], rel_tol=0.0, abs_tol=1e-9):
+    if phase_sum != params["t_cycle"]:
         raise InvalidUnitConfig(
             f"单元 {_UNIT_ID!r} 时段和=周期不变性破坏：t_react+t_settle+t_draw ="
             f" {phase_sum!r} ≠ t_cycle = {params['t_cycle']!r}"

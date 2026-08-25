@@ -42,6 +42,19 @@ from waterprint.registry.formulas import FormulaSpec, register
 
 UNIT_ID = "municipal_wushui_tisheng"
 
+# 比阻表 DN 档段（舍维列夫表覆盖面 DN300~DN800——d_pipe 档值→数据包
+# 键段映射，compute 档位命中消费；本文件=units_lib manifest 数值真源区）。
+DN_RESISTANCE: tuple[tuple[float, str], ...] = (
+    (0.3, "dn300"),
+    (0.35, "dn350"),
+    (0.4, "dn400"),
+    (0.45, "dn450"),
+    (0.5, "dn500"),
+    (0.6, "dn600"),
+    (0.7, "dn700"),
+    (0.8, "dn800"),
+)
+
 _GB = (
     "GB 50014-2021 §6.1（泵站——集水池容积/备用泵一般要求；"
     "docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认）"
