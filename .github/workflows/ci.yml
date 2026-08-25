@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: 安装依赖（锁文件入库后改 --frozen）
-        run: uv sync
+        run: uv sync --frozen
       - name: Ruff（零告警）
         run: uv run ruff check .
       - name: Mypy strict
