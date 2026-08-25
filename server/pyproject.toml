@@ -17,6 +17,10 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.6",
     "mypy>=1.11",
+    # core 源码类型面（server mypy 经 mypy_path 直查 ../core——同 core
+    # dev 组口径，缺 stub 会令 core 文件在 server 侧误报/漏报）
+    "types-pyyaml>=6.0",
+    "types-openpyxl>=3.1",
 ]
 
 [tool.uv.sources]
@@ -67,3 +71,7 @@ strict = true
 python_version = "3.12"
 files = ["waterprint_server"]
 plugins = ["pydantic.mypy"]
+# waterprint-core 包未携带 py.typed（core 侧自身 mypy 直查源码无此需求）；
+# 经源码路径解析获得完整类型面（等效 core 侧检查口径），禁 ignore_missing
+# （Any 泄漏会击穿 strict 的 Returning Any 防线）。
+mypy_path = "../core"

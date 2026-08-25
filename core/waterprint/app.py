@@ -147,6 +147,7 @@ from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
 __all__ = [
+    "DEFAULT_ASSUMPTIONS",
     "ArtifactKindNotReady",
     "AssembledGraph",
     "Constraint",
