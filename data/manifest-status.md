@@ -9,5 +9,5 @@
 |----|----------|------------------|
 | unit_prices | 0.0.0（空，待迁移 2019 黑龙江定额并抽验 10%） | M0 数据迁移 |
 | constraint_kb | 0.0.0（空，待迁移 51 条 constraint_hints 并逐条复核出处；条目可挂"失败时建议"字段，见 business-logic §4） | M0/M1 |
-| coefficients | 0.3.0（M2b1 深度处理段四单元批：factor.{tiaojiechi,gaomidu,vxinglvchi,ziwai}.* 共 68 条 + removal 12 条（调节池/紫外零去除显式 0.0 注记），AI 起草 2026-08-25 数据策略 v2，**领域专家批量追认待补**；0.2.1 及以前 126 键不扰动） | M1（0.1.0 签字）/M2（0.2.0/0.2.1/0.3.0 追认） |
+| coefficients | 0.4.0（M2c 市政余三单元批：factor.{cass,bashi_jiliangcao,wushui_tisheng}.* 共 84 条 + removal 9 条（CASS 与 AAO 同族档；巴歇尔/泵房计量与提升零去除显式 0.0 注记），AI 起草 2026-08-26 数据策略 v2，**领域专家批量追认待补**；0.3.0 及以前 194+12 键不扰动） | M1（0.1.0 签字）/M2（0.2.0/0.2.1/0.3.0/0.4.0 追认） |
 | templates | 0.0.0（空，模板文件 M1 起创建） | M1 |

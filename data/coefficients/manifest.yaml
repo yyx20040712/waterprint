@@ -1,6 +1,20 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.3.0"
+data_version: "0.4.0"
 # 变更记录：
+#   - 0.4.0: M2c 市政余三单元批（批级版本跃升）；AI 起草待追认（数据
+#       策略 v2，工程常用范围口径）。docs/norms/{cass,bashi_jiliangcao,
+#       wushui_tisheng}.md 系数列/参数档逐字：factors.yaml 增
+#       factor.<三短名>.* 共 84 条（cass 19——需氧量/剩余污泥与 aao 同族
+#       同值键；bashi_jiliangcao 42——B7 七档 C/n/scrit/hmin/hmax 全档
+#       35 条+构造常量 4+hb_design/loss_ratio/elevation_loss，C/n 从手册
+#       标准型表录入、"CJ/T 3008.3-1993 正式文本核对"降级为追认点注记
+#       [business-logic §10 Q3 挂账口径]；wushui_tisheng 23——舍维列夫
+#       比阻 DN300~DN800 八档+泵扬程三分量系数[M2b1 追认点 14 承接]+
+#       集水井/启停带）；removal_rates.yaml 增 removal.<三短名>.
+#       {bod5,cod,ss}.mod_default 共 9 条（cass 与 aao 同族去除档
+#       0.90/0.85/0.90；巴歇尔与泵房计量/提升零去除全 0.0 显式注记）；
+#       B7 七档枚举面按手册标准档映射（0.5/1.25/2.0→0.45/1.20/2.10，
+#       归追认点 1 裁定）。0.3.0 既有 194 键不扰动。
 #   - 0.3.0: M2b1 深度处理段四单元批（批级版本跃升）；AI 起草待追认（数据
 #       策略 v2，工程常用范围口径）。docs/norms/{tiaojiechi,gaomidu,
 #       vxinglvchi,ziwai}.md 系数列/参数档逐字：factors.yaml 增

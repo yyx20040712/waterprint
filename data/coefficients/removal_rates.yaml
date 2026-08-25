@@ -252,3 +252,63 @@
   unit: "dimensionless"
   source: "给水排水设计手册（第 5 册）紫外消毒机理（物理消毒，无 SS 去除）"
   note: "紫外消毒 SS 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
+
+# ── 市政余三单元 0.4.0 批（M2c，数据策略 v2：工程常用范围中值口径起草，
+#    出处仅 GB 国标/给水排水设计手册两类；领域专家批量追认待补；
+#    golden_municipal 槽位不建——golden 未录，不造未验证数据；
+#    逐字对应 docs/norms/{cass,bashi_jiliangcao,wushui_tisheng}.md 衔接式；
+#    CASS 与 AAO 同族去除档；巴歇尔/泵房计量与提升零去除显式 0.0 注记） ──
+
+- key: "removal.cass.bod5.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）活性污泥系统 BOD5 去除常用带（AAO 同族口径）"
+  note: "CASS 生物池 BOD5 去除率默认档（85%~95% 中值，一级 A 常用；与 removal.aao.bod5 同族同值）；数据策略 v2"
+
+- key: "removal.cass.cod.mod_default"
+  value: 0.85
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）活性污泥系统 COD 去除常用带（AAO 同族口径）"
+  note: "CASS 生物池 COD 去除率默认档（80%~90% 中值，工程常用；与 removal.aao.cod 同族同值）；数据策略 v2"
+
+- key: "removal.cass.ss.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）活性污泥系统 SS 去除常用带（AAO 同族口径）"
+  note: "CASS SS 水质链槽位（85%~95% 中值；混合液 MLSS 由设计参数承载不经此键，与 aao 同族口径）；数据策略 v2"
+
+- key: "removal.bashi_jiliangcao.bod5.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）量水堰槽功能定义（计量单元，无处理去除）"
+  note: "巴歇尔计量槽 BOD5 去除率默认档——计量单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.bashi_jiliangcao.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）量水堰槽功能定义（计量单元，无处理去除）"
+  note: "巴歇尔计量槽 COD 去除率默认档——计量单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.bashi_jiliangcao.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）量水堰槽功能定义（计量单元，无处理去除）"
+  note: "巴歇尔计量槽 SS 去除率默认档——计量单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.wushui_tisheng.bod5.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）泵站功能定义（提升单元，无处理去除）"
+  note: "污水提升泵房 BOD5 去除率默认档——提升单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.wushui_tisheng.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）泵站功能定义（提升单元，无处理去除）"
+  note: "污水提升泵房 COD 去除率默认档——提升单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.wushui_tisheng.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）泵站功能定义（提升单元，无处理去除）"
+  note: "污水提升泵房 SS 去除率默认档——提升单元无去除，显式 0.0（穿流）；数据策略 v2"

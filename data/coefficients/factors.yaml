@@ -1042,5 +1042,523 @@
 - key: "factor.ziwai.elevation_loss"
   value: 0.2
   unit: "m"
-  source: "给水排水设计手册（第 5 册）紫外渠水头损失常用值"
+  source: "给水排水设计手册（第 5 册 城镇排水）紫外渠水头损失常用值"
   note: "紫外渠道水头损失经验值（带 0.1~0.3 m，取 0.2；高程链输入）"
+
+# ── CASS 生物池（cass，0.4.0 M2c 市政余三单元批：数据策略 v2 工程常用
+#    范围口径起草，出处仅 GB 国标/给排水设计手册两类；领域专家批量追认
+#    待补；逐字对应 docs/norms/cass.md 参数档/系数列——需氧量/剩余污泥
+#    与 aao 同族公式口径（AO-F9~F12/F6~F7 同值键）） ──
+
+- key: "factor.cass.ns_band.min"
+  value: 0.05
+  unit: "kgBOD5/(kgMLSS.d)"
+  source: "GB 50014-2021 §7.6（BOD5 污泥负荷带）；给水排水设计手册（第 5 册）SBR/CASS 常用带"
+  note: "CASS 污泥负荷 Ns 带下限（负荷法主容积，SBR 变体负荷档）；数据策略 v2"
+
+- key: "factor.cass.ns_band.max"
+  value: 0.15
+  unit: "kgBOD5/(kgMLSS.d)"
+  source: "GB 50014-2021 §7.6；给水排水设计手册（第 5 册）SBR/CASS 常用带"
+  note: "CASS 污泥负荷 Ns 带上限；数据策略 v2"
+
+- key: "factor.cass.mlss_band.min"
+  value: 3000
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）SBR 污泥浓度常用带"
+  note: "CASS 设计 MLSS 带下限（SBR 变体档，宽于 AAO 档）；数据策略 v2"
+
+- key: "factor.cass.mlss_band.max"
+  value: 5000
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）SBR 污泥浓度常用带"
+  note: "CASS 设计 MLSS 带上限（SBR 变体档）；数据策略 v2"
+
+- key: "factor.cass.sludge_age_band.min"
+  value: 15.0
+  unit: "d"
+  source: "给水排水设计手册（第 5 册）CASS 泥龄常用带"
+  note: "CASS 泥龄校核带下限（主反应区口径；越界出警告非换算）；数据策略 v2"
+
+- key: "factor.cass.sludge_age_band.max"
+  value: 25.0
+  unit: "d"
+  source: "给水排水设计手册（第 5 册）CASS 泥龄常用带"
+  note: "CASS 泥龄校核带上限（主反应区口径）；数据策略 v2"
+
+- key: "factor.cass.draw_band.min"
+  value: 1.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）滗水器滗水深度常用带"
+  note: "滗水深度带下限（business-logic §8 行 8：滗水容积 ≤ 池深 1/3 且滗水 1.0~2.0 m 联动）；数据策略 v2"
+
+- key: "factor.cass.draw_band.max"
+  value: 2.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）滗水器滗水深度常用带"
+  note: "滗水深度带上限（与 h2/3 上限双控，取小者控制）；数据策略 v2"
+
+- key: "factor.cass.selector_band.min"
+  value: 0.5
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）CASS 预反应区 HRT 常用带"
+  note: "生物选择区 HRT 带下限；数据策略 v2"
+
+- key: "factor.cass.selector_band.max"
+  value: 1.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）CASS 预反应区 HRT 常用带"
+  note: "生物选择区 HRT 带上限；数据策略 v2"
+
+- key: "factor.cass.yield.y"
+  value: 0.5
+  unit: "kgDS/kgBOD5"
+  source: "GB 50014-2021 §8.1.4 表 5（污泥产率 0.4~0.6，AAO 同族口径）"
+  note: "CASS 剩余污泥产率 y（经验产率法，取带中值；与 aao.yield.y 同族同值）；数据策略 v2"
+
+- key: "factor.cass.o2.a_prime"
+  value: 0.5
+  unit: "kgO2/kgBOD5"
+  source: "给水排水设计手册（第 5 册）需氧量氧当量系数常用带（AAO 同族口径）"
+  note: "碳化需氧系数 a′（带 0.4~0.6，工程常用取 0.5；与 aao.o2.a_prime 同族同值）；数据策略 v2"
+
+- key: "factor.cass.o2.b_prime"
+  value: 0.10
+  unit: "kgO2/(kgMLVSS.d)"
+  source: "给水排水设计手册（第 5 册）内源耗氧系数常用带（AAO 同族口径）"
+  note: "内源呼吸耗氧系数 b′（带 0.05~0.15，工程常用取 0.10；与 aao.o2.b_prime 同族同值）；数据策略 v2"
+
+- key: "factor.cass.vss_ratio"
+  value: 0.75
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）MLVSS/MLSS 常用带（AAO 同族口径）"
+  note: "MLVSS/MLSS 比（带 0.70~0.80，工程常用取 0.75；与 aao.vss_ratio 同族同值）；数据策略 v2"
+
+- key: "factor.cass.sludge.moisture"
+  value: 0.994
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）剩余污泥含水率常用带"
+  note: "CASS 剩余污泥含水率（带 0.992~0.996，工程常用取 0.994；与 aao.sludge.moisture 同族同值）；数据策略 v2"
+
+- key: "factor.cass.decant.q_per_unit"
+  value: 800.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册）旋转式滗水器单台滗水能力常用档"
+  note: "单台滗水器滗水量（带 500~1200 m³/h，工程常用取 800；滗水器台数整台 ceil 概算锚）；数据策略 v2"
+
+- key: "factor.cass.superheight"
+  value: 0.5
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求）；给水排水设计手册（第 5 册）"
+  note: "CASS 池超高（带 0.3~0.5 m，生物池防溅取 0.5）；数据策略 v2"
+
+- key: "factor.cass.wall_thickness_coef"
+  value: 0.40
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）矩形钢筋混凝土池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；矩形生物池带 0.30~0.40 工程常用取 0.40）；数据策略 v2"
+
+- key: "factor.cass.elevation_loss"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置曝气池水头损失常用值"
+  note: "CASS 池水头损失经验值（带 0.3~0.5 m，保守取 0.5；与 aao.elevation_loss 同族同值；高程链输入）；数据策略 v2"
+
+# ── 巴歇尔计量槽（bashi_jiliangcao，0.4.0；B7 七档全档流量式主线，
+#    C/n/scrit/hmin/hmax 逐档从手册标准型表录入（Q=C·ha^n，Q 单位 L/s）；
+#    CJ/T 3008.3-1993 正式文本核对降级为追认点注记（business-logic §10 Q3，
+#    docs/norms/bashi_jiliangcao.md 追认点 3）） ──
+
+- key: "factor.bashi_jiliangcao.flume.b025.c"
+  value: 561.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.25 m 档）"
+  note: "B7 档 1/7：流量系数 C（Q=C·ha^n，Q L/s、ha m）；CJ/T 3008.3-1993 正式文本核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b025.n"
+  value: 1.513
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.25 m 档）"
+  note: "B7 档 1/7：流量指数 n；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b025.scrit"
+  value: 0.6
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≤0.75 m 档）"
+  note: "B7 档 1/7：临界淹没度（σ=Hb/Ha ≤ scrit 自由流）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b025.hmin"
+  value: 0.03
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.25 m 档）"
+  note: "B7 档 1/7：上游水头适用带下限（选档校核）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b025.hmax"
+  value: 0.60
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.25 m 档）"
+  note: "B7 档 1/7：上游水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b045.c"
+  value: 1038.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.45 m 档）"
+  note: "B7 档 2/7：流量系数 C（简报枚举 0.5 m 档按最近标准档映射 0.45，追认点 1）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b045.n"
+  value: 1.537
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.45 m 档）"
+  note: "B7 档 2/7：流量指数 n；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b045.scrit"
+  value: 0.6
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≤0.75 m 档）"
+  note: "B7 档 2/7：临界淹没度；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b045.hmin"
+  value: 0.03
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.45 m 档）"
+  note: "B7 档 2/7：水头适用带下限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b045.hmax"
+  value: 0.75
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.45 m 档）"
+  note: "B7 档 2/7：水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b075.c"
+  value: 1772.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.75 m 档）"
+  note: "B7 档 3/7：流量系数 C（主算例选档）；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b075.n"
+  value: 1.557
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 0.75 m 档）"
+  note: "B7 档 3/7：流量指数 n（主算例选档）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b075.scrit"
+  value: 0.6
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≤0.75 m 档）"
+  note: "B7 档 3/7：临界淹没度（主算例选档）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b075.hmin"
+  value: 0.06
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.75 m 档）"
+  note: "B7 档 3/7：水头适用带下限（主算例选档）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b075.hmax"
+  value: 0.75
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 0.75 m 档）"
+  note: "B7 档 3/7：水头适用带上限（主算例选档）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b100.c"
+  value: 2397.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.00 m 档）"
+  note: "B7 档 4/7：流量系数 C；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b100.n"
+  value: 1.569
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.00 m 档）"
+  note: "B7 档 4/7：流量指数 n；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b100.scrit"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≥1.0 m 档）"
+  note: "B7 档 4/7：临界淹没度（大喉宽档 0.7）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b100.hmin"
+  value: 0.06
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.00 m 档）"
+  note: "B7 档 4/7：水头适用带下限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b100.hmax"
+  value: 0.80
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.00 m 档）"
+  note: "B7 档 4/7：水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b120.c"
+  value: 2904.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.20 m 档）"
+  note: "B7 档 5/7：流量系数 C（简报枚举 1.25 m 档按最近标准档映射 1.20，追认点 1）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b120.n"
+  value: 1.577
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.20 m 档）"
+  note: "B7 档 5/7：流量指数 n；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b120.scrit"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≥1.0 m 档）"
+  note: "B7 档 5/7：临界淹没度；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b120.hmin"
+  value: 0.06
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.20 m 档）"
+  note: "B7 档 5/7：水头适用带下限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b120.hmax"
+  value: 0.80
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.20 m 档）"
+  note: "B7 档 5/7：水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b150.c"
+  value: 3668.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.50 m 档）"
+  note: "B7 档 6/7：流量系数 C；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b150.n"
+  value: 1.586
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 1.50 m 档）"
+  note: "B7 档 6/7：流量指数 n；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b150.scrit"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≥1.0 m 档）"
+  note: "B7 档 6/7：临界淹没度；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b150.hmin"
+  value: 0.06
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.50 m 档）"
+  note: "B7 档 6/7：水头适用带下限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b150.hmax"
+  value: 0.80
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 1.50 m 档）"
+  note: "B7 档 6/7：水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b210.c"
+  value: 5222.0
+  unit: "L/s per m^n"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 2.10 m 档）"
+  note: "B7 档 7/7：流量系数 C（简报枚举 2.0 m 档按最近标准档映射 2.10，追认点 1）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b210.n"
+  value: 1.599
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型流量系数表（喉宽 2.10 m 档）"
+  note: "B7 档 7/7：流量指数 n；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b210.scrit"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽自由流临界淹没度（喉宽 ≥1.0 m 档）"
+  note: "B7 档 7/7：临界淹没度；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b210.hmin"
+  value: 0.08
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 2.10 m 档）"
+  note: "B7 档 7/7：水头适用带下限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.flume.b210.hmax"
+  value: 0.80
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型水头适用带（喉宽 2.10 m 档）"
+  note: "B7 档 7/7：水头适用带上限；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.hb_design"
+  value: 0.25
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）量水堰槽出口自由出流布置假定"
+  note: "下游（淹没）水深设计假定（带 0.20~0.30 m 取 0.25；淹没度校核 σ=Hb/Ha 用，运行面随排放口水位变化）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.loss_ratio"
+  value: 0.25
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）量水槽水头损失估算常用带"
+  note: "槽身水头损失比（估算口径，带 0.2~0.3 取 0.25；h_loss=loss_ratio×ha）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.geometry.l_throat"
+  value: 0.60
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型构造尺寸表（喉道段长常数）"
+  note: "喉道段长（标准型常数，b=0.25~2.40 m 全档同值）；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.geometry.l_diffuse"
+  value: 0.92
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型构造尺寸表（扩散段长常数）"
+  note: "扩散段长（标准型常数）；CJ/T 3008.3-1993 核对归追认；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.geometry.n_depress"
+  value: 0.23
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型构造尺寸表（喉道底跌落常数）"
+  note: "喉道底跌落 N（标准型常数；构造面 dims 承载，出图消费）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.geometry.k_margin"
+  value: 0.08
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）巴歇尔槽标准型构造尺寸表（槽身边距常数）"
+  note: "槽身边距 K（标准型常数；构造面 dims 承载）；数据策略 v2"
+
+- key: "factor.bashi_jiliangcao.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）量水堰槽高程损失常用值"
+  note: "巴歇尔槽高程水损经验值（含行近段与出口衔接，带 0.1~0.3 m 取 0.15；与 BL-F9 槽身计算值双轨语义见起草表追认点 5）；数据策略 v2"
+
+# ── 污水提升泵房（wushui_tisheng，0.4.0；集水井调节容积法+泵扬程三分量
+#    主线（M2b1 追认点 14 承接）；比阻=舍维列夫旧铸铁/钢管 v≥1.2 m/s 档；
+#    逐字对应 docs/norms/wushui_tisheng.md 参数档/系数列） ──
+
+- key: "factor.wushui_tisheng.pump.q_per_unit"
+  value: 1100.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册）污水泵站单泵流量常用档"
+  note: "单泵流量概算锚（带 600~1500 m³/h 取 1100；工作泵台数=ceil(q_design_h/锚) 收口，主算例恰落 2 用 1 备档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pump.q_flow_band.min"
+  value: 400.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册）污水提升泵单泵流量常用带"
+  note: "单泵流量校核带下限（实取 q_pump=q_design_h/n_duty 校核用）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pump.q_flow_band.max"
+  value: 1500.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册）污水提升泵单泵流量常用带"
+  note: "单泵流量校核带上限；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pump.free_head"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）泵站出水自由水头常用值"
+  note: "出水自由水头（带 1.0~2.0 m 取 1.5；泵扬程第三分量——M2b1 追认点 14 承接）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pump.start_band.max"
+  value: 6.0
+  unit: "1/h"
+  source: "给水排水设计手册（第 5 册）水泵每小时允许启动次数"
+  note: "水位启停频率校核上限（n_start=900×q_pump/v_well ≤ 6 次/h）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn300"
+  value: 1.025
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，旧铸铁/钢管 v≥1.2 m/s 档，DN300）"
+  note: "出水管比阻 A（DN 档=d_pipe×1000 命中表键；v<1.2 m/s 修正未计见起草表追认点 3）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn350"
+  value: 0.4529
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN350）"
+  note: "出水管比阻 A（DN350 档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn400"
+  value: 0.2232
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN400）"
+  note: "出水管比阻 A（DN400 档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn450"
+  value: 0.1195
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN450）"
+  note: "出水管比阻 A（DN450 档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn500"
+  value: 0.06839
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN500）"
+  note: "出水管比阻 A（DN500 档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn600"
+  value: 0.02602
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN600）"
+  note: "出水管比阻 A（DN600 档，主算例选档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn700"
+  value: 0.01149
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN700）"
+  note: "出水管比阻 A（DN700 档）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.resistance.dn800"
+  value: 0.005665
+  unit: "s2/m6"
+  source: "给水排水设计手册（第 1 册 常用资料）水管比阻表（舍维列夫，DN800）"
+  note: "出水管比阻 A（DN800 档；表覆盖面 DN300~DN800，越表显式拒）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.velocity_band.min"
+  value: 0.7
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）排水压力管经济流速常用带"
+  note: "出水管流速带下限（防淤流速）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.velocity_band.max"
+  value: 1.5
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）排水压力管经济流速常用带"
+  note: "出水管流速带上限（经济流速与水损控制）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.pipe.zeta_total"
+  value: 5.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）泵站管路局部损失系数常用和"
+  note: "局部损失系数和 ζ（止回阀/闸阀/弯头等合计，带 4~8 取 5；h_local=ζv²/2g）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.well.t_band.min"
+  value: 5.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1；给水排水设计手册（第 5 册）集水池调节容积常用带"
+  note: "集水井调节时间带下限（不小于最大一台泵 5 min 出水量口径）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.well.t_band.max"
+  value: 15.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）集水池调节容积常用带"
+  note: "集水井调节时间带上限；数据策略 v2"
+
+- key: "factor.wushui_tisheng.well.depth_band.min"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）集水井有效水深常用带"
+  note: "集水井有效水深带下限；数据策略 v2"
+
+- key: "factor.wushui_tisheng.well.depth_band.max"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）集水井有效水深常用带"
+  note: "集水井有效水深带上限；数据策略 v2"
+
+- key: "factor.wushui_tisheng.superheight"
+  value: 0.5
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求）；给水排水设计手册（第 5 册）"
+  note: "泵房（集水井）超高（带 0.3~0.5 m 取 0.5）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；带 0.30~0.40 工程常用取 0.35）；数据策略 v2"
+
+- key: "factor.wushui_tisheng.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）泵站内部水头损失常用值"
+  note: "泵站内部过流构件（格栅/流道）水损经验值（带 0.2~0.4 m 取 0.3；提升能量由 h_pump 承载非损失叠加——语义分工见起草表追认点 6）；数据策略 v2"

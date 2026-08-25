@@ -342,3 +342,33 @@ _M2B2_FIELDS: tuple[FieldSpec, ...] = (
 )
 for _spec in _M2B2_FIELDS:
     register_dimension(_spec)
+
+# ── M2c 市政余三单元参数字段（2026-08-26；出处=docs/norms/{cass,
+#    bashi_jiliangcao,wushui_tisheng}.md 三表参数档/算例 1 输入行——同名跨
+#    单元字段 ID 不耦合：各包 manifest 各写各的默认值，AGENTS §11 R4；
+#    t_cycle/t_settle 沿用既有字段（CASS 周期/沉淀时段 h 语义，V 滤过滤
+#    周期/初沉沉淀时间同名不同包默认值）；小时/分钟档类在 DimKey 无对应
+#    量类者按 DIMENSIONLESS 裸值登记（单位语义随 i18n 键走，三表口径：
+#    h/min/台）。 ──
+_M2C_FIELDS: tuple[FieldSpec, ...] = (
+    # cass CASS 生物池（算例 1：n_pool=4/t_cycle=4 h/t_react=2.0/
+    # t_settle=1.0[复用 M2a2]/t_draw=1.0/t_selector=0.75 h；L/B 0.5 m 档）
+    FieldSpec("n_pool", DimKey.DIMENSIONLESS, "", "units.fields.n_pool", "equipment"),
+    FieldSpec("t_react", DimKey.DIMENSIONLESS, "", "units.fields.t_react", "operation"),
+    FieldSpec("t_draw", DimKey.DIMENSIONLESS, "", "units.fields.t_draw", "operation"),
+    FieldSpec("t_selector", DimKey.DIMENSIONLESS, "", "units.fields.t_selector",
+              "load"),
+    # bashi_jiliangcao 巴歇尔计量槽（算例 1：b_throat=0.75 m，B7 七档离散）
+    FieldSpec("b_throat", DimKey.LENGTH, "m", "units.fields.b_throat", "geometry"),
+    # wushui_tisheng 污水提升泵房（算例 1：t_well=10 min/h_static=10.0 m/
+    # v_pipe=1.2 m/s/l_pipe=100 m/n_standby=1/h_well=2.0 m；DN 0.1 m 档）
+    FieldSpec("t_well", DimKey.DIMENSIONLESS, "", "units.fields.t_well", "load"),
+    FieldSpec("h_static", DimKey.LENGTH, "m", "units.fields.h_static", "load"),
+    FieldSpec("v_pipe", DimKey.VELOCITY, "m/s", "units.fields.v_pipe", "load"),
+    FieldSpec("l_pipe", DimKey.LENGTH, "m", "units.fields.l_pipe", "geometry"),
+    FieldSpec("n_standby", DimKey.DIMENSIONLESS, "", "units.fields.n_standby",
+              "equipment"),
+    FieldSpec("h_well", DimKey.LENGTH, "m", "units.fields.h_well", "geometry"),
+)
+for _spec in _M2C_FIELDS:
+    register_dimension(_spec)
