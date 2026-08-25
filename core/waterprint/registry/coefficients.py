@@ -76,7 +76,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final, final
 
-import yaml  # type: ignore[import-untyped]  # pyyaml 无内联 stubs 且 pyproject 零改动红线（简报 T5 D8）——逐点收编，types-PyYAML 入 dev 组留待总控批
+import yaml
 
 
 class InvalidCoefficientError(Exception):
