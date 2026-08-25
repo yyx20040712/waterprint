@@ -82,15 +82,15 @@
   "server/tests/conftest.py": "23e2ef02fcbf8545483cd9bc1ba14f5ee3d3e158eb1f021d3f52542967ce9def",
   "server/tests/jobs/test_manager.py": "1cab56588ca2a0aae243a6c114347118df606111f7c91ecb5f7384de0b5e6f1f",
   "server/tests/jobs/test_worker.py": "94aeed704ce9ef320c5356875badf232eaebef7d64c707a10b6f592e87cffbcf",
-  "server/tests/routers/test_calc.py": "d1801e01badf8af045381d84bd119581166dcc371e8053f4653872748591d4ce",
+  "server/tests/routers/test_calc.py": "aaa13f4157b0017e67d9530721897f36ecd0141988666b7080ff8cfc6dc14987",
   "server/tests/routers/test_events.py": "39052daa305c2f0d300a967d427d208e9f8f41471860bf35267b990abe034dae",
   "server/tests/routers/test_exports.py": "b168f4c16c85c5cfefeef00994633bd4282af8150fe7643bc46697248655727d",
   "server/tests/routers/test_projects.py": "29a35d18369481238ebfd55456cb10a5c7be016dc5910b34784a41966a395554",
-  "server/tests/services/test_calculation.py": "44bed263591745dbcd6d4ef16c2a560e671f587cfe0534097d6c03694c7883ba",
+  "server/tests/services/test_calculation.py": "eea641dfeda33c3c69717894c74a573ff99d5b28c9823ca07dbc9081fe91fbc8",
   "server/tests/services/test_enumeration.py": "7f442aa6b5e170e3033e678b53dd7387f054a7d10f2c78450a76304b8a1f4300",
   "server/tests/services/test_exports.py": "c04b452904e11c7aa510c7b0260776e49d67fe34ab11bc6b7672d037feffcca8",
   "server/tests/services/test_projects.py": "dd7a45102a17cf126157de9e31461b6a5eb4aed19876bf70585dd5826a0d0173",
-  "server/tests/test_api_contract.py": "34e78bf83c3516a10598333fe38855ee1f8e907ac7bb90d77675789baa16f9db",
+  "server/tests/test_api_contract.py": "af726fca8d06cffdc20780915ebef2b803a211838be1529daf2c6e426da247b0",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
   "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8"
 }
