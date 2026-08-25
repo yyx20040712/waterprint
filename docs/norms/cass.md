@@ -52,7 +52,7 @@
 | CA-F19 | `o2_carbon = a_prime * q_avg_daily * 86400 * (bod5_in - bod5_out) / 1000 + b_prime * v_load * x_vss / 1000` | x_vss = MLVSS mg/L（= vss_ratio×x_mlss） | o2.a_prime；o2.b_prime；vss_ratio | 给水排水设计手册（需氧量公式，AAO 同族） |
 | CA-F20 | `o2_nit = 4.57 * q_avg_daily * 86400 * (tkn_in - tn_eff) / 1000` | tkn_in 进水 TN mg/L；tn_eff 设计出水 TN mg/L（出水标准数据条目） | — | 给水排水设计手册（硝化氧当量 4.57） |
 | CA-F21 | `o2_denit = 2.86 * q_avg_daily * 86400 * (tkn_in - tn_eff) / 1000` | 反硝化供氧回收 kg/d | — | 给水排水设计手册（反硝化氧当量 2.86） |
-| CA-F22 | `o2_total = o2_total 的三式合成 = o2_carbon + o2_nit - o2_denit` | 设计需氧量 kg/d | — | 给水排水设计手册（需氧量公式） |
+| CA-F22 | `o2_total = o2_carbon + o2_nit - o2_denit` | 设计需氧量 kg/d | — | 给水排水设计手册（需氧量公式） |
 | CA-F23 | `ns_act = ns * v_bio / v_plant` | 实际污泥负荷校核（滗水控制工况下池容放大→负荷低于设计值） | ns_band.min/max | 同 CA-F3 |
 | CA-F24 | `h_pool = h_super + h2` | h_super 池超高 m | superheight | GB 50014-2021 §6（超高一般要求） |
 | CA-F25 | `l_pool_raw = sqrt(a_pool * ratio_lb)` | ratio_lb 池长宽比（l_pool 按 0.5 m 档向上取整） | ratio_lb_band.min/max | 给水排水设计手册（矩形池长宽比工程常用） |
@@ -61,7 +61,7 @@
 
 其他数据键：factor.cass.elevation_loss（高程链经验水损）；
 去除率键 removal.cass.{bod5,cod,ss}.mod_default（**AAO 同族去除档**，
-见衔接式）。CA-F22 表达式即 `o2_total = o2_carbon + o2_nit - o2_denit`。
+见衔接式）。
 
 ## 参数档（工程常用范围，出处两类）
 
