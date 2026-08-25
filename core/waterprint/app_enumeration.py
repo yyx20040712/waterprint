@@ -22,12 +22,22 @@
 #   export_artifact(kind, plant, template, out) -> bytes
 #       分发薄壳：kind="calcbook"→render_calcbook（M1b trace 正门，
 #       签名按其收口——plant 自带 trace）；未就绪/未知 kind=
-#       ArtifactKindNotReady（零 app 依赖防 import 环，L0 类型面）
+#       ArtifactKindNotReady
 #   class UpstreamSource(不可变)：上游取数面四字段束（units/edges/
 #       design/plant——app 装配与执行产物快照，装配语义仍归 app）
 #   upstream_context(source, unit_id, condition, env) -> UnitContext：
 #       枚举上游快照重建（execute_graph 既有产物 UF-42 投影表反解入流
-#       股——禁另写上游计算，D2；只消费 L0 契约类型）
+#       股——禁另写上游计算，D2）
+#
+# 【依赖足迹】（I-4 R1 修正 2026-08-26：二审实录——原"只消费 L0 契约
+#   类型"表述失实撤回）零 waterprint.app 依赖（防 import 环成立）；
+#   实消费=L0 契约九模块 + L3 solution 三模块（constraints/diagnose/
+#   grid——类型面注解）+ L4.project-trace 正门（trace：render_calcbook
+#   分发与 TraceCollector 占位）。该文件的 solution/trace 依赖边当前
+#   不在 import-linter 层序管辖（pyproject 未列本模块）——structure-
+#   graph §1a 节点行+pyproject 层序登记（waterprint.app |
+#   app_enumeration 同层并列）+§1b 边表口径为 **server 批开工前置
+#   条件**（I-4 升格）。
 #
 # 【行为规格】
 #   R1 类型面不可变：两 dataclass frozen+final；Options 四字段默认值

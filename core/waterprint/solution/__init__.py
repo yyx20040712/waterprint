@@ -7,8 +7,9 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结）
 #
-# 【导出白名单】
-#   grid:        build_grid
+# 【导出白名单】（M-6 R1 轮落实际导出语句，2026-08-26 二审追认——
+#   此前仅有注释清单无导出，D1 末条欠账补齐）
+#   grid:        build_grid, GridTooLarge
 #   enumerate:   enumerate_solutions
 #   constraints: apply_constraints
 #   ranking:     rank
@@ -16,3 +17,18 @@
 # 语义边界（ADR-005）：枚举对象永远是**单个工艺单元**（上游结果为固定
 # 上下文）；全厂联合枚举为远期研究项，禁止伪装成本轮功能。
 # ══════════════════════════════════════════════════════════════════
+
+from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.diagnose import diagnose_infeasibility
+from waterprint.solution.enumerate import enumerate_solutions
+from waterprint.solution.grid import GridTooLarge, build_grid
+from waterprint.solution.ranking import rank
+
+__all__ = [
+    "GridTooLarge",
+    "apply_constraints",
+    "build_grid",
+    "diagnose_infeasibility",
+    "enumerate_solutions",
+    "rank",
+]

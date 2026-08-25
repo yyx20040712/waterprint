@@ -54,12 +54,20 @@ def test_paramspec_without_grid_rejected() -> None:
 
 
 def test_range_step_generation_inclusive() -> None:
-    """R3：range+step 起止步长生成（闭区间含端点，GR-06；1 维 ≤4 档合护栏）。"""
+    """R3：range+step 起止步长生成（闭区间含端点，GR-06；1 维 ≤4 档合护栏）。
+
+    I-1 负向（R1 轮补）：非整除 step（余数过半）不得越上界——
+    min=0/max=1.0/step=0.6 → [0.0, 0.6]，不得出现 1.2。
+    """
     grid = build_grid(  # type: ignore[misc]
         [{"field_id": "b", "range": {"min": 0.5, "max": 2.0}, "step": 0.5}]
     )
     assert grid.total == 4
     assert grid.array["b"].tolist() == [0.5, 1.0, 1.5, 2.0]
+    uneven = build_grid(  # type: ignore[misc]
+        [{"field_id": "b", "range": {"min": 0.0, "max": 1.0}, "step": 0.6}]
+    )
+    assert uneven.array["b"].tolist() == [0.0, 0.6]  # 1.2 越上界档被钳制
 
 
 def test_single_dim_over_base_rejected() -> None:

@@ -8,7 +8,13 @@
 # 规格说明（骨架冻结；镜像测试 tests/solution/test_grid.py）
 #
 # 【公开接口】
-#   build_grid(param_specs: Sequence[ParamSpec]) -> Grid
+#   build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]]) -> Grid
+#       （I-2 二审追认 2026-08-26：签名自简报冻结的 Sequence[ParamSpec]
+#        拓宽为 union——ParamSpec 无 step 字段且 range 归约束层消费，
+#        "起止步长生成"唯一 sane 载体=Mapping 声明面（values 显式值域
+#        或 range{min,max}+step）；该面是服务层 UI 网格/万级大网格
+#        （探针② 13500 行）的功能前提，偏离随二审追认记档——
+#        实现报告 §6.3）
 #   class Grid：fields（字段序）、array（结构化数组：笛卡尔积展平）、
 #       shape（各维取值数）、total（总组合数 = 各维乘积）
 #   class GridTooLarge(Exception)：组合数超护栏（领域异常）
@@ -45,7 +51,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from itertools import product
-from math import isfinite, prod
+from math import isclose, isfinite, prod
 from typing import Any, Final, final
 
 import numpy
@@ -102,7 +108,11 @@ def _ranged_values(rng: Mapping[str, object], step: object, field_id: str) -> tu
             f"（得到 step={stride!r}, min={low!r}, max={high!r}）"
         )
     generated = numpy.arange(low, high + stride / 2, stride).tolist()
-    return tuple(_number(value, f"字段 {field_id!r} 生成值") for value in generated)
+    # I-1（R1 轮修，2026-08-26）：非整除 step 余数过半时 arange 会多产一档
+    # 严格大于 max 的值（0~1.0 step 0.6 → 1.2）——生成后钳制 v≤high，
+    # epsilon 容差用 math.isclose 默认相对 1e-9（装配档命中校验同款先例）。
+    clamped = [value for value in generated if value < high or isclose(value, high)]
+    return tuple(_number(value, f"字段 {field_id!r} 生成值") for value in clamped)
 
 
 def _dimension(entry: object, index: int) -> tuple[str, tuple[float, ...]]:

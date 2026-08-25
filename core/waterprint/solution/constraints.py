@@ -30,9 +30,12 @@
 #
 # 【DSL 口径】子句 = field_id OP 常数，OP ∈ {<, <=, >, >=, ∈}；组合 =
 #   子句 " and " 连接（AND 语义）；∈ 右侧为方括号数档列表
-#   [v1, v2, ...]。常数来自 Constraint 数据（R1），代码零数值注入。
-#   pass_matrix 列名 = 约束表达式串（锁定测试口径——列名即约束的
-#   可读展开，diagnose 侧调用方按表达式串对账约束键）。
+#   [v1, v2, ...]。常数来自 Constraint 数据（R1），代码零数值注入；
+#   常数原子有限性守卫（1e999→inf 拒，M-3 R1 轮补——grid._number
+#   同口径）。pass_matrix 列名 = 约束表达式串（锁定测试口径——列名即
+#   约束的可读展开，diagnose 侧调用方按表达式串对账约束键）。
+#   severity 本批为元数据面（全级别一律硬过滤参与 feasible）——WARN
+#   软语义归 constraint_kb 数据批/server 批定义（M-4 R1 注记）。
 #
 # 【测试要求】布尔矩阵正确性（含全 False 用例）、UI 覆盖生效与还原、
 #   非法表达式（未知字段/运算符）拒绝、迁移知识库样例条目可用。
@@ -46,6 +49,7 @@ import re
 from ast import literal_eval
 from collections.abc import Sequence
 from dataclasses import dataclass
+from math import isfinite
 from typing import final
 
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
@@ -85,13 +89,18 @@ class Constraint:
 
 
 def _atom(text: str, where: str) -> float:
-    """单数值原子守卫（DSL 右值最小单元）。"""
+    """单数值原子守卫（DSL 右值最小单元；有限性同 grid._number 口径）。"""
     stripped = text.strip()
     if not _NUMBER.match(stripped):
         raise InvalidConstraintError(
             f"{where} 须为数值：得到 {stripped!r}（R1 受限 DSL）"
         )
-    return float(stripped)
+    number = float(stripped)
+    if not isfinite(number):  # M-3（R1 轮修）："1e999"→inf 恒真/恒假约束禁入
+        raise InvalidConstraintError(
+            f"{where} 非有限：{stripped!r} → {number!r}（GR-02 输入即拒）"
+        )
+    return number
 
 
 def _constant(text: str, where: str) -> float | tuple[float, ...]:

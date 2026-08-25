@@ -46,7 +46,7 @@
 #       类型面/导出薄壳/上游快照重建=app_enumeration.py 伴生件，本文件
 #       再导出保持 server 单入口——500 行预算的宪法 §2 拆分正解）
 #   装配 grid 档命中校验（D3 Ruling ④）：grid 声明参数终值未命中档
-#       =InvalidAssemblyError（详见 app_enumeration 规格头）
+#       =InvalidAssemblyError（详见本文件 _check_grid_hits——M-1 R1 指针修正）
 #
 # 【行为规格】
 #   R1 装配/执行分离：assemble 阶段发现失败（重复 unit_id/清单非法/
@@ -165,11 +165,7 @@ __all__ = [
     "save_project",
 ]
 
-_LOOP_KEYS: Final[tuple[str, ...]] = (
-    "loop.tolerance",
-    "loop.max_iterations",
-    "loop.damping",
-)
+_LOOP_KEYS: Final[tuple[str, ...]] = ("loop.tolerance", "loop.max_iterations", "loop.damping")
 
 
 class InvalidAssemblyError(Exception):
@@ -469,7 +465,12 @@ def run_enumeration(
             "多单元拒绝在 server 层；core 侧未命中=InvalidAssemblyError）"
         )
     grid = build_grid([spec for spec in unit.manifest.params if spec.grid is not None])
-    condition = next(iter(conditions.iter_all()))  # R3：工况取当前选定档（首个）
+    condition = next(iter(conditions.iter_all()), None)  # M-5 R1：空集显式领域异常
+    if condition is None:
+        raise InvalidAssemblyError(
+            "conditions 为空集（枚举工况取选定档前提失败——正门 build_condition_set "
+            "恒非空，空集=直构程序缺陷；GR-11 收口，M-5）"
+        )
     plant = execute_graph(
         project.design, assembled.units, conditions, _completed_env(env, project.design)
     )

@@ -34,7 +34,7 @@
 | `core/waterprint/graph/executor.py` | L3 | 图执行编排（工况×拓扑×传播×回路；层-SCC 调度/DSL 工况映射/UF-42 投影/R5 异常隔离；T7b 实现） | design 图+单元注册表+工况集+RunEnv | execute_graph、UnitRegistry（协议）、InvalidExecutionError、PlantResult（design_hash 空串占位由 app 回填） |
 | `core/waterprint/graph/incremental.py` | L3 | 脏传播与缓存（仅优化，字节级等价全量） | hash 变更 | 重算范围、ResultCache |
 | `core/waterprint/solution/grid.py` | L3 | 自由参数离散网格（≤4^k 护栏） | manifest 离散配置 | 参数矩阵 |
-| `core/waterprint/solution/enumerate.py` | L3 | 向量化批量计算 → 结果 DataFrame | 网格+上游上下文 | 结果 DataFrame |
+| `core/waterprint/solution/enumerate.py` | L3 | 批量方案计算 → 结果 DataFrame（M2-SOL R1 现实口径：同一 unit.compute 逐网格行驱动——防双轨实质=唯一计算源；apply 向量化增强挂账 UF-36；行级域拒→dims 全 NaN+nan_flag） | 网格+上游上下文 | 结果 DataFrame（M-8 R1 措辞同步） |
 | `core/waterprint/solution/constraints.py` | L3 | 布尔约束过滤（含 UI 覆盖、pass_matrix） | DataFrame+约束 | 可行子集+通过矩阵 |
 | `core/waterprint/solution/ranking.py` | L3 | 裕度/成本排序与截断（确定性全序） | 可行 DataFrame | 排序结果 |
 | `core/waterprint/solution/diagnose.py` | L3 | 无可行解最小冲突集与调参建议 | pass_matrix | DiagnosisReport |
@@ -65,7 +65,7 @@
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（M1b 实现：模板禁公式拒+{{trace[i].<field>}}/{{summary.<key>}} 冻结占语法+未知占位符拒+字节确定性保存；TEMPLATE_REGISTRY v1 空） | 迹树+结果+模板 | render_calcbook、TEMPLATE_REGISTRY、InvalidTemplateError、.xlsx |
 | `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project + run_enumeration（唯一装配点，UF-33 方案 A 已落 M2-SOL；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；M1a 份额=_unit_params 系数投影+_CoefficientsUnit 包装（factor.*/removal.* 并入单元 params，D4 裁决）；M2-SOL 份额=装配 grid 档命中校验[Ruling ④]+run_enumeration 编排+app_enumeration 伴生件再导出） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、run_enumeration、export_artifact、EnumerationOptions/EnumerationOutcome（再导出）、ArtifactKindNotReady、InvalidAssemblyError、load_project（migrate 路由）、save_project、RunEnv（再导出） |
-| `core/waterprint/app_enumeration.py` | L4 | UF-33 用例面伴生件（M2-SOL D2；app.py 500 行预算宪法 §2 拆分正解）：枚举选项/产出类型 + export_artifact 分发薄壳（calcbook 接 M1b trace 正门/未就绪 kind 拒）+ upstream_context 上游快照重建（execute_graph 既有产物 UF-42 反解，只消费 L0 类型） | app 装配产物+结果 | EnumerationOptions、EnumerationOutcome、UpstreamSource、export_artifact、upstream_context、ArtifactKindNotReady |
+| `core/waterprint/app_enumeration.py` | L4 | UF-33 用例面伴生件（M2-SOL D2；app.py 500 行预算宪法 §2 拆分正解）：枚举选项/产出类型 + export_artifact 分发薄壳（calcbook 接 M1b trace 正门/未就绪 kind 拒）+ upstream_context 上游快照重建（execute_graph 既有产物 UF-42 反解；零 app 依赖防 import 环，类型面注解消费 solution 三模块+trace 正门——I-4 R1 修正；层序登记=server 批前置条件） | app 装配产物+结果 | EnumerationOptions、EnumerationOutcome、UpstreamSource、export_artifact、upstream_context、ArtifactKindNotReady |
 | `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
