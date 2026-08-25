@@ -1,6 +1,13 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.1.0"
+data_version: "0.2.0"
 # 变更记录：
+#   - 0.2.0: AI 起草 0.2.0（数据策略 v2，工程常用范围口径）；领域专家批量追认待补。
+#       核心三单元批（docs/norms/{chuchenchi,aao,erchunchi}.md 系数列逐字）：
+#       factors.yaml 增 factor.{chuchenchi,aao,erchunchi}.* 共 51 条（含各单元
+#       elevation_loss 三条）；removal_rates.yaml 增 removal.<三短名>.{bod5,cod,ss}.
+#       mod_default 共 9 条（工程常用范围中值）；出处仅 GB 国标/给水排水设计手册
+#       两类（v2 口径）；golden_municipal 槽位不建（golden 未录，不造未验证数据）。
+#       0.1.0 既有 60 条不扰动。
 #   - 0.1.0: M1 三单元草案条目（用户授权起草，领域专家签字后生效）
 #       removal_rates.yaml（粗/细格栅、旋流沉砂池 × BOD5/COD/SS × mod_default/golden_municipal 两档）
 #       + factors.yaml（栅渣量 W1 两档、β 三档、水损 k=3、带类系数等）；

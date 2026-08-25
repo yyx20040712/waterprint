@@ -116,3 +116,62 @@
   unit: "dimensionless"
   source: "旧系统市政案例 yyx.ddesign.json 节点覆盖值（交叉基线）；正式依据待核对 GB 50014-2021（草案）"
   note: "golden 案例覆盖档；高于 mod 默认 0.10——两档并存不合并，按工况选键"
+
+# ── 核心三单元 0.2.0 批（数据策略 v2：工程常用范围中值口径起草，出处仅
+#    GB 国标/给水排水设计手册两类；领域专家批量追认待补；
+#    golden_municipal 槽位不建——golden 未录，不造未验证数据；
+#    逐字对应 docs/norms/{chuchenchi,aao,erchunchi}.md 参数档/衔接式） ──
+
+- key: "removal.chuchenchi.bod5.mod_default"
+  value: 0.25
+  unit: "dimensionless"
+  source: "GB 50014-2021 §6.5（初次沉淀池 BOD5 去除 20%~30%）"
+  note: "辐流初沉池 BOD5 去除率默认档（工程常用范围中值）；数据策略 v2"
+
+- key: "removal.chuchenchi.cod.mod_default"
+  value: 0.30
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）初次沉淀池 COD 去除常用带"
+  note: "辐流初沉池 COD 去除率默认档（25%~35% 中值，工程常用）；数据策略 v2"
+
+- key: "removal.chuchenchi.ss.mod_default"
+  value: 0.50
+  unit: "dimensionless"
+  source: "GB 50014-2021 §6.5（初次沉淀池 SS 去除 40%~60%）"
+  note: "辐流初沉池 SS 去除率默认档（工程常用范围中值）；数据策略 v2"
+
+- key: "removal.aao.bod5.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 工艺 BOD5 去除常用带"
+  note: "AAO 生物池 BOD5 去除率默认档（85%~95% 中值，一级 A 常用）；数据策略 v2"
+
+- key: "removal.aao.cod.mod_default"
+  value: 0.85
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 工艺 COD 去除常用带"
+  note: "AAO 生物池 COD 去除率默认档（80%~90% 中值，工程常用）；数据策略 v2"
+
+- key: "removal.aao.ss.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）活性污泥系统 SS 去除常用带"
+  note: "AAO SS 水质链槽位（85%~95% 中值）——生物系统对进水 SS 的链去除简化口径；混合液 MLSS 由设计参数承载不经此键；数据策略 v2"
+
+- key: "removal.erchunchi.bod5.mod_default"
+  value: 0.20
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）二次沉淀池 BOD5 去除常用带"
+  note: "辐流二沉池 BOD5 去除率默认档（15%~25% 中值，随固液分离带出）；数据策略 v2"
+
+- key: "removal.erchunchi.cod.mod_default"
+  value: 0.15
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）二次沉淀池 COD 去除常用带"
+  note: "辐流二沉池 COD 去除率默认档（10%~20% 中值，工程常用）；数据策略 v2"
+
+- key: "removal.erchunchi.ss.mod_default"
+  value: 0.50
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）二次沉淀池出水 SS 常用带"
+  note: "辐流二沉池 SS 水质链槽位（40%~60% 中值，对上游链残余 SS 的补充去除）——MLSS 固液分离由固体负荷公式承载（EC-F3/F9）不经此键；数据策略 v2"

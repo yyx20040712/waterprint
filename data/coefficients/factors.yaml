@@ -267,3 +267,319 @@
   unit: "m"
   source: "旧系统 mod v5.1.0 交叉基线（elevation_loss 经验值）；2026-08-23 专家审核通过补录"
   note: "旋流沉砂池水头损失经验值（高程链输入）"
+
+# ── 辐流初沉池（chuchenchi，0.2.0 数据策略 v2：工程常用范围口径起草，
+#    出处仅 GB 国标/给水排水设计手册两类；领域专家批量追认待补；
+#    逐字对应 docs/norms/chuchenchi.md 系数列） ──
+
+- key: "factor.chuchenchi.surface_load_band.min"
+  value: 1.5
+  unit: "m3/(m2.h)"
+  source: "GB 50014-2021 §6.5（沉淀池表面水力负荷下限）"
+  note: "辐流初沉池表面水力负荷带下限；数据策略 v2 工程常用范围"
+
+- key: "factor.chuchenchi.surface_load_band.max"
+  value: 4.5
+  unit: "m3/(m2.h)"
+  source: "GB 50014-2021 §6.5；给水排水设计手册（第 5 册）初沉池常用档"
+  note: "辐流初沉池表面水力负荷带上限"
+
+- key: "factor.chuchenchi.retention_band.min"
+  value: 1.0
+  unit: "h"
+  source: "GB 50014-2021 §6.5（沉淀时间下限）"
+  note: "初沉池沉淀时间带下限"
+
+- key: "factor.chuchenchi.retention_band.max"
+  value: 2.5
+  unit: "h"
+  source: "GB 50014-2021 §6.5（沉淀时间上限）"
+  note: "初沉池沉淀时间带上限"
+
+- key: "factor.chuchenchi.depth_band.min"
+  value: 2.0
+  unit: "m"
+  source: "GB 50014-2021 §6.5（有效水深带）"
+  note: "有效水深校核带下限（h2 = q'×T 联合约束）"
+
+- key: "factor.chuchenchi.depth_band.max"
+  value: 4.0
+  unit: "m"
+  source: "GB 50014-2021 §6.5（有效水深带）"
+  note: "有效水深校核带上限"
+
+- key: "factor.chuchenchi.ratio_dh2_band.min"
+  value: 6.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流沉淀池径深比常用带"
+  note: "径深比 D/h2 校核带下限"
+
+- key: "factor.chuchenchi.ratio_dh2_band.max"
+  value: 12.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流沉淀池径深比常用带"
+  note: "径深比 D/h2 校核带上限"
+
+- key: "factor.chuchenchi.weir_load.max"
+  value: 2.9
+  unit: "L/(s.m)"
+  source: "GB 50014-2021 §6.5（沉淀池出水堰负荷上限，初沉档）"
+  note: "周边双侧出水堰负荷校核上限（堰长 L = 2π(D−1)）"
+
+- key: "factor.chuchenchi.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）沉淀池超高常用值"
+  note: "初沉池超高（工程常用）"
+
+- key: "factor.chuchenchi.buffer_h3"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）沉淀池缓冲层常用值"
+  note: "初沉池缓冲层高度（工程常用）"
+
+- key: "factor.chuchenchi.bottom_slope"
+  value: 0.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流池池底坡度常用值"
+  note: "池底坡降 h4 = i×(R−r1) 的坡度 i（工程常用）"
+
+- key: "factor.chuchenchi.center_velocity"
+  value: 0.3
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）中心管流速常用值"
+  note: "中心配水筒流速（带 0.2~0.5 m/s，工程常用取 0.3）"
+
+- key: "factor.chuchenchi.sludge.moisture"
+  value: 0.96
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）初沉污泥含水率常用带"
+  note: "初沉污泥含水率（带 0.95~0.97，工程常用取 0.96）"
+
+- key: "factor.chuchenchi.sludge.vs"
+  value: 0.60
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）初沉污泥有机分常用值"
+  note: "初沉污泥 VS 比（污泥口输出，工程常用）"
+
+- key: "factor.chuchenchi.wall_thickness_coef"
+  value: 0.4
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流圆形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；辐流圆形池 0.4 工程常用）"
+
+- key: "factor.chuchenchi.elevation_loss"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置初沉池水头损失常用值"
+  note: "初沉池水头损失经验值（带 0.3~0.5 m，保守取 0.5；高程链输入）"
+
+# ── AAO 生物池（aao，0.2.0 数据策略 v2；公式路线 ADR-008 ①负荷法主线+
+#    泥龄校核带；逐字对应 docs/norms/aao.md 系数列） ──
+
+- key: "factor.aao.ns_band.min"
+  value: 0.05
+  unit: "kgBOD5/(kgMLSS.d)"
+  source: "GB 50014-2021 §7.6（BOD5 污泥负荷带）；给水排水设计手册（第 5 册）AAO 常用带"
+  note: "BOD5 污泥负荷 Ns 带下限"
+
+- key: "factor.aao.ns_band.max"
+  value: 0.15
+  unit: "kgBOD5/(kgMLSS.d)"
+  source: "GB 50014-2021 §7.6；给水排水设计手册（第 5 册）AAO 常用带"
+  note: "BOD5 污泥负荷 Ns 带上限"
+
+- key: "factor.aao.mlss_band.min"
+  value: 3500
+  unit: "mg/L"
+  source: "GB 50014-2021 §7.6（AAO 混合液污泥浓度常用档）"
+  note: "设计 MLSS 带下限"
+
+- key: "factor.aao.mlss_band.max"
+  value: 4500
+  unit: "mg/L"
+  source: "GB 50014-2021 §7.6（AAO 混合液污泥浓度常用档）"
+  note: "设计 MLSS 带上限"
+
+- key: "factor.aao.sludge_age_band.min"
+  value: 11.0
+  unit: "d"
+  source: "GB 50014-2021 §7.6（AAO 泥龄校核带下限）"
+  note: "好氧泥龄校核带下限（越界出警告而非换算，ADR-008）"
+
+- key: "factor.aao.sludge_age_band.max"
+  value: 23.0
+  unit: "d"
+  source: "GB 50014-2021 §7.6（AAO 泥龄校核带上限）"
+  note: "好氧泥龄校核带上限"
+
+- key: "factor.aao.hrt_anaerobic_band.min"
+  value: 1.0
+  unit: "h"
+  source: "GB 50014-2021 §7.6.39（厌氧区 HRT 1~2h）"
+  note: "厌氧区水力停留时间带下限"
+
+- key: "factor.aao.hrt_anaerobic_band.max"
+  value: 2.0
+  unit: "h"
+  source: "GB 50014-2021 §7.6.39（厌氧区 HRT 1~2h）"
+  note: "厌氧区水力停留时间带上限"
+
+- key: "factor.aao.hrt_anoxic_band.min"
+  value: 2.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）AAO 缺氧区 HRT 常用带"
+  note: "缺氧区 HRT 校核带下限（主线为反硝化容积公式）"
+
+- key: "factor.aao.hrt_anoxic_band.max"
+  value: 4.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）AAO 缺氧区 HRT 常用带"
+  note: "缺氧区 HRT 校核带上限"
+
+- key: "factor.aao.k_denit"
+  value: 0.05
+  unit: "kgN/(kgMLSS.d)"
+  source: "给水排水设计手册（第 5 册）反硝化速率常用带"
+  note: "缺氧区反硝化速率 Kde（带 0.02~0.08，20 ℃，工程常用取 0.05；温度修正另设）"
+
+- key: "factor.aao.o2.a_prime"
+  value: 0.5
+  unit: "kgO2/kgBOD5"
+  source: "给水排水设计手册（第 5 册）需氧量氧当量系数常用带"
+  note: "碳化需氧系数 a′（带 0.4~0.6，工程常用取 0.5）"
+
+- key: "factor.aao.o2.b_prime"
+  value: 0.1
+  unit: "kgO2/(kgMLVSS.d)"
+  source: "给水排水设计手册（第 5 册）内源耗氧系数常用带"
+  note: "内源呼吸耗氧系数 b′（带 0.05~0.15，工程常用取 0.10）"
+
+- key: "factor.aao.vss_ratio"
+  value: 0.75
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）MLVSS/MLSS 常用带"
+  note: "MLVSS/MLSS 比（带 0.70~0.80，工程常用取 0.75）"
+
+- key: "factor.aao.yield.y"
+  value: 0.5
+  unit: "kgDS/kgBOD5"
+  source: "GB 50014-2021 §8.1.4 表 5（AAO 污泥产率 0.4~0.6）"
+  note: "剩余污泥产率 y（经验产率法主线，ADR-008 ④；取带中值）"
+
+- key: "factor.aao.r_external_band.min"
+  value: 0.5
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 外回流比常用带"
+  note: "外回流比（污泥回流）带下限"
+
+- key: "factor.aao.r_external_band.max"
+  value: 1.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 外回流比常用带"
+  note: "外回流比带上限（与二沉池联动，erchunchi 表 EC-F3/F10）"
+
+- key: "factor.aao.r_internal_band.min"
+  value: 1.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 内回流比常用带"
+  note: "内回流比（硝化液回流）带下限"
+
+- key: "factor.aao.r_internal_band.max"
+  value: 3.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）AAO 内回流比常用带"
+  note: "内回流比带上限"
+
+- key: "factor.aao.sludge.moisture"
+  value: 0.994
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）剩余污泥含水率常用带"
+  note: "剩余污泥含水率（带 0.992~0.996，工程常用取 0.994）"
+
+- key: "factor.aao.elevation_loss"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置曝气池水头损失常用值"
+  note: "AAO 生物池水头损失经验值（带 0.3~0.5 m，保守取 0.5；高程链输入）"
+
+# ── 辐流二沉池（erchunchi，0.2.0 数据策略 v2；公式路线 ADR-008 ②清水
+#    表面负荷主控+固体负荷校核；逐字对应 docs/norms/erchunchi.md 系数列） ──
+
+- key: "factor.erchunchi.surface_load_band.min"
+  value: 0.6
+  unit: "m3/(m2.h)"
+  source: "GB 50014-2021 表 7.5.1（二次沉淀池清水表面负荷）"
+  note: "清水表面负荷带下限（主控参数）"
+
+- key: "factor.erchunchi.surface_load_band.max"
+  value: 1.5
+  unit: "m3/(m2.h)"
+  source: "GB 50014-2021 表 7.5.1（二次沉淀池清水表面负荷）"
+  note: "清水表面负荷带上限（主控参数）"
+
+- key: "factor.erchunchi.solid_load.center_inlet"
+  value: 150.0
+  unit: "kg/(m2.d)"
+  source: "GB 50014-2021 §7.6.15/§7.6.16（固体面积负荷，中心进水）"
+  note: "固体面积负荷校核上限（中心进水周边出水型）"
+
+- key: "factor.erchunchi.solid_load.peripheral_inlet"
+  value: 200.0
+  unit: "kg/(m2.d)"
+  source: "GB 50014-2021 §7.6.15/§7.6.16（固体面积负荷，周进周出）"
+  note: "固体面积负荷校核上限（周进周出型）"
+
+- key: "factor.erchunchi.weir_load.max"
+  value: 1.7
+  unit: "L/(s.m)"
+  source: "GB 50014-2021（沉淀池出水堰负荷上限，二沉档）"
+  note: "周边双侧出水堰负荷校核上限（堰长 L = 2πD）"
+
+- key: "factor.erchunchi.depth_band.min"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）辐流二沉池池边有效水深常用带"
+  note: "池边有效水深带下限"
+
+- key: "factor.erchunchi.depth_band.max"
+  value: 3.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）辐流二沉池池边有效水深常用带"
+  note: "池边有效水深带上限"
+
+- key: "factor.erchunchi.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）沉淀池超高常用值"
+  note: "二沉池超高（工程常用）"
+
+- key: "factor.erchunchi.buffer_h3"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）沉淀池缓冲层常用值"
+  note: "二沉池缓冲层高度（工程常用）"
+
+- key: "factor.erchunchi.bottom_slope"
+  value: 0.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流池池底坡度常用值"
+  note: "池底坡降 h4 = i×(R−r_pit) 的坡度 i（工程常用）"
+
+- key: "factor.erchunchi.center_velocity"
+  value: 0.3
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）中心配水筒流速常用值"
+  note: "中心配水筒流速（带 0.2~0.3 m/s，工程常用取 0.3；按含回流流量计）"
+
+- key: "factor.erchunchi.wall_thickness_coef"
+  value: 0.4
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）辐流圆形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算）"
+
+- key: "factor.erchunchi.elevation_loss"
+  value: 0.6
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置二沉池水头损失常用值"
+  note: "二沉池水头损失经验值（带 0.4~0.7 m，保守取 0.6；高程链输入）"
