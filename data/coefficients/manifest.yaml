@@ -1,6 +1,17 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.2.1"
+data_version: "0.3.0"
 # 变更记录：
+#   - 0.3.0: M2b1 深度处理段四单元批（批级版本跃升）；AI 起草待追认（数据
+#       策略 v2，工程常用范围口径）。docs/norms/{tiaojiechi,gaomidu,
+#       vxinglvchi,ziwai}.md 系数列/参数档逐字：factors.yaml 增
+#       factor.<四短名>.* 共 68 条（tiaojiechi 11/gaomidu 18/vxinglvchi 25/
+#       ziwai 14，含各单元 elevation_loss 四条与零去除注记单元的槽位系数）；
+#       removal_rates.yaml 增 removal.<四短名>.{bod5,cod,ss}.mod_default
+#       共 12 条（高密 ss 0.85/bod5 0.40/cod 0.30、V 滤 ss 0.675/
+#       bod5 0.075/cod 0.075；调节池与紫外 BOD/COD/SS 全 0.0 显式注记
+#       "物理过程/物理消毒无去除"）；出处仅 GB 国标（含 GB/T 50335-2016，
+#       ADR-008 裁决合法）/给水排水设计手册两类；golden_municipal 槽位不建
+#       （golden 未录，不造未验证数据）。0.2.1 既有 126 键不扰动。
 #   - 0.2.1: M2a2 前置三键（M2a1 二审 M-1）；AI 起草待追认。
 #       factors.yaml 增校核带六键（band 双键形态=surface_load_band.min/max 同款）：
 #       factor.chuchenchi.sludge_cycle_band.{min,max}（1/2 d）、

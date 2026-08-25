@@ -623,3 +623,424 @@
   unit: "h"
   source: "给水排水设计手册（第 5 册）辐流二沉池水力停留时间常用带"
   note: "二沉池水力停留时间校核带上限（docs/norms/erchunchi.md 主算例校核 HRT 行 1.5~4 h 常用带）"
+
+# ── 调节池（tiaojiechi，0.3.0 M2b1 深度处理段四单元批：数据策略 v2
+#    工程常用范围口径起草，出处仅 GB 国标/给排水设计手册两类；领域专家
+#    批量追认待补；逐字对应 docs/norms/tiaojiechi.md 参数档/系数列） ──
+
+- key: "factor.tiaojiechi.hrt_band.min"
+  value: 6.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）调节池停留时间法常用带"
+  note: "调节停留时间带下限（无进水曲线按停留时间法）；数据策略 v2"
+
+- key: "factor.tiaojiechi.hrt_band.max"
+  value: 12.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）调节池停留时间法常用带"
+  note: "调节停留时间带上限（实际停留时间校核带）"
+
+- key: "factor.tiaojiechi.depth_band.min"
+  value: 4.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）调节池有效水深常用带"
+  note: "有效水深带下限"
+
+- key: "factor.tiaojiechi.depth_band.max"
+  value: 6.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）调节池有效水深常用带"
+  note: "有效水深带上限"
+
+- key: "factor.tiaojiechi.ratio_lb_band.min"
+  value: 2.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）矩形池长宽比工程常用"
+  note: "池长宽比 L/B 带下限（工程常用取 2.5）"
+
+- key: "factor.tiaojiechi.ratio_lb_band.max"
+  value: 3.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）矩形池长宽比工程常用"
+  note: "池长宽比 L/B 带上限"
+
+- key: "factor.tiaojiechi.superheight"
+  value: 0.5
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求）；给水排水设计手册（第 5 册）"
+  note: "调节池超高（带 0.5~1.0 m，工程常用取 0.5）"
+
+- key: "factor.tiaojiechi.stir.power_density"
+  value: 6.0
+  unit: "W/m3"
+  source: "给水排水设计手册（第 5 册）防沉积搅拌功率密度工程常用"
+  note: "潜水搅拌功率密度（带 4~8 W/m³，工程常用取 6；P = V·w/1000）"
+
+- key: "factor.tiaojiechi.overflow_velocity"
+  value: 0.9
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）重力流经济流速"
+  note: "溢流/超越管流速（带 0.7~1.2 m/s，工程常用取 0.9；按最高时流量校核）"
+
+- key: "factor.tiaojiechi.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；矩形池带 0.30~0.40 工程常用）"
+
+- key: "factor.tiaojiechi.elevation_loss"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置调节池水头损失常用值"
+  note: "调节池水头损失经验值（带 0.3~0.5 m，保守取 0.5；高程链输入）"
+
+# ── 高密沉淀池（gaomidu，0.3.0；公式路线 ADR-008 ③ 仅污泥回流型
+#    Densadeg 类；逐字对应 docs/norms/gaomidu.md 参数档/系数列） ──
+
+- key: "factor.gaomidu.surface_load_band.min"
+  value: 10.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 50335-2016 §5.4.3；GB 50013-2018 §9.4.24（ADR-008 ③ 双源）"
+  note: "斜管清水区液面负荷带下限（主控参数）"
+
+- key: "factor.gaomidu.surface_load_band.max"
+  value: 20.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 50335-2016 §5.4.3；GB 50013-2018 §9.4.24（ADR-008 ③ 双源）"
+  note: "斜管清水区液面负荷带上限（主控参数）"
+
+- key: "factor.gaomidu.r_sludge_band.min"
+  value: 0.03
+  unit: "dimensionless"
+  source: "GB/T 50335-2016 §5.4.3；GB 50013-2018 §9.4.24（ADR-008 ③ 双源）"
+  note: "污泥回流比带下限（浓缩区→快速混合器）"
+
+- key: "factor.gaomidu.r_sludge_band.max"
+  value: 0.05
+  unit: "dimensionless"
+  source: "GB/T 50335-2016 §5.4.3；GB 50013-2018 §9.4.24（ADR-008 ③ 双源）"
+  note: "污泥回流比带上限（回流泵按最高时流量计）"
+
+- key: "factor.gaomidu.t_mix_band.min"
+  value: 1.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）快速混合停留时间常用档"
+  note: "快速混合区停留时间带下限"
+
+- key: "factor.gaomidu.t_mix_band.max"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）快速混合停留时间常用档"
+  note: "快速混合区停留时间带上限"
+
+- key: "factor.gaomidu.t_floc_band.min"
+  value: 8.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）絮凝停留时间常用档"
+  note: "机械絮凝区停留时间带下限"
+
+- key: "factor.gaomidu.t_floc_band.max"
+  value: 15.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）絮凝停留时间常用档"
+  note: "机械絮凝区停留时间带上限"
+
+- key: "factor.gaomidu.g_mix"
+  value: 500.0
+  unit: "1/s"
+  source: "给水排水设计手册（第 5 册）快速混合 G 值常用带"
+  note: "快速混合速度梯度（带 300~600 s⁻¹，工程常用取 500；P=μG²V，μ=0.001 Pa·s@20 ℃）"
+
+- key: "factor.gaomidu.g_floc"
+  value: 50.0
+  unit: "1/s"
+  source: "给水排水设计手册（第 5 册）絮凝 G 值常用带"
+  note: "絮凝速度梯度（带 30~70 s⁻¹，工程常用取 50）"
+
+- key: "factor.gaomidu.gt_band.min"
+  value: 10000.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）絮凝 GT 值校核带"
+  note: "絮凝 GT 值校核带下限（GT = G×t）"
+
+- key: "factor.gaomidu.gt_band.max"
+  value: 100000.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）絮凝 GT 值校核带"
+  note: "絮凝 GT 值校核带上限"
+
+- key: "factor.gaomidu.sludge.concentration"
+  value: 20.0
+  unit: "kg/m3"
+  source: "GB 50013-2018 §9.4.24（浓缩区参数带）；给水排水设计手册（第 5 册）"
+  note: "浓缩区排泥含固率（带 15~30 kg/m³，工程常用取 20；Densadeg 类带浓缩区高含固特征）"
+
+- key: "factor.gaomidu.dose.pac"
+  value: 30.0
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）混凝药剂投加常用范围"
+  note: "PAC 投加量（商品计，带 10~40 mg/L，深度处理段工程常用取 30）"
+
+- key: "factor.gaomidu.dose.pam"
+  value: 1.0
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）助凝剂投加常用范围"
+  note: "PAM 助凝投加量（带 0.5~2.0 mg/L，工程常用取 1.0）"
+
+- key: "factor.gaomidu.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求）；给水排水设计手册（第 5 册）"
+  note: "高密沉淀池超高（带 0.3~0.5 m，工程常用取 0.3）"
+
+- key: "factor.gaomidu.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）方形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；带 0.30~0.40 工程常用）"
+
+- key: "factor.gaomidu.elevation_loss"
+  value: 0.8
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）高程布置高密沉淀池水头损失常用值"
+  note: "高密池水头损失经验值（含混合/絮凝/沉淀流程，带 0.5~0.8 m，保守取 0.8；高程链输入）"
+
+# ── V 型滤池（vxinglvchi，0.3.0；均质滤料滤速主线+强制滤速校核；
+#    逐字对应 docs/norms/vxinglvchi.md 参数档/系数列） ──
+
+- key: "factor.vxinglvchi.v_filter_band.min"
+  value: 7.0
+  unit: "m/h"
+  source: "GB 50013-2018 §9.5（均质滤料正常滤速）"
+  note: "正常滤速带下限（主控参数）"
+
+- key: "factor.vxinglvchi.v_filter_band.max"
+  value: 10.0
+  unit: "m/h"
+  source: "GB 50013-2018 §9.5（均质滤料正常滤速）"
+  note: "正常滤速带上限（主控参数）"
+
+- key: "factor.vxinglvchi.v_forced_band.min"
+  value: 11.0
+  unit: "m/h"
+  source: "GB 50013-2018 §9.5（强制滤速）"
+  note: "强制滤速校核带下限（一格冲洗时其余格过全部流量）"
+
+- key: "factor.vxinglvchi.v_forced_band.max"
+  value: 13.0
+  unit: "m/h"
+  source: "GB 50013-2018 §9.5（强制滤速）"
+  note: "强制滤速校核带上限"
+
+- key: "factor.vxinglvchi.selfuse_coef"
+  value: 1.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）自用水系数常用"
+  note: "过滤流量自用水系数（带 1.05~1.10，工程常用取 1.05；覆盖反冲耗水）"
+
+- key: "factor.vxinglvchi.cell_ratio_lb_band.min"
+  value: 2.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）V 型滤池单格长宽比工程常用"
+  note: "单格长宽比 L/B 带下限（工程常用取 2.5）"
+
+- key: "factor.vxinglvchi.cell_ratio_lb_band.max"
+  value: 3.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）V 型滤池单格长宽比工程常用"
+  note: "单格长宽比 L/B 带上限"
+
+- key: "factor.vxinglvchi.media.depth_band.min"
+  value: 1.2
+  unit: "m"
+  source: "GB 50013-2018 §9.5（均质滤料滤层厚度）"
+  note: "石英砂均质滤料层厚带下限"
+
+- key: "factor.vxinglvchi.media.depth_band.max"
+  value: 1.5
+  unit: "m"
+  source: "GB 50013-2018 §9.5（均质滤料滤层厚度）"
+  note: "石英砂均质滤料层厚带上限"
+
+- key: "factor.vxinglvchi.media.d10_band.min"
+  value: 0.9
+  unit: "mm"
+  source: "GB 50013-2018 §9.5；给水排水设计手册（第 5 册）均质滤料 d10 常用带"
+  note: "均质滤料有效粒径 d10 带下限（K80 ≤1.4~1.6 均匀性）"
+
+- key: "factor.vxinglvchi.media.d10_band.max"
+  value: 1.2
+  unit: "mm"
+  source: "GB 50013-2018 §9.5；给水排水设计手册（第 5 册）均质滤料 d10 常用带"
+  note: "均质滤料有效粒径 d10 带上限"
+
+- key: "factor.vxinglvchi.water_above_band.min"
+  value: 1.2
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）恒水位过滤砂上水深常用带"
+  note: "砂面上水深带下限（V 型滤池恒水位过滤）"
+
+- key: "factor.vxinglvchi.water_above_band.max"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）恒水位过滤砂上水深常用带"
+  note: "砂面上水深带上限"
+
+- key: "factor.vxinglvchi.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50013-2018 §9.5；给水排水设计手册（第 5 册）"
+  note: "滤池超高（工程常用）"
+
+- key: "factor.vxinglvchi.wash.air"
+  value: 15.0
+  unit: "L/(m2.s)"
+  source: "GB 50013-2018 §9.5；给水排水设计手册（第 5 册）气冲强度"
+  note: "气冲强度（带 13~17 L/(m²·s)，工程常用取 15；气冲与气水同时两阶段）"
+
+- key: "factor.vxinglvchi.wash.water_sim"
+  value: 2.5
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 5 册）V 型滤池气水同时冲洗水强度"
+  note: "气水同时冲洗阶段水强度（带 2~3 L/(m²·s)，工程常用取 2.5）"
+
+- key: "factor.vxinglvchi.wash.water"
+  value: 5.0
+  unit: "L/(m2.s)"
+  source: "GB 50013-2018 §9.5；给水排水设计手册（第 5 册）水冲强度"
+  note: "单独水冲（漂洗）强度（带 4~6 L/(m²·s)，工程常用取 5）"
+
+- key: "factor.vxinglvchi.wash.sweep"
+  value: 1.8
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 5 册）V 型滤池表面扫洗强度"
+  note: "表面扫洗强度（带 1.4~2.3 L/(m²·s)，工程常用取 1.8；V 型槽进水扫洗全程）"
+
+- key: "factor.vxinglvchi.wash.t_air"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）反冲洗历时常用档"
+  note: "气冲历时（带 1~3 min，工程常用取 2）"
+
+- key: "factor.vxinglvchi.wash.t_sim"
+  value: 4.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）反冲洗历时常用档"
+  note: "气水同时冲洗历时（带 3~5 min，工程常用取 4）"
+
+- key: "factor.vxinglvchi.wash.t_water"
+  value: 4.0
+  unit: "min"
+  source: "给水排水设计手册（第 5 册）反冲洗历时常用档"
+  note: "单独水冲历时（带 3~6 min，工程常用取 4）"
+
+- key: "factor.vxinglvchi.cycle_band.min"
+  value: 24.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）V 型滤池过滤周期常用带"
+  note: "过滤周期带下限（反冲耗水率校核输入）"
+
+- key: "factor.vxinglvchi.cycle_band.max"
+  value: 48.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）V 型滤池过滤周期常用带"
+  note: "过滤周期带上限"
+
+- key: "factor.vxinglvchi.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）方形格概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；带 0.30~0.40 工程常用）"
+
+- key: "factor.vxinglvchi.elevation_loss"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）滤池含滤层过滤水头的高程损失常用值"
+  note: "V 型滤池高程水损（含滤层过滤水头，带 2.0~3.0 m，保守取 2.5；语义异于沉淀类单元——高程链输入）"
+
+# ── 紫外消毒（ziwai，0.3.0；剂量法主线（深度处理出水档）；
+#    逐字对应 docs/norms/ziwai.md 参数档/系数列） ──
+
+- key: "factor.ziwai.dose"
+  value: 30.0
+  unit: "mJ/cm2"
+  source: "GB 50014-2021 消毒章节；给水排水设计手册（第 5 册）深度处理出水剂量档"
+  note: "紫外设计剂量（深度处理/再生水出水带 24~40 mJ/cm²，取 30；二级出水 15~22 档不采用）"
+
+- key: "factor.ziwai.q_per_lamp"
+  value: 40.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册）单灯处理量工程常用概算"
+  note: "单灯处理量（带 30~50 m³/h/支；新灯、T254=60%、剂量 30 mJ/cm² 档概算锚点，选型以厂商核定为准）"
+
+- key: "factor.ziwai.f_aging"
+  value: 0.8
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）灯管老化系数常用档"
+  note: "灯管老化系数（寿命末期输出保持比 0.8；灯管数按 1/f_aging 放大）"
+
+- key: "factor.ziwai.t254_band.min"
+  value: 0.55
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）深度处理出水紫外穿透率常用带"
+  note: "254 nm 穿透率带下限（q_per_lamp 取值对应 T254=60% 档）"
+
+- key: "factor.ziwai.t254_band.max"
+  value: 0.65
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）深度处理出水紫外穿透率常用带"
+  note: "254 nm 穿透率带上限"
+
+- key: "factor.ziwai.velocity_band.min"
+  value: 0.3
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）紫外渠内流速常用带"
+  note: "渠内流速带下限"
+
+- key: "factor.ziwai.velocity_band.max"
+  value: 0.6
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册）紫外渠内流速常用带"
+  note: "渠内流速带上限"
+
+- key: "factor.ziwai.t_exp_band.min"
+  value: 5.0
+  unit: "s"
+  source: "给水排水设计手册（第 5 册）紫外有效接触时间常用带"
+  note: "有效接触（曝光）时间带下限（剂量=强度×时间）"
+
+- key: "factor.ziwai.t_exp_band.max"
+  value: 10.0
+  unit: "s"
+  source: "给水排水设计手册（第 5 册）紫外有效接触时间常用带"
+  note: "有效接触（曝光）时间带上限"
+
+- key: "factor.ziwai.fecal.c_in_design"
+  value: 100000.0
+  unit: "count/L"
+  source: "给水排水设计手册（第 5 册）典型市政污水粪大肠设计值"
+  note: "进水粪大肠菌群设计假定值（典型市政深度处理进水 1×10⁵ 个/L；设计输入）"
+
+- key: "factor.ziwai.fecal.log_removal"
+  value: 4.0
+  unit: "dimensionless"
+  source: "GB 50014-2021 消毒章节；给水排水设计手册（第 5 册）"
+  note: "粪大肠 log 去除对数级（带 3~4，剂量 30 mJ/cm² 档取 4；出水=进水/10^n）"
+
+- key: "factor.ziwai.superheight"
+  value: 0.5
+  unit: "m"
+  source: "GB 50014-2021 §6；给水排水设计手册（第 5 册）"
+  note: "紫外渠道超高（带 0.3~0.5 m，防溅取 0.5）"
+
+- key: "factor.ziwai.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）渠道概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；带 0.30~0.40 工程常用）"
+
+- key: "factor.ziwai.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "给水排水设计手册（第 5 册）紫外渠水头损失常用值"
+  note: "紫外渠道水头损失经验值（带 0.1~0.3 m，取 0.2；高程链输入）"

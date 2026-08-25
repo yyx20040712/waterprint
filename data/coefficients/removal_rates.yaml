@@ -175,3 +175,80 @@
   unit: "dimensionless"
   source: "给水排水设计手册（第 5 册）二次沉淀池出水 SS 常用带"
   note: "辐流二沉池 SS 水质链槽位（40%~60% 中值，对上游链残余 SS 的补充去除）——MLSS 固液分离由固体负荷公式承载（EC-F3/F9）不经此键；数据策略 v2"
+
+# ── 深度处理段四单元 0.3.0 批（M2b1，数据策略 v2：工程常用范围中值
+#    口径起草，出处仅 GB 国标/给水排水设计手册两类；领域专家批量追认
+#    待补；golden_municipal 槽位不建——golden 未录，不造未验证数据；
+#    逐字对应 docs/norms/{tiaojiechi,gaomidu,vxinglvchi,ziwai}.md 衔接式） ──
+
+- key: "removal.tiaojiechi.bod5.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）调节池功能定义（水量水质均化，无处理去除）"
+  note: "调节池 BOD5 去除率默认档——物理过程无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.tiaojiechi.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）调节池功能定义（水量水质均化，无处理去除）"
+  note: "调节池 COD 去除率默认档——物理过程无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.tiaojiechi.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）调节池功能定义（水量水质均化，无处理去除）"
+  note: "调节池 SS 去除率默认档——物理过程无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.gaomidu.bod5.mod_default"
+  value: 0.40
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）混凝沉淀 BOD5 去除常用带"
+  note: "高密沉淀池 BOD5 去除率默认档（30%~50% 中值，颗粒态随 SS 混凝带出）；数据策略 v2"
+
+- key: "removal.gaomidu.cod.mod_default"
+  value: 0.30
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）混凝沉淀 COD 去除常用带"
+  note: "高密沉淀池 COD 去除率默认档（20%~40% 中值，深度处理低浓度进水工程常用）；数据策略 v2"
+
+- key: "removal.gaomidu.ss.mod_default"
+  value: 0.85
+  unit: "dimensionless"
+  source: "GB/T 50335-2016 §5.4.3；给水排水设计手册（第 5 册）高密 SS 去除常用带"
+  note: "高密沉淀池 SS 去除率默认档（80%~90% 中值）；数据策略 v2"
+
+- key: "removal.vxinglvchi.bod5.mod_default"
+  value: 0.075
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）深层过滤 BOD5 去除常用带"
+  note: "V 型滤池 BOD5 去除率默认档（5%~10% 中值，颗粒态随 SS 带出的微量去除，工程常用保守档）；数据策略 v2"
+
+- key: "removal.vxinglvchi.cod.mod_default"
+  value: 0.075
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）深层过滤 COD 去除常用带"
+  note: "V 型滤池 COD 去除率默认档（5%~10% 中值，工程常用保守档）；数据策略 v2"
+
+- key: "removal.vxinglvchi.ss.mod_default"
+  value: 0.675
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）深层过滤 SS 去除常用带"
+  note: "V 型滤池 SS 去除率默认档（60%~75% 中值）；数据策略 v2"
+
+- key: "removal.ziwai.bod5.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）紫外消毒机理（物理消毒，无 BOD5 去除）"
+  note: "紫外消毒 BOD5 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.ziwai.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）紫外消毒机理（物理消毒，无 COD 去除）"
+  note: "紫外消毒 COD 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
+
+- key: "removal.ziwai.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册）紫外消毒机理（物理消毒，无 SS 去除）"
+  note: "紫外消毒 SS 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
