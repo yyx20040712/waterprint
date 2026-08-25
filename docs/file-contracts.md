@@ -31,7 +31,7 @@
 | `core/waterprint/graph/propagate.py` | L3 | 沿边传播水量水质 + 汇流加权混合（工况加权 R1/Kz=max R2/通道隔离 R4/recycle 忽略 R5；T6 实现） | 上游结果+边+工况 | mix、propagate、InvalidPropagationError（污泥汇流走 contracts.sludge.mix） |
 | `core/waterprint/graph/loop.py` | L3 | 回路固定点迭代（阻尼/容差/发散诊断；T7b 实现——D1 四参锁定形态+摊平分桶口径） | 回路组+compute 回调+迭代参数 | solve_loop、LoopConfig、LoopDivergence（收敛解或发散诊断三元组） |
 | `core/waterprint/graph/nodes.py` | L3 | 内置图节点三 kind 工厂（市政输入/汇流/水质编辑——executor R6"本包内提供"，非单元包，§14.3 归属表；T7b 新建） | kind + design 节点 params（规范单位裸值） | builtin_unit、InvalidNodeError（Unit 协议实例） |
-| `core/waterprint/graph/executor.py` | L3 | 图执行编排（工况×拓扑×传播×回路） | design 图+单元注册表+工况集 | PlantResult |
+| `core/waterprint/graph/executor.py` | L3 | 图执行编排（工况×拓扑×传播×回路；层-SCC 调度/DSL 工况映射/UF-42 投影/R5 异常隔离；T7b 实现） | design 图+单元注册表+工况集+RunEnv | execute_graph、UnitRegistry（协议）、InvalidExecutionError、PlantResult（design_hash 空串占位由 app 回填） |
 | `core/waterprint/graph/incremental.py` | L3 | 脏传播与缓存（仅优化，字节级等价全量） | hash 变更 | 重算范围、ResultCache |
 | `core/waterprint/solution/grid.py` | L3 | 自由参数离散网格（≤4^k 护栏） | manifest 离散配置 | 参数矩阵 |
 | `core/waterprint/solution/enumerate.py` | L3 | 向量化批量计算 → 结果 DataFrame | 网格+上游上下文 | 结果 DataFrame |
