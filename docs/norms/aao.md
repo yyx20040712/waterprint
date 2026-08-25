@@ -39,6 +39,7 @@
 | AO-F12 | `o2_total = o2_carbon + o2_nit - o2_denit` | 设计需氧量 kg/d | — | 给水排水设计手册（需氧量公式） |
 | AO-F13 | `q_return = r_external * q_design_h` | r_external 外回流比（污泥回流）；q_design_h 最高时流量 m³/h | r_external_band.min/max | 给水排水设计手册（AAO 外回流常用带） |
 | AO-F14 | `q_internal = r_internal * q_avg_h` | r_internal 内回流比（硝化液回流）；q_avg_h 平均时流量 m³/h | r_internal_band.min/max | 给水排水设计手册（AAO 内回流常用带） |
+| —（流量口径注记） | — | AO-F13 外回流泵按最高时流量 q_design_h（与二沉最高时水力联动配套）；AO-F14 内回流泵按平均时流量 q_avg_h（平均日运行+变频调节）——两泵流量基准口径不一致（相差 Kz = 1.4 倍），各有工程做法依据；统一口径或保留双口径待领域专家追认裁定 | — | — |
 
 其他数据键：factor.aao.elevation_loss（高程链经验水损）；去除率键
 removal.aao.{bod5,cod,ss}.mod_default（见衔接式）。
@@ -50,6 +51,7 @@ removal.aao.{bod5,cod,ss}.mod_default（见衔接式）。
 | BOD5 污泥负荷 Ns | ns_band | 0.05~0.15 kgBOD5/(kgMLSS·d) | 0.10 | GB 50014-2021 §7.6；给水排水设计手册 |
 | MLSS | mlss_band | 3500~4500 mg/L | 4000 mg/L | GB 50014-2021 §7.6 |
 | 好氧泥龄 θc（校核带） | sludge_age_band | 11~23 d（越界警告） | 计算 22.22 d | GB 50014-2021 §7.6 |
+| —（泥龄口径备考） | — | 本表判断口径 = 好氧泥龄（硝化菌仅存于好氧区）：θc = 22.22 d 落 11~23 d 带内；全池泥龄口径 36.8 d 出带——泥龄计算口径待领域专家追认裁定 | — | — |
 | 厌氧区 HRT | hrt_anaerobic_band | 1~2 h | 1.5 h | GB 50014-2021 §7.6.39 |
 | 缺氧区 HRT（校核带） | hrt_anoxic_band | 2~4 h | 计算 3.36 h | 给水排水设计手册 |
 | 反硝化速率 Kde | k_denit | 0.02~0.08（取 0.05）kgN/(kgMLSS·d)，20 ℃ | 0.05 | 给水排水设计手册（工程常用） |
