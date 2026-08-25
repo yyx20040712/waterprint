@@ -41,6 +41,11 @@
 #     project 包内 migration→io import 合法，§1b 零新边）；校验
 #     拒绝的 ValidationError 转换与 io._build 同款消息拼接（B4
 #     双胞胎，禁跨模块私有 import）。
+#   - 双源同步对侧互注（T7a-R1b 2026-08-25，二审 M-2+T7aG-1 补齐）：
+#     io._FORMAT_VERSION（dumps_design 版本头）与本文件
+#     SUPPORTED_VERSIONS[-1] 双源同值——升版必同笔改两处（io 侧
+#     规格 R6 已注，本行为对侧注记使"互注"成真；漂移后果=未来版
+#     哈希失效语义静默漂移，由 migrate 未来版拒路径兜底）。
 #   - 数值纪律：本文件零数值面。
 #
 # 【测试要求】链式到达、逐步日志、不可迁移拒绝、未来版拒绝、

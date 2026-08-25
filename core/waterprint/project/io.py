@@ -171,6 +171,15 @@ def _decode(text: str) -> Any:
             f"项目 JSON 解析失败：位置 line {exc.lineno} column {exc.colno}"
             f"（{exc.msg}）"
         ) from exc
+    except RecursionError as exc:
+        # T7a-R1a（二审 I-1 收编 2026-08-25）：万层级深嵌套（约 40KB+，
+        # 仍小于 10MB 大小上限）可令 json.loads 的 C 扫描器先于 _normalize
+        # 深度守卫触发递归保护——此处收编守住 R3"一切拒绝经
+        # InvalidProjectError"契约（防 server 侧 500 冒充 400）。
+        raise InvalidProjectError(
+            f"项目 JSON 嵌套过深（解析器递归保护触发）：文本 {size} 字节"
+            "（§18 上传面——与大小/深度上限同族的超深结构拒，R3 契约内）"
+        ) from exc
 
 
 def _build(tree: Any) -> ProjectFile:
