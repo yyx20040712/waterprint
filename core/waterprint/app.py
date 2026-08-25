@@ -18,7 +18,9 @@
 #       ProjectFile, path: Path) -> None（UF-33）：load 走 M-3 版本门
 #       （read_project_text → json.loads → migration.migrate——版本路由
 #       唯一正门=migrate，T7a 二审移交定稿；JSONDecodeError 包装
-#       InvalidProjectError from exc；migrate 已收 ValidationError）
+#       InvalidProjectError from exc；migrate 已收 ValidationError；
+#       R1-b 两闸：parse_constant 拒 NaN/±Inf + RecursionError 收编
+#       ——二审 M-1/T7a-R1 同款；完整大小/深度闸留 M2/server 批）
 #   assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph
 #       装配：units_lib.discover_units ∪ 内置节点（design.nodes 值含
 #       "kind" 键者经 graph.nodes.builtin_unit 构造；无 kind=注册表查，
@@ -83,7 +85,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
-from typing import Final, final
+from typing import Final, NoReturn, final
 
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.ports import Edge, PortRef
@@ -127,20 +129,38 @@ class InvalidAssemblyError(Exception):
     """装配非法（未知 unit_id/受检资格缺映射/边形态）——领域异常（GR-11 族）。"""
 
 
+def _reject_constant(name: str) -> NoReturn:
+    """json.loads parse_constant 钩子：NaN/Infinity/-Infinity 一律拒（GR-02）。
+
+    R1-b（二审 M-1，T7a-R1 io 同款语义双胞胎）：拒值经 InvalidProjectError
+    上抛（非 JSONDecodeError 通道，直接冒出 json.loads）。
+    """
+    raise InvalidProjectError(
+        f"项目 JSON 含非法常量：{name}（NaN/±Inf 禁——GR-02 输入即拒；"
+        "JSON 规范外字面量）"
+    )
+
+
 def load_project(path: Path) -> ProjectFile:
     """项目装载（M-3 版本门）：read_project_text → json.loads → migrate 路由。
 
     版本路由唯一正门=migration.migrate（未来版拒/未知历史版拒/当前版直通）；
     JSONDecodeError 包装 InvalidProjectError from exc；migrate 已收
-    ValidationError。io.loads 的防弹面（大小/深度/NaN）不在本路径——
-    简报 D5 冻结链路，观察记档 T7b 报告。
+    ValidationError。R1-b 两道闸（二审 M-1 收编，T7a-R1 同款先例）：
+    parse_constant 拒 NaN/±Inf + RecursionError 收编（超深嵌套防崩）；
+    完整大小/深度闸留 M2/server 批（记档 T7b 报告 §6.2-8）。
     """
     text = read_project_text(path)
     try:
-        data = json.loads(text)
+        data = json.loads(text, parse_constant=_reject_constant)
     except json.JSONDecodeError as exc:
         raise InvalidProjectError(
             f"项目 JSON 解析失败（app.load_project·M-3 migrate 路由）：{exc}"
+        ) from exc
+    except RecursionError as exc:
+        raise InvalidProjectError(
+            f"项目 JSON 嵌套过深（app.load_project·M-3 路由，解析器递归保护"
+            f"触发）：{path}（二审 M-1 收编——T7a-R1 同款）"
         ) from exc
     return migrate(data)
 

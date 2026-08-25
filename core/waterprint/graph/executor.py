@@ -49,8 +49,10 @@
 #   随迭代尾随更新（状态向量只含流量展开量）；解写回=以收敛解终跑一遍
 #   闭包（快照/池/水质与收敛输入一致），组外下游照常 propagate。流体
 #   取 recycle 边 dst 端口 manifest 声明（未声明=InvalidExecutionError）；
-#   不落回路组的 recycle 边被忽略（与 propagate R5 同口径——前进向
-#   recycle 标记属装配异常，对账归后续装配校验，记档）。
+#   不落回路组的 recycle 边=执行期拒 InvalidExecutionError（带边上下文
+#   ——recycle 边必须闭合成 SCC 回路组，前进向标记属装配异常；propagate
+#   R5 的忽略是纯函数边界口径，executor 持完整图信息故异层；装配期前置
+#   对账归 M1 加固——二审 I-1 方案(b) 裁决 2026-08-25）。
 #
 # 【工况映射 DSL】（D3 冻结）rule 经 parse_checked（白名单=manifest 参数
 #   名 ∪ 裸名 ∪ 点式上下文 ∪ {"pool.all_pools"}——executor 侧重建，**B4
@@ -146,14 +148,12 @@ def _endpoint(raw: object, side: str, index: int) -> PortRef:
     """边端点转换：{"unit_id","port_id"} → PortRef（键缺失/类型错拒）。"""
     if not isinstance(raw, Mapping):
         raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须为对象（含 unit_id/port_id）："
-            f"得到 {type(raw).__name__}")
+            f"design.edges[{index}].{side} 须为对象（含 unit_id/port_id）：{type(raw).__name__}")
     unit_id = raw.get("unit_id")
     port_id = raw.get("port_id")
     if not isinstance(unit_id, str) or not isinstance(port_id, str):
         raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须含字符串 unit_id/port_id："
-            f"得到 {unit_id!r}, {port_id!r}")
+            f"design.edges[{index}].{side} 须含字符串 unit_id/port_id：{unit_id!r}, {port_id!r}")
     return PortRef(unit_id=unit_id, port_id=port_id)
 
 
@@ -186,9 +186,7 @@ def _loop_config(env: RunEnv) -> LoopConfig:
     values = {key: env.engine_params[key].value for key in _LOOP_KEYS}
     count = values["loop.max_iterations"]
     if count != int(count):
-        raise InvalidExecutionError(
-            f"loop.max_iterations 须为整数值：得到 {count!r}"
-        )
+        raise InvalidExecutionError(f"loop.max_iterations 须为整数值：得到 {count!r}")
     return LoopConfig(tolerance=values["loop.tolerance"], max_iterations=int(count),
                       damping=values["loop.damping"])
 
@@ -372,6 +370,11 @@ class _RunState:
         merged: dict[PortRef, WaterFlow | SludgeFlow] = dict(inflows)
         qualities: dict[PortRef, WaterQuality] = dict(inqualities)
         for edge in (e for e in self.ctx.edges if e.dst.unit_id == unit_id and e.recycle):
+            if edge.src not in self.recycle_flows:
+                raise InvalidExecutionError(
+                    f"recycle 边 {edge.src.unit_id}.{edge.src.port_id}→"
+                    f"{edge.dst.unit_id}.{edge.dst.port_id} recycle 标记不构成回路"
+                    "（装配异常：recycle 边必须闭合成 SCC 回路组——GR-09）")
             merged[edge.dst] = self.recycle_flows[edge.src]
             quality = self.recycle_qualities.get(edge.src)
             if quality is not None:
