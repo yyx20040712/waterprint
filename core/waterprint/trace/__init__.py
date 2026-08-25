@@ -15,6 +15,11 @@
 #   calcbook 模板驱动（模板禁公式，§11 R12）。
 # ══════════════════════════════════════════════════════════════════
 
+from waterprint.trace.calcbook import (
+    TEMPLATE_REGISTRY,
+    InvalidTemplateError,
+    render_calcbook,
+)
 from waterprint.trace.collector import (
     InvalidTraceError,
     TraceCollector,
@@ -23,8 +28,11 @@ from waterprint.trace.collector import (
 )
 
 __all__ = [
+    "TEMPLATE_REGISTRY",
+    "InvalidTemplateError",
     "InvalidTraceError",
     "TraceCollector",
     "TraceTree",
     "collect",
+    "render_calcbook",
 ]
