@@ -134,19 +134,26 @@ include_external_packages = true
 
 # L4 子层化（D-23 文档侧 / 修复轮 1 机器侧）：import-linter 同条目内 "|"
 # 兄弟互相 import 亦被禁止，单行四兄弟会误杀 cli→app 合法边；拆为三行子层
-# cli → app → project|trace（project 与 trace 同层互不依赖）。
+# cli → app|app_enumeration → project|trace（SERVER D1 2026-08-26：app 与
+# app_enumeration 同层伴生并列——app 再导出保持 server 单入口；方向单一
+# app→app_enumeration 防环由伴生件规格头【依赖足迹】承载，该唯一边经
+# 下方 ignore_imports 显式豁免登记，反向 app_enumeration→app 仍被禁）。
 [[tool.importlinter.contracts]]
 name = "内核分层只许向下（L4.cli→L4.app→L4.project-trace→L3→L2→L1→L0）"
 type = "layers"
 layers = [
     "waterprint.cli",
-    "waterprint.app",
+    "waterprint.app | waterprint.app_enumeration",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.network",
     "waterprint.units_lib",
     "waterprint.registry",
     "waterprint.contracts",
 ]
+# SERVER D1 同层伴生唯一边豁免："|" 兄弟互相 import 默认禁止——app.py 对
+# 伴生件的再导出 import 是规格允许边，登记于此接受审查（同款"意图忠实
+# 执行"条款先例=下方 pint 契约 allow_indirect_imports）。
+ignore_imports = ["waterprint.app -> waterprint.app_enumeration"]
 
 [[tool.importlinter.contracts]]
 name = "L3 子系统互相独立（只消费 L0 结果契约，互不感知）"

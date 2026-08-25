@@ -77,6 +77,7 @@ from waterprint.trace import TraceCollector, render_calcbook
 
 __all__ = [
     "ArtifactKindNotReady",
+    "Constraint",
     "EnumerationOptions",
     "EnumerationOutcome",
     "UpstreamSource",

@@ -44,7 +44,7 @@
 #   run_enumeration(project, unit_id, conditions, env, options) ->
 #       EnumerationOutcome（UF-33 方案 A 已落地 2026-08-26 M2-SOL D2；
 #       类型面/导出薄壳/上游快照重建=app_enumeration.py 伴生件，本文件
-#       再导出保持 server 单入口——500 行预算的宪法 §2 拆分正解）
+#       再导出保持 server 单入口；Constraint 再导出同理（SERVER D1）
 #   装配 grid 档命中校验（D3 Ruling ④）：grid 声明参数终值未命中档
 #       =InvalidAssemblyError（详见本文件 _check_grid_hits——M-1 R1 指针修正）
 #
@@ -117,6 +117,7 @@ from typing import Final, NoReturn, final
 
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
+    Constraint,
     EnumerationOptions,
     EnumerationOutcome,
     UpstreamSource,
@@ -136,9 +137,7 @@ from waterprint.project.io import (
     InvalidProjectError,
     read_project_text,
 )
-from waterprint.project.io import (
-    save_project as _project_save,
-)
+from waterprint.project.io import save_project as _project_save
 from waterprint.project.migration import migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.solution.constraints import apply_constraints
@@ -152,6 +151,7 @@ from waterprint.units_lib import discover_units
 __all__ = [
     "ArtifactKindNotReady",
     "AssembledGraph",
+    "Constraint",
     "EnumerationOptions",
     "EnumerationOutcome",
     "InvalidAssemblyError",

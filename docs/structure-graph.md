@@ -22,6 +22,7 @@
 | `waterprint_server.settings` | L5.settings | `server/waterprint_server/settings.py` |
 | `waterprint.cli` | L4.cli | `core/waterprint/cli.py` |
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
+| `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
 | `waterprint.project` | L4.project-trace | `core/waterprint/project` |
 | `waterprint.trace` | L4.project-trace | `core/waterprint/trace` |
 | `waterprint.graph` | L3 | `core/waterprint/graph` |
@@ -38,8 +39,11 @@
 | `api-contracts` | CONTRACT | `api-contracts` |
 
 > 层序（自上而下）：L6 → L5.main → L5.routers → L5.services → L5.jobs →
-> L5.settings → L4.cli → L4.app → L4.project-trace → L3 → L2 → L1 → L0 →
-> DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制）。
+> L5.settings → L4.cli → L4.app（app 与 app_enumeration 同层伴生，SERVER
+> D1 2026-08-26——app 再导出保持 server 单入口，方向单一 app→
+> app_enumeration 防环）→ L4.project-trace → L3 → L2 → L1 → L0 →
+> DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制；同层伴生边
+> 不入 §1b 边表——见下方注记）。
 >
 > `core/waterprint/ifc_export/` 为条件占位（IfcOpenShell LGPL 评估过/
 > 未过则删，见其 README），启动时登记本表，平时不入节点表。
@@ -95,6 +99,15 @@
 > L3 七个子系统互不依赖（independence 契约），各自只消费 L0 契约；
 > 单元包互相独立；pint 只在 contracts.quantity 出现——三条铁律由
 > import-linter 强制，本图谱与之一致（门禁双源对照）。
+
+> 同层伴生边（SERVER D1 2026-08-26，层序豁免注记）：
+> `waterprint.app` → `waterprint.app_enumeration`——app 对伴生件（类型
+> 面/导出薄壳/上游快照重建）的再导出 import，保持 server 经 app 单入口
+> （UF-33）；方向单一（app→app_enumeration，反向被 import-linter 禁止
+> ——防环）；机器强制=core/pyproject importlinter 同层并列声明 +
+> `ignore_imports` 显式豁免该唯一边（"|" 兄弟默认互禁的忠实意图条款）。
+> 本边**不入上方边表**：check_module_graph 的"严格向下"规则对同层边
+> 一律拒，故以本注记登记（UF-33"相抵处置"的落点）。
 
 ## 2. 端到端调用链（一次业务动作经过的文件，路径均实际存在）
 
