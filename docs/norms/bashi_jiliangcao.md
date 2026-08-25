@@ -27,17 +27,17 @@
 
 > DSL 语法子集：`OUT = RHS`，算术 + 白名单函数 {min,max,abs,sqrt,log10}。
 > **单位口径：流量式 Q 以 L/s、水头 h 以 m 计（手册 C·n 表原表单位）**；
-> q_design_ls = q_design×1000、q_avg_ls = q_avg_daily×1000 为 compute 侧
-> 符号合成（×1000 换算条文常量）。构造尺寸比系数（1.2/0.48/0.5/0.3）
-> 为手册标准型构造尺寸表的回归条文常量（经全档 12 行逐档验证精确成立，
-> 见追认点 2）。C/n/scrit/hmin/hmax 逐档经 factor.bashi_jiliangcao.
-> flume.<档名>.* 键消费（七档全档列出，选档切换）。
+> BL-F2/F3 内联 ×1000 换算条文常量（q_design/q_avg_daily 规范单位 m³/s→
+> L/s，registry 数值真源区合法；compute 侧零换算字面量）。构造尺寸比
+> 系数（1.2/0.48/0.5/0.3）为手册标准型构造尺寸表的回归条文常量（经
+> 全档 12 行逐档验证精确成立，见追认点 2）。C/n/scrit/hmin/hmax 逐档经
+> factor.bashi_jiliangcao.flume.<档名>.* 键消费（七档全档列出，选档切换）。
 
 | formula_id | 表达式（受限 DSL） | 变量 | 系数列（factor.bashi_jiliangcao.*） | 出处 |
 |-----------|--------------------|------|--------------------------------------|------|
 | BL-F1 | `q_meas = c_coef * ha ** n_exp` | ha 实测（上游）水头 m；c_coef/n_exp 选档流量系数（Q L/s） | flume.<档>.c；flume.<档>.n | 给水排水设计手册（巴歇尔槽流量式 Q=C·h^n）；CJ/T 3008.3-1993 核对归追认 |
-| BL-F2 | `ha_design = (q_design_ls / c_coef) ** (1 / n_exp)` | 设计水头反解（选档校核：h 在适用带内） | flume.<档>.hmin/max | 同上 |
-| BL-F3 | `ha_avg = (q_avg_ls / c_coef) ** (1 / n_exp)` | 平均时水头校核 | 同上 | 同上 |
+| BL-F2 | `ha_design = (q_design * 1000 / c_coef) ** (1 / n_exp)` | 设计水头反解（选档校核：h 在适用带内） | flume.<档>.hmin/max | 同上 |
+| BL-F3 | `ha_avg = (q_avg_daily * 1000 / c_coef) ** (1 / n_exp)` | 平均时水头校核 | 同上 | 同上 |
 | BL-F4 | `b1 = 1.2 * b_throat + 0.48` | b1 收缩段上游（行近渠）宽 m；b_throat 喉宽 m（B7 七档离散） | — | 给水排水设计手册（标准型构造尺寸表回归） |
 | BL-F5 | `l1 = 1.2 + 0.5 * b_throat` | l1 收缩段长 m | — | 同上 |
 | BL-F6 | `b2 = b_throat + 0.3` | b2 扩散段出口（下游渠）宽 m | — | 同上 |
@@ -104,10 +104,10 @@
 
 ## 手算主算例（golden 全厂口径，未来 test_compute.py 期望值来源）
 
-输入：Q_design = 0.56325 m³/s（q_design_ls = 563.25 L/s）、Q_avg_daily =
-34760.7 m³/d（q_avg_ls = 402.3229 L/s）、b_throat = 0.75 m（b075 档：
-C = 1772、n = 1.557、hmin = 0.06、hmax = 0.75、scrit = 0.6）、
-hb_design = 0.25 m、loss_ratio = 0.25。
+输入：Q_design = 0.56325 m³/s（引擎 q_design 精确值 = 0.5632520833，
+即 563.2521 L/s）、Q_avg_daily = 34760.7 m³/d（402.3229 L/s）、
+b_throat = 0.75 m（b075 档：C = 1772、n = 1.557、hmin = 0.06、
+hmax = 0.75、scrit = 0.6）、hb_design = 0.25 m、loss_ratio = 0.25。
 
 | 量 | 手算过程摘要 | 期望值 |
 |----|--------------|--------|
