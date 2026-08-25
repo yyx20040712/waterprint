@@ -394,11 +394,16 @@ class Manager:
         while not self._stopped.is_set():
             try:
                 message = self._progress_queue.get(timeout=_POLL_SECONDS)
-            except (Empty, EOFError, OSError):  # 关闭/超时窗口：继续轮询至停机
+            except (Empty, EOFError, OSError, ValueError):  # 关闭/超时窗口→轮询至停机
                 continue
             if message is None:
                 continue
-            asyncio.run_coroutine_threadsafe(self._route_progress(message), self._loop)
+            coroutine = self._route_progress(message)
+            try:
+                asyncio.run_coroutine_threadsafe(coroutine, self._loop)
+            except RuntimeError:
+                coroutine.close()  # 环已闭：显式关闭未 await 协程（防悬挂告警）
+                break  # teardown 竞态窗口：静默收桥，无消息可再路由
 
     async def _route_progress(self, message: Mapping[str, Any]) -> None:
         """进度消息路由：更新注册表 + 广播（percent/stage/condition_key）。"""
