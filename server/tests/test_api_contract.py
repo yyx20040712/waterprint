@@ -21,6 +21,7 @@
 import importlib
 
 import pytest
+from fastapi import status
 
 _main = importlib.import_module("waterprint_server.main")
 _CREATE_APP = getattr(_main, "create_app", None)
@@ -30,22 +31,83 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
+# 四路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 18 条）。
+EXPECTED_ENDPOINTS: dict[str, set[str]] = {
+    "/api/projects": {"post", "get"},
+    "/api/projects/{project_id}": {"get", "put"},
+    "/api/projects/{project_id}/validate": {"post"},
+    "/api/calc/run": {"post"},
+    "/api/calc/enumerate": {"post"},
+    "/api/calc/tasks/{task_id}": {"get"},
+    "/api/calc/tasks/{task_id}/cancel": {"post"},
+    "/api/calc/tasks/{task_id}/solutions": {"get"},
+    "/api/calc/solutions/apply": {"post"},
+    "/api/exports": {"get"},
+    "/api/exports/calcbook": {"post"},
+    "/api/exports/audit": {"post"},
+    "/api/exports/dxf": {"post"},
+    "/api/exports/estimate": {"post"},
+    "/api/events/tasks/{task_id}": {"get"},
+    "/api/events/projects/{project_id}": {"get"},
+}
 
-def test_openapi_endpoint_set(client) -> None:
+
+@pytest.mark.anyio
+async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-def]
     """A1：端点集与路由器规格一致（防止端点漂移无测试感知）。"""
-    raise AssertionError("实现后替换为真实断言（红-绿：先写失败断言再实现）")
+    schema = _main.app.openapi()  # 模块级实例同款 schema（契约自检面）
+    observed = {
+        path: {m for m in methods if m in {"get", "post", "put", "delete"}}
+        for path, methods in schema["paths"].items()
+    }
+    assert observed == EXPECTED_ENDPOINTS
+    assert sum(len(methods) for methods in observed.values()) == 18  # 5+6+5+2
 
 
-def test_openapi_schema_no_any_leak(client) -> None:
+@pytest.mark.anyio
+async def test_openapi_schema_no_any_leak(client) -> None:  # type: ignore[no-untyped-def]
     """A2：请求/响应 schema 完整，无 Any 类型字段。"""
-    raise AssertionError("实现后替换为真实断言")
+    schema = _main.app.openapi()
+    components = schema.get("components", {}).get("schemas", {})
+    assert components, "组件面为空（响应/请求模型未注册）"
+    framework_errors = {"ValidationError", "HTTPValidationError", "RequestValidationError"}
+    for name, model in components.items():
+        if name in framework_errors:
+            continue  # 框架自建错误模型（input: Any 是 pydantic 语义，非本面泄漏）
+        assert model != {}, f"组件 {name} 为空 schema（Any 泄漏面）"
+        for field, spec in model.get("properties", {}).items():
+            assert spec != {}, f"{name}.{field} 无类型面（Any 泄漏）"
+            assert "type" in spec or "$ref" in spec or "items" in spec or "anyOf" in spec, (
+                f"{name}.{field} 缺类型声明"
+            )
 
 
-def test_error_model_complete(client) -> None:
-    """A3：领域异常 → HTTP 映射表完整。"""
-    raise AssertionError("实现后替换为真实断言")
+@pytest.mark.anyio
+async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-def]
+    """A3：领域异常 → HTTP 映射表完整（真实端点触发面：404/422/501）。"""
+    missing = {"project_id": "nosuchproject0000", "conditions": []}
+    r = await client.post("/api/calc/run", json=missing)
+    assert r.status_code == status.HTTP_404_NOT_FOUND  # NotFound 族→404
+    assert "error_type" in r.json()  # 统一错误体 {detail, error_type}
+    created = await client.post("/api/projects", json={})
+    assert created.status_code == status.HTTP_200_OK
+    project_id = created.json()["project_id"]
+    r = await client.post(
+        "/api/calc/enumerate", json={"project_id": project_id, "unit_ids": ["a", "b"]}
+    )
+    assert r.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT  # ADR-005 多单元
+    r = await client.post(
+        "/api/calc/enumerate", json={"project_id": project_id, "unit_ids": []}
+    )
+    assert r.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT  # pydantic 参数面
+    r = await client.post("/api/exports/audit", json={"project_id": project_id})
+    assert r.status_code in {status.HTTP_404_NOT_FOUND, status.HTTP_501_NOT_IMPLEMENTED}
+    # ↑ 无结果集=404（先重算）；有结果集而 kind 未就绪/模板缺位=501（A3 族）
 
 
-def test_project_id_path_traversal_rejected(client) -> None:
-    """A4：路径穿越 id 拒绝（安全门）。"""
-    raise AssertionError("实现后替换为真实断言")
+@pytest.mark.anyio
+async def test_project_id_path_traversal_rejected(client) -> None:  # type: ignore[no-untyped-def]
+    """A4：路径穿越 id 拒绝（安全门——4xx 非 500）。"""
+    for evil in ("%2e%2e%2fevil", "..%2Fevil", "%2Fabs"):
+        response = await client.get(f"/api/projects/{evil}")
+        assert 400 <= response.status_code < 500, f"{evil} 期望 4xx，得到 {response.status_code}"
