@@ -53,6 +53,7 @@ import os
 import re
 from functools import lru_cache
 from pathlib import Path
+from typing import Final
 
 from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -61,6 +62,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # 拒绝 ".."、绝对路径、盘符与路径分隔符注入（§18 路径安全）。
 _COMPONENT_PATTERN: re.Pattern[str] = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 _FAIL_FAST_FIELDS = ("calc_workers", "max_upload_mb", "max_excel_rows", "max_json_depth")
+# 服务层引擎版本标识（可复算三元组成员——与 server/pyproject version 同源同步）。
+ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
 
 
 class Settings(BaseSettings):

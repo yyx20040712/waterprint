@@ -66,6 +66,8 @@ from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 
+from waterprint_server.settings import ENGINE_VERSION
+
 # 进度队列模块全局（R5：仅 initializer 赋值，导入期为 None——零副作用）。
 _PROGRESS_QUEUE: mp.Queue[Mapping[str, Any]] | None = None
 
@@ -84,7 +86,7 @@ _STAGES: Final[dict[str, tuple[str, ...]]] = {
     "calc": ("load", "run", "serialize"),
     "enumerate": ("load", "run", "rows"),
 }
-_ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
+# 引擎版本标识：settings.ENGINE_VERSION（与 pyproject version 同源）
 
 
 class InvalidTaskPayloadError(ValueError):
@@ -225,7 +227,7 @@ def _build_env(data_dir: Path, project: ProjectFile) -> RunEnv:
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     return RunEnv(
-        engine_version=_ENGINE_VERSION,
+        engine_version=ENGINE_VERSION,
         data_version="+".join(
             f"{name}@{versions[name]}" for name in sorted(versions)
         ),

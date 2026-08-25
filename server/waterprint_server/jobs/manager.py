@@ -113,6 +113,7 @@ class TaskStatus:
     error: str | None
     error_type: str | None
     result: Mapping[str, Any] | None
+    project_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -162,6 +163,7 @@ class _TaskRecord:
             error=self.error,
             error_type=self.error_type,
             result=self.result,
+            project_id=str(self.request.payload.get("project_id", "")),
         )
 
 
@@ -242,6 +244,14 @@ class Manager:
     def status(self, task_id: str) -> TaskStatus:
         """状态快照（含 failed 的领域异常序列化诊断，R1）。"""
         return self._record(task_id).status()
+
+    def task_ids_for_project(self, project_id: str) -> tuple[str, ...]:
+        """项目的全部任务 id（注册序——stale 标记与最近结果集消费面）。"""
+        return tuple(
+            task_id
+            for task_id, record in self._tasks.items()
+            if record.request.payload.get("project_id") == project_id
+        )
 
     def cancel(self, task_id: str) -> bool:
         """协作取消（R5）：queued 直接 cancelled；running 置标记文件。
