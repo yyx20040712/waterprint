@@ -29,7 +29,8 @@
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version、CoefficientValue、load_coefficients、InvalidCoefficientError、require_keys |
 | `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数；T6 实现：环两分法——非 recycle 环拒/全边 Tarjan） | 节点/边列表 | topological_layers、strongly_connected_components、split_graph（复用 ports.InvalidConnection 拒绝） |
 | `core/waterprint/graph/propagate.py` | L3 | 沿边传播水量水质 + 汇流加权混合（工况加权 R1/Kz=max R2/通道隔离 R4/recycle 忽略 R5；T6 实现） | 上游结果+边+工况 | mix、propagate、InvalidPropagationError（污泥汇流走 contracts.sludge.mix） |
-| `core/waterprint/graph/loop.py` | L3 | 回路固定点迭代（阻尼/容差/发散诊断） | 回路组+compute 回调 | 收敛结果或 LoopDivergence |
+| `core/waterprint/graph/loop.py` | L3 | 回路固定点迭代（阻尼/容差/发散诊断；T7b 实现——D1 四参锁定形态+摊平分桶口径） | 回路组+compute 回调+迭代参数 | solve_loop、LoopConfig、LoopDivergence（收敛解或发散诊断三元组） |
+| `core/waterprint/graph/nodes.py` | L3 | 内置图节点三 kind 工厂（市政输入/汇流/水质编辑——executor R6"本包内提供"，非单元包，§14.3 归属表；T7b 新建） | kind + design 节点 params（规范单位裸值） | builtin_unit、InvalidNodeError（Unit 协议实例） |
 | `core/waterprint/graph/executor.py` | L3 | 图执行编排（工况×拓扑×传播×回路） | design 图+单元注册表+工况集 | PlantResult |
 | `core/waterprint/graph/incremental.py` | L3 | 脏传播与缓存（仅优化，字节级等价全量） | hash 变更 | 重算范围、ResultCache |
 | `core/waterprint/solution/grid.py` | L3 | 自由参数离散网格（≤4^k 护栏） | manifest 离散配置 | 参数矩阵 |
