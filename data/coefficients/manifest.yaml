@@ -14,7 +14,10 @@ data_version: "0.4.0"
 #       {bod5,cod,ss}.mod_default 共 9 条（cass 与 aao 同族去除档
 #       0.90/0.85/0.90；巴歇尔与泵房计量/提升零去除全 0.0 显式注记）；
 #       B7 七档枚举面按手册标准档映射（0.5/1.25/2.0→0.45/1.20/2.10，
-#       归追认点 1 裁定）。0.3.0 既有 194 键不扰动。
+#       归追认点 1 裁定）。0.3.0 既有 206（=194+12：0.2.1 既有 126 +
+#       0.3.0 factor 批 68，+0.3.0 removal 批 12）键不扰动；顺带一处既有键
+#       source 文本规范化——factor.ziwai.elevation_loss 补"（第 5 册 城镇排水）"
+#       册名（value/unit/note 零改动，M-1 注记——R1-c 2026-08-26 补记）。
 #   - 0.3.0: M2b1 深度处理段四单元批（批级版本跃升）；AI 起草待追认（数据
 #       策略 v2，工程常用范围口径）。docs/norms/{tiaojiechi,gaomidu,
 #       vxinglvchi,ziwai}.md 系数列/参数档逐字：factors.yaml 增
