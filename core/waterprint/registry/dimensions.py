@@ -249,3 +249,42 @@ _M1A_FIELDS: tuple[FieldSpec, ...] = (
 for _spec in _M1A_FIELDS:
     register_dimension(_spec)
 bind_dimension_lookup(_optional_lookup)
+
+# ── M2a2 核心三单元参数字段（2026-08-25；出处=docs/norms/{chuchenchi,aao,
+#    erchunchi}.md 三表参数列/算例 1 输入行——同名跨单元字段 ID 不耦合：
+#    各包 manifest 各写各的默认值，AGENTS §11 R4；x_mlss/h2/r_external 等
+#    联动值由调用侧取同值，注册表只登记字段语义）。小时/日/负荷带类单位
+#    在 DimKey 无对应量类者按 DIMENSIONLESS 裸值登记（单位语义随 i18n 键
+#    走，三表口径：h/d/m³·m⁻²·h⁻¹/kgBOD5·kgMLSS⁻¹·d⁻¹）。 ──
+_M2A2_FIELDS: tuple[FieldSpec, ...] = (
+    # chuchenchi 辐流初沉池（算例 1：q'=2.3/T=1.2 h/T_sludge=2 d/r1=1.8/
+    # r2=0.8/h5=1.5；D 档 0.5 m/长度档 0.1 m）
+    FieldSpec("q_prime", DimKey.DIMENSIONLESS, "", "units.fields.q_prime", "load"),
+    FieldSpec("t_settle", DimKey.DIMENSIONLESS, "", "units.fields.t_settle", "load"),
+    FieldSpec("t_sludge", DimKey.DIMENSIONLESS, "", "units.fields.t_sludge",
+              "operation"),
+    FieldSpec("r1", DimKey.LENGTH, "m", "units.fields.r1", "geometry"),
+    FieldSpec("r2", DimKey.LENGTH, "m", "units.fields.r2", "geometry"),
+    FieldSpec("h5", DimKey.LENGTH, "m", "units.fields.h5", "geometry"),
+    FieldSpec("dia_disc_step", DimKey.LENGTH, "m", "units.fields.dia_disc_step",
+              "geometry"),
+    # aao AAO 生物池（算例 1：Ns=0.10/X=4000/t_p=1.5 h/R=1.0/Ri=2.0/
+    # TN_eff=15；sec_per_hour=3600 时换算）
+    FieldSpec("ns", DimKey.DIMENSIONLESS, "", "units.fields.ns", "load"),
+    FieldSpec("x_mlss", DimKey.CONCENTRATION, "mg/L", "units.fields.x_mlss",
+              "load"),
+    FieldSpec("t_p", DimKey.DIMENSIONLESS, "", "units.fields.t_p", "load"),
+    FieldSpec("r_external", DimKey.DIMENSIONLESS, "", "units.fields.r_external",
+              "operation"),
+    FieldSpec("r_internal", DimKey.DIMENSIONLESS, "", "units.fields.r_internal",
+              "operation"),
+    FieldSpec("tn_eff", DimKey.CONCENTRATION, "mg/L", "units.fields.tn_eff",
+              "load"),
+    # erchunchi 辐流二沉池（算例 1：q_nom=1.2/X=4000 联动/R=1.0 联动/
+    # h2=3.0/r_pit=1.0）
+    FieldSpec("q_nom", DimKey.DIMENSIONLESS, "", "units.fields.q_nom", "load"),
+    FieldSpec("r_pit", DimKey.LENGTH, "m", "units.fields.r_pit", "geometry"),
+    FieldSpec("h2", DimKey.LENGTH, "m", "units.fields.h2", "geometry"),
+)
+for _spec in _M2A2_FIELDS:
+    register_dimension(_spec)

@@ -1,6 +1,12 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.2.0"
+data_version: "0.2.1"
 # 变更记录：
+#   - 0.2.1: M2a2 前置三键（M2a1 二审 M-1）；AI 起草待追认。
+#       factors.yaml 增校核带六键（band 双键形态=surface_load_band.min/max 同款）：
+#       factor.chuchenchi.sludge_cycle_band.{min,max}（1/2 d）、
+#       factor.erchunchi.x_r_band.{min,max}（6000/12000 mg/L）、
+#       factor.erchunchi.hrt_band.{min,max}（1.5/4 h）——数值/出处/note=
+#       docs/norms 三表校核带行逐字。0.2.0 既有 120 键不扰动。
 #   - 0.2.0: AI 起草 0.2.0（数据策略 v2，工程常用范围口径）；领域专家批量追认待补。
 #       核心三单元批（docs/norms/{chuchenchi,aao,erchunchi}.md 系数列逐字）：
 #       factors.yaml 增 factor.{chuchenchi,aao,erchunchi}.* 共 51 条（含各单元

@@ -583,3 +583,43 @@
   unit: "m"
   source: "给水排水设计手册（第 5 册）高程布置二沉池水头损失常用值"
   note: "二沉池水头损失经验值（带 0.4~0.7 m，保守取 0.6；高程链输入）"
+
+# ── M2a2 前置三键（M2a1 二审 M-1 补齐，0.2.0→0.2.1）：校核带六键，
+#    band 双键形态=surface_load_band.min/max 同款；数值/出处/note=
+#    docs/norms 三表校核带行逐字；AI 起草待追认（数据策略 v2） ──
+
+- key: "factor.chuchenchi.sludge_cycle_band.min"
+  value: 1.0
+  unit: "d"
+  source: "GB 50014-2021 §6.5（初沉池排泥周期）"
+  note: "初沉池贮泥（排泥）周期校核带下限（docs/norms/chuchenchi.md CC-F12/参数档排泥周期行 1~2 d）"
+
+- key: "factor.chuchenchi.sludge_cycle_band.max"
+  value: 2.0
+  unit: "d"
+  source: "GB 50014-2021 §6.5（初沉池排泥周期）"
+  note: "初沉池贮泥（排泥）周期校核带上限（docs/norms/chuchenchi.md CC-F12/参数档排泥周期行 1~2 d）"
+
+- key: "factor.erchunchi.x_r_band.min"
+  value: 6000.0
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）二沉回流污泥浓度常用带"
+  note: "回流污泥浓度 Xr 校核带下限（docs/norms/erchunchi.md EC-F10/参数档行 6000~12000 mg/L）"
+
+- key: "factor.erchunchi.x_r_band.max"
+  value: 12000.0
+  unit: "mg/L"
+  source: "给水排水设计手册（第 5 册）二沉回流污泥浓度常用带"
+  note: "回流污泥浓度 Xr 校核带上限（docs/norms/erchunchi.md EC-F10/参数档行 6000~12000 mg/L）"
+
+- key: "factor.erchunchi.hrt_band.min"
+  value: 1.5
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）辐流二沉池水力停留时间常用带"
+  note: "二沉池水力停留时间校核带下限（docs/norms/erchunchi.md 主算例校核 HRT 行 1.5~4 h 常用带）"
+
+- key: "factor.erchunchi.hrt_band.max"
+  value: 4.0
+  unit: "h"
+  source: "给水排水设计手册（第 5 册）辐流二沉池水力停留时间常用带"
+  note: "二沉池水力停留时间校核带上限（docs/norms/erchunchi.md 主算例校核 HRT 行 1.5~4 h 常用带）"
