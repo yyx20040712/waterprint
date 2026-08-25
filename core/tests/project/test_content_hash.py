@@ -36,7 +36,7 @@ _BASE: dict = {
 
 def _design() -> object:
     """基线 design：七字段全非空（参与项变更断言的前提）。"""
-    return DesignState(**{key: value for key, value in _BASE.items()})
+    return DesignState(**_BASE)
 
 
 def test_hash_shape_is_sha256_hex() -> None:

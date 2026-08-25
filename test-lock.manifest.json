@@ -59,7 +59,7 @@
   "core/tests/network/test_excel_io.py": "befaf076e03bfc6fdfc95e23f4d2704eb526314cc51f4217835521c593e28d96",
   "core/tests/network/test_manning.py": "461e75f2a3cffd5ecb88bc4de32d4508e0e0e6e688f7e52c58c477315adf1ae5",
   "core/tests/network/test_solver.py": "729edd8889b1e940a237b7c263691bfc06ba901c6ab7361f8d736500276287b0",
-  "core/tests/project/test_content_hash.py": "2afa228acff1c58a89092348168c1a0926885c1ef73a713c979f03b39fa279a9",
+  "core/tests/project/test_content_hash.py": "927d9301e7f92754bbde88023e306367289a5277222cbed12e6f34cf5363689d",
   "core/tests/project/test_io.py": "6b0aa5ccfdf9ef26d982439776dd52caec187362c8df46602ecd8527b80491ed",
   "core/tests/project/test_migration.py": "ff5751aced58e8e928caee5d48a2f5a29c46e8faa0e2631830871402b387d407",
   "core/tests/registry/test_assumptions.py": "f6d2c71dfa3707b19244fccd1ba4a12f2bca44ab11f35dbc98aae7150d28baa9",
