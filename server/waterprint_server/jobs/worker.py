@@ -39,6 +39,8 @@
 #     本文件以 CoefficientsView 协议适配器（L0 契约协议面）读
 #     data_dir 数据包（registry 格式镜像装载，B4 双胞胎先例）——
 #     追认点已登记 undefined-features-register（SERVER 批）。
+#   - R1-1 二道闸（2026-08-26）：export_batch 的 kind 白名单+
+#     out_name 防逃逸（无分隔符/无 ..）——payload 直注 IPC 面防线。
 #   - DEFAULT_ASSUMPTIONS 经 waterprint.app 模块面取用（app 为
 #     _engine_params 已装载的同名属性——UF-33"经 app"口径）。
 #
@@ -330,6 +332,29 @@ def _run_enumerate(
     }
 
 
+_EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
+
+
+def _safe_out_name(name: str) -> str:
+    """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注防线）。
+
+    服务面已过 _deterministic_name 四分量白名单；本闸防的是绕过服务层
+    直构 payload 的 IPC 面（worker 是 pickle 边界，入参即不可信——§18）。
+    """
+    if (
+        not name
+        or "/" in name
+        or "\\" in name
+        or ".." in name
+        or name in {".", ".."}
+    ):
+        raise InvalidTaskPayloadError(
+            f"导出产物名非法：{name!r}（R1-1 二道闸——无路径分隔符/无父段"
+            "引用；exports_dir 内落盘是唯一合法位置）"
+        )
+    return name
+
+
 def _run_export_batch(
     payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
 ) -> Mapping[str, Any]:
@@ -342,15 +367,21 @@ def _run_export_batch(
     for index, item in enumerate(items):
         if _cancelled(cancel_token):  # 每批迭代检查（R4：取消后无新产物落地）
             return {"state": "cancelled", "files": tuple(files)}
+        kind = str(item.get("kind", ""))
+        if kind not in _EXPORT_KINDS:  # R1-1 二道闸：kind 白名单（IPC 面）
+            raise InvalidTaskPayloadError(
+                f"导出 kind {kind!r} 不在合法面 {_EXPORT_KINDS}（R1-1 二道闸）"
+            )
+        out_name = _safe_out_name(str(item.get("out_name", "")))
         _report(
             task_id,
-            _StagePoint(f"export:{item.get('kind', '')}", index, total),
+            _StagePoint(f"export:{kind}", index, total),
             progress,
         )
         plant = deserialize(Path(str(item["result_file"])).read_bytes())
-        out = exports_dir / str(item["out_name"])
+        out = exports_dir / out_name
         tmp = out.with_name(out.name + ".tmp")
-        core.export_artifact(str(item["kind"]), plant, Path(str(item["template"])), tmp)
+        core.export_artifact(kind, plant, Path(str(item["template"])), tmp)
         os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
         files.append(str(out))
     return {

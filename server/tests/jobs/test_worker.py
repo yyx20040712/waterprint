@@ -126,3 +126,24 @@ def test_unknown_kind_rejected_at_serialization_boundary(tmp_path) -> None:  # t
 
     with pytest.raises(InvalidTaskPayloadError, match="未知任务 kind"):
         run_task({"kind": "nonsense", "task_id": "x"}, None, None)
+
+
+def test_export_batch_second_gate_rejects_escape_writing(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """AU-1/R1-1 二道闸：payload 直注的 kind 穿越/out_name 逃逸在 worker 即拒。"""
+    from waterprint_server.jobs.worker import InvalidTaskPayloadError
+
+    base = {"kind": "export_batch", "task_id": "gate", "exports_dir": str(tmp_path)}
+    with pytest.raises(InvalidTaskPayloadError, match="二道闸"):  # kind 含路径段
+        run_task(
+            {**base, "items": [{"kind": "calcbook/../../evil", "out_name": "ok.xlsx"}]},
+            None,
+            None,
+        )
+    for evil_name in ("a/../../evil.xlsx", "..\\..\\evil.xlsx", "../../deep.xlsx", ""):
+        with pytest.raises(InvalidTaskPayloadError, match="产物名非法"):
+            run_task(
+                {**base, "items": [{"kind": "calcbook", "out_name": evil_name}]},
+                None,
+                None,
+            )
+    assert list(tmp_path.iterdir()) == []  # 二道闸拒于任何落盘之前

@@ -102,7 +102,7 @@ async def test_forced_export_of_stale_result_is_labeled_wiring(service_ctx) -> N
         }
     )
     projects_mod.save_project(service_ctx, project_id, edited)  # 输入版本漂移
-    with pytest.raises(_mod.StaleExportError, match="输入版本"):  # 未 force：409 面
+    with pytest.raises(_mod.StaleExportError, match=result_digest[:6]):  # 未 force：409 附摘要（AU-6/R1-4②）
         await create_export(service_ctx, project_id, "calcbook")
     forced = await create_export(service_ctx, project_id, "calcbook", force=True)
     assert forced.stale_labeled is True  # 产物/元数据显式标注（永不冒充）
@@ -112,3 +112,34 @@ async def test_forced_export_of_stale_result_is_labeled_wiring(service_ctx) -> N
     assert metas[-1].design_digest != projects_mod.design_digest(
         projects_mod.read_project(service_ctx, project_id).design
     )  # 与当前 design 不同（冒充防线）
+
+
+async def test_traversal_components_rejected_no_escape_writing(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """AU-1/R1-1 接线断言：文件名分量穿越=422 族且 exports_dir/上层零新增落盘。
+
+    浅穿越（a/../../evil）+深穿越（b/../../../../../deep）与批量 items[*].kind
+    穿越（kind 含路径段）——目录快照（exports_dir+其上层全树）前后对比锁定
+    "越界即拒于落盘之前"（§18 路径安全；exports.py 规格 R3 白名单字符集）。
+    """
+    import os
+
+    project_id = await _project_with_result(service_ctx)
+    exports_dir = service_ctx.exports_dir
+    sandbox = exports_dir.parent.parent  # pytest tmp 根（深穿越上限 containment 窗）
+    before_files = {str(p.relative_to(sandbox)) for p in sandbox.rglob("*")}
+    before_listing = sorted(os.listdir(exports_dir))
+    shallow = "a/../../evil"  # 浅穿越：逃出 exports_dir 一层
+    deep = "b/" + "../" * 10 + "deep"  # 深穿越：多级上溯
+    for evil_condition in (shallow, deep):
+        with pytest.raises(_mod.InvalidExportRequestError, match="文件名分量"):
+            await create_export(service_ctx, project_id, "calcbook", evil_condition)
+    with pytest.raises(_mod.InvalidExportRequestError):  # 批量 items kind 穿越（kind 白名单）
+        await create_export(
+            service_ctx,
+            project_id,
+            "calcbook",
+            "ok",
+            {"items": [{"kind": "calcbook/../../evil", "condition_key": ""}]},
+        )
+    assert sorted(os.listdir(exports_dir)) == before_listing  # exports_dir 零新增
+    assert {str(p.relative_to(sandbox)) for p in sandbox.rglob("*")} == before_files  # 全树零逃逸

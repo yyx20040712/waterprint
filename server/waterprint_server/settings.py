@@ -108,18 +108,27 @@ def get_settings() -> Settings:
     return Settings()
 
 
-def safe_child(base: Path, name: str) -> Path:
-    """路径基点分量拼接（R1）：分量过白名单字符集，越界即拒（ValueError）。
+def validate_component(name: str) -> str:
+    """路径/文件名分量白名单校验（R1-1 公开工具：exports 文件名分量等复用）。
 
-    拒绝面：空串/绝对路径/../ 分隔符与盘符（正则只认单分量字符集，
-    天然排除）。services 层捕获 ValueError 翻译为领域异常（4xx 面）。
+    拒绝面与 safe_child 同源（../、绝对路径、分隔符、盘符——正则只认单分量
+    字符集天然排除）；越界 raise ValueError（消费方翻译领域异常）。
     """
     if not isinstance(name, str) or not _COMPONENT_PATTERN.fullmatch(name):
         raise ValueError(
             f"路径分量非法：{name!r}（§18 路径安全——仅 ASCII 字母数字与 -/_，"
             "拒绝 ../绝对路径/分隔符注入；基点内拼接是唯一合法构造）"
         )
-    return base / name
+    return name
+
+
+def safe_child(base: Path, name: str) -> Path:
+    """路径基点分量拼接（R1）：分量过白名单字符集，越界即拒（ValueError）。
+
+    拒绝面：空串/绝对路径/../ 分隔符与盘符（正则只认单分量字符集，
+    天然排除）。services 层捕获 ValueError 翻译为领域异常（4xx 面）。
+    """
+    return base / validate_component(name)
 
 
 def ensure_directories(settings: Settings) -> None:

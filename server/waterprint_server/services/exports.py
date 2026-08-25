@@ -34,6 +34,10 @@
 #     进 .meta.json 边车（注册表只记元数据不复制数据，R2）。
 #   - 模板缺位=ExportTemplateMissingError（501 面，UF-16 模板录入批
 #     挂账：data/templates 0.0.0 无模板文件——诚实未就绪）。
+#   - R1-1（AU-1 修复 2026-08-26）：文件名四分量全过白名单
+#     （condition/items kind/project_id=validate_component 或 _KINDS；
+#     digest=hex 天然安全）——穿越串 422 拒于落盘之前；worker 侧
+#     二道闸（kind 白名单+out_name 无分隔符无 ..）随行。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -55,6 +59,7 @@ from waterprint.contracts.result_schema import deserialize
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import design_digest, read_project
+from waterprint_server.settings import validate_component
 
 _KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
 _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；注记区）
@@ -142,12 +147,37 @@ def _latest_calc_result(
     return latest_id, latest
 
 
+def _name_component(value: str, fallback: str, what: str) -> str:
+    """R1-1（AU-1 修复 2026-08-26）：文件名分量白名单（空串→fallback）。
+
+    condition_key/items condition 等用户可写字段过 validate_component
+    （与 safe_child 同源字符集）；越界 raise InvalidExportRequestError
+    （422 面）——穿越串（../与分隔符注入）拒于落盘之前，§18 路径安全。
+    """
+    if not value:
+        return fallback
+    try:
+        return validate_component(value)
+    except ValueError as exc:
+        raise InvalidExportRequestError(
+            f"导出文件名分量 {what} 非法：{value!r}（§18 路径安全——白名单"
+            "字符集[ASCII 字母数字-_/]，拒绝 ../与分隔符注入；R1-1）"
+        ) from exc
+
+
 def _deterministic_name(
     project_id: str, kind: str, condition_key: str, digest: str
 ) -> str:
-    """R4 确定性命名：项目 id+kind+condition+三元组摘要（禁当前时钟）。"""
-    safe_condition = condition_key or "all"
-    return f"{project_id}-{kind}-{safe_condition}-{digest[:_DIGEST_PREFIX]}.xlsx"
+    """R4 确定性命名：项目 id+kind+condition+三元组摘要（禁当前时钟）。
+
+    R1-1：全部四分量过白名单（project_id/condition=validate_component、
+    kind∈_KINDS、digest=sha256 hex 天然安全）——穿越即拒（422）。
+    """
+    if kind not in _KINDS:
+        raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
+    safe_project = _name_component(project_id, "REQUIRED", "project_id")
+    safe_condition = _name_component(condition_key, "all", "condition_key")
+    return f"{safe_project}-{kind}-{safe_condition}-{digest[:_DIGEST_PREFIX]}.xlsx"
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
@@ -188,7 +218,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     names = [
         _deterministic_name(
             project_id,
-            str(item["kind"]),
+            str(item.get("kind", "")),  # 缺 kind=白名单外→422（禁 KeyError 500）
             str(item.get("condition_key", "")),
             result_digest,
         )
