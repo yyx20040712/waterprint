@@ -288,3 +288,57 @@ _M2A2_FIELDS: tuple[FieldSpec, ...] = (
 )
 for _spec in _M2A2_FIELDS:
     register_dimension(_spec)
+
+# ── M2b2 深度处理段四单元参数字段（2026-08-25；出处=docs/norms/{tiaojiechi,
+#    gaomidu,vxinglvchi,ziwai}.md 四表参数档/算例 1 输入行——同名跨单元字段
+#    ID 不耦合：各包 manifest 各写各的默认值，AGENTS §11 R4；小时/分钟/负荷
+#    带类单位在 DimKey 无对应量类者按 DIMENSIONLESS 裸值登记（单位语义随
+#    i18n 键走，四表口径：h/min/m³·m⁻²·h⁻¹/m·h⁻¹/支/模块）。side_disc_step
+#    为平面边长 0.5 m 离散档（tiaojiechi B/L、gaomidu B、vxinglvchi B/L
+#    共用语义形态，与 M2a2 dia_disc_step 池径档对称）。 ──
+_M2B2_FIELDS: tuple[FieldSpec, ...] = (
+    # tiaojiechi 调节池（算例 1：t_reg=8.0 h/h2=5.0 m/ratio_lb=2.5/
+    # n_pump_duty=2；B/L 档 0.5 m、DN 档 0.1 m）
+    FieldSpec("t_reg", DimKey.DIMENSIONLESS, "", "units.fields.t_reg", "load"),
+    FieldSpec("ratio_lb", DimKey.DIMENSIONLESS, "", "units.fields.ratio_lb",
+              "geometry"),
+    FieldSpec("n_pump_duty", DimKey.DIMENSIONLESS, "", "units.fields.n_pump_duty",
+              "equipment"),
+    FieldSpec("side_disc_step", DimKey.LENGTH, "m", "units.fields.side_disc_step",
+              "geometry"),
+    # gaomidu 高密沉淀池（算例 1：q_surface=15/r_sludge=0.04/t_mix=1.5 min/
+    # t_floc=12 min/l_tube=1.0/h_clear=1.2/h_buffer=1.2/h_thick=2.0；
+    # B 档 0.5 m、h_total 档 0.1 m）
+    FieldSpec("q_surface", DimKey.DIMENSIONLESS, "", "units.fields.q_surface",
+              "load"),
+    FieldSpec("r_sludge", DimKey.DIMENSIONLESS, "", "units.fields.r_sludge",
+              "operation"),
+    FieldSpec("t_mix", DimKey.DIMENSIONLESS, "", "units.fields.t_mix", "load"),
+    FieldSpec("t_floc", DimKey.DIMENSIONLESS, "", "units.fields.t_floc", "load"),
+    FieldSpec("l_tube", DimKey.LENGTH, "m", "units.fields.l_tube", "geometry"),
+    FieldSpec("h_clear", DimKey.LENGTH, "m", "units.fields.h_clear", "geometry"),
+    FieldSpec("h_buffer", DimKey.LENGTH, "m", "units.fields.h_buffer", "geometry"),
+    FieldSpec("h_thick", DimKey.LENGTH, "m", "units.fields.h_thick", "geometry"),
+    # vxinglvchi V 型滤池（算例 1：v_filter=8.0 m/h/ratio_lb=2.5/
+    # h_water_above=1.3/h_sand=1.3/h_bottom=1.0/t_cycle=24；B/L 档 0.5 m）
+    FieldSpec("v_filter", DimKey.DIMENSIONLESS, "", "units.fields.v_filter",
+              "load"),
+    FieldSpec("h_water_above", DimKey.LENGTH, "m", "units.fields.h_water_above",
+              "geometry"),
+    FieldSpec("h_sand", DimKey.LENGTH, "m", "units.fields.h_sand", "geometry"),
+    FieldSpec("h_bottom", DimKey.LENGTH, "m", "units.fields.h_bottom", "geometry"),
+    FieldSpec("t_cycle", DimKey.DIMENSIONLESS, "", "units.fields.t_cycle",
+              "operation"),
+    # ziwai 紫外消毒（算例 1：n_channel=2/v_channel=0.4/b_c=1.2/
+    # n_lamp_module=8/l_module=0.6/l_stab=1.2/h_module=0.5；h_w 档 0.1 m）
+    FieldSpec("n_channel", DimKey.DIMENSIONLESS, "", "units.fields.n_channel",
+              "equipment"),
+    FieldSpec("b_c", DimKey.LENGTH, "m", "units.fields.b_c", "geometry"),
+    FieldSpec("n_lamp_module", DimKey.DIMENSIONLESS, "",
+              "units.fields.n_lamp_module", "equipment"),
+    FieldSpec("l_module", DimKey.LENGTH, "m", "units.fields.l_module", "equipment"),
+    FieldSpec("l_stab", DimKey.LENGTH, "m", "units.fields.l_stab", "geometry"),
+    FieldSpec("h_module", DimKey.LENGTH, "m", "units.fields.h_module", "equipment"),
+)
+for _spec in _M2B2_FIELDS:
+    register_dimension(_spec)
