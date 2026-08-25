@@ -260,7 +260,10 @@ def _warnings(
                 f"{_HB}；factor.wushui_tisheng.pump.q_flow_band.*",
                 f"单泵流量 = {pumps['q_pump']:.2f} m3/h 越出建议带 [{qflow[0]}, {qflow[1]}]"
                 "——调节方向：factor.wushui_tisheng.pump.q_per_unit（概算锚/选泵型号面）",
-                "n_standby",
+                # 归因唯一真实杠杆=概算锚系数键（n_standby 只进 TS-F3 与 q_pump
+                # 零耦合——M2c R1-b 修正 2026-08-26；系数键入 param_key 为新
+                # 形态但语义正确，Warning.source 系数键引已有先例）
+                "factor.wushui_tisheng.pump.q_per_unit",
             )
         )
     limit = _factor(p, "factor.wushui_tisheng.pump.start_band.max")

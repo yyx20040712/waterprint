@@ -183,7 +183,8 @@ def test_main_case_head_well() -> None:
 
 def test_pump_count_ceil_discretization() -> None:
     """泵台数整台 ceil 离散：概算锚 6000 → n_raw=0.338 → 1 用（单泵流量
-    2027.7 越单泵流量带上限产 WARN——ceil 离散与选泵面校核联动）。"""
+    2027.7 越单泵流量带上限产 WARN——ceil 离散与选泵面校核联动；归因
+    param_key=概算锚系数键[M2c R1-b：n_standby 只进 TS-F3 与 q_pump 零耦合]）。"""
     result = make_unit().compute(_ctx(_params(**{"factor.wushui_tisheng.pump.q_per_unit": 6000.0})))
     dims = result.dims
     assert isinstance(dims, dict)
@@ -192,6 +193,7 @@ def test_pump_count_ceil_discretization() -> None:
     assert dims["n_pump_total"] == pytest.approx(2.0, abs=1e-9)
     qflow = [w for w in result.warnings if "q_flow_band" in w.source]
     assert qflow and qflow[0].severity is Severity.WARN
+    assert qflow[0].param_key == "factor.wushui_tisheng.pump.q_per_unit"
 
 
 def test_band_warnings() -> None:
