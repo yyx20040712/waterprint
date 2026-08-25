@@ -280,7 +280,10 @@ _FACTOR_SHARED_PREFIX = "factor.screen."
 
 def _unit_params(unit_id: str, coefficients: CoefficientsView) -> dict[str, float]:
     """D4 系数投影：单元短名过滤 factor.*/removal.* + factor.screen.* 共用键。"""
-    short = unit_id.rsplit("_", 1)[-1]
+    # 短名 = 剥离业务线前缀后的全串（M2c R1-a 修正 2026-08-26：两词短名
+    # bashi_jiliangcao/wushui_tisheng 的系数键含下划线，rsplit 尾段会错位；
+    # mine_water 线名本身含下划线——勿用 rsplit 取尾段，恒取首个 "_" 后全串）。
+    short = unit_id.split("_", 1)[1]
     prefixes = (f"factor.{short}.", f"removal.{short}.", _FACTOR_SHARED_PREFIX)
     projected: dict[str, float] = {}
     for prefix in prefixes:
