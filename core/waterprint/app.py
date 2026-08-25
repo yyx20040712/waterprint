@@ -74,6 +74,19 @@
 #   run_full_calc 若 env.engine_params 缺 loop.* 任一键则补齐（纯函数
 #   构造新 RunEnv 替换，原 env 不改；MappingProxyType 快照语义保持）。
 #
+# 【trace 装配收口】（M1b D3 裁决 2026-08-25，分层：trace 居 graph 上层，
+#   executor 禁 import trace——executor.py 零改动；其 _NullSink 保留为
+#   防御残留：仅当调用方直接走 execute_graph 且 env.trace_sink=None 时
+#   生效，app 正门路径不再触达）：run_full_calc 入参 env.trace_sink 为
+#   None 时构造 TraceCollector 并 dataclasses.replace(env, trace_sink=
+#   collector)（_engine_params 同款"构造新 RunEnv 替换"先例）；非 None
+#   时尊重调用方 sink——PlantResult.trace 回填仅当 sink 有可调 tree()
+#   （getattr 探测），否则 trace=() 注记（收集语义归 sink 自身）。
+#   execute_graph 后 dataclasses.replace(plant, trace=collector.tree())
+#   （design_hash 回填同款先例）——PlantResult.trace 从 () 占位变实迹，
+#   R4"计算迹完整"闭环（executor D10 冲突记档消除）；serialize 确定性
+#   不受扰（TraceNode 平铺到达序，双跑同迹=双跑同序列化）。
+#
 # 【design_hash 回填】（D3/D5 定稿）：executor 置空串（分层契约禁其
 #   import project.content_hash）——run_full_calc 以 dataclasses.replace
 #   回填 ReproTriple(design_hash=content_hash.design_hash(design))，
@@ -115,6 +128,7 @@ from waterprint.project.io import (
 )
 from waterprint.project.migration import migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
 __all__ = [
@@ -372,12 +386,18 @@ def _completed_env(env: RunEnv, design: DesignState) -> RunEnv:
 def run_full_calc(
     project: ProjectFile, conditions: ConditionSet, env: RunEnv
 ) -> ResultBundle:
-    """全厂计算唯一大门：装配 → env 补齐 → 执行 → design_hash 回填（D5）。"""
+    """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5）。"""
     assembled = assemble(project, env)
     effective = _completed_env(env, project.design)
+    collector: TraceCollector | None = None
+    if effective.trace_sink is None:
+        collector = TraceCollector()
+        effective = replace(effective, trace_sink=collector)
     plant = execute_graph(project.design, assembled.units, conditions, effective)
+    tree: TraceTree = collector.tree() if collector is not None else _external_tree(env)
     filled = replace(
         plant,
+        trace=tree,
         repro=ReproTriple(
             design_hash=design_hash(project.design),
             engine_version=plant.repro.engine_version,
@@ -385,3 +405,13 @@ def run_full_calc(
         ),
     )
     return ResultBundle(plant=filled, repro=filled.repro)
+
+
+def _external_tree(env: RunEnv) -> TraceTree:
+    """调用方自带 sink 的回填口径：有可调 tree() 则回填，否则 () 注记。"""
+    getter = getattr(env.trace_sink, "tree", None)
+    if callable(getter):
+        outcome = getter()
+        if isinstance(outcome, tuple):
+            return outcome
+    return ()  # sink 无 tree()：收集语义归 sink 自身，PlantResult.trace 留空注记
