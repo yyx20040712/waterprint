@@ -15,7 +15,8 @@
 #   0.1.0）——本文件零数值字面量，表达式按键引用。三表另两条校核
 #   （h渠≥0.2 m、B渠/h渠 带 1.0~3.0）无 data 包键——挂账不声明。
 # 【矛盾 3 挂账】mod.json 参数 t min=30 与停留时间校核带 25~60 不一致
-#   ——"待领域专家裁定"（三表 CS-F6 行注记逐字保留）。
+#   ——总控工程惯例裁定 2026-08-25：表载 t=30 生效（签字值优先，30 在
+#   校核带内）；待领域专家追认（见 .workflow/pending-domain-expert.md §2）。
 # ══════════════════════════════════════════════════════════════════
 
 from dataclasses import dataclass
@@ -68,7 +69,8 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
         ),
         source=(
             f"{_NORM}；CS-F6 带宽（factor.chenshachi.retention_band.*；"
-            "mod.json t min=30 与带 25~60 不一致——待领域专家裁定）"
+            "mod.json t min=30 与带 25~60 不一致——总控工程惯例裁定 2026-08-25："
+            "表载 t=30 生效，待领域专家追认）"
         ),
         severity="WARN",
     ),

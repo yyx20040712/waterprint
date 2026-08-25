@@ -23,7 +23,7 @@
 | `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核；GR-36 类③受限 DSL 内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
 | `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面；GR-36 类②跨层协议） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
 | `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31；data_version 聚合口径=包名排序后 name@version 以 + 拼接，UF-10 T4 冻结；T7a 实现——L0 不 import L1，系数库经协议耦合） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv（七字段）、CoefficientsView、CoefficientValueView、EngineParam、InvalidRunEnvError |
-| `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | FormulaSpec、InvalidFormulaError、register、by_id、validate_all、apply、ValidationReport |
+| `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | FormulaSpec、InvalidFormulaError、register、by_id、validate_all、apply、norm_ref_of（M1b 新增：collector 反查条文号只读面）、ValidationReport |
 | `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；dtype_of 已实现 T4 D5+dim 归一 D6，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配 bind-once） | 字段声明 | FieldSpec、register_dimension、dimension_of、dtype_of、InvalidDimensionError |
 | `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处；UF-08 loop.* 引擎参数三条 T7a 冻结） | 假设声明+项目覆盖 | Assumption、AssumptionSet、DEFAULT_ASSUMPTIONS（4 条：[0] safety.superheight + loop.tolerance/max_iterations/damping）、assumption、TuningImpact、InvalidAssumptionError |
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version、CoefficientValue、load_coefficients、InvalidCoefficientError、require_keys |
@@ -61,9 +61,9 @@
 | `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存+锁探测+大小/深度/常量防弹面；T7a 实现；T7b M-3 拆出 read_project_text——版本门在上层 migrate） | ProjectFile/DesignState/JSON | dumps、loads、save_project、load_project、read_project_text、dumps_design、InvalidProjectError（字节级稳定 JSON） |
 | `core/waterprint/project/migration.py` | L4 | format_version 迁移链（链式纯函数框架就位；T7a 实现——v1 零历史迁移器） | 旧版 JSON | migrate、SUPPORTED_VERSIONS、（当前版直通/未来版拒/未知历史版拒） |
 | `core/waterprint/project/content_hash.py` | L4 | 设计态内容哈希（三元组成员；T7a 实现——经 io.dumps_design 含版本头） | DesignState | design_hash（sha256 64hex） |
-| `core/waterprint/trace/collector.py` | L4 | 计算迹收集（零遗漏、确定性） | 公式应用上下文 | TraceTree |
+| `core/waterprint/trace/collector.py` | L4 | 计算迹收集（M1b 实现：TraceSink 协议落地+Spec→Node 就地转换[norm_ref 经 formulas.norm_ref_of 反查]+TraceTree=tuple 平铺+collect 正门；零遗漏、确定性） | 公式应用事件（TraceNodeSpec） | TraceCollector、TraceTree、collect、InvalidTraceError |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
-| `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（模板驱动、禁公式） | 迹树+结果+模板 | .xlsx |
+| `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（M1b 实现：模板禁公式拒+{{trace[i].<field>}}/{{summary.<key>}} 冻结占语法+未知占位符拒+字节确定性保存；TEMPLATE_REGISTRY v1 空） | 迹树+结果+模板 | render_calcbook、TEMPLATE_REGISTRY、InvalidTemplateError、.xlsx |
 | `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project（唯一装配点，UF-33 口径；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；M1a 份额=_unit_params 系数投影+_CoefficientsUnit 包装（factor.*/removal.* 并入单元 params，D4 裁决）；run_enumeration/export_artifact 归 M1/M3） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、InvalidAssemblyError、load_project（migrate 路由）、save_project、RunEnv（再导出） |
 | `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |

@@ -12,7 +12,7 @@
 # 【工艺位置】上游：cugeshan 粗格栅（或市政输入节点）；下游：chenshachi 旋流沉砂池。
 # 【实现约定】本包结构由 _template 冻结（AGENTS.md §11）：
 #   - 包外只经本 __init__ 白名单访问；禁 import 其他单元包；
-#   - 公式 CG-F1~F14 与参数数值真源=docs/norms/xigeshan.md 签字表
+#   - 公式 XG-F1~F14 与参数数值真源=docs/norms/xigeshan.md 签字表
 #     （2026-08-23）+ data/coefficients 0.1.0 数据包（本批 M1a 实装，
 #     原表述"随 M2 交付期冻结"刷新——M2 为正式验收批）。
 #   - 导出面=manifest + make_unit（AGENTS §11 两名铁律的工厂形态读法，

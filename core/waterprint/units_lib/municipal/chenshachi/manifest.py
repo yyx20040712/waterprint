@@ -27,7 +27,8 @@
 # 【DSL 单输出注记】Q₁h/A渠/Q_wet/V_storage 为 F1/F14/F12 的导出量，
 #   在 compute 以参数化算术合成（零字面量，无新工程常数）。
 # 【矛盾 3 挂账】t=30 与校核带 25~60 s（mod.json min=30）不一致——
-#   "待领域专家裁定"（30 在带内不阻塞）。
+#   总控工程惯例裁定 2026-08-25：表载 t=30 生效（签字值优先，30 在校核
+#   带内）；待领域专家追认（见 .workflow/pending-domain-expert.md §2）。
 # 【声明五件】params/ports/removal_refs/norm_refs/condition_mappings=()。
 # ══════════════════════════════════════════════════════════════════
 
@@ -251,7 +252,8 @@ manifest = load_manifest(
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/chenshachi.md 参数行）；
         # range 仅停留时间带（retention_band 25~60 三表校核带出处，含
-        # mod.json min=30 与带不一致矛盾 3 挂账），其余参数无范围来源不设
+        # mod.json min=30 与带不一致矛盾 3：总控工程惯例裁定 2026-08-25
+        # 表载 t=30 生效、待领域专家追认），其余参数无范围来源不设
         "params": [
             {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
             {

@@ -323,12 +323,16 @@ def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ..
         )
     if not r_low <= basin["ratio_dh2"] <= r_high:
         found.append(
-            _band_warning(
-                "q_surf",
-                f"{_NORM}；{_RATIO_BAND[0]}~{_RATIO_BAND[1]}",
-                "径深比 D/h2",
-                basin["ratio_dh2"],
-                (r_low, r_high),
+            Warning(
+                severity=Severity.WARN,
+                source=f"{_NORM}；{_RATIO_BAND[0]}~{_RATIO_BAND[1]}",
+                message=(
+                    f"径深比 D/h2 = {basin['ratio_dh2']:.4f} 越出建议带"
+                    f" [{r_low}, {r_high}]（参数 q_surf——"
+                    "调节方向：表面负荷 q_surf（影响 D）或停留时间"
+                    " t_retention（影响 h2））"
+                ),
+                param_key="q_surf",
             )
         )
     if not t_low <= basin["t_actual"] <= t_high:

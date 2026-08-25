@@ -39,7 +39,7 @@
 
 | 编号 | 领域 | 未定义特性（验证依据） | 处置 | 归属 |
 |------|------|------------------------|------|------|
-| UF-16 | 导出 | Excel 模板占位符约定：calcbook.py R3 只写"占位符语法 `{{field_id}}` 类"——精确语法、重复占位符、模板有占位符但字段未登记时的语义未写；excel_io.py R1"列位映射"同样无格式定义；data/templates 尚为空槽（0.0.0） | 待定义→随模板录入/计算书实现任务冻结（A8 类数据工作包同期） | 本批 sweep |
+| UF-16 | 导出 | Excel 模板占位符约定：calcbook.py R3 只写"占位符语法 `{{field_id}}` 类"——精确语法、重复占位符、模板有占位符但字段未登记时的语义未写；excel_io.py R1"列位映射"同样无格式定义；data/templates 尚为空槽（0.0.0） | **部分已定义→M1b（2026-08-25）**：calcbook 占位符精确语法冻结 `{{trace[i].<field>}}`/`{{trace[i].inputs.<symbol>}}`/`{{summary.<key>}}`（summary 平键=点式扁平 f"{condition_key}.{字段ID}"），未知占位符=InvalidTemplateError；模板夹具测试内自造不经 data/，正式模板待 data/templates 录入批（excel_io 列位映射仍待定义） | 本批 sweep；M1b 回写 |
 | UF-17 | 警告 | Warning 数据结构：unit_api.py 只写 `tuple[Warning, ...]`，全库无 Warning 类字段定义；business-logic §8 只定级别与必带信息，结构形态（severity/来源键/参数键/影响面字段集）未写 | 已定义→contracts/unit_api.py Warning/Severity（T3 冻结，简报 D3：Severity=ERROR/WARN/INFO 字面量冻结；Warning frozen 六字段 severity/source/message/param_key/condition_key/affected_unit_ids——§8"来源+调节方向+影响面"三必带逐条落字段，param_key/condition_key 可 None=error 级可无调节指向；result_schema.UnitResultSnapshot 直接复用同层 import） | 本批 sweep |
 | UF-18 | 警告 | 警告跨工况×单元去重聚合：同一警告在 2+k 工况重复出现，UI 汇总/去重规则无规格（grep "去重" 仅 diagnose 冲突集一处） | 待定义→T3/前端展示层 | 本批 sweep |
 | UF-19 | 水质 | 缺项指标进入下游 compute：quality.py 只定义"缺项不参与混合并记警告"；下游单元公式**需要**该指标时（如 AAO 需 BOD5 而进水缺项）异常还是跳过，无规格 | 待定义→T6/T7（propagate 派生规则同期，必要时单元 manifest 声明必需指标集） | 本批 sweep |
@@ -175,7 +175,7 @@ grep -n "标准库\|STANDARDS" docs/undefined-features-register.md          # �
 | UF-40 | 时间/序列化 | GR-19 时区口径三源不一：engineering-conventions.md:213"统一 UTC + ISO 8601（含 Z）" vs project_schema.py:25-26 规格头正文"非空必须 UTC ISO 8601" vs 同文件 :50-51 冻结注记"tz 必在"；实现 `_timestamp_utc_iso`（:97-115）取最宽口径——任意偏移时区（+08:00 等）均通过。自由发挥风险：io/migration 若按"含 Z 严格版"实现将与 project_schema 现行为互斥（旧版时区格式判别、序列化口径分裂） | **已定义→零偏移严格版**（用户批准 roadmap 2026-08-24：时间戳非空必须零偏移 UTC——Z 或 +00:00 才通过；GR-19:213 原文即真源；锁定测试未触此路径已核）。**已实现·T7a commit a94d9ad（2026-08-25）**：`_timestamp_utc_iso` 增第三守卫 utcoffset()!=timedelta(0) 拒（Z 与 +00:00 过、+08:00/naive 拒，消息含原值+实得偏移 GR-09），规格头正文/冻结注记同步零偏移口径；探针⑤消息实证（Z/+00:00 过、+08:00/naive 拒） | REG9 2026-08-24 |
 | UF-41 | CLI/管网 | cli.py v1 冻结子命令集（calc/export/new-unit/validate/selfcheck，:12-22）无管网子命令，而 structure-graph.md §1b:63 声明 cli→network 边（"管网子工具命令"）、§2:105 链 6 首环即"cli.py（独立命令）"——两侧规格不对齐。自由发挥风险：M3 实现管网时加子命令=擅破 v1 冻结集，不加=§1b 边永为孤边 | **疑似**→二选一：cli 冻结集扩管网子命令（升 v2）或链 6 改独立入口不经 cli；M3 前拍板 | 交接体检 2026-08-24 |
 | UF-42 | 结果投影 | UnitResult→UnitResultSnapshot 投影规则规格沉默：UnitResult.outflows 为 Mapping[PortRef→WaterFlow\|SludgeFlow]（unit_api），UnitResultSnapshot.outflows 为 Mapping[str→float]（result_schema:135/137）——PortRef→str 键化格式、WaterFlow（含 q_avg_daily/kz/q_design 三量）→单 float 的字段选择或多槽、kz/q_design 是否随行、dims Any→Mapping[str,float]，均无规格。自由发挥风险：executor（T6/T7）落快照时各自发明投影，serialize 确定性与 golden 对照将锁死错误口径 | 已定义→T7b D3 投影表冻结（2026-08-25）。**已实现·T7b（commit 720ddee，2026-08-25）**：executor._snapshot 落地——键化格式 f"{unit_id}.{port_id}.{量}"（GR-09 展示形态同款）；WaterFlow 三键槽 q_avg_daily/kz/q_design（三量全随行，q_design 派生量同报）、SludgeFlow 三键槽 q_wet/ds/moisture；outqualities 指标键全逐项；dims str→float 逐项有限性校验（非该形状/非有限=InvalidExecutionError 带 unit_id，GR-02）；warnings/formula_ids 透传；不动 result_schema（487/500 拆分预案挂账不变） | 交接体检 2026-08-24 |
-| UF-43 | 计算书 | 计算书链三处规格沉默：① trace_api.TraceNodeSpec 五字段 vs result_schema.TraceNode 六字段（多 norm_ref）——norm_ref 由 collector 经 formula_id 反查 FormulaSpec.norm_ref 的补齐路径无规格；② collector.py:12 规格头 record() 为 6 散参（M0 遗留）vs trace_api.py:62 TraceSink.record(node: TraceNodeSpec) 单对象——T0.5 协议下沉后 collector 规格头未同步；③ TraceTree 类型全库未定义（app.py:29/collector.py:14-15/audit.py:3 均引用，result_schema 仅 tuple[TraceNode,...] 平铺形态）——树 vs 平铺未裁决 | **疑似**→T10 前三合一拍板：collector 规格头重写随 T10 简报、norm_ref 补齐路径写入 formulas/collector 规格、TraceTree 形态裁决 | 交接体检 2026-08-24 |
+| UF-43 | 计算书 | 计算书链三处规格沉默：① TraceNodeSpec 五字段 vs TraceNode 六字段（多 norm_ref）——反查补齐路径无规格；② collector 规格头 record() 为 6 散参（M0 遗留）vs trace_api 单对象协议；③ TraceTree 类型全库未定义——树 vs 平铺未裁决 | **已定义→M1b 实现（2026-08-25，简报 D1 三合一）**：① formulas.norm_ref_of(formula_id) 只读查询面新增、collector 反查落 TraceNode.norm_ref；② collector 规格头刷新为 record(node: TraceNodeSpec) 单对象（T0.5 协议对齐）；③ TraceTree=tuple[TraceNode, ...] 平铺+到达序（树形聚合归渲染层 calcbook/audit 自行分组）——三处均已实现闭合 | 交接体检 2026-08-24；M1b 回写 |
 | UF-44 | 测试锁定 | test_dimensions.py 模块级 skipif（:17-20）把 dtype_of 列入就绪门，而 dtype_of 规格明定落 T4（dimensions.py 规格头"本注记即唯一占位形态"）→ 整模块 4 用例自 T3④ 起永久 skip，dimensions 已实现行为（R2 单位校验/R3 重复拒/未登记拒）零有效测试覆盖；测试锁定与规格分期矛盾 | 已定义→已消解（T4⑤ 落地 dtype_of，commit：dde483c）：skipif 门四符号（FieldSpec/register_dimension/dimension_of/dtype_of）齐备自然激活，4 用例 skip→pass 实证（test_dimensions 全绿）；dtype_of 语义按 T4 D5 冻结（结构化 dtype/逐槽 <f8/字段序=输入序/三拒） | T4 简报必办 |
 
 ### 八批验证命令摘要（仓库根执行，2026-08-24）
@@ -206,3 +206,11 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
 |------|------|----------------------------------------------|------|------|
 | UF-45 | 错误处理 | ExprSyntaxError 命名豁免 GR-11 Invalid* 族：GR-11（conventions §2）确立领域异常一律 Invalid* 族命名，而 contracts/expr.py 的 ExprSyntaxError 为 T0.5 冻结符号+锁定测试锁定（改名 = 破坏可复算与既有 import 面）；豁免无档可查则后续复审可能误判违例 | 已定义→豁免备案（ARCH1 D6(g)，2026-08-24）：ExprSyntaxError 为 GR-11 Invalid* 族唯一历史豁免（T0.5 冻结符号，锁定测试锁定，改名破坏可复算）；**后续新增领域异常一律 Invalid* 族命名**，不再产生新豁免 | ARCH1 真源批 |
 
+## 十、M1b 回写注记（2026-08-25）
+
+- **D10 记档消除**：executor R4"PlantResult.trace=()/summary={} 占位与计算迹
+  完整性的冲突"——app.run_full_calc 已装配 TraceCollector 并回填实迹
+  （trace 非空、平铺到达序、双跑同序列化）；summary={} 仍为 M1 数值批
+  待填（executor.py 零改动，其规格头 D10 注记文字保留作历史档）。
+- **UF-43①②③**：均已实现闭合（见上表处置列）。
+- **UF-16**：calcbook 占位符语法已冻结；正式模板待 data/templates 录入批。

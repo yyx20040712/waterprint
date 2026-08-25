@@ -60,8 +60,10 @@ TEMPLATE_REGISTRY: Final[tuple[str, ...]] = ()
 
 # 占位符语法（M1b D2 冻结）：{{trace[i].<field>}} / {{trace[i].inputs.<symbol>}
 # / {{summary.<key>}}——本正则是语法的唯一裁定面（未匹配即未知占位符拒）。
-_PLACEHOLDER: re.Pattern[str] = re.compile(r"\{\{([^{}]+)\}\}")
-_TRACE_FIELD: re.Pattern[str] = re.compile(r"trace\[(\d+)\]\.(\w+)(?:\.(\w+))?\Z")
+_SUBST_PATTERN: re.Pattern[str] = re.compile(r"\{\{([^{}]+)\}\}")
+_TRACE_FIELD: re.Pattern[str] = re.compile(
+    r"trace\[(?P<idx>\d+)\]\.(?P<field>\w+)(?:\.(?P<sym>\w+))?\Z"
+)
 _SUMMARY_KEY: re.Pattern[str] = re.compile(r"summary\.\S+\Z")
 _TRACE_FIELDS: Final[frozenset[str]] = frozenset(
     {"formula_id", "inputs", "output", "norm_ref", "unit_id", "condition_key"}
@@ -87,7 +89,11 @@ def _resolve(token: str, trace: TraceTree, summary: _Summary) -> object:
     """单占位符 → 值；不可解析/越界/缺键 → InvalidTemplateError。"""
     trace_match = _TRACE_FIELD.fullmatch(token)
     if trace_match is not None:
-        index, field, symbol = trace_match.group(1), trace_match.group(2), trace_match.group(3)
+        index, field, symbol = (
+            trace_match["idx"],
+            trace_match["field"],
+            trace_match["sym"],
+        )
         if int(index) >= len(trace):
             raise InvalidTemplateError(
                 f"占位符迹序号越界：{token!r}（迹长 {len(trace)}）"
@@ -119,7 +125,7 @@ def _render_cell(value: object, where: str, trace: TraceTree,
     """单单元格占位符注入：非字符串原样返回；字符串内全部占位符替换。"""
     if not isinstance(value, str) or "{{" not in value:
         return value
-    tokens = _PLACEHOLDER.findall(value)
+    tokens = _SUBST_PATTERN.findall(value)
     outcomes = {token: _resolve(token, trace, summary) for token in tokens}
     if len(tokens) == 1 and value.replace(" ", "") == "{{" + tokens[0] + "}}":
         outcome = outcomes[tokens[0]]

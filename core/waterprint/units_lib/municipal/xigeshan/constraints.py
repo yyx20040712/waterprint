@@ -1,6 +1,6 @@
 """细格栅约束声明：键/表达式/出处/级别（声明式，限值经 factor 键引用）。
 
-输入:  三表校核带（docs/norms/xigeshan.md CG-F5/F6）+ data/coefficients 带限键
+输入:  三表校核带（docs/norms/xigeshan.md XG-F5/F6）+ data/coefficients 带限键
 输出:  CONSTRAINTS 声明表（供方案过滤与结果校核双消费，禁止内联数值）
 """
 
@@ -40,7 +40,7 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
             "v_checked >= factor.screen.velocity_band.v.min"
             " and v_checked <= factor.screen.velocity_band.v.max"
         ),
-        source=f"{_NORM}；CG-F5 校核带（factor.screen.velocity_band.v.*）",
+        source=f"{_NORM}；XG-F5 校核带（factor.screen.velocity_band.v.*）",
         severity="WARN",
     ),
     ConstraintDecl(
@@ -49,7 +49,7 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
             "v1_checked >= factor.screen.velocity_band.v1.min"
             " and v1_checked <= factor.screen.velocity_band.v1.max"
         ),
-        source=f"{_NORM}；CG-F6 校核带（factor.screen.velocity_band.v1.*）",
+        source=f"{_NORM}；XG-F6 校核带（factor.screen.velocity_band.v1.*）",
         severity="WARN",
     ),
 )
