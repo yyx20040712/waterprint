@@ -57,6 +57,16 @@
 #   R5 性能：全流程（32 单元 × 2+k 工况，含回路）<5s（§18.1 基准
 #      门禁主测点，M1 批）。
 #
+# 【D4 系数投影（M1a 2026-08-25）】私有 _unit_params(unit_id, coefficients)
+#   + _CoefficientsUnit 包装：注册表单元装配时把 coefficients 中
+#   factor.<unit>.*/removal.<unit>.*（按单元短名过滤）+factor.screen.*
+#   共用键并入 compute 期 params（全键名保留，design 参数优先、命名空间
+#   不相交）；数值真源唯一 data/coefficients（GR-15 出处随 registry 条目）。
+#   简报原文签名 (design_node, coefficients, unit_id) 的 design_node 份额
+#   由 executor._unit_params 承担（T7b 装配现状——参数=manifest 默认 ∪
+#   design 覆盖在 executor 侧合成，本函数只投影系数面），按简报"对齐
+#   现状记档"条款落地。
+#
 # 【UF-08 投影闭环】（D5 定稿）不新增公开构造器——私有
 #   _engine_params(assumptions)：合成视图（DEFAULT_ASSUMPTIONS +
 #   design.assumption_overrides）提取 loop.* 三键构造 EngineParam
@@ -91,8 +101,8 @@ from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.ports import Edge, PortRef
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
-from waterprint.contracts.run_env import EngineParam, RunEnv
-from waterprint.contracts.unit_api import Unit
+from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
+from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 from waterprint.graph.executor import execute_graph
 from waterprint.graph.nodes import builtin_unit
 from waterprint.project.content_hash import design_hash
@@ -243,6 +253,44 @@ def _checked_units_eligibility(
             )
 
 
+# 【D4 系数投影（M1a 裁决 2026-08-25）】UnitContext 无 coefficients 通道且
+# 字段锁定——装配层把 RunEnv.coefficients 中 factor.<unit>.*/removal.<unit>.*
+# （按单元短名过滤）+ factor.screen.*（粗/细格栅共用常数，数据包命名形态）
+# 合入该单元 compute 期 params 快照（prefix 保留全键名，compute 按
+# ctx.params["factor.cugeshan.w1_slag"] 取）；params: Mapping[str, float]
+# 契约容纳。系数真源唯一 data/coefficients 数据包（GR-15 出处随 registry
+# 条目走），design 节点参数与系数键命名空间不相交（GR-26 禁点号 vs
+# field_id），投影不覆盖用户参数面。ctx.assumptions 仍只承载 safety/loop 面。
+_FACTOR_SHARED_PREFIX = "factor.screen."
+
+
+def _unit_params(unit_id: str, coefficients: CoefficientsView) -> dict[str, float]:
+    """D4 系数投影：单元短名过滤 factor.*/removal.* + factor.screen.* 共用键。"""
+    short = unit_id.rsplit("_", 1)[-1]
+    prefixes = (f"factor.{short}.", f"removal.{short}.", _FACTOR_SHARED_PREFIX)
+    projected: dict[str, float] = {}
+    for prefix in prefixes:
+        for key in coefficients.keys(prefix):
+            projected[key] = coefficients.get(key).value
+    return projected
+
+
+@final
+class _CoefficientsUnit:
+    """系数投影包装单元：compute 前把投影键并入 ctx.params（原 ctx 不改）。"""
+
+    def __init__(self, unit: Unit, extra: Mapping[str, float]) -> None:
+        self._unit = unit
+        self.manifest = unit.manifest
+        self._extra = dict(extra)
+
+    def compute(self, ctx: UnitContext) -> UnitResult:
+        """合并参数面（design 覆盖优先，命名空间不相交）后转发内层单元。"""
+        merged = dict(self._extra)
+        merged.update(ctx.params)
+        return self._unit.compute(replace(ctx, params=merged))
+
+
 def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
     """装配正门：单元发现 ∪ 内置节点构造 + 边转换 + 受检资格校验（R1）。
 
@@ -265,7 +313,9 @@ def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
                 {key: value for key, value in node_value.items() if key != "kind"},
             )
         elif node_id in discovered:
-            units[node_id] = discovered[node_id][1]()
+            units[node_id] = _CoefficientsUnit(
+                discovered[node_id][1](), _unit_params(node_id, env.coefficients)
+            )
         else:
             raise InvalidAssemblyError(
                 f"装配失败：节点 {node_id!r} 不在单元注册表且无 kind 内置"

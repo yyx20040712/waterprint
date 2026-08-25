@@ -64,7 +64,7 @@
 | `core/waterprint/trace/collector.py` | L4 | 计算迹收集（零遗漏、确定性） | 公式应用上下文 | TraceTree |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（模板驱动、禁公式） | 迹树+结果+模板 | .xlsx |
-| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project（唯一装配点，UF-33 口径；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；run_enumeration/export_artifact 归 M1/M3） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、InvalidAssemblyError、load_project（migrate 路由）、save_project、RunEnv（再导出） |
+| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project（唯一装配点，UF-33 口径；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；M1a 份额=_unit_params 系数投影+_CoefficientsUnit 包装（factor.*/removal.* 并入单元 params，D4 裁决）；run_enumeration/export_artifact 归 M1/M3） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、InvalidAssemblyError、load_project（migrate 路由）、save_project、RunEnv（再导出） |
 | `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
@@ -94,9 +94,9 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | 包路径 | 业务线 | 里程碑 |
 |--------|--------|--------|
 | `core/waterprint/units_lib/_template/` | 模板（不注册） | M0 |
-| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | M1 先行示范 / M2 正式验收 |
-| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M1 先行示范 / M2 正式验收 |
-| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M1 先行示范 / M2 正式验收 |
+| `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | M1 先行示范（M1a 已实装：CG-F1~F14 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
+| `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M1 先行示范（M1a 已实装：XG-F1~F14 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
+| `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M1 先行示范（M1a 已实装：CS-F1~F18 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/chuchenchi/` | 市政污水 | M2 |
 | `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | M2 |
 | `core/waterprint/units_lib/municipal/aao/` | 市政污水 | M2 |
