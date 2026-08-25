@@ -209,4 +209,43 @@ _POOL_LENGTH: FieldSpec = FieldSpec(
     category="geometry",
 )
 register_dimension(_POOL_LENGTH)
+
+# ── M1a 三单元切片参数字段（2026-08-25；出处=docs/norms/{cugeshan,
+#    xigeshan,chenshachi}.md 三表签字参数列——粗/细格栅参数表意共用字段
+#    ID，同名跨线不耦合：各包 manifest 各写各的默认值，AGENTS §11 R4）。
+#    角度（alpha/theta）与日数（t_clean）、表面负荷（q_surf，m³/(m²·h)）、
+#    重力加速度（g_gravity，m/s²）、时换算（sec_per_hour，s/h）在 DimKey
+#    无对应量类，按 DIMENSIONLESS 裸值登记（单位语义随 i18n 键走，三表
+#    口径：°/d/m³·m⁻²·h⁻¹/m·s⁻²/s）。 ──
+_M1A_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec("n", DimKey.DIMENSIONLESS, "", "units.fields.n", "equipment"),
+    FieldSpec("b", DimKey.LENGTH, "m", "units.fields.b", "geometry"),
+    FieldSpec("alpha", DimKey.DIMENSIONLESS, "", "units.fields.alpha", "geometry"),
+    FieldSpec("h", DimKey.LENGTH, "m", "units.fields.h", "geometry"),
+    FieldSpec("v", DimKey.VELOCITY, "m/s", "units.fields.v", "load"),
+    FieldSpec("v1", DimKey.VELOCITY, "m/s", "units.fields.v1", "load"),
+    FieldSpec("s", DimKey.LENGTH, "m", "units.fields.s", "geometry"),
+    FieldSpec("bar_shape", DimKey.DIMENSIONLESS, "", "units.fields.bar_shape",
+              "equipment"),
+    FieldSpec("g_gravity", DimKey.DIMENSIONLESS, "", "units.fields.g_gravity",
+              "load"),
+    FieldSpec("length_disc_step", DimKey.LENGTH, "m",
+              "units.fields.length_disc_step", "geometry"),
+    FieldSpec("q_surf", DimKey.DIMENSIONLESS, "", "units.fields.q_surf", "load"),
+    FieldSpec("t_retention", DimKey.TIME, "s", "units.fields.t_retention",
+              "load"),
+    FieldSpec("t_clean", DimKey.DIMENSIONLESS, "", "units.fields.t_clean",
+              "operation"),
+    FieldSpec("theta", DimKey.DIMENSIONLESS, "", "units.fields.theta",
+              "geometry"),
+    FieldSpec("d_r", DimKey.LENGTH, "m", "units.fields.d_r", "geometry"),
+    FieldSpec("b_channel", DimKey.LENGTH, "m", "units.fields.b_channel",
+              "geometry"),
+    FieldSpec("v_channel", DimKey.VELOCITY, "m/s", "units.fields.v_channel",
+              "load"),
+    FieldSpec("sec_per_hour", DimKey.DIMENSIONLESS, "",
+              "units.fields.sec_per_hour", "load"),
+)
+for _spec in _M1A_FIELDS:
+    register_dimension(_spec)
 bind_dimension_lookup(_optional_lookup)
