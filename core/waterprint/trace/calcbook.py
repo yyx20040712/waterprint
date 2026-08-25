@@ -85,8 +85,12 @@ def _summary_index(result: PlantResult) -> _Summary:
     return flat
 
 
-def _resolve(token: str, trace: TraceTree, summary: _Summary) -> object:
-    """单占位符 → 值；不可解析/越界/缺键 → InvalidTemplateError。"""
+def _resolve(token: str, where: str, trace: TraceTree, summary: _Summary) -> object:
+    """单占位符 → 值；不可解析/越界/缺键 → InvalidTemplateError。
+
+    六族拒消息一律携带单元格坐标 where（sheet!coordinate，GR-09——
+    R1-a 二审 I-1 修复：where 原为死参数，现拼入全部未知占位符族）。
+    """
     trace_match = _TRACE_FIELD.fullmatch(token)
     if trace_match is not None:
         index, field, symbol = (
@@ -96,28 +100,31 @@ def _resolve(token: str, trace: TraceTree, summary: _Summary) -> object:
         )
         if int(index) >= len(trace):
             raise InvalidTemplateError(
-                f"占位符迹序号越界：{token!r}（迹长 {len(trace)}）"
+                f"占位符迹序号越界：{token!r}（迹长 {len(trace)}，位于 {where}）"
             )
         if symbol is not None:
             if field != "inputs" or symbol not in trace[int(index)].inputs:
                 raise InvalidTemplateError(
                     f"占位符引用未绑定符号：{token!r}"
-                    f"（迹节点 {index} 的 inputs 无 {symbol!r}）"
+                    f"（迹节点 {index} 的 inputs 无 {symbol!r}，位于 {where}）"
                 )
             return trace[int(index)].inputs[symbol]
         if field == "inputs":
             raise InvalidTemplateError(
                 f"占位符语法不完整（inputs 须带 .<symbol>）：{token!r}"
+                f"（位于 {where}）"
             )
         if field not in _TRACE_FIELDS:
-            raise InvalidTemplateError(f"未知迹字段：{token!r}")
+            raise InvalidTemplateError(f"未知迹字段：{token!r}（位于 {where}）")
         return getattr(trace[int(index)], field)
     if _SUMMARY_KEY.fullmatch(token) is not None:
         key = token.removeprefix("summary.")
         if key not in summary:
-            raise InvalidTemplateError(f"占位符引用未登记汇总键：{token!r}")
+            raise InvalidTemplateError(
+                f"占位符引用未登记汇总键：{token!r}（位于 {where}）"
+            )
         return summary[key]
-    raise InvalidTemplateError(f"未知占位符语法：{token!r}")
+    raise InvalidTemplateError(f"未知占位符语法：{token!r}（位于 {where}）")
 
 
 def _render_cell(value: object, where: str, trace: TraceTree,
@@ -126,7 +133,7 @@ def _render_cell(value: object, where: str, trace: TraceTree,
     if not isinstance(value, str) or "{{" not in value:
         return value
     tokens = _SUBST_PATTERN.findall(value)
-    outcomes = {token: _resolve(token, trace, summary) for token in tokens}
+    outcomes = {token: _resolve(token, where, trace, summary) for token in tokens}
     if len(tokens) == 1 and value.replace(" ", "") == "{{" + tokens[0] + "}}":
         outcome = outcomes[tokens[0]]
         if isinstance(outcome, int | float | str):

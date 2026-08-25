@@ -34,10 +34,10 @@
 #       全流程计算全量入迹（本文件 v1 全量）。
 #
 # 【collect 正门口径】execution 为零参闭包（内部以 TraceCollector 为
-#   trace_sink 完成执行并**返回该 collector**）；本正门经 try/finally
-#   包裹（异常照抛 R3；finally 语义=部分迹保留在 collector 供审计），
-#   正常返回 collector.tree()；闭包返回非 TraceCollector =
-#   InvalidTraceError（采集链断链即失败）。
+#   trace_sink 完成执行并**返回该 collector**）；异常照抛（R3 不吞——
+#   部分迹自然保留在 collector 供审计），正常返回 collector.tree()；
+#   闭包返回非 TraceCollector = InvalidTraceError（采集链断链即失败）。
+#   （R1-c 二审 M-1 清理：原 try/finally:pass 死构造已删，零行为变化。）
 #
 # 【数值纪律】本文件不在魔法数字白名单——零数值字面量。
 #
@@ -99,23 +99,17 @@ class TraceCollector:
 
     def collect(self, execution: Callable[[], object]) -> TraceTree:
         """执行期聚合正门（实例形态）：以 self 为 sink 的零参闭包包裹执行。"""
-        try:
-            execution()
-        finally:
-            pass  # 异常照抛（R3）；部分迹已留存 self 供审计
+        execution()  # 异常照抛（R3 不吞）；部分迹已留存 self 供审计
         return self.tree()
 
 
 def collect(execution: Callable[[], object]) -> TraceTree:
     """执行期聚合正门（模块级）：execution 返回其内部使用的 collector。
 
-    R3 不吞异常：execution 抛出的异常原样上抛（try/finally 只保证部分迹
-    保留在 collector 供审计——宁可失败不可无迹成功）。
+    R3 不吞异常：execution 抛出的异常原样上抛；部分迹自然保留在
+    collector 供审计（宁可失败不可无迹成功）。
     """
-    try:
-        outcome = execution()
-    finally:
-        pass  # 异常照抛；collector 内部分迹已保留（审计完整性优先）
+    outcome = execution()
     if not isinstance(outcome, TraceCollector):
         raise InvalidTraceError(
             "collect 正门要求执行闭包返回其内部使用的 TraceCollector"
