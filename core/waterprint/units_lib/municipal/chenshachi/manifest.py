@@ -18,9 +18,8 @@
 #   公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；结构常数
 #   （4、2、3、3600、86400、10⁶）内联（本文件=units_lib manifest 白名单
 #   区）；π 经符号 pi 绑定 math.pi；tanθ 预处理符号传入。DSL 函数名
-#   （sqrt/max）计入 Name 集（registry 双向==校验）：以 DIMENSIONLESS
-#   占位符号声明、compute 绑 0（求值走 expr 白名单函数实现，占位值
-#   不参与）——DSL 适配记档。DSL 无 ceil：
+#   （sqrt/max）M1b D4 豁免后不计入 Name 集（registry 白名单函数名剔除，
+#   占位符号与 float(0) 绑定已删——治本 M1a I-2）。DSL 无 ceil：
 #   池径 D/h_cyl/总高 H 的 0.1m 离散在 compute 收口（步长=length_disc_step）。
 # 【norm_ref 口径】节级"GB 50014-2021 §6.4（条文号待核对原文）"；引
 #   中期报告式号者（3-21/3-22/3-24/3-25/3-27/4-26~4-29）逐字保留注记
@@ -63,7 +62,6 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "sec_per_hour": (_D, "时换算系数 s/h（参数 sec_per_hour）"),
             "pi": (_D, "圆周率（math.pi 绑定）"),
             "q_surf": (_D, "表面负荷 m3/(m2.h)"),
-            "sqrt": (_D, "DSL 白名单函数占位符号（绑定 0，不参与求值）"),
         },
         _L,
         "中期报告 §3.3 式(3-21)（毕业设计内部资料，待核对映射条文）；" + _GB,
@@ -198,7 +196,6 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "straight_mult": (_D, "直段长宽比（factor.chenshachi.channel.straight_mult）"),
             "b_channel": (_L, "进水渠宽 m"),
             "straight_min": (_L, "直段最小长 m（factor.chenshachi.channel.straight_min）"),
-            "max": (_D, "DSL 白名单函数占位符号（绑定 0，不参与求值）"),
         },
         _L,
         "中期报告 §3.3 式(4-28)（毕业设计内部资料，待核对映射条文）；" + _GB,

@@ -123,8 +123,7 @@ def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, 
                 "sec_per_hour": p["sec_per_hour"],
                 "pi": math.pi,
                 "q_surf": p["q_surf"],
-                "sqrt": float(0),
-            },  # DSL 函数占位绑定
+            },
         ),
         p["length_disc_step"],
     )
@@ -229,8 +228,7 @@ def _channel(ctx: UnitContext, p: dict[str, float], basin: dict[str, float]) -> 
                 "straight_mult": _factor(p, "factor.chenshachi.channel.straight_mult"),
                 "b_channel": p["b_channel"],
                 "straight_min": _factor(p, "factor.chenshachi.channel.straight_min"),
-                "max": float(0),
-            },  # DSL 函数占位绑定
+            },
         ),
         "b_outlet": _apply(
             ctx,

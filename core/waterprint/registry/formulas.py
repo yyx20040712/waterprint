@@ -28,6 +28,9 @@
 #       启动期对全部登记项重跑静态校验①~⑤收集失败、不抛（启动失败
 #       判定归装配层 T7）；ValidationReport(frozen)：checked: int、
 #       failures: tuple[(formula_id, 消息), ...]
+#   norm_ref_of(formula_id: str) -> str   只读查询面：formula_id →
+#       norm_ref（UF-43①：collector 经此反查补 TraceNode 第六字段；
+#       未知 id=InvalidFormulaError——by_id 同款拒绝语义，纯 additive）
 #   apply(formula_id, bindings: Mapping[str→float],
 #         ctx: (unit_id, condition_key),
 #         sink: TraceSink | None = None) -> float
@@ -57,7 +60,9 @@
 #      ② RHS 经 expr.parse_checked（ExprSyntaxError 以 from exc 包装）；
 #         公式语法子集：解析树再拒 Compare/BoolOp/IfExp（工况映射 DSL
 #         专属，公式侧禁）。
-#      ③ Name 集双向 == symbols 键集（多声明/漏声明均拒）。
+#      ③ Name 集双向 == symbols 键集（多声明/漏声明均拒；M1b D4 豁免：
+#         ALLOWED_FUNCS 函数名不计入——调用位函数由求值器白名单实现，
+#         单元包不再声明占位符号/绑 float(0)，治本 M1a I-2）。
 #      ④ 恒等式规则：RHS 为裸 Name 时 symbols[名].dim == output_dim
 #         必须成立（唯一无推导可判的量纲规则）；多符号 RHS 量纲一致性
 #         由未来单元包 golden 断言背书（R4，规格明文）。
@@ -105,7 +110,12 @@ from math import isfinite
 from types import MappingProxyType
 from typing import Final, final
 
-from waterprint.contracts.expr import ExprSyntaxError, eval_checked, parse_checked
+from waterprint.contracts.expr import (
+    ALLOWED_FUNCS,
+    ExprSyntaxError,
+    eval_checked,
+    parse_checked,
+)
 from waterprint.contracts.quantity import DimKey
 from waterprint.contracts.trace_api import TraceNodeSpec, TraceSink
 
@@ -250,15 +260,17 @@ def _validate(spec: FormulaSpec) -> ast.Expression:
     }
     output_dim = _normalize_dim(spec.output_dim, "output_dim")
     tree = _parse_rhs(rhs, symbols)
+    # M1b D4 豁免：白名单函数名（调用位）不计入符号声明双向==——函数由
+    # expr 求值器白名单实现，非符号绑定（单元包占位符号+float(0) 绑定废止）。
     names = frozenset(
         node.id for node in ast.walk(tree) if isinstance(node, ast.Name)
-    )
+    ) - ALLOWED_FUNCS
     declared = frozenset(symbols)
     if names != declared:
         raise InvalidFormulaError(
             f"公式 {spec.formula_id!r} 表达式 Name 集与 symbols 键集不一致："
             f"表达式引用 {sorted(names)}，声明 {sorted(declared)}"
-            "（多声明/漏声明均拒——双向==）"
+            "（多声明/漏声明均拒——双向==；白名单函数名豁免不计入，M1b D4）"
         )
     if isinstance(tree.body, ast.Name):
         name = tree.body.id
@@ -313,6 +325,11 @@ def validate_all() -> ValidationReport:
         except InvalidFormulaError as exc:
             failures.append((formula_id, str(exc)))
     return ValidationReport(checked=len(_REGISTRY), failures=tuple(failures))
+
+
+def norm_ref_of(formula_id: str) -> str:
+    """只读查询面：formula_id → norm_ref 条文号（UF-43① collector 反查口）。"""
+    return by_id(formula_id).norm_ref
 
 
 def apply(
