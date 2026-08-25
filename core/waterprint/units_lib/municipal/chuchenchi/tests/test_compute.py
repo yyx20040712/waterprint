@@ -221,6 +221,26 @@ def test_weir_and_cycle_band_warnings() -> None:
     assert "0.2.1" in cycle[0].source
 
 
+def test_weir_load_band_warning() -> None:
+    """堰负荷越界（二审 M-4 补测）：q_prime=5.5 → D=15.5、q_weir≈3.0912>2.9。
+
+    堰构造口径归因形态：param_key=None（堰构造口径——保持双侧默认或改
+    单侧——待领域专家追认裁定，非参数调节面）；消息关键片段=堰构造口径
+    注记 + L=2π(D−1) + 单侧口径敏感性。注记：q_prime=4.8 时 q_weir≈2.891
+    恰在限下不触发（二审实证），故取 5.5。
+    """
+    result = make_unit().compute(_ctx(_params(q_prime=5.5)))
+    weir = [w for w in result.warnings if "weir_load" in w.source]
+    assert weir and weir[0].severity is Severity.WARN
+    assert weir[0].param_key is None  # 堰构造口径归因（非参数键）
+    assert "堰构造口径注记" in weir[0].message
+    assert "L=2π(D−1)" in weir[0].message
+    assert "单侧口径敏感性" in weir[0].message
+    dims = result.dims
+    assert isinstance(dims, dict)
+    assert dims["q_weir"] == pytest.approx(3.0912, abs=1e-3)  # 二审实证期望值
+
+
 def test_param_domain_rejected() -> None:
     """参数域拒绝：n<1 / q_prime≤0 / 缺 SS 入流 → InvalidUnitConfig。"""
     with pytest.raises(InvalidUnitConfig):
