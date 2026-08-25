@@ -45,7 +45,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: 安装依赖（锁文件入库后改 --frozen）
+      - name: 安装依赖（core/uv.lock 入库——frozen 安装不重解析）
         run: uv sync --frozen
       - name: Ruff（零告警）
         run: uv run ruff check .
@@ -69,7 +69,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.13"
-      - run: uv sync
+      - name: 安装依赖（server/uv.lock 入库——ENG1 遗留收口 SERVER D6：frozen 安装不重解析）
+        run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest
