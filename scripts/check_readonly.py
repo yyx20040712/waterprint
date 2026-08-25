@@ -1,6 +1,8 @@
 """测试只读门禁：manifest 哈希一致 + 只读属性齐备 + 无未登记文件。
 
 输入:  仓库根 test-lock.manifest.json + core/tests、server/tests 实际文件
+       （+ 追加锁定路径：清单登记即逐条校验存在性/哈希/只读属性——
+       lock_tests.py <路径> 追加先例的读取面闭合，M1b R1-d）
 输出:  违规清单（退出码 1）或 OK 摘要（退出码 0）
 """
 
@@ -77,7 +79,17 @@ def main() -> int:
     for rel in sorted(actual - set(entries)):
         problems.append(f"未登记的测试文件（疑似绕过锁定流程新增）: {rel}")
     for rel in sorted(set(entries) - actual):
-        problems.append(f"清单中的文件已不存在（删除测试须走解锁流程）: {rel}")
+        # 追加锁定路径（units_lib 包内 tests 等）不在常驻扫描根内：仍逐条
+        # 校验存在性/哈希/只读属性；"无未登记新增"仅在常驻扫描根内强制
+        # （追加锁定=逐包显式事件，AGENTS §11）。
+        path = REPO / rel
+        if not path.is_file():
+            problems.append(f"清单中的文件已不存在（删除测试须走解锁流程）: {rel}")
+            continue
+        if sha256_of(path) != entries[rel]:
+            problems.append(f"内容与锁定清单不符（被改动）: {rel}")
+        if ATTR_BARRIER_ACTIVE and os.access(path, os.W_OK):
+            problems.append(f"只读属性缺失: {rel}")
     for path in locked_files():
         rel = path.relative_to(REPO).as_posix()
         expected = entries.get(rel)
@@ -93,7 +105,7 @@ def main() -> int:
         for item in problems:
             print(f"  - {item}")
         return 1
-    print(f"[OK] 测试只读：{len(actual)} 个文件哈希与属性校验通过")
+    print(f"[OK] 测试只读：{len(entries)} 个文件哈希与属性校验通过")
     return 0
 
 
