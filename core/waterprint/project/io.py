@@ -11,7 +11,12 @@
 #   dumps(project: ProjectFile) -> str        对象 → 确定性 JSON 文本
 #   loads(text: str) -> ProjectFile           文本 → 校验后对象（防弹面）
 #   save_project(project: ProjectFile, path: Path) -> None   原子落盘
-#   load_project(path: Path) -> ProjectFile   锁探测 + 读 + loads
+#   read_project_text(path: Path) -> str      锁探测 + 读文本 +
+#       UnicodeDecodeError 收编三职责（T7b M-3：app.load_project 的
+#       migrate 路由喂料正门——版本门在上层 migrate，本文件 loads 只做
+#       防弹装载不识版本）
+#   load_project(path: Path) -> ProjectFile   read_project_text + loads
+#       组合（T7b M-3 纯内部拆分零行为变）
 #   dumps_design(design: DesignState) -> str  design 态 → 含 format_version
 #       头的确定性 JSON（content_hash 的参与面——未来版本迁移后哈希
 #       自然失效；additive 公开面，T7a D5）
@@ -236,8 +241,8 @@ def save_project(project: ProjectFile, path: Path) -> None:
     os.replace(tmp, path)
 
 
-def load_project(path: Path) -> ProjectFile:
-    """锁探测 + 读文本 + 防弹装载（R5/R3）。"""
+def read_project_text(path: Path) -> str:
+    """锁探测 + 读文本 + 解码失败收编（M-3 三职责——migrate 路由喂料正门）。"""
     lock = path.with_suffix(".lock")
     if lock.exists():
         raise InvalidProjectError(
@@ -245,10 +250,15 @@ def load_project(path: Path) -> ProjectFile:
             "（§17.3 并发打开防护，v1 单用户最低成本方案）"
         )
     try:
-        text = path.read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8")
     except UnicodeDecodeError as exc:
         raise InvalidProjectError(
             f"项目文件解码失败（非 UTF-8）：{path}——全部源码/文档 UTF-8"
             "（AGENTS §3）"
         ) from exc
-    return loads(text)
+
+
+def load_project(path: Path) -> ProjectFile:
+    """锁探测 + 读文本 + 防弹装载（R5/R3；read_project_text+loads 组合——
+    T7b M-3 纯内部拆分，行为面与拆分前逐字节一致）。"""
+    return loads(read_project_text(path))

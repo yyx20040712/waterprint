@@ -58,13 +58,14 @@
 | `core/waterprint/network/manning.py` | L3 | 曼宁水力（充满度分档，公式溯源） | 断面+流量 | 流速/坡度/充满度 |
 | `core/waterprint/network/solver.py` | L3 | 管径枚举/并联/跌水井判定 | 管段序列 | 设计管径+衔接 |
 | `core/waterprint/network/excel_io.py` | L3 | 管网 Excel 读写（模板驱动、防弹） | .xlsx | 管段模型/结果 sheet |
-| `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存+锁探测+大小/深度/常量防弹面；T7a 实现） | ProjectFile/DesignState/JSON | dumps、loads、save_project、load_project、dumps_design、InvalidProjectError（字节级稳定 JSON） |
+| `core/waterprint/project/io.py` | L4 | 项目文件确定性序列化读写（原子保存+锁探测+大小/深度/常量防弹面；T7a 实现；T7b M-3 拆出 read_project_text——版本门在上层 migrate） | ProjectFile/DesignState/JSON | dumps、loads、save_project、load_project、read_project_text、dumps_design、InvalidProjectError（字节级稳定 JSON） |
 | `core/waterprint/project/migration.py` | L4 | format_version 迁移链（链式纯函数框架就位；T7a 实现——v1 零历史迁移器） | 旧版 JSON | migrate、SUPPORTED_VERSIONS、（当前版直通/未来版拒/未知历史版拒） |
 | `core/waterprint/project/content_hash.py` | L4 | 设计态内容哈希（三元组成员；T7a 实现——经 io.dumps_design 含版本头） | DesignState | design_hash（sha256 64hex） |
 | `core/waterprint/trace/collector.py` | L4 | 计算迹收集（零遗漏、确定性） | 公式应用上下文 | TraceTree |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（模板驱动、禁公式） | 迹树+结果+模板 | .xlsx |
 | `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/run_enumeration/export_artifact/load_project+save_project 四用例（唯一装配点，UF-33 口径；T7a 份额=load/save 薄封装+RunEnv 再导出已落，assemble/run 系归 T7b） | 项目+工况+环境 | ResultBundle、枚举结果、导出产物、项目对象、RunEnv |
+| `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
 ## 2. server 服务层
