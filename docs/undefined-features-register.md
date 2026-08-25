@@ -26,7 +26,7 @@
 | UF-10 | 数据版本 | data_version 聚合算法：coefficients/constraint_kb/prices 多包版本如何聚成单一 data_version（max？拼接哈希？）未定义 | 已定义→T4 D3 冻结（commit：97ae1f9）：聚合算法=包名排序后 `name@version` 以 `+` 拼接（确定性、可读、审计友好；任一包版本或包集变化→聚合串变化）；app 装配层 T7 生成；coefficients 单包 data_version 照旧。ARCH1 D4 聚合口径定稿（2026-08-24，双源不一消解——run_env/app 规格"系数+单价聚合"为准）：**包集={coefficients, unit_prices} 两包**、name=目录实名（unit_prices 非 prices）；constraint_kb 不进聚合（其装载属 UF-12 待定义，消费走 solution/constraints）；templates 不进（静态资源，无版本聚合语义）；run_env.py 与 app.py 规格头已同步两包实名 | unified D / DS-23 |
 | UF-11 | 污泥线 | 内回流 Ri 归属：business-logic §6 表/ports.py/包内部端口 vs SCC 迭代三处矛盾 | 待定义→M2 前拍板 | unified C2 / DS-17 |
 | UF-12 | 图谱 | 图谱缺边 elevation→registry、network→registry；constraint_kb 装载路径未定义 | 待定义→M2 前（先改图谱 §1 再动代码，AGENTS §13） | unified C1 / DS-02 |
-| UF-13 | 门禁 | server 层无 import-linter/行数门禁（core 有、server 无，边界随 M2 增重） | 待定义→M2 前 | unified C3 / DS-14 |
+| UF-13 | 门禁 | server 层无 import-linter/行数门禁（core 有、server 无，边界随 M2 增重） | **已收口·SERVER D7（2026-08-26）**：server/pyproject [tool.importlinter] 两契约——分层（main→routers→services→jobs→settings）+UF-33 forbidden（waterprint_server→waterprint.{solution,trace,graph,units_lib,registry,project}，白名单只 app/contracts，allow_indirect_imports=true 直查口径[经 app 转发链合法，pint 契约同款]）；双根 root_packages=[waterprint_server, waterprint]（外部包子包不可作 forbidden 模块——工具链实测）；server 下 lint-imports 2 kept 0 broken+红探针（注入 waterprint.project.io→BROKEN→还原→KEPT）实录。行数门禁：四路由器 149/138/127/80≤150（规格头约束）+500 全仓预算门禁常绿。挂账：CI server job 接 lint-imports 步骤（本批 ci.yml 白名单动作限 D6 frozen——M3 前与 contract-drift 一并接线） | unified C3 / DS-14 |
 | UF-14 | 测试 | 覆盖率口径：零语句骨架不进分母已澄清；分阶段阈值与否未决策 | 待定义→T12 决策（写入 pyproject/CI 注释） | unified B2 |
 | UF-15 | 文档 | 规格头修订流程：曾为"记录备查"，修订无强制步骤（实现者顺手改规格迁就实现） | 已定义→GR-35（DS-18 升格） | unified D / DS-18 |
 
@@ -51,7 +51,7 @@
 | UF-25 | 错误处理 | 用户可见文本语言策略：异常/警告消息中文单语已成事实（expr.py 等既有实现），但"中文单语 vs 走 i18n 键"未拍板；一旦多语言化与 GR-09 冻结规则的相容方式需定 | **疑似**——领域专家/总控待拍板（先按中文单语现状执行，GR-09/GR-20 冻结规则先行） | 本批 sweep |
 | UF-26 | 任务系统 | server 重启任务恢复：manager.py R4 只写"注册表在内存、replicas=1"，重启后 queued/running 任务与任务历史的恢复语义（丢失是否接受、是否持久化）未写 | **疑似**——待拍板（v1 单实例假设下倾向"重启即丢、前端重提交"，需明示） | 本批 sweep |
 | UF-27 | 序列化 | view 态时间戳格式：project_schema.py 只写 ViewState 含时间戳，格式（UTC？ISO？本地字符串）未写——本地时间字符串跨机排序错序 | 已定义→GR-19（UTC ISO 8601，禁本地时间字符串） | 本批 sweep |
-| UF-28 | 可观测 | 进度事件 percent 口径：worker.py R3 只写"阶段百分比+逐工况粒度"，跨阶段/跨工况的总 percent 加权口径（工况数均分？单元数加权？）未写，实现者随手定 | **疑似**——待定义（T4 server 实现时冻结，需与 events.py R4 背压丢弃语义对账） | 本批 sweep |
+| UF-28 | 可观测 | 进度事件 percent 口径：worker.py R3 只写"阶段百分比+逐工况粒度"，跨阶段/跨工况的总 percent 加权口径（工况数均分？单元数加权？）未写，实现者随手定 | **已冻结·SERVER（2026-08-26）**：percent=(index+1)/(total+1) 阶段幂商式（阶段表 _STAGES 为分母基；ADR-009 白名单字面量）——工况级加权口径挂起（core run 单调用无逐工况回调钩子，与 UF-49 协作钩子缺位同批）；events 背压丢旧保新语义已对账（manager._emit：进度满即弃最旧，state/stale 不丢） | 本批 sweep |
 | UF-29 | 单元包 | 单元包导出契约：AGENTS §11 说"只暴露 manifest 与 compute 两个名字"，_template/compute.py 固定形态却要 `make_unit` 工厂由包 `__init__` 导出——白名单到底几名未冻结 | 待定义→M1 期间（首个单元包实现前拍板） | unified B6 / GLM-03（本批 sweep 复核确认仍开放） |
 | UF-30 | 工具链 | mypy strict 覆盖单元包内测试无豁免：首个包内测试（tests/ 目录）即触发（core pyproject 的 strict 范围未区分 src/tests） | 待定义→M1 期间（首个单元包落地时定豁免或全严格） | unified B7 / GLM-02（本批 sweep 复核确认仍开放） |
 
@@ -93,7 +93,7 @@ grep -n "Σ\|除零\|sum.*==.*0\|权重为零" core/waterprint/graph/propagate.p
 |------|------|----------------------------------------------|------|------|
 | UF-31 | 分层 | RunEnv 类型归属：graph/executor.py(L3) 与 solution/enumerate.py(L3) 公开签名均引用 `env: RunEnv`，而该类型声明于 app.py(L4)【公开接口】——L3 实现要 import L4 即违反 layers 契约（import-linter 必拦）；类型下沉 contracts(L0)、executor 改收窄参数、还是 TYPE_CHECKING 类逃生口，规格均未写（TYPE_CHECKING 是否算违规 import 亦沉默） | 已定义→contracts/run_env.py：RunEnv 下沉 L0（app 装配并重新导出；engine_params 承接 UF-08 引擎参数条目，T4/T7 冻结数值）；executor/enumerate/app 规格头来源注记同步（SENS-B 2026-08-23） | ARCHDEBT |
 | UF-32 | 总线 | 跨 L3 数据流的契约载体：ElevationProfile 定义于 elevation/profile.py(L3)，而 drafting 的 `__init__`/profile_drawing.py/section_view.py(L3) 规格头明文以其为输入（"标高唯一真源"）；independence 契约禁 L3 互 import、§1b drafting 仅→contracts，contracts 目录无此类型、result_schema 规格头亦无 Profile 条目——M2/M4 出图实现无合法取数路径。SceneGraph/EstimateSheet 同为子系统自有类型（仅 app ResultBundle 聚合），总线序列化形态同样未定 | **疑似**→待定义（T3 result_schema 冻结扩展时拍板，或 M2 前专项） | ARCHDEBT |
-| UF-33 | 图谱 | server→core 依赖边缺位：调用链 §2 与规格头声明 services/projects→project/io、services/enumeration→solution/\*、services/exports→trace/calcbook+drafting、worker R2 kind 映射直连 solution/各渲染器；§1b 边表仅声明 services→app、jobs→app——按现规格实现即产生 §1b 之外的 import（违反 AGENTS §13"真实 import ⊆ 声明边"）。当前 check_module_graph 不校验"§2 链路步骤 ⊆ §1b 边表"、真实 import 扫描是 B3 待办，门禁暂不拦 | 已定义→方案 A：app.py 用例面收口（新增 run_enumeration/export_artifact/load_project+save_project 三用例），structure-graph §2 四链 server 段终点改经 app，worker R2 kind 映射与 services 三规格头调用对象表述同步，§1b 边表零新增（SENS-B 2026-08-23）；**core 侧已落地（M2-SOL 2026-08-26）**：run_enumeration/export_artifact 经 waterprint.app 正门可用（类型面与上游重建伴生件=app_enumeration.py，app 再导出保持单入口——app.py 500 行预算的宪法 §2 拆分正解，structure-graph §1a 节点行+pyproject import-linter 层序登记（waterprint.app | waterprint.app_enumeration 同层并列）+§1b 边表口径（app→app_enumeration 同层边与"严格向下"规则的相抵处置）=**server 批开工前置条件**——I-4 R1 升格 2026-08-26，未登记前 server 批不得开工）；server 段调用面接线归 server 批（第 2 块） | ARCHDEBT |
+| UF-33 | 图谱 | server→core 依赖边缺位：调用链 §2 与规格头声明 services/projects→project/io、services/enumeration→solution/\*、services/exports→trace/calcbook+drafting、worker R2 kind 映射直连 solution/各渲染器；§1b 边表仅声明 services→app、jobs→app——按现规格实现即产生 §1b 之外的 import（违反 AGENTS §13"真实 import ⊆ 声明边"）。当前 check_module_graph 不校验"§2 链路步骤 ⊆ §1b 边表"、真实 import 扫描是 B3 待办，门禁暂不拦 | 已定义→方案 A：app.py 用例面收口（新增 run_enumeration/export_artifact/load_project+save_project 三用例），structure-graph §2 四链 server 段终点改经 app，worker R2 kind 映射与 services 三规格头调用对象表述同步，§1b 边表零新增（SENS-B 2026-08-23）；**core 侧已落地（M2-SOL 2026-08-26）**：run_enumeration/export_artifact 经 waterprint.app 正门可用（类型面与上游重建伴生件=app_enumeration.py，app 再导出保持单入口——app.py 500 行预算的宪法 §2 拆分正解，structure-graph §1a 节点行+pyproject import-linter 层序登记（waterprint.app | waterprint.app_enumeration 同层并列）+§1b 边表口径（app→app_enumeration 同层边与"严格向下"规则的相抵处置）=**server 批开工前置条件**——I-4 R1 升格 2026-08-26，未登记前 server 批不得开工）；server 段调用面接线归 server 批（第 2 块）；**server 段已收口·SERVER 批（2026-08-26）**：16 文件实装全部经 app 正门（run_full_calc/run_enumeration/export_artifact/load_project/save_project/Constraint/InvalidProjectError/DEFAULT_ASSUMPTIONS/RunEnv 再导出面），D7 forbidden 契约机器强制+红探针实录 | ARCHDEBT |
 | UF-34 | 分层 | L0 契约层准入标准：L0 现混合四类内容——数据 schema（flow/quality/sludge/project_schema/result_schema）、协议（ports/unit_api/trace_api）、声明 schema+DSL 文法（manifest/condition）、可执行引擎（expr.py，全库唯一真实现 331 行）与量纲真源（quantity）；"什么允许进 L0"无规格——任何"多下层都要用"的共享物都有理由下沉 L0，commons 温床风险（每文件单独看都合理，累积即成垃圾抽屉层） | 已定义→GR-36（conventions §11：L0 准入三类判据——冻结 schema/跨层协议/≥2 非 L4 层共消费的 DSL 内核或量纲真源，禁 I/O 与可变状态，file-contracts 行注明类别；run_env.py 行已按类②登记）（SENS-B 2026-08-23） | ARCHDEBT |
 
 ### 五项验证命令摘要（仓库根执行，2026-08-23）
@@ -214,3 +214,26 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
   待填（executor.py 零改动，其规格头 D10 注记文字保留作历史档）。
 - **UF-43①②③**：均已实现闭合（见上表处置列）。
 - **UF-16**：calcbook 占位符语法已冻结；正式模板待 data/templates 录入批。
+
+## 十一、SERVER 批新增项（2026-08-26，M2 收口第 2 块）
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-46 | 环境装配 | RunEnv 装配用例缺位：app 面无 load_run_env/build_env 用例（RunEnv 七字段装配归调用方），而 D7 forbidden 禁 server 直连 waterprint.registry（真源 Coefficients 装载在 L1）——两规相抵，server 侧装配无正门可走 | 已定义（临置）→SERVER 批：worker._build_env 以 CoefficientsView **协议适配器**（L0 契约协议面，registry 数据包格式镜像装载——B4 双胞胎先例）读 data_dir 数据包；DEFAULT_ASSUMPTIONS 经 app 模块面再导出（__all__ 扩面 16 名，app 为 _engine_params 已装载属性）。**追认点**：app 面 load_run_env(data_dir) 用例收口建议（pending-domain-expert §9-1）——收口后适配器退役 | SERVER 2026-08-26 |
+| UF-47 | 哈希取用 | design_hash server 侧取用：calc/exports 的幂等键、快照绑定、stale 守门均需 submit 时 design 哈希，而 design_hash/dumps_design 在 waterprint.project（D7 forbidden）且 app 未再导出 | 已定义（临置）→SERVER 批：services/projects.design_digest=content_hash.design_hash **B4 双胞胎**（sha256(dumps_design 等价确定性序列化+尾换行）——镜像测试与 core 真源逐字节对照（双胞胎漂移即测试红）。**追认点**：app 面 design_hash 用例收口建议（pending-domain-expert §9-2）——收口后双胞胎退役 | SERVER 2026-08-26 |
+| UF-48 | 诊断交付 | 无解诊断交付面相抵：enumeration.py R4 写"diagnosis 端点可用"，而 calc 端点集 v1 冻结六件（A1 锁定 18 总数）无 /diagnosis 端点 | 已定义→SERVER 批：端点集冻结优先——诊断负载随 GET /api/calc/tasks/{id} 结果载荷交付（feasible_count=0 时 diagnosis 非空）；fetch_diagnosis 服务面保留（路由组装用）；专用端点归端点集变更批（升 v2 时评审） | SERVER 2026-08-26 |
+| UF-49 | 取消/进度通路 | Windows spawn 下共享值通路受限（实测）：mp.Queue/Event 不能经 ProcessPoolExecutor.submit 参数传递（标准 pickle 拒）；core run 内长计算无协作取消钩子（spec R5"worker 每批迭代检查"在 run 单调用面无落点） | 已定义→SERVER 批：进度队列经池 initializer/initargs 注入 worker 模块全局（ForkingPickler 正门，实测通）；取消令牌=标记文件（cancel_dir/<task_id>.cancel，跨进程共享值的文件形态）；worker 在阶段边界与批迭代间轮询（run 内不可中断——结果落地前双检）。**挂账**：core 协作取消钩子（yield 式/回调式）归 core 后续批 | SERVER 2026-08-26 |
+
+### 十一批验证命令摘要（仓库根执行，2026-08-26）
+
+```bash
+# UF-46：适配器只实现 L0 协议面；DEFAULT_ASSUMPTIONS 经 app 再导出
+grep -n "class _YamlCoefficients" server/waterprint_server/jobs/worker.py
+grep -n "DEFAULT_ASSUMPTIONS" core/waterprint/app.py            # __all__ 与 import 各一
+# UF-47：双胞胎与真源逐字节对照（镜像测试）
+grep -n "design_hash" server/tests/services/test_projects.py    # 0 命中（对照在 test_calculation/test_exports 内经 digest 断言）
+# UF-48：诊断随状态载荷交付
+grep -n "diagnosis" server/waterprint_server/services/enumeration.py
+# UF-49：initializer 注入+文件取消令牌
+grep -n "_init_progress_queue\|cancel_token" server/waterprint_server/jobs/worker.py
+```

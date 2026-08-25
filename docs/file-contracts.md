@@ -64,8 +64,8 @@
 | `core/waterprint/trace/collector.py` | L4 | 计算迹收集（M1b 实现：TraceSink 协议落地+Spec→Node 就地转换[norm_ref 经 formulas.norm_ref_of 反查]+TraceTree=tuple 平铺+collect 正门；零遗漏、确定性） | 公式应用事件（TraceNodeSpec） | TraceCollector、TraceTree、collect、InvalidTraceError |
 | `core/waterprint/trace/audit.py` | L4 | 公式溯源审计报告（自包含 HTML） | 迹树+结果 | 审计报告文件 |
 | `core/waterprint/trace/calcbook.py` | L4 | Excel 计算书渲染（M1b 实现：模板禁公式拒+{{trace[i].<field>}}/{{summary.<key>}} 冻结占语法+未知占位符拒+字节确定性保存；TEMPLATE_REGISTRY v1 空） | 迹树+结果+模板 | render_calcbook、TEMPLATE_REGISTRY、InvalidTemplateError、.xlsx |
-| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project + run_enumeration（唯一装配点，UF-33 方案 A 已落 M2-SOL；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；M1a 份额=_unit_params 系数投影+_CoefficientsUnit 包装（factor.*/removal.* 并入单元 params，D4 裁决）；M2-SOL 份额=装配 grid 档命中校验[Ruling ④]+run_enumeration 编排+app_enumeration 伴生件再导出） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、run_enumeration、export_artifact、EnumerationOptions/EnumerationOutcome（再导出）、ArtifactKindNotReady、InvalidAssemblyError、load_project（migrate 路由）、save_project、RunEnv（再导出） |
-| `core/waterprint/app_enumeration.py` | L4 | UF-33 用例面伴生件（M2-SOL D2；app.py 500 行预算宪法 §2 拆分正解）：枚举选项/产出类型 + export_artifact 分发薄壳（calcbook 接 M1b trace 正门/未就绪 kind 拒）+ upstream_context 上游快照重建（execute_graph 既有产物 UF-42 反解；零 app 依赖防 import 环，类型面注解消费 solution 三模块+trace 正门——I-4 R1 修正；层序登记=server 批前置条件） | app 装配产物+结果 | EnumerationOptions、EnumerationOutcome、UpstreamSource、export_artifact、upstream_context、ArtifactKindNotReady |
+| `core/waterprint/app.py` | L4 | 用例编排：装配 + run_full_calc/load_project+save_project + run_enumeration（唯一装配点，UF-33 方案 A 已落 M2-SOL；T7a 份额=load/save 薄封装+RunEnv 再导出；T7b 份额=assemble/run_full_calc+AssembledGraph/ResultBundle 两字段子集+design_hash 回填+_engine_params 投影+M-3 migrate 路由已落；M1a 份额=_unit_params 系数投影+_CoefficientsUnit 包装（factor.*/removal.* 并入单元 params，D4 裁决）；M2-SOL 份额=装配 grid 档命中校验[Ruling ④]+run_enumeration 编排+app_enumeration 伴生件再导出） | 项目+工况+环境 | AssembledGraph、ResultBundle、assemble、run_full_calc、run_enumeration、export_artifact、EnumerationOptions/EnumerationOutcome（再导出）、ArtifactKindNotReady、InvalidAssemblyError、load_project（migrate 路由+SERVER D2 双闸收口=委托 io 正门）、save_project、RunEnv（再导出）、Constraint/InvalidProjectError/DEFAULT_ASSUMPTIONS（SERVER 批再导出——server 消费面单入口，__all__ 16 名） |
+| `core/waterprint/app_enumeration.py` | L4 | UF-33 用例面伴生件（M2-SOL D2；app.py 500 行预算宪法 §2 拆分正解）：枚举选项/产出类型 + export_artifact 分发薄壳（calcbook 接 M1b trace 正门/未就绪 kind 拒）+ upstream_context 上游快照重建（execute_graph 既有产物 UF-42 反解；零 app 依赖防 import 环，类型面注解消费 solution 三模块+trace 正门——I-4 R1 修正；层序登记=SERVER D1 已落[同层并列+ignore_imports 唯一伴生边豁免]） | app 装配产物+结果 | EnumerationOptions、EnumerationOutcome、UpstreamSource、export_artifact、upstream_context、ArtifactKindNotReady、Constraint（SERVER D1 再导出） |
 | `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
 
@@ -73,18 +73,19 @@
 
 | 路径 | 唯一职责 | 输入 | 输出 |
 |------|----------|------|------|
-| `server/waterprint_server/main.py` | 应用工厂与生命周期（进程池/异常映射/契约自检） | Settings | ASGI app |
-| `server/waterprint_server/settings.py` | 环境配置（路径基点/上限/池大小） | env | Settings |
-| `server/waterprint_server/routers/projects.py` | 项目 CRUD 端点（薄协议转换） | pydantic 请求 | pydantic 响应 |
-| `server/waterprint_server/routers/calc.py` | 计算/枚举任务端点（幂等/取消/分页） | 任务请求 | 任务句柄/状态 |
-| `server/waterprint_server/routers/exports.py` | 导出端点（stale 守门/文件流） | 导出选项 | 文件流 |
-| `server/waterprint_server/routers/events.py` | SSE 进度端点（背压/清理） | 任务订阅 | 事件流 |
-| `server/waterprint_server/services/projects.py` | 项目用例编排（保存语义/导入） | 项目 id/数据 | 领域结果 |
-| `server/waterprint_server/services/calculation.py` | 计算用例（幂等/快照绑定/方案应用原子） | 项目+工况 | 任务句柄/ApplyOutcome |
-| `server/waterprint_server/services/enumeration.py` | 枚举用例（单单元守护/分页/arrow） | 枚举请求 | SolutionPage |
-| `server/waterprint_server/services/exports.py` | 导出用例（stale 守门/确定性命名） | 导出请求 | ExportHandle |
-| `server/waterprint_server/jobs/manager.py` | 任务注册表与进程池调度（优先级队列） | TaskRequest | 状态/事件流 |
-| `server/waterprint_server/jobs/worker.py` | 进程池入口（序列化边界/取消协作） | payload+令牌 | 结果+进度 |
+| `server/waterprint_server/main.py` | 应用工厂与生命周期（SERVER 已实装：进程池[initializer 进度队列注入]/统一异常映射 22 类基+DOMAIN_ERROR_CODES 名义表/契约自检端点==18/structlog/CORS/请求 ID） | Settings | ASGI app（create_app、app、DOMAIN_ERROR_CODES） |
+| `server/waterprint_server/settings.py` | 环境配置（路径基点 safe_child 分量白名单/上限 fail-fast/优先级值域/ENGINE_VERSION） | env | Settings、get_settings、safe_child、ensure_directories、ENGINE_VERSION |
+| `server/waterprint_server/dump_openapi.py` | OpenAPI 契约导出（SERVER D5：确定性序列化双跑 diff=0；生成物只经本模块入库） | 模块级 app | api-contracts/openapi.json |
+| `server/waterprint_server/routers/projects.py` | 项目 CRUD 五端点（薄协议转换，138 行） | pydantic 请求 | 响应=服务 dataclass |
+| `server/waterprint_server/routers/calc.py` | 计算/枚举六端点（幂等/取消/分页，149 行） | 任务请求 | 任务句柄/TaskStatus/SolutionPage |
+| `server/waterprint_server/routers/exports.py` | 导出五端点（stale 守门/文件流/批量转任务句柄，127 行） | 导出选项 | 文件流/ExportHandle |
+| `server/waterprint_server/routers/events.py` | SSE 两端点（X-Accel 头/事件 JSON 化/断连清理，80 行） | 任务订阅 | text/event-stream |
+| `server/waterprint_server/services/projects.py` | 项目用例（SERVER 实装：design_digest=content_hash B4 双胞胎[UF-47]/深度闸/锁 409/import_legacy M4 未就绪） | 项目 id/数据 | SaveOutcome/ProjectSummary/ValidationReport |
+| `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
+| `server/waterprint_server/services/enumeration.py` | 枚举用例（多单元 422[ADR-005]/分页白名单/feather 重载/无解 done+诊断[UF-48 随载荷交付]） | 枚举请求 | TaskHandle/SolutionPage/诊断 |
+| `server/waterprint_server/services/exports.py` | 导出用例（stale 409+force 标注/确定性命名/单产物上限 1 转任务/元数据边车） | 导出请求 | ExportHandle/ExportMeta |
+| `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新） | TaskRequest | TaskStatus/Event 流 |
+| `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用） | payload+令牌 | 结果+进度 |
 
 ## 3. units_lib 单元包登记（按包，非逐文件）
 
