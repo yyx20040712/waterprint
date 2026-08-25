@@ -41,8 +41,12 @@
 #       repro: ReproTriple（规格头愿景六字段中 profiles/scene/estimate
 #       归 M1/M3 批，注记不删愿景）
 #   class InvalidAssemblyError(Exception)（GR-11 族，本文件定义）
-#   run_enumeration(...) / export_artifact(...)：保持缺省（UF-33 编排
-#       薄壳归 M1/M3，注记保留）
+#   run_enumeration(project, unit_id, conditions, env, options) ->
+#       EnumerationOutcome（UF-33 方案 A 已落地 2026-08-26 M2-SOL D2；
+#       类型面/导出薄壳/上游快照重建=app_enumeration.py 伴生件，本文件
+#       再导出保持 server 单入口——500 行预算的宪法 §2 拆分正解）
+#   装配 grid 档命中校验（D3 Ruling ④）：grid 声明参数终值未命中档
+#       =InvalidAssemblyError（详见 app_enumeration 规格头）
 #
 # 【行为规格】
 #   R1 装配/执行分离：assemble 阶段发现失败（重复 unit_id/清单非法/
@@ -106,10 +110,19 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
+from math import isclose
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final, NoReturn, final
 
+from waterprint.app_enumeration import (
+    ArtifactKindNotReady,
+    EnumerationOptions,
+    EnumerationOutcome,
+    UpstreamSource,
+    export_artifact,
+    upstream_context,
+)
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.ports import Edge, PortRef
 from waterprint.contracts.project_schema import DesignState, ProjectFile
@@ -128,16 +141,26 @@ from waterprint.project.io import (
 )
 from waterprint.project.migration import migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.diagnose import diagnose_infeasibility
+from waterprint.solution.enumerate import enumerate_solutions
+from waterprint.solution.grid import build_grid
+from waterprint.solution.ranking import RankingKey, rank
 from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
 __all__ = [
+    "ArtifactKindNotReady",
     "AssembledGraph",
+    "EnumerationOptions",
+    "EnumerationOutcome",
     "InvalidAssemblyError",
     "ResultBundle",
     "RunEnv",
     "assemble",
+    "export_artifact",
     "load_project",
+    "run_enumeration",
     "run_full_calc",
     "save_project",
 ]
@@ -154,11 +177,7 @@ class InvalidAssemblyError(Exception):
 
 
 def _reject_constant(name: str) -> NoReturn:
-    """json.loads parse_constant 钩子：NaN/Infinity/-Infinity 一律拒（GR-02）。
-
-    R1-b（二审 M-1，T7a-R1 io 同款语义双胞胎）：拒值经 InvalidProjectError
-    上抛（非 JSONDecodeError 通道，直接冒出 json.loads）。
-    """
+    """json.loads parse_constant 钩子：NaN/±Inf 一律拒（GR-02，R1-b 收编口径）。"""
     raise InvalidProjectError(
         f"项目 JSON 含非法常量：{name}（NaN/±Inf 禁——GR-02 输入即拒；"
         "JSON 规范外字面量）"
@@ -168,10 +187,7 @@ def _reject_constant(name: str) -> NoReturn:
 def load_project(path: Path) -> ProjectFile:
     """项目装载（M-3 版本门）：read_project_text → json.loads → migrate 路由。
 
-    版本路由唯一正门=migration.migrate（未来版拒/未知历史版拒/当前版直通）；
-    JSONDecodeError 包装 InvalidProjectError from exc；migrate 已收
-    ValidationError。R1-b 两道闸（二审 M-1 收编，T7a-R1 同款先例）：
-    parse_constant 拒 NaN/±Inf + RecursionError 收编（超深嵌套防崩）；
+    R1-b 两道闸：parse_constant 拒 NaN/±Inf + RecursionError 收编；
     完整大小/深度闸留 M2/server 批（记档 T7b 报告 §6.2-8）。
     """
     text = read_project_text(path)
@@ -267,22 +283,17 @@ def _checked_units_eligibility(
             )
 
 
-# 【D4 系数投影（M1a 裁决 2026-08-25）】UnitContext 无 coefficients 通道且
-# 字段锁定——装配层把 RunEnv.coefficients 中 factor.<unit>.*/removal.<unit>.*
-# （按单元短名过滤）+ factor.screen.*（粗/细格栅共用常数，数据包命名形态）
-# 合入该单元 compute 期 params 快照（prefix 保留全键名，compute 按
-# ctx.params["factor.cugeshan.w1_slag"] 取）；params: Mapping[str, float]
-# 契约容纳。系数真源唯一 data/coefficients 数据包（GR-15 出处随 registry
-# 条目走），design 节点参数与系数键命名空间不相交（GR-26 禁点号 vs
-# field_id），投影不覆盖用户参数面。ctx.assumptions 仍只承载 safety/loop 面。
+# 【D4 系数投影（M1a 裁决 2026-08-25）】UnitContext 无 coefficients 通道——
+# 装配层把 RunEnv.coefficients 的 factor.<短名>.*/removal.<短名>.* +
+# factor.screen.*（格栅共用）合入单元 compute 期 params（全键名保留；
+# 系数真源唯一 data/coefficients，GR-15；与 design 参数命名空间不相交，
+# GR-26；投影不覆盖用户参数面——详见 M1a 报告）。
 _FACTOR_SHARED_PREFIX = "factor.screen."
 
 
 def _unit_params(unit_id: str, coefficients: CoefficientsView) -> dict[str, float]:
     """D4 系数投影：单元短名过滤 factor.*/removal.* + factor.screen.* 共用键。"""
-    # 短名 = 剥离业务线前缀后的全串（M2c R1-a 修正 2026-08-26：两词短名
-    # bashi_jiliangcao/wushui_tisheng 的系数键含下划线，rsplit 尾段会错位；
-    # mine_water 线名本身含下划线——勿用 rsplit 取尾段，恒取首个 "_" 后全串）。
+    # 短名=业务线前缀后全串（M2c R1-a：线名/两词短名含下划线，勿 rsplit 尾段）。
     short = unit_id.split("_", 1)[1]
     prefixes = (f"factor.{short}.", f"removal.{short}.", _FACTOR_SHARED_PREFIX)
     projected: dict[str, float] = {}
@@ -309,13 +320,11 @@ class _CoefficientsUnit:
 
 
 def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
-    """装配正门：单元发现 ∪ 内置节点构造 + 边转换 + 受检资格校验（R1）。
+    """装配正门：单元发现 ∪ 内置节点构造 + 边转换 + 资格/grid 校验（R1）。
 
-    design.nodes 值含 "kind" 键=内置节点（graph.nodes.builtin_unit 构造，
-    params=除 kind 外键值）；无 kind=单元包单元经 discover_units 注册表查，
-    缺失=InvalidAssemblyError 带 unit_id。重复 unit_id 由 discover_units
-    启动期拒（units_lib 铁律同款）。env 为执行环境透传（装配期不消费，
-    签名冻结）。"""
+    design.nodes 值含 "kind" 键=内置节点（builtin_unit 构造）；无 kind=
+    discover_units 注册表查，缺失=InvalidAssemblyError 带 unit_id；重复
+    unit_id 由 discover_units 启动期拒。env 透传（装配期不消费）。"""
     discovered = discover_units()
     units: dict[str, Unit] = {}
     for node_id, node_value in project.design.nodes.items():
@@ -339,9 +348,29 @@ def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
                 f"声明（已发现单元 {sorted(discovered)}——GR-09）"
             )
     _checked_units_eligibility(project.design, units)
+    _check_grid_hits(project.design, units)
     return AssembledGraph(
         design=project.design, units=units, edges=_edges(project.design.edges)
     )
+
+
+def _check_grid_hits(design: DesignState, units: Mapping[str, Unit]) -> None:
+    """D3 Ruling ④ 装配校验：grid 声明参数终值（design 覆盖或 default）须命中档。"""
+    for node_id, unit in units.items():
+        node = design.nodes[node_id]
+        for spec in unit.manifest.params:
+            if spec.grid is None:
+                continue
+            value = node.get(spec.field_id, spec.default)
+            if isinstance(value, bool) or not isinstance(value, int | float) or not any(
+                isclose(float(value), step) for step in spec.grid
+            ):
+                raise InvalidAssemblyError(
+                    f"单元 {node_id!r} 参数 {spec.field_id!r} 值 {value!r} 未命中"
+                    f" grid 档位 {list(spec.grid)}（Ruling ④ 档位归 grid 层——"
+                    "浮点容差 math.isclose 默认相对 1e-9；系数投影键 factor.* "
+                    "不在此面）"
+                )
 
 
 def _engine_params(assumptions: Mapping[str, float]) -> Mapping[str, EngineParam]:
@@ -418,3 +447,52 @@ def _external_tree(env: RunEnv) -> TraceTree:
         if isinstance(outcome, tuple):
             return outcome
     return ()  # sink 无 tree()：收集语义归 sink 自身，PlantResult.trace 留空注记
+
+
+# ── UF-33 用例面（M2-SOL D2 裁决 2026-08-26；类型面/导出/上游重建=
+#    app_enumeration.py 伴生件，上方 import 再导出）──────────────────
+
+
+def run_enumeration(
+    project: ProjectFile,
+    unit_id: str,
+    conditions: ConditionSet,
+    env: RunEnv,
+    options: EnumerationOptions | None = None,
+) -> EnumerationOutcome:
+    """单单元枚举正门（ADR-005/UF-33）：装配→网格→上游快照→枚举→过滤→排序→诊断。"""
+    assembled = assemble(project, env)
+    unit = assembled.units.get(unit_id)
+    if unit is None:
+        raise InvalidAssemblyError(
+            f"枚举目标单元 {unit_id!r} 不在装配图（单单元语义 ADR-005——"
+            "多单元拒绝在 server 层；core 侧未命中=InvalidAssemblyError）"
+        )
+    grid = build_grid([spec for spec in unit.manifest.params if spec.grid is not None])
+    condition = next(iter(conditions.iter_all()))  # R3：工况取当前选定档（首个）
+    plant = execute_graph(
+        project.design, assembled.units, conditions, _completed_env(env, project.design)
+    )
+    ctx = upstream_context(
+        UpstreamSource(assembled.units, assembled.edges, project.design, plant),
+        unit_id, condition, env)
+    df = enumerate_solutions(grid, ctx, unit, env)
+    chosen = options if options is not None else EnumerationOptions()
+    filtered = apply_constraints(df, chosen.constraints)
+    ranked = rank(
+        filtered,
+        df,
+        RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
+        chosen.limit if chosen.limit is not None else max(len(filtered.feasible), 1),
+    )
+    return EnumerationOutcome(
+        rows=ranked.rows,
+        total_feasible=ranked.total_feasible,
+        truncated=ranked.truncated,
+        diagnosis=None
+        if filtered.feasible
+        else diagnose_infeasibility(
+            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}
+        ),
+        grid=grid,
+    )

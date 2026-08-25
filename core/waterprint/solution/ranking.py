@@ -52,7 +52,8 @@ class InvalidRankingError(Exception):
 class FeasibleView(Protocol):
     """可行索引视图协议（constraints.FilterResult 结构满足；互不 import）。"""
 
-    feasible: Sequence[int]
+    @property
+    def feasible(self) -> Sequence[int]: ...
 
 
 @dataclass(frozen=True)

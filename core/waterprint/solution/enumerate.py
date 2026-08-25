@@ -36,6 +36,13 @@
 #      标注列，下游过滤时计数报告。口径分界（GR-37，SENS-B
 #      2026-08-23 UF-36）：GR-02 管量与守恒路径零 NaN/Inf；本结果表
 #      NaN 标注列是终态数据非中间量，不违 GR-02。
+#      【行级域拒口径（M2-SOL 实装注记）】行 compute 抛领域异常
+#      （_ROW_DOMAIN_EXCEPTIONS 在册族，与 executor._DOMAIN_EXCEPTIONS
+#      同源同步义务——B4 双胞胎禁私有 import）= 探索到非法档（如 CASS
+#      时段和≠周期档）：该行 dims 全 NaN + nan_flag=True 进表（枚举=
+#      设计空间探索，域拒是正常探索结果，交 constraints/diagnose 管
+#      线；单点路径 executor 仍整工况失败——两路径分歧为语义性设计）。
+#      行级拒绝原因消息不进表（列面挂账 server 批：reject_reason 列）。
 #
 # 【测试要求】N=1 网格结果 == 单点 compute（防双轨）、结果行数 == total、
 #   非负性/单调性性质、condition_key 标注。
@@ -52,12 +59,26 @@ from typing import Any, final
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
 
 from waterprint.contracts.condition import ConditionSet
+from waterprint.contracts.flow import InvalidFlowError
+from waterprint.contracts.manifest import InvalidUnitConfig
+from waterprint.contracts.quality import InvalidQualityError
 from waterprint.contracts.run_env import RunEnv
+from waterprint.contracts.sludge import InvalidSludgeError
 from waterprint.contracts.trace_api import TraceNodeSpec
 from waterprint.contracts.unit_api import Unit, UnitContext
+from waterprint.registry.formulas import InvalidFormulaError
 from waterprint.solution.grid import Grid
 
 _MARGIN_PREFIX = "margin_"
+# 行级域拒族（R5 注记）：新增领域异常族须同步本元组（executor 的
+# _DOMAIN_EXCEPTIONS 同源同步义务——双胞胎禁私有 import，记档）。
+_ROW_DOMAIN_EXCEPTIONS = (
+    InvalidUnitConfig,
+    InvalidFlowError,
+    InvalidQualityError,
+    InvalidSludgeError,
+    InvalidFormulaError,
+)
 
 
 @final
@@ -99,8 +120,11 @@ def enumerate_solutions(
     for row in grid.array:
         params = dict(upstream.params)
         params.update({field: float(row[field]) for field in grid.fields})
-        result = unit.compute(replace(upstream, params=params, trace=_NULL_SINK))
-        dims_rows.append(_dims_of(result.dims))
+        try:
+            result = unit.compute(replace(upstream, params=params, trace=_NULL_SINK))
+            dims_rows.append(_dims_of(result.dims))
+        except _ROW_DOMAIN_EXCEPTIONS:
+            dims_rows.append({})  # 行级域拒：dims 全 NaN+nan_flag=True（R5 注记）
     dim_fields: list[str] = []
     seen: set[str] = set()
     for dims in dims_rows:
@@ -116,7 +140,8 @@ def enumerate_solutions(
         data[key] = [dims.get(key, nan) for dims in dims_rows]
     data["margin_min"] = [_margin_min(dims, margin_fields) for dims in dims_rows]
     data["nan_flag"] = [
-        any(isnan(value) for value in dims.values()) for dims in dims_rows
+        not dims or any(isnan(value) for value in dims.values())
+        for dims in dims_rows  # 空 dims=行级域拒（R5 注记）——一并标注
     ]
     data["condition_key"] = [ConditionSet.key(upstream.condition)] * grid.total
     return pandas.DataFrame(data)
