@@ -28,7 +28,7 @@
 |-----------|--------------------|------|-------------------------------|------|
 | XL-F1 | `q_filter = q_design_h * selfuse_coef` | q_design_h 最高时流量 m³/h；selfuse_coef 自用水系数（反冲耗水补偿） | selfuse_coef | 给水排水设计手册（自用水常用） |
 | XL-F2 | `a_total_req = q_filter / v_filter` | v_filter 正常滤速 m/h（主控参数） | v_filter_band.min/max | GB 50013-2018 §9.5 |
-| XL-F3 | `a_cell = a_total_req / n` | n 分格数（≥4，离散档位 business-logic §7） | — | GB 50013-2018 §9.5；business-logic §7 |
+| XL-F3 | `a_cell = a_total_req / n` | n 分格数（≥4，离散档位 business-logic §7） | — | GB 50013-2018 §9.5 |
 | XL-F4 | `b_raw = sqrt(a_cell / ratio_lb)` | ratio_lb 单格长宽比（b_raw 按 0.5 m 档向上取整得 B） | cell_ratio_lb_band.min/max | 给水排水设计手册（V 型滤池单格工程常用） |
 | XL-F5 | `l_raw = a_cell / B` | l_raw 格长（按 0.5 m 档向上取整得 L） | — | 同上 |
 | XL-F6 | `a_cell_act = B * L` | 单格实取过滤面积 m² | — | 同上 |

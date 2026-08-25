@@ -29,7 +29,7 @@
 
 | formula_id | 表达式（受限 DSL） | 变量 | 系数列（factor.ziwai.*） | 出处 |
 |-----------|--------------------|------|---------------------------|------|
-| ZW-F1 | `q_c = q_design / n_channel` | n_channel 渠道数（2 条并联，1 用 1 备可切换，构造） | — | 给水排水设计手册（明渠紫外布置） |
+| ZW-F1 | `q_c = q_design / n_channel` | n_channel 渠道数（2 条并联同时运行各半过流+超越/模块切换备用——单渠事故工况 0.78 m/s 超 velocity_band.max=0.6 注记，构造） | — | 给水排水设计手册（明渠紫外布置） |
 | ZW-F2 | `h_w_raw = q_c / (v_channel * b_c)` | v_channel 渠内流速 m/s；b_c 渠宽 m（构造）（h_w_raw 按 0.1 m 档向上取整得 h_w） | velocity_band.min/max | 给水排水设计手册（渠道流速常用带） |
 | ZW-F3 | `v_channel_act = q_c / (b_c * h_w)` | 实际流速校核 | velocity_band.min/max | 同上 |
 | ZW-F4 | `n_lamp_raw = q_design_h / q_per_lamp / f_aging` | q_per_lamp 单灯处理量 m³/h（T254=60%、剂量 30 mJ/cm² 档新灯概算）；f_aging 灯管老化系数（n_lamp 按整支向上取整） | q_per_lamp；f_aging | 给水排水设计手册（灯管概算法） |
@@ -114,7 +114,8 @@ l_stab = 1.2 m、h_module = 0.5 m、h_super = 0.5 m、c_fecal_in =
 剂量档选型注记：设计剂量 30 mJ/cm²（深度处理出水档 24~40 中值）；
 q_per_lamp=40 系新灯、T254=60% 档概算锚点，f_aging=0.8 修正至寿命
 末期——穿透率取下限 55% 时应下调 q_per_lamp 或增加灯管（选型以
-设备剂量验证数据为准，追认点）。
+设备剂量验证数据为准，追认点）。渠道备用语义+t_exp 未计短流折减
+（×0.8≈4.9 s 贴近带下限 5 s，剂量主线由 ZW-F4 概算锚承载）。
 
 ## 签字
 
