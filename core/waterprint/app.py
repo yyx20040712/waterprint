@@ -16,11 +16,12 @@
 #       assumptions/coefficients/price_book/trace_sink/engine_params）
 #   load_project(path: Path) -> ProjectFile / save_project(project:
 #       ProjectFile, path: Path) -> None（UF-33）：load 走 M-3 版本门
-#       （read_project_text → json.loads → migration.migrate——版本路由
-#       唯一正门=migrate，T7a 二审移交定稿；JSONDecodeError 包装
-#       InvalidProjectError from exc；migrate 已收 ValidationError；
-#       R1-b 两闸：parse_constant 拒 NaN/±Inf + RecursionError 收编
-#       ——二审 M-1/T7a-R1 同款；完整大小/深度闸留 M2/server 批）
+#       （版本路由唯一正门=migrate，T7a 二审移交定稿）；SERVER D2
+#       2026-08-26 双闸收口：装载委托 project.io 正门加载路径
+#       （io.load_project=_MAX_BYTES=10MB 大小闸+_MAX_DEPTH=100 深度
+#       闸+parse_constant 拒 NaN/±Inf+RecursionError 收编全部随之
+#       生效），非当前版经 migrate 原语义复核拒/迁——"完整大小/深度
+#       闸留 M2/server 批"注记就此收口）
 #   assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph
 #       装配：units_lib.discover_units ∪ 内置节点（design.nodes 值含
 #       "kind" 键者经 graph.nodes.builtin_unit 构造；无 kind=注册表查，
@@ -107,13 +108,12 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from math import isclose
 from pathlib import Path
 from types import MappingProxyType
-from typing import Final, NoReturn, final
+from typing import Final, final
 
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
@@ -133,12 +133,10 @@ from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 from waterprint.graph.executor import execute_graph
 from waterprint.graph.nodes import builtin_unit
 from waterprint.project.content_hash import design_hash
-from waterprint.project.io import (
-    InvalidProjectError,
-    read_project_text,
-)
+from waterprint.project.io import InvalidProjectError
+from waterprint.project.io import load_project as _io_load
 from waterprint.project.io import save_project as _project_save
-from waterprint.project.migration import migrate
+from waterprint.project.migration import SUPPORTED_VERSIONS, migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.solution.constraints import apply_constraints
 from waterprint.solution.diagnose import diagnose_infeasibility
@@ -155,6 +153,7 @@ __all__ = [
     "EnumerationOptions",
     "EnumerationOutcome",
     "InvalidAssemblyError",
+    "InvalidProjectError",
     "ResultBundle",
     "RunEnv",
     "assemble",
@@ -172,33 +171,19 @@ class InvalidAssemblyError(Exception):
     """装配非法（未知 unit_id/受检资格缺映射/边形态）——领域异常（GR-11 族）。"""
 
 
-def _reject_constant(name: str) -> NoReturn:
-    """json.loads parse_constant 钩子：NaN/±Inf 一律拒（GR-02，R1-b 收编口径）。"""
-    raise InvalidProjectError(
-        f"项目 JSON 含非法常量：{name}（NaN/±Inf 禁——GR-02 输入即拒；"
-        "JSON 规范外字面量）"
-    )
-
-
 def load_project(path: Path) -> ProjectFile:
-    """项目装载（M-3 版本门）：read_project_text → json.loads → migrate 路由。
+    """项目装载（M-3 版本门 + SERVER D2 双闸收口）：委托 project.io 正门。
 
-    R1-b 两道闸：parse_constant 拒 NaN/±Inf + RecursionError 收编；
-    完整大小/深度闸留 M2/server 批（记档 T7b 报告 §6.2-8）。
+    io.load_project（锁探测 read_project_text + loads 防弹装载）使
+    _MAX_BYTES=10MB 大小闸/_MAX_DEPTH=100 深度闸/parse_constant 拒
+    NaN/±Inf/RecursionError 收编在 app 正门全部生效；版本路由唯一正门
+    仍=migrate——当前版（SUPPORTED_VERSIONS 链尾）直通，非当前版经
+    migrate 对象面复核（未来版/未知历史版按 M-3 原语义拒，v1 无迁链）。
     """
-    text = read_project_text(path)
-    try:
-        data = json.loads(text, parse_constant=_reject_constant)
-    except json.JSONDecodeError as exc:
-        raise InvalidProjectError(
-            f"项目 JSON 解析失败（app.load_project·M-3 migrate 路由）：{exc}"
-        ) from exc
-    except RecursionError as exc:
-        raise InvalidProjectError(
-            f"项目 JSON 嵌套过深（app.load_project·M-3 路由，解析器递归保护"
-            f"触发）：{path}（二审 M-1 收编——T7a-R1 同款）"
-        ) from exc
-    return migrate(data)
+    project = _io_load(path)
+    if project.format_version == SUPPORTED_VERSIONS[-1]:
+        return project
+    return migrate(project.model_dump(mode="json"))
 
 
 def save_project(project: ProjectFile, path: Path) -> None:
