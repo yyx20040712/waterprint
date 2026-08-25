@@ -6,8 +6,9 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：门禁清单与 AGENTS.md §2/§3、docs/file-contracts.md §4 一致；
-# ruff/mypy/import-linter/pytest 属于各项目 venv 内工具（CI 单独跑），
-# 本脚本只聚合零依赖门禁（系统 Python 直接可跑）。
+# ruff 经 check_ruff.py（core venv 依赖）聚合入列——与 CI core-quality
+# 对齐（T7a C416 教训）；mypy/import-linter/pytest 仍属 CI/venv 单独跑；
+# 其余为零依赖门禁（系统 Python 直接可跑）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -18,14 +19,15 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 GATES = (
-    "check_file_budgets.py",
     "check_contract_headers.py",
+    "check_file_budgets.py",
     "check_grep_gates.py",
-    "check_structure.py",
-    "check_readonly.py",
-    "check_module_graph.py",
-    "check_webapp.py",
     "check_magic_numbers.py",
+    "check_module_graph.py",
+    "check_readonly.py",
+    "check_ruff.py",
+    "check_structure.py",
+    "check_webapp.py",
 )
 
 

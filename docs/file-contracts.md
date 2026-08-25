@@ -145,6 +145,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_webapp.py` | webapp 结构门禁（TS 契约头 + features 互不依赖分层） |
 | `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity 真源区） |
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
+| `scripts/check_ruff.py` | ruff 门禁：core venv 解释器跑 CI 同款 ruff check（透传） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
