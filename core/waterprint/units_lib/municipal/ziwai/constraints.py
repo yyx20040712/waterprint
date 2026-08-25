@@ -10,7 +10,7 @@
 # 【固定形态】CONSTRAINTS: tuple[ConstraintDecl, ...] 模块级唯一常量；
 #   每条：key / expression（受限比较式：结果字段与 factor 键限值比较）/
 #   source（限值出处=data 包键 + 节级条文）/ severity。
-# 【限值通道】两条校核带（渠内流速 0.3~0.6 m3/s/有效接触时间 5~10 s）
+# 【限值通道】两条校核带（渠内流速 0.3~0.6 m/s/有效接触时间 5~10 s）
 #   数值真源=factor.ziwai.*（data 包 0.3.0，M2b1 四单元系数批）——
 #   本文件零数值字面量，表达式按键引用。ZW-F11 灯管淹没校核
 #   （h_submerge ≥ 0）为结果对常数零比较、无 data 包键——仅 compute
