@@ -29,6 +29,9 @@
 #   vss_ratio×x_mlss，AO-F9 入参）、bod5_out（=bod5_in×(1−removal.aao.
 #   bod5)，AO-F6/F9 入参）、v_total/t_total/v_o_series（容积合成/HRT/
 #   单系列）在 compute 以符号算术合成（零字面量，无新工程常数）。
+# 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
+#   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
+#   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：Ns/X/t_p/R/Ri 五参数）/
 #   ports 两口 WATER/removal_refs/norm_refs 双源标记（GB 50014-2021+
 #   给水排水设计手册）/condition_mappings=()/constraint_refs 七键。
@@ -223,7 +226,7 @@ manifest = load_manifest(
         # r_external_band/r_internal_band），tn_eff 出水标准值与构造参数
         # n/sec_per_hour 无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
                 "field_id": "ns",
                 "dim": "DIMENSIONLESS",

@@ -26,6 +26,9 @@
 #   compute 收口（步长=参数）。
 # 【追认口径按表冻结】调节池沉砂后位置（入流=chenshachi 出流口径，与
 #   chuchenchi 表同源；调节容积法 HRT 主线——无进水流量过程线资料）。
+# 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
+#   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；n_pump_duty 为 ceil
+#   推导值非自由参数不设档；档位下限归 grid 层承载，compute 只保 n>0。
 # 【声明五件】params（range 仅表内有出处带者：t_reg/h2/ratio_lb 三参数）/
 #   ports 两口 WATER/removal_refs（全 0.0 键同引用）/norm_refs 双源标记
 #   （GB 50014-2021+给水排水设计手册）/condition_mappings=()/
@@ -192,7 +195,7 @@ manifest = load_manifest(
         # ratio_lb_band 2.0~3.0），构造参数（池数/泵台数/取整档）无范围
         # 来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
                 "field_id": "t_reg",
                 "dim": "DIMENSIONLESS",

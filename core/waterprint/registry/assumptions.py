@@ -28,8 +28,9 @@
 #       __len__——DEFAULT_ASSUMPTIONS[0] 与迭代即依赖）；构造期 Sequence
 #       归一 tuple + 重复 key 拒；keys() -> tuple[str, ...] 排序返回
 #   DEFAULT_ASSUMPTIONS: Final[AssumptionSet]
-#       启动加载的默认清单（4 条：[0] safety.superheight 种子条目 +
-#       loop.* 引擎参数三条，见【种子条目】/【UF-08 引擎参数条目】）
+#       启动加载的默认清单（5 条：[0] safety.superheight 种子条目 +
+#       loop.* 引擎参数三条 + solution.grid.base_per_dim 网格护栏基数
+#       一条，见【种子条目】/【UF-08 引擎参数条目】/【网格护栏条目】）
 #   assumption(key: str, overrides: Mapping[str, float]) -> float
 #       取值正门：键未登记 = InvalidAssumptionError（禁静默默认——
 #       魔法数借道路径）；命中 → overrides 有值用覆盖（覆盖值非 bool/
@@ -345,11 +346,32 @@ _LOOP_DAMPING: Final[Assumption] = Assumption(
     ),
 )
 
+# ── 网格护栏条目（M2-SOL D1 裁决 2026-08-26）：重写计划 §12.4
+#    "自由参数网格 ≤4^k"/ADR-005 的机器强制基数——solution/grid.py
+#    构建期消费（total > base**k → GridTooLarge）；registry 白名单区
+#    数值合法，出处入库。──
+_GRID_BASE_PER_DIM: Final[Assumption] = Assumption(
+    key="solution.grid.base_per_dim",
+    default=4.0,
+    dim=DimKey.DIMENSIONLESS,
+    source="重写计划 §12.4（自由参数网格 ≤4^k）/ADR-005（枚举语义）——M2-SOL D1 裁决",
+    note=(
+        "枚举网格组合数护栏的每维基数上限（总组合 total > base**k 拒，"
+        "GridTooLarge 附缩小步长/范围建议）；solution/grid.py 消费，"
+        "数值真源唯一在此（GR-15）"
+    ),
+    tuning_impact=TuningImpact(
+        direction="增大基数→允许更大网格但枚举耗时与内存上升，减小→护栏更严",
+        constraint_keys=(),
+    ),
+)
+
 DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
     _items=(
         _SUPERHEIGHT,
         _LOOP_TOLERANCE,
         _LOOP_MAX_ITERATIONS,
         _LOOP_DAMPING,
+        _GRID_BASE_PER_DIM,
     )
 )

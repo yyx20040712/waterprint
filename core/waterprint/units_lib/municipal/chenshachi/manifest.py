@@ -29,6 +29,9 @@
 # 【矛盾 3 挂账】t=30 与校核带 25~60 s（mod.json min=30）不一致——
 #   总控工程惯例裁定 2026-08-25：表载 t=30 生效（签字值优先，30 在校核
 #   带内）；待领域专家追认（见 .workflow/pending-domain-expert.md §2）。
+# 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
+#   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
+#   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params/ports/removal_refs/norm_refs/condition_mappings=()。
 # ══════════════════════════════════════════════════════════════════
 
@@ -255,7 +258,7 @@ manifest = load_manifest(
         # mod.json min=30 与带不一致矛盾 3：总控工程惯例裁定 2026-08-25
         # 表载 t=30 生效、待领域专家追认），其余参数无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
                 "field_id": "q_surf",
                 "dim": "DIMENSIONLESS",

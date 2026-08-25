@@ -29,9 +29,13 @@
 # 【砂上水深/滤层】XL-F18 h_total=超高+砂上水深+砂层+滤板气水区（四表
 #   池深组成逐字；均质滤料不设砾石承托层——滤板+长柄滤头直接支撑，
 #   d10/K80 为滤料选型注记无计算面不建公式）。
+# 【档位声明（Ruling ④）】分格数 n grid=[4,6,8,10]（分格数≥4 背书——原
+#   范围声明升格为 grid 档；滤池分格偶数布置工程惯例，default 6 命中；
+#   M2-SOL §7 档位补齐，待追认）；档位下限归 grid 层承载，compute 只保
+#   n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：v_filter/ratio_lb/
-#   h_water_above/h_sand/t_cycle 五参数；n 分格数≥4 与 h_bottom 构造无
-#   范围来源不设）/ports 两口 WATER/removal_refs/norm_refs 双源标记
+#   h_water_above/h_sand/t_cycle 五参数；n 分格数经 grid 档承载、h_bottom
+#   构造无范围来源不设）/ports 两口 WATER/removal_refs/norm_refs 双源标记
 #   （GB 50013-2018+给水排水设计手册）/condition_mappings=()/
 #   constraint_refs 六键。
 # ══════════════════════════════════════════════════════════════════
@@ -260,7 +264,7 @@ manifest = load_manifest(
         # cycle_band 24~48），构造参数（分格数/滤板气水区高/取整档）无
         # 范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 6.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 6.0, "grid": [4, 6, 8, 10]},
             {
                 "field_id": "v_filter",
                 "dim": "DIMENSIONLESS",

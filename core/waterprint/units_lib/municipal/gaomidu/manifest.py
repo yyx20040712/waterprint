@@ -32,6 +32,9 @@
 #   ③ 逐字）——Actiflo（微砂型）与磁混凝不纳入；GM-F12 干泥量仅计 SS
 #   去除项（PAC 水解絮体泥量增量未计入主线——增量系数化归领域专家
 #   追认后可补键）。
+# 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
+#   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
+#   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：q_surface/r_sludge/t_mix/
 #   t_floc 四参数）/ports 两口 WATER/removal_refs/norm_refs 双源标记
 #   （GB/T 50335-2016+GB 50013-2018+给水排水设计手册）/
@@ -259,7 +262,7 @@ manifest = load_manifest(
         # 0.03~0.05/t_mix_band 1~2/t_floc_band 8~15），构造参数（池数/斜管
         # 几何/分区高度/取整档）无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
                 "field_id": "q_surface",
                 "dim": "DIMENSIONLESS",

@@ -25,6 +25,9 @@
 #   L=2π(D−1)，单侧口径敏感性见三表注记——待领域专家追认）。
 # 【DSL 单输出导出量】q1（=q_design/n，CC-F8/F9 的单池秒流量）在 compute
 #   以参数化算术合成（零字面量，无新工程常数）。
+# 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
+#   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
+#   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：q'/T/排泥周期三参数）/
 #   ports 两口 WATER/removal_refs/norm_refs 双源标记（GB 50014-2021+
 #   给水排水设计手册）/condition_mappings=()/constraint_refs 五键。
@@ -244,7 +247,7 @@ manifest = load_manifest(
         # retention_band 1.0~2.5/sludge_cycle_band 1~2[data 0.2.1]），
         # 构造参数（r1/r2/h5/取整档）无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
                 "field_id": "q_prime",
                 "dim": "DIMENSIONLESS",
