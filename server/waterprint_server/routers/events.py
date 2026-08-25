@@ -26,3 +26,55 @@
 #
 # 【参照】重写计划 §12.2/§11 R5/§17.3
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+import json
+from collections.abc import AsyncIterator
+from dataclasses import asdict
+from typing import Any
+
+from fastapi import APIRouter, Request
+from fastapi.responses import StreamingResponse
+
+from waterprint_server.services import ServiceContext
+
+router = APIRouter(prefix="/api/events", tags=["events"])
+
+# R2：反代缓冲对策头（nginx X-Accel-Buffering 禁缓冲——chunked 直通）。
+_SSE_HEADERS = {"X-Accel-Buffering": "no", "Cache-Control": "no-cache"}
+
+
+def _ctx(request: Request) -> ServiceContext:
+    """装配束取用（app.state.ctx——main 工厂注入）。"""
+    return request.app.state.ctx  # type: ignore[no-any-return]
+
+
+def _stream(source: AsyncIterator[Any]) -> AsyncIterator[str]:
+    """事件 JSON 化（R1：data: 单行 JSON——type/task_id/percent/message）。"""
+    async def generated() -> AsyncIterator[str]:
+        async for event in source:
+            payload = asdict(event)  # Event dataclass（routers 不直连 jobs 类型面——Any 桥接）
+            yield f"event: {payload['type']}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    return generated()
+
+
+@router.get("/tasks/{task_id}")
+async def task_events(task_id: str, request: Request) -> StreamingResponse:
+    """单任务进度流（每连接独立；断线清理在 manager.events finally）。"""
+    return StreamingResponse(
+        _stream(_ctx(request).manager.events(task_id)),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )
+
+
+@router.get("/projects/{project_id}")
+async def project_events(project_id: str, request: Request) -> StreamingResponse:
+    """项目事件流（stale 通知/任务完成——连接即当前，不重放历史）。"""
+    return StreamingResponse(
+        _stream(_ctx(request).manager.project_events(project_id)),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )

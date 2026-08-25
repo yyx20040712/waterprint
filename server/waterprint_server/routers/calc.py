@@ -38,4 +38,112 @@
 #   方案应用原子性（失败不半写）。
 #
 # 【参照】重写计划 §12.2/§17.1/§16 A6；ADR-005
+#
+# 【实现注记（SERVER 2026-08-26）】响应模型=服务层冻结 dataclass
+#   （SaveOutcome/TaskStatus/SolutionPage/ApplyOutcome——FastAPI 原生
+#   支持；禁协议层重复声明漂移面）。TaskStatus 经 services.calculation
+#   再导出（routers→jobs 非声明边，分层 §13.4）。
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from typing import Any
+
+from fastapi import APIRouter, Query, Request
+from pydantic import BaseModel, Field
+
+from waterprint_server.services import ServiceContext
+from waterprint_server.services import calculation as calc_service
+from waterprint_server.services import enumeration as enum_service
+from waterprint_server.services.calculation import ApplyOutcome, TaskStatus
+from waterprint_server.services.enumeration import SolutionPage
+
+router = APIRouter(prefix="/api/calc", tags=["calc"])
+
+
+def _ctx(request: Request) -> ServiceContext:
+    """装配束取用（app.state.ctx——main 工厂注入）。"""
+    return request.app.state.ctx  # type: ignore[no-any-return]
+
+
+class TaskIdResponse(BaseModel):
+    """任务句柄（幂等提交返回既有 id）。"""
+
+    task_id: str
+
+
+class RunRequest(BaseModel):
+    """全流程计算请求（工况选择=受检单元列表）。"""
+
+    project_id: str
+    conditions: list[str] = Field(default_factory=list)
+
+
+class EnumerateRequest(BaseModel):
+    """单单元枚举请求（R1 ADR-005：多 unit_id 服务层显式 422）。"""
+
+    project_id: str
+    unit_ids: list[str] = Field(min_length=1)
+    options: dict[str, Any] | None = None
+
+
+class CancelResponse(BaseModel):
+    """取消结果（R3：终态任务不受取消影响）。"""
+
+    cancelled: bool
+
+
+class ApplyRequest(BaseModel):
+    """方案应用请求（R5：事务性服务调用）。"""
+
+    project_id: str
+    unit_id: str
+    params: dict[str, Any]
+
+
+@router.post("/run", response_model=TaskIdResponse)
+async def run_calculation(body: RunRequest, request: Request) -> TaskIdResponse:
+    """全流程计算（异步任务）——幂等键=(design_hash, conditions)。"""
+    handle = await calc_service.submit_calculation(_ctx(request), body.project_id, body.conditions)
+    return TaskIdResponse(task_id=handle.task_id)
+
+
+@router.post("/enumerate", response_model=TaskIdResponse)
+async def run_enumeration(body: EnumerateRequest, request: Request) -> TaskIdResponse:
+    """单单元枚举（ADR-005 语义守护在服务面）。"""
+    handle = await enum_service.submit_enumeration(
+        _ctx(request), body.project_id, body.unit_ids, body.options
+    )
+    return TaskIdResponse(task_id=handle.task_id)
+
+
+@router.get("/tasks/{task_id}", response_model=TaskStatus)
+async def get_task_status(task_id: str, request: Request) -> TaskStatus:
+    """状态（stale=提示性标记 R1/R2；结果载荷含无解诊断交付面）。"""
+    return calc_service.task_status(_ctx(request), task_id)
+
+
+@router.post("/tasks/{task_id}/cancel", response_model=CancelResponse)
+async def cancel_task(task_id: str, request: Request) -> CancelResponse:
+    """取消（协作令牌置位；已完成结果不受影响 R3）。"""
+    return CancelResponse(cancelled=calc_service.cancel_task(_ctx(request), task_id))
+
+
+@router.get("/tasks/{task_id}/solutions", response_model=SolutionPage)
+async def get_solutions(
+    task_id: str,
+    request: Request,
+    page: int = Query(default=1, ge=1),
+    size: int | None = Query(default=None, ge=1),
+    sort: str = Query(default="margin_min"),
+) -> SolutionPage:
+    """分页结果（默认 200/页经 Settings §12.2；万级不整包回传）。"""
+    return enum_service.fetch_solutions(_ctx(request), task_id, page, size, sort)
+
+
+@router.post("/solutions/apply", response_model=ApplyOutcome)
+async def apply_solution(body: ApplyRequest, request: Request) -> ApplyOutcome:
+    """方案应用（原子事务：失败回滚不半写 R5）。"""
+    return await calc_service.apply_solution(
+        _ctx(request), body.project_id, {"unit_id": body.unit_id, "params": body.params}
+    )

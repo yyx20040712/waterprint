@@ -63,6 +63,7 @@ from queue import Empty
 from types import MappingProxyType
 from typing import Any, Final
 
+from waterprint_server.jobs import worker
 from waterprint_server.jobs.worker import run_task
 
 # SSE 订阅者事件缓冲上限（背压 R4：满则丢最旧进度事件，状态事件不丢）。
@@ -198,6 +199,9 @@ class Manager:
     def start(self) -> None:
         """启动进度桥线程（应用 startup 调；重复启动幂等）。"""
         self._cancel_dir.mkdir(parents=True, exist_ok=True)
+        # 进程内执行器（ThreadPool 注入口/测试面）：worker 模块全局直挂本队列；
+        # 进程池（spawn）路径由池 initializer 注入子进程——两条通路同一队列。
+        worker._PROGRESS_QUEUE = self._progress_queue  # noqa: SLF001  # R3 进度通路注入口
         if not self._listener.is_alive():
             self._listener.start()
 
@@ -212,7 +216,12 @@ class Manager:
             if existing is not None and not existing.terminal:
                 return TaskHandle(existing.task_id)
         task_id = uuid.uuid4().hex
-        self._tasks[task_id] = _TaskRecord(task_id=task_id, request=request)
+        effective = dict(request.payload)
+        effective["task_id"] = task_id  # worker 侧产物命名/进度回址（§18 IPC 面）
+        self._tasks[task_id] = _TaskRecord(
+            task_id=task_id,
+            request=TaskRequest(kind=request.kind, payload=effective, priority=request.priority),
+        )
         if idempotency_key is not None:
             self._idem[idempotency_key] = task_id
         heapq.heappush(self._pending, (-request.priority, self._seq, task_id))
@@ -374,7 +383,7 @@ class Manager:
                 record.state = "cancelled"
             else:
                 record.state = "done"
-                record.result = MappingProxyType(dict(outcome))
+                record.result = dict(outcome)  # plain dict（JSON 序列化面——proxy 拒序列化）
         await self._emit(
             record, Event("state", task_id, record.progress, record.state, None)
         )

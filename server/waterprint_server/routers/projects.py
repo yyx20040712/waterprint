@@ -31,3 +31,108 @@
 #
 # 【参照】重写计划 §13.4/§17.3/§18
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from typing import Any
+
+from fastapi import APIRouter, Request
+from pydantic import BaseModel
+from waterprint.contracts.project_schema import parse_project
+
+from waterprint_server.services import ServiceContext
+from waterprint_server.services import projects as service
+
+router = APIRouter(prefix="/api/projects", tags=["projects"])
+
+
+def _ctx(request: Request) -> ServiceContext:
+    """装配束取用（app.state.ctx——main 工厂注入，无全局可变态）。"""
+    return request.app.state.ctx  # type: ignore[no-any-return]
+
+
+class CreateProjectRequest(BaseModel):
+    """创建请求：空创建（project 缺省）或导入 JSON（§18 深度闸在服务面）。"""
+
+    project: dict[str, Any] | None = None
+
+
+class SaveOutcomeResponse(BaseModel):
+    """R3 保存语义：新 content_hash + design/view 区分。"""
+
+    project_id: str
+    content_hash: str
+    design_changed: bool
+
+
+class ProjectSummaryResponse(BaseModel):
+    """列表条目（名称=文件 id；哈希/时间元数据）。"""
+
+    project_id: str
+    format_version: str
+    content_hash: str
+    engine_version: str
+    data_version: str
+    view_timestamp: str
+
+
+class ValidationResponse(BaseModel):
+    """校验报告（零计算；错误清单带字段路径）。"""
+
+    valid: bool
+    errors: list[str]
+
+
+@router.post("", response_model=SaveOutcomeResponse)
+async def create_project(body: CreateProjectRequest, request: Request) -> SaveOutcomeResponse:
+    """创建（空项目或导入）——薄转换：调 service → 响应包装。"""
+    outcome = service.create_project(_ctx(request), {"project": body.project})
+    return SaveOutcomeResponse(
+        project_id=outcome.project_id,
+        content_hash=outcome.content_hash,
+        design_changed=outcome.design_changed,
+    )
+
+
+@router.get("", response_model=list[ProjectSummaryResponse])
+async def list_projects(request: Request) -> list[ProjectSummaryResponse]:
+    """列表（元数据来自文件读取，无独立索引库）。"""
+    return [
+        ProjectSummaryResponse(
+            project_id=item.project_id,
+            format_version=item.format_version,
+            content_hash=item.content_hash,
+            engine_version=item.engine_version,
+            data_version=item.data_version,
+            view_timestamp=item.view_timestamp,
+        )
+        for item in service.list_projects(_ctx(request))
+    ]
+
+
+@router.get("/{project_id}")
+async def read_project(project_id: str, request: Request) -> dict[str, Any]:
+    """读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。"""
+    return service.read_project(_ctx(request), project_id).model_dump(mode="json")
+
+
+@router.put("/{project_id}", response_model=SaveOutcomeResponse)
+async def save_project(
+    project_id: str, body: dict[str, Any], request: Request
+) -> SaveOutcomeResponse:
+    """保存（R3：新 hash+design_changed 区分；R4 锁 409 在 service→异常映射）。"""
+    outcome = service.save_project(
+        _ctx(request), project_id, parse_project(body)  # 422 带：ValidationError 映射
+    )
+    return SaveOutcomeResponse(
+        project_id=outcome.project_id,
+        content_hash=outcome.content_hash,
+        design_changed=outcome.design_changed,
+    )
+
+
+@router.post("/{project_id}/validate", response_model=ValidationResponse)
+async def validate_project(project_id: str, request: Request) -> ValidationResponse:
+    """校验（零计算快速反馈——装载面错误清单）。"""
+    report = service.validate_project(_ctx(request), project_id)
+    return ValidationResponse(valid=report.valid, errors=list(report.errors))

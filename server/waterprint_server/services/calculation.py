@@ -56,6 +56,9 @@ from typing import Any
 from waterprint import app as core
 
 from waterprint_server.jobs.manager import TaskHandle, TaskRequest, TaskStatus
+
+# TaskStatus 再导出（routers 响应模型面——routers→jobs 非声明边，分层 §13.4）
+__all__ = ["ApplyOutcome", "TaskStatus"]
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import (
     ProjectNotFoundError,
