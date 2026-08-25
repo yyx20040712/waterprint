@@ -115,7 +115,10 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (ExportTemplateMissingError, status.HTTP_501_NOT_IMPLEMENTED),
 )
 # 名义映射（worker 侧领域异常诊断面——类不可直连导入时按名映射，
-# LoopDivergence→422 附诊断是 R2 冻结行；消费面=solutions/diagnosis）。
+# LoopDivergence→422 附诊断是 R2 冻结行）。R1-2（AU-2 接线 2026-08-26）：
+# 消费面=services.calculation.task_status（经 ServiceContext.domain_error_codes
+# 注入——fastapi/status 数值面归 main 独占，services 禁 import fastapi），
+# failed 任务按 error_type 名回填结构化 error_code 字段。
 DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "LoopDivergence": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
@@ -202,7 +205,9 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
             max_concurrent=settings.calc_workers,
         )
         manager.start()
-        app.state.ctx = ServiceContext(settings=settings, manager=manager)
+        app.state.ctx = ServiceContext(
+            settings=settings, manager=manager, domain_error_codes=DOMAIN_ERROR_CODES
+        )
         _contract_self_check(app)
         yield
         await manager.shutdown(_SHUTDOWN_TIMEOUT)

@@ -105,6 +105,41 @@ async def test_running_task_result_marked_stale_on_edit_wiring(service_ctx, monk
     assert status.stale is True  # 快照 vs 当前（UF-37：完成时对比=提示性标记）
 
 
+async def test_failed_task_error_code_wired_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """R1-2（AU-2）行为断言：failed 任务携 LoopDivergence 名→error_code==422。
+
+    worker 侧领域异常（类不可直连导入——D7 forbidden）按 error_type 名经
+    DOMAIN_ERROR_CODES 注入表回填结构化 error_code（响应体语义字段）。
+    """
+    from fastapi import status as http_status
+
+    import waterprint_server.jobs.manager as manager_mod
+    from waterprint_server.main import DOMAIN_ERROR_CODES
+
+    class LoopDivergence(Exception):  # noqa: N818  # 与 core 同名异常（名义表按名映射的前提）
+        """测试替身：worker 侧回路发散诊断名。"""
+
+    def divergent_task(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        raise LoopDivergence("回路发散：迭代超上限（测试注入）")
+
+    monkeypatch.setattr(manager_mod, "run_task", divergent_task)
+    # 注入表（生产由 main lifespan 注入；service_ctx 直测面手动同款注入）
+    object.__setattr__(
+        service_ctx, "domain_error_codes", dict(DOMAIN_ERROR_CODES)
+    )
+    project_id = await _created(service_ctx)
+    handle = await submit_calculation(service_ctx, project_id, [])
+    for _ in range(100):
+        final = task_status(service_ctx, handle.task_id)
+        if final.state in {"done", "failed", "cancelled"}:
+            break
+        await asyncio.sleep(0.05)
+    assert final.state == "failed"
+    assert final.error_type == "LoopDivergence"  # 诊断名回传（worker→manager 面）
+    assert final.error_code == http_status.HTTP_422_UNPROCESSABLE_CONTENT  # 名义表接线
+    assert final.error_code == DOMAIN_ERROR_CODES["LoopDivergence"]  # 与映射表一致
+
+
 async def test_apply_solution_rolls_back_on_failure_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """R2 接线断言：应用方案中途失败 → design/hash 回滚（无半写）。"""
     project_id = await _created(service_ctx)

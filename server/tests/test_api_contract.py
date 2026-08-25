@@ -18,6 +18,7 @@
 #   的 create_app 缺失即 skip 并注明原因）。
 # ══════════════════════════════════════════════════════════════════
 
+import asyncio
 import importlib
 
 import pytest
@@ -84,7 +85,7 @@ async def test_openapi_schema_no_any_leak(client) -> None:  # type: ignore[no-un
 
 @pytest.mark.anyio
 async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-def]
-    """A3：领域异常 → HTTP 映射表完整（真实端点触发面：404/422/501）。"""
+    """A3：领域异常 → HTTP 映射表完整（真实端点触发面：404/422）。"""
     missing = {"project_id": "nosuchproject0000", "conditions": []}
     r = await client.post("/api/calc/run", json=missing)
     assert r.status_code == status.HTTP_404_NOT_FOUND  # NotFound 族→404
@@ -101,8 +102,30 @@ async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-
     )
     assert r.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT  # pydantic 参数面
     r = await client.post("/api/exports/audit", json={"project_id": project_id})
-    assert r.status_code in {status.HTTP_404_NOT_FOUND, status.HTTP_501_NOT_IMPLEMENTED}
-    # ↑ 无结果集=404（先重算）；有结果集而 kind 未就绪/模板缺位=501（A3 族）
+    assert r.status_code == status.HTTP_404_NOT_FOUND  # R1-3：无结果集=恰 404（先重算）
+
+
+@pytest.mark.anyio
+async def test_not_ready_kinds_return_501_wiring(client, cass_payload) -> None:  # type: ignore[no-untyped-def]
+    """R1-3（AU-3）：有结果集时 audit/dxf/estimate=恰 501（未就绪族确定性）。"""
+    created = await client.post("/api/projects", json={"project": cass_payload})
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )).json()["task_id"]
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed", "cancelled"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"  # 结果集就绪（501 前提）
+    for kind in ("audit", "dxf", "estimate"):
+        response = await client.post(f"/api/exports/{kind}", json={"project_id": project_id})
+        assert response.status_code == status.HTTP_501_NOT_IMPLEMENTED, (
+            f"{kind} 期望恰 501（ArtifactKindNotReady/模板缺位透传），"
+            f"得到 {response.status_code}"
+        )
+        assert "error_type" in response.json()
 
 
 @pytest.mark.anyio

@@ -21,7 +21,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from waterprint_server.jobs.manager import Manager
@@ -34,6 +35,10 @@ class ServiceContext:
 
     settings: Settings
     manager: Manager
+    # R1-2（AU-2 接线 2026-08-26）：领域异常名→HTTP 码名义表经 main 注入
+    # （fastapi/status 面 main 独占——services 禁 import fastapi，数值经
+    # 注入流动而非字面量）；TaskStatus 消费面回填结构化 error_code。
+    domain_error_codes: Mapping[str, int] = field(default_factory=dict)
 
     @property
     def projects_dir(self) -> Path:

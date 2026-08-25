@@ -57,8 +57,26 @@ def test_router_exposes_six_endpoints_wiring() -> None:
 
 
 @pytest.mark.anyio
-async def test_duplicate_submit_is_idempotent_wiring(client, cass_payload) -> None:  # type: ignore[no-untyped-def]
-    """R1 接线断言：同 (design_hash, condition) 重复提交返回同一 task_id。"""
+async def test_duplicate_submit_is_idempotent_wiring(
+    client, cass_payload, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    """R1 接线断言：同 (design_hash, condition) 重复提交返回同一 task_id。
+
+    AU-9/R1-4④：进程池"只占一次"补派发计数直接断言（替身计数==1——
+    幂等键命中即不重复入队派发，不占第二个执行位）。
+    """
+    import time
+
+    import waterprint_server.jobs.manager as manager_mod
+
+    dispatches: list[str] = []
+
+    def counting_task(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        dispatches.append(str(payload["task_id"]))
+        time.sleep(1 / 2)  # 保持非终态窗口（第二次提交落在幂等窗口内）
+        return {"state": "done", "project_id": payload.get("project_id", "")}
+
+    monkeypatch.setattr(manager_mod, "run_task", counting_task)
     created = await client.post("/api/projects", json={"project": cass_payload})
     assert created.status_code == 200
     project_id = created.json()["project_id"]
@@ -68,7 +86,8 @@ async def test_duplicate_submit_is_idempotent_wiring(client, cass_payload) -> No
     assert first.status_code == second.status_code == 200
     assert first.json()["task_id"] == second.json()["task_id"]  # 同 task_id
     final = await _wait_terminal(client, first.json()["task_id"])
-    assert final["state"] in {"done", "failed"}  # 进程池只占一次（单任务终态）
+    assert final["state"] in {"done", "failed"}
+    assert len(dispatches) == 1  # 派发计数恰 1（幂等键命中不重复占池）
 
 
 @pytest.mark.anyio

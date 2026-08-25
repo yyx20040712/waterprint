@@ -115,6 +115,7 @@ class TaskStatus:
     error_type: str | None
     result: Mapping[str, Any] | None
     project_id: str = ""
+    error_code: int | None = None  # R1-2：诊断名→HTTP 码（消费面回填，AU-2）
 
 
 @dataclass(frozen=True)

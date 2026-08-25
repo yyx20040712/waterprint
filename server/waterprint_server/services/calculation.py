@@ -119,16 +119,23 @@ async def submit_calculation(
 
 
 def task_status(ctx: ServiceContext, task_id: str) -> TaskStatus:
-    """任务状态（stale=提示性标记：快照 vs 当前 design，UF-37 口径 R1）。"""
+    """任务状态（stale=提示性标记 R1；failed 附结构化 error_code R1-2/AU-2）。
+
+    error_code=DOMAIN_ERROR_CODES 按 error_type 名回填（main 注入表——
+    worker 侧领域异常如 LoopDivergence 类不可直连导入[D7 forbidden]，经
+    名义表接线 D3"LoopDivergence→422 附诊断"冻结行；无映射=None）。
+    """
     status = ctx.manager.status(task_id)
+    error_code = ctx.domain_error_codes.get(status.error_type or "") or None
+    patched = dataclasses.replace(status, error_code=error_code)
     snapshot = ctx.manager.snapshot(task_id)
-    if snapshot is None or not status.project_id:
-        return status
+    if snapshot is None or not patched.project_id:
+        return patched
     try:
-        current = design_digest(read_project(ctx, status.project_id).design)
+        current = design_digest(read_project(ctx, patched.project_id).design)
     except ProjectNotFoundError:
-        return status
-    return dataclasses.replace(status, stale=status.stale or snapshot != current)
+        return patched
+    return dataclasses.replace(patched, stale=patched.stale or snapshot != current)
 
 
 def cancel_task(ctx: ServiceContext, task_id: str) -> bool:
