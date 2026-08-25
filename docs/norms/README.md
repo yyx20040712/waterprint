@@ -31,10 +31,10 @@ norms/
 | chuchenchi（辐流初沉池） | 市政污水 | `chuchenchi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2；M2a2 按表逐字实装 CC-F1~F18） |
 | aao（AAO 生物池） | 市政污水 | `aao.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2；M2a2 按表逐字实装 AO-F1~F14） |
 | erchunchi（辐流二沉池） | 市政污水 | `erchunchi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2；M2a2 按表逐字实装 EC-F1~F15） |
-| tiaojiechi（调节池） | 市政污水 | `tiaojiechi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-25，数据策略 v2，工程常用范围口径；实装归 M2b2） |
-| gaomidu（高密沉淀池） | 市政污水 | `gaomidu.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-25，数据策略 v2，ADR-008 ③ Densadeg 型逐字；实装归 M2b2） |
-| vxinglvchi（V 型滤池） | 市政污水 | `vxinglvchi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-25，数据策略 v2，工程常用范围口径；实装归 M2b2） |
-| ziwai（紫外消毒） | 市政污水 | `ziwai.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-25，数据策略 v2，剂量法主线；实装归 M2b2） |
+| tiaojiechi（调节池） | 市政污水 | `tiaojiechi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2，工程常用范围口径；M2b2 按表逐字实装 TJ-F1~F13） |
+| gaomidu（高密沉淀池） | 市政污水 | `gaomidu.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2，ADR-008 ③ Densadeg 型逐字；M2b2 按表逐字实装 GM-F1~F20） |
+| vxinglvchi（V 型滤池） | 市政污水 | `vxinglvchi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2，工程常用范围口径；M2b2 按表逐字实装 XL-F1~F19） |
+| ziwai（紫外消毒） | 市政污水 | `ziwai.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-25，数据策略 v2，剂量法主线；M2b2 按表逐字实装 ZW-F1~F13） |
 
 ## 涉及规范清单（实现期逐步摘录）
 

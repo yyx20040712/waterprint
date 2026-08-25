@@ -98,12 +98,12 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `core/waterprint/units_lib/municipal/xigeshan/` | 市政污水 | M1 先行示范（M1a 已实装：XG-F1~F14 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/chenshachi/` | 市政污水 | M1 先行示范（M1a 已实装：CS-F1~F18 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/chuchenchi/` | 市政污水 | M2a2 已实装（CC-F1~F18 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
-| `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/tiaojiechi/` | 市政污水 | M2b2 已实装（TJ-F1~F13 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/aao/` | 市政污水 | M2a2 已实装（AO-F1~F14 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/cass/` | 市政污水 | M2 |
-| `core/waterprint/units_lib/municipal/gaomidu/` | 市政污水 | M2 |
-| `core/waterprint/units_lib/municipal/vxinglvchi/` | 市政污水 | M2 |
-| `core/waterprint/units_lib/municipal/ziwai/` | 市政污水 | M2 |
+| `core/waterprint/units_lib/municipal/gaomidu/` | 市政污水 | M2b2 已实装（GM-F1~F20 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
+| `core/waterprint/units_lib/municipal/vxinglvchi/` | 市政污水 | M2b2 已实装（XL-F1~F19 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
+| `core/waterprint/units_lib/municipal/ziwai/` | 市政污水 | M2b2 已实装（ZW-F1~F13 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/erchunchi/` | 市政污水 | M2a2 已实装（EC-F1~F15 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/bashi_jiliangcao/` | 市政污水 | M2 |
 | `core/waterprint/units_lib/municipal/wushui_tisheng/` | 市政污水 | M2 |
