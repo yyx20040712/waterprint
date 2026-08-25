@@ -1,6 +1,6 @@
 {
   "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
-  "core/tests/app/test_app.py": "c38ef75482eedaaa71a47924b5fc2df5b5e6470df6d68a820b666a6be2b85ad2",
+  "core/tests/app/test_app.py": "a7366e14ae6147ad33a89f4a461002431c75b39c2671e12b7670e37a2687c2b7",
   "core/tests/app/test_cli.py": "52fce425fd3f46c85949366ece4557d08d4c4f6194abb023c1be04c25bda2e83",
   "core/tests/arch/test_file_budgets.py": "1e662e6830adc5e4a015c0a92c617784d6bc174a066d1efa64dd57f15571e49e",
   "core/tests/arch/test_hygiene.py": "63952694d7748b431dabcebc6f3b0c4291b116b97c4bfc2dd6cb1b791638e2d5",
@@ -74,8 +74,8 @@
   "core/tests/solution/test_grid.py": "29bc3dc95329e2300295910186a3caf39841b4aa2fbdb36a5c7170191645a2f7",
   "core/tests/solution/test_ranking.py": "59b19bc927439972db16b298c5d330d0591a41a9a2260fc14f6c69f31a795fe0",
   "core/tests/trace/test_audit.py": "107c697e1bb2df13884bc4f222a72be8d3bd4ec6fd696d945a1b3d176c9ff9c9",
-  "core/tests/trace/test_calcbook.py": "9ffbe28fc940ce81b719d1609cc0d55ff20c50cc618ffa01c0639cfc589da631",
-  "core/tests/trace/test_collector.py": "724c334662eb9de7dd40c2ea3eab95f9b1a49048fab9d46c716007b09a97fbfc",
+  "core/tests/trace/test_calcbook.py": "9086803e6a3cef51dcfbc4ae25c98d271bf1e633469f87ce55e1c51d5c98b80f",
+  "core/tests/trace/test_collector.py": "49fe6756dd5094932d3be9c4b07bb52cb756e2bcdfde3014342590837fa0970e",
   "server/tests/conftest.py": "2492f8a4db34e94823ba8a0129654160540b1f493b0520cfd527579109fb2ad6",
   "server/tests/jobs/test_manager.py": "fece9bd5fc80f433bfefae36cf08bcf0e8fd1c99fb3cdc4f70483477e89144fb",
   "server/tests/jobs/test_worker.py": "25b561a62479c4540cdb866224b792726519ed7bb7580cf3527cfe0bfda1b607",
