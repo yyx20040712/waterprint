@@ -41,10 +41,10 @@ from types import MappingProxyType
 from typing import Final, final
 
 from waterprint.drafting.styles import (
+    LAYER_BORDER,
+    LAYER_TITLE,
     Entity,
     EntityGroup,
-    LayerSpec,
-    base_styles,
 )
 
 __all__ = [
@@ -124,11 +124,6 @@ class TitleEntries:
         )
 
 
-def _frame_layers() -> tuple[LayerSpec, ...]:
-    """图框两图层（经 base_styles 取——禁止手写图层字符串 R1）。"""
-    return base_styles().layers
-
-
 def sheet_frame(spec: Mapping[str, object]) -> EntityGroup:
     """图框生成（幅面×横竖×装订边，mm 1:1 实体）。
 
@@ -146,9 +141,8 @@ def sheet_frame(spec: Mapping[str, object]) -> EntityGroup:
     if normalized.orientation == "portrait":
         width, height = height, width
     margin = _MARGIN_WIDE if normalized.size in ("A0", "A1", "A2") else _MARGIN_NARROW
-    layers = _frame_layers()
-    border_layer = layers[-2].name  # WP-frame-border
-    title_layer = layers[-1].name  # WP-frame-title
+    border_layer = LAYER_BORDER  # 唯一命名真源经 styles 常量引用（R1）
+    title_layer = LAYER_TITLE
     left = _MARGIN_BIND
     inner: tuple[tuple[float, float], ...] = (
         (left, margin), (width - margin, margin),
@@ -171,8 +165,7 @@ def sheet_frame(spec: Mapping[str, object]) -> EntityGroup:
 
 def title_block(entries: TitleEntries) -> EntityGroup:
     """标题栏+会签栏（栏位数据生成；UTF-8 文字，留空栏位合法 R4）。"""
-    layers = _frame_layers()
-    label_layer = layers[-1].name  # WP-frame-title
+    label_layer = LAYER_TITLE  # 唯一命名真源经 styles 常量引用（R1）
     row_h = 5.0  # 栏位行高 mm（GB/T 50001 标题栏分格工程惯例）
     made: list[Entity] = []
     for index, field_id in enumerate(_TITLE_FIELDS):

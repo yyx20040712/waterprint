@@ -42,7 +42,19 @@ from types import MappingProxyType
 from typing import Final, final
 
 __all__ = [
+    "ANNO_OFFSET_CONDITION",
+    "ANNO_OFFSET_DIM_1",
+    "ANNO_OFFSET_DIM_2",
+    "ANNO_OFFSET_LEVEL",
+    "LAYER_AXIS",
+    "LAYER_BORDER",
+    "LAYER_DIM",
+    "LAYER_ELEV",
+    "LAYER_LABEL",
+    "LAYER_PIPE",
+    "LAYER_POOL",
     "LAYER_PREFIX",
+    "LAYER_TITLE",
     "CutPosition",
     "Entity",
     "EntityGroup",
@@ -54,6 +66,21 @@ __all__ = [
 ]
 
 LAYER_PREFIX: Final[str] = "WP-"
+# 图层名常量（唯一命名真源 R1：消费文件经引用取用，禁止手写图层字符串）。
+LAYER_POOL: Final[str] = "WP-process-pool"
+LAYER_PIPE: Final[str] = "WP-process-pipe"
+LAYER_AXIS: Final[str] = "WP-arch-axis"
+LAYER_ELEV: Final[str] = "WP-anno-elev"
+LAYER_LABEL: Final[str] = "WP-anno-label"
+LAYER_DIM: Final[str] = "WP-dim-linear"
+LAYER_BORDER: Final[str] = "WP-frame-border"
+LAYER_TITLE: Final[str] = "WP-frame-title"
+# 标注/注记图面偏移（mm 语义模型坐标，声明面常量+出处注记——GB/T 50001
+# 图面布置工程惯例：注记位于图形下方成排行距 0.6 m 模型单位档）。
+ANNO_OFFSET_DIM_1: Final[float] = -1.0
+ANNO_OFFSET_DIM_2: Final[float] = -2.0
+ANNO_OFFSET_CONDITION: Final[float] = -3.0
+ANNO_OFFSET_LEVEL: Final[float] = -3.6
 
 # 制图标准基线常量（本文件=DRAFT 批裁决的 drafting 声明面白名单区：
 # 数值=ACI 颜色索引/线宽档，出处逐条挂 GB/T 50001 与 ADR-006——无出处不入表 R2）。

@@ -42,6 +42,9 @@ from typing import final
 from waterprint.contracts.drawing_projection import ProfileStation
 from waterprint.contracts.result_schema import UnitResultSnapshot
 from waterprint.drafting.styles import (
+    LAYER_DIM,
+    LAYER_ELEV,
+    LAYER_POOL,
     CutPosition,
     Entity,
     EntityGroup,
@@ -77,9 +80,9 @@ def unit_section(
     （CutPosition 与 plan_view 联动 R1）+ 工况注记（R5）。
     """
     chosen = options if options is not None else SectionOptions()
-    pool = styles.layers[0].name  # WP-process-pool
-    anno = styles.layers[3].name  # WP-anno-elev
-    dim = styles.layers[5].name  # WP-dim-linear
+    pool = LAYER_POOL  # 唯一命名真源经 styles 常量引用（R1）
+    anno = LAYER_ELEV
+    dim = LAYER_DIM
     length = 10.0  # 剖面展开长度缺省幅（表无 length 槽单元的图幅占位）
     entities: list[Entity] = [
         Entity("line", anno, ((0.0, profile_station.ground_elev),

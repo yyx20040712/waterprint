@@ -42,7 +42,18 @@ from typing import final
 
 from waterprint.contracts.drawing_projection import UnitProjection
 from waterprint.contracts.result_schema import UnitResultSnapshot
-from waterprint.drafting.styles import Entity, EntityGroup, StyleTable
+from waterprint.drafting.styles import (
+    ANNO_OFFSET_CONDITION,
+    ANNO_OFFSET_DIM_1,
+    ANNO_OFFSET_DIM_2,
+    ANNO_OFFSET_LEVEL,
+    LAYER_DIM,
+    LAYER_LABEL,
+    LAYER_POOL,
+    Entity,
+    EntityGroup,
+    StyleTable,
+)
 
 __all__ = ["PlanOptions", "unit_plan"]
 
@@ -60,11 +71,6 @@ class PlanOptions:
     pipe_routing: bool = False
 
 
-def _layer(styles: StyleTable, index: int) -> str:
-    """按位取图层名（样式表唯一命名真源 R1——禁手写图层字符串）。"""
-    return styles.layers[index].name
-
-
 def unit_plan(
     unit_result: UnitResultSnapshot,
     manifest: UnitProjection,
@@ -79,9 +85,9 @@ def unit_plan(
     坐标单位 m（模型 1:1）——m→mm 出图换算归 dxf_writer 唯一住所。
     """
     chosen = options if options is not None else PlanOptions()
-    pool = _layer(styles, 0)  # WP-process-pool
-    dim = _layer(styles, 5)  # WP-dim-linear
-    anno = _layer(styles, 4)  # WP-anno-label
+    pool = LAYER_POOL  # 唯一命名真源经 styles 常量引用（R1）
+    dim = LAYER_DIM
+    anno = LAYER_LABEL
     length_key = manifest.plan_keys.get("overall_length") or manifest.primitive_dims.get("length")
     width_key = manifest.plan_keys.get("overall_width") or manifest.primitive_dims.get("width")
     dims = unit_result.dims
@@ -111,18 +117,18 @@ def unit_plan(
             )
     # R3 标注完备：总尺寸（双向）+分格（逐跨）+标高符号占位（剖面同源）
     entities.append(
-        Entity("dim_linear", dim, ((0.0, -1.0), (length, -1.0)),
+        Entity("dim_linear", dim, ((0.0, ANNO_OFFSET_DIM_1), (length, ANNO_OFFSET_DIM_1)),
                params={"measurement": length}, text=length_key, source_key=length_key)
     )
     entities.append(
-        Entity("dim_linear", dim, ((-1.0, 0.0), (-1.0, width)),
+        Entity("dim_linear", dim, ((ANNO_OFFSET_DIM_1, 0.0), (ANNO_OFFSET_DIM_1, width)),
                params={"measurement": width}, text=width_key, source_key=width_key)
     )
     if gap_key is not None and gap_key in dims:
         spans = max(int(float(dims[gap_key])), 1)
         entities.append(
             Entity("dim_linear", dim,
-                   ((0.0, -2.0), (length / spans, -2.0)),
+                   ((0.0, ANNO_OFFSET_DIM_2), (length / spans, ANNO_OFFSET_DIM_2)),
                    params={"measurement": length / spans},
                    text=gap_key, source_key=gap_key)
         )
@@ -135,10 +141,11 @@ def unit_plan(
         )
     # R4 工况注记（右下角；repro 三元组归 DrawingMeta 进 DXF 头——两段合璧）
     entities.append(
-        Entity("text", anno, ((length, -3.0),), text=f"condition={condition_key}")
+        Entity("text", anno, ((length, ANNO_OFFSET_CONDITION),),
+               text=f"condition={condition_key}")
     )
     entities.append(
-        Entity("text", anno, ((length, -3.6),),
+        Entity("text", anno, ((length, ANNO_OFFSET_LEVEL),),
                text=f"annotation={chosen.annotation_level}")
     )
     return EntityGroup(entities=tuple(entities))
