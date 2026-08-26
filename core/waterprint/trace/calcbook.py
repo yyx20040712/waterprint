@@ -44,8 +44,10 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from io import BytesIO
 from pathlib import Path
+from types import MappingProxyType
 from typing import Final
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -56,7 +58,12 @@ from waterprint.trace.collector import TraceTree
 
 __all__ = ["TEMPLATE_REGISTRY", "InvalidTemplateError", "render_calcbook"]
 
-TEMPLATE_REGISTRY: Final[tuple[str, ...]] = ()
+# UF-16 收口（DRAFT 批 2026-08-26）：正式模板键→文件名映射
+# （data/templates 1.0.0；占位符语法=本文件 _SUBST_PATTERN 冻结面）。
+TEMPLATE_REGISTRY: Final[Mapping[str, str]] = MappingProxyType({
+    "calcbook_unit": "calcbook_unit.xlsx",
+    "calcbook_plant": "calcbook_plant.xlsx",
+})
 
 # 占位符语法（M1b D2 冻结）：{{trace[i].<field>}} / {{trace[i].inputs.<symbol>}
 # / {{summary.<key>}}——本正则是语法的唯一裁定面（未匹配即未知占位符拒）。

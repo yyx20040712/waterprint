@@ -1,4 +1,12 @@
 # Excel 模板包清单（版本槽位——模板文件与占位符语法见本目录 README.md）
-data_version: "0.0.0"
+data_version: "1.0.0"
 # 变更记录：
+#   - 1.0.0: calcbook_unit.xlsx（单单元：表头+trace 五字段占位行×5——M1b
+#     冻结语法 {{trace[i].<field>}}）+ calcbook_plant.xlsx（全厂：design
+#     工况终水六指标 {{summary.<平键>}} 族）正式录入（UF-16 收口，DRAFT
+#     批 2026-08-26；openpyxl 生成零公式，summary 面真值依赖 plant.summary
+#     ——executor 现状空注入，D10 落地批接真实汇总，届时平键集复核）
 #   - 0.0.0: M0 骨架槽位（无模板文件；calcbook_unit.xlsx 于 M1 创建后升 1.0.0）
+templates:
+  calcbook_unit: calcbook_unit.xlsx
+  calcbook_plant: calcbook_plant.xlsx
