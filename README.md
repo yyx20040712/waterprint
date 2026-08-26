@@ -2,16 +2,16 @@
 
 污水处理工艺设计计算平台：计算内核（纯 Python）+ FastAPI 服务 + React 前端。
 
-> 当前状态：**实现推进中——T0 系列/T1~T4 已完成，下一任务 T5**
-> （前置与拆分见台账）。此前：三路架构审计（总控/DS/GLM 双层裁决，
-> 统一清单见会话工作区）、子智能体工作流上线运行、M0.5 成果入库、
-> 本地工具链就绪、**已推送 GitHub 且 CI 全绿**（详见 Actions；宪法
-> "CI 机器强制"自此实际生效）、三单元系数与手算对照表经领域专家
-> 签字生效（coefficients 0.1.0）。L0 契约 14 文件 13 实现
-> （quantity/flow/quality/sludge/expr/trace_api/ports/condition/unit_api/
-> manifest/manifest_validation/result_schema/project_schema；
-> run_env.py 为规格骨架，待 T7 装配）；registry dimensions（T3）与
-> formulas（T4）已实现，assumptions/coefficients 为骨架（待 T5）。
+> 当前状态：**M2 全收口（2026-08-26）——市政污水线 13/13 单元、
+> 服务层 18 端点、golden 验收基准、出图三子系统（elevation/drafting/
+> geometry）+UF-32 几何取数契约全部实装**；下一步=M3（矿井水/污泥/
+> 输送线+概算+管网+前端切片，见 `../重写计划-技术路线与框架.md` §7
+> 与会话工作区 roadmap/台账）。此前：M0 骨架与门禁→M1 内核垂直切片
+> （三单元 golden/计算迹/Excel 计算书）→M2 四块收口（solution 枚举
+> 管线[万级 2.43s<5s]/FastAPI 服务层[14 镜像测试全激活]/golden
+> municipal_34760[71 项期望值独立复算字节同]/出图批[DXF 双跑字节同]）。
+> coefficients 0.4.0（290 键）；norms 手算表 13 份（AI 起草+追认制，
+> 追认面约 50 项见会话工作区 pending-domain-expert.md）。
 > 测试数/覆盖率以 CI 输出为准，文档不手写数字。
 
 ## 快速导览（新成员/AI 按此顺序阅读）
@@ -56,8 +56,8 @@ cd server && uv sync && uv run uvicorn waterprint_server.main:app
 - [x] ~~推 GitHub + CI 全绿~~（github.com/yyx20040712/waterprint，
       CI 首跑 4/5 失败→修复批→run #12 五 job 成功；推送代理见下节
       网络对策表）
-- [ ] uv.lock 生成（uv 的 TLS 通道对镜像间歇断流，挂账；CI 暂用
-      UV_DEFAULT_INDEX=官方源，`--frozen` 待锁文件后启用）
+- [x] ~~uv.lock 生成与 CI frozen~~（core/uv.lock T7 期入库；server/
+      uv.lock SERVER 批 2026-08-26 入库——两 job 均已 `--frozen`）
 - [ ] Docker Desktop 推迟到 M4 部署阶段
 
 ### 网络状况与对策（2026-08-22 本机实测）
