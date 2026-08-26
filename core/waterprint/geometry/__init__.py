@@ -14,3 +14,9 @@
 # 铁律（§10.5/§16 A7）：三维是结果 schema 的**纯投影**——只消费字段 ID，
 # 不持有独立状态；前端 R3F 组件禁止自行推导业务几何（双源漂移根除）。
 # ══════════════════════════════════════════════════════════════════
+
+from waterprint.geometry.internals import internal_instances
+from waterprint.geometry.pools import pool_primitives
+from waterprint.geometry.scene import build_scene
+
+__all__ = ["build_scene", "internal_instances", "pool_primitives"]

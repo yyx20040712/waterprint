@@ -33,7 +33,14 @@
 #   类型"表述失实撤回）零 waterprint.app 依赖（防 import 环成立）；
 #   实消费=L0 契约九模块 + L3 solution 三模块（constraints/diagnose/
 #   grid——类型面注解）+ L4.project-trace 正门（trace：render_calcbook
-#   分发与 TraceCollector 占位）。该文件的 solution/trace 依赖边当前
+#   分发与 TraceCollector 占位）。DRAFT 批 D5（2026-08-26）dxf 分支
+#   追加：L0 contracts.drawing_projection（UF-32 对照表）+ L3 elevation
+#   两模块（losses/profile）+ L3 drafting 四模块（styles/plan_view/
+#   section_view/dxf_writer）+ L1 registry.assumptions——全部沿
+#   import-linter 层序向下合法边（app|app_enumeration 居 drafting/
+#   elevation/registry 之上）；结构图谱 §1b 的 app_enumeration 行
+#   未列上述边（真实 import 扫描=B3 待办，门禁暂不拦——SERVER 批
+#   I-4 注记同款状态，报告申报）。该文件的 solution/trace 依赖边当前
 #   不在 import-linter 层序管辖（pyproject 未列本模块）——structure-
 #   graph §1a 节点行+pyproject 层序登记（waterprint.app |
 #   app_enumeration 同层并列）+§1b 边表口径为 **server 批开工前置
@@ -57,11 +64,13 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import final
+from types import MappingProxyType
+from typing import Final, final
 
 from pandas import DataFrame  # type: ignore[import-untyped]  # pandas-stubs 未随包分发
 
 from waterprint.contracts.condition import ConditionSet, OperatingCondition
+from waterprint.contracts.drawing_projection import PROJECTION_TABLE
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.ports import Edge, PortRef
 from waterprint.contracts.project_schema import DesignState
@@ -70,6 +79,13 @@ from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Unit, UnitContext
+from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf
+from waterprint.drafting.plan_view import unit_plan
+from waterprint.drafting.section_view import unit_section
+from waterprint.drafting.styles import EntityGroup, base_styles
+from waterprint.elevation.losses import head_losses
+from waterprint.elevation.profile import build_profile
+from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.solution.constraints import Constraint
 from waterprint.solution.diagnose import DiagnosisReport
 from waterprint.solution.grid import Grid
@@ -134,16 +150,73 @@ class ArtifactKindNotReady(Exception):  # noqa: N818  # 名载归属批次（D2 
 
 
 def export_artifact(
-    kind: str, plant: PlantResult, template: Path, out: Path
+    kind: str,
+    plant: PlantResult,
+    template: Path,
+    out: Path,
+    unit_id: str | None = None,
 ) -> bytes:
-    """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；未就绪 kind 拒。"""
+    """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；dxf 接 M2 出图批。
+
+    D5 扩展：unit_id 关键字参数（默认 None）——kind="dxf" 必填（None 拒，
+    全厂总图归 M5 site_plan）；calcbook 分支签名零变（unit_id 不消费）。
+    """
     if kind == "calcbook":
         return render_calcbook(plant.trace, plant, template, out).read_bytes()
-    owners = {"audit": "M4", "dxf": "M2 出图批", "estimate": "M3"}
+    if kind == "dxf":
+        return _export_dxf(plant, unit_id, out)
+    owners = {"audit": "M4", "estimate": "M3"}
     owner = owners.get(kind, "未知 kind（合法面 calcbook/audit/dxf/estimate）")
     raise ArtifactKindNotReady(
         f"产物 kind {kind!r} 未就绪（归属：{owner}；禁静默空产物，UF-33）"
     )
+
+
+# DXF 导出 v1 基准面：未传设计标高时以 ±0.00 相对标高出图（工程相对标高
+# 惯例；绝对标高设计输入通道随 server 批/M5 接线——进厂标高是 design
+# 态输入非假设，profile R2 口径，此处零默认数值面[0/0 字面量]）。
+_REL_DATUM: Final[Mapping[str, float]] = MappingProxyType(
+    {"water_level": 0.0, "ground_elev": 0.0}
+)
+
+
+def _export_dxf(plant: PlantResult, unit_id: str | None, out: Path) -> bytes:
+    """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。"""
+    if unit_id is None:
+        raise ArtifactKindNotReady(
+            "产物 kind 'dxf' 未就绪（归属：全厂总图归 M5 site_plan——"
+            "单单元图纸须传 unit_id，UF-33）"
+        )
+    condition_key = next(iter(plant.conditions), "")
+    snapshot = plant.conditions.get(condition_key, {}).get(unit_id)
+    projection = PROJECTION_TABLE.get(unit_id)
+    if snapshot is None or projection is None:
+        raise ArtifactKindNotReady(
+            f"dxf 目标单元 {unit_id!r} 不在当前工况图或 UF-32 对照表"
+            f"（工况 {condition_key!r}；禁静默空产物）"
+        )
+    view = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
+    losses = head_losses((), ctx=(unit_id, condition_key), assumptions=view)
+    profile = build_profile(
+        plant, losses, _REL_DATUM, view, condition_key
+    )
+    station = profile.station_of(unit_id)
+    if station is None:
+        raise ArtifactKindNotReady(
+            f"dxf 目标单元 {unit_id!r} 无纵断站（工况 {condition_key!r}）"
+        )
+    styles = base_styles()
+    plan = unit_plan(snapshot, projection, styles, condition_key)
+    section = unit_section(snapshot, station, styles, condition_key)
+    entities = EntityGroup(entities=plan.entities + section.entities)
+    meta = DrawingMeta(
+        title=unit_id,
+        condition_key=condition_key,
+        repro=(plant.repro.design_hash,
+               plant.repro.engine_version, plant.repro.data_version),
+    )
+    write_dxf(entities, styles, out, meta)
+    return out.read_bytes()
 
 
 def upstream_context(

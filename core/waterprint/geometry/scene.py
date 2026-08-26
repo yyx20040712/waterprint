@@ -37,3 +37,104 @@
 #
 # 【参照】重写计划 §10.5/§12.6/§16 A7/§18.1
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
+from typing import Final, final
+
+from waterprint.contracts.result_schema import PlantResult
+from waterprint.geometry.internals import internal_instances
+from waterprint.geometry.pools import Node, Primitive, pool_primitives
+
+__all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
+
+# 场景版本（R4：坐标约定 Y-up + 单位 m 在此声明——前端渲染器唯一读取口）。
+SCENE_VERSION: Final[str] = "waterprint-scene-1/y-up/m"
+_INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
+    "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
+    "pump", "mech_cleaner", "pipe", "opening",
+})
+_UNIT_GAP: Final[float] = 1.0  # 单元排布模型间隙 m（占位——工程间距归 M5 布置）
+
+
+@dataclass(frozen=True)
+@final
+class SceneGraph:
+    """场景图（不可变）：root + 节点表 + 版本/工况声明（R4）。"""
+
+    root: tuple[str, ...]
+    nodes: tuple[Node, ...]
+    scene_version: str
+    condition_key: str
+
+
+def _unit_extent(nodes: tuple[Node, ...]) -> float:
+    """单元 X 向占位长度（模型排布推位用——pool 图元长/径取大）。"""
+    return max(
+        (
+            node.primitive.dims.get("length", 0.0)
+            + node.primitive.dims.get("diameter", 0.0)
+            for node in nodes
+        ),
+        default=_UNIT_GAP,
+    )
+
+
+def build_scene(
+    plant_result: PlantResult,
+    assumptions: Mapping[str, float],
+    condition_key: str,
+) -> SceneGraph:
+    """全厂场景图装配正门（R1 纯投影：同结果同场景图，<100ms 预算 R5）。
+
+    站序=executor 拓扑执行序；沿 X 轴按池体占位长顺序排布（缺槽单元以
+    间隙占位）；台数类经对照表 instance_counts→InstanceGroup（节点
+    instance_count 汇总——R3 千级构件一次 draw call 的数据前提）。
+    """
+    if condition_key not in plant_result.conditions:
+        raise KeyError(
+            f"工况 {condition_key!r} 不在结果（合法 "
+            f"{sorted(plant_result.conditions)}——scene 按工况索引，R4）"
+        )
+    snapshots = plant_result.conditions[condition_key]
+    nodes: list[Node] = []
+    root: list[str] = []
+    cursor_x = 0.0
+    for unit_id, snapshot in snapshots.items():
+        if unit_id == "inlet":
+            continue
+        pool_nodes = _shift(pool_primitives(snapshot, assumptions), cursor_x)
+        nodes.extend(pool_nodes)
+        root.extend(node.node_id for node in pool_nodes)
+        for group in internal_instances(snapshot, assumptions):
+            origin = group.placements.get("origin", (0.0, 0.0))
+            assert isinstance(origin, tuple)
+            origin_x = float(origin[0]) + cursor_x
+            origin_y = float(origin[1]) if len(origin) > 1 else 0.0
+            nodes.append(
+                Node(
+                    node_id=f"{unit_id}::{group.semantic}",
+                    primitive=group.prototype,
+                    semantic=group.semantic,
+                    position=(origin_x, origin_y, 0.0),
+                    instance_count=group.count,
+                )
+            )
+        cursor_x += _unit_extent(pool_nodes) + _UNIT_GAP
+    return SceneGraph(
+        root=tuple(root), nodes=tuple(nodes),
+        scene_version=SCENE_VERSION, condition_key=condition_key,
+    )
+
+
+def _shift(nodes: tuple[Node, ...], cursor_x: float) -> tuple[Node, ...]:
+    """池体节点沿 X 平移（dataclasses.replace 保不可变语义）。"""
+    return tuple(
+        replace(
+            node,
+            position=(node.position[0] + cursor_x, node.position[1], node.position[2]),
+        )
+        for node in nodes
+    )

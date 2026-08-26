@@ -31,3 +31,91 @@
 #
 # 【参照】重写计划 §10.5/§12.6
 # ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+from dataclasses import dataclass
+from types import MappingProxyType
+from typing import final
+
+from waterprint.contracts.drawing_projection import PROJECTION_TABLE
+from waterprint.contracts.result_schema import UnitResultSnapshot
+from waterprint.geometry.pools import Primitive
+from waterprint.registry.assumptions import assumption
+
+__all__ = ["InstanceGroup", "internal_instances"]
+
+_SPACING_KEY = "geometry.pool.spacing"
+
+
+@dataclass(frozen=True)
+@final
+class InstanceGroup:
+    """实例组（不可变）：语义+原型+数量+阵列参数（O(1) 数据量，R3）。
+
+    placements 键集：origin（原点二元组）/step（行列步距二元组）/rows
+    （行数单元组）/cols（列数单元组）/source_key（取数 dims 键字符串型
+    装载）——阵列展开 rows×cols ≥ count（末行缺额 < cols），显式坐标
+    列表保留给不规则摆放（本 v1 全阵列）。
+    """
+
+    semantic: str
+    prototype: Primitive
+    count: int
+    placements: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        """placements 只读快照 + count 非负校验（GR-02 精神）。"""
+        if self.count < 0:
+            raise ValueError(
+                f"实例数非负不变量破坏：{self.semantic}={self.count}"
+            )
+        object.__setattr__(
+            self, "placements", MappingProxyType(dict(self.placements))
+        )
+
+
+def internal_instances(
+    unit_result: UnitResultSnapshot, assumptions: Mapping[str, float]
+) -> tuple[InstanceGroup, ...]:
+    """内部构件实例组（R1 数量唯一真源=对照表 instance_counts→dims 值）。
+
+    阵列参数（origin/step/rows/cols）按 geometry.pool.spacing（assumptions
+    出处入库）近方阵推导——rows×cols ≥ count、缺额 < cols；step 尺寸
+    同源 spacing（原型盒以步距为界——摆放不计数，计数唯一在结果字段）。
+    """
+    projection = PROJECTION_TABLE.get(unit_result.unit_id)
+    if projection is None or not projection.instance_counts:
+        return ()  # 无实例计数键单元（显式空组——数量真源在结果字段）
+    dims = unit_result.dims
+    spacing = assumption(_SPACING_KEY, assumptions)
+    groups: list[InstanceGroup] = []
+    for semantic, count_key in sorted(projection.instance_counts.items()):
+        if count_key not in dims:
+            continue  # 对账测试守卫覆盖（表键必在 dims）；防御位
+        count = max(int(float(dims[count_key])), 0)
+        if count == 0:
+            continue
+        cols = max(math.ceil(math.sqrt(count)), 1)
+        rows = max(math.ceil(count / cols), 1)
+        groups.append(
+            InstanceGroup(
+                semantic=semantic,
+                prototype=Primitive(
+                    "box",
+                    {"length": spacing, "width": spacing, "depth": spacing},
+                    semantic,
+                ),
+                count=count,
+                placements={
+                    "origin": (0.0, 0.0),
+                    "step": (spacing, spacing),
+                    "rows": rows,
+                    "cols": cols,
+                    "source_key": count_key,
+                },
+            )
+        )
+    return tuple(groups)
