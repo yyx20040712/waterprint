@@ -84,7 +84,6 @@ _M = DimKey.MASS
 _T = DimKey.TIME
 _VEL = DimKey.VELOCITY
 _C = DimKey.CONCENTRATION
-_P = DimKey.POWER
 
 
 @dataclass(frozen=True)
@@ -288,7 +287,7 @@ PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         dim_of={"a_act": _A, "a_incl_req": _A, "b": _L, "b_raw": _L,
                 "gt_floc": _D, "h_floc_calc": _L, "h_settle": _L,
                 "h_total": _L, "h_total_raw": _L, "h_tube_zone": _L,
-                "m_pac": _M, "m_pam": _M, "p_floc": _P, "p_mix": _P,
+                "m_pac": _M, "m_pam": _M, "p_floc": _D, "p_mix": _D,
                 "q1h": _D, "q_design_h": _D, "q_return": _D,
                 "q_sludge": _V, "q_surface_act": _D, "s_dry": _M,
                 "ss_out": _C, "v_concrete": _V, "v_floc": _V, "v_mix": _V},
@@ -382,7 +381,8 @@ PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                    "v_total"),
         dim_of={"a1": _A, "a_act": _A, "b": _L, "b_raw": _L,
                 "d_overflow": _L, "h_total": _L, "l": _L, "l_raw": _L,
-                "p_stir": _P, "q_pump1": _D, "t_reg_act": _D, "v1": _V,
+                "p_stir": _D,  # TJ-F9 output_dim=DIMENSIONLESS（kW 裸值口径）
+                "q_pump1": _D, "t_reg_act": _D, "v1": _V,
                 "v_act_total": _V, "v_concrete": _V, "v_total": _V},
     ),
     # 辐流二沉池：h2 有效水深是参数（联动 AAO）不在 dims——剖面池深取

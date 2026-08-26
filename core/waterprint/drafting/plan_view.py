@@ -106,6 +106,19 @@ def unit_plan(
             Entity("rect", pool, ((0.0, 0.0), (length, width)),
                    source_key=f"{length_key}|{width_key}")
         )
+        # R3 标注完备：总尺寸双向（仅矩形池——容积法单元见下方工况注记占位）
+        entities.append(
+            Entity("dim_linear", dim,
+                   ((0.0, ANNO_OFFSET_DIM_1), (length, ANNO_OFFSET_DIM_1)),
+                   params={"measurement": length}, text=length_key,
+                   source_key=length_key)
+        )
+        entities.append(
+            Entity("dim_linear", dim,
+                   ((ANNO_OFFSET_DIM_1, 0.0), (ANNO_OFFSET_DIM_1, width)),
+                   params={"measurement": width}, text=width_key,
+                   source_key=width_key)
+        )
     # 无平面总尺寸键单元（容积法 v1，如 AAO）：平面=工况注记占位——尺寸
     # 分格归 M3 方案批（表 non_drawn 全量注记的显式延后）
     gap_key = manifest.plan_keys.get("gap_count")
@@ -116,15 +129,7 @@ def unit_plan(
             entities.append(
                 Entity("line", pool, ((x, 0.0), (x, width)), source_key=gap_key)
             )
-    # R3 标注完备：总尺寸（双向）+分格（逐跨）+标高符号占位（剖面同源）
-    entities.append(
-        Entity("dim_linear", dim, ((0.0, ANNO_OFFSET_DIM_1), (length, ANNO_OFFSET_DIM_1)),
-               params={"measurement": length}, text=length_key, source_key=length_key)
-    )
-    entities.append(
-        Entity("dim_linear", dim, ((ANNO_OFFSET_DIM_1, 0.0), (ANNO_OFFSET_DIM_1, width)),
-               params={"measurement": width}, text=width_key, source_key=width_key)
-    )
+    # R3 标注完备（续）：分格（逐跨）+标高符号占位（剖面同源）
     if gap_key is not None and gap_key in dims:
         spans = max(int(float(dims[gap_key])), 1)
         entities.append(

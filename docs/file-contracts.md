@@ -23,6 +23,7 @@
 | `core/waterprint/contracts/expr.py` | L0 | 共享受限表达式求值器（公式/工况映射 DSL 的唯一解析求值内核；GR-36 类③受限 DSL 内核） | 表达式字符串+允许名集合+数值绑定 | 校验归一后 AST、float/bool 求值值、ExprSyntaxError |
 | `core/waterprint/contracts/trace_api.py` | L0 | 计算迹协议（TraceSink/TraceNodeSpec：registry 与迹收集器的唯一耦合面；GR-36 类②跨层协议） | 公式应用事件（id/工况/实参/结果） | 协议与快照数据类定义 |
 | `core/waterprint/contracts/run_env.py` | L0 | 执行环境上下文契约 RunEnv（装配一次、执行期只读；GR-36 类②跨层协议——L3 executor/enumerate 与 L4 app 共用，SENS-B 2026-08-23 UF-31；data_version 聚合口径=包名排序后 name@version 以 + 拼接，UF-10 T4 冻结；T7a 实现——L0 不 import L1，系数库经协议耦合） | 引擎/数据版本+假设/系数/单价+迹收集器 | RunEnv（七字段）、CoefficientsView、CoefficientValueView、EngineParam、InvalidRunEnvError |
+| `core/waterprint/contracts/drawing_projection.py` | L0 | UF-32 出图取数对照契约（Ruling ① 方案②：13 单元 PROJECTION_TABLE 五类取数+量纲列冻结声明 + ElevationProfile/ProfileStation L0 类型——elevation 与 drafting 共同消费，L3 互不 import 解法；GR-36 类①冻结 schema） | 单元 dims 键全量实跑提取（2026-08-26，249 键） | UnitProjection、PROJECTION_TABLE、ProfileStation、ElevationProfile |
 | `core/waterprint/registry/formulas.py` | L1 | 公式注册表：登记/查询/量纲静态校验/apply | 各单元登记项 | FormulaSpec、InvalidFormulaError、register、by_id、validate_all、apply、norm_ref_of（M1b 新增：collector 反查条文号只读面）、ValidationReport |
 | `core/waterprint/registry/dimensions.py` | L1 | 维度字段注册表（字段ID/单位/显示键/分类；dtype_of 已实现 T4 D5+dim 归一 D6，预置 pool_length，R1a 查询钩子经 bind_dimension_lookup 装配 bind-once） | 字段声明 | FieldSpec、register_dimension、dimension_of、dtype_of、InvalidDimensionError |
 | `core/waterprint/registry/assumptions.py` | L1 | 设计假设清单唯一真源（默认值+出处；UF-08 loop.* 引擎参数三条 T7a 冻结） | 假设声明+项目覆盖 | Assumption、AssumptionSet、DEFAULT_ASSUMPTIONS（4 条：[0] safety.superheight + loop.tolerance/max_iterations/damping）、assumption、TuningImpact、InvalidAssumptionError |
@@ -145,7 +146,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
 | `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径） |
 | `scripts/check_webapp.py` | webapp 结构门禁（TS 契约头 + features 互不依赖分层） |
-| `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity 真源区） |
+| `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity/units_lib manifest 真源区 + drafting styles/sheets 声明面——DRAFT 批总控问询放行 2026-08-26） |
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
 | `scripts/check_ruff.py` | ruff 门禁：core venv 解释器跑 CI 同款 ruff check（透传） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
