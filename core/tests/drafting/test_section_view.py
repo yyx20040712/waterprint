@@ -79,3 +79,18 @@ def test_cut_position_links_plan_and_section() -> None:
     assert len(cut_lines) == 1
     assert cut_lines[0].text == "1-1"
     assert cut_lines[0].points == (cut.origin, cut.direction)
+
+
+def test_section_span_takes_pool_length_from_dims() -> None:
+    """R1-3（2026-08-26）剖面跨距取实值：有 length 槽单元跨距==dims['L']。"""
+    from waterprint.contracts.result_schema import UnitResultSnapshot
+    from waterprint.drafting.styles import base_styles
+
+    snapshot = UnitResultSnapshot(
+        unit_id="municipal_cugeshan", outflows={}, outqualities={},
+        dims={"L": 1.8, "B": 0.7, "H": 1.0}, warnings=(), formula_ids=(),
+    )
+    group = unit_section(snapshot, _station(), base_styles(), "design")
+    ground = next(e for e in group.entities if e.text == "ground")
+    assert ground.points[-1][0] == pytest.approx(1.8)  # 跨距==池长实值
+    assert ground.points[-1][0] != pytest.approx(10.0)  # 不再恒用占位幅

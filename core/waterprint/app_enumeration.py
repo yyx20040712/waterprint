@@ -61,6 +61,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -149,22 +150,47 @@ class ArtifactKindNotReady(Exception):  # noqa: N818  # 名载归属批次（D2 
     """产物 kind 未就绪（audit=M4/dxf=M2 出图批/estimate=M3）——GR-11 族。"""
 
 
+_EXPORT_OPTIONS: Final[frozenset[str]] = frozenset({"unit_id", "condition_key"})
+
+
+def _check_export_options(options: Mapping[str, str | None]) -> None:
+    """导出选项键白名单（未知键拒——GR-09 精神，防拼写漂移静默忽略）。"""
+    unknown = frozenset(options) - _EXPORT_OPTIONS
+    if unknown:
+        raise ArtifactKindNotReady(
+            f"export_artifact 未知选项：{sorted(unknown)}"
+            f"（合法 {sorted(_EXPORT_OPTIONS)}）"
+        )
+
+
 def export_artifact(
     kind: str,
     plant: PlantResult,
     template: Path,
     out: Path,
-    unit_id: str | None = None,
+    **options: str | None,
 ) -> bytes:
     """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；dxf 接 M2 出图批。
 
     D5 扩展：unit_id 关键字参数（默认 None）——kind="dxf" 必填（None 拒，
     全厂总图归 M5 site_plan）；calcbook 分支签名零变（unit_id 不消费）。
+    R1-1 扩展（2026-08-26）：condition_key 关键字参数（默认 None）——
+    dxf 工况显式选择；两选项经 **options 透传（签名 5 参预算合规——
+    调用形态 export_artifact(kind, plant, template, out, unit_id=…,
+    condition_key=…) 与命名参数完全同形）。
     """
+    _check_export_options(options)
     if kind == "calcbook":
         return render_calcbook(plant.trace, plant, template, out).read_bytes()
     if kind == "dxf":
-        return _export_dxf(plant, unit_id, out)
+        if options.get("condition_key") is None and plant.conditions:
+            warnings.warn(
+                "未指定工况，取 design 档出图——多工况请显式传 condition_key",
+                stacklevel=2,  # 栈级 2=指向 export_artifact 调用方
+            )
+        return _export_dxf(
+            plant, options.get("unit_id"), out, options.get("condition_key")
+        )
     owners = {"audit": "M4", "estimate": "M3"}
     owner = owners.get(kind, "未知 kind（合法面 calcbook/audit/dxf/estimate）")
     raise ArtifactKindNotReady(
@@ -180,14 +206,30 @@ _REL_DATUM: Final[Mapping[str, float]] = MappingProxyType(
 )
 
 
-def _export_dxf(plant: PlantResult, unit_id: str | None, out: Path) -> bytes:
-    """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。"""
+def _export_dxf(
+    plant: PlantResult,
+    unit_id: str | None,
+    out: Path,
+    condition_key: str | None = None,
+) -> bytes:
+    """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。
+
+    R1-1 工况显式化：condition_key=None 取首档（当前装配序=design）+
+    UserWarning（不再静默——profile R3"禁静默取首档"口径对齐）；显式值
+    未知即拒（合法面=plant.conditions 键集）。
+    """
     if unit_id is None:
         raise ArtifactKindNotReady(
             "产物 kind 'dxf' 未就绪（归属：全厂总图归 M5 site_plan——"
             "单单元图纸须传 unit_id，UF-33）"
         )
-    condition_key = next(iter(plant.conditions), "")
+    if condition_key is None:
+        condition_key = next(iter(plant.conditions), "")  # Warning 已在上层发出
+    elif condition_key not in plant.conditions:
+        raise ArtifactKindNotReady(
+            f"工况 {condition_key!r} 不在结果（合法 "
+            f"{sorted(plant.conditions)}——dxf 出图工况校验，R1-1）"
+        )
     snapshot = plant.conditions.get(condition_key, {}).get(unit_id)
     projection = PROJECTION_TABLE.get(unit_id)
     if snapshot is None or projection is None:

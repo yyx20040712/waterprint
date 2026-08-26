@@ -77,3 +77,40 @@ def test_byte_determinism_wiring(tmp_path: Path) -> None:
     assert len(doc.modelspace()) > 0
     texts = [e.dxf.text for e in doc.modelspace() if e.dxftype() == "TEXT"]
     assert any("中文往返" in t for t in texts)  # UTF-8 中文往返
+
+
+def test_scale_factor_halves_entity_size(tmp_path: Path) -> None:
+    """R1-2（2026-08-26）比例接线：同实体组 1:100 vs 1:50 → 图幅尺寸比恰 2:1。"""
+    from waterprint.drafting.styles import base_styles
+
+    first = write_dxf(_group(), base_styles(), tmp_path / "s100.dxf", _meta())
+    second = write_dxf(
+        _group(), base_styles(), tmp_path / "s50.dxf", _meta(), scale="1:50"
+    )
+    import ezdxf
+
+    def max_x(path: Path) -> float:
+        doc = ezdxf.readfile(path)
+        return max(
+            max(x for x, _ in entity.get_points("xy"))
+            for entity in doc.modelspace()
+            if entity.dxftype() == "LWPOLYLINE"
+        )
+
+    ratio = max_x(second) / max_x(first)
+    assert ratio == pytest.approx(2.0)  # 1:50 图幅恰为 1:100 的两倍
+
+
+def test_audit_header_custom_vars_roundtrip(tmp_path: Path) -> None:
+    """R1-4（2026-08-26，NF-1）审计头完整落盘：三元组+工况 custom_vars 可回读。"""
+    from waterprint.drafting.styles import base_styles
+
+    out = write_dxf(_group(), base_styles(), tmp_path / "audit.dxf", _meta())
+    import ezdxf
+
+    doc = ezdxf.readfile(out)
+    custom = dict(doc.header.custom_vars)
+    assert custom["condition_key"] == "design"
+    assert custom["design_hash"] == "hash"
+    assert custom["engine_version"] == "engine"
+    assert custom["data_version"] == "data"  # 三元组不可再静默丢

@@ -183,3 +183,68 @@ def test_export_artifact_not_ready_kinds(kind: str, owner: str) -> None:
     ).plant
     with pytest.raises(ArtifactKindNotReady, match=owner):  # type: ignore[misc]
         export_artifact(kind, plant, Path("unused.xlsx"), Path("unused_out.xlsx"))  # type: ignore[misc]
+
+
+def _env_golden() -> object:
+    """golden e2e 同口径 env（coefficients 0.4.0 + 默认假设视图）。"""
+    from waterprint.contracts.run_env import RunEnv
+    from waterprint.registry import load_coefficients
+    from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+
+    lib = load_coefficients(_DATA)
+    return RunEnv(
+        engine_version="m2sol",
+        data_version=f"coefficients@{lib.data_version}",
+        assumptions={entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS},
+        coefficients=lib,
+        price_book={},
+        trace_sink=None,
+        engine_params={},
+    )
+
+
+def test_export_dxf_condition_selection_and_unknown_rejected(
+    tmp_path: Path, golden_data_dir: Path
+) -> None:
+    """R1-1（2026-08-26）dxf 工况显式化：多工况选择+未知键拒+缺省 Warning。
+
+    golden 5 工况（design/avg+3 检修）显式取 avg 档出图——DXF 机读
+    custom_vars.condition_key=="avg" 且图面 TEXT 注记 condition=avg；
+    未知工况键=ArtifactKindNotReady（合法面=工况键集）；缺省不传=
+    UserWarning"未指定工况"（不再静默取首档）。
+    """
+    import json
+
+    import ezdxf
+
+    from waterprint.app import load_project, run_full_calc
+    from waterprint.contracts.condition import build_condition_set
+
+    case = golden_data_dir / "municipal_34760"
+    project = load_project(case / "input_project.json")
+    expected = json.loads(
+        (case / "expected_summary.json").read_text(encoding="utf-8")
+    )
+    plant = run_full_calc(  # type: ignore[misc]
+        project, build_condition_set(expected["checked_units"]), _env_golden()
+    ).plant
+    assert len(plant.conditions) == 5  # golden 2+3 前提（design/avg+三检修）
+    out = tmp_path / "avg.dxf"
+    export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), out,
+        unit_id="municipal_aao", condition_key="avg",
+    )
+    doc = ezdxf.readfile(out)
+    assert dict(doc.header.custom_vars)["condition_key"] == "avg"  # 机读标注
+    texts = [e.dxf.text for e in doc.modelspace() if e.dxftype() == "TEXT"]
+    assert any("condition=avg" in text for text in texts)  # 图面标注正确
+    with pytest.raises(ArtifactKindNotReady, match="工况"):  # type: ignore[misc]
+        export_artifact(  # type: ignore[misc]
+            "dxf", plant, Path("unused"), tmp_path / "bad.dxf",
+            unit_id="municipal_aao", condition_key="no_such_condition",
+        )
+    with pytest.warns(UserWarning, match="未指定工况"):  # 缺省=Warning 非静默
+        export_artifact(  # type: ignore[misc]
+            "dxf", plant, Path("unused"), tmp_path / "default.dxf",
+            unit_id="municipal_aao",
+        )

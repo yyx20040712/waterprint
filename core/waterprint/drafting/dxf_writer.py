@@ -33,14 +33,12 @@
 #
 # 【参照】重写计划 §12.5/§18 路径安全；ADR-006；R6/R7 风险行
 # ══════════════════════════════════════════════════════════════════
-# 【参照】重写计划 §12.5/§18 路径安全；ADR-006；R6/R7 风险行
-# ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import final
+from typing import Final, final
 
 import ezdxf  # 全库唯一 ezdxf 接触点（R1）
 from ezdxf.document import Drawing
@@ -63,6 +61,11 @@ __all__ = [
 def _enable_fixed_meta() -> None:
     ezdxf.options.write_fixed_meta_data_for_testing = True  # type: ignore[attr-defined]
 _CREATOR: str = "WaterPrint"
+# 出图默认比例（R1-2 裁定 2026-08-26：比例接线——write_dxf scale 关键字承接
+# SheetSpec 比例口径；缺省值=GB/T 50001 工程惯例常用出图比例 1:100，
+# M5 布图批接 SheetSpec 实例传递）。字符串比例非数值字面量（AST 门禁面外），
+# 形态校验在 _scale_factor（非法串拒）。
+_DEFAULT_SCALE: Final[str] = "1:100"
 
 
 class InvalidDrawingPathError(Exception):
@@ -187,10 +190,22 @@ def _apply_styles(doc: Drawing, styles: StyleTable) -> None:
 
 
 def _fix_header(doc: Drawing, meta: DrawingMeta) -> None:
-    """R3 确定性头部：审计字段固定值（时间/GUID 由 ezdxf 测试开关固定）。"""
+    """R3 确定性头部：审计字段固定值+可复算三元组落 custom_vars（R1-4）。
+
+    condition_key+repro 三元组经 HEADER 段自定义属性（$CUSTOMPROPERTYTAG/
+    $CUSTOMPROPERTY 对）落盘——ezdxf 回读 doc.header.custom_vars 可得，
+    不可再静默丢（NF-1 修复；时间/GUID 由 ezdxf 测试开关固定）。
+    """
     doc.header["$TDINDWG"] = 0.0
     doc.header["$PROJECTNAME"] = meta.title  # 合法头变量（$comments 非法——实测）
     doc.header["$LASTSAVEDBY"] = meta.creator
+    for tag, value in (
+        ("condition_key", meta.condition_key),
+        ("design_hash", meta.repro[0]),
+        ("engine_version", meta.repro[1]),
+        ("data_version", meta.repro[2]),
+    ):
+        doc.header.custom_vars.append(tag, value)
 
 
 def write_dxf(
@@ -198,13 +213,19 @@ def write_dxf(
     styles: StyleTable,
     out: Path,
     meta: DrawingMeta,
+    scale: str = _DEFAULT_SCALE,
 ) -> Path:
-    """DXF R2018（AC1032）落盘正门：翻译（m→mm 唯一住所）→确定性头→落盘。"""
+    """DXF R2018（AC1032）落盘正门：翻译（m→mm 唯一住所）→确定性头→落盘。
+
+    scale=出图比例串（'1:100' 形态，SheetSpec 比例口径——v1 调用方直传，
+    M5 布图批由 SheetSpec 实例接线）；m→mm 因子经 _scale_factor(scale)
+    求得，"1:100" 硬编码已废止（R1-2）。
+    """
     _validate_out(out)
     _enable_fixed_meta()
     doc = ezdxf_new("R2018")
     _apply_styles(doc, styles)
-    factor = _scale_factor("1:100")  # 比例因子来自 SheetSpec 比例（默认 1:100）
+    factor = _scale_factor(scale)
     _translate(doc, entities, styles, factor)
     _fix_header(doc, meta)
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -31,15 +31,16 @@
 #
 # 【参照】重写计划 §10.3/§12.5；ADR-006
 # ══════════════════════════════════════════════════════════════════
-# 【参照】重写计划 §10.3/§12.5；ADR-006
-# ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import final
+from typing import Final, final
 
-from waterprint.contracts.drawing_projection import ProfileStation
+from waterprint.contracts.drawing_projection import (
+    PROJECTION_TABLE,
+    ProfileStation,
+)
 from waterprint.contracts.result_schema import UnitResultSnapshot
 from waterprint.drafting.styles import (
     LAYER_DIM,
@@ -58,13 +59,36 @@ class InvalidSectionViewError(Exception):
     """剖面图生成非法（标高站缺/剖切参缺）——GR-11 族。"""
 
 
+# 无 length 槽单元的剖面横向跨距占位（R1-3：Final 常量+出处注记——
+# A3 幅面有效图宽量级 10 m 的工程出图占位，M5 布图批按图幅/比例接线；
+# 10 ∈ 魔法数字门禁全局豁免集 {0,1,2,10}，具名化以防同型字面量搭车）。
+_DEFAULT_SPAN: Final[float] = 10.0
+
+
 @dataclass(frozen=True)
 @final
 class SectionOptions:
-    """剖面图选项（不可变）：剖切位置（1-1 等）+ 标注级别。"""
+    """剖面图选项（不可变）：剖切位置（1-1 等）+ 标注级别 + 跨距覆盖。
+
+    span_length 显式传入时覆盖对照表/占位推导（调用方布图裁量）。
+    """
 
     cut_position: CutPosition | None = None
     annotation_level: str = "major"
+    span_length: float | None = None
+
+
+def _section_span(unit_result: UnitResultSnapshot, override: float | None) -> float:
+    """剖面横向跨距（R1-3）：override > 对照表 length 槽实值 > 占位常量。"""
+    if override is not None:
+        return override
+    projection = PROJECTION_TABLE.get(unit_result.unit_id)
+    length_key = (
+        projection.primitive_dims.get("length") if projection is not None else None
+    )
+    if length_key is not None and length_key in unit_result.dims:
+        return float(unit_result.dims[length_key])  # 剖面跨距==池长实值
+    return _DEFAULT_SPAN
 
 
 def unit_section(
@@ -83,7 +107,7 @@ def unit_section(
     pool = LAYER_POOL  # 唯一命名真源经 styles 常量引用（R1）
     anno = LAYER_ELEV
     dim = LAYER_DIM
-    length = 10.0  # 剖面展开长度缺省幅（表无 length 槽单元的图幅占位）
+    length = _section_span(unit_result, chosen.span_length)  # R1-3 跨距取实值
     entities: list[Entity] = [
         Entity("line", anno, ((0.0, profile_station.ground_elev),
                               (length, profile_station.ground_elev)),
