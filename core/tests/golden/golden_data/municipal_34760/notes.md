@@ -63,6 +63,10 @@
 8. **M3 补录两项（禁造假）**：`m3_deferred.estimate_total`（概算总数）
    与 `m3_deferred.total_sludge`（全厂总泥量）——当前无 cost/污泥线，
    字段以"M3 补录"字串占位缺席，禁止填数。
+9. **bench 实测余量（D4 记档）**：test_bench_full_calc 实测 mean
+   286.7490 ms（min=max=mean，pedantic rounds=1 单轮，2026-08-26 实录）
+   < 5.0 s 预算（§18.1 口径 32 单元、当前 13 单元子集），余量 ≈4.71 s
+   （94.3%）——单元数扩至 32 或更慢单元入链时此守卫先红。
 
 ## 3. 追认点清单（待领域专家批量追认）
 
