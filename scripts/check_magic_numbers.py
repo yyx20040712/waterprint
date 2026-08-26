@@ -36,6 +36,15 @@ WHITELIST_PREFIXES = (
     "core/waterprint/registry/",
 )
 WHITELIST_EXACT = ("core/waterprint/contracts/quantity.py",)
+# DRAFT 批声明面白名单（总控裁决放行 2026-08-26 问询）：drafting 的
+# styles.py/sheets.py 是制图标准常量的声明面（幅面尺寸 A0~A4/图层颜色索引/
+# GB/T 50001 图框参数），与 units_lib manifest.py"带出处的声明式真源"同款
+# ——每条常量带标准出处注记；其余 drafting 文件（plan/section/dxf_writer）
+# 继续严管（数值取自结果字段/registry/单位换算契约，零工程字面量）。
+WHITELIST_DECLARATION = (
+    "core/waterprint/drafting/styles.py",
+    "core/waterprint/drafting/sheets.py",
+)
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
 # 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。
 WHITELIST_MANIFEST = ("core/waterprint/units_lib/", "/manifest.py")
@@ -47,6 +56,7 @@ def is_whitelisted(rel: str) -> bool:
     return (
         rel.startswith(WHITELIST_PREFIXES)
         or rel in WHITELIST_EXACT
+        or rel in WHITELIST_DECLARATION
         or (rel.startswith(prefix) and rel.endswith(suffix))
     )
 
@@ -92,8 +102,8 @@ def main() -> int:
         return 1
     print(
         f"[OK] 魔法数字：{scanned} 个源文件字面量合规"
-        f"（白名单区 registry/quantity/units_lib manifest.py 之外"
-        f"仅允许 {sorted(ALLOWED_VALUES)}）"
+        f"（白名单区 registry/quantity/units_lib manifest.py/drafting 声明面"
+        f"（styles/sheets，DRAFT 批裁决）之外仅允许 {sorted(ALLOWED_VALUES)}）"
     )
     return 0
 
