@@ -374,141 +374,64 @@ _GRID_BASE_PER_DIM: Final[Assumption] = Assumption(
 #    全部经 assumption()/ctx 视图取值，数值真源唯一在此。──
 _DRAFT_GEO: Final[tuple[Assumption, ...]] = (
     Assumption(
-        key="elevation.wall_thickness",
-        default=0.3,
-        dim=DimKey.LENGTH,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》水池构造（工程常用"
-            " 0.2~0.4 m 档中值起草，待追认）"
-        ),
-        note="钢筋混凝土水池壁厚概算默认（m）——elevation 埋深推算与三维池壁图元消费",
-        tuning_impact=TuningImpact(
-            direction="增大壁厚→结构占用与造价上升，减小→配筋与抗渗压力上升",
-            constraint_keys=(),
-        ),
+        "elevation.wall_thickness", 0.3, DimKey.LENGTH,
+        "《给水排水设计手册（第 5 册 城镇排水）》水池构造（工程常用 0.2~0.4 m 档中值，待追认）",
+        "钢筋混凝土水池壁厚概算默认（m）——elevation 埋深与三维池壁图元消费",
+        TuningImpact("增大壁厚→结构占用与造价上升，减小→配筋与抗渗压力上升", ()),
     ),
     Assumption(
-        key="elevation.bury_depth.max",
-        default=6.0,
-        dim=DimKey.LENGTH,
-        source="《给水排水设计手册（第 5 册 城镇排水）》构筑物埋深工程常用上限（起草，待追认）",
-        note="池底埋深告警阈值（m）——build_profile 推算埋深超限产生 Warning（非异常，留用户决策）",
-        tuning_impact=TuningImpact(
-            direction="增大阈值→放深埋深接受度，减小→更早告警",
-            constraint_keys=(),
-        ),
+        "elevation.bury_depth.max", 6.0, DimKey.LENGTH,
+        "《给水排水设计手册（第 5 册 城镇排水）》构筑物埋深工程常用上限（起草，待追认）",
+        "池底埋深告警阈值（m）——build_profile 超限产生 Warning（留用户决策）",
+        TuningImpact("增大阈值→放深埋深接受度，减小→更早告警", ()),
     ),
     Assumption(
-        key="elevation.drop_threshold",
-        default=1.0,
-        dim=DimKey.LENGTH,
-        source="重写计划 §14.2 跌水与提升行（'跌水 >1m 提示'口径）",
-        note="水面衔接跌水提示阈值（m）——evaluate_pumping 超限生成 drop_warnings",
-        tuning_impact=TuningImpact(
-            direction="增大阈值→仅更陡跌水告警，减小→更早提示消能需求",
-            constraint_keys=(),
-        ),
+        "elevation.drop_threshold", 1.0, DimKey.LENGTH,
+        "重写计划 §14.2 跌水与提升行（'跌水 >1m 提示'口径）",
+        "水面衔接跌水提示阈值（m）——evaluate_pumping 超限生成 drop_warnings",
+        TuningImpact("增大阈值→仅更陡跌水告警，减小→更早提示消能需求", ()),
     ),
     Assumption(
-        key="elevation.losses.friction_lambda",
-        default=0.025,
-        dim=DimKey.DIMENSIONLESS,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》管道水力计算"
-            "（达西沿程阻力系数工程常用 0.02~0.03 档中值起草，待追认）"
-        ),
-        note="沿程损失公式 EL-F1 的 λ 系数（无量纲）——losses.py 经 assumption() 取值，禁另抄",
-        tuning_impact=TuningImpact(
-            direction="增大 λ→损失与泵扬程上升，减小→偏乐观",
-            constraint_keys=(),
-        ),
+        "elevation.losses.friction_lambda", 0.025, DimKey.DIMENSIONLESS,
+        "《给水排水设计手册（第 5 册 城镇排水）》管道水力计算（达西 λ 0.02~0.03 档中值，待追认）",
+        "沿程损失公式 EL-F1 的 λ 系数（无量纲）——losses.py 经 assumption() 取值，禁另抄",
+        TuningImpact("增大 λ→损失与泵扬程上升，减小→偏乐观", ()),
     ),
     Assumption(
-        key="elevation.losses.gravity",
-        default=9.81,
-        dim=DimKey.DIMENSIONLESS,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》水力计算重力加速度"
-            "工程口径 9.81 m/s²（M1a 参数 g_gravity 同源）"
-        ),
-        note=(
-            "损失公式族（EL-F1/F2/F4）速度水头分母 g（m/s²，"
-            "DIMENSIONLESS 裸值登记——单位语义随公式符号）"
-        ),
-        tuning_impact=TuningImpact(
-            direction="工程口径固定值，不调节（登记仅为公式符号单一真源）",
-            constraint_keys=(),
-        ),
+        "elevation.losses.gravity", 9.81, DimKey.DIMENSIONLESS,
+        "《给水排水设计手册（第 5 册 城镇排水）》水力计算重力加速度工程口径 9.81 m/s²",
+        "损失公式族（EL-F1/F2/F4）速度水头分母 g（DIMENSIONLESS 裸值——单位随公式符号）",
+        TuningImpact("工程口径固定值，不调节（登记仅为公式符号单一真源）", ()),
     ),
     Assumption(
-        key="elevation.losses.weir_coefficient",
-        default=1.86,
-        dim=DimKey.DIMENSIONLESS,
-        source=(
-            "《给水排水设计手册（第 3 册 城镇给水）》矩形薄壁堰流量系数 1.86"
-            "（SI 口径 Q=m·b·h^1.5，起草待追认）"
-        ),
-        note="堰流损失公式 EL-F3 的 m 系数（m^(3/2)/s 口径，DIMENSIONLESS 裸值登记）",
-        tuning_impact=TuningImpact(
-            direction="增大系数→同流量堰上水头下降，减小→偏保守",
-            constraint_keys=(),
-        ),
+        "elevation.losses.weir_coefficient", 1.86, DimKey.DIMENSIONLESS,
+        "《给水排水设计手册（第 3 册 城镇给水）》矩形薄壁堰流量系数 1.86（Q=m·b·h^1.5，待追认）",
+        "堰流损失公式 EL-F3 的 m 系数（m^(3/2)/s 口径，DIMENSIONLESS 裸值登记）",
+        TuningImpact("增大系数→同流量堰上水头下降，减小→偏保守", ()),
     ),
     Assumption(
-        key="elevation.losses.orifice_coefficient",
-        default=0.62,
-        dim=DimKey.DIMENSIONLESS,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》孔口/管嘴出流"
-            "流量系数 0.62（工程常用，起草待追认）"
-        ),
-        note="孔口损失公式 EL-F4 的 μ 系数（无量纲）",
-        tuning_impact=TuningImpact(
-            direction="增大系数→同流量孔口损失下降，减小→偏保守",
-            constraint_keys=(),
-        ),
+        "elevation.losses.orifice_coefficient", 0.62, DimKey.DIMENSIONLESS,
+        "《给水排水设计手册（第 5 册 城镇排水）》孔口/管嘴出流流量系数 0.62（工程常用，待追认）",
+        "孔口损失公式 EL-F4 的 μ 系数（无量纲）",
+        TuningImpact("增大系数→同流量孔口损失下降，减小→偏保守", ()),
     ),
     Assumption(
-        key="elevation.pump.pipe_length",
-        default=100.0,
-        dim=DimKey.LENGTH,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管"
-            "概算管长工程常用档（起草，待追认）"
-        ),
-        note="evaluate_pumping 提升管路损失概算的管长（m）——管路实长归设计输入，M5 管线批接线",
-        tuning_impact=TuningImpact(
-            direction="增大管长→管路损失与总扬程上升",
-            constraint_keys=(),
-        ),
+        "elevation.pump.pipe_length", 100.0, DimKey.LENGTH,
+        "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管概算管长工程常用档（起草，待追认）",
+        "evaluate_pumping 提升管路损失概算管长（m）——实长归设计输入，M5 管线批接线",
+        TuningImpact("增大管长→管路损失与总扬程上升", ()),
     ),
     Assumption(
-        key="elevation.pump.pipe_diameter",
-        default=0.5,
-        dim=DimKey.LENGTH,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管"
-            "概算管径工程常用档（起草，待追认）"
-        ),
-        note="evaluate_pumping 提升管路损失概算的管径（m）——同 pipe_length，设计输入接线前概算占位",
-        tuning_impact=TuningImpact(
-            direction="增大管径→流速与损失下降但造价上升",
-            constraint_keys=(),
-        ),
+        "elevation.pump.pipe_diameter", 0.5, DimKey.LENGTH,
+        "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管概算管径工程常用档（起草，待追认）",
+        "evaluate_pumping 提升管路损失概算管径（m）——设计输入接线前概算占位",
+        TuningImpact("增大管径→流速与损失下降但造价上升", ()),
     ),
     Assumption(
-        key="geometry.pool.spacing",
-        default=3.0,
-        dim=DimKey.LENGTH,
-        source=(
-            "《给水排水设计手册（第 5 册 城镇排水）》并联池组"
-            "检修通道/列间距工程常用档（起草，待追认）"
-        ),
-        note="三维并联池组排布列间距（m）——geometry/pools.py 消费，节点标注 source_assumption_keys",
-        tuning_impact=TuningImpact(
-            direction="增大间距→占地与连接管长上升，检修空间改善",
-            constraint_keys=(),
-        ),
+        "geometry.pool.spacing", 3.0, DimKey.LENGTH,
+        "《给水排水设计手册（第 5 册 城镇排水）》并联池组检修通道/列间距工程常用档（待追认）",
+        "三维并联池组排布列间距（m）——pools.py 消费，节点标注来源键",
+        TuningImpact("增大间距→占地与连接管长上升，检修空间改善", ()),
     ),
 )
 

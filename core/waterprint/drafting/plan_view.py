@@ -91,22 +91,23 @@ def unit_plan(
     length_key = manifest.plan_keys.get("overall_length") or manifest.primitive_dims.get("length")
     width_key = manifest.plan_keys.get("overall_width") or manifest.primitive_dims.get("width")
     dims = unit_result.dims
-    if length_key is None or width_key is None:
-        raise InvalidPlanViewError(
-            f"单元 {unit_result.unit_id!r} 对照表无总尺寸键（plan/primitive "
-            "缺 overall_length/overall_width——图纸前提失败，UF-32 表补录）"
+    entities: list[Entity] = []
+    length = 0.0
+    width = 0.0
+    if length_key is not None and width_key is not None:
+        if length_key not in dims or width_key not in dims:
+            raise InvalidPlanViewError(
+                f"单元 {unit_result.unit_id!r} dims 缺总尺寸键 "
+                f"{length_key!r}/{width_key!r}（结果与表不一致——对账测试守卫对象）"
+            )
+        length = float(dims[length_key])
+        width = float(dims[width_key])
+        entities.append(
+            Entity("rect", pool, ((0.0, 0.0), (length, width)),
+                   source_key=f"{length_key}|{width_key}")
         )
-    if length_key not in dims or width_key not in dims:
-        raise InvalidPlanViewError(
-            f"单元 {unit_result.unit_id!r} dims 缺总尺寸键 "
-            f"{length_key!r}/{width_key!r}（结果与表不一致——对账测试守卫对象）"
-        )
-    length = float(dims[length_key])
-    width = float(dims[width_key])
-    entities: list[Entity] = [
-        Entity("rect", pool, ((0.0, 0.0), (length, width)),
-               source_key=f"{length_key}|{width_key}")
-    ]
+    # 无平面总尺寸键单元（容积法 v1，如 AAO）：平面=工况注记占位——尺寸
+    # 分格归 M3 方案批（表 non_drawn 全量注记的显式延后）
     gap_key = manifest.plan_keys.get("gap_count")
     if gap_key is not None and gap_key in dims:
         count = int(float(dims[gap_key]))
