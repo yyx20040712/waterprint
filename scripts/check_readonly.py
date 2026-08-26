@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -37,11 +38,14 @@ ATTR_BARRIER_ACTIVE = sys.platform == "win32" and os.environ.get("CI") != "true"
 
 
 def sha256_of(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    """哈希口径：文本内容 CRLF 归一为 LF 后哈希——对齐 .gitattributes
+    eol=lf 的入库口径，本地 CRLF 检出（工具写入习惯）与 CI LF 检出同
+    哈希；二进制（UTF-8 解码失败，如 .xlsx）保持原字节哈希。与
+    scripts/lock_tests.py 同口径实现（锁定端/校验端一致）。"""
+    data = path.read_bytes()
+    with contextlib.suppress(UnicodeDecodeError):
+        data = data.decode("utf-8").replace("\r\n", "\n").encode("utf-8")
+    return hashlib.sha256(data).hexdigest()
 
 
 def locked_files() -> list[Path]:
@@ -73,7 +77,9 @@ def main() -> int:
     problems: list[str] = []
     entries = load_manifest()
     if not entries:
-        problems.append(f"缺少锁定清单 {MANIFEST.relative_to(REPO)}（由人类运行 scripts/lock_tests.py 生成）")
+        problems.append(
+            f"缺少锁定清单 {MANIFEST.relative_to(REPO)}（由人类运行 scripts/lock_tests.py 生成）"
+        )
 
     actual = {p.relative_to(REPO).as_posix() for p in locked_files()}
     for rel in sorted(actual - set(entries)):
