@@ -30,3 +30,164 @@
 #
 # 【参照】重写计划 §12.5；GB/T 50001
 # ══════════════════════════════════════════════════════════════════
+# 【参照】重写计划 §12.5；GB/T 50001
+# ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass
+from types import MappingProxyType
+from typing import Final, final
+
+from waterprint.drafting.styles import (
+    Entity,
+    EntityGroup,
+    LayerSpec,
+    base_styles,
+)
+
+__all__ = [
+    "SHEET_SIZES",
+    "SHEET_SOURCE",
+    "SheetSpec",
+    "TitleEntries",
+    "sheet_frame",
+    "title_block",
+]
+
+SHEET_SOURCE: Final[str] = (
+    "GB/T 50001《房屋建筑制图统一标准》表幅面（A 系列，mm）——"
+    "幅面尺寸=声明面常量（DRAFT 批裁决：本文件属 drafting 声明面白名单区，"
+    "每条数值带标准出处注记）"
+)
+# A0~A4 基本幅面（宽×高 mm，横式；竖式宽高互换）——GB/T 50001/ISO 216。
+SHEET_SIZES: Final[Mapping[str, tuple[float, float]]] = MappingProxyType({
+    "A0": (1189.0, 841.0), "A1": (841.0, 594.0), "A2": (594.0, 420.0),
+    "A3": (420.0, 297.0), "A4": (297.0, 210.0),
+})
+# 图框留边（mm）：a=装订边（左），c=非装订边——GB/T 50001（A0~A2 与
+# A3~A4 两档）。
+_MARGIN_BIND: Final[float] = 25.0
+_MARGIN_WIDE: Final[float] = 10.0
+_MARGIN_NARROW: Final[float] = 5.0
+
+# 标题栏/会签栏栏位（R4 固定模板数据结构；留空合法——交付流程填写）。
+_TITLE_FIELDS: Final[tuple[str, ...]] = (
+    "project", "drawing", "title", "designer", "checker", "reviewer",
+    "auditor", "date", "stage", "sheet_no",
+)
+
+
+class InvalidSheetError(Exception):
+    """图幅/栏位声明非法（未知幅面/朝向/栏位键）——GR-11 族。"""
+
+
+@dataclass(frozen=True)
+@final
+class SheetSpec:
+    """图幅规格（不可变）：幅面/朝向/比例（mm 出图约定 R3，比例声明于图纸）。"""
+
+    size: str
+    orientation: str = "landscape"
+    scale: str = "1:100"
+    margin_scale: float = 1.0  # 加长幅需求以倍数表达（不引入非标幅面魔法数）
+
+    def __post_init__(self) -> None:
+        """幅面/朝向校验（未知值=领域异常——禁静默默认档）。"""
+        if self.size not in SHEET_SIZES:
+            raise InvalidSheetError(
+                f"未知幅面：{self.size!r}（合法 {sorted(SHEET_SIZES)}，GB/T 50001）"
+            )
+        if self.orientation not in ("landscape", "portrait"):
+            raise InvalidSheetError(
+                f"未知朝向：{self.orientation!r}（合法 landscape/portrait）"
+            )
+
+
+@dataclass(frozen=True)
+@final
+class TitleEntries:
+    """标题栏+会签栏栏位数据（不可变，R4：留空合法）。"""
+
+    entries: Mapping[str, str]
+
+    def __post_init__(self) -> None:
+        """未知栏位键拒（防拼写漂移静默丢栏）+ 只读快照。"""
+        unknown = frozenset(self.entries) - frozenset(_TITLE_FIELDS)
+        if unknown:
+            raise InvalidSheetError(
+                f"未知栏位键：{sorted(unknown)}（合法 {list(_TITLE_FIELDS)}）"
+            )
+        object.__setattr__(
+            self, "entries", MappingProxyType(dict(self.entries))
+        )
+
+
+def _frame_layers() -> tuple[LayerSpec, ...]:
+    """图框两图层（经 base_styles 取——禁止手写图层字符串 R1）。"""
+    return base_styles().layers
+
+
+def sheet_frame(spec: Mapping[str, object]) -> EntityGroup:
+    """图框生成（幅面×横竖×装订边，mm 1:1 实体）。
+
+    spec 收 Mapping（锁定测试口径）或 SheetSpec（from_mapping 归一）；
+    外框（幅面边界）+ 内框（留边 c/a 后图框线）+ 幅面注记文字。
+    """
+    size = str(spec.get("size", ""))
+    orientation = str(spec.get("orientation", "landscape"))
+    normalized = SheetSpec(
+        size=size,
+        orientation=orientation,
+        scale=str(spec.get("scale", "1:100")),
+    )
+    width, height = SHEET_SIZES[normalized.size]
+    if normalized.orientation == "portrait":
+        width, height = height, width
+    margin = _MARGIN_WIDE if normalized.size in ("A0", "A1", "A2") else _MARGIN_NARROW
+    layers = _frame_layers()
+    border_layer = layers[-2].name  # WP-frame-border
+    title_layer = layers[-1].name  # WP-frame-title
+    left = _MARGIN_BIND
+    inner: tuple[tuple[float, float], ...] = (
+        (left, margin), (width - margin, margin),
+        (width - margin, height - margin), (left, height - margin),
+        (left, margin),
+    )
+    outer: tuple[tuple[float, float], ...] = (
+        (0.0, 0.0), (width, 0.0), (width, height), (0.0, height), (0.0, 0.0),
+    )
+    entities = (
+        Entity("line", border_layer, outer),
+        Entity("line", border_layer, inner),
+        Entity(
+            "text", title_layer, ((left, 0.0),),
+            text=f"{normalized.size} {normalized.orientation} 1:1mm {SHEET_SOURCE[:24]}",
+        ),
+    )
+    return EntityGroup(entities=entities)
+
+
+def title_block(entries: TitleEntries) -> EntityGroup:
+    """标题栏+会签栏（栏位数据生成；UTF-8 文字，留空栏位合法 R4）。"""
+    layers = _frame_layers()
+    label_layer = layers[-1].name  # WP-frame-title
+    row_h = 5.0  # 栏位行高 mm（GB/T 50001 标题栏分格工程惯例）
+    made: list[Entity] = []
+    for index, field_id in enumerate(_TITLE_FIELDS):
+        y = row_h * index
+        made.append(
+            Entity(
+                "text", label_layer, ((0.0, y),),
+                text=f"{field_id}={entries.entries.get(field_id, '')}",
+                source_key=field_id,
+            )
+        )
+        made.append(
+            Entity(
+                "line", label_layer,
+                ((0.0, y), (60.0, y)),  # 栏宽 60 mm（标题栏分格工程惯例）
+            )
+        )
+    return EntityGroup(entities=tuple(made))
