@@ -32,3 +32,113 @@
 #
 # 【参照】重写计划 §10.3 单体图纸行/§12.5/§13.6；ADR-006
 # ══════════════════════════════════════════════════════════════════
+# 【参照】重写计划 §10.3 单体图纸行/§12.5/§13.6；ADR-006
+# ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import final
+
+from waterprint.contracts.drawing_projection import UnitProjection
+from waterprint.contracts.result_schema import UnitResultSnapshot
+from waterprint.drafting.styles import Entity, EntityGroup, StyleTable
+
+__all__ = ["PlanOptions", "unit_plan"]
+
+
+class InvalidPlanViewError(Exception):
+    """平面图生成非法（manifest 非 UF-32 行/几何键缺）——GR-11 族。"""
+
+
+@dataclass(frozen=True)
+@final
+class PlanOptions:
+    """平面图选项（不可变）：标注级别/连接管示意（R3）。"""
+
+    annotation_level: str = "major"  # major=主要尺寸 / all=全部尺寸
+    pipe_routing: bool = False
+
+
+def _layer(styles: StyleTable, index: int) -> str:
+    """按位取图层名（样式表唯一命名真源 R1——禁手写图层字符串）。"""
+    return styles.layers[index].name
+
+
+def unit_plan(
+    unit_result: UnitResultSnapshot,
+    manifest: UnitProjection,
+    styles: StyleTable,
+    condition_key: str,
+    options: PlanOptions | None = None,
+) -> EntityGroup:
+    """单体平面图（manifest=UF-32 对照表行驱动取数，R1 纯投影零业务公式）。
+
+    矩形池轮廓（primitive/plan 总尺寸）→ 分格线（gap_count 类）→ 总尺寸/
+    分格/标高三类标注实体（R3 标注完备）→ 工况注记（R4 右下角）。
+    坐标单位 m（模型 1:1）——m→mm 出图换算归 dxf_writer 唯一住所。
+    """
+    chosen = options if options is not None else PlanOptions()
+    pool = _layer(styles, 0)  # WP-process-pool
+    dim = _layer(styles, 5)  # WP-dim-linear
+    anno = _layer(styles, 4)  # WP-anno-label
+    length_key = manifest.plan_keys.get("overall_length") or manifest.primitive_dims.get("length")
+    width_key = manifest.plan_keys.get("overall_width") or manifest.primitive_dims.get("width")
+    dims = unit_result.dims
+    if length_key is None or width_key is None:
+        raise InvalidPlanViewError(
+            f"单元 {unit_result.unit_id!r} 对照表无总尺寸键（plan/primitive "
+            "缺 overall_length/overall_width——图纸前提失败，UF-32 表补录）"
+        )
+    if length_key not in dims or width_key not in dims:
+        raise InvalidPlanViewError(
+            f"单元 {unit_result.unit_id!r} dims 缺总尺寸键 "
+            f"{length_key!r}/{width_key!r}（结果与表不一致——对账测试守卫对象）"
+        )
+    length = float(dims[length_key])
+    width = float(dims[width_key])
+    entities: list[Entity] = [
+        Entity("rect", pool, ((0.0, 0.0), (length, width)),
+               source_key=f"{length_key}|{width_key}")
+    ]
+    gap_key = manifest.plan_keys.get("gap_count")
+    if gap_key is not None and gap_key in dims:
+        count = int(float(dims[gap_key]))
+        for index in range(1, max(count, 1)):
+            x = length * index / max(count, 1)
+            entities.append(
+                Entity("line", pool, ((x, 0.0), (x, width)), source_key=gap_key)
+            )
+    # R3 标注完备：总尺寸（双向）+分格（逐跨）+标高符号占位（剖面同源）
+    entities.append(
+        Entity("dim_linear", dim, ((0.0, -1.0), (length, -1.0)),
+               params={"measurement": length}, text=length_key, source_key=length_key)
+    )
+    entities.append(
+        Entity("dim_linear", dim, ((-1.0, 0.0), (-1.0, width)),
+               params={"measurement": width}, text=width_key, source_key=width_key)
+    )
+    if gap_key is not None and gap_key in dims:
+        spans = max(int(float(dims[gap_key])), 1)
+        entities.append(
+            Entity("dim_linear", dim,
+                   ((0.0, -2.0), (length / spans, -2.0)),
+                   params={"measurement": length / spans},
+                   text=gap_key, source_key=gap_key)
+        )
+    elev_key = manifest.section_keys.get("water_depth")
+    if elev_key is not None and elev_key in dims:
+        entities.append(
+            Entity("elev_symbol", anno, ((0.0, 0.0),),
+                   params={"water_depth": float(dims[elev_key])},
+                   text=elev_key, source_key=elev_key)
+        )
+    # R4 工况注记（右下角；repro 三元组归 DrawingMeta 进 DXF 头——两段合璧）
+    entities.append(
+        Entity("text", anno, ((length, -3.0),), text=f"condition={condition_key}")
+    )
+    entities.append(
+        Entity("text", anno, ((length, -3.6),),
+               text=f"annotation={chosen.annotation_level}")
+    )
+    return EntityGroup(entities=tuple(entities))

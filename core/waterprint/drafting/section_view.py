@@ -31,3 +31,82 @@
 #
 # 【参照】重写计划 §10.3/§12.5；ADR-006
 # ══════════════════════════════════════════════════════════════════
+# 【参照】重写计划 §10.3/§12.5；ADR-006
+# ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import final
+
+from waterprint.contracts.drawing_projection import ProfileStation
+from waterprint.contracts.result_schema import UnitResultSnapshot
+from waterprint.drafting.styles import (
+    CutPosition,
+    Entity,
+    EntityGroup,
+    StyleTable,
+)
+
+__all__ = ["CutPosition", "SectionOptions", "unit_section"]
+
+
+class InvalidSectionViewError(Exception):
+    """剖面图生成非法（标高站缺/剖切参缺）——GR-11 族。"""
+
+
+@dataclass(frozen=True)
+@final
+class SectionOptions:
+    """剖面图选项（不可变）：剖切位置（1-1 等）+ 标注级别。"""
+
+    cut_position: CutPosition | None = None
+    annotation_level: str = "major"
+
+
+def unit_section(
+    unit_result: UnitResultSnapshot,
+    profile_station: ProfileStation,
+    styles: StyleTable,
+    condition_key: str,
+    options: SectionOptions | None = None,
+) -> EntityGroup:
+    """单体剖面图（R2 标高唯一真源=ElevationProfile 站参数——禁自行推算）。
+
+    三线（地面/水面/池底）+ 池体轮廓（表 primitive 槽位）+ 剖切符号
+    （CutPosition 与 plan_view 联动 R1）+ 工况注记（R5）。
+    """
+    chosen = options if options is not None else SectionOptions()
+    pool = styles.layers[0].name  # WP-process-pool
+    anno = styles.layers[3].name  # WP-anno-elev
+    dim = styles.layers[5].name  # WP-dim-linear
+    length = 10.0  # 剖面展开长度缺省幅（表无 length 槽单元的图幅占位）
+    entities: list[Entity] = [
+        Entity("line", anno, ((0.0, profile_station.ground_elev),
+                              (length, profile_station.ground_elev)),
+               text="ground", source_key="profile.ground_elev"),
+        Entity("line", anno, ((0.0, profile_station.water_level),
+                              (length, profile_station.water_level)),
+               text="water", source_key="profile.water_level"),
+        Entity("line", pool, ((0.0, profile_station.floor_elev),
+                              (length, profile_station.floor_elev)),
+               text="floor", source_key="profile.floor_elev"),
+    ]
+    entities.append(
+        Entity("dim_linear", dim,
+               ((0.0, profile_station.floor_elev),
+                (0.0, profile_station.water_level)),
+               params={"measurement": profile_station.water_depth},
+               text="water_depth", source_key="profile.water_depth")
+    )
+    if chosen.cut_position is not None:
+        entities.append(
+            Entity("cut_line", pool,
+                   (chosen.cut_position.origin, chosen.cut_position.direction),
+                   text=chosen.cut_position.id)
+        )
+    entities.append(
+        Entity("text", anno, ((length, profile_station.ground_elev),),
+               text=f"condition={condition_key}")
+    )
+    return EntityGroup(entities=tuple(entities))
