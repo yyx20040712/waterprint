@@ -21,7 +21,7 @@
 - Metadata 四 str 实录：`format_version="1.0"`、
   `engine_version="waterprint-server 0.1.0"`（现行 server 正门口径）、
   `data_version="coefficients@0.4.0+unit_prices@0.0.0"`（UF-10 版本聚合）、
-  `content_hash` = design_hash = `942b3271c905…4343c09`（与运行 repro
+  `content_hash` = design_hash = `942b3271c905…41143c09`（与运行 repro
   三元组逐字同，结果绑定输入已闭环）。
 
 ## 2. 口径注记

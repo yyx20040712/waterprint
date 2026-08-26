@@ -212,6 +212,9 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
   完整性的冲突"——app.run_full_calc 已装配 TraceCollector 并回填实迹
   （trace 非空、平铺到达序、双跑同序列化）；summary={} 仍为 M1 数值批
   待填（executor.py 零改动，其规格头 D10 注记文字保留作历史档）。
+  **GOLDEN R1-3 注记（2026-08-26）**：golden e2e 计算书 summary 面现用
+  replace 注入（executor summary={} 现状），D10 落地批 DoD 必含改真实
+  plant.summary 并移除注入。
 - **UF-43①②③**：均已实现闭合（见上表处置列）。
 - **UF-16**：calcbook 占位符语法已冻结；正式模板待 data/templates 录入批。
 

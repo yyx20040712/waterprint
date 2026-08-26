@@ -109,6 +109,8 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
     assert plant.repro.design_hash == project.metadata.content_hash  # 结果绑定输入
 
     # ② 逐工况逐项终水对照（双容差按 expected 内标注——不放宽）
+    # 键集钳制（GOLDEN R1-2）：expected 工况块恰等 5 工况键集，防删块静默绿
+    assert set(expected["effluent"]) == set(keys)
     for condition_key, fields in expected["effluent"].items():
         snapshot = plant.conditions[condition_key][_TERMINAL]
         for indicator, item in fields.items():
@@ -118,6 +120,8 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
             ), f"终水 {condition_key}.{indicator}"
 
     # ③ design 档主尺寸逐项对照（每 unit 主控项，容差同上）
+    # 单元覆盖钳制（GOLDEN R1-2）：design_dims 恰覆盖十二节点减 inlet
+    assert set(expected["design_dims"]) == set(project.design.nodes) - {"inlet"}
     for unit_id, fields in expected["design_dims"].items():
         dims = plant.conditions["design"][unit_id].dims
         for field, item in fields.items():
