@@ -31,8 +31,6 @@
 #
 # 【参照】重写计划 §12.5；ADR-006；GB/T 50001
 # ══════════════════════════════════════════════════════════════════
-# 【参照】重写计划 §12.5；ADR-006；GB/T 50001
-# ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
@@ -177,10 +175,10 @@ def base_styles() -> StyleTable:
     layers: tuple[LayerSpec, ...] = (
         LayerSpec("WP-process-pool", _ACI_GREEN, "CONTINUOUS", 0.35, _GB_T),
         LayerSpec("WP-process-pipe", _ACI_GREEN, "CONTINUOUS", 0.25, _GB_T),
-        LayerSpec("WP-arch-axis", _ACI_YELLOW, "DASHED", 0.09, _GB_T),
+        LayerSpec("WP-arch-axis", _ACI_YELLOW, "DASHED", 0.13, _GB_T),
         LayerSpec("WP-anno-elev", _ACI_RED, "CONTINUOUS", 0.18, _GB_T),
         LayerSpec("WP-anno-label", _ACI_RED, "CONTINUOUS", 0.18, _GB_T),
-        LayerSpec("WP-dim-linear", _ACI_CYAN, "CONTINUOUS", 0.09, _GB_T),
+        LayerSpec("WP-dim-linear", _ACI_CYAN, "CONTINUOUS", 0.13, _GB_T),
         LayerSpec("WP-frame-border", _ACI_WHITE, "CONTINUOUS", 0.7, _GB_T),
         LayerSpec("WP-frame-title", _ACI_WHITE, "CONTINUOUS", 0.35, _GB_T),
     )

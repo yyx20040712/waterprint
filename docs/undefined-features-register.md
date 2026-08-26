@@ -9,6 +9,13 @@
 > **待定义→T?**（随任务冻结）/ **显式不做**（一句理由）/ **领域专家待拍板**
 > （列入问题清单）。归引用：`unified` = 仓库外统一审计清单
 > `.workflow/review-unified.md`（A/B/C/D 编号）。
+>
+> **追认台账位置说明（R1-6 2026-08-26）**：集中追认台账在仓库外
+> 会话工作区（`.workflow/pending-domain-expert.md`，gitignore 明示
+> 不入库——克隆者不可达）；本表各行'pending 追认/待追认'字样即
+> in-repo 追认标记（UF-32 行=对照表整体+量纲列、UF-50 行=DXF v1
+> 基准面裁量），units_lib manifest'待追认'注记同理——台账丢失时
+> 以本表+注记为审计锚点。
 
 ## 一、种子项（总控拍板收录，UF-01~UF-15）
 
@@ -226,6 +233,7 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
 | UF-47 | 哈希取用 | design_hash server 侧取用：calc/exports 的幂等键、快照绑定、stale 守门均需 submit 时 design 哈希，而 design_hash/dumps_design 在 waterprint.project（D7 forbidden）且 app 未再导出 | 已定义（临置）→SERVER 批：services/projects.design_digest=content_hash.design_hash **B4 双胞胎**（sha256(dumps_design 等价确定性序列化+尾换行）——镜像测试与 core 真源逐字节对照（双胞胎漂移即测试红）。**追认点**：app 面 design_hash 用例收口建议（pending-domain-expert §9-2）——收口后双胞胎退役 | SERVER 2026-08-26 |
 | UF-48 | 诊断交付 | 无解诊断交付面相抵：enumeration.py R4 写"diagnosis 端点可用"，而 calc 端点集 v1 冻结六件（A1 锁定 18 总数）无 /diagnosis 端点 | 已定义→SERVER 批：端点集冻结优先——诊断负载随 GET /api/calc/tasks/{id} 结果载荷交付（feasible_count=0 时 diagnosis 非空）；fetch_diagnosis 服务面保留（路由组装用）；专用端点归端点集变更批（升 v2 时评审） | SERVER 2026-08-26 |
 | UF-49 | 取消/进度通路 | Windows spawn 下共享值通路受限（实测）：mp.Queue/Event 不能经 ProcessPoolExecutor.submit 参数传递（标准 pickle 拒）；core run 内长计算无协作取消钩子（spec R5"worker 每批迭代检查"在 run 单调用面无落点） | 已定义→SERVER 批：进度队列经池 initializer/initargs 注入 worker 模块全局（ForkingPickler 正门，实测通）；取消令牌=标记文件（cancel_dir/<task_id>.cancel，跨进程共享值的文件形态）；worker 在阶段边界与批迭代间轮询（run 内不可中断——结果落地前双检）。**挂账**：core 协作取消钩子（yield 式/回调式）归 core 后续批 | SERVER 2026-08-26 |
+| UF-50 | 出图输入 | DXF 导出 v1 输入面裁量：进厂水面/地面标高是 design 态输入（profile R2 非假设），而 export_artifact('dxf') 签名无该通道——v1 以 ±0.00 相对标高基准出图（工程相对标高惯例，0/0 字面量零数值面）；管段损失同因无几何通道而空段（head_losses(())——水位恒平）；绝对标高/管段几何接线归 server 批（API 通道）与 M5 管线/布置批 | 已定义（临置）→DRAFT 批 2026-08-26（R1-6 挂账显式化）：in-repo 标记=本行；绝对标高经 condition_key 同款关键字扩展或 design 输入面收口——收口后 _REL_DATUM 退役 | DRAFT 2026-08-26 |
 
 ### 十一批验证命令摘要（仓库根执行，2026-08-26）
 

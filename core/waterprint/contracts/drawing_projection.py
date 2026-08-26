@@ -48,7 +48,9 @@
 #
 # 【起草口径】分类与量纲列按 docs/norms 13 单元起草表（2026-08-25/26
 #   数据策略 v2）+ 公式注册表 output_dim 归纳——AI 起草，整表+量纲列
-#   待领域专家追认（.workflow/pending-domain-expert.md §DRAFT）。
+#   待领域专家追认（in-repo 追认标记=docs/undefined-features-register.md
+#   UF-32 行'pending 追认'字样——集中台账在仓库外会话工作区，克隆者
+#   以 UF 行标记为可达锚点，R1-6 2026-08-26）。
 #
 # 【测试要求】tests/contracts/test_drawing_projection.py：13 单元
 #   golden 实跑键集对账 + DimKey 合法性 + 表键集==13 市政单元。
@@ -368,7 +370,8 @@ PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "q_design_h": _D, "q_pump": _D, "q_pump_si": _F,
                 "v_concrete": _V, "v_pipe_act": _VEL, "v_well": _V},
     ),
-    # 调节池：p_stir 搅拌功率 kW（POWER——功率量纲首个 dims 键）
+    # 调节池：p_stir 搅拌功率 kW（DIMENSIONLESS 裸值——TJ-F9 output_dim
+    # 口径，kW 单位语义随 i18n 键；gaomidu p_mix/p_floc 同款）
     "municipal_tiaojiechi": UnitProjection(
         "municipal_tiaojiechi",
         plan_keys={"overall_length": "l", "overall_width": "b",
