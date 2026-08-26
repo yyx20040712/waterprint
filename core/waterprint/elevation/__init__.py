@@ -15,3 +15,9 @@
 # 旧 jcws_smbg（进厂水面标高）与 gdys_stss（管道水头损失）模组折叠为
 # 本子系统的输入配置，不再是单元包（§14.3 归属表）。
 # ══════════════════════════════════════════════════════════════════
+
+from waterprint.elevation.losses import head_losses
+from waterprint.elevation.profile import build_profile
+from waterprint.elevation.pumps import evaluate_pumping
+
+__all__ = ["build_profile", "evaluate_pumping", "head_losses"]
