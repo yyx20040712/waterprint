@@ -449,6 +449,20 @@ _M3A3_FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec("h_water", DimKey.LENGTH, "m", "units.fields.h_water", "geometry"),
     FieldSpec("h_plate", DimKey.LENGTH, "m", "units.fields.h_plate", "geometry"),
     FieldSpec("h_under", DimKey.LENGTH, "m", "units.fields.h_under", "geometry"),
+    # mine_water_ziwai 紫外消毒渠（主算例：n=3 复用/b_channel=1.7 复用
+    # M1A；h_channel=1.2/p_lamp=250 W/n_layer=6/d_long=0.12/xi_total=3/
+    # n_t=1.5/t254=65 % 百分数口径新增）
+    FieldSpec("h_channel", DimKey.LENGTH, "m", "units.fields.h_channel",
+              "geometry"),
+    FieldSpec("p_lamp", DimKey.DIMENSIONLESS, "", "units.fields.p_lamp",
+              "equipment"),
+    FieldSpec("n_layer", DimKey.DIMENSIONLESS, "", "units.fields.n_layer",
+              "equipment"),
+    FieldSpec("d_long", DimKey.LENGTH, "m", "units.fields.d_long", "equipment"),
+    FieldSpec("xi_total", DimKey.DIMENSIONLESS, "", "units.fields.xi_total",
+              "load"),
+    FieldSpec("n_t", DimKey.DIMENSIONLESS, "", "units.fields.n_t", "load"),
+    FieldSpec("t254", DimKey.DIMENSIONLESS, "", "units.fields.t254", "quality"),
 )
 for _spec in _M3A3_FIELDS:
     register_dimension(_spec)
