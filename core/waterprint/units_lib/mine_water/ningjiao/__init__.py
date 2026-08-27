@@ -1,7 +1,7 @@
 """混凝反应单元包根：白名单导出（mine_water_ningjiao）。
 
 输入:  manifest.py 的清单实例与 compute.py 的单元工厂
-输出:  仅暴露 manifest 与 make_unit 两个名字（units_lib 白名单铁律）
+输出:  白名单导出 UNIT_ID/make_unit/manifest 三名（discover 探测面=manifest/make_unit）
 """
 
 # ══════════════════════════════════════════════════════════════════
