@@ -114,10 +114,10 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `core/waterprint/units_lib/mine_water/tiaojiechi/` | 矿井水 | M3a2 已实装（KT-F1~F12 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/mine_water/chenshachi/` | 矿井水 | M3a2 已实装（KC-F1~F10 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/mine_water/ningjiao/` | 矿井水 | M3a2 已实装（KN-F1~F15 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
-| `core/waterprint/units_lib/mine_water/cifenli/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/gaomidu/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/vxinglvchi/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/ziwai/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/cifenli/` | 矿井水 | M3a3 已实装（KS-F1~F8 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/gaomidu/` | 矿井水 | M3a3 已实装（KG-F1~F10 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/vxinglvchi/` | 矿井水 | M3a3 已实装（KV-F1~F11 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/ziwai/` | 矿井水 | M3a3 已实装（KZ-F1~F11 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/sludge/hebing/` | 污泥 | M3 |
 | `core/waterprint/units_lib/sludge/shusong/` | 污泥 | M3 |
 | `core/waterprint/units_lib/sludge/bengzhan/` | 污泥 | M3 |

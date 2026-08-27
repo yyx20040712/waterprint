@@ -42,10 +42,10 @@ norms/
 | mine_water_tiaojiechi（矿井水调节池） | 矿井水 | `mine_water_tiaojiechi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，调节容积法主线[纯均化零去除，预沉口径归追认]；M3a2 按表逐字实装 KT-F1~F12） |
 | mine_water_chenshachi（平流沉砂池） | 矿井水 | `mine_water_chenshachi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，平流型主线[区别于市政旋流型]；M3a2 按表逐字实装 KC-F1~F10） |
 | mine_water_ningjiao（混凝反应池） | 矿井水 | `mine_water_ningjiao.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，四分区 G 值梯度主线[磁加载衔接，反应无分离穿流]；M3a2 按表逐字实装 KN-F1~F15） |
-| mine_water_cifenli（磁分离） | 矿井水 | `mine_water_cifenli.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，磁盘表面负荷主线[磁种回收循环衡算]；KS-F1~F8） |
-| mine_water_gaomidu（矿井水高密沉淀池） | 矿井水 | `mine_water_gaomidu.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，无回流斜管低负荷主线[异于市政 Densadeg 回流型]；KG-F1~F10） |
-| mine_water_vxinglvchi（矿井水V型滤池） | 矿井水 | `mine_water_vxinglvchi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均质滤料低滤速精滤主线[4~6 m/h 异于市政 7~10]；KV-F1~F11） |
-| mine_water_ziwai（矿井水紫外消毒渠） | 矿井水 | `mine_water_ziwai.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，灯管布置实算剂量主线[含结垢系数特征键，异于市政概算锚]；KZ-F1~F11） |
+| mine_water_cifenli（磁分离） | 矿井水 | `mine_water_cifenli.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，磁盘表面负荷主线[磁种回收循环衡算]；M3a3 按表逐字实装 KS-F1~F8） |
+| mine_water_gaomidu（矿井水高密沉淀池） | 矿井水 | `mine_water_gaomidu.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，无回流斜管低负荷主线[异于市政 Densadeg 回流型]；M3a3 按表逐字实装 KG-F1~F10） |
+| mine_water_vxinglvchi（矿井水V型滤池） | 矿井水 | `mine_water_vxinglvchi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均质滤料低滤速精滤主线[4~6 m/h 异于市政 7~10]；M3a3 按表逐字实装 KV-F1~F11） |
+| mine_water_ziwai（矿井水紫外消毒渠） | 矿井水 | `mine_water_ziwai.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，灯管布置实算剂量主线[含结垢系数特征键，异于市政概算锚]；M3a3 按表逐字实装 KZ-F1~F11） |
 
 注记（命名双轨现状）：上表市政 13 份为 M1/M2 批历史命名=**单元短名**
 （如 `gaomidu.md`）；M3a1 起矿井水线按本 README"命名 = 单元 ID"规定
