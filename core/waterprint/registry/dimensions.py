@@ -436,6 +436,10 @@ _M3A3_FIELDS: tuple[FieldSpec, ...] = (
               "equipment"),
     FieldSpec("m_seed", DimKey.DIMENSIONLESS, "", "units.fields.m_seed",
               "operation"),
+    # mine_water_gaomidu 高密沉淀（主算例：n=2 复用/t_mix=0.5/t_floc=12.0/
+    # q_surf=6.0/l_tube=1.0/h_clear=1.0/h_thick=0.5 复用 M2B2；h_dist=1.5
+    # 新增布水区高；B/L 0.5 m 档复用 side_disc_step）
+    FieldSpec("h_dist", DimKey.LENGTH, "m", "units.fields.h_dist", "geometry"),
 )
 for _spec in _M3A3_FIELDS:
     register_dimension(_spec)
