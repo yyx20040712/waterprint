@@ -1,6 +1,29 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.6.0"
+data_version: "0.7.0"
 # 变更记录：
+#   - 0.7.0: M3c 输送线（集配水）四单元批（批级版本跃升——三线齐备
+#       收尾批，32/32 单元包数据面齐）；AI 起草待追认（数据策略 v2，
+#       工程常用范围口径；出处仅 GB 50014-2021[§6.1 集水池参照+§6 超高
+#       +§7.1 并联系列+§4 渠道流速/超高，条号章级标注待核对]+给水排水
+#       设计手册两类）。docs/norms/conveyance_{jishuijing,peishuijing,
+#       jipeishuijing,peishuiqu}.md 参数档逐字：factors.yaml 增
+#       factor.<裸短名>.* 共 48 条（**裸短名**——conveyance 线投影现成
+#       零改造[app._unit_params 四线全前缀剥离已含 conveyance_——M3a1
+#       D1 修正期预置，本批零代码改造实证]；jishuijing 9——汇流集水
+#       容积法+停留校核+圆形井构造[无泵工况——泵衔接归泵族单元面]；
+#       peishuijing 15——均匀分流+孔口出流 μ 反解作用水头+配水不均匀
+#       系数 k_uneven 余量+井室构造[多出流口 n 参数化——动态多口口径
+#       表内冻结]；jipeishuijing 12——汇流+分流合一单节点[jishuijing
+#       容积主线+peishuijing 分流主线语义合并]；peishuiqu 12——明渠
+#       输配+侧堰配水 m_weir 反解堰顶水头+变流量渠末流速校核[GB §4
+#       最小流速防淤]；配水类三单元 k_uneven 1.10/带 1.05~1.15 同键值
+#       同带；各单元 elevation_loss 全建 0.15，wall_thickness_coef 仅
+#       建有构筑物概算面三单元[jishuijing/peishuijing/jipeishuijing]，
+#       peishuiqu 渠道无井体概算面不建[渠长归布置面]）；**removal_
+#       rates.yaml 零新增**——输送线单元零水质去除（穿流单元——水量/
+#       水质全透传不建 removal 键，照 0.6.0 污泥批零 removal 键口径
+#       注记在册）。0.6.0 既有 497 键（=factors 436+removal 61）四面
+#       逐键零扰动（探针实录差异 0）。
 #   - 0.6.0: M3b1 污泥线七单元批（批级版本跃升）；AI 起草待追认（数据
 #       策略 v2，工程常用范围口径；出处仅 GB 50014-2021[§8 污泥章——
 #       §8.1.4 表 5 产率 y 系 ADR-008 ④ 拍板口径]+给水排水设计手册两类，

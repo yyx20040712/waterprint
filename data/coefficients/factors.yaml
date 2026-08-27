@@ -2520,3 +2520,255 @@
   unit: "m"
   source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（车间水损经验值）"
   note: "干化车间高程水损（带 0.1~0.2 取 0.15；旧锚 0.15 一致；车间设备单元不建 wall_thickness_coef）；数据策略 v2"
+
+# ── 集水井（jishuijing，0.7.0；汇流集水容积法+停留校核+圆形井构造；逐字对应
+#    docs/norms/conveyance_jishuijing.md——集配水线首批，裸短名投影） ──
+- key: "factor.jishuijing.t_band.min"
+  value: 2.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（集水池容积参照口径，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（汇流集水设施停留常用带）"
+  note: "汇流停留时间带下限（集水类无泵工况短档——区别泵站集水池 5~15 min 带）；数据策略 v2"
+- key: "factor.jishuijing.t_band.max"
+  value: 10.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（集水池容积参照口径，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）"
+  note: "汇流停留时间带上限；数据策略 v2"
+- key: "factor.jishuijing.depth_band.min"
+  value: 2.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "集水井有效水深带下限；数据策略 v2"
+- key: "factor.jishuijing.depth_band.max"
+  value: 4.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "集水井有效水深带上限（汇流井调蓄深井档——宽于泵站集水池 1.5~2.5）；数据策略 v2"
+- key: "factor.jishuijing.d_band.min"
+  value: 4.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）圆形集水井构造常用档"
+  note: "井径校核带下限（0.5 m 构造档下构造合理面）；数据策略 v2"
+- key: "factor.jishuijing.d_band.max"
+  value: 12.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）圆形集水井构造常用档"
+  note: "井径校核带上限（超上限宜分座或改矩形——构造合理性校核）；数据策略 v2"
+- key: "factor.jishuijing.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求，条号随追认核对）"
+  note: "集水井超高（带 0.3~0.5 取 0.3——格栅 superheight 键同值先例）；数据策略 v2"
+- key: "factor.jishuijing.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）（矩形池概算口径——壁厚系数法）"
+  note: "壁厚系数（带 0.30~0.40 取 0.35——0.6.0 污泥池类同带先例）；数据策略 v2"
+- key: "factor.jishuijing.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）（集配水线各单元水损经验值同带）"
+  note: "集水井内水损（带 0.1~0.2 取 0.15——归高程链子系统消费）；数据策略 v2"
+
+# ── 配水井（peishuijing，0.7.0；均匀分流+孔口出流水力+不均匀余量+井室构造；
+#    逐字对应 docs/norms/conveyance_peishuijing.md） ──
+- key: "factor.peishuijing.v_band.min"
+  value: 0.8
+  unit: "m/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（孔口出流常用流速带）"
+  note: "出流口流速带下限（实际流速 v_act 校核）；数据策略 v2"
+- key: "factor.peishuijing.v_band.max"
+  value: 1.5
+  unit: "m/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（孔口出流常用流速带）"
+  note: "出流口流速带上限；数据策略 v2"
+- key: "factor.peishuijing.mu_out"
+  value: 0.62
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）孔口流量系数（带 0.60~0.65 取 0.62）"
+  note: "孔口出流流量系数 μ（PJ-F6 作用水头反解 Q=μA√(2gH)）；数据策略 v2"
+- key: "factor.peishuijing.head_band.min"
+  value: 0.1
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水孔口常用水头带）"
+  note: "作用水头带下限（水头过小对施工高差敏感——配水均匀性不利）；数据策略 v2"
+- key: "factor.peishuijing.head_band.max"
+  value: 0.4
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水孔口常用水头带）"
+  note: "作用水头带上限（水头过大抬井内水位——并联损失面）；数据策略 v2"
+- key: "factor.peishuijing.k_uneven"
+  value: 1.1
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数，带 1.05~1.15 取 1.10）"
+  note: "配水不均匀系数（对称布置设计余量——下游系列按 q_series=q_each×k 设计）；数据策略 v2"
+- key: "factor.peishuijing.k_uneven_band.min"
+  value: 1.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带下限（数据包自校面）；数据策略 v2"
+- key: "factor.peishuijing.k_uneven_band.max"
+  value: 1.15
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带上限（数据包自校面）；数据策略 v2"
+- key: "factor.peishuijing.v_channel_band.min"
+  value: 0.4
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施过流断面流速参照带）"
+  note: "井室断面流速带下限；数据策略 v2"
+- key: "factor.peishuijing.v_channel_band.max"
+  value: 0.8
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施过流断面流速参照带）"
+  note: "井室断面流速带上限；数据策略 v2"
+- key: "factor.peishuijing.depth_band.min"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "配水井有效水深带下限（wushui_tisheng well.depth_band 同带先例）；数据策略 v2"
+- key: "factor.peishuijing.depth_band.max"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "配水井有效水深带上限；数据策略 v2"
+- key: "factor.peishuijing.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求，条号随追认核对）"
+  note: "配水井超高（带 0.3~0.5 取 0.3）；数据策略 v2"
+- key: "factor.peishuijing.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）（概算口径——壁厚系数法）"
+  note: "壁厚系数（带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.peishuijing.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）（集配水线各单元水损经验值同带）"
+  note: "配水井内水损（带 0.1~0.2 取 0.15——归高程链子系统消费）；数据策略 v2"
+
+# ── 集配水井（jipeishuijing，0.7.0；汇流容积+停留校核+均匀分流不均匀余量；
+#    逐字对应 docs/norms/conveyance_jipeishuijing.md） ──
+- key: "factor.jipeishuijing.t_band.min"
+  value: 3.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（集水池容积参照口径，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）"
+  note: "汇流停留时间带下限（集配合一井——下限高于 jishuijing 短档 2 min：分流口占用井容）；数据策略 v2"
+- key: "factor.jipeishuijing.t_band.max"
+  value: 10.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（集水池容积参照口径，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）"
+  note: "汇流停留时间带上限；数据策略 v2"
+- key: "factor.jipeishuijing.depth_band.min"
+  value: 2.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "集配水井有效水深带下限；数据策略 v2"
+- key: "factor.jipeishuijing.depth_band.max"
+  value: 3.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集水设施常用带）（集水设施有效水深常用带）"
+  note: "集配水井有效水深带上限（窄于 jishuijing 4.0——分流面出流口淹没水深约束）；数据策略 v2"
+- key: "factor.jipeishuijing.d_band.min"
+  value: 4.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）圆形集水井构造常用档"
+  note: "井径校核带下限；数据策略 v2"
+- key: "factor.jipeishuijing.d_band.max"
+  value: 12.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）圆形集水井构造常用档"
+  note: "井径校核带上限；数据策略 v2"
+- key: "factor.jipeishuijing.k_uneven"
+  value: 1.1
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数，带 1.05~1.15 取 1.10）"
+  note: "配水不均匀系数（对称布置设计余量——peishuijing 同键值同带）；数据策略 v2"
+- key: "factor.jipeishuijing.k_uneven_band.min"
+  value: 1.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带下限（数据包自校面）；数据策略 v2"
+- key: "factor.jipeishuijing.k_uneven_band.max"
+  value: 1.15
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带上限（数据包自校面）；数据策略 v2"
+- key: "factor.jipeishuijing.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求，条号随追认核对）"
+  note: "集配水井超高（带 0.3~0.5 取 0.3）；数据策略 v2"
+- key: "factor.jipeishuijing.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）（概算口径——壁厚系数法）"
+  note: "壁厚系数（带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.jipeishuijing.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）（集配水线各单元水损经验值同带）"
+  note: "集配水井内水损（带 0.1~0.2 取 0.15——归高程链子系统消费）；数据策略 v2"
+
+# ── 配水渠（peishuiqu，0.7.0；明渠输配+侧堰配水+不均匀余量+渠末流速校核；
+#    逐字对应 docs/norms/conveyance_peishuiqu.md） ──
+- key: "factor.peishuiqu.v_channel_band.min"
+  value: 0.6
+  unit: "m/s"
+  source: "GB 50014-2021 §4（渠道流速/超高，条号随追认核对）；给水排水设计手册（第 3 册 城镇给水）配水设施章"
+  note: "渠内设计流速带下限（首段全量过流）；数据策略 v2"
+- key: "factor.peishuiqu.v_channel_band.max"
+  value: 1.0
+  unit: "m/s"
+  source: "GB 50014-2021 §4（渠道流速/超高，条号随追认核对）；给水排水设计手册（第 3 册 城镇给水）配水设施章"
+  note: "渠内设计流速带上限；数据策略 v2"
+- key: "factor.peishuiqu.v_end_band.min"
+  value: 0.4
+  unit: "m/s"
+  source: "GB 50014-2021 §4（最小流速防淤积，条号随追认核对）"
+  note: "渠末段流速带下限（变流量渠末段仅输最后一路——淤积风险校核）；数据策略 v2"
+- key: "factor.peishuiqu.v_end_band.max"
+  value: 1.0
+  unit: "m/s"
+  source: "GB 50014-2021 §4（渠道流速/超高，条号随追认核对）"
+  note: "渠末段流速带上限；数据策略 v2"
+- key: "factor.peishuiqu.m_weir"
+  value: 0.45
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）薄壁堰流量系数（带 0.42~0.50 取 0.45）"
+  note: "侧向溢流堰流量系数 m（PQ-F4 堰顶水头反解 Q=m·b·√(2g)·H^1.5）；数据策略 v2"
+- key: "factor.peishuiqu.h_weir_band.min"
+  value: 0.1
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水堰常用堰顶水头带）"
+  note: "堰顶水头带下限（水头过小对堰顶施工高差敏感——配水均匀性不利）；数据策略 v2"
+- key: "factor.peishuiqu.h_weir_band.max"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水堰常用堰顶水头带）"
+  note: "堰顶水头带上限（水头过大抬渠内水深）；数据策略 v2"
+- key: "factor.peishuiqu.k_uneven"
+  value: 1.1
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数，带 1.05~1.15 取 1.10）"
+  note: "配水不均匀系数（对称布置设计余量——配水类三单元同键值同带）；数据策略 v2"
+- key: "factor.peishuiqu.k_uneven_band.min"
+  value: 1.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带下限（数据包自校面）；数据策略 v2"
+- key: "factor.peishuiqu.k_uneven_band.max"
+  value: 1.15
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）配水设施章（配水不均匀系数常用带）"
+  note: "不均匀系数带上限（数据包自校面）；数据策略 v2"
+- key: "factor.peishuiqu.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §4（渠道流速/超高，条号随追认核对）"
+  note: "配水渠超高（带 0.3~0.5 取 0.3）；数据策略 v2"
+- key: "factor.peishuiqu.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）（集配水线各单元水损经验值同带）"
+  note: "配水渠内水损（带 0.1~0.2 取 0.15——归高程链子系统消费；渠段沿程损失归渠长布置面）；数据策略 v2"
