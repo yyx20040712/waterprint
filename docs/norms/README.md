@@ -38,6 +38,19 @@ norms/
 | cass（CASS 生物池） | 市政污水 | `cass.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，周期循环工艺主线 4h 档；M2c 按表逐字实装 CA-F1~F27） |
 | bashi_jiliangcao（巴歇尔计量槽） | 市政污水 | `bashi_jiliangcao.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，B7 七档流量式主线——CJ/T 核对归追认；M2c 按表逐字实装 BL-F1~F9） |
 | wushui_tisheng（污水提升泵房） | 市政污水 | `wushui_tisheng.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，集水井调节容积+泵扬程三分量主线[追认点 14 承接]；M2c 按表逐字实装 TS-F1~F14） |
+| mine_water_input（矿井水输入） | 矿井水 | `mine_water_input.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，入水定义+高程基准主线[GB/T 19223 分类口径]；KI-F1~F7） |
+| mine_water_tiaojiechi（矿井水调节池） | 矿井水 | `mine_water_tiaojiechi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，调节容积法主线[纯均化零去除，预沉口径归追认]；KT-F1~F12） |
+| mine_water_chenshachi（平流沉砂池） | 矿井水 | `mine_water_chenshachi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，平流型主线[区别于市政旋流型]；KC-F1~F10） |
+| mine_water_ningjiao（混凝反应池） | 矿井水 | `mine_water_ningjiao.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，四分区 G 值梯度主线[磁加载衔接，反应无分离穿流]；KN-F1~F15） |
+| mine_water_cifenli（磁分离） | 矿井水 | `mine_water_cifenli.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，磁盘表面负荷主线[磁种回收循环衡算]；KS-F1~F8） |
+| mine_water_gaomidu（矿井水高密沉淀池） | 矿井水 | `mine_water_gaomidu.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，无回流斜管低负荷主线[异于市政 Densadeg 回流型]；KG-F1~F10） |
+| mine_water_vxinglvchi（矿井水V型滤池） | 矿井水 | `mine_water_vxinglvchi.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均质滤料低滤速精滤主线[4~6 m/h 异于市政 7~10]；KV-F1~F11） |
+| mine_water_ziwai（矿井水紫外消毒渠） | 矿井水 | `mine_water_ziwai.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，灯管布置实算剂量主线[含结垢系数特征键，异于市政概算锚]；KZ-F1~F11） |
+
+注记（命名双轨现状）：上表市政 13 份为 M1/M2 批历史命名=**单元短名**
+（如 `gaomidu.md`）；M3a1 起矿井水线按本 README"命名 = 单元 ID"规定
+以**单元全 ID** 落盘（如 `mine_water_gaomidu.md`）——双轨并存为已登记
+现状，既有 13 份文件名不改（历史例外），新单元一律全 ID 命名。
 
 ## 涉及规范清单（实现期逐步摘录）
 
