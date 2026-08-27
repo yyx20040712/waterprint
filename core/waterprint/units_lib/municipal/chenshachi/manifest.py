@@ -28,7 +28,7 @@
 #   在 compute 以参数化算术合成（零字面量，无新工程常数）。
 # 【矛盾 3 挂账】t=30 与校核带 25~60 s（mod.json min=30）不一致——
 #   总控工程惯例裁定 2026-08-25：表载 t=30 生效（签字值优先，30 在校核
-#   带内）；待领域专家追认（见 .workflow/pending-domain-expert.md §2）。
+#   带内）；待领域专家追认（追认落点=docs/norms/chenshachi.md 表尾签字栏）。
 # 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。

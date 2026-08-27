@@ -78,7 +78,7 @@ plugins = ["pydantic.mypy"]
 # R1-4③（AU-7 追认注记 2026-08-26）：mypy_path 与 dev 组 types-pyyaml/
 # types-openpyxl/import-linter 三件为 mypy strict/lint-imports 功能必需的
 # 白名单字面越界（简报 §2 server/pyproject 动作=D7 importlinter 节）——
-# 已登记 .workflow/pending-domain-expert §9-4 追认。
+# 已登记越白名单追认（UF-46/47 临置注记见 docs/undefined-features-register.md）。
 mypy_path = "../core"
 
 # ── UF-13 收口（SERVER D7 2026-08-26）：server 层 import-linter ──
