@@ -54,7 +54,7 @@ _FLOW = WaterFlow(q_avg_daily=43836.0 / 86400, kz=1.5)
 _IN_REF = PortRef(unit_id="test_mine_cifenli", port_id="in")
 _CONDITION = OperatingCondition(flow_case=FlowCase.DESIGN)
 _QUALITY = WaterQuality(
-    {"BOD5": 5.0, "CODCR": 200.0, "SS": 680.0, "NH3N": 1.0, "TN": 60.0, "TP": 2.0}
+    {"CODCR": 200.0, "SS": 680.0, "NH3N": 1.0, "TN": 60.0, "TP": 2.0}
 )
 
 
@@ -178,7 +178,7 @@ def test_outflow_passthrough_and_quality() -> None:
     out_quality = result.outqualities[out_ref]
     assert pytest.approx(68.0, abs=1e-9) == out_quality.SS  # 680×(1−0.90)
     assert pytest.approx(80.0, abs=1e-9) == out_quality.CODCR  # 200×(1−0.60)
-    assert out_quality.BOD5 == 5.0  # 无去除键穿流不变
+    assert out_quality.BOD5 is None  # 不建键缺项=None（P6 契约）
     assert out_quality.NH3N == 1.0
     assert out_quality.TN == 60.0
     assert out_quality.TP == 2.0

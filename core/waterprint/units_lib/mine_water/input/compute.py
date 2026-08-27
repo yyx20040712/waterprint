@@ -13,13 +13,13 @@
 #   ctx.inflows 非空一律拒（全厂流量口径与进水水质的唯一注入点，
 #   表单元信息节）；出流水量经 KI-F1 求值后按 q_design/kz 反解
 #   q_avg_daily 规范单位（m3/s，零字面量——86400 换算已在公式串）；
-#   出流水质=参数面六指标注入（GB/T 19223-2015 含悬浮物类典型值；
+#   出流水质=参数面五指标注入（GB/T 19223-2015 含悬浮物类典型值；
 #   零去除键——输入源单元无处理功能，不经 apply、formula_ids 不含
 #   去除式，与市政 tiaojiechi 零去除透传形态记档同款）。
 # 【系数通道】factor.mine_input.* 经 ctx.params 投影面取值
 #   （app._unit_params 线感知投影，mine_ 限定键空间）；缺键=领域异常。
 # 【输出面（D2）】outflows=注入水量；dims=表主算例七量全量 snake 键；
-#   outqualities=参数注入六指标；warnings=超高校核带越界
+#   outqualities=参数注入五指标；warnings=超高校核带越界
 #   （freeboard ≥ factor.mine_input.freeboard.min；param_key 归因+
 #   调节方向）；formula_ids=实际求值公式号全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
@@ -59,13 +59,12 @@ _PARAMS_POSITIVE = (
     "h_pool",
     "ss_in",
     "cod_in",
-    "bod5_in",
     "nh3n_in",
     "tn_in",
     "tp_in",
 )
-_QUALITY_PARAMS = ("ss_in", "cod_in", "bod5_in", "nh3n_in", "tn_in", "tp_in")
-_QUALITY_INDICATORS = ("SS", "CODCR", "BOD5", "NH3N", "TN", "TP")
+_QUALITY_PARAMS = ("ss_in", "cod_in", "nh3n_in", "tn_in", "tp_in")
+_QUALITY_INDICATORS = ("SS", "CODCR", "NH3N", "TN", "TP")
 
 
 def _factor(params: dict[str, float], key: str) -> float:
@@ -162,7 +161,7 @@ def _warnings(p: dict[str, float], dims: dict[str, float]) -> tuple[Warning, ...
 
 
 def _out_quality(p: dict[str, float]) -> WaterQuality:
-    """出水质：参数面六指标注入（进水水质面，零去除不经 apply）。"""
+    """出水质：参数面五指标注入（进水水质面，零去除不经 apply）。"""
     return WaterQuality(
         {
             indicator: p[param]

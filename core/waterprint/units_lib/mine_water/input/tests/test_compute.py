@@ -14,7 +14,7 @@
 #   z_water/z_bottom/freeboard）+ 超高校核带越界产 Warning（freeboard
 #   < freeboard.min）+ 参数域拒绝（kz≤0、kz<1、q_avg_daily≤0、
 #   非零入边=注入点语义拒）+ 纯函数双跑一致 + formula_ids 全部可在
-#   公式注册表解析 + 出流水质=参数注入六指标（GB/T 19223-2015 含
+#   公式注册表解析 + 出流水质=参数注入五指标（GB/T 19223-2015 含
 #   悬浮物类典型值面）。
 #
 # 【锁定流程】本文件写完并由人类复核后执行
@@ -39,8 +39,9 @@ from waterprint.units_lib.mine_water.input import make_unit, manifest
 
 # ── 主算例入参（表逐字：Q_avg_daily=43836.0 m³/d、Kz=1.5 井下脉动独立
 #    口径、z_water_inlet=100.0、z_ground=102.0、DN=800 mm；进水水质=
-#    GB/T 19223-2015 含悬浮物类典型值——SS 800/COD 200/BOD5 5.0/
-#    NH3N 1.0/TN 60/TP 2.0 mg/L） ──
+#    GB/T 19223-2015 含悬浮物类典型值——SS 800/COD 200/
+#    NH3N 1.0/TN 60/TP 2.0 mg/L；BOD5 不建键——Ruling BOD5-不建
+#    2026-08-28，§11.15 全线不建口径） ──
 _CONDITION = OperatingCondition(flow_case=FlowCase.DESIGN)
 
 
@@ -65,7 +66,6 @@ def _params(**overrides: float) -> dict[str, float]:
         "h_pool": 3.0,
         "ss_in": 800.0,
         "cod_in": 200.0,
-        "bod5_in": 5.0,
         "nh3n_in": 1.0,
         "tn_in": 60.0,
         "tp_in": 2.0,
@@ -128,7 +128,7 @@ def test_main_case_flow_and_elevation() -> None:
 
 
 def test_outflow_injection_and_quality() -> None:
-    """出流注入：水量=参数面（q_avg_daily=Q_design/kz 口径）+ 水质=六指标注入。"""
+    """出流注入：水量=参数面（q_avg_daily=Q_design/kz 口径）+ 水质=五指标注入。"""
     result = make_unit().compute(_ctx(_params()))
     out_ref = PortRef(unit_id="test_mine_input", port_id="out")
     out_flow = result.outflows[out_ref]
@@ -139,7 +139,7 @@ def test_outflow_injection_and_quality() -> None:
     out_quality = result.outqualities[out_ref]
     assert pytest.approx(800.0, abs=1e-9) == out_quality.SS
     assert pytest.approx(200.0, abs=1e-9) == out_quality.CODCR
-    assert pytest.approx(5.0, abs=1e-9) == out_quality.BOD5
+    assert out_quality.BOD5 is None  # 不建键缺项=None（P6 契约）
     assert pytest.approx(1.0, abs=1e-9) == out_quality.NH3N
     assert pytest.approx(60.0, abs=1e-9) == out_quality.TN
     assert pytest.approx(2.0, abs=1e-9) == out_quality.TP

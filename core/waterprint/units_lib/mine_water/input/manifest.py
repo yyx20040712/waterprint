@@ -11,7 +11,7 @@
 # 【固定形态】UNIT_ID = "mine_water_input"；manifest = load_manifest({...})。
 # 【数值真源】参数默认值=表主算例逐字（Q_avg_daily=43836 m³/d/Kz=1.5
 #   井下脉动独立口径/DN=800 mm/z_water_inlet=100.0/z_ground=102.0/
-#   h_pool=3.0；进水水质六指标=GB/T 19223-2015 含悬浮物类典型值——
+#   h_pool=3.0；进水水质五指标=GB/T 19223-2015 含悬浮物类典型值——
 #   全厂流量口径与进水水质的唯一注入点）；系数不落本表——进水水头
 #   损失/超高下限经 factor.mine_input.* 键消费（app._unit_params 线
 #   感知投影，mine_ 限定）；去除率零键（输入源单元无处理功能不建
@@ -27,6 +27,8 @@
 #   参数）/ports 两口 WATER/removal_refs 空映射/norm_refs 双源标记
 #   （GB/T 19223-2015+GB/T 41019-2021+给水排水设计手册）/
 #   condition_mappings=()/constraint_refs 一键。
+# 【BOD5RM 记档】bod5_in 撤键——Ruling BOD5-不建 2026-08-28，§11.15
+#   全线不建口径（矿井水 B/C=0.025 无生化性，出流水质五指标）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -162,7 +164,6 @@ manifest = load_manifest(
             },
             {"field_id": "ss_in", "dim": "CONCENTRATION", "default": 800.0},
             {"field_id": "cod_in", "dim": "CONCENTRATION", "default": 200.0},
-            {"field_id": "bod5_in", "dim": "CONCENTRATION", "default": 5.0},
             {"field_id": "nh3n_in", "dim": "CONCENTRATION", "default": 1.0},
             {"field_id": "tn_in", "dim": "CONCENTRATION", "default": 60.0},
             {"field_id": "tp_in", "dim": "CONCENTRATION", "default": 2.0},
