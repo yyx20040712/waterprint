@@ -19,7 +19,12 @@
 #   免竞态：spawn 子进程启动远慢于同环毫秒级订阅窗口）。
 #
 # 【纪律】本文件随 lock_tests.py 同步入锁（用户总授权 2026-08-23，
-# 实现报告详列该锁定动作）。
+#   实现报告详列该锁定动作）。
+# 【全局卫生】Manager.start() 会重写 worker._PROGRESS_QUEUE 模块全局
+#   （进程内执行面注入口），lifespan 收尾 manager.shutdown 会 close 本
+#   用例队列——本用例是 jobs/ 内首个走完整 lifespan 的用例，若不还原，
+#   后跑的 test_worker 直调 run_task 回退面会踩"已关闭队列"（该文件
+#   只读锁定不可改）。故用例尾快照还原全局到用例前状态（基线动态零漂移）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
+from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Event
 from waterprint_server.main import create_app
 from waterprint_server.settings import Settings
@@ -41,12 +47,53 @@ pytestmark = [pytest.mark.anyio]
 
 _TIMEOUT_SECONDS = 60  # 轮询上限（秒）——超时=失败（中文报错含 task_id）
 _POLL_SECONDS = 1 / 2  # 轮询间隔（幂商式保字面量白名单）
+_TERMINAL = ("done", "cancelled", "failed")
 
 
 async def _collect_project_events(app: FastAPI, project_id: str, sink: list[Event]) -> None:
     """项目通道事件收集（消费面=manager.project_events，SSE 数据源同款）。"""
     async for event in app.state.ctx.manager.project_events(project_id):
         sink.append(event)
+
+
+async def _drive_calc_run(
+    app: FastAPI, cass_payload: dict[str, object]
+) -> tuple[dict[str, object], list[Event], str]:
+    """HTTP 正门驱动：创建项目 → 提交 calc → 轮询至终态（事件收集器并行）。"""
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        created = await client.post("/api/projects", json={"project": cass_payload})
+        assert created.status_code == 200
+        project_id = str(created.json()["project_id"])
+        events: list[Event] = []
+        collector = asyncio.create_task(_collect_project_events(app, project_id, events))
+        try:
+            submitted = await client.post(
+                "/api/calc/run",
+                json={"project_id": project_id, "conditions": ["design", "avg"]},
+            )
+            assert submitted.status_code == 200
+            task_id = str(submitted.json()["task_id"])
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + _TIMEOUT_SECONDS
+            status: dict[str, object] = {}
+            while True:
+                status = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+                if status.get("state") in _TERMINAL:
+                    break
+                if loop.time() > deadline:
+                    pytest.fail(
+                        f"spawn 冒烟超时（>{_TIMEOUT_SECONDS}s 未到终态）："
+                        f"task_id={task_id} 当前态={status.get('state')}"
+                    )
+                await asyncio.sleep(_POLL_SECONDS)
+        finally:
+            collector.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await collector
+    return status, events, task_id
 
 
 async def test_process_pool_smoke_end_to_end(
@@ -57,45 +104,17 @@ async def test_process_pool_smoke_end_to_end(
     断言链：终态 done + result_file 落盘 JSON 可读 + 进度事件 ≥1 条
     （跨进程进度桥消费面行为——质量门条款 4）。
     """
-    app = create_app(test_settings, executor=None)  # 真池（main.py:195-199 唯一现场）
-    async with app.router.lifespan_context(app):
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport, base_url="http://testserver"
-        ) as client:
-            created = await client.post("/api/projects", json={"project": cass_payload})
-            assert created.status_code == 200
-            project_id = str(created.json()["project_id"])
-            events: list[Event] = []
-            collector = asyncio.create_task(_collect_project_events(app, project_id, events))
-            try:
-                submitted = await client.post(
-                    "/api/calc/run",
-                    json={"project_id": project_id, "conditions": ["design", "avg"]},
-                )
-                assert submitted.status_code == 200
-                task_id = str(submitted.json()["task_id"])
-                loop = asyncio.get_running_loop()
-                deadline = loop.time() + _TIMEOUT_SECONDS
-                status: dict[str, object] = {}
-                while True:
-                    status = (await client.get(f"/api/calc/tasks/{task_id}")).json()
-                    if status.get("state") in {"done", "cancelled", "failed"}:
-                        break
-                    if loop.time() > deadline:
-                        pytest.fail(
-                            f"spawn 冒烟超时（>{_TIMEOUT_SECONDS}s 未到终态）："
-                            f"task_id={task_id} 当前态={status.get('state')}"
-                        )
-                    await asyncio.sleep(_POLL_SECONDS)
-            finally:
-                collector.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await collector
-            assert status["state"] == "done"
-            result = status["result"]
-            assert isinstance(result, dict) and result.get("result_file")
-            payload = json.loads(Path(str(result["result_file"])).read_bytes())
-            assert isinstance(payload, dict) and payload  # 结果载荷可读（serialize JSON）
-            progress = [e for e in events if e.type == "progress" and e.task_id == task_id]
-            assert len(progress) >= 1  # 进度事件 ≥1（池 initializer 注入队列→桥→订阅面）
+    prior_queue = worker._PROGRESS_QUEUE  # noqa: SLF001  # 全局快照（见头部"全局卫生"）
+    try:
+        app = create_app(test_settings, executor=None)  # 真池（main.py:195-199 唯一现场）
+        async with app.router.lifespan_context(app):
+            status, events, task_id = await _drive_calc_run(app, cass_payload)
+        assert status["state"] == "done"
+        result = status["result"]
+        assert isinstance(result, dict) and result.get("result_file")
+        payload = json.loads(Path(str(result["result_file"])).read_bytes())
+        assert isinstance(payload, dict) and payload  # 结果载荷可读（serialize JSON）
+        progress = [e for e in events if e.type == "progress" and e.task_id == task_id]
+        assert len(progress) >= 1  # 进度事件 ≥1（池 initializer 注入队列→桥→订阅面）
+    finally:
+        worker._PROGRESS_QUEUE = prior_queue  # noqa: SLF001  # 还原（lifespan 收尾已 close 本用例队列）

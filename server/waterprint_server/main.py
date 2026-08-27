@@ -83,6 +83,7 @@ from waterprint_server.services.exports import (
 from waterprint_server.services.projects import (
     ImportNotReadyError,
     InvalidProjectPayloadError,
+    PayloadTooLargeError,
     ProjectLockedError,
     ProjectNotFoundError,
 )
@@ -107,6 +108,9 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidProjectPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # ENG2 D3：非弃用名（HTTP_413_CONTENT_TOO_LARGE==413，值同简报所书
+    # REQUEST_ENTITY_TOO_LARGE 旧别名——用旧名会常驻 StarletteDeprecationWarning）。
+    (PayloadTooLargeError, status.HTTP_413_CONTENT_TOO_LARGE),
     (worker.InvalidTaskPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (ValidationError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (ValueError, status.HTTP_422_UNPROCESSABLE_CONTENT),  # 兜底：路径分量/DSL 值面

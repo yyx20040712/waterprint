@@ -81,9 +81,7 @@ class Settings(BaseSettings):
     exports_dir: Path = Path("exports")
     data_dir: Path = Path("data")
     calc_workers: int = Field(default_factory=lambda: max(1, (os.cpu_count() or 2) - 1))
-    # R1-4⑤（AU-8 挂账 2026-08-26）：本字段当前仅声明+fail-fast 校验面，HTTP 上传
-    # 体积闸未接线（现役=深度闸 _check_depth；字节体积上限归 M3 前与 body 限幅
-    # 一并裁——undefined-features-register AU-8 观察级同款口径）。
+    # R1-4⑤（AU-8 已接线 ENG2 2026-08-27）：上传体积闸已接线（413，routers 依赖层）。
     max_upload_mb: int = 10
     max_excel_rows: int = 10**2 * 10**2  # 10000（§18 上传面；幂积保白名单字面量集）
     cache_entries: int = 10**2 * 10  # 1000（§17.2 LRU 条数上限）

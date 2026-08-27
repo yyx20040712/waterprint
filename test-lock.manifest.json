@@ -85,7 +85,7 @@
   "core/tests/trace/test_collector.py": "49fe6756dd5094932d3be9c4b07bb52cb756e2bcdfde3014342590837fa0970e",
   "server/tests/conftest.py": "23e2ef02fcbf8545483cd9bc1ba14f5ee3d3e158eb1f021d3f52542967ce9def",
   "server/tests/jobs/test_manager.py": "1cab56588ca2a0aae243a6c114347118df606111f7c91ecb5f7384de0b5e6f1f",
-  "server/tests/jobs/test_spawn_smoke.py": "cab372a64623c01fdc1f2f3908363d7031c2ae3fdba63e7c3346a30b973ae10e",
+  "server/tests/jobs/test_spawn_smoke.py": "009a4f88416fbd75982cebd2fb05d5d1d15c779703c0fb180a893cde3e4faaf3",
   "server/tests/jobs/test_worker.py": "94aeed704ce9ef320c5356875badf232eaebef7d64c707a10b6f592e87cffbcf",
   "server/tests/routers/test_calc.py": "aaa13f4157b0017e67d9530721897f36ecd0141988666b7080ff8cfc6dc14987",
   "server/tests/routers/test_events.py": "39052daa305c2f0d300a967d427d208e9f8f41471860bf35267b990abe034dae",
@@ -97,5 +97,6 @@
   "server/tests/services/test_projects.py": "dd7a45102a17cf126157de9e31461b6a5eb4aed19876bf70585dd5826a0d0173",
   "server/tests/test_api_contract.py": "af726fca8d06cffdc20780915ebef2b803a211838be1529daf2c6e426da247b0",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
-  "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8"
+  "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8",
+  "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
 }

@@ -36,12 +36,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from waterprint.contracts.project_schema import parse_project
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import projects as service
+from waterprint_server.services.projects import PayloadTooLargeError
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -49,6 +50,27 @@ router = APIRouter(prefix="/api/projects", tags=["projects"])
 def _ctx(request: Request) -> ServiceContext:
     """装配束取用（app.state.ctx——main 工厂注入，无全局可变态）。"""
     return request.app.state.ctx  # type: ignore[no-any-return]
+
+
+def _reject_oversized_body(request: Request) -> None:
+    """上传面体积闸依赖（§18）：Content-Length 超 max_upload_mb 即拒（413）。
+
+    幂积十进制口径同 core io._MAX_BYTES 先例（10**2*10**2*10**2=MB）。
+    头缺席=放行：chunked 无定长 v1 不拦——客户端全为定长 JSON，结构
+    炸弹由深度闸 _check_depth 常驻守。依赖层接线而非中间件：避开
+    Starlette 用户中间件在 ExceptionMiddleware 之外的处理器次序陷阱。
+    """
+    raw = request.headers.get("content-length")
+    if raw is None:
+        return
+    settings = _ctx(request).settings
+    limit = settings.max_upload_mb * 10**2 * 10**2 * 10**2
+    size = int(raw)
+    if size > limit:
+        raise PayloadTooLargeError(
+            f"请求体超过上传上限：Content-Length {size} 字节 > "
+            f"max_upload_mb={settings.max_upload_mb}（上限 {limit} 字节，§18 上传面）"
+        )
 
 
 class CreateProjectRequest(BaseModel):
@@ -83,7 +105,9 @@ class ValidationResponse(BaseModel):
     errors: list[str]
 
 
-@router.post("", response_model=SaveOutcomeResponse)
+@router.post(
+    "", response_model=SaveOutcomeResponse, dependencies=[Depends(_reject_oversized_body)]
+)
 async def create_project(body: CreateProjectRequest, request: Request) -> SaveOutcomeResponse:
     """创建（空项目或导入）——薄转换：调 service → 响应包装。"""
     outcome = service.create_project(_ctx(request), {"project": body.project})
@@ -116,7 +140,11 @@ async def read_project(project_id: str, request: Request) -> dict[str, Any]:
     return service.read_project(_ctx(request), project_id).model_dump(mode="json")
 
 
-@router.put("/{project_id}", response_model=SaveOutcomeResponse)
+@router.put(
+    "/{project_id}",
+    response_model=SaveOutcomeResponse,
+    dependencies=[Depends(_reject_oversized_body)],
+)
 async def save_project(
     project_id: str, body: dict[str, Any], request: Request
 ) -> SaveOutcomeResponse:

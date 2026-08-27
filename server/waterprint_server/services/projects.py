@@ -98,6 +98,10 @@ class InvalidProjectPayloadError(ValueError):
     """上传项目 payload 非法（深度炸弹/形态）——422 面。"""
 
 
+class PayloadTooLargeError(ValueError):
+    """上传面字节体积闸（Content-Length 超 max_upload_mb）——413 面。"""
+
+
 @dataclass(frozen=True)
 class SaveOutcome:
     """保存结果（R2：新 hash + design_changed；view 变更不触发计算语义）。"""
