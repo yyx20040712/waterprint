@@ -46,7 +46,7 @@ from waterprint.contracts.condition import ConditionSet, FlowCase, OperatingCond
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.sludge import SludgeFlow, make_sludge
-from waterprint.contracts.unit_api import Severity, UnitContext
+from waterprint.contracts.unit_api import Severity, UnitContext, UnitResult
 from waterprint.registry import formulas
 from waterprint.units_lib.sludge.shusong import make_unit, manifest
 
@@ -106,7 +106,7 @@ def _dims(**overrides: float) -> dict[str, float]:
     return dict(dims)
 
 
-def _compute(**overrides: float):
+def _compute(**overrides: float) -> UnitResult:
     """主算例（或覆盖档）单跑结果。"""
     return make_unit().compute(_ctx(_params(**overrides)))
 
@@ -200,7 +200,8 @@ def test_outflow_sludge_passthrough() -> None:
     assert out.q_wet == pytest.approx(_INFLOW.q_wet, abs=1e-18)
     assert out.ds == pytest.approx(_INFLOW.ds, abs=1e-18)
     assert out.moisture == _INFLOW.moisture
-    assert result.outqualities == {}
+    assert set(result.outqualities) == {_OUT_REF}  # 空水质单位元面（executor 入流装配前提）
+    assert result.outqualities[_OUT_REF].concentrations == {}
 
 
 def test_param_domain_rejected() -> None:

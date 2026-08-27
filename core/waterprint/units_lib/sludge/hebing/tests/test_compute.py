@@ -47,7 +47,7 @@ from waterprint.contracts.condition import ConditionSet, FlowCase, OperatingCond
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.sludge import SludgeFlow
-from waterprint.contracts.unit_api import Severity, UnitContext
+from waterprint.contracts.unit_api import Severity, UnitContext, UnitResult
 from waterprint.registry import formulas
 from waterprint.units_lib.sludge.hebing import make_unit, manifest
 
@@ -122,7 +122,7 @@ def _dims(**overrides: float) -> dict[str, float]:
     return dict(dims)
 
 
-def _compute(**overrides: float):
+def _compute(**overrides: float) -> UnitResult:
     """主算例（或覆盖档）单跑结果。"""
     return make_unit().compute(_ctx(_params(**overrides)))
 
@@ -210,7 +210,8 @@ def test_outflow_sludge_triple() -> None:
     assert out.q_wet == pytest.approx(409.3365833333 / 86400, abs=1e-15)
     assert out.ds == pytest.approx(5306.515 / 86400, abs=1e-15)
     assert out.moisture == pytest.approx(0.9870363041, abs=1e-9)
-    assert result.outqualities == {}  # SLUDGE 通道无水质面
+    assert set(result.outqualities) == {_OUT_REF}  # 空水质单位元面（executor 入流装配前提）
+    assert result.outqualities[_OUT_REF].concentrations == {}  # SLUDGE 通道无水质面
 
 
 def test_param_domain_rejected() -> None:
@@ -232,6 +233,7 @@ def test_pure_function_double_run() -> None:
     assert first.warnings == second.warnings
     out_first = first.outflows[_OUT_REF]
     out_second = second.outflows[_OUT_REF]
+    assert isinstance(out_first, SludgeFlow) and isinstance(out_second, SludgeFlow)
     assert (out_first.q_wet, out_first.ds, out_first.moisture) == (
         out_second.q_wet,
         out_second.ds,

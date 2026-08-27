@@ -39,6 +39,7 @@ from typing import final
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
+from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
@@ -312,7 +313,11 @@ class _SludgeNongsuo:
                     moisture=p["p_out"],
                 )
             },
-            outqualities={},
+            # 出流水质面=空 WaterQuality 单位元（R5/GR-04——SLUDGE 通道
+            # 无水质指标，但出流面两 Mapping 口恒有键：executor 入流
+            # 装配取上游 qualities 池键的纯污泥图前提，builtin 三节点
+            # 同款形态）
+            outqualities={out_ref: WaterQuality({})},
             dims=dims,
             warnings=_warnings(p, area),
             formula_ids=FORMULA_IDS,

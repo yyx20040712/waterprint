@@ -466,72 +466,35 @@ _M3A3_FIELDS: tuple[FieldSpec, ...] = (
 )
 for _spec in _M3A3_FIELDS:
     register_dimension(_spec)
-
-# ── M3b2 污泥线七单元参数字段（2026-08-27；出处=docs/norms/sludge_*.md
-#    七表参数档/算例 1 输入行——同名跨单元字段 ID 不耦合：各包 manifest
-#    各写各的默认值，AGENTS §11 R4；bengzhan 参数面全复用既有登记
-#    [n_standby/h_static/l_pipe/v_pipe/t_well/h_well——M2C 泵族字段]，
-#    p_out 为 nongsuo 底流含水率与 ganhua 干化后含水率跨包共用名。
-#    泥量（kg/d 工程口径）/含水率（小数）/时段（d·h·min）/温度（℃）/
-#    产率/降解率/机档枚举类在 DimKey 无对应量类或口径与规范单位不一致
-#    者按 DIMENSIONLESS 裸值登记（单位语义随 i18n 键走，七表口径）；
-#    s0_bod/se_bod/x_vss 为 mg/L 口径与 CONCENTRATION 规范一致、
-#    v_bio 为 m³ 与 VOLUME 一致、v_press/d_grav/h_eff/h_cone 为 m 系
-#    与规范一致者按对应量纲登记。 ──
+# ── M3b2 污泥线七单元参数字段（sludge_*.md 七表参数档；口径同前段注）──
 _M3B2_FIELDS: tuple[FieldSpec, ...] = (
-    # sludge_hebing 污泥合并（主算例：三股 ds 3240.12/1928.690/137.7050
-    # kg/d、含水率 0.96/0.994/0.98；衡算面 s0/se=123.2996/12.32996
-    # mg/L、v_bio=10714.95 m³、x_vss=3000 mg/L、t_design=15 ℃）
-    FieldSpec("ds_primary", DimKey.DIMENSIONLESS, "", "units.fields.ds_primary",
-              "sludge"),
-    FieldSpec("p_primary", DimKey.DIMENSIONLESS, "", "units.fields.p_primary",
-              "sludge"),
+    FieldSpec("ds_primary", DimKey.DIMENSIONLESS, "", "units.fields.ds_primary", "sludge"),
+    FieldSpec("p_primary", DimKey.DIMENSIONLESS, "", "units.fields.p_primary", "sludge"),
     FieldSpec("ds_bio", DimKey.DIMENSIONLESS, "", "units.fields.ds_bio", "sludge"),
     FieldSpec("p_bio", DimKey.DIMENSIONLESS, "", "units.fields.p_bio", "sludge"),
-    FieldSpec("ds_chem", DimKey.DIMENSIONLESS, "", "units.fields.ds_chem",
-              "sludge"),
+    FieldSpec("ds_chem", DimKey.DIMENSIONLESS, "", "units.fields.ds_chem", "sludge"),
     FieldSpec("p_chem", DimKey.DIMENSIONLESS, "", "units.fields.p_chem", "sludge"),
-    FieldSpec("s0_bod", DimKey.CONCENTRATION, "mg/L", "units.fields.s0_bod",
-              "load"),
-    FieldSpec("se_bod", DimKey.CONCENTRATION, "mg/L", "units.fields.se_bod",
-              "load"),
+    FieldSpec("s0_bod", DimKey.CONCENTRATION, "mg/L", "units.fields.s0_bod", "load"),
+    FieldSpec("se_bod", DimKey.CONCENTRATION, "mg/L", "units.fields.se_bod", "load"),
     FieldSpec("v_bio", DimKey.VOLUME, "m3", "units.fields.v_bio", "geometry"),
     FieldSpec("x_vss", DimKey.CONCENTRATION, "mg/L", "units.fields.x_vss", "load"),
-    FieldSpec("t_design", DimKey.DIMENSIONLESS, "", "units.fields.t_design",
-              "operation"),
-    # sludge_shusong 污泥输送（主算例：v_press=1.5 m/s 名义、d_grav=0.15
-    # m DN150 重力档；副算例 v_press=2.0、d_grav=0.20）
+    FieldSpec("t_design", DimKey.DIMENSIONLESS, "", "units.fields.t_design", "operation"),
     FieldSpec("v_press", DimKey.VELOCITY, "m/s", "units.fields.v_press", "load"),
     FieldSpec("d_grav", DimKey.LENGTH, "m", "units.fields.d_grav", "geometry"),
-    # sludge_nongsuo 污泥浓缩（主算例：q_solid=50 kgDS/(m²·d)、
-    # t_thicken=16 h、h_eff=4.0 m、n=2 复用、p_out=0.96、h_cone=2.0 m）
     FieldSpec("q_solid", DimKey.DIMENSIONLESS, "", "units.fields.q_solid", "load"),
-    FieldSpec("t_thicken", DimKey.DIMENSIONLESS, "", "units.fields.t_thicken",
-              "load"),
+    FieldSpec("t_thicken", DimKey.DIMENSIONLESS, "", "units.fields.t_thicken", "load"),
     FieldSpec("h_eff", DimKey.LENGTH, "m", "units.fields.h_eff", "geometry"),
     FieldSpec("p_out", DimKey.DIMENSIONLESS, "", "units.fields.p_out", "sludge"),
     FieldSpec("h_cone", DimKey.LENGTH, "m", "units.fields.h_cone", "geometry"),
-    # sludge_xiaohua 污泥消化（主算例：t_digest=20 d、t_digest_temp=35 ℃
-    # UF-09 参数承载、eta_vs=0.45、r_biogas=0.9 m³/kgVS；n=2 复用）
-    FieldSpec("t_digest", DimKey.DIMENSIONLESS, "", "units.fields.t_digest",
-              "operation"),
-    FieldSpec("t_digest_temp", DimKey.DIMENSIONLESS, "",
-              "units.fields.t_digest_temp", "operation"),
+    FieldSpec("t_digest", DimKey.DIMENSIONLESS, "", "units.fields.t_digest", "operation"),
+    FieldSpec("t_digest_temp", DimKey.DIMENSIONLESS, "", "units.fields.t_digest_temp", "operation"),
     FieldSpec("eta_vs", DimKey.DIMENSIONLESS, "", "units.fields.eta_vs", "sludge"),
-    FieldSpec("r_biogas", DimKey.DIMENSIONLESS, "", "units.fields.r_biogas",
-              "operation"),
-    # sludge_tuoshui 污泥脱水（主算例带式档：machine_type=1[belt]/
-    # dose_pam=4 g/kgDS、p_cake=0.78；n_standby=1 复用 M2C）
-    FieldSpec("machine_type", DimKey.DIMENSIONLESS, "",
-              "units.fields.machine_type", "equipment"),
-    FieldSpec("dose_pam", DimKey.DIMENSIONLESS, "", "units.fields.dose_pam",
-              "operation"),
+    FieldSpec("r_biogas", DimKey.DIMENSIONLESS, "", "units.fields.r_biogas", "operation"),
+    FieldSpec("machine_type", DimKey.DIMENSIONLESS, "", "units.fields.machine_type", "equipment"),
+    FieldSpec("dose_pam", DimKey.DIMENSIONLESS, "", "units.fields.dose_pam", "operation"),
     FieldSpec("p_cake", DimKey.DIMENSIONLESS, "", "units.fields.p_cake", "sludge"),
-    # sludge_ganhua 污泥干化（主算例：p_out=0.25 复用、t_op=24 h 连续档
-    # grid 8/16/24、r_evap=8 kg/(m²·h)）
     FieldSpec("t_op", DimKey.DIMENSIONLESS, "", "units.fields.t_op", "operation"),
-    FieldSpec("r_evap", DimKey.DIMENSIONLESS, "", "units.fields.r_evap",
-              "equipment"),
+    FieldSpec("r_evap", DimKey.DIMENSIONLESS, "", "units.fields.r_evap", "equipment"),
 )
 for _spec in _M3B2_FIELDS:
     register_dimension(_spec)

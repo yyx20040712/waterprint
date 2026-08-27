@@ -118,13 +118,13 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `core/waterprint/units_lib/mine_water/gaomidu/` | 矿井水 | M3a3 已实装（KG-F1~F10 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/mine_water/vxinglvchi/` | 矿井水 | M3a3 已实装（KV-F1~F11 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/mine_water/ziwai/` | 矿井水 | M3a3 已实装（KZ-F1~F11 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
-| `core/waterprint/units_lib/sludge/hebing/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/shusong/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/bengzhan/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/nongsuo/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/xiaohua/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/tuoshui/` | 污泥 | M3 |
-| `core/waterprint/units_lib/sludge/ganhua/` | 污泥 | M3 |
+| `core/waterprint/units_lib/sludge/hebing/` | 污泥 | M3b2 已实装（HB-F1~F13 公式注册+图源参数注入+包内 golden 测试 11 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/shusong/` | 污泥 | M3b2 已实装（ST-F1~F9 公式注册+DN25 档收口+包内 golden 测试 13 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/bengzhan/` | 污泥 | M3b2 已实装（BZ-F1~F18 公式注册+泵族先例形态+包内 golden 测试 12 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/nongsuo/` | 污泥 | M3b2 已实装（NS-F1~F12 公式注册+双主线取大+sup 回流口声明先行+包内 golden 测试 12 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/xiaohua/` | 污泥 | M3b2 已实装（XH-F1~F11 公式注册+t_digest_temp 参数承载+包内 golden 测试 12 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/tuoshui/` | 污泥 | M3b2 已实装（TU-F1~F8 公式注册+双机档 grid+filtrate 回流口声明先行+包内 golden 测试 12 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/sludge/ganhua/` | 污泥 | M3b2 已实装（GH-F1~F8 公式注册+热量衡算主线+包内 golden 测试 12 例）/ M3 正式验收 |
 | `core/waterprint/units_lib/conveyance/jishuijing/` | 集配水 | M3 |
 | `core/waterprint/units_lib/conveyance/peishuijing/` | 集配水 | M3 |
 | `core/waterprint/units_lib/conveyance/jipeishuijing/` | 集配水 | M3 |
