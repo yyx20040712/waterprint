@@ -1,7 +1,7 @@
 """drawing_projection_mine 镜像测试：矿井水线表主概念（宪法 §6 镜像）。
 
 输入:  MINE_PROJECTIONS 8 条目（M3D1 D2 落表）+聚合正门对照
-输出:  8 行计数与 unit_id 前缀自洽/与市政分线 disjoint/聚合并集相等
+输出:  8 行计数与 unit_id 前缀自洽/四线 disjoint+聚合并集相等
        /disk-lamp_row 实例语义标签断言（薄镜像——107 键全量五类对账在
        test_drawing_projection.py）
 """
@@ -14,6 +14,9 @@
 from __future__ import annotations
 
 from waterprint.contracts.drawing_projection import PROJECTION_TABLE
+from waterprint.contracts.drawing_projection_conveyance import (
+    CONVEYANCE_PROJECTIONS,
+)
 from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
@@ -31,14 +34,15 @@ def test_mine_table_has_eight_selfconsistent_entries() -> None:
 
 
 def test_mine_disjoint_from_municipal_and_union_is_table() -> None:
-    """三线 disjoint+聚合并集==正门表键集（M3D2 扩污泥线——M-2 指引：
-    并集断言随批扩线集，禁回退子集断言）。
+    """四线 disjoint+聚合并集==正门表键集（M3D2 扩污泥线、M3D3 扩
+    输送线——M-2 指引：并集断言随批扩线集，禁回退子集断言）。
     """
     mine = frozenset(MINE_PROJECTIONS)
     municipal = frozenset(MUNICIPAL_PROJECTIONS)
     sludge = frozenset(SLUDGE_PROJECTIONS)
-    assert not mine & (municipal | sludge)
-    assert mine | municipal | sludge == frozenset(PROJECTION_TABLE)
+    conveyance = frozenset(CONVEYANCE_PROJECTIONS)
+    assert not mine & (municipal | sludge | conveyance)
+    assert mine | municipal | sludge | conveyance == frozenset(PROJECTION_TABLE)
 
 
 def test_semantic_instance_labels_registered() -> None:

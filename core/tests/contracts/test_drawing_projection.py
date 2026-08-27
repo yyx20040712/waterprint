@@ -1,18 +1,22 @@
-"""drawing_projection 对账测试：UF-32 对照表 28 单元 dims 键全覆盖（Ruling ①）。
+"""drawing_projection 对账测试：UF-32 对照表 32 单元 dims 键全覆盖（Ruling ①）。
 
 输入:  waterprint.contracts.drawing_projection.PROJECTION_TABLE + golden 项目
        （municipal_34760，11 单元）+ 逐单元单点图（tiaojiechi→cass 补齐
        13 市政）+ 矿井链单点图（input→…→ziwai 补齐 8 矿井，M3D1）
        + 污泥链单点图（hebing→…→ganhua 补齐 7 污泥，M3D2）
-输出:  表覆盖对账断言（五类并集∪non_drawn==compute 实跑键集——28 单元全）
-       + 分线键集 disjoint（聚合无静默覆盖的机器守卫）
+       + 输送链单点图（inlet→…→peishuiqu 补齐 4 输送，M3D3）
+输出:  表覆盖对账断言（五类并集∪non_drawn==compute 实跑键集——32 单元全）
+       + 分线键集 disjoint（四线）+ 32/32 收口断言（四线 13+8+7+4——
+       重写计划 §7 验收行机器锚定）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：DRAFT 批 D1（Ruling ① UF-32 方案②）；M3D1 扩矿井 8 单元
 # （分线表 drawing_projection_mine）；M3D2 扩污泥 7 单元（分线表
-# drawing_projection_sludge）。表是冻结声明面，测试以 golden/链式
-# 单点图实跑为证逐单元对账——表漏键/多键即红（禁静默遗漏的机器强制）。
+# drawing_projection_sludge）；M3D3 扩输送 4 单元（分线表
+# drawing_projection_conveyance）——四线 32/32 收口。表是冻结声明面，
+# 测试以 golden/链式单点图实跑为证逐单元对账——表漏键/多键即红
+# （禁静默遗漏的机器强制）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -23,6 +27,9 @@ from pathlib import Path
 import pytest
 
 from waterprint.contracts.drawing_projection import PROJECTION_TABLE
+from waterprint.contracts.drawing_projection_conveyance import (
+    CONVEYANCE_PROJECTIONS,
+)
 from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
@@ -33,6 +40,8 @@ from waterprint.contracts.quantity import DimKey
 pytestmark = [pytest.mark.golden]
 
 _EXPECTED_UNITS: frozenset[str] = frozenset({
+    "conveyance_jipeishuijing", "conveyance_jishuijing",
+    "conveyance_peishuijing", "conveyance_peishuiqu",
     "mine_water_chenshachi", "mine_water_cifenli", "mine_water_gaomidu",
     "mine_water_input", "mine_water_ningjiao", "mine_water_tiaojiechi",
     "mine_water_vxinglvchi", "mine_water_ziwai",
@@ -60,6 +69,16 @@ _MINE_CHAIN: tuple[str, ...] = (
 _SLUDGE_CHAIN: tuple[str, ...] = (
     "sludge_hebing", "sludge_shusong", "sludge_bengzhan", "sludge_nongsuo",
     "sludge_xiaohua", "sludge_tuoshui", "sludge_ganhua",
+)
+
+# 输送线链序（inlet 为图源注入点；四单元链式相连。端口按 4 包
+# manifest 实读：jishuijing 单口 out；peishuijing/jipeishuijing/
+# peishuiqu 为动态多口单元——ports 声明单 out 锚点、compute 按参数 n
+# 产 out_1~out_n 多键出流（表内冻结口径），下游边直接引 out_1 动态口
+# ——M3D3 链式实跑一次通过，无需逐单元单点图回退）
+_CONVEYANCE_CHAIN: tuple[str, ...] = (
+    "conveyance_jishuijing", "conveyance_peishuijing",
+    "conveyance_jipeishuijing", "conveyance_peishuiqu",
 )
 
 
@@ -91,7 +110,7 @@ def _run_design_dims(payload: dict[str, object], expected: dict[str, object],
 
 @pytest.fixture(scope="module")
 def live_dims(golden_data_dir: Path) -> dict[str, frozenset[str]]:
-    """28 单元实跑键集（模块级一次）：golden 11+市政单点图补 2+矿井链 8+污泥链 7。"""
+    """32 单元实跑键集（模块级一次）：golden 11+市政单点图补 2+矿井链 8+污泥链 7+输送链 4。"""
     case = golden_data_dir / "municipal_34760"
     payload = json.loads((case / "input_project.json").read_text(encoding="utf-8"))
     expected = json.loads(
@@ -134,29 +153,63 @@ def live_dims(golden_data_dir: Path) -> dict[str, frozenset[str]]:
         for i in range(len(_SLUDGE_CHAIN) - 1)
     ]
     live.update(_run_design_dims(payload, expected, data_dir))
+    # 输送链单点图：inlet 图源 → jishuijing → peishuijing →
+    # jipeishuijing → peishuiqu——节点空 dict=默认参数（M3D3 实跑链式
+    # 一次通过；仅 peishuiqu 1 条 h_weir 结果带越界警告——非校验失败
+    # 不阻断）。三动态多口单元下游边直接引 out_1 口（n 路分流取第 1
+    # 口——对账只证键集，流量值不参与）
+    design["nodes"] = {"inlet": nodes["inlet"],
+                       **{unit: {} for unit in _CONVEYANCE_CHAIN}}
+    design["edges"] = [
+        {"src": {"unit_id": "inlet", "port_id": "out"},
+         "dst": {"unit_id": "conveyance_jishuijing", "port_id": "in"}},
+        {"src": {"unit_id": "conveyance_jishuijing", "port_id": "out"},
+         "dst": {"unit_id": "conveyance_peishuijing", "port_id": "in"}},
+        {"src": {"unit_id": "conveyance_peishuijing", "port_id": "out_1"},
+         "dst": {"unit_id": "conveyance_jipeishuijing", "port_id": "in"}},
+        {"src": {"unit_id": "conveyance_jipeishuijing", "port_id": "out_1"},
+         "dst": {"unit_id": "conveyance_peishuiqu", "port_id": "in"}},
+    ]
+    live.update(_run_design_dims(payload, expected, data_dir))
     return live
 
 
 def test_table_covers_exactly_expected_units() -> None:
-    """表键集==28 单元（市政 13+矿井 8+污泥 7；同构不合并）。"""
+    """表键集==32 单元（市政 13+矿井 8+污泥 7+输送 4；同构不合并）。"""
     assert frozenset(PROJECTION_TABLE) == _EXPECTED_UNITS
 
 
+def test_table_full_coverage_32_units_four_lines() -> None:
+    """32/32 收口断言（重写计划 §7 验收行"全部 32 个单元包有三维组件
+    与单体图纸模板"机器锚定）：len==32 且四线键数==13+8+7+4。
+    """
+    assert len(PROJECTION_TABLE) == 32
+    assert len(MUNICIPAL_PROJECTIONS) == 13
+    assert len(MINE_PROJECTIONS) == 8
+    assert len(SLUDGE_PROJECTIONS) == 7
+    assert len(CONVEYANCE_PROJECTIONS) == 4
+
+
 def test_line_sets_disjoint() -> None:
-    """聚合无静默覆盖：三线键集两两不相交 + 并集==PROJECTION_TABLE 键集。"""
-    municipal = frozenset(MUNICIPAL_PROJECTIONS)
-    mine = frozenset(MINE_PROJECTIONS)
-    sludge = frozenset(SLUDGE_PROJECTIONS)
-    for name, left, right in (
-        ("市政/矿井", municipal, mine),
-        ("市政/污泥", municipal, sludge),
-        ("矿井/污泥", mine, sludge),
-    ):
-        assert not left & right, (
-            f"{name}分线键集重叠 {sorted(left & right)}——聚合将静默覆盖"
-            f"（后批扩线越线即红）"
-        )
-    assert municipal | mine | sludge == frozenset(PROJECTION_TABLE)
+    """聚合无静默覆盖：四线键集两两不相交 + 并集==PROJECTION_TABLE 键集。"""
+    lines = {
+        "市政": frozenset(MUNICIPAL_PROJECTIONS),
+        "矿井": frozenset(MINE_PROJECTIONS),
+        "污泥": frozenset(SLUDGE_PROJECTIONS),
+        "输送": frozenset(CONVEYANCE_PROJECTIONS),
+    }
+    names = sorted(lines)
+    for index, left_name in enumerate(names):
+        for right_name in names[index + 1:]:
+            overlap = lines[left_name] & lines[right_name]
+            assert not overlap, (
+                f"{left_name}/{right_name}分线键集重叠 {sorted(overlap)}"
+                f"——聚合将静默覆盖（后批扩线越线即红）"
+            )
+    union: frozenset[str] = frozenset()
+    for key_set in lines.values():
+        union |= key_set
+    assert union == frozenset(PROJECTION_TABLE)
 
 
 @pytest.mark.parametrize("unit_id", sorted(_EXPECTED_UNITS))
