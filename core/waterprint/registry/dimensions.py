@@ -372,3 +372,39 @@ _M2C_FIELDS: tuple[FieldSpec, ...] = (
 )
 for _spec in _M2C_FIELDS:
     register_dimension(_spec)
+
+# ── M3a2 矿井水线前段单元参数字段（2026-08-27；出处=docs/norms/
+#    mine_water_{input,tiaojiechi,chenshachi,ningjiao}.md 四表参数档/
+#    算例 1 输入行——同名跨单元字段 ID 不耦合：各包 manifest 各写各的
+#    默认值，AGENTS §11 R4；tiaojiechi/chenshachi/ningjiao 参数面全部
+#    复用既有字段（t_reg/h2/ratio_lb/n/side_disc_step/length_disc_step/
+#    t_mix/t_floc/t_clean——默认值跨包独立），仅 input 线首注入面与
+#    chenshachi/ningjiao 专属档新增登记。流量（m³/d 口径）/管径（mm）/
+#    停留（s·min·h）类在 DimKey 无对应量类或口径与规范单位不一致者按
+#    DIMENSIONLESS 裸值登记（单位语义随 i18n 键走，四表口径：
+#    m³/d/mm/s/min）。 ──
+_M3A2_FIELDS: tuple[FieldSpec, ...] = (
+    # mine_water_input 矿井水输入（算例 1：Q_avg_daily=43836 m³/d/Kz=1.5/
+    # DN=800 mm/z_water_inlet=100.0/z_ground=102.0/h_pool=3.0；进水水质
+    # 六指标注入=GB/T 19223-2015 含悬浮物类典型值）
+    FieldSpec("q_avg_daily", DimKey.DIMENSIONLESS, "", "units.fields.q_avg_daily",
+              "load"),
+    FieldSpec("kz", DimKey.DIMENSIONLESS, "", "units.fields.kz", "load"),
+    FieldSpec("dn_inlet", DimKey.DIMENSIONLESS, "", "units.fields.dn_inlet",
+              "equipment"),
+    FieldSpec("z_water_inlet", DimKey.LENGTH, "m", "units.fields.z_water_inlet",
+              "geometry"),
+    FieldSpec("z_ground", DimKey.LENGTH, "m", "units.fields.z_ground", "geometry"),
+    FieldSpec("h_pool", DimKey.LENGTH, "m", "units.fields.h_pool", "geometry"),
+    FieldSpec("ss_in", DimKey.CONCENTRATION, "mg/L", "units.fields.ss_in", "quality"),
+    FieldSpec("cod_in", DimKey.CONCENTRATION, "mg/L", "units.fields.cod_in",
+              "quality"),
+    FieldSpec("bod5_in", DimKey.CONCENTRATION, "mg/L", "units.fields.bod5_in",
+              "quality"),
+    FieldSpec("nh3n_in", DimKey.CONCENTRATION, "mg/L", "units.fields.nh3n_in",
+              "quality"),
+    FieldSpec("tn_in", DimKey.CONCENTRATION, "mg/L", "units.fields.tn_in", "quality"),
+    FieldSpec("tp_in", DimKey.CONCENTRATION, "mg/L", "units.fields.tp_in", "quality"),
+)
+for _spec in _M3A2_FIELDS:
+    register_dimension(_spec)
