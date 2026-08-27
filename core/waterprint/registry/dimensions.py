@@ -405,6 +405,11 @@ _M3A2_FIELDS: tuple[FieldSpec, ...] = (
               "quality"),
     FieldSpec("tn_in", DimKey.CONCENTRATION, "mg/L", "units.fields.tn_in", "quality"),
     FieldSpec("tp_in", DimKey.CONCENTRATION, "mg/L", "units.fields.tp_in", "quality"),
+    # mine_water_chenshachi 平流沉砂池（算例 1：v_h=0.25 m/s/t_stay=60 s/
+    # h2=0.5 m 复用/n=8 复用/t_clean=2 d 复用 M1A；l_cell 0.5 m 档/
+    # B 0.1 m 档复用 side_disc_step/length_disc_step）
+    FieldSpec("v_h", DimKey.VELOCITY, "m/s", "units.fields.v_h", "load"),
+    FieldSpec("t_stay", DimKey.DIMENSIONLESS, "", "units.fields.t_stay", "load"),
 )
 for _spec in _M3A2_FIELDS:
     register_dimension(_spec)
