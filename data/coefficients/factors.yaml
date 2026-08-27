@@ -2125,3 +2125,398 @@
   unit: "m"
   source: "给水排水设计手册（第 3 册 城镇给水）紫外渠水头损失常用值"
   note: "紫外渠道高程水损经验值（含灯组模块局部损失，带 0.1~0.3 m 取 0.25；与渠内公式值双轨语义见起草表追认点 14）；数据策略 v2"
+
+# ── 污泥合并（hebing，0.6.0；mix 守恒口镜像+经验产率法主线 Sy/机理互校 ΔX[ADR-008 ④ 已拍板，
+#    偏差>20% 警告]；逐字对应 docs/norms/sludge_hebing.md） ──
+- key: "factor.hebing.yield.y"
+  value: 0.5
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8.1.4 表 5（污泥产率 y，ADR-008 ④ 拍板口径；条号随追认核对）"
+  note: "污泥产率 y（AAO 工艺档 0.4~0.6 取 0.5——经验产率法主线 HB-F8；无初沉档 0.85~1.05 注记；与 factor.aao.yield.y 同值：分单元键不跨单元投影[_unit_params 口径]，两键同值待追认）；数据策略 v2"
+- key: "factor.hebing.yield.y_band.min"
+  value: 0.4
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8.1.4 表 5（污泥产率 y，ADR-008 ④ 拍板口径；条号随追认核对）"
+  note: "污泥产率带下限（AAO 工艺档）；数据策略 v2"
+- key: "factor.hebing.yield.y_band.max"
+  value: 0.6
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8.1.4 表 5（污泥产率 y，ADR-008 ④ 拍板口径；条号随追认核对）"
+  note: "污泥产率带上限（AAO 工艺档；无初沉 0.85~1.05 档另列归追认）；数据策略 v2"
+- key: "factor.hebing.yield_syn"
+  value: 0.8
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "机理互校合成产率 Y（带 0.4~0.8 取 0.8 市政高产率档——主算例闭合好[dev 5.2%]；互校式 ΔX=Y·QΔS−Kd·V·Xv[ADR-008 ④]）；数据策略 v2"
+- key: "factor.hebing.yield_syn_band.min"
+  value: 0.4
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "合成产率带下限；数据策略 v2"
+- key: "factor.hebing.yield_syn_band.max"
+  value: 0.8
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "合成产率带上限（ADR-008 ④ 引用带 0.4~0.8 上端）；数据策略 v2"
+- key: "factor.hebing.k_decay20"
+  value: 0.04
+  unit: "1/d"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "自身氧化率 Kd@20℃（带 0.04~0.075 取 0.04；温度修正 k_dt=k_d20·θ^(t−20)[HB-F9]）；数据策略 v2"
+- key: "factor.hebing.k_decay_band.min"
+  value: 0.04
+  unit: "1/d"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "Kd 带下限（ADR-008 ④ 引用带）；数据策略 v2"
+- key: "factor.hebing.k_decay_band.max"
+  value: 0.075
+  unit: "1/d"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（活性污泥动力学常用带）"
+  note: "Kd 带上限；数据策略 v2"
+- key: "factor.hebing.theta_kd"
+  value: 1.04
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥处理章（温度修正常用带）"
+  note: "Kd 温度修正系数 θ（带 1.02~1.06 取 1.04）；数据策略 v2"
+- key: "factor.hebing.dev_band.max"
+  value: 20.0
+  unit: "%"
+  source: "ADR-008（工艺计算方法路线④——经验产率法主线+机理互校已拍板，2026-08-22）"
+  note: "经验产率/机理互校偏差警告上限（>20% 出 WARN 提示核对 SS/BOD 比——HB-F11；源=ADR-008 ④ 拍板值，条文化归追认）；数据策略 v2"
+- key: "factor.hebing.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥管道/构筑物章（水头损失经验值）"
+  note: "污泥合并汇流井水损（带 0.1~0.2 取 0.15；旧锚 0.05 贴低值——追认点）；数据策略 v2"
+# ── 污泥输送（shusong，0.6.0；压力流管径+重力自流曼宁最小坡度两式主线[DS 穿流守恒]；
+#    逐字对应 docs/norms/sludge_shusong.md） ──
+- key: "factor.shusong.velocity_band.min"
+  value: 1.0
+  unit: "m/s"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥管道章"
+  note: "污泥压力管流速带下限（防淤积下限）；数据策略 v2"
+- key: "factor.shusong.velocity_band.max"
+  value: 2.0
+  unit: "m/s"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥管道章"
+  note: "污泥压力管流速带上限（旧锚带 2.5 偏宽收紧至 2.0——追认点）；数据策略 v2"
+- key: "factor.shusong.gravity_v_min"
+  value: 0.7
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥管道章（重力输泥常用带）"
+  note: "重力输泥管最小流速（带 0.6~1.0 取 0.7——ST-F5 最小坡度反解输入）；数据策略 v2"
+- key: "factor.shusong.slope_min"
+  value: 0.01
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥管道章（重力输泥常用带）"
+  note: "重力输泥管最小坡度（DN150~DN300 常用下限 0.01——ST-F7 整定下限）；数据策略 v2"
+- key: "factor.shusong.n_manning"
+  value: 0.013
+  unit: "s/m^(1/3)"
+  source: "给水排水设计手册（第 1 册 常用资料）管渠水力（曼宁糙率表）"
+  note: "输泥管曼宁糙率（铸铁/钢管 0.012~0.014 取 0.013）；数据策略 v2"
+- key: "factor.shusong.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥管道章（水头损失经验值）"
+  note: "输泥管道沿程+局部水损经验值（带 0.2~0.5 取 0.3；旧锚 0.0 系不建水损语义——追认点）；数据策略 v2"
+# ── 污泥泵站（bengzhan，0.6.0；泵组选型+扬程三分量[λ 式管损×污泥粘度修正]+集泥井
+#    [wushui_tisheng 泵族先例形态]；逐字对应 docs/norms/sludge_bengzhan.md） ──
+- key: "factor.bengzhan.pump.q_per_unit"
+  value: 10.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥泵站章（泵组选型常用档）"
+  note: "污泥泵单泵流量概算锚（带 5~30 取 10——BZ-F2 整台取整输入）；数据策略 v2"
+- key: "factor.bengzhan.pump.q_flow_band.min"
+  value: 5.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥泵站章（螺杆/污泥泵常用带）"
+  note: "单泵流量校核带下限；数据策略 v2"
+- key: "factor.bengzhan.pump.q_flow_band.max"
+  value: 50.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥泵站章（螺杆/污泥泵常用带）"
+  note: "单泵流量校核带上限；数据策略 v2"
+- key: "factor.bengzhan.pump.free_head"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（出水自由水头常用值）"
+  note: "泵出口自由水头（带 1.0~2.0 取 1.5——扬程三分量之一；wushui_tisheng 同族键）；数据策略 v2"
+- key: "factor.bengzhan.pump.start_band.max"
+  value: 6.0
+  unit: "1/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（启停频率常用上限）"
+  note: "污泥泵最大启动次数上限（≤6 次/h——BZ-F14 校核）；数据策略 v2"
+- key: "factor.bengzhan.pipe.velocity_band.min"
+  value: 1.0
+  unit: "m/s"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥管道章"
+  note: "出泥压力管流速带下限（同 shusong 带口径）；数据策略 v2"
+- key: "factor.bengzhan.pipe.velocity_band.max"
+  value: 2.0
+  unit: "m/s"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥管道章"
+  note: "出泥压力管流速带上限；数据策略 v2"
+- key: "factor.bengzhan.pipe.zeta_total"
+  value: 5.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（管件局部损失系数和常用带）"
+  note: "出泥管局部损失系数和（带 4~8 取 5）；数据策略 v2"
+- key: "factor.bengzhan.friction_lambda"
+  value: 0.025
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 1 册 常用资料）管渠水力（沿程阻力系数常用带）"
+  note: "出泥管沿程阻力系数 λ（带 0.02~0.03 取 0.025；污泥管 DN50~DN200 细管档无比阻表键，λ 式承载——BZ-F8）；数据策略 v2"
+- key: "factor.bengzhan.k_sludge"
+  value: 1.2
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥管道章（污泥水力修正）"
+  note: "污泥粘度修正系数（清水水损×k，带 1.1~1.3 取 1.2——BZ-F10）；数据策略 v2"
+- key: "factor.bengzhan.well.t_band.min"
+  value: 5.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（集水池容积，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章"
+  note: "集泥井调节时间带下限（≥最大一台泵 5 min 出水量下限式——wushui_tisheng 同族键）；数据策略 v2"
+- key: "factor.bengzhan.well.t_band.max"
+  value: 15.0
+  unit: "min"
+  source: "GB 50014-2021 §6.1（条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）泵站章"
+  note: "集泥井调节时间带上限；数据策略 v2"
+- key: "factor.bengzhan.well.depth_band.min"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集泥井常用带）"
+  note: "集泥井有效水深带下限；数据策略 v2"
+- key: "factor.bengzhan.well.depth_band.max"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（集泥井常用带）"
+  note: "集泥井有效水深带上限；数据策略 v2"
+- key: "factor.bengzhan.superheight"
+  value: 0.5
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求）；给水排水设计手册（泵站）"
+  note: "泵站超高（带 0.3~0.5 取 0.5）；数据策略 v2"
+- key: "factor.bengzhan.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（矩形井概算口径）"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.bengzhan.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）泵站章（站内水损经验值）"
+  note: "污泥泵站站内过流水损（带 0.2~0.4 取 0.3；提升能量由 h_pump 公式承载——wushui_tisheng 追认点 6 同款语义分工；旧锚 0.0 系不建语义）；数据策略 v2"
+# ── 污泥浓缩（nongsuo，0.6.0；固体通量/浓缩时间双主线取大[上清液回流口默认关——Q1 待裁
+#    business-logic §6 口径]；逐字对应 docs/norms/sludge_nongsuo.md） ──
+- key: "factor.nongsuo.solid_load_band.min"
+  value: 30.0
+  unit: "kgDS/(m2.d)"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（重力浓缩固体负荷）"
+  note: "浓缩池固体负荷带下限（剩余污泥档；旧 mod 引'§8.2.1: 30~60'口径待核对；混合污泥档 60~80 归追认裁定——主算例为混合流按保守档 50）；数据策略 v2"
+- key: "factor.nongsuo.solid_load_band.max"
+  value: 60.0
+  unit: "kgDS/(m2.d)"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（重力浓缩固体负荷）"
+  note: "浓缩池固体负荷带上限；数据策略 v2"
+- key: "factor.nongsuo.time_band.min"
+  value: 12.0
+  unit: "h"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（浓缩时间 ≥12h 口径）"
+  note: "污泥浓缩时间带下限；数据策略 v2"
+- key: "factor.nongsuo.time_band.max"
+  value: 24.0
+  unit: "h"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥浓缩章"
+  note: "污泥浓缩时间带上限；数据策略 v2"
+- key: "factor.nongsuo.depth_band.min"
+  value: 3.0
+  unit: "m"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（有效水深）；给水排水设计手册（第 5 册 城镇排水）污泥浓缩章"
+  note: "浓缩池有效水深带下限；数据策略 v2"
+- key: "factor.nongsuo.depth_band.max"
+  value: 5.0
+  unit: "m"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（有效水深'宜为 4m'口径）；给水排水设计手册（第 5 册 城镇排水）污泥浓缩章"
+  note: "浓缩池有效水深带上限；数据策略 v2"
+- key: "factor.nongsuo.moisture_out_band.min"
+  value: 0.95
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（底流含水率常用带）"
+  note: "底流含水率带下限（引文 97~98% 档与旧默认 0.96 并存——归追认裁定）；数据策略 v2"
+- key: "factor.nongsuo.moisture_out_band.max"
+  value: 0.98
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（底流含水率常用带）"
+  note: "底流含水率带上限；数据策略 v2"
+- key: "factor.nongsuo.eta_capture"
+  value: 0.9
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（固体截留率常用带）"
+  note: "浓缩池固体截留率（带 0.85~0.95 取 0.90——DS 守恒截留 NS-F7）；数据策略 v2"
+- key: "factor.nongsuo.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（池体构造）"
+  note: "浓缩池超高（带 0.3~0.5 取 0.3）；数据策略 v2"
+- key: "factor.nongsuo.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（圆形池概算口径）"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.nongsuo.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥浓缩章（水头损失经验值）"
+  note: "浓缩池高程水损（带 0.2~0.4 取 0.3；旧锚 0.3 一致）；数据策略 v2"
+# ── 污泥消化（xiaohua，0.6.0；中温 35℃ 主线[UF-09 温度参数承载注记]+消化减量 DS 守恒+产气
+#    衡算；逐字对应 docs/norms/sludge_xiaohua.md） ──
+- key: "factor.xiaohua.time_band.min"
+  value: 15.0
+  unit: "d"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（中温消化时间）；给水排水设计手册（第 5 册 城镇排水）污泥消化章"
+  note: "消化时间带下限（GB 中温 20~30 档注记归追认——带取 15~30 与旧锚一致）；数据策略 v2"
+- key: "factor.xiaohua.time_band.max"
+  value: 30.0
+  unit: "d"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（中温消化时间）；给水排水设计手册（第 5 册 城镇排水）污泥消化章"
+  note: "消化时间带上限；数据策略 v2"
+- key: "factor.xiaohua.temp"
+  value: 35.0
+  unit: "degC"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（中温消化 33~37℃ 档）"
+  note: "消化温度（中温 35℃ 主线——UF-09 温度字段契约未裁[契约链无温度字段]，表内参数显式承载注记；高温 55℃ 档另列归追认/设备批）；数据策略 v2"
+- key: "factor.xiaohua.f_vs"
+  value: 0.65
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（进泥 VS/DS 比常用带）"
+  note: "进泥挥发分占 DS 比（带 0.55~0.75 取 0.65——旧系统缺此参数[隐含 1.0]，本批补键）；数据策略 v2"
+- key: "factor.xiaohua.eta_vs_band.min"
+  value: 0.3
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（挥发分降解率）；给水排水设计手册（第 5 册 城镇排水）污泥消化章"
+  note: "VS 降解率带下限；数据策略 v2"
+- key: "factor.xiaohua.eta_vs_band.max"
+  value: 0.6
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（挥发分降解率）；给水排水设计手册（第 5 册 城镇排水）污泥消化章"
+  note: "VS 降解率带上限（中温消化常用 0.40~0.50 居带中）；数据策略 v2"
+- key: "factor.xiaohua.biogas_rate_band.min"
+  value: 0.8
+  unit: "m3/kgVS"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（中温产气率常用带）"
+  note: "产气率带下限（旧锚两处带注 0.7~1.0/0.8~1.0 不自洽，本批按手册带 0.8~1.1——追认点）；数据策略 v2"
+- key: "factor.xiaohua.biogas_rate_band.max"
+  value: 1.1
+  unit: "m3/kgVS"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（中温产气率常用带）"
+  note: "产气率带上限；数据策略 v2"
+- key: "factor.xiaohua.vs_load_band.min"
+  value: 0.5
+  unit: "kgVS/(m3.d)"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（VS 容积负荷校核带）"
+  note: "消化池 VS 容积负荷校核带下限（柱状池常用档；卵形池高档归设备批）；数据策略 v2"
+- key: "factor.xiaohua.vs_load_band.max"
+  value: 1.5
+  unit: "kgVS/(m3.d)"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（VS 容积负荷校核带）"
+  note: "消化池 VS 容积负荷校核带上限；数据策略 v2"
+- key: "factor.xiaohua.ratio_dh"
+  value: 1.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（圆柱池构造）"
+  note: "消化池圆柱高径比 H/D（带 0.8~1.2 取 1.0——XH-F10 池径立方根式）；数据策略 v2"
+- key: "factor.xiaohua.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（概算口径）"
+  note: "混凝土量估算壁厚系数（含底板/保温构造概算；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.xiaohua.elevation_loss"
+  value: 0.4
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥消化章（水头损失经验值）"
+  note: "消化池高程水损（带 0.3~0.5 取 0.4；旧锚 0.4 一致）；数据策略 v2"
+# ── 污泥脱水（tuoshui，0.6.0；带式/离心双机档[PAM 投加/泥饼 75~80%/固体回收率 DS 守恒；
+#    滤液回流口默认关——Q1 待裁]；逐字对应 docs/norms/sludge_tuoshui.md） ──
+- key: "factor.tuoshui.cake_moisture_band.min"
+  value: 0.75
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（泥饼含水率）；给水排水设计手册（第 5 册 城镇排水）污泥脱水章"
+  note: "泥饼含水率带下限（离心档贴 0.75；机械脱水常用带 75~80%）；数据策略 v2"
+- key: "factor.tuoshui.cake_moisture_band.max"
+  value: 0.8
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（泥饼含水率）；给水排水设计手册（第 5 册 城镇排水）污泥脱水章"
+  note: "泥饼含水率带上限（带式主线取 0.78）；数据策略 v2"
+- key: "factor.tuoshui.dose_pam_band.min"
+  value: 2.0
+  unit: "g/kgDS"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（加药量）；给水排水设计手册（第 5 册 城镇排水）污泥脱水章（阳离子 PAM 常用带）"
+  note: "PAM 投加量带下限；数据策略 v2"
+- key: "factor.tuoshui.dose_pam_band.max"
+  value: 8.0
+  unit: "g/kgDS"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（加药量）；给水排水设计手册（第 5 册 城镇排水）污泥脱水章（阳离子 PAM 常用带）"
+  note: "PAM 投加量带上限（带式主线取 4、离心档取 3）；数据策略 v2"
+- key: "factor.tuoshui.eta_capture"
+  value: 0.95
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥脱水章（固体回收率常用带）"
+  note: "脱水固体回收率（带 0.90~0.98 取 0.95——DS 守恒回收 TU-F5；旧式未计回收率系口径缺陷本批修正）；数据策略 v2"
+- key: "factor.tuoshui.machine.belt_capacity"
+  value: 20.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥脱水章（带式压滤机型档）"
+  note: "带式压滤单机处理量（1.5 m 带宽档，带 10~30 取 20——TU-F3 机型档键之一）；数据策略 v2"
+- key: "factor.tuoshui.machine.centrifuge_capacity"
+  value: 10.0
+  unit: "m3/h"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥脱水章（离心脱水机型档）"
+  note: "离心脱水单机处理量（带 5~15 取 10——双机档副算例）；数据策略 v2"
+- key: "factor.tuoshui.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥脱水章（车间水损经验值）"
+  note: "脱水车间高程水损（带 0.1~0.3 取 0.2；旧锚 0.2 一致；车间设备单元不建 wall_thickness_coef——bashi_jiliangcao 先例口径）；数据策略 v2"
+# ── 污泥干化（ganhua，0.6.0；热干化热量衡算+蒸发水量干基差式[质量守恒校核显式]；
+#    逐字对应 docs/norms/sludge_ganhua.md） ──
+- key: "factor.ganhua.moisture_out_band.min"
+  value: 0.2
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（干化后含水率档）；给水排水设计手册（第 5 册 城镇排水）污泥干化章"
+  note: "干化后含水率带下限（半干化档 0.20~0.40；全干化 <0.20 归设备批）；数据策略 v2"
+- key: "factor.ganhua.moisture_out_band.max"
+  value: 0.4
+  unit: "dimensionless"
+  source: "GB 50014-2021 §8（污泥章，条号待核对）（干化后含水率档）；给水排水设计手册（第 5 册 城镇排水）污泥干化章"
+  note: "干化后含水率带上限（旧锚带 0.1~0.4 的下段——全干化档裁剪归追认点）；数据策略 v2"
+- key: "factor.ganhua.h_evap"
+  value: 2400.0
+  unit: "kJ/kg"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（蒸发潜热工程近似带）"
+  note: "蒸发潜热工程近似（带 2200~2600 取 2400——GH-F6 热量衡算输入）；数据策略 v2"
+- key: "factor.ganhua.eta_thermal"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（干化系统热效率常用带）"
+  note: "干化系统热效率（带 0.55~0.85 取 0.7；旧锚一致）；数据策略 v2"
+- key: "factor.ganhua.evap_rate_band.min"
+  value: 4.0
+  unit: "kg/(m2.h)"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（间接式干化传热面蒸发强度带）"
+  note: "传热面积蒸发强度带下限（GH-F8 面积校核）；数据策略 v2"
+- key: "factor.ganhua.evap_rate_band.max"
+  value: 15.0
+  unit: "kg/(m2.h)"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（间接式干化传热面蒸发强度带）"
+  note: "传热面积蒸发强度带上限；数据策略 v2"
+- key: "factor.ganhua.fuel_calorific"
+  value: 35800.0
+  unit: "kJ/Nm3"
+  source: "给水排水设计手册（第 5 册 城镇排水）燃料热值档（管输天然气低热值）"
+  note: "天然气低热值档（35500~35900 取 35800=35.8 MJ/Nm³——GH-F7 燃料耗量换算；沼气联动[约 21.5 MJ/Nm³]归能源平衡追认/设备批）；数据策略 v2"
+- key: "factor.ganhua.elevation_loss"
+  value: 0.15
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）污泥干化章（车间水损经验值）"
+  note: "干化车间高程水损（带 0.1~0.2 取 0.15；旧锚 0.15 一致；车间设备单元不建 wall_thickness_coef）；数据策略 v2"
