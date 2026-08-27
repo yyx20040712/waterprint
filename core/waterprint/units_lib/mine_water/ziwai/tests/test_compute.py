@@ -200,8 +200,10 @@ def test_velocity_band_warning() -> None:
     """校核带越界：n=1+h_channel=0.2 → v_ch≈2.236 越 0.7 上限产 WARN。
 
     构造场景（warning 用例参数面允许合成）：浅渠缩小断面 →
-    v_ch=(2739.75/3600)/(1.7×0.2)=2.2362…>0.7 实证（param_key=b_channel
-    断面构造归因）。
+    v_ch=(2739.75/3600)/(1.7×0.2)=2.2362…>0.7 实证（param_key="n"
+    [渠数]归因——message 调节方向 n/h_channel 双写，与 compute 实传
+    一致；M3a3 R1 记档口径修正：原"b_channel 断面构造归因"表述误植，
+    compute 本体未改）。
     """
     result = make_unit().compute(_ctx(_params(n=1.0, h_channel=0.2)))
     dims = result.dims
@@ -210,6 +212,7 @@ def test_velocity_band_warning() -> None:
     assert dims["v_ch"] > 0.7
     velocity = [w for w in result.warnings if "velocity_band" in w.source]
     assert velocity and velocity[0].severity is Severity.WARN
+    assert velocity[0].param_key == "n"
 
 
 def test_t254_band_warning() -> None:

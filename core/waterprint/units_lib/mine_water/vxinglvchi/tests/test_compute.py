@@ -239,6 +239,40 @@ def test_media_depth_band_warning() -> None:
     assert media[0].param_key == "h_media"
 
 
+def test_water_above_band_warning() -> None:
+    """校核带越界（M3a3 R1 补例）：h_water=2.0 越 1.0~1.5 上带产 WARN（param_key=h_water）。
+
+    越带触发探针实录：h_water=2.0 → 恰一条 water_above_band WARN（无其余带
+    误报）；带内对照 h_water=1.2 → 零告警（新断言非空真实证——红证等效）。
+    """
+    result = make_unit().compute(_ctx(_params(h_water=2.0)))
+    dims = result.dims
+    assert isinstance(dims, dict)
+    # 0.5+2.0+1.0+0.1+0.9——h_water=2.0 生效实值
+    assert dims["h_total"] == pytest.approx(4.5, abs=1e-9)
+    above = [w for w in result.warnings if "water_above_band" in w.source]
+    assert above and above[0].severity is Severity.WARN
+    assert above[0].param_key == "h_water"
+    assert len(above) == 1  # 恰一条——不牵动其余校核带
+
+
+def test_cycle_band_warning() -> None:
+    """校核带越界（M3a3 R1 补例）：t_filter=60.0 越 24~48 上带产 WARN（param_key=t_filter）。
+
+    越带触发探针实录：t_filter=60.0 → 恰一条 cycle_band WARN（长周期不触发
+    耗水率面——eta=3.66×(24/60)/2876.7375 更小）；带内对照 t_filter=24.0 →
+    零告警（新断言非空真实证——红证等效）。
+    """
+    result = make_unit().compute(_ctx(_params(t_filter=60.0)))
+    dims = result.dims
+    assert isinstance(dims, dict)
+    assert dims["t_w"] == pytest.approx(24 - 24 * (12.0 / 60) / 60, abs=1e-9)  # 23.92 长周期实值
+    cycle = [w for w in result.warnings if "cycle_band" in w.source]
+    assert cycle and cycle[0].severity is Severity.WARN
+    assert cycle[0].param_key == "t_filter"
+    assert len(cycle) == 1  # 恰一条——不牵动其余校核带
+
+
 def test_wash_ratio_warning() -> None:
     """校核带越界：周期 8 h 短周期高频反冲 → eta_wash 越 5% 上限产 WARN。
 
