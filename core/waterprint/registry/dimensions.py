@@ -440,6 +440,15 @@ _M3A3_FIELDS: tuple[FieldSpec, ...] = (
     # q_surf=6.0/l_tube=1.0/h_clear=1.0/h_thick=0.5 复用 M2B2；h_dist=1.5
     # 新增布水区高；B/L 0.5 m 档复用 side_disc_step）
     FieldSpec("h_dist", DimKey.LENGTH, "m", "units.fields.h_dist", "geometry"),
+    # mine_water_vxinglvchi V 型滤池（主算例：n=16 复用/v_filter=5.0 复用
+    # M2B2；t_filter=24 h/h_media=1.0/h_water=1.2/h_plate=0.1/h_under=0.9
+    # 新增；B/L 0.1 m 档复用 side_disc_step 包独立默认）
+    FieldSpec("t_filter", DimKey.DIMENSIONLESS, "", "units.fields.t_filter",
+              "operation"),
+    FieldSpec("h_media", DimKey.LENGTH, "m", "units.fields.h_media", "geometry"),
+    FieldSpec("h_water", DimKey.LENGTH, "m", "units.fields.h_water", "geometry"),
+    FieldSpec("h_plate", DimKey.LENGTH, "m", "units.fields.h_plate", "geometry"),
+    FieldSpec("h_under", DimKey.LENGTH, "m", "units.fields.h_under", "geometry"),
 )
 for _spec in _M3A3_FIELDS:
     register_dimension(_spec)
