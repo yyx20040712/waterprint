@@ -53,10 +53,10 @@ norms/
 | sludge_xiaohua（污泥消化池） | 污泥处理 | `sludge_xiaohua.md` | M3b2 已实装（XH-F1~F11 注册+包内 golden 12 例；t_digest_temp 参数承载[UF-09 口径]）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，中温消化 35℃主线[UF-09 温度参数承载注记]+消化减量 DS 守恒链+产气量衡算） |
 | sludge_tuoshui（污泥脱水间） | 污泥处理 | `sludge_tuoshui.md` | M3b2 已实装（TU-F1~F8 注册+包内 golden 12 例；带式/离心双机档 grid+滤液回流口声明先行）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，带式/离心双机档[PAM 投加/泥饼 75~80%]+滤液回流口默认关注记[Q1 待裁]） |
 | sludge_ganhua（污泥干化） | 污泥处理 | `sludge_ganhua.md` | M3b2 已实装（GH-F1~F8 注册+包内 golden 12 例；热量衡算+质量守恒校验显式）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，热干化热量衡算+蒸发水量干基差式[质量守恒校核显式；沼气联动潜力注记]） |
-| conveyance_jishuijing（集水井） | 集配水 | `conveyance_jishuijing.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流集水容积法+停留校核+圆形井构造主线[零水质去除穿流——removal 零键照污泥批口径]） |
-| conveyance_peishuijing（配水井） | 集配水 | `conveyance_peishuijing.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均匀分流+孔口出流 μ 反解水头+配水不均匀系数余量主线[多出流口 n 参数化——动态多口口径表内冻结]） |
-| conveyance_jipeishuijing（集配水井） | 集配水 | `conveyance_jipeishuijing.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流容积+均匀分流不均匀余量合一主线[集水/配水两表语义合并的单节点形态]） |
-| conveyance_peishuiqu（配水渠） | 集配水 | `conveyance_peishuiqu.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，明渠输配+侧堰配水+变流量渠末流速校核主线[GB §4 最小流速防淤挂点]） |
+| conveyance_jishuijing（集水井） | 集配水 | `conveyance_jishuijing.md` | M3c 已实装（JS-F1~F7 注册+包内 golden 10 例；汇流单口穿流+井径 0.5 m 档收口）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流集水容积法+停留校核+圆形井构造主线[零水质去除穿流——removal 零键照污泥批口径]） |
+| conveyance_peishuijing（配水井） | 集配水 | `conveyance_peishuijing.md` | M3c 已实装（PJ-F1~F12 注册+包内 golden 11 例；动态多口分流——manifest 单 OUT 声明+out_1~out_n 多键[表内冻结口径]+分流守恒断言）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均匀分流+孔口出流 μ 反解水头+配水不均匀系数余量主线） |
+| conveyance_jipeishuijing（集配水井） | 集配水 | `conveyance_jipeishuijing.md` | M3c 已实装（JP-F1~F9 注册+包内 golden 11 例；汇流/分流合一单节点+动态多口）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流容积+均匀分流不均匀余量合一主线[集水/配水两表语义合并]） |
+| conveyance_peishuiqu（配水渠） | 集配水 | `conveyance_peishuiqu.md` | M3c 已实装（PQ-F1~F7 注册+包内 golden 11 例；明渠侧堰配水+渠末防淤校核 Warning 路径）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，明渠输配+侧堰配水+变流量渠末流速校核主线[GB §4 最小流速防淤挂点]） |
 
 注记（命名双轨现状）：上表市政 13 份为 M1/M2 批历史命名=**单元短名**
 （如 `gaomidu.md`）；M3a1 起矿井水线按本 README"命名 = 单元 ID"规定

@@ -125,10 +125,10 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `core/waterprint/units_lib/sludge/xiaohua/` | 污泥 | M3b2 已实装（XH-F1~F11 公式注册+t_digest_temp 参数承载+包内 golden 测试 12 例）/ M3 正式验收 |
 | `core/waterprint/units_lib/sludge/tuoshui/` | 污泥 | M3b2 已实装（TU-F1~F8 公式注册+双机档 grid+filtrate 回流口声明先行+包内 golden 测试 12 例）/ M3 正式验收 |
 | `core/waterprint/units_lib/sludge/ganhua/` | 污泥 | M3b2 已实装（GH-F1~F8 公式注册+热量衡算主线+包内 golden 测试 12 例）/ M3 正式验收 |
-| `core/waterprint/units_lib/conveyance/jishuijing/` | 集配水 | M3 |
-| `core/waterprint/units_lib/conveyance/peishuijing/` | 集配水 | M3 |
-| `core/waterprint/units_lib/conveyance/jipeishuijing/` | 集配水 | M3 |
-| `core/waterprint/units_lib/conveyance/peishuiqu/` | 集配水 | M3 |
+| `core/waterprint/units_lib/conveyance/jishuijing/` | 集配水 | M3c 已实装（JS-F1~F7 公式注册+汇流单口穿流+包内 golden 测试 10 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/conveyance/peishuijing/` | 集配水 | M3c 已实装（PJ-F1~F12 公式注册+动态多口分流[表内冻结口径]+包内 golden 测试 11 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/conveyance/jipeishuijing/` | 集配水 | M3c 已实装（JP-F1~F9 公式注册+汇流/分流合一动态多口+包内 golden 测试 11 例）/ M3 正式验收 |
+| `core/waterprint/units_lib/conveyance/peishuiqu/` | 集配水 | M3c 已实装（PQ-F1~F7 公式注册+明渠侧堰动态多口+包内 golden 测试 11 例）/ M3 正式验收 |
 
 > 32 个单元包于 M0.5 结构接线期按 _template 模式批量落地为骨架
 > （包内仅契约头 + 单元规格，公式与数值随里程碑交付冻结）；
