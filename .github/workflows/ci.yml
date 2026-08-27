@@ -1,12 +1,11 @@
 # CI —— 全链路门禁（重写计划 §6/§13.7；与本地 scripts/run_gates.py 同口径）
 #
-# 激活节奏（ENG2 D1 2026-08-27 常驻面收口）：
+# 激活节奏（ENG2 D1 2026-08-27 常驻面收口；R1-a 同日收口）：
 #   - gates / core / server / webapp / benchmarks：全部生效；
 #   - benchmarks：§18.1 预算 5s 不放宽；慢机敏感性=CI 偶发红按重跑
 #     复核定性（非放宽——交接在册口径）；
-#   - contract-drift：仍注释态（ENG2 BLOCKED 未启用——BASE 实测重生成
-#     OpenAPI 与入库件存在漂移，重导 openapi.json 超出 ENG2 白名单；
-#     待总控裁决后按下文注释块步骤启用）。
+#   - contract-drift：server job 内常驻（R1-a 裁决重导修正 bd136fc 遗留
+#     漂移后启用——重生成 OpenAPI 与入库件字节比对）。
 name: ci
 
 on:
@@ -77,6 +76,20 @@ jobs:
       - name: import-linter 架构契约（UF-13 机器强制 CI 化——ENG2 D1）
         run: uv run lint-imports
       - run: uv run pytest
+      - name: OpenAPI 契约零漂移（重生成与入库件字节比对——ENG2 D1/R1-a）
+        run: |
+          uv run python -m waterprint_server.dump_openapi --out /tmp/wp-openapi-drift.json
+          uv run python - <<'PY'
+          from pathlib import Path
+
+          fresh = Path("/tmp/wp-openapi-drift.json").read_bytes()
+          stored = Path("../api-contracts/openapi.json").read_bytes()
+          if fresh != stored:
+              raise SystemExit(
+                  "OpenAPI 契约漂移：重生成与入库件不一致，请经 dump_openapi 重新入库"
+              )
+          print(f"[OK] OpenAPI 契约零漂移（{len(fresh)} 字节逐字节一致）")
+          PY
 
   webapp:
     name: 前端构建（类型检查）
@@ -113,13 +126,3 @@ jobs:
         run: uv sync --frozen
       - name: Pytest 基准（慢机敏感性：CI 偶发红按重跑复核定性——非放宽，交接在册口径）
         run: uv run pytest tests/benchmark -q
-
-  # contract-drift（ENG2 D1 拟常驻——BLOCKED 未落，待总控裁决）：
-  #   BASE 实测（2026-08-27）：dump_openapi 重生成件与入库件字节比对存在
-  #   漂移——入库件（3a66049 生成）缺 TaskStatus.properties/error_code 字段
-  #   （bd136fc R1-2/AU-2 接线后未重导）。重生成 openapi.json 属"禁手改、
-  #   只经 dump_openapi 入库"生成物，但该文件在 ENG2 §2 禁改清单——需
-  #   总控显式授权后方可：1) uv run python -m waterprint_server.dump_openapi
-  #   重新入库；2) server job pytest 后增字节比对步（不一致=退出码 1，
-  #   中文报错"OpenAPI 契约漂移：重生成与入库件不一致，请经
-  #   dump_openapi 重新入库"）。
