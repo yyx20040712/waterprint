@@ -2,8 +2,8 @@
 
 输入:  ProjectFile + 工况选择 + 数据包（单价/系数/假设）+ 单元发现结果
 输出:  全厂结果包（PlantResult + ElevationProfile + SceneGraph + 概算 + 迹树）；
-       T7a 份额：load_project/save_project 薄封装 + RunEnv 再导出；
-       T7b 份额：assemble/run_full_calc 装配执行闭环（本文件已落）
+       T7a 份额：load/save_project 薄封装+RunEnv 再导出；T7b 份额：
+       assemble/run_full_calc 装配执行闭环（本文件已落）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -14,24 +14,22 @@
 #   class RunEnv(不可变)：定义于 contracts/run_env.py（L0 契约），app
 #       装配并重新导出——七字段（engine_version/data_version/
 #       assumptions/coefficients/price_book/trace_sink/engine_params）
-#   load_project(path: Path) -> ProjectFile / save_project(project:
-#       ProjectFile, path: Path) -> None（UF-33）：load 走 M-3 版本门
-#       （版本路由唯一正门=migrate，T7a 二审移交定稿）；SERVER D2
-#       2026-08-26 双闸收口：装载委托 project.io 正门加载路径
-#       （io.load_project=_MAX_BYTES=10MB 大小闸+_MAX_DEPTH=100 深度
-#       闸+parse_constant 拒 NaN/±Inf+RecursionError 收编全部随之
-#       生效），非当前版经 migrate 原语义复核拒/迁——"完整大小/深度
-#       闸留 M2/server 批"注记就此收口）
+#   load_project(path) -> ProjectFile / save_project(project, path)（UF-33）：
+#       load 走 M-3 版本门（版本路由唯一正门=migrate，T7a 二审移交定稿）；
+#       SERVER D2 2026-08-26 双闸收口：装载委托 project.io 正门（io.
+#       load_project=_MAX_BYTES=10MB 大小闸+_MAX_DEPTH=100 深度闸+
+#       parse_constant 拒 NaN/±Inf+RecursionError 收编全部随之生效），
+#       非当前版经 migrate 原语义复核拒/迁——"完整大小/深度闸留
+#       M2/server 批"注记就此收口）
 #   assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph
-#       装配：units_lib.discover_units ∪ 内置节点（design.nodes 值含
-#       "kind" 键者经 graph.nodes.builtin_unit 构造；无 kind=注册表查，
-#       缺失=InvalidAssemblyError 带 unit_id）；edges 装配期转换存
-#       AssembledGraph（executor _edges_from_design 同款语义、本文件
-#       B4 双胞胎，拒绝载体=InvalidAssemblyError）；D4 受检资格校验：
-#       checked_units 逐个 condition_mappings 非空（空/不在图中=
-#       InvalidAssemblyError，判据=T3-D4 移交口径"须声明检修降级"宽松
-#       安全侧）；重复 unit_id 由 discover_units 启动期拒（units_lib
-#       铁律同款）
+#       装配：units_lib.discover_units ∪ 内置节点（design.nodes 值含 "kind"
+#       键者经 graph.nodes.builtin_unit 构造；无 kind=注册表查，缺失=
+#       InvalidAssemblyError 带 unit_id）；edges 装配期转换存 AssembledGraph
+#       （executor _edges_from_design 同款语义、本文件 B4 双胞胎，拒绝载体=
+#       InvalidAssemblyError）；D4 受检资格校验：checked_units 逐个
+#       condition_mappings 非空（空/不在图中=InvalidAssemblyError，判据=
+#       T3-D4 移交口径"须声明检修降级"宽松安全侧）；重复 unit_id 由
+#       discover_units 启动期拒（units_lib 铁律同款）
 #   AssembledGraph(不可变)：design: DesignState / units: Mapping[str,
 #       Unit] / edges: tuple[Edge, ...] 三字段——编排产物不进 contracts
 #       （file-contracts 输出列同步）
@@ -80,25 +78,30 @@
 #   构造新 RunEnv 替换，原 env 不改；MappingProxyType 快照语义保持）。
 #
 # 【trace 装配收口】（M1b D3 裁决 2026-08-25，分层：trace 居 graph 上层，
-#   executor 禁 import trace——executor.py 零改动；其 _NullSink 保留为
-#   防御残留：仅当调用方直接走 execute_graph 且 env.trace_sink=None 时
-#   生效，app 正门路径不再触达）：run_full_calc 入参 env.trace_sink 为
-#   None 时构造 TraceCollector 并 dataclasses.replace(env, trace_sink=
-#   collector)（_engine_params 同款"构造新 RunEnv 替换"先例）；非 None
-#   时尊重调用方 sink——PlantResult.trace 回填仅当 sink 有可调 tree()
-#   （getattr 探测），否则 trace=() 注记（收集语义归 sink 自身）。
-#   execute_graph 后 dataclasses.replace(plant, trace=collector.tree())
-#   （design_hash 回填同款先例）——PlantResult.trace 从 () 占位变实迹，
-#   R4"计算迹完整"闭环（executor D10 冲突记档消除）；serialize 确定性
-#   不受扰（TraceNode 平铺到达序，双跑同迹=双跑同序列化）。
+#   executor 禁 import trace——executor.py 零改动；其 _NullSink 保留为防御
+#   残留：仅当调用方直接走 execute_graph 且 env.trace_sink=None 时生效，app
+#   正门路径不再触达）：run_full_calc 入参 env.trace_sink 为 None 时构造
+#   TraceCollector 并 replace(env, trace_sink=collector)（_engine_params 同款
+#   "构造新 RunEnv 替换"先例）；非 None 时尊重调用方 sink——PlantResult.trace
+#   回填仅当 sink 有可调 tree()（getattr 探测），否则 trace=() 注记（收集
+#   语义归 sink 自身）。execute_graph 后 replace(plant, trace=collector.tree())
+#   （design_hash 回填同款先例）——trace 从 () 占位变实迹，R4"计算迹完整"
+#   闭环（executor D10 冲突记档消除）；serialize 确定性不受扰（TraceNode
+#   平铺到达序，双跑同迹=双跑同序列化）。
 #
 # 【design_hash 回填】（D3/D5 定稿）：executor 置空串（分层契约禁其
-#   import project.content_hash）——run_full_calc 以 dataclasses.replace
-#   回填 ReproTriple(design_hash=content_hash.design_hash(design))，
-#   app→project 边合法（load/save 先例）；可复算三元组 T7b 闭环。
-#   【勘误注记】简报 D5 原文"model_copy"系 pydantic 习惯用语——
-#   PlantResult 是 frozen dataclass，等价 API=dataclasses.replace
-#   （非重裁决，机械修正记档报告）。
+#   import project.content_hash）——run_full_calc 以 replace 回填
+#   ReproTriple(design_hash=content_hash.design_hash(design))，app→project
+#   边合法（load/save 先例）；可复算三元组 T7b 闭环。【勘误注记】简报 D5
+#   原文"model_copy"系 pydantic 习惯用语——PlantResult 是 frozen
+#   dataclass，等价 API=dataclasses.replace（非重裁决，机械修正记档）。
+#
+# 【summary 真值注入】（D10 2026-08-28，D1/D2 裁决——app 层 replace 路线
+#   b，trace/design_hash 回填同款先例）：executor.py 零改动（summary={}
+#   占位与 _NullSink 同为防御残留，其头注冲突行保留为历史指针，D10 落地
+#   记档归此+台账）；run_full_calc 在既有 replace 内并入
+#   summary=_summary_of(plant, assembled.edges)——纯投影（terminal 汇点
+#   六指标交集禁造数），R4"厂级汇总"冲突记档就此消除。
 #
 # 【测试要求】三单元 M1 切片端到端、装配失败清单完整、双跑 diff=0、
 #   三元组传播、（golden 数据就绪后）两大案例全流程。
@@ -175,12 +178,10 @@ class InvalidAssemblyError(Exception):
 def load_project(path: Path) -> ProjectFile:
     """项目装载（M-3 版本门 + SERVER D2 双闸收口）：委托 project.io 正门。
 
-    io.load_project（锁探测 read_project_text + loads 防弹装载）使
-    _MAX_BYTES=10MB 大小闸/_MAX_DEPTH=100 深度闸/parse_constant 拒
-    NaN/±Inf/RecursionError 收编在 app 正门全部生效；版本路由唯一正门
+    io.load_project（锁探测+防弹装载）使 _MAX_BYTES=10MB/_MAX_DEPTH=100/
+    拒 NaN/±Inf/RecursionError 各闸在 app 正门全部生效；版本路由唯一正门
     仍=migrate——当前版（SUPPORTED_VERSIONS 链尾）直通，非当前版经
-    migrate 对象面复核（未来版/未知历史版按 M-3 原语义拒，v1 无迁链）。
-    """
+    migrate 对象面复核（未来/未知历史版按 M-3 原语义拒，v1 无迁链）。"""
     project = _io_load(path)
     if project.format_version == SUPPORTED_VERSIONS[-1]:
         return project
@@ -215,21 +216,17 @@ def _edges(raw_edges: Sequence[object]) -> tuple[Edge, ...]:
     for index, element in enumerate(raw_edges):
         if not isinstance(element, Mapping):
             raise InvalidAssemblyError(
-                f"design.edges[{index}] 须为对象（src/dst/recycle）："
-                f"得到 {type(element).__name__}"
+                f"design.edges[{index}] 须为对象（src/dst/recycle）：得到 {type(element).__name__}"
             )
         recycle = element.get("recycle", False)
         if not isinstance(recycle, bool):
             raise InvalidAssemblyError(
                 f"design.edges[{index}].recycle 须为布尔：得到 {recycle!r}"
             )
-        edges.append(
-            Edge(
-                src=_endpoint(element.get("src"), "src", index),
-                dst=_endpoint(element.get("dst"), "dst", index),
-                recycle=recycle,
-            )
-        )
+        edges.append(Edge(
+            src=_endpoint(element.get("src"), "src", index),
+            dst=_endpoint(element.get("dst"), "dst", index),
+            recycle=recycle))
     return tuple(edges)
 
 
@@ -265,11 +262,10 @@ def _checked_units_eligibility(
             )
 
 
-# 【D4 系数投影（M1a 裁决 2026-08-25）】UnitContext 无 coefficients 通道——
-# 装配层把 RunEnv.coefficients 的 factor.<短名>.*/removal.<短名>.* +
-# factor.screen.*（格栅共用）合入单元 compute 期 params（全键名保留；
-# 系数真源唯一 data/coefficients，GR-15；与 design 参数命名空间不相交，
-# GR-26；投影不覆盖用户参数面——详见 M1a 报告）。
+# 【D4 系数投影（M1a 裁决 2026-08-25）】UnitContext 无 coefficients 通道——装配层把
+# RunEnv.coefficients 的 factor.<短名>.*/removal.<短名>.*+factor.screen.*（格栅共用）
+# 合入单元 compute 期 params（全键名保留；系数真源唯一 data/coefficients，GR-15；
+# 与 design 参数命名空间不相交，GR-26；投影不覆盖用户参数面——详见 M1a 报告）。
 _FACTOR_SHARED_PREFIX = "factor.screen."
 
 
@@ -311,9 +307,9 @@ class _CoefficientsUnit:
 def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
     """装配正门：单元发现 ∪ 内置节点构造 + 边转换 + 资格/grid 校验（R1）。
 
-    design.nodes 值含 "kind" 键=内置节点（builtin_unit 构造）；无 kind=
-    discover_units 注册表查，缺失=InvalidAssemblyError 带 unit_id；重复
-    unit_id 由 discover_units 启动期拒。env 透传（装配期不消费）。"""
+    design.nodes 值含 "kind"=内置节点（builtin_unit 构造）；无 kind=discover_units
+    注册表查，缺失=InvalidAssemblyError 带 unit_id；重复 unit_id 由
+    discover_units 启动期拒。env 透传（装配期不消费）。"""
     discovered = discover_units()
     units: dict[str, Unit] = {}
     for node_id, node_value in project.design.nodes.items():
@@ -404,10 +400,32 @@ def _completed_env(env: RunEnv, design: DesignState) -> RunEnv:
     return replace(env, engine_params=merged)
 
 
-def run_full_calc(
-    project: ProjectFile, conditions: ConditionSet, env: RunEnv
-) -> ResultBundle:
-    """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5）。"""
+# D10 六指标固定族：声明面常量键名（值零字面量——全部来自 terminal 实跑
+# outqualities 交集，禁造数；result_schema summary 规格 26-27 行）。
+_SUMMARY_INDICATORS: Final[tuple[str, ...]] = ("BOD5", "CODCR", "SS", "NH3N", "TN", "TP")
+
+
+def _summary_of(plant: PlantResult, edges: tuple[Edge, ...]) -> dict[str, dict[str, float]]:
+    """D2 纯投影：逐工况 terminal 终水六指标（Mapping[工况→Mapping[指标→float]]）。
+
+    terminal=该工况快照序（执行序=dict 插入序）最后一个无出边单元（汇点末
+    位——确定性由拓扑执行序保证）；值=terminal.outqualities 键
+    f"{terminal}.out.{指标}" 与六指标族交集（有则录无则略——矿井线 BOD5
+    缺/污泥线终端无水质键→空映射合法）；平键展开=calcbook
+    {{summary.<condition_key>.<指标>}} 值域（UF-42 同款）。"""
+    sources = {edge.src.unit_id for edge in edges}
+    summary: dict[str, dict[str, float]] = {}
+    for condition_key, snapshot in plant.conditions.items():
+        terminal = next((u for u in reversed(list(snapshot)) if u not in sources), "")
+        out = snapshot[terminal].outqualities if terminal else {}
+        summary[condition_key] = {
+            ind: v for ind in _SUMMARY_INDICATORS
+            if (v := out.get(f"{terminal}.out.{ind}")) is not None}
+    return summary
+
+
+def run_full_calc(project: ProjectFile, conditions: ConditionSet, env: RunEnv) -> ResultBundle:
+    """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5/D10）。"""
     assembled = assemble(project, env)
     effective = _completed_env(env, project.design)
     collector: TraceCollector | None = None
@@ -424,6 +442,7 @@ def run_full_calc(
             engine_version=plant.repro.engine_version,
             data_version=plant.repro.data_version,
         ),
+        summary=_summary_of(plant, assembled.edges),
     )
     return ResultBundle(plant=filled, repro=filled.repro)
 
@@ -442,20 +461,16 @@ def _external_tree(env: RunEnv) -> TraceTree:
 #    app_enumeration.py 伴生件，上方 import 再导出）──────────────────
 
 
-def run_enumeration(
-    project: ProjectFile,
-    unit_id: str,
-    conditions: ConditionSet,
-    env: RunEnv,
-    options: EnumerationOptions | None = None,
-) -> EnumerationOutcome:
+def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet,
+                    env: RunEnv, options: EnumerationOptions | None = None
+                    ) -> EnumerationOutcome:
     """单单元枚举正门（ADR-005/UF-33）：装配→网格→上游快照→枚举→过滤→排序→诊断。"""
     assembled = assemble(project, env)
     unit = assembled.units.get(unit_id)
     if unit is None:
         raise InvalidAssemblyError(
-            f"枚举目标单元 {unit_id!r} 不在装配图（单单元语义 ADR-005——"
-            "多单元拒绝在 server 层；core 侧未命中=InvalidAssemblyError）"
+            f"枚举目标单元 {unit_id!r} 不在装配图（单单元语义 ADR-005——多单元拒绝在"
+            " server 层；core 侧未命中=InvalidAssemblyError）"
         )
     grid = build_grid([spec for spec in unit.manifest.params if spec.grid is not None])
     condition = next(iter(conditions.iter_all()), None)  # M-5 R1：空集显式领域异常
@@ -473,20 +488,10 @@ def run_enumeration(
     df = enumerate_solutions(grid, ctx, unit, env)
     chosen = options if options is not None else EnumerationOptions()
     filtered = apply_constraints(df, chosen.constraints)
-    ranked = rank(
-        filtered,
-        df,
-        RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
-        chosen.limit if chosen.limit is not None else max(len(filtered.feasible), 1),
-    )
+    ranked = rank(filtered, df, RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
+                  chosen.limit if chosen.limit is not None else max(len(filtered.feasible), 1))
     return EnumerationOutcome(
-        rows=ranked.rows,
-        total_feasible=ranked.total_feasible,
-        truncated=ranked.truncated,
-        diagnosis=None
-        if filtered.feasible
-        else diagnose_infeasibility(
-            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}
-        ),
+        rows=ranked.rows, total_feasible=ranked.total_feasible, truncated=ranked.truncated,
         grid=grid,
-    )
+        diagnosis=None if filtered.feasible else diagnose_infeasibility(
+            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}))
