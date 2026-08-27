@@ -48,8 +48,146 @@ from types import MappingProxyType
 from typing import Final
 
 from waterprint.contracts.drawing_projection_types import UnitProjection
+from waterprint.contracts.quantity import DimKey
 
 __all__ = ["MINE_PROJECTIONS"]
 
-# ── 矿井水线 8 单元取数表（M3D1 D2 本批落表；AI 起草待追认）────
-MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({})
+_L = DimKey.LENGTH
+_D = DimKey.DIMENSIONLESS
+_F = DimKey.FLOW
+_A = DimKey.AREA
+_V = DimKey.VOLUME
+_VEL = DimKey.VELOCITY
+
+# ── 矿井水线 8 单元取数表（2026-08-27 全链单点图实跑提取 107 键逐键
+#    归位；AI 起草待追认。分类原则=几何上图量入取数类，校核/过程/衡算
+#    量入 non_drawn——对账测试是覆盖最终裁决，缺键/多键即红）────
+MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
+    # 线首注入节点：无池体——流量/标高七键全 non_drawn（z_water/z_bottom
+    # 标高语义归 elevation 总线，不进表取数面）
+    "mine_water_input": UnitProjection(
+        "mine_water_input",
+        plan_keys={},
+        section_keys={},
+        primitive_dims={},
+        instance_counts={},
+        non_drawn=("freeboard", "q_avg_h", "q_design", "v_inlet",
+                   "z_bottom", "z_pipe_bottom", "z_water"),
+        dim_of={"freeboard": _L, "q_avg_h": _D, "q_design": _F,
+                "v_inlet": _VEL, "z_bottom": _L, "z_pipe_bottom": _L,
+                "z_water": _L},
+    ),
+    # 矿井调节池：p_stir 搅拌功率 kW（DIMENSIONLESS 裸值——KT-F9
+    # output_dim 口径，与市政调节池 TJ-F9 同款）
+    "mine_water_tiaojiechi": UnitProjection(
+        "mine_water_tiaojiechi",
+        plan_keys={"overall_length": "l", "overall_width": "b"},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={"length": "l", "width": "b", "depth": "h_total"},
+        instance_counts={},
+        non_drawn=("a1", "a_act", "b_raw", "d_out_raw", "dn_out", "l_raw",
+                   "p_stir", "t_reg_act", "v1", "v_act_total", "v_concrete",
+                   "v_total"),
+        dim_of={"a1": _A, "a_act": _A, "b": _L, "b_raw": _L,
+                "d_out_raw": _L, "dn_out": _L, "h_total": _L, "l": _L,
+                "l_raw": _L, "p_stir": _D, "t_reg_act": _D, "v1": _V,
+                "v_act_total": _V, "v_concrete": _V, "v_total": _V},
+    ),
+    # 矿井平流沉砂池：l_weir 出水堰长（KC-F7）；v_hopper 斗容积（KC-F6
+    # 容积量——不上图入 non_drawn，与市政 h4 斗深键义区分）
+    "mine_water_chenshachi": UnitProjection(
+        "mine_water_chenshachi",
+        plan_keys={"overall_length": "l_cell", "overall_width": "b",
+                   "weir_length": "l_weir"},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={"length": "l_cell", "width": "b",
+                        "depth": "h_total"},
+        instance_counts={},
+        non_drawn=("a_cross", "b_raw", "l_cell_raw", "q_weir", "v_concrete",
+                   "v_h_act", "v_hopper", "v_sand"),
+        dim_of={"a_cross": _A, "b": _L, "b_raw": _L, "h_total": _L,
+                "l_cell": _L, "l_cell_raw": _L, "l_weir": _L, "q_weir": _D,
+                "v_concrete": _V, "v_h_act": _VEL, "v_hopper": _V,
+                "v_sand": _V},
+    ),
+    # 矿井絮凝池：四区 l1~l4 分段长（KN-F9 逐区）；无总长单键——Σl 计算
+    # 被纯投影铁律禁止，box 三槽不全不触发图元（width/depth 两槽声明面
+    # 保留）；p1~p4/p_total 功率 kW 裸值（KN-F6 output_dim=DIMENSIONLESS）
+    "mine_water_ningjiao": UnitProjection(
+        "mine_water_ningjiao",
+        plan_keys={"overall_width": "b", "zone_length_1": "l1",
+                   "zone_length_2": "l2", "zone_length_3": "l3",
+                   "zone_length_4": "l4"},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={"width": "b", "depth": "h_total"},
+        instance_counts={},
+        non_drawn=("a1", "a2", "a3", "a4", "b_raw", "gt_total", "m_pac",
+                   "m_pam", "m_seed", "p1", "p2", "p3", "p4", "p_total",
+                   "t_total", "v1", "v2", "v3", "v4", "v_concrete"),
+        dim_of={"a1": _A, "a2": _A, "a3": _A, "a4": _A, "b": _L,
+                "b_raw": _L, "gt_total": _D, "h_total": _L, "l1": _L,
+                "l2": _L, "l3": _L, "l4": _L, "m_pac": _D, "m_pam": _D,
+                "m_seed": _D, "p1": _D, "p2": _D, "p3": _D, "p4": _D,
+                "p_total": _D, "t_total": _D, "v1": _V, "v2": _V,
+                "v3": _V, "v4": _V, "v_concrete": _V},
+    ),
+    # 磁分离：n_disks 磁盘盘片数→实例数（disk 语义标签——scene
+    # _INSTANCE_KINDS 本批 M3D1 D4 登记）；设备类无池体图元
+    "mine_water_cifenli": UnitProjection(
+        "mine_water_cifenli",
+        plan_keys={},
+        section_keys={},
+        primitive_dims={},
+        instance_counts={"disk": "n_disks"},
+        non_drawn=("a_disk", "a_total_req", "m_seed_net", "n_disks_raw",
+                   "q_1h", "q_sludge", "v_line", "w_ss"),
+        dim_of={"a_disk": _A, "a_total_req": _A, "m_seed_net": _D,
+                "n_disks": _D, "n_disks_raw": _D, "q_1h": _D,
+                "q_sludge": _V, "v_line": _VEL, "w_ss": _D},
+    ),
+    # 矿井高密度澄清池：l/b 档取整后池长/池宽（KG-F5/F6 raw 键对照）
+    "mine_water_gaomidu": UnitProjection(
+        "mine_water_gaomidu",
+        plan_keys={"overall_length": "l", "overall_width": "b"},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={"length": "l", "width": "b", "depth": "h_total"},
+        instance_counts={},
+        non_drawn=("a_settle", "b_raw", "l_raw", "q1h", "q_surf_act",
+                   "v_axial", "v_concrete", "v_floc", "v_mix"),
+        dim_of={"a_settle": _A, "b": _L, "b_raw": _L, "h_total": _L,
+                "l": _L, "l_raw": _L, "q1h": _D, "q_surf_act": _D,
+                "v_axial": _VEL, "v_concrete": _V, "v_floc": _V,
+                "v_mix": _V},
+    ),
+    # 矿井 V 型滤池：t_bw 三阶段反冲停滤历时（合成量——p_total 单输出
+    # 导出量先例口径，DIMENSIONLESS）
+    "mine_water_vxinglvchi": UnitProjection(
+        "mine_water_vxinglvchi",
+        plan_keys={"overall_length": "l", "overall_width": "b"},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={"length": "l", "width": "b", "depth": "h_total"},
+        instance_counts={},
+        non_drawn=("b_raw", "eta_wash", "f_single", "f_total", "l_raw",
+                   "q_d", "t_bw", "t_w", "v_concrete", "v_force_act",
+                   "w_wash"),
+        dim_of={"b": _L, "b_raw": _L, "eta_wash": _D, "f_single": _A,
+                "f_total": _A, "h_total": _L, "l": _L, "l_raw": _L,
+                "q_d": _D, "t_bw": _D, "t_w": _D, "v_concrete": _V,
+                "v_force_act": _D, "w_wash": _D},
+    ),
+    # 矿井紫外消毒：n_rows 灯管排数→实例数（lamp 语义在 _INSTANCE_KINDS
+    # 既有集内）；无 b/l 键——无 box 槽（municipal_aao 空组形态同款）
+    "mine_water_ziwai": UnitProjection(
+        "mine_water_ziwai",
+        plan_keys={},
+        section_keys={"pool_depth": "h_total"},
+        primitive_dims={},
+        instance_counts={"lamp_row": "n_rows"},
+        non_drawn=("a_ch", "dose_act", "dose_row", "h_loss", "i_avg",
+                   "n_rows_raw", "q_ch", "t_contact", "t_eff", "v_ch"),
+        dim_of={"a_ch": _A, "dose_act": _D, "dose_row": _D, "h_loss": _L,
+                "h_total": _L, "i_avg": _D, "n_rows": _D,
+                "n_rows_raw": _D, "q_ch": _D, "t_contact": _D,
+                "t_eff": _D, "v_ch": _VEL},
+    ),
+})
