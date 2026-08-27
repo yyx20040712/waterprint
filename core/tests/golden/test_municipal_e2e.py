@@ -2,7 +2,8 @@
 
 输入:  golden_data/municipal_34760/{input_project.json, expected_summary.json}
 输出:  全流程与实跑期望值对照断言（5 工况终水逐项+design 档主尺寸+
-       计算书导出+2+k 工况索引——GOLDEN 批激活，2026-08-26）
+       计算书导出+2+k 工况索引——GOLDEN 批激活，2026-08-26；D10
+       2026-08-28：summary 真值断言+正式 calcbook_plant 模板渲染收口）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -14,7 +15,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -29,35 +29,36 @@ pytestmark = [
 ]
 
 _REPO_DATA = Path(__file__).resolve().parents[3] / "data" / "coefficients"
+_REPO_TEMPLATES = Path(__file__).resolve().parents[3] / "data" / "templates"
 _TERMINAL = "municipal_bashi_jiliangcao"
 
 
 def _calcbook_min_template_renders(
     plant: Any, expected: dict[str, Any], tmp_path: Path
 ) -> None:
-    """④ 计算书导出面：最小模板 trace/summary 两族占位符各≥1，全展开零残留。
+    """④ 计算书导出面（最小模板）：trace/summary 两族占位符各≥1，全展开零残留。
 
-    executor summary={} 现状（D10 冲突记档）——summary 取值=本实跑 design 档
-    终水六指标（真值经 replace 注入 summary 面，非编造数字）。
+    D10 2026-08-28：summary 真值=run_full_calc app 层注入（executor
+    summary={} 占位经 app 层 replace 回填——_summary_of 纯投影），本用例
+    自造 replace workaround 已移除，直接消费 plant.summary 真值。
     """
     from openpyxl import Workbook, load_workbook
 
     from waterprint.app import export_artifact
 
-    summary_view = {
-        indicator: plant.conditions["design"][_TERMINAL].outqualities[
-            f"{_TERMINAL}.out.{indicator}"
-        ]
-        for indicator in expected["effluent"]["design"]
-    }
-    book_plant = replace(plant, summary={"design": summary_view})
+    summary_view = plant.summary["design"]  # 真值消费（replace workaround 移除）
+    assert set(summary_view) == set(expected["effluent"]["design"])  # 键集钳制
+    for indicator, item in expected["effluent"]["design"].items():
+        assert summary_view[indicator] == pytest.approx(
+            item["value"], rel=item["rel"], abs=item["abs"]
+        ), f"summary design.{indicator}"
     template = tmp_path / "calcbook_tpl.xlsx"
     workbook = Workbook()
     workbook.active["A1"] = "{{trace[0].formula_id}}"
     workbook.active["B1"] = "BOD5={{summary.design.BOD5}}"
     workbook.save(template)
     payload = export_artifact(
-        "calcbook", book_plant, template, tmp_path / "calcbook_out.xlsx"
+        "calcbook", plant, template, tmp_path / "calcbook_out.xlsx"
     )
     assert payload  # 产出非空（渲染成功即无 InvalidTemplateError）
     sheet = load_workbook(tmp_path / "calcbook_out.xlsx").active
@@ -66,14 +67,45 @@ def _calcbook_min_template_renders(
     assert "{{" not in f"{sheet['A1'].value}{sheet['B1'].value}"  # 零残留
 
 
+def _calcbook_official_template_renders(
+    plant: Any, expected: dict[str, Any], tmp_path: Path
+) -> None:
+    """④ 续：正式模板真值渲染（D10 收口，冻结裁决项④）——data/templates。
+
+    模板路径=对账 fixture parents 法（同 _REPO_DATA 口径解析 data/
+    templates）；经 export_artifact("calcbook") 渲染后断言：全表占位符
+    零残留（"{{" 计数 0）+ B3:B8 六指标值==expected design 逐项
+    （1e-12 双容差）——templates manifest 1.0.0 平键集复核的机器锚定。"""
+    from openpyxl import load_workbook
+
+    from waterprint.app import export_artifact
+
+    template = _REPO_TEMPLATES / "calcbook_plant.xlsx"
+    out = tmp_path / "calcbook_plant_out.xlsx"
+    assert export_artifact("calcbook", plant, template, out)  # 渲染成功零拒
+    sheet = load_workbook(out).active
+    assert sheet.title == "全厂汇总"  # 唯一表（templates 1.0.0 契约）
+    rendered = "".join(
+        f"{cell.value}" for row in sheet.iter_rows() for cell in row
+    )
+    assert "{{" not in rendered  # 六占位符全展开零残留
+    for row, indicator in enumerate(
+        ("BOD5", "CODCR", "SS", "NH3N", "TN", "TP"), start=3
+    ):
+        item = expected["effluent"]["design"][indicator]
+        assert sheet[f"B{row}"].value == pytest.approx(
+            item["value"], rel=item["rel"], abs=item["abs"]
+        ), f"正式模板 {indicator}"
+
+
 def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> None:
     """端到端：run_full_calc 5 工况终水逐项+主尺寸+计算书导出对照期望（双容差禁放宽）。
 
     占位实质化（GOLDEN 批总授权"占位实质化"先例，2026-08-26）：原占位
     raise 的语义全部承载——①正门跑 input_project（5 工况全）②逐工况逐项
     对照 expected（rel/abs 1e-12 双容差按 expected 内标注）③主尺寸逐项
-    对照 ④计算书导出（最小模板占位符全展开）⑤工况集 2+k 索引断言
-    （iter_all 键集恰等 5 预期）。
+    对照 ④计算书导出（最小模板+正式 calcbook_plant 占位符全展开真值）
+    ⑤工况集 2+k 索引断言（iter_all 键集恰等 5 预期）。
     """
     from waterprint.app import load_project, run_full_calc
     from waterprint.contracts.condition import ConditionSet, build_condition_set
@@ -107,6 +139,7 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
     plant = run_full_calc(project, conditions, env).plant
     assert set(plant.conditions) == set(keys)  # 全 5 工况各出整图结果
     assert plant.repro.design_hash == project.metadata.content_hash  # 结果绑定输入
+    assert set(plant.summary) == set(keys)  # D10 全工况注入口径（逐工况映射）
 
     # ② 逐工况逐项终水对照（双容差按 expected 内标注——不放宽）
     # 键集钳制（GOLDEN R1-2）：expected 工况块恰等 5 工况键集，防删块静默绿
@@ -134,3 +167,4 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
         assert isinstance(marker, str) and "M3" in marker, deferred_key
 
     _calcbook_min_template_renders(plant, expected, tmp_path)
+    _calcbook_official_template_renders(plant, expected, tmp_path)

@@ -59,7 +59,7 @@
   "core/tests/golden/golden_data/municipal_34760/input_project.json": "c00feaf60111f637ab3260855e895d92f94737f71d55c7019c42a0c868aca4dd",
   "core/tests/golden/golden_data/municipal_34760/notes.md": "51e5d0afe772c86d91292e58b12fc00a0801086f5384870068c8d431fb1c3f83",
   "core/tests/golden/test_mine_water_e2e.py": "3b1f477323759a64f91841db0f11bb8f91cb352367f033991184bc42c6912c12",
-  "core/tests/golden/test_municipal_e2e.py": "bb44deffeb1c7074ff20367f49f0568e015c54b4af7aba86db6cf225394ff727",
+  "core/tests/golden/test_municipal_e2e.py": "832eff58969c955ac46c7bd9922062ab36815c9c5ea9b18962b65da37e642503",
   "core/tests/graph/properties_incremental.py": "38fd40c9957defe21d7c30106bb77ef247156eeb19b9dad2fd837a49a51c5c37",
   "core/tests/graph/properties_propagate.py": "0b739d2aa815369dec5a5ed3e425cfc78a6deb58487772e64c2bf920a2480518",
   "core/tests/graph/properties_topo.py": "f453b19096cf1143055efbf94818986a8f159082e5afd9c6d48895cd918b29af",
