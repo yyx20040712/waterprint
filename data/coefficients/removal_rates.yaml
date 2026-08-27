@@ -8,6 +8,8 @@
 # NH3N/TN/TP：旧系统三单元显式取 0.0（无去除逻辑），依"无去除逻辑不设条目"
 # 规则不建条目；单元 manifest.removal_refs 不应引用这三项。
 # 全部数值 source 均为旧系统基线交叉引用，无条文出处——正式依据待领域专家核定。
+# 追认注记 2026-08-28：0.5.0 批 removal.mine_* 13 键已随三线 19 表追认扩批
+# （Ruling=RATIFY2，流程仓台账；矿井线逐条裁量点见 pending §11——按建议追认）。
 
 - key: "removal.cugeshan.bod5.mod_default"
   value: 0.05

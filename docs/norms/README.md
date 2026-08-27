@@ -38,25 +38,25 @@ norms/
 | cass（CASS 生物池） | 市政污水 | `cass.md` | 已签字生效（数值面已追认 2026-08-27 批量批）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，周期循环工艺主线 4h 档；M2c 按表逐字实装 CA-F1~F27） |
 | bashi_jiliangcao（巴歇尔计量槽） | 市政污水 | `bashi_jiliangcao.md` | 已签字生效（数值面已追认 2026-08-27 批量批）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，B7 七档流量式主线——CJ/T 核对归追认；M2c 按表逐字实装 BL-F1~F9） |
 | wushui_tisheng（污水提升泵房） | 市政污水 | `wushui_tisheng.md` | 已签字生效（数值面已追认 2026-08-27 批量批）（AI-GLM5.3 起草 2026-08-26，数据策略 v2，集水井调节容积+泵扬程三分量主线[追认点 14 承接]；M2c 按表逐字实装 TS-F1~F14） |
-| mine_water_input（矿井水输入） | 矿井水 | `mine_water_input.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，入水定义+高程基准主线[GB/T 19223 分类口径]；M3a2 按表逐字实装 KI-F1~F7） |
-| mine_water_tiaojiechi（矿井水调节池） | 矿井水 | `mine_water_tiaojiechi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，调节容积法主线[纯均化零去除，预沉口径归追认]；M3a2 按表逐字实装 KT-F1~F12） |
-| mine_water_chenshachi（平流沉砂池） | 矿井水 | `mine_water_chenshachi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，平流型主线[区别于市政旋流型]；M3a2 按表逐字实装 KC-F1~F10） |
-| mine_water_ningjiao（混凝反应池） | 矿井水 | `mine_water_ningjiao.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，四分区 G 值梯度主线[磁加载衔接，反应无分离穿流]；M3a2 按表逐字实装 KN-F1~F15） |
-| mine_water_cifenli（磁分离） | 矿井水 | `mine_water_cifenli.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，磁盘表面负荷主线[磁种回收循环衡算]；M3a3 按表逐字实装 KS-F1~F8） |
-| mine_water_gaomidu（矿井水高密沉淀池） | 矿井水 | `mine_water_gaomidu.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，无回流斜管低负荷主线[异于市政 Densadeg 回流型]；M3a3 按表逐字实装 KG-F1~F10） |
-| mine_water_vxinglvchi（矿井水V型滤池） | 矿井水 | `mine_water_vxinglvchi.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均质滤料低滤速精滤主线[4~6 m/h 异于市政 7~10]；M3a3 按表逐字实装 KV-F1~F11） |
-| mine_water_ziwai（矿井水紫外消毒渠） | 矿井水 | `mine_water_ziwai.md` | 已实装（数值面待追认）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，灯管布置实算剂量主线[含结垢系数特征键，异于市政概算锚]；M3a3 按表逐字实装 KZ-F1~F11） |
-| sludge_hebing（污泥合并） | 污泥处理 | `sludge_hebing.md` | M3b2 已实装（HB-F1~F13 注册+包内 golden 11 例；SLUDGE 图源参数注入+出流三量契约口径）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，mix 守恒口镜像+经验产率法主线 Sy 与机理互校 ΔX[ADR-008 ④，偏差>20% 警告]） |
-| sludge_shusong（污泥输送） | 污泥处理 | `sludge_shusong.md` | M3b2 已实装（ST-F1~F9 注册+包内 golden 13 例；DN25 档收口+DS 穿流守恒显式）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，压力流管径+重力自流曼宁最小坡度两式主线[DS 穿流守恒显式]） |
-| sludge_bengzhan（污泥泵站） | 污泥处理 | `sludge_bengzhan.md` | M3b2 已实装（BZ-F1~F18 注册+包内 golden 12 例；泵族先例形态+污泥粘度修正）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，泵组选型+扬程三分量[污泥粘度修正]+集泥井主线[wushui_tisheng 泵族先例形态]） |
-| sludge_nongsuo（污泥浓缩池） | 污泥处理 | `sludge_nongsuo.md` | M3b2 已实装（NS-F1~F12 注册+包内 golden 12 例；双主线取大+上清液回流口声明先行）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，固体通量/浓缩时间双主线取大[上清液回流口默认关——Q1 待裁注记]） |
-| sludge_xiaohua（污泥消化池） | 污泥处理 | `sludge_xiaohua.md` | M3b2 已实装（XH-F1~F11 注册+包内 golden 12 例；t_digest_temp 参数承载[UF-09 口径]）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，中温消化 35℃主线[UF-09 温度参数承载注记]+消化减量 DS 守恒链+产气量衡算） |
-| sludge_tuoshui（污泥脱水间） | 污泥处理 | `sludge_tuoshui.md` | M3b2 已实装（TU-F1~F8 注册+包内 golden 12 例；带式/离心双机档 grid+滤液回流口声明先行）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，带式/离心双机档[PAM 投加/泥饼 75~80%]+滤液回流口默认关注记[Q1 待裁]） |
-| sludge_ganhua（污泥干化） | 污泥处理 | `sludge_ganhua.md` | M3b2 已实装（GH-F1~F8 注册+包内 golden 12 例；热量衡算+质量守恒校核显式）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，热干化热量衡算+蒸发水量干基差式[质量守恒校核显式；沼气联动潜力注记]） |
-| conveyance_jishuijing（集水井） | 集配水 | `conveyance_jishuijing.md` | M3c 已实装（JS-F1~F7 注册+包内 golden 10 例；汇流单口穿流+井径 0.5 m 档收口）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流集水容积法+停留校核+圆形井构造主线[零水质去除穿流——removal 零键照污泥批口径]） |
-| conveyance_peishuijing（配水井） | 集配水 | `conveyance_peishuijing.md` | M3c 已实装（PJ-F1~F12 注册+包内 golden 11 例；动态多口分流——manifest 单 OUT 声明+out_1~out_n 多键[表内冻结口径]+分流守恒断言）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均匀分流+孔口出流 μ 反解水头+配水不均匀系数余量主线） |
-| conveyance_jipeishuijing（集配水井） | 集配水 | `conveyance_jipeishuijing.md` | M3c 已实装（JP-F1~F9 注册+包内 golden 11 例；汇流/分流合一单节点+动态多口）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流容积+均匀分流不均匀余量合一主线[集水/配水两表语义合并]） |
-| conveyance_peishuiqu（配水渠） | 集配水 | `conveyance_peishuiqu.md` | M3c 已实装（PQ-F1~F7 注册+包内 golden 11 例；明渠侧堰配水+渠末防淤校核 Warning 路径）；表已起草待追认（AI-GLM5.3 起草 2026-08-27，数据策略 v2，明渠输配+侧堰配水+变流量渠末流速校核主线[GB §4 最小流速防淤挂点]） |
+| mine_water_input（矿井水输入） | 矿井水 | `mine_water_input.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，入水定义+高程基准主线[GB/T 19223 分类口径]；M3a2 按表逐字实装 KI-F1~F7） |
+| mine_water_tiaojiechi（矿井水调节池） | 矿井水 | `mine_water_tiaojiechi.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，调节容积法主线[纯均化零去除，预沉口径归追认]；M3a2 按表逐字实装 KT-F1~F12） |
+| mine_water_chenshachi（平流沉砂池） | 矿井水 | `mine_water_chenshachi.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，平流型主线[区别于市政旋流型]；M3a2 按表逐字实装 KC-F1~F10） |
+| mine_water_ningjiao（混凝反应池） | 矿井水 | `mine_water_ningjiao.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，四分区 G 值梯度主线[磁加载衔接，反应无分离穿流]；M3a2 按表逐字实装 KN-F1~F15） |
+| mine_water_cifenli（磁分离） | 矿井水 | `mine_water_cifenli.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，磁盘表面负荷主线[磁种回收循环衡算]；M3a3 按表逐字实装 KS-F1~F8） |
+| mine_water_gaomidu（矿井水高密沉淀池） | 矿井水 | `mine_water_gaomidu.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，无回流斜管低负荷主线[异于市政 Densadeg 回流型]；M3a3 按表逐字实装 KG-F1~F10） |
+| mine_water_vxinglvchi（矿井水V型滤池） | 矿井水 | `mine_water_vxinglvchi.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均质滤料低滤速精滤主线[4~6 m/h 异于市政 7~10]；M3a3 按表逐字实装 KV-F1~F11） |
+| mine_water_ziwai（矿井水紫外消毒渠） | 矿井水 | `mine_water_ziwai.md` | 已实装（数值面已追认 2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，灯管布置实算剂量主线[含结垢系数特征键，异于市政概算锚]；M3a3 按表逐字实装 KZ-F1~F11） |
+| sludge_hebing（污泥合并） | 污泥处理 | `sludge_hebing.md` | M3b2 已实装（HB-F1~F13 注册+包内 golden 11 例；SLUDGE 图源参数注入+出流三量契约口径）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，mix 守恒口镜像+经验产率法主线 Sy 与机理互校 ΔX[ADR-008 ④，偏差>20% 警告]） |
+| sludge_shusong（污泥输送） | 污泥处理 | `sludge_shusong.md` | M3b2 已实装（ST-F1~F9 注册+包内 golden 13 例；DN25 档收口+DS 穿流守恒显式）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，压力流管径+重力自流曼宁最小坡度两式主线[DS 穿流守恒显式]） |
+| sludge_bengzhan（污泥泵站） | 污泥处理 | `sludge_bengzhan.md` | M3b2 已实装（BZ-F1~F18 注册+包内 golden 12 例；泵族先例形态+污泥粘度修正）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，泵组选型+扬程三分量[污泥粘度修正]+集泥井主线[wushui_tisheng 泵族先例形态]） |
+| sludge_nongsuo（污泥浓缩池） | 污泥处理 | `sludge_nongsuo.md` | M3b2 已实装（NS-F1~F12 注册+包内 golden 12 例；双主线取大+上清液回流口声明先行）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，固体通量/浓缩时间双主线取大[上清液回流口默认关——Q1 待裁注记]） |
+| sludge_xiaohua（污泥消化池） | 污泥处理 | `sludge_xiaohua.md` | M3b2 已实装（XH-F1~F11 注册+包内 golden 12 例；t_digest_temp 参数承载[UF-09 口径]）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，中温消化 35℃主线[UF-09 温度参数承载注记]+消化减量 DS 守恒链+产气量衡算） |
+| sludge_tuoshui（污泥脱水间） | 污泥处理 | `sludge_tuoshui.md` | M3b2 已实装（TU-F1~F8 注册+包内 golden 12 例；带式/离心双机档 grid+滤液回流口声明先行）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，带式/离心双机档[PAM 投加/泥饼 75~80%]+滤液回流口默认关注记[Q1 待裁]） |
+| sludge_ganhua（污泥干化） | 污泥处理 | `sludge_ganhua.md` | M3b2 已实装（GH-F1~F8 注册+包内 golden 12 例；热量衡算+质量守恒校核显式）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，热干化热量衡算+蒸发水量干基差式[质量守恒校核显式；沼气联动潜力注记]） |
+| conveyance_jishuijing（集水井） | 集配水 | `conveyance_jishuijing.md` | M3c 已实装（JS-F1~F7 注册+包内 golden 10 例；汇流单口穿流+井径 0.5 m 档收口）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流集水容积法+停留校核+圆形井构造主线[零水质去除穿流——removal 零键照污泥批口径]） |
+| conveyance_peishuijing（配水井） | 集配水 | `conveyance_peishuijing.md` | M3c 已实装（PJ-F1~F12 注册+包内 golden 11 例；动态多口分流——manifest 单 OUT 声明+out_1~out_n 多键[表内冻结口径]+分流守恒断言）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，均匀分流+孔口出流 μ 反解水头+配水不均匀系数余量主线） |
+| conveyance_jipeishuijing（集配水井） | 集配水 | `conveyance_jipeishuijing.md` | M3c 已实装（JP-F1~F9 注册+包内 golden 11 例；汇流/分流合一单节点+动态多口）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流容积+均匀分流不均匀余量合一主线[集水/配水两表语义合并]） |
+| conveyance_peishuiqu（配水渠） | 集配水 | `conveyance_peishuiqu.md` | M3c 已实装（PQ-F1~F7 注册+包内 golden 11 例；明渠侧堰配水+渠末防淤校核 Warning 路径）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，明渠输配+侧堰配水+变流量渠末流速校核主线[GB §4 最小流速防淤挂点]） |
 
 注记（命名双轨现状）：上表市政 13 份为 M1/M2 批历史命名=**单元短名**
 （如 `gaomidu.md`）；M3a1 起矿井水线按本 README"命名 = 单元 ID"规定
