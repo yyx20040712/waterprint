@@ -6,11 +6,11 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（M3c 实装；数据纪律 §16 A9：期望值禁自编，全部逐字取自
-#   docs/norms/conveyance_jipeishuijing.md 主算例（JP-F1~JP-F9 十一项：
+#   docs/norms/conveyance_jipeishuijing.md 主算例（JP-F1~JP-F9 十项：
 #   v_well=135.1805000000/a_well=54.0722000000/d_raw=8.2974010021/
 #   d=8.5/a_act=56.7450172406/t_act=251.8633260298/q_each=0.2816260417/
 #   q_series=0.3097886458/h_total=2.8/v_concrete=55.6101168958——n=2
-#   主档）、副算例（t_well=6/h_well=3.0/n=3 长停留深井三路档十一项）
+#   主档）、副算例（t_well=6/h_well=3.0/n=3 长停留深井三路档十项）
 #   与越带档（t_well=12：v_well=405.5415/d_raw=14.3715201064/d=14.5/
 #   t_act=732.9309937408——t_band 上限+d_band 上限恰两 WARN 路径）；
 #   系数键值逐字取自 data/coefficients 0.7.0 factors.yaml
@@ -19,7 +19,7 @@
 #
 # 【用例面】（十一条，与实际测试函数一一对应——M3a3 yI-1 教训在册）
 #   ①清单身份（UNIT_ID/业务线/两口 WATER 单 OUT 声明/removal_refs 空）
-#   ②主算例逐项（JP-F1~F9 十一项）③副算例逐项（n=3 档）④主算例零
+#   ②主算例逐项（JP-F1~F9 十项）③副算例逐项（n=3 档）④主算例零
 #   警告 ⑤越带档 t_well=12 恰两 WARN（t_band 面+d_band 面；severity
 #   +param_key 归因）⑥动态多口出流面（两口恰键+每口 q_avg=入流/2
 #   kz 透传+分流守恒+水质逐指标恒等+每口出流口恒键）⑦参数域拒绝
@@ -134,7 +134,7 @@ def test_manifest_identity() -> None:
 
 
 def test_main_case_dims() -> None:
-    """②主算例逐项断言（JP-F1~F9——汇流→分流→构造十一项）。"""
+    """②主算例逐项断言（JP-F1~F9——汇流→分流→构造十项）。"""
     dims = _dims()
     assert dims["v_well"] == pytest.approx(135.1805000000, abs=1e-9)  # JP-F1
     assert dims["a_well"] == pytest.approx(54.0722000000, abs=1e-9)  # JP-F2

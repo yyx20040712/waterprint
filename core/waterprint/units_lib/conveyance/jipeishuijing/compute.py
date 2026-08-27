@@ -26,7 +26,7 @@
 #   k_uneven_band 双键为数据包自校面，本文件不消费（constraints.py
 #   注记同源）。
 # 【输出面（D2）】outflows=out_1~out_n 动态多键；dims=表结果全量
-#   11 键（v_well/a_well/d_raw/d/a_act/t_act/q_each/q_series/h_total/
+#   10 键（v_well/a_well/d_raw/d/a_act/t_act/q_each/q_series/h_total/
 #   v_concrete）；outqualities=各出流口恒键、值为入流水质恒等透传
 #   （WATER 通道穿流——executor 入流装配取上游 qualities 池键）；
 #   warnings=三带越界（t_band/depth_band 参数面+d_band 结果面——
