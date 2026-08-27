@@ -2081,15 +2081,15 @@
   source: "给水排水设计手册（第 3 册 城镇给水）紫外渠内流速常用带"
   note: "渠内流速带上限；数据策略 v2"
 - key: "factor.mine_ziwai.t254_band.min"
-  value: 0.6
-  unit: "dimensionless"
+  value: 60.0
+  unit: "%"
   source: "给水排水设计手册（第 3 册 城镇给水）紫外穿透率常用带"
-  note: "254 nm 穿透率带下限（滤后清矿井水 60%~70%——高于市政 55%~65 档）；数据策略 v2"
+  note: "254 nm 穿透率带下限（百分数存储口径 60%——R1 批内修正：原 0.6 分数形态系起草笔误；公式 (t254/100)**n_t 以百分数入参；滤后清矿井水 60%~70% 高于市政 55%~65 档）；数据策略 v2"
 - key: "factor.mine_ziwai.t254_band.max"
-  value: 0.7
-  unit: "dimensionless"
+  value: 70.0
+  unit: "%"
   source: "给水排水设计手册（第 3 册 城镇给水）紫外穿透率常用带"
-  note: "254 nm 穿透率带上限（主算例取 0.65）；数据策略 v2"
+  note: "254 nm 穿透率带上限（百分数存储口径 70%——R1 批内修正同上；主算例取 65）；数据策略 v2"
 - key: "factor.mine_ziwai.f_aging"
   value: 0.7
   unit: "dimensionless"
