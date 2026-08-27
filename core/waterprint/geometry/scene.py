@@ -54,7 +54,7 @@ __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 SCENE_VERSION: Final[str] = "waterprint-scene-1/y-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
-    "pump", "mech_cleaner", "pipe", "opening", "disk",  # disk=M3D1（cifenli 盘片）
+    "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机
 })
 _UNIT_GAP: Final[float] = 1.0  # 单元排布模型间隙 m（占位——工程间距归 M5 布置）
 

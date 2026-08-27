@@ -1,7 +1,10 @@
-"""出图取数对照契约聚合正门（UF-32 方案②）：分线表聚合——市政 13+矿井 8（M3D1）+污泥/输送后续批。
+"""出图取数对照契约聚合正门（UF-32 方案②）：分线表聚合——市政+矿井+污泥+输送。
+
+线序：市政 13（DRAFT）+矿井 8（M3D1）+污泥 7（本批 M3D2）+输送后续批。
 
 输入:  分线表（drawing_projection_municipal 13 条目 + drawing_projection_mine
-       矿井条目）+ drawing_projection_types 类型面
+       矿井条目 + drawing_projection_sludge 污泥条目）+
+       drawing_projection_types 类型面
 输出:  PROJECTION_TABLE（全单元聚合只读映射——geometry/drafting/elevation/
        app_enumeration 消费方 import 路径不变）+ UnitProjection /
        ProfileStation / ElevationProfile 再导出
@@ -9,13 +12,15 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（M3D1 D1 重写为聚合正门——原 13 条目与三类型已分线迁出，
-#   语义零变更；对账锁定测试 tests/contracts/test_drawing_projection.py）
+#   语义零变更；M3D2 D3 扩污泥线分量；对账锁定测试
+#   tests/contracts/test_drawing_projection.py）
 #
 # 【公开接口】
 #   PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] =
-#       MappingProxyType({**MUNICIPAL_PROJECTIONS, **MINE_PROJECTIONS})
-#       ——32 单元分线聚合：市政 13+矿井 8（本批）+污泥/输送随对应批次
-#       扩入各自分线文件，本正门公式不动。
+#       MappingProxyType({**MUNICIPAL_PROJECTIONS, **MINE_PROJECTIONS,
+#       **SLUDGE_PROJECTIONS})——32 单元分线聚合终态：市政 13+矿井 8
+#       （M3D1）+污泥 7（本批 M3D2）+输送 4 随对应批次扩入各自分线
+#       文件，本正门公式不动。
 #   UnitProjection / ProfileStation / ElevationProfile：类型面再导出
 #       （__all__ 四符号不变——消费方零改动，宪法 §2 拆分正解=伴生件
 #       先例 app.py→app_enumeration.py：经正门保持单入口）。
@@ -31,8 +36,8 @@
 # 【禁止事项】本文件不得新增表条目或类型定义（聚合面专用）；不得
 #   import units_lib 或任何 L2+ 层（L0 准入类别①，GR-36）。
 #
-# 【测试要求】tests/contracts/test_drawing_projection.py：21 单元
-#   golden 实跑键集对账 + DimKey 合法性 + 分线键集 disjoint。
+# 【测试要求】tests/contracts/test_drawing_projection.py：28 单元
+#   golden/链式实跑键集对账 + DimKey 合法性 + 分线键集 disjoint。
 #
 # 【参照】Ruling ①（2026-08-26）；UF-32；ADR-006；重写计划 §10.2/
 #   §10.5/§12.5/§13.6；M3D1 简报 D1
@@ -47,6 +52,9 @@ from typing import Final
 from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
+)
+from waterprint.contracts.drawing_projection_sludge import (
+    SLUDGE_PROJECTIONS,
 )
 from waterprint.contracts.drawing_projection_types import (
     ElevationProfile,
@@ -64,4 +72,5 @@ __all__ = [
 PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] = MappingProxyType({
     **MUNICIPAL_PROJECTIONS,
     **MINE_PROJECTIONS,
+    **SLUDGE_PROJECTIONS,
 })
