@@ -110,10 +110,10 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `core/waterprint/units_lib/municipal/erchunchi/` | 市政污水 | M2a2 已实装（EC-F1~F15 公式注册+manifest/compute/包内 golden 测试）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/bashi_jiliangcao/` | 市政污水 | M2c 已实装（BL-F1~F9 公式注册+B7 七档 C/n 档表消费+包内 golden 测试 12 例——七档流量式各一断言）/ M2 正式验收 |
 | `core/waterprint/units_lib/municipal/wushui_tisheng/` | 市政污水 | M2c 已实装（TS-F1~F14 公式注册+泵扬程三分量[M2b1 追认点 14 承接]+比阻 DN 档表命中+包内 golden 测试 12 例）/ M2 正式验收 |
-| `core/waterprint/units_lib/mine_water/input/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/tiaojiechi/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/chenshachi/` | 矿井水 | M3 |
-| `core/waterprint/units_lib/mine_water/ningjiao/` | 矿井水 | M3 |
+| `core/waterprint/units_lib/mine_water/input/` | 矿井水 | M3a2 已实装（KI-F1~F7 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/tiaojiechi/` | 矿井水 | M3a2 已实装（KT-F1~F12 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/chenshachi/` | 矿井水 | M3a2 已实装（KC-F1~F10 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
+| `core/waterprint/units_lib/mine_water/ningjiao/` | 矿井水 | M3a2 已实装（KN-F1~F15 公式注册+manifest/compute/包内 golden 测试）/ M3 正式验收 |
 | `core/waterprint/units_lib/mine_water/cifenli/` | 矿井水 | M3 |
 | `core/waterprint/units_lib/mine_water/gaomidu/` | 矿井水 | M3 |
 | `core/waterprint/units_lib/mine_water/vxinglvchi/` | 矿井水 | M3 |
