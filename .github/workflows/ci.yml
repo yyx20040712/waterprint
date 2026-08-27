@@ -1,11 +1,12 @@
 # CI —— 全链路门禁（重写计划 §6/§13.7；与本地 scripts/run_gates.py 同口径）
 #
-# 激活节奏（M0 骨架期 → M1 起）：
-#   - gates / core-arch / webapp-build：现在生效；
-#   - core-quality（ruff/mypy/pytest+coverage 95）：M1 起生效——先以
-#     "仅安装+收集" 模式运行，防止骨架期红；
-#   - benchmarks：手动触发（M1 性能基准落地后改 push 触发）；
-#   - contract-drift：M2 服务实现 openapi 导出后启用。
+# 激活节奏（ENG2 D1 2026-08-27 常驻面收口）：
+#   - gates / core / server / webapp / benchmarks：全部生效；
+#   - benchmarks：§18.1 预算 5s 不放宽；慢机敏感性=CI 偶发红按重跑
+#     复核定性（非放宽——交接在册口径）；
+#   - contract-drift：仍注释态（ENG2 BLOCKED 未启用——BASE 实测重生成
+#     OpenAPI 与入库件存在漂移，重导 openapi.json 超出 ENG2 白名单；
+#     待总控裁决后按下文注释块步骤启用）。
 name: ci
 
 on:
@@ -73,6 +74,8 @@ jobs:
         run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run mypy
+      - name: import-linter 架构契约（UF-13 机器强制 CI 化——ENG2 D1）
+        run: uv run lint-imports
       - run: uv run pytest
 
   webapp:
@@ -94,11 +97,29 @@ jobs:
       - run: pnpm build
       - run: pnpm test
 
-  # benchmarks:
-  #   M1 起启用（§18.1 性能预算：全流程<5s、万级枚举<5s、场景图<100ms、出图<5s/单元）
-  #   needs: [gates, core]
-  #   run: uv run pytest tests/benchmark --benchmark-only ...
+  benchmarks:
+    name: 性能基准（§18.1 预算 5s 不放宽）
+    needs: [gates, core]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - name: 安装依赖（core/uv.lock 入库——frozen 安装不重解析；dev 组含 pytest-benchmark）
+        run: uv sync --frozen
+      - name: Pytest 基准（慢机敏感性：CI 偶发红按重跑复核定性——非放宽，交接在册口径）
+        run: uv run pytest tests/benchmark -q
 
-  # contract-drift:
-  #   M2 起启用：dump_openapi 与 api-contracts/openapi.json diff，
-  #   或 val 改 --frozen、orval 生成物校验
+  # contract-drift（ENG2 D1 拟常驻——BLOCKED 未落，待总控裁决）：
+  #   BASE 实测（2026-08-27）：dump_openapi 重生成件与入库件字节比对存在
+  #   漂移——入库件（3a66049 生成）缺 TaskStatus.properties/error_code 字段
+  #   （bd136fc R1-2/AU-2 接线后未重导）。重生成 openapi.json 属"禁手改、
+  #   只经 dump_openapi 入库"生成物，但该文件在 ENG2 §2 禁改清单——需
+  #   总控显式授权后方可：1) uv run python -m waterprint_server.dump_openapi
+  #   重新入库；2) server job pytest 后增字节比对步（不一致=退出码 1，
+  #   中文报错"OpenAPI 契约漂移：重生成与入库件不一致，请经
+  #   dump_openapi 重新入库"）。
