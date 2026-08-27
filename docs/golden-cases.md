@@ -77,21 +77,32 @@
 
 ### Step 4 —— 写 `expected_summary.json`
 
-每条期望值一条记录（`tolerance` 单位随字段；`source` 必填）：
+**现行结构（municipal_34760 定型，2026-08-26 GOLDEN 批；71 锚 =
+effluent 30 + design_dims 41）**：
 
 ```json
 {
-  "items": [
-    {"condition_key": "design", "scope": "municipal_aao",
-     "field_id": "有效容积字段ID", "expected": 0.0,
-     "tolerance": 0.0, "source": "GB 50014-2021 §x.x.x 手算 / 旧系统+差异注记"}
-  ],
-  "notes": "见 notes.md"
+  "case": "案例标识",
+  "checked_units": ["受检单元 unit_id 列表（承载 design_offline_* 工况集）"],
+  "condition_keys": ["design", "avg", "design_offline_<unit_id>", "..."],
+  "design_dims": {"<unit_id>.<dims 键>": {"value": 0.0, "source": "..."}},
+  "effluent": {"design": {"BOD5": {"value": 0.0, "source": "主线实跑 HEAD=<hash>"},
+                          "CODCR": {}, "SS": {}, "NH3N": {}, "TN": {}, "TP": {}},
+               "avg": {}, "design_offline_<unit_id>": {}},
+  "generated": {"engine_version": "...", "data_version": "..."},
+  "m3_deferred": {"estimate_total": "M3 补录（…——禁造假数据）",
+                  "total_sludge": "M3 补录（…）"},
+  "tolerance": {"abs": 1e-12, "rel": 1e-12}
 }
 ```
 
-覆盖面最低要求：每个工艺单元 ≥2 条关键结果 + 全厂汇总（出水浓度、
-达标裕度、总泥量）× 基线两档工况 + 每个受检单元的检修工况 1 条。
+要点：①终水六指标键名=BOD5/CODCR/SS/NH3N/TN/TP（与
+`PlantResult.summary` 六指标族及 calcbook_plant 模板平键一致——
+D10 起真值经 app 层 `_summary_of` 注入）；②双容差 1e-12 不放宽
+（Ruling A3）；③tolerance/design_dims 逐条带 source 必填；
+④m3_deferred 两键为显式占位（概算/污泥字段随 M3 补录批换真值）。
+覆盖面最低要求：每个工艺单元 ≥2 条关键结果（design_dims 面）+
+全厂汇总（effluent 六指标）× 全部工况。
 
 ### Step 5 —— notes.md、签字、锁定
 

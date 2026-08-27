@@ -163,7 +163,7 @@ grep -rn "保留\|清理\|retention" server/waterprint_server core/waterprint do
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-39 | 数据装载 | 出水标准库装载机制：quality.py 规格仅一句"STANDARDS 数据驱动加载自 data/coefficients，构造时注入"——加载者（quality 自读 YAML？registry 注入？）、注入形态、与 GR-36"L0 禁 I/O"的调和均未写；data/coefficients 0.1.0 无标准条目（README 规划六文件亦无标准文件），镜像测试不触碰 STANDARDS（工厂内联构造 EffluentStandard） | **疑似**→T2 只交付类型+margin+守卫（STANDARDS 整体挂起）；装载机制待定义→数据工作包同期（A8 类）或 T4，落点须过 GR-36（L0 禁 I/O→倾向 registry(L1) 加载后注入） | T2 起草 |
+| UF-39 | 数据装载 | 出水标准库装载机制：quality.py 规格仅一句"STANDARDS 数据驱动加载自 data/coefficients，构造时注入"——加载者（quality 自读 YAML？registry 注入？）、注入形态、与 GR-36"L0 禁 I/O"的调和均未写；data/coefficients 0.1.0 无标准条目（README 规划六文件亦无标准文件），镜像测试不触碰 STANDARDS（工厂内联构造 EffluentStandard）。**消歧注记（2026-08-28）：本条=出水标准库装载；流程旧文档曾以"UF-39"指 N/P 去除建模属编号误用——N/P 建模为另一特性，M3 N/P 批开新 UF 条目承载（handover §四.2）** | **疑似**→T2 只交付类型+margin+守卫（STANDARDS 整体挂起）；装载机制待定义→数据工作包同期（A8 类）或 T4，落点须过 GR-36（L0 禁 I/O→倾向 registry(L1) 加载后注入） | T2 起草 |
 
 ### 七批验证命令摘要（仓库根执行，2026-08-23）
 
@@ -225,7 +225,10 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
   **D10 落地（2026-08-28）**：summary 真值已由 app 层 `_summary_of` 注入
   +e2e replace 移除（见上表 UF-16 行 D10 注记）——本节挂账收口。
 - **UF-43①②③**：均已实现闭合（见上表处置列）。
-- **UF-16**：calcbook 占位符语法已冻结；正式模板待 data/templates 录入批。
+- **UF-16**：calcbook 占位符语法已冻结；正式模板已录入（DRAFT 批
+  2026-08-26 data/templates 1.0.0 双模板+TEMPLATE_REGISTRY）；summary
+  真值已接（D10 批 2026-08-28 app 层 `_summary_of` 注入+平键集复核
+  完成）——本条全链闭合。
 
 ## 十一、SERVER 批新增项（2026-08-26，M2 收口第 2 块）
 
