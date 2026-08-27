@@ -30,7 +30,8 @@
 #   本文件不消费（车间设备单元不建 wall_thickness_coef——bashi
 #   先例口径）。
 # 【输出面（D2）】outflows=泥饼一口 SLUDGE 三量；dims=表结果 9 项
-#   +回显 6 项；outqualities={}；warnings=两带校核（PAM 带/泥饼
+#   +回显 6 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=两带校核（PAM 带/泥饼
 #   含水率带；param_key 归因+调节方向）；formula_ids=TU-F1~F8 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
 #   R3 工况只经参数；R4 纯函数；R5 禁 import 其他单元与 L3；R6 ≤400 行。

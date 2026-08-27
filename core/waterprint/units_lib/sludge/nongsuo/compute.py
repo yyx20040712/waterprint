@@ -24,7 +24,8 @@
 #   短名投影）；缺键=领域异常。elevation_loss 键归高程链子系统，
 #   本文件不消费。
 # 【输出面（D2）】outflows=底流一口 SLUDGE 三量（q_thick/ds_out/
-#   p_out）；dims=表结果 13 项+回显 5 项；outqualities={}；warnings=
+#   p_out）；dims=表结果 13 项+回显 5 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=
 #   四带校核（实际固体负荷带/浓缩时间带/有效水深带/底流含水率带；
 #   param_key 归因+调节方向）；formula_ids=NS-F1~F12 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；

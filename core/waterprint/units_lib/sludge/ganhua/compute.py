@@ -25,7 +25,9 @@
 #   本文件不消费（车间设备单元不建 wall_thickness_coef——bashi/
 #   tuoshui 先例口径）。
 # 【输出面（D2）】outflows=出流一口 SLUDGE 三量；dims=表结果 8 项
-#   +回显 5 项；outqualities={}；warnings=两带校核（干化后含水率
+#   +回显 5 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；
+#   warnings=两带校核（干化后含水率带/蒸发强度带；param_key 归因+调节方向）；
 #   带/蒸发强度带；param_key 归因+调节方向）；formula_ids=GH-F1~F8
 #   全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；

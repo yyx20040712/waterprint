@@ -24,7 +24,8 @@
 #   能量由 h_pump 公式承载——表"其他数据键"语义分工注记），本文件
 #   不消费。
 # 【输出面（D2）】outflows=出流一口 SLUDGE 三量穿流；dims=表结果
-#   20 项+回显 4 项；outqualities={}；warnings=五带校核（单泵流量带/
+#   20 项+回显 4 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=五带校核（单泵流量带/
 #   出泥管流速带/启停上限/集泥井时间带/水深带；param_key 归因+调节
 #   方向）；formula_ids=BZ-F1~F18 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；

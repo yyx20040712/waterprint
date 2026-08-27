@@ -23,8 +23,9 @@
 #   本文件不消费（constraints.py 注记同源）。
 # 【输出面（D2）】outflows=出流一口 SludgeFlow 三量（q_total/ds_total/
 #   p_merged 换算）；dims=表结果 13 项全量 snake 键（出流三量链
-#   q_total/ds_total/p_merged 即表键，无额外回显键）；outqualities={}
-#   （SLUDGE 通道无水质面）；warnings=互校偏差超上限（dev_pct >
+#   q_total/ds_total/p_merged 即表键，无额外回显键）；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）
+#   warnings=互校偏差超上限（dev_pct >
 #   factor.hebing.dev_band.max——ADR-008 ④ 校核侧语义，出警告不阻断；
 #   param_key=yield_syn 调节方向归因）；formula_ids=HB-F1~F13 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；

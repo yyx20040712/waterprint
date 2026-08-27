@@ -26,7 +26,8 @@
 #   短名投影）；缺键=领域异常。temp/elevation_loss 两键本批不消费
 #   （UF-09 注记/高程链子系统——表"其他数据键"口径）。
 # 【输出面（D2）】outflows=出流一口 SLUDGE 三量；dims=表结果 12 项
-#   （含池径取整前审计面 d_raw+取整后 d）+回显 3 项；outqualities={}；
+#   （含池径取整前审计面 d_raw+取整后 d）+回显 3 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；
 #   warnings=四带校核（消化时间带/VS 降解率带/产气率带/VS 容积负荷
 #   带——结果校核；param_key 归因+调节方向）；formula_ids=XH-F1~F11
 #   全量。

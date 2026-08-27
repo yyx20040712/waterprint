@@ -25,7 +25,8 @@
 #   投影）；缺键=领域异常。elevation_loss 键归高程链子系统，本文件
 #   不消费。
 # 【输出面（D2）】outflows=出流一口 SLUDGE 三量穿流；dims=表结果
-#   10 项+回显 4 项；outqualities={}；warnings=压力流速带越界（归因
+#   10 项+回显 4 项；outqualities=出流口恒键、值为空
+#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=压力流速带越界（归因
 #   v_press——名义流速改档）+ 重力流速低于最小值（归因 d_grav——
 #   放大重力段管径）；formula_ids=ST-F1~F9 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
