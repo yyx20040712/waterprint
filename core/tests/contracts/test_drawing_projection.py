@@ -1,17 +1,18 @@
-"""drawing_projection 对账测试：UF-32 对照表 21 单元 dims 键全覆盖（Ruling ①）。
+"""drawing_projection 对账测试：UF-32 对照表 28 单元 dims 键全覆盖（Ruling ①）。
 
 输入:  waterprint.contracts.drawing_projection.PROJECTION_TABLE + golden 项目
        （municipal_34760，11 单元）+ 逐单元单点图（tiaojiechi→cass 补齐
        13 市政）+ 矿井链单点图（input→…→ziwai 补齐 8 矿井，M3D1）
-输出:  表覆盖对账断言（五类并集∪non_drawn==compute 实跑键集——21 单元全）
+       + 污泥链单点图（hebing→…→ganhua 补齐 7 污泥，M3D2）
+输出:  表覆盖对账断言（五类并集∪non_drawn==compute 实跑键集——28 单元全）
        + 分线键集 disjoint（聚合无静默覆盖的机器守卫）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：DRAFT 批 D1（Ruling ① UF-32 方案②）；M3D1 扩矿井 8 单元
-# （分线表 drawing_projection_mine——聚合正门消费）。表是冻结声明面，
-# 测试以 golden/链式单点图实跑为证逐单元对账——表漏键/多键即红
-# （禁静默遗漏的机器强制）。
+# （分线表 drawing_projection_mine）；M3D2 扩污泥 7 单元（分线表
+# drawing_projection_sludge）。表是冻结声明面，测试以 golden/链式
+# 单点图实跑为证逐单元对账——表漏键/多键即红（禁静默遗漏的机器强制）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
 )
+from waterprint.contracts.drawing_projection_sludge import SLUDGE_PROJECTIONS
 from waterprint.contracts.quantity import DimKey
 
 pytestmark = [pytest.mark.golden]
@@ -39,6 +41,8 @@ _EXPECTED_UNITS: frozenset[str] = frozenset({
     "municipal_erchunchi", "municipal_gaomidu", "municipal_tiaojiechi",
     "municipal_vxinglvchi", "municipal_wushui_tisheng",
     "municipal_xigeshan", "municipal_ziwai",
+    "sludge_bengzhan", "sludge_ganhua", "sludge_hebing",
+    "sludge_nongsuo", "sludge_shusong", "sludge_tuoshui", "sludge_xiaohua",
 })
 
 # 矿井水线链序（input 为图源注入点——不接收入边；其余七单元链式相连。
@@ -47,6 +51,15 @@ _MINE_CHAIN: tuple[str, ...] = (
     "mine_water_input", "mine_water_tiaojiechi", "mine_water_chenshachi",
     "mine_water_ningjiao", "mine_water_cifenli", "mine_water_gaomidu",
     "mine_water_vxinglvchi", "mine_water_ziwai",
+)
+
+# 污泥线链序（hebing 为图源注入点——三股排泥经参数注入不接收入边；
+# 其余六单元链式相连。端口按 7 包 manifest 端口声明实读：hebing 单口
+# SLUDGE out、六包两口 in/out；nongsuo sup/tuoshui filtrate 为 recycle
+# 出流口默认关不连边——UF-11 Ruling ②）
+_SLUDGE_CHAIN: tuple[str, ...] = (
+    "sludge_hebing", "sludge_shusong", "sludge_bengzhan", "sludge_nongsuo",
+    "sludge_xiaohua", "sludge_tuoshui", "sludge_ganhua",
 )
 
 
@@ -78,7 +91,7 @@ def _run_design_dims(payload: dict[str, object], expected: dict[str, object],
 
 @pytest.fixture(scope="module")
 def live_dims(golden_data_dir: Path) -> dict[str, frozenset[str]]:
-    """21 单元实跑键集（模块级一次）：golden 11 + 市政单点图补 2 + 矿井链 8。"""
+    """28 单元实跑键集（模块级一次）：golden 11+市政单点图补 2+矿井链 8+污泥链 7。"""
     case = golden_data_dir / "municipal_34760"
     payload = json.loads((case / "input_project.json").read_text(encoding="utf-8"))
     expected = json.loads(
@@ -112,23 +125,38 @@ def live_dims(golden_data_dir: Path) -> dict[str, frozenset[str]]:
         for i in range(len(_MINE_CHAIN) - 1)
     ]
     live.update(_run_design_dims(payload, expected, data_dir))
+    # 污泥链单点图：sludge_hebing 图源（无入边）→ … → ganhua——节点
+    # 空 dict=默认参数（M3D2 实跑零校验失败零警告，无需参数注入）
+    design["nodes"] = {unit: {} for unit in _SLUDGE_CHAIN}
+    design["edges"] = [
+        {"src": {"unit_id": _SLUDGE_CHAIN[i], "port_id": "out"},
+         "dst": {"unit_id": _SLUDGE_CHAIN[i + 1], "port_id": "in"}}
+        for i in range(len(_SLUDGE_CHAIN) - 1)
+    ]
+    live.update(_run_design_dims(payload, expected, data_dir))
     return live
 
 
 def test_table_covers_exactly_expected_units() -> None:
-    """表键集==21 单元（市政 13+矿井 8；cugeshan/xigeshan 同构不合并）。"""
+    """表键集==28 单元（市政 13+矿井 8+污泥 7；同构不合并）。"""
     assert frozenset(PROJECTION_TABLE) == _EXPECTED_UNITS
 
 
 def test_line_sets_disjoint() -> None:
-    """聚合无静默覆盖：分线键集两两不相交 + 并集==PROJECTION_TABLE 键集。"""
+    """聚合无静默覆盖：三线键集两两不相交 + 并集==PROJECTION_TABLE 键集。"""
     municipal = frozenset(MUNICIPAL_PROJECTIONS)
     mine = frozenset(MINE_PROJECTIONS)
-    assert not municipal & mine, (
-        f"分线键集重叠 {sorted(municipal & mine)}——聚合将静默覆盖"
-        f"（后批扩线越线即红）"
-    )
-    assert municipal | mine == frozenset(PROJECTION_TABLE)
+    sludge = frozenset(SLUDGE_PROJECTIONS)
+    for name, left, right in (
+        ("市政/矿井", municipal, mine),
+        ("市政/污泥", municipal, sludge),
+        ("矿井/污泥", mine, sludge),
+    ):
+        assert not left & right, (
+            f"{name}分线键集重叠 {sorted(left & right)}——聚合将静默覆盖"
+            f"（后批扩线越线即红）"
+        )
+    assert municipal | mine | sludge == frozenset(PROJECTION_TABLE)
 
 
 @pytest.mark.parametrize("unit_id", sorted(_EXPECTED_UNITS))

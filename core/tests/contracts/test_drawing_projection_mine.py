@@ -18,6 +18,7 @@ from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
 )
+from waterprint.contracts.drawing_projection_sludge import SLUDGE_PROJECTIONS
 
 
 def test_mine_table_has_eight_selfconsistent_entries() -> None:
@@ -30,11 +31,14 @@ def test_mine_table_has_eight_selfconsistent_entries() -> None:
 
 
 def test_mine_disjoint_from_municipal_and_union_is_table() -> None:
-    """分线 disjoint+聚合并集==正门表键集（静默覆盖守卫的分线侧镜像）。"""
+    """三线 disjoint+聚合并集==正门表键集（M3D2 扩污泥线——M-2 指引：
+    并集断言随批扩线集，禁回退子集断言）。
+    """
     mine = frozenset(MINE_PROJECTIONS)
     municipal = frozenset(MUNICIPAL_PROJECTIONS)
-    assert not mine & municipal
-    assert mine | municipal == frozenset(PROJECTION_TABLE)
+    sludge = frozenset(SLUDGE_PROJECTIONS)
+    assert not mine & (municipal | sludge)
+    assert mine | municipal | sludge == frozenset(PROJECTION_TABLE)
 
 
 def test_semantic_instance_labels_registered() -> None:
