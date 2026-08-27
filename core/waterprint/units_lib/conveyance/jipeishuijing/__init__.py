@@ -1,17 +1,27 @@
 """集配水井单元包根：白名单导出（conveyance_jipeishuijing）。
 
-输入:  manifest.py 的清单实例与 compute.py 的单元工厂（实现期导出）
-输出:  仅暴露 manifest 与 compute 两个名字（units_lib 白名单铁律）
+输入:  manifest.py 的清单实例与 compute.py 的单元工厂
+输出:  白名单导出 UNIT_ID/make_unit/manifest 三名（discover 探测面=manifest/make_unit）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（结构预留：骨架已就位，内容随 M3 交付）
+# 规格说明（M3c 实装：M3 数据前置批的代码落地/M3 正式验收）
 #
 # 【身份】UNIT_ID = "conveyance_jipeishuijing"；业务线：集配水线；
 #   旧系统对应 mod：jipeishuijing（迁移交叉对照，非依据）。
-# 【工艺位置】上游：各线来水；下游：并联处理系列。
+# 【工艺位置】上游：各线来水（多股经图入边汇流——propagate 合并面
+#   承载）；下游：并联处理系列（n 路——多出流口为本线特征）。
 # 【实现约定】本包结构由 _template 冻结（AGENTS.md §11）：
 #   - 包外只经本 __init__ 白名单访问；禁 import 其他单元包；
-#   - 公式与参数条文依据随 M3 交付期由领域专家复核冻结
-#     （docs/norms 手算对照表签字），当前不预设任何数值。
+#   - 公式 JP-F1~JP-F9 与参数数值真源=docs/norms/conveyance_
+#     jipeishuijing.md 起草表（2026-08-27，数据策略 v2，待追认）+
+#     data/coefficients 0.7.0 数据包（factor.jipeishuijing.* 裸短名
+#     12 键——removal 零键，穿流单元无水质去除概念）；
+#   - 导出面=manifest + make_unit（AGENTS §11 两名铁律的工厂形态读法，
+#     units_lib/__init__ D6 注记）。
 # ══════════════════════════════════════════════════════════════════
+
+from waterprint.units_lib.conveyance.jipeishuijing.compute import make_unit
+from waterprint.units_lib.conveyance.jipeishuijing.manifest import UNIT_ID, manifest
+
+__all__ = ["UNIT_ID", "make_unit", "manifest"]
