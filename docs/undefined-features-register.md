@@ -46,7 +46,7 @@
 
 | 编号 | 领域 | 未定义特性（验证依据） | 处置 | 归属 |
 |------|------|------------------------|------|------|
-| UF-16 | 导出 | Excel 模板占位符约定：calcbook.py R3 只写"占位符语法 `{{field_id}}` 类"——精确语法、重复占位符、模板有占位符但字段未登记时的语义未写；excel_io.py R1"列位映射"同样无格式定义；data/templates 尚为空槽（0.0.0） | **部分已定义→M1b（2026-08-25）**：calcbook 占位符精确语法冻结 `{{trace[i].<field>}}`/`{{trace[i].inputs.<symbol>}}`/`{{summary.<key>}}`（summary 平键=点式扁平 f"{condition_key}.{字段ID}"），未知占位符=InvalidTemplateError；模板夹具测试内自造不经 data/，正式模板待 data/templates 录入批（excel_io 列位映射仍待定义）；**正式模板已录入（DRAFT 批 2026-08-26）**：data/templates 1.0.0（calcbook_unit/calcbook_plant 双模板零公式）+TEMPLATE_REGISTRY 扩两键+渲染端到端零残留（summary 面真值依赖 plant.summary——executor 空注入现状归 D10） | 本批 sweep；M1b 回写；DRAFT 批回写 |
+| UF-16 | 导出 | Excel 模板占位符约定：calcbook.py R3 只写"占位符语法 `{{field_id}}` 类"——精确语法、重复占位符、模板有占位符但字段未登记时的语义未写；excel_io.py R1"列位映射"同样无格式定义；data/templates 尚为空槽（0.0.0） | **部分已定义→M1b（2026-08-25）**：calcbook 占位符精确语法冻结 `{{trace[i].<field>}}`/`{{trace[i].inputs.<symbol>}}`/`{{summary.<key>}}`（summary 平键=点式扁平 f"{condition_key}.{字段ID}"），未知占位符=InvalidTemplateError；模板夹具测试内自造不经 data/，正式模板待 data/templates 录入批（excel_io 列位映射仍待定义）；**正式模板已录入（DRAFT 批 2026-08-26）**：data/templates 1.0.0（calcbook_unit/calcbook_plant 双模板零公式）+TEMPLATE_REGISTRY 扩两键+渲染端到端零残留（summary 面真值依赖 plant.summary——executor 空注入现状归 D10）；**D10 落地（2026-08-28）**：summary 真值经 app 层 run_full_calc `_summary_of` 纯投影注入（executor.py 零改动——trace/design_hash 回填同款 replace 先例），golden e2e replace workaround 移除+正式 calcbook_plant 模板渲染断言入库（六占位符零残留+值==expected 1e-12——平键集复核完成零变更） | 本批 sweep；M1b 回写；DRAFT 批回写；D10 批回写 |
 | UF-17 | 警告 | Warning 数据结构：unit_api.py 只写 `tuple[Warning, ...]`，全库无 Warning 类字段定义；business-logic §8 只定级别与必带信息，结构形态（severity/来源键/参数键/影响面字段集）未写 | 已定义→contracts/unit_api.py Warning/Severity（T3 冻结，简报 D3：Severity=ERROR/WARN/INFO 字面量冻结；Warning frozen 六字段 severity/source/message/param_key/condition_key/affected_unit_ids——§8"来源+调节方向+影响面"三必带逐条落字段，param_key/condition_key 可 None=error 级可无调节指向；result_schema.UnitResultSnapshot 直接复用同层 import） | 本批 sweep |
 | UF-18 | 警告 | 警告跨工况×单元去重聚合：同一警告在 2+k 工况重复出现，UI 汇总/去重规则无规格（grep "去重" 仅 diagnose 冲突集一处） | 待定义→T3/前端展示层 | 本批 sweep |
 | UF-19 | 水质 | 缺项指标进入下游 compute：quality.py 只定义"缺项不参与混合并记警告"；下游单元公式**需要**该指标时（如 AAO 需 BOD5 而进水缺项）异常还是跳过，无规格 | 待定义→T6/T7（propagate 派生规则同期，必要时单元 manifest 声明必需指标集） | 本批 sweep |
@@ -222,6 +222,8 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
   **GOLDEN R1-3 注记（2026-08-26）**：golden e2e 计算书 summary 面现用
   replace 注入（executor summary={} 现状），D10 落地批 DoD 必含改真实
   plant.summary 并移除注入。
+  **D10 落地（2026-08-28）**：summary 真值已由 app 层 `_summary_of` 注入
+  +e2e replace 移除（见上表 UF-16 行 D10 注记）——本节挂账收口。
 - **UF-43①②③**：均已实现闭合（见上表处置列）。
 - **UF-16**：calcbook 占位符语法已冻结；正式模板待 data/templates 录入批。
 
