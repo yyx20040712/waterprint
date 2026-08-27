@@ -1,6 +1,31 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.5.0"
+data_version: "0.6.0"
 # 变更记录：
+#   - 0.6.0: M3b1 污泥线七单元批（批级版本跃升）；AI 起草待追认（数据
+#       策略 v2，工程常用范围口径；出处仅 GB 50014-2021[§8 污泥章——
+#       §8.1.4 表 5 产率 y 系 ADR-008 ④ 拍板口径]+给水排水设计手册两类，
+#       条号章级标注待核对——不虚构条号；**CJJ 131-2009 数值 source 不标**
+#       ——只入规范依据叙述列/norm_refs，纳入出处白名单与否=追认点 I3
+#       挂账**；ADR-008 拍板值[dev_band.max 20%]沿 0.1.0 交叉基线 source
+#       先例显式标注）。docs/norms/sludge_{hebing,shusong,bengzhan,
+#       nongsuo,xiaohua,tuoshui,ganhua}.md 参数档逐字：factors.yaml 增
+#       factor.<裸短名>.* 共 76 条（**裸短名**——sludge 线投影现成零改造
+#       [app._unit_params 剥 sludge_ 前缀即短名，与市政/输送线同口径；
+#       探针②实测 sludge_nongsuo 投影命中 factor.nongsuo.*]；hebing 12
+#       ——经验产率法主线 Sy+机理互校 ΔX[ADR-008 ④ 已拍板入表，偏差
+#       >20% 出警告]+mix 守恒口镜像；shusong 6——压力流+重力曼宁两式；
+#       bengzhan 17——泵族先例形态[扬程三分量+λ 式管损×污泥粘度修正+
+#       集泥井]；nongsuo 12——固体通量/浓缩时间双主线[上清液回流口
+#       默认关 Q1 待裁]；xiaohua 13——中温 35℃[UF-09 温度参数承载注记]
+#       +产气衡算；tuoshui 8——带式/离心双机档[泥饼 75~80%+滤液回流口
+#       默认关]；ganhua 8——热量衡算+质量守恒校核）；**removal_rates.yaml
+#       零新增**——污泥单元无水质去除概念（泥量/含水率变换不建 removal
+#       键，上清液/滤液带出 DS 走泥量链）——口径显式注记在册；wall_
+#       thickness_coef 仅建有构筑物概算面的三单元（bengzhan 集泥井/
+#       nongsuo 浓缩池/xiaohua 消化池），hebing 汇流节点/shusong 管道/
+#       tuoshui、ganhua 车间设备单元不建（aao 容积法/bashi 先例口径），
+#       七单元 elevation_loss 全建。0.5.0 既有 421 键逐键零扰动（四面
+#       [key/value/unit/source]逐键比对探针实录差异 0）。
 #   - 0.5.0: M3a1 矿井水线八单元批（批级版本跃升）；AI 起草待追认（数据
 #       策略 v2，工程常用范围口径；出处仅矿井水线国标[GB/T 19223-2015/
 #       GB/T 31392-2022/GB/T 41019-2021/GB 20426-2006，ADR-009]+给水排水
