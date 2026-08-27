@@ -15,7 +15,7 @@
   "core/tests/contracts/properties_quantity.py": "a975478ead5dfce3b446150b29bfe43f59371fc73da9be5c7a500febca67fc41",
   "core/tests/contracts/properties_sludge.py": "0e0361af5af95bd6123691503590e75818d5d7ea8e5b16ac9cfbcd268cca2495",
   "core/tests/contracts/test_condition.py": "ea487580dc9b3ea569e45b8162217e4847e3c1f2583aa1566b98577faa8ad68a",
-  "core/tests/contracts/test_drawing_projection.py": "8782df162216c41b127077ee91518cbc22db35cc38603ccee1e866a3e1547480",
+  "core/tests/contracts/test_drawing_projection.py": "2c38f674df4197dd38793e62de7cfd616f12120efd345fe2bbda21fee57383c5",
   "core/tests/contracts/test_expr.py": "cb682145abdce02e3c2546150d10ae0bf741a35d572acb7d6b93a27659c4efd5",
   "core/tests/contracts/test_flow.py": "5a4e5686cf3e8c2c216b953322bdad980b7e56c308bef1c2f1da731614da1397",
   "core/tests/contracts/test_manifest.py": "9ee80cc638cd8e7f595cae1ea6a67535de527a6be5000b61f874dfe59ff91111",
