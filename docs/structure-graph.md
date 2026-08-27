@@ -58,11 +58,16 @@
 | `waterprint_server.main` | `waterprint_server.jobs` | 生命周期内创建/销毁进程池 |
 | `waterprint_server.main` | `waterprint_server.settings` | 读取配置装配应用 |
 | `waterprint_server.main` | `api-contracts` | 启动契约自检并导出 OpenAPI（M2 起） |
+| `waterprint_server.main` | `waterprint.app` | 模块级内核引用（core 再导出面/领域异常）——ENG2 B3 补登 |
+| `waterprint_server.main` | `waterprint.contracts` | InvalidUnitConfig 异常映射（R2 唯一翻译处）——ENG2 B3 补登 |
 | `waterprint_server.routers` | `waterprint_server.services` | 薄协议转换，只调服务（禁业务逻辑） |
+| `waterprint_server.routers` | `waterprint.contracts` | projects 导入面 parse_project 校验——ENG2 B3 补登 |
 | `waterprint_server.services` | `waterprint_server.jobs` | 计算用例向任务管理器提交 |
 | `waterprint_server.services` | `waterprint_server.settings` | 输出目录与上限等配置 |
 | `waterprint_server.services` | `waterprint.app` | 进程内调用内核 L4（非 RPC，零胶水） |
+| `waterprint_server.services` | `waterprint.contracts` | 项目/结果 schema 类型面（序列化边界）——ENG2 B3 补登 |
 | `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界） |
+| `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况）——ENG2 B3 补登 |
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |
 | `waterprint.cli` | `waterprint.app` | 命令编排调用用例（经唯一装配点） |
 | `waterprint.cli` | `waterprint.contracts` | 参数与项目 schema 校验 |
@@ -79,17 +84,26 @@
 | `waterprint.app` | `waterprint.trace` | 计算迹收集与导出 |
 | `waterprint.app` | `waterprint.registry` | 假设/公式/系数装载 |
 | `waterprint.app` | `waterprint.contracts` | 契约类型 |
+| `waterprint.app_enumeration` | `waterprint.contracts` | 枚举/出图用例契约类型（伴生件同款）——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.drafting` | 单元三视图与 DXF 导出薄壳——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.elevation` | 高程损失/纵断用例——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设合成——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.solution` | 网格/约束/诊断用例——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.trace` | TraceCollector 注入与计算书渲染——ENG2 B3 补登 |
 | `waterprint.project` | `waterprint.contracts` | 项目 schema 校验 |
 | `waterprint.trace` | `waterprint.contracts` | 结果与迹节点 schema |
 | `waterprint.trace` | `waterprint.registry` | 公式溯源查询（条文号） |
 | `waterprint.trace` | `data` | Excel 计算书模板（templates 数据包） |
 | `waterprint.graph` | `waterprint.contracts` | unit_api 协议与量/水质契约 |
 | `waterprint.solution` | `waterprint.contracts` | manifest 离散配置与结果契约 |
+| `waterprint.solution` | `waterprint.registry` | 网格维度/假设默认值/公式面——ENG2 B3 补登 |
 | `waterprint.elevation` | `waterprint.contracts` | 结果契约（标高唯一真源） |
+| `waterprint.elevation` | `waterprint.registry` | 假设默认值与公式（水头损失/泵扬程）——ENG2 B3 补登 |
 | `waterprint.cost` | `waterprint.contracts` | 结果契约字段 ID 取数 |
 | `waterprint.cost` | `data` | 定额单价（unit_prices 数据包） |
 | `waterprint.drafting` | `waterprint.contracts` | 结果契约与端口语义 |
 | `waterprint.geometry` | `waterprint.contracts` | 结果 schema 纯投影 |
+| `waterprint.geometry` | `waterprint.registry` | 假设默认值（池体几何参数）——ENG2 B3 补登 |
 | `waterprint.network` | `waterprint.contracts` | 仅共享量与单位（独立域） |
 | `waterprint.units_lib` | `waterprint.contracts` | 端口/工况/manifest 契约 |
 | `waterprint.units_lib` | `waterprint.registry` | 假设默认值与公式注册表 |
@@ -99,6 +113,14 @@
 > L3 七个子系统互不依赖（independence 契约），各自只消费 L0 契约；
 > 单元包互相独立；pint 只在 contracts.quantity 出现——三条铁律由
 > import-linter 强制，本图谱与之一致（门禁双源对照）。
+
+> B3 补登注记（ENG2 R1-b 裁决 2026-08-27，真实 import 扫描收口）：本表
+> 补登 14 边——server 面五边（main/routers/services/jobs → waterprint.
+> contracts 与 main → waterprint.app）属 UF-33 core 调用白名单
+> [app+contracts] 合法面；elevation/geometry/solution → registry 三边属
+> UF-12 在册图谱缺口；app_enumeration 六边为 SERVER D1 伴生件滞后登记。
+> 第 15 组 waterprint.app → waterprint.app_enumeration 为同层边，按下方
+> 同层豁免注记承载（不入边表——"严格向下"规则不为同层边放开）。
 
 > 同层伴生边（SERVER D1 2026-08-26，层序豁免注记）：
 > `waterprint.app` → `waterprint.app_enumeration`——app 对伴生件（类型

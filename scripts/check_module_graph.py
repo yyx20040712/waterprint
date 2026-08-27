@@ -1,11 +1,12 @@
 """结构图谱门禁：docs/structure-graph.md 三表一致性与分层方向校验。
 
 输入:  docs/structure-graph.md + core/pyproject.toml（import-linter 层序）+ 目录树
+       + core/waterprint 与 server/waterprint_server 源码（真实 import 面）
 输出:  违规清单（退出码 1）或 OK 摘要（退出码 0）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明：AGENTS.md §13 结构图谱规则。校验五件事：
+# 规格说明：AGENTS.md §13 结构图谱规则。校验六件事：
 #   a) §1a 节点表：节点对应路径存在；层归属与 pyproject import-linter
 #      第一条 layers 契约双源一致（互相覆盖，漏一边 = 失败）；
 #   b) §1b 边表：两端节点已声明；方向沿层序严格向下（同层/向上 = 失败）；
@@ -15,14 +16,30 @@
 #   d) §2 调用链中引用的仓库路径真实存在（防"链路指向幽灵文件"）；
 #   e) pyproject"工艺单元包互相独立"independence 契约逐包列出实际单元包，
 #      模块集合与目录实际单元包集合双向一致（数量与名字；漏列/多列/退回
-#      线级粒度 = 失败，DS-01 裁决的机器防线）。
+#      线级粒度 = 失败，DS-01 裁决的机器防线）；
+#   f) 真实 import ⊆ §1b 声明边（B3 收口——ENG2 D5/R1-b 裁决 2026-08-27）：
+#      stdlib ast 扫描 core/waterprint/** 与 server/waterprint_server/**
+#      （排除任意 tests 目录），import 目标解析到 §1a 节点粒度（同节点内
+#      import 忽略——跨单元互 import 由 independence 契约另行强制），
+#      违者 FAIL 输出 from→to+文件清单。三条硬编码规则：
+#      ① `if TYPE_CHECKING:` 块内 import 豁免（类型面依赖——UF-31 口径，
+#         contracts/unit_api.py 在册先例）；
+#      ② 唯一同层豁免对 `waterprint.app → waterprint.app_enumeration`
+#         （SERVER D1 2026-08-26 同层伴生边，§1b 后注记承载不入边表——
+#         "严格向下"规则与边表均不为其放开）；
+#      ③ stdlib/三方 import 忽略（只认 waterprint*/waterprint_server*
+#         且命中 §1a 节点者）。§1a 之外的伴生 .py（ifc_export 占位等）
+#      节点粒度不覆盖。零依赖纯标准库（ast），py3.12/3.13 双兼容
+#      （gates job 系统 py3.13 消费本脚本）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 import tomllib
+from collections.abc import Iterator
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -30,6 +47,12 @@ GRAPH_MD = REPO / "docs" / "structure-graph.md"
 CONTRACTS_MD = REPO / "docs" / "file-contracts.md"
 PYPROJECT = REPO / "core" / "pyproject.toml"
 UNITS_ROOT = REPO / "core" / "waterprint" / "units_lib"
+SCAN_PY_ROOTS: tuple[Path, ...] = (
+    REPO / "core" / "waterprint",
+    REPO / "server" / "waterprint_server",
+)
+# 唯一同层豁免对（规则②：§1b 后注记承载——同层伴生边不入边表）
+_SAME_LAYER_EXEMPT: tuple[str, str] = ("waterprint.app", "waterprint.app_enumeration")
 
 # 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）
 LAYER_ORDER: tuple[str, ...] = (
@@ -262,6 +285,118 @@ def check_chains(body: str) -> list[str]:
     return problems
 
 
+# ── f) 真实 import 扫描（规则①②③见文件头规格说明）────────────────
+
+def module_of(rel: str) -> tuple[str, bool]:
+    """仓库相对路径 → (模块点名, 是否包 __init__)。
+
+    core/、server/ 前缀剥除（§1a 节点即模块名）；__init__.py 归一为包本身
+    （相对导入的包基点语义）。
+    """
+    parts = rel.split("/")
+    if parts[0] in {"core", "server"}:
+        parts = parts[1:]
+    is_package = parts[-1] == "__init__.py"
+    if is_package:
+        parts = parts[:-1]
+    else:
+        parts[-1] = parts[-1][: -len(".py")]
+    return ".".join(parts), is_package
+
+
+def resolve_node(module: str, nodes: dict[str, tuple[str, str]]) -> str | None:
+    """模块 → §1a 节点（最长前缀且模块边界对齐：==N 或 startswith(N+".")）。
+
+    无命中=None（裸包根/§1a 之外伴生件——节点粒度不覆盖，规则③同面忽略）。
+    """
+    best = ""
+    for node in nodes:
+        if (module == node or module.startswith(node + ".")) and len(node) > len(best):
+            best = node
+    return best or None
+
+
+def is_type_checking_test(test: ast.expr) -> bool:
+    """规则①判定面：`if TYPE_CHECKING:`（Name）或 `if typing.TYPE_CHECKING:`（Attribute）。"""
+    return (
+        isinstance(test, ast.Name) and test.id == "TYPE_CHECKING"
+    ) or (
+        isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
+    )
+
+
+def iter_import_targets(
+    tree: ast.Module, module: str, is_package: bool
+) -> Iterator[tuple[str, int]]:
+    """AST 内全部 import 目标（模块名+行号）；TYPE_CHECKING 体豁免（规则①）。
+
+    `from waterprint import app` 一并归入 waterprint.app（包级别名=子模块
+    依赖，候选=module 与 module.别名，命中 §1a 节点者生效——规则③天然
+    滤掉 stdlib/三方与属性符号）。相对导入按源文件包基点解析。
+    """
+    package_parts = module.split(".")
+    if not is_package:
+        package_parts = package_parts[:-1]
+    pending: list[tuple[ast.AST, bool]] = [(tree, False)]
+    while pending:
+        node, skip = pending.pop()
+        if isinstance(node, ast.If) and is_type_checking_test(node.test):
+            pending.extend((child, True) for child in ast.iter_child_nodes(node))
+            continue
+        if not skip and isinstance(node, ast.Import):
+            for alias in node.names:
+                yield alias.name, node.lineno
+        elif not skip and isinstance(node, ast.ImportFrom):
+            if node.level == 0:
+                if node.module:
+                    yield node.module, node.lineno
+                    for alias in node.names:
+                        yield f"{node.module}.{alias.name}", node.lineno
+            elif node.level <= len(package_parts):
+                base = package_parts[: len(package_parts) - (node.level - 1)]
+                prefix = ".".join(base)
+                head = f"{prefix}.{node.module}" if node.module else prefix
+                yield head, node.lineno
+                for alias in node.names:
+                    yield f"{head}.{alias.name}", node.lineno
+        pending.extend((child, skip) for child in ast.iter_child_nodes(node))
+
+
+def check_real_imports(
+    nodes: dict[str, tuple[str, str]], edges: list[tuple[str, str]]
+) -> list[str]:
+    """f) 跨节点真实 import ⊆ §1b 声明边（违者中文清单：from→to+现场）。"""
+    declared = {(src, dst) for src, dst in edges if src in nodes and dst in nodes}
+    declared.add(_SAME_LAYER_EXEMPT)
+    violations: dict[tuple[str, str], list[str]] = {}
+    for root in SCAN_PY_ROOTS:
+        for path in sorted(root.rglob("*.py")):
+            rel = path.relative_to(REPO).as_posix()
+            if "tests" in path.relative_to(REPO).parts:
+                continue
+            module, is_package = module_of(rel)
+            source = resolve_node(module, nodes)
+            if source is None:
+                continue
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except (SyntaxError, UnicodeDecodeError) as exc:
+                violations.setdefault(("-", "-"), []).append(f"{rel}: 解析失败 {exc}")
+                continue
+            for target, lineno in iter_import_targets(tree, module, is_package):
+                dst = resolve_node(target, nodes)
+                if dst is None or dst == source:  # 规则③滤面/同节点忽略
+                    continue
+                if (source, dst) in declared:
+                    continue
+                violations.setdefault((source, dst), []).append(f"{rel}:{lineno}")
+    return [
+        f"未声明依赖边（真实 import 越 §1b 声明面）：{src} → {dst}"
+        f"（{len(sites)} 处，如 {sites[0]}）"
+        for (src, dst), sites in sorted(violations.items())
+    ]
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     problems: list[str] = []
@@ -280,6 +415,7 @@ def main() -> int:
     problems += check_units(parse_unit_rows(unit_sec))
     problems += check_independence_units()
     problems += check_chains(chain_sec)
+    problems += check_real_imports(nodes, edges)
 
     if problems:
         print(f"[FAIL] 结构图谱违规 {len(problems)} 处：")
@@ -289,7 +425,8 @@ def main() -> int:
     print(
         f"[OK] 结构图谱：{len(nodes)} 节点 / {len(edges)} 依赖边全部沿层序向下、"
         f"无环、与 import-linter 一致；单元包三方一致（{EXPECTED_UNIT_COUNT} 包）"
-        f"且 independence 契约逐包吻合；调用链路径全部存在"
+        f"且 independence 契约逐包吻合；调用链路径全部存在；"
+        f"真实 import 全库扫描 ⊆ §1b 声明边（含同层豁免对）"
     )
     return 0
 
