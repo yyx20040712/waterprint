@@ -156,7 +156,7 @@ units_lib/<line>/<unit>/
 └─ tests/             # test_compute.py（golden 数值）+ properties.py（物理不变性）
 ```
 
-- 单元对外只暴露 `manifest` 与 `compute` 两个名字（包 `__init__.py` 白名单）。
+- 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。
 - 新单元用 `wp new-unit <line> <name>`（core 的 cli.py）从 `_template` 生成。
 - 单元测试完成后由人类执行锁定（`python scripts/lock_tests.py <路径>`）。
 
