@@ -1,13 +1,21 @@
-# mine_water_cifenli —— 磁分离（矿井水线，M3）
+# mine_water_cifenli —— 磁分离（矿井水线，M3a3 已实装）
 
-磁加载絮体快速分离，高负荷去除悬浮物。
+磁磁盘分离机：磁盘表面负荷 20~40 m³/(m²·h) 主控定盘面积，盘缘线速度
+与磁种回收循环衡算（磁加载混凝路线的核心分离单元）。
 
-- 输入：上游端口量（ningjiao 混凝反应）
-- 输出：下游端口量（gaomidu 高密沉淀）
+- 输入：上游端口量（mine_water_ningjiao 混凝反应池）
+- 输出：下游端口量（mine_water_gaomidu 高密沉淀）
 - 旧系统对应：mod `kw_cifenli`（交叉对照，非依据）
 - golden 绑定：mine_43836
-- 公式组（交付期冻结）：磁粉投加量、磁盘分离负荷、磁粉回收率
-- 物理不变性（交付期进 tests/properties.py）：磁回收率∈(0,1]、出水 SS 随投加量单调改善
+- 公式组（KS-F1~F8，已实装）：单台流量/单盘双面有效面积/需盘面面积/
+  盘片数（整台 ceil）/盘缘线速度/截留泥量/磁泥湿量/磁种净耗
+- 物理不变性（后续批进 tests/properties.py）：磁回收率∈(0,1]、出水 SS 随投加量单调改善
+- 数值真源：docs/norms/mine_water_cifenli.md（M3a1 表，待追认）+
+  data/coefficients 0.5.0（factor.mine_cifenli.* 14 键 +
+  removal.mine_cifenli.{ss,cod}——SS 0.90 磁絮体磁盘截留/COD 0.60
+  颗粒态煤粉随絮体带出；BOD5 全线不建键）
+- 语义注记：磁种投加量 m_seed 经参数面衔接上游（ningjiao KN-F13 口径，
+  上游 dims 不跨单元传递）；流道停留/流速两键为设备选型校核键（流道
+  几何归厂商样本），本包不落几何公式
 
-本包为结构预留骨架（M0.5）：公式与参数依据随 M3 由领域专家复核冻结；
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥。

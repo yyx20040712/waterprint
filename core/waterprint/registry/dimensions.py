@@ -417,3 +417,25 @@ _M3A2_FIELDS: tuple[FieldSpec, ...] = (
 )
 for _spec in _M3A2_FIELDS:
     register_dimension(_spec)
+
+# ── M3a3 矿井水线后段单元参数字段（2026-08-27；出处=docs/norms/
+#    mine_water_{cifenli,gaomidu,vxinglvchi,ziwai}.md 四表参数档/
+#    算例 1 输入行——同名跨单元字段 ID 不耦合：各包 manifest 各写各的
+#    默认值，AGENTS §11 R4；q_surf/t_mix/t_floc/n/h2 族/l_tube/h_clear/
+#    h_thick/v_filter/side_disc_step/b_channel 复用既有登记（默认值跨包
+#    独立），仅各表专属参数新增登记。转速（rpm）/磁种投加（kg/d）/
+#    停留（min·h）/功率（W）/穿透率（%）/指数/剂量（mJ/cm²）类在
+#    DimKey 无对应量类者按 DIMENSIONLESS 裸值登记（单位语义随 i18n 键
+#    走，四表口径）。 ──
+_M3A3_FIELDS: tuple[FieldSpec, ...] = (
+    # mine_water_cifenli 磁分离（主算例：n_units=4 台/omega=3 rpm/
+    # q_surf=25 复用 M1A；m_seed=21918 kg/d=ningjiao KN-F13 口径参数面衔接）
+    FieldSpec("n_units", DimKey.DIMENSIONLESS, "", "units.fields.n_units",
+              "equipment"),
+    FieldSpec("omega", DimKey.DIMENSIONLESS, "", "units.fields.omega",
+              "equipment"),
+    FieldSpec("m_seed", DimKey.DIMENSIONLESS, "", "units.fields.m_seed",
+              "operation"),
+)
+for _spec in _M3A3_FIELDS:
+    register_dimension(_spec)
