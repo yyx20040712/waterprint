@@ -1562,3 +1562,566 @@
   unit: "m"
   source: "给水排水设计手册（第 5 册）泵站内部水头损失常用值"
   note: "泵站内部过流构件（格栅/流道）水损经验值（带 0.2~0.4 m 取 0.3；提升能量由 h_pump 承载非损失叠加——语义分工见起草表追认点 6）；数据策略 v2"
+
+# ── 矿井水输入（mine_input，0.5.0 M3a1 矿井水线八单元批：数据策略 v2
+#    工程常用范围口径起草，出处仅矿井水线国标+给水排水手册两类；逐字对应
+#    docs/norms/mine_water_input.md 参数档——入水定义单元，无去除键） ──
+- key: "factor.mine_input.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）进水头部经验水头损失常用值"
+  note: "进水水头损失经验值（带 0.1~0.3 m 取 0.2；高程链输入）；数据策略 v2"
+- key: "factor.mine_input.freeboard.min"
+  value: 0.3
+  unit: "m"
+  source: "GB/T 41019-2021（厂区布置一般要求，条号待核对）"
+  note: "地面高出进水水面下限（freeboard 校核带下限，主算例 2.2 m）；数据策略 v2"
+# ── 矿井水调节池（mine_tiaojiechi，0.5.0；调节容积法主线[纯均化零去除，
+#    预沉双功能口径归追认点 1]；逐字对应 docs/norms/mine_water_tiaojiechi.md） ──
+- key: "factor.mine_tiaojiechi.hrt_band.min"
+  value: 8.0
+  unit: "h"
+  source: "GB/T 41019-2021（调节构筑物容积，条号待核对）；给水排水设计手册（第 5 册 城镇排水）调节池停留时间法"
+  note: "调节停留时间带下限（井下排水脉动，高于市政 6~12 档的下限）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.hrt_band.max"
+  value: 12.0
+  unit: "h"
+  source: "GB/T 41019-2021（调节构筑物容积，条号待核对）；给水排水设计手册（第 5 册 城镇排水）调节池停留时间法"
+  note: "调节停留时间带上限；数据策略 v2"
+- key: "factor.mine_tiaojiechi.depth_band.min"
+  value: 3.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）调节池有效水深常用带"
+  note: "有效水深带下限（半地下/地下式布置）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.depth_band.max"
+  value: 5.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）调节池有效水深常用带"
+  note: "有效水深带上限（异于市政 4~6 档——地下式浅埋）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.ratio_lb_band.min"
+  value: 2.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）矩形池长宽比工程常用"
+  note: "池长宽比带下限（主算例取 3.0）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.ratio_lb_band.max"
+  value: 4.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）矩形池长宽比工程常用"
+  note: "池长宽比带上限；数据策略 v2"
+- key: "factor.mine_tiaojiechi.superheight"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）超高一般要求"
+  note: "调节池超高（带 0.3~0.5 m 取 0.5）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.stir.power_density"
+  value: 8.0
+  unit: "W/m3"
+  source: "给水排水设计手册（第 5 册 城镇排水）防沉积搅拌功率密度工程常用"
+  note: "防沉积搅拌功率密度（带 6~10 W/m³ 取 8——SS 800 高悬浮物高档，异于市政 4~8 取 6；P = V·w/1000）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.overflow_velocity"
+  value: 1.5
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）出水管经济流速常用带"
+  note: "出水管流速（带 1.2~1.8 m/s 取 1.5；按平均时均匀输出校核）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，非结构计算；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.mine_tiaojiechi.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）调节池水头损失常用值"
+  note: "调节池水头损失经验值（带 0.2~0.4 m 取 0.3；高程链输入）；数据策略 v2"
+# ── 平流沉砂池（mine_chenshachi，0.5.0；平流型主线[区别于市政旋流型]；
+#    逐字对应 docs/norms/mine_water_chenshachi.md） ──
+- key: "factor.mine_chenshachi.velocity_band.min"
+  value: 0.15
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池水平流速常用带"
+  note: "水平流速带下限（平流型主控参数，异于市政旋流表面负荷口径）；数据策略 v2"
+- key: "factor.mine_chenshachi.velocity_band.max"
+  value: 0.3
+  unit: "m/s"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池水平流速常用带"
+  note: "水平流速带上限；数据策略 v2"
+- key: "factor.mine_chenshachi.retention_band.min"
+  value: 30.0
+  unit: "s"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池停留时间常用带"
+  note: "停留时间带下限；数据策略 v2"
+- key: "factor.mine_chenshachi.retention_band.max"
+  value: 60.0
+  unit: "s"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池停留时间常用带"
+  note: "停留时间带上限（主算例取 60）；数据策略 v2"
+- key: "factor.mine_chenshachi.depth_band.min"
+  value: 0.4
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池有效水深常用带"
+  note: "有效水深带下限（浅池沉砂）；数据策略 v2"
+- key: "factor.mine_chenshachi.depth_band.max"
+  value: 1.2
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池有效水深常用带"
+  note: "有效水深带上限；数据策略 v2"
+- key: "factor.mine_chenshachi.cell_width.min"
+  value: 0.6
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）沉砂池单格宽度工程常用"
+  note: "单格宽度下限（0.1 m 档取整前校核）；数据策略 v2"
+- key: "factor.mine_chenshachi.sand_yield_x"
+  value: 60.0
+  unit: "m3/1e6m3"
+  source: "给水排水设计手册（第 5 册 城镇排水）沉砂量可沉组分折算常用带"
+  note: "沉砂量 X（带 30~90 m³/10⁶m³ 取 60——SS 800 可沉组分折算，高于市政 30 档；V_sand = Q_avg_daily·X/10⁶）；数据策略 v2"
+- key: "factor.mine_chenshachi.hopper.safety"
+  value: 1.5
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）砂斗容积安全系数常用带"
+  note: "贮砂斗容积安全系数（含清砂周期贮砂裕量，带 1.3~1.5 取 1.5）；数据策略 v2"
+- key: "factor.mine_chenshachi.weir_load.max"
+  value: 10.0
+  unit: "L/(s.m)"
+  source: "给水排水设计手册（第 5 册 城镇排水）沉砂池出水堰负荷常用上限"
+  note: "出水堰负荷校核上限（堰长 L = n·(l_cell+2B)）；数据策略 v2"
+- key: "factor.mine_chenshachi.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）超高一般要求"
+  note: "沉砂池超高（≥0.3 m 取 0.3）；数据策略 v2"
+- key: "factor.mine_chenshachi.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.mine_chenshachi.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）沉砂池水头损失常用值"
+  note: "沉砂池水头损失经验值（带 0.1~0.3 m 取 0.2；高程链输入）；数据策略 v2"
+# ── 混凝反应池（mine_ningjiao，0.5.0；四分区 G 值梯度主线[磁加载衔接，
+#    反应无分离穿流——去除挂下游分离单元]；逐字对应 docs/norms/mine_water_ningjiao.md） ──
+- key: "factor.mine_ningjiao.t_mix_band.min"
+  value: 0.5
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）快速混合停留时间常用档"
+  note: "混合区停留时间带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.t_mix_band.max"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）快速混合停留时间常用档"
+  note: "混合区停留时间带上限（主算例取 1.0）；数据策略 v2"
+- key: "factor.mine_ningjiao.t_seed_band.min"
+  value: 1.0
+  unit: "min"
+  source: "GB/T 41019-2021（磁加载混凝路线，条号待核对）"
+  note: "磁种混合区停留时间带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.t_seed_band.max"
+  value: 3.0
+  unit: "min"
+  source: "GB/T 41019-2021（磁加载混凝路线，条号待核对）"
+  note: "磁种混合区停留时间带上限（主算例取 2.0）；数据策略 v2"
+- key: "factor.mine_ningjiao.t_floc_band.min"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝停留时间常用档"
+  note: "絮凝区停留时间带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.t_floc_band.max"
+  value: 4.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝停留时间常用档"
+  note: "絮凝区停留时间带上限（主算例取 3.0）；数据策略 v2"
+- key: "factor.mine_ningjiao.t_ripen_band.min"
+  value: 1.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝熟化停留时间常用档"
+  note: "熟化区停留时间带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.t_ripen_band.max"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝熟化停留时间常用档"
+  note: "熟化区停留时间带上限（主算例取 1.5）；数据策略 v2"
+- key: "factor.mine_ningjiao.g_mix"
+  value: 600.0
+  unit: "1/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）快速混合 G 值常用带"
+  note: "混合区速度梯度（带 500~1000 s⁻¹ 取 600；P=μG²V，μ=0.001 Pa·s@20 ℃）；数据策略 v2"
+- key: "factor.mine_ningjiao.g_seed"
+  value: 300.0
+  unit: "1/s"
+  source: "GB/T 41019-2021（磁加载混凝路线，条号待核对）"
+  note: "磁种混合区速度梯度（带 250~400 s⁻¹ 取 300）；数据策略 v2"
+- key: "factor.mine_ningjiao.g_floc"
+  value: 80.0
+  unit: "1/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝 G 值梯度常用带"
+  note: "絮凝区速度梯度（带 60~100 s⁻¹ 取 80——G 值梯度递减第三级）；数据策略 v2"
+- key: "factor.mine_ningjiao.g_ripen"
+  value: 30.0
+  unit: "1/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝 G 值梯度常用带"
+  note: "熟化区速度梯度（带 20~50 s⁻¹ 取 30——梯度末级低速防碎絮）；数据策略 v2"
+- key: "factor.mine_ningjiao.gt_band.min"
+  value: 10000.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）GT 值校核常用带"
+  note: "四分区总 GT 值校核带下限（ΣG_i·t_i 口径——异于旧系统分区独立校核，追认点 6）；数据策略 v2"
+- key: "factor.mine_ningjiao.gt_band.max"
+  value: 100000.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）GT 值校核常用带"
+  note: "四分区总 GT 值校核带上限；数据策略 v2"
+- key: "factor.mine_ningjiao.depth_band.min"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应池有效水深常用带"
+  note: "有效水深带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.depth_band.max"
+  value: 4.0
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应池有效水深常用带"
+  note: "有效水深带上限（主算例取 3.0）；数据策略 v2"
+- key: "factor.mine_ningjiao.cell_ratio_lb_band.min"
+  value: 0.8
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应分区布置长宽比常用带"
+  note: "最大分区长宽比带下限；数据策略 v2"
+- key: "factor.mine_ningjiao.cell_ratio_lb_band.max"
+  value: 1.5
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应分区布置长宽比常用带"
+  note: "最大分区长宽比带上限（主算例取 1.2）；数据策略 v2"
+- key: "factor.mine_ningjiao.dose.pac"
+  value: 40.0
+  unit: "mg/L"
+  source: "GB/T 41019-2021（混凝药剂，条号待核对）；给水排水设计手册（第 3 册 城镇给水）混凝药剂常用范围"
+  note: "PAC 投加量（带 30~60 mg/L 取 40——高 SS 矿井水高于市政 10~40 档）；数据策略 v2"
+- key: "factor.mine_ningjiao.dose.pam"
+  value: 1.0
+  unit: "mg/L"
+  source: "给水排水设计手册（第 3 册 城镇给水）助凝剂投加常用范围"
+  note: "PAM 助凝投加量（带 0.5~2.0 mg/L 取 1.0）；数据策略 v2"
+- key: "factor.mine_ningjiao.seed.dose"
+  value: 500.0
+  unit: "mg/L"
+  source: "GB/T 41019-2021（磁加载混凝磁种投加，条号待核对）"
+  note: "磁种投加量（带 300~1000 mg/L 取 500；回收循环见 factor.mine_cifenli.seed.recovery——净耗=投加×(1−回收)）；数据策略 v2"
+- key: "factor.mine_ningjiao.superheight"
+  value: 0.4
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应池超高常用值"
+  note: "反应池超高（带 0.3~0.5 m 取 0.4）；数据策略 v2"
+- key: "factor.mine_ningjiao.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.mine_ningjiao.elevation_loss"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）反应池水头损失常用值"
+  note: "反应池水头损失经验值（含搅拌分区跌落，带 0.2~0.4 m 取 0.3；高程链输入）；数据策略 v2"
+# ── 磁分离（mine_cifenli，0.5.0；磁盘表面负荷主线[磁种回收循环衡算，
+#    流道几何归厂商样本选型面]；逐字对应 docs/norms/mine_water_cifenli.md） ──
+- key: "factor.mine_cifenli.surface_load_band.min"
+  value: 20.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 41019-2021（磁加载分离表面负荷，条号待核对）"
+  note: "盘面表面负荷带下限（主控参数）；数据策略 v2"
+- key: "factor.mine_cifenli.surface_load_band.max"
+  value: 40.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 41019-2021（磁加载分离表面负荷，条号待核对）"
+  note: "盘面表面负荷带上限（主算例取 25）；数据策略 v2"
+- key: "factor.mine_cifenli.disk.diameter"
+  value: 1.5
+  unit: "m"
+  source: "GB/T 41019-2021（磁盘分离设备构造，条号待核对）"
+  note: "磁盘直径（带 0.8~2.0 m 取 1.5；单盘双面有效面积 A=2·πD²/4·η_im）；数据策略 v2"
+- key: "factor.mine_cifenli.disk.immersion"
+  value: 0.35
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（磁盘分离设备构造，条号待核对）"
+  note: "盘浸没比（带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.mine_cifenli.disk.speed_max"
+  value: 3.0
+  unit: "rpm"
+  source: "GB/T 41019-2021（磁加载分离，条号待核对）；给水排水设计手册（第 3 册 城镇给水）机械分离常用带"
+  note: "盘转速上限（盘缘线速度 v=πDω/60 ≤0.3 m/s 校核）；数据策略 v2"
+- key: "factor.mine_cifenli.channel.t_band.min"
+  value: 30.0
+  unit: "s"
+  source: "GB/T 41019-2021（流道停留校核，条号待核对）"
+  note: "流道停留时间校核带下限（选型校核键——流道几何归厂商样本）；数据策略 v2"
+- key: "factor.mine_cifenli.channel.t_band.max"
+  value: 60.0
+  unit: "s"
+  source: "GB/T 41019-2021（流道停留校核，条号待核对）"
+  note: "流道停留时间校核带上限；数据策略 v2"
+- key: "factor.mine_cifenli.channel.v_max"
+  value: 0.1
+  unit: "m/s"
+  source: "GB/T 41019-2021（流道流速校核，条号待核对）"
+  note: "流道流速校核上限（选型校核键）；数据策略 v2"
+- key: "factor.mine_cifenli.seed.recovery"
+  value: 0.95
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（磁种回收循环，条号待核对）"
+  note: "磁种回收率（带 0.93~0.97 取 0.95；净耗 = 投加×(1−回收)，循环量回流 ningjiao 投加点）；数据策略 v2"
+- key: "factor.mine_cifenli.sludge.moisture"
+  value: 0.92
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）磁泥含水率常用带"
+  note: "磁泥含水率（带 0.90~0.94 取 0.92）；数据策略 v2"
+- key: "factor.mine_cifenli.sludge.density"
+  value: 1100.0
+  unit: "kg/m3"
+  source: "给水排水设计手册（第 3 册 城镇给水）磁泥密度常用带"
+  note: "磁泥密度（带 1050~1150 kg/m³ 取 1100；湿泥量 Q=W·1000/((1−P)·ρ)）；数据策略 v2"
+- key: "factor.mine_cifenli.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）机室超高常用值"
+  note: "机室超高（半坑式设备构筑）；数据策略 v2"
+- key: "factor.mine_cifenli.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径，机室从简）；数据策略 v2"
+- key: "factor.mine_cifenli.elevation_loss"
+  value: 0.2
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）磁分离机室水头损失常用值"
+  note: "磁分离水头损失经验值（带 0.1~0.3 m 取 0.2；高程链输入）；数据策略 v2"
+# ── 矿井水高密沉淀池（mine_gaomidu，0.5.0；无回流斜管低负荷主线[异于
+#    市政 Densadeg 回流型——无 r_sludge 键族]；逐字对应 docs/norms/mine_water_gaomidu.md） ──
+- key: "factor.mine_gaomidu.surface_load_band.min"
+  value: 5.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 41019-2021（混凝沉淀液面负荷，条号待核对）"
+  note: "斜管清水区液面负荷带下限（低负荷保浊度——异于市政 10~20 档）；数据策略 v2"
+- key: "factor.mine_gaomidu.surface_load_band.max"
+  value: 8.0
+  unit: "m3/(m2.h)"
+  source: "GB/T 41019-2021（混凝沉淀液面负荷，条号待核对）"
+  note: "斜管清水区液面负荷带上限（主算例取 6.0）；数据策略 v2"
+- key: "factor.mine_gaomidu.t_mix_band.min"
+  value: 0.5
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）快速混合停留时间常用档"
+  note: "快速混合区停留时间带下限；数据策略 v2"
+- key: "factor.mine_gaomidu.t_mix_band.max"
+  value: 2.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）快速混合停留时间常用档"
+  note: "快速混合区停留时间带上限（主算例取 0.5）；数据策略 v2"
+- key: "factor.mine_gaomidu.t_floc_band.min"
+  value: 8.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝停留时间常用档"
+  note: "絮凝区停留时间带下限；数据策略 v2"
+- key: "factor.mine_gaomidu.t_floc_band.max"
+  value: 15.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）絮凝停留时间常用档"
+  note: "絮凝区停留时间带上限（主算例取 12.0）；数据策略 v2"
+- key: "factor.mine_gaomidu.ratio_lb"
+  value: 1.5
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）矩形沉淀池长宽比构造常用值"
+  note: "池长宽比（矩形池构造常量；B=√(A/1.5) 0.5 m 档）；数据策略 v2"
+- key: "factor.mine_gaomidu.axial_velocity.max"
+  value: 0.005
+  unit: "m/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）斜管沉淀轴向流速常用上限"
+  note: "斜管轴向流速校核上限（≤5 mm/s；v=q_surf/(3600·sin60°)）；数据策略 v2"
+- key: "factor.mine_gaomidu.superheight"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）沉淀池超高常用值"
+  note: "高密沉淀池超高（带 0.3~0.5 m 取 0.5——异于市政取 0.3）；数据策略 v2"
+- key: "factor.mine_gaomidu.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）矩形池概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35——旧系统 0.4 归追认点 11）；数据策略 v2"
+- key: "factor.mine_gaomidu.elevation_loss"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）高密沉淀池水头损失常用值"
+  note: "高密池水头损失经验值（含混合/絮凝/沉淀流程，带 0.3~0.6 m 取 0.5；高程链输入）；数据策略 v2"
+# ── 矿井水 V 型滤池（mine_vxinglvchi，0.5.0；均质滤料低滤速精滤主线
+#    [4~6 m/h 异于市政 7~10 档]；逐字对应 docs/norms/mine_water_vxinglvchi.md） ──
+- key: "factor.mine_vxinglvchi.v_filter_band.min"
+  value: 4.0
+  unit: "m/h"
+  source: "GB/T 41019-2021（过滤段滤速，条号待核对）"
+  note: "正常滤速带下限（低滤速精滤档——异于市政 7~10）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.v_filter_band.max"
+  value: 6.0
+  unit: "m/h"
+  source: "GB/T 41019-2021（过滤段滤速，条号待核对）"
+  note: "正常滤速带上限（主控参数，主算例取 5.0）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.v_forced.max"
+  value: 10.0
+  unit: "m/h"
+  source: "GB/T 41019-2021（强制滤速校核，条号待核对）"
+  note: "强制滤速校核上限（一格冲洗时 v=n/(n−1)·v_filter）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.selfuse_coef"
+  value: 1.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）自用水系数常用"
+  note: "过滤流量自用水系数（带 1.05~1.10 取 1.05；覆盖反冲耗水）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.cell_ratio_lb"
+  value: 2.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）V 型滤池单格长宽比构造常用值"
+  note: "单格长宽比（构造常量；B=√(f/2) 0.1 m 档）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.media.depth_band.min"
+  value: 0.8
+  unit: "m"
+  source: "GB/T 41019-2021（滤料层厚，条号待核对）"
+  note: "石英砂均质滤料层厚带下限（细砂精滤偏薄档——异于市政 1.2~1.5）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.media.depth_band.max"
+  value: 1.2
+  unit: "m"
+  source: "GB/T 41019-2021（滤料层厚，条号待核对）"
+  note: "石英砂均质滤料层厚带上限（主算例取 1.0）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.water_above_band.min"
+  value: 1.0
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）恒水位过滤砂上水深常用带"
+  note: "砂面上水深带下限；数据策略 v2"
+- key: "factor.mine_vxinglvchi.water_above_band.max"
+  value: 1.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）恒水位过滤砂上水深常用带"
+  note: "砂面上水深带上限（主算例取 1.2）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.air"
+  value: 15.0
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 3 册 城镇给水）气水反冲气冲强度常用带"
+  note: "气冲强度（带 13~17 L/(m²·s) 取 15）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.water_sim"
+  value: 3.0
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 3 册 城镇给水）气水同时冲洗水强度常用带"
+  note: "气水同时冲洗阶段水强度（带 2~3 L/(m²·s) 取 3）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.water"
+  value: 5.0
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 3 册 城镇给水）水冲强度常用带"
+  note: "单独水冲（漂洗）强度（带 4~6 L/(m²·s) 取 5）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.sweep"
+  value: 2.0
+  unit: "L/(m2.s)"
+  source: "给水排水设计手册（第 3 册 城镇给水）V 型滤池表面扫洗强度常用带"
+  note: "表面扫洗强度（带 1.4~2.3 L/(m²·s) 取 2.0——V 型槽进水扫洗全程）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.t_air"
+  value: 3.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）反冲洗历时常用档"
+  note: "气冲历时（带 1~3 min 取 3）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.t_sim"
+  value: 4.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）反冲洗历时常用档"
+  note: "气水同时冲洗历时（带 3~5 min 取 4）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.t_water"
+  value: 5.0
+  unit: "min"
+  source: "给水排水设计手册（第 3 册 城镇给水）反冲洗历时常用档"
+  note: "单独水冲历时（带 3~6 min 取 5；三阶段合计 t_bw=12 min 入有效过滤时长折算）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.cycle_band.min"
+  value: 24.0
+  unit: "h"
+  source: "给水排水设计手册（第 3 册 城镇给水）过滤周期常用带"
+  note: "过滤周期带下限（低浊进水可短周期）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.cycle_band.max"
+  value: 48.0
+  unit: "h"
+  source: "给水排水设计手册（第 3 册 城镇给水）过滤周期常用带"
+  note: "过滤周期带上限（主算例取 24）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wash.ratio_max"
+  value: 0.05
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）反冲耗水率常用上限"
+  note: "反冲耗水率校核上限（单格日冲一次口径 η=w_wash·(24/T)/(q_d/n)）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.superheight"
+  value: 0.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）滤池超高常用值"
+  note: "滤池超高（带 0.3~0.5 m 取 0.5）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）方形格概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径；带 0.30~0.40 取 0.35）；数据策略 v2"
+- key: "factor.mine_vxinglvchi.elevation_loss"
+  value: 2.5
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）滤池含滤层过滤水头高程损失常用值"
+  note: "V 型滤池高程水损（含滤层过滤水头，带 2.0~3.0 m 取 2.5；语义异于沉淀类单元——高程链输入）；数据策略 v2"
+# ── 矿井水紫外消毒渠（mine_ziwai，0.5.0；灯管布置实算剂量主线[含结垢
+#    系数特征键——异于市政概算锚路线]；逐字对应 docs/norms/mine_water_ziwai.md） ──
+- key: "factor.mine_ziwai.dose"
+  value: 30.0
+  unit: "mJ/cm2"
+  source: "GB/T 31392-2022（回用消毒剂量，条号待核对）；给水排水设计手册（第 3 册 城镇给水）"
+  note: "紫外设计剂量（回用消毒档带 25~40 mJ/cm² 取 30——语义挂矿井水回用，异于市政深度处理档）；数据策略 v2"
+- key: "factor.mine_ziwai.velocity_band.min"
+  value: 0.05
+  unit: "m/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外渠内流速常用带"
+  note: "渠内流速带下限（宽下限——低流量检修工况可贴限，剂量达标为准）；数据策略 v2"
+- key: "factor.mine_ziwai.velocity_band.max"
+  value: 0.7
+  unit: "m/s"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外渠内流速常用带"
+  note: "渠内流速带上限；数据策略 v2"
+- key: "factor.mine_ziwai.t254_band.min"
+  value: 0.6
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外穿透率常用带"
+  note: "254 nm 穿透率带下限（滤后清矿井水 60%~70%——高于市政 55%~65 档）；数据策略 v2"
+- key: "factor.mine_ziwai.t254_band.max"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外穿透率常用带"
+  note: "254 nm 穿透率带上限（主算例取 0.65）；数据策略 v2"
+- key: "factor.mine_ziwai.f_aging"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）灯管老化系数常用档"
+  note: "灯管老化系数（寿命末期输出保持比 0.7——异于市政 0.8 档，矿井水连续运行工况）；数据策略 v2"
+- key: "factor.mine_ziwai.f_fouling"
+  value: 0.8
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（灯套管结垢衰减，条号待核对）"
+  note: "灯套管结垢系数（矿井水矿物度高特征键——市政面无此键；输出保持比 0.8）；数据策略 v2"
+- key: "factor.mine_ziwai.eta_geo"
+  value: 0.7
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外灯管布置几何效率常用带"
+  note: "几何效率（带 0.6~0.8 取 0.7；辐照强度 I=P·N_layer·η_geo·T_eff·k_aging·k_foul/(10A)）；数据策略 v2"
+- key: "factor.mine_ziwai.loss_min"
+  value: 0.1
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）消毒渠水头损失构造裕量常用值"
+  note: "渠道公式水损构造下限（h=max(ξv²/2g, 0.10)；经验值走高程链键）；数据策略 v2"
+- key: "factor.mine_ziwai.superheight"
+  value: 0.3
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）渠道超高常用值"
+  note: "紫外渠道超高（取 0.3）；数据策略 v2"
+- key: "factor.mine_ziwai.wall_thickness_coef"
+  value: 0.35
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）渠道概算壁厚系数"
+  note: "混凝土量估算壁厚系数（概算口径）；数据策略 v2"
+- key: "factor.mine_ziwai.elevation_loss"
+  value: 0.25
+  unit: "m"
+  source: "给水排水设计手册（第 3 册 城镇给水）紫外渠水头损失常用值"
+  note: "紫外渠道高程水损经验值（含灯组模块局部损失，带 0.1~0.3 m 取 0.25；与渠内公式值双轨语义见起草表追认点 14）；数据策略 v2"

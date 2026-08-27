@@ -1,6 +1,29 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.4.0"
+data_version: "0.5.0"
 # 变更记录：
+#   - 0.5.0: M3a1 矿井水线八单元批（批级版本跃升）；AI 起草待追认（数据
+#       策略 v2，工程常用范围口径；出处仅矿井水线国标[GB/T 19223-2015/
+#       GB/T 31392-2022/GB/T 41019-2021/GB 20426-2006，ADR-009]+给水排水
+#       设计手册两类，条号章级标注待核对——不虚构条号）。docs/norms/
+#       mine_water_{input,tiaojiechi,chenshachi,ningjiao,cifenli,gaomidu,
+#       vxinglvchi,ziwai}.md 参数档逐字：factors.yaml 增 factor.mine_<短名>.*
+#       共 109 条（input 2——进水水损/超高下限；tiaojiechi 11；chenshachi
+#       13——平流型[区别市政旋流]；ningjiao 24——四分区 G 梯度+磁种/药剂；
+#       cifenli 14——磁盘表面负荷+磁种回收+磁泥；gaomidu 11——无回流
+#       低负荷 5~8[无市政 r_sludge 键族]；vxinglvchi 22——低滤速精滤
+#       4~6[异于市政 7~10]；ziwai 12——灯管布置实算+结垢系数 f_fouling
+#       特征键[市政无]；各单元 elevation_loss 照市政面口径）；removal_rates
+#       .yaml 增 removal.mine_<短名>.{ss,cod}.mod_default 共 13 条——指标面
+#       =SS/COD 双指标（BOD5 因矿井水 B/C=0.025 无生化性全线不建键；浊度/
+#       油类/铁锰无工艺段不建——不造无依据键；input 源单元不建键）；调节
+#       池/混凝反应/紫外零去除显式 0.0 注记照 M2b1/M2c 先例（调节池主线
+#       纯均化——旧预沉 0.30 归追认点；反应池无分离穿流——去除挂下游
+#       分离单元）；chenshachi ss 0.15（砂粒组分带中值）；cifenli 0.90/
+#       0.60、gaomidu 0.90/0.30、vxinglvchi 0.80/0.075。mine 键形态经
+#       app._unit_params 线感知投影（M3a1 D1：factor.mine_<短名>.* 限定，
+#       与市政同名构筑物键物理隔离）。0.4.0 既有 299（=251+48，简报面
+#       记 290 系备料报告计数偏差——实测 299 按零扰动探针全键实录）键
+#       逐键零扰动。
 #   - 0.4.0: M2c 市政余三单元批（批级版本跃升）；AI 起草待追认（数据
 #       策略 v2，工程常用范围口径）。docs/norms/{cass,bashi_jiliangcao,
 #       wushui_tisheng}.md 系数列/参数档逐字：factors.yaml 增

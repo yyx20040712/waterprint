@@ -312,3 +312,75 @@
   unit: "dimensionless"
   source: "给水排水设计手册（第 5 册）泵站功能定义（提升单元，无处理去除）"
   note: "污水提升泵房 SS 去除率默认档——提升单元无去除，显式 0.0（穿流）；数据策略 v2"
+
+# ── 矿井水线八单元 0.5.0 批（M3a1，数据策略 v2：工程常用范围中值口径起草，
+#    出处仅矿井水线国标/给水排水设计手册两类；领域专家批量追认待补；
+#    指标面=SS/COD 双指标（BOD5 因矿井水 B/C=0.025 无生化性全线不建键；
+#    浊度/油类/铁锰无工艺段不建——不造无依据键）；逐字对应
+#    docs/norms/mine_water_*.md 衔接式；输入源单元不建键；
+#    物理过程单元零去除显式 0.0 注记照 M2b1/M2c 先例） ──
+- key: "removal.mine_tiaojiechi.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（调节构筑物功能定义，条号待核对）"
+  note: "矿井水调节池 SS 去除率默认档——主线纯均化无处理去除，显式 0.0（穿流；旧系统预沉 0.30 口径归追认点 1）；数据策略 v2"
+- key: "removal.mine_tiaojiechi.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（调节构筑物功能定义，条号待核对）"
+  note: "矿井水调节池 COD 去除率默认档——纯均化无去除，显式 0.0（穿流）；数据策略 v2"
+- key: "removal.mine_chenshachi.ss.mod_default"
+  value: 0.15
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 5 册 城镇排水）平流沉砂池对 SS 砂粒组分去除常用带"
+  note: "平流沉砂池 SS 去除率默认档（10%~20% 中值——砂粒组分；COD 非混凝沉淀滤池段不建键）；数据策略 v2"
+- key: "removal.mine_ningjiao.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）混凝反应工艺功能定义（反应无固液分离）"
+  note: "混凝反应池 SS 去除率默认档——反应无分离，显式 0.0（穿流；去除挂下游分离单元）；数据策略 v2"
+- key: "removal.mine_ningjiao.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）混凝反应工艺功能定义（反应无固液分离）"
+  note: "混凝反应池 COD 去除率默认档——反应无分离，显式 0.0（穿流）；数据策略 v2"
+- key: "removal.mine_cifenli.ss.mod_default"
+  value: 0.9
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（磁加载分离，条号待核对）；给水排水设计手册（第 3 册 城镇给水）"
+  note: "磁分离 SS 去除率默认档（85%~95% 中值——磁絮体磁盘截留）；数据策略 v2"
+- key: "removal.mine_cifenli.cod.mod_default"
+  value: 0.6
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）混凝分离 COD 去除常用带"
+  note: "磁分离 COD 去除率默认档（50%~70% 中值——颗粒态煤粉 COD 随絮体带出）；数据策略 v2"
+- key: "removal.mine_gaomidu.ss.mod_default"
+  value: 0.9
+  unit: "dimensionless"
+  source: "GB/T 41019-2021（混凝沉淀，条号待核对）；给水排水设计手册（第 3 册 城镇给水）"
+  note: "矿井水高密沉淀池 SS 去除率默认档（85%~95% 中值——保安沉淀段）；数据策略 v2"
+- key: "removal.mine_gaomidu.cod.mod_default"
+  value: 0.3
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）混凝沉淀 COD 去除常用带"
+  note: "矿井水高密沉淀池 COD 去除率默认档（20%~40% 中值——低浓度进水保安段）；数据策略 v2"
+- key: "removal.mine_vxinglvchi.ss.mod_default"
+  value: 0.8
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）深层过滤 SS 去除常用带"
+  note: "矿井水 V 型滤池 SS 去除率默认档（70%~90% 中值——低浊进水档）；数据策略 v2"
+- key: "removal.mine_vxinglvchi.cod.mod_default"
+  value: 0.075
+  unit: "dimensionless"
+  source: "给水排水设计手册（第 3 册 城镇给水）深层过滤 COD 去除常用带"
+  note: "矿井水 V 型滤池 COD 去除率默认档（5%~10% 中值——微量去除保守档）；数据策略 v2"
+- key: "removal.mine_ziwai.ss.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "GB/T 31392-2022（消毒机理，条号待核对）"
+  note: "矿井水紫外消毒 SS 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
+- key: "removal.mine_ziwai.cod.mod_default"
+  value: 0.0
+  unit: "dimensionless"
+  source: "GB/T 31392-2022（消毒机理，条号待核对）"
+  note: "矿井水紫外消毒 COD 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
