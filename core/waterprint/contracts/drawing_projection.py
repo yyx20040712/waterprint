@@ -1,9 +1,11 @@
 """出图取数对照契约聚合正门（UF-32 方案②）：分线表聚合——市政+矿井+污泥+输送。
 
-线序：市政 13（DRAFT）+矿井 8（M3D1）+污泥 7（本批 M3D2）+输送后续批。
+线序：市政 13（DRAFT）+矿井 8（M3D1）+污泥 7（M3D2）+输送 4（本批 M3D3）
+——32/32 三线+市政全覆盖收口（重写计划 §7 验收行）。
 
 输入:  分线表（drawing_projection_municipal 13 条目 + drawing_projection_mine
-       矿井条目 + drawing_projection_sludge 污泥条目）+
+       矿井条目 + drawing_projection_sludge 污泥条目 +
+       drawing_projection_conveyance 输送条目）+
        drawing_projection_types 类型面
 输出:  PROJECTION_TABLE（全单元聚合只读映射——geometry/drafting/elevation/
        app_enumeration 消费方 import 路径不变）+ UnitProjection /
@@ -12,15 +14,15 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（M3D1 D1 重写为聚合正门——原 13 条目与三类型已分线迁出，
-#   语义零变更；M3D2 D3 扩污泥线分量；对账锁定测试
-#   tests/contracts/test_drawing_projection.py）
+#   语义零变更；M3D2 D3 扩污泥线分量；M3D3 D2 扩输送线分量——四线
+#   32/32 收口；对账锁定测试 tests/contracts/test_drawing_projection.py）
 #
 # 【公开接口】
 #   PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] =
 #       MappingProxyType({**MUNICIPAL_PROJECTIONS, **MINE_PROJECTIONS,
-#       **SLUDGE_PROJECTIONS})——32 单元分线聚合终态：市政 13+矿井 8
-#       （M3D1）+污泥 7（本批 M3D2）+输送 4 随对应批次扩入各自分线
-#       文件，本正门公式不动。
+#       **SLUDGE_PROJECTIONS, **CONVEYANCE_PROJECTIONS})——32 单元
+#       分线聚合收口终态：市政 13+矿井 8（M3D1）+污泥 7（M3D2）+
+#       输送 4（M3D3 本批）==32/32 全覆盖（重写计划 §7 验收行达成）。
 #   UnitProjection / ProfileStation / ElevationProfile：类型面再导出
 #       （__all__ 四符号不变——消费方零改动，宪法 §2 拆分正解=伴生件
 #       先例 app.py→app_enumeration.py：经正门保持单入口）。
@@ -31,16 +33,18 @@
 #   R2 分线职责（一文件一主概念）：表条目随业务线归分线文件；类型
 #      独占 types 文件；本文件只做聚合与再导出，零表内容。
 #   R3~R5 表覆盖/五类不静默/量纲列/纯声明面等规则随分线表文件规格
-#      （municipal/mine 各自头注承载——对账测试按本正门全量断言）。
+#      （municipal/mine/sludge/conveyance 各自头注承载——对账测试按
+#      本正门全量断言）。
 #
 # 【禁止事项】本文件不得新增表条目或类型定义（聚合面专用）；不得
 #   import units_lib 或任何 L2+ 层（L0 准入类别①，GR-36）。
 #
-# 【测试要求】tests/contracts/test_drawing_projection.py：28 单元
-#   golden/链式实跑键集对账 + DimKey 合法性 + 分线键集 disjoint。
+# 【测试要求】tests/contracts/test_drawing_projection.py：32 单元
+#   golden/链式实跑键集对账 + DimKey 合法性 + 分线键集 disjoint
+#   （四线）+ 32/32 收口断言。
 #
-# 【参照】Ruling ①（2026-08-26）；UF-32；ADR-006；重写计划 §10.2/
-#   §10.5/§12.5/§13.6；M3D1 简报 D1
+# 【参照】Ruling ①（2026-08-26）；UF-32；ADR-006；重写计划 §7/§10.2/
+#   §10.5/§12.5/§13.6；M3D1/M3D3 简报 D1
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -49,6 +53,9 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
+from waterprint.contracts.drawing_projection_conveyance import (
+    CONVEYANCE_PROJECTIONS,
+)
 from waterprint.contracts.drawing_projection_mine import MINE_PROJECTIONS
 from waterprint.contracts.drawing_projection_municipal import (
     MUNICIPAL_PROJECTIONS,
@@ -73,4 +80,6 @@ PROJECTION_TABLE: Final[Mapping[str, UnitProjection]] = MappingProxyType({
     **MUNICIPAL_PROJECTIONS,
     **MINE_PROJECTIONS,
     **SLUDGE_PROJECTIONS,
+    **CONVEYANCE_PROJECTIONS,
 })
+
