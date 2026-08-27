@@ -275,9 +275,16 @@ _FACTOR_SHARED_PREFIX = "factor.screen."
 
 def _unit_params(unit_id: str, coefficients: CoefficientsView) -> dict[str, float]:
     """D4 系数投影：单元短名过滤 factor.*/removal.* + factor.screen.* 共用键。"""
-    # 短名=业务线前缀后全串（M2c R1-a：线名/两词短名含下划线，勿 rsplit 尾段）。
-    short = unit_id.split("_", 1)[1]
-    prefixes = (f"factor.{short}.", f"removal.{short}.", _FACTOR_SHARED_PREFIX)
+    # 短名=业务线全前缀感知剥离（M3a1 D1 修正：线名含下划线——单段 split 对
+    # mine_water_* 只剥 "mine" 系 M2c R1-a 矛盾复发点；线名表硬编码函数内、
+    # 禁 import units_lib 私有 _LINES——跨包 "_" 前缀访问违宪 §1）。
+    lines = ("municipal_", "mine_water_", "sludge_", "conveyance_")
+    line = next((p for p in lines if unit_id.startswith(p)), "")
+    short = unit_id[len(line):]
+    # 矿井水线键名带 mine_ 限定=§14.3 物理隔离在数据键面的镜像（防市政同名
+    # 构筑物键误投影）；其余线裸短名——0.1.0~0.4.0 既有键零扰动。
+    ns = f"mine_{short}" if line == "mine_water_" else short
+    prefixes = (f"factor.{ns}.", f"removal.{ns}.", _FACTOR_SHARED_PREFIX)
     projected: dict[str, float] = {}
     for prefix in prefixes:
         for key in coefficients.keys(prefix):

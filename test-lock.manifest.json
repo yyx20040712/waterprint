@@ -4,6 +4,7 @@
   "core/tests/app/test_app_enumeration.py": "503ee516a493d1d02f3c71fe0451feb77a4d90d9b9836b820870c0f16b79112b",
   "core/tests/app/test_cli.py": "52fce425fd3f46c85949366ece4557d08d4c4f6194abb023c1be04c25bda2e83",
   "core/tests/app/test_enumeration_usecase.py": "01eb2bcde5bc432b84a1e01b41bdfdf8f7a6a0824fc12feeb1d2bb484430d48d",
+  "core/tests/app/test_unit_params_projection.py": "644113c95720e5c3c87f91ed98ab8150f843c6c8e5d5aad236f32e06ab072c5a",
   "core/tests/arch/test_file_budgets.py": "1e662e6830adc5e4a015c0a92c617784d6bc174a066d1efa64dd57f15571e49e",
   "core/tests/arch/test_hygiene.py": "63952694d7748b431dabcebc6f3b0c4291b116b97c4bfc2dd6cb1b791638e2d5",
   "core/tests/arch/test_lock.py": "c69f79c446deeeeeb3b4145faad5288df86152ff2067c643459afd5a54bfebf6",
