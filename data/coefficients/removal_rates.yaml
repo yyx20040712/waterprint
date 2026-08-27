@@ -1,6 +1,6 @@
-# removal_rates —— 三单元去除率（草案批）
+# removal_rates —— 三单元去除率（已追认 2026-08-27）
 #
-# 状态：M1 草案（用户授权起草，领域专家签字后生效）。
+# 状态：已追认（2026-08-27 yyx 批量追认批 A~G；Ruling=MIGRATE-RATIFY，流程仓台账）。
 # 键形态：removal.<unit>.<indicator>.<tier>
 #   - tier=mod_default：旧系统 mod v5.1.0 代码 _default_removal_rates 实际值；
 #   - tier=golden_municipal：旧系统市政案例文件 resources/yyx.ddesign.json
