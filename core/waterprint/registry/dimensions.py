@@ -410,6 +410,10 @@ _M3A2_FIELDS: tuple[FieldSpec, ...] = (
     # B 0.1 m 档复用 side_disc_step/length_disc_step）
     FieldSpec("v_h", DimKey.VELOCITY, "m/s", "units.fields.v_h", "load"),
     FieldSpec("t_stay", DimKey.DIMENSIONLESS, "", "units.fields.t_stay", "load"),
+    # mine_water_ningjiao 混凝反应池（算例 1：t_mix=1.0/t_floc=3.0 复用
+    # M2B2；t_seed=2.0/t_ripen=1.5 新增；h2/ratio_lb/n/B 0.5 m 档复用）
+    FieldSpec("t_seed", DimKey.DIMENSIONLESS, "", "units.fields.t_seed", "load"),
+    FieldSpec("t_ripen", DimKey.DIMENSIONLESS, "", "units.fields.t_ripen", "load"),
 )
 for _spec in _M3A2_FIELDS:
     register_dimension(_spec)
