@@ -134,8 +134,7 @@ def _normalize_number(value: object, key: str, what: str) -> float:
     """数值守卫（GR-02）：bool 拒/非数值拒/非有限拒，归一 float。"""
     if isinstance(value, bool) or not isinstance(value, int | float):
         raise InvalidAssumptionError(
-            f"假设 {key!r} 的 {what} 必须为数值（int|float，bool 拒）："
-            f"得到 {value!r}"
+            f"假设 {key!r} 的 {what} 必须为数值（int|float，bool 拒）：得到 {value!r}"
         )
     try:
         number = float(value)
@@ -145,9 +144,7 @@ def _normalize_number(value: object, key: str, what: str) -> float:
             "（GR-02 输入即拒；ARCH1 D1 同款——原生异常收编）"
         ) from exc
     if not isfinite(number):
-        raise InvalidAssumptionError(
-            f"假设 {key!r} 的 {what} 非有限：{number!r}（GR-02 输入即拒）"
-        )
+        raise InvalidAssumptionError(f"假设 {key!r} 的 {what} 非有限：{number!r}（GR-02 输入即拒）")
     return number
 
 
@@ -166,9 +163,7 @@ class TuningImpact:
                 f"TuningImpact.constraint_keys 必须为键序列（tuple/list），"
                 f"不接受裸 str（会被逐字符拆解为伪键）：得到 {self.constraint_keys!r}"
             )
-        _nonempty_str(
-            self.direction, "TuningImpact.direction（调节方向短语，§4 建议引擎展示）"
-        )
+        _nonempty_str(self.direction, "TuningImpact.direction（调节方向短语，§4 建议引擎展示）")
         normalized = tuple(self.constraint_keys)
         for element in normalized:
             if not isinstance(element, str) or not element:
@@ -200,16 +195,10 @@ class Assumption:
                 " §4）"
             )
         object.__setattr__(self, "key", key)
-        object.__setattr__(
-            self, "default", _normalize_number(self.default, key, "default")
-        )
+        object.__setattr__(self, "default", _normalize_number(self.default, key, "default"))
         object.__setattr__(self, "dim", _normalize_dim(self.dim, key))
-        object.__setattr__(
-            self, "source", _nonempty_str(self.source, f"假设 {key!r} 的 source")
-        )
-        object.__setattr__(
-            self, "note", _nonempty_str(self.note, f"假设 {key!r} 的 note")
-        )
+        object.__setattr__(self, "source", _nonempty_str(self.source, f"假设 {key!r} 的 source"))
+        object.__setattr__(self, "note", _nonempty_str(self.note, f"假设 {key!r} 的 note"))
 
 
 @dataclass(frozen=True)
@@ -298,9 +287,7 @@ _SUPERHEIGHT: Final[Assumption] = Assumption(
 # ── UF-08 引擎参数三条（T7a D2 冻结 2026-08-25：source=工程惯例类，
 #    数值真源唯一在此；app 装配 T7b 提取 loop.* 三键投影 EngineParam
 #    构造 RunEnv.engine_params，消费方 graph/loop.py 经 env 取用）──
-_ENGINE_SOURCE: Final[str] = (
-    "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
-)
+_ENGINE_SOURCE: Final[str] = "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
 _LOOP_TOLERANCE: Final[Assumption] = Assumption(
     key="loop.tolerance",
     default=1e-10,
@@ -374,64 +361,125 @@ _GRID_BASE_PER_DIM: Final[Assumption] = Assumption(
 #    全部经 assumption()/ctx 视图取值，数值真源唯一在此。──
 _DRAFT_GEO: Final[tuple[Assumption, ...]] = (
     Assumption(
-        "elevation.wall_thickness", 0.3, DimKey.LENGTH,
+        "elevation.wall_thickness",
+        0.3,
+        DimKey.LENGTH,
         "《给水排水设计手册（第 5 册 城镇排水）》水池构造（工程常用 0.2~0.4 m 档中值，待追认）",
         "钢筋混凝土水池壁厚概算默认（m）——elevation 埋深与三维池壁图元消费",
         TuningImpact("增大壁厚→结构占用与造价上升，减小→配筋与抗渗压力上升", ()),
     ),
     Assumption(
-        "elevation.bury_depth.max", 6.0, DimKey.LENGTH,
+        "elevation.bury_depth.max",
+        6.0,
+        DimKey.LENGTH,
         "《给水排水设计手册（第 5 册 城镇排水）》构筑物埋深工程常用上限（起草，待追认）",
         "池底埋深告警阈值（m）——build_profile 超限产生 Warning（留用户决策）",
         TuningImpact("增大阈值→放深埋深接受度，减小→更早告警", ()),
     ),
     Assumption(
-        "elevation.drop_threshold", 1.0, DimKey.LENGTH,
+        "elevation.drop_threshold",
+        1.0,
+        DimKey.LENGTH,
         "重写计划 §14.2 跌水与提升行（'跌水 >1m 提示'口径）",
         "水面衔接跌水提示阈值（m）——evaluate_pumping 超限生成 drop_warnings",
         TuningImpact("增大阈值→仅更陡跌水告警，减小→更早提示消能需求", ()),
     ),
     Assumption(
-        "elevation.losses.friction_lambda", 0.025, DimKey.DIMENSIONLESS,
+        "elevation.losses.friction_lambda",
+        0.025,
+        DimKey.DIMENSIONLESS,
         "《给水排水设计手册（第 5 册 城镇排水）》管道水力计算（达西 λ 0.02~0.03 档中值，待追认）",
         "沿程损失公式 EL-F1 的 λ 系数（无量纲）——losses.py 经 assumption() 取值，禁另抄",
         TuningImpact("增大 λ→损失与泵扬程上升，减小→偏乐观", ()),
     ),
     Assumption(
-        "elevation.losses.gravity", 9.81, DimKey.DIMENSIONLESS,
+        "elevation.losses.gravity",
+        9.81,
+        DimKey.DIMENSIONLESS,
         "《给水排水设计手册（第 5 册 城镇排水）》水力计算重力加速度工程口径 9.81 m/s²",
         "损失公式族（EL-F1/F2/F4）速度水头分母 g（DIMENSIONLESS 裸值——单位随公式符号）",
         TuningImpact("工程口径固定值，不调节（登记仅为公式符号单一真源）", ()),
     ),
     Assumption(
-        "elevation.losses.weir_coefficient", 1.86, DimKey.DIMENSIONLESS,
+        "elevation.losses.weir_coefficient",
+        1.86,
+        DimKey.DIMENSIONLESS,
         "《给水排水设计手册（第 3 册 城镇给水）》矩形薄壁堰流量系数 1.86（Q=m·b·h^1.5，待追认）",
         "堰流损失公式 EL-F3 的 m 系数（m^(3/2)/s 口径，DIMENSIONLESS 裸值登记）",
         TuningImpact("增大系数→同流量堰上水头下降，减小→偏保守", ()),
     ),
     Assumption(
-        "elevation.losses.orifice_coefficient", 0.62, DimKey.DIMENSIONLESS,
+        "elevation.losses.orifice_coefficient",
+        0.62,
+        DimKey.DIMENSIONLESS,
         "《给水排水设计手册（第 5 册 城镇排水）》孔口/管嘴出流流量系数 0.62（工程常用，待追认）",
         "孔口损失公式 EL-F4 的 μ 系数（无量纲）",
         TuningImpact("增大系数→同流量孔口损失下降，减小→偏保守", ()),
     ),
     Assumption(
-        "elevation.pump.pipe_length", 100.0, DimKey.LENGTH,
+        "elevation.pump.pipe_length",
+        100.0,
+        DimKey.LENGTH,
         "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管概算管长工程常用档（起草，待追认）",
         "evaluate_pumping 提升管路损失概算管长（m）——实长归设计输入，M5 管线批接线",
         TuningImpact("增大管长→管路损失与总扬程上升", ()),
     ),
     Assumption(
-        "elevation.pump.pipe_diameter", 0.5, DimKey.LENGTH,
+        "elevation.pump.pipe_diameter",
+        0.5,
+        DimKey.LENGTH,
         "《给水排水设计手册（第 5 册 城镇排水）》泵站出水管概算管径工程常用档（起草，待追认）",
         "evaluate_pumping 提升管路损失概算管径（m）——设计输入接线前概算占位",
         TuningImpact("增大管径→流速与损失下降但造价上升", ()),
     ),
     Assumption(
-        "geometry.pool.spacing", 3.0, DimKey.LENGTH,
+        "geometry.pool.spacing",
+        3.0,
+        DimKey.LENGTH,
         "《给水排水设计手册（第 5 册 城镇排水）》并联池组检修通道/列间距工程常用档（待追认）",
         "三维并联池组排布列间距（m）——pools.py 消费，节点标注来源键",
         TuningImpact("增大间距→占地与连接管长上升，检修空间改善", ()),
+    ),
+)
+
+# ── NET2 管网域引擎/安全面键（2026-08-28 段二批）：前四条数值逐字取自
+#    已追认手算表 network_manning.md NM-F4 行（RATIFY4），后两条 §18 护栏（起草）──
+_NM4_REF: Final[str] = "docs/norms/network_manning.md NM-F4（RATIFY4 追认 2026-08-28）"
+_EXCEL_REF: Final[str] = "重写计划 §18 Excel zip 炸弹护栏（工程惯例类起草，待追认）"
+_NETWORK: Final[tuple[Assumption, ...]] = (
+    Assumption(
+        "network.solve.tolerance", 1e-10, DimKey.FLOW,
+        f"{_NM4_REF}：二分容差 |ΔQ|≤1e-10 m³/s（手算誊录精度 1e-4）",
+        "solve_depth 停机判据（m³/s）——manning.py 消费",
+        TuningImpact("收紧→迭代增多，放宽→早停假根风险", ()),
+    ),
+    Assumption(
+        "network.solve.max_iterations", 200, DimKey.DIMENSIONLESS,
+        f"{_NM4_REF}：最大 200 轮",
+        "solve_depth 二分轮数上限——超限抛 NetworkHydraulicsError（禁静默截断）",
+        TuningImpact("增大→更耐慢收敛，减小→不收敛误报增多", ()),
+    ),
+    Assumption(
+        "network.solve.depth_min", 0.02, DimKey.DIMENSIONLESS,
+        f"{_NM4_REF}：二分区间 [0.02, 0.998] 下端",
+        "solve_depth 区间下端（h/D）", TuningImpact("抬高→浅流无解增多，降低→更稳", ()),
+    ),
+    Assumption(
+        "network.solve.depth_max", 0.998, DimKey.DIMENSIONLESS,
+        f"{_NM4_REF}：二分区间 [0.02, 0.998] 上端",
+        "solve_depth 区间上端（h/D）", TuningImpact("抬升→近满流可解，降低→误报无解", ()),
+    ),
+    Assumption(
+        "network.excel.max_rows", 5000, DimKey.DIMENSIONLESS,
+        f"{_EXCEL_REF}——市政管网管段数百~数千段量级档",
+        "read_network_excel 行数上限——超限抛 NetworkExcelError（只读解析前置防弹）",
+        TuningImpact("增大→耗时与内存上升，减小→护栏更严", ()),
+    ),
+    Assumption(
+        "network.excel.max_file_bytes", 10485760, DimKey.DIMENSIONLESS,
+        f"{_EXCEL_REF}——10 MiB 档",
+        "read_network_excel 文件大小上限（字节）——超限拒读",
+        TuningImpact("增大→解压风险上升，减小→护栏更严", ()),
     ),
 )
 
@@ -443,5 +491,6 @@ DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
         _LOOP_DAMPING,
         _GRID_BASE_PER_DIM,
         *_DRAFT_GEO,
+        *_NETWORK,
     )
 )

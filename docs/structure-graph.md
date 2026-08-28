@@ -105,6 +105,7 @@
 | `waterprint.geometry` | `waterprint.contracts` | 结果 schema 纯投影 |
 | `waterprint.geometry` | `waterprint.registry` | 假设默认值（池体几何参数）——ENG2 B3 补登 |
 | `waterprint.network` | `waterprint.contracts` | 仅共享量与单位（独立域） |
+| `waterprint.network` | `waterprint.registry` | 假设默认值与公式注册表（NM-F* 曼宁公式族/求根容差/Excel 护栏）——NET2 补登 |
 | `waterprint.units_lib` | `waterprint.contracts` | 端口/工况/manifest 契约 |
 | `waterprint.units_lib` | `waterprint.registry` | 假设默认值与公式注册表 |
 | `waterprint.registry` | `waterprint.contracts` | 量纲签名静态校验 |
