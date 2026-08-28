@@ -14,6 +14,7 @@
 - 数值真源：docs/norms/sludge_shusong.md（M3b1 表，待追认）+
   data/coefficients 0.6.0（factor.shusong.* 裸短名 6 键；removal 零键）
 - 语义注记：无构筑物（wall_thickness_coef 不建——bashi_jiliangcao 先例
-  口径）；CJJ 131-2009 仅叙述性依据（数值 source 不标，I3 挂账）
+  口径）；CJJ 131-2009 已纳出处白名单（I3 改标 2026-08-28 九裁②）
+  ——本包 2 键 source 规程级标注
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥。

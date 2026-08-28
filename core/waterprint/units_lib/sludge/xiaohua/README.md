@@ -16,7 +16,7 @@
 - 数值真源：docs/norms/sludge_xiaohua.md（M3b1 表，待追认）+
   data/coefficients 0.6.0（factor.xiaohua.* 裸短名 13 键——temp 键
   登记不消费[UF-09 注记]；removal 零键）
-- 语义注记：CJJ 131-2009 仅叙述性依据（数值 source 不标，I3 挂账）；
-  沼气联动潜力见 ganhua 表注记
+- 语义注记：CJJ 131-2009 已纳出处白名单（I3 改标 2026-08-28 九裁②）
+  ——本包 4 键 source 规程级标注；沼气联动潜力见 ganhua 表注记
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥。

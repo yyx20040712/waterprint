@@ -19,6 +19,7 @@
   data/coefficients 0.6.0（factor.tuoshui.* 裸短名 8 键；removal
   零键——滤液带出 DS 走泥量链）
 - 语义注记：车间设备单元不建 wall_thickness_coef（bashi_jiliangcao
-  先例口径）；CJJ 131-2009 仅叙述性依据（数值 source 不标，I3 挂账）
+  先例口径）；CJJ 131-2009 已纳出处白名单（I3 改标 2026-08-28 九裁②）
+  ——本包 4 键 source 规程级标注
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥。

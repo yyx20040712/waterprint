@@ -16,7 +16,7 @@ wushui_tisheng 泵族先例形态（扬程三分量+集泥井+启停校核，比
 - 数值真源：docs/norms/sludge_bengzhan.md（M3b1 表，待追认）+
   data/coefficients 0.6.0（factor.bengzhan.* 裸短名 17 键；removal 零键）
 - 语义注记：elevation_loss=站内过流水损经验值（提升能量由 h_pump 公式
-  承载——wushui_tisheng 追认点 6 同款语义分工）；CJJ 131-2009 仅
-  叙述性依据（数值 source 不标，I3 挂账）
+  承载——wushui_tisheng 追认点 6 同款语义分工）；CJJ 131-2009 已纳
+  出处白名单（I3 改标 2026-08-28 九裁②）——本包 2 键 source 规程级标注
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥。
