@@ -224,8 +224,8 @@ def _build_env(data_dir: Path, project: ProjectFile) -> RunEnv:
     price_manifest = data_dir / "unit_prices" / "manifest.yaml"
     if price_manifest.is_file():
         raw = yaml.safe_load(price_manifest.read_text(encoding="utf-8"))
-        if isinstance(raw, Mapping) and isinstance(raw.get("data_version"), str):
-            versions["unit_prices"] = raw["data_version"]
+        if isinstance(raw, Mapping) and isinstance(raw.get("price_data_version"), str):
+            versions["unit_prices"] = raw["price_data_version"]
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     return RunEnv(
