@@ -1,6 +1,6 @@
 {
   "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
-  "core/tests/app/test_app.py": "a7366e14ae6147ad33a89f4a461002431c75b39c2671e12b7670e37a2687c2b7",
+  "core/tests/app/test_app.py": "154037f319eca9bb952aeb69e23f80703508adc86043d03d48916183f97489d2",
   "core/tests/app/test_app_enumeration.py": "503ee516a493d1d02f3c71fe0451feb77a4d90d9b9836b820870c0f16b79112b",
   "core/tests/app/test_cli.py": "473b26e47f5858e20631bcb14680e3de398ada471bc3c119aaeccd729750b093",
   "core/tests/app/test_enumeration_usecase.py": "01eb2bcde5bc432b84a1e01b41bdfdf8f7a6a0824fc12feeb1d2bb484430d48d",
@@ -144,11 +144,13 @@
   "server/tests/routers/test_events.py": "39052daa305c2f0d300a967d427d208e9f8f41471860bf35267b990abe034dae",
   "server/tests/routers/test_exports.py": "b168f4c16c85c5cfefeef00994633bd4282af8150fe7643bc46697248655727d",
   "server/tests/routers/test_projects.py": "29a35d18369481238ebfd55456cb10a5c7be016dc5910b34784a41966a395554",
+  "server/tests/routers/test_scene.py": "484be797c8eef70687b08eaee91c6a686dad5b2d089fba071da697c8b4e8f248",
   "server/tests/services/test_calculation.py": "eea641dfeda33c3c69717894c74a573ff99d5b28c9823ca07dbc9081fe91fbc8",
   "server/tests/services/test_enumeration.py": "7f442aa6b5e170e3033e678b53dd7387f054a7d10f2c78450a76304b8a1f4300",
   "server/tests/services/test_exports.py": "c04b452904e11c7aa510c7b0260776e49d67fe34ab11bc6b7672d037feffcca8",
   "server/tests/services/test_projects.py": "dd7a45102a17cf126157de9e31461b6a5eb4aed19876bf70585dd5826a0d0173",
-  "server/tests/test_api_contract.py": "af726fca8d06cffdc20780915ebef2b803a211838be1529daf2c6e426da247b0",
+  "server/tests/services/test_scene.py": "21c3a431ef4cd680a027525254dd1c1979e006d2a42d08e342525a62732fc360",
+  "server/tests/test_api_contract.py": "17b663f0fa02999faf6b251e7693fe89c49848595db40120f71face4b8373978",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
   "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8",
   "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
