@@ -67,6 +67,13 @@
    生成时双跑实录），实际对照 diff=0，容差为工程冗余而非放松。
    **GOLDEN2 复录（19 节点，2026-08-28）**：497060 bytes，sha256
    前 16 位 a21ae93581e2b3db（双跑字节同）。
+   **R2 更正（2026-08-28 修复轮）**：data_version 由 GOLDEN 批
+   沿用串更正为生成日实拍（coefficients@0.4.0+unit_prices@0.0.0
+   →coefficients@1.0.0+unit_prices@1.0.0，input metadata 同步，
+   与 mine 同日同源）——二审 B6 实证版本串不进计算路径、数值
+   零扰动（86 锚复跑 0 diff），属印记真值修正；serialize 双锚随
+   复跑刷新（字节长 497060 不变——两串等长，sha 头
+   a21ae93581e2b3db→8bbbf8a6770e6fa7——串经 repro 入 serialize）。
 8. **M3 补录两项（禁造假→已换真值）**：`m3_deferred.estimate_total`
    （概算总数）与 `m3_deferred.total_sludge`（全厂总泥量）——GOLDEN
    批（2026-08-26）以"M3 补录"字串占位缺席；**GOLDEN2 批（2026-08-28）
@@ -78,6 +85,11 @@
    （94.3%）——单元数扩至 32 或更慢单元入链时此守卫先红。
    **GOLDEN2 复测（19 节点，2026-08-28）**：mean 123.0758 ms
    （单轮）< 5.0 s 预算，余量 ≈4.88 s（97.5%）。
+   **R4 环境注记（2026-08-28 修复轮）**：bench 读数=pedantic 单轮
+   （rounds=1 iterations=1），受机器/负载环境影响显著——二审本机
+   复测同代码 mean=1583.9 ms=记录值 12.9 倍，单轮噪声坐实；亦与
+   2026-08-26 十三节点基线 286.7490 ms 不可直接横比（环境不同）。
+   两值均 <5.0 s 预算（门禁面绿），记录值保留原实录不改。
 
 ## 3. 追认点清单（待领域专家批量追认）
 
@@ -98,7 +110,7 @@
       p_primary=0.96/ds_bio=1928.690/p_bio=0.994/ds_chem=137.7050/
       p_chem=0.98；湿量 q 三股 81.003/321.4483333333/6.88525 m³/d
       为 HB-F1~F3 派生值不入参数面）；
-   c. **污泥 7 单元主控项裁量**（§6.2 的 14 项）；
+   c. **污泥 7 单元主控项裁量**（§5.2 的 15 项）；
    d. **概算基数变化**（§6.3——19 节点 vs COST2 12 节点记档金数差）；
    e. **m3_deferred 真值**（§6.3/§6.4 两数值+双断言锚）。
 
@@ -117,7 +129,7 @@
    generated 3 行（serialize 刷新）+m3_deferred 2 占位串，71 锚
    （effluent 30+design_dims 41）只增不改。content_hash 随 design
    变更重算：`942b3271…`→`5c0575e8…a039b8`（design_hash 正门回填）。
-2. **污泥 7 单元 design_dims 主控项**（14 项新增，2026-08-28
+2. **污泥 7 单元 design_dims 主控项**（15 项新增，2026-08-28
    HEAD=63784ce）：hebing ds_total/q_total/p_merged、shusong
    d_pipe/v_act、bengzhan n_total/h_pump、nongsuo d/q_thick、
    xiaohua d/v_total、tuoshui n_machine_total/q_cake、ganhua

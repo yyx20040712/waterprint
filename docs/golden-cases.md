@@ -83,7 +83,7 @@
 ### Step 4 —— 写 `expected_summary.json`
 
 **现行结构（municipal_34760 定型 2026-08-26，GOLDEN2 扩面 2026-08-28；
-85 锚 = effluent 30 + design_dims 55[41 市政+14 污泥]）**：
+86 锚 = effluent 30 + design_dims 56[41 市政+15 污泥]）**：
 
 ```json
 {

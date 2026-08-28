@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -210,3 +211,15 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
 
     _calcbook_min_template_renders(plant, expected, tmp_path)
     _calcbook_official_template_renders(plant, expected, tmp_path)
+
+    # ⑥ serialize 双跑字节同（确定性 R3——R5 修复轮补 municipal 消费面，
+    # 与 mine e2e ⑥ 口径对齐：锚已在 generated 块，此前只记录不消费）
+    from waterprint.contracts.result_schema import serialize
+
+    first = serialize(run_full_calc(project, conditions, env).plant)
+    second = serialize(run_full_calc(project, conditions, env).plant)
+    assert first == second
+    assert len(first) == expected["generated"]["serialize_bytes"]
+    assert hashlib.sha256(first).hexdigest()[:16] == (
+        expected["generated"]["serialize_sha256_head"]
+    )

@@ -579,17 +579,17 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@0.4.0+unit_prices@0.0.0",
+    "data_version": "coefficients@1.0.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 497060,
-    "serialize_sha256_head": "a21ae93581e2b3db",
+    "serialize_sha256_head": "8bbbf8a6770e6fa7",
     "source": "主线实跑 2026-08-28 HEAD=63784ce"
   },
   "m3_deferred": {
     "estimate_total": {
       "abs": 1e-12,
       "rel": 1e-12,
-      "source": "主线实跑 2026-08-28 HEAD=63784ce",
+      "source": "cost 三正门直调 2026-08-28 HEAD=63784ce",
       "value": 11908574.59503396
     },
     "total_sludge": {
