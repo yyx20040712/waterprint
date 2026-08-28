@@ -5,16 +5,21 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M1b 实现 collector/calcbook 2026-08-25；audit 骨架留 M4）
+# 规格说明（M1b collector/calcbook 2026-08-25；audit M4 实装——AUDIT 批
+#   2026-08-28 记档：render_audit_html 已实装并导出）
 #
 # 【导出白名单】
 #   collector: TraceCollector, TraceTree, collect, InvalidTraceError
 #   calcbook:  render_calcbook, TEMPLATE_REGISTRY, InvalidTemplateError
-#   audit:     render_audit_html（M4 批实现，本批不导出）
+#   audit:     render_audit_html（M4 已实装导出——AUDIT 批；领域异常
+#              InvalidAuditError/InvalidAuditPathError 经
+#              waterprint.trace.audit 模块直取，cli 导出通道归 M4
+#              部署批再评估扩面）
 # 【铁律】审计链路完整 = 任一输出数字可回溯条文与输入（M4 验收）；
 #   calcbook 模板驱动（模板禁公式，§11 R12）。
 # ══════════════════════════════════════════════════════════════════
 
+from waterprint.trace.audit import render_audit_html
 from waterprint.trace.calcbook import (
     TEMPLATE_REGISTRY,
     InvalidTemplateError,
@@ -34,5 +39,6 @@ __all__ = [
     "TraceCollector",
     "TraceTree",
     "collect",
+    "render_audit_html",
     "render_calcbook",
 ]
