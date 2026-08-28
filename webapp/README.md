@@ -27,6 +27,10 @@ pnpm test             # vitest
 pnpm orval            # 由 api-contracts/openapi.json 重新生成客户端
 ```
 
+> 本地链=orval→dev/build/test：`generated/` 不入库（根 .gitignore 排除），
+> clone 后先 `pnpm orval` 再 dev/build（CI webapp job 已在 build 前常驻跑
+> `pnpm orval`——契约重生成与消费同源，FE1 D3 口径）。
+
 ## 硬规则（CI/评审强制）
 
 - 单文件 ≤500 行；features 互相禁止 import（`scripts/check_webapp.py` 机器强制）；

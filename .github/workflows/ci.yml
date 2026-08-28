@@ -107,6 +107,7 @@ jobs:
           node-version: 24
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
+      - run: pnpm orval
       - run: pnpm build
       - run: pnpm test
 
