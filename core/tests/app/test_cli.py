@@ -136,3 +136,41 @@ def test_export_audit_failure_paths_wiring(
     )
     assert "越界分量" in capsys.readouterr().err  # 路径检查先于结果读入（裁定面）
     assert main(["export", "calcbook", str(project), str(project)]) == 2
+
+
+def test_export_audit_fresh_process_wiring(golden_data_dir: Path, tmp_path: Path) -> None:
+    """M4a ③ 修复轮：跨进程消费面——子进程 CLI 冷注册表也能渲染。
+
+    实证缺陷（2026-08-28 真实结果文件实跑发现）：同进程测试先跑 calc 使
+    单元包公式注册表就绪，掩盖了"CLI 新进程只读结果文件"时 HB-F1 等
+    units_lib 公式未装载→审计链断链 exit 3。本用例以子进程复现真实消费
+    面：python -m waterprint.cli export audit 全链 0。
+    """
+    import subprocess
+    import sys
+
+    project_path, result_path, _plant = _golden_result(golden_data_dir, tmp_path)
+    out = tmp_path / "fresh" / "audit.html"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "waterprint.cli",
+            "export",
+            "audit",
+            str(project_path),
+            str(result_path),
+            "--out",
+            str(out),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env={**__import__("os").environ, "PYTHONUTF8": "1"},
+        timeout=120,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert out.is_file()
+    assert "公式溯源审计报告" in out.read_text(encoding="utf-8")

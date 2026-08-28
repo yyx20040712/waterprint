@@ -75,6 +75,7 @@
 | `waterprint.cli` | `waterprint.network` | 管网子工具命令 |
 | `waterprint.cli` | `waterprint.registry` | network 命令系数装载异常映射（同 app 装载语义）——NET2 补登 |
 | `waterprint.cli` | `waterprint.trace` | export audit 命令审计报告渲染（render_audit_html 直连——无模板通道）——M4a 补登 |
+| `waterprint.cli` | `waterprint.units_lib` | export audit 渲染前公式注册表装载（discover_units——app.assemble 同款；冷进程消费面）——M4a 修复轮补登 |
 | `waterprint.app` | `waterprint.units_lib` | 唯一装配点：单元发现/实例化/注入 |
 | `waterprint.app` | `waterprint.graph` | 图执行编排 |
 | `waterprint.app` | `waterprint.solution` | 方案枚举用例 |

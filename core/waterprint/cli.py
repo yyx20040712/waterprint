@@ -70,6 +70,9 @@ NET2 v2 记档（2026-08-28，UF-41 对齐——子命令集 v1 冻结→v2）�
 #      读入/路径/审计链校验族）；项目 design_hash 与结果三元组不一致
 #      =stderr 警告不拒（审计对象=该份计算，HTML 头部三元组自证版本
 #      ——server R1 stale 拒绝语义归 API 面，差异见用户手册 FAQ）。
+#      修复轮（2026-08-28 实证）：渲染前 discover_units 装载全单元
+#      公式注册表——CLI 冷进程只读结果文件时迹公式反查需要注册表
+#      就绪（app.assemble 内部同款；cli 编排层责任面）。
 #
 # 【测试要求】calc/validate 子命令管线（M1 起真数值）、
 #   new-unit 生成结构完整且拒绝重名、退出码语义、乱码防线
@@ -90,7 +93,11 @@ from pathlib import Path
 from typing import Final
 
 from waterprint.app import InvalidProjectError, load_project
-from waterprint.contracts.result_schema import InvalidResultError, deserialize
+from waterprint.contracts.result_schema import (
+    InvalidResultError,
+    PlantResult,
+    deserialize,
+)
 from waterprint.network.excel_io import (
     NetworkExcelError,
     read_network_excel,
@@ -108,6 +115,7 @@ from waterprint.trace.audit import (
     InvalidAuditPathError,
     render_audit_html,
 )
+from waterprint.units_lib import discover_units
 
 __all__ = ["main"]
 
@@ -296,33 +304,51 @@ def _audit_out(result_path: Path, out: str | None) -> Path | None:
     return (raw if raw.is_absolute() else Path.cwd() / raw).resolve()
 
 
-def _run_export_audit(project: str, result: str, out: str | None) -> int:
-    """export audit 子命令：路径裁定→读对→渲染→原子落盘（退出码 0/3）。
+def _load_audit_inputs(project: str, result_path: Path) -> PlantResult | None:
+    """export audit 读入半：项目→结果→注册表装载（失败打印+None）。
 
-    项目-结果三元组不一致=stderr 警告不拒（审计对象=该份计算——HTML
-    头部三元组自证版本）；落盘 GR-38：同目录 .tmp 渲染→os.replace，
-    失败 os.remove 清半写 tmp。
+    三段读入族统一收编（打印面各自指明环节）；项目-结果三元组不一致
+    =stderr 警告不拒（审计对象=该份计算——HTML 头部三元组自证版本）。
     """
-    result_path = Path(result).resolve()
-    target = _audit_out(result_path, out)
-    if target is None:
-        return _EXIT_VALIDATION
     try:
         project_file = load_project(Path(project).resolve())
     except (InvalidProjectError, OSError) as exc:
         print(f"[校验失败] 项目文件读入：{exc}", file=sys.stderr)
-        return _EXIT_VALIDATION
+        return None
     try:
         plant = deserialize(result_path.read_bytes())
     except (OSError, InvalidResultError) as exc:
         print(f"[校验失败] 结果文件读入：{exc}", file=sys.stderr)
-        return _EXIT_VALIDATION
+        return None
+    try:
+        discover_units()  # 公式注册表装载（结果迹反查释义的前置条件）
+    except (ImportError, OSError) as exc:  # 装配面可预期失败族
+        print(f"[校验失败] 单元注册表装载：{exc}", file=sys.stderr)
+        return None
     if project_file.metadata.content_hash != plant.repro.design_hash:
         print(
             "[警告] 项目 design hash 与结果三元组不一致——审计对象=该份"
             "计算，报告头部三元组自证版本（当前项目请先重算）",
             file=sys.stderr,
         )
+    return plant
+
+
+def _run_export_audit(project: str, result: str, out: str | None) -> int:
+    """export audit 子命令：路径裁定→读对→渲染→原子落盘（退出码 0/3）。
+
+    落盘 GR-38：同目录 .tmp 渲染→os.replace，失败 os.remove 清半写
+    tmp。修复轮（2026-08-28 实证）：渲染前 discover_units 装载全单元
+    包公式注册表——CLI 冷进程只读结果文件时迹公式反查需要注册表就绪
+    （app.assemble 内部同款装载；cli 为编排层责任面）。
+    """
+    result_path = Path(result).resolve()
+    target = _audit_out(result_path, out)
+    if target is None:
+        return _EXIT_VALIDATION
+    plant = _load_audit_inputs(project, result_path)
+    if plant is None:
+        return _EXIT_VALIDATION
     tmp = target.with_name(target.name + ".tmp")
     try:
         render_audit_html(plant.trace, plant, tmp)

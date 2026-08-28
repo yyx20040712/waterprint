@@ -2,7 +2,7 @@
   "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
   "core/tests/app/test_app.py": "154037f319eca9bb952aeb69e23f80703508adc86043d03d48916183f97489d2",
   "core/tests/app/test_app_enumeration.py": "503ee516a493d1d02f3c71fe0451feb77a4d90d9b9836b820870c0f16b79112b",
-  "core/tests/app/test_cli.py": "534bb59918e4c23c650a4dc15642990f9d3b4be24dbc4c6ec0e580cca700bded",
+  "core/tests/app/test_cli.py": "390d89fa7dd5f5cfbc3ff467d71fbe8a28e0d57780016c8e33920dfc62a72e09",
   "core/tests/app/test_enumeration_usecase.py": "01eb2bcde5bc432b84a1e01b41bdfdf8f7a6a0824fc12feeb1d2bb484430d48d",
   "core/tests/app/test_unit_params_projection.py": "644113c95720e5c3c87f91ed98ab8150f843c6c8e5d5aad236f32e06ab072c5a",
   "core/tests/arch/test_file_budgets.py": "1e662e6830adc5e4a015c0a92c617784d6bc174a066d1efa64dd57f15571e49e",
