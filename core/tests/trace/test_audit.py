@@ -2,6 +2,10 @@
 
 输入:  waterprint.trace.audit 公开符号
 输出:  报告契约断言
+注记:  探针公式 M4-AUDIT-F1/F2 进程级注册持久（AUDIT 一审 M-2 防雷记档）：
+       注册表无卸载正门（register 幂等容忍重复），将来任何"注册表键集
+       穷尽"类断言须排除本文件探针键（专用前缀 M4-AUDIT-*，与正式键族
+       隔离），否则将因测试顺序踩雷。
 """
 
 from __future__ import annotations
@@ -9,8 +13,12 @@ from __future__ import annotations
 import html
 import importlib
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from waterprint.contracts.result_schema import TraceNode
 
 _mod = importlib.import_module("waterprint.trace.audit")
 render_audit_html = getattr(_mod, "render_audit_html", None)
@@ -58,7 +66,7 @@ def _register_probe_formulas() -> None:
         )
 
 
-def _trace() -> tuple[object, ...]:
+def _trace() -> tuple[TraceNode, ...]:
     """最小迹树：2 单元×2 公式（其中 1 单元名为恶意注入探针，§18）。
 
     常规单元（design 工况）跑 F1+F2；恶意名单元（check 工况）跑 F1
@@ -108,7 +116,7 @@ def _result() -> object:
                 "check": MappingProxyType({"total_sludge": 668.0}),
             }
         ),
-        trace=(),  # type: ignore[arg-type]
+        trace=(),
         repro=ReproTriple(
             design_hash="m4-audit", engine_version="m4", data_version="m4"
         ),
@@ -141,13 +149,14 @@ def test_structure_complete_wiring(tmp_path: Path) -> None:
     document = _render(tmp_path)
     assert "公式溯源审计报告" in document
     assert html.escape("design") in document and html.escape("check") in document
-    for node in _trace():  # type: ignore[union-attr]
+    for node in _trace():
         assert node.norm_ref  # 每节点条文号非空（M4 验收前提）
         assert html.escape(node.formula_id) in document
         assert html.escape(node.norm_ref) in document
         assert html.escape("a + b") in document  # REGISTRY expression 面
         assert html.escape("测试符号 a") in document  # 符号定义面
-        assert html.escape("a") in document  # inputs 逐键
+        for key, value in node.inputs.items():  # inputs 逐键=值面（AUDIT 一审 M-1 收紧：单字符断言平凡通过）
+            assert f"{html.escape(key)} = {value!r}" in document
         assert repr(node.output) in document  # value 输出
     assert repr(667.4) in document  # 汇总指标面值
     assert html.escape("total_sludge") in document  # 汇总来源字段 ID
@@ -176,6 +185,7 @@ def test_deterministic_double_render_wiring(tmp_path: Path) -> None:
 def test_path_outside_rejected_wiring(tmp_path: Path) -> None:
     """R5 接线断言：相对路径与含 '..' 分量的输出路径拒绝（领域异常）。"""
     _register_probe_formulas()
+    assert InvalidAuditPathError is not None  # getattr 兜底形态收窄（AUDIT M-3：tests 面 mypy）
     with pytest.raises(InvalidAuditPathError, match="绝对路径"):
         render_audit_html(_trace(), _result(), Path("relative.html"))  # type: ignore[misc]
     with pytest.raises(InvalidAuditPathError, match=r"\.\."):
