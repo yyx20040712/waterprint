@@ -10,6 +10,11 @@
 # 全部数值 source 均为旧系统基线交叉引用，无条文出处——正式依据待领域专家核定。
 # 追认注记 2026-08-28：0.5.0 批 removal.mine_* 13 键已随三线 19 表追认扩批
 # （Ruling=RATIFY2，流程仓台账；矿井线逐条裁量点见 pending §11——按建议追认）。
+# 0.8.0 批注记 2026-08-28：NP1 段一起草 removal.{aao,cass}.{nh3n,tn,tp}.
+# mod_default 六键（UF-51，Ruling 九裁①去除率键族授权——市政生物段 aao/cass
+# 的 N/P 出流由透传改去除率键族；上段"NH3N/TN/TP 不建条目"旧规对这两单元
+# 解除、其余单元维持不建；AI 起草待追认 I2 流程，段二 manifest removal_refs
+# 扩键后生效——当前引擎出流仍透传；golden_municipal 槽位不建）。
 
 - key: "removal.cugeshan.bod5.mod_default"
   value: 0.05
@@ -386,3 +391,47 @@
   unit: "dimensionless"
   source: "GB/T 31392-2022（消毒机理，条号待核对）"
   note: "矿井水紫外消毒 COD 去除率默认档——物理消毒无去除，显式 0.0（穿流）；数据策略 v2"
+
+# ── 生物段 N/P 去除六键 0.8.0 批（NP1 段一，数据策略 v2：工程常用范围中值
+#    口径起草，出处双源=GB 50014-2021 §7.6+给水排水设计手册（第 5 册
+#    城镇排水）AAO/SBR 工艺 N/P 去除工程常用范围；AI 起草待追认[UF-51，
+#    Ruling 九裁①去除率键族授权，I2 流程——追认前禁进 golden/禁触实装]；
+#    与 BOD5/COD/SS 同构去除率键族，出流=入质×(1−r)；golden_municipal
+#    槽位不建——golden 未录 N/P 去除档；逐字对应 docs/norms/{aao,cass}.md
+#    衔接式 N/P 三行；段二 manifest removal_refs 扩键后生效） ──
+
+- key: "removal.aao.nh3n.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——硝化去除）；给水排水设计手册（第 5 册 城镇排水）AAO 工艺 NH3N 去除常用带"
+  note: "AAO 生物池 NH3N 去除率默认档（0.85~0.95 中值，硝化充分工况）；一级A 校核：26×(1−0.90)=2.6 mg/L ≤ 限 5，裕度 48%；NP1 起草待追认"
+
+- key: "removal.aao.tn.mod_default"
+  value: 0.75
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——反硝化脱氮）；给水排水设计手册（第 5 册 城镇排水）AAO 工艺 TN 去除常用带"
+  note: "AAO 生物池 TN 去除率默认档（0.70~0.80 中值）；一级A 校核：43×(1−0.75)=10.75 mg/L ≤ 限 15，裕度 28%；池容面 delta_n/tn_eff 机理链不受此键影响；NP1 起草待追认"
+
+- key: "removal.aao.tp.mod_default"
+  value: 0.93
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——生物除磷）；给水排水设计手册（第 5 册 城镇排水）AAO 工艺 TP 去除常用带"
+  note: "AAO 生物池 TP 去除率默认档（0.90~0.95 中值，生物除磷+化学协同除磷口径）；一级A 校核：6.5×(1−0.93)=0.455 mg/L ≤ 限 0.5，裕度 9%（偏窄，协同除磷依赖注记）；NP1 起草待追认"
+
+- key: "removal.cass.nh3n.mod_default"
+  value: 0.90
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——序批式硝化去除）；给水排水设计手册（第 5 册 城镇排水）SBR/CASS 工艺 NH3N 去除常用带"
+  note: "CASS 生物池 NH3N 去除率默认档（0.85~0.95 中值，SBR 硝化与 AAO 同效，与 removal.aao.nh3n 同族同值）；一级A 校核：26×(1−0.90)=2.6 mg/L ≤ 限 5，裕度 48%；NP1 起草待追认"
+
+- key: "removal.cass.tn.mod_default"
+  value: 0.70
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——序批式脱氮）；给水排水设计手册（第 5 册 城镇排水）SBR/CASS 工艺 TN 去除常用带"
+  note: "CASS 生物池 TN 去除率默认档（0.65~0.80 中值，同步硝化反硝化脱氮效率略低于 AAO 时空分档——0.70 vs aao 0.75）；一级A 校核：43×(1−0.70)=12.9 mg/L ≤ 限 15，裕度 14%；NP1 起草待追认"
+
+- key: "removal.cass.tp.mod_default"
+  value: 0.93
+  unit: "dimensionless"
+  source: "GB 50014-2021 §7.6（生物脱氮除磷——序批式除磷）；给水排水设计手册（第 5 册 城镇排水）SBR/CASS 工艺 TP 去除常用带"
+  note: "CASS 生物池 TP 去除率默认档（0.90~0.95 中值，需化学辅助除磷协同，与 removal.aao.tp 同族同值）；一级A 校核：6.5×(1−0.93)=0.455 mg/L ≤ 限 0.5，裕度 9%；NP1 起草待追认"

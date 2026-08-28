@@ -253,3 +253,25 @@ grep -n "diagnosis" server/waterprint_server/services/enumeration.py
 # UF-49：initializer 注入+文件取消令牌
 grep -n "_init_progress_queue\|cancel_token" server/waterprint_server/jobs/worker.py
 ```
+
+## 十二、NP1 批新增项（2026-08-28，N/P 建模段一——数据批）
+
+> 来源：Ruling 九裁①（N/P 建模 golden 升版授权）+explore-NP1-freeze §二
+> 建模形态裁决。两段制：段一=纯数据+文档批（本批），段二=实装+golden
+> 15 锚重录批（用户追认后开工）。
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-51 | 水质建模 | 市政生物段 aao/cass 出流水质 NH3N/TN/TP 语义：全链 removal_refs 仅 {BOD5,CODCR,SS} 三键，N/P 进水原值穿流（golden 五工况 NH3N 26/TN 43/TP 6.5 全同值=零去除透传；aao/cass manifest 头注"NH3N/TN/TP 不建条目"+包内透传断言在案）——生物脱氮除磷的出流建模形态（去除率键族 vs 机理导出量 tn_out=tn_eff）与数值规格双沉默，实现者可自创双轨或拍数值 | 已定义（临置）→**去除率键族路线**（NP1 冻结 §二裁决：removal.{aao,cass}.{nh3n,tn,tp}.mod_default 六键，与 BOD5/COD/SS 同构，出流=入质×(1−r) 遍历机制现成；否决机理导出量——出流与进流无关弱化回溯链+与 removal_refs 机制异构双轨）。**段一数据批已落（2026-08-28，coefficients 0.8.0）**：六键起草待追认（I2 流程——aao NH3N 0.90/TN 0.75/TP 0.93、cass NH3N 0.90/TN 0.70/TP 0.93，带值+一级A 校核注记必附；追认前禁进 golden/禁触实装）；docs/norms/{aao,cass}.md 衔接式 N/P 三行+参数档三行同步起草。**段二待办**：单元 manifest removal_refs 扩三键+"不建条目"头注刷新+透传断言改去除断言+golden 15 锚重录（追认后开工）。UF-39 消歧注记在案（UF-39=出水标准库装载；流程旧文档曾以"UF-39"指 N/P 建模系编号误用，见 §七行内注记） | NP1 2026-08-28 |
+
+### 十二批验证命令摘要（仓库根执行，2026-08-28）
+
+```bash
+# UF-51：透传现状铁证（manifest 头注+removal_refs 三键面）
+grep -n "NH3N/TN/TP 不建条目" core/waterprint/units_lib/municipal/{aao,cass}/manifest.py
+    # aao manifest.py:17 / cass manifest.py:20（段二刷新）
+grep -n "removal_refs" core/waterprint/units_lib/municipal/{aao,cass}/manifest.py
+    # aao :267 / cass :372——现仅 {BOD5,CODCR,SS} 三键（段二扩 N/P 三键）
+# 六键已入库（0.8.0 起草档；golden_municipal 槽位不建）
+grep -c "removal.aao.nh3n.mod_default\|removal.aao.tn.mod_default\|removal.aao.tp.mod_default\|removal.cass.nh3n.mod_default\|removal.cass.tn.mod_default\|removal.cass.tp.mod_default" data/coefficients/removal_rates.yaml   # 6
+```
