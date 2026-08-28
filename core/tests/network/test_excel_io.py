@@ -26,8 +26,13 @@ pytestmark = pytest.mark.skipif(
 )
 
 _COLUMNS = (
-    "segment_id", "design_flow", "length",
-    "ground_start", "ground_end", "upstream_invert", "pipe_type",
+    "segment_id",
+    "design_flow",
+    "length",
+    "ground_start",
+    "ground_end",
+    "upstream_invert",
+    "pipe_type",
 )
 
 
@@ -61,12 +66,20 @@ def test_template_roundtrip_wiring(tmp_path: Path) -> None:
     segments = read_network_excel(xlsx)
     assert segments == (
         PipeSegment(
-            segment_id="W1-W2", design_flow=0.05, length=150.0,
-            ground_start=52.0, ground_end=51.4, upstream_invert=48.0,
+            segment_id="W1-W2",
+            design_flow=0.05,
+            length=150.0,
+            ground_start=52.0,
+            ground_end=51.4,
+            upstream_invert=48.0,
         ),
         PipeSegment(
-            segment_id="W2-W3", design_flow=0.12, length=200.0,
-            ground_start=51.4, ground_end=50.6, upstream_invert=None,
+            segment_id="W2-W3",
+            design_flow=0.12,
+            length=200.0,
+            ground_start=51.4,
+            ground_end=50.6,
+            upstream_invert=None,
         ),
     )
     options = DesignOptions(

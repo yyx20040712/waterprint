@@ -63,10 +63,7 @@ def test_max_flow_near_depth_094() -> None:
 
 def test_full_flow_monotone_in_diameter() -> None:
     """R4：同坡度满流流量随管径单调增（300→600→900→1500 抽档）。"""
-    flows = [
-        full_flow_capacity(diameter, 0.004, 0.013)
-        for diameter in (0.3, 0.6, 0.9, 1.5)
-    ]
+    flows = [full_flow_capacity(diameter, 0.004, 0.013) for diameter in (0.3, 0.6, 0.9, 1.5)]
     assert all(later > earlier for earlier, later in pairwise(flows))
 
 
@@ -114,7 +111,5 @@ def test_manual_ratio_table_cross_check() -> None:
         # 照 R4"一致性由测试背书"移此）。
         theta = 2.0 * math.acos(1.0 - 2.0 * depth)
         beta_analytic = (theta - math.sin(theta)) / theta
-        radius_ratio = apply(
-            "NM-F2-R", {"beta": beta_analytic, "d": diameter}, ("network", "test")
-        )
+        radius_ratio = apply("NM-F2-R", {"beta": beta_analytic, "d": diameter}, ("network", "test"))
         assert math.isclose(result.hydraulic_radius, radius_ratio, rel_tol=1e-8)

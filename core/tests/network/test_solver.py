@@ -35,7 +35,18 @@ def test_infeasible_segment_reports_reasons_wiring() -> None:
     """
     options = DesignOptions(
         available_diameters=(
-            0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.5,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0,
+            1.1,
+            1.2,
+            1.4,
+            1.5,
         ),
         min_velocity=0.6,
         max_velocity=3.0,

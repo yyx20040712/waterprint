@@ -462,12 +462,14 @@ _NETWORK: Final[tuple[Assumption, ...]] = (
     Assumption(
         "network.solve.depth_min", 0.02, DimKey.DIMENSIONLESS,
         f"{_NM4_REF}：二分区间 [0.02, 0.998] 下端",
-        "solve_depth 区间下端（h/D）", TuningImpact("抬高→浅流无解增多，降低→更稳", ()),
+        "solve_depth 区间下端（h/D）",
+        TuningImpact("抬高→浅流无解增多，降低→更稳", ()),
     ),
     Assumption(
         "network.solve.depth_max", 0.998, DimKey.DIMENSIONLESS,
         f"{_NM4_REF}：二分区间 [0.02, 0.998] 上端",
-        "solve_depth 区间上端（h/D）", TuningImpact("抬升→近满流可解，降低→误报无解", ()),
+        "solve_depth 区间上端（h/D）",
+        TuningImpact("抬升→近满流可解，降低→误报无解", ()),
     ),
     Assumption(
         "network.excel.max_rows", 5000, DimKey.DIMENSIONLESS,

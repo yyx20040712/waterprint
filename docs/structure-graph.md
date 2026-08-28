@@ -73,6 +73,7 @@
 | `waterprint.cli` | `waterprint.contracts` | 参数与项目 schema 校验 |
 | `waterprint.cli` | `waterprint.drafting` | export 命令出图 |
 | `waterprint.cli` | `waterprint.network` | 管网子工具命令 |
+| `waterprint.cli` | `waterprint.registry` | network 命令系数装载异常映射（同 app 装载语义）——NET2 补登 |
 | `waterprint.app` | `waterprint.units_lib` | 唯一装配点：单元发现/实例化/注入 |
 | `waterprint.app` | `waterprint.graph` | 图执行编排 |
 | `waterprint.app` | `waterprint.solution` | 方案枚举用例 |

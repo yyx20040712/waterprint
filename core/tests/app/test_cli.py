@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 import pytest
 
@@ -19,15 +20,29 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_exit_code_semantics_wiring() -> None:
-    """R1 接线断言：0 成功 / 2 用法错误 / 3 校验失败 / 4 计算失败。"""
-    raise AssertionError(
-        "M1 接线断言：无参调用断言退出码 2；坏项目文件断言 3——不得删除"
-    )
+def test_exit_code_semantics_wiring(tmp_path: Path) -> None:
+    """R1 接线断言（NET2 填真实现）：0 成功 / 2 用法错误 / 3 校验失败。
+
+    无参调用→2（argparse required 子命令缺失）；坏项目文件→3（network
+    子命令读入不存在文件=读入校验失败口径——v2 首发子命令语义同 R1）。
+    """
+    assert main([]) == 2
+    assert main(["network", str(tmp_path / "nonexistent.xlsx")]) == 3
 
 
-def test_new_unit_refuses_existing_target_wiring() -> None:
-    """R2 接线断言：目标单元包已存在 = 拒绝（防误覆盖）。"""
-    raise AssertionError(
-        "M1 接线断言：对 _template 再生成 'test_demo' 两次，第二次拒绝——不得删除"
-    )
+def test_new_unit_refuses_existing_target_wiring(tmp_path: Path) -> None:
+    """R2 接线断言（NET2 填真实现）：目标单元包已存在 = 拒绝（防误覆盖）。
+
+    --root 指向 tmp 复制的模板根：首次生成成功（0）；同参再生成同一
+    'test_demo' 目标 → 第二次拒绝（非 0——幂等保护）。
+    """
+    import shutil
+
+    template = Path(__file__).resolve().parents[2] / "waterprint" / "units_lib" / "_template"
+    root = tmp_path / "units_lib"
+    shutil.copytree(template, root / "_template", ignore=shutil.ignore_patterns("__pycache__"))
+    first = main(["new-unit", "municipal", "test_demo", "--root", str(root)])
+    assert first == 0
+    assert (root / "municipal" / "test_demo").is_dir()
+    second = main(["new-unit", "municipal", "test_demo", "--root", str(root)])
+    assert second != 0

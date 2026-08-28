@@ -171,8 +171,10 @@ def _validate_row(
     ground_start = _numeric(values["ground_start"])
     ground_end = _numeric(values["ground_end"])
     for name, value in (
-        ("design_flow", flow_value), ("length", length_value),
-        ("ground_start", ground_start), ("ground_end", ground_end),
+        ("design_flow", flow_value),
+        ("length", length_value),
+        ("ground_start", ground_start),
+        ("ground_end", ground_end),
     ):
         if value is None:
             errors.append(f"第 {row_number} 行 {name} 必须为数值")

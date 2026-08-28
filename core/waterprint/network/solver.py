@@ -55,12 +55,18 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final, final
 
+from waterprint.contracts.quantity import DimKey, parse
 from waterprint.network.manning import (
     full_flow_capacity,
     partial_flow,
     solve_depth,
+)
+from waterprint.registry.coefficients import (
+    Coefficients,
+    load_coefficients,
 )
 from waterprint.registry.formulas import apply
 
@@ -72,7 +78,9 @@ __all__ = [
     "ParallelGroup",
     "PipeSegment",
     "SegmentDesign",
+    "build_design_options",
     "design_pipes",
+    "load_network_coefficients",
 ]
 
 
@@ -370,4 +378,50 @@ def design_pipes(segments: Sequence[PipeSegment], options: DesignOptions) -> Net
         parallel=tuple(parallel),
         warnings=tuple(warnings),
         failures=tuple(failures),
+    )
+
+
+# ── 系数装配面（NET2 段二批：cli network 子命令与 golden 测试同口径；
+#    结构图谱 network→registry 边承载——真库路径按 conftest 同款
+#    core/waterprint/network → repo/data/coefficients 回溯）──
+
+
+def load_network_coefficients() -> Coefficients:
+    """装载真库系数包（repo data/coefficients——21 个 network.* 键宿主）。"""
+    repo_root = Path(__file__).resolve().parents[2].parent
+    return load_coefficients(repo_root / "data" / "coefficients")
+
+
+def _millimeters(key_suffix: str) -> float:
+    """键名后缀 DN 数值（mm）→ 米（单位换算契约——contracts.parse）。"""
+    return parse(float(key_suffix), "mm", DimKey.LENGTH)
+
+
+def build_design_options(coefficients: Coefficients, pipe_type: str) -> DesignOptions:
+    """从 coefficients network.* 21 键装配 DesignOptions（R4 源码零字面量）。
+
+    管径序列=network.dn.* 键值（mm 经单位换算契约转 m）；充满度分档=
+    network.max_fill_ratio.dn* 键序（键名后缀即 DN 边界，无硬编码分界）；
+    管材=network.roughness.<pipe_type>（模板 pipe_type 列/CLI --roughness
+    同键名口径）。
+    """
+    diameters = tuple(
+        sorted(
+            parse(coefficients.get(key).value, "mm", DimKey.LENGTH)
+            for key in coefficients.keys("network.dn.")
+        )
+    )
+    steps = tuple(
+        sorted(
+            (_millimeters(key.rsplit("dn", 1)[1]), coefficients.get(key).value)
+            for key in coefficients.keys("network.max_fill_ratio.")
+        )
+    )
+    return DesignOptions(
+        available_diameters=diameters,
+        min_velocity=coefficients.get("network.velocity_band.min").value,
+        max_velocity=coefficients.get("network.velocity_band.max").value,
+        max_depth=coefficients.get("network.max_depth").value,
+        fill_ratio_steps=steps,
+        roughness=coefficients.get(f"network.roughness.{pipe_type}").value,
     )
