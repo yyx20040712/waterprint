@@ -1,10 +1,12 @@
 # 安装工程单价（管道+设备）——COST1 概算段一迁移自旧系统
 # Graduation_design/ddesign_tool/src/models/cost/unit_prices.py
 # "一、管道单价"节（PIPE dict 12 档）+"四、设备购置参考价"节
-# （EQUIPMENT 13 单元组 39 条 = 市政 9 组 30 条 + 矿井 kw_ 4 组 11 条；
-# COMMON_EQUIP 8 项）。
+# （EQUIPMENT 13 单元组 41 条 = 市政 9 组 30 条 + 矿井 kw_ 4 组 11 条；
+#   COMMON_EQUIP 8 项）。
 # 管道族头注（照旧实标）：DN300~1500 钢筋混凝土管（GB/T 11836-2023 II 级），
 #   元/m，2024 年；DN<600 含辅材，DN≥600 仅主管。
+#   （source="2024 市场询价"归属注记：旧源仅注 2024 年调整口径，询价系四类
+#   白名单推断兜底——一审 Minor-1 留档）
 # 设备族头注（照旧实标）：万元/台，2024 年中标价（市场询价）。
 # 设备 key={unit}.{英文设备名}（snake_case 工程惯用词，矿井组保留 kw_ 前缀），
 #   name=中文显示名，quantity=台数（COMMON_EQUIP 合计项旧源无台数，不带此列）。
