@@ -1,0 +1,223 @@
+{
+  "case": "mine_43836",
+  "checked_units": [],
+  "condition_keys": [
+    "design",
+    "avg"
+  ],
+  "design_dims": {
+    "mine_water_chenshachi": {
+      "l_cell": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 15.0
+      },
+      "l_weir": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 132.8
+      }
+    },
+    "mine_water_cifenli": {
+      "n_disks": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 23.0
+      },
+      "q_sludge": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 304.8594545454547
+      }
+    },
+    "mine_water_gaomidu": {
+      "b": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 12.5
+      },
+      "l": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 18.5
+      },
+      "q_surf_act": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 5.923783783783784
+      }
+    },
+    "mine_water_input": {
+      "q_design": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 0.7610416666666666
+      },
+      "v_inlet": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 1.0093628595741209
+      }
+    },
+    "mine_water_ningjiao": {
+      "b": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 4.5
+      },
+      "h_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 3.4
+      },
+      "t_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 7.5
+      }
+    },
+    "mine_water_tiaojiechi": {
+      "b": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 10.5
+      },
+      "h_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 3.5
+      },
+      "l": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 29.0
+      }
+    },
+    "mine_water_vxinglvchi": {
+      "b": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 3.5
+      },
+      "f_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 386.7882352941176
+      },
+      "l": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 7.0
+      }
+    },
+    "mine_water_ziwai": {
+      "n_rows": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 3.0
+      },
+      "t_contact": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 2.8949794689296464
+      }
+    }
+  },
+  "effluent": {
+    "avg": {
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 51.800000000000004
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 1.0
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 1.3599999999999992
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 60.0
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 2.0
+      }
+    },
+    "design": {
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 51.800000000000004
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 1.0
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 1.3599999999999992
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 60.0
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
+        "value": 2.0
+      }
+    }
+  },
+  "generated": {
+    "data_version": "coefficients@1.0.0+unit_prices@1.0.0",
+    "engine_version": "waterprint-server 0.1.0",
+    "serialize_bytes": 78313,
+    "serialize_sha256_head": "ed61ce1339685717",
+    "source": "主线实跑 2026-08-28 HEAD=3b6fce2"
+  },
+  "tolerance": {
+    "abs": 1e-12,
+    "rel": 1e-12
+  }
+}
