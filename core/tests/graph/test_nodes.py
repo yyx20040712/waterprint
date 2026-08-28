@@ -1,7 +1,9 @@
-"""nodes 镜像测试：内置图节点三 kind（构造校验/汇流混合/覆盖透传）。
+"""nodes 镜像测试：内置图节点四 kind（构造校验/汇流混合/覆盖透传/回流转换）。
 
 输入:  waterprint.graph.nodes 公开符号
-输出:  §14.3 内置节点语义断言（探针②入锁版；T7b 授权新建）
+输出:  §14.3 内置节点语义断言（探针②入锁版；T7b 授权新建；GOLDEN3 D1
+       2026-08-28 新增 recycle_junction 四用例——SLUDGE 单入投影数值/
+       拒 WATER/拒空入多入/拒零流量）
 """
 
 from __future__ import annotations
@@ -134,7 +136,79 @@ def test_quality_edit_overrides_and_passes_through() -> None:
         builtin_unit("quality_edit", {"foo": 1.0})
 
 
+def test_recycle_junction_projects_sludge_to_water() -> None:
+    """回流转换：单入 SLUDGE → 出流 WATER（kz=1 无峰化）+SS 投影+dims 两键。"""
+    from waterprint.contracts.ports import PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+
+    unit = builtin_unit("recycle_junction", {})
+    result = unit.compute(
+        _ctx(
+            "rj_sup",
+            {PortRef("sludge_nongsuo", "sup"): SludgeFlow(q_wet=0.002, ds=0.005, moisture=0.998)},
+            {},
+        )
+    )
+    out = PortRef("rj_sup", "out")
+    # 流量直入（q_avg_daily=q_wet）+kz=1（回流连续均匀流——工程裁量 I2 追认）
+    assert result.outflows[out].q_avg_daily == pytest.approx(0.002)
+    assert result.outflows[out].kz == 1.0
+    assert result.outflows[out].q_design == pytest.approx(0.002)
+    # SS 投影：ds/q_wet=0.005/0.002 kg/m³ →×1000 mg/L（只投 SS）
+    assert result.outqualities[out].concentrations["SS"] == pytest.approx(2500.0)
+    assert result.dims == pytest.approx(
+        {"q_recycle": 172.8, "ss_recycle": 2500.0}  # q×86400 回 m³/d 工程口径
+    )
+    assert result.warnings == ()
+    assert result.formula_ids == ("builtin.recycle_junction",)
+
+
+def test_recycle_junction_rejects_water_inflow() -> None:
+    """拒 WATER 股：泥→水投影单向（WATER 入流=InvalidNodeError）。"""
+    from waterprint.contracts.flow import WaterFlow
+    from waterprint.contracts.ports import PortRef
+
+    unit = builtin_unit("recycle_junction", {})
+    with pytest.raises(InvalidNodeError, match="SLUDGE"):
+        unit.compute(
+            _ctx("rj", {PortRef("hub", "out"): WaterFlow(q_avg_daily=0.4, kz=1.3)}, {})
+        )
+
+
+def test_recycle_junction_rejects_empty_and_multi_inflows() -> None:
+    """空入/多入拒：恰一入边（单入转换语义）。"""
+    from waterprint.contracts.ports import PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+
+    unit = builtin_unit("recycle_junction", {})
+    with pytest.raises(InvalidNodeError, match="恰一入边"):
+        unit.compute(_ctx("rj", {}, {}))
+    with pytest.raises(InvalidNodeError, match="恰一入边"):
+        unit.compute(
+            _ctx(
+                "rj",
+                {
+                    PortRef("a", "sup"): SludgeFlow(q_wet=0.002, ds=0.005, moisture=0.998),
+                    PortRef("b", "filtrate"): SludgeFlow(q_wet=0.001, ds=0.002, moisture=0.998),
+                },
+                {},
+            )
+        )
+
+
+def test_recycle_junction_rejects_zero_flow() -> None:
+    """零流量拒：SS 投影 ds/q_wet 无定义（GR-14 显式拒——工程裁量 I2 追认）。"""
+    from waterprint.contracts.ports import PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+
+    unit = builtin_unit("recycle_junction", {})
+    with pytest.raises(InvalidNodeError, match="q_wet 须为正有限值"):
+        unit.compute(
+            _ctx("rj", {PortRef("a", "sup"): SludgeFlow(q_wet=0.0, ds=0.0, moisture=0.0)}, {})
+        )
+
+
 def test_builtin_unit_rejects_unknown_kind() -> None:
-    """未知 kind = InvalidNodeError（合法三 kind 清单入消息）。"""
+    """未知 kind = InvalidNodeError（合法四 kind 清单入消息）。"""
     with pytest.raises(InvalidNodeError, match="未知内置节点 kind"):
         builtin_unit("bogus", {})
