@@ -56,7 +56,7 @@
   "core/tests/golden/golden_data/mine_43836/README.md": "d73c7fe4144023fc4b0a969f2fe2545d8388f7c3531c1797724319954190a3f5",
   "core/tests/golden/golden_data/mine_43836/expected_summary.json": "8c71f0e0435543084e8dbe99e875620b53bc0142da5c07facfcd9c56823e2d45",
   "core/tests/golden/golden_data/mine_43836/input_project.json": "044da37e48c383968b5a110fd3037551538cca0d7c8b040e5eab4e634240c47e",
-  "core/tests/golden/golden_data/mine_43836/notes.md": "37f4fd5767f99c2b7fbd91e949d1dbbba335a2c26641ff9e25c87fce8127fc84",
+  "core/tests/golden/golden_data/mine_43836/notes.md": "39ed16810404e96fe86a101e17313995546eb46a542b08cfda9b94f699233fc2",
   "core/tests/golden/golden_data/municipal_34760/README.md": "298eb1ae63f94813f697997ece48c545f7dbd6b073e5f457bd5d5728a205ff2e",
   "core/tests/golden/golden_data/municipal_34760/expected_summary.json": "251a69d51b6f56cc8889f7f777c0ae73246a342200f082e46d31639abdcdc70f",
   "core/tests/golden/golden_data/municipal_34760/input_project.json": "80684cdecbc1e619451a76179bd7db62cadc7903b67249728fd4efdf8b384102",
