@@ -55,7 +55,7 @@
   "core/tests/golden/golden_data/migrations/README.md": "ea4ad55d4157f1c1f4618e787f456e38835175f4cbcb6a61bf3c48e246f21564",
   "core/tests/golden/golden_data/mine_43836/README.md": "77f25b42e1048d06b297e62f70c9288c02e48b286486c4525c953d02ec2b3dde",
   "core/tests/golden/golden_data/municipal_34760/README.md": "298eb1ae63f94813f697997ece48c545f7dbd6b073e5f457bd5d5728a205ff2e",
-  "core/tests/golden/golden_data/municipal_34760/expected_summary.json": "bd6a7f6c9de4b03afa3bb481d6136f9521e741fc22243efcf5ea0fd5041b4cb0",
+  "core/tests/golden/golden_data/municipal_34760/expected_summary.json": "ec3738879effae3e8a766f5ab4ce94d823ab91e8a2ce03cf1c302b756004c789",
   "core/tests/golden/golden_data/municipal_34760/input_project.json": "c00feaf60111f637ab3260855e895d92f94737f71d55c7019c42a0c868aca4dd",
   "core/tests/golden/golden_data/municipal_34760/notes.md": "51e5d0afe772c86d91292e58b12fc00a0801086f5384870068c8d431fb1c3f83",
   "core/tests/golden/test_mine_water_e2e.py": "3b1f477323759a64f91841db0f11bb8f91cb352367f033991184bc42c6912c12",
