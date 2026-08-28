@@ -86,10 +86,12 @@
 | `server/waterprint_server/routers/calc.py` | 计算/枚举六端点（幂等/取消/分页，149 行） | 任务请求 | 任务句柄/TaskStatus/SolutionPage |
 | `server/waterprint_server/routers/exports.py` | 导出五端点（stale 守门/文件流/批量转任务句柄，127 行） | 导出选项 | 文件流/ExportHandle |
 | `server/waterprint_server/routers/events.py` | SSE 两端点（X-Accel 头/事件 JSON 化/断连清理，80 行） | 任务订阅 | text/event-stream |
+| `server/waterprint_server/routers/scene.py` | 场景图端点（FE1：GET /api/scene/{project_id} 一端点[condition_key 可选——缺省=排序首键回显]；response_model=SceneGraph 经服务层再导出，51 行） | project_id+condition_key | SceneGraph |
 | `server/waterprint_server/services/projects.py` | 项目用例（SERVER 实装：design_digest=content_hash B4 双胞胎[UF-47]/深度闸/锁 409/import_legacy M4 未就绪） | 项目 id/数据 | SaveOutcome/ProjectSummary/ValidationReport |
 | `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
 | `server/waterprint_server/services/enumeration.py` | 枚举用例（多单元 422[ADR-005]/分页白名单/feather 重载/无解 done+诊断[UF-48 随载荷交付]） | 枚举请求 | TaskHandle/SolutionPage/诊断 |
 | `server/waterprint_server/services/exports.py` | 导出用例（stale 409+force 标注/确定性命名/单产物上限 1 转任务/元数据边车） | 导出请求 | ExportHandle/ExportMeta |
+| `server/waterprint_server/services/scene.py` | 场景图用例（FE1：最近结果集取数[exports 同款模式复制]/假设合成视图[worker._build_env 同款]/core.build_scene 纯投影；无结果 404/工况非法 422/确定性继承，93 行） | 项目 id+工况键 | core.SceneGraph |
 | `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新） | TaskRequest | TaskStatus/Event 流 |
 | `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用） | payload+令牌 | 结果+进度 |
 
