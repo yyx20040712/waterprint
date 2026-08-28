@@ -1,6 +1,28 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.8.0"
+data_version: "0.9.0"
 # 变更记录：
+#   - 0.9.0: I3 出处白名单批（CJJ 131-2009 纳入——纯 source 改标升版
+#       回填；Ruling 九裁②授权[出处白名单两类→三类：GB 国标、行业
+#       标准[CJJ 131-2009 等]、给水排水设计手册]+九裁⑤联动[条号=章级
+#       继续挂账不虚构——CJJ 引用=规程级口径]；pending §12 第 6 条
+#       0.6.0 挂账解除）。factors.yaml 污泥线 20 键 source 的"GB
+#       50014-2021 §8（污泥章，条号待核对）（X）"段改标为"CJJ
+#       131-2009（城镇污水处理厂污泥处理技术规程——X 规程级口径，
+#       章级不虚构条号[九裁⑤口径]；I3 改标 2026-08-28[九裁②]）"——
+#       nongsuo 6[solid_load/time/depth 六带键]/shusong 2+bengzhan 2
+#       [velocity 四带键]/tuoshui 4[cake_moisture/dose_pam 四带键]/
+#       xiaohua 4[time/eta_vs 四带键]/ganhua 2[moisture_out 两带键]；
+#       手册段原样保留（数值真源链不变）；hebing.yield 三键不改
+#       （§8.1.4 表 5 明确条号=九裁⑤章级挂账类——"条号随追认核对"
+#       注记保留非本批）；**value/unit/note 全 551 键零触碰**（升版
+#       回填零数值变更红线——批前快照 .workflow/tmp/i3-values-pre.json
+#       逐键对照探针实录差异 0；装载探针四项实录见 task-I3-impl-
+#       report.md：a) data_version=0.9.0 b) 20 键 source 含 CJJ
+#       131-2009 且污泥线"条号待核对"零残留 c) 551 键 value 零扰动
+#       d) 键总数 551——全过）；文档同步四处：AGENTS §14 两类→三类
+#       口径+ADR-008 追加 I3 注记行+docs/norms/sludge_*.md 七表
+#       "数值 source 不标 CJJ"注记刷新为已标表述+docs/norms/README.md
+#       登记（按 grep 实况）。
 #   - 0.8.0: NP1 数据批（N/P 建模段一——公式族数据批；UF-51 登记，
 #       Ruling 九裁①授权，两段制：段一=本批纯数据+文档[零 Python 实装
 #       零测试改动零 golden 触碰]，段二=manifest removal_refs 扩键+实装
