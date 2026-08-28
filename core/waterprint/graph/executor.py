@@ -27,8 +27,8 @@
 #      同层/跨层组间依赖——已求解序合法放行）。compute 先经工况映射（ADR-007）。
 #   R3 可复算：同 (design, conditions, env) 双跑字节级相同（incremental
 #      只做等价优化——M1/M3 留白）。
-#   R4 计算迹：**与 PlantResult.trace=()/summary={} 占位冲突记档 D10**（sink 经
-#      UnitContext.trace 携带，收集归 M1 collector；厂级后批）。
+#   R4 计算迹：**与 PlantResult.trace=()/summary={} 占位冲突记档 D10**（sink 经 UnitContext.trace
+#      携带，收集归 M1 collector；厂级后批）。summary 空映射合法（泥线汇点，GOLDEN4b notes §6）。
 #   R5 异常隔离：compute 抛领域异常（_DOMAIN_EXCEPTIONS 在册族，新增族须
 #      同步——记档）→ InvalidExecutionError（消息含 unit_id+condition_key+
 #      摘要，from exc 保链）整工况失败上抛禁吞；不做部分结果聚合。
