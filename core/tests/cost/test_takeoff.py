@@ -37,7 +37,62 @@ def test_unit_mismatch_wiring_assertion() -> None:
 
     需要 PriceBook 与 PlantResult 可构造（M3）后接线；实现者不得删除。
     """
-    raise AssertionError(
-        "M3 接线断言：构造 m3 计价的量与 t 单价的条目，断言提取抛领域异常"
-        "——不得删除"
+    import tempfile
+    from pathlib import Path
+
+    from waterprint.contracts.result_schema import (
+        PlantResult,
+        ReproTriple,
+        UnitResultSnapshot,
     )
+    from waterprint.cost.prices import load_prices
+    from waterprint.cost.takeoff import (
+        FieldMapping,
+        InvalidTakeoffError,
+        QuantityRule,
+        takeoff_quantities,
+    )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        pkg = Path(tmp) / "unit_prices"
+        pkg.mkdir()
+        (pkg / "manifest.yaml").write_text(
+            "price_data_version: '1.0.0-test'\n", encoding="utf-8"
+        )
+        (pkg / "buildings.yaml").write_text("\n".join([
+            "- key: C30-TEST",
+            "  name: 测试混凝土",
+            "  unit: m3",
+            "  price: 100.0",
+            "  source: 测试定额",
+        ]), encoding="utf-8")
+        book = load_prices(pkg)
+    mapping = FieldMapping(rules=(
+        QuantityRule(
+            price_key="C30-TEST",
+            unit="t",
+            mode="direct",
+            source_field_ids=("v_concrete",),
+            cost_class="civil",
+            source="测试映射（单位故意与单价条目 m3 不一致）",
+            unit_id="municipal_chuchenchi",
+        ),
+    ))
+    snapshot = UnitResultSnapshot(
+        unit_id="municipal_chuchenchi",
+        outflows={},
+        outqualities={},
+        dims={"v_concrete": 100.0},
+        warnings=(),
+        formula_ids=(),
+    )
+    plant = PlantResult(
+        conditions={"design": {"municipal_chuchenchi": snapshot}},
+        summary={},
+        trace=(),
+        repro=ReproTriple("", "", ""),
+    )
+    with pytest.raises(InvalidTakeoffError, match="不一致"):
+        takeoff_quantities(
+            plant, "design", price_book=book, field_mapping=mapping
+        )

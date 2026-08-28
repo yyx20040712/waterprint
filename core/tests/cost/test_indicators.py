@@ -33,6 +33,54 @@ def test_status_is_warn_not_error_semantics() -> None:
 
     需要可构造 EstimateSheet（M3）后接线；实现者不得删除。
     """
-    raise AssertionError(
-        "M3 接线断言：构造越带概算，断言 status 为 WARN 且 reason 非空——不得删除"
+    import tempfile
+    from pathlib import Path
+
+    from waterprint.cost.estimate import FeeRule, build_estimate
+    from waterprint.cost.indicators import IndicatorBand, check_indicators
+    from waterprint.cost.prices import load_prices
+    from waterprint.cost.takeoff import TakeoffItem
+
+    with tempfile.TemporaryDirectory() as tmp:
+        pkg = Path(tmp) / "unit_prices"
+        pkg.mkdir()
+        (pkg / "manifest.yaml").write_text(
+            "price_data_version: '1.0.0-test'\n", encoding="utf-8"
+        )
+        (pkg / "buildings.yaml").write_text("\n".join([
+            "- key: C30-TEST",
+            "  name: 测试混凝土",
+            "  unit: m3",
+            "  price: 100.0",
+            "  source: 测试定额",
+        ]), encoding="utf-8")
+        book = load_prices(pkg)
+    quantities = (
+        TakeoffItem(
+            price_key="C30-TEST",
+            quantity=20.0,
+            unit="m3",
+            source_field_ids=("municipal_chuchenchi.v_concrete",),
+            cost_class="civil",
+            condition_key="design",
+        ),
     )
+    fee_rules = (
+        FeeRule("rate.contingency", 0.10, "subtotal",
+                "GB50500-2013", "reserve"),
+        FeeRule("rate.tax", 0.09, "subtotal + reserve_subtotal",
+                "GB50500-2013", "tax"),
+    )
+    sheet = build_estimate(quantities, book, fee_rules)
+    band = IndicatorBand(
+        indicator_key="indicator.unit_cost",
+        formula="grand_total / scale",
+        band=(3000.0, 5000.0),
+        unit="元/(m3.d)",
+        source="T/BCEBCA 1-2023",
+    )
+    report = check_indicators(sheet, (band,), design_scale=1.0)
+    assert report.checked
+    reading = report.readings[0]
+    assert reading.status == "WARN"
+    assert reading.reason
