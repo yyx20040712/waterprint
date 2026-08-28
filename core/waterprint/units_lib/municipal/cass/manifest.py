@@ -17,7 +17,8 @@
 #   系数不落本表——ns/mlss/泥龄/滗水/选择区五校核带+需氧量/剩余污泥
 #   同族系数+滗水器单台能力+超高/壁厚/高程水损全部经 factor.cass.*
 #   键消费（app._unit_params 投影）；去除率经 removal.cass.*.mod_default
-#   （AAO 同族档 0.90/0.85/0.90；NH3N/TN/TP 不建条目）。
+#   （AAO 同族档 0.90/0.85/0.90+N/P 三键 0.90/0.70/0.93——六指标全键，
+#   N/P 三键 NP1 起草 0.8.0、RATIFY3 追认 2026-08-28）。
 # 【公式注册（D1）】CA-F1~F27 逐条 FormulaSpec+register；expression=三表
 #   公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；结构
 #   常数（24/86400/1000/3/4.57/2.86）内联（本文件=units_lib manifest
@@ -373,6 +374,9 @@ manifest = load_manifest(
             "BOD5": "removal.cass.bod5.mod_default",
             "CODCR": "removal.cass.cod.mod_default",
             "SS": "removal.cass.ss.mod_default",
+            "NH3N": "removal.cass.nh3n.mod_default",
+            "TN": "removal.cass.tn.mod_default",
+            "TP": "removal.cass.tp.mod_default",
         },
         "norm_refs": [
             "GB 50014-2021 §7.6（序批式活性污泥法 SBR 变体；§7.6.10 容积公式、"

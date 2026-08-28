@@ -23,7 +23,8 @@
 # 【系数通道】factor.aao.*/removal.aao.* 经 ctx.params 投影面取值
 #   （app._unit_params，M1a 现状对齐）；缺键=领域异常。
 # 【输出面（D3）】outflows=入流透传；dims=三表水力结果全量 snake 键；
-#   outqualities=入质×(1−removal.mod_default) 三指标+NH3N/TN/TP 透传；
+#   outqualities=入质×(1−removal.mod_default) removal_refs 命中键
+#   （六指标全键，NP2）+其余透传；
 #   warnings=七条校核带越界（ns/mlss/t_p/R/Ri 参数带+t_n/theta_c 结果带
 #   ——好氧泥龄口径，param_key 归因+双向调节方向）；formula_ids 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
@@ -286,7 +287,7 @@ def _warnings(
 
 
 def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
-    """出水质：三指标 ×(1−removal.mod_default)，其余指标透传。"""
+    """出水质：removal_refs 命中键 ×(1−removal.mod_default)，其余透传。"""
     out: dict[str, float] = {}
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)

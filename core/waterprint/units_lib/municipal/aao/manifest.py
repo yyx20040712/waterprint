@@ -14,7 +14,8 @@
 #   R=1.0/Ri=2.0/TN_eff=15[出水标准数据条目，一级 A]/sec_per_hour=3600
 #   [时换算，M1a 同款参数形态]）；系数不落本表——Kde/y/a′/b′/vss_ratio/
 #   P/七条校核带全部经 factor.aao.* 键消费（app._unit_params 投影）；
-#   去除率经 removal.aao.*.mod_default 键（NH3N/TN/TP 不建条目）。
+#   去除率经 removal.aao.*.mod_default 键（六指标全键：BOD5/CODCR/SS+
+#   NH3N/TN/TP——N/P 三键 NP1 起草 0.8.0、RATIFY3 追认 2026-08-28）。
 # 【公式注册（D2）】AO-F1~F14 逐条 FormulaSpec+register；expression=三表
 #   公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；结构常数
 #   （24/1000/4.57/2.86/86400）内联（本文件=units_lib manifest 白名单区；
@@ -257,6 +258,10 @@ manifest = load_manifest(
                 "default": 2.0,
                 "range": {"min": 1.0, "max": 3.0},
             },
+            # tn_eff 双口径并存记档（NP2）：池容 AO-F4 设计目标 tn_eff=15
+            # （AO-F4 入参 delta_n=TN_in−tn_eff，辖池容机理链）与出流水质
+            # 键族 TN=TN_in×(1−removal.aao.tn)（辖出流水质链）双口径并行
+            # ——语义不冲突（机理池容 vs 出流浓度两链各辖其面）。
             {"field_id": "tn_eff", "dim": "CONCENTRATION", "default": 15.0},
             {"field_id": "sec_per_hour", "dim": "DIMENSIONLESS", "default": 3600.0},
         ],
@@ -268,6 +273,9 @@ manifest = load_manifest(
             "BOD5": "removal.aao.bod5.mod_default",
             "CODCR": "removal.aao.cod.mod_default",
             "SS": "removal.aao.ss.mod_default",
+            "NH3N": "removal.aao.nh3n.mod_default",
+            "TN": "removal.aao.tn.mod_default",
+            "TP": "removal.aao.tp.mod_default",
         },
         "norm_refs": [
             "GB 50014-2021 §7.6（§7.6.10 容积公式、§7.6.39 厌氧区 HRT）、"

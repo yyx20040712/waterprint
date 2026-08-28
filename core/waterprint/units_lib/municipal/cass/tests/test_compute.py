@@ -102,10 +102,14 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.cass.superheight": 0.5,
         "factor.cass.wall_thickness_coef": 0.40,
         "factor.cass.elevation_loss": 0.5,
-        # removal_rates.yaml mod_default 档逐字（AAO 同族档）
+        # removal_rates.yaml mod_default 档逐字（AAO 同族档+N/P 三键 0.8.0
+        # NP1/RATIFY3——tn 档 0.70 略低于 aao 0.75，SBR 时空分档）
         "removal.cass.bod5.mod_default": 0.90,
         "removal.cass.cod.mod_default": 0.85,
         "removal.cass.ss.mod_default": 0.90,
+        "removal.cass.nh3n.mod_default": 0.90,
+        "removal.cass.tn.mod_default": 0.70,
+        "removal.cass.tp.mod_default": 0.93,
     }
     params.update(overrides)
     return params
@@ -138,10 +142,13 @@ def test_manifest_identity() -> None:
         ("in", "WATER", "IN"),
         ("out", "WATER", "OUT"),
     ]
-    assert manifest.removal_refs == {
+    assert manifest.removal_refs == {  # 六指标全键（N/P 三键 NP1/RATIFY3）
         "BOD5": "removal.cass.bod5.mod_default",
         "CODCR": "removal.cass.cod.mod_default",
         "SS": "removal.cass.ss.mod_default",
+        "NH3N": "removal.cass.nh3n.mod_default",
+        "TN": "removal.cass.tn.mod_default",
+        "TP": "removal.cass.tp.mod_default",
     }
 
 
@@ -241,9 +248,9 @@ def test_outflow_and_quality_aao_family() -> None:
     assert out_conc["BOD5"] == pytest.approx(12.32996, abs=1e-6)  # 123.2996×0.10
     assert out_conc["CODCR"] == pytest.approx(29.99043, abs=1e-6)  # ×0.15
     assert out_conc["SS"] == pytest.approx(9.32121, abs=1e-6)  # ×0.10
-    assert out_quality.NH3N == 26.0
-    assert out_quality.TN == 43.0
-    assert out_quality.TP == 6.5
+    assert out_conc["NH3N"] == pytest.approx(2.6)  # N/P 六键去除[NP1/RATIFY3]
+    assert out_conc["TN"] == pytest.approx(12.9)
+    assert out_conc["TP"] == pytest.approx(0.455)
 
 
 def test_band_warnings() -> None:

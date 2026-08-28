@@ -91,10 +91,13 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.aao.r_internal_band.max": 3.0,
         "factor.aao.sludge.moisture": 0.994,
         "factor.aao.elevation_loss": 0.5,
-        # removal_rates.yaml mod_default 档逐字
+        # removal_rates.yaml mod_default 档逐字（N/P 三键 0.8.0 NP1/RATIFY3）
         "removal.aao.bod5.mod_default": 0.90,
         "removal.aao.cod.mod_default": 0.85,
         "removal.aao.ss.mod_default": 0.90,
+        "removal.aao.nh3n.mod_default": 0.90,
+        "removal.aao.tn.mod_default": 0.75,
+        "removal.aao.tp.mod_default": 0.93,
     }
     params.update(overrides)
     return params
@@ -127,10 +130,13 @@ def test_manifest_identity() -> None:
         ("in", "WATER", "IN"),
         ("out", "WATER", "OUT"),
     ]
-    assert manifest.removal_refs == {
+    assert manifest.removal_refs == {  # 六指标全键（N/P 三键 NP1/RATIFY3）
         "BOD5": "removal.aao.bod5.mod_default",
         "CODCR": "removal.aao.cod.mod_default",
         "SS": "removal.aao.ss.mod_default",
+        "NH3N": "removal.aao.nh3n.mod_default",
+        "TN": "removal.aao.tn.mod_default",
+        "TP": "removal.aao.tp.mod_default",
     }
 
 
@@ -182,9 +188,9 @@ def test_outflow_passthrough_and_quality() -> None:
     assert pytest.approx(123.2996 * (1 - 0.90)) == out_quality.BOD5  # 12.32996
     assert pytest.approx(199.9362 * (1 - 0.85)) == out_quality.CODCR  # 29.99043
     assert pytest.approx(93.2121 * (1 - 0.90)) == out_quality.SS  # 9.32121
-    assert out_quality.NH3N == 26.0  # 无去除键穿流不变
-    assert out_quality.TN == 43.0
-    assert out_quality.TP == 6.5
+    assert pytest.approx(2.6) == out_quality.NH3N  # N/P 六键去除[NP1/RATIFY3]
+    assert pytest.approx(10.75) == out_quality.TN
+    assert pytest.approx(0.455) == out_quality.TP
 
 
 def test_ns_band_warning() -> None:
