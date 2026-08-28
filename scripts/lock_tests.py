@@ -97,8 +97,11 @@ def main(argv: list[str]) -> int:
     print("本操作将（重新）生成测试锁定清单并设置只读属性——")
     print("仅限人类在显式测试变更后执行（AGENTS.md §7）。")
     if not extra_paths:
-        print("[警示] 裸跑两默认根将不含 units_lib 包内 tests 条目——"
-              "若既有条目被挤出将由守卫拦截")
+        # zM-1（ENG3a 二审 CONFIRMED）：尾句随 --prune 条件化——已显式放行
+        # 删除的路径上警示不得仍称"将由守卫拦截"（该组合守卫不拦且真删）。
+        tail = ("--prune 已放行：本次可能直接删除既有条目" if prune
+                else "若既有条目被挤出将由守卫拦截")
+        print(f"[警示] 裸跑两默认根将不含 units_lib 包内 tests 条目——{tail}")
     entries: dict[str, str] = {}
     for root in roots:
         if not root.is_dir():
