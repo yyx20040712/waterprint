@@ -133,6 +133,7 @@ from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
 from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
+from waterprint.geometry import SceneGraph, build_scene
 from waterprint.graph.executor import execute_graph
 from waterprint.graph.nodes import builtin_unit
 from waterprint.project.content_hash import design_hash
@@ -160,7 +161,9 @@ __all__ = [
     "InvalidProjectError",
     "ResultBundle",
     "RunEnv",
+    "SceneGraph",
     "assemble",
+    "build_scene",
     "export_artifact",
     "load_project",
     "run_enumeration",

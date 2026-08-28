@@ -195,3 +195,18 @@ def test_double_run_byte_identical_wiring() -> None:
     assert dims["municipal_cugeshan"]["w_slag"] == pytest.approx(0.6952, abs=1e-4)
     assert dims["municipal_xigeshan"]["w_slag"] == pytest.approx(2.7809, abs=1e-4)
     assert dims["municipal_chenshachi"]["ds_grit"] == pytest.approx(667.4, abs=0.1)
+
+
+def test_scene_reexports_on_facade() -> None:
+    """FE1 接线断言：app 正门再导出 build_scene/SceneGraph（server scene 端点唯一取用口）。
+
+    geometry 包正门同步补类型面（SceneGraph/Node/Primitive/SCENE_VERSION——
+    前端渲染器 SCENE_VERSION 校验的取用通道）；server 侧经 waterprint.app
+    消费（UF-33 单入口铁律，本批 scene 数据通道前提）。
+    """
+    from waterprint import geometry
+
+    for symbol in ("build_scene", "SceneGraph"):
+        assert hasattr(_mod, symbol), f"waterprint.app 缺 scene 再导出 {symbol!r}"
+    for symbol in ("build_scene", "SceneGraph", "Node", "Primitive", "SCENE_VERSION"):
+        assert hasattr(geometry, symbol), f"waterprint.geometry 缺正门导出 {symbol!r}"

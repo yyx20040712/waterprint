@@ -8,15 +8,23 @@
 # 规格说明（骨架冻结）
 #
 # 【导出白名单】
-#   scene:     build_scene
-#   pools:     pool_primitives
+#   scene:     build_scene + 类型面 SceneGraph/SCENE_VERSION（FE1 补）
+#   pools:     pool_primitives + 类型面 Node/Primitive（FE1 补）
 #   internals: internal_instances
 # 铁律（§10.5/§16 A7）：三维是结果 schema 的**纯投影**——只消费字段 ID，
 # 不持有独立状态；前端 R3F 组件禁止自行推导业务几何（双源漂移根除）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.geometry.internals import internal_instances
-from waterprint.geometry.pools import pool_primitives
-from waterprint.geometry.scene import build_scene
+from waterprint.geometry.pools import Node, Primitive, pool_primitives
+from waterprint.geometry.scene import SCENE_VERSION, SceneGraph, build_scene
 
-__all__ = ["build_scene", "internal_instances", "pool_primitives"]
+__all__ = [
+    "SCENE_VERSION",
+    "Node",
+    "Primitive",
+    "SceneGraph",
+    "build_scene",
+    "internal_instances",
+    "pool_primitives",
+]
