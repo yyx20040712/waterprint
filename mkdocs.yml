@@ -3,6 +3,7 @@ site_description: 污水处理工艺设计计算平台文档站
 docs_dir: docs
 nav:
   - 导览: index.md
+  - 用户手册: user-manual.md
   - 工程惯例: engineering-conventions.md
   - 未定义特性登记: undefined-features-register.md
   - 任务接手提示词: task-handover-prompt.md
