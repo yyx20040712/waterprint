@@ -10,9 +10,15 @@
 # 【公式组】HB-F1~HB-F13（docs/norms/sludge_hebing.md 起草表；
 #   manifest.py 登记）——三股汇流（mix P4 干基质量恒等镜像）+
 #   经验产率法主线/机理互校（ADR-008 ④）+ 汇流-产率法闭合校核。
-# 【图源形态】无入边（上游水线单元无 SLUDGE 排泥口，三股排泥经
-#   manifest 参数注入——表"衔接参数"节口径；mine_water_input 图源
-#   先例同型）；compute 不读 ctx.inflows。
+# 【图源形态→双模（GOLDEN4a D2，2026-08-28）】三 IN 口（in_primary/
+#   in_bio/in_chem）实体化后 compute 双模：三口全无边=参数注入模式
+#   （现行三案例形态——行为逐字节不变）；三口全有边=入流直值模式
+#   （三股 q_wet/ds 从 inflows 直取 ×SECS_PER_DAY 回工程口径、
+#   p_x=inflow.moisture，HB-F4~F7/F8~F13 照跑——p_merged 恒等/产率链
+#   不变；HB-F1~F3 不重算[入流即真值，避免双源冲突]，dims 的 q 三股
+#   =入流直值回显）；部分有边=InvalidUnitConfig 显式拒（三股口须全连
+#   或全不连——GR-14 族部分注入态非法）。入流模式 formula_ids=
+#   FORMULA_IDS_FLOW（F4~F13——与 trace 一致的审计口径）。
 # 【单位换算】表公式全按工程口径 m³/d、kg/d（dims 期望值=表逐字）；
 #   出流 SludgeFlow 契约口径 m3/s、kg/s——SECS_PER_DAY（manifest
 #   数值白名单区常量）换算；moisture 无量纲直通。
@@ -51,6 +57,7 @@ from waterprint.contracts.unit_api import (
 from waterprint.registry import formulas
 from waterprint.units_lib.sludge.hebing.manifest import (
     FORMULA_IDS,
+    FORMULA_IDS_FLOW,
     SECS_PER_DAY,
     manifest,
 )
@@ -115,6 +122,65 @@ def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> flo
         (ctx.unit_id, ConditionSet.key(ctx.condition)),
         sink=ctx.trace,
     )
+
+
+# 三股 IN 口 →（湿量 dims 键, 干基参数键, 含水率参数键）族（GOLDEN4a D1）
+_STOCK_PORTS: tuple[tuple[str, str, str, str], ...] = (
+    ("in_primary", "q_primary", "ds_primary", "p_primary"),
+    ("in_bio", "q_bio", "ds_bio", "p_bio"),
+    ("in_chem", "q_chem", "ds_chem", "p_chem"),
+)
+_STOCK_PORT_IDS = frozenset(entry[0] for entry in _STOCK_PORTS)
+
+
+def _inflow_stocks(
+    ctx: UnitContext,
+) -> tuple[dict[str, float], dict[str, float]] | None:
+    """三口入流装配（D2 双模）：全无边=None（参数注入模式）；全有边=
+    （三股湿量 dims 回显, ds/p 参数覆写）二元组；部分有边/非泥股=拒。"""
+    unexpected = [
+        ref for ref in ctx.inflows if ref.port_id not in _STOCK_PORT_IDS
+    ]
+    present = {
+        ref.port_id: flow
+        for ref, flow in ctx.inflows.items()
+        if ref.port_id in _STOCK_PORT_IDS
+    }
+    if not present and not unexpected:
+        return None
+    if len(present) != len(_STOCK_PORTS) or unexpected:
+        connected = sorted(present)
+        raise InvalidUnitConfig(
+            f"单元 {ctx.unit_id!r} 三股口须全连或全不连——部分注入态非法"
+            f"（GOLDEN4a D2/GR-14 族）：已连 {connected}"
+            f"（+未声明口入流 {sorted(ref.port_id for ref in unexpected)}"
+            "——三口=in_primary/in_bio/in_chem）"
+        )
+    stocks: dict[str, float] = {}
+    overrides: dict[str, float] = {}
+    for port_id, q_key, ds_key, p_key in _STOCK_PORTS:
+        flow = present[port_id]
+        if not isinstance(flow, SludgeFlow):
+            raise InvalidUnitConfig(
+                f"单元 {ctx.unit_id!r} 入流口 {port_id!r} 须 SLUDGE 股："
+                f"得到 {type(flow).__name__}（三股口类型化前提）"
+            )
+        q_eng = flow.q_wet * SECS_PER_DAY
+        ds_eng = flow.ds * SECS_PER_DAY
+        if q_eng <= 0 or ds_eng <= 0:
+            raise InvalidUnitConfig(
+                f"单元 {ctx.unit_id!r} 入流口 {port_id!r} 的 q_wet/ds 必须"
+                f" > 0（工程口径）：得到 q={q_eng!r}, ds={ds_eng!r}"
+            )
+        if not 0 < flow.moisture < 1:
+            raise InvalidUnitConfig(
+                f"单元 {ctx.unit_id!r} 入流口 {port_id!r} 含水率必须在开"
+                f"区间 (0,1)（干基反解除零）：得到 {flow.moisture!r}"
+            )
+        stocks[q_key] = q_eng
+        overrides[ds_key] = ds_eng
+        overrides[p_key] = flow.moisture
+    return stocks, overrides
 
 
 def _stocks(ctx: UnitContext, p: dict[str, float]) -> dict[str, float]:
@@ -252,10 +318,20 @@ class _SludgeHebing:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """HB-F1~F13 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """HB-F1~F13 主算路径（双模：三口无边=参数注入/全有边=入流直值）。"""
         p = dict(ctx.params)
-        _validate(p)
-        stocks = _stocks(ctx, p)
+        formula_ids: tuple[str, ...] = FORMULA_IDS
+        inflow = _inflow_stocks(ctx)
+        if inflow is None:
+            _validate(p)
+            stocks = _stocks(ctx, p)  # HB-F1~F3（参数注入模式——现行行为）
+        else:
+            # 入流直值模式：ds/p 六键=入流直值覆写（入流即真值），衡算面
+            # 参数域守卫经覆写后的 p 统一执行；HB-F1~F3 不重算（D2）
+            stocks, overrides = inflow
+            p.update(overrides)
+            _validate(p)
+            formula_ids = FORMULA_IDS_FLOW
         merged = _merge(ctx, p, stocks)
         yields = _yield_chain(ctx, p)
         closure = _closure(ctx, p, merged, yields["s_y"])
@@ -276,5 +352,5 @@ class _SludgeHebing:
             outqualities={out_ref: WaterQuality({})},
             dims=dims,
             warnings=_warnings(dims["dev_pct"], _factor(p, _DEV_MAX)),
-            formula_ids=FORMULA_IDS,
+            formula_ids=formula_ids,
         )

@@ -26,11 +26,13 @@
 # 【单位换算（实装面）】表公式全按工程口径 m³/d、kg/d；出流 SludgeFlow
 #   契约口径 m3/s、kg/s——SECS_PER_DAY 模块常量（表头"单位换算归
 #   M3b2 实装面"授权；本文件=数值白名单区）由 compute 消费。
-# 【图源形态】本单元=污泥线图源（三股排泥经参数注入——上游水线单元
-#   出流为 WATER 通道无 SLUDGE 排泥口，表"衔接参数"节口径；mine_
-#   water_input 图源参数注入先例同型）；ports 仅出流一口 SLUDGE。
+# 【图源形态】GOLDEN4a D1 起三股 IN 口实体化（in_primary/in_bio/
+#   in_chem——上游产泥单元 sludge_out 口接通面，GOLDEN4b 真环基础）；
+#   三口无边=参数注入模式（现行行为不变），全有边=入流直值模式（D2
+#   双模，compute 消费）；ports=三 IN 口+一出流口，全 SLUDGE。
 # 【声明五件】params（含水率三参数 (0,1) 域在 compute 守卫，无出处带
-#   不设 range）/ports 单口 SLUDGE 出流/removal_refs 空映射/norm_refs
+#   不设 range）/ports 三 IN+一 OUT 全 SLUDGE（GOLDEN4a D1）/removal_refs
+#   空映射/norm_refs
 #   双源标记（GB 50014-2021 §8.1+给水排水设计手册第 5 册；CJJ
 #   131-2009 仅叙述列）/condition_mappings=()/constraint_refs 一键
 #   （互校偏差上限——表唯一显式校核带）。
@@ -225,6 +227,14 @@ for _spec in _FORMULAS:
 # 公式号全量（compute 的 formula_ids 声明面——避免在 compute 侧重复列号）
 FORMULA_IDS: tuple[str, ...] = tuple(spec.formula_id for spec in _FORMULAS)
 
+# GOLDEN4a D2 双模（2026-08-28）：三股湿量式 HB-F1~F3 在入流直值模式
+# 不重算（入流即真值——避免双源冲突），入流模式 formula_ids 用此收窄集
+# （审计口径：formula_ids=本次实际应用公式——与 trace 一致）。
+_STOCK_FORMULA_IDS = frozenset({"HB-F1", "HB-F2", "HB-F3"})
+FORMULA_IDS_FLOW: tuple[str, ...] = tuple(
+    spec.formula_id for spec in _FORMULAS if spec.formula_id not in _STOCK_FORMULA_IDS
+)
+
 manifest = load_manifest(
     {
         "unit_id": UNIT_ID,
@@ -248,9 +258,14 @@ manifest = load_manifest(
             {"field_id": "x_vss", "dim": "CONCENTRATION", "default": 3000.0},
             {"field_id": "t_design", "dim": "DIMENSIONLESS", "default": 15.0},
         ],
-        # 图源单元：仅出流一口 SLUDGE（三股排泥经参数注入——上游水线单元
-        # 无 SLUDGE 排泥口；mine_water_input 图源先例同型）
+        # GOLDEN4a D1（2026-08-28）：三股 IN 口实体化（in_primary/in_bio/
+        # in_chem——与 ds_primary 参数族对应）+出流一口 SLUDGE。三口全无边
+        # =参数注入模式（现行三案例形态，行为逐字节不变）；全有边=入流
+        # 直值模式（GOLDEN4b 真边接通）；部分有边=compute 显式拒。
         "ports": [
+            {"port_id": "in_primary", "fluid": "SLUDGE", "direction": "IN"},
+            {"port_id": "in_bio", "fluid": "SLUDGE", "direction": "IN"},
+            {"port_id": "in_chem", "fluid": "SLUDGE", "direction": "IN"},
             {"port_id": "out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         # 污泥单元无水质去除概念——removal_refs 恒空（泥量/含水率变换，

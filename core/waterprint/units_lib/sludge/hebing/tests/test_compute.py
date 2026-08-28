@@ -22,15 +22,19 @@
 #   副算例 307467.385 按本 DSL 求值序恰精确（先算含水率比再乘的
 #   别序则得 …49997）——断言容差 abs=1e-6 覆盖，数值零变更。
 #
-# 【用例面】（十一条，与实际测试函数一一对应——M3a3 yI-1 教训在册）
-#   ①清单身份（UNIT_ID/业务线/单口 SLUDGE 出流/removal_refs 空——零
-#   removal 键声明面）②主算例三股+汇流逐项（HB-F1~F7）③主算例产量
-#   衡算逐项（HB-F8~F13）④主算例互校合格零警告 ⑤副算例逐项（HB-F1~
-#   F11 对照）⑥副算例互校偏差越上限恰一 WARN（severity+param_key=
-#   yield_syn 归因）⑦出流 SLUDGE 三量（契约口径换算：q_total/86400、
-#   ds_total/86400、moisture 直通）⑧参数域拒绝（ds 非正/含水率闭边界/
-#   BOD 倒挂三例）⑨纯函数双跑一致 ⑩formula_ids 恰 13 号（HB-F1~F13）
-#   且全部可在公式注册表解析 ⑪工况键形态冒烟（condition_key 口径）。
+# 【用例面】（十四条，与实际测试函数一一对应——M3a3 yI-1 教训在册）
+#   ①清单身份（UNIT_ID/业务线/三 IN 口+单 OUT 口 SLUDGE/removal_refs
+#   空——零 removal 键声明面；GOLDEN4a D1 端口翻转）②主算例三股+汇流
+#   逐项（HB-F1~F7）③主算例产量衡算逐项（HB-F8~F13）④主算例互校合格
+#   零警告 ⑤副算例逐项（HB-F1~F11 对照）⑥副算例互校偏差越上限恰一
+#   WARN（severity+param_key=yield_syn 归因）⑦出流 SLUDGE 三量（契约
+#   口径换算：q_total/86400、ds_total/86400、moisture 直通）⑧参数域
+#   拒绝（ds 非正/含水率闭边界/BOD 倒挂三例）⑨纯函数双跑一致
+#   ⑩formula_ids 恰 13 号（HB-F1~F13）且全部可在公式注册表解析
+#   ⑪工况键形态冒烟（condition_key 口径）⑫入流模式等价迁移（主算例
+#   ——GOLDEN4a D2 双模：三口入流值=注入值→两模式 dims 全等）⑬入流
+#   模式等价迁移（矿井三股——手算表 MS-F1~F3 口径直对 MSLUDGE2 锚）
+#   ⑭部分边显式拒三例（三股口须全连或全不连——GR-14 族）。
 #
 # 【锁定流程】本文件写完并由人类复核后执行
 #   `python scripts/lock_tests.py core/waterprint/units_lib/sludge/hebing/tests`
@@ -140,10 +144,13 @@ def _secondary_overrides() -> dict[str, float]:
 
 
 def test_manifest_identity() -> None:
-    """①清单身份：UNIT_ID/业务线/单口 SLUDGE 出流/removal_refs 空（零 removal 键）。"""
+    """①清单身份：UNIT_ID/业务线/三 IN 口+单 OUT 口 SLUDGE/removal_refs 空（零 removal 键）。"""
     assert manifest.unit_id == "sludge_hebing"
     assert manifest.business_line == "sludge"
     assert [(p.port_id, p.fluid.name, p.direction.name) for p in manifest.ports] == [
+        ("in_primary", "SLUDGE", "IN"),
+        ("in_bio", "SLUDGE", "IN"),
+        ("in_chem", "SLUDGE", "IN"),
         ("out", "SLUDGE", "OUT"),
     ]
     assert manifest.removal_refs == {}
@@ -252,3 +259,120 @@ def test_formula_ids_registered() -> None:
 def test_condition_key_form() -> None:
     """⑪工况键形态冒烟（apply 第二参 ctx 的 condition_key 口径）。"""
     assert ConditionSet.key(_CONDITION) == "design"
+
+
+# ── GOLDEN4a D2 双模（2026-08-28）：三 IN 口（in_primary/in_bio/in_chem）
+#    入流直值模式——入流值=案例注入值时两模式 dims 全等（等价迁移断言，
+#    GOLDEN4b 真边接通的锚保真前提）。注：入流 q_wet 以 HB-F1~F3 派生值
+#    ÷86400 构造（回契约口径），×86400 回显已实证位级精确（六值全验）──
+_IN_PRIMARY = PortRef(unit_id="test_sludge_hebing", port_id="in_primary")
+_IN_BIO = PortRef(unit_id="test_sludge_hebing", port_id="in_bio")
+_IN_CHEM = PortRef(unit_id="test_sludge_hebing", port_id="in_chem")
+
+
+def _ctx_inflows(
+    inflows: dict[PortRef, SludgeFlow], **overrides: float
+) -> UnitContext:
+    """入流模式 ctx（参数面可携冲突值——入流直值优先，双源冲突面实证）。"""
+    return UnitContext(
+        unit_id="test_sludge_hebing",
+        inflows=inflows,
+        inqualities={},
+        params=_params(**overrides),
+        condition=_CONDITION,
+        assumptions={},
+        trace=_Sink(),
+    )
+
+
+def test_inflow_mode_equivalence_main() -> None:
+    """⑫入流模式等价迁移（主算例）：三口入流值=注入值→两模式 dims 全等。"""
+    params_result = _compute()
+    stocks = params_result.dims  # HB-F1~F3 派生值（q 三股）=入流 q_wet 工程口径
+    inflows = {
+        _IN_PRIMARY: SludgeFlow(
+            q_wet=stocks["q_primary"] / 86400, ds=3240.12 / 86400, moisture=0.96
+        ),
+        _IN_BIO: SludgeFlow(
+            q_wet=stocks["q_bio"] / 86400, ds=1928.690 / 86400, moisture=0.994
+        ),
+        _IN_CHEM: SludgeFlow(
+            q_wet=stocks["q_chem"] / 86400, ds=137.7050 / 86400, moisture=0.98
+        ),
+    }
+    # 参数面携冲突 ds/p 六键（≠入流值）——入流直值优先（D2 避免双源冲突）
+    flow_result = make_unit().compute(
+        _ctx_inflows(
+            inflows,
+            ds_primary=1.0,
+            p_primary=0.5,
+            ds_bio=2.0,
+            p_bio=0.5,
+            ds_chem=3.0,
+            p_chem=0.5,
+        )
+    )
+    assert flow_result.dims == params_result.dims  # 13 键全等（等价迁移）
+    assert flow_result.warnings == params_result.warnings
+    assert flow_result.outflows == params_result.outflows  # 出流三量同步全等
+    # 审计口径：HB-F1~F3 入流模式不重算（入流即真值）——formula_ids 收窄
+    assert flow_result.formula_ids == tuple(
+        f"HB-F{index}" for index in range(4, 14)
+    )
+
+
+def test_inflow_mode_equivalence_mine() -> None:
+    """⑬入流模式等价迁移（矿井三股）：MS-F1~F3 注入值直对 MSLUDGE2 锚。"""
+    mine_overrides = {
+        "ds_primary": 26827.632,
+        "p_primary": 0.92,
+        "ds_bio": 3787.4304,
+        "p_bio": 0.10,
+        "ds_chem": 2682.7632,
+        "p_chem": 0.97,
+    }
+    params_result = _compute(**mine_overrides)
+    stocks = params_result.dims
+    assert stocks["q_total"] == pytest.approx(428.979096, abs=1e-9)  # MSLUDGE2 锚
+    assert stocks["ds_total"] == pytest.approx(33297.8256, abs=1e-9)
+    assert stocks["p_merged"] == pytest.approx(0.9223789086, abs=1e-9)
+    inflows = {
+        _IN_PRIMARY: SludgeFlow(
+            q_wet=stocks["q_primary"] / 86400, ds=26827.632 / 86400, moisture=0.92
+        ),
+        _IN_BIO: SludgeFlow(
+            q_wet=stocks["q_bio"] / 86400, ds=3787.4304 / 86400, moisture=0.10
+        ),
+        _IN_CHEM: SludgeFlow(
+            q_wet=stocks["q_chem"] / 86400, ds=2682.7632 / 86400, moisture=0.97
+        ),
+    }
+    # ctx 参数面=市政默认（≠矿井注入值）——入流直值优先后 dims 仍全等
+    flow_result = make_unit().compute(_ctx_inflows(inflows))
+    assert flow_result.dims == params_result.dims  # 等价迁移（矿井锚保真前提）
+
+
+def test_partial_inflow_rejected() -> None:
+    """⑭部分边显式拒三例（三股口须全连或全不连——GR-14 族部分注入态非法）。"""
+    one = {
+        _IN_PRIMARY: SludgeFlow(
+            q_wet=81.003 / 86400, ds=3240.12 / 86400, moisture=0.96
+        )
+    }
+    with pytest.raises(InvalidUnitConfig, match="全连或全不连"):
+        make_unit().compute(_ctx_inflows(one))
+    only_bio = {
+        _IN_BIO: SludgeFlow(
+            q_wet=321.4483333333 / 86400, ds=1928.690 / 86400, moisture=0.994
+        )
+    }
+    with pytest.raises(InvalidUnitConfig, match="全连或全不连"):
+        make_unit().compute(_ctx_inflows(only_bio))
+    two = {
+        **one,
+        _IN_CHEM: SludgeFlow(
+            q_wet=6.88525 / 86400, ds=137.7050 / 86400, moisture=0.98
+        ),
+    }
+    with pytest.raises(InvalidUnitConfig, match="全连或全不连"):
+        make_unit().compute(_ctx_inflows(two))
