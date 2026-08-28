@@ -141,6 +141,72 @@
         "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
         "value": 2.8949794689296464
       }
+    },
+    "sludge_hebing": {
+      "ds_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 33297.825600000004
+      },
+      "p_merged": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 0.9223789086450032
+      },
+      "q_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 428.97909600000014
+      }
+    },
+    "sludge_nongsuo": {
+      "a_load": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 554.9637600000001
+      },
+      "d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 19.0
+      },
+      "q_sup": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 129.2986656
+      },
+      "q_thick": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 299.68043040000015
+      }
+    },
+    "sludge_tuoshui": {
+      "ds_cake": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 28469.640888
+      },
+      "n_machine_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 2.0
+      },
+      "q_cake": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+        "value": 113.878563552
+      }
     }
   },
   "effluent": {
@@ -210,11 +276,25 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.0.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 78313,
-    "serialize_sha256_head": "ed61ce1339685717",
-    "source": "主线实跑 2026-08-28 HEAD=3b6fce2"
+    "serialize_bytes": 106134,
+    "serialize_sha256_head": "e5a528a77e4f23e2",
+    "source": "主线实跑 2026-08-28 HEAD=bcfbc60"
+  },
+  "m3_deferred": {
+    "estimate_total": {
+      "abs": 1e-12,
+      "rel": 1e-12,
+      "source": "cost 三正门直调 2026-08-28 HEAD=bcfbc60",
+      "value": 10980598.97665583
+    },
+    "total_sludge": {
+      "abs": 1e-12,
+      "rel": 1e-12,
+      "source": "主线实跑 2026-08-28 HEAD=bcfbc60",
+      "value": 33297.825600000004
+    }
   },
   "tolerance": {
     "abs": 1e-12,
