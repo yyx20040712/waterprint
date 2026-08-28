@@ -4,9 +4,12 @@
  * 输入:  projectId + 可选 conditionKey（useSceneQuery 数据通道→projectScene 投影）
  * 输出:  三维场景渲染容器（懒加载路由挂载点——§12.6 独立 chunk）
  *
- * 规格说明（FE1 实装 v1）：
+ * 规格说明（FE1 实装 v1；R2 C2 围栏 2026-08-28）：
  *   - 前端零业务几何推导（§10.5/§16 A7）：一切数据经投影层
  *     projectScene（SCENE_VERSION 门在此生效）；组件只做类型化摆放；
+ *   - 渲染期围栏（R2 C2）：投影层三类显式拒（版本门/未知 kind/root
+ *     悬空）在 useMemo 内 try/catch 落错误薄壳（呈现 SceneProjectionError
+ *     原因文本，不白屏——ErrorBoundary 未挂载现状下唯一围栏）；
  *   - 剖切：store（clippingEnabled/Height）→ THREE.Plane → 材质
  *     clippingPlanes（Y-up 高度面，§12.3 view 态）；
  *   - 图层开关：水面/内部构件/标注（store 显隐——渲染密度控制）；
@@ -18,7 +21,11 @@ import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 
 import { useSceneQuery } from "../api/useSceneQuery";
-import { projectScene } from "../lib/projectScene";
+import {
+  SceneProjectionError,
+  projectScene,
+  type RenderScene,
+} from "../lib/projectScene";
 import { useViewer3dStore } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
 import { Internals } from "./Internals";
@@ -39,10 +46,27 @@ export function Scene({
   conditionKey?: string;
 }) {
   const query = useSceneQuery(projectId, conditionKey);
-  const scene = useMemo(
-    () => (query.data ? projectScene(query.data) : null),
-    [query.data],
-  );
+  // R2 C2 渲染期围栏：投影层显式拒（版本门/未知 kind/root 悬空）在此
+  // 收编——落错误态薄壳（fetch 面 isError 之外的第二个错误出口，不白屏）。
+  const projection = useMemo<{
+    scene: RenderScene | null;
+    error: SceneProjectionError | null;
+  }>(() => {
+    if (!query.data) {
+      return { scene: null, error: null };
+    }
+    try {
+      return { scene: projectScene(query.data), error: null };
+    } catch (error) {
+      return {
+        scene: null,
+        error:
+          error instanceof SceneProjectionError
+            ? error
+            : new SceneProjectionError(String(error)),
+      };
+    }
+  }, [query.data]);
   const cameraPreset = useViewer3dStore((state) => state.cameraPreset);
   const clippingEnabled = useViewer3dStore((state) => state.clippingEnabled);
   const clippingHeight = useViewer3dStore((state) => state.clippingHeight);
@@ -66,6 +90,14 @@ export function Scene({
       </div>
     );
   }
+  if (projection.error) {
+    return (
+      <div role="alert">
+        场景投影失败：{projection.error.message}
+      </div>
+    );
+  }
+  const scene = projection.scene;
   if (!scene) {
     return <div>场景加载中…（{projectId.slice(0, 8)}）</div>;
   }

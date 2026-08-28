@@ -1,14 +1,16 @@
 /**
- * orval 请求实例（mutator）：请求基底 /api、错误归一化到领域错误码。
+ * orval 请求实例（mutator）：请求基底、错误归一化到领域错误码。
  *
  * 输入:  fetch 选项（orval 生成代码传入：url/method/params/headers/data/signal）
  * 输出:  Promise<T>（业务数据；错误统一抛 WaterprintApiError）
  *
- * 规格说明（骨架冻结）：
- *   - baseURL 恒为 "/api"（vite 代理/反代同源，禁硬编码主机）；
+ * 规格说明（R2 C1 纠偏 2026-08-28：基底恒空——orval 生成 url 已含
+ *   /api 前缀（openapi path 键面），禁二次前拼（曾致全端点 /api/api 404）；
+ *   vite 代理/反代按 /api 键原样透传，同源约定不变）：
  *   - 错误归一化：HTTP 状态 + 服务端领域异常字段 → WaterprintApiError
  *     {code, message, detail}（code=服务端 error_type，无则 HTTP_<status>；
- *     message=统一错误体 detail 文本；422 附字段路径清单由 detail 承载）；
+ *     message=统一错误体 detail 文本；成功路径 2xx 非 JSON 体同归一——
+ *     M3 对称面；422 附字段路径清单由 detail 承载）；
  *   - SSE 订阅不走本实例（EventSource 直连 /api/events/*）；
  *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改。
  */
@@ -36,7 +38,8 @@ export class WaterprintApiError extends Error {
   }
 }
 
-const BASE_URL = "/api";
+// 请求基底恒空（R2 C1）：orval 生成 url 已含 /api 前缀——禁二次前拼。
+const BASE_URL = "";
 
 function withQuery(url: string, params: unknown): string {
   if (!params || typeof params !== "object") {
@@ -97,6 +100,18 @@ export const customInstance = <T>(config: CustomInstanceConfig): Promise<T> => {
       return undefined as T;
     }
     const text = await response.text();
-    return (text ? JSON.parse(text) : undefined) as T;
+    if (!text) {
+      return undefined as T;
+    }
+    // M3 对称面：成功路径 2xx 非 JSON 体同归一（禁裸 SyntaxError 面世）
+    try {
+      return JSON.parse(text) as T;
+    } catch (error) {
+      throw new WaterprintApiError(
+        `HTTP_${response.status}`,
+        `响应解析失败：${config.method} ${path} → ${response.status}（2xx 非 JSON 体）`,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   });
 };

@@ -4,12 +4,15 @@
  * 输入:  RenderNode[]（solids 组——标注位=节点位+池深抬升）
  * 输出:  SDF 文本组（troika Text 经 primitive 挂载）
  *
- * 规格说明（FE1 实装 v1）：
+ * 规格说明（FE1 实装 v1；R2 C3 清理面 2026-08-28）：
  *   - 标注内容=node_id（场景图携带的稳定标识——禁前端拼业务文案）；
  *   - 抬升=dims.depth 直读（标注位摆放，非业务推导）；
+ *   - troika Text 持 SDF 纹理/字形图集/后台 worker——useEffect 卸载面
+ *     dispose（primitive 不托管外部对象生命周期；工况/项目切换不泄漏，
+ *     R2 C3）；
  *   - CJK 字体子集构建期生成（§11 R9——v1 默认字体，子集批挂账）。
  */
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Text } from "troika-three-text";
 
 import type { RenderNode } from "../lib/projectScene";
@@ -55,5 +58,8 @@ function LabelMesh({ text, position }: { text: string; position: [number, number
     instance.sync();
     return instance;
   }, [text]);
+  // R2 C3：卸载/换文案即 dispose 旧实例（SDF 纹理/字形图集/worker 释放——
+  // primitive 不托管外部对象生命周期，缺此面则工况切换累积泄漏）。
+  useEffect(() => () => label.dispose(), [label]);
   return <primitive object={label} position={position} />;
 }
