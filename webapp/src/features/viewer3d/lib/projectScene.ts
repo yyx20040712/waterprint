@@ -15,7 +15,9 @@
  *   - 语义 token 透传（色值归组件层——渲染描述禁出现 color/material）；
  *   - root 序与 nodes 索引一致性：悬空 id 拒；
  *   - 零业务计算/零业务几何推导：只消费 dims/position/instance_count/
- *     semantic（children v1 平铺不出现——core build_scene 产平表）。
+ *     semantic（children v1 平铺不出现——core build_scene 产平表）；
+ *   - 非默认变换显式拒（FE1 M1）：rotation≠(0,0,0)/scale≠(1,1,1) 即
+ *     SceneProjectionError（core v1 恒默认值——门先立，勿静默丢勿消费）。
  */
 import type { SceneGraph } from "../../../shared/api/generated/model";
 
@@ -98,6 +100,22 @@ export function projectScene(scene: SceneGraph): RenderScene {
       );
     }
     const position: Vec3 = node.position ?? [0, 0, 0];
+    // FE1 M1 非默认变换门：v1 渲染器零变换消费（core v1 恒默认值）——
+    // 静默丢弃即失真，显式拒（原因含节点 id 与实际值）。
+    const rotation = node.rotation ?? [0, 0, 0];
+    if (rotation[0] !== 0 || rotation[1] !== 0 || rotation[2] !== 0) {
+      throw new SceneProjectionError(
+        `非默认变换拒渲染：节点 ${node.node_id} rotation=(${rotation.join(",")})`
+          + "——v1 渲染器只支持默认变换（core v1 恒 (0,0,0)），静默丢弃即失真",
+      );
+    }
+    const scale = node.scale ?? [1, 1, 1];
+    if (scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) {
+      throw new SceneProjectionError(
+        `非默认变换拒渲染：节点 ${node.node_id} scale=(${scale.join(",")})`
+          + "——v1 渲染器只支持默认变换（core v1 恒 (1,1,1)），静默丢弃即失真",
+      );
+    }
     const instanceCount = node.instance_count ?? 1;
     const rendered: RenderNode = {
       id: node.node_id,

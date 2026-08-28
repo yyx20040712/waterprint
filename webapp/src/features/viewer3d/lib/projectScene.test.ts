@@ -19,6 +19,8 @@ type FixtureNode = {
   semantic: string;
   primitive: { kind: string; dims: Record<string, number>; semantic: string };
   position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
   instance_count?: number;
 };
 
@@ -189,5 +191,95 @@ describe("projectScene：root 序与 nodes 索引一致性", () => {
   it("root 悬空 id 拒（索引一致性守卫）", () => {
     const bad = fixture({ root: ["pool-1", "ghost-9"] });
     expect(() => projectScene(bad as never)).toThrow(/ghost-9/);
+  });
+});
+
+describe("projectScene：非默认变换显式拒（FE1 M1）", () => {
+  it("rotation 非默认拒且原因含节点 id 与实际值（勿静默丢勿消费）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "rot-1",
+        semantic: "gate",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "gate" },
+        rotation: [0, Math.PI / 2, 0],
+      },
+    ];
+    const bad = fixture({ nodes, root: ["rot-1"] });
+    expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
+    try {
+      projectScene(bad as never);
+      expect.unreachable("必须抛出");
+    } catch (error) {
+      expect((error as Error).message).toContain("rot-1");
+      expect((error as Error).message).toContain(String(Math.PI / 2));
+    }
+  });
+
+  it("scale 非默认拒（非 (1,1,1) 即拒）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "scl-1",
+        semantic: "media",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "media" },
+        scale: [2, 1, 1],
+      },
+    ];
+    const bad = fixture({ nodes, root: ["scl-1"] });
+    try {
+      projectScene(bad as never);
+      expect.unreachable("必须抛出");
+    } catch (error) {
+      expect(error).toBeInstanceOf(SceneProjectionError);
+      expect((error as Error).message).toContain("scl-1");
+      expect((error as Error).message).toContain("2");
+    }
+  });
+
+  it("默认值与缺省同路放行（rotation=(0,0,0)/scale=(1,1,1) 不拒）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "def-1",
+        semantic: "gate",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "gate" },
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: ["def-1"] }) as never);
+    expect(out.solids).toHaveLength(1);
+    expect(out.solids[0]?.id).toBe("def-1");
+  });
+});
+
+describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
+  // 红先行：动态 import 隔离红面（实现前该导出不存在——单测红不殃及全文件）
+  it("diameter 键在→cylinder（半径=直径/2[three 接口适配]，高度=depth）", async () => {
+    const { internalsGeometry } = await import("../components/Internals");
+    const node = {
+      id: "cyl-1",
+      kind: "cylinder",
+      semantic: "aerator",
+      position: [0, 0, 0] as [number, number, number],
+      dims: { diameter: 6, depth: 4 },
+      instanceCount: 4,
+      placements: [],
+    };
+    expect(internalsGeometry(node)).toEqual({ kind: "cylinder", args: [3, 3, 4] });
+  });
+
+  it("无 diameter 键→box（length/depth/width 直读；缺键兜底 1）", async () => {
+    const { internalsGeometry } = await import("../components/Internals");
+    const base = {
+      id: "box-1",
+      kind: "box",
+      semantic: "aerator",
+      position: [0, 0, 0] as [number, number, number],
+      instanceCount: 12,
+      placements: [],
+    };
+    expect(internalsGeometry({ ...base, dims: { length: 0.5, width: 0.5, depth: 0.5 } })).toEqual(
+      { kind: "box", args: [0.5, 0.5, 0.5] },
+    );
+    expect(internalsGeometry({ ...base, dims: {} })).toEqual({ kind: "box", args: [1, 1, 1] });
   });
 });
