@@ -150,3 +150,16 @@ async def test_scene_unknown_project_raises_not_found_wiring(service_ctx) -> Non
     """项目不存在=ProjectNotFoundError（既有 404 面——read_project 先于取数）。"""
     with pytest.raises(projects_mod.ProjectNotFoundError):
         build_scene_for_project(service_ctx, "nosuchproject0000")
+
+
+async def test_scene_result_file_missing_raises_404_face_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """FE1 M4：结果文件缺失=SceneSourceNotFoundError（404 面——非 FileNotFoundError 裸 500）。"""
+    import os
+
+    project_id = await _project_with_result(service_ctx)
+    status = service_ctx.manager.status(
+        service_ctx.manager.task_ids_for_project(project_id)[-1]
+    )
+    os.remove(str(status.result["result_file"]))  # type: ignore[index]
+    with pytest.raises(_mod.SceneSourceNotFoundError, match="先重算"):
+        build_scene_for_project(service_ctx, project_id)

@@ -19,7 +19,8 @@
 #      status.result——消费时实时取，UF-37 统一口径；不 import exports
 #      私有名，FE1 简报条款）；无结果集=SceneSourceNotFoundError（404
 #      面，消息含"先 POST /api/calc/run"——ExportSourceNotFoundError
-#      同语义）。
+#      同语义）；结果文件缺失/损坏（OSError/InvalidResultError）同归
+#      SceneSourceNotFoundError 404 面（FE1 M4 路径安全族——裸 500 禁）。
 #   R2 工况缺省：condition_key=None → sorted(plant.conditions)[0]（显式
 #      回显于 SceneGraph.condition_key——不猜测）；工况不在结果 =
 #      core.build_scene 的 KeyError 转 InvalidSceneRequestError（422 面，
@@ -43,7 +44,7 @@ from pathlib import Path
 from typing import Any
 
 from waterprint import app as core
-from waterprint.contracts.result_schema import deserialize
+from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import read_project
@@ -83,7 +84,13 @@ def build_scene_for_project(
     """场景图正门：项目校验 → 结果集取数 → 反序列化 → 假设合成 → core 投影。"""
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
     latest = _latest_calc_result(ctx, project_id)
-    plant = deserialize(Path(str(latest["result_file"])).read_bytes())
+    try:
+        plant = deserialize(Path(str(latest["result_file"])).read_bytes())
+    except (OSError, InvalidResultError) as exc:
+        # FE1 M4（路径安全族）：结果文件缺失/损坏归一 404 领域面——裸 500 禁。
+        raise SceneSourceNotFoundError(
+            f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
+        ) from exc
     chosen = condition_key if condition_key is not None else sorted(plant.conditions)[0]
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)

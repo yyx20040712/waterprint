@@ -38,6 +38,9 @@
 #     （condition/items kind/project_id=validate_component 或 _KINDS；
 #     digest=hex 天然安全）——穿越串 422 拒于落盘之前；worker 侧
 #     二道闸（kind 白名单+out_name 无分隔符无 ..）随行。
+#   - FE1 M4（ENG3 2026-08-28）：即时生成路径 deserialize 结果文件
+#     缺失/损坏（OSError/InvalidResultError）归一 ExportSourceNotFound
+#     Error 404 面（scene.py 同构——路径安全族裸 500 禁）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -54,7 +57,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from waterprint import app as core
-from waterprint.contracts.result_schema import deserialize
+from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
@@ -256,7 +259,14 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         )
     # 单产物即时生成（同步经 app.export_artifact；临时文件+rename 原子写）
 
-    plant = deserialize(Path(str(latest["result_file"])).read_bytes())
+    try:
+        plant = deserialize(Path(str(latest["result_file"])).read_bytes())
+    except (OSError, InvalidResultError) as exc:
+        # FE1 M4（路径安全族）：结果文件缺失/损坏归一 404 领域面——裸 500
+        # 禁（scene.py 同构收口；worker 侧 export_batch 不读盘不在本面）。
+        raise ExportSourceNotFoundError(
+            f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
+        ) from exc
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(out.name + ".tmp")
     core.export_artifact(kind, plant, Path(template), tmp)

@@ -143,3 +143,16 @@ async def test_traversal_components_rejected_no_escape_writing(service_ctx) -> N
         )
     assert sorted(os.listdir(exports_dir)) == before_listing  # exports_dir 零新增
     assert {str(p.relative_to(sandbox)) for p in sandbox.rglob("*")} == before_files  # 全树零逃逸
+
+
+async def test_export_corrupt_result_file_raises_404_face_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """FE1 M4：结果文件损坏=ExportSourceNotFoundError（404 面——deserialize 裸 500 归一）。"""
+    from pathlib import Path
+
+    project_id = await _project_with_result(service_ctx)
+    status = service_ctx.manager.status(
+        service_ctx.manager.task_ids_for_project(project_id)[-1]
+    )
+    Path(str(status.result["result_file"])).write_bytes(b"\xff\xfe{not json")  # type: ignore[index]
+    with pytest.raises(_mod.ExportSourceNotFoundError, match="先重算"):
+        await create_export(service_ctx, project_id, "calcbook")
