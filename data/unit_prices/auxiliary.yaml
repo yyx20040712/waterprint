@@ -1,0 +1,63 @@
+# 辅助费用条目（费率+造价指标）——COST1 概算段一迁移自旧系统
+# Graduation_design/ddesign_tool/src/models/cost/unit_prices.py
+# "三、间接费费率"节（INDIRECT_RATES dict 7 键——dict 为准迁出）
+# +"五、单位处理规模造价指标"节（UNIT_COST_RANGE (3000, 5000) 元/(m3.d)）。
+# 散常量 7 个（INSTALL_RATE 0.15/MGMT_RATE 0.05/DESIGN_RATE 0.04/
+# SUPERVISION_RATE 0.025/PREP_RATE 0.01/CONTINGENCY_RATE 0.10/VAT_RATE 0.09）
+# 与 dict 键同值=重复不迁（对照清单见实现报告）。
+# 费率取费基数语义暂记 note——README 费率类 base DSL 列归段二 FeeRule 实装面。
+
+- key: "rate.installation"
+  name: "安装费率"
+  unit: "dimensionless"
+  price: 0.15
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；安装费=设备费×15%"
+- key: "rate.management"
+  name: "管理费率"
+  unit: "dimensionless"
+  price: 0.05
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；管理费=建安费×5%"
+- key: "rate.design"
+  name: "设计费率"
+  unit: "dimensionless"
+  price: 0.04
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；设计费=建安费×4%"
+- key: "rate.supervision"
+  name: "监理费率"
+  unit: "dimensionless"
+  price: 0.025
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；监理费=建安费×2.5%"
+- key: "rate.preparation"
+  name: "前期费率"
+  unit: "dimensionless"
+  price: 0.01
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；前期费=建安费×1%"
+- key: "rate.contingency"
+  name: "预备费率"
+  unit: "dimensionless"
+  price: 0.10
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；预备费=小计×10%"
+- key: "rate.tax"
+  name: "增值税率"
+  unit: "dimensionless"
+  price: 0.09
+  source: "GB50500-2013"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；增值税=(小计+预备费)×9%"
+- key: "indicator.unit_cost.min"
+  name: "单位处理规模造价指标（下限）"
+  unit: "元/(m3.d)"
+  price: 3000
+  source: "T/BCEBCA 1-2023"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；2024 年口径，一级 A 标准"
+- key: "indicator.unit_cost.max"
+  name: "单位处理规模造价指标（上限）"
+  unit: "元/(m3.d)"
+  price: 5000
+  source: "T/BCEBCA 1-2023"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；2024 年口径，一级 A 标准"

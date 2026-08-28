@@ -1,0 +1,425 @@
+# 安装工程单价（管道+设备）——COST1 概算段一迁移自旧系统
+# Graduation_design/ddesign_tool/src/models/cost/unit_prices.py
+# "一、管道单价"节（PIPE dict 12 档）+"四、设备购置参考价"节
+# （EQUIPMENT 13 单元组 39 条 = 市政 9 组 30 条 + 矿井 kw_ 4 组 11 条；
+# COMMON_EQUIP 8 项）。
+# 管道族头注（照旧实标）：DN300~1500 钢筋混凝土管（GB/T 11836-2023 II 级），
+#   元/m，2024 年；DN<600 含辅材，DN≥600 仅主管。
+# 设备族头注（照旧实标）：万元/台，2024 年中标价（市场询价）。
+# 设备 key={unit}.{英文设备名}（snake_case 工程惯用词，矿井组保留 kw_ 前缀），
+#   name=中文显示名，quantity=台数（COMMON_EQUIP 合计项旧源无台数，不带此列）。
+
+# ── 管道单价（元/m）──────────────────────────────────────────────
+- key: "pipe.dn300"
+  name: "DN300 钢筋混凝土管"
+  unit: "m"
+  price: 620
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN<600 含辅材口径"
+- key: "pipe.dn400"
+  name: "DN400 钢筋混凝土管"
+  unit: "m"
+  price: 800
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN<600 含辅材口径"
+- key: "pipe.dn500"
+  name: "DN500 钢筋混凝土管"
+  unit: "m"
+  price: 1050
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN<600 含辅材口径"
+- key: "pipe.dn600"
+  name: "DN600 钢筋混凝土管"
+  unit: "m"
+  price: 1350
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn700"
+  name: "DN700 钢筋混凝土管"
+  unit: "m"
+  price: 1650
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn800"
+  name: "DN800 钢筋混凝土管"
+  unit: "m"
+  price: 1950
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn900"
+  name: "DN900 钢筋混凝土管"
+  unit: "m"
+  price: 2250
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn1000"
+  name: "DN1000 钢筋混凝土管"
+  unit: "m"
+  price: 2600
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn1100"
+  name: "DN1100 钢筋混凝土管"
+  unit: "m"
+  price: 2900
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn1200"
+  name: "DN1200 钢筋混凝土管"
+  unit: "m"
+  price: 3400
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn1400"
+  name: "DN1400 钢筋混凝土管"
+  unit: "m"
+  price: 4300
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+- key: "pipe.dn1500"
+  name: "DN1500 钢筋混凝土管"
+  unit: "m"
+  price: 5000
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
+
+# ── 设备购置参考价（万元/台，EQUIPMENT）──────────────────────────
+# 市政 9 组：
+- key: "cugeshan.screen_rotary"
+  name: "回转式格栅除污机"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 3
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；粗格栅组"
+- key: "cugeshan.screw_conveyor_press"
+  name: "螺旋输送压榨机"
+  unit: "万元/台"
+  price: 10.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；粗格栅组"
+- key: "xigeshan.drum_screen"
+  name: "转鼓细格栅"
+  unit: "万元/台"
+  price: 22.0
+  quantity: 3
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；细格栅组"
+- key: "xigeshan.screw_conveyor_press"
+  name: "螺旋输送压榨机"
+  unit: "万元/台"
+  price: 10.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；细格栅组"
+- key: "chenshachi.vortex_grit_separator"
+  name: "旋流沉砂器"
+  unit: "万元/台"
+  price: 18.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；旋流沉砂组"
+- key: "chenshachi.grit_water_separator"
+  name: "砂水分离器"
+  unit: "万元/台"
+  price: 10.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；旋流沉砂组"
+- key: "chenshachi.roots_blower"
+  name: "罗茨鼓风机"
+  unit: "万元/台"
+  price: 6.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；旋流沉砂组"
+- key: "chuchenchi.center_drive_sludge_scraper"
+  name: "中心传动刮泥机"
+  unit: "万元/台"
+  price: 28.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；初沉池组"
+- key: "chuchenchi.sludge_valve_piping"
+  name: "排泥阀及管路"
+  unit: "万元/台"
+  price: 6.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；初沉池组"
+- key: "cass.microporous_aerator_piping"
+  name: "微孔曝气器+管路"
+  unit: "万元/台"
+  price: 22.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "cass.rotary_decanter"
+  name: "旋转式滗水器"
+  unit: "万元/台"
+  price: 18.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "cass.sludge_return_pump"
+  name: "污泥回流泵"
+  unit: "万元/台"
+  price: 8.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "cass.excess_sludge_pump"
+  name: "剩余污泥泵"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "cass.online_do_mlss_meter"
+  name: "在线DO/MLSS仪"
+  unit: "万元/台"
+  price: 4.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "cass.blower_station"
+  name: "鼓风机房(含鼓风机)"
+  unit: "万元/台"
+  price: 80.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CASS 组"
+- key: "gaomidu.flash_mixer"
+  name: "快速搅拌器"
+  unit: "万元/台"
+  price: 4.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "gaomidu.flocculation_mixer"
+  name: "絮凝搅拌器"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "gaomidu.inclined_tube_media"
+  name: "斜管填料"
+  unit: "万元/台"
+  price: 12.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "gaomidu.sludge_scraper"
+  name: "刮泥机"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "gaomidu.pac_dosing_system"
+  name: "PAC加药系统"
+  unit: "万元/台"
+  price: 25.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "gaomidu.pam_dosing_system"
+  name: "PAM加药系统"
+  unit: "万元/台"
+  price: 18.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；高密度沉淀池组"
+- key: "vxinglvchi.long_stem_filter_nozzle"
+  name: "长柄滤头+滤板"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；V 型滤池组"
+- key: "vxinglvchi.water_air_distribution"
+  name: "配水配气系统"
+  unit: "万元/台"
+  price: 10.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；V 型滤池组"
+- key: "vxinglvchi.backwash_blower"
+  name: "反冲洗鼓风机"
+  unit: "万元/台"
+  price: 22.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；V 型滤池组"
+- key: "vxinglvchi.backwash_pump"
+  name: "反冲洗水泵"
+  unit: "万元/台"
+  price: 6.0
+  quantity: 3
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；V 型滤池组"
+- key: "vxinglvchi.pneumatic_valves"
+  name: "气动阀门(1批)"
+  unit: "万元/台"
+  price: 18.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；V 型滤池组；quantity=1 批"
+- key: "ziwai.uv_disinfection_module"
+  name: "紫外消毒模块"
+  unit: "万元/台"
+  price: 55.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；紫外消毒组"
+- key: "ziwai.automatic_water_level_weir"
+  name: "自控水位堰"
+  unit: "万元/台"
+  price: 10.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；紫外消毒组"
+- key: "ziwai.power_distribution_cabinet"
+  name: "配电柜"
+  unit: "万元/台"
+  price: 6.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；紫外消毒组"
+- key: "tiaojiechi.submersible_mixer"
+  name: "潜水搅拌器"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；调节池组"
+# 矿井 4 组（kw_ 前缀）：
+- key: "kw_tiaojiechi.submersible_mixer_exproof"
+  name: "潜水搅拌器(防爆)"
+  unit: "万元/台"
+  price: 8.0
+  quantity: 4
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井调节池组"
+- key: "kw_tiaojiechi.coal_slurry_pump"
+  name: "煤泥泵"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井调节池组"
+- key: "kw_chenshachi.traveling_sand_suction"
+  name: "行车式吸砂机"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井平流沉砂组"
+- key: "kw_chenshachi.grit_water_separator"
+  name: "砂水分离器"
+  unit: "万元/台"
+  price: 12.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井平流沉砂组"
+- key: "kw_ningjiao.flash_mixer"
+  name: "快速搅拌器"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井混凝组"
+- key: "kw_ningjiao.flocculation_mixer"
+  name: "絮凝搅拌器"
+  unit: "万元/台"
+  price: 6.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井混凝组"
+- key: "kw_ningjiao.pac_dosing_system"
+  name: "PAC加药系统"
+  unit: "万元/台"
+  price: 20.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井混凝组"
+- key: "kw_ningjiao.pam_dosing_system"
+  name: "PAM加药系统"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 1
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井混凝组"
+- key: "kw_cifenli.magnetic_disk_separator"
+  name: "磁盘分离机"
+  unit: "万元/台"
+  price: 45.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井磁分离组"
+- key: "kw_cifenli.magnetic_seed_recovery"
+  name: "磁种回收装置"
+  unit: "万元/台"
+  price: 15.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井磁分离组"
+- key: "kw_cifenli.backwash_pump"
+  name: "反冲洗泵"
+  unit: "万元/台"
+  price: 5.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；矿井磁分离组"
+
+# ── 公共设备（COMMON_EQUIP，合计项——旧源无台数不带 quantity 列）────
+- key: "common.intake_pump_station"
+  name: "进水泵房(提升泵)"
+  unit: "万元"
+  price: 85.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.sludge_thickening_dewatering"
+  name: "污泥浓缩脱水机"
+  unit: "万元"
+  price: 65.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.plc_scada"
+  name: "电气自控PLC+SCADA"
+  unit: "万元"
+  price: 130.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.plant_piping_valves"
+  name: "厂区管路阀门"
+  unit: "万元"
+  price: 90.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.biological_deodorization"
+  name: "生物除臭系统"
+  unit: "万元"
+  price: 55.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.laboratory_instruments"
+  name: "化验室仪器"
+  unit: "万元"
+  price: 35.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.office_transport_equipment"
+  name: "办公运输设备"
+  unit: "万元"
+  price: 50.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"
+- key: "common.admin_building_annex"
+  name: "综合楼及附属建筑"
+  unit: "万元"
+  price: 120.0
+  source: "2024 市场询价"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；公共设备合计项"

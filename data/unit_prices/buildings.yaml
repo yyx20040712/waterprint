@@ -1,0 +1,77 @@
+# 建筑工程单价（土建族）——COST1 概算段一迁移自旧系统
+# Graduation_design/ddesign_tool/src/models/cost/unit_prices.py "二、土建综合单价"节
+# （散常量 6 条 + CIVIL dict 8 键 = 14 个数据点，归并为 11 条）。
+# 合并对照（同名同单位同值三对）：
+#   EARTHWORK 35.0 元/m3 ≡ CIVIL.excavation 35.0 元/m3 → earthwork
+#   CUSHION 550.0 元/m3 ≡ CIVIL.c15_pad 550.0 元/m3 → cushion_c15
+#   CONCRETE 950.0 元/m3（底板面）≡ CIVIL.c30_floor 950.0 元/m3 → concrete_c30_floor
+# 分立两键（非重复）：rebar_t 5800 元/t 与 CIVIL.rebar 5.8 元/kg（单位不同）；
+#   formwork 与 formwork_wall、waterproof 与 waterproof_inner（语义分立）。
+# 族头注（照旧实标）：2019 地方定额第五册（2024 年调整：材料+15%，人工+30%）。
+
+- key: "earthwork"
+  name: "土方工程"
+  unit: "m3"
+  price: 35.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；含开挖+回填+外运，普通土，放坡系数 0.5；合并 EARTHWORK≡CIVIL.excavation"
+- key: "backfill"
+  name: "土方回填"
+  unit: "m3"
+  price: 18.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；仅 CIVIL.backfill 键（无散常量对应项）"
+- key: "cushion_c15"
+  name: "C15 素混凝土垫层"
+  unit: "m3"
+  price: 550.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；厚 100mm；合并 CUSHION≡CIVIL.c15_pad"
+- key: "concrete_c30_floor"
+  name: "C30 抗渗混凝土底板"
+  unit: "m3"
+  price: 950.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；P6/P8 抗渗；合并 CONCRETE≡CIVIL.c30_floor"
+- key: "concrete_c30_wall"
+  name: "C30 抗渗混凝土池壁"
+  unit: "m3"
+  price: 980.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；P6/P8 抗渗；仅 CIVIL.c30_wall 键（与散常量 CONCRETE 950 值异，分立）"
+- key: "rebar_t"
+  name: "钢筋（HRB400）"
+  unit: "t"
+  price: 5800.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；含加工+绑扎；散常量 REBAR；与 rebar_kg 单位不同非重复"
+- key: "rebar_kg"
+  name: "钢筋（按公斤计）"
+  unit: "kg"
+  price: 5.8
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CIVIL.rebar；与 rebar_t 单位不同非重复"
+- key: "formwork"
+  name: "模板（木模）"
+  unit: "m2"
+  price: 65.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；含安拆；散常量 FORMWORK；与 formwork_wall 语义分立两键"
+- key: "formwork_wall"
+  name: "池壁模板"
+  unit: "m2"
+  price: 65.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CIVIL.formwork_wall；与 formwork 语义分立两键"
+- key: "waterproof"
+  name: "防水"
+  unit: "m2"
+  price: 45.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；水泥基渗透结晶+聚氨酯涂料；散常量 WATERPROOF；与 waterproof_inner 语义分立两键"
+- key: "waterproof_inner"
+  name: "池内防水"
+  unit: "m2"
+  price: 45.0
+  source: "2019 地方市政消耗量定额"
+  note: "AI 迁移待抽验（I2 流程 COST1 2026-08-28）；CIVIL.waterproof_inner；与 waterproof 语义分立两键"

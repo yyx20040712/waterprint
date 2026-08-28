@@ -1,4 +1,30 @@
 # 定额单价包清单（版本槽位——真实条目迁移见本目录 README.md）
-data_version: "0.0.0"
+data_version: "0.1.0"
 # 变更记录（每次版本升级追加）：
+#   - 0.1.0: COST1 概算段一数据迁移批（旧系统 Graduation_design/ddesign_tool/
+#       src/models/cost/unit_prices.py 224 行纯数据→三 YAML 文件 81 条；I2 流程
+#       AI 起草 2026-08-28，10% 人工抽验+批准前禁升 1.0.0、禁被代码消费——
+#       cost 骨架零 load 真库现状确认）。值零漂移（探针逐条对照旧 py 常量，
+#       实录见 .workflow/reports/task-COST1-impl-report.md）。
+#       buildings.yaml 11 条（土建族——散常量 6+CIVIL dict 8 共 14 数据点归并：
+#       三对同值同单位合并 EARTHWORK≡excavation 35.0 元/m3、CUSHION≡c15_pad
+#       550.0 元/m3、CONCRETE≡c30_floor 950.0 元/m3；rebar_t 5800 元/t 与
+#       rebar_kg 5.8 元/kg 单位不同两键并存；formwork/formwork_wall、
+#       waterproof/waterproof_inner 语义分立两键）。
+#       installations.yaml 61 条（管道 PIPE 12 档 pipe.dn300~dn1500 元/m+
+#       设备 EQUIPMENT 13 单元组 41 条[市政 9 组 30 条+矿井 kw_ 4 组 11 条，
+#       key={unit}.{英文设备名}+quantity 台数列——设备英文名映射表全列见
+#       实现报告]+COMMON_EQUIP 8 项 common.*[合计项旧源无台数不带
+#       quantity]）。
+#       auxiliary.yaml 9 条（费率 INDIRECT_RATES 7 键 rate.*[dimensionless，
+#       取费基数语义暂记 note——base DSL 归段二]+造价指标 UNIT_COST_RANGE 2 键
+#       indicator.unit_cost.min/max 元/(m3.d)）。
+#       不迁（对照清单见实现报告）：散常量 7 个与 dict 同值重复（INSTALL_RATE
+#       等）；经验函数族 wall_t/floor_t/REBAR_WALL/REBAR_FLOOR 与插值/估算
+#       函数 get_pipe_price/total_by_capacity（计算逻辑归段二实装面）。
 #   - 0.0.0: M0 骨架槽位（无条目；迁移 2019 黑龙江定额并人工抽验 10% 后升 1.0.0）
+# 抽验记录槽位（I2 人工动作——10% 抽验通过并批准后填；此前维持 0.1.0 起草态
+# 禁升 1.0.0、禁被代码消费）：
+#   - 日期：____  抽验人：____  抽样数：____/81（≥10%）  结果：通过/不通过
+#   - 抽样键：____
+#   - 备注：____

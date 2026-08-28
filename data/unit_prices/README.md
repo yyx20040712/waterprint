@@ -25,6 +25,9 @@ unit_prices/
   note: "可选说明"
 ```
 
+设备族条目（installations.yaml 的 EQUIPMENT 迁移条目）在六列之外扩展可选第 7 列
+`quantity`（台数）；COMMON_EQUIP 合计项旧源无台数，不带此列。
+
 ## 硬规则
 
 - `key` 与 takeoff 的 price_key 引用闭环：失联键 = 启动失败
