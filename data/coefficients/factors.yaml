@@ -2772,3 +2772,112 @@
   unit: "m"
   source: "给水排水设计手册（第 5 册 城镇排水）（集配水线各单元水损经验值同带）"
   note: "配水渠内水损（带 0.1~0.2 取 0.15——归高程链子系统消费；渠段沿程损失归渠长布置面）；数据策略 v2"
+
+# ── 管网域（network，1.0.0；曼宁水力设计参数——管网域子系统裸域键，非
+#    factor.<unit>.* 单元包形态；逐字对应 docs/norms/network_manning.md；
+#    load_coefficients 键值仅 int|float 约束下 DN 序列拆 12 个 dn 键） ──
+- key: "network.roughness.concrete"
+  value: 0.013
+  unit: "s/m^(1/3)"
+  source: "GB 50014-2021 §5（排水管渠粗糙系数——混凝土管/钢筋混凝土管 0.013~0.014 常用带，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "钢筋混凝土管曼宁糙率（带 0.013~0.014 取 0.013——unit_prices pipe 族 GB/T 11836 钢筋混凝土管同口径）；数据策略 v2"
+- key: "network.roughness.plastic"
+  value: 0.009
+  unit: "s/m^(1/3)"
+  source: "GB 50014-2021 §5（排水管渠粗糙系数——塑料管 0.009~0.011 常用带，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "塑料管曼宁糙率（带 0.009~0.011 取 0.009；tests/network test_manning 用例 0.009 同值口径）；数据策略 v2"
+- key: "network.velocity_band.min"
+  value: 0.6
+  unit: "m/s"
+  source: "GB 50014-2021 §5（排水管渠最小设计流速——污水管道 0.6 m/s 档，条号随追认核对）"
+  note: "设计流速带下限（最小流速防淤积）；数据策略 v2"
+- key: "network.velocity_band.max"
+  value: 3.0
+  unit: "m/s"
+  source: "GB 50014-2021 §5（排水管渠最大设计流速——非金属管档口径，条号随追认核对）"
+  note: "设计流速带上限（管网域管材混凝土/塑料两档均非金属——金属管 10 m/s 档不入本域）；数据策略 v2"
+- key: "network.max_fill_ratio.dn300"
+  value: 0.55
+  unit: "dimensionless"
+  source: "GB 50014-2021 §5（最大设计充满度表——管径分档 0.55~0.75，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "最大设计充满度·DN≤300 档（分档键 4 条按 DN 归档——设计判据 NM-F5）；数据策略 v2"
+- key: "network.max_fill_ratio.dn450"
+  value: 0.65
+  unit: "dimensionless"
+  source: "GB 50014-2021 §5（最大设计充满度表——管径分档 0.55~0.75，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "最大设计充满度·DN350~450 档（分档键 4 条按 DN 归档）；数据策略 v2"
+- key: "network.max_fill_ratio.dn900"
+  value: 0.7
+  unit: "dimensionless"
+  source: "GB 50014-2021 §5（最大设计充满度表——管径分档 0.55~0.75，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "最大设计充满度·DN500~900 档（分档键 4 条按 DN 归档）；数据策略 v2"
+- key: "network.max_fill_ratio.dn1500"
+  value: 0.75
+  unit: "dimensionless"
+  source: "GB 50014-2021 §5（最大设计充满度表——管径分档 0.55~0.75，条号随追认核对）；给水排水设计手册（第 5 册 城镇排水）管渠水力计算章"
+  note: "最大设计充满度·DN≥1000 档（分档键 4 条按 DN 归档，键名末档 DN1500=序列上限）；数据策略 v2"
+- key: "network.max_depth"
+  value: 6.0
+  unit: "m"
+  source: "给水排水设计手册（第 5 册 城镇排水）（管道最大埋深——机械开挖常用上限 6~7 m）"
+  note: "最大埋深（取保守值 6.0——超深走跌水井/泵站提升判定，设计判据 NM-F5）；数据策略 v2"
+- key: "network.dn.300"
+  value: 300.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN300（枚举自小到大；与 unit_prices pipe.dn300 一一对应——水力选径与概算单价同序列）；数据策略 v2"
+- key: "network.dn.400"
+  value: 400.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN400（枚举自小到大；与 unit_prices pipe.dn400 一一对应）；数据策略 v2"
+- key: "network.dn.500"
+  value: 500.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN500（枚举自小到大；与 unit_prices pipe.dn500 一一对应）；数据策略 v2"
+- key: "network.dn.600"
+  value: 600.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN600（枚举自小到大；与 unit_prices pipe.dn600 一一对应）；数据策略 v2"
+- key: "network.dn.700"
+  value: 700.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN700（枚举自小到大；与 unit_prices pipe.dn700 一一对应）；数据策略 v2"
+- key: "network.dn.800"
+  value: 800.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN800（枚举自小到大；与 unit_prices pipe.dn800 一一对应）；数据策略 v2"
+- key: "network.dn.900"
+  value: 900.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN900（枚举自小到大；与 unit_prices pipe.dn900 一一对应）；数据策略 v2"
+- key: "network.dn.1000"
+  value: 1000.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN1000（枚举自小到大；与 unit_prices pipe.dn1000 一一对应）；数据策略 v2"
+- key: "network.dn.1100"
+  value: 1100.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN1100（枚举自小到大；与 unit_prices pipe.dn1100 一一对应）；数据策略 v2"
+- key: "network.dn.1200"
+  value: 1200.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN1200（枚举自小到大；与 unit_prices pipe.dn1200 一一对应）；数据策略 v2"
+- key: "network.dn.1400"
+  value: 1400.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN1400（枚举自小到大；与 unit_prices pipe.dn1400 一一对应）；数据策略 v2"
+- key: "network.dn.1500"
+  value: 1500.0
+  unit: "mm"
+  source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
+  note: "可选管径序列·DN1500（枚举自小到大；与 unit_prices pipe.dn1500 一一对应）；数据策略 v2"

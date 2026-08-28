@@ -1,6 +1,29 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "0.9.0"
+data_version: "1.0.0"
 # 变更记录：
+#   - 1.0.0: NET1 管网批段一（曼宁数据批——管网域子系统首批；UF-41 v2
+#       两段制段一，AI 起草待追认[I2——数据策略 v2 工程常用范围口径；
+#       追认前段二实装禁开工]）。factors.yaml 末尾增 network.* 裸域键
+#       共 21 条（551→572 键：糙率 2[network.roughness.concrete 0.013/
+#       plastic 0.009——tests/network test_manning 用例同值口径]+设计
+#       流速带 2[network.velocity_band.min 0.6/max 3.0——GB 50014 最小
+#       流速与非金属管最大流速口径]+最大设计充满度分档 4[network.
+#       max_fill_ratio.dn300 0.55/dn450 0.65/dn900 0.70/dn1500 0.75
+#       ——GB 50014 按管径分档表，简报 D2 分档键选项]+最大埋深 1
+#       [network.max_depth 6.0——手册机械开挖常用上限]+可选管径序列 12
+#       [network.dn.300~1500 value=管径 mm float——load_coefficients
+#       键值仅 int|float 约束下序列拆键，GB/T 11836-2023 与 unit_prices
+#       pipe.dn* 一一对应]）。数值真源=docs/norms/network_manning.md
+#       （NM-F1~F5 公式族+手册非满流比例表+三段管线手算——段二 solver
+#       golden 唯一来源；【已起草待追认】横幅）；出处双源=GB 50014-2021
+#       §5+给水排水设计手册第 5 册（条号章级标注随追认核对——不虚构
+#       条号）+管径序列 GB/T 11836-2023。removal_rates.yaml 零新增
+#       （管网域输送面穿流零水质去除——照 0.6.0/0.7.0 零 removal 键
+#       口径注记）。0.9.0 既有 551 键逐键零扰动（批前快照 .workflow/
+#       tmp/net1-keys-pre.json 对照；装载探针实录见 task-NET1-impl-
+#       report.md：a) data_version=1.0.0 b) 21 新键在库值=主值 c) 旧
+#       551 键零扰动 d) 键总数 572——全过）。配套交付：data/templates/
+#       network_pipes.xlsx（templates manifest 独立版本槽 1.0.0→1.1.0）。
 #   - 0.9.0: I3 出处白名单批（CJJ 131-2009 纳入——纯 source 改标升版
 #       回填；Ruling 九裁②授权[出处白名单两类→三类：GB 国标、行业
 #       标准[CJJ 131-2009 等]、给水排水设计手册]+九裁⑤联动[条号=章级

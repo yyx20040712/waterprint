@@ -1,6 +1,14 @@
 # Excel 模板包清单（版本槽位——模板文件与占位符语法见本目录 README.md）
-data_version: "1.0.0"
+data_version: "1.1.0"
 # 变更记录：
+#   - 1.1.0: network_pipes.xlsx 录入（NET1 管网批段一 2026-08-28——
+#     管网管段输入模板：sheet "pipes"，首行 7 列表头 segment_id/
+#     design_flow/length/ground_start/ground_end/upstream_invert/
+#     pipe_type，第 2 行模板版本注记（v1.0.0——数据自第 3 行起录+单位
+#     约定），openpyxl 生成零公式单元格；列位映射即模板本体——改列位
+#     走模板版本化[R1 禁硬编码列字母]；excel_io R3 校验前置[必填列
+#     缺失/标高倒置带行号错误清单]与模板往返断言归段二实装；表列位=
+#     waterprint.network.solver.PipeSegment 字段冻结面）
 #   - 1.0.0: calcbook_unit.xlsx（单单元：表头+trace 五字段占位行×5——M1b
 #     冻结语法 {{trace[i].<field>}}）+ calcbook_plant.xlsx（全厂：design
 #     工况终水六指标 {{summary.<平键>}} 族）正式录入（UF-16 收口，DRAFT
@@ -14,3 +22,4 @@ data_version: "1.0.0"
 templates:
   calcbook_unit: calcbook_unit.xlsx
   calcbook_plant: calcbook_plant.xlsx
+  network_pipes: network_pipes.xlsx
