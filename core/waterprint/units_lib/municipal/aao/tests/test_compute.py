@@ -179,7 +179,7 @@ def test_main_case_returns() -> None:
 
 
 def test_outflow_passthrough_and_quality() -> None:
-    """出流透传 + 出水质=入质×(1−removal.mod_default)，NH3N/TN/TP 透传。"""
+    """出流透传 + 出水质=入质×(1−removal.mod_default)，NH3N/TN/TP 六键真实去除[NP1/RATIFY3]。"""
     result = make_unit().compute(_ctx(_params()))
     out_ref = PortRef(unit_id="test_aao", port_id="out")
     out_flow = result.outflows[out_ref]
