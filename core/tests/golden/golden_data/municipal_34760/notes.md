@@ -84,6 +84,12 @@
    （input metadata 留 GOLDEN2-R2 值——metadata 不入 design_hash、
    运行路径零消费，印记真源=expected.generated）；86 锚（effluent 30+
    design_dims 56）+m3 双锚逐值 diff=0（产股不加 dims 不改水质）。
+   **GOLDEN4a 复录（2026-08-28，HEAD=`fe4e1a7`）**：三单元 sludge_out
+   产股使三键×5 工况入快照——serialize 500430 bytes（+2100）、sha 头
+   2d32912d30403d7b；86 锚零扰动。**GOLDEN4b 印记复核（2026-08-28，
+   HEAD=`25735ac`）**：MS-F1~F3 登记落矿井产泥包（本案例不涉——市政
+   包 formula_ids 不变）+executor 真环两机制修复（DAG 路径零扰动）——
+   serialize 500430/2d32912d30403d7b 持平复核（4b R1 笔序⑥黄金实证）。
 8. **M3 补录两项（禁造假→已换真值）**：`m3_deferred.estimate_total`
    （概算总数）与 `m3_deferred.total_sludge`（全厂总泥量）——GOLDEN
    批（2026-08-26）以"M3 补录"字串占位缺席；**GOLDEN2 批（2026-08-28）

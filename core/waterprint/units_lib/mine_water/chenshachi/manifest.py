@@ -16,7 +16,9 @@
 #   factor.mine_chenshachi.* 键消费（app._unit_params 线感知投影，
 #   mine_ 限定）；去除率仅 removal.mine_chenshachi.ss.mod_default 键
 #   （0.15 砂粒组分——COD 非混凝沉淀滤池段不建键，BOD5 全线不建键）。
-# 【公式注册（D1）】KC-F1~F10 逐条 FormulaSpec+register；expression=
+# 【公式注册（D1）】KC-F1~F10+MS-F2 逐条 FormulaSpec+register（MS-F2=矿井
+#   泥线链级衔接式沉砂股干基——GOLDEN4b R1 登记 2026-08-28，sludge_out
+#   产股消费）；expression=
 #   表公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；
 #   结构常数（2/1000/1000000）内联（本文件=units_lib manifest 白名单
 #   区，表串原文常量；10⁶=沉砂量 X m³/10⁶m³ 折算、×1000=m3/s→L/s
@@ -182,6 +184,23 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    # GOLDEN4b R1（总控裁决 2026-08-28）：矿井泥线链级衔接式 MS-F2 沉砂股
+    # ——GOLDEN4a 终裁 I-2"乘积系实质计算非纯投影"更正落点；登记于本产泥
+    # 包 manifest（审计口径"formula_ids=实际应用"保持——sludge_out 产股
+    # 消费此式，compute 内联同式实现由包内测试 R4 背书）。
+    FormulaSpec(
+        "MS-F2",
+        "ds_bio = v_sand * rho_sand_wet * (1 - p_sand) * 1000",
+        {
+            "v_sand": (_D, "湿砂体积 m³/d（KC-F5 链值）"),
+            "rho_sand_wet": (_D, "湿砂容重 t/m³（常量 RHO_SAND_WET=1.6——带 1.5~1.7 取中）"),
+            "p_sand": (_D, "湿砂含水率（常量 MOISTURE_SAND=0.10——hebing p_bio 位同源）"),
+        },
+        _D,
+        "docs/norms/mine_water_sludge_line.md（矿井泥线三股语义映射表——MS-F2 "
+        "沉砂干基链级衔接式，GOLDEN4b R1 登记 2026-08-28）+《给水排水设计手册"
+        "（第 5 册 城镇排水）》砂斗排砂容重/湿砂含水常用带",
+    ),
 )
 
 for _spec in _FORMULAS:
@@ -228,10 +247,11 @@ manifest = load_manifest(
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
             # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
-            # nongsuo sup 先例同构）；产股三量=MS-F2 链级衔接式投影
-            # （ds=v_sand×ρ湿砂×(1−p_sand)×1000 干基——hebing 注入
-            # ds_bio 位链路同源；q_wet=v_sand 湿砂体积直算口径；
-            # moisture=p_sand——三键直值注记见上常量节）。
+            # nongsuo sup 先例同构）；产股三量=MS-F2 衔接式计算（终裁 I-2
+            # 更正：乘积系实质计算非纯投影——FormulaSpec 登记本批
+            # [GOLDEN4b R1]；ds=v_sand×ρ湿砂×(1−p_sand)×1000 干基——
+            # hebing 注入 ds_bio 位链路同源；q_wet=v_sand 湿砂体积直算
+            # 口径；moisture=p_sand——三键直值注记见上常量节）。
             {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {

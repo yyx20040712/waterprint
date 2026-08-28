@@ -92,11 +92,21 @@
      值搁置无下游——v2 经 MS-F1 干基链（ρ=1100 口径）入 hebing
      磁泥股（HB-F1 ρ=1000 简化投影 335.3454——9.1% 密度口径差
      声明见手算表映射表节，DS 守恒面不受影响）。
+   - **chenshachi 沉砂股 q 面口径声明（GOLDEN4b 前置——4a ds-audit
+     I-1 补录）**：产股口 q_wet=v_sand=2.63016 m³/d（湿砂体积直算
+     口径）vs HB-F2 派生 q_bio=3787.4304/900=4.208256 m³/d（ρ=1000
+     简化）——**37.5% 口径差**（与 cifenli 9.1% 行同型；DS 守恒面
+     不受影响）；真边接通后 hebing 入流模式 q 面取产股实值，
+     q_total 锚迁移预告 428.979096→**396.9150545**（三股产股实值
+     合计，ds-audit 手工复算）。
 5. **容差口径（红线）**：逐项 rel=1e-12/abs=1e-12 双容差（municipal
    先例）；期望值存 float 全精度 repr；serialize 双跑字节级相同
-   （**GOLDEN4a 2026-08-28：106996 bytes**[v2 曾 106134——六单元产泥口
-   sludge_out 无条件产股使三键×2 工况入 serialize，42 数值锚零扰动
-   程序化实证]，**sha256 头 3125bebe1fa35546**，生成时双跑实录）。
+   （**GOLDEN4b 2026-08-28：107044 bytes**[MS-F1~F3 衔接式
+   FormulaSpec 登记产泥包[GOLDEN4b R1 裁决]使三包 formula_ids 收编
+   ×2 工况入 serialize；4a 曾 106996——六单元产泥口 sludge_out
+   无条件产股使三键×2 工况入 serialize，v2 曾 106134，42 数值锚
+   两轮零扰动程序化实证]，**sha256 头 7d76ae37d436ee4d**，生成时
+   双跑实录）。
 6. **m3_deferred 双锚（v2 补录——v1 概算面未断言收口）**：
    estimate_total=**10980598.97665583**（cost 三正门直调
    [takeoff→estimate]——11 节点全图 design 档 grand_total；app 未

@@ -19,7 +19,9 @@
 #   mod_default 键（ss 0.90 磁絮体磁盘截留/cod 0.60 颗粒态煤粉随絮体
 #   带出；KS-F6 截留率 eta_ss 同取 SS 去除键——表系数列原文；BOD5
 #   全线不建键）。
-# 【公式注册（D1）】KS-F1~F8 逐条 FormulaSpec+register；expression=
+# 【公式注册（D1）】KS-F1~F8+MS-F1 逐条 FormulaSpec+register（MS-F1=矿井
+#   泥线链级衔接式磁泥股干基——GOLDEN4b R1 登记 2026-08-28，sludge_out
+#   产股消费）；expression=
 #   表公式串转受限 DSL——data 包系数（d_disk/eta_im/eta_recover/
 #   p_sludge/rho_sludge）一律符号绑定（零系数字面量）；结构常数
 #   内联（本文件=units_lib manifest 白名单区）：×3600（m3/s→m³/h
@@ -170,6 +172,20 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _D,
         _GB,
     ),
+    # GOLDEN4b R1（总控裁决 2026-08-28）：矿井泥线链级衔接式 MS-F1~F3 之
+    # 磁泥股——登记落点=各产泥包 manifest（不进 hebing，审计口径
+    # "formula_ids=实际应用"保持）；compute 侧内联同式实现（R4 测试背书）。
+    FormulaSpec(
+        "MS-F1",
+        "ds_primary = w_ss * 1000",
+        {
+            "w_ss": (_D, "日截留干固体 t/d（KS-F6 链值——×1000 kg/t 折干基 kg/d）"),
+        },
+        _D,
+        "docs/norms/mine_water_sludge_line.md（矿井泥线三股语义映射表——MS-F1 "
+        "磁泥干基链级衔接式，GOLDEN4b R1 登记 2026-08-28）+《给水排水设计手册"
+        "（第 5 册 城镇排水）》污泥处理章泥量衡算",
+    ),
 )
 
 for _spec in _FORMULAS:
@@ -202,9 +218,9 @@ manifest = load_manifest(
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
             # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
-            # nongsuo sup 先例同构）；产股三量=MS-F1 口径投影（ds=w_ss×
-            # 1000 干基——hebing 注入 ds_primary 位链路同源；q_wet=KS-F7
-            # ρ=1100 直算口径；moisture=factor.mine_cifenli.sludge.
+            # nongsuo sup 先例同构）；产股三量=MS-F1 衔接式换算（w_ss×
+            # KG_PER_TON 干基——FormulaSpec 登记本批[GOLDEN4b R1]；q_wet=
+            # KS-F7 ρ=1100 直算口径；moisture=factor.mine_cifenli.sludge.
             # moisture 0.92 hebing p_primary 注入位同源）。
             {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],

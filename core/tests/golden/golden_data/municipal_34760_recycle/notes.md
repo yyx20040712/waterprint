@@ -53,8 +53,14 @@
    total_sludge=5306.514999999999 kg/d（hebing ds_total——污泥
    主线参数不变复核与基例逐位同）。
 7. **容差口径**：rel=1e-12/abs=1e-12 双容差（市政先例红线同款）；
-   serialize 502281 bytes、sha256 头 212f3621990b5414（双跑字节同，
-   入 generated 块——e2e ⑥ 机器锚定）。
+   serialize 双跑字节同，入 generated 块——e2e ⑥ 机器锚定。印记链：
+   GOLDEN3 起草 502281 bytes/212f3621990b5414 → **GOLDEN4a 复录
+   （2026-08-28，HEAD=`fe4e1a7`）**：三单元 sludge_out 产股三键×5
+   工况入快照——504396 bytes/ba1691c1dc97dd6a（92 锚零扰动）→
+   **GOLDEN4b 复核（2026-08-28，HEAD=`25735ac`）**：MS-F1~F3 登记
+   落矿井产泥包（本案例不涉）+executor 真环两机制修复（DAG 零扰动）
+   ——504396/ba1691c1dc97dd6a 持平复核（真环姊妹案例
+   municipal_34760_loop 见 GOLDEN4b ⑧ 批）。
 8. **主控项选取**：18 主线单元沿用 municipal_34760 同字段主控项
    （值随回流微变重录）；rj 两节点=q_recycle/ss_recycle 各 2 键。
 

@@ -272,7 +272,8 @@ def test_pure_function_double_run() -> None:
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"KG-F{index}" for index in range(1, 11))
+    # GOLDEN4b R1（2026-08-28）：MS-F3 泥渣股衔接式收编（sludge_out 产股消费）
+    assert result.formula_ids == (*tuple(f"KG-F{index}" for index in range(1, 11)), "MS-F3")
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

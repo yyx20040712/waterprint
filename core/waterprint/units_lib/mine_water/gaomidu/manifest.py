@@ -18,7 +18,9 @@
 #   removal.mine_gaomidu.{ss,cod}.mod_default 键（ss 0.90/cod 0.30
 #   低浓度进水保安段——磁分离段已载大部分 SS，本单元为保安沉淀段；
 #   BOD5 全线不建键）。
-# 【公式注册（D1）】KG-F1~F10 逐条 FormulaSpec+register；expression=
+# 【公式注册（D1）】KG-F1~F10+MS-F3 逐条 FormulaSpec+register（MS-F3=矿井
+#   泥线链级衔接式泥渣股干基——GOLDEN4b R1 登记 2026-08-28，sludge_out
+#   产股消费）；expression=
 #   表公式串转受限 DSL——data 包系数（ratio_lb/h_super/wall_coef）一律
 #   符号绑定（零系数字面量）；结构常数内联（本文件=units_lib manifest
 #   白名单区）：×3600（m3/s→m³/h 流量口径注记——表内 q_design_h 展开
@@ -183,6 +185,23 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    # GOLDEN4b R1（总控裁决 2026-08-28）：矿井泥线链级衔接式 MS-F3 泥渣股
+    # ——GOLDEN4a 终裁 I-2"衡算系实质计算非纯投影"更正落点；登记于本产泥
+    # 包 manifest（审计口径"formula_ids=实际应用"保持——sludge_out 产股
+    # 消费此式，compute 内联同式实现由包内测试 R4 背书）。
+    FormulaSpec(
+        "MS-F3",
+        "ds_chem = q_avg_daily * (ss_in_gm - ss_out_gm) / 1000",
+        {
+            "q_avg_daily": (_D, "平均日流量 m³/d（入流实值）"),
+            "ss_in_gm": (_D, "入流 SS mg/L（水质衔接链值 68.0）"),
+            "ss_out_gm": (_D, "出水 SS mg/L（ss_in×(1−eta_ss)——removal 键 0.90）"),
+        },
+        _D,
+        "docs/norms/mine_water_sludge_line.md（矿井泥线三股语义映射表——MS-F3 "
+        "泥渣干基 SS 去除衡算推导式[GM-F12 同式先例]，GOLDEN4b R1 登记 "
+        "2026-08-28）+《给水排水设计手册（第 5 册 城镇排水）》泥量衡算",
+    ),
 )
 
 for _spec in _FORMULAS:
@@ -231,10 +250,11 @@ manifest = load_manifest(
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
             # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
-            # nongsuo sup 先例同构）；产股三量=MS-F3 链级衔接式投影
-            # （ds=q_avg_daily×ΔSS 去除衡算——KG 表无排泥公式行起草推导
-            # 式，hebing 注入 ds_chem 位链路同源；q_wet=ds/((1−p)×ρ)
-            # HB-F3 口径；moisture=0.97——直值注记见上常量节）。
+            # nongsuo sup 先例同构）；产股三量=MS-F3 衔接式计算（终裁 I-2
+            # 更正：衡算系实质计算非纯投影——FormulaSpec 登记本批
+            # [GOLDEN4b R1]；ds=q_avg_daily×ΔSS 去除衡算——KG 表无排泥
+            # 公式行起草推导式，hebing 注入 ds_chem 位链路同源；q_wet=ds/
+            # ((1−p)×ρ) HB-F3 口径；moisture=0.97——直值注记见上常量节）。
             {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
