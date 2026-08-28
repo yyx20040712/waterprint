@@ -176,6 +176,31 @@ class _ConsumerStub:
         )
 
 
+class _DecayStub:
+    """衰减水线 stub：WATER in→out（q×0.5——组内回流增益<1 的收敛载体）。"""
+
+    manifest = _stub_manifest(
+        "stub_decay", (("in", "WATER", "IN"), ("out", "WATER", "OUT"))
+    )
+
+    def compute(self, ctx: object) -> object:
+        """半衰减透传（I-2 合法形态用例的组内环收敛前提）。"""
+        from waterprint.contracts.flow import WaterFlow
+        from waterprint.contracts.ports import PortRef
+        from waterprint.contracts.quality import WaterQuality
+        from waterprint.contracts.unit_api import UnitResult
+
+        stock = ctx.inflows[PortRef(ctx.unit_id, "in")]  # type: ignore[attr-defined]
+        out = PortRef(ctx.unit_id, "out")
+        return UnitResult(
+            outflows={out: WaterFlow(q_avg_daily=stock.q_avg_daily * 0.5, kz=stock.kz)},
+            outqualities={out: WaterQuality({})},
+            dims={},
+            warnings=(),
+            formula_ids=("stub.decay",),
+        )
+
+
 def _env() -> object:
     """RunEnv（loop.* 三键经 EngineParam 直投——tests 层无 app 装配）。"""
     from waterprint.contracts.run_env import EngineParam, RunEnv
@@ -351,3 +376,98 @@ def test_scheduling_gap_rejected_fail_closed() -> None:
     assert "凝聚图调度挂账" in message, message
     assert "x2" in message, "消息含组外提供者（GR-09）"
     assert "组执行层 0" in message, "消息含组执行层号（GR-09）"
+
+
+def test_inter_group_dependency_gap_rejected() -> None:
+    """④I-2 组间依赖缺口（R3 裁决）：组外提供者属尚未求解的组（任意层）拒。
+
+    二审 I-2 探针图（同层双组+组间 forward）：G1={a(1),rj1(0)}（a 环经
+    rj1）、G2={c(1),rj2(0)}（c 环经 rj2）——两组 min 成员层同为 0（同层）；
+    组间 forward rj1.out→c.in（G2 消费 G1 输出）。split_graph 实证 Tarjan
+    组序 {c,rj2} 先于 {a,rj1}——G2 求解时 rj1 属未求解的 G1（层 0≤组执行
+    层 0，第一支不命中——纯第二支形态）。修复前=组内 compute 读 rj1 空池
+    裸 KeyError；守卫后=组求解前 InvalidExecutionError 显式拒（同层组间
+    依赖——凝聚图调度挂账，GR-09 族）。"""
+    from waterprint.graph.executor import InvalidExecutionError
+    from waterprint.graph.nodes import builtin_unit
+
+    design = _design(
+        nodes={
+            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "a": {},
+            "rj1": {"kind": "recycle_junction"},
+            "c": {},
+            "rj2": {"kind": "recycle_junction"},
+        },
+        edges=[
+            _edge("src", "out", "a", "in"),
+            _edge("a", "sludge_out", "rj1", "in", recycle=True),
+            _edge("rj1", "out", "a", "in_r"),
+            _edge("rj1", "out", "c", "in"),
+            _edge("c", "sludge_out", "rj2", "in", recycle=True),
+            _edge("rj2", "out", "c", "in_r"),
+        ],
+    )
+    units = {
+        "src": builtin_unit(
+            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+        ),
+        "a": _ProducerStub(),
+        "rj1": builtin_unit("recycle_junction", {}),
+        "c": _ProducerStub(),
+        "rj2": builtin_unit("recycle_junction", {}),
+    }
+    with pytest.raises(
+        InvalidExecutionError, match="组间依赖缺口形态——同层组间依赖"
+    ) as excinfo:
+        _run(design, units)
+    message = str(excinfo.value)
+    assert "凝聚图调度挂账" in message, message
+    assert "rj1" in message, "消息含组外提供者（GR-09）"
+
+
+def test_inter_group_solved_order_allowed() -> None:
+    """⑤I-2 合法形态放行：提供组先解（已求解序）——组间 forward 正常消费。
+
+    跨层正序构图（探针实证定构）：G1={p(1),d(2)}（p↔d 环经衰减 stub——组
+    内回流增益 0.5 收敛）、G2={m(3),x(4)}（同构衰减环）——组间 forward
+    d.out→m.in 使 G2 消费 G1 输出；G1 执行层 1<G2 执行层 3 → G1 先求解，
+    G2 求解时提供者 d 属**已求解**的 G1 → 守卫放行（不误拒合法已求解序
+    ——指令预见的"组间已求解序"形态）。解析解自证：p.q=q_src+0.5·p.q
+    ⇒ p.q=2×q_src；m 入流=d.out=0.5·p.q（衰减后），m.q=0.5·p.q+0.5·m.q
+    ⇒ **m.q=p.q**（两级衰减环链）。"""
+    from waterprint.graph.nodes import builtin_unit
+
+    design = _design(
+        nodes={
+            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "p": {},
+            "d": {},
+            "m": {},
+            "x": {},
+        },
+        edges=[
+            _edge("src", "out", "p", "in"),
+            _edge("p", "out", "d", "in"),
+            _edge("d", "out", "p", "in_r", recycle=True),
+            _edge("d", "out", "m", "in"),
+            _edge("m", "out", "x", "in"),
+            _edge("x", "out", "m", "in_r", recycle=True),
+        ],
+    )
+    units = {
+        "src": builtin_unit(
+            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+        ),
+        "p": _ProducerStub(),
+        "d": _DecayStub(),
+        "m": _ProducerStub(),
+        "x": _DecayStub(),
+    }
+    plant = _run(design, units)  # 提供组先解序：不拒、跑通
+    snapshot = plant.conditions["design"]  # type: ignore[index]
+    q_src = snapshot["src"].outflows["src.out.q_avg_daily"]
+    q_p = snapshot["p"].dims["q_out"]  # G1 解析：2×q_src
+    q_m = snapshot["m"].dims["q_out"]  # G2 解析：2×p.q（组间消费+组内衰减环）
+    assert q_p == pytest.approx(q_src * 2.0, rel=1e-9), "G1 衰减环解析解"
+    assert q_m == pytest.approx(q_p, rel=1e-9), "组间消费（衰减后）+G2 衰减环解析解"
