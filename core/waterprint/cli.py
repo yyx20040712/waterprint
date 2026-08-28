@@ -24,6 +24,10 @@ NET2 v2 记档（2026-08-28，UF-41 对齐——子命令集 v1 冻结→v2）�
   读入失败（--out 路径问题不再误入 3 前的 stat 崩溃口径）。
   I-1——文件尾 __main__ 入口（python -m waterprint.cli 真生效；此前
   模块级零调用静默 exit 0）。
+- M4a ③（2026-08-28）：export 子命令注册——v1 面仅 audit（render_
+  audit_html 通道，无模板依赖）：`wp export audit <project.json>
+  <result.json> [--out a.html]`；产物 GR-38 原子写+路径 '..' 拒（R5
+  同款）；愿景行其余成员（calcbook/dxf/scene）保持注释未注册。
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -39,7 +43,10 @@ NET2 v2 记档（2026-08-28，UF-41 对齐——子命令集 v1 冻结→v2）�
 #     wp calc <project.json> [--conditions design,avg]
 #         [--out result.json]        全流程计算（app.run_full_calc）
 #     wp export calcbook|audit|dxf|scene <project> <result>
-#         批量导出（M1 起逐步启用）
+#         批量导出（M1 起逐步启用；M4a 起 audit 实装=下行面）
+#     wp export audit <project.json> <result.json> [--out a.html]
+#         审计报告 HTML（M4a ③——render_audit_html 通道；calcbook/dxf/
+#         scene 未注册=用法错误 2，愿景行其余成员保持注释）
 #     wp new-unit <line> <name> [--root <units_lib 路径>]
 #         从 units_lib/_template 生成单元骨架（§15 工程细节 6：
 #         结构一致性不靠文档靠工具；line ∈ 四业务线，重名拒绝）
@@ -56,6 +63,13 @@ NET2 v2 记档（2026-08-28，UF-41 对齐——子命令集 v1 冻结→v2）�
 #      （脚本化 diff 友好）；日志含 repro 三元组。
 #   R4 Windows 路径兼容：显式 encoding="utf-8" 读写；
 #      PYTHONUTF8 提示在 --help 尾注（教训：GBK 双重编码）。
+#   R5 export 产物落盘（M4a ③）：GR-38 原子写（同目录 .tmp 渲染→
+#      os.replace——project/io.save_project 同款）；--out 用户面 '..'
+#      分量拒（audit._validate_out 同口径；相对路径以 cwd 为基准=CLI
+#      用户态，network --out 先例）；失败全收编 3（export 面无计算，
+#      读入/路径/审计链校验族）；项目 design_hash 与结果三元组不一致
+#      =stderr 警告不拒（审计对象=该份计算，HTML 头部三元组自证版本
+#      ——server R1 stale 拒绝语义归 API 面，差异见用户手册 FAQ）。
 #
 # 【测试要求】calc/validate 子命令管线（M1 起真数值）、
 #   new-unit 生成结构完整且拒绝重名、退出码语义、乱码防线
@@ -68,12 +82,15 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import os
 import shutil
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
+from waterprint.app import InvalidProjectError, load_project
+from waterprint.contracts.result_schema import InvalidResultError, deserialize
 from waterprint.network.excel_io import (
     NetworkExcelError,
     read_network_excel,
@@ -86,6 +103,11 @@ from waterprint.network.solver import (
     load_network_coefficients,
 )
 from waterprint.registry.coefficients import InvalidCoefficientError
+from waterprint.trace.audit import (
+    InvalidAuditError,
+    InvalidAuditPathError,
+    render_audit_html,
+)
 
 __all__ = ["main"]
 
@@ -106,6 +128,9 @@ _UNIT_LINES: Final[tuple[str, ...]] = (
     "sludge",
     "conveyance",
 )
+# export 子命令已实装 kind 面（M4a ③：仅 audit——calcbook/dxf/scene 归
+# 后续批；argparse choices 外=用法错误 2）。
+_EXPORT_KINDS: Final[tuple[str, ...]] = ("audit",)
 
 
 def _stdout_utf8() -> None:
@@ -148,6 +173,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="units_lib 根路径（默认内核包内 units_lib；测试用临时根）",
     )
+    export = subparsers.add_parser("export", help="产物导出（v1 面：audit——审计报告 HTML）")
+    export_kinds = export.add_subparsers(dest="export_kind", required=True)
+    for kind in _EXPORT_KINDS:
+        item = export_kinds.add_parser(kind, help="审计报告 HTML（公式溯源）")
+        item.add_argument("project", help="项目文件路径（project.json）")
+        item.add_argument("result", help="结果文件路径（result.json——serialize 产物）")
+        item.add_argument(
+            "--out",
+            default=None,
+            help="输出 HTML 路径（默认=结果文件同目录 <名>.audit.html）",
+        )
     return parser
 
 
@@ -241,6 +277,74 @@ def _run_new_unit(line: str, name: str, root: str | None) -> int:
     return _EXIT_OK
 
 
+def _audit_out(result_path: Path, out: str | None) -> Path | None:
+    """export audit 输出路径裁定（R5）：默认=结果同目录 <stem>.audit.html。
+
+    用户面路径含 '..' 分量=拒（None——audit._validate_out 同口径；相对
+    路径以 cwd 为基准后 resolve——CLI 用户态，network --out 先例）。
+    """
+    if out is None:
+        return result_path.with_suffix(".audit.html")
+    raw = Path(out)
+    for part in raw.parts:
+        if part == "..":
+            print(
+                f"[校验失败] 输出路径含越界分量 '..'：{raw}（R5 同款口径——audit._validate_out）",
+                file=sys.stderr,
+            )
+            return None
+    return (raw if raw.is_absolute() else Path.cwd() / raw).resolve()
+
+
+def _run_export_audit(project: str, result: str, out: str | None) -> int:
+    """export audit 子命令：路径裁定→读对→渲染→原子落盘（退出码 0/3）。
+
+    项目-结果三元组不一致=stderr 警告不拒（审计对象=该份计算——HTML
+    头部三元组自证版本）；落盘 GR-38：同目录 .tmp 渲染→os.replace，
+    失败 os.remove 清半写 tmp。
+    """
+    result_path = Path(result).resolve()
+    target = _audit_out(result_path, out)
+    if target is None:
+        return _EXIT_VALIDATION
+    try:
+        project_file = load_project(Path(project).resolve())
+    except (InvalidProjectError, OSError) as exc:
+        print(f"[校验失败] 项目文件读入：{exc}", file=sys.stderr)
+        return _EXIT_VALIDATION
+    try:
+        plant = deserialize(result_path.read_bytes())
+    except (OSError, InvalidResultError) as exc:
+        print(f"[校验失败] 结果文件读入：{exc}", file=sys.stderr)
+        return _EXIT_VALIDATION
+    if project_file.metadata.content_hash != plant.repro.design_hash:
+        print(
+            "[警告] 项目 design hash 与结果三元组不一致——审计对象=该份"
+            "计算，报告头部三元组自证版本（当前项目请先重算）",
+            file=sys.stderr,
+        )
+    tmp = target.with_name(target.name + ".tmp")
+    try:
+        render_audit_html(plant.trace, plant, tmp)
+        os.replace(tmp, target)
+    except (InvalidAuditError, InvalidAuditPathError) as exc:
+        with contextlib.suppress(OSError):
+            os.remove(tmp)  # 半写 .tmp 不留
+        print(f"[校验失败] 审计链校验：{exc}", file=sys.stderr)
+        return _EXIT_VALIDATION
+    except OSError as exc:
+        with contextlib.suppress(OSError):
+            os.remove(tmp)
+        print(f"[校验失败] 报告落盘：{exc}", file=sys.stderr)
+        return _EXIT_VALIDATION
+    print(f"审计报告已生成：{target}")
+    print(
+        f"  迹 {len(plant.trace)} 条 / 工况 {len(plant.conditions)} 档 / "
+        f"design_hash {plant.repro.design_hash}（GR-38 原子落盘）"
+    )
+    return _EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """入口（返回退出码）：R1 语义 0/2/3/4；argparse 用法错误收编为 2。"""
     _stdout_utf8()
@@ -254,6 +358,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_network(args.xlsx, args.out, args.roughness)
     if args.command == "new-unit":
         return _run_new_unit(args.line, args.name, args.root)
+    if args.command == "export":
+        return _run_export_audit(args.project, args.result, args.out)
     parser.error(f"未知子命令：{args.command!r}")
     return _EXIT_USAGE  # pragma: no cover（parser.error 必先 SystemExit）
 
