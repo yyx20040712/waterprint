@@ -15,9 +15,9 @@
   "generated": {
     "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 502281,
-    "serialize_sha256_head": "212f3621990b5414",
-    "source": "主线实跑 2026-08-28 HEAD=74c30e4"
+    "serialize_bytes": 504396,
+    "serialize_sha256_head": "ba1691c1dc97dd6a",
+    "source": "主线实跑 2026-08-28 HEAD=fe4e1a7"
   },
   "tolerance": {
     "abs": 1e-12,

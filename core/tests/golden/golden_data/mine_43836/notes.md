@@ -82,16 +82,21 @@
      0.75（带式主算例——副档 0.72 呈报不取）/n_standby=1；
      machine_type 默认 1=带式档选键 factor.tuoshui.machine.
      belt_capacity=20.0 **库值恰=手算表主算例 q_machine 20——
-     不入节点注入面**（q_machine 系机型档系数键非 manifest 参数）。
+     不入节点注入面**（q_machine 系机型档系数键非 manifest 参数）；
+     NS/TU **eta_capture 两键**（0.90/0.95——手算表"固体截留率/
+     固体回收率"行）=manifest 默认恰合手算表取值，未入注入面
+     （MSLUDGE2 M1 收口记档：生效值经手算对照 0 残差反证——
+     NS ds_out=33297.8256×0.90、TU ds_cake=28469.640888 精确成立，
+     默认漂移即锚红）。
    - **cifenli 排泥下游闭环**：v1 q_sludge=304.8594545 m³/d 计算
      值搁置无下游——v2 经 MS-F1 干基链（ρ=1100 口径）入 hebing
      磁泥股（HB-F1 ρ=1000 简化投影 335.3454——9.1% 密度口径差
      声明见手算表映射表节，DS 守恒面不受影响）。
 5. **容差口径（红线）**：逐项 rel=1e-12/abs=1e-12 双容差（municipal
    先例）；期望值存 float 全精度 repr；serialize 双跑字节级相同
-   （**v2：106134 bytes**[v1 78313→+27821=三单元×2 工况快照+警告
-   面入 serialize]，**sha256 头 e5a528a77e4f23e2**，生成时双跑
-   实录）。
+   （**GOLDEN4a 2026-08-28：106996 bytes**[v2 曾 106134——六单元产泥口
+   sludge_out 无条件产股使三键×2 工况入 serialize，42 数值锚零扰动
+   程序化实证]，**sha256 头 3125bebe1fa35546**，生成时双跑实录）。
 6. **m3_deferred 双锚（v2 补录——v1 概算面未断言收口）**：
    estimate_total=**10980598.97665583**（cost 三正门直调
    [takeoff→estimate]——11 节点全图 design 档 grand_total；app 未
@@ -137,6 +142,7 @@
 | 日期 | 批次/commit | 差异项 | 原因与处置 |
 |------|-------------|--------|------------|
 | 2026-08-28 | MSLUDGE2（v2 升版） | serialize 78313→106134 bytes/三元组与 data_version 1.0.0→1.1.0/content_hash 重算 | 只增面：三单元×2 工况快照+警告入 serialize；生成日库实拍（R2 真值化先例）；旧 30 锚数值位级零扰动（程序化实证） |
+| 2026-08-28 | GOLDEN4a（产泥口实体化） | serialize 106134→106996 bytes/sha 头 e5a528a7→3125bebe | 只增面：cifenli/chenshachi/gaomidu 六单元产泥口 sludge_out 无条件产股（三键×2 工况入 serialize——nongsuo sup 先例同构）；42 数值锚位级零扰动（程序化实证 removed=0，变更恰 generated 三元组）；e2e 断言零改动（三元组读 expected） |
 | （待续） | | | |
 
 ---

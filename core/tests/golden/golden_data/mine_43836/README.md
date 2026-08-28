@@ -13,9 +13,11 @@
    绑定面承载，透传 calc 零消费）；**污泥回流 R 环路不在 v2**（sup/
    filtrate 回流口默认关边不连——矿井真环归 GOLDEN4，回路收敛验证场
    归市政回流案例 GOLDEN3）；
-2. `expected_summary.json`——关键结果期望值（2 工况终水五指标+
-   **11 单元主尺寸 42 锚**[v2 污泥三单元+10 项+m3 双锚 2 项——v1 30
-   锚位级零扰动]；**五指标面=SS/CODCR/NH3N/TN/TP——BOD5 不建**
+2. `expected_summary.json`——关键结果 42 锚（终水 10+11 单元主尺寸 30+
+   m3 双锚 2——MSLUDGE2 M3 收口：显式分解替代"主尺寸 42 锚"压缩措辞）
+   [v2 污泥三单元+10 项+m3 双锚 2 项——v1 30 锚位级零扰动；GOLDEN4a
+   2026-08-28 serialize 三元组重录 106996/3125bebe1fa35546——42 数值
+   锚零扰动程序化实证]；**五指标面=SS/CODCR/NH3N/TN/TP——BOD5 不建**
    [Ruling BOD5-不建：矿井水 B/C=0.025 无生化性]；m3_deferred 双锚
    [estimate_total=cost 三正门直调 11 节点全图/total_sludge=hebing
    ds_total]），每项标注来源与容差；
