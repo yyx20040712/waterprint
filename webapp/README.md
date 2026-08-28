@@ -1,6 +1,12 @@
 # webapp —— React 前端
 
-React 18 + TypeScript(strict) + Vite；feature 切片结构（§13.5）。
+React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
+
+> 版本面（FE2 升版批 2026-08-28）：react 19.2 + @react-three/fiber 9.7
+> + antd 6.6 + echarts 6.1 + vite 7.3 + vitest 4.1 + @types/three 0.185。
+> 未升面记档：typescript 7（tsconfig `baseUrl` 破坏面+白名单禁触）、
+> vite 8 / @vitejs/plugin-react 6（rolldown 内核 `manualChunks` 对象
+> 形态破坏+vite.config 冻结）、orval 8（钉版 7.21——生成物稳定优先）。
 
 > 当前状态：**M0.5 结构接线完成**——43 源文件=入口 1+app 4+features 32+
 > shared 6，全部带 TS 契约头（`main.tsx`/`App.tsx` 可编译骨架屏 +
