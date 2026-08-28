@@ -12,7 +12,10 @@
 > 收尾，见 `../重写计划-技术路线与框架.md` §9 与会话工作区 handover/
 > 台账。此前：M0 骨架与门禁→M1 内核垂直切片→M2 四块收口→M3 六数据/
 > 实装批+三维/图纸战役三批（M3D1~D3）。
-> coefficients 0.7.0（545 键，三线已追认）；norms 手算表 32 份（AI 起草+
+> 数据面键计数基准（ENG3 2026-08-28 探针实测：load_coefficients/
+> load_prices/templates manifest 装载正门）：coefficients 1.1.0（577 键）
+> +unit_prices 1.0.0（81 键）+templates 1.1.0（3 模板）；norms 手算表
+> 32 份（AI 起草+
 > 追认制，全部已追认——余 I3 已裁待回填/条号章级挂账）。
 > 测试数/覆盖率以 CI 输出为准，文档不手写数字。
 
