@@ -1,6 +1,10 @@
 # 定额单价包清单（版本槽位——真实条目迁移见本目录 README.md）
-data_version: "1.0.0"
+price_data_version: "1.0.0"
 # 变更记录（每次版本升级追加）：
+#   - 1.0.0（结构修正不升版注记，COST2 2026-08-28）：字段名归一
+#       data_version→price_data_version（prices.py 规格头 R2 口径——
+#       版本字段随包实名，load_prices 读 price_data_version；条目数据
+#       零变更）。
 #   - 1.0.0: RATIFY3 批准放行升版（2026-08-28 用户原话"两项均通过"——
 #       81 条整体批准[未逐条抽验，如实记档；双审已各按 81 数据点 100%
 #       独立对照零漂移在案]，抽验槽见下；解锁 COST2 代码消费；81 条 note

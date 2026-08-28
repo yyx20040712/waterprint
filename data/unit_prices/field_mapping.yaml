@@ -1,0 +1,116 @@
+# 字段映射与费率 DSL 清单（COST2 概算段二新建，D3 裁决最小面）。
+# 本文件是 takeoff（字段 ID → 定额项映射）与 estimate（取费基数 DSL）的
+# 数据面——cost 域代码零费率零经验数字（费率值本体在 auxiliary.yaml
+# rate.* 条目，经 PriceBook 消费；本文件只记结构/基数/归桶）。
+# prices.load_prices 按伴生清单文件跳过本文件（非单价条目）。
+#
+# ── mappings 行结构（takeoff_quantities 消费）─────────────────────
+#   price_key：定额单价键（须在单价包可解析——失联键=领域异常，R3）
+#   unit：计量单位（须与单价条目 unit 完全一致——不一致=领域异常，
+#         R2 量纲门槛；设备台数类的计价单位即 万元/台 口径）
+#   mode：direct（量=字段值直取）| count_times_value（量=计数字段×单值
+#         字段，source_field_ids=[计数字段, 单值字段]——首版行集未用，
+#         通道为段三 aao v_o_series×池数类字段预留）
+#   source_field_ids：参与取数的结果字段 ID（dims 裸键；可审计必填，R3）
+#   unit_id：限定提取单元（缺省=字段在任何单元的 dims 出现即取——
+#         v_concrete 各单元同名同语义"概算口径混凝土量"，field-wide）
+#   cost_class：civil | equipment（estimate 设备费基数分拣依据）
+#   source：行出处/依据（审计链路）
+#
+# 首版行集口径（市政主线单元可直接取量的最小集，冻结 §二.2）：
+#   - 混凝土：各单元 dims.v_concrete（CG/XG/CS/CC/TJ/CA/GM/VX/ZW/EC/WS
+#     十一单元的概算口径混凝土量，wall_thickness_coef 已含池壁）整池
+#     并归 concrete_c30_floor 底板单价口径近似（池壁单价键分立属段三
+#     经验函数键化后精化，挂账 D6）。
+#   - 土方：池体容积直取近似（开挖量≈池容，R5 挖深联动精化挂账后置——
+#     冻结 §二.3）；aao v_total（三区合成）/tiaojiechi v_act_total
+#     （TJ-F7 全池实际容积）/cass v_plant（CA-F12 全厂池容）三线各一行，
+#     工艺互斥不重复计价。
+#   - 设备台数：cass n_decant（滗水器整取 ceil）/ziwai n_module（整模块数）
+#     ——台数实测自结果字段，单价包 quantity 列仅为参考值不参与计算。
+
+mappings:
+  - price_key: "concrete_c30_floor"
+    unit: "m3"
+    mode: "direct"
+    source_field_ids: ["v_concrete"]
+    cost_class: "civil"
+    source: "COST2 D3：dims.v_concrete=各单元概算口径混凝土量（wall_coef 含池壁），2019 地方市政消耗量定额"
+  - price_key: "earthwork"
+    unit: "m3"
+    mode: "direct"
+    source_field_ids: ["v_total"]
+    unit_id: "municipal_aao"
+    cost_class: "civil"
+    source: "COST2 D3：aao v_total（AO 容积合成）作开挖量近似（R5 挖深联动挂账）；2019 地方市政消耗量定额"
+  - price_key: "earthwork"
+    unit: "m3"
+    mode: "direct"
+    source_field_ids: ["v_act_total"]
+    unit_id: "municipal_tiaojiechi"
+    cost_class: "civil"
+    source: "COST2 D3：tiaojiechi v_act_total（TJ-F7 全池实际容积）作开挖量近似（R5 挂账）；2019 地方市政消耗量定额"
+  - price_key: "earthwork"
+    unit: "m3"
+    mode: "direct"
+    source_field_ids: ["v_plant"]
+    unit_id: "municipal_cass"
+    cost_class: "civil"
+    source: "COST2 D3：cass v_plant（CA-F12 全厂池容）作开挖量近似（R5 挂账）；2019 地方市政消耗量定额"
+  - price_key: "cass.rotary_decanter"
+    unit: "万元/台"
+    mode: "direct"
+    source_field_ids: ["n_decant"]
+    unit_id: "municipal_cass"
+    cost_class: "equipment"
+    source: "COST2 D3：cass n_decant（CA 滗水器台数整取）；2024 市场询价"
+  - price_key: "ziwai.uv_disinfection_module"
+    unit: "万元/台"
+    mode: "direct"
+    source_field_ids: ["n_module"]
+    unit_id: "municipal_ziwai"
+    cost_class: "equipment"
+    source: "COST2 D3：ziwai n_module（ZW-F5 整模块数）；2024 市场询价"
+
+# ── fee_rules 行结构（estimate.load_fee_rules 消费，费率值经
+#    PriceBook.get(fee_key).price 从 auxiliary.yaml rate.* 读出）────
+#   fee_key：费率键（=单价包 rate.* 条目键；rate 从包内读——代码零费率）
+#   bucket：measure | indirect | reserve | tax（概算分级归桶；
+#         evaluation 固定序 measure→indirect→reserve→tax）
+#   base：取费基数 DSL（受限表达式，contracts.expr 求值；命名基数集：
+#         detail_subtotal=分部分项小计 / equipment_subtotal=设备费小计 /
+#         construction_subtotal=建安费（detail+measure）/ subtotal=小计
+#         （construction+indirect）/ reserve_subtotal=预备费小计）
+#   source：取费语义出处（与 auxiliary note 同源：安装=设备×15%、
+#         管理/设计/监理/前期=建安×率、预备=小计×10%、税=(小计+预备)×9%，
+#         GB50500-2013）
+
+fee_rules:
+  - fee_key: "rate.installation"
+    bucket: "measure"
+    base: "equipment_subtotal"
+    source: "GB50500-2013（安装费=设备费×15%，auxiliary rate.installation note）"
+  - fee_key: "rate.management"
+    bucket: "indirect"
+    base: "construction_subtotal"
+    source: "GB50500-2013（管理费=建安费×5%）"
+  - fee_key: "rate.design"
+    bucket: "indirect"
+    base: "construction_subtotal"
+    source: "GB50500-2013（设计费=建安费×4%）"
+  - fee_key: "rate.supervision"
+    bucket: "indirect"
+    base: "construction_subtotal"
+    source: "GB50500-2013（监理费=建安费×2.5%）"
+  - fee_key: "rate.preparation"
+    bucket: "indirect"
+    base: "construction_subtotal"
+    source: "GB50500-2013（前期费=建安费×1%）"
+  - fee_key: "rate.contingency"
+    bucket: "reserve"
+    base: "subtotal"
+    source: "GB50500-2013（预备费=小计×10%）"
+  - fee_key: "rate.tax"
+    bucket: "tax"
+    base: "subtotal + reserve_subtotal"
+    source: "GB50500-2013（增值税=(小计+预备费)×9%）"
