@@ -20,10 +20,15 @@
    架构折叠为高程子系统**输入配置**（§14.3），不再作为单元节点录入。
 3. `constraint_overrides` 旧键需逐条对照 `data/constraint_kb` 新键名，
    映射关系记入 notes.md。
-4. **录入前另须定**（`docs/business-logic.md` §10 待确认项）：Q1 浓缩
-   上清液/脱水滤液回流是否入 golden 图（影响 input 边与 expected 泥量）；
-   Q2 矿井水案例"III 类"执行口径（GB 3838 环评从严 or 地方标准，
-   影响 B10 模块限值绑定）。
+4. **录入前另须定**（`docs/business-logic.md` §10 待确认项）——**Q1
+   已裁（Ruling 九裁④，2026-08-28）**：浓缩上清液/脱水滤液回流口
+   **启用**（sup/filtrate 产股+厂首端回收边），但回流**边实装归
+   GOLDEN3 批**（validate_edge R1 跨流体/_recycle_port 展开面+水量
+   平衡断言+市政回流 golden 案例随之开档）——现行 golden 图
+   sup/filtrate 口声明不连边（UF-11 Ruling ② 形态）；Q2 矿井水案例
+   "III 类"执行口径（GB 3838 环评从严 or 地方标准，影响 B10 模块
+   限值绑定）——I1 从严口径暂以 notes/source 文字承载（coefficients
+   std.* 键族未建，补建归数据批挂账）。
 
 ## 录入步骤（每案例五步，预计 0.5~1 天/案例）
 
@@ -77,8 +82,8 @@
 
 ### Step 4 —— 写 `expected_summary.json`
 
-**现行结构（municipal_34760 定型，2026-08-26 GOLDEN 批；71 锚 =
-effluent 30 + design_dims 41）**：
+**现行结构（municipal_34760 定型 2026-08-26，GOLDEN2 扩面 2026-08-28；
+85 锚 = effluent 30 + design_dims 55[41 市政+14 污泥]）**：
 
 ```json
 {
@@ -90,27 +95,38 @@ effluent 30 + design_dims 41）**：
                           "CODCR": {}, "SS": {}, "NH3N": {}, "TN": {}, "TP": {}},
                "avg": {}, "design_offline_<unit_id>": {}},
   "generated": {"engine_version": "...", "data_version": "..."},
-  "m3_deferred": {"estimate_total": "M3 补录（…——禁造假数据）",
-                  "total_sludge": "M3 补录（…）"},
+  "m3_deferred": {"estimate_total": {"value": 0.0, "source": "...",
+                                     "abs": 1e-12, "rel": 1e-12},
+                  "total_sludge": {"value": 0.0, "source": "...",
+                                   "abs": 1e-12, "rel": 1e-12}},
   "tolerance": {"abs": 1e-12, "rel": 1e-12}
 }
 ```
 
 要点：①终水六指标键名=BOD5/CODCR/SS/NH3N/TN/TP（与
 `PlantResult.summary` 六指标族及 calcbook_plant 模板平键一致——
-D10 起真值经 app 层 `_summary_of` 注入）；②双容差 1e-12 不放宽
+D10 起真值经 app 层 `_summary_of` 注入）；**矿井案例为五指标面**
+（SS/CODCR/NH3N/TN/TP——BOD5 不建，Ruling BOD5-不建：矿井水
+B/C=0.025 无生化性，BOD5 缺席合法）；②双容差 1e-12 不放宽
 （Ruling A3）；③tolerance/design_dims 逐条带 source 必填；
-④m3_deferred 两键为显式占位（概算/污泥字段随 M3 补录批换真值）。
+④m3_deferred 两键为**真值数值形态**（GOLDEN2 2026-08-28 换真值
+——结构 {value, source, abs, rel} 与 design_dims 条目同形态：
+estimate_total=全图 design 档 takeoff→build_estimate grand_total
+[测试直调 cost 三正门]；total_sludge=hebing ds_total 干基 kg/d
+主口径+q_total 湿基双断言锚；矿井 v1 无此键——污泥链手算表未备，
+升版归后续批）。
 覆盖面最低要求：每个工艺单元 ≥2 条关键结果（design_dims 面）+
-全厂汇总（effluent 六指标）× 全部工况。
+全厂汇总（effluent 指标面）× 全部工况。
 
 ### Step 5 —— notes.md、签字、锁定
 
 `notes.md` 写：源文件路径、口径差异清单（含 0.57 类问题的处理）、
-单位制注记；录入人签字（案例 README 签字栏）。然后**由人类**运行：
+单位制注记；录入人签字（案例 README 签字栏）。然后**由人类**运行
+（**显式携路径——禁无参全仓裸跑**，无参会重扫全仓挤入外挂目录，
+两次事故在案）：
 
 ```bash
-python scripts/lock_tests.py        # 刷新锁定清单（新数据文件纳入哈希保护）
+python scripts/lock_tests.py core/tests/golden   # 显式路径重锁（追加用例另附其 tests 路径）
 ```
 
 端到端测试（`tests/golden/test_municipal_e2e.py` / `test_mine_water_e2e.py`）
