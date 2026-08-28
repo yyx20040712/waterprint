@@ -100,7 +100,7 @@
   "core/tests/solution/test_grid.py": "29bc3dc95329e2300295910186a3caf39841b4aa2fbdb36a5c7170191645a2f7",
   "core/tests/solution/test_pipeline_units.py": "f8c736a9c3c8ce900d7094774e0b6559ec770fef6c888d29a6cf1bd94da44a27",
   "core/tests/solution/test_ranking.py": "59b19bc927439972db16b298c5d330d0591a41a9a2260fc14f6c69f31a795fe0",
-  "core/tests/trace/test_audit.py": "f9301d362e5d455c34447964b7c08336be9d8608523c24ee4fc61a3f32103d4b",
+  "core/tests/trace/test_audit.py": "cbb1ea74394e1e0876b23b3a6ca2bb91fb240879affdf3090a78ed63c0dcf5c2",
   "core/tests/trace/test_calcbook.py": "9086803e6a3cef51dcfbc4ae25c98d271bf1e633469f87ce55e1c51d5c98b80f",
   "core/tests/trace/test_collector.py": "49fe6756dd5094932d3be9c4b07bb52cb756e2bcdfde3014342590837fa0970e",
   "core/waterprint/units_lib/conveyance/jipeishuijing/tests/properties.py": "ba25558ee961350bc9d3bffc710575c54d67f9d300a562dd94248a6ea472c314",

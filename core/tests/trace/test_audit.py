@@ -190,3 +190,18 @@ def test_path_outside_rejected_wiring(tmp_path: Path) -> None:
         render_audit_html(_trace(), _result(), Path("relative.html"))  # type: ignore[misc]
     with pytest.raises(InvalidAuditPathError, match=r"\.\."):
         render_audit_html(_trace(), _result(), tmp_path / ".." / "escape.html")  # type: ignore[misc]
+
+
+def test_print_media_wiring(tmp_path: Path) -> None:
+    """打印版接线断言（M4a ⑤）：@media print 块关键选择器在。
+
+    表头跨页重复（thead→table-header-group）+ 工况分章分页断点（首章
+    除外——标题页与首章同页）+ 行/单元节不截断（page-break-inside）。
+    渲染断言不强求视觉验证（选择器存在性=结构性证明）。
+    """
+    document = _render(tmp_path)
+    assert "@media print" in document
+    assert "table-header-group" in document  # 表头重复
+    assert "page-break-before" in document  # 分页断点
+    assert "page-break-inside" in document  # 行/单元节不跨页截断
+    assert ":not(:first-of-type)" in document  # 首章豁免（标题页不断）

@@ -28,6 +28,11 @@
 #      而非当前时钟）；汇总表键排序、迹按到达序、LF 落盘。
 #   R5 路径安全：输出限制在配置目录（同 dxf_writer R4 口径——
 #      绝对路径 + 拒 '..' 分量，越界抛领域异常）。
+#   R6 打印版（M4a ⑤）：@media print——表头跨页重复（thead→
+#      table-header-group）/工况分章分页断点（首章除外 :not(:first-
+#      of-type)——标题页与首章同页）/行与单元节不跨页截断；"隐藏交互
+#      元素"结构性不适用（R3 自包含=零脚本零链接零交互面，无可藏——
+#      注记非缺陷）；内联 CSS 自包含原则 R3 保持不变。
 #
 # 【数值纪律】本文件不在魔法数字白名单——代码 AST 零数值字面量；
 #   CSS 视觉常量（字号/边距/颜色）以字符串形态内联于 _CSS 常量，
@@ -53,6 +58,8 @@ __all__ = ["InvalidAuditError", "InvalidAuditPathError", "render_audit_html"]
 
 # R3 内联样式（打印友好）：零外部 URL/字体/脚本——视觉常量字符串形态
 # （数值纪律豁免口径见上），generic 字体族零出站依赖。
+# 打印版（M4a ⑤/R6）：thead 表头跨页重复 + 工况分章分页断点（首章
+# 豁免）+ tr/单元节不截断；交互元素面=零（R3 自包含——无可藏，注记）。
 _CSS = """
 body{font-family:sans-serif;color:#1f1f1f;background:#ffffff;
 margin:2em;line-height:1.5}
@@ -70,7 +77,12 @@ padding:.3em 0}
 section.unit{page-break-inside:avoid}
 footer{margin-top:2em;font-size:.85em;color:#5a6a77;
 border-top:1px solid #b9c6d1;padding-top:.5em}
-@media print{body{margin:0}}
+@media print{
+body{margin:0}
+thead{display:table-header-group}
+tr{page-break-inside:avoid}
+section.condition:not(:first-of-type){page-break-before:always}
+}
 """.strip()
 
 
