@@ -29,10 +29,13 @@
 #   滤液分流闭合）+三量链回显 ④主算例两带校核零警告 ⑤副算例
 #   （离心档）逐项——机档键选实证 ⑥越带 Warning——PAM 带（dose_pam
 #   越带）⑦越带 Warning——泥饼含水率带（p_cake 越带）⑧泥饼出流
-#   SLUDGE 三量（契约口径）+filtrate 口不产股（Q1 默认关注记）
-#   ⑨参数域拒绝（machine_type 非枚举值/p_cake 闭边界）⑩纯函数
-#   双跑一致 ⑪formula_ids 恰 8 号（TU-F1~F8）全部可解析 ⑫工况键
-#   形态冒烟。
+#   SLUDGE 三量（契约口径）+filtrate 口无条件产股三量（GOLDEN3 D2
+#   翻转——滤液 q_wet/ds=TU-F7/F8 主算例值 103.408841722/
+#   168.9461713125 ÷86400 回契约口径；moisture=1−(ds_filtrate/
+#   q_filtrate)/1000 干基近似反解[固体密度按水——I2 追认证注记]；
+#   清单身份测试①三口形态不动）⑨参数域拒绝（machine_type 非枚举值/
+#   p_cake 闭边界）⑩纯函数双跑一致 ⑪formula_ids 恰 8 号（TU-F1~F8）
+#   全部可解析 ⑫工况键形态冒烟。
 #
 # 【锁定流程】本文件写完并由人类复核后执行
 #   `python scripts/lock_tests.py core/waterprint/units_lib/sludge/tuoshui/tests`
@@ -199,16 +202,27 @@ def test_cake_band_warning() -> None:
 
 
 def test_outflow_and_filtrate_port() -> None:
-    """⑧泥饼出流 SLUDGE 三量（契约口径）+filtrate 口不产股（Q1 默认关注记）。"""
+    """⑧泥饼出流 SLUDGE 三量（契约口径）+filtrate 口无条件产股三量（GOLDEN3 D2）。"""
     result = _compute()
     out = result.outflows[_OUT_REF]
     assert isinstance(out, SludgeFlow)
     assert out.q_wet == pytest.approx(14.5908057043 / 86400, abs=1e-15)
     assert out.ds == pytest.approx(3209.9772549375 / 86400, abs=1e-15)
     assert out.moisture == pytest.approx(0.78, abs=1e-12)
-    assert _FILTRATE_REF not in result.outflows  # filtrate 端口声明先行、不产股
-    assert set(result.outqualities) == {_OUT_REF}  # 空水质单位元面（executor 入流装配前提）
+    filtrate = result.outflows[_FILTRATE_REF]  # GOLDEN3 D2：filtrate 口无条件产股
+    assert isinstance(filtrate, SludgeFlow)
+    # TU-F7：容差 abs=1e-12——表载 103.408841722 系 12 位显示舍入，链式
+    # 实算（入流往返−q_cake 实算）差 <1.2e-12（文件头浮点末位注记口径）
+    assert filtrate.q_wet == pytest.approx(103.408841722 / 86400, abs=1e-12)
+    assert filtrate.ds == pytest.approx(168.9461713125 / 86400, abs=1e-16)  # TU-F8
+    # 含水率干基近似反解：1−(ds_filtrate/q_filtrate)/1000（固体密度按水
+    # ——I2 追认；容差随 TU-F7 链式实算口径 abs=1e-12）
+    assert filtrate.moisture == pytest.approx(
+        1 - (168.9461713125 / 103.408841722) / 1000, abs=1e-12
+    )
+    assert set(result.outqualities) == {_OUT_REF, _FILTRATE_REF}  # 两口空水质单位元面
     assert result.outqualities[_OUT_REF].concentrations == {}
+    assert result.outqualities[_FILTRATE_REF].concentrations == {}
 
 
 def test_param_domain_rejected() -> None:

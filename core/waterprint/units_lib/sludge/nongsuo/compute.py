@@ -15,16 +15,22 @@
 #   manifest 常量；DSL 无 ceil）。零数值字面量。
 # 【入流装配】恰一入边且为 SLUDGE（shusong 同款）；入流三量
 #   ×SECS_PER_DAY 回工程口径，底流出流回契约口径。
-# 【回流口（Q1 未裁）】sup 上清液端口=声明先行（manifest ports
-#   recycle=True），默认关=不连边——compute 不产 sup 股（打开后
-#   双向守恒入图迭代归追认批），上清液量走 dims q_sup/ds_sup 回显。
+# 【回流口（GOLDEN3 D2 产股，2026-08-28）】sup 上清液端口（manifest
+#   ports recycle=True 声明沿用）——compute 无条件产 sup 股（Q1 已裁
+#   启用）：q_wet/ds=NS-F9/F10 工程口径值÷SECS_PER_DAY 回契约口径；
+#   moisture=1−(ds_sup/q_sup)/1000 干基近似反解（固体密度按水——仅
+#   SludgeFlow 域完整性字段非设计参数，I2 追认证注记）；1000 不作
+#   字面量（R2 零字面量）——由 NS-F8 恒等式 q_thick=ds_out/((1−
+#   p_out)·1000) 反解密度基数 (1−p_out)·q_thick/ds_out ≡ 1/1000
+#   （代数同式零新增假设）。dims 不变（q_sup/ds_sup 本就回显）。
 # 【三量链回显】dims 加 q_in/ds_in/p_in/q_out/p_out（ds_out 即表键；
 #   q_out=底流 q_thick、p_out=参数值）——进出六量全回显。
 # 【系数通道】factor.nongsuo.* 12 键经 ctx.params 投影面取值（裸
 #   短名投影）；缺键=领域异常。elevation_loss 键归高程链子系统，
 #   本文件不消费。
-# 【输出面（D2）】outflows=底流一口 SLUDGE 三量（q_thick/ds_out/
-#   p_out）；dims=表结果 13 项+回显 5 项；outqualities=出流口恒键、值为空
+# 【输出面（D2）】outflows=底流+上清液两口 SLUDGE 三量（out=q_thick/
+#   ds_out/p_out；sup=NS-F9/F10÷SECS_PER_DAY+干基近似 moisture）；
+#   dims=表结果 13 项+回显 5 项；outqualities=两出流口恒键、值为空
 #   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=
 #   四带校核（实际固体负荷带/浓缩时间带/有效水深带/底流含水率带；
 #   param_key 归因+调节方向）；formula_ids=NS-F1~F12 全量。
@@ -306,19 +312,33 @@ class _SludgeNongsuo:
             "p_out": p["p_out"],
         }
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sup_ref = PortRef(unit_id=ctx.unit_id, port_id="sup")
         return UnitResult(
             outflows={
                 out_ref: SludgeFlow(
                     q_wet=balance["q_thick"] / SECS_PER_DAY,
                     ds=balance["ds_out"] / SECS_PER_DAY,
                     moisture=p["p_out"],
-                )
+                ),
+                # GOLDEN3 D2：sup 上清液无条件产股（Q1 已裁启用）——
+                # q_wet/ds=NS-F9/F10 回契约口径；moisture 干基近似反解
+                # 1−(ds_sup/q_sup)/1000（密度基数经 NS-F8 恒等式反解
+                # ≡(1−p_out)·q_thick/ds_out，R2 零字面量——规格头注记）
+                sup_ref: SludgeFlow(
+                    q_wet=balance["q_sup"] / SECS_PER_DAY,
+                    ds=balance["ds_sup"] / SECS_PER_DAY,
+                    moisture=1
+                    - (balance["ds_sup"] / balance["q_sup"])
+                    * (1 - p["p_out"])
+                    * balance["q_thick"]
+                    / balance["ds_out"],
+                ),
             },
             # 出流水质面=空 WaterQuality 单位元（R5/GR-04——SLUDGE 通道
             # 无水质指标，但出流面两 Mapping 口恒有键：executor 入流
             # 装配取上游 qualities 池键的纯污泥图前提，builtin 三节点
-            # 同款形态）
-            outqualities={out_ref: WaterQuality({})},
+            # 同款形态；sup 口同款两口恒键）
+            outqualities={out_ref: WaterQuality({}), sup_ref: WaterQuality({})},
             dims=dims,
             warnings=_warnings(p, area),
             formula_ids=FORMULA_IDS,

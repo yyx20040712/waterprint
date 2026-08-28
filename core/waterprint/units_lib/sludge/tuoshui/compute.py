@@ -19,9 +19,15 @@
 #   在本文件收口（DSL 无 ceil；表 TU-F3 口径"整台向上取整 ≥1"）。
 # 【入流装配】恰一入边且为 SLUDGE（shusong 同款）；入流三量
 #   ×SECS_PER_DAY 回工程口径，泥饼出流三量回契约口径。
-# 【回流口（Q1 未裁）】filtrate 滤液端口=声明先行（manifest ports
-#   recycle=True），默认关=不连边——compute 不产 filtrate 股（打开
-#   后双向守恒入图迭代归追认批），滤液量走 dims 回显。
+# 【回流口（GOLDEN3 D2 产股，2026-08-28）】filtrate 滤液端口
+#   （manifest ports recycle=True 声明沿用）——compute 无条件产
+#   filtrate 股（Q1 已裁启用）：q_wet/ds=TU-F7/F8 工程口径值÷
+#   SECS_PER_DAY 回契约口径；moisture=1−(ds_filtrate/q_filtrate)/1000
+#   干基近似反解（固体密度按水——仅 SludgeFlow 域完整性字段非设计
+#   参数，I2 追认证注记）；1000 不作字面量（R2 零字面量）——由
+#   TU-F6 恒等式 q_cake=ds_cake/((1−p_cake)·1000) 反解密度基数
+#   (1−p_cake)·q_cake/ds_cake ≡ 1/1000（代数同式零新增假设）。
+#   dims 不变（q_filtrate/ds_filtrate 本就回显）。
 # 【三量链回显】dims 加 q_in/ds_in/p_in/q_out/ds_out/p_out（出=泥饼：
 #   q_out=q_cake、ds_out=ds_cake、p_out=p_cake 参数值）——进出六量
 #   全回显。
@@ -29,9 +35,11 @@
 #   短名投影）；缺键=领域异常。elevation_loss 键归高程链子系统，
 #   本文件不消费（车间设备单元不建 wall_thickness_coef——bashi
 #   先例口径）。
-# 【输出面（D2）】outflows=泥饼一口 SLUDGE 三量；dims=表结果 9 项
-#   +回显 6 项；outqualities=出流口恒键、值为空
-#   WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元语义，GR-04）；warnings=两带校核（PAM 带/泥饼
+# 【输出面（D2）】outflows=泥饼+滤液两口 SLUDGE 三量（out=q_cake/
+#   ds_cake/p_cake；filtrate=TU-F7/F8÷SECS_PER_DAY+干基近似
+#   moisture）；dims=表结果 9 项+回显 6 项；outqualities=两出流口
+#   恒键、值为空 WaterQuality 单元（SLUDGE 通道无水质指标——R5 单位元
+#   语义，GR-04）；warnings=两带校核（PAM 带/泥饼
 #   含水率带；param_key 归因+调节方向）；formula_ids=TU-F1~F8 全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
 #   R3 工况只经参数；R4 纯函数；R5 禁 import 其他单元与 L3；R6 ≤400 行。
@@ -235,19 +243,37 @@ class _SludgeTuoshui:
                 )
             )
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        filtrate_ref = PortRef(unit_id=ctx.unit_id, port_id="filtrate")
         return UnitResult(
             outflows={
                 out_ref: SludgeFlow(
                     q_wet=q_cake / SECS_PER_DAY,
                     ds=ds_cake / SECS_PER_DAY,
                     moisture=p["p_cake"],
-                )
+                ),
+                # GOLDEN3 D2：filtrate 滤液无条件产股（Q1 已裁启用）——
+                # q_wet/ds=TU-F7/F8 回契约口径；moisture 干基近似反解
+                # 1−(ds_filtrate/q_filtrate)/1000（密度基数经 TU-F6
+                # 恒等式反解 ≡(1−p_cake)·q_cake/ds_cake，R2 零字面量
+                # ——规格头注记）
+                filtrate_ref: SludgeFlow(
+                    q_wet=q_filtrate / SECS_PER_DAY,
+                    ds=ds_filtrate / SECS_PER_DAY,
+                    moisture=1
+                    - (ds_filtrate / q_filtrate)
+                    * (1 - p["p_cake"])
+                    * q_cake
+                    / ds_cake,
+                ),
             },
-            # 出流水质面=空 WaterQuality 单位元（R5/GR-04——SLUDGE 通道
+            # 出流水质面=空 WaterQuality 单元（R5/GR-04——SLUDGE 通道
             # 无水质指标，但出流面两 Mapping 口恒有键：executor 入流
             # 装配取上游 qualities 池键的纯污泥图前提，builtin 三节点
-            # 同款形态）
-            outqualities={out_ref: WaterQuality({})},
+            # 同款形态；filtrate 口同款两口恒键）
+            outqualities={
+                out_ref: WaterQuality({}),
+                filtrate_ref: WaterQuality({}),
+            },
             dims=dims,
             warnings=tuple(warnings),
             formula_ids=FORMULA_IDS,

@@ -28,8 +28,11 @@
 #   ④主算例构造/概算逐项（NS-F11~F12）+三量链回显 ⑤主算例四带
 #   校核全合格零警告 ⑥副算例（负荷带下限+底流变档）逐项 ⑦越带
 #   Warning——实际固体负荷带（q_solid 越带）⑧越带 Warning——底流
-#   含水率带（p_out 越带）⑨底流出流 SLUDGE 三量（契约口径）+sup
-#   口不产股（Q1 默认关注记）⑩参数域拒绝（n 非正/p_out 闭边界）
+#   含水率带（p_out 越带）⑨底流出流 SLUDGE 三量（契约口径）+sup 口
+#   无条件产股三量（GOLDEN3 D2 翻转——上清液 q_wet/ds=NS-F9/F10 主算例
+#   值 289.9399958333/530.6515 ÷86400 回契约口径；moisture=1−(ds_sup/
+#   q_sup)/1000 干基近似反解[固体密度按水——I2 追认证注记]；清单身份
+#   测试①三口形态不动）⑩参数域拒绝（n 非正/p_out 闭边界）
 #   ⑪纯函数双跑一致 ⑫formula_ids 恰 12 号（NS-F1~F12）全部可解析
 #   +工况键冒烟。
 #
@@ -222,16 +225,24 @@ def test_moisture_band_warning() -> None:
 
 
 def test_outflow_and_sup_port() -> None:
-    """⑨底流出流 SLUDGE 三量（契约口径）+sup 口不产股（Q1 默认关注记）。"""
+    """⑨底流出流 SLUDGE 三量（契约口径）+sup 口无条件产股三量（GOLDEN3 D2）。"""
     result = _compute()
     out = result.outflows[_OUT_REF]
     assert isinstance(out, SludgeFlow)
     assert out.q_wet == pytest.approx(119.3965875 / 86400, abs=1e-16)
     assert out.ds == pytest.approx(4775.8635 / 86400, abs=1e-16)
     assert out.moisture == pytest.approx(0.96, abs=1e-12)
-    assert _SUP_REF not in result.outflows  # sup 端口声明先行、不产股
-    assert set(result.outqualities) == {_OUT_REF}  # 空水质单位元面（executor 入流装配前提）
+    sup = result.outflows[_SUP_REF]  # GOLDEN3 D2：sup 口无条件产股
+    assert isinstance(sup, SludgeFlow)
+    assert sup.q_wet == pytest.approx(289.9399958333 / 86400, abs=1e-16)  # NS-F9
+    assert sup.ds == pytest.approx(530.6515 / 86400, abs=1e-16)  # NS-F10
+    # 含水率干基近似反解：1−(ds_sup/q_sup)/1000（固体密度按水——I2 追认）
+    assert sup.moisture == pytest.approx(
+        1 - (530.6515 / 289.9399958333) / 1000, abs=1e-15
+    )
+    assert set(result.outqualities) == {_OUT_REF, _SUP_REF}  # 两口空水质单位元面
     assert result.outqualities[_OUT_REF].concentrations == {}
+    assert result.outqualities[_SUP_REF].concentrations == {}
 
 
 def test_param_domain_rejected() -> None:
