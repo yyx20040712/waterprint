@@ -280,6 +280,110 @@
         "source": "主线实跑 2026-08-26 HEAD=134d4a3",
         "value": 64.0
       }
+    },
+    "sludge_bengzhan": {
+      "h_pump": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 16.396196021284908
+      },
+      "n_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 3.0
+      }
+    },
+    "sludge_ganhua": {
+      "m_out": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 4279.969673249999
+      },
+      "w_evap": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 10310.83603101136
+      }
+    },
+    "sludge_hebing": {
+      "ds_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 5306.514999999999
+      },
+      "p_merged": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 0.9870363040684327
+      },
+      "q_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 409.33658333333295
+      }
+    },
+    "sludge_nongsuo": {
+      "d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 8.5
+      },
+      "q_thick": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 119.39658749999988
+      }
+    },
+    "sludge_shusong": {
+      "d_pipe": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 0.07500000000000001
+      },
+      "v_act": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 1.07239408437609
+      }
+    },
+    "sludge_tuoshui": {
+      "n_machine_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 2.0
+      },
+      "q_cake": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 14.59080570426136
+      }
+    },
+    "sludge_xiaohua": {
+      "d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 11.5
+      },
+      "v_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=63784ce",
+        "value": 2387.9317499999975
+      }
     }
   },
   "effluent": {
@@ -477,13 +581,23 @@
   "generated": {
     "data_version": "coefficients@0.4.0+unit_prices@0.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 333886,
-    "serialize_sha256_head": "4253f6eb0231d06d",
-    "source": "主线实跑 2026-08-26 HEAD=134d4a3"
+    "serialize_bytes": 497060,
+    "serialize_sha256_head": "a21ae93581e2b3db",
+    "source": "主线实跑 2026-08-28 HEAD=63784ce"
   },
   "m3_deferred": {
-    "estimate_total": "M3 补录（概算子系统未就绪——禁造假数据）",
-    "total_sludge": "M3 补录（污泥线未就绪——禁造假数据）"
+    "estimate_total": {
+      "abs": 1e-12,
+      "rel": 1e-12,
+      "source": "主线实跑 2026-08-28 HEAD=63784ce",
+      "value": 11908574.59503396
+    },
+    "total_sludge": {
+      "abs": 1e-12,
+      "rel": 1e-12,
+      "source": "主线实跑 2026-08-28 HEAD=63784ce",
+      "value": 5306.514999999999
+    }
   },
   "tolerance": {
     "abs": 1e-12,

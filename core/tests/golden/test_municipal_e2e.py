@@ -3,7 +3,9 @@
 输入:  golden_data/municipal_34760/{input_project.json, expected_summary.json}
 输出:  全流程与实跑期望值对照断言（5 工况终水逐项+design 档主尺寸+
        计算书导出+2+k 工况索引——GOLDEN 批激活，2026-08-26；D10
-       2026-08-28：summary 真值断言+正式 calcbook_plant 模板渲染收口）
+       2026-08-28：summary 真值断言+正式 calcbook_plant 模板渲染收口；
+       GOLDEN2 2026-08-28：污泥链扩图 12→19 节点+m3_deferred 真值对照
+       ——D3 summary 多汇点未触发（拓扑执行序 bashi 仍居末位汇点））
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -30,7 +32,45 @@ pytestmark = [
 
 _REPO_DATA = Path(__file__).resolve().parents[3] / "data" / "coefficients"
 _REPO_TEMPLATES = Path(__file__).resolve().parents[3] / "data" / "templates"
+_REPO_PRICES = Path(__file__).resolve().parents[3] / "data" / "unit_prices"
 _TERMINAL = "municipal_bashi_jiliangcao"
+
+
+def _m3_real_values(plant: Any, expected: dict[str, Any]) -> None:
+    """M3 面真值（GOLDEN2 2026-08-28）：概算总数+全厂总泥量实跑对照。
+
+    estimate_total=全图（19 节点）design 档工程量→概算——app 未接 cost
+    属既定架构（result_schema"愿景未落"注记），测试直调 cost 三正门
+    （tests/cost/test_estimate.py 先例）；grand_total 逐级自洽
+    （subtotal+reserve_subtotal+Σtax=grand_total）先证后对照。
+    total_sludge=hebing ds_total（干基 kg/d 主口径）；湿基 q_total 以
+    design_dims["sludge_hebing"]["q_total"] 锚承载双断言。"""
+    from waterprint.cost.estimate import build_estimate, load_fee_rules
+    from waterprint.cost.prices import load_prices
+    from waterprint.cost.takeoff import takeoff_quantities
+
+    book = load_prices(_REPO_PRICES)
+    fees = load_fee_rules(_REPO_PRICES / "field_mapping.yaml", book)
+    items = takeoff_quantities(plant, "design", price_book=book)
+    sheet = build_estimate(items, book, fees)
+    assert (sheet.subtotal + sheet.reserve_subtotal
+            + sum(line.amount for line in sheet.tax)) == sheet.grand_total
+    m3 = expected["m3_deferred"]
+    for key in ("estimate_total", "total_sludge"):
+        assert set(m3[key]) == {"value", "source", "abs", "rel"}, key
+    estimate = m3["estimate_total"]
+    assert sheet.grand_total == pytest.approx(
+        estimate["value"], rel=estimate["rel"], abs=estimate["abs"]
+    ), "m3_deferred.estimate_total（19 节点 design 档 grand_total）"
+    sludge = m3["total_sludge"]
+    hebing = plant.conditions["design"]["sludge_hebing"].dims
+    assert hebing["ds_total"] == pytest.approx(
+        sludge["value"], rel=sludge["rel"], abs=sludge["abs"]
+    ), "m3_deferred.total_sludge（hebing ds_total 干基 kg/d 主口径）"
+    wet = expected["design_dims"]["sludge_hebing"]["q_total"]
+    assert hebing["q_total"] == pytest.approx(
+        wet["value"], rel=wet["rel"], abs=wet["abs"]
+    ), "hebing q_total（湿基 m³/d——m3 双断言第二锚）"
 
 
 def _calcbook_min_template_renders(
@@ -153,7 +193,8 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
             ), f"终水 {condition_key}.{indicator}"
 
     # ③ design 档主尺寸逐项对照（每 unit 主控项，容差同上）
-    # 单元覆盖钳制（GOLDEN R1-2）：design_dims 恰覆盖十二节点减 inlet
+    # 单元覆盖钳制（GOLDEN R1-2 + GOLDEN2 扩面）：design_dims 恰覆盖
+    # 十九节点减 inlet（污泥链 7 单元 2026-08-28 入锚——只增不改）
     assert set(expected["design_dims"]) == set(project.design.nodes) - {"inlet"}
     for unit_id, fields in expected["design_dims"].items():
         dims = plant.conditions["design"][unit_id].dims
@@ -162,9 +203,10 @@ def test_municipal_golden_end_to_end(golden_data_dir: Path, tmp_path: Path) -> N
                 item["value"], rel=item["rel"], abs=item["abs"]
             ), f"主尺寸 {unit_id}.{field}"
 
-    # M3 面不造假：概算总数/全厂总泥量缺席占位（字串标"M3 补录"，禁数值）
-    for deferred_key, marker in expected["m3_deferred"].items():
-        assert isinstance(marker, str) and "M3" in marker, deferred_key
+    # M3 面真值（GOLDEN2 2026-08-28）：概算总数/全厂总泥量实跑对照
+    # （结构={value, source, abs, rel}——与 design_dims 条目同形态；
+    # grand_total 逐级自洽+hebing ds_total/q_total 双断言，禁字串回退）
+    _m3_real_values(plant, expected)
 
     _calcbook_min_template_renders(plant, expected, tmp_path)
     _calcbook_official_template_renders(plant, expected, tmp_path)
