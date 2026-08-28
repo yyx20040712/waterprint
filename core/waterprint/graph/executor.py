@@ -10,73 +10,59 @@
 # 【公开接口】
 #   UnitRegistry(Protocol)：unit_id → Unit 实例（app.py 构建；executor
 #       不 import units_lib——装配点唯一）
-#   execute_graph(design: DesignState, units: UnitRegistry,
-#                 conditions: ConditionSet, env: RunEnv) -> PlantResult
-#       唯一执行正门（RunEnv 类型=contracts/run_env.py，UF-31）
+#   execute_graph(design, units, conditions, env) -> PlantResult
+#       唯一执行正门（RunEnv=contracts/run_env.py，UF-31）
 #   InvalidExecutionError(Exception)（GR-11 族，本文件定义）
-#   design.edges 元素形态（D3 冻结，此前无消费者）：{"src":
-#       {"unit_id","port_id"}, "dst": {"unit_id","port_id"},
-#       "recycle": bool=False}——私有 _edges_from_design 转 Edge（键
-#       缺失/类型错=InvalidExecutionError）
+#   design.edges 元素形态（D3 冻结）：{"src": {"unit_id","port_id"},
+#       "dst": 同, "recycle": bool=False}——私有 _edges_from_design 转
+#       Edge（键缺失/类型错=InvalidExecutionError）
 #
 # 【行为规格】
 #   R1 逐工况整图计算：iter_all() 每工况独立完整执行（_RunState 每工况
 #      新建，零共享可变状态），按 ConditionSet.key 索引（§14.1）。
-#   R2 层-SCC 调度（Explore 缺口 7 裁决；GOLDEN4b R1 语义补丁 2026-08-28）：
-#      split_graph 得 (layers, loop_groups)；回路组=超级节点占组**最浅**成员
-#      层（R1：max→min，组尽早整组联立——组外入流提供者恒更浅/同层先跑，
-#      组外消费者恒更晚层，跨层消费读空池墙闭合）；当前层属组成员跳过单节
-#      点执行；**同层内单点先于组**（min 下同层单点只能为组的入流提供者，
-#      消费者层恒>组层——max 时代"组先于单点"随之反转）。v1 串行（UF-35；
-#      并行预留=并串等价常驻测试先行入锁）；compute 先经工况映射变换参数（ADR-007）。
+#   R2 层-SCC 调度（缺口 7 裁决；GOLDEN4b R1 语义补丁+R2 C-1 守卫
+#      2026-08-28）：split_graph 得 (layers, loop_groups)；回路组=超级
+#      节点占组**最浅**成员层（max→min，同层单点先于组——min 下同层单点
+#      只能为组的入流提供者，消费者层恒>组层；v1 串行 UF-35 不变）；
+#      **C-1 前置守卫**：组外 forward 提供者层>组执行层=凝聚图调度缺口
+#      形态，组求解前 fail-closed 拒（显式拒替代读空池裸 KeyError——
+#      完整凝聚图调度挂账机制批；GR-09 族）。compute 先经工况映射变换
+#      参数（ADR-007）。
 #   R3 可复算：同 (design, conditions, env) 双跑字节级相同（incremental
 #      只做等价优化——M1/M3 留白）。
-#   R4 计算迹：**与 PlantResult.trace=()/summary={} 占位的冲突记档 D10**
-#      （sink 通道经 UnitContext.trace 携带，TraceNodeSpec→TraceNode 收集
-#      归 M1 collector；厂级汇总 M1 数值批填充）。
-#   R5 异常隔离：compute 抛领域异常（_DOMAIN_EXCEPTIONS 在册族，新增族须
-#      同步本元组——记档）→ InvalidExecutionError（消息含 unit_id+
-#      condition_key+原异常摘要，from exc 保链）整工况失败上抛禁吞；不做
-#      部分结果聚合（run_full_calc 异常上抛即失败）。
+#   R4 计算迹：**与 PlantResult.trace=()/summary={} 占位冲突记档 D10**
+#      （sink 经 UnitContext.trace 携带，收集归 M1 collector；厂级后批）。
+#   R5 异常隔离：compute 抛领域异常（_DOMAIN_EXCEPTIONS 在册族，新增族
+#      须同步——记档）→ InvalidExecutionError（消息含 unit_id+
+#      condition_key+摘要，from exc 保链）整工况失败上抛禁吞；不做部分
+#      结果聚合（run_full_calc 异常上抛即失败）。
 #   R6 内置图节点走 unit_api 协议（graph/nodes.py 本包提供，§14.3）。
-#
-# 【回路闭包口径】（D3 冻结）状态变量=组内 recycle 边源端口流股展开量，
-#   键 f"{unit_id}.{port_id}.{field}"（GR-09 同款）；WATER 两量 q_avg_daily/
-#   kz（q_design 派生不入状态）、SLUDGE 三量 q_wet/ds/moisture；初始 WATER=
-#   零流量+单位 kz、SLUDGE=微流量零负荷股 q_wet=1e-6（R1 墙 B 裁决——零值
-#   触 dst 侧 q_wet>0 守卫族[GR-14]首迭代即拒；初值任意估计不影响收敛解）。
-#   F=写回估计（直接构造 GR-04，图内 Q=0 合法）→组内按层序重算→读源端口
-#   新值（=dst 侧将收到值，传输无损两读法同值）。recycle 股**水质**随迭代
-#   尾随更新（状态向量只含流量展开量）；解写回=以收敛解终跑一遍闭包
-#   （快照/池/水质与收敛输入一致），组外下游照常 propagate。流体取 recycle
-#   边 dst 端口 manifest 声明（未声明=InvalidExecutionError）；不落回路组的
-#   recycle 边=执行期拒（带边上下文——recycle 边必须闭合成 SCC 回路组，
-#   前进向标记属装配异常；propagate R5 忽略是纯函数边界口径，executor 持
-#   完整图信息故异层；装配期前置对账归 M1——二审 I-1 方案(b) 裁决）。
-#
-# 【工况映射 DSL】（D3 冻结）rule 经 parse_checked（白名单=manifest 参数
-#   名 ∪ 裸名 ∪ 点式上下文 ∪ {"pool.all_pools"}——executor 侧重建，**B4
-#   双胞胎禁私有 import**，与 manifest_validation 同源同步义务）+eval_checked；
-#   bindings=params 全量 ∪ {"pool.all_pools": offline 判定=condition.
-#   offline_unit==该 unit_id 时 False 否则 True}；结果写 params[target]
-#   （bool→float 归一）；ExprSyntaxError 上抛带 unit_id。
-#
+# 【回路闭包口径】（D3 冻结）状态变量=组内 recycle 边源端口流股展开量，键
+#   f"{unit_id}.{port_id}.{field}"（GR-09 同款）；WATER 两量 q_avg_daily/kz、
+#   SLUDGE 三量 q_wet/ds/moisture（q_design 派生不入）；初始 WATER=零流量+
+#   单位 kz、SLUDGE=微流量零负荷股 q_wet=1e-6（R1 墙 B：零值触 dst 侧
+#   q_wet>0 守卫族首迭代即拒，初值任意估计不影响收敛解）。F=写回估计（GR-04
+#   直接构造）→组内按层序重算→读源端口新值；水质尾随更新；解写回=收敛解
+#   终跑一遍闭包，组外下游照常 propagate。流体取 dst 口 manifest 声明（未
+#   声明拒）；不落组的 recycle 边=执行期拒（须闭合成 SCC 组；propagate R5
+#   忽略系纯函数口径，executor 持全图故异层；装配对账归 M1——I-1(b)）。
+# 【工况映射 DSL】（D3 冻结）rule 经 parse_checked（白名单=manifest 参数名
+#   ∪ 裸名 ∪ 点式上下文 ∪ {"pool.all_pools"}——B4 双胞胎禁私有 import，
+#   与 manifest_validation 同源同步）+eval_checked；bindings=params 全量
+#   ∪ {"pool.all_pools": offline=condition.offline_unit==该 unit_id 时
+#   False 否则 True}；结果写 params[target]（bool→float 归一）。
 # 【参数面】ctx.params=manifest 默认值 ∪ design 节点值覆盖（bool 拒/float
-#   归一，GR-02）；节点值 "kind"=内置节点结构元数据（D5 装配口径）不进参数面。
-#
-# 【UF-42 投影表】（Explore 缺口 6 裁决，私有 _snapshot）outflows：
-#   WaterFlow → 三键槽 f"{unit_id}.{port_id}.q_avg_daily"/.kz/.q_design（三量
-#   全随行）；SludgeFlow → .q_wet/.ds/.moisture；outqualities：f"{unit_id}.
-#   {port_id}.{指标}" 全指标逐项；dims：str→float 逐项有限性（GR-02），非该
-#   形状/非有限=InvalidExecutionError（带 unit_id）；warnings/formula_ids 透传。
-#
+#   归一，GR-02）；节点值 "kind"=内置节点结构元数据（D5）不进参数面。
+# 【UF-42 投影表】（缺口 6 裁决，私有 _snapshot）outflows：WaterFlow → 三
+#   键槽 f"{unit_id}.{port_id}.q_avg_daily"/.kz/.q_design；SludgeFlow →
+#   .q_wet/.ds/.moisture；outqualities：f"{unit_id}.{port_id}.{指标}" 全
+#   指标；dims：str→float 逐项有限（GR-02）非该形状/非有限=拒；warnings/
+#   formula_ids 透传。
 # 【design_hash 占位】（D3/D5 定稿）分层契约禁 import project.content_hash
-#   （向上依赖）、签名锁定——置空串+app.run_full_calc 回填；三元组 T7b 闭环。
-#
+#   （向上依赖）、签名锁定——置空串+app.run_full_calc 回填；三元组闭环。
 # 【数值纪律】字面量仅 0/1/2/10（SLUDGE 初值 1e-6 经 mm×mm 借用 parse 派生）。
-#
-# 【测试要求】三单元线性图端到端、工况 2+k 全有结果、回路经 loop 收敛、双跑
-#   diff=0、单单元异常带 unit_id 上抛（跨层消费/回路首迭代墙用例=tests/graph）。
+# 【测试要求】线性图端到端/工况 2+k 全有/回路经 loop 收敛/双跑 diff=0/异常
+#   带 unit_id（两墙+C-1 缺口用例=tests/graph——GOLDEN4b R1/R2）。
 #
 # 【参照】重写计划 §13.1 装配点/§14.1；ADR-003/ADR-007；简报 T7b D3
 # ══════════════════════════════════════════════════════════════════
@@ -410,11 +396,25 @@ class _RunState:
         self.snapshots[unit_id] = _snapshot(result, unit_id)
 
     def run_all(self) -> None:
-        """层-SCC 调度主循环：同层单点先跑、组占最浅成员层后整组联立（R2）。"""
+        """层-SCC 调度主循环：同层单点先跑、组占最浅成员层后整组联立（R2/C-1）。"""
         layers, loop_groups = split_graph(list(self.ctx.design.nodes), self.ctx.edges)
         layer_of = {node: index for index, layer in enumerate(layers) for node in layer}
         group_of = {node: group for group in loop_groups for node in group}
         solved: set[tuple[str, ...]] = set()
+        # C-1 前置守卫（R2 裁决 2026-08-28）：组外 forward 提供者层>组执行层
+        # （=最浅成员层）=凝聚图调度缺口形态——fail-closed 显式拒替代读空池
+        # 裸 KeyError（完整凝聚图调度挂账机制批；此图形态暂拒 GR-09 族）。
+        for group in loop_groups:
+            execute_at = min(layer_of[m] for m in group)
+            for edge in self.ctx.edges:
+                if (not edge.recycle and edge.dst.unit_id in group
+                        and edge.src.unit_id not in group
+                        and layer_of[edge.src.unit_id] > execute_at):
+                    raise InvalidExecutionError(
+                        "层-组调度缺口形态——凝聚图调度挂账，此图形态暂拒（GR-09 族）："
+                        f"回路组 {list(group)} 组执行层 {execute_at}，组外入流提供者 "
+                        f"{edge.src.unit_id}（层 {layer_of[edge.src.unit_id]}）未就绪"
+                    )
         for index, layer in enumerate(layers):
             for node in layer:
                 if node not in group_of:

@@ -299,6 +299,55 @@ def test_sludge_loop_first_iteration_legal() -> None:
     }
     plant = _run(design, units)  # 修复前：InvalidExecutionError（q_wet=0.0 拒）
     snapshot = plant.conditions["design"]  # type: ignore[index]
-    # 收敛解：全零流量回路（无源图）——合法完成即首迭代过域守卫的实证
-    assert snapshot["producer"].outflows["producer.out.q_avg_daily"] >= 0.0
-    assert snapshot["rj"].dims["q_recycle"] >= 0.0
+    # 收敛解：无源图回路收敛至微正流量——M-2 收紧断言（isfinite+>0 有齿：
+    # 实录 q_out≈7.1e-15/q_recycle≈6.2e-11，阻尼序列单调向零不达零）
+    from math import isfinite
+
+    q_out = snapshot["producer"].outflows["producer.out.q_avg_daily"]
+    assert isfinite(q_out) and q_out > 0.0, f"q_out={q_out!r}"
+    q_recycle = snapshot["rj"].dims["q_recycle"]
+    assert isfinite(q_recycle) and q_recycle > 0.0, f"q_recycle={q_recycle!r}"
+
+
+def test_scheduling_gap_rejected_fail_closed() -> None:
+    """③C-1 前置守卫：组外提供者层>组执行层=凝聚图调度缺口 fail-closed 拒。
+
+    一审反例形态（R2 裁决 2026-08-28）：src(0)→x1(1)→x2(2)→producer(3)
+    外链入组 {producer(3), rj(0)}（sludge_out 回边闭合）——组执行层=最浅
+    成员层 0 < 组外 forward 提供者 x2 层 2：组求解时 x2 未就绪。修复前=
+    组内 compute 读 x2 空池裸 KeyError（一审 C-1）；守卫后=执行前
+    InvalidExecutionError 显式拒（凝聚图完整调度挂账机制批——此形态暂拒）。"""
+    from waterprint.graph.executor import InvalidExecutionError
+    from waterprint.graph.nodes import builtin_unit
+
+    design = _design(
+        nodes={
+            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "x1": {},
+            "x2": {},
+            "producer": {},
+            "rj": {"kind": "recycle_junction"},
+        },
+        edges=[
+            _edge("src", "out", "x1", "in"),
+            _edge("x1", "out", "x2", "in"),
+            _edge("x2", "out", "producer", "in"),
+            _edge("producer", "sludge_out", "rj", "in", recycle=True),
+            _edge("rj", "out", "producer", "in_r"),
+        ],
+    )
+    units = {
+        "src": builtin_unit(
+            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+        ),
+        "x1": _ConsumerStub(),
+        "x2": _ConsumerStub(),
+        "producer": _ProducerStub(),
+        "rj": builtin_unit("recycle_junction", {}),
+    }
+    with pytest.raises(InvalidExecutionError, match="层-组调度缺口形态") as excinfo:
+        _run(design, units)
+    message = str(excinfo.value)
+    assert "凝聚图调度挂账" in message, message
+    assert "x2" in message, "消息含组外提供者（GR-09）"
+    assert "组执行层 0" in message, "消息含组执行层号（GR-09）"
