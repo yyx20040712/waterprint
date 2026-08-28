@@ -208,6 +208,30 @@ def test_recycle_junction_rejects_zero_flow() -> None:
         )
 
 
+def test_recycle_junction_rejects_nonfinite_ss_projection() -> None:
+    """非有限 SS 投影拒（R2 第 4 错误分支——GOLDEN4b 补缺）。
+
+    SludgeFlow 直接构造不设有限性守卫（GR-04 图内传播口径）——ds=±Inf/
+    NaN 经正有限 q_wet 投影得非有限 SS，显式拒（GR-02 运算产生转领域
+    异常；GOLDEN3 起草四分支中此支未覆盖，本批补齐——分支已在库，
+    用例直绿）。"""
+    import math
+
+    from waterprint.contracts.ports import PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+
+    unit = builtin_unit("recycle_junction", {})
+    for bad in (math.inf, -math.inf, math.nan):
+        with pytest.raises(InvalidNodeError, match="SS 投影非有限值"):
+            unit.compute(
+                _ctx(
+                    "rj",
+                    {PortRef("a", "sup"): SludgeFlow(q_wet=0.002, ds=bad, moisture=0.9)},
+                    {},
+                )
+            )
+
+
 def test_builtin_unit_rejects_unknown_kind() -> None:
     """未知 kind = InvalidNodeError（合法四 kind 清单入消息）。"""
     with pytest.raises(InvalidNodeError, match="未知内置节点 kind"):
