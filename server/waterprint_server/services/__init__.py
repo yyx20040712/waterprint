@@ -7,8 +7,9 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结）
 #
-# 【四个服务文件】projects（项目 IO 用例）/ calculation（计算与方案
-#   应用）/ enumeration（枚举用例）/ exports（导出用例）。
+# 【五个服务文件】projects（项目 IO 用例）/ calculation（计算与方案
+#   应用）/ enumeration（枚举用例）/ exports（导出用例）/ scene
+#   （三维场景图用例——FE1：最近结果集→core build_scene 纯投影）。
 # 【铁律】服务文件禁止 import fastapi/starlette（分层 §13.4）；
 #   core 调用只经 waterprint.app（L4 正门）；事务性编排
 #   （方案应用原子写）在本层实现。

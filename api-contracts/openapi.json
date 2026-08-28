@@ -216,6 +216,143 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "Node": {
+        "description": "场景节点（不可变）：图元 + 语义 + 局部变换 + 实例数 + 假设来源键。",
+        "properties": {
+          "children": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "instance_count": {
+            "default": 1,
+            "title": "Instance Count",
+            "type": "integer"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "position": {
+            "default": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Position",
+            "type": "array"
+          },
+          "primitive": {
+            "$ref": "#/components/schemas/Primitive"
+          },
+          "rotation": {
+            "default": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Rotation",
+            "type": "array"
+          },
+          "scale": {
+            "default": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Scale",
+            "type": "array"
+          },
+          "semantic": {
+            "title": "Semantic",
+            "type": "string"
+          },
+          "source_assumption_keys": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Assumption Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "node_id",
+          "primitive",
+          "semantic"
+        ],
+        "title": "Node",
+        "type": "object"
+      },
+      "Primitive": {
+        "description": "图元声明（不可变）：kind + 规范单位 m 裸值 dims + 语义标签。\n\n类型定义于本文件（图元域类型——scene.py 正门再导出；internals 同向\n消费，杜绝 scene↔pools↔internals 环）。",
+        "properties": {
+          "dims": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Dims",
+            "type": "object"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "semantic": {
+            "title": "Semantic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "dims",
+          "semantic"
+        ],
+        "title": "Primitive",
+        "type": "object"
+      },
       "ProjectSummaryResponse": {
         "description": "列表条目（名称=文件 id；哈希/时间元数据）。",
         "properties": {
@@ -298,6 +435,41 @@
           "design_changed"
         ],
         "title": "SaveOutcomeResponse",
+        "type": "object"
+      },
+      "SceneGraph": {
+        "description": "场景图（不可变）：root + 节点表 + 版本/工况声明（R4）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "root": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Root",
+            "type": "array"
+          },
+          "scene_version": {
+            "title": "Scene Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "root",
+          "nodes",
+          "scene_version",
+          "condition_key"
+        ],
+        "title": "SceneGraph",
         "type": "object"
       },
       "SolutionPage": {
@@ -1374,6 +1546,65 @@
         "summary": "Validate Project",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/scene/{project_id}": {
+      "get": {
+        "description": "场景图（最近完成结果集纯投影；工况缺省=排序首键回显，R1/R2）。",
+        "operationId": "get_scene_api_scene__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SceneGraph"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Scene",
+        "tags": [
+          "scene"
         ]
       }
     }

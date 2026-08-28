@@ -65,7 +65,7 @@ from waterprint.contracts.manifest import InvalidUnitConfig
 
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
-from waterprint_server.routers import calc, events, exports, projects
+from waterprint_server.routers import calc, events, exports, projects, scene
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.calculation import InvalidSolutionRefError
 from waterprint_server.services.enumeration import (
@@ -87,6 +87,10 @@ from waterprint_server.services.projects import (
     ProjectLockedError,
     ProjectNotFoundError,
 )
+from waterprint_server.services.scene import (
+    InvalidSceneRequestError,
+    SceneSourceNotFoundError,
+)
 from waterprint_server.settings import Settings, ensure_directories, get_settings
 
 # ── R2 统一异常映射表（集中一处；core/server 领域异常→HTTP 码）──
@@ -100,6 +104,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (UnknownTaskError, status.HTTP_404_NOT_FOUND),
     (DiagnosisNotAvailableError, status.HTTP_404_NOT_FOUND),
     (ExportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    (SceneSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     (StaleExportError, status.HTTP_409_CONFLICT),
     (TaskNotCompleteError, status.HTTP_409_CONFLICT),
@@ -107,6 +112,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidPageParameterError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (InvalidSceneRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidProjectPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     # ENG2 D3：非弃用名（HTTP_413_CONTENT_TOO_LARGE==413，值同简报所书
     # REQUEST_ENTITY_TOO_LARGE 旧别名——用旧名会常驻 StarletteDeprecationWarning）。
@@ -128,7 +134,8 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2  # 端点集冻结 5+6+5+2=18（白名单字面量和式）
+# 端点集冻结 5+6+5+2+1=19（白名单字面量和式；+1=scene GET，FE1 D1）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -178,13 +185,13 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==18（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==19（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
-            "（四路由器规格并集 projects5+calc6+exports5+events2——A1 锁定）"
+            "（五路由器规格并集 projects5+calc6+exports5+events2+scene1——A1 锁定）"
         )
 
 
@@ -222,6 +229,7 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     app.include_router(calc.router)
     app.include_router(exports.router)
     app.include_router(events.router)
+    app.include_router(scene.router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(_DEV_ORIGINS),  # R5 开发期白名单
