@@ -13,6 +13,8 @@ golden_data/
 │  ├─ expected_summary.json           # 待整理（每项标注来源与容差）
 │  └─ notes.md                        # 原始设计资料口径注记
 ├─ mine_43836/                        # 矿井水案例（M3 验收），结构同上
+├─ municipal_34760_recycle/           # 市政回流案例（GOLDEN3——前向叠加口径），结构同上
+├─ municipal_34760_loop/              # 市政真环案例（GOLDEN4b——产泥真边+真回流 SCC/solve_loop 收敛）
 ├─ migrations/                        # 项目文件迁移链 golden 样本（M1 起逐版累积）
 └─ m3_incremental_seed.json           # 增量==全量 性质测试种子（M1/M3）
 ```
