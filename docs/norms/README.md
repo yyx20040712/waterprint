@@ -58,6 +58,7 @@ norms/
 | conveyance_jipeishuijing（集配水井） | 集配水 | `conveyance_jipeishuijing.md` | M3c 已实装（JP-F1~F9 注册+包内 golden 11 例；汇流/分流合一单节点+动态多口）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，汇流容积+均匀分流不均匀余量合一主线[集水/配水两表语义合并]） |
 | conveyance_peishuiqu（配水渠） | 集配水 | `conveyance_peishuiqu.md` | M3c 已实装（PQ-F1~F7 注册+包内 golden 11 例；明渠侧堰配水+渠末防淤校核 Warning 路径）；表已追认（2026-08-28 RATIFY2 扩批）（AI-GLM5.3 起草 2026-08-27，数据策略 v2，明渠输配+侧堰配水+变流量渠末流速校核主线[GB §4 最小流速防淤挂点]） |
 | network_manning（管网曼宁水力） | 管网 | `network_manning.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-28，数据策略 v2，GB 50014-2021 §5+给水排水设计手册第 5 册双源；NM-F1~F5 公式族+手册非满流比例表+三段管线手算——段二 solver golden 唯一来源，coefficients 1.0.0 network 域 21 键+network_pipes.xlsx 模板配套；**管网域子系统表**——非单元对照表，登记行同表容纳[命名=域 ID，随单元 ID 规则]） |
+| mine_water_sludge_line（矿井水污泥链） | 矿井水×污泥处理 | `mine_water_sludge_line.md` | 已起草待追认（AI-GLM5.3 起草 2026-08-28，批 7b 段一 MSLUDGE1，I2 AI 起草+追认制纯文档批；**链级表**——非单元包，D1 复用 sludge_* 三单元包公式 ID 引用制[HB-F1~F7/NS-F1~F12/TU-F1~F8]+链级衔接式 MS-F1~F3；三股语义映射[磁泥→ds_primary/沉砂→ds_bio 物理占位/泥渣→ds_chem]+hebing→nongsuo→tuoshui 最小链[跳 shusong/bengzhan/xiaohua/ganhua 理由呈报]+矿井参数档[底流 0.90~0.92 带外重定义必要性论证]；段二 mine golden 升版含污泥线+std.gb3838_iii 实绑——追认通过后开工） |
 
 注记（命名双轨现状）：上表市政 13 份为 M1/M2 批历史命名=**单元短名**
 （如 `gaomidu.md`）；M3a1 起矿井水线按本 README"命名 = 单元 ID"规定
