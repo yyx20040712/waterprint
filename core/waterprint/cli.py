@@ -18,6 +18,12 @@ NET2 v2 记档（2026-08-28，UF-41 对齐——子命令集 v1 冻结→v2）�
   main 符号出现使 tests/app/test_cli.py 两占位接线断言按"不得删除"
   语义填真实现（退出码语义/new-unit 拒重名）——全量口径随之
   722+2+N passed/9 skipped（偏离简报预期 11，实况申报记档）。
+- 修复轮（2026-08-28，二审 F-1+一审 I-1）：F-1——network --out 语义
+  修正为"产出新文件"（源 xlsx 复制到目标路径再写结果 sheet，目录缺
+  失则建；--out 指回源文件=写回语义不自拷贝）；退出码 3 保留给源文件
+  读入失败（--out 路径问题不再误入 3 前的 stat 崩溃口径）。
+  I-1——文件尾 __main__ 入口（python -m waterprint.cli 真生效；此前
+  模块级零调用静默 exit 0）。
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -121,7 +127,11 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     network = subparsers.add_parser("network", help="管网水力设计（pipes.xlsx → 结果 sheet）")
     network.add_argument("xlsx", help="管网表路径（模板 network_pipes v1.0.0）")
-    network.add_argument("--out", default=None, help="结果输出路径（默认写回原文件，幂等重写）")
+    network.add_argument(
+        "--out",
+        default=None,
+        help="结果输出路径（产出新文件：源表复制后写结果 sheet；默认写回原文件）",
+    )
     network.add_argument(
         "--roughness",
         choices=_PIPE_TYPES,
@@ -142,7 +152,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _run_network(xlsx: str, out: str | None, roughness: str) -> int:
-    """network 子命令：读→装配→设计→写→摘要（退出码 0/3/4）。"""
+    """network 子命令：读→装配→设计→（复制→）写→摘要（退出码 0/3/4）。
+
+    out 给定且异于源：源表复制到目标（F-1 产出新文件语义）后写结果
+    sheet；否则写回原文件（幂等重写）。
+    """
     source = Path(xlsx).resolve()
     try:
         coefficients = load_network_coefficients()
@@ -158,6 +172,12 @@ def _run_network(xlsx: str, out: str | None, roughness: str) -> int:
         return _EXIT_CALCULATION
     target = Path(out).resolve() if out else source
     try:
+        # F-1（2026-08-28 修复轮）：--out=产出新文件——源表复制到目标路径
+        # 再写结果 sheet（源文件不动）；目录不存在则建（mkdir parents）。
+        # 目标即源（--out 指回原文件）= 写回语义，跳过复制防自拷贝报错。
+        if target != source:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
         write_result_sheet(target, design)
     except (NetworkExcelError, OSError) as exc:
         print(f"[校验失败] 结果写出：{exc}", file=sys.stderr)
@@ -236,3 +256,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_new_unit(args.line, args.name, args.root)
     parser.error(f"未知子命令：{args.command!r}")
     return _EXIT_USAGE  # pragma: no cover（parser.error 必先 SystemExit）
+
+
+# I-1（2026-08-28 修复轮）：模块真入口——python -m waterprint.cli …
+# 此前无本块，-m 调用只完成模块定义即静默退出码 0（零动作）。
+if __name__ == "__main__":
+    raise SystemExit(main())
