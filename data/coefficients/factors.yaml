@@ -2881,3 +2881,28 @@
   unit: "mm"
   source: "GB/T 11836-2023（钢筋混凝土管规格系列）；给水排水设计手册（第 5 册 城镇排水）管径系列（unit_prices pipe 族 12 档同口径——COST1）"
   note: "可选管径序列·DN1500（枚举自小到大；与 unit_prices pipe.dn1500 一一对应）；数据策略 v2"
+- key: "std.gb3838_iii.cod"
+  value: 20.0
+  unit: "mg/L"
+  source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
+  note: "std 键族·地表水 III 类 CODCR（化学需氧量）限值 20 mg/L（消费面=矿井水案例 v2 出水目标；市政执行 GB 18918-2002 一级A 不绑 III 类）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"
+- key: "std.gb3838_iii.bod5"
+  value: 4.0
+  unit: "mg/L"
+  source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
+  note: "std 键族·地表水 III 类 BOD5（五日生化需氧量）限值 4 mg/L（消费面=矿井水案例 v2 出水目标；市政不绑）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"
+- key: "std.gb3838_iii.nh3n"
+  value: 1.0
+  unit: "mg/L"
+  source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
+  note: "std 键族·地表水 III 类 NH3N（氨氮）限值 1.0 mg/L（消费面=矿井水案例 v2 出水目标；市政不绑）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"
+- key: "std.gb3838_iii.tn"
+  value: 1.0
+  unit: "mg/L"
+  source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
+  note: "std 键族·地表水 III 类 TN（总氮）限值 1.0 mg/L（消费面=矿井水案例 v2 出水目标；市政不绑）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"
+- key: "std.gb3838_iii.tp"
+  value: 0.2
+  unit: "mg/L"
+  source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
+  note: "std 键族·地表水 III 类 TP（总磷）限值 0.2 mg/L（消费面=矿井水案例 v2 出水目标；市政不绑）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"

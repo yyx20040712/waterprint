@@ -1,6 +1,20 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.0.0"
+data_version: "1.1.0"
 # 变更记录：
+#   - 1.1.0: GOLDEN3 std 键族批（std.gb3838_iii 五键——GB 3838-2002
+#       表 1 III 类限值[I1 从严]；AI 起草待追认[I2——数据策略 v2]，追认前
+#       不进消费面实装）。factors.yaml 末尾增键共 5 条（572→577 键：
+#       cod 20/bod5 4/nh3n 1.0/tn 1.0/tp 0.2，unit=mg/L；消费面=矿井
+#       水案例 v2 出水目标 I1——GOLDEN2 批 I1 曾以 notes/source 文字
+#       承载，本批键族补建；市政案例执行 GB 18918-2002 一级A 不绑
+#       III 类[绑定面归 mine v2]；GB 3838-2002 表 1 无 SS 项故不建
+#       std.gb3838_iii.ss 键[注记在每条 note]。removal_rates.yaml 零
+#       新增（std 键族=出水目标限值非去除系数）。1.0.0 既有 572 键
+#       逐键零扰动（批前快照 .workflow/tmp/gold3-keys-pre.json 对照；
+#       装载探针四项实录见 task-GOLDEN3-impl.md：a) data_version=1.1.0
+#       b) 5 新键在库值=主值 c) 旧 572 键零扰动 d) 键总数 577——全过）。
+#       配套同批：nongsuo/tuoshui 产 sup/filtrate 股+recycle_junction
+#       builtin+市政回流 golden 案例（GOLDEN3 D1/D2/D4~D7）。
 #   - 1.0.0: NET1 管网批段一（曼宁数据批——管网域子系统首批；【已追认 2026-08-28 RATIFY4】；UF-41 v2
 #       两段制段一，AI 起草待追认[I2——数据策略 v2 工程常用范围口径；
 #       追认前段二实装禁开工]）。factors.yaml 末尾增 network.* 裸域键

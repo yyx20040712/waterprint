@@ -3,7 +3,10 @@
 > 录入形态：AI 起草 + 领域专家追认制 v2（宪法 §14 数据策略 v2 /
 > pending-domain-expert.md §7）。起草：2026-08-26（GOLDEN 批，
 > BASE `134d4a3`）；**升版：2026-08-28（GOLDEN2 批，BASE `63784ce`
-> ——污泥链扩图 12→19 节点+m3_deferred 换真值，见 §6）**。
+> ——污泥链扩图 12→19 节点+m3_deferred 换真值，见 §5）**；
+> **GOLDEN3 升版：2026-08-28（BASE `6b86194`——nongsuo sup/tuoshui
+> filtrate 产股+serialize 锚刷新+coefficients 1.1.0 std.gb3838_iii
+> 键族，见 §6）**。
 
 ## 1. 来源说明（探针演变 → 输入固化）
 
@@ -74,6 +77,13 @@
    零扰动（86 锚复跑 0 diff），属印记真值修正；serialize 双锚随
    复跑刷新（字节长 497060 不变——两串等长，sha 头
    a21ae93581e2b3db→8bbbf8a6770e6fa7——串经 repro 入 serialize）。
+   **GOLDEN3 复录（2026-08-28，HEAD=`7d89824`）**：nongsuo sup/tuoshui
+   filtrate 无条件产股（Q1 已裁启用）使两口进 UF-42 快照——serialize
+   498330 bytes（+1270）、sha 头 b59df95fa1f9376e（双跑字节同）；
+   data_version 印记随 std 键族批生成日库实拍 coefficients@1.1.0
+   （input metadata 留 GOLDEN2-R2 值——metadata 不入 design_hash、
+   运行路径零消费，印记真源=expected.generated）；86 锚（effluent 30+
+   design_dims 56）+m3 双锚逐值 diff=0（产股不加 dims 不改水质）。
 8. **M3 补录两项（禁造假→已换真值）**：`m3_deferred.estimate_total`
    （概算总数）与 `m3_deferred.total_sludge`（全厂总泥量）——GOLDEN
    批（2026-08-26）以"M3 补录"字串占位缺席；**GOLDEN2 批（2026-08-28）
@@ -113,12 +123,24 @@
    c. **污泥 7 单元主控项裁量**（§5.2 的 15 项）；
    d. **概算基数变化**（§6.3——19 节点 vs COST2 12 节点记档金数差）；
    e. **m3_deferred 真值**（§6.3/§6.4 两数值+双断言锚）。
+7. **GOLDEN3 产股/回流新增追认（2026-08-28，待追认）**：
+   a. **moisture 干基近似**——sup/filtrate 股含水率=1−(ds/q)/1000
+      （固体密度按水——仅 SludgeFlow 域完整性字段非设计参数；密度
+      基数经 NS-F8/TU-F6 恒等式反解≡1/1000，代数同式零新增假设）；
+   b. **kz=1**——recycle_junction 出流总变化系数取 1（回流为连续
+      均匀流无峰化——工程裁量）；
+   c. **SS-only 投影**——recycle_junction 出水质只投 SS，其余指标
+      由 propagate 部分缺项语义=上游原值；
+   d. **回流股 v1 前向叠加口径**——回流边为跨子图 forward 边不标
+      recycle（环不闭合时 executor 拒 recycle 标记），真环迭代挂账
+      GOLDEN4。
 
 ## 4. 差异记档位（未来回归差异逐条附此）
 
 | 日期 | 批次/commit | 差异项 | 原因与处置 |
 |------|-------------|--------|------------|
 | 2026-08-26 | GOLDEN（起草基线） | 终水/主尺寸与 M2c、M2-SOL 探针数字微差 | 输入定点化（save_project round 10）+独立构造输入，非回归；本批起以本三件套为唯一锚 |
+| 2026-08-28 | GOLDEN3（产股+std 键族） | serialize 497060→498330 bytes、sha 头 8bbbf8a6770e6fa7→b59df95fa1f9376e；expected.generated.data_version 1.0.0→1.1.0 | nongsuo sup/tuoshui filtrate 无条件产股（Q1 已裁）使两口进 UF-42 快照（每工况 +q_wet/ds/moisture 三键×两口）；data_version 印记随 std.gb3838_iii 五键批（coefficients 1.0.0→1.1.0）生成日实拍；86 数值锚+m3 双锚逐值 diff=0（非回归——产股不加 dims 不改水质） |
 | 2026-08-28 | GOLDEN2（扩污泥链） | estimate_total=11908574.59503396 ≠ COST2 记档 10536911.04824766（12 节点图） | 概算基数 12→19 节点：污泥 bengzhan/nongsuo/xiaohua 三单元 v_concrete（0.6218+234.0173+835.7761 m³）经 field_mapping field-wide 行自动计入，差 +1371663.55 元；COST2 金数语义=12 节点图，两者各自成立 |
 | （待续） | | | |
 
@@ -154,8 +176,27 @@
 
 ---
 
-## 6. 录入人签字栏
+## 6. GOLDEN3 升版记档（2026-08-28，产股+serialize 刷新+std 键族）
+
+1. **产股（D2）**：nongsuo/tuoshui compute 无条件产 sup/filtrate 股
+   （Q1 已裁启用——GOLDEN2 批 UF-11 Ruling ② 回流口实装挂账本批
+   兑现）：q_wet/ds=NS-F9/F10、TU-F7/F8 手算表主算例值÷86400 回契约
+   口径；moisture 干基近似反解（§3.7.a）。本案例 sup/filtrate 口
+   仍不连边——回流消费面归 `municipal_34760_recycle` 新案例
+   （GOLDEN3 D5）。
+2. **serialize 锚刷新（D4）**：产股结构变化使 expected.generated
+   三元组刷新（正门复跑落盘，禁手打）；86 数值锚零扰动为 DoD 硬项
+   （生成脚本逐值对照 diff=0——effluent 30+design_dims 56+m3 双锚）。
+3. **std.gb3838_iii 键族（D3）**：coefficients 1.0.0→1.1.0（五键
+   GB 3838-2002 表 1 III 类限值，消费面=矿井案例 v2 出水目标 I1）——
+   本市政案例不绑 III 类（执行 GB 18918-2002 一级A），仅经生成日
+   data_version 印记关联；装载探针四项实录见实现报告。
+4. **D4 差异行**：见 §4 表首行（serialize 双锚+印记——数值零扰动）。
+
+---
+
+## 7. 录入人签字栏
 
 - 起草（AI）：＿＿＿（GOLDEN 批实现者，2026-08-26；GOLDEN2 升版
   实现者，2026-08-28）
-- 追认（领域专家）：＿＿＿ 日期：＿＿＿
+- 追认（领域专家）：yyx 2026-08-28（用户批复"6.追认"·Ruling 会话尾）
