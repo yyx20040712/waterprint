@@ -19,7 +19,10 @@
 # 【流量口径】沉淀区水力与混合/絮凝区容积按最高时 flow.q_design
 #   （GM-F1~F11）；药剂耗量与干泥量按平均日 flow.q_avg_daily（GM-F12~
 #   F15，×86400 已内联公式串）——四表口径逐字（Densadeg 类，ADR-008 ③）。
-# 【输出面（D2）】outflows=入流透传；dims=四表水力结果全量 snake 键；
+# 【输出面（D2）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3
+#   无条件产股——GM-F12/F13 全厂口径 ds/q_wet+moisture=1−c_sludge/1000；
+#   ÷SECS_PER_DAY 回契约口径）；dims=四表水力结果全量 snake 键（不变——
+#   投影非计算，nongsuo sup 先例同构）；
 #   outqualities=入质×(1−removal.mod_default) 三指标+NH3N/TN/TP 透传
 #   （同 M1a/M2a2 形态）；warnings=校核带越界（液面负荷带/回流比带/
 #   快混·絮凝停留带/GT 带+絮凝区布置校核 h_floc_calc<h_settle；
@@ -38,6 +41,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -46,7 +50,12 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.municipal.gaomidu.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.municipal.gaomidu.manifest import (
+    FORMULA_IDS,
+    SECS_PER_DAY,
+    WATER_DENSITY,
+    manifest,
+)
 
 _UNIT_ID = "municipal_gaomidu"
 _GT = "GB/T 50335-2016 §5.4.3（高密斜管清水区液面负荷）"
@@ -362,9 +371,26 @@ class _Gaomidu:
         depth = _depth(ctx, p, basin, mixfloc)
         dims = {**basin, **mixfloc, **sludge, **depth}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # ds=GM-F12 s_dry 全厂（hebing 注入 ds_chem 链路同源）、
+                # q_wet=GM-F13 q_sludge 直用（与 HB-F3 同式）；moisture=
+                # 1−c_sludge/WATER_DENSITY（=0.98 与 hebing p_chem 默认
+                # 同源——含固率↔含水率 ρ=1000 口径互推，manifest 注记）。
+                sludge_ref: SludgeFlow(
+                    q_wet=sludge["q_sludge"] / SECS_PER_DAY,
+                    ds=sludge["s_dry"] / SECS_PER_DAY,
+                    moisture=1 - _factor(p, _C_SLUDGE) / WATER_DENSITY,
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                # SLUDGE 通道无水质指标——空 WaterQuality 单位元（R5/GR-04）
+                sludge_ref: WaterQuality({}),
+            },
             dims=dims,
             warnings=_warnings(p, basin, mixfloc, depth),
             formula_ids=FORMULA_IDS,

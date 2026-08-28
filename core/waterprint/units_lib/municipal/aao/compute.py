@@ -22,7 +22,10 @@
 #   按平均时（×sec_per_hour）——双口径待领域专家追认，代码零裁量。
 # 【系数通道】factor.aao.*/removal.aao.* 经 ctx.params 投影面取值
 #   （app._unit_params，M1a 现状对齐）；缺键=领域异常。
-# 【输出面（D3）】outflows=入流透传；dims=三表水力结果全量 snake 键；
+# 【输出面（D3）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3
+#   无条件产股——AO-F6/F7 全厂口径 ds/q_wet+moisture 系数键；÷SECS_
+#   PER_DAY 回契约口径）；dims=三表水力结果全量 snake 键（不变——
+#   投影非计算，nongsuo sup 先例同构）；
 #   outqualities=入质×(1−removal.mod_default) removal_refs 命中键
 #   （六指标全键，NP2）+其余透传；
 #   warnings=七条校核带越界（ns/mlss/t_p/R/Ri 参数带+t_n/theta_c 结果带
@@ -40,6 +43,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -48,7 +52,11 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.municipal.aao.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.municipal.aao.manifest import (
+    FORMULA_IDS,
+    SECS_PER_DAY,
+    manifest,
+)
 
 _UNIT_ID = "municipal_aao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）"
@@ -328,9 +336,25 @@ class _Aao:
         returns = _returns(ctx, p, flow)
         dims = {**volumes, **sludge, **oxygen, **returns}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # ds=AO-F6 s_y 全厂（hebing 注入 ds_bio 链路同源）、q_wet=
+                # AO-F7 dims 直用（与 HB-F2 同式）；moisture 与 hebing
+                # p_bio 默认同源（factor.aao.sludge.moisture）。
+                sludge_ref: SludgeFlow(
+                    q_wet=sludge["q_wet"] / SECS_PER_DAY,
+                    ds=sludge["s_y"] / SECS_PER_DAY,
+                    moisture=_factor(p, "factor.aao.sludge.moisture"),
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                # SLUDGE 通道无水质指标——空 WaterQuality 单位元（R5/GR-04）
+                sludge_ref: WaterQuality({}),
+            },
             dims=dims,
             warnings=_warnings(p, volumes, sludge),
             formula_ids=FORMULA_IDS,

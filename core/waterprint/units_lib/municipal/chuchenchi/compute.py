@@ -18,7 +18,8 @@
 #   投影面取值（app._unit_params，M1a 现状对齐）；缺键=领域异常。
 # 【流量口径】池体水力按最高时 flow.q_design（CC-F1~F9）；排泥按平均日
 #   flow.q_avg_daily（CC-F10~F12，×86400 已内联公式串）——三表口径逐字。
-# 【输出面（D3）】outflows=入流透传；dims=三表水力结果全量 snake 键；
+# 【输出面（D3）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3——
+#   全厂口径投影与 moisture 同源注记见 manifest ports 注）；
 #   outqualities=入质×(1−removal.mod_default) 三指标+NH3N/TN/TP 透传；
 #   warnings=校核带越界（表面负荷/有效水深/径深比/堰负荷/排泥周期带
 #   [0.2.1 键]+贮泥容积 v_storage≥v_need；param_key 归因+双向调节方向，
@@ -37,6 +38,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -45,7 +47,11 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.municipal.chuchenchi.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.municipal.chuchenchi.manifest import (
+    FORMULA_IDS,
+    SECS_PER_DAY,
+    manifest,
+)
 
 _UNIT_ID = "municipal_chuchenchi"
 _NORM = "GB 50014-2021 §6.5（沉淀池）"
@@ -372,9 +378,22 @@ class _Chuchenchi:
         depth = _depth(ctx, p, basin, hopper)
         dims = {**basin, **center, **sludge, **hopper, **depth}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # 全厂口径注记见 manifest ports 注。
+                sludge_ref: SludgeFlow(
+                    q_wet=sludge["s_wet_1"] * p["n"] / SECS_PER_DAY,
+                    ds=sludge["s_dry_1"] * p["n"] / SECS_PER_DAY,
+                    moisture=_factor(p, "factor.chuchenchi.sludge.moisture"),
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                sludge_ref: WaterQuality({}),  # 空 WaterQuality 单位元（R5/GR-04）
+            },
             dims=dims,
             warnings=_warnings(p, basin, center, sludge, hopper),
             formula_ids=FORMULA_IDS,

@@ -4,6 +4,9 @@
 
 - 输入：上游端口量（chenshachi 旋流沉砂池）
 - 输出：下游端口量（aao 生物池或 cass 生物池）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——
+  全厂口径 ds=s_dry_1×n/q_wet=s_wet_1×n（CC-F10/F11×池数，hebing
+  ds_primary 注入链路同源）+moisture 0.96 与 hebing p_primary 同源
 - 旧系统对应：mod `chuchenchi`（交叉对照，非依据）
 - golden 绑定：municipal_34760
 - 公式组（M2a2 已实装，真源=docs/norms/chuchenchi.md 起草表 2026-08-25

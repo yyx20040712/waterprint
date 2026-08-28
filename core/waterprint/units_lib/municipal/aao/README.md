@@ -4,6 +4,9 @@
 
 - 输入：上游端口量（chuchenchi 初沉池或 tiaojiechi 调节池）
 - 输出：下游端口量（erchunchi 辐流二沉池）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——
+  ds=AO-F6 s_y 全厂/q_wet=AO-F7（hebing ds_bio 注入链路同源）+
+  moisture 0.994 与 hebing p_bio 同源
 - 旧系统对应：mod `aao`（交叉对照，非依据）
 - golden 绑定：municipal_34760
 - 公式组（M2a2 已实装，真源=docs/norms/aao.md 起草表 2026-08-25 数据

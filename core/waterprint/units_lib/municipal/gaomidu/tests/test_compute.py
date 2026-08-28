@@ -40,6 +40,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Severity, UnitContext
 from waterprint.registry import formulas
 from waterprint.units_lib.municipal.gaomidu import make_unit, manifest
@@ -132,6 +133,7 @@ def test_manifest_identity() -> None:
     assert [(p.port_id, p.fluid.name, p.direction.name) for p in manifest.ports] == [
         ("in", "WATER", "IN"),
         ("out", "WATER", "OUT"),
+        ("sludge_out", "SLUDGE", "OUT"),
     ]
     assert manifest.removal_refs == {
         "BOD5": "removal.gaomidu.bod5.mod_default",
@@ -296,3 +298,24 @@ def test_formula_ids_registered() -> None:
 def test_condition_key_form() -> None:
     """工况键形态冒烟（apply 第二参 ctx 的 condition_key 口径）。"""
     assert ConditionSet.key(_CONDITION) == "design"
+
+
+def test_sludge_out_port() -> None:
+    """GOLDEN4a D3 产股口：sludge_out 无条件产股（nongsuo sup 先例同构）。
+
+    值链：ds=GM-F12 s_dry 全厂（位级同式投影）；q_wet=GM-F13 q_sludge
+    直用；moisture=1−c_sludge/1000=0.98（ρ=1000 HB 简化口径互推——与
+    sludge_hebing p_chem 默认同源声明）。链路同源对照：工程值 137.7050
+    =hebing 注入 ds_chem（表载舍入面——容差同表 s_dry 行 abs=1e-3）。"""
+    result = make_unit().compute(_ctx(_params()))
+    dims = result.dims
+    assert isinstance(dims, dict)
+    ref = PortRef(unit_id="test_gaomidu", port_id="sludge_out")
+    stock = result.outflows[ref]
+    assert isinstance(stock, SludgeFlow)
+    assert stock.ds == pytest.approx(dims["s_dry"] / 86400, abs=1e-15)  # GM-F12 全厂
+    assert stock.ds * 86400 == pytest.approx(137.7050, abs=1e-3)  # hebing 注入链路
+    assert stock.q_wet == pytest.approx(dims["q_sludge"] / 86400, abs=1e-15)  # GM-F13 直用
+    assert stock.q_wet * 86400 == pytest.approx(6.88525, abs=1e-4)  # =HB-F3 口径
+    assert stock.moisture == pytest.approx(0.98, abs=1e-12)
+    assert result.outqualities[ref].concentrations == {}  # 空 WaterQuality（GR-04）

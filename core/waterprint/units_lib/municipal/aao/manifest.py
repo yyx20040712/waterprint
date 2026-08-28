@@ -34,9 +34,13 @@
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：Ns/X/t_p/R/Ri 五参数）/
-#   ports 两口 WATER/removal_refs/norm_refs 双源标记（GB 50014-2021+
-#   给水排水设计手册）/condition_mappings=()/constraint_refs 七键。
+#   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，
+#   无边也产；nongsuo sup 先例同构）/removal_refs/norm_refs 双源标记
+#   （GB 50014-2021+给水排水设计手册）/condition_mappings=()/
+#   constraint_refs 七键。
 # ══════════════════════════════════════════════════════════════════
+
+from typing import Final
 
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
@@ -51,6 +55,10 @@ _C = DimKey.CONCENTRATION
 _F = DimKey.FLOW
 _VOL = DimKey.VOLUME
 _M = DimKey.MASS
+
+# 单位换算常量（GOLDEN4a D3 产股口：排泥工程口径 m³/d、kg/d → SludgeFlow
+# 契约口径 m3/s、kg/s——manifest=数值白名单区，compute 零字面量消费）。
+SECS_PER_DAY: Final[float] = 86400.0
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
@@ -268,6 +276,12 @@ manifest = load_manifest(
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
+            # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
+            # nongsuo sup 先例同构）；产股三量=AO-F6/F7 全厂口径投影
+            # （ds=s_y——hebing 注入 ds_bio 链路同源；moisture=
+            # factor.aao.sludge.moisture 0.994，与 sludge_hebing p_bio
+            # 默认同源声明）。
+            {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
             "BOD5": "removal.aao.bod5.mod_default",

@@ -36,16 +36,27 @@
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。
 # 【声明五件】params（range 仅表内有出处带者：q_surface/r_sludge/t_mix/
-#   t_floc 四参数）/ports 两口 WATER/removal_refs/norm_refs 双源标记
-#   （GB/T 50335-2016+GB 50013-2018+给水排水设计手册）/
+#   t_floc 四参数）/ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a
+#   D3——无条件产股，无边也产；nongsuo sup 先例同构）/removal_refs/
+#   norm_refs 双源标记（GB/T 50335-2016+GB 50013-2018+给水排水设计手册）/
 #   condition_mappings=()/constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
+
+from typing import Final
 
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.formulas import FormulaSpec, register
 
 UNIT_ID = "municipal_gaomidu"
+
+# GOLDEN4a D3 产股口常量（数值白名单区）——SECS_PER_DAY 工程口径→契约
+# 口径换算；WATER_DENSITY=湿泥密度基数 1000 kg/m³（ρ=1000 简化口径——
+# hebing HB-F1~F3 同口径；产股 moisture=1−c_sludge/1000 与 sludge_hebing
+# p_chem 默认 0.98 同源互推[GM-F13 q_sludge=s_dry/c_sludge 与 HB-F3
+# ds/((1−p)×1000) 同式]，系数键化归后续批裁量呈报不扩 coefficients）。
+SECS_PER_DAY: Final[float] = 86400.0
+WATER_DENSITY: Final[float] = 1000.0
 
 _GT = (
     "GB/T 50335-2016 §5.4.3（污水再生利用：高密斜管清水区液面负荷；"
@@ -297,6 +308,11 @@ manifest = load_manifest(
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
+            # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
+            # nongsuo sup 先例同构）；产股三量=GM-F12/F13 全厂口径投影
+            # （ds=s_dry——hebing 注入 ds_chem 链路同源；moisture=1−
+            # c_sludge/1000=0.98 与 sludge_hebing p_chem 默认同源声明）。
+            {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
             "BOD5": "removal.gaomidu.bod5.mod_default",

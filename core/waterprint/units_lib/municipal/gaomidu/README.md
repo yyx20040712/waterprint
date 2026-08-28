@@ -6,6 +6,9 @@ PAM+斜管沉淀/清水区+污泥浓缩区+污泥回流）。
 - 输入：上游端口量（erchunchi 二沉池，深度处理段首单元）
 - 输出：下游端口量（vxinglvchi V 型滤池；出流 SS 满足 V 滤进水 <20 mg/L
   联动承诺，business-logic §5 链 1）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——
+  ds=GM-F12 s_dry 全厂/q_wet=GM-F13 直用（hebing ds_chem 注入链路同源）
+  +moisture=1−c_sludge/1000=0.98 与 hebing p_chem 同源（ρ=1000 口径互推）
 - 旧系统对应：mod `gaomidu`（交叉对照，非依据）
 - golden 绑定：municipal_34760
 - 公式组（M2b2 已实装，真源=docs/norms/gaomidu.md 起草表 2026-08-25
