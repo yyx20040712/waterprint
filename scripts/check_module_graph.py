@@ -38,9 +38,10 @@ from __future__ import annotations
 import ast
 import re
 import sys
-import tomllib
 from collections.abc import Iterator
 from pathlib import Path
+
+import tomllib
 
 REPO = Path(__file__).resolve().parent.parent
 GRAPH_MD = REPO / "docs" / "structure-graph.md"
@@ -224,7 +225,7 @@ def contracts_packages() -> set[str]:
         for match in (UNIT_ROW.match(line) for line in text.splitlines())
         if match
     }
-    return found - {f"core/waterprint/units_lib/_template"}
+    return found - {"core/waterprint/units_lib/_template"}
 
 
 def check_units(graph_units: set[str]) -> list[str]:

@@ -120,13 +120,11 @@ def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     problems: list[str] = []
     sources = iter_sources()
-    imports_checked = 0
     for path in sources:
         problem = header_problem(path)
         if problem:
             problems.append(f"{path.relative_to(SRC).as_posix()}: {problem}")
         problems.extend(import_problems(path))
-        imports_checked += 1
     if problems:
         print(f"[FAIL] webapp 结构违规 {len(problems)} 处：")
         for item in problems:
