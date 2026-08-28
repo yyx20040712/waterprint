@@ -4,6 +4,10 @@
 
 - 输入：上游端口量（mine_water_tiaojiechi 调节池）
 - 输出：下游端口量（mine_water_ningjiao 混凝反应池）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——ds=
+  MS-F2 湿砂×1.6×0.90×1000 干基（3787.4304 直对 MSLUDGE2 锚，hebing
+  ds_bio 注入位同源）+q_wet=v_sand 直算口径+moisture 0.10（湿砂容重/
+  含水率链级直值注记——系数键化归后续批呈报）
 - 旧系统对应：mod `kw_chenshachi`（交叉对照，非依据）
 - golden 绑定：mine_43836
 - 公式组（KC-F1~F10，已实装）：池长/单格断面/池宽/实际流速校核/

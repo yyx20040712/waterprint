@@ -32,10 +32,13 @@
 #   表边界差异节），键空间经 mine_ 限定物理隔离（§14.3）。
 # 【声明五件】params（range 仅表内有出处带者：t_mix/t_floc/q_surf
 #   三有出处带者；池数/斜管长/三构造区高/取整档无范围来源不设）/
-#   ports 两口 WATER/removal_refs 双指标键/norm_refs 双源标记
-#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()/
-#   constraint_refs 五键。
+#   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件
+#   产股，无边也产；nongsuo sup 先例同构）/removal_refs 双指标键/
+#   norm_refs 双源标记（GB/T 41019-2021+给水排水设计手册）/
+#   condition_mappings=()/constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
+
+from typing import Final
 
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
@@ -57,6 +60,17 @@ _F = DimKey.FLOW
 _A = DimKey.AREA
 _VOL = DimKey.VOLUME
 _V = DimKey.VELOCITY
+
+# GOLDEN4a D3 产股口常量（数值白名单区，compute 零字面量消费）——手算表
+# mine_water_sludge_line.md MS-F3 链级衔接式三键：MOISTURE_RESIDUE 泥渣
+# 含水率 0.97（带 0.96~0.98 取 0.97——hebing p_chem 注入位同源）/
+# WATER_DENSITY ρ=1000 kg/m³（HB-F3 简化口径——q_wet=ds/((1−p)×ρ)）/
+# G_PER_KG g/d→kg/d 换算（ds=q_avg×ΔSS 除数）。含水率/密度系链级参数档
+# 无现库系数键——直值注记，系数键化归后续批裁量呈报不扩 coefficients。
+SECS_PER_DAY: Final[float] = 86400.0
+MOISTURE_RESIDUE: Final[float] = 0.97
+WATER_DENSITY: Final[float] = 1000.0
+G_PER_KG: Final[float] = 1000.0
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
@@ -216,6 +230,12 @@ manifest = load_manifest(
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
+            # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
+            # nongsuo sup 先例同构）；产股三量=MS-F3 链级衔接式投影
+            # （ds=q_avg_daily×ΔSS 去除衡算——KG 表无排泥公式行起草推导
+            # 式，hebing 注入 ds_chem 位链路同源；q_wet=ds/((1−p)×ρ)
+            # HB-F3 口径；moisture=0.97——直值注记见上常量节）。
+            {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
             "SS": "removal.mine_gaomidu.ss.mod_default",

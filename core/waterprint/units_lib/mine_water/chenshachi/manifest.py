@@ -29,10 +29,13 @@
 #   构筑物，键空间经 mine_ 限定物理隔离）。
 # 【声明五件】params（range 仅表内有出处带者：v_h/t_stay/h2 三参数；
 #   格数 n=8/清砂周期 t_clean=2 构造参数无档位来源不设 grid）/
-#   ports 两口 WATER/removal_refs 仅 SS 键/norm_refs 双源标记
-#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()/
-#   constraint_refs 五键。
+#   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件
+#   产股，无边也产；nongsuo sup 先例同构）/removal_refs 仅 SS 键/
+#   norm_refs 双源标记（GB/T 41019-2021+给水排水设计手册）/
+#   condition_mappings=()/constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
+
+from typing import Final
 
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
@@ -55,6 +58,17 @@ _F = DimKey.FLOW
 _A = DimKey.AREA
 _VOL = DimKey.VOLUME
 _V = DimKey.VELOCITY
+
+# GOLDEN4a D3 产股口常量（数值白名单区，compute 零字面量消费）——
+# 手算表 mine_water_sludge_line.md MS-F2 链级衔接式三键：RHO_SAND_WET
+# 湿砂容重 1.6 t/m³（带 1.5~1.7 取 1.6）/MOISTURE_SAND 湿砂含水率 0.10
+# （带 0.05~0.15 取 0.10——hebing p_bio 注入位同源）/KG_PER_TON t→kg
+# 换算。三键系链级参数档无现库系数键——直值注记，系数键化归后续批
+# 裁量呈报不扩 coefficients（D3 零新系数键）。
+SECS_PER_DAY: Final[float] = 86400.0
+RHO_SAND_WET: Final[float] = 1.6
+MOISTURE_SAND: Final[float] = 0.10
+KG_PER_TON: Final[float] = 1000.0
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
@@ -213,6 +227,12 @@ manifest = load_manifest(
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
+            # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
+            # nongsuo sup 先例同构）；产股三量=MS-F2 链级衔接式投影
+            # （ds=v_sand×ρ湿砂×(1−p_sand)×1000 干基——hebing 注入
+            # ds_bio 位链路同源；q_wet=v_sand 湿砂体积直算口径；
+            # moisture=p_sand——三键直值注记见上常量节）。
+            {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
             "SS": "removal.mine_chenshachi.ss.mod_default",

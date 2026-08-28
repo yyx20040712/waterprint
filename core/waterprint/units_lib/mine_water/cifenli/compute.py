@@ -22,7 +22,8 @@
 #   不消费；channel.t_band/channel.v_max 选型校核键不消费（流道几何
 #   归厂商样本——表"其他数据键"原文）；superheight/wall_thickness_
 #   coef 机室构筑概算面键本批不落公式（表无公式行），仅登记在册。
-# 【输出面（D2）】outflows=入流透传；dims=表结果全量 snake 键（单台
+# 【输出面（D2）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3
+#   无条件产股——MS-F1 口径投影，注记见 manifest ports 注）；dims=表结果全量 snake 键（单台
 #   流量/单盘面积/需盘面面积/盘片数/线速度/截留泥量/磁泥湿量/磁种
 #   净耗）；outqualities=入质×(1−removal.mod_default) 双指标（SS
 #   680→68/COD 200→80——衔接下游 gaomidu 表）；warnings=校核带越界
@@ -42,6 +43,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -50,7 +52,12 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.mine_water.cifenli.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.mine_water.cifenli.manifest import (
+    FORMULA_IDS,
+    KG_PER_TON,
+    SECS_PER_DAY,
+    manifest,
+)
 
 _UNIT_ID = "mine_water_cifenli"
 _GB = "GB/T 41019-2021（磁加载分离表面负荷/盘转速，条号待核对）"
@@ -261,9 +268,24 @@ class _MineCifenli:
             **_balance(ctx, p, flow, _ss_in(quality)),
         }
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # MS-F1 口径 ds=w_ss×KG_PER_TON（干基 kg/d——hebing 注入
+                # ds_primary 位链路同源）；q_wet=KS-F7 直用（ρ=1100 直算
+                # 口径）；moisture 与 hebing p_primary 注入位同源（系数键）。
+                sludge_ref: SludgeFlow(
+                    q_wet=dims["q_sludge"] / SECS_PER_DAY,
+                    ds=dims["w_ss"] * KG_PER_TON / SECS_PER_DAY,
+                    moisture=_factor(p, "factor.mine_cifenli.sludge.moisture"),
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                sludge_ref: WaterQuality({}),  # 空 WaterQuality 单位元（R5/GR-04）
+            },
             dims=dims,
             warnings=_warnings(p),
             formula_ids=FORMULA_IDS,

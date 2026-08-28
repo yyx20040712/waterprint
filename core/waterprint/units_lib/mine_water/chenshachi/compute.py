@@ -19,7 +19,8 @@
 #   ctx.params 投影面取值（app._unit_params 线感知投影，mine_ 限定
 #   键空间）；缺键=领域异常。elevation_loss 键归高程链子系统（后续
 #   批），本文件不消费。
-# 【输出面（D2）】outflows=入流透传；dims=表水力结果全量 snake 键；
+# 【输出面（D2）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3
+#   无条件产股——MS-F2 口径投影，注记见 manifest ports 注）；dims=表水力结果全量 snake 键；
 #   outqualities=入质×(1−removal.mod_default) 单指标（SS×0.85，
 #   COD 无键透传）；warnings=校核带越界（实际水平流速带/停留时间
 #   带/有效水深带/单格宽下限/堰负荷上限；param_key 归因+调节方向）；
@@ -38,6 +39,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -46,7 +48,14 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.mine_water.chenshachi.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.mine_water.chenshachi.manifest import (
+    FORMULA_IDS,
+    KG_PER_TON,
+    MOISTURE_SAND,
+    RHO_SAND_WET,
+    SECS_PER_DAY,
+    manifest,
+)
 
 _UNIT_ID = "mine_water_chenshachi"
 _HB = "给水排水设计手册（第 5 册 城镇排水）平流沉砂池水平流速/停留时间/砂斗常用带"
@@ -292,10 +301,30 @@ class _MineChenshachi:
         weir = _weir_and_concrete(ctx, p, flow, channel)
         dims = {**channel, **sand, **weir}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # MS-F2 链级衔接式 ds=v_sand×ρ湿砂×(1−p_sand)×1000（投影
+                # 非计算不注册——hebing 注入 ds_bio 位链路同源）；q_wet=
+                # v_sand 湿砂体积直算口径；moisture=p_sand（manifest 常量
+                # 直值注记，系数键化归后续批呈报不扩 coefficients）。
+                sludge_ref: SludgeFlow(
+                    q_wet=sand["v_sand"] / SECS_PER_DAY,
+                    ds=sand["v_sand"]
+                    * RHO_SAND_WET
+                    * (1 - MOISTURE_SAND)
+                    * KG_PER_TON
+                    / SECS_PER_DAY,
+                    moisture=MOISTURE_SAND,
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                sludge_ref: WaterQuality({}),  # 空 WaterQuality 单位元（R5/GR-04）
+            },
             dims=dims,
             warnings=_warnings(p, channel, weir),
             formula_ids=FORMULA_IDS,

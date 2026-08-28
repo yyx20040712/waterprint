@@ -5,6 +5,9 @@
 
 - 输入：上游端口量（mine_water_ningjiao 混凝反应池）
 - 输出：下游端口量（mine_water_gaomidu 高密沉淀）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——ds=MS-F1
+  w_ss×1000 干基（26827.632 直对 MSLUDGE2 锚，hebing ds_primary 注入位
+  同源）+q_wet=KS-F7 ρ=1100 直算口径+moisture 0.92 系数键
 - 旧系统对应：mod `kw_cifenli`（交叉对照，非依据）
 - golden 绑定：mine_43836
 - 公式组（KS-F1~F8，已实装）：单台流量/单盘双面有效面积/需盘面面积/

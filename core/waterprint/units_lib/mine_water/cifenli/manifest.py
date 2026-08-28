@@ -30,12 +30,16 @@
 #   数整台向上取整在 compute 收口（取整前 n_disks_raw 审计面）。
 #   KS-F8 DSL 逐字输出 kg/d（表期望列 1.0959 t/d 为显示口径）。
 # 【声明五件】params（range 仅表内有出处带者：q_surf 表面负荷带
-#   20~40；台数/转速/磁种投加量无档位来源不设）/ports 两口 WATER/
-#   removal_refs 双指标键/norm_refs 双源标记（GB/T 41019-2021+给水
-#   排水设计手册）/condition_mappings=()/constraint_refs 两键。
+#   20~40；台数/转速/磁种投加量无档位来源不设）/ports 两口 WATER+
+#   sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，无边也产；
+#   nongsuo sup 先例同构）/removal_refs 双指标键/norm_refs 双源标记
+#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()/
+#   constraint_refs 两键。
 # 【选型面边界】流道停留/流道流速两键为设备选型校核键（流道几何
 #   归厂商样本），本包不落几何公式不消费——表"其他数据键"原文。
 # ══════════════════════════════════════════════════════════════════
+
+from typing import Final
 
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
@@ -54,6 +58,14 @@ _HB = (
 _D = DimKey.DIMENSIONLESS
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
+
+# GOLDEN4a D3 产股口常量（数值白名单区，compute 零字面量消费）——
+# SECS_PER_DAY 工程口径 m³/d、kg/d → SludgeFlow 契约口径 m3/s、kg/s；
+# KG_PER_TON=KS-F6 w_ss（t/d）→ MS-F1 干基 kg/d 的 kg/t 换算（手算表
+# mine_water_sludge_line.md 三股语义映射表磁泥股——ρ=1100 湿量经 KS-F7
+# 系数键直用，无新键）。
+SECS_PER_DAY: Final[float] = 86400.0
+KG_PER_TON: Final[float] = 1000.0
 _A = DimKey.AREA
 _VOL = DimKey.VOLUME
 _V = DimKey.VELOCITY
@@ -189,6 +201,12 @@ manifest = load_manifest(
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
             {"port_id": "out", "fluid": "WATER", "direction": "OUT"},
+            # GOLDEN4a D3 产股口（2026-08-28）：无条件产股（无边也产——
+            # nongsuo sup 先例同构）；产股三量=MS-F1 口径投影（ds=w_ss×
+            # 1000 干基——hebing 注入 ds_primary 位链路同源；q_wet=KS-F7
+            # ρ=1100 直算口径；moisture=factor.mine_cifenli.sludge.
+            # moisture 0.92 hebing p_primary 注入位同源）。
+            {"port_id": "sludge_out", "fluid": "SLUDGE", "direction": "OUT"},
         ],
         "removal_refs": {
             "SS": "removal.mine_cifenli.ss.mod_default",

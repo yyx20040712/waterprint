@@ -20,7 +20,8 @@
 #   键空间）；缺键=领域异常。elevation_loss 键归高程链子系统（后续
 #   批），本文件不消费；无 r_sludge/q_return 回流键族（与市政
 #   Densadeg 回流型物理隔离——表边界差异节）。
-# 【输出面（D2）】outflows=入流透传；dims=表结果全量 snake 键（单池
+# 【输出面（D2）】outflows=入流透传+sludge_out SLUDGE 产股（GOLDEN4a D3
+#   无条件产股——MS-F3 口径投影，注记见 manifest ports 注）；dims=表结果全量 snake 键（单池
 #   流量/混合絮凝容积/沉淀面积/池宽池长（含取整前审计面）/实际负荷/
 #   轴向流速/总高/混凝土）；outqualities=入质×(1−removal.mod_default)
 #   双指标（SS 68→6.8/COD 80→56——衔接下游 vxinglvchi 表）；
@@ -41,6 +42,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import (
     Severity,
     Unit,
@@ -49,7 +51,14 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.mine_water.gaomidu.manifest import FORMULA_IDS, manifest
+from waterprint.units_lib.mine_water.gaomidu.manifest import (
+    FORMULA_IDS,
+    G_PER_KG,
+    MOISTURE_RESIDUE,
+    SECS_PER_DAY,
+    WATER_DENSITY,
+    manifest,
+)
 
 _UNIT_ID = "mine_water_gaomidu"
 _GB = "GB/T 41019-2021（混凝沉淀液面负荷，条号待核对）"
@@ -303,10 +312,41 @@ class _MineGaomidu:
         axial = _axial(ctx, p)
         dims = {**volumes, **basin, "v_axial": axial, **_depth(ctx, p, basin)}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
+        sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
+        # GOLDEN4a D3 产股前提：MS-F3 泥渣衡算需 SS（矿井水线 SS 必在——
+        # 缺=上游装配缺陷，municipal gaomidu GM-F12 同款守卫）
+        ss_in = quality.SS
+        if ss_in is None:
+            raise InvalidUnitConfig(
+                f"单元 {ctx.unit_id!r} 入流缺 SS 浓度（MS-F3 泥渣干基衡算前提，GR-09）"
+            )
+        # MS-F3 链级衔接式（投影非计算不注册）：ds=q_avg×ΔSS 去除衡算
+        ss_residue = (
+            flow.q_avg_daily
+            * SECS_PER_DAY
+            * (ss_in - ss_in * (1 - _factor(p, "removal.mine_gaomidu.ss.mod_default")))
+            / G_PER_KG
+        )
         return UnitResult(
-            outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
-            outqualities={out_ref: _out_quality(p, quality)},
+            outflows={
+                out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
+                # ds=MS-F3 干基（hebing 注入 ds_chem 位链路同源）；q_wet=
+                # ds/((1−p)×ρ) HB-F3 口径（ρ=1000 简化——manifest 常量
+                # 直值注记，系数键化归后续批呈报不扩 coefficients）。
+                sludge_ref: SludgeFlow(
+                    q_wet=ss_residue
+                    / ((1 - MOISTURE_RESIDUE) * WATER_DENSITY)
+                    / SECS_PER_DAY,
+                    ds=ss_residue / SECS_PER_DAY,
+                    moisture=MOISTURE_RESIDUE,
+                ),
+            },
+            outqualities={
+                out_ref: _out_quality(p, quality),
+                sludge_ref: WaterQuality({}),  # 空 WaterQuality 单位元（R5/GR-04）
+            },
             dims=dims,
             warnings=_warnings(p, basin["q_surf_act"], axial),
             formula_ids=FORMULA_IDS,

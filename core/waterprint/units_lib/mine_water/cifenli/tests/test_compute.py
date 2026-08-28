@@ -41,6 +41,7 @@ from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Severity, UnitContext
 from waterprint.registry import formulas
 from waterprint.units_lib.mine_water.cifenli import make_unit, manifest
@@ -121,6 +122,7 @@ def test_manifest_identity() -> None:
     assert [(p.port_id, p.fluid.name, p.direction.name) for p in manifest.ports] == [
         ("in", "WATER", "IN"),
         ("out", "WATER", "OUT"),
+        ("sludge_out", "SLUDGE", "OUT"),
     ]
     assert manifest.removal_refs == {
         "SS": "removal.mine_cifenli.ss.mod_default",
@@ -233,3 +235,24 @@ def test_formula_ids_registered() -> None:
 def test_condition_key_form() -> None:
     """工况键形态冒烟（apply 第二参 ctx 的 condition_key 口径）。"""
     assert ConditionSet.key(_CONDITION) == "design"
+
+def test_sludge_out_port() -> None:
+    """GOLDEN4a D3 产股口：sludge_out 无条件产股（nongsuo sup 先例同构）。
+
+    值链（手算表 MS-F1 口径）：ds=w_ss×1000（KS-F6 干基 t/d→kg/d——
+    26827.632 直对 MSLUDGE2 锚）；q_wet=q_sludge 直用（KS-F7 ρ=1100
+    直算口径 304.8594545455——映射表"上游直算口径"列）；moisture=
+    factor.mine_cifenli.sludge.moisture（0.92 hebing p_primary 注入位
+    同源）；契约口径=工程值/86400。"""
+    result = make_unit().compute(_ctx(_params()))
+    dims = result.dims
+    assert isinstance(dims, dict)
+    ref = PortRef(unit_id="test_mine_cifenli", port_id="sludge_out")
+    stock = result.outflows[ref]
+    assert isinstance(stock, SludgeFlow)
+    assert stock.ds == pytest.approx(dims["w_ss"] * 1000 / 86400, abs=1e-15)  # MS-F1
+    assert stock.ds * 86400 == pytest.approx(26827.632, abs=1e-9)  # MSLUDGE2 锚
+    assert stock.q_wet == pytest.approx(dims["q_sludge"] / 86400, abs=1e-15)  # KS-F7 直用
+    assert stock.q_wet * 86400 == pytest.approx(304.8594545455, abs=1e-8)
+    assert stock.moisture == pytest.approx(0.92, abs=1e-12)
+    assert result.outqualities[ref].concentrations == {}  # 空 WaterQuality（GR-04）

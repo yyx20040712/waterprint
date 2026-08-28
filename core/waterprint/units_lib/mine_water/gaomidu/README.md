@@ -6,6 +6,10 @@
 
 - 输入：上游端口量（mine_water_cifenli 磁分离）
 - 输出：下游端口量（mine_water_vxinglvchi V 型滤池）
+- 产股口（GOLDEN4a D3，2026-08-28）：sludge_out SLUDGE 无条件产股——ds=
+  MS-F3 SS 去除衡算干基（2682.7632 直对 MSLUDGE2 锚，hebing ds_chem
+  注入位同源）+q_wet=HB-F3 口径 ds/((1−p)×1000)+moisture 0.97（泥渣
+  含水率链级直值注记——系数键化归后续批呈报）
 - 旧系统对应：mod `kw_gaomidu`（交叉对照，非依据）
 - golden 绑定：mine_43836
 - 公式组（KG-F1~F10，已实装）：单池流量/快混絮凝容积/沉淀面积/
