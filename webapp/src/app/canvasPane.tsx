@@ -83,7 +83,13 @@ export function CanvasPane() {
                 {UNSELECTED_HINT}
               </Typography.Paragraph>
             ) : (
-              <ParamForm projectId={projectId} unitId={selectedUnitId} />
+              // key=R1 修复（一审 I1）：切单元/切项目强制重挂载——草稿与
+              // mutation 态不跨单元残留（消息残留+drafts 串单元双隐患）
+              <ParamForm
+                key={`${projectId}:${selectedUnitId}`}
+                projectId={projectId}
+                unitId={selectedUnitId}
+              />
             )}
             <AssumptionsPanel projectId={projectId} />
           </aside>

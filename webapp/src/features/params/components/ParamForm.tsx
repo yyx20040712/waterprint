@@ -58,10 +58,11 @@ function OverrideDot() {
   );
 }
 
-/** 灰阶小字声明面（dim/默认/范围/档位——展示数据不参与校验）。 */
-function MetaLine({ entry, overridden }: { entry: ParamEntry; overridden: boolean }) {
+/** 灰阶小字声明面（dim/默认/范围/档位——展示数据不参与校验；覆盖行默认
+ *  与 design 值并列显示——R2 修复（一审 M1），AssumptionsPanel 双显同构）。 */
+function MetaLine({ entry }: { entry: ParamEntry }) {
   const parts: string[] = [entry.dim];
-  if (entry.default !== null && entry.default !== undefined && !overridden) {
+  if (entry.default !== null && entry.default !== undefined) {
     parts.push(`默认 ${entry.default}`);
   }
   if (entry.range) {
@@ -173,7 +174,7 @@ export function ParamForm({
                     }));
                   }}
                 />
-                <MetaLine entry={entry} overridden={overridden} />
+                <MetaLine entry={entry} />
                 {invalid ? (
                   <Typography.Text type="danger" style={{ fontSize: 11 }}>
                     非数值或空——修正后才能提交

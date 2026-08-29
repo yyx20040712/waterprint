@@ -28,4 +28,6 @@
 - 错误消息统一 WaterprintApiError.message 透出（422/404/409 归一面）；
 - 假设面板是"默认值显性化"的 UI 落点（§3 保证 7）——21 条 registry 声明
   序只读+覆盖标记；覆盖编辑（design 态保存流程）挂账后续批；
+  覆盖窄化=**读侧有限数值面**（JS 无 int/float 之分——整数值宽容；
+  server 写侧 strict float 拒 int 属 Python 语义，读取链不复制——R 轮 M2 注记）；
 - 工况面（checked_units/conditions/condition_mappings）无数据源出批挂账。
