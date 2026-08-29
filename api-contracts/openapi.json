@@ -111,6 +111,25 @@
         "title": "AssumptionEntry",
         "type": "object"
       },
+      "BandModel": {
+        "description": "指标经验带（min/max 成对——D4 嵌套形状）。",
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "BandModel",
+        "type": "object"
+      },
       "CancelResponse": {
         "description": "取消结果（R3：终态任务不受取消影响）。",
         "properties": {
@@ -123,6 +142,51 @@
           "cancelled"
         ],
         "title": "CancelResponse",
+        "type": "object"
+      },
+      "CostResponse": {
+        "description": "cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "design_scale": {
+            "title": "Design Scale",
+            "type": "number"
+          },
+          "indicators": {
+            "$ref": "#/components/schemas/IndicatorReportModel"
+          },
+          "price_data_version": {
+            "title": "Price Data Version",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "sheet": {
+            "$ref": "#/components/schemas/EstimateSheetModel"
+          }
+        },
+        "required": [
+          "project_id",
+          "condition_key",
+          "conditions",
+          "price_data_version",
+          "design_scale",
+          "sheet",
+          "indicators"
+        ],
+        "title": "CostResponse",
         "type": "object"
       },
       "CreateProjectRequest": {
@@ -302,6 +366,146 @@
         "title": "EnumerateRequest",
         "type": "object"
       },
+      "EstimateRowModel": {
+        "description": "单笔分部分项（core EstimateRow 八字段+name_zh 中文列名=D4）。",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "name_zh": {
+            "title": "Name Zh",
+            "type": "string"
+          },
+          "price_key": {
+            "title": "Price Key",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_field_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Field Ids",
+            "type": "array"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "number"
+          }
+        },
+        "required": [
+          "price_key",
+          "name_zh",
+          "unit",
+          "quantity",
+          "unit_price",
+          "amount",
+          "source_field_ids",
+          "source"
+        ],
+        "title": "EstimateRowModel",
+        "type": "object"
+      },
+      "EstimateSheetModel": {
+        "description": "概算表（D4 契约面：明细+四费桶+小计族+总价+三元组+工况）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "construction_subtotal": {
+            "title": "Construction Subtotal",
+            "type": "number"
+          },
+          "detail_rows": {
+            "items": {
+              "$ref": "#/components/schemas/EstimateRowModel"
+            },
+            "title": "Detail Rows",
+            "type": "array"
+          },
+          "detail_subtotal": {
+            "title": "Detail Subtotal",
+            "type": "number"
+          },
+          "equipment_subtotal": {
+            "title": "Equipment Subtotal",
+            "type": "number"
+          },
+          "grand_total": {
+            "title": "Grand Total",
+            "type": "number"
+          },
+          "indirect": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineModel"
+            },
+            "title": "Indirect",
+            "type": "array"
+          },
+          "measure": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineModel"
+            },
+            "title": "Measure",
+            "type": "array"
+          },
+          "repro": {
+            "$ref": "#/components/schemas/ReproModel"
+          },
+          "reserve": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineModel"
+            },
+            "title": "Reserve",
+            "type": "array"
+          },
+          "reserve_subtotal": {
+            "title": "Reserve Subtotal",
+            "type": "number"
+          },
+          "subtotal": {
+            "title": "Subtotal",
+            "type": "number"
+          },
+          "tax": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineModel"
+            },
+            "title": "Tax",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail_rows",
+          "measure",
+          "indirect",
+          "reserve",
+          "tax",
+          "detail_subtotal",
+          "equipment_subtotal",
+          "construction_subtotal",
+          "subtotal",
+          "reserve_subtotal",
+          "grand_total",
+          "repro",
+          "condition_key"
+        ],
+        "title": "EstimateSheetModel",
+        "type": "object"
+      },
       "ExportMeta": {
         "description": "产物注册表条目（R2：只记元数据不复制数据；无时钟字段）。",
         "properties": {
@@ -382,6 +586,45 @@
         "title": "ExportRequest",
         "type": "object"
       },
+      "FeeLineModel": {
+        "description": "单笔费用行（core FeeLine 六字段直投影）。",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "base": {
+            "title": "Base",
+            "type": "string"
+          },
+          "base_amount": {
+            "title": "Base Amount",
+            "type": "number"
+          },
+          "fee_key": {
+            "title": "Fee Key",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fee_key",
+          "rate",
+          "base",
+          "base_amount",
+          "amount",
+          "source"
+        ],
+        "title": "FeeLineModel",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -393,6 +636,61 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IndicatorReadingModel": {
+        "description": "单项指标对照（core IndicatorReading 直投影+band 嵌套）。",
+        "properties": {
+          "band": {
+            "$ref": "#/components/schemas/BandModel"
+          },
+          "indicator_key": {
+            "title": "Indicator Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "indicator_key",
+          "value",
+          "band",
+          "status",
+          "reason"
+        ],
+        "title": "IndicatorReadingModel",
+        "type": "object"
+      },
+      "IndicatorReportModel": {
+        "description": "指标校核报告（readings+checked——空带 checked=False 显式未校核）。",
+        "properties": {
+          "checked": {
+            "title": "Checked",
+            "type": "boolean"
+          },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/IndicatorReadingModel"
+            },
+            "title": "Readings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "readings",
+          "checked"
+        ],
+        "title": "IndicatorReportModel",
         "type": "object"
       },
       "Node": {
@@ -713,6 +1011,30 @@
           "max"
         ],
         "title": "RangeEntry",
+        "type": "object"
+      },
+      "ReproModel": {
+        "description": "可复算三元组（core ReproTriple 序列化形状）。",
+        "properties": {
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_hash",
+          "engine_version",
+          "data_version"
+        ],
+        "title": "ReproModel",
         "type": "object"
       },
       "RunRequest": {
@@ -1475,6 +1797,65 @@
         "summary": "Get Solutions",
         "tags": [
           "calc"
+        ]
+      }
+    },
+    "/api/cost/{project_id}": {
+      "get": {
+        "description": "概算表+指标校核（最近完成结果集四模块装配；工况缺省=design，R1/R2）。",
+        "operationId": "get_cost_api_cost__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Cost",
+        "tags": [
+          "cost"
         ]
       }
     },

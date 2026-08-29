@@ -33,8 +33,8 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 七路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 22 条；FE1 +scene1；
-# META1 +units2；FE7 +elevation1）。
+# 八路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 23 条；FE1 +scene1；
+# META1 +units2；FE7 +elevation1；FE8 +cost1）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put"},
@@ -54,6 +54,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/events/projects/{project_id}": {"get"},
     "/api/scene/{project_id}": {"get"},
     "/api/elevation/{project_id}": {"get"},
+    "/api/cost/{project_id}": {"get"},
     "/api/units": {"get"},
     "/api/assumptions": {"get"},
 }
@@ -61,14 +62,14 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
 
 @pytest.mark.anyio
 async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-def]
-    """A1：端点集与六路由器规格一致（防止端点漂移无测试感知）。"""
+    """A1：端点集与八路由器规格一致（防止端点漂移无测试感知）。"""
     schema = _main.app.openapi()  # 模块级实例同款 schema（契约自检面）
     observed = {
         path: {m for m in methods if m in {"get", "post", "put", "delete"}}
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 22  # 5+6+5+2+1+1+2
+    assert sum(len(methods) for methods in observed.values()) == 23  # 5+6+5+2+1+1+2+1
 
 
 @pytest.mark.anyio

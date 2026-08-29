@@ -67,6 +67,7 @@
 | `waterprint_server.services` | `waterprint.app` | 进程内调用内核 L4（非 RPC，零胶水） |
 | `waterprint_server.services` | `waterprint.contracts` | 项目/结果 schema 类型面（序列化边界）——ENG2 B3 补登 |
 | `waterprint_server.services` | `waterprint.elevation` | 高程纵断用例直取（FE7 D1——build_profile/evaluate_pumping/head_losses 不在 app.py 再导出面；FE7 总控裁决 2026-08-29 补登） |
+| `waterprint_server.services` | `waterprint.cost` | 概算用例直取（FE8 D1——takeoff/estimate/prices/indicators 四模块不在 app.py 再导出面；FE8 D9 预登记 2026-08-29） |
 | `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界） |
 | `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况）——ENG2 B3 补登 |
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |

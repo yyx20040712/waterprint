@@ -3,8 +3,8 @@
 HTTP 编排层：`routers`（薄协议转换）→ `services`（用例编排，只调 core L4）
 → `jobs`（进程池调度）。业务计算全部在 `../core`，本包零计算。
 
-> 当前状态：M2 已实装——16 文件全实现+14 镜像测试文件全激活
-> （32 用例 0 skip）；OpenAPI 契约导出就绪（api-contracts/）。
+> 当前状态：M2 已实装+FE 批扩面——25 源文件全实现+21 镜像测试
+> 文件全激活（77 用例 0 skip）；OpenAPI 契约导出就绪（api-contracts/）。
 
 ## 分层规则（import-linter 机器强制，违反即失败）
 
@@ -32,7 +32,7 @@ uv run uvicorn waterprint_server.main:app --reload
 ## 测试与契约
 
 ```bash
-uv run pytest            # server/tests（14 文件 32 用例，全激活零 skip）
+uv run pytest            # server/tests（21 文件 77 用例，全激活零 skip）
 uv run python -m waterprint_server.dump_openapi   # OpenAPI → api-contracts/
 ```
 
@@ -40,10 +40,10 @@ uv run python -m waterprint_server.dump_openapi   # OpenAPI → api-contracts/
 tests/
 ├─ conftest.py               # test_settings/client(ASGITransport AsyncClient)
 │                            #   /service_ctx 三 fixture + anyio 后端
-├─ test_api_contract.py      # OpenAPI 契约（端点集 18/无 Any 泄漏/404-422-501/穿越 4xx）
+├─ test_api_contract.py      # OpenAPI 契约（端点集 23/无 Any 泄漏/404-422-501/穿越 4xx）
 ├─ test_settings.py / test_app_factory.py
-├─ routers/                  # 四路由器镜像（端点集逐件恰等/stale 409/幂等/SSE 头）
-├─ services/                 # 四服务镜像（design_changed/回滚/无解 done/确定性命名）
+├─ routers/                  # 六路由器镜像（端点集逐件恰等/stale 409/幂等/SSE 头）
+├─ services/                 # 六服务镜像（design_changed/回滚/无解 done/确定性命名）
 └─ jobs/                     # manager/worker（优先级出队/取消丢弃/spawn 零副作用/文件句柄）
 ```
 
