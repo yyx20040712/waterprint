@@ -13,7 +13,11 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { parseProjectParam, withProjectParam } from "./projectParam";
+import {
+  normalizeProjectId,
+  parseProjectParam,
+  withProjectParam,
+} from "./projectParam";
 
 describe("parseProjectParam（初值直读 location.search）", () => {
   it("缺失 → null（空串/裸 ?/他参数形态）", () => {
@@ -63,5 +67,17 @@ describe("withProjectParam（replaceState 同步面）", () => {
     expect(withProjectParam("", "池 a/中-1")).toBe(
       "project=%E6%B1%A0+a%2F%E4%B8%AD-1",
     );
+  });
+});
+
+describe("normalizeProjectId（R2/一审 M-2——.wp 尾缀归一）", () => {
+  it("带 .wp 尾缀归一：列表 id → 裸 id（与 Select 选项路径同源）", () => {
+    expect(normalizeProjectId("88c6bdfba89844c7.wp")).toBe(
+      "88c6bdfba89844c7",
+    );
+  });
+
+  it("裸 id 不动（幂等——已归一值再过不变形）", () => {
+    expect(normalizeProjectId("wp-2026-a1")).toBe("wp-2026-a1");
   });
 });

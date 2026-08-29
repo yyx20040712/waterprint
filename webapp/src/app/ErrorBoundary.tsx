@@ -4,12 +4,15 @@
  * 输入:  子组件树 + 面板路由名 label（错误上报与降级 UI 共用）
  * 输出:  捕获渲染异常后的隔离降级 UI（label+错误摘要+重试）+结构化上报
  *
- * 规格说明（FE3 批 6b 段一，D4 最小接线——去骨架 throw 占位）：
+ * 规格说明（FE3 批 6b 段一，D4 最小接线——去骨架 throw 占位；
+ * R1 补 2026-08-29）：
  *   - componentDidCatch=console.error 结构化单对象上报 errorReportPayload
  *     {feature, message, stack, componentStack}（含路由名可反查；升级
- *     上报通道挂账 UX 批）；
- *   - fallback：label+错误 message 摘要+「重试」按钮（复位 hasError——
- *     子树重挂载）；「复制诊断」按钮挂账 UX 批不做；
+ *     上报通道挂账 UX 批）——onRetry 只外转重试动作，上报语义不变；
+ *   - fallback：label+错误 message 摘要+「重试」按钮——onRetry 在场则
+ *     转调（R1/一审 I-1：消费面借此重建 React.lazy 失败 thenable——
+ *     chunk 加载失败被复位重挂载不会重执行 import，须换新 lazy 实例）；
+ *     不在场则维持复位 hasError（子树重挂载）。「复制诊断」挂账 UX 批；
  *   - 禁止吞错：getDerivedStateFromError 与 componentDidCatch 双通道在场，
  *     不许静默渲染 fallback；
  *   - payload 纯函数与类同文件（node 测试 import react 无 DOM 安全——
@@ -43,7 +46,11 @@ export function errorReportPayload(
 }
 
 export class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; label: string },
+  {
+    children: React.ReactNode;
+    label: string;
+    onRetry?: () => void;
+  },
   { hasError: boolean; message: string | null }
 > {
   state: { hasError: boolean; message: string | null } = {
@@ -74,7 +81,12 @@ export class ErrorBoundary extends React.Component<
           </div>
           <button
             type="button"
-            onClick={() => this.setState({ hasError: false, message: null })}
+            onClick={() => {
+              // R1（一审 I-1）：onRetry 在场先转调（同一事件批内——消费面
+              // 重建 lazy thenable 与本边界复位一次渲染共同生效）
+              this.props.onRetry?.();
+              this.setState({ hasError: false, message: null });
+            }}
           >
             重试
           </button>
