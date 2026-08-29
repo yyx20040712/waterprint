@@ -7,34 +7,49 @@
  * 输出:  方案浏览标签页（单元下拉+「提交枚举」+TaskPanel+RankingControls
  *        +SolutionsTable/DiagnosisPanel；?task= 回写 replaceState）
  *
- * 规格说明（FE6 批 6b 段四，D1/D3/D8/D9；canvasPane/viewer3dPane 同构）：
- *   - 任务 id 单一真相=URL ?task=（与 ?project= 双参共存）：初值
- *     parseTaskParam 直读；写入三面=枚举提交 onSuccess（task_id）/方案
- *     应用 onApplied（recalc_task_id——任务态面板转向重算任务，表数据
- *     为已提交任务快照不自动刷新）/ParamForm apply（FE5 挂账③收口——
- *     params 侧内联回写）；全走 window.history.replaceState（FE3 先例
- *     不触发导航不抢焦点——跨标签自动跳转挂账 UX 批）；
+ * 规格说明（FE6 批 6b 段四 D1/D3/D8/D9；R 轮修复 2026-08-29 R1/R2/R3/R7；
+ *   canvasPane/viewer3dPane 同构）：
+ *   - R1 任务态双轨（xC-1）：enumerateTaskId=表数据源键（方案表/result
+ *     载荷/gridFields/feasible_count/diagnosis/挂载门——仅枚举提交
+ *     onSuccess 更新）与 panelTaskId（TaskPanel+SSE 订阅+?task= URL 面
+ *     ——枚举提交/方案应用/事件监听更新）分立。apply 后只切 panelTaskId
+ *     ——方案表与旧行保留不卸载（简报 D6「应用后表格数据为已提交任务
+ *     快照不自动刷新（旧行保留）」本意；浏览页码亦不重置）；枚举提交
+ *     onSuccess 两轨同更（新枚举=新表源+新面板任务）；
+ *   - R2 应用目标固化（yI-2）：枚举 onSuccess 固化 enumeratedUnitId
+ *     快照（表源任务的单元）——ApplySolutionButton 消费固化值（实时
+ *     下拉仅驱动新枚举提交，改选不影响已展示行的应用目标——服务端
+ *     apply 无单元-参数域匹配防护，错位应用会真实原子写错单元）；
+ *     deep-link 进 ?task= 时固化值 null→应用按钮禁用维持；
+ *   - 任务 id 单一真相=URL ?task=（与 ?project= 双参共存）：写入三面=
+ *     枚举提交 onSuccess（task_id）/方案应用 onApplied（recalc_task_id）
+ *     /ParamForm apply（FE5 挂账③收口——params 侧内联回写）全走
+ *     window.history.replaceState；R3（yI-1）URL 回写驱动已挂载 pane：
+ *     ParamForm 回写后 dispatchEvent("wp:task")（事件名常量两处内联
+ *     ——分层禁 import app）→本 pane useEffect 监听→重读 URL ?task=
+ *     比对更新 panelTaskId（不触发导航不抢焦点——跨标签自动跳转挂账
+ *     UX 批；Tabs 保活下 replaceState 无事件、useState 初始化器仅首
+ *     挂载执行的双局限经此事件桥收口）；
  *   - D8 枚举提交面：单元下拉（useProjectUnits——design.nodes 投影）
  *     +useRunEnumeration（body={project_id, unit_ids:[unitId], options:
  *     null}——options 默认 margin_min 降序，constraints 空槽挂账）；
- *     提交/应用后 page 重置 1；
- *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态 invalidate
- *     重拉——result 载荷 columns/grid_fields/feasible_count/diagnosis 与
- *     failed 三件详情源）；表挂载=kind==='enumerate'&&state==='done'&&
- *     feasible_count>0；无解=done+feasible_count=0→DiagnosisPanel（合法
- *     终态非 failed）；calc 重算任务（apply/参数提交触发）只挂 TaskPanel
- *     （进度+失败回显——409 面由 enabled 防住：非 done 不取表）；
+ *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态
+ *     invalidate 重拉——result 载荷与 failed 三件详情源）；表挂载=
+ *     表源任务 kind==='enumerate'&&state==='done'&&feasible_count>0；
+ *     无解=done+feasible_count=0→DiagnosisPanel（合法终态非 failed）；
+ *     R7（zM-5）done 而 feasible_count 缺失→「结果载荷缺失」防御提示；
+ *     calc 重算任务（apply/参数提交触发）只挂 TaskPanel（409 面由
+ *     enabled 防住：非 done 不取表）；
  *   - D9 分页/sort 组件态（useState——不建 store FE5 D2 先例；store 骨架
  *     占位维持）：page 1 基/size=50 固定/sort 初值 margin_min；queryKey
- *     [taskId, {page,size,sort}] 全量进（排序确定性）；select=
+ *     [表源任务 id, {page,size,sort}] 全量进（排序确定性）；select=
  *     narrowSolutionPage 窄化收口（非法形状→查询 error 态呈现）；
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop 名
- *     ——FE3 C3 同款规避）；deep-link 直进 ?task= 而单元未选定时应用
- *     按钮禁用（任务 result 载荷无 unit_id 面注记）；
+ *     ——FE3 C3 同款规避）；
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目——项目
  *     选择器不重复建，挂账 UX 批）；ErrorBoundary label=方案浏览。
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Select, Typography } from "antd";
 
@@ -90,29 +105,52 @@ export function SolutionsPane() {
   const [projectId] = useState<string | null>(() =>
     normalizeProjectId(parseProjectParam(window.location.search)),
   );
-  // 任务 id 单一真相=URL ?task=（D3——初值直读+提交/应用回写 replaceState）
-  const [taskId, setTaskId] = useState<string | null>(() =>
+  // R1 双轨初值同 URL（deep-link 直进：面板任务=表源任务=URL 任务；
+  // 分立后 apply 只动 panelTaskId——表源键不动即旧行保留）
+  const [enumerateTaskId, setEnumerateTaskId] = useState<string | null>(() =>
+    parseTaskParam(window.location.search),
+  );
+  const [panelTaskId, setPanelTaskId] = useState<string | null>(() =>
     parseTaskParam(window.location.search),
   );
   const [unitId, setUnitId] = useState<string | null>(null);
+  // R2：表源任务单元固化快照（应用目标——下拉实时值仅驱动新枚举提交）
+  const [enumeratedUnitId, setEnumeratedUnitId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("margin_min");
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
 
-  // SSE 进度流：终态回调→失效任务快照（拉 result 载荷+failed 三件详情）
-  const view = useTaskFeed(taskId, () => {
-    if (taskId !== null) {
+  // R3：?task= 回写驱动已挂载 pane（ParamForm dispatchEvent——URL 单一
+  // 真相重读比对；同值早退不扰动；卸载移除监听）
+  useEffect(() => {
+    const onTaskParam = () => {
+      const next = parseTaskParam(window.location.search);
+      setPanelTaskId((prev) => (prev === next ? prev : next));
+    };
+    window.addEventListener("wp:task", onTaskParam);
+    return () => window.removeEventListener("wp:task", onTaskParam);
+  }, []);
+
+  // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
+  const view = useTaskFeed(panelTaskId, () => {
+    if (panelTaskId !== null) {
       void queryClient.invalidateQueries({
-        queryKey: [`/api/calc/tasks/${taskId}`],
+        queryKey: [`/api/calc/tasks/${panelTaskId}`],
       });
     }
   });
-  const statusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(taskId ?? "", {
-    query: { enabled: taskId !== null },
-  });
-  const status = statusQuery.data ?? null;
-  const result = status?.result ?? null;
+  const panelStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(
+    panelTaskId ?? "",
+    { query: { enabled: panelTaskId !== null } },
+  );
+  // 表源轨快照（result 载荷/挂载门依据——同任务时与面板轨同键缓存共享）
+  const tableStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(
+    enumerateTaskId ?? "",
+    { query: { enabled: enumerateTaskId !== null } },
+  );
+  const tableStatus = tableStatusQuery.data ?? null;
+  const result = tableStatus?.result ?? null;
   const gridFields = narrowGridFields(result);
   const feasibleRaw = resultField(result, "feasible_count");
   const feasibleCount =
@@ -121,14 +159,18 @@ export function SolutionsPane() {
       : null;
   const diagnosis = resultField(result, "diagnosis");
   const enumerateDone =
-    taskId !== null && status?.kind === "enumerate" && status?.state === "done";
+    enumerateTaskId !== null &&
+    tableStatus?.kind === "enumerate" &&
+    tableStatus?.state === "done";
   const noSolutions = enumerateDone && feasibleCount === 0;
+  // R7：done 而 feasible_count 缺失（result 载荷异形）——防御提示面
+  const payloadMissing = enumerateDone && feasibleCount === null;
   const tableEnabled =
     enumerateDone && feasibleCount !== null && feasibleCount > 0;
 
   const solutionsQuery =
     useGetSolutionsApiCalcTasksTaskIdSolutionsGet<SolutionPageView, Error>(
-      taskId ?? "",
+      enumerateTaskId ?? "",
       { page, size: PAGE_SIZE, sort },
       {
         query: {
@@ -152,17 +194,19 @@ export function SolutionsPane() {
   const enumerate = useRunEnumerationApiCalcEnumeratePost<WaterprintApiError>({
     mutation: {
       onSuccess: (response) => {
-        setTaskId(response.task_id);
+        // R1 两轨同更（新枚举=新表源+新面板任务）；R2 固化表源单元
+        setEnumerateTaskId(response.task_id);
+        setPanelTaskId(response.task_id);
+        setEnumeratedUnitId(unitId);
         setPage(1); // 新任务重置页码（D9）
         writeTaskParam(response.task_id);
       },
     },
   });
-  // 方案应用回调（D6）：任务态面板转向重算任务（?task= 联动——表数据为
-  // 已提交任务快照不自动刷新，旧行保留语义）
+  // R1：方案应用只切面板轨+URL——表源键不动（方案表与旧行保留不卸载，
+  // 浏览页码不重置——D6 已提交任务快照语义）
   const handleApplied = (outcome: ApplyOutcome) => {
-    setTaskId(outcome.recalc_task_id);
-    setPage(1);
+    setPanelTaskId(outcome.recalc_task_id);
     writeTaskParam(outcome.recalc_task_id);
   };
 
@@ -231,15 +275,15 @@ export function SolutionsPane() {
         ) : null}
 
         <div style={{ marginTop: 12 }}>
-          {taskId !== null ? (
+          {panelTaskId !== null ? (
             <TaskPanel
-              taskId={taskId}
+              taskId={panelTaskId}
               view={view}
-              status={status}
+              status={panelStatusQuery.data ?? null}
               statusError={
-                statusQuery.error instanceof Error
-                  ? statusQuery.error.message
-                  : statusQuery.isError
+                panelStatusQuery.error instanceof Error
+                  ? panelStatusQuery.error.message
+                  : panelStatusQuery.isError
                     ? "未知错误"
                     : null
               }
@@ -253,6 +297,14 @@ export function SolutionsPane() {
         </div>
 
         {noSolutions ? <DiagnosisPanel diagnosis={diagnosis} /> : null}
+        {payloadMissing ? (
+          <Typography.Paragraph
+            type="warning"
+            style={{ marginBottom: 0, marginTop: 8 }}
+          >
+            枚举已完成但结果载荷缺失（feasible_count）——请重新提交枚举。
+          </Typography.Paragraph>
+        ) : null}
         {tableEnabled && solutionsQuery.data ? (
           <div style={{ marginTop: 12 }}>
             <div style={{ marginBottom: 8 }}>
@@ -269,7 +321,7 @@ export function SolutionsPane() {
               page={solutionsQuery.data}
               gridFields={gridFields}
               projectId={projectId}
-              unitId={unitId}
+              unitId={enumeratedUnitId}
               currentPage={page}
               onPageChange={setPage}
               onApplied={handleApplied}

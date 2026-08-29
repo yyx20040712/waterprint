@@ -28,7 +28,11 @@
  *   - FE6 D3-③（挂账③收口）：apply onSuccess 回写 URL ?task=
  *     recalc_task_id（app/projectParam withTaskParam 逻辑内联四行——分层
  *     禁 import app；replaceState 不触发导航）——方案浏览标签的任务态
- *     面板经 ?task= 联动呈现重算进度与失败回显（消息文案同幅改）。
+ *     面板经 ?task= 联动呈现重算进度与失败回显（消息文案同幅改）；
+ *     R3（yI-1）回写后 dispatchEvent("wp:task")（事件名常量与
+ *     solutionsPane 侧各自内联——分层禁 import app 双处注记对齐）：已
+ *     挂载的方案 pane 经事件重读 URL 更新任务态（Tabs 保活下 useState
+ *     初始化器仅首挂载执行+replaceState 无 popstate 的双局限收口）。
  */
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -105,6 +109,11 @@ export function ParamForm({
           null,
           "",
           `${window.location.pathname}?${search.toString()}`,
+        );
+        // R3（yI-1）：通知已挂载的方案 pane 重读 URL（"wp:task" 事件名
+        // 与 solutionsPane 监听侧各自内联——分层禁 import app）
+        window.dispatchEvent(
+          new CustomEvent("wp:task", { detail: outcome.recalc_task_id }),
         );
       },
     },

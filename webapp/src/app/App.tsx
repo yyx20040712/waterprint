@@ -8,8 +8,9 @@
  * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
- *     viewer3d/elevation/cost/drawings——solutions 插第二位=设计→看方案
- *     用户流程），Tabs activeKey/onChange 驱动——不引入 react-router
+ *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
+ *     用户流程；elevation/drawings/cost 次序沿 FE3 五值面——R9 勘误
+ *     回旧），Tabs activeKey/onChange 驱动——不引入 react-router
  *     （零新依赖纪律；router.tsx 头「M2 定型」FE3 已定夺为状态机）；
  *   - 画布常驻不卸载（D8）：antd Tabs 默认 destroyInactiveTabPane=false
  *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化挂账 UX 批；
@@ -80,14 +81,14 @@ export function App() {
                   children: <StubPane label="高程纵断" />,
                 },
                 {
-                  key: "cost",
-                  label: "概算",
-                  children: <StubPane label="概算" />,
-                },
-                {
                   key: "drawings",
                   label: "图纸预览",
                   children: <StubPane label="图纸预览" />,
+                },
+                {
+                  key: "cost",
+                  label: "概算",
+                  children: <StubPane label="概算" />,
                 },
               ]}
             />

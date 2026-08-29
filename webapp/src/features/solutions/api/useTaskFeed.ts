@@ -44,7 +44,10 @@ export function useTaskFeed(
     if (taskId === null) {
       return;
     }
-    const source = new EventSource(`/api/events/tasks/${taskId}`);
+    const source = new EventSource(
+      // R4（zM-2）：taskId 源自 URL ?task=（用户可控）——路径段编码收口
+      `/api/events/tasks/${encodeURIComponent(taskId)}`,
+    );
     const consume = (event: MessageEvent) => {
       const parsed = parseEventData(
         typeof event.data === "string" ? event.data : "",

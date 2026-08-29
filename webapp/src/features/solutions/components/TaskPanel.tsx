@@ -36,7 +36,9 @@ const STATE_LABELS: Record<string, { text: string; color: string }> = {
   failed: { text: "失败", color: "error" },
 };
 
-/** 阶段文案映射（manager stage 名——未知原样）。 */
+/** 阶段文案映射（manager stage 名——未知原样；R5（zM-3）补终态两键：
+ * state 事件 message 直通 stage 面，cancelled/failed 不再英文原样——
+ * 终态定性文案仍以徽标为准，本表只保阶段列观感）。 */
 const STAGE_LABELS: Record<string, string> = {
   queued: "排队中",
   load: "载入项目",
@@ -44,6 +46,8 @@ const STAGE_LABELS: Record<string, string> = {
   rows: "整理方案行",
   serialize: "序列化结果",
   done: "完成",
+  cancelled: "已取消",
+  failed: "已失败",
 };
 
 export function TaskPanel({
@@ -69,6 +73,10 @@ export function TaskPanel({
   // 双源归一：SSE 视图优先（实时），快照兜底（终态详情）
   const snapshotView = status !== null ? taskStatusToView(status) : null;
   const effective = view ?? snapshotView;
+  // R6（zM-4）：失败文案单源——taskStatusToView 组装（error_type+error+
+  // HTTP 段完整），组件内第二套内联组装退役（同义不同文漂移面消除）
+  const failureText =
+    snapshotView?.error ?? effective?.error ?? "失败详情缺失";
   const state = effective?.state ?? "";
   const label = STATE_LABELS[state] ?? { text: "未知状态", color: "default" };
   const percent =
@@ -138,13 +146,7 @@ export function TaskPanel({
       ) : null}
       {isFailed ? (
         <Typography.Paragraph type="danger" style={{ marginBottom: 0, marginTop: 4 }}>
-          任务失败：
-          {status !== null && (status.error_type !== null || status.error !== null)
-            ? `${status.error_type ?? "未知异常"}：${status.error ?? "无详情"}`
-            : (effective?.error ?? "失败详情缺失")}
-          {status?.error_code !== null && status?.error_code !== undefined
-            ? `（HTTP ${status.error_code}）`
-            : ""}
+          任务失败：{failureText}
         </Typography.Paragraph>
       ) : null}
       {cancelError !== null ? (
