@@ -152,13 +152,13 @@ async def test_elevation_warning_faces_shape_wiring(client) -> None:  # type: ig
     """D4 警告序列化形状：drop_warnings/warnings 逐条 UF-17 六键+级别域冻结。"""
     project_id, _task_id = await _project_with_result(client)
     body = (await client.get(f"/api/elevation/{project_id}")).json()
-    _WARNING_KEYS = {
+    _warning_keys = {
         "severity", "source", "message", "param_key", "condition_key",
         "affected_unit_ids",
     }
     for face in ("drop_warnings", "warnings"):
         for warning in body[face]:
-            assert set(warning) == _WARNING_KEYS  # UF-17 冻结结构逐键
+            assert set(warning) == _warning_keys  # UF-17 冻结结构逐键
             assert warning["severity"] in {"ERROR", "WARN", "INFO"}  # 级别域冻结
             assert isinstance(warning["affected_unit_ids"], list)
 
