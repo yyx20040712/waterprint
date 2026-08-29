@@ -13,13 +13,16 @@
  *   - 画布常驻不卸载（D8）：antd Tabs 默认 destroyInactiveTabPane=false
  *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化挂账 UX 批；
  *   - viewer3d 标签=Viewer3dPane（懒加载 Scene 独立 chunk §12.6；面板级
- *     ErrorBoundary 在其内）；其余四标签维持占位屏（feature 骨架未实装
+ *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4 批 6b 段一：
+ *     默认标签首屏直渲染只读工艺画布——D4 不 lazy，URL ?project= 与
+ *     viewer3d 共用）；其余三标签维持占位屏（feature 骨架未实装
  *     ——D8 非本批范围）；
  *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
  */
 import { useState } from "react";
 import { Layout, Menu, Tabs, Typography } from "antd";
 
+import { CanvasPane } from "./canvasPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
 import { Viewer3dPane } from "./viewer3dPane";
@@ -56,7 +59,7 @@ export function App() {
                 {
                   key: "canvas",
                   label: "工艺画布",
-                  children: <StubPane label="工艺画布" />,
+                  children: <CanvasPane />,
                 },
                 {
                   key: "viewer3d",
