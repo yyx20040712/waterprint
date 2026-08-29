@@ -8,10 +8,10 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > vite 8 / @vitejs/plugin-react 6（rolldown 内核 `manualChunks` 对象
 > 形态破坏+vite.config 冻结）、orval 8（钉版 7.21——生成物稳定优先）。
 
-> 当前状态：**M0.5 结构接线完成**——43 源文件=入口 1+app 4+features 32+
-> shared 6，全部带 TS 契约头（`main.tsx`/`App.tsx` 可编译骨架屏 +
-> feature/shared 规格骨架，由 `scripts/check_webapp.py` 门禁校验）；
-> feature 实装按 M2+ 推进。
+> 当前状态：**M0.5 结构接线完成；viewer3d 已挂载应用壳（FE3 2026-08-29）**
+> ——53 源文件=入口 1+app 9+features 36+shared 7，全部带 TS 契约头
+> （`App.tsx` Tabs 路由状态机+Providers 实装+viewer3d 懒加载标签，
+> 由 `scripts/check_webapp.py` 门禁校验）；其余 feature 实装按 M2+ 推进。
 
 ## 结构
 

@@ -3,14 +3,19 @@
 **唯一允许组合 features 的层**（§13.5）。规则：features 互相禁止 import，
 一切跨 feature 编排发生在本层。
 
-## 文件清单（已创建；新文件先登记根 file-contracts.md 再建）
+## 文件清单（新文件先登记本清单——file-contracts.md §5 已委托逐层 README 维护）
 
 | 文件 | 职责 | 状态 |
 |------|------|------|
-| `App.tsx` | 应用布局壳（§19.2 骨架，见文件头规格） | 骨架屏可运行 |
-| `providers.tsx` | Provider 组合：AntD ConfigProvider（深色默认）/ QueryClient | 规格冻结，接线期待实现 |
-| `router.tsx` | 路由表：画布/三维（懒加载）/高程/图纸/概算 | 路由名冻结 |
-| `ErrorBoundary.tsx` | 每 feature 一个边界的封装件 | 结构就位，上报待接线 |
+| `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE3 已接线（2026-08-29）：viewer3d 标签挂 Viewer3dPane，余四标签占位屏（D8） |
+| `providers.tsx` | Provider 组合：AntD ConfigProvider（深色默认）/ QueryClient | FE3 实装：模块级 QueryClient 单例（组件外创建）+darkAlgorithm |
+| `router.tsx` | 路由表：画布/三维（懒加载）/高程/图纸/概算 | 路由名冻结；机制定 D1=Tabs 状态机（App.tsx 持 activeKey），本文件类型面零消费变化 |
+| `ErrorBoundary.tsx` | 每 feature 一个边界的封装件+errorReportPayload 导出 | FE3 最小接线：componentDidCatch 结构化上报+重试 fallback（复制诊断挂账 UX 批） |
+| `queryClient.ts` | QueryClient 工厂+retry 策略（D3 领域错误口径：WaterprintApiError 不重试/网络族重试 1 次） | FE3 实装（providers 消费） |
+| `queryClient.test.ts` | queryClient 策略+errorReportPayload 纯函数 vitest（node 环境） | 6 用例绿（D6-①③） |
+| `projectParam.ts` | URL project 参数解析/合成纯函数（D5 单一真相+deep-link） | FE3 实装（viewer3dPane 消费） |
+| `projectParam.test.ts` | projectParam 纯函数 vitest（node 环境） | 9 用例绿（D6-②） |
+| `viewer3dPane.tsx` | viewer3d 标签页装配：lazy Scene+ErrorBoundary+projectId 空态 Select+URL 同步 | FE3 实装 |
 
 ## 交互规范基线（§19，实现期遵守）
 

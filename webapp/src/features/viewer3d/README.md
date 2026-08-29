@@ -7,7 +7,9 @@
 > + 投影层纯函数（`lib/projectScene`：SCENE_VERSION 门/五 kind 完备/
 > instance 摆置/语义 token/root 一致性，vitest 11 用例）+ 组件薄壳
 > （Canvas/PoolBox/WaterSurface/Internals/Annotations）+ view 态 store
-> 就位；**挂账**：路由接线与 app 层组合（后续批）、UV 流纹动画与
+> 就位；路由接线与 app 层组合**已完成（FE3 批 6b 段一 2026-08-29：
+> `app/viewer3dPane.tsx` 懒加载挂载+URL `?project=` 参数单一真相+空态
+> 项目下拉）**；**挂账**：UV 流纹动画与
 > CJK 字体子集（R9）、相机控制器（OrbitControls 归升版统筹 FE2）。
 
 ## 文件清单（FE1 实装；规格见各文件头契约块）
