@@ -1,36 +1,85 @@
 /**
  * feature 级错误边界：画布崩溃不清空整个应用（教训 §15 工程细节 4）。
  *
- * 输入:  子组件树 + 降级渲染（fallback）
- * 输出:  捕获渲染异常后的隔离降级 UI
+ * 输入:  子组件树 + 面板路由名 label（错误上报与降级 UI 共用）
+ * 输出:  捕获渲染异常后的隔离降级 UI（label+错误摘要+重试）+结构化上报
  *
- * 规格说明（骨架冻结）：
- *   - 每个 feature 挂载一个本组件实例（app 层组合时逐一切包）；
- *   - 捕获后：保留其他面板 + 错误面板显示"重试/复制诊断"，
- *     错误信息走结构化日志（含 queryKey/路由名，可反查）；
- *   - 禁止吞错： componentDidCatch 必须上报，不许静默渲染 fallback。
+ * 规格说明（FE3 批 6b 段一，D4 最小接线——去骨架 throw 占位）：
+ *   - componentDidCatch=console.error 结构化单对象上报 errorReportPayload
+ *     {feature, message, stack, componentStack}（含路由名可反查；升级
+ *     上报通道挂账 UX 批）；
+ *   - fallback：label+错误 message 摘要+「重试」按钮（复位 hasError——
+ *     子树重挂载）；「复制诊断」按钮挂账 UX 批不做；
+ *   - 禁止吞错：getDerivedStateFromError 与 componentDidCatch 双通道在场，
+ *     不许静默渲染 fallback；
+ *   - payload 纯函数与类同文件（node 测试 import react 无 DOM 安全——
+ *     直测面在 app/queryClient.test.ts D6-③ 组）。
  */
 import React from "react";
 
+/** 结构化上报载荷（D4 冻结结构：四字段；缺 stack 容错为 null）。 */
+export interface ErrorReportPayload {
+  feature: string;
+  message: string;
+  stack: string | null;
+  componentStack: string | null;
+}
+
+/** 上报载荷纯函数：error 归一 message/stack（非 Error 与缺 stack 容错）。 */
+export function errorReportPayload(
+  label: string,
+  error: unknown,
+  componentStack: string | null,
+): ErrorReportPayload {
+  return {
+    feature: label,
+    message: error instanceof Error ? error.message : String(error),
+    stack:
+      error instanceof Error && typeof error.stack === "string"
+        ? error.stack
+        : null,
+    componentStack,
+  };
+}
+
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode; label: string },
-  { hasError: boolean }
+  { hasError: boolean; message: string | null }
 > {
-  state = { hasError: false };
+  state: { hasError: boolean; message: string | null } = {
+    hasError: false,
+    message: null,
+  };
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      hasError: true,
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
 
-  componentDidCatch(_error: unknown, _info: React.ErrorInfo) {
-    void _error;
-    void _info;
-    throw new Error("骨架未接线：错误上报待 M0 接线期实现（禁止静默吞错）");
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
+    // D4 最小接线：结构化单对象上报（升级上报通道挂账 UX 批）
+    console.error(
+      errorReportPayload(this.props.label, error, info.componentStack ?? null),
+    );
   }
 
   render() {
     if (this.state.hasError) {
-      return <div>面板异常（{this.props.label}）——待接线完整降级 UI</div>;
+      return (
+        <div role="alert">
+          <div>
+            面板异常（{this.props.label}）：{this.state.message ?? "未知错误"}
+          </div>
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false, message: null })}
+          >
+            重试
+          </button>
+        </div>
+      );
     }
     return this.props.children;
   }
