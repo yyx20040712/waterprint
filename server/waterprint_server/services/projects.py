@@ -169,6 +169,19 @@ def design_digest(design: DesignState) -> str:
     return sha256((json.dumps(tree, **_JSON_KWARGS) + "\n").encode("utf-8")).hexdigest()
 
 
+def result_is_stale(latest: Mapping[str, Any], project: ProjectFile) -> bool:
+    """结果集相对当前项目 design 是否过期（AUDIT2 C-1——三读端点共用）。
+
+    口径：latest.design_hash（任务完成时锚定的 design 摘要）≠ 当前
+    design_digest → True（改 design/假设覆盖不重算即过期——契约
+    result_schema R4「结果过期消费方必须显式提示，禁止静默使用」的
+    服务面实现）；latest 缺 design_hash 键=无法证新鲜 → True
+    （fail-visible，兼防 D5 族 KeyError 裸 500）。exports 守门
+    （StaleExportError 409）与 TaskStatus.stale 同源比对。
+    """
+    return bool(latest.get("design_hash") != design_digest(project.design))
+
+
 def _with_hash(project: ProjectFile, digest: str) -> ProjectFile:
     """metadata.content_hash 回填（保存前一致化——可复算三元组 R3）。"""
     return project.model_copy(

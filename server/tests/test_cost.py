@@ -391,3 +391,28 @@ async def test_cost_path_traversal_rejected_wiring(
             f"{evil} 期望 4xx，得到 {response.status_code}"
         )
     assert _snapshot() == before  # 目录零新增（穿越不落任何文件）
+
+
+@pytest.mark.anyio
+async def test_cost_stale_flag_on_design_edit_wiring(cost_client) -> None:  # type: ignore[no-untyped-def]
+    """AUDIT2 C-1：PUT 改档不重算→响应 stale=True（R4 显式提示非静默）。
+
+    与 test_cost_design_scale_frozen 同场景（q_avg_daily 改档）叠加
+    旗标断言：表/规模随快照冻结（FE8 R1 语义维持）+stale 显式标注
+    （消费方可提示重算——契约 result_schema R4 禁静默使用）。
+    """
+    project_id, _task_id = await _project_with_result(cost_client)
+    fresh = await cost_client.get(f"/api/cost/{project_id}")
+    assert fresh.status_code == status.HTTP_200_OK
+    assert fresh.json()["stale"] is False  # 新鲜结果集
+    project_doc = (await cost_client.get(f"/api/projects/{project_id}")).json()
+    for node_value in project_doc["design"]["nodes"].values():
+        if isinstance(node_value, dict) and "q_avg_daily" in node_value:
+            node_value["q_avg_daily"] = 0.2
+            break
+    put = await cost_client.put(f"/api/projects/{project_id}", json=project_doc)
+    assert put.status_code == status.HTTP_200_OK
+    assert put.json()["design_changed"] is True
+    stale = await cost_client.get(f"/api/cost/{project_id}")
+    assert stale.status_code == status.HTTP_200_OK
+    assert stale.json()["stale"] is True  # 快照冻结+显式过期旗标

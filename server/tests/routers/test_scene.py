@@ -126,3 +126,28 @@ async def test_scene_error_faces_wiring(client) -> None:  # type: ignore[no-unty
     assert invalid.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert invalid.json()["error_type"] == "InvalidSceneRequestError"  # 透传 KeyError 文本
     assert "合法" in str(invalid.json()["detail"])
+
+
+@pytest.mark.anyio
+async def test_scene_stale_flag_on_design_edit_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """AUDIT2 C-1：PUT 改档不重算→响应 stale=True（R4 显式提示非静默）。
+
+    scene 与 elevation/cost 同族口径（三读端点一致收口）；响应模型=
+    服务层 SceneResponse（core.SceneGraph 四字段+stale——core 零触碰，
+    服务层拥有新鲜度语义）。
+    """
+    project_id, _task_id = await _project_with_result(client)
+    fresh = await client.get(f"/api/scene/{project_id}")
+    assert fresh.status_code == status.HTTP_200_OK
+    assert fresh.json()["stale"] is False  # 新鲜结果集
+    project_doc = (await client.get(f"/api/projects/{project_id}")).json()
+    for node_value in project_doc["design"]["nodes"].values():
+        if isinstance(node_value, dict) and "q_avg_daily" in node_value:
+            node_value["q_avg_daily"] = 0.2
+            break
+    put = await client.put(f"/api/projects/{project_id}", json=project_doc)
+    assert put.status_code == status.HTTP_200_OK
+    assert put.json()["design_changed"] is True
+    stale = await client.get(f"/api/scene/{project_id}")
+    assert stale.status_code == status.HTTP_200_OK
+    assert stale.json()["stale"] is True  # 旧快照+显式过期旗标

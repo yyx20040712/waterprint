@@ -1,7 +1,9 @@
 /**
- * 投影层纯函数：SceneGraph JSON → 渲染描述对象（组件薄壳的唯一数据源）。
+ * 投影层纯函数：SceneResponse JSON → 渲染描述对象（组件薄壳的唯一数据源）。
  *
- * 输入:  SceneGraph（/api/scene 响应——orval 生成类型，scene_version 门在此校验）
+ * 输入:  SceneResponse（/api/scene 响应——orval 生成类型，scene_version 门
+ *        在此校验；AUDIT2 FIX1 C-1 契约由 SceneGraph 更名+stale 旗标——
+ *        stale 消费归 viewer3dPane 呈现面，投影层零消费零推导维持）
  * 输出:  RenderScene（solids/waters/internals 三组渲染描述+root 序——零色值零业务推导）
  *
  * 规格说明（FE1 D4；core scene.py R4 唯一版本读取口）：
@@ -19,7 +21,7 @@
  *   - 非默认变换显式拒（FE1 M1）：rotation≠(0,0,0)/scale≠(1,1,1) 即
  *     SceneProjectionError（core v1 恒默认值——门先立，勿静默丢勿消费）。
  */
-import type { SceneGraph } from "../../../shared/api/generated/model";
+import type { SceneResponse } from "../../../shared/api/generated/model";
 
 export const RENDER_SCENE_VERSION = "waterprint-scene-1/y-up/m";
 
@@ -73,7 +75,7 @@ function placementsOf(origin: Vec3, count: number, dims: Record<string, number>)
   return placed;
 }
 
-export function projectScene(scene: SceneGraph): RenderScene {
+export function projectScene(scene: SceneResponse): RenderScene {
   if (scene.scene_version !== RENDER_SCENE_VERSION) {
     throw new SceneProjectionError(
       `场景版本不兼容：${scene.scene_version ?? "(缺失)"}（渲染器唯一支持 `

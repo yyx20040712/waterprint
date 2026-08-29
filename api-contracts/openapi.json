@@ -145,7 +145,7 @@
         "type": "object"
       },
       "CostResponse": {
-        "description": "cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。",
+        "description": "cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。\n\nAUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——\n表/规模随快照冻结[R1 语义]时消费方据此显式提示，禁静默使用）。",
         "properties": {
           "condition_key": {
             "title": "Condition Key",
@@ -175,6 +175,10 @@
           },
           "sheet": {
             "$ref": "#/components/schemas/EstimateSheetModel"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
           }
         },
         "required": [
@@ -184,7 +188,8 @@
           "price_data_version",
           "design_scale",
           "sheet",
-          "indicators"
+          "indicators",
+          "stale"
         ],
         "title": "CostResponse",
         "type": "object"
@@ -209,7 +214,7 @@
         "type": "object"
       },
       "ElevationResponse": {
-        "description": "高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。",
+        "description": "高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。\n\nAUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——\n投影含活档假设[I-1]时消费方据此显式提示，禁静默使用）。",
         "properties": {
           "condition_key": {
             "title": "Condition Key",
@@ -244,6 +249,10 @@
             "title": "Pump Stations",
             "type": "array"
           },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
           "stations": {
             "items": {
               "$ref": "#/components/schemas/ElevationStation"
@@ -267,7 +276,8 @@
           "stations",
           "pump_stations",
           "drop_warnings",
-          "warnings"
+          "warnings",
+          "stale"
         ],
         "title": "ElevationResponse",
         "type": "object"
@@ -1082,8 +1092,8 @@
         "title": "SaveOutcomeResponse",
         "type": "object"
       },
-      "SceneGraph": {
-        "description": "场景图（不可变）：root + 节点表 + 版本/工况声明（R4）。",
+      "SceneResponse": {
+        "description": "场景响应（core.SceneGraph 四字段+stale 旗标——AUDIT2 C-1）。\n\ncore 零触碰：新鲜度是服务层语义（core R1 纯投影不变量「同结果同\n场景图」不得混入服务态）；nodes 类型=core.Node 再导出（app.__all__\n单入口——META1 D4 先例）。",
         "properties": {
           "condition_key": {
             "title": "Condition Key",
@@ -1106,15 +1116,20 @@
           "scene_version": {
             "title": "Scene Version",
             "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
           }
         },
         "required": [
           "root",
           "nodes",
           "scene_version",
-          "condition_key"
+          "condition_key",
+          "stale"
         ],
-        "title": "SceneGraph",
+        "title": "SceneResponse",
         "type": "object"
       },
       "Severity": {
@@ -1920,7 +1935,7 @@
     },
     "/api/events/projects/{project_id}": {
       "get": {
-        "description": "项目事件流（stale 通知/任务完成——连接即当前，不重放历史）。",
+        "description": "项目事件流（stale 通知/任务完成——连接即当前，不重放历史）。\n\nAUDIT2 I-2：同 task 流前置探测——分量校验 422+项目存在性 404。",
         "operationId": "project_events_api_events_projects__project_id__get",
         "parameters": [
           {
@@ -1961,7 +1976,7 @@
     },
     "/api/events/tasks/{task_id}": {
       "get": {
-        "description": "单任务进度流（每连接独立；断线清理在 manager.events finally）。",
+        "description": "单任务进度流（每连接独立；断线清理在 manager.events finally）。\n\nAUDIT2 I-2：开流前置探测（原静默 200 空流挂起——与 GET tasks 404\n口径不一致，AU-1 矩阵偏差全集中本对端点）：分量校验（ValueError→\n422，与 projects 路径分量面同源）+注册表探测（UnknownTaskError→\n404）。任务在提交响应返回前即同步在册——正常订阅序不受扰。",
         "operationId": "task_events_api_events_tasks__task_id__get",
         "parameters": [
           {
@@ -2465,7 +2480,7 @@
     },
     "/api/scene/{project_id}": {
       "get": {
-        "description": "场景图（最近完成结果集纯投影；工况缺省=排序首键回显，R1/R2）。",
+        "description": "场景图（最近完成结果集纯投影+stale 旗标；工况缺省=排序首键回显）。",
         "operationId": "get_scene_api_scene__project_id__get",
         "parameters": [
           {
@@ -2499,7 +2514,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SceneGraph"
+                  "$ref": "#/components/schemas/SceneResponse"
                 }
               }
             },

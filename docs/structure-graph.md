@@ -62,6 +62,7 @@
 | `waterprint_server.main` | `waterprint.contracts` | InvalidUnitConfig 异常映射（R2 唯一翻译处）——ENG2 B3 补登 |
 | `waterprint_server.routers` | `waterprint_server.services` | 薄协议转换，只调服务（禁业务逻辑） |
 | `waterprint_server.routers` | `waterprint.contracts` | projects 导入面 parse_project 校验——ENG2 B3 补登 |
+| `waterprint_server.routers` | `waterprint_server.settings` | events 开流分量校验 validate_component——AUDIT2 FIX1 I-2 补登 2026-08-30 |
 | `waterprint_server.services` | `waterprint_server.jobs` | 计算用例向任务管理器提交 |
 | `waterprint_server.services` | `waterprint_server.settings` | 输出目录与上限等配置 |
 | `waterprint_server.services` | `waterprint.app` | 进程内调用内核 L4（非 RPC，零胶水） |

@@ -4,7 +4,7 @@ HTTP 编排层：`routers`（薄协议转换）→ `services`（用例编排，�
 → `jobs`（进程池调度）。业务计算全部在 `../core`，本包零计算。
 
 > 当前状态：M2 已实装+FE 批扩面——25 源文件全实现+21 镜像测试
-> 文件全激活（77 用例 0 skip）；OpenAPI 契约导出就绪（api-contracts/）。
+> 文件全激活（86 用例 0 skip——AUDIT2 FIX1 后实测）；OpenAPI 契约导出就绪（api-contracts/）。
 
 ## 分层规则（import-linter 机器强制，违反即失败）
 
@@ -32,7 +32,7 @@ uv run uvicorn waterprint_server.main:app --reload
 ## 测试与契约
 
 ```bash
-uv run pytest            # server/tests（21 文件 77 用例，全激活零 skip）
+uv run pytest            # server/tests（21 文件 86 用例，全激活零 skip）
 uv run python -m waterprint_server.dump_openapi   # OpenAPI → api-contracts/
 ```
 

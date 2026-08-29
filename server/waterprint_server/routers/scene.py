@@ -1,7 +1,7 @@
 """场景图端点：三维视图数据通道（同步取数，最近完成结果集）。
 
 输入:  project_id（路径）+ condition_key（查询可选——缺省=排序首键回显）
-输出:  SceneGraph（core 冻结 dataclass——response_model 直用）
+输出:  SceneResponse（core.SceneGraph 四字段+stale 旗标——服务层模型）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -15,9 +15,9 @@
 # 【行为规格】
 #   R1 消费最近完成结果集（services/scene R1 同口径——消费时实时取，
 #      无结果集=404 附"先 POST /api/calc/run"指引）。
-#   R2 响应模型=服务层冻结 dataclass（SceneGraph 经 services.scene 再
-#      导出——calc.py"响应模型=服务层冻结 dataclass"注记先例，禁协议层
-#      重复声明漂移面；FastAPI 原生 dataclass 支持）。
+#   R2 响应模型=服务层模型（SceneResponse=SceneGraph 四字段+stale——
+#      AUDIT2 FIX1 C-1；SceneGraph 再导出维持，禁协议层
+#      重复声明漂移面；elevation/cost 服务层 pydantic 模型同构）。
 #   R3 错误面统一经 main 异常映射表（SceneSourceNotFoundError→404/
 #      InvalidSceneRequestError→422——router 零 if 零业务）。
 #
@@ -33,7 +33,7 @@ from fastapi import APIRouter, Request
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import scene as service
-from waterprint_server.services.scene import SceneGraph
+from waterprint_server.services.scene import SceneResponse
 
 router = APIRouter(prefix="/api/scene", tags=["scene"])
 
@@ -43,9 +43,9 @@ def _ctx(request: Request) -> ServiceContext:
     return request.app.state.ctx  # type: ignore[no-any-return]
 
 
-@router.get("/{project_id}", response_model=SceneGraph)
+@router.get("/{project_id}", response_model=SceneResponse)
 async def get_scene(
     project_id: str, request: Request, condition_key: str | None = None
-) -> SceneGraph:
-    """场景图（最近完成结果集纯投影；工况缺省=排序首键回显，R1/R2）。"""
+) -> SceneResponse:
+    """场景图（最近完成结果集纯投影+stale 旗标；工况缺省=排序首键回显）。"""
     return service.build_scene_for_project(_ctx(request), project_id, condition_key)

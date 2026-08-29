@@ -38,6 +38,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services.projects import read_project
+from waterprint_server.settings import validate_component
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -62,7 +64,15 @@ def _stream(source: AsyncIterator[Any]) -> AsyncIterator[str]:
 
 @router.get("/tasks/{task_id}")
 async def task_events(task_id: str, request: Request) -> StreamingResponse:
-    """单任务进度流（每连接独立；断线清理在 manager.events finally）。"""
+    """单任务进度流（每连接独立；断线清理在 manager.events finally）。
+
+    AUDIT2 I-2：开流前置探测（原静默 200 空流挂起——与 GET tasks 404
+    口径不一致，AU-1 矩阵偏差全集中本对端点）：分量校验（ValueError→
+    422，与 projects 路径分量面同源）+注册表探测（UnknownTaskError→
+    404）。任务在提交响应返回前即同步在册——正常订阅序不受扰。
+    """
+    validate_component(task_id)
+    _ctx(request).manager.status(task_id)  # 未知任务=UnknownTaskError（404 面）
     return StreamingResponse(
         _stream(_ctx(request).manager.events(task_id)),
         media_type="text/event-stream",
@@ -72,7 +82,12 @@ async def task_events(task_id: str, request: Request) -> StreamingResponse:
 
 @router.get("/projects/{project_id}")
 async def project_events(project_id: str, request: Request) -> StreamingResponse:
-    """项目事件流（stale 通知/任务完成——连接即当前，不重放历史）。"""
+    """项目事件流（stale 通知/任务完成——连接即当前，不重放历史）。
+
+    AUDIT2 I-2：同 task 流前置探测——分量校验 422+项目存在性 404。
+    """
+    validate_component(project_id)
+    read_project(_ctx(request), project_id)  # 项目不存在=ProjectNotFoundError（404）
     return StreamingResponse(
         _stream(_ctx(request).manager.project_events(project_id)),
         media_type="text/event-stream",

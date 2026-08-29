@@ -249,3 +249,27 @@ async def test_elevation_path_traversal_rejected_wiring(client, test_settings) -
             f"{evil} 期望 4xx，得到 {response.status_code}"
         )
     assert _snapshot() == before  # 目录零新增（穿越不落任何文件）
+
+
+@pytest.mark.anyio
+async def test_elevation_stale_flag_on_design_edit_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """AUDIT2 C-1/I-1：PUT 改档不重算→响应 stale=True（R4 显式提示非静默）。
+
+    探针实录（2026-08-30）：改 design（含 assumption_overrides——I-1 活档
+    混搭面）不重算后 GET 全 200 呈旧快照零标记；对照面 task status
+    stale=True✓/exports 409✓ 唯三读端点盲。修复口径：latest.design_hash
+    ≠当前 design digest → stale=True（缺 digest 视为过期——fail-visible）。
+    """
+    project_id, _task_id = await _project_with_result(client)
+    fresh = await client.get(f"/api/elevation/{project_id}")
+    assert fresh.status_code == status.HTTP_200_OK
+    assert fresh.json()["stale"] is False  # 新鲜结果集（calc done 未改档）
+    # PUT 改 assumption_overrides（I-1 混搭面：假设属 design → digest 变）
+    project_doc = (await client.get(f"/api/projects/{project_id}")).json()
+    project_doc["design"]["assumption_overrides"] = {"safety.superheight": 0.6}
+    put = await client.put(f"/api/projects/{project_id}", json=project_doc)
+    assert put.status_code == status.HTTP_200_OK
+    assert put.json()["design_changed"] is True
+    stale = await client.get(f"/api/elevation/{project_id}")
+    assert stale.status_code == status.HTTP_200_OK
+    assert stale.json()["stale"] is True  # 旧快照+显式过期旗标（非静默）

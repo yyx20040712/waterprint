@@ -147,11 +147,14 @@ def fetch_solutions(
     status = _require_done_enumeration(ctx, task_id)
     assert status.result is not None  # _require_done_enumeration 收窄（mypy）
     columns = tuple(status.result.get("columns", ()))
-    allowed = {*columns, "cost"}  # R2 白名单：字段 ID ∪ {cost}（margin_min 在列集）
+    # AUDIT2 C-3：白名单=列集 ∪ {margin_min}。原 ∪{cost} 使 sort=cost 过白名单
+    # 后在 sort_values 处 KeyError→500（探针实录 2026-08-30）——cost 是导出侧
+    # 概念，方案行集无此列；超集成员收口为 margin_min（枚举默认序键）。
+    allowed = {*columns, "margin_min"}
     if sort not in allowed:
         raise InvalidPageParameterError(
             f"排序键 {sort!r} 不在白名单（合法面 {sorted(allowed)}——"
-            "字段 ID 或 margin_min/cost，R2）"
+            "字段 ID 或 margin_min，R2）"
         )
     page_size = size if size is not None else ctx.settings.page_size_default
     frame = pd.read_feather(str(status.result["rows_file"]))

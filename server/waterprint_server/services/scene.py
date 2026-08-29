@@ -1,7 +1,8 @@
 """scene 服务用例：最近完成结果集 → 三维场景图（core build_scene 纯投影）。
 
 输入:  项目 id + condition_key（可选——缺省=结果工况排序首键，显式回显）
-输出:  SceneGraph（core 冻结 dataclass——routers 响应模型直用）
+输出:  SceneResponse（core.SceneGraph 四字段+stale 旗标——新鲜度是服务层
+       语义，core R1 纯投影不变量不混服务态）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -9,7 +10,8 @@
 #
 # 【公开接口】
 #   build_scene_for_project(ctx, project_id, condition_key=None)
-#       -> core.SceneGraph（scene 数据通道服务面正门）
+#       -> SceneResponse（scene 数据通道服务面正门——图四字段+stale 旗标，
+#       AUDIT2 FIX1 C-1 2026-08-30）
 #   SceneGraph = core.SceneGraph（类型面再导出——routers 响应模型取用，
 #       calculation.TaskStatus 先例：routers→core 非声明边经服务层转发）
 #
@@ -43,17 +45,35 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services.projects import read_project
+from waterprint_server.services.projects import read_project, result_is_stale
 
 # SceneGraph 再导出（routers 响应模型面——routers→core 非声明边，分层 §13.4；
 # calculation.TaskStatus 再导出先例）。__all__ 只列服务面公开符号。
-__all__ = ["InvalidSceneRequestError", "SceneGraph", "SceneSourceNotFoundError",
-           "build_scene_for_project"]
+__all__ = ["InvalidSceneRequestError", "SceneGraph", "SceneResponse",
+           "SceneSourceNotFoundError", "build_scene_for_project"]
 SceneGraph = core.SceneGraph
+
+
+class SceneResponse(BaseModel):
+    """场景响应（core.SceneGraph 四字段+stale 旗标——AUDIT2 C-1）。
+
+    core 零触碰：新鲜度是服务层语义（core R1 纯投影不变量「同结果同
+    场景图」不得混入服务态）；nodes 类型=core.Node 再导出（app.__all__
+    单入口——META1 D4 先例）。
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    root: tuple[str, ...]
+    nodes: tuple[core.Node, ...]
+    scene_version: str
+    condition_key: str
+    stale: bool
 
 
 class SceneSourceNotFoundError(RuntimeError):
@@ -80,8 +100,11 @@ def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, An
 
 def build_scene_for_project(
     ctx: ServiceContext, project_id: str, condition_key: str | None = None
-) -> core.SceneGraph:
-    """场景图正门：项目校验 → 结果集取数 → 反序列化 → 假设合成 → core 投影。"""
+) -> SceneResponse:
+    """场景图正门：项目校验 → 结果集取数 → 反序列化 → 假设合成 → core 投影。
+
+    AUDIT2 C-1：返回 SceneResponse（图四字段+stale——R4 显式提示）。
+    """
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
     latest = _latest_calc_result(ctx, project_id)
     try:
@@ -95,6 +118,13 @@ def build_scene_for_project(
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     try:
-        return core.build_scene(plant, assumptions, chosen)
+        graph = core.build_scene(plant, assumptions, chosen)
     except KeyError as exc:
         raise InvalidSceneRequestError(str(exc)) from exc
+    return SceneResponse(
+        root=graph.root,
+        nodes=graph.nodes,
+        scene_version=graph.scene_version,
+        condition_key=graph.condition_key,
+        stale=result_is_stale(latest, project),
+    )

@@ -112,6 +112,31 @@ async def test_stale_result_returns_409_with_context_wiring(client) -> None:  # 
 
 
 @pytest.mark.anyio
+async def test_calcbook_product_content_readback_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """AUDIT2 I-9：calcbook xlsx 产物内容级读回（生成物面虚锚收口）。
+
+    L1 抽查实录：conftest 占位符模板 {{trace[0].unit_id}} 造好后全库
+    零 load_workbook 消费——渲染错误/空产物不会红（FE8「包内不可证」
+    族）。本用例打开产物断：非空 sheet+占位符已被替换（trace 单元
+    id 真值出现——模板键零残留）。
+    """
+    from io import BytesIO
+
+    from openpyxl import load_workbook
+
+    project_id, _task_id = await _project_with_result(client)
+    fresh = await client.post("/api/exports/calcbook", json={"project_id": project_id})
+    assert fresh.status_code == status.HTTP_200_OK
+    workbook = load_workbook(BytesIO(fresh.content))
+    assert workbook.sheetnames, "产物应有工作表"
+    sheet = workbook[workbook.sheetnames[0]]
+    cells = [str(cell.value) for row in sheet.iter_rows() for cell in row if cell.value]
+    joined = "\n".join(cells)
+    assert "{{" not in joined, "模板占位符应全部被渲染替换"
+    assert "municipal_cass" in joined, "trace 单元 id 真值应入产物（占位符替换实证）"
+
+
+@pytest.mark.anyio
 async def test_traversal_export_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
     """AU-1/R1-1 路由面：condition_key/items kind 穿越 → 422 且产物零新增落盘。"""
     import os

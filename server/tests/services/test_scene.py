@@ -90,12 +90,16 @@ async def test_scene_defaults_to_sorted_first_condition_wiring(service_ctx) -> N
 
 
 async def test_scene_double_run_byte_identical_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
-    """R1 确定性继承：同结果集双跑 asdict(sort_keys) JSON 字节同。"""
+    """R1 确定性继承：同结果集双跑 JSON(sort_keys) 字节同。
+
+    AUDIT2 FIX1 C-1 后置适配：返回面 SceneGraph dataclass→SceneResponse
+    pydantic——序列化经 model_dump(mode="json")（asdict 适配旧形态）。
+    """
     project_id = await _project_with_result(service_ctx)
     first = build_scene_for_project(service_ctx, project_id)
     second = build_scene_for_project(service_ctx, project_id)
-    dump1 = json.dumps(asdict(first), sort_keys=True, ensure_ascii=False)
-    dump2 = json.dumps(asdict(second), sort_keys=True, ensure_ascii=False)
+    dump1 = json.dumps(first.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    dump2 = json.dumps(second.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
     assert dump1 == dump2
 
 

@@ -95,7 +95,7 @@ from waterprint.cost.takeoff import (
 )
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services.projects import read_project
+from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
     "CostResponse",
@@ -214,7 +214,11 @@ class IndicatorReportModel(BaseModel):
 
 
 class CostResponse(BaseModel):
-    """cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。"""
+    """cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。
+
+    AUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——
+    表/规模随快照冻结[R1 语义]时消费方据此显式提示，禁静默使用）。
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -225,6 +229,7 @@ class CostResponse(BaseModel):
     design_scale: float
     sheet: EstimateSheetModel
     indicators: IndicatorReportModel
+    stale: bool
 
 
 def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any]:
@@ -336,8 +341,9 @@ def build_cost_for_project(
 ) -> CostResponse:
     """概算正门：项目校验 → 结果集取数 → 四模块装配 → 指标校核 → 投影。"""
     # 项目存在性校验（不存在=ProjectNotFoundError 404）；R1 后装配数据
-    # 全部取自结果集快照（design_scale 同源），项目档本体零消费。
-    read_project(ctx, project_id)
+    # 全部取自结果集快照（design_scale 同源）——AUDIT2 C-1：档本体仅
+    # 消费于新鲜度比对（stale 旗标），装配面零消费维持。
+    project = read_project(ctx, project_id)
     latest = _latest_calc_result(ctx, project_id)
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
@@ -375,4 +381,5 @@ def build_cost_for_project(
         design_scale=design_scale,
         sheet=_sheet_model(sheet, book),
         indicators=_report_model(report),
+        stale=result_is_stale(latest, project),
     )

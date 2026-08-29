@@ -133,7 +133,7 @@ from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
 from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
-from waterprint.geometry import SceneGraph, build_scene
+from waterprint.geometry import Node, SceneGraph, build_scene
 from waterprint.graph.executor import execute_graph
 from waterprint.graph.nodes import builtin_unit
 from waterprint.project.content_hash import design_hash
@@ -158,7 +158,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "EnumerationOptions", "EnumerationOutcome",
     "InvalidAssemblyError",
     "InvalidProjectError",
-    "ResultBundle",
+    "Node", "ResultBundle",  # Node 再导出=AUDIT2 FIX1（server SceneResponse 类型面）
     "RunEnv",
     "SceneGraph",
     "assemble",

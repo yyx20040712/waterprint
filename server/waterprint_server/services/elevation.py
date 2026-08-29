@@ -72,7 +72,7 @@ from waterprint.elevation.profile import InvalidProfileError
 from waterprint.elevation.pumps import PumpingPlan
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services.projects import read_project
+from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
     "ElevationResponse",
@@ -147,7 +147,11 @@ class PumpStationEntry(BaseModel):
 
 
 class ElevationResponse(BaseModel):
-    """高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。"""
+    """高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。
+
+    AUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——
+    投影含活档假设[I-1]时消费方据此显式提示，禁静默使用）。
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -159,6 +163,7 @@ class ElevationResponse(BaseModel):
     pump_stations: tuple[PumpStationEntry, ...]
     drop_warnings: tuple[WarningEntry, ...]
     warnings: tuple[WarningEntry, ...]
+    stale: bool
 
 
 def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any]:
@@ -220,6 +225,7 @@ def build_elevation_for_project(
         condition_key=profile.condition_key,
         conditions=tuple(sorted(plant.conditions)),
         datum_note=_DATUM_NOTE,
+        stale=result_is_stale(latest, project),
         stations=tuple(
             ElevationStation(
                 unit_id=station.unit_id,
