@@ -30,6 +30,11 @@ import json
 
 import pytest
 from fastapi import status
+from waterprint.contracts.drawing_projection import ElevationProfile, ProfileStation
+from waterprint.elevation import evaluate_pumping
+from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+
+from waterprint_server.services.elevation import project_pump_stations
 
 _mod = importlib.import_module("waterprint_server.routers.elevation")
 router = getattr(_mod, "router")
@@ -40,6 +45,15 @@ _STATION_KEYS = {
     "unit_id", "water_level", "floor_elev", "ground_elev", "bury_depth",
     "freeboard", "water_depth", "loss_in", "design_flow", "crest_elev",
 }
+
+
+def _lifted_station(uid: str, water_level: float, flow: float = 0.456) -> ProfileStation:
+    """抬升纵断站位（core tests/elevation/test_pumps.py _station 同款直构）。"""
+    return ProfileStation(
+        unit_id=uid, water_level=water_level, floor_elev=water_level - 1.0,
+        ground_elev=water_level + 1.0, bury_depth=2.0, freeboard=0.3,
+        water_depth=1.0, loss_in=0.0, design_flow=flow,
+    )
 
 
 async def _project_with_result(client) -> tuple[str, str]:  # type: ignore[no-untyped-def]
@@ -124,11 +138,13 @@ async def test_elevation_returns_profile_with_default_condition_wiring(client) -
     assert isinstance(body["pump_stations"], list)
     assert isinstance(body["drop_warnings"], list)
     assert isinstance(body["warnings"], list)
+    # R6（zM-8）：动态尾键（expected_keys 已在手——core 工况命名变更不假红；
+    # 单工况项目退化为首键）
     explicit = await client.get(
-        f"/api/elevation/{project_id}", params={"condition_key": "design"}
+        f"/api/elevation/{project_id}", params={"condition_key": expected_keys[-1]}
     )
     assert explicit.status_code == status.HTTP_200_OK
-    assert explicit.json()["condition_key"] == "design"  # 显式工况透传
+    assert explicit.json()["condition_key"] == expected_keys[-1]  # 显式工况透传
 
 
 @pytest.mark.anyio
@@ -145,6 +161,41 @@ async def test_elevation_warning_faces_shape_wiring(client) -> None:  # type: ig
             assert set(warning) == _WARNING_KEYS  # UF-17 冻结结构逐键
             assert warning["severity"] in {"ERROR", "WARN", "INFO"}  # 级别域冻结
             assert isinstance(warning["affected_unit_ids"], list)
+
+
+def test_elevation_pump_station_projection_five_keys_wiring() -> None:
+    """R1（yI-2）：非空 PumpingPlan → PumpStationEntry 五键逐字段保真。
+
+    经端点结构性不可达记档：build_profile 水位沿程单调不增（level -= loss），
+    空损失口径下 drop<0 提升分支永不触发——golden/CASS 任何真数据项目
+    pump_stations 恒空（二审 §二-3 路径 A），「服务循环体×非空 plan」组合
+    须 M5 真损失接线才可达。本用例经服务层投影函数正门直构非空 plan
+    （core test_pumps 同款两站抬升 10→11 直构模式——路径 B），覆盖
+    PumpStationEntry 投影循环体的字段保真与扬程不变量。
+    """
+    profile = ElevationProfile(
+        stations=(
+            _lifted_station("u1", 10.0),
+            _lifted_station("u2", 11.0),  # 下游水面高于上游=需提升
+        ),
+        condition_key="design", trace=(), warnings=(),
+    )
+    assumptions = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
+    plan = evaluate_pumping(profile, assumptions)
+    assert len(plan.stations) == 1  # 提升分支点亮
+    pump = plan.stations[0]
+    entries = project_pump_stations(plan)
+    assert len(entries) == 1
+    dumped = entries[0].model_dump()
+    assert set(dumped) == {
+        "unit_id", "static_head", "total_head", "design_flow", "condition_key",
+    }  # 恰五键
+    assert dumped["unit_id"] == pump.unit_id == "u2"
+    assert dumped["static_head"] == pytest.approx(pump.static_head)
+    assert dumped["total_head"] == pytest.approx(pump.total_head)
+    assert dumped["design_flow"] == pytest.approx(pump.design_flow)
+    assert dumped["condition_key"] == pump.condition_key == "design"  # R3 工况标注
+    assert dumped["total_head"] >= dumped["static_head"]  # EL-F1 管路损失 ≥0 不变量
 
 
 @pytest.mark.anyio

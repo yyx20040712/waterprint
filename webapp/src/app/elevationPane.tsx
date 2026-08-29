@@ -26,8 +26,11 @@
  *     首键回显（Select 受控值=conditionKey??响应回显键）；切换经
  *     queryKey 全量进按需触发（§17.1）；
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目）；
- *     查询 error（404 无 done calc 等）=WaterprintApiError 消息+引导
- *     「先提交计算（POST /api/calc/run）」；ErrorBoundary label=高程纵断。
+ *     查询 error 分级（R3/zM-2 修复 2026-08-29）：仅当
+ *     WaterprintApiError.code==="ElevationSourceNotFoundError"（404 无
+ *     done calc）才附「先提交计算」引导——网络错/窄化 ElevationViewError
+ *     不挂误导 hint（简报 D1 引导语口径针对 404 面）；ErrorBoundary
+ *     label=高程纵断。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Typography } from "antd";
@@ -36,6 +39,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ConditionSwitcher } from "../features/elevation/components/ConditionSwitcher";
 import { PumpStationsPanel } from "../features/elevation/components/PumpStationsPanel";
 import { useElevationQuery } from "../features/elevation/api/useElevationQuery";
+import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { normalizeProjectId, parseProjectParam } from "./projectParam";
 
@@ -101,7 +105,11 @@ export function ElevationPane() {
             {query.error instanceof Error
               ? query.error.message
               : "未知错误"}
-            {NO_CALC_HINT}
+            {/* R3（zM-2）：仅 404 无 done calc 面附引导——网络错/窄化错不挂 */}
+            {query.error instanceof WaterprintApiError &&
+            query.error.code === "ElevationSourceNotFoundError"
+              ? NO_CALC_HINT
+              : null}
           </Typography.Paragraph>
         ) : view === null ? (
           <Typography.Paragraph type="secondary">

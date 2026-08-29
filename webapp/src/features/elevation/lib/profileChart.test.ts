@@ -204,6 +204,54 @@ describe("narrowElevationResponse：站位/泵站/警告逐字段校验", () => 
   });
 });
 
+describe("narrowElevationResponse：门完备性负例（R 轮 zM-3——先红后绿）", () => {
+  it("conditions 含空串元素拒（空串工况不进 Select 选项面）", () => {
+    const bad = { ...fixture(), conditions: ["avg", ""] };
+    expect(() => narrowElevationResponse(bad)).toThrow(ElevationViewError);
+    expect(() => narrowElevationResponse(bad)).toThrow(/conditions/);
+  });
+
+  it("warnings severity 超域值 FATAL 拒（域=core Severity 冻结面）", () => {
+    const warnings = [...fixture().warnings];
+    warnings[0] = { ...warnings[0]!, severity: "FATAL" };
+    expect(() => narrowElevationResponse({ ...fixture(), warnings })).toThrow(
+      /warnings\[0\]\.severity/,
+    );
+  });
+
+  it("drop_warnings severity 小写超域值 warn 拒（域校验大小写敏感）", () => {
+    const drops = [...fixture().drop_warnings];
+    drops[0] = { ...drops[0]!, severity: "warn" };
+    expect(() =>
+      narrowElevationResponse({ ...fixture(), drop_warnings: drops }),
+    ).toThrow(/drop_warnings\[0\]\.severity/);
+  });
+
+  it("station water_level=NaN 拒（值域注入——isFiniteNumber 回归防护 zM-7）", () => {
+    const stations = [...fixture().stations];
+    stations[1] = { ...stations[1]!, water_level: Number.NaN };
+    expect(() => narrowElevationResponse({ ...fixture(), stations })).toThrow(
+      /stations\[1\]\.water_level/,
+    );
+  });
+
+  it("station crest_elev=Infinity 拒（值域注入——非有限数）", () => {
+    const stations = [...fixture().stations];
+    stations[2] = { ...stations[2]!, crest_elev: Number.POSITIVE_INFINITY };
+    expect(() => narrowElevationResponse({ ...fixture(), stations })).toThrow(
+      /stations\[2\]\.crest_elev/,
+    );
+  });
+
+  it("station floor_elev=true 拒（bool 非数值——typeof boolean 先于 number 面）", () => {
+    const stations = [...fixture().stations];
+    stations[0] = { ...stations[0]!, floor_elev: true as unknown as number };
+    expect(() => narrowElevationResponse({ ...fixture(), stations })).toThrow(
+      /stations\[0\]\.floor_elev/,
+    );
+  });
+});
+
 describe("buildChartOption：四线纵断 option（纯对象零 echarts import）", () => {
   it("四 series 恰合且名称序=地面/水面/池底/池顶（D5 四线）", () => {
     const option = buildChartOption(narrowElevationResponse(fixture()));

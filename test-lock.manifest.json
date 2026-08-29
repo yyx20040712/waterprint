@@ -159,7 +159,7 @@
   "server/tests/services/test_units.py": "c42c760580be91cbb3c016352b16bd1efbf729770e339808e86b41ec2f7c09aa",
   "server/tests/test_api_contract.py": "e8c1b6a9510dc794f92f392c6806003807a65d8f5195b2a2bb7a0ccedcfdc954",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
-  "server/tests/test_elevation.py": "561d4bac0fcae00e804279558757c2ff7e290080438c9ccd350fdd4cffba8fa9",
+  "server/tests/test_elevation.py": "4d1144b01cbb8dae1affce5760638dc61e742da1690cd9ade465e4f18a8d7501",
   "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8",
   "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
 }

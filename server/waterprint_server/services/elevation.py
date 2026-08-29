@@ -10,6 +10,10 @@
 # 【公开接口】
 #   build_elevation_for_project(ctx, project_id, condition_key=None)
 #       -> ElevationResponse（elevation 数据通道服务面正门）
+#   project_pump_stations(plan) -> tuple[PumpStationEntry, ...]
+#       （D4 提升站位投影正门——PumpingPlan 五键直投影；R1 单测正门：
+#       经端点非空 plan 结构性不可达[空损失水位单调不增——M5 接真损失
+#       才可达]，直构非空 plan 的字段保真覆盖面走本函数）
 #   ElevationResponse/ElevationStation/PumpStationEntry/WarningEntry
 #       （响应模型面——routers response_model 直用，units.py 服务层
 #       pydantic 冻结模型先例：禁协议层重复声明漂移面）
@@ -65,6 +69,7 @@ from waterprint.contracts.result_schema import InvalidResultError, deserialize
 from waterprint.contracts.unit_api import Severity
 from waterprint.elevation import build_profile, evaluate_pumping, head_losses
 from waterprint.elevation.profile import InvalidProfileError
+from waterprint.elevation.pumps import PumpingPlan
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import read_project
@@ -77,6 +82,7 @@ __all__ = [
     "PumpStationEntry",
     "WarningEntry",
     "build_elevation_for_project",
+    "project_pump_stations",
 ]
 
 # D2 v1 基准面：±0.00 相对标高（工程相对标高惯例；绝对标高设计输入通道
@@ -169,6 +175,23 @@ def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, An
     return latest
 
 
+def project_pump_stations(plan: PumpingPlan) -> tuple[PumpStationEntry, ...]:
+    """D4 提升站位投影（PumpingPlan.stations → 响应五键——R1 单测正门）。
+
+    空站位列表=全程自流合法终态直投影（core pumps R4——空元组合法返回）。
+    """
+    return tuple(
+        PumpStationEntry(
+            unit_id=pump.unit_id,
+            static_head=pump.static_head,
+            total_head=pump.total_head,
+            design_flow=pump.design_flow,
+            condition_key=pump.condition_key,
+        )
+        for pump in plan.stations
+    )
+
+
 def build_elevation_for_project(
     ctx: ServiceContext, project_id: str, condition_key: str | None = None
 ) -> ElevationResponse:
@@ -212,16 +235,7 @@ def build_elevation_for_project(
             )
             for station in profile.stations
         ),
-        pump_stations=tuple(
-            PumpStationEntry(
-                unit_id=pump.unit_id,
-                static_head=pump.static_head,
-                total_head=pump.total_head,
-                design_flow=pump.design_flow,
-                condition_key=pump.condition_key,
-            )
-            for pump in plan.stations
-        ),
+        pump_stations=project_pump_stations(plan),
         drop_warnings=tuple(
             WarningEntry(
                 severity=warning.severity,

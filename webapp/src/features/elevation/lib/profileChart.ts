@@ -7,14 +7,17 @@
  *        逐项校验，非法抛 ElevationViewError 带键定位）+buildChartOption→
  *        ProfileChartOption（四线 series 纯对象——组件薄壳唯一数据源）
  *
- * 规格说明（FE7 批 6b 段五，D5/D7）：
+ * 规格说明（FE7 批 6b 段五，D5/D7；R 轮 zM-3 门完备性两补 2026-08-29）：
  *   - D7 窄化门（FE4 D6/FE5 D8/FE6 D4 门模式复用）：顶层八字段
  *     （project_id/condition_key/conditions/datum_note/stations/
  *     pump_stations/drop_warnings/warnings）逐类校验；stations 空数组拒
  *     （纵断至少一站——空纵断属服务端异形）；station 十字段
  *     （unit_id string+九数值）逐项校验；泵站五字段/警告六键（UF-17）
  *     逐项校验；非法形状抛 ElevationViewError（消息带键定位
- *     stations[i].字段——呈现面可反查）；
+ *     stations[i].字段——呈现面可反查）；R 轮两补——conditions 元素
+ *     空串拒（空串工况不进 Select 选项面）+warnings/drop_warnings
+ *     severity 域校验（{ERROR,WARN,INFO}=core Severity 冻结面，超域/
+ *     小写变体拒——异常级串不直入渲染分级映射）；
  *   - D7 option 纯对象：四线=地面/水面/池底/池顶（骨架「管底」措辞系
  *     笔误——ProfileStation 无管底字段，crest_elev=服务端投影池顶，
  *     README 随批勘误）；xAxis category 站位序=响应 stations 序（流程
@@ -91,6 +94,10 @@ export const ELEVATION_LINE_COLORS = {
   crest: "#8c8c8c", // 池顶=结构参考线（灰+虚线，非语义色位）
 } as const;
 
+/** 警告级别合法域（core contracts/unit_api.Severity StrEnum 冻结面——
+ * R 轮 zM-3：超域值显式拒，防异常级串直入渲染分级映射）。 */
+const SEVERITY_DOMAIN: readonly string[] = ["ERROR", "WARN", "INFO"];
+
 /** 纵断图 option（纯对象——结构面按 echarts LineChart 消费子集声明）。 */
 export type ProfileChartOption = {
   tooltip: { trigger: string };
@@ -160,8 +167,16 @@ function narrowWarning(raw: unknown, face: string, index: number): WarningView {
     reject(`${face}[${index}] 须为对象：得到 ${JSON.stringify(raw) ?? "undefined"}`);
   }
   const severity = raw["severity"];
-  if (typeof severity !== "string" || severity === "") {
-    reject(`${face}[${index}].severity 须为非空字符串`);
+  if (
+    typeof severity !== "string" ||
+    severity === "" ||
+    !SEVERITY_DOMAIN.includes(severity)
+  ) {
+    // R 轮 zM-3：域校验（core Severity 冻结面 ERROR/WARN/INFO——超域/小写
+    // 变体均拒；服务端 pydantic 枚举兜底外的前端门完备性面）
+    reject(
+      `${face}[${index}].severity 须为 {ERROR,WARN,INFO} 域内字符串：得到 ${JSON.stringify(severity) ?? "undefined"}`,
+    );
   }
   const source = raw["source"];
   if (typeof source !== "string" || source === "") {
@@ -211,8 +226,13 @@ export function narrowElevationResponse(raw: unknown): ElevationView {
   const conditionKey = requireString(raw, "condition_key");
   const datumNote = requireString(raw, "datum_note");
   const conditionsRaw = requireArray(raw, "conditions");
-  if (conditionsRaw.length === 0 || !conditionsRaw.every(isString)) {
-    reject("conditions 须为非空字符串数组（工况索引面——D9）");
+  if (
+    conditionsRaw.length === 0 ||
+    !conditionsRaw.every((key) => isString(key) && key !== "")
+  ) {
+    // R 轮 zM-3：元素空串拒（requireString 空串拒语义复用到元素面——
+    // 空串工况不进 Select 选项面）
+    reject("conditions 须为非空字符串数组（工况索引面——D9；元素空串拒）");
   }
   const stationsRaw = requireArray(raw, "stations");
   if (stationsRaw.length === 0) {
