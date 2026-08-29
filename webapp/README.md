@@ -13,9 +13,14 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > 经 projectFlow 投影→React Flow 只读画布，URL `?project=` 单一真相）；
 > params 参数面板已挂载 canvas 侧栏（FE5 批 6b 段三 2026-08-29：ParamForm
 > 选中单元参数编辑（META1 目录+design 覆盖→草稿→apply 提交重算+read 键
-> invalidate）+AssumptionsPanel 假设只读清单+画布节点点击选中态）**
-> ——61 源文件=入口 1+app 10+features 43+shared 7，全部带 TS 契约头
-> （`App.tsx` Tabs 路由状态机+Providers 实装+viewer3d 懒加载标签，
+> invalidate）+AssumptionsPanel 假设只读清单+画布节点点击选中态）；
+> solutions 方案浏览已挂载第二标签（FE6 批 6b 段四 2026-08-29：单单元枚举
+> 提交→EventSource SSE 任务进度（TaskPanel 徽标/进度/failed 回显/取消）
+> →服务端分页方案表（动态列+margin_min 语义色）→行级应用（grid_fields
+> 投影 params→read 键 invalidate）+无解诊断面板；URL `?task=` 与
+> `?project=` 双参联动（params 表单 apply 亦回写——FE5 挂账③收口））**
+> ——69 源文件=入口 1+app 11+features 50+shared 7，全部带 TS 契约头
+> （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
 > 由 `scripts/check_webapp.py` 门禁校验）；其余 feature 实装按 M2+ 推进。
 
 ## 结构

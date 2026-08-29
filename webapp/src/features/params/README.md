@@ -25,6 +25,10 @@
   →save→自动重算→失败回滚）；成功后 invalidate read 键
   （['/api/projects/&lt;id&gt;']——canvas/params/假设三面同步刷新）；
   params 专属端点归 server 批裁量挂账；
+  **FE6 联动收口（挂账③）**：apply onSuccess 回写 URL `?task=`
+  recalc_task_id（withTaskParam 逻辑内联——分层禁 import app），
+  「方案浏览」标签任务态面板经参数呈现重算进度与失败回显
+  （消息文案「已提交重算（任务 …）——方案页可看进度与失败回显」）；
 - 错误消息统一 WaterprintApiError.message 透出（422/404/409 归一面）；
 - 假设面板是"默认值显性化"的 UI 落点（§3 保证 7）——21 条 registry 声明
   序只读+覆盖标记；覆盖编辑（design 态保存流程）挂账后续批；
