@@ -300,6 +300,72 @@ async def test_cost_error_faces_wiring(cost_client) -> None:  # type: ignore[no-
     assert invalid.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert invalid.json()["error_type"] == "InvalidCostRequestError"  # 透传工况集
     assert "zzz" in str(invalid.json()["detail"])
+    # R2（zM-6）：可用工况集透传承诺面同锁（消息实测含全集——断言纯加强）
+    assert "design" in str(invalid.json()["detail"])
+
+
+@pytest.mark.anyio
+async def test_cost_design_scale_frozen_with_result_snapshot_wiring(
+    cost_client,
+) -> None:  # type: ignore[no-untyped-def]
+    """R1（yI-2/zM-1）：PUT 改档不重算→design_scale 随表冻结（快照侧取数）。
+
+    二审构造实证复现（§四期望值直用）：活档取数时 PUT q_avg_daily→0.2
+    （design_changed=True 未重算）后 GET——表=旧快照、规模=新活档混搭：
+    scale 漂移 17280.0/indicator 689.15；快照侧取数后 scale==改前值不变
+    +grand 不变——规模与表同源（诚实性目标：WARN=诚实读数前提）。
+    """
+    project_id, _task_id = await _project_with_result(cost_client)
+    before = (await cost_client.get(f"/api/cost/{project_id}")).json()
+    assert before["design_scale"] == pytest.approx(34760.70000288, rel=1e-9)
+    # 读回项目档（PUT 载荷=完整项目 JSON），改输入节点 q_avg_daily
+    project_doc = (await cost_client.get(f"/api/projects/{project_id}")).json()
+    edited = False
+    for node_value in project_doc["design"]["nodes"].values():
+        if isinstance(node_value, dict) and "q_avg_daily" in node_value:
+            node_value["q_avg_daily"] = 0.2
+            edited = True
+            break
+    assert edited, "CASS 夹具应含 q_avg_daily 输入节点"
+    put = await cost_client.put(f"/api/projects/{project_id}", json=project_doc)
+    assert put.status_code == status.HTTP_200_OK
+    assert put.json()["design_changed"] is True  # design 已改+未重算（二审口径）
+    after = (await cost_client.get(f"/api/cost/{project_id}")).json()
+    assert after["design_scale"] == before["design_scale"]  # 快照侧：规模随表冻结
+    assert after["sheet"]["grand_total"] == before["sheet"]["grand_total"]  # 表不变
+    assert after["indicators"]["readings"][0]["value"] == before["indicators"]["readings"][0][
+        "value"
+    ]  # indicator 值同源不漂移
+
+
+@pytest.mark.anyio
+async def test_cost_empty_indicator_bands_unchecked_wiring(
+    cost_client, cost_settings
+) -> None:  # type: ignore[no-untyped-def]
+    """R3（zM-7）：空指标带→checked False+readings 空（core R4 显式未校核）。
+
+    简报白名单 #5「checked False 面」服务侧交付：拷 unit_prices 后清空
+    auxiliary.yaml indicator.* 成对条目（load_indicator_bands 无 .min 键
+    →bands 空）；fixture 函数级 tmp 隔离（他用例数据包不受扰）。
+    """
+    import yaml
+
+    auxiliary = cost_settings.data_dir / "unit_prices" / "auxiliary.yaml"
+    entries = yaml.safe_load(auxiliary.read_text(encoding="utf-8"))
+    kept = [
+        row for row in entries if not str(row.get("key", "")).startswith("indicator.")
+    ]
+    assert len(kept) < len(entries), "夹具应确实清出 indicator.* 条目"
+    auxiliary.write_text(
+        yaml.safe_dump(kept, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+        newline="\n",
+    )
+    project_id, _task_id = await _project_with_result(cost_client)
+    body = (await cost_client.get(f"/api/cost/{project_id}")).json()
+    assert body["indicators"]["checked"] is False  # 空带=显式未校核
+    assert body["indicators"]["readings"] == []
+    assert body["sheet"]["grand_total"] > 0  # 概算面不受空带影响（照常装配）
 
 
 @pytest.mark.anyio

@@ -34,11 +34,16 @@
 #      build_estimate（repro=plant.repro 三元组注入——estimate 头注
 #      "app 装配层应传 PlantResult.repro 面"落点）→check_indicators。
 #      计算在 Python 单点（estimate R2 §11 R12）——前端零算价。
-#   R4 design_scale 服务面注入（D3）：design.nodes 输入节点
-#      q_avg_daily（m3/s）×86400 换算经 contracts.quantity pint 正门
-#      （禁手写换算系数——quantity 禁止面；indicators 头注"q_avg_daily
-#      ×86400 的换算属显示层/装配层口径"=本层合规）；无输入节点
-#      =InvalidCostRequestError（422——规模无定义显式拒绝）。
+#   R4 design_scale 服务面注入（D3；R1 修复轮 2026-08-29 改快照侧）：
+#      结果集快照 conditions[chosen] 各单元 outflows 的
+#      *.out.q_avg_daily（m3/s，golden 口径——inlet=0.4023229167）×86400
+#      换算经 contracts.quantity pint 正门（禁手写换算系数——quantity
+#      禁止面；indicators 头注"换算属显示层/装配层口径"=本层合规）；
+#      outflows 键域=单元实跑输出面，天然限定输入单元（zM-1 收窄）；
+#      无该键=InvalidCostRequestError（422——规模无定义显式拒绝）。
+#      快照侧消除"表=旧快照+规模=新活档"混搭（二审 yI-2 构造实证：
+#      活档侧 PUT 改档不重算→scale 漂移 17280/indicator 689.15——
+#      编辑未重算时 scale 随表冻结，与表同源）。
 #      IndicatorReport WARN 如实下发（诚实读数——前端橙警非绿）；
 #      bands 空→checked:False 显式未校核（core R4）。
 #   R5 name_zh 中文列名（D4）：detail_rows 各行附 PriceBook.get(
@@ -64,9 +69,12 @@ from pathlib import Path
 from typing import Any, Final
 
 from pydantic import BaseModel, ConfigDict
-from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.quantity import DimKey, parse
-from waterprint.contracts.result_schema import InvalidResultError, deserialize
+from waterprint.contracts.result_schema import (
+    InvalidResultError,
+    PlantResult,
+    deserialize,
+)
 from waterprint.cost.estimate import (
     EstimateSheet,
     FeeLine,
@@ -300,21 +308,26 @@ def _report_model(report: IndicatorReport) -> IndicatorReportModel:
     )
 
 
-def _design_scale_of(project: ProjectFile) -> float:
-    """设计规模（m3/d）：design.nodes 输入节点 q_avg_daily×86400（D3/R4）。
+def _design_scale_of(plant: PlantResult, condition_key: str) -> float:
+    """设计规模（m3/d）：结果集快照 outflows 取数（D3/R4——R1 快照侧）。
 
-    golden 口径照抄（design.nodes.inlet.q_avg_daily=0.4023229167→
-    34760.7 m3/d）；sorted 遍历=确定性取数（多输入节点取排序首）；
-    换算经 pint 因子（_M3D_TO_M3S）——禁手写 86400。
+    golden 口径照抄（inlet.out.q_avg_daily=0.4023229167→34760.7 m3/d
+    ——二审 §四实测形状：outflows 是结果集唯一合法流量快照面[dims 空/
+    summary 仅六水质指标]）；sorted 遍历=确定性取数；outflows 键域=
+    单元实跑输出面天然限定输入单元（zM-1 收窄——非输入节点不携
+    *.out.q_avg_daily）；换算经 pint 因子（_M3D_TO_M3S）——禁手写
+    86400。快照侧与表同源：编辑未重算时 scale 随表冻结（yI-2）。
     """
-    for node_id in sorted(project.design.nodes):
-        value = project.design.nodes[node_id].get("q_avg_daily")
+    units = plant.conditions.get(condition_key, {})
+    for unit_id in sorted(units):
+        value = units[unit_id].outflows.get(f"{unit_id}.out.q_avg_daily")
         if isinstance(value, bool) or not isinstance(value, int | float):
             continue
         return float(value) / _M3D_TO_M3S
     raise InvalidCostRequestError(
-        "项目 design.nodes 无 q_avg_daily 输入节点（指标设计规模无定义"
-        f"——D3 规模取数面；sorted 键集 {sorted(project.design.nodes)}）"
+        "结果集快照无 *.out.q_avg_daily 输入节点流量（指标设计规模无定义"
+        f"——D3 规模取数面；工况 {condition_key!r} sorted 单元集 "
+        f"{sorted(units)}）"
     )
 
 
@@ -322,7 +335,9 @@ def build_cost_for_project(
     ctx: ServiceContext, project_id: str, condition_key: str | None = None
 ) -> CostResponse:
     """概算正门：项目校验 → 结果集取数 → 四模块装配 → 指标校核 → 投影。"""
-    project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
+    # 项目存在性校验（不存在=ProjectNotFoundError 404）；R1 后装配数据
+    # 全部取自结果集快照（design_scale 同源），项目档本体零消费。
+    read_project(ctx, project_id)
     latest = _latest_calc_result(ctx, project_id)
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
@@ -345,7 +360,7 @@ def build_cost_for_project(
     sheet = build_estimate(
         items, book, fees, repro=plant.repro, condition_key=chosen
     )
-    design_scale = _design_scale_of(project)
+    design_scale = _design_scale_of(plant, chosen)  # R1 快照侧（与表同源）
     try:
         report = check_indicators(
             sheet, load_indicator_bands(book), design_scale=design_scale

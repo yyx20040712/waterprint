@@ -5,9 +5,12 @@
  * 输出:  分级汇总表（明细行可展开溯源=price_key+source_field_ids+
  *        unit_price+repro 串——M4「任一数字可回溯」前端落点）
  *
- * 规格说明（FE8 批 6b 段六，D5；骨架实装替换）：
+ * 规格说明（FE8 批 6b 段六，D5；R 轮 R4/R5 修复 2026-08-29）：
  *   - 行序=服务端装配序（buildTableRows 产物直投——前端不重排）；
- *     小计行族+工程总投资行高亮（kind=subtotal/grand 上行样式）；
+ *     小计行族+工程总投资行高亮（R4：onRow 内联 style——webapp 零 CSS
+ *     文件，类名无视觉落点，grand 加粗+背景/subtotal 轻背景）；
+ *   - 费率列（R5：fee 行 rate 百分比显示，detail/小计行留空——费桶
+ *     构成「费率×基数」UI 可见面；显示层格式化非推导）；
  *   - 金额 tabular-nums 右对齐（数字等宽——分级求和目视对位）；零推导：
  *     金额全部行模型原值渲染，前端不重算分级自洽（服务端契约）；
  *   - 每笔溯源=detail 行展开区（price_key+source_field_ids+unit_price+
@@ -20,6 +23,7 @@
  */
 import { Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import type { CSSProperties } from "react";
 
 import {
   buildTableRows,
@@ -35,12 +39,28 @@ function formatAmount(value: number): string {
   });
 }
 
-/** 行类别样式（小计族+总投资高亮面——§19 视觉层级）。 */
-function rowClass(row: EstimateTableRow): string {
+/** 费率格式（百分比——R5 费桶构成可见面；显示层格式化非推导）。 */
+function formatRate(rate: number): string {
+  return `${(rate * 100).toLocaleString("zh-CN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}%`;
+}
+
+/**
+ * 行类别内联样式（R4——§19 视觉层级；webapp 零 CSS 文件：类名无视觉
+ * 落点，antd onRow style 直挂 tr；中性背景非语义色位[绿/橙/红/蓝保留]）。
+ */
+function rowStyle(row: EstimateTableRow): CSSProperties {
   if (row.kind === "grand") {
-    return "cost-row-grand";
+    return {
+      fontWeight: 600,
+      background: "rgba(255, 255, 255, 0.10)",
+    };
   }
-  return row.kind === "subtotal" ? "cost-row-subtotal" : "";
+  return row.kind === "subtotal"
+    ? { fontWeight: 500, background: "rgba(255, 255, 255, 0.05)" }
+    : {};
 }
 
 const COLUMNS: ColumnsType<EstimateTableRow> = [
@@ -62,6 +82,14 @@ const COLUMNS: ColumnsType<EstimateTableRow> = [
         : `${row.quantity.toLocaleString("zh-CN")} ${row.unit ?? ""}`.trim(),
   },
   {
+    title: "费率",
+    key: "rate",
+    width: 88,
+    align: "right",
+    render: (_value, row) =>
+      row.rate === undefined ? "" : formatRate(row.rate),
+  },
+  {
     title: "金额（元）",
     key: "amount",
     width: 160,
@@ -74,7 +102,7 @@ const COLUMNS: ColumnsType<EstimateTableRow> = [
   },
 ];
 
-/** 概算分级汇总表（明细行可展开溯源——D5）。 */
+/** 概算分级汇总表（明细行可展开溯源——D5；高亮/费率面 R4/R5）。 */
 export function EstimateTable({ view }: { view: CostView }) {
   const rows = buildTableRows(view);
   return (
@@ -83,7 +111,7 @@ export function EstimateTable({ view }: { view: CostView }) {
       columns={COLUMNS}
       dataSource={rows}
       rowKey="key"
-      rowClassName={rowClass}
+      onRow={(row) => ({ style: rowStyle(row) })}
       pagination={false}
       expandable={{
         // 仅明细行可展开（费用/小计行无逐笔溯源面）

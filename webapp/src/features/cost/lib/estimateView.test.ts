@@ -106,8 +106,9 @@ function feeFixture(
 }
 
 /**
- * 内联夹具：golden 真值同构形态（1,190.86 万元量级自由构造——服务端
- * CASS 同款结构 3 明细+四桶 1/4/1/1，数字自洽非锚真值）。
+ * 内联夹具：golden 真值同构形态（747.8 万元量级自由构造——二审复算
+ * grand_total=7,478,090.21 元=747.81 万元[R6 修正：原注释 1,190.86 万
+ * 失真]；服务端 CASS 同款结构 3 明细+四桶 1/4/1/1，数字自洽非锚真值）。
  */
 function costFixture(): Fixture {
   const rows = [
@@ -360,6 +361,21 @@ describe("buildTableRows 分级行模型", () => {
     expect(install?.amount).toBeCloseTo(360000.0 * 0.15, 6);
     const taxLine = rows.find((row) => row.key === "fee:tax:rate.tax");
     expect(taxLine?.bucket).toBe("税费");
+  });
+
+  it("R5（zM-3）：fee 行 rate 全数透传+detail/小计行不挂费率（费率列数据面）", () => {
+    const view = narrowCostResponse(costFixture());
+    const rows = buildTableRows(view);
+    const feeRows = rows.filter((row) => row.kind === "fee");
+    // 逐行 rate 透传（费桶构成=费率×基数 UI 可见前提——行模型已挂载面）
+    expect(feeRows.map((row) => row.rate)).toEqual([0.02, 0.15, 0.05, 0.03, 0.02, 0.1, 0.09]);
+    // 基数 DSL 字符串直投（FeeLineView 面——窄化产物保真）
+    expect(view.sheet.indirect[0]!.base).toBe("equipment_subtotal");
+    expect(view.sheet.tax[0]!.base).toBe("subtotal + reserve_subtotal");
+    // 非费行不挂费率（detail/小计/grand 留空——EstimateTable 费率列空白面）
+    expect(
+      rows.filter((row) => row.kind !== "fee").every((row) => row.rate === undefined),
+    ).toBe(true);
   });
 
   it("checked:false 未校核面如实透传（空 readings 合法）", () => {
