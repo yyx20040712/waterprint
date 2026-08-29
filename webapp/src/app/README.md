@@ -19,6 +19,7 @@
 | `canvasPane.tsx` | canvas 标签页装配：design 工艺图 projectFlow 投影→React Flow 只读画布（URL ?project= 单一真相+节点点击选中联动 params） | FE4 实装（FE5/FE6 批记账遗漏，FE7 补登 2026-08-29） |
 | `solutionsPane.tsx` | solutions 标签页装配：?project=/?task= 双参+单单元枚举提交+TaskPanel（SSE）+方案表/诊断面板+apply 任务轨分立（R1 双轨） | FE6 实装（FE6 批记账遗漏，FE7 补登 2026-08-29） |
 | `elevationPane.tsx` | elevation 标签页装配：?project= 消费+lazy ProfileChart（echarts 独立 chunk）+ErrorBoundary+空态/404 引导+ConditionSwitcher+PumpStationsPanel+"wp:task" 监听 invalidate | FE7 实装 |
+| `costPane.tsx` | cost 标签页装配：?project= 消费+ErrorBoundary+空态/404 引导+工况 Select（缺省=design 回显）+EstimateTable 分级汇总+IndicatorsCard 指标对照+"wp:task" 监听 invalidate（第四处内联——非 lazy 无大件） | FE8 实装 |
 
 ## 交互规范基线（§19，实现期遵守）
 

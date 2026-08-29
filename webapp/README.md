@@ -24,10 +24,17 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > /api/elevation latest done calc 按需投影（±0.00 相对标高+crest 服务端
 > 投影+空段损失恒 0 注记）+ConditionSwitcher 工况按需切换+PumpStationsPanel
 > 提升点位/跌水警告；"wp:task" 事件桥 invalidate 前缀键——apply 重算后
-> 面板刷新）**
-> ——73 源文件=入口 1+app 12+features 53+shared 7，全部带 TS 契约头
+> 面板刷新）；cost 概算已挂载第六标签（FE8 批 6b 段六 2026-08-29：GET
+> /api/cost latest done calc 四模块装配（load_prices→load_fee_rules→
+> takeoff→build_estimate→check_indicators——服务端单点，前端零算价）；
+> EstimateTable 分级汇总（明细可折叠溯源=定额键+source_field_ids+单价+
+> 三元组串——M4 任一数字可回溯落点）+IndicatorsCard 指标对照（OK 绿/
+> WARN 橙/未校核灰）+工况 Select 缺省 design 回显；非 lazy 无大件；
+> "wp:task" 事件桥第四处内联 invalidate 前缀键）**
+> ——77 源文件=入口 1+app 13+features 56+shared 7，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
-> 由 `scripts/check_webapp.py` 门禁校验）；其余 feature 实装按 M2+ 推进。
+> 由 `scripts/check_webapp.py` 门禁校验——77 计数机器一致）；唯 drawings
+> 一标签维持占位屏，其余 feature 实装按 M2+ 推进。
 
 ## 结构
 

@@ -5,7 +5,8 @@
  * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库/中央标签工作区）——
  *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey 状态机
  *
- * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签）：
+ * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
+ *   FE8 批 6b 段六 cost 标签实装替换占位屏）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
  *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
@@ -21,14 +22,17 @@
  *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
  *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
  *     懒加载 ProfileChart（echarts 独立 chunk）+工况切换+提升面板，
- *     "wp:task" 事件桥 invalidate 刷新）；其余两标签维持占位屏（feature
- *     骨架未实装——D8 非本批范围）；
+ *     "wp:task" 事件桥 invalidate 刷新）；cost 标签=CostPane（FE8：
+ *     latest done calc 四模块概算装配——分级汇总表+可折叠溯源+指标
+ *     对照卡+工况切换，非 lazy 无大件，"wp:task" 事件桥第四处）；
+ *     唯 drawings 一标签维持占位屏（feature 骨架未实装——D8 非本批范围）；
  *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
  */
 import { useState } from "react";
 import { Layout, Menu, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
+import { CostPane } from "./costPane";
 import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
@@ -92,7 +96,7 @@ export function App() {
                 {
                   key: "cost",
                   label: "概算",
-                  children: <StubPane label="概算" />,
+                  children: <CostPane />,
                 },
               ]}
             />
