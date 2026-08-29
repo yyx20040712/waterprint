@@ -24,7 +24,11 @@
  *     （invalidFields 锁提交）；提交 payload=collectParamChanges 差异面
  *     （等值不产空写），值全 number（JSON 天然浮点形态）；
  *   - 错误呈现=Error.message 透出（WaterprintApiError message 归一——
- *     422/404/409 全走此面；窄化 DesignParamsError 同 Error 面）。
+ *     422/404/409 全走此面；窄化 DesignParamsError 同 Error 面）；
+ *   - FE6 D3-③（挂账③收口）：apply onSuccess 回写 URL ?task=
+ *     recalc_task_id（app/projectParam withTaskParam 逻辑内联四行——分层
+ *     禁 import app；replaceState 不触发导航）——方案浏览标签的任务态
+ *     面板经 ?task= 联动呈现重算进度与失败回显（消息文案同幅改）。
  */
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -89,10 +93,19 @@ export function ParamForm({
   const apply = useApplySolutionApiCalcSolutionsApplyPost<WaterprintApiError>({
     mutation: {
       // D5：apply 服务端已 save——失效 read 键驱动 canvas/params/假设刷新
-      onSuccess: () => {
+      onSuccess: (outcome) => {
         void queryClient.invalidateQueries({
           queryKey: [`/api/projects/${projectId}`],
         });
+        // FE6 D3-③：?task= 回写（withTaskParam 逻辑内联——分层禁 import
+        // app；replaceState 不触发导航，方案页任务态面板经参数联动）
+        const search = new URLSearchParams(window.location.search);
+        search.set("task", outcome.recalc_task_id);
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}?${search.toString()}`,
+        );
       },
     },
   });
@@ -200,8 +213,8 @@ export function ParamForm({
           </div>
           {apply.isSuccess ? (
             <Typography.Text type="success">
-              已提交重算（任务 {(apply.data?.recalc_task_id ?? "").slice(0, 8)}…，
-              design 已保存——任务进度与失败回显挂账后续批）。
+              已提交重算（任务 {(apply.data?.recalc_task_id ?? "").slice(0, 8)}…）——
+              方案页可看进度与失败回显。
             </Typography.Text>
           ) : null}
           {apply.isError ? (

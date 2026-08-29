@@ -5,18 +5,20 @@
  * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库/中央标签工作区）——
  *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey 状态机
  *
- * 规格说明（FE3 批 6b 段一，D1/D8 实装）：
+ * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
- *     路由名与次序=router.tsx AppRoute 冻结面 canvas/viewer3d/elevation/
- *     drawings/cost），Tabs activeKey/onChange 驱动——不引入 react-router
- *     （零新依赖纪律；router.tsx 头「M2 定型」本批定夺为状态机）；
+ *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
+ *     viewer3d/elevation/cost/drawings——solutions 插第二位=设计→看方案
+ *     用户流程），Tabs activeKey/onChange 驱动——不引入 react-router
+ *     （零新依赖纪律；router.tsx 头「M2 定型」FE3 已定夺为状态机）；
  *   - 画布常驻不卸载（D8）：antd Tabs 默认 destroyInactiveTabPane=false
  *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化挂账 UX 批；
  *   - viewer3d 标签=Viewer3dPane（懒加载 Scene 独立 chunk §12.6；面板级
- *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4 批 6b 段一：
- *     默认标签首屏直渲染只读工艺画布——D4 不 lazy，URL ?project= 与
- *     viewer3d 共用）；其余三标签维持占位屏（feature 骨架未实装
- *     ——D8 非本批范围）；
+ *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4：默认标签首屏
+ *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
+ *     solutions 标签=SolutionsPane（FE6：单单元枚举提交→SSE 任务进度→
+ *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
+ *     其余两标签维持占位屏（feature 骨架未实装——D8 非本批范围）；
  *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
  */
 import { useState } from "react";
@@ -25,12 +27,13 @@ import { Layout, Menu, Tabs, Typography } from "antd";
 import { CanvasPane } from "./canvasPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
+import { SolutionsPane } from "./solutionsPane";
 import { Viewer3dPane } from "./viewer3dPane";
 
 const { Sider, Content, Header } = Layout;
 
 /** 占位标签屏（feature 骨架未实装——D8 维持现状措辞；标识符避开 grep
- *  门禁英文占位特征词）。 */
+ * 门禁英文占位特征词）。 */
 function StubPane({ label }: { label: string }) {
   return (
     <Typography.Text type="secondary">
@@ -62,6 +65,11 @@ export function App() {
                   children: <CanvasPane />,
                 },
                 {
+                  key: "solutions",
+                  label: "方案浏览",
+                  children: <SolutionsPane />,
+                },
+                {
                   key: "viewer3d",
                   label: "三维视图",
                   children: <Viewer3dPane />,
@@ -72,14 +80,14 @@ export function App() {
                   children: <StubPane label="高程纵断" />,
                 },
                 {
-                  key: "drawings",
-                  label: "图纸预览",
-                  children: <StubPane label="图纸预览" />,
-                },
-                {
                   key: "cost",
                   label: "概算",
                   children: <StubPane label="概算" />,
+                },
+                {
+                  key: "drawings",
+                  label: "图纸预览",
+                  children: <StubPane label="图纸预览" />,
                 },
               ]}
             />

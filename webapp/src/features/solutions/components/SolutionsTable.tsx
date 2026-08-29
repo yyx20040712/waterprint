@@ -85,7 +85,7 @@ export function SolutionsTable({
   page: SolutionPageView;
   gridFields: string[];
   projectId: string;
-  unitId: string;
+  unitId: string | null;
   currentPage: number;
   onPageChange: (page: number) => void;
   onApplied?: (outcome: ApplyOutcome) => void;

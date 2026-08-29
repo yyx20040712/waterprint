@@ -16,7 +16,9 @@
  *     （recalc_task_id 通道——?task= 回写后任务态面板转向重算任务）；
  *   - design_changed=false（等值应用）非错误——消息面区分呈现；
  *   - 应用后表格数据为已提交任务快照不自动刷新（旧行保留——服务端分页
- *     只读快照语义注记；旧结果 stale 禁静默覆盖在服务端 apply 面收口）。
+ *     只读快照语义注记；旧结果 stale 禁静默覆盖在服务端 apply 面收口）；
+ *   - unitId=null=deep-link 直进而枚举单元未在下拉选定（任务 result 载荷
+ *     无 unit_id 面）——按钮禁用提示，选定即恢复。
  */
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -37,7 +39,7 @@ export function ApplySolutionButton({
   row: SolutionRow;
   gridFields: string[];
   projectId: string;
-  unitId: string;
+  unitId: string | null;
   onApplied?: (outcome: ApplyOutcome) => void;
 }) {
   const queryClient = useQueryClient();
@@ -67,7 +69,12 @@ export function ApplySolutionButton({
       <Button
         size="small"
         loading={apply.isPending}
+        disabled={unitId === null}
+        title={unitId === null ? "先在上方单元下拉选定该枚举单元（deep-link 直进面）" : undefined}
         onClick={() => {
+          if (unitId === null) {
+            return;
+          }
           setMessage(null);
           apply.mutate({
             data: buildApplyPayload(row, gridFields, projectId, unitId),
