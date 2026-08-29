@@ -19,13 +19,17 @@
  *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
  *     solutions 标签=SolutionsPane（FE6：单单元枚举提交→SSE 任务进度→
  *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
- *     其余两标签维持占位屏（feature 骨架未实装——D8 非本批范围）；
+ *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
+ *     懒加载 ProfileChart（echarts 独立 chunk）+工况切换+提升面板，
+ *     "wp:task" 事件桥 invalidate 刷新）；其余两标签维持占位屏（feature
+ *     骨架未实装——D8 非本批范围）；
  *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
  */
 import { useState } from "react";
 import { Layout, Menu, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
+import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
 import { SolutionsPane } from "./solutionsPane";
@@ -78,7 +82,7 @@ export function App() {
                 {
                   key: "elevation",
                   label: "高程纵断",
-                  children: <StubPane label="高程纵断" />,
+                  children: <ElevationPane />,
                 },
                 {
                   key: "drawings",
