@@ -1,0 +1,200 @@
+"""elevation 路由镜像测试：GET /api/elevation/{project_id}（纵断/提升/错误面/AU-1）。
+
+输入:  waterprint_server.routers.elevation 公开符号
+输出:  路由契约断言（FE7 D1 端点形态的路由面）
+"""
+
+# ══════════════════════════════════════════════════════════════════
+# 规格说明（FE7 D1~D5/D10 2026-08-29；test_scene 同款路由面模式）
+#
+# 覆盖用例：
+#   - 端点集恰一件（GET /api/elevation/{project_id}）无漂移；
+#   - 200 正门：CASS 项目跑一次计算→stations 非空+字段面恰十键+
+#     crest_elev=water_level+freeboard 逐站（D5 服务端投影）+工况缺省=
+#     排序首键回显+conditions=sorted 键集+datum_note 在（D2）+
+#     pump_stations/drop_warnings/warnings 面存在（D4；空=合法 R4）；
+#   - 显式工况透传（200+condition_key 回显）；
+#   - 确定性：双 GET 响应 JSON（sort_keys）字节同；
+#   - 错误面：未知项目 404（ProjectNotFoundError）/无结果集 404
+#     （ElevationSourceNotFoundError——引导语含 /api/calc/run）/
+#     工况非法 422（InvalidElevationRequestError——透传含合法工况集）；
+#   - AU-1 路径安全（workflow §4-4 必选项）：../ 浅深构造全 4xx 非 500+
+#     projects/exports 目录快照零新增。
+# ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+import asyncio
+import importlib
+import json
+
+import pytest
+from fastapi import status
+
+_mod = importlib.import_module("waterprint_server.routers.elevation")
+router = getattr(_mod, "router")
+
+_EXPECTED = {("get", "/api/elevation/{project_id}")}
+
+_STATION_KEYS = {
+    "unit_id", "water_level", "floor_elev", "ground_elev", "bury_depth",
+    "freeboard", "water_depth", "loss_in", "design_flow", "crest_elev",
+}
+
+
+async def _project_with_result(client) -> tuple[str, str]:  # type: ignore[no-untyped-def]
+    """创建 CASS 项目并跑一次计算（结果集就绪——elevation 消费前提）。"""
+    payload = {
+        "project": {
+            "format_version": "1.0",
+            "design": {
+                "nodes": {
+                    "inlet": {
+                        "kind": "municipal_input",
+                        "q_avg_daily": 34760.7 / 86400,
+                        "kz": 1.4,
+                        "CODCR": 400.0,
+                        "BOD5": 200.0,
+                        "SS": 250.0,
+                        "NH3N": 26.0,
+                        "TN": 43.0,
+                        "TP": 6.5,
+                    },
+                    "municipal_cass": {},
+                },
+                "edges": [
+                    {
+                        "src": {"unit_id": "inlet", "port_id": "out"},
+                        "dst": {"unit_id": "municipal_cass", "port_id": "in"},
+                    }
+                ],
+            },
+            "view": {},
+            "metadata": {
+                "format_version": "1.0",
+                "content_hash": "0",
+                "engine_version": "0",
+                "data_version": "0",
+            },
+        }
+    }
+    created = await client.post("/api/projects", json=payload)
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )).json()["task_id"]
+    body: dict[str, object] = {}
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"
+    return project_id, task_id
+
+
+def test_router_exposes_elevation_endpoint_wiring() -> None:
+    """端点集 == 规格一件（GET /api/elevation/{project_id}）。"""
+    observed = {
+        (method.lower(), route.path) for route in router.routes for method in route.methods
+    }  # type: ignore[union-attr]
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰一件无漂移
+
+
+@pytest.mark.anyio
+async def test_elevation_returns_profile_with_default_condition_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """GET 200：stations 字段面恰十键+crest 投影逐站+缺省工况=排序首键回显+datum_note。"""
+    project_id, task_id = await _project_with_result(client)
+    tasks = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+    expected_keys = sorted(tasks["result"]["condition_keys"])
+    response = await client.get(f"/api/elevation/{project_id}")
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert body["condition_key"] == expected_keys[0]  # 缺省=排序首键（显式回显）
+    assert body["conditions"] == expected_keys  # 工况键清单=sorted 键集（D9 索引面）
+    assert "±0.00" in body["datum_note"]  # D2 相对标高注记（口径单一真源在服务面）
+    assert body["stations"], "纵断站位非空（CASS 单元至少一站）"
+    for station in body["stations"]:
+        assert set(station) == _STATION_KEYS  # 十字段恰合（crest_elev 派生面在内）
+        assert station["crest_elev"] == pytest.approx(
+            station["water_level"] + station["freeboard"]
+        )  # D5 服务端投影：池顶=水面+超高（前端零标高推算）
+        assert station["unit_id"] != "inlet"  # 内置源节点不设站
+    # D4 提升判定面：空站位列表=全程自流合法终态（core pumps R4）
+    assert isinstance(body["pump_stations"], list)
+    assert isinstance(body["drop_warnings"], list)
+    assert isinstance(body["warnings"], list)
+    explicit = await client.get(
+        f"/api/elevation/{project_id}", params={"condition_key": "design"}
+    )
+    assert explicit.status_code == status.HTTP_200_OK
+    assert explicit.json()["condition_key"] == "design"  # 显式工况透传
+
+
+@pytest.mark.anyio
+async def test_elevation_warning_faces_shape_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """D4 警告序列化形状：drop_warnings/warnings 逐条 UF-17 六键+级别域冻结。"""
+    project_id, _task_id = await _project_with_result(client)
+    body = (await client.get(f"/api/elevation/{project_id}")).json()
+    _WARNING_KEYS = {
+        "severity", "source", "message", "param_key", "condition_key",
+        "affected_unit_ids",
+    }
+    for face in ("drop_warnings", "warnings"):
+        for warning in body[face]:
+            assert set(warning) == _WARNING_KEYS  # UF-17 冻结结构逐键
+            assert warning["severity"] in {"ERROR", "WARN", "INFO"}  # 级别域冻结
+            assert isinstance(warning["affected_unit_ids"], list)
+
+
+@pytest.mark.anyio
+async def test_elevation_double_fetch_byte_identical_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """R5 确定性继承：两次 GET 响应 JSON（sort_keys）字节同。"""
+    project_id, _task_id = await _project_with_result(client)
+    first = (await client.get(f"/api/elevation/{project_id}")).json()
+    second = (await client.get(f"/api/elevation/{project_id}")).json()
+    assert json.dumps(first, sort_keys=True, ensure_ascii=False) == json.dumps(
+        second, sort_keys=True, ensure_ascii=False
+    )
+
+
+@pytest.mark.anyio
+async def test_elevation_error_faces_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """错误面：未知项目 404/无结果集 404（引导语）/工况非法 422（统一错误体）。"""
+    missing = await client.get("/api/elevation/nosuchproject0000")
+    assert missing.status_code == status.HTTP_404_NOT_FOUND
+    assert missing.json()["error_type"] == "ProjectNotFoundError"
+    created = await client.post("/api/projects", json={})
+    project_id = created.json()["project_id"]
+    no_result = await client.get(f"/api/elevation/{project_id}")
+    assert no_result.status_code == status.HTTP_404_NOT_FOUND
+    assert no_result.json()["error_type"] == "ElevationSourceNotFoundError"  # 先重算指引
+    assert "/api/calc/run" in str(no_result.json()["detail"])
+    project_id, _task_id = await _project_with_result(client)
+    invalid = await client.get(f"/api/elevation/{project_id}", params={"condition_key": "zzz"})
+    assert invalid.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert invalid.json()["error_type"] == "InvalidElevationRequestError"  # 透传工况集
+    assert "合法" in str(invalid.json()["detail"])
+
+
+@pytest.mark.anyio
+async def test_elevation_path_traversal_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """AU-1 路径安全（workflow §4-4 必选项）：穿越 id 全 4xx+目录快照零新增。"""
+
+    def _snapshot() -> set[str]:
+        found: set[str] = set()
+        for base in (test_settings.projects_dir, test_settings.exports_dir):
+            if not base.exists():
+                continue
+            for path in base.rglob("*"):
+                if path.is_file() and "__pycache__" not in path.parts:
+                    found.add(path.as_posix())
+        return found
+
+    before = _snapshot()
+    for evil in ("%2e%2e%2fevil", "..%2Fevil", "%2Fabs", "..%2f..%2fdeep%2fevil"):
+        response = await client.get(f"/api/elevation/{evil}")
+        assert 400 <= response.status_code < 500, (
+            f"{evil} 期望 4xx，得到 {response.status_code}"
+        )
+    assert _snapshot() == before  # 目录零新增（穿越不落任何文件）

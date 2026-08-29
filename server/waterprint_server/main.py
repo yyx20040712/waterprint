@@ -33,9 +33,9 @@
 #     waterprint.graph）——类基映射覆盖可导入面，LoopDivergence 等
 #     仅 worker 侧产生的领域异常经 DOMAIN_ERROR_CODES 名义表映射
 #     （failed 任务诊断消费面），集中一处不散落。
-#   - R3 契约自检：OpenAPI 生成成功 + 端点集==21（六路由器规格并集
-#     ——META1 注释同步勘误：原记 18 系 FE1 前陈数）+ A2 面（schema
-#     无 Any 泄漏）由镜像测试常驻；启动期断言=端点数。
+#   - R3 契约自检：OpenAPI 生成成功 + 端点集==22（七路由器规格并集
+#     ——META1 注释同步勘误：原记 18 系 FE1 前陈数；FE7 +elevation1）+
+#     A2 面（schema 无 Any 泄漏）由镜像测试常驻；启动期断言=端点数。
 #   - executor 注入口：create_app(settings, executor=None)——测试注入
 #     ThreadPoolExecutor（跳过 spawn；探针另以真进程池实录）。
 #
@@ -66,9 +66,21 @@ from waterprint.contracts.manifest import InvalidUnitConfig
 
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
-from waterprint_server.routers import calc, events, exports, projects, scene, units
+from waterprint_server.routers import (
+    calc,
+    elevation,
+    events,
+    exports,
+    projects,
+    scene,
+    units,
+)
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.calculation import InvalidSolutionRefError
+from waterprint_server.services.elevation import (
+    ElevationSourceNotFoundError,
+    InvalidElevationRequestError,
+)
 from waterprint_server.services.enumeration import (
     DiagnosisNotAvailableError,
     InvalidPageParameterError,
@@ -106,6 +118,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (DiagnosisNotAvailableError, status.HTTP_404_NOT_FOUND),
     (ExportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (SceneSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    (ElevationSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     (StaleExportError, status.HTTP_409_CONFLICT),
     (TaskNotCompleteError, status.HTTP_409_CONFLICT),
@@ -114,6 +127,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSceneRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (InvalidElevationRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidProjectPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     # ENG2 D3：非弃用名（HTTP_413_CONTENT_TOO_LARGE==413，值同简报所书
     # REQUEST_ENTITY_TOO_LARGE 旧别名——用旧名会常驻 StarletteDeprecationWarning）。
@@ -135,9 +149,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+2=21（白名单字面量和式；+1=scene GET，FE1 D1；
-# +2=units/assumptions GET，META1 D2——静态只读目录两端点）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 2
+# 端点集冻结 5+6+5+2+1+1+2=22（白名单字面量和式；+1=scene GET，FE1 D1；
+# +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
+# 目录两端点）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -187,14 +202,14 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==21（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==22（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
-            "（六路由器规格并集 projects5+calc6+exports5+events2+scene1"
-            "+units2——A1 锁定）"
+            "（七路由器规格并集 projects5+calc6+exports5+events2+scene1"
+            "+elevation1+units2——A1 锁定）"
         )
 
 
@@ -233,6 +248,7 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     app.include_router(exports.router)
     app.include_router(events.router)
     app.include_router(scene.router)
+    app.include_router(elevation.router)
     app.include_router(units.router)
     app.add_middleware(
         CORSMiddleware,
