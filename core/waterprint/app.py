@@ -150,13 +150,12 @@ from waterprint.solution.ranking import RankingKey, rank
 from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
-__all__ = [
+__all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单入口，纯转发零行为）
     "DEFAULT_ASSUMPTIONS",
     "ArtifactKindNotReady",
     "AssembledGraph",
     "Constraint",
-    "EnumerationOptions",
-    "EnumerationOutcome",
+    "EnumerationOptions", "EnumerationOutcome",
     "InvalidAssemblyError",
     "InvalidProjectError",
     "ResultBundle",
@@ -164,6 +163,7 @@ __all__ = [
     "SceneGraph",
     "assemble",
     "build_scene",
+    "discover_units",
     "export_artifact",
     "load_project",
     "run_enumeration",
