@@ -79,7 +79,7 @@
 
 | 路径 | 唯一职责 | 输入 | 输出 |
 |------|----------|------|------|
-| `server/waterprint_server/main.py` | 应用工厂与生命周期（SERVER 已实装：进程池[initializer 进度队列注入]/统一异常映射 24 类基+DOMAIN_ERROR_CODES 名义表/契约自检端点==19/structlog/CORS/请求 ID） | Settings | ASGI app（create_app、app、DOMAIN_ERROR_CODES） |
+| `server/waterprint_server/main.py` | 应用工厂与生命周期（SERVER 已实装：进程池[initializer 进度队列注入]/统一异常映射 24 类基+DOMAIN_ERROR_CODES 名义表/契约自检端点==21（META1）/structlog/CORS/请求 ID） | Settings | ASGI app（create_app、app、DOMAIN_ERROR_CODES） |
 | `server/waterprint_server/settings.py` | 环境配置（路径基点 safe_child 分量白名单/上限 fail-fast/优先级值域/ENGINE_VERSION） | env | Settings、get_settings、safe_child、ensure_directories、ENGINE_VERSION |
 | `server/waterprint_server/dump_openapi.py` | OpenAPI 契约导出（SERVER D5：确定性序列化双跑 diff=0；生成物只经本模块入库） | 模块级 app | api-contracts/openapi.json |
 | `server/waterprint_server/routers/projects.py` | 项目 CRUD 五端点（薄协议转换，138 行） | pydantic 请求 | 响应=服务 dataclass |

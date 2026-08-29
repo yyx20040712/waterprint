@@ -55,6 +55,62 @@
         "title": "ApplyRequest",
         "type": "object"
       },
+      "AssumptionCatalog": {
+        "description": "假设清单响应体（D6 不分页整发）。",
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/AssumptionEntry"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assumptions"
+        ],
+        "title": "AssumptionCatalog",
+        "type": "object"
+      },
+      "AssumptionEntry": {
+        "description": "假设条目：registry 六字段取五（constraint_keys 不交付——D2 空槽）。",
+        "properties": {
+          "default": {
+            "title": "Default",
+            "type": "number"
+          },
+          "dim": {
+            "title": "Dim",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "tuning_direction": {
+            "title": "Tuning Direction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "default",
+          "dim",
+          "source",
+          "note",
+          "tuning_direction"
+        ],
+        "title": "AssumptionEntry",
+        "type": "object"
+      },
       "CancelResponse": {
         "description": "取消结果（R3：终态任务不受取消影响）。",
         "properties": {
@@ -326,6 +382,97 @@
         "title": "Node",
         "type": "object"
       },
+      "ParamEntry": {
+        "description": "单参数条目：五字段全出（D3——dim=DimKey 枚举名，不建工程单位映射）。",
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "dim": {
+            "title": "Dim",
+            "type": "string"
+          },
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "grid": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grid"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeEntry"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "field_id",
+          "dim"
+        ],
+        "title": "ParamEntry",
+        "type": "object"
+      },
+      "PortEntry": {
+        "description": "端口条目：流体/方向枚举名+回流标记（contracts.ports 契约镜像）。",
+        "properties": {
+          "direction": {
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "fluid": {
+            "enum": [
+              "WATER",
+              "SLUDGE"
+            ],
+            "title": "Fluid",
+            "type": "string"
+          },
+          "port_id": {
+            "title": "Port Id",
+            "type": "string"
+          },
+          "recycle": {
+            "title": "Recycle",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "port_id",
+          "fluid",
+          "direction",
+          "recycle"
+        ],
+        "title": "PortEntry",
+        "type": "object"
+      },
       "Primitive": {
         "description": "图元声明（不可变）：kind + 规范单位 m 裸值 dims + 语义标签。\n\n类型定义于本文件（图元域类型——scene.py 正门再导出；internals 同向\n消费，杜绝 scene↔pools↔internals 环）。",
         "properties": {
@@ -390,6 +537,25 @@
           "view_timestamp"
         ],
         "title": "ProjectSummaryResponse",
+        "type": "object"
+      },
+      "RangeEntry": {
+        "description": "参数闭区间范围（manifest (min, max) 二元组的结构面——GR-06）。",
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "RangeEntry",
         "type": "object"
       },
       "RunRequest": {
@@ -641,6 +807,72 @@
         "title": "TaskStatus",
         "type": "object"
       },
+      "UnitCatalog": {
+        "description": "单元目录响应体（D6 不分页整发）。",
+        "properties": {
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitMetaEntry"
+            },
+            "title": "Units",
+            "type": "array"
+          }
+        },
+        "required": [
+          "units"
+        ],
+        "title": "UnitCatalog",
+        "type": "object"
+      },
+      "UnitMetaEntry": {
+        "description": "单元条目：标识/中文名/业务线/kind/参数面/端口面。",
+        "properties": {
+          "business_line": {
+            "title": "Business Line",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "unit",
+              "builtin"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name_zh": {
+            "title": "Name Zh",
+            "type": "string"
+          },
+          "params": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ParamEntry"
+            },
+            "title": "Params",
+            "type": "array"
+          },
+          "ports": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PortEntry"
+            },
+            "title": "Ports",
+            "type": "array"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "name_zh",
+          "business_line",
+          "kind"
+        ],
+        "title": "UnitMetaEntry",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -711,6 +943,28 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/assumptions": {
+      "get": {
+        "description": "设计假设清单（21 条 registry 声明序——六字段取五，D2/D6）。",
+        "operationId": "list_assumptions_api_assumptions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssumptionCatalog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Assumptions",
+        "tags": [
+          "units"
+        ]
+      }
+    },
     "/api/calc/enumerate": {
       "post": {
         "description": "单单元枚举（ADR-005 语义守护在服务面）。",
@@ -1605,6 +1859,28 @@
         "summary": "Get Scene",
         "tags": [
           "scene"
+        ]
+      }
+    },
+    "/api/units": {
+      "get": {
+        "description": "单元目录（32 包+4 内置 kind；unit_id 序+内置排末——D1/D5/D6）。",
+        "operationId": "list_units_api_units_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitCatalog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Units",
+        "tags": [
+          "units"
         ]
       }
     }
