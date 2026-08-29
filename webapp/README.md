@@ -18,8 +18,14 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > 提交→EventSource SSE 任务进度（TaskPanel 徽标/进度/failed 回显/取消）
 > →服务端分页方案表（动态列+margin_min 语义色）→行级应用（grid_fields
 > 投影 params→read 键 invalidate）+无解诊断面板；URL `?task=` 与
-> `?project=` 双参联动（params 表单 apply 亦回写——FE5 挂账③收口））**
-> ——69 源文件=入口 1+app 11+features 50+shared 7，全部带 TS 契约头
+> `?project=` 双参联动（params 表单 apply 亦回写——FE5 挂账③收口））；
+> elevation 高程纵断已挂载第四标签（FE7 批 6b 段五 2026-08-29：echarts
+> 首消费——lazy ProfileChart 独立异步 chunk 按需注册五件；GET
+> /api/elevation latest done calc 按需投影（±0.00 相对标高+crest 服务端
+> 投影+空段损失恒 0 注记）+ConditionSwitcher 工况按需切换+PumpStationsPanel
+> 提升点位/跌水警告；"wp:task" 事件桥 invalidate 前缀键——apply 重算后
+> 面板刷新）**
+> ——73 源文件=入口 1+app 12+features 53+shared 7，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
 > 由 `scripts/check_webapp.py` 门禁校验）；其余 feature 实装按 M2+ 推进。
 
