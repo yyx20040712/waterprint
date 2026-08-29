@@ -10,8 +10,11 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 
 > 当前状态：**M0.5 结构接线完成；viewer3d 已挂载应用壳（FE3 2026-08-29）；
 > canvas 只读渲染已挂载默认标签（FE4 批 6b 段一 2026-08-29：design 工艺图
-> 经 projectFlow 投影→React Flow 只读画布，URL `?project=` 单一真相）**
-> ——57 源文件=入口 1+app 10+features 39+shared 7，全部带 TS 契约头
+> 经 projectFlow 投影→React Flow 只读画布，URL `?project=` 单一真相）；
+> params 参数面板已挂载 canvas 侧栏（FE5 批 6b 段三 2026-08-29：ParamForm
+> 选中单元参数编辑（META1 目录+design 覆盖→草稿→apply 提交重算+read 键
+> invalidate）+AssumptionsPanel 假设只读清单+画布节点点击选中态）**
+> ——61 源文件=入口 1+app 10+features 43+shared 7，全部带 TS 契约头
 > （`App.tsx` Tabs 路由状态机+Providers 实装+viewer3d 懒加载标签，
 > 由 `scripts/check_webapp.py` 门禁校验）；其余 feature 实装按 M2+ 推进。
 

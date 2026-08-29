@@ -1,11 +1,11 @@
 /**
- * 构筑物节点卡片：unit_id 等宽字体主标+内置 kind 徽标+左右方向端口排布。
+ * 构筑物节点卡片：unit_id 等宽字体主标+内置 kind 徽标+左右方向端口排布+选中描边。
  *
  * 输入:  NodeProps<UnitFlowNode>（投影层 data：unitId/kind/sourcePorts/
- *        targetPorts——D2 纯 key+kind，参数与结果摘要不进本批渲染面）
+ *        targetPorts——D2 纯 key+kind+React Flow 受控 selected 标记）
  * 输出:  React Flow 自定义节点渲染件（type="unit" 注册键）
  *
- * 规格说明（FE4 批 6b 段一，D1/D2 裁决）：
+ * 规格说明（FE4 批 6b 段一，D1/D2 裁决；FE5 批 6b 段三增选中面）：
  *   - D2 卡片=纯 unit key+内置 kind 标注：unit_id 等宽字体（同名构筑物
  *     跨线各自渲染的唯一键）；值含 kind=内置节点加徽标（municipal_input/
  *     junction/quality_edit/recycle_junction——投影层透传不设白名单）；
@@ -14,6 +14,9 @@
  *   - D1 端口=方向中性：targetPorts 左侧（入）/sourcePorts 右侧（出）——
  *     端口集合来自投影层边端点方向聚合（端口表不在项目文件）；灰阶中性
  *     色承载（§19.3 语义色之外禁彩色）；
+ *   - FE5 选中反馈（D2 受控 selected——CanvasFlow 映射 node.selected）：
+ *     选中描边 2px 主题蓝+微光晕（交互状态色非语义色；React Flow 内建
+ *     elementsSelectable 高亮之上的明确视觉反馈）；
  *   - 多端口垂直均布（工程图例惯例）；卡片底色深灰配 ConfigProvider
  *     深色主题（CanvasFlow colorMode=dark 同谱）；
  *   - 只读批：节点拖动面归 CanvasFlow 裁量（本卡片不消费拖拽态）。
@@ -37,11 +40,15 @@ const CARD_BORDER = "#434343";
 const CARD_WIDTH = 176;
 const CARD_MIN_HEIGHT = 56;
 
+/** 选中态描边/微光晕（AntD 暗色主题蓝——交互状态色非 §19.3 语义色）。 */
+const SELECT_BORDER = "#1668dc";
+const SELECT_GLOW = "0 0 6px rgba(22, 104, 220, 0.6)";
+
 /** 端口列垂直排布（首个端口距顶 20px、行距 16px——多端口均布）。 */
 const PORT_TOP = 20;
 const PORT_ROW = 16;
 
-export function UnitNode({ data }: NodeProps<UnitFlowNode>) {
+export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
   return (
     <div
@@ -51,7 +58,10 @@ export function UnitNode({ data }: NodeProps<UnitFlowNode>) {
         minHeight: CARD_MIN_HEIGHT,
         padding: "6px 14px",
         background: CARD_BACKGROUND,
-        border: `1px solid ${CARD_BORDER}`,
+        border: selected
+          ? `2px solid ${SELECT_BORDER}`
+          : `1px solid ${CARD_BORDER}`,
+        boxShadow: selected ? SELECT_GLOW : undefined,
         borderRadius: 6,
         color: "#d9d9d9",
         fontSize: 12,

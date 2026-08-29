@@ -1,17 +1,23 @@
 /**
- * React Flow 画布容器：design 工艺图只读渲染（ADR-001 渲染面）。
+ * React Flow 画布容器：design 工艺图只读渲染+选中回调（ADR-001 渲染面）。
  *
  * 输入:  projectId（useProjectQuery 数据通道→projectFlow 投影——组件薄壳
- *        唯一数据源，服务端数据不进 store §17.2/D5）
+ *        唯一数据源，服务端数据不进 store §17.2/D5）+selectedUnitId（受控
+ *        选中态——D2 app 层 props）+onNodeClick?: (unitId)=>void（受控回调）
  * 输出:  工艺画布只读工作区（React Flow：UnitNode 卡片+方向端口+recycle
- *        虚线+fitView 视口适配；加载/空态/错误薄壳）
+ *        虚线+fitView 视口适配+节点点击选中反馈；加载/空态/错误薄壳）
  *
- * 规格说明（FE4 批 6b 段一，D1/D4/D5/D7 裁决）：
+ * 规格说明（FE4 批 6b 段一，D1/D4/D5/D7 裁决；FE5 批 6b 段三增选面）：
  *   - 只读批交互面：视图态（缩放/平移/框选）开；编辑面全关——edges
  *     Connectable=false+不传 onConnect/onNodesChange（受控只喂投影产物，
  *     无编辑落盘）；nodesDraggable=false（受控无 onNodesChange 时拖动
  *     无效果——明示只读免误导光标；简报「可 true」裁量面记此取舍）；
  *     elementsSelectable=true（选中高亮非编辑）；
+ *   - FE5 选中接线（D2 props 受控）：onNodeClick 透传 node.id（=unit_id
+ *     通道——projectFlow L270-283）给 app 层持有；selectedUnitId 回流经
+ *     node.selected 标记（React Flow 内建受控字段——不改投影 data 形状，
+ *     projectFlow 零触碰）驱动 UnitNode 选中样式；只读面加回调不破
+ *     只读三重闭合（无编辑落盘通道）；
  *   - D4 不 lazy：canvas=默认标签首屏必渲染（App activeKey 默认 canvas）
  *     ——零动态 import 零 Suspense，xyflow 入口 bundle 接受（挂账 FE3
  *     A-2 打包优化统筹）；
@@ -43,7 +49,17 @@ import { UnitNode } from "./UnitNode";
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: UnitNode };
 
-export function CanvasFlow({ projectId }: { projectId: string }) {
+export function CanvasFlow({
+  projectId,
+  selectedUnitId = null,
+  onNodeClick,
+}: {
+  projectId: string;
+  /** 受控选中单元（null=无选中——app 层 D2 props 单一持有面）。 */
+  selectedUnitId?: string | null;
+  /** 节点点击回调（unitId=React Flow node.id=design.nodes 键）。 */
+  onNodeClick?: (unitId: string) => void;
+}) {
   const query = useProjectQuery(projectId);
   // 投影围栏：D6 显式拒在此收编落错误薄壳（fetch isError 之外第二出口）
   const projection = useMemo<{
@@ -65,6 +81,15 @@ export function CanvasFlow({ projectId }: { projectId: string }) {
       };
     }
   }, [query.data]);
+  // 选中标记：selectedUnitId → node.selected（受控字段——投影 data 零触碰）
+  const nodes = useMemo(
+    () =>
+      (projection.flow?.nodes ?? []).map((node) => ({
+        ...node,
+        selected: node.id === selectedUnitId,
+      })),
+    [projection.flow, selectedUnitId],
+  );
 
   if (query.isError) {
     return (
@@ -94,7 +119,7 @@ export function CanvasFlow({ projectId }: { projectId: string }) {
   return (
     <div style={{ height: 560, border: "1px solid #434343" }}>
       <ReactFlow
-        nodes={flow.nodes}
+        nodes={nodes}
         edges={flow.edges}
         nodeTypes={NODE_TYPES}
         fitView
@@ -104,6 +129,9 @@ export function CanvasFlow({ projectId }: { projectId: string }) {
         edgesFocusable={false}
         elementsSelectable
         deleteKeyCode={null}
+        onNodeClick={(_event, node) => {
+          onNodeClick?.(node.id);
+        }}
         proOptions={{ hideAttribution: true }}
         style={{ backgroundColor: "#141414" }}
       />
