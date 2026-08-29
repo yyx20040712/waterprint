@@ -93,7 +93,7 @@
 | `server/waterprint_server/services/enumeration.py` | 枚举用例（多单元 422[ADR-005]/分页白名单/feather 重载/无解 done+诊断[UF-48 随载荷交付]） | 枚举请求 | TaskHandle/SolutionPage/诊断 |
 | `server/waterprint_server/services/exports.py` | 导出用例（stale 409+force 标注/确定性命名/单产物上限 1 转任务/元数据边车） | 导出请求 | ExportHandle/ExportMeta |
 | `server/waterprint_server/services/scene.py` | 场景图用例（FE1：最近结果集取数[exports 同款模式复制]/假设合成视图[worker._build_env 同款]/core.build_scene 纯投影；无结果 404/工况非法 422/确定性继承，93 行） | 项目 id+工况键 | core.SceneGraph |
-| `server/waterprint_server/services/units.py` | 单元目录+假设清单用例（META1：discover_units 32 包+D7 builtin 四 kind 投影 36 条+D1 中文名映射 36 条+DEFAULT_ASSUMPTIONS 21 条六字段取五；lru_cache(maxsize=1) 静态缓存，306 行） | core.app+contracts | UnitCatalog/AssumptionCatalog |
+| `server/waterprint_server/services/units.py` | 单元目录+假设清单用例（META1：discover_units 32 包+D7 builtin 四 kind 投影 36 条+D1 中文名映射 36 条+DEFAULT_ASSUMPTIONS 21 条六字段取五；lru_cache(maxsize=1) 静态缓存，305 行） | core.app+contracts | UnitCatalog/AssumptionCatalog |
 | `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新） | TaskRequest | TaskStatus/Event 流 |
 | `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用） | payload+令牌 | 结果+进度 |
 
