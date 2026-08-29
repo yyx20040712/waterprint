@@ -7,8 +7,9 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结）
 #
-# 【五路由器】projects（CRUD）/ calc（计算与枚举任务）/ exports
-#   （导出）/ events（SSE）/ scene（三维场景图——FE1 同步端点）——
+# 【六路由器】projects（CRUD）/ calc（计算与枚举任务）/ exports
+#   （导出）/ events（SSE）/ scene（三维场景图——FE1 同步端点）/
+#   units（单元目录+假设清单——META1 静态只读两端点）——
 #   各文件规格见各自头部。
 # 【铁律】router 只做：请求校验（pydantic 自动）→ 调 service →
 #   响应模型包装。出现 if/循环业务 = 拆去 service。
