@@ -144,6 +144,129 @@
         "title": "CreateProjectRequest",
         "type": "object"
       },
+      "ElevationResponse": {
+        "description": "高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "datum_note": {
+            "title": "Datum Note",
+            "type": "string"
+          },
+          "drop_warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningEntry"
+            },
+            "title": "Drop Warnings",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "pump_stations": {
+            "items": {
+              "$ref": "#/components/schemas/PumpStationEntry"
+            },
+            "title": "Pump Stations",
+            "type": "array"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/ElevationStation"
+            },
+            "title": "Stations",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningEntry"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "condition_key",
+          "conditions",
+          "datum_note",
+          "stations",
+          "pump_stations",
+          "drop_warnings",
+          "warnings"
+        ],
+        "title": "ElevationResponse",
+        "type": "object"
+      },
+      "ElevationStation": {
+        "description": "纵断单站（ProfileStation 九字段+crest_elev 服务端投影=D5）。",
+        "properties": {
+          "bury_depth": {
+            "title": "Bury Depth",
+            "type": "number"
+          },
+          "crest_elev": {
+            "title": "Crest Elev",
+            "type": "number"
+          },
+          "design_flow": {
+            "title": "Design Flow",
+            "type": "number"
+          },
+          "floor_elev": {
+            "title": "Floor Elev",
+            "type": "number"
+          },
+          "freeboard": {
+            "title": "Freeboard",
+            "type": "number"
+          },
+          "ground_elev": {
+            "title": "Ground Elev",
+            "type": "number"
+          },
+          "loss_in": {
+            "title": "Loss In",
+            "type": "number"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "water_depth": {
+            "title": "Water Depth",
+            "type": "number"
+          },
+          "water_level": {
+            "title": "Water Level",
+            "type": "number"
+          }
+        },
+        "required": [
+          "unit_id",
+          "water_level",
+          "floor_elev",
+          "ground_elev",
+          "bury_depth",
+          "freeboard",
+          "water_depth",
+          "loss_in",
+          "design_flow",
+          "crest_elev"
+        ],
+        "title": "ElevationStation",
+        "type": "object"
+      },
       "EnumerateRequest": {
         "description": "单单元枚举请求（R1 ADR-005：多 unit_id 服务层显式 422）。",
         "properties": {
@@ -539,6 +662,40 @@
         "title": "ProjectSummaryResponse",
         "type": "object"
       },
+      "PumpStationEntry": {
+        "description": "需提升站位（core PumpStation 五字段直投影）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "design_flow": {
+            "title": "Design Flow",
+            "type": "number"
+          },
+          "static_head": {
+            "title": "Static Head",
+            "type": "number"
+          },
+          "total_head": {
+            "title": "Total Head",
+            "type": "number"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "static_head",
+          "total_head",
+          "design_flow",
+          "condition_key"
+        ],
+        "title": "PumpStationEntry",
+        "type": "object"
+      },
       "RangeEntry": {
         "description": "参数闭区间范围（manifest (min, max) 二元组的结构面——GR-06）。",
         "properties": {
@@ -637,6 +794,16 @@
         ],
         "title": "SceneGraph",
         "type": "object"
+      },
+      "Severity": {
+        "description": "警告级别（business-logic §8 分级表，D3 字面量冻结）。",
+        "enum": [
+          "ERROR",
+          "WARN",
+          "INFO"
+        ],
+        "title": "Severity",
+        "type": "string"
       },
       "SolutionPage": {
         "description": "分页方案集（§12.2 默认 200/页；rows=行记录列表）。",
@@ -933,6 +1100,59 @@
           "errors"
         ],
         "title": "ValidationResponse",
+        "type": "object"
+      },
+      "WarningEntry": {
+        "description": "core Warning 序列化形状（UF-17 冻结结构：来源+调节方向+影响面）。",
+        "properties": {
+          "affected_unit_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Unit Ids",
+            "type": "array"
+          },
+          "condition_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Key"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "param_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Param Key"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "severity",
+          "source",
+          "message"
+        ],
+        "title": "WarningEntry",
         "type": "object"
       }
     }
@@ -1255,6 +1475,65 @@
         "summary": "Get Solutions",
         "tags": [
           "calc"
+        ]
+      }
+    },
+    "/api/elevation/{project_id}": {
+      "get": {
+        "description": "高程纵断（最近完成结果集纯投影；工况缺省=排序首键回显，R1/R2）。",
+        "operationId": "get_elevation_api_elevation__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElevationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Elevation",
+        "tags": [
+          "elevation"
         ]
       }
     },

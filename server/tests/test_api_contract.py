@@ -8,9 +8,9 @@
 # 规格说明（骨架冻结；休眠测试——app 实现后激活）
 #
 # 覆盖用例（实现后必须全部转绿，skip 数归零）：
-#   A1 OpenAPI 生成成功且端点集 == 六路由器规格的并集
+#   A1 OpenAPI 生成成功且端点集 == 七路由器规格的并集
 #      （projects 5 + calc 6 + exports 5 + events 2 + scene 1——FE1
-#       + units 2——META1）；
+#       + units 2——META1 + elevation 1——FE7）；
 #   A2 每端点有请求/响应 schema（无 Any 泄漏）；
 #   A3 错误响应模型统一（领域异常映射表齐全）；
 #   A4 /api/projects/{id} 越界 id（../、绝对路径）→ 4xx 非 500。
@@ -33,7 +33,8 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 六路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 21 条；FE1 +scene1；META1 +units2）。
+# 七路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 22 条；FE1 +scene1；
+# META1 +units2；FE7 +elevation1）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put"},
@@ -52,6 +53,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/events/tasks/{task_id}": {"get"},
     "/api/events/projects/{project_id}": {"get"},
     "/api/scene/{project_id}": {"get"},
+    "/api/elevation/{project_id}": {"get"},
     "/api/units": {"get"},
     "/api/assumptions": {"get"},
 }
@@ -66,7 +68,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 21  # 5+6+5+2+1+2
+    assert sum(len(methods) for methods in observed.values()) == 22  # 5+6+5+2+1+1+2
 
 
 @pytest.mark.anyio
