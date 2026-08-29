@@ -14,9 +14,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clearTaskParam,
   normalizeProjectId,
   parseProjectParam,
+  parseTaskParam,
   withProjectParam,
+  withTaskParam,
 } from "./projectParam";
 
 describe("parseProjectParam（初值直读 location.search）", () => {
@@ -67,6 +70,50 @@ describe("withProjectParam（replaceState 同步面）", () => {
     expect(withProjectParam("", "池 a/中-1")).toBe(
       "project=%E6%B1%A0+a%2F%E4%B8%AD-1",
     );
+  });
+});
+
+describe("taskParam 三函数（FE6 D3——?task= 与 ?project= 双参共存）", () => {
+  it("parseTaskParam：缺失/空串 → null（他参数不干扰）", () => {
+    expect(parseTaskParam("")).toBeNull();
+    expect(parseTaskParam("?project=p1")).toBeNull();
+    expect(parseTaskParam("?task=")).toBeNull();
+    expect(parseTaskParam("?tab=canvas")).toBeNull();
+  });
+
+  it("parseTaskParam：合法值回读（? 前缀与裸 search 两形态）", () => {
+    expect(parseTaskParam("?task=t-abc-1")).toBe("t-abc-1");
+    expect(parseTaskParam("task=t-abc-1")).toBe("t-abc-1");
+  });
+
+  it("parseTaskParam：与 ?project= 共存互不干扰", () => {
+    expect(parseTaskParam("?project=p1&task=t-1")).toBe("t-1");
+    expect(parseProjectParam("?project=p1&task=t-1")).toBe("p1");
+  });
+
+  it("withTaskParam：新增 task 不清 project（他键保留）", () => {
+    expect(withTaskParam("?project=p1", "t-1")).toBe("project=p1&task=t-1");
+  });
+
+  it("withTaskParam：已存在 task 时替换（project 不动）", () => {
+    expect(withTaskParam("?project=p1&task=old", "new")).toBe(
+      "project=p1&task=new",
+    );
+  });
+
+  it("withTaskParam：null/空串 → 移除 task 键", () => {
+    expect(withTaskParam("?project=p1&task=t-1", null)).toBe("project=p1");
+    expect(withTaskParam("?project=p1&task=t-1", "")).toBe("project=p1");
+  });
+
+  it("clearTaskParam：显式移除 task（project 与他键原样保留）", () => {
+    expect(clearTaskParam("?project=p1&task=t-1&x=2")).toBe("project=p1&x=2");
+    expect(clearTaskParam("?task=t-1")).toBe("");
+  });
+
+  it("回写-回读往返：withTaskParam → parseTaskParam 同值", () => {
+    const search = withTaskParam("?project=p1", "enum-42");
+    expect(parseTaskParam(`?${search}`)).toBe("enum-42");
   });
 });
 
