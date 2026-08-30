@@ -137,6 +137,40 @@ async def test_calcbook_product_content_readback_wiring(client) -> None:  # type
 
 
 @pytest.mark.anyio
+async def test_dxf_product_flow_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """FE9：dxf 单产物正向全链（D2 模板闸收窄+D3 options 透传+D4 后缀映射）。
+
+    断：POST dxf{unit_id,design}→200 文件流（DXF R2018 魔面 AC1032 头+
+    SECTION 实体节字节；Content-Disposition 与产物名 .dxf 后缀）；
+    GET /api/exports 元数据行 kind=dxf（三元组摘要入边车）；无 options
+    POST dxf→恰 501 ArtifactKindNotReady（core unit_id-None 闸——全厂
+    总图归 M5 site_plan 诚实未就绪，非 server 模板闸面）。
+    """
+    project_id, _task_id = await _project_with_result(client)
+    dxf = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "condition_key": "design",
+            "options": {"unit_id": "municipal_cass"},
+        },
+    )
+    assert dxf.status_code == status.HTTP_200_OK
+    assert b"AC1032" in dxf.content[:512]  # DXF R2018 头魔面（write_dxf 落盘）
+    assert b"SECTION" in dxf.content  # 实体节标记（plan+section 图元真出图）
+    disposition = str(dxf.headers.get("content-disposition", ""))
+    assert ".dxf" in disposition  # D4：kind 后缀映射（历史恒 .xlsx 缺陷收口）
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
+    assert rows, "dxf 产物应注册元数据行"
+    assert rows[0]["file_name"].endswith(".dxf")  # D4 注册表口径同款
+    assert rows[0]["stale_labeled"] is False  # 新鲜导出无 stale 标注
+    bare = await client.post("/api/exports/dxf", json={"project_id": project_id})
+    assert bare.status_code == status.HTTP_501_NOT_IMPLEMENTED
+    assert bare.json()["error_type"] == "ArtifactKindNotReady"  # core 正门非模板闸
+
+
+@pytest.mark.anyio
 async def test_traversal_export_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
     """AU-1/R1-1 路由面：condition_key/items kind 穿越 → 422 且产物零新增落盘。"""
     import os

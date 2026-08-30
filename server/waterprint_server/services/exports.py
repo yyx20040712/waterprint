@@ -41,6 +41,22 @@
 #   - FE1 M4（ENG3 2026-08-28）：即时生成路径 deserialize 结果文件
 #     缺失/损坏（OSError/InvalidResultError）归一 ExportSourceNotFound
 #     Error 404 面（scene.py 同构——路径安全族裸 500 禁）。
+#   - FE9 D2/D3/D4（2026-08-30 drawings 图纸面板批）：
+#     D2 模板闸收窄——存在性闸仅对模板消费 kind（calcbook，_TEMPLATE_
+#     KINDS）执行；dxf/audit/estimate 返回名义路径不闸（core 链零模板
+#     消费：dxf 走 write_dxf 内建 styles.base_styles，audit/estimate 在
+#     core owners 表 NotReady 分派前不打开模板）。历史三 kind 死于
+#     server 模板闸未达 core 正门 501 语义面（探针实录 2026-08-30）；
+#     禁造 dxf_unit.xlsx 占位模板（core 不消费=死资产，违诚实原则）。
+#     D3 options 透传（单产物路径）——core 调用附 unit_id/condition_key
+#     kwargs（core _EXPORT_OPTIONS 同款键集）；空串归一 None：
+#     condition_key None→core 缺省 design 档+UserWarning；unit_id
+#     None→core NotReady「全厂总图归 M5 site_plan」诚实 501。批量路径
+#     （items>1 转 export_batch 任务）不透传——worker options 透传挂账
+#     S2 落盘化批同域（前端 v1 只发单图请求）。
+#     D4 kind 后缀映射——_deterministic_name 恒 .xlsx 收敛为按 kind
+#     映射（_KIND_SUFFIXES）：dxf→.dxf。既有 calcbook 命名零漂移
+#     （dxf 历史从未成功导出——恒 501，无存量文件名面）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -54,6 +70,7 @@ import os
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Final
 
 from waterprint import app as core
@@ -67,6 +84,13 @@ from waterprint_server.settings import validate_component
 _KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
 _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；注记区）
 _IMMEDIATE_LIMIT: Final[int] = 1  # 单产物即时上限（R3 v1：超过即转任务）
+# FE9 D2：模板消费 kind 面（唯一）——存在性闸只对 calcbook 执行（core
+# calcbook 分支真读模板；dxf/audit/estimate core 链零模板消费——注记区）。
+_TEMPLATE_KINDS: Final[frozenset[str]] = frozenset({"calcbook"})
+# FE9 D4：kind→产物后缀映射（dxf→.dxf；其余 Excel 族恒 .xlsx 零漂移）。
+_KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
+    {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx"}
+)
 
 
 class StaleExportError(RuntimeError):
@@ -123,9 +147,14 @@ class ExportMeta:
 
 
 def _template_for(ctx: ServiceContext, kind: str) -> Path:
-    """模板解析（data/templates；缺位=诚实未就绪，UF-16）。"""
+    """模板解析（data/templates；缺位=诚实未就绪，UF-16）。
+
+    FE9 D2 收窄：存在性闸仅对 _TEMPLATE_KINDS（calcbook）执行——
+    dxf/audit/estimate 返回名义路径不闸（core 链零模板消费，注记区；
+    闸在其后的 core 正门：dxf 分派真出图/audit·estimate NotReady）。
+    """
     template = ctx.templates_dir / f"{kind}_unit.xlsx"
-    if not template.is_file():
+    if kind in _TEMPLATE_KINDS and not template.is_file():
         raise ExportTemplateMissingError(
             f"导出模板未就绪：{template} 不存在（UF-16——模板归 "
             "data/templates 录入批；禁静默空产物）"
@@ -179,12 +208,17 @@ def _deterministic_name(
 
     R1-1：全部四分量过白名单（project_id/condition=validate_component、
     kind∈_KINDS、digest=sha256 hex 天然安全）——穿越即拒（422）。
+    FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf；历史恒 .xlsx
+    对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
     """
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
     safe_project = _name_component(project_id, "REQUIRED", "project_id")
     safe_condition = _name_component(condition_key, "all", "condition_key")
-    return f"{safe_project}-{kind}-{safe_condition}-{digest[:_DIGEST_PREFIX]}.xlsx"
+    return (
+        f"{safe_project}-{kind}-{safe_condition}"
+        f"-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
+    )
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
@@ -273,7 +307,19 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         ) from exc
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(out.name + ".tmp")
-    core.export_artifact(kind, plant, Path(template), tmp)
+    # FE9 D3：options 透传（单产物路径——core _EXPORT_OPTIONS 同款键集；
+    # 空串归一 None：unit_id None→core NotReady 全厂总图 501 诚实面、
+    # condition_key None→core 缺省 design 档+UserWarning。批量路径不透传
+    # ——worker 面挂账 S2 落盘化批，注记区）。
+    options_unit = chosen.get("unit_id")
+    core.export_artifact(
+        kind,
+        plant,
+        Path(template),
+        tmp,
+        unit_id=str(options_unit) if options_unit else None,
+        condition_key=condition_key or None,
+    )
     os.replace(tmp, out)
     meta = ExportMeta(
         project_id=project_id,
