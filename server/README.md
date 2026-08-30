@@ -4,7 +4,7 @@ HTTP 编排层：`routers`（薄协议转换）→ `services`（用例编排，�
 → `jobs`（进程池调度）。业务计算全部在 `../core`，本包零计算。
 
 > 当前状态：M2 已实装+FE 批扩面——25 源文件全实现+21 镜像测试
-> 文件全激活（86 用例 0 skip——AUDIT2 FIX1 后实测）；OpenAPI 契约导出就绪（api-contracts/）。
+> 文件全激活（94 用例 0 skip——S2 落盘化批后实测）；OpenAPI 契约导出就绪（api-contracts/）。
 
 ## 分层规则（import-linter 机器强制，违反即失败）
 
@@ -32,7 +32,7 @@ uv run uvicorn waterprint_server.main:app --reload
 ## 测试与契约
 
 ```bash
-uv run pytest            # server/tests（21 文件 86 用例，全激活零 skip）
+uv run pytest            # server/tests（21 文件 94 用例，全激活零 skip）
 uv run python -m waterprint_server.dump_openapi   # OpenAPI → api-contracts/
 ```
 
@@ -44,7 +44,7 @@ tests/
 ├─ test_settings.py / test_app_factory.py
 ├─ routers/                  # 六路由器镜像（端点集逐件恰等/stale 409/幂等/SSE 头）
 ├─ services/                 # 六服务镜像（design_changed/回滚/无解 done/确定性命名）
-└─ jobs/                     # manager/worker（优先级出队/取消丢弃/spawn 零副作用/文件句柄）
+└─ jobs/                     # manager/worker（优先级出队/取消丢弃/spawn 零副作用/文件句柄/终态落盘恢复）
 ```
 
 镜像测试经 test-lock.manifest.json 只读锁定（AGENTS §7——变更测试=
