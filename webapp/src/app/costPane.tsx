@@ -2,19 +2,20 @@
  * cost 标签页装配：?project= 消费+ErrorBoundary+空态引导+工况 Select+
  * EstimateTable+IndicatorsCard+"wp:task" 事件桥（FE8 D8）。
  *
- * 输入:  URL ?project=（与 canvas/viewer3d/solutions/elevation 共用）
- *        +useCostQuery 概算数据（latest done calc 四模块装配）+
- *        "wp:task" 事件（apply 重算后）
+ * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d/
+ *        solutions/elevation 共用，S3 订阅面）+useCostQuery 概算数据
+ *        （latest done calc 四模块装配）+TASK_EVENT 事件（apply 重算后）
  * 输出:  概算标签页（空态引导/404 引导/分级汇总表+指标卡；工况切换=
  *        查询键切换按需触发；查询键前缀 invalidate 联动）
  *
  * 规格说明（FE8 批 6b 段六，D8；elevationPane 同构第四例）：
- *   - projectId 单一真相=URL：初值经 parseProjectParam+normalizeProjectId
- *     （.wp 尾缀归一）；面板只读不回写（挂账 UX 批）；
+ *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面；
+ *     .wp 尾缀归一在 hook 内）；面板只读不回写（挂账 UX 批）；
  *   - 非 lazy（无 echarts 大件——普通导入；elevation 懒加载面不适用）；
- *   - "wp:task" 事件监听（第四处内联+注记对齐——ParamForm dispatch/
- *     solutionsPane/elevationPane 三处先例；抽公共事件名模块挂账 UX 批）
- *     →invalidate ['/api/cost/'+projectId] 前缀键（工况两键全失效）；
+ *   - TASK_EVENT 事件桥监听（第四处监听——常量已收口 shared/events[S12]
+ *     ——D7 勘误措辞；ParamForm dispatch/solutionsPane/elevationPane
+ *     三处先例）→invalidate ['/api/cost/'+projectId] 前缀键（工况两键
+ *     全失效）；
  *   - 工况态组件内 useState（不建 store——FE5/6/7 先例，costStore 占位
  *     维持）：conditionKey=null 缺省请求→服务端 design 基线档回显
  *     （D2——缺省=design 非排序首键；Select 受控值=conditionKey??响应
@@ -34,7 +35,7 @@ import { IndicatorsCard } from "../features/cost/components/IndicatorsCard";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
-import { normalizeProjectId, parseProjectParam } from "./projectParam";
+import { useProjectId } from "./useProjectId";
 
 /** 空态指引（?project= 缺失——先经工艺画布标签选择项目）。 */
 const NO_PROJECT_HINT =
@@ -45,15 +46,15 @@ const NO_CALC_HINT =
   "——请先提交计算（POST /api/calc/run）完成后再回本标签查看概算。";
 
 export function CostPane() {
-  const [projectId] = useState<string | null>(() =>
-    normalizeProjectId(parseProjectParam(window.location.search)),
-  );
+  // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
+  const [projectId] = useProjectId();
   // 工况态（null=缺省请求——服务端 design 基线档回显，D2）
   const [conditionKey, setConditionKey] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // "wp:task" 事件桥（第四处内联——ParamForm/solutionsPane/elevationPane
-  // 三处先例对齐）：apply 重算后失效前缀键，面板刷新
+  // TASK_EVENT 事件桥监听（第四处——常量已收口 shared/events[S12]；D7
+  // 勘误措辞；ParamForm/solutionsPane/elevationPane 三处先例对齐）：
+  // apply 重算后失效前缀键，面板刷新
   useEffect(() => {
     const onTaskParam = () => {
       if (projectId !== null) {

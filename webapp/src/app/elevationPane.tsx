@@ -2,23 +2,24 @@
  * elevation 标签页装配：?project= 消费+懒加载 ProfileChart+ErrorBoundary+
  * 空态引导+工况切换+提升面板+"wp:task" 事件桥（FE7 D6/D8/D9）。
  *
- * 输入:  URL ?project=（与 canvas/viewer3d/solutions 共用）+useElevationQuery
- *        纵断数据（latest done calc 按需投影）+"wp:task" 事件（apply 重算后）
+ * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d/
+ *        solutions 共用，S3 订阅面）+useElevationQuery 纵断数据
+ *        （latest done calc 按需投影）+TASK_EVENT 事件（apply 重算后）
  * 输出:  高程纵断标签页（空态引导/404 引导/懒加载图表+ConditionSwitcher
  *        +PumpStationsPanel；查询键前缀 invalidate 联动）
  *
  * 规格说明（FE7 批 6b 段五，D6/D8/D9；viewer3dPane/solutionsPane 同构）：
- *   - projectId 单一真相=URL：初值经 parseProjectParam+normalizeProjectId
- *     （.wp 尾缀归一——与 canvas/viewer3d 共用）；面板只读不回写
- *     （项目选择器归 canvas 面——挂账 UX 批）；
+ *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面；
+ *     .wp 尾缀归一在 hook 内——与 canvas/viewer3d 共用）；面板只读不
+ *     回写（项目选择器归 canvas 面——挂账 UX 批）；
  *   - D6 懒加载+chunk 失败重试（viewer3dPane R1 同款）：lazy 持入组件
  *     state——React.lazy 的 thenable 跨挂载持久，动态 import 一旦
  *     reject 复位边界不重执行；重试经 ErrorBoundary onRetry 以新 lazy
  *     实例重建（chartLoader 模块级具名常量复用装载函数）；echarts 经
  *     ProfileChart 动态链切独立异步 chunk（不触 vite.config 冻结面）；
- *   - D8 无任务面板/SSE（scene 同款按需取数）；"wp:task" 事件监听
- *     （事件名常量第三处内联+注记对齐——solutionsPane/ParamForm 两处
- *     先例；抽公共事件名模块挂账 UX 批）→invalidate
+ *   - D8 无任务面板/SSE（scene 同款按需取数）；TASK_EVENT 事件桥监听
+ *     （第三处监听——常量已收口 shared/events[S12]；ParamForm 派发/
+ *     solutionsPane 监听两处先例）→invalidate
  *     ['/api/elevation/'+projectId] 前缀键（工况两键全失效——apply
  *     重算后面板刷新）；
  *   - D9 工况态组件内 useState（不建 store——FE5 D2/FE6 先例，
@@ -42,7 +43,7 @@ import { useElevationQuery } from "../features/elevation/api/useElevationQuery";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
-import { normalizeProjectId, parseProjectParam } from "./projectParam";
+import { useProjectId } from "./useProjectId";
 
 /** ProfileChart 动态 import 装载器（模块级具名常量——echarts 异步 chunk 面）。 */
 const chartLoader = () =>
@@ -59,17 +60,17 @@ const NO_CALC_HINT =
   "——请先提交计算（POST /api/calc/run）完成后再回本标签查看纵断。";
 
 export function ElevationPane() {
-  const [projectId] = useState<string | null>(() =>
-    normalizeProjectId(parseProjectParam(window.location.search)),
-  );
+  // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
+  const [projectId] = useProjectId();
   // D9 工况态（null=缺省请求——服务端首键回显）
   const [conditionKey, setConditionKey] = useState<string | null>(null);
   // D6 lazy 持入 state（chunk 失败重试——viewer3dPane R1 同款）
   const [ProfileChart, setProfileChart] = useState(() => lazy(chartLoader));
   const queryClient = useQueryClient();
 
-  // D8 "wp:task" 事件桥（第三处内联——ParamForm dispatch/solutionsPane
-  // 监听两处先例对齐）：apply 重算后失效前缀键，面板刷新
+  // D8 TASK_EVENT 事件桥监听（第三处——常量已收口 shared/events[S12]；
+  // ParamForm dispatch/solutionsPane 监听两处先例对齐）：apply 重算后
+  // 失效前缀键，面板刷新
   useEffect(() => {
     const onTaskParam = () => {
       if (projectId !== null) {

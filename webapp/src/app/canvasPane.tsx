@@ -1,19 +1,19 @@
 /**
  * canvas 标签页装配：projectId 空态选择+参数侧栏+画布选中态+ErrorBoundary 隔离。
  *
- * 输入:  URL ?project= 参数（初值 parseProjectParam 直读 location.search）
+ * 输入:  URL ?project= 参数（useProjectId 共享 hook——S3 订阅面/写方）
  *        +useListProjectsApiProjectsGet 项目列表（shared 生成 hook）
  *        +画布节点点击（CanvasFlow onNodeClick→selectedUnitId）
  * 输出:  工艺画布标签页（空态项目选择器 / flex 侧栏组合：参数面板+设计
  *        假设只读清单+CanvasFlow 只读渲染隔离边界）
  *
  * 规格说明（FE4 批 6b 段一 D4/D5+FE5 批 6b 段三 D2/D4；app/viewer3dPane
- *   同构）：
- *   - projectId 单一真相=URL：与 viewer3dPane 同款三函数复用
- *     （parseProjectParam 初值/normalizeProjectId 归一/withProjectParam
- *     回写 replaceState——.wp 尾缀归一对称面与服务端 C1 挂账同 FE3）；
- *     两标签共用 ?project= 参数（同一项目跨画布/三维联动语义——
- *     各标签独立选择面挂账 UX 批）；
+ *   同构；UX1 批 6b 段八 S3 写方换 useProjectId hook）：
+ *   - projectId 单一真相=URL：本 pane=写方（空态 Select onChange 经
+ *     useProjectId setter——回写 replaceState+PROJECT_EVENT 写后派发
+ *     一步收敛，S3 六 pane 订阅联动；.wp 尾缀归一对称面与服务端 C1
+ *     挂账同 FE3）；两标签共用 ?project= 参数（同一项目跨画布/三维
+ *     联动语义——各标签独立选择面挂账 UX 批）；
  *   - FE5 选中态（D2 props 提升）：selectedUnitId 本组件 useState 持有
  *     ——CanvasFlow onNodeClick 写入+ParamForm 消费；不建全局 store
  *     （最小面；§17.2 UI 态走 store 红线不阻但单面板无必要——简报 D2）；
@@ -42,7 +42,8 @@ import { AssumptionsPanel } from "../features/params/components/AssumptionsPanel
 import { ParamForm } from "../features/params/components/ParamForm";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { normalizeProjectId, parseProjectParam, withProjectParam } from "./projectParam";
+import { normalizeProjectId } from "./projectParam";
+import { useProjectId } from "./useProjectId";
 
 /** 空态指引（与 viewer3dPane 同款——先建项目再提交计算）。 */
 const EMPTY_GUIDE =
@@ -56,9 +57,8 @@ const UNSELECTED_HINT =
 const SIDEBAR_WIDTH = 320;
 
 export function CanvasPane() {
-  const [projectId, setProjectId] = useState<string | null>(() =>
-    normalizeProjectId(parseProjectParam(window.location.search)),
-  );
+  // S3 写方：hook setter 收敛回写 URL+派发（原三行 replaceState 内联退役）
+  const [projectId, setProjectId] = useProjectId();
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   // 空态才拉列表（projectId 已定=deep-link 直进画布，省一次列表请求）
@@ -118,16 +118,8 @@ export function CanvasPane() {
           label: normalizeProjectId(summary.project_id),
         }))}
         onChange={(value) => {
+          // S3：单一真相回写+写后派发（useProjectId setter——不清其余参数）
           setProjectId(value);
-          // 单一真相回写 URL（replaceState 不留历史记录、不清其余参数）
-          const search = withProjectParam(window.location.search, value);
-          window.history.replaceState(
-            null,
-            "",
-            search
-              ? `${window.location.pathname}?${search}`
-              : window.location.pathname,
-          );
         }}
       />
       {projectsQuery.isError ? (

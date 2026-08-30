@@ -2,8 +2,9 @@
  * solutions 标签页装配：?project=/?task= 双参消费+单单元枚举提交+任务态
  * 面板+方案表+排序控件组合（D8 组合面——app 层唯一 features 组合层）。
  *
- * 输入:  URL ?project=（与 canvas/viewer3d 共用）+?task=（任务 id 单一
- *        真相——D3）+useProjectUnits 单元清单+SSE 任务流+TaskStatus 快照
+ * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d 共用）
+ *        +?task=（任务 id 单一真相——D3）+useProjectUnits 单元清单+SSE
+ *        任务流+TaskStatus 快照
  * 输出:  方案浏览标签页（单元下拉+「提交枚举」+TaskPanel+RankingControls
  *        +SolutionsTable/DiagnosisPanel；?task= 回写 replaceState）
  *
@@ -21,14 +22,18 @@
  *     下拉仅驱动新枚举提交，改选不影响已展示行的应用目标——服务端
  *     apply 无单元-参数域匹配防护，错位应用会真实原子写错单元）；
  *     deep-link 进 ?task= 时固化值 null→应用按钮禁用维持；
+ *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面：
+ *     写方 canvas/viewer3d 切项目后本 pane 响应刷新）；面板只读不回写
+ *     （项目选择器归 canvas 面）；
  *   - 任务 id 单一真相=URL ?task=（与 ?project= 双参共存）：写入三面=
  *     枚举提交 onSuccess（task_id）/方案应用 onApplied（recalc_task_id）
  *     /ParamForm apply（FE5 挂账③收口——params 侧内联回写）全走
- *     window.history.replaceState；R3（yI-1）URL 回写驱动已挂载 pane：
- *     ParamForm 回写后 dispatchEvent("wp:task")（事件名常量两处内联
- *     ——分层禁 import app）→本 pane useEffect 监听→重读 URL ?task=
- *     比对更新 panelTaskId（不触发导航不抢焦点——跨标签自动跳转挂账
- *     UX 批；Tabs 保活下 replaceState 无事件、useState 初始化器仅首
+ *     window.history.replaceState；R3（yI-1）URL 回写驱动已挂载 pane:
+ *     ParamForm 回写后 dispatchEvent("wp:task")（TASK_EVENT 事件桥——
+ *     常量已收口 shared/events[S12]；ParamForm 侧 task 键回写仍内联
+ *     ——分层禁 import app）→本 pane 事件桥监听（第二处）→重读 URL
+ *     ?task= 比对更新 panelTaskId（不触发导航不抢焦点——跨标签自动跳转
+ *     挂账 UX 批；Tabs 保活下 replaceState 无事件、useState 初始化器仅首
  *     挂载执行的双局限经此事件桥收口）；
  *   - D8 枚举提交面：单元下拉（useProjectUnits——design.nodes 投影）
  *     +useRunEnumeration（body={project_id, unit_ids:[unitId], options:
@@ -72,12 +77,8 @@ import {
   type SolutionPageView,
 } from "../features/solutions/lib/solutionsView";
 import { ErrorBoundary } from "./ErrorBoundary";
-import {
-  normalizeProjectId,
-  parseProjectParam,
-  parseTaskParam,
-  withTaskParam,
-} from "./projectParam";
+import { parseTaskParam, withTaskParam } from "./projectParam";
+import { useProjectId } from "./useProjectId";
 
 /** 空态指引（?project= 缺失——先经工艺画布标签选择项目）。 */
 const NO_PROJECT_HINT =
@@ -103,9 +104,8 @@ function narrowGridFields(result: unknown): string[] {
 }
 
 export function SolutionsPane() {
-  const [projectId] = useState<string | null>(() =>
-    normalizeProjectId(parseProjectParam(window.location.search)),
-  );
+  // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
+  const [projectId] = useProjectId();
   // R1 双轨初值同 URL（deep-link 直进：面板任务=表源任务=URL 任务；
   // 分立后 apply 只动 panelTaskId——表源键不动即旧行保留）
   const [enumerateTaskId, setEnumerateTaskId] = useState<string | null>(() =>
