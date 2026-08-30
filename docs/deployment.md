@@ -16,7 +16,7 @@
 ## 一条命令起（从零到可用）
 
 ```bash
-# 仓库任意目录执行（compose 文件路径显式给出，无需 cd deploy）
+# 在仓库根目录执行（-f 为仓库根相对路径——子目录执行需换算路径）
 docker compose -f deploy/compose.yml up -d --build
 ```
 

@@ -1,5 +1,5 @@
 # WaterPrint 双容器部署（server + webapp/nginx）。
-# 一条命令（仓库任意位置）：
+# 一条命令（在仓库根执行——-f 为仓库根相对路径）：
 #   docker compose -f deploy/compose.yml up -d --build
 # 上下文=仓库根（见两个 Dockerfile 头注——core path 依赖/orval 契约输入）。
 name: waterprint

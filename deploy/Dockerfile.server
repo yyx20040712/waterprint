@@ -12,7 +12,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir "uv==0.12.6"  # 钉版=生成 uv.lock 的本机 uv（DS-03：可重复构建）
 
 WORKDIR /build
 # 先拷清单（pyproject/uv.lock）再拷源：依赖层缓存与源码改动解耦
