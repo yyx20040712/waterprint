@@ -12,7 +12,10 @@
  *     裁定「次序沿旧」本意=drawings/cost 相对序不动，本笔回旧）；
  *   - 三维视图独立路由 + 懒加载 chunk（§12.6，vite manualChunks 已配）；
  *   - 画布是默认标签且常驻（切换不卸载，防画布状态丢失）；
- *   - 路由状态进 view 态持久化（§12.3：不参与 content-hash）；
+ *   - 路由状态进 view 态持久化（§12.3：不参与 content-hash）——UX1 D2
+ *     落地=?tab= URL 参数（App.tsx 初值三级解析+onChange replaceState
+ *     写入；本文件类型面零消费——AppRoute/ROUTES 冻结面不变；原
+ *     「挂账 UX 批」行收口）；
  *   - 本文件只做路由组合，禁止业务逻辑。
  */
 export type AppRoute =

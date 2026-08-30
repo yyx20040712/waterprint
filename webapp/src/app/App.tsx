@@ -1,21 +1,32 @@
 /**
  * 应用壳：布局骨架+标签路由状态机+Providers 组合（app 层组合面）。
  *
- * 输入: 各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的层）
+ * 输入: 各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
+ *        层）+URL ?tab=/（UX1 D2 初值三级解析）?task=（深链意图判据）
  * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库/中央标签工作区）——
- *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey 状态机
+ *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey
+ *       状态机（onChange 经 replaceState 写 ?tab=——路由态 URL 持久化）
  *
  * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
  *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
- *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除）：
+ *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除；UX1 批
+ *   6b 段八 D2 增 ?tab= 路由态进 URL）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
  *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
  *     用户流程；elevation/drawings/cost 次序沿 FE3 五值面——R9 勘误
  *     回旧），Tabs activeKey/onChange 驱动——不引入 react-router
- *     （零新依赖纪律；router.tsx 头「M2 定型」FE3 已定夺为状态机）；
+ *     （零新依赖纪律；FE3 D1 已定夺机制=状态机——勘误：原注引「router.tsx
+ *     头『M2 定型』」该字样现不存在，router 头注实况见其文件）；
+ *   - UX1 D2/S4 路由态进 URL：activeKey 初值三级解析——?tab= 合法值
+ *     （parseTabParam ROUTES 成员校验）→用之；无 ?tab= 但有 ?task=→
+ *     "solutions"（深链意图——?task= 面板在 solutions 标签，直开可见；
+ *     I-4 保守预裁维持单参不受扰，仅初值落点不跳转）；缺省 canvas；
+ *     onChange 经 withTabParam replaceState 写 ?tab=（他键原序保留）
+ *     ——刷新/分享后落点保持；非法 ?tab= 值归 null 走兜底；
  *   - 画布常驻不卸载（D8）：antd Tabs 默认 destroyInactiveTabPane=false
- *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化挂账 UX 批；
+ *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化=UX1
+ *     D2 ?tab= URL 面（原挂账行收口——view 态不参与 content-hash 维持）；
  *   - viewer3d 标签=Viewer3dPane（懒加载 Scene 独立 chunk §12.6；面板级
  *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4：默认标签首屏
  *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
@@ -41,13 +52,41 @@ import { DrawingsPane } from "./drawingsPane";
 import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
+import {
+  parseTabParam,
+  parseTaskParam,
+  withTabParam,
+} from "./projectParam";
 import { SolutionsPane } from "./solutionsPane";
 import { Viewer3dPane } from "./viewer3dPane";
 
 const { Sider, Content, Header } = Layout;
 
+/** UX1 D2/S4 初值三级解析：?tab= 合法值→用之；无 ?tab= 有 ?task=→
+ * solutions（深链意图——仅初值落点不跳转）；缺省 canvas（FE3 D1 面）。 */
+function initialRoute(): AppRoute {
+  const tab = parseTabParam(window.location.search);
+  if (tab !== null) {
+    return tab;
+  }
+  return parseTaskParam(window.location.search) !== null ? "solutions" : "canvas";
+}
+
 export function App() {
-  const [activeKey, setActiveKey] = useState<AppRoute>("canvas");
+  const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
+  /** UX1 D2/S4：切标签经 withTabParam replaceState 写 ?tab=（他键原序
+   * 保留——project/task 不动；刷新/分享后落点保持）。 */
+  const handleTabChange = (key: string) => {
+    // items key 全集=AppRoute 冻结面（string 回调值收窄安全）
+    const next = key as AppRoute;
+    setActiveKey(next);
+    const search = withTabParam(window.location.search, next);
+    window.history.replaceState(
+      null,
+      "",
+      search ? `${window.location.pathname}?${search}` : window.location.pathname,
+    );
+  };
   return (
     <Providers>
       <Layout style={{ height: "100vh" }}>
@@ -59,8 +98,7 @@ export function App() {
           <Content>
             <Tabs
               activeKey={activeKey}
-              // items key 全集=AppRoute 冻结面（string 回调值收窄安全）
-              onChange={(key) => setActiveKey(key as AppRoute)}
+              onChange={handleTabChange}
               items={[
                 {
                   key: "canvas",
