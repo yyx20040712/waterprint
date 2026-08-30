@@ -27,7 +27,8 @@
 #      （run_coroutine_threadsafe）→ events()；事件含
 #      {percent, stage, condition_key}。
 #   R4 单进程假设（§16 A5）：注册表在内存，api replicas=1 部署契约；
-#      多副本 = 未来 Redis 化（ADR 记录，不做）。
+#      多副本 = 未来 Redis 化（ADR 记录，不做）。S2 落盘化（见注记）：
+#      终态记录落 registry_dir 供重启恢复读面，调度面仍内存单进程。
 #   R5 取消语义：令牌经共享值传递，worker 每批迭代检查（§12.2）；
 #      取消后结果不落地（半途结果丢弃）。
 #
@@ -40,6 +41,19 @@
 #     core 无协作取消钩子——UF 记档）。
 #   - 完成回调经 loop.run_in_executor 的 asyncio 包装（executor→loop
 #     桥内建于 asyncio）；进度桥显式用 run_coroutine_threadsafe（R3）。
+#   - S2 落盘化（2026-08-30，D1~D5 预裁）：终态迁移（_finish）时原子写
+#     registry_dir/<task_id>.json（GR-38 临时文件+os.replace；JSON
+#     ensure_ascii=False+sort_keys+indent=2+UTF-8+尾换行，write_bytes
+#     落盘——CRLF 教训）；submit/running 不落盘（queued/running 重启后
+#     无痕迹=自然失效，UnknownTaskError 404 诚实面）。start() 扫描
+#     registry_dir 恢复全部终态记录（done/failed 供读——exports 最近
+#     结果集消费面重启后可用）；损坏 JSON/非终态/形态异常逐条跳过+
+#     log warning（fail-visible 不阻断启动——读面恢复，与锁守卫
+#     fail-closed 场景不同）。落盘内容=TaskStatus 同构面+snapshot_hash，
+#     排除 subscribers/cancel_requested（进程内字段不可序列化）；
+#     幂等表 _idem 不恢复（查重只对未终态生效，恢复面全终态=无行为
+#     差异）。registry_dir 可选参默认 None=不落盘（既有测试构造零破坏）。
+#     registry_dir=None 时 Manager 行为与落盘化前逐字节等价。
 #
 # 【测试要求】状态机全路径、优先级次序、取消（queued/running 两态）、
 #   进度事件顺序、shutdown 无泄漏。
@@ -51,7 +65,9 @@ from __future__ import annotations
 
 import asyncio
 import heapq
+import json
 import multiprocessing as mp
+import os
 import threading
 import uuid
 from collections.abc import AsyncIterator, Mapping
@@ -63,8 +79,13 @@ from queue import Empty
 from types import MappingProxyType
 from typing import Any, Final
 
+import structlog
+
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.worker import run_task
+from waterprint_server.settings import validate_component
+
+_LOGGER = structlog.get_logger(__name__)
 
 # SSE 订阅者事件缓冲上限（背压 R4：满则丢最旧进度事件，状态事件不丢）。
 _EVENT_BUFFER: Final[int] = 10**2
@@ -172,7 +193,7 @@ class _TaskRecord:
 class Manager:
     """任务注册表与调度（单事件循环契约；executor 由应用生命周期注入）。"""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913  # 装配束冻结签名（registry_dir 可选默认 None=不落盘，S2 D3）
         self,
         executor: Executor,
         *,
@@ -180,9 +201,11 @@ class Manager:
         loop: asyncio.AbstractEventLoop,
         progress_queue: mp.Queue[Mapping[str, Any]] | None = None,
         max_concurrent: int = 1,
+        registry_dir: Path | None = None,
     ) -> None:
         self._executor = executor
         self._cancel_dir = cancel_dir
+        self._registry_dir = registry_dir
         self._loop = loop
         self._progress_queue = progress_queue if progress_queue is not None else mp.Queue()
         self._max_concurrent = max(1, max_concurrent)
@@ -200,6 +223,7 @@ class Manager:
     def start(self) -> None:
         """启动进度桥线程（应用 startup 调；重复启动幂等）。"""
         self._cancel_dir.mkdir(parents=True, exist_ok=True)
+        self._restore_registry()  # S2 D2：终态记录恢复供读（损坏跳过不炸启动）
         # 进程内执行器（ThreadPool 注入口/测试面）：worker 模块全局直挂本队列；
         # 进程池（spawn）路径由池 initializer 注入子进程——两条通路同一队列。
         worker._PROGRESS_QUEUE = self._progress_queue  # noqa: SLF001  # R3 进度通路注入口
@@ -340,6 +364,88 @@ class Manager:
 
     # ── 内部：调度与桥接 ────────────────────────────────────────
 
+    def _persist_terminal(self, record: _TaskRecord) -> None:
+        """S2 D1/D4：终态记录原子落盘（TaskStatus 同构面+snapshot_hash）。
+
+        排除 subscribers/cancel_requested（进程内字段——D4 不可序列化面）；
+        GR-38 临时文件+os.replace；write_bytes 写 UTF-8（CRLF 教训——
+        禁文本模式默认换行）；确定性 JSON（ensure_ascii=False+sort_keys+
+        indent=2+尾换行，dump_openapi 同款纪律）。
+        """
+        if self._registry_dir is None:
+            return
+        document = {
+            "task_id": record.task_id,
+            "kind": record.request.kind,
+            "payload": dict(record.request.payload),
+            "state": record.state,
+            "progress": record.progress,
+            "stage": record.stage,
+            "condition_key": record.condition_key,
+            "stale": record.stale,
+            "error": record.error,
+            "error_type": record.error_type,
+            "result": dict(record.result) if record.result is not None else None,
+            "snapshot_hash": record.snapshot_hash,
+            "project_id": record.status().project_id,
+        }
+        blob = (
+            json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        ).encode("utf-8")
+        self._registry_dir.mkdir(parents=True, exist_ok=True)
+        # 文件名=task_id（uuid hex 服务端生成——非客户端可控，仍带白名单
+        # 校验分量防御，质量门 4）
+        target = self._registry_dir / f"{validate_component(record.task_id)}.json"
+        tmp = target.with_name(target.name + ".tmp")
+        tmp.write_bytes(blob)
+        os.replace(tmp, target)
+
+    def _restore_registry(self) -> None:
+        """S2 D2：扫描 registry_dir 恢复终态记录（重启供读面）。
+
+        损坏 JSON/非终态/形态异常逐条跳过+log warning（fail-visible 不
+        阻断启动——单条坏档不炸服务，读面恢复场景）；幂等表不恢复
+        （D5：查重只对未终态生效，恢复面全终态=无行为差异）。
+        """
+        if self._registry_dir is None:
+            return
+        self._registry_dir.mkdir(parents=True, exist_ok=True)
+        for entry in sorted(self._registry_dir.glob("*.json")):
+            task_id = entry.stem
+            try:
+                validate_component(task_id)
+                raw = json.loads(entry.read_bytes().decode("utf-8"))
+                if not isinstance(raw, Mapping):
+                    raise ValueError("记录须为 JSON 对象")
+                document: Mapping[str, Any] = raw
+                if str(document["task_id"]) != task_id:
+                    raise ValueError("task_id 与文件名不一致")
+                state = str(document["state"])
+                if state not in _TERMINAL:
+                    raise ValueError(f"非终态记录不恢复（D1 仅终态落盘）：{state}")
+                request = TaskRequest(kind=str(document["kind"]), payload=dict(document["payload"]))
+                record = _TaskRecord(
+                    task_id=task_id,
+                    request=request,
+                    state=state,
+                    progress=float(document["progress"]),
+                    stage=str(document["stage"]),
+                    condition_key=document["condition_key"],
+                    stale=bool(document["stale"]),
+                    error=document["error"],
+                    error_type=document["error_type"],
+                    result=document["result"],
+                    snapshot_hash=document["snapshot_hash"],
+                )
+            except (ValueError, KeyError, TypeError, UnicodeDecodeError) as exc:
+                _LOGGER.warning(
+                    "任务注册表记录跳过（恢复面 fail-visible 不阻断启动）",
+                    path=str(entry),
+                    reason=f"{type(exc).__name__}: {exc}",
+                )
+                continue
+            self._tasks[task_id] = record
+
     def _record(self, task_id: str) -> _TaskRecord:
         record = self._tasks.get(task_id)
         if record is None:
@@ -388,6 +494,7 @@ class Manager:
         await self._emit(
             record, Event("state", task_id, record.progress, record.state, None)
         )
+        self._persist_terminal(record)  # S2 D1：终态迁移原子落盘（registry_dir=None=跳过）
         self._pump()
 
     def _listen_progress(self) -> None:

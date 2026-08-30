@@ -237,6 +237,7 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
         manager = Manager(
             pool,
             cancel_dir=settings.exports_dir / "tasks" / "cancel",
+            registry_dir=settings.exports_dir / "tasks" / "registry",  # S2 D3：终态落盘+重启恢复
             loop=asyncio.get_running_loop(),
             progress_queue=queue,
             max_concurrent=settings.calc_workers,

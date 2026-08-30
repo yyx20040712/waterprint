@@ -7,16 +7,21 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import importlib
+import json
 import threading
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
 
 _mod = importlib.import_module("waterprint_server.jobs.manager")
+_worker_mod = importlib.import_module("waterprint_server.jobs.worker")
 Manager = getattr(_mod, "Manager")
 TaskRequest = getattr(_mod, "TaskRequest")
+UnknownTaskError = getattr(_mod, "UnknownTaskError")
 
 pytestmark = [
     pytest.mark.skipif(
@@ -99,3 +104,113 @@ async def test_cancel_running_task_discards_partial_wiring(manager, tmp_path) ->
     assert status.state == "cancelled"  # cancelled 而非 done（状态机单向 R1）
     assert status.result is None  # 半途结果丢弃（R5：取消后结果不落地）
     assert manager.cancel(handle.task_id) is False  # 终态不受取消影响（R3）
+
+
+def _quick_done(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+    """测试替身：立即 done 的快任务（registry 落盘/恢复面载荷）。"""
+    return {"state": "done", "value": payload["kind"]}
+
+
+@contextlib.contextmanager
+def _progress_queue_guard() -> Iterator[None]:
+    """worker._PROGRESS_QUEUE 全局快照还原（test_spawn_smoke 全局卫生同款）。
+
+    本文件 registry 用例的 Manager.start 会重写该全局，shutdown 会 close
+    本用例队列——不还原则后跑的 test_worker 直调 run_task 踩已关闭队列。
+    """
+    prior = _worker_mod._PROGRESS_QUEUE  # noqa: SLF001  # 快照（注入口全局）
+    try:
+        yield
+    finally:
+        _worker_mod._PROGRESS_QUEUE = prior  # noqa: SLF001  # 还原（基线动态零漂移）
+
+
+async def _drive_done_task(  # type: ignore[no-untyped-def]
+    tmp_path, monkeypatch, registry
+) -> str:
+    """前置束：Manager A 跑 calc 至终态 done 落盘后优雅停机（重启语义前半）。"""
+    monkeypatch.setattr(_mod, "run_task", _quick_done)
+    executor = ThreadPoolExecutor(max_workers=1)
+    instance = Manager(
+        executor,
+        cancel_dir=tmp_path / "cancel",
+        loop=asyncio.get_running_loop(),
+        max_concurrent=1,
+        registry_dir=registry,
+    )
+    instance.start()
+    handle = await instance.submit(
+        TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"}),
+        idempotency_key="k1",
+    )
+    instance.bind_snapshot(handle.task_id, "digest-abc")
+    for _ in range(100):  # 线程派发竞态：轮询至终态（落盘前提）
+        if instance.status(handle.task_id).state == "done":
+            break
+        await asyncio.sleep(0.05)
+    await instance.shutdown(1.0)
+    executor.shutdown(wait=True)
+    return handle.task_id
+
+
+async def test_terminal_registry_persists_and_restores_wiring(
+    tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """S2 D1/D2/D4/D5 接线断言：终态记录落盘+重启恢复可查+损坏/非终态跳过。
+
+    恢复矩阵（重启语义=同 registry_dir 两 Manager 实例先后构造+start）：
+    终态 done 落盘（_finish 原子写）→ 新实例 status 可查（审计字段独立
+    回读逐项：state/result/snapshot_hash/project_id/task_ids_for_project）；
+    损坏 JSON 跳过不阻断启动（fail-visible）；非终态记录不恢复（D1 无痕
+    404）；幂等表不恢复（同 key 提交=新任务，D5）。
+    """
+    with _progress_queue_guard():
+        registry = tmp_path / "tasks" / "registry"
+        task_id = await _drive_done_task(tmp_path, monkeypatch, registry)
+        record_file = registry / f"{task_id}.json"
+        assert record_file.is_file()  # 终态迁移落盘（D1：_finish 原子写）
+        raw = json.loads(record_file.read_bytes())  # 独立回读落盘面（质量门 5）
+        assert raw["state"] == "done"
+        assert raw["kind"] == "calc"
+        assert raw["result"] == {"state": "done", "value": "calc"}
+        assert raw["snapshot_hash"] == "digest-abc"
+        assert raw["project_id"] == "p1"
+        assert "subscribers" not in raw and "cancel_requested" not in raw  # 进程内字段排除（D4）
+        (registry / "broken.json").write_bytes(b"{not json")  # 恢复矩阵夹具：损坏档
+        (registry / "ghost.json").write_bytes(  # 非终态遗留档（D1 面不应存在——防御跳过）
+            json.dumps(
+                {
+                    "task_id": "ghost",
+                    "kind": "calc",
+                    "payload": {"kind": "calc", "project_id": "p1"},
+                    "state": "running",
+                }
+            ).encode("utf-8")
+        )
+        executor_b = ThreadPoolExecutor(max_workers=1)  # 重启语义：新实例同目录
+        manager_b = Manager(
+            executor_b,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=registry,
+        )
+        manager_b.start()  # 扫描恢复（损坏跳过不炸启动——D2 fail-visible）
+        restored = manager_b.status(task_id)
+        assert restored.state == "done"  # 终态恢复供读（exports 最近结果集消费面）
+        assert restored.kind == "calc"
+        assert restored.result == {"state": "done", "value": "calc"}
+        assert restored.project_id == "p1"
+        assert manager_b.snapshot(task_id) == "digest-abc"  # stale 判定面回读
+        assert manager_b.task_ids_for_project("p1") == (task_id,)
+        with pytest.raises(UnknownTaskError):  # 损坏跳过=不在注册表（404 面）
+            manager_b.status("broken")
+        with pytest.raises(UnknownTaskError):  # 非终态不恢复（D1：queued/running 无痕）
+            manager_b.status("ghost")
+        fresh = await manager_b.submit(  # D5：幂等表不恢复——同 key 新任务
+            TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"}),
+            idempotency_key="k1",
+        )
+        assert fresh.task_id != task_id
+        await manager_b.shutdown(1.0)
+        executor_b.shutdown(wait=True)
