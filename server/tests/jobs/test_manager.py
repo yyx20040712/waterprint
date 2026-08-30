@@ -10,6 +10,7 @@ import asyncio
 import contextlib
 import importlib
 import json
+import os
 import threading
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
@@ -175,6 +176,10 @@ async def test_terminal_registry_persists_and_restores_wiring(
         assert raw["result"] == {"state": "done", "value": "calc"}
         assert raw["snapshot_hash"] == "digest-abc"
         assert raw["project_id"] == "p1"
+        # R2 R5（DS-08）：六键回读断言（done 任务终值面——无进度上报路径下
+        # progress/stage 保持迁移时刻值；error 族 None；stale False；condition_key None）。
+        assert (raw["error"], raw["error_type"], raw["stale"]) == (None, None, False)
+        assert (raw["progress"], raw["stage"], raw["condition_key"]) == (0.0, "queued", None)
         assert "subscribers" not in raw and "cancel_requested" not in raw  # 进程内字段排除（D4）
         (registry / "broken.json").write_bytes(b"{not json")  # 恢复矩阵夹具：损坏档
         (registry / "ghost.json").write_bytes(  # 非终态遗留档（D1 面不应存在——防御跳过）
@@ -201,6 +206,9 @@ async def test_terminal_registry_persists_and_restores_wiring(
         assert restored.kind == "calc"
         assert restored.result == {"state": "done", "value": "calc"}
         assert restored.project_id == "p1"
+        # R2 R5（DS-08）：恢复面六键逐项（与落盘面同构——审计字段回读）。
+        assert (restored.error, restored.error_type, restored.stale) == (None, None, False)
+        assert (restored.progress, restored.stage, restored.condition_key) == (0.0, "queued", None)
         assert manager_b.snapshot(task_id) == "digest-abc"  # stale 判定面回读
         assert manager_b.task_ids_for_project("p1") == (task_id,)
         with pytest.raises(UnknownTaskError):  # 损坏跳过=不在注册表（404 面）
@@ -208,9 +216,99 @@ async def test_terminal_registry_persists_and_restores_wiring(
         with pytest.raises(UnknownTaskError):  # 非终态不恢复（D1：queued/running 无痕）
             manager_b.status("ghost")
         fresh = await manager_b.submit(  # D5：幂等表不恢复——同 key 新任务
-            TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"}),
-            idempotency_key="k1",
+        TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"}),
+        idempotency_key="k1",
         )
         assert fresh.task_id != task_id
         await manager_b.shutdown(1.0)
         executor_b.shutdown(wait=True)
+
+
+async def test_persist_oserror_does_not_stall_scheduling_wiring(
+    tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """R2 R1（DS-03）：落盘 OSError 不阻断调度——_finish 的 _pump 必达。
+
+    落盘失败只损失重启恢复档（诚实降级），禁令调度停摆：首个任务仍终态
+    done+第二个任务仍被出队执行。
+    """
+    with _progress_queue_guard():
+
+        def _boom(*args, **kwargs):  # type: ignore[no-untyped-def]
+            raise OSError("disk full")
+
+        monkeypatch.setattr(_mod, "run_task", _quick_done)
+        monkeypatch.setattr(_mod.registry, "write_record", _boom)  # 落盘面炸
+        executor = ThreadPoolExecutor(max_workers=1)
+        instance = Manager(
+            executor,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=tmp_path / "tasks" / "registry",
+        )
+        instance.start()
+        first = await instance.submit(
+            TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+        )
+        second = await instance.submit(
+            TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+        )
+        for _ in range(100):  # 停摆面=第二个任务永不出队：轮询超时即红
+            if instance.status(second.task_id).state == "done":
+                break
+            await asyncio.sleep(0.05)
+        assert instance.status(first.task_id).state == "done"  # 终态迁移不受落盘失败影响
+        assert instance.status(second.task_id).state == "done"  # 调度不停摆（_pump 必达）
+        await instance.shutdown(1.0)
+        executor.shutdown(wait=True)
+
+
+async def test_restore_order_follows_mtime_wiring(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """R2 R2（DS-04）：恢复序按文件 mtime 升序（近似完成时刻序）。
+
+    文件名序（taskaaa<taskzzz）与 mtime 序（zzz 先完成）相反的两记录：
+    恢复后 task_ids_for_project 注册序=mtime 序——单并发下与注册序等价，
+    多并发下比 uuid 字典序更贴「最近完成」业务语义（exports 最近结果集
+    取最末 done=最近完成）。
+    """
+    registry = tmp_path / "tasks" / "registry"
+    registry.mkdir(parents=True)
+
+    def _put(task_id: str, mtime: float) -> None:
+        document = {
+            "task_id": task_id,
+            "kind": "calc",
+            "payload": {"kind": "calc", "task_id": task_id, "project_id": "p1"},
+            "state": "done",
+            "progress": 1.0,
+            "stage": "serialize",
+            "condition_key": None,
+            "stale": False,
+            "error": None,
+            "error_type": None,
+            "result": {"state": "done"},
+            "snapshot_hash": None,
+            "project_id": "p1",
+        }
+        entry = registry / f"{task_id}.json"
+        entry.write_bytes(
+            (json.dumps(document, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
+        )
+        os.utime(entry, (mtime, mtime))  # 显式 mtime（跨文件系统精度无关）
+
+    _put("taskzzz", 1000.0)  # 先完成（mtime 早）
+    _put("taskaaa", 2000.0)  # 后完成（文件名字典序在前——序漂移夹具）
+    with _progress_queue_guard():
+        executor = ThreadPoolExecutor(max_workers=1)
+        instance = Manager(
+            executor,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=registry,
+        )
+        instance.start()
+        assert instance.task_ids_for_project("p1") == ("taskzzz", "taskaaa")  # mtime 升序
+        await instance.shutdown(1.0)
+        executor.shutdown(wait=True)

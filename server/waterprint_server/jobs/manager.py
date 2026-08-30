@@ -79,8 +79,7 @@ _LOGGER = structlog.get_logger(__name__)
 
 # SSE 订阅者事件缓冲上限（背压 R4：满则丢最旧进度事件，状态事件不丢）。
 _EVENT_BUFFER: Final[int] = 10**2
-# 进度队列轮询间隔（秒；1/2 幂商式保字面量白名单 {0,1,2,10}——ADR-009）。
-_POLL_SECONDS: Final[float] = 1 / 2
+_POLL_SECONDS: Final[float] = 1 / 2  # 轮询间隔秒；幂商式保白名单 {0,1,2,10}（ADR-009）
 _KINDS: Final[tuple[str, ...]] = ("calc", "enumerate", "export_batch")
 _TERMINAL: Final[tuple[str, ...]] = registry.TERMINAL_STATES  # 终态面单定义（S2 R1 同源）
 
@@ -260,8 +259,7 @@ class Manager:
         record = self._record(task_id)
         record.stale = True
         self._loop.create_task(
-            self._emit(record, Event("stale", task_id, record.progress, "stale", None))
-        )
+            self._emit(record, Event("stale", task_id, record.progress, "stale", None)))
 
     # ── 查询与取消 ──────────────────────────────────────────────
 
@@ -291,10 +289,7 @@ class Manager:
         if record.state == "queued":
             record.state = "cancelled"
             self._loop.create_task(
-                self._emit(
-                    record, Event("state", task_id, record.progress, "cancelled", None)
-                )
-            )
+                self._emit(record, Event("state", task_id, record.progress, "cancelled", None)))
             return True
         self._cancel_dir.joinpath(f"{task_id}.cancel").write_text(
             "cancelled", encoding="utf-8"
@@ -358,17 +353,22 @@ class Manager:
         """S2 D1/D4 薄壳：_TaskRecord 投影平字段→registry 落盘（序列化面归 jobs/registry.py）。"""
         if self._registry_dir is None:
             return
-        registry.write_record(
-            self._registry_dir, record.task_id, registry.terminal_document(
-                task_id=record.task_id, kind=record.request.kind,
-                payload=record.request.payload, state=record.state,
-                progress=record.progress, stage=record.stage,
-                condition_key=record.condition_key, stale=record.stale,
-                error=record.error, error_type=record.error_type,
-                result=record.result, snapshot_hash=record.snapshot_hash,
-                project_id=record.status().project_id,
-            ),
-        )
+        try:
+            registry.write_record(
+                self._registry_dir, record.task_id, registry.terminal_document(
+                    task_id=record.task_id, kind=record.request.kind,
+                    payload=record.request.payload, state=record.state,
+                    progress=record.progress, stage=record.stage,
+                    condition_key=record.condition_key, stale=record.stale,
+                    error=record.error, error_type=record.error_type,
+                    result=record.result, snapshot_hash=record.snapshot_hash,
+                    project_id=record.status().project_id,
+                ),
+            )
+        except OSError as exc:  # R2 R1（DS-03）：落盘失败禁阻断 _pump（调度停摆防线）
+            _LOGGER.error("任务注册表终态落盘失败（调度继续；重启后该任务无档可恢复）",
+                          task_id=record.task_id, registry_dir=str(self._registry_dir),
+                          reason=f"{type(exc).__name__}: {exc}")
 
     def _restore_registry(self) -> None:
         """S2 D2 薄壳：iter_restorable 流→_TaskRecord 入册（异常同款跳过；幂等表不恢复）。"""
@@ -388,9 +388,9 @@ class Manager:
                     snapshot_hash=document["snapshot_hash"],
                 )
             except (ValueError, KeyError, TypeError) as exc:
-                _LOGGER.warning(
-                    "任务注册表记录跳过（恢复面 fail-visible 不阻断启动）",
-                    task_id=task_id, reason=f"{type(exc).__name__}: {exc}")
+                _LOGGER.warning("任务注册表记录跳过（恢复面 fail-visible 不阻断启动）",
+                                task_id=task_id, path=str(self._registry_dir / f"{task_id}.json"),
+                                reason=f"{type(exc).__name__}: {exc}")
                 continue
             self._tasks[task_id] = record
 

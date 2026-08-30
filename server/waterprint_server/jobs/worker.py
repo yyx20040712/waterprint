@@ -390,13 +390,15 @@ def _run_export_batch(
         # unit_id-None 闸「全厂总图归 M5 site_plan」诚实 501 面）+
         # condition_key（item 自有，空串归一 None=core 缺省 design 档
         # +UserWarning）——exports.create_export 单产物路径同款口径。
+        # R2 R3（DS-06）：str(x or "") 先归一——防 payload 显式 None 经
+        # str(None)="None" 透传（IPC 面不可信原则）。
         core.export_artifact(
             kind,
             plant,
             Path(str(item["template"])),
             tmp,
-            unit_id=str(item.get("unit_id", "")) or None,
-            condition_key=str(item.get("condition_key", "")) or None,
+            unit_id=str(item.get("unit_id") or "") or None,
+            condition_key=str(item.get("condition_key") or "") or None,
         )
         os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
         files.append(str(out))

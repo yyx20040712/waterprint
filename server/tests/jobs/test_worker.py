@@ -209,6 +209,14 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
                     "unit_id": "",
                     "condition_key": "",
                 },
+                {
+                    "kind": "audit",
+                    "result_file": calc["result_file"],
+                    "template": "unused",
+                    "out_name": "c.xlsx",
+                    "unit_id": None,  # R2 R3（DS-06）：显式 None 防 str(None)="None" 透传
+                    "condition_key": None,
+                },
             ],
         },
         None,
@@ -218,8 +226,10 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
     assert captured == [
         ("dxf", "municipal_cass", "design"),  # items 级透传（S2 D6）
         ("calcbook", None, None),  # 空串归一 None（单产物同款口径）
+        ("audit", None, None),  # 显式 None 归一 None（IPC 面不可信——DS-06）
     ]
     assert sorted(str(path.name) for path in (tmp_path / "out").iterdir()) == [
         "a.dxf",
         "b.xlsx",
+        "c.xlsx",
     ]  # 原子替换落位（.tmp 已清）

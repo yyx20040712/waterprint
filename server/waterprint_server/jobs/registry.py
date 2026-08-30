@@ -29,12 +29,16 @@
 #      _atomic_write_bytes 同款）；文件名=task_id 过 validate_component
 #      白名单校验分量（uuid hex 服务端生成非客户端可控，仍带防御——
 #      质量门 4）。
-#   R3 恢复扫描：sorted glob 确定序；逐条校验（分量白名单/JSON 对象
-#      形态/task_id 与文件名一致/state∈TERMINAL_STATES/键集完整）；
-#      损坏越界逐条跳过+structlog warning（fail-visible 不阻断启动
-#      ——单条坏档不炸服务；与锁守卫 fail-closed 场景不同：读面恢复）。
-#      领域构造（TaskRequest kind 白名单等）归调用方，构造异常由
-#      调用方同款跳过（manager 薄壳 catch）。
+#   R3 恢复扫描：mtime 升序（近似完成时刻序——R2 R2/DS-04：单并发下
+#      与注册序等价，多并发下比 uuid 字典序更贴「最近完成」业务语义
+#      [exports 最近结果集取最末 done]；同名平局按文件名，读取态
+#      OSError 排末尾）；逐条校验（分量白名单/JSON 对象形态/task_id
+#      与文件名一致/state∈TERMINAL_STATES）；损坏越界逐条跳过+
+#      structlog warning（fail-visible 不阻断启动——单条坏档不炸服务；
+#      与锁守卫 fail-closed 场景不同：读面恢复）。键集不做完整性
+#      声称——缺键由消费侧 KeyError→manager 薄壳 catch 同款跳过兜底
+#      （R2 R4/DS-05：描述与实现对齐）。领域构造（TaskRequest kind
+#      白名单等）归调用方，构造异常由调用方同款跳过（manager 薄壳）。
 #
 # 【测试要求】经 manager 薄壳由 server/tests/jobs/test_manager.py
 #   恢复矩阵用例覆盖（终态重启可查/损坏跳过/非终态无痕 404/幂等表
@@ -113,13 +117,20 @@ def write_record(registry_dir: Path, task_id: str, document: Mapping[str, Any]) 
 
 
 def iter_restorable(registry_dir: Path) -> Iterator[tuple[str, Mapping[str, Any]]]:
-    """合法终态记录流（S2 D2 恢复扫描——sorted 确定序）。
+    """合法终态记录流（S2 D2 恢复扫描——mtime 升序近似完成时刻序，R2 R2/DS-04）。
 
-    损坏 JSON/非对象形态/task_id 不一致/非终态/分量越界/键缺失逐条
-    跳过+structlog warning（fail-visible 不阻断启动）。
+    损坏 JSON/非对象形态/task_id 不一致/非终态/分量越界/读取态 IO 异常
+    逐条跳过+structlog warning（fail-visible 不阻断启动）。
     """
+
+    def _mtime(entry: Path) -> tuple[float, str]:
+        try:
+            return (entry.stat().st_mtime, entry.name)
+        except OSError:
+            return (float("inf"), entry.name)  # stat 失败排末尾（读取面随后跳过）
+
     registry_dir.mkdir(parents=True, exist_ok=True)
-    for entry in sorted(registry_dir.glob("*.json")):
+    for entry in sorted(registry_dir.glob("*.json"), key=_mtime):
         task_id = entry.stem
         try:
             validate_component(task_id)
@@ -132,7 +143,7 @@ def iter_restorable(registry_dir: Path) -> Iterator[tuple[str, Mapping[str, Any]
             state = str(document["state"])
             if state not in TERMINAL_STATES:
                 raise ValueError(f"非终态记录不恢复（D1 仅终态落盘）：{state}")
-        except (ValueError, KeyError, TypeError, UnicodeDecodeError) as exc:
+        except (ValueError, KeyError, TypeError, UnicodeDecodeError, OSError) as exc:
             _LOGGER.warning(
                 "任务注册表记录跳过（恢复面 fail-visible 不阻断启动）",
                 path=str(entry),
