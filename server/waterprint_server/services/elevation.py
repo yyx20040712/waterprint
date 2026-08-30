@@ -29,7 +29,10 @@
 #      同语义）；结果文件缺失/损坏（OSError/InvalidResultError）同归
 #      404 面（FE1 M4 路径安全族——裸 500 禁）。
 #   R2 工况缺省：condition_key=None → sorted(plant.conditions)[0]（显式
-#      回显于响应 condition_key——不猜测）；工况不在结果 = core.
+#      回显于响应 condition_key——不猜测）；空工况集=前置显式检查同归
+#      InvalidElevationRequestError 422 面（ENG4 D1/M-6 2026-08-30：
+#      IndexError 裸 500 禁——族内 cost 侧 takeoff 422 同语义参照）；
+#      工况不在结果 = core.
 #      build_profile 的 InvalidProfileError 转 InvalidElevationRequestError
 #      （422 面，消息透传含合法工况集）。
 #   R3 假设合成视图：{entry.key: entry.default for DEFAULT_ASSUMPTIONS}
@@ -210,6 +213,12 @@ def build_elevation_for_project(
         raise ElevationSourceNotFoundError(
             f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
         ) from exc
+    if not plant.conditions:
+        # ENG4 D1（M-6）：空工况集显式前置检查（禁 try/except IndexError
+        # 异常体操——缺省取首键前先证非空，IndexError 裸 500 禁）。
+        raise InvalidElevationRequestError(
+            f"项目 {project_id!r} 结果集无工况（空工况集——先重算）"
+        )
     chosen = condition_key if condition_key is not None else sorted(plant.conditions)[0]
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)

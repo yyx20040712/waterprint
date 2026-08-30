@@ -155,12 +155,12 @@
   "server/tests/services/test_enumeration.py": "7f442aa6b5e170e3033e678b53dd7387f054a7d10f2c78450a76304b8a1f4300",
   "server/tests/services/test_exports.py": "b72027ea1bfe04cf0a2f2f5b5e3e1b2247961a552d11c3ad831453caa8e3f967",
   "server/tests/services/test_projects.py": "dd7a45102a17cf126157de9e31461b6a5eb4aed19876bf70585dd5826a0d0173",
-  "server/tests/services/test_scene.py": "d93626816de63f7bf4061fe25525096d6ba43fc14cf6b569476947aeef4f871a",
+  "server/tests/services/test_scene.py": "2e74bf90862105e3f0e243f7e28dbb0616083827252cae31e82e61ed54189ad9",
   "server/tests/services/test_units.py": "c42c760580be91cbb3c016352b16bd1efbf729770e339808e86b41ec2f7c09aa",
   "server/tests/test_api_contract.py": "94662399387f2a17ebf58f314dca5abea6b006302debdb3e440566ce01b65eef",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
   "server/tests/test_cost.py": "8153202e6ee734ebf0935fac1daa2096b8c44eedaff312e78955fb7572e4cd5f",
-  "server/tests/test_elevation.py": "4289d46dc1290b5aef16905062c63ab41328c4c0a8bf7404d2bbaaf847d5c5f6",
+  "server/tests/test_elevation.py": "6f86b3bd087d1e245ceeb210ecf1936133d4acf99d5d9ad676d55220802ecbbd",
   "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8",
   "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
 }

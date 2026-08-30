@@ -273,3 +273,29 @@ async def test_elevation_stale_flag_on_design_edit_wiring(client) -> None:  # ty
     stale = await client.get(f"/api/elevation/{project_id}")
     assert stale.status_code == status.HTTP_200_OK
     assert stale.json()["stale"] is True  # 旧快照+显式过期旗标（非静默）
+
+
+@pytest.mark.anyio
+async def test_elevation_empty_condition_set_422_face_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """ENG4 D1（M-6）：结果集空工况集→GET 422 InvalidElevationRequestError（非 IndexError 500）。
+
+    造档口径仿 test_scene:159 先例（路由面经任务状态端点取 result_file）：
+    行级回写 conditions={}（deserialize 面合法）→ 缺省工况取首键路径
+    必须经统一错误体显式拒绝。
+    """
+    from pathlib import Path
+
+    project_id, task_id = await _project_with_result(client)
+    tasks = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+    result_path = Path(str(tasks["result"]["result_file"]))
+    doc = json.loads(result_path.read_text(encoding="utf-8"))
+    doc["conditions"] = {}  # 空工况集（deserialize 合法面——缺省取键才是缺陷面）
+    result_path.write_text(
+        json.dumps(doc, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    response = await client.get(f"/api/elevation/{project_id}")
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert response.json()["error_type"] == "InvalidElevationRequestError"
+    assert "先重算" in str(response.json()["detail"])

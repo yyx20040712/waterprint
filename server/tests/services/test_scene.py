@@ -167,3 +167,28 @@ async def test_scene_result_file_missing_raises_404_face_wiring(service_ctx) -> 
     os.remove(str(status.result["result_file"]))  # type: ignore[index]
     with pytest.raises(_mod.SceneSourceNotFoundError, match="先重算"):
         build_scene_for_project(service_ctx, project_id)
+
+
+async def test_scene_empty_condition_set_raises_422_face_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """ENG4 D1（M-6）：结果集空工况集=InvalidSceneRequestError（422 面——非 IndexError 500）。
+
+    造档口径仿 :159 先例：取最近 done calc 的 result_file → 行级回写
+    conditions={}（deserialize 面合法——schema 无非空约束）→ 缺省工况
+    取首键路径必须显式拒绝。
+    """
+    from pathlib import Path
+
+    project_id = await _project_with_result(service_ctx)
+    status = service_ctx.manager.status(
+        service_ctx.manager.task_ids_for_project(project_id)[-1]
+    )
+    result_path = Path(str(status.result["result_file"]))  # type: ignore[index]
+    doc = json.loads(result_path.read_text(encoding="utf-8"))
+    doc["conditions"] = {}  # 空工况集（deserialize 合法面——缺省取键才是缺陷面）
+    result_path.write_text(
+        json.dumps(doc, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    with pytest.raises(_mod.InvalidSceneRequestError, match="先重算"):
+        build_scene_for_project(service_ctx, project_id)
