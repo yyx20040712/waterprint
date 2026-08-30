@@ -102,25 +102,37 @@ export function Scene({
     return <div>场景加载中…（{projectId.slice(0, 8)}）</div>;
   }
   return (
-    <Canvas
-      camera={{ position: CAMERA_PRESETS[cameraPreset], fov: 50 }}
-      shadows
-      gl={{ localClippingEnabled: clippingEnabled }}
-    >
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
-      {scene.solids.map((node) => (
-        <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} />
-      ))}
-      {showWater &&
-        scene.waters.map((node) => (
-          <WaterSurface key={node.id} node={node} clippingPlanes={clippingPlanes} />
+    <>
+      {/* AUDIT2 FIX2（C-1 闭环）：结果集过期显式提示（服务端 stale 旗标）——
+          fragment 同级横幅，Canvas 父子关系与尺寸零扰动。 */}
+      {query.data?.stale ? (
+        <div
+          role="status"
+          style={{ padding: "4px 8px", color: "#d48806", fontSize: 12 }}
+        >
+          设计已修改但未重算——本场景基于旧结果集（重新提交计算后刷新）
+        </div>
+      ) : null}
+      <Canvas
+        camera={{ position: CAMERA_PRESETS[cameraPreset], fov: 50 }}
+        shadows
+        gl={{ localClippingEnabled: clippingEnabled }}
+      >
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
+        {scene.solids.map((node) => (
+          <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} />
         ))}
-      {showInternals &&
-        scene.internals.map((node) => (
-          <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />
-        ))}
-      {showAnnotations && <Annotations nodes={scene.solids} />}
-    </Canvas>
+        {showWater &&
+          scene.waters.map((node) => (
+            <WaterSurface key={node.id} node={node} clippingPlanes={clippingPlanes} />
+          ))}
+        {showInternals &&
+          scene.internals.map((node) => (
+            <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />
+          ))}
+        {showAnnotations && <Annotations nodes={scene.solids} />}
+      </Canvas>
+    </>
   );
 }

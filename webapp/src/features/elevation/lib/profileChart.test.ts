@@ -323,3 +323,39 @@ describe("buildChartOption：四线纵断 option（纯对象零 echarts import�
     expect(buildChartOption(view)).toEqual(buildChartOption(view));
   });
 });
+
+
+// ═══ AUDIT2 FIX2 I-8：未测负例形状入册（探针 2026-08-30 已证实现真拒） ═══
+describe("AUDIT2 I-8 profileChart 未测负例形状", () => {
+  const bad = (mutate: (v: Record<string, unknown>) => void): unknown => {
+    const value = JSON.parse(JSON.stringify(fixture())) as Record<string, unknown>;
+    mutate(value);
+    return value;
+  };
+  it("conditions 空数组拒（FE8 空数组口径同型）", () => {
+    expect(() => narrowElevationResponse(bad((x) => { x.conditions = []; }))).toThrow();
+  });
+  it("pump_stations 非数组拒", () => {
+    expect(() => narrowElevationResponse(bad((x) => { x.pump_stations = {}; }))).toThrow();
+  });
+  it("pump 条目数值 NaN 拒", () => {
+    const v = bad((x) => {
+      x.pump_stations = [{ unit_id: "u", static_head: Number.NaN, condition_key: "avg" }];
+    });
+    expect(() => narrowElevationResponse(v)).toThrow();
+  });
+});
+
+
+// ═══ AUDIT2 FIX2（C-1 闭环）：stale 旗标透传 ═══
+describe("AUDIT2 stale 旗标透传", () => {
+  it("缺省（字段缺席）→ false 向后兼容", () => {
+    const raw = JSON.parse(JSON.stringify(fixture())) as Record<string, unknown>;
+    delete raw.stale;
+    expect(narrowElevationResponse(raw).stale).toBe(false);
+  });
+  it("stale=true 透传（改档不重算面——pane 横幅消费）", () => {
+    const raw = { ...(fixture() as object), stale: true } as unknown;
+    expect(narrowElevationResponse(raw).stale).toBe(true);
+  });
+});

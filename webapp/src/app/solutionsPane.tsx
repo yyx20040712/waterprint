@@ -60,6 +60,7 @@ import {
 } from "../shared/api/generated/calc/calc";
 import type { ApplyOutcome } from "../shared/api/generated/model";
 import { WaterprintApiError } from "../shared/api/http";
+import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
 import { useTaskFeed } from "../features/solutions/api/useTaskFeed";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
@@ -128,8 +129,8 @@ export function SolutionsPane() {
       const next = parseTaskParam(window.location.search);
       setPanelTaskId((prev) => (prev === next ? prev : next));
     };
-    window.addEventListener("wp:task", onTaskParam);
-    return () => window.removeEventListener("wp:task", onTaskParam);
+    window.addEventListener(TASK_EVENT, onTaskParam);
+    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
 
   // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
@@ -205,9 +206,15 @@ export function SolutionsPane() {
   });
   // R1：方案应用只切面板轨+URL——表源键不动（方案表与旧行保留不卸载，
   // 浏览页码不重置——D6 已提交任务快照语义）
+  // AUDIT2 FIX2 C-2：补派发 TASK_EVENT——ParamForm 路径先例对齐；原缺
+  // 派发使已挂载高程/概算 pane 零刷新（浏览器实证 apply 后切回 0 请求，
+  // 陈旧缓存直出）。本 pane 自监听经 URL 重读幂等（同值早退不扰动）。
   const handleApplied = (outcome: ApplyOutcome) => {
     setPanelTaskId(outcome.recalc_task_id);
     writeTaskParam(outcome.recalc_task_id);
+    window.dispatchEvent(
+      new CustomEvent(TASK_EVENT, { detail: outcome.recalc_task_id }),
+    );
   };
 
   if (projectId === null) {
@@ -334,7 +341,14 @@ export function SolutionsPane() {
             {solutionsQuery.error instanceof Error
               ? solutionsQuery.error.message
               : "未知错误"}
-            （未完成任务取方案=409/排序键白名单外=422——详见任务状态）
+            {/* AUDIT2 FIX2 I-3（zM-2 纪律回灌）：409/422 说明仅挂对应
+                领域码（TaskNotComplete/InvalidPageParameter）——网络错/
+                其他错误码不挂误导注记。 */}
+            {solutionsQuery.error instanceof WaterprintApiError &&
+            (solutionsQuery.error.code === "TaskNotCompleteError" ||
+              solutionsQuery.error.code === "InvalidPageParameterError")
+              ? "（未完成任务取方案=409/排序键白名单外=422——详见任务状态）"
+              : null}
           </Typography.Paragraph>
         ) : null}
       </section>

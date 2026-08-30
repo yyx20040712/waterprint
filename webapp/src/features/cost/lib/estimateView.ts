@@ -68,6 +68,8 @@ export type CostView = {
   project_id: string;
   condition_key: string;
   conditions: string[];
+  /** 结果集过期旗标（AUDIT2 FIX1 C-1 服务端字段——缺省容忍 false 向后兼容）。 */
+  stale: boolean;
   price_data_version: string;
   design_scale: number;
   sheet: {
@@ -363,6 +365,7 @@ export function narrowCostResponse(raw: unknown): CostView {
     project_id: projectId,
     condition_key: conditionKey,
     conditions: conditionsRaw as string[],
+    stale: raw["stale"] === true,
     price_data_version: priceVersion,
     design_scale: designScale,
     sheet: {

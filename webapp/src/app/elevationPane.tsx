@@ -33,7 +33,7 @@
  *     label=高程纵断。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Typography } from "antd";
+import { Alert, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ConditionSwitcher } from "../features/elevation/components/ConditionSwitcher";
@@ -41,6 +41,7 @@ import { PumpStationsPanel } from "../features/elevation/components/PumpStations
 import { useElevationQuery } from "../features/elevation/api/useElevationQuery";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { TASK_EVENT } from "../shared/events";
 import { normalizeProjectId, parseProjectParam } from "./projectParam";
 
 /** ProfileChart 动态 import 装载器（模块级具名常量——echarts 异步 chunk 面）。 */
@@ -77,8 +78,8 @@ export function ElevationPane() {
         });
       }
     };
-    window.addEventListener("wp:task", onTaskParam);
-    return () => window.removeEventListener("wp:task", onTaskParam);
+    window.addEventListener(TASK_EVENT, onTaskParam);
+    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, [projectId, queryClient]);
 
   const query = useElevationQuery(projectId, conditionKey);
@@ -117,6 +118,15 @@ export function ElevationPane() {
           </Typography.Paragraph>
         ) : (
           <>
+            {/* AUDIT2 FIX2（C-1 闭环）：结果集过期显式提示——禁静默旧图 */}
+            {view.stale ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 8 }}
+                message="设计已修改但未重算——下图基于旧结果集（服务端 stale 旗标；重新提交计算后刷新）"
+              />
+            ) : null}
             <div
               style={{
                 display: "flex",

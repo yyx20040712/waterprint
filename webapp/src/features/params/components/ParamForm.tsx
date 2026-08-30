@@ -41,6 +41,7 @@ import { Button, Input, Typography } from "antd";
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
+import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
 import { collectParamChanges, indexUnits } from "../lib/designParams";
@@ -110,10 +111,10 @@ export function ParamForm({
           "",
           `${window.location.pathname}?${search.toString()}`,
         );
-        // R3（yI-1）：通知已挂载的方案 pane 重读 URL（"wp:task" 事件名
-        // 与 solutionsPane 监听侧各自内联——分层禁 import app）
+        // R3（yI-1）：通知已挂载的 pane 重读 URL/失效查询键（事件名常量
+        // 经 shared/events——AUDIT2 FIX2 S12 内联收敛）
         window.dispatchEvent(
-          new CustomEvent("wp:task", { detail: outcome.recalc_task_id }),
+          new CustomEvent(TASK_EVENT, { detail: outcome.recalc_task_id }),
         );
       },
     },

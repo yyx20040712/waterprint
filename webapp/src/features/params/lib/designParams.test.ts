@@ -323,3 +323,24 @@ describe("buildAssumptionRows（假设合成行——DEFAULTS∪overrides）", (
     expect(rows).toHaveLength(4);
   });
 });
+
+
+// ═══ AUDIT2 FIX2 I-8：未测负例形状入册（探针 2026-08-30 已证实现真拒） ═══
+describe("AUDIT2 I-8 designParams 未测负例形状", () => {
+  it("overrides 值 NaN 拒", () => {
+    expect(() =>
+      narrowDesignParams({
+        format_version: "1.0",
+        design: { nodes: {}, assumption_overrides: { k: Number.NaN } },
+      }),
+    ).toThrow();
+  });
+  it("overrides 值 bool 拒", () => {
+    expect(() =>
+      narrowDesignParams({
+        format_version: "1.0",
+        design: { nodes: {}, assumption_overrides: { k: true } },
+      }),
+    ).toThrow();
+  });
+});

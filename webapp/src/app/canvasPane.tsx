@@ -136,7 +136,9 @@ export function CanvasPane() {
           {projectsQuery.error instanceof Error
             ? projectsQuery.error.message
             : "未知错误"}
-          。{EMPTY_GUIDE}
+          {/* AUDIT2 FIX2 I-3（zM-2 纪律回灌）：网络/服务错不挂「先创建
+              项目」五步链引导（浏览器实录死服务+空态被误导成建项目）；
+              引导仅在空列表（200 零项目）面挂——下分支。 */}
         </Typography.Text>
       ) : projects.length === 0 && !projectsQuery.isLoading ? (
         <Typography.Text type="secondary">{EMPTY_GUIDE}</Typography.Text>

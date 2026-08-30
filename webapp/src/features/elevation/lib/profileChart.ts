@@ -71,6 +71,8 @@ export type ElevationView = {
   project_id: string;
   condition_key: string;
   conditions: string[];
+  /** 结果集过期旗标（AUDIT2 FIX1 C-1 服务端字段——缺省容忍 false 向后兼容）。 */
+  stale: boolean;
   datum_note: string;
   stations: ElevationStationView[];
   pump_stations: PumpStationView[];
@@ -304,6 +306,7 @@ export function narrowElevationResponse(raw: unknown): ElevationView {
     project_id: projectId,
     condition_key: conditionKey,
     conditions: conditionsRaw as string[],
+    stale: raw["stale"] === true,
     datum_note: datumNote,
     stations,
     pump_stations: pumpStations,

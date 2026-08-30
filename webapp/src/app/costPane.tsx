@@ -25,7 +25,7 @@
  *     CostViewError 不挂误导 hint；ErrorBoundary label=概算。
  */
 import { useEffect, useState } from "react";
-import { Select, Typography } from "antd";
+import { Select, Alert, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useCostQuery } from "../features/cost/api/useCostQuery";
@@ -33,6 +33,7 @@ import { EstimateTable } from "../features/cost/components/EstimateTable";
 import { IndicatorsCard } from "../features/cost/components/IndicatorsCard";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { TASK_EVENT } from "../shared/events";
 import { normalizeProjectId, parseProjectParam } from "./projectParam";
 
 /** 空态指引（?project= 缺失——先经工艺画布标签选择项目）。 */
@@ -61,8 +62,8 @@ export function CostPane() {
         });
       }
     };
-    window.addEventListener("wp:task", onTaskParam);
-    return () => window.removeEventListener("wp:task", onTaskParam);
+    window.addEventListener(TASK_EVENT, onTaskParam);
+    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, [projectId, queryClient]);
 
   const query = useCostQuery(projectId, conditionKey);
@@ -96,6 +97,15 @@ export function CostPane() {
           </Typography.Paragraph>
         ) : (
           <>
+            {/* AUDIT2 FIX2（C-1 闭环）：结果集过期显式提示——禁静默旧图 */}
+            {view.stale ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 8 }}
+                message="设计已修改但未重算——下表基于旧结果集（服务端 stale 旗标；重新提交计算后刷新）"
+              />
+            ) : null}
             <div
               style={{
                 display: "flex",

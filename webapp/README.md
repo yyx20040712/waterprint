@@ -30,10 +30,11 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > EstimateTable 分级汇总（明细可折叠溯源=定额键+source_field_ids+单价+
 > 三元组串——M4 任一数字可回溯落点）+IndicatorsCard 指标对照（OK 绿/
 > WARN 橙/未校核灰）+工况 Select 缺省 design 回显；非 lazy 无大件；
-> "wp:task" 事件桥第四处内联 invalidate 前缀键）**
-> ——77 源文件=入口 1+app 13+features 56+shared 7，全部带 TS 契约头
+> "wp:task" 事件桥第四处内联 invalidate 前缀键；AUDIT2 FIX2 后事件名
+> 常量收口 shared/events +方案应用路径补派发[C-2]+六门负例 18 形状入册）**
+> ——78 源文件=入口 1+app 13+features 56+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
-> 由 `scripts/check_webapp.py` 门禁校验——77 计数机器一致）；唯 drawings
+> 由 `scripts/check_webapp.py` 门禁校验——78 计数机器一致）；唯 drawings
 > 一标签维持占位屏，其余 feature 实装按 M2+ 推进。
 
 ## 结构
@@ -43,7 +44,8 @@ src/
 ├─ app/          路由与 Provider 组合（唯一允许组合 features 的层）
 ├─ features/     canvas/params/solutions/elevation/cost/viewer3d/drawings
 │                （features 互相禁止 import —— 见各 README）
-└─ shared/       api（orval 生成，禁手改）/ store / ui
+└─ shared/       api（orval 生成，禁手改）/ store / ui / events.ts
+                （TASK_EVENT 跨面板事件名常量——AUDIT2 FIX2 S12 内联收敛）
 ```
 
 ## 命令（环境就绪后，见根 README 环境待办）

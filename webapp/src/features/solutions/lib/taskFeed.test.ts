@@ -243,3 +243,14 @@ describe("taskStatusToView（TaskStatus 快照→TaskView 双源归一）", () =
     expect(view.stale).toBe(true);
   });
 });
+
+
+// ═══ AUDIT2 FIX2 I-8：未测分支入册（容式门→null；探针 2026-08-30 已证） ═══
+describe("AUDIT2 I-8 taskFeed 未测分支", () => {
+  it("载荷缺 type → null", () => {
+    expect(parseEventData('{"percent": 10}')).toBeNull();
+  });
+  it("percent=NaN → null（isFinite 面——字符串外补数形）", () => {
+    expect(parseEventData('{"type":"progress","percent":NaN}')).toBeNull();
+  });
+});

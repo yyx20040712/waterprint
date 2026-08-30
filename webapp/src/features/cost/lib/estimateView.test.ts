@@ -387,3 +387,61 @@ describe("buildTableRows 分级行模型", () => {
     expect(buildTableRows(view)).toHaveLength(16); // 行模型不受指标面影响
   });
 });
+
+
+// ═══ AUDIT2 FIX2 I-8：未测负例形状入册（探针 2026-08-30 已证实现真拒） ═══
+describe("AUDIT2 I-8 estimateView 未测负例形状", () => {
+  const bad = (mutate: (v: Record<string, unknown>) => void): unknown => {
+    const value = JSON.parse(JSON.stringify(costFixture())) as Record<string, unknown>;
+    mutate(value);
+    return value;
+  };
+  it("空 detail_rows 拒（FE8 空数组口径同型——服务端异形）", () => {
+    const v = bad((x) => {
+      (x.sheet as Record<string, unknown>).detail_rows = [];
+    });
+    expect(() => narrowCostResponse(v)).toThrow(/detail_rows/);
+  });
+  it("conditions 非数组拒", () => {
+    expect(() => narrowCostResponse(bad((x) => { x.conditions = "avg"; }))).toThrow();
+  });
+  it("sheet 非对象拒", () => {
+    expect(() => narrowCostResponse(bad((x) => { x.sheet = []; }))).toThrow();
+  });
+  it("readings[i].value NaN 拒", () => {
+    const v = bad((x) => {
+      x.indicators = {
+        checked: true,
+        readings: [{ name_zh: "x", value: Number.NaN, band: { min: 0, max: 1 }, status: "OK", reason: "r" }],
+      };
+    });
+    expect(() => narrowCostResponse(v)).toThrow();
+  });
+  it("detail 行 amount NaN 拒", () => {
+    const v = bad((x) => {
+      const rows = (x.sheet as Record<string, unknown>).detail_rows as Record<string, unknown>[];
+      rows[0]!.amount = Number.NaN;
+    });
+    expect(() => narrowCostResponse(v)).toThrow();
+  });
+  it("费桶非数组拒", () => {
+    const v = bad((x) => {
+      (x.sheet as Record<string, unknown>).measure = "x";
+    });
+    expect(() => narrowCostResponse(v)).toThrow();
+  });
+});
+
+
+// ═══ AUDIT2 FIX2（C-1 闭环）：stale 旗标透传 ═══
+describe("AUDIT2 stale 旗标透传", () => {
+  it("缺省（字段缺席）→ false 向后兼容", () => {
+    const raw = JSON.parse(JSON.stringify(costFixture())) as Record<string, unknown>;
+    delete raw.stale;
+    expect(narrowCostResponse(raw).stale).toBe(false);
+  });
+  it("stale=true 透传（改档不重算面——pane 横幅消费）", () => {
+    const raw = { ...(costFixture() as object), stale: true } as unknown;
+    expect(narrowCostResponse(raw).stale).toBe(true);
+  });
+});

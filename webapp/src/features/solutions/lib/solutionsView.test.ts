@@ -244,3 +244,20 @@ describe("buildSortOptions（D9 排序选项=响应 columns 白名单）", () =>
     expect(buildSortOptions([])).toEqual([]);
   });
 });
+
+
+// ═══ AUDIT2 FIX2 I-8：未测负例形状入册（探针 2026-08-30 已证实现真拒） ═══
+describe("AUDIT2 I-8 solutionsView 未测负例形状", () => {
+  it("行值 NaN 拒（头注承诺非有限数按非法拒）", () => {
+    expect(() =>
+      narrowSolutionPage(
+        fixture({ rows: [{ n: Number.NaN, margin_min: 0.1, condition_key: "k" }] }),
+      ),
+    ).toThrow(SolutionsViewError);
+  });
+  it("task_id 空串拒", () => {
+    expect(() => narrowSolutionPage(fixture({ task_id: "" }))).toThrow(
+      SolutionsViewError,
+    );
+  });
+});
