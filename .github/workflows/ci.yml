@@ -106,7 +106,7 @@ jobs:
       # pnpm-lock.yaml 即要求 pnpm 在 PATH（corepack enable 在后续 run 步
       # 才生效）→ 步骤内「Unable to locate executable file: pnpm」失败
       # （ENG4 S14 升版引入，v4 语义=不缓存恢复；CI 缓存优化归 M4 部署批统筹）
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           package-manager-cache: false
