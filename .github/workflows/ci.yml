@@ -25,7 +25,7 @@ jobs:
     name: 架构门禁（零依赖，系统 Python）
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -41,7 +41,7 @@ jobs:
       run:
         working-directory: core
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -65,7 +65,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.13"
@@ -101,7 +101,7 @@ jobs:
       run:
         working-directory: webapp
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # package-manager-cache: false——setup-node v5 默认 true：自动检测
       # pnpm-lock.yaml 即要求 pnpm 在 PATH（corepack enable 在后续 run 步
       # 才生效）→ 步骤内「Unable to locate executable file: pnpm」失败
@@ -124,7 +124,7 @@ jobs:
       run:
         working-directory: core
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.13"
