@@ -1,17 +1,21 @@
 /**
  * drawings 标签页装配：?project= 消费+ErrorBoundary+空态引导+导出发起+
- * 图纸目录+元数据预览卡+"wp:task" 事件桥（FE9 D7）。
+ * 图纸目录+元数据预览卡+线稿预览态接线（FE9 D7+B 批 D6）+"wp:task"
+ * 事件桥。
  *
  * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d/
  *        solutions/elevation/cost 共用，S3 订阅面）+useExportsQuery
  *        产物列表+useConditionOptions 工况源+useUnitOptions 单元源
  *        （cost/projects 同端点同键缓存共享）+TASK_EVENT 事件
- * 输出:  图纸标签页（空态引导/导出/目录/元数据卡；查询键前缀 invalidate
- *        联动）
+ * 输出:  图纸标签页（空态引导/导出/目录/元数据卡+线稿渲染区；查询键
+ *        前缀 invalidate 联动）
  *
- * 规格说明（FE9 批 6b 段七，D7；costPane 同构第五例）：
+ * 规格说明（FE9 批 6b 段七 D7；costPane 同构第五例；B 批 D6 接线）：
  *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面；
  *     .wp 尾缀归一在 hook 内）；面板只读不回写（挂账 UX 批）；
+ *   - B 批 D6：preview 态=最近一次导出结果（ExportButton onExported
+ *     回调 setPreview——scene/sceneError 喂 DrawingPreview 渲染区）；
+ *     useEffect([projectId]) 切项目清空（他项目残影=误导面禁）；
  *   - 非 lazy（无 echarts 大件——普通导入）；
  *   - TASK_EVENT 事件桥监听（第五处监听——常量已收口 shared/events[S12]
  *     ——D7 勘误措辞；ParamForm dispatch/solutionsPane/elevationPane/
@@ -45,6 +49,7 @@ import {
   useUnitOptions,
 } from "../features/drawings/api/useExportsQuery";
 import { useUnitCatalog } from "../features/drawings/api/useUnitCatalog";
+import type { ExportDxfResult } from "../features/drawings/api/useExportDxf";
 import { buildSheetRows } from "../features/drawings/lib/drawingsView";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -64,7 +69,14 @@ export function DrawingsPane() {
   const [projectId] = useProjectId();
   // 选中图纸键（SheetList 受控 radio——驱动 DrawingPreview 元数据卡）
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // B 批 D6：线稿预览态=最近一次导出结果（绑定导出动作非行选中）
+  const [preview, setPreview] = useState<ExportDxfResult | null>(null);
   const queryClient = useQueryClient();
+
+  // B 批 D6：切项目清空预览（他项目残影=误导面禁）
+  useEffect(() => {
+    setPreview(null);
+  }, [projectId]);
 
   // TASK_EVENT 事件桥监听（第五处——常量已收口 shared/events[S12]；D7
   // 勘误措辞；ParamForm/solutionsPane/elevationPane/costPane 四处先例
@@ -135,6 +147,7 @@ export function DrawingsPane() {
             projectId={projectId}
             units={exportableUnits}
             conditions={conditionQuery.data ?? []}
+            onExported={setPreview}
           />
         </div>
         {rows.length === 0 ? (
@@ -164,7 +177,11 @@ export function DrawingsPane() {
               onSelect={setSelectedKey}
             />
             <div style={{ marginTop: 16 }}>
-              <DrawingPreview row={selected} />
+              <DrawingPreview
+                row={selected}
+                scene={preview?.scene ?? null}
+                sceneError={preview?.sceneError ?? null}
+              />
             </div>
           </>
         )}

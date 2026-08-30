@@ -47,10 +47,17 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > ?task=→solutions 深链/缺省 canvas]+切标签 replaceState 写入；单元
 > Select 可投影面过滤——目录判别通道[/api/units builtin 集零硬编码，
 > catalog 未就绪不过滤]；DS-05 parseDisposition 迁 lib 抽测；三维 404
-> code 门控挂 NO_CALC_HINT[SceneSourceNotFoundError 实锚]）**
-> ——86 源文件=入口 1+app 15+features 62+shared 8，全部带 TS 契约头
+> code 门控挂 NO_CALC_HINT[SceneSourceNotFoundError 实锚]）；B 批
+> Ruling B 落地 DXF 线稿渲染（2026-08-30：dxf-parser@^1.1.2 唯一新依赖
+> [+传递 loglevel——用户 Ruling 审批链]——导出 blob 直接喂解析器零契约
+> 改动；lib/dxfScene 投影层纯函数[实体展开/Y 顶翻/extents 边距/ACI
+> 1-7 色映射/DIMENSION 匿名块+INSERT 变换/残件包 DxfSceneError]+
+> DxfSvg 渲染薄壳[viewBox 自适应]+DrawingPreview 三态渲染区[元数据卡
+> FE9 保留面]+ExportButton onExported 缝+drawingsPane 预览态[切项目
+> 清空]；v1 全实线[线型表解析器局限诚实注记]）**
+> ——89 源文件=入口 1+app 15+features 65+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
-> 由 `scripts/check_webapp.py` 门禁校验——86 计数机器一致）；批 6b
+> 由 `scripts/check_webapp.py` 门禁校验——89 计数机器一致）；批 6b
 > 工程 viewer 面收官，后续 feature 实装按 M2+ 推进。
 
 ## 结构
