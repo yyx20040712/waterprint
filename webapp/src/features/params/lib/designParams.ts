@@ -1,11 +1,13 @@
 /**
- * 参数面板纯函数层：design 参数面窄化+draft 归一+脏比较+目录索引+假设合成行。
+ * 参数面板纯函数层：design 参数面窄化+draft 归一+脏比较+目录索引+假设合成行
+ * +假设编辑收集/PUT 载荷构造/conditions 透传（UX2 U1）。
  *
  * 输入:  readProject 返回体（弱类型 {[key:string]:unknown}）+META1 目录条目
  *        （UnitMetaEntry/AssumptionEntry——generated 类型面）+表单草稿
- * 输出:  五纯函数族（DesignParams 窄化产物/normalizeDraftValue 归一/
+ * 输出:  纯函数族（DesignParams 窄化产物/normalizeDraftValue 归一/
  *        collectParamChanges 提交面/indexUnits 目录索引/buildAssumptionRows
- *        假设行——非法形状抛 DesignParamsError）
+ *        假设行/collectAssumptionEdits 假设编辑收集/withAssumptionOverrides
+ *        PUT 载荷/rawCheckedUnits conditions 透传——非法形状抛 DesignParamsError）
  *
  * 规格说明（FE5 批 6b 段三，D1/D7/D8）：
  *   - D8 窄化门（FE4 projectFlow D6 门模式复用）：顶层 format_version 轻门
@@ -255,4 +257,107 @@ export function buildAssumptionRows(
     );
   }
   return rows;
+}
+
+// ── UX2 U1（假设覆盖编辑 2026-08-30）：编辑收集/PUT 载荷/conditions 透传 ──
+
+/** 假设编辑收集结果（D1 面板级一次 PUT 的载荷面）。 */
+export type AssumptionEdits = {
+  /** 全量替换后的 assumption_overrides（未编辑覆盖行原样保留）。 */
+  overrides: Record<string, number>;
+  /** 无效键清单（draft null/非有限——面板级禁提交态）。 */
+  invalidKeys: string[];
+  /** 与当前 overrides 是否有净变更（false=禁空 PUT）。 */
+  changed: boolean;
+};
+
+/**
+ * UX2 D1 假设编辑收集：合成行+行内草稿+恢复默认标记 → 全量 overrides。
+ *
+ * - 恢复默认（reset 优先于 draft）=overrides 删键：目录内行回落 DEFAULTS、
+ *   目录外键=删行；未覆盖行 reset=no-op（不产变更）；
+ * - draft=目录内默认值等值→不产覆盖键（免空写，collectParamChanges 同精神）；
+ *   已覆盖行改回默认值=覆盖删键（changed=true）；
+ * - draft null（InputNumber 清空态）/NaN/Infinity → invalidKeys 禁提交
+ *   （Number.isFinite 校验——NaN/Infinity 拒提交+行内提示）；
+ * - 未编辑覆盖行原样保留（row.value=override 值直读）。
+ */
+export function collectAssumptionEdits(
+  rows: AssumptionRow[],
+  drafts: Readonly<Record<string, number | null>>,
+  resets: Readonly<Record<string, true>>,
+): AssumptionEdits {
+  const overrides: Record<string, number> = {};
+  const invalidKeys: string[] = [];
+  for (const row of rows) {
+    const reset = resets[row.key] === true;
+    const draft = drafts[row.key];
+    if (reset) {
+      continue; // 恢复默认=删键（目录内回落 DEFAULTS；目录外删行）
+    }
+    if (draft !== undefined) {
+      if (draft === null || !Number.isFinite(draft)) {
+        invalidKeys.push(row.key);
+        continue;
+      }
+      // 目录内默认值等值→不产覆盖键（回落 DEFAULTS 语义）
+      if (row.defaultValue === null || draft !== row.defaultValue) {
+        overrides[row.key] = draft;
+      }
+      continue;
+    }
+    if (row.overridden) {
+      overrides[row.key] = row.value; // 未编辑覆盖行原样保留
+    }
+  }
+  const current: Record<string, number> = {};
+  for (const row of rows) {
+    if (row.overridden) {
+      current[row.key] = row.value;
+    }
+  }
+  const keys = new Set([...Object.keys(current), ...Object.keys(overrides)]);
+  const changed = [...keys].some(
+    (key) => current[key] !== overrides[key],
+  );
+  return { overrides, invalidKeys, changed };
+}
+
+/**
+ * UX2 D2 PUT 载荷构造：GET 未窄化原始体仅替换 design.assumption_overrides
+ * （结构化替换禁散拼——其余顶层/design 键原样回传；窄化产物缺键即异形拒）。
+ */
+export function withAssumptionOverrides(
+  raw: unknown,
+  overrides: Record<string, number>,
+): Record<string, unknown> {
+  if (!isRecord(raw)) {
+    reject(
+      `PUT 载荷构造须原始 ProjectFile：得到 ${JSON.stringify(raw) ?? "undefined"}`,
+    );
+  }
+  const design = raw["design"];
+  if (!isRecord(design)) {
+    reject(
+      `PUT 载荷构造：原始体 design 须为对象：得到 ${JSON.stringify(design) ?? "undefined"}`,
+    );
+  }
+  return { ...raw, design: { ...design, assumption_overrides: overrides } };
+}
+
+/**
+ * UX2 D4 conditions 透传：GET 原始 design.checked_units 数组原样（自动
+ * POST /api/calc/run 载荷）；缺省/非数组=undefined（RunRequest 可选面缺省
+ * 语义——禁散拼禁默认空数组偷换）。
+ */
+export function rawCheckedUnits(raw: unknown): string[] | undefined {
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+  const design = raw["design"];
+  if (!isRecord(design)) {
+    return undefined;
+  }
+  const units = design["checked_units"];
+  return Array.isArray(units) ? (units as string[]) : undefined;
 }

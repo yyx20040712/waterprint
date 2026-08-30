@@ -344,3 +344,121 @@ describe("AUDIT2 I-8 designParams 未测负例形状", () => {
     ).toThrow();
   });
 });
+
+// ═══ UX2 U1（假设覆盖编辑 2026-08-30）：纯函数面 TDD 红先——动态 import
+// 隔离红面（实现前新导出不存在——单测红不殃及全文件，Internals 先例） ═══
+describe("UX2 collectAssumptionEdits（假设编辑收集——D1 面板级一次 PUT）", () => {
+  /** 覆盖态夹具：kz 覆盖 1.6+目录外 custom.extra=2（∪语义四行）。 */
+  const rows = () =>
+    buildAssumptionRows(ASSUMPTIONS, { "influent.kz": 1.6, "custom.extra": 2 });
+
+  it("零编辑：覆盖行原样全量保留+changed=false（未覆盖行不产键）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(rows(), {}, {});
+    expect(edits.overrides).toEqual({ "influent.kz": 1.6, "custom.extra": 2 });
+    expect(edits.invalidKeys).toEqual([]);
+    expect(edits.changed).toBe(false);
+  });
+
+  it("目录内行编辑改值→覆盖更新；draft=默认值等值→不产覆盖（免空写）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(rows(), { "safety.superheight": 0.5 }, {});
+    expect(edits.overrides).toEqual({
+      "influent.kz": 1.6,
+      "custom.extra": 2,
+      "safety.superheight": 0.5,
+    });
+    expect(edits.changed).toBe(true);
+    const equal = collectAssumptionEdits(rows(), { "sludge.wsl_ratio": 0.6 }, {});
+    expect(equal.overrides).not.toHaveProperty("sludge.wsl_ratio");
+    expect(equal.changed).toBe(false);
+  });
+
+  it("已覆盖行 draft 改回默认值=回落 DEFAULTS（覆盖删键，changed=true）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(rows(), { "influent.kz": 1.4 }, {});
+    expect(edits.overrides).not.toHaveProperty("influent.kz");
+    expect(edits.changed).toBe(true);
+  });
+
+  it("恢复默认：目录内覆盖行删键回落 DEFAULTS；目录外键=删行", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(
+      rows(),
+      {},
+      { "influent.kz": true, "custom.extra": true },
+    );
+    expect(edits.overrides).toEqual({});
+    expect(edits.changed).toBe(true);
+    // 未覆盖行恢复默认=no-op（无变更不产空 PUT）
+    const noop = collectAssumptionEdits(rows(), {}, { "sludge.wsl_ratio": true });
+    expect(noop.changed).toBe(false);
+  });
+
+  it("无效 draft（null/NaN/Infinity）进 invalidKeys 禁提交；其余行有效编辑照常收集", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(
+      rows(),
+      { "influent.kz": null, "safety.superheight": 0.5 },
+      {},
+    );
+    expect(edits.invalidKeys).toEqual(["influent.kz"]);
+    expect(edits.overrides["safety.superheight"]).toBe(0.5);
+    expect(collectAssumptionEdits(rows(), { "influent.kz": Number.NaN }, {}).invalidKeys).toEqual([
+      "influent.kz",
+    ]);
+    expect(
+      collectAssumptionEdits(rows(), { "influent.kz": Number.POSITIVE_INFINITY }, {})
+        .invalidKeys,
+    ).toEqual(["influent.kz"]);
+  });
+
+  it("目录外键编辑有效值写入 overrides（∪行可编辑面）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(rows(), { "custom.extra": 3 }, {});
+    expect(edits.overrides["custom.extra"]).toBe(3);
+    expect(edits.changed).toBe(true);
+  });
+});
+
+describe("UX2 withAssumptionOverrides（PUT 载荷构造——D2 结构化替换禁散拼）", () => {
+  it("仅替换 design.assumption_overrides；其余顶层/design 键原样；原体不可变", async () => {
+    const { withAssumptionOverrides } = await import("./designParams");
+    const raw = fixture();
+    const next = withAssumptionOverrides(raw, { "influent.kz": 1.7 });
+    const design = next["design"] as Record<string, unknown>;
+    expect(design["assumption_overrides"]).toEqual({ "influent.kz": 1.7 });
+    expect(design["nodes"]).toEqual(
+      (raw["design"] as Record<string, unknown>)["nodes"],
+    );
+    expect(design["checked_units"]).toEqual([]);
+    expect(next["format_version"]).toBe("1.0");
+    expect(next["metadata"]).toEqual(raw["metadata"]);
+    expect(next["view"]).toEqual(raw["view"]);
+    expect(
+      (raw["design"] as Record<string, unknown>)["assumption_overrides"],
+    ).toEqual({}); // 纯函数：原 GET 体不被改写
+  });
+
+  it("design 缺失/非对象显式拒（原始体异形——窄化产物禁当 PUT body 的守卫）", async () => {
+    const { withAssumptionOverrides } = await import("./designParams");
+    expect(() => withAssumptionOverrides({ format_version: "1.0" }, {})).toThrow(
+      DesignParamsError,
+    );
+    expect(() =>
+      withAssumptionOverrides({ format_version: "1.0", design: [] }, {}),
+    ).toThrow(/design/);
+  });
+});
+
+describe("UX2 rawCheckedUnits（conditions 原样透传——D4 自动重算）", () => {
+  it("数组原样引用；缺省/非数组=undefined（缺省语义不散拼）", async () => {
+    const { rawCheckedUnits } = await import("./designParams");
+    const units = ["rain", "design"];
+    expect(rawCheckedUnits(withDesign({ checked_units: units }))).toBe(units);
+    expect(
+      rawCheckedUnits(withDesign({ checked_units: undefined })),
+    ).toBeUndefined();
+    expect(rawCheckedUnits(withDesign({ checked_units: "all" }))).toBeUndefined();
+  });
+});

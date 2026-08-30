@@ -54,7 +54,16 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > 1-7 色映射/DIMENSION 匿名块+INSERT 变换/残件包 DxfSceneError]+
 > DxfSvg 渲染薄壳[viewBox 自适应]+DrawingPreview 三态渲染区[元数据卡
 > FE9 保留面]+ExportButton onExported 缝+drawingsPane 预览态[切项目
-> 清空]；v1 全实线[线型表解析器局限诚实注记]）**
+> 清空]；v1 全实线[线型表解析器局限诚实注记]）；UX2 攒批二段 U1
+> 假设覆盖编辑收口（2026-08-30：AssumptionsPanel 编辑化——行内
+> InputNumber+恢复默认[overrides 删键回落 DEFAULTS/目录外键删行]→
+> 面板级「提交修改」一次 PUT /api/projects/{id}[body=GET 未窄化原始体
+> 仅结构化替换 design.assumption_overrides，窄化产物禁当 body]+409
+> ProjectLockedError 锁冲突保守提示不 force+PUT 成功 invalidate read 键
+> →自动 POST calc/run[conditions=原始 checked_units 原样透传；run 失败
+> 仅提示不回滚]+?task= 回写[ParamForm D3-③ 同构]；纯函数面
+> collectAssumptionEdits/withAssumptionOverrides/rawCheckedUnits 落
+> lib/designParams[NaN/Infinity/null 拒提交]——vitest +9 用例）**
 > ——89 源文件=入口 1+app 15+features 65+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
 > 由 `scripts/check_webapp.py` 门禁校验——89 计数机器一致）；批 6b
