@@ -147,3 +147,79 @@ def test_export_batch_second_gate_rejects_escape_writing(tmp_path) -> None:  # t
                 None,
             )
     assert list(tmp_path.iterdir()) == []  # 二道闸拒于任何落盘之前
+
+
+def test_export_batch_items_pass_unit_and_condition_to_core(
+    test_settings, tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """S2 D6 接线断言：批量 items 逐项透传 unit_id/condition_key 到 core。
+
+    空串归一 None（单产物路径同款口径——exports.create_export
+    condition_key or None 对偶面）；deserialize 正门真跑（真 calc 结果
+    文件作 result_file——R1 序列化边界实载荷面）。
+    """
+    from waterprint import app as core
+
+    artifacts = test_settings.exports_dir / "tasks"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    calc = run_task(
+        {
+            "kind": "calc",
+            "task_id": "passthrough-calc",
+            "project_id": "p",
+            "project_path": str(_cass_project_file(tmp_path)),
+            "conditions": [],
+            "data_dir": str(test_settings.data_dir),
+            "artifacts_dir": str(artifacts),
+        },
+        None,
+        None,
+    )
+    assert calc["state"] == "done"
+    captured: list[tuple[str, object, object]] = []
+
+    def _fake_export(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口（core.export_artifact 公开面）
+        kind, plant, template, out, *, unit_id=None, condition_key=None
+    ):
+        captured.append((kind, unit_id, condition_key))
+        Path(out).write_bytes(b"artifact")  # 替身落占位（GR-38 rename 面由真码执行）
+
+    monkeypatch.setattr(core, "export_artifact", _fake_export)
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()  # worker 面不建 exports_dir（服务装配期 ensure_directories 正门）
+    result = run_task(
+        {
+            "kind": "export_batch",
+            "task_id": "passthrough-batch",
+            "exports_dir": str(out_dir),
+            "items": [
+                {
+                    "kind": "dxf",
+                    "result_file": calc["result_file"],
+                    "template": "unused",
+                    "out_name": "a.dxf",
+                    "unit_id": "municipal_cass",
+                    "condition_key": "design",
+                },
+                {
+                    "kind": "calcbook",
+                    "result_file": calc["result_file"],
+                    "template": "unused",
+                    "out_name": "b.xlsx",
+                    "unit_id": "",
+                    "condition_key": "",
+                },
+            ],
+        },
+        None,
+        None,
+    )
+    assert result["state"] == "done"
+    assert captured == [
+        ("dxf", "municipal_cass", "design"),  # items 级透传（S2 D6）
+        ("calcbook", None, None),  # 空串归一 None（单产物同款口径）
+    ]
+    assert sorted(str(path.name) for path in (tmp_path / "out").iterdir()) == [
+        "a.dxf",
+        "b.xlsx",
+    ]  # 原子替换落位（.tmp 已清）

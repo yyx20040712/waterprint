@@ -41,6 +41,11 @@
 #     追认点已登记 undefined-features-register（SERVER 批）。
 #   - R1-1 二道闸（2026-08-26）：export_batch 的 kind 白名单+
 #     out_name 防逃逸（无分隔符/无 ..）——payload 直注 IPC 面防线。
+#   - S2 D6（2026-08-30 落盘化批）：export_batch items 级 options
+#     透传——逐项 core.export_artifact 附 unit_id/condition_key kwargs
+#     （空串归一 None——exports 单产物路径 condition_key or None 对偶
+#     口径；payload items 每项带 unit_id 批级共享+condition_key item
+#     自有，exports.create_export 批量路径同批收口）。
 #   - DEFAULT_ASSUMPTIONS 经 waterprint.app 模块面取用（app 为
 #     _engine_params 已装载的同名属性——UF-33"经 app"口径）。
 #
@@ -381,7 +386,18 @@ def _run_export_batch(
         plant = deserialize(Path(str(item["result_file"])).read_bytes())
         out = exports_dir / out_name
         tmp = out.with_name(out.name + ".tmp")
-        core.export_artifact(kind, plant, Path(str(item["template"])), tmp)
+        # S2 D6：items 级透传——unit_id（批级共享，空串归一 None=core
+        # unit_id-None 闸「全厂总图归 M5 site_plan」诚实 501 面）+
+        # condition_key（item 自有，空串归一 None=core 缺省 design 档
+        # +UserWarning）——exports.create_export 单产物路径同款口径。
+        core.export_artifact(
+            kind,
+            plant,
+            Path(str(item["template"])),
+            tmp,
+            unit_id=str(item.get("unit_id", "")) or None,
+            condition_key=str(item.get("condition_key", "")) or None,
+        )
         os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
         files.append(str(out))
     return {

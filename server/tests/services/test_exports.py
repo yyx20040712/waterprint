@@ -156,3 +156,45 @@ async def test_export_corrupt_result_file_raises_404_face_wiring(service_ctx) ->
     Path(str(status.result["result_file"])).write_bytes(b"\xff\xfe{not json")  # type: ignore[index]
     with pytest.raises(_mod.ExportSourceNotFoundError, match="先重算"):
         await create_export(service_ctx, project_id, "calcbook")
+
+
+async def test_batch_export_names_carry_unit_component_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """S2 D6 接线断言：批量导出文件名含 unit 分量+payload items 逐项透传。
+
+    命名收口：_deterministic_name(unit_id=options.unit_id) 恒传（去
+    len(items)<=1 条件——FE9 R1 挂账「命名面随 worker 面同批收口」）；
+    items 每项 unit_id（批级共享=options.unit_id）+condition_key（item
+    自有）——exports→worker IPC 契约面（submit 侦听断言）。
+    """
+    project_id = await _project_with_result(service_ctx)
+    captured: list[object] = []
+    original_submit = service_ctx.manager.submit
+
+    async def _spy_submit(request, *, idempotency_key=None):  # type: ignore[no-untyped-def]
+        captured.append(request)
+        return await original_submit(request, idempotency_key=idempotency_key)
+
+    monkeypatch.setattr(service_ctx.manager, "submit", _spy_submit)
+    handle = await create_export(
+        service_ctx,
+        project_id,
+        "dxf",
+        "ok",
+        {
+            "unit_id": "municipal_cass",
+            "items": [
+                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "dxf", "condition_key": "avg"},
+            ],
+        },
+    )
+    assert handle.task_id is not None  # 批量转任务（R3：items>1 即转 export_batch）
+    assert "-dxf-municipal_cass-design-" in handle.path  # 批量名含 unit 分量（命名收口）
+    items = captured[0].payload["items"]
+    assert [item["unit_id"] for item in items] == [  # 批级共享=options.unit_id
+        "municipal_cass",
+        "municipal_cass",
+    ]
+    assert [item["condition_key"] for item in items] == ["design", "avg"]  # item 自有

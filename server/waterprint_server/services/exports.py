@@ -27,8 +27,8 @@
 #      阈值转任务，防同步请求超时）。
 #   R4 文件名确定性：项目 id + kind + (unit) + condition + 三元组摘要
 #      （禁止当前时钟——同名同输入即同文件，幂等重导出覆盖校验；
-#      FE9 R1[DS-01]：dxf 单产物附 unit 分量——同结果集同工况多单元
-#      导出文件名互异，防同名覆盖静默丢产物）。
+#      FE9 R1[DS-01]：dxf 附 unit 分量——同结果集同工况多单元导出
+#      文件名互异，防同名覆盖静默丢产物；S2 D6 批量面同收口恒传）。
 #
 # 【实现注记（SERVER 2026-08-26）】
 #   - 单产物即时上限=1（>1 项即转 export_batch 任务，R3 v1 阈值）。
@@ -53,9 +53,13 @@
 #     D3 options 透传（单产物路径）——core 调用附 unit_id/condition_key
 #     kwargs（core _EXPORT_OPTIONS 同款键集）；空串归一 None：
 #     condition_key None→core 缺省 design 档+UserWarning；unit_id
-#     None→core NotReady「全厂总图归 M5 site_plan」诚实 501。批量路径
-#     （items>1 转 export_batch 任务）不透传——worker options 透传挂账
-#     S2 落盘化批同域（前端 v1 只发单图请求）。
+#     None→core NotReady「全厂总图归 M5 site_plan」诚实 501。
+#     S2 D6（2026-08-30 落盘化批）：批量路径同款收口——payload items
+#     每项增 unit_id（批级共享=options.unit_id，空串形态落 IPC 面）+
+#     condition_key（item 自有）；worker _run_export_batch 逐项透传
+#     core.export_artifact kwargs（空串归一 None 同单产物口径）；
+#     批量命名 _deterministic_name(unit_id=unit_option) 恒传（去
+#     len(items)<=1 条件——FE9「命名面随 worker 面同批收口」兑现）。
 #     D4 kind 后缀映射——_deterministic_name 恒 .xlsx 收敛为按 kind
 #     映射（_KIND_SUFFIXES）：dxf→.dxf。既有 calcbook 命名零漂移
 #     （dxf 历史从未成功导出——恒 501，无存量文件名面）。
@@ -292,9 +296,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     if stale and not force:
         raise StaleExportError(result_digest, current_digest)
     template = str(_template_for(ctx, kind))
-    # FE9 R1（DS-01）：单产物路径文件名附 unit 分量（options.unit_id——dxf
-    # 单元键进名防同名覆盖）；批量 items 面 unit 恒 None（worker 透传挂账
-    # S2 落盘化批——命名面随 worker 面同批收口）。
+    # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量
+    # （options.unit_id——dxf 单元键进名防同名覆盖；批量面同收口——去
+    # len(items)<=1 条件，worker 透传已同批落地，命名面随 worker 面
+    # 同批收口承诺兑现）。
     unit_option = _unit_id_of(chosen)
     names = [
         _deterministic_name(
@@ -302,7 +307,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
             str(item.get("kind", "")),  # 缺 kind=白名单外→422（禁 KeyError 500）
             str(item.get("condition_key", "")),
             result_digest,
-            unit_id=unit_option if len(items) <= _IMMEDIATE_LIMIT else None,
+            unit_id=unit_option,
         )
         for item in items
     ]
@@ -321,6 +326,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
                             "result_file": latest.get("result_file"),
                             "template": template,
                             "out_name": name,
+                            # S2 D6：items 级透传——unit_id 批级共享
+                            # （options.unit_id）+condition_key item 自有；
+                            # 空串形态落 IPC 面（worker 侧归一 None——
+                            # 单产物路径 condition_key or None 对偶口径）。
+                            "unit_id": unit_option or "",
+                            "condition_key": str(item.get("condition_key", "")),
                         }
                         for item, name in zip(items, names, strict=True)
                     ],
