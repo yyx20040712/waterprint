@@ -31,32 +31,36 @@ _EXPECTED = {
 }
 
 
-async def _project_with_result(client) -> str:  # type: ignore[no-untyped-def]
+async def _project_with_result(client, extra_units=()):  # type: ignore[no-untyped-def]
+    """建项目并跑 calc 至 done（FE9 R2：extra_units 链式追加处理单元节点）。"""
+    nodes: dict[str, object] = {
+        "inlet": {
+            "kind": "municipal_input",
+            "q_avg_daily": 34760.7 / 86400,
+            "kz": 1.4,
+            "CODCR": 400.0,
+            "BOD5": 200.0,
+            "SS": 250.0,
+            "NH3N": 26.0,
+            "TN": 43.0,
+            "TP": 6.5,
+        },
+        "municipal_cass": {},
+    }
+    for unit_id in extra_units:
+        nodes[unit_id] = {}
+    chain = ["inlet", *extra_units, "municipal_cass"]
+    edges = [
+        {
+            "src": {"unit_id": chain[i], "port_id": "out"},
+            "dst": {"unit_id": chain[i + 1], "port_id": "in"},
+        }
+        for i in range(len(chain) - 1)
+    ]
     payload = {
         "project": {
             "format_version": "1.0",
-            "design": {
-                "nodes": {
-                    "inlet": {
-                        "kind": "municipal_input",
-                        "q_avg_daily": 34760.7 / 86400,
-                        "kz": 1.4,
-                        "CODCR": 400.0,
-                        "BOD5": 200.0,
-                        "SS": 250.0,
-                        "NH3N": 26.0,
-                        "TN": 43.0,
-                        "TP": 6.5,
-                    },
-                    "municipal_cass": {},
-                },
-                "edges": [
-                    {
-                        "src": {"unit_id": "inlet", "port_id": "out"},
-                        "dst": {"unit_id": "municipal_cass", "port_id": "in"},
-                    }
-                ],
-            },
+            "design": {"nodes": nodes, "edges": edges},
             "view": {},
             "metadata": {
                 "format_version": "1.0",
@@ -159,15 +163,96 @@ async def test_dxf_product_flow_wiring(client) -> None:  # type: ignore[no-untyp
     assert b"AC1032" in dxf.content[:512]  # DXF R2018 头魔面（write_dxf 落盘）
     assert b"SECTION" in dxf.content  # 实体节标记（plan+section 图元真出图）
     disposition = str(dxf.headers.get("content-disposition", ""))
-    assert ".dxf" in disposition  # D4：kind 后缀映射（历史恒 .xlsx 缺陷收口）
+    # R4（DS-09）：解析文件名后 endswith 真锁后缀边界（非子串包含）
+    disposition_name = disposition.rsplit('filename="', maxsplit=1)[-1].rstrip('"')
+    assert disposition_name.endswith(".dxf")  # D4：kind 后缀映射
     metas = await client.get("/api/exports", params={"project_id": project_id})
     rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
-    assert rows, "dxf 产物应注册元数据行"
+    assert len(rows) == 1, "本用例恰导出一次（前置行数断言——非行序依赖）"
     assert rows[0]["file_name"].endswith(".dxf")  # D4 注册表口径同款
     assert rows[0]["stale_labeled"] is False  # 新鲜导出无 stale 标注
     bare = await client.post("/api/exports/dxf", json={"project_id": project_id})
     assert bare.status_code == status.HTTP_501_NOT_IMPLEMENTED
     assert bare.json()["error_type"] == "ArtifactKindNotReady"  # core 正门非模板闸
+
+
+@pytest.mark.anyio
+async def test_dxf_stale_force_flow_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """FE9 R2（DS-02）：dxf 409/force 端到端（calcbook stale fixture 同模式）。
+
+    断：PUT 改 design 不重算→POST dxf 恰 409 StaleExportError（附输入
+    版本+结果集摘要值）→force=1 重发→200 DXF 文件流+列表 dxf 行恰一行
+    stale_labeled=true（旧三元组显式标注——R1 守门服务端契约回归锁）。
+    """
+    project_id, task_id = await _project_with_result(client)
+    tasks = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+    result_digest = tasks["result"]["design_hash"]  # 结果集三元组摘要真值
+    project = (await client.get(f"/api/projects/{project_id}")).json()
+    project["design"]["assumption_overrides"] = {"safety.superheight": 0.3}
+    saved = await client.put(f"/api/projects/{project_id}", json=project)
+    assert saved.status_code == 200 and saved.json()["design_changed"] is True
+    body = {
+        "project_id": project_id,
+        "condition_key": "design",
+        "options": {"unit_id": "municipal_cass"},
+    }
+    stale = await client.post("/api/exports/dxf", json=body)
+    assert stale.status_code == status.HTTP_409_CONFLICT
+    assert stale.json()["error_type"] == "StaleExportError"
+    detail = str(stale.json()["detail"])
+    assert "输入版本" in detail  # 附输入版本信息
+    assert result_digest[:6] in detail  # 摘要值锁定（AU-6/R1-4②——非仅关键词）
+    forced = await client.post(
+        "/api/exports/dxf", json=body, params={"force": "true"}
+    )
+    assert forced.status_code == status.HTTP_200_OK
+    assert b"AC1032" in forced.content[:512]  # force 旧结果照常真出图
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
+    assert len(rows) == 1
+    assert rows[0]["stale_labeled"] is True  # 旧三元组显式标注
+
+
+@pytest.mark.anyio
+async def test_dxf_multi_unit_distinct_names_wiring(
+    client, test_settings
+) -> None:  # type: ignore[no-untyped-def]
+    """FE9 R2（DS-01 回归锁）：同项目同工况多单元导出文件名互异。
+
+    断：cass+chenshachi 两单元先后导出→两文件名互异且各含 unit 分量
+    （-dxf-municipal_{cass,chenshachi}-design-）→列表恰两行→exports_dir
+    恰两个 .dxf（R1 前同名 os.replace 覆盖=首产物静默丢失缺陷收口）。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(
+        client, extra_units=("municipal_chenshachi",)
+    )
+    body = {
+        "project_id": project_id,
+        "condition_key": "design",
+    }
+    first = await client.post(
+        "/api/exports/dxf",
+        json={**body, "options": {"unit_id": "municipal_cass"}},
+    )
+    assert first.status_code == status.HTTP_200_OK
+    second = await client.post(
+        "/api/exports/dxf",
+        json={**body, "options": {"unit_id": "municipal_chenshachi"}},
+    )
+    assert second.status_code == status.HTTP_200_OK
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
+    assert len(rows) == 2, "两单元产物均应注册（同名覆盖时仅剩一行）"
+    names = {meta["file_name"] for meta in rows}
+    assert len(names) == 2  # 文件名互异
+    assert any("-dxf-municipal_cass-design-" in name for name in names)
+    assert any("-dxf-municipal_chenshachi-design-" in name for name in names)
+    dxf_files = sorted(
+        name for name in os.listdir(test_settings.exports_dir) if name.endswith(".dxf")
+    )
+    assert len(dxf_files) == 2  # exports_dir 双 dxf（无同名覆盖）
 
 
 @pytest.mark.anyio

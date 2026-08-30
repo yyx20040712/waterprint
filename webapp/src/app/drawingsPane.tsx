@@ -14,16 +14,19 @@
  *   - 非 lazy（无 echarts 大件——普通导入）；
  *   - "wp:task" 事件监听（第五处内联+注记对齐——ParamForm dispatch/
  *     solutionsPane/elevationPane/costPane 四处先例；抽公共事件名模块
- *     挂账 UX 批）→invalidate ["/api/exports"] 前缀键（列表+工况源子键
- *     全失效）；
+ *     挂账 UX 批）→invalidate ["/api/exports"] 前缀键=导出列表键失效
+ *     （R5[DS-07]：工况源键 ['/api/cost/${projectId}'] 不在该前缀下，
+ *     由 costPane 第四处事件桥 invalidate 同键缓存联动——注记如实）；
  *   - 工况/单元源查询错误分级呈现（costPane R3 同款口径）：工况源 404
  *     （CostSourceNotFoundError——无 done calc，与导出能力同根）附
  *     「先提交计算」引导；网络错/窄化错不挂误导 hint；
  *   - 空态：?project= 缺失=指引文案；产物列表空=空目录引导（先经
- *     上方导出发起产出图纸）；ErrorBoundary label=图纸预览。
+ *     上方导出发起产出图纸；R6[DS-03] 加载期 isPending 渲染 Spin——
+ *     data 未到时 rows=[] 非空态语义，不误显引导）；ErrorBoundary
+ *     label=图纸预览。
  */
 import { useEffect, useState } from "react";
-import { Alert, Typography } from "antd";
+import { Alert, Spin, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ExportButton } from "../features/drawings/components/ExportButton";
@@ -123,6 +126,10 @@ export function DrawingsPane() {
                 ? exportsQuery.error.message
                 : "未知错误"}
             </Typography.Paragraph>
+          ) : exportsQuery.isPending ? (
+            // R6（DS-03）：加载期不误显空目录引导（costPane「正在加载」专门
+            // 分支同款——data 未到时 rows=[] 非「无产物」）
+            <Spin />
           ) : (
             <Alert
               type="info"

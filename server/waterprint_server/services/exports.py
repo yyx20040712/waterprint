@@ -25,8 +25,10 @@
 #      注册表（列表查询）只记元数据不复制数据。
 #   R3 批量导出走低优先级队列（§17.1）；单产物即时生成上限（超过
 #      阈值转任务，防同步请求超时）。
-#   R4 文件名确定性：项目 id + kind + condition + 三元组摘要
-#      （禁止当前时钟——同名同输入即同文件，幂等重导出覆盖校验）。
+#   R4 文件名确定性：项目 id + kind + (unit) + condition + 三元组摘要
+#      （禁止当前时钟——同名同输入即同文件，幂等重导出覆盖校验；
+#      FE9 R1[DS-01]：dxf 单产物附 unit 分量——同结果集同工况多单元
+#      导出文件名互异，防同名覆盖静默丢产物）。
 #
 # 【实现注记（SERVER 2026-08-26）】
 #   - 单产物即时上限=1（>1 项即转 export_batch 任务，R3 v1 阈值）。
@@ -57,6 +59,12 @@
 #     D4 kind 后缀映射——_deterministic_name 恒 .xlsx 收敛为按 kind
 #     映射（_KIND_SUFFIXES）：dxf→.dxf。既有 calcbook 命名零漂移
 #     （dxf 历史从未成功导出——恒 501，无存量文件名面）。
+#   - FE9 R 轮（2026-08-30，二审全 CONFIRMED 后裁定）：
+#     R1（DS-01 Critical）确定性命名附 unit 分量——单产物路径
+#     _deterministic_name(unit_id=options.unit_id)（批量 items 面不传
+#     ——worker 挂账同前）；修复锚=同名覆盖静默丢产物（多单元导出）。
+#     R3（DS-08）options.unit_id 严格化（_unit_id_of：仅非空字符串
+#     透传，bool/数值不再 str() 宽转→None=core 诚实 501 面维持）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -202,23 +210,51 @@ def _name_component(value: str, fallback: str, what: str) -> str:
 
 
 def _deterministic_name(
-    project_id: str, kind: str, condition_key: str, digest: str
+    project_id: str,
+    kind: str,
+    condition_key: str,
+    digest: str,
+    *,
+    unit_id: str | None = None,
 ) -> str:
-    """R4 确定性命名：项目 id+kind+condition+三元组摘要（禁当前时钟）。
+    """R4 确定性命名：项目 id+kind+(unit)+condition+三元组摘要（禁时钟）。
 
-    R1-1：全部四分量过白名单（project_id/condition=validate_component、
+    R1-1：全部分量过白名单（project_id/condition/unit=validate_component、
     kind∈_KINDS、digest=sha256 hex 天然安全）——穿越即拒（422）。
     FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf；历史恒 .xlsx
     对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
+    FE9 R1（DS-01 修复 2026-08-30）：unit_id 分量——非 None 时命名序
+    {project}-{kind}-{unit}-{condition}-{digest}{后缀}（unit 过白名单
+    同面校验）；None 时命名零漂移（calcbook/批量 items 面）。修复锚：
+    dxf 正向打通后同结果集同工况多单元导出原名恒同→os.replace 同名
+    覆盖=首产物与边车静默丢失（二审探针实锤：两 disposition 全同+目录
+    仅剩单 dxf）——单元键进名后文件名必然互异（core 图元/标题随
+    unit_id 三路分化，字节互异）。
     """
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
     safe_project = _name_component(project_id, "REQUIRED", "project_id")
     safe_condition = _name_component(condition_key, "all", "condition_key")
+    unit_part = (
+        f"-{_name_component(unit_id, 'REQUIRED', 'unit_id')}"
+        if unit_id is not None
+        else ""
+    )
     return (
-        f"{safe_project}-{kind}-{safe_condition}"
+        f"{safe_project}-{kind}{unit_part}-{safe_condition}"
         f"-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
     )
+
+
+def _unit_id_of(chosen: Mapping[str, Any]) -> str | None:
+    """FE9 R3（DS-08）：options.unit_id 严格化——仅非空字符串透传。
+
+    bool/数值不再 str() 宽转（宽转后 core 查不到对照表亦诚实 501，但
+    「'True' 不在工况图」式消息失真）——非字符串/空串一律 None=core
+    unit_id-None 闸「全厂总图归 M5 site_plan」诚实 501 面维持。
+    """
+    unit = chosen.get("unit_id")
+    return unit if isinstance(unit, str) and unit else None
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
@@ -256,12 +292,17 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     if stale and not force:
         raise StaleExportError(result_digest, current_digest)
     template = str(_template_for(ctx, kind))
+    # FE9 R1（DS-01）：单产物路径文件名附 unit 分量（options.unit_id——dxf
+    # 单元键进名防同名覆盖）；批量 items 面 unit 恒 None（worker 透传挂账
+    # S2 落盘化批——命名面随 worker 面同批收口）。
+    unit_option = _unit_id_of(chosen)
     names = [
         _deterministic_name(
             project_id,
             str(item.get("kind", "")),  # 缺 kind=白名单外→422（禁 KeyError 500）
             str(item.get("condition_key", "")),
             result_digest,
+            unit_id=unit_option if len(items) <= _IMMEDIATE_LIMIT else None,
         )
         for item in items
     ]
@@ -310,14 +351,14 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     # FE9 D3：options 透传（单产物路径——core _EXPORT_OPTIONS 同款键集；
     # 空串归一 None：unit_id None→core NotReady 全厂总图 501 诚实面、
     # condition_key None→core 缺省 design 档+UserWarning。批量路径不透传
-    # ——worker 面挂账 S2 落盘化批，注记区）。
-    options_unit = chosen.get("unit_id")
+    # ——worker 面挂账 S2 落盘化批，注记区。R3：unit_id 严格化（非字符串
+    # 一律 None——str() 宽转移除，_unit_id_of）。
     core.export_artifact(
         kind,
         plant,
         Path(template),
         tmp,
-        unit_id=str(options_unit) if options_unit else None,
+        unit_id=unit_option,
         condition_key=condition_key or None,
     )
     os.replace(tmp, out)

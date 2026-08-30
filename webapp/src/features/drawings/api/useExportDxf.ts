@@ -15,8 +15,10 @@
  *   - 错误归一与 http.ts 同款（409 StaleExportError[stale 二选一消费面]/
  *     501 ArtifactKindNotReady/ExportTemplateMissingError[诚实未就绪]/
  *     404 ExportSourceNotFoundError[先提交计算引导面]——code 判别）；
- *   - 成功后 invalidate ['/api/exports'] 前缀键（列表+工况源子键全失效
- *     ——新产物入目录表；'wp:task' 事件桥之外的主动刷新面）；
+ *   - 成功后 invalidate ['/api/exports'] 前缀键=导出列表键失效（新产物
+ *     入目录表；R5[DS-07]：工况源键 ['/api/cost/${projectId}'] 不在该
+ *     前缀下，由 costPane 同键缓存联动——'wp:task' 事件桥之外的主动
+ *     刷新面）；
  *   - anchor 下载不携 CSS 类名（webapp 零 CSS 文件——download 属性直挂）。
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
