@@ -12,6 +12,9 @@
  *     原因文本，不白屏——ErrorBoundary 未挂载现状下唯一围栏）；
  *   - 剖切：store（clippingEnabled/Height）→ THREE.Plane → 材质
  *     clippingPlanes（Y-up 高度面，§12.3 view 态）；
+ *   - UX2 D5 取景自适应：机位=preset 方向归一×（对角线×1.5）+bounds
+ *     中心（投影层 bounds 全 placements AABB——机位薄壳不测，app 层
+ *     惯例；空场景回退原绝对坐标；fov 50 不变）；
  *   - 图层开关：水面/内部构件/标注（store 显隐——渲染密度控制）；
  *   - 性能预算 1080p ≥60fps（InstancedMesh 前提，§18.1）；
  *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）；UX1 D5：
@@ -42,6 +45,44 @@ const CAMERA_PRESETS = {
   top: [0, 60, 1] as [number, number, number],
   side: [40, 5, 0] as [number, number, number],
 };
+
+/**
+ * UX2 D5 取景自适应机位：preset 方向向量归一化×（对角线长×1.5）+
+ * bounds 中心（三 preset 方向语义保持——iso 斜视/top 近俯视微倾防正射
+ * 退化/side 侧视；fov 50 不变；固定机位不随场景尺度的 FE3 质量观察①
+ * 收口）。空场景（bounds=null）回退原绝对坐标——零场景零尺度基准。
+ */
+function cameraPosition(
+  preset: keyof typeof CAMERA_PRESETS,
+  scene: RenderScene,
+): [number, number, number] {
+  const direction = CAMERA_PRESETS[preset];
+  const bounds = scene.bounds;
+  if (bounds === null) {
+    return direction;
+  }
+  const center: [number, number, number] = [
+    (bounds.min[0] + bounds.max[0]) / 2,
+    (bounds.min[1] + bounds.max[1]) / 2,
+    (bounds.min[2] + bounds.max[2]) / 2,
+  ];
+  const length = Math.hypot(direction[0], direction[1], direction[2]);
+  const unit: [number, number, number] =
+    length > 0
+      ? [direction[0] / length, direction[1] / length, direction[2] / length]
+      : [0, 1, 0];
+  const diagonal = Math.hypot(
+    bounds.max[0] - bounds.min[0],
+    bounds.max[1] - bounds.min[1],
+    bounds.max[2] - bounds.min[2],
+  );
+  const distance = diagonal * 1.5;
+  return [
+    center[0] + unit[0] * distance,
+    center[1] + unit[1] * distance,
+    center[2] + unit[2] * distance,
+  ];
+}
 
 /** 404 引导（无最近完成结果集——先提交计算；UX1 D5 与 elevation/cost/
  * drawings 族 NO_CALC_HINT 同模式同源，尾词随三维面板）。 */
@@ -130,7 +171,7 @@ export function Scene({
         </div>
       ) : null}
       <Canvas
-        camera={{ position: CAMERA_PRESETS[cameraPreset], fov: 50 }}
+        camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows
         gl={{ localClippingEnabled: clippingEnabled }}
       >

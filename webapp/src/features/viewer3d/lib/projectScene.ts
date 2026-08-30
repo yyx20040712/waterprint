@@ -4,9 +4,10 @@
  * 输入:  SceneResponse（/api/scene 响应——orval 生成类型，scene_version 门
  *        在此校验；AUDIT2 FIX1 C-1 契约由 SceneGraph 更名+stale 旗标——
  *        stale 消费归 viewer3dPane 呈现面，投影层零消费零推导维持）
- * 输出:  RenderScene（solids/waters/internals 三组渲染描述+root 序——零色值零业务推导）
+ * 输出:  RenderScene（solids/waters/internals 三组渲染描述+root 序+bounds
+ *        全 placements AABB——UX2 D5 取景自适应数据锚；零色值零业务推导）
  *
- * 规格说明（FE1 D4；core scene.py R4 唯一版本读取口）：
+ * 规格说明（FE1 D4；core scene.py R4 唯一版本读取口；UX2 D5 bounds 聚合）：
  *   - SCENE_VERSION 门：非 "waterprint-scene-1/y-up/m" 显式拒（原因附
  *     实际值与期望值——坐标约定/单位漂移前置到投影边界）；
  *   - 五 kind 完备：box/cylinder/plane/extrusion/water_surface 全映射，
@@ -41,7 +42,13 @@ export type RenderNode = {
   placements: Vec3[];
 };
 
-/** 渲染场景（三组+root 序——组件按组挂材质/图元策略）。 */
+/** 全 placements 轴对齐包围盒（UX2 D5 取景自适应的数据锚）。 */
+export type SceneBounds = {
+  min: Vec3;
+  max: Vec3;
+};
+
+/** 渲染场景（三组+root 序+bounds 聚合——组件按组挂材质/图元策略）。 */
 export type RenderScene = {
   sceneVersion: string;
   conditionKey: string;
@@ -49,6 +56,8 @@ export type RenderScene = {
   solids: RenderNode[];
   waters: RenderNode[];
   internals: RenderNode[];
+  /** 全 placements AABB（solids+waters+internals；空场景=null——机位回退）。 */
+  bounds: SceneBounds | null;
 };
 
 /** 投影非法（版本漂移/未知 kind/root 悬空）——渲染层显式拒。 */
@@ -73,6 +82,43 @@ function placementsOf(origin: Vec3, count: number, dims: Record<string, number>)
     placed.push([origin[0] + column * stepX, origin[1], origin[2] + row * stepZ]);
   }
   return placed;
+}
+
+/**
+ * UX2 D5 bounds 聚合：solids+waters+internals 全 placements 的 AABB
+ * （取景自适应的数据锚——机位薄壳消费；空集=null 显式缺省禁伪盒）。
+ */
+function boundsOfPlacements(nodes: RenderNode[]): SceneBounds | null {
+  let min: Vec3 | null = null;
+  let max: Vec3 | null = null;
+  for (const node of nodes) {
+    for (const [x, y, z] of node.placements) {
+      if (min === null || max === null) {
+        min = [x, y, z];
+        max = [x, y, z];
+        continue;
+      }
+      if (x < min[0]) {
+        min[0] = x;
+      }
+      if (y < min[1]) {
+        min[1] = y;
+      }
+      if (z < min[2]) {
+        min[2] = z;
+      }
+      if (x > max[0]) {
+        max[0] = x;
+      }
+      if (y > max[1]) {
+        max[1] = y;
+      }
+      if (z > max[2]) {
+        max[2] = z;
+      }
+    }
+  }
+  return min !== null && max !== null ? { min, max } : null;
 }
 
 export function projectScene(scene: SceneResponse): RenderScene {
@@ -143,5 +189,6 @@ export function projectScene(scene: SceneResponse): RenderScene {
     solids,
     waters,
     internals,
+    bounds: boundsOfPlacements([...solids, ...waters, ...internals]),
   };
 }

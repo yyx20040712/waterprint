@@ -63,7 +63,12 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > →自动 POST calc/run[conditions=原始 checked_units 原样透传；run 失败
 > 仅提示不回滚]+?task= 回写[ParamForm D3-③ 同构]；纯函数面
 > collectAssumptionEdits/withAssumptionOverrides/rawCheckedUnits 落
-> lib/designParams[NaN/Infinity/null 拒提交]——vitest +9 用例）**
+> lib/designParams[NaN/Infinity/null 拒提交]——vitest +9 用例）；UX2
+> 攒批二段 U2 取景自适应（2026-08-30：projectScene 返回扩 bounds
+> [solids+waters+internals 全 placements AABB，空场景 null——vitest
+> +3 用例数值锚]；Scene 机位=preset 方向归一×[对角线×1.5]+bounds
+> 中心[三 preset 方向语义保持，fov 50 不变，空场景回退绝对坐标]——
+> 固定机位不随场景尺度收口）**
 > ——89 源文件=入口 1+app 15+features 65+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
 > 由 `scripts/check_webapp.py` 门禁校验——89 计数机器一致）；批 6b

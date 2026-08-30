@@ -283,3 +283,39 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
     expect(internalsGeometry({ ...base, dims: {} })).toEqual({ kind: "box", args: [1, 1, 1] });
   });
 });
+
+// ═══ UX2 U2（取景自适应 2026-08-30）：bounds 聚合 TDD 红先——AABB 全
+// placements（solids+waters+internals）；机位薄壳不测（app 层惯例） ═══
+describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", () => {
+  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值）", async () => {
+    const { projectScene: project } = await import("./projectScene");
+    const out = project(fixture() as never);
+    // 摆置极值实锚：y max=0.5 与 z max=2 来自 aerator 12 实例方阵
+    // （y=0.5 摆位列、z=1+row*0.5 至 2——z 极值非原型 position 的 1）；
+    // x 极值=chan-1 的 30；y min=ground-1 的 -0.01。
+    expect(out.bounds).toEqual({
+      min: [0, -0.01, 0],
+      max: [30, 0.5, 2],
+    });
+  });
+
+  it("空场景（nodes 空→placements 总数 0）bounds=null", async () => {
+    const { projectScene: project } = await import("./projectScene");
+    const out = project(fixture({ nodes: [], root: [] }) as never);
+    expect(out.bounds).toBeNull();
+  });
+
+  it("单节点场景 bounds=该 placement 的退化盒（min=max）", async () => {
+    const { projectScene: project } = await import("./projectScene");
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "solo-1",
+        semantic: "gate",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "gate" },
+        position: [5, 2, -3],
+      },
+    ];
+    const out = project(fixture({ nodes, root: ["solo-1"] }) as never);
+    expect(out.bounds).toEqual({ min: [5, 2, -3], max: [5, 2, -3] });
+  });
+});
