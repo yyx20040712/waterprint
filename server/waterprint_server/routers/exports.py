@@ -121,6 +121,9 @@ async def export_estimate(
     return await _export(body, request, "estimate", force)
 
 
+# ENG4 D3（I-5）注记（源码注释面——路由 docstring 即 OpenAPI description
+# 源，注记入 docstring 会致契约漂移）：project_id 缺省=空串→service 侧
+# 过滤一切恒 []（无「列出全部」语义——前端无消费面，语义裁决挂 UX 批）。
 @router.get("", response_model=list[ExportMeta])
 async def list_exports(request: Request, project_id: str = "") -> list[ExportMeta]:
     """已生成产物列表（?project_id= 过滤；含三元组摘要与 stale 标注）。"""

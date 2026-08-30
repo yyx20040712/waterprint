@@ -22,7 +22,8 @@
 #      校验失败 422 带字段路径错误清单（core parse_project 透传）。
 #   R3 保存语义：返回新 content_hash；design 变更与 view 变更在
 #      响应中区分（view-only 保存不触发 dirty 重算语义 §17.1）。
-#   R4 并发防护：同项目写锁探测（.lock——冲突 409 带持有者信息，
+#   R4 并发防护：同项目写锁探测（{id}.wp.lock——ENG4 D4/I-7 勘误：
+#      with_suffix 替换 {id}.wp.json 末后缀；冲突 409 带持有者信息，
 #      §17.3 v1 单用户最低成本方案）。
 #   R5 禁 pickle：项目 IO 永远 JSON（§18 IPC 行）。
 #

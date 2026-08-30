@@ -34,7 +34,9 @@
 #     （undefined-features-register 登记）。
 #   - 上传面深度闸：_check_depth 迭代计数（Settings.max_json_depth，
 #     与 core io._MAX_DEPTH 同源口径）——pydantic 前置防栈炸弹。
-#   - 锁冲突（R4 router 规格 409）：save 前置探测 .lock（io 锁语义
+#   - 锁冲突（R4 router 规格 409）：save 前置探测 {id}.wp.lock
+#      （ENG4 D4/I-7 勘误 2026-08-30：path.with_suffix(".lock") 于
+#      {id}.wp.json 上=替换最后后缀，非 .wp.json.lock 叠加；io 锁语义
 #      同款），冲突=ProjectLockedError 带锁路径（持有者信息）。
 #
 # 【测试要求】往返保存 design_changed 语义、导入未映射清单、

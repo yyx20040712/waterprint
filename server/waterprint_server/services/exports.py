@@ -135,19 +135,23 @@ def _template_for(ctx: ServiceContext, kind: str) -> Path:
 
 def _latest_calc_result(
     ctx: ServiceContext, project_id: str
-) -> tuple[str, Mapping[str, Any]]:
-    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37）。"""
+) -> Mapping[str, Any]:
+    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37）。
+
+    ENG4 D2（M-8）：原返回 (latest_id, latest) 二元组——首元 task_id 无
+    任何消费面（唯一调用方 create_export 弃置），纯重构收敛为单值
+    （scene/elevation/cost 三服务同款签名，零行为变化）。
+    """
     latest: Mapping[str, Any] | None = None
-    latest_id = ""
     for task_id in ctx.manager.task_ids_for_project(project_id):
         status = ctx.manager.status(task_id)
         if status.kind == "calc" and status.state == "done" and status.result:
-            latest, latest_id = status.result, task_id
+            latest = status.result
     if latest is None:
         raise ExportSourceNotFoundError(
             f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
         )
-    return latest_id, latest
+    return latest
 
 
 def _name_component(value: str, fallback: str, what: str) -> str:
@@ -211,7 +215,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     items: Sequence[Mapping[str, Any]] = chosen.get("items") or [
         {"kind": kind, "condition_key": condition_key}
     ]
-    _source_task_id, latest = _latest_calc_result(ctx, project_id)
+    latest = _latest_calc_result(ctx, project_id)
     result_digest = str(latest.get("design_hash", ""))
     current_digest = design_digest(read_project(ctx, project_id).design)
     stale = result_digest != current_digest
@@ -294,7 +298,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
 
 
 def list_exports(ctx: ServiceContext, project_id: str) -> tuple[ExportMeta, ...]:
-    """产物列表（注册表=元数据边车扫描；无独立索引库语义同 projects R4）。"""
+    """产物列表（注册表=元数据边车扫描；无独立索引库语义同 projects R4）。
+
+    ENG4 D3（I-5）注记：project_id 缺省=空串→raw.get("project_id") == ""
+    恒不匹配→恒 []（无「列出全部」语义——前端无消费面，语义裁决挂 UX
+    批，禁就地自创语义）。
+    """
     metas: list[ExportMeta] = []
     for sidecar in sorted(ctx.exports_dir.glob("*.meta.json")):
         try:
