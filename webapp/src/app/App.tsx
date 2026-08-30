@@ -6,7 +6,8 @@
  *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey 状态机
  *
  * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
- *   FE8 批 6b 段六 cost 标签实装替换占位屏）：
+ *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
+ *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
  *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
@@ -25,14 +26,18 @@
  *     "wp:task" 事件桥 invalidate 刷新）；cost 标签=CostPane（FE8：
  *     latest done calc 四模块概算装配——分级汇总表+可折叠溯源+指标
  *     对照卡+工况切换，非 lazy 无大件，"wp:task" 事件桥第四处）；
- *     唯 drawings 一标签维持占位屏（feature 骨架未实装——D8 非本批范围）；
+ *     drawings 标签=DrawingsPane（FE9：dxf 单元图导出+产物目录+元数据
+ *     预览卡——工况/单元源 cost/projects 同键缓存共享，"wp:task" 事件
+ *     桥第五处）；占位屏组件随 FE9 退役删除（宪法 §2 死代码即删——
+ *     六标签零消费面）；
  *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
  */
 import { useState } from "react";
-import { Layout, Menu, Tabs, Typography } from "antd";
+import { Layout, Menu, Tabs } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
+import { DrawingsPane } from "./drawingsPane";
 import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
@@ -40,17 +45,6 @@ import { SolutionsPane } from "./solutionsPane";
 import { Viewer3dPane } from "./viewer3dPane";
 
 const { Sider, Content, Header } = Layout;
-
-/** 占位标签屏（feature 骨架未实装——D8 维持现状措辞；标识符避开 grep
- * 门禁英文占位特征词）。 */
-function StubPane({ label }: { label: string }) {
-  return (
-    <Typography.Text type="secondary">
-      {label}：骨架阶段结构与规格已冻结，实现按里程碑推进（见
-      docs/file-contracts.md）
-    </Typography.Text>
-  );
-}
 
 export function App() {
   const [activeKey, setActiveKey] = useState<AppRoute>("canvas");
@@ -91,7 +85,7 @@ export function App() {
                 {
                   key: "drawings",
                   label: "图纸预览",
-                  children: <StubPane label="图纸预览" />,
+                  children: <DrawingsPane />,
                 },
                 {
                   key: "cost",

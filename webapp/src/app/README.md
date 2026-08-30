@@ -7,7 +7,7 @@
 
 | 文件 | 职责 | 状态 |
 |------|------|------|
-| `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE3 已接线（2026-08-29）：viewer3d 标签挂 Viewer3dPane，余四标签占位屏（D8） |
+| `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE9 更新（2026-08-30）：六标签全实装（drawings 挂 DrawingsPane），占位屏组件退役删除 |
 | `providers.tsx` | Provider 组合：AntD ConfigProvider（深色默认）/ QueryClient | FE3 实装：模块级 QueryClient 单例（组件外创建）+darkAlgorithm |
 | `router.tsx` | 路由表：画布/三维（懒加载）/高程/图纸/概算 | 路由名冻结；机制定 D1=Tabs 状态机（App.tsx 持 activeKey），本文件类型面零消费变化 |
 | `ErrorBoundary.tsx` | 每 feature 一个边界的封装件+errorReportPayload 导出 | FE3 最小接线：componentDidCatch 结构化上报+重试 fallback（复制诊断挂账 UX 批） |
@@ -20,6 +20,7 @@
 | `solutionsPane.tsx` | solutions 标签页装配：?project=/?task= 双参+单单元枚举提交+TaskPanel（SSE）+方案表/诊断面板+apply 任务轨分立（R1 双轨） | FE6 实装（FE6 批记账遗漏，FE7 补登 2026-08-29） |
 | `elevationPane.tsx` | elevation 标签页装配：?project= 消费+lazy ProfileChart（echarts 独立 chunk）+ErrorBoundary+空态/404 引导+ConditionSwitcher+PumpStationsPanel+"wp:task" 监听 invalidate | FE7 实装 |
 | `costPane.tsx` | cost 标签页装配：?project= 消费+ErrorBoundary+空态/404 引导+工况 Select（缺省=design 回显）+EstimateTable 分级汇总+IndicatorsCard 指标对照+"wp:task" 监听 invalidate（第四处内联——非 lazy 无大件） | FE8 实装 |
+| `drawingsPane.tsx` | drawings 标签页装配：?project= 消费+ErrorBoundary+空态引导+工况/单元源 404 分级+ExportButton 导出发起+SheetList 产物目录+DrawingPreview 元数据卡+"wp:task" 监听 invalidate（第五处内联——非 lazy 无大件） | FE9 实装 |
 
 ## 交互规范基线（§19，实现期遵守）
 

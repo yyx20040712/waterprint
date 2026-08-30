@@ -31,11 +31,19 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > 三元组串——M4 任一数字可回溯落点）+IndicatorsCard 指标对照（OK 绿/
 > WARN 橙/未校核灰）+工况 Select 缺省 design 回显；非 lazy 无大件；
 > "wp:task" 事件桥第四处内联 invalidate 前缀键；AUDIT2 FIX2 后事件名
-> 常量收口 shared/events +方案应用路径补派发[C-2]+六门负例 18 形状入册）**
-> ——79 源文件=入口 1+app 13+features 57+shared 8，全部带 TS 契约头
+> 常量收口 shared/events +方案应用路径补派发[C-2]+六门负例 18 形状入册）；
+> drawings 图纸面板已挂载第五标签（FE9 批 6b 段七 2026-08-30：dxf 导出
+> 全链——server 模板闸收窄至 calcbook+options 透传+.dxf 后缀映射（本
+> 仓库 server 面配套批）；导出发起（单元/工况双选+409 stale 二选一
+> Modal+错误分级）+产物目录（kind/工况/文件名/三元组/stale 徽标）+
+> 元数据预览卡（D1 保守预裁——DXF 线稿渲染挂账 Ruling，新依赖红线禁
+> 引入）；工况/单元源 cost/projects 同端点同键缓存共享；
+> "wp:task" 事件桥第五处 invalidate ["/api/exports"] 前缀键——批 6b
+> 七 feature 收官，六标签全实装（占位屏组件退役删除））**
+> ——84 源文件=入口 1+app 14+features 61+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
-> 由 `scripts/check_webapp.py` 门禁校验——79 计数机器一致）；唯 drawings
-> 一标签维持占位屏，其余 feature 实装按 M2+ 推进。
+> 由 `scripts/check_webapp.py` 门禁校验——84 计数机器一致）；批 6b
+> 工程 viewer 面收官，后续 feature 实装按 M2+ 推进。
 
 ## 结构
 
