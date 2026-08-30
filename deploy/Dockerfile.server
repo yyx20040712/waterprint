@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+# WaterPrint 服务层镜像（multi-stage：uv 构建依赖 → slim 运行时）。
+#
+# 构建上下文=仓库根（server 对 ../core 是 uv path 依赖，镜像内须同时可见两包源）。
+# 镜像源：uv 走 pyproject 的 aliyun [[tool.uv.index]]（国内网络对策，README 既定口径）；
+#         builder 内安装 uv 本体经 pip 的 aliyun 源。
+FROM python:3.12-slim AS builder
+
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_LINK_MODE=copy \
+    PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /build
+# 先拷清单（pyproject/uv.lock）再拷源：依赖层缓存与源码改动解耦
+COPY core/pyproject.toml core/uv.lock ./core/
+COPY core/waterprint/ ./core/waterprint/
+COPY server/pyproject.toml server/uv.lock ./server/
+
+# --frozen：uv.lock 入库，不重解析；--no-dev：运行时零开发依赖；
+# --no-install-project：server 自身不装 venv（运行期以 /app 源码 + PYTHONPATH 装载，
+# 与仓库开发态"从仓库根启动"语义一致）——waterprint-core（path 依赖）随锁以 wheel 装入。
+RUN cd server && uv sync --frozen --no-dev --no-install-project
+
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+COPY --from=builder /opt/venv /opt/venv
+COPY server/waterprint_server/ ./waterprint_server/
+# 数据包（coefficients/unit_prices/templates/constraint_kb，9.5M）打入镜像：
+# 版本化资产随镜像走，项目/导出走卷（见 compose.yml）
+COPY data/ ./data/
+
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    # Settings 前缀 WATERPRINT_（settings.py）：三基点显式钉在容器内路径，卷挂载点
+    WATERPRINT_PROJECTS_DIR=/app/projects \
+    WATERPRINT_EXPORTS_DIR=/app/exports \
+    WATERPRINT_DATA_DIR=/app/data \
+    # structlog JSON 行落文件（main._configure_logging）；docker logs 见 uvicorn 面
+    WATERPRINT_LOG_FILE=/app/waterprint-server.log
+
+EXPOSE 8000
+CMD ["uvicorn", "waterprint_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

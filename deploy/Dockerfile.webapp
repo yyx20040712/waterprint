@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+# WaterPrint 前端镜像（multi-stage：node24+pnpm 构建 → nginx 运行时）。
+#
+# 构建上下文=仓库根——orval 需要 api-contracts/openapi.json（契约单一事实源），
+# pnpm 需要 workspace 清单与根 .npmrc（npmmirror + node-linker=hoisted）。
+# 与 CI webapp job 同口径（ENG4 后稳定配方）：corepack enable → 宽松锁安装 →
+# pnpm orval → pnpm build。
+FROM node:24 AS builder
+
+ENV COREPACK_NPM_REGISTRY=https://registry.npmmirror.com \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    npm_config_registry=https://registry.npmmirror.com
+
+WORKDIR /build
+# corepack 从根 package.json 的 packageManager 字段取 pnpm@10.34.5
+RUN corepack enable
+
+# 先拷清单层（缓存解耦），再拷源
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY api-contracts/openapi.json ./api-contracts/
+COPY webapp/ ./webapp/
+
+WORKDIR /build/webapp
+# --no-frozen-lockfile：与 CI 同口径（锁文件跨平台重装容差）
+RUN pnpm install --no-frozen-lockfile \
+ && pnpm orval \
+ && pnpm build
+
+FROM nginx:alpine AS runtime
+
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /build/webapp/dist/ /usr/share/nginx/html/
+
+EXPOSE 80

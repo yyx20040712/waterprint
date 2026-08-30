@@ -1,0 +1,32 @@
+# 前端镜像的上下文排除表（伴生 Dockerfile.webapp——根上下文下唯一生效机制）。
+# 上下文=仓库根；本表只放前端面无关件（内核/服务/文档/CI/运行时产物/本地缓存），
+# 但保留 api-contracts/openapi.json（orval 输入）与根 .npmrc/pnpm 清单（构建需要）；
+# deploy/ 整体排除但 nginx.conf 例外（runtime 阶段 COPY 反代配置）。
+core/
+server/
+data/
+docs/
+scripts/
+.github/
+deploy/*
+!deploy/nginx.conf
+mkdocs.yml
+test-lock.manifest.json
+AGENTS.md
+node_modules/
+webapp/node_modules/
+webapp/dist/
+webapp/tsconfig.tsbuildinfo
+.git/
+.venv/
+venv/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+*.egg-info/
+*.log
+projects/
+exports/
+output/

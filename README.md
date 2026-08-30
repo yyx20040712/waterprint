@@ -44,6 +44,12 @@ pnpm install && pnpm -C webapp dev
 cd server && uv sync && uv run uvicorn waterprint_server.main:app
 ```
 
+## 部署（Docker 双容器）
+
+一条命令起全栈（前端 nginx 入口 http://localhost:8080 + API 服务 :8000，
+项目/导出持久化卷）：`docker compose -f deploy/compose.yml up -d --build`。
+前置、环境变量、冒烟清单与 FAQ 见 [`docs/deployment.md`](docs/deployment.md)。
+
 > 本地开发用已装备的 `core/.venv`（46 个 wheel）与 `server/.venv`；`uv sync`
 > 待网络恢复可生成锁文件后启用；测试入口 = 分包进入 `core/`、`server/`
 > 目录运行（根目录聚合收集有已知 conftest 冲突）。

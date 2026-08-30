@@ -1,0 +1,31 @@
+# 服务层镜像的上下文排除表（伴生 Dockerfile.server——根上下文下唯一生效机制）。
+# 上下文=仓库根；本表只放服务面无关件（前端/文档/CI/运行时产物/本地缓存）。
+webapp/
+docs/
+scripts/
+api-contracts/
+.github/
+deploy/
+mkdocs.yml
+test-lock.manifest.json
+README.md
+AGENTS.md
+package.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+node_modules/
+core/tests/
+server/tests/
+.git/
+.venv/
+venv/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+*.egg-info/
+*.log
+projects/
+exports/
+output/
