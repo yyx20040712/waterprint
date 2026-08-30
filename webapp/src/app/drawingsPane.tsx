@@ -21,6 +21,12 @@
  *   - 工况/单元源查询错误分级呈现（costPane R3 同款口径）：工况源 404
  *     （CostSourceNotFoundError——无 done calc，与导出能力同根）附
  *     「先提交计算」引导；网络错/窄化错不挂误导 hint；
+ *   - UX1 D3 单元 Select 可投影面过滤：ExportButton units=node.kind ∈
+ *     目录 builtin 集（useUnitCatalog——同键 ['/api/units'] 缓存共享）
+ *     之外的可投影单元（inlet 等内置节点不再混入——FE9 挂账[默认首选
+ *     项恒 inlet→501]收口）；catalog 未就绪（loading/error）不过滤
+ *     （优雅降级——过滤是增强非门禁，全量选项兜底）；内置四 kind
+ *     值域零硬编码（真源=/api/units 目录判别通道）；
  *   - 空态：?project= 缺失=指引文案；产物列表空=空目录引导（先经
  *     上方导出发起产出图纸；R6[DS-03] 加载期 isPending 渲染 Spin——
  *     data 未到时 rows=[] 非空态语义，不误显引导）；ErrorBoundary
@@ -38,6 +44,7 @@ import {
   useExportsQuery,
   useUnitOptions,
 } from "../features/drawings/api/useExportsQuery";
+import { useUnitCatalog } from "../features/drawings/api/useUnitCatalog";
 import { buildSheetRows } from "../features/drawings/lib/drawingsView";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -73,6 +80,17 @@ export function DrawingsPane() {
   const exportsQuery = useExportsQuery(projectId);
   const conditionQuery = useConditionOptions(projectId);
   const unitQuery = useUnitOptions(projectId);
+  // UX1 D3 可投影面过滤：node.kind ∈ 目录 builtin 集的内置节点剔除
+  // （ExportButton 兜底首选项随之=首个可投影单元）；catalog 未就绪
+  // （data undefined——loading/error）不过滤，全量选项兜底（增强非门禁）
+  const builtinIds = useUnitCatalog().data ?? null;
+  const unitRefs = unitQuery.data ?? [];
+  const exportableUnits =
+    builtinIds === null
+      ? unitRefs.map((unit) => unit.unitId)
+      : unitRefs
+          .filter((unit) => !builtinIds.has(unit.kind ?? ""))
+          .map((unit) => unit.unitId);
 
   if (projectId === null) {
     return (
@@ -115,7 +133,7 @@ export function DrawingsPane() {
         <div style={{ marginBottom: 8 }}>
           <ExportButton
             projectId={projectId}
-            units={unitQuery.data ?? []}
+            units={exportableUnits}
             conditions={conditionQuery.data ?? []}
           />
         </div>

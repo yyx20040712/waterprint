@@ -3,8 +3,9 @@
  *
  * 输入:  projectId（裸 id——null 时禁用不取数）
  * 输出:  useQuery 结果句柄×3（data=narrowExportsResponse/
- *        narrowConditionOptions/单元 id 列表投影；错误统一 Error 面：
- *        WaterprintApiError 取数失败/DrawingsViewError 形状非法拒）
+ *        narrowConditionOptions/{unitId,kind}[] 单元对投影；错误统一
+ *        Error 面：WaterprintApiError 取数失败/DrawingsViewError 形状
+ *        非法拒）
  *
  * 规格说明（FE9 批 6b 段七，D8；useCostQuery/useProjectUnits 同构先例）：
  *   - drawings 自有封装（features 互禁 import——不借 cost/params/solutions
@@ -19,7 +20,10 @@
  *     select=narrowConditionOptions 只投影 conditions 索引面；
  *   - 单元源=projects 同端点（FE5 useProjectDesign/FE6 useProjectUnits
  *     同构）：queryKey ['/api/projects/${projectId}'] 同键缓存共享；
- *     select 投影 design.nodes 键序（单元 id 列表——导出 unit_id 选项）；
+ *     select 投影 design.nodes 键序（{unitId,kind} 对——UX1 D3：node
+ *     kind 供可投影面过滤消费[目录 builtin 集判别]，inlet 等内置节点
+ *     不再混入导出 unit_id 选项；useProjectUnits selectProjectUnits
+ *     同构投影）；
  *   - select 全部模块级引用稳定（不逐渲染重跑）。
  */
 import { useGetCostApiCostProjectIdGet } from "../../../shared/api/generated/cost/cost";
@@ -39,8 +43,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   );
 }
 
-/** design.nodes → 单元 id 列表投影（形状非法抛 Error——useProjectUnits 同款）。 */
-function selectUnitIds(raw: { [key: string]: unknown }): string[] {
+/** 单元引用（导出选项消费面——UX1 D3：kind 供可投影面过滤判别）。 */
+export type UnitOptionRef = {
+  unitId: string;
+  kind: string | null;
+};
+
+/** design.nodes → {unitId,kind}[] 投影（形状非法抛 Error——useProjectUnits 同款）。 */
+function selectUnitRefs(raw: {
+  [key: string]: unknown;
+}): UnitOptionRef[] {
   const design = raw["design"];
   if (!isRecord(design)) {
     throw new Error("项目 design 面缺失或非对象——无法列单元清单");
@@ -49,7 +61,13 @@ function selectUnitIds(raw: { [key: string]: unknown }): string[] {
   if (!isRecord(nodes)) {
     throw new Error("项目 design.nodes 面缺失或非对象——无法列单元清单");
   }
-  return Object.keys(nodes);
+  return Object.entries(nodes).map(([unitId, params]) => ({
+    unitId,
+    kind:
+      isRecord(params) && typeof params["kind"] === "string"
+        ? params["kind"]
+        : null,
+  }));
 }
 
 /** 导出产物列表查询（projectId=null 禁用——drawingsPane 空态省请求）。 */
@@ -81,12 +99,12 @@ export function useConditionOptions(projectId: string | null) {
 
 /** 单元选项查询（projects 同端点同键缓存共享——导出 unit_id 选项面）。 */
 export function useUnitOptions(projectId: string | null) {
-  return useReadProjectApiProjectsProjectIdGet<string[], Error>(
+  return useReadProjectApiProjectsProjectIdGet<UnitOptionRef[], Error>(
     projectId ?? "",
     {
       query: {
         enabled: projectId !== null,
-        select: selectUnitIds,
+        select: selectUnitRefs,
       },
     },
   );
