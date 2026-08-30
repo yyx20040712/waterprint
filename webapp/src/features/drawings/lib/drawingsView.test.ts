@@ -1,8 +1,10 @@
 /**
- * 投影层纯函数测试：导出列表窄化门+图纸目录行模型+工况选项投影（node 环境）。
+ * 投影层纯函数测试：导出列表窄化门+图纸目录行模型+工况选项投影+Content-
+ * Disposition 文件名解析（node 环境）。
  *
  * 输入:  drawingsView 纯函数（node 环境——零 antd import，先红后绿）
- * 输出:  投影契约断言（窄化门逐类拒带键定位/行序=服务端序/工况索引面）
+ * 输出:  投影契约断言（窄化门逐类拒带键定位/行序=服务端序/工况索引面/
+ *        导出文件名解析 RFC 5987 优先级）
  */
 import { describe, expect, it } from "vitest";
 
@@ -11,6 +13,7 @@ import {
   buildSheetRows,
   narrowConditionOptions,
   narrowExportsResponse,
+  parseDisposition,
   type ExportMetaView,
 } from "./drawingsView";
 
@@ -132,6 +135,33 @@ describe("buildSheetRows 图纸目录行模型", () => {
   it("stale 行透传（force 导出旧结果的显式标注面）", () => {
     const rows = buildSheetRows([metaFixture({ stale_labeled: true })]);
     expect(rows[0]!.stale).toBe(true);
+  });
+});
+
+describe("parseDisposition Content-Disposition 文件名解析（UX1 DS-05 迁测）", () => {
+  it("RFC 5987 filename* 优先并解码（百分比编码 → 原文名；与 plain 并存时优先后者不用）", () => {
+    const header =
+      'attachment; filename="fallback.dxf"; filename*=UTF-8\'\'%E6%B1%A0-a.dxf';
+    expect(parseDisposition(header)).toBe("池-a.dxf");
+  });
+
+  it("无 filename* 时取 plain filename（带引号与裸值两形态）", () => {
+    expect(
+      parseDisposition('attachment; filename="p1-dxf-design-5b589e4319.dxf"'),
+    ).toBe("p1-dxf-design-5b589e4319.dxf");
+    expect(parseDisposition("attachment; filename=plain.dxf")).toBe("plain.dxf");
+  });
+
+  it("解码失败原样透传（非 URI 编码形态——服务端 ascii 命名面不丢名）", () => {
+    expect(parseDisposition("attachment; filename*=UTF-8''%%bad%%.dxf")).toBe(
+      "%%bad%%.dxf",
+    );
+  });
+
+  it("null 头/空串/无文件名字段 → null（消费面客户端兜底命名）", () => {
+    expect(parseDisposition(null)).toBeNull();
+    expect(parseDisposition("")).toBeNull();
+    expect(parseDisposition("attachment")).toBeNull();
   });
 });
 

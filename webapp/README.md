@@ -39,10 +39,18 @@ React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
 > 元数据预览卡（D1 保守预裁——DXF 线稿渲染挂账 Ruling，新依赖红线禁
 > 引入）；工况/单元源 cost/projects 同端点同键缓存共享；
 > "wp:task" 事件桥第五处 invalidate ["/api/exports"] 前缀键——批 6b
-> 七 feature 收官，六标签全实装（占位屏组件退役删除））**
-> ——84 源文件=入口 1+app 14+features 61+shared 8，全部带 TS 契约头
+> 七 feature 收官，六标签全实装（占位屏组件退役删除））；UX1 攒批一段
+> URL 态与面板联动收口（2026-08-30：S3 统一 URL 订阅——PROJECT_EVENT
+> 事件桥+useProjectId 共享 hook，六 pane 全换[写方 canvas/viewer3d setter
+> 消费、读方四 pane 订阅]，切 ?project= 已挂载面板响应；S4 路由态进
+> URL——?tab= 持久化[App 初值三级解析：合法值→用之/无 ?tab= 有
+> ?task=→solutions 深链/缺省 canvas]+切标签 replaceState 写入；单元
+> Select 可投影面过滤——目录判别通道[/api/units builtin 集零硬编码，
+> catalog 未就绪不过滤]；DS-05 parseDisposition 迁 lib 抽测；三维 404
+> code 门控挂 NO_CALC_HINT[SceneSourceNotFoundError 实锚]）**
+> ——86 源文件=入口 1+app 15+features 62+shared 8，全部带 TS 契约头
 > （`App.tsx` Tabs 六标签路由状态机+Providers 实装+viewer3d 懒加载标签，
-> 由 `scripts/check_webapp.py` 门禁校验——84 计数机器一致）；批 6b
+> 由 `scripts/check_webapp.py` 门禁校验——86 计数机器一致）；批 6b
 > 工程 viewer 面收官，后续 feature 实装按 M2+ 推进。
 
 ## 结构
@@ -53,7 +61,8 @@ src/
 ├─ features/     canvas/params/solutions/elevation/cost/viewer3d/drawings
 │                （features 互相禁止 import —— 见各 README）
 └─ shared/       api（orval 生成，禁手改）/ store / ui / events.ts
-                （TASK_EVENT 跨面板事件名常量——AUDIT2 FIX2 S12 内联收敛）
+                （TASK_EVENT/PROJECT_EVENT 跨面板事件名常量——AUDIT2
+                FIX2 S12 内联收敛+UX1 S3 project 面）
 ```
 
 ## 命令（环境就绪后，见根 README 环境待办）

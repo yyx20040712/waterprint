@@ -4,10 +4,13 @@
  *
  * 输入:  GET /api/exports 响应（弱类型 unknown——orval 生成类型不进门，
  *        运行期形状逐字段校验）+cost 同端点响应（工况选项投影面）
+ *        +Content-Disposition 响应头字符串（导出下载文件名解析面）
  * 输出:  narrowExportsResponse→ExportMetaView[]（逐字段值域拒，非法抛
  *        DrawingsViewError 带键定位）+buildSheetRows→SheetRow[]（目录
  *        行模型——组件薄壳唯一数据源）+narrowConditionOptions→string[]
- *        （工况索引面——drawings/api 工况源 select 消费）
+ *        （工况索引面——drawings/api 工况源 select 消费）+
+ *        parseDisposition→string|null（RFC 5987 filename* 优先——
+ *        useExportDxf 下载薄壳消费，UX1 DS-05 自私有迁出抽测）
  *
  * 规格说明（FE9 批 6b 段七，D6）：
  *   - 窄化门（FE8 estimateView 同族）：ExportMeta 八字段逐类校验——
@@ -23,6 +26,9 @@
  *   - 工况选项投影：cost 同端点响应的 conditions 键面（drawings/api
  *     自封装同键查询的 select 消费——非空字符串数组，空数组/空串
  *     元素拒[工况索引面——calc 结果恒有 design 档，空属服务端异形]）；
+ *   - UX1 DS-05：parseDisposition 自 useExportDxf 私有迁出导出（约束
+ *     维持：零 antd/零运行期库 import——RegExp+decodeURIComponent 内建
+ *     合法；纯字符串进出 node 可测）；
  *   - 零 antd import（node 环境测试）；零运行期库 import。
  */
 
@@ -158,4 +164,24 @@ export function narrowConditionOptions(raw: unknown): string[] {
     reject("conditions 须为非空字符串数组（工况索引面——元素空串拒）");
   }
   return conditions as string[];
+}
+
+/**
+ * UX1 DS-05：Content-Disposition 文件名解析（RFC 5987 filename* 优先，
+ * 次 plain filename；null 头/无字段 → null——消费面客户端兜底命名）。
+ */
+export function parseDisposition(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  const star = /filename\*=(?:UTF-8|utf-8)''([^;]+)/.exec(header);
+  if (star?.[1]) {
+    try {
+      return decodeURIComponent(star[1]);
+    } catch {
+      return star[1]; // 非 URI 编码形态原样透传（服务端 ascii 命名面）
+    }
+  }
+  const plain = /filename="?([^";]+)"?/.exec(header);
+  return plain?.[1] ?? null;
 }

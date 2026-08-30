@@ -14,13 +14,18 @@
  *     clippingPlanes（Y-up 高度面，§12.3 view 态）；
  *   - 图层开关：水面/内部构件/标注（store 显隐——渲染密度控制）；
  *   - 性能预算 1080p ≥60fps（InstancedMesh 前提，§18.1）；
- *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）。
+ *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）；UX1 D5：
+ *     404 领域码门控附引导——仅 code==="SceneSourceNotFoundError"（无
+ *     最近完成结果集——server scene.py 404 面实锚）附「先提交计算」
+ *     hint（elevation/cost/drawings 族同模式同源）；网络错/其他错不挂
+ *     （I-3 分级口径——禁误导引导）。
  */
 import { useMemo } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 
 import { useSceneQuery } from "../api/useSceneQuery";
+import { WaterprintApiError } from "../../../shared/api/http";
 import {
   SceneProjectionError,
   projectScene,
@@ -37,6 +42,11 @@ const CAMERA_PRESETS = {
   top: [0, 60, 1] as [number, number, number],
   side: [40, 5, 0] as [number, number, number],
 };
+
+/** 404 引导（无最近完成结果集——先提交计算；UX1 D5 与 elevation/cost/
+ * drawings 族 NO_CALC_HINT 同模式同源，尾词随三维面板）。 */
+const NO_CALC_HINT =
+  "——请先提交计算（POST /api/calc/run）完成后再回本标签查看三维场景。";
 
 export function Scene({
   projectId,
@@ -87,6 +97,12 @@ export function Scene({
     return (
       <div role="alert">
         场景加载失败：{query.error instanceof Error ? query.error.message : "未知错误"}
+        {/* UX1 D5：仅 404 无最近完成结果集面附引导（code 门控）——网络错/
+            其他错不挂误导 hint（I-3 分级口径） */}
+        {query.error instanceof WaterprintApiError &&
+        query.error.code === "SceneSourceNotFoundError"
+          ? NO_CALC_HINT
+          : null}
       </div>
     );
   }

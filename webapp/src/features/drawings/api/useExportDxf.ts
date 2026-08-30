@@ -9,12 +9,15 @@
  *        非 2xx→WaterprintApiError[shared/api/http.ts 同款归一：code=
  *        error_type、message=detail]→消费面错误分级呈现）
  *
- * 规格说明（FE9 批 6b 段七，D8）：
+ * 规格说明（FE9 批 6b 段七，D8；UX1 批 DS-05 文件名解析迁出）：
  *   - POST /api/exports/dxf 响应=文件流（FileResponse）——orval 生成
  *     hook 按 JSON 反序列化（unknown），文件流下载走本手写 fetch 薄壳；
  *   - 错误归一与 http.ts 同款（409 StaleExportError[stale 二选一消费面]/
  *     501 ArtifactKindNotReady/ExportTemplateMissingError[诚实未就绪]/
  *     404 ExportSourceNotFoundError[先提交计算引导面]——code 判别）；
+ *   - UX1 DS-05：Content-Disposition 文件名解析迁 lib/drawingsView
+ *     parseDisposition（原私有零测试——纯函数面入册抽测；本文件消费
+ *     import，约束维持零 antd/零运行期库）；
  *   - 成功后 invalidate ['/api/exports'] 前缀键=导出列表键失效（新产物
  *     入目录表；R5[DS-07]：工况源键 ['/api/cost/${projectId}'] 不在该
  *     前缀下，由 costPane 同键缓存联动——'wp:task' 事件桥之外的主动
@@ -24,6 +27,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { WaterprintApiError } from "../../../shared/api/http";
+import { parseDisposition } from "../lib/drawingsView";
 
 /** 导出提交变量（force=stale 二选一的「仍导出旧结果」支线）。 */
 export type ExportDxfInput = {
@@ -38,23 +42,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return (
     typeof value === "object" && value !== null && !Array.isArray(value)
   );
-}
-
-/** Content-Disposition 文件名解析（RFC 5987 filename* 优先，次 filename）。 */
-function parseDisposition(header: string | null): string | null {
-  if (!header) {
-    return null;
-  }
-  const star = /filename\*=(?:UTF-8|utf-8)''([^;]+)/.exec(header);
-  if (star?.[1]) {
-    try {
-      return decodeURIComponent(star[1]);
-    } catch {
-      return star[1]; // 非 URI 编码形态原样透传（服务端 ascii 命名面）
-    }
-  }
-  const plain = /filename="?([^";]+)"?/.exec(header);
-  return plain?.[1] ?? null;
 }
 
 /** dxf 导出下载（POST 文件流→blob+anchor；非 2xx→WaterprintApiError）。 */
