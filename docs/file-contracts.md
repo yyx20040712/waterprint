@@ -99,6 +99,7 @@
 | `server/waterprint_server/services/elevation.py` | 高程纵断用例（FE7：最近结果集取数[scene 同款模式复制]/假设合成视图/head_losses 空段+±0.00 相对标高+build_profile+evaluate_pumping 装配/crest_elev 服务端投影；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，267 行） | 项目 id+工况键 | ElevationResponse |
 | `server/waterprint_server/services/cost.py` | 概算用例（FE8：最近结果集取数[scene 同款模式复制]/load_prices→load_fee_rules→takeoff→build_estimate→check_indicators 四模块装配/design_scale 经 pint 换算服务面注入/name_zh 单价包直投；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，385 行） | 项目 id+工况键 | CostResponse |
 | `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新） | TaskRequest | TaskStatus/Event 流 |
+| `server/waterprint_server/jobs/registry.py` | 注册表落盘序列化面（S2 R1 拆分：TERMINAL_STATES 终态单源[manager._TERMINAL 同源]/terminal_document 平字段文档[TaskStatus 同构+snapshot_hash，进程内字段不在入参面=排除]/write_record GR-38 原子写+确定性 JSON write_bytes UTF-8/iter_restorable 恢复流[损坏·非终态·不一致逐条跳过+warning fail-visible]，142 行） | registry_dir+平字段束 | JSON 落盘/记录流 |
 | `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用） | payload+令牌 | 结果+进度 |
 
 ## 3. units_lib 单元包登记（按包，非逐文件）
