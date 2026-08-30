@@ -134,11 +134,18 @@ export function SolutionsPane() {
   }, []);
 
   // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
+  // AUDIT2-R R3（DS-03 跨基座一审发现）：终态再派发 TASK_EVENT——重算
+  // 完成后已挂载 elevation/cost 自动刷新（stale 横幅随之解除）；apply 时刻
+  // 的首派发只拉到旧快照+警示,二段刷新此前缺失。本 pane 自监听经 URL
+  // 重读幂等（?task= 未再变,同值早退）。
   const view = useTaskFeed(panelTaskId, () => {
     if (panelTaskId !== null) {
       void queryClient.invalidateQueries({
         queryKey: [`/api/calc/tasks/${panelTaskId}`],
       });
+      window.dispatchEvent(
+        new CustomEvent(TASK_EVENT, { detail: panelTaskId }),
+      );
     }
   });
   const panelStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(

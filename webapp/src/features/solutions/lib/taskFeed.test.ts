@@ -250,7 +250,12 @@ describe("AUDIT2 I-8 taskFeed 未测分支", () => {
   it("载荷缺 type → null", () => {
     expect(parseEventData('{"percent": 10}')).toBeNull();
   });
-  it("percent=NaN → null（isFinite 面——字符串外补数形）", () => {
-    expect(parseEventData('{"type":"progress","percent":NaN}')).toBeNull();
+  it("percent=1e999(Infinity) → 字段级 null（isFinite 面——AUDIT2-R R1/DS-01："
+      + "裸 NaN 非合法 JSON 走整事件解析容错；1e999 真覆盖值域分支——容式门"
+      + "语义=事件保留+percent 归 null,非整事件 null）", () => {
+    const event = parseEventData('{"type":"progress","percent":1e999}');
+    expect(event).not.toBeNull(); // 事件保留（type 合法）
+    expect(event?.type).toBe("progress");
+    expect(event?.percent).toBeNull(); // 非有限数值归 null（宽容门字段级）
   });
 });
