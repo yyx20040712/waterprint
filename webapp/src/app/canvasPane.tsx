@@ -91,7 +91,10 @@ export function CanvasPane() {
                 unitId={selectedUnitId}
               />
             )}
-            <AssumptionsPanel projectId={projectId} />
+            {/* R 轮 R2（DS-05⑥ 跨项目草稿残留——FE5 I1 同族）：key=
+                projectId 切项目强制重挂载——drafts/resets 编辑态不跨项目
+                残留（ParamForm 上方 key 已含 projectId 面，此处单补假设面） */}
+            <AssumptionsPanel key={projectId} projectId={projectId} />
           </aside>
           <div style={{ flex: 1, minWidth: 0 }}>
             <CanvasFlow

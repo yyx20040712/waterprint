@@ -419,6 +419,42 @@ describe("UX2 collectAssumptionEdits（假设编辑收集——D1 面板级一�
     expect(edits.overrides["custom.extra"]).toBe(3);
     expect(edits.changed).toBe(true);
   });
+
+  // ── R 轮 R1（DS-01 显示/收集优先级倒置 2026-08-30）：组件互斥
+  //（onDraft 清 resets/onReset 清 drafts——最新用户意图胜）后纯函数
+  // 保持 reset 优先为防御面锚——共存态组件已不可达，此组=回归锚。 ──
+  it("R1 共存防御面：reset+有效 draft 同键→reset 优先删键（draft 忽略不报无效）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    const edits = collectAssumptionEdits(
+      rows(),
+      { "influent.kz": 2.0 },
+      { "influent.kz": true },
+    );
+    expect(edits.overrides).not.toHaveProperty("influent.kz");
+    expect(edits.invalidKeys).toEqual([]);
+    expect(edits.changed).toBe(true);
+  });
+
+  it("R1 共存防御面：reset+无效 draft（NaN/null）同键→不进 invalidKeys（reset 行无效草稿路径）", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    expect(
+      collectAssumptionEdits(rows(), { "influent.kz": Number.NaN }, { "influent.kz": true })
+        .invalidKeys,
+    ).toEqual([]);
+    expect(
+      collectAssumptionEdits(rows(), { "influent.kz": null }, { "influent.kz": true })
+        .invalidKeys,
+    ).toEqual([]);
+  });
+
+  it("R1 互斥单态链：reset 后再输入新值（组件清 reset 态）→新值写入非删键", async () => {
+    const { collectAssumptionEdits } = await import("./designParams");
+    // 组件互斥后可达态链：先 onReset（resets={kz:true}）→再 onDraft
+    //（resets 清、drafts={kz:2.0}）——收集面=新值 2.0（非删键）
+    const edits = collectAssumptionEdits(rows(), { "influent.kz": 2.0 }, {});
+    expect(edits.overrides["influent.kz"]).toBe(2.0);
+    expect(edits.changed).toBe(true);
+  });
 });
 
 describe("UX2 withAssumptionOverrides（PUT 载荷构造——D2 结构化替换禁散拼）", () => {

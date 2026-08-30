@@ -12,7 +12,9 @@
  *   - D1 编辑收集=collectAssumptionEdits 纯函数（reset 优先于 draft；draft=
  *     目录默认值等值免空写；NaN/Infinity/null 拒提交进 invalidKeys——行内
  *     error 态提示锁面板级提交）；「恢复默认」=overrides 删键回落 DEFAULTS
- *     （目录外键=删行；未覆盖行 no-op 不产变更）；
+ *     （目录外键=删行；未覆盖行 no-op 不产变更）；R 轮 R1（DS-01 显示/
+ *     收集优先级倒置修复）：onDraft 清 resets[key]/onReset 清 drafts[key]
+ *     ——互斥最新意图胜（纯函数 reset 优先保持为共存防御面）；
  *   - D2 PUT 载荷=原始 GET 体（同键不带 select——raw 缓存共享，窄化产物
  *     禁当 body）经 withAssumptionOverrides 仅替换 design.assumption_overrides
  *     （结构化替换禁散拼，其余键原样回传）；
@@ -250,12 +252,32 @@ export function AssumptionsPanel({ projectId }: { projectId: string }) {
                 draft={drafts[row.key]}
                 reset={resets[row.key] === true}
                 invalid={edits.invalidKeys.includes(row.key)}
-                onDraft={(value) =>
-                  setDrafts((prev) => ({ ...prev, [row.key]: value }))
-                }
-                onReset={() =>
-                  setResets((prev) => ({ ...prev, [row.key]: true }))
-                }
+                // R1（DS-01 显示/收集优先级倒置修复 2026-08-30）：
+                // onDraft 清 resets[key]/onReset 清 drafts[key]——互斥，
+                // 最新用户意图胜（此前 reset 后再输入：显示 draft 值而
+                // 收集 reset 优先=提交删键≠所见——倒置实锤）
+                onDraft={(value) => {
+                  setDrafts((prev) => ({ ...prev, [row.key]: value }));
+                  setResets((prev) => {
+                    if (!(row.key in prev)) {
+                      return prev;
+                    }
+                    const next = { ...prev };
+                    delete next[row.key];
+                    return next;
+                  });
+                }}
+                onReset={() => {
+                  setResets((prev) => ({ ...prev, [row.key]: true }));
+                  setDrafts((prev) => {
+                    if (!(row.key in prev)) {
+                      return prev;
+                    }
+                    const next = { ...prev };
+                    delete next[row.key];
+                    return next;
+                  });
+                }}
               />
             ))}
           </div>
