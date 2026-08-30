@@ -318,6 +318,13 @@ describe("buildChartOption：四线纵断 option（纯对象零 echarts import�
     });
   });
 
+  it("M-3 图例避让：legend 置顶 top=0+grid.top=56（绘图区下移让位横轴 rotate 标签）", () => {
+    const option = buildChartOption(narrowElevationResponse(fixture()));
+    expect(option.legend).toMatchObject({ top: 0 });
+    expect(option.grid).toMatchObject({ top: 56 });
+    expect(option.grid).toMatchObject({ bottom: 48 }); // 底距不动（M-3 修复面仅顶部）
+  });
+
   it("同输入双跑 option 逐字段相同（确定性——纯函数）", () => {
     const view = narrowElevationResponse(fixture());
     expect(buildChartOption(view)).toEqual(buildChartOption(view));

@@ -23,6 +23,10 @@
  *     README 随批勘误）；xAxis category 站位序=响应 stations 序（流程
  *     序——前端不重排）；yAxis scale:true（标高真值原点+横纵比例分设
  *     的 echarts 实现面——比例参数后端 options 面不存在，措辞修正记档）；
+ *     M-3 图例避让（ENG4 2026-08-30）：legend 显式 top:0+grid.top
+ *     32→56——图例置顶+绘图区下移，横轴 18 站 rotate 标签区不再被
+ *     默认位图例交叠（回归报告 reg-ss-E-elevation.png 基线证据；
+ *     bottom:48 不动——修复面仅顶部）；
  *   - 语义色纪律（§19/D7）：蓝水线/棕泥线（池底）/绿地面线；池顶线=
  *     结构参考线灰+虚线（与实线水面区分——非语义色位）；色值集中
  *     ELEVATION_LINE_COLORS 一处（option 即渲染描述直入 echarts——
@@ -103,7 +107,7 @@ const SEVERITY_DOMAIN: readonly string[] = ["ERROR", "WARN", "INFO"];
 /** 纵断图 option（纯对象——结构面按 echarts LineChart 消费子集声明）。 */
 export type ProfileChartOption = {
   tooltip: { trigger: string };
-  legend: { data: string[] };
+  legend: { data: string[]; top: number };
   grid: { left: number; right: number; top: number; bottom: number };
   xAxis: { type: string; data: string[]; name: string };
   yAxis: { type: string; scale: boolean; name: string };
@@ -339,8 +343,8 @@ export function buildChartOption(view: ElevationView): ProfileChartOption {
   });
   return {
     tooltip: { trigger: "axis" },
-    legend: { data: ["地面线", "水面线", "池底线", "池顶线"] },
-    grid: { left: 48, right: 24, top: 32, bottom: 48 },
+    legend: { data: ["地面线", "水面线", "池底线", "池顶线"], top: 0 },
+    grid: { left: 48, right: 24, top: 56, bottom: 48 },
     xAxis: { type: "category", data: unitIds, name: "单元" },
     yAxis: { type: "value", scale: true, name: "标高（m）" },
     series: [
