@@ -1,15 +1,21 @@
 /**
- * app 地基纯函数单测：URL project 参数解析/合成（D5 单一真相+deep-link）。
+ * app 地基纯函数单测：URL project/task/tab 参数解析/合成（D5 单一真相+
+ * deep-link+UX1 S4 路由态）。
  *
- * 输入:  projectParam.ts 的 parseProjectParam/withProjectParam（node 环境）
- * 输出:  断言：缺失→null/空串→null/合法值回读/多参数保留/编码字符往返
+ * 输入:  projectParam.ts 的 parseProjectParam/withProjectParam/tabParam
+ *        两函数（node 环境）
+ * 输出:  断言：缺失→null/空串→null/合法值回读/多参数保留/编码字符往返/
+ *        tab 非法值→null（ROUTES 成员校验）
  *
- * 规格说明（FE3 批 6b 段一，D6-②）：
+ * 规格说明（FE3 批 6b 段一，D6-②；UX1 批 D2 增 tab 组）：
  *   - parse 入参形态=location.search 原样（含 "?" 前缀——URLSearchParams
  *     忽略首 "?"）；withProjectParam 产出无 "?" 前缀查询串（replaceState
  *     的 pathname 拼接面在 viewer3dPane，本函数保持纯字符串进出）；
  *   - 「不清其余参数」：withProjectParam 只动 project 键，他键原序保留；
- *   - null 语义统一=未选与移除（合法值缺省同走 null，不引入第二空态）。
+ *   - null 语义统一=未选与移除（合法值缺省同走 null，不引入第二空态）；
+ *   - UX1 D2 tab 组：parseTabParam=ROUTES 成员校验（非法值 null——
+ *     冻结面外不造路由）；withTabParam 只动 tab 键（与既有「他键保留」
+ *     公式互证——tab 键自 FE3 起即作测试道具透传，生产消费自 UX1 起）。
  */
 import { describe, expect, it } from "vitest";
 
@@ -17,8 +23,10 @@ import {
   clearTaskParam,
   normalizeProjectId,
   parseProjectParam,
+  parseTabParam,
   parseTaskParam,
   withProjectParam,
+  withTabParam,
   withTaskParam,
 } from "./projectParam";
 
@@ -114,6 +122,32 @@ describe("taskParam 三函数（FE6 D3——?task= 与 ?project= 双参共存）
   it("回写-回读往返：withTaskParam → parseTaskParam 同值", () => {
     const search = withTaskParam("?project=p1", "enum-42");
     expect(parseTaskParam(`?${search}`)).toBe("enum-42");
+  });
+});
+
+describe("tabParam 两函数（UX1 S4——?tab= 路由态进 URL）", () => {
+  it("parseTabParam：合法值回读（ROUTES 六成员——? 前缀与裸 search 两形态）", () => {
+    expect(parseTabParam("?tab=drawings")).toBe("drawings");
+    expect(parseTabParam("tab=cost")).toBe("cost");
+    expect(parseTabParam("?tab=canvas")).toBe("canvas");
+  });
+
+  it("parseTabParam：非法值/缺失/空串 → null（ROUTES 成员外不造路由）", () => {
+    expect(parseTabParam("?tab=bogus")).toBeNull();
+    expect(parseTabParam("")).toBeNull();
+    expect(parseTabParam("?")).toBeNull();
+    expect(parseTabParam("?tab=")).toBeNull();
+    expect(parseTabParam("?project=p1")).toBeNull();
+  });
+
+  it("withTabParam：新增 tab 不清其余参数（project/task 他键原序保留）", () => {
+    const search = withTabParam("?project=p1&cond=design", "solutions");
+    expect(search).toBe("project=p1&cond=design&tab=solutions");
+  });
+
+  it("withTabParam：已存在 tab 时替换该键（覆盖旧值——他参数不动）", () => {
+    const search = withTabParam("?tab=canvas&project=p1", "cost");
+    expect(search).toBe("tab=cost&project=p1");
   });
 });
 

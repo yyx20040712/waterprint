@@ -1,15 +1,16 @@
 /**
- * URL project/task 参数解析/合成纯函数（D5 单一真相+deep-link 面）。
+ * URL project/task/tab 参数解析/合成纯函数（D5 单一真相+deep-link+路由态面）。
  *
  * 输入:  查询串（location.search 原样或裸 search）+ 目标 project/task 值
- *        或 null
+ *        或 null+目标 tab（AppRoute 冻结面成员）
  * 输出:  parseProjectParam → 项目 id 或 null；withProjectParam → 新查询串；
  *        normalizeProjectId → 剥 ".wp" 尾缀的归一 id；parseTaskParam →
  *        任务 id 或 null；withTaskParam → 新查询串；clearTaskParam →
- *        移除 task 键的新查询串
+ *        移除 task 键的新查询串；parseTabParam → 合法路由值或 null；
+ *        withTabParam → 写入 tab 键的新查询串
  *
  * 规格说明（FE3 批 6b 段一，D5；R2 补 2026-08-29；FE6 批 6b 段四 D3 补
- *   taskParam 三函数）：
+ *   taskParam 三函数；UX1 批 D2 补 tabParam 两函数）：
  *   - projectId 唯一真相=URL ?project= 参数：初值经 parseProjectParam 直读
  *     location.search；用户经空态下拉选择后 history.replaceState 同步回
  *     URL（不清其余参数——withProjectParam 只动 project 键，他键原序保留）；
@@ -24,8 +25,15 @@
  *     task 键——project 等他键原序保留）；写入点三处（枚举提交/方案应用/
  *     ParamForm apply）全走 window.history.replaceState；消费面=
  *     solutionsPane（任务态面板+方案表挂载依据）；taskId 无归一尾缀面
- *     （服务端生成 id 不带 .wp）；既有 project 三函数签名零改动。
+ *     （服务端生成 id 不带 .wp）；既有 project 三函数签名零改动；
+ *   - UX1 D2 tab 通道：?tab= 路由态进 URL（S4——Tabs activeKey 初值与
+ *     持久化）；parseTabParam=ROUTES 成员校验（非法值 null——冻结面外
+ *     不造路由，App 缺省 canvas 兜底）；withTabParam 只动 tab 键（project/
+ *     task 等他键原序保留——tab 键透传语义既有测试自 FE3 起已锁）；
+ *     本文件 app 层 import router.tsx 同层合法（AppRoute 冻结面消费）。
  */
+import { ROUTES, type AppRoute } from "./router";
+
 export function parseProjectParam(search: string): string | null {
   const value = new URLSearchParams(search).get("project");
   return value === null || value === "" ? null : value;
@@ -70,5 +78,23 @@ export function withTaskParam(search: string, taskId: string | null): string {
 export function clearTaskParam(search: string): string {
   const params = new URLSearchParams(search);
   params.delete("task");
+  return params.toString();
+}
+
+/** UX1 D2（S4）：?tab= 直读（ROUTES 成员校验——非法值 null，缺省 canvas 兜底）。 */
+export function parseTabParam(search: string): AppRoute | null {
+  const value = new URLSearchParams(search).get("tab");
+  if (value === null || value === "") {
+    return null;
+  }
+  return (ROUTES as readonly string[]).includes(value)
+    ? (value as AppRoute)
+    : null;
+}
+
+/** UX1 D2（S4）：回写 tab 键（只动 tab——project/task 等他键原序保留）。 */
+export function withTabParam(search: string, tab: AppRoute): string {
+  const params = new URLSearchParams(search);
+  params.set("tab", tab);
   return params.toString();
 }
