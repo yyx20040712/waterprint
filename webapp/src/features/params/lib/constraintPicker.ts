@@ -1,15 +1,19 @@
 /**
- * 约束目录窄化/供选过滤/payload 投影纯函数（CP1 D6——ConstraintPicker 数据面）。
+ * 约束目录窄化/供选过滤/payload 投影/勾选恢复投影纯函数（CP1 D6——
+ * ConstraintPicker 数据面；CP2 D3——持久勾选恢复面）。
  *
  * 输入:  /api/constraints 原始载荷（unknown——orval 自由对象面）+ 目标单元
- *        id + 选中 key 集
+ *        id + 选中 key 集+项目原始 GET 体（恢复投影——design.
+ *        constraint_choices）
  * 输出:  narrowConstraintCatalog → 条目视图[]（八键逐条校验，非法抛
  *        ConstraintCatalogError）；filterSelectable → 供选子集
  *        （kind=enumeration_filter 且 unit_kinds 含单元）；toPayloadItems
  *        → 枚举 options.constraints 三键载荷（key/expression/source——
- *        severity 不入 worker 三键面）
+ *        severity 不入 worker 三键面）；restoreConstraintKeys → 勾选
+ *        keys 全集（value 恒 "on" 的键——CP2 恢复投影）
  *
- * 规格说明（CP1 2026-08-31，D6/D7；窄化门纪律=solutionsView 同款）：
+ * 规格说明（CP1 2026-08-31，D6/D7；窄化门纪律=solutionsView 同款；
+ *   CP2 2026-09-01，D1/D3/D7）：
  *   - 服务端 kb 装载已 fail-visible（库级拒），本门为前端第二防线
  *     （传输破损/缓存异形拒于渲染前——非法形状 error 态呈现非静默）；
  *   - 供选双门=kind+unit_kinds（effluent_standard 恒空表=机制性不供选
@@ -17,7 +21,12 @@
  *   - payload 恰三键对齐 worker.py _run_enumerate 构造面（key/expression/
  *     source；severity 留 UI 呈现面不入载荷）；
  *   - 未知 key 静默滤除：目录刷新与选中集的竞态下不构造半载荷
- *     （提交时目录为准——selected 与 selectable 的差集自然消失）。
+ *     （提交时目录为准——selected 与 selectable 的差集自然消失）；
+ *   - CP2 恢复投影：design.constraint_choices 值恒 "on"（D1 固定值——
+ *     档位语义属扩展位禁现在造），非 "on" 值键不恢复；kb 外死键照恢
+ *     （持久勾选全集——显示/提交面=全集∩供选面自然滤除，D7 键域宽）；
+ *     形状宽容不炸（缺键/非对象→[]——rawCheckedUnits 同口径：恢复面
+ *     非窄化门，异形留 PUT 侧守卫）。
  */
 export type ConstraintEntryView = {
   key: string;
@@ -121,4 +130,28 @@ export function toPayloadItems(
       ? [{ key: entry.key, expression: entry.expression, source: entry.source }]
       : [];
   });
+}
+
+/** CP2 D1：勾选值恒 "on"（解勾=删键；档位语义属扩展位禁现在造）。 */
+const CHOICE_ON = "on";
+
+/**
+ * CP2 D3 恢复投影：raw GET 体 design.constraint_choices → 勾选 keys 全集
+ * （value 恒 "on" 的键——死键照收，供选面∩过滤归显示/提交面）。
+ */
+export function restoreConstraintKeys(raw: unknown): string[] {
+  if (!isRecord(raw)) {
+    return [];
+  }
+  const design = raw["design"];
+  if (!isRecord(design)) {
+    return [];
+  }
+  const choices = design["constraint_choices"];
+  if (!isRecord(choices)) {
+    return []; // 缺省/非对象宽容回空（恢复面不炸——异形留 PUT 侧守卫）
+  }
+  return Object.entries(choices).flatMap(([key, value]) =>
+    value === CHOICE_ON ? [key] : [],
+  );
 }

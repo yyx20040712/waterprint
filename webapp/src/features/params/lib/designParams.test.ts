@@ -498,3 +498,58 @@ describe("UX2 rawCheckedUnits（conditions 原样透传——D4 自动重算）"
     expect(rawCheckedUnits(withDesign({ checked_units: "all" }))).toBeUndefined();
   });
 });
+
+// ═══ CP2（约束勾选持久化 2026-09-01 D1/D2）：PUT 载荷构造 TDD 红先——
+// 动态 import 隔离红面（UX2 collectAssumptionEdits 先例同款） ═══
+describe("CP2 withConstraintChoices（PUT 载荷构造——仅替换 design.constraint_choices）", () => {
+  it("keys→{key:\"on\"} 全量替换；其余顶层/design 键原样；原体不可变", async () => {
+    const { withConstraintChoices } = await import("./designParams");
+    const raw = fixture();
+    const next = withConstraintChoices(raw, [
+      "vxinglvchi.v_filter_band",
+      "ganhua.moisture_out_band",
+    ]);
+    const design = next["design"] as Record<string, unknown>;
+    expect(design["constraint_choices"]).toEqual({
+      "vxinglvchi.v_filter_band": "on",
+      "ganhua.moisture_out_band": "on",
+    });
+    expect(design["nodes"]).toEqual(
+      (raw["design"] as Record<string, unknown>)["nodes"],
+    );
+    expect(design["assumption_overrides"]).toEqual({});
+    expect(design["checked_units"]).toEqual([]);
+    expect(next["format_version"]).toBe("1.0");
+    expect(next["metadata"]).toEqual(raw["metadata"]);
+    expect(next["view"]).toEqual(raw["view"]);
+    expect(
+      (raw["design"] as Record<string, unknown>)["constraint_choices"],
+    ).toEqual({}); // 纯函数：原 GET 体不被改写
+  });
+
+  it("空 keys → constraint_choices 回空（解勾删键——value 恒 \"on\" 无档位面）；kb 外死键原样入键（键域宽=schema 级）", async () => {
+    const { withConstraintChoices } = await import("./designParams");
+    expect(
+      (withConstraintChoices(fixture(), [])["design"] as Record<string, unknown>)[
+        "constraint_choices"
+      ],
+    ).toEqual({});
+    expect(
+      (withConstraintChoices(fixture(), ["dead.key"])["design"] as Record<
+        string,
+        unknown
+      >)["constraint_choices"],
+    ).toEqual({ "dead.key": "on" });
+  });
+
+  it("体非 record/design 缺失或非对象显式拒（原始体异形守卫——withAssumptionOverrides 同口径）", async () => {
+    const { withConstraintChoices } = await import("./designParams");
+    expect(() => withConstraintChoices(null, [])).toThrow(DesignParamsError);
+    expect(() => withConstraintChoices({ format_version: "1.0" }, [])).toThrow(
+      DesignParamsError,
+    );
+    expect(() =>
+      withConstraintChoices({ format_version: "1.0", design: [] }, []),
+    ).toThrow(/design/);
+  });
+});

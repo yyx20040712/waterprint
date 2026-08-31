@@ -1,15 +1,18 @@
 /**
  * 参数面板纯函数层：design 参数面窄化+draft 归一+脏比较+目录索引+假设合成行
- * +假设编辑收集/PUT 载荷构造/conditions 透传（UX2 U1）。
+ * +假设编辑收集/PUT 载荷构造/conditions 透传（UX2 U1）+约束勾选 PUT 载荷
+ * 构造（CP2）。
  *
  * 输入:  readProject 返回体（弱类型 {[key:string]:unknown}）+META1 目录条目
  *        （UnitMetaEntry/AssumptionEntry——generated 类型面）+表单草稿
+ *        +约束勾选 keys（CP2——solutionsPane 乐观态）
  * 输出:  纯函数族（DesignParams 窄化产物/normalizeDraftValue 归一/
  *        collectParamChanges 提交面/indexUnits 目录索引/buildAssumptionRows
  *        假设行/collectAssumptionEdits 假设编辑收集/withAssumptionOverrides
- *        PUT 载荷/rawCheckedUnits conditions 透传——非法形状抛 DesignParamsError）
+ *        PUT 载荷/rawCheckedUnits conditions 透传/withConstraintChoices
+ *        约束勾选 PUT 载荷——非法形状抛 DesignParamsError）
  *
- * 规格说明（FE5 批 6b 段三，D1/D7/D8）：
+ * 规格说明（FE5 批 6b 段三，D1/D7/D8；UX2 2026-08-30；CP2 2026-09-01 D1/D2）：
  *   - D8 窄化门（FE4 projectFlow D6 门模式复用）：顶层 format_version 轻门
  *     （存在+string——具体版本语义归 service/core 双闸）+design/design.nodes/
  *     节点值容器形状逐类拒（错误消息带键定位）；nodeKinds 面=D1 builtin
@@ -27,6 +30,10 @@
  *     range/grid 不参与比较（range 无执行点=UI 展示数据，冻结 §三）；
  *   - 假设合成=DEFAULTS∪overrides（覆盖优先；目录外覆盖键追加成行——
  *     defaultValue=null+覆盖标记）；覆盖标记=key∈assumption_overrides；
+ *   - CP2 D1/D2 withConstraintChoices：GET 未窄化原始体仅替换
+ *     design.constraint_choices（keys→{key:"on"} 全量替换——空 keys 回空
+ *     即解勾删键；value 恒 "on" 档位语义属扩展位），其余顶层/design 键
+ *     原样回传（withAssumptionOverrides 同构——结构化替换禁散拼）；
  *   - 零运行期库 import（node 测试不拖 antd/react-query 链）。
  */
 import type {
@@ -360,4 +367,37 @@ export function rawCheckedUnits(raw: unknown): string[] | undefined {
   }
   const units = design["checked_units"];
   return Array.isArray(units) ? (units as string[]) : undefined;
+}
+
+// ── CP2（约束勾选持久化 2026-09-01 D1/D2）：勾选即 PUT 载荷构造 ──
+
+/**
+ * CP2 D2 PUT 载荷构造：GET 未窄化原始体仅替换 design.constraint_choices
+ * （keys→{key:"on"} 全量替换——空 keys 回空即解勾删键；value 恒 "on"），
+ * 其余顶层/design 键原样回传（withAssumptionOverrides 同构——结构化替换
+ * 禁散拼；窄化产物缺键即异形拒）。
+ */
+export function withConstraintChoices(
+  raw: unknown,
+  keys: string[],
+): Record<string, unknown> {
+  if (!isRecord(raw)) {
+    reject(
+      `PUT 载荷构造须原始 ProjectFile：得到 ${JSON.stringify(raw) ?? "undefined"}`,
+    );
+  }
+  const design = raw["design"];
+  if (!isRecord(design)) {
+    reject(
+      `PUT 载荷构造：原始体 design 须为对象：得到 ${JSON.stringify(design) ?? "undefined"}`,
+    );
+  }
+  const constraintChoices: Record<string, string> = {};
+  for (const key of keys) {
+    constraintChoices[key] = "on";
+  }
+  return {
+    ...raw,
+    design: { ...design, constraint_choices: constraintChoices },
+  };
 }
