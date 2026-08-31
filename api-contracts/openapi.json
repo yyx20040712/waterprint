@@ -144,6 +144,79 @@
         "title": "CancelResponse",
         "type": "object"
       },
+      "ConstraintCatalog": {
+        "description": "约束目录响应体（D6 不分页整发——kb 声明序）。",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ConstraintEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "title": "ConstraintCatalog",
+        "type": "object"
+      },
+      "ConstraintEntry": {
+        "description": "约束条目：八键齐全投影（value_basis=数值溯源——UI tooltip 面）。",
+        "properties": {
+          "expression": {
+            "title": "Expression",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "enumeration_filter",
+              "effluent_standard"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "unit_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unit Kinds",
+            "type": "array"
+          },
+          "value_basis": {
+            "title": "Value Basis",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "unit_kinds",
+          "label",
+          "expression",
+          "source",
+          "severity",
+          "value_basis"
+        ],
+        "title": "ConstraintEntry",
+        "type": "object"
+      },
       "CostResponse": {
         "description": "cost 数据通道响应（D1~D4 契约面：工况索引+版本+规模+表+指标）。\n\nAUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——\n表/规模随快照冻结[R1 语义]时消费方据此显式提示，禁静默使用）。",
         "properties": {
@@ -1812,6 +1885,28 @@
         "summary": "Get Solutions",
         "tags": [
           "calc"
+        ]
+      }
+    },
+    "/api/constraints": {
+      "get": {
+        "description": "约束知识库目录（18 条 kb 声明序——CP1 D4/D6；data_dir 经 ctx）。",
+        "operationId": "list_constraints_api_constraints_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstraintCatalog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Constraints",
+        "tags": [
+          "units"
         ]
       }
     },

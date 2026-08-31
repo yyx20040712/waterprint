@@ -1,7 +1,8 @@
-"""单元元数据端点：GET /api/units + GET /api/assumptions（静态只读目录）。
+"""单元元数据端点：GET /api/units + GET /api/assumptions + GET /api/constraints（静态只读目录）。
 
-输入:  无（静态 catalog——服务层 lru_cache 直投，无请求参数）
-输出:  UnitCatalog/AssumptionCatalog（服务层冻结模型——response_model 直用）
+输入:  无（静态 catalog——units/assumptions 服务层 lru_cache 直投；constraints
+      经 ctx.settings.data_dir 装载 kb——CP1 D4）
+输出:  UnitCatalog/AssumptionCatalog/ConstraintCatalog（服务层冻结模型——response_model 直用）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -12,6 +13,9 @@
 #                          manifest 字段渲染与 canvas 流体色/中文名/摘要
 #                          数据面前置）
 #   GET /api/assumptions   设计假设清单（21 条——registry 代码即数据投影）
+#   GET /api/constraints    约束知识库目录（18 条=过滤 6+出水参考 12——kb
+#                          1.0.0 起草态装载投影，CP1 D4：ConstraintPicker
+#                          数据面；data_dir 经 app.state.ctx[settings 真源]）
 #
 # 【行为规格】
 #   R1 静态只读：无请求参数无 ctx（D6 不分页整发）；服务层 lru_cache
@@ -27,9 +31,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
+from waterprint_server.services import constraints as constraints_service
 from waterprint_server.services import units as service
+from waterprint_server.services.constraints import ConstraintCatalog
 from waterprint_server.services.units import AssumptionCatalog, UnitCatalog
 
 # 双端点同路由器（路由集恰两件）：prefix=/api 母面承载 /api/units 与
@@ -47,3 +53,10 @@ async def list_units() -> UnitCatalog:
 async def list_assumptions() -> AssumptionCatalog:
     """设计假设清单（21 条 registry 声明序——六字段取五，D2/D6）。"""
     return service.list_assumptions()
+
+
+@router.get("/constraints", response_model=ConstraintCatalog)
+async def list_constraints(request: Request) -> ConstraintCatalog:
+    """约束知识库目录（18 条 kb 声明序——CP1 D4/D6；data_dir 经 ctx）。"""
+    ctx = request.app.state.ctx
+    return constraints_service.list_constraints(ctx.settings.data_dir)

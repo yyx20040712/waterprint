@@ -40,7 +40,7 @@ uv run python -m waterprint_server.dump_openapi   # OpenAPI → api-contracts/
 tests/
 ├─ conftest.py               # test_settings/client(ASGITransport AsyncClient)
 │                            #   /service_ctx 三 fixture + anyio 后端
-├─ test_api_contract.py      # OpenAPI 契约（端点集 23/无 Any 泄漏/404-422-501/穿越 4xx）
+├─ test_api_contract.py      # OpenAPI 契约（端点集 24[CP1 +constraints1]/无 Any 泄漏/404-422-501/穿越 4xx）
 ├─ test_settings.py / test_app_factory.py
 ├─ routers/                  # 六路由器镜像（端点集逐件恰等/stale 409/幂等/SSE 头）
 ├─ services/                 # 六服务镜像（design_changed/回滚/无解 done/确定性命名）

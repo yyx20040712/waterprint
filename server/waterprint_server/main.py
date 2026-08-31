@@ -33,10 +33,10 @@
 #     waterprint.graph）——类基映射覆盖可导入面，LoopDivergence 等
 #     仅 worker 侧产生的领域异常经 DOMAIN_ERROR_CODES 名义表映射
 #     （failed 任务诊断消费面），集中一处不散落。
-#   - R3 契约自检：OpenAPI 生成成功 + 端点集==23（八路由器规格并集
+#   - R3 契约自检：OpenAPI 生成成功 + 端点集==24（八路由器规格并集
 #     ——META1 注释同步勘误：原记 18 系 FE1 前陈数；FE7 +elevation1；
 #     FE8 +cost1）+ A2 面（schema 无 Any 泄漏）由镜像测试常驻；
-#     启动期断言=端点数。
+#     启动期断言=端点数；+1=constraints GET，CP1 D4）。
 #   - executor 注入口：create_app(settings, executor=None)——测试注入
 #     ThreadPoolExecutor（跳过 spawn；探针另以真进程池实录）。
 #
@@ -157,10 +157,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+1+2+1=23（白名单字面量和式；+1=scene GET，FE1 D1；
+# 端点集冻结 5+6+5+2+1+1+2+1+1=24（白名单字面量和式；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
-# 目录两端点；+1=cost GET，FE8 D1）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1
+# 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -210,14 +210,14 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==23（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==24（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
             "（八路由器规格并集 projects5+calc6+exports5+events2+scene1"
-            "+elevation1+units2+cost1——A1 锁定）"
+            "+elevation1+units2+cost1+constraints1——A1 锁定）"
         )
 
 

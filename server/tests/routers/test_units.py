@@ -15,7 +15,7 @@ from fastapi import status
 _mod = importlib.import_module("waterprint_server.routers.units")
 router = getattr(_mod, "router")
 
-_EXPECTED = {("get", "/api/units"), ("get", "/api/assumptions")}
+_EXPECTED = {("get", "/api/units"), ("get", "/api/assumptions"), ("get", "/api/constraints")}  # CP1 D5 +1
 
 
 def test_router_exposes_units_endpoints_wiring() -> None:
