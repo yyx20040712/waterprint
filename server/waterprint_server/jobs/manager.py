@@ -41,12 +41,14 @@
 #     core 无协作取消钩子——UF 记档）。
 #   - 完成回调经 loop.run_in_executor 的 asyncio 包装（executor→loop
 #     桥内建于 asyncio）；进度桥显式用 run_coroutine_threadsafe（R3）。
-#   - S2 落盘化（2026-08-30，D1~D5）：_finish 终态原子写 registry_dir/
-#     <task_id>.json+start() 恢复终态记录供读（exports 最近结果集消费面
-#     重启后可用）——序列化/校验面归 jobs/registry.py（R1 拆分：500 行
-#     预算门禁，_TERMINAL 同源单定义）；submit/running 不落盘（重启无
-#     痕迹 404 诚实面）；损坏/非终态跳过+warning；幂等表不恢复（D5）；
-#     registry_dir 默认 None=不落盘（既有测试零破坏，行为逐字节等价）。
+#   - S2 落盘化（2026-08-30，D1~D5）+ENG5 重启语义增强（2026-08-31，
+#     裁决②）：四时机原子写 registry_dir/<task_id>.json——submit 初档
+#     queued/_pump running 迁移/_finish 终态/cancel·shutdown 的 queued
+#     终态；start() 恢复记录供读（非终态经 registry.iter_restorable 变换
+#     标 failed[InterruptedByRestart]——运行态任务重启后可查；损坏/缺键
+#     跳过+warning）；幂等表不恢复（D5）；registry_dir 默认 None=不落盘
+#     （既有测试零破坏）。公开数据类迁 jobs/records.py（ENG5 D4——500
+#     行预算拆分，from-import 再导出面稳定）。
 #
 # 【测试要求】状态机全路径、优先级次序、取消（queued/running 两态）、
 #   进度事件顺序、shutdown 无泄漏。
@@ -67,12 +69,18 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty
-from types import MappingProxyType
 from typing import Any, Final
 
 import structlog
 
 from waterprint_server.jobs import registry, worker
+from waterprint_server.jobs.records import (  # ENG5 D4 再导出（导出面=__all__，下文）
+    Event,
+    TaskHandle,
+    TaskRequest,
+    TaskStatus,
+    UnknownTaskError,
+)
 from waterprint_server.jobs.worker import run_task
 
 _LOGGER = structlog.get_logger(__name__)
@@ -80,63 +88,20 @@ _LOGGER = structlog.get_logger(__name__)
 # SSE 订阅者事件缓冲上限（背压 R4：满则丢最旧进度事件，状态事件不丢）。
 _EVENT_BUFFER: Final[int] = 10**2
 _POLL_SECONDS: Final[float] = 1 / 2  # 轮询间隔秒；幂商式保白名单 {0,1,2,10}（ADR-009）
-_KINDS: Final[tuple[str, ...]] = ("calc", "enumerate", "export_batch")
 _TERMINAL: Final[tuple[str, ...]] = registry.TERMINAL_STATES  # 终态面单定义（S2 R1 同源）
 
-
-class UnknownTaskError(KeyError):
-    """任务 id 不在注册表——领域异常（404 面）。"""
-
-
-@dataclass(frozen=True)
-class TaskRequest:
-    """任务提交束：kind + JSON 可序列化 payload + 优先级（§17.1 值域）。"""
-
-    kind: str
-    payload: Mapping[str, Any]
-    priority: int = 1
-
-    def __post_init__(self) -> None:
-        """kind 白名单 + payload 快照守卫（§18 IPC 边界）。"""
-        if self.kind not in _KINDS:
-            raise ValueError(f"未知任务 kind：{self.kind!r}（合法面 {_KINDS}）")
-        object.__setattr__(self, "payload", MappingProxyType(dict(self.payload)))
+# 显式再导出面（ENG5 D4——mypy no-implicit-reexport；任务域数据类自 records 迁移）。
+__all__ = [
+    "Event",
+    "Manager",
+    "TaskHandle",
+    "TaskRequest",
+    "TaskStatus",
+    "UnknownTaskError",
+]
 
 
-@dataclass(frozen=True)
-class TaskHandle:
-    """任务句柄（幂等提交的相等性载体）。"""
-
-    task_id: str
-
-
-@dataclass(frozen=True)
-class TaskStatus:
-    """状态查询快照：progress/stage/condition_key/stale/error 诊断/结果句柄。"""
-
-    task_id: str
-    kind: str
-    state: str
-    progress: float
-    stage: str
-    condition_key: str | None
-    stale: bool
-    error: str | None
-    error_type: str | None
-    result: Mapping[str, Any] | None
-    project_id: str = ""
-    error_code: int | None = None  # R1-2：诊断名→HTTP 码（消费面回填，AU-2）
-
-
-@dataclass(frozen=True)
-class Event:
-    """SSE 事件（R1：JSON 化 {type, task_id, percent, message, condition_key}）。"""
-
-    type: str
-    task_id: str
-    percent: float
-    message: str
-    condition_key: str | None
+# 终态面/任务域数据类见 records（ENG5 D4 拆分——本模块再导出）。
 
 
 @dataclass
@@ -240,6 +205,7 @@ class Manager:
             self._idem[idempotency_key] = task_id
         heapq.heappush(self._pending, (-request.priority, self._seq, task_id))
         self._seq += 1
+        self._persist(self._tasks[task_id])  # ENG5 D1：submit 初档 queued（运行态有痕前提）
         await self._emit(
             self._tasks[task_id], Event("state", task_id, 0.0, "queued", None)
         )
@@ -290,6 +256,7 @@ class Manager:
             record.state = "cancelled"
             self._loop.create_task(
                 self._emit(record, Event("state", task_id, record.progress, "cancelled", None)))
+            self._persist(record)  # ENG5 D1：queued 取消=终态迁移同落盘
             return True
         self._cancel_dir.joinpath(f"{task_id}.cancel").write_text(
             "cancelled", encoding="utf-8"
@@ -332,6 +299,7 @@ class Manager:
             record = self._tasks.get(task_id)
             if record is not None and record.state == "queued":
                 record.state = "cancelled"
+                self._persist(record)  # ENG5 D1：优雅停机终态落盘（重启后保持 cancelled）
         report: dict[str, str] = {}
         if self._running:
             _done, _pending = await asyncio.wait(
@@ -349,13 +317,13 @@ class Manager:
 
     # ── 内部：调度与桥接 ────────────────────────────────────────
 
-    def _persist_terminal(self, record: _TaskRecord) -> None:
-        """S2 D1/D4 薄壳：_TaskRecord 投影平字段→registry 落盘（序列化面归 jobs/registry.py）。"""
+    def _persist(self, record: _TaskRecord) -> None:
+        """S2 D1/D4+ENG5 D1 薄壳：投影平字段→registry 落盘（序列化面归 jobs/registry.py）。"""
         if self._registry_dir is None:
             return
         try:
             registry.write_record(
-                self._registry_dir, record.task_id, registry.terminal_document(
+                self._registry_dir, record.task_id, registry.task_document(
                     task_id=record.task_id, kind=record.request.kind,
                     payload=record.request.payload, state=record.state,
                     progress=record.progress, stage=record.stage,
@@ -366,7 +334,7 @@ class Manager:
                 ),
             )
         except OSError as exc:  # R2 R1（DS-03）：落盘失败禁阻断 _pump（调度停摆防线）
-            _LOGGER.error("任务注册表终态落盘失败（调度继续；重启后该任务无档可恢复）",
+            _LOGGER.error("任务注册表落盘失败（调度继续；重启后该任务无档可恢复）",
                           task_id=record.task_id, registry_dir=str(self._registry_dir),
                           reason=f"{type(exc).__name__}: {exc}")
 
@@ -408,6 +376,7 @@ class Manager:
             if record is None or record.state != "queued":
                 continue  # 已取消的 queued 任务（cancel 已直接置 cancelled）
             record.state = "running"
+            self._persist(record)  # ENG5 D1：running 迁移更新档（崩溃残留可辨原状态）
             cancel_path = self._cancel_dir / f"{task_id}.cancel"
             future = self._loop.run_in_executor(
                 self._executor, run_task, dict(record.request.payload), cancel_path
@@ -442,7 +411,7 @@ class Manager:
         await self._emit(
             record, Event("state", task_id, record.progress, record.state, None)
         )
-        self._persist_terminal(record)  # S2 D1：终态迁移原子落盘（registry_dir=None=跳过）
+        self._persist(record)  # S2 D1：终态迁移原子落盘（registry_dir=None=跳过）
         self._pump()
 
     def _listen_progress(self) -> None:

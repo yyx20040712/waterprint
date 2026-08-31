@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+from pathlib import Path
 
 import pytest
 
@@ -198,3 +199,81 @@ async def test_batch_export_names_carry_unit_component_wiring(
         "municipal_cass",
     ]
     assert [item["condition_key"] for item in items] == ["design", "avg"]  # item 自有
+
+
+async def test_export_consumes_restored_result_after_restart_wiring(
+    test_settings,  # type: ignore[no-untyped-def]
+) -> None:
+    """DS-09（S2 记档缺口收口）：重启恢复→exports 最近结果集消费链端到端。
+
+    Manager A（registry_dir=main 同款装配）calc done 落盘→优雅停机→
+    Manager B 同目录恢复→create_export 读恢复档出产物（消费链=
+    task_ids_for_project→status→最末 done calc）；非终态残留档（ENG5）
+    标 InterruptedByRestart 不污染最近结果集选取。
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    from waterprint_server.jobs.manager import Manager
+    from waterprint_server.services import ServiceContext
+    from waterprint_server.settings import ensure_directories
+
+    ensure_directories(test_settings)
+    registry_dir = test_settings.exports_dir / "tasks" / "registry"
+    cancel_dir = test_settings.exports_dir / "tasks" / "cancel"
+    cancel_dir.mkdir(parents=True, exist_ok=True)
+    executor_a = ThreadPoolExecutor(max_workers=1)
+    manager_a = Manager(
+        executor_a,
+        cancel_dir=cancel_dir,
+        loop=asyncio.get_running_loop(),
+        max_concurrent=1,
+        registry_dir=registry_dir,
+    )
+    manager_a.start()
+    ctx_a = ServiceContext(settings=test_settings, manager=manager_a)
+    # create/calc 正门：经服务用例（非直改 manager 内存——消费链真实面）
+    project_id = await _project_with_result(ctx_a)
+    await manager_a.shutdown(1.0)
+    executor_a.shutdown(wait=True)
+    # 崩溃残留夹具：全键 running 档（同项目）——恢复标 failed 且不入结果集选取
+    residue = {
+        "task_id": "residue-run",
+        "kind": "calc",
+        "payload": {"kind": "calc", "project_id": project_id},
+        "state": "running",
+        "progress": 0.5,
+        "stage": "solve",
+        "condition_key": None,
+        "stale": False,
+        "error": None,
+        "error_type": None,
+        "result": None,
+        "snapshot_hash": None,
+        "project_id": project_id,
+    }
+    import json as _json
+
+    registry_dir.mkdir(parents=True, exist_ok=True)
+    (registry_dir / "residue-run.json").write_bytes(
+        (_json.dumps(residue, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
+    )
+    executor_b = ThreadPoolExecutor(max_workers=1)
+    manager_b = Manager(
+        executor_b,
+        cancel_dir=cancel_dir,
+        loop=asyncio.get_running_loop(),
+        max_concurrent=1,
+        registry_dir=registry_dir,
+    )
+    manager_b.start()  # 重启恢复：done 供读+running 残留标中断
+    ctx_b = ServiceContext(settings=test_settings, manager=manager_b)
+    handle = await create_export(ctx_b, project_id, "calcbook")
+    assert handle.task_id is None  # 单产物即时生成（最近结果集可读铁证）
+    assert handle.path.endswith(".xlsx") and Path(handle.path).is_file()
+    restored_residue = manager_b.status("residue-run")
+    assert (restored_residue.state, restored_residue.error_type) == (
+        "failed",
+        "InterruptedByRestart",
+    )
+    await manager_b.shutdown(1.0)
+    executor_b.shutdown(wait=True)

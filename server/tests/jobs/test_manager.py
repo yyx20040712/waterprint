@@ -157,13 +157,15 @@ async def _drive_done_task(  # type: ignore[no-untyped-def]
 async def test_terminal_registry_persists_and_restores_wiring(
     tmp_path, monkeypatch  # type: ignore[no-untyped-def]
 ) -> None:
-    """S2 D1/D2/D4/D5 接线断言：终态记录落盘+重启恢复可查+损坏/非终态跳过。
+    """S2 D1/D2/D4/D5 接线断言：终态记录落盘+重启恢复可查+损坏/缺键跳过。
 
     恢复矩阵（重启语义=同 registry_dir 两 Manager 实例先后构造+start）：
     终态 done 落盘（_finish 原子写）→ 新实例 status 可查（审计字段独立
     回读逐项：state/result/snapshot_hash/project_id/task_ids_for_project）；
-    损坏 JSON 跳过不阻断启动（fail-visible）；非终态记录不恢复（D1 无痕
-    404）；幂等表不恢复（同 key 提交=新任务，D5）。
+    损坏 JSON 跳过不阻断启动（fail-visible）；缺键记录跳过（ENG5 语义镜像
+    更新：非终态全键档标 failed 可查，见 test_restart_marks_nonterminal_
+    failed_wiring——缺键残留仍在恢复面防御跳过）；幂等表不恢复（同 key
+    提交=新任务，D5）。
     """
     with _progress_queue_guard():
         registry = tmp_path / "tasks" / "registry"
@@ -182,7 +184,7 @@ async def test_terminal_registry_persists_and_restores_wiring(
         assert (raw["progress"], raw["stage"], raw["condition_key"]) == (0.0, "queued", None)
         assert "subscribers" not in raw and "cancel_requested" not in raw  # 进程内字段排除（D4）
         (registry / "broken.json").write_bytes(b"{not json")  # 恢复矩阵夹具：损坏档
-        (registry / "ghost.json").write_bytes(  # 非终态遗留档（D1 面不应存在——防御跳过）
+        (registry / "ghost.json").write_bytes(  # 缺键遗留档（恢复面防御跳过——ENG5 后非终态可恢复但缺键仍跳过）
             json.dumps(
                 {
                     "task_id": "ghost",
@@ -213,7 +215,7 @@ async def test_terminal_registry_persists_and_restores_wiring(
         assert manager_b.task_ids_for_project("p1") == (task_id,)
         with pytest.raises(UnknownTaskError):  # 损坏跳过=不在注册表（404 面）
             manager_b.status("broken")
-        with pytest.raises(UnknownTaskError):  # 非终态不恢复（D1：queued/running 无痕）
+        with pytest.raises(UnknownTaskError):  # 缺键记录跳过（恢复面防御——404 面）
             manager_b.status("ghost")
         fresh = await manager_b.submit(  # D5：幂等表不恢复——同 key 新任务
         TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"}),
@@ -312,3 +314,158 @@ async def test_restore_order_follows_mtime_wiring(tmp_path) -> None:  # type: ig
         assert instance.task_ids_for_project("p1") == ("taskzzz", "taskaaa")  # mtime 升序
         await instance.shutdown(1.0)
         executor.shutdown(wait=True)
+
+
+def _full_document(task_id: str, state: str, project_id: str = "p1") -> dict:  # type: ignore[type-arg]
+    """ENG5 恢复矩阵夹具：全 13 键记录（非终态可恢复前提——缺键即跳过面）。"""
+    return {
+        "task_id": task_id,
+        "kind": "calc",
+        "payload": {"kind": "calc", "project_id": project_id},
+        "state": state,
+        "progress": 0.0,
+        "stage": "queued",
+        "condition_key": None,
+        "stale": False,
+        "error": None,
+        "error_type": None,
+        "result": None,
+        "snapshot_hash": None,
+        "project_id": project_id,
+    }
+
+
+async def test_nonterminal_documents_persist_wiring(
+    tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """ENG5 D1（裁决②）：submit 落 queued 初档+running 迁移更新+cancel 终态落盘。
+
+    运行态有痕前提=三时机原子写：t1 占运行位（档=running）→t2 排队
+    （档=queued）→cancel(t2)（档=cancelled——queued 终态不再只改内存）。
+    """
+    with _progress_queue_guard():
+        ORDER.clear(), GATE.clear()
+        monkeypatch.setattr(_mod, "run_task", _fake_run_task)
+        registry = tmp_path / "tasks" / "registry"
+        executor = ThreadPoolExecutor(max_workers=1)
+        instance = Manager(
+            executor,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=registry,
+        )
+        instance.start()
+        try:
+            first = await instance.submit(
+                TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+            )
+            for _ in range(100):
+                if instance.status(first.task_id).state == "running":
+                    break
+                await asyncio.sleep(0.05)
+            # 红先锚点①：running 迁移即时更新档（现仅终态落盘——此处无档）
+            assert (registry / f"{first.task_id}.json").is_file()
+            assert json.loads((registry / f"{first.task_id}.json").read_bytes())[
+                "state"
+            ] == "running"
+            second = await instance.submit(
+                TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+            )
+            # 红先锚点②：submit 落 queued 初档（运行位被占=排队态确定性）
+            assert json.loads((registry / f"{second.task_id}.json").read_bytes())[
+                "state"
+            ] == "queued"
+            assert instance.cancel(second.task_id) is True
+            # 红先锚点③：queued 取消=终态迁移同落盘（现 cancel 只改内存）
+            assert json.loads((registry / f"{second.task_id}.json").read_bytes())[
+                "state"
+            ] == "cancelled"
+        finally:
+            GATE.set()
+            await instance.shutdown(1.0)
+            executor.shutdown(wait=True)
+
+
+async def test_restart_marks_nonterminal_failed_wiring(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """ENG5 D2（裁决②）：重启恢复非终态记录标 failed/InterruptedByRestart 可查。
+
+    全键 running/queued 两档（进程崩溃残留）：恢复后 state=failed+
+    error_type=InterruptedByRestart+result=None+原状态留档于 error 文案；
+    DS-13（S2 记档缺口收口）：恢复任务 events() 首事件=state 快照事件后
+    终止（连接即当前不重放历史，R3）。
+    """
+    registry = tmp_path / "tasks" / "registry"
+    registry.mkdir(parents=True)
+    for task_id, state in (("t-run", "running"), ("t-queue", "queued")):
+        blob = (
+            json.dumps(_full_document(task_id, state), ensure_ascii=False, sort_keys=True)
+            + "\n"
+        ).encode("utf-8")
+        (registry / f"{task_id}.json").write_bytes(blob)
+    with _progress_queue_guard():
+        executor = ThreadPoolExecutor(max_workers=1)
+        manager_b = Manager(
+            executor,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=registry,
+        )
+        manager_b.start()  # 恢复流：非终态变换在内（红先：现跳过→404）
+        for task_id, original in (("t-run", "running"), ("t-queue", "queued")):
+            restored = manager_b.status(task_id)
+            assert restored.state == "failed"
+            assert restored.error_type == "InterruptedByRestart"
+            assert restored.result is None
+            assert original in (restored.error or "")
+            events = manager_b.events(task_id)
+            first = await events.__anext__()
+            assert (first.type, first.message) == ("state", "failed")
+            with pytest.raises(StopAsyncIteration):
+                await events.__anext__()
+        await manager_b.shutdown(1.0)
+        executor.shutdown(wait=True)
+
+
+async def test_shutdown_persists_queued_cancelled_wiring(
+    tmp_path, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """ENG5 D1：优雅停机 queued→cancelled 终态落盘（与崩溃残留语义分立——
+    cancelled 保持 cancelled，仅非终态才标 InterruptedByRestart）。"""
+    with _progress_queue_guard():
+        ORDER.clear(), GATE.clear()
+        monkeypatch.setattr(_mod, "run_task", _fake_run_task)
+        registry = tmp_path / "tasks" / "registry"
+        executor = ThreadPoolExecutor(max_workers=1)
+        instance = Manager(
+            executor,
+            cancel_dir=tmp_path / "cancel",
+            loop=asyncio.get_running_loop(),
+            max_concurrent=1,
+            registry_dir=registry,
+        )
+        instance.start()
+        try:
+            first = await instance.submit(
+                TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+            )
+            for _ in range(100):
+                if instance.status(first.task_id).state == "running":
+                    break
+                await asyncio.sleep(0.05)
+            second = await instance.submit(
+                TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p1"})
+            )
+            await instance.shutdown(0.1)  # 优雅停机：second→cancelled；first 超时报告
+            # 红先锚点：现 shutdown 只改内存——档缺失或停留 queued
+            raw = json.loads((registry / f"{second.task_id}.json").read_bytes())
+            assert raw["state"] == "cancelled"
+            GATE.set()
+            for _ in range(100):
+                if instance.status(first.task_id).state == "done":
+                    break
+                await asyncio.sleep(0.05)
+        finally:
+            GATE.set()
+            executor.shutdown(wait=True)
