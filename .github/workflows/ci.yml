@@ -132,3 +132,19 @@ jobs:
         run: uv sync --frozen
       - name: Pytest 基准（慢机敏感性：CI 偶发红按重跑复核定性——非放宽，交接在册口径）
         run: uv run pytest tests/benchmark -q
+
+  # ENG5 D9（裁决④a——M4 挂账「镜像构建 CI 化」兑现）：双镜像可构建性
+  # 验证，不推 registry。核查面（质量门 §4-2）：本 job 仅用 checkout@v7
+  # （仓内既有六 job 同版，无默认值变化面）+docker CLI（runner 预装，
+  # 零新 action）；镜像源 aliyun/npmmirror 在 Dockerfile ENV 内（本批零
+  # deploy/ 触碰——海外 runner 对公网镜像可达性即本 job 验证目标，本地
+  # 国内面 M4 已验）。
+  deploy-build:
+    name: 镜像构建（deploy/ 可构建性验证）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 构建 server 镜像（上下文=仓库根：uv path 依赖需 core 同场）
+        run: docker build -f deploy/Dockerfile.server .
+      - name: 构建 webapp 镜像（orval 需 api-contracts/openapi.json 同场）
+        run: docker build -f deploy/Dockerfile.webapp .
