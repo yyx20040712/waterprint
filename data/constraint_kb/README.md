@@ -1,9 +1,9 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.0.0 起草态（AI 起草待领域专家追认）**——2026-08-31 夜班 CP1
-> 批首批起草 18 条（enumeration_filter 6+effluent_standard 12），全部
-> 入 `.workflow/pending-domain-expert.md` 追认清单晨报申报；追认后升
-> 1.1.0 定稿。消费方=server `GET /api/constraints`（META1 静态目录端点
+> **状态：1.1.0 已追认定稿（Ruling 2026-08-31）**——用户批复「全部追认」
+> （18 条数值+收录边界三裁；批复记录=.workflow/ledger.md 2026-08-31
+> Ruling 条目+pending-domain-expert.md §22 销账注）。唯一未来项：干化
+> 全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）。
 
 ## 与规划期构想（本文件前版）的差异记档

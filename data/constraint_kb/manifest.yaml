@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.0.0"
+data_version: "1.1.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -8,3 +8,9 @@ data_version: "1.0.0"
 #     **起草态待领域专家追认**（pending-domain-expert.md 全量清单+晨报
 #     逐条申报；追认后升 1.1.0 定稿）。schema 与收录边界见 README.md
 #     （含与 M0 规划构想的差异记档）。
+#   - 1.1.0: **已追认定稿（Ruling 2026-08-31——用户批复「全部追认」）**：
+#     18 条数值+收录边界三裁全部生效；条目 value_basis/source 追认标记
+#     回写（RATIFY2 先例——起草态「AI 起草待追认」→「已追认」）；唯一
+#     留档未来项=干化全干化档（0.20~0.40 为半干化档，全干化档另立待起草
+#     追认）。批复记录=.workflow/ledger.md（2026-08-31 Ruling）+
+#     pending-domain-expert.md §22 销账注。

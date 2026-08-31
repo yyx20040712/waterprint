@@ -50,7 +50,8 @@ def test_filter_entries_carry_unit_kinds_and_values() -> None:
     catalog = list_constraints(_REPO)
     filters = [e for e in catalog.entries if e.kind == "enumeration_filter"]
     assert all(e.unit_kinds for e in filters)  # 过滤面必绑单元
-    assert all("待追认" in e.value_basis for e in catalog.entries)  # 醒目标注逐条
+    # Ruling 2026-08-31 全部追认——起草态「待追认」标记已回写为「已追认」
+    assert all("已追认" in e.value_basis for e in catalog.entries)
     by_key = {e.key: e for e in filters}
     assert by_key["vxinglvchi.v_filter_band"].expression == (
         "v_filter_act >= 7.0 and v_filter_act <= 10.0"
