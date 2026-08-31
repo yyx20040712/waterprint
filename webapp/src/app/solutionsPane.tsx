@@ -39,7 +39,10 @@
  *     挂载执行的双局限经此事件桥收口）；
  *   - D8 枚举提交面：单元下拉（useProjectUnits——design.nodes 投影）
  *     +useRunEnumeration（body={project_id, unit_ids:[unitId], options:
- *     null}——options 默认 margin_min 降序，constraints 空槽挂账）；
+ *     选中约束时 {constraints: 三键载荷}——CP1 兑现「constraints 空槽
+ *     挂账」：ConstraintPicker[features/params] 挂单元下拉与提交钮间，
+ *     供选=filterSelectable(kind 双门+单元归属)，payload=toPayloadItems
+ *     恰三键[severity 不入 worker 面]；无选中=options null 零漂移）；
  *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态
  *     invalidate 重拉——result 载荷与 failed 三件详情源）；表挂载=
  *     表源任务 kind==='enumerate'&&state==='done'&&feasible_count>0；
@@ -69,6 +72,12 @@ import type { ApplyOutcome } from "../shared/api/generated/model";
 import { WaterprintApiError } from "../shared/api/http";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
+import { useConstraints } from "../features/params/api/useConstraints";
+import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
+import {
+  filterSelectable,
+  toPayloadItems,
+} from "../features/params/lib/constraintPicker";
 import { useTaskFeed } from "../features/solutions/api/useTaskFeed";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
@@ -126,10 +135,13 @@ export function SolutionsPane() {
   const [unitId, setUnitId] = useState<string | null>(null);
   // R2：表源任务单元固化快照（应用目标——下拉实时值仅驱动新枚举提交）
   const [enumeratedUnitId, setEnumeratedUnitId] = useState<string | null>(null);
+  const [constraintKeys, setConstraintKeys] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("margin_min");
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
+  // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
+  const constraintsQuery = useConstraints();
 
   // R3：?task= 回写驱动已挂载 pane（ParamForm dispatchEvent——URL 单一
   // 真相重读比对；同值早退不扰动；卸载移除监听）
@@ -249,6 +261,10 @@ export function SolutionsPane() {
   }
 
   const units = unitsQuery.data ?? [];
+  const selectableConstraints = filterSelectable(
+    constraintsQuery.data ?? [],
+    unitId,
+  );
   return (
     <ErrorBoundary label="方案浏览">
       <section>
@@ -265,7 +281,10 @@ export function SolutionsPane() {
               value: unit.unitId,
               label: unit.kind !== null ? `${unit.unitId}（${unit.kind}）` : unit.unitId,
             }))}
-            onChange={(value) => setUnitId(value)}
+            onChange={(value) => {
+              setUnitId(value);
+              setConstraintKeys([]); // 单元切换清空（供选面随单元变——CP1 D6）
+            }}
           />
           <Button
             type="primary"
@@ -279,13 +298,26 @@ export function SolutionsPane() {
                 data: {
                   project_id: projectId,
                   unit_ids: [unitId],
-                  options: null,
+                  options:
+                    constraintKeys.length === 0
+                      ? null
+                      : {
+                          constraints: toPayloadItems(
+                            selectableConstraints,
+                            constraintKeys,
+                          ),
+                        },
                 },
               });
             }}
           >
             提交枚举
           </Button>
+          <ConstraintPicker
+            entries={selectableConstraints}
+            selectedKeys={constraintKeys}
+            onChange={setConstraintKeys}
+          />
           {enumerate.isError ? (
             <Typography.Text type="danger">
               提交失败：
