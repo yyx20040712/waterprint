@@ -9,6 +9,6 @@
 | 包 | 当前状态 | 首个真实版本归属 |
 |----|----------|------------------|
 | unit_prices | 0.0.0（空，待迁移 2019 黑龙江定额并抽验 10%） | M0 数据迁移 |
-| constraint_kb | 0.0.0（空，待迁移 51 条 constraint_hints 并逐条复核出处；条目可挂"失败时建议"字段，见 business-logic §4） | M0/M1 |
+| constraint_kb | **1.0.0 起草态（CP1 批 2026-08-31——AI 起草待追认）**：18 条=enumeration_filter 6[默认栅格可枚举 5 单元中 4 个的行字段精确匹配条目——值=coefficients 1.1.0 同值投影 value_basis 逐条溯源；tuoshui 零收录（dose_pam↔w_pam 跨命名映射禁自创留追认）]+effluent_standard 12[GB 18918-2002 一级A/B×六项参考面——出水水质非枚举行字段 unit_kinds 恒空不供选]；消费面=GET /api/constraints+ConstraintPicker（枚举 options 通道）；schema 与 M0 规划构想差异记档 README | CP1（2026-08-31） |
 | coefficients | 0.7.0（M3c 输送线四单元批——三线齐备收尾[32/32 单元包数据面齐]：factor.<裸短名>.* 共 48 条[集水井=汇流容积法+停留校核+圆形井构造/配水井=均匀分流+孔口 μ 反解水头+k_uneven 余量+井室构造[多出流口 n 参数化——动态多口口径表内冻结]/集配水井=汇流+分流合一单节点/配水渠=明渠输配+侧堰配水+渠末防淤校验]——**裸短名形态**[conveyance_ 前缀剥离 M3a1 期已预置，本批零代码改造]；**removal_rates.yaml 零新增**[穿流单元零水质去除——水量/水质全透传不建 removal 键，照 0.6.0 口径注记在册]；出处仅 GB 50014-2021[§6.1 集水池参照+§6 超高+§7.1 并联系列+§4 渠道流速/超高]+给水排水手册两类，AI 起草 2026-08-27 数据策略 v2，**三线 0.5.0~0.7.0 已追认（RATIFY2 2026-08-28——19 表签字栏+removal 头部回写在册；条号章级标注挂账延续）**；0.6.0 及以前 497 键不扰动[四面逐键比对探针实录]。**I3 已裁 CJJ 131 纳入白名单（2026-08-28 九裁②）——污泥线 source 改标随 I3 升版回填批（预计 0.8.0）**） | M1（0.1.0 签字）/M2（0.2.0~0.4.0 追认）/M3（0.5.0~0.7.0 已追认 RATIFY2） |
 | templates | 1.0.0（DRAFT 批 2026-08-26：calcbook_unit.xlsx 单单元[trace 五字段占位行×5]+calcbook_plant.xlsx 全厂[{{summary.design.*}} 终水六指标族]，M1b 冻结语法、openpyxl 生成零公式；TEMPLATE_REGISTRY 扩两键；**summary 真值已接通（D10 批 2026-08-28：app 层 `_summary_of` 注入+e2e replace 移除+平键集复核完成——design 六键与占位符恰合零变更，不升版）**） | M2 出图批（UF-16 收口——全链闭合） |

@@ -1,0 +1,190 @@
+{
+  "comment": [
+    "WaterPrint 约束知识库（constraint_kb）1.0.0 起草态——AI 起草待领域专家追认（数据策略 v2：全部条目入 .workflow/pending-domain-expert.md 追认清单，晨报逐条申报）。",
+    "两类条目：kind=enumeration_filter（枚举行过滤面——expression 引用枚举结果行字段[默认栅格可枚举 5 单元实测字段面]，可在方案浏览约束勾选中供选）；kind=effluent_standard（GB 18918-2002 出水标准参考面——出水水质非枚举行字段，unit_kinds 恒空=不供选过滤，供后续校核面与人工对照）。",
+    "数值投影口径：enumeration_filter 条目值=coefficients 1.1.0 factors.yaml 同值投影（value_basis 逐条注明源键——真源在系数库，本库不另立数值权威）；expression 字段与值禁跨命名空间映射（tuoshui dose_pam↔w_pam 等映射留追认裁定）。",
+    "出处纪律（数据策略 v2）：source 只标国标+给水排水手册两类；「起草表待追认」注记沿 units_lib CONSTRAINTS 原文保留。"
+  ],
+  "entries": [
+    {
+      "key": "vxinglvchi.v_filter_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["municipal_vxinglvchi"],
+      "label": "V型滤池正常滤速带（v_filter_act）",
+      "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",
+      "source": "GB 50013-2018 §9.5（滤池：均质滤料滤速）；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
+      "severity": "WARN",
+      "value_basis": "factor.vxinglvchi.v_filter_band.min/max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "vxinglvchi.v_forced_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["municipal_vxinglvchi"],
+      "label": "V型滤池强制滤速上限（v_forced_act，单向上限口径）",
+      "expression": "v_forced_act <= 13.0",
+      "source": "GB 50013-2018 §9.5（滤池：均质滤料滤速/强制滤速）；给水排水设计手册（第 5 册 城镇排水）；起草表待追认（带 11~13 为典型带，低于下限=保守合格非越界——XL-F9 单向上限口径）",
+      "severity": "WARN",
+      "value_basis": "factor.vxinglvchi.v_forced_band.max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "ganhua.moisture_out_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["sludge_ganhua"],
+      "label": "污泥干化出泥含水率带（p_out）",
+      "expression": "p_out >= 0.2 and p_out <= 0.4",
+      "source": "GB 50014-2021 §8（污泥章——干化后含水率档，条号待核对）；给水排水设计手册（第 5 册 城镇排水）；起草表待追认（半干化档 0.20~0.40，全干化档另立待追认）",
+      "severity": "WARN",
+      "value_basis": "factor.ganhua.moisture_out_band.min/max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "nongsuo.solid_load_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["sludge_nongsuo"],
+      "label": "重力浓缩固体负荷带（q_solid_act）",
+      "expression": "q_solid_act >= 30.0 and q_solid_act <= 60.0",
+      "source": "GB 50014-2021 §8（污泥章——重力浓缩，条号待核对）；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
+      "severity": "WARN",
+      "value_basis": "factor.nongsuo.solid_load_band.min/max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "nongsuo.moisture_out_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["sludge_nongsuo"],
+      "label": "重力浓缩底流含水率带（p_out）",
+      "expression": "p_out >= 0.95 and p_out <= 0.98",
+      "source": "GB 50014-2021 §8（污泥章——重力浓缩，条号待核对）；给水排水设计手册（第 5 册 城镇排水）；起草表待追认（引文 97~98% 档归追认裁定）",
+      "severity": "WARN",
+      "value_basis": "factor.nongsuo.moisture_out_band.min/max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "xiaohua.vs_load_band",
+      "kind": "enumeration_filter",
+      "unit_kinds": ["sludge_xiaohua"],
+      "label": "污泥消化 VS 容积负荷带（l_vs）",
+      "expression": "l_vs >= 0.5 and l_vs <= 1.5",
+      "source": "GB 50014-2021 §8（污泥章——消化，条号待核对）；给水排水设计手册（第 5 册 城镇排水）污泥消化章；起草表待追认",
+      "severity": "WARN",
+      "value_basis": "factor.xiaohua.vs_load_band.min/max @ coefficients 1.1.0——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.bod5",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 BOD5 ≤10 mg/L",
+      "expression": "BOD5_out <= 10.0",
+      "source": "GB 18918-2002 表1（城镇污水处理厂污染物排放标准一级A）；AI 起草待追认——参考面（出水水质非枚举行字段，不供枚举过滤）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.cod",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 COD ≤50 mg/L",
+      "expression": "CODCR_out <= 50.0",
+      "source": "GB 18918-2002 表1（一级A）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.ss",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 SS ≤10 mg/L",
+      "expression": "SS_out <= 10.0",
+      "source": "GB 18918-2002 表1（一级A）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.nh3n",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 NH3N ≤5(8) mg/L",
+      "expression": "NH3N_out <= 5.0",
+      "source": "GB 18918-2002 表1（一级A；括号内 8 为水温≤12℃ 限值——分档表达留追认）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录（取严格档）——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.tn",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 TN ≤15 mg/L",
+      "expression": "TN_out <= 15.0",
+      "source": "GB 18918-2002 表1（一级A）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_a.tp",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级A 出水 TP ≤0.5(1) mg/L",
+      "expression": "TP_out <= 0.5",
+      "source": "GB 18918-2002 表1（一级A；括号内 1 为水温≤12℃ 限值——分档表达留追认）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录（取严格档）——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.bod5",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 BOD5 ≤20 mg/L",
+      "expression": "BOD5_out <= 20.0",
+      "source": "GB 18918-2002 表1（一级B）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.cod",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 COD ≤60 mg/L",
+      "expression": "CODCR_out <= 60.0",
+      "source": "GB 18918-2002 表1（一级B）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.ss",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 SS ≤20 mg/L",
+      "expression": "SS_out <= 20.0",
+      "source": "GB 18918-2002 表1（一级B）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.nh3n",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 NH3N ≤8(15) mg/L",
+      "expression": "NH3N_out <= 8.0",
+      "source": "GB 18918-2002 表1（一级B；括号内 15 为水温≤12℃ 限值——分档表达留追认）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录（取严格档）——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.tn",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 TN ≤20 mg/L",
+      "expression": "TN_out <= 20.0",
+      "source": "GB 18918-2002 表1（一级B）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录——AI 起草待追认"
+    },
+    {
+      "key": "gb18918.level_b.tp",
+      "kind": "effluent_standard",
+      "unit_kinds": [],
+      "label": "GB 18918-2002 一级B 出水 TP ≤1(1.5) mg/L",
+      "expression": "TP_out <= 1.0",
+      "source": "GB 18918-2002 表1（一级B；括号内 1.5 为水温≤12℃ 限值——分档表达留追认）；AI 起草待追认——参考面（同上）",
+      "severity": "WARN",
+      "value_basis": "国标限值直录（取严格档）——AI 起草待追认"
+    }
+  ]
+}
