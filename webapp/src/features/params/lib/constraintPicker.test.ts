@@ -60,6 +60,21 @@ describe("narrowConstraintCatalog（目录形状窄化门）", () => {
     const bad = { entries: [{ ...ENTRY, kind: "hard" }] };
     expect(() => narrowConstraintCatalog(bad)).toThrow();
   });
+
+  it("R1（DS-01）：缺 kind/缺 unit_kinds/非串值 → 显式拒（禁默认值静默降级）", () => {
+    const noKind = { ...ENTRY } as Record<string, unknown>;
+    delete noKind["kind"];
+    expect(() => narrowConstraintCatalog({ entries: [noKind] })).toThrow(/kind/);
+    const noUnits = { ...ENTRY } as Record<string, unknown>;
+    delete noUnits["unit_kinds"];
+    expect(() => narrowConstraintCatalog({ entries: [noUnits] })).toThrow(/unit_kinds/);
+    expect(() =>
+      narrowConstraintCatalog({ entries: [{ ...ENTRY, expression: 1 }] }),
+    ).toThrow(/expression/); // String() 强转路径封死
+    expect(() =>
+      narrowConstraintCatalog({ entries: [{ ...ENTRY, unit_kinds: "municipal_vxinglvchi" }] }),
+    ).toThrow(/unit_kinds/);
+  });
 });
 
 describe("filterSelectable（供选过滤=kind+unit_kinds 双门）", () => {

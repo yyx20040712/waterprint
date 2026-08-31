@@ -68,6 +68,48 @@ def test_effluent_entries_not_offered_for_filtering() -> None:
     assert any("GB 18918-2002" in e.source for e in effluent)
 
 
+def test_filter_values_match_factors_truth() -> None:
+    """R2（DS-03）：过滤条目数值=coefficients factors.yaml 同值自动对照。
+
+    从真源读 band 值重组表达式断言——系数库升版漂移即红（kb README
+    「数值不另立权威」纪律的机器钳制）。
+    """
+    import re
+
+    factors_text = (_REPO / "coefficients" / "factors.yaml").read_text(encoding="utf-8")
+    values: dict[str, float] = {}
+    pattern = re.compile(
+        r'- key: "factor\.([a-z_0-9.]+)"\s*\n\s*value: ([0-9.]+)'
+    )
+    for match in pattern.finditer(factors_text):
+        values[f"factor.{match.group(1)}"] = float(match.group(2))
+
+    def band_expression(prefix: str, field: str) -> str:
+        return f"{field} >= {values[f'{prefix}.min']} and {field} <= {values[f'{prefix}.max']}"
+
+    catalog = list_constraints(_REPO)
+    by_key = {e.key: e for e in catalog.entries}
+    assert by_key["vxinglvchi.v_filter_band"].expression == band_expression(
+        "factor.vxinglvchi.v_filter_band", "v_filter_act"
+    )
+    assert by_key["ganhua.moisture_out_band"].expression == band_expression(
+        "factor.ganhua.moisture_out_band", "p_out"
+    )
+    assert by_key["nongsuo.solid_load_band"].expression == band_expression(
+        "factor.nongsuo.solid_load_band", "q_solid_act"
+    )
+    assert by_key["xiaohua.vs_load_band"].expression == band_expression(
+        "factor.xiaohua.vs_load_band", "l_vs"
+    )
+    assert (
+        by_key["vxinglvchi.v_forced_band"].expression
+        == f"v_forced_act <= {values['factor.vxinglvchi.v_forced_band.max']}"
+    )
+    assert by_key["nongsuo.moisture_out_band"].expression == band_expression(
+        "factor.nongsuo.moisture_out_band", "p_out"
+    )
+
+
 def test_missing_kb_fails_visible(tmp_path: Path) -> None:
     """R2：kb 缺失=RuntimeError 显式拒（禁静默空表）。"""
     with pytest.raises(RuntimeError, match="未就绪"):
@@ -111,16 +153,28 @@ def test_bad_entry_fails_visible(tmp_path: Path) -> None:
     _write([bad_kind])
     with pytest.raises(RuntimeError, match="kind 越界"):
         list_constraints(tmp_path)
+    # R2（DS-04/06/08）：severity 越界+空串 key+unit_kinds 型检三路
+    _write([dict(good, key="t.c", severity="hard")])
+    with pytest.raises(RuntimeError, match="severity 越界"):
+        list_constraints(tmp_path)
+    _write([dict(good, key="")])
+    with pytest.raises(RuntimeError, match="非空"):
+        list_constraints(tmp_path)
+    _write([dict(good, key="t.d", unit_kinds="x")])
+    with pytest.raises(RuntimeError, match="unit_kinds"):
+        list_constraints(tmp_path)
 
 
 def test_cache_singleton_and_determinism() -> None:
-    """R3：同路径单例（is 同）+双跑字节同（sort_keys）。"""
+    """R3+R2（DS-05）：同路径单例（is 同）+清缓存重装载字节同。"""
     first = list_constraints(_REPO)
     second = list_constraints(_REPO)
     assert first is second  # 路径键缓存单例
     a = first.model_dump_json()
-    b = second.model_dump_json()
-    assert a == b
+    _mod._load.cache_clear()  # noqa: SLF001  # 测试面私有访问（真重装载对比——DS-05）
+    reloaded = list_constraints(_REPO)
+    assert reloaded is not first
+    assert reloaded.model_dump_json() == a  # 重装载字节同
 
 
 @pytest.mark.anyio

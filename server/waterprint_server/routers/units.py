@@ -18,7 +18,8 @@
 #                          数据面；data_dir 经 app.state.ctx[settings 真源]）
 #
 # 【行为规格】
-#   R1 静态只读：无请求参数无 ctx（D6 不分页整发）；服务层 lru_cache
+#   R1 静态只读：units/assumptions 无请求参数无 ctx；constraints 经
+#      app.state.ctx 取 data_dir（CP1 例外——kb 装载面，D6 不分页同款）
 #      单例直投——router 零 if 零业务（≤150 行）。
 #   R2 响应模型=服务层冻结 pydantic 模型（SceneGraph 先例：经 services
 #      再导出——禁协议层重复声明漂移面）。

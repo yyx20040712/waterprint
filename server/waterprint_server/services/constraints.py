@@ -38,7 +38,7 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Literal
 
@@ -64,6 +64,8 @@ _REQUIRED_KEYS: frozenset[str] = frozenset(
     }
 )
 _KINDS: frozenset[str] = frozenset({"enumeration_filter", "effluent_standard"})
+# severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
+_SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
 
 
 class ConstraintEntry(BaseModel):
@@ -89,7 +91,7 @@ class ConstraintCatalog(BaseModel):
     entries: tuple[ConstraintEntry, ...]
 
 
-@lru_cache(maxsize=None)  # 无字面量纪律（maxsize 数值面=魔法数字门禁）——路径键单例：生产恰 1 键，测试临时目录逐键微量
+@cache  # 路径键单例（maxsize 数值=魔法数字门禁；生产恰 1 键），测试临时目录逐键微量
 def _load(data_dir_str: str) -> ConstraintCatalog:
     """装载正门（路径键缓存单例——R2 fail-visible/R3 确定性）。"""
     path = Path(data_dir_str) / "constraint_kb" / "constraints.json"
@@ -116,6 +118,14 @@ def _load(data_dir_str: str) -> ConstraintCatalog:
         if missing:
             raise RuntimeError(f"约束知识库{where}缺键 {sorted(missing)}：{item.get('key')!r}")
         key = str(item["key"])
+        # R2（DS-04/08）：值面守卫——空串 key/表达式与 severity 越界显式拒
+        if not key or not str(item["expression"]):
+            raise RuntimeError(f"约束知识库{where} key/expression 须非空")
+        if item["severity"] not in _SEVERITIES:
+            raise RuntimeError(
+                f"约束知识库{where} severity 越界：{item['severity']!r}"
+                f"（合法面 {sorted(_SEVERITIES)}）"
+            )
         if key in seen:
             raise RuntimeError(f"约束知识库 key 重复：{key!r}（README 硬规则——key 稳定唯一）")
         seen.add(key)

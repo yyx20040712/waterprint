@@ -45,36 +45,46 @@ function narrowEntry(raw: unknown, position: number): ConstraintEntryView {
       `约束目录条目[${position}]非对象：${String(raw)}`,
     );
   }
-  const out: ConstraintEntryView = {
-    key: String(raw["key"] ?? ""),
-    kind: (raw["kind"] as ConstraintEntryView["kind"]) ?? "effluent_standard",
-    unit_kinds: Array.isArray(raw["unit_kinds"])
-      ? raw["unit_kinds"].map(String)
-      : [],
-    label: String(raw["label"] ?? ""),
-    expression: String(raw["expression"] ?? ""),
-    source: String(raw["source"] ?? ""),
-    severity: String(raw["severity"] ?? ""),
-    value_basis: String(raw["value_basis"] ?? ""),
-  };
+  // R1（DS-01）：与服务端 _REQUIRED_KEYS 同强度——缺键/型异/空串显式抛，
+  // 禁默认值静默降级（kind 缺失→effluent、unit_kinds 缺失→[] 类路径即红）。
   const required: (keyof ConstraintEntryView)[] = [
     "key", "kind", "unit_kinds", "label", "expression",
     "source", "severity", "value_basis",
   ];
   for (const field of required) {
-    const value = out[field];
-    if (typeof value === "string" && value === "") {
+    if (!(field in raw)) {
       throw new ConstraintCatalogError(
-        `约束目录条目[${position}]缺 ${field}（key=${out.key || "?"}）`,
+        `约束目录条目[${position}]缺键 ${field}`,
       );
     }
   }
-  if (!KINDS.includes(out.kind)) {
+  for (const field of ["key", "label", "expression", "source", "severity", "value_basis"] as const) {
+    if (typeof raw[field] !== "string" || (raw[field] as string) === "") {
+      throw new ConstraintCatalogError(
+        `约束目录条目[${position}] ${field} 须为非空字符串（key=${String(raw["key"]) || "?"}）`,
+      );
+    }
+  }
+  if (typeof raw["kind"] !== "string" || !KINDS.includes(raw["kind"] as ConstraintEntryView["kind"])) {
     throw new ConstraintCatalogError(
-      `约束目录条目 ${out.key} kind 越界：${out.kind}`,
+      `约束目录条目[${position}] kind 越界或型异：${JSON.stringify(raw["kind"])}`,
     );
   }
-  return out;
+  if (!Array.isArray(raw["unit_kinds"]) || !raw["unit_kinds"].every((u) => typeof u === "string")) {
+    throw new ConstraintCatalogError(
+      `约束目录条目[${position}] unit_kinds 须为字符串数组（key=${String(raw["key"])}）`,
+    );
+  }
+  return {
+    key: raw["key"] as string,
+    kind: raw["kind"] as ConstraintEntryView["kind"],
+    unit_kinds: raw["unit_kinds"] as string[],
+    label: raw["label"] as string,
+    expression: raw["expression"] as string,
+    source: raw["source"] as string,
+    severity: raw["severity"] as string,
+    value_basis: raw["value_basis"] as string,
+  };
 }
 
 /** 目录窄化正门（八键逐条——非法抛 ConstraintCatalogError）。 */

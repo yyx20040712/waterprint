@@ -271,7 +271,7 @@ export function SolutionsPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           方案浏览（单单元枚举——ADR-005）
         </Typography.Title>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <Select
             style={{ minWidth: 260 }}
             value={unitId ?? undefined}
@@ -285,6 +285,11 @@ export function SolutionsPane() {
               setUnitId(value);
               setConstraintKeys([]); // 单元切换清空（供选面随单元变——CP1 D6）
             }}
+          />
+          <ConstraintPicker
+            entries={selectableConstraints}
+            selectedKeys={constraintKeys}
+            onChange={setConstraintKeys}
           />
           <Button
             type="primary"
@@ -313,11 +318,6 @@ export function SolutionsPane() {
           >
             提交枚举
           </Button>
-          <ConstraintPicker
-            entries={selectableConstraints}
-            selectedKeys={constraintKeys}
-            onChange={setConstraintKeys}
-          />
           {enumerate.isError ? (
             <Typography.Text type="danger">
               提交失败：
