@@ -317,14 +317,15 @@ async def test_restore_order_follows_mtime_wiring(tmp_path) -> None:  # type: ig
 
 
 def _full_document(task_id: str, state: str, project_id: str = "p1") -> dict:  # type: ignore[type-arg]
-    """ENG5 恢复矩阵夹具：全 13 键记录（非终态可恢复前提——缺键即跳过面）。"""
+    """ENG5 恢复矩阵夹具：全 13 键记录（缺键即跳过面；progress/stage 特征值
+    0.5/solve——R2：mark_interrupted 保留字段回读须与默认迁移值可辨）。"""
     return {
         "task_id": task_id,
         "kind": "calc",
         "payload": {"kind": "calc", "project_id": project_id},
         "state": state,
-        "progress": 0.0,
-        "stage": "queued",
+        "progress": 0.5,
+        "stage": "solve",
         "condition_key": None,
         "stale": False,
         "error": None,
@@ -419,6 +420,9 @@ async def test_restart_marks_nonterminal_failed_wiring(tmp_path) -> None:  # typ
             assert restored.error_type == "InterruptedByRestart"
             assert restored.result is None
             assert original in (restored.error or "")
+            assert restored.kind == "calc"  # R3：变换后 kind/payload 经薄壳构造回读
+            assert restored.progress == 0.5  # R2（DS-02）：保留审计字段（特征值夹具）
+            assert restored.stage == "solve"
             events = manager_b.events(task_id)
             first = await events.__anext__()
             assert (first.type, first.message) == ("state", "failed")

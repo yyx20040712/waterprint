@@ -170,7 +170,7 @@
   "core/waterprint/units_lib/sludge/xiaohua/tests/properties.py": "64d3104632f70ab8bb5d101c900f114d687ada1fc10d9106aa17095ac1f460ec",
   "core/waterprint/units_lib/sludge/xiaohua/tests/test_compute.py": "f706fa031a8bce1510d7d8e41130ca7cf990fd4a2aea753856c368dce2294b31",
   "server/tests/conftest.py": "23e2ef02fcbf8545483cd9bc1ba14f5ee3d3e158eb1f021d3f52542967ce9def",
-  "server/tests/jobs/test_manager.py": "809d5959df5be2362e0a620f257dc16f087b0e7a5f55a89ebb6889f5ecbfb78a",
+  "server/tests/jobs/test_manager.py": "5dec8fdbad06f62116d8b7363373f3462f58e3554d2f98f0fd1b4c9e6177840c",
   "server/tests/jobs/test_spawn_smoke.py": "009a4f88416fbd75982cebd2fb05d5d1d15c779703c0fb180a893cde3e4faaf3",
   "server/tests/jobs/test_worker.py": "65bc972bcc52fa949e2a6cd739f170afd515550f1a7c2e0bcdd2d5c43c16ac58",
   "server/tests/routers/test_calc.py": "90ca7d968a59ea5cec466fbee7f53f3492b6d1ae73a9f7ef1c6822fcaf16f04c",

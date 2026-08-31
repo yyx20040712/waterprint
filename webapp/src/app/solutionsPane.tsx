@@ -113,10 +113,12 @@ function narrowGridFields(result: unknown): string[] {
 export function SolutionsPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
   const [projectId] = useProjectId();
-  // R1 双轨初值（ENG5 D6 键分立：表源轨=URL 枚举任务[?enum=]；面板轨
-  // =计算轨[?task=]优先、缺省回落枚举轨——deep-link 两形态面板皆有任务）
+  // R1 双轨初值（ENG5 D6 键分立+R1 旧链兼容：表源轨=枚举任务[?enum=]
+  // 优先、纯 ?task= 旧深链兜底[FE6~UX1 时代枚举提交写 task 键的历史
+  // 分享链——kind 门自然滤 calc 任务]；面板轨=计算轨[?task=]优先、缺省
+  // 回落枚举轨——两轨非对称初值各守其主，deep-link 各形态面板皆有任务）
   const [enumerateTaskId, setEnumerateTaskId] = useState<string | null>(() =>
-    parseEnumParam(window.location.search),
+    parseEnumParam(window.location.search) ?? parseTaskParam(window.location.search),
   );
   const [panelTaskId, setPanelTaskId] = useState<string | null>(() =>
     parseTaskParam(window.location.search) ?? parseEnumParam(window.location.search),
