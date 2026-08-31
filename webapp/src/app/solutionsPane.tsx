@@ -1,15 +1,18 @@
 /**
  * solutions 标签页装配：?project=/?task= 双参消费+单单元枚举提交+任务态
- * 面板+方案表+排序控件组合（D8 组合面——app 层唯一 features 组合层）。
+ * 面板+方案表+排序控件+约束勾选持久化组合（D8 组合面——app 层唯一
+ * features 组合层）。
  *
  * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d 共用）
  *        +?task=（任务 id 单一真相——D3）+useProjectUnits 单元清单+SSE
- *        任务流+TaskStatus 快照
+ *        任务流+TaskStatus 快照+useReadProject 原始 GET 体（CP2 勾选
+ *        恢复/持久数据源）
  * 输出:  方案浏览标签页（单元下拉+「提交枚举」+TaskPanel+RankingControls
- *        +SolutionsTable/DiagnosisPanel；?task= 回写 replaceState）
+ *        +SolutionsTable/DiagnosisPanel；?task= 回写 replaceState；勾选
+ *        即 PUT /api/projects/{id} 持久进 design.constraint_choices）
  *
  * 规格说明（FE6 批 6b 段四 D1/D3/D8/D9；R 轮修复 2026-08-29 R1/R2/R3/R7；
- *   canvasPane/viewer3dPane 同构）：
+ *   canvasPane/viewer3dPane 同构；CP2 约束勾选持久化 2026-09-01 D2~D5）：
  *   - R1 任务态双轨（xC-1）：enumerateTaskId=表数据源键（方案表/result
  *     载荷/gridFields/feasible_count/diagnosis/挂载门——仅枚举提交
  *     onSuccess 更新）与 panelTaskId（TaskPanel+SSE 订阅+?task= URL 面
@@ -43,6 +46,22 @@
  *     挂账」：ConstraintPicker[features/params] 挂单元下拉与提交钮间，
  *     供选=filterSelectable(kind 双门+单元归属)，payload=toPayloadItems
  *     恰三键[severity 不入 worker 面]；无选中=options null 零漂移）；
+ *   - CP2 D2 勾选即 PUT：本地 constraintKeys 受控源+乐观 set+PUT
+ *     mutate（withConstraintChoices 载荷——仅替换 design.
+ *     constraint_choices）；onSuccess invalidate ['/api/projects/{id}']
+ *     read 键（PUT 后 design_digest 变→既有 stale 机制[三读端点+
+ *     exports 409+横幅]自动激活——零新代码）；onError 回滚本地态+
+ *     message.error（409 锁冲突保守提示照 UX2——不 force 不重试）；
+ *     不自动 POST /api/calc/run（约束只影响枚举过滤不影响主计算输入）；
+ *   - CP2 D3 恢复数据流（AssumptionsPanel rawQuery 样板）：同键不带
+ *     select 的 raw 读直读 design.constraint_choices→restoreConstraintKeys
+ *     投影勾选全集；raw data 变化（初始装载+projectId 切换）→恢复本地
+ *     勾选态（projectId 切换旧缺陷——不清 unitId/constraintKeys——由
+ *     恢复逻辑自然覆盖：勾选随新项目重置）；
+ *   - CP2 D4 单元切换不再清空勾选（CP1 D6 行为演进——②类追认面）：
+ *     本地态=持久勾选全集，显示与提交=全集∩当前单元供选面
+ *     （filterSelectable/toPayloadItems 天然滤跨单元键——切回原单元
+ *     勾选再现）；
  *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态
  *     invalidate 重拉——result 载荷与 failed 三件详情源）；表挂载=
  *     表源任务 kind==='enumerate'&&state==='done'&&feasible_count>0；
@@ -61,7 +80,7 @@
  */
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Select, Typography } from "antd";
+import { Button, Select, Typography, message } from "antd";
 
 import {
   useGetSolutionsApiCalcTasksTaskIdSolutionsGet,
@@ -69,6 +88,10 @@ import {
   useRunEnumerationApiCalcEnumeratePost,
 } from "../shared/api/generated/calc/calc";
 import type { ApplyOutcome } from "../shared/api/generated/model";
+import {
+  useReadProjectApiProjectsProjectIdGet,
+  useSaveProjectApiProjectsProjectIdPut,
+} from "../shared/api/generated/projects/projects";
 import { WaterprintApiError } from "../shared/api/http";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
@@ -76,8 +99,10 @@ import { useConstraints } from "../features/params/api/useConstraints";
 import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
 import {
   filterSelectable,
+  restoreConstraintKeys,
   toPayloadItems,
 } from "../features/params/lib/constraintPicker";
+import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed } from "../features/solutions/api/useTaskFeed";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
@@ -102,6 +127,17 @@ const NO_PROJECT_HINT =
 
 /** 分页大小（D9：50 固定——服务端分页默认 200 属全量面，浏览取 50）。 */
 const PAGE_SIZE = 50;
+
+/** 409 锁冲突保守提示（CP2 D2——照 UX2 AssumptionsPanel 口径不 force 不重试）。 */
+const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
+
+/** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
+function isLockConflict(error: unknown): boolean {
+  return (
+    error instanceof WaterprintApiError &&
+    (error.code === "ProjectLockedError" || error.code === "HTTP_409")
+  );
+}
 
 /** result 载荷字段窄化（弱类型 Mapping——app 层内联，薄壳不测面）。 */
 function resultField(result: unknown, key: string): unknown {
@@ -135,6 +171,7 @@ export function SolutionsPane() {
   const [unitId, setUnitId] = useState<string | null>(null);
   // R2：表源任务单元固化快照（应用目标——下拉实时值仅驱动新枚举提交）
   const [enumeratedUnitId, setEnumeratedUnitId] = useState<string | null>(null);
+  // CP2 D4：勾选受控源（持久全集——恢复=rawQuery 驱动，单元切换不清空）
   const [constraintKeys, setConstraintKeys] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("margin_min");
@@ -142,6 +179,12 @@ export function SolutionsPane() {
   const unitsQuery = useProjectUnits(projectId);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
   const constraintsQuery = useConstraints();
+  // CP2 D3：原始 GET 体（同键 ['/api/projects/${projectId}'] 不带 select——
+  // raw 缓存自动共享[与 canvas/params 三面]；恢复投影+PUT 载荷唯一数据源）
+  const rawQuery = useReadProjectApiProjectsProjectIdGet(projectId ?? "", {
+    query: { enabled: projectId !== null },
+  });
+  const [messageApi, contextHolder] = message.useMessage();
 
   // R3：?task= 回写驱动已挂载 pane（ParamForm dispatchEvent——URL 单一
   // 真相重读比对；同值早退不扰动；卸载移除监听）
@@ -153,6 +196,18 @@ export function SolutionsPane() {
     window.addEventListener(TASK_EVENT, onTaskParam);
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
+
+  // CP2 D3 恢复数据流：raw data 变化（初始装载+projectId 切换[查询键随
+  // 项目变→data 重置]）→ 恢复本地勾选态（value 恒 "on" 键全集——死键照
+  // 收，显示/提交面∩供选面自然滤除）。projectId 切换不清勾选的旧缺陷
+  // （E §七）由本恢复自然覆盖；未就绪/加载中保留现态（成功到达后接管）。
+  useEffect(() => {
+    const raw = rawQuery.data;
+    if (raw === undefined) {
+      return;
+    }
+    setConstraintKeys(restoreConstraintKeys(raw));
+  }, [rawQuery.data]);
 
   // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
   // AUDIT2-R R3（DS-03 跨基座一审发现）：终态再派发 TASK_EVENT——重算
@@ -252,6 +307,23 @@ export function SolutionsPane() {
     );
   };
 
+  // CP2 D2：勾选即 PUT 持久（UX2 AssumptionsPanel 同构样板；不自动
+  // POST /api/calc/run——约束只影响枚举过滤不影响主计算输入，「触发
+  // 重算提示」由既有 stale 机制承载：PUT 后 design_digest 变→三读端点
+  // stale+前端横幅+exports 409 守门全部自动激活）。
+  const saveConstraints = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>(
+    {
+      mutation: {
+        onSuccess: (_outcome, variables) => {
+          // 失效 read 键（恢复投影随 refetch 接管——勾选全集与新档同步）
+          void queryClient.invalidateQueries({
+            queryKey: [`/api/projects/${variables.projectId}`],
+          });
+        },
+      },
+    },
+  );
+
   if (projectId === null) {
     return (
       <Typography.Paragraph type="secondary">
@@ -265,12 +337,35 @@ export function SolutionsPane() {
     constraintsQuery.data ?? [],
     unitId,
   );
+  /** CP2 D4：勾选=乐观 set+PUT 持久（失败回滚本地态+message 提示）。 */
+  const handleConstraintChange = (nextKeys: string[]) => {
+    const raw = rawQuery.data;
+    const prevKeys = constraintKeys;
+    setConstraintKeys(nextKeys); // 乐观更新（PUT 在途不锁交互）
+    if (raw === undefined) {
+      return; // 原始体未就绪（GET 失败/加载中）——仅本地态，到达后恢复投影接管
+    }
+    saveConstraints.mutate(
+      { projectId, data: withConstraintChoices(raw, nextKeys) },
+      {
+        onError: (error) => {
+          setConstraintKeys(prevKeys); // 回滚（乐观面撤回）
+          messageApi.error(
+            isLockConflict(error)
+              ? LOCK_HINT
+              : `约束勾选保存失败：${error instanceof Error ? error.message : "未知错误"}`,
+          );
+        },
+      },
+    );
+  };
   return (
     <ErrorBoundary label="方案浏览">
       <section>
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           方案浏览（单单元枚举——ADR-005）
         </Typography.Title>
+        {contextHolder}
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <Select
             style={{ minWidth: 260 }}
@@ -283,13 +378,14 @@ export function SolutionsPane() {
             }))}
             onChange={(value) => {
               setUnitId(value);
-              setConstraintKeys([]); // 单元切换清空（供选面随单元变——CP1 D6）
+              // CP2 D4：单元切换不清空勾选（CP1 D6 行为演进——本地态=持久
+              // 全集，显示与提交=全集∩当前单元供选面；切回原单元勾选再现）
             }}
           />
           <ConstraintPicker
             entries={selectableConstraints}
             selectedKeys={constraintKeys}
-            onChange={setConstraintKeys}
+            onChange={handleConstraintChange}
           />
           <Button
             type="primary"
