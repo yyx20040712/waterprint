@@ -24,9 +24,11 @@
 
 - 枚举任务语义永远是"单单元"（ADR-005）；UI 不提供跨单元多选入口；
   提交载荷 unit_ids 恰 1（多值服务层 422 MultiUnitEnumerationError）；
-- 任务 id 单一真相=URL `?task=`（与 `?project=` 双参共存）：枚举提交/
-  方案应用（recalc_task_id）/params 表单 apply 三写入面全走
-  history.replaceState；消费面=app/solutionsPane（TaskPanel+表挂载依据）；
+- 任务 id 双轨（ENG5 D6/I-4 收口）：`?enum=`=枚举轨（表源
+  enumerateTaskId——枚举提交写）与 `?task=`=计算轨（面板轨——方案应用
+  recalc_task_id/params 表单 apply 写）并存互不覆盖（apply 后深链不丢
+  方案表）；全走 history.replaceState；消费面=app/solutionsPane
+  （TaskPanel+表挂载依据）；
 - 弱类型行窄化门在 `lib/solutionsView.ts` 收口（顶层七字段逐类校验+
   行值域 number|string|boolean|null——nan_flag 布尔列服务端原样下发；
   NaN 服务端已转 null）；非法形状 SolutionsViewError 带键定位；

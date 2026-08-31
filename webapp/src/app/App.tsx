@@ -53,6 +53,7 @@ import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
 import {
+  parseEnumParam,
   parseTabParam,
   parseTaskParam,
   withTabParam,
@@ -62,14 +63,18 @@ import { Viewer3dPane } from "./viewer3dPane";
 
 const { Sider, Content, Header } = Layout;
 
-/** UX1 D2/S4 初值三级解析：?tab= 合法值→用之；无 ?tab= 有 ?task=→
- * solutions（深链意图——仅初值落点不跳转）；缺省 canvas（FE3 D1 面）。 */
+/** UX1 D2/S4 初值三级解析：?tab= 合法值→用之；无 ?tab= 有 ?task= 或
+ * ?enum=→solutions（深链意图——两任务轨皆落方案浏览[ENG5 D6]；仅初值
+ * 落点不跳转）；缺省 canvas（FE3 D1 面）。 */
 function initialRoute(): AppRoute {
   const tab = parseTabParam(window.location.search);
   if (tab !== null) {
     return tab;
   }
-  return parseTaskParam(window.location.search) !== null ? "solutions" : "canvas";
+  const hasTaskDeepLink =
+    parseTaskParam(window.location.search) !== null ||
+    parseEnumParam(window.location.search) !== null;
+  return hasTaskDeepLink ? "solutions" : "canvas";
 }
 
 export function App() {

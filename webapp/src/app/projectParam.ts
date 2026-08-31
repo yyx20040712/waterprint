@@ -26,6 +26,11 @@
  *     ParamForm apply）全走 window.history.replaceState；消费面=
  *     solutionsPane（任务态面板+方案表挂载依据）；taskId 无归一尾缀面
  *     （服务端生成 id 不带 .wp）；既有 project 三函数签名零改动；
+ *   - ENG5 D6 enum 通道（裁决③——I-4 收口）：?enum= 枚举任务轨独立参数
+ *     （与 ?task= 计算轨双参并存互不覆盖——枚举提交写 enum 键、方案应用/
+ *     ParamForm apply 写 task 键，apply 后深链不再丢方案表）；表源轨
+ *     （enumerateTaskId）读 enum 键；面板轨初值 task 优先（apply 流
+ *     后写时间序）；三函数与 taskParam 同构（FE6 D3 模式复用）；
  *   - UX1 D2 tab 通道：?tab= 路由态进 URL（S4——Tabs activeKey 初值与
  *     持久化）；parseTabParam=ROUTES 成员校验（非法值 null——冻结面外
  *     不造路由，App 缺省 canvas 兜底）；withTabParam 只动 tab 键（project/
@@ -78,6 +83,30 @@ export function withTaskParam(search: string, taskId: string | null): string {
 export function clearTaskParam(search: string): string {
   const params = new URLSearchParams(search);
   params.delete("task");
+  return params.toString();
+}
+
+/** ENG5 D6（裁决③/I-4 收口）：?enum= 直读（枚举任务轨单一真相）。 */
+export function parseEnumParam(search: string): string | null {
+  const value = new URLSearchParams(search).get("enum");
+  return value === null || value === "" ? null : value;
+}
+
+/** ENG5 D6：回写/移除 enum 键（只动 enum——task/project 等他键原序保留）。 */
+export function withEnumParam(search: string, enumId: string | null): string {
+  const params = new URLSearchParams(search);
+  if (enumId === null || enumId === "") {
+    params.delete("enum");
+  } else {
+    params.set("enum", enumId);
+  }
+  return params.toString();
+}
+
+/** ENG5 D6：显式移除 enum 键（taskParam 同构语义收口）。 */
+export function clearEnumParam(search: string): string {
+  const params = new URLSearchParams(search);
+  params.delete("enum");
   return params.toString();
 }
 

@@ -25,10 +25,12 @@
  *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面：
  *     写方 canvas/viewer3d 切项目后本 pane 响应刷新）；面板只读不回写
  *     （项目选择器归 canvas 面）；
- *   - 任务 id 单一真相=URL ?task=（与 ?project= 双参共存）：写入三面=
- *     枚举提交 onSuccess（task_id）/方案应用 onApplied（recalc_task_id）
- *     /ParamForm apply（FE5 挂账③收口——params 侧内联回写）全走
- *     window.history.replaceState；R3（yI-1）URL 回写驱动已挂载 pane:
+ *   - 任务 id 双轨（ENG5 D6/I-4 收口）：?enum= 枚举轨（表源
+ *     enumerateTaskId——枚举提交 onSuccess 写 enum 键）与 ?task= 计算
+ *     轨（panelTaskId 面板轨——方案应用 onApplied[recalc_task_id]/
+ *     ParamForm apply 内联回写）并存互不覆盖（apply 后深链不丢方案
+ *     表）；面板轨初值 task 优先（parseTaskParam ?? parseEnumParam——
+ *     apply 流后写时间序）；R3（yI-1）URL 回写驱动已挂载 pane:
  *     ParamForm 回写后 dispatchEvent("wp:task")（TASK_EVENT 事件桥——
  *     常量已收口 shared/events[S12]；ParamForm 侧 task 键回写仍内联
  *     ——分层禁 import app）→本 pane 事件桥监听（第二处）→重读 URL
@@ -77,7 +79,12 @@ import {
   type SolutionPageView,
 } from "../features/solutions/lib/solutionsView";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { parseTaskParam, withTaskParam } from "./projectParam";
+import {
+  parseEnumParam,
+  parseTaskParam,
+  withEnumParam,
+  withTaskParam,
+} from "./projectParam";
 import { useProjectId } from "./useProjectId";
 
 /** 空态指引（?project= 缺失——先经工艺画布标签选择项目）。 */
@@ -106,13 +113,13 @@ function narrowGridFields(result: unknown): string[] {
 export function SolutionsPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
   const [projectId] = useProjectId();
-  // R1 双轨初值同 URL（deep-link 直进：面板任务=表源任务=URL 任务；
-  // 分立后 apply 只动 panelTaskId——表源键不动即旧行保留）
+  // R1 双轨初值（ENG5 D6 键分立：表源轨=URL 枚举任务[?enum=]；面板轨
+  // =计算轨[?task=]优先、缺省回落枚举轨——deep-link 两形态面板皆有任务）
   const [enumerateTaskId, setEnumerateTaskId] = useState<string | null>(() =>
-    parseTaskParam(window.location.search),
+    parseEnumParam(window.location.search),
   );
   const [panelTaskId, setPanelTaskId] = useState<string | null>(() =>
-    parseTaskParam(window.location.search),
+    parseTaskParam(window.location.search) ?? parseEnumParam(window.location.search),
   );
   const [unitId, setUnitId] = useState<string | null>(null);
   // R2：表源任务单元固化快照（应用目标——下拉实时值仅驱动新枚举提交）
@@ -188,9 +195,8 @@ export function SolutionsPane() {
       },
     );
 
-  /** ?task= 回写（replaceState 不触发导航——两写入面共用）。 */
-  const writeTaskParam = (nextTaskId: string) => {
-    const search = withTaskParam(window.location.search, nextTaskId);
+  /** URL 键回写共底（replaceState 不触发导航——enum/task 两轨共用）。 */
+  const replaceSearch = (search: string) => {
     window.history.replaceState(
       null,
       "",
@@ -198,6 +204,14 @@ export function SolutionsPane() {
         ? `${window.location.pathname}?${search}`
         : window.location.pathname,
     );
+  };
+  /** ?enum= 回写（ENG5 D6 枚举轨——task 键不动）。 */
+  const writeEnumParam = (nextEnumId: string) => {
+    replaceSearch(withEnumParam(window.location.search, nextEnumId));
+  };
+  /** ?task= 回写（计算轨——方案应用面；enum 键不动）。 */
+  const writeTaskParam = (nextTaskId: string) => {
+    replaceSearch(withTaskParam(window.location.search, nextTaskId));
   };
   const enumerate = useRunEnumerationApiCalcEnumeratePost<WaterprintApiError>({
     mutation: {
@@ -207,7 +221,7 @@ export function SolutionsPane() {
         setPanelTaskId(response.task_id);
         setEnumeratedUnitId(unitId);
         setPage(1); // 新任务重置页码（D9）
-        writeTaskParam(response.task_id);
+        writeEnumParam(response.task_id); // ENG5 D6：枚举轨写 enum 键（task 键不动）
       },
     },
   });

@@ -20,11 +20,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clearEnumParam,
   clearTaskParam,
   normalizeProjectId,
+  parseEnumParam,
   parseProjectParam,
   parseTabParam,
   parseTaskParam,
+  withEnumParam,
   withProjectParam,
   withTabParam,
   withTaskParam,
@@ -160,5 +163,58 @@ describe("normalizeProjectId（R2/一审 M-2——.wp 尾缀归一）", () => {
 
   it("裸 id 不动（幂等——已归一值再过不变形）", () => {
     expect(normalizeProjectId("wp-2026-a1")).toBe("wp-2026-a1");
+  });
+});
+
+describe("enumParam（ENG5 D6：?enum= 枚举任务轨——与 ?task= 双参并存互不覆盖）", () => {
+  it("parseEnumParam：缺失/空串 → null（task/tab 他参数不干扰）", () => {
+    expect(parseEnumParam("")).toBeNull();
+    expect(parseEnumParam("?project=p1")).toBeNull();
+    expect(parseEnumParam("?enum=")).toBeNull();
+    expect(parseEnumParam("?task=t-1&tab=solutions")).toBeNull();
+  });
+
+  it("parseEnumParam：合法值回读（? 前缀与裸 search 两形态）", () => {
+    expect(parseEnumParam("?enum=e-abc-1")).toBe("e-abc-1");
+    expect(parseEnumParam("enum=e-abc-1")).toBe("e-abc-1");
+  });
+
+  it("parseEnumParam：与 ?task=/?project= 共存互不干扰（两轨并存）", () => {
+    expect(parseEnumParam("?project=p1&task=t-1&enum=e-1")).toBe("e-1");
+    expect(parseTaskParam("?project=p1&task=t-1&enum=e-1")).toBe("t-1");
+  });
+
+  it("withEnumParam：新增 enum 不清 task/project（他键保留）", () => {
+    expect(withEnumParam("?project=p1&task=t-1", "e-1")).toBe(
+      "project=p1&task=t-1&enum=e-1",
+    );
+  });
+
+  it("withEnumParam：已存在 enum 时替换（task 不动——互不覆盖）", () => {
+    expect(withEnumParam("?task=t-1&enum=old", "new")).toBe("task=t-1&enum=new");
+  });
+
+  it("withEnumParam：null/空串 → 移除 enum 键（他键保留）", () => {
+    expect(withEnumParam("?project=p1&enum=e-1&task=t-1", null)).toBe(
+      "project=p1&task=t-1",
+    );
+    expect(withEnumParam("?enum=e-1", "")).toBe("");
+  });
+
+  it("clearEnumParam：显式移除 enum（task 与他键原样保留）", () => {
+    expect(clearEnumParam("?enum=e-1&task=t-1&x=2")).toBe("task=t-1&x=2");
+    expect(clearEnumParam("?enum=e-1")).toBe("");
+  });
+
+  it("回写-回读往返：withEnumParam → parseEnumParam 同值", () => {
+    expect(parseEnumParam(`?${withEnumParam("?project=p1", "e-9")}`)).toBe("e-9");
+  });
+
+  it("双轨独立往返：enum 回写不动 task 轨，task 回写不动 enum 轨", () => {
+    const both = withEnumParam("?task=t-1", "e-1");
+    expect(parseTaskParam(`?${both}`)).toBe("t-1");
+    const afterTask = withTaskParam(`?${both}`, "t-2");
+    expect(parseEnumParam(`?${afterTask}`)).toBe("e-1");
+    expect(parseTaskParam(`?${afterTask}`)).toBe("t-2");
   });
 });
