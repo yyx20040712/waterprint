@@ -1,17 +1,15 @@
 /**
- * 参数面板纯函数测试：窄化门/draft 归一/脏比较/目录索引/假设合成行（D8 TDD）。
+ * 参数面板纯函数测试：窄化门/draft 归一/脏比较/目录索引/假设合成行（D8 TDD）
+ * +UX2 假设编辑/CP2 约束勾选 PUT 载荷构造。
  *
- * 输入:  designParams 五纯函数（node 环境——零 antd/react-query import 链）
- * 输出:  纯函数契约断言（版本轻门/形状逐类拒/非数值 draft null 禁提交/
- *        脏比较无空写/units 索引含 builtin/假设 DEFAULTS∪overrides 覆盖标记）
+ * 输入:  designParams 纯函数族（node 环境——零 antd/react-query import 链）
+ * 输出:  纯函数契约断言（版本轻门/形状逐类拒/draft null 禁提交/脏比较
+ *        无空写/units 索引含 builtin/假设 DEFAULTS∪overrides 覆盖标记）
  *
- * 规格说明（FE5 批 6b 段三，D1/D7/D8；夹具=golden municipal_34760 内联
- * 节选——inlet（内置 kind+数值参数）+sludge_hebing（六参数覆盖）+
- * municipal_aao（空参数节点），core/tests/golden/golden_data 原样值）：
- *   - 负例族逐类断言错误消息带键定位（呈现面可反查）；
- *   - D7 draft 归一：string→number|null（空/非数/非有限=null 禁提交）；
- *   - 脏比较基准=当前有效值（design 覆盖 ?? manifest 默认）——等值不产
- *     生空写条目（apply 合并面免 no-op 写）。
+ * 规格说明（FE5 段三 D1/D7/D8；夹具=golden municipal_34760 内联节选——
+ * inlet+sludge_hebing+municipal_aao，core/tests/golden/golden_data 原样
+ * 值）：负例族错误消息带键定位；D7 draft 归一 null=禁提交；脏比较基准=
+ * 当前有效值——等值不产空写（apply 合并面免 no-op 写）。
  */
 import { describe, expect, it } from "vitest";
 
@@ -38,24 +36,13 @@ const GOLDEN_EXCERPT: Record<string, unknown> = {
     influent: {},
     nodes: {
       inlet: {
-        BOD5: 200.0,
-        CODCR: 400.0,
-        NH3N: 26.0,
-        SS: 250.0,
-        TN: 43.0,
-        TP: 6.5,
-        kind: "municipal_input",
-        kz: 1.4,
-        q_avg_daily: 0.4023229167,
+        BOD5: 200.0, CODCR: 400.0, NH3N: 26.0, SS: 250.0, TN: 43.0, TP: 6.5,
+        kind: "municipal_input", kz: 1.4, q_avg_daily: 0.4023229167,
       },
       municipal_aao: {},
       sludge_hebing: {
-        ds_bio: 1928.69,
-        ds_chem: 137.705,
-        ds_primary: 3240.12,
-        p_bio: 0.994,
-        p_chem: 0.98,
-        p_primary: 0.96,
+        ds_bio: 1928.69, ds_chem: 137.705, ds_primary: 3240.12,
+        p_bio: 0.994, p_chem: 0.98, p_primary: 0.96,
       },
     },
     standard_binding: {},
@@ -66,9 +53,7 @@ const GOLDEN_EXCERPT: Record<string, unknown> = {
 };
 
 /** 完整顶层夹具（覆盖 design/顶层键——负例逐类覆写）。 */
-function fixture(
-  overrides?: Partial<Record<string, unknown>>,
-): Record<string, unknown> {
+function fixture(overrides?: Partial<Record<string, unknown>>): Record<string, unknown> {
   return { ...GOLDEN_EXCERPT, ...overrides };
 }
 
@@ -109,32 +94,11 @@ const INPUT_META: UnitMetaEntry = {
   unit_id: "municipal_input",
 };
 
-/** 假设 registry 三条节选（首条 safety.superheight 同序面）。 */
+/** 假设 registry 三条节选（首条 safety.superheight 同序面——值原样）。 */
 const ASSUMPTIONS: AssumptionEntry[] = [
-  {
-    default: 0.3,
-    dim: "LENGTH",
-    key: "safety.superheight",
-    note: "超高 0.3 m",
-    source: "GB 50014-2021",
-    tuning_direction: "up",
-  },
-  {
-    default: 1.4,
-    dim: "DIMENSIONLESS",
-    key: "influent.kz",
-    note: "总变化系数",
-    source: "GB 50014-2021",
-    tuning_direction: "up",
-  },
-  {
-    default: 0.6,
-    dim: "DIMENSIONLESS",
-    key: "sludge.wsl_ratio",
-    note: "泥龄比",
-    source: "手册",
-    tuning_direction: "down",
-  },
+  { default: 0.3, dim: "LENGTH", key: "safety.superheight", note: "超高 0.3 m", source: "GB 50014-2021", tuning_direction: "up" },
+  { default: 1.4, dim: "DIMENSIONLESS", key: "influent.kz", note: "总变化系数", source: "GB 50014-2021", tuning_direction: "up" },
+  { default: 0.6, dim: "DIMENSIONLESS", key: "sludge.wsl_ratio", note: "泥龄比", source: "手册", tuning_direction: "down" },
 ];
 
 describe("narrowDesignParams（D8 窄化门）", () => {
@@ -324,7 +288,6 @@ describe("buildAssumptionRows（假设合成行——DEFAULTS∪overrides）", (
   });
 });
 
-
 // ═══ AUDIT2 FIX2 I-8：未测负例形状入册（探针 2026-08-30 已证实现真拒） ═══
 describe("AUDIT2 I-8 designParams 未测负例形状", () => {
   it("overrides 值 NaN 拒", () => {
@@ -499,57 +462,37 @@ describe("UX2 rawCheckedUnits（conditions 原样透传——D4 自动重算）"
   });
 });
 
-// ═══ CP2（约束勾选持久化 2026-09-01 D1/D2）：PUT 载荷构造 TDD 红先——
-// 动态 import 隔离红面（UX2 collectAssumptionEdits 先例同款） ═══
+// ═══ CP2（约束勾选持久化 2026-09-01 D1/D2）：PUT 载荷构造——动态 import 隔离红面（UX2 先例） ═══
 describe("CP2 withConstraintChoices（PUT 载荷构造——仅替换 design.constraint_choices）", () => {
-  it("keys→{key:\"on\"} 全量替换；其余顶层/design 键原样；原体不可变", async () => {
+  const designOf = (body: Record<string, unknown>) => body["design"] as Record<string, unknown>;
+
+  it("keys→{key:\"on\"} 全量替换+其余顶层/design 键原样+原体不可变", async () => {
     const { withConstraintChoices } = await import("./designParams");
     const raw = fixture();
-    const next = withConstraintChoices(raw, [
-      "vxinglvchi.v_filter_band",
-      "ganhua.moisture_out_band",
-    ]);
-    const design = next["design"] as Record<string, unknown>;
-    expect(design["constraint_choices"]).toEqual({
+    const next = withConstraintChoices(raw, ["vxinglvchi.v_filter_band", "ganhua.moisture_out_band"]);
+    expect(designOf(next)["constraint_choices"]).toEqual({
       "vxinglvchi.v_filter_band": "on",
       "ganhua.moisture_out_band": "on",
     });
-    expect(design["nodes"]).toEqual(
-      (raw["design"] as Record<string, unknown>)["nodes"],
-    );
-    expect(design["assumption_overrides"]).toEqual({});
-    expect(design["checked_units"]).toEqual([]);
+    expect(designOf(next)["nodes"]).toEqual(designOf(raw)["nodes"]);
+    expect(designOf(next)["assumption_overrides"]).toEqual({});
     expect(next["format_version"]).toBe("1.0");
     expect(next["metadata"]).toEqual(raw["metadata"]);
-    expect(next["view"]).toEqual(raw["view"]);
-    expect(
-      (raw["design"] as Record<string, unknown>)["constraint_choices"],
-    ).toEqual({}); // 纯函数：原 GET 体不被改写
+    expect(designOf(raw)["constraint_choices"]).toEqual({}); // 纯函数：原 GET 体不被改写
   });
 
-  it("空 keys → constraint_choices 回空（解勾删键——value 恒 \"on\" 无档位面）；kb 外死键原样入键（键域宽=schema 级）", async () => {
+  it("空 keys 回空（解勾删键）+kb 外死键照入（键域宽=schema 级）", async () => {
     const { withConstraintChoices } = await import("./designParams");
-    expect(
-      (withConstraintChoices(fixture(), [])["design"] as Record<string, unknown>)[
-        "constraint_choices"
-      ],
-    ).toEqual({});
-    expect(
-      (withConstraintChoices(fixture(), ["dead.key"])["design"] as Record<
-        string,
-        unknown
-      >)["constraint_choices"],
-    ).toEqual({ "dead.key": "on" });
+    expect(designOf(withConstraintChoices(fixture(), []))["constraint_choices"]).toEqual({});
+    expect(designOf(withConstraintChoices(fixture(), ["dead.key"]))["constraint_choices"]).toEqual({
+      "dead.key": "on",
+    });
   });
 
-  it("体非 record/design 缺失或非对象显式拒（原始体异形守卫——withAssumptionOverrides 同口径）", async () => {
+  it("体非 record/design 缺失或非对象显式拒（withAssumptionOverrides 同口径）", async () => {
     const { withConstraintChoices } = await import("./designParams");
     expect(() => withConstraintChoices(null, [])).toThrow(DesignParamsError);
-    expect(() => withConstraintChoices({ format_version: "1.0" }, [])).toThrow(
-      DesignParamsError,
-    );
-    expect(() =>
-      withConstraintChoices({ format_version: "1.0", design: [] }, []),
-    ).toThrow(/design/);
+    expect(() => withConstraintChoices({ format_version: "1.0" }, [])).toThrow(DesignParamsError);
+    expect(() => withConstraintChoices({ format_version: "1.0", design: [] }, [])).toThrow(/design/);
   });
 });

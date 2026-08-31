@@ -46,22 +46,17 @@
  *     挂账」：ConstraintPicker[features/params] 挂单元下拉与提交钮间，
  *     供选=filterSelectable(kind 双门+单元归属)，payload=toPayloadItems
  *     恰三键[severity 不入 worker 面]；无选中=options null 零漂移）；
- *   - CP2 D2 勾选即 PUT：本地 constraintKeys 受控源+乐观 set+PUT
- *     mutate（withConstraintChoices 载荷——仅替换 design.
- *     constraint_choices）；onSuccess invalidate ['/api/projects/{id}']
- *     read 键（PUT 后 design_digest 变→既有 stale 机制[三读端点+
- *     exports 409+横幅]自动激活——零新代码）；onError 回滚本地态+
+ *   - CP2 勾选即 PUT 持久（D2/D3——UX2 AssumptionsPanel 同构）：rawQuery
+ *     （同键不带 select——raw 缓存共享）驱动恢复（restoreConstraintKeys
+ *     投影勾选全集[value 恒 "on" 键]；初始装载+projectId 切换→勾选随新
+ *     项目重置——E §七旧缺陷自然收口）；勾选=乐观 set+
+ *     withConstraintChoices 载荷 mutate，onSuccess invalidate
+ *     ['/api/projects/{id}'] read 键（design_digest 变→既有 stale 机制
+ *     [三读端点+横幅+exports 409]自动激活零新代码）；onError 回滚+
  *     message.error（409 锁冲突保守提示照 UX2——不 force 不重试）；
  *     不自动 POST /api/calc/run（约束只影响枚举过滤不影响主计算输入）；
- *   - CP2 D3 恢复数据流（AssumptionsPanel rawQuery 样板）：同键不带
- *     select 的 raw 读直读 design.constraint_choices→restoreConstraintKeys
- *     投影勾选全集；raw data 变化（初始装载+projectId 切换）→恢复本地
- *     勾选态（projectId 切换旧缺陷——不清 unitId/constraintKeys——由
- *     恢复逻辑自然覆盖：勾选随新项目重置）；
- *   - CP2 D4 单元切换不再清空勾选（CP1 D6 行为演进——②类追认面）：
- *     本地态=持久勾选全集，显示与提交=全集∩当前单元供选面
- *     （filterSelectable/toPayloadItems 天然滤跨单元键——切回原单元
- *     勾选再现）；
+ *   - CP2 D4 单元切换不清空勾选（CP1 D6 行为演进②类追认）：本地态=持久
+ *     全集，显示与提交=全集∩当前单元供选面（跨单元键自然滤除，切回再现）；
  *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态
  *     invalidate 重拉——result 载荷与 failed 三件详情源）；表挂载=
  *     表源任务 kind==='enumerate'&&state==='done'&&feasible_count>0；
@@ -197,10 +192,9 @@ export function SolutionsPane() {
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
 
-  // CP2 D3 恢复数据流：raw data 变化（初始装载+projectId 切换[查询键随
-  // 项目变→data 重置]）→ 恢复本地勾选态（value 恒 "on" 键全集——死键照
-  // 收，显示/提交面∩供选面自然滤除）。projectId 切换不清勾选的旧缺陷
-  // （E §七）由本恢复自然覆盖；未就绪/加载中保留现态（成功到达后接管）。
+  // CP2 D3 恢复数据流：raw data 变化（初始装载+projectId 切换→查询键随
+  // 项目变 data 重置）→恢复勾选态（"on" 键全集——切项目不清勾选旧缺陷
+  // [E §七]自然收口；死键照收归供选面∩滤除；未就绪保留现态）。
   useEffect(() => {
     const raw = rawQuery.data;
     if (raw === undefined) {
@@ -307,10 +301,9 @@ export function SolutionsPane() {
     );
   };
 
-  // CP2 D2：勾选即 PUT 持久（UX2 AssumptionsPanel 同构样板；不自动
-  // POST /api/calc/run——约束只影响枚举过滤不影响主计算输入，「触发
-  // 重算提示」由既有 stale 机制承载：PUT 后 design_digest 变→三读端点
-  // stale+前端横幅+exports 409 守门全部自动激活）。
+  // CP2 D2：勾选即 PUT 持久（UX2 样板；不自动 POST /api/calc/run——约束
+  // 只影响枚举过滤，重算提示归既有 stale 机制：design_digest 变→三读
+  // 端点 stale+横幅+exports 409 守门自动激活）。
   const saveConstraints = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>(
     {
       mutation: {
@@ -378,8 +371,7 @@ export function SolutionsPane() {
             }))}
             onChange={(value) => {
               setUnitId(value);
-              // CP2 D4：单元切换不清空勾选（CP1 D6 行为演进——本地态=持久
-              // 全集，显示与提交=全集∩当前单元供选面；切回原单元勾选再现）
+              // CP2 D4：单元切换不清空勾选（持久全集∩供选面——切回再现）
             }}
           />
           <ConstraintPicker
