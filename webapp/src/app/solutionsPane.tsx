@@ -46,17 +46,15 @@
  *     挂账」：ConstraintPicker[features/params] 挂单元下拉与提交钮间，
  *     供选=filterSelectable(kind 双门+单元归属)，payload=toPayloadItems
  *     恰三键[severity 不入 worker 面]；无选中=options null 零漂移）；
- *   - CP2 勾选即 PUT 持久（D2/D3——UX2 AssumptionsPanel 同构）：rawQuery
- *     （同键不带 select——raw 缓存共享）驱动恢复（restoreConstraintKeys
- *     投影勾选全集[value 恒 "on" 键]；初始装载+projectId 切换→勾选随新
- *     项目重置——E §七旧缺陷自然收口）；勾选=乐观 set+
- *     withConstraintChoices 载荷 mutate，onSuccess invalidate
- *     ['/api/projects/{id}'] read 键（design_digest 变→既有 stale 机制
- *     [三读端点+横幅+exports 409]自动激活零新代码）；onError 回滚+
- *     message.error（409 锁冲突保守提示照 UX2——不 force 不重试）；
- *     不自动 POST /api/calc/run（约束只影响枚举过滤不影响主计算输入）；
- *   - CP2 D4 单元切换不清空勾选（CP1 D6 行为演进②类追认）：本地态=持久
- *     全集，显示与提交=全集∩当前单元供选面（跨单元键自然滤除，切回再现）；
+ *   - CP2 勾选即 PUT 持久（D2~D4——UX2 样板；R 轮 R-1/R-2/R-3/R-5）：
+ *     rawQuery（同键不带 select）驱动恢复（"on" 键全集；切项目随新项目
+ *     重置+重置单元选择[R-2/DS-04——Tabs 保活不重挂载]）；勾选=R-1 合成
+ *     全集 mergeGroupSelection（Checkbox.Group onChange 只报本组注册值
+ *     ——跨单元键显式保留，N-1 覆盖删除根治）→乐观 set+PUT；onSuccess
+ *     invalidate read 键（digest 变→stale 机制自动激活）；onError 回滚+
+ *     message.error；raw 未就绪 warning（R-5）；不自动 calc/run；
+ *   - CP2 D4 单元切换不清空勾选（②类追认）：全集∩供选面显示与提交；
+ *     投影空→options null 零漂移（R-3——禁发空数组载荷）；
  *   - 任务态双源：useTaskFeed（SSE 进度）+useGetTaskStatus（终态
  *     invalidate 重拉——result 载荷与 failed 三件详情源）；表挂载=
  *     表源任务 kind==='enumerate'&&state==='done'&&feasible_count>0；
@@ -94,6 +92,7 @@ import { useConstraints } from "../features/params/api/useConstraints";
 import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
 import {
   filterSelectable,
+  mergeGroupSelection,
   restoreConstraintKeys,
   toPayloadItems,
 } from "../features/params/lib/constraintPicker";
@@ -174,8 +173,7 @@ export function SolutionsPane() {
   const unitsQuery = useProjectUnits(projectId);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
   const constraintsQuery = useConstraints();
-  // CP2 D3：原始 GET 体（同键 ['/api/projects/${projectId}'] 不带 select——
-  // raw 缓存自动共享[与 canvas/params 三面]；恢复投影+PUT 载荷唯一数据源）
+  // CP2 D3：原始 GET 体（同键不带 select——raw 缓存共享；恢复+PUT 唯一数据源）
   const rawQuery = useReadProjectApiProjectsProjectIdGet(projectId ?? "", {
     query: { enabled: projectId !== null },
   });
@@ -192,9 +190,7 @@ export function SolutionsPane() {
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
 
-  // CP2 D3 恢复数据流：raw data 变化（初始装载+projectId 切换→查询键随
-  // 项目变 data 重置）→恢复勾选态（"on" 键全集——切项目不清勾选旧缺陷
-  // [E §七]自然收口；死键照收归供选面∩滤除；未就绪保留现态）。
+  // CP2 D3 恢复：raw data 变化（装载+切项目键变）→恢复勾选全集（未就绪保留现态）。
   useEffect(() => {
     const raw = rawQuery.data;
     if (raw === undefined) {
@@ -202,6 +198,12 @@ export function SolutionsPane() {
     }
     setConstraintKeys(restoreConstraintKeys(raw));
   }, [rawQuery.data]);
+
+  // CP2 R-2（DS-04）：projectId 变化重置单元选择与表源固化单元（Tabs 保活不重挂载——旧项目单元无意义）。
+  useEffect(() => {
+    setUnitId(null);
+    setEnumeratedUnitId(null);
+  }, [projectId]);
 
   // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
   // AUDIT2-R R3（DS-03 跨基座一审发现）：终态再派发 TASK_EVENT——重算
@@ -301,9 +303,8 @@ export function SolutionsPane() {
     );
   };
 
-  // CP2 D2：勾选即 PUT 持久（UX2 样板；不自动 POST /api/calc/run——约束
-  // 只影响枚举过滤，重算提示归既有 stale 机制：design_digest 变→三读
-  // 端点 stale+横幅+exports 409 守门自动激活）。
+  // CP2 D2：勾选即 PUT 持久（UX2 样板；不自动 calc/run——约束只影响枚举
+  // 过滤，重算提示归 stale 机制：digest 变→三读+横幅+exports 409 自动激活）。
   const saveConstraints = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>(
     {
       mutation: {
@@ -330,16 +331,20 @@ export function SolutionsPane() {
     constraintsQuery.data ?? [],
     unitId,
   );
-  /** CP2 D4：勾选=乐观 set+PUT 持久（失败回滚本地态+message 提示）。 */
+  /** CP2 D4+R-1：勾选=本组变更合成全集（跨单元键保留）→乐观 set+PUT。 */
   const handleConstraintChange = (nextKeys: string[]) => {
     const raw = rawQuery.data;
     const prevKeys = constraintKeys;
-    setConstraintKeys(nextKeys); // 乐观更新（PUT 在途不锁交互）
+    // R-1（N-1）：Checkbox.Group onChange 只报本组注册值——合成全集再持久
+    const groupKeys = selectableConstraints.map((entry) => entry.key);
+    const mergedKeys = mergeGroupSelection(constraintKeys, groupKeys, nextKeys);
+    setConstraintKeys(mergedKeys); // 乐观更新（合成全集——PUT 在途不锁交互）
     if (raw === undefined) {
-      return; // 原始体未就绪（GET 失败/加载中）——仅本地态，到达后恢复投影接管
+      messageApi.warning("项目数据未就绪，勾选暂未保存"); // R-5（DS-02）护栏
+      return; // 仅本地态——raw 到达后恢复投影接管
     }
     saveConstraints.mutate(
-      { projectId, data: withConstraintChoices(raw, nextKeys) },
+      { projectId, data: withConstraintChoices(raw, mergedKeys) },
       {
         onError: (error) => {
           setConstraintKeys(prevKeys); // 回滚（乐观面撤回）
@@ -387,19 +392,13 @@ export function SolutionsPane() {
               if (unitId === null) {
                 return;
               }
+              // R-3：本组投影空回 null（全集含跨单元键时禁发 {constraints:[]}）
+              const items = toPayloadItems(selectableConstraints, constraintKeys);
               enumerate.mutate({
                 data: {
                   project_id: projectId,
                   unit_ids: [unitId],
-                  options:
-                    constraintKeys.length === 0
-                      ? null
-                      : {
-                          constraints: toPayloadItems(
-                            selectableConstraints,
-                            constraintKeys,
-                          ),
-                        },
+                  options: items.length === 0 ? null : { constraints: items },
                 },
               });
             }}

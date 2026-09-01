@@ -1,19 +1,21 @@
 /**
- * 约束目录窄化/供选过滤/payload 投影/勾选恢复投影纯函数（CP1 D6——
- * ConstraintPicker 数据面；CP2 D3——持久勾选恢复面）。
+ * 约束目录窄化/供选过滤/payload 投影/勾选恢复投影/本组合成全集纯函数
+ * （CP1 D6——ConstraintPicker 数据面；CP2 D3——持久勾选恢复面；
+ * CP2 R-1——onChange 合成全集面）。
  *
  * 输入:  /api/constraints 原始载荷（unknown——orval 自由对象面）+ 目标单元
  *        id + 选中 key 集+项目原始 GET 体（恢复投影——design.
- *        constraint_choices）
+ *        constraint_choices）+全集/本组键/本组变更（合成全集）
  * 输出:  narrowConstraintCatalog → 条目视图[]（八键逐条校验，非法抛
  *        ConstraintCatalogError）；filterSelectable → 供选子集
  *        （kind=enumeration_filter 且 unit_kinds 含单元）；toPayloadItems
  *        → 枚举 options.constraints 三键载荷（key/expression/source——
  *        severity 不入 worker 三键面）；restoreConstraintKeys → 勾选
- *        keys 全集（value 恒 "on" 的键——CP2 恢复投影）
+ *        keys 全集（value 恒 "on" 的键——CP2 恢复投影）；
+ *        mergeGroupSelection → 本组变更合成全集（跨单元键保留——R-1）
  *
  * 规格说明（CP1 2026-08-31，D6/D7；窄化门纪律=solutionsView 同款；
- *   CP2 2026-09-01，D1/D3/D7）：
+ *   CP2 2026-09-01，D1/D3/D7；R 轮 2026-09-01，R-1/N-1）：
  *   - 服务端 kb 装载已 fail-visible（库级拒），本门为前端第二防线
  *     （传输破损/缓存异形拒于渲染前——非法形状 error 态呈现非静默）；
  *   - 供选双门=kind+unit_kinds（effluent_standard 恒空表=机制性不供选
@@ -26,7 +28,11 @@
  *     档位语义属扩展位禁现在造），非 "on" 值键不恢复；kb 外死键照恢
  *     （持久勾选全集——显示/提交面=全集∩供选面自然滤除，D7 键域宽）；
  *     形状宽容不炸（缺键/非对象→[]——rawCheckedUnits 同口径：恢复面
- *     非窄化门，异形留 PUT 侧守卫）。
+ *     非窄化门，异形留 PUT 侧守卫）；
+ *   - CP2 R-1 合成全集：antd Checkbox.Group onChange 只报本组注册值
+ *     （当前供选面 options），跨单元已勾键须由挂载方显式保留——
+ *     持久载荷=合成全集非本组值（D4「切回再现」的变更面契约载体）；
+ *     次序确定（保留键原序+nextKeys 追加序）+去重（防御面）。
  */
 export type ConstraintEntryView = {
   key: string;
@@ -154,4 +160,33 @@ export function restoreConstraintKeys(raw: unknown): string[] {
   return Object.entries(choices).flatMap(([key, value]) =>
     value === CHOICE_ON ? [key] : [],
   );
+}
+
+/**
+ * CP2 R-1（N-1 2026-09-01）本组变更合成全集：Checkbox.Group onChange(values)
+ * 只报本组（当前供选面）注册值——挂载方持久前须经此合成，跨单元已勾键
+ * 不被覆盖删除。结果=totalKeys 中不属于本组 groupKeys 的键（原序保留）
+ * ∪ nextKeys（其序追加），去重（防御 nextKeys 重复/与保留键重叠）。
+ */
+export function mergeGroupSelection(
+  totalKeys: string[],
+  groupKeys: string[],
+  nextKeys: string[],
+): string[] {
+  const group = new Set(groupKeys);
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const key of totalKeys) {
+    if (!group.has(key) && !seen.has(key)) {
+      seen.add(key);
+      merged.push(key);
+    }
+  }
+  for (const key of nextKeys) {
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(key);
+    }
+  }
+  return merged;
 }
