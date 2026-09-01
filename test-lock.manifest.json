@@ -181,7 +181,7 @@
   "server/tests/routers/test_units.py": "83e95069e614d39eb8179d1a61f8790c8b1d9ab6ab10b0bc9a37b34682323dca",
   "server/tests/services/test_calculation.py": "eea641dfeda33c3c69717894c74a573ff99d5b28c9823ca07dbc9081fe91fbc8",
   "server/tests/services/test_constraints.py": "9a62d83677e2eb8e9fd56477470dac1ba53f36b9f4915ee5a9fbb785424c1d48",
-  "server/tests/services/test_design_digest_mirror.py": "45e88c16af6a2c0de6eb4ef959d4ab7ab2ff865cebdfba717a2cdcb283291ce0",
+  "server/tests/services/test_design_digest_mirror.py": "1ea829129318f8744037955ee3aba8213e5b0184239210535f630a7aa02ef4f0",
   "server/tests/services/test_enumeration.py": "7f442aa6b5e170e3033e678b53dd7387f054a7d10f2c78450a76304b8a1f4300",
   "server/tests/services/test_exports.py": "081de94930d8a9a3801e3150f86d121b5c1900ca86f38078aa41307c2364e3ad",
   "server/tests/services/test_projects.py": "6e5deb3d7fe2c03bd4e03002b64cf35ac24096c26968fac45a23828df7b869bb",
