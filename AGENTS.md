@@ -123,6 +123,15 @@
 - 校验入口：本地 `scripts/check_readonly.py`；CI 与 pytest 侧
   `core/tests/arch/test_lock.py`。
 - AI **禁止**：修改/删除/新增上述两目录下任何文件；运行 lock_tests.py；修改 manifest。
+- units_lib 包内各单元 `tests/` 目录同受只读约束：manifest 逐条哈希校验 +
+  `check_readonly.py` 常驻扫描「未登记即 FAIL」（外审整改#3 H2 扩根——
+  新单元 2 文件在人类锁定前 FAIL 属预期流程闸，见 §11）。
+- **[HUMAN-LOCK] 信任根守卫**：三信任根=`test-lock.manifest.json`、
+  `scripts/lock_tests.py`、`scripts/check_readonly.py`——触碰三者的
+  commit message 必带 `[HUMAN-LOCK]` 标签（人类批准标记）。守卫双面：
+  CI `scripts/check_trust_root.py` 逐 commit 查 push range；本地门禁
+  查工作树（三件改动/未跟踪即 FAIL）+ HEAD commit 标签。AI 只能起草
+  此类变更并呈报批准，不得自行提交。
 - 只有人类可以：解锁（清除只读属性）→ 修改/新增测试 → 重新运行
   `python scripts/lock_tests.py`（新增单元测试后可带路径参数追加）→
   该变更作为独立 commit 接受审查。测试变更是显式事件，不是顺手行为。
@@ -165,7 +174,8 @@ units_lib/<line>/<unit>/
 
 - 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。
 - 新单元用 `wp new-unit <line> <name>`（core 的 cli.py）从 `_template` 生成。
-- 单元测试完成后由人类执行锁定（`python scripts/lock_tests.py <路径>`）。
+- 单元测试完成后由人类执行锁定（`python scripts/lock_tests.py <路径>`）——
+  锁定前新单元 tests/ 2 文件被 check_readonly 判「未登记」FAIL 属预期（§7 扩根）。
 
 ## 12. 业务语义冻结项（违反 = 评审拒绝）
 

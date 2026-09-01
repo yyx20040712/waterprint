@@ -25,11 +25,20 @@ jobs:
     name: 架构门禁（零依赖，系统 Python）
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 全量历史——check_trust_root 需解析 push/PR range
+      # （GITHUB_SHA/GITHUB_ACTIONS 为 Actions 原生 env 免映射；
+      # GITHUB_EVENT_BEFORE 取自 push event payload、GITHUB_PR_BASE 取自
+      # pull_request event 的 base sha——均需显式传入，非对应事件时为空）
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - run: python scripts/run_gates.py
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_PR_BASE: ${{ github.event.pull_request.base.sha }}
 
   core:
     name: 内核质量（ruff/mypy/import-linter/pytest）

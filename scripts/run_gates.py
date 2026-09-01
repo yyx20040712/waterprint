@@ -9,6 +9,8 @@
 # ruff 经 check_ruff.py（core venv 依赖）聚合入列——与 CI core-quality
 # 对齐（T7a C416 教训）；mypy/import-linter/pytest 仍属 CI/venv 单独跑；
 # 其余为零依赖门禁（系统 Python 直接可跑）。
+# 第十门禁 check_trust_root.py（外审整改#3 H1）：三信任根变更须带
+# [HUMAN-LOCK]（AGENTS §7）——门禁数基线 9→10（WP2 台账）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ GATES = (
     "check_readonly.py",
     "check_ruff.py",
     "check_structure.py",
+    "check_trust_root.py",
     "check_webapp.py",
 )
 
