@@ -46,7 +46,13 @@ def test_mirror_with_constraint_choices_identical() -> None:
 
 
 def test_mirror_full_design_state_and_change_identical() -> None:
-    """七字段多形态逐字节同+变更后（勾选增键）仍同——双胞胎同步漂移面。"""
+    """七字段多形态逐字节同+变更后（勾选增键）仍同——双胞胎同步漂移面。
+
+    数值出处（R-4/DS-07——宪法 §14 数值出处纪律测试面）：0.4023229167
+    =core/tests/golden/golden_data/municipal_34760 的 inlet q_avg_daily
+    原样（与 webapp designParams.test 夹具同源）；1.5/200.0 系测试自造
+    合理值（assumption_overrides/influent 形态面——非工程断言值）。
+    """
     design = DesignState(
         nodes={"inlet": {"kind": "municipal_input", "q_avg_daily": 0.4023229167}},
         edges=[
