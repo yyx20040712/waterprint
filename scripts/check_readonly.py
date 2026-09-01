@@ -1,6 +1,7 @@
 """测试只读门禁：manifest 哈希一致 + 只读属性齐备 + 无未登记文件。
 
-输入:  仓库根 test-lock.manifest.json + core/tests、server/tests 实际文件
+输入:  仓库根 test-lock.manifest.json + core/tests、server/tests、
+       core/waterprint/units_lib 包内 tests 目录实际文件
        （+ 追加锁定路径：清单登记即逐条校验存在性/哈希/只读属性——
        lock_tests.py <路径> 追加先例的读取面闭合，M1b R1-d）
 输出:  违规清单（退出码 1）或 OK 摘要（退出码 0）
@@ -12,6 +13,12 @@
 # 运行时产物（__pycache__ 等）在忽略清单内，不参与校验。
 # 属性校验仅在 Windows 本地开发环境强制（git clone 丢失只读位；
 # CI/Linux 侧内容完整性由哈希校验承担，属性是本地写屏障）。
+# H2 扩根（外审整改#3，WP2）：units_lib 包内 tests 目录纳入常驻
+# 扫描面——此前仅在 manifest 逐条校验，"未登记即 FAIL"强制面不含
+# 包内新增测试（缺口闭合）。glob 形态自 manifest 66 键实测归纳：
+#   core/waterprint/units_lib/_template/tests/*          一层（模板直挂）
+#   core/waterprint/units_lib/<line>/<package>/tests/*   两层（线/包）
+# 判定口径=路径含段名 tests（只收 tests 目录，不收单元源码）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -26,6 +33,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "test-lock.manifest.json"
 LOCKED_ROOTS = ("core/tests", "server/tests")
+# H2 扩根：units_lib 全树扫描但只收路径段名含 tests 的文件（见头注
+# glob 形态）——新单元 tests/ 2 文件在人类 lock_tests.py 重锁前会被
+# 判"未登记" FAIL，属预期流程闸（AGENTS §11 重锁口径）。
+TESTS_SEGMENT_ROOTS = ("core/waterprint/units_lib",)
 IGNORED_DIR_NAMES = {
     "__pycache__",
     ".pytest_cache",
@@ -63,6 +74,21 @@ def locked_files() -> list[Path]:
             if path.suffix in IGNORED_SUFFIXES:
                 continue
             found.append(path)
+    for rel in TESTS_SEGMENT_ROOTS:
+        root = REPO / rel
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")):
+            if not path.is_file():
+                continue
+            if "tests" not in path.relative_to(root).parts:
+                continue  # H2 扩根只收 tests 目录，不收单元源码
+            relparts = path.relative_to(REPO).parts
+            if IGNORED_DIR_NAMES.intersection(relparts):
+                continue
+            if path.suffix in IGNORED_SUFFIXES:
+                continue
+            found.append(path)
     return found
 
 
@@ -85,9 +111,9 @@ def main() -> int:
     for rel in sorted(actual - set(entries)):
         problems.append(f"未登记的测试文件（疑似绕过锁定流程新增）: {rel}")
     for rel in sorted(set(entries) - actual):
-        # 追加锁定路径（units_lib 包内 tests 等）不在常驻扫描根内：仍逐条
-        # 校验存在性/哈希/只读属性；"无未登记新增"仅在常驻扫描根内强制
-        # （追加锁定=逐包显式事件，AGENTS §11）。
+        # 清单登记但不在任何常驻扫描根内的路径（H2 扩根后 units_lib
+        # 包内 tests 已入扫描面；其余假想追加路径）仍逐条校验存在性/
+        # 哈希/只读属性——"无未登记新增"在全部常驻扫描根内强制。
         path = REPO / rel
         if not path.is_file():
             problems.append(f"清单中的文件已不存在（删除测试须走解锁流程）: {rel}")
