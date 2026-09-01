@@ -47,6 +47,8 @@ docker compose -f deploy/compose.yml up -d --build
 | `WATERPRINT_LOG_LEVEL` | INFO | 日志级别 |
 | `WATERPRINT_LOG_FILE` | /app/waterprint-server.log | 结构化日志（JSON 行）落点 |
 | `WATERPRINT_MAX_UPLOAD_MB` | 10 | 上传体积闸 |
+| `WATERPRINT_DWG_CONVERTER_PATH` | （空=关） | ODA File Converter 可执行路径（可选 DXF→DWG；详见「导出格式」节） |
+| `WATERPRINT_DWG_CONVERTER_TIMEOUT_S` | 100 | 单次 DWG 转换子进程超时秒（超时=跳过 DWG，DXF 照常交付） |
 
 覆盖例（compose 自定 env 或 `docker compose run -e`）：
 
@@ -59,6 +61,36 @@ services:
 
 > 单进程契约（§16 A5）：`server` 服务**不可水平扩副本**（api replicas=1 +
   calc workers=N）——任务注册表在容器本地卷，多副本=互相失忆。
+
+## 导出格式：DXF 默认与 ODA DWG 可选
+
+**DXF 是默认且恒定的交付格式**（R2018/AC1032）。兼容基线（§12.5）：
+AutoCAD 2018+、中望 CAD、浩辰 CAD 均原生打开 DXF R2018——不装任何
+转换器即可完整使用本产品的导出功能。
+
+**DWG 为用户自装可选**：若希望服务端在导出 DXF 的同时自动产出同名
+并排的 DWG（`<产物名>.dxf` + `<产物名>.dwg`，产物列表双行登记），
+需自行安装 ODA File Converter 并配置开关：
+
+1. 从官方渠道下载安装：`opendesign.com/guestfiles/oda_file_converter`
+   （Windows/Linux/mac 可执行件；**产品与镜像不分发该转换器**——下载
+   与安装由用户完成，许可关系建立在用户与 ODA 之间）；
+2. 许可证提示：ODA 官方 FAQ 明文「非 ODA 会员仅限非商业用途」——
+   教学/科研/内网自用符合；对外收费交付或产品化分发前须自行评估
+   （会员/商业 SDK 路线），本项目对此零许可风险（不分发零依赖）；
+3. 配置开关：设置 `WATERPRINT_DWG_CONVERTER_PATH` 为转换器可执行
+   文件完整路径（如 `C:\Program Files\ODA\ODAFileConverter 26.x\ODAFileConverter.exe`；
+   Linux 容器内为挂载路径）。默认空=功能关闭，行为与未引入该功能
+   完全一致。
+
+**失败语义（不可破承诺）**：转换失败、超时（默认 100 秒，可经
+`WATERPRINT_DWG_CONVERTER_TIMEOUT_S` 调整）或转换器路径失效时，
+服务端记录 warning 日志（事件 `dwg_convert_skipped`）并**跳过 DWG**，
+**DXF 产物照常生成与交付**——DWG 永远只是锦上添花，不阻塞导出链。
+
+**适用形态**：自装主机（Windows/Linux 裸机或内网服务器）与内网部署
+（转换器挂载进容器+设环境变量）。默认容器镜像**不含**转换器=默认关
+（§12.7 许可证隔离原则——转换器属部署侧组件，不进基础镜像）。
 
 ## 冒烟自检清单（部署后 2 分钟过一遍）
 

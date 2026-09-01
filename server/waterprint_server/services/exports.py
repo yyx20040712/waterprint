@@ -69,6 +69,10 @@
 #     ——worker 挂账同前）；修复锚=同名覆盖静默丢产物（多单元导出）。
 #     R3（DS-08）options.unit_id 严格化（_unit_id_of：仅非空字符串
 #     透传，bool/数值不再 str() 宽转→None=core 诚实 501 面维持）。
+#   - WP0（ODA-A 形态 A 2026-09-02）：dxf 单产物落盘后可选子进程转
+#     DWG（开关 dwg_converter_path 空=关，转换器不随产品分发）——同名
+#     并排+边车双产物；失败/超时/边车写失败=warning+跳过（DXF 恒交付，
+#     core drafting 零触碰；R-1 G1-01/A-01 收口）；决策见 _dwg_convert。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -79,12 +83,16 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
+import tempfile
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Final
 
+import structlog
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
@@ -103,6 +111,9 @@ _TEMPLATE_KINDS: Final[frozenset[str]] = frozenset({"calcbook"})
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
     {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx"}
 )
+# WP0（ODA-A）：ODA File Converter 输出版本参数=AC1032/R2018（§12.5 基线）。
+_DWG_CLI_VERSION: Final[str] = "ACAD2018"
+_LOGGER = structlog.get_logger(__name__)
 
 
 class StaleExportError(RuntimeError):
@@ -273,6 +284,73 @@ def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
     os.replace(tmp, sidecar)
 
 
+def _hidden_gui_options() -> dict[str, Any]:
+    """Windows 转换器弹窗抑制（SW_HIDE——ezdxf odafc 同款；POSIX 恒空）。
+    getattr 取符号（STARTUPINFO 非 win32 typeshed 缺席——getattr 面豁免
+    跨平台 mypy 误报且运行时等价）。
+    """
+    if sys.platform != "win32":
+        return {}
+    startup = getattr(subprocess, "STARTUPINFO", None)
+    if startup is None:  # 防御面：实现缺符号时退化为普通 spawn
+        return {}
+    info = startup()
+    info.dwFlags = getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+    info.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
+    return {"startupinfo": info}
+
+
+def _dwg_convert(converter: str, dxf_file: Path, timeout_s: int) -> Path | None:
+    """DXF→DWG 子进程转换（ODA File Converter CLI；任何失败=warning+None）。
+    直 subprocess 而非 ezdxf.addons.odafc（WP0 决策）：① addon Windows 面
+    只认 ezdxf 全局配置/PATH which——settings 显式路径须改写三方全局态；
+    ② addon 无 timeout（「超时=跳过」铁律不可表达）；③ 1.4.4 convert()
+    无产物分支未 raise（静默成功面）。CLI 契约同 _odafc_arguments：
+    <in_dir> <out_dir> <version> <DWG|DXF> <recurse> <audit> [filter]。
+    """
+    dwg: Path | None = None  # 成功旗标：with 外返回——R-1/A-01 cleanup 异常不吞成功
+    reason = ""
+    try:
+        in_dir = str(dxf_file.parent.resolve())  # R-1/G1-03：resolve 失败归入失败面
+        with tempfile.TemporaryDirectory(dir=in_dir) as tmp_name:
+            # 临时区=exports 同分区（GR-38）；recurse=0 单文件；audit=1 同 ezdxf 默认。
+            argv = [
+                converter, in_dir, tmp_name, _DWG_CLI_VERSION,
+                "DWG", "0", "1", dxf_file.name,
+            ]
+            proc = subprocess.run(  # 退出码面在下方统一判
+                argv, capture_output=True, timeout=timeout_s, check=False,
+                **_hidden_gui_options(),
+            )
+            produced = Path(tmp_name) / dxf_file.with_suffix(".dwg").name
+            # R-1/G1-02：三重判（退出码+存在+非零字节——空产物不登记）
+            if proc.returncode == 0 and produced.is_file() and produced.stat().st_size > 0:
+                dwg = dxf_file.with_suffix(".dwg")
+                os.replace(produced, dwg)  # GR-38：落位后随 with 正常退出再返回
+            else:
+                stderr = (proc.stderr or b"").decode("utf-8", "replace").strip()
+                reason = f"returncode={proc.returncode} stderr={stderr}"
+    except (OSError, subprocess.SubprocessError) as exc:
+        reason = repr(exc)  # 超时/缺件/管道/cleanup 面——全失败族归一（A-01）
+    if dwg is None:  # 已落位（纵遇 cleanup 异常）不告警——不留幽灵 DWG
+        _LOGGER.warning("dwg_convert_skipped", source=dxf_file.name, reason=reason)
+    return dwg
+
+
+def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | None:
+    """WP0（ODA-A 形态 A）挂点：产物落盘后、边车写入前（评估件 §四）。
+    kind=dxf 且开关非空→子进程转 DWG 同名并排；失败/超时=warning+跳过
+    （DXF 恒为契约产物）；成功返回名供边车双产物登记。
+    """
+    if kind != "dxf":
+        return None
+    converter = ctx.settings.dwg_converter_path.strip()
+    if not converter:  # 默认空=关（容器内无转换器，零行为漂移）
+        return None
+    dwg = _dwg_convert(converter, artifact, ctx.settings.dwg_converter_timeout_s)
+    return dwg.name if dwg is not None else None
+
+
 async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开接口）+ctx 首参惯例
     ctx: ServiceContext,
     project_id: str,
@@ -373,6 +451,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         condition_key=condition_key or None,
     )
     os.replace(tmp, out)
+    # WP0 挂点（落盘后/边车前）：dxf 可选转 DWG，失败=跳过（DXF 不可破）。
+    dwg_name = _post_export_dwg(ctx, kind, out)
     meta = ExportMeta(
         project_id=project_id,
         kind=kind,
@@ -384,6 +464,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         stale_labeled=stale and force,
     )
     _write_meta(ctx, meta)
+    if dwg_name is not None:  # 双产物登记；R-1/G1-01 边车写失败=跳过登记（DWG 永不阻塞 DXF）
+        try:
+            _write_meta(ctx, replace(meta, file_name=dwg_name))
+        except OSError as exc:
+            _LOGGER.warning(
+                "dwg_convert_skipped", source=dwg_name, reason=f"sidecar write failed: {exc!r}"
+            )
     return ExportHandle(
         project_id=project_id,
         kind=kind,

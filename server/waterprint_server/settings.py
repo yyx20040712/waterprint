@@ -40,7 +40,9 @@
 #     HTTP 上传面深度闸）；
 #   - page_size_default=2*10**2（=200/页，§12.2 规格值）；
 #   - task_queue_priorities 默认 {calc:10, enumerate:2, export_batch:1}
-#     （§17.1 交互计算 > 枚举 > 批量导出——值域取白名单 {0,1,2,10}）。
+#     （§17.1 交互计算 > 枚举 > 批量导出——值域取白名单 {0,1,2,10}）；
+#   - dwg_converter_timeout_s=10**2（=100 秒，WP0 ODA-A：DXF→DWG 外挂
+#     转换子进程超时——部署侧可选件的防御值，非工程量）。
 #
 # 【测试要求】默认值合法、非法值拒绝、路径越界防护的消费方行为。
 #
@@ -61,7 +63,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # 分量白名单字符集（R1）：ASCII 字母数字开头，允许 -/_，长度上限 64——
 # 拒绝 ".."、绝对路径、盘符与路径分隔符注入（§18 路径安全）。
 _COMPONENT_PATTERN: re.Pattern[str] = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
-_FAIL_FAST_FIELDS = ("calc_workers", "max_upload_mb", "max_excel_rows", "max_json_depth")
+_FAIL_FAST_FIELDS = (
+    "calc_workers",
+    "max_upload_mb",
+    "max_excel_rows",
+    "max_json_depth",
+    "dwg_converter_timeout_s",  # WP0：超时 <1 秒=闸死转换面（fail fast 不静默）
+)
 # 服务层引擎版本标识（可复算三元组成员——与 server/pyproject version 同源同步）。
 ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
 
@@ -93,6 +101,12 @@ class Settings(BaseSettings):
     log_file: str = "waterprint-server.log"
     max_json_depth: int = 10**2  # 100（HTTP 上传面深度闸，与 core io._MAX_DEPTH 同源）
     page_size_default: int = 2 * 10**2  # 200（§12.2 分页默认页大小）
+    # WP0（ODA-A 形态 A 2026-09-02）：可选 DXF→DWG 外挂转换器——默认空串=关
+    #（容器内不随镜像分发转换器=默认关，零行为漂移）；路径指向用户自装的
+    # ODA File Converter 可执行件（docs/deployment.md「导出格式」节）。
+    dwg_converter_path: str = ""
+    # 转换子进程超时秒（超时=warning+跳过 DWG——DXF 交付承诺不可破）。
+    dwg_converter_timeout_s: int = 10**2  # 100（幂积保白名单字面量集，注记见规格头）
 
     @field_validator(*_FAIL_FAST_FIELDS)
     @classmethod
