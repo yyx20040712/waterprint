@@ -22,12 +22,17 @@ HTTP 编排层：`routers`（薄协议转换）→ `services`（用例编排，�
 ```bash
 cd server
 uv sync --frozen
-uv run uvicorn waterprint_server.main:app --reload
+uv run python -m waterprint_server.main   # 默认只听 127.0.0.1:8000（settings host/port）
 ```
+
+开发态热重载：`uv run uvicorn waterprint_server.main:app --reload
+--host 127.0.0.1`（uvicorn CLI 无 host 旗标时默认 0.0.0.0——对外绑定是
+显式信任决策，24 端点零鉴权，见 docs/deployment.md「安全红线」节）。
 
 环境变量（前缀 `WATERPRINT_`）：`PROJECTS_DIR`/`EXPORTS_DIR`/`DATA_DIR`
 （三路径基点，默认 CWD 相对）、`CALC_WORKERS`（进程池大小，默认 CPU−1，
-<1 启动即败）等——全字段见 `waterprint_server/settings.py` 规格头。
+<1 启动即败）、`HOST`/`PORT`（绑定面，默认 127.0.0.1:8000）等——
+全字段见 `waterprint_server/settings.py` 规格头。
 
 ## 测试与契约
 

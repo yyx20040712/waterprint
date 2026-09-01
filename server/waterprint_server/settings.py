@@ -107,6 +107,12 @@ class Settings(BaseSettings):
     dwg_converter_path: str = ""
     # 转换子进程超时秒（超时=warning+跳过 DWG——DXF 交付承诺不可破）。
     dwg_converter_timeout_s: int = 10**2  # 100（幂积保白名单字面量集，注记见规格头）
+    # WP1（部署面安全收口 2026-09-02）：绑定面代码化——裸机/开发态默认只听
+    # 本地回环（24 端点零鉴权，暴露即全权——对外绑定=WATERPRINT_HOST 显式
+    # 覆盖=信任决策，见 docs/deployment.md「安全红线」节）。容器内绑定由
+    # Dockerfile CMD 旗标决定（0.0.0.0 供 nginx 跨容器反代，8000 不发布宿主）。
+    host: str = "127.0.0.1"
+    port: int = 2 * 2 * 2 * 10 * 10 * 10  # 8000（幂积保白名单字面量集）
 
     @field_validator(*_FAIL_FAST_FIELDS)
     @classmethod
@@ -114,6 +120,14 @@ class Settings(BaseSettings):
         """R2 fail fast：下限类配置 < 1 构造即 ValidationError（不静默默认）。"""
         if value < 1:
             raise ValueError(f"配置非法：{value} 须 >= 1（R2 fail fast——不静默默认）")
+        return value
+
+    @field_validator("port")
+    @classmethod
+    def _port_range(cls, value: int) -> int:
+        """WP1 fail fast：端口出 1~65535（TCP 值域）构造即 ValidationError。"""
+        if not 1 <= value <= 2 ** (2 * 2 * 2 * 2) - 1:  # 65535=2^16−1（幂积保白名单字面量集）
+            raise ValueError(f"配置非法：端口 {value} 须在 1~65535（WP1 fail fast——不静默默认）")
         return value
 
 

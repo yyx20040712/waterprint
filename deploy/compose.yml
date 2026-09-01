@@ -15,8 +15,8 @@ services:
       # 项目与导出持久化（升级重建容器数据不丢；down -v 才会删卷）
       - wp-projects:/app/projects
       - wp-exports:/app/exports
-    ports:
-      - "8000:8000" # 直连 API（调试/健康探测；常规访问走 webapp 8080 反代）
+    # WP1 安全收口：不发布 ports——8000 不出容器网桥，nginx（webapp）=唯一
+    # 入口（24 端点零鉴权，暴露即全权；调试可 docker compose exec 进容器探）。
     healthcheck:
       test:
         [

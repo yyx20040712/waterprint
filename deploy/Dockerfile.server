@@ -45,4 +45,7 @@ ENV PATH="/opt/venv/bin:$PATH" \
     WATERPRINT_LOG_FILE=/app/waterprint-server.log
 
 EXPOSE 8000
+# WP1 安全收口：--host 0.0.0.0 不可改 127.0.0.1——nginx（webapp 容器）经服务名
+# waterprint-server 跨容器反代，须绑容器内全部网卡；宿主侧 compose 已无 ports 直映
+# =8000 不出容器网桥（对外唯一入口=webapp 8080，见 docs/deployment.md「安全红线」）。
 CMD ["uvicorn", "waterprint_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

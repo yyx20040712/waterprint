@@ -4,13 +4,28 @@
 > 「一键命令」；本文只管容器形态。compose 编排=`deploy/compose.yml`
 > （server=FastAPI/uvicorn，webapp=nginx 承载前端静态产物并反代 `/api`）。
 
+## 安全红线：暴露即全权
+
+**API 零鉴权**：服务层 24 端点当前无任何鉴权（token/简易鉴权=R2 roadmap）——
+能触达服务的主体即拥有全权：读改全部项目文件、提交任意计算（进程池满载
+即 CPU 耗尽面）。因此：
+
+- **容器形态**：server `8000` **不发布宿主**（compose 无 ports 直映——只在
+  容器网桥内供 nginx 经服务名 `waterprint-server` 反代）；对外唯一入口=
+  webapp `8080`，只应在**可信内网/防火墙后**暴露，禁止直接映射公网。
+- **裸机/开发态**：`python -m waterprint_server.main` 默认只听 `127.0.0.1:8000`
+  （settings `host` 字段）；改绑局域网地址（`WATERPRINT_HOST` 覆盖）=**显式
+  信任决策**，须自行确认该网络面内全部主体可信。
+- 调试需直连 API 时：`docker compose -f deploy/compose.yml exec server` 进
+  容器内探（healthcheck 同路径），或临时加回 ports 映射——**用毕即撤**。
+
 ## 前置要求
 
 | 项 | 要求 | 说明 |
 |----|------|------|
 | Docker Engine | 24+（含 BuildKit；本仓实测 29.7.2/WSL2） | `docker --version` 自查 |
 | Docker Compose | v2+（`docker compose` 子命令；本仓实测 v5.5.0） | 旧版 `docker-compose` 独立二进制不在支持面 |
-| 端口 | 8000（API 直连）+ 8080（Web 入口）空闲 | 占用改法见 FAQ-1 |
+| 端口 | 8080（Web 入口，唯一对外端口）空闲 | 占用改法见 FAQ-1；server 8000 不发布宿主 |
 | 网络 | 构建期需可达 PyPI 镜像（aliyun，pyproject 已配）与 npm 镜像（npmmirror，.npmrc 已配）；运行期零外部请求 | 产品约束：无出站依赖 |
 
 ## 一条命令起（从零到可用）
@@ -22,7 +37,8 @@ docker compose -f deploy/compose.yml up -d --build
 
 - 首次构建含全部依赖装配（预计 5~15 分钟，视网络；二次构建命中缓存秒级）；
 - `webapp` 依赖 `server` 健康检查通过才启动（`depends_on: service_healthy`）；
-- 就绪后入口=**http://localhost:8080**（API 直连口 http://localhost:8000）。
+- 就绪后入口=**http://localhost:8080**（`/api` 经 nginx 反代 server 容器——
+  8000 不出容器网桥，见上文「安全红线」）。
 
 ## 数据卷
 
@@ -49,6 +65,11 @@ docker compose -f deploy/compose.yml up -d --build
 | `WATERPRINT_MAX_UPLOAD_MB` | 10 | 上传体积闸 |
 | `WATERPRINT_DWG_CONVERTER_PATH` | （空=关） | ODA File Converter 可执行路径（可选 DXF→DWG；详见「导出格式」节） |
 | `WATERPRINT_DWG_CONVERTER_TIMEOUT_S` | 100 | 单次 DWG 转换子进程超时秒（超时=跳过 DWG，DXF 照常交付） |
+
+> 绑定面两字段 `WATERPRINT_HOST`/`WATERPRINT_PORT`（settings.py，裸机
+> `python -m waterprint_server.main` 消费，默认 `127.0.0.1:8000`——只听
+> 本地回环）容器内**不生效**：容器绑定由 Dockerfile CMD 旗标钉
+> `0.0.0.0:8000`（nginx 跨容器反代所需），改绑=改信任面，见「安全红线」节。
 
 覆盖例（compose 自定 env 或 `docker compose run -e`）：
 
@@ -106,8 +127,9 @@ AutoCAD 2018+、中望 CAD、浩辰 CAD 均原生打开 DXF R2018——不装任
 
 ## 常见问题（FAQ）
 
-1. **端口占用**：改 `deploy/compose.yml` 的 `ports` 左值
-   （如 `"18080:80"`），或建 `deploy/compose.override.yml` 覆盖。
+1. **端口占用**：仅 webapp 发布宿主端口（8080）——改 `deploy/compose.yml`
+   的 `ports` 左值（如 `"18080:80"`），或建 `deploy/compose.override.yml`
+   覆盖；server 8000 不发布宿主，无占用面。
 2. **镜像构建慢/失败**：网络面——PyPI 走 aliyun（pyproject `[[tool.uv.index]]`
    已配）、npm 走 npmmirror（根 `.npmrc` + 容器内 `COREPACK_NPM_REGISTRY`），
    均为国内可达源；仍失败查代理是否劫持 mirrors 域名。

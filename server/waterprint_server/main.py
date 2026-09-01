@@ -281,3 +281,16 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
 
 
 app: FastAPI = create_app(get_settings())
+
+if __name__ == "__main__":
+    # WP1（部署面安全收口 2026-09-02）：裸机/开发态启动入口——host/port 经
+    # settings（默认 127.0.0.1:8000，只听本地回环；对外绑定=WATERPRINT_HOST
+    # 显式覆盖=信任决策，见 docs/deployment.md「安全红线」节）。容器内不走
+    # 本块（Dockerfile CMD 直接 uvicorn --host 0.0.0.0 供 nginx 跨容器反代，
+    # 8000 不发布宿主）。局部 import：模块导入面（测试/ASGI 部署）零增量依赖。
+    import uvicorn  # 启动块正门（模块级 if 块不在 PLC0415 函数体口径内）
+
+    _settings = get_settings()
+    # R-1（G1-01）：传已建 app 对象非字符串路径——python -m 启动时模块以 __main__
+    # 身份已执行，字符串路径会再 import 实名模块一遍=双 app 实例（无 reload 收益）。
+    uvicorn.run(app, host=_settings.host, port=_settings.port)

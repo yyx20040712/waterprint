@@ -30,8 +30,8 @@ Node.js 与 pnpm（前端，经 corepack 启用）。仓库已内置 `.npmrc`
 # 计算内核（含全部测试）
 cd core && uv sync && uv run pytest
 
-# 服务层（默认监听 http://127.0.0.1:8000）
-cd server && uv sync && uv run uvicorn waterprint_server.main:app
+# 服务层（默认只听 http://127.0.0.1:8000——对外绑定须 WATERPRINT_HOST 显式覆盖）
+cd server && uv sync && uv run python -m waterprint_server.main
 
 # 前端（默认 http://127.0.0.1:5173，已配代理转发到 8000）
 pnpm install && pnpm -C webapp dev

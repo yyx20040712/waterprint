@@ -40,13 +40,14 @@ uv run python ../scripts/run_gates.py        # 门禁脚本（行数/契约头/�
 # 前端（需要 pnpm，经 corepack 启用）
 pnpm install && pnpm -C webapp dev
 
-# 服务
-cd server && uv sync && uv run uvicorn waterprint_server.main:app
+# 服务（默认只听 127.0.0.1:8000——对外绑定=WATERPRINT_HOST 显式覆盖）
+cd server && uv sync && uv run python -m waterprint_server.main
 ```
 
 ## 部署（Docker 双容器）
 
-一条命令起全栈（前端 nginx 入口 http://localhost:8080 + API 服务 :8000，
+一条命令起全栈（对外唯一入口=前端 nginx http://localhost:8080，`/api` 经
+反代；server 8000 不发布宿主——安全口径见 deployment.md「安全红线」节，
 项目/导出持久化卷）：`docker compose -f deploy/compose.yml up -d --build`。
 前置、环境变量、冒烟清单与 FAQ 见 [`docs/deployment.md`](docs/deployment.md)。
 
