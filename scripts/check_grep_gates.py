@@ -1,6 +1,6 @@
-"""grep 门禁：占位/裸异常/乱码三类特征计数必须为 0。
+"""grep 门禁：占位/裸异常/乱码三类特征计数必须为 0 + compose 端口直映守卫。
 
-输入:  gate_patterns 定义的扫描范围与特征串
+输入:  gate_patterns 定义的扫描范围与特征串；deploy/compose.yml（定点）
 输出:  违规清单（退出码 1）或 OK 摘要（退出码 0）
 """
 
@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -27,6 +28,18 @@ from gate_patterns import (
 )
 
 REPO = Path(__file__).resolve().parent.parent
+
+# WP1 挂账顺收（外审整改#5 同批）：compose 端口直映守卫——server 8000 禁
+# 出容器网桥（24 端点零鉴权，暴露即全权；nginx=唯一入口），违规处置见
+# docs/deployment.md「安全红线：暴露即全权」节。定点单文件规则，不入
+# gate_patterns 扫描面（deploy/ 不属 SCAN_DIRS）。R-1（G1-01 强化）：
+# 短格式列表项 `- [IP:]HOSTPORT:8000`（正则匹配任意宿主端口→容器 8000
+# 发布形态，非仅字面直映）+ 长格式 `target: 8000`；行内 # 注释先剥离
+# （G1-02：文档性提及不误报）。
+COMPOSE_GUARD_FILE = "deploy/compose.yml"
+COMPOSE_PORT_PUBLISH_RE = re.compile(
+    r"""-\s*["']?(\d{1,3}(?:\.\d{1,3}){3}:)?\d+:8000\b|target:\s*["']?8000\b"""
+)
 
 
 def iter_files() -> list[Path]:
@@ -67,6 +80,26 @@ def check_file(path: Path) -> list[str]:
     return problems
 
 
+def check_compose_port_mirror() -> list[str]:
+    """compose 端口守卫：deploy/compose.yml 禁现任何到容器 8000 的发布。"""
+    path = REPO / COMPOSE_GUARD_FILE
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        # fail-closed：文件缺失/不可读时守卫不得静默空转（同 trust-root 口径）
+        return [f"{COMPOSE_GUARD_FILE}: 不可读（{exc!r}——端口守卫无从校验）"]
+    problems: list[str] = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        code = line.split("#", 1)[0]  # 行内注释剥离：文档性提及不误报
+        if COMPOSE_PORT_PUBLISH_RE.search(code):
+            problems.append(
+                f"{COMPOSE_GUARD_FILE}:{lineno}: 发布容器端口 8000"
+                "（安全红线：8000 不出容器网桥——处置见 docs/deployment.md"
+                "「安全红线」节；WP1 收口回潮防护）"
+            )
+    return problems
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     violations: list[str] = []
@@ -74,12 +107,16 @@ def main() -> int:
     for path in iter_files():
         count += 1
         violations.extend(check_file(path))
+    violations.extend(check_compose_port_mirror())
     if violations:
-        print(f"[FAIL] grep 门禁（占位/裸异常/乱码）违规 {len(violations)} 处：")
+        print(f"[FAIL] grep 门禁（占位/裸异常/乱码/compose 端口）违规 {len(violations)} 处：")
         for item in violations:
             print(f"  - {item}")
         return 1
-    print(f"[OK] grep 门禁：占位/裸 except/乱码计数 = 0（扫描 {count} 个文件）")
+    print(
+        f"[OK] grep 门禁：占位/裸 except/乱码计数 = 0 + compose 端口守卫通过"
+        f"（扫描 {count} 个文件）"
+    )
     return 0
 
 
