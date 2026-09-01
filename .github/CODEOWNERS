@@ -1,0 +1,8 @@
+# CODEOWNERS——信任根文件平台侧评审面（与机器门禁双轨闭环）
+# 机器门禁=scripts/check_trust_root.py（commit 首行 [HUMAN-LOCK] 标签，
+#   AGENTS.md §7）；本文件=GitHub 平台侧：下列路径的 PR 需 owner 批准。
+# 用户 2026-09-02 采纳（AUDIT-R1 WP2 呈报建议——外审 H1 补充面）。
+
+test-lock.manifest.json   @yyx20040712
+scripts/lock_tests.py     @yyx20040712
+scripts/check_readonly.py @yyx20040712
