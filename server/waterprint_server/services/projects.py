@@ -84,7 +84,7 @@ from waterprint_server.settings import ENGINE_VERSION, safe_child
 
 _PROJECT_SUFFIX: Final[str] = ".wp.json"
 _ROUND_DIGITS: Final[int] = 10  # 与 core io._ROUND_DIGITS 同源（B4 双胞胎）
-_DESIGN_FORMAT_VERSION: Final[str] = "1.0"  # 与 core io._FORMAT_VERSION 同源
+_DESIGN_FORMAT_VERSION: Final[str] = "2.0"  # 与 core io._FORMAT_VERSION 同源
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
     "ensure_ascii": False,
@@ -239,6 +239,7 @@ def _check_project_depth(project: ProjectFile, limit: int) -> None:
         project.design.nodes,
         project.design.edges,
         project.design.influent,
+        project.design.site,
         project.view.layout,
         project.view.camera,
         project.view.windows,
