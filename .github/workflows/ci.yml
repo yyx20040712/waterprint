@@ -6,8 +6,8 @@
 #     复核定性（非放宽——交接在册口径）；
 #   - contract-drift：server job 内常驻（R1-a 裁决重导修正 bd136fc 遗留
 #     漂移后启用——重生成 OpenAPI 与入库件字节比对）；
-#   - dep-audit（WP3·外审整改#5 L4）：依赖审计报告面——job 级
-#     continue-on-error 不阻断 run 结论；门禁化挂 R2。
+#   - dep-audit（WP3·外审整改#5 L4）：依赖审计阻断面——R2-B 门禁化
+#     收口：审计红即阻断 run 结论（continue-on-error 已移除）。
 name: ci
 
 on:
@@ -65,9 +65,10 @@ jobs:
       - name: import-linter 架构契约
         run: uv run lint-imports
       - name: Pytest（全量：tests + units_lib——与本地口径/门禁基线一致，WP3·M8）
-        run: uv run pytest tests waterprint/units_lib
-      # 覆盖率门禁（pyproject fail_under=0 现状）=外审显式挂账，非本批范围；
-      # 启用时改 --cov 并提高 fail_under（原「M1 起替换」注记随 M8 收口作废）
+        run: uv run pytest tests waterprint/units_lib --cov
+      # 覆盖率门禁（R2-B 真门禁化，core 面先行）：fail_under 取值与裁决
+      # 注记见 core/pyproject.toml coverage 段（实测基线下取整；本地
+      # addopts 不加 --cov——门禁只在 CI 面）。server/webapp 挂沿册。
 
   server:
     name: 服务层质量
@@ -160,16 +161,16 @@ jobs:
       - name: 构建 webapp 镜像（orval 需 api-contracts/openapi.json 同场）
         run: docker build -f deploy/Dockerfile.webapp .
 
-  # WP3（外审整改#5 L4）：依赖审计报告面。core/server=uv export 冻结锁定
-  # 面 → uvx pip-audit（工具临时化零新项目依赖；uvx 随 setup-uv 自带）；
-  # webapp=pnpm audit --prod。首版只报告不阻断——job 级 continue-on-error
-  # （非 step 级——外审批评过 step 级静默），job 名自明「报告面不阻断」；
-  # 门禁化挂 R2。不设 needs：与 gates 无依赖关系，并行启动最快出报告
-  # （报告面价值在信息不在门禁；R2 门禁化时再挂约束）。
+  # WP3（外审整改#5 L4）+R2-B 门禁化收口：依赖审计。core/server=uv export
+  # 冻结锁定面 → uvx pip-audit@2.10.1（工具临时化零新项目依赖，uvx 随
+  # setup-uv 自带；版本 pin=本地实测 2.10.1，CI 行为与 72f0beb 绿灯观测
+  # 对齐）；webapp=pnpm audit --prod。R2-B 起阻断：审计红即 fail run
+  # （continue-on-error 已移除——外审整改#5 残留收口）。不设 needs
+  # （R2-B 裁决落地）：门禁化后审计与代码门禁仍无逻辑依赖——审计对象=
+  # lock 冻结面非代码行为，并行启动最快出红；R 轮审阅反对再挂。
   dep-audit:
-    name: 依赖审计（报告面不阻断——门禁化挂 R2）
+    name: 依赖审计（阻断面）
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -179,12 +180,12 @@ jobs:
         working-directory: core
         run: |
           uv export --frozen --no-dev --no-emit-project -o /tmp/core-req.txt
-          uvx pip-audit -r /tmp/core-req.txt
+          uvx pip-audit@2.10.1 -r /tmp/core-req.txt
       - name: server 依赖审计（同构；waterprint-core 为 path 依赖不在 PyPI——剔除后审计其余锁定面）
         working-directory: server
         run: |
           uv export --frozen --no-dev --no-emit-project --no-emit-package waterprint-core -o /tmp/server-req.txt
-          uvx pip-audit -r /tmp/server-req.txt
+          uvx pip-audit@2.10.1 -r /tmp/server-req.txt
       # webapp 面沿用 webapp job 的 setup 形态（package-manager-cache: false
       # 原因见彼处注记；registry 覆盖同因——仓库 .npmrc 的 npmmirror 是本机
       # 网络对策，CI 海外 runner 审计走官方源）
