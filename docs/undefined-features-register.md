@@ -275,3 +275,24 @@ grep -n "removal_refs" core/waterprint/units_lib/municipal/{aao,cass}/manifest.p
 # 六键已入库（0.8.0 起草档；golden_municipal 槽位不建）
 grep -c "removal.aao.nh3n.mod_default\|removal.aao.tn.mod_default\|removal.aao.tp.mod_default\|removal.cass.nh3n.mod_default\|removal.cass.tn.mod_default\|removal.cass.tp.mod_default" data/coefficients/removal_rates.yaml   # 6
 ```
+
+## 十三、IDLE-Q5 批新增项（2026-09-02，单元库浏览界面立册）
+
+> 来源：用户 Ruling 2026-09-02 ③（前端唯一既没做也没规划的功能面——
+> 闲时队列立册+设计，实现另批）。设计件
+> .workflow/reports/units-browser-design.md（Q5 产出同日）。
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-52 | 单元库浏览 | 前端侧栏单元库自 App 骨架期占位「待实装」：36 条单元目录（GET /api/units 豁免端点——R2-A 批1 D3 认可面）无任何浏览面——单元有哪些/参数面长什么样/端口拓扑，用户只能翻源码或 manifest；canvas D2 中文名映射挂账同悬空 | 已定义→设计件 .workflow/reports/units-browser-design.md（Q5 产出 2026-09-02）：侧栏四线分组树（municipal 13/conveyance 4/mine_water 8/sludge 7+内置 4 排末）+Drawer 参数面五列表/端口面四列表预览；数据零新增（既有端点+orval hook useListUnitsApiUnitsGet）；落位=app 层薄壳防第三处 useUnitCatalog 封装三胞胎；拖拽建图联动只设计不实装（经 app 层组合不违 §13.5）。实现批待设计追认 | IDLE-Q5 2026-09-02 |
+
+### 十三批验证命令摘要（仓库根执行，2026-09-02）
+
+```bash
+# UF-52：侧栏占位现状铁证（App.tsx Sider 占位 Menu——实现批替换面）
+grep -n "单元库（待实装）" webapp/src/app/App.tsx
+    # App.tsx:172（占位 Menu items——替换面）
+# 数据面既有铁证（豁免端点+orval hook 双就位）
+grep -n '"/units"' server/waterprint_server/routers/units.py
+grep -n "useListUnitsApiUnitsGet" webapp/src/shared/api/generated/units/units.ts | head -1
+```
