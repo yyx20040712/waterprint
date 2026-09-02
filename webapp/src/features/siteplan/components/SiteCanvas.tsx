@@ -21,7 +21,8 @@
  *     strokeWidth（米·世界单位——随 zoom 缩放即「双线示意」）；
  *   - 测距层：选中结构 → measureToNearest(…, MEASURE_COUNT) 虚线+双值
  *     标注（编辑辅助非校核裁判——L4 面零实现零占位）；
- *   - 双击已摆结构=移除回待摆区（onRemove）；道路/走廊点击=选中（索引
+ *   - 双击已摆结构=移除回待摆区（onRemove——pointerdown 时间/位移自实现：
+ *     capture 重定向致原生 dblclick 落 svg 不可达）；道路/走廊点击=选中（索引
  *     身份面——折线端点视觉即把手）。
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -52,6 +53,10 @@ const ROTATE_HANDLE_GAP = 1.6;
 const ROTATE_HANDLE_RADIUS = 0.9;
 /** 折线端点把手半径（米·世界单位）。 */
 const ENDPOINT_RADIUS = 0.6;
+/** 结构双击判定窗（毫秒——双击移除自实现阈值，见 rect.onPointerDown）。 */
+const DOUBLE_TAP_MS = 500;
+/** 结构双击位移容差（像素——超容差=两次单击/拖动非双击）。 */
+const DOUBLE_TAP_SLOP_PX = 5;
 /** 测距最近数（简报 §一.4：至多 3 个）。 */
 const MEASURE_COUNT = 3;
 /** 滚轮缩放灵敏度（deltaY→指数因子系数）。 */
@@ -78,6 +83,9 @@ type DragSession =
   | { kind: "pan"; startClientX: number; startClientY: number; startPanX: number; startPanY: number }
   | { kind: "move"; unitId: string; offsetX: number; offsetY: number }
   | { kind: "rotate"; unitId: string };
+
+/** 结构双击判定锚（上次结构 rect pointerdown——dblclick 自实现数据面）。 */
+type DoubleTapAnchor = { time: number; unitId: string; clientX: number; clientY: number };
 
 /** 测距渲染对（几何线+屏幕标注共用——一次配对两处消费）。 */
 type MeasurePair = {
@@ -121,6 +129,7 @@ export function SiteCanvas({
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
+  const doubleTapRef = useRef<DoubleTapAnchor | null>(null); // 双击判定锚（仅结构 rect select 分支记）
   // 单订阅解构（MVP 面板级全订阅——零 selector 微优化；actions 引用稳定）
   const {
     pan, zoom, snapEnabled, showGrid, tool, selection, pendingPoints,
@@ -404,6 +413,22 @@ export function SiteCanvas({
                     return; // 绘制模式不拦截（冒泡至画布加点）
                   }
                   event.stopPropagation();
+                  // 双击自实现：setPointerCapture 重定向后续 click/dblclick 至
+                  // svg——原生 rect.onDoubleClick 不可达，按 pointerdown 判定
+                  const last = doubleTapRef.current;
+                  const hit =
+                    last !== null &&
+                    last.unitId === entry.unitId &&
+                    event.timeStamp - last.time < DOUBLE_TAP_MS &&
+                    Math.hypot(event.clientX - last.clientX, event.clientY - last.clientY) <
+                      DOUBLE_TAP_SLOP_PX;
+                  if (hit) {
+                    doubleTapRef.current = null;
+                    onRemove(entry.unitId); // 双击已摆=移除回待摆区
+                    return; // 已移除——本次不再起 move 会话
+                  }
+                  doubleTapRef.current = { time: event.timeStamp, unitId: entry.unitId,
+                    clientX: event.clientX, clientY: event.clientY };
                   setSelection({ kind: "structure", id: entry.unitId });
                   const world = toWorld(event.clientX, event.clientY);
                   if (world !== null) {
@@ -413,12 +438,6 @@ export function SiteCanvas({
                       offsetX: world.x - entry.x,
                       offsetY: world.y - entry.y,
                     });
-                  }
-                }}
-                onDoubleClick={(event) => {
-                  if (tool === "select") {
-                    event.stopPropagation();
-                    onRemove(entry.unitId); // 双击已摆=移除回待摆区
                   }
                 }}
               />
