@@ -36,6 +36,28 @@ def test_settings_exposes_path_and_limit_fields() -> None:
     assert get_settings() is get_settings()  # lru_cache 单例（测试可 cache_clear 覆盖）
 
 
+def test_settings_defaults_exact_values_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R2-C 测试债（E1 冻结全集锚点）：七字段默认值精确断言。
+
+    断言写真值非比较表（魔法数字禁令真源区例外=测试字面锚）；env 逐项
+    delenv 隔离（WATERPRINT_HOST 等宿主环境污染面归零——WP1 先例
+    Settings(_env_file=None) 同款防御形态）。
+    """
+    for name in (
+        "HOST", "PORT", "LOCK_EXPIRY_S", "DWG_CONVERTER_TIMEOUT_S",
+        "TASK_RETENTION_S", "TASK_SWEEP_INTERVAL_S", "TASK_REGISTRY_CAP",
+    ):
+        monkeypatch.delenv(f"WATERPRINT_{name}", raising=False)
+    defaults = Settings(_env_file=None)
+    assert defaults.host == "127.0.0.1"  # 裸机默认只听回环（WP1 安全红线）
+    assert defaults.port == 8000
+    assert defaults.lock_expiry_s == 10000  # ≈2.8 小时（编辑会话锁最长占用心智）
+    assert defaults.dwg_converter_timeout_s == 100  # ODA 外挂转换子进程超时
+    assert defaults.task_retention_s == 100000  # ≈27.8 小时（终态任务保留窗）
+    assert defaults.task_sweep_interval_s == 100  # ≈1.7 分钟（周期清扫轮询）
+    assert defaults.task_registry_cap == 1000  # 内存 _tasks 软上限
+
+
 def test_zero_workers_rejected_wiring() -> None:
     """R2 接线断言：calc_workers < 1 启动即失败（fail fast 不静默默认）。"""
     with pytest.raises(ValidationError):

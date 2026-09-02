@@ -170,9 +170,10 @@
   "core/waterprint/units_lib/sludge/xiaohua/tests/properties.py": "64d3104632f70ab8bb5d101c900f114d687ada1fc10d9106aa17095ac1f460ec",
   "core/waterprint/units_lib/sludge/xiaohua/tests/test_compute.py": "f706fa031a8bce1510d7d8e41130ca7cf990fd4a2aea753856c368dce2294b31",
   "server/tests/conftest.py": "a031efdbbcca5118b712851f858575c717e951415499a5c99915faf763e323f5",
-  "server/tests/jobs/test_manager.py": "5dec8fdbad06f62116d8b7363373f3462f58e3554d2f98f0fd1b4c9e6177840c",
+  "server/tests/jobs/test_manager.py": "fc700241b4c7a7afef055e8fbe016ed5ad0c8d080bb1319c4ec0f69f46555dba",
   "server/tests/jobs/test_spawn_smoke.py": "009a4f88416fbd75982cebd2fb05d5d1d15c779703c0fb180a893cde3e4faaf3",
   "server/tests/jobs/test_worker.py": "65bc972bcc52fa949e2a6cd739f170afd515550f1a7c2e0bcdd2d5c43c16ac58",
+  "server/tests/jobs/test_worker_dwg.py": "70d7184181d7113f32ae2c35a81c3168a73fdda94fd967fb7f9e5f704671b070",
   "server/tests/routers/test_calc.py": "90ca7d968a59ea5cec466fbee7f53f3492b6d1ae73a9f7ef1c6822fcaf16f04c",
   "server/tests/routers/test_events.py": "f7a6a832176c202110f3684b3a347f3abf570a13ae02d50fd51a038102e5c9e4",
   "server/tests/routers/test_exports.py": "fe6d72dda2e8d43ca10bcf802c165bd7654b3dcf5d94505c10bb1e008e83c60f",
@@ -192,7 +193,7 @@
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
   "server/tests/test_cost.py": "8153202e6ee734ebf0935fac1daa2096b8c44eedaff312e78955fb7572e4cd5f",
   "server/tests/test_elevation.py": "6f86b3bd087d1e245ceeb210ecf1936133d4acf99d5d9ad676d55220802ecbbd",
-  "server/tests/test_server_maintenance.py": "1525afa4c264f838da02f5f885eb7fbd7628909c3d694df9ed3903f630835872",
-  "server/tests/test_settings.py": "14b158a70ab2ee650b1dba8ef6c216a2eca4d31e74439bd09ef80d07e5202ac8",
+  "server/tests/test_server_maintenance.py": "61c997222da4c4eaf463a61c8e57ae403ceeddd60a1f931a00552eb75d67d331",
+  "server/tests/test_settings.py": "dacbdab9e8b3bbec4355c85711fe86708db6f0ec524ed55a5b4877585a020ffc",
   "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
 }

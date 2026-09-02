@@ -17,8 +17,14 @@
 #     ——parse_project 的 layout=dict[str,Any] 透传无深度闸）；
 #   - 锁过期（修4）：mtime 年龄>lock_expiry_s=陈旧残留→放行；新鲜锁
 #     409 旧语义保持；stat 不可得=保守锁面（旧语义）；
+#   - K-5（R2-C 修1·2026-09-02）：TOCTOU 竞态注入——过期判定后校验前
+#     （Path.read_bytes 第二次快照钩子注入点）新持有者重建锁（新内容+
+#     新 mtime）→409 fail-closed 新持有者锁存活；持有者心跳 touch（同
+#     内容+新 mtime）→409 活性铁证；心跳原语 refresh_lock_mtime（touch
+#     已存锁 mtime；缺锁 False 零创建——server 零写入方不变）；
 #   - settings：task_retention_s/task_sweep_interval_s/task_registry_cap/
-#     lock_expiry_s 默认合法+0/-1 构造拒（fail-fast 入列）；
+#     lock_expiry_s 默认合法+0/-1 构造拒（fail-fast 入列）+E1 冻结真值
+#     精确锚（R2-C 测试债——字面真值非比较表）；
 #   - WP1 债：WATERPRINT_PORT env 0/65536 出 TCP 值域→ValidationError。
 # 【替身口径】直构 _TaskRecord 终态（manager 内部面——noqa SLF001 同
 #   tests/jobs/test_manager.py 先例；不经调度=清扫判定单变量）。
@@ -183,11 +189,105 @@ async def test_fresh_lock_still_blocks_409_wiring(client, test_settings) -> None
     assert response.json()["error_type"] == "ProjectLockedError"
 
 
+@pytest.mark.anyio
+async def test_stale_lock_swap_in_window_blocks_save_wiring(
+    service_ctx, cass_payload, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """K-5（R2-C 修1）竞态注入：判定后校验前新持有者重建锁→409 fail-closed。
+
+    注入口=Path.read_bytes 第二次快照钩子（修复前旧码零内容读取=钩子
+    不触发，unlink 直落=新持有者锁被误删+双写者放行——红相即本缺陷）；
+    修复后双快照（内容+mtime）不一致→拒绝清除，新持有者锁存活。
+    时间推进=os.utime 回拨 mtime（真文件系统面，非全局 time.time patch）。
+    """
+    outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
+    project_id = outcome.project_id
+    project = _projects_mod.read_project(service_ctx, project_id)
+    lock = service_ctx.projects_dir / f"{project_id}.wp.lock"
+    lock.write_text("holder-a|111|t0", encoding="utf-8")
+    expired = time.time() - (service_ctx.settings.lock_expiry_s + 1)
+    os.utime(lock, (expired, expired))
+    reads: list[Path] = []
+    original_read = Path.read_bytes
+
+    def _swap_on_second_read(self: Path) -> bytes:  # type: ignore[no-untyped-def]
+        if self == lock:
+            reads.append(self)
+            if len(reads) == 2:  # K-5 窗口注入：判定后校验前新持有者换锁
+                lock.write_text("holder-b|222|t1", encoding="utf-8")
+                os.utime(lock, None)  # 新内容+新 mtime（重建锁全量替换）
+        return original_read(self)
+
+    monkeypatch.setattr(Path, "read_bytes", _swap_on_second_read)
+    with pytest.raises(_projects_mod.ProjectLockedError):
+        _projects_mod.save_project(service_ctx, project_id, project)
+    assert lock.read_text(encoding="utf-8") == "holder-b|222|t1"  # 新持有者锁存活
+
+
+@pytest.mark.anyio
+async def test_heartbeat_touch_in_window_blocks_save_wiring(
+    service_ctx, cass_payload, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """K-5 心跳语义：判定后校验前持有者 touch mtime（内容不变）→409。
+
+    长保存/长编辑会话的持有者周期心跳刷新 mtime——判定窗口内任何触碰
+    =持有者活性铁证，陈旧清除拒绝（fail-closed）；修复前旧码无二次校验
+    面=心跳后仍被清除（红相即误杀活性持有者缺陷）。
+    """
+    outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
+    project_id = outcome.project_id
+    project = _projects_mod.read_project(service_ctx, project_id)
+    lock = service_ctx.projects_dir / f"{project_id}.wp.lock"
+    lock.write_text("holder-a|111|t0", encoding="utf-8")
+    expired = time.time() - (service_ctx.settings.lock_expiry_s + 1)
+    os.utime(lock, (expired, expired))
+    touched = time.time()  # 心跳戳（区别于判定快照的旧 mtime）
+    reads: list[Path] = []
+    original_read = Path.read_bytes
+
+    def _touch_on_second_read(self: Path) -> bytes:  # type: ignore[no-untyped-def]
+        if self == lock:
+            reads.append(self)
+            if len(reads) == 2:  # 窗口注入：心跳 touch（内容不变仅 mtime）
+                os.utime(lock, (touched, touched))
+        return original_read(self)
+
+    monkeypatch.setattr(Path, "read_bytes", _touch_on_second_read)
+    with pytest.raises(_projects_mod.ProjectLockedError):
+        _projects_mod.save_project(service_ctx, project_id, project)
+    assert lock.read_text(encoding="utf-8") == "holder-a|111|t0"  # 原持有者锁存活
+
+
+@pytest.mark.anyio
+async def test_refresh_lock_mtime_heartbeat_helper_wiring(
+    service_ctx, cass_payload  # type: ignore[no-untyped-def]
+) -> None:
+    """K-5 心跳原语：refresh_lock_mtime touch 已存锁 mtime 至当前；缺锁不创建。"""
+    outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
+    project_id = outcome.project_id
+    lock = service_ctx.projects_dir / f"{project_id}.wp.lock"
+    assert _projects_mod.refresh_lock_mtime(service_ctx, project_id) is False  # 缺锁=False
+    assert not lock.exists()  # 零创建（server 零写入方铁律不变）
+    lock.write_text("holder-a|111|t0", encoding="utf-8")
+    stale = time.time() - service_ctx.settings.lock_expiry_s
+    os.utime(lock, (stale, stale))
+    assert _projects_mod.refresh_lock_mtime(service_ctx, project_id) is True
+    # 刷新至当前（远新于陈旧戳——半窗余量防时钟源毫秒级偏差误报）
+    assert lock.stat().st_mtime > stale + (service_ctx.settings.lock_expiry_s / 2)
+    assert lock.stat().st_mtime <= time.time() + 1  # 且贴近当前时刻（非未来戳）
+
+
 def test_wp4_settings_defaults_valid_wiring() -> None:
-    """修1/修4 接线断言：新字段默认合法（>=1——正值域内）。"""
+    """修1/修4 接线断言：新字段默认合法+E1 冻结真值精确锚（R2-C 测试债）。"""
     defaults = Settings()
-    for field in _WP4_FIELDS:
-        assert getattr(defaults, field) >= 1
+    expected = {
+        "task_retention_s": 100000,
+        "task_sweep_interval_s": 100,
+        "task_registry_cap": 1000,
+        "lock_expiry_s": 10000,
+    }
+    for field, value in expected.items():
+        assert getattr(defaults, field) == value  # E1 冻结全集（字面真值锚非比较表）
 
 
 @pytest.mark.parametrize("field", _WP4_FIELDS)

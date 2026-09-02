@@ -12,6 +12,7 @@ import importlib
 import json
 import os
 import threading
+import time
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -195,6 +196,7 @@ async def test_terminal_registry_persists_and_restores_wiring(
             ).encode("utf-8")
         )
         executor_b = ThreadPoolExecutor(max_workers=1)  # 重启语义：新实例同目录
+        restore_t0 = time.time()  # R2-C 测试债：恢复租约判定基线（构造前时刻）
         manager_b = Manager(
             executor_b,
             cancel_dir=tmp_path / "cancel",
@@ -205,6 +207,8 @@ async def test_terminal_registry_persists_and_restores_wiring(
         manager_b.start()  # 扫描恢复（损坏跳过不炸启动——D2 fail-visible）
         restored = manager_b.status(task_id)
         assert restored.state == "done"  # 终态恢复供读（exports 最近结果集消费面）
+        restored_record = manager_b._tasks[task_id]  # noqa: SLF001  # 租约面=内部记录（finished_at 非 status 投影）
+        assert restored_record.finished_at is not None and restored_record.finished_at >= restore_t0  # R2-C：恢复=新租约（WP4 修1 语义——新租约戳非原任务完成时刻，TTL 窗自恢复点重算；此前零断言）
         assert restored.kind == "calc"
         assert restored.result == {"state": "done", "value": "calc"}
         assert restored.project_id == "p1"
