@@ -86,7 +86,7 @@ _MAX_BYTES: Final[int] = 10**2 * 10**2 * 10**2 * 10
 _MAX_DEPTH: Final[int] = 10**2
 # 当前版 format_version（R6：dumps_design 头；与 migration.
 # SUPPORTED_VERSIONS[-1] 同源同步——双源一致性由门禁+migrate 拒路径守）。
-_FORMAT_VERSION: Final[str] = "1.0"
+_FORMAT_VERSION: Final[str] = "2.0"
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
     "ensure_ascii": False,
@@ -222,7 +222,7 @@ def loads(text: str) -> ProjectFile:
 def dumps_design(design: DesignState) -> str:
     """design 态确定性序列化（含 format_version 头，R6/T7a D5）。
 
-    参与项=DesignState 七字段全量（model_dump 全量；"单元版本"经 nodes
+    参与项=DesignState 八字段全量（含 site）（model_dump 全量；"单元版本"经 nodes
     值结构携带——后续收紧 GR-21）；view 态天然不进（签名只收
     DesignState）。头部 format_version 保证未来版本迁移后哈希自然失效。
     """

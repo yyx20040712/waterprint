@@ -17,6 +17,7 @@
 #       assumption_overrides: dict[str → float]（假设覆盖：键→值）
 #       influent: dict[str, Any]（进水绑定）
 #       standard_binding: dict[str → str]（标准绑定）
+#       site: SiteDesign（厂区布置——M5 L1 批新增，全默认空容器）
 #       ——全部 default 空容器（design={} 必须过，D7 最小态）
 #   class ViewState(BaseModel)：不参与哈希——
 #       layout: dict[str → Any] = {}（画布布局）
@@ -54,7 +55,8 @@
 #     GR-21）；timestamp 非空值按 GR-19 强制零偏移 UTC ISO 8601
 #     （Z 或 +00:00 过；naive 串与非零偏移时区 +08:00 等 = 拒——
 #     UF-40 收紧，T7a D3 2026-08-25）。
-#   - 数值纪律：本文件不在魔法数字白名单——零数值字面量。
+#   - 数值纪律：本文件不在魔法数字白名单——字面量仅 site 批（M5 L1）
+#     §三定稿的 0.0/1/2/10.0（默认值与 min_length/gt 约束面）。
 #
 # 【测试要求】view 变更不改 content_hash（与 project/io 联合，后续窗）、
 #   未知字段拒绝、序列化往返无损（与 project/io 联合，后续窗）、
@@ -74,6 +76,66 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 _STRICT_FORBID = ConfigDict(strict=True, extra="forbid")
 
 
+class SitePoint(BaseModel):
+    """厂区坐标点（米）。坐标系：原点=厂区左下角，X 东 Y 北（DXF 惯例）。"""
+
+    model_config = _STRICT_FORBID
+
+    x: float
+    y: float
+
+
+class StructurePlacement(BaseModel):
+    """构筑物摆放（只存变换不存轮廓——R3：轮廓=PlantResult 纯投影）。"""
+
+    model_config = _STRICT_FORBID
+
+    x: float
+    y: float
+    rotation: float = 0.0  # 度；编辑器 90° 吸附，允许自由角
+    ground_elevation: float | None = None  # 设计地面标高 m（纵断图数据面，可选）
+
+
+class Road(BaseModel):
+    """厂区道路：中心折线+宽度。"""
+
+    model_config = _STRICT_FORBID
+
+    centerline: list[SitePoint] = Field(..., min_length=2)
+    width_m: float = Field(..., gt=0)
+
+
+class Corridor(BaseModel):
+    """管线走廊：中心折线+宽度+类型（kind 开放 str——枚举待数据包定稿 GR-21）。"""
+
+    model_config = _STRICT_FORBID
+
+    centerline: list[SitePoint] = Field(..., min_length=2)
+    width_m: float = Field(..., gt=0)
+    kind: str = Field(..., min_length=1)
+
+
+class SitePlanOptions(BaseModel):
+    """总平面出图选项（design 态——出图输入必可复算 R2；site_plan.SiteOptions 对词）。"""
+
+    model_config = _STRICT_FORBID
+
+    coord_grid: float = 10.0  # 坐标网间距 m
+    wind_rose: dict[str, float] | None = None  # 风玫瑰条目（方位→频率，按需）
+
+
+class SiteDesign(BaseModel):
+    """厂区布置（design 态 site 键载体；boundary 红线后补 GR-21）。"""
+
+    model_config = _STRICT_FORBID
+
+    # 键=design.nodes 的 unit_id 直用（悬空校验见 ProjectFile 级 validator）
+    structures: dict[str, StructurePlacement] = Field(default_factory=dict)
+    roads: list[Road] = Field(default_factory=list)
+    corridors: list[Corridor] = Field(default_factory=list)
+    options: SitePlanOptions = Field(default_factory=SitePlanOptions)
+
+
 class DesignState(BaseModel):
     """design 态：参与 content_hash 与可复算的一切（R1/R4）。"""
 
@@ -86,6 +148,7 @@ class DesignState(BaseModel):
     assumption_overrides: dict[str, float] = Field(default_factory=dict)
     influent: dict[str, Any] = Field(default_factory=dict)
     standard_binding: dict[str, str] = Field(default_factory=dict)
+    site: SiteDesign = Field(default_factory=SiteDesign)
 
 
 class ViewState(BaseModel):
@@ -174,6 +237,17 @@ class ProjectFile(BaseModel):
                 "（顶层为权威源——迁移链只读顶层，R5）"
             )
         return data
+
+    @model_validator(mode="after")
+    def _site_keys_must_exist_in_nodes(self) -> ProjectFile:
+        """site.structures 键必须存在于 design.nodes（D3 悬空即拒——零反向校验）。"""
+        dangling = set(self.design.site.structures) - set(self.design.nodes)
+        if dangling:
+            raise ValueError(
+                f"site.structures 键悬空（不在 design.nodes）：{sorted(dangling)}"
+                "（删除单元须同步删摆放——D3 悬空即拒）"
+            )
+        return self
 
 
 def parse_project(data: Mapping[str, Any]) -> ProjectFile:

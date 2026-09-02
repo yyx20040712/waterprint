@@ -8,35 +8,37 @@
 # 规格说明（T7a 实现 D6 裁决 2026-08-25；镜像测试 tests/project/test_migration.py）
 #
 # 【公开接口】
-#   SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0",)
-#       迁移链覆盖的版本序列（链尾=当前版，锁定用例 [-1]=="1.0"）；
-#       产品首发无历史版本——链框架就位未来只增。
+#   SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0")
+#       迁移链覆盖的版本序列（链尾=当前版，锁定用例 [-1]=="2.0"）；
+#       M1 批（site 键）起链启用首条 v1→v2——后续版本只增条目。
 #   migrate(data: Mapping[str, Any]) -> ProjectFile   自动识别版本迁移
 #
 # 【行为规格】
 #   R1 链式迁移：v(n)→v(n+1) 每步一个纯函数迁移器，注册进
 #      _MIGRATIONS（链式迁移器注册表）；任意旧版经链到达当前版；
 #      跳级 = 链式复合，禁止写 n→current 的快捷迁移（组合爆炸与
-#      漏网）。【T7a 注记】v1 零历史版本——_MIGRATIONS 为空框架
-#      就位，未来版本增量只在此追加 (源版, 目标版, 迁移器) 条目。
+#      漏网）。【T7a→M1 注记】M1 批（site 键）启用首条 ("1.0","2.0")
+#      条目——后续版本增量只在此追加 (源版, 目标版, 迁移器) 条目。
 #   R2 迁移器纯函数 + 显式记录：每步迁移写入迁移日志（结构=经过
 #      版本链与字段增删改列表），进 metadata.migrated_from（审计
 #      可见）；不可迁移的字段（语义不明）抛领域异常并指明字段路径
 #      ——禁止猜测性默认。【T7a 注记】v1 无历史迁移——日志结构经
 #      Metadata.migrated_from 字段（GR-21 只增，T7a commit① 落地）
-#      就位、恒 None；"未知旧字段样本"以未知历史版本拒语义落（D8）。
+#      就位；M1 批起由链写来源版（多级跳步保留最早非空来源）；
+#      "未知旧字段样本"以未知历史版本拒语义落（D8）。
 #   R3 未来版本（format_version > 当前）→ InvalidProjectError 明确
 #      拒绝（不降级打开，防静默丢数据；消息含两版本）。
 #   R4 每个迁移器配 golden 用例：旧版样本 → 迁移后断言（样本文件进
 #      core/tests/golden/golden_data/migrations/，由人类维护）。
-#      【T7a 注记】v1 零迁移器=零 golden 样本义务。
+#      【M1 注记】v1→v2 回归证据由 tests/project/test_site_migration.py
+#      内置合成 fixture 承担（简报 §二.4——golden_data/migrations 不动）。
 #   R5 M4 旧系统导入器（best-effort）是独立入口（app.py 编排），
 #      不混入本迁移链（旧格式非本产品版本史）。
 #
 # 【T7a 冻结注记】
-#   - 版本识别序：=="1.0" 直通（零迁移，migrated_from 不动）→ 数值
+#   - 版本识别序：==当前版直通（零迁移，migrated_from 不动）→ 数值
 #     序大于当前版 → 未来版拒；其余（含非数值格式版本串）→ 未知
-#     历史版本拒（消息含版本与合法序列）。
+#     历史版本拒（经 _MIGRATIONS 链，不可达即拒；消息含版本与合法序列）。
 #   - migrate 复用 io.InvalidProjectError（GR-11 族不另建同义类；
 #     project 包内 migration→io import 合法，§1b 零新边）；校验
 #     拒绝的 ValidationError 转换与 io._build 同款消息拼接（B4
@@ -56,7 +58,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+import copy
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, Final
 
 from pydantic import ValidationError
@@ -64,12 +67,20 @@ from pydantic import ValidationError
 from waterprint.contracts.project_schema import ProjectFile, parse_project
 from waterprint.project.io import InvalidProjectError
 
-SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0",)
+SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0")
+
+
+def _migrate_add_site(data: MutableMapping[str, Any]) -> None:
+    """v1→v2：design 补默认空 site（旧项目零扰动——site 全默认即 v2 新建态同构）。"""
+    data.setdefault("design", {}).setdefault("site", {})
+
 
 # 链式迁移器注册表（R1）：(源版, 目标版, 迁移器) 按链序排列。
 # 迁移器签名：Callable[[MutableMapping[str, Any]], None]——就地纯
 # 变换数据树（无 I/O、无随机），每步完成后写入迁移日志结构。
-_MIGRATIONS: Final[tuple[tuple[str, str, Callable[[Any], None]], ...]] = ()
+_MIGRATIONS: Final[tuple[tuple[str, str, Callable[[MutableMapping[str, Any]], None]], ...]] = (
+    ("1.0", "2.0", _migrate_add_site),
+)
 
 
 def _version_key(version: str) -> tuple[int, ...] | None:
@@ -95,8 +106,42 @@ def _parse(data: Mapping[str, Any]) -> ProjectFile:
         ) from exc
 
 
+def _apply_chain(data: Mapping[str, Any], version: str) -> ProjectFile:
+    """已知历史版 → 当前版：_MIGRATIONS 链序逐步变换（R1 跳级=链式复合）。
+
+    深拷贝隔离调用方数据树（migrate 对外纯函数——零就地泄漏）；每步
+    迁移器就地变换+回写顶层 format_version=目标版；走完同步 metadata
+    （format_version=当前版防双写冲突；migrated_from=来源版，多级跳步
+    保留最早非空来源——R2 审计面）；链不可达（源版无条目）= 未知
+    历史版本拒（既有末段语义同款消息）。
+    """
+    migrated: MutableMapping[str, Any] = copy.deepcopy(dict(data))
+    walked = version
+    for source, target, migrator in _MIGRATIONS:
+        if source != walked:
+            continue  # 非当前步（链序=注册序；源版未入链则全程跳空→末段拒）
+        migrator(migrated)
+        migrated["format_version"] = target
+        walked = target
+    current = SUPPORTED_VERSIONS[-1]
+    if walked != current:
+        raise InvalidProjectError(
+            f"未知历史版本：文件 format_version={version!r} 不在合法版本序列"
+            f" {list(SUPPORTED_VERSIONS)} 内（R1 链式注册表无该源版路径；"
+            "来源不明文件请走 M4 旧系统导入器）"
+        )
+    metadata = migrated.get("metadata")
+    if not isinstance(metadata, MutableMapping):
+        metadata = {}
+        migrated["metadata"] = metadata
+    metadata["format_version"] = current
+    if metadata.get("migrated_from") is None:
+        metadata["migrated_from"] = version
+    return _parse(migrated)
+
+
 def migrate(data: Mapping[str, Any]) -> ProjectFile:
-    """版本识别正门：当前版直通 / 未来版拒 / 未知历史版拒（R2/R3）。"""
+    """版本识别正门：当前版直通 / 未来版拒 / 历史版经链迁移（R1~R3）。"""
     if not isinstance(data, Mapping):
         raise InvalidProjectError(
             f"项目数据顶层须为映射：得到 {type(data).__name__}"
@@ -117,8 +162,4 @@ def migrate(data: Mapping[str, Any]) -> ProjectFile:
             f"未来版本拒绝：文件 format_version={version!r} > 当前支持"
             f" {current!r}（R3——不降级打开，防静默丢数据；请升级程序）"
         )
-    raise InvalidProjectError(
-        f"未知历史版本：文件 format_version={version!r} 不在合法版本序列"
-        f" {list(SUPPORTED_VERSIONS)} 内（v1 产品首发无历史迁移链——"
-        "R1 链框架就位未来只增；来源不明文件请走 M4 旧系统导入器）"
-    )
+    return _apply_chain(data, version)
