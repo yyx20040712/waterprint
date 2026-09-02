@@ -7,7 +7,8 @@
  *        normalizeProjectId → 剥 ".wp" 尾缀的归一 id；parseTaskParam →
  *        任务 id 或 null；withTaskParam → 新查询串；clearTaskParam →
  *        移除 task 键的新查询串；parseTabParam → 合法路由值或 null；
- *        withTabParam → 写入 tab 键的新查询串
+ *        withTabParam → 写入 tab 键的新查询串；parseTokenParam → 令牌
+ *        串或 null；clearTokenParam → 移除 token 键的新查询串
  *
  * 规格说明（FE3 批 6b 段一，D5；R2 补 2026-08-29；FE6 批 6b 段四 D3 补
  *   taskParam 三函数；UX1 批 D2 补 tabParam 两函数）：
@@ -35,6 +36,14 @@
  *     持久化）；parseTabParam=ROUTES 成员校验（非法值 null——冻结面外
  *     不造路由，App 缺省 canvas 兜底）；withTabParam 只动 tab 键（project/
  *     task 等他键原序保留——tab 键透传语义既有测试自 FE3 起已锁）；
+ *   - R2-A 批2 D2 token 通道：?token= 首参引导（deep-link 令牌注入——
+ *     分享链带凭证形态）；parseTokenParam 与 project/task/enum 同构
+ *     （D5 单一真相族；空串视同 null）；clearTokenParam 只动 token 键
+ *     （project/task 等他键原序保留——与 clearTaskParam 同构语义）；
+ *     消费编排=App.tsx 模块顶层（读→非 null 写 localStorage+
+ *     replaceState 剥离——分层禁令：shared/api 的 token.ts 不得 import
+ *     本文件）；token 不设 with 函数（写入面唯一=首参引导，无用户回写
+ *     路由面——设置页写 localStorage 非 URL）；
  *     本文件 app 层 import router.tsx 同层合法（AppRoute 冻结面消费）。
  */
 import { ROUTES, type AppRoute } from "./router";
@@ -125,5 +134,18 @@ export function parseTabParam(search: string): AppRoute | null {
 export function withTabParam(search: string, tab: AppRoute): string {
   const params = new URLSearchParams(search);
   params.set("tab", tab);
+  return params.toString();
+}
+
+/** R2-A 批2 D2：?token= 直读（首参引导——App.tsx 模块顶层消费）。 */
+export function parseTokenParam(search: string): string | null {
+  const value = new URLSearchParams(search).get("token");
+  return value === null || value === "" ? null : value;
+}
+
+/** R2-A 批2 D2：显式移除 token 键（引导剥离——他键原序保留，taskParam 同构）。 */
+export function clearTokenParam(search: string): string {
+  const params = new URLSearchParams(search);
+  params.delete("token");
   return params.toString();
 }

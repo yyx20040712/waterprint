@@ -11,9 +11,20 @@
  *     {code, message, detail}（code=服务端 error_type，无则 HTTP_<status>；
  *     message=统一错误体 detail 文本；成功路径 2xx 非 JSON 体同归一——
  *     M3 对称面；422 附字段路径清单由 detail 承载）；
- *   - SSE 订阅不走本实例（EventSource 直连 /api/events/*）；
+ *   - R2-A 批2 D3 Bearer 注入：请求面 getApiToken() 同步现读——非空则
+ *     拼 Authorization: Bearer <token>（空=零注入零行为变化；token.ts
+ *     localStorage 单一真相，设置页保存即时生效）；
+ *   - R2-A 批2 D4 401 通知：响应面 status===401 先 window.dispatchEvent
+ *     (AUTH_EVENT) 再走既有归一化 throw（错误语义零变化仅加通知面——
+ *     App.tsx 监听自动开连接设置 Modal=错 token 自愈回路；node 测试
+ *     环境无 window——typeof 守卫零派发）；
+ *   - SSE 订阅不走本实例（EventSource 直连 /api/events/*——冻结方向
+ *     不变；token 面由 useTaskFeed 以 ？token= 查询参数对齐）；
  *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改。
  */
+
+import { AUTH_EVENT } from "../events";
+import { getApiToken } from "./token";
 
 /** orval 生成端点调用传入的请求配置（fetch 客户端面——url 相对基地）。 */
 export type CustomInstanceConfig = {
@@ -65,16 +76,27 @@ function withQuery(url: string, params: unknown): string {
 export const customInstance = <T>(config: CustomInstanceConfig): Promise<T> => {
   const path = withQuery(config.url, config.params);
   const isJsonBody = config.data !== undefined && config.data !== null;
+  // R2-A 批2 D3：token 同步现读——非空拼 Bearer（空=零注入零行为变化）
+  const apiToken = getApiToken();
+  const headers: Record<string, string> = {
+    ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
+    ...config.headers,
+  };
+  if (apiToken !== null) {
+    headers.Authorization = `Bearer ${apiToken}`; // token 运行期真相（orval 面无显式 Authorization）
+  }
   return fetch(`${BASE_URL}${path}`, {
     method: config.method,
-    headers: {
-      ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
-      ...config.headers,
-    },
+    headers,
     body: isJsonBody ? JSON.stringify(config.data) : undefined,
     signal: config.signal,
   }).then(async (response) => {
     if (!response.ok) {
+      // R2-A 批2 D4：401 先派发 AUTH_EVENT 再走既有归一化 throw
+      // （node 测试环境无 window——守卫零派发，错误语义不变）
+      if (response.status === 401 && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(AUTH_EVENT));
+      }
       // 错误归一化：服务端统一错误体 {detail, error_type} → WaterprintApiError
       let payload: unknown = null;
       try {
