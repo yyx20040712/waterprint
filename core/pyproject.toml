@@ -62,8 +62,11 @@ source = ["waterprint"]
 omit = ["*/tests/*"]  # 单元包内测试不计入覆盖率分母（防失真）
 
 [tool.coverage.report]
-# M0 骨架期无实现；M1 起改为 95（重写计划 §6.3，届时必须同步本行注释）
-fail_under = 0
+# fail_under=2026-09-02 全量实测基线下取整（防回退门），提值挂沿册
+# （原「M0 骨架期；M1 起改为 95」注记随 R2-B 真门禁化作废）。
+# 门禁只在 CI 面（ci.yml core job pytest --cov，R2-B 接线）：本地
+# addopts 不加 --cov——本地全量零 cov 拖慢（裁决注记，非遗漏）。
+fail_under = 88
 show_missing = true
 
 [tool.ruff]
