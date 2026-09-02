@@ -93,7 +93,8 @@ export const customInstance = <T>(config: CustomInstanceConfig): Promise<T> => {
   }).then(async (response) => {
     if (!response.ok) {
       // R2-A 批2 D4：401 先派发 AUTH_EVENT 再走既有归一化 throw
-      // （node 测试环境无 window——守卫零派发，错误语义不变）
+      // （node 测试环境无 window——守卫零派发，错误语义不变；次序由
+      // http.test.ts 时序标记断言锁——R 轮 G1-04）
       if (response.status === 401 && typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent(AUTH_EVENT));
       }

@@ -14,7 +14,8 @@
  *   - 服务端统一错误体 {detail, error_type} → code=error_type/message=detail；
  *   - R2-A 批2：token 空=零 Authorization 注入零行为变化；token 非空=
  *     Bearer 头注入；401 先派发 AUTH_EVENT（"wp:auth"）再走既有 throw
- *     （错误语义零变化）；非 401 零派发；node 无 localStorage 视同未配置。
+ *     （错误语义零变化；次序锁 R 轮 G1-04——dispatch/throw 时序标记
+ *     断言）；非 401 零派发；node 无 localStorage 视同未配置。
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -211,8 +212,15 @@ describe("Bearer 注入（R2-A 批2 D3——token 空=零注入零行为变化�
 });
 
 describe("401 → AUTH_EVENT 派发（R2-A 批2 D4——先通知再归一化 throw）", () => {
-  it("401：先派发 wp:auth 再抛 WaterprintApiError（错误语义零变化）", async () => {
-    const dispatchEvent = stubWindow();
+  it("401：先派发 wp:auth 再抛 WaterprintApiError（次序锁 R 轮 G1-04——dispatch 先于 throw）", async () => {
+    // 时序标记（G1-04）：派发 mock push "dispatch"、rejection 捕获 push
+    // "throw"——次序断言锁 D4「先派发再归一化 throw」核心语义（非仅各自存在）
+    const order: string[] = [];
+    const dispatchEvent = vi.fn((_event: CustomEvent): boolean => {
+      order.push("dispatch");
+      return true;
+    });
+    vi.stubGlobal("window", { dispatchEvent });
     stubFetch(
       new Response(JSON.stringify({ detail: "token 缺失或不符", error_type: "AuthError" }), {
         status: 401,
@@ -223,8 +231,12 @@ describe("401 → AUTH_EVENT 派发（R2-A 批2 D4——先通知再归一化 th
       method: "GET",
     }).then(
       () => null,
-      (error: unknown) => error,
+      (error: unknown) => {
+        order.push("throw");
+        return error;
+      },
     );
+    expect(order).toEqual(["dispatch", "throw"]); // 次序锁：派发先于 throw
     expect(dispatchEvent).toHaveBeenCalledOnce();
     const event = dispatchEvent.mock.calls[0]?.[0] as CustomEvent;
     expect(event.type).toBe(AUTH_EVENT);

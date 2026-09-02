@@ -47,6 +47,8 @@
  *     本编排只能在 app 层（shared/api 的 token.ts 不得 import 本层
  *     projectParam——分层禁令），main.tsx 零触碰；读 parseTokenParam
  *     →非 null 则 setApiToken+replaceState 剥离（他键原序保留）；
+ *     R 轮 G1-02/07 复核（2026-09-02）：node 无 window 守卫跳过；trim
+ *     非空才写（纯空白仅剥离不落库——写入面口径两分记于顶层块注）；
  *   - R2-A 批 2 D5 连接设置入口：Header 设置按钮（齿轮，静默常驻——
  *     token 空默认不自动弹零请求扰动）+TokenSettingsModal（保存/清除/
  *     关闭——零即时校验）；D4 自愈回路=useEffect 监听 AUTH_EVENT（401
@@ -80,12 +82,20 @@ const { Sider, Content, Header } = Layout;
 
 // R2-A 批 2 D2：?token= 首参引导（模块加载期最早时点——先于任何 React
 // Query 请求；StrictMode 双挂载安全：幂等写+剥离）。分享链带凭证形态：
-// 读 ?token= →非 null 写 localStorage+replaceState 剥离 token 键
+// 读 ?token= →trim 非空写 localStorage+replaceState 剥离 token 键
 // （防令牌驻留地址栏/进入分享截图——他键 project/task 原序保留）。
-{
+// R 轮 G1-02：node 面（无 window）守卫跳过——浏览器语义与时序不变
+// （顶层块仍在任何 React 渲染/fetch 之前）。
+// R 轮 G1-07 两条写入面口径：首参引导 trim 空=不写仅剥离（URL 引导
+// 不覆盖既有 localStorage 配置）；Modal 保存 trim 空=清除（tokenSettings-
+// Modal 用户显式动作剥令牌）——共通面=纯空白 token 永不落库。
+if (typeof window !== "undefined") {
   const bootstrapToken = parseTokenParam(window.location.search);
   if (bootstrapToken !== null) {
-    setApiToken(bootstrapToken);
+    const trimmed = bootstrapToken.trim();
+    if (trimmed !== "") {
+      setApiToken(trimmed);
+    }
     const stripped = clearTokenParam(window.location.search);
     window.history.replaceState(
       null,
