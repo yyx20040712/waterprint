@@ -11,11 +11,13 @@
  * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
  *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
  *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除；UX1 批
- *   6b 段八 D2 增 ?tab= 路由态进 URL；R2-A 批 2 增 token 运行期面）：
+ *   6b 段八 D2 增 ?tab= 路由态进 URL；R2-A 批 2 增 token 运行期面；
+ *   M3 批 2026-09-03 D2 扩七值：siteplan=厂区布置，插 canvas 后第二位）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
- *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
- *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
- *     用户流程；elevation/drawings/cost 次序沿 FE3 五值面——R9 勘误
+ *     路由名与次序=router.tsx AppRoute 冻结面七值 canvas/siteplan/
+ *     solutions/viewer3d/elevation/drawings/cost——solutions 插 canvas 后=
+ *     设计→看方案用户流程，siteplan 插第二位=设计→布置就近（M3 D2）；
+ *     elevation/drawings/cost 次序沿 FE3 五值面——R9 勘误
  *     回旧），Tabs activeKey/onChange 驱动——不引入 react-router
  *     （零新依赖纪律；FE3 D1 已定夺机制=状态机——勘误：原注引「router.tsx
  *     头『M2 定型』」该字样现不存在，router 头注实况见其文件）；
@@ -31,6 +33,8 @@
  *   - viewer3d 标签=Viewer3dPane（懒加载 Scene 独立 chunk §12.6；面板级
  *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4：默认标签首屏
  *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
+ *     siteplan 标签=SiteplanPane（M3：design.site 厂区布置编辑器——原生
+ *     SVG 自绘零新依赖，?project= 只读订阅+空态引导，不 lazy 无大件）；
  *     solutions 标签=SolutionsPane（FE6：单单元枚举提交→SSE 任务进度→
  *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
  *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
@@ -56,7 +60,7 @@
  *     派发方 shared/api/http.ts）自动开 Modal，卸载移除监听；
  *   - M2 左侧 Sider=UnitLibrary 单元库浏览（app 层薄壳：四线分组树+
  *     搜索+Drawer 详情——组装面在 ./unitLibraryTree 纯函数；onNavigateTab
- *     复用 handleTabChange 切 canvas——AppRoute 六键冻结面零扩，单元库=
+ *     复用 handleTabChange 切 canvas——AppRoute 七键冻结面零扩，单元库=
  *     Sider UI 态不进 URL）。
  */
 import { SettingOutlined } from "@ant-design/icons";
@@ -77,6 +81,7 @@ import {
   parseTokenParam,
   withTabParam,
 } from "./projectParam";
+import { SiteplanPane } from "./siteplanPane";
 import { SolutionsPane } from "./solutionsPane";
 import { TokenSettingsModal } from "./tokenSettingsModal";
 import { UnitLibrary } from "./unitLibrary";
@@ -189,6 +194,11 @@ export function App() {
                   key: "canvas",
                   label: "工艺画布",
                   children: <CanvasPane />,
+                },
+                {
+                  key: "siteplan",
+                  label: "厂区布置",
+                  children: <SiteplanPane />,
                 },
                 {
                   key: "solutions",

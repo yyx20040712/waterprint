@@ -3,11 +3,13 @@
 design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放/拖拽移动/旋转
 把手/道路·管线走廊折线绘制/测距标注/PUT 保存，M3 布置编辑器 MVP 批）。
 
-> 当前状态：**L2a 纯函数层+store 已就位（2026-09-03）**——窄化门/足迹投影
-> （dims 键镜像 PoolBox 消费面）/PUT 结构化替换/吸附/测距纯函数+view 态
-> store（zustand node 直测首例——FE6 口径收口，vitest +31 用例）；
-> **L2b 组件集成层（SiteplanPane/SiteCanvas/PendingPanel+useSiteData+
-> app 集成）同批续笔**（切片授权 L2a/L2b=commit 粒度）。
+> 当前状态：**M3 实装完成（2026-09-03，L2a+L2b 两笔切片）**——L2a 纯函数
+> 层+store（窄化门/足迹投影 dims 键镜像 PoolBox 消费面/PUT 结构化替换/
+> 吸附/测距+zustand node 直测首例——FE6 口径收口，vitest +31 用例）；
+> L2b 组件集成层（SiteplanPane/SiteCanvas/PendingPanel+useSiteData 薄封装
+> +app/siteplanPane 薄壳+AppRoute 六值扩七值 siteplan=canvas 后第二位；
+> 门禁 10 绿全量通过）。挂账：坐标网视口自适应、走廊 kind 开放输入、
+> roads/corridors 删除编辑——归 L4 批统筹。
 
 ## 文件清单（M3 实装；规格见各文件头契约块）
 
