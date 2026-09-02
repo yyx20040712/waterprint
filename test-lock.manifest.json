@@ -173,7 +173,7 @@
   "server/tests/jobs/test_manager.py": "fc700241b4c7a7afef055e8fbe016ed5ad0c8d080bb1319c4ec0f69f46555dba",
   "server/tests/jobs/test_spawn_smoke.py": "009a4f88416fbd75982cebd2fb05d5d1d15c779703c0fb180a893cde3e4faaf3",
   "server/tests/jobs/test_worker.py": "65bc972bcc52fa949e2a6cd739f170afd515550f1a7c2e0bcdd2d5c43c16ac58",
-  "server/tests/jobs/test_worker_dwg.py": "70d7184181d7113f32ae2c35a81c3168a73fdda94fd967fb7f9e5f704671b070",
+  "server/tests/jobs/test_worker_dwg.py": "6889d0f26e8c27274d14545b53b800ff302e2f0674ef642beeb07820008b2be7",
   "server/tests/routers/test_calc.py": "90ca7d968a59ea5cec466fbee7f53f3492b6d1ae73a9f7ef1c6822fcaf16f04c",
   "server/tests/routers/test_events.py": "f7a6a832176c202110f3684b3a347f3abf570a13ae02d50fd51a038102e5c9e4",
   "server/tests/routers/test_exports.py": "fe6d72dda2e8d43ca10bcf802c165bd7654b3dcf5d94505c10bb1e008e83c60f",

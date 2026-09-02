@@ -26,6 +26,20 @@
 # 【登记块口径】item 携带 sidecars=payload 预构建边车文本（services
 #   ExportMeta 八键单源）；缺块=存量零边车行为（test_worker.py 锁用例
 #   iterdir 断言约束——设计实录）。
+# 【R-1 增补（2026-09-02 A 二审六必改）】
+#   - D-01：dwg_convert 产物落位 os.replace 失败→归入失败族（None）——
+#     修复前 dwg 路径先赋值=假成功（returned 非 None+exists=False+零告警
+#     ——A 复现件红相形态；K-05 拆件后真源=jobs.dwg.dwg_convert）；
+#   - D-02：kind=dxf 的 out_name 后缀闸（必须 .dxf）——防 out_name=
+#     "foo.dwg" 时转换产物 with_suffix 同路径覆盖已交付 DXF（A 复现件
+#     形态 C：DXF 内容被 b'REALDWG' 覆盖）；
+#   - K-03：sidecars 二道闸（非映射=InvalidTaskPayloadError，不再裸
+#     ValueError 炸）+转换前置=开关非空且 sidecars 含 "dwg" 键（转换
+#     决定与登记面绑定——无登记键不转换，防幽灵产物）；
+#   - K-04：timeout 缺键/非正整数/非整数→跳过+warning（不 0 秒静默
+#     超时、不 ValueError 炸批）；
+#   - K-02：转换前取消检查（DXF 落盘后置令牌→转换跳过+取消后零新
+#     边车；转换后落盘由既有取消清理逻辑管，不补）。
 # 【参照】R2-C 简报交付2；WP0 挂账「worker 无边车面与边车面同批设计」
 # ══════════════════════════════════════════════════════════════════
 
@@ -170,8 +184,9 @@ def _form_payload(exports_dir: Path, result_file: str, converter: str, timeout_s
     }
 
 
-async def _drive_batch(  # type: ignore[no-untyped-def]
-    service_ctx, cass_payload, tmp_path, converter: str, timeout_s: int
+async def _drive_batch(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 前置束参数束（_fake_export 替身签名先例）
+    service_ctx, cass_payload, tmp_path, converter: str, timeout_s: int,
+    *, drop_dwg_sidecar: bool = False,
 ) -> tuple[Path, object]:
     """前置束：真 calc 结果+export_artifact 替身+批量任务直驱（worker 正门）。"""
     from waterprint import app as core
@@ -179,11 +194,12 @@ async def _drive_batch(  # type: ignore[no-untyped-def]
     result_file = await _result_file_via_calc(service_ctx, cass_payload)
     out_dir = tmp_path / "out"
     out_dir.mkdir()
+    payload = _form_payload(out_dir, result_file, converter, timeout_s)
+    if drop_dwg_sidecar:  # K-03 登记绑定形态：仅 dxf 边车键（缺 dwg 键）
+        payload["items"][0]["sidecars"].pop("dwg")
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(core, "export_artifact", _fake_export_write)
-        result = run_task(
-            _form_payload(out_dir, result_file, converter, timeout_s), None, None
-        )
+        result = run_task(payload, None, None)
     return out_dir, result
 
 
@@ -305,3 +321,127 @@ async def test_create_export_batch_payload_carries_dwg_face_wiring(  # type: ign
         assert dxf_meta["file_name"].endswith(".dxf")
         dwg_name = dxf_meta["file_name"][: -len(".dxf")] + ".dwg"
         assert dwg_meta == dxf_meta | {"file_name": dwg_name}  # 同源仅名异
+
+
+def test_dwg_convert_osreplace_failure_returns_none_wiring(tmp_path, monkeypatch) -> None:
+    """D-01 单元面：产物落位 os.replace 失败→归入失败族（None——DXF 不可破）。
+
+    修复前红相（A 复现件形态）：dwg 路径先赋值再 replace——异常被外层
+    归一后 returned 非 None+产物 exists=False+零告警=假成功路径。
+    """
+    import os
+
+    dxf = tmp_path / "u.dxf"
+    dxf.write_bytes(b"dxf-bytes")
+    converter = _standin_converter(tmp_path / "dwg", "ok")
+    original_replace = os.replace
+
+    def _fail_dwg_replace(src, dst, *args, **kwargs):  # type: ignore[no-untyped-def]
+        if str(dst).endswith(".dwg"):  # 只炸 DWG 落位（DXF 面不受扰）
+            raise OSError("injected replace failure (D-01)")
+        return original_replace(src, dst, *args, **kwargs)
+
+    monkeypatch.setattr(os, "replace", _fail_dwg_replace)
+    from waterprint_server.jobs import dwg as dwg_mod  # K-05 拆件后真源
+    result = dwg_mod.dwg_convert(str(converter), dxf, 10 * 10)
+    assert result is None  # 修复前红：returned 非 None（假成功）
+    assert not (tmp_path / "u.dwg").exists()  # 零幽灵产物
+
+
+async def test_batch_dxf_out_name_suffix_gate_blocks_dwg_collision_wiring(  # type: ignore[no-untyped-def]
+    service_ctx, cass_payload, tmp_path
+) -> None:
+    """D-02：kind=dxf 的 out_name 非 .dxf 后缀→二道闸拒（IPC 不可信面）。
+
+    A 复现件形态 C：修复前 out_name="foo.dwg" 经 with_suffix(".dwg")
+    =同路径——转换产物 os.replace 直接覆盖已交付 DXF（内容被替换）；
+    修复后 InvalidTaskPayloadError 拒于任何落盘之前。
+    """
+    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    converter = _standin_converter(tmp_path / "dwg", "ok")
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    payload = _form_payload(out_dir, result_file, str(converter), 10 * 10)
+    payload["items"][0]["out_name"] = "foo.dwg"  # dxf 项伪装 dwg 名=碰撞源
+    with pytest.raises(_mod.InvalidTaskPayloadError, match="后缀"):
+        run_task(payload, None, None)
+    assert list(out_dir.iterdir()) == []  # 拒于任何落盘之前（含 DXF）
+
+
+async def test_batch_sidecars_non_mapping_rejected_wiring(  # type: ignore[no-untyped-def]
+    service_ctx, cass_payload, tmp_path
+) -> None:
+    """K-03：sidecars 非映射→InvalidTaskPayloadError（IPC 二道闸——不再裸炸）。"""
+    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    payload = _form_payload(out_dir, result_file, "", 10 * 10)
+    payload["items"][0]["sidecars"] = "not-a-map"  # 直注非法形态
+    with pytest.raises(_mod.InvalidTaskPayloadError, match="sidecars"):
+        run_task(payload, None, None)
+
+
+async def test_batch_missing_dwg_sidecar_key_skips_conversion_wiring(  # type: ignore[no-untyped-def]
+    service_ctx, cass_payload, tmp_path
+) -> None:
+    """K-03：开关配置在但 sidecars 缺 "dwg" 键→零转换零 DWG（登记绑定）。
+
+    修复前红相：converter 非空即转换→幽灵 DWG 落地（无登记面却产产物）。
+    """
+    converter = _standin_converter(tmp_path / "dwg", "ok")
+    out_dir, result = await _drive_batch(
+        service_ctx, cass_payload, tmp_path, str(converter), 10 * 10,
+        drop_dwg_sidecar=True,
+    )
+    assert result["state"] == "done"
+    assert (out_dir / "batch.dxf").is_file()  # DXF 照常交付
+    assert not (out_dir / "batch.dwg").exists()  # 无登记键=零转换（修复前红：幽灵 DWG）
+    sidecars = sorted(path.name for path in out_dir.glob("*.meta.json"))
+    assert sidecars == ["batch.dxf.meta.json"]  # 仅 DXF 边车
+
+
+async def test_batch_invalid_timeout_skips_not_crashes_wiring(  # type: ignore[no-untyped-def]
+    service_ctx, cass_payload, tmp_path
+) -> None:
+    """K-04：timeout 非整数字符串→跳过+warning（DXF 照常——不炸批不静默超时）。"""
+    converter = _standin_converter(tmp_path / "dwg", "ok")
+    out_dir, result = await _drive_batch(
+        service_ctx, cass_payload, tmp_path, str(converter), "not-a-number",
+    )
+    assert result["state"] == "done"  # 修复前红：int() ValueError 炸批
+    assert (out_dir / "batch.dxf").is_file()
+    assert not (out_dir / "batch.dwg").exists()
+    sidecars = sorted(path.name for path in out_dir.glob("*.meta.json"))
+    assert sidecars == ["batch.dxf.meta.json"]
+
+
+async def test_batch_cancel_before_conversion_skips_dwg_wiring(  # type: ignore[no-untyped-def]
+    service_ctx, cass_payload, tmp_path
+) -> None:
+    """K-02：DXF 落盘后取消令牌置位→转换前检查命中（零 DWG+零新边车）。"""
+    from waterprint import app as core
+
+    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    converter = _standin_converter(tmp_path / "dwg", "ok")
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    cancel_flag = tmp_path / "cancel.flag"
+
+    def _export_then_cancel(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口
+        kind, plant, template, out, *, unit_id=None, condition_key=None
+    ):
+        Path(out).write_bytes(b"dxf-standin")
+        cancel_flag.write_text("cancel", encoding="utf-8")  # DXF 落盘后置令牌
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(core, "export_artifact", _export_then_cancel)
+        result = run_task(
+            _form_payload(out_dir, result_file, str(converter), 10 * 10),
+            str(cancel_flag),
+            None,
+        )
+    assert result["state"] == "cancelled"
+    assert list(result["files"]) == [str(out_dir / "batch.dxf")]  # 已落盘 DXF 携带
+    assert (out_dir / "batch.dxf").is_file()
+    assert not (out_dir / "batch.dwg").exists()  # 修复前红：转换照跑=幽灵 DWG
+    assert list(out_dir.glob("*.meta.json")) == []  # 取消后零新边车（K-02 检查在登记前）
