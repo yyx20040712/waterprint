@@ -204,7 +204,16 @@ export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
                 pagination={false}
               />
             ) : (
-              <Empty description="内置节点无参数面" />
+              // R 轮 G1-02：空参数文案按 kind 两分（判据=kind 非 params
+              // 空——现网 builtin 空 params=junction/recycle_junction 两件，
+              // 非_builtin 空 params 纯未来防御面）
+              <Empty
+                description={
+                  selectedUnit.kind === "builtin"
+                    ? "内置节点无参数面"
+                    : "该单元无参数面"
+                }
+              />
             )}
             <Typography.Text strong>端口面</Typography.Text>
             <Table<PortEntry>

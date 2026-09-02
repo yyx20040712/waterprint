@@ -7,7 +7,8 @@
  * 输出:  断言：组序=映射序+内置末+未知线「其他」防御；组标题计数形态；
  *        builtin 不落业务线组；组内序透传不重排；空目录=空数组；过滤
  *        空串原样/name_zh 与 unit_id 子串命中/大小写不敏感/空组剔除/
- *        无命中空数组；叶命中引用相等/组 key 与未命中 null
+ *        无命中空数组/组标题基名不参与匹配（R 轮 G1-06）；叶命中引用
+ *        相等/组 key 与未命中 null
  *
  * 规格说明（M2 批，简报 §四；app 层既有形态=projectParam.test.ts——
  *   纯函数 node 直测，组件薄壳不进 vitest 零 jsdom 红线）：
@@ -153,6 +154,14 @@ describe("M2 filterLibraryTree（unit_id/name_zh 子串过滤）", () => {
 
   it("无命中 → 空数组", () => {
     expect(filterLibraryTree(buildLibraryTree(CATALOG), "不存在的单元")).toEqual(
+      [],
+    );
+  });
+
+  it("组标题基名不参与匹配（「市政污水」仅命中组标题——叶名/key 均不含 → 空数组）", () => {
+    // R 轮 G1-06 区分性反例：若实现误将组标题纳入匹配面，municipal 组
+    // 会被带出——钉死匹配面=叶 key(unit_id)+叶 title(name_zh) 双字段
+    expect(filterLibraryTree(buildLibraryTree(CATALOG), "市政污水")).toEqual(
       [],
     );
   });
