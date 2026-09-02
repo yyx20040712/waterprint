@@ -90,7 +90,7 @@
   "core/tests/project/test_content_hash.py": "927d9301e7f92754bbde88023e306367289a5277222cbed12e6f34cf5363689d",
   "core/tests/project/test_io.py": "6b0aa5ccfdf9ef26d982439776dd52caec187362c8df46602ecd8527b80491ed",
   "core/tests/project/test_migration.py": "46e166df5a585aa1e2591103e6be45c5779361fe0192186967fa67fee3539685",
-  "core/tests/project/test_site_migration.py": "c9f9777287681224d354b83c2881e3d0b7dca3eb53410b00c5ee258b39c02f2c",
+  "core/tests/project/test_site_migration.py": "58a0a465b1f7ff9f5d079b4588504dbffdb61c9891ea236ab95ae3bfa154906e",
   "core/tests/registry/test_assumptions.py": "f6d2c71dfa3707b19244fccd1ba4a12f2bca44ab11f35dbc98aae7150d28baa9",
   "core/tests/registry/test_coefficients.py": "887a7f640c93287ee18ce7c57ff439bf8900e330dd358fccb930d28d72f80339",
   "core/tests/registry/test_dimensions.py": "d3da094b41f1df6400af979981601367acf9d587c5ef2fdd0685af60cdf264f5",
