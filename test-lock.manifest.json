@@ -44,7 +44,7 @@
   "core/tests/drafting/test_profile_drawing.py": "ed4b177a3ce316109cf9883b67ac0b3d1cffc7941566e2d650f8413ff0f7b720",
   "core/tests/drafting/test_section_view.py": "1dd9f1a0dab18d8e14b9baa2e47f32862548278262f3a9ae49f9f446dff184c1",
   "core/tests/drafting/test_sheets.py": "49a8e48e45dbd7cbda8e9bef4eda0d32135cbb7ffb353a04eaec4675dea1b961",
-  "core/tests/drafting/test_site_plan.py": "21d761209e29bedb29ea0c8341b6ad48466081fb92ee5773f0280f8d7246007c",
+  "core/tests/drafting/test_site_plan.py": "49dabd2fc2868b5861cf301334b83935a731e665f431396490584e0a1197a8cf",
   "core/tests/drafting/test_styles.py": "25f5841b49d7d6db8829f5e90570f4a3b9db71d49609b2d035cf5f06f19611ef",
   "core/tests/elevation/test_losses.py": "a29338b41c7f3387bf34596fb0a3d69615f11a0f975325858da603e64289349d",
   "core/tests/elevation/test_profile.py": "decac1861aae82f9631e5ad4ad8e43af3520ff77285305c3cae259293dad0e71",
