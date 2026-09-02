@@ -39,7 +39,7 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
         ctx,
         {
             "project": {
-                "format_version": "1.0",
+                "format_version": "2.0",
                 "design": {
                     "nodes": {
                         "inlet": {
@@ -61,7 +61,7 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
                 },
                 "view": {},
                 "metadata": {
-                    "format_version": "1.0",
+                    "format_version": "2.0",
                     "content_hash": "0",
                     "engine_version": "0",
                     "data_version": "0",

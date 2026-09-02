@@ -25,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 def test_supported_versions_form_a_chain_from_current() -> None:
     """R1：版本序列非空且含当前版（链式结构前提）。"""
     assert SUPPORTED_VERSIONS
-    assert SUPPORTED_VERSIONS[-1] == "1.0"
+    assert SUPPORTED_VERSIONS[-1] == "2.0"
 
 
 def test_future_version_rejected_wiring() -> None:
