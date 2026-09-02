@@ -275,7 +275,11 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
         _contract_self_check(app)
         yield
         sweeper.cancel()
-        with suppress(asyncio.CancelledError):
+        # WP4K G1-01（Kimi 回填审）：清扫任务若已带既往异常死亡，await 会重抛
+        # 且 suppress 仅压 CancelledError——异常族之外的意外型仍可倒灌
+        # lifespan。teardown 侧全谱压制（suppress(Exception) 不触 grep 门禁
+        # 裸 except 拦截；正门续跑语义由 _sweep_periodically 异常族承担）。
+        with suppress(asyncio.CancelledError, Exception):
             await sweeper
         await manager.shutdown(_SHUTDOWN_TIMEOUT)
         pool.shutdown(wait=True, cancel_futures=True)

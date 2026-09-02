@@ -223,7 +223,8 @@ def _check_project_depth(project: ProjectFile, limit: int) -> None:
     禁 model_dump：pydantic 序列化器自带深度守卫（100 层）先炸
     ValueError——422 出自兜底映射非深度闸（≤99 层深结构更被静默
     落盘）；原树迭代绕开，_check_depth 以 max_json_depth 为准——
-    与 create_project 同限（上传面双端点同闸）。
+    与 create_project 近似同限（WP4K G1-02：PUT 自各子树起算，经
+    view.layout 等路径实际容深 +2~3 层——防御性闸非精确对齐）。
     """
     for tree in (
         project.design.nodes,
