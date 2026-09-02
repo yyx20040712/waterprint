@@ -35,8 +35,9 @@
 #      翻译；层用法零新层零 styles 触碰——轮廓=POOL/道路走廊=PIPE/
 #      坐标网=AXIS/注记=LABEL/标题=TITLE/图框=BORDER（既有八层内）。
 #   异常面 InvalidSitePlanError（GR-11 族）：conditions 空无可投影
-#      工况 / coord_grid 非正——仅结构性非法不可投影形态；键缺=占位
-#      不抛（R2）。
+#      工况 / coord_grid 非有限或非正——仅结构性非法不可投影形态；键缺
+#      =占位不抛（R2）。注记锚点（标高/标题栏）并入内容包络——注记
+#      恒在图框内（G1-05）；elev 回溯键含 unit_id 消歧（G1-02）。
 #
 # 【测试要求】结构断言（kind/layer/点数/坐标 approx/source_key 回溯）
 #   +确定性 repr 哈希锚（测试文件内 sorted 归一 sha256 head16）。
@@ -180,13 +181,16 @@ def _structure_projection(
         ))
         footprint = ((placement.x, placement.y),)
     if placement.ground_elevation is not None:
-        # 地面标高符号（§三.12）：结构位置+LEVEL 偏移（plan_view 标高注记同层）
+        # 地面标高符号（§三.12）：结构位置+LEVEL 偏移（plan_view 标高注记同层）；
+        # source_key 含 unit_id——多单元聚合面回溯消歧（roads[i] 索引先例同族，
+        # G1-02）；锚点并入足迹（G1-05 注记入包络）
+        anchor = (placement.x, placement.y + ANNO_OFFSET_LEVEL)
         entities.append(Entity(
-            "elev_symbol", LAYER_LABEL,
-            ((placement.x, placement.y + ANNO_OFFSET_LEVEL),),
+            "elev_symbol", LAYER_LABEL, (anchor,),
             params={"ground_elevation": float(placement.ground_elevation)},
-            text="ground_elevation", source_key="ground_elevation",
+            text="ground_elevation", source_key=f"ground_elevation[{unit_id}]",
         ))
+        footprint = (*footprint, anchor)
     return _Projection(entities=tuple(entities), footprint=footprint)
 
 
@@ -218,7 +222,9 @@ def _route_projection(
             entities.append(Entity("line", LAYER_PIPE, (near, far),
                                    source_key=source_key))
             footprint.extend((near, far))
-    if kind_text is not None:
+    if kind_text is not None and segments:
+        # G1-01 防御深度：segments 空（<2 点中心线，仅 model_construct 绕
+        # schema 面)=跳过 kind 注记不抛 IndexError（span≤0 守卫同类）
         mid_first, mid_second = segments[len(segments) // 2]  # 中段（奇偶同确定）
         entities.append(Entity(
             "text", LAYER_LABEL,
@@ -271,7 +277,9 @@ def _wind_rose_entities(
     for direction in sorted(freqs):
         azimuth = _WIND_DIRS.index(direction) * (math.pi / (2 * 2))
         ux, uy = math.sin(azimuth), math.cos(azimuth)
-        reach = freqs[direction] / peak * base_radius
+        # G1-03：负频率钳 0（零长 spoke 于中心——方位族/标注保留完整，不画
+        # 反象限穿心线编造几何；裁量=钳 0 非跳过）
+        reach = max(freqs[direction], 0.0) / peak * base_radius
         key = f"wind_rose[{direction}]"
         entities.append(Entity(
             "line", LAYER_LABEL, ((cx, cy), (cx + ux * reach, cy + uy * reach)),
@@ -310,19 +318,21 @@ def _border_entities(
 
 def _title_entities(
     condition_key: str,
-    window: tuple[float, float, float, float],
+    anchor_x: float,
+    content_min_y: float,
 ) -> list[Entity]:
     """标题栏注记（§三.1 R4 收窄）：condition+sheet_no 两栏 field=value
-    （title_block 形态，层=TITLE）；右下角偏移沿 plan_view 工况注记档。"""
-    _, wymin, wxmax, _ = window
-    anchor_x = wxmax
+    （title_block 形态，层=TITLE）；锚=内容包络右下角+注记偏移（偏移档沿
+    plan_view 工况注记——锚点由调用方并入包络，注记恒在图框内 G1-05）。"""
     return [
         Entity(
-            "text", LAYER_TITLE, ((anchor_x, wymin + ANNO_OFFSET_CONDITION),),
+            "text", LAYER_TITLE,
+            ((anchor_x, content_min_y + ANNO_OFFSET_CONDITION),),
             text=f"condition={condition_key}", source_key="condition",
         ),
         Entity(
-            "text", LAYER_TITLE, ((anchor_x, wymin + ANNO_OFFSET_LEVEL),),
+            "text", LAYER_TITLE,
+            ((anchor_x, content_min_y + ANNO_OFFSET_LEVEL),),
             text=f"sheet_no={_SITE_SHEET_NO}", source_key="sheet_no",
         ),
     ]
@@ -350,9 +360,12 @@ def site_layout(
         if chosen.coord_grid is not None
         else site_design.options.coord_grid
     )
-    if coord_grid <= 0:
+    if not math.isfinite(coord_grid) or coord_grid <= 0:
+        # G1-04：NaN 绕 <=0 比较、Inf 产 nan 坐标——非有限与非正双拦（覆盖链
+        # 与 site_design.options 双路可达：schema 对 coord_grid 无 gt/finite 面）
         raise InvalidSitePlanError(
-            f"坐标网间距非正：{coord_grid!r}（结构性非法不可投影——GR-11 族）"
+            f"坐标网间距非法：{coord_grid!r}（非有限或非正——结构性非法"
+            "不可投影，GR-11 族）"
         )
     wind_rose = (
         chosen.wind_rose
@@ -377,15 +390,25 @@ def site_layout(
         for index, corridor in enumerate(site_design.corridors)
     ]
     parts = [*structures, *roads, *corridors]
-    # 内容包络（全体足迹点集；空 site=原点邻域）+外扩 coord_grid×2=网格/图框窗
+    # 内容包络（全体足迹点集；空 site=原点邻域）；标高注记锚已并入各足迹
     xs = [x for part in parts for x, _ in part.footprint] or [0.0]
     ys = [y for part in parts for _, y in part.footprint] or [0.0]
+    anchor_x = max(xs)
+    content_min_y = min(ys)
+    # G1-05：标题注记锚（内容包络右下角+注记偏移）并入包络——注记恒在
+    # 图框内（此前锚=窗角-偏移恒在框外）；风玫瑰中心仍=内容包络右上角
     pad = coord_grid * 2
-    window = (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
+    window = (
+        min(xs) - pad,
+        min([*ys, content_min_y + ANNO_OFFSET_CONDITION,
+             content_min_y + ANNO_OFFSET_LEVEL]) - pad,
+        max(xs) + pad,
+        max(ys) + pad,
+    )
     entities: list[Entity] = _grid_entities(coord_grid, window)
     for part in parts:
         entities.extend(part.entities)
-    entities.extend(_wind_rose_entities(wind_rose, coord_grid, max(xs), max(ys)))
+    entities.extend(_wind_rose_entities(wind_rose, coord_grid, anchor_x, max(ys)))
     entities.extend(_border_entities(window))
-    entities.extend(_title_entities(condition_key, window))
+    entities.extend(_title_entities(condition_key, anchor_x, content_min_y))
     return EntityGroup(entities=tuple(entities))

@@ -121,12 +121,15 @@ def test_entrypoint_frozen() -> None:
 
 
 def test_empty_site_minimal_window() -> None:
-    """§三.3/13 空 site=原点邻域最小窗：±coord_grid×2 图框+两向各 5 条网格线。"""
+    """§三.3/13 空 site=原点邻域最小窗：±coord_grid×2（y 向下沿至含标题注记锚
+    ——G1-05 注记入包络：ymin=-3.6-20）图框+两向各 5 条网格线。"""
     group = site_layout(SiteDesign(), _plant({"design": {}}), base_styles())
     rects = [e for e in group.entities if e.layer == LAYER_BORDER and e.kind == "rect"]
     assert len(rects) == 1
     (x0, y0), (x1, y1) = rects[0].points
-    assert [x0, y0, x1, y1] == pytest.approx([-20.0, -20.0, 20.0, 20.0])
+    assert [x0, y0, x1, y1] == pytest.approx(
+        [-20.0, ANNO_OFFSET_LEVEL - 20.0, 20.0, 20.0]
+    )
     grid = [e for e in group.entities if e.layer == LAYER_AXIS and e.kind == "line"]
     vertical = [e for e in grid if e.points[0][0] == e.points[1][0]]
     horizontal = [e for e in grid if e.points[0][1] == e.points[1][1]]
@@ -135,7 +138,9 @@ def test_empty_site_minimal_window() -> None:
         [-20.0, -10.0, 0.0, 10.0, 20.0]
     )
     for e in vertical:
-        assert [e.points[0][1], e.points[1][1]] == pytest.approx([-20.0, 20.0])
+        assert [e.points[0][1], e.points[1][1]] == pytest.approx(
+            [ANNO_OFFSET_LEVEL - 20.0, 20.0]
+        )
     assert {e.source_key for e in grid} == {"coord_grid"}
     assert not [e for e in group.entities if e.layer in (LAYER_POOL, LAYER_PIPE)]
 
@@ -160,7 +165,27 @@ def test_structures_rect_circle_missing_outline() -> None:
     assert len(elevs) == 1  # §三.12 ground_elevation=结构位置+LEVEL 偏移
     assert elevs[0].params["ground_elevation"] == pytest.approx(105.5)
     assert elevs[0].points[0] == pytest.approx((5.0, 5.0 + ANNO_OFFSET_LEVEL))
-    assert elevs[0].source_key == "ground_elevation"
+    assert elevs[0].source_key == "ground_elevation[rect1]"
+
+
+def test_elev_source_key_unit_disambiguated() -> None:
+    """R-2/G1-02：多标高单元 elev_symbol source_key 含 unit_id（roads[i] 索引
+    消歧同族——多单元聚合面回溯唯一）；text 保留语义串。"""
+    site = SiteDesign(structures={
+        "poolA": _placement(0.0, 0.0, ground_elevation=105.5),
+        "poolB": _placement(20.0, 0.0, ground_elevation=103.0),
+    })
+    plant = _plant({"design": {
+        "poolA": _snap("poolA", {"length": 4.0, "width": 2.0}),
+        "poolB": _snap("poolB", {"diameter": 4.0}),
+    }})
+    group = site_layout(site, plant, base_styles())
+    elevs = [e for e in group.entities if e.kind == "elev_symbol"]
+    assert len(elevs) == 2
+    assert {e.source_key for e in elevs} == {
+        "ground_elevation[poolA]", "ground_elevation[poolB]",
+    }
+    assert {e.text for e in elevs} == {"ground_elevation"}
 
 
 def test_dangling_structure_annotated() -> None:
@@ -203,6 +228,19 @@ def test_road_corridor_polylines() -> None:
     assert kind_notes[0].points[0] == pytest.approx((0.0, 4.0))  # 走廊中点注记
 
 
+def test_single_point_corridor_defended() -> None:
+    """R-1/G1-01 防御深度：centerline<2 点（model_construct 绕 schema 面）=零段
+    走廊——kind 注记跳过不抛 IndexError（span≤0 守卫同类）。"""
+    degenerate = Corridor.model_construct(
+        centerline=[SitePoint(x=1.0, y=1.0)], width_m=2.0, kind="water"
+    )
+    group = site_layout(
+        SiteDesign(corridors=[degenerate]), _plant({"design": {}}), base_styles()
+    )
+    assert not [e for e in group.entities if e.source_key == "corridors[0]"]
+    assert not [e for e in group.entities if e.text == "kind=water"]
+
+
 def test_wind_rose_family() -> None:
     """§三.2 风玫瑰：sorted 方位族+频率/max 归一×基准半径（coord_grid×2）；None/空=不画。"""
     site = SiteDesign(options=SitePlanOptions(
@@ -227,6 +265,25 @@ def test_wind_rose_family() -> None:
                     if e.source_key.startswith("wind_rose[")]
 
 
+def test_wind_rose_negative_frequency_clamped() -> None:
+    """R-3/G1-03：负频率方位钳 0=零长 spoke 于中心（方位族/标注保留完整——
+    不画反象限穿心线编造几何）。"""
+    site = SiteDesign(options=SitePlanOptions(
+        coord_grid=10.0, wind_rose={"N": 10.0, "S": -5.0}
+    ))
+    group = site_layout(site, _plant({"design": {}}), base_styles())
+    spokes = {e.source_key: e for e in group.entities
+              if e.kind == "line" and e.source_key.startswith("wind_rose[")}
+    assert set(spokes) == {"wind_rose[N]", "wind_rose[S]"}
+    assert spokes["wind_rose[N]"].points[1] == pytest.approx((0.0, 20.0))
+    assert spokes["wind_rose[S]"].points[1] == pytest.approx(
+        spokes["wind_rose[S]"].points[0]
+    )  # 钳 0=零长（中心点）
+    labels = {e.text for e in group.entities
+              if e.kind == "text" and e.source_key.startswith("wind_rose[")}
+    assert labels == {"N", "S"}  # 标注族仍完备
+
+
 def test_coord_grid_spacing_range_and_options_chain() -> None:
     """§三.3/15 坐标网：间距=coord_grid 透传；范围=内容包络外扩 ×2；SiteOptions 覆盖链。"""
     site = SiteDesign(structures={"rect1": _placement(0.0, 0.0)})
@@ -236,7 +293,10 @@ def test_coord_grid_spacing_range_and_options_chain() -> None:
     group = site_layout(site, plant, base_styles())
     border = next(e for e in group.entities if e.kind == "rect")
     (x0, y0), (x1, y1) = border.points
-    assert [x0, y0, x1, y1] == pytest.approx([-25.0, -25.0, 25.0, 25.0])  # 包络 ±5 外扩 20
+    # 包络 ±5 外扩 20；y 向下沿至含标题注记锚（-5-3.6-20，G1-05）
+    assert [x0, y0, x1, y1] == pytest.approx(
+        [-25.0, -5.0 + ANNO_OFFSET_LEVEL - 20.0, 25.0, 25.0]
+    )
     grid = [e for e in group.entities if e.layer == LAYER_AXIS and e.kind == "line"]
     vertical = sorted({e.points[0][0] for e in grid
                        if e.points[0][0] == e.points[1][0]})
@@ -280,6 +340,11 @@ def test_title_annotations_condition_and_sheet_no() -> None:
     by_key = {e.source_key: e for e in titles}
     assert by_key["condition"].text == "condition=alpha"  # sorted 首键（确定性）
     assert by_key["sheet_no"].text.startswith("sheet_no=")
+    border = next(e for e in group.entities if e.kind == "rect")
+    (bx0, by0), (bx1, by1) = border.points
+    for e in titles:  # G1-05：注记锚点并入包络——恒在图框内
+        assert bx0 <= e.points[0][0] <= bx1
+        assert by0 <= e.points[0][1] <= by1
 
 
 def test_layers_subset_no_new_layers() -> None:
@@ -319,7 +384,7 @@ def test_entitygroup_determinism_and_hash_anchor() -> None:
     first = site_layout(_rich_site(), _rich_plant(), base_styles())
     second = site_layout(_rich_site(), _rich_plant(), base_styles())
     assert _digest(first) == _digest(second)  # 双调哈希同（确定性）
-    assert _digest(first) == "ffd0679139b6c30d"  # 锚（首绿实录，2026-09-03）
+    assert _digest(first) == "d5dad837e42ea8fd"  # 锚（R 轮五修重录，2026-09-03）
 
 
 def test_exception_faces() -> None:
@@ -336,3 +401,9 @@ def test_exception_faces() -> None:
             SiteDesign(), _plant({"design": {}}), base_styles(),
             SiteOptions(coord_grid=-5.0),
         )
+    for bad_grid in (float("nan"), float("inf")):  # G1-04：非有限双拦（NaN/Inf）
+        with pytest.raises(InvalidSitePlanError):
+            site_layout(
+                SiteDesign(), _plant({"design": {}}), base_styles(),
+                SiteOptions(coord_grid=bad_grid),
+            )
