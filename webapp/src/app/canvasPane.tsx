@@ -20,8 +20,8 @@
  *   - FE5 挂载（D4 左侧固定宽侧栏）：flex 行=params 侧栏 320px+画布余宽
  *     （视觉近似 §19.2 左面板且 selectedUnitId 不跨层）；ParamsPanel=
  *     ParamForm+AssumptionsPanel 两件叠放，未选中=提示文案（假设清单
- *     恒展示）；App 层 Sider 维持单元库占位（单元库≠params——全局化挂账
- *     UX 批）；
+ *     恒展示）；App 层 Sider=UnitLibrary 单元库树（M2 实装替换占位——
+ *     单元库≠params，参数编辑面恒在本标签 ParamForm）；
  *   - D4 不 lazy 不 Suspense：canvas=默认标签首屏必渲染（App activeKey
  *     默认 canvas）——零动态 import，xyflow 进首屏入口 bundle 为预期；
  *   - ErrorBoundary label=工艺画布（渲染崩溃不清空应用 §15 细节 4；

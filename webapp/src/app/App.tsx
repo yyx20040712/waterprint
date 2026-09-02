@@ -3,7 +3,8 @@
  *
  * 输入: 各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
  *        层）+URL ?tab=/（UX1 D2 初值三级解析）?task=（深链意图判据）
- * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库/中央标签工作区）——
+ * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库（M2 实装=UnitLibrary）/
+ *       中央标签工作区）——
  *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey
  *       状态机（onChange 经 replaceState 写 ?tab=——路由态 URL 持久化）
  *
@@ -52,11 +53,15 @@
  *   - R2-A 批 2 D5 连接设置入口：Header 设置按钮（齿轮，静默常驻——
  *     token 空默认不自动弹零请求扰动）+TokenSettingsModal（保存/清除/
  *     关闭——零即时校验）；D4 自愈回路=useEffect 监听 AUTH_EVENT（401
- *     派发方 shared/api/http.ts）自动开 Modal，卸载移除监听。
+ *     派发方 shared/api/http.ts）自动开 Modal，卸载移除监听；
+ *   - M2 左侧 Sider=UnitLibrary 单元库浏览（app 层薄壳：四线分组树+
+ *     搜索+Drawer 详情——组装面在 ./unitLibraryTree 纯函数；onNavigateTab
+ *     复用 handleTabChange 切 canvas——AppRoute 六键冻结面零扩，单元库=
+ *     Sider UI 态不进 URL）。
  */
 import { SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { Button, Layout, Menu, Tabs } from "antd";
+import { Button, Layout, Tabs } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
@@ -74,6 +79,7 @@ import {
 } from "./projectParam";
 import { SolutionsPane } from "./solutionsPane";
 import { TokenSettingsModal } from "./tokenSettingsModal";
+import { UnitLibrary } from "./unitLibrary";
 import { Viewer3dPane } from "./viewer3dPane";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
@@ -170,8 +176,9 @@ export function App() {
           />
         </Header>
         <Layout>
-          <Sider theme="light">
-            <Menu items={[{ key: "lib", label: "单元库（待实装）" }]} />
+          {/* M2：单元库浏览实装替换占位——固定宽 280（简报 §一.2） */}
+          <Sider theme="light" width={280}>
+            <UnitLibrary onNavigateTab={() => handleTabChange("canvas")} />
           </Sider>
           <Content>
             <Tabs
