@@ -10,6 +10,7 @@
     "orval": "orval"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.2",
     "@react-three/fiber": "^9.7.0",
     "@tanstack/react-query": "^5.102.7",
     "@xyflow/react": "^12.11.5",
