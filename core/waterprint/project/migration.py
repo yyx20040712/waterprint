@@ -72,7 +72,15 @@ SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0")
 
 def _migrate_add_site(data: MutableMapping[str, Any]) -> None:
     """v1→v2：design 补默认空 site（旧项目零扰动——site 全默认即 v2 新建态同构）。"""
-    data.setdefault("design", {}).setdefault("site", {})
+    design = data.setdefault("design", {})
+    if not isinstance(design, MutableMapping):
+        # R 轮 G1-02：非映射 design 禁 AttributeError 裸逃逸——统一经
+        # InvalidProjectError（GR-11 族；消息风格对照 io._build 同款中文口径）。
+        raise InvalidProjectError(
+            f"项目数据 design 须为对象（映射）：得到 {type(design).__name__}"
+            "（迁移器 _migrate_add_site 就地变换面——site 键的载体子树）"
+        )
+    design.setdefault("site", {})
 
 
 # 链式迁移器注册表（R1）：(源版, 目标版, 迁移器) 按链序排列。
@@ -134,6 +142,15 @@ def _apply_chain(data: Mapping[str, Any], version: str) -> ProjectFile:
     if not isinstance(metadata, MutableMapping):
         metadata = {}
         migrated["metadata"] = metadata
+    inner = metadata.get("format_version")
+    if inner is not None and inner != version:
+        # R 轮 G1-01：链源版与 metadata 声明不一致=真双写冲突——升版写回
+        # 前拒（口径同 project_schema._sync_format_version；合法迁移态
+        # metadata==源版（app.load_project 路径 model_dump 携带），不拦）。
+        raise InvalidProjectError(
+            f"format_version 双写冲突：顶层 {version!r} vs metadata {inner!r}"
+            "（顶层为权威源——迁移链只读顶层，R5）"
+        )
     metadata["format_version"] = current
     if metadata.get("migrated_from") is None:
         metadata["migrated_from"] = version

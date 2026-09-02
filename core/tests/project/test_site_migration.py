@@ -13,8 +13,11 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 from waterprint.app import load_project
 from waterprint.contracts.project_schema import DesignState, SiteDesign
+from waterprint.project.io import InvalidProjectError
 from waterprint.project.migration import SUPPORTED_VERSIONS, migrate
 
 _V1_DESIGN: dict = {  # v1 七键全非空（逐键比对探针的对照源）
@@ -77,6 +80,26 @@ def test_v2_current_version_passes_through_untouched() -> None:
     direct = migrate(data)
     assert direct.format_version == "2.0"
     assert direct.metadata.migrated_from is None  # 直通零迁移写入
+
+
+def test_metadata_format_version_conflict_rejected() -> None:
+    """R 轮 G1-01：顶层 "1.0"+metadata.format_version "2.0" → 双写冲突拒。
+
+    链源版与 metadata 声明不一致=真冲突——升版写回前拒（防 _apply_chain
+    静默吞冲突；口径同 project_schema._sync_format_version）。
+    """
+    data = _v1_project()
+    data["metadata"]["format_version"] = "2.0"
+    with pytest.raises(InvalidProjectError, match="双写冲突"):
+        migrate(data)
+
+
+def test_migrate_rejects_non_mapping_design() -> None:
+    """R 轮 G1-02：design 非 mapping → InvalidProjectError（禁 AttributeError 逃逸）。"""
+    data = _v1_project()
+    data["design"] = "garbage"
+    with pytest.raises(InvalidProjectError, match="design"):
+        migrate(data)
 
 
 def test_app_load_project_routes_v1_file_through_chain(tmp_path: Path) -> None:
