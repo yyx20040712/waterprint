@@ -69,6 +69,10 @@ _FAIL_FAST_FIELDS = (
     "max_excel_rows",
     "max_json_depth",
     "dwg_converter_timeout_s",  # WP0：超时 <1 秒=闸死转换面（fail fast 不静默）
+    "task_retention_s",  # WP4：保留窗 <1 秒=终态即弃（读面自毁，fail fast）
+    "task_sweep_interval_s",  # WP4：间隔 <1 秒=空转热循环（fail fast 不静默）
+    "task_registry_cap",  # WP4：上限 <1=任何任务都越限（语义空洞，fail fast）
+    "lock_expiry_s",  # WP4：过期窗 <1 秒=新鲜锁即放行（锁面失效，fail fast）
 )
 # 服务层引擎版本标识（可复算三元组成员——与 server/pyproject version 同源同步）。
 ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
@@ -113,6 +117,15 @@ class Settings(BaseSettings):
     # Dockerfile CMD 旗标决定（0.0.0.0 供 nginx 跨容器反代，8000 不发布宿主）。
     host: str = "127.0.0.1"
     port: int = 2 * 2 * 2 * 10 * 10 * 10  # 8000（幂积保白名单字面量集）
+    # WP4（服务端小修攒批 2026-09-02·修1）：任务/产物 TTL 淘汰——终态任务
+    # 连同四类落盘面（registry 档/cancel 标记/calc 结果/enum 行文件）超
+    # 保留窗即清扫；重启恢复记录=新租约（恢复读面供 exports 消费）。
+    task_retention_s: int = 10**2 * 10**2 * 10  # 100000 秒≈27.8 小时（幂积保白名单字面量集）
+    task_sweep_interval_s: int = 10**2  # 100 秒≈1.7 分钟（周期清扫轮询间隔）
+    task_registry_cap: int = 10**2 * 10  # 1000（终态驱逐面软上限——非终态不驱逐，R-1 A-01）
+    # WP4·修4：项目锁过期窗——锁文件 mtime 年龄超窗=陈旧残留（持有者已
+    # 死），视为无锁放行（§17.3 v1 单用户；锁仍为外部协调件零写入方）。
+    lock_expiry_s: int = 10**2 * 10**2  # 10000 秒≈2.8 小时（编辑会话锁最长占用心智）
 
     @field_validator(*_FAIL_FAST_FIELDS)
     @classmethod

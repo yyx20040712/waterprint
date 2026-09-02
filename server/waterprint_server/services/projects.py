@@ -38,6 +38,11 @@
 #      （ENG4 D4/I-7 勘误 2026-08-30：path.with_suffix(".lock") 于
 #      {id}.wp.json 上=替换最后后缀，非 .wp.json.lock 叠加；io 锁语义
 #      同款），冲突=ProjectLockedError 带锁路径（持有者信息）。
+#   - WP4 修3/修4（2026-09-02 外审整改#6）：save_project 入口深度闸
+#      （Any 自由面容器迭代计数——create 侧同闸双端点同限；pydantic
+#      序列化守卫禁依赖——100 层 ValueError 冒充归一面）；锁过期=
+#      mtime 年龄>lock_expiry_s 清除放行（陈旧残留；stat 不可得=
+#      旧语义存在即锁；零新增锁写入方，TOCTOU 挂账 R2）。
 #
 # 【测试要求】往返保存 design_changed 语义、导入未映射清单、
 #   id 白名单、锁冲突透传。
@@ -48,6 +53,7 @@
 from __future__ import annotations
 
 import json
+import time
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -211,6 +217,38 @@ def _project_path(ctx: ServiceContext, project_id: str) -> Path:
     return safe_child(ctx.projects_dir, project_id).with_name(project_id + _PROJECT_SUFFIX)
 
 
+def _check_project_depth(project: ProjectFile, limit: int) -> None:
+    """WP4（修3）：PUT 面深度闸——Any 自由面容器逐一迭代计数。
+
+    禁 model_dump：pydantic 序列化器自带深度守卫（100 层）先炸
+    ValueError——422 出自兜底映射非深度闸（≤99 层深结构更被静默
+    落盘）；原树迭代绕开，_check_depth 以 max_json_depth 为准——
+    与 create_project 同限（上传面双端点同闸）。
+    """
+    for tree in (
+        project.design.nodes,
+        project.design.edges,
+        project.design.influent,
+        project.view.layout,
+        project.view.camera,
+        project.view.windows,
+    ):
+        _check_depth(tree, limit)
+
+
+def _expired_lock(lock: Path, expiry_s: int) -> bool:
+    """WP4（修4）：锁 mtime 年龄>expiry_s=过期（无锁文件格式变更——向后兼容）。
+
+    stat 失败（戳不可得）=未过期——保守锁面（旧语义存在即锁）；过期
+    锁清除归调用方（「视为无锁」的落地形态——core io 冻结锁探测零触碰
+    前提）；TOCTOU 窗口不在本批（挂账 R2 记档）。
+    """
+    try:
+        return time.time() - lock.stat().st_mtime > expiry_s
+    except OSError:
+        return False
+
+
 def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutcome:
     """创建（空项目或导入 JSON 深度闸装载）→ 落盘（经 app.save_project）。"""
     _check_depth(payload, ctx.settings.max_json_depth)
@@ -268,18 +306,25 @@ def read_project(ctx: ServiceContext, project_id: str) -> ProjectFile:
 
 
 def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> SaveOutcome:
-    """保存（原子写经 app.save_project；锁前置探测 409；stale 标记）。
+    """保存（原子写经 app.save_project；深度闸+锁前置探测 409；stale 标记）。
 
     R2：design_changed=design 态对比（view-only 保存=False——保存只写
     view 态不触发计算）；编辑 design 后对在途任务置 stale 提示标记
-    （UF-37：守门在消费侧实时比对，本标记仅 UI 提示）。
+    （UF-37：守门在消费侧实时比对，本标记仅 UI 提示）。WP4：入口深度
+    闸（修3）+锁过期放行（修4，见 _check_project_depth/_expired_lock）。
     """
+    _check_project_depth(project, ctx.settings.max_json_depth)  # 修3：PUT 深度闸接线
     path = _project_path(ctx, project_id)
     if not path.is_file():
         raise ProjectNotFoundError(f"项目 {project_id!r} 不存在（基点内无 {path.name}）")
     lock = path.with_suffix(".lock")
     if lock.exists():
-        raise ProjectLockedError(lock)
+        if not _expired_lock(lock, ctx.settings.lock_expiry_s):
+            raise ProjectLockedError(lock)  # 新鲜锁：旧语义保持（存在即锁 409）
+        try:
+            lock.unlink(missing_ok=True)  # 修4：陈旧残留锁清除=「视为无锁」放行
+        except OSError as exc:
+            raise ProjectLockedError(lock) from exc  # 清除失败=回退锁面（fail-closed）
     old = core.load_project(path)
     digest = design_digest(project.design)
     core.save_project(_with_hash(project, digest), path)

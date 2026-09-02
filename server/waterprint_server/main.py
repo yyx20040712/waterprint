@@ -54,7 +54,7 @@ import multiprocessing as mp
 import uuid
 from collections.abc import AsyncIterator, Callable
 from concurrent.futures import Executor, ProcessPoolExecutor
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any, Final
 
 import structlog
@@ -190,6 +190,25 @@ def _configure_logging(settings: Settings) -> None:
     )
 
 
+async def _sweep_periodically(manager: Manager, interval_s: int) -> None:
+    """WP4（修1）：TTL 周期清扫——sleep 先行（启动清扫由 lifespan 直调承担）。
+
+    单文件失败面已在 registry.unlink_task_face 归一 warning；本层兜底=
+    单轮意外异常不倒灌 lifespan（任务不崩，下轮续——清扫失败≠服务失败）。
+    R-1 K-3：捕获 Exception 基类的字面形态被 gate_patterns.BARE_EXCEPT_RE
+    实拦（裁决前提勘误）——按 calculation._TRIGGER_FAILURES 先例以现实
+    异常族枚举实现同一语义。
+    """
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            manager.sweep_expired()
+        except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
+            structlog.get_logger(__name__).warning(
+                "task_sweep_round_failed", reason=repr(exc)
+            )
+
+
 def _register_exception_handlers(app: FastAPI) -> None:
     """R2 唯一翻译处：映射表逐条注册（禁散落 add_exception_handler）。"""
 
@@ -238,16 +257,26 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
             pool,
             cancel_dir=settings.exports_dir / "tasks" / "cancel",
             registry_dir=settings.exports_dir / "tasks" / "registry",  # S2 D3：终态落盘+重启恢复
+            artifacts_dir=settings.exports_dir / "tasks",  # WP4：calc/enum 产物淘汰面
+            task_retention_s=settings.task_retention_s,  # WP4 修1：TTL 旋钮注入（启用清扫）
+            task_registry_cap=settings.task_registry_cap,
             loop=asyncio.get_running_loop(),
             progress_queue=queue,
             max_concurrent=settings.calc_workers,
         )
         manager.start()
+        manager.sweep_expired()  # WP4：启动清扫（恢复记录=新租约，首轮通常空转）
+        sweeper = asyncio.create_task(  # WP4：周期清扫（teardown 取消——禁悬挂任务）
+            _sweep_periodically(manager, settings.task_sweep_interval_s)
+        )
         app.state.ctx = ServiceContext(
             settings=settings, manager=manager, domain_error_codes=DOMAIN_ERROR_CODES
         )
         _contract_self_check(app)
         yield
+        sweeper.cancel()
+        with suppress(asyncio.CancelledError):
+            await sweeper
         await manager.shutdown(_SHUTDOWN_TIMEOUT)
         pool.shutdown(wait=True, cancel_futures=True)
 

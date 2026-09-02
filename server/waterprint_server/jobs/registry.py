@@ -21,6 +21,14 @@
 #       ENG5 更名通用化——终态/非终态共用；subscribers/cancel_requested
 #       进程内字段不在入参面=天然排除）
 #   write_record(registry_dir, task_id, document) -> Path：GR-38 原子写
+#   sweep_plan(entries, *, retention_s, cap, total, now) -> tuple:
+#       WP4 TTL 清扫计划（纯函数——entries=task_id/terminal/finished_at
+#       平字段三元组投影，零 manager 内部类依赖）：超保留窗终态全集+
+#       超 cap 补驱最旧终态；None 旋钮=该面不启用
+#   unlink_task_face(cancel_dir, registry_dir, artifacts_dir, task_id)
+#       -> bool：WP4 四类落盘面清理（cancel 标记+registry 档+calc 结果+
+#       enum 行文件；全清/本不存在=True，任一 OSError=warning+False——
+#       R-1 G1-01：文件面先行，失败由调用方保留条目下轮重试防孤儿）
 #   mark_interrupted(document) -> dict：恢复面非终态→failed 变换（纯函数）
 #   iter_restorable(registry_dir) -> Iterator[(task_id, document)]：
 #       合法记录流（非终态经 mark_interrupted 变换后产出；损坏跳过+warning）
@@ -58,7 +66,7 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import Any, Final
 
@@ -144,6 +152,77 @@ def write_record(registry_dir: Path, task_id: str, document: Mapping[str, Any]) 
     tmp.write_bytes(blob)
     os.replace(tmp, target)
     return target
+
+
+def sweep_plan(
+    entries: Iterable[tuple[str, bool, float | None]],
+    *,
+    retention_s: int | None,
+    cap: int | None,
+    total: int,
+    now: float,
+) -> tuple[str, ...]:
+    """WP4 TTL 清扫计划（纯函数）：超保留窗终态全集+超 cap 补驱最旧终态。
+
+    entries=(task_id, terminal, finished_at) 平字段三元组（调用方自内存
+    注册表投影——本模块零 manager 内部类依赖）；内部固化元组支持双趟
+    遍历；None 旋钮=该面不启用；cap 驱逐按 (finished_at, task_id) 升序
+    （最旧终态先出——同刻平局确定性）；输出 sorted（DS2-G1-05：跨进程
+    程确定——淘汰次序不随字典序漂移）。
+    """
+    items = tuple(entries)
+    victims: set[str] = set()
+    if retention_s is not None:
+        victims.update(
+            task_id
+            for task_id, terminal, finished_at in items
+            if terminal and finished_at is not None and now - finished_at > retention_s
+        )
+    if cap is not None and total - len(victims) > cap:
+        ordered = sorted(
+            (
+                entry
+                for entry in items
+                if entry[1] and entry[2] is not None and entry[0] not in victims
+            ),
+            key=lambda entry: (entry[2], entry[0]),
+        )
+        victims.update(entry[0] for entry in ordered[: total - len(victims) - cap])
+    return tuple(sorted(victims))
+
+
+def unlink_task_face(
+    cancel_dir: Path, registry_dir: Path | None, artifacts_dir: Path | None, task_id: str
+) -> bool:
+    """WP4：任务四类落盘面清理（cancel 标记+registry 档+calc/enum 产物）。
+
+    全清=各 unlink 成功或本不存在（missing_ok）→True；任一 OSError
+    （EPERM 只读拒删等）=warning+False——R-1 G1-01：调用方保留内存条目
+    下轮重扫（终态+超龄复选 victim），文件面先行防永久孤儿；已删文件
+    不回滚（逐文件续清=每轮有进展）。产物名与 worker 落盘名同源
+    （calc-{id}.json / enum-{id}.feather）。
+    """
+    paths = [cancel_dir / f"{task_id}.cancel"]
+    if registry_dir is not None:
+        paths.append(registry_dir / f"{task_id}.json")
+    if artifacts_dir is not None:
+        paths += [
+            artifacts_dir / f"calc-{task_id}.json",
+            artifacts_dir / f"enum-{task_id}.feather",
+        ]
+    cleared = True
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            cleared = False
+            _LOGGER.warning(
+                "TTL 清扫单文件失败（条目保留下轮重试）",
+                task_id=task_id,
+                path=str(path),
+                reason=f"{type(exc).__name__}: {exc}",
+            )
+    return cleared
 
 
 def iter_restorable(registry_dir: Path) -> Iterator[tuple[str, Mapping[str, Any]]]:

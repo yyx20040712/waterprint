@@ -49,6 +49,9 @@
 #     跳过+warning）；幂等表不恢复（D5）；registry_dir 默认 None=不落盘
 #     （既有测试零破坏）。公开数据类迁 jobs/records.py（ENG5 D4——500
 #     行预算拆分，from-import 再导出面稳定）。
+#   - WP4 TTL 淘汰（2026-09-02 修1+R-1 G1-01）：终态记 finished_at；
+#     sweep_expired=registry.sweep_plan+unlink_task_face 薄壳——文件面
+#     全清才删条目（失败保留重试防孤儿）+_idem 差量删（A-02）；恢复=新租约。
 #
 # 【测试要求】状态机全路径、优先级次序、取消（queued/running 两态）、
 #   进度事件顺序、shutdown 无泄漏。
@@ -62,6 +65,7 @@ import asyncio
 import heapq
 import multiprocessing as mp
 import threading
+import time
 import uuid
 from collections.abc import AsyncIterator, Mapping
 from concurrent.futures import Executor
@@ -120,6 +124,7 @@ class _TaskRecord:
     result: Mapping[str, Any] | None = None
     snapshot_hash: str | None = None
     cancel_requested: bool = False
+    finished_at: float | None = None  # WP4：完成时间戳（终态必置——TTL 判定面）
     subscribers: set[asyncio.Queue[Event]] = field(default_factory=set)
 
     @property
@@ -147,7 +152,7 @@ class _TaskRecord:
 class Manager:
     """任务注册表与调度（单事件循环契约；executor 由应用生命周期注入）。"""
 
-    def __init__(  # noqa: PLR0913  # 装配束冻结签名（registry_dir 可选默认 None=不落盘，S2 D3）
+    def __init__(  # noqa: PLR0913  # 装配束冻结签名（registry_dir 可选默认 None=不落盘，S2 D3；WP4 三旋钮同款 None=不启用）
         self,
         executor: Executor,
         *,
@@ -156,10 +161,16 @@ class Manager:
         progress_queue: mp.Queue[Mapping[str, Any]] | None = None,
         max_concurrent: int = 1,
         registry_dir: Path | None = None,
+        artifacts_dir: Path | None = None,
+        task_retention_s: int | None = None,
+        task_registry_cap: int | None = None,
     ) -> None:
         self._executor = executor
         self._cancel_dir = cancel_dir
         self._registry_dir = registry_dir
+        self._artifacts_dir = artifacts_dir
+        self._task_retention_s = task_retention_s
+        self._task_registry_cap = task_registry_cap
         self._loop = loop
         self._progress_queue = progress_queue if progress_queue is not None else mp.Queue()
         self._max_concurrent = max(1, max_concurrent)
@@ -254,6 +265,7 @@ class Manager:
         record.cancel_requested = True
         if record.state == "queued":
             record.state = "cancelled"
+            record.finished_at = time.time()  # WP4：终态时间戳（TTL 判定面）
             self._loop.create_task(
                 self._emit(record, Event("state", task_id, record.progress, "cancelled", None)))
             self._persist(record)  # ENG5 D1：queued 取消=终态迁移同落盘
@@ -299,6 +311,7 @@ class Manager:
             record = self._tasks.get(task_id)
             if record is not None and record.state == "queued":
                 record.state = "cancelled"
+                record.finished_at = time.time()  # WP4：终态时间戳（TTL 判定面）
                 self._persist(record)  # ENG5 D1：优雅停机终态落盘（重启后保持 cancelled）
         report: dict[str, str] = {}
         if self._running:
@@ -314,6 +327,22 @@ class Manager:
                 report = {"timeout_pending": ",".join(unfinished)}
         self._progress_queue.close()
         return report
+
+    def sweep_expired(self) -> int:
+        """WP4 TTL 清扫（修1）：超保留窗/超 cap 终态淘汰——文件面先行（R-1 G1-01）。"""
+        victims = registry.sweep_plan(
+            ((tid, rec.terminal, rec.finished_at) for tid, rec in self._tasks.items()),
+            retention_s=self._task_retention_s, cap=self._task_registry_cap,
+            total=len(self._tasks), now=time.time(),
+        )
+        evicted: set[str] = set()  # 文件面全清者——失败条目保留（终态+超龄下轮复选）
+        for task_id in victims:
+            if registry.unlink_task_face(self._cancel_dir, self._registry_dir,
+                                         self._artifacts_dir, task_id):
+                self._tasks.pop(task_id, None)
+                evicted.add(task_id)
+        self._idem = {k: v for k, v in self._idem.items() if v not in evicted}
+        return len(evicted)
 
     # ── 内部：调度与桥接 ────────────────────────────────────────
 
@@ -354,6 +383,7 @@ class Manager:
                     stale=bool(document["stale"]), error=document["error"],
                     error_type=document["error_type"], result=document["result"],
                     snapshot_hash=document["snapshot_hash"],
+                    finished_at=time.time(),  # WP4：恢复=新租约（读面消费窗完整，见注记）
                 )
             except (ValueError, KeyError, TypeError) as exc:
                 _LOGGER.warning("任务注册表记录跳过（恢复面 fail-visible 不阻断启动）",
@@ -408,6 +438,7 @@ class Manager:
             else:
                 record.state = "done"
                 record.result = dict(outcome)  # plain dict（JSON 序列化面——proxy 拒序列化）
+        record.finished_at = time.time()  # WP4：终态时间戳（TTL 判定面——三终态同点置位）
         await self._emit(
             record, Event("state", task_id, record.progress, record.state, None)
         )

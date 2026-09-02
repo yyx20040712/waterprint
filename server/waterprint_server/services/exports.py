@@ -493,8 +493,8 @@ def list_exports(ctx: ServiceContext, project_id: str) -> tuple[ExportMeta, ...]
     for sidecar in sorted(ctx.exports_dir.glob("*.meta.json")):
         try:
             raw = json.loads(sidecar.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            continue  # 损坏边车不阻塞列表
-        if raw.get("project_id") == project_id:
-            metas.append(ExportMeta(**raw))
+            if isinstance(raw, dict) and raw.get("project_id") == project_id:
+                metas.append(ExportMeta(**raw))
+        except (json.JSONDecodeError, TypeError):
+            continue  # 损坏/非对象/键面不符边车不阻塞列表（WP4 修2+R-1 R2——跳过不 500）
     return tuple(metas)
