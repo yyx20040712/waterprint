@@ -4,20 +4,41 @@
 > 「一键命令」；本文只管容器形态。compose 编排=`deploy/compose.yml`
 > （server=FastAPI/uvicorn，webapp=nginx 承载前端静态产物并反代 `/api`）。
 
-## 安全红线：暴露即全权
+## 安全红线：入口语义（R2A 批1 修订）
 
-**API 零鉴权**：服务层 24 端点当前无任何鉴权（token/简易鉴权=R2 roadmap）——
-能触达服务的主体即拥有全权：读改全部项目文件、提交任意计算（进程池满载
-即 CPU 耗尽面）。因此：
+**API token 鉴权（R2A 批1 起可用）**：服务层支持静态 Bearer token
+（环境变量 `WATERPRINT_API_TOKEN`）——非空即对 21 端点生效（19 业务端点
+仅认 `Authorization: Bearer <token>` 头；events 两 SSE 端点额外认
+`?token=` 查询参数——EventSource 无法自定义头的现实通道）；`/api/units`、
+`/api/assumptions`、`/api/constraints` 三静态只读端点豁免。**token 留空
+（默认）= 鉴权关闭**，全部端点匿名可达——与升级前行为一致。因此：
 
+- **红线是入口语义，不是绑定地址**：**任何经反代/端口映射对外可达的
+  部署形态，无论 server 绑定地址，必须配置 token**。机器防线仅为
+  best-effort（见下条），文档强制才是真红线。
+- **机器防线（best-effort）**：token 为空且 `WATERPRINT_HOST` 不在回环
+  集合 {127.0.0.1, ::1, localhost} 时，服务在启动期直接失败（fail fast，
+  不留半启动态）。注意容器内绑定经 Dockerfile CMD 旗标（`--host 0.0.0.0`）
+  不经该字段，此防线只覆盖裸机/开发态的 `WATERPRINT_HOST` 显式覆盖面。
+- **token 强度要求**：非空 token 长度 ≥16（服务端启动校验；字母数字 62
+  字符集 16 位 ≈4.8×10²⁸ 组合，为防暴力枚举的熵下界）。**推荐 32 位随机
+  串**（如 `python -c "import secrets; print(secrets.token_hex(16))"`）。
+  token 泄漏即全权——只应存在于服务端 env 与使用者的客户端配置中，禁止
+  入库/入日志/入聊天渠道。
 - **容器形态**：server `8000` **不发布宿主**（compose 无 ports 直映——只在
   容器网桥内供 nginx 经服务名 `waterprint-server` 反代）；对外唯一入口=
   webapp `8080`，只应在**可信内网/防火墙后**暴露，禁止直接映射公网。
+  compose 经 env 插值透传 `WATERPRINT_API_TOKEN`（`.env` 或宿主环境变量
+  提供）；healthcheck 已带同源 `Authorization` 头。
+  **发版注记（破坏性变更）**：自 R2A 批1 起，compose 形态（容器内绑定
+  0.0.0.0）**应视为强制配置 token 的破坏性变更**——升级现有部署时请
+  同步设置 `WATERPRINT_API_TOKEN` 并向使用者分发；前端 Bearer 注入与
+  设置页属 R2A 批2（本批服务端仅保证：token 未配=行为与升级前完全一致）。
 - **裸机/开发态**：`python -m waterprint_server.main` 默认只听 `127.0.0.1:8000`
-  （settings `host` 字段）；改绑局域网地址（`WATERPRINT_HOST` 覆盖）=**显式
-  信任决策**，须自行确认该网络面内全部主体可信。
+  （settings `host` 字段）；改绑局域网地址（`WATERPRINT_HOST` 覆盖）且未配
+  token 将**直接拒绝启动**——这是上两条（显式信任决策+机器防线）的合流点。
 - 调试需直连 API 时：`docker compose -f deploy/compose.yml exec server` 进
-  容器内探（healthcheck 同路径），或临时加回 ports 映射——**用毕即撤**。
+  容器内探（healthcheck 同路径同头），或临时加回 ports 映射——**用毕即撤**。
 
 ## 前置要求
 
@@ -65,6 +86,7 @@ docker compose -f deploy/compose.yml up -d --build
 | `WATERPRINT_MAX_UPLOAD_MB` | 10 | 上传体积闸 |
 | `WATERPRINT_DWG_CONVERTER_PATH` | （空=关） | ODA File Converter 可执行路径（可选 DXF→DWG；详见「导出格式」节） |
 | `WATERPRINT_DWG_CONVERTER_TIMEOUT_S` | 100 | 单次 DWG 转换子进程超时秒（超时=跳过 DWG，DXF 照常交付） |
+| `WATERPRINT_API_TOKEN` | （空=鉴权关） | API Bearer token（R2A 批1：非空即 21 端点受保，≥16 位；**compose 插值透传自宿主 env/.env**——非 Dockerfile 钉值；强制口径见「安全红线」节） |
 
 > 绑定面两字段 `WATERPRINT_HOST`/`WATERPRINT_PORT`（settings.py，裸机
 > `python -m waterprint_server.main` 消费，默认 `127.0.0.1:8000`——只听
@@ -116,7 +138,10 @@ AutoCAD 2018+、中望 CAD、浩辰 CAD 均原生打开 DXF R2018——不装任
 ## 冒烟自检清单（部署后 2 分钟过一遍）
 
 1. 前端：`curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/` → `200`；
-2. API（经反代）：`curl -s http://localhost:8080/api/projects` → JSON 数组（空数组亦算过）；
+2. API（经反代；`$WATERPRINT_API_TOKEN` 为部署时设定的 token，未配则置空）：
+   `curl -s -H "Authorization: Bearer $WATERPRINT_API_TOKEN"
+   http://localhost:8080/api/projects` → JSON 数组（空数组亦算过；SSE 调试可
+   改用 `?token=` 查询通道）；
 3. 计算全链：新建/导入项目 → 提交全流程计算 → 任务状态到 `done`（前端任务面板
    或 `GET /api/calc/tasks/{task_id}` 轮询）——覆盖 uvicorn→进程池→数据包装载；
 4. 日志：`docker compose -f deploy/compose.yml logs server | grep -i error` → 空；

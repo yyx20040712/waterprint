@@ -15,15 +15,20 @@ services:
       # 项目与导出持久化（升级重建容器数据不丢；down -v 才会删卷）
       - wp-projects:/app/projects
       - wp-exports:/app/exports
-    # WP1 安全收口：不发布 ports——8000 不出容器网桥，nginx（webapp）=唯一
-    # 入口（24 端点零鉴权，暴露即全权；调试可 docker compose exec 进容器探）。
+    # WP1 安全收口 + R2A 批1（token 鉴权）：不发布 ports——8000 不出容器
+    # 网桥，nginx（webapp）=唯一入口；容器内绑定 0.0.0.0（CMD 旗标，不经
+    # settings.host——机器回环防线不适用，真红线=入口语义，见 docs/
+    # deployment.md「安全红线」节）。token 经 env 插值透传（N-6：空=鉴权
+    # 关——容器网桥内零信任假设下仍应配置，升级注记见 deployment.md）。
+    environment:
+      WATERPRINT_API_TOKEN: ${WATERPRINT_API_TOKEN:-}
     healthcheck:
       test:
         [
           "CMD",
           "python",
           "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/projects', timeout=3)",
+          "import os,urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/api/projects', headers={'Authorization': 'Bearer ' + os.environ.get('WATERPRINT_API_TOKEN', '')}), timeout=3)",
         ]
       interval: 15s
       timeout: 5s
