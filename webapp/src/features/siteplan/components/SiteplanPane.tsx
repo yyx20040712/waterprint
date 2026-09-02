@@ -158,10 +158,8 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   const save = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>({
     mutation: {
       onSuccess: () => {
-        // 丢弃本地态（立即以装载面回落；invalidate 后 refetch 再同步一次）
-        if (loadedSite !== null) {
-          setDraft(loadedSite);
-        }
+        // 仅 invalidate——refetch 后 raw 新身份经 loadedSite useEffect 同步 draft
+        // （此处 setDraft 闭包旧 loadedSite=回滚闪烁；refetch 失败则已存内容丢失）
         void queryClient.invalidateQueries({
           queryKey: [`/api/projects/${projectId}`],
         });
@@ -291,7 +289,10 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
         size="small"
         min={0.1}
         value={lineWidth}
-        onChange={(value) => setLineWidth(value ?? DEFAULT_ROAD_WIDTH)}
+        // 清空回退按绘制工具线型二分（road=4/corridor=1.5——收笔会话 kind 即所选工具）
+        onChange={(value) =>
+          setLineWidth(value ?? (tool === "corridor" ? DEFAULT_CORRIDOR_WIDTH : DEFAULT_ROAD_WIDTH))
+        }
       />
       {finishedLine?.kind === "corridor" ? (
         <Select
@@ -374,7 +375,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
           >
             保存布置{dirty ? "（有修改）" : ""}
           </Button>
-          {sceneQuery.data === undefined ? (
+          {sceneQuery.isError || (sceneQuery.isSuccess && sceneQuery.data == null) ? (
             <Typography.Text type="warning" style={{ fontSize: 12 }}>
               场景不可得——足迹按示意矩形显示（未计算）
             </Typography.Text>
@@ -391,8 +392,9 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
         ) : null}
       </div>
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* 待摆=nodes 全键集减 draft 编辑键集（与 placedCount 同源 draft——拖入即时消项/移除即时回挂） */}
         <PendingPanel
-          pendingUnitIds={model.pendingUnitIds}
+          pendingUnitIds={model.designUnitIds.filter((id) => !(id in draft.structures))}
           placedCount={Object.keys(draft.structures).length}
         />
         <div style={{ flex: 1, minWidth: 0 }}>

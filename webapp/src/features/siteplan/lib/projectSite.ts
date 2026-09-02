@@ -88,8 +88,8 @@ export type PlacedStructure = {
 export type SiteModel = {
   /** unitId 字典序（确定性渲染序）。 */
   structures: PlacedStructure[];
-  /** design.nodes 有而 site.structures 无的单元（待摆区——字典序）。 */
-  pendingUnitIds: string[];
+  /** design.nodes 全键集（字典序——待摆区=组件层减 draft 编辑键集现算）。 */
+  designUnitIds: string[];
   roads: RoadShape[];
   corridors: CorridorShape[];
   options: SiteOptionsShape;
@@ -393,7 +393,7 @@ export function projectSite(
     });
   return {
     structures,
-    pendingUnitIds: unitIds.filter((id) => !(id in site.structures)),
+    designUnitIds: unitIds,
     roads: site.roads,
     corridors: site.corridors,
     options: site.options,

@@ -175,7 +175,7 @@ describe("narrowSiteDesign（site 弱类型窄化——缺省宽容/逐类拒带
 // ── projectSite：投影（footprint=scene dims 键镜像 PoolBox 消费面） ──
 
 describe("projectSite（design+scene → 渲染模型——纯函数确定性）", () => {
-  it("scene=null → footprint 全 null+pendingUnitIds=design.nodes 有而 site 无+摆放值透传", () => {
+  it("scene=null → footprint 全 null+designUnitIds=design.nodes 键集+摆放值透传", () => {
     const model = projectSite(
       {
         nodes: { tank: { kind: "inlet" }, pump: {}, lab: {} },
@@ -195,7 +195,7 @@ describe("projectSite（design+scene → 渲染模型——纯函数确定性）
         footprint: null,
       },
     ]);
-    expect(model.pendingUnitIds).toEqual(["lab", "pump"]);
+    expect(model.designUnitIds).toEqual(["lab", "pump", "tank"]);
   });
 
   it("scene 命中 box：footprint w/h=length×width 同对键（镜像 PoolBox boxGeometry 消费面）", () => {
@@ -296,6 +296,18 @@ describe("projectSite（design+scene → 渲染模型——纯函数确定性）
     expect(model.roads).toHaveLength(1);
     expect(model.corridors[0]?.kind).toBe("power");
     expect(model.options.coord_grid).toBe(20);
+  });
+
+  it("designUnitIds=design.nodes 键集字典序稳定；site 已布置单元不影响该键集", () => {
+    const model = projectSite(
+      {
+        nodes: { pump: {}, tank: {}, lab: {} },
+        site: { structures: { tank: { x: 0, y: 0 } } },
+      },
+      null,
+    );
+    // 键集全集直出（已摆 tank 仍在——待摆=组件层减 draft 编辑键集现算）
+    expect(model.designUnitIds).toEqual(["lab", "pump", "tank"]);
   });
 
   it("design.nodes 非对象/非法 site 形状 → SiteProjectionError 透传", () => {
