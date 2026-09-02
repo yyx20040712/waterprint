@@ -57,7 +57,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Final
 
-from pydantic import Field, ValidationError, field_validator
+from pydantic import Field, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 分量白名单字符集（R1）：ASCII 字母数字开头，允许 -/_，长度上限 64——
@@ -76,6 +76,16 @@ _FAIL_FAST_FIELDS = (
 )
 # 服务层引擎版本标识（可复算三元组成员——与 server/pyproject version 同源同步）。
 ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
+# R2A 批1（token 鉴权 2026-09-02，终裁 R-7）：API token 最小长度真源=16
+#（幂积 2**(2*2) 保白名单字面量集）——字母数字 62 字符集下 62¹⁶≈4.8×10²⁸
+# 组合（终裁勘误：95¹⁶ 系全可打印 ASCII 误算），为防在线暴力枚举的熵下界；
+# 文档推荐 32，本值=validator 拒绝线非建议值。
+API_TOKEN_MIN_LENGTH: Final[int] = 2 ** (2 * 2)  # 16
+# R2A 批1（终裁 R-6）：回环绑定集合——token 空+host 出集合=构造即拒
+#（fail fast，uvicorn.run 之前不留半启动态）。机器防线（绑定判定）为
+# best-effort（容器内绑定经 CMD 旗标不经本字段），真红线=入口语义
+#（docs/deployment.md「安全红线」节——反代/端口映射对外可达必须配 token）。
+_LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
 class Settings(BaseSettings):
@@ -126,6 +136,11 @@ class Settings(BaseSettings):
     # WP4·修4：项目锁过期窗——锁文件 mtime 年龄超窗=陈旧残留（持有者已
     # 死），视为无锁放行（§17.3 v1 单用户；锁仍为外部协调件零写入方）。
     lock_expiry_s: int = 10**2 * 10**2  # 10000 秒≈2.8 小时（编辑会话锁最长占用心智）
+    # R2A 批1（token 鉴权 2026-09-02）：静态 Bearer token（env
+    # WATERPRINT_API_TOKEN）——空=鉴权关（默认，24 端点零行为变化）；
+    # 非空=21 端点受保（19 非事件仅认 Bearer 头+events 两端点认头或
+    # ？token=），units 三静态只读端点豁免。见 auth.py 依赖面。
+    api_token: str = ""
 
     @field_validator(*_FAIL_FAST_FIELDS)
     @classmethod
@@ -142,6 +157,29 @@ class Settings(BaseSettings):
         if not 1 <= value <= 2 ** (2 * 2 * 2 * 2) - 1:  # 65535=2^16−1（幂积保白名单字面量集）
             raise ValueError(f"配置非法：端口 {value} 须在 1~65535（WP1 fail fast——不静默默认）")
         return value
+
+    @field_validator("api_token")
+    @classmethod
+    def _api_token_length(cls, value: str) -> str:
+        """R2A R-7 fail fast：非空 token 长度下限（62 字符集熵基线，见常量注记）。"""
+        if value != "" and len(value) < API_TOKEN_MIN_LENGTH:
+            raise ValueError(
+                f"配置非法：api_token 长度 {len(value)} < {API_TOKEN_MIN_LENGTH}"
+                "（字母数字 62 字符集 16 位熵≈4.8×10²⁸ 下界——R2A R-7 fail fast）"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def _token_required_off_loopback(self) -> Settings:
+        """R2A R-6 fail fast：空 token 仅许回环绑定（对外绑定必须配 token）。"""
+        if self.api_token == "" and self.host not in _LOOPBACK_HOSTS:
+            raise ValueError(
+                "配置非法：api_token 为空且 host 非 {127.0.0.1, ::1, localhost}"
+                " 回环集合——对外绑定必须配置 WATERPRINT_API_TOKEN"
+                "（R2A R-6 fail fast，机器防线 best-effort；入口红线见"
+                " docs/deployment.md「安全红线」节）"
+            )
+        return self
 
 
 @lru_cache(maxsize=1)

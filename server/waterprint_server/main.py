@@ -58,13 +58,15 @@ from contextlib import asynccontextmanager, suppress
 from typing import Any, Final
 
 import structlog
-from fastapi import FastAPI, Request, status
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from waterprint import app as core
 from waterprint.contracts.manifest import InvalidUnitConfig
 
+from waterprint_server.auth import AuthError, verify_token, verify_token_sse
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
 from waterprint_server.routers import (
@@ -115,7 +117,10 @@ from waterprint_server.settings import Settings, ensure_directories, get_setting
 # ── R2 统一异常映射表（集中一处；core/server 领域异常→HTTP 码）──
 # 类基映射（可导入面）：InvalidUnitConfig→400 / NotFound 族→404 /
 # 冲突族（锁/stale/未完成）→409 / 参数族→422 / 未就绪族→501。
+# R2A 批1（N-3）：AuthError→401——经统一 handler 自动获得冻结错误体
+# {detail, error_type}（不引入 403，终裁三.沿册项）。
 _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
+    (AuthError, status.HTTP_401_UNAUTHORIZED),
     (InvalidUnitConfig, status.HTTP_400_BAD_REQUEST),
     (core.InvalidAssemblyError, status.HTTP_400_BAD_REQUEST),
     (core.InvalidProjectError, status.HTTP_400_BAD_REQUEST),
@@ -285,18 +290,31 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
         pool.shutdown(wait=True, cancel_futures=True)
 
     app = FastAPI(title="WaterPrint 服务层", version="0.1.0", lifespan=lifespan)
-    app.include_router(projects.router)
-    app.include_router(calc.router)
-    app.include_router(exports.router)
-    app.include_router(events.router)
-    app.include_router(scene.router)
-    app.include_router(elevation.router)
-    app.include_router(cost.router)
+    # R2A 批1（终裁 R-1/D3）：include 级鉴权依赖挂载——七业务路由器受保
+    #（19 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
+    # 或 ？token=）；units 三静态只读端点豁免（不挂）。端点集/路径/方法
+    # 零变化（_EXPECTED_ENDPOINTS=24 恒——契约自检常驻）。
+    app.include_router(projects.router, dependencies=[Depends(verify_token)])
+    app.include_router(calc.router, dependencies=[Depends(verify_token)])
+    app.include_router(exports.router, dependencies=[Depends(verify_token)])
+    app.include_router(events.router, dependencies=[Depends(verify_token_sse)])
+    app.include_router(scene.router, dependencies=[Depends(verify_token)])
+    app.include_router(elevation.router, dependencies=[Depends(verify_token)])
+    app.include_router(cost.router, dependencies=[Depends(verify_token)])
+    # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，
+    # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
+    # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，
+    # 真源在 router.routes）。
+    for units_route in units.router.routes:
+        if isinstance(units_route, APIRoute):
+            units_route.openapi_extra = {"security": []}
     app.include_router(units.router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(_DEV_ORIGINS),  # R5 开发期白名单
         allow_methods=["*"],
+        # N-2（R2A 批1 查补）：Authorization 已覆盖——["*"] 通配下预检响应
+        # 回显请求的 Access-Control-Request-Headers（dev 5173 面不断）。
         allow_headers=["*"],
     )
 

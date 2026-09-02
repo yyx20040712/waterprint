@@ -1565,6 +1565,19 @@
         "title": "WarningEntry",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "httpBearer": {
+        "description": "受保端点静态 token（Authorization: Bearer <token>）",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "sseTokenQuery": {
+        "description": "events SSE 端点专用 ？token= 查询通道（其余端点无效）",
+        "in": "query",
+        "name": "token",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -1589,6 +1602,7 @@
             "description": "Successful Response"
           }
         },
+        "security": [],
         "summary": "List Assumptions",
         "tags": [
           "units"
@@ -1631,6 +1645,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Run Enumeration",
         "tags": [
           "calc"
@@ -1673,6 +1692,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Run Calculation",
         "tags": [
           "calc"
@@ -1715,6 +1739,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Apply Solution",
         "tags": [
           "calc"
@@ -1758,6 +1787,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Get Task Status",
         "tags": [
           "calc"
@@ -1801,6 +1835,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Cancel Task",
         "tags": [
           "calc"
@@ -1882,6 +1921,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Get Solutions",
         "tags": [
           "calc"
@@ -1904,6 +1948,7 @@
             "description": "Successful Response"
           }
         },
+        "security": [],
         "summary": "List Constraints",
         "tags": [
           "units"
@@ -1963,6 +2008,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Get Cost",
         "tags": [
           "cost"
@@ -2022,6 +2072,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Get Elevation",
         "tags": [
           "elevation"
@@ -2063,6 +2118,14 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          },
+          {
+            "sseTokenQuery": []
+          }
+        ],
         "summary": "Project Events",
         "tags": [
           "events"
@@ -2104,6 +2167,14 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          },
+          {
+            "sseTokenQuery": []
+          }
+        ],
         "summary": "Task Events",
         "tags": [
           "events"
@@ -2152,6 +2223,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "List Exports",
         "tags": [
           "exports"
@@ -2204,6 +2280,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Export Audit",
         "tags": [
           "exports"
@@ -2256,6 +2337,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Export Calcbook",
         "tags": [
           "exports"
@@ -2308,6 +2394,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Export Dxf",
         "tags": [
           "exports"
@@ -2360,6 +2451,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Export Estimate",
         "tags": [
           "exports"
@@ -2386,6 +2482,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "List Projects",
         "tags": [
           "projects"
@@ -2426,6 +2527,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Create Project",
         "tags": [
           "projects"
@@ -2471,6 +2577,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Read Project",
         "tags": [
           "projects"
@@ -2524,6 +2635,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Save Project",
         "tags": [
           "projects"
@@ -2567,6 +2683,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Validate Project",
         "tags": [
           "projects"
@@ -2626,6 +2747,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
         "summary": "Get Scene",
         "tags": [
           "scene"
@@ -2648,6 +2774,7 @@
             "description": "Successful Response"
           }
         },
+        "security": [],
         "summary": "List Units",
         "tags": [
           "units"
