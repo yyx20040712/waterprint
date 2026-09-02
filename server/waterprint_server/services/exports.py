@@ -73,6 +73,12 @@
 #     DWG（开关 dwg_converter_path 空=关，转换器不随产品分发）——同名
 #     并排+边车双产物；失败/超时/边车写失败=warning+跳过（DXF 恒交付，
 #     core drafting 零触碰；R-1 G1-01/A-01 收口）；决策见 _dwg_convert。
+#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs.worker
+#     （dwg_convert——import-linter 层序禁 jobs→services，services 反向
+#     引用合法；本文件保留 _post_export_dwg 策略壳）；export_batch 批量
+#     payload 增 DWG 开关+超时+dxf 项 sidecars 预构建边车文本
+#     （_batch_items_payload——ExportMeta 八键单源，worker 仅落盘，
+#     同步路径 :466/:467-469 双产物登记同构）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -83,9 +89,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
-import sys
-import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -97,6 +100,7 @@ from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.jobs.manager import TaskRequest
+from waterprint_server.jobs.worker import dwg_convert
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import design_digest, read_project
 from waterprint_server.settings import validate_component
@@ -111,8 +115,6 @@ _TEMPLATE_KINDS: Final[frozenset[str]] = frozenset({"calcbook"})
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
     {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx"}
 )
-# WP0（ODA-A）：ODA File Converter 输出版本参数=AC1032/R2018（§12.5 基线）。
-_DWG_CLI_VERSION: Final[str] = "ACAD2018"
 _LOGGER = structlog.get_logger(__name__)
 
 
@@ -272,83 +274,77 @@ def _unit_id_of(chosen: Mapping[str, Any]) -> str | None:
     return unit if isinstance(unit, str) and unit else None
 
 
+def _sidecar_text(meta: ExportMeta) -> str:
+    """边车文本（确定性序列化——R2-C 批量 items 经 IPC 携带，worker 仅落盘）。"""
+    return (
+        json.dumps(meta.__dict__, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    )
+
+
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
     """注册表边车（原子写；只记元数据不复制数据，R2）。"""
     sidecar = ctx.exports_dir / f"{meta.file_name}.meta.json"
     tmp = sidecar.with_name(sidecar.name + ".tmp")
-    tmp.write_text(
-        json.dumps(meta.__dict__, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
+    tmp.write_text(_sidecar_text(meta), encoding="utf-8", newline="\n")
     os.replace(tmp, sidecar)
-
-
-def _hidden_gui_options() -> dict[str, Any]:
-    """Windows 转换器弹窗抑制（SW_HIDE——ezdxf odafc 同款；POSIX 恒空）。
-    getattr 取符号（STARTUPINFO 非 win32 typeshed 缺席——getattr 面豁免
-    跨平台 mypy 误报且运行时等价）。
-    """
-    if sys.platform != "win32":
-        return {}
-    startup = getattr(subprocess, "STARTUPINFO", None)
-    if startup is None:  # 防御面：实现缺符号时退化为普通 spawn
-        return {}
-    info = startup()
-    info.dwFlags = getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
-    info.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
-    return {"startupinfo": info}
-
-
-def _dwg_convert(converter: str, dxf_file: Path, timeout_s: int) -> Path | None:
-    """DXF→DWG 子进程转换（ODA File Converter CLI；任何失败=warning+None）。
-    直 subprocess 而非 ezdxf.addons.odafc（WP0 决策）：① addon Windows 面
-    只认 ezdxf 全局配置/PATH which——settings 显式路径须改写三方全局态；
-    ② addon 无 timeout（「超时=跳过」铁律不可表达）；③ 1.4.4 convert()
-    无产物分支未 raise（静默成功面）。CLI 契约同 _odafc_arguments：
-    <in_dir> <out_dir> <version> <DWG|DXF> <recurse> <audit> [filter]。
-    """
-    dwg: Path | None = None  # 成功旗标：with 外返回——R-1/A-01 cleanup 异常不吞成功
-    reason = ""
-    try:
-        in_dir = str(dxf_file.parent.resolve())  # R-1/G1-03：resolve 失败归入失败面
-        with tempfile.TemporaryDirectory(dir=in_dir) as tmp_name:
-            # 临时区=exports 同分区（GR-38）；recurse=0 单文件；audit=1 同 ezdxf 默认。
-            argv = [
-                converter, in_dir, tmp_name, _DWG_CLI_VERSION,
-                "DWG", "0", "1", dxf_file.name,
-            ]
-            proc = subprocess.run(  # 退出码面在下方统一判
-                argv, capture_output=True, timeout=timeout_s, check=False,
-                **_hidden_gui_options(),
-            )
-            produced = Path(tmp_name) / dxf_file.with_suffix(".dwg").name
-            # R-1/G1-02：三重判（退出码+存在+非零字节——空产物不登记）
-            if proc.returncode == 0 and produced.is_file() and produced.stat().st_size > 0:
-                dwg = dxf_file.with_suffix(".dwg")
-                os.replace(produced, dwg)  # GR-38：落位后随 with 正常退出再返回
-            else:
-                stderr = (proc.stderr or b"").decode("utf-8", "replace").strip()
-                reason = f"returncode={proc.returncode} stderr={stderr}"
-    except (OSError, subprocess.SubprocessError) as exc:
-        reason = repr(exc)  # 超时/缺件/管道/cleanup 面——全失败族归一（A-01）
-    if dwg is None:  # 已落位（纵遇 cleanup 异常）不告警——不留幽灵 DWG
-        _LOGGER.warning("dwg_convert_skipped", source=dxf_file.name, reason=reason)
-    return dwg
 
 
 def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | None:
     """WP0（ODA-A 形态 A）挂点：产物落盘后、边车写入前（评估件 §四）。
-    kind=dxf 且开关非空→子进程转 DWG 同名并排；失败/超时=warning+跳过
-    （DXF 恒为契约产物）；成功返回名供边车双产物登记。
+    kind=dxf 且开关非空→子进程转 DWG 同名并排（R2-C：转换原语共享化=
+    jobs.worker.dwg_convert，WP0 三由与失败语义随迁）；失败/超时=warning+
+    跳过（DXF 恒为契约产物）；成功返回名供边车双产物登记。
     """
     if kind != "dxf":
         return None
     converter = ctx.settings.dwg_converter_path.strip()
     if not converter:  # 默认空=关（容器内无转换器，零行为漂移）
         return None
-    dwg = _dwg_convert(converter, artifact, ctx.settings.dwg_converter_timeout_s)
+    dwg = dwg_convert(converter, artifact, ctx.settings.dwg_converter_timeout_s)
     return dwg.name if dwg is not None else None
+
+
+def _batch_items_payload(
+    items: Sequence[Mapping[str, Any]], names: Sequence[str], common: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    """R2-C：export_batch items IPC 面（S2 D6 透传+dxf 项边车文本预构建）。
+
+    dxf 项附 sidecars={dxf, dwg} 边车文本（ExportMeta 八键单源——worker
+    仅落盘不重构；DWG 文本乐观预构建，worker 只在转换真成功时落盘=
+    无幽灵边车）；其余 kind 保持存量零边车行为。
+    """
+    batch: list[dict[str, Any]] = []
+    for item, name in zip(items, names, strict=True):
+        condition_key = str(item.get("condition_key", ""))
+        entry: dict[str, Any] = {
+            "kind": item["kind"],
+            "result_file": common["result_file"],
+            "template": common["template"],
+            "out_name": name,
+            # S2 D6：unit_id 批级共享+condition_key item 自有（空串形态落
+            # IPC 面——worker 侧归一 None，单产物路径对偶口径）。
+            "unit_id": common["unit_id"],
+            "condition_key": condition_key,
+        }
+        if str(item.get("kind", "")) == "dxf":
+            meta = ExportMeta(
+                project_id=str(common["project_id"]),
+                kind="dxf",
+                condition_key=condition_key,
+                file_name=name,
+                design_digest=str(common["design_digest"]),
+                engine_version=str(common["engine_version"]),
+                data_version=str(common["data_version"]),
+                stale_labeled=bool(common["stale_labeled"]),
+            )
+            entry["sidecars"] = {
+                "dxf": _sidecar_text(meta),
+                "dwg": _sidecar_text(
+                    replace(meta, file_name=Path(name).with_suffix(".dwg").name)
+                ),
+            }
+        batch.append(entry)
+    return batch
 
 
 async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开接口）+ctx 首参惯例
@@ -398,21 +394,21 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
                     "kind": "export_batch",
                     "project_id": project_id,
                     "exports_dir": str(ctx.exports_dir),
-                    "items": [
-                        {
-                            "kind": item["kind"],
-                            "result_file": latest.get("result_file"),
-                            "template": template,
-                            "out_name": name,
-                            # S2 D6：items 级透传——unit_id 批级共享
-                            # （options.unit_id）+condition_key item 自有；
-                            # 空串形态落 IPC 面（worker 侧归一 None——
-                            # 单产物路径 condition_key or None 对偶口径）。
-                            "unit_id": unit_option or "",
-                            "condition_key": str(item.get("condition_key", "")),
-                        }
-                        for item, name in zip(items, names, strict=True)
-                    ],
+                    # R2-C：DWG 开关+超时（worker dwg_convert 消费；默认空=关）
+                    "dwg_converter_path": ctx.settings.dwg_converter_path.strip(),
+                    "dwg_converter_timeout_s": ctx.settings.dwg_converter_timeout_s,
+                    # R2-C：items IPC 面=S2 D6 透传+dxf 项边车文本（dxf 项
+                    # sidecars 预构建——worker 双产物面，_batch_items_payload）。
+                    "items": _batch_items_payload(items, names, {
+                        "project_id": project_id,
+                        "design_digest": result_digest,
+                        "engine_version": str(latest.get("engine_version", "")),
+                        "data_version": str(latest.get("data_version", "")),
+                        "stale_labeled": stale and force,
+                        "result_file": latest.get("result_file"),
+                        "template": template,
+                        "unit_id": unit_option or "",
+                    }),
                 },
             ),
         )

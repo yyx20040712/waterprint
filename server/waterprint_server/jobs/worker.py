@@ -13,44 +13,38 @@
 #
 # 【行为规格】
 #   R1 序列化边界（§18 IPC 行）：payload/结果只含经校验的基本类型
-#      （字符串/数值/列表/映射）——外部输入先过 schema 再进 IPC，
-#      永不 pickle 任意对象图。
+#      （字符串/数值/列表/映射）——外部输入先过 schema 再进 IPC。
 #   R2 调用映射：kind → app L4 入口（calc→run_full_calc、enumerate→
-#      run_enumeration、export_batch→export_artifact；SENS-B 2026-08-23
-#      UF-33——一律经 waterprint.app 用例面，不直连 L3 子系统）；
-#      映射表集中一处，禁止散落 if。
-#   R3 进度上报：阶段百分比 + condition_key（逐工况粒度）；
-#      大结果写 arrow 文件返回路径句柄（§16 A6），不整包过 pickle；
-#      落盘一律临时文件+同分区 rename 原子写（GR-38，SENS-B
-#      2026-08-23 UF-38）。
+#      run_enumeration、export_batch→export_artifact；一律经 waterprint.app
+#      用例面不直连 L3 子系统，UF-33）；映射表集中一处，禁止散落 if。
+#   R3 进度上报：阶段百分比 + condition_key（逐工况粒度）；大结果写
+#      arrow 文件返回路径句柄（§16 A6）不整包过 pickle；落盘一律
+#      临时文件+同分区 rename 原子写（GR-38，UF-38）。
 #   R4 取消协作：每阶段/每批迭代检查令牌；置位 → 清理临时产物 →
 #      返回 cancelled 状态（不写半途结果）。
-#   R5 导入零副作用：本模块 import 不创建池/不连队列（Windows
-#      spawn 重复导入安全，AGENTS §1）。
+#   R5 导入零副作用：import 不创建池/不连队列（Windows spawn 安全）。
 #
 # 【实现注记（SERVER 2026-08-26）】
-#   - 进度队列经进程池 initializer（_init_progress_queue）注入模块全局
-#     _PROGRESS_QUEUE（mp.Queue 不能过 submit 参数——Windows spawn 标准
-#     pickle 实测拒；R5 导入零副作用不受扰：全局在初始化期而非导入期
-#     赋值）。直接调用面（单元测试）可显式传第三参。
+#   - 进度队列经池 initializer 注入模块全局 _PROGRESS_QUEUE（mp.Queue
+#     不能过 submit 参数——Windows spawn 实测拒；直接调用面显式传第三参）。
 #   - 取消令牌=标记文件路径（cancel_token 参数）：阶段边界轮询
 #     _cancelled()（core run 内长计算无协作取消钩子——UF 记档）。
 #   - RunEnv 装配：core app 面无 env 装配用例且 D7 禁直连 registry，
-#     本文件以 CoefficientsView 协议适配器（L0 契约协议面）读
-#     data_dir 数据包（registry 格式镜像装载，B4 双胞胎先例）——
-#     追认点已登记 undefined-features-register（SERVER 批）。
-#   - R1-1 二道闸（2026-08-26）：export_batch 的 kind 白名单+
-#     out_name 防逃逸（无分隔符/无 ..）——payload 直注 IPC 面防线。
-#   - S2 D6（2026-08-30 落盘化批）：export_batch items 级 options
-#     透传——逐项 core.export_artifact 附 unit_id/condition_key kwargs
-#     （空串归一 None——exports 单产物路径 condition_key or None 对偶
-#     口径；payload items 每项带 unit_id 批级共享+condition_key item
-#     自有，exports.create_export 批量路径同批收口）。
-#   - DEFAULT_ASSUMPTIONS 经 waterprint.app 模块面取用（app 为
-#     _engine_params 已装载的同名属性——UF-33"经 app"口径）。
+#     本文件以 CoefficientsView 协议适配器读 data_dir 数据包（registry
+#     格式镜像装载，B4 双胞胎先例；追认点登记 undefined-features-register）。
+#   - R1-1 二道闸（2026-08-26）：export_batch 的 kind 白名单+out_name
+#     防逃逸（无分隔符/无 ..）——payload 直注 IPC 面防线。
+#   - S2 D6（2026-08-30）：export_batch items 级透传——逐项
+#     core.export_artifact 附 unit_id（批级共享）/condition_key（item
+#     自有）kwargs，空串归一 None（exports 单产物路径对偶口径）。
+#   - DEFAULT_ASSUMPTIONS 经 waterprint.app 模块面取用（UF-33"经 app"口径）。
+#   - R2-C（2026-09-02 服务端安全批·交付2）：DWG 转换原语自 services.exports
+#     下沉本模块（dwg_convert——层序禁 jobs→services 上行，services 反向
+#     引用合法〔TaskRequest 先例〕）；export_batch dxf 项落盘后双产物面
+#     =可选 DWG+边车登记（item.sidecars=services 预构建边车文本，
+#     ExportMeta 单源 worker 仅落盘；缺块=存量零边车行为——锁用例口径）。
 #
-# 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化
-#   （领域异常诊断字段完整）。
+# 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
 # 【参照】重写计划 §12.2/§16 A6/§18
 # ══════════════════════════════════════════════════════════════════
@@ -60,12 +54,16 @@ from __future__ import annotations
 import dataclasses
 import multiprocessing as mp
 import os
+import subprocess
+import sys
+import tempfile
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
 from typing import Any, Final, Protocol
 
+import structlog
 import yaml
 from waterprint import app as core
 from waterprint.contracts.condition import ConditionSet, build_condition_set
@@ -77,6 +75,7 @@ from waterprint_server.settings import ENGINE_VERSION
 
 # 进度队列模块全局（R5：仅 initializer 赋值，导入期为 None——零副作用）。
 _PROGRESS_QUEUE: mp.Queue[Mapping[str, Any]] | None = None
+_LOGGER = structlog.get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -93,7 +92,6 @@ _STAGES: Final[dict[str, tuple[str, ...]]] = {
     "calc": ("load", "run", "serialize"),
     "enumerate": ("load", "run", "rows"),
 }
-# 引擎版本标识：settings.ENGINE_VERSION（与 pyproject version 同源）
 
 
 class InvalidTaskPayloadError(ValueError):
@@ -125,7 +123,7 @@ class _YamlCoefficients:
 
     只实现 L0 协议查询面（data_version/get/keys/require_keys）——装载
     语义与 registry.load_coefficients 同款（manifest.yaml 版本头 + 其余
-    *.yaml 条目文件按名排序；键全包唯一；数值有限性 GR-02）。
+    *.yaml 条目按名排序；键全包唯一；数值有限性 GR-02）。
     """
 
     def __init__(self, directory: Path) -> None:
@@ -338,14 +336,14 @@ def _run_enumerate(
 
 
 _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
+# WP0（ODA-A）：ODA File Converter 输出版本参数=AC1032/R2018（§12.5 基线；
+# R2-C 自 services.exports 下沉——层序禁 jobs→services，本模块为共享真源）。
+_DWG_CLI_VERSION: Final[str] = "ACAD2018"
 
 
 def _safe_out_name(name: str) -> str:
-    """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注防线）。
-
-    服务面已过 _deterministic_name 四分量白名单；本闸防的是绕过服务层
-    直构 payload 的 IPC 面（worker 是 pickle 边界，入参即不可信——§18）。
-    """
+    """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注
+    IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。"""
     if (
         not name
         or "/" in name
@@ -358,6 +356,65 @@ def _safe_out_name(name: str) -> str:
             "引用；exports_dir 内落盘是唯一合法位置）"
         )
     return name
+
+
+def _hidden_gui_options() -> dict[str, Any]:
+    """Windows 转换器弹窗抑制（SW_HIDE——ezdxf odafc 同款；POSIX/缺符号恒空，
+    getattr 面=typeshed 缺席豁免且运行时等价）。"""
+    if sys.platform != "win32":
+        return {}
+    startup = getattr(subprocess, "STARTUPINFO", None)
+    if startup is None:  # 防御面：实现缺符号时退化为普通 spawn
+        return {}
+    info = startup()
+    info.dwFlags = getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+    info.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
+    return {"startupinfo": info}
+
+
+def dwg_convert(converter: str, dxf_file: Path, timeout_s: int) -> Path | None:
+    """DXF→DWG 子进程转换（ODA CLI 契约 <in_dir> <out_dir> <version> <DWG|DXF>
+    <recurse> <audit> [filter]；R2-C 自 services.exports 下沉共享）。直
+    subprocess 而非 ezdxf.addons.odafc（WP0 三由：addon 只认全局配置/PATH
+    显式路径不可注入；无 timeout；1.4.4 无产物分支未 raise）。任何失败
+    （OSError/SubprocessError/退出码≠0/空产物）=warning+None——DXF 不可破。
+    """
+    dwg: Path | None = None  # 成功旗标：with 外返回——cleanup 异常不吞成功
+    reason = ""
+    try:
+        in_dir = str(dxf_file.parent.resolve())  # resolve 失败归入失败面
+        with tempfile.TemporaryDirectory(dir=in_dir) as tmp_name:  # exports 同分区（GR-38）
+            argv = [converter, in_dir, tmp_name, _DWG_CLI_VERSION, "DWG", "0", "1", dxf_file.name]
+            proc = subprocess.run(  # recurse=0 单文件；audit=1 同 ezdxf 默认；退出码下方统一判
+                argv, capture_output=True, timeout=timeout_s, check=False,
+                **_hidden_gui_options(),
+            )
+            produced = Path(tmp_name) / dxf_file.with_suffix(".dwg").name
+            # R-1/G1-02：三重判（退出码+存在+非零字节——空产物不登记）
+            if proc.returncode == 0 and produced.is_file() and produced.stat().st_size > 0:
+                dwg = dxf_file.with_suffix(".dwg")
+                os.replace(produced, dwg)  # GR-38：落位后随 with 正常退出再返回
+            else:
+                stderr = (proc.stderr or b"").decode("utf-8", "replace").strip()
+                reason = f"returncode={proc.returncode} stderr={stderr}"
+    except (OSError, subprocess.SubprocessError) as exc:
+        reason = repr(exc)  # 超时/缺件/管道/cleanup 面——全失败族归一（A-01）
+    if dwg is None:  # 已落位（纵遇 cleanup 异常）不告警——不留幽灵 DWG
+        _LOGGER.warning("dwg_convert_skipped", source=dxf_file.name, reason=reason)
+    return dwg
+
+
+def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
+    """R2-C：批量产物边车落盘（GR-38 原子写；文本=services 预构建）。"""
+    sidecar = exports_dir / f"{file_name}.meta.json"
+    tmp = sidecar.with_name(sidecar.name + ".tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8", newline="\n")
+        os.replace(tmp, sidecar)
+    except OSError as exc:  # WP0 R-1/G1-01 同族：登记失败不回滚已交付产物
+        _LOGGER.warning(
+            "export_sidecar_skipped", source=file_name, reason=f"write failed: {exc!r}"
+        )
 
 
 def _run_export_batch(
@@ -386,12 +443,9 @@ def _run_export_batch(
         plant = deserialize(Path(str(item["result_file"])).read_bytes())
         out = exports_dir / out_name
         tmp = out.with_name(out.name + ".tmp")
-        # S2 D6：items 级透传——unit_id（批级共享，空串归一 None=core
-        # unit_id-None 闸「全厂总图归 M5 site_plan」诚实 501 面）+
-        # condition_key（item 自有，空串归一 None=core 缺省 design 档
-        # +UserWarning）——exports.create_export 单产物路径同款口径。
-        # R2 R3（DS-06）：str(x or "") 先归一——防 payload 显式 None 经
-        # str(None)="None" 透传（IPC 面不可信原则）。
+        # S2 D6：items 级透传 unit_id（批级共享）/condition_key（item 自有），
+        # 空串归一 None（单产物路径同款口径）；DS-06：str(x or "") 防
+        # 显式 None 经 str(None)="None" 透传（IPC 面不可信）。
         core.export_artifact(
             kind,
             plant,
@@ -402,6 +456,16 @@ def _run_export_batch(
         )
         os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
         files.append(str(out))
+        # R2-C：dxf 批量项双产物面——DXF 恒登记边车+可选 DWG 成功追加（同步
+        # 路径同构；sidecars=services 预构建文本，缺块=存量零边车行为）。
+        sidecars = dict(item.get("sidecars") or {})
+        if kind == "dxf" and sidecars.get("dxf"):
+            _write_sidecar_text(exports_dir, out_name, str(sidecars["dxf"]))
+            converter = str(payload.get("dwg_converter_path") or "")
+            if converter:
+                dwg = dwg_convert(converter, out, int(payload.get("dwg_converter_timeout_s") or 0))
+                if dwg is not None and sidecars.get("dwg"):
+                    _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
     return {
         "state": "done",
         "files": tuple(files),

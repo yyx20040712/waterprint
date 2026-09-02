@@ -12,6 +12,7 @@
 #   save_project(id, project) -> SaveOutcome（新 hash + design_changed）
 #   validate_project(id) -> ValidationReport
 #   import_legacy(payload) -> ImportReport（M4，best-effort 映射清单）
+#   refresh_lock_mtime(id) -> bool（K-5 心跳原语：touch 已存锁 mtime）
 #
 # 【行为规格】
 #   R1 文件操作只经 core.project.io（确定性序列化/原子保存/锁探测
@@ -42,7 +43,14 @@
 #      （Any 自由面容器迭代计数——create 侧同闸双端点同限；pydantic
 #      序列化守卫禁依赖——100 层 ValueError 冒充归一面）；锁过期=
 #      mtime 年龄>lock_expiry_s 清除放行（陈旧残留；stat 不可得=
-#      旧语义存在即锁；零新增锁写入方，TOCTOU 挂账 R2）。
+#      旧语义存在即锁；零新增锁写入方）。
+#   - K-5 修1（R2-C 2026-09-02）：TOCTOU 收口——陈旧锁清除改双快照
+#      一致才 unlink（内容=持有者标识字节等价比较+mtime 二次校验；
+#      窗口内换锁/心跳触碰=活性铁证 fail-closed 409）；心跳原语
+#      refresh_lock_mtime（持有者 touch 已存锁 mtime——长保存/长编辑
+#      会话防误判过期；零创建，server 零写入方不变）。锁内容约定
+#      host|pid|ts（会话层写入面；读取面不解析格式，历史任意内容锁
+#      向后兼容）。
 #
 # 【测试要求】往返保存 design_changed 语义、导入未映射清单、
 #   id 白名单、锁冲突透传。
@@ -53,6 +61,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 from collections.abc import Mapping, Sequence
@@ -237,17 +246,55 @@ def _check_project_depth(project: ProjectFile, limit: int) -> None:
         _check_depth(tree, limit)
 
 
-def _expired_lock(lock: Path, expiry_s: int) -> bool:
-    """WP4（修4）：锁 mtime 年龄>expiry_s=过期（无锁文件格式变更——向后兼容）。
+def _lock_snapshot(lock: Path) -> tuple[float, bytes] | None:
+    """K-5（R2-C 修1）：锁持有者快照（内容字节+mtime——先读内容后取戳）。
 
-    stat 失败（戳不可得）=未过期——保守锁面（旧语义存在即锁）；过期
-    锁清除归调用方（「视为无锁」的落地形态——core io 冻结锁探测零触碰
-    前提）；TOCTOU 窗口不在本批（挂账 R2 记档）。
+    内容=持有者标识（约定 host|pid|ts——会话层写入面；本面字节等价
+    比较，不解析格式）；mtime 后取=活性戳尽晚采样（贴近 unlink 决策点）；
+    不可得（OSError）=None——保守锁面（旧语义存在即锁）。
     """
     try:
-        return time.time() - lock.stat().st_mtime > expiry_s
+        content = lock.read_bytes()
+        return (lock.stat().st_mtime, content)
+    except OSError:
+        return None
+
+
+def _clear_stale_lock(lock: Path, expiry_s: int) -> None:
+    """K-5（R2-C 修1）：陈旧锁清除=双快照一致才 unlink（TOCTOU 收口）。
+
+    判定快照过期后回读二次快照：内容与 mtime 均与首快照一致=同一陈旧
+    持有者且窗口内零触碰→清除放行（「视为无锁」落地形态）；任何不一致
+    （新持有者重建锁/持有者心跳 touch）=活性铁证→fail-closed 409；
+    stat/读/清除不可得=回退锁面（WP4 fail-closed 语义保持）。
+    """
+    first = _lock_snapshot(lock)
+    if first is None or time.time() - first[0] <= expiry_s:
+        raise ProjectLockedError(lock)  # 新鲜锁/快照不可得：存在即锁（旧语义保持）
+    if _lock_snapshot(lock) != first:
+        raise ProjectLockedError(lock)  # 窗口内换锁/心跳触碰（K-5 活性铁证）
+    try:
+        lock.unlink(missing_ok=True)
+    except OSError as exc:
+        raise ProjectLockedError(lock) from exc  # 清除失败=回退锁面（fail-closed）
+
+
+def refresh_lock_mtime(ctx: ServiceContext, project_id: str) -> bool:
+    """K-5（R2-C 修1）心跳原语：持有者 touch 已存锁 mtime 防误判过期。
+
+    锁=外部协调件（server 零写入方不变）——只 touch 已存在锁的 mtime
+    （os.utime(None)=now），缺锁不创建（False）；长保存/长编辑会话的
+    持有者周期调用，配合 _clear_stale_lock 二次校验：判定窗口内任何
+    心跳触碰=持有者活性铁证→409 不清除（K-5 完整语义）。
+    """
+    lock = _project_path(ctx, project_id).with_suffix(".lock")
+    if not lock.is_file():
+        return False
+    try:
+        os.utime(lock, None)
     except OSError:
         return False
+    return True
 
 
 def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutcome:
@@ -312,7 +359,8 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
     R2：design_changed=design 态对比（view-only 保存=False——保存只写
     view 态不触发计算）；编辑 design 后对在途任务置 stale 提示标记
     （UF-37：守门在消费侧实时比对，本标记仅 UI 提示）。WP4：入口深度
-    闸（修3）+锁过期放行（修4，见 _check_project_depth/_expired_lock）。
+    闸（修3）+锁过期放行（修4）。K-5（R2-C 修1）：陈旧锁清除=双快照
+    一致才 unlink（见 _clear_stale_lock——窗口内换锁/心跳=409）。
     """
     _check_project_depth(project, ctx.settings.max_json_depth)  # 修3：PUT 深度闸接线
     path = _project_path(ctx, project_id)
@@ -320,12 +368,7 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
         raise ProjectNotFoundError(f"项目 {project_id!r} 不存在（基点内无 {path.name}）")
     lock = path.with_suffix(".lock")
     if lock.exists():
-        if not _expired_lock(lock, ctx.settings.lock_expiry_s):
-            raise ProjectLockedError(lock)  # 新鲜锁：旧语义保持（存在即锁 409）
-        try:
-            lock.unlink(missing_ok=True)  # 修4：陈旧残留锁清除=「视为无锁」放行
-        except OSError as exc:
-            raise ProjectLockedError(lock) from exc  # 清除失败=回退锁面（fail-closed）
+        _clear_stale_lock(lock, ctx.settings.lock_expiry_s)  # K-5：新鲜/活性 409，陈旧清除放行
     old = core.load_project(path)
     digest = design_digest(project.design)
     core.save_project(_with_hash(project, digest), path)
