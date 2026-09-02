@@ -39,10 +39,15 @@
 #     自有）kwargs，空串归一 None（exports 单产物路径对偶口径）。
 #   - DEFAULT_ASSUMPTIONS 经 waterprint.app 模块面取用（UF-33"经 app"口径）。
 #   - R2-C（2026-09-02 服务端安全批·交付2）：DWG 转换原语自 services.exports
-#     下沉本模块（dwg_convert——层序禁 jobs→services 上行，services 反向
-#     引用合法〔TaskRequest 先例〕）；export_batch dxf 项落盘后双产物面
-#     =可选 DWG+边车登记（item.sidecars=services 预构建边车文本，
-#     ExportMeta 单源 worker 仅落盘；缺块=存量零边车行为——锁用例口径）。
+#     下沉 jobs（层序禁 jobs→services 上行，services 反向引用合法〔TaskRequest
+#     先例〕）；export_batch dxf 项落盘后双产物面=可选 DWG+边车登记
+#     （item.sidecars=services 预构建边车文本，ExportMeta 单源 worker 仅
+#     落盘；缺块=存量零边车行为——锁用例口径）。
+#   - R-1（2026-09-02 A 二审六必改）：K-05 根因解决——转换域拆件
+#     jobs/dwg.py（dwg_convert 原语+batch_dwg_artifact 闸面入口：
+#     D-01 落位成功才置旗/K-03 开关×登记绑定/K-04 timeout 闸），本模块
+#     import 同向合法；D-02 后缀闸入 _safe_out_name（产物名防线集中）；
+#     K-03 sidecars 非映射二道闸+K-02 转换前取消检查入批量挂钩。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -54,9 +59,6 @@ from __future__ import annotations
 import dataclasses
 import multiprocessing as mp
 import os
-import subprocess
-import sys
-import tempfile
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
@@ -71,11 +73,12 @@ from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 
+from waterprint_server.jobs.dwg import batch_dwg_artifact
 from waterprint_server.settings import ENGINE_VERSION
 
 # 进度队列模块全局（R5：仅 initializer 赋值，导入期为 None——零副作用）。
 _PROGRESS_QUEUE: mp.Queue[Mapping[str, Any]] | None = None
-_LOGGER = structlog.get_logger(__name__)
+_LOGGER = structlog.get_logger(__name__)  # 边车登记告警面（转换域已拆 jobs/dwg）
 
 
 @dataclass(frozen=True)
@@ -336,72 +339,27 @@ def _run_enumerate(
 
 
 _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
-# WP0（ODA-A）：ODA File Converter 输出版本参数=AC1032/R2018（§12.5 基线；
-# R2-C 自 services.exports 下沉——层序禁 jobs→services，本模块为共享真源）。
-_DWG_CLI_VERSION: Final[str] = "ACAD2018"
 
 
-def _safe_out_name(name: str) -> str:
+def _safe_out_name(name: str, kind: str) -> str:
     """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注
-    IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。"""
+    IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。
+    D-02（R-1）：kind=dxf 强制 .dxf 后缀——防 out_name="foo.dwg" 时转换
+    产物 with_suffix 同路径覆盖已交付 DXF。"""
     if (
         not name
         or "/" in name
         or "\\" in name
         or ".." in name
         or name in {".", ".."}
+        or (kind == "dxf" and not name.endswith(".dxf"))
     ):
         raise InvalidTaskPayloadError(
             f"导出产物名非法：{name!r}（R1-1 二道闸——无路径分隔符/无父段"
-            "引用；exports_dir 内落盘是唯一合法位置）"
+            "引用；dxf 项产物名须 .dxf 后缀〔D-02 防转换同路径覆盖〕；"
+            "exports_dir 内落盘是唯一合法位置）"
         )
     return name
-
-
-def _hidden_gui_options() -> dict[str, Any]:
-    """Windows 转换器弹窗抑制（SW_HIDE——ezdxf odafc 同款；POSIX/缺符号恒空，
-    getattr 面=typeshed 缺席豁免且运行时等价）。"""
-    if sys.platform != "win32":
-        return {}
-    startup = getattr(subprocess, "STARTUPINFO", None)
-    if startup is None:  # 防御面：实现缺符号时退化为普通 spawn
-        return {}
-    info = startup()
-    info.dwFlags = getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
-    info.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
-    return {"startupinfo": info}
-
-
-def dwg_convert(converter: str, dxf_file: Path, timeout_s: int) -> Path | None:
-    """DXF→DWG 子进程转换（ODA CLI 契约 <in_dir> <out_dir> <version> <DWG|DXF>
-    <recurse> <audit> [filter]；R2-C 自 services.exports 下沉共享）。直
-    subprocess 而非 ezdxf.addons.odafc（WP0 三由：addon 只认全局配置/PATH
-    显式路径不可注入；无 timeout；1.4.4 无产物分支未 raise）。任何失败
-    （OSError/SubprocessError/退出码≠0/空产物）=warning+None——DXF 不可破。
-    """
-    dwg: Path | None = None  # 成功旗标：with 外返回——cleanup 异常不吞成功
-    reason = ""
-    try:
-        in_dir = str(dxf_file.parent.resolve())  # resolve 失败归入失败面
-        with tempfile.TemporaryDirectory(dir=in_dir) as tmp_name:  # exports 同分区（GR-38）
-            argv = [converter, in_dir, tmp_name, _DWG_CLI_VERSION, "DWG", "0", "1", dxf_file.name]
-            proc = subprocess.run(  # recurse=0 单文件；audit=1 同 ezdxf 默认；退出码下方统一判
-                argv, capture_output=True, timeout=timeout_s, check=False,
-                **_hidden_gui_options(),
-            )
-            produced = Path(tmp_name) / dxf_file.with_suffix(".dwg").name
-            # R-1/G1-02：三重判（退出码+存在+非零字节——空产物不登记）
-            if proc.returncode == 0 and produced.is_file() and produced.stat().st_size > 0:
-                dwg = dxf_file.with_suffix(".dwg")
-                os.replace(produced, dwg)  # GR-38：落位后随 with 正常退出再返回
-            else:
-                stderr = (proc.stderr or b"").decode("utf-8", "replace").strip()
-                reason = f"returncode={proc.returncode} stderr={stderr}"
-    except (OSError, subprocess.SubprocessError) as exc:
-        reason = repr(exc)  # 超时/缺件/管道/cleanup 面——全失败族归一（A-01）
-    if dwg is None:  # 已落位（纵遇 cleanup 异常）不告警——不留幽灵 DWG
-        _LOGGER.warning("dwg_convert_skipped", source=dxf_file.name, reason=reason)
-    return dwg
 
 
 def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
@@ -434,7 +392,7 @@ def _run_export_batch(
             raise InvalidTaskPayloadError(
                 f"导出 kind {kind!r} 不在合法面 {_EXPORT_KINDS}（R1-1 二道闸）"
             )
-        out_name = _safe_out_name(str(item.get("out_name", "")))
+        out_name = _safe_out_name(str(item.get("out_name", "")), kind)  # D-02 后缀闸随行
         _report(
             task_id,
             _StagePoint(f"export:{kind}", index, total),
@@ -456,16 +414,22 @@ def _run_export_batch(
         )
         os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
         files.append(str(out))
-        # R2-C：dxf 批量项双产物面——DXF 恒登记边车+可选 DWG 成功追加（同步
-        # 路径同构；sidecars=services 预构建文本，缺块=存量零边车行为）。
-        sidecars = dict(item.get("sidecars") or {})
+        # R2-C/R-1：dxf 批量项双产物面——sidecars 二道闸（K-03）+DXF 恒登记
+        # 边车+可选 DWG（jobs.dwg 转换入口闸面集中；缺块=存量零边车行为）。
+        raw_sidecars = item.get("sidecars")
+        if raw_sidecars is not None and not isinstance(raw_sidecars, Mapping):
+            raise InvalidTaskPayloadError(  # K-03：非映射拒（不再裸 ValueError 炸）
+                f"sidecars 须为映射：{type(raw_sidecars).__name__}（IPC 面不可信"
+                "——与产物名闸同防线，K-03）"
+            )
+        sidecars = dict(raw_sidecars or {})
         if kind == "dxf" and sidecars.get("dxf"):
+            if _cancelled(cancel_token):  # K-02：转换前取消（取消后零新边车零转换）
+                return {"state": "cancelled", "files": tuple(files)}
             _write_sidecar_text(exports_dir, out_name, str(sidecars["dxf"]))
-            converter = str(payload.get("dwg_converter_path") or "")
-            if converter:
-                dwg = dwg_convert(converter, out, int(payload.get("dwg_converter_timeout_s") or 0))
-                if dwg is not None and sidecars.get("dwg"):
-                    _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
+            dwg = batch_dwg_artifact(payload, sidecars, out)
+            if dwg is not None:
+                _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
     return {
         "state": "done",
         "files": tuple(files),

@@ -102,7 +102,8 @@
 | `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新；ENG5 四时机落盘[submit 初档/running 迁移/终态/cancel·shutdown 的 queued 终态]+records 数据类再导出面[__all__]） | TaskRequest | TaskStatus/Event 流 |
 | `server/waterprint_server/jobs/registry.py` | 注册表落盘序列化面（S2 R1 拆分+ENG5：TERMINAL_STATES 终态单源[manager._TERMINAL 同源]/PERSISTABLE_STATES 可落盘全集/task_document 平字段文档[TaskStatus 同构+snapshot_hash]/write_record GR-38 原子写/mark_interrupted 非终态→failed[InterruptedByRestart] 变换/iter_restorable 恢复流[非终态变换产出+损坏·缺键·越界跳过 warning fail-visible]，187 行） | registry_dir+平字段束 | JSON 落盘/记录流 |
 | `server/waterprint_server/jobs/records.py` | 任务域公开数据类（ENG5 D4 拆分：manager 500 行预算 S2 R1 先例——UnknownTaskError/TaskRequest[kind 白名单 _KINDS+payload 快照守卫]/TaskHandle/TaskStatus[error_code 回填位]/Event；纯数据零逻辑，manager 经 __all__ 再导出面稳定，91 行） | 无 | 数据类定义 |
-| `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用） | payload+令牌 | 结果+进度 |
+| `server/waterprint_server/jobs/worker.py` | 进程池入口（run_task 三参 pickle 边界唯一面/kind 映射表集中一处经 app[UF-33]/RunEnv 协议适配器[UF-46]/阶段取消轮询[UF-49]/feather+serialize 原子落盘/导入零副作用；R2-C：export_batch dxf 项双产物挂钩〔sidecars 二道闸 K-03+转换前取消 K-02+D-02 后缀闸入 _safe_out_name〕） | payload+令牌 | 结果+进度 |
+| `server/waterprint_server/jobs/dwg.py` | DXF→DWG 可选转换域件（R2-C R-1 拆件 K-05 根因解决：dwg_convert 子进程原语〔D-01 产物落位成功才置旗——失败族归一 warning+None〕+batch_dwg_artifact 批量转换入口闸面〔K-03 开关×登记绑定/K-04 timeout 闸非法值跳过+warning〕；services.exports 单产物路径与 worker 批量路径共享真源，WP0 三由沿册） | 转换器路径/超时/产物 | DWG 路径或 None |
 
 ## 3. units_lib 单元包登记（按包，非逐文件）
 

@@ -73,12 +73,13 @@
 #     DWG（开关 dwg_converter_path 空=关，转换器不随产品分发）——同名
 #     并排+边车双产物；失败/超时/边车写失败=warning+跳过（DXF 恒交付，
 #     core drafting 零触碰；R-1 G1-01/A-01 收口）；决策见 _dwg_convert。
-#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs.worker
-#     （dwg_convert——import-linter 层序禁 jobs→services，services 反向
-#     引用合法；本文件保留 _post_export_dwg 策略壳）；export_batch 批量
-#     payload 增 DWG 开关+超时+dxf 项 sidecars 预构建边车文本
-#     （_batch_items_payload——ExportMeta 八键单源，worker 仅落盘，
-#     同步路径 :466/:467-469 双产物登记同构）。
+#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs（import-linter
+#     层序禁 jobs→services，services 反向引用合法；本文件保留 _post_export_
+#     dwg 策略壳）；export_batch 批量 payload 增 DWG 开关+超时+dxf 项
+#     sidecars 预构建边车文本（_batch_items_payload——ExportMeta 八键单源，
+#     worker 仅落盘，同步路径 :466/:467-469 双产物登记同构）。
+#   - R-1（2026-09-02 K-05 根因解决）：转换域拆件 jobs/dwg.py——dwg_convert
+#     真源随迁（D-01 落位成功才置旗），本文件 import 改 jobs.dwg 同步。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -99,8 +100,8 @@ import structlog
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
+from waterprint_server.jobs.dwg import dwg_convert
 from waterprint_server.jobs.manager import TaskRequest
-from waterprint_server.jobs.worker import dwg_convert
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import design_digest, read_project
 from waterprint_server.settings import validate_component
