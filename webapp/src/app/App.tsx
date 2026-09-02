@@ -89,6 +89,9 @@ const { Sider, Content, Header } = Layout;
 // R 轮 G1-07 两条写入面口径：首参引导 trim 空=不写仅剥离（URL 引导
 // 不覆盖既有 localStorage 配置）；Modal 保存 trim 空=清除（tokenSettings-
 // Modal 用户显式动作剥令牌）——共通面=纯空白 token 永不落库。
+// IDLE-Q4 G1-03（2026-09-02）：replaceState 重拼 URL 拼接 location.hash
+// ——当前全库零 hash 消费面（二审实证在册），纯防御性收口：未来引入
+// hash 路由时首参引导不再静默丢 hash。
 if (typeof window !== "undefined") {
   const bootstrapToken = parseTokenParam(window.location.search);
   if (bootstrapToken !== null) {
@@ -97,12 +100,11 @@ if (typeof window !== "undefined") {
       setApiToken(trimmed);
     }
     const stripped = clearTokenParam(window.location.search);
+    const searchPart = stripped ? `?${stripped}` : "";
     window.history.replaceState(
       null,
       "",
-      stripped
-        ? `${window.location.pathname}?${stripped}`
-        : window.location.pathname,
+      `${window.location.pathname}${searchPart}${window.location.hash}`,
     );
   }
 }
