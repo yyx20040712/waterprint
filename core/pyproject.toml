@@ -45,10 +45,13 @@ packages = ["waterprint"]
 [tool.pytest.ini_options]
 # tests/ 镜像测试 + units_lib 单元包内测试（M0.5 接线：包内测试随交付编写即被收集）
 testpaths = ["tests", "waterprint/units_lib"]
-# 收集口径对齐宪法 §6"性质测试常驻"：tests/ 下 properties_*.py 与包内 properties.py
-# （AGENTS §11 固定结构命名）均纳入收集——T1 审计发现默认 test_*.py/*_test.py
-# 模式漏收性质测试（全量从未运行它们），总控裁决补齐（commit 3）。
-python_files = ["test_*.py", "properties_*.py", "properties.py"]
+# 收集口径对齐宪法 §6"性质测试常驻"：tests/ 下 properties_*.py 与包内
+# properties_*.py 真性质测试纳入收集——T1 审计发现默认 test_*.py/*_test.py
+# 模式漏收性质测试（全量从未运行它们），总控裁决补齐（commit 3）；
+# R2D 2026-09-02 收口：包内 properties.py 为结构预留件（33 份均不含
+# 测试函数），移出收集口径——文件本体保留（§11 结构契约+check_structure），
+# 收集用例数不变（空预留件不产用例）。
+python_files = ["test_*.py", "properties_*.py"]
 pythonpath = ["."]
 # --import-mode=importlib：允许 32 个单元包同名 tests/test_compute.py 并存收集
 addopts = "-ra --strict-markers --strict-config --import-mode=importlib"

@@ -139,8 +139,9 @@
 ## 8. 修改与提交
 
 - 每次改动一个逻辑单元；完成后 `git diff --stat` 自查范围蔓延（只应包含任务相关文件）。
-- 改核心模块（graph/registry/contracts）前先跑其镜像测试；改输出格式必须更新快照
-  （syrupy `--snapshot-update`）并显式说明。
+- 改核心模块（graph/registry/contracts）前先跑其镜像测试；快照回归挂账
+  （暂无快照测试——R2D 2026-09-02 口径对齐现状；快照测试落地时改输出
+  格式按 syrupy `--snapshot-update` 流程更新并显式说明）。
 - 项目文件序列化必须确定性：键排序、round(x,10) 浮点定点、无随机 ID、保存两次字节级相同；
   content_hash 只覆盖 design 态。
 - 提交信息中文描述意图；一个 commit 一个目的。首行=人类可读完整一句话
@@ -168,10 +169,10 @@
 ```
 units_lib/<line>/<unit>/
 ├─ manifest.py        # 声明式清单：参数/端口/去除率/规范引用/工况映射（唯一对外）
-├─ compute.py         # 唯一计算源：向量化实现（标量 = N=1 特例），≤400 行
+├─ compute.py         # 唯一计算源：批量=逐行 compute 调用（禁双轨）；向量化增强挂 UF-36，≤400 行
 ├─ constraints.py     # 声明式约束定义
 ├─ README.md          # 一段话职责 + 输入输出
-└─ tests/             # test_compute.py（golden 数值）+ properties.py（物理不变性）
+└─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）
 ```
 
 - 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。
