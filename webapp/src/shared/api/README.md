@@ -4,6 +4,10 @@
   （**生成物禁手改、不入库**；重新生成：服务端导出 openapi.json → `pnpm orval`）；
 - `http.ts`：请求实例（baseURL /api、错误归一化 WaterprintApiError）——
   orval mutator 引用此处，是本目录唯一允许手写的文件；
+- `token.ts`：API token 存取（R2-A 批2）——localStorage 单键
+  `waterprint.api_token` 三函数（getApiToken/setApiToken/clearApiToken，
+  同步现读+node 环境守卫）；消费方=http.ts（Bearer 注入）+useTaskFeed
+  （SSE ？token=）+tokenSettingsModal（设置页）+App（首参引导写入）；
 - 契约漂移防线：CI 校验 openapi.json 与服务端实际 schema 一致
   + 前端客户端必须同源生成（§6.7 类型单一源头）。
 

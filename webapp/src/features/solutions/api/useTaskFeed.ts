@@ -11,6 +11,11 @@
  *   - 挂载即 new EventSource(`/api/events/tasks/${taskId}`)；服务端终态
  *     任务连接即发一条快照 state 事件后收流（manager.py:296-298）
  *     ——单一 SSE 通道即可，不加轮询；
+ *   - R2-A 批2 D6 token 拼接：getApiToken() 非空则拼
+ *     `?token=${encodeURIComponent(token)}`（参数名 token 对齐 server
+ *     auth.py sseTokenQuery 双通道；空=URL 零变化）；SSE 401 零特判
+ *     （EventSource 无 status 可读面——浏览器自动重连现状语义不动，
+ *     预裁记档；header 通道 EventSource 不可用=查询参数是唯一通道）；
  *   - 事件三类 addEventListener（state/progress/stale——Event 命名事件
  *     不走 onmessage 默认面）；畸形 data 经 lib 解析拒 null 静默丢弃；
  *   - 终态（done/cancelled/failed）即 es.close()+onTerminal 回调——不
@@ -22,6 +27,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 
+import { getApiToken } from "../../../shared/api/token";
 import {
   isTerminalState,
   parseEventData,
@@ -44,9 +50,14 @@ export function useTaskFeed(
     if (taskId === null) {
       return;
     }
+    // R2-A 批2 D6：token 非空拼 ？token=（SSE 认证查询通道——重连时连接
+    // 级重建现取，设置页保存对下一次重连即时生效）
+    const apiToken = getApiToken();
+    const tokenQuery =
+      apiToken === null ? "" : `?token=${encodeURIComponent(apiToken)}`;
     const source = new EventSource(
       // R4（zM-2）：taskId 源自 URL ?task=（用户可控）——路径段编码收口
-      `/api/events/tasks/${encodeURIComponent(taskId)}`,
+      `/api/events/tasks/${encodeURIComponent(taskId)}${tokenQuery}`,
     );
     const consume = (event: MessageEvent) => {
       const parsed = parseEventData(

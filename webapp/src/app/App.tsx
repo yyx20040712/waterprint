@@ -10,7 +10,7 @@
  * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
  *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
  *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除；UX1 批
- *   6b 段八 D2 增 ?tab= 路由态进 URL）：
+ *   6b 段八 D2 增 ?tab= 路由态进 URL；R2-A 批 2 增 token 运行期面）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面六值 canvas/solutions/
  *     viewer3d/elevation/drawings/cost——solutions 插第二位=设计→看方案
@@ -41,10 +41,20 @@
  *     预览卡——工况/单元源 cost/projects 同键缓存共享，"wp:task" 事件
  *     桥第五处）；占位屏组件随 FE9 退役删除（宪法 §2 死代码即删——
  *     六标签零消费面）；
- *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）。
+ *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）；
+ *   - R2-A 批 2 D2 ?token= 首参引导：编排=模块加载期最早时点（先于任何
+ *     React Query 请求；StrictMode 双挂载安全——幂等写+剥离）；分层预裁
+ *     本编排只能在 app 层（shared/api 的 token.ts 不得 import 本层
+ *     projectParam——分层禁令），main.tsx 零触碰；读 parseTokenParam
+ *     →非 null 则 setApiToken+replaceState 剥离（他键原序保留）；
+ *   - R2-A 批 2 D5 连接设置入口：Header 设置按钮（齿轮，静默常驻——
+ *     token 空默认不自动弹零请求扰动）+TokenSettingsModal（保存/清除/
+ *     关闭——零即时校验）；D4 自愈回路=useEffect 监听 AUTH_EVENT（401
+ *     派发方 shared/api/http.ts）自动开 Modal，卸载移除监听。
  */
-import { useState } from "react";
-import { Layout, Menu, Tabs } from "antd";
+import { SettingOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Button, Layout, Menu, Tabs } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
@@ -53,15 +63,39 @@ import { ElevationPane } from "./elevationPane";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
 import {
+  clearTokenParam,
   parseEnumParam,
   parseTabParam,
   parseTaskParam,
+  parseTokenParam,
   withTabParam,
 } from "./projectParam";
 import { SolutionsPane } from "./solutionsPane";
+import { TokenSettingsModal } from "./tokenSettingsModal";
 import { Viewer3dPane } from "./viewer3dPane";
+import { setApiToken } from "../shared/api/token";
+import { AUTH_EVENT } from "../shared/events";
 
 const { Sider, Content, Header } = Layout;
+
+// R2-A 批 2 D2：?token= 首参引导（模块加载期最早时点——先于任何 React
+// Query 请求；StrictMode 双挂载安全：幂等写+剥离）。分享链带凭证形态：
+// 读 ?token= →非 null 写 localStorage+replaceState 剥离 token 键
+// （防令牌驻留地址栏/进入分享截图——他键 project/task 原序保留）。
+{
+  const bootstrapToken = parseTokenParam(window.location.search);
+  if (bootstrapToken !== null) {
+    setApiToken(bootstrapToken);
+    const stripped = clearTokenParam(window.location.search);
+    window.history.replaceState(
+      null,
+      "",
+      stripped
+        ? `${window.location.pathname}?${stripped}`
+        : window.location.pathname,
+    );
+  }
+}
 
 /** UX1 D2/S4 初值三级解析：?tab= 合法值→用之；无 ?tab= 有 ?task= 或
  * ?enum=→solutions（深链意图——两任务轨皆落方案浏览[ENG5 D6]；仅初值
@@ -79,6 +113,17 @@ function initialRoute(): AppRoute {
 
 export function App() {
   const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
+  // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // R2-A 批 2 D4/D5 自愈回路：customInstance 401 → AUTH_EVENT → 自动开
+  // 连接设置（错 token 用户改对的引导面）；卸载移除监听。
+  useEffect(() => {
+    const openSettings = () => setSettingsOpen(true);
+    window.addEventListener(AUTH_EVENT, openSettings);
+    return () => window.removeEventListener(AUTH_EVENT, openSettings);
+  }, []);
+
   /** UX1 D2/S4：切标签经 withTabParam replaceState 写 ?tab=（他键原序
    * 保留——project/task 不动；刷新/分享后落点保持）。 */
   const handleTabChange = (key: string) => {
@@ -95,7 +140,23 @@ export function App() {
   return (
     <Providers>
       <Layout style={{ height: "100vh" }}>
-        <Header>WaterPrint 智水蓝图</Header>
+        <Header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>WaterPrint 智水蓝图</span>
+          {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
+          <Button
+            type="text"
+            icon={<SettingOutlined />}
+            onClick={() => setSettingsOpen(true)}
+            aria-label="连接设置"
+            title="连接设置"
+          />
+        </Header>
         <Layout>
           <Sider theme="light">
             <Menu items={[{ key: "lib", label: "单元库（待实装）" }]} />
@@ -140,6 +201,7 @@ export function App() {
           </Content>
         </Layout>
       </Layout>
+      <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </Providers>
   );
 }
