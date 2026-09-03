@@ -58,7 +58,7 @@
 | `core/waterprint/drafting/site_plan.py` | L3 | 厂区总平面图生成（M4 实装：布置 design 态+结果纯投影，坐标网/风玫瑰/构筑物轮廓/道路走廊/图框标题注记；工况覆盖面挂 M5/L5） | 布置+结果 schema | DXF 实体组 |
 | `core/waterprint/drafting/profile_drawing.py` | L3 | 高程纵断图（四线+标高标注） | 纵断数据 | DXF 实体组 |
 | `core/waterprint/drafting/dxf_writer.py` | L3 | ezdxf 封装与落盘（唯一接触点、路径安全） | 实体组+样式 | .dxf 文件 |
-| `core/waterprint/geometry/scene.py` | L3 | 场景图 schema 与装配（<100ms；L5a site 级：site_design 摆放/未摆放不进图/红线 polyline 图元/水面+渠道接线收口） | 结果 schema+假设+SiteDesign（None/空=回退 X 轴排布） | SceneGraph JSON |
+| `core/waterprint/geometry/scene.py` | L3 | 场景图 schema 与装配（<100ms；L5a site 级：site_design 摆放/未摆放不进图/红线 polyline 图元/水面+渠道接线收口；L6 roads/corridors 条带收编：kind=strip 分段四边形角点 core 预计算压平 dims，semantic=site_road/site_corridor:{kind}，全退化=零节点） | 结果 schema+假设+SiteDesign（None/空=回退 X 轴排布） | SceneGraph JSON |
 | `core/waterprint/geometry/pools.py` | L3 | 池体/渠道/水面几何图元生成 | 结果字段+假设 | 图元+变换列表 |
 | `core/waterprint/geometry/internals.py` | L3 | 内部构件布局（实例数来自计算结果） | 结果字段+假设 | InstanceGroup 组 |
 | `core/waterprint/geometry/spacing.py` | L3 | 间距校核裁判（L4b：AABB 净距纯函数——halfExtents 与 webapp measureToNearest 同口径所见即所得；footprint None=不入对+uncalculated 降级；阈值结构化透传零 DSL——kb expression 解析归 server 装配） | placements（unit_id→x/y/rotation）+footprints（unit_id→(w,h)|None）+thresholds（SpacingThreshold 三元组） | SpacingReport（violations 字典序全序+uncalculated sorted） |

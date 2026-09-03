@@ -82,9 +82,11 @@ def test_scene_version_stepped_to_site() -> None:
 
     L5R 轴标签勘正：-2 未推送即就地正名 z-up（存储坐标 Z-up——X 东 Y 北
     Z 标高；步进时误记 y-up 系 G1-01 根因，渲染层换轴而非改存储）。
+    L6 步进 -3：roads/corridors strip 图元收编（新 kind+新 semantic=
+    场景图语义变——「语义变即步进」先例）。
     """
     graph = build_scene(_plant(), _assumptions(), "design")
-    assert graph.scene_version == "waterprint-scene-2/z-up/m"
+    assert graph.scene_version == "waterprint-scene-3/z-up/m"
 
 
 def test_site_mode_places_units_and_boundary() -> None:
@@ -154,20 +156,155 @@ def test_water_surface_and_channel_wired() -> None:
     assert channel.primitive.dims == {"depth": 1.0}
 
 
+def _site_with_routes():
+    """L6 purity fixture：roads/corridors 至少各 1 条（双跑确定性覆盖新图元）。"""
+    from waterprint.contracts.project_schema import (
+        Corridor,
+        Road,
+        SiteDesign,
+        SitePoint,
+    )
+
+    return SiteDesign(
+        roads=[Road(
+            centerline=[SitePoint(x=0.0, y=0.0), SitePoint(x=30.0, y=0.0)],
+            width_m=4.0,
+        )],
+        corridors=[Corridor(
+            centerline=[SitePoint(x=0.0, y=5.0), SitePoint(x=0.0, y=25.0)],
+            width_m=2.0,
+            kind="water",
+        )],
+    )
+
+
+def test_site_routes_strips_wired() -> None:
+    """L6：roads/corridors 收编进 3D 场景图——strip 图元分段四边形角点 core 预计算。"""
+    from waterprint.contracts.project_schema import (
+        Corridor,
+        Road,
+        SiteDesign,
+        SitePoint,
+    )
+
+    site = SiteDesign(
+        roads=[Road(
+            centerline=[
+                SitePoint(x=0.0, y=0.0),
+                SitePoint(x=30.0, y=0.0),
+                SitePoint(x=30.0, y=20.0),
+            ],
+            width_m=4.0,
+        )],
+        corridors=[Corridor(
+            centerline=[
+                SitePoint(x=0.0, y=5.0),
+                SitePoint(x=0.0, y=25.0),
+            ],
+            width_m=2.0,
+            kind="water",
+        )],
+    )
+    graph = build_scene(_plant(), _assumptions(), "design", site_design=site)
+    by_id = {node.node_id: node for node in graph.nodes}
+    # road：node_id 平铺下标、kind=strip、semantic 恒 site_road、零高度贴地
+    road = by_id["site::road[0]"]
+    assert road.semantic == "site_road"
+    assert road.primitive.kind == "strip"
+    assert road.position == (0.0, 0.0, 0.0)
+    # 逐段法向 n=((y0−y1)/span,(x1−x0)/span)、half=width_m/2、环序 4 角点
+    # （宽度消费归 core——前端零业务几何）：
+    #   段1 (0,0)→(30,0)：n=(0,1) → (0,2),(30,2),(30,−2),(0,−2)
+    #   段2 (30,0)→(30,20)：n=(−1,0) → (28,0),(28,20),(32,20),(32,0)
+    assert road.primitive.dims == {
+        "x0": 0.0, "y0": 2.0, "x1": 30.0, "y1": 2.0,
+        "x2": 30.0, "y2": -2.0, "x3": 0.0, "y3": -2.0,
+        "x4": 28.0, "y4": 0.0, "x5": 28.0, "y5": 20.0,
+        "x6": 32.0, "y6": 20.0, "x7": 32.0, "y7": 0.0,
+    }
+    # corridor：semantic="site_corridor:"+kind（开放 str 装不进 dims[值域恒
+    # float]，semantic 拼接是唯一可复原通道）
+    corridor = by_id["site::corridor[0]"]
+    assert corridor.semantic == "site_corridor:water"
+    assert corridor.primitive.kind == "strip"
+    # 段 (0,5)→(0,25)：n=(−1,0)、half=1 → (−1,5),(−1,25),(1,25),(1,5)
+    assert corridor.primitive.dims == {
+        "x0": -1.0, "y0": 5.0, "x1": -1.0, "y1": 25.0,
+        "x2": 1.0, "y2": 25.0, "x3": 1.0, "y3": 5.0,
+    }
+    # 逐条平铺入 root（不设聚合节点）
+    assert "site::road[0]" in graph.root
+    assert "site::corridor[0]" in graph.root
+    # 空 roads/corridors=零节点不占位（空 SiteDesign 与 None 等价面沿 boundary 先例）
+    empty = build_scene(_plant(), _assumptions(), "design",
+                        site_design=SiteDesign())
+    assert not any(
+        key.startswith(("site::road", "site::corridor"))
+        for key in {node.node_id for node in empty.nodes}
+    )
+
+
+def test_site_routes_degenerate_segments() -> None:
+    """L6 退化面：span≤0 段跳过；全退化=整条不产出节点（3D 无面积即无图元）。"""
+    from waterprint.contracts.project_schema import (
+        Corridor,
+        Road,
+        SiteDesign,
+        SitePoint,
+    )
+
+    site = SiteDesign(
+        roads=[Road(
+            centerline=[
+                SitePoint(x=0.0, y=0.0),
+                SitePoint(x=10.0, y=0.0),
+                SitePoint(x=10.0, y=0.0),  # 重复点=退化段跳过（2D 先例同款）
+                SitePoint(x=10.0, y=5.0),
+            ],
+            width_m=2.0,
+        )],
+        corridors=[Corridor(
+            centerline=[
+                SitePoint(x=5.0, y=5.0),
+                SitePoint(x=5.0, y=5.0),  # 全退化（有效段数 0）=整条不产出
+            ],
+            width_m=1.0,
+            kind="power",
+        )],
+    )
+    graph = build_scene(_plant(), _assumptions(), "design", site_design=site)
+    by_id = {node.node_id: node for node in graph.nodes}
+    road = by_id["site::road[0]"]
+    # 有效 2 段（重复点段不产出 4 角点）：段1 n=(0,1)、half=1；
+    # 段3 (10,0)→(10,5) n=(−1,0) → (9,0),(9,5),(11,5),(11,0)
+    assert road.primitive.dims == {
+        "x0": 0.0, "y0": 1.0, "x1": 10.0, "y1": 1.0,
+        "x2": 10.0, "y2": -1.0, "x3": 0.0, "y3": -1.0,
+        "x4": 9.0, "y4": 0.0, "x5": 9.0, "y5": 5.0,
+        "x6": 11.0, "y6": 5.0, "x7": 11.0, "y7": 0.0,
+    }
+    # 全退化 corridor=零节点零 root 占位（空族语义同构零节点）
+    assert "site::corridor[0]" not in by_id
+    assert "site::corridor[0]" not in graph.root
+
+
 def test_purity_wiring() -> None:
     """R1 接线断言（M2 实质化）：同 PlantResult 双跑场景图 JSON 相同。
 
     占位实质化（DRAFT 批总授权先例）：双跑 build_scene 序列化
     （asdict+sort_keys JSON）逐字节相同（纯投影确定性）；语义标签集合
-    稳定（pool_wall/mech_cleaner 等来自对照表声明）。
+    稳定（pool_wall/mech_cleaner 等来自对照表声明）。L6 起 fixture 扩含
+    roads/corridors 至少各 1 条（双跑 JSON 字节同自动覆盖新图元）。
     """
-    first = build_scene(_plant(), _assumptions(), "design")
-    second = build_scene(_plant(), _assumptions(), "design")
+    site = _site_with_routes()
+    first = build_scene(_plant(), _assumptions(), "design", site_design=site)
+    second = build_scene(_plant(), _assumptions(), "design", site_design=site)
     dump1 = json.dumps(asdict(first), sort_keys=True, ensure_ascii=False)
     dump2 = json.dumps(asdict(second), sort_keys=True, ensure_ascii=False)
     assert dump1 == dump2
     semantics = {node.semantic for node in first.nodes}
     assert {"pool_wall", "mech_cleaner"} <= semantics  # 语义集合稳定
+    assert {"site_road", "site_corridor:water"} <= semantics  # L6 strip 语义入集合
     assert first.condition_key == "design"
     assert first.scene_version  # R4 版本声明非空
     # 实例数汇总：n_gap 未列 instance_counts（分格数非设备台数），

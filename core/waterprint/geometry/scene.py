@@ -1,7 +1,8 @@
 """场景图 schema 与装配：图元/变换/语义标签的场景树（全厂 <100ms 的总入口）。
 
 输入:  PlantResult（几何类字段 ID）+ assumptions（超高/壁厚等）
-       + site_design（L5a site 级摆放——None/空 structures=回退 X 轴排布）
+       + site_design（L5a site 级摆放——None/空 structures=回退 X 轴排布；
+       L6 roads/corridors 条带+boundary 红线沿 site 级装配挂载）
 输出:  SceneGraph（可序列化 JSON：图元声明 + 局部变换 + 实例数 + 语义标签）
 """
 
@@ -41,10 +42,18 @@
 #      boundary 非空=地面红线闭合折线图元（semantic="site_boundary"，
 #      z=0 零高度；闭合段末点→首点由消费方补——顶点序即权威）。
 #      水面/渠道图元接线收口（有池体且有 water_depth 键附水面；
-#      渠道走既有 depth 槽）；roads/corridors 3D 图元挂账（二期）。
+#      渠道走既有 depth 槽）；roads/corridors 条带图元（L6 收编——
+#      kind="strip"，分段四边形角点 core 预计算压平进 dims（每段环序
+#      4 角点，消费端每 4 点组两三角——宽度消费归 core），semantic=
+#      site_road / site_corridor:{kind}（开放 str 唯一可复原通道），
+#      node_id=site::road[i] / site::corridor[i] 逐条平铺入 root；
+#      挂载沿 boundary 先例（site_design 非 None 且列表非空即挂，不受
+#      structures 空回退门影响）；span≤0 退化段跳过，全退化=整条
+#      零节点（3D 无面积即无图元——诚实呈现不编造）。
 #
 # 【测试要求】确定性（同结果双跑同 JSON）、instance_count 汇总正确、
-#   语义标签集合稳定、site 模式摆放/未摆放/红线断言、性能基准（<100ms）。
+#   语义标签集合稳定、site 模式摆放/未摆放/红线断言、strip 角点/退化
+#   段断言（L6）、性能基准（<100ms）。
 #
 # 【参照】重写计划 §10.5/§12.6/§16 A7/§18.1
 # ══════════════════════════════════════════════════════════════════
@@ -52,12 +61,17 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
+from itertools import pairwise
 from typing import Final, final
 
 from waterprint.contracts.drawing_projection import PROJECTION_TABLE
-from waterprint.contracts.project_schema import SiteDesign, StructurePlacement
+from waterprint.contracts.project_schema import (
+    SiteDesign,
+    SitePoint,
+    StructurePlacement,
+)
 from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.geometry.internals import internal_instances
 from waterprint.geometry.pools import (
@@ -76,7 +90,9 @@ __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 # SitePoint 同族），-2 步进时的 "y-up" 标签系实现期误记（G1-01 根因），
 # 首次推送前就地勘正——渲染层 projectScene 换轴至 three Y-up（消费约定
 # 名不改版本号：R 轮不改线格式，仅正名）。
-SCENE_VERSION: Final[str] = "waterprint-scene-2/z-up/m"
+# L6 步进 -3：roads/corridors strip 图元收编（新 kind+新 semantic=
+# 场景图语义变——「语义变即步进」先例）。
+SCENE_VERSION: Final[str] = "waterprint-scene-3/z-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
     "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机
@@ -85,6 +101,11 @@ _UNIT_GAP: Final[float] = 1.0  # 单元排布模型间隙 m（占位——工程
 _SITE_BOUNDARY_NODE_ID: Final[str] = "site::boundary"
 _SITE_BOUNDARY_KIND: Final[str] = "polyline"
 _SITE_BOUNDARY_SEMANTIC: Final[str] = "site_boundary"
+_STRIP_KIND: Final[str] = "strip"  # 条带图元（L6：roads/corridors 分段四边形角点）
+_SITE_ROAD_SEMANTIC: Final[str] = "site_road"
+_SITE_CORRIDOR_SEMANTIC_PREFIX: Final[str] = "site_corridor:"  # + kind 拼接
+_SITE_ROAD_NODE_ID_PREFIX: Final[str] = "site::road["  # + 下标 + "]"
+_SITE_CORRIDOR_NODE_ID_PREFIX: Final[str] = "site::corridor["  # + 下标 + "]"
 
 
 @dataclass(frozen=True)
@@ -154,6 +175,91 @@ def _boundary_node(site_design: SiteDesign) -> Node:
     )
 
 
+def _strip_node(
+    node_id: str,
+    centerline: Sequence[SitePoint],
+    width_m: float,
+    semantic: str,
+) -> Node | None:
+    """条带图元（L6）：分段四边形角点压平进 dims（每段环序 4 角点）。
+
+    每段法向 n=((y0−y1)/span,(x1−x0)/span)（2D 出图 _route_projection
+    同款公式，core 侧重写不 import drafting——出图层不可被几何层反向
+    依赖）；角点=中心线端点±(width_m/2)·n，环序 (p0+n·h, p1+n·h,
+    p1−n·h, p0−n·h)（第 k 段=索引 4k..4k+3，消费端每 4 点组两三角）
+    ——宽度消费归 core，前端零业务几何纪律。span≤0 退化段跳过（该段
+    4 角点不产出——2D 先例同款）；全退化（有效段数 0）返回 None=整条
+    不产出节点（空族语义同构零节点——3D 无面积即无图元，诚实呈现）。
+    """
+    half = width_m / 2
+    dims: dict[str, float] = {}
+    corner = 0
+    for first, second in pairwise(centerline):
+        span = math.hypot(second.x - first.x, second.y - first.y)
+        if span <= 0:
+            continue
+        normal_x = (first.y - second.y) / span
+        normal_y = (second.x - first.x) / span
+        corners = (
+            (first.x + normal_x * half, first.y + normal_y * half),
+            (second.x + normal_x * half, second.y + normal_y * half),
+            (second.x - normal_x * half, second.y - normal_y * half),
+            (first.x - normal_x * half, first.y - normal_y * half),
+        )
+        for x, y in corners:
+            dims[f"x{corner}"] = x
+            dims[f"y{corner}"] = y
+            corner += 1
+    if not dims:
+        return None
+    return Node(
+        node_id=node_id,
+        primitive=Primitive(_STRIP_KIND, dims, semantic),
+        semantic=semantic,
+    )
+
+
+def _route_nodes(site_design: SiteDesign) -> tuple[Node, ...]:
+    """roads/corridors 条带装配（L6）：逐条 strip 节点平铺（全退化跳过）。
+
+    挂载沿 boundary 先例（site_design 非 None 且列表非空即挂，不受
+    structures 空回退门影响）；road 恒 site_road，corridor=
+    "site_corridor:"+kind；node_id=前缀+列表下标（i 从 0）逐条平铺，
+    不设聚合节点。"""
+    routes: list[Node] = []
+    for index, road in enumerate(site_design.roads):
+        route = _strip_node(
+            f"{_SITE_ROAD_NODE_ID_PREFIX}{index}]",
+            road.centerline,
+            road.width_m,
+            _SITE_ROAD_SEMANTIC,
+        )
+        if route is not None:
+            routes.append(route)
+    for index, corridor in enumerate(site_design.corridors):
+        route = _strip_node(
+            f"{_SITE_CORRIDOR_NODE_ID_PREFIX}{index}]",
+            corridor.centerline,
+            corridor.width_m,
+            f"{_SITE_CORRIDOR_SEMANTIC_PREFIX}{corridor.kind}",
+        )
+        if route is not None:
+            routes.append(route)
+    return tuple(routes)
+
+
+def _site_overlay(site_design: SiteDesign) -> tuple[Node, ...]:
+    """site 级覆盖图元：roads/corridors 条带（L6）+boundary 红线（L5a）。
+
+    装配顺序沿 2D 出图 parts=[*structures, *roads, *corridors, boundary]
+    先例（routes 前、boundary 殿后）；boundary 非空即挂（既有先例），
+    roads/corridors 列表非空即挂、空列表=零节点不占位。"""
+    overlay = list(_route_nodes(site_design))
+    if site_design.boundary:
+        overlay.append(_boundary_node(site_design))
+    return tuple(overlay)
+
+
 def build_scene(
     plant_result: PlantResult,
     assumptions: Mapping[str, float],
@@ -167,6 +273,8 @@ def build_scene(
     定位（度→弧度换算在本装配层），未摆放单元不进场景图；structures 空/
     None=回退站序 X 轴排布（既有调用方零改动）。台数类经对照表
     instance_counts→InstanceGroup（R3 千级构件一次 draw call 数据前提）。
+    roads/corridors（L6）：site_design 非 None 且列表非空即挂 strip 条带
+    图元（沿 boundary 先例，不受 structures 空回退门影响）。
     """
     if condition_key not in plant_result.conditions:
         raise KeyError(
@@ -226,10 +334,10 @@ def build_scene(
                 )
             )
         cursor_x += _unit_extent(pool_nodes) + _UNIT_GAP
-    if site_design is not None and site_design.boundary:
-        boundary = _boundary_node(site_design)
-        nodes.append(boundary)
-        root.append(boundary.node_id)
+    if site_design is not None:
+        for route in _site_overlay(site_design):
+            nodes.append(route)
+            root.append(route.node_id)
     return SceneGraph(
         root=tuple(root), nodes=tuple(nodes),
         scene_version=SCENE_VERSION, condition_key=condition_key,
