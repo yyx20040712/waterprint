@@ -16,13 +16,15 @@
  *     →cylinder，否则 box）——core v1 实例组恒 box（spacing 立方），
  *     非 box 图元到达时不再静默失真为盒体（M2 门）；diameter→半径=
  *     three 接口适配（PoolBox 同口径，非业务推导）；
- *   - 色值经 semanticColor 查表（§19.3 语义色纪律）。
+ *   - 色值经 semanticColor 查表（§19.3 语义色纪律——SC1 起真源=
+ *     shared/ui/semanticColors.ts）。
  */
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
+import { semanticColor } from "../../../shared/ui/semanticColors";
+
 import type { RenderNode } from "../lib/projectScene";
-import { semanticColor } from "./PoolBox";
 
 type InternalsProps = {
   node: RenderNode;

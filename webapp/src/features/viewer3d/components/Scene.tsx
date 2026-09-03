@@ -43,6 +43,7 @@ import { Button, Space } from "antd";
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { WaterprintApiError } from "../../../shared/api/http";
+import { semanticColor } from "../../../shared/ui/semanticColors";
 import {
   SceneProjectionError,
   projectScene,
@@ -229,7 +230,7 @@ export function Scene({
       {query.data?.stale ? (
         <div
           role="status"
-          style={{ padding: "4px 8px", color: "#d48806", fontSize: 12 }}
+          style={{ padding: "4px 8px", color: semanticColor("pending"), fontSize: 12 }}
         >
           设计已修改但未重算——本场景基于旧结果集（重新提交计算后刷新）
         </div>

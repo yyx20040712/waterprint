@@ -8,7 +8,8 @@
  *        边界红线闭合多边形+绘制中折线+测距层；拖放/拖拽/滚轮缩放/背景平移/双击移除）
  *
  * 规格说明（M3 批 L2b，简报 §三交互面——详面见本 feature README；DxfSvg
- *   原生 SVG 先例零 antd/零运行期库）：
+ *   原生 SVG 先例零 antd/零运行期库；SC1 起彩色语义族查
+ *   shared/ui/semanticColors.ts 真源表）：
  *   - 世界坐标（米，X 东 Y 北）经 g transform="translate(pan) scale(k -k)"
  *     映射屏幕（Y 翻转=北向上）；k=zoom*PX_PER_M；文本标注走屏幕空间层
  *     （fontSize 恒定可读——不随 zoom 缩放）；
@@ -27,6 +28,8 @@
  *     身份面——折线端点视觉即把手）。
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
+
+import { SEMANTIC_COLORS, semanticColor } from "../../../shared/ui/semanticColors";
 
 import {
   measureToNearest, snapRotation, snapToGrid,
@@ -57,27 +60,15 @@ const DOUBLE_TAP_SLOP_PX = 5;
 const MEASURE_COUNT = 3;
 /** 滚轮缩放灵敏度（deltaY→指数因子系数）。 */
 const WHEEL_SENSITIVITY = 0.0015;
-/** 选中蓝=AssumptionsPanel SELECT_BLUE 同款；走廊 kind 开放 str（GR-21）
- *  ——色映射=展示层非语义复制（≥4 类+默认）。 */
-const COLOR_SELECTED = "#1668dc";
+/** 彩色语义族（选中/道路/边界/走廊/校核/测距/未计算）——SC1 起查
+ *  shared/ui/semanticColors.ts 真源表（原本地彩色常量已全数收编）；
+ *  走廊 kind 开放 str（GR-21）——未知 kind→corridor_fallback 键兜底。 */
+/** 灰阶三常量（结构描边/结构填充/坐标网）——非彩色语义族，保留本地。 */
 const COLOR_STRUCTURE = "#3a4552";
 const COLOR_STRUCTURE_FILL = "#1f2933";
-const COLOR_ROAD = "#6b6f76";
-const COLOR_PENDING = "#d48806";
-const COLOR_MEASURE = "#2f7fd1";
 const COLOR_GRID = "#2c2c2c";
-const COLOR_SPACING_WARN = "#faad14"; // L4b 校核 WARN 黄（antd 语义色族本地常量）
-const COLOR_SPACING_ERROR = "#ff4d4f"; // L4b 校核 ERROR 红（三色并存：#d48806=未计算）
-/** L4a 边界红线色/描边宽/虚线节距（antd red-7 族本地色常量先例——boundary 无宽，显示层定值不落盘）。 */
-const COLOR_BOUNDARY = "#d4380d";
+/** L4a 边界红线描边宽/虚线节距（boundary 无宽，显示层定值不落盘）。 */
 const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
-const CORRIDOR_COLORS: Record<string, string> = {
-  water: "#2f7fd1",
-  power: "#f2a93b",
-  gas: "#3fa34d",
-  comm: "#9a6dd7",
-};
-const CORRIDOR_DEFAULT_COLOR = "#8c8c8c";
 
 /** 拖拽会话（pointer capture 期间自持——ref 持有不触发渲染）。 */
 type DragSession =
@@ -307,7 +298,11 @@ export function SiteCanvas({
     });
   }, [selection, placed]);
 
-  const corridorColor = (kind: string) => CORRIDOR_COLORS[kind] ?? CORRIDOR_DEFAULT_COLOR;
+  const corridorColor = (kind: string) => {
+    const token = `corridor_${kind}`;
+    // 未知 kind→corridor_fallback 键（非真源表外 FALLBACK_COLOR——两灰阶值不同不可混）。
+    return token in SEMANTIC_COLORS ? semanticColor(token) : semanticColor("corridor_fallback");
+  };
 
   return (
     <svg
@@ -350,7 +345,7 @@ export function SiteCanvas({
         {/* 道路（实线）/走廊（虚线）：strokeWidth=宽度米——随 zoom 缩放 */}
         {draft.roads.map((road, index) => (
           <polyline key={`road-${index}`} points={pointsAttr(road.centerline)} fill="none"
-            stroke={COLOR_ROAD} strokeWidth={road.width_m} strokeLinejoin="round"
+            stroke={semanticColor("road")} strokeWidth={road.width_m} strokeLinejoin="round"
             strokeLinecap="round" opacity={isSelectedLine(selection, "road", index) ? 1 : 0.75}
             onPointerDown={(event) => {
               if (tool === "select") {
@@ -375,7 +370,7 @@ export function SiteCanvas({
         {/* 边界红线（L4a）：polygon 天然闭合——红虚线族（与道路实线/走廊彩虚线
             区分）；红线只有一个（schema 单多边形），重画=替换 */}
         {draft.boundary.length >= 3 ? (
-          <polygon points={pointsAttr(draft.boundary)} fill="none" stroke={COLOR_BOUNDARY}
+          <polygon points={pointsAttr(draft.boundary)} fill="none" stroke={semanticColor("boundary")}
             strokeWidth={BOUNDARY_STROKE} strokeDasharray={BOUNDARY_DASH}
             strokeLinejoin="round" pointerEvents="none" />
         ) : null}
@@ -384,11 +379,11 @@ export function SiteCanvas({
         {pendingPoints.length > 0 ? (
           <>
             <polyline points={pointsAttr(pendingPoints)} fill="none"
-              stroke={tool === "boundary" ? COLOR_BOUNDARY : COLOR_PENDING}
+              stroke={tool === "boundary" ? semanticColor("boundary") : semanticColor("pending")}
               strokeWidth={0.3} strokeDasharray="1.2 0.8" pointerEvents="none" />
             {pendingPoints.map((point, index) => (
               <circle key={`pending-${index}`} cx={point.x} cy={point.y} r={ENDPOINT_RADIUS}
-                fill={tool === "boundary" ? COLOR_BOUNDARY : COLOR_PENDING}
+                fill={tool === "boundary" ? semanticColor("boundary") : semanticColor("pending")}
                 pointerEvents="none" />
             ))}
           </>
@@ -407,8 +402,9 @@ export function SiteCanvas({
             <g key={entry.unitId} transform={`rotate(${entry.rotation} ${entry.x} ${entry.y})`}>
               <rect x={entry.x - size.w / 2} y={entry.y - size.h / 2} width={size.w}
                 height={size.h} fill={COLOR_STRUCTURE_FILL}
-                stroke={selected ? COLOR_SELECTED : severity === "ERROR" ? COLOR_SPACING_ERROR
-                  : severity === "WARN" ? COLOR_SPACING_WARN : COLOR_STRUCTURE}
+                stroke={selected ? semanticColor("selected")
+                  : severity === "ERROR" ? semanticColor("spacing_error")
+                  : severity === "WARN" ? semanticColor("spacing_warn") : COLOR_STRUCTURE}
                 strokeWidth={selected ? 0.5 : 0.25}
                 onPointerDown={(event) => {
                   if (tool !== "select" || event.button !== 0) {
@@ -452,7 +448,7 @@ export function SiteCanvas({
               ) : null}
               {selected ? (
                 <circle cx={entry.x} cy={entry.y + size.h / 2 + ROTATE_HANDLE_GAP}
-                  r={ROTATE_HANDLE_RADIUS} fill={COLOR_SELECTED}
+                  r={ROTATE_HANDLE_RADIUS} fill={semanticColor("selected")}
                   onPointerDown={(event) => {
                     if (event.button !== 0) {
                       return;
@@ -469,7 +465,7 @@ export function SiteCanvas({
         {/* 测距虚线（双值标注走屏幕空间层） */}
         {measurePairs.map((pair) => (
           <line key={`measure-${pair.measure.unitId}`} x1={pair.from.x} y1={pair.from.y}
-            x2={pair.to.x} y2={pair.to.y} stroke={COLOR_MEASURE} strokeWidth={0.2}
+            x2={pair.to.x} y2={pair.to.y} stroke={semanticColor("measure")} strokeWidth={0.2}
             strokeDasharray="1 0.8" pointerEvents="none" />
         ))}
       </g>
@@ -480,7 +476,7 @@ export function SiteCanvas({
         const [sx, sy] = toScreen(entry.x, entry.y - size.h / 2);
         return (
           <text key={`label-${entry.unitId}`} x={sx} y={sy - 4} fontSize={11}
-            fill={entry.footprint === null ? COLOR_PENDING : "#c3ccd6"} textAnchor="middle"
+            fill={entry.footprint === null ? semanticColor("pending") : "#c3ccd6"} textAnchor="middle"
             pointerEvents="none">
             {entry.footprint === null ? `${entry.unitId} · 未计算` : entry.unitId}
           </text>
@@ -490,7 +486,7 @@ export function SiteCanvas({
         const [sx, sy] = toScreen((pair.from.x + pair.to.x) / 2, (pair.from.y + pair.to.y) / 2);
         return (
           <text key={`measure-label-${pair.measure.unitId}`} x={sx} y={sy - 4} fontSize={11}
-            fill={COLOR_MEASURE} textAnchor="middle" pointerEvents="none">
+            fill={semanticColor("measure")} textAnchor="middle" pointerEvents="none">
             {`中心 ${pair.measure.centerDistance.toFixed(1)} m / 净 ${pair.measure.clearDistance === null ? "—" : pair.measure.clearDistance.toFixed(1)} m`}
           </text>
         );

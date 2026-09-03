@@ -8,6 +8,7 @@ AntD 5 深色主题（dark algorithm + 设计 token）与项目内基础组件�
 |------|------|
 | `theme.ts` | 主题 token（深色默认/亮色可切换、语义色定义） |
 | `SemanticColor.tsx` | 语义色纪律封装（绿合格/橙警告/红错误/蓝水线/棕泥线，其余灰阶） |
+| `semanticColors.ts` | 语义色真源表（24 键 token→hex 唯一映射+FALLBACK 兜底+查表函数——全 webapp 渲染/2D 描绘统一消费，SC1 收编字面平行拷贝） |
 | `NumberCell.tsx` | tabular-nums 等宽数字组件（单位灰阶小字） |
 
 > 错误边界由 `app/ErrorBoundary.tsx` 唯一承担（M0 已创建）——

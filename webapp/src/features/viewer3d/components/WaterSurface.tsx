@@ -8,15 +8,17 @@
  * 规格说明（FE1 实装 v1）：
  *   - 动画零 CPU 物理（shader 时间函数同族——v1 以 material.opacity
  *     脉动承载，UV 偏移流纹归后续增强批）；
- *   - 色值经 semanticColor（蓝水线 §19.3）；dims 直读零推导；
+ *   - 色值经 semanticColor（蓝水线 §19.3——SC1 起真源=shared/ui/
+ *     semanticColors.ts）；dims 直读零推导；
  *   - 剖切平面随 props（store → Scene → 材质）。
  */
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 
+import { semanticColor } from "../../../shared/ui/semanticColors";
+
 import type { RenderNode } from "../lib/projectScene";
-import { semanticColor } from "./PoolBox";
 
 const BASE_OPACITY = 0.55;
 const PULSE_AMPLITUDE = 0.08;
