@@ -31,6 +31,7 @@
 | `waterprint.cost` | L3 | `core/waterprint/cost` |
 | `waterprint.drafting` | L3 | `core/waterprint/drafting` |
 | `waterprint.geometry` | L3 | `core/waterprint/geometry` |
+| `waterprint.ifc_export` | L3 | `core/waterprint/ifc_export` |
 | `waterprint.network` | L3 | `core/waterprint/network` |
 | `waterprint.units_lib` | L2 | `core/waterprint/units_lib` |
 | `waterprint.registry` | L1 | `core/waterprint/registry` |
@@ -45,8 +46,9 @@
 > DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制；同层伴生边
 > 不入 §1b 边表——见下方注记）。
 >
-> `core/waterprint/ifc_export/` 为条件占位（IfcOpenShell LGPL 评估过/
-> 未过则删，见其 README），启动时登记本表，平时不入节点表。
+> `core/waterprint/ifc_export/` 于 L5c（2026-09-03）启动并登记本表
+> （IfcOpenShell LGPL 评估有条件启动，C1~C6 已并入实装批 DoD——
+> 见其 README；评估不通过则删除本行与目录，降级 glTF+DXF）。
 
 ### 1b. 依赖边表（声明允许的依赖；未声明的 import = 违规）
 
@@ -111,6 +113,7 @@
 | `waterprint.drafting` | `waterprint.contracts` | 结果契约与端口语义 |
 | `waterprint.geometry` | `waterprint.contracts` | 结果 schema 纯投影 |
 | `waterprint.geometry` | `waterprint.registry` | 假设默认值（池体几何参数）——ENG2 B3 补登 |
+| `waterprint.ifc_export` | `waterprint.contracts` | 契约类型面（C2 白名单成员；几何取数全经 geometry 场景图，本包零直连消费）——L5c 登记 2026-09-03 |
 | `waterprint.network` | `waterprint.contracts` | 仅共享量与单位（独立域） |
 | `waterprint.network` | `waterprint.registry` | 假设默认值与公式注册表（NM-F* 曼宁公式族/求根容差/Excel 护栏）——NET2 补登 |
 | `waterprint.units_lib` | `waterprint.contracts` | 端口/工况/manifest 契约 |
@@ -138,6 +141,15 @@
 > `ignore_imports` 显式豁免该唯一边（"|" 兄弟默认互禁的忠实意图条款）。
 > 本边**不入上方边表**：check_module_graph 的"严格向下"规则对同层边
 > 一律拒，故以本注记登记（UF-33"相抵处置"的落点）。
+
+> 同层消费边（L5c 2026-09-03，层序豁免注记第二例——上例同款机制）：
+> `waterprint.ifc_export` → `waterprint.geometry`——IFC 导出是 geometry
+> 场景图的 BIM 互操作投影（§10.2 路线 C 纯投影消费），不持有独立状态；
+> 机器强制=core/pyproject importlinter 两处显式豁免（layers 与 L3
+> independence 契约各一条 ignore_imports）+ check_module_graph 同层
+> 豁免对登记。本边**不入上方边表**（"严格向下"规则对同层边一律拒）；
+> ifc_export→contracts 以正式边行承载（几何取数零直连，契约类型面白
+> 名单成员——C2）。
 
 ## 2. 端到端调用链（一次业务动作经过的文件，路径均实际存在）
 

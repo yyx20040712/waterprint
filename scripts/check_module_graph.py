@@ -24,12 +24,13 @@
 #      违者 FAIL 输出 from→to+文件清单。三条硬编码规则：
 #      ① `if TYPE_CHECKING:` 块内 import 豁免（类型面依赖——UF-31 口径，
 #         contracts/unit_api.py 在册先例）；
-#      ② 唯一同层豁免对 `waterprint.app → waterprint.app_enumeration`
-#         （SERVER D1 2026-08-26 同层伴生边，§1b 后注记承载不入边表——
+#      ② 同层豁免对集 `_SAME_LAYER_EXEMPTS`（§1b 后注记承载——同层边
+#         不入边表：SERVER D1 2026-08-26 app→app_enumeration 伴生边；
+#         L5c 2026-09-03 ifc_export→geometry 投影消费边第二例——
 #         "严格向下"规则与边表均不为其放开）；
 #      ③ stdlib/三方 import 忽略（只认 waterprint*/waterprint_server*
-#         且命中 §1a 节点者）。§1a 之外的伴生 .py（ifc_export 占位等）
-#      节点粒度不覆盖。零依赖纯标准库（ast），py3.12/3.13 双兼容
+#         且命中 §1a 节点者）。§1a 之外的伴生 .py 节点粒度不覆盖。
+#      零依赖纯标准库（ast），py3.12/3.13 双兼容
 #      （gates job 系统 py3.13 消费本脚本）。
 # ══════════════════════════════════════════════════════════════════
 
@@ -52,8 +53,14 @@ SCAN_PY_ROOTS: tuple[Path, ...] = (
     REPO / "core" / "waterprint",
     REPO / "server" / "waterprint_server",
 )
-# 唯一同层豁免对（规则②：§1b 后注记承载——同层伴生边不入边表）
-_SAME_LAYER_EXEMPT: tuple[str, str] = ("waterprint.app", "waterprint.app_enumeration")
+# 同层豁免对集（规则②：§1b 后注记承载——同层边不入边表）
+# - app → app_enumeration：SERVER D1 2026-08-26 同层伴生边（唯一先例）；
+# - ifc_export → geometry：L5c 2026-09-03 BIM 互操作投影消费场景图
+#   （§10.2 路线 C——importlinter layers/independence 两契约同款豁免）。
+_SAME_LAYER_EXEMPTS: tuple[tuple[str, str], ...] = (
+    ("waterprint.app", "waterprint.app_enumeration"),
+    ("waterprint.ifc_export", "waterprint.geometry"),
+)
 
 # 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）
 LAYER_ORDER: tuple[str, ...] = (
@@ -368,7 +375,7 @@ def check_real_imports(
 ) -> list[str]:
     """f) 跨节点真实 import ⊆ §1b 声明边（违者中文清单：from→to+现场）。"""
     declared = {(src, dst) for src, dst in edges if src in nodes and dst in nodes}
-    declared.add(_SAME_LAYER_EXEMPT)
+    declared.update(_SAME_LAYER_EXEMPTS)
     violations: dict[tuple[str, str], list[str]] = {}
     for root in SCAN_PY_ROOTS:
         for path in sorted(root.rglob("*.py")):

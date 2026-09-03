@@ -62,6 +62,7 @@
 | `core/waterprint/geometry/pools.py` | L3 | 池体/渠道/水面几何图元生成 | 结果字段+假设 | 图元+变换列表 |
 | `core/waterprint/geometry/internals.py` | L3 | 内部构件布局（实例数来自计算结果） | 结果字段+假设 | InstanceGroup 组 |
 | `core/waterprint/geometry/spacing.py` | L3 | 间距校核裁判（L4b：AABB 净距纯函数——halfExtents 与 webapp measureToNearest 同口径所见即所得；footprint None=不入对+uncalculated 降级；阈值结构化透传零 DSL——kb expression 解析归 server 装配） | placements（unit_id→x/y/rotation）+footprints（unit_id→(w,h)|None）+thresholds（SpacingThreshold 三元组） | SpacingReport（violations 字典序全序+uncalculated sorted） |
+| `core/waterprint/ifc_export/builder.py` | L3 | IFC 模型装配与落盘（L5c 原型：SceneGraph→IfcOpenShell IFC4 最小集——Project/Site/Building+OwnerHistory/Units(SI)/GeometricContext+IfcExtrudedAreaSolid[box→矩形/cylinder→圆断面]+LocalPlacement 链+IfcRelAggregates；构筑物=IfcBuildingElementProxy 中性形态禁建筑语义；水面/内部构件/渠道/红线不含；确定性=uuid5 GlobalId+时间戳固定值定槽；import 白名单=ifcopenshell 本体+waterprint.geometry/contracts——C2 本表+importlinter 四契约机器拦截） | SceneGraph+ifcopenshell（LGPL 独立 pip 依赖 C1） | build_ifc→ifcopenshell 模型、write_ifc→.ifc 文件（tmp+os.replace GR-38） |
 | `core/waterprint/network/manning.py` | L3 | 曼宁水力（充满度分档，公式溯源） | 断面+流量 | 流速/坡度/充满度 |
 | `core/waterprint/network/solver.py` | L3 | 管径枚举/并联/跌水井判定 | 管段序列 | 设计管径+衔接 |
 | `core/waterprint/network/excel_io.py` | L3 | 管网 Excel 读写（模板驱动、防弹） | .xlsx | 管段模型/结果 sheet |
