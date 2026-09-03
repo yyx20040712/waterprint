@@ -15,9 +15,9 @@
   "generated": {
     "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 5717264,
-    "serialize_sha256_head": "1dd201e19b24340c",
-    "source": "主线实跑 2026-09-03 HEAD=8e3c7d7+L4a boundary 批重录"
+    "serialize_bytes": 5881274,
+    "serialize_sha256_head": "02466a7eaf3f5e3f",
+    "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
   },
   "tolerance": {
     "abs": 1e-12,
@@ -252,6 +252,54 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
         "rel": 1e-12
+      },
+      "h2": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 5.0
+      },
+      "a_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 3614.5783316585266
+      },
+      "l_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 95.5
+      },
+      "b_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 38.5
+      },
+      "h_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 5.3
+      },
+      "l_pool_raw": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 95.06022211812002
+      },
+      "b_pool_raw": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 38.02408884724801
+      },
+      "v_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 18383.75
       }
     },
     "municipal_bashi_jiliangcao": {

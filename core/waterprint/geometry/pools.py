@@ -90,12 +90,12 @@ class Node:
 
 
 def _projection(unit_id: str) -> UnitProjection:
-    """对照表行取数（13 单元外=领域异常——表覆盖与单元发现同步冻结）。"""
+    """对照表行取数（表外=领域异常——32 单元表覆盖与单元发现同步冻结）。"""
     projection = PROJECTION_TABLE.get(unit_id)
     if projection is None:
         raise InvalidGeometryError(
             f"单元 {unit_id!r} 不在 UF-32 对照表（三维取数前提——"
-            "非市政 13 单元的表行随对应批次扩展）"
+            "表行覆盖随单元发现批次同步冻结）"
         )
     return projection
 

@@ -94,9 +94,31 @@ def test_water_surface_footprint_cylinder_circumscribed_square() -> None:
 
 
 def test_volume_units_without_pool_slots_yield_explicit_empty() -> None:
-    """容积法单元（AAO 无池体槽位）= 显式空组（非异常，表声明缺位注记）。"""
+    """无池体槽位单元（sludge_hebing 衡算类）= 显式空组（非异常，表声明缺位注记）。
+
+    L7 反转改写：原对象 municipal_aao 已声明 primitive_dims 三槽产 box 组
+    （见下用例）——空组断言换仍空单元 sludge_hebing（衡算节点无池体语义，
+    D9 测试矩阵裁定）。
+    """
     nodes = pool_primitives(
-        _snap("municipal_aao", {"v_total": 12000.0, "t_total": 8.0}),
+        _snap("sludge_hebing", {"ds_total": 100.0, "q_total": 50.0}),
         _assumptions(),
     )
     assert nodes == ()
+
+
+def test_aao_volume_unit_pool_box_wired() -> None:
+    """L7：AAO 容积法池体图元——表声明三槽后产 box 池壁（几何键直取零推导）。"""
+    nodes = pool_primitives(
+        _snap("municipal_aao",
+              {"v_total": 17862.22, "h2": 5.0, "a_pool": 3572.444,
+               "l_pool_raw": 94.4647, "b_pool_raw": 37.7859,
+               "l_pool": 94.5, "b_pool": 38.0, "h_pool": 5.3,
+               "v_pool": 17955.0}),
+        _assumptions(),
+    )
+    assert len(nodes) == 1 and nodes[0].primitive.kind == "box"
+    assert nodes[0].node_id == "municipal_aao::pool_wall"
+    assert nodes[0].primitive.dims == {"length": 94.5, "width": 38.0, "depth": 5.3}
+    assert nodes[0].semantic == "pool_wall"
+    assert nodes[0].source_assumption_keys == ("safety.superheight",)  # R2 来源键

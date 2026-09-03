@@ -11,9 +11,11 @@
 #
 # 【用例面】主算例逐项断言（v_o/t_o/v_anaerobic/delta_n/v_anoxic/t_n/
 #   v_total/t_total/v_o_series/s_y/q_wet/theta_c/x_vss/o2_carbon/o2_nit/
-#   o2_denit/o2_total/q_return/q_internal）+ 校核带越界产 Warning
-#   （ns 带/t_p 带/缺氧 HRT 带/泥龄带[好氧口径]）+ 参数域拒绝（ns≤0/
-#   delta_n≤0）+ 纯函数双跑一致 + formula_ids 全部可在公式注册表解析。
+#   o2_denit/o2_total/q_return/q_internal）+ 池体几何 8 键（L7 批：
+#   h2/a_pool/l_pool/b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool——期望值=
+#   v_total 锚独立手算，AO-F15~F19 CASS 公式族平移）+ 校核带越界产
+#   Warning（ns 带/t_p 带/缺氧 HRT 带/泥龄带[好氧口径]）+ 参数域拒绝
+#   （ns≤0/delta_n≤0）+ 纯函数双跑一致 + formula_ids 全部可在公式注册表解析。
 # 【口径注记】入流水质=三表衔接式值（BOD5 123.2996/COD 199.9362/
 #   SS 93.2121，上游=初沉池出流）；出流=衔接 erchunchi 表值；q_return
 #   按最高时口径（引擎精确 Q_design 与表 5 位舍入差 <0.01，容差覆盖）。
@@ -70,6 +72,10 @@ def _params(**overrides: float) -> dict[str, float]:
         "r_internal": 2.0,
         "tn_eff": 15.0,
         "sec_per_hour": 3600.0,
+        # L7 池体图元批几何形态参数（CASS 同值同 range 平移——manifest 声明面）
+        "h2": 5.0,
+        "ratio_lb": 2.5,
+        "side_disc_step": 0.5,
         # data/coefficients factors.yaml（0.2.0 生效）逐字
         "factor.aao.ns_band.min": 0.05,
         "factor.aao.ns_band.max": 0.15,
@@ -92,6 +98,7 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.aao.r_internal_band.max": 3.0,
         "factor.aao.sludge.moisture": 0.994,
         "factor.aao.elevation_loss": 0.5,
+        "factor.aao.superheight": 0.3,
         # removal_rates.yaml mod_default 档逐字（N/P 三键 0.8.0 NP1/RATIFY3）
         "removal.aao.bod5.mod_default": 0.90,
         "removal.aao.cod.mod_default": 0.85,
@@ -178,6 +185,27 @@ def test_main_case_returns() -> None:
     assert dims["q_internal"] == pytest.approx(2896.725, abs=1e-2)  # AO-F14：×Q_avg_h
 
 
+def test_main_case_geometry() -> None:
+    """主算例池体几何 8 键断言（AO-F15~F19——L7 CASS 公式族平移）。
+
+    期望值=独立手算（非引擎回抄）：基值 v_total=17753.99（算例 1 锚，
+    test_main_case_volumes）→ a_pool=v_total/h2=3550.798 →
+    l_raw=sqrt(a_pool×2.5)≈94.2178 / b_raw=sqrt(a_pool÷2.5)≈37.6871 →
+    0.5 m 档 ceil：l_pool=94.5 / b_pool=38.0；h_pool=0.3+5.0=5.3；
+    v_pool=94.5×38×5=17955.0（圆整裕量 >v_total 诚实呈现，沿 CASS）。
+    """
+    dims = _dims()
+    assert dims["h2"] == pytest.approx(5.0, abs=1e-12)  # 参数复用键入 dims
+    assert dims["a_pool"] == pytest.approx(3550.798, abs=0.01)  # AO-F15
+    assert dims["l_pool_raw"] == pytest.approx(94.2178, abs=1e-3)  # AO-F17
+    assert dims["b_pool_raw"] == pytest.approx(37.6871, abs=1e-3)  # AO-F18
+    assert dims["l_pool"] == pytest.approx(94.5, abs=1e-9)  # ceil 0.5 m 档
+    assert dims["b_pool"] == pytest.approx(38.0, abs=1e-9)  # ceil 0.5 m 档
+    assert dims["h_pool"] == pytest.approx(5.3, abs=1e-9)  # AO-F16：0.3+5.0
+    assert dims["v_pool"] == pytest.approx(17955.0, abs=0.01)  # AO-F19
+    assert dims["v_pool"] > dims["v_total"]  # 圆整裕量诚实呈现（D12）
+
+
 def test_outflow_passthrough_and_quality() -> None:
     """出流透传 + 出水质=入质×(1−removal.mod_default)，NH3N/TN/TP 六键真实去除[NP1/RATIFY3]。"""
     result = make_unit().compute(_ctx(_params()))
@@ -248,7 +276,7 @@ def test_pure_function_double_run() -> None:
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 15))
+    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 20))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

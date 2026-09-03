@@ -14,6 +14,48 @@
   ],
   "design_dims": {
     "municipal_aao": {
+      "a_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 3572.4440410459842
+      },
+      "b_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 38.0
+      },
+      "b_pool_raw": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 37.801820279166364
+      },
+      "h2": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 5.0
+      },
+      "h_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 5.3
+      },
+      "l_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 95.0
+      },
+      "l_pool_raw": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 94.50455069791592
+      },
       "t_total": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -43,6 +85,12 @@
         "rel": 1e-12,
         "source": "主线实跑 2026-08-26 HEAD=134d4a3",
         "value": 10823.178454646722
+      },
+      "v_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 18050.0
       },
       "v_total": {
         "abs": 1e-12,
@@ -581,9 +629,9 @@
   "generated": {
     "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 500430,
-    "serialize_sha256_head": "20018c50214758ca",
-    "source": "主线实跑 2026-09-03 HEAD=8e3c7d7+L4a boundary 批重录"
+    "serialize_bytes": 510955,
+    "serialize_sha256_head": "9cda219283bc76c2",
+    "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
   },
   "m3_deferred": {
     "estimate_total": {

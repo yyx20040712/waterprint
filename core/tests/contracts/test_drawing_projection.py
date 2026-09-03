@@ -212,6 +212,30 @@ def test_line_sets_disjoint() -> None:
     assert union == frozenset(PROJECTION_TABLE)
 
 
+def test_aao_pool_slots_declared_l7() -> None:
+    """L7：AAO 表行池体声明冻结口径——三槽+剖面双键+23 键 non_drawn（§二）。"""
+    projection = PROJECTION_TABLE["municipal_aao"]
+    # primitive_dims：box 三槽（length/width/depth→几何段圆整键）
+    assert projection.primitive_dims == {
+        "length": "l_pool", "width": "b_pool", "depth": "h_pool",
+    }
+    # section_keys：双键（h_pool 双槽=CASS 先例）；不声明 high_water——
+    # AAO 连续流常水位无滗水高水位概念（声明=语义虚构，D6 裁定）
+    assert projection.section_keys == {"water_depth": "h2", "pool_depth": "h_pool"}
+    assert "high_water" not in projection.section_keys
+    # plan_keys 不声明（unit_plan 走 primitive_dims 回退自动画外框——预裁 6）
+    assert projection.plan_keys == {}
+    # non_drawn：19 旧键 + a_pool/l_pool_raw/b_pool_raw/v_pool（=23）
+    assert frozenset(projection.non_drawn) == frozenset({
+        "a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "o2_carbon",
+        "o2_denit", "o2_nit", "o2_total", "q_internal", "q_return", "q_wet",
+        "s_y", "t_n", "t_o", "t_total", "theta_c", "v_anaerobic", "v_anoxic",
+        "v_o", "v_o_series", "v_pool", "v_total", "x_vss",
+    })
+    # R1 键集自洽：四槽取数键=恰 4 键（h2 随水面声明入表；h_pool 双槽同键）
+    assert projection.drawn_keys() == frozenset({"h2", "l_pool", "b_pool", "h_pool"})
+
+
 @pytest.mark.parametrize("unit_id", sorted(_EXPECTED_UNITS))
 def test_projection_table_reconciles_with_live_dims(
     unit_id: str, live_dims: dict[str, frozenset[str]]

@@ -1,8 +1,9 @@
 """AAO 生物池清单声明：参数/端口/去除率引用/条文/工况映射+公式注册（真源）。
 
 输入:  三表起草真源（docs/norms/aao.md，2026-08-25，数据策略 v2 待追认）+
-       data/coefficients 0.2.0 键名
-输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ AO-F1~F14 公式登记
+       data/coefficients 0.2.0 键名；L7 池体图元批几何族五式=CASS 公式族
+       平移（总控 L7 D3/D5 裁定——非 aao.md 三表行，待领域专家追认）
+输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ AO-F1~F19 公式登记
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -16,12 +17,17 @@
 #   P/七条校核带全部经 factor.aao.* 键消费（app._unit_params 投影）；
 #   去除率经 removal.aao.*.mod_default 键（六指标全键：BOD5/CODCR/SS+
 #   NH3N/TN/TP——N/P 三键 NP1 起草 0.8.0、RATIFY3 追认 2026-08-28）。
-# 【公式注册（D2）】AO-F1~F14 逐条 FormulaSpec+register；expression=三表
+# 【公式注册（D2）】AO-F1~F19 逐条 FormulaSpec+register；expression=三表
 #   公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；结构常数
 #   （24/1000/4.57/2.86/86400）内联（本文件=units_lib manifest 白名单区；
 #   4.57/2.86=氧当量条文常量，出处=norm_ref）。流量换算 86400/流量
 #   口径注记（WaterFlow 规范单位 m3/s，表口径 m3/d/m3/h——AO-F13/F14 的
 #   q_design_h/q_avg_h 为符号、由 compute 经 sec_per_hour 合成）。
+#   L7 池体图元批（AO-F15~F19 几何族五式）：a_pool=v_total/h2（容积折
+#   水面）、h_pool=h_super+h2（超高经 factor.aao.superheight）、长宽比
+#   定形 sqrt 双式、v_pool=圆整边长×h2（ceil 后容积≥v_total 圆整裕量
+#   诚实呈现，沿 CASS D12）——CASS CA-F8/F24~F26/F11 同族平移（AAO
+#   连续流无滗水支项；n 保持纯计算分格语义，非单池面积口径）。
 # 【追认口径按表冻结】AO-F8 好氧泥龄判断口径（全池口径备考注记）；
 #   AO-F13 外回流泵按最高时 q_design_h / AO-F14 内回流泵按平均时
 #   q_avg_h（双口径相差 Kz 倍，各有工程做法依据——统一与否待领域专家
@@ -55,6 +61,15 @@ _C = DimKey.CONCENTRATION
 _F = DimKey.FLOW
 _VOL = DimKey.VOLUME
 _M = DimKey.MASS
+_L = DimKey.LENGTH
+_AREA = DimKey.AREA
+# L7 池体图元批几何族出处（CASS CA-F8/F24~F26/F11 同族平移——非三表行，
+# 总控 L7 D3/D5 裁定；待领域专家追认）
+_GEO_HB = (
+    "《给水排水设计手册（第 5 册 城镇排水）》矩形生物池容积折面/长宽比"
+    "定形（L7 池体图元批：CASS CA-F8/F24~F26/F11 同族平移，总控 L7 "
+    "D3/D5 裁定——待领域专家追认）"
+)
 
 # 单位换算常量（GOLDEN4a D3 产股口：排泥工程口径 m³/d、kg/d → SludgeFlow
 # 契约口径 m3/s、kg/s——manifest=数值白名单区，compute 零字面量消费）。
@@ -213,8 +228,61 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         },
         _D,
         "《给水排水设计手册（第 5 册 城镇排水）》AAO 内回流常用带；"
-        "内回流泵按平均时流量口径（平均日运行+变频调节，双口径注记"
-        "见 docs/norms/aao.md——待领域专家追认）",
+        "内回流泵按平均时流量口径（平均日运行+变频调节，双口径"
+        "注记见 docs/norms/aao.md——待领域专家追认）",
+    ),
+    FormulaSpec(
+        "AO-F15",
+        "a_pool = v_total / h2",
+        {
+            "v_total": (_VOL, "三区合成总容积 m3"),
+            "h2": (_L, "有效水深 m（参数 h2）"),
+        },
+        _AREA,
+        _GEO_HB,
+    ),
+    FormulaSpec(
+        "AO-F16",
+        "h_pool = h_super + h2",
+        {
+            "h_super": (_L, "池超高 m（factor.aao.superheight）"),
+            "h2": (_L, "有效水深 m（参数 h2）"),
+        },
+        _L,
+        "GB 50014-2021 §6（超高一般要求）；"
+        "《给水排水设计手册（第 5 册 城镇排水）》（L7 池体图元批："
+        "CASS CA-F24 同族平移，总控 L7 D3/D5 裁定——待领域专家追认）",
+    ),
+    FormulaSpec(
+        "AO-F17",
+        "l_pool_raw = sqrt(a_pool * ratio_lb)",
+        {
+            "a_pool": (_AREA, "池体水面总面积 m2（连续流全池口径——n 保持纯计算分格语义）"),
+            "ratio_lb": (_D, "池长宽比（参数 ratio_lb）"),
+        },
+        _L,
+        _GEO_HB,
+    ),
+    FormulaSpec(
+        "AO-F18",
+        "b_pool_raw = sqrt(a_pool / ratio_lb)",
+        {
+            "a_pool": (_AREA, "池体水面总面积 m2（连续流全池口径——n 保持纯计算分格语义）"),
+            "ratio_lb": (_D, "池长宽比（参数 ratio_lb）"),
+        },
+        _L,
+        _GEO_HB,
+    ),
+    FormulaSpec(
+        "AO-F19",
+        "v_pool = l_pool * b_pool * h2",
+        {
+            "l_pool": (_L, "圆整后池长 m（side_disc_step 档 ceil 收口）"),
+            "b_pool": (_L, "圆整后池宽 m（side_disc_step 档 ceil 收口）"),
+            "h2": (_L, "有效水深 m（参数 h2）"),
+        },
+        _VOL,
+        _GEO_HB,
     ),
 )
 

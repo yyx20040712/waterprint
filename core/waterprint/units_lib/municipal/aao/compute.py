@@ -1,4 +1,4 @@
-"""AAO 生物池计算实现：唯一计算源（AO-F1~F14 全经 registry.apply 求值）。
+"""AAO 生物池计算实现：唯一计算源（AO-F1~F19 全经 registry.apply 求值）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
@@ -8,15 +8,21 @@
 # 规格说明（M2a2 实装：M2a1 数据先行批的代码落地/M2 正式验收；
 #   公式路线 = ADR-008 ①负荷法主线+泥龄校核带）
 #
-# 【公式组】AO-F1~F14（docs/norms/aao.md 起草表；manifest.py 登记）——
+# 【公式组】AO-F1~F19（docs/norms/aao.md 起草表+L7 池体图元批几何族；
+#   manifest.py 登记）——
 #   五项公式清单全覆盖义务：污泥负荷/分区容积（AO-F1~F5）、需氧量
 #   （AO-F9~F12）、内外回流比（AO-F13/F14）、剩余污泥量（AO-F6~F8）、
-#   污泥龄（AO-F8，校核侧）。
+#   污泥龄（AO-F8，校核侧）；L7 池体几何（AO-F15~F19——CASS 公式族
+#   平移：容积折水面/超高叠加/长宽比定形/圆整容积，连续流无滗水支项）。
 # 【DSL 单输出导出量】delta_n（=TN_in−tn_eff）/x_vss（=vss_ratio×
 #   x_mlss）/bod5_out（=bod5_in×(1−removal.aao.bod5)）/v_total（三区
 #   容积合成）/t_total（HRT=v_total/q_avg_h）/v_o_series（=v_o/n 单系列）
 #   在 compute 以符号算术合成——零字面量、无新工程常数（registry 单
 #   输出限制的导出面）。
+# 【池体几何段（L7）】AO-F15~F19——ceil 在本文件收口（池长/池宽
+#   side_disc_step 档，沿 CASS；步长>0 已由 _validate 参数域守卫承载）；
+#   h2 参数复用键随水面声明入 dims（表 section_keys.water_depth 取数
+#   要求）；v_pool=圆整边长×h2≥v_total 圆整裕量诚实呈现（D12）。
 # 【流量口径（三表逐字冻结）】生物池按平均日 flow.q_avg_daily；外回流
 #   泵 AO-F13 按最高时 flow.q_design（×sec_per_hour）、内回流泵 AO-F14
 #   按平均时（×sec_per_hour）——双口径待领域专家追认，代码零裁量。
@@ -36,6 +42,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import final
 
 from waterprint.contracts.condition import ConditionSet
@@ -70,6 +77,9 @@ _PARAMS_POSITIVE = (
     "r_internal",
     "tn_eff",
     "sec_per_hour",
+    "h2",
+    "ratio_lb",
+    "side_disc_step",
 )
 # 参数带检查表：(参数键, 带键短名, 量名)——限值经 factor.aao.* 双键。
 _PARAM_BANDS: tuple[tuple[str, str, str], ...] = (
@@ -241,6 +251,34 @@ def _returns(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str
     }
 
 
+def _geometry(ctx: UnitContext, p: dict[str, float], v_total: float) -> dict[str, float]:
+    """AO-F15~F19：池体几何——容积折水面/超高/长宽比定形（0.5 m 档 ceil 收口）。
+
+    h2 参数复用键随水面声明入 dims（表 section_keys.water_depth 取数）；
+    ceil 边长×h2=v_pool≥v_total 圆整裕量诚实呈现（沿 CASS，D12）。
+    """
+    a_pool = _apply(ctx, "AO-F15", {"v_total": v_total, "h2": p["h2"]})
+    h_pool = _apply(
+        ctx, "AO-F16", {"h_super": _factor(p, "factor.aao.superheight"), "h2": p["h2"]}
+    )
+    binds = {"a_pool": a_pool, "ratio_lb": p["ratio_lb"]}
+    l_raw = _apply(ctx, "AO-F17", binds)
+    b_raw = _apply(ctx, "AO-F18", binds)
+    step = p["side_disc_step"]
+    l_pool = math.ceil(l_raw / step) * step
+    b_pool = math.ceil(b_raw / step) * step
+    return {
+        "h2": p["h2"],
+        "a_pool": a_pool,
+        "h_pool": h_pool,
+        "l_pool_raw": l_raw,
+        "b_pool_raw": b_raw,
+        "l_pool": l_pool,
+        "b_pool": b_pool,
+        "v_pool": _apply(ctx, "AO-F19", {"l_pool": l_pool, "b_pool": b_pool, "h2": p["h2"]}),
+    }
+
+
 def _warn(source: str, message: str, param_key: str) -> Warning:
     """单条校核带越界警告（severity=WARN，GR 口径三必带）。"""
     return Warning(severity=Severity.WARN, source=source, message=message, param_key=param_key)
@@ -318,7 +356,7 @@ class _Aao:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """AO-F1~F14 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """AO-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx)
@@ -334,7 +372,8 @@ class _Aao:
         sludge = _sludge(ctx, p, flow, qual, volumes["v_o"])
         oxygen = _oxygen(ctx, p, flow, qual, volumes["v_o"])
         returns = _returns(ctx, p, flow)
-        dims = {**volumes, **sludge, **oxygen, **returns}
+        geometry = _geometry(ctx, p, volumes["v_total"])
+        dims = {**volumes, **sludge, **oxygen, **returns, **geometry}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(

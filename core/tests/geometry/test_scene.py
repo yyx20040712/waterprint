@@ -48,6 +48,14 @@ def _plant():
                 "municipal_chenshachi",
                 {"l_straight": 4.5, "d": 3.0, "h2": 1.25, "h_total": 3.0},
             ),
+            # L7：AAO 容积法池体——compute 几何段 8 键（golden 锚数值口径）
+            "municipal_aao": snap(
+                "municipal_aao",
+                {"v_total": 17862.22, "h2": 5.0, "a_pool": 3572.444,
+                 "l_pool_raw": 94.4647, "b_pool_raw": 37.7859,
+                 "l_pool": 94.5, "b_pool": 38.0, "h_pool": 5.3,
+                 "v_pool": 17955.0},
+            ),
         }},
         summary={},
         trace=(),
@@ -84,9 +92,11 @@ def test_scene_version_stepped_to_site() -> None:
     Z 标高；步进时误记 y-up 系 G1-01 根因，渲染层换轴而非改存储）。
     L6 步进 -3：roads/corridors strip 图元收编（新 kind+新 semantic=
     场景图语义变——「语义变即步进」先例）。
+    L7 步进 -4：AAO 容积法池体图元批——池壁/水面/渠道三节点入场景
+    （新单元产图元=场景图语义变，沿 -3 先例）。
     """
     graph = build_scene(_plant(), _assumptions(), "design")
-    assert graph.scene_version == "waterprint-scene-3/z-up/m"
+    assert graph.scene_version == "waterprint-scene-4/z-up/m"
 
 
 def test_site_mode_places_units_and_boundary() -> None:
@@ -154,6 +164,33 @@ def test_water_surface_and_channel_wired() -> None:
     channel = by_id["municipal_cugeshan::channel"]
     assert channel.semantic == "channel"
     assert channel.primitive.dims == {"depth": 1.0}
+
+
+def test_aao_volume_pool_three_nodes_wired() -> None:
+    """L7：AAO 容积法池体三节点接线——池壁 box/水面/渠道零几何层改动自动产出。
+
+    D7 裁定：water_depth→h2（连续流常水位语义）；channel 连带=有 depth 槽
+    单元的族一致行为（cugeshan::channel 同款）。水面足迹=l_pool×b_pool
+    同源键（L5R A-S1 box 池先例）。
+    """
+    graph = build_scene(_plant(), _assumptions(), "design")
+    by_id = {node.node_id: node for node in graph.nodes}
+    # 池壁：box 三槽=l_pool/b_pool/h_pool（compute 几何键直取）
+    wall = by_id["municipal_aao::pool_wall"]
+    assert wall.semantic == "pool_wall"
+    assert wall.primitive.kind == "box"
+    assert wall.primitive.dims == {"length": 94.5, "width": 38.0, "depth": 5.3}
+    # 水面：水位=池底+h2（5.0），足迹与池壁同源键
+    surface = by_id["municipal_aao::water_surface"]
+    assert surface.semantic == "water_surface"
+    assert surface.position[2] == pytest.approx(5.0)
+    assert surface.primitive.dims["length"] == pytest.approx(94.5)
+    assert surface.primitive.dims["width"] == pytest.approx(38.0)
+    assert surface.primitive.dims["level"] == pytest.approx(5.0)
+    # 渠道：depth 槽连带（h_pool 族一致行为）
+    channel = by_id["municipal_aao::channel"]
+    assert channel.semantic == "channel"
+    assert channel.primitive.dims == {"depth": 5.3}
 
 
 def _site_with_routes():

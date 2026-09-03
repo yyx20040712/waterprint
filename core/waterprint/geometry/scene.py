@@ -92,7 +92,9 @@ __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 # 名不改版本号：R 轮不改线格式，仅正名）。
 # L6 步进 -3：roads/corridors strip 图元收编（新 kind+新 semantic=
 # 场景图语义变——「语义变即步进」先例）。
-SCENE_VERSION: Final[str] = "waterprint-scene-3/z-up/m"
+# L7 步进 -4：AAO 容积法池体图元批——池壁 box/水面/渠道三节点入场景
+# （表行三槽+compute 几何段 8 键接线；新单元产图元=场景图语义变）。
+SCENE_VERSION: Final[str] = "waterprint-scene-4/z-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
     "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机
