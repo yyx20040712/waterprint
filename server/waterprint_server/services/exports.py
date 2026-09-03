@@ -90,6 +90,7 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -283,9 +284,10 @@ def _sidecar_text(meta: ExportMeta) -> str:
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
-    """注册表边车（原子写；只记元数据不复制数据，R2）。"""
+    """注册表边车（原子写；只记元数据不复制数据，R2；M8-A/W3 tmp 唯一化
+    ——worker.py:215 同族注记）。"""
     sidecar = ctx.exports_dir / f"{meta.file_name}.meta.json"
-    tmp = sidecar.with_name(sidecar.name + ".tmp")
+    tmp = sidecar.with_name(f"{sidecar.name}.{uuid.uuid4().hex}.tmp")
     tmp.write_text(_sidecar_text(meta), encoding="utf-8", newline="\n")
     os.replace(tmp, sidecar)
 
@@ -433,7 +435,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
             f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
         ) from exc
     out = ctx.exports_dir / names[0]
-    tmp = out.with_name(out.name + ".tmp")
+    tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
     # FE9 D3：options 透传（单产物路径——core _EXPORT_OPTIONS 同款键集；
     # 空串归一 None：unit_id None→core NotReady 全厂总图 501 诚实面、
     # condition_key None→core 缺省 design 档+UserWarning。批量路径不透传

@@ -59,6 +59,7 @@ from __future__ import annotations
 import dataclasses
 import multiprocessing as mp
 import os
+import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from math import isfinite
@@ -211,8 +212,13 @@ def _cancelled(cancel_token: object) -> bool:
 
 
 def _atomic_write_bytes(path: Path, data: bytes) -> Path:
-    """GR-38 原子写：同分区临时文件 + os.replace。"""
-    tmp = path.with_name(path.name + ".tmp")
+    """GR-38 原子写：同分区临时文件 + os.replace。
+
+    M8-A/W3：tmp 名加 uuid 唯一化——K-01 跨进程面收口（calc_workers≥2 时
+    两个同参任务固定 {name}.tmp 双写互覆=Linux 混合字节损坏产物；唯一名
+    后并发双写各写各 tmp，末次 replace 胜出=完整旧或新，零混合）。
+    """
+    tmp = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
     tmp.write_bytes(data)
     os.replace(tmp, path)
     return path
@@ -313,7 +319,7 @@ def _run_enumerate(
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("rows", 2, len(stages)), progress)
     rows_file = Path(str(payload["artifacts_dir"])) / f"enum-{task_id}.feather"
-    tmp = rows_file.with_name(rows_file.name + ".tmp")
+    tmp = rows_file.with_name(f"{rows_file.name}.{uuid.uuid4().hex}.tmp")
     outcome.rows.to_feather(tmp)
     os.replace(tmp, rows_file)
     diagnosis = None
@@ -365,7 +371,7 @@ def _safe_out_name(name: str, kind: str) -> str:
 def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
     """R2-C：批量产物边车落盘（GR-38 原子写；文本=services 预构建）。"""
     sidecar = exports_dir / f"{file_name}.meta.json"
-    tmp = sidecar.with_name(sidecar.name + ".tmp")
+    tmp = sidecar.with_name(f"{sidecar.name}.{uuid.uuid4().hex}.tmp")
     try:
         tmp.write_text(text, encoding="utf-8", newline="\n")
         os.replace(tmp, sidecar)
@@ -400,7 +406,7 @@ def _run_export_batch(
         )
         plant = deserialize(Path(str(item["result_file"])).read_bytes())
         out = exports_dir / out_name
-        tmp = out.with_name(out.name + ".tmp")
+        tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
         # S2 D6：items 级透传 unit_id（批级共享）/condition_key（item 自有），
         # 空串归一 None（单产物路径同款口径）；DS-06：str(x or "") 防
         # 显式 None 经 str(None)="None" 透传（IPC 面不可信）。

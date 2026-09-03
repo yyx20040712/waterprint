@@ -45,6 +45,8 @@ from pydantic import ValidationError
 
 _manager_mod = importlib.import_module("waterprint_server.jobs.manager")
 _projects_mod = importlib.import_module("waterprint_server.services.projects")
+_io_mod = importlib.import_module("waterprint.project.io")
+InvalidProjectError = getattr(_io_mod, "InvalidProjectError")
 _settings_mod = importlib.import_module("waterprint_server.settings")
 Settings = getattr(_settings_mod, "Settings")
 TaskRequest = getattr(_manager_mod, "TaskRequest")
@@ -193,11 +195,11 @@ async def test_fresh_lock_still_blocks_409_wiring(client, test_settings) -> None
 async def test_stale_lock_swap_in_window_blocks_save_wiring(
     service_ctx, cass_payload, monkeypatch  # type: ignore[no-untyped-def]
 ) -> None:
-    """K-5（R2-C 修1）竞态注入：判定后校验前新持有者重建锁→409 fail-closed。
+    """K-5+M8-A/W1 竞态注入：判定后摘下前新持有者重建锁→409 fail-closed。
 
-    注入口=Path.read_bytes 第二次快照钩子（修复前旧码零内容读取=钩子
-    不触发，unlink 直落=新持有者锁被误删+双写者放行——红相即本缺陷）；
-    修复后双快照（内容+mtime）不一致→拒绝清除，新持有者锁存活。
+    注入口=Path.rename 钩子（M8-A 原子摘下机制——摘下前注入换锁，rename
+    把新持有者文件摘走→摘下件快照≠首快照→回滚+409，新持有者锁存活；
+    修复前旧码 unlink 直落=新持有者锁被误删+双写者放行——红相即本缺陷）。
     时间推进=os.utime 回拨 mtime（真文件系统面，非全局 time.time patch）。
     """
     outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
@@ -207,32 +209,62 @@ async def test_stale_lock_swap_in_window_blocks_save_wiring(
     lock.write_text("holder-a|111|t0", encoding="utf-8")
     expired = time.time() - (service_ctx.settings.lock_expiry_s + 1)
     os.utime(lock, (expired, expired))
-    reads: list[Path] = []
-    original_read = Path.read_bytes
+    original_rename = Path.rename
 
-    def _swap_on_second_read(self: Path) -> bytes:  # type: ignore[no-untyped-def]
-        if self == lock:
-            reads.append(self)
-            if len(reads) == 2:  # K-5 窗口注入：判定后校验前新持有者换锁
-                lock.write_text("holder-b|222|t1", encoding="utf-8")
-                os.utime(lock, None)  # 新内容+新 mtime（重建锁全量替换）
-        return original_read(self)
+    def _swap_before_rename(self: Path, target: Path) -> Path:  # type: ignore[no-untyped-def]
+        if self == lock:  # K-5 窗口注入：判定后摘下前新持有者换锁
+            lock.write_text("holder-b|222|t1", encoding="utf-8")
+            os.utime(lock, None)  # 新内容+新 mtime（重建锁全量替换）
+        return original_rename(self, target)
 
-    monkeypatch.setattr(Path, "read_bytes", _swap_on_second_read)
+    monkeypatch.setattr(Path, "rename", _swap_before_rename)
     with pytest.raises(_projects_mod.ProjectLockedError):
         _projects_mod.save_project(service_ctx, project_id, project)
     assert lock.read_text(encoding="utf-8") == "holder-b|222|t1"  # 新持有者锁存活
 
 
 @pytest.mark.anyio
+async def test_stale_lock_new_holder_after_claim_survives_wiring(
+    service_ctx, cass_payload, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """M8-A/W1 铁证：摘下后新持有者获锁→新锁存活+保存 fail-closed 拒。
+
+    W1（K-01 本体残余）收口面：R2C 版二次快照→unlink 微窗内新锁会被
+    误删（旧码删锁后读面无锁放行=双会话并行缺陷）；M8-A 原子摘下后
+    微窗内锁已离原径，新锁不可能被误删——保存流随后 core.load_project
+    读面见新锁即拒（InvalidProjectError fail-closed，新持有者赢）。
+    """
+    outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
+    project_id = outcome.project_id
+    project = _projects_mod.read_project(service_ctx, project_id)
+    lock = service_ctx.projects_dir / f"{project_id}.wp.lock"
+    lock.write_text("holder-a|111|t0", encoding="utf-8")
+    expired = time.time() - (service_ctx.settings.lock_expiry_s + 1)
+    os.utime(lock, (expired, expired))
+    original_rename = Path.rename
+
+    def _create_after_rename(self: Path, target: Path) -> Path:  # type: ignore[no-untyped-def]
+        moved = original_rename(self, target)
+        if self == lock:  # W1 微窗注入：摘下后 unlink 前新持有者获锁
+            lock.write_text("holder-b|222|t1", encoding="utf-8")
+            os.utime(lock, None)
+        return moved
+
+    monkeypatch.setattr(Path, "rename", _create_after_rename)
+    with pytest.raises(InvalidProjectError, match="锁定"):  # 读面 fail-closed
+        _projects_mod.save_project(service_ctx, project_id, project)
+    assert lock.read_text(encoding="utf-8") == "holder-b|222|t1"  # W1 铁证：新锁零误删
+
+
+@pytest.mark.anyio
 async def test_heartbeat_touch_in_window_blocks_save_wiring(
     service_ctx, cass_payload, monkeypatch  # type: ignore[no-untyped-def]
 ) -> None:
-    """K-5 心跳语义：判定后校验前持有者 touch mtime（内容不变）→409。
+    """K-5+M8-A 心跳语义：判定后摘下前持有者 touch mtime（内容不变）→409。
 
     长保存/长编辑会话的持有者周期心跳刷新 mtime——判定窗口内任何触碰
-    =持有者活性铁证，陈旧清除拒绝（fail-closed）；修复前旧码无二次校验
-    面=心跳后仍被清除（红相即误杀活性持有者缺陷）。
+    =持有者活性铁证，陈旧清除拒绝（fail-closed）；注入口=Path.rename
+    钩子（摘下前 touch——摘下件快照 mtime≠首快照→回滚+409，锁存活）。
     """
     outcome = _projects_mod.create_project(service_ctx, {"project": cass_payload})
     project_id = outcome.project_id
@@ -242,17 +274,14 @@ async def test_heartbeat_touch_in_window_blocks_save_wiring(
     expired = time.time() - (service_ctx.settings.lock_expiry_s + 1)
     os.utime(lock, (expired, expired))
     touched = time.time()  # 心跳戳（区别于判定快照的旧 mtime）
-    reads: list[Path] = []
-    original_read = Path.read_bytes
+    original_rename = Path.rename
 
-    def _touch_on_second_read(self: Path) -> bytes:  # type: ignore[no-untyped-def]
-        if self == lock:
-            reads.append(self)
-            if len(reads) == 2:  # 窗口注入：心跳 touch（内容不变仅 mtime）
-                os.utime(lock, (touched, touched))
-        return original_read(self)
+    def _touch_before_rename(self: Path, target: Path) -> Path:  # type: ignore[no-untyped-def]
+        if self == lock:  # 窗口注入：心跳 touch（内容不变仅 mtime）
+            os.utime(lock, (touched, touched))
+        return original_rename(self, target)
 
-    monkeypatch.setattr(Path, "read_bytes", _touch_on_second_read)
+    monkeypatch.setattr(Path, "rename", _touch_before_rename)
     with pytest.raises(_projects_mod.ProjectLockedError):
         _projects_mod.save_project(service_ctx, project_id, project)
     assert lock.read_text(encoding="utf-8") == "holder-a|111|t0"  # 原持有者锁存活

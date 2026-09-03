@@ -60,6 +60,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import time
@@ -262,22 +263,29 @@ def _lock_snapshot(lock: Path) -> tuple[float, bytes] | None:
 
 
 def _clear_stale_lock(lock: Path, expiry_s: int) -> None:
-    """K-5（R2-C 修1）：陈旧锁清除=双快照一致才 unlink（TOCTOU 收口）。
+    """K-5（R2-C 修1）+M8-A/W1：陈旧锁清除=原子摘下+双快照一致才删。
 
-    判定快照过期后回读二次快照：内容与 mtime 均与首快照一致=同一陈旧
-    持有者且窗口内零触碰→清除放行（「视为无锁」落地形态）；任何不一致
-    （新持有者重建锁/持有者心跳 touch）=活性铁证→fail-closed 409；
-    stat/读/清除不可得=回退锁面（WP4 fail-closed 语义保持）。
+    判定快照过期后：os.rename 把锁摘下为同目录私有名（原子——摘下即锁面
+    对外「视为无锁」，窗口内新持有者创建锁不冲突）→对摘下件二次快照
+    比对：一致=同一陈旧持有者且窗口内零触碰→unlink；不一致（持有者
+    心跳 touch 后 mtime 已变——摘下件即该心跳对象）=活性铁证→rename 回
+    +fail-closed 409。W1（K-01 本体残余）收口：二次快照→unlink 微窗内
+    锁已离原径，新锁不可能被误删（R2C 版 unlink 竞态归零）；rename
+    失败/回滚失败=回退锁面（fail-closed 语义保持）。
     """
     first = _lock_snapshot(lock)
     if first is None or time.time() - first[0] <= expiry_s:
         raise ProjectLockedError(lock)  # 新鲜锁/快照不可得：存在即锁（旧语义保持）
-    if _lock_snapshot(lock) != first:
-        raise ProjectLockedError(lock)  # 窗口内换锁/心跳触碰（K-5 活性铁证）
+    claimed = lock.with_name(f"{lock.name}.{uuid.uuid4().hex}.clearing")
     try:
-        lock.unlink(missing_ok=True)
+        lock.rename(claimed)  # W1 原子摘下（同目录同分区 rename 原子）
     except OSError as exc:
-        raise ProjectLockedError(lock) from exc  # 清除失败=回退锁面（fail-closed）
+        raise ProjectLockedError(lock) from exc  # 摘不下=回退锁面（fail-closed）
+    if _lock_snapshot(claimed) != first:  # 窗口内心跳触碰（K-5 活性铁证）
+        with contextlib.suppress(OSError):
+            claimed.rename(lock)  # 回滚失败=摘下件孤儿文件（不影响锁面活性判定）
+        raise ProjectLockedError(lock)
+    claimed.unlink(missing_ok=True)  # 摘下件删除不可再误伤新锁（微窗已离径）
 
 
 def refresh_lock_mtime(ctx: ServiceContext, project_id: str) -> bool:
