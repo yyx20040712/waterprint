@@ -1,16 +1,20 @@
 /**
- * 构筑物节点卡片：unit_id 等宽字体主标+内置 kind 徽标+左右方向端口排布+选中描边。
+ * 构筑物节点卡片：中文名主标（单元清单 name_zh）+unit_id 等宽副标+
+ * 内置 kind 徽标+左右方向端口排布+选中描边。
  *
  * 输入:  NodeProps<UnitFlowNode>（投影层 data：unitId/kind/sourcePorts/
  *        targetPorts——D2 纯 key+kind+React Flow 受控 selected 标记）
  * 输出:  React Flow 自定义节点渲染件（type="unit" 注册键）
  *
- * 规格说明（FE4 批 6b 段一，D1/D2 裁决；FE5 批 6b 段三增选中面）：
+ * 规格说明（FE4 批 6b 段一，D1/D2 裁决；FE5 批 6b 段三增选中面；
+ * M6 批 2026-09-03 中文名收口 FE4 段二挂账）：
  *   - D2 卡片=纯 unit key+内置 kind 标注：unit_id 等宽字体（同名构筑物
  *     跨线各自渲染的唯一键）；值含 kind=内置节点加徽标（municipal_input/
  *     junction/quality_edit/recycle_junction——投影层透传不设白名单）；
- *     中文名映射/节点结果摘要挂账段二（正路=server 单元清单端点，
- *     与 D1 端口表同源）；
+ *   - M6 中文名：工艺单元主标=单元清单 name_zh（useListUnitsApiUnitsGet
+ *     生成 hook 直用——与单元库侧栏同一数据源同一缓存；清单未达/未收录
+ *     （内置节点/自定义键）回退 unit_id 主标）；unit_id 恒留等宽副标
+ *     （唯一键语义不因显示层弱化）；节点结果摘要仍挂账段二；
  *   - D1 端口=方向中性：targetPorts 左侧（入）/sourcePorts 右侧（出）——
  *     端口集合来自投影层边端点方向聚合（端口表不在项目文件）；灰阶中性
  *     色承载（§19.3 语义色之外禁彩色）；
@@ -21,8 +25,10 @@
  *     深色主题（CanvasFlow colorMode=dark 同谱）；
  *   - 只读批：节点拖动面归 CanvasFlow 裁量（本卡片不消费拖拽态）。
  */
+import { useMemo } from "react";
 import type { NodeProps } from "@xyflow/react";
 
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import type { UnitFlowNode } from "../lib/projectFlow";
 import { PortHandle } from "./PortHandle";
 
@@ -50,6 +56,18 @@ const PORT_ROW = 16;
 
 export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
+  // 中文名数据源=单元清单端点（与单元库侧栏同一 hook 同一缓存——React Query
+  // 去重使多卡片订阅零额外请求）。匹配=精确等值（ParamForm index.get(kind??
+  // unitId) 同构——工艺单元节点键即类型键；内置节点 kind 徽标已有中文面不
+  // 重复取名；未达/未收录回退 unit_id 主标）
+  const catalog = useListUnitsApiUnitsGet();
+  const nameZh = useMemo(() => {
+    const units = catalog.data?.units;
+    if (units === undefined || data.kind !== null) {
+      return null;
+    }
+    return units.find((unit) => unit.unit_id === data.unitId)?.name_zh ?? null;
+  }, [catalog.data, data.unitId, data.kind]);
   return (
     <div
       style={{
@@ -68,9 +86,18 @@ export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
         lineHeight: 1.6,
       }}
     >
-      <div style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-        {data.unitId}
-      </div>
+      {nameZh !== null ? (
+        <>
+          <div style={{ fontWeight: 600 }}>{nameZh}</div>
+          <div style={{ fontFamily: "monospace", fontSize: 11, color: "#a6a6a6", wordBreak: "break-all" }}>
+            {data.unitId}
+          </div>
+        </>
+      ) : (
+        <div style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
+          {data.unitId}
+        </div>
+      )}
       {badge !== null && (
         <div
           style={{
