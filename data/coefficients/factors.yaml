@@ -1,6 +1,11 @@
 # factors —— 三单元经验系数（草案批）
 #
-# 状态：0.1.0 已生效——领域专家 yyx20040712 于 2026-08-23 人工审核通过（含核对工作单与二审补充项）。
+# 状态：0.2.0 已升版（L7 AAO 池体图元批 2026-09-04：唯一增量=
+#   factor.aao.superheight 0.3 一键，510 旧键零扰动——探针逐键比对实录见
+#   task-L7-impl-report.md；0.1.0 基线=领域专家 yyx20040712 2026-08-23
+#   人工审核通过[含核对工作单与二审补充项]。注：数据包整体 data_version
+#   槽位在同目录 manifest.yaml 登记[本批不涉]，本行=文件头注版本，
+#   不承载 RunEnv.data_version 语义）。
 # 键形态：factor.<unit>.<quantity>；粗/细格栅共用常数以 factor.screen.* 命名
 #   （旧系统 _BarScreenBase 基类共用实现，值完全相同，不按单元重复建条目）。
 # 全部数值为旧系统实际使用的基线值；正式依据待核对 GB 50014-2021 /
@@ -375,7 +380,8 @@
   note: "初沉池水头损失经验值（带 0.3~0.5 m，保守取 0.5；高程链输入）"
 
 # ── AAO 生物池（aao，0.2.0 数据策略 v2；公式路线 ADR-008 ①负荷法主线+
-#    泥龄校核带；逐字对应 docs/norms/aao.md 系数列） ──
+#    泥龄校核带；逐字对应 docs/norms/aao.md 系数列；L7 池体图元批末位
+#    增 superheight 一键——CASS 族平移 h_pool 几何链消费） ──
 
 - key: "factor.aao.ns_band.min"
   value: 0.05
@@ -502,6 +508,12 @@
   unit: "m"
   source: "给水排水设计手册（第 5 册）高程布置曝气池水头损失常用值"
   note: "AAO 生物池水头损失经验值（带 0.3~0.5 m，保守取 0.5；高程链输入）"
+
+- key: "factor.aao.superheight"
+  value: 0.3
+  unit: "m"
+  source: "GB 50014-2021 §6（超高一般要求，≥0.3 m；条文号待核对原文）；给水排水设计手册（第 5 册）"
+  note: "AAO 池超高（旧系统 mod aao 交叉基线 0.3；L7 池体图元批——h_pool=h2+超高 几何链消费；与 safety.superheight 假设键 0.3 同源同值）"
 
 # ── 辐流二沉池（erchunchi，0.2.0 数据策略 v2；公式路线 ADR-008 ②清水
 #    表面负荷主控+固体负荷校核；逐字对应 docs/norms/erchunchi.md 系数列） ──

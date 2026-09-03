@@ -231,9 +231,10 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/aao.md 参数档/算例输入行）；
-        # range 仅五条有出处带参数（ns_band/mlss_band/hrt_anaerobic_band/
-        # r_external_band/r_internal_band），tn_eff 出水标准值与构造参数
-        # n/sec_per_hour 无范围来源不设
+        # range 仅七条有出处带参数（ns_band/mlss_band/hrt_anaerobic_band/
+        # r_external_band/r_internal_band 五参数+L7 池体图元批 h2/ratio_lb
+        # 两参数——CASS 同值同 range 平移），tn_eff 出水标准值与构造参数
+        # n/sec_per_hour/side_disc_step 无范围来源不设
         "params": [
             {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
             {
@@ -272,6 +273,18 @@ manifest = load_manifest(
             # ——语义不冲突（机理池容 vs 出流浓度两链各辖其面）。
             {"field_id": "tn_eff", "dim": "CONCENTRATION", "default": 15.0},
             {"field_id": "sec_per_hour", "dim": "DIMENSIONLESS", "default": 3600.0},
+            # L7 池体图元批几何形态参数三件（CASS 同值同 range 平移——
+            # 出处=GB 50014-2021 §6+给水排水设计手册第 5 册，CASS manifest
+            # 先例措辞；h2=有效水深 m、ratio_lb=池长宽比、side_disc_step=
+            # 边长圆整档 m——AO-F15~F19 几何族消费）
+            {"field_id": "h2", "dim": "LENGTH", "default": 5.0, "range": {"min": 4.0, "max": 6.0}},
+            {
+                "field_id": "ratio_lb",
+                "dim": "DIMENSIONLESS",
+                "default": 2.5,
+                "range": {"min": 2.0, "max": 3.0},
+            },
+            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
