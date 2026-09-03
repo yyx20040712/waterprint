@@ -12,16 +12,17 @@
  *     write 更新；rawQuery.data 身份变更即重置——保存 invalidate 后重装载
  *     丢弃本地态）；dirty=draft≠装载 site 深比较（sameSite 键序无关）；
  *   - 保存=withSite(raw, draft) 结构化替换 → PUT /api/projects/{id} →
- *     onSuccess invalidate ['/api/projects/${projectId}']（AssumptionsPanel
- *     先例同构；site 不改计算面——无自动 calc/run）；409 锁/
- *     WaterprintApiError 按 AssumptionsPanel 先例呈现（不 force 不重试，
- *     失败不丢本地态）；site 保存后不触发重算（摆放非计算输入）；
+ *     onSuccess invalidate（AssumptionsPanel 先例；site 不改计算面——无
+ *     自动 calc/run）；409 锁/WaterprintApiError 先例呈现（失败不丢本地态）；
  *   - 折线收笔：onCommitLine(折线 ≥2 点) → finishedLine 挂起 → Popover 小面板
  *     （InputNumber 宽度+Select kind）补齐后落 draft.roads/corridors；红线
  *     工具（L4a 第四态 boundary）≥3 点闭合收笔无面板直落 draft.boundary
  *     （boundary 无宽无 kind——红线只有一个，重画=替换）；
  *   - scene 查询失败≠致命：outline 降级示意矩形+工具栏提示（不阻断编辑）；
  *     投影失败（design 异形）=错误薄壳（不白屏）；
+ *   - L4b 间距校核：GET /api/site/spacing orval hook 直用+组件层 join
+ *     （预裁 9——projectSite/store 零改动；未计算=降级全量非拒不阻断）；
+ *     描边色映射下放 SiteCanvas，选中侧栏列违规行（对端/净距/阈值/severity）；
  *   - ground_elevation 编辑=选中侧栏 InputNumber（米可空——纵断数据面）；
  *   - 组件只渲染零业务推导：几何/吸附/测距全在 lib/projectSite。
  */
@@ -30,6 +31,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button, InputNumber, Popover, Select, Space, Typography } from "antd";
 
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
+import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
+import type { SpacingViolationEntry } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { useSiteData } from "../api/useSiteData";
 import {
@@ -60,10 +63,8 @@ const DEFAULT_CORRIDOR_KIND = "water";
 
 /** 走廊 kind 选项（SiteCanvas CORRIDOR_COLORS 登记面——展示层映射）。 */
 const CORRIDOR_KIND_OPTIONS = [
-  { value: "water", label: "water（给水/中水）" },
-  { value: "power", label: "power（电力）" },
-  { value: "gas", label: "gas（燃气/污泥气）" },
-  { value: "comm", label: "comm（通信）" },
+  { value: "water", label: "water（给水/中水）" }, { value: "power", label: "power（电力）" },
+  { value: "gas", label: "gas（燃气/污泥气）" }, { value: "comm", label: "comm（通信）" },
 ];
 
 /** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
@@ -170,6 +171,20 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   });
 
   const dirty = draft !== null && loadedSite !== null && !sameSite(draft, loadedSite);
+
+  // L4b 间距校核（GET /api/site/spacing——未计算=降级全量非拒；查询失败≠致命，
+  // 无数据即无标示。组件层 join 预裁 9：projectSite/store 零改动不抽纯函数）
+  const spacingQuery = useGetSpacingApiSiteSpacingGet({ project_id: projectId });
+  const severityByUnit = new Map<string, "WARN" | "ERROR">();
+  for (const row of spacingQuery.data?.violations ?? []) {
+    for (const unitId of [row.a, row.b]) {
+      if (row.severity === "ERROR" || !severityByUnit.has(unitId)) {
+        severityByUnit.set(unitId, row.severity === "ERROR" ? "ERROR" : "WARN");
+      }
+    }
+  }
+  const violationsOf = (unitId: string): SpacingViolationEntry[] =>
+    (spacingQuery.data?.violations ?? []).filter((row) => row.a === unitId || row.b === unitId);
 
   // ── 编辑回调（copy-on-write——draft 永不原位突变） ──
 
@@ -286,6 +301,8 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
     selection !== null && selection.kind === "structure"
       ? draft.structures[selection.id]
       : undefined;
+  const selectedId = selection?.kind === "structure" ? selection.id : "";
+  const selectedViolations = violationsOf(selectedId);
 
   const lineForm = (
     <div style={{ display: "grid", rowGap: 6, width: 200 }}>
@@ -373,13 +390,8 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             loading={save.isPending}
             disabled={!dirty || raw === undefined}
             onClick={() => {
-              if (raw === undefined || draft === null) {
-                return;
-              }
-              save.mutate({
-                projectId,
-                data: withSite(raw as Record<string, unknown>, draft),
-              });
+              if (raw === undefined || draft === null) return;
+              save.mutate({ projectId, data: withSite(raw as Record<string, unknown>, draft) });
             }}
           >
             保存布置{dirty ? "（有修改）" : ""}
@@ -410,6 +422,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
           <SiteCanvas
             model={model}
             draft={draft}
+            violationSeverity={severityByUnit}
             onPlace={handlers.onPlace}
             onMove={handlers.onMove}
             onRotate={handlers.onRotate}
@@ -450,6 +463,18 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
                 }
               }}
             />
+            {selectedViolations.length > 0 ? (
+              <div style={{ marginTop: 10 }}>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  间距校核（越限 {selectedViolations.length}）
+                </Typography.Text>
+                {selectedViolations.map((row) => (
+                  <div key={`${row.a}:${row.b}:${row.threshold_m}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
+                    {row.a === selectedId ? row.b : row.a}：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
+                  </div>
+                ))}
+              </div>
+            ) : null}
             <div style={{ marginTop: 10 }}>
               <Button
                 size="small"

@@ -175,7 +175,8 @@
           "kind": {
             "enum": [
               "enumeration_filter",
-              "effluent_standard"
+              "effluent_standard",
+              "spacing_check"
             ],
             "title": "Kind",
             "type": "string"
@@ -1264,6 +1265,65 @@
           "rows"
         ],
         "title": "SolutionPage",
+        "type": "object"
+      },
+      "SpacingReportResponse": {
+        "description": "间距校核响应（violations+uncalculated——未计算=降级全量非拒）。",
+        "properties": {
+          "uncalculated": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uncalculated",
+            "type": "array"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/SpacingViolationEntry"
+            },
+            "title": "Violations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "violations",
+          "uncalculated"
+        ],
+        "title": "SpacingReportResponse",
+        "type": "object"
+      },
+      "SpacingViolationEntry": {
+        "description": "违规行（对内 a<b——core 全序继承；wire 形态=简报 §一冻结）。",
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "string"
+          },
+          "b": {
+            "title": "B",
+            "type": "string"
+          },
+          "clearance_m": {
+            "title": "Clearance M",
+            "type": "number"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "threshold_m": {
+            "title": "Threshold M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "clearance_m",
+          "threshold_m",
+          "severity"
+        ],
+        "title": "SpacingViolationEntry",
         "type": "object"
       },
       "TaskIdResponse": {
@@ -2755,6 +2815,70 @@
         "summary": "Get Scene",
         "tags": [
           "scene"
+        ]
+      }
+    },
+    "/api/site/spacing": {
+      "get": {
+        "description": "间距校核（最近结果足迹+kb 阈值装配；未计算=降级全量非拒）。",
+        "operationId": "get_spacing_api_site_spacing_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpacingReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Spacing",
+        "tags": [
+          "site"
         ]
       }
     },

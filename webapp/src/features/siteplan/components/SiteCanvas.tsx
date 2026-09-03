@@ -66,10 +66,11 @@ const COLOR_ROAD = "#6b6f76";
 const COLOR_PENDING = "#d48806";
 const COLOR_MEASURE = "#2f7fd1";
 const COLOR_GRID = "#2c2c2c";
+const COLOR_SPACING_WARN = "#faad14"; // L4b 校核 WARN 黄（antd 语义色族本地常量）
+const COLOR_SPACING_ERROR = "#ff4d4f"; // L4b 校核 ERROR 红（三色并存：#d48806=未计算）
 /** L4a 边界红线色/描边宽/虚线节距（antd red-7 族本地色常量先例——boundary 无宽，显示层定值不落盘）。 */
 const COLOR_BOUNDARY = "#d4380d";
-const BOUNDARY_STROKE = 0.3;
-const BOUNDARY_DASH = "2.5 1";
+const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
 const CORRIDOR_COLORS: Record<string, string> = {
   water: "#2f7fd1",
   power: "#f2a93b",
@@ -96,6 +97,7 @@ type MeasurePair = {
 export type SiteCanvasProps = {
   model: SiteModel;
   draft: SiteDesignShape;
+  violationSeverity: ReadonlyMap<string, "WARN" | "ERROR">; // L4b 校核描边面（空=无违规/降级）
   onPlace: (unitId: string, x: number, y: number) => void;
   onMove: (unitId: string, x: number, y: number) => void;
   onRotate: (unitId: string, rotation: number) => void;
@@ -116,7 +118,7 @@ function isSelectedLine(
 }
 
 export function SiteCanvas({
-  model, draft, onPlace, onMove, onRotate, onRemove, onCommitLine,
+  model, draft, violationSeverity, onPlace, onMove, onRotate, onRemove, onCommitLine,
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -400,11 +402,13 @@ export function SiteCanvas({
             selection.kind === "structure" &&
             selection.id === entry.unitId;
           const size = entry.footprint ?? UNCALC_SIZE;
+          const severity = violationSeverity.get(entry.unitId); // L4b：选中蓝最高>ERROR 红>WARN 黄
           return (
             <g key={entry.unitId} transform={`rotate(${entry.rotation} ${entry.x} ${entry.y})`}>
               <rect x={entry.x - size.w / 2} y={entry.y - size.h / 2} width={size.w}
                 height={size.h} fill={COLOR_STRUCTURE_FILL}
-                stroke={selected ? COLOR_SELECTED : COLOR_STRUCTURE}
+                stroke={selected ? COLOR_SELECTED : severity === "ERROR" ? COLOR_SPACING_ERROR
+                  : severity === "WARN" ? COLOR_SPACING_WARN : COLOR_STRUCTURE}
                 strokeWidth={selected ? 0.5 : 0.25}
                 onPointerDown={(event) => {
                   if (tool !== "select" || event.button !== 0) {

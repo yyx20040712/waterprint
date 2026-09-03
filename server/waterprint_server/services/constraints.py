@@ -8,8 +8,8 @@
 # 规格说明（CP1 D1~D5 2026-08-31；镜像测试 server/tests/services/test_constraints.py）
 #
 # 【公开接口】
-#   list_constraints(data_dir: Path) -> ConstraintCatalog（18 条=过滤 6+
-#      出水参考 12——kb 声明序；D6 不分页整发）
+#   list_constraints(data_dir: Path) -> ConstraintCatalog（20 条=过滤 6+
+#      出水参考 12+间距校核 2——kb 1.2.0 声明序；D6 不分页整发）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
 #
@@ -63,7 +63,9 @@ _REQUIRED_KEYS: frozenset[str] = frozenset(
         "value_basis",
     }
 )
-_KINDS: frozenset[str] = frozenset({"enumeration_filter", "effluent_standard"})
+_KINDS: frozenset[str] = frozenset(
+    {"enumeration_filter", "effluent_standard", "spacing_check"}
+)  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
 
@@ -74,7 +76,7 @@ class ConstraintEntry(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     key: str
-    kind: Literal["enumeration_filter", "effluent_standard"]
+    kind: Literal["enumeration_filter", "effluent_standard", "spacing_check"]
     unit_kinds: tuple[str, ...]
     label: str
     expression: str

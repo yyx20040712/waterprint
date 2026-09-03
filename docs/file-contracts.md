@@ -61,6 +61,7 @@
 | `core/waterprint/geometry/scene.py` | L3 | 场景图 schema 与装配（<100ms） | 结果 schema+假设 | SceneGraph JSON |
 | `core/waterprint/geometry/pools.py` | L3 | 池体/渠道/水面几何图元生成 | 结果字段+假设 | 图元+变换列表 |
 | `core/waterprint/geometry/internals.py` | L3 | 内部构件布局（实例数来自计算结果） | 结果字段+假设 | InstanceGroup 组 |
+| `core/waterprint/geometry/spacing.py` | L3 | 间距校核裁判（L4b：AABB 净距纯函数——halfExtents 与 webapp measureToNearest 同口径所见即所得；footprint None=不入对+uncalculated 降级；阈值结构化透传零 DSL——kb expression 解析归 server 装配） | placements（unit_id→x/y/rotation）+footprints（unit_id→(w,h)|None）+thresholds（SpacingThreshold 三元组） | SpacingReport（violations 字典序全序+uncalculated sorted） |
 | `core/waterprint/network/manning.py` | L3 | 曼宁水力（充满度分档，公式溯源） | 断面+流量 | 流速/坡度/充满度 |
 | `core/waterprint/network/solver.py` | L3 | 管径枚举/并联/跌水井判定 | 管段序列 | 设计管径+衔接 |
 | `core/waterprint/network/excel_io.py` | L3 | 管网 Excel 读写（模板驱动、防弹） | .xlsx | 管段模型/结果 sheet |
@@ -91,6 +92,7 @@
 | `server/waterprint_server/routers/units.py` | 单元元数据端点（META1：GET /api/units+GET /api/assumptions 两端点——静态只读 lru_cache 直投；response_model=服务层冻结模型再导出，49 行） | 无（静态目录） | UnitCatalog/AssumptionCatalog |
 | `server/waterprint_server/routers/elevation.py` | 高程纵断端点（FE7：GET /api/elevation/{project_id} 一端点[condition_key 可选——缺省=排序首键回显]；response_model=服务层冻结模型再导出，51 行） | project_id+condition_key | ElevationResponse |
 | `server/waterprint_server/routers/cost.py` | 概算端点（FE8：GET /api/cost/{project_id} 一端点[condition_key 可选——缺省=design 基线档]；response_model=服务层冻结模型再导出，50 行） | project_id+condition_key | CostResponse |
+| `server/waterprint_server/routers/site.py` | 间距校核端点（L4b：GET /api/site/spacing 一端点[project_id 必填+condition_key 可选——查询参数面]；response_model=服务层冻结模型再导出；verify_token 鉴权族挂载，51 行） | project_id+condition_key | SpacingReportResponse |
 | `server/waterprint_server/services/projects.py` | 项目用例（SERVER 实装：design_digest=content_hash B4 双胞胎[UF-47]/result_is_stale 三读端点共用[AUDIT2 FIX1 C-1]/深度闸/锁 409/import_legacy M4 未就绪） | 项目 id/数据 | SaveOutcome/ProjectSummary/ValidationReport |
 | `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚+AUDIT2 FIX1 C-4 参数域守护[数值/已知键/grid 档位——META1 目录真源]；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
 | `server/waterprint_server/services/enumeration.py` | 枚举用例（多单元 422[ADR-005]/分页白名单/feather 重载/无解 done+诊断[UF-48 随载荷交付]） | 枚举请求 | TaskHandle/SolutionPage/诊断 |
@@ -100,6 +102,7 @@
 | `server/waterprint_server/services/units.py` | 单元目录+假设清单用例（META1：discover_units 32 包+D7 builtin 四 kind 投影 36 条+D1 中文名映射 36 条+DEFAULT_ASSUMPTIONS 21 条六字段取五；lru_cache(maxsize=1) 静态缓存，305 行） | core.app+contracts | UnitCatalog/AssumptionCatalog |
 | `server/waterprint_server/services/elevation.py` | 高程纵断用例（FE7：最近结果集取数[scene 同款模式复制]/假设合成视图/head_losses 空段+±0.00 相对标高+build_profile+evaluate_pumping 装配/crest_elev 服务端投影；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，267 行） | 项目 id+工况键 | ElevationResponse |
 | `server/waterprint_server/services/cost.py` | 概算用例（FE8：最近结果集取数[scene 同款模式复制]/load_prices→load_fee_rules→takeoff→build_estimate→check_indicators 四模块装配/design_scale 经 pint 换算服务面注入/name_zh 单价包直投；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，385 行） | 项目 id+工况键 | CostResponse |
+| `server/waterprint_server/services/site.py` | 间距校核装配用例（L4b：placements 自 design.site.structures+footprints 自最近结果 dims 投影[PROJECTION_TABLE 槽：length/width 直取、diameter→等宽]+thresholds 自 kb spacing_check expression 唯一解析面[unit_kinds 空=全对/两键=kind→unit_id 成员集]→core spacing_report；无完成计算/结果不可读/空工况=降级 uncalculated 全量 200 非 404/409；工况非法 422，232 行） | 项目 id+工况键 | SpacingReportResponse |
 | `server/waterprint_server/jobs/manager.py` | 任务注册表与调度（状态机单向/优先级堆同级 FIFO/幂等键/mp.Queue→asyncio 桥[run_coroutine_threadsafe]/文件取消令牌/SSE 背压丢旧保新；ENG5 四时机落盘[submit 初档/running 迁移/终态/cancel·shutdown 的 queued 终态]+records 数据类再导出面[__all__]） | TaskRequest | TaskStatus/Event 流 |
 | `server/waterprint_server/jobs/registry.py` | 注册表落盘序列化面（S2 R1 拆分+ENG5：TERMINAL_STATES 终态单源[manager._TERMINAL 同源]/PERSISTABLE_STATES 可落盘全集/task_document 平字段文档[TaskStatus 同构+snapshot_hash]/write_record GR-38 原子写/mark_interrupted 非终态→failed[InterruptedByRestart] 变换/iter_restorable 恢复流[非终态变换产出+损坏·缺键·越界跳过 warning fail-visible]，187 行） | registry_dir+平字段束 | JSON 落盘/记录流 |
 | `server/waterprint_server/jobs/records.py` | 任务域公开数据类（ENG5 D4 拆分：manager 500 行预算 S2 R1 先例——UnknownTaskError/TaskRequest[kind 白名单 _KINDS+payload 快照守卫]/TaskHandle/TaskStatus[error_code 回填位]/Event；纯数据零逻辑，manager 经 __all__ 再导出面稳定，91 行） | 无 | 数据类定义 |

@@ -33,10 +33,11 @@
 #     waterprint.graph）——类基映射覆盖可导入面，LoopDivergence 等
 #     仅 worker 侧产生的领域异常经 DOMAIN_ERROR_CODES 名义表映射
 #     （failed 任务诊断消费面），集中一处不散落。
-#   - R3 契约自检：OpenAPI 生成成功 + 端点集==24（八路由器规格并集
+#   - R3 契约自检：OpenAPI 生成成功 + 端点集==25（九路由器规格并集
 #     ——META1 注释同步勘误：原记 18 系 FE1 前陈数；FE7 +elevation1；
 #     FE8 +cost1）+ A2 面（schema 无 Any 泄漏）由镜像测试常驻；
-#     启动期断言=端点数；+1=constraints GET，CP1 D4）。
+#     启动期断言=端点数；+1=constraints GET，CP1 D4；+1=site/spacing
+#     GET，L4b D1）。
 #   - executor 注入口：create_app(settings, executor=None)——测试注入
 #     ThreadPoolExecutor（跳过 spawn；探针另以真进程池实录）。
 #
@@ -77,6 +78,7 @@ from waterprint_server.routers import (
     exports,
     projects,
     scene,
+    site,
     units,
 )
 from waterprint_server.services import ServiceContext
@@ -112,6 +114,7 @@ from waterprint_server.services.scene import (
     InvalidSceneRequestError,
     SceneSourceNotFoundError,
 )
+from waterprint_server.services.site import InvalidSpacingRequestError
 from waterprint_server.settings import Settings, ensure_directories, get_settings
 
 # ── R2 统一异常映射表（集中一处；core/server 领域异常→HTTP 码）──
@@ -139,6 +142,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSceneRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (InvalidSpacingRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),  # L4b 工况面
     (InvalidElevationRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidCostRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidProjectPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
@@ -162,10 +166,11 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+1+2+1+1=24（白名单字面量和式；+1=scene GET，FE1 D1；
+# 端点集冻结 5+6+5+2+1+1+2+1+1+1=25（白名单字面量和式；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
-# 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1
+# 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4；
+# +1=site/spacing GET，L4b D1——间距校核取数端点）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -234,14 +239,14 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==24（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==25（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
-            "（八路由器规格并集 projects5+calc6+exports5+events2+scene1"
-            "+elevation1+units2+cost1+constraints1——A1 锁定）"
+            "（九路由器规格并集 projects5+calc6+exports5+events2+scene1"
+            "+elevation1+units2+cost1+constraints1+site1——A1 锁定）"
         )
 
 
@@ -301,6 +306,8 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     app.include_router(scene.router, dependencies=[Depends(verify_token)])
     app.include_router(elevation.router, dependencies=[Depends(verify_token)])
     app.include_router(cost.router, dependencies=[Depends(verify_token)])
+    # L4b：site/spacing 鉴权族挂载（项目数据面——units 静态目录族外同保）
+    app.include_router(site.router, dependencies=[Depends(verify_token)])
     # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，
     # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
     # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，

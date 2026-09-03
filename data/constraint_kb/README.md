@@ -1,10 +1,12 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.1.0 已追认定稿（Ruling 2026-08-31）**——用户批复「全部追认」
+> **状态：1.2.0（L4b 间距校核批——spacing_check 2 条 AI 起草待追认）**；
+> 存量 18 条=1.1.0 已追认定稿（Ruling 2026-08-31）——用户批复「全部追认」
 > （18 条数值+收录边界三裁；批复记录=.workflow/ledger.md 2026-08-31
 > Ruling 条目+pending-domain-expert.md §22 销账注）。唯一未来项：干化
 > 全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
-> 同构）+webapp ConstraintPicker（方案浏览枚举提交面）。
+> 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
+> （L4b 间距校核——spacing_check 阈值数据面）。
 
 ## 与规划期构想（本文件前版）的差异记档
 
@@ -31,8 +33,8 @@ options.constraints 通道）落地为：
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -59,3 +61,10 @@ options.constraints 通道）落地为：
 - effluent_standard（GB 18918-2002 一级A/B×六项）：参考面——出水水质
   非枚举行字段（枚举行=设计变体量），过滤机制不可行故不供选；表达式
   字段（BOD5_out 等）为占位命名待校核面裁定。
+- spacing_check（L4b 1.2.0 增 2 条——间距校核面）：expression 契约固定为
+  `min_clearance_m >= <float>`（**server services/site.py 是唯一解析面**——
+  core geometry/spacing 收结构化阈值不解析 DSL；形态越界=fail-visible 拒）；
+  unit_kinds 空=全对通用（装配面 None 语义）、两键=限定对（对内双方 kind
+  均须在键集）；净距口径=AABB（webapp measureToNearest 同口径所见即所得，
+  OBB 精确净距挂账）。数值=GB 50016 防火间距族**类比起草态**
+  （pending-domain-expert §23 追认——value_basis 逐条如实标注）。

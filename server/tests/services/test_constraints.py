@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（18 条两类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（20 条三类/装载守卫四路/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -26,19 +26,21 @@ pytestmark = [
 # 真源 kb 面（仓库 data 目录——conftest REPO_DATA 同源推导）
 _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/→仓库根
 
-# kb 1.0.0 起草态计数（追认升版时同步——manifest.yaml 版本记录同面）
+# kb 计数分 kind 形态（L4b 1.2.0：+spacing_check 2 起草态——追认/增删同步）
 _FILTER_COUNT = 6
 _EFFLUENT_COUNT = 12
+_SPACING_COUNT = 2
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：18 条两类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：20 条三类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
-    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT
+    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
     assert kinds.count("effluent_standard") == _EFFLUENT_COUNT
+    assert kinds.count("spacing_check") == _SPACING_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     raw = json.loads((_REPO / "constraint_kb" / "constraints.json").read_bytes())
@@ -50,8 +52,12 @@ def test_filter_entries_carry_unit_kinds_and_values() -> None:
     catalog = list_constraints(_REPO)
     filters = [e for e in catalog.entries if e.kind == "enumeration_filter"]
     assert all(e.unit_kinds for e in filters)  # 过滤面必绑单元
-    # Ruling 2026-08-31 全部追认——起草态「待追认」标记已回写为「已追认」
-    assert all("已追认" in e.value_basis for e in catalog.entries)
+    # Ruling 2026-08-31 全部追认——过滤/出水两类标记已回写（L4b spacing
+    # 起草态两类外——分 kind 断言，禁全库一刀切）
+    ratified = [
+        e for e in catalog.entries if e.kind in {"enumeration_filter", "effluent_standard"}
+    ]
+    assert all("已追认" in e.value_basis for e in ratified)
     by_key = {e.key: e for e in filters}
     assert by_key["vxinglvchi.v_filter_band"].expression == (
         "v_filter_act >= 7.0 and v_filter_act <= 10.0"
@@ -67,6 +73,27 @@ def test_effluent_entries_not_offered_for_filtering() -> None:
     assert len(effluent) == _EFFLUENT_COUNT
     assert all(e.unit_kinds == () for e in effluent)
     assert any("GB 18918-2002" in e.source for e in effluent)
+
+
+def test_spacing_entries_carry_threshold_contract() -> None:
+    """L4b：spacing_check 面契约——expression 形态 `min_clearance_m >= <float>`
+    （server services.site 唯一解析面——README 钉面）+通用/限定对双形态+起草态。
+    """
+    import re
+
+    catalog = list_constraints(_REPO)
+    spacing = [e for e in catalog.entries if e.kind == "spacing_check"]
+    assert len(spacing) == _SPACING_COUNT
+    pattern = re.compile(r"^min_clearance_m >= [0-9]+(?:\.[0-9]+)?$")
+    assert all(pattern.match(e.expression) for e in spacing)
+    # ①通用全对：unit_kinds 空=全对通用（装配面 None 语义）；②限定对两键
+    general = next(e for e in spacing if e.key == "site.clearance_general")
+    assert general.unit_kinds == () and general.severity == "WARN"
+    scoped = next(e for e in spacing if e.key == "site.clearance_nongsuo_xiaohua")
+    assert set(scoped.unit_kinds) == {"sludge_nongsuo", "sludge_xiaohua"}
+    assert scoped.severity == "ERROR"
+    # 数值权威=起草态（pending-domain-expert §23 追认——manifest 1.2.0 同面）
+    assert all("待追认" in e.value_basis for e in spacing)
 
 
 def test_filter_values_match_factors_truth() -> None:
@@ -180,13 +207,15 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——18 条两类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——20 条三类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
     entries = payload["entries"]
-    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT
-    assert {e["kind"] for e in entries} == {"enumeration_filter", "effluent_standard"}
+    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT
+    assert {e["kind"] for e in entries} == {
+        "enumeration_filter", "effluent_standard", "spacing_check",
+    }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
         "key", "kind", "unit_kinds", "label", "expression",
