@@ -469,7 +469,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
                   间距校核（越限 {selectedViolations.length}）
                 </Typography.Text>
                 {selectedViolations.map((row) => (
-                  <div key={`${row.a}:${row.b}:${row.threshold_m}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
+                  <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
                     {row.a === selectedId ? row.b : row.a}：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
                   </div>
                 ))}

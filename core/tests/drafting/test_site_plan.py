@@ -304,6 +304,17 @@ def test_boundary_degenerate_defended() -> None:
     assert not [e for e in group.entities if e.text == "边界红线"]
 
 
+def test_boundary_min_vertices_anchor_matches_schema() -> None:
+    """L4-R 同值锚（二审 G1-06）：schema 侧 _BOUNDARY_MIN_POINTS 与投影侧
+    _BOUNDARY_MIN_VERTICES 恒同值——两侧行为各自有测（validator 1/2 点拒+
+    退化零实体），但值漂移（单侧改 1+3）两行为测试各自仍绿，本锚抓双胞胎
+    漂移。getattr 形态沿本件 site_layout 同款（实现未就绪时 AttributeError
+    先行红，符合镜像测试先红后绿）。"""
+    from waterprint.contracts.project_schema import _BOUNDARY_MIN_POINTS
+
+    assert getattr(_mod, "_BOUNDARY_MIN_VERTICES") == _BOUNDARY_MIN_POINTS
+
+
 def test_wind_rose_family() -> None:
     """§三.2 风玫瑰：sorted 方位族+频率/max 归一×基准半径（coord_grid×2）；None/空=不画。"""
     site = SiteDesign(options=SitePlanOptions(

@@ -3,7 +3,7 @@ data_version: "1.2.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
-#     （5 可枚举单元中 4 个的行字段精确匹配条目；值=coefficients 1.0.0
+#     （5 可枚举单元中 4 个的行字段精确匹配条目；值=coefficients 1.1.0
 #     同值投影）+effluent_standard 12（GB 18918-2002 一级A/B×六项参考面）。
 #     **起草态待领域专家追认**（pending-domain-expert.md 全量清单+晨报
 #     逐条申报；追认后升 1.1.0 定稿）。schema 与收录边界见 README.md
