@@ -171,7 +171,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity/units_lib manifest 真源区 + drafting styles/sheets 声明面——DRAFT 批总控问询放行 2026-08-26） |
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
 | `scripts/check_trust_root.py` | 信任根守卫：触碰三信任根（manifest/lock_tests/check_readonly）的 commit 必带 [HUMAN-LOCK]（外审整改#3 H1） |
-| `scripts/check_ruff.py` | ruff 门禁：core venv 解释器跑 CI 同款 ruff check（透传） |
+| `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP，任一 FAIL 即 1） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
