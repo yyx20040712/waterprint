@@ -1,6 +1,7 @@
 """场景图 schema 与装配：图元/变换/语义标签的场景树（全厂 <100ms 的总入口）。
 
 输入:  PlantResult（几何类字段 ID）+ assumptions（超高/壁厚等）
+       + site_design（L5a site 级摆放——None/空 structures=回退 X 轴排布）
 输出:  SceneGraph（可序列化 JSON：图元声明 + 局部变换 + 实例数 + 语义标签）
 """
 
@@ -13,7 +14,8 @@
 #      pool_wall/water_surface/aerator/paddle/media/pipe…）
 #   class Node(不可变)：node_id、primitive、position/rotation/scale
 #      （局部变换）、children、instance_count（InstancedMesh 依据）
-#   build_scene(plant_result, assumptions, condition_key) -> SceneGraph
+#   build_scene(plant_result, assumptions, condition_key,
+#               *, site_design=None) -> SceneGraph   # L5 site 级扩展
 #   class SceneGraph：root + nodes + scene_version + condition_key
 #
 # 【行为规格】
@@ -31,32 +33,54 @@
 #      总线数据（经 app 装配传入）。
 #   R5 性能预算：全厂场景图生成 <100ms（§18.1，pytest-benchmark 守卫）；
 #      图元量级 ~ 每单元几百声明，纯 Python/初等算术完成。
+#   R6 site 级总装（L5a）：site_design.structures 非空=已摆放单元按
+#      placement 定位（position=(x, y, ground_elevation 或 0.0)、
+#      rotation=(0, 0, radians(度))——度→弧度换算归 core 装配层，前端
+#      零业务几何）；未摆放单元不进场景图（总装语义=只摆已放）；
+#      structures 空/None=回退站序 X 轴占位排布（既有调用方零改动）；
+#      boundary 非空=地面红线闭合折线图元（semantic="site_boundary"，
+#      z=0 零高度；闭合段末点→首点由消费方补——顶点序即权威）。
+#      水面/渠道图元接线收口（有池体且有 water_depth 键附水面；
+#      渠道走既有 depth 槽）；roads/corridors 3D 图元挂账（二期）。
 #
 # 【测试要求】确定性（同结果双跑同 JSON）、instance_count 汇总正确、
-#   语义标签集合稳定、性能基准（<100ms）。
+#   语义标签集合稳定、site 模式摆放/未摆放/红线断言、性能基准（<100ms）。
 #
 # 【参照】重写计划 §10.5/§12.6/§16 A7/§18.1
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from typing import Final, final
 
-from waterprint.contracts.result_schema import PlantResult
+from waterprint.contracts.drawing_projection import PROJECTION_TABLE
+from waterprint.contracts.project_schema import SiteDesign, StructurePlacement
+from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.geometry.internals import internal_instances
-from waterprint.geometry.pools import Node, Primitive, pool_primitives
+from waterprint.geometry.pools import (
+    Node,
+    Primitive,
+    channel_primitives,
+    pool_primitives,
+    water_surface_node,
+)
 
 __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 
-# 场景版本（R4：坐标约定 Y-up + 单位 m 在此声明——前端渲染器唯一读取口）。
-SCENE_VERSION: Final[str] = "waterprint-scene-1/y-up/m"
+# 场景版本（R4：坐标约定 Y-up + 单位 m 在此声明——前端渲染器唯一读取口；
+# L5a 步进 -2：site 摆放+rotation 放行——语义变即步进，前端门同步）。
+SCENE_VERSION: Final[str] = "waterprint-scene-2/y-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
     "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机
 })
 _UNIT_GAP: Final[float] = 1.0  # 单元排布模型间隙 m（占位——工程间距归 M5 布置）
+_SITE_BOUNDARY_NODE_ID: Final[str] = "site::boundary"
+_SITE_BOUNDARY_KIND: Final[str] = "polyline"
+_SITE_BOUNDARY_SEMANTIC: Final[str] = "site_boundary"
 
 
 @dataclass(frozen=True)
@@ -82,16 +106,63 @@ def _unit_extent(nodes: tuple[Node, ...]) -> float:
     )
 
 
+def _ground_z(placement: StructurePlacement) -> float:
+    """单元基准标高：ground_elevation None→0.0（池底基准 0.0 铁律不变）。"""
+    return (
+        placement.ground_elevation
+        if placement.ground_elevation is not None
+        else 0.0
+    )
+
+
+def _water_surface(
+    snapshot: UnitResultSnapshot,
+    assumptions: Mapping[str, float],
+    pool_nodes: tuple[Node, ...],
+) -> Node | None:
+    """水面条件接线：有池体图元且有 water_depth 键（L5a 收口——缺键不占位）。"""
+    if not pool_nodes:
+        return None
+    projection = PROJECTION_TABLE.get(snapshot.unit_id)
+    depth_key = (
+        projection.section_keys.get("water_depth") if projection else None
+    )
+    if depth_key is None or depth_key not in snapshot.dims:
+        return None
+    return water_surface_node(snapshot, assumptions)
+
+
+def _boundary_node(site_design: SiteDesign) -> Node:
+    """地面红线图元：闭合折线顶点序压平进 dims（x0/y0/x1/y1…，z=0）。
+
+    Primitive.dims 是 str→float 映射——压平编码是 Mapping 形态下的最小
+    载体（L5a 简报「复用现有 Primitive 形态」实现裁量路线）；闭合段
+    （末点→首点）不在顶点序内，消费方按 schema 口径补（顶点序即权威）。
+    """
+    dims: dict[str, float] = {}
+    for index, point in enumerate(site_design.boundary):
+        dims[f"x{index}"] = point.x
+        dims[f"y{index}"] = point.y
+    return Node(
+        node_id=_SITE_BOUNDARY_NODE_ID,
+        primitive=Primitive(_SITE_BOUNDARY_KIND, dims, _SITE_BOUNDARY_SEMANTIC),
+        semantic=_SITE_BOUNDARY_SEMANTIC,
+    )
+
+
 def build_scene(
     plant_result: PlantResult,
     assumptions: Mapping[str, float],
     condition_key: str,
+    *,
+    site_design: SiteDesign | None = None,
 ) -> SceneGraph:
     """全厂场景图装配正门（R1 纯投影：同结果同场景图，<100ms 预算 R5）。
 
-    站序=executor 拓扑执行序；沿 X 轴按池体占位长顺序排布（缺槽单元以
-    间隙占位）；台数类经对照表 instance_counts→InstanceGroup（节点
-    instance_count 汇总——R3 千级构件一次 draw call 的数据前提）。
+    摆放双模（R6）：site_design.structures 非空=已摆放单元按 placement
+    定位（度→弧度换算在本装配层），未摆放单元不进场景图；structures 空/
+    None=回退站序 X 轴排布（既有调用方零改动）。台数类经对照表
+    instance_counts→InstanceGroup（R3 千级构件一次 draw call 数据前提）。
     """
     if condition_key not in plant_result.conditions:
         raise KeyError(
@@ -99,33 +170,88 @@ def build_scene(
             f"{sorted(plant_result.conditions)}——scene 按工况索引，R4）"
         )
     snapshots = plant_result.conditions[condition_key]
+    placements = site_design.structures if site_design is not None else {}
+    site_mode = bool(placements)
     nodes: list[Node] = []
     root: list[str] = []
     cursor_x = 0.0
     for unit_id, snapshot in snapshots.items():
         if unit_id == "inlet":
             continue
-        pool_nodes = _shift(pool_primitives(snapshot, assumptions), cursor_x)
-        nodes.extend(pool_nodes)
-        root.extend(node.node_id for node in pool_nodes)
+        placement = placements.get(unit_id)
+        if site_mode and placement is None:
+            continue  # 未摆放单元不进场景图（总装语义=只摆已放——诚实呈现）
+        pool_nodes = pool_primitives(snapshot, assumptions)
+        unit_nodes: list[Node] = [
+            *pool_nodes,
+            *channel_primitives(snapshot, assumptions),
+        ]
+        surface = _water_surface(snapshot, assumptions, pool_nodes)
+        if surface is not None:
+            unit_nodes.append(surface)
+        located = (
+            _place_unit(unit_nodes, placement)
+            if placement is not None
+            else _shift(tuple(unit_nodes), cursor_x)
+        )
+        nodes.extend(located)
+        root.extend(node.node_id for node in located)
         for group in internal_instances(snapshot, assumptions):
             origin = group.placements.get("origin", (0.0, 0.0))
             assert isinstance(origin, tuple)
-            origin_x = float(origin[0]) + cursor_x
+            origin_x = float(origin[0])
             origin_y = float(origin[1]) if len(origin) > 1 else 0.0
+            if placement is not None:
+                position = (
+                    placement.x + origin_x,
+                    placement.y + origin_y,
+                    _ground_z(placement),
+                )
+                rotation = (0.0, 0.0, math.radians(placement.rotation))
+            else:
+                position = (origin_x + cursor_x, origin_y, 0.0)
+                rotation = (0.0, 0.0, 0.0)
             nodes.append(
                 Node(
                     node_id=f"{unit_id}::{group.semantic}",
                     primitive=group.prototype,
                     semantic=group.semantic,
-                    position=(origin_x, origin_y, 0.0),
+                    position=position,
+                    rotation=rotation,
                     instance_count=group.count,
                 )
             )
         cursor_x += _unit_extent(pool_nodes) + _UNIT_GAP
+    if site_design is not None and site_design.boundary:
+        boundary = _boundary_node(site_design)
+        nodes.append(boundary)
+        root.append(boundary.node_id)
     return SceneGraph(
         root=tuple(root), nodes=tuple(nodes),
         scene_version=SCENE_VERSION, condition_key=condition_key,
+    )
+
+
+def _place_unit(nodes: list[Node], placement: StructurePlacement) -> tuple[Node, ...]:
+    """单元摆放：局部系整体平移 (x, y, 标高) + 绕 Z 旋转（度→弧度装配层）。
+
+    局部 XY 偏移不随旋转变换——v1 单元内局部 XY 恒 0（水面仅 z 分量、
+    内部构件 origin 恒 (0,0)），加法形式与旋转矩阵形式退化等价；单元内
+    出现非零局部 XY 时升级为旋转矩阵（挂账注记归报告）。
+    """
+    base = (placement.x, placement.y, _ground_z(placement))
+    rz = math.radians(placement.rotation)
+    return tuple(
+        replace(
+            node,
+            position=(
+                base[0] + node.position[0],
+                base[1] + node.position[1],
+                base[2] + node.position[2],
+            ),
+            rotation=(node.rotation[0], node.rotation[1], node.rotation[2] + rz),
+        )
+        for node in nodes
     )
 
 
