@@ -197,7 +197,7 @@
   "server/tests/test_auth.py": "6262639de0af536fcacc8494e4bd6cc666219df838716d66e9b6203adaa0e55d",
   "server/tests/test_cost.py": "8153202e6ee734ebf0935fac1daa2096b8c44eedaff312e78955fb7572e4cd5f",
   "server/tests/test_elevation.py": "6f86b3bd087d1e245ceeb210ecf1936133d4acf99d5d9ad676d55220802ecbbd",
-  "server/tests/test_server_maintenance.py": "61c997222da4c4eaf463a61c8e57ae403ceeddd60a1f931a00552eb75d67d331",
+  "server/tests/test_server_maintenance.py": "38f460a59a72e7cad1822942adec98774244ce5289e6be26f4ff352b8ba7ee13",
   "server/tests/test_settings.py": "dacbdab9e8b3bbec4355c85711fe86708db6f0ec524ed55a5b4877585a020ffc",
   "server/tests/test_upload_gate.py": "f03533842554f27b388ce6bd5c880ad24b39b1e979fb740264934878f009429f"
 }
