@@ -331,11 +331,10 @@ describe("projectScene：总装红线（polyline → boundaries 组——L5b）"
 });
 
 // ═══ L6（roads/corridors 条带 2026-09-04）：strip 第五分组 routes+角点解码
-// +bounds 并入——红先行锚 scene_version: RENDER_SCENE_VERSION（kind 面直测）；
-// 色值断言零含（归组件层，G1-09 先例） ═══
+// +bounds 并入——红先行锚 RENDER_SCENE_VERSION；色值断言零含（G1-09 先例） ═══
 describe("projectScene：条带图元（strip → routes 组——L6）", () => {
-  // core 产出锚（角点 core 预计算——零业务几何）：
-  // road 段 (0,0)→(30,0)、width=4、n=(0,1)、half=2 → (0,2),(30,2),(30,−2),(0,−2)
+  // core 产出锚（预计算角点——零业务几何）：road 段 (0,0)→(30,0)、width=4、
+  // n=(0,1)、half=2 → (0,2),(30,2),(30,−2),(0,−2)
   const roadNode: FixtureNode = {
     node_id: "site::road[0]",
     semantic: "site_road",
@@ -347,14 +346,11 @@ describe("projectScene：条带图元（strip → routes 组——L6）", () => 
     semantic: "site_corridor:water",
     primitive: { kind: "strip", dims: { x0: -1, y0: 5, x1: -1, y1: 25, x2: 1, y2: 25, x3: 1, y3: 5 }, semantic: "site_corridor:water" },
   };
-  const routeScene = () => fixture({
-    nodes: [roadNode, corridorNode],
-    root: ["site::road[0]", "site::corridor[0]"],
-    scene_version: RENDER_SCENE_VERSION,
-  });
+  const stripScene = (nodes: FixtureNode[]) =>
+    fixture({ nodes, root: nodes.map((node) => node.node_id), scene_version: RENDER_SCENE_VERSION });
 
   it("strip 归 routes 组：semantic token 透传+角点序解码换轴（北=−Z，段数=点数/4）", () => {
-    const out = projectScene(routeScene() as never);
+    const out = projectScene(stripScene([roadNode, corridorNode]) as never);
     expect(out.routes).toHaveLength(2);
     expect(out.routes[0]?.node_id).toBe("site::road[0]");
     expect(out.routes[0]?.semantic).toBe("site_road");
@@ -365,31 +361,36 @@ describe("projectScene：条带图元（strip → routes 组——L6）", () => 
   });
 
   it("strip 全部角点计入 bounds（取景覆盖——boundary 顶点聚合先例照搬）", () => {
-    const out = projectScene(routeScene() as never);
+    const out = projectScene(stripScene([roadNode, corridorNode]) as never);
     expect(out.bounds).toEqual({ min: [-1, 0, -25], max: [30, 0, 2] });
   });
 
   it("strip 不污染四组（solids/waters/internals/boundaries 恒空）", () => {
-    const out = projectScene(routeScene() as never);
+    const out = projectScene(stripScene([roadNode, corridorNode]) as never);
     expect([out.solids, out.waters, out.internals, out.boundaries]).toStrictEqual([[], [], [], []]);
   });
 
-  it("编码损坏拒：顶点数非 4 倍数（6 点=1.5 段）与压平键缺口（y{i} 缺键）", () => {
+  it("编码损坏拒：顶点数非 4 倍数（6 点）/压平键缺口（y{i}）/杂键（z0）/零点（空 dims）——R 轮覆盖补强非红先行", () => {
     const brokenCount: FixtureNode = {
-      node_id: "site::road[1]",
-      semantic: "site_road",
+      node_id: "site::road[1]", semantic: "site_road",
       primitive: { kind: "strip", dims: { x0: 0, y0: 0, x1: 10, y1: 0, x2: 10, y2: 5, x3: 0, y3: 5, x4: 1, y4: 1, x5: 2, y5: 2 }, semantic: "site_road" },
     };
-    expect(() =>
-      projectScene(fixture({ nodes: [brokenCount], root: ["site::road[1]"], scene_version: RENDER_SCENE_VERSION }) as never),
-    ).toThrow(/site::road\[1\]/);
     const brokenGap: FixtureNode = {
       ...roadNode,
       primitive: { kind: "strip", dims: { x0: 0, y0: 2, x1: 30, y1: 2, x2: 30, y2: -2, x3: 0 }, semantic: "site_road" },
     };
-    expect(() =>
-      projectScene(fixture({ nodes: [brokenGap], root: ["site::road[0]"], scene_version: RENDER_SCENE_VERSION }) as never),
-    ).toThrow(SceneProjectionError);
+    const brokenJunk: FixtureNode = {
+      ...roadNode,
+      primitive: { kind: "strip", dims: { x0: 0, y0: 2, x1: 30, y1: 2, x2: 30, y2: -2, x3: 0, y3: -2, z0: 9 }, semantic: "site_road" },
+    };
+    const brokenEmpty: FixtureNode = {
+      node_id: "site::road[2]", semantic: "site_road",
+      primitive: { kind: "strip", dims: {}, semantic: "site_road" },
+    };
+    for (const node of [brokenCount, brokenGap, brokenJunk, brokenEmpty]) {
+      expect(() => projectScene(stripScene([node]) as never)).toThrow(SceneProjectionError);
+    }
+    expect(() => projectScene(stripScene([brokenCount]) as never)).toThrow(/site::road\[1\]/);
   });
 });
 

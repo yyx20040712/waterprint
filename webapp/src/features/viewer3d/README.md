@@ -29,7 +29,7 @@
 |------|------|
 | `lib/projectScene.ts` | 投影层纯函数（SceneGraph JSON→渲染描述：版本门/分组/摆置/bounds 聚合——组件唯一数据源） |
 | `lib/projectScene.test.ts` | 投影层 vitest（node 环境，D4 五面：版本/kind 完备/摆置确定性/语义 token/root 一致性；UX2 bounds 数值锚+空场景；L5b rotation 放行/scale 仍拒+红线分组） |
-| `components/Scene.tsx` | R3F Canvas（灯光/相机预设/剖切平面挂载+四组渲染器+图层开关+OrbitControls 漫游座） |
+| `components/Scene.tsx` | R3F Canvas（灯光/相机预设/剖切平面挂载+五组渲染器+图层开关+OrbitControls 漫游座） |
 | `components/PoolBox.tsx` | 池体/渠道/地面渲染器（box/cylinder/plane/extrusion 四 kind；semanticColor 语义色查表；rotation 直消费） |
 | `components/WaterSurface.tsx` | 水面（半透明+透明度脉动；蓝水线语义色；rotation 直消费） |
 | `components/Internals.tsx` | 重复构件 InstancedMesh（投影层 placements 写矩阵+逐实例 rotation compose，每语义组一次 draw call） |

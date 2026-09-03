@@ -198,8 +198,9 @@ function stripPointsOf(nodeId: string, dims: Record<string, number>): ReadonlyAr
 
 /**
  * UX2 D5 bounds 聚合：solids+waters+internals 全 placements∪boundaries 红线
- * 顶点（世界 y=0）的 AABB（取景自适应的数据锚——机位薄壳消费；L5b 起红线
- * 顶点计入（总装取景覆盖红线外框）；空集=null 显式缺省禁伪盒）。
+ * 顶点∪routes 条带角点（世界 y=0）的 AABB（取景自适应的数据锚——机位薄壳
+ * 消费；L5b 起红线顶点计入、L6 起条带角点计入（总装取景覆盖红线/条带
+ * 外框）；空集=null 显式缺省禁伪盒）。
  */
 function boundsOfPoints(points: Iterable<Vec3>): SceneBounds | null {
   let min: Vec3 | null = null;
