@@ -2,9 +2,10 @@
  * 投影层纯函数测试：SceneGraph JSON → 渲染描述（D4 前端测试策略五面）。
  *
  * 输入:  projectScene 纯函数（node 环境——零 WebGL 依赖，先红后绿）
- * 输出:  投影契约断言（SCENE_VERSION 门/六 kind 完备/摆置确定性/语义 token/
- *        root 一致性；L5b：rotation 放行透传+scale 仍拒+总装红线 polyline 分组；
- *        L5R：换轴锚——存储 z-up→渲染 Y-up 保手性映射 (x,z,−y)+rz→Y 轴）
+ * 输出:  投影契约断言（SCENE_VERSION 门/七 kind 完备/摆置确定性/语义 token/
+ *        root 一致性；L5b：rotation 放行+scale 仍拒+红线 polyline 分组；
+ *        L5R：换轴锚 (x,z,−y)+rz→Y 轴；L6：strip 第五分组 routes——semantic
+ *        透传/角点解码/bounds 并入/损坏拒——色值断言零含（G1-09 先例））
  */
 import { describe, expect, it } from "vitest";
 
@@ -14,7 +15,7 @@ import {
   projectScene,
 } from "./projectScene";
 
-const VERSION = "waterprint-scene-2/z-up/m";
+const VERSION = "waterprint-scene-3/z-up/m";
 
 type FixtureNode = {
   node_id: string;
@@ -76,6 +77,10 @@ function fixture(overrides?: Partial<Record<string, unknown>>): Record<string, u
 }
 
 describe("projectScene：SCENE_VERSION 门", () => {
+  it("RENDER_SCENE_VERSION 步进 -3（L6 strip 图元语义变即步进——core SCENE_VERSION 双端同窗）", () => {
+    expect(RENDER_SCENE_VERSION).toBe("waterprint-scene-3/z-up/m");
+  });
+
   it("非 z-up 标签拒且原因附版本值（L5R 轴标签勘正——步进时误记的 y-up 串同拒）", () => {
     const bad = fixture({ scene_version: "waterprint-scene-2/y-up/m" });
     expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
@@ -287,11 +292,7 @@ describe("projectScene：总装红线（polyline → boundaries 组——L5b）"
   const boundaryNode: FixtureNode = {
     node_id: "site::boundary",
     semantic: "site_boundary",
-    primitive: {
-      kind: "polyline",
-      dims: { x0: -5, y0: -5, x1: 45, y1: -5, x2: 45, y2: 30, x3: -5, y3: 30 },
-      semantic: "site_boundary",
-    },
+    primitive: { kind: "polyline", dims: { x0: -5, y0: -5, x1: 45, y1: -5, x2: 45, y2: 30, x3: -5, y3: 30 }, semantic: "site_boundary" },
   };
 
   it("polyline kind 归 boundaries 组：x{i}/y{i} 压平键解码并换轴为世界水平面点（北=−Z）", () => {
@@ -321,14 +322,73 @@ describe("projectScene：总装红线（polyline → boundaries 组——L5b）"
   it("顶点不完整拒（y{i} 缺键——场景图损坏防御）", () => {
     const broken: FixtureNode = {
       ...boundaryNode,
-      primitive: {
-        kind: "polyline",
-        dims: { x0: 0, y0: 0, x1: 10, y1: 10, x2: 20 },
-        semantic: "site_boundary",
-      },
+      primitive: { kind: "polyline", dims: { x0: 0, y0: 0, x1: 10, y1: 10, x2: 20 }, semantic: "site_boundary" },
     };
     expect(() =>
       projectScene(fixture({ nodes: [broken], root: ["site::boundary"] }) as never),
+    ).toThrow(SceneProjectionError);
+  });
+});
+
+// ═══ L6（roads/corridors 条带 2026-09-04）：strip 第五分组 routes+角点解码
+// +bounds 并入——红先行锚 scene_version: RENDER_SCENE_VERSION（kind 面直测）；
+// 色值断言零含（归组件层，G1-09 先例） ═══
+describe("projectScene：条带图元（strip → routes 组——L6）", () => {
+  // core 产出锚（角点 core 预计算——零业务几何）：
+  // road 段 (0,0)→(30,0)、width=4、n=(0,1)、half=2 → (0,2),(30,2),(30,−2),(0,−2)
+  const roadNode: FixtureNode = {
+    node_id: "site::road[0]",
+    semantic: "site_road",
+    primitive: { kind: "strip", dims: { x0: 0, y0: 2, x1: 30, y1: 2, x2: 30, y2: -2, x3: 0, y3: -2 }, semantic: "site_road" },
+  };
+  // corridor 段 (0,5)→(0,25)、width=2、n=(−1,0)、half=1 → (−1,5),(−1,25),(1,25),(1,5)
+  const corridorNode: FixtureNode = {
+    node_id: "site::corridor[0]",
+    semantic: "site_corridor:water",
+    primitive: { kind: "strip", dims: { x0: -1, y0: 5, x1: -1, y1: 25, x2: 1, y2: 25, x3: 1, y3: 5 }, semantic: "site_corridor:water" },
+  };
+  const routeScene = () => fixture({
+    nodes: [roadNode, corridorNode],
+    root: ["site::road[0]", "site::corridor[0]"],
+    scene_version: RENDER_SCENE_VERSION,
+  });
+
+  it("strip 归 routes 组：semantic token 透传+角点序解码换轴（北=−Z，段数=点数/4）", () => {
+    const out = projectScene(routeScene() as never);
+    expect(out.routes).toHaveLength(2);
+    expect(out.routes[0]?.node_id).toBe("site::road[0]");
+    expect(out.routes[0]?.semantic).toBe("site_road");
+    expect(out.routes[0]?.points).toEqual([[0, -2], [30, -2], [30, 2], [0, 2]]);
+    expect(out.routes[1]?.node_id).toBe("site::corridor[0]");
+    expect(out.routes[1]?.semantic).toBe("site_corridor:water");
+    expect(out.routes[1]?.points).toEqual([[-1, -5], [-1, -25], [1, -25], [1, -5]]);
+  });
+
+  it("strip 全部角点计入 bounds（取景覆盖——boundary 顶点聚合先例照搬）", () => {
+    const out = projectScene(routeScene() as never);
+    expect(out.bounds).toEqual({ min: [-1, 0, -25], max: [30, 0, 2] });
+  });
+
+  it("strip 不污染四组（solids/waters/internals/boundaries 恒空）", () => {
+    const out = projectScene(routeScene() as never);
+    expect([out.solids, out.waters, out.internals, out.boundaries]).toStrictEqual([[], [], [], []]);
+  });
+
+  it("编码损坏拒：顶点数非 4 倍数（6 点=1.5 段）与压平键缺口（y{i} 缺键）", () => {
+    const brokenCount: FixtureNode = {
+      node_id: "site::road[1]",
+      semantic: "site_road",
+      primitive: { kind: "strip", dims: { x0: 0, y0: 0, x1: 10, y1: 0, x2: 10, y2: 5, x3: 0, y3: 5, x4: 1, y4: 1, x5: 2, y5: 2 }, semantic: "site_road" },
+    };
+    expect(() =>
+      projectScene(fixture({ nodes: [brokenCount], root: ["site::road[1]"], scene_version: RENDER_SCENE_VERSION }) as never),
+    ).toThrow(/site::road\[1\]/);
+    const brokenGap: FixtureNode = {
+      ...roadNode,
+      primitive: { kind: "strip", dims: { x0: 0, y0: 2, x1: 30, y1: 2, x2: 30, y2: -2, x3: 0 }, semantic: "site_road" },
+    };
+    expect(() =>
+      projectScene(fixture({ nodes: [brokenGap], root: ["site::road[0]"], scene_version: RENDER_SCENE_VERSION }) as never),
     ).toThrow(SceneProjectionError);
   });
 });
@@ -371,9 +431,8 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
 // ═══ UX2 U2（取景自适应 2026-08-30）：bounds 聚合 TDD 红先——AABB 全
 // placements（solids+waters+internals）；机位薄壳不测（app 层惯例） ═══
 describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", () => {
-  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值，换轴后世界系）", async () => {
-    const { projectScene: project } = await import("./projectScene");
-    const out = project(fixture() as never);
+  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值，换轴后世界系）", () => {
+    const out = projectScene(fixture() as never);
     // 换轴后世界系（y=标高槽=source z、z=−北槽）：y max=1（aerator 标高
     // 槽=source z=1）、z 极值 ±0.5（aerator 12 实例方阵 z=−0.5+row*0.5
     // 至 0.5）；x 极值=chan-1 的 30；y min=0（池体/水面标高槽全 0——
@@ -384,14 +443,12 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
     });
   });
 
-  it("空场景（nodes 空→placements 总数 0）bounds=null", async () => {
-    const { projectScene: project } = await import("./projectScene");
-    const out = project(fixture({ nodes: [], root: [] }) as never);
+  it("空场景（nodes 空→placements 总数 0）bounds=null", () => {
+    const out = projectScene(fixture({ nodes: [], root: [] }) as never);
     expect(out.bounds).toBeNull();
   });
 
-  it("单节点场景 bounds=该 placement 的退化盒（min=max，换轴后世界系）", async () => {
-    const { projectScene: project } = await import("./projectScene");
+  it("单节点场景 bounds=该 placement 的退化盒（min=max，换轴后世界系）", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "solo-1",
@@ -400,7 +457,7 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
         position: [5, 2, -3],
       },
     ];
-    const out = project(fixture({ nodes, root: ["solo-1"] }) as never);
+    const out = projectScene(fixture({ nodes, root: ["solo-1"] }) as never);
     expect(out.bounds).toEqual({ min: [5, -3, -2], max: [5, -3, -2] });
   });
 });

@@ -35,6 +35,7 @@
 | `components/Internals.tsx` | 重复构件 InstancedMesh（投影层 placements 写矩阵+逐实例 rotation compose，每语义组一次 draw call） |
 | `components/Annotations.tsx` | 三维标注（troika SDF 文本，标注位=节点位+池深直读） |
 | `components/SiteBoundary.tsx` | 场地红线（L5b：闭合折线 LineLoop——#d4380d 同色先例字面平行） |
+| `components/SiteRoutes.tsx` | 道路/走廊条带（L6：strip 逐段双三角 mesh——road #6b6f76/corridor 按 kind 分色，分层抬升 0.01） |
 | `components/troika-three-text.d.ts` | troika 类型声明（包无 types 字段——仅消费面字段） |
 | `store/viewer3dStore.ts` | 相机/剖切/显示开关 slice（zustand，纯 view 态 §12.3） |
 | `api/useSceneQuery.ts` | 场景图查询（orval hooks 消费封装：projectId+可选 conditionKey） |
@@ -44,9 +45,10 @@
 - **前端零业务几何推导**（§10.5/§16 A7）：一切尺寸来自场景图
   scene JSON（core geometry 投影产出）；渲染器只做类型化摆放
   （唯一换算=cylinder 直径→半径的 three 接口适配）；
-- **SCENE_VERSION 门**：投影层拒非 `waterprint-scene-2/y-up/m`
-  （Y-up+m 单位——core scene.py R4 唯一版本读取口；L5a 步进 -2 双端
-  同窗：site 摆放+rotation 放行）；
+- **SCENE_VERSION 门**：投影层拒非 `waterprint-scene-3/z-up/m`
+  （z-up+m 单位——core scene.py R4 唯一版本读取口；L6 步进 -3 双端
+  同窗：strip 条带图元收编；L5R 勘正——原 L47 误记 y-up 系步进时
+  实现期笔误，本批随版本步进就地勘正）；
 - **变换门收窄（L5b）**：rotation 弧度直透传（R3F rotation 属性直
   消费——换算归 core 装配层）；scale 仍拒非默认（R3F scale 消费面
   未开——门收窄不撤）；

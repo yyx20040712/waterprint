@@ -49,6 +49,7 @@ import { Annotations } from "./Annotations";
 import { Internals } from "./Internals";
 import { PoolBox } from "./PoolBox";
 import { SiteBoundary } from "./SiteBoundary";
+import { SiteRoutes } from "./SiteRoutes";
 import { WaterSurface } from "./WaterSurface";
 
 // L5b 漫游：three 包内 OrbitControls 经 extend 注册为 R3F 元素——
@@ -248,6 +249,7 @@ export function Scene({
           scene.internals.map((node) => (
             <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />
           ))}
+        <SiteRoutes routes={scene.routes} />
         {scene.boundaries.map((node) => (
           <SiteBoundary key={node.id} node={node} />
         ))}
