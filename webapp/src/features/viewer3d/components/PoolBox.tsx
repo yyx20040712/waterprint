@@ -75,10 +75,11 @@ export function PoolBox({ node, clippingPlanes }: PoolBoxProps) {
       );
     }
     case "plane":
-      // L5R 换轴随行：平面旋转落 Y 轴后，铺地基准与平面旋转的欧拉分量
-      // 加法不再可分解（Rx(−90°)·Ry(rz)=斜坡——换轴前 rz 在 Z 槽时分量
-      // 加法恰精确）；嵌套组合 Ry(rz)·Rx(−90°)（外层平面旋转、内层铺地
-      // ——先铺地后平面旋转为精确形态）。
+      // L5R 换轴随行：嵌套组合明确表达「先铺地（Rx −90°）后平面旋转
+      // （Ry rz）」的目标合成 Ry(rz)·Rx(−90°)。换轴前 rz 在 Z 槽时，旧
+      // 分量加法 Rx(−90°)·Rz(rz) 与该目标恒等（L5R-A05 恒等式——旧代码
+      // 因此碰巧精确）；rz 换 Y 槽后原样加法合成 Rx(−90°)·Ry(rz)=斜坡，
+      // 故弃分量加法改嵌套（不依赖欧拉序恒等式，语义自明）。
       return (
         <group position={position} rotation={node.rotation}>
           <mesh rotation={[GROUND_TILT_X, 0, 0]} receiveShadow>

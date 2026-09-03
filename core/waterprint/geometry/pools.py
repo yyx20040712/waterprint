@@ -177,7 +177,8 @@ def water_surface_node(
     app 装配传入——R4 全局装配归消费方）；水深经对照表
     section_keys.water_depth 取（缺键=0 水面占位，语义同 profile INFO）。
     足迹键（L5R A-S1）：水面几何=池面投影——box 池取 length/width 同源
-    键、cylinder 池取 diameter 双向外接方（v1 方形近似），前端消费
+    键、cylinder 池取 diameter 双向外接方（v1 渲染面近似：方角超出圆壁
+    ≈0.207d——相邻池排布跨界复核归后续圆形水面图元批），前端消费
     length/width 渲染池面（缺键=1×1 兜底方块=接线即显性缺陷）。
     """
     projection = _projection(unit_result.unit_id)
