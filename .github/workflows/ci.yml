@@ -87,7 +87,11 @@ jobs:
       - run: uv run mypy
       - name: import-linter 架构契约（UF-13 机器强制 CI 化——ENG2 D1）
         run: uv run lint-imports
-      - run: uv run pytest
+      - run: uv run pytest --cov
+      # 覆盖率门禁（server 面立项——2026-09-03 用户晨裁 Ruling②；core
+      # R2-B 同款形态）：fail_under 取值与裁决注记见 server/pyproject.toml
+      # coverage 段（实测基线 93.27% 留 ~1pp 平台差=92；本地 addopts 不
+      # 加 --cov——门禁只在 CI 面）。webapp 面挂沿册。
       - name: OpenAPI 契约零漂移（重生成与入库件字节比对——ENG2 D1/R1-a）
         run: |
           uv run python -m waterprint_server.dump_openapi --out /tmp/wp-openapi-drift.json
