@@ -48,7 +48,9 @@ def _plant():
                 "municipal_chenshachi",
                 {"l_straight": 4.5, "d": 3.0, "h2": 1.25, "h_total": 3.0},
             ),
-            # L7：AAO 容积法池体——compute 几何段 8 键（golden 锚数值口径）
+            # L7：AAO 容积法池体——compute 几何段 8 键（构造性 fixture：
+            #    非 golden 锚——断言面为透传/接线，公式真源=aao 包内测试
+            #    +golden e2e；R-1 更正：原「golden 锚数值口径」系误记）
             "municipal_aao": snap(
                 "municipal_aao",
                 {"v_total": 17862.22, "h2": 5.0, "a_pool": 3572.444,

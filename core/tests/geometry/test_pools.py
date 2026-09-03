@@ -108,7 +108,12 @@ def test_volume_units_without_pool_slots_yield_explicit_empty() -> None:
 
 
 def test_aao_volume_unit_pool_box_wired() -> None:
-    """L7：AAO 容积法池体图元——表声明三槽后产 box 池壁（几何键直取零推导）。"""
+    """L7：AAO 容积法池体图元——表声明三槽后产 box 池壁（几何键直取零推导）。
+
+    构造性 fixture（R-1 更正口径）：非 golden 锚——断言面为三槽透传，
+    公式真源=aao 包内测试+golden e2e；数值与 golden 实值的差异无语义
+    （本用例只证表行声明→box 取数链，不锚计算结果）。
+    """
     nodes = pool_primitives(
         _snap("municipal_aao",
               {"v_total": 17862.22, "h2": 5.0, "a_pool": 3572.444,

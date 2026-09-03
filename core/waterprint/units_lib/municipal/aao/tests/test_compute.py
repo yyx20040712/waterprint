@@ -16,6 +16,9 @@
 #   v_total 锚独立手算，AO-F15~F19 CASS 公式族平移）+ 校核带越界产
 #   Warning（ns 带/t_p 带/缺氧 HRT 带/泥龄带[好氧口径]）+ 参数域拒绝
 #   （ns≤0/delta_n≤0）+ 纯函数双跑一致 + formula_ids 全部可在公式注册表解析。
+#   R 修复轮补强三用例：几何参数域拒绝（h2=0/side_disc_step=0——ceil
+#   除档不除零唯一防线）+ ceil 落档边界例（raw 恰=档倍数零进位，
+#   覆盖补强非红先行）。
 # 【口径注记】入流水质=三表衔接式值（BOD5 123.2996/COD 199.9362/
 #   SS 93.2121，上游=初沉池出流）；出流=衔接 erchunchi 表值；q_return
 #   按最高时口径（引擎精确 Q_design 与表 5 位舍入差 <0.01，容差覆盖）。
@@ -206,6 +209,23 @@ def test_main_case_geometry() -> None:
     assert dims["v_pool"] > dims["v_total"]  # 圆整裕量诚实呈现（D12）
 
 
+def test_geometry_ceil_boundary_exact_multiple() -> None:
+    """ceil 落档边界（R 轮覆盖补强，非红先行——对当前实现即绿，注明）：
+    raw 恰落 0.5 档倍数时零进位（l_pool=95.0 非 95.5）。
+
+    构造法：先以默认参数实跑取 v_total/h2 锚，反解 ratio_lb 使
+    l_pool_raw=sqrt(a_pool×ratio_lb) 恰=95.0——9025 为完全平方，浮点链
+    a_pool×(9025/a_pool)→sqrt→÷档→ceil 在本构造逐级精确（已实跑核）；
+    ceil(190.0 档)=190×0.5=95.0。raw 精确锚在前：浮点失稳即显式红
+    （非默默变 95.5 的静默脆弱）。
+    """
+    base = _dims()
+    a_pool = base["v_total"] / base["h2"]
+    dims = make_unit().compute(_ctx(_params(ratio_lb=(95.0 * 95.0) / a_pool))).dims
+    assert dims["l_pool_raw"] == 95.0  # 恰落档（精确锚）
+    assert dims["l_pool"] == 95.0  # 非 95.5：ceil 对档倍数零进位
+
+
 def test_outflow_passthrough_and_quality() -> None:
     """出流透传 + 出水质=入质×(1−removal.mod_default)，NH3N/TN/TP 六键真实去除[NP1/RATIFY3]。"""
     result = make_unit().compute(_ctx(_params()))
@@ -262,6 +282,19 @@ def test_param_domain_rejected() -> None:
         make_unit().compute(_ctx(_params(tn_eff=50.0)))
     with pytest.raises(InvalidUnitConfig):
         make_unit().compute(_ctx(_params(), WaterQuality({"BOD5": 120.0})))
+
+
+def test_geometry_param_domain_rejected() -> None:
+    """几何参数域拒绝（R 轮补强）：h2=0 / side_disc_step=0 → InvalidUnitConfig。
+
+    side_disc_step>0 守卫=math.ceil 除档不除零的唯一防线——DSL 无 ceil、
+    compute 直除 step（AO-F15 h2=0 同为除零面），参数域拒之外无第二道
+    守卫（_validate _PARAMS_POSITIVE 承载）。
+    """
+    with pytest.raises(InvalidUnitConfig):
+        make_unit().compute(_ctx(_params(h2=0.0)))
+    with pytest.raises(InvalidUnitConfig):
+        make_unit().compute(_ctx(_params(side_disc_step=0.0)))
 
 
 def test_pure_function_double_run() -> None:
