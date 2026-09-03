@@ -5,7 +5,7 @@
  *        摆放/道路/走廊权威面）+编辑回调（onPlace/onMove/onRotate/onRemove/
  *        onCommitLine）；view 态自 siteplanStore 直读
  * 输出:  SVG 工作区（坐标网背景+构筑物足迹矩形+旋转把手+道路/走廊折线+
- *        绘制中折线+测距层；拖放/拖拽/滚轮缩放/背景平移/双击移除）
+ *        边界红线闭合多边形+绘制中折线+测距层；拖放/拖拽/滚轮缩放/背景平移/双击移除）
  *
  * 规格说明（M3 批 L2b，简报 §三交互面——详面见本 feature README；DxfSvg
  *   原生 SVG 先例零 antd/零运行期库）：
@@ -16,9 +16,10 @@
  *     draft/落盘，R3 红线）；rotation=transform rotate（世界逆时针）；
  *   - 交互=pointer 事件自实现：拖放落点/拖拽移动/把手旋转（90° 吸附默认
  *     +Shift 自由角）/背景拖拽平移/滚轮缩放（非被动监听 preventDefault）/
- *     绘制模式点击加点+双击收笔（先弹重复点再 ≥2 前置）+Enter 收笔+Esc
- *     取消；所有落点经 snapToGrid（coord_grid 网点吸附）；折线宽度=
- *     strokeWidth（米·世界单位——随 zoom 缩放即「双线示意」）；
+ *     绘制模式点击加点+双击收笔（先弹重复点再成立判定：折线 ≥2/红线
+ *     ≥3）+Enter 收笔+Esc 取消；所有落点经 snapToGrid（coord_grid 网点
+ *     吸附）；折线宽度=strokeWidth（米·世界单位——随 zoom 缩放即「双线
+ *     示意」；boundary 无宽=显示层定值不落盘）；
  *   - 测距层：选中结构 → measureToNearest(…, MEASURE_COUNT) 虚线+双值
  *     标注（编辑辅助非校核裁判——L4 面零实现零占位）；
  *   - 双击已摆结构=移除回待摆区（onRemove——pointerdown 时间/位移自实现：
@@ -28,14 +29,9 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
-  measureToNearest,
-  snapRotation,
-  snapToGrid,
-  type PlacedStructure,
-  type SiteDesignShape,
-  type SiteModel,
-  type SitePoint,
-  type StructureFootprint,
+  measureToNearest, snapRotation, snapToGrid,
+  type PlacedStructure, type SiteDesignShape, type SiteModel,
+  type SitePoint, type StructureFootprint,
 } from "../lib/projectSite";
 import { useSiteplanStore, type SiteplanSelection } from "../store/siteplanStore";
 
@@ -70,6 +66,10 @@ const COLOR_ROAD = "#6b6f76";
 const COLOR_PENDING = "#d48806";
 const COLOR_MEASURE = "#2f7fd1";
 const COLOR_GRID = "#2c2c2c";
+/** L4a 边界红线色/描边宽/虚线节距（antd red-7 族本地色常量先例——boundary 无宽，显示层定值不落盘）。 */
+const COLOR_BOUNDARY = "#d4380d";
+const BOUNDARY_STROKE = 0.3;
+const BOUNDARY_DASH = "2.5 1";
 const CORRIDOR_COLORS: Record<string, string> = {
   water: "#2f7fd1",
   power: "#f2a93b",
@@ -90,8 +90,7 @@ type DoubleTapAnchor = { time: number; unitId: string; clientX: number; clientY:
 /** 测距渲染对（几何线+屏幕标注共用——一次配对两处消费）。 */
 type MeasurePair = {
   measure: ReturnType<typeof measureToNearest>[number];
-  from: SitePoint;
-  to: SitePoint;
+  from: SitePoint; to: SitePoint;
 };
 
 export type SiteCanvasProps = {
@@ -111,21 +110,13 @@ function pointsAttr(points: readonly SitePoint[]): string {
 
 /** 道路/走廊选中判定（selection 面：kind+index）。 */
 function isSelectedLine(
-  selection: SiteplanSelection | null,
-  kind: "road" | "corridor",
-  index: number,
+  selection: SiteplanSelection | null, kind: "road" | "corridor", index: number,
 ): boolean {
   return selection !== null && selection.kind === kind && selection.index === index;
 }
 
 export function SiteCanvas({
-  model,
-  draft,
-  onPlace,
-  onMove,
-  onRotate,
-  onRemove,
-  onCommitLine,
+  model, draft, onPlace, onMove, onRotate, onRemove, onCommitLine,
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -157,10 +148,7 @@ export function SiteCanvas({
         }
         return [
           {
-            unitId,
-            x: placement.x,
-            y: placement.y,
-            rotation: placement.rotation,
+            unitId, x: placement.x, y: placement.y, rotation: placement.rotation,
             groundElevation: placement.ground_elevation,
             footprint: footprintById.get(unitId) ?? null,
           },
@@ -216,7 +204,7 @@ export function SiteCanvas({
     if (world === null) {
       return;
     }
-    if (tool === "road" || tool === "corridor") {
+    if (tool === "road" || tool === "corridor" || tool === "boundary") {
       appendPending({ x: snap(world.x), y: snap(world.y) }); // 绘制模式：点击=加点
       return;
     }
@@ -264,26 +252,26 @@ export function SiteCanvas({
   };
 
   const handleBackgroundDouble = () => {
-    // 双击收笔：双击前两次 click 已加一重复点——先弹出再 ≥2 成立判定
-    if (tool !== "road" && tool !== "corridor") {
+    // 双击收笔：先弹重复点再成立判定（折线 ≥2/红线 ≥3——core validator 镜像）
+    if (tool !== "road" && tool !== "corridor" && tool !== "boundary") {
       return;
     }
     popPending();
     const rest = useSiteplanStore.getState().pendingPoints;
-    if (rest.length >= 2) {
+    if (rest.length >= (tool === "boundary" ? 3 : 2)) {
       onCommitLine(rest);
     }
     discardPending();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (tool !== "road" && tool !== "corridor") {
+    if (tool !== "road" && tool !== "corridor" && tool !== "boundary") {
       return;
     }
     if (event.key === "Enter") {
       const points = useSiteplanStore.getState().pendingPoints;
-      if (points.length >= 2) {
-        onCommitLine(points); // Enter 收笔无重复点（≥2 前置在此收口）
+      if (points.length >= (tool === "boundary" ? 3 : 2)) {
+        onCommitLine(points); // Enter 收笔无重复点（成立门在此收口）
       }
       discardPending();
     } else if (event.key === "Escape") {
@@ -382,14 +370,24 @@ export function SiteCanvas({
             }} />
         ))}
 
-        {/* 绘制中折线（虚线+点标记——收笔归 SiteplanPane 参数面板） */}
+        {/* 边界红线（L4a）：polygon 天然闭合——红虚线族（与道路实线/走廊彩虚线
+            区分）；红线只有一个（schema 单多边形），重画=替换 */}
+        {draft.boundary.length >= 3 ? (
+          <polygon points={pointsAttr(draft.boundary)} fill="none" stroke={COLOR_BOUNDARY}
+            strokeWidth={BOUNDARY_STROKE} strokeDasharray={BOUNDARY_DASH}
+            strokeLinejoin="round" pointerEvents="none" />
+        ) : null}
+
+        {/* 绘制中折线（虚线+点标记——收笔归 SiteplanPane；红线工具即红显） */}
         {pendingPoints.length > 0 ? (
           <>
-            <polyline points={pointsAttr(pendingPoints)} fill="none" stroke={COLOR_PENDING}
+            <polyline points={pointsAttr(pendingPoints)} fill="none"
+              stroke={tool === "boundary" ? COLOR_BOUNDARY : COLOR_PENDING}
               strokeWidth={0.3} strokeDasharray="1.2 0.8" pointerEvents="none" />
             {pendingPoints.map((point, index) => (
               <circle key={`pending-${index}`} cx={point.x} cy={point.y} r={ENDPOINT_RADIUS}
-                fill={COLOR_PENDING} pointerEvents="none" />
+                fill={tool === "boundary" ? COLOR_BOUNDARY : COLOR_PENDING}
+                pointerEvents="none" />
             ))}
           </>
         ) : null}
@@ -489,9 +487,7 @@ export function SiteCanvas({
         return (
           <text key={`measure-label-${pair.measure.unitId}`} x={sx} y={sy - 4} fontSize={11}
             fill={COLOR_MEASURE} textAnchor="middle" pointerEvents="none">
-            {`中心 ${pair.measure.centerDistance.toFixed(1)} m / 净 ${
-              pair.measure.clearDistance === null ? "—" : pair.measure.clearDistance.toFixed(1)
-            } m`}
+            {`中心 ${pair.measure.centerDistance.toFixed(1)} m / 净 ${pair.measure.clearDistance === null ? "—" : pair.measure.clearDistance.toFixed(1)} m`}
           </text>
         );
       })}

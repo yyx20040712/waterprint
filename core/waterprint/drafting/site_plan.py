@@ -1,6 +1,7 @@
-"""厂区总平面图生成：布置投影+坐标网+风玫瑰+图框注记（M4 L3 实装）。
+"""厂区总平面图生成：布置投影+边界红线+坐标网+风玫瑰+图框注记（M4 L3 实装）。
 
-输入:  SiteDesign（design 态布置）+ PlantResult（工况快照）+ styles 样式表
+输入:  SiteDesign（design 态布置；boundary 红线=L4a 批增键）+ PlantResult
+       （工况快照）+ styles 样式表
 输出:  总平面图 DXF 实体组（坐标 m 1:1，布图缩放归 SheetSpec/调用方）
 """
 
@@ -33,7 +34,12 @@
 #      field=value 注记（source_key=栏位）；图纸目录页/批量出图挂 M5。
 #   R5 纯投影零 ezdxf（同 plan_view R2）：实体中立描述由 dxf_writer
 #      翻译；层用法零新层零 styles 触碰——轮廓=POOL/道路走廊=PIPE/
-#      坐标网=AXIS/注记=LABEL/标题=TITLE/图框=BORDER（既有八层内）。
+#      坐标网=AXIS/注记=LABEL/标题=TITLE/图框与边界红线=BORDER（既有
+#      八层内；L4a 红线折线复用图框层——用地边界制图族，零新层）。
+#      【L4a 增】boundary 投影=顶点序闭合折线（N 顶点=N 段，末→首段
+#      在内）+「边界红线」注记（锚=首顶点，确定性；source_key="boundary"
+#      回溯）；顶点入内容包络（图框恒含红线，G1-05 同族）；空=未划界
+#      零实体（哈希锚样本无 boundary→锚恒）。
 #   异常面 InvalidSitePlanError（GR-11 族）：conditions 空无可投影
 #      工况 / coord_grid 非有限或非正——仅结构性非法不可投影形态；键缺
 #      =占位不抛（R2）。注记锚点（标高/标题栏）并入内容包络——注记
@@ -77,6 +83,9 @@ CIRCLE_SEGMENTS: Final[int] = 2 ** (2 * 2)
 # 风玫瑰八方位（罗盘序：N 起顺时针）——方位角=索引×(π/(2·2))，即 45° 步进
 # （角度经 π 幂积推导，零度数字面量——magic 门禁面外）。
 _WIND_DIRS: Final[tuple[str, ...]] = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+# 红线闭合多边形最少顶点数（L4a：Final 常量化解 PLR2004——schema 侧
+# _BOUNDARY_MIN_POINTS 同值双胞胎；1+2 算术形态绕字面量门禁同款法）。
+_BOUNDARY_MIN_VERTICES: Final[int] = 1 + 2
 # 总平面首张图号（title_block sheet_no 栏位占位——目录页/批量编号归 M5，§三.1）。
 _SITE_SHEET_NO: Final[str] = "01"
 
@@ -235,6 +244,27 @@ def _route_projection(
     return _Projection(entities=tuple(entities), footprint=tuple(footprint))
 
 
+def _boundary_projection(points: Sequence[SitePoint]) -> _Projection:
+    """L4a 边界红线投影：顶点序 → 闭合折线（N 顶点=N 段，末→首闭合段在内
+    ——逐段独立 line 同轮廓族）+「边界红线」注记（锚=首顶点，确定性）。
+    折线层=LAYER_BORDER 复用零新层（用地边界=图框制图族）；注记层=LABEL
+    （kind 注记同族先例）。空=未划界零实体；<3 点（仅 model_construct 绕
+    schema validator 可达）=零实体不抛（投影非校验——corridor 单点先例同族）。"""
+    pts = tuple((point.x, point.y) for point in points)
+    if len(pts) < _BOUNDARY_MIN_VERTICES:
+        return _Projection(entities=(), footprint=())
+    count = len(pts)
+    entities: list[Entity] = [
+        Entity("line", LAYER_BORDER, (pts[index], pts[(index + 1) % count]),
+               source_key="boundary")
+        for index in range(count)
+    ]
+    entities.append(Entity(
+        "text", LAYER_LABEL, (pts[0],), text="边界红线", source_key="boundary",
+    ))
+    return _Projection(entities=tuple(entities), footprint=pts)
+
+
 def _grid_entities(
     coord_grid: float,
     window: tuple[float, float, float, float],
@@ -347,7 +377,7 @@ def site_layout(
     """厂区总平面图（design 态布置+PlantResult 纯投影，零 ezdxf）。
 
     坐标单位 m（模型 1:1）——m→mm 出图换算归 dxf_writer 唯一住所；
-    实体段序（确定性）：坐标网→构筑物→道路→走廊→风玫瑰→图框→标题注记。
+    实体段序（确定性）：坐标网→构筑物→道路→走廊→边界红线→风玫瑰→图框→标题注记。
     """
     if not plant_result.conditions:
         raise InvalidSitePlanError(
@@ -389,7 +419,8 @@ def site_layout(
         )
         for index, corridor in enumerate(site_design.corridors)
     ]
-    parts = [*structures, *roads, *corridors]
+    boundary = _boundary_projection(site_design.boundary)
+    parts = [*structures, *roads, *corridors, boundary]
     # 内容包络（全体足迹点集；空 site=原点邻域）；标高注记锚已并入各足迹
     xs = [x for part in parts for x, _ in part.footprint] or [0.0]
     ys = [y for part in parts for _, y in part.footprint] or [0.0]

@@ -1,7 +1,8 @@
 """site 子树 schema 镜像测试：L1 厂区布置（默认态/严格面/约束面/悬空校验/哈希参与）。
 
 输入:  project_schema site 族模型 + parse_project + project.io 确定性序列化
-输出:  DesignState 第八键 site 的契约断言（M5 L1 批）
+输出:  DesignState 第八键 site 的契约断言（M5 L1 批；L4a 批增 boundary
+       红线键——≥3 点闭合顶点序 validator，空=未划界合法态）
 """
 
 from __future__ import annotations
@@ -16,10 +17,10 @@ from waterprint.contracts.project_schema import (
 )
 from waterprint.project.io import dumps, dumps_design, loads
 
-# 本地 MINIMAL 副本（v2 形——本目录既有 MINIMAL 为 "1.0" 形，本件钉
-# site 批后的当前版装载面；design={} 必过——D7 最小态向 site 键延伸）。
-MINIMAL_V2: dict = {
-    "format_version": "2.0",
+# 本地 MINIMAL 副本（v3 形——本目录既有 MINIMAL 为 "1.0" 形，本件钉
+# L4a boundary 批后的当前版装载面；design={} 必过——D7 最小态向 site 键延伸）。
+MINIMAL_V3: dict = {
+    "format_version": "3.0",
     "design": {},
     "view": {},
     "metadata": {
@@ -52,12 +53,18 @@ _SITE_FULL: dict = {
         }
     ],
     "options": {"coord_grid": 10.0, "wind_rose": {"N": 12.5}},
+    "boundary": [  # L4a：红线闭合多边形顶点序（≥3 点；米，X 东 Y 北）
+        {"x": -5.0, "y": -5.0},
+        {"x": 45.0, "y": -5.0},
+        {"x": 45.0, "y": 30.0},
+        {"x": -5.0, "y": 30.0},
+    ],
 }
 
 
 def _site_project(site: dict) -> ProjectFile:
     """全 site 样例项目（nodes 覆盖 structures 键——悬空校验前提满足）。"""
-    data = dict(MINIMAL_V2)
+    data = dict(MINIMAL_V3)
     data["design"] = {
         "nodes": {"u1": {"pool_length": 10.5}, "u2": {"n": 1}},
         "site": site,
@@ -71,9 +78,10 @@ def test_site_defaults_and_minimal_parse() -> None:
     assert site.structures == {}
     assert site.roads == []
     assert site.corridors == []
+    assert site.boundary == []  # L4a：空=未划界合法态（roads/corridors 同族空列表语义）
     assert site.options.coord_grid == 10.0
     assert site.options.wind_rose is None
-    assert parse_project(dict(MINIMAL_V2)).design.site == site  # 最小态 site=默认
+    assert parse_project(dict(MINIMAL_V3)).design.site == site  # 最小态 site=默认
 
 
 def test_site_unknown_fields_and_non_dict_rejected() -> None:
@@ -85,7 +93,7 @@ def test_site_unknown_fields_and_non_dict_rejected() -> None:
         {"roads": [{"centerline": [42, {"x": 0.0, "y": 0.0}], "width_m": 1.0}]},  # 点非 dict
     )
     for bad in rejects:
-        data = dict(MINIMAL_V2)
+        data = dict(MINIMAL_V3)
         data["design"] = {"nodes": {"u1": {}}, "site": bad}
         with pytest.raises(Exception, match=".+"):  # 行为=拒绝（消息面随 pydantic 版本）
             parse_project(data)
@@ -104,11 +112,11 @@ def test_site_constraint_faces() -> None:
         {"corridors": [{"centerline": line2, "width_m": 2.0, "kind": ""}]},
     )
     for bad in rejects:
-        data = dict(MINIMAL_V2)
+        data = dict(MINIMAL_V3)
         data["design"] = {"site": bad}
         with pytest.raises(Exception, match=".+"):
             parse_project(data)
-    legal = dict(MINIMAL_V2)
+    legal = dict(MINIMAL_V3)
     legal["design"] = {
         "nodes": {"u1": {}},
         "site": {"structures": {"u1": {"x": 1.0, "y": 2.0, "ground_elevation": None}}},
@@ -116,7 +124,7 @@ def test_site_constraint_faces() -> None:
     placement = parse_project(legal).design.site.structures["u1"]
     assert placement.rotation == 0.0  # 缺省合法（编辑器自由角零姿态）
     assert placement.ground_elevation is None  # 可选标高显式 None 合法
-    explicit = dict(MINIMAL_V2)
+    explicit = dict(MINIMAL_V3)
     explicit["design"] = {
         "nodes": {"u1": {}},
         "site": {"structures": {"u1": {"x": 1.0, "y": 2.0, "rotation": None}}},
@@ -125,16 +133,39 @@ def test_site_constraint_faces() -> None:
         parse_project(explicit)
 
 
+def test_site_boundary_validator() -> None:
+    """L4a boundary validator：空=合法；1/2 点拒（<3 不闭合无语义）；≥3 点过。
+
+    闭合语义：顶点序隐式闭合（末点→首点段由渲染/出图面补——schema 只存
+    顶点，禁重复首点尾存）；3 点三角/4 点矩形同过。
+    """
+    triangle = [{"x": 0.0, "y": 0.0}, {"x": 10.0, "y": 0.0}, {"x": 0.0, "y": 10.0}]
+    for short in (triangle[:1], triangle[:2]):  # 1/2 点拒（<3 点）
+        data = dict(MINIMAL_V3)
+        data["design"] = {"site": {"boundary": short}}
+        with pytest.raises(Exception, match=".+"):
+            parse_project(data)
+    empty = dict(MINIMAL_V3)
+    empty["design"] = {"site": {"boundary": []}}  # 显式空=合法（未划界）
+    assert parse_project(empty).design.site.boundary == []
+    ok = dict(MINIMAL_V3)
+    ok["design"] = {"site": {"boundary": triangle}}
+    parsed = parse_project(ok).design.site
+    assert [ (p.x, p.y) for p in parsed.boundary ] == [
+        (0.0, 0.0), (10.0, 0.0), (0.0, 10.0),
+    ]  # 顶点序保留（闭合段不入 schema 面）
+
+
 def test_site_structures_keys_must_exist_in_nodes() -> None:
     """悬空校验：structures 键∉design.nodes 拒（match 悬空）；nodes 有而 site 无=合法未布置态。"""
-    dangling = dict(MINIMAL_V2)
+    dangling = dict(MINIMAL_V3)
     dangling["design"] = {
         "nodes": {"u1": {}},
         "site": {"structures": {"ghost": {"x": 1.0, "y": 1.0}}},
     }
     with pytest.raises(Exception, match="悬空"):
         parse_project(dangling)
-    unbuilt = dict(MINIMAL_V2)
+    unbuilt = dict(MINIMAL_V3)
     unbuilt["design"] = {"nodes": {"u1": {}}}  # 反向：有节点无摆放——零反向校验
     assert parse_project(unbuilt).design.site.structures == {}
 
@@ -148,6 +179,7 @@ def test_site_serialization_deterministic_roundtrip() -> None:
     assert '"x":1.0' in first  # 1.00000000001 → 1.0（归一实证）
     assert '"y":0.0' in first  # 1e-12 → 0.0（归一实证）
     assert '"kind":"water"' in first  # 开放 kind 字面进序列化面
+    assert '"boundary"' in first  # L4a 红线键进确定性序列化面
 
 
 def test_site_participates_in_design_digest() -> None:

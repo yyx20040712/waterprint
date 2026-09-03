@@ -1,7 +1,9 @@
-"""site_plan 镜像测试：厂区总平面（坐标网/风玫瑰/构筑物投影/道路走廊/图框标题）。
+"""site_plan 镜像测试：厂区总平面（坐标网/风玫瑰/构筑物投影/道路走廊/边界红线/图框标题）。
 
 输入:  waterprint.drafting.site_plan 公开符号
-输出:  总平面图契约断言（结构断言+确定性 repr 哈希锚，简报 §三.7 形态）
+输出:  总平面图契约断言（结构断言+确定性 repr 哈希锚，简报 §三.7 形态；
+       L4a 增 boundary 闭合折线+「边界红线」注记用例——哈希锚样本无
+       boundary，锚 d5dad837 预期恒）
 """
 
 from __future__ import annotations
@@ -239,6 +241,67 @@ def test_single_point_corridor_defended() -> None:
     )
     assert not [e for e in group.entities if e.source_key == "corridors[0]"]
     assert not [e for e in group.entities if e.text == "kind=water"]
+
+
+def _boundary_site() -> SiteDesign:
+    """L4a 红线样例：30×20 矩形闭合顶点序（4 点——闭合段末→首由投影补）。"""
+    return SiteDesign(boundary=[
+        SitePoint(x=0.0, y=0.0),
+        SitePoint(x=30.0, y=0.0),
+        SitePoint(x=30.0, y=20.0),
+        SitePoint(x=0.0, y=20.0),
+    ])
+
+
+def test_boundary_closed_polyline_and_annotation() -> None:
+    """L4a boundary 投影：N 顶点=N 段闭合折线（含末→首段）+「边界红线」注记。
+
+    层复用零新层：折线=LAYER_BORDER（图框同层——红线=用地边界制图族）、
+    注记=LAYER_LABEL（kind 注记同族先例）；source_key="boundary" 回溯。
+    """
+    group = site_layout(_boundary_site(), _plant({"design": {}}), base_styles())
+    lines = [e for e in group.entities if e.source_key == "boundary" and e.kind == "line"]
+    assert len(lines) == 4  # 4 顶点=4 段（闭合段在内——逐段独立 line 同轮廓族）
+    assert all(e.layer == LAYER_BORDER for e in lines)
+    assert any(_seg(e, ((0.0, 0.0), (30.0, 0.0))) for e in lines)
+    assert any(_seg(e, ((0.0, 20.0), (0.0, 0.0))) for e in lines)  # 末→首闭合段
+    notes = [e for e in group.entities if e.text == "边界红线"]
+    assert len(notes) == 1
+    assert notes[0].kind == "text" and notes[0].layer == LAYER_LABEL
+    assert notes[0].source_key == "boundary"
+    assert notes[0].points[0] == pytest.approx((0.0, 0.0))  # 注记锚=首顶点（确定性）
+
+
+def test_boundary_extends_content_envelope() -> None:
+    """L4a：红线顶点入内容包络——图框窗必含全体 boundary 顶点与注记锚（G1-05 同族）。"""
+    site = SiteDesign(
+        structures={"rect1": _placement(5.0, 5.0)},
+        boundary=[
+            SitePoint(x=-40.0, y=-30.0),
+            SitePoint(x=60.0, y=-30.0),
+            SitePoint(x=60.0, y=45.0),
+            SitePoint(x=-40.0, y=45.0),
+        ],
+    )
+    plant = _plant({"design": {"rect1": _snap("rect1", {"length": 4.0, "width": 2.0})}})
+    group = site_layout(site, plant, base_styles())
+    border = next(e for e in group.entities if e.kind == "rect")
+    (bx0, by0), (bx1, by1) = border.points
+    for vertex in ((-40.0, -30.0), (60.0, -30.0), (60.0, 45.0), (-40.0, 45.0)):
+        assert bx0 <= vertex[0] <= bx1 and by0 <= vertex[1] <= by1
+    note = next(e for e in group.entities if e.text == "边界红线")
+    assert bx0 <= note.points[0][0] <= bx1 and by0 <= note.points[0][1] <= by1
+
+
+def test_boundary_degenerate_defended() -> None:
+    """L4a 防御深度：boundary<3 点（model_construct 绕 schema validator 面）=
+    零实体零注记（投影非校验——corridor 单点先例同族，不抛不编造）。"""
+    forged = SiteDesign.model_construct(
+        boundary=[SitePoint(x=1.0, y=1.0), SitePoint(x=2.0, y=2.0)]
+    )
+    group = site_layout(forged, _plant({"design": {}}), base_styles())
+    assert not [e for e in group.entities if e.source_key == "boundary"]
+    assert not [e for e in group.entities if e.text == "边界红线"]
 
 
 def test_wind_rose_family() -> None:

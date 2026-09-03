@@ -8,9 +8,10 @@
 # 规格说明（T7a 实现 D6 裁决 2026-08-25；镜像测试 tests/project/test_migration.py）
 #
 # 【公开接口】
-#   SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0")
-#       迁移链覆盖的版本序列（链尾=当前版，锁定用例 [-1]=="2.0"）；
-#       M1 批（site 键）起链启用首条 v1→v2——后续版本只增条目。
+#   SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0", "3.0")
+#       迁移链覆盖的版本序列（链尾=当前版，锁定用例 [-1]=="3.0"）；
+#       M1 批（site 键）起链启用首条 v1→v2——后续版本只增条目；
+#       L4a 批（boundary 红线键，GR-21 只增）追加 v2→v3。
 #   migrate(data: Mapping[str, Any]) -> ProjectFile   自动识别版本迁移
 #
 # 【行为规格】
@@ -32,6 +33,8 @@
 #      core/tests/golden/golden_data/migrations/，由人类维护）。
 #      【M1 注记】v1→v2 回归证据由 tests/project/test_site_migration.py
 #      内置合成 fixture 承担（简报 §二.4——golden_data/migrations 不动）。
+#      【L4a 注记】v2→v3 起样本对入链（v2_0_to_3_0_input/expected.json），
+#      由 tests/project/test_migration.py 接线（README 纪律兑现）。
 #   R5 M4 旧系统导入器（best-effort）是独立入口（app.py 编排），
 #      不混入本迁移链（旧格式非本产品版本史）。
 #
@@ -67,7 +70,7 @@ from pydantic import ValidationError
 from waterprint.contracts.project_schema import ProjectFile, parse_project
 from waterprint.project.io import InvalidProjectError
 
-SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0")
+SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0", "3.0")
 
 
 def _migrate_add_site(data: MutableMapping[str, Any]) -> None:
@@ -83,11 +86,30 @@ def _migrate_add_site(data: MutableMapping[str, Any]) -> None:
     design.setdefault("site", {})
 
 
+def _migrate_add_boundary(data: MutableMapping[str, Any]) -> None:
+    """v2→v3：design.site 补默认空 boundary（L4a 红线键——旧项目零扰动，未划界合法态）。"""
+    design = data.setdefault("design", {})
+    if not isinstance(design, MutableMapping):
+        # _migrate_add_site 同款防御（G1-02 族：非映射容器统一 InvalidProjectError）。
+        raise InvalidProjectError(
+            f"项目数据 design 须为对象（映射）：得到 {type(design).__name__}"
+            "（迁移器 _migrate_add_boundary 就地变换面——boundary 键的载体子树）"
+        )
+    site = design.setdefault("site", {})
+    if not isinstance(site, MutableMapping):
+        raise InvalidProjectError(
+            f"项目数据 design.site 须为对象（映射）：得到 {type(site).__name__}"
+            "（迁移器 _migrate_add_boundary 就地变换面——boundary 键的挂载点）"
+        )
+    site.setdefault("boundary", [])
+
+
 # 链式迁移器注册表（R1）：(源版, 目标版, 迁移器) 按链序排列。
 # 迁移器签名：Callable[[MutableMapping[str, Any]], None]——就地纯
 # 变换数据树（无 I/O、无随机），每步完成后写入迁移日志结构。
 _MIGRATIONS: Final[tuple[tuple[str, str, Callable[[MutableMapping[str, Any]], None]], ...]] = (
     ("1.0", "2.0", _migrate_add_site),
+    ("2.0", "3.0", _migrate_add_boundary),
 )
 
 

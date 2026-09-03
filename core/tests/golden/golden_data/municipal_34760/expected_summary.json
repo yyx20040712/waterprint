@@ -582,8 +582,8 @@
     "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 500430,
-    "serialize_sha256_head": "ede2c0644aa3b545",
-    "source": "主线实跑 2026-09-03 HEAD=a1b09d8 M1 site 批重录"
+    "serialize_sha256_head": "20018c50214758ca",
+    "source": "主线实跑 2026-09-03 HEAD=8e3c7d7+L4a boundary 批重录"
   },
   "m3_deferred": {
     "estimate_total": {

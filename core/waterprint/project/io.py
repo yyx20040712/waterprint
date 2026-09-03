@@ -86,7 +86,8 @@ _MAX_BYTES: Final[int] = 10**2 * 10**2 * 10**2 * 10
 _MAX_DEPTH: Final[int] = 10**2
 # 当前版 format_version（R6：dumps_design 头；与 migration.
 # SUPPORTED_VERSIONS[-1] 同源同步——双源一致性由门禁+migrate 拒路径守）。
-_FORMAT_VERSION: Final[str] = "2.0"
+# L4a：boundary 红线键入 schema（GR-21 只增）→ "2.0"→"3.0"（旧哈希自然失效）。
+_FORMAT_VERSION: Final[str] = "3.0"
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
     "ensure_ascii": False,

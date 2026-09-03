@@ -16,8 +16,10 @@
  *     先例同构；site 不改计算面——无自动 calc/run）；409 锁/
  *     WaterprintApiError 按 AssumptionsPanel 先例呈现（不 force 不重试，
  *     失败不丢本地态）；site 保存后不触发重算（摆放非计算输入）；
- *   - 折线收笔：onCommitLine(≥2 点) → finishedLine 挂起 → Popover 小面板
- *     （InputNumber 宽度+Select kind）补齐后落 draft.roads/corridors；
+ *   - 折线收笔：onCommitLine(折线 ≥2 点) → finishedLine 挂起 → Popover 小面板
+ *     （InputNumber 宽度+Select kind）补齐后落 draft.roads/corridors；红线
+ *     工具（L4a 第四态 boundary）≥3 点闭合收笔无面板直落 draft.boundary
+ *     （boundary 无宽无 kind——红线只有一个，重画=替换）；
  *   - scene 查询失败≠致命：outline 降级示意矩形+工具栏提示（不阻断编辑）；
  *     投影失败（design 异形）=错误薄壳（不白屏）；
  *   - ground_elevation 编辑=选中侧栏 InputNumber（米可空——纵断数据面）；
@@ -223,6 +225,12 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
     onElev: (unitId: string, elevation: number | null) =>
       updateStructure(unitId, { ground_elevation: elevation }),
     onCommitLine: (points: SitePoint[]) => {
+      if (tool === "boundary") {
+        // L4a 红线：无宽度/kind 面板（boundary 无宽）——≥3 点即闭合收笔
+        // 直接落 draft.boundary；红线只有一个（schema 单多边形），重画=替换。
+        setDraft((prev) => (prev === null ? prev : { ...prev, boundary: points }));
+        return;
+      }
       if (tool !== "road" && tool !== "corridor") {
         return;
       }
@@ -322,6 +330,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
               ["select", "选择/平移"],
               ["road", "道路"],
               ["corridor", "管线走廊"],
+              ["boundary", "边界红线"], // L4a 第四态：≥3 点双击/Enter 闭合收笔（无参数面板）
             ] as const
           ).map(([value, label]) => (
             <Button

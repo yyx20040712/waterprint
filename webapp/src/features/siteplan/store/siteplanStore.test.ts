@@ -88,6 +88,16 @@ describe("siteplanStore（view 态纯转移——业务数据零入 store）", (
     expect(state.pendingPoints).toEqual([]);
   });
 
+  it("setTool boundary（L4a 折线工具第四态）：切换生效+同弃笔语义", () => {
+    const { setTool, appendPending } = useSiteplanStore.getState();
+    setTool("boundary");
+    appendPending({ x: 0, y: 0 });
+    appendPending({ x: 30, y: 0 });
+    expect(useSiteplanStore.getState().tool).toBe("boundary");
+    setTool("select"); // 弃笔：绘制中红线顶点随切换清空
+    expect(useSiteplanStore.getState().pendingPoints).toEqual([]);
+  });
+
   it("pending 序列机：加点/弹出（空表弹出=no-op）/重置/取消清空", () => {
     const { appendPending, popPending, resetPending, discardPending } =
       useSiteplanStore.getState();

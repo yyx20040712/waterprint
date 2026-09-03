@@ -39,7 +39,9 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
         ctx,
         {
             "project": {
-                "format_version": "2.0",
+                # L4a 随行 v3（M1 先例同形态）：载荷=当前版新建态——回滚重写面
+                # 版本头零漂移（v2 字面经 _DESIGN_FORMAT_VERSION 3.0 回写=字节变）。
+                "format_version": "3.0",
                 "design": {
                     "nodes": {
                         "inlet": {
@@ -61,7 +63,7 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
                 },
                 "view": {},
                 "metadata": {
-                    "format_version": "2.0",
+                    "format_version": "3.0",
                     "content_hash": "0",
                     "engine_version": "0",
                     "data_version": "0",

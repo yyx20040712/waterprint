@@ -11,26 +11,26 @@
  * 规格说明（M3 批 L2a，简报 §一预裁决 1/5/6/7——详面见本 feature README；
  *   类型面=core project_schema.py SiteDesign 的 TS 消费面镜像，真源在 core）：
  *   - D6 轻形状门（projectFlow 同构）：structures/roads/corridors/options
- *     逐类逐键形状拒；未知键透传不拒（server strict Pydantic 面是唯一语义门
- *     ——gt/min_length 等语义约束零复制）；缺 site 键=全默认态（core
- *     SiteDesign default_factory 同象）；缺 design.nodes → 拒（待摆区面）；
+ *     逐类逐键形状拒；boundary（L4a 红线）形状门+≥3 点门（core validator
+ *     镜像——空=未划界合法）；未知键透传不拒（server strict Pydantic 面是
+ *     唯一语义门——gt/min_length 等语义约束零复制）；缺 site 键=全默认态
+ *     （core SiteDesign default_factory 同象）；缺 design.nodes → 拒（待摆区面）；
  *   - 足迹（footprint w/h，米）投影自 scene 节点 primitive dims——键解释镜像
- *     viewer3d 渲染器消费面（PoolBox.tsx boxGeometry：box/plane/extrusion 用
- *     同一对 length×width 键、cylinder 用 diameter 键——同源所见即所得非
- *     业务复制）；节点按 node_id 前缀（core scene.py "{unit_id}::{semantic}"
- *     产出面）匹配；children 递归展开聚合包围盒+instance_count>1 近方阵摆置
- *     （projectScene placementsOf 同构）；无水平键图元不计入；scene=null/
- *     未命中 → footprint=null（示意矩形归组件层按未计算态渲染，尺寸不出本
- *     函数——R3 落盘红线）；
+ *     viewer3d 渲染器消费面（PoolBox.tsx：box/plane/extrusion 用 length×width
+ *     同对键、cylinder 用 diameter 键——同源所见即所得非业务复制）；节点按
+ *     node_id 前缀（core scene.py "{unit_id}::{semantic}"）匹配；children
+ *     递归聚合包围盒+instance_count>1 近方阵（projectScene placementsOf 同构）；
+ *     无水平键图元不计入；scene=null/未命中 → footprint=null（示意矩形归
+ *     组件层未计算态渲染，尺寸不出本函数——R3 落盘红线）；
  *   - withSite 结构化替换（withConstraintChoices 同构禁散拼）：仅替换
  *     design.site，其余顶层/design 键原样回传（深层引用相等）；
  *   - snapToGrid：开=round(v/grid)*grid；关=原值；恒 1e-9 舍入防浮尾；
  *     grid 非正数=防御直通。snapRotation：90° 档位（free=true→1° 舍入）
  *     +归一 [0,360)——确定性零随机；
- *   - measureToNearest：净距=轴对齐矩形投影边到边（AABB 半轴=(w·|cosθ|+
- *     h·|sinθ|)/2；重叠轴 clamp 0——测距=编辑辅助非校核裁判，防火间距
- *     校核归 L4 server）；footprint null 者净距=null（不猜）；序=中心距
- *     升序、同距 unitId 字典序；自身排除（防御面）；
+ *   - measureToNearest：净距=轴对齐矩形边到边（AABB 半轴=(w·|cosθ|+h·|sinθ|)/2；
+ *     重叠轴 clamp 0——编辑辅助非校核裁判，防火间距校核归 L4 server）；
+ *     footprint null 者净距=null（不猜）；序=中心距升序、同距 unitId
+ *     字典序；自身排除（防御面）；
  *   - 零运行期库 import（zustand/antd 不进本文件——node 测试直跑）。
  */
 import type { Node, SceneResponse } from "../../../shared/api/generated/model";
@@ -68,6 +68,8 @@ export type SiteDesignShape = {
   structures: Record<string, StructurePlacement>;
   roads: RoadShape[];
   corridors: CorridorShape[];
+  /** core boundary 镜像（L4a 红线）：空=未划界；非空 ≥3 点闭合顶点序。 */
+  boundary: SitePoint[];
   options: SiteOptionsShape;
 };
 
@@ -154,10 +156,8 @@ function narrowPlacement(raw: unknown, unitId: string): StructurePlacement {
   const elevationRaw = raw["ground_elevation"];
   const rotation =
     rotationRaw === undefined ? 0.0 : numberField(raw, "rotation", `${path}.rotation`);
-  const ground =
-    elevationRaw === undefined || elevationRaw === null
-      ? null
-      : numberField(raw, "ground_elevation", `${path}.ground_elevation`);
+  const ground = elevationRaw === undefined || elevationRaw === null ? null
+    : numberField(raw, "ground_elevation", `${path}.ground_elevation`);
   return {
     x: numberField(raw, "x", `${path}.x`),
     y: numberField(raw, "y", `${path}.y`),
@@ -166,19 +166,19 @@ function narrowPlacement(raw: unknown, unitId: string): StructurePlacement {
   };
 }
 
+/** 点窄化（x/y 有限数值——centerline/boundary 共用）。 */
+function narrowPoint(raw: unknown, path: string): SitePoint {
+  if (!isRecord(raw)) {
+    reject(`${path} 须为对象（x/y 米）：得到 ${show(raw)}`);
+  }
+  return { x: numberField(raw, "x", `${path}.x`), y: numberField(raw, "y", `${path}.y`) };
+}
+
 function narrowCenterline(raw: unknown, label: string): SitePoint[] {
   if (!Array.isArray(raw)) {
     reject(`${label}.centerline 须为数组（≥2 点——长度语义门在 server）：得到 ${show(raw)}`);
   }
-  return raw.map((point, index) => {
-    if (!isRecord(point)) {
-      reject(`${label}.centerline[${index}] 须为对象（x/y 米）：得到 ${show(point)}`);
-    }
-    return {
-      x: numberField(point, "x", `${label}.centerline[${index}].x`),
-      y: numberField(point, "y", `${label}.centerline[${index}].y`),
-    };
-  });
+  return raw.map((point, index) => narrowPoint(point, `${label}.centerline[${index}]`));
 }
 
 function narrowRoad(raw: unknown, index: number): RoadShape {
@@ -227,6 +227,7 @@ export function narrowSiteDesign(raw: unknown): SiteDesignShape {
       structures: {},
       roads: [],
       corridors: [],
+      boundary: [],
       options: { coord_grid: DEFAULT_COORD_GRID, wind_rose: null },
     };
   }
@@ -251,6 +252,15 @@ export function narrowSiteDesign(raw: unknown): SiteDesignShape {
     corridorsRaw === undefined
       ? []
       : narrowList(corridorsRaw, "design.site.corridors", narrowCorridor);
+  // L4a 红线：缺省宽容 []；非数组或 1/2 点=拒（core ≥3 点 validator 镜像——空=未划界合法）
+  const boundaryRaw = raw["boundary"];
+  let boundary: SitePoint[] = [];
+  if (boundaryRaw !== undefined) {
+    if (!Array.isArray(boundaryRaw) || boundaryRaw.length === 1 || boundaryRaw.length === 2) {
+      reject(`design.site.boundary 须为数组（空或 ≥3 点闭合顶点序）：得到 ${show(boundaryRaw)}`);
+    }
+    boundary = boundaryRaw.map((point, index) => narrowPoint(point, `design.site.boundary[${index}]`));
+  }
   let options: SiteOptionsShape = { coord_grid: DEFAULT_COORD_GRID, wind_rose: null };
   const optionsRaw = raw["options"];
   if (optionsRaw !== undefined) {
@@ -277,7 +287,7 @@ export function narrowSiteDesign(raw: unknown): SiteDesignShape {
       wind_rose: windRose,
     };
   }
-  return { structures, roads, corridors, options };
+  return { structures, roads, corridors, boundary, options };
 }
 
 /** 近方阵摆置（projectScene placementsOf 同构：cols=ceil(√n)、步距=length/width）。 */

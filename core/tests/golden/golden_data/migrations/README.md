@@ -6,10 +6,14 @@
 ```
 migrations/
 ├─ README.md            # 本文件
-├─ v0_9_to_1_0_input.json     # 旧版样本（v0.9 为示例名，实际首个历史版由 M1 定）
-└─ v0_9_to_1_0_expected.json  # 迁移后期望
+├─ v2_0_to_3_0_input.json     # v2 样本（site 全子键、零 boundary——L4a 前盘实态形）
+└─ v2_0_to_3_0_expected.json  # 迁移后期望（boundary 补默认空+版本头 3.0+来源版记录）
 ```
 
-当前状态：v1.0 是首个 format_version，尚无历史版需要迁移——
-首个真实的向下兼容破坏（v1.1+）出现时，本目录开始累积样本，
-`tests/project/test_migration.py` 的链式用例随之接线。
+当前状态：v3.0 为当前 format_version（L4a boundary 红线键，GR-21 只增）。
+v1→v2（M1 site 键）回归证据由 `tests/project/test_site_migration.py`
+内置合成 fixture 承担（M1 简报 §二.4——该步不补样本）；v2→v3 起样本
+对入链，`tests/project/test_migration.py` 的链式用例已接线。
+
+样本纪律：content_hash 保留旧版占位（升版后自然失效——io R6 版本头
+语义，迁移链不重算哈希）；expected=迁移器产出 model_dump 逐键相等面。

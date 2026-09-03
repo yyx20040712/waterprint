@@ -1,0 +1,40 @@
+{
+  "format_version": "3.0",
+  "design": {
+    "nodes": {"u1": {"pool_length": 10.5}},
+    "edges": [{"src": "u1:o", "dst": "u2:i"}],
+    "constraint_choices": {"c1": "strict"},
+    "checked_units": ["u1"],
+    "assumption_overrides": {"safety.superheight": 0.3},
+    "influent": {"q_avg_daily": 100.0},
+    "standard_binding": {"out": "gb18918_1a"},
+    "site": {
+      "structures": {
+        "u1": {"x": 5.0, "y": 6.0, "rotation": 90.0, "ground_elevation": 103.5}
+      },
+      "roads": [
+        {
+          "centerline": [{"x": 0.0, "y": -8.0}, {"x": 40.0, "y": -8.0}],
+          "width_m": 4.0
+        }
+      ],
+      "corridors": [
+        {
+          "centerline": [{"x": 0.0, "y": 0.0}, {"x": 0.0, "y": 25.0}],
+          "width_m": 2.0,
+          "kind": "water"
+        }
+      ],
+      "options": {"coord_grid": 10.0, "wind_rose": {"N": 12.5}},
+      "boundary": []
+    }
+  },
+  "view": {"layout": {}, "camera": {}, "windows": {}, "timestamp": ""},
+  "metadata": {
+    "format_version": "3.0",
+    "content_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "engine_version": "0.1.0",
+    "data_version": "coefficients@0.1.0",
+    "migrated_from": "2.0"
+  }
+}

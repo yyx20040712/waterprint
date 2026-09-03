@@ -17,7 +17,9 @@
 #       assumption_overrides: dict[str → float]（假设覆盖：键→值）
 #       influent: dict[str, Any]（进水绑定）
 #       standard_binding: dict[str → str]（标准绑定）
-#       site: SiteDesign（厂区布置——M5 L1 批新增，全默认空容器）
+#       site: SiteDesign（厂区布置——M5 L1 批新增，全默认空容器；L4a 批
+#           增 boundary 红线键：≥3 点闭合多边形顶点序 validator，空=未划界
+#           合法态——roads/corridors 同族空列表语义，GR-21 只增）
 #       ——全部 default 空容器（design={} 必须过，D7 最小态）
 #   class ViewState(BaseModel)：不参与哈希——
 #       layout: dict[str → Any] = {}（画布布局）
@@ -56,7 +58,8 @@
 #     （Z 或 +00:00 过；naive 串与非零偏移时区 +08:00 等 = 拒——
 #     UF-40 收紧，T7a D3 2026-08-25）。
 #   - 数值纪律：本文件不在魔法数字白名单——字面量仅 site 批（M5 L1）
-#     §三定稿的 0.0/1/2/10.0（默认值与 min_length/gt 约束面）。
+#     §三定稿的 0.0/1/2/10.0（默认值与 min_length/gt 约束面；L4a boundary
+#     点数门=Final 常量 _BOUNDARY_MIN_POINTS——比较面零字面量）。
 #
 # 【测试要求】view 变更不改 content_hash（与 project/io 联合，后续窗）、
 #   未知字段拒绝、序列化往返无损（与 project/io 联合，后续窗）、
@@ -69,11 +72,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Final
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 _STRICT_FORBID = ConfigDict(strict=True, extra="forbid")
+
+# 红线闭合多边形最少顶点数（L4a：Final 常量化解 PLR2004——formulas.py
+# ARCH1 D1d 同款先例；1+2 算术形态=值 3 进白名单操作数——API_TOKEN_
+# MIN_LENGTH 幂积同款绕字面量门禁法，validator 比较面零字面量）。
+_BOUNDARY_MIN_POINTS: Final[int] = 1 + 2
 
 
 class SitePoint(BaseModel):
@@ -125,7 +133,7 @@ class SitePlanOptions(BaseModel):
 
 
 class SiteDesign(BaseModel):
-    """厂区布置（design 态 site 键载体；boundary 红线后补 GR-21）。"""
+    """厂区布置（design 态 site 键载体；boundary 红线=L4a 批落地 GR-21）。"""
 
     model_config = _STRICT_FORBID
 
@@ -134,6 +142,21 @@ class SiteDesign(BaseModel):
     roads: list[Road] = Field(default_factory=list)
     corridors: list[Corridor] = Field(default_factory=list)
     options: SitePlanOptions = Field(default_factory=SitePlanOptions)
+    # L4a（GR-21 只增）：红线=用地边界闭合多边形顶点序（米，X 东 Y 北）；
+    # 空=未划界合法态（roads/corridors 同族空列表语义——避开 None 序列化
+    # 特例）；闭合段（末点→首点）不入 schema——渲染/出图面补，顶点序即权威。
+    boundary: list[SitePoint] = Field(default_factory=list)
+
+    @field_validator("boundary")
+    @classmethod
+    def _boundary_empty_or_closable(cls, value: list[SitePoint]) -> list[SitePoint]:
+        """boundary 点数门：空=未划界合法；非空须 ≥3 点（1/2 点不成闭合面，拒）。"""
+        if 0 < len(value) < _BOUNDARY_MIN_POINTS:
+            raise ValueError(
+                f"site.boundary 非空须 ≥3 点（闭合多边形顶点序）：得到 {len(value)} 点"
+                "（GR-21 增键——红线不闭合无语义，1/2 点拒）"
+            )
+        return value
 
 
 class DesignState(BaseModel):

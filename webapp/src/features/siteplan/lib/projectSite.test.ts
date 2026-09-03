@@ -3,7 +3,8 @@
  *
  * 输入:  projectSite 纯函数族（node 环境——零 DOM 依赖，先红后绿）
  * 输出:  契约断言（D6 轻门逐类拒带定位/缺 site 默认/footprint 键镜像+
- *        children 聚合+instance 方阵/withSite 深层引用相等/snap·rotation·measure 数值例）
+ *        children 聚合+instance 方阵/withSite 深层引用相等/snap·rotation·measure 数值例；
+ *        L4a 增 boundary 红线窄化门——缺省空合法/≥3 点门镜像 core validator）
  */
 import { describe, expect, it } from "vitest";
 
@@ -73,6 +74,7 @@ describe("narrowSiteDesign（site 弱类型窄化——缺省宽容/逐类拒带
       structures: {},
       roads: [],
       corridors: [],
+      boundary: [],
       options: { coord_grid: 10.0, wind_rose: null },
     });
   });
@@ -86,6 +88,12 @@ describe("narrowSiteDesign（site 弱类型窄化——缺省宽容/逐类拒带
       roads: [{ centerline: [{ x: 0, y: 0 }, { x: 10, y: 0 }], width_m: 4 }],
       corridors: [
         { centerline: [{ x: 0, y: 0 }, { x: 0, y: 20 }], width_m: 1.5, kind: "water" },
+      ],
+      boundary: [
+        { x: -5, y: -5 },
+        { x: 45, y: -5 },
+        { x: 45, y: 30 },
+        { x: -5, y: 30 },
       ],
       options: { coord_grid: 5, wind_rose: { N: 0.3, S: 0.1 } },
     });
@@ -105,6 +113,12 @@ describe("narrowSiteDesign（site 弱类型窄化——缺省宽容/逐类拒带
       { centerline: [{ x: 0, y: 0 }, { x: 10, y: 0 }], width_m: 4 },
     ]);
     expect(site.corridors[0]?.kind).toBe("water");
+    expect(site.boundary).toEqual([
+      { x: -5, y: -5 },
+      { x: 45, y: -5 },
+      { x: 45, y: 30 },
+      { x: -5, y: 30 },
+    ]); // L4a 红线顶点序镜像（值透传——闭合语义归渲染/出图面）
     expect(site.options).toEqual({ coord_grid: 5, wind_rose: { N: 0.3, S: 0.1 } });
   });
 
@@ -160,6 +174,32 @@ describe("narrowSiteDesign（site 弱类型窄化——缺省宽容/逐类拒带
     ).toThrow(/design\.site\.options\.wind_rose\[N\]/);
     expect(narrowSiteDesign({ options: {} }).options.coord_grid).toBe(10.0);
     expect(narrowSiteDesign({ options: { wind_rose: null } }).options.wind_rose).toBeNull();
+  });
+
+  it("boundary（L4a 红线）：缺省/空数组合法；≥3 点过；1/2 点拒（core ≥3 点 validator 镜像）", () => {
+    expect(narrowSiteDesign({ boundary: [] }).boundary).toEqual([]);
+    const triangle = [
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 0, y: 10 },
+    ];
+    expect(narrowSiteDesign({ boundary: triangle }).boundary).toEqual(triangle);
+    expect(() => narrowSiteDesign({ boundary: triangle.slice(0, 1) })).toThrow(
+      /design\.site\.boundary/,
+    );
+    expect(() => narrowSiteDesign({ boundary: triangle.slice(0, 2) })).toThrow(
+      /design\.site\.boundary/,
+    );
+  });
+
+  it("boundary 逐类拒：非数组/点非对象/坐标非数——带索引定位", () => {
+    expect(() => narrowSiteDesign({ boundary: {} })).toThrow(/design\.site\.boundary/);
+    expect(() =>
+      narrowSiteDesign({ boundary: ["x", { x: 0, y: 0 }, { x: 1, y: 1 }] }),
+    ).toThrow(/design\.site\.boundary\[0\]/);
+    expect(() =>
+      narrowSiteDesign({ boundary: [{ x: 0, y: "1" }, { x: 1, y: 1 }, { x: 2, y: 0 }] }),
+    ).toThrow(/design\.site\.boundary\[0\]\.y/);
   });
 
   it("未知键透传不拒（server strict 面是唯一语义门——TS 零业务复制）", () => {

@@ -14,8 +14,9 @@
  *   - pan/zoom=视口态（像素/倍率）：zoom 夹紧 [ZOOM_MIN, ZOOM_MAX]
  *     （0.1~10——简报 §三 store 面定值）；zoomBy 非有限因子=no-op 防御；
  *   - snapEnabled/showGrid=吸附/网格显示开关（默认开——简报 §一.6）；
- *   - tool=select|road|corridor；setTool 切换即取消绘制中折线
- *     （pendingPoints 清空——切换工具=弃笔语义，收笔 ≥2 前置归组件层）；
+ *   - tool=select|road|corridor|boundary（L4a 增第四态「边界红线」）；
+ *     setTool 切换即取消绘制中折线（pendingPoints 清空——切换工具=弃笔
+ *     语义，收笔 ≥2/红线 ≥3 前置归组件层）；
  *   - pendingPoints=折线绘制中点序列（米——世界坐标非屏幕）；
  *   - selection 三面：structure 按 unit_id、road/corridor 按索引
  *     （roads/corridors 是数组容器——索引即身份）。
@@ -31,7 +32,7 @@ export type SiteplanSelection =
   | { kind: "road"; index: number }
   | { kind: "corridor"; index: number };
 
-export type SiteplanTool = "select" | "road" | "corridor";
+export type SiteplanTool = "select" | "road" | "corridor" | "boundary";
 
 export type SiteplanPoint = { x: number; y: number };
 

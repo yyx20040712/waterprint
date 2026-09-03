@@ -2,7 +2,8 @@
 
 输入:  services.projects（save_project/read_project）+ client fixture +
        core design_hash 真源（测试面专用 import，产品码禁直连 D7 不涉）
-输出:  design.site 的服务契约断言（core schema 批的 server 侧接线）
+输出:  design.site 的服务契约断言（core schema 批的 server 侧接线；L4a 批
+       format_version 3.0 断言随行+boundary 键入全子键样例）
 """
 
 from __future__ import annotations
@@ -41,6 +42,12 @@ _SITE_FULL: dict[str, object] = {  # 全子键样例（服务面与 core test_si
         }
     ],
     "options": {"coord_grid": 10.0, "wind_rose": {"N": 12.5}},
+    "boundary": [  # L4a 红线键（≥3 点闭合顶点序——服务面随 core schema v3）
+        {"x": -5.0, "y": -5.0},
+        {"x": 45.0, "y": -5.0},
+        {"x": 45.0, "y": 30.0},
+        {"x": -5.0, "y": 30.0},
+    ],
 }
 
 
@@ -66,7 +73,8 @@ async def test_put_full_site_persists_and_rereads(service_ctx) -> None:  # type:
     assert persisted.design.site == SiteDesign.model_validate(_SITE_FULL)
     assert persisted.design.site.structures["u1"].x == 1.0
     assert persisted.design.site.options.wind_rose == {"N": 12.5}
-    assert persisted.format_version == "2.0"  # 当前版直通（服务常量与 core 同源）
+    assert len(persisted.design.site.boundary) == 4  # L4a 红线键随 PUT 全量落盘
+    assert persisted.format_version == "3.0"  # 当前版直通（服务常量与 core 同源）
 
 
 @pytest.mark.anyio
@@ -82,7 +90,7 @@ async def test_put_depth_gate_enumerates_design_site(service_ctx) -> None:  # ty
     for _ in range(2 * 10**2):  # 200+ 层 >> max_json_depth
         deep = {"n": deep}
     forged = ProjectFile.model_construct(
-        format_version="2.0",
+        format_version="3.0",
         design=DesignState.model_construct(
             nodes={},
             edges=[],
@@ -91,7 +99,7 @@ async def test_put_depth_gate_enumerates_design_site(service_ctx) -> None:  # ty
         ),
         view=ViewState(),
         metadata=Metadata(
-            format_version="2.0",
+            format_version="3.0",
             content_hash="0" * 64,
             engine_version="0",
             data_version="0",
@@ -118,8 +126,8 @@ async def test_put_dangling_site_key_rejected_4xx(client) -> None:  # type: igno
     assert "悬空" in response.json()["detail"]
 
 
-def test_design_digest_mirror_v2_with_site() -> None:
-    """镜像：v2 形 design（含 site 全子键）server digest == core design_hash 逐字节。
+def test_design_digest_mirror_v3_with_site() -> None:
+    """镜像：v3 形 design（含 site 全子键+boundary）server digest == core design_hash 逐字节。
 
     沿用 test_design_digest_mirror 形态（值不断言字面——两侧双胞胎随
     site 扩键自动一致即断言面）。
