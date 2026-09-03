@@ -78,9 +78,13 @@ def test_scene_carries_version_and_condition() -> None:
 
 
 def test_scene_version_stepped_to_site() -> None:
-    """L5a：SCENE_VERSION 步进 -2（site 摆放+rotation 放行——语义变即步进）。"""
+    """L5a：SCENE_VERSION 步进 -2（site 摆放+rotation 放行——语义变即步进）。
+
+    L5R 轴标签勘正：-2 未推送即就地正名 z-up（存储坐标 Z-up——X 东 Y 北
+    Z 标高；步进时误记 y-up 系 G1-01 根因，渲染层换轴而非改存储）。
+    """
     graph = build_scene(_plant(), _assumptions(), "design")
-    assert graph.scene_version == "waterprint-scene-2/y-up/m"
+    assert graph.scene_version == "waterprint-scene-2/z-up/m"
 
 
 def test_site_mode_places_units_and_boundary() -> None:
@@ -138,6 +142,10 @@ def test_water_surface_and_channel_wired() -> None:
     surface = by_id["municipal_chenshachi::water_surface"]
     assert surface.semantic == "water_surface"
     assert surface.position[2] == pytest.approx(1.25)
+    # L5R A-S1：水面足迹=池面投影（box 池 length/width 同源键——
+    # 前端 length/width 渲染池面，缺键=1×1 兜底方块即显性缺陷）
+    assert surface.primitive.dims["length"] == pytest.approx(4.5)
+    assert surface.primitive.dims["width"] == pytest.approx(3.0)
     # cugeshan 无 water_depth 键（section_keys 只有 pool_depth/head_loss）不附水面
     assert "municipal_cugeshan::water_surface" not in by_id
     # 渠道图元：extrusion 走既有 depth 槽（cugeshan H=1.0）

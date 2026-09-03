@@ -146,6 +146,29 @@ def test_site_placement_carried_into_local_placement(tmp_path) -> None:
     assert isclose(ref[1], 1.0, abs_tol=1e-9)
 
 
+def test_elements_contained_in_building(tmp_path) -> None:
+    """L5R G1-02 空间包含：全部元素挂 building（BIM 空间树主发现通道）。
+
+    仅摆放链（ObjectPlacement）挂接的元素在查看器/校验器的空间树遍历
+    中不可达（孤儿元素）——IfcRelContainedInSpatialStructure 补主通道。
+    """
+    import ifcopenshell
+    from ifcopenshell.util.element import get_container
+
+    graph = _scene()
+    out = tmp_path / "containment.ifc"
+    write_ifc(build_ifc(graph), out)
+    model = ifcopenshell.open(out)
+    building = model.by_type("IfcBuilding")[0]
+    rels = model.by_type("IfcRelContainedInSpatialStructure")
+    assert len(rels) == 1  # 单关系全量挂接（原型级——无 storey 分层）
+    assert rels[0].RelatingStructure == building
+    proxies = model.by_type("IfcBuildingElementProxy")
+    assert set(rels[0].RelatedElements) == set(proxies)
+    for proxy in proxies:  # 逐元素容器可达（消费方视角的主发现路径）
+        assert get_container(proxy) == building
+
+
 def test_deterministic_bytes(tmp_path) -> None:
     """确定性：同 SceneGraph 双跑写出 bytes 恒等（OwnerHistory 时间戳固定值定槽）。"""
     graph = _scene()

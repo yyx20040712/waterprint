@@ -3,7 +3,8 @@
  *
  * 输入:  projectScene 纯函数（node 环境——零 WebGL 依赖，先红后绿）
  * 输出:  投影契约断言（SCENE_VERSION 门/六 kind 完备/摆置确定性/语义 token/
- *        root 一致性；L5b：rotation 放行透传+scale 仍拒+总装红线 polyline 分组）
+ *        root 一致性；L5b：rotation 放行透传+scale 仍拒+总装红线 polyline 分组；
+ *        L5R：换轴锚——存储 z-up→渲染 Y-up 保手性映射 (x,z,−y)+rz→Y 轴）
  */
 import { describe, expect, it } from "vitest";
 
@@ -13,7 +14,7 @@ import {
   projectScene,
 } from "./projectScene";
 
-const VERSION = "waterprint-scene-2/y-up/m";
+const VERSION = "waterprint-scene-2/z-up/m";
 
 type FixtureNode = {
   node_id: string;
@@ -75,14 +76,14 @@ function fixture(overrides?: Partial<Record<string, unknown>>): Record<string, u
 }
 
 describe("projectScene：SCENE_VERSION 门", () => {
-  it("非 waterprint-scene-2/y-up/m 拒且原因附版本值（L5b 步进 -2：旧 -1 坐标约定拒）", () => {
-    const bad = fixture({ scene_version: "waterprint-scene-1/y-up/m" });
+  it("非 z-up 标签拒且原因附版本值（L5R 轴标签勘正——步进时误记的 y-up 串同拒）", () => {
+    const bad = fixture({ scene_version: "waterprint-scene-2/y-up/m" });
     expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
     try {
       projectScene(bad as never);
       expect.unreachable("必须抛出");
     } catch (error) {
-      expect((error as Error).message).toContain("waterprint-scene-1/y-up/m");
+      expect((error as Error).message).toContain("waterprint-scene-2/y-up/m");
       expect((error as Error).message).toContain(RENDER_SCENE_VERSION);
     }
   });
@@ -131,10 +132,11 @@ describe("projectScene：instance_count>1 摆置确定性", () => {
     expect(aerator).toBeDefined();
     expect(aerator?.placements).toHaveLength(12);
     expect(aerator?.instanceCount).toBe(12);
-    // 步距=原型占位（length=0.5→X 向、width=0.5→Z 向——类型化摆放非业务推导）
+    // 步距=原型占位（length=0.5→X 向、width=0.5→世界 Z 向——类型化摆放
+    // 非业务推导；origin 已换轴 [2, 1, −0.5]=core (2, 北 0.5, 标高 1)）
     const first = aerator?.placements[0];
     const second = aerator?.placements[1];
-    expect(first).toEqual([2, 0.5, 1]);
+    expect(first).toEqual([2, 1, -0.5]);
     expect((second?.[0] ?? 0) - (first?.[0] ?? 0)).toBeCloseTo(0.5, 10);
     // 12 实例 → cols=ceil(sqrt(12))=4：第二行起点=第 5 个实例（X 回原点）
     const fifth = aerator?.placements[4];
@@ -195,8 +197,8 @@ describe("projectScene：root 序与 nodes 索引一致性", () => {
   });
 });
 
-describe("projectScene：非默认变换门（L5b 收窄：rotation 放行/scale 仍拒）", () => {
-  it("rotation 任意值放行且弧度直透传（R3F 直消费——度→弧度换算归 core 装配层）", () => {
+describe("projectScene：非默认变换门（L5R 单轴收编：rz 换算 Y 轴/rx·ry 拒/scale 仍拒）", () => {
+  it("平面旋转换算：core (0,0,π/2) → three (0,π/2,0)（保手性映射角不变——绕世界竖轴）", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "rot-1",
@@ -208,7 +210,39 @@ describe("projectScene：非默认变换门（L5b 收窄：rotation 放行/scale
     ];
     const out = projectScene(fixture({ nodes, root: ["rot-1"] }) as never);
     expect(out.solids).toHaveLength(1);
-    expect(out.solids[0]?.rotation).toEqual([0, 0, Math.PI / 2]); // 零换算透传
+    expect(out.solids[0]?.rotation).toEqual([0, Math.PI / 2, 0]);
+  });
+
+  it("rx 非零拒（core 契约恒 (0,0,rz)——rx/ry 非零=场景图契约漂移）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "rxd-1",
+        semantic: "media",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "media" },
+        rotation: [0.1, 0, 0],
+      },
+    ];
+    const bad = fixture({ nodes, root: ["rxd-1"] });
+    try {
+      projectScene(bad as never);
+      expect.unreachable("必须抛出");
+    } catch (error) {
+      expect(error).toBeInstanceOf(SceneProjectionError);
+      expect((error as Error).message).toContain("rxd-1");
+    }
+  });
+
+  it("ry 非零拒（同上——三维轴语义不明即拒，不放行不静默丢）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "ryd-1",
+        semantic: "media",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "media" },
+        rotation: [0, 0.3, 0],
+      },
+    ];
+    const bad = fixture({ nodes, root: ["ryd-1"] });
+    expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
   });
 
   it("scale 非默认拒（非 (1,1,1) 即拒——门收窄不撤）", () => {
@@ -260,21 +294,21 @@ describe("projectScene：总装红线（polyline → boundaries 组——L5b）"
     },
   };
 
-  it("polyline kind 归 boundaries 组：x{i}/y{i} 压平键按索引序解码为平面点序", () => {
+  it("polyline kind 归 boundaries 组：x{i}/y{i} 压平键解码并换轴为世界水平面点（北=−Z）", () => {
     const out = projectScene(fixture({ nodes: [boundaryNode], root: ["site::boundary"] }) as never);
     expect(out.boundaries).toHaveLength(1);
     expect(out.boundaries[0]?.id).toBe("site::boundary");
     expect(out.boundaries[0]?.points).toEqual([
-      [-5, -5],
-      [45, -5],
-      [45, 30],
-      [-5, 30],
+      [-5, 5],
+      [45, 5],
+      [45, -30],
+      [-5, -30],
     ]);
   });
 
-  it("红线顶点计入 bounds（总装取景覆盖红线外框——平面 y 映射世界 Z）", () => {
+  it("红线顶点计入 bounds（总装取景覆盖红线外框——北=−Z 换轴随行）", () => {
     const out = projectScene(fixture({ nodes: [boundaryNode], root: ["site::boundary"] }) as never);
-    expect(out.bounds).toEqual({ min: [-5, 0, -5], max: [45, 0, 30] });
+    expect(out.bounds).toEqual({ min: [-5, 0, -30], max: [45, 0, 5] });
   });
 
   it("红线不污染三组（solids/waters/internals 恒空）", () => {
@@ -337,15 +371,16 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
 // ═══ UX2 U2（取景自适应 2026-08-30）：bounds 聚合 TDD 红先——AABB 全
 // placements（solids+waters+internals）；机位薄壳不测（app 层惯例） ═══
 describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", () => {
-  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值）", async () => {
+  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值，换轴后世界系）", async () => {
     const { projectScene: project } = await import("./projectScene");
     const out = project(fixture() as never);
-    // 摆置极值实锚：y max=0.5 与 z max=2 来自 aerator 12 实例方阵
-    // （y=0.5 摆位列、z=1+row*0.5 至 2——z 极值非原型 position 的 1）；
-    // x 极值=chan-1 的 30；y min=ground-1 的 -0.01。
+    // 换轴后世界系（y=标高槽=source z、z=−北槽）：y max=1（aerator 标高
+    // 槽=source z=1）、z 极值 ±0.5（aerator 12 实例方阵 z=−0.5+row*0.5
+    // 至 0.5）；x 极值=chan-1 的 30；y min=0（池体/水面标高槽全 0——
+    // surf source y=0.1/ground −0.01 归世界 z=−0.1/0.01 在 z 极值内）。
     expect(out.bounds).toEqual({
-      min: [0, -0.01, 0],
-      max: [30, 0.5, 2],
+      min: [0, 0, -0.5],
+      max: [30, 1, 0.5],
     });
   });
 
@@ -355,7 +390,7 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
     expect(out.bounds).toBeNull();
   });
 
-  it("单节点场景 bounds=该 placement 的退化盒（min=max）", async () => {
+  it("单节点场景 bounds=该 placement 的退化盒（min=max，换轴后世界系）", async () => {
     const { projectScene: project } = await import("./projectScene");
     const nodes: FixtureNode[] = [
       {
@@ -366,6 +401,42 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
       },
     ];
     const out = project(fixture({ nodes, root: ["solo-1"] }) as never);
-    expect(out.bounds).toEqual({ min: [5, 2, -3], max: [5, 2, -3] });
+    expect(out.bounds).toEqual({ min: [5, -3, -2], max: [5, -3, -2] });
+  });
+});
+
+// ═══ L5R（换轴收编 2026-09-03）：G1-01 教训钉进测试面——存储 z-up/
+// 渲染 Y-up 保手性映射与平面旋转换算的端到端锚（A 二审矩阵+数值实证） ═══
+describe("projectScene：L5R 换轴锚（保手性 (x,z,−y)——存储 z-up→渲染 Y-up）", () => {
+  it("core site 摆放 (x=10, y北=20, z标高=0.5)+rz=π/2 → three (10, 0.5, −20)+绕 Y π/2（镜像 [x,z,y] 会使旋转视觉反向——弃用形）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "site-pool",
+        semantic: "pool_wall",
+        primitive: { kind: "box", dims: { length: 10, width: 4, depth: 3 }, semantic: "pool_wall" },
+        position: [10, 20, 0.5],
+        rotation: [0, 0, Math.PI / 2],
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: ["site-pool"] }) as never);
+    expect(out.solids[0]?.position).toEqual([10, 0.5, -20]);
+    expect(out.solids[0]?.rotation).toEqual([0, Math.PI / 2, 0]);
+  });
+
+  it("水面抬升锚：core (0,0,水位 z) → three y=水位（北分量归 −Z——不悬空不水平偏移）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "surf-z",
+        semantic: "water_surface",
+        primitive: {
+          kind: "water_surface",
+          dims: { level: 1.25, length: 4.5, width: 3 },
+          semantic: "water_surface",
+        },
+        position: [0, 0, 1.25],
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: ["surf-z"] }) as never);
+    expect(out.waters[0]?.position).toEqual([0, 1.25, 0]);
   });
 });

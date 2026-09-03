@@ -9,10 +9,17 @@
  *        零色值零业务推导）
  *
  * 规格说明（FE1 D4；core scene.py R4 唯一版本读取口；UX2 D5 bounds 聚合；
- *   L5b 总装模式 2026-09-03）：
- *   - SCENE_VERSION 门：非 "waterprint-scene-2/y-up/m" 显式拒（原因附
+ *   L5b 总装模式 2026-09-03；L5R 换轴收编 G1-01 同窗）：
+ *   - SCENE_VERSION 门：非 "waterprint-scene-2/z-up/m" 显式拒（原因附
  *     实际值与期望值——坐标约定/单位漂移前置到投影边界；L5a core 步进
- *     -2=site 摆放+rotation 放行，双端同窗）；
+ *     -2=site 摆放+rotation 放行，双端同窗；L5R 轴标签就地勘正——
+ *     存储恒 z-up，步进时误记 y-up 系 G1-01 根因）；
+ *   - 换轴（L5R 唯一换轴点）：core 场景图存储 Z-up（X 东 Y 北 Z 标高
+ *     ——DXF/IFC/SitePoint 同族），three 渲染 Y-up（X 东 Y 上 Z 南）；
+ *     position 保手性映射 (x, z, −y)（det=+1——平面旋转角不变；镜像
+ *     [x,z,y] 会使 rz 视觉反向，A 二审矩阵+数值实证弃用）；rotation
+ *     (0,0,rz)→(0,rz,0)（绕世界竖轴——rx/ry 非零=core 契约漂移显式拒）；
+ *     红线平面点 y→世界 z 取负；bounds 同源换算。组件层零轴知识；
  *   - 六 kind 完备：box/cylinder/plane/extrusion/water_surface/polyline
  *     全映射，未知 kind 显式拒（原因含 kind 与 node_id）；
  *   - instance_count>1 摆置：近方阵（cols=ceil(sqrt(n))、rows=ceil(n/cols)）、
@@ -23,16 +30,17 @@
  *   - 零业务计算/零业务几何推导：只消费 dims/position/rotation/
  *     instance_count/semantic（children v1 平铺不出现——core build_scene
  *     产平表）；
- *   - 变换门（FE1 M1→L5b 收窄）：rotation 放行透传（R3F rotation 属性
- *     直消费弧度——度→弧度换算归 core 装配层，前端零业务几何）；scale
- *     仍拒非默认（门收窄不撤——R3F scale 消费面未开，静默丢弃即失真）；
+ *   - 变换门（FE1 M1→L5b 收窄→L5R 单轴收编）：rotation 仅放行平面旋转
+ *     rz（core 契约恒 (0,0,rz)——rz→three Y 轴透传，rx/ry 非零拒）；
+ *     scale 仍拒非默认（门收窄不撤——R3F scale 消费面未开，静默丢弃
+ *     即失真）；
  *   - 总装红线（L5b）：kind=polyline（semantic="site_boundary"）归
- *     boundaries 组，core 压平顶点键 x{i}/y{i} 按索引序解码为平面点序
- *     （闭合段末点→首点归渲染层补——core 顶点序即权威）。
+ *     boundaries 组，core 压平顶点键 x{i}/y{i} 按索引序解码并换轴为
+ *     世界水平面点（闭合段末点→首点归渲染层补——core 顶点序即权威）。
  */
 import type { SceneResponse } from "../../../shared/api/generated/model";
 
-export const RENDER_SCENE_VERSION = "waterprint-scene-2/y-up/m";
+export const RENDER_SCENE_VERSION = "waterprint-scene-2/z-up/m";
 
 const KNOWN_KINDS = new Set([
   "box",
@@ -47,20 +55,21 @@ const BOUNDARY_KIND = "polyline";
 
 export type Vec3 = [number, number, number];
 
-/** 渲染描述节点（摆置=InstancedMesh 数据前提；dims 逐键透传；rotation 弧度直透传）。 */
+/** 渲染描述节点（摆置=InstancedMesh 数据前提；dims 逐键透传；rotation=three Y 轴弧度）。 */
 export type RenderNode = {
   id: string;
   kind: string;
   semantic: string;
   position: Vec3;
-  /** L5b 放行透传（R3F 直消费弧度——core 装配层已换算，投影层零换算）。 */
+  /** L5R 换轴后形态 (0, rz, 0)——绕世界竖轴（Y-up），core (0,0,rz) 契约换算。 */
   rotation: Vec3;
   dims: Record<string, number>;
   instanceCount: number;
   placements: Vec3[];
 };
 
-/** 红线渲染描述（平面点序 [x, y] 对——世界 XZ 映射归组件层；闭合段渲染层补）。 */
+/** 红线渲染描述（世界水平面点序 [x, z] 对——L5R 换轴后坐标，z=−core_y；
+ *  贴地微抬归组件层；闭合段渲染层补）。 */
 export type BoundaryNode = {
   id: string;
   semantic: string;
@@ -112,8 +121,9 @@ function placementsOf(origin: Vec3, count: number, dims: Record<string, number>)
 }
 
 /**
- * 红线顶点序解码（L5b）：core 压平键 x{i}/y{i} 按索引序重建平面点序——
- * 纯格式解码零业务推导；奇偶缺口/杂键=场景图损坏显式拒（顶点数 ≥3 面
+ * 红线顶点序解码+换轴（L5b/L5R）：core 压平键 x{i}/y{i} 按索引序重建
+ * 平面点序并换轴为世界水平面坐标 [x, z=−y]（北=−Z）——纯格式解码+唯一
+ * 换轴点换算零业务推导；奇偶缺口/杂键=场景图损坏显式拒（顶点数 ≥3 面
  * 由 core validator 把守，本层零重复校验）。
  */
 function boundaryPointsOf(nodeId: string, dims: Record<string, number>): Array<[number, number]> {
@@ -125,7 +135,8 @@ function boundaryPointsOf(nodeId: string, dims: Record<string, number>): Array<[
     if (x === undefined || y === undefined) {
       break;
     }
-    points.push([x, y]);
+    const north = -y; // 北→−Z（L5R 换轴；−0 归一同 position 面）
+    points.push([x, north === 0 ? 0 : north]);
     index += 1;
   }
   if (index === 0 || index * 2 !== Object.keys(dims).length) {
@@ -200,11 +211,25 @@ export function projectScene(scene: SceneResponse): RenderScene {
           + `${[...KNOWN_KINDS].join("/")}，core pools.py 图元域外）`,
       );
     }
-    const position: Vec3 = node.position ?? [0, 0, 0];
-    // 变换门（FE1 M1→L5b 收窄）：rotation 放行弧度直透传（R3F 直消费）；
-    // scale 仍拒非默认（R3F scale 消费面未开，静默丢弃即失真——原因含
-    // 节点 id 与实际值）。
-    const rotation: Vec3 = node.rotation ?? [0, 0, 0];
+    // 换轴（L5R 唯一换轴点）：core Z-up（X 东 Y 北 Z 标高）→ three Y-up
+    // （X 东 Y 上 Z 南）——保手性映射 (x, z, −y)：det=+1 平面旋转角不变
+    // （镜像 [x,z,y] 会使 rz 视觉反向，A 二审实算弃用）。北分量取负后
+    // −0 归一 +0（JS 取负零 Artifact——Object.is/序列化面区分，渲染等价）。
+    const source = node.position ?? [0, 0, 0];
+    const north = -source[1];
+    const position: Vec3 = [source[0], source[2], north === 0 ? 0 : north];
+    // 变换门（FE1 M1→L5b→L5R 单轴收编）：core 契约 rotation 恒 (0,0,rz)
+    // （平面旋转——rz=绕世界竖轴）→ three Y 轴透传 (0, rz, 0)；rx/ry 非零
+    // =core 契约漂移显式拒（放行即三维轴语义不明——静默丢弃更失真）；
+    // scale 仍拒非默认（R3F scale 消费面未开）。
+    const sourceRotation = node.rotation ?? [0, 0, 0];
+    if (sourceRotation[0] !== 0 || sourceRotation[1] !== 0) {
+      throw new SceneProjectionError(
+        `非平面旋转拒渲染：节点 ${node.node_id} rotation=(${sourceRotation.join(",")})`
+          + "——core 契约恒 (0,0,rz)（平面旋转），rx/ry 非零=场景图契约漂移",
+      );
+    }
+    const rotation: Vec3 = [0, sourceRotation[2], 0];
     const scale = node.scale ?? [1, 1, 1];
     if (scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) {
       throw new SceneProjectionError(
@@ -242,7 +267,7 @@ export function projectScene(scene: SceneResponse): RenderScene {
   const boundPoints: Vec3[] = [
     ...[...solids, ...waters, ...internals].flatMap((node) => node.placements),
     ...boundaries.flatMap((boundary) =>
-      boundary.points.map(([x, y]): Vec3 => [x, 0, y]),
+      boundary.points.map(([x, z]): Vec3 => [x, 0, z]),
     ),
   ];
   return {

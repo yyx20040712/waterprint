@@ -5,7 +5,7 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（L5c 原型启动 2026-09-03；镜像测试 tests/ifc_export/test_ifc.py）
+# 规格说明（L5c 原型启动 2026-09-03；镜像测试 tests/ifc_export/test_builder.py）
 #
 # 【导出白名单】
 #   builder:   build_ifc + write_ifc

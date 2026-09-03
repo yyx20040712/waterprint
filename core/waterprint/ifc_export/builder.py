@@ -5,7 +5,7 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（L5c 原型启动 2026-09-03；镜像测试 tests/ifc_export/test_ifc.py）
+# 规格说明（L5c 原型启动 2026-09-03；镜像测试 tests/ifc_export/test_builder.py）
 #
 # 【公开接口】
 #   build_ifc(scene_graph) -> object（ifcopenshell 模型——公开签名 object，
@@ -25,7 +25,9 @@
 #      （禁 datetime.now）——同 SceneGraph 双跑写出 bytes 恒等。
 #   R4 最小集：IfcProject/Site/Building 骨架 + OwnerHistory/Units(SI)/
 #      GeometricContext + IfcLocalPlacement 链（site→building→元素，
-#      元素摆放=场景图节点变换即 structure 摆放）+ IfcRelAggregates。
+#      元素摆放=场景图节点变换即 structure 摆放）+ IfcRelAggregates；
+#      空间包含 IfcRelContainedInSpatialStructure（L5R G1-02：元素挂
+#      building——BIM 查看器按空间树发现元素的主通道，仅摆放链=孤儿）。
 #   R5 落盘原子性（GR-38）：tmp+os.replace（project/io.py 同款先例）。
 #
 # 【测试要求】ifcopenshell 回读往返（层级/element 计数/box extrude 深度/
@@ -148,10 +150,11 @@ def _skeleton(
     owner: ifcopenshell.entity_instance,
     context: ifcopenshell.entity_instance,
     units: ifcopenshell.entity_instance,
-) -> ifcopenshell.entity_instance:
+) -> tuple[ifcopenshell.entity_instance, ifcopenshell.entity_instance]:
     """项目骨架：Project/Site/Building + 两级 IfcRelAggregates（R4 最小集）。
 
-    返回 building 的 IfcLocalPlacement（元素摆放链的父节点——R4 链式）。
+    返回 (building, building 的 IfcLocalPlacement)——元素摆放链的父节点
+    （R4 链式）与空间包含的挂接结构（L5R G1-02 containment 面）。
     """
     origin = _axis3(model, (0.0, 0.0, 0.0), 0.0)
     site_placement = model.create_entity(
@@ -190,7 +193,7 @@ def _skeleton(
         OwnerHistory=owner, Name=None, Description=None,
         RelatingObject=site, RelatedObjects=[building],
     )
-    return building_placement
+    return building, building_placement
 
 
 def _profile(model: ifcopenshell.file, node: Node) -> ifcopenshell.entity_instance:
@@ -226,8 +229,9 @@ def build_ifc(scene_graph: SceneGraph) -> object:
     model = ifcopenshell.file(schema=_SCHEMA)
     owner = _owner_history(model)
     context = _context(model)
-    building_placement = _skeleton(model, owner, context, _units(model))
+    building, building_placement = _skeleton(model, owner, context, _units(model))
     key_prefix = f"{scene_graph.scene_version}|{scene_graph.condition_key}"
+    proxies: list[ifcopenshell.entity_instance] = []
     for node in scene_graph.nodes:
         if node.semantic != _POOL_SEMANTIC or (
             node.primitive.kind not in _EXPORTED_KINDS
@@ -250,16 +254,28 @@ def build_ifc(scene_graph: SceneGraph) -> object:
             RepresentationIdentifier=_BODY_ID,
             RepresentationType=_SWEPT_SOLID, Items=[solid],
         )
+        proxies.append(
+            model.create_entity(
+                "IfcBuildingElementProxy",
+                GlobalId=_guid(f"{key_prefix}|{node.node_id}"),
+                OwnerHistory=owner, Name=node.node_id, Description=None,
+                ObjectType=None, ObjectPlacement=placement,
+                Representation=model.create_entity(
+                    "IfcProductDefinitionShape", Name=None, Description=None,
+                    Representations=[shape],
+                ),
+                Tag=None, PredefinedType=None,
+            )
+        )
+    # 空间包含（L5R G1-02）：元素逐个挂 building——无 storey 层时 building
+    # 即最低空间结构（IFC4 规范位）；仅摆放链挂接的元素在 BIM 查看器/
+    # 校验器的空间树遍历中不可达（孤儿元素——主发现通道）。
+    if proxies:
         model.create_entity(
-            "IfcBuildingElementProxy",
-            GlobalId=_guid(f"{key_prefix}|{node.node_id}"),
-            OwnerHistory=owner, Name=node.node_id, Description=None,
-            ObjectType=None, ObjectPlacement=placement,
-            Representation=model.create_entity(
-                "IfcProductDefinitionShape", Name=None, Description=None,
-                Representations=[shape],
-            ),
-            Tag=None, PredefinedType=None,
+            "IfcRelContainedInSpatialStructure",
+            GlobalId=_guid("containment:building"), OwnerHistory=owner,
+            Name=None, Description=None, RelatingStructure=building,
+            RelatedElements=proxies,
         )
     model.header.file_name.name = _FILE_NAME
     model.header.file_name.time_stamp = _FILE_TIME_STAMP

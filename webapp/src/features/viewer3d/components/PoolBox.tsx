@@ -8,10 +8,11 @@
  * 规格说明（FE1 实装 v1；L5b 总装模式 2026-09-03）：
  *   - 前端零业务几何推导（§10.5/§16 A7）：dims 键直读；唯一换算=
  *     cylinder diameter→radius（three 接口适配，非业务推导）；
- *   - 旋转消费（L5b）：box/cylinder/extrusion 的 node.rotation 弧度直喂
- *     R3F rotation 属性；plane 的铺地基准（绕 X −90°）与节点变换在欧拉
- *     分量上做加法合并——core 产 rotation 仅绕 Z 平面旋转（rx/ry 恒 0），
- *     分量加法在该前提下精确；
+ *   - 旋转消费（L5b→L5R）：box/cylinder/extrusion 的 node.rotation
+ *     （换轴后 (0, rz, 0)——绕世界竖轴）直喂 R3F rotation 属性；plane 的
+ *     铺地基准（绕 X −90°）与平面旋转改嵌套组合（外层 rotation=平面
+ *     旋转、内层 GROUND_TILT_X 铺地——换轴后欧拉分量加法不再可分解，
+ *     见 plane 分支注记）；
  *   - 语义色纪律（§19.3）：蓝水线/棕泥线/其余灰阶——一切着色经
  *     semanticColor 查表，禁散落色值；
  *   - 图元组合优先，CSG 仅限开口场景（§12.6——opening 归后续批）；
@@ -74,15 +75,17 @@ export function PoolBox({ node, clippingPlanes }: PoolBoxProps) {
       );
     }
     case "plane":
+      // L5R 换轴随行：平面旋转落 Y 轴后，铺地基准与平面旋转的欧拉分量
+      // 加法不再可分解（Rx(−90°)·Ry(rz)=斜坡——换轴前 rz 在 Z 槽时分量
+      // 加法恰精确）；嵌套组合 Ry(rz)·Rx(−90°)（外层平面旋转、内层铺地
+      // ——先铺地后平面旋转为精确形态）。
       return (
-        <mesh
-          position={position}
-          rotation={[node.rotation[0] + GROUND_TILT_X, node.rotation[1], node.rotation[2]]}
-          receiveShadow
-        >
-          <planeGeometry args={[node.dims["length"] ?? 1, node.dims["width"] ?? 1]} />
-          <meshStandardMaterial color={semanticColor(node.semantic)} />
-        </mesh>
+        <group position={position} rotation={node.rotation}>
+          <mesh rotation={[GROUND_TILT_X, 0, 0]} receiveShadow>
+            <planeGeometry args={[node.dims["length"] ?? 1, node.dims["width"] ?? 1]} />
+            <meshStandardMaterial color={semanticColor(node.semantic)} />
+          </mesh>
+        </group>
       );
     case "extrusion":
       return (

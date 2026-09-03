@@ -67,6 +67,11 @@ const CAMERA_PRESETS = {
   side: [40, 5, 0] as [number, number, number],
 };
 
+/** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
+ *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
+const CANVAS_HEIGHT = "calc(100vh - 220px)";
+const CANVAS_MIN_HEIGHT = 420;
+
 /** 取景中心（bounds AABB 中心；空场景=原点——零场景零尺度基准）。 */
 function sceneCenter(scene: RenderScene): [number, number, number] {
   const bounds = scene.bounds;
@@ -227,6 +232,7 @@ export function Scene({
         camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows
         gl={{ localClippingEnabled: clippingEnabled }}
+        style={{ height: CANVAS_HEIGHT, minHeight: CANVAS_MIN_HEIGHT }}
       >
         <ambientLight intensity={0.6} />
         <directionalLight position={[20, 30, 10]} intensity={1} castShadow />

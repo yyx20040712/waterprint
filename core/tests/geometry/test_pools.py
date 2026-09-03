@@ -75,6 +75,22 @@ def test_water_surface_level_is_floor_plus_depth() -> None:
     )
     assert node.position[2] == pytest.approx(0.0 + 1.25)  # 池底 0 + 水深 h2
     assert node.primitive.semantic == "water_surface"
+    # L5R A-S1：水面足迹=池面投影——box 池取 length/width 同源键
+    assert node.primitive.dims["length"] == pytest.approx(4.5)
+    assert node.primitive.dims["width"] == pytest.approx(3.0)
+
+
+def test_water_surface_footprint_cylinder_circumscribed_square() -> None:
+    """L5R A-S1：cylinder 池水面足迹=直径双向外接方（v1 方形近似）。"""
+    from waterprint.geometry.pools import water_surface_node
+
+    node = water_surface_node(
+        _snap("municipal_chuchenchi",
+              {"h2": 3.0, "h_total": 4.0, "d": 9.0, "d_center": 1.4}),
+        _assumptions(),
+    )
+    assert node.primitive.dims["length"] == pytest.approx(9.0)
+    assert node.primitive.dims["width"] == pytest.approx(9.0)
 
 
 def test_volume_units_without_pool_slots_yield_explicit_empty() -> None:

@@ -290,13 +290,13 @@ export function narrowSiteDesign(raw: unknown): SiteDesignShape {
   return { structures, roads, corridors, boundary, options };
 }
 
-/** 近方阵摆置（projectScene placementsOf 同构：cols=ceil(√n)、步距=length/width）。 */
+/** 近方阵摆置（projectScene 同构；L5R N-1：core z-up 平面取 (x,y) 槽——[2]=标高，v1 局部 XY 恒 0 下尺寸不变勘正堵雷）。 */
 function placementsOf(
   position: [number, number, number] | undefined,
   count: number,
   dims: Record<string, number>,
 ): Array<[number, number]> {
-  const origin: [number, number] = [position?.[0] ?? 0, position?.[2] ?? 0];
+  const origin: [number, number] = [position?.[0] ?? 0, position?.[1] ?? 0];
   if (count <= 1) {
     return [origin];
   }

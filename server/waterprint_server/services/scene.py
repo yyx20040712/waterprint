@@ -32,6 +32,10 @@
 #   R3 假设合成视图：{entry.key: entry.default for DEFAULT_ASSUMPTIONS}
 #      + design.assumption_overrides（jobs.worker._build_env 同款三行
 #      口径——计算与投影假设面一致，双源漂移根除）。
+#   R5 site 装配透传（L5R N-2）：design.site → core.build_scene 第四参
+#      site_design（端点零新增——简报预裁 5 的 openapi 恒红线不破；
+#      structures 空=core 回退站序排布，旧项目零扰动；验收矩阵「总装
+#      模式三态探针」在真 wire 可达的唯一接线）。
 #   R4 确定性继承：同结果集同场景图（core R1 纯投影——服务层零加料，
 #      双跑 asdict(sort_keys) 字节同，端点测试常驻断言）。
 #
@@ -126,7 +130,8 @@ def build_scene_for_project(
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     try:
-        graph = core.build_scene(plant, assumptions, chosen)
+        graph = core.build_scene(plant, assumptions, chosen,
+                                 site_design=project.design.site)
     except KeyError as exc:
         raise InvalidSceneRequestError(str(exc)) from exc
     return SceneResponse(

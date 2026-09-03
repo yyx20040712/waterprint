@@ -36,7 +36,7 @@ function sceneOf(nodes: FixtureNode[]): SceneResponse {
     condition_key: "design",
     nodes,
     root: nodes.map((node) => node.node_id),
-    scene_version: "waterprint-scene-2/y-up/m",
+    scene_version: "waterprint-scene-2/z-up/m",
     stale: false,
   };
 }
@@ -276,17 +276,18 @@ describe("projectSite（design+scene → 渲染模型——纯函数确定性）
     expect(model.structures[0]?.footprint).toEqual({ w: 20, h: 20 });
   });
 
-  it("children 展开聚合包围盒：父矩形∪子矩形（位置偏移计入）", () => {
+  it("children 展开聚合包围盒：父矩形∪子矩形（位置偏移计入——z-up 平面=x,y 槽）", () => {
     const model = projectSite(
       { nodes: { tank: {} }, site: { structures: { tank: { x: 0, y: 0 } } } },
       sceneOf([
         {
           ...boxNode("tank::group", { length: 10, width: 6, depth: 3 }),
-          children: [boxNode("tank::group::wing", { length: 4, width: 2, depth: 1 }, [8, 0, 3])],
+          children: [boxNode("tank::group::wing", { length: 4, width: 2, depth: 1 }, [8, 3, 0])],
         },
       ]),
     );
-    // 父 x∈[-5,5]/z∈[-3,3] ∪ 子 x∈[6,10]/z∈[2,4] → w=15/h=7
+    // 父 x∈[-5,5]/y∈[-3,3] ∪ 子 x∈[6,10]/y∈[2,4] → w=15/h=7
+    // （L5R N-1：平面取 (x, y) 槽——fixture [8,3,0]=东 8/北 3/标高 0）
     expect(model.structures[0]?.footprint).toEqual({ w: 15, h: 7 });
   });
 

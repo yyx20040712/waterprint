@@ -70,9 +70,13 @@ from waterprint.geometry.pools import (
 
 __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 
-# 场景版本（R4：坐标约定 Y-up + 单位 m 在此声明——前端渲染器唯一读取口；
-# L5a 步进 -2：site 摆放+rotation 放行——语义变即步进，前端门同步）。
-SCENE_VERSION: Final[str] = "waterprint-scene-2/y-up/m"
+# 场景版本（R4：存储坐标约定 + 单位 m 在此声明——前端渲染器唯一读取口）。
+# L5a 步进 -2：site 摆放+rotation 放行（语义变即步进，前端门同步）。
+# L5R 轴标签勘正：存储坐标=Z-up（X 东 Y 北 Z 标高——DXF 出图/IFC/
+# SitePoint 同族），-2 步进时的 "y-up" 标签系实现期误记（G1-01 根因），
+# 首次推送前就地勘正——渲染层 projectScene 换轴至 three Y-up（消费约定
+# 名不改版本号：R 轮不改线格式，仅正名）。
+SCENE_VERSION: Final[str] = "waterprint-scene-2/z-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
     "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机

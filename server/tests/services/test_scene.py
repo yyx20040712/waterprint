@@ -91,6 +91,87 @@ async def test_scene_defaults_to_sorted_first_condition_wiring(service_ctx) -> N
     assert explicit.condition_key == "design"  # 显式工况透传
 
 
+async def test_scene_site_design_wired_into_graph(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """L5R N-2：design.site 装配透传 build_scene 第四参（总装模式真 wire 可达）。
+
+    简报预裁 5「端点零新增」限定=openapi 恒红线；验收矩阵「总装模式三态
+    探针」要求 site 摆放经真 wire 可达——service 层装配是唯一接线。
+    """
+    from math import isclose, pi
+
+    outcome = projects_mod.create_project(
+        service_ctx,
+        {
+            "project": {
+                "format_version": "1.0",
+                "design": {
+                    "nodes": {
+                        "inlet": {
+                            "kind": "municipal_input",
+                            "q_avg_daily": 34760.7 / 86400,
+                            "kz": 1.4,
+                            "CODCR": 400.0,
+                            "BOD5": 200.0,
+                            "SS": 250.0,
+                            "NH3N": 26.0,
+                            "TN": 43.0,
+                            "TP": 6.5,
+                        },
+                        "municipal_cass": {},
+                    },
+                    "edges": [
+                        {
+                            "src": {"unit_id": "inlet", "port_id": "out"},
+                            "dst": {"unit_id": "municipal_cass", "port_id": "in"},
+                        }
+                    ],
+                    "site": {
+                        "structures": {
+                            "municipal_cass": {
+                                "x": 12.0, "y": -5.0,
+                                "rotation": 90.0, "ground_elevation": 0.5,
+                            }
+                        },
+                        "roads": [],
+                        "corridors": [],
+                        "boundary": [
+                            {"x": 0.0, "y": 0.0},
+                            {"x": 40.0, "y": 0.0},
+                            {"x": 40.0, "y": -20.0},
+                        ],
+                    },
+                },
+                "view": {},
+                "metadata": {
+                    "format_version": "1.0",
+                    "content_hash": "0",
+                    "engine_version": "0",
+                    "data_version": "0",
+                },
+            }
+        },
+    )
+    project_id = outcome.project_id
+    handle = await calculation_mod.submit_calculation(service_ctx, project_id, [])
+    for _ in range(200):
+        if service_ctx.manager.status(handle.task_id).state in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert service_ctx.manager.status(handle.task_id).state == "done"
+    scene = build_scene_for_project(service_ctx, project_id)
+    by_id = {node.node_id: node for node in scene.nodes}
+    # 已摆放单元：position=(x, y北, 标高)（core z-up 存储）+度→弧度换算
+    pool = by_id["municipal_cass::pool_wall"]
+    assert pool.position == (12.0, -5.0, 0.5)
+    assert isclose(pool.rotation[2], pi / 2)
+    # 水面足迹键=池面同源（A-S1 wire 面）
+    surface = by_id["municipal_cass::water_surface"]
+    assert surface.primitive.dims["length"] == pool.primitive.dims["length"]
+    assert surface.primitive.dims["width"] == pool.primitive.dims["width"]
+    # 红线图元进图（压平顶点序）
+    assert "site::boundary" in by_id
+
+
 async def test_scene_double_run_byte_identical_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
     """R1 确定性继承：同结果集双跑 JSON(sort_keys) 字节同。
 
