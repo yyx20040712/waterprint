@@ -51,7 +51,7 @@
   "core/tests/elevation/test_pumps.py": "13718fa3e919f12e27bd33555288b03dc6e29aa4ec0ff85bf685cbcbe60bcedb",
   "core/tests/geometry/test_internals.py": "cb4fc3f4699b523b1e09d703c42da3954bf676aa271ac3792c6b169c2affdf4b",
   "core/tests/geometry/test_pools.py": "cf44b431c947bfb454f84145d0ba6ee68db472e0e8c65ce32002463f9851f0d5",
-  "core/tests/geometry/test_scene.py": "bec83904ca5c032f125b2f44743a6042f85ab7ff71a798aad86e4ad79a531f9d",
+  "core/tests/geometry/test_scene.py": "81d40ac86ff9162786a458b456d559ca47c48270a8ad7ff5fca7538ad4b934c0",
   "core/tests/geometry/test_spacing.py": "8d2390b3b28eca3dcc5560e5a39e2fec117e274521e8de14d3e5b6ee0c389a83",
   "core/tests/golden/golden_data/README.md": "3b7ea608a251510767a5d9de6203097131a3b1f9f7555e89c753ac06a30220c0",
   "core/tests/golden/golden_data/migrations/README.md": "1a43eb12acb5842d2f426efe3513e228b1b95350f47df3697cc567c6949961d9",
