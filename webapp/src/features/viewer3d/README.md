@@ -45,10 +45,11 @@
 - **前端零业务几何推导**（§10.5/§16 A7）：一切尺寸来自场景图
   scene JSON（core geometry 投影产出）；渲染器只做类型化摆放
   （唯一换算=cylinder 直径→半径的 three 接口适配）；
-- **SCENE_VERSION 门**：投影层拒非 `waterprint-scene-3/z-up/m`
-  （z-up+m 单位——core scene.py R4 唯一版本读取口；L6 步进 -3 双端
-  同窗：strip 条带图元收编；L5R 勘正——原 L47 误记 y-up 系步进时
-  实现期笔误，本批随版本步进就地勘正）；
+- **SCENE_VERSION 门**：投影层拒非 `waterprint-scene-4/z-up/m`
+  （z-up+m 单位——core scene.py R4 唯一版本读取口；L7 步进 -4 双端
+  同窗：AAO 容积法池体图元入场景（池壁 box/水面/渠道三节点——新
+  单元产图元=语义变即步进）；L6 -3=strip 条带收编；L5R 勘正——原
+  L47 误记 y-up 系步进时实现期笔误，随版本步进就地勘正）；
 - **变换门收窄（L5b）**：rotation 弧度直透传（R3F rotation 属性直
   消费——换算归 core 装配层）；scale 仍拒非默认（R3F scale 消费面
   未开——门收窄不撤）；

@@ -10,11 +10,11 @@
  *
  * 规格说明（FE1 D4；core scene.py R4 唯一版本读取口；UX2 D5 bounds 聚合；
  *   L5b 总装模式 2026-09-03；L5R 换轴收编 G1-01 同窗；L6 条带 2026-09-04）：
- *   - SCENE_VERSION 门：非 "waterprint-scene-3/z-up/m" 显式拒（原因附
- *     实际值与期望值——坐标约定/单位漂移前置到投影边界；L6 core 步进
- *     -3=roads/corridors strip 图元收编（新 kind+新 semantic=语义变即
- *     步进），双端同窗；L5R 轴标签就地勘正——存储恒 z-up，步进时误记
- *     y-up 系 G1-01 根因）；
+ *   - SCENE_VERSION 门：非 "waterprint-scene-4/z-up/m" 显式拒（原因附
+ *     实际值与期望值——坐标约定/单位漂移前置到投影边界；L7 core 步进
+ *     -4=AAO 容积法池体图元入场景（新单元产图元=语义变即步进），双端
+ *     同窗；L6 -3=roads/corridors strip 图元收编；L5R 轴标签就地勘正
+ *     ——存储恒 z-up，步进时误记 y-up 系 G1-01 根因）；
  *   - 换轴（L5R 唯一换轴点）：core 场景图存储 Z-up（X 东 Y 北 Z 标高
  *     ——DXF/IFC/SitePoint 同族），three 渲染 Y-up（X 东 Y 上 Z 南）；
  *     position 保手性映射 (x, z, −y)（det=+1——平面旋转角不变；镜像
@@ -45,7 +45,7 @@
  */
 import type { SceneResponse } from "../../../shared/api/generated/model";
 
-export const RENDER_SCENE_VERSION = "waterprint-scene-3/z-up/m";
+export const RENDER_SCENE_VERSION = "waterprint-scene-4/z-up/m";
 
 const KNOWN_KINDS = new Set([
   "box",

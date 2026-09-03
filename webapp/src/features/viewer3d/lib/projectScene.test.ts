@@ -15,7 +15,7 @@ import {
   projectScene,
 } from "./projectScene";
 
-const VERSION = "waterprint-scene-3/z-up/m";
+const VERSION = "waterprint-scene-4/z-up/m";
 
 type FixtureNode = {
   node_id: string;
@@ -77,8 +77,8 @@ function fixture(overrides?: Partial<Record<string, unknown>>): Record<string, u
 }
 
 describe("projectScene：SCENE_VERSION 门", () => {
-  it("RENDER_SCENE_VERSION 步进 -3（L6 strip 图元语义变即步进——core SCENE_VERSION 双端同窗）", () => {
-    expect(RENDER_SCENE_VERSION).toBe("waterprint-scene-3/z-up/m");
+  it("RENDER_SCENE_VERSION 步进 -4（L7 AAO 容积法池体图元入场景——core SCENE_VERSION 双端同窗）", () => {
+    expect(RENDER_SCENE_VERSION).toBe("waterprint-scene-4/z-up/m");
   });
 
   it("非 z-up 标签拒且原因附版本值（L5R 轴标签勘正——步进时误记的 y-up 串同拒）", () => {
