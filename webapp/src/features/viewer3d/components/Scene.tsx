@@ -22,6 +22,9 @@
  *     零新 npm 依赖）+三 preset 并存：preset 点击=设相机 position+target
  *     一次（CameraRig effect），用户随后可自由拖拽/缩放/平移（controls
  *     内部态不入 store——纯 view 态纪律 §12.3 零新增字段）；
+ *   - preset 按钮面（ENG6）：Canvas 前兄弟按钮组（stale 横幅同形态）
+ *     驱动 store.cameraPreset——当前 preset=primary 高亮（siteplan 工具栏
+ *     先例）；四字标签避 antd 两字插空格坑（教训 24）；
  *   - 图层开关：水面/内部构件/标注（store 显隐——渲染密度控制）；
  *   - 总装红线（L5b）：boundaries 组挂 SiteBoundary（闭合折线——core
  *     顶点序即权威，闭合段渲染层补）；
@@ -36,6 +39,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber";
+import { Button, Space } from "antd";
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { WaterprintApiError } from "../../../shared/api/http";
@@ -178,6 +182,7 @@ export function Scene({
     }
   }, [query.data]);
   const cameraPreset = useViewer3dStore((state) => state.cameraPreset);
+  const setCameraPreset = useViewer3dStore((state) => state.setCameraPreset);
   const clippingEnabled = useViewer3dStore((state) => state.clippingEnabled);
   const clippingHeight = useViewer3dStore((state) => state.clippingHeight);
   const showWater = useViewer3dStore((state) => state.showWater);
@@ -229,6 +234,28 @@ export function Scene({
           设计已修改但未重算——本场景基于旧结果集（重新提交计算后刷新）
         </div>
       ) : null}
+      {/* ENG6 preset 按钮面：Canvas 前兄弟元素（stale 横幅同形态）——点击
+          驱动 store.cameraPreset（CameraRig effect 负责落机位一次）；当前
+          preset=primary（siteplan 工具栏先例）；四字标签避 antd 两字
+          插空格坑（教训 24）。 */}
+      <Space size="small" wrap style={{ padding: "4px 0" }}>
+        {(
+          [
+            ["iso", "等轴视角"],
+            ["top", "俯视视角"],
+            ["side", "侧视视角"],
+          ] as const
+        ).map(([value, label]) => (
+          <Button
+            key={value}
+            size="small"
+            type={cameraPreset === value ? "primary" : "default"}
+            onClick={() => setCameraPreset(value)}
+          >
+            {label}
+          </Button>
+        ))}
+      </Space>
       <Canvas
         camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows

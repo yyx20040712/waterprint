@@ -4,8 +4,9 @@
  *
  * 输入:  projectId（useSiteData 双查询：readProject 原始体+scene 足迹源）；
  *        view 态自 siteplanStore（工具/选中/开关）
- * 输出:  布置工作区（工具栏[工具/吸附/网格/复位/保存]+待摆区+SVG 画布+
- *        选中结构侧栏[ground_elevation]+折线收笔参数面板+错误呈现）
+ * 输出:  布置工作区（工具栏 SiteplanToolbar[工具/吸附/坐标网/复位/清空
+ *        红线/折线参数/保存]+待摆区+SVG 画布+选中结构侧栏[ground_
+ *        elevation]+折线收笔参数面板+错误呈现）
  *
  * 规格说明（M3 批 L2b，简报 §一.5/§一.8/§三交互面）：
  *   - 本地 draft=SiteDesignShape（装载 narrowSiteDesign 归一态；copy-on-
@@ -18,6 +19,10 @@
  *     （InputNumber 宽度+Select kind）补齐后落 draft.roads/corridors；红线
  *     工具（L4a 第四态 boundary）≥3 点闭合收笔无面板直落 draft.boundary
  *     （boundary 无宽无 kind——红线只有一个，重画=替换）；
+ *   - 工具栏拆分+清空红线（ENG6）：工具栏区抽 SiteplanToolbar 纯展示子件
+ *     （行预算 500 恰达腾挪）；清空=danger+Popconfirm+boundary 空时
+ *     disabled，确认后 draft.boundary 置 []（copy-on-write）——dirty 派生
+ *     比较自动置位（清空结果可保存），取消分支 boundary 不变；
  *   - scene 查询失败≠致命：outline 降级示意矩形+工具栏提示（不阻断编辑）；
  *     投影失败（design 异形）=错误薄壳（不白屏）；
  *   - L4b 间距校核：GET /api/site/spacing orval hook 直用+组件层 join
@@ -28,7 +33,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, InputNumber, Popover, Select, Space, Typography } from "antd";
+import { Button, InputNumber, Select, Space, Typography } from "antd";
 
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
@@ -47,6 +52,7 @@ import {
 import { useSiteplanStore } from "../store/siteplanStore";
 import { PendingPanel } from "./PendingPanel";
 import { SiteCanvas } from "./SiteCanvas";
+import { SiteplanToolbar } from "./SiteplanToolbar";
 
 /** 409 锁冲突保守提示（AssumptionsPanel D3 先例同文——不 force 不重试）。 */
 const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
@@ -279,6 +285,32 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
     setFinishedLine(null);
   };
 
+  // ── 工具栏回调（ENG6 拆分面：SiteplanToolbar props 消费） ──
+
+  const resetView = () => {
+    setPan({ x: 0, y: 0 });
+    setZoom(1);
+  };
+
+  // 清空红线：copy-on-write 置 []——dirty 派生比较（sameSite）自动置位
+  // （清空结果可保存——漏存=清空丢失坑）；boundary 空时入口已 disabled。
+  const clearBoundary = () => {
+    setDraft((prev) => (prev === null ? prev : { ...prev, boundary: [] }));
+  };
+
+  const saveDraft = () => {
+    if (raw === undefined || draft === null) {
+      return;
+    }
+    save.mutate({ projectId, data: withSite(raw as Record<string, unknown>, draft) });
+  };
+
+  const saveErrorText = save.isError
+    ? isLockConflict(save.error)
+      ? LOCK_HINT
+      : `布置保存失败：${save.error instanceof Error ? save.error.message : "未知错误"}`
+    : null;
+
   if (projectQuery.isError) {
     return (
       <div role="alert">
@@ -340,78 +372,27 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "4px 0", borderBottom: "1px solid #434343" }}>
-        <Space size="small" wrap>
-          {(
-            [
-              ["select", "选择/平移"],
-              ["road", "道路"],
-              ["corridor", "管线走廊"],
-              ["boundary", "边界红线"], // L4a 第四态：≥3 点双击/Enter 闭合收笔（无参数面板）
-            ] as const
-          ).map(([value, label]) => (
-            <Button
-              key={value}
-              size="small"
-              type={tool === value ? "primary" : "default"}
-              onClick={() => setTool(value)}
-            >
-              {label}
-            </Button>
-          ))}
-          <Button size="small" onClick={toggleSnap}>
-            吸附 {snapEnabled ? "开" : "关"}
-          </Button>
-          <Button size="small" onClick={toggleGrid}>
-            坐标网 {showGrid ? "开" : "关"}
-          </Button>
-          <Button
-            size="small"
-            onClick={() => {
-              setPan({ x: 0, y: 0 });
-              setZoom(1);
-            }}
-          >
-            复位视图
-          </Button>
-          <Popover
-            open={finishedLine !== null}
-            trigger={[]}
-            content={lineForm}
-            placement="bottomLeft"
-          >
-            <Button size="small" type={finishedLine !== null ? "primary" : "default"}>
-              折线参数
-            </Button>
-          </Popover>
-          <Button
-            size="small"
-            type="primary"
-            loading={save.isPending}
-            disabled={!dirty || raw === undefined}
-            onClick={() => {
-              if (raw === undefined || draft === null) return;
-              save.mutate({ projectId, data: withSite(raw as Record<string, unknown>, draft) });
-            }}
-          >
-            保存布置{dirty ? "（有修改）" : ""}
-          </Button>
-          {sceneQuery.isError || (sceneQuery.isSuccess && sceneQuery.data == null) ? (
-            <Typography.Text type="warning" style={{ fontSize: 12 }}>
-              场景不可得——足迹按示意矩形显示（未计算）
-            </Typography.Text>
-          ) : null}
-        </Space>
-        {save.isError ? (
-          <div style={{ marginTop: 4 }}>
-            <Typography.Text type="danger">
-              {isLockConflict(save.error)
-                ? LOCK_HINT
-                : `布置保存失败：${save.error instanceof Error ? save.error.message : "未知错误"}`}
-            </Typography.Text>
-          </div>
-        ) : null}
-      </div>
+      <SiteplanToolbar
+        tool={tool}
+        onToolChange={setTool}
+        snapEnabled={snapEnabled}
+        onToggleSnap={toggleSnap}
+        showGrid={showGrid}
+        onToggleGrid={toggleGrid}
+        onResetView={resetView}
+        linePanelOpen={finishedLine !== null}
+        linePanel={lineForm}
+        boundaryEmpty={draft.boundary.length === 0}
+        onClearBoundary={clearBoundary}
+        savePending={save.isPending}
+        saveDisabled={!dirty || raw === undefined}
+        saveDirty={dirty}
+        saveError={saveErrorText}
+        sceneUnavailable={
+          sceneQuery.isError || (sceneQuery.isSuccess && sceneQuery.data == null)
+        }
+        onSave={saveDraft}
+      />
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* 待摆=nodes 全键集减 draft 编辑键集（与 placedCount 同源 draft——拖入即时消项/移除即时回挂） */}
         <PendingPanel

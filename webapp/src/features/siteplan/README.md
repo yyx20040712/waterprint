@@ -20,6 +20,7 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中/工具+折线点序列机——业务数据零入 store） |
 | `store/siteplanStore.test.ts` | store node 直测首例（初始态/各 action 纯转移/zoom 夹紧/tool 切换清折线/pending 序列机） |
 | `components/SiteplanPane.tsx` | 切片内组装（工具栏+待摆区+画布+选中侧栏+保存流——canvasPane 壳同构） |
+| `components/SiteplanToolbar.tsx` | 工具栏纯展示子件（工具组/吸附/坐标网/复位/清空红线 Popconfirm 确认门/折线参数/保存——ENG6 自 SiteplanPane 拆出，态与回调全经 props） |
 | `components/SiteCanvas.tsx` | SVG 画布薄壳（渲染+pointer 交互——几何全经 lib，组件零推导） |
 | `components/PendingPanel.tsx` | 待摆区（design.nodes 有而 site 无的单元——拖入画布即摆放） |
 | `api/useSiteData.ts` | 数据通道薄封装（useReadProject+scene 查询直用——零新端点） |
