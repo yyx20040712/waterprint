@@ -12,7 +12,6 @@ import json
 from dataclasses import asdict
 
 import pytest
-
 from waterprint.geometry import SCENE_VERSION  # 测试面专用 core 真源引用（test_cost.py 先例）
 
 _mod = importlib.import_module("waterprint_server.services.scene")
