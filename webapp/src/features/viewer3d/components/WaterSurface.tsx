@@ -1,7 +1,8 @@
 /**
  * 水面渲染：半透明盒体 + 透明度脉动动画（零 CPU 物理，§10.5）。
  *
- * 输入:  RenderNode（water_surface 组——投影层已分流）
+ * 输入:  RenderNode（water_surface 组——投影层已分流；L5b 起 rotation
+ *        弧度直消费——core 装配层已换算）
  * 输出:  动画水面组件（useFrame 时间函数）
  *
  * 规格说明（FE1 实装 v1）：
@@ -37,7 +38,7 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
   });
 
   return (
-    <mesh position={node.position}>
+    <mesh position={node.position} rotation={node.rotation}>
       <boxGeometry
         args={[node.dims["length"] ?? 1, node.dims["depth"] ?? 1, node.dims["width"] ?? 1]}
       />

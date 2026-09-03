@@ -13,6 +13,8 @@ import json
 import pytest
 from fastapi import status
 
+from waterprint.geometry import SCENE_VERSION  # 测试面专用 core 真源引用（test_cost.py 先例）
+
 _mod = importlib.import_module("waterprint_server.routers.scene")
 router = getattr(_mod, "router")
 
@@ -87,7 +89,7 @@ async def test_scene_returns_graph_with_default_condition_wiring(client) -> None
     response = await client.get(f"/api/scene/{project_id}")
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["scene_version"] == "waterprint-scene-1/y-up/m"  # R4 版本回显
+    assert body["scene_version"] == SCENE_VERSION  # R4 版本回显（core 真源常量——L5a 步进 -2，禁字面漂移）
     assert body["condition_key"] == expected_default  # 缺省=排序首键（显式回显）
     assert body["nodes"]  # 场景非空
     assert all(node["instance_count"] >= 1 for node in body["nodes"])  # 实例声明面

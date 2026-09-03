@@ -13,6 +13,8 @@ from dataclasses import asdict
 
 import pytest
 
+from waterprint.geometry import SCENE_VERSION  # 测试面专用 core 真源引用（test_cost.py 先例）
+
 _mod = importlib.import_module("waterprint_server.services.scene")
 build_scene_for_project = getattr(_mod, "build_scene_for_project")
 
@@ -82,7 +84,7 @@ async def test_scene_defaults_to_sorted_first_condition_wiring(service_ctx) -> N
     project_id = await _project_with_result(service_ctx)
     scene = build_scene_for_project(service_ctx, project_id)
     assert scene.condition_key == sorted(await _latest_conditions(service_ctx, project_id))[0]
-    assert scene.scene_version == "waterprint-scene-1/y-up/m"  # R4 版本回显（前端唯一读取口）
+    assert scene.scene_version == SCENE_VERSION  # R4 版本回显（前端唯一读取口；core 真源常量——L5a 步进 -2，禁字面漂移）
     assert scene.nodes  # 场景非空（CASS 池体图元在册）
     assert any(node.instance_count >= 1 for node in scene.nodes)  # 实例数声明面
     explicit = build_scene_for_project(service_ctx, project_id, "design")

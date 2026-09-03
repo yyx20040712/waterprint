@@ -2,7 +2,8 @@
  * 投影层纯函数测试：SceneGraph JSON → 渲染描述（D4 前端测试策略五面）。
  *
  * 输入:  projectScene 纯函数（node 环境——零 WebGL 依赖，先红后绿）
- * 输出:  投影契约断言（SCENE_VERSION 门/五 kind 完备/摆置确定性/语义 token/root 一致性）
+ * 输出:  投影契约断言（SCENE_VERSION 门/六 kind 完备/摆置确定性/语义 token/
+ *        root 一致性；L5b：rotation 放行透传+scale 仍拒+总装红线 polyline 分组）
  */
 import { describe, expect, it } from "vitest";
 
@@ -12,7 +13,7 @@ import {
   projectScene,
 } from "./projectScene";
 
-const VERSION = "waterprint-scene-1/y-up/m";
+const VERSION = "waterprint-scene-2/y-up/m";
 
 type FixtureNode = {
   node_id: string;
@@ -74,14 +75,14 @@ function fixture(overrides?: Partial<Record<string, unknown>>): Record<string, u
 }
 
 describe("projectScene：SCENE_VERSION 门", () => {
-  it("非 waterprint-scene-1/y-up/m 拒且原因附版本值", () => {
-    const bad = fixture({ scene_version: "waterprint-scene-1/z-up/m" });
+  it("非 waterprint-scene-2/y-up/m 拒且原因附版本值（L5b 步进 -2：旧 -1 坐标约定拒）", () => {
+    const bad = fixture({ scene_version: "waterprint-scene-1/y-up/m" });
     expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
     try {
       projectScene(bad as never);
       expect.unreachable("必须抛出");
     } catch (error) {
-      expect((error as Error).message).toContain("waterprint-scene-1/z-up/m");
+      expect((error as Error).message).toContain("waterprint-scene-1/y-up/m");
       expect((error as Error).message).toContain(RENDER_SCENE_VERSION);
     }
   });
@@ -194,28 +195,23 @@ describe("projectScene：root 序与 nodes 索引一致性", () => {
   });
 });
 
-describe("projectScene：非默认变换显式拒（FE1 M1）", () => {
-  it("rotation 非默认拒且原因含节点 id 与实际值（勿静默丢勿消费）", () => {
+describe("projectScene：非默认变换门（L5b 收窄：rotation 放行/scale 仍拒）", () => {
+  it("rotation 任意值放行且弧度直透传（R3F 直消费——度→弧度换算归 core 装配层）", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "rot-1",
-        semantic: "gate",
-        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "gate" },
-        rotation: [0, Math.PI / 2, 0],
+        semantic: "pool_wall",
+        primitive: { kind: "box", dims: { length: 10, width: 4, depth: 3 }, semantic: "pool_wall" },
+        position: [5, 0, 2],
+        rotation: [0, 0, Math.PI / 2],
       },
     ];
-    const bad = fixture({ nodes, root: ["rot-1"] });
-    expect(() => projectScene(bad as never)).toThrow(SceneProjectionError);
-    try {
-      projectScene(bad as never);
-      expect.unreachable("必须抛出");
-    } catch (error) {
-      expect((error as Error).message).toContain("rot-1");
-      expect((error as Error).message).toContain(String(Math.PI / 2));
-    }
+    const out = projectScene(fixture({ nodes, root: ["rot-1"] }) as never);
+    expect(out.solids).toHaveLength(1);
+    expect(out.solids[0]?.rotation).toEqual([0, 0, Math.PI / 2]); // 零换算透传
   });
 
-  it("scale 非默认拒（非 (1,1,1) 即拒）", () => {
+  it("scale 非默认拒（非 (1,1,1) 即拒——门收窄不撤）", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "scl-1",
@@ -235,7 +231,7 @@ describe("projectScene：非默认变换显式拒（FE1 M1）", () => {
     }
   });
 
-  it("默认值与缺省同路放行（rotation=(0,0,0)/scale=(1,1,1) 不拒）", () => {
+  it("默认值与缺省同路放行且 rotation 默认 (0,0,0) 透传", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "def-1",
@@ -248,6 +244,58 @@ describe("projectScene：非默认变换显式拒（FE1 M1）", () => {
     const out = projectScene(fixture({ nodes, root: ["def-1"] }) as never);
     expect(out.solids).toHaveLength(1);
     expect(out.solids[0]?.id).toBe("def-1");
+    expect(out.solids[0]?.rotation).toEqual([0, 0, 0]);
+  });
+});
+
+// ═══ L5b（webapp 总装模式 2026-09-03）：polyline 红线分组+顶点序解码+bounds ═══
+describe("projectScene：总装红线（polyline → boundaries 组——L5b）", () => {
+  const boundaryNode: FixtureNode = {
+    node_id: "site::boundary",
+    semantic: "site_boundary",
+    primitive: {
+      kind: "polyline",
+      dims: { x0: -5, y0: -5, x1: 45, y1: -5, x2: 45, y2: 30, x3: -5, y3: 30 },
+      semantic: "site_boundary",
+    },
+  };
+
+  it("polyline kind 归 boundaries 组：x{i}/y{i} 压平键按索引序解码为平面点序", () => {
+    const out = projectScene(fixture({ nodes: [boundaryNode], root: ["site::boundary"] }) as never);
+    expect(out.boundaries).toHaveLength(1);
+    expect(out.boundaries[0]?.id).toBe("site::boundary");
+    expect(out.boundaries[0]?.points).toEqual([
+      [-5, -5],
+      [45, -5],
+      [45, 30],
+      [-5, 30],
+    ]);
+  });
+
+  it("红线顶点计入 bounds（总装取景覆盖红线外框——平面 y 映射世界 Z）", () => {
+    const out = projectScene(fixture({ nodes: [boundaryNode], root: ["site::boundary"] }) as never);
+    expect(out.bounds).toEqual({ min: [-5, 0, -5], max: [45, 0, 30] });
+  });
+
+  it("红线不污染三组（solids/waters/internals 恒空）", () => {
+    const out = projectScene(fixture({ nodes: [boundaryNode], root: ["site::boundary"] }) as never);
+    expect(out.solids).toHaveLength(0);
+    expect(out.waters).toHaveLength(0);
+    expect(out.internals).toHaveLength(0);
+  });
+
+  it("顶点不完整拒（y{i} 缺键——场景图损坏防御）", () => {
+    const broken: FixtureNode = {
+      ...boundaryNode,
+      primitive: {
+        kind: "polyline",
+        dims: { x0: 0, y0: 0, x1: 10, y1: 10, x2: 20 },
+        semantic: "site_boundary",
+      },
+    };
+    expect(() =>
+      projectScene(fixture({ nodes: [broken], root: ["site::boundary"] }) as never),
+    ).toThrow(SceneProjectionError);
   });
 });
 
@@ -260,6 +308,7 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
       kind: "cylinder",
       semantic: "aerator",
       position: [0, 0, 0] as [number, number, number],
+      rotation: [0, 0, 0] as [number, number, number],
       dims: { diameter: 6, depth: 4 },
       instanceCount: 4,
       placements: [],
@@ -274,6 +323,7 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
       kind: "box",
       semantic: "aerator",
       position: [0, 0, 0] as [number, number, number],
+      rotation: [0, 0, 0] as [number, number, number],
       instanceCount: 12,
       placements: [],
     };

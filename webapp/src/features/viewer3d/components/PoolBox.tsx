@@ -1,12 +1,17 @@
 /**
  * 池体/渠道渲染器：按渲染描述生成图元（box/cylinder/plane/extrusion 四 kind 薄壳）。
  *
- * 输入:  RenderNode（投影层产出——dims/position/semantic 逐值透传）
+ * 输入:  RenderNode（投影层产出——dims/position/rotation/semantic 逐值透传；
+ *        L5b 起 rotation 弧度直消费——core 装配层已换算，组件零换算）
  * 输出:  R3F 图元组（含 semanticColor 语义色查表——色值归组件层）
  *
- * 规格说明（FE1 实装 v1）：
+ * 规格说明（FE1 实装 v1；L5b 总装模式 2026-09-03）：
  *   - 前端零业务几何推导（§10.5/§16 A7）：dims 键直读；唯一换算=
  *     cylinder diameter→radius（three 接口适配，非业务推导）；
+ *   - 旋转消费（L5b）：box/cylinder/extrusion 的 node.rotation 弧度直喂
+ *     R3F rotation 属性；plane 的铺地基准（绕 X −90°）与节点变换在欧拉
+ *     分量上做加法合并——core 产 rotation 仅绕 Z 平面旋转（rx/ry 恒 0），
+ *     分量加法在该前提下精确；
  *   - 语义色纪律（§19.3）：蓝水线/棕泥线/其余灰阶——一切着色经
  *     semanticColor 查表，禁散落色值；
  *   - 图元组合优先，CSG 仅限开口场景（§12.6——opening 归后续批）；
@@ -38,6 +43,9 @@ const FALLBACK_COLOR = "#9aa5b1";
 export const semanticColor = (semantic: string): string =>
   SEMANTIC_COLORS[semantic] ?? FALLBACK_COLOR;
 
+/** plane 铺地基准（绕 X −90°：XY 立面→XZ 水平面——R3F planeGeometry 形态适配）。 */
+const GROUND_TILT_X = -Math.PI / 2;
+
 type PoolBoxProps = {
   node: RenderNode;
   clippingPlanes?: THREE.Plane[];
@@ -45,7 +53,7 @@ type PoolBoxProps = {
 
 export function PoolBox({ node, clippingPlanes }: PoolBoxProps) {
   const position: Vec3 = node.position;
-  const common = { position, clippingPlanes };
+  const common = { position, rotation: node.rotation, clippingPlanes };
   switch (node.kind) {
     case "box":
       return (
@@ -67,7 +75,11 @@ export function PoolBox({ node, clippingPlanes }: PoolBoxProps) {
     }
     case "plane":
       return (
-        <mesh {...common} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <mesh
+          position={position}
+          rotation={[node.rotation[0] + GROUND_TILT_X, node.rotation[1], node.rotation[2]]}
+          receiveShadow
+        >
           <planeGeometry args={[node.dims["length"] ?? 1, node.dims["width"] ?? 1]} />
           <meshStandardMaterial color={semanticColor(node.semantic)} />
         </mesh>

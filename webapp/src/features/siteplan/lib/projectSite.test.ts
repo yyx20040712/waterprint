@@ -36,7 +36,7 @@ function sceneOf(nodes: FixtureNode[]): SceneResponse {
     condition_key: "design",
     nodes,
     root: nodes.map((node) => node.node_id),
-    scene_version: "waterprint-scene-1/y-up/m",
+    scene_version: "waterprint-scene-2/y-up/m",
     stale: false,
   };
 }
