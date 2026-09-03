@@ -18,7 +18,7 @@ router = getattr(_mod, "router")
 
 _EXPECTED = {("get", "/api/site/spacing")}
 
-# L4b kb 1.2.0 起草态阈值（site.clearance_general——通用全对 WARN；追认同步）
+# kb 1.3.0 已追认阈值（Ruling 2026-09-03——site.clearance_general 通用全对 WARN）
 _GENERAL_CLEARANCE_M = 6.0
 
 

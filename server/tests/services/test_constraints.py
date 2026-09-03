@@ -26,7 +26,7 @@ pytestmark = [
 # 真源 kb 面（仓库 data 目录——conftest REPO_DATA 同源推导）
 _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/→仓库根
 
-# kb 计数分 kind 形态（L4b 1.2.0：+spacing_check 2 起草态——追认/增删同步）
+# kb 计数分 kind 形态（RATIFY-L4 1.3.0：spacing_check 2 已追认——增删同步）
 _FILTER_COUNT = 6
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
@@ -52,8 +52,8 @@ def test_filter_entries_carry_unit_kinds_and_values() -> None:
     catalog = list_constraints(_REPO)
     filters = [e for e in catalog.entries if e.kind == "enumeration_filter"]
     assert all(e.unit_kinds for e in filters)  # 过滤面必绑单元
-    # Ruling 2026-08-31 全部追认——过滤/出水两类标记已回写（L4b spacing
-    # 起草态两类外——分 kind 断言，禁全库一刀切）
+    # Ruling 2026-08-31 全部追认——过滤/出水两类标记已回写（RATIFY-L4 后
+    # spacing 亦已追认——分 kind 断言形态维持，禁全库一刀切）
     ratified = [
         e for e in catalog.entries if e.kind in {"enumeration_filter", "effluent_standard"}
     ]
@@ -92,8 +92,8 @@ def test_spacing_entries_carry_threshold_contract() -> None:
     scoped = next(e for e in spacing if e.key == "site.clearance_nongsuo_xiaohua")
     assert set(scoped.unit_kinds) == {"sludge_nongsuo", "sludge_xiaohua"}
     assert scoped.severity == "ERROR"
-    # 数值权威=起草态（pending-domain-expert §23 追认——manifest 1.2.0 同面）
-    assert all("待追认" in e.value_basis for e in spacing)
+    # 数值权威=已追认（Ruling 2026-09-03——manifest 1.3.0 同面）
+    assert all("已追认" in e.value_basis for e in spacing)
 
 
 def test_filter_values_match_factors_truth() -> None:

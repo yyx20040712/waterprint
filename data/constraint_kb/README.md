@@ -1,10 +1,9 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.2.0（L4b 间距校核批——spacing_check 2 条 AI 起草待追认）**；
-> 存量 18 条=1.1.0 已追认定稿（Ruling 2026-08-31）——用户批复「全部追认」
-> （18 条数值+收录边界三裁；批复记录=.workflow/ledger.md 2026-08-31
-> Ruling 条目+pending-domain-expert.md §22 销账注）。唯一未来项：干化
-> 全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
+> **状态：1.3.0（全量 20 条已追认——存量 18 条=Ruling 2026-08-31、
+> spacing_check 2 条=Ruling 2026-09-03）**；批复记录=.workflow/ledger.md
+> 两日 Ruling 条目+pending-domain-expert.md §22/§24 销账注。
+> 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面）。
 
@@ -66,5 +65,6 @@ options.constraints 通道）落地为：
   core geometry/spacing 收结构化阈值不解析 DSL；形态越界=fail-visible 拒）；
   unit_kinds 空=全对通用（装配面 None 语义）、两键=限定对（对内双方 kind
   均须在键集）；净距口径=AABB（webapp measureToNearest 同口径所见即所得，
-  OBB 精确净距挂账）。数值=GB 50016 防火间距族**类比起草态**
-  （pending-domain-expert §23 追认——value_basis 逐条如实标注）。
+  OBB 精确净距挂账）。数值=GB 50016 防火间距族**类比起草态，已追认**
+  （Ruling 2026-09-03——pending-domain-expert.md §24 销账注；value_basis
+  逐条标注。L4b 笔「§23」引用系悬空——追认节实登 §24）。

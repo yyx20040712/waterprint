@@ -21,7 +21,7 @@ projects_mod = importlib.import_module("waterprint_server.services.projects")
 
 pytestmark = pytest.mark.anyio
 
-# L4b kb 1.2.0 起草态阈值（通用全对 WARN/限定对 ERROR——追认升版同步）
+# kb 1.3.0 已追认阈值（Ruling 2026-09-03——通用全对 WARN/限定对 ERROR）
 _GENERAL_CLEARANCE_M = 6.0
 _SCOPED_CLEARANCE_M = 10.0
 

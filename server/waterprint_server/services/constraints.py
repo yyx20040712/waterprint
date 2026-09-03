@@ -1,6 +1,6 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.0.0 起草态——AI 起草待追认）
+输入:  data/constraint_kb/constraints.json（kb 1.3.0 全量已追认）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -9,7 +9,7 @@
 #
 # 【公开接口】
 #   list_constraints(data_dir: Path) -> ConstraintCatalog（20 条=过滤 6+
-#      出水参考 12+间距校核 2——kb 1.2.0 声明序；D6 不分页整发）
+#      出水参考 12+间距校核 2——kb 1.3.0 声明序；D6 不分页整发）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
 #

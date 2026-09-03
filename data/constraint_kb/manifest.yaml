@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.2.0"
+data_version: "1.3.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -22,3 +22,10 @@ data_version: "1.2.0"
 #     防火间距族类比起草态，pending-domain-expert §23 追认**（八键 schema
 #     零变更；计数断言改分 kind 形态 6+12+2——server test_constraints 同步）。
 #     消费方新增 GET /api/site/spacing（L4b 间距校核黄红标示数据面）。
+#   - 1.3.0: **已追认定稿（Ruling 2026-09-03——用户批复「追认并继续开工」）**：
+#     spacing_check 2 条数值（通用全对 6.0 m WARN+浓缩—消化限定对 10.0 m
+#     ERROR）+收录边界生效；条目 value_basis/source 追认标记回写（RATIFY-CP1
+#     先例形态）。批复记录=.workflow/ledger.md（2026-09-03 Ruling）+
+#     pending-domain-expert.md §24 销账注。记档：L4b 笔中「§23 追认」引用
+#     系悬空（当时未及登记追认节——§23 为 CP2 批），追认节实登 §24；
+#     历史条目 1.2.0 描述不作改写（G1-03 教训——历史记录不污染）。
