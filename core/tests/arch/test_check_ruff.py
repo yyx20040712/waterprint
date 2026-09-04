@@ -87,8 +87,9 @@ def test_oserror_fallback_returns_one(module, monkeypatch, capsys, fake_python) 
 
 def test_real_script_smoke() -> None:
     """冒烟：真实脚本子进程一跑（本机双 [OK]/CI 双 [SKIP] 皆绿——断言=退出码
-    0+每根三态合法行 [OK]/[SKIP] ∈ 逐根输出，无 [FAIL]；R1-1：无条件 [OK]
-    断言在 CI 零依赖 job（双 venv 缺=双 SKIP）必红——预拦）。"""
+    0+每根恰一行 [OK]/[SKIP] 且零 [FAIL]；R1-1：无条件 [OK] 断言在 CI
+    零依赖 job（双 venv 缺=双 SKIP）必红——预拦；SC1R-01：推导段收紧为
+    逐根行计数断言——ok/skip/fail 三计数锁，非存在性推导）。"""
     result = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "check_ruff.py")],
         capture_output=True,
@@ -96,16 +97,16 @@ def test_real_script_smoke() -> None:
         check=False,
     )
     text = result.stdout.decode("utf-8", errors="replace")
-    assert result.returncode == 0, text + result.stderr.decode("utf-8", "replace")
+    assert result.returncode == 0, text + result.stderr.decode("utf-8", errors="replace")
     assert "[FAIL]" not in text
-    for name, _root in (
-        ("core", REPO_ROOT / "core"),
-        ("server", REPO_ROOT / "server"),
-    ):  # 逐根三态合法行（本机=[OK]，CI 零依赖=[SKIP]——两者皆绿）
-        line = f"check_ruff：{name}"
-        ok_or_skip = [
-            verdict for verdict in ("[OK]", "[SKIP]")
-            if any(entry.startswith(verdict) and line in entry
-                   for entry in text.splitlines())
-        ]
-        assert len(ok_or_skip) == 1, f"{name} 根须恰一行 [OK]/[SKIP] 三态：{text}"
+    for name, _root in (("core", REPO_ROOT / "core"), ("server", REPO_ROOT / "server")):
+        # SC1R-01 逐根行计数（startswith 判定保精确——含 check_ruff：{name}
+        # 的非判定行[进度/引导语]不入三计数；脚本现实输出=判定行恒带前缀）。
+        lines = [ln for ln in text.splitlines() if f"check_ruff：{name}" in ln]
+        ok = sum(1 for ln in lines if ln.startswith("[OK]"))
+        skip = sum(1 for ln in lines if ln.startswith("[SKIP]"))
+        fail = sum(1 for ln in lines if ln.startswith("[FAIL]"))
+        assert ok + skip == 1 and fail == 0, (
+            f"{name} 根须恰一行 [OK]/[SKIP] 且零 [FAIL]"
+            f"（ok={ok} skip={skip} fail={fail}）：{text}"
+        )
