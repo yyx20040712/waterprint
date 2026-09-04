@@ -27,6 +27,7 @@ _EXPECTED = {
     ("post", "/api/exports/audit"),
     ("post", "/api/exports/dxf"),
     ("post", "/api/exports/estimate"),
+    ("post", "/api/exports/ifc"),
     ("get", "/api/exports"),
 }
 
@@ -85,11 +86,11 @@ async def _project_with_result(client, extra_units=()):  # type: ignore[no-untyp
 
 
 def test_router_exposes_five_endpoints_wiring() -> None:
-    """端点集 == 规格五件（calcbook/audit/dxf/estimate/列表）。"""
+    """端点集 == 规格六件（calcbook/audit/dxf/estimate/ifc/列表——SC1 ifc 增）。"""
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰五件无漂移
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰六件无漂移
 
 
 @pytest.mark.anyio
@@ -282,5 +283,64 @@ async def test_traversal_export_rejected_wiring(client, test_settings) -> None: 
         },
     )
     assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert sorted(os.listdir(exports_dir)) == before_listing  # exports_dir 零新增
+    assert sorted(str(p) for p in exports_dir.parent.parent.rglob("*")) == before_files
+
+
+@pytest.mark.anyio
+async def test_ifc_export_flow_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """SC1 D7：ifc 单产物正向全链——200 文件流+.ifc 后缀+IFC 魔面非空。
+
+    断：POST ifc{design}→200（core build_scene→build_ifc→write_ifc 链——
+    body ISO-10303-21 STEP 头魔面非空）；Content-Disposition 文件名
+    .ifc 后缀（_KIND_SUFFIXES 五键映射）；GET /api/exports 元数据行
+    kind=ifc 且 .ifc 后缀；exports_dir 落盘真件（下载流=落盘件读取）。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(client)
+    model = await client.post(
+        "/api/exports/ifc",
+        json={"project_id": project_id, "condition_key": "design"},
+    )
+    assert model.status_code == status.HTTP_200_OK
+    assert model.content, "ifc 产物禁空字节（UF-33）"
+    assert b"ISO-10303-21" in model.content[:512]  # IFC STEP 物理文件头魔面
+    disposition = str(model.headers.get("content-disposition", ""))
+    disposition_name = disposition.rsplit('filename="', maxsplit=1)[-1].rstrip('"')
+    assert disposition_name.endswith(".ifc")  # D7：kind 后缀映射
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "ifc"]
+    assert len(rows) == 1
+    assert rows[0]["file_name"].endswith(".ifc")
+    assert (test_settings.exports_dir / rows[0]["file_name"]).is_file()  # 落盘真件
+
+
+@pytest.mark.anyio
+async def test_ifc_traversal_project_id_rejected_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """SC1 D7 质量门条款 4（路径拼接 DoD）：project_id 穿越 → 4xx 且导出目录快照零新增。
+
+    浅（a/../../evil）深（../×10）两例——穿越 project_id 先死于 404
+    ExportSourceNotFoundError（无此项目=无结果集，§18 路径安全族——
+    穿越串永不进文件名/路径分量）。
+    """
+    import os
+
+    _project_id, _task_id = await _project_with_result(client)
+    exports_dir = test_settings.exports_dir
+    before_listing = sorted(os.listdir(exports_dir))
+    before_files = sorted(str(p) for p in exports_dir.parent.parent.rglob("*"))
+    shallow = await client.post(
+        "/api/exports/ifc",
+        json={"project_id": "a/../../evil", "condition_key": "design"},
+    )
+    assert shallow.status_code == status.HTTP_404_NOT_FOUND  # 4xx（穿越≠结果集）
+    deep = await client.post(
+        "/api/exports/ifc",
+        json={"project_id": "b/" + "../" * 10 + "deep", "condition_key": "design"},
+    )
+    assert deep.status_code == status.HTTP_404_NOT_FOUND
     assert sorted(os.listdir(exports_dir)) == before_listing  # exports_dir 零新增
     assert sorted(str(p) for p in exports_dir.parent.parent.rglob("*")) == before_files

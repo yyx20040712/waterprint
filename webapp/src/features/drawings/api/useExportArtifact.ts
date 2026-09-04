@@ -1,23 +1,28 @@
 /**
- * dxf 导出下载薄壳：手写 fetch（POST 文件流——orval POST hook 返回
- * unknown 无 blob 面，不消费）+导出 blob 直接喂 dxfScene 投影（Ruling B
- * 路径：预览渲染绑定导出动作——零契约改动）。
+ * 导出产物下载薄壳（kind 泛化）：手写 fetch（POST 文件流——orval POST
+ * hook 返回 unknown 无 blob 面，不消费）+导出 blob 直接喂预览投影
+ * （Ruling B 路径：预览渲染绑定导出动作——零契约改动）。
  *
  * 输入:  {projectId, unitId, conditionKey, force?}（force=true=stale 旧
- *        结果显式重发——?force=true）
+ *        结果显式重发——?force=true）+ hook 工厂参 kind（URL 模板
+ *        /api/exports/${kind}——SC1 前恒 "dxf"，SC1 起泛化 "ifc"）
  * 输出:  useMutation 句柄（2xx→blob+anchor 下载[文件名 Content-Disposition
- *        解析，缺省客户端构造 {project}-dxf-{cond}.dxf]+blob.text()→
- *        projectDxf→ExportDxfResult{fileName,scene,sceneError} 供预览消费；
- *        非 2xx→WaterprintApiError[shared/api/http.ts 同款归一：code=
- *        error_type、message=detail]→消费面错误分级呈现）
+ *        解析，缺省客户端构造 {project}-{kind}-{cond}{后缀按 kind 映射}]+
+ *        dxf 面额外 blob.text()→projectDxf→ExportArtifactResult{fileName,
+ *        scene,sceneError} 供预览消费；非 dxf kind scene=null 恒 null——
+ *        IFC 无前端预览投影面；非 2xx→WaterprintApiError[shared/api/
+ *        http.ts 同款归一：code=error_type、message=detail]→消费面错误
+ *        分级呈现）
  *
- * 规格说明（FE9 批 6b 段七 D8+B 批 D4 扩展；UX1 DS-05 迁出沿册）：
- *   - POST /api/exports/dxf 响应=文件流（FileResponse）——orval 生成
+ * 规格说明（FE9 批 6b 段七 D8+B 批 D4 扩展；UX1 DS-05 迁出沿册；SC1 D7
+ *   泛化自 useExportDxf.ts——方案切换禁并存，删旧建新）：
+ *   - POST /api/exports/${kind} 响应=文件流（FileResponse）——orval 生成
  *     hook 按 JSON 反序列化（unknown），文件流下载走本手写 fetch 薄壳；
  *   - B 批 D4：下载落盘先行（anchor 语义不变），随后 blob.text()→
  *     projectDxf try/catch——成功 scene；失败 scene=null+sceneError=
  *     DxfSceneError 中文消息（I-3 分级：预览是增强非门禁，解析失败
- *     不扰下载成功）；
+ *     不扰下载成功）；SC1：预览解析仅 kind="dxf"（ifc 模型无前端投影
+ *     消费面——scene 恒 null 不猜）；
  *   - 错误归一与 http.ts 同款（409 StaleExportError[stale 二选一消费面]/
  *     501 ArtifactKindNotReady/ExportTemplateMissingError[诚实未就绪]/
  *     404 ExportSourceNotFoundError[先提交计算引导面]——code 判别）；
@@ -36,31 +41,42 @@ import { projectDxf, type SvgScene } from "../lib/dxfScene";
 import { parseDisposition } from "../lib/drawingsView";
 
 /** 导出提交变量（force=stale 二选一的「仍导出旧结果」支线）。 */
-export type ExportDxfInput = {
+export type ExportArtifactInput = {
   projectId: string;
   unitId: string;
   conditionKey: string;
   force?: boolean;
 };
 
-/** 导出结果（B 批 D4：scene/sceneError 供 DrawingPreview 线稿渲染消费）。 */
-export type ExportDxfResult = {
+/** 导出结果（B 批 D4：scene/sceneError 供 DrawingPreview 线稿渲染消费——dxf 专属）。 */
+export type ExportArtifactResult = {
   fileName: string;
   scene: SvgScene | null;
   sceneError: string | null;
 };
 
+/** 缺省文件名后缀（kind→扩展名——server _KIND_SUFFIXES 客户端镜像）。 */
+const KIND_SUFFIXES: Record<string, string> = {
+  dxf: ".dxf",
+  ifc: ".ifc",
+};
+
 /** 窄化工具：plain object（非 null 非数组）。 */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return (
-    typeof value === "object" && value !== null && !Array.isArray(value)
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
   );
 }
 
-/** dxf 导出下载（POST 文件流→blob+anchor；下载后 blob 喂投影；非 2xx→WaterprintApiError）。 */
-async function exportDxf(input: ExportDxfInput): Promise<ExportDxfResult> {
+/** 产物导出下载（POST 文件流→blob+anchor；下载后 blob 喂投影；非 2xx→WaterprintApiError）。 */
+async function exportArtifact(
+  kind: string,
+  input: ExportArtifactInput,
+): Promise<ExportArtifactResult> {
   const search = input.force === true ? "?force=true" : "";
-  const response = await fetch(`/api/exports/dxf${search}`, {
+  const response = await fetch(`/api/exports/${kind}${search}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -86,13 +102,13 @@ async function exportDxf(input: ExportDxfInput): Promise<ExportDxfResult> {
     const message =
       typeof rawDetail === "string" && rawDetail
         ? rawDetail
-        : `导出失败：POST /api/exports/dxf → ${response.status}`;
+        : `导出失败：POST /api/exports/${kind} → ${response.status}`;
     throw new WaterprintApiError(code, message, payload ?? undefined);
   }
   const blob = await response.blob();
   const fileName =
     parseDisposition(response.headers.get("content-disposition")) ??
-    `${input.projectId}-dxf-${input.conditionKey || "all"}.dxf`;
+    `${input.projectId}-${kind}-${input.conditionKey || "all"}${KIND_SUFFIXES[kind] ?? ""}`;
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -101,25 +117,28 @@ async function exportDxf(input: ExportDxfInput): Promise<ExportDxfResult> {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-  // 下载落盘先行；随后导出 blob 直接喂解析器（Ruling B 路径——预览是
-  // 增强非门禁：解析失败不扰下载成功，sceneError 降级注记呈现）
+  // 下载落盘先行；随后导出 blob 喂解析器（Ruling B 路径——预览是增强
+  // 非门禁：解析失败不扰下载成功，sceneError 降级注记呈现）。SC1 起预览
+  // 解析仅 dxf 面（ifc 模型无前端投影消费面——scene 恒 null 不猜）。
   let scene: SvgScene | null = null;
   let sceneError: string | null = null;
-  try {
-    scene = projectDxf(await blob.text());
-  } catch (error) {
-    scene = null;
-    sceneError =
-      error instanceof Error ? error.message : "DXF 解析失败：未知错误";
+  if (kind === "dxf") {
+    try {
+      scene = projectDxf(await blob.text());
+    } catch (error) {
+      scene = null;
+      sceneError =
+        error instanceof Error ? error.message : "DXF 解析失败：未知错误";
+    }
   }
   return { fileName, scene, sceneError };
 }
 
-/** dxf 导出 mutation（成功后导出列表键失效——新产物入目录表）。 */
-export function useExportDxf() {
+/** 产物导出 mutation（kind 泛化——成功后导出列表键失效，新产物入目录表）。 */
+export function useExportArtifact(kind: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: exportDxf,
+    mutationFn: (input: ExportArtifactInput) => exportArtifact(kind, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["/api/exports"] });
     },

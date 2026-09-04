@@ -2522,6 +2522,63 @@
         ]
       }
     },
+    "/api/exports/ifc": {
+      "post": {
+        "description": "BIM 模型（SC1——全厂场景 build_scene→build_ifc 文件流）。",
+        "operationId": "export_ifc_api_exports_ifc_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "force",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Force",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Export Ifc",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
     "/api/projects": {
       "get": {
         "description": "列表（元数据来自文件读取，无独立索引库）。",

@@ -49,7 +49,7 @@ import {
   useUnitOptions,
 } from "../features/drawings/api/useExportsQuery";
 import { useUnitCatalog } from "../features/drawings/api/useUnitCatalog";
-import type { ExportDxfResult } from "../features/drawings/api/useExportDxf";
+import type { ExportArtifactResult } from "../features/drawings/api/useExportArtifact";
 import { buildSheetRows } from "../features/drawings/lib/drawingsView";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -70,7 +70,7 @@ export function DrawingsPane() {
   // 选中图纸键（SheetList 受控 radio——驱动 DrawingPreview 元数据卡）
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   // B 批 D6：线稿预览态=最近一次导出结果（绑定导出动作非行选中）
-  const [preview, setPreview] = useState<ExportDxfResult | null>(null);
+  const [preview, setPreview] = useState<ExportArtifactResult | null>(null);
   const queryClient = useQueryClient();
 
   // B 批 D6：切项目清空预览（他项目残影=误导面禁）

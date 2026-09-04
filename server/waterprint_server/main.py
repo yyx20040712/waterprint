@@ -166,11 +166,12 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+1+2+1+1+1=25（白名单字面量和式；+1=scene GET，FE1 D1；
+# 端点集冻结 5+6+5+2+1+1+2+1+1+1+1=26（白名单字面量和式；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
 # 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4；
-# +1=site/spacing GET，L4b D1——间距校核取数端点）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1
+# +1=site/spacing GET，L4b D1——间距校核取数端点；+1=exports/ifc POST，
+# SC1 D7——BIM 模型导出端点，openapi 25→26 破面已授权）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -239,14 +240,14 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==25（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==26（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
-            "（九路由器规格并集 projects5+calc6+exports5+events2+scene1"
-            "+elevation1+units2+cost1+constraints1+site1——A1 锁定）"
+            "（九路由器规格并集 projects5+calc6+exports6+events2+scene1"
+            "+elevation1+units2+cost1+constraints1+site1——A1 锁定；SC1 ifc 增）"
         )
 
 
@@ -296,9 +297,10 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
 
     app = FastAPI(title="WaterPrint 服务层", version="0.1.0", lifespan=lifespan)
     # R2A 批1（终裁 R-1/D3）：include 级鉴权依赖挂载——七业务路由器受保
-    #（19 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
+    #（20 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
     # 或 ？token=）；units 三静态只读端点豁免（不挂）。端点集/路径/方法
-    # 零变化（_EXPECTED_ENDPOINTS=24 恒——契约自检常驻）。
+    # 变化仅 SC1 增量（_EXPECTED_ENDPOINTS=26 现值——契约自检常驻；
+    # 旧注记「=24 恒」系 R2A 时点快照，SC1 顺带销注释漂移）。
     app.include_router(projects.router, dependencies=[Depends(verify_token)])
     app.include_router(calc.router, dependencies=[Depends(verify_token)])
     app.include_router(exports.router, dependencies=[Depends(verify_token)])

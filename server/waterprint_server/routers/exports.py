@@ -7,11 +7,12 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结；镜像测试 server/tests/routers/test_exports.py）
 #
-# 【端点集（v1 冻结）】
+# 【端点集（v1 冻结；SC1 增 ifc）】
 #   POST /api/exports/calcbook          Excel 计算书（trace.calcbook）
 #   POST /api/exports/audit             HTML 审计报告（trace.audit）
 #   POST /api/exports/dxf               图纸包（单单元/全厂；M2 起）
 #   POST /api/exports/estimate          概算表（M3 起）
+#   POST /api/exports/ifc               BIM 模型（SC1 起——全厂场景模型）
 #   GET  /api/exports                   已生成产物列表（含三元组摘要）
 #
 # 【行为规格】
@@ -119,6 +120,12 @@ async def export_estimate(
 ) -> Response:
     """概算表（M3 归属——ArtifactKindNotReady→501 透传）。"""
     return await _export(body, request, "estimate", force)
+
+
+@router.post("/ifc")
+async def export_ifc(body: ExportRequest, request: Request, force: bool = False) -> Response:
+    """BIM 模型（SC1——全厂场景 build_scene→build_ifc 文件流）。"""
+    return await _export(body, request, "ifc", force)
 
 
 # ENG4 D3（I-5）注记（源码注释面——路由 docstring 即 OpenAPI description

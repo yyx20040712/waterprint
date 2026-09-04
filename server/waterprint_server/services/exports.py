@@ -44,42 +44,41 @@
 #     缺失/损坏（OSError/InvalidResultError）归一 ExportSourceNotFound
 #     Error 404 面（scene.py 同构——路径安全族裸 500 禁）。
 #   - FE9 D2/D3/D4（2026-08-30 drawings 图纸面板批）：
-#     D2 模板闸收窄——存在性闸仅对模板消费 kind（calcbook，_TEMPLATE_
-#     KINDS）执行；dxf/audit/estimate 返回名义路径不闸（core 链零模板
-#     消费：dxf 走 write_dxf 内建 styles.base_styles，audit/estimate 在
-#     core owners 表 NotReady 分派前不打开模板）。历史三 kind 死于
-#     server 模板闸未达 core 正门 501 语义面（探针实录 2026-08-30）；
-#     禁造 dxf_unit.xlsx 占位模板（core 不消费=死资产，违诚实原则）。
+#     D2 模板闸收窄——存在性闸仅对模板消费 kind（calcbook）执行；
+#     dxf/audit/estimate/ifc 返回名义路径不闸（core 链零模板消费——dxf
+#     走内建 base_styles，audit/estimate 在 owners 表分派前不开模板；
+#     历史三 kind 死于 server 模板闸未达 core 正门 501 面——探针实录
+#     2026-08-30；禁造 dxf_unit.xlsx 占位模板=死资产违诚实）。
 #     D3 options 透传（单产物路径）——core 调用附 unit_id/condition_key
-#     kwargs（core _EXPORT_OPTIONS 同款键集）；空串归一 None：
-#     condition_key None→core 缺省 design 档+UserWarning；unit_id
-#     None→core NotReady「全厂总图归 M5 site_plan」诚实 501。
-#     S2 D6（2026-08-30 落盘化批）：批量路径同款收口——payload items
-#     每项增 unit_id（批级共享=options.unit_id，空串形态落 IPC 面）+
-#     condition_key（item 自有）；worker _run_export_batch 逐项透传
-#     core.export_artifact kwargs（空串归一 None 同单产物口径）；
-#     批量命名 _deterministic_name(unit_id=unit_option) 恒传（去
-#     len(items)<=1 条件——FE9「命名面随 worker 面同批收口」兑现）。
+#     kwargs（core _EXPORT_OPTIONS 同款键集）；空串归一 None：unit_id
+#     None→core NotReady 全厂总图 501 诚实面、condition_key None→core
+#     缺省 design 档+UserWarning。
+#     S2 D6（2026-08-30 落盘化批）：批量路径同款收口——items 每项增
+#     unit_id（批级共享）+condition_key（item 自有）；worker 逐项透传
+#     kwargs（空串归一 None 同单产物口径）；批量命名 unit 分量恒传
+#     （去 len(items)<=1 条件——「命名面随 worker 面同批收口」兑现）。
 #     D4 kind 后缀映射——_deterministic_name 恒 .xlsx 收敛为按 kind
-#     映射（_KIND_SUFFIXES）：dxf→.dxf。既有 calcbook 命名零漂移
-#     （dxf 历史从未成功导出——恒 501，无存量文件名面）。
-#   - FE9 R 轮（2026-08-30，二审全 CONFIRMED 后裁定）：
-#     R1（DS-01 Critical）确定性命名附 unit 分量——单产物路径
-#     _deterministic_name(unit_id=options.unit_id)（批量 items 面不传
-#     ——worker 挂账同前）；修复锚=同名覆盖静默丢产物（多单元导出）。
-#     R3（DS-08）options.unit_id 严格化（_unit_id_of：仅非空字符串
-#     透传，bool/数值不再 str() 宽转→None=core 诚实 501 面维持）。
+#     映射（_KIND_SUFFIXES）：dxf→.dxf（SC1 增 ifc→.ifc）。既有 calcbook
+#     命名零漂移（dxf 历史从未成功导出——恒 501，无存量文件名面）。
+#   - FE9 R 轮（2026-08-30，二审全 CONFIRMED 后裁定）：R1（DS-01
+#     Critical）确定性命名附 unit 分量——单产物路径 _deterministic_
+#     name(unit_id=options.unit_id)（批量 items 面不传——worker 挂账
+#     同前）；修复锚=同名覆盖静默丢产物。R3（DS-08）options.unit_id
+#     严格化（_unit_id_of：仅非空字符串透传，宽转 str() 移除→None=
+#     core 诚实 501 面维持）。
 #   - WP0（ODA-A 形态 A 2026-09-02）：dxf 单产物落盘后可选子进程转
 #     DWG（开关 dwg_converter_path 空=关，转换器不随产品分发）——同名
 #     并排+边车双产物；失败/超时/边车写失败=warning+跳过（DXF 恒交付，
 #     core drafting 零触碰；R-1 G1-01/A-01 收口）；决策见 _dwg_convert。
-#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs（import-linter
-#     层序禁 jobs→services，services 反向引用合法；本文件保留 _post_export_
-#     dwg 策略壳）；export_batch 批量 payload 增 DWG 开关+超时+dxf 项
-#     sidecars 预构建边车文本（_batch_items_payload——ExportMeta 八键单源，
-#     worker 仅落盘，同步路径 :466/:467-469 双产物登记同构）。
+#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs（层序禁
+#     jobs→services，services 反向引用合法；本文件保留 _post_export_dwg
+#     策略壳）；export_batch 批量 payload 增 DWG 开关+超时+dxf 项
+#     sidecars 预构建边车文本（_batch_items_payload——ExportMeta 八键
+#     单源，worker 仅落盘，同步路径双产物登记同构）。
 #   - R-1（2026-09-02 K-05 根因解决）：转换域拆件 jobs/dwg.py——dwg_convert
 #     真源随迁（D-01 落位成功才置旗），本文件 import 改 jobs.dwg 同步。
+#   - SC1 D7（2026-09-04）：ifc 分支——_KINDS 五元组+.ifc 后缀+调用点
+#     附 assumptions/site_design kwargs（scene 服务 R3/R5 同款口径）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -107,15 +106,15 @@ from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import design_digest, read_project
 from waterprint_server.settings import validate_component
 
-_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
+_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")
 _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；注记区）
 _IMMEDIATE_LIMIT: Final[int] = 1  # 单产物即时上限（R3 v1：超过即转任务）
 # FE9 D2：模板消费 kind 面（唯一）——存在性闸只对 calcbook 执行（core
-# calcbook 分支真读模板；dxf/audit/estimate core 链零模板消费——注记区）。
+# calcbook 分支真读模板；dxf/audit/estimate/ifc core 链零模板消费——注记区）。
 _TEMPLATE_KINDS: Final[frozenset[str]] = frozenset({"calcbook"})
-# FE9 D4：kind→产物后缀映射（dxf→.dxf；其余 Excel 族恒 .xlsx 零漂移）。
+# FE9 D4：kind→产物后缀映射（dxf→.dxf、ifc→.ifc；其余 Excel 族恒 .xlsx 零漂移）。
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
-    {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx"}
+    {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx", "ifc": ".ifc"}
 )
 _LOGGER = structlog.get_logger(__name__)
 
@@ -176,9 +175,8 @@ class ExportMeta:
 def _template_for(ctx: ServiceContext, kind: str) -> Path:
     """模板解析（data/templates；缺位=诚实未就绪，UF-16）。
 
-    FE9 D2 收窄：存在性闸仅对 _TEMPLATE_KINDS（calcbook）执行——
-    dxf/audit/estimate 返回名义路径不闸（core 链零模板消费，注记区；
-    闸在其后的 core 正门：dxf 分派真出图/audit·estimate NotReady）。
+    FE9 D2 收窄：存在性闸仅对 _TEMPLATE_KINDS（calcbook）执行——其余
+    kind 名义路径不闸（core 链零模板消费，闸在 core 正门，注记区）。
     """
     template = ctx.templates_dir / f"{kind}_unit.xlsx"
     if kind in _TEMPLATE_KINDS and not template.is_file():
@@ -194,9 +192,8 @@ def _latest_calc_result(
 ) -> Mapping[str, Any]:
     """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37）。
 
-    ENG4 D2（M-8）：原返回 (latest_id, latest) 二元组——首元 task_id 无
-    任何消费面（唯一调用方 create_export 弃置），纯重构收敛为单值
-    （scene/elevation/cost 三服务同款签名，零行为变化）。
+    ENG4 D2（M-8）：原二元组收敛为单值（首元 task_id 无消费面——scene/
+    elevation/cost 三服务同款签名，零行为变化）。
     """
     latest: Mapping[str, Any] | None = None
     for task_id in ctx.manager.task_ids_for_project(project_id):
@@ -214,8 +211,8 @@ def _name_component(value: str, fallback: str, what: str) -> str:
     """R1-1（AU-1 修复 2026-08-26）：文件名分量白名单（空串→fallback）。
 
     condition_key/items condition 等用户可写字段过 validate_component
-    （与 safe_child 同源字符集）；越界 raise InvalidExportRequestError
-    （422 面）——穿越串（../与分隔符注入）拒于落盘之前，§18 路径安全。
+    （与 safe_child 同源字符集）；越界=InvalidExportRequestError（422）
+    ——穿越串拒于落盘之前，§18 路径安全。
     """
     if not value:
         return fallback
@@ -240,15 +237,14 @@ def _deterministic_name(
 
     R1-1：全部分量过白名单（project_id/condition/unit=validate_component、
     kind∈_KINDS、digest=sha256 hex 天然安全）——穿越即拒（422）。
-    FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf；历史恒 .xlsx
-    对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
+    FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf/ifc→.ifc；历史
+    恒 .xlsx 对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
     FE9 R1（DS-01 修复 2026-08-30）：unit_id 分量——非 None 时命名序
-    {project}-{kind}-{unit}-{condition}-{digest}{后缀}（unit 过白名单
-    同面校验）；None 时命名零漂移（calcbook/批量 items 面）。修复锚：
-    dxf 正向打通后同结果集同工况多单元导出原名恒同→os.replace 同名
-    覆盖=首产物与边车静默丢失（二审探针实锤：两 disposition 全同+目录
-    仅剩单 dxf）——单元键进名后文件名必然互异（core 图元/标题随
-    unit_id 三路分化，字节互异）。
+    {project}-{kind}-{unit}-{condition}-{digest}{后缀}；None 时命名零漂移
+    （calcbook/批量 items 面）。修复锚：dxf 正向打通后同结果集同工况多
+    单元导出原名恒同→os.replace 同名覆盖=首产物与边车静默丢失（二审
+    探针实锤）——单元键进名后文件名必然互异（core 图元/标题随 unit_id
+    三路分化，字节互异）。
     """
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
@@ -266,11 +262,10 @@ def _deterministic_name(
 
 
 def _unit_id_of(chosen: Mapping[str, Any]) -> str | None:
-    """FE9 R3（DS-08）：options.unit_id 严格化——仅非空字符串透传。
-
-    bool/数值不再 str() 宽转（宽转后 core 查不到对照表亦诚实 501，但
-    「'True' 不在工况图」式消息失真）——非字符串/空串一律 None=core
-    unit_id-None 闸「全厂总图归 M5 site_plan」诚实 501 面维持。
+    """FE9 R3（DS-08）：options.unit_id 严格化——仅非空字符串透传（bool/
+    数值不再 str() 宽转——「'True' 不在工况图」式消息失真）；非字符串/
+    空串一律 None=core unit_id-None 闸「全厂总图归 M5 site_plan」
+    诚实 501 面维持。
     """
     unit = chosen.get("unit_id")
     return unit if isinstance(unit, str) and unit else None
@@ -284,8 +279,7 @@ def _sidecar_text(meta: ExportMeta) -> str:
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
-    """注册表边车（原子写；只记元数据不复制数据，R2；M8-A/W3 tmp 唯一化
-    ——worker.py:215 同族注记）。"""
+    """注册表边车（原子写；只记元数据，R2；M8-A/W3 tmp 唯一化——worker 同族）。"""
     sidecar = ctx.exports_dir / f"{meta.file_name}.meta.json"
     tmp = sidecar.with_name(f"{sidecar.name}.{uuid.uuid4().hex}.tmp")
     tmp.write_text(_sidecar_text(meta), encoding="utf-8", newline="\n")
@@ -313,8 +307,8 @@ def _batch_items_payload(
     """R2-C：export_batch items IPC 面（S2 D6 透传+dxf 项边车文本预构建）。
 
     dxf 项附 sidecars={dxf, dwg} 边车文本（ExportMeta 八键单源——worker
-    仅落盘不重构；DWG 文本乐观预构建，worker 只在转换真成功时落盘=
-    无幽灵边车）；其余 kind 保持存量零边车行为。
+    仅落盘不重构；DWG 文本乐观预构建，真成功才落盘=无幽灵边车）；其余
+    kind 保持存量零边车行为。
     """
     batch: list[dict[str, Any]] = []
     for item, name in zip(items, names, strict=True):
@@ -368,15 +362,14 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     ]
     latest = _latest_calc_result(ctx, project_id)
     result_digest = str(latest.get("design_hash", ""))
-    current_digest = design_digest(read_project(ctx, project_id).design)
+    project = read_project(ctx, project_id)
+    current_digest = design_digest(project.design)
     stale = result_digest != current_digest
     if stale and not force:
         raise StaleExportError(result_digest, current_digest)
     template = str(_template_for(ctx, kind))
-    # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量
-    # （options.unit_id——dxf 单元键进名防同名覆盖；批量面同收口——去
-    # len(items)<=1 条件，worker 透传已同批落地，命名面随 worker 面
-    # 同批收口承诺兑现）。
+    # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量（unit 键进名
+    # 防同名覆盖；批量面同收口——worker 透传同批落地，命名面随兑现）。
     unit_option = _unit_id_of(chosen)
     names = [
         _deterministic_name(
@@ -441,6 +434,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     # condition_key None→core 缺省 design 档+UserWarning。批量路径不透传
     # ——worker 面挂账 S2 落盘化批，注记区。R3：unit_id 严格化（非字符串
     # 一律 None——str() 宽转移除，_unit_id_of）。
+    # SC1 D7：ifc 分支组装 assumptions/site_design（scene 服务 R3/R5 同款
+    # 口径——合成视图+site 装配透传；其余 kind 零 kwargs 零漂移）。
+    extra: dict[str, Any] = {}
+    if kind == "ifc":
+        merged = {e.key: e.default for e in core.DEFAULT_ASSUMPTIONS}
+        merged |= project.design.assumption_overrides
+        extra = {"assumptions": merged, "site_design": project.design.site}
     core.export_artifact(
         kind,
         plant,
@@ -448,6 +448,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         tmp,
         unit_id=unit_option,
         condition_key=condition_key or None,
+        **extra,
     )
     os.replace(tmp, out)
     # WP0 挂点（落盘后/边车前）：dxf 可选转 DWG，失败=跳过（DXF 不可破）。
