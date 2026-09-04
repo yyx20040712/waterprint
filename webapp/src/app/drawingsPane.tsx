@@ -119,7 +119,7 @@ export function DrawingsPane() {
     <ErrorBoundary label="图纸预览">
       <section>
         <Typography.Title level={5} style={{ marginTop: 0 }}>
-          图纸预览（DXF 单元图导出+产物目录）
+          图纸目录与导出（DXF 单元图+全厂总图+批量导出）
         </Typography.Title>
         {conditionQuery.isError ? (
           <Typography.Paragraph type="danger">

@@ -1,5 +1,6 @@
 /**
- * 图纸目录清单：产物元数据表（kind/工况/文件名/design 摘要/版本/stale 徽标）。
+ * 图纸目录清单：产物元数据表（M5 序号+kind/工况/文件名/design 摘要/版本/
+ * stale 徽标）。
  *
  * 输入:  SheetRow[]（drawingsView.buildSheetRows 行模型——唯一数据源）+
  *        选中键（受控 radio 选择——选中驱动 DrawingPreview）
@@ -20,6 +21,14 @@ import type { ColumnsType } from "antd/es/table";
 import type { SheetRow } from "../lib/drawingsView";
 
 const COLUMNS: ColumnsType<SheetRow> = [
+  {
+    // M5 D5：序号=行序 1..N（目录序——render index 派生非 ExportMeta 字段，
+    // lib 行模型零改最小面；列首位置=类型列前）。
+    title: "序号",
+    key: "index",
+    width: 64,
+    render: (_value, _row, index) => index + 1,
+  },
   {
     title: "类型",
     dataIndex: "kind",
