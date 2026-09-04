@@ -81,7 +81,7 @@ def test_water_surface_level_is_floor_plus_depth() -> None:
 
 
 def test_water_surface_footprint_cylinder_circumscribed_square() -> None:
-    """L5R A-S1：cylinder 池水面足迹=直径双向外接方（v1 方形近似）。"""
+    """L5R-A01 真圆：cylinder 池水面足迹=diameter 直读（真圆足迹）。"""
     from waterprint.geometry.pools import water_surface_node
 
     node = water_surface_node(
@@ -89,8 +89,9 @@ def test_water_surface_footprint_cylinder_circumscribed_square() -> None:
               {"h2": 3.0, "h_total": 4.0, "d": 9.0, "d_center": 1.4}),
         _assumptions(),
     )
-    assert node.primitive.dims["length"] == pytest.approx(9.0)
-    assert node.primitive.dims["width"] == pytest.approx(9.0)
+    assert node.primitive.dims["diameter"] == pytest.approx(9.0)
+    assert "length" not in node.primitive.dims
+    assert "width" not in node.primitive.dims
 
 
 def test_volume_units_without_pool_slots_yield_explicit_empty() -> None:

@@ -176,10 +176,11 @@ def water_surface_node(
     池底基准=0.0（模型局部坐标；全厂地面标高经 elevation 总线数据由
     app 装配传入——R4 全局装配归消费方）；水深经对照表
     section_keys.water_depth 取（缺键=0 水面占位，语义同 profile INFO）。
-    足迹键（L5R A-S1）：水面几何=池面投影——box 池取 length/width 同源
-    键、cylinder 池取 diameter 双向外接方（v1 渲染面近似：方角超出圆壁
-    ≈0.207d——相邻池排布跨界复核归后续圆形水面图元批），前端消费
-    length/width 渲染池面（缺键=1×1 兜底方块=接线即显性缺陷）。
+    足迹键（L5R A-S1；SC1 L5R-A01 销账）：水面几何=池面投影——box 池取
+    length/width 同源键、cylinder 取 diameter 键=真圆足迹（L5R-A01 销账：
+    水面直径=池壁直径同源，相邻池排布跨界复核由真圆足迹自然闭合），前端
+    消费 length/width（box）或 diameter（cylinder）渲染池面（缺键=1×1
+    兜底方块=接线即显性缺陷）。
     """
     projection = _projection(unit_result.unit_id)
     dims = unit_result.dims
@@ -193,8 +194,8 @@ def water_surface_node(
         footprint = {"length": float(dims[length_key]),
                      "width": float(dims[width_key])}
     elif diameter_key:
-        span = float(dims[diameter_key])
-        footprint = {"length": span, "width": span}
+        # L5R-A01 真圆：cylinder 池水面足迹=diameter 直读（去外接方近似）。
+        footprint = {"diameter": float(dims[diameter_key])}
     else:
         footprint = {}
     return Node(
