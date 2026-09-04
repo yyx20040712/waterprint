@@ -74,7 +74,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 26  # 5+6+6+2+1+1+2+1+1+1+1
+    assert sum(len(methods) for methods in observed.values()) == 26  # 5+6+6+2+1+1+2+1+1+1（projects5/calc6/exports6/events2/scene1/elevation1/units2/cost1/constraints1/site1）
 
 
 @pytest.mark.anyio

@@ -344,3 +344,32 @@ async def test_ifc_traversal_project_id_rejected_wiring(  # type: ignore[no-unty
     assert deep.status_code == status.HTTP_404_NOT_FOUND
     assert sorted(os.listdir(exports_dir)) == before_listing  # exports_dir 零新增
     assert sorted(str(p) for p in exports_dir.parent.parent.rglob("*")) == before_files
+
+
+@pytest.mark.anyio
+async def test_ifc_batch_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """R1-5（G1-05）：批量 payload 含 ifc → 422 InvalidExportRequestError。
+
+    ifc=单产物端点语义（批量面 worker 不透传 assumptions/site_design 与
+    单产物不等价——显式拒绝禁静默降级）；拒绝面只作用批量入口（items>1）
+    ——单产物路径（items≤1）零牵连。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(client)
+    exports_dir = test_settings.exports_dir
+    before_listing = sorted(os.listdir(exports_dir))
+    batch = await client.post(
+        "/api/exports/ifc",
+        json={
+            "project_id": project_id,
+            "options": {"items": [
+                {"kind": "ifc", "condition_key": "design"},
+                {"kind": "ifc", "condition_key": "avg"},
+            ]},
+        },
+    )
+    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert batch.json()["error_type"] == "InvalidExportRequestError"
+    assert "ifc 暂不支持批量导出" in str(batch.json()["detail"])
+    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘

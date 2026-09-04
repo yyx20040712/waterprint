@@ -66,19 +66,17 @@
 #     同前）；修复锚=同名覆盖静默丢产物。R3（DS-08）options.unit_id
 #     严格化（_unit_id_of：仅非空字符串透传，宽转 str() 移除→None=
 #     core 诚实 501 面维持）。
-#   - WP0（ODA-A 形态 A 2026-09-02）：dxf 单产物落盘后可选子进程转
-#     DWG（开关 dwg_converter_path 空=关，转换器不随产品分发）——同名
-#     并排+边车双产物；失败/超时/边车写失败=warning+跳过（DXF 恒交付，
-#     core drafting 零触碰；R-1 G1-01/A-01 收口）；决策见 _dwg_convert。
-#   - R2-C（2026-09-02 交付2）：DWG 转换原语共享化下沉 jobs（层序禁
-#     jobs→services，services 反向引用合法；本文件保留 _post_export_dwg
-#     策略壳）；export_batch 批量 payload 增 DWG 开关+超时+dxf 项
-#     sidecars 预构建边车文本（_batch_items_payload——ExportMeta 八键
-#     单源，worker 仅落盘，同步路径双产物登记同构）。
-#   - R-1（2026-09-02 K-05 根因解决）：转换域拆件 jobs/dwg.py——dwg_convert
-#     真源随迁（D-01 落位成功才置旗），本文件 import 改 jobs.dwg 同步。
+#   - WP0（ODA-A 2026-09-02）：dxf 落盘后可选子进程转 DWG（开关空=关，
+#     转换器不随产品分发）；失败/超时/边车写失败=warning+跳过（DXF 恒
+#     交付，core drafting 零触碰；R-1 G1-01/A-01 收口）。
+#   - R2-C（2026-09-02 交付2）：DWG 原语下沉 jobs.dwg（本文件留策略壳）
+#     ；批量 payload 增 DWG 开关+超时+dxf 项边车文本预构建（ExportMeta
+#     八键单源，worker 仅落盘，同步路径双产物登记同构）。
+#   - R-1（2026-09-02 K-05）：转换域拆件 jobs/dwg.py——dwg_convert 真源
+#     随迁（D-01 落位成功才置旗），本文件 import 改 jobs.dwg 同步。
 #   - SC1 D7（2026-09-04）：ifc 分支——_KINDS 五元组+.ifc 后缀+调用点
-#     附 assumptions/site_design kwargs（scene 服务 R3/R5 同款口径）。
+#     附 assumptions/site_design kwargs（scene 服务 R3/R5 同款口径）；
+#     R1-5：批量入口显式拒绝 ifc（单产物端点语义）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -190,11 +188,8 @@ def _template_for(ctx: ServiceContext, kind: str) -> Path:
 def _latest_calc_result(
     ctx: ServiceContext, project_id: str
 ) -> Mapping[str, Any]:
-    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37）。
-
-    ENG4 D2（M-8）：原二元组收敛为单值（首元 task_id 无消费面——scene/
-    elevation/cost 三服务同款签名，零行为变化）。
-    """
+    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37；
+    ENG4 D2：原二元组收敛单值——scene/elevation/cost 三服务同款签名）。"""
     latest: Mapping[str, Any] | None = None
     for task_id in ctx.manager.task_ids_for_project(project_id):
         status = ctx.manager.status(task_id)
@@ -239,12 +234,9 @@ def _deterministic_name(
     kind∈_KINDS、digest=sha256 hex 天然安全）——穿越即拒（422）。
     FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf/ifc→.ifc；历史
     恒 .xlsx 对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
-    FE9 R1（DS-01 修复 2026-08-30）：unit_id 分量——非 None 时命名序
-    {project}-{kind}-{unit}-{condition}-{digest}{后缀}；None 时命名零漂移
-    （calcbook/批量 items 面）。修复锚：dxf 正向打通后同结果集同工况多
-    单元导出原名恒同→os.replace 同名覆盖=首产物与边车静默丢失（二审
-    探针实锤）——单元键进名后文件名必然互异（core 图元/标题随 unit_id
-    三路分化，字节互异）。
+    FE9 R1（DS-01）：unit_id 非 None 时命名序 {project}-{kind}-{unit}-
+    {condition}-{digest}{后缀}；None 时零漂移。修复锚=多单元导出同名
+    os.replace 覆盖静默丢失——单元键进名后文件名必然互异。
     """
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
@@ -287,10 +279,9 @@ def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
 
 
 def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | None:
-    """WP0（ODA-A 形态 A）挂点：产物落盘后、边车写入前（评估件 §四）。
-    kind=dxf 且开关非空→子进程转 DWG 同名并排（R2-C：转换原语共享化=
-    jobs.worker.dwg_convert，WP0 三由与失败语义随迁）；失败/超时=warning+
-    跳过（DXF 恒为契约产物）；成功返回名供边车双产物登记。
+    """WP0（ODA-A）挂点：dxf 且开关非空→子进程转 DWG 同名并排（原语=
+    jobs.dwg.dwg_convert）；失败/超时=warning+跳过（DXF 恒为契约产物）；
+    成功返回名供边车双产物登记。
     """
     if kind != "dxf":
         return None
@@ -382,6 +373,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         for item in items
     ]
     if len(items) > _IMMEDIATE_LIMIT:  # R3：超单产物上限转低优先级任务
+        # R1-5（G1-05）：ifc=单产物端点语义——批量面 worker 不透传
+        # assumptions/site_design 与单产物不等价，显式拒绝（只作用批量入口）。
+        if any(str(item.get("kind", "")) == "ifc" for item in items):
+            raise InvalidExportRequestError(
+                "ifc 暂不支持批量导出（单产物端点——SC1 注记；批量面 "
+                "worker 不透传 assumptions/site_design 与单产物不等价）"
+            )
         handle = await ctx.manager.submit(
             TaskRequest(
                 kind="export_batch",
