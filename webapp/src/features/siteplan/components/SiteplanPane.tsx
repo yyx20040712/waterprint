@@ -49,6 +49,7 @@ import {
   type SitePoint,
   type StructurePlacement,
 } from "../lib/projectSite";
+import { sameSite } from "../lib/siteDraftDiff";
 import { useSiteplanStore } from "../store/siteplanStore";
 import { PendingPanel } from "./PendingPanel";
 import { SiteCanvas } from "./SiteCanvas";
@@ -78,24 +79,6 @@ function isLockConflict(error: unknown): boolean {
   return (
     error instanceof WaterprintApiError &&
     (error.code === "ProjectLockedError" || error.code === "HTTP_409")
-  );
-}
-
-/** 深比较（键序无关——draft copy-on-write 不保插入序一致性）。 */
-function sameSite(a: unknown, b: unknown): boolean {
-  if (a === b) {
-    return true;
-  }
-  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) {
-    return false;
-  }
-  const aKeys = Object.keys(a).sort();
-  const bKeys = Object.keys(b).sort();
-  if (aKeys.length !== bKeys.length || aKeys.some((key, i) => key !== bKeys[i])) {
-    return false;
-  }
-  return aKeys.every((key) =>
-    sameSite((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
   );
 }
 

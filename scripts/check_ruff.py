@@ -3,7 +3,9 @@
 输入:  core/server 源码树 + 各自 .venv 内的 ruff（解释器逐根按 win/posix
        双路径定位——互不代偿）
 输出:  逐根三态单行 [OK]/[FAIL]/[SKIP]（ruff 输出透传）；任一根 FAIL =
-       退出码 1；venv 缺失根 = SKIP（双根皆缺 = 双 SKIP 退出码 0）
+       退出码 1；venv 缺失根 = SKIP（双根皆缺 = 双 SKIP 退出码 0）；
+       venv 解释器在但子进程不可用（OSError 族）= 该根 FAIL 兜底
+       （SC1 D9①——禁裸抛 traceback；SKIP 语义红线不破）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -62,15 +64,25 @@ def main() -> int:
     for name, root in SCAN_ROOTS:
         python = locate_venv_python(root)
         if python is None:
-            print(f"[SKIP] check_ruff：{name}（venv 缺失——CI 零依赖 job 预期路径）")
+            print(f"[SKIP] check_ruff：{name}（venv 缺失——CI 零依赖 job 预期路径；"
+                  f"本地运行请在 {name}/ 下 uv sync 安装 dev 依赖）")
             continue
         print(f"[INFO] 解释器 {python.relative_to(REPO).as_posix()}（透传 ruff）")
-        result = subprocess.run(
-            [str(python), "-m", "ruff", "check", "."],
-            cwd=root,
-            check=False,
-            capture_output=True,
-        )
+        # SC1 D9①：OSError 现实异常族显式枚举兜底（venv 解释器在但不可执行/
+        # 已损坏——PermissionError/FileNotFoundError 等禁裸抛 traceback；
+        # SKIP 语义红线不破：仅 venv 解释器路径缺失才 SKIP，此处=FAIL）。
+        try:
+            result = subprocess.run(
+                [str(python), "-m", "ruff", "check", "."],
+                cwd=root,
+                check=False,
+                capture_output=True,
+            )
+        except (OSError, PermissionError, FileNotFoundError) as exc:
+            print(f"[FAIL] check_ruff：{name}（子进程不可用：{exc}——"
+                  "venv 解释器异常，请重建 venv：uv sync）")
+            failed = True
+            continue
         emit(result.stdout.decode("utf-8", errors="replace"))
         emit(result.stderr.decode("utf-8", errors="replace"))
         if result.returncode != 0:
