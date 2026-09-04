@@ -216,6 +216,13 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
         chosen = options.get("condition_key")
         if chosen is None and plant.conditions:
             chosen = sorted(plant.conditions)[0]
+        if chosen is None:
+            # R0（总控亲验收口）：空工况集禁裸传 build_scene（None 入
+            # 「工况不在结果」消息=mypy arg-type 红）——UF-33 诚实拒绝。
+            raise ArtifactKindNotReady(
+                "产物 kind 'ifc' 需至少一个工况（结果集工况为空——"
+                "先重算；禁静默空产物，UF-33）"
+            )
         graph = build_scene(plant, merged, chosen, site_design=site_design)
         model = build_ifc(graph)
         write_ifc(model, out)

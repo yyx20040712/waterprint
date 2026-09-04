@@ -209,3 +209,23 @@ def test_export_artifact_ifc_builds_model(tmp_path: Path) -> None:
         )
     assert payload != b""  # 禁静默空产物（UF-33）
     assert out.read_bytes() == payload  # write_ifc 落盘与返回字节一致
+
+
+def test_export_artifact_ifc_empty_conditions_rejected(tmp_path: Path) -> None:
+    """SC1 R0：空工况集 ifc 显式拒绝（总控亲验 mypy 红收口）。
+
+    chosen=None 禁裸传 build_scene（None 入「工况不在结果」消息=mypy
+    arg-type 红）；空 conditions 沿 UF-33 诚实拒绝（dxf next(iter, "")
+    空串兜底先例不适用——build_scene 对空串同样 KeyError 且消息含
+    空串字面量）。
+    """
+    from waterprint.contracts.result_schema import PlantResult, ReproTriple
+
+    plant = PlantResult(
+        conditions={}, summary={}, trace=(),
+        repro=ReproTriple(design_hash="t" * 16, engine_version="t", data_version="t"),
+    )
+    with pytest.raises(ArtifactKindNotReady, match="至少一个工况"):
+        export_artifact(  # type: ignore[misc]
+            "ifc", plant, Path("unused.ifc"), tmp_path / "m.ifc"
+        )
