@@ -86,7 +86,8 @@ _WIND_DIRS: Final[tuple[str, ...]] = ("N", "NE", "E", "SE", "S", "SW", "W", "NW"
 # 红线闭合多边形最少顶点数（L4a：Final 常量化解 PLR2004——schema 侧
 # _BOUNDARY_MIN_POINTS 同值双胞胎；1+2 算术形态绕字面量门禁同款法）。
 _BOUNDARY_MIN_VERTICES: Final[int] = 1 + 2
-# 总平面首张图号（title_block sheet_no 栏位占位——目录页/批量编号归 M5，§三.1）。
+# 总平面首张图号（title_block sheet_no 栏位占位——批量编号归 webapp 目录
+# 视图（M5 案甲）；DXF 目录 sheet 挂账 M6+，§三.1）。
 _SITE_SHEET_NO: Final[str] = "01"
 
 

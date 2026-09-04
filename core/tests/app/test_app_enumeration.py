@@ -229,3 +229,85 @@ def test_export_artifact_ifc_empty_conditions_rejected(tmp_path: Path) -> None:
         export_artifact(  # type: ignore[misc]
             "ifc", plant, Path("unused.ifc"), tmp_path / "m.ifc"
         )
+
+
+def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
+    """M5 D1：dxf 全厂总图正向——unit_id 缺省+site_design 透传→site_layout 出图。
+
+    断：bytes 非空+out 落盘一致+DXF 头魔面 AC1032（R2018）；工况显式
+    design 档（condition_key 显式传——UserWarning 零涉）。
+    """
+    from waterprint.app import run_full_calc
+    from waterprint.contracts.condition import build_condition_set as _bcs
+    from waterprint.contracts.project_schema import (
+        DesignState,
+        Metadata,
+        ProjectFile,
+        SiteDesign,
+        StructurePlacement,
+    )
+    from waterprint.contracts.run_env import RunEnv
+    from waterprint.registry import load_coefficients
+
+    lib = load_coefficients(_DATA)
+    env = RunEnv(
+        engine_version="m2sol",
+        data_version=f"coefficients@{lib.data_version}",
+        assumptions={},
+        coefficients=lib,
+        price_book={},
+        trace_sink=None,
+        engine_params={},
+    )
+    project = ProjectFile(
+        format_version="1.0",
+        design=DesignState(
+            nodes={
+                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7 / 86400,
+                          "kz": 1.4, "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
+                          "TN": 43.0},
+                "municipal_cass": {},
+            },
+            edges=[
+                {"src": {"unit_id": "inlet", "port_id": "out"},
+                 "dst": {"unit_id": "municipal_cass", "port_id": "in"}},
+            ],
+        ),
+        metadata=Metadata(
+            format_version="1.0",
+            content_hash="",
+            engine_version="m2sol",
+            data_version="m2sol",
+        ),
+    )
+    plant = run_full_calc(project, _bcs([]), env).plant  # type: ignore[misc]
+    assert "design" in plant.conditions  # 显式工况前提
+    out = tmp_path / "site.dxf"
+    payload = export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), out,
+        site_design=SiteDesign(
+            structures={"municipal_cass": StructurePlacement(x=5.0, y=5.0)}
+        ),
+        condition_key="design",
+    )
+    assert payload  # 禁静默空产物（UF-33）
+    assert out.read_bytes() == payload  # write_dxf 落盘与返回字节一致
+    assert b"AC1032" in payload[:512]  # DXF R2018 头魔面
+
+
+def test_export_artifact_dxf_site_plan_requires_site_design(tmp_path: Path) -> None:
+    """M5 D1：全厂总图诚实拒绝——unit_id 缺省且无 site_design→ArtifactKindNotReady。
+
+    直接 core 调用方无 site 通道时显性报（server 单产物通道有透传；批量面
+    暂不支持——M5 注记）；最小 PlantResult 沿 SC1 空工况用例构造形态。
+    """
+    from waterprint.contracts.result_schema import PlantResult, ReproTriple
+
+    plant = PlantResult(
+        conditions={}, summary={}, trace=(),
+        repro=ReproTriple(design_hash="t" * 16, engine_version="t", data_version="t"),
+    )
+    with pytest.raises(ArtifactKindNotReady, match="须传 site_design"):  # type: ignore[misc]
+        export_artifact(  # type: ignore[misc]
+            "dxf", plant, Path("unused"), tmp_path / "site.dxf"
+        )

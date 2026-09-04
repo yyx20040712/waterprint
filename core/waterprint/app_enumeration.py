@@ -21,9 +21,10 @@
 #       归属（audit=M4/estimate=M3），禁静默空产物
 #   export_artifact(kind, plant, template, out) -> bytes
 #       分发薄壳：kind="calcbook"→render_calcbook（M1b trace 正门，
-#       签名按其收口——plant 自带 trace）；kind="dxf"→M2 出图批；
-#       kind="ifc"→SC1 BIM 模型批（build_scene→build_ifc→write_ifc）；
-#       未就绪/未知 kind=ArtifactKindNotReady
+#       签名按其收口——plant 自带 trace）；kind="dxf"→M2 出图批
+#       （unit_id 缺省+site_design=全厂总图——site_layout 接线，
+#       M5 兑现）；kind="ifc"→SC1 BIM 模型批（build_scene→build_ifc
+#       →write_ifc）；未就绪/未知 kind=ArtifactKindNotReady
 #   class UpstreamSource(不可变)：上游取数面四字段束（units/edges/
 #       design/plant——app 装配与执行产物快照，装配语义仍归 app）
 #   upstream_context(source, unit_id, condition, env) -> UnitContext：
@@ -40,7 +41,9 @@
 #   section_view/dxf_writer）+ L1 registry.assumptions；SC1（2026-09-04）
 #   ifc 分支追加：L0 contracts.project_schema（SiteDesign——site_design
 #   透传参数）+ L3 geometry.scene（build_scene）+ L3 ifc_export 正门
-#   （build_ifc/write_ifc）——全部沿
+#   （build_ifc/write_ifc）；M5（2026-09-04）dxf 总图分支追加：L3
+#   drafting.site_plan（site_layout/SiteOptions——unit_id 缺省的全厂
+#   总图编排；InvalidSitePlanError 不捕获直上）——全部沿
 #   import-linter 层序向下合法边（app|app_enumeration 居 drafting/
 #   elevation/registry 之上）；结构图谱 §1b 的 app_enumeration 行
 #   未列上述边（真实 import 扫描=B3 待办，门禁暂不拦——SERVER 批
@@ -87,6 +90,7 @@ from waterprint.contracts.unit_api import Unit, UnitContext
 from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf
 from waterprint.drafting.plan_view import unit_plan
 from waterprint.drafting.section_view import unit_section
+from waterprint.drafting.site_plan import SiteOptions, site_layout
 from waterprint.drafting.styles import EntityGroup, base_styles
 from waterprint.elevation.losses import head_losses
 from waterprint.elevation.profile import build_profile
@@ -181,8 +185,9 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
 ) -> bytes:
     """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；dxf 接 M2 出图批；ifc 接 BIM 模型批。
 
-    D5 扩展：unit_id 关键字参数（默认 None）——kind="dxf" 必填（None 拒，
-    全厂总图归 M5 site_plan）；calcbook 分支签名零变（unit_id 不消费）。
+    D5 扩展：unit_id 关键字参数（默认 None）——kind="dxf" 单单元出图必填；
+    缺省+site_design=全厂总图（M5 兑现），缺省且无 site_design=诚实拒绝；
+    calcbook 分支签名零变（unit_id 不消费）。
     R1-1 扩展（2026-08-26）：condition_key 关键字参数（默认 None）——
     dxf 工况显式选择；两选项经 **options 透传（签名 5 参预算合规——
     调用形态 export_artifact(kind, plant, template, out, unit_id=…,
@@ -191,6 +196,9 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
     （默认 None）——kind="ifc" 消费（build_scene 假设视图与 site 装配
     透传，services/scene.py R3/R5 同口径；None assumptions=默认假设表
     兜底）；其余分支零消费。
+    M5 扩展（2026-09-04）：site_design 追及 dxf 分支（unit_id 缺省的
+    全厂总图编排——site_layout 接线；dxf 链自建假设视图故 assumptions
+    零涉）。
     """
     _check_export_options(options)
     if kind == "calcbook":
@@ -202,7 +210,8 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
                 stacklevel=2,  # 栈级 2=指向 export_artifact 调用方
             )
         return _export_dxf(
-            plant, options.get("unit_id"), out, options.get("condition_key")
+            plant, options.get("unit_id"), out, options.get("condition_key"),
+            site_design=site_design,
         )
     if kind == "ifc":
         if options.get("condition_key") is None and plant.conditions:
@@ -247,18 +256,20 @@ def _export_dxf(
     unit_id: str | None,
     out: Path,
     condition_key: str | None = None,
+    site_design: SiteDesign | None = None,
 ) -> bytes:
     """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。
 
     R1-1 工况显式化：condition_key=None 取首档（当前装配序=design）+
     UserWarning（不再静默——profile R3"禁静默取首档"口径对齐）；显式值
     未知即拒（合法面=plant.conditions 键集）。
+    M5（2026-09-04）：unit_id 缺省分支=全厂总图编排——site_design 透传
+    时 site_layout（design 态布置+工况快照纯投影）直接出图；无 site_design
+    =诚实拒绝（server 单产物通道有透传，批量面暂不支持——M5 注记）。
+    unit_id 给定路径原样零改（含不在工况图/无纵断站既有拒绝）。
+    site_plan.InvalidSitePlanError 不捕获直上（L3 领域异常——server 侧
+    映射归既有 exception handler 链）。
     """
-    if unit_id is None:
-        raise ArtifactKindNotReady(
-            "产物 kind 'dxf' 未就绪（归属：全厂总图归 M5 site_plan——"
-            "单单元图纸须传 unit_id，UF-33）"
-        )
     if condition_key is None:
         condition_key = next(iter(plant.conditions), "")  # Warning 已在上层发出
     elif condition_key not in plant.conditions:
@@ -266,6 +277,31 @@ def _export_dxf(
             f"工况 {condition_key!r} 不在结果（合法 "
             f"{sorted(plant.conditions)}——dxf 出图工况校验，R1-1）"
         )
+    if unit_id is None:
+        if site_design is None:
+            raise ArtifactKindNotReady(
+                "产物 kind 'dxf' 全厂总图导出须传 site_design（server 单产物"
+                "通道；批量面暂不支持——M5 注记）"
+            )
+        styles = base_styles()
+        entities = site_layout(
+            site_design,
+            plant,
+            styles,
+            # 同构直读：schema SitePlanOptions{coord_grid,wind_rose} 与
+            # drafting SiteOptions 字段同名同型（M5 总裁实证注——零换算面）。
+            SiteOptions(
+                coord_grid=site_design.options.coord_grid,
+                wind_rose=site_design.options.wind_rose,
+            ),
+        )
+        meta = DrawingMeta(
+            title="全厂总图",
+            condition_key=condition_key,
+            repro=(plant.repro.design_hash,
+                   plant.repro.engine_version, plant.repro.data_version),
+        )
+        return write_dxf(entities, styles, out, meta).read_bytes()
     snapshot = plant.conditions.get(condition_key, {}).get(unit_id)
     projection = PROJECTION_TABLE.get(unit_id)
     if snapshot is None or projection is None:

@@ -168,12 +168,13 @@ def test_export_artifact_calcbook_renders(tmp_path: Path) -> None:
     assert (tmp_path / "out.xlsx").stat().st_size == len(payload)
 
 
-@pytest.mark.parametrize("kind,owner", [("audit", "M4"), ("dxf", "M5 site_plan"), ("estimate", "M3")])
+@pytest.mark.parametrize("kind,owner", [("audit", "M4"), ("estimate", "M3")])
 def test_export_artifact_not_ready_kinds(kind: str, owner: str) -> None:
     """D2 导出·负向：未就绪 kind 拒且消息注明归属（禁静默空产物）。
 
-    DRAFT 批 D5（2026-08-26）dxf 收口：dxf 单单元出图已就绪（unit_id 必填
-    ——缺省拒绝面=全厂总图归 M5 site_plan）；audit/estimate 归属不变。
+    DRAFT 批 D5（2026-08-26）dxf 收口后 M5 接线：dxf 缺省面=全厂总图
+    （unit_id 缺省+site_design 透传出图/无 site_design 诚实拒——正向与
+    直拒用例归 test_app_enumeration M5 组）；audit/estimate 归属不变。
     """
     from waterprint.app import run_full_calc
     from waterprint.contracts.condition import build_condition_set
