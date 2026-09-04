@@ -100,7 +100,10 @@ class Settings(BaseSettings):
     )
 
     projects_dir: Path = Path("projects")
-    exports_dir: Path = Path("exports")
+    # 相对 cwd 的语义保持，仅落绝对形态——write_dxf 绝对路径守卫（路径安全族
+    # AU-1）与真服务相对默认不兼容（M5 TCP 探针实录 500 收口：单产物/worker
+    # 批量 tmp 派生全经此基点）。
+    exports_dir: Path = Path("exports").resolve()
     data_dir: Path = Path("data")
     calc_workers: int = Field(default_factory=lambda: max(1, (os.cpu_count() or 2) - 1))
     # R1-4⑤（AU-8 已接线 ENG2 2026-08-27）：上传体积闸已接线（413，routers 依赖层）。
