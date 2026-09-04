@@ -4,14 +4,12 @@
  * 输入:  batchExport 纯函数（node 环境——零 antd/零运行期库 import，
  *        先红后绿：module 未就绪=import 解析红）
  * 输出:  纯数据构造契约断言（空 units→[]/每单元恰一项/顺序保持/
- *        工况空串归一/dedupe 责任归调用方/kind 面 URL 常量）
+ *        工况空串归一/dedupe 责任归调用方；R2 G1-01 删 URL 常量末例
+ *        2026-09-04——5 用例）
  */
 import { describe, expect, it } from "vitest";
 
-import {
-  BATCH_EXPORT_URL,
-  buildBatchExportRequests,
-} from "./batchExport";
+import { buildBatchExportRequests } from "./batchExport";
 
 describe("buildBatchExportRequests 批量请求构造", () => {
   it("空 units → 空数组（无选中即无请求——调用面零循环）", () => {
@@ -49,9 +47,5 @@ describe("buildBatchExportRequests 批量请求构造", () => {
 
   it("重复项原样保持（dedupe 责任归调用方——antd Select multiple 已去重）", () => {
     expect(buildBatchExportRequests(["u1", "u1"], "design")).toHaveLength(2);
-  });
-
-  it("kind 面 URL 常量=/api/exports/dxf（单产物端点——批量对偶拒绝外的唯一通道）", () => {
-    expect(BATCH_EXPORT_URL).toBe("/api/exports/dxf");
   });
 });

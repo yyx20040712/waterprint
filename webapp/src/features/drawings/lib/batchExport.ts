@@ -5,10 +5,11 @@
  * 输入:  units（单元 id 序列——antd Select multiple 选中序）+conditionKey
  *        （工况键——空串=服务端缺省工况合同）
  * 输出:  buildBatchExportRequests→ExportRequestBody[]（每单元恰一项：
- *        condition_key 透传+options.unit_id 单发面）+BATCH_EXPORT_URL
- *        （kind 面 URL 常量——/api/exports/dxf 单产物端点）
+ *        condition_key 透传+options.unit_id 单发面）
  *
- * 规格说明（M5 D4；D3 总裁定稿 2026-09-04）：
+ * 规格说明（M5 D4；D3 总裁定稿 2026-09-04；R2 G1-01 删 BATCH_EXPORT_URL
+ *   死代码常量 2026-09-04——零消费者，URL 面归 useExportArtifact
+ *   /api/exports/${kind} 单一住所）：
  *   - 纯数据构造（零 antd/零运行期库 import——node 环境可测，drawingsView
  *     同族约束）；project_id 由调用方追加（组件持有 projectId 态——
  *     签名保持两参纯度）；
@@ -22,9 +23,6 @@
  *     单项带 options.unit_id 走即时 blob 面（零任务队列依赖——SSE/
  *     句柄消费零新增，服务端批量任务面沿册挂账二期）。
  */
-
-/** kind 面 URL 常量（单产物端点——批量请求逐项消费的同一通道）。 */
-export const BATCH_EXPORT_URL = "/api/exports/dxf";
 
 /** 批量单产物请求体（POST body 面——project_id 由调用方追加）。 */
 export type ExportRequestBody = {

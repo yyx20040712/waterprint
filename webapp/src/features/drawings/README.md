@@ -8,8 +8,8 @@ DXF 图纸导出（下载/元数据预览+线稿渲染）+ 导出发起 + 图纸
 |------|------|
 | `lib/drawingsView.ts` | 投影层：导出列表窄化门（ExportMeta 八字段值域拒→DrawingsViewError）+图纸目录行模型+工况选项投影+parseDisposition（node 纯函数） |
 | `lib/drawingsView.test.ts` | 投影层 vitest（17 用例——窄化门正负例/行序=服务端序/工况索引面/文件名解析） |
-| `lib/batchExport.ts` | 批量出图纯函数层（M5 D4：buildBatchExportRequests 每单元恰一项[condition_key 透传+options.unit_id 单发面+空串归一+顺序保持]+BATCH_EXPORT_URL kind 面 URL 常量；dedupe 责任归调用方注记——零 antd/零运行期库 import） |
-| `lib/batchExport.test.ts` | 批量出图 vitest（M5 D4：6 用例——空 units→[]/每单元恰一项纯数据逐请求/顺序保持/工况空串归一/重复项原样[kind 面 URL 锁]） |
+| `lib/batchExport.ts` | 批量出图纯函数层（M5 D4：buildBatchExportRequests 每单元恰一项[condition_key 透传+options.unit_id 单发面+空串归一+顺序保持]；dedupe 责任归调用方注记——零 antd/零运行期库 import；R2 G1-01 删 URL 死代码常量） |
+| `lib/batchExport.test.ts` | 批量出图 vitest（M5 D4：5 用例——空 units→[]/每单元恰一项纯数据逐请求/顺序保持/工况空串归一/重复项原样） |
 | `lib/dxfScene.ts` | DXF→SVG 场景投影层（B 批 D2：dxf-parser 解析产物→path/text/solid 渲染模型纯函数——实体展开/Y 顶翻/extents 边距/ACI 色映射/DIMENSION 匿名块+INSERT 变换；解析残件包 DxfSceneError） |
 | `lib/dxfScene.test.ts` | 投影层 vitest（10 用例——内联 fixture 四形态：基本投影+中文往返/Y 顶翻数值锚/extents 边距算术/ACI 正负例/块展开+INSERT 变换锚/DxfSceneError/1×1 空场景） |
 | `components/DxfSvg.tsx` | 线稿渲染薄壳（B 批 D8：SvgScene→SVG 元素树，viewBox 自适应——零 antd/零运行期库，薄壳不测先例） |

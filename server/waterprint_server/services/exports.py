@@ -339,8 +339,10 @@ async def create_export(  # noqa: PLR0913, PLR0915  # 规格冻结五参签名+c
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
     chosen = dict(options or {})
-    items: Sequence[Mapping[str, Any]] = chosen.get("items") or [
-        {"kind": kind, "condition_key": condition_key}
+    # R2/G1-02（SC1 延伸修复）：per-item kind 缺省/空串归一端点 kind（命名闸/两检查/边车同源）。
+    items: Sequence[Mapping[str, Any]] = [
+        {**item, "kind": str(item.get("kind") or kind)}
+        for item in (chosen.get("items") or [{"kind": kind, "condition_key": condition_key}])
     ]
     latest = _latest_calc_result(ctx, project_id)
     result_digest = str(latest.get("design_hash", ""))
@@ -356,7 +358,7 @@ async def create_export(  # noqa: PLR0913, PLR0915  # 规格冻结五参签名+c
     names = [
         _deterministic_name(
             project_id,
-            (item_kind := str(item.get("kind", ""))),  # 缺 kind=白名单外→422
+            (item_kind := str(item.get("kind", ""))),  # G1-02：kind 已归一——白名单外仍 422
             str(item.get("condition_key", "")),
             result_digest,
             # R1-3（G1-04）：ifc=全厂模型——unit 分量置 None（core 不消费
@@ -366,18 +368,16 @@ async def create_export(  # noqa: PLR0913, PLR0915  # 规格冻结五参签名+c
         for item in items
     ]
     if len(items) > _IMMEDIATE_LIMIT:  # R3：超单产物上限转低优先级任务
-        # R1-5（G1-05）：ifc=单产物端点语义——批量面 worker 不透传
-        # assumptions/site_design 与单产物不等价，显式拒绝（只作用批量入口）。
-        if any(str(item.get("kind", "")) == "ifc" for item in items):
+        # R1-5（G1-05）：ifc=单产物端点语义——worker 不透传 assumptions/site_design
+        # 与单产物不等价，显式拒绝（只作用批量入口）；kind 归一见 ingestion 注记。
+        if any((item.get("kind") or kind) == "ifc" for item in items):
             raise InvalidExportRequestError(
                 "ifc 暂不支持批量导出（单产物端点——SC1 注记；批量面 "
                 "worker 不透传 assumptions/site_design 与单产物不等价）"
             )
-        # M5 D5（对偶 R1-5）：批级 unit 空+dxf 项=无-unit 全厂总图语义——
-        # worker 无 site_design 透传通道同款不等价，显式拒绝（单产物
-        # bare POST 总图路径零牵连）。
+        # M5 D5（对偶 R1-5）：批级 unit 空+dxf 项=无-unit 总图——worker 无 site 透传通道，显式拒绝。
         if unit_option is None and any(
-            str(item.get("kind", "")) == "dxf" for item in items
+            (item.get("kind") or kind) == "dxf" for item in items
         ):
             raise InvalidExportRequestError(
                 "dxf 全厂总图暂不支持批量导出（单产物端点——对偶 ifc 先例；"

@@ -411,3 +411,46 @@ async def test_dxf_batch_rejected_wiring(client, test_settings) -> None:  # type
     assert batch.json()["error_type"] == "InvalidExportRequestError"
     assert "dxf 全厂总图暂不支持批量导出" in str(batch.json()["detail"])
     assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+
+
+@pytest.mark.anyio
+async def test_batch_missing_item_kind_normalizes_to_endpoint_wiring(
+    client, test_settings
+) -> None:  # type: ignore[no-untyped-def]
+    """R2/G1-02：per-item kind 缺省/空串归一端点 kind——批量拒绝缺省面闭合。
+
+    ①dxf 端点+批级无 unit_id+items 两项不带 kind 键→归一=无-unit dxf 批量
+    →422 对偶拒绝（文案断言）；②ifc 端点同形→422（SC1 面延伸修复——归一
+    前 kind 空串死于命名闸「不在合法面」，拒绝语义面失真）。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(client)
+    exports_dir = test_settings.exports_dir
+    before_listing = sorted(os.listdir(exports_dir))
+    batch = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "options": {"items": [
+                {"condition_key": "design"},
+                {"condition_key": "design"},
+            ]},
+        },
+    )
+    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert batch.json()["error_type"] == "InvalidExportRequestError"
+    assert "dxf 全厂总图暂不支持批量导出" in str(batch.json()["detail"])
+    ifc_batch = await client.post(
+        "/api/exports/ifc",
+        json={
+            "project_id": project_id,
+            "options": {"items": [
+                {"condition_key": "design"},
+                {"condition_key": "avg"},
+            ]},
+        },
+    )
+    assert ifc_batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert ifc_batch.json()["error_type"] == "InvalidExportRequestError"
+    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
