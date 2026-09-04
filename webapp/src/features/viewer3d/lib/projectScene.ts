@@ -45,7 +45,7 @@
  */
 import type { SceneResponse } from "../../../shared/api/generated/model";
 
-export const RENDER_SCENE_VERSION = "waterprint-scene-4/z-up/m";
+export const RENDER_SCENE_VERSION = "waterprint-scene-5/z-up/m";
 
 const KNOWN_KINDS = new Set([
   "box",

@@ -10,6 +10,10 @@
  *     脉动承载，UV 偏移流纹归后续增强批）；
  *   - 色值经 semanticColor（蓝水线 §19.3——SC1 起真源=shared/ui/
  *     semanticColors.ts）；dims 直读零推导；
+ *   - 真圆水面（SC1 L5R-A01）：dims 含 diameter 键→cylinderGeometry
+ *     真圆盘（径向 48 段：弦高误差≈0.11%d 肉眼不可辨，<24 棱线可见）；
+ *     否则 boxGeometry 旧径（box 池 length×width——diameter→radius=
+ *     three 接口适配，非业务推导）；
  *   - 剖切平面随 props（store → Scene → 材质）。
  */
 import { useRef } from "react";
@@ -39,11 +43,16 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
     }
   });
 
+  const diameter = node.dims["diameter"]; // SC1 真圆：cylinder 池水面足迹键
   return (
     <mesh position={node.position} rotation={node.rotation}>
-      <boxGeometry
-        args={[node.dims["length"] ?? 1, node.dims["depth"] ?? 1, node.dims["width"] ?? 1]}
-      />
+      {diameter !== undefined ? (
+        <cylinderGeometry args={[diameter / 2, diameter / 2, node.dims["depth"] ?? 1, 48]} />
+      ) : (
+        <boxGeometry
+          args={[node.dims["length"] ?? 1, node.dims["depth"] ?? 1, node.dims["width"] ?? 1]}
+        />
+      )}
       <meshStandardMaterial
         ref={materialRef}
         color={semanticColor("water_surface")}
