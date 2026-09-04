@@ -18,11 +18,12 @@
 #   class EnumerationOutcome(不可变)：rows/total_feasible/truncated/
 #       diagnosis（无解时非 None）/grid（网格元信息）
 #   class ArtifactKindNotReady(Exception)：产物 kind 未就绪——消息注明
-#       归属（audit=M4/dxf=M2 出图批/estimate=M3），禁静默空产物
+#       归属（audit=M4/estimate=M3），禁静默空产物
 #   export_artifact(kind, plant, template, out) -> bytes
 #       分发薄壳：kind="calcbook"→render_calcbook（M1b trace 正门，
-#       签名按其收口——plant 自带 trace）；未就绪/未知 kind=
-#       ArtifactKindNotReady
+#       签名按其收口——plant 自带 trace）；kind="dxf"→M2 出图批；
+#       kind="ifc"→SC1 BIM 模型批（build_scene→build_ifc→write_ifc）；
+#       未就绪/未知 kind=ArtifactKindNotReady
 #   class UpstreamSource(不可变)：上游取数面四字段束（units/edges/
 #       design/plant——app 装配与执行产物快照，装配语义仍归 app）
 #   upstream_context(source, unit_id, condition, env) -> UnitContext：
@@ -36,7 +37,10 @@
 #   分发与 TraceCollector 占位）。DRAFT 批 D5（2026-08-26）dxf 分支
 #   追加：L0 contracts.drawing_projection（UF-32 对照表）+ L3 elevation
 #   两模块（losses/profile）+ L3 drafting 四模块（styles/plan_view/
-#   section_view/dxf_writer）+ L1 registry.assumptions——全部沿
+#   section_view/dxf_writer）+ L1 registry.assumptions；SC1（2026-09-04）
+#   ifc 分支追加：L0 contracts.project_schema（SiteDesign——site_design
+#   透传参数）+ L3 geometry.scene（build_scene）+ L3 ifc_export 正门
+#   （build_ifc/write_ifc）——全部沿
 #   import-linter 层序向下合法边（app|app_enumeration 居 drafting/
 #   elevation/registry 之上）；结构图谱 §1b 的 app_enumeration 行
 #   未列上述边（真实 import 扫描=B3 待办，门禁暂不拦——SERVER 批
@@ -74,7 +78,7 @@ from waterprint.contracts.condition import ConditionSet, OperatingCondition
 from waterprint.contracts.drawing_projection import PROJECTION_TABLE
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.ports import Edge, PortRef
-from waterprint.contracts.project_schema import DesignState
+from waterprint.contracts.project_schema import DesignState, SiteDesign
 from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import RunEnv
@@ -86,6 +90,8 @@ from waterprint.drafting.section_view import unit_section
 from waterprint.drafting.styles import EntityGroup, base_styles
 from waterprint.elevation.losses import head_losses
 from waterprint.elevation.profile import build_profile
+from waterprint.geometry.scene import build_scene
+from waterprint.ifc_export import build_ifc, write_ifc
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.solution.constraints import Constraint
 from waterprint.solution.diagnose import DiagnosisReport
@@ -163,14 +169,17 @@ def _check_export_options(options: Mapping[str, str | None]) -> None:
         )
 
 
-def export_artifact(
+def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（assumptions/site_design——ifc 分支消费）；5 参预算与签名主授权冲突，行内豁免沿 N818 同款先例
     kind: str,
     plant: PlantResult,
     template: Path,
     out: Path,
+    *,
+    assumptions: Mapping[str, float] | None = None,
+    site_design: SiteDesign | None = None,
     **options: str | None,
 ) -> bytes:
-    """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；dxf 接 M2 出图批。
+    """产物导出分发薄壳（UF-33）：calcbook 接 M1b trace 正门；dxf 接 M2 出图批；ifc 接 BIM 模型批。
 
     D5 扩展：unit_id 关键字参数（默认 None）——kind="dxf" 必填（None 拒，
     全厂总图归 M5 site_plan）；calcbook 分支签名零变（unit_id 不消费）。
@@ -178,6 +187,10 @@ def export_artifact(
     dxf 工况显式选择；两选项经 **options 透传（签名 5 参预算合规——
     调用形态 export_artifact(kind, plant, template, out, unit_id=…,
     condition_key=…) 与命名参数完全同形）。
+    SC1 扩展（2026-09-04）：keyword-only assumptions/site_design 两参
+    （默认 None）——kind="ifc" 消费（build_scene 假设视图与 site 装配
+    透传，services/scene.py R3/R5 同口径；None assumptions=默认假设表
+    兜底）；其余分支零消费。
     """
     _check_export_options(options)
     if kind == "calcbook":
@@ -191,8 +204,24 @@ def export_artifact(
         return _export_dxf(
             plant, options.get("unit_id"), out, options.get("condition_key")
         )
+    if kind == "ifc":
+        if options.get("condition_key") is None and plant.conditions:
+            warnings.warn(
+                "未指定工况，取 design 档出模型——多工况请显式传 condition_key",
+                stacklevel=2,  # 栈级 2=指向 export_artifact 调用方（dxf 同构）
+            )
+        merged = assumptions if assumptions is not None else {
+            entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS
+        }
+        chosen = options.get("condition_key")
+        if chosen is None and plant.conditions:
+            chosen = sorted(plant.conditions)[0]
+        graph = build_scene(plant, merged, chosen, site_design=site_design)
+        model = build_ifc(graph)
+        write_ifc(model, out)
+        return out.read_bytes()
     owners = {"audit": "M4", "estimate": "M3"}
-    owner = owners.get(kind, "未知 kind（合法面 calcbook/audit/dxf/estimate）")
+    owner = owners.get(kind, "未知 kind（合法面 calcbook/audit/dxf/estimate/ifc）")
     raise ArtifactKindNotReady(
         f"产物 kind {kind!r} 未就绪（归属：{owner}；禁静默空产物，UF-33）"
     )

@@ -153,3 +153,59 @@ def test_upstream_context_unknown_unit_rejected() -> None:
             OperatingCondition(flow_case=FlowCase.DESIGN),
             env,
         )
+
+
+def test_export_artifact_ifc_builds_model(tmp_path: Path) -> None:
+    """SC1 D6：ifc 正门成功路径——scene→ifc 模型落盘且字节与返回一致。
+
+    核对实录（本文件既有断言面 grep）：无 ifc 抛 NotReady 用例/合法面
+    文案断言（export_artifact 面仅符号存在性）——ifc 成功路径为本用例
+    新增锚。缺省工况=UserWarning"未指定工况……出模型"（dxf 同构文案，
+    出模型口径）。
+    """
+    from waterprint.app import run_full_calc
+    from waterprint.contracts.condition import build_condition_set as _bcs
+    from waterprint.contracts.project_schema import DesignState, Metadata, ProjectFile
+    from waterprint.contracts.run_env import RunEnv
+    from waterprint.registry import load_coefficients
+
+    lib = load_coefficients(_DATA)
+    env = RunEnv(
+        engine_version="m2sol",
+        data_version=f"coefficients@{lib.data_version}",
+        assumptions={},
+        coefficients=lib,
+        price_book={},
+        trace_sink=None,
+        engine_params={},
+    )
+    project = ProjectFile(
+        format_version="1.0",
+        design=DesignState(
+            nodes={
+                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7 / 86400,
+                          "kz": 1.4, "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
+                          "TN": 43.0},
+                "municipal_cass": {},
+            },
+            edges=[
+                {"src": {"unit_id": "inlet", "port_id": "out"},
+                 "dst": {"unit_id": "municipal_cass", "port_id": "in"}},
+            ],
+        ),
+        metadata=Metadata(
+            format_version="1.0",
+            content_hash="",
+            engine_version="m2sol",
+            data_version="m2sol",
+        ),
+    )
+    plant = run_full_calc(project, _bcs([]), env).plant  # type: ignore[misc]
+    assert plant.conditions  # 缺省工况取排序首键前提
+    out = tmp_path / "model.ifc"
+    with pytest.warns(UserWarning, match="未指定工况"):
+        payload = export_artifact(  # type: ignore[misc]
+            "ifc", plant, Path("unused.ifc"), out
+        )
+    assert payload != b""  # 禁静默空产物（UF-33）
+    assert out.read_bytes() == payload  # write_ifc 落盘与返回字节一致
