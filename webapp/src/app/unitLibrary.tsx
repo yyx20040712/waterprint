@@ -175,7 +175,7 @@ export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
       )}
       <Drawer
         open={selectedUnit !== null}
-        width={DRAWER_WIDTH}
+        styles={{ wrapper: { width: DRAWER_WIDTH } }}
         onClose={() => setSelectedId(null)}
         title={
           selectedUnit === null ? null : (
