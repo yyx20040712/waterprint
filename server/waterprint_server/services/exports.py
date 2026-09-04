@@ -365,10 +365,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
     names = [
         _deterministic_name(
             project_id,
-            str(item.get("kind", "")),  # 缺 kind=白名单外→422（禁 KeyError 500）
+            (item_kind := str(item.get("kind", ""))),  # 缺 kind=白名单外→422
             str(item.get("condition_key", "")),
             result_digest,
-            unit_id=unit_option,
+            # R1-3（G1-04）：ifc=全厂模型——unit 分量置 None（core 不消费
+            # unit_id；同工况同结果字节相同文件名应相同）；dxf 面零变。
+            unit_id=None if item_kind == "ifc" else unit_option,
         )
         for item in items
     ]

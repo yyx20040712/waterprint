@@ -27,6 +27,9 @@ import type { RenderNode } from "../lib/projectScene";
 const BASE_OPACITY = 0.55;
 const PULSE_AMPLITUDE = 0.08;
 const PULSE_SPEED = 1.5;
+/** 真圆水面径向分段数（SC1 L5R-A01）：48 段弦高误差≈0.11%直径肉眼
+ *  不可辨（<24 棱线可见）——R1-6 提具名常量（48 魔法字面量收口）。 */
+const RADIAL_SEGMENTS = 48;
 
 type WaterSurfaceProps = {
   node: RenderNode;
@@ -47,7 +50,9 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
   return (
     <mesh position={node.position} rotation={node.rotation}>
       {diameter !== undefined ? (
-        <cylinderGeometry args={[diameter / 2, diameter / 2, node.dims["depth"] ?? 1, 48]} />
+        <cylinderGeometry
+          args={[diameter / 2, diameter / 2, node.dims["depth"] ?? 1, RADIAL_SEGMENTS]}
+        />
       ) : (
         <boxGeometry
           args={[node.dims["length"] ?? 1, node.dims["depth"] ?? 1, node.dims["width"] ?? 1]}

@@ -38,8 +38,11 @@ import {
   type ExportArtifactResult,
 } from "../api/useExportArtifact";
 
-/** 404 引导（无 done calc——先提交计算）。 */
-const NO_CALC_HINT = "——请先提交计算（POST /api/calc/run）完成后再导出图纸。";
+/** 404 引导（无 done calc——先提交计算；R1-4：按按钮面 kind 化尾词）。 */
+const NO_CALC_HINTS = {
+  dxf: "——请先提交计算（POST /api/calc/run）完成后再导出图纸。",
+  ifc: "——请先提交计算（POST /api/calc/run）完成后再导出模型。",
+} as const;
 
 /** 导出发起（单元+工况双选+stale 二选一交互+导出成功回调+双导出按钮）。 */
 export function ExportButton({
@@ -62,6 +65,8 @@ export function ExportButton({
   const chosenUnit = unitId ?? units[0] ?? "";
   const chosenCondition = conditionKey ?? conditions[0] ?? "";
   const ready = chosenUnit !== "" && chosenCondition !== "";
+  // R1-3：ifc=全厂模型——ready 闸豁免单元选择（仅工况选定即可发起）。
+  const ifcReady = chosenCondition !== "";
 
   /** 提交（kind 面 mutation 分发；force 支线=409 二选一的「仍导出旧结果」）。 */
   const submit = (kind: "dxf" | "ifc", force: boolean) => {
@@ -73,7 +78,9 @@ export function ExportButton({
       force,
     };
     void mutation.mutate(input, {
-      onSuccess: onExported, // B 批 D5：undefined 时 no-op——「有则传」等价
+      // R1-4：预览态仅 dxf 面消费（ifc 无前端投影——成功后 DrawingPreview
+      // 保持原态，不落「皆空引导」态；undefined 时 no-op 同 B 批 D5）。
+      onSuccess: kind === "dxf" ? onExported : undefined,
       onError: (error) => {
         if (!(error instanceof WaterprintApiError)) {
           messageApi.error(`导出失败：${error.message}`);
@@ -92,7 +99,7 @@ export function ExportButton({
           return;
         }
         if (error.code === "ExportSourceNotFoundError") {
-          messageApi.error(`${error.message}${NO_CALC_HINT}`);
+          messageApi.error(`${error.message}${NO_CALC_HINTS[kind]}`);
           return;
         }
         messageApi.error(error.message); // 501 未就绪等——原文诚实透传
@@ -130,7 +137,7 @@ export function ExportButton({
       <Button
         type="primary"
         loading={ifcMutation.isPending}
-        disabled={!ready}
+        disabled={!ifcReady}
         onClick={() => submit("ifc", false)}
       >
         导出模型（IFC）
