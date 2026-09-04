@@ -119,7 +119,12 @@ async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-
 
 @pytest.mark.anyio
 async def test_not_ready_kinds_return_501_wiring(client, cass_payload) -> None:  # type: ignore[no-untyped-def]
-    """R1-3（AU-3）：有结果集时 audit/dxf/estimate=恰 501（未就绪族确定性）。"""
+    """R1-3（AU-3）：有结果集时 audit/estimate=恰 501（未就绪族确定性）。
+
+    dxf 移出=M5 全厂总图接线后 bare POST 即 200（R0.5 总控裁定 2026-09-04
+    ——SC1 端点集断言 26 同类行为变更连带同步先例；dxf 正向/总图面归
+    tests/routers/test_exports.py M5 用例族）。
+    """
     created = await client.post("/api/projects", json={"project": cass_payload})
     project_id = created.json()["project_id"]
     task_id = (await client.post(
@@ -131,7 +136,7 @@ async def test_not_ready_kinds_return_501_wiring(client, cass_payload) -> None: 
             break
         await asyncio.sleep(0.1)
     assert body["state"] == "done"  # 结果集就绪（501 前提）
-    for kind in ("audit", "dxf", "estimate"):
+    for kind in ("audit", "estimate"):
         response = await client.post(f"/api/exports/{kind}", json={"project_id": project_id})
         assert response.status_code == status.HTTP_501_NOT_IMPLEMENTED, (
             f"{kind} 期望恰 501（ArtifactKindNotReady/模板缺位透传），"

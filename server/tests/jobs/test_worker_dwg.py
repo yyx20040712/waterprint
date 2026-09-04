@@ -294,16 +294,20 @@ async def test_create_export_batch_payload_carries_dwg_face_wiring(  # type: ign
         return await original_submit(request, idempotency_key=idempotency_key)
 
     monkeypatch.setattr(service_ctx.manager, "submit", _spy_submit)
+    # R0.5 总控裁定（2026-09-04）：批量 DWG 边车契约载体改有-unit 形态
+    # （services/test_exports.py:162 同形态）——无-unit dxf 批量现被 M5 D5
+    # 对偶拒绝 422 属预期新行为（tests/routers/test_exports.py 用例族锁）。
     await create_export(
         service_ctx,
         project_id,
         "dxf",
         "ok",
         {
+            "unit_id": "municipal_cass",
             "items": [
                 {"kind": "dxf", "condition_key": "design"},
                 {"kind": "dxf", "condition_key": "avg"},
-            ]
+            ],
         },
     )
     payload = captured[0].payload  # type: ignore[attr-defined]
