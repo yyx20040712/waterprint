@@ -147,9 +147,9 @@ async def test_dxf_product_flow_wiring(client) -> None:  # type: ignore[no-untyp
 
     断：POST dxf{unit_id,design}→200 文件流（DXF R2018 魔面 AC1032 头+
     SECTION 实体节字节；Content-Disposition 与产物名 .dxf 后缀）；
-    GET /api/exports 元数据行 kind=dxf（三元组摘要入边车）；无 options
-    POST dxf→恰 501 ArtifactKindNotReady（core unit_id-None 闸——全厂
-    总图归 M5 site_plan 诚实未就绪，非 server 模板闸面）。
+    GET /api/exports 元数据行 kind=dxf（三元组摘要入边车）；bare POST
+    dxf=全厂总图（M5 接线后）——200+.dxf 后缀+全厂总图 meta.title 行
+    （$PROJECTNAME 落 DXF 头；无-unit 命名分量与单元图互异零覆盖）。
     """
     project_id, _task_id = await _project_with_result(client)
     dxf = await client.post(
@@ -173,8 +173,16 @@ async def test_dxf_product_flow_wiring(client) -> None:  # type: ignore[no-untyp
     assert rows[0]["file_name"].endswith(".dxf")  # D4 注册表口径同款
     assert rows[0]["stale_labeled"] is False  # 新鲜导出无 stale 标注
     bare = await client.post("/api/exports/dxf", json={"project_id": project_id})
-    assert bare.status_code == status.HTTP_501_NOT_IMPLEMENTED
-    assert bare.json()["error_type"] == "ArtifactKindNotReady"  # core 正门非模板闸
+    assert bare.status_code == status.HTTP_200_OK  # bare POST=全厂总图（M5 接线）
+    assert b"AC1032" in bare.content[:512]  # 总图同为 DXF R2018
+    assert "全厂总图".encode() in bare.content  # meta.title 行（$PROJECTNAME 头）
+    bare_disposition = str(bare.headers.get("content-disposition", ""))
+    bare_name = bare_disposition.rsplit('filename="', maxsplit=1)[-1].rstrip('"')
+    assert bare_name.endswith(".dxf")  # M5：总图产物 .dxf 后缀
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
+    assert len(rows) == 2  # 单元图+总图两行（无-unit 命名互异零覆盖）
+    assert len({meta["file_name"] for meta in rows}) == 2
 
 
 @pytest.mark.anyio
@@ -372,4 +380,34 @@ async def test_ifc_batch_rejected_wiring(client, test_settings) -> None:  # type
     assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert batch.json()["error_type"] == "InvalidExportRequestError"
     assert "ifc 暂不支持批量导出" in str(batch.json()["detail"])
+    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+
+
+@pytest.mark.anyio
+async def test_dxf_batch_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """M5 D5：批量 payload 含 dxf 且批级 unit 空 → 422（无-unit 总图语义）。
+
+    对偶 ifc R1-5：批级 unit_option None+dxf 项=全厂总图语义——worker 无
+    site_design 透传通道与单产物不等价，显式拒绝禁静默降级；拒绝面只作用
+    批量入口（items>1 无 unit），单产物 bare POST 总图路径零牵连（上用例
+    200 实证）。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(client)
+    exports_dir = test_settings.exports_dir
+    before_listing = sorted(os.listdir(exports_dir))
+    batch = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "options": {"items": [
+                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "dxf", "condition_key": "design"},
+            ]},
+        },
+    )
+    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert batch.json()["error_type"] == "InvalidExportRequestError"
+    assert "dxf 全厂总图暂不支持批量导出" in str(batch.json()["detail"])
     assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘

@@ -43,23 +43,14 @@
 #   - FE1 M4（ENG3 2026-08-28）：即时生成路径 deserialize 结果文件
 #     缺失/损坏（OSError/InvalidResultError）归一 ExportSourceNotFound
 #     Error 404 面（scene.py 同构——路径安全族裸 500 禁）。
-#   - FE9 D2/D3/D4（2026-08-30 drawings 图纸面板批）：
-#     D2 模板闸收窄——存在性闸仅对模板消费 kind（calcbook）执行；
-#     dxf/audit/estimate/ifc 返回名义路径不闸（core 链零模板消费——dxf
-#     走内建 base_styles，audit/estimate 在 owners 表分派前不开模板；
-#     历史三 kind 死于 server 模板闸未达 core 正门 501 面——探针实录
-#     2026-08-30；禁造 dxf_unit.xlsx 占位模板=死资产违诚实）。
-#     D3 options 透传（单产物路径）——core 调用附 unit_id/condition_key
-#     kwargs（core _EXPORT_OPTIONS 同款键集）；空串归一 None：unit_id
-#     None→core NotReady 全厂总图 501 诚实面、condition_key None→core
-#     缺省 design 档+UserWarning。
+#   - FE9 D2/D3/D4（2026-08-30 drawings 图纸面板批）：D2 模板闸收窄——
+#     仅 calcbook 执行存在性闸（余 kind core 链零模板消费；历史三 kind
+#     死于 server 模板闸未达 core 正门——探针实录；禁造占位模板违诚实）；
+#     D3 options 透传（unit_id/condition_key，空串归一 None——调用点注记）；
+#     D4 kind 后缀映射 _KIND_SUFFIXES（dxf/ifc 各得其后缀，calcbook 零漂移）。
 #     S2 D6（2026-08-30 落盘化批）：批量路径同款收口——items 每项增
 #     unit_id（批级共享）+condition_key（item 自有）；worker 逐项透传
-#     kwargs（空串归一 None 同单产物口径）；批量命名 unit 分量恒传
-#     （去 len(items)<=1 条件——「命名面随 worker 面同批收口」兑现）。
-#     D4 kind 后缀映射——_deterministic_name 恒 .xlsx 收敛为按 kind
-#     映射（_KIND_SUFFIXES）：dxf→.dxf（SC1 增 ifc→.ifc）。既有 calcbook
-#     命名零漂移（dxf 历史从未成功导出——恒 501，无存量文件名面）。
+#     kwargs（空串归一 None 同单产物口径）；批量命名 unit 分量恒传。
 #   - FE9 R 轮（2026-08-30，二审全 CONFIRMED 后裁定）：R1（DS-01
 #     Critical）确定性命名附 unit 分量——单产物路径 _deterministic_
 #     name(unit_id=options.unit_id)（批量 items 面不传——worker 挂账
@@ -77,6 +68,9 @@
 #   - SC1 D7（2026-09-04）：ifc 分支——_KINDS 五元组+.ifc 后缀+调用点
 #     附 assumptions/site_design kwargs（scene 服务 R3/R5 同款口径）；
 #     R1-5：批量入口显式拒绝 ifc（单产物端点语义）。
+#   - M5（2026-09-04 图纸面批）：dxf 单产物附 site_design kwargs（unit_id
+#     缺省=全厂总图——bare POST 200）；批量对偶拒绝（D5）：批级 unit
+#     空+dxf 项→422（worker 无 site_design 透传通道）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -235,8 +229,8 @@ def _deterministic_name(
     FE9 D4：后缀按 kind 映射（_KIND_SUFFIXES——dxf→.dxf/ifc→.ifc；历史
     恒 .xlsx 对 dxf 产物名不诚实的缺陷收口，calcbook 零漂移）。
     FE9 R1（DS-01）：unit_id 非 None 时命名序 {project}-{kind}-{unit}-
-    {condition}-{digest}{后缀}；None 时零漂移。修复锚=多单元导出同名
-    os.replace 覆盖静默丢失——单元键进名后文件名必然互异。
+    {condition}-{digest}{后缀}；None 零漂移（修复锚=同名 os.replace
+    覆盖静默丢失——单元键进名后文件名必然互异）。
     """
     if kind not in _KINDS:
         raise InvalidExportRequestError(f"导出 kind {kind!r} 不在合法面 {_KINDS}")
@@ -254,10 +248,9 @@ def _deterministic_name(
 
 
 def _unit_id_of(chosen: Mapping[str, Any]) -> str | None:
-    """FE9 R3（DS-08）：options.unit_id 严格化——仅非空字符串透传（bool/
-    数值不再 str() 宽转——「'True' 不在工况图」式消息失真）；非字符串/
-    空串一律 None=core unit_id-None 闸「全厂总图归 M5 site_plan」
-    诚实 501 面维持。
+    """FE9 R3（DS-08）：仅非空字符串透传（宽转 str() 移除防消息失真）；
+    非字符串/空串→None=M5 后全厂总图通道（bare POST 200——直拒面归
+    site_design 缺位，core 侧闸）。
     """
     unit = chosen.get("unit_id")
     return unit if isinstance(unit, str) and unit else None
@@ -279,9 +272,8 @@ def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
 
 
 def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | None:
-    """WP0（ODA-A）挂点：dxf 且开关非空→子进程转 DWG 同名并排（原语=
-    jobs.dwg.dwg_convert）；失败/超时=warning+跳过（DXF 恒为契约产物）；
-    成功返回名供边车双产物登记。
+    """WP0（ODA-A）挂点：dxf 且开关非空→子进程转 DWG 同名并排（原语
+    jobs.dwg.dwg_convert）；失败/超时=warning 跳过，成功返回名供边车登记。
     """
     if kind != "dxf":
         return None
@@ -295,11 +287,10 @@ def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | No
 def _batch_items_payload(
     items: Sequence[Mapping[str, Any]], names: Sequence[str], common: Mapping[str, Any]
 ) -> list[dict[str, Any]]:
-    """R2-C：export_batch items IPC 面（S2 D6 透传+dxf 项边车文本预构建）。
+    """R2-C：export_batch items IPC 面（S2 D6 透传+dxf 项边车预构建）。
 
-    dxf 项附 sidecars={dxf, dwg} 边车文本（ExportMeta 八键单源——worker
-    仅落盘不重构；DWG 文本乐观预构建，真成功才落盘=无幽灵边车）；其余
-    kind 保持存量零边车行为。
+    dxf 项附 sidecars={dxf,dwg} 文本（ExportMeta 八键单源，worker 仅落盘；
+    DWG 乐观预构建真成功才落盘=无幽灵边车）；其余 kind 存量零边车。
     """
     batch: list[dict[str, Any]] = []
     for item, name in zip(items, names, strict=True):
@@ -335,7 +326,7 @@ def _batch_items_payload(
     return batch
 
 
-async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开接口）+ctx 首参惯例
+async def create_export(  # noqa: PLR0913, PLR0915  # 规格冻结五参签名+ctx 首参惯例；M5 D2 钦定增支（批量对偶拒绝+dxf kwargs 组装——语句预算 40 溢出，行内豁免沿 PLR0913 先例）
     ctx: ServiceContext,
     project_id: str,
     kind: str,
@@ -381,6 +372,16 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
             raise InvalidExportRequestError(
                 "ifc 暂不支持批量导出（单产物端点——SC1 注记；批量面 "
                 "worker 不透传 assumptions/site_design 与单产物不等价）"
+            )
+        # M5 D5（对偶 R1-5）：批级 unit 空+dxf 项=无-unit 全厂总图语义——
+        # worker 无 site_design 透传通道同款不等价，显式拒绝（单产物
+        # bare POST 总图路径零牵连）。
+        if unit_option is None and any(
+            str(item.get("kind", "")) == "dxf" for item in items
+        ):
+            raise InvalidExportRequestError(
+                "dxf 全厂总图暂不支持批量导出（单产物端点——对偶 ifc 先例；"
+                "worker 无 site_design 透传通道，SC1 R1-5 同款不等价）"
             )
         handle = await ctx.manager.submit(
             TaskRequest(
@@ -429,18 +430,16 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名（公开�
         ) from exc
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
-    # FE9 D3：options 透传（单产物路径——core _EXPORT_OPTIONS 同款键集；
-    # 空串归一 None：unit_id None→core NotReady 全厂总图 501 诚实面、
-    # condition_key None→core 缺省 design 档+UserWarning。批量路径不透传
-    # ——worker 面挂账 S2 落盘化批，注记区。R3：unit_id 严格化（非字符串
-    # 一律 None——str() 宽转移除，_unit_id_of）。
-    # SC1 D7：ifc 分支组装 assumptions/site_design（scene 服务 R3/R5 同款
-    # 口径——合成视图+site 装配透传；其余 kind 零 kwargs 零漂移）。
+    # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
+    # SC1 D7：ifc 组装 assumptions/site_design（scene 服务同口径）。
+    # M5：dxf 透传 site_design（unit_id 缺省=全厂总图——批量面已显式拒）。
     extra: dict[str, Any] = {}
     if kind == "ifc":
         merged = {e.key: e.default for e in core.DEFAULT_ASSUMPTIONS}
         merged |= project.design.assumption_overrides
         extra = {"assumptions": merged, "site_design": project.design.site}
+    elif kind == "dxf":
+        extra = {"site_design": project.design.site}
     core.export_artifact(
         kind,
         plant,
