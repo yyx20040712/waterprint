@@ -454,3 +454,45 @@ async def test_batch_missing_item_kind_normalizes_to_endpoint_wiring(
     assert ifc_batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert ifc_batch.json()["error_type"] == "InvalidExportRequestError"
     assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+
+
+@pytest.mark.anyio
+async def test_dirty_coord_grid_returns_422_and_no_artifacts(
+    client, test_settings
+) -> None:  # type: ignore[no-untyped-def]
+    """ENG7 笔1：脏 site 几何（coord_grid=0.0）→ 422 InvalidSitePlanError 零落盘。
+
+    触发链：POST /api/exports/dxf 不带 options.unit_id（全厂总图通道）→
+    site_layout 坐标网间距闸（非有限/非正双拦——schema 对 coord_grid 无
+    gt/finite 面，脏值经 PUT 放行存盘）。conditions 空路 API 不可常规
+    构造（calc 恒产工况），core 单测 test_site_plan.py:463-482 已覆盖，
+    本用例不重复——消费面行为断言锚 coord_grid 路（质量门条款 4：HTTP
+    响应体实值，非名义表等值断言）。
+    """
+    import os
+
+    project_id, _task_id = await _project_with_result(client)
+    project = (await client.get(f"/api/projects/{project_id}")).json()
+    project["design"]["site"]["options"]["coord_grid"] = 0.0  # 脏 site 几何（结构性非法）
+    saved = await client.put(f"/api/projects/{project_id}", json=project)
+    assert saved.status_code == 200 and saved.json()["design_changed"] is True
+    rerun = await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )
+    task_id = rerun.json()["task_id"]
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"  # 重算消 stale（导出消费新结果集）
+    exports_dir = test_settings.exports_dir
+    before_listing = sorted(os.listdir(exports_dir))
+    resp = await client.post(
+        "/api/exports/dxf",
+        json={"project_id": project_id, "condition_key": "design"},  # 无 unit_id=总图通道
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert resp.json()["error_type"] == "InvalidSitePlanError"
+    assert "坐标网间距非法" in resp.json()["detail"]
+    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘

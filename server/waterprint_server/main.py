@@ -146,6 +146,9 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidElevationRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidCostRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidProjectPayloadError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # ENG7：脏 site 几何（coord_grid 非有限/非正——用户输入非法同族，
+    # GR-11 族；core 再导出面经 app 正门，main→app 边在册零图谱改动）。
+    (core.InvalidSitePlanError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     # ENG2 D3：非弃用名（HTTP_413_CONTENT_TOO_LARGE==413，值同简报所书
     # REQUEST_ENTITY_TOO_LARGE 旧别名——用旧名会常驻 StarletteDeprecationWarning）。
     (PayloadTooLargeError, status.HTTP_413_CONTENT_TOO_LARGE),
