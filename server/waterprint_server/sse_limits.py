@@ -42,7 +42,6 @@
 #
 # 【测试要求】test_sse_limits.py 八例（低阈值旋钮验证逻辑不真实挂满
 #   100 连接；配置值生效单列；断开释放回收；鉴权关全额生效；None 回退）。
-#
 # 【参照】.workflow/briefs/task-B6-brief.md D2~D5；重写计划 §16 A5/§17.3
 # ══════════════════════════════════════════════════════════════════
 
@@ -53,7 +52,7 @@ import time
 
 from waterprint_server.settings import Settings
 
-# 容量维 Retry-After 建议秒数（白名单字面量；槽位释放时刻不可预知）。
+# 容量维 Retry-After 建议秒数（槽位释放时刻不可预知——白名单字面量 1）。
 _CAPACITY_RETRY_S = 1
 
 
@@ -135,9 +134,10 @@ class SseLimiter:
         self._global += 1
         counts[key] = counts.get(key, 0) + 1
 
-    @staticmethod
-    def _release(counts: dict[str, int], key: str) -> None:
-        """计数回收（幂等下限 0；键清零即删——dict 不随任务数膨胀）。"""
+    def _release(self, counts: dict[str, int], key: str) -> None:
+        """计数回收（全局+单维两处；幂等下限 0；键清零即删不膨胀）。"""
+        if self._global > 0:
+            self._global -= 1
         if counts.get(key, 0) > 1:
             counts[key] -= 1
         else:

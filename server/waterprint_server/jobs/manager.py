@@ -280,7 +280,7 @@ class Manager:
             return await queue.get()
         try:
             return await asyncio.wait_for(queue.get(), timeout=self._sse_heartbeat_s)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
     async def shutdown(self, timeout: float) -> Mapping[str, str]:

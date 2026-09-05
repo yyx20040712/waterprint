@@ -82,8 +82,9 @@ def _stream(
                 if event is None:  # manager 静默超时哨兵（B6 D6 心跳）
                     yield ": keepalive\n\n"
                     continue
-                payload = asdict(event)  # Event dataclass（routers 不直连 jobs 类型面——Any 桥接）
-                yield f"event: {payload['type']}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                payload = asdict(event)  # Event dataclass（Any 桥接）
+                line = json.dumps(payload, ensure_ascii=False)
+                yield f"event: {payload['type']}\ndata: {line}\n\n"
         finally:
             if release is not None:  # 连接关闭=限流占位回收（B6 D4）
                 release()
