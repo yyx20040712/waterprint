@@ -1,7 +1,8 @@
-"""任务域公开数据类：请求/句柄/状态快照/SSE 事件（纯数据零逻辑）。
+"""任务域公开数据类：请求/句柄/状态快照/SSE 事件 + 注册表条目（纯数据）。
 
 输入:  无（数据类定义面）
-输出:  TaskRequest/TaskHandle/TaskStatus/Event/UnknownTaskError/_KINDS
+输出:  TaskRequest/TaskHandle/TaskStatus/Event/UnknownTaskError/_KINDS/
+       _TaskRecord（manager 顶部 import 再导出——模块属性面零波移）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -18,20 +19,27 @@
 #   Event: SSE 事件（{type, task_id, percent, message, condition_key}）
 #
 # 【行为规格】数据类不变量归各类 docstring；_TaskRecord（注册表条目）
-#   留守 manager（进程内私有面——subscribers asyncio 队列绑定调度器）。
+#   B3 R4（2026-09-05）自 manager 迁入本文件（manager 500 行预算减压；
+#   纯数据类零 manager 状态依赖——终态面 _TERMINAL 经 registry.
+#   TERMINAL_STATES 同源单定义，registry 不反向 import records 无环）；
+#   manager 顶部 import 再导出（包内 _ 前缀合法——test_server_maintenance
+#   的 manager._TaskRecord 模块属性访问零波移）。
 #
 # 【测试要求】经 manager 再导出面由既有镜像测试覆盖（test_manager/
 #   test_calculation/test_events 等 getattr(_mod,...) 零漂移）。
 #
-# 【参照】ENG5 简报 D4；S2 R1 先例；重写计划 §12.2/§17.1/§18
+# 【参照】ENG5 简报 D4；S2 R1 先例；B3 简报 R4；重写计划 §12.2/§17.1/§18
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Final
+
+from waterprint_server.jobs.registry import TERMINAL_STATES
 
 _KINDS: Final[tuple[str, ...]] = ("calc", "enumerate", "export_batch")
 
@@ -89,3 +97,49 @@ class Event:
     percent: float
     message: str
     condition_key: str | None
+
+
+# 终态面（B3 R4 随 _TaskRecord 迁入——与 manager._TERMINAL 同源 registry
+# 单定义；搬运体 terminal 属性逐字保序引用本名）。
+_TERMINAL: Final[tuple[str, ...]] = TERMINAL_STATES
+
+
+@dataclass
+class _TaskRecord:
+    """注册表条目（内存，replicas=1 契约 R4）。"""
+
+    task_id: str
+    request: TaskRequest
+    state: str = "queued"
+    progress: float = 0.0
+    stage: str = "queued"
+    condition_key: str | None = None
+    stale: bool = False
+    error: str | None = None
+    error_type: str | None = None
+    result: Mapping[str, Any] | None = None
+    snapshot_hash: str | None = None
+    cancel_requested: bool = False
+    finished_at: float | None = None  # WP4：完成时间戳（终态必置——TTL 判定面）
+    subscribers: set[asyncio.Queue[Event]] = field(default_factory=set)
+
+    @property
+    def terminal(self) -> bool:
+        """终态判定（状态机单向 R1）。"""
+        return self.state in _TERMINAL
+
+    def status(self) -> TaskStatus:
+        """只读快照（对外不含内部字段）。"""
+        return TaskStatus(
+            task_id=self.task_id,
+            kind=self.request.kind,
+            state=self.state,
+            progress=self.progress,
+            stage=self.stage,
+            condition_key=self.condition_key,
+            stale=self.stale,
+            error=self.error,
+            error_type=self.error_type,
+            result=self.result,
+            project_id=str(self.request.payload.get("project_id", "")),
+        )

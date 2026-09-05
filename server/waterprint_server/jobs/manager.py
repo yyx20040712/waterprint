@@ -53,6 +53,11 @@
 #   - WP4 TTL 淘汰（2026-09-02 修1+R-1 G1-01）：终态记 finished_at；
 #     sweep_expired=registry.sweep_plan+unlink_task_face 薄壳——文件面
 #     全清才删条目（失败保留重试防孤儿）+_idem 差量删（A-02）；恢复=新租约。
+#   - B3 R4（2026-09-05 结构减压批）：_TaskRecord 注册表条目迁 jobs/
+#     records.py（TaskRequest/TaskStatus/Event 同籍天然归宿；纯数据类零
+#     manager 状态依赖——桥三方法持 5+ manager 状态故留守），本模块顶部
+#     import 再导出（包内 _ 前缀合法；manager._TaskRecord 模块属性访问
+#     零波移）。
 #
 # 【测试要求】状态机全路径、优先级次序、取消（queued/running 两态）、
 #   进度事件顺序、shutdown 无泄漏。
@@ -71,7 +76,6 @@ import uuid
 from collections.abc import AsyncIterator, Mapping
 from concurrent.futures import Executor
 from contextlib import suppress
-from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty
 from typing import Any, Final
@@ -85,6 +89,7 @@ from waterprint_server.jobs.records import (  # ENG5 D4 再导出（导出面=__
     TaskRequest,
     TaskStatus,
     UnknownTaskError,
+    _TaskRecord,  # B3 R4：注册表条目自 records 迁入再导入（包内私有面，下文消费）
 )
 from waterprint_server.jobs.worker import run_task
 
@@ -104,47 +109,6 @@ __all__ = [
     "TaskStatus",
     "UnknownTaskError",
 ]
-
-
-@dataclass
-class _TaskRecord:
-    """注册表条目（内存，replicas=1 契约 R4）。"""
-
-    task_id: str
-    request: TaskRequest
-    state: str = "queued"
-    progress: float = 0.0
-    stage: str = "queued"
-    condition_key: str | None = None
-    stale: bool = False
-    error: str | None = None
-    error_type: str | None = None
-    result: Mapping[str, Any] | None = None
-    snapshot_hash: str | None = None
-    cancel_requested: bool = False
-    finished_at: float | None = None  # WP4：完成时间戳（终态必置——TTL 判定面）
-    subscribers: set[asyncio.Queue[Event]] = field(default_factory=set)
-
-    @property
-    def terminal(self) -> bool:
-        """终态判定（状态机单向 R1）。"""
-        return self.state in _TERMINAL
-
-    def status(self) -> TaskStatus:
-        """只读快照（对外不含内部字段）。"""
-        return TaskStatus(
-            task_id=self.task_id,
-            kind=self.request.kind,
-            state=self.state,
-            progress=self.progress,
-            stage=self.stage,
-            condition_key=self.condition_key,
-            stale=self.stale,
-            error=self.error,
-            error_type=self.error_type,
-            result=self.result,
-            project_id=str(self.request.payload.get("project_id", "")),
-        )
 
 
 class Manager:

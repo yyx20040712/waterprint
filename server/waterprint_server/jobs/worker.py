@@ -55,6 +55,12 @@
 #     上移 try 前（纯计算零失败——except 无条件 unlink 防残留）；R3/R4
 #     cancelled outcome 补全键对称（project_id/design_digest）+ifc 边车写前
 #     K-02 同款取消检查（取消后零新边车口径对齐）。
+#   - B3 R5（2026-09-05 结构减压批）：数据包适配域三符号（DataPackError/
+#     _CoefficientEntry/_YamlCoefficients）迁 jobs/datapack.py（yaml/
+#     isfinite/Path/Mapping 四依赖零 worker 依赖自足），本模块顶部 import
+#     同名再导出（消费面 from worker import 零改动；_build_env 消费
+#     _YamlCoefficients）。export_batch 域/run_task/_KIND_RUNNERS/进度基建/
+#     _PROGRESS_QUEUE 全留守（pickle 边界+manager 直读两约束）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -69,7 +75,6 @@ import os
 import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from math import isfinite
 from pathlib import Path
 from typing import Any, Final, Protocol
 
@@ -81,6 +86,12 @@ from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 
+# B3 R5 再导出（消费面零改动；冗余别名形态被 PLC0414 拦——平名+定向 F401 豁免）
+from waterprint_server.jobs.datapack import (
+    DataPackError,  # noqa: F401  # 再导出专用（from worker import 零改动）
+    _CoefficientEntry,  # noqa: F401  # 同上（族三符号整迁整再导出）
+    _YamlCoefficients,
+)
 from waterprint_server.jobs.dwg import batch_dwg_artifact
 from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.settings import ENGINE_VERSION
@@ -110,85 +121,10 @@ class InvalidTaskPayloadError(ValueError):
     """任务 payload 非法（未知 kind/缺键）——领域异常（GR-11 族）。"""
 
 
-class DataPackError(ValueError):
-    """数据包装载非法（manifest/条目形态）——领域异常（GR-11 族）。"""
-
-
 def _init_progress_queue(queue: mp.Queue[Mapping[str, Any]]) -> None:
     """进程池 initializer 入口：进度队列注入（Windows spawn 正门，R3）。"""
     global _PROGRESS_QUEUE  # noqa: PLW0603  # 池 initializer 注入口（R5 唯一写者）
     _PROGRESS_QUEUE = queue
-
-
-class _CoefficientEntry:
-    """系数条目视图（CoefficientsView.get 的返回协议面：value/unit/source/note）。"""
-
-    def __init__(self, value: float, unit: str, source: str, note: str) -> None:
-        self.value = value
-        self.unit = unit
-        self.source = source
-        self.note = note
-
-
-class _YamlCoefficients:
-    """CoefficientsView 协议适配器：registry 数据包格式镜像装载（B4 双胞胎）。
-
-    只实现 L0 协议查询面（data_version/get/keys/require_keys）——装载
-    语义与 registry.load_coefficients 同款（manifest.yaml 版本头 + 其余
-    *.yaml 条目按名排序；键全包唯一；数值有限性 GR-02）。
-    """
-
-    def __init__(self, directory: Path) -> None:
-        manifest = directory / "manifest.yaml"
-        if not manifest.is_file():
-            raise DataPackError(f"系数包缺 manifest.yaml：{directory}（装载面只认数据包目录）")
-        manifest_data = yaml.safe_load(manifest.read_text(encoding="utf-8"))
-        if not isinstance(manifest_data, Mapping) or not isinstance(
-            manifest_data.get("data_version"), str
-        ):
-            raise DataPackError(f"系数包 manifest.yaml 形态非法（缺 data_version）：{manifest}")
-        self.data_version = manifest_data["data_version"]
-        self._entries: dict[str, _CoefficientEntry] = {}
-        for entry_file in sorted(directory.glob("*.yaml")):
-            if entry_file.name == "manifest.yaml":
-                continue
-            raw = yaml.safe_load(entry_file.read_text(encoding="utf-8"))
-            if not isinstance(raw, list):
-                raise DataPackError(f"条目文件须为列表：{entry_file}")
-            for item in raw:
-                if not isinstance(item, Mapping):
-                    raise DataPackError(f"条目须为对象：{entry_file} 内 {item!r}")
-                key = item.get("key")
-                value = item.get("value")
-                if not isinstance(key, str) or not key or not isinstance(value, (int, float)):
-                    raise DataPackError(f"条目缺 key/value 基本字段：{entry_file} 内 {item!r}")
-                if isinstance(value, float) and not isfinite(value):
-                    raise DataPackError(f"条目数值非有限（GR-02）：{key}={value!r}")
-                if key in self._entries:
-                    raise DataPackError(f"系数键重复（键全包唯一）：{key}（{entry_file.name}）")
-                self._entries[key] = _CoefficientEntry(
-                    float(value),
-                    str(item.get("unit", "")),
-                    str(item.get("source", "")),
-                    str(item.get("note", "")),
-                )
-        if not self._entries:
-            raise DataPackError(f"系数包无条目文件（GR-14 空集显式拒）：{directory}")
-
-    def get(self, key: str) -> _CoefficientEntry:
-        """键查询（缺键=KeyError——与 registry.Coefficients 同语义）。"""
-        return self._entries[key]
-
-    def keys(self, prefix: str = "") -> tuple[str, ...]:
-        """前缀键枚举（排序确定性）。"""
-        return tuple(sorted(key for key in self._entries if key.startswith(prefix)))
-
-    def require_keys(self, keys: object) -> None:
-        """在册断言（协议面）。"""
-        if isinstance(keys, (list, tuple)):
-            for key in keys:
-                if key not in self._entries:
-                    raise DataPackError(f"系数键在册断言失败：{key!r}")
 
 
 class _ProgressSink(Protocol):
