@@ -32,15 +32,18 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `components/BoundaryLayer.tsx` | 红线层子件（B4 笔③ R1——自 SiteCanvas polygon 段子件化）：选中态加粗描边+顶点把手（r=1.0 世界单位·随 zoom）pointerdown 拖拽会话+双击顶点删点/双击线段增点（TapAnchor 通用双击判定，顶点优先歧义序）；描边可命中 fill=none（非 select 工具=装饰态） |
 | `lib/windRoseGeometry.ts` | 风玫瑰纯计算面（B4 笔① R3）：WIND_DIRS 八方位罗盘序+windRoseSpokes 辐条/标注点相对向量——数据计算镜像 core site_plan.py:288-323（未知键跳过/负钳 0/None·空·全零=空数组/sorted 序）；Y 翻转内置（dy 负=屏幕向上），落位语义归 WindRose |
 | `lib/windRoseGeometry.test.ts` | 风玫瑰纯计算 vitest（node 环境先红后绿：八方位序/None·空·全零=空/未知键跳过+sorted/比例缩径/负钳 0/标注点满径未缩放/N 朝上 dy<0/半径防御） |
-| `components/WindRose.tsx` | 风玫瑰画布角标（B4 笔① R3 仅渲染）：嵌套 svg x="100%" 锚右缘屏幕空间 overlay——零测量零视口态；pointerEvents=none 装饰面；None=返回 null；值编辑面板挂账续记 |
+| `lib/windRoseForm.ts` | 风玫瑰值表单纯逻辑面（B5 D5）：mergeWindRose 合并写回——未知键（WIND_DIRS 外）原样保留+八方位非空非负有限值覆盖；全空+有未知键→仅未知键、全空+无未知键→null（全量丢弃唯组件「清空」确认门）；WIND_DIRS 单源 import 自 windRoseGeometry |
+| `lib/windRoseForm.test.ts` | 风玫瑰表单纯逻辑 vitest（B5 D5 node 先红后绿四例：全空无未知键→null[含原对象已知方位不隐式携带]/全空有未知键→仅未知键保留/负值·NaN·Infinity 过滤/部分值+未知键合并不丢） |
+| `components/WindRose.tsx` | 风玫瑰画布角标（B4 笔① R3 仅渲染）：嵌套 svg x="100%" 锚右缘屏幕空间 overlay——零测量零视口态；pointerEvents=none 装饰面；None=返回 null；B5 D6 数据源改吃 draft.options.wind_rose（值编辑即时联动——面板 B5 销账） |
 | `components/WindRose.test.tsx` | 角标组件冒烟（零 jsdom 红线内 node 直调元素树断言本 feature 首例：None/空/全零=null、有值=辐条+sorted 标注、N 朝上+标注未缩放满径） |
+| `components/WindRosePanel.tsx` | 风玫瑰值编辑面板（B5 D5——右侧栏常驻[无选中时显示区]）：四行两列八方位 InputNumber[min=0 禁负]+相对频率口径提示语+清空 Popconfirm 确认门→onClear 上行 null；受控零本地态，onChange 上行 mergeWindRose 合并写回值；antd 薄壳不测（纯逻辑归 windRoseForm） |
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中[structure id/road·corridor 索引/B4 笔③ boundary 单例无 id]/工具+折线点序列机——业务数据零入 store） |
 | `store/siteplanStore.test.ts` | store node 直测首例（初始态/各 action 纯转移/zoom 夹紧/tool 切换清折线/pending 序列机；B4 笔③增 boundary 选中面置清例） |
-| `components/SiteplanPane.tsx` | 切片内组装（工具栏+待摆区+画布+选中侧栏[结构/折线/红线]+保存流——canvasPane 壳同构；B4 笔②增折线删除 removeRequest 确认门挂起态与 onRemoveLine/onRemoveRequest 回调；B4 笔③增顶点三回调 copy-on-write+拒删 useMessage 提示+红线删除 boundary 分支汇 clearBoundary 清空通路+setSelection(null) 收口；B4 笔③行预算拆法——收笔面板抽 LineFinishForm[ENG6 第四拆]+投影围栏 try/catch 归 lib projectSiteSafe） |
+| `components/SiteplanPane.tsx` | 切片内组装（工具栏+待摆区+画布+选中侧栏[结构/折线/红线]+保存流——canvasPane 壳同构；B4 笔②增折线删除 removeRequest 确认门挂起态与 onRemoveLine/onRemoveRequest 回调；B4 笔③增顶点三回调 copy-on-write+拒删 useMessage 提示+红线删除 boundary 分支汇 clearBoundary 清空通路+setSelection(null) 收口；B4 笔③行预算拆法——收笔面板抽 LineFinishForm[ENG6 第四拆]+投影围栏 try/catch 归 lib projectSiteSafe；B5 D5 增 setWindRose 回调+WindRosePanel 无选中常驻挂载[+5 行内]） |
 | `components/LineFinishForm.tsx` | 折线收笔参数面板子件（B4 笔③行预算拆法——ENG6 先例第四例：宽度/kind 会话态自持，条件渲染重挂载=缺省重置；落笔/丢弃上行 draft 落位归 SiteplanPane） |
 | `components/SiteplanToolbar.tsx` | 工具栏纯展示子件（工具组/吸附/坐标网/复位/清空红线 Popconfirm 确认门/折线参数/保存——ENG6 自 SiteplanPane 拆出，态与回调全经 props） |
 | `components/StructureSidebar.tsx` | 选中结构侧栏纯展示子件（B3 R7 自 SiteplanPane 侧栏块抽离——ENG6 工具栏先例第二例：标高编辑/间距校核分组/红线越界分组/移出按钮/操作提示，行数据 SiteplanPane 预聚合并经 props 单向穿隧） |
-| `components/SiteCanvas.tsx` | SVG 画布薄壳（渲染+pointer 交互——几何全经 lib，组件零推导；B4 笔①挂 WindRose 屏幕角标/B4 笔② Delete 键 onRemoveRequest 上行/B4 笔③ boundary polygon 段子件化挂 BoundaryLayer+顶点三回调穿隧） |
+| `components/SiteCanvas.tsx` | SVG 画布薄壳（渲染+pointer 交互——几何全经 lib，组件零推导；B4 笔①挂 WindRose 屏幕角标/B4 笔② Delete 键 onRemoveRequest 上行/B4 笔③ boundary polygon 段子件化挂 BoundaryLayer+顶点三回调穿隧；B5 D6 WindRose 角标单行改源吃 draft.options.wind_rose[值编辑即时联动——draft prop 已在零新 props]） |
 | `components/PendingPanel.tsx` | 待摆区（design.nodes 有而 site 无的单元——拖入画布即摆放） |
 | `api/useSiteData.ts` | 数据通道薄封装（useReadProject+scene 查询直用——零新端点） |
 

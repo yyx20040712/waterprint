@@ -481,9 +481,9 @@ export function SiteCanvas({
         );
       })}
 
-      {/* 风玫瑰角标（B4 笔① R3）：屏幕空间右上角 overlay——仅渲染，
-          值编辑挂账（README「风玫瑰值编辑面板」）；None/空/全零=不画 */}
-      <WindRose windRose={model.options.wind_rose} />
+      {/* 风玫瑰角标（B4 笔① R3）：屏幕空间右上角 overlay；B5 D6 改吃
+          draft（值编辑面板即时联动）；None/空/全零=不画 */}
+      <WindRose windRose={draft.options.wind_rose} />
     </svg>
   );
 }

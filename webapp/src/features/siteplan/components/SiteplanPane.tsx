@@ -88,6 +88,7 @@ import { LineSidebar } from "./LineSidebar";
 import { SiteCanvas } from "./SiteCanvas";
 import { StructureSidebar } from "./StructureSidebar";
 import { SiteplanToolbar } from "./SiteplanToolbar";
+import { WindRosePanel } from "./WindRosePanel";
 
 /** 409 锁冲突保守提示（AssumptionsPanel D3 先例同文——不 force 不重试）。 */
 const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
@@ -366,6 +367,9 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
     }
   };
 
+  // B5 D5/D7：风玫瑰值编辑上行——合并写回值 copy-on-write 落 draft.options.wind_rose（onMoveVertex 单行同式）
+  const setWindRose = (next: Record<string, number> | null) => setDraft((prev) => (prev === null ? prev : { ...prev, options: { ...prev.options, wind_rose: next } }));
+
   const saveDraft = () => {
     if (raw === undefined || draft === null) {
       return;
@@ -485,6 +489,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             onCancelRemove={() => setRemoveRequest(null)}
           />
         ) : null}
+        {selection === null ? <WindRosePanel value={draft.options.wind_rose} onChange={setWindRose} onClear={() => setWindRose(null)} /> : null}
       </div>
       {contextHolder}
     </div>
