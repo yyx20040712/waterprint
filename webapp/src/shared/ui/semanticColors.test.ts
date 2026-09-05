@@ -3,11 +3,12 @@
  *
  * 输入:  semanticColors.ts 三导出（SEMANTIC_COLORS/FALLBACK_COLOR/
  *        semanticColor）
- * 输出:  四断言面（24 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
+ * 输出:  四断言面（25 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
  *        存在性）
  *
- * 键集 24 键全数原值迁移（像素零漂移）——本测试即键集冻结锚：任何
- * 增删键/改值必须同步本文件字面清单（键集反推法同款纪律）。
+ * 键集 25 键（SC1 迁移 24 键全数原值零漂移+SPC2 boundary_error 新键）——
+ * 本测试即键集冻结锚：任何增删键/改值必须同步本文件字面清单（键集
+ * 反推法同款纪律）。
  */
 import { describe, expect, it } from "vitest";
 
@@ -18,7 +19,7 @@ import {
 } from "./semanticColors";
 
 describe("semanticColors 语义色真源表", () => {
-  it("键集冻结：恰 24 键（3D 图元 12+2D 场面 7+2D 单点 5）", () => {
+  it("键集冻结：恰 25 键（3D 图元 12+2D 场面 7+2D 单点 6）", () => {
     expect(Object.keys(SEMANTIC_COLORS).sort()).toEqual(
       [
         // 3D 图元色族（12）
@@ -29,8 +30,9 @@ describe("semanticColors 语义色真源表", () => {
         "road", "boundary",
         "corridor_water", "corridor_power", "corridor_gas",
         "corridor_comm", "corridor_fallback",
-        // 2D 单点彩色语义族（5）
+        // 2D 单点彩色语义族（6——SPC2 +boundary_error 红线越界）
         "selected", "pending", "measure", "spacing_warn", "spacing_error",
+        "boundary_error",
       ].sort(),
     );
   });
@@ -60,6 +62,7 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.measure).toBe("#2f7fd1");
     expect(SEMANTIC_COLORS.spacing_warn).toBe("#faad14");
     expect(SEMANTIC_COLORS.spacing_error).toBe("#ff4d4f");
+    expect(SEMANTIC_COLORS.boundary_error).toBe("#fa541c");
   });
 
   it("兜底：未登记语义回退 FALLBACK_COLOR（禁抛错打断渲染）", () => {

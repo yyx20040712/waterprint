@@ -9,9 +9,9 @@
 import { describe, expect, it } from "vitest";
 
 import type { SceneResponse } from "../../../shared/api/generated/model";
+import { measureToNearest } from "./siteGeometry";
 import {
   SiteProjectionError,
-  measureToNearest,
   narrowSiteDesign,
   projectSite,
   snapRotation,
@@ -435,7 +435,7 @@ describe("snapRotation（90° 档位表/自由角 1° 舍入/归一 [0,360)）",
 
 // ── measureToNearest：测距（编辑辅助非校核裁判——无阈值无合规判定） ──
 
-describe("measureToNearest（中心距+轴对齐净距——确定性排序）", () => {
+describe("measureToNearest（中心距+OBB 净距——确定性排序；SPC2 起 siteGeometry 同源）", () => {
   it("按中心距升序取前 N+净距矩形对案例（重叠轴 clamp 0）", () => {
     const target = placed({ unitId: "t", footprint: { w: 10, h: 10 } });
     const east = placed({ unitId: "east", x: 30, footprint: { w: 10, h: 10 } });
@@ -471,13 +471,27 @@ describe("measureToNearest（中心距+轴对齐净距——确定性排序）",
     ]);
   });
 
-  it("rotation 参与 AABB 投影（90° 旋转 w/h 半轴互换）", () => {
+  it("rotation 真形参与 OBB 净距（90° 真形轴对齐——与旧 AABB 值恒等 10）", () => {
     const target = placed({ unitId: "t", rotation: 90, footprint: { w: 10, h: 4 } });
     const other = placed({ unitId: "o", x: 14, footprint: { w: 4, h: 4 } });
-    // t 半轴 (w·|cos90|+h·|sin90|)/2=2 / (10+0)/2=5；o 半轴 2/2：
-    // dx=14-2-2=10、dy clamp 0 → 净 10
+    // t 旋 90° 真形 x∈[-2,2]×y∈[-5,5]；o x∈[12,16]×y∈[-2,2]——单轴分离净 10
     expect(measureToNearest(target, [other], 3)).toEqual([
       { unitId: "o", centerDistance: 14, clearDistance: 10 },
     ]);
+  });
+
+  it("中间角 OBB 精确净距（45° 对置解析值 23——core 黄金角族同式镜像，容差 1e-9）", () => {
+    const rad = Math.PI / 4;
+    const target = placed({
+      unitId: "t", rotation: 45, footprint: { w: 12, h: 4 },
+    });
+    const other = placed({
+      unitId: "o", x: 32 * Math.cos(rad), y: 32 * Math.sin(rad),
+      rotation: 45, footprint: { w: 6, h: 6 },
+    });
+    const row = measureToNearest(target, [other], 3)[0];
+    // 两同旋 OBB 沿 u45 对置：L-(wA+wB)/2=32-9=23（跨语言 IEEE754 容差）
+    expect(row?.clearDistance).not.toBeNull();
+    expect(Math.abs((row?.clearDistance ?? 0) - 23)).toBeLessThanOrEqual(1e-9);
   });
 });

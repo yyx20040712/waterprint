@@ -32,10 +32,11 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { SEMANTIC_COLORS, semanticColor } from "../../../shared/ui/semanticColors";
 
 import {
-  measureToNearest, snapRotation, snapToGrid,
+  snapRotation, snapToGrid,
   type PlacedStructure, type SiteDesignShape, type SiteModel,
   type SitePoint, type StructureFootprint,
 } from "../lib/projectSite";
+import { measureToNearest } from "../lib/siteGeometry";
 import { useSiteplanStore, type SiteplanSelection } from "../store/siteplanStore";
 
 // ── 显示层常量（出处：简报 §三交互面/§一.4/自定显示值——均不落盘） ──
@@ -89,6 +90,7 @@ export type SiteCanvasProps = {
   model: SiteModel;
   draft: SiteDesignShape;
   violationSeverity: ReadonlyMap<string, "WARN" | "ERROR">; // L4b 校核描边面（空=无违规/降级）
+  boundaryUnitIds: ReadonlySet<string>; // SPC2 红线越界描边面（空=无越界/未划界）
   onPlace: (unitId: string, x: number, y: number) => void;
   onMove: (unitId: string, x: number, y: number) => void;
   onRotate: (unitId: string, rotation: number) => void;
@@ -109,7 +111,7 @@ function isSelectedLine(
 }
 
 export function SiteCanvas({
-  model, draft, violationSeverity, onPlace, onMove, onRotate, onRemove, onCommitLine,
+  model, draft, violationSeverity, boundaryUnitIds, onPlace, onMove, onRotate, onRemove, onCommitLine,
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -403,6 +405,7 @@ export function SiteCanvas({
               <rect x={entry.x - size.w / 2} y={entry.y - size.h / 2} width={size.w}
                 height={size.h} fill={COLOR_STRUCTURE_FILL}
                 stroke={selected ? semanticColor("selected")
+                  : boundaryUnitIds.has(entry.unitId) ? semanticColor("boundary_error")
                   : severity === "ERROR" ? semanticColor("spacing_error")
                   : severity === "WARN" ? semanticColor("spacing_warn") : COLOR_STRUCTURE}
                 strokeWidth={selected ? 0.5 : 0.25}

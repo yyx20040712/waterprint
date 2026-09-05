@@ -3,7 +3,7 @@
  * 描绘统一消费；features 互不 import 的字面平行拷贝全数收编于此）。
  *
  * 输入:  语义 token 字符串（渲染描述/组件携带的 semantic 键）
- * 输出:  SEMANTIC_COLORS（24 键字面表）+ FALLBACK_COLOR（未登记兜底
+ * 输出:  SEMANTIC_COLORS（25 键字面表）+ FALLBACK_COLOR（未登记兜底
  *        灰阶）+ semanticColor()（查表函数——未登记语义回退兜底，
  *        禁抛错打断渲染）
  *
@@ -43,6 +43,7 @@ export const SEMANTIC_COLORS = {
   measure: "#2f7fd1",
   spacing_warn: "#faad14", // L4b 校核 WARN 黄
   spacing_error: "#ff4d4f", // L4b 校核 ERROR 红（三色并存：pending=未计算）
+  boundary_error: "#fa541c", // SPC2 红线越界 ERROR（红族异相橙红——与 spacing_error 语义区分）
 } as const;
 
 /** 未登记语义兜底灰阶（禁抛错打断渲染）。 */

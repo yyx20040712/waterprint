@@ -28,6 +28,9 @@
  *   - L4b 间距校核：GET /api/site/spacing orval hook 直用+组件层 join
  *     （预裁 9——projectSite/store 零改动；未计算=降级全量非拒不阻断）；
  *     描边色映射下放 SiteCanvas，选中侧栏列违规行（对端/净距/阈值/severity）；
+ *     SPC2 扩红线越界：boundary_violations 独立分组「红线越界」（越界行
+ *     无净距数值不混排 D10.2）+描边集 boundaryUnitIds 下传（描边优先级
+ *     选中蓝>越界橙红>ERROR 红>WARN 黄）；
  *   - ground_elevation 编辑=选中侧栏 InputNumber（米可空——纵断数据面）；
  *   - 组件只渲染零业务推导：几何/吸附/测距全在 lib/projectSite。
  */
@@ -37,7 +40,8 @@ import { Button, InputNumber, Select, Space, Typography } from "antd";
 
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
-import type { SpacingViolationEntry } from "../../../shared/api/generated/model";
+import type { BoundaryViolationEntry, SpacingViolationEntry } from "../../../shared/api/generated/model";
+import { semanticColor } from "../../../shared/ui/semanticColors";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { useSiteData } from "../api/useSiteData";
 import {
@@ -174,6 +178,13 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   }
   const violationsOf = (unitId: string): SpacingViolationEntry[] =>
     (spacingQuery.data?.violations ?? []).filter((row) => row.a === unitId || row.b === unitId);
+
+  // SPC2 红线越界（boundary_violations——越界行无净距数值，侧栏独立分组
+  // 渲染 D10.2；描边集下传 SiteCanvas）
+  const boundaryRows = spacingQuery.data?.boundary_violations ?? [];
+  const boundaryUnitIds = new Set(boundaryRows.map((row) => row.unit_id));
+  const boundaryOf = (unitId: string): BoundaryViolationEntry[] =>
+    boundaryRows.filter((row) => row.unit_id === unitId);
 
   // ── 编辑回调（copy-on-write——draft 永不原位突变） ──
 
@@ -318,6 +329,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
       : undefined;
   const selectedId = selection?.kind === "structure" ? selection.id : "";
   const selectedViolations = violationsOf(selectedId);
+  const selectedBoundaryViolations = boundaryOf(selectedId);
 
   const lineForm = (
     <div style={{ display: "grid", rowGap: 6, width: 200 }}>
@@ -387,6 +399,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             model={model}
             draft={draft}
             violationSeverity={severityByUnit}
+            boundaryUnitIds={boundaryUnitIds}
             onPlace={handlers.onPlace}
             onMove={handlers.onMove}
             onRotate={handlers.onRotate}
@@ -435,6 +448,21 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
                 {selectedViolations.map((row) => (
                   <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
                     {row.a === selectedId ? row.b : row.a}：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {selectedBoundaryViolations.length > 0 ? (
+              <div style={{ marginTop: 10 }}>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  红线越界（{selectedBoundaryViolations.length}）
+                </Typography.Text>
+                {selectedBoundaryViolations.map((row) => (
+                  <div
+                    key={`${row.unit_id}:${row.severity}`}
+                    style={{ fontSize: 12, marginTop: 4, color: semanticColor("boundary_error") }}
+                  >
+                    {row.message}（{row.severity === "ERROR" ? "错误" : "警告"}）
                   </div>
                 ))}
               </div>

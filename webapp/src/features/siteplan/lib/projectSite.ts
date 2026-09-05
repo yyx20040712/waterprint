@@ -1,11 +1,12 @@
 /**
  * 布置编辑器纯函数层：design.site 窄化（D6 轻门）+scene 足迹投影+PUT 载荷
- * +网点/旋转吸附+测距（组件薄壳唯一几何源——几何全在本文件）。
+ * +网点/旋转吸附（组件薄壳——几何原语已迁 lib/siteGeometry.ts，SPC2 笔④
+ * 顶格减压：OBB 净距/测距/点在多边形族全在 siteGeometry）。
  *
  * 输入:  readProject 弱类型 design 容器（site 键形状门在此收口）+SceneResponse
  *        （GET /api/scene/{project_id} 既有端点——足迹唯一数据源，零新端点）
  * 输出:  narrowSiteDesign 窄化产物/projectSite 渲染模型/withSite PUT 载荷/
- *        snapToGrid/snapRotation/measureToNearest（非法形状抛 SiteProjectionError
+ *        snapToGrid/snapRotation（非法形状抛 SiteProjectionError
  *        ——错误消息带键/索引定位，呈现层可反查不白屏）
  *
  * 规格说明（M3 批 L2a，简报 §一预裁决 1/5/6/7——详面见本 feature README；
@@ -27,10 +28,10 @@
  *   - snapToGrid：开=round(v/grid)*grid；关=原值；恒 1e-9 舍入防浮尾；
  *     grid 非正数=防御直通。snapRotation：90° 档位（free=true→1° 舍入）
  *     +归一 [0,360)——确定性零随机；
- *   - measureToNearest：净距=轴对齐矩形边到边（AABB 半轴=(w·|cosθ|+h·|sinθ|)/2；
- *     重叠轴 clamp 0——编辑辅助非校核裁判，防火间距校核归 L4 server）；
- *     footprint null 者净距=null（不猜）；序=中心距升序、同距 unitId
- *     字典序；自身排除（防御面）；
+ *   - measureToNearest（SPC2 笔④迁 lib/siteGeometry.ts）：净距=OBB 点-边
+ *     枚举精确距（core spacing 同式镜像——编辑辅助非校核裁判，防火间距
+ *     校核归 server）；footprint null 者净距=null（不猜）；序=中心距升序、
+ *     同距 unitId 字典序；自身排除（防御面）；
  *   - 零运行期库 import（zustand/antd 不进本文件——node 测试直跑）。
  */
 import type { Node, SceneResponse } from "../../../shared/api/generated/model";
@@ -95,13 +96,6 @@ export type SiteModel = {
   roads: RoadShape[];
   corridors: CorridorShape[];
   options: SiteOptionsShape;
-};
-
-/** 测距行（中心距+净距——显示层标注双值）。 */
-export type StructureMeasure = {
-  unitId: string;
-  centerDistance: number;
-  clearDistance: number | null;
 };
 
 /** 投影非法（形状逐类拒/容器异形）——渲染层显式拒（错误薄壳呈现）。 */
@@ -445,56 +439,4 @@ export function snapRotation(deg: number, free: boolean): number {
   }
   const raw = free ? Math.round(deg) : Math.round(deg / 90) * 90;
   return ((raw % 360) + 360) % 360;
-}
-
-/** 旋转矩形的轴对齐投影半轴（AABB——w/h·|cos|·|sin| 组合）。 */
-function halfExtents(structure: PlacedStructure): { hx: number; hy: number } {
-  const footprint = structure.footprint;
-  if (footprint === null) {
-    return { hx: 0, hy: 0 }; // 净距 null 已在外层先行判定——此返回不参与
-  }
-  const rad = (structure.rotation * Math.PI) / 180;
-  const cos = Math.abs(Math.cos(rad));
-  const sin = Math.abs(Math.sin(rad));
-  return {
-    hx: (footprint.w * cos + footprint.h * sin) / 2,
-    hy: (footprint.w * sin + footprint.h * cos) / 2,
-  };
-}
-
-/** 测距：至最近 count 个{中心距,净距}——中心距升序+同距字典序。 */
-export function measureToNearest(
-  target: PlacedStructure,
-  others: readonly PlacedStructure[],
-  count: number,
-): StructureMeasure[] {
-  if (count <= 0) {
-    return [];
-  }
-  const rows: StructureMeasure[] = [];
-  for (const other of others) {
-    if (other.unitId === target.unitId) {
-      continue; // 自身排除（防御面——调用方常含全集）
-    }
-    const dx = other.x - target.x;
-    const dy = other.y - target.y;
-    const centerDistance = Math.hypot(dx, dy);
-    let clearDistance: number | null = null;
-    if (target.footprint !== null && other.footprint !== null) {
-      const a = halfExtents(target);
-      const b = halfExtents(other);
-      const gapX = Math.abs(dx) - a.hx - b.hx;
-      const gapY = Math.abs(dy) - a.hy - b.hy;
-      clearDistance = Math.hypot(Math.max(gapX, 0), Math.max(gapY, 0));
-    }
-    rows.push({ unitId: other.unitId, centerDistance, clearDistance });
-  }
-  rows.sort((a, b) =>
-    a.centerDistance !== b.centerDistance
-      ? a.centerDistance - b.centerDistance
-      : a.unitId < b.unitId
-        ? -1
-        : 1,
-  );
-  return rows.slice(0, count);
 }

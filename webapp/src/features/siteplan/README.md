@@ -15,8 +15,10 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 
 | 文件 | 职责 |
 |------|------|
-| `lib/projectSite.ts` | 纯函数层：site 窄化（D6 轻门）/scene 足迹投影（children+instance 聚合包围盒）/withSite PUT 载荷/网点·旋转吸附/测距（组件唯一几何源） |
-| `lib/projectSite.test.ts` | 纯函数层 vitest（node 环境：窄化逐类拒带定位/缺省默认/footprint 键镜像数值例/withSite 深层引用相等/snap·rotation·measure 档位表） |
+| `lib/projectSite.ts` | 纯函数层：site 窄化（D6 轻门）/scene 足迹投影（children+instance 聚合包围盒）/withSite PUT 载荷/网点·旋转吸附（SPC2 笔④几何原语迁 siteGeometry 顶格减压） |
+| `lib/projectSite.test.ts` | 纯函数层 vitest（node 环境：窄化逐类拒带定位/缺省默认/footprint 键镜像数值例/withSite 深层引用相等/snap·rotation 档位表；measure 用例 SPC2 起 import 源=siteGeometry） |
+| `lib/siteGeometry.ts` | 纯几何原语层（SPC2 笔④自 projectSite 拆出）：OBB 四角/点-边枚举精确净距（core spacing 同式镜像）/点-线段距/线段相交/点在多边形（射线法+贴边 1e-9 归内——越界可视化判定面）/measureToNearest OBB 测距 |
+| `lib/siteGeometry.test.ts` | 纯几何原语 vitest（node 环境：黄金角 0/30/45/90° 解析值容差 1e-9[跨语言 IEEE754 镜像口径]/归零族[相交·全含]/零长退化/凹多边形·顶点序无关·贴边归内/测距排序） |
 | `lib/siteDraftDiff.ts` | 深比较纯函数（sameSite 键序无关——draft dirty 派生真源；SC1 D9④ 自 SiteplanPane 私有迁 lib） |
 | `lib/siteDraftDiff.test.ts` | 深比较 vitest（三例：[]vs[] 同/[]vs 非[]异/键序无关深比较同） |
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中/工具+折线点序列机——业务数据零入 store） |
