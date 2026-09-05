@@ -60,21 +60,29 @@
 #   缺口+放行用例=tests/graph——GOLDEN4b R1/R2/R3）。
 #
 # 【参照】重写计划 §13.1 装配点/§14.1；ADR-003/ADR-007；简报 T7b D3
+#
+# 【B3 R2 拆分注记】（2026-09-05）：DSL 域（InvalidExecutionError 定义+
+#   _POOL_KEY/_dotted/_rule_names/_apply_mappings）迁 executor_dsl.py
+#   （修正①——dsl→executor 反向环根除）；UF-42 投影域（_dims_of/
+#   _snapshot）迁 executor_projection.py（修正②——领域异常经 dsl 同向
+#   import）；本文件顶部对全部被迁符号同名再导入（修正③——消费面
+#   from waterprint.graph.executor import 零改动，graph/__init__/app/
+#   镜像测试零波移）；回路域/_RunState/execute_graph/_solve_group 全
+#   留守。上方【工况映射 DSL】/【UF-42 投影表】节语义注记为历史全文
+#   ——定义面见两伴生件。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
-import ast
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from math import isfinite
 from types import MappingProxyType
 from typing import Final, Protocol, final
 
 from waterprint.contracts.condition import ConditionSet, OperatingCondition
-from waterprint.contracts.expr import ExprSyntaxError, eval_checked, parse_checked
+from waterprint.contracts.expr import ExprSyntaxError
 from waterprint.contracts.flow import InvalidFlowError, WaterFlow
-from waterprint.contracts.manifest import ConditionMapping, InvalidUnitConfig
+from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import Edge, FluidKind, Port, PortRef
 from waterprint.contracts.project_schema import DesignState
 from waterprint.contracts.quality import InvalidQualityError, WaterQuality
@@ -84,6 +92,18 @@ from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import InvalidSludgeError, SludgeFlow
 from waterprint.contracts.trace_api import TraceNodeSpec, TraceSink
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
+
+# B3 R2 再导出（修正③——显式清单；冗余别名形态被 ruff PLC0414 拦）
+from waterprint.graph.executor_dsl import (
+    InvalidExecutionError,
+    _apply_mappings,
+    _dotted,  # noqa: F401  # 再导出专用（消费面 from executor import 零改动）
+    _rule_names,  # noqa: F401  # 同上
+)
+from waterprint.graph.executor_projection import (
+    _dims_of,  # noqa: F401  # 再导出专用（同上）
+    _snapshot,
+)
 from waterprint.graph.loop import LoopConfig, LoopDivergence, solve_loop
 from waterprint.graph.nodes import InvalidNodeError
 from waterprint.graph.propagate import InvalidPropagationError, propagate
@@ -95,7 +115,6 @@ _DOMAIN_EXCEPTIONS: Final[tuple[type[Exception], ...]] = (
     InvalidFlowError, InvalidQualityError, InvalidSludgeError,
     InvalidPropagationError, InvalidUnitConfig, InvalidNodeError, ExprSyntaxError,
 )
-_POOL_KEY: Final[str] = "pool.all_pools"
 _WATER_FIELDS: Final[tuple[str, ...]] = ("q_avg_daily", "kz")
 _SLUDGE_FIELDS: Final[tuple[str, ...]] = ("q_wet", "ds", "moisture")
 _WATER_INIT: Final[dict[str, float]] = {"q_avg_daily": 0.0, "kz": 1.0}
@@ -105,10 +124,6 @@ _SLUDGE_INIT: Final[dict[str, float]] = {
 _LOOP_KEYS: Final[tuple[str, ...]] = (
     "loop.tolerance", "loop.max_iterations", "loop.damping"
 )
-
-
-class InvalidExecutionError(Exception):
-    """图执行非法（边形态/注册表缺项/DSL 求值/单元计算失败/回路发散）——GR-11 族。"""
 
 
 class UnitRegistry(Protocol):
@@ -172,58 +187,6 @@ def _loop_config(env: RunEnv) -> LoopConfig:
                       damping=values["loop.damping"])
 
 
-def _dotted(node: ast.AST) -> str | None:
-    """Name/Attribute 链 → 点式扁平名（B4 双胞胎：与 manifest_validation 同款）。"""
-    if isinstance(node, ast.Name):
-        return node.id
-    if isinstance(node, ast.Attribute):
-        base = _dotted(node.value)
-        if base is not None:
-            return f"{base}.{node.attr}"
-    return None
-
-
-def _rule_names(rule: str) -> frozenset[str]:
-    """rule 引用名收集（裸名+点式链）——manifest_validation._referenced_names
-    的 B4 双胞胎（禁私有 import，同源同步义务）。"""
-    try:
-        tree = ast.parse(rule, mode="eval")
-    except SyntaxError as exc:
-        raise ExprSyntaxError(f"工况映射 rule 语法非法：{rule!r}（{exc.msg}）") from exc
-    names: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Name):
-            names.add(node.id)
-        elif isinstance(node, ast.Attribute):
-            path = _dotted(node)
-            if path is not None:
-                names.add(path)
-    return frozenset(names)
-
-
-def _apply_mappings(
-    unit_id: str,
-    params: dict[str, float],
-    mappings: tuple[ConditionMapping, ...],
-    condition: OperatingCondition,
-) -> dict[str, float]:
-    """DSL 工况映射求值（bindings=params 全量 ∪ pool.all_pools；bool→float 归一）。"""
-    result = dict(params)
-    bindings: dict[str, float | bool] = dict(result)
-    bindings[_POOL_KEY] = condition.offline_unit != unit_id
-    for mapping in mappings:
-        allowed = _rule_names(mapping.rule) | frozenset(result) | {_POOL_KEY}
-        try:
-            parsed = parse_checked(mapping.rule, allowed)
-            value = eval_checked(parsed, bindings)
-        except ExprSyntaxError as exc:
-            raise InvalidExecutionError(
-                f"单元 {unit_id!r} 工况映射 rule 求值失败"
-                f"（target={mapping.target!r}）：{exc}") from exc
-        result[mapping.target] = float(value) if isinstance(value, bool) else value
-    return result
-
-
 def _unit_params(unit: Unit, node_value: Mapping[str, object]) -> dict[str, float]:
     """ctx.params 装配：manifest 默认值 ∪ design 节点值覆盖（bool 拒，GR-02）。"""
     params = {spec.field_id: spec.default for spec in unit.manifest.params}
@@ -235,52 +198,6 @@ def _unit_params(unit: Unit, node_value: Mapping[str, object]) -> dict[str, floa
                 f"design 节点参数 {key!r} 须为数值（bool 拒，GR-02）：得到 {value!r}")
         params[key] = float(value)
     return params
-
-
-def _dims_of(dims: object, unit_id: str) -> dict[str, float]:
-    """UF-42 dims 投影：str→float 逐项有限性校验（GR-02），他形状拒。"""
-    if not isinstance(dims, Mapping):
-        raise InvalidExecutionError(
-            f"单元 {unit_id!r} 的 dims 须为 str→float 映射：得到 {type(dims).__name__}")
-    projected: dict[str, float] = {}
-    for key, value in dims.items():
-        numeric = (
-            isinstance(key, str)
-            and not isinstance(value, bool)
-            and isinstance(value, int | float)
-        )
-        if not numeric or not isfinite(float(value)):
-            raise InvalidExecutionError(
-                f"单元 {unit_id!r} 的 dims[{key!r}]={value!r} 非法（GR-02：字符串键→有限数值）")
-        projected[key] = float(value)
-    return projected
-
-
-def _snapshot(result: UnitResult, unit_id: str) -> UnitResultSnapshot:
-    """UF-42 投影表：三键槽流量+指标键水质+dims 校验（规格头【UF-42 投影表】）。"""
-    outflows: dict[str, float] = {}
-    for ref, stock in result.outflows.items():
-        prefix = f"{unit_id}.{ref.port_id}"
-        if isinstance(stock, WaterFlow):
-            outflows[f"{prefix}.q_avg_daily"] = stock.q_avg_daily
-            outflows[f"{prefix}.kz"] = stock.kz
-            outflows[f"{prefix}.q_design"] = stock.q_design
-        elif isinstance(stock, SludgeFlow):
-            outflows[f"{prefix}.q_wet"] = stock.q_wet
-            outflows[f"{prefix}.ds"] = stock.ds
-            outflows[f"{prefix}.moisture"] = stock.moisture
-        else:
-            raise InvalidExecutionError(
-                f"单元 {unit_id!r} 输出端口 {prefix} 股类型非法：{type(stock).__name__}")
-    outqualities = {
-        f"{unit_id}.{ref.port_id}.{indicator}": value
-        for ref, quality in result.outqualities.items()
-        for indicator, value in quality.concentrations.items()
-    }
-    return UnitResultSnapshot(
-        unit_id=unit_id, outflows=outflows, outqualities=outqualities,
-        dims=_dims_of(result.dims, unit_id), warnings=result.warnings,
-        formula_ids=result.formula_ids)
 
 
 def _fields(fluid: FluidKind) -> tuple[str, ...]:
