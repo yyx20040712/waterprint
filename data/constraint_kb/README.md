@@ -1,11 +1,13 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.3.0（全量 20 条已追认——存量 18 条=Ruling 2026-08-31、
-> spacing_check 2 条=Ruling 2026-09-03）**；批复记录=.workflow/ledger.md
+> **状态：1.4.0（全量 21 条——存量 20 条已追认：18 条=Ruling 2026-08-31、
+> spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
+> 2026-09-05 工程惯例起草待专家确认）**；批复记录=.workflow/ledger.md
 > 两日 Ruling 条目+pending-domain-expert.md §22/§24 销账注。
 > 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
-> （L4b 间距校核——spacing_check 阈值数据面）。
+> （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
+> severity 数据面同端点）。
 
 ## 与规划期构想（本文件前版）的差异记档
 
@@ -32,8 +34,8 @@ options.constraints 通道）落地为：
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -68,3 +70,10 @@ options.constraints 通道）落地为：
   OBB 精确净距挂账）。数值=GB 50016 防火间距族**类比起草态，已追认**
   （Ruling 2026-09-03——pending-domain-expert.md §24 销账注；value_basis
   逐条标注。L4b 笔「§23」引用系悬空——追认节实登 §24）。
+- boundary_check（SPC2 1.4.0 增 1 条——用地红线越界校核面）：expression
+  契约固定为 `containment == inside`（**server services/site.py 是唯一
+  解析面**——产出 severity；core geometry/boundary 判定 OBB 四角内含，
+  不解析 DSL；形态越界=fail-visible 拒；条目缺席=不校核零违规）；
+  unit_kinds 恒空=全构筑物；无数值阈值。severity=ERROR 系工程惯例
+  「总图构筑物不得越用地红线」**类比起草态待专家确认**（数据策略 v2
+  ——pending-domain-expert.md 新节登记）。
