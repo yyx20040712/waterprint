@@ -30,7 +30,11 @@
  *   - 进度面：percent 幂商式 (i+1)/(total+1) 还原 done 序数+stage 文本
  *     化（export:{kind}:{unit}→kind·unit；无-unit 项无 unit 段）；
  *   - 薄壳不测（EventSource 生命周期——useTaskFeed 先例）；可测面=
- *     submitExportBatch+四纯函数（useExportBatch.test，node 环境零 DOM）。
+ *     submitExportBatch+纯函数（useExportBatch.test，node 环境零 DOM）；
+ *   - B5 D3/D4（2026-09-06 批量任务体验批）：progress 透传原始 percent
+ *     （toast 进度条/状态行双消费）+lastOutcome 最近终态（BatchStatusLine
+ *     消费源；新提交清空）+sourceRef 覆盖前 close 旧流（二次提交脏写
+ *     防御）+batchStatusText 状态行文案单源纯函数（node 直测）。
  */
 import { useEffect, useRef, useState } from "react";
 
@@ -63,11 +67,13 @@ export type ExportBatchOutcome = {
   error: string | null;
 };
 
-/** 进度视图（done 序数+total+stage 文本——「导出中 i/N·kind·unit」源）。 */
+/** 进度视图（done 序数+total+stage 文本+原始 percent——「导出中 i/N·kind·unit」
+ * 与 B5 进度条/状态行双消费源）。 */
 export type ExportBatchProgress = {
   done: number;
   total: number;
   stageText: string;
+  percent: number;
 };
 
 /** 任务状态 JSON 松面（GET /api/calc/tasks 面——result/error 消费位）。 */
@@ -130,7 +136,7 @@ export function toBatchOutcome(status: TaskStatusFace): ExportBatchOutcome {
   };
 }
 
-/** 进度派生（percent 幂商式 (i+1)/(total+1) 还原序数+stage 文本化）。 */
+/** 进度派生（percent 幂商式 (i+1)/(total+1) 还原序数+stage 文本化+percent 透传）。 */
 export function deriveBatchProgress(
   percent: number,
   total: number,
@@ -142,7 +148,33 @@ export function deriveBatchProgress(
     stageText: stage.startsWith("export:")
       ? stage.slice("export:".length).replace(/:/g, "·")
       : stage,
+    percent,
   };
+}
+
+/** 状态行文案派生（B5 D3——BatchStatusLine 单源；终态优先于残留 progress，
+ *  双 null=null〔从未提交〕）。三态：进行中 percent·i/N｜完成 N 项｜失败
+ *  kind·unit·原因（首错 failures[0]，兜底任务级 error）；取消=已产计数行。 */
+export function batchStatusText(
+  kind: string,
+  progress: ExportBatchProgress | null,
+  outcome: ExportBatchOutcome | null,
+): string | null {
+  if (outcome !== null) {
+    if (outcome.state === "done") {
+      return `批量出图完成：${outcome.files.length} 项`;
+    }
+    if (outcome.state === "failed") {
+      const failure = outcome.failures[0];
+      const reason = failure?.error ?? outcome.error ?? "未知错误";
+      return `批量出图失败：${kind}·${failure?.unit_id ?? "—"}·${reason}`;
+    }
+    return `批量导出已取消：已产 ${outcome.files.length} 项`;
+  }
+  if (progress !== null) {
+    return `批量出图进行中 ${Math.round(progress.percent * 100)}%·${progress.done}/${progress.total}`;
+  }
+  return null;
 }
 
 /** SSE 订阅 URL（taskId 路径段编码+token 非空 ?token= 查询通道——D1 双通道）。 */
@@ -171,9 +203,12 @@ export async function submitExportBatch(
 export function useExportBatch(kind: string): {
   submitBatch: (input: ExportBatchInput) => Promise<ExportBatchOutcome>;
   progress: ExportBatchProgress | null;
+  lastOutcome: ExportBatchOutcome | null;
 } {
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState<ExportBatchProgress | null>(null);
+  // B5 D3：最近终态 outcome（BatchStatusLine 常驻回溯行消费源；新提交清空）
+  const [lastOutcome, setLastOutcome] = useState<ExportBatchOutcome | null>(null);
   const sourceRef = useRef<EventSource | null>(null);
   useEffect(() => () => sourceRef.current?.close(), []); // 卸载即清理（无泄漏句柄）
 
@@ -191,6 +226,7 @@ export function useExportBatch(kind: string): {
         sourceRef.current = null;
         try {
           const outcome = toBatchOutcome(await fetchStatus(taskId));
+          setLastOutcome(outcome); // B5 D3：终态回填状态行
           void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
           resolve(outcome);
         } catch (error) {
@@ -200,6 +236,7 @@ export function useExportBatch(kind: string): {
         }
       };
       const source = new EventSource(buildTaskStreamUrl(taskId, getApiToken()));
+      sourceRef.current?.close(); // B5 D4：覆盖前收旧流（二次提交脏写+悬挂双收口）
       sourceRef.current = source;
       const consume = (event: MessageEvent) => {
         const parsed = parseTaskEventData(
@@ -230,15 +267,18 @@ export function useExportBatch(kind: string): {
 
   const submitBatch = async (input: ExportBatchInput): Promise<ExportBatchOutcome> => {
     setProgress(null);
+    setLastOutcome(null); // B5 D3：新提交清空终态回溯（状态行回「进行中」面）
     const taskId = await submitExportBatch(kind, input);
     // 竞态缓解（D9③）：先 GET 一次——终态即直取（零 SSE 依赖）。
     const first = await fetchStatus(taskId);
     if (typeof first.state === "string" && isTerminalTaskState(first.state)) {
+      const early = toBatchOutcome(first);
+      setLastOutcome(early); // B5 D3：快路径终态同回填状态行
       void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
-      return toBatchOutcome(first);
+      return early;
     }
     return awaitTerminal(taskId, input.units.length);
   };
 
-  return { submitBatch, progress };
+  return { submitBatch, progress, lastOutcome };
 }

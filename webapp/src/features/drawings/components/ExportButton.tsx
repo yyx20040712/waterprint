@@ -41,10 +41,14 @@
  *   - Select 不写占位文案属性（grep 门禁英文占位特征词规避——FE3 C3
  *     先例）；受控值=state??首选项兜底（服务端回显口径同族）；
  *   - 薄壳不测（useExportArtifact 错误归一面由 shared/api/http.ts 同款
- *     实现保证；组件面挂账浏览器亲验——批量循环纯构造面归 batchExport.test）。
+ *     实现保证；组件面挂账浏览器亲验——批量循环纯构造面归 batchExport.test）；
+ *   - B5 D2/D3（2026-09-06 批量任务体验批）：IFC 按钮 loading 并入 batching
+ *     （三按钮统一 in-flight 门）；进度 toast 内嵌 antd Progress 行内条
+ *     （duration=0 持有+终态 destroy 销毁——同键原位更新形态不变）；挂
+ *     BatchStatusLine 常驻回溯行（最近批量任务三态——hook lastOutcome 消费）。
  */
 import { useEffect, useState } from "react";
-import { Button, Modal, Select, Space, Typography, message } from "antd";
+import { Button, Modal, Progress, Select, Space, Typography, message } from "antd";
 
 import { WaterprintApiError } from "../../../shared/api/http";
 import {
@@ -53,6 +57,7 @@ import {
   type ExportArtifactResult,
 } from "../api/useExportArtifact";
 import { useExportBatch } from "../api/useExportBatch";
+import { BatchStatusLine } from "./BatchStatusLine";
 
 /** 404 引导（无 done calc——先提交计算；R1-4：按按钮面 kind 化尾词）。 */
 const NO_CALC_HINTS = {
@@ -160,21 +165,28 @@ export function ExportButton({
       const reason = error instanceof Error ? error.message : String(error);
       messageApi.error(`批量导出提交失败：${reason}`);
     } finally {
+      messageApi.destroy(BATCH_PROGRESS_KEY); // B5 D3：终态销毁（duration=0 持有态收口）
       setBatching(false);
     }
   };
 
-  // SVRB D4/D6③：进度=message 文本最小面（「导出中 i/N·kind·unit」——
-  // M5 messageApi 同键原位更新形态沿承；无-unit 项 stageText 无 unit 段）。
+  // B5 D3：进度=message 文本+antd Progress 行内条（percent=Math.round(*100)
+  // TaskPanel 先例；duration=0 持有——终态 destroy 销毁，同键原位更新不变）。
   useEffect(() => {
     if (!batching || batchApi.progress === null) {
       return;
     }
-    const { done, total, stageText } = batchApi.progress;
+    const { done, total, stageText, percent } = batchApi.progress;
     messageApi.open({
       key: BATCH_PROGRESS_KEY,
       type: "info",
-      content: `导出中 ${done}/${total}·${stageText}`,
+      duration: 0,
+      content: (
+        <>
+          {`导出中 ${done}/${total}·${stageText}`}
+          <Progress percent={Math.round(percent * 100)} size="small" />
+        </>
+      ),
     });
   }, [batchApi.progress, batching, messageApi]);
 
@@ -219,7 +231,7 @@ export function ExportButton({
       </Button>
       <Button
         type="primary"
-        loading={ifcMutation.isPending}
+        loading={ifcMutation.isPending || batching}
         disabled={!conditionOnlyReady}
         onClick={() => submit("ifc", false)}
       >
@@ -233,6 +245,12 @@ export function ExportButton({
       >
         导出全厂总图（DXF）
       </Button>
+      {/* B5 D3：最近批量任务常驻回溯行（toast 瞬态+本行回溯——按钮旁挂载） */}
+      <BatchStatusLine
+        kind="dxf"
+        progress={batchApi.progress}
+        lastOutcome={batchApi.lastOutcome}
+      />
     </Space>
   );
 }

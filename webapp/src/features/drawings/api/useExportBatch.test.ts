@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { WaterprintApiError } from "../../../shared/api/http";
 import {
+  batchStatusText,
   buildTaskStreamUrl,
   deriveBatchProgress,
   isTerminalTaskState,
@@ -161,12 +162,38 @@ describe("任务面纯函数（SSE 消费/终态投影）", () => {
       done: 3,
       total: 8,
       stageText: "dxf·municipal_cass",
+      percent: 3 / 9,
     });
     expect(deriveBatchProgress(1 / 2, 1, "export:ifc")).toEqual({
       done: 1,
       total: 1,
       stageText: "ifc",
+      percent: 1 / 2,
     });
+  });
+
+  it("batchStatusText：三态派生（进行中 percent·i/N｜完成 N 项｜失败 kind·unit·原因）+双 null/终态优先", () => {
+    expect(batchStatusText("dxf", null, null)).toBeNull(); // 从未提交=零渲染
+    expect(
+      batchStatusText("dxf", { done: 3, total: 8, stageText: "dxf·u1", percent: 3 / 9 }, null),
+    ).toBe("批量出图进行中 33%·3/8");
+    expect(
+      batchStatusText("dxf", null, { state: "done", files: ["a.dxf", "b.dxf"], failures: [], error: null }),
+    ).toBe("批量出图完成：2 项");
+    expect(
+      batchStatusText("dxf", { done: 3, total: 8, stageText: "dxf·u1", percent: 3 / 9 }, {
+        state: "failed",
+        files: [],
+        failures: [{ index: 1, unit_id: "u2", condition_key: "avg", error: "boom" }],
+        error: null,
+      }),
+    ).toBe("批量出图失败：dxf·u2·boom"); // 终态优先于残留 progress
+    expect(
+      batchStatusText("dxf", null, { state: "failed", files: [], failures: [], error: "task dead" }),
+    ).toBe("批量出图失败：dxf·—·task dead"); // 无逐项 failures 兜底任务级 error
+    expect(
+      batchStatusText("dxf", null, { state: "cancelled", files: ["a.dxf"], failures: [], error: null }),
+    ).toBe("批量导出已取消：已产 1 项");
   });
 
   it("buildTaskStreamUrl：token 空=零查询参；非空=?token= 编码（SSE 双通道）", () => {
