@@ -195,7 +195,7 @@ async def test_cost_returns_estimate_default_design_wiring(
     response = await cost_client.get(f"/api/cost/{project_id}")
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["condition_key"] == "design"  # D2 缺省=design（≠elevation 排序首键 avg）
+    assert body["condition_key"] == "design"  # D2 缺省=design 优先+sorted 回退（SPC2 §2.5 家族口径——elevation.py:228 同族；routers/cost.py:3 自述缺省=design）
     assert body["conditions"] == sorted(tasks["result"]["condition_keys"])
     assert body["price_data_version"]  # D4 三元组组件（PriceBook.data_version）
     assert body["design_scale"] == pytest.approx(34760.7, rel=1e-9)  # D3 服务面注入（项目存档 10 位定点→×86400 微差内）
