@@ -22,8 +22,11 @@
  *     （全库纯 SSE 先例）；
  *   - SSE 订阅本文件自建 EventSource（useTaskFeed 跨 feature import 被
  *     check_webapp 分层门禁禁——features 互不 import；形态同款复制：
- *     ?token= 查询通道/state·progress·stale 命名事件/终态即 close 阻断
- *     自动重连循环/卸载即清理；连接层错误交浏览器自动重连不壳内重试）；
+ *     state·progress·stale 命名事件/终态即 close 阻断自动重连循环/
+ *     卸载即清理）；B6 D3（2026-09-06）：连接层治理=onerror 连续失败
+ *     计数达上限 close+reject+总时长超时拒绝（一次性 awaitTerminal 语义
+ *     ——完整退避/慢探测归 useTaskFeed 长订阅面，形态裁量记档）；
+ *     B6 D8：URL 构造迁 shared/api/sseUrl 单源（本文件原双实现收敛）；
  *   - 终态 outcome：state/files/failures/error 四面（files=服务端产物
  *     清单——乙案仅计数与终态消息消费；failures 逐项 index/unit_id/
  *     condition_key/error〔截 200 字符服务端已收口〕）；
@@ -42,6 +45,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { customInstance } from "../../../shared/api/http";
 import { getApiToken } from "../../../shared/api/token";
+import { buildTaskStreamUrl } from "../../../shared/api/sseUrl";
 import { buildBatchExportBody } from "../lib/batchExport";
 
 /** 批量提交变量（units 序=items 序——Select multiple 选中序）。 */
@@ -179,11 +183,14 @@ export function batchStatusText(
   return null;
 }
 
-/** SSE 订阅 URL（taskId 路径段编码+token 非空 ?token= 查询通道——D1 双通道）。 */
-export function buildTaskStreamUrl(taskId: string, token: string | null): string {
-  const base = `/api/events/tasks/${encodeURIComponent(taskId)}`;
-  return token === null ? base : `${base}?token=${encodeURIComponent(token)}`;
-}
+/** SSE 订阅 URL：shared/api/sseUrl 单源（B6 D8 迁出本文件——useTaskFeed
+ * 双实现收敛；taskId 路径段编码+token 非空 ？token= 查询通道）。 */
+
+/** SSE 等待治理（B6 D3 形态裁量）：一次性 awaitTerminal 的悬挂防线——
+ * 连续失败上限（与 useTaskFeed.SSE_FAILURE_LIMIT 同值同构——features 互
+ * 不 import 门禁下本地常量，cross-ref 记档）+总时长上界超时拒绝。 */
+const SSE_FAILURE_LIMIT = 5;
+const SSE_AWAIT_TIMEOUT_MS = 10 * 60 * 1000; // 10 分钟（批量导出多产物长任务余量）
 
 /** 提交批量任务（单 body POST→句柄 JSON 取 task_id——D6②「句柄误当 blob」修复面）。 */
 export async function submitExportBatch(
@@ -220,10 +227,29 @@ export function useExportBatch(kind: string): {
       method: "GET",
     });
 
-  /** SSE 订阅至终态（服务端终态任务连接即发快照 state=竞态第二兜底）。 */
+  /** SSE 订阅至终态（服务端终态任务连接即发快照 state=竞态第二兜底）。
+   *
+   * B6 D3 形态裁量：awaitTerminal 是一次性等待（promise 形态）非长订阅
+   * ——浏览器 EventSource 内建自动重连保留，治理=onerror 连续失败计数
+   * （401/429/网络抖动同构——onerror 无 status 面）+达上限 close+reject
+   * +总时长超时拒绝（防无限悬挂）；事件到达=计数归零（恢复语义同构
+   * useTaskFeed，重连风暴治理彼侧承担完整退避/慢探测——语义不同不
+   * 强行同构，简报 D3「同构覆盖」按此解读落地）。 */
   const awaitTerminal = (taskId: string, total: number) =>
     new Promise<ExportBatchOutcome>((resolve, reject) => {
+      let failures = 0;
+      const guard = setTimeout(() => {
+        // 总时长上界（超时拒绝——调用方 catch 面接住转终态消息，不无限悬挂）
+        fail(new Error(`批量导出 SSE 等待超时（>${SSE_AWAIT_TIMEOUT_MS / 1000}s）`));
+      }, SSE_AWAIT_TIMEOUT_MS);
+      const fail = (error: Error) => {
+        clearTimeout(guard);
+        sourceRef.current?.close(); // 停连收口（失败/超时共用出口）
+        sourceRef.current = null;
+        reject(error);
+      };
       const finish = async () => {
+        clearTimeout(guard);
         sourceRef.current?.close(); // 终态即收流：close 阻断自动重连循环
         sourceRef.current = null;
         try {
@@ -240,7 +266,16 @@ export function useExportBatch(kind: string): {
       const source = new EventSource(buildTaskStreamUrl(taskId, getApiToken()));
       sourceRef.current?.close(); // B5 D4：覆盖前收旧流（二次提交脏写+悬挂双收口）
       sourceRef.current = source;
+      source.onerror = () => {
+        // B6 D3：连续失败计数——达上限拒绝（浏览器内建重连期间计数不清零，
+        // 事件到达才归零——见 consume）。
+        failures += 1;
+        if (failures >= SSE_FAILURE_LIMIT) {
+          fail(new Error(`批量导出 SSE 连接连续失败 ${failures} 次（已停止等待）`));
+        }
+      };
       const consume = (event: MessageEvent) => {
+        failures = 0; // 事件到达=链路健康（恢复归零）
         const parsed = parseTaskEventData(
           typeof event.data === "string" ? event.data : "",
         );

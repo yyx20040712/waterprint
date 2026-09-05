@@ -5,15 +5,15 @@
  *        EventSource 生命周期=薄壳不测先例〔useTaskFeed 同款〕——node
  *        环境零 DOM 依赖红线）
  * 输出:  句柄 JSON 解析（修复「句柄误当 blob」现状缺陷）/错误归一/
- *        终态判定/事件解析/outcome 投影/进度派生/SSE URL 六面断言
- *        （SVRB D6②；先红后绿：module 未就绪=import 解析红）
+ *        终态判定/事件解析/outcome 投影/进度派生五面断言（SVRB D6②；
+ *        SSE URL 用例随 B6 D8 迁 shared/api/sseUrl.test.ts；先红后绿：
+ *        module 未就绪=import 解析红）
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { WaterprintApiError } from "../../../shared/api/http";
 import {
   batchStatusText,
-  buildTaskStreamUrl,
   deriveBatchProgress,
   isTerminalTaskState,
   parseTaskEventData,
@@ -194,12 +194,5 @@ describe("任务面纯函数（SSE 消费/终态投影）", () => {
     expect(
       batchStatusText("dxf", null, { state: "cancelled", files: ["a.dxf"], failures: [], error: null }),
     ).toBe("批量出图已取消：已产 1 项"); // B5 R3：四态文案主语统一「批量出图」
-  });
-
-  it("buildTaskStreamUrl：token 空=零查询参；非空=?token= 编码（SSE 双通道）", () => {
-    expect(buildTaskStreamUrl("t1", null)).toBe("/api/events/tasks/t1");
-    expect(buildTaskStreamUrl("t 1", "a b")).toBe(
-      "/api/events/tasks/t%201?token=a%20b",
-    );
   });
 });

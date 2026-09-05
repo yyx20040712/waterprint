@@ -8,6 +8,10 @@
   `waterprint.api_token` 三函数（getApiToken/setApiToken/clearApiToken，
   同步现读+node 环境守卫）；消费方=http.ts（Bearer 注入）+useTaskFeed
   （SSE ？token=）+tokenSettingsModal（设置页）+App（首参引导写入）；
+- `sseUrl.ts`：SSE 订阅 URL 单源（B6 批 D8，2026-09-06）——
+  buildTaskStreamUrl(taskId, token)（useTaskFeed/useExportBatch 双实现
+  下沉；taskId 路径段编码+token 非空 ？token= 查询通道——EventSource
+  无法自定义头的现实通道）；消费方=两 EventSource 点；
 - 契约漂移防线：CI 校验 openapi.json 与服务端实际 schema 一致
   + 前端客户端必须同源生成（§6.7 类型单一源头）。
 
