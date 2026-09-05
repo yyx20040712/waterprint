@@ -40,8 +40,15 @@
 #   per-token 维度（D4）；不声明 responses（429 不入 openapi——零字节
 #   破面）；本模块禁 import fastapi/starlette（services 消费面 §13.4）。
 #
-# 【测试要求】test_sse_limits.py 八例（低阈值旋钮验证逻辑不真实挂满
-#   100 连接；配置值生效单列；断开释放回收；鉴权关全额生效；None 回退）。
+# 【残余面记档】R6 D-A 双审（B6 R2）：reserve 后至响应 start 前的窄窗
+#   （handler 异常/中间件中断致流未启动）占位不回收——端点体 reserve→
+#   return 间零可抛语句实证，窗口上界=进程重启清零（replicas=1 内存态
+#   契约内），知情接受记档。heartbeat 旋钮两层类型（R6 G1-06）：
+#   Settings int|None=env 配置粒度（秒整数）vs Manager float|None=
+#   运行时时长（测试 0.1s 直构）——两层语义本异非漂移。
+# 【测试要求】test_sse_limits.py 九例（低阈值旋钮验证逻辑不真实挂满
+#   100 连接；配置值生效单列；断开释放回收；鉴权关全额生效；None 回退；
+#   R1 增 gate 序 429 先于 401 钉守例）。
 # 【参照】.workflow/briefs/task-B6-brief.md D2~D5；重写计划 §16 A5/§17.3
 # ══════════════════════════════════════════════════════════════════
 

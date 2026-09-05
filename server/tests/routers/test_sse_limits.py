@@ -169,6 +169,14 @@ async def test_per_project_cap_429(
             assert "每项目订阅数已达上限" in body["detail"]
         finally:
             await _release_streams(held)
+        # B6 R3（G1-03）：项目维回收复连断言（release_project 路径非同构推断）。
+        # ASGITransport 体缓冲=无限流 get 永不返回——挂起式证：连接建立未被
+        # 429 拒（被拒则 task 立即 done），0.3s 后仍挂起=放行。
+        reconnect = asyncio.create_task(client.get(url))
+        await asyncio.sleep(0.3)
+        assert not reconnect.done()  # 释放后计数回收→新连接放行（流建立中）
+        reconnect.cancel()
+        await asyncio.gather(reconnect, return_exceptions=True)
 
 
 @pytest.mark.anyio
@@ -232,6 +240,30 @@ async def test_connect_rate_bucket_429_within_burst_pass(
         assert body["error_type"] == "RateLimitedError"
         assert "建连速率超限" in body["detail"]
         assert int(third.headers["Retry-After"]) >= 1
+
+
+@pytest.mark.anyio
+async def test_rate_gate_precedes_auth_429_before_401(
+    test_settings: Settings,
+) -> None:
+    """⑨（B6 R1·G1-01）：鉴权开+错 token+桶耗尽→429 先于 401。
+
+    必改 1 核心行为钉守：include 级依赖序 [sse_connect_gate,
+    verify_token_sse]——建连闸消费速率令牌先于认证判定，401 重连
+    风暴的建连消耗被 429 前置压制（总控 A 面探针独立实例直证
+    codes=[401×6,429,429] 的 pytest 面）。
+    """
+    async with _client_with(
+        test_settings, api_token="a" * 16, sse_connect_rate_per_second=1
+    ) as client:
+        url = "/api/events/tasks/ghost-task-gate"
+        wrong = {"Authorization": "Bearer wrong-token-xxxxxxxxxxxx"}
+        first = await client.get(url, headers=wrong)
+        second = await client.get(url, headers=wrong)
+        third = await client.get(url, headers=wrong)
+        assert first.status_code == 401 and second.status_code == 401  # 桶内：认证面
+        assert third.status_code == 429  # 桶空：限流先于认证（必改 1 钉守）
+        assert third.json()["error_type"] == "RateLimitedError"
 
 
 @pytest.mark.anyio
