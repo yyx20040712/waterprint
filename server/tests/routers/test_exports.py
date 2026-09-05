@@ -102,7 +102,7 @@ async def test_stale_result_returns_409_with_context_wiring(client) -> None:  # 
     project = (await client.get(f"/api/projects/{project_id}")).json()
     project["design"]["assumption_overrides"] = {"safety.superheight": 0.3}
     saved = await client.put(f"/api/projects/{project_id}", json=project)
-    assert saved.status_code == 200 and saved.json()["design_changed"] is True
+    assert saved.status_code == status.HTTP_200_OK and saved.json()["design_changed"] is True
     stale = await client.post("/api/exports/calcbook", json={"project_id": project_id})
     assert stale.status_code == status.HTTP_409_CONFLICT
     detail = str(stale.json()["detail"])
@@ -199,7 +199,7 @@ async def test_dxf_stale_force_flow_wiring(client) -> None:  # type: ignore[no-u
     project = (await client.get(f"/api/projects/{project_id}")).json()
     project["design"]["assumption_overrides"] = {"safety.superheight": 0.3}
     saved = await client.put(f"/api/projects/{project_id}", json=project)
-    assert saved.status_code == 200 and saved.json()["design_changed"] is True
+    assert saved.status_code == status.HTTP_200_OK and saved.json()["design_changed"] is True
     body = {
         "project_id": project_id,
         "condition_key": "design",
@@ -475,7 +475,7 @@ async def test_dirty_coord_grid_returns_422_and_no_artifacts(
     project = (await client.get(f"/api/projects/{project_id}")).json()
     project["design"]["site"]["options"]["coord_grid"] = 0.0  # 脏 site 几何（结构性非法）
     saved = await client.put(f"/api/projects/{project_id}", json=project)
-    assert saved.status_code == 200 and saved.json()["design_changed"] is True
+    assert saved.status_code == status.HTTP_200_OK and saved.json()["design_changed"] is True
     rerun = await client.post(
         "/api/calc/run", json={"project_id": project_id, "conditions": []}
     )
