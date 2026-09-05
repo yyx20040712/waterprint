@@ -53,6 +53,7 @@ import {
   type StructureStrokeRole,
 } from "../lib/siteGeometry";
 import { useSiteplanStore } from "../store/siteplanStore";
+import { WindRose } from "./WindRose";
 
 /** 彩色语义族（选中/道路/边界/走廊/校核/测距/未计算）——SC1 起查
  *  shared/ui/semanticColors.ts 真源表（原本地彩色常量已全数收编）；
@@ -466,6 +467,10 @@ export function SiteCanvas({
           </text>
         );
       })}
+
+      {/* 风玫瑰角标（B4 笔① R3）：屏幕空间右上角 overlay——仅渲染，
+          值编辑挂账（README「风玫瑰值编辑面板」）；None/空/全零=不画 */}
+      <WindRose windRose={model.options.wind_rose} />
     </svg>
   );
 }

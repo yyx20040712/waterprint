@@ -22,6 +22,10 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `lib/siteDraftDiff.ts` | 深比较纯函数（sameSite 键序无关——draft dirty 派生真源；SC1 D9④ 自 SiteplanPane 私有迁 lib） |
 | `lib/siteDraftDiff.test.ts` | 深比较 vitest（三例：[]vs[] 同/[]vs 非[]异/键序无关深比较同） |
 | `lib/canvasDisplay.ts` | 画布显示层常量与纯显示函数（B3 R7 自 SiteCanvas 模块级外搬：PX_PER_M/UNCALC_SIZE/坐标网窗/把手/双击窗/测距数/滚轮灵敏度/灰阶三色/BOUNDARY_* 常量族+DragSession/DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine 纯函数——均不落盘显示层权威） |
+| `lib/windRoseGeometry.ts` | 风玫瑰纯计算面（B4 笔① R3）：WIND_DIRS 八方位罗盘序+windRoseSpokes 辐条/标注点相对向量——数据计算镜像 core site_plan.py:288-323（未知键跳过/负钳 0/None·空·全零=空数组/sorted 序）；Y 翻转内置（dy 负=屏幕向上），落位语义归 WindRose |
+| `lib/windRoseGeometry.test.ts` | 风玫瑰纯计算 vitest（node 环境先红后绿：八方位序/None·空·全零=空/未知键跳过+sorted/比例缩径/负钳 0/标注点满径未缩放/N 朝上 dy<0/半径防御） |
+| `components/WindRose.tsx` | 风玫瑰画布角标（B4 笔① R3 仅渲染）：嵌套 svg x="100%" 锚右缘屏幕空间 overlay——零测量零视口态；pointerEvents=none 装饰面；None=返回 null；值编辑面板挂账续记 |
+| `components/WindRose.test.tsx` | 角标组件冒烟（零 jsdom 红线内 node 直调元素树断言本 feature 首例：None/空/全零=null、有值=辐条+sorted 标注、N 朝上+标注未缩放满径） |
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中/工具+折线点序列机——业务数据零入 store） |
 | `store/siteplanStore.test.ts` | store node 直测首例（初始态/各 action 纯转移/zoom 夹紧/tool 切换清折线/pending 序列机） |
 | `components/SiteplanPane.tsx` | 切片内组装（工具栏+待摆区+画布+选中侧栏+保存流——canvasPane 壳同构） |
@@ -53,6 +57,9 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 - **吸附口径**：坐标网间距=design.site.options.coord_grid（默认 10.0m）；
   吸附开关=store view 态（默认开）；旋转把手=90° 吸附（默认）、Shift=
   自由角（1° 舍入）；
-- **L4 面不在本批**：间距校核黄/红标示/风玫瑰角标/边界红线——零实现
-  零占位；SVG=原生 JSX（DxfSvg 先例零运行期库），交互=pointer 事件
+- **L4 面沿承现状**：边界红线（L4a 绘制/清空）与间距校核黄/红标示
+  （L4b+SPC2）已实装；风玫瑰角标=B4 笔① 实装**仅渲染**（屏幕空间右上角
+  overlay——数据计算镜像 core site_plan.py:288-323+Y 翻转内置），**风玫瑰
+  值编辑面板挂账续记**（golden 全 wind_rose:null+零 UI 写值现状下渲染先行
+  独立验收——简报 R3/DS 新发现②记档）；SVG=原生 JSX（DxfSvg 先例零运行期库），交互=pointer 事件
   自实现；本 feature 零 import 其他 feature（§13.5 分层门禁）。
