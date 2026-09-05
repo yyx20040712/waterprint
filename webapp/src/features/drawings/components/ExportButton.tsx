@@ -25,18 +25,15 @@
  *     loading/错误面独立）；第二按钮「导出模型（IFC）」primary 沿既有
  *     形态（四字标签避插空格坑）；单元/工况 Select 按钮共享；ifc 恒单发
  *     零改（全厂模型无单元面——多选态不联动禁用，ifc 不消费单元选择）；
- *   - M5 D3：单元 Select mode="multiple"（受控回显口径沿承——未交互=
- *     首单元预选兜底；交互后空数组=显式清空态，dxf 按钮 ready 闸收紧）；
- *     全选/清空用 antd 自带 maxTagCount="responsive"/allowClear 形态
- *     （零自绘按钮）；「导出图纸（DXF）」语义升级：N=1 现状单发；N>1
- *     客户端顺序循环 N 个单产物请求（buildBatchExportRequests 纯构造
- *     ——每请求 options:{unit_id} 走即时 blob 面，零任务队列依赖；SSE/
- *     句柄消费零新增）；执行态=按钮 loading+message.info 同键原位更新
- *     「批量导出中 i/N」；任一失败即停（已成功计数进 error message——
- *     诚实呈现不静默跳过；批量面无 409 Modal 支线，stale 原文入中断
- *     消息）；全部成功=message.success「批量出图完成：N 张」（列表键
- *     失效由 mutation onSuccess 逐请求承载——批量=单产物请求序连发，
- *     与 N 次单发等价）；按钮文案多选 N>1 时不变；
+ *   - M5 D3（SVRB D6③ 改写 2026-09-05）：单元 Select mode="multiple"（受控
+ *     回显口径沿承——未交互=首单元预选兜底；交互后空数组=显式清空态，
+ *     dxf 按钮 ready 闸收紧）；全选/清空用 antd 自带 maxTagCount=
+ *     "responsive"/allowClear 形态（零自绘按钮）；「导出图纸（DXF）」：
+ *     N=1 现状单发（含 409 Modal 二选一支线——零触碰）；N>1 服务端批量
+ *     任务（useExportBatch 单 body 提交→任务态：进度 message「导出中
+ *     i/N·kind·unit」原位更新+终态消息含「成功 N/失败 M·首错」/取消
+ *     已产计数/失败原文；预览驻留不动——批量面无 blob 流；列表出新行
+ *     由 hook 终态 invalidate 承载）；按钮文案多选 N>1 时不变；
  *   - M5 D5：第三按钮「导出全厂总图（DXF）」default 型（ready 闸=工况
  *     选定即可——对偶 ifc 的 conditionOnlyReady 口径；请求体 options
  *     unit_id 置空串=server bare POST 总图语义——_unit_id_of 空串归一
@@ -46,7 +43,7 @@
  *   - 薄壳不测（useExportArtifact 错误归一面由 shared/api/http.ts 同款
  *     实现保证；组件面挂账浏览器亲验——批量循环纯构造面归 batchExport.test）。
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Modal, Select, Space, Typography, message } from "antd";
 
 import { WaterprintApiError } from "../../../shared/api/http";
@@ -55,7 +52,7 @@ import {
   type ExportArtifactInput,
   type ExportArtifactResult,
 } from "../api/useExportArtifact";
-import { buildBatchExportRequests } from "../lib/batchExport";
+import { useExportBatch } from "../api/useExportBatch";
 
 /** 404 引导（无 done calc——先提交计算；R1-4：按按钮面 kind 化尾词）。 */
 const NO_CALC_HINTS = {
@@ -84,6 +81,7 @@ export function ExportButton({
   const [messageApi, contextHolder] = message.useMessage();
   const dxfMutation = useExportArtifact("dxf");
   const ifcMutation = useExportArtifact("ifc");
+  const batchApi = useExportBatch("dxf"); // SVRB D6②：N>1 服务端批量任务面
 
   // 受控回显口径沿承：未交互=首单元预选（null 兜底）；交互后 []=显式清空。
   const chosenUnits = selectedUnits ?? units.slice(0, 1);
@@ -133,38 +131,54 @@ export function ExportButton({
     });
   };
 
-  /** M5 D3：批量出图——N>1 客户端顺序循环单产物请求（任一失败即停）。 */
+  /** SVRB D6③：批量出图——N>1 服务端批量任务（单 body 提交+任务态进度/
+   * 终态消息——files/failures 双清单诚实计数；N=1 单发路径零触碰）。 */
   const submitBatch = async () => {
-    const requests = buildBatchExportRequests(chosenUnits, chosenCondition);
     setBatching(true);
-    let done = 0;
     try {
-      for (const [index, request] of requests.entries()) {
-        messageApi.open({
-          key: BATCH_PROGRESS_KEY,
-          type: "info",
-          content: `批量导出中 ${index + 1}/${requests.length}`,
-        });
-        const result = await dxfMutation.mutateAsync({
-          projectId,
-          unitId: request.options.unit_id,
-          conditionKey: request.condition_key,
-        });
-        onExported?.(result); // 预览逐次翻新（末张驻留）
-        done += 1;
+      const outcome = await batchApi.submitBatch({
+        projectId,
+        units: chosenUnits,
+        conditionKey: chosenCondition,
+      });
+      if (outcome.state === "done") {
+        const failed = outcome.failures.length;
+        if (failed === 0) {
+          messageApi.success(`批量出图完成：${outcome.files.length} 张`);
+        } else {
+          messageApi.warning(
+            `批量出图完成：成功 ${outcome.files.length}/失败 ${failed}` +
+              `——首错：${outcome.failures[0]?.error ?? "未知"}`,
+          );
+        }
+      } else if (outcome.state === "cancelled") {
+        messageApi.info(`批量导出已取消：已产 ${outcome.files.length} 张`);
+      } else {
+        messageApi.error(`批量导出失败：${outcome.error ?? "未知错误"}`);
       }
-      messageApi.success(`批量出图完成：${requests.length} 张`);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      messageApi.error(
-        `批量导出中断：已完成 ${done}/${requests.length} 张——${reason}`,
-      );
+      messageApi.error(`批量导出提交失败：${reason}`);
     } finally {
       setBatching(false);
     }
   };
 
-  /** dxf 按钮分发（D3）：N=1 现状单发（含 409 force 支线）；N>1 批量循环。 */
+  // SVRB D4/D6③：进度=message 文本最小面（「导出中 i/N·kind·unit」——
+  // M5 messageApi 同键原位更新形态沿承；无-unit 项 stageText 无 unit 段）。
+  useEffect(() => {
+    if (!batching || batchApi.progress === null) {
+      return;
+    }
+    const { done, total, stageText } = batchApi.progress;
+    messageApi.open({
+      key: BATCH_PROGRESS_KEY,
+      type: "info",
+      content: `导出中 ${done}/${total}·${stageText}`,
+    });
+  }, [batchApi.progress, batching, messageApi]);
+
+  /** dxf 按钮分发（D3/SVRB D6③）：N=1 现状单发（含 409 force 支线）；N>1 服务端批量任务。 */
   const submitDxf = () => {
     if (chosenUnits.length <= 1) {
       submit("dxf", false);
