@@ -57,13 +57,13 @@ def test_rotation_zero_identity_with_aabb_formula() -> None:
     expected = math.hypot(11.0, 3.5)
     report = spacing_report(placements, footprints, [_threshold(0.0)])
     probe = spacing_report(placements, footprints, [_threshold(expected + 0.01)])
-    assert probe.violations[0].clearance_m == pytest.approx(expected, abs=1e-9)
+    assert probe.violations[0].clearance_m == pytest.approx(expected, rel=1e-9, abs=1e-9)
     # 单轴分离：gapY 重叠 clamp——AABB 单轴式
     placements_axis = {"a": (0.0, 0.0, 0.0), "b": (20.0, 0.0, 0.0)}
     report_axis = spacing_report(
         placements_axis, footprints, [_threshold(11.0 + 0.01)]
     )
-    assert report_axis.violations[0].clearance_m == pytest.approx(11.0, abs=1e-9)
+    assert report_axis.violations[0].clearance_m == pytest.approx(11.0, rel=1e-9, abs=1e-9)
     assert report.uncalculated == ()
 
 
@@ -88,7 +88,7 @@ def test_golden_angles_rotated_pair_exact_clearance() -> None:
         )
         assert len(probe.violations) == 1
         assert probe.violations[0].clearance_m == pytest.approx(
-            expected, abs=1e-9
+            expected, rel=1e-9, abs=1e-9
         ), f"rotation={rotation_deg}"
 
 
@@ -101,7 +101,7 @@ def test_rotation_no_longer_inflates_clearance() -> None:
     placements = {"a": (0.0, 0.0, 90.0), "b": (0.0, 20.0, 0.0)}
     footprints = {"a": (10.0, 4.0), "b": (4.0, 4.0)}
     tight = spacing_report(placements, footprints, [_threshold(13.0 + 0.5)])
-    assert tight.violations[0].clearance_m == pytest.approx(13.0, abs=1e-9)
+    assert tight.violations[0].clearance_m == pytest.approx(13.0, rel=1e-9, abs=1e-9)
     report = spacing_report(placements, footprints, [_threshold(1.0)])
     assert report.violations == ()
 
@@ -130,7 +130,27 @@ def test_degenerate_zero_width_footprint_point_distance() -> None:
     placements = {"a": (0.0, 0.0, 0.0), "b": (10.0, 0.0, 0.0)}
     footprints = {"a": (0.0, 4.0), "b": (0.0, 4.0)}
     probe = spacing_report(placements, footprints, [_threshold(10.0 + 0.01)])
-    assert probe.violations[0].clearance_m == pytest.approx(10.0, abs=1e-9)
+    assert probe.violations[0].clearance_m == pytest.approx(10.0, rel=1e-9, abs=1e-9)
+
+
+def test_exact_touching_edges_are_zero() -> None:
+    """R2 恰触=相交→0.0：共线搭接（边重合）+角贴角（端点共享）两形态。
+
+    直接钉面 _segments_intersect 的 d==0.0+_between 共线落段分支——
+    无严格穿越（d1·d2<0 型）时恰触仍归零（净距语义：接触即零）。
+    """
+    collinear = spacing_report(
+        {"a": (0.0, 0.0, 0.0), "b": (0.0, 4.0, 0.0)},
+        {"a": (10.0, 4.0), "b": (10.0, 4.0)},  # a 顶边 y=2 与 b 底边 y=2 全长重合
+        [_threshold(0.0 + 0.01)],
+    )
+    corner = spacing_report(
+        {"a": (0.0, 0.0, 0.0), "b": (10.0, 10.0, 0.0)},
+        {"a": (10.0, 10.0), "b": (10.0, 10.0)},  # 共享角点 (5,5) 端点相接
+        [_threshold(0.0 + 0.01)],
+    )
+    assert collinear.violations[0].clearance_m == 0.0
+    assert corner.violations[0].clearance_m == 0.0
 
 
 def test_overlap_clamps_to_zero() -> None:
