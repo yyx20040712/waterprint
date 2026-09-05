@@ -71,6 +71,12 @@ describe("segmentProjection（线段投影落点——clamp[0,1]+闭合 wrap 段
     const wrap = segmentProjection(QUAD, { x: -3, y: 5 }, 3); // 段 3:(0,10)-(0,0)
     expect(wrap).toEqual({ x: 0, y: 5, t: 0.5 });
   });
+
+  it("R 轮 G1-02:非法 segIndex 返 null 不抛(整数/范围守卫——零抛错口径收口)", () => {
+    expect(segmentProjection(QUAD, { x: 5, y: 5 }, -1)).toBeNull();
+    expect(segmentProjection(QUAD, { x: 5, y: 5 }, 4)).toBeNull();
+    expect(segmentProjection(QUAD, { x: 5, y: 5 }, 1.5)).toBeNull();
+  });
 });
 
 describe("nearestSegmentIndex（增点路由——点最近段索引；空=-1）", () => {

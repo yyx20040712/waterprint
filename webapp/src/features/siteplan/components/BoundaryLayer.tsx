@@ -70,7 +70,11 @@ export function BoundaryLayer({
     const world = toWorld(event.clientX, event.clientY);
     const segIndex = world === null ? -1 : nearestSegmentIndex(points, world);
     if (world !== null && segIndex >= 0) {
-      onInsertVertex(segIndex, snap(segmentProjection(points, world, segIndex)));
+      // R 轮 G1-02:投影可能 null(非法段守卫)——null 跳过不插入
+      const projected = segmentProjection(points, world, segIndex);
+      if (projected !== null) {
+        onInsertVertex(segIndex, snap(projected));
+      }
     }
   };
 

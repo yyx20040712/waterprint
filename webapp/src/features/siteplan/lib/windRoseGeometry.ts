@@ -39,7 +39,10 @@ export function windRoseSpokes(
   const freqs: Record<string, number> = {};
   for (const dir of WIND_DIRS) {
     const value = windRose[dir];
-    if (value !== undefined) {
+    // R 轮 G1-01:非有限频率(NaN/±Infinity)与未知键同跳——NaN 会绕过
+    // peak<=0 守卫(NaN 比较恒 false)产 NaN 坐标辐条;JSON 通道无此值,
+    // 属防御同窗(radius 防御同族——显示层失守不编造几何)。
+    if (value !== undefined && Number.isFinite(value)) {
       freqs[dir] = value;
     }
   }

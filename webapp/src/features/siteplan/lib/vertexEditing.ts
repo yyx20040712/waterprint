@@ -27,7 +27,9 @@ import { snapToGrid, type SitePoint } from "./projectSite";
  *  1+2 算术形态绕字面量门禁同款法；≥3 门=core validator 镜像面）。 */
 export const BOUNDARY_MIN_VERTICES = 1 + 2;
 
-/** 顶点命中：半径内最近顶点索引；无命中/半径非正=-1（防御直通）。 */
+/** 顶点命中：半径内最近顶点索引；无命中/半径非正=-1（防御直通）。
+ *  【预留语义·D 一审 G1-04】当前 BoundaryLayer 走 DOM circle 把手命中
+ *  不经本函数；保留供未来屏幕空间把手/非 DOM 命中面消费（测试在册）。 */
 export function vertexHitIndex(
   points: readonly SitePoint[],
   p: SitePoint,
@@ -48,12 +50,17 @@ export function vertexHitIndex(
   return best;
 }
 
-/** 线段投影落点（含 wrap 段）：t clamp [0,1]；零长段=起点 t=0 直通。 */
+/** 线段投影落点（含 wrap 段）：t clamp [0,1]；零长段=起点 t=0 直通。
+ *  R 轮 G1-02:非法 segIndex 返 null（整数/范围守卫——文件头「零抛错」
+ *  口径收口;调用侧 BoundaryLayer 经 nearestSegmentIndex>=0 前置恒合法）。 */
 export function segmentProjection(
   points: readonly SitePoint[],
   p: SitePoint,
   segIndex: number,
-): SitePoint & { t: number } {
+): (SitePoint & { t: number }) | null {
+  if (!Number.isInteger(segIndex) || segIndex < 0 || segIndex >= points.length) {
+    return null;
+  }
   const a = points[segIndex] as SitePoint;
   const b = points[(segIndex + 1) % points.length] as SitePoint;
   const dx = b.x - a.x;

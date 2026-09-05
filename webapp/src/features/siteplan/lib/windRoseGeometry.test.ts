@@ -97,4 +97,11 @@ describe("windRoseSpokes（辐条端点相对向量——core _wind_rose_entitie
     expect(windRoseSpokes({ N: 1 }, -5)).toEqual([]);
     expect(windRoseSpokes({ N: 1 }, Number.NaN)).toEqual([]);
   });
+  it("R 轮 G1-01:非有限频率(NaN/±Infinity)跳过——NaN 绕 peak 守卫产 NaN 辐条缺陷钉面", () => {
+    // 全 NaN 单键=空(跳过后无方位);混合键 NaN 跳过仅余有限方位
+    expect(windRoseSpokes({ N: Number.NaN }, 20)).toEqual([]);
+    const spokes = windRoseSpokes({ N: Number.NaN, S: Number.POSITIVE_INFINITY, E: 2 }, 20);
+    expect(spokes.map((spoke) => spoke.dir)).toEqual(["E"]); // 仅有限键存活
+  });
 });
+
