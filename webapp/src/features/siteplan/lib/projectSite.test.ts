@@ -1,23 +1,25 @@
 /**
- * 布置编辑器纯函数层测试：site 窄化门/足迹投影/PUT 载荷/吸附/测距（node 环境）。
+ * 布置编辑器纯函数层测试：site 窄化门/足迹投影/PUT 载荷/吸附/折线删除
+ * （node 环境）。
  *
  * 输入:  projectSite 纯函数族（node 环境——零 DOM 依赖，先红后绿）
  * 输出:  契约断言（D6 轻门逐类拒带定位/缺 site 默认/footprint 键镜像+
- *        children 聚合+instance 方阵/withSite 深层引用相等/snap·rotation·measure 数值例；
- *        L4a 增 boundary 红线窄化门——缺省空合法/≥3 点门镜像 core validator）
+ *        children 聚合+instance 方阵/withSite 深层引用相等/snap·rotation
+ *        数值例/removeLineAt 删项·越界直通[B4 笔②]；L4a boundary 红线
+ *        窄化门——缺省空合法/≥3 点门镜像 core validator；measure 用例 B4
+ *        笔②迁 siteGeometry.test.ts——源件镜像归位+行预算门禁拆文件）
  */
 import { describe, expect, it } from "vitest";
 
 import type { SceneResponse } from "../../../shared/api/generated/model";
-import { measureToNearest } from "./siteGeometry";
 import {
   SiteProjectionError,
   narrowSiteDesign,
   projectSite,
+  removeLineAt,
   snapRotation,
   snapToGrid,
   withSite,
-  type PlacedStructure,
 } from "./projectSite";
 
 // ── fixture（scene 节点按 core scene.py node_id="{unit_id}::{semantic}" 产出面） ──
@@ -51,18 +53,6 @@ function boxNode(
     semantic: "pool_wall",
     primitive: { kind: "box", dims, semantic: "pool_wall" },
     ...(position !== undefined ? { position } : {}),
-  };
-}
-
-function placed(overrides: Partial<PlacedStructure>): PlacedStructure {
-  return {
-    unitId: "t",
-    x: 0,
-    y: 0,
-    rotation: 0,
-    groundElevation: null,
-    footprint: { w: 10, h: 10 },
-    ...overrides,
   };
 }
 
@@ -433,65 +423,23 @@ describe("snapRotation（90° 档位表/自由角 1° 舍入/归一 [0,360)）",
   });
 });
 
-// ── measureToNearest：测距（编辑辅助非校核裁判——无阈值无合规判定） ──
+// ── removeLineAt：折线删除（B4 笔② R2） ──
+// （measureToNearest 用例 B4 笔②迁 siteGeometry.test.ts——源件镜像归位+行预算门禁）
 
-describe("measureToNearest（中心距+OBB 净距——确定性排序；SPC2 起 siteGeometry 同源）", () => {
-  it("按中心距升序取前 N+净距矩形对案例（重叠轴 clamp 0）", () => {
-    const target = placed({ unitId: "t", footprint: { w: 10, h: 10 } });
-    const east = placed({ unitId: "east", x: 30, footprint: { w: 10, h: 10 } });
-    const north = placed({ unitId: "north", y: 40, footprint: { w: 10, h: 10 } });
-    const diag = placed({ unitId: "diag", x: 30, y: 30, footprint: { w: 10, h: 10 } });
-    const all = measureToNearest(target, [diag, north, east], 3);
-    expect(all.map((m) => m.unitId)).toEqual(["east", "north", "diag"]);
-    expect(all[0]).toEqual({ unitId: "east", centerDistance: 30, clearDistance: 20 });
-    expect(all[1]?.clearDistance).toBe(30);
-    expect(all[2]?.centerDistance).toBe(Math.hypot(30, 30));
-    expect(all[2]?.clearDistance).toBe(Math.hypot(20, 20));
-    expect(measureToNearest(target, [east, north], 1)).toEqual([
-      { unitId: "east", centerDistance: 30, clearDistance: 20 },
-    ]);
+describe("removeLineAt（B4 笔② R2——roads/corridors immutable splice 删除）", () => {
+  const lines = [{ v: "a" }, { v: "b" }, { v: "c" }];
+
+  it("删中间项：copy-on-write 新数组+原数组不变+余项前移", () => {
+    const next = removeLineAt(lines, 1);
+    expect(next).toEqual([{ v: "a" }, { v: "c" }]);
+    expect(next).not.toBe(lines); // 新引用——draft dirty 深比较可检出
+    expect(lines).toHaveLength(3); // 原数组零突变
   });
 
-  it("footprint null 者净距=null（不猜）；count 0 → 空表", () => {
-    const target = placed({ unitId: "t" });
-    const noFp = placed({ unitId: "nofp", x: 5, y: 5, footprint: null });
-    const result = measureToNearest(target, [noFp], 3);
-    expect(result).toEqual([{ unitId: "nofp", centerDistance: Math.hypot(5, 5), clearDistance: null }]);
-    expect(measureToNearest(target, [noFp], 0)).toEqual([]);
-  });
-
-  it("同中心距按 unitId 字典序（确定性破并列）；others 含自身=排除", () => {
-    const target = placed({ unitId: "t" });
-    const b = placed({ unitId: "bTank", x: 30 });
-    const a = placed({ unitId: "aTank", x: 30 });
-    const self = placed({ unitId: "t", x: 30 });
-    expect(measureToNearest(target, [b, a, self], 3).map((m) => m.unitId)).toEqual([
-      "aTank",
-      "bTank",
-    ]);
-  });
-
-  it("rotation 真形参与 OBB 净距（90° 真形轴对齐——与旧 AABB 值恒等 10）", () => {
-    const target = placed({ unitId: "t", rotation: 90, footprint: { w: 10, h: 4 } });
-    const other = placed({ unitId: "o", x: 14, footprint: { w: 4, h: 4 } });
-    // t 旋 90° 真形 x∈[-2,2]×y∈[-5,5]；o x∈[12,16]×y∈[-2,2]——单轴分离净 10
-    expect(measureToNearest(target, [other], 3)).toEqual([
-      { unitId: "o", centerDistance: 14, clearDistance: 10 },
-    ]);
-  });
-
-  it("中间角 OBB 精确净距（45° 对置解析值 23——core 黄金角族同式镜像，容差 1e-9）", () => {
-    const rad = Math.PI / 4;
-    const target = placed({
-      unitId: "t", rotation: 45, footprint: { w: 12, h: 4 },
-    });
-    const other = placed({
-      unitId: "o", x: 32 * Math.cos(rad), y: 32 * Math.sin(rad),
-      rotation: 45, footprint: { w: 6, h: 6 },
-    });
-    const row = measureToNearest(target, [other], 3)[0];
-    // 两同旋 OBB 沿 u45 对置：L-(wA+wB)/2=32-9=23（跨语言 IEEE754 容差）
-    expect(row?.clearDistance).not.toBeNull();
-    expect(Math.abs((row?.clearDistance ?? 0) - 23)).toBeLessThanOrEqual(1e-9);
+  it("越界索引=原数组引用直通（拒删不变性——选中索引失效防御面）", () => {
+    expect(removeLineAt(lines, 3)).toBe(lines);
+    expect(removeLineAt(lines, -1)).toBe(lines);
+    const empty: { v: string }[] = [];
+    expect(removeLineAt(empty, 0)).toBe(empty); // 空容器直通
   });
 });

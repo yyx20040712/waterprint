@@ -164,6 +164,33 @@ describe("measureToNearest（OBB 净距测距——编辑辅助非校核裁判�
     ).toEqual(["aTank", "bTank"]);
     expect(measureToNearest(target, [a], 0)).toEqual([]);
   });
+
+  // B4 笔② 自 projectSite.test.ts 迁入（行预算门禁拆文件——45°/排序/null/
+  // count0 与本段既有例重复剔除，仅录非重复面）
+  it("多目标矩形对数值例：三向对置排序+双值/count=1 截断", () => {
+    const target = { unitId: "t", x: 0, y: 0, rotation: 0, footprint: { w: 10, h: 10 } };
+    const east = { unitId: "east", x: 30, y: 0, rotation: 0, footprint: { w: 10, h: 10 } };
+    const north = { unitId: "north", x: 0, y: 40, rotation: 0, footprint: { w: 10, h: 10 } };
+    const diag = { unitId: "diag", x: 30, y: 30, rotation: 0, footprint: { w: 10, h: 10 } };
+    const all = measureToNearest(target, [diag, north, east], 3);
+    expect(all.map((m) => m.unitId)).toEqual(["east", "north", "diag"]);
+    expect(all[0]).toEqual({ unitId: "east", centerDistance: 30, clearDistance: 20 });
+    expect(all[1]?.clearDistance).toBe(30);
+    expect(all[2]?.centerDistance).toBe(Math.hypot(30, 30));
+    expect(all[2]?.clearDistance).toBe(Math.hypot(20, 20));
+    expect(measureToNearest(target, [east, north], 1)).toEqual([
+      { unitId: "east", centerDistance: 30, clearDistance: 20 },
+    ]);
+  });
+
+  it("rotation 真形参与净距：90° 真形轴对齐单轴分离净 10", () => {
+    const target = { unitId: "t", x: 0, y: 0, rotation: 90, footprint: { w: 10, h: 4 } };
+    const other = { unitId: "o", x: 14, y: 0, rotation: 0, footprint: { w: 4, h: 4 } };
+    // t 旋 90° 真形 x∈[-2,2]×y∈[-5,5]；o x∈[12,16]×y∈[-2,2]——单轴分离净 10
+    expect(measureToNearest(target, [other], 3)).toEqual([
+      { unitId: "o", centerDistance: 14, clearDistance: 10 },
+    ]);
+  });
 });
 
 describe("structureStrokeRole（描边优先级角色枚举——B3 R7 链序冻结）", () => {

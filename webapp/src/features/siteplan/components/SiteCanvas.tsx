@@ -39,7 +39,7 @@ import {
   BOUNDARY_DASH, BOUNDARY_STROKE, COLOR_GRID, COLOR_STRUCTURE, COLOR_STRUCTURE_FILL,
   DOUBLE_TAP_MS, DOUBLE_TAP_SLOP_PX, ENDPOINT_RADIUS, GRID_WORLD_MAX, GRID_WORLD_MIN,
   MEASURE_COUNT, PX_PER_M, ROTATE_HANDLE_GAP, ROTATE_HANDLE_RADIUS, UNCALC_SIZE,
-  WHEEL_SENSITIVITY, isSelectedLine, pointsAttr,
+  WHEEL_SENSITIVITY, isSelectedLine, lineDeleteTarget, pointsAttr,
   type DoubleTapAnchor, type DragSession, type MeasurePair,
 } from "../lib/canvasDisplay";
 import {
@@ -69,6 +69,7 @@ export type SiteCanvasProps = {
   onRotate: (unitId: string, rotation: number) => void;
   onRemove: (unitId: string) => void;
   onCommitLine: (points: SitePoint[]) => void;
+  onRemoveRequest: (kind: "road" | "corridor", index: number) => void; // B4 笔②：Delete 键上行
 };
 
 /** 描边角色→色值（B3 R7：优先级判定单源=siteGeometry.structureStrokeRole——
@@ -83,6 +84,7 @@ const STROKE_ROLE_COLOR: Record<StructureStrokeRole, string> = {
 
 export function SiteCanvas({
   model, draft, violationSeverity, boundaryUnitIds, onPlace, onMove, onRotate, onRemove, onCommitLine,
+  onRemoveRequest,
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -231,7 +233,14 @@ export function SiteCanvas({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (tool !== "road" && tool !== "corridor" && tool !== "boundary") {
+    if (tool === "select") {
+      // B4 笔② R2：select 态删除键——焦点判在 lib（输入框焦点不消费），
+      // 上行经 onRemoveRequest 与侧栏删除按钮汇同一 Popconfirm 确认门
+      const target = lineDeleteTarget(event.key, event.target, selection);
+      if (target !== null) {
+        event.preventDefault();
+        onRemoveRequest(target.kind, target.index);
+      }
       return;
     }
     if (event.key === "Enter") {

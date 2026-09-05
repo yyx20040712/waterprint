@@ -6,8 +6,9 @@
  *        measureToNearest（MeasurePair 类型面）+siteplanStore 选中面类型
  * 输出:  显示常量（PX_PER_M/UNCALC_SIZE/坐标网窗/把手半径/双击窗/测距
  *        最近数/滚轮灵敏度/灰阶三色/BOUNDARY_*）+DragSession/
- *        DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine
- *        纯函数（SiteCanvas 消费——props 面与 handler 族留守组件）
+ *        DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine/
+ *        svgOwnsKeyTarget/lineDeleteTarget 纯函数（SiteCanvas 消费——props
+ *        面与 handler 族留守组件；键盘删除判定=B4 笔② R2 新增段）
  */
 import { measureToNearest } from "./siteGeometry";
 import type { SitePoint, StructureFootprint } from "./projectSite";
@@ -68,4 +69,44 @@ export function isSelectedLine(
   selection: SiteplanSelection | null, kind: "road" | "corridor", index: number,
 ): boolean {
   return selection !== null && selection.kind === kind && selection.index === index;
+}
+
+// ── 键盘删除判定（B4 笔② R2——结构化类型消费：node 字面量可测，零 DOM 依赖） ──
+
+/** 焦点判（简报 R2 DS 探针必改④）：event.target 为 svg 本体或其直接子元素
+ *  才消费——输入框等表单焦点不消费（SVG DOM tagName 小写/HTML 大写均只判
+ *  "svg" 宿主链，表单链天然不中）。 */
+export function svgOwnsKeyTarget(target: unknown): boolean {
+  if (typeof target !== "object" || target === null) {
+    return false;
+  }
+  const element = target as { tagName?: unknown; parentElement?: unknown };
+  if (element.tagName === "svg") {
+    return true;
+  }
+  const parent = element.parentElement;
+  return (
+    typeof parent === "object" && parent !== null &&
+    (parent as { tagName?: unknown }).tagName === "svg"
+  );
+}
+
+/** select 态 Delete/Backspace 删除目标判定：焦点在画布+选中 road/corridor
+ *  时产出删除目标（两路汇同一确认门——侧栏按钮/键盘同回调签名）；否则
+ *  null 不消费（structure 选中=双击移除先例面，键盘不删）。 */
+export function lineDeleteTarget(
+  key: string,
+  eventTarget: unknown,
+  selection: SiteplanSelection | null,
+): { kind: "road" | "corridor"; index: number } | null {
+  if (key !== "Delete" && key !== "Backspace") {
+    return null;
+  }
+  if (!svgOwnsKeyTarget(eventTarget)) {
+    return null;
+  }
+  if (selection === null || selection.kind === "structure") {
+    return null;
+  }
+  return { kind: selection.kind, index: selection.index };
 }
