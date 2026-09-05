@@ -153,6 +153,17 @@
 > ifc_export→contracts 以正式边行承载（几何取数零直连，契约类型面白
 > 名单成员——C2）。
 
+> 同节点伴生边（B7 笔① 2026-09-06，文件粒度拆件注记第三例——上两例
+> 同款机制）：`waterprint_server.services.exports` → `waterprint_server.
+> services.exports_registry`（读面拆件：resolve_export_file/list_exports
+> 逐字迁出，经 exports 顶部 import 透传再导出+调用——公开面/__all__ 恒等）
+> 与 `waterprint_server.services.exports_registry` → `waterprint_server.
+> services.exports_support`（下载两闸常量 DOWNLOAD_SUFFIXES/
+> _DOWNLOAD_STEM_PATTERN+ExportMeta+raise 面两异常消费）。两边均在
+> `waterprint_server.services` 包节点内部（文件粒度）——check_module_graph
+> 节点粒度对同节点内 import 忽略（f) 规则），故不入上方边表而以本注记
+> 登记（ENG7 的 exports→exports_support 既有同面边同此口径）。
+
 ## 2. 端到端调用链（一次业务动作经过的文件，路径均实际存在）
 
 | 场景 | 链路（自上而下） |

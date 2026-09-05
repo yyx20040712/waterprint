@@ -12,13 +12,17 @@
 #   _batch_items_payload + ExportMeta + InvalidExportRequestError +
 #   常量 _KINDS/_KIND_SUFFIXES/_DIGEST_PREFIX + DOWNLOAD_SUFFIXES +
 #   _DOWNLOAD_STEM_PATTERN（EXPD/R2：services/exports 下载校验直消费，
-#   不入透传 __all__）
+#   不入透传 __all__）+ StaleExportError/ExportSourceNotFoundError/
+#   ExportTemplateMissingError/ExportFileNotFoundError/ExportHandle
+#   （B7 笔①迁入五名——经 services/exports 透传再导出口径；异常四类
+#   另经 exports_registry raise 消费）
 #
 # 【行为规格】
 #   R-1 纯度：零 IO/零全局态/不 import main·routers 面；import 仅
 #      stdlib+settings.validate_component（层序 services>settings 合法）。
 #   R-2 纯搬迁：五函数+ExportMeta+三常量逐字自 exports.py 迁入
-#      （ENG7 零行为变化——零新测试，D3 裁）。
+#      （ENG7 零行为变化——零新测试，D3 裁）；B7 批增迁异常族四类+
+#      ExportHandle（同口径逐字迁入零行为变化）。
 #   R-3 异常随迁注记：命名闸两纯函数（_name_component/_deterministic_
 #      name）的 raise 面依赖 InvalidExportRequestError——留 exports.py
 #      则 exports↔本件循环 import；随迁+透传，main/routers 直 import
@@ -62,6 +66,32 @@ class InvalidExportRequestError(ValueError):
     """导出请求非法（kind 白名单外）——422 面。"""
 
 
+class StaleExportError(RuntimeError):
+    """结果集三元组过期且未 force（§17.1 导出行）——409 面附输入版本。"""
+
+    def __init__(self, result_digest: str, current_digest: str) -> None:
+        super().__init__(
+            f"最近结果集基于 design {result_digest[:_DIGEST_PREFIX]}…，当前项目"
+            f" design {current_digest[:_DIGEST_PREFIX]}…（输入版本不一致——"
+            "禁止静默导出旧结果冒充新结果；?force=1 显式导出旧结果（产物"
+            "与元数据将标注旧三元组）或先重算）"
+        )
+        self.result_digest = result_digest
+        self.current_digest = current_digest
+
+
+class ExportSourceNotFoundError(RuntimeError):
+    """无最近完成结果集可消费——404 面（先运行计算）。"""
+
+
+class ExportTemplateMissingError(RuntimeError):
+    """导出模板未就绪（UF-16 data/templates 录入批）——501 面。"""
+
+
+class ExportFileNotFoundError(RuntimeError):
+    """下载产物不在册（产物缺/边车缺——注册口径双闸）——404 面（EXPD D2）。"""
+
+
 @dataclass(frozen=True)
 class ExportMeta:
     """产物注册表条目（R2：只记元数据不复制数据；无时钟字段）。"""
@@ -74,6 +104,19 @@ class ExportMeta:
     engine_version: str
     data_version: str
     stale_labeled: bool
+
+
+@dataclass(frozen=True)
+class ExportHandle:
+    """导出产物句柄（R4：确定性命名；stale_labeled=force 旧三元组标注）。"""
+
+    project_id: str
+    kind: str
+    condition_key: str
+    path: str
+    design_digest: str
+    stale_labeled: bool
+    task_id: str | None  # 批量转任务时非 None（R3）
 
 
 def _name_component(value: str, fallback: str, what: str) -> str:
