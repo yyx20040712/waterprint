@@ -29,6 +29,7 @@ from pathlib import Path
 
 from waterprint_server.jobs.manager import Manager
 from waterprint_server.settings import Settings
+from waterprint_server.sse_limits import SseLimiter
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,10 @@ class ServiceContext:
     # （fastapi/status 面 main 独占——services 禁 import fastapi，数值经
     # 注入流动而非字面量）；TaskStatus 消费面回填结构化 error_code。
     domain_error_codes: Mapping[str, int] = field(default_factory=dict)
+    # B6（SSE 治理 2026-09-06）：四维限流器（events 两端点建连/订阅面；
+    # None=不限流——直调测试装配束/旧构造面兼容；sse_limits 零 fastapi
+    # 依赖，本层 import 不破「services 禁 fastapi」铁律）。
+    sse_limiter: SseLimiter | None = None
 
     @property
     def projects_dir(self) -> Path:

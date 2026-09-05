@@ -126,6 +126,7 @@ class Manager:
         artifacts_dir: Path | None = None,
         task_retention_s: int | None = None,
         task_registry_cap: int | None = None,
+        sse_heartbeat_seconds: float | None = None,
     ) -> None:
         self._executor = executor
         self._cancel_dir = cancel_dir
@@ -133,6 +134,7 @@ class Manager:
         self._artifacts_dir = artifacts_dir
         self._task_retention_s = task_retention_s
         self._task_registry_cap = task_registry_cap
+        self._sse_heartbeat_s = sse_heartbeat_seconds  # B6 D6：订阅流静默心跳（None=关）
         self._loop = loop
         self._progress_queue = progress_queue if progress_queue is not None else mp.Queue()
         self._max_concurrent = max(1, max_concurrent)
@@ -237,8 +239,12 @@ class Manager:
         )
         return True
 
-    async def events(self, task_id: str) -> AsyncIterator[Event]:
-        """单任务事件流（每连接独立，R3；断线清理见 finally，背压见 _emit）。"""
+    async def events(self, task_id: str) -> AsyncIterator[Event | None]:
+        """单任务事件流（每连接独立，R3；断线清理见 finally，背压见 _emit）。
+
+        B6 D6：静默超 sse_heartbeat_seconds yield None 哨兵（routers/events
+        映射 ": keepalive" comment 行——SSE 规范 EventSource 忽略）。
+        """
         record = self._record(task_id)
         queue: asyncio.Queue[Event] = asyncio.Queue(maxsize=_EVENT_BUFFER)
         record.subscribers.add(queue)
@@ -247,22 +253,35 @@ class Manager:
                 yield Event("state", task_id, record.progress, record.state, None)
                 return
             while True:
-                event = await queue.get()
+                event = await self._next_event(queue)
                 yield event
-                if event.type == "state" and event.message in _TERMINAL:
+                if event is not None and event.type == "state" and event.message in _TERMINAL:
                     return
         finally:
             record.subscribers.discard(queue)  # 断线清理：订阅释放无泄漏（R2 events）
 
-    async def project_events(self, project_id: str) -> AsyncIterator[Event]:
-        """项目通道流（stale 通知/任务完成——断线即清理）。"""
+    async def project_events(self, project_id: str) -> AsyncIterator[Event | None]:
+        """项目通道流（stale 通知/任务完成——断线即清理；B6 D6 心跳同款）。"""
         queue: asyncio.Queue[Event] = asyncio.Queue(maxsize=_EVENT_BUFFER)
         self._project_subscribers.setdefault(project_id, set()).add(queue)
         try:
             while True:
-                yield await queue.get()
+                yield await self._next_event(queue)
         finally:
             self._project_subscribers[project_id].discard(queue)
+
+    async def _next_event(self, queue: asyncio.Queue[Event]) -> Event | None:
+        """取件+心跳包装（B6 D6）：静默超时 → None 哨兵（两端点统一）。
+
+        计时点在 queue.get——wait_for 超时取消不丢事件（Queue.get 取消
+        安全点；anext 面取消会误杀生成器，故心跳归 manager 不在 routers）。
+        """
+        if self._sse_heartbeat_s is None:
+            return await queue.get()
+        try:
+            return await asyncio.wait_for(queue.get(), timeout=self._sse_heartbeat_s)
+        except asyncio.TimeoutError:
+            return None
 
     async def shutdown(self, timeout: float) -> Mapping[str, str]:
         """优雅停机：停进度桥→queued 置 cancelled→等 running（超时报告）。"""

@@ -144,6 +144,35 @@ class Settings(BaseSettings):
     # 非空=21 端点受保（19 非事件仅认 Bearer 头+events 两端点认头或
     # ？token=），units 三静态只读端点豁免。见 auth.py 依赖面。
     api_token: str = ""
+    # B6（SSE 治理 2026-09-06，简报 D5）：四维限流+心跳旋钮（int|None——
+    # None=该维不启用，沿 WP4 task_registry_cap 先例；默认启用=治理默认态，
+    # 阈值保守不触碰既有测试/正常用）。阈值锚（D4 总控补证）：全局 100=
+    # SSE 连接协程级不占进程池（calc_workers 解耦），内存十 MB 量级安全；
+    # 每任务 5（多标签+重连叠接余量，终态即退）；每项目 10（项目流长生命
+    # 周期更严）；建连速率 10/s 突发 2×rate 固定（不增旋钮）；心跳 30s=
+    # nginx proxy_read_timeout 300s 的 1/10（静默掐断消除，D6）。消费面
+    # sse_limits.py（四维）/jobs/manager.py（心跳）。
+    sse_max_connections: int | None = 10**2  # 100（幂积保白名单字面量集）
+    sse_max_subscribers_per_task: int | None = 10 // 2  # 5
+    sse_max_subscribers_per_project: int | None = 10  # 10（白名单值）
+    sse_connect_rate_per_second: int | None = 10  # 10/s（突发=2×rate 固定）
+    sse_heartbeat_seconds: int | None = 10 * 2 + 10  # 30（300s 读超时的 1/10）
+
+    @field_validator(
+        "sse_max_connections",
+        "sse_max_subscribers_per_task",
+        "sse_max_subscribers_per_project",
+        "sse_connect_rate_per_second",
+        "sse_heartbeat_seconds",
+    )
+    @classmethod
+    def _sse_knobs_positive(cls, value: int | None) -> int | None:
+        """B6 fail fast：SSE 旋钮非 None 时 <1 构造即 ValidationError（心跳 0=热循环）。"""
+        if value is not None and value < 1:
+            raise ValueError(
+                f"配置非法：SSE 旋钮 {value} 须 >= 1 或 None（B6 fail fast——不静默默认）"
+            )
+        return value
 
     @field_validator(*_FAIL_FAST_FIELDS)
     @classmethod

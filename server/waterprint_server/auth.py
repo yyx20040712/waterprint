@@ -19,7 +19,11 @@
 # 【行为规格】
 #   R1 通道纪律（终裁 R-1）：受保 19 非事件端点仅认 Authorization:
 #      Bearer（带 ？token= 无 header=401）；events 两端点认 header 或
-#      ？token=（SSE 客户端 EventSource 无法自定义头的现实通道）。
+#      ？token=——**OR 任一命中即过，无通道优先级**（B6 D1 明文化）；
+#      header 通道=非浏览器客户端（脚本/CI/curl）不依赖 URL query 的
+#      可用形态（低泄漏通道——脚本同样可走 query）；query 通道=
+#      SSE 客户端 EventSource 无法自定义头的现实通道。命中通道 debug
+#      日志记档（不记 token 值——B6 D1 可观测面）。
 #   R2 鉴权关语义：api_token 空（+回环绑定=R-6 防线）→全放行（含
 #      query 通道）——默认态 24 端点零行为变化。
 #   R3 常量时间比对（N-4）：hmac.compare_digest（防时序侧信道逐字节
@@ -33,8 +37,11 @@
 #   （不用框架默认 401 体——N-3 统一错误体口径）；token 值比对失败与
 #   凭证缺失同面 401（不泄漏"哪个通道更接近"信息）。
 #
-# 【禁止事项】不引入 403 权限分级（无此概念——终裁三.沿册项）；不做
-#   限流；不新增端点。
+# 【禁止事项】不引入 403 权限分级（无此概念——终裁三.沿册项）；限流
+#   仅限 SSE 面（B6 批 Ruling 2026-09-06 ② 授权——实装 sse_limits.py，
+#   19 受保非事件端点不做限流）；不新增端点。残余风险知情接受（B6 D7
+#   记档）：鉴权关（匿名不可区分）下「无限资源耗尽→有限配额 DoS（先
+#   到先得占满全局阈）」由四维身份无关限流收敛为有限面，非归零。
 #
 # 【测试要求】test_auth.py 13 用例（401 面/放行面/负面通道/启动防线/
 #   OpenAPI 安全契约）。
@@ -45,8 +52,11 @@ from __future__ import annotations
 import hmac
 from typing import Annotated
 
+import structlog
 from fastapi import Depends, Request
 from fastapi.security import APIKeyQuery, HTTPAuthorizationCredentials, HTTPBearer
+
+_LOGGER = structlog.get_logger(__name__)
 
 # OpenAPI 安全 scheme（R-3 命名=终裁口径）：scheme_name 即契约
 # securitySchemes 键；auto_error=False——错误归一 AuthError（N-3）。
@@ -102,6 +112,7 @@ async def verify_token_sse(
     """events SSE 端点鉴权（R-1 双通道：header 或 ？token= 任一命中即过）。"""
     expected = _configured_token(request)
     if expected == "":
+        _LOGGER.debug("sse_auth_channel", channel="auth_off")  # B6 D1：通道记档（不记 token 值）
         return  # 鉴权关——含 query 通道全放行
     supplied_header = credentials.credentials if credentials is not None else ""
     ok_header = _token_matches(supplied_header, expected)
@@ -110,3 +121,4 @@ async def verify_token_sse(
         raise AuthError(
             "鉴权失败：SSE 端点要求 Authorization: Bearer 头或 ？token= 查询参数"
         )
+    _LOGGER.debug("sse_auth_channel", channel="header" if ok_header else "query")

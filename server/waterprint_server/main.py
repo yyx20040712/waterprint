@@ -118,6 +118,7 @@ from waterprint_server.services.scene import (
 )
 from waterprint_server.services.site import InvalidSpacingRequestError
 from waterprint_server.settings import Settings, ensure_directories, get_settings
+from waterprint_server.sse_limits import RateLimitedError, SseLimiter
 
 # ── R2 统一异常映射表（集中一处；core/server 领域异常→HTTP 码）──
 # 类基映射（可导入面）：InvalidUnitConfig→400 / NotFound 族→404 /
@@ -126,6 +127,10 @@ from waterprint_server.settings import Settings, ensure_directories, get_setting
 # {detail, error_type}（不引入 403，终裁三.沿册项）。
 _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (AuthError, status.HTTP_401_UNAUTHORIZED),
+    # B6 D5（SSE 治理）：RateLimitedError→429（统一错误体 {detail,
+    # error_type}+Retry-After 建议性头——异常携带值；不声明 responses=
+    # openapi 零字节破面）。
+    (RateLimitedError, status.HTTP_429_TOO_MANY_REQUESTS),
     (InvalidUnitConfig, status.HTTP_400_BAD_REQUEST),
     (core.InvalidAssemblyError, status.HTTP_400_BAD_REQUEST),
     (core.InvalidProjectError, status.HTTP_400_BAD_REQUEST),
@@ -237,10 +242,15 @@ def _register_exception_handlers(app: FastAPI) -> None:
             structlog.get_logger(__name__).warning(
                 "domain_exception_mapped", error=str(exc), status_code=code
             )
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=code,
                 content={"detail": str(exc), "error_type": type(exc).__name__},
             )
+            # B6 D5：429 附 Retry-After 建议性头（异常属性携带——统一错误体
+            # 形态不变；浏览器 EventSource 遵从度不一，建议性语义不依赖）。
+            if isinstance(exc, RateLimitedError):
+                response.headers["Retry-After"] = str(exc.retry_after)
+            return response
 
         return handler
 
@@ -280,6 +290,7 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
             artifacts_dir=settings.exports_dir / "tasks",  # WP4：calc/enum 产物淘汰面
             task_retention_s=settings.task_retention_s,  # WP4 修1：TTL 旋钮注入（启用清扫）
             task_registry_cap=settings.task_registry_cap,
+            sse_heartbeat_seconds=settings.sse_heartbeat_seconds,  # B6 D6：SSE 心跳旋钮
             loop=asyncio.get_running_loop(),
             progress_queue=queue,
             max_concurrent=settings.calc_workers,
@@ -290,7 +301,10 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
             _sweep_periodically(manager, settings.task_sweep_interval_s)
         )
         app.state.ctx = ServiceContext(
-            settings=settings, manager=manager, domain_error_codes=DOMAIN_ERROR_CODES
+            settings=settings,
+            manager=manager,
+            domain_error_codes=DOMAIN_ERROR_CODES,
+            sse_limiter=SseLimiter.from_settings(settings),  # B6：四维限流器装配
         )
         _contract_self_check(app)
         yield
@@ -310,10 +324,17 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     # 或 ？token=）；units 三静态只读端点豁免（不挂）。端点集/路径/方法
     # 变化仅 SC1/EXPD 增量（_EXPECTED_ENDPOINTS=27 现值——契约自检常驻；
     # 旧注记「=24 恒」系 R2A 时点快照，SC1 顺带销注释漂移）。
+    # B6 D3 必改1（依赖序）：events 挂载序=[sse_connect_gate,
+    # verify_token_sse]——FastAPI include 级 dependencies 列表序执行
+    #（0.141 实证），建连闸（速率令牌+全局阈探测）先于认证：401 风暴的
+    # 建连消耗被 429 前置压制；闸零路径参=openapi 零波面。
     app.include_router(projects.router, dependencies=[Depends(verify_token)])
     app.include_router(calc.router, dependencies=[Depends(verify_token)])
     app.include_router(exports.router, dependencies=[Depends(verify_token)])
-    app.include_router(events.router, dependencies=[Depends(verify_token_sse)])
+    app.include_router(
+        events.router,
+        dependencies=[Depends(events.sse_connect_gate), Depends(verify_token_sse)],
+    )
     app.include_router(scene.router, dependencies=[Depends(verify_token)])
     app.include_router(elevation.router, dependencies=[Depends(verify_token)])
     app.include_router(cost.router, dependencies=[Depends(verify_token)])
