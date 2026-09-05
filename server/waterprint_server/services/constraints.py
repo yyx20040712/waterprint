@@ -64,8 +64,9 @@ _REQUIRED_KEYS: frozenset[str] = frozenset(
     }
 )
 _KINDS: frozenset[str] = frozenset(
-    {"enumeration_filter", "effluent_standard", "spacing_check"}
-)  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）
+    {"enumeration_filter", "effluent_standard", "spacing_check", "boundary_check"}
+)  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）；SPC2：
+# +boundary_check（用地红线越界校核面——services/site 唯一 severity 解析面）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
 
@@ -76,7 +77,9 @@ class ConstraintEntry(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     key: str
-    kind: Literal["enumeration_filter", "effluent_standard", "spacing_check"]
+    kind: Literal[
+        "enumeration_filter", "effluent_standard", "spacing_check", "boundary_check"
+    ]
     unit_kinds: tuple[str, ...]
     label: str
     expression: str

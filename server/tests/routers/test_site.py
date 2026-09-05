@@ -1,7 +1,7 @@
-"""site 路由镜像测试：GET /api/site/spacing（三态/降级/错误面/确定性）。
+"""site 路由镜像测试：GET /api/site/spacing（三态/越界/stale/错误面/确定性）。
 
 输入:  waterprint_server.routers.site 公开符号+client 装配
-输出:  路由契约断言（L4b 端点形态的路由面——间距校核黄红标示数据源）
+输出:  路由契约断言（L4b 间距+SPC2 越界/stale 的路由面——标示数据源）
 """
 
 from __future__ import annotations
@@ -141,6 +141,8 @@ async def test_spacing_uncalculated_degrades_not_rejects_wiring(client) -> None:
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["violations"] == []
+    assert body["boundary_violations"] == []  # SPC2：降级面越界零行
+    assert body["stale"] is False  # SPC2：无结果集无可言陈旧（R5）
     assert body["uncalculated"] == ["municipal_cass", "municipal_chenshachi"]  # sorted
 
 
@@ -172,3 +174,108 @@ async def test_spacing_double_fetch_byte_identical_wiring(client) -> None:  # ty
     assert json.dumps(first, sort_keys=True, ensure_ascii=False) == json.dumps(
         second, sort_keys=True, ensure_ascii=False
     )
+
+
+async def _boundary_project(client) -> tuple[str, str]:  # type: ignore[no-untyped-def]
+    """v3 红线项目（chenshachi 全内+cass 四角全外——x=20 红线切分）。"""
+    payload = {
+        "project": {
+            "format_version": "3.0",
+            "design": {
+                "nodes": {
+                    "inlet": {
+                        "kind": "municipal_input",
+                        "q_avg_daily": 34760.7 / 86400,
+                        "kz": 1.4,
+                        "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
+                        "NH3N": 26.0, "TN": 43.0, "TP": 6.5,
+                    },
+                    "municipal_chenshachi": {},
+                    "municipal_cass": {},
+                },
+                "edges": [
+                    {
+                        "src": {"unit_id": "inlet", "port_id": "out"},
+                        "dst": {"unit_id": "municipal_chenshachi", "port_id": "in"},
+                    },
+                    {
+                        "src": {"unit_id": "municipal_chenshachi", "port_id": "out"},
+                        "dst": {"unit_id": "municipal_cass", "port_id": "in"},
+                    },
+                ],
+                "site": {
+                    "structures": {
+                        "municipal_chenshachi": {
+                            "x": 0.0, "y": 0.0, "rotation": 0.0, "ground_elevation": None,
+                        },
+                        "municipal_cass": {
+                            "x": 50.0, "y": 0.0, "rotation": 0.0, "ground_elevation": None,
+                        },
+                    },
+                    "boundary": [
+                        {"x": -10.0, "y": -10.0}, {"x": 20.0, "y": -10.0},
+                        {"x": 20.0, "y": 10.0}, {"x": -10.0, "y": 10.0},
+                    ],
+                },
+            },
+            "view": {},
+            "metadata": {
+                "format_version": "3.0", "content_hash": "0",
+                "engine_version": "0", "data_version": "0",
+            },
+        }
+    }
+    created = await client.post("/api/projects", json=payload)
+    assert created.status_code == status.HTTP_200_OK
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )).json()["task_id"]
+    body: dict[str, object] = {}
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"
+    return project_id, task_id
+
+
+@pytest.mark.anyio
+async def test_spacing_boundary_violation_state_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """SPC2 越界态：红线外 cass→boundary_violations 恰一行（ERROR+message）；
+    响应四字段面（violations/boundary_violations/uncalculated/stale）。
+    """
+    project_id, _task_id = await _boundary_project(client)
+    response = await client.get("/api/site/spacing", params={"project_id": project_id})
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert set(body) == {"violations", "boundary_violations", "uncalculated", "stale"}
+    assert body["stale"] is False
+    assert body["uncalculated"] == []
+    rows = body["boundary_violations"]
+    assert len(rows) == 1
+    assert rows[0] == {
+        "unit_id": "municipal_cass",
+        "severity": "ERROR",
+        "message": "unit municipal_cass 有 4 个角点超出红线",
+    }
+    # chenshachi 全内不在越界行；间距面照常（远摆合规零违规）
+    assert body["violations"] == []
+
+
+@pytest.mark.anyio
+async def test_spacing_stale_flag_on_design_edit_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """SPC2 R5：PUT 改档不重算→stale=True（scene 家族同款——摆放更新后
+    足迹陈旧显式提示，非静默）。
+    """
+    project_id, _task_id = await _boundary_project(client)
+    fresh = await client.get("/api/site/spacing", params={"project_id": project_id})
+    assert fresh.json()["stale"] is False  # 新鲜结果集
+    project_doc = (await client.get(f"/api/projects/{project_id}")).json()
+    structure = project_doc["design"]["site"]["structures"]["municipal_cass"]
+    structure["x"] = 55.0  # 摆放变更（design digest 变）
+    put = await client.put(f"/api/projects/{project_id}", json=project_doc)
+    assert put.status_code == status.HTTP_200_OK
+    stale = await client.get("/api/site/spacing", params={"project_id": project_id})
+    assert stale.json()["stale"] is True  # 旧快照+显式过期旗标

@@ -11,7 +11,7 @@
 #   - 端点集恰一件（GET /api/elevation/{project_id}）无漂移；
 #   - 200 正门：CASS 项目跑一次计算→stations 非空+字段面恰十键+
 #     crest_elev=water_level+freeboard 逐站（D5 服务端投影）+工况缺省=
-#     排序首键回显+conditions=sorted 键集+datum_note 在（D2）+
+#     design 回显（SPC2 §2.5 家族切换）+conditions=sorted 键集+datum_note 在（D2）+
 #     pump_stations/drop_warnings/warnings 面存在（D4；空=合法 R4）；
 #   - 显式工况透传（200+condition_key 回显）；
 #   - 确定性：双 GET 响应 JSON（sort_keys）字节同；
@@ -117,14 +117,15 @@ def test_router_exposes_elevation_endpoint_wiring() -> None:
 
 @pytest.mark.anyio
 async def test_elevation_returns_profile_with_default_condition_wiring(client) -> None:  # type: ignore[no-untyped-def]
-    """GET 200：stations 字段面恰十键+crest 投影逐站+缺省工况=排序首键回显+datum_note。"""
+    """GET 200：stations 字段面恰十键+crest 投影逐站+缺省工况=design 回显+datum_note。"""
     project_id, task_id = await _project_with_result(client)
     tasks = (await client.get(f"/api/calc/tasks/{task_id}")).json()
     expected_keys = sorted(tasks["result"]["condition_keys"])
+    assert "design" in expected_keys  # 真值锚：build_condition_set 恒产 design+avg
     response = await client.get(f"/api/elevation/{project_id}")
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["condition_key"] == expected_keys[0]  # 缺省=排序首键（显式回显）
+    assert body["condition_key"] == "design"  # 缺省=design 优先（SPC2 §2.5——sorted 回退仅防降级奇态）
     assert body["conditions"] == expected_keys  # 工况键清单=sorted 键集（D9 索引面）
     assert "±0.00" in body["datum_note"]  # D2 相对标高注记（口径单一真源在服务面）
     assert body["stations"], "纵断站位非空（CASS 单元至少一站）"

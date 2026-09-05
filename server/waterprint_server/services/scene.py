@@ -126,7 +126,15 @@ def build_scene_for_project(
         raise InvalidSceneRequestError(
             f"项目 {project_id!r} 结果集无工况（空工况集——先重算）"
         )
-    chosen = condition_key if condition_key is not None else sorted(plant.conditions)[0]
+    chosen = (
+        condition_key
+        if condition_key is not None
+        else (
+            "design"
+            if "design" in plant.conditions
+            else sorted(plant.conditions)[0]  # SPC2 §2.5 design 优先+sorted 回退
+        )
+    )
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     try:

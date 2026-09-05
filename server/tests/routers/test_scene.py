@@ -81,15 +81,15 @@ def test_router_exposes_scene_endpoint_wiring() -> None:
 
 @pytest.mark.anyio
 async def test_scene_returns_graph_with_default_condition_wiring(client) -> None:  # type: ignore[no-untyped-def]
-    """GET 200：scene_version 回显+nodes 非空+instance_count≥1+缺省工况=排序首键回显。"""
+    """GET 200：scene_version 回显+nodes 非空+instance_count≥1+缺省工况=design 回显。"""
     project_id, task_id = await _project_with_result(client)
     tasks = (await client.get(f"/api/calc/tasks/{task_id}")).json()
-    expected_default = sorted(tasks["result"]["condition_keys"])[0]
+    assert "design" in tasks["result"]["condition_keys"]  # 真值锚：恒产 design+avg
     response = await client.get(f"/api/scene/{project_id}")
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["scene_version"] == SCENE_VERSION  # R4 版本回显（core 真源常量——L5a 步进 -2，禁字面漂移）
-    assert body["condition_key"] == expected_default  # 缺省=排序首键（显式回显）
+    assert body["condition_key"] == "design"  # 缺省=design 优先（SPC2 §2.5——sorted 回退仅防降级奇态）
     assert body["nodes"]  # 场景非空
     assert all(node["instance_count"] >= 1 for node in body["nodes"])  # 实例声明面
     assert body["root"]  # root 序非空

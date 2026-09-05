@@ -78,11 +78,16 @@ async def _latest_conditions(ctx, project_id: str) -> list[str]:  # type: ignore
     return [str(key) for key in status.result["condition_keys"]]  # type: ignore[index]
 
 
-async def test_scene_defaults_to_sorted_first_condition_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
-    """D1：condition_key 缺省=结果工况排序首键（显式回显于响应，不猜测）。"""
+async def test_scene_defaults_to_design_condition_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """D1：condition_key 缺省=design 优先（SPC2 §2.5 家族切换——构筑物物理
+    尺寸/水位=design 工况设计值；sorted 首键回退仅防降级奇态，真算恒产
+    design+avg 两档故直断 design，不猜测）。
+    """
     project_id = await _project_with_result(service_ctx)
     scene = build_scene_for_project(service_ctx, project_id)
-    assert scene.condition_key == sorted(await _latest_conditions(service_ctx, project_id))[0]
+    conditions = sorted(await _latest_conditions(service_ctx, project_id))
+    assert "design" in conditions  # 真值锚：build_condition_set 恒产 design+avg
+    assert scene.condition_key == "design"
     assert scene.scene_version == SCENE_VERSION  # R4 版本回显（前端唯一读取口；core 真源常量——L5a 步进 -2，禁字面漂移）
     assert scene.nodes  # 场景非空（CASS 池体图元在册）
     assert any(node.instance_count >= 1 for node in scene.nodes)  # 实例数声明面

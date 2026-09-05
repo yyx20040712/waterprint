@@ -130,6 +130,30 @@
         "title": "BandModel",
         "type": "object"
       },
+      "BoundaryViolationEntry": {
+        "description": "越界行（三字段冻结——core BoundaryViolation 投影，不发明越界深度）。",
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "severity",
+          "message"
+        ],
+        "title": "BoundaryViolationEntry",
+        "type": "object"
+      },
       "CancelResponse": {
         "description": "取消结果（R3：终态任务不受取消影响）。",
         "properties": {
@@ -176,7 +200,8 @@
             "enum": [
               "enumeration_filter",
               "effluent_standard",
-              "spacing_check"
+              "spacing_check",
+              "boundary_check"
             ],
             "title": "Kind",
             "type": "string"
@@ -1268,8 +1293,19 @@
         "type": "object"
       },
       "SpacingReportResponse": {
-        "description": "间距校核响应（violations+uncalculated——未计算=降级全量非拒）。",
+        "description": "间距校核响应（violations+boundary_violations+uncalculated+stale）。\n\nSPC2 §2.4 additive 扩面：boundary_violations=红线越界行；stale=\nresult_is_stale 装配镜像（scene 家族对齐——摆放更新后足迹陈旧提示）。",
         "properties": {
+          "boundary_violations": {
+            "items": {
+              "$ref": "#/components/schemas/BoundaryViolationEntry"
+            },
+            "title": "Boundary Violations",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
           "uncalculated": {
             "items": {
               "type": "string"
@@ -1287,7 +1323,9 @@
         },
         "required": [
           "violations",
-          "uncalculated"
+          "boundary_violations",
+          "uncalculated",
+          "stale"
         ],
         "title": "SpacingReportResponse",
         "type": "object"

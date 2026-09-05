@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（20 条三类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（21 条四类/装载守卫四路/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -26,21 +26,26 @@ pytestmark = [
 # 真源 kb 面（仓库 data 目录——conftest REPO_DATA 同源推导）
 _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/→仓库根
 
-# kb 计数分 kind 形态（RATIFY-L4 1.3.0：spacing_check 2 已追认——增删同步）
+# kb 计数分 kind 形态（RATIFY-L4 1.3.0：spacing_check 2 已追认；SPC2 1.4.0：
+# boundary_check 1 工程惯例起草待专家确认——增删同步）
 _FILTER_COUNT = 6
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
+_BOUNDARY_COUNT = 1
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：20 条三类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：21 条四类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
-    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT
+    assert len(entries) == (
+        _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT + _BOUNDARY_COUNT
+    )
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
     assert kinds.count("effluent_standard") == _EFFLUENT_COUNT
     assert kinds.count("spacing_check") == _SPACING_COUNT
+    assert kinds.count("boundary_check") == _BOUNDARY_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     raw = json.loads((_REPO / "constraint_kb" / "constraints.json").read_bytes())
@@ -94,6 +99,24 @@ def test_spacing_entries_carry_threshold_contract() -> None:
     assert scoped.severity == "ERROR"
     # 数值权威=已追认（Ruling 2026-09-03——manifest 1.3.0 同面）
     assert all("已追认" in e.value_basis for e in spacing)
+
+
+def test_boundary_entry_carry_containment_contract() -> None:
+    """SPC2：boundary_check 面契约——expression 形态 `containment == inside`
+    （server services.site 唯一 severity 解析面——README 钉面）+全构筑物+
+    ERROR 起草待专家确认态（kb 1.4.0——数据策略 v2）。
+    """
+    catalog = list_constraints(_REPO)
+    boundary = [e for e in catalog.entries if e.kind == "boundary_check"]
+    assert len(boundary) == _BOUNDARY_COUNT
+    entry = boundary[0]
+    assert entry.key == "site.boundary_containment"
+    assert entry.expression == "containment == inside"
+    assert entry.unit_kinds == ()  # 全构筑物（不设限定面）
+    assert entry.severity == "ERROR"
+    # 起草态口径：工程惯例类比+待专家确认（未追认——pending-domain-expert 登记）
+    assert "待专家确认" in entry.source
+    assert "待专家确认" in entry.value_basis
 
 
 def test_filter_values_match_factors_truth() -> None:
@@ -207,14 +230,16 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——20 条三类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——21 条四类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
     entries = payload["entries"]
-    assert len(entries) == _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT
+    assert len(entries) == (
+        _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT + _BOUNDARY_COUNT
+    )
     assert {e["kind"] for e in entries} == {
-        "enumeration_filter", "effluent_standard", "spacing_check",
+        "enumeration_filter", "effluent_standard", "spacing_check", "boundary_check",
     }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
