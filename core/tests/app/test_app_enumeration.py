@@ -290,14 +290,15 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     plant = run_full_calc(project, _bcs([]), env).plant  # type: ignore[misc]
     assert "design" in plant.conditions  # 显式工况前提
     out = tmp_path / "site.dxf"
+    site_design = SiteDesign(  # 测试自身构造输入（ENG8 B 件：期望集同源派生源）
+        structures={
+            "municipal_cass": StructurePlacement(x=5.0, y=5.0),
+            "municipal_aao": StructurePlacement(x=15.0, y=5.0),  # 悬空（快照无）=摆放真源同入目录
+        }
+    )
     payload = export_artifact(  # type: ignore[misc]
         "dxf", plant, Path("unused"), out,
-        site_design=SiteDesign(
-            structures={
-                "municipal_cass": StructurePlacement(x=5.0, y=5.0),
-                "municipal_aao": StructurePlacement(x=15.0, y=5.0),  # 悬空（快照无）=摆放真源同入目录
-            }
-        ),
+        site_design=site_design,
         condition_key="design",
     )
     assert payload  # 禁静默空产物（UF-33）
@@ -314,6 +315,16 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     frame_bottom = min(p[1] for p in frame.get_points("xy"))
     catalog_title = next(e for e in msp.query("TEXT") if e.dxf.text == "图纸目录")
     assert catalog_title.dxf.insert[1] < frame_bottom  # 目录在图框下方（mm 域读回）
+
+    # G1-04 窗口全集精确（ENG8 B 件）：窗口锚与上方图框断言同源 frame_bottom，
+    # 期望按目录行装配规则自输入派生（总图行+单元行三值；scale 三行同值入基集）。
+    catalog_texts = {e.dxf.text for e in msp.query("TEXT")
+                     if e.dxf.insert[1] < frame_bottom}
+    expected = {"图纸目录", "序号", "图号", "图名", "比例", "1:100"}
+    expected |= {"1", "01", "全厂总图"}  # 总图行（序号/图号/图名）
+    for n, uid in enumerate(sorted(site_design.structures), start=2):
+        expected |= {str(n), f"{n:02d}", uid}  # 单元行三值（scale 已入基集）
+    assert catalog_texts == expected  # G1-04：窗口全集精确（增补弱断言+R1 之第三层）
 
     # R1 行级配对（G1-05 二审 CONFIRMED）：集合包含断言拦不住排序方向
     # 回归——总控变异实证：接线处 sorted→reversed(sorted()) 后旧断言面
