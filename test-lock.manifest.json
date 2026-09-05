@@ -1,7 +1,7 @@
 {
   "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
   "core/tests/app/test_app.py": "154037f319eca9bb952aeb69e23f80703508adc86043d03d48916183f97489d2",
-  "core/tests/app/test_app_enumeration.py": "20690adea1b0bae4fddf279663f245e74f67ed4f10bdc736190bfb55541b0087",
+  "core/tests/app/test_app_enumeration.py": "393e69eb46e86d3f29b0ed1424319dee40d1119626a7a1444a6774a0bf78b866",
   "core/tests/app/test_cli.py": "390d89fa7dd5f5cfbc3ff467d71fbe8a28e0d57780016c8e33920dfc62a72e09",
   "core/tests/app/test_enumeration_usecase.py": "5df970ea2afb0445ac5d3fa53c36eb63c92e33781073797221db48a82b197359",
   "core/tests/app/test_unit_params_projection.py": "644113c95720e5c3c87f91ed98ab8150f843c6c8e5d5aad236f32e06ab072c5a",
@@ -41,6 +41,7 @@
   "core/tests/cost/test_indicators.py": "515902d35dc6d0ba705c0b5c6e8c16a8500a690c6851db5136e77e1fef022fb6",
   "core/tests/cost/test_prices.py": "c0a8e6491d7b788a1e6fe7824ecfea9a54fdce280c8726ae5b07ea0590569c63",
   "core/tests/cost/test_takeoff.py": "ab5ebc6dbd53da23b29a4380f4b164ba76b603d516f95a2bfa615874362fc456",
+  "core/tests/drafting/test_catalog.py": "b9b0f05728f7ec84b946353ba615645e36635b5d98c7ad947043f0b41291e68f",
   "core/tests/drafting/test_dxf_writer.py": "69c3a2af4b2d370d06e8b2c3c21407265ba4baea0c1ac62a7d3022a938086d94",
   "core/tests/drafting/test_plan_view.py": "97d26b54f6b8b502a64ecb4764736926eaa6d57fc67d57d6622c524bab00fdce",
   "core/tests/drafting/test_profile_drawing.py": "ed4b177a3ce316109cf9883b67ac0b3d1cffc7941566e2d650f8413ff0f7b720",
