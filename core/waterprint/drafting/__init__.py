@@ -13,6 +13,7 @@
 #   plan_view:       unit_plan
 #   section_view:    unit_section
 #   site_plan:       site_layout
+#   catalog:         catalog_sheet, sheet_origin_below
 #   profile_drawing: profile_sheet
 #   dxf_writer:      write_dxf
 # 铁律：图纸是结果的纯投影（§10.2）；除 dxf_writer 外任何文件禁止

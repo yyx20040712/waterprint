@@ -56,6 +56,7 @@
 | `core/waterprint/drafting/plan_view.py` | L3 | 单体平面图生成（manifest 驱动） | 结果 schema+样式 | DXF 实体组 |
 | `core/waterprint/drafting/section_view.py` | L3 | 单体剖面图生成（标高唯一真源=Profile） | 结果+标高+样式 | DXF 实体组 |
 | `core/waterprint/drafting/site_plan.py` | L3 | 厂区总平面图生成（M4 实装：布置 design 态+结果纯投影，坐标网/风玫瑰/构筑物轮廓/道路走廊/图框标题注记；工况覆盖面挂 M5/L5） | 布置+结果 schema | DXF 实体组 |
+| `core/waterprint/drafting/catalog.py` | L3 | 图纸目录 sheet 纯函数（M6 案乙 B 形态：全厂总图文件内嵌目录页——CatalogRow 行元组→表题/表线/表头/数据文字实体；sheet_origin_below 自包围盒下方派生放置 m 域；SITE_SHEET_NO/DEFAULT_SCALE 常量桥供 L4 接线侧正门取值零第二真源；图号零持久化） | CatalogRow 行+origin_xy | DXF 实体组（EntityGroup） |
 | `core/waterprint/drafting/profile_drawing.py` | L3 | 高程纵断图（四线+标高标注） | 纵断数据 | DXF 实体组 |
 | `core/waterprint/drafting/dxf_writer.py` | L3 | ezdxf 封装与落盘（唯一接触点、路径安全） | 实体组+样式 | .dxf 文件 |
 | `core/waterprint/geometry/scene.py` | L3 | 场景图 schema 与装配（<100ms；L5a site 级：site_design 摆放/未摆放不进图/红线 polyline 图元/水面+渠道接线收口；L6 roads/corridors 条带收编：kind=strip 分段四边形角点 core 预计算压平 dims，semantic=site_road/site_corridor:{kind}，全退化=零节点） | 结果 schema+假设+SiteDesign（None/空=回退 X 轴排布） | SceneGraph JSON |
