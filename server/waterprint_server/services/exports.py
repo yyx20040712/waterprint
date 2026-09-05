@@ -76,7 +76,7 @@
 #     两纯函数 raise 面依赖，留此则循环 import——随迁）迁 exports_support.py，
 #     顶部 import 透传再导出保公开面（main/routers 直 import 与 getattr
 #     消费零断链）；P3b——create_export 抽 _reject_conflicting_batch_pairs
-#     （批量对偶拒绝闸）与 _build_drawing_kwargs（dxf kwargs 组装）两子函数，
+#     （批量对偶拒绝闸）与 _build_drawing_kwargs（图纸族 kwargs 组装）两子函数，
 #     语句 44→<40 消 PLR0915 行内豁免（PLR0913 五参签名保留）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。

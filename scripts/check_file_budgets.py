@@ -62,13 +62,13 @@ def main() -> int:
                 f"[WARN] {path.relative_to(REPO)}: {lines} 行"
                 f" ≥ {limit * 9 // 10}/{limit}（{lines * 100 // limit}%）——接近预算"
             )
+    for item in warns:
+        print(item)
     if violations:
         print(f"[FAIL] 文件行数预算违规 {len(violations)} 处：")
         for item in violations:
             print(f"  - {item}")
         return 1
-    for item in warns:
-        print(item)
     near = f"，其中 {len(warns)} 个文件接近预算" if warns else ""
     print(
         f"[OK] 文件行数预算（≤{GLOBAL_LIMIT}，compute.py ≤{COMPUTE_LIMIT}）："

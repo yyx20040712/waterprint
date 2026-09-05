@@ -325,6 +325,10 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     for n, uid in enumerate(sorted(site_design.structures), start=2):
         expected |= {str(n), f"{n:02d}", uid}  # 单元行三值（scale 已入基集）
     assert catalog_texts == expected  # G1-04：窗口全集精确（增补弱断言+R1 之第三层）
+    # R2（G1-04 终裁）：实体级计数一行单语句（中间变量省略——PLR0915 41>40 红线，
+    # 断言语义与终裁比较式逐字保持）。表题+表头+每行四格——set 折叠盲区兜底。
+    assert len([e for e in msp.query("TEXT") if e.dxf.insert[1] < frame_bottom]) == (
+        1 + 4 + 4 * (1 + len(site_design.structures)))
 
     # R1 行级配对（G1-05 二审 CONFIRMED）：集合包含断言拦不住排序方向
     # 回归——总控变异实证：接线处 sorted→reversed(sorted()) 后旧断言面
