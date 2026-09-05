@@ -91,10 +91,16 @@
 #     +ifc 项边车补齐）+_reject_conflicting_batch_pairs 改载 ifc 批内
 #     unit 一致小闸（原两族拒绝删除——kwargs 通道已与单产物等价）。
 #   - EXPD（2026-09-05 甲案下载端点批）：D1 resolve_export_file（后缀闸
-#     DOWNLOAD_SUFFIXES〔exports_support 派生〕→stem 闸 validate_component
-#     严格拒→产物/边车存在性双闸→绝对路径；422 先于 404 防·存在性泄露
-#     D2）+新域异常 ExportFileNotFoundError（404 面，main._EXCEPTION_STATUS
-#     注册）；生成/列表面零变化。
+#     DOWNLOAD_SUFFIXES〔exports_support 派生〕→stem 闸→产物/边车存在性
+#     双闸→绝对路径；422 先于 404 防·存在性泄露 D2）+新域异常
+#     ExportFileNotFoundError（404 面，main._EXCEPTION_STATUS 注册）；
+#     生成/列表面零变化。R 轮（同日 D-G1-01/G1-07+总控探针实锤）：R1 增
+#     首闸恒等闸（Path.name≠全名→422——Windows pathlib 视 \ 为分隔符，
+#     ..\..\evil.dxf 实测 200 读 exports_dir 外任意文件收口；POSIX 由
+#     stem 字符集闸兜=双 OS 闭合）；R2 stem 闸弃 validate_component 改
+#     exports_support._DOWNLOAD_STEM_PATTERN（{0,63} 全长上界属单分量
+#     语义——composite 拼接名 73 字符在册而 422 自家产物不可下载收口；
+#     字符集同源不设上界）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -121,6 +127,7 @@ from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.exports_support import (
     _DIGEST_PREFIX,
+    _DOWNLOAD_STEM_PATTERN,
     _KINDS,
     DOWNLOAD_SUFFIXES,
     ExportMeta,
@@ -131,7 +138,6 @@ from waterprint_server.services.exports_support import (
     _unit_id_of,
 )
 from waterprint_server.services.projects import design_digest, read_project
-from waterprint_server.settings import validate_component
 
 # ENG7：拆分后公开面显式声明（jobs/records.py __all__ 再导出先例——mypy
 # no-implicit-reexport 下透传名 ExportMeta/InvalidExportRequestError 需入册；
@@ -423,26 +429,36 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
 
 
 def resolve_export_file(ctx: ServiceContext, file_name: str) -> Path:
-    """EXPD 下载校验正门（D1：后缀闸→stem 闸→存在性双闸→绝对路径）。
+    """EXPD 下载校验正门（R1 恒等闸→D1 后缀闸→R2 stem 闸→存在性双闸→绝对路径）。
 
-    422 先于 404（D2——格式错先判防存在性泄露）；stem 闸走 settings 真源
-    validate_component 严格拒（非 _name_component——其 fallback 属生成面
-    语义）；存在性=产物与 .meta.json 边车双闸（注册口径——仅产物在盘而
-    边车缺=不可下载）。边车内容不解析（下载面与列表扫描解析面奇态漂移
-    显式接受记档——Kimi D10②）。
+    422 先于 404（D2——格式错先判防存在性泄露）。R1 恒等闸首闸：Path.name
+    ≠全名即拒（Windows pathlib 视 \\ 为分隔符——..\\..\\evil.dxf 的 stem 取
+    末段过闸+目录拼接逃逸任意读实锤收口；POSIX 反斜杠非分隔符恒等放行，
+    由 R2 字符集闸兜——双 OS 闭合）。R2 stem 闸=exports_support.
+    _DOWNLOAD_STEM_PATTERN（字符集与 settings._COMPONENT_PATTERN 同源但
+    不设 {0,63} 全长上界——上界属单分量语义，composite 拼接名实测 73 字符
+    在册；弃 validate_component 即此故，非 _name_component 亦同——其
+    fallback 属生成面语义）。存在性=产物与 .meta.json 边车双闸（注册口径
+    ——仅产物在盘而边车缺=不可下载）。边车内容不解析（下载面与列表扫描
+    解析面奇态漂移显式接受记档——Kimi D10②）。
     """
+    if Path(file_name).name != file_name:
+        raise InvalidExportRequestError(
+            f"下载文件名 {file_name!r} 含路径分量（EXPD R1 §18 路径安全——"
+            "恒等闸：Path.name≠全名即反斜杠/盘符/分隔符逃逸，Windows pathlib"
+            " 视 \\ 为分隔符，拼接前即拒）"
+        )
     if Path(file_name).suffix not in DOWNLOAD_SUFFIXES:
         raise InvalidExportRequestError(
             f"下载文件名 {file_name!r} 后缀不在合法面 {sorted(DOWNLOAD_SUFFIXES)}"
             "（EXPD §18 路径安全——后缀白名单拒边车名/无后缀/大小写后缀）"
         )
-    try:
-        validate_component(Path(file_name).stem)
-    except ValueError as exc:
+    if _DOWNLOAD_STEM_PATTERN.fullmatch(Path(file_name).stem) is None:
         raise InvalidExportRequestError(
-            f"下载文件名 {file_name!r} stem 非法（EXPD §18 路径安全——"
-            "白名单字符集拒 ../分隔符/盘符/多点）"
-        ) from exc
+            f"下载文件名 {file_name!r} stem 非法（EXPD R2 §18 路径安全——"
+            "字符集白名单拒 ../分隔符/盘符/多点；不设长度上界——composite"
+            " 多分量拼接名可超单分量 64 上界）"
+        )
     product = ctx.exports_dir / file_name
     if not product.is_file():
         raise ExportFileNotFoundError(

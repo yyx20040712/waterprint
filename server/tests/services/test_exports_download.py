@@ -20,6 +20,13 @@
 # 【闸序断言】422 先于 404（格式错先判防存在性泄露——简报 D2）：
 #   坏名例（2-5）断 InvalidExportRequestError 即证后缀/stem 闸先于
 #   存在性双闸（422 而非 404）。
+# 【R 轮增补（D-G1-01/G1-07+总控实锤 2026-09-05）】：
+#   R1 恒等闸镜像——反斜杠/盘符名 422（Windows pathlib 视 \ 为分隔符
+#   致 stem 取末段过闸+拼接逃逸任意读；match 两态注记：POSIX 反斜杠
+#   非分隔符由 stem 字符集闸兜——双 OS 闭合）；
+#   R2 长名镜像——72 字符 composite stem 在册合法（validate_component
+#   {0,63} 全长上界属 settings 单分量语义，不适用多分量拼接全名——
+#   municipal_vxinglvchi 全厂 stem 实测在册而 422 缺陷收口）。
 # 【落位注记】EXPD 拆件（宪法 §2 行预算 ≤500——services/test_exports.py
 #   443 行满载；test_exports_dwg.py 按面拆件先例），_project_with_result
 #   内嵌同款（跨测试件 import 无门禁面）。
@@ -167,3 +174,44 @@ async def test_resolve_export_file_missing_sidecar_raises_404_face_wiring(
     os.remove(service_ctx.exports_dir / f"{file_name}.meta.json")
     with pytest.raises(_mod.ExportFileNotFoundError, match="边车"):
         resolve_export_file(service_ctx, file_name)  # type: ignore[misc]
+
+
+# R2 回归锚名：72 字符 composite stem（拼接形——各分量合法而全长超 64 分量上界）。
+_LONG_STEM_NAME = (
+    "golden-municipal-vxinglvchi-demo-project-dxf-design-0123456789abcdefghij.dxf"
+)
+
+
+async def test_resolve_export_file_long_stem_in_registry_returns_path_wiring(
+    service_ctx,
+) -> None:  # type: ignore[no-untyped-def]
+    """EXPDR2 服务镜像：stem>64 长名在册合法（72 字符拼接形——分量上界不适用全名）。"""
+    import os
+
+    stem = _LONG_STEM_NAME[: -len(".dxf")]
+    assert len(stem) > 64  # 回归锚：R2 前此名被 validate_component {0,63} 拒
+    product = service_ctx.exports_dir / _LONG_STEM_NAME
+    sidecar = service_ctx.exports_dir / f"{_LONG_STEM_NAME}.meta.json"
+    product.write_bytes(b"EXPD-R2-LONG-STEM")  # 直接落盘+边车（在册形态）
+    sidecar.write_text("{}\n", encoding="utf-8")
+    try:
+        resolved = resolve_export_file(service_ctx, _LONG_STEM_NAME)  # type: ignore[misc]
+        assert isinstance(resolved, Path)
+        assert resolved.is_absolute() and resolved.is_file()
+        assert resolved == Path(service_ctx.exports_dir / _LONG_STEM_NAME).resolve()
+    finally:
+        os.remove(product)  # 用后清理（探针产物不残留）
+        os.remove(sidecar)
+
+
+async def test_resolve_export_file_backslash_drive_identity_gate_rejected_wiring(
+    service_ctx,
+) -> None:  # type: ignore[no-untyped-def]
+    """EXPDR1 服务镜像：反斜杠/盘符名→InvalidExportRequestError（恒等闸——首闸）。
+
+    match 两态注记：Windows 命中恒等闸消息；POSIX 反斜杠非分隔符（恒等
+    放行）由 stem 字符集闸兜（\\ 与 : 不在 [A-Za-z0-9_-]）——双 OS 闭合。
+    """
+    for evil in ("..\\..\\..\\..\\evil.dxf", "C:\\evil.dxf"):
+        with pytest.raises(_mod.InvalidExportRequestError, match=r"恒等闸|stem"):
+            resolve_export_file(service_ctx, evil)  # type: ignore[misc]

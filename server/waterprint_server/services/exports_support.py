@@ -10,8 +10,9 @@
 # 【公开接口】（经 services/exports.py 顶部透传再导出保公开面）
 #   _name_component/_deterministic_name/_unit_id_of/_sidecar_text/
 #   _batch_items_payload + ExportMeta + InvalidExportRequestError +
-#   常量 _KINDS/_KIND_SUFFIXES/_DIGEST_PREFIX + DOWNLOAD_SUFFIXES
-#   （EXPD：services/exports 下载校验直消费，不入透传 __all__）
+#   常量 _KINDS/_KIND_SUFFIXES/_DIGEST_PREFIX + DOWNLOAD_SUFFIXES +
+#   _DOWNLOAD_STEM_PATTERN（EXPD/R2：services/exports 下载校验直消费，
+#   不入透传 __all__）
 #
 # 【行为规格】
 #   R-1 纯度：零 IO/零全局态/不 import main·routers 面；import 仅
@@ -30,6 +31,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -47,6 +49,13 @@ _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
 # EXPD D1：下载面合法后缀集（_KIND_SUFFIXES 值域派生——不新造字面量集，
 # kind 增删时下载白名单零漂移；大小写敏感=.DXF 天然拒）。
 DOWNLOAD_SUFFIXES: Final[frozenset[str]] = frozenset(_KIND_SUFFIXES.values())
+# EXPD R2：下载 stem 闸字符集——与 settings._COMPONENT_PATTERN 同源（首字符
+# 字母数字+体字符 [A-Za-z0-9_-]），但**不设 {0,63} 全长上界**：composite
+# 下载名=多分量拼接（uuid 项目 id 32+kind+unit+工况+摘要——实测 73 字符
+# 在册），settings 上界属单分量语义不适用拼接全名（municipal_vxinglvchi
+# 全厂 stem 72 字符在册而 422 缺陷收口）；分隔符逃逸由 R1 恒等闸
+# （Path.name≠全名）+本字符集双拦（\ 与 : 不在集内），长度非安全边界。
+_DOWNLOAD_STEM_PATTERN: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*\Z")
 
 
 class InvalidExportRequestError(ValueError):
