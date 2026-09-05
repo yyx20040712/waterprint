@@ -29,6 +29,7 @@ _EXPECTED = {
     ("post", "/api/exports/estimate"),
     ("post", "/api/exports/ifc"),
     ("get", "/api/exports"),
+    ("get", "/api/exports/{file_name}"),  # EXPD D3——产物下载端点
 }
 
 
@@ -85,12 +86,12 @@ async def _project_with_result(client, extra_units=()):  # type: ignore[no-untyp
     return project_id, task_id  # type: ignore[no-any-return]
 
 
-def test_router_exposes_five_endpoints_wiring() -> None:
-    """端点集 == 规格六件（calcbook/audit/dxf/estimate/ifc/列表——SC1 ifc 增）。"""
+def test_router_exposes_seven_endpoints_wiring() -> None:
+    """端点集 == 规格七件（calcbook/audit/dxf/estimate/ifc/列表/按文件下载——EXPD 增）。"""
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰六件无漂移
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰七件无漂移
 
 
 @pytest.mark.anyio

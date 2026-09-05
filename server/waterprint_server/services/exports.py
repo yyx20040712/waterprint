@@ -11,6 +11,8 @@
 #   create_export(project_id, kind, condition_key, options,
 #                 force=False) -> ExportHandle
 #   list_exports(project_id) -> tuple[ExportMeta, ...]
+#   resolve_export_file(ctx, file_name) -> Path（EXPD——下载校验正门）
+#   ExportFileNotFoundError（EXPD——下载不在册 404 面）
 #
 # 【行为规格】
 #   R1 stale 守门（§17.1 导出行）：最近结果集三元组 vs 当前项目
@@ -88,6 +90,11 @@
 #     D3 ifc 放行三件（worker _EXPORT_KINDS+_safe_out_name ifc 特判
 #     +ifc 项边车补齐）+_reject_conflicting_batch_pairs 改载 ifc 批内
 #     unit 一致小闸（原两族拒绝删除——kwargs 通道已与单产物等价）。
+#   - EXPD（2026-09-05 甲案下载端点批）：D1 resolve_export_file（后缀闸
+#     DOWNLOAD_SUFFIXES〔exports_support 派生〕→stem 闸 validate_component
+#     严格拒→产物/边车存在性双闸→绝对路径；422 先于 404 防·存在性泄露
+#     D2）+新域异常 ExportFileNotFoundError（404 面，main._EXCEPTION_STATUS
+#     注册）；生成/列表面零变化。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -115,6 +122,7 @@ from waterprint_server.services import ServiceContext
 from waterprint_server.services.exports_support import (
     _DIGEST_PREFIX,
     _KINDS,
+    DOWNLOAD_SUFFIXES,
     ExportMeta,
     InvalidExportRequestError,
     _batch_items_payload,
@@ -123,11 +131,13 @@ from waterprint_server.services.exports_support import (
     _unit_id_of,
 )
 from waterprint_server.services.projects import design_digest, read_project
+from waterprint_server.settings import validate_component
 
 # ENG7：拆分后公开面显式声明（jobs/records.py __all__ 再导出先例——mypy
 # no-implicit-reexport 下透传名 ExportMeta/InvalidExportRequestError 需入册；
 # importlib+getattr 消费面运行时不受影响）。
 __all__ = [
+    "ExportFileNotFoundError",
     "ExportHandle",
     "ExportMeta",
     "ExportSourceNotFoundError",
@@ -136,6 +146,7 @@ __all__ = [
     "StaleExportError",
     "create_export",
     "list_exports",
+    "resolve_export_file",
 ]
 
 _IMMEDIATE_LIMIT: Final[int] = 1  # 单产物即时上限（R3 v1：超过即转任务）
@@ -165,6 +176,10 @@ class ExportSourceNotFoundError(RuntimeError):
 
 class ExportTemplateMissingError(RuntimeError):
     """导出模板未就绪（UF-16 data/templates 录入批）——501 面。"""
+
+
+class ExportFileNotFoundError(RuntimeError):
+    """下载产物不在册（产物缺/边车缺——注册口径双闸）——404 面（EXPD D2）。"""
 
 
 @dataclass(frozen=True)
@@ -405,6 +420,39 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         stale_labeled=stale and force,
         task_id=None,
     )
+
+
+def resolve_export_file(ctx: ServiceContext, file_name: str) -> Path:
+    """EXPD 下载校验正门（D1：后缀闸→stem 闸→存在性双闸→绝对路径）。
+
+    422 先于 404（D2——格式错先判防存在性泄露）；stem 闸走 settings 真源
+    validate_component 严格拒（非 _name_component——其 fallback 属生成面
+    语义）；存在性=产物与 .meta.json 边车双闸（注册口径——仅产物在盘而
+    边车缺=不可下载）。边车内容不解析（下载面与列表扫描解析面奇态漂移
+    显式接受记档——Kimi D10②）。
+    """
+    if Path(file_name).suffix not in DOWNLOAD_SUFFIXES:
+        raise InvalidExportRequestError(
+            f"下载文件名 {file_name!r} 后缀不在合法面 {sorted(DOWNLOAD_SUFFIXES)}"
+            "（EXPD §18 路径安全——后缀白名单拒边车名/无后缀/大小写后缀）"
+        )
+    try:
+        validate_component(Path(file_name).stem)
+    except ValueError as exc:
+        raise InvalidExportRequestError(
+            f"下载文件名 {file_name!r} stem 非法（EXPD §18 路径安全——"
+            "白名单字符集拒 ../分隔符/盘符/多点）"
+        ) from exc
+    product = ctx.exports_dir / file_name
+    if not product.is_file():
+        raise ExportFileNotFoundError(
+            f"导出产物不存在：{file_name!r}（不在册——先 POST /api/exports/* 生成）"
+        )
+    if not (ctx.exports_dir / f"{file_name}.meta.json").is_file():
+        raise ExportFileNotFoundError(
+            f"导出产物 {file_name!r} 注册边车缺失（下载在册口径——产物与边车双闸）"
+        )
+    return product.resolve()
 
 
 def list_exports(ctx: ServiceContext, project_id: str) -> tuple[ExportMeta, ...]:

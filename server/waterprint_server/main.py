@@ -33,9 +33,10 @@
 #     waterprint.graph）——类基映射覆盖可导入面，LoopDivergence 等
 #     仅 worker 侧产生的领域异常经 DOMAIN_ERROR_CODES 名义表映射
 #     （failed 任务诊断消费面），集中一处不散落。
-#   - R3 契约自检：OpenAPI 生成成功 + 端点集==25（九路由器规格并集
+#   - R3 契约自检：OpenAPI 生成成功 + 端点集==27（九路由器规格并集
 #     ——META1 注释同步勘误：原记 18 系 FE1 前陈数；FE7 +elevation1；
-#     FE8 +cost1）+ A2 面（schema 无 Any 泄漏）由镜像测试常驻；
+#     FE8 +cost1；EXPD 勘误：原记 25 系 SC1 前陈数）+ A2 面（schema 无
+#     Any 泄漏）由镜像测试常驻；
 #     启动期断言=端点数；+1=constraints GET，CP1 D4；+1=site/spacing
 #     GET，L4b D1）。
 #   - executor 注入口：create_app(settings, executor=None)——测试注入
@@ -98,6 +99,7 @@ from waterprint_server.services.enumeration import (
     TaskNotCompleteError,
 )
 from waterprint_server.services.exports import (
+    ExportFileNotFoundError,
     ExportSourceNotFoundError,
     ExportTemplateMissingError,
     InvalidExportRequestError,
@@ -131,6 +133,8 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (UnknownTaskError, status.HTTP_404_NOT_FOUND),
     (DiagnosisNotAvailableError, status.HTTP_404_NOT_FOUND),
     (ExportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    # EXPD D2：下载产物不在册（产物缺/边车缺——注册口径双闸）→404。
+    (ExportFileNotFoundError, status.HTTP_404_NOT_FOUND),
     (SceneSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ElevationSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (CostSourceNotFoundError, status.HTTP_404_NOT_FOUND),
@@ -169,12 +173,14 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+1+2+1+1+1+1=26（白名单字面量和式；+1=scene GET，FE1 D1；
+# 端点集冻结 5+6+5+2+1+1+2+1+1+1+1+1=27（白名单字面量和式；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
 # 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4；
 # +1=site/spacing GET，L4b D1——间距校核取数端点；+1=exports/ifc POST，
-# SC1 D7——BIM 模型导出端点，openapi 25→26 破面已授权）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1
+# SC1 D7——BIM 模型导出端点，openapi 25→26 破面已授权；+1=exports/
+# {file_name} GET，EXPD D4——产物下载端点，openapi 26→27 破面已授权
+# [Ruling 2026-09-05 ②]）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -243,7 +249,7 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==26（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==27（漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
@@ -302,7 +308,7 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     # R2A 批1（终裁 R-1/D3）：include 级鉴权依赖挂载——七业务路由器受保
     #（20 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
     # 或 ？token=）；units 三静态只读端点豁免（不挂）。端点集/路径/方法
-    # 变化仅 SC1 增量（_EXPECTED_ENDPOINTS=26 现值——契约自检常驻；
+    # 变化仅 SC1/EXPD 增量（_EXPECTED_ENDPOINTS=27 现值——契约自检常驻；
     # 旧注记「=24 恒」系 R2A 时点快照，SC1 顺带销注释漂移）。
     app.include_router(projects.router, dependencies=[Depends(verify_token)])
     app.include_router(calc.router, dependencies=[Depends(verify_token)])

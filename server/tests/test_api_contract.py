@@ -33,10 +33,11 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 26 条；FE1 +scene1；
+# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 27 条；FE1 +scene1；
 # META1 +units2；FE7 +elevation1；FE8 +cost1；CP1 +constraints1；
 # L4b +site/spacing1；SC1 +exports/ifc1——BIM 模型导出，openapi 25→26
-# 破面已授权）。
+# 破面已授权；EXPD +exports/{file_name}1——产物下载端点，openapi 26→27
+# 破面已授权 [Ruling 2026-09-05 ②]）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put"},
@@ -53,6 +54,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/exports/dxf": {"post"},
     "/api/exports/estimate": {"post"},
     "/api/exports/ifc": {"post"},  # SC1 D7——BIM 模型（ifc_export 正门）
+    "/api/exports/{file_name}": {"get"},  # EXPD D3——产物下载（resolve 闸在 service）
     "/api/events/tasks/{task_id}": {"get"},
     "/api/events/projects/{project_id}": {"get"},
     "/api/scene/{project_id}": {"get"},
@@ -74,7 +76,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 26  # 5+6+6+2+1+1+2+1+1+1（projects5/calc6/exports6/events2/scene1/elevation1/units2/cost1/constraints1/site1）
+    assert sum(len(methods) for methods in observed.values()) == 27  # 5+6+7+2+1+1+2+1+1+1（projects5/calc6/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
 
 
 @pytest.mark.anyio

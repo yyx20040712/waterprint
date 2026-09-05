@@ -10,7 +10,8 @@
 # 【公开接口】（经 services/exports.py 顶部透传再导出保公开面）
 #   _name_component/_deterministic_name/_unit_id_of/_sidecar_text/
 #   _batch_items_payload + ExportMeta + InvalidExportRequestError +
-#   常量 _KINDS/_KIND_SUFFIXES/_DIGEST_PREFIX
+#   常量 _KINDS/_KIND_SUFFIXES/_DIGEST_PREFIX + DOWNLOAD_SUFFIXES
+#   （EXPD：services/exports 下载校验直消费，不入透传 __all__）
 #
 # 【行为规格】
 #   R-1 纯度：零 IO/零全局态/不 import main·routers 面；import 仅
@@ -43,6 +44,9 @@ _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
     {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx", "ifc": ".ifc"}
 )
+# EXPD D1：下载面合法后缀集（_KIND_SUFFIXES 值域派生——不新造字面量集，
+# kind 增删时下载白名单零漂移；大小写敏感=.DXF 天然拒）。
+DOWNLOAD_SUFFIXES: Final[frozenset[str]] = frozenset(_KIND_SUFFIXES.values())
 
 
 class InvalidExportRequestError(ValueError):

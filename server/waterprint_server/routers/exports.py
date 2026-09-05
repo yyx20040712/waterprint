@@ -7,13 +7,14 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结；镜像测试 server/tests/routers/test_exports.py）
 #
-# 【端点集（v1 冻结；SC1 增 ifc）】
+# 【端点集（v1 冻结；SC1 增 ifc；EXPD 增按文件下载）】
 #   POST /api/exports/calcbook          Excel 计算书（trace.calcbook）
 #   POST /api/exports/audit             HTML 审计报告（trace.audit）
 #   POST /api/exports/dxf               图纸包（单单元/全厂；M2 起）
 #   POST /api/exports/estimate          概算表（M3 起）
 #   POST /api/exports/ifc               BIM 模型（SC1 起——全厂场景模型）
 #   GET  /api/exports                   已生成产物列表（含三元组摘要）
+#   GET  /api/exports/{file_name}       产物下载（EXPD D3——校验闸在 service）
 #
 # 【行为规格】
 #   R1 消费最近完成结果集（绑定三元组）；若 stale，响应 409 附
@@ -135,3 +136,13 @@ async def export_ifc(body: ExportRequest, request: Request, force: bool = False)
 async def list_exports(request: Request, project_id: str = "") -> list[ExportMeta]:
     """已生成产物列表（?project_id= 过滤；含三元组摘要与 stale 标注）。"""
     return list(service.list_exports(_ctx(request), project_id))
+
+
+# EXPD D3：校验/异常全部在 service（后缀/stem/存在性双闸→422/404 经
+# main._EXCEPTION_STATUS 统一映射——本层零业务零 responses 声明）；
+# media_type 自猜与既有 POST FileResponse 行为一致（R4 文件流先例）。
+@router.get("/{file_name}")
+async def download_export(file_name: str, request: Request) -> FileResponse:
+    """按文件名下载产物（在册产物文件流——Content-Disposition 附原文件名）。"""
+    path = service.resolve_export_file(_ctx(request), file_name)
+    return FileResponse(path, filename=file_name)
