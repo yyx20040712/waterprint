@@ -361,6 +361,7 @@ _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate",
 _ITEM_FAILURES: Final[tuple[type[BaseException], ...]] = (
     OSError, RuntimeError, ValueError, KeyError, TypeError, core.ArtifactKindNotReady,
 )
+_FAILURE_TEXT_LIMIT: Final[int] = 2 * 10**2  # failures error 截断长度（幂底式 200——SVRB D4）
 
 
 def _safe_out_name(name: str, kind: str) -> str:
@@ -401,8 +402,7 @@ def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
 def _run_export_batch(
     payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
 ) -> Mapping[str, Any]:
-    """export_batch → app.export_artifact（逐项迭代间轮询取消，R4；SVRB
-    D2/D3/D4：kwargs 通道+ifc 放行+部分失败协议——见头部注记）。"""
+    """export_batch → app.export_artifact（逐项迭代轮询取消 R4；SVRB D2/D3/D4——头部注记）。"""
     task_id = str(payload["task_id"])
     exports_dir = Path(str(payload["exports_dir"]))
     items = list(payload.get("items", ()))
@@ -440,9 +440,9 @@ def _run_export_batch(
             os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
             files.append(str(out))
         except _ITEM_FAILURES as exc:
-            failures.append({  # error 截 200 字符（failures 清单体积面）
+            failures.append({  # error 截 _FAILURE_TEXT_LIMIT 字符（清单体积面）
                 "index": index, "unit_id": unit_id, "condition_key": condition_key,
-                "error": f"{type(exc).__name__}: {exc}"[:200]})
+                "error": f"{type(exc).__name__}: {exc}"[:_FAILURE_TEXT_LIMIT]})
             continue
         # R2-C/R-1：dxf 批量项双产物面——sidecars 二道闸（K-03）+DXF 恒登记
         # 边车+可选 DWG（jobs.dwg 转换入口闸面集中；缺块=存量零边车行为）。
