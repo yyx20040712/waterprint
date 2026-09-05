@@ -76,7 +76,7 @@
 #     两纯函数 raise 面依赖，留此则循环 import——随迁）迁 exports_support.py，
 #     顶部 import 透传再导出保公开面（main/routers 直 import 与 getattr
 #     消费零断链）；P3b——create_export 抽 _reject_conflicting_batch_pairs
-#     （批量对偶拒绝闸）与 _build_dxf_kwargs（dxf kwargs 组装）两子函数，
+#     （批量对偶拒绝闸）与 _build_drawing_kwargs（dxf kwargs 组装）两子函数，
 #     语句 44→<40 消 PLR0915 行内豁免（PLR0913 五参签名保留）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
@@ -226,7 +226,7 @@ def _reject_conflicting_batch_pairs(
         )
 
 
-def _build_dxf_kwargs(kind: str, project: ProjectFile) -> dict[str, Any]:
+def _build_drawing_kwargs(kind: str, project: ProjectFile) -> dict[str, Any]:
     """dxf·ifc 族出图 kwargs 组装（SC1 D7/M5，ENG7 P3b 自 create_export 抽出）。
 
     ifc 附 assumptions+site_design（scene 服务同口径假设合成视图）、dxf 附
@@ -357,8 +357,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
     # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
     # SC1 D7/M5：ifc·dxf 族 kwargs 组装（assumptions/site_design——ENG7
-    # P3b 抽 _build_dxf_kwargs 子函数，见上方定义）。
-    extra = _build_dxf_kwargs(kind, project)
+    # P3b 抽 _build_drawing_kwargs 子函数，见上方定义）。
+    extra = _build_drawing_kwargs(kind, project)
     core.export_artifact(
         kind,
         plant,
