@@ -43,7 +43,10 @@
 #   透传参数）+ L3 geometry.scene（build_scene）+ L3 ifc_export 正门
 #   （build_ifc/write_ifc）；M5（2026-09-04）dxf 总图分支追加：L3
 #   drafting.site_plan（site_layout/SiteOptions——unit_id 缺省的全厂
-#   总图编排；InvalidSitePlanError 不捕获直上）——全部沿
+#   总图编排；InvalidSitePlanError 不捕获直上）；M6（2026-09-05）dxf
+#   总图目录页追加：L3 drafting.catalog（catalog_sheet/sheet_origin_
+#   below+常量桥 SITE_SHEET_NO/DEFAULT_SCALE——案乙 B 形态目录实体
+#   拼接进总图文件）——全部沿
 #   import-linter 层序向下合法边（app|app_enumeration 居 drafting/
 #   elevation/registry 之上）；结构图谱 §1b 的 app_enumeration 行
 #   未列上述边（真实 import 扫描=B3 待办，门禁暂不拦——SERVER 批
@@ -87,6 +90,13 @@ from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Unit, UnitContext
+from waterprint.drafting.catalog import (
+    DEFAULT_SCALE,
+    SITE_SHEET_NO,
+    CatalogRow,
+    catalog_sheet,
+    sheet_origin_below,
+)
 from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf
 from waterprint.drafting.plan_view import unit_plan
 from waterprint.drafting.section_view import unit_section
@@ -269,6 +279,10 @@ def _export_dxf(
     unit_id 给定路径原样零改（含不在工况图/无纵断站既有拒绝）。
     site_plan.InvalidSitePlanError 不捕获直上（L3 领域异常——server 侧
     映射归既有 exception handler 链）。
+    M6（2026-09-05）：总图分支=总图实体+图纸目录页同文件并置（案乙 B
+    形态）——site_layout 后接 catalog_sheet（sheet_origin_below 自
+    包围盒下方派生放置），entities 拼接沿单元图 plan+section 先例；
+    目录图号=会话内派生零持久化（catalog R4 语义）。
     """
     if condition_key is None:
         condition_key = next(iter(plant.conditions), "")  # Warning 已在上层发出
@@ -284,7 +298,7 @@ def _export_dxf(
                 "通道；批量面暂不支持——M5 注记）"
             )
         styles = base_styles()
-        entities = site_layout(
+        layout = site_layout(
             site_design,
             plant,
             styles,
@@ -295,8 +309,23 @@ def _export_dxf(
                 wind_rose=site_design.options.wind_rose,
             ),
         )
+        sheet_title = "全厂总图"
+        # M6 案乙目录行集（图之所绘——D3 总裁修正①）：总图行 01（常量桥
+        # 直承 site_plan 真源）+摆放单元行（unit_id 字典序 02..N+1——摆放
+        # 结构列表为真源，悬空单元同入列；工况 units 含未摆放单元不采）；
+        # 图名=unit_id 原文（中文名真源在 server，零第二真源）；比例=
+        # DEFAULT_SCALE（write_dxf 缺省同一常量经 catalog 桥取值零副本）。
+        # 图号/序号=本次导出会话内展示派生值，不入库不入 meta 不跨工况。
+        rows: tuple[CatalogRow, ...] = (
+            ("1", SITE_SHEET_NO, sheet_title, DEFAULT_SCALE),
+            *((str(number), f"{number:02d}", unit_id, DEFAULT_SCALE)
+              for number, unit_id
+              in enumerate(sorted(site_design.structures), start=2)),
+        )
+        catalog = catalog_sheet(rows, sheet_origin_below(layout.entities))
+        entities = EntityGroup(entities=layout.entities + catalog.entities)
         meta = DrawingMeta(
-            title="全厂总图",
+            title=sheet_title,
             condition_key=condition_key,
             repro=(plant.repro.design_hash,
                    plant.repro.engine_version, plant.repro.data_version),

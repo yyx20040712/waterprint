@@ -232,11 +232,18 @@ def test_export_artifact_ifc_empty_conditions_rejected(tmp_path: Path) -> None:
 
 
 def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
-    """M5 D1：dxf 全厂总图正向——unit_id 缺省+site_design 透传→site_layout 出图。
+    """M5 D1+M6 案乙：dxf 全厂总图正向——site_layout 出图+文件内嵌目录页实体。
 
     断：bytes 非空+out 落盘一致+DXF 头魔面 AC1032（R2018）；工况显式
-    design 档（condition_key 显式传——UserWarning 零涉）。
+    design 档（condition_key 显式传——UserWarning 零涉）；M6 目录面
+    （ezdxf 读回）：表题「图纸目录」+四列表头+总图行图号 01（直承
+    _SITE_SHEET_NO）+单元行图号 02..N+1（unit_id 字典序——摆放结构
+    列表为真源，悬空单元 municipal_aao 同入列=图之所绘）+比例列恒
+    write_dxf 缺省同值 1:100+目录实体位于图框下方（表体顶=包围盒底
+    -gap）。
     """
+    import ezdxf
+
     from waterprint.app import run_full_calc
     from waterprint.contracts.condition import build_condition_set as _bcs
     from waterprint.contracts.project_schema import (
@@ -286,13 +293,27 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     payload = export_artifact(  # type: ignore[misc]
         "dxf", plant, Path("unused"), out,
         site_design=SiteDesign(
-            structures={"municipal_cass": StructurePlacement(x=5.0, y=5.0)}
+            structures={
+                "municipal_cass": StructurePlacement(x=5.0, y=5.0),
+                "municipal_aao": StructurePlacement(x=15.0, y=5.0),  # 悬空（快照无）=摆放真源同入目录
+            }
         ),
         condition_key="design",
     )
     assert payload  # 禁静默空产物（UF-33）
     assert out.read_bytes() == payload  # write_dxf 落盘与返回字节一致
     assert b"AC1032" in payload[:512]  # DXF R2018 头魔面
+    msp = ezdxf.readfile(out).modelspace()
+    texts = {e.dxf.text for e in msp.query("TEXT")}
+    assert {"图纸目录", "序号", "图号", "图名", "比例"} <= texts  # 表题+四列表头
+    assert {"01", "1:100"} <= texts  # 总图行图号+比例列（write_dxf 缺省同值）
+    assert {"02", "03", "municipal_cass", "municipal_aao"} <= texts  # 字典序 02..N+1
+    border = [e for e in msp.query("LWPOLYLINE")
+              if e.dxf.layer == "WP-frame-border"]
+    frame = max(border, key=lambda e: max(p[1] for p in e.get_points("xy")))
+    frame_bottom = min(p[1] for p in frame.get_points("xy"))
+    catalog_title = next(e for e in msp.query("TEXT") if e.dxf.text == "图纸目录")
+    assert catalog_title.dxf.insert[1] < frame_bottom  # 目录在图框下方（mm 域读回）
 
 
 def test_export_artifact_dxf_site_plan_requires_site_design(tmp_path: Path) -> None:
