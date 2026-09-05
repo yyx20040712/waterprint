@@ -315,6 +315,27 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     catalog_title = next(e for e in msp.query("TEXT") if e.dxf.text == "图纸目录")
     assert catalog_title.dxf.insert[1] < frame_bottom  # 目录在图框下方（mm 域读回）
 
+    # R1 行级配对（G1-05 二审 CONFIRMED）：集合包含断言拦不住排序方向
+    # 回归——总控变异实证：接线处 sorted→reversed(sorted()) 后旧断言面
+    # 仍 15 用例全绿。按列锚 x 分组图号列/图名列文字（各列锚 x=列起点+
+    # 0.15 内缩恒同值），y 降序（=目录行序）断言图号↔图名字典序配对映射。
+    no_x = next(e.dxf.insert[0] for e in msp.query("TEXT") if e.dxf.text == "01")
+    name_x = next(e.dxf.insert[0] for e in msp.query("TEXT")
+                  if e.dxf.text == "全厂总图")
+
+    def column(anchor_x: float) -> list:
+        headers = {"序号", "图号", "图名", "比例"}  # 表头行与数据列同锚 x——剔出
+        return sorted(
+            (e for e in msp.query("TEXT")
+             if abs(e.dxf.insert[0] - anchor_x) < 1e-6 and e.dxf.text not in headers),
+            key=lambda e: -e.dxf.insert[1],
+        )
+
+    assert [e.dxf.text for e in column(no_x)] == ["01", "02", "03"]  # 图号列行序
+    assert [e.dxf.text for e in column(name_x)] == [
+        "全厂总图", "municipal_aao", "municipal_cass",
+    ]  # 图名列=总图行+unit_id 字典序（aao<cass↔02/03 配对）
+
 
 def test_export_artifact_dxf_site_plan_requires_site_design(tmp_path: Path) -> None:
     """M5 D1：全厂总图诚实拒绝——unit_id 缺省且无 site_design→ArtifactKindNotReady。

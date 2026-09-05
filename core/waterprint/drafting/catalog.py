@@ -109,7 +109,9 @@ def sheet_origin_below(
     返回 (x0, y0-gap)——catalog_sheet 以表左上角为 origin_xy 且表体向下
     延伸，故表体顶部距包围盒底部恰 gap；空实体组=原点下方 gap（空 site
     原点邻域先例）。仅扫描实体 points 坐标对（site_layout 全实体族的
-    图面坐标住所）。
+    图面坐标住所）。gap 应≥表题净距（_TITLE_GAP 算术值 0.4）——更小值
+    致表题落入图内容包围盒（内部纯函数不拦——A 裁定零异常抛出过度
+    设计；唯一调用方默认 1.0）。
     """
     xs = [x for entity in entities for x, _ in entity.points]
     ys = [y for entity in entities for _, y in entity.points]
