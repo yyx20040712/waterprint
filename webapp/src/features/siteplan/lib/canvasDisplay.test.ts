@@ -53,4 +53,9 @@ describe("lineDeleteTarget（select 态 Delete/Backspace 删除目标判定—�
     expect(lineDeleteTarget("Delete", SVG_SELF, null)).toBeNull();
     expect(lineDeleteTarget("a", SVG_SELF, road)).toBeNull();
   });
+
+  it("boundary 选中（B4 笔③——红线单例无索引）=删除目标产出（清空通路上行）", () => {
+    expect(lineDeleteTarget("Delete", SVG_SELF, { kind: "boundary" }))
+      .toEqual({ kind: "boundary" });
+  });
 });

@@ -5,10 +5,11 @@
  *
  * 输入:  readProject 弱类型 design 容器（site 键形状门在此收口）+SceneResponse
  *        （GET /api/scene/{project_id} 既有端点——足迹唯一数据源，零新端点）
- * 输出:  narrowSiteDesign 窄化产物/projectSite 渲染模型/withSite PUT 载荷/
- *        snapToGrid/snapRotation/removeLineAt（B4 笔② 折线 immutable splice
- *        删除）；非法形状抛 SiteProjectionError
- *        ——错误消息带键/索引定位，呈现层可反查不白屏
+ * 输出:  narrowSiteDesign 窄化产物/projectSite 渲染模型/projectSiteSafe
+ *        投影围栏（B4 笔③——{model,error} 错误捕获归本层，组件 useMemo 零
+ *        try/catch）/withSite PUT 载荷/snapToGrid/snapRotation/removeLineAt
+ *        （B4 笔② 折线 immutable splice 删除）；非法形状抛
+ *        SiteProjectionError——错误消息带键/索引定位，呈现层可反查不白屏
  *
  * 规格说明（M3 批 L2a，简报 §一预裁决 1/5/6/7——详面见本 feature README；
  *   类型面=core project_schema.py SiteDesign 的 TS 消费面镜像，真源在 core）：
@@ -403,6 +404,26 @@ export function projectSite(
     corridors: site.corridors,
     options: site.options,
   };
+}
+
+/** 投影围栏（B4 笔③行预算拆法——错误捕获归 lib 纯面）：design+scene →
+ *  {model, error}；SiteProjectionError 透传原实例，其余异常归一包装
+ *  （CanvasFlow D6 围栏同构第二出口——组件层 useMemo 零 try/catch）。 */
+export function projectSiteSafe(
+  design: Record<string, unknown>,
+  scene: SceneResponse | null,
+): { model: SiteModel | null; error: SiteProjectionError | null } {
+  try {
+    return { model: projectSite(design, scene), error: null };
+  } catch (error) {
+    return {
+      model: null,
+      error:
+        error instanceof SiteProjectionError
+          ? error
+          : new SiteProjectionError(String(error)),
+    };
+  }
 }
 
 /** 折线删除（B4 笔② R2）：immutable splice——新数组余项前移；越界=原数组

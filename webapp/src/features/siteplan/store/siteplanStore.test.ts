@@ -77,6 +77,17 @@ describe("siteplanStore（view 态纯转移——业务数据零入 store）", (
     expect(useSiteplanStore.getState().selection).toBeNull();
   });
 
+  it("boundary 选中面（B4 笔③ R1——红线单例无 id 成员）：置位/清除/顶点数变不随", () => {
+    const { setSelection } = useSiteplanStore.getState();
+    setSelection({ kind: "boundary" });
+    expect(useSiteplanStore.getState().selection).toEqual({ kind: "boundary" });
+    // 顶点增删后 selection 保持（boundary 单例身份不随顶点数变——store 面无感）
+    setSelection({ kind: "boundary" });
+    expect(useSiteplanStore.getState().selection?.kind).toBe("boundary");
+    setSelection(null); // 清空红线后 selection 随清（简报 R2 收口面）
+    expect(useSiteplanStore.getState().selection).toBeNull();
+  });
+
   it("setTool 切换并取消绘制中折线（pendingPoints 清空）", () => {
     const { setTool, appendPending } = useSiteplanStore.getState();
     setTool("road");

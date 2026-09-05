@@ -24,8 +24,8 @@
  *     disabled，确认后 draft.boundary 置 []（copy-on-write）——dirty 派生
  *     比较自动置位（清空结果可保存），取消分支 boundary 不变；
  *   - B3 R7 侧栏拆分：选中结构侧栏抽 StructureSidebar 纯展示子件（本文件
- *     仅行预聚合并单向穿隧 props——ENG6 先例第二例；lineForm/join 两处
- *     不抽沿预裁 9）；
+ *     仅行预聚合并单向穿隧 props——ENG6 先例第二例；spacing join 一处不
+ *     抽沿预裁 9（lineForm 已 B4 笔③抽 LineFinishForm）；
  *   - scene 查询失败≠致命：outline 降级示意矩形+工具栏提示（不阻断编辑）；
  *     投影失败（design 异形）=错误薄壳（不白屏）；
  *   - L4b 间距校核：GET /api/site/spacing orval hook 直用+组件层 join
@@ -42,11 +42,23 @@
  *     （仓内无 undo——删除须确认，取消=零动作）；确认=removeLineAt
  *     immutable splice+setSelection(null) 收口（索引前移选中失效）；
  *     Delete 焦点判归 canvasDisplay.lineDeleteTarget（输入框焦点不消费）；
+ *   - B4 笔③ R1+R5 红线逐点编辑：onMoveVertex/onInsertVertex/
+ *     onRemoveVertex 三回调（BoundaryLayer 上行——吸附净值已归
+ *     vertexEditing 层完成）copy-on-write 落 draft.boundary；删至
+ *     <BOUNDARY_MIN_VERTICES 拒删=useMessage 提示+draft/selection 零变
+ *     （整体清空走既有 Popconfirm 通路）；红线选中 Delete/侧栏删除=
+ *     removeRequest boundary 分支汇 clearBoundary 清空通路+setSelection
+ *     (null) 收口（清空后 boundary 对象不存在——selection 随清，简报 R2
+ *     必改②）；顶点增删后 boundary 单例 selection 保持（身份不随顶点数变）。
+ *   - B4 笔③ R6 行预算拆法：收笔参数面板抽 LineFinishForm（ENG6 第四拆
+ *     ——宽度/kind 会话态随子件自持，条件渲染重挂载=缺省重置）；投影围栏
+ *     try/catch 归 lib projectSiteSafe（本层 useMemo 零分支）；红线 polygon
+ *     段归 SiteCanvas 挂 BoundaryLayer 子件（三新件详见各文件头）。
  *   - 组件只渲染零业务推导：几何/吸附/测距全在 lib/projectSite。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, InputNumber, Select, Space, Typography } from "antd";
+import { message } from "antd";
 
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
@@ -54,9 +66,8 @@ import type { BoundaryViolationEntry, SpacingViolationEntry } from "../../../sha
 import { WaterprintApiError } from "../../../shared/api/http";
 import { useSiteData } from "../api/useSiteData";
 import {
-  SiteProjectionError,
   narrowSiteDesign,
-  projectSite,
+  projectSiteSafe,
   removeLineAt,
   withSite,
   type SiteDesignShape,
@@ -64,7 +75,14 @@ import {
   type StructurePlacement,
 } from "../lib/projectSite";
 import { sameSite } from "../lib/siteDraftDiff";
-import { useSiteplanStore } from "../store/siteplanStore";
+import {
+  BOUNDARY_MIN_VERTICES,
+  insertVertex,
+  moveVertex,
+  removeVertex,
+} from "../lib/vertexEditing";
+import { useSiteplanStore, type RemovableSelection } from "../store/siteplanStore";
+import { LineFinishForm } from "./LineFinishForm";
 import { PendingPanel } from "./PendingPanel";
 import { LineSidebar } from "./LineSidebar";
 import { SiteCanvas } from "./SiteCanvas";
@@ -74,18 +92,10 @@ import { SiteplanToolbar } from "./SiteplanToolbar";
 /** 409 锁冲突保守提示（AssumptionsPanel D3 先例同文——不 force 不重试）。 */
 const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
 
-/** 收笔参数面板缺省值（显示层常量：道路/走廊典型宽）。 */
-const DEFAULT_ROAD_WIDTH = 4;
-const DEFAULT_CORRIDOR_WIDTH = 1.5;
-
-/** 走廊 kind 缺省（water——SiteCanvas CORRIDOR_COLORS 登记首键）。 */
-const DEFAULT_CORRIDOR_KIND = "water";
-
-/** 走廊 kind 选项（SiteCanvas CORRIDOR_COLORS 登记面——展示层映射）。 */
-const CORRIDOR_KIND_OPTIONS = [
-  { value: "water", label: "water（给水/中水）" }, { value: "power", label: "power（电力）" },
-  { value: "gas", label: "gas（燃气/污泥气）" }, { value: "comm", label: "comm（通信）" },
-];
+/** 红线拒删提示文案（B4 笔③——BOUNDARY_MIN_VERTICES 单源插值不硬编码数字；
+ *  整体清空另有「清空红线」Popconfirm 入口）。 */
+const BOUNDARY_REJECT_HINT =
+  `红线至少需 ${BOUNDARY_MIN_VERTICES} 个顶点，不能再删（整体移除请用「清空红线」）`;
 
 /** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
 function isLockConflict(error: unknown): boolean {
@@ -97,9 +107,6 @@ function isLockConflict(error: unknown): boolean {
 
 /** 收笔挂起面（折线已成立、宽度/kind 待补）。 */
 type FinishedLine = { kind: "road" | "corridor"; points: SitePoint[] };
-
-/** 删除确认门挂起面（B4 笔② R2——kind+index 随上行携带）。 */
-type RemoveRequest = { kind: "road" | "corridor"; index: number };
 
 export function SiteplanPane({ projectId }: { projectId: string }) {
   const { projectQuery, sceneQuery } = useSiteData(projectId);
@@ -117,29 +124,16 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   const setZoom = useSiteplanStore((state) => state.setZoom);
   const setSelection = useSiteplanStore((state) => state.setSelection);
 
-  // 投影围栏（CanvasFlow D6 围栏同构——fetch isError 之外第二出口）
-  const projection = useMemo<{
-    model: ReturnType<typeof projectSite> | null;
-    error: SiteProjectionError | null;
-  }>(() => {
+  // 投影围栏（CanvasFlow D6 围栏同构——fetch isError 之外第二出口；错误
+  // 捕获归 lib projectSiteSafe——B4 笔③行预算拆法，组件层零 try/catch）
+  const projection = useMemo(() => {
     if (raw === undefined) {
       return { model: null, error: null };
     }
-    try {
-      const design = (raw as Record<string, unknown>)["design"] as Record<string, unknown>;
-      return {
-        model: projectSite(design, sceneQuery.data ?? null),
-        error: null,
-      };
-    } catch (error) {
-      return {
-        model: null,
-        error:
-          error instanceof SiteProjectionError
-            ? error
-            : new SiteProjectionError(String(error)),
-      };
-    }
+    return projectSiteSafe(
+      (raw as Record<string, unknown>)["design"] as Record<string, unknown>,
+      sceneQuery.data ?? null,
+    );
   }, [raw, sceneQuery.data]);
 
   // 装载 site（draft 基准；raw 身份变更即重置——保存 invalidate 重装载面）
@@ -158,13 +152,15 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
     }
   }, [loadedSite]);
 
-  // 收笔挂起+参数面板态
+  // 收笔挂起态（宽度/kind 面板会话态随 LineFinishForm 自持——B4 笔③拆分）
   const [finishedLine, setFinishedLine] = useState<FinishedLine | null>(null);
-  const [lineWidth, setLineWidth] = useState<number>(DEFAULT_ROAD_WIDTH);
-  const [corridorKind, setCorridorKind] = useState<string>(DEFAULT_CORRIDOR_KIND);
-  // 折线删除确认门挂起态（B4 笔② R2：侧栏按钮与画布 Delete 键两路汇同一
-  // Popconfirm——仓内无 undo，删除须确认；取消路径=零动作）
-  const [removeRequest, setRemoveRequest] = useState<RemoveRequest | null>(null);
+  // 折线/红线删除确认门挂起态（B4 笔② R2+B4 笔③ 泛化：侧栏按钮与画布
+  // Delete 键两路汇同一 Popconfirm——RemovableSelection 面随上行携带；
+  // 仓内无 undo，删除须确认；取消路径=零动作）
+  const [removeRequest, setRemoveRequest] = useState<RemovableSelection | null>(null);
+  // 拒删提示（B4 笔③：useMessage+contextHolder——SheetList 先例，不用静态
+  // message；交互提示即反馈，成功路径零额外消息）
+  const [messageApi, contextHolder] = message.useMessage();
 
   const save = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>({
     mutation: {
@@ -264,7 +260,6 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
       if (tool !== "road" && tool !== "corridor") {
         return;
       }
-      setLineWidth(tool === "road" ? DEFAULT_ROAD_WIDTH : DEFAULT_CORRIDOR_WIDTH);
       setFinishedLine({ kind: tool, points });
     },
     // B4 笔② R2：immutable splice 删除+setSelection(null) 收口（索引前移
@@ -280,21 +275,56 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
       });
       setSelection(null);
     },
-    // 画布 Delete 键上行——汇侧栏同一确认门（不直删：仓内无 undo）
-    onRemoveRequest: (kind: "road" | "corridor", index: number) =>
-      setRemoveRequest({ kind, index }),
+    // 画布 Delete 键上行——汇侧栏同一确认门（不直删：仓内无 undo）；
+    // B4 笔③ 泛化 RemovableSelection 签名（boundary 上行=清空通路分支）
+    onRemoveRequest: (target: RemovableSelection) => setRemoveRequest(target),
+    // B4 笔③ R5 顶点三回调（BoundaryLayer 上行——吸附净值已归 vertexEditing
+    // 层完成，本层 copy-on-write 落 draft.boundary；顶点增删后 boundary 单例
+    // selection 保持——身份不随顶点数变，简报 R5）
+    onMoveVertex: (index: number, p: SitePoint) => {
+      setDraft((prev) => (prev === null ? prev : { ...prev, boundary: moveVertex(prev.boundary, index, p) }));
+    },
+    onInsertVertex: (segIndex: number, p: SitePoint) => {
+      setDraft((prev) => (prev === null ? prev : { ...prev, boundary: insertVertex(prev.boundary, segIndex, p) }));
+    },
+    // 删点：删至 <BOUNDARY_MIN_VERTICES 拒删=message 提示+零动作（draft/
+    // selection 不变——简报 R1；拒删判定先行，副作用不进 setState updater）
+    onRemoveVertex: (index: number) => {
+      if (draft === null) {
+        return;
+      }
+      if (removeVertex(draft.boundary, index) === null) {
+        messageApi.warning(BOUNDARY_REJECT_HINT); // 拒删=提示+零动作
+        return;
+      }
+      setDraft((prev) => {
+        if (prev === null) {
+          return prev;
+        }
+        const next = removeVertex(prev.boundary, index);
+        return next === null ? prev : { ...prev, boundary: next };
+      });
+    },
   };
 
-  // 确认门 confirm=执行删除+关闭；取消/外部点击=零动作（状态不变）
+  // 确认门 confirm=执行删除/清空+关闭；取消/外部点击=零动作（状态不变）
   const confirmRemoveLine = () => {
     if (removeRequest !== null) {
-      handlers.onRemoveLine(removeRequest.kind, removeRequest.index);
+      if (removeRequest.kind === "boundary") {
+        // B4 笔③ R2 收口：红线整体删除=既有清空通路（clearBoundary 内含
+        // setSelection(null)——清空后 boundary 对象不存在，selection 随清）
+        clearBoundary();
+      } else {
+        handlers.onRemoveLine(removeRequest.kind, removeRequest.index);
+      }
     }
     setRemoveRequest(null);
   };
 
-  const confirmLine = () => {
-    if (finishedLine === null || !Number.isFinite(lineWidth)) {
+  // 落笔=宽度/kind 自面板上行（B4 笔③——LineFinishForm 会话态自持，本层
+  // 只收参数 copy-on-write 落 draft；宽度非有限=防御拒收零动作）
+  const confirmLine = (width: number, corridorKind: string) => {
+    if (finishedLine === null || !Number.isFinite(width)) {
       return;
     }
     setDraft((prev) => {
@@ -304,14 +334,14 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
       if (finishedLine.kind === "road") {
         return {
           ...prev,
-          roads: [...prev.roads, { centerline: finishedLine.points, width_m: lineWidth }],
+          roads: [...prev.roads, { centerline: finishedLine.points, width_m: width }],
         };
       }
       return {
         ...prev,
         corridors: [
           ...prev.corridors,
-          { centerline: finishedLine.points, width_m: lineWidth, kind: corridorKind },
+          { centerline: finishedLine.points, width_m: width, kind: corridorKind },
         ],
       };
     });
@@ -326,9 +356,14 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   };
 
   // 清空红线：copy-on-write 置 []——dirty 派生比较（sameSite）自动置位
-  // （清空结果可保存——漏存=清空丢失坑）；boundary 空时入口已 disabled。
+  // （清空结果可保存——漏存=清空丢失坑）；boundary 空时入口已 disabled；
+  // B4 笔③ R2 收口：清空后 boundary 对象不存在——boundary 选中随清
+  // （工具栏/删除门两入口同收；getState 取即时选中面，SiteCanvas 先例）。
   const clearBoundary = () => {
     setDraft((prev) => (prev === null ? prev : { ...prev, boundary: [] }));
+    if (useSiteplanStore.getState().selection?.kind === "boundary") {
+      setSelection(null);
+    }
   };
 
   const saveDraft = () => {
@@ -370,50 +405,14 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   const selectedViolations = violationsOf(selectedId);
   const selectedBoundaryViolations = boundaryOf(selectedId);
 
-  // B4 笔② R2：选中折线面（索引失效防御——draft 竞态缩短时侧栏不渲染）
-  const selectedLine =
-    selection !== null && (selection.kind === "road" || selection.kind === "corridor")
-      ? selection
-      : null;
-  const selectedLineExists =
-    selectedLine !== null &&
-    (selectedLine.kind === "road"
-      ? selectedLine.index < draft.roads.length
-      : selectedLine.index < draft.corridors.length);
-
-  const lineForm = (
-    <div style={{ display: "grid", rowGap: 6, width: 200 }}>
-      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-        {finishedLine?.kind === "corridor" ? "管线走廊" : "道路"}宽度（m）
-        {finishedLine !== null ? `·${finishedLine.points.length} 点` : ""}
-      </Typography.Text>
-      <InputNumber
-        size="small"
-        min={0.1}
-        value={lineWidth}
-        // 清空回退按绘制工具线型二分（road=4/corridor=1.5——收笔会话 kind 即所选工具）
-        onChange={(value) =>
-          setLineWidth(value ?? (tool === "corridor" ? DEFAULT_CORRIDOR_WIDTH : DEFAULT_ROAD_WIDTH))
-        }
-      />
-      {finishedLine?.kind === "corridor" ? (
-        <Select
-          size="small"
-          value={corridorKind}
-          options={CORRIDOR_KIND_OPTIONS}
-          onChange={setCorridorKind}
-        />
-      ) : null}
-      <Space size="small">
-        <Button size="small" type="primary" onClick={confirmLine}>
-          落笔
-        </Button>
-        <Button size="small" onClick={() => setFinishedLine(null)}>
-          丢弃
-        </Button>
-      </Space>
-    </div>
-  );
+  // B4 笔②/③：选中可删除面（折线索引失效防御——draft 竞态缩短时侧栏不
+  // 渲染；boundary 单例无索引——存在性=boundary 非空即可选）
+  const removableExists = (target: RemovableSelection): boolean =>
+    target.kind === "boundary"
+      ? draft.boundary.length > 0
+      : target.index < (target.kind === "road" ? draft.roads : draft.corridors).length;
+  const selectedRemovable =
+    selection !== null && selection.kind !== "structure" ? selection : null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -426,7 +425,10 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
         onToggleGrid={toggleGrid}
         onResetView={resetView}
         linePanelOpen={finishedLine !== null}
-        linePanel={lineForm}
+        linePanel={finishedLine === null ? null : (
+          <LineFinishForm kind={finishedLine.kind} pointsCount={finishedLine.points.length}
+            onConfirm={confirmLine} onDiscard={() => setFinishedLine(null)} />
+        )}
         boundaryEmpty={draft.boundary.length === 0}
         onClearBoundary={clearBoundary}
         savePending={save.isPending}
@@ -456,6 +458,9 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             onRemove={handlers.onRemove}
             onCommitLine={handlers.onCommitLine}
             onRemoveRequest={handlers.onRemoveRequest}
+            onMoveVertex={handlers.onMoveVertex}
+            onInsertVertex={handlers.onInsertVertex}
+            onRemoveVertex={handlers.onRemoveVertex}
           />
         </div>
         {selectedStructure !== undefined && selection !== null ? (
@@ -468,11 +473,12 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             onRemove={handlers.onRemove}
           />
         ) : null}
-        {/* B4 笔② R2：选中道路/走廊删除侧栏——按钮与画布 Delete 键汇同一
-            Popconfirm 确认门（removeRequest 挂起态=两路回调签名汇合面） */}
-        {selectedLine !== null && selectedLineExists ? (
+        {/* B4 笔② R2/B4 笔③：选中道路/走廊/红线删除侧栏——按钮与画布
+            Delete 键汇同一 Popconfirm 确认门（removeRequest 挂起态=两路
+            回调签名汇合面；boundary 分支=清空通路文案族） */}
+        {selectedRemovable !== null && removableExists(selectedRemovable) ? (
           <LineSidebar
-            selection={selectedLine}
+            selection={selectedRemovable}
             removeOpen={removeRequest !== null}
             onRequest={handlers.onRemoveRequest}
             onConfirmRemove={confirmRemoveLine}
@@ -480,6 +486,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
           />
         ) : null}
       </div>
+      {contextHolder}
     </div>
   );
 }

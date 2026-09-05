@@ -12,7 +12,7 @@
  */
 import { measureToNearest } from "./siteGeometry";
 import type { SitePoint, StructureFootprint } from "./projectSite";
-import type { SiteplanSelection } from "../store/siteplanStore";
+import type { RemovableSelection, SiteplanSelection } from "../store/siteplanStore";
 
 // ── 显示层常量（出处：简报 §三交互面/§一.4/自定显示值——均不落盘） ──
 
@@ -43,6 +43,11 @@ export const COLOR_STRUCTURE_FILL = "#1f2933";
 export const COLOR_GRID = "#2c2c2c";
 /** L4a 边界红线描边宽/虚线节距（boundary 无宽，显示层定值不落盘）。 */
 export const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
+/** 红线选中描边加粗（米·世界单位——结构选中 0.5 同档显示定值，B4 笔③）。 */
+export const BOUNDARY_STROKE_SELECTED = 0.5;
+/** 红线顶点编辑把手半径（米·世界单位——简报 R1：1.0≈ENDPOINT_RADIUS 0.6
+ *  ×1.67 档；世界单位天然随 zoom 缩放[弃屏幕空间公式]，B 面可点性微调）。 */
+export const VERTEX_HANDLE_RADIUS = 1.0;
 
 /** 拖拽会话（pointer capture 期间自持——ref 持有不触发渲染）。 */
 export type DragSession =
@@ -52,6 +57,20 @@ export type DragSession =
 
 /** 结构双击判定锚（上次结构 rect pointerdown——dblclick 自实现数据面）。 */
 export type DoubleTapAnchor = { time: number; unitId: string; clientX: number; clientY: number };
+
+/** 通用双击判定锚（B4 笔③ BoundaryLayer——key=命中目标身份[顶点索引/线段
+ *  null]，泛化 DoubleTapAnchor 同构）。 */
+export type TapAnchor = { time: number; clientX: number; clientY: number; key: number | null };
+
+/** 双击命中判（时间窗+位移容差+目标身份同——结构 rect 先例同式通用化）。 */
+export function isDoubleTapAt(
+  last: TapAnchor | null, key: number | null, time: number, clientX: number, clientY: number,
+): boolean {
+  return (
+    last !== null && last.key === key && time - last.time < DOUBLE_TAP_MS &&
+    Math.hypot(clientX - last.clientX, clientY - last.clientY) < DOUBLE_TAP_SLOP_PX
+  );
+}
 
 /** 测距渲染对（几何线+屏幕标注共用——一次配对两处消费）。 */
 export type MeasurePair = {
@@ -91,14 +110,15 @@ export function svgOwnsKeyTarget(target: unknown): boolean {
   );
 }
 
-/** select 态 Delete/Backspace 删除目标判定：焦点在画布+选中 road/corridor
- *  时产出删除目标（两路汇同一确认门——侧栏按钮/键盘同回调签名）；否则
+/** select 态 Delete/Backspace 删除目标判定：焦点在画布+选中 road/corridor/
+ *  boundary 时产出删除目标（两路汇同一确认门——侧栏按钮/键盘同回调签名；
+ *  boundary=红线单例无索引——上行走清空通路[简报 R2 收口语义]）；否则
  *  null 不消费（structure 选中=双击移除先例面，键盘不删）。 */
 export function lineDeleteTarget(
   key: string,
   eventTarget: unknown,
   selection: SiteplanSelection | null,
-): { kind: "road" | "corridor"; index: number } | null {
+): RemovableSelection | null {
   if (key !== "Delete" && key !== "Backspace") {
     return null;
   }
@@ -108,5 +128,5 @@ export function lineDeleteTarget(
   if (selection === null || selection.kind === "structure") {
     return null;
   }
-  return { kind: selection.kind, index: selection.index };
+  return selection;
 }

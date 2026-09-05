@@ -5,9 +5,11 @@
  * 输入:  projectSite 纯函数族（node 环境——零 DOM 依赖，先红后绿）
  * 输出:  契约断言（D6 轻门逐类拒带定位/缺 site 默认/footprint 键镜像+
  *        children 聚合+instance 方阵/withSite 深层引用相等/snap·rotation
- *        数值例/removeLineAt 删项·越界直通[B4 笔②]；L4a boundary 红线
- *        窄化门——缺省空合法/≥3 点门镜像 core validator；measure 用例 B4
- *        笔②迁 siteGeometry.test.ts——源件镜像归位+行预算门禁拆文件）
+ *        数值例/removeLineAt 删项·越界直通[B4 笔②]/projectSiteSafe 围栏
+ *        三分支[B4 笔③——合法透传/SEP 原实例/非 SEP 归一包装]；L4a
+ *        boundary 红线窄化门——缺省空合法/≥3 点门镜像 core validator；
+ *        measure 用例 B4 笔②迁 siteGeometry.test.ts——源件镜像归位+
+ *        行预算门禁拆文件）
  */
 import { describe, expect, it } from "vitest";
 
@@ -16,6 +18,7 @@ import {
   SiteProjectionError,
   narrowSiteDesign,
   projectSite,
+  projectSiteSafe,
   removeLineAt,
   snapRotation,
   snapToGrid,
@@ -441,5 +444,41 @@ describe("removeLineAt（B4 笔② R2——roads/corridors immutable splice 删�
     expect(removeLineAt(lines, -1)).toBe(lines);
     const empty: { v: string }[] = [];
     expect(removeLineAt(empty, 0)).toBe(empty); // 空容器直通
+  });
+});
+
+// ── projectSiteSafe：投影围栏（B4 笔③行预算拆法——错误捕获归 lib 纯面） ──
+
+describe("projectSiteSafe（design+scene → {model, error}——组件层 useMemo 零 try/catch）", () => {
+  it("合法 design：model 产出+error=null（围栏透明直通）", () => {
+    const result = projectSiteSafe(
+      { nodes: { tank: {} }, site: { structures: { tank: { x: 3, y: 4 } } } },
+      null,
+    );
+    expect(result.error).toBeNull();
+    expect(result.model?.structures[0]?.footprint).toBeNull(); // scene=null → 示意矩形态
+    expect(result.model?.designUnitIds).toEqual(["tank"]);
+  });
+
+  it("非法 design：SiteProjectionError 原实例透传+model=null（错误薄壳呈现面）", () => {
+    const result = projectSiteSafe({ nodes: "异形" }, null);
+    expect(result.model).toBeNull();
+    expect(result.error).toBeInstanceOf(SiteProjectionError);
+    expect(result.error?.message).toContain("design.nodes");
+  });
+
+  it("非 SiteProjectionError 异常：归一包装（String 化消息不裸抛出围栏）", () => {
+    // 惰性 getter 抛非 SEP 异常——围栏须兜底归一（防御面：错误薄壳恒可呈现）
+    const hostile: Record<string, unknown> = {};
+    Object.defineProperty(hostile, "nodes", {
+      enumerable: true,
+      get() {
+        throw new Error("getter 爆炸");
+      },
+    });
+    const result = projectSiteSafe(hostile, null);
+    expect(result.model).toBeNull();
+    expect(result.error).toBeInstanceOf(SiteProjectionError);
+    expect(result.error?.message).toContain("getter 爆炸");
   });
 });

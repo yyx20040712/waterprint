@@ -18,8 +18,9 @@
  *     setTool 切换即取消绘制中折线（pendingPoints 清空——切换工具=弃笔
  *     语义，收笔 ≥2/红线 ≥3 前置归组件层）；
  *   - pendingPoints=折线绘制中点序列（米——世界坐标非屏幕）；
- *   - selection 三面：structure 按 unit_id、road/corridor 按索引
- *     （roads/corridors 是数组容器——索引即身份）。
+ *   - selection 四面：structure 按 unit_id、road/corridor 按索引
+ *     （roads/corridors 是数组容器——索引即身份）、boundary 无身份字段
+ *     （B4 笔③ R1：红线单例——schema SiteDesign.boundary 单 list 字段）。
  */
 import { create } from "zustand";
 
@@ -30,7 +31,11 @@ export const ZOOM_MAX = 10;
 export type SiteplanSelection =
   | { kind: "structure"; id: string }
   | { kind: "road"; index: number }
-  | { kind: "corridor"; index: number };
+  | { kind: "corridor"; index: number }
+  | { kind: "boundary" }; // B4 笔③ R1：红线单例（schema 单多边形——无 id/索引身份）
+
+/** 可删除选中面（B4 笔②/③——structure 走双击移除先例不入删除确认门）。 */
+export type RemovableSelection = Exclude<SiteplanSelection, { kind: "structure" }>;
 
 export type SiteplanTool = "select" | "road" | "corridor" | "boundary";
 

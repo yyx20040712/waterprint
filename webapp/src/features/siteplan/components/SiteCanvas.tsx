@@ -36,7 +36,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { SEMANTIC_COLORS, semanticColor } from "../../../shared/ui/semanticColors";
 
 import {
-  BOUNDARY_DASH, BOUNDARY_STROKE, COLOR_GRID, COLOR_STRUCTURE, COLOR_STRUCTURE_FILL,
+  COLOR_GRID, COLOR_STRUCTURE, COLOR_STRUCTURE_FILL,
   DOUBLE_TAP_MS, DOUBLE_TAP_SLOP_PX, ENDPOINT_RADIUS, GRID_WORLD_MAX, GRID_WORLD_MIN,
   MEASURE_COUNT, PX_PER_M, ROTATE_HANDLE_GAP, ROTATE_HANDLE_RADIUS, UNCALC_SIZE,
   WHEEL_SENSITIVITY, isSelectedLine, lineDeleteTarget, pointsAttr,
@@ -52,7 +52,8 @@ import {
   structureStrokeRole,
   type StructureStrokeRole,
 } from "../lib/siteGeometry";
-import { useSiteplanStore } from "../store/siteplanStore";
+import { useSiteplanStore, type RemovableSelection } from "../store/siteplanStore";
+import { BoundaryLayer } from "./BoundaryLayer";
 import { WindRose } from "./WindRose";
 
 /** 彩色语义族（选中/道路/边界/走廊/校核/测距/未计算）——SC1 起查
@@ -69,7 +70,10 @@ export type SiteCanvasProps = {
   onRotate: (unitId: string, rotation: number) => void;
   onRemove: (unitId: string) => void;
   onCommitLine: (points: SitePoint[]) => void;
-  onRemoveRequest: (kind: "road" | "corridor", index: number) => void; // B4 笔②：Delete 键上行
+  onRemoveRequest: (target: RemovableSelection) => void; // B4 笔②/③：Delete 键上行汇确认门
+  onMoveVertex: (index: number, p: SitePoint) => void; // B4 笔③ R5 顶点三回调（吸附净值上行）
+  onInsertVertex: (segIndex: number, p: SitePoint) => void;
+  onRemoveVertex: (index: number) => void;
 };
 
 /** 描边角色→色值（B3 R7：优先级判定单源=siteGeometry.structureStrokeRole——
@@ -84,7 +88,7 @@ const STROKE_ROLE_COLOR: Record<StructureStrokeRole, string> = {
 
 export function SiteCanvas({
   model, draft, violationSeverity, boundaryUnitIds, onPlace, onMove, onRotate, onRemove, onCommitLine,
-  onRemoveRequest,
+  onRemoveRequest, onMoveVertex, onInsertVertex, onRemoveVertex,
 }: SiteCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -234,12 +238,13 @@ export function SiteCanvas({
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (tool === "select") {
-      // B4 笔② R2：select 态删除键——焦点判在 lib（输入框焦点不消费），
-      // 上行经 onRemoveRequest 与侧栏删除按钮汇同一 Popconfirm 确认门
+      // B4 笔②/③ R2：select 态删除键——焦点判在 lib（输入框焦点不消费），
+      // road/corridor/boundary 上行经 onRemoveRequest 汇同一确认门
+      // （boundary=清空通路收口语义——简报 R2 必改②）
       const target = lineDeleteTarget(event.key, event.target, selection);
       if (target !== null) {
         event.preventDefault();
-        onRemoveRequest(target.kind, target.index);
+        onRemoveRequest(target);
       }
       return;
     }
@@ -349,13 +354,12 @@ export function SiteCanvas({
             }} />
         ))}
 
-        {/* 边界红线（L4a）：polygon 天然闭合——红虚线族（与道路实线/走廊彩虚线
-            区分）；红线只有一个（schema 单多边形），重画=替换 */}
-        {draft.boundary.length >= 3 ? (
-          <polygon points={pointsAttr(draft.boundary)} fill="none" stroke={semanticColor("boundary")}
-            strokeWidth={BOUNDARY_STROKE} strokeDasharray={BOUNDARY_DASH}
-            strokeLinejoin="round" pointerEvents="none" />
-        ) : null}
+        {/* 边界红线（B4 笔③子件化——BoundaryLayer：选中态加粗+顶点把手拖拽/
+            双击增删点；红线只有一个[schema 单多边形]，重画=替换） */}
+        <BoundaryLayer
+          points={draft.boundary} grid={gridSpacing} snapEnabled={snapEnabled} toWorld={toWorld}
+          onMoveVertex={onMoveVertex} onInsertVertex={onInsertVertex} onRemoveVertex={onRemoveVertex}
+        />
 
         {/* 绘制中折线（虚线+点标记——收笔归 SiteplanPane；红线工具即红显） */}
         {pendingPoints.length > 0 ? (
