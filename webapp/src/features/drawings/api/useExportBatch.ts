@@ -185,13 +185,19 @@ export function useExportBatch(kind: string): {
 
   /** SSE 订阅至终态（服务端终态任务连接即发快照 state=竞态第二兜底）。 */
   const awaitTerminal = (taskId: string, total: number) =>
-    new Promise<ExportBatchOutcome>((resolve) => {
+    new Promise<ExportBatchOutcome>((resolve, reject) => {
       const finish = async () => {
         sourceRef.current?.close(); // 终态即收流：close 阻断自动重连循环
         sourceRef.current = null;
-        const outcome = toBatchOutcome(await fetchStatus(taskId));
-        void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
-        resolve(outcome);
+        try {
+          const outcome = toBatchOutcome(await fetchStatus(taskId));
+          void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
+          resolve(outcome);
+        } catch (error) {
+          // R 轮 R5：终态取档失败必达 reject（Promise 不悬挂——调用方
+          // ExportButton 的 catch 面接住转终态 error 消息）。
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
       };
       const source = new EventSource(buildTaskStreamUrl(taskId, getApiToken()));
       sourceRef.current = source;

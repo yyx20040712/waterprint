@@ -428,7 +428,8 @@ async def test_batch_missing_item_kind_normalizes_to_endpoint_wiring(
     client,
 ) -> None:
     """R2/G1-02+SVRB：per-item kind 缺省归一端点 kind——归一面放行闭合
-    （原两族 422 拒绝面 SVRB 解除：dxf 归一→总图批量/ifc 归一→模型批量）。"""
+    （原两族 422 拒绝面 SVRB 解除：dxf 归一→总图批量/ifc 归一→模型批量；
+    R 轮 R1：补终态等待——200+task_id 仅证提交，done 才证归一面全链）。"""
     project_id, _task_id = await _project_with_result(client)
     for endpoint in ("dxf", "ifc"):
         batch = await client.post(
@@ -442,7 +443,8 @@ async def test_batch_missing_item_kind_normalizes_to_endpoint_wiring(
             },
         )
         assert batch.status_code == status.HTTP_200_OK  # 归一后放行转任务
-        assert batch.json()["task_id"]
+        done = await _wait_task_terminal(client, str(batch.json()["task_id"]))
+        assert done["state"] == "done"  # R1（R 轮）：终态实证
 
 
 @pytest.mark.anyio

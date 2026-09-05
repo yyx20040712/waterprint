@@ -322,6 +322,56 @@ async def test_export_batch_cancelled_outcome_carries_files_and_failures_wiring(
     assert len(result["files"]) == 1  # 已产 b.dxf 携带
     assert len(result["failures"]) == 1  # a.dxf 失败记录随行
     assert (out_dir / "b.dxf").is_file()
+    loaded = json.loads(json.dumps(result))  # outcome JSON 可序列化（registry 落盘面）
+    assert set(loaded) == {  # R6（R 轮）：实质键集断言（R3 全键对称形态）
+        "state", "files", "failures", "project_id", "design_digest"
+    }
+    assert loaded["project_id"] == "p-svrb" and loaded["design_digest"] == "d" * 16
     meta_sidecars = [p.name for p in out_dir.glob("*.meta.json")]
-    assert json.dumps(result)[:1]  # outcome JSON 可序列化（registry 落盘面）
     assert meta_sidecars == []  # 取消后零新边车（K-02 口径——payload 无登记块）
+
+
+async def test_export_batch_family_escape_fails_task_not_collects_wiring(
+    service_ctx, cass_payload, tmp_path  # type: ignore[no-untyped-def]
+) -> None:
+    """R 轮 R7（D-G1-08 采纳）：族外异常（InvalidResultError——Exception
+    直承）→任务 failed 不收集 failures（批共因上抛语义钉面——error_type
+    保真供 DOMAIN_ERROR_CODES 诊断映射消费；非缺陷修复，行为钉面）。"""
+    import asyncio
+
+    from waterprint import app as core
+    from waterprint.contracts.result_schema import InvalidResultError
+
+    from waterprint_server.jobs.manager import TaskRequest
+
+    project_path, result_file = await _project_and_result(service_ctx, cass_payload)
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+
+    def _raise_family_escape(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口
+        kind, plant, template, out, *, unit_id=None, condition_key=None, **extra
+    ):
+        raise InvalidResultError("injected family-escape (R7)")
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(core, "export_artifact", _raise_family_escape)
+        handle = await service_ctx.manager.submit(
+            TaskRequest(
+                kind="export_batch",
+                priority=1,
+                payload=_batch_payload(
+                    project_path, result_file, out_dir,
+                    [_item("dxf", "a.dxf", condition_key="design")],
+                ),
+            )
+        )
+        for _ in range(200):
+            if service_ctx.manager.status(handle.task_id).state in {
+                "done", "cancelled", "failed"
+            }:
+                break
+            await asyncio.sleep(0.1)
+    status = service_ctx.manager.status(handle.task_id)
+    assert status.state == "failed"  # 族外异常上抛=任务 failed（不收集 failures）
+    assert status.error_type == "InvalidResultError"  # error_type 保真（诊断映射面）
+    assert status.result is None  # result 无 failures 键（批共因上抛语义）
