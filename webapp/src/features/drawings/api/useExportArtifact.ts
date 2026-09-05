@@ -29,6 +29,11 @@
  *   - UX1 DS-05：Content-Disposition 文件名解析迁 lib/drawingsView
  *     parseDisposition（本文件消费 import，约束维持零 antd/除 dxfScene
  *     外零直接库依赖）；
+ *   - B3 D 件（2026-09-05 授权回修）：fetch 增 Bearer 条件注入
+ *     （getApiToken 非空才带 Authorization 头——useExportDownload L48-52
+ *     形态照搬；空态不发送空头[auth.py 空头行为未冻结]）；exportArtifact
+ *     导出=可测核面（useExportDownload fetchExportFile 先例同构——
+ *     node 环境断言 fetch 调用形态，hook 壳不测）；
  *   - 成功后 invalidate ['/api/exports'] 前缀键=导出列表键失效（新产物
  *     入目录表；R5[DS-07]：工况源键 ['/api/cost/${projectId}'] 不在该
  *     前缀下，由 costPane 同键缓存联动）；
@@ -37,6 +42,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { WaterprintApiError } from "../../../shared/api/http";
+import { getApiToken } from "../../../shared/api/token";
 import { projectDxf, type SvgScene } from "../lib/dxfScene";
 import { parseDisposition } from "../lib/drawingsView";
 
@@ -70,15 +76,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   );
 }
 
-/** 产物导出下载（POST 文件流→blob+anchor；下载后 blob 喂投影；非 2xx→WaterprintApiError）。 */
-async function exportArtifact(
+/** 产物导出下载可测核（POST 文件流→blob+anchor；下载后 blob 喂投影；非 2xx→WaterprintApiError；
+ *  Bearer 条件注入——useExportDownload L48-52 形态）。 */
+export async function exportArtifact(
   kind: string,
   input: ExportArtifactInput,
 ): Promise<ExportArtifactResult> {
   const search = input.force === true ? "?force=true" : "";
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const apiToken = getApiToken();
+  if (apiToken !== null) {
+    headers.Authorization = `Bearer ${apiToken}`; // token 运行期真相（空态零注入零行为变化——B3 D 件）
+  }
   const response = await fetch(`/api/exports/${kind}${search}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       project_id: input.projectId,
       condition_key: input.conditionKey,

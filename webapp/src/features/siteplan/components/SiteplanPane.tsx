@@ -23,14 +23,18 @@
  *     （行预算 500 恰达腾挪）；清空=danger+Popconfirm+boundary 空时
  *     disabled，确认后 draft.boundary 置 []（copy-on-write）——dirty 派生
  *     比较自动置位（清空结果可保存），取消分支 boundary 不变；
+ *   - B3 R7 侧栏拆分：选中结构侧栏抽 StructureSidebar 纯展示子件（本文件
+ *     仅行预聚合并单向穿隧 props——ENG6 先例第二例；lineForm/join 两处
+ *     不抽沿预裁 9）；
  *   - scene 查询失败≠致命：outline 降级示意矩形+工具栏提示（不阻断编辑）；
  *     投影失败（design 异形）=错误薄壳（不白屏）；
  *   - L4b 间距校核：GET /api/site/spacing orval hook 直用+组件层 join
  *     （预裁 9——projectSite/store 零改动；未计算=降级全量非拒不阻断）；
- *     描边色映射下放 SiteCanvas，选中侧栏列违规行（对端/净距/阈值/severity）；
+ *     描边色映射下放 SiteCanvas（优先级判定=siteGeometry.
+ *     structureStrokeRole 口径单源——链序冻结：选中蓝>越界橙红>ERROR 红>
+ *     WARN 黄），选中侧栏列违规行（对端/净距/阈值/severity）；
  *     SPC2 扩红线越界：boundary_violations 独立分组「红线越界」（越界行
- *     无净距数值不混排 D10.2）+描边集 boundaryUnitIds 下传（描边优先级
- *     选中蓝>越界橙红>ERROR 红>WARN 黄）；
+ *     无净距数值不混排 D10.2）+描边集 boundaryUnitIds 下传；
  *   - ground_elevation 编辑=选中侧栏 InputNumber（米可空——纵断数据面）；
  *   - 组件只渲染零业务推导：几何/吸附/测距全在 lib/projectSite。
  */
@@ -41,7 +45,6 @@ import { Button, InputNumber, Select, Space, Typography } from "antd";
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
 import type { BoundaryViolationEntry, SpacingViolationEntry } from "../../../shared/api/generated/model";
-import { semanticColor } from "../../../shared/ui/semanticColors";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { useSiteData } from "../api/useSiteData";
 import {
@@ -57,13 +60,11 @@ import { sameSite } from "../lib/siteDraftDiff";
 import { useSiteplanStore } from "../store/siteplanStore";
 import { PendingPanel } from "./PendingPanel";
 import { SiteCanvas } from "./SiteCanvas";
+import { StructureSidebar } from "./StructureSidebar";
 import { SiteplanToolbar } from "./SiteplanToolbar";
 
 /** 409 锁冲突保守提示（AssumptionsPanel D3 先例同文——不 force 不重试）。 */
 const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
-
-/** 选中结构侧栏宽度（像素——显示层常量）。 */
-const SIDE_WIDTH = 220;
 
 /** 收笔参数面板缺省值（显示层常量：道路/走廊典型宽）。 */
 const DEFAULT_ROAD_WIDTH = 4;
@@ -408,83 +409,14 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
           />
         </div>
         {selectedStructure !== undefined && selection !== null ? (
-          <aside
-            style={{
-              width: SIDE_WIDTH,
-              flexShrink: 0,
-              padding: "8px 12px",
-              borderLeft: "1px solid #434343",
-              overflowY: "auto",
-            }}
-          >
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              选中构筑物
-            </Typography.Text>
-            <div style={{ fontFamily: "monospace", fontSize: 12, margin: "4px 0" }}>
-              {selection.kind === "structure" ? selection.id : ""}
-            </div>
-            <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-              x {selectedStructure.x} m · y {selectedStructure.y} m · 旋转{" "}
-              {selectedStructure.rotation}°
-            </div>
-            <div style={{ margin: "8px 0 4px", fontSize: 12 }}>
-              设计地面标高 ground_elevation（m，可空）
-            </div>
-            <InputNumber
-              size="small"
-              style={{ width: 140 }}
-              value={selectedStructure.ground_elevation}
-              onChange={(value) => {
-                if (selection !== null && selection.kind === "structure") {
-                  handlers.onElev(selection.id, value);
-                }
-              }}
-            />
-            {selectedViolations.length > 0 ? (
-              <div style={{ marginTop: 10 }}>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  间距校核（越限 {selectedViolations.length}）
-                </Typography.Text>
-                {selectedViolations.map((row) => (
-                  <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
-                    {row.a === selectedId ? row.b : row.a}：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            {selectedBoundaryViolations.length > 0 ? (
-              <div style={{ marginTop: 10 }}>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  红线越界（{selectedBoundaryViolations.length}）
-                </Typography.Text>
-                {selectedBoundaryViolations.map((row) => (
-                  <div
-                    key={`${row.unit_id}:${row.severity}`}
-                    style={{ fontSize: 12, marginTop: 4, color: semanticColor("boundary_error") }}
-                  >
-                    {row.message}（{row.severity === "ERROR" ? "错误" : "警告"}）
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <div style={{ marginTop: 10 }}>
-              <Button
-                size="small"
-                danger
-                onClick={() => {
-                  if (selection !== null && selection.kind === "structure") {
-                    handlers.onRemove(selection.id);
-                  }
-                }}
-              >
-                移出布置（回待摆区）
-              </Button>
-            </div>
-            <div style={{ marginTop: 10, fontSize: 12, color: "#8c8c8c" }}>
-              拖拽移动=坐标网吸附；旋转把手=90° 吸附（Shift 自由）；画布双击
-              构筑物=移出。
-            </div>
-          </aside>
+          <StructureSidebar
+            selection={selection}
+            structure={selectedStructure}
+            spacingRows={selectedViolations}
+            boundaryRows={selectedBoundaryViolations}
+            onElev={handlers.onElev}
+            onRemove={handlers.onRemove}
+          />
         ) : null}
       </div>
     </div>

@@ -17,6 +17,7 @@ import {
   pointInPolygon,
   pointSegmentDistance,
   segmentsIntersect,
+  structureStrokeRole,
   type ObbShape,
 } from "./siteGeometry";
 
@@ -162,5 +163,27 @@ describe("measureToNearest（OBB 净距测距——编辑辅助非校核裁判�
       measureToNearest(target, [b, a, { ...target }], 3).map((m) => m.unitId),
     ).toEqual(["aTank", "bTank"]);
     expect(measureToNearest(target, [a], 0)).toEqual([]);
+  });
+});
+
+describe("structureStrokeRole（描边优先级角色枚举——B3 R7 链序冻结）", () => {
+  it("五态各归：selected/boundary_error/spacing_error/spacing_warn/default", () => {
+    expect(structureStrokeRole(true, false, undefined)).toBe("selected");
+    expect(structureStrokeRole(false, true, undefined)).toBe("boundary_error");
+    expect(structureStrokeRole(false, false, "ERROR")).toBe("spacing_error");
+    expect(structureStrokeRole(false, false, "WARN")).toBe("spacing_warn");
+    expect(structureStrokeRole(false, false, undefined)).toBe("default");
+  });
+
+  it("链序边界：选中压越界压 ERROR 压 WARN（左侧高者优先——冻结序）", () => {
+    expect(structureStrokeRole(true, true, "ERROR")).toBe("selected");
+    expect(structureStrokeRole(false, true, "ERROR")).toBe("boundary_error");
+    expect(structureStrokeRole(false, true, "WARN")).toBe("boundary_error");
+    expect(structureStrokeRole(true, false, "WARN")).toBe("selected");
+  });
+
+  it("severity 缺省（无违规/降级面）=default（越界仍独立生效）", () => {
+    expect(structureStrokeRole(false, false, undefined)).toBe("default");
+    expect(structureStrokeRole(false, true, undefined)).toBe("boundary_error");
   });
 });

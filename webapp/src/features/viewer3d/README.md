@@ -28,7 +28,9 @@
 | 文件 | 职责 |
 |------|------|
 | `lib/projectScene.ts` | 投影层纯函数（SceneGraph JSON→渲染描述：版本门/分组/摆置/bounds 聚合——组件唯一数据源） |
-| `lib/projectScene.test.ts` | 投影层 vitest（node 环境，D4 五面：版本/kind 完备/摆置确定性/语义 token/root 一致性；UX2 bounds 数值锚+空场景；L5b rotation 放行/scale 仍拒+红线分组） |
+| `lib/projectSceneFixtures.ts` | 投影层测试夹具工厂（B3 R6 三分拆出：fixture() 基准场景+FixtureNode 类型+VERSION 锚串——纯工厂零断言零 import 自足，core/layers 两测试件共用） |
+| `lib/projectScene.core.test.ts` | 投影层 vitest·核心面（B3 R6 三分：SCENE_VERSION 门/五 kind 完备映射/摆置确定性/语义 token 色值隔离/root 序一致性五 describe——用例随迁零增减） |
+| `lib/projectScene.layers.test.ts` | 投影层 vitest·图层扩展面（B3 R6 三分：L5R 非默认变换门/L5b 红线分组/L6 条带 strip/Internals 图元选择〔动态 import 随块整迁〕/UX2 bounds 聚合/L5R 换轴锚六 describe——用例随迁零增减） |
 | `components/Scene.tsx` | R3F Canvas（灯光/相机预设/剖切平面挂载+五组渲染器+图层开关+OrbitControls 漫游座） |
 | `components/PoolBox.tsx` | 池体/渠道/地面渲染器（box/cylinder/plane/extrusion 四 kind；semanticColor 语义色查表；rotation 直消费） |
 | `components/WaterSurface.tsx` | 水面（半透明+透明度脉动；蓝水线语义色；rotation 直消费） |

@@ -3,10 +3,13 @@
  * 点在多边形+OBB 测距（core geometry/spacing+boundary 的 TS 消费面
  * 镜像——SPC2 笔④拆分自 projectSite.ts，批次 3 减压名单提前兑现）。
  *
- * 输入:  摆位（x/y/rotation 度）+足迹（w/h 米）+多边形顶点序（米）
+ * 输入:  摆位（x/y/rotation 度）+足迹（w/h 米）+多边形顶点序（米）+
+ *        描边判定三参（选中/越界/severity——B3 R7）
  * 输出:  obbCorners 四角/obbClearance 两 OBB 精确净距/pointSegmentDistance
  *        /segmentsIntersect/pointInPolygon（射线法奇偶+贴边 1e-9 归内）/
- *        measureToNearest（OBB 同式测距——编辑辅助非校核裁判）
+ *        measureToNearest（OBB 同式测距——编辑辅助非校核裁判）/
+ *        structureStrokeRole（结构描边优先级角色枚举——链序冻结：
+ *        选中>越界红线>ERROR>WARN>默认；角色→色值映射归消费组件）
  *
  * 规格说明（SPC2 简报 §2.6 D2 采纳，core 同式镜像——Kimi D9.1 记档：
  *   跨语言 IEEE754 三角函数不保证逐位一致，镜像断言容差 1e-9
@@ -235,4 +238,35 @@ export function measureToNearest(
         : 1,
   );
   return rows.slice(0, count);
+}
+
+/** 结构描边优先级角色（B3 R7——链序冻结：选中>越界红线>spacing ERROR>spacing WARN>默认；色值映射归消费组件=口径单源可测）。 */
+export type StructureStrokeRole =
+  | "selected"
+  | "boundary_error"
+  | "spacing_error"
+  | "spacing_warn"
+  | "default";
+
+/** 描边优先级判定（B3 R7 纯函数——SiteCanvas/SiteplanPane 契约头同文口径：
+ *  选中蓝>越界橙红>ERROR 红>WARN 黄>灰阶默认；返角色枚举不返色值——
+ *  semanticColor 查表留守组件侧）。 */
+export function structureStrokeRole(
+  selected: boolean,
+  boundaryViolated: boolean,
+  severity: "ERROR" | "WARN" | undefined,
+): StructureStrokeRole {
+  if (selected) {
+    return "selected";
+  }
+  if (boundaryViolated) {
+    return "boundary_error";
+  }
+  if (severity === "ERROR") {
+    return "spacing_error";
+  }
+  if (severity === "WARN") {
+    return "spacing_warn";
+  }
+  return "default";
 }

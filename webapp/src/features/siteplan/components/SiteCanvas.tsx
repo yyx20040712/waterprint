@@ -25,66 +25,38 @@
  *     标注（编辑辅助非校核裁判——L4 面零实现零占位）；
  *   - 双击已摆结构=移除回待摆区（onRemove——pointerdown 时间/位移自实现：
  *     capture 重定向致原生 dblclick 落 svg 不可达）；道路/走廊点击=选中（索引
- *     身份面——折线端点视觉即把手）。
+ *     身份面——折线端点视觉即把手）；
+ *   - B3 R7（结构减压批）：模块级显示常量/交互类型/纯显示函数外搬
+ *     lib/canvasDisplay.ts（props 面与 handler 族留守本组件）；描边优先级
+ *     判定=lib/siteGeometry.structureStrokeRole 口径单源（链序冻结：选中
+ *     蓝>越界橙红>ERROR 红>WARN 黄>灰阶默认——本文件仅持角色→色值映射）。
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { SEMANTIC_COLORS, semanticColor } from "../../../shared/ui/semanticColors";
 
 import {
+  BOUNDARY_DASH, BOUNDARY_STROKE, COLOR_GRID, COLOR_STRUCTURE, COLOR_STRUCTURE_FILL,
+  DOUBLE_TAP_MS, DOUBLE_TAP_SLOP_PX, ENDPOINT_RADIUS, GRID_WORLD_MAX, GRID_WORLD_MIN,
+  MEASURE_COUNT, PX_PER_M, ROTATE_HANDLE_GAP, ROTATE_HANDLE_RADIUS, UNCALC_SIZE,
+  WHEEL_SENSITIVITY, isSelectedLine, pointsAttr,
+  type DoubleTapAnchor, type DragSession, type MeasurePair,
+} from "../lib/canvasDisplay";
+import {
   snapRotation, snapToGrid,
   type PlacedStructure, type SiteDesignShape, type SiteModel,
-  type SitePoint, type StructureFootprint,
+  type SitePoint,
 } from "../lib/projectSite";
-import { measureToNearest } from "../lib/siteGeometry";
-import { useSiteplanStore, type SiteplanSelection } from "../store/siteplanStore";
+import {
+  measureToNearest,
+  structureStrokeRole,
+  type StructureStrokeRole,
+} from "../lib/siteGeometry";
+import { useSiteplanStore } from "../store/siteplanStore";
 
-// ── 显示层常量（出处：简报 §三交互面/§一.4/自定显示值——均不落盘） ──
-
-/** zoom=1 时每米像素（典型 30m 池体≈240px 的可读基准）。 */
-const PX_PER_M = 8;
-/** 未计算示意矩形（固定 w×h 米——简报 §一.1：仅显示层永不落盘）。 */
-const UNCALC_SIZE: StructureFootprint = { w: 12, h: 8 };
-/** 坐标网背景世界窗（米——固定窗 MVP；视口自适应挂账）。 */
-const GRID_WORLD_MIN = -100;
-const GRID_WORLD_MAX = 500;
-/** 旋转把手北缘外间距/半径（米·世界单位）。 */
-const ROTATE_HANDLE_GAP = 1.6;
-const ROTATE_HANDLE_RADIUS = 0.9;
-/** 折线端点把手半径（米·世界单位）。 */
-const ENDPOINT_RADIUS = 0.6;
-/** 结构双击判定窗（毫秒——双击移除自实现阈值，见 rect.onPointerDown）。 */
-const DOUBLE_TAP_MS = 500;
-/** 结构双击位移容差（像素——超容差=两次单击/拖动非双击）。 */
-const DOUBLE_TAP_SLOP_PX = 5;
-/** 测距最近数（简报 §一.4：至多 3 个）。 */
-const MEASURE_COUNT = 3;
-/** 滚轮缩放灵敏度（deltaY→指数因子系数）。 */
-const WHEEL_SENSITIVITY = 0.0015;
 /** 彩色语义族（选中/道路/边界/走廊/校核/测距/未计算）——SC1 起查
  *  shared/ui/semanticColors.ts 真源表（原本地彩色常量已全数收编）；
  *  走廊 kind 开放 str（GR-21）——未知 kind→corridor_fallback 键兜底。 */
-/** 灰阶三常量（结构描边/结构填充/坐标网）——非彩色语义族，保留本地。 */
-const COLOR_STRUCTURE = "#3a4552";
-const COLOR_STRUCTURE_FILL = "#1f2933";
-const COLOR_GRID = "#2c2c2c";
-/** L4a 边界红线描边宽/虚线节距（boundary 无宽，显示层定值不落盘）。 */
-const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
-
-/** 拖拽会话（pointer capture 期间自持——ref 持有不触发渲染）。 */
-type DragSession =
-  | { kind: "pan"; startClientX: number; startClientY: number; startPanX: number; startPanY: number }
-  | { kind: "move"; unitId: string; offsetX: number; offsetY: number }
-  | { kind: "rotate"; unitId: string };
-
-/** 结构双击判定锚（上次结构 rect pointerdown——dblclick 自实现数据面）。 */
-type DoubleTapAnchor = { time: number; unitId: string; clientX: number; clientY: number };
-
-/** 测距渲染对（几何线+屏幕标注共用——一次配对两处消费）。 */
-type MeasurePair = {
-  measure: ReturnType<typeof measureToNearest>[number];
-  from: SitePoint; to: SitePoint;
-};
 
 export type SiteCanvasProps = {
   model: SiteModel;
@@ -98,17 +70,15 @@ export type SiteCanvasProps = {
   onCommitLine: (points: SitePoint[]) => void;
 };
 
-/** 折线点列 → SVG points 串（世界米直拼）。 */
-function pointsAttr(points: readonly SitePoint[]): string {
-  return points.map((point) => `${point.x},${point.y}`).join(" ");
-}
-
-/** 道路/走廊选中判定（selection 面：kind+index）。 */
-function isSelectedLine(
-  selection: SiteplanSelection | null, kind: "road" | "corridor", index: number,
-): boolean {
-  return selection !== null && selection.kind === kind && selection.index === index;
-}
+/** 描边角色→色值（B3 R7：优先级判定单源=siteGeometry.structureStrokeRole——
+ *  组件仅持映射；selected 加粗 0.5 在 stroke 宽另行判选）。 */
+const STROKE_ROLE_COLOR: Record<StructureStrokeRole, string> = {
+  selected: semanticColor("selected"),
+  boundary_error: semanticColor("boundary_error"),
+  spacing_error: semanticColor("spacing_error"),
+  spacing_warn: semanticColor("spacing_warn"),
+  default: COLOR_STRUCTURE,
+};
 
 export function SiteCanvas({
   model, draft, violationSeverity, boundaryUnitIds, onPlace, onMove, onRotate, onRemove, onCommitLine,
@@ -399,15 +369,17 @@ export function SiteCanvas({
             selection.kind === "structure" &&
             selection.id === entry.unitId;
           const size = entry.footprint ?? UNCALC_SIZE;
-          const severity = violationSeverity.get(entry.unitId); // L4b：选中蓝最高>ERROR 红>WARN 黄
+          const severity = violationSeverity.get(entry.unitId);
+          // B3 R7：描边优先级判定经 siteGeometry.structureStrokeRole 口径单源
+          // （链序冻结：选中>越界>ERROR>WARN>默认——色值映射见 STROKE_ROLE_COLOR）
+          const strokeRole = structureStrokeRole(
+            selected, boundaryUnitIds.has(entry.unitId), severity,
+          );
           return (
             <g key={entry.unitId} transform={`rotate(${entry.rotation} ${entry.x} ${entry.y})`}>
               <rect x={entry.x - size.w / 2} y={entry.y - size.h / 2} width={size.w}
                 height={size.h} fill={COLOR_STRUCTURE_FILL}
-                stroke={selected ? semanticColor("selected")
-                  : boundaryUnitIds.has(entry.unitId) ? semanticColor("boundary_error")
-                  : severity === "ERROR" ? semanticColor("spacing_error")
-                  : severity === "WARN" ? semanticColor("spacing_warn") : COLOR_STRUCTURE}
+                stroke={STROKE_ROLE_COLOR[strokeRole]}
                 strokeWidth={selected ? 0.5 : 0.25}
                 onPointerDown={(event) => {
                   if (tool !== "select" || event.button !== 0) {

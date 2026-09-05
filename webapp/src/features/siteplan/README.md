@@ -21,10 +21,12 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `lib/siteGeometry.test.ts` | 纯几何原语 vitest（node 环境：黄金角 0/30/45/90° 解析值容差 1e-9[跨语言 IEEE754 镜像口径]/归零族[相交·全含]/零长退化/凹多边形·顶点序无关·贴边归内/测距排序） |
 | `lib/siteDraftDiff.ts` | 深比较纯函数（sameSite 键序无关——draft dirty 派生真源；SC1 D9④ 自 SiteplanPane 私有迁 lib） |
 | `lib/siteDraftDiff.test.ts` | 深比较 vitest（三例：[]vs[] 同/[]vs 非[]异/键序无关深比较同） |
+| `lib/canvasDisplay.ts` | 画布显示层常量与纯显示函数（B3 R7 自 SiteCanvas 模块级外搬：PX_PER_M/UNCALC_SIZE/坐标网窗/把手/双击窗/测距数/滚轮灵敏度/灰阶三色/BOUNDARY_* 常量族+DragSession/DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine 纯函数——均不落盘显示层权威） |
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中/工具+折线点序列机——业务数据零入 store） |
 | `store/siteplanStore.test.ts` | store node 直测首例（初始态/各 action 纯转移/zoom 夹紧/tool 切换清折线/pending 序列机） |
 | `components/SiteplanPane.tsx` | 切片内组装（工具栏+待摆区+画布+选中侧栏+保存流——canvasPane 壳同构） |
 | `components/SiteplanToolbar.tsx` | 工具栏纯展示子件（工具组/吸附/坐标网/复位/清空红线 Popconfirm 确认门/折线参数/保存——ENG6 自 SiteplanPane 拆出，态与回调全经 props） |
+| `components/StructureSidebar.tsx` | 选中结构侧栏纯展示子件（B3 R7 自 SiteplanPane 侧栏块抽离——ENG6 工具栏先例第二例：标高编辑/间距校核分组/红线越界分组/移出按钮/操作提示，行数据 SiteplanPane 预聚合并经 props 单向穿隧） |
 | `components/SiteCanvas.tsx` | SVG 画布薄壳（渲染+pointer 交互——几何全经 lib，组件零推导） |
 | `components/PendingPanel.tsx` | 待摆区（design.nodes 有而 site 无的单元——拖入画布即摆放） |
 | `api/useSiteData.ts` | 数据通道薄封装（useReadProject+scene 查询直用——零新端点） |
