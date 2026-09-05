@@ -441,3 +441,53 @@ async def test_export_consumes_restored_result_after_restart_wiring(
     )
     await manager_b.shutdown(1.0)
     executor_b.shutdown(wait=True)
+
+
+async def test_batch_inflight_resubmit_same_task_no_pool_growth_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """B5 D1 接线断言：同 project_id+同载荷在途重提→同 task_id（池占位不增）。
+
+    键=export_batch:{project_id}:{digest(入口参数)}——第二次提交命中在途
+    键返回既有句柄（manager 幂等临界区）。_pump 打桩保鲜=任务恒 queued
+    （在途确定性——不赌 worker 完成时序；卸载置 cancelled 归 shutdown 面）。
+    """
+    project_id = await _project_with_result(service_ctx)
+    options = {
+        "unit_id": "municipal_cass",
+        "items": [
+            {"kind": "dxf", "condition_key": "design"},
+            {"kind": "dxf", "condition_key": "avg"},
+        ],
+    }
+    monkeypatch.setattr(service_ctx.manager, "_pump", lambda: None)  # queued 冻结=在途
+    first = await create_export(service_ctx, project_id, "dxf", "ok", options)
+    second = await create_export(service_ctx, project_id, "dxf", "ok", dict(options))
+    assert first.task_id is not None and second.task_id == first.task_id  # 同键在途=同任务
+    batch_ids = [
+        task_id
+        for task_id in service_ctx.manager.task_ids_for_project(project_id)
+        if service_ctx.manager.status(task_id).kind == "export_batch"
+    ]
+    assert len(batch_ids) == 1  # 池占位不增（重复提交不重复占池）
+
+
+async def test_batch_terminal_resubmit_creates_new_task_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """B5 D1 接线断言：键终态后同载荷重提→新建 task_id（覆盖语义=可重跑/失败可重试）。"""
+    project_id = await _project_with_result(service_ctx)
+    options = {
+        "unit_id": "municipal_cass",
+        "items": [
+            {"kind": "dxf", "condition_key": "design"},
+            {"kind": "dxf", "condition_key": "avg"},
+        ],
+    }
+    first = await create_export(service_ctx, project_id, "dxf", "ok", options)
+    assert first.task_id is not None  # 批量转任务（R3）
+    for _ in range(200):  # 等 export_batch 终态（与 _project_with_result 同口径）
+        if service_ctx.manager.status(first.task_id).state in {"done", "cancelled", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert service_ctx.manager.status(first.task_id).state == "done"  # 批量真执行收口
+    second = await create_export(service_ctx, project_id, "dxf", "ok", dict(options))
+    assert second.task_id is not None and second.task_id != first.task_id  # 终态后=新建

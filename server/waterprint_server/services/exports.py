@@ -101,6 +101,8 @@
 #     exports_support._DOWNLOAD_STEM_PATTERN（{0,63} 全长上界属单分量
 #     语义——composite 拼接名 73 字符在册而 422 自家产物不可下载收口；
 #     字符集同源不设上界）。
+#   - B5 D1（2026-09-06 批量任务体验批）：批量提交点补 idempotency_key（键=export_batch:
+#     {project_id}:{sha256(入口参数 JSON)}；同键在途重提=同任务；终态后=新建）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -114,6 +116,7 @@ import os
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, Final
 
@@ -137,7 +140,7 @@ from waterprint_server.services.exports_support import (
     _sidecar_text,
     _unit_id_of,
 )
-from waterprint_server.services.projects import design_digest, read_project
+from waterprint_server.services.projects import _JSON_KWARGS, design_digest, read_project
 
 # ENG7：拆分后公开面显式声明（jobs/records.py __all__ 再导出先例——mypy
 # no-implicit-reexport 下透传名 ExportMeta/InvalidExportRequestError 需入册；
@@ -327,6 +330,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         # SVRB D3：ifc 批内 unit 一致小闸（原 R1-5/M5 D5 两族拒绝删除——
         # worker kwargs 通道已与单产物等价；小闸定义见上方）。
         _reject_conflicting_batch_pairs(items)
+        # B5 D1：批量幂等键 server 内生成（沿 calc 先例）——键面=入口原始
+        # 参数 {kind, condition_key, options}（force 不入键）；digest 沿 design_digest 口径。
+        digest = sha256(
+            json.dumps(
+                {"kind": kind, "condition_key": condition_key, "options": chosen}, **_JSON_KWARGS
+            ).encode("utf-8")
+        ).hexdigest()
         handle = await ctx.manager.submit(
             TaskRequest(
                 kind="export_batch",
@@ -360,6 +370,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
                     }),
                 },
             ),
+            idempotency_key=f"export_batch:{project_id}:{digest}",
         )
         return ExportHandle(
             project_id=project_id,
