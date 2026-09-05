@@ -48,6 +48,7 @@ def iter_files() -> list[Path]:
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     violations: list[str] = []
+    warns: list[str] = []
     count = 0
     for path in iter_files():
         count += 1
@@ -56,12 +57,23 @@ def main() -> int:
         lines = text.count("\n") + (0 if text.endswith("\n") or not text else 1)
         if lines > limit:
             violations.append(f"{path.relative_to(REPO)}: {lines} 行 > {limit}")
+        elif lines >= limit * 9 // 10:  # 90% 提前告警（450/400×0.9——ENG8 A 件）
+            warns.append(
+                f"[WARN] {path.relative_to(REPO)}: {lines} 行"
+                f" ≥ {limit * 9 // 10}/{limit}（{lines * 100 // limit}%）——接近预算"
+            )
     if violations:
         print(f"[FAIL] 文件行数预算违规 {len(violations)} 处：")
         for item in violations:
             print(f"  - {item}")
         return 1
-    print(f"[OK] 文件行数预算（≤{GLOBAL_LIMIT}，compute.py ≤{COMPUTE_LIMIT}）：{count} 个文件全部合规")
+    for item in warns:
+        print(item)
+    near = f"，其中 {len(warns)} 个文件接近预算" if warns else ""
+    print(
+        f"[OK] 文件行数预算（≤{GLOBAL_LIMIT}，compute.py ≤{COMPUTE_LIMIT}）："
+        f"{count} 个文件全部合规{near}"
+    )
     return 0
 
 

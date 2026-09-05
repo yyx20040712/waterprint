@@ -164,7 +164,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | 路径 | 唯一职责 |
 |------|----------|
 | `scripts/gate_patterns.py` | 占位符/裸异常/乱码特征串的集中定义（拼接构造避免自匹配） |
-| `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁 |
+| `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁+90% 提前告警（[WARN] 档零退出码变化——ENG8） |
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0 |
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
