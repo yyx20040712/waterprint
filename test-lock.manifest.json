@@ -196,6 +196,7 @@
   "server/tests/routers/test_projects.py": "29a35d18369481238ebfd55456cb10a5c7be016dc5910b34784a41966a395554",
   "server/tests/routers/test_scene.py": "281da4cbb2bdd58b0d52ea821d46fa8fe22d8caa96ca7d9b3d82ac93acb56b6b",
   "server/tests/routers/test_site.py": "cc4fdeb32de98e8647aeb385a147331b052e9879f13b53b3d89a6117cc4963cd",
+  "server/tests/routers/test_sse_limits.py": "bbaf9c659c374c495f8c53c8c797bd5aacb0740ff97ffb33025787fe3acdfe61",
   "server/tests/routers/test_units.py": "83e95069e614d39eb8179d1a61f8790c8b1d9ab6ab10b0bc9a37b34682323dca",
   "server/tests/services/test_calculation.py": "a3c887be501d44996f54293d945f126a1c2a34df43fe694ffd88482d5f5cc5c1",
   "server/tests/services/test_constraints.py": "ab45652c1b6606d12fedec3bb74e369bbf5057039e79c38ead1d5d63d13ad839",
