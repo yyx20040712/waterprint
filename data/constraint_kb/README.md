@@ -66,8 +66,9 @@ options.constraints 通道）落地为：
   `min_clearance_m >= <float>`（**server services/site.py 是唯一解析面**——
   core geometry/spacing 收结构化阈值不解析 DSL；形态越界=fail-visible 拒）；
   unit_kinds 空=全对通用（装配面 None 语义）、两键=限定对（对内双方 kind
-  均须在键集）；净距口径=AABB（webapp measureToNearest 同口径所见即所得，
-  OBB 精确净距挂账）。数值=GB 50016 防火间距族**类比起草态，已追认**
+  均须在键集）；净距口径=OBB 点-边枚举精确距（SPC2 起——webapp
+  siteGeometry measureToNearest 同式镜像所见即所得；旋转 0° 恒等旧
+  AABB 式回归锚在册）。数值=GB 50016 防火间距族**类比起草态，已追认**
   （Ruling 2026-09-03——pending-domain-expert.md §24 销账注；value_basis
   逐条标注。L4b 笔「§23」引用系悬空——追认节实登 §24）。
 - boundary_check（SPC2 1.4.0 增 1 条——用地红线越界校核面）：expression
