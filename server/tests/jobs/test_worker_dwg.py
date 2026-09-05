@@ -120,13 +120,14 @@ def _standin_converter(directory: Path, mode: str) -> Path:
     return standin
 
 
-def _fake_export_write(kind, plant, template, out, *, unit_id=None, condition_key=None):  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口（core.export_artifact 公开面——test_worker.py 先例）
+def _fake_export_write(kind, plant, template, out, *, unit_id=None, condition_key=None, **extra):  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口（core.export_artifact 公开面——test_worker.py 先例；SVRB **extra 吸收 kwargs 通道）
     """core.export_artifact 替身：落占位字节（GR-38 rename 由真码执行）。"""
     Path(out).write_bytes(b"dxf-standin")
 
 
-async def _result_file_via_calc(service_ctx, cass_payload) -> str:  # type: ignore[no-untyped-def]
-    """真 calc 结果文件（worker deserialize 正门实载荷——test_worker.py 同款）。"""
+async def _result_file_via_calc(service_ctx, cass_payload) -> tuple[str, str]:  # type: ignore[no-untyped-def]
+    """真 calc 结果+项目路径（worker 正门实载荷——test_worker.py 同款；
+    SVRB D2：project_path 通道随批载荷同源返回）。"""
     outcome = projects_mod.create_project(service_ctx, {"project": cass_payload})
     artifacts = service_ctx.exports_dir / "tasks"
     artifacts.mkdir(parents=True, exist_ok=True)
@@ -146,11 +147,14 @@ async def _result_file_via_calc(service_ctx, cass_payload) -> str:  # type: igno
         None,
     )
     assert calc["state"] == "done"
-    return str(calc["result_file"])
+    project_path = str(service_ctx.projects_dir / f"{outcome.project_id}.wp.json")
+    return str(calc["result_file"]), project_path
 
 
-def _form_payload(exports_dir: Path, result_file: str, converter: str, timeout_s: int) -> dict[str, object]:
-    """四形态共用批量 payload：登记块（sidecars）+转换开关全携带。"""
+def _form_payload(  # 前置束参数束（_fake_export 替身签名先例；SVRB project_path 通道参）
+    exports_dir: Path, result_file: str, project_path: str, converter: str, timeout_s: int
+) -> dict[str, object]:
+    """四形态共用批量 payload：登记块（sidecars）+转换开关+project_path 全携。"""
 
     def _text(file_name: str) -> str:
         return (
@@ -167,6 +171,7 @@ def _form_payload(exports_dir: Path, result_file: str, converter: str, timeout_s
         "kind": "export_batch",
         "task_id": "dwg-form",
         "project_id": "p-dwg",
+        "project_path": project_path,
         "exports_dir": str(exports_dir),
         "dwg_converter_path": converter,
         "dwg_converter_timeout_s": timeout_s,
@@ -191,12 +196,12 @@ async def _drive_batch(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 前�
     """前置束：真 calc 结果+export_artifact 替身+批量任务直驱（worker 正门）。"""
     from waterprint import app as core
 
-    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    result_file, project_path = await _result_file_via_calc(service_ctx, cass_payload)
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    payload = _form_payload(out_dir, result_file, converter, timeout_s)
+    payload = _form_payload(out_dir, result_file, project_path, converter, timeout_s)
     if drop_dwg_sidecar:  # K-03 登记绑定形态：仅 dxf 边车键（缺 dwg 键）
-        payload["items"][0]["sidecars"].pop("dwg")
+        payload["items"][0]["sidecars"].pop("dwg")  # type: ignore[union-attr]
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(core, "export_artifact", _fake_export_write)
         result = run_task(payload, None, None)
@@ -361,11 +366,11 @@ async def test_batch_dxf_out_name_suffix_gate_blocks_dwg_collision_wiring(  # ty
     =同路径——转换产物 os.replace 直接覆盖已交付 DXF（内容被替换）；
     修复后 InvalidTaskPayloadError 拒于任何落盘之前。
     """
-    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    result_file, project_path = await _result_file_via_calc(service_ctx, cass_payload)
     converter = _standin_converter(tmp_path / "dwg", "ok")
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    payload = _form_payload(out_dir, result_file, str(converter), 10 * 10)
+    payload = _form_payload(out_dir, result_file, project_path, str(converter), 10 * 10)
     payload["items"][0]["out_name"] = "foo.dwg"  # dxf 项伪装 dwg 名=碰撞源
     with pytest.raises(_mod.InvalidTaskPayloadError, match="后缀"):
         run_task(payload, None, None)
@@ -376,10 +381,10 @@ async def test_batch_sidecars_non_mapping_rejected_wiring(  # type: ignore[no-un
     service_ctx, cass_payload, tmp_path
 ) -> None:
     """K-03：sidecars 非映射→InvalidTaskPayloadError（IPC 二道闸——不再裸炸）。"""
-    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    result_file, project_path = await _result_file_via_calc(service_ctx, cass_payload)
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    payload = _form_payload(out_dir, result_file, "", 10 * 10)
+    payload = _form_payload(out_dir, result_file, project_path, "", 10 * 10)
     payload["items"][0]["sidecars"] = "not-a-map"  # 直注非法形态
     with pytest.raises(_mod.InvalidTaskPayloadError, match="sidecars"):
         run_task(payload, None, None)
@@ -425,14 +430,14 @@ async def test_batch_cancel_before_conversion_skips_dwg_wiring(  # type: ignore[
     """K-02：DXF 落盘后取消令牌置位→转换前检查命中（零 DWG+零新边车）。"""
     from waterprint import app as core
 
-    result_file = await _result_file_via_calc(service_ctx, cass_payload)
+    result_file, project_path = await _result_file_via_calc(service_ctx, cass_payload)
     converter = _standin_converter(tmp_path / "dwg", "ok")
     out_dir = tmp_path / "out"
     out_dir.mkdir()
     cancel_flag = tmp_path / "cancel.flag"
 
-    def _export_then_cancel(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口
-        kind, plant, template, out, *, unit_id=None, condition_key=None
+    def _export_then_cancel(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口（SVRB **extra 吸收 kwargs 通道）
+        kind, plant, template, out, *, unit_id=None, condition_key=None, **extra
     ):
         Path(out).write_bytes(b"dxf-standin")
         cancel_flag.write_text("cancel", encoding="utf-8")  # DXF 落盘后置令牌
@@ -440,7 +445,7 @@ async def test_batch_cancel_before_conversion_skips_dwg_wiring(  # type: ignore[
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(core, "export_artifact", _export_then_cancel)
         result = run_task(
-            _form_payload(out_dir, result_file, str(converter), 10 * 10),
+            _form_payload(out_dir, result_file, project_path, str(converter), 10 * 10),
             str(cancel_flag),
             None,
         )

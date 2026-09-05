@@ -132,7 +132,13 @@ def test_export_batch_second_gate_rejects_escape_writing(tmp_path) -> None:  # t
     """AU-1/R1-1 二道闸：payload 直注的 kind 穿越/out_name 逃逸在 worker 即拒。"""
     from waterprint_server.jobs.worker import InvalidTaskPayloadError
 
-    base = {"kind": "export_batch", "task_id": "gate", "exports_dir": str(tmp_path)}
+    project_path = str(_cass_project_file(tmp_path))  # SVRB D2：批首装载正门真源
+    base = {
+        "kind": "export_batch",
+        "task_id": "gate",
+        "project_path": project_path,
+        "exports_dir": str(tmp_path / "gate-out"),
+    }
     with pytest.raises(InvalidTaskPayloadError, match="二道闸"):  # kind 含路径段
         run_task(
             {**base, "items": [{"kind": "calcbook/../../evil", "out_name": "ok.xlsx"}]},
@@ -146,7 +152,7 @@ def test_export_batch_second_gate_rejects_escape_writing(tmp_path) -> None:  # t
                 None,
                 None,
             )
-    assert list(tmp_path.iterdir()) == []  # 二道闸拒于任何落盘之前
+    assert not (tmp_path / "gate-out").exists()  # 二道闸拒于任何落盘之前
 
 
 def test_export_batch_items_pass_unit_and_condition_to_core(
@@ -162,12 +168,13 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
 
     artifacts = test_settings.exports_dir / "tasks"
     artifacts.mkdir(parents=True, exist_ok=True)
+    project_path = str(_cass_project_file(tmp_path))
     calc = run_task(
         {
             "kind": "calc",
             "task_id": "passthrough-calc",
             "project_id": "p",
-            "project_path": str(_cass_project_file(tmp_path)),
+            "project_path": project_path,
             "conditions": [],
             "data_dir": str(test_settings.data_dir),
             "artifacts_dir": str(artifacts),
@@ -179,7 +186,7 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
     captured: list[tuple[str, object, object]] = []
 
     def _fake_export(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口（core.export_artifact 公开面）
-        kind, plant, template, out, *, unit_id=None, condition_key=None
+        kind, plant, template, out, *, unit_id=None, condition_key=None, **extra
     ):
         captured.append((kind, unit_id, condition_key))
         Path(out).write_bytes(b"artifact")  # 替身落占位（GR-38 rename 面由真码执行）
@@ -191,6 +198,8 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
         {
             "kind": "export_batch",
             "task_id": "passthrough-batch",
+            # SVRB D2：project_path 通道（worker load_project——kwargs 组装真源）
+            "project_path": project_path,
             "exports_dir": str(out_dir),
             "items": [
                 {

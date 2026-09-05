@@ -30,7 +30,8 @@
 #      多副本 = 未来 Redis 化（ADR 不做）。S2：终态记录落 registry_dir
 #      供重启恢复读面（见注记），调度面仍内存单进程。
 #   R5 取消语义：令牌经共享值传递，worker 每批迭代检查（§12.2）；
-#      取消后结果不落地（半途结果丢弃）。
+#      取消后已产清单随 result 可查（SVRB §2.3 收口——产物文件已落盘
+#      不可撤，清单丢弃=半途产物不可查；新任务不再启动）。
 #
 # 【实现注记（SERVER 2026-08-26，Windows spawn 实测）】
 #   - mp.Queue/Event 不能经 ProcessPoolExecutor.submit 参数传递（标准
@@ -103,9 +104,6 @@ __all__ = [
     "TaskStatus",
     "UnknownTaskError",
 ]
-
-
-# 终态面/任务域数据类见 records（ENG5 D4 拆分——本模块再导出）。
 
 
 @dataclass
@@ -419,25 +417,27 @@ class Manager:
             future.add_done_callback(_on_done)
 
     async def _finish(self, task_id: str, future: asyncio.Future[Mapping[str, Any]]) -> None:
-        """终态迁移（R1 单向；取消=半途结果丢弃，R5）。"""
+        """终态迁移（R1 单向；cancelled=已产清单随 result 保留——SVRB §2.3）。"""
         self._running.pop(task_id, None)
         record = self._tasks.get(task_id)
         if record is None:
             return
         failure = future.exception()  # 不经 raise 面：failed 诊断不吞栈（R1）
+        outcome: Mapping[str, Any] | None = None
+        if failure is None:
+            outcome = future.result()
         if record.cancel_requested:
             record.state = "cancelled"
         elif failure is not None:
             record.state = "failed"
             record.error = f"{type(failure).__name__}: {failure}"
             record.error_type = type(failure).__name__
+        elif outcome is not None and outcome.get("state") == "cancelled":
+            record.state = "cancelled"
         else:
-            outcome = future.result()
-            if outcome.get("state") == "cancelled":
-                record.state = "cancelled"
-            else:
-                record.state = "done"
-                record.result = dict(outcome)  # plain dict（JSON 序列化面——proxy 拒序列化）
+            record.state = "done"
+        if outcome is not None:  # SVRB：已产 files/failures 灌入（done/cancelled
+            record.result = dict(outcome)  # 两态不丢弃——§2.3 缺陷收口）
         record.finished_at = time.time()  # WP4：终态时间戳（TTL 判定面——三终态同点置位）
         await self._emit(
             record, Event("state", task_id, record.progress, record.state, None)

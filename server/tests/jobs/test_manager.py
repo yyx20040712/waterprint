@@ -38,11 +38,12 @@ GATE = threading.Event()
 
 
 def _fake_run_task(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
-    """测试替身：受 gate 控制的慢任务（记录派发序；取消标记先行=cancelled）。"""
+    """测试替身：受 gate 控制的慢任务（记录派发序；取消标记先行=cancelled
+    携已产清单——SVRB §2.3 收口后 worker outcome 形态）。"""
     ORDER.append(payload["kind"])
     GATE.wait()  # 占住并发位（优先序断言前提：后提交者在队列中等待）
     if cancel_token is not None and Path(cancel_token).exists():
-        return {"state": "cancelled"}
+        return {"state": "cancelled", "files": ("partial.dxf",), "failures": ()}
     return {"state": "done", "value": payload["kind"]}
 
 
@@ -86,8 +87,12 @@ async def test_priority_interactive_beats_batch_wiring(manager) -> None:  # type
     assert ORDER == ["export_batch", "calc", "export_batch"]
 
 
-async def test_cancel_running_task_discards_partial_wiring(manager, tmp_path) -> None:  # type: ignore[no-untyped-def]
-    """R5 接线断言：取消后无半途结果落地。"""
+async def test_cancel_running_task_keeps_partial_result_wiring(manager, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """R5 接线断言（SVRB 镜像改写）：取消后已产清单随 result 可查。
+
+    §2.3 缺陷收口：cancelled 分支 outcome 的 files/failures 灌入 result
+    而非丢弃——产物文件已落盘不可撤，清单丢弃=半途产物不可查（不诚实）。
+    """
     ORDER.clear(), GATE.clear()
     handle = await manager.submit(TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "p"}))
     for _ in range(100):
@@ -104,7 +109,8 @@ async def test_cancel_running_task_discards_partial_wiring(manager, tmp_path) ->
         await asyncio.sleep(0.05)
     status = manager.status(handle.task_id)
     assert status.state == "cancelled"  # cancelled 而非 done（状态机单向 R1）
-    assert status.result is None  # 半途结果丢弃（R5：取消后结果不落地）
+    assert status.result is not None  # 已产清单灌入（SVRB——非丢弃）
+    assert tuple(status.result["files"]) == ("partial.dxf",)  # type: ignore[union-attr]
     assert manager.cancel(handle.task_id) is False  # 终态不受取消影响（R3）
 
 

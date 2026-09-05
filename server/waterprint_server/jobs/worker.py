@@ -48,6 +48,13 @@
 #     D-01 落位成功才置旗/K-03 开关×登记绑定/K-04 timeout 闸），本模块
 #     import 同向合法；D-02 后缀闸入 _safe_out_name（产物名防线集中）；
 #     K-03 sidecars 非映射二道闸+K-02 转换前取消检查入批量挂钩。
+#   - SVRB（2026-09-05 服务端批量任务面）：D2 project_path 通道——批首
+#     _load_project（calc 通道同款，失败形态照搬=core 异常原样上抛）+逐项
+#     _build_drawing_kwargs（jobs/export_kwargs.py 共享真源，与单产物完全
+#     等价）；D3 ifc 放行（_EXPORT_KINDS+_safe_out_name ifc 特判+ifc 项边车
+#     落盘）；D4 部分失败协议（逐项 try/except 收集 failures 继续，部分失败
+#     =done+failures/全失败=raise 聚合首条+计数）+stage 带 unit 段+cancelled
+#     outcome 携已产 files/failures（manager 灌入 result——§2.3 缺陷收口）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -75,6 +82,7 @@ from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 
 from waterprint_server.jobs.dwg import batch_dwg_artifact
+from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.settings import ENGINE_VERSION
 
 # 进度队列模块全局（R5：仅 initializer 赋值，导入期为 None——零副作用）。
@@ -344,14 +352,22 @@ def _run_enumerate(
     }
 
 
-_EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate")
+_EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")
+
+# SVRB D4：批量项级失败捕获面（_TRIGGER_FAILURES 现实异常族先例——grep
+# 门禁禁 Exception 基类捕获字面）。批共因族（InvalidSitePlanError/Invalid
+# ResultError/InvalidTemplateError）有意不在项内捕获：上抛保 error_type
+# 诊断映射（DOMAIN_ERROR_CODES 面）。
+_ITEM_FAILURES: Final[tuple[type[BaseException], ...]] = (
+    OSError, RuntimeError, ValueError, KeyError, TypeError, core.ArtifactKindNotReady,
+)
 
 
 def _safe_out_name(name: str, kind: str) -> str:
     """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注
     IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。
     D-02（R-1）：kind=dxf 强制 .dxf 后缀——防 out_name="foo.dwg" 时转换
-    产物 with_suffix 同路径覆盖已交付 DXF。"""
+    产物 with_suffix 同路径覆盖已交付 DXF；SVRB D3：ifc 同款单特判。"""
     if (
         not name
         or "/" in name
@@ -359,10 +375,11 @@ def _safe_out_name(name: str, kind: str) -> str:
         or ".." in name
         or name in {".", ".."}
         or (kind == "dxf" and not name.endswith(".dxf"))
+        or (kind == "ifc" and not name.endswith(".ifc"))
     ):
         raise InvalidTaskPayloadError(
             f"导出产物名非法：{name!r}（R1-1 二道闸——无路径分隔符/无父段"
-            "引用；dxf 项产物名须 .dxf 后缀〔D-02 防转换同路径覆盖〕；"
+            "引用；dxf/ifc 项产物名须对应后缀〔D-02 防转换同路径覆盖〕；"
             "exports_dir 内落盘是唯一合法位置）"
         )
     return name
@@ -384,42 +401,49 @@ def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
 def _run_export_batch(
     payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
 ) -> Mapping[str, Any]:
-    """export_batch → app.export_artifact（逐项迭代间轮询取消，R4）。"""
+    """export_batch → app.export_artifact（逐项迭代间轮询取消，R4；SVRB
+    D2/D3/D4：kwargs 通道+ifc 放行+部分失败协议——见头部注记）。"""
     task_id = str(payload["task_id"])
     exports_dir = Path(str(payload["exports_dir"]))
     items = list(payload.get("items", ()))
     total = max(len(items), 1)
+    # SVRB D2：project_path 通道——worker 侧 load_project（calc 同款；失败
+    # 形态照搬=core 异常原样上抛，任务 failed 诊断不吞）。
+    project = _load_project(payload)
     files: list[str] = []
+    failures: list[dict[str, Any]] = []
     for index, item in enumerate(items):
         if _cancelled(cancel_token):  # 每批迭代检查（R4：取消后无新产物落地）
-            return {"state": "cancelled", "files": tuple(files)}
+            return {"state": "cancelled", "files": tuple(files), "failures": tuple(failures)}
         kind = str(item.get("kind", ""))
         if kind not in _EXPORT_KINDS:  # R1-1 二道闸：kind 白名单（IPC 面）
             raise InvalidTaskPayloadError(
                 f"导出 kind {kind!r} 不在合法面 {_EXPORT_KINDS}（R1-1 二道闸）"
             )
         out_name = _safe_out_name(str(item.get("out_name", "")), kind)  # D-02 后缀闸随行
-        _report(
-            task_id,
-            _StagePoint(f"export:{kind}", index, total),
-            progress,
-        )
-        plant = deserialize(Path(str(item["result_file"])).read_bytes())
-        out = exports_dir / out_name
-        tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
-        # S2 D6：items 级透传 unit_id（批级共享）/condition_key（item 自有），
-        # 空串归一 None（单产物路径同款口径）；DS-06：str(x or "") 防
-        # 显式 None 经 str(None)="None" 透传（IPC 面不可信）。
-        core.export_artifact(
-            kind,
-            plant,
-            Path(str(item["template"])),
-            tmp,
-            unit_id=str(item.get("unit_id") or "") or None,
-            condition_key=str(item.get("condition_key") or "") or None,
-        )
-        os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
-        files.append(str(out))
+        # S2 D6+DS-06：items 级透传（空串归一 None 单产物对偶；str(x or "")
+        # 防显式 None 经 str(None)="None" 透传——IPC 面不可信）。
+        unit_id = str(item.get("unit_id") or "") or None
+        condition_key = str(item.get("condition_key") or "") or None
+        _report(task_id, _StagePoint(  # SVRB D4：stage 带 unit 段（无-unit 项省略）
+            f"export:{kind}:{unit_id}" if unit_id else f"export:{kind}", index, total
+        ), progress, condition_key)
+        try:  # SVRB D4：单项异常→failures 收集继续（部分失败=done+failures）
+            plant = deserialize(Path(str(item["result_file"])).read_bytes())
+            out = exports_dir / out_name
+            tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
+            core.export_artifact(  # SVRB D2：kwargs 经 jobs/export_kwargs（单产物等价）
+                kind, plant, Path(str(item["template"])), tmp,
+                unit_id=unit_id, condition_key=condition_key,
+                **_build_drawing_kwargs(kind, project),
+            )
+            os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
+            files.append(str(out))
+        except _ITEM_FAILURES as exc:
+            failures.append({  # error 截 200 字符（failures 清单体积面）
+                "index": index, "unit_id": unit_id, "condition_key": condition_key,
+                "error": f"{type(exc).__name__}: {exc}"[:200]})
+            continue
         # R2-C/R-1：dxf 批量项双产物面——sidecars 二道闸（K-03）+DXF 恒登记
         # 边车+可选 DWG（jobs.dwg 转换入口闸面集中；缺块=存量零边车行为）。
         raw_sidecars = item.get("sidecars")
@@ -431,15 +455,21 @@ def _run_export_batch(
         sidecars = dict(raw_sidecars or {})
         if kind == "dxf" and sidecars.get("dxf"):
             if _cancelled(cancel_token):  # K-02：转换前取消（取消后零新边车零转换）
-                return {"state": "cancelled", "files": tuple(files)}
+                return {"state": "cancelled", "files": tuple(files), "failures": tuple(failures)}
             _write_sidecar_text(exports_dir, out_name, str(sidecars["dxf"]))
             dwg = batch_dwg_artifact(payload, sidecars, out)
             if dwg is not None:
                 _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
+        if kind == "ifc" and sidecars.get("ifc"):  # SVRB D3：ifc 项边车（无 dwg 面）
+            _write_sidecar_text(exports_dir, out_name, str(sidecars["ifc"]))
+    if failures and not files:  # SVRB D4：全失败=failed（诚实性——零产物不报 done）
+        raise RuntimeError(
+            f"export_batch 全部 {len(failures)} 项失败——首错：{failures[0]['error']}"
+        )
     return {
-        "state": "done",
-        "files": tuple(files),
+        "state": "done", "files": tuple(files), "failures": tuple(failures),
         "project_id": payload.get("project_id", ""),
+        "design_digest": str(payload.get("design_digest", "")),  # SVRB D2 快照留痕
     }
 
 

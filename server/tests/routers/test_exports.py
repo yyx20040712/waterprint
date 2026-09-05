@@ -354,19 +354,27 @@ async def test_ifc_traversal_project_id_rejected_wiring(  # type: ignore[no-unty
     assert sorted(str(p) for p in exports_dir.parent.parent.rglob("*")) == before_files
 
 
-@pytest.mark.anyio
-async def test_ifc_batch_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
-    """R1-5（G1-05）：批量 payload 含 ifc → 422 InvalidExportRequestError。
+async def _wait_task_terminal(client, task_id: str) -> dict:  # type: ignore[no-untyped-def]
+    """轮询任务至终态（SVRB 批量转任务 E2E 消费面——复用 calc 查询面）。"""
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "cancelled", "failed"}:
+            return body  # type: ignore[no-any-return]
+        await asyncio.sleep(0.1)
+    pytest.fail(f"任务 {task_id} 300 轮询内未到终态（SVRB 批量 E2E）")
 
-    ifc=单产物端点语义（批量面 worker 不透传 assumptions/site_design 与
-    单产物不等价——显式拒绝禁静默降级）；拒绝面只作用批量入口（items>1）
-    ——单产物路径（items≤1）零牵连。
+
+@pytest.mark.anyio
+async def test_ifc_batch_no_unit_flow_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """SVRB D3：ifc 批量放行（原 422 拒绝面解除——project_path 通道等价透传）。
+
+    无-unit ifc items×2（归一后全 None=批内一致过小闸）→200 句柄 JSON 含
+    task_id→终态 done→exports_dir 两 .ifc+双边车（模型级命名无 unit 分量
+    ——互异由 condition 分量保证）。
     """
     import os
 
     project_id, _task_id = await _project_with_result(client)
-    exports_dir = test_settings.exports_dir
-    before_listing = sorted(os.listdir(exports_dir))
     batch = await client.post(
         "/api/exports/ifc",
         json={
@@ -377,83 +385,64 @@ async def test_ifc_batch_rejected_wiring(client, test_settings) -> None:  # type
             ]},
         },
     )
-    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    assert batch.json()["error_type"] == "InvalidExportRequestError"
-    assert "ifc 暂不支持批量导出" in str(batch.json()["detail"])
-    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+    assert batch.status_code == status.HTTP_200_OK  # 批量转任务句柄 JSON（原 422 面）
+    task_id = str(batch.json()["task_id"])
+    assert task_id  # 句柄含 task_id（webapp 任务态消费面）
+    done = await _wait_task_terminal(client, task_id)
+    assert done["state"] == "done" and len(done["result"]["files"]) == 2
+    listing = sorted(os.listdir(test_settings.exports_dir))
+    assert len([n for n in listing if n.endswith(".ifc")]) == 2  # 两模型落盘
+    assert len([n for n in listing if n.endswith(".ifc.meta.json")]) == 2  # ifc 边车在
 
 
 @pytest.mark.anyio
-async def test_dxf_batch_rejected_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
-    """M5 D5：批量 payload 含 dxf 且批级 unit 空 → 422（无-unit 总图语义）。
-
-    对偶 ifc R1-5：批级 unit_option None+dxf 项=全厂总图语义——worker 无
-    site_design 透传通道与单产物不等价，显式拒绝禁静默降级；拒绝面只作用
-    批量入口（items>1 无 unit），单产物 bare POST 总图路径零牵连（上用例
-    200 实证）。
-    """
+async def test_dxf_batch_no_unit_flow_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """SVRB D2：无-unit dxf 批量（全厂总图×2 工况）放行——worker site_design
+    透传通道实证（原 422 拒绝面解除；总图内容=单产物 bare POST 同款）。"""
     import os
 
     project_id, _task_id = await _project_with_result(client)
-    exports_dir = test_settings.exports_dir
-    before_listing = sorted(os.listdir(exports_dir))
     batch = await client.post(
         "/api/exports/dxf",
         json={
             "project_id": project_id,
             "options": {"items": [
                 {"kind": "dxf", "condition_key": "design"},
-                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "dxf", "condition_key": "avg"},
             ]},
         },
     )
-    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    assert batch.json()["error_type"] == "InvalidExportRequestError"
-    assert "dxf 全厂总图暂不支持批量导出" in str(batch.json()["detail"])
-    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+    assert batch.status_code == status.HTTP_200_OK
+    done = await _wait_task_terminal(client, str(batch.json()["task_id"]))
+    assert done["state"] == "done" and len(done["result"]["files"]) == 2
+    dxf_names = [
+        n for n in sorted(os.listdir(test_settings.exports_dir)) if n.endswith(".dxf")
+    ]
+    assert len(dxf_names) == 2
+    for name in dxf_names:  # 总图实证：site_design 透传→$PROJECTNAME 头（单产物同款）
+        assert "全厂总图".encode() in (test_settings.exports_dir / name).read_bytes()
 
 
 @pytest.mark.anyio
 async def test_batch_missing_item_kind_normalizes_to_endpoint_wiring(
-    client, test_settings
-) -> None:  # type: ignore[no-untyped-def]
-    """R2/G1-02：per-item kind 缺省/空串归一端点 kind——批量拒绝缺省面闭合。
-
-    ①dxf 端点+批级无 unit_id+items 两项不带 kind 键→归一=无-unit dxf 批量
-    →422 对偶拒绝（文案断言）；②ifc 端点同形→422（SC1 面延伸修复——归一
-    前 kind 空串死于命名闸「不在合法面」，拒绝语义面失真）。
-    """
-    import os
-
+    client,
+) -> None:
+    """R2/G1-02+SVRB：per-item kind 缺省归一端点 kind——归一面放行闭合
+    （原两族 422 拒绝面 SVRB 解除：dxf 归一→总图批量/ifc 归一→模型批量）。"""
     project_id, _task_id = await _project_with_result(client)
-    exports_dir = test_settings.exports_dir
-    before_listing = sorted(os.listdir(exports_dir))
-    batch = await client.post(
-        "/api/exports/dxf",
-        json={
-            "project_id": project_id,
-            "options": {"items": [
-                {"condition_key": "design"},
-                {"condition_key": "design"},
-            ]},
-        },
-    )
-    assert batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    assert batch.json()["error_type"] == "InvalidExportRequestError"
-    assert "dxf 全厂总图暂不支持批量导出" in str(batch.json()["detail"])
-    ifc_batch = await client.post(
-        "/api/exports/ifc",
-        json={
-            "project_id": project_id,
-            "options": {"items": [
-                {"condition_key": "design"},
-                {"condition_key": "avg"},
-            ]},
-        },
-    )
-    assert ifc_batch.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    assert ifc_batch.json()["error_type"] == "InvalidExportRequestError"
-    assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
+    for endpoint in ("dxf", "ifc"):
+        batch = await client.post(
+            f"/api/exports/{endpoint}",
+            json={
+                "project_id": project_id,
+                "options": {"items": [
+                    {"condition_key": "design"},
+                    {"condition_key": "avg"},
+                ]},
+            },
+        )
+        assert batch.status_code == status.HTTP_200_OK  # 归一后放行转任务
+        assert batch.json()["task_id"]
 
 
 @pytest.mark.anyio

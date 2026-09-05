@@ -78,6 +78,16 @@
 #     消费零断链）；P3b——create_export 抽 _reject_conflicting_batch_pairs
 #     （批量对偶拒绝闸）与 _build_drawing_kwargs（图纸族 kwargs 组装）两子函数，
 #     语句 44→<40 消 PLR0915 行内豁免（PLR0913 五参签名保留）。
+#   - SVRB（2026-09-05 服务端批量任务面）：D1 items 逐项 unit_id 归一
+#     （item 非空串优先——_unit_id_of 逐项校验；空串/缺省/None 回落批级
+#     options.unit_id，「item 覆盖批级」唯一语义）；D2 payload common 层
+#     增 project_path（提交时绝对路径——spawn 环境 worker load_project
+#     通道，calc 先例形态）+design_digest（提交时快照信任留痕——执行期
+#     不重算不拦截）；_build_drawing_kwargs 迁 jobs/export_kwargs.py
+#     （worker 批量面共享真源——services→jobs 向下合法，ENG8 终名随迁）；
+#     D3 ifc 放行三件（worker _EXPORT_KINDS+_safe_out_name ifc 特判
+#     +ifc 项边车补齐）+_reject_conflicting_batch_pairs 改载 ifc 批内
+#     unit 一致小闸（原两族拒绝删除——kwargs 通道已与单产物等价）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -96,10 +106,10 @@ from typing import Any, Final
 
 import structlog
 from waterprint import app as core
-from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.jobs.dwg import dwg_convert
+from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.exports_support import (
@@ -203,43 +213,26 @@ def _latest_calc_result(
 
 
 def _reject_conflicting_batch_pairs(
-    items: Sequence[Mapping[str, Any]], kind: str, unit_option: str | None
+    items: Sequence[Mapping[str, Any]],
 ) -> None:
-    """批量对偶拒绝闸（R1-5 G1-05+M5 D5 对偶，ENG7 P3b 自 create_export 抽出）。
+    """ifc 批内 unit 一致小闸（SVRB D3 第三族 422；函数沿承载原闸名）。
 
-    批量面（items>1，调用点闸）与单产物端点语义不等价的两族显式拒绝——
-    ifc 项（worker 不透传 assumptions/site_design）与批级 unit 空+dxf 项
-    （worker 无 site_design 透传通道=无-unit 全厂总图语义）；拒绝面只
-    作用批量入口，单产物路径零牵连。
+    SVRB 起 worker 经 project_path 通道透传 assumptions/site_design——原
+    两族拒绝（ifc 项任何/批级 unit 空+dxf 项，根因「worker 无透传通道」）
+    删除；本闸改载：items 归一后 ifc 项 unit_id 须全相同（含全缺省）——
+    ifc 为模型级产物不分单元（命名 unit 分量置 None：混合单元=同名覆盖
+    或 N 份冗余两态皆错）；同 unit 多工况由 condition 分量保证唯一。
     """
-    if any((item.get("kind") or kind) == "ifc" for item in items):
+    units = {
+        str(item.get("unit_id") or "")
+        for item in items
+        if str(item.get("kind", "")) == "ifc"
+    }
+    if len(units) > 1:
         raise InvalidExportRequestError(
-            "ifc 暂不支持批量导出（单产物端点——SC1 注记；批量面 "
-            "worker 不透传 assumptions/site_design 与单产物不等价）"
+            "ifc 批量项 unit_id 须全一致（ifc 为模型级产物不分单元——"
+            "混合单元即拒；同单元多工况请保持 unit 一致或全缺省）"
         )
-    if unit_option is None and any(
-        (item.get("kind") or kind) == "dxf" for item in items
-    ):
-        raise InvalidExportRequestError(
-            "dxf 全厂总图暂不支持批量导出（单产物端点——对偶 ifc 先例；"
-            "worker 无 site_design 透传通道，SC1 R1-5 同款不等价）"
-        )
-
-
-def _build_drawing_kwargs(kind: str, project: ProjectFile) -> dict[str, Any]:
-    """dxf·ifc 族出图 kwargs 组装（SC1 D7/M5，ENG7 P3b 自 create_export 抽出）。
-
-    ifc 附 assumptions+site_design（scene 服务同口径假设合成视图）、dxf 附
-    site_design（unit_id 缺省=全厂总图——批量面已显式拒）；余 kind 空 dict
-    ——core.export_artifact extra 面。
-    """
-    if kind == "ifc":
-        merged = {e.key: e.default for e in core.DEFAULT_ASSUMPTIONS}
-        merged |= project.design.assumption_overrides
-        return {"assumptions": merged, "site_design": project.design.site}
-    if kind == "dxf":
-        return {"site_design": project.design.site}
-    return {}
 
 
 def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
@@ -292,6 +285,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量（unit 键进名
     # 防同名覆盖；批量面同收口——worker 透传同批落地，命名面随兑现）。
     unit_option = _unit_id_of(chosen)
+    # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
+    # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
+    # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。
+    items = [{**item, "unit_id": _unit_id_of(item) or unit_option or ""} for item in items]
     names = [
         _deterministic_name(
             project_id,
@@ -299,15 +296,16 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             str(item.get("condition_key", "")),
             result_digest,
             # R1-3（G1-04）：ifc=全厂模型——unit 分量置 None（core 不消费
-            # unit_id；同工况同结果字节相同文件名应相同）；dxf 面零变。
-            unit_id=None if item_kind == "ifc" else unit_option,
+            # unit_id；同工况同结果字节相同文件名应相同）；SVRB：余 kind
+            # 逐项 unit（D1 归一——批内 unit 一致小闸保 ifc 命名唯一）。
+            unit_id=None if item_kind == "ifc" else (str(item.get("unit_id") or "") or None),
         )
         for item in items
     ]
     if len(items) > _IMMEDIATE_LIMIT:  # R3：超单产物上限转低优先级任务
-        # R1-5（G1-05）+M5 D5（对偶）：批量与单产物端点不等价两族显式拒
-        # （ENG7 P3b 抽子函数闸——ifc 拒+批级 unit 空 dxf 拒，见上方定义）。
-        _reject_conflicting_batch_pairs(items, kind, unit_option)
+        # SVRB D3：ifc 批内 unit 一致小闸（原 R1-5/M5 D5 两族拒绝删除——
+        # worker kwargs 通道已与单产物等价；小闸定义见上方）。
+        _reject_conflicting_batch_pairs(items)
         handle = await ctx.manager.submit(
             TaskRequest(
                 kind="export_batch",
@@ -316,11 +314,20 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
                     "kind": "export_batch",
                     "project_id": project_id,
                     "exports_dir": str(ctx.exports_dir),
+                    # SVRB D2：project_path 提交时绝对路径（spawn 环境 worker
+                    # cwd 无关——load_project 通道，calc 先例）+design_digest
+                    # 提交时快照信任留痕（执行期不重算不拦截——项目执行期
+                    # 被编辑是常态非异常）。
+                    "project_path": str(
+                        (ctx.projects_dir / f"{project_id}.wp.json").resolve()
+                    ),
+                    "design_digest": result_digest,
                     # R2-C：DWG 开关+超时（worker dwg_convert 消费；默认空=关）
                     "dwg_converter_path": ctx.settings.dwg_converter_path.strip(),
                     "dwg_converter_timeout_s": ctx.settings.dwg_converter_timeout_s,
-                    # R2-C：items IPC 面=S2 D6 透传+dxf 项边车文本（dxf 项
-                    # sidecars 预构建——worker 双产物面，_batch_items_payload）。
+                    # R2-C+SVRB：items IPC 面=S2 D6 透传+D1 逐项 unit 归一
+                    # +dxf/ifc 项边车文本（dxf={dxf,dwg}/ifc={ifc}——
+                    # _batch_items_payload）。
                     "items": _batch_items_payload(items, names, {
                         "project_id": project_id,
                         "design_digest": result_digest,
@@ -329,7 +336,6 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
                         "stale_labeled": stale and force,
                         "result_file": latest.get("result_file"),
                         "template": template,
-                        "unit_id": unit_option or "",
                     }),
                 },
             ),
@@ -356,15 +362,16 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
     # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
-    # SC1 D7/M5：ifc·dxf 族 kwargs 组装（assumptions/site_design——ENG7
-    # P3b 抽 _build_drawing_kwargs 子函数，见上方定义）。
+    # SC1 D7/M5：ifc·dxf 族 kwargs 组装（assumptions/site_design——SVRB
+    # 迁 jobs/export_kwargs.py，worker 批量面共享真源）。
     extra = _build_drawing_kwargs(kind, project)
     core.export_artifact(
         kind,
         plant,
         Path(template),
         tmp,
-        unit_id=unit_option,
+        # SVRB D1：unit 归一后逐项真源（items 恒 1 项——item 覆盖批级同语义）。
+        unit_id=str(items[0].get("unit_id") or "") or None,
         condition_key=condition_key or None,
         **extra,
     )

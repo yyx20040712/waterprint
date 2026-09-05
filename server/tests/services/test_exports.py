@@ -201,6 +201,170 @@ async def test_batch_export_names_carry_unit_component_wiring(
     assert [item["condition_key"] for item in items] == ["design", "avg"]  # item 自有
 
 
+async def _spy_captured_submit(service_ctx, monkeypatch):  # type: ignore[no-untyped-def]
+    """submit 侦听替身（SVRB：批量 payload 契约断言共用——原样透传真提交）。"""
+    captured: list[object] = []
+    original_submit = service_ctx.manager.submit
+
+    async def _spy_submit(request, *, idempotency_key=None):  # type: ignore[no-untyped-def]
+        captured.append(request)
+        return await original_submit(request, idempotency_key=idempotency_key)
+
+    monkeypatch.setattr(service_ctx.manager, "submit", _spy_submit)
+    return captured
+
+
+async def test_batch_items_unit_id_item_overrides_batch_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """SVRB D1 接线断言：items 逐项 unit_id——item 非空串覆盖批级。
+
+    「item 覆盖批级」唯一语义：item 带 unit_id 优先，缺省项回落批级
+    options.unit_id（载荷构造位归一——worker 面逐项读 item.unit_id）。
+    """
+    project_id = await _project_with_result(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    handle = await create_export(
+        service_ctx,
+        project_id,
+        "dxf",
+        "ok",
+        {
+            "unit_id": "municipal_cass",
+            "items": [
+                {"kind": "dxf", "unit_id": "municipal_chenshachi", "condition_key": "design"},
+                {"kind": "dxf", "condition_key": "avg"},
+            ],
+        },
+    )
+    assert handle.task_id is not None  # 批量转任务（items>1）
+    items = captured[0].payload["items"]  # type: ignore[attr-defined]
+    assert [item["unit_id"] for item in items] == [  # 混合：首项覆盖+次项回落
+        "municipal_chenshachi",
+        "municipal_cass",
+    ]
+    assert "-dxf-municipal_chenshachi-design-" in handle.path  # 命名随 item 单元
+
+
+async def test_batch_items_unit_id_empty_falls_back_to_batch_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """SVRB D1 接线断言：item unit_id 空串/None/缺省同形回落批级。"""
+    project_id = await _project_with_result(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    await create_export(
+        service_ctx,
+        project_id,
+        "dxf",
+        "ok",
+        {
+            "unit_id": "municipal_cass",
+            "items": [
+                {"kind": "dxf", "unit_id": "", "condition_key": "design"},
+                {"kind": "dxf", "unit_id": None, "condition_key": "avg"},
+            ],
+        },
+    )
+    items = captured[0].payload["items"]  # type: ignore[attr-defined]
+    assert [item["unit_id"] for item in items] == ["municipal_cass", "municipal_cass"]
+
+
+async def test_batch_payload_carries_project_path_and_digest_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """SVRB D2 接线断言：payload common 层携 project_path（绝对路径——spawn
+    环境 worker cwd 无关）+design_digest（提交时快照信任留痕）。"""
+    from pathlib import Path as _Path
+
+    project_id = await _project_with_result(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    await create_export(
+        service_ctx,
+        project_id,
+        "dxf",
+        "ok",
+        {
+            "unit_id": "municipal_cass",
+            "items": [
+                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "dxf", "condition_key": "avg"},
+            ],
+        },
+    )
+    payload = captured[0].payload  # type: ignore[attr-defined]
+    assert payload["project_path"] == str(
+        (service_ctx.projects_dir / f"{project_id}.wp.json").resolve()
+    )
+    assert _Path(str(payload["project_path"])).is_file()  # 装载通道真源在位
+    calc_status = next(  # 提交时快照对照=最近 done calc（非末位 export 任务）
+        service_ctx.manager.status(task_id)
+        for task_id in service_ctx.manager.task_ids_for_project(project_id)
+        if service_ctx.manager.status(task_id).kind == "calc"
+    )
+    assert payload["design_digest"] == calc_status.result["design_hash"]
+
+
+async def test_ifc_batch_mixed_unit_ids_rejected_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """SVRB D3 接线断言：ifc 批内 unit 一致小闸（第三族 422）——归一后
+    ifc 项 unit_id 须全相同（含全 None）；混合即拒（模型级产物不分单元）。"""
+    project_id = await _project_with_result(service_ctx)
+    with pytest.raises(_mod.InvalidExportRequestError, match="模型级"):
+        await create_export(
+            service_ctx,
+            project_id,
+            "ifc",
+            "ok",
+            {
+                "items": [
+                    {"kind": "ifc", "unit_id": "municipal_cass", "condition_key": "design"},
+                    {"kind": "ifc", "unit_id": "municipal_chenshachi", "condition_key": "avg"},
+                ],
+            },
+        )
+    with pytest.raises(_mod.InvalidExportRequestError, match="模型级"):  # 缺省回落混显式同拒
+        await create_export(
+            service_ctx,
+            project_id,
+            "ifc",
+            "ok",
+            {
+                "unit_id": "municipal_cass",
+                "items": [
+                    {"kind": "ifc", "condition_key": "design"},
+                    {"kind": "ifc", "unit_id": "municipal_chenshachi", "condition_key": "avg"},
+                ],
+            },
+        )
+
+
+async def test_ifc_batch_payload_carries_ifc_sidecar_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """SVRB D3 接线断言：ifc 批量项附边车——sidecars 恰 {"ifc": meta 文本}
+    （无 dwg 边车——模型级；诚实元数据+将来下载白名单统一铺路）。"""
+    import json as _json
+
+    project_id = await _project_with_result(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    await create_export(
+        service_ctx,
+        project_id,
+        "ifc",
+        "ok",
+        {
+            "items": [
+                {"kind": "ifc", "condition_key": "design"},
+                {"kind": "ifc", "condition_key": "avg"},
+            ],
+        },
+    )
+    items = captured[0].payload["items"]  # type: ignore[attr-defined]
+    for item in items:
+        assert set(item["sidecars"]) == {"ifc"}  # 无 dwg 边车
+        meta = _json.loads(item["sidecars"]["ifc"])
+        assert meta["kind"] == "ifc" and meta["file_name"].endswith(".ifc")
+
+
 async def test_export_consumes_restored_result_after_restart_wiring(
     test_settings,  # type: ignore[no-untyped-def]
 ) -> None:
