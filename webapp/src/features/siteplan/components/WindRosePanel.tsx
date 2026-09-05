@@ -18,7 +18,8 @@
  *     无需合计为 1 或 100（core site_plan.py 纯相对峰值口径对口）；
  *   - 清空=danger+Popconfirm「将清除全部方位数据」（B4 删除确认先例——
  *     仓内无 undo；确认=onClear() 上行 null，取消/外点=零动作）；value
- *     为 null 时按钮 disabled（无数据可清）；
+ *     为 null 时按钮 disabled（无数据可清）；逐方位清空至全空亦归 null
+ *     （受控表单自然语义——B5 R5 钉口径：全量丢弃非唯确认门一条通路）；
  *   - antd 组件 node 不可直调（LineSidebar 先例）——纯逻辑归 lib/
  *     windRoseForm 直测，本件薄壳不测（B 面探针覆盖交互面）。
  */

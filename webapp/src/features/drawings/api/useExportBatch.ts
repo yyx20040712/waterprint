@@ -153,8 +153,10 @@ export function deriveBatchProgress(
 }
 
 /** 状态行文案派生（B5 D3——BatchStatusLine 单源；终态优先于残留 progress，
- *  双 null=null〔从未提交〕）。三态：进行中 percent·i/N｜完成 N 项｜失败
- *  kind·unit·原因（首错 failures[0]，兜底任务级 error）；取消=已产计数行。 */
+ *  双 null=null〔从未提交〕）。四态：进行中 percent·i/N｜完成 N 项｜失败
+ *  kind·unit·原因（首错 failures[0]，兜底任务级 error）｜取消=已产计数行。
+ *  percent（幂商平滑值）与 done/total（序数）并列=双信息面——worker
+ *  percent=(i+1)/(total+1) 幂商式设计意图，非数值不一致（B5 R1 钉口径）。 */
 export function batchStatusText(
   kind: string,
   progress: ExportBatchProgress | null,
@@ -169,7 +171,7 @@ export function batchStatusText(
       const reason = failure?.error ?? outcome.error ?? "未知错误";
       return `批量出图失败：${kind}·${failure?.unit_id ?? "—"}·${reason}`;
     }
-    return `批量导出已取消：已产 ${outcome.files.length} 项`;
+    return `批量出图已取消：已产 ${outcome.files.length} 项`;
   }
   if (progress !== null) {
     return `批量出图进行中 ${Math.round(progress.percent * 100)}%·${progress.done}/${progress.total}`;
@@ -268,16 +270,28 @@ export function useExportBatch(kind: string): {
   const submitBatch = async (input: ExportBatchInput): Promise<ExportBatchOutcome> => {
     setProgress(null);
     setLastOutcome(null); // B5 D3：新提交清空终态回溯（状态行回「进行中」面）
-    const taskId = await submitExportBatch(kind, input);
-    // 竞态缓解（D9③）：先 GET 一次——终态即直取（零 SSE 依赖）。
-    const first = await fetchStatus(taskId);
-    if (typeof first.state === "string" && isTerminalTaskState(first.state)) {
-      const early = toBatchOutcome(first);
-      setLastOutcome(early); // B5 D3：快路径终态同回填状态行
-      void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
-      return early;
+    try {
+      const taskId = await submitExportBatch(kind, input);
+      // 竞态缓解（D9③）：先 GET 一次——终态即直取（零 SSE 依赖）。
+      const first = await fetchStatus(taskId);
+      if (typeof first.state === "string" && isTerminalTaskState(first.state)) {
+        const early = toBatchOutcome(first);
+        setLastOutcome(early); // B5 D3：快路径终态同回填状态行
+        void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
+        return early;
+      }
+      return awaitTerminal(taskId, input.units.length);
+    } catch (error) {
+      // B5 R4（G1-09）：提交/在途异常回填失败终态——常驻回溯行不因失败路径
+      // 退化（错误原文走调用方 toast，本面记「最近一次尝试=失败」）。
+      setLastOutcome({
+        state: "failed",
+        files: [],
+        failures: [],
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
     }
-    return awaitTerminal(taskId, input.units.length);
   };
 
   return { submitBatch, progress, lastOutcome };

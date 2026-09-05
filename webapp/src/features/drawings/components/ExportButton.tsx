@@ -157,18 +157,22 @@ export function ExportButton({
           );
         }
       } else if (outcome.state === "cancelled") {
-        messageApi.info(`批量导出已取消：已产 ${outcome.files.length} 张`);
+        messageApi.info(`批量出图已取消：已产 ${outcome.files.length} 张`);
       } else {
-        messageApi.error(`批量导出失败：${outcome.error ?? "未知错误"}`);
+        messageApi.error(`批量出图失败：${outcome.error ?? "未知错误"}`);
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      messageApi.error(`批量导出提交失败：${reason}`);
+      messageApi.error(`批量出图提交失败：${reason}`);
     } finally {
       messageApi.destroy(BATCH_PROGRESS_KEY); // B5 D3：终态销毁（duration=0 持有态收口）
       setBatching(false);
     }
   };
+
+  // B5 R2（G1-07）：组件卸载收口常驻进度 toast——finally 不达路径（在途切页）
+  // 下 antd message 独立于组件树驻留，卸载即销毁（同 key 无残留）。
+  useEffect(() => () => messageApi.destroy(BATCH_PROGRESS_KEY), [messageApi]);
 
   // B5 D3：进度=message 文本+antd Progress 行内条（percent=Math.round(*100)
   // TaskPanel 先例；duration=0 持有——终态 destroy 销毁，同键原位更新不变）。

@@ -193,7 +193,7 @@ describe("任务面纯函数（SSE 消费/终态投影）", () => {
     ).toBe("批量出图失败：dxf·—·task dead"); // 无逐项 failures 兜底任务级 error
     expect(
       batchStatusText("dxf", null, { state: "cancelled", files: ["a.dxf"], failures: [], error: null }),
-    ).toBe("批量导出已取消：已产 1 项");
+    ).toBe("批量出图已取消：已产 1 项"); // B5 R3：四态文案主语统一「批量出图」
   });
 
   it("buildTaskStreamUrl：token 空=零查询参；非空=?token= 编码（SSE 双通道）", () => {
