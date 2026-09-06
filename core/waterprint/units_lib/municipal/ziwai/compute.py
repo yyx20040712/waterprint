@@ -46,7 +46,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
 from waterprint.units_lib.municipal.ziwai.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_ziwai"
@@ -76,11 +76,7 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_Q_PER_LAMP, _F_AGING, _C_FECAL_IN, _N_LOG)
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """构造步长向上取整（ZW-F2 的 0.1 m 离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}")
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _validate(params: dict[str, float]) -> None:

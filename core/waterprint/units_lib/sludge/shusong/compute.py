@@ -50,7 +50,7 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._constants import SECS_PER_DAY
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge, _make_ceil_step
 from waterprint.units_lib.sludge.shusong.manifest import (
     FORMULA_IDS,
     PIPE_DISC_STEP,
@@ -80,13 +80,7 @@ def _validate(params: dict[str, float]) -> None:
             )
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """构造步长向上取整（ST-F3 的 DN25 档离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}"
-        )
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _warn(source: str, message: str, param_key: str | None) -> Warning:

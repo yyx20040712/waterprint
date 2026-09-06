@@ -138,3 +138,16 @@ export const customInstance = <T>(config: CustomInstanceConfig): Promise<T> => {
     }
   });
 };
+
+/** 409 锁冲突保守提示（CP2 D2——照 UX2 AssumptionsPanel 口径不 force 不重试；
+ *  B15 自 features/solutions/lib/solutionsFields.ts 上移收敛——原 AssumptionsPanel
+ *  本地双实现销账，判定语义单源）。 */
+export const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
+
+/** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
+export function isLockConflict(error: unknown): boolean {
+  return (
+    error instanceof WaterprintApiError &&
+    (error.code === "ProjectLockedError" || error.code === "HTTP_409")
+  );
+}

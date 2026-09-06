@@ -98,9 +98,8 @@ import {
 } from "../features/params/lib/constraintPicker";
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
+import { LOCK_HINT, isLockConflict } from "../shared/api/http";
 import {
-  LOCK_HINT,
-  isLockConflict,
   narrowGridFields,
   resultField,
 } from "../features/solutions/lib/solutionsFields";
@@ -113,13 +112,12 @@ import {
   type SolutionPageView,
 } from "../features/solutions/lib/solutionsView";
 import { ErrorBoundary } from "./ErrorBoundary";
-import {
-  parseEnumParam,
-  parseTaskParam,
-  withEnumParam,
-  withTaskParam,
-} from "./projectParam";
+import { parseEnumParam, parseTaskParam } from "./projectParam";
 import { useProjectId } from "./useProjectId";
+import {
+  writeEnumParam,
+  writeTaskParam,
+} from "./solutionsUrlState";
 
 /** 空态指引（?project= 缺失——先经工艺画布标签选择项目）。 */
 const NO_PROJECT_HINT =
@@ -255,24 +253,6 @@ export function SolutionsPane() {
       },
     );
 
-  /** URL 键回写共底（replaceState 不触发导航——enum/task 两轨共用）。 */
-  const replaceSearch = (search: string) => {
-    window.history.replaceState(
-      null,
-      "",
-      search
-        ? `${window.location.pathname}?${search}`
-        : window.location.pathname,
-    );
-  };
-  /** ?enum= 回写（ENG5 D6 枚举轨——task 键不动）。 */
-  const writeEnumParam = (nextEnumId: string) => {
-    replaceSearch(withEnumParam(window.location.search, nextEnumId));
-  };
-  /** ?task= 回写（计算轨——方案应用面；enum 键不动）。 */
-  const writeTaskParam = (nextTaskId: string) => {
-    replaceSearch(withTaskParam(window.location.search, nextTaskId));
-  };
   const enumerate = useRunEnumerationApiCalcEnumeratePost<WaterprintApiError>({
     mutation: {
       onSuccess: (response) => {

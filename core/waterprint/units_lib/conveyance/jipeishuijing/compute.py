@@ -37,7 +37,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import final
 
 from waterprint.contracts.flow import WaterFlow
@@ -51,7 +50,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
 from waterprint.units_lib.conveyance.jipeishuijing.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "conveyance_jipeishuijing"
@@ -69,13 +68,7 @@ _WALL = "factor.jipeishuijing.wall_thickness_coef"
 _PARAMS_POSITIVE = ("t_well", "h_well", "dia_disc_step")
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """井径构造档向上取整（步长>0 守卫；ningjiao B 档同型）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}"
-        )
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _series_count(params: dict[str, float]) -> int:

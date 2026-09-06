@@ -36,7 +36,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import final
 
 from waterprint.contracts.flow import WaterFlow
@@ -50,7 +49,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
 from waterprint.units_lib.mine_water.ningjiao.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_ningjiao"
@@ -96,11 +95,7 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """构造步长向上取整（KN-F8 的 0.5 m 离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}")
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _validate(params: dict[str, float]) -> None:

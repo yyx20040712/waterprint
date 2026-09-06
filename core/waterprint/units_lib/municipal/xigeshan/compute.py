@@ -37,7 +37,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _ceil_step_core, _factor, _inflow
 from waterprint.units_lib.municipal.xigeshan.manifest import FORMULA_IDS, manifest
 
 _BETA_KEYS: tuple[str, str, str] = (
@@ -51,10 +51,8 @@ _NORM = "GB 50014-2021 §6.3（条文号待核对原文）"
 
 
 def _ceil_step(value: float, step: float, unit_id: str) -> float:
-    """构造步长向上取整（三表 XG-F3/F4/F9/F10 的 0.1m 离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(f"单元 {unit_id!r} 的 length_disc_step 必须 > 0：得到 {step!r}")
-    return math.ceil(value / step) * step
+    """构造步长向上取整（B15 收敛——共享核心+本地标签；签名兼容面）。"""
+    return _ceil_step_core(value, step, unit_id, "length_disc_step")
 
 
 def _validate(params: dict[str, float], unit_id: str) -> None:

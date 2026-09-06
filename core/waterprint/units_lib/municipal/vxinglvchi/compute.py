@@ -29,7 +29,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Final, final
 
 from waterprint.contracts.flow import WaterFlow
@@ -43,7 +42,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
 from waterprint.units_lib.municipal.vxinglvchi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_vxinglvchi"
@@ -94,11 +93,7 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_SELFUSE, _W_AIR, _W_WATER_SIM, _W_WATER, _W_SWEEP, _T_AIR, _T_SIM, _T_WATER)
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """构造步长向上取整（XL-F4/F5 的 0.5 m 离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}")
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _validate(params: dict[str, float]) -> None:

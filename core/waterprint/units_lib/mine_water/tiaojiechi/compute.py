@@ -47,7 +47,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
 from waterprint.units_lib.mine_water.tiaojiechi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_tiaojiechi"
@@ -70,11 +70,7 @@ _PARAMS_POSITIVE = ("n", "t_reg", "h2", "ratio_lb", "side_disc_step", "length_di
 _FACTORS_POSITIVE = (_STIR_DENSITY, _OUT_VELOCITY)
 
 
-def _ceil_step(value: float, step: float) -> float:
-    """构造步长向上取整（KT-F4/F5/F10 的 0.5/0.05 m 离散；步长>0 守卫）。"""
-    if step <= 0:
-        raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 的取整步长必须 > 0：得到 {step!r}")
-    return math.ceil(value / step) * step
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
 
 
 def _validate(params: dict[str, float]) -> None:

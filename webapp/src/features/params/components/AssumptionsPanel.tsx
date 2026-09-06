@@ -38,7 +38,7 @@ import {
   useReadProjectApiProjectsProjectIdGet,
   useSaveProjectApiProjectsProjectIdPut,
 } from "../../../shared/api/generated/projects/projects";
-import { WaterprintApiError } from "../../../shared/api/http";
+import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
 import { TASK_EVENT } from "../../../shared/events";
 import { useAssumptionCatalog } from "../api/useUnitCatalog";
 import { useProjectDesign } from "../api/useProjectDesign";
@@ -52,17 +52,6 @@ import {
 
 const SELECT_BLUE = "#1668dc";
 const GRAY_SMALL = { color: "#8c8c8c", fontSize: 11 };
-
-/** 409 锁冲突保守提示（D3——不 force 不重试，刷新由用户裁量）。 */
-const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
-
-/** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
-function isLockConflict(error: unknown): boolean {
-  return (
-    error instanceof WaterprintApiError &&
-    (error.code === "ProjectLockedError" || error.code === "HTTP_409")
-  );
-}
 
 /** 行内提示（无效 draft——面板级禁提交的行内反馈面）。 */
 function InvalidHint() {

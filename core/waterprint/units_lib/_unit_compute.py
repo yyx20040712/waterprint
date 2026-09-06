@@ -29,13 +29,18 @@
 #   规格说明件零样板（30 行——无需消费，B8 R1 实证）；测试要求=
 #   golden 全量+双跑 diff=0 常驻测试间接覆盖，零新测试（B3/ENG7/B7
 #   纯搬迁先例三连+泥线/股族正常路径经 6+4 包 golden 用例实证覆盖，
-#   异常分支知情接受——B8 先例）；共享件不 import 任何包件（无环
+#   异常分支最小直测（tests/units_lib/test_unit_compute.py——B15，
+#   含 _ceil_step 三组消息恒等用例；B8「知情接受」口径解除）；共享件
+#   不 import 任何包件（无环
 #   ——D1）；import 面=contracts（L0）+registry（L1）向下合法
 #   （InvalidUnitConfig/UnitContext/PortRef/WaterFlow/SludgeFlow/
 #   ConditionSet/formulas——L2→L1/L0）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
+
+import math
+from collections.abc import Callable
 
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
@@ -44,6 +49,28 @@ from waterprint.contracts.ports import PortRef
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import UnitContext
 from waterprint.registry import formulas
+
+
+def _ceil_step_core(value: float, step: float, unit_id: str, label: str) -> float:
+    """构造步长向上取整共享核心（B15 收敛——21 包 _ceil_step 单源；三组
+    guard/return 恒等 AST 实证，消息族经 label 参数显式分派——B8 R-1
+    运行时消息恒等：组1「取整步长」18 包/组2+组3「length_disc_step」
+    3 包；步长>0 守卫）。"""
+    if step <= 0:
+        raise InvalidUnitConfig(
+            f"单元 {unit_id!r} 的 {label} 必须 > 0：得到 {step!r}"
+        )
+    return math.ceil(value / step) * step
+
+
+def _make_ceil_step(unit_id: str, label: str) -> Callable[[float, float], float]:
+    """工厂：按包绑定 unit_id+消息族的 _ceil_step 模块级常量（B15——
+    零调用点 churn 形态；组3 参数面两包走 _ceil_step_core 直包）。"""
+
+    def _ceil_step(value: float, step: float) -> float:
+        return _ceil_step_core(value, step, unit_id, label)
+
+    return _ceil_step
 
 
 def _factor(params: dict[str, float], key: str, unit_id: str) -> float:
