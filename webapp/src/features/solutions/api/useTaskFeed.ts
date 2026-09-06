@@ -66,6 +66,9 @@ export const SSE_RECONNECT_CAP_MS = 30 * 1000;
 /** 停连后慢速周期探测间隔（60s——自动恢复通道，B6 D3 必改4）。 */
 export const SSE_PROBE_INTERVAL_MS = 60 * 1000;
 
+/** SSE 连接态三态（B7 D3/G1-04：onConnection 通道与消费面 prop 的单源类型）。 */
+export type ConnectionState = "reconnecting" | "probing" | "ok";
+
 /** 指数退避延迟（纯函数——1s/2s/4s/8s/16s…封顶 30s）。 */
 export function nextReconnectDelayMs(failures: number): number {
   const ladder = Math.min(
@@ -87,7 +90,7 @@ export function planRecovery(failures: number): { mode: "backoff" | "probe"; del
 export function useTaskFeed(
   taskId: string | null,
   onTerminal?: (state: string) => void,
-  onConnection?: (state: "reconnecting" | "probing" | "ok") => void,
+  onConnection?: (state: ConnectionState) => void,
 ): TaskView | null {
   const [view, setView] = useState<TaskView | null>(null);
   // 终态回调经 ref 透传（taskId 单依赖——回调引用变更不重建连接）

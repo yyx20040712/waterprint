@@ -41,16 +41,22 @@ function renderTaskPanel(
 
 describe("TaskPanel connection 提示行（B7 D4）", () => {
   it("reconnecting=「连接中断，自动重连中…」warning 行内渲染", () => {
-    expect(renderTaskPanel("reconnecting")).toContain("连接中断，自动重连中…");
+    const html = renderTaskPanel("reconnecting");
+    expect(html).toContain("连接中断，自动重连中…");
+    // G1-03/G2-02：warning 形态锚（type="warning" 误改 danger/层级漂移可捕获）
+    expect(html).toContain("ant-typography-warning");
   });
 
   it("probing=「连接中断，每 60 秒重试一次…」warning 行内渲染", () => {
-    expect(renderTaskPanel("probing")).toContain("连接中断，每 60 秒重试一次…");
+    const html = renderTaskPanel("probing");
+    expect(html).toContain("连接中断，每 60 秒重试一次…");
+    expect(html).toContain("ant-typography-warning");
   });
 
   it("ok/null/缺省=零渲染（无连接中断文案——queryByText null 等价断言）", () => {
     expect(renderTaskPanel("ok")).not.toContain("连接中断");
     expect(renderTaskPanel(null)).not.toContain("连接中断");
     expect(renderTaskPanel()).not.toContain("连接中断");
+    expect(renderTaskPanel(null)).not.toContain("ant-typography-warning");
   });
 });

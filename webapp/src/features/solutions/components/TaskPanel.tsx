@@ -28,6 +28,7 @@ import { Button, Progress, Tag, Typography } from "antd";
 import { useCancelTaskApiCalcTasksTaskIdCancelPost } from "../../../shared/api/generated/calc/calc";
 import type { TaskStatus } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
+import { type ConnectionState } from "../api/useTaskFeed";
 import { taskStatusToView, type TaskView } from "../lib/taskFeed";
 
 /** 状态徽标映射（state→中文+Tag 色）。 */
@@ -62,7 +63,7 @@ export function TaskPanel({
 }: {
   taskId: string;
   view: TaskView | null;
-  connection?: "reconnecting" | "probing" | "ok" | null;
+  connection?: ConnectionState | null;
   status: TaskStatus | null;
   statusError: string | null;
 }) {

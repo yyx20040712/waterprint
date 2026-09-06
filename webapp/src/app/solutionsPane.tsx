@@ -97,7 +97,7 @@ import {
   toPayloadItems,
 } from "../features/params/lib/constraintPicker";
 import { withConstraintChoices } from "../features/params/lib/designParams";
-import { useTaskFeed } from "../features/solutions/api/useTaskFeed";
+import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
 import { SolutionsTable } from "../features/solutions/components/SolutionsTable";
@@ -171,9 +171,9 @@ export function SolutionsPane() {
   const [sort, setSort] = useState("margin_min");
   // B7 D3/D4：SSE 连接态（useTaskFeed onConnection 消费源→TaskPanel
   // connection prop——reconnecting/probing 显中断提示行；ok/任务切换置 null）
-  const [connection, setConnection] = useState<
-    "reconnecting" | "probing" | "ok" | null
-  >(null);
+  const [connection, setConnection] = useState<ConnectionState | null>(
+    null,
+  );
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
