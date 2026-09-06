@@ -2,7 +2,8 @@
 
 输入:  waterprint.graph.cache 公开符号（ResultCache/CachedUnitRun/CaptureSink/
        design_fingerprint/default_cache）+ executor 接入面
-输出:  LRU 逐出/键五分量逐项失配/指纹 design 全字段覆盖/命中跳过+trace 重放/
+输出:  LRU 逐出/get 位次刷新（N14 G1-02）/容量非整数拒（N14 G1-01）/
+       键五分量逐项失配/指纹 design 全字段覆盖/命中跳过+trace 重放/
        R4 自然过期（整 design 失配+旧键保留）/回路组旁路/单例隔离断言
 """
 
@@ -209,11 +210,33 @@ def test_cache_key_five_components_each_mismatch() -> None:
 
 
 def test_result_cache_rejects_non_positive_capacity() -> None:
-    """capacity<1 拒（ValueError——配置面防御）。"""
+    """capacity<1 拒（ValueError——配置面防御）；非整数/bool 同拒（N14 G1-01）。"""
     from waterprint.graph.cache import ResultCache
 
     with pytest.raises(ValueError):
         ResultCache(capacity=0)
+    with pytest.raises(ValueError):
+        ResultCache(capacity=2.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        ResultCache(capacity=True)  # type: ignore[arg-type]
+
+
+def test_result_cache_get_refreshes_recency() -> None:
+    """get 刷新 LRU 位次（N14 G1-02——纯 FIFO 实现此测试必红）。"""
+    from waterprint.graph.cache import ResultCache
+    from waterprint.graph.incremental import CacheKey
+
+    cache = ResultCache(capacity=2)
+    value = object()
+    key_a = CacheKey("a", "h", "c", "e", "d")
+    key_b = CacheKey("b", "h", "c", "e", "d")
+    key_c = CacheKey("c", "h", "c", "e", "d")
+    cache.put(key_a, value)  # type: ignore[arg-type]
+    cache.put(key_b, value)  # type: ignore[arg-type]
+    assert cache.get(key_a) is value  # type: ignore[arg-type]
+    cache.put(key_c, value)  # type: ignore[arg-type]
+    assert cache.get(key_a) is value  # type: ignore[arg-type]
+    assert cache.get(key_b) is None  # type: ignore[arg-type]
 
 
 def test_get_returns_identical_entry_object() -> None:
