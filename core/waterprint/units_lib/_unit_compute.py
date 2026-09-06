@@ -16,18 +16,23 @@
 #   condition_key 语境）；泥线变体 _inflow_sludge 逐字迁移自 sludge/
 #   bengzhan/compute.py（B10 笔①——AST 普查 6 泥线包 _inflow 本体
 #   同构实证；edge_note 尾注入同款最小扩展）。
-# 【R-2 消费面】32 包 compute.py 中实有同构面 22 包（B8 两笔 19 包+
-#   B10 笔①族2 三包 municipal/chenshachi、cugeshan、xigeshan 即换；
-#   余 10 包两变体族剔出——conveyance 股族 4 包/sludge 泥线族 6 包
-#   （B10 笔②收口）；泥线族 6 包（sludge/bengzhan、ganhua、nongsuo、
-#   shusong、tuoshui、xiaohua）经 _inflow_sludge 收口（B10 笔①扩载
-#   ——笔②消费），hebing _inflow_stocks 为异语义件维持不收敛（注记
-#   防后续批误判漏收敛）；_template 为纯规格说明件零样板（30 行——
-#   无需消费，B8 R1 实证）；测试要求=golden 全量+双跑 diff=0 常驻测试
-#   间接覆盖，零新测试（B3/ENG7/B7 纯搬迁先例三连）；共享件不
-#   import 任何包件（无环——D1）；import 面=contracts（L0）+registry
-#   （L1）向下合法（InvalidUnitConfig/UnitContext/PortRef/WaterFlow/
-#   SludgeFlow/ConditionSet/formulas——L2→L1/L0）。
+# 【R-2 消费面】**B10 终态：32 包 compute.py 全部单源收敛**（外审 #7
+#   清零）——_factor/_apply 32/32 包（B8 两笔 19+B10 两笔 13）；_inflow
+#   面 30 包（水线 _inflow 24：B8 17[municipal 10+mine_water 7——
+#   input/hebing 两非消费者不入计]+族2 三+族1 四股包 conveyance/
+#   jipeishuijing、jishuijing、peishuijing、peishuiqu；泥线
+#   _inflow_sludge 6：sludge/bengzhan、ganhua、nongsuo、shusong、
+#   tuoshui、xiaohua——B10 R 轮 A2-01 勘误：原 29 系 E 冻结把 B8 19
+#   包当全消费[实 17]且漏计族2 三包）；
+#   hebing _inflow_stocks 为异语义件维持不收敛+mine_water/input 源节点
+#   零入边无 _inflow 语义（注记防后续批误判漏收敛）；_template 为纯
+#   规格说明件零样板（30 行——无需消费，B8 R1 实证）；测试要求=
+#   golden 全量+双跑 diff=0 常驻测试间接覆盖，零新测试（B3/ENG7/B7
+#   纯搬迁先例三连+泥线/股族正常路径经 6+4 包 golden 用例实证覆盖，
+#   异常分支知情接受——B8 先例）；共享件不 import 任何包件（无环
+#   ——D1）；import 面=contracts（L0）+registry（L1）向下合法
+#   （InvalidUnitConfig/UnitContext/PortRef/WaterFlow/SludgeFlow/
+#   ConditionSet/formulas——L2→L1/L0）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
