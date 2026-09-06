@@ -26,7 +26,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -38,7 +37,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.cugeshan.manifest import FORMULA_IDS, manifest
 
 _BETA_KEYS: tuple[str, str, str] = (
@@ -49,17 +48,6 @@ _BETA_KEYS: tuple[str, str, str] = (
 _V_BAND = ("factor.screen.velocity_band.v.min", "factor.screen.velocity_band.v.max")
 _V1_BAND = ("factor.screen.velocity_band.v1.min", "factor.screen.velocity_band.v1.max")
 _NORM = "GB 50014-2021 §6.3（条文号待核对原文）"
-
-
-def _factor(params: dict[str, float], key: str, unit_id: str) -> float:
-    """系数投影取值（D4）：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {unit_id!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——D4 装配裁决）"
-        )
-    return float(value)
 
 
 def _ceil_step(value: float, step: float, unit_id: str) -> float:
@@ -75,28 +63,6 @@ def _validate(params: dict[str, float], unit_id: str) -> None:
         value = params.get(key)
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {unit_id!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（格栅单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _geometry(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -329,7 +295,7 @@ class _Cugeshan:
         """CG-F1~F14 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p, ctx.unit_id)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "格栅单入单出语义")
         geo = _geometry(ctx, p, flow)
         loss = _losses(ctx, p, flow, geo)
         dims = {name: value for name, value in {**geo, **loss}.items() if not name.startswith("_")}

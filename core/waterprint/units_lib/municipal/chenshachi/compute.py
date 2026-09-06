@@ -31,7 +31,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -43,7 +42,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.chenshachi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_chenshachi"
@@ -63,17 +62,6 @@ _RETENTION_BAND = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值（D4）：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——D4 装配裁决）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（三表 CS-F2/F12/F13 的 0.1m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -87,28 +75,6 @@ def _validate(params: dict[str, float]) -> None:
         value = params.get(key)
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（沉砂池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -149,7 +115,7 @@ def _hopper(
         "CS-F7",
         {
             "q_avg_daily": flow.q_avg_daily,
-            "x_sand": _factor(p, "factor.chenshachi.sand_yield_x"),
+            "x_sand": _factor(p, "factor.chenshachi.sand_yield_x", _UNIT_ID),
             "n": p["n"],
         },
     )
@@ -159,14 +125,14 @@ def _hopper(
         {
             "v_sand": v_sand,
             "t_clean": p["t_clean"],
-            "safety": _factor(p, "factor.chenshachi.hopper.safety"),
+            "safety": _factor(p, "factor.chenshachi.hopper.safety", _UNIT_ID),
         },
     )
     d = basin["d"]
     d_upper = _apply(
         ctx,
         "CS-F9",
-        {"upper_ratio": _factor(p, "factor.chenshachi.hopper_upper_ratio"), "d": d},
+        {"upper_ratio": _factor(p, "factor.chenshachi.hopper_upper_ratio", _UNIT_ID), "d": d},
     )
     tan_theta = math.tan(math.radians(p["theta"]))
     h4 = _apply(ctx, "CS-F10", {"d_upper": d_upper, "d_r": p["d_r"], "tan_theta": tan_theta})
@@ -188,9 +154,9 @@ def _hopper(
             ctx,
             "CS-F13",
             {
-                "h1_super": _factor(p, "factor.chenshachi.superheight"),
+                "h1_super": _factor(p, "factor.chenshachi.superheight", _UNIT_ID),
                 "h2": basin["h2"],
-                "h3_buffer": _factor(p, "factor.chenshachi.buffer_h3"),
+                "h3_buffer": _factor(p, "factor.chenshachi.buffer_h3", _UNIT_ID),
                 "h4": h4,
                 "h_cyl": h_cyl,
             },
@@ -225,16 +191,16 @@ def _channel(ctx: UnitContext, p: dict[str, float], basin: dict[str, float]) -> 
             ctx,
             "CS-F15",
             {
-                "straight_mult": _factor(p, "factor.chenshachi.channel.straight_mult"),
+                "straight_mult": _factor(p, "factor.chenshachi.channel.straight_mult", _UNIT_ID),
                 "b_channel": p["b_channel"],
-                "straight_min": _factor(p, "factor.chenshachi.channel.straight_min"),
+                "straight_min": _factor(p, "factor.chenshachi.channel.straight_min", _UNIT_ID),
             },
         ),
         "b_outlet": _apply(
             ctx,
             "CS-F16",
             {
-                "outlet_mult": _factor(p, "factor.chenshachi.channel.outlet_mult"),
+                "outlet_mult": _factor(p, "factor.chenshachi.channel.outlet_mult", _UNIT_ID),
                 "b_channel": p["b_channel"],
             },
         ),
@@ -252,8 +218,8 @@ def _sludge(
             "CS-F17",
             {
                 "v_sand": hopper["v_sand"],
-                "moisture": _factor(p, "factor.chenshachi.grit.moisture"),
-                "grit_density": _factor(p, "factor.chenshachi.grit.density"),
+                "moisture": _factor(p, "factor.chenshachi.grit.moisture", _UNIT_ID),
+                "grit_density": _factor(p, "factor.chenshachi.grit.density", _UNIT_ID),
                 "n": p["n"],
             },
         ),
@@ -265,7 +231,7 @@ def _sludge(
                 "d": hopper["d"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.chenshachi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.chenshachi.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -293,14 +259,14 @@ def _band_warning(
 def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ...]:
     """校核带检查：表面负荷/有效水深/径深比/实际停留时间（三表 CS 带）。"""
     found: list[Warning] = []
-    q_low = _factor(p, _SURFACE_BAND[0])
-    q_high = _factor(p, _SURFACE_BAND[1])
-    h2_low = _factor(p, _H2_BAND[0])
-    h2_high = _factor(p, _H2_BAND[1])
-    r_low = _factor(p, _RATIO_BAND[0])
-    r_high = _factor(p, _RATIO_BAND[1])
-    t_low = _factor(p, _RETENTION_BAND[0])
-    t_high = _factor(p, _RETENTION_BAND[1])
+    q_low = _factor(p, _SURFACE_BAND[0], _UNIT_ID)
+    q_high = _factor(p, _SURFACE_BAND[1], _UNIT_ID)
+    h2_low = _factor(p, _H2_BAND[0], _UNIT_ID)
+    h2_high = _factor(p, _H2_BAND[1], _UNIT_ID)
+    r_low = _factor(p, _RATIO_BAND[0], _UNIT_ID)
+    r_high = _factor(p, _RATIO_BAND[1], _UNIT_ID)
+    t_low = _factor(p, _RETENTION_BAND[0], _UNIT_ID)
+    t_high = _factor(p, _RETENTION_BAND[1], _UNIT_ID)
     if not q_low <= p["q_surf"] <= q_high:
         found.append(
             _band_warning(
@@ -375,7 +341,7 @@ class _Chenshachi:
         """CS-F1~F18 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "沉砂池单入单出语义")
         basin = _basin(ctx, p, flow)
         hopper = _hopper(ctx, p, flow, basin)
         hopper["d"] = basin["d"]
