@@ -63,7 +63,7 @@ import { message } from "antd";
 import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
 import type { BoundaryViolationEntry, SpacingViolationEntry } from "../../../shared/api/generated/model";
-import { WaterprintApiError } from "../../../shared/api/http";
+import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
 import { useSiteData } from "../api/useSiteData";
 import {
   narrowSiteDesign,
@@ -90,21 +90,10 @@ import { StructureSidebar } from "./StructureSidebar";
 import { SiteplanToolbar } from "./SiteplanToolbar";
 import { WindRosePanel } from "./WindRosePanel";
 
-/** 409 锁冲突保守提示（AssumptionsPanel D3 先例同文——不 force 不重试）。 */
-const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
-
 /** 红线拒删提示文案（B4 笔③——BOUNDARY_MIN_VERTICES 单源插值不硬编码数字；
  *  整体清空另有「清空红线」Popconfirm 入口）。 */
 const BOUNDARY_REJECT_HINT =
   `红线至少需 ${BOUNDARY_MIN_VERTICES} 个顶点，不能再删（整体移除请用「清空红线」）`;
-
-/** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
-function isLockConflict(error: unknown): boolean {
-  return (
-    error instanceof WaterprintApiError &&
-    (error.code === "ProjectLockedError" || error.code === "HTTP_409")
-  );
-}
 
 /** 收笔挂起面（折线已成立、宽度/kind 待补）。 */
 type FinishedLine = { kind: "road" | "corridor"; points: SitePoint[] };

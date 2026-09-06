@@ -43,7 +43,11 @@
 #     单任务（manager.py 实测）；条目不可变仅覆盖值面，LRU 顺序态的
 #     线程安全由此前提担保——进程内多线程化须先加锁；
 #   - get 返回条目原引用：消费面禁止改写（executor 侧只读已实证；
-#     防御拷贝否弃=热路径成本+Mapping 深拷贝语义含糊）。
+#     防御拷贝否弃=热路径成本+Mapping 深拷贝语义含糊）；
+#   - 键材料纪律（N14 G1-03 注记）：assumptions/loop.* 运行参数不在键内
+#     ——生产面 env.assumptions≡DEFAULT_ASSUMPTIONS∪design.assumption_
+#     overrides（后者在指纹参与面）恒成立；绕道改运行参数须同步提升
+#     engine_version（R3 失配纪律），否则命中旧结果属规格外滥用。
 #
 # 【落盘面挂账（后续批）】
 #   - 内存治理=本批 LRU 按条数（512 条）；512MB=落盘 arrow 字节预算
@@ -60,6 +64,9 @@
 #
 # 【测试要求】LRU 逐出/五分量逐项失配/指纹全字段覆盖/命中跳过+重放/
 #   R4 整 design 失配+旧键保留/回路组旁路/单例 clear 隔离。
+#   【N14 挂账待授权补测（[HUMAN-LOCK] 锁面——锁未开不落）：get 位次
+#   刷新（G1-02）+容量非整数/bool 拒（G1-01）——补丁逐字存
+#   reports/task-B16-final.md §三】
 #
 # 【参照】重写计划 §17.2/§17.3；briefs/task-B12-brief.md（裁定1~4）；
 #   reports/task-B12-DESIGN-kimi-design.md + task-B12-deepseek-review.md
@@ -118,7 +125,8 @@ class ResultCache:
     """进程内 LRU 结果缓存（条目不可变——失效=键不再命中）。"""
 
     def __init__(self, capacity: int = _DEFAULT_CAPACITY) -> None:
-        if capacity < 1:
+        # bool 系 int 子类须显式拒——True/False 不是容量语义（N14 G1-01）
+        if not isinstance(capacity, int) or isinstance(capacity, bool) or capacity < 1:
             raise ValueError(f"缓存容量须为正整数：得到 {capacity!r}")
         self._capacity = capacity
         self._entries: OrderedDict[CacheKey, CachedUnitRun] = OrderedDict()
