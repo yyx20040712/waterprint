@@ -47,8 +47,9 @@ WHITELIST_DECLARATION = (
     # B8 R3：SECS_PER_DAY 单源真源——收敛 13 份 manifest 重复定义；
     # _unit_compute 零数值字面量不在白名单。
     "core/waterprint/units_lib/_constants.py",
-    # B12 裁定8：ResultCache 容量默认值声明式真源（512 条/512MB 落盘
-    # 预算——§17.2 出处载规格头；B8 _constants.py 同款先例）。
+    # B12 裁定8（R 轮 G1-01 收敛）：ResultCache 容量默认值声明式真源
+    # （512 条——§17.2 出处；落盘 512MB 语义载 cache.py 规格头，常量
+    # 随落盘批实装；B8 _constants.py 同款先例）。
     "core/waterprint/graph/cache.py",
 )
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，

@@ -375,10 +375,12 @@ def test_loop_group_members_bypass_cache() -> None:
     producer_calls, rj_calls = producer.calls, wrapped_rj.calls
     consumer_calls = consumer.calls
     second = execute_graph(design, units, _conditions(), _env(_ListSink()))  # type: ignore[arg-type]
+    from waterprint.contracts.result_schema import serialize
+
     assert producer.calls > producer_calls  # 组员重算（旁路——迭代多轮）
     assert wrapped_rj.calls > rj_calls  # 组员重算
     assert consumer.calls == consumer_calls  # 组外下游命中（跳过）
-    assert str(second.conditions) == str(first.conditions)  # 双跑同果
+    assert serialize(second) == serialize(first)  # 双跑同果（字节级——R1 口径）
 
 
 class _BypassProducer:

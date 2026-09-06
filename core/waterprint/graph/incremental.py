@@ -73,7 +73,7 @@
 #     集成批接线后增量跳过才生效；
 #   - R1 字节级等价不背书：properties_incremental 种子（m3_incremental_
 #     seed.json，人类窗口）与断言接线未落地前，R1 是规格承诺非已证性质；
-#   - ResultCache 未实装（LRU+落盘面留后续批）；
+#   - ResultCache B12 已实装（迁移 cache.py——LRU 在册/落盘面挂账）；
 #   - Scope 四栏=单元集面，骨架原文「含单元集与工况集」的工况维度未入
 #     本切片（增量按工况逐图口径归 executor 集成批裁决）。
 #

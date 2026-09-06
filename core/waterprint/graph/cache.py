@@ -28,7 +28,10 @@
 #      旁路，组内成员 get/put 双面排除。
 #   R3 键=CacheKey 五字段（unit_id/design_hash[=design_fingerprint]/
 #      condition_key/engine_version/data_version）——engine/data 版本
-#      变化自动失配（§16 A8）；条目永不原地改写（§17.2 无锁模型）。
+#      变化自动失配（§16 A8）；「永不原地改写」指条目对象值面不可变
+#      （命中返回同对象零变异）——同键 put=槽位替换（新条目对象），
+#      旧条目对象永不改写，与无锁模型一致（executor 流程先 get 命中
+#      即返回，同键 put 不可达）。
 #   R4 design_fingerprint 与 ReproTriple.design_hash（L4 content_hash
 #       ——io.dumps_design+format_version 头）数值不同源：仅缓存键内部
 #       用，不进 ReproTriple（分层契约：L3 禁向上依赖 L4）。
@@ -76,7 +79,6 @@ from waterprint.contracts.unit_api import UnitResult
 from waterprint.graph.incremental import CacheKey, _canonical_json
 
 _DEFAULT_CAPACITY: Final[int] = 512  # 内存条目数上限（§17.2 LRU 默认）
-_DEFAULT_DISK_BUDGET_BYTES: Final[int] = 512 * 1024 * 1024  # 落盘预算（骨架常量）
 
 
 @dataclass(frozen=True)
@@ -91,8 +93,8 @@ class CachedUnitRun:
 def design_fingerprint(design: DesignState) -> str:
     """缓存键 design_hash 分量：sha256(model_dump 规范化 JSON)。
 
-    七+site 全字段经 model_dump 自动覆盖（与 L4 content_hash 参与面同集
-    ——R4 注记：数值不同源，仅缓存内部用）。"""
+    model_dump 全字段（DesignState 现八字段）自动覆盖（与 L4 content_hash
+    参与面同集——R4 注记：数值不同源，仅缓存内部用）。"""
     payload = _canonical_json(design.model_dump())
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
