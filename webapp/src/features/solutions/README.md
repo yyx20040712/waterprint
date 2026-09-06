@@ -9,6 +9,7 @@
 |------|------|------|
 | `lib/solutionsView.ts` | FE6 实装 | 纯函数层：SolutionPage 窄化门+动态列模型+apply 载荷+排序选项 |
 | `lib/solutionsView.test.ts` | FE6 实装 | 四纯函数族 node 测试（golden aao 内联夹具+负例族带键定位） |
+| `lib/solutionsFields.ts` | B7 R+ 提取 | 枚举结果字段窄化（resultField/grid_fields）+409 锁冲突判定（isLockConflict/LOCK_HINT）纯函数——solutionsPane 行数预算越界修前进 |
 | `lib/taskFeed.ts` | FE6 实装 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定 |
 | `lib/taskFeed.test.ts` | FE6 实装 | 事件序列归约/线格式/快照归一 node 测试（畸形 data 拒负例） |
 | `api/useTaskFeed.ts` | FE6 实装 | EventSource 自建薄壳（SSE 不走 customInstance——生成 useTaskEvents* 是一次性 JSON 读不可用） |

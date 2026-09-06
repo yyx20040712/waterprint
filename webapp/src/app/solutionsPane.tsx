@@ -98,6 +98,12 @@ import {
 } from "../features/params/lib/constraintPicker";
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
+import {
+  LOCK_HINT,
+  isLockConflict,
+  narrowGridFields,
+  resultField,
+} from "../features/solutions/lib/solutionsFields";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
 import { SolutionsTable } from "../features/solutions/components/SolutionsTable";
@@ -121,33 +127,6 @@ const NO_PROJECT_HINT =
 
 /** 分页大小（D9：50 固定——服务端分页默认 200 属全量面，浏览取 50）。 */
 const PAGE_SIZE = 50;
-
-/** 409 锁冲突保守提示（CP2 D2——照 UX2 AssumptionsPanel 口径不 force 不重试）。 */
-const LOCK_HINT = "项目已被他处修改，请刷新后重试（并发写锁守门——不自动覆盖）";
-
-/** 409 面=锁文件冲突（server error_type=ProjectLockedError；HTTP_409 兜底）。 */
-function isLockConflict(error: unknown): boolean {
-  return (
-    error instanceof WaterprintApiError &&
-    (error.code === "ProjectLockedError" || error.code === "HTTP_409")
-  );
-}
-
-/** result 载荷字段窄化（弱类型 Mapping——app 层内联，薄壳不测面）。 */
-function resultField(result: unknown, key: string): unknown {
-  if (typeof result !== "object" || result === null) {
-    return null;
-  }
-  return (result as Record<string, unknown>)[key] ?? null;
-}
-
-/** grid_fields 窄化（string[] 形状非法→空——表挂载仍可无应用列）。 */
-function narrowGridFields(result: unknown): string[] {
-  const value = resultField(result, "grid_fields");
-  return Array.isArray(value) && value.every((f) => typeof f === "string")
-    ? (value as string[])
-    : [];
-}
 
 export function SolutionsPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
