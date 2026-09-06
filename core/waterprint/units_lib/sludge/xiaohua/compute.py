@@ -40,7 +40,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
@@ -52,8 +51,8 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
 from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge
 from waterprint.units_lib.sludge.xiaohua.manifest import (
     FORMULA_IDS,
     SIDE_DISC_STEP,
@@ -85,20 +84,9 @@ _WALL = "factor.xiaohua.wall_thickness_coef"
 _PARAMS_POSITIVE = ("t_digest", "n", "t_digest_temp", "eta_vs", "r_biogas")
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _band(params: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(params, keys[0]), _factor(params, keys[1])
+    return _factor(params, keys[0], _UNIT_ID), _factor(params, keys[1], _UNIT_ID)
 
 
 def _validate(params: dict[str, float]) -> None:
@@ -117,29 +105,6 @@ def _validate(params: dict[str, float]) -> None:
         )
 
 
-def _inflow(ctx: UnitContext) -> SludgeFlow:
-    """入流装配：恰一入边且为 SLUDGE（多入/缺入/水线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], SludgeFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 SLUDGE 入边：得到 {len(refs)} 条"
-            "（消化池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, SludgeFlow)  # 上行守卫已收窄，窄化供类型面
-    return flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def make_unit() -> Unit:
     """单元工厂（包 __init__ 白名单导出；executor 经 app 装配消费）。"""
     return _SludgeXiaohua()
@@ -155,11 +120,13 @@ class _SludgeXiaohua:
         """XH-F1~F11 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        inflow = _inflow(ctx)
+        inflow = _inflow_sludge(ctx, "消化池单入单出语义")
         q_wet = inflow.q_wet * SECS_PER_DAY
         ds_in = inflow.ds * SECS_PER_DAY
         p_in = inflow.moisture
-        w_vs = _apply(ctx, "XH-F1", {"ds_in": ds_in, "f_vs": _factor(p, _F_VS)})
+        w_vs = _apply(
+            ctx, "XH-F1", {"ds_in": ds_in, "f_vs": _factor(p, _F_VS, _UNIT_ID)}
+        )
         v_total = _apply(ctx, "XH-F2", {"q_wet": q_wet, "t_digest": p["t_digest"]})
         v_single = _apply(ctx, "XH-F3", {"v_total": v_total, "n": p["n"]})
         w_vs_deg = _apply(ctx, "XH-F4", {"w_vs": w_vs, "eta_vs": p["eta_vs"]})
@@ -171,7 +138,11 @@ class _SludgeXiaohua:
         d_raw = _apply(
             ctx,
             "XH-F10",
-            {"v_single": v_single, "pi": math.pi, "r_dh": _factor(p, _RATIO_DH)},
+            {
+                "v_single": v_single,
+                "pi": math.pi,
+                "r_dh": _factor(p, _RATIO_DH, _UNIT_ID),
+            },
         )
         if SIDE_DISC_STEP <= 0:
             raise InvalidUnitConfig(
@@ -180,7 +151,9 @@ class _SludgeXiaohua:
         # 池径 0.5 m 档向上取整（表 XH-F10 口径——DSL 无 ceil，本文件收口）
         d = math.ceil(d_raw / SIDE_DISC_STEP) * SIDE_DISC_STEP
         v_concrete = _apply(
-            ctx, "XH-F11", {"v_total": v_total, "wall_coef": _factor(p, _WALL)}
+            ctx,
+            "XH-F11",
+            {"v_total": v_total, "wall_coef": _factor(p, _WALL, _UNIT_ID)},
         )
         dims = {
             "q_in": q_wet,

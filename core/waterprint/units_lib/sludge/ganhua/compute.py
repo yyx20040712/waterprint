@@ -38,7 +38,6 @@ from __future__ import annotations
 
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
@@ -50,8 +49,8 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
 from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge
 from waterprint.units_lib.sludge.ganhua.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "sludge_ganhua"
@@ -71,20 +70,9 @@ _FUEL = "factor.ganhua.fuel_calorific"
 _PARAMS_POSITIVE = ("t_op", "r_evap")
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _band(params: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(params, keys[0]), _factor(params, keys[1])
+    return _factor(params, keys[0], _UNIT_ID), _factor(params, keys[1], _UNIT_ID)
 
 
 def _validate(params: dict[str, float]) -> None:
@@ -103,29 +91,6 @@ def _validate(params: dict[str, float]) -> None:
         )
 
 
-def _inflow(ctx: UnitContext) -> SludgeFlow:
-    """入流装配：恰一入边且为 SLUDGE（多入/缺入/水线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], SludgeFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 SLUDGE 入边：得到 {len(refs)} 条"
-            "（干化机单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, SludgeFlow)  # 上行守卫已收窄，窄化供类型面
-    return flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def make_unit() -> Unit:
     """单元工厂（包 __init__ 白名单导出；executor 经 app 装配消费）。"""
     return _SludgeGanhua()
@@ -141,7 +106,7 @@ class _SludgeGanhua:
         """GH-F1~F8 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        inflow = _inflow(ctx)
+        inflow = _inflow_sludge(ctx, "干化机单入单出语义")
         q_wet = inflow.q_wet * SECS_PER_DAY
         ds_in = inflow.ds * SECS_PER_DAY
         p_in = inflow.moisture
@@ -157,11 +122,13 @@ class _SludgeGanhua:
             "GH-F6",
             {
                 "w_evap": w_evap,
-                "h_evap": _factor(p, _H_EVAP),
-                "eta_thermal": _factor(p, _ETA_THERMAL),
+                "h_evap": _factor(p, _H_EVAP, _UNIT_ID),
+                "eta_thermal": _factor(p, _ETA_THERMAL, _UNIT_ID),
             },
         )
-        w_fuel = _apply(ctx, "GH-F7", {"q_heat": q_heat, "q_cal_fuel": _factor(p, _FUEL)})
+        w_fuel = _apply(
+            ctx, "GH-F7", {"q_heat": q_heat, "q_cal_fuel": _factor(p, _FUEL, _UNIT_ID)}
+        )
         a_dry = _apply(
             ctx, "GH-F8", {"w_evap": w_evap, "r_evap": p["r_evap"], "t_op": p["t_op"]}
         )

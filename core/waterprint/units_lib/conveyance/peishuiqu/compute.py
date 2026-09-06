@@ -38,7 +38,6 @@ from __future__ import annotations
 
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -50,7 +49,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.conveyance.peishuiqu.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "conveyance_peishuiqu"
@@ -66,17 +65,6 @@ _M_WEIR = "factor.peishuiqu.m_weir"
 _K_UNEVEN = "factor.peishuiqu.k_uneven"
 _SUPERHEIGHT = "factor.peishuiqu.superheight"
 _PARAMS_POSITIVE = ("b_channel", "v_channel", "b", "g_gravity")
-
-
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
 
 
 def _series_count(params: dict[str, float]) -> int:
@@ -102,29 +90,6 @@ def _validate(params: dict[str, float]) -> None:
     _series_count(params)
 
 
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（配水渠单入多出语义）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 股"
-            "（配水渠单入多出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _channel(
     ctx: UnitContext, p: dict[str, float], flow: WaterFlow, count: int
 ) -> dict[str, float]:
@@ -143,7 +108,7 @@ def _channel(
         "PQ-F4",
         {
             "q_each": q_each,
-            "m_weir": _factor(p, _M_WEIR),
+            "m_weir": _factor(p, _M_WEIR, _UNIT_ID),
             "b": p["b"],
             "g_gravity": p["g_gravity"],
         },
@@ -154,10 +119,17 @@ def _channel(
         "h_water": h_water,
         "h_weir": h_weir,
         "q_series": _apply(
-            ctx, "PQ-F5", {"q_each": q_each, "k_uneven": _factor(p, _K_UNEVEN)}
+            ctx,
+            "PQ-F5",
+            {"q_each": q_each, "k_uneven": _factor(p, _K_UNEVEN, _UNIT_ID)},
         ),
         "h_total": _apply(
-            ctx, "PQ-F6", {"h_super": _factor(p, _SUPERHEIGHT), "h_water": h_water}
+            ctx,
+            "PQ-F6",
+            {
+                "h_super": _factor(p, _SUPERHEIGHT, _UNIT_ID),
+                "h_water": h_water,
+            },
         ),
         "v_end": _apply(
             ctx, "PQ-F7", {"q_each": q_each, "a_channel": a_channel}
@@ -172,7 +144,7 @@ def _warn(source: str, message: str, param_key: str) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(
@@ -231,7 +203,7 @@ class _ConveyancePeishuiqu:
         """PQ-F1~F7 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "配水渠单入多出语义")
         count = _series_count(p)
         channel = _channel(ctx, p, flow, count)
         # 动态多口（表内冻结口径）：out_1~out_n 每口平均日均分+kz 透传；

@@ -37,7 +37,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
@@ -49,8 +48,8 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
 from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge
 from waterprint.units_lib.sludge.bengzhan.manifest import (
     FORMULA_IDS,
     PIPE_DISC_STEP,
@@ -94,20 +93,9 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _band(params: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(params, keys[0]), _factor(params, keys[1])
+    return _factor(params, keys[0], _UNIT_ID), _factor(params, keys[1], _UNIT_ID)
 
 
 def _validate(params: dict[str, float]) -> None:
@@ -118,29 +106,6 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}"
             )
-
-
-def _inflow(ctx: UnitContext) -> SludgeFlow:
-    """入流装配：恰一入边且为 SLUDGE（多入/缺入/水线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], SludgeFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 SLUDGE 入边：得到 {len(refs)} 条"
-            "（泵站单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, SludgeFlow)  # 上行守卫已收窄，窄化供类型面
-    return flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _ceil_step(value: float, step: float) -> float:
@@ -161,7 +126,9 @@ def _pumps(ctx: UnitContext, p: dict[str, float], q_wet: float) -> dict[str, flo
     """BZ-F1~F5：泵组选型（锚值整台取整+均分反算+备用合成）。"""
     q_h = _apply(ctx, "BZ-F1", {"q_wet": q_wet})
     n_pump_raw = _apply(
-        ctx, "BZ-F2", {"q_h": q_h, "q_per_pump": _factor(p, _Q_PER_PUMP)}
+        ctx,
+        "BZ-F2",
+        {"q_h": q_h, "q_per_pump": _factor(p, _Q_PER_PUMP, _UNIT_ID)},
     )
     n_pump_duty = float(math.ceil(n_pump_raw))
     q_pump_h = _apply(ctx, "BZ-F3", {"q_h": q_h, "n_pump_duty": n_pump_duty})
@@ -202,14 +169,16 @@ def _head(ctx: UnitContext, p: dict[str, float], pipe: dict[str, float]) -> dict
         ctx,
         "BZ-F8",
         {
-            "lambda_f": _factor(p, _LAMBDA),
+            "lambda_f": _factor(p, _LAMBDA, _UNIT_ID),
             "l_pipe": p["l_pipe"],
             "d_pipe": pipe["d_pipe"],
             "v_act": pipe["v_act"],
         },
     )
     h_local = _apply(
-        ctx, "BZ-F9", {"zeta_total": _factor(p, _ZETA), "v_act": pipe["v_act"]}
+        ctx,
+        "BZ-F9",
+        {"zeta_total": _factor(p, _ZETA, _UNIT_ID), "v_act": pipe["v_act"]},
     )
     h_loss = _apply(
         ctx,
@@ -217,7 +186,7 @@ def _head(ctx: UnitContext, p: dict[str, float], pipe: dict[str, float]) -> dict
         {
             "h_friction": h_friction,
             "h_local": h_local,
-            "k_sludge": _factor(p, _K_SLUDGE),
+            "k_sludge": _factor(p, _K_SLUDGE, _UNIT_ID),
         },
     )
     return {
@@ -230,7 +199,7 @@ def _head(ctx: UnitContext, p: dict[str, float], pipe: dict[str, float]) -> dict
             {
                 "h_static": p["h_static"],
                 "h_loss": h_loss,
-                "h_free": _factor(p, _FREE_HEAD),
+                "h_free": _factor(p, _FREE_HEAD, _UNIT_ID),
             },
         ),
     }
@@ -245,7 +214,9 @@ def _well(
     )
     a_well = _apply(ctx, "BZ-F13", {"v_well": v_well, "h_well": p["h_well"]})
     h_well_total = _apply(
-        ctx, "BZ-F15", {"h_super": _factor(p, _SUPER), "h_well": p["h_well"]}
+        ctx,
+        "BZ-F15",
+        {"h_super": _factor(p, _SUPER, _UNIT_ID), "h_well": p["h_well"]},
     )
     return {
         "v_well": v_well,
@@ -260,7 +231,7 @@ def _well(
             {
                 "a_well": a_well,
                 "h_well_total": h_well_total,
-                "wall_coef": _factor(p, _WALL),
+                "wall_coef": _factor(p, _WALL, _UNIT_ID),
             },
         ),
     }
@@ -296,7 +267,7 @@ def _warnings(
                 "v_pipe",
             )
         )
-    start_max = _factor(p, _START_MAX)
+    start_max = _factor(p, _START_MAX, _UNIT_ID)
     if well["n_start"] > start_max:
         found.append(
             _warn(
@@ -345,7 +316,7 @@ class _SludgeBengzhan:
         """BZ-F1~F18 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        inflow = _inflow(ctx)
+        inflow = _inflow_sludge(ctx, "泵站单入单出语义")
         q_wet = inflow.q_wet * SECS_PER_DAY
         ds_in = inflow.ds * SECS_PER_DAY
         p_in = inflow.moisture

@@ -38,7 +38,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
@@ -50,8 +49,8 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
 from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow_sludge
 from waterprint.units_lib.sludge.shusong.manifest import (
     FORMULA_IDS,
     PIPE_DISC_STEP,
@@ -71,17 +70,6 @@ _SLOPE_MIN = "factor.shusong.slope_min"
 _PARAMS_POSITIVE = ("v_press", "d_grav")
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：名义流速/重力段管径非正一律拒。"""
     for key in _PARAMS_POSITIVE:
@@ -90,29 +78,6 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}"
             )
-
-
-def _inflow(ctx: UnitContext) -> SludgeFlow:
-    """入流装配：恰一入边且为 SLUDGE（多入/缺入/水线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], SludgeFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 SLUDGE 入边：得到 {len(refs)} 条"
-            "（输泥管单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, SludgeFlow)  # 上行守卫已收窄，窄化供类型面
-    return flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _ceil_step(value: float, step: float) -> float:
@@ -144,7 +109,7 @@ class _SludgeShusong:
         """ST-F1~F9 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        inflow = _inflow(ctx)
+        inflow = _inflow_sludge(ctx, "输泥管单入单出语义")
         # 入流三量回工程口径（表公式 m³/d、kg/d——单位换算归实装面）
         q_wet = inflow.q_wet * SECS_PER_DAY
         ds_in = inflow.ds * SECS_PER_DAY
@@ -158,18 +123,20 @@ class _SludgeShusong:
         v_act = _apply(
             ctx, "ST-F4", {"q_si": q_si, "pi": math.pi, "d_pipe": d_pipe}
         )
-        n_manning = _factor(p, _N_MANNING)
+        n_manning = _factor(p, _N_MANNING, _UNIT_ID)
         i_req = _apply(
             ctx,
             "ST-F5",
             {
-                "v_grav_min": _factor(p, _GRAVITY_V_MIN),
+                "v_grav_min": _factor(p, _GRAVITY_V_MIN, _UNIT_ID),
                 "n_manning": n_manning,
                 "d_grav": p["d_grav"],
             },
         )
         i_slope = _apply(
-            ctx, "ST-F7", {"i_req": i_req, "slope_min": _factor(p, _SLOPE_MIN)}
+            ctx,
+            "ST-F7",
+            {"i_req": i_req, "slope_min": _factor(p, _SLOPE_MIN, _UNIT_ID)},
         )
         v_grav = _apply(
             ctx,
@@ -195,7 +162,10 @@ class _SludgeShusong:
             "q_out": q_wet,
         }
         warnings: list[Warning] = []
-        band = (_factor(p, _V_BAND[0]), _factor(p, _V_BAND[1]))
+        band = (
+            _factor(p, _V_BAND[0], _UNIT_ID),
+            _factor(p, _V_BAND[1], _UNIT_ID),
+        )
         if not band[0] <= v_act <= band[1]:
             warnings.append(
                 _warn(
@@ -206,7 +176,7 @@ class _SludgeShusong:
                     "v_press",
                 )
             )
-        v_min = _factor(p, _GRAVITY_V_MIN)
+        v_min = _factor(p, _GRAVITY_V_MIN, _UNIT_ID)
         if v_grav < v_min:
             warnings.append(
                 _warn(

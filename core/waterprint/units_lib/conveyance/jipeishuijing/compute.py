@@ -40,7 +40,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -52,7 +51,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.conveyance.jipeishuijing.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "conveyance_jipeishuijing"
@@ -68,17 +67,6 @@ _K_UNEVEN = "factor.jipeishuijing.k_uneven"
 _SUPERHEIGHT = "factor.jipeishuijing.superheight"
 _WALL = "factor.jipeishuijing.wall_thickness_coef"
 _PARAMS_POSITIVE = ("t_well", "h_well", "dia_disc_step")
-
-
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
 
 
 def _ceil_step(value: float, step: float) -> float:
@@ -111,29 +99,6 @@ def _validate(params: dict[str, float]) -> None:
                 f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}"
             )
     _series_count(params)
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（propagate 汇流后单股）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边（propagate 汇流后"
-            f"单股）：得到 {len(refs)} 股（集配水井单入多出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _collect(
@@ -171,7 +136,9 @@ def _split(
     return {
         "q_each": q_each,
         "q_series": _apply(
-            ctx, "JP-F7", {"q_each": q_each, "k_uneven": _factor(p, _K_UNEVEN)}
+            ctx,
+            "JP-F7",
+            {"q_each": q_each, "k_uneven": _factor(p, _K_UNEVEN, _UNIT_ID)},
         ),
     }
 
@@ -181,14 +148,18 @@ def _shell(ctx: UnitContext, p: dict[str, float], a_act: float) -> dict[str, flo
     h_total = _apply(
         ctx,
         "JP-F8",
-        {"h_super": _factor(p, _SUPERHEIGHT), "h_well": p["h_well"]},
+        {"h_super": _factor(p, _SUPERHEIGHT, _UNIT_ID), "h_well": p["h_well"]},
     )
     return {
         "h_total": h_total,
         "v_concrete": _apply(
             ctx,
             "JP-F9",
-            {"a_act": a_act, "h_total": h_total, "wall_coef": _factor(p, _WALL)},
+            {
+                "a_act": a_act,
+                "h_total": h_total,
+                "wall_coef": _factor(p, _WALL, _UNIT_ID),
+            },
         ),
     }
 
@@ -200,7 +171,7 @@ def _warn(source: str, message: str, param_key: str) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(p: dict[str, float], d: float) -> tuple[Warning, ...]:
@@ -257,7 +228,7 @@ class _ConveyanceJipeishuijing:
         """JP-F1~F9 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "集配水井单入多出语义")
         count = _series_count(p)
         collected = _collect(ctx, p, flow)
         split = _split(ctx, p, flow, count)
