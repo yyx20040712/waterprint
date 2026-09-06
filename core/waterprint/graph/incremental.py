@@ -33,7 +33,9 @@
 #     ——序/键序噪声天然消除（golden municipal_34760 实证边键恰 src/dst
 #     两键）；边 dict 若有超 src/dst 的键（recycle 等）或端点形态不合 →
 #     整边规范化 JSON 比较兜底（json.dumps sort_keys——io.py/B6
-#     design_digest 序列化先例）。
+#     design_digest 序列化先例）。**端点 dict 超集键不入比较基准**
+#     （B9 R 轮 G1-02 补注：执行面 _to_edges 同款只消费 unit_id/
+#     port_id/recycle——端点额外键零语义，不入比较=无漏检方向）。
 #   ②其余五键+site（constraint_choices/checked_units/assumption_
 #     overrides/influent/standard_binding/site）任一面变更 →
 #     full_graph=True 保守回落（总控加裁：不判语义不猜——规格沉默处
