@@ -118,7 +118,7 @@
   "core/tests/trace/test_audit.py": "cbb1ea74394e1e0876b23b3a6ca2bb91fb240879affdf3090a78ed63c0dcf5c2",
   "core/tests/trace/test_calcbook.py": "9086803e6a3cef51dcfbc4ae25c98d271bf1e633469f87ce55e1c51d5c98b80f",
   "core/tests/trace/test_collector.py": "49fe6756dd5094932d3be9c4b07bb52cb756e2bcdfde3014342590837fa0970e",
-  "core/tests/units_lib/test_unit_compute.py": "ccf6ca505ae30a1ec7fd2365692741af3788215835bb0bbf3f1ad06aaa6028d5",
+  "core/tests/units_lib/test_unit_compute.py": "0d3614426f60a664c5ef0fc9c70610020e16f6ea9a7a7583f5a2ed500347d1a9",
   "core/waterprint/units_lib/_template/tests/properties.py": "7f258d0a9cbd0647ced587ec331a805b9faf68519242534cbf5a03af5aae89aa",
   "core/waterprint/units_lib/_template/tests/test_compute.py": "6b1edf7627c5848ea801d3c8458662c938408665d293ccc5a4bc8c77aa194adf",
   "core/waterprint/units_lib/conveyance/jipeishuijing/tests/properties.py": "ba25558ee961350bc9d3bffc710575c54d67f9d300a562dd94248a6ea472c314",

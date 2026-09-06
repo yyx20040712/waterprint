@@ -90,7 +90,7 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_G_MIX, _G_FLOC, _C_SLUDGE, _DOSE_PAC, _DOSE_PAM)
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _validate(params: dict[str, float]) -> None:

@@ -74,7 +74,7 @@ _WEIR_MAX = "factor.mine_chenshachi.weir_load.max"
 _PARAMS_POSITIVE = ("n", "v_h", "t_stay", "h2", "t_clean", "side_disc_step", "length_disc_step")
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _validate(params: dict[str, float]) -> None:

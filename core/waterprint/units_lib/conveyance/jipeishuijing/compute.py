@@ -68,7 +68,7 @@ _WALL = "factor.jipeishuijing.wall_thickness_coef"
 _PARAMS_POSITIVE = ("t_well", "h_well", "dia_disc_step")
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _series_count(params: dict[str, float]) -> int:

@@ -52,7 +52,7 @@ _NORM = "GB 50014-2021 §6.3（条文号待核对原文）"
 
 def _ceil_step(value: float, step: float, unit_id: str) -> float:
     """构造步长向上取整（B15 收敛——共享核心+本地标签；签名兼容面）。"""
-    return _ceil_step_core(value, step, unit_id, "length_disc_step")
+    return _ceil_step_core(value, step, unit_id, "length_disc_step", spaced=True)
 
 
 def _validate(params: dict[str, float], unit_id: str) -> None:

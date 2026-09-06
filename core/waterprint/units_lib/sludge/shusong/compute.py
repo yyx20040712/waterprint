@@ -80,7 +80,7 @@ def _validate(params: dict[str, float]) -> None:
             )
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _warn(source: str, message: str, param_key: str | None) -> Warning:

@@ -70,7 +70,7 @@ _PARAMS_POSITIVE = ("n", "t_reg", "h2", "ratio_lb", "side_disc_step", "length_di
 _FACTORS_POSITIVE = (_STIR_DENSITY, _OUT_VELOCITY)
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _validate(params: dict[str, float]) -> None:

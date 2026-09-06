@@ -93,7 +93,7 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_SELFUSE, _W_AIR, _W_WATER_SIM, _W_WATER, _W_SWEEP, _T_AIR, _T_SIM, _T_WATER)
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _validate(params: dict[str, float]) -> None:

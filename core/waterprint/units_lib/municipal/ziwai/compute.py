@@ -76,7 +76,7 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_Q_PER_LAMP, _F_AGING, _C_FECAL_IN, _N_LOG)
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长")
+_ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
 def _validate(params: dict[str, float]) -> None:

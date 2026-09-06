@@ -62,7 +62,7 @@ _RETENTION_BAND = (
 )
 
 
-_ceil_step = _make_ceil_step(_UNIT_ID, "length_disc_step")
+_ceil_step = _make_ceil_step(_UNIT_ID, "length_disc_step", spaced=True)
 
 
 def _validate(params: dict[str, float]) -> None:

@@ -51,24 +51,28 @@ from waterprint.contracts.unit_api import UnitContext
 from waterprint.registry import formulas
 
 
-def _ceil_step_core(value: float, step: float, unit_id: str, label: str) -> float:
+def _ceil_step_core(
+    value: float, step: float, unit_id: str, label: str, *, spaced: bool
+) -> float:
     """构造步长向上取整共享核心（B15 收敛——21 包 _ceil_step 单源；三组
-    guard/return 恒等 AST 实证，消息族经 label 参数显式分派——B8 R-1
-    运行时消息恒等：组1「取整步长」18 包/组2+组3「length_disc_step」
-    3 包；步长>0 守卫）。"""
+    guard/return 恒等 AST 实证，消息族经 label+spaced 显式分派——B8 R-1
+    运行时消息恒等：组1「的取整步长必须」无空格 18 包/组2+组3
+    「的 length_disc_step 必须」带空格 3 包——git 基线对拍实证[R 轮
+    G1-01 勘误：单模板曾向组1 插入两空格]；步长>0 守卫）。"""
     if step <= 0:
-        raise InvalidUnitConfig(
-            f"单元 {unit_id!r} 的 {label} 必须 > 0：得到 {step!r}"
-        )
+        mid = f" {label} " if spaced else label
+        raise InvalidUnitConfig(f"单元 {unit_id!r} 的{mid}必须 > 0：得到 {step!r}")
     return math.ceil(value / step) * step
 
 
-def _make_ceil_step(unit_id: str, label: str) -> Callable[[float, float], float]:
+def _make_ceil_step(
+    unit_id: str, label: str, *, spaced: bool
+) -> Callable[[float, float], float]:
     """工厂：按包绑定 unit_id+消息族的 _ceil_step 模块级常量（B15——
     零调用点 churn 形态；组3 参数面两包走 _ceil_step_core 直包）。"""
 
     def _ceil_step(value: float, step: float) -> float:
-        return _ceil_step_core(value, step, unit_id, label)
+        return _ceil_step_core(value, step, unit_id, label, spaced=spaced)
 
     return _ceil_step
 

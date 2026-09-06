@@ -116,18 +116,18 @@ def test_inflow_sludge_rejects_empty() -> None:
 
 def test_ceil_step_core_group1_message_verbatim() -> None:
     """组1 消息族「取整步长」逐字恒等（18 包绑定形态的共享源）。"""
-    step_fn = _make_ceil_step("municipal_cass", "取整步长")
+    step_fn = _make_ceil_step("municipal_cass", "取整步长", spaced=False)
     with pytest.raises(InvalidUnitConfig) as exc:
         step_fn(1.0, 0.0)
     assert str(exc.value) == (
-        f"单元 {'municipal_cass'!r} 的 取整步长 必须 > 0：得到 0.0"
+        f"单元 {'municipal_cass'!r} 的取整步长必须 > 0：得到 0.0"
     )
     assert step_fn(0.95, 0.1) == pytest.approx(1.0)
 
 
 def test_ceil_step_core_group2_message_verbatim() -> None:
     """组2 消息族「length_disc_step」逐字恒等（municipal/chenshachi）。"""
-    step_fn = _make_ceil_step("municipal_chenshachi", "length_disc_step")
+    step_fn = _make_ceil_step("municipal_chenshachi", "length_disc_step", spaced=True)
     with pytest.raises(InvalidUnitConfig) as exc:
         step_fn(1.0, -0.1)
     assert str(exc.value) == (
@@ -138,13 +138,13 @@ def test_ceil_step_core_group2_message_verbatim() -> None:
 def test_ceil_step_core_group3_message_verbatim() -> None:
     """组3 参数面（cugeshan/xigeshan wrapper——unit_id 调用时传）。"""
     with pytest.raises(InvalidUnitConfig) as exc:
-        _ceil_step_core(1.0, 0.0, "municipal_cugeshan", "length_disc_step")
+        _ceil_step_core(1.0, 0.0, "municipal_cugeshan", "length_disc_step",
+                        spaced=True)
     assert str(exc.value) == (
         f"单元 {'municipal_cugeshan'!r} 的 length_disc_step 必须 > 0：得到 0.0"
     )
-    assert _ceil_step_core(0.95, 0.1, "municipal_cugeshan", "length_disc_step") == (
-        pytest.approx(1.0)
-    )
+    assert _ceil_step_core(0.95, 0.1, "municipal_cugeshan", "length_disc_step",
+                           spaced=True) == pytest.approx(1.0)
 
 
 def test_package_binding_messages_match_original() -> None:
@@ -155,11 +155,16 @@ def test_package_binding_messages_match_original() -> None:
 
     with pytest.raises(InvalidUnitConfig) as exc_bz:
         bz(1.0, 0.0)
-    assert "取整步长" in str(exc_bz.value)
-    assert "sludge_bengzhan" in str(exc_bz.value)
+    assert str(exc_bz.value) == (
+        f"单元 {'sludge_bengzhan'!r} 的取整步长必须 > 0：得到 0.0"
+    )
     with pytest.raises(InvalidUnitConfig) as exc_cs:
         cs(1.0, 0.0)
-    assert "length_disc_step" in str(exc_cs.value)
+    assert str(exc_cs.value) == (
+        f"单元 {'municipal_chenshachi'!r} 的 length_disc_step 必须 > 0：得到 0.0"
+    )
     with pytest.raises(InvalidUnitConfig) as exc_cg:
         cg(1.0, 0.0, "municipal_cugeshan")
-    assert "length_disc_step" in str(exc_cg.value)
+    assert str(exc_cg.value) == (
+        f"单元 {'municipal_cugeshan'!r} 的 length_disc_step 必须 > 0：得到 0.0"
+    )

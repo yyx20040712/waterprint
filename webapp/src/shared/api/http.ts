@@ -20,7 +20,9 @@
  *     环境无 window——typeof 守卫零派发）；
  *   - SSE 订阅不走本实例（EventSource 直连 /api/events/*——冻结方向
  *     不变；token 面由 useTaskFeed 以 ？token= 查询参数对齐）；
- *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改。
+ *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改；
+ *   - B15 增 409 锁冲突判定面（LOCK_HINT/isLockConflict——自
+ *     solutionsFields 上移单源；口径源=UX2 AssumptionsPanel D3）。
  */
 
 import { AUTH_EVENT } from "../events";
