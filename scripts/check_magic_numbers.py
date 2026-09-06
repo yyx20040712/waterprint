@@ -44,6 +44,9 @@ WHITELIST_EXACT = ("core/waterprint/contracts/quantity.py",)
 WHITELIST_DECLARATION = (
     "core/waterprint/drafting/styles.py",
     "core/waterprint/drafting/sheets.py",
+    # B8 R3：SECS_PER_DAY 单源真源——收敛 13 份 manifest 重复定义；
+    # _unit_compute 零数值字面量不在白名单。
+    "core/waterprint/units_lib/_constants.py",
 )
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
 # 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。

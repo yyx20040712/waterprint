@@ -32,7 +32,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -44,7 +43,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.cass.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_cass"
@@ -72,17 +71,6 @@ _PARAM_BANDS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（池长/池宽 0.5 m 档；步长>0 守卫）。"""
     if step <= 0:
@@ -103,31 +91,9 @@ def _validate(params: dict[str, float]) -> None:
             f" {phase_sum!r} ≠ t_cycle = {params['t_cycle']!r}"
             "（business-logic §8/CA-F13——时段分配须与周期档一致）"
         )
-    moisture = _factor(params, "factor.cass.sludge.moisture")
+    moisture = _factor(params, "factor.cass.sludge.moisture", _UNIT_ID)
     if not 0 < moisture < 1:
         raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 剩余污泥含水率须 ∈ (0,1)：得到 {moisture!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（生物池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _cycles(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -167,7 +133,10 @@ def _decant(ctx: UnitContext, p: dict[str, float], v_draw: float) -> dict[str, f
     n_decant_raw = _apply(
         ctx,
         "CA-F15",
-        {"q_decant": q_decant, "q_per_decant": _factor(p, "factor.cass.decant.q_per_unit")},
+        {
+            "q_decant": q_decant,
+            "q_per_decant": _factor(p, "factor.cass.decant.q_per_unit", _UNIT_ID),
+        },
     )
     phases = {"t_react": p["t_react"], "t_settle": p["t_settle"], "t_draw": p["t_draw"]}
     return {
@@ -189,13 +158,15 @@ def _sludge(
             "q_avg_daily": flow.q_avg_daily,
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "y_yield": _factor(p, "factor.cass.yield.y"),
+            "y_yield": _factor(p, "factor.cass.yield.y", _UNIT_ID),
         },
     )
     return {
         "s_y": s_y,
         "q_wet": _apply(
-            ctx, "CA-F17", {"s_y": s_y, "p_moisture": _factor(p, "factor.cass.sludge.moisture")}
+            ctx,
+            "CA-F17",
+            {"s_y": s_y, "p_moisture": _factor(p, "factor.cass.sludge.moisture", _UNIT_ID)},
         ),
         "theta_c": _apply(ctx, "CA-F18", {"v_load": v_load, "x_mlss": p["x_mlss"], "s_y": s_y}),
     }
@@ -209,16 +180,16 @@ def _oxygen(
     v_load: float,
 ) -> dict[str, float]:
     """CA-F19~F22：碳化/硝化/反硝化需氧量与设计需氧量（AAO 同族）。"""
-    x_vss = _factor(p, "factor.cass.vss_ratio") * p["x_mlss"]
+    x_vss = _factor(p, "factor.cass.vss_ratio", _UNIT_ID) * p["x_mlss"]
     o2_carbon = _apply(
         ctx,
         "CA-F19",
         {
-            "a_prime": _factor(p, "factor.cass.o2.a_prime"),
+            "a_prime": _factor(p, "factor.cass.o2.a_prime", _UNIT_ID),
             "q_avg_daily": flow.q_avg_daily,
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "b_prime": _factor(p, "factor.cass.o2.b_prime"),
+            "b_prime": _factor(p, "factor.cass.o2.b_prime", _UNIT_ID),
             "v_load": v_load,
             "x_vss": x_vss,
         },
@@ -239,7 +210,7 @@ def _oxygen(
 
 def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, float]) -> dict[str, float]:
     """CA-F24~F27：池体几何（0.5 m 档 ceil 收口）与概算混凝土量。"""
-    h_super = _factor(p, "factor.cass.superheight")
+    h_super = _factor(p, "factor.cass.superheight", _UNIT_ID)
     h_pool = _apply(ctx, "CA-F24", {"h_super": h_super, "h2": p["h2"]})
     binds = {"a_pool": areas["a_pool"], "ratio_lb": p["ratio_lb"]}
     l_raw = _apply(ctx, "CA-F25", binds)
@@ -257,7 +228,7 @@ def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, float]) ->
                 "a_pool": areas["a_pool"],
                 "h_pool": h_pool,
                 "n_pool": p["n_pool"],
-                "wall_coef": _factor(p, "factor.cass.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.cass.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -270,7 +241,10 @@ def _warn(source: str, message: str, param_key: str) -> Warning:
 
 def _band(p: dict[str, float], band_key: str) -> tuple[float, float]:
     """带类系数取值（factor.cass.<band>.min/max 双键）。"""
-    return _factor(p, f"factor.cass.{band_key}.min"), _factor(p, f"factor.cass.{band_key}.max")
+    return (
+        _factor(p, f"factor.cass.{band_key}.min", _UNIT_ID),
+        _factor(p, f"factor.cass.{band_key}.max", _UNIT_ID),
+    )
 
 
 # 结果带检查表：(带键短名, dims 键, 量名, 归因参数键)——theta_c/h_draw/ns_act。
@@ -323,7 +297,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -344,14 +318,14 @@ class _Cass:
         """CA-F1~F27 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "生物池单入单出语义")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         bod5_in, tn_in = quality.BOD5, quality.TN
         if bod5_in is None or tn_in is None:
             raise InvalidUnitConfig(
                 f"单元 {ctx.unit_id!r} 入流缺 BOD5/TN 浓度（CA-F3/F20 计算前提，GR-09）"
             )
-        bod5_out = bod5_in * (1 - _factor(p, "removal.cass.bod5.mod_default"))
+        bod5_out = bod5_in * (1 - _factor(p, "removal.cass.bod5.mod_default", _UNIT_ID))
         qual = {"bod5_in": bod5_in, "tn_in": tn_in, "bod5_out": bod5_out}
         cycles = _cycles(ctx, p, flow)
         v_load = _apply(
