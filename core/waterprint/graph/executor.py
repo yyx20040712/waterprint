@@ -94,6 +94,12 @@ from waterprint.contracts.trace_api import TraceNodeSpec, TraceSink
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 
 # B3 R2 再导出（修正③——显式清单；冗余别名形态被 ruff PLC0414 拦）
+from waterprint.graph.cache import (
+    CachedUnitRun,
+    CaptureSink,
+    default_cache,
+    design_fingerprint,
+)
 from waterprint.graph.executor_dsl import (
     InvalidExecutionError,
     _apply_mappings,
@@ -104,6 +110,7 @@ from waterprint.graph.executor_projection import (
     _dims_of,  # noqa: F401  # 再导出专用（同上）
     _snapshot,
 )
+from waterprint.graph.incremental import CacheKey
 from waterprint.graph.loop import LoopConfig, LoopDivergence, solve_loop
 from waterprint.graph.nodes import InvalidNodeError
 from waterprint.graph.propagate import InvalidPropagationError, propagate
@@ -225,7 +232,10 @@ def _estimate(
 @dataclass(frozen=True)
 @final
 class _ConditionContext:
-    """单工况只读上下文（execute_graph 四参的内部展开，工况间零共享）。"""
+    """单工况只读上下文（execute_graph 四参的内部展开，工况间零共享）。
+
+    design_fingerprint/condition_key：缓存键材料（B12——指纹每 execute_graph
+    一次、工况键每工况一次，免逐单元重算）。"""
 
     design: DesignState
     units: UnitRegistry
@@ -234,6 +244,8 @@ class _ConditionContext:
     edges: tuple[Edge, ...]
     sink: TraceSink
     loop_config: LoopConfig
+    design_fingerprint: str
+    condition_key: str
 
 
 @final
@@ -288,8 +300,54 @@ class _RunState:
             raise InvalidExecutionError(
                 f"单元 {unit_id!r} 在工况 {key!r} 计算失败：{type(exc).__name__}: {exc}") from exc
 
-    def run(self, unit_id: str) -> None:
-        """单单元执行：参数装配→DSL 变换→入流装配→compute→池+快照落账。"""
+    def _cache_key(self, unit_id: str) -> CacheKey:
+        """缓存键（B12 裁定3：指纹+工况键+env 版本——五字段一次装配）。"""
+        return CacheKey(
+            unit_id=unit_id,
+            design_hash=self.ctx.design_fingerprint,
+            condition_key=self.ctx.condition_key,
+            engine_version=self.ctx.env.engine_version,
+            data_version=self.ctx.env.data_version,
+        )
+
+    def _context_with(
+        self, unit_id: str, params: dict[str, float], inflows: dict[PortRef,
+        WaterFlow | SludgeFlow], inqualities: dict[PortRef, WaterQuality],
+        sink: TraceSink,
+    ) -> UnitContext:
+        """UnitContext 装配（取或算两路径共形态——sink 唯一变量）。"""
+        return UnitContext(
+            unit_id=unit_id, inflows=inflows, inqualities=inqualities,
+            params=params, condition=self.ctx.condition,
+            assumptions=self.ctx.env.assumptions, trace=sink)
+
+    def _get_or_compute(
+        self, unit_id: str, params: dict[str, float], inflows: dict[
+            PortRef, WaterFlow | SludgeFlow], inqualities: dict[
+                PortRef, WaterQuality],
+    ) -> UnitResult:
+        """单点路径「取或算」（B12 裁定3）：命中=trace 重放+原引用返回；
+        未命中=捕获腔包 sink 计算+入缓。"""
+        cache = default_cache()
+        key = self._cache_key(unit_id)
+        cached = cache.get(key)
+        if cached is not None:
+            for node in cached.trace_nodes:  # R1：重放先行（次序=捕获序）
+                self.ctx.sink.record(node)
+            return cached.result
+        capture = CaptureSink(self.ctx.sink)
+        result = self._compute(
+            unit_id, self._context_with(unit_id, params, inflows, inqualities,
+                                        capture))
+        cache.put(key, CachedUnitRun(
+            result=result, trace_nodes=tuple(capture.nodes)))
+        return result
+
+    def run(self, unit_id: str, *, use_cache: bool = True) -> None:
+        """单单元执行：参数装配→DSL 变换→入流装配→取或算→池+快照落账。
+
+        use_cache=False 供回路组路径旁路（B12 裁定3：组内迭代中间值
+        入缓存=假收敛——get/put 双面排除，正确性必需）。"""
         unit = self._unit(unit_id)
         params = _apply_mappings(
             unit_id,
@@ -298,11 +356,12 @@ class _RunState:
             self.ctx.condition,
         )
         inflows, inqualities = self._inflows(unit_id)
-        ctx = UnitContext(
-            unit_id=unit_id, inflows=inflows, inqualities=inqualities, params=params,
-            condition=self.ctx.condition, assumptions=self.ctx.env.assumptions,
-            trace=self.ctx.sink)
-        result = self._compute(unit_id, ctx)
+        if use_cache:
+            result = self._get_or_compute(unit_id, params, inflows, inqualities)
+        else:
+            result = self._compute(
+                unit_id, self._context_with(unit_id, params, inflows,
+                                            inqualities, self.ctx.sink))
         self.flows.update(result.outflows)
         self.qualities.update(result.outqualities)
         self.snapshots[unit_id] = _snapshot(result, unit_id)
@@ -371,7 +430,7 @@ class _RunState:
                 prefix = f"{edge.src.unit_id}.{edge.src.port_id}"
                 self.recycle_flows[edge.src] = _estimate(fluid_of[edge], prefix, flat)
             for node in order:
-                self.run(node)
+                self.run(node, use_cache=False)  # 组内旁路（B12 裁定3）
             for edge in internal:
                 quality = self.qualities.get(edge.src)
                 if quality is not None:
@@ -403,13 +462,16 @@ def execute_graph(
     edges = _edges_from_design(design.edges)
     sink: TraceSink = env.trace_sink if env.trace_sink is not None else _NullSink()
     loop_config = _loop_config(env)
+    fingerprint = design_fingerprint(design)  # 每 execute_graph 一次（B12 裁定3）
     result_conditions: dict[str, Mapping[str, UnitResultSnapshot]] = {}
     for condition in conditions.iter_all():
+        key = ConditionSet.key(condition)
         state = _RunState(_ConditionContext(
             design=design, units=units, condition=condition, env=env,
-            edges=edges, sink=sink, loop_config=loop_config))
+            edges=edges, sink=sink, loop_config=loop_config,
+            design_fingerprint=fingerprint, condition_key=key))
         state.run_all()
-        result_conditions[ConditionSet.key(condition)] = MappingProxyType(
+        result_conditions[key] = MappingProxyType(
             dict(state.snapshots))
     return PlantResult(
         conditions=MappingProxyType(result_conditions), summary={}, trace=(),

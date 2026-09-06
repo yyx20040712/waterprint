@@ -25,6 +25,11 @@
 #       ordered_units（sorted 字典序 tuple——B6 design_digest 确定性先例）
 #   class ResultCache：进程内 LRU（默认 512 条）+ 大结果落盘 arrow
 #      （按 hash 重载，容量上限可配，默认 512MB，超限逐出最旧）
+#      【B12 迁移注记】ResultCache 及伴生件（CachedUnitRun/CaptureSink/
+#      design_fingerprint/default_cache）**实现迁移 graph/cache.py**（本
+#      包内伴生件——「一个文件一个主概念」§2），经包根 __init__ 聚合
+#      导出；incremental 名下保留规格引用（LRU 已实装+落盘面挂账——
+#      详见 cache.py 规格头【落盘面挂账】节）。
 #
 # 【范围判定规则】（B9 实装——D2/D3 定稿的比较基准与保守回落面）
 #   ①拓扑比对先行短路：nodes 键集差（增删单元）或规范化边集差 →
@@ -68,9 +73,20 @@
 #     集成批接线后增量跳过才生效；
 #   - R1 字节级等价不背书：properties_incremental 种子（m3_incremental_
 #     seed.json，人类窗口）与断言接线未落地前，R1 是规格承诺非已证性质；
-#   - ResultCache 未实装（LRU+落盘面留后续批）；Scope 四栏=单元集面，
-#     骨架原文「含单元集与工况集」的工况维度未入本切片（增量按工况逐图
-#     口径归 executor 集成批裁决）。
+#   - ResultCache 未实装（LRU+落盘面留后续批）；
+#   - Scope 四栏=单元集面，骨架原文「含单元集与工况集」的工况维度未入
+#     本切片（增量按工况逐图口径归 executor 集成批裁决）。
+#
+# 【B12 集成状态】（2026-09-06，briefs/task-B12-brief.md）
+#   - executor 已接结果缓存（B12 裁定3）：「同 design 指纹重算命中」——
+#     execute_graph 单点路径取或算+trace 重放+回路组旁路（组内迭代
+#     中间值入缓存=假收敛）；**recompute_scope 消费面仍挂账**——正门
+#     UF-31 四参无旧态载体，old_design 驱动的增量跳过待批 11 语义闭环
+#     时再裁；
+#   - 缓存键 design_hash 分量=graph 内自算指纹（cache.design_fingerprint
+#     ——L3 禁向上依赖 L4 content_hash，B12 裁定3/A1），与 ReproTriple.
+#     design_hash 数值不同源；
+#   - R1 仍不背书（种子人类窗口未就绪——properties_incremental 恒 skip）。
 #
 # 【测试要求】变更单元下游集正确（含回路组扩张）、缓存键三元组失配、
 #   LRU 逐出；性质：随机编辑序列下增量==全量（hypothesis，字节级比较）。

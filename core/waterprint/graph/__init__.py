@@ -18,7 +18,11 @@
 #   executor:   execute_graph（T7b 实现，D7 聚合恰四符号；UnitRegistry/
 #               InvalidExecutionError 经模块直取——协议与异常消费面窄，
 #               不扩根白名单，D7 裁决）
-#   incremental: recompute_scope（待实现暂不聚合——M1/M3）
+#   incremental: recompute_scope/CacheKey/Scope（B9 实装，B12 开放聚合
+#               ——「待实现暂不聚合」注记销账）
+#   cache:      ResultCache/CachedUnitRun/CaptureSink/design_fingerprint/
+#               default_cache（B12 实装——结果缓存件；default_cache 亦
+#               经 executor 模块直取消费）
 #   nodes:      builtin_unit **不聚合**（装配工具面：app 侧显式
 #               from waterprint.graph.nodes import builtin_unit——D7 裁决；
 #               graph 根 file-contracts 不列 nodes 行已由 D2 单列行解决）
@@ -28,7 +32,15 @@
 # 注入（import-linter "装配点唯一"契约强制）。
 # ══════════════════════════════════════════════════════════════════
 
+from waterprint.graph.cache import (
+    CachedUnitRun,
+    CaptureSink,
+    ResultCache,
+    default_cache,
+    design_fingerprint,
+)
 from waterprint.graph.executor import execute_graph
+from waterprint.graph.incremental import CacheKey, Scope, recompute_scope
 from waterprint.graph.loop import LoopConfig, LoopDivergence, solve_loop
 from waterprint.graph.propagate import InvalidPropagationError, mix, propagate
 from waterprint.graph.topo import (
@@ -38,12 +50,20 @@ from waterprint.graph.topo import (
 )
 
 __all__ = [
+    "CacheKey",
+    "CachedUnitRun",
+    "CaptureSink",
     "InvalidPropagationError",
     "LoopConfig",
     "LoopDivergence",
+    "ResultCache",
+    "Scope",
+    "default_cache",
+    "design_fingerprint",
     "execute_graph",
     "mix",
     "propagate",
+    "recompute_scope",
     "solve_loop",
     "split_graph",
     "strongly_connected_components",

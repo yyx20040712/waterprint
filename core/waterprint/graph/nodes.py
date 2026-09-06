@@ -89,6 +89,10 @@ _NORM_REF: Final[str] = "内置图节点（重写计划 §14.3 归属表）"
 # 先例；模块级 Final 常量=唯一住所）：秒/日=m³/d→m³/s 换算因子之倒数；
 # kg/m³→mg/L 因子（1000）无 UF-20 白名单单位对，经 mm→m 因子倒数派生
 # （量纲借用注记同 dxf_writer——I2 追认）。
+# B12 同源注记（裁定6）：_SECS_PER_DAY 真实单源=单位注册表 m³/d 换算
+# 基准（parse 派生），数值与 units_lib/_constants.py SECS_PER_DAY=86400.0
+# 同源——本处非第二份字面量（L2 正门导出案否弃：增 graph→units_lib 边
+# 与本包规格头「图引擎不认识 units_lib」相抵）。
 _SECS_PER_DAY: Final[float] = 1.0 / parse(1.0, "m3/d", DimKey.FLOW)
 _KG_M3_TO_MG_L: Final[float] = 1.0 / parse(1.0, "mm", DimKey.LENGTH)
 
