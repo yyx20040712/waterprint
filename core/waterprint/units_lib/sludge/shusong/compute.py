@@ -51,10 +51,10 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
 from waterprint.units_lib.sludge.shusong.manifest import (
     FORMULA_IDS,
     PIPE_DISC_STEP,
-    SECS_PER_DAY,
     manifest,
 )
 

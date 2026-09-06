@@ -31,8 +31,6 @@
 #   norm_refs 双源标记/condition_mappings=()/constraint_refs 两键。
 # ══════════════════════════════════════════════════════════════════
 
-from typing import Final
-
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.formulas import FormulaSpec, register
@@ -50,10 +48,6 @@ _HB5 = (
 )
 _D = DimKey.DIMENSIONLESS
 
-# 单位换算常量（工程口径 m³/d、kg/d ↔ 契约口径 m3/s、kg/s——表头
-# "单位换算归 M3b2 实装面"授权；manifest=数值白名单区，compute 零
-# 字面量消费）。
-SECS_PER_DAY: Final[float] = 86400.0
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(

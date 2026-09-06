@@ -36,7 +36,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -48,7 +47,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.mine_water.tiaojiechi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_tiaojiechi"
@@ -71,17 +70,6 @@ _PARAMS_POSITIVE = ("n", "t_reg", "h2", "ratio_lb", "side_disc_step", "length_di
 _FACTORS_POSITIVE = (_STIR_DENSITY, _OUT_VELOCITY)
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（KT-F4/F5/F10 的 0.5/0.05 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -96,32 +84,10 @@ def _validate(params: dict[str, float]) -> None:
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
     for key in _FACTORS_POSITIVE:
-        if _factor(params, key) <= 0:
+        if _factor(params, key, _UNIT_ID) <= 0:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 系数键 {key!r} 必须 > 0（搅拌功率密度/出水管流速物理域）"
             )
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（调节池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -158,7 +124,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ...]:
@@ -212,7 +178,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -233,12 +199,12 @@ class _MineTiaojiechi:
         """KT-F1~F12 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "调节池单入单出语义")
         basin = _basin(ctx, p, flow)
         p_stir = _apply(
             ctx,
             "KT-F9",
-            {"v_act_total": basin["v_act_total"], "w_stir": _factor(p, _STIR_DENSITY)},
+            {"v_act_total": basin["v_act_total"], "w_stir": _factor(p, _STIR_DENSITY, _UNIT_ID)},
         )
         d_out_raw = _apply(
             ctx,
@@ -246,14 +212,14 @@ class _MineTiaojiechi:
             {
                 "q_avg_daily": flow.q_avg_daily,
                 "pi": math.pi,
-                "v_out": _factor(p, _OUT_VELOCITY),
+                "v_out": _factor(p, _OUT_VELOCITY, _UNIT_ID),
             },
         )
         dn_out = _ceil_step(d_out_raw, p["length_disc_step"])
         h_total = _apply(
             ctx,
             "KT-F11",
-            {"h_super": _factor(p, "factor.mine_tiaojiechi.superheight"), "h2": p["h2"]},
+            {"h_super": _factor(p, "factor.mine_tiaojiechi.superheight", _UNIT_ID), "h2": p["h2"]},
         )
         v_concrete = _apply(
             ctx,
@@ -262,7 +228,7 @@ class _MineTiaojiechi:
                 "a_act": basin["a_act"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.mine_tiaojiechi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.mine_tiaojiechi.wall_thickness_coef", _UNIT_ID),
             },
         )
         dims = {

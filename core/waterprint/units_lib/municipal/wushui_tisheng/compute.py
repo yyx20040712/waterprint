@@ -38,7 +38,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -50,7 +49,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.wushui_tisheng.manifest import (
     DN_RESISTANCE,
     FORMULA_IDS,
@@ -80,17 +79,6 @@ _FREE_HEAD = "factor.wushui_tisheng.pump.free_head"
 _ZETA = "factor.wushui_tisheng.pipe.zeta_total"
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（DN 0.1 m 档；步长>0 守卫）。"""
     if step <= 0:
@@ -106,33 +94,11 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（泵房单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _pumps(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
     """TS-F1~F3：选泵（整台 ceil 收口）与泵组配置（2 用 1 备档）。"""
     q_design_h = flow.q_design * p["sec_per_hour"]
     n_pump_raw = _apply(
-        ctx, "TS-F1", {"q_design_h": q_design_h, "q_per_pump": _factor(p, _Q_PER_PUMP)}
+        ctx, "TS-F1", {"q_design_h": q_design_h, "q_per_pump": _factor(p, _Q_PER_PUMP, _UNIT_ID)}
     )
     n_pump_duty = float(math.ceil(n_pump_raw))
     return {
@@ -154,7 +120,7 @@ def _a_pipe_of(p: dict[str, float], d_pipe: float) -> float:
             f"单元 {_UNIT_ID!r} DN 档 {d_pipe!r} 越比阻表覆盖面（录入 DN300~DN800；"
             "扩档待数据包增补键——起草表追认点 4）"
         )
-    return _factor(p, f"factor.wushui_tisheng.pipe.resistance.{segment}")
+    return _factor(p, f"factor.wushui_tisheng.pipe.resistance.{segment}", _UNIT_ID)
 
 
 def _pipe(ctx: UnitContext, p: dict[str, float], q_pump: float) -> dict[str, float]:
@@ -171,7 +137,7 @@ def _pipe(ctx: UnitContext, p: dict[str, float], q_pump: float) -> dict[str, flo
         ctx,
         "TS-F7",
         {
-            "zeta_total": _factor(p, _ZETA),
+            "zeta_total": _factor(p, _ZETA, _UNIT_ID),
             "v_pipe_act": v_pipe_act,
             "g_gravity": p["g_gravity"],
         },
@@ -196,7 +162,7 @@ def _head(ctx: UnitContext, p: dict[str, float], h_loss: float) -> dict[str, flo
             {
                 "h_static": p["h_static"],
                 "h_loss": h_loss,
-                "h_free": _factor(p, _FREE_HEAD),
+                "h_free": _factor(p, _FREE_HEAD, _UNIT_ID),
             },
         )
     }
@@ -206,7 +172,7 @@ def _well(ctx: UnitContext, p: dict[str, float], q_pump_si: float) -> dict[str, 
     """TS-F10~F14：集水井调节容积/启停频率校核/井体几何与概算混凝土量。"""
     v_well = _apply(ctx, "TS-F10", {"q_pump_si": q_pump_si, "t_well": p["t_well"]})
     a_well = _apply(ctx, "TS-F11", {"v_well": v_well, "h_well": p["h_well"]})
-    h_super = _factor(p, "factor.wushui_tisheng.superheight")
+    h_super = _factor(p, "factor.wushui_tisheng.superheight", _UNIT_ID)
     h_well_total = _apply(ctx, "TS-F13", {"h_super": h_super, "h_well": p["h_well"]})
     return {
         "v_well": v_well,
@@ -219,7 +185,7 @@ def _well(ctx: UnitContext, p: dict[str, float], q_pump_si: float) -> dict[str, 
             {
                 "a_well": a_well,
                 "h_well_total": h_well_total,
-                "wall_coef": _factor(p, "factor.wushui_tisheng.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.wushui_tisheng.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -233,8 +199,8 @@ def _warn(source: str, message: str, param_key: str) -> Warning:
 def _band(p: dict[str, float], prefix: str) -> tuple[float, float]:
     """带类系数取值（factor.wushui_tisheng.<键>.min/max 双键）。"""
     return (
-        _factor(p, f"factor.wushui_tisheng.{prefix}.min"),
-        _factor(p, f"factor.wushui_tisheng.{prefix}.max"),
+        _factor(p, f"factor.wushui_tisheng.{prefix}.min", _UNIT_ID),
+        _factor(p, f"factor.wushui_tisheng.{prefix}.max", _UNIT_ID),
     )
 
 
@@ -266,7 +232,7 @@ def _warnings(
                 "factor.wushui_tisheng.pump.q_per_unit",
             )
         )
-    limit = _factor(p, "factor.wushui_tisheng.pump.start_band.max")
+    limit = _factor(p, "factor.wushui_tisheng.pump.start_band.max", _UNIT_ID)
     if well["n_start"] > limit:
         found.append(
             _warn(
@@ -304,7 +270,7 @@ class _WushuiTisheng:
         """TS-F1~F14 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "泵房单入单出语义")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         pumps = _pumps(ctx, p, flow)
         pipe = _pipe(ctx, p, pumps["q_pump"])

@@ -63,11 +63,11 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
 from waterprint.units_lib.sludge.tuoshui.manifest import (
     FORMULA_IDS,
     MACHINE_BELT,
     MACHINE_CENTRIFUGE,
-    SECS_PER_DAY,
     manifest,
 )
 

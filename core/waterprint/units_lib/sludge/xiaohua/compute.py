@@ -53,9 +53,9 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
 from waterprint.units_lib.sludge.xiaohua.manifest import (
     FORMULA_IDS,
-    SECS_PER_DAY,
     SIDE_DISC_STEP,
     manifest,
 )

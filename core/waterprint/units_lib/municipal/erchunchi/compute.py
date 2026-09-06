@@ -39,7 +39,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -51,7 +50,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.erchunchi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_erchunchi"
@@ -78,17 +77,6 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（EC-F6/F12/F13/F14 的 0.5/0.1 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -104,28 +92,6 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（二沉池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _load(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
     """EC-F1~F10：单池流量/双控面积/池径/负荷校核/Xr（含 HRT 导出量）。"""
     q1h = _apply(ctx, "EC-F1", {"q_design": flow.q_design, "n": p["n"]})
@@ -136,7 +102,7 @@ def _load(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, f
         "EC-F3",
         {"r_external": p["r_external"], "q1h": q1h, "x_mlss": p["x_mlss"]},
     )
-    a_solid = _apply(ctx, "EC-F4", {"m_solid": m_solid, "g_max": _factor(p, _SOLID_MAX)})
+    a_solid = _apply(ctx, "EC-F4", {"m_solid": m_solid, "g_max": _factor(p, _SOLID_MAX, _UNIT_ID)})
     a_tank = _apply(ctx, "EC-F5", {"a_q": a_q, "a_solid": a_solid})
     d_raw = _apply(ctx, "EC-F6", {"a_tank": a_tank, "pi": math.pi})
     d = _ceil_step(d_raw, p["dia_disc_step"])
@@ -168,7 +134,7 @@ def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, float]) -> 
             ctx,
             "EC-F13",
             {
-                "i_slope": _factor(p, "factor.erchunchi.bottom_slope"),
+                "i_slope": _factor(p, "factor.erchunchi.bottom_slope", _UNIT_ID),
                 "D": load["d"],
                 "r_pit": p["r_pit"],
             },
@@ -180,9 +146,9 @@ def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, float]) -> 
             ctx,
             "EC-F14",
             {
-                "h_super": _factor(p, "factor.erchunchi.superheight"),
+                "h_super": _factor(p, "factor.erchunchi.superheight", _UNIT_ID),
                 "h2": p["h2"],
-                "h_buf": _factor(p, "factor.erchunchi.buffer_h3"),
+                "h_buf": _factor(p, "factor.erchunchi.buffer_h3", _UNIT_ID),
                 "h4": h4,
             },
         ),
@@ -200,7 +166,7 @@ def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, float]) -> 
                     "r_external": p["r_external"],
                     "q1": load["q1"],
                     "pi": math.pi,
-                    "v_center": _factor(p, "factor.erchunchi.center_velocity"),
+                    "v_center": _factor(p, "factor.erchunchi.center_velocity", _UNIT_ID),
                 },
             ),
             p["length_disc_step"],
@@ -215,7 +181,7 @@ def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, float]) -> 
                 "D": load["d"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.erchunchi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.erchunchi.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -228,7 +194,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(
@@ -246,7 +212,7 @@ def _warnings(
                 "q_nom",
             )
         )
-    solid = _factor(p, _SOLID_MAX)
+    solid = _factor(p, _SOLID_MAX, _UNIT_ID)
     if load["g_act"] > solid:
         found.append(
             _warn(
@@ -256,7 +222,7 @@ def _warnings(
                 "x_mlss",
             )
         )
-    weir = _factor(p, _WEIR_MAX)
+    weir = _factor(p, _WEIR_MAX, _UNIT_ID)
     if geometry["q_weir"] > weir:
         found.append(
             _warn(
@@ -306,7 +272,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -327,7 +293,7 @@ class _Erchunchi:
         """EC-F1~F15 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "二沉池单入单出语义")
         load = _load(ctx, p, flow)
         geometry = _geometry(ctx, p, load)
         dims = {**load, **geometry}

@@ -39,7 +39,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -51,7 +50,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.mine_water.ningjiao.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_ningjiao"
@@ -97,17 +96,6 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（KN-F8 的 0.5 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -121,28 +109,6 @@ def _validate(params: dict[str, float]) -> None:
         value = params.get(key)
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（反应池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _zones(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -180,10 +146,10 @@ def _zones(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, 
 def _power(ctx: UnitContext, p: dict[str, float], zones: dict[str, float]) -> dict[str, float]:
     """KN-F6 泛式四次求值：四区搅拌功率（kW 单区）+全厂装机合成。"""
     powers = {
-        "p1": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_MIX), "v_i": zones["v1"]}),
-        "p2": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_SEED), "v_i": zones["v2"]}),
-        "p3": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_FLOC), "v_i": zones["v3"]}),
-        "p4": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_RIPEN), "v_i": zones["v4"]}),
+        "p1": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_MIX, _UNIT_ID), "v_i": zones["v1"]}),
+        "p2": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_SEED, _UNIT_ID), "v_i": zones["v2"]}),
+        "p3": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_FLOC, _UNIT_ID), "v_i": zones["v3"]}),
+        "p4": _apply(ctx, "KN-F6", {"g_i": _factor(p, _G_RIPEN, _UNIT_ID), "v_i": zones["v4"]}),
     }
     return {
         **powers,
@@ -215,13 +181,13 @@ def _gt(ctx: UnitContext, p: dict[str, float]) -> float:
         ctx,
         "KN-F10",
         {
-            "g_mix": _factor(p, _G_MIX),
+            "g_mix": _factor(p, _G_MIX, _UNIT_ID),
             "t_mix": p["t_mix"],
-            "g_seed": _factor(p, _G_SEED),
+            "g_seed": _factor(p, _G_SEED, _UNIT_ID),
             "t_seed": p["t_seed"],
-            "g_floc": _factor(p, _G_FLOC),
+            "g_floc": _factor(p, _G_FLOC, _UNIT_ID),
             "t_floc": p["t_floc"],
-            "g_ripen": _factor(p, _G_RIPEN),
+            "g_ripen": _factor(p, _G_RIPEN, _UNIT_ID),
             "t_ripen": p["t_ripen"],
         },
     )
@@ -229,9 +195,9 @@ def _gt(ctx: UnitContext, p: dict[str, float]) -> float:
 
 def _dose(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
     """KN-F11~F13：PAC/PAM/磁种日耗量（平均日口径）。"""
-    dose_pac = _factor(p, "factor.mine_ningjiao.dose.pac")
-    dose_pam = _factor(p, "factor.mine_ningjiao.dose.pam")
-    dose_seed = _factor(p, "factor.mine_ningjiao.seed.dose")
+    dose_pac = _factor(p, "factor.mine_ningjiao.dose.pac", _UNIT_ID)
+    dose_pam = _factor(p, "factor.mine_ningjiao.dose.pam", _UNIT_ID)
+    dose_seed = _factor(p, "factor.mine_ningjiao.seed.dose", _UNIT_ID)
     return {
         "m_pac": _apply(
             ctx, "KN-F11", {"q_avg_daily": flow.q_avg_daily, "dose_pac": dose_pac}
@@ -252,7 +218,7 @@ def _depth(
     h_total = _apply(
         ctx,
         "KN-F14",
-        {"h_super": _factor(p, "factor.mine_ningjiao.superheight"), "h2": p["h2"]},
+        {"h_super": _factor(p, "factor.mine_ningjiao.superheight", _UNIT_ID), "h2": p["h2"]},
     )
     return {
         "h_total": h_total,
@@ -267,7 +233,7 @@ def _depth(
                 "h2": p["h2"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.mine_ningjiao.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.mine_ningjiao.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -280,7 +246,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _retention_warning(
@@ -358,7 +324,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -379,7 +345,7 @@ class _MineNingjiao:
         """KN-F1~F15 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "反应池单入单出语义")
         zones = _zones(ctx, p, flow)
         power = _power(ctx, p, zones)
         layout = _layout(ctx, p, zones)

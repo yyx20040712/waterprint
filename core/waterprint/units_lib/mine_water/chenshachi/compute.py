@@ -34,7 +34,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -47,13 +46,13 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.mine_water.chenshachi.manifest import (
     FORMULA_IDS,
     KG_PER_TON,
     MOISTURE_SAND,
     RHO_SAND_WET,
-    SECS_PER_DAY,
     manifest,
 )
 
@@ -76,17 +75,6 @@ _WEIR_MAX = "factor.mine_chenshachi.weir_load.max"
 _PARAMS_POSITIVE = ("n", "v_h", "t_stay", "h2", "t_clean", "side_disc_step", "length_disc_step")
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（KC-F1/F3 的 0.5/0.1 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -100,28 +88,6 @@ def _validate(params: dict[str, float]) -> None:
         value = params.get(key)
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（沉砂池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _channel(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
@@ -152,7 +118,7 @@ def _sand(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, f
         "KC-F5",
         {
             "q_avg_daily": flow.q_avg_daily,
-            "x_sand": _factor(p, "factor.mine_chenshachi.sand_yield_x"),
+            "x_sand": _factor(p, "factor.mine_chenshachi.sand_yield_x", _UNIT_ID),
         },
     )
     v_hopper = _apply(
@@ -161,7 +127,7 @@ def _sand(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, f
         {
             "v_sand": v_sand,
             "t_clean": p["t_clean"],
-            "safety": _factor(p, "factor.mine_chenshachi.hopper.safety"),
+            "safety": _factor(p, "factor.mine_chenshachi.hopper.safety", _UNIT_ID),
         },
     )
     return {"v_sand": v_sand, "v_hopper": v_hopper}
@@ -179,7 +145,7 @@ def _weir_and_concrete(
     h_total = _apply(
         ctx,
         "KC-F9",
-        {"h_super": _factor(p, "factor.mine_chenshachi.superheight"), "h2": p["h2"]},
+        {"h_super": _factor(p, "factor.mine_chenshachi.superheight", _UNIT_ID), "h2": p["h2"]},
     )
     return {
         "l_weir": l_weir,
@@ -193,7 +159,7 @@ def _weir_and_concrete(
                 "b": channel["b"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.mine_chenshachi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.mine_chenshachi.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -206,7 +172,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(
@@ -244,7 +210,7 @@ def _warnings(
                 "h2",
             )
         )
-    floor = _factor(p, _CELL_WIDTH_MIN)
+    floor = _factor(p, _CELL_WIDTH_MIN, _UNIT_ID)
     if channel["b_raw"] < floor:
         found.append(
             _warn(
@@ -255,7 +221,7 @@ def _warnings(
                 "h2",
             )
         )
-    weir_max = _factor(p, _WEIR_MAX)
+    weir_max = _factor(p, _WEIR_MAX, _UNIT_ID)
     if weir["q_weir"] > weir_max:
         found.append(
             _warn(
@@ -274,7 +240,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -295,7 +261,7 @@ class _MineChenshachi:
         """KC-F1~F10 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "沉砂池单入单出语义")
         channel = _channel(ctx, p, flow)
         sand = _sand(ctx, p, flow)
         weir = _weir_and_concrete(ctx, p, flow, channel)

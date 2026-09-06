@@ -38,7 +38,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -50,7 +49,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.mine_water.ziwai.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_ziwai"
@@ -77,17 +76,6 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：渠数/断面/灯功率/排数/排距/指数/穿透率非正一律拒。"""
     for key in _PARAMS_POSITIVE:
@@ -96,29 +84,6 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}"
             )
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条"
-            "（消毒渠单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _channel(
@@ -147,10 +112,10 @@ def _dose_chain(
         {
             "p_lamp": p["p_lamp"],
             "n_layer": p["n_layer"],
-            "eta_geo": _factor(p, "factor.mine_ziwai.eta_geo"),
+            "eta_geo": _factor(p, "factor.mine_ziwai.eta_geo", _UNIT_ID),
             "t_eff": t_eff,
-            "f_aging": _factor(p, "factor.mine_ziwai.f_aging"),
-            "f_fouling": _factor(p, "factor.mine_ziwai.f_fouling"),
+            "f_aging": _factor(p, "factor.mine_ziwai.f_aging", _UNIT_ID),
+            "f_fouling": _factor(p, "factor.mine_ziwai.f_fouling", _UNIT_ID),
             "a_ch": a_ch,
         },
     )
@@ -160,7 +125,7 @@ def _dose_chain(
     n_rows_raw = _apply(
         ctx,
         "KZ-F7",
-        {"dose": _factor(p, "factor.mine_ziwai.dose"), "dose_row": dose_row},
+        {"dose": _factor(p, "factor.mine_ziwai.dose", _UNIT_ID), "dose_row": dose_row},
     )
     # 灯管排数向上取整（表 KZ-F7 口径——DSL 无 ceil，本文件收口）
     n_rows = float(math.ceil(n_rows_raw))
@@ -185,7 +150,7 @@ def _loss_depth(ctx: UnitContext, p: dict[str, float], v_ch: float) -> dict[str,
         {
             "xi_total": p["xi_total"],
             "v_ch": v_ch,
-            "loss_min": _factor(p, "factor.mine_ziwai.loss_min"),
+            "loss_min": _factor(p, "factor.mine_ziwai.loss_min", _UNIT_ID),
         },
     )
     return {
@@ -194,7 +159,7 @@ def _loss_depth(ctx: UnitContext, p: dict[str, float], v_ch: float) -> dict[str,
             ctx,
             "KZ-F11",
             {
-                "h_super": _factor(p, "factor.mine_ziwai.superheight"),
+                "h_super": _factor(p, "factor.mine_ziwai.superheight", _UNIT_ID),
                 "h_channel": p["h_channel"],
             },
         ),
@@ -208,7 +173,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(p: dict[str, float], v_ch: float) -> tuple[Warning, ...]:
@@ -245,7 +210,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -266,7 +231,7 @@ class _MineZiwai:
         """KZ-F1~F11 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "消毒渠单入单出语义")
         channel = _channel(ctx, p, flow)
         dims = {
             **channel,

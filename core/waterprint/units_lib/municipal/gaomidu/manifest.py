@@ -55,7 +55,6 @@ UNIT_ID = "municipal_gaomidu"
 # hebing HB-F1~F3 同口径；产股 moisture=1−c_sludge/1000 与 sludge_hebing
 # p_chem 默认 0.98 同源互推[GM-F13 q_sludge=s_dry/c_sludge 与 HB-F3
 # ds/((1−p)×1000) 同式]，系数键化归后续批裁量呈报不扩 coefficients）。
-SECS_PER_DAY: Final[float] = 86400.0
 WATER_DENSITY: Final[float] = 1000.0
 
 _GT = (

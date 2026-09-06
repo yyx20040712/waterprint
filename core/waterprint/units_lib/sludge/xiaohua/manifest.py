@@ -57,7 +57,6 @@ _D = DimKey.DIMENSIONLESS
 # 单位换算常量（工程口径 m³/d、kg/d ↔ 契约口径 m3/s、kg/s）与构造档
 # 步长（池径 0.5 m 档向上取整——表公式表头注记口径；manifest=数值
 # 白名单区，compute 零字面量消费）。
-SECS_PER_DAY: Final[float] = 86400.0
 SIDE_DISC_STEP: Final[float] = 0.5
 
 _FORMULAS: tuple[FormulaSpec, ...] = (

@@ -59,7 +59,6 @@ _D = DimKey.DIMENSIONLESS
 # 数值枚举（表"衔接参数"equip_type belt/centrifuge 的 float 化——
 # executor 参数面只收数值[bool 拒/float 归一]的契约约束下唯一形态；
 # manifest=数值白名单区，compute 零字面量消费）。
-SECS_PER_DAY: Final[float] = 86400.0
 MACHINE_BELT: Final[float] = 1.0
 MACHINE_CENTRIFUGE: Final[float] = 2.0
 

@@ -35,8 +35,6 @@
 #   constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
 
-from typing import Final
-
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.formulas import FormulaSpec, register
@@ -57,9 +55,6 @@ _M = DimKey.MASS
 _C = DimKey.CONCENTRATION
 _V = DimKey.VELOCITY
 
-# 单位换算常量（GOLDEN4a D3 产股口：排泥工程口径 m³/d、kg/d → SludgeFlow
-# 契约口径 m3/s、kg/s——manifest=数值白名单区，compute 零字面量消费）。
-SECS_PER_DAY: Final[float] = 86400.0
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(

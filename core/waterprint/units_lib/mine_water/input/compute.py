@@ -31,7 +31,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -43,7 +42,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor
 from waterprint.units_lib.mine_water.input.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_input"
@@ -65,17 +64,6 @@ _PARAMS_POSITIVE = (
 )
 _QUALITY_PARAMS = ("ss_in", "cod_in", "nh3n_in", "tn_in", "tp_in")
 _QUALITY_INDICATORS = ("SS", "CODCR", "NH3N", "TN", "TP")
-
-
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
 
 
 def _validate(params: dict[str, float]) -> None:
@@ -102,16 +90,6 @@ def _no_inflow(ctx: UnitContext) -> None:
         )
 
 
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _flow_and_elevation(ctx: UnitContext, p: dict[str, float]) -> dict[str, float]:
     """KI-F1~F7：设计流量/平均时流量/进水管流速/高程链/超高。"""
     q_design = _apply(ctx, "KI-F1", {"q_avg_daily": p["q_avg_daily"], "kz": p["kz"]})
@@ -127,7 +105,7 @@ def _flow_and_elevation(ctx: UnitContext, p: dict[str, float]) -> dict[str, floa
     z_water = _apply(
         ctx,
         "KI-F5",
-        {"z_water_inlet": p["z_water_inlet"], "h_loss": _factor(p, _H_LOSS)},
+        {"z_water_inlet": p["z_water_inlet"], "h_loss": _factor(p, _H_LOSS, _UNIT_ID)},
     )
     return {
         "q_design": q_design,
@@ -147,7 +125,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _warnings(p: dict[str, float], dims: dict[str, float]) -> tuple[Warning, ...]:
     """校核带检查：地面高出进水水面下限（freeboard ≥ freeboard.min）。"""
-    floor = _factor(p, _FREEBOARD_MIN)
+    floor = _factor(p, _FREEBOARD_MIN, _UNIT_ID)
     if dims["freeboard"] < floor:
         return (
             _warn(

@@ -32,7 +32,6 @@ from __future__ import annotations
 import math
 from typing import Final, final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -44,7 +43,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.vxinglvchi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_vxinglvchi"
@@ -95,17 +94,6 @@ _PARAMS_POSITIVE = (
 _FACTORS_POSITIVE = (_SELFUSE, _W_AIR, _W_WATER_SIM, _W_WATER, _W_SWEEP, _T_AIR, _T_SIM, _T_WATER)
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（XL-F4/F5 的 0.5 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -126,39 +114,16 @@ def _validate(params: dict[str, float]) -> None:
             f"强制滤速 XL-F9 分母 a_total_act−a_cell_act 需 n≥2）：得到 {params['n']!r}"
         )
     for key in _FACTORS_POSITIVE:
-        if _factor(params, key) <= 0:
+        if _factor(params, key, _UNIT_ID) <= 0:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 系数键 {key!r} 必须 > 0（自用水/冲洗强度/历时物理域）"
             )
 
 
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条"
-            "（V 型滤池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _filter(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
     """XL-F1~F9：过滤流量/需面积/分格几何（B·L 0.5 m 档）/正常·强制滤速校核。"""
     q_filter = _apply(
-        ctx, "XL-F1", {"q_design": flow.q_design, "selfuse_coef": _factor(p, _SELFUSE)}
+        ctx, "XL-F1", {"q_design": flow.q_design, "selfuse_coef": _factor(p, _SELFUSE, _UNIT_ID)}
     )
     a_total_req = _apply(ctx, "XL-F2", {"q_filter": q_filter, "v_filter": p["v_filter"]})
     a_cell = _apply(ctx, "XL-F3", {"a_total_req": a_total_req, "n": p["n"]})
@@ -194,18 +159,30 @@ def _wash(
     filt: dict[str, float],
 ) -> dict[str, float]:
     """XL-F10~F17：气水反冲洗三阶段强度/单格次耗气耗水/日耗水率（平均日复核）。"""
-    q_air = _apply(ctx, "XL-F10", {"a_cell_act": filt["a_cell_act"], "w_air": _factor(p, _W_AIR)})
+    q_air = _apply(
+        ctx,
+        "XL-F10",
+        {"a_cell_act": filt["a_cell_act"], "w_air": _factor(p, _W_AIR, _UNIT_ID)},
+    )
     q_wash_sim = _apply(
-        ctx, "XL-F11", {"a_cell_act": filt["a_cell_act"], "w_water_sim": _factor(p, _W_WATER_SIM)}
+        ctx,
+        "XL-F11",
+        {"a_cell_act": filt["a_cell_act"], "w_water_sim": _factor(p, _W_WATER_SIM, _UNIT_ID)},
     )
     q_wash = _apply(
-        ctx, "XL-F12", {"a_cell_act": filt["a_cell_act"], "w_water": _factor(p, _W_WATER)}
+        ctx, "XL-F12", {"a_cell_act": filt["a_cell_act"], "w_water": _factor(p, _W_WATER, _UNIT_ID)}
     )
     q_sweep = _apply(
-        ctx, "XL-F13", {"a_cell_act": filt["a_cell_act"], "w_sweep": _factor(p, _W_SWEEP)}
+        ctx, "XL-F13", {"a_cell_act": filt["a_cell_act"], "w_sweep": _factor(p, _W_SWEEP, _UNIT_ID)}
     )
     v_air_per = _apply(
-        ctx, "XL-F14", {"q_air": q_air, "t_air": _factor(p, _T_AIR), "t_sim": _factor(p, _T_SIM)}
+        ctx,
+        "XL-F14",
+        {
+            "q_air": q_air,
+            "t_air": _factor(p, _T_AIR, _UNIT_ID),
+            "t_sim": _factor(p, _T_SIM, _UNIT_ID),
+        },
     )
     v_wash_per = _apply(
         ctx,
@@ -214,9 +191,9 @@ def _wash(
             "q_wash_sim": q_wash_sim,
             "q_wash": q_wash,
             "q_sweep": q_sweep,
-            "t_air": _factor(p, _T_AIR),
-            "t_sim": _factor(p, _T_SIM),
-            "t_water": _factor(p, _T_WATER),
+            "t_air": _factor(p, _T_AIR, _UNIT_ID),
+            "t_sim": _factor(p, _T_SIM, _UNIT_ID),
+            "t_water": _factor(p, _T_WATER, _UNIT_ID),
         },
     )
     v_wash_daily = _apply(
@@ -242,7 +219,7 @@ def _depth(ctx: UnitContext, p: dict[str, float], filt: dict[str, float]) -> dic
         ctx,
         "XL-F18",
         {
-            "h_super": _factor(p, "factor.vxinglvchi.superheight"),
+            "h_super": _factor(p, "factor.vxinglvchi.superheight", _UNIT_ID),
             "h_water_above": p["h_water_above"],
             "h_sand": p["h_sand"],
             "h_bottom": p["h_bottom"],
@@ -256,7 +233,7 @@ def _depth(ctx: UnitContext, p: dict[str, float], filt: dict[str, float]) -> dic
             {
                 "a_total_act": filt["a_total_act"],
                 "h_total": h_total,
-                "wall_coef": _factor(p, "factor.vxinglvchi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.vxinglvchi.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -269,7 +246,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _warnings(p: dict[str, float], filt: dict[str, float]) -> tuple[Warning, ...]:
@@ -285,7 +262,7 @@ def _warnings(p: dict[str, float], filt: dict[str, float]) -> tuple[Warning, ...
                 "v_filter",
             )
         )
-    vfm = _factor(p, _VFORCED_MAX)
+    vfm = _factor(p, _VFORCED_MAX, _UNIT_ID)
     if filt["v_forced_act"] > vfm:
         found.append(
             _warn(
@@ -344,7 +321,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -365,7 +342,7 @@ class _Vxinglvchi:
         """XL-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "V 型滤池单入单出语义")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         filt = _filter(ctx, p, flow)
         wash = _wash(ctx, p, flow, filt)

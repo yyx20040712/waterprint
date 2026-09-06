@@ -42,7 +42,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -54,7 +53,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.mine_water.vxinglvchi.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "mine_water_vxinglvchi"
@@ -89,17 +88,6 @@ _PARAMS_POSITIVE = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _ceil_step(value: float, step: float) -> float:
     """构造步长向上取整（KV-F6/F7 的 0.1 m 离散；步长>0 守卫）。"""
     if step <= 0:
@@ -123,35 +111,12 @@ def _validate(params: dict[str, float]) -> None:
             )
 
 
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条"
-            "（滤池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
-
-
 def _t_bw(p: dict[str, float]) -> float:
     """三阶段反冲停滤历时合成（t_air+t_sim+t_water，零字面量审计面）。"""
     return (
-        _factor(p, "factor.mine_vxinglvchi.wash.t_air")
-        + _factor(p, "factor.mine_vxinglvchi.wash.t_sim")
-        + _factor(p, "factor.mine_vxinglvchi.wash.t_water")
+        _factor(p, "factor.mine_vxinglvchi.wash.t_air", _UNIT_ID)
+        + _factor(p, "factor.mine_vxinglvchi.wash.t_sim", _UNIT_ID)
+        + _factor(p, "factor.mine_vxinglvchi.wash.t_water", _UNIT_ID)
     )
 
 
@@ -164,7 +129,7 @@ def _filter_face(
         "KV-F1",
         {
             "q_avg_daily": flow.q_avg_daily,
-            "k_self": _factor(p, "factor.mine_vxinglvchi.selfuse_coef"),
+            "k_self": _factor(p, "factor.mine_vxinglvchi.selfuse_coef", _UNIT_ID),
         },
     )
     t_w = _apply(ctx, "KV-F2", {"t_bw": t_bw, "t_filter": p["t_filter"]})
@@ -184,7 +149,10 @@ def _cell_layout(ctx: UnitContext, p: dict[str, float], f_single: float) -> dict
     b_raw = _apply(
         ctx,
         "KV-F6",
-        {"f_single": f_single, "ratio_lb": _factor(p, "factor.mine_vxinglvchi.cell_ratio_lb")},
+        {
+            "f_single": f_single,
+            "ratio_lb": _factor(p, "factor.mine_vxinglvchi.cell_ratio_lb", _UNIT_ID),
+        },
     )
     width = _ceil_step(b_raw, p["side_disc_step"])
     l_raw = _apply(ctx, "KV-F7", {"f_single": f_single, "b": width})
@@ -207,11 +175,11 @@ def _wash(
         ctx,
         "KV-F8",
         {
-            "q_w_sim": _factor(p, "factor.mine_vxinglvchi.wash.water_sim"),
-            "t_sim": _factor(p, "factor.mine_vxinglvchi.wash.t_sim"),
-            "q_w": _factor(p, "factor.mine_vxinglvchi.wash.water"),
-            "t_water": _factor(p, "factor.mine_vxinglvchi.wash.t_water"),
-            "q_sweep": _factor(p, "factor.mine_vxinglvchi.wash.sweep"),
+            "q_w_sim": _factor(p, "factor.mine_vxinglvchi.wash.water_sim", _UNIT_ID),
+            "t_sim": _factor(p, "factor.mine_vxinglvchi.wash.t_sim", _UNIT_ID),
+            "q_w": _factor(p, "factor.mine_vxinglvchi.wash.water", _UNIT_ID),
+            "t_water": _factor(p, "factor.mine_vxinglvchi.wash.t_water", _UNIT_ID),
+            "q_sweep": _factor(p, "factor.mine_vxinglvchi.wash.sweep", _UNIT_ID),
             "t_bw": t_bw,
         },
     )
@@ -234,7 +202,7 @@ def _depth(
         ctx,
         "KV-F10",
         {
-            "h_super": _factor(p, "factor.mine_vxinglvchi.superheight"),
+            "h_super": _factor(p, "factor.mine_vxinglvchi.superheight", _UNIT_ID),
             "h_water": p["h_water"],
             "h_media": p["h_media"],
             "h_plate": p["h_plate"],
@@ -251,7 +219,7 @@ def _depth(
                 "b": cell["b"],
                 "h_total": h_total,
                 "n": p["n"],
-                "wall_coef": _factor(p, "factor.mine_vxinglvchi.wall_thickness_coef"),
+                "wall_coef": _factor(p, "factor.mine_vxinglvchi.wall_thickness_coef", _UNIT_ID),
             },
         ),
     }
@@ -264,7 +232,7 @@ def _warn(source: str, message: str, param_key: str | None) -> Warning:
 
 def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     """带类系数取值（min/max 双键）。"""
-    return _factor(p, keys[0]), _factor(p, keys[1])
+    return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
 def _band_warning(
@@ -301,22 +269,22 @@ def _warnings(
         warning = _band_warning(value, band_keys, param_key, advice, p)
         if warning is not None:
             found.append(warning)
-    if v_force_act > _factor(p, _V_FORCED_MAX):
+    if v_force_act > _factor(p, _V_FORCED_MAX, _UNIT_ID):
         found.append(
             _warn(
                 f"{_GB}；{_V_FORCED_MAX}",
                 f"强制滤速 = {v_force_act:.4f} m/h 越上限"
-                f" {_factor(p, _V_FORCED_MAX)}（一格冲洗时余格承载）"
+                f" {_factor(p, _V_FORCED_MAX, _UNIT_ID)}（一格冲洗时余格承载）"
                 "——调节方向：v_filter（降滤速）或 n（增格数）",
                 "v_filter",
             )
         )
-    if eta_wash > _factor(p, _RATIO_MAX):
+    if eta_wash > _factor(p, _RATIO_MAX, _UNIT_ID):
         found.append(
             _warn(
                 f"{_HB}；{_RATIO_MAX}",
                 f"反冲耗水率 = {eta_wash:.6f} 越上限"
-                f" {_factor(p, _RATIO_MAX)}（单格日冲一次口径）"
+                f" {_factor(p, _RATIO_MAX, _UNIT_ID)}（单格日冲一次口径）"
                 "——调节方向：t_filter（延长周期降频）",
                 "t_filter",
             )
@@ -330,7 +298,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -351,7 +319,7 @@ class _MineVxinglvchi:
         """KV-F1~F11 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "滤池单入单出语义")
         t_bw = _t_bw(p)
         face = _filter_face(ctx, p, flow, t_bw)
         cell = _cell_layout(ctx, p, face["f_single"])

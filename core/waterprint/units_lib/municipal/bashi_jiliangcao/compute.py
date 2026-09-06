@@ -33,7 +33,6 @@ from __future__ import annotations
 
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -45,7 +44,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
     FORMULA_IDS,
     GRADES,
@@ -65,17 +64,6 @@ _KEY_HMAX = "factor.bashi_jiliangcao.flume.{grade}.hmax"
 _KEY_SCRIT = "factor.bashi_jiliangcao.flume.{grade}.scrit"
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _grade_of(params: dict[str, float]) -> tuple[str, dict[str, float]]:
     """选档：b_throat>0 守卫 + round(b,2) 档位命中 → (档名, 档系数面)。"""
     b_throat = params.get("b_throat")
@@ -91,35 +79,12 @@ def _grade_of(params: dict[str, float]) -> tuple[str, dict[str, float]]:
             "起草表追认点 1）"
         )
     return grade, {
-        "c_coef": _factor(params, _KEY_C.format(grade=grade)),
-        "n_exp": _factor(params, _KEY_N.format(grade=grade)),
-        "hmin": _factor(params, _KEY_HMIN.format(grade=grade)),
-        "hmax": _factor(params, _KEY_HMAX.format(grade=grade)),
-        "scrit": _factor(params, _KEY_SCRIT.format(grade=grade)),
+        "c_coef": _factor(params, _KEY_C.format(grade=grade), _UNIT_ID),
+        "n_exp": _factor(params, _KEY_N.format(grade=grade), _UNIT_ID),
+        "hmin": _factor(params, _KEY_HMIN.format(grade=grade), _UNIT_ID),
+        "hmax": _factor(params, _KEY_HMAX.format(grade=grade), _UNIT_ID),
+        "scrit": _factor(params, _KEY_SCRIT.format(grade=grade), _UNIT_ID),
     }
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条"
-            "（计量槽单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _heads(
@@ -139,8 +104,8 @@ def _heads(
 def _geometry(ctx: UnitContext, p: dict[str, float], b_throat: float) -> dict[str, float]:
     """BL-F4~F7：标准型构造尺寸（收缩/喉道/扩散段）与槽总长。"""
     l1 = _apply(ctx, "BL-F5", {"b_throat": b_throat})
-    l_throat = _factor(p, "factor.bashi_jiliangcao.geometry.l_throat")
-    l_diffuse = _factor(p, "factor.bashi_jiliangcao.geometry.l_diffuse")
+    l_throat = _factor(p, "factor.bashi_jiliangcao.geometry.l_throat", _UNIT_ID)
+    l_diffuse = _factor(p, "factor.bashi_jiliangcao.geometry.l_diffuse", _UNIT_ID)
     return {
         "b1": _apply(ctx, "BL-F4", {"b_throat": b_throat}),
         "l1": l1,
@@ -151,15 +116,15 @@ def _geometry(ctx: UnitContext, p: dict[str, float], b_throat: float) -> dict[st
         "l_throat": l_throat,
         "l_diffuse": l_diffuse,
         # 构造面常量（标准型：喉道底跌落 N/槽身边距 K——dims 承载供出图）
-        "n_depress": _factor(p, "factor.bashi_jiliangcao.geometry.n_depress"),
-        "k_margin": _factor(p, "factor.bashi_jiliangcao.geometry.k_margin"),
+        "n_depress": _factor(p, "factor.bashi_jiliangcao.geometry.n_depress", _UNIT_ID),
+        "k_margin": _factor(p, "factor.bashi_jiliangcao.geometry.k_margin", _UNIT_ID),
     }
 
 
 def _check(ctx: UnitContext, p: dict[str, float], ha_design: float) -> dict[str, float]:
     """BL-F8/F9：淹没度自由流判别与槽身水头损失（估算口径）。"""
-    hb = _factor(p, "factor.bashi_jiliangcao.hb_design")
-    ratio = _factor(p, "factor.bashi_jiliangcao.loss_ratio")
+    hb = _factor(p, "factor.bashi_jiliangcao.hb_design", _UNIT_ID)
+    ratio = _factor(p, "factor.bashi_jiliangcao.loss_ratio", _UNIT_ID)
     return {
         "sigma": _apply(ctx, "BL-F8", {"hb_design": hb, "ha_design": ha_design}),
         "h_loss": _apply(ctx, "BL-F9", {"loss_ratio": ratio, "ha_design": ha_design}),
@@ -218,7 +183,7 @@ class _Bashi:
         """BL-F1~F9 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         grade, coef = _grade_of(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "计量槽单入单出语义")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         heads = _heads(ctx, flow, coef)
         geometry = _geometry(ctx, p, p["b_throat"])

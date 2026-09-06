@@ -42,7 +42,6 @@ from __future__ import annotations
 
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
 from waterprint.contracts.quality import WaterQuality
@@ -54,11 +53,11 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor
 from waterprint.units_lib.sludge.hebing.manifest import (
     FORMULA_IDS,
     FORMULA_IDS_FLOW,
-    SECS_PER_DAY,
     manifest,
 )
 
@@ -78,17 +77,6 @@ _PARAMS_POSITIVE = (
     "x_vss",
 )
 _MOISTURE_KEYS = ("p_primary", "p_bio", "p_chem")
-
-
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
 
 
 def _validate(params: dict[str, float]) -> None:
@@ -112,16 +100,6 @@ def _validate(params: dict[str, float]) -> None:
             f"单元 {_UNIT_ID!r} 参数须 s0_bod > se_bod（BOD 去除量非正则"
             f"产率法主线失义——HB-F8）：得到 s0_bod={s0!r}, se_bod={se!r}"
         )
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 # 三股 IN 口 →（湿量 dims 键, 干基参数键, 含水率参数键）族（GOLDEN4a D1）
@@ -238,14 +216,14 @@ def _yield_chain(ctx: UnitContext, p: dict[str, float]) -> dict[str, float]:
     """HB-F8~F11：经验产率主线 + 机理互校 + 偏差（ADR-008 ④）。"""
     common = {"q_avg_daily": p["q_avg_daily"], "s0_bod": p["s0_bod"], "se_bod": p["se_bod"]}
     s_y = _apply(
-        ctx, "HB-F8", {**common, "y_yield": _factor(p, _YIELD)}
+        ctx, "HB-F8", {**common, "y_yield": _factor(p, _YIELD, _UNIT_ID)}
     )
     k_dt = _apply(
         ctx,
         "HB-F9",
         {
-            "k_d20": _factor(p, _K_DECAY20),
-            "theta_kd": _factor(p, _THETA_KD),
+            "k_d20": _factor(p, _K_DECAY20, _UNIT_ID),
+            "theta_kd": _factor(p, _THETA_KD, _UNIT_ID),
             "t_design": p["t_design"],
         },
     )
@@ -253,7 +231,7 @@ def _yield_chain(ctx: UnitContext, p: dict[str, float]) -> dict[str, float]:
         ctx,
         "HB-F10",
         {
-            "y_syn": _factor(p, _YIELD_SYN),
+            "y_syn": _factor(p, _YIELD_SYN, _UNIT_ID),
             **common,
             "k_dt": k_dt,
             "v_bio": p["v_bio"],
@@ -351,6 +329,6 @@ class _SludgeHebing:
             # 同款形态）
             outqualities={out_ref: WaterQuality({})},
             dims=dims,
-            warnings=_warnings(dims["dev_pct"], _factor(p, _DEV_MAX)),
+            warnings=_warnings(dims["dev_pct"], _factor(p, _DEV_MAX, _UNIT_ID)),
             formula_ids=formula_ids,
         )

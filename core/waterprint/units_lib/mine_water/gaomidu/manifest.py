@@ -69,7 +69,6 @@ _V = DimKey.VELOCITY
 # WATER_DENSITY ρ=1000 kg/m³（HB-F3 简化口径——q_wet=ds/((1−p)×ρ)）/
 # G_PER_KG g/d→kg/d 换算（ds=q_avg×ΔSS 除数）。含水率/密度系链级参数档
 # 无现库系数键——直值注记，系数键化归后续批裁量呈报不扩 coefficients。
-SECS_PER_DAY: Final[float] = 86400.0
 MOISTURE_RESIDUE: Final[float] = 0.97
 WATER_DENSITY: Final[float] = 1000.0
 G_PER_KG: Final[float] = 1000.0

@@ -45,7 +45,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -58,10 +57,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.registry import formulas
+from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
 from waterprint.units_lib.municipal.aao.manifest import (
     FORMULA_IDS,
-    SECS_PER_DAY,
     manifest,
 )
 
@@ -91,45 +90,12 @@ _PARAM_BANDS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-def _factor(params: dict[str, float], key: str) -> float:
-    """系数投影取值：缺键=InvalidUnitConfig（消息含键名，GR-09）。"""
-    value = params.get(key)
-    if value is None:
-        raise InvalidUnitConfig(
-            f"单元 {_UNIT_ID!r} 缺系数键 {key!r}（应经 app._unit_params 从"
-            " coefficients 数据包投影合入 params——M1a D4 装配裁决同款）"
-        )
-    return float(value)
-
-
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：池数/负荷/浓度/HRT/回流比/出水 TN/时换算非正一律拒。"""
     for key in _PARAMS_POSITIVE:
         value = params.get(key)
         if value is None or value <= 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
-
-
-def _inflow(ctx: UnitContext) -> tuple[PortRef, WaterFlow]:
-    """入流装配：恰一入边且为 WATER（多入/缺入/泥线=领域异常）。"""
-    refs = sorted(ctx.inflows, key=lambda ref: (ref.unit_id, ref.port_id))
-    if len(refs) != 1 or not isinstance(ctx.inflows[refs[0]], WaterFlow):
-        raise InvalidUnitConfig(
-            f"单元 {ctx.unit_id!r} 须恰一条 WATER 入边：得到 {len(refs)} 条（生物池单入单出语义）"
-        )
-    flow = ctx.inflows[refs[0]]
-    assert isinstance(flow, WaterFlow)  # 上行守卫已收窄，窄化供类型面
-    return refs[0], flow
-
-
-def _apply(ctx: UnitContext, formula_id: str, bindings: dict[str, float]) -> float:
-    """apply 薄封装：统一携带 (unit_id, condition_key) 与 trace sink。"""
-    return formulas.apply(
-        formula_id,
-        bindings,
-        (ctx.unit_id, ConditionSet.key(ctx.condition)),
-        sink=ctx.trace,
-    )
 
 
 def _volumes(
@@ -154,7 +120,7 @@ def _volumes(
         {
             "q_avg_daily": flow.q_avg_daily,
             "delta_n": delta_n,
-            "k_denit": _factor(p, "factor.aao.k_denit"),
+            "k_denit": _factor(p, "factor.aao.k_denit", _UNIT_ID),
             "x_mlss": p["x_mlss"],
         },
     )
@@ -184,13 +150,15 @@ def _sludge(
             "q_avg_daily": flow.q_avg_daily,
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "y_yield": _factor(p, "factor.aao.yield.y"),
+            "y_yield": _factor(p, "factor.aao.yield.y", _UNIT_ID),
         },
     )
     return {
         "s_y": s_y,
         "q_wet": _apply(
-            ctx, "AO-F7", {"s_y": s_y, "p_moisture": _factor(p, "factor.aao.sludge.moisture")}
+            ctx,
+            "AO-F7",
+            {"s_y": s_y, "p_moisture": _factor(p, "factor.aao.sludge.moisture", _UNIT_ID)},
         ),
         "theta_c": _apply(ctx, "AO-F8", {"v_o": v_o, "x_mlss": p["x_mlss"], "s_y": s_y}),
     }
@@ -200,16 +168,16 @@ def _oxygen(
     ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, float], v_o: float
 ) -> dict[str, float]:
     """AO-F9~F12：碳化/硝化/反硝化需氧量与设计需氧量。"""
-    x_vss = _factor(p, "factor.aao.vss_ratio") * p["x_mlss"]
+    x_vss = _factor(p, "factor.aao.vss_ratio", _UNIT_ID) * p["x_mlss"]
     o2_carbon = _apply(
         ctx,
         "AO-F9",
         {
-            "a_prime": _factor(p, "factor.aao.o2.a_prime"),
+            "a_prime": _factor(p, "factor.aao.o2.a_prime", _UNIT_ID),
             "q_avg_daily": flow.q_avg_daily,
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "b_prime": _factor(p, "factor.aao.o2.b_prime"),
+            "b_prime": _factor(p, "factor.aao.o2.b_prime", _UNIT_ID),
             "v_o": v_o,
             "x_vss": x_vss,
         },
@@ -259,7 +227,7 @@ def _geometry(ctx: UnitContext, p: dict[str, float], v_total: float) -> dict[str
     """
     a_pool = _apply(ctx, "AO-F15", {"v_total": v_total, "h2": p["h2"]})
     h_pool = _apply(
-        ctx, "AO-F16", {"h_super": _factor(p, "factor.aao.superheight"), "h2": p["h2"]}
+        ctx, "AO-F16", {"h_super": _factor(p, "factor.aao.superheight", _UNIT_ID), "h2": p["h2"]}
     )
     binds = {"a_pool": a_pool, "ratio_lb": p["ratio_lb"]}
     l_raw = _apply(ctx, "AO-F17", binds)
@@ -290,8 +258,8 @@ def _warnings(
     """校核带检查：五条参数带（ns/mlss/t_p/R/Ri）+两条结果带（t_n/theta_c）。"""
     found: list[Warning] = []
     for param_key, band_key, quantity in _PARAM_BANDS:
-        low = _factor(p, f"factor.aao.{band_key}.min")
-        high = _factor(p, f"factor.aao.{band_key}.max")
+        low = _factor(p, f"factor.aao.{band_key}.min", _UNIT_ID)
+        high = _factor(p, f"factor.aao.{band_key}.max", _UNIT_ID)
         value = p[param_key]
         if not low <= value <= high:
             found.append(
@@ -303,8 +271,8 @@ def _warnings(
                 )
             )
     age = (
-        _factor(p, "factor.aao.sludge_age_band.min"),
-        _factor(p, "factor.aao.sludge_age_band.max"),
+        _factor(p, "factor.aao.sludge_age_band.min", _UNIT_ID),
+        _factor(p, "factor.aao.sludge_age_band.max", _UNIT_ID),
     )
     if not age[0] <= sludge["theta_c"] <= age[1]:
         found.append(
@@ -317,8 +285,8 @@ def _warnings(
             )
         )
     hrt = (
-        _factor(p, "factor.aao.hrt_anoxic_band.min"),
-        _factor(p, "factor.aao.hrt_anoxic_band.max"),
+        _factor(p, "factor.aao.hrt_anoxic_band.min", _UNIT_ID),
+        _factor(p, "factor.aao.hrt_anoxic_band.max", _UNIT_ID),
     )
     if not hrt[0] <= volumes["t_n"] <= hrt[1]:
         found.append(
@@ -338,7 +306,7 @@ def _out_quality(p: dict[str, float], inflow: WaterQuality) -> WaterQuality:
     for indicator, ref_key in manifest.removal_refs.items():
         value = inflow.concentrations.get(indicator)
         if value is not None:
-            out[indicator] = value * (1 - _factor(p, ref_key))
+            out[indicator] = value * (1 - _factor(p, ref_key, _UNIT_ID))
     for indicator, value in inflow.concentrations.items():
         out.setdefault(indicator, value)
     return WaterQuality(out)
@@ -359,7 +327,7 @@ class _Aao:
         """AO-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
-        in_ref, flow = _inflow(ctx)
+        in_ref, flow = _inflow(ctx, "生物池单入单出语义")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         bod5_in, tn_in = quality.BOD5, quality.TN
         if bod5_in is None or tn_in is None:
@@ -367,7 +335,7 @@ class _Aao:
                 f"单元 {ctx.unit_id!r} 入流缺 BOD5/TN 浓度（AO-F1/F4 计算前提，GR-09）"
             )
         qual = {"bod5_in": bod5_in, "tn_in": tn_in,
-                "bod5_out": bod5_in * (1 - _factor(p, "removal.aao.bod5.mod_default"))}
+                "bod5_out": bod5_in * (1 - _factor(p, "removal.aao.bod5.mod_default", _UNIT_ID))}
         volumes = _volumes(ctx, p, flow, bod5_in, tn_in)
         sludge = _sludge(ctx, p, flow, qual, volumes["v_o"])
         oxygen = _oxygen(ctx, p, flow, qual, volumes["v_o"])
@@ -386,7 +354,7 @@ class _Aao:
                 sludge_ref: SludgeFlow(
                     q_wet=sludge["q_wet"] / SECS_PER_DAY,
                     ds=sludge["s_y"] / SECS_PER_DAY,
-                    moisture=_factor(p, "factor.aao.sludge.moisture"),
+                    moisture=_factor(p, "factor.aao.sludge.moisture", _UNIT_ID),
                 ),
             },
             outqualities={

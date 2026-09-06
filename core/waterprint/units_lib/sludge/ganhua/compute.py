@@ -51,7 +51,8 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.registry import formulas
-from waterprint.units_lib.sludge.ganhua.manifest import FORMULA_IDS, SECS_PER_DAY, manifest
+from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib.sludge.ganhua.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "sludge_ganhua"
 _GB = "GB 50014-2021 §8（污泥章——干化后含水率档，条号待核对）"

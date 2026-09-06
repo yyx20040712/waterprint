@@ -66,7 +66,6 @@ _F = DimKey.FLOW
 # KG_PER_TON=KS-F6 w_ss（t/d）→ MS-F1 干基 kg/d 的 kg/t 换算（手算表
 # mine_water_sludge_line.md 三股语义映射表磁泥股——ρ=1100 湿量经 KS-F7
 # 系数键直用，无新键）。
-SECS_PER_DAY: Final[float] = 86400.0
 KG_PER_TON: Final[float] = 1000.0
 _A = DimKey.AREA
 _VOL = DimKey.VOLUME

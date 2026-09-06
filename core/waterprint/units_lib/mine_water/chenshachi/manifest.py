@@ -67,7 +67,6 @@ _V = DimKey.VELOCITY
 # （带 0.05~0.15 取 0.10——hebing p_bio 注入位同源）/KG_PER_TON t→kg
 # 换算。三键系链级参数档无现库系数键——直值注记，系数键化归后续批
 # 裁量呈报不扩 coefficients（D3 零新系数键）。
-SECS_PER_DAY: Final[float] = 86400.0
 RHO_SAND_WET: Final[float] = 1.6
 MOISTURE_SAND: Final[float] = 0.10
 KG_PER_TON: Final[float] = 1000.0
