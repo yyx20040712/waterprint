@@ -2,6 +2,7 @@
  * 任务事件流订阅：EventSource 自建薄壳（D2——SSE 不走 customInstance）。
  *
  * 输入:  taskId（URL ?task= 消费——null 不建连）+onTerminal 终态回调
+ *        +onConnection 连接态回调（B7 D3——可选三态通知通道）
  * 输出:  TaskView|null（SSE 事件归约视图——null=尚未收到事件；事件解析/
  *        归约纯函数在 lib/taskFeed.ts，本壳只持连接生命周期）+
  *        nextReconnectDelayMs/planRecovery（重连治理纯函数——vitest 面）
@@ -33,12 +34,25 @@
  *   - 服务端 B6 心跳（": keepalive" comment 行）被 EventSource 忽略——
  *     长静默不断流，退避计数不受其扰动（D6）；
  *   - 时间逻辑纯函数化（nextReconnectDelayMs/planRecovery）——vitest
- *     直测，壳内零 fake timers 依赖（薄壳不测先例维持）。
+ *     直测，壳内零 fake timers 依赖（薄壳不测先例维持）；
+ *   - B7 D3（onConnection 连接态通道——2026-09-06 增补）：第三可选参
+ *     三态通知（'reconnecting'=退避重建期/'probing'=达限 60s 慢探测期/
+ *     'ok'=降级后重建连接成功）——onerror 内 failures 递增后按
+ *     planRecovery.mode 发 reconnecting（backoff）/probing（probe）；
+ *     ok=重建连接 onopen 且 failures>0（transport 级真信号口径：服务端
+ *     事件不重放历史+心跳为 EventSource 忽略的 comment 行——稀疏流下
+ *     首事件不可靠，onopen 才是连接恢复真信号；首连接 failures=0 不发
+ *     =零噪音）。回调经 ref 透传（沿 onTerminal——不入依赖数组）；
+ *     **failures 归零语义不动**（仍仅任何事件到达归零——仅增通知通道，
+ *     不改 B6 D3 状态机：ok 不复位计数，恢复后再断连按余计数续走）；
+ *   - B7 D5：SSE_FAILURE_LIMIT 迁 shared/api/sseConstants 单源
+ *     （useExportBatch 双源同值收敛——本地导出面不再保留）。
  */
 import { useEffect, useRef, useState } from "react";
 
 import { getApiToken } from "../../../shared/api/token";
 import { buildTaskStreamUrl } from "../../../shared/api/sseUrl";
+import { SSE_FAILURE_LIMIT } from "../../../shared/api/sseConstants";
 import {
   isTerminalState,
   parseEventData,
@@ -49,8 +63,6 @@ import {
 /** 退避梯（B6 D3）：1s 基数指数增长，封顶 30s（失败序数 1 起步）。 */
 export const SSE_RECONNECT_BASE_MS = 1000;
 export const SSE_RECONNECT_CAP_MS = 30 * 1000;
-/** 连续失败上限：达限置错误态停连（激进重连终止——B6 D3）。 */
-export const SSE_FAILURE_LIMIT = 5;
 /** 停连后慢速周期探测间隔（60s——自动恢复通道，B6 D3 必改4）。 */
 export const SSE_PROBE_INTERVAL_MS = 60 * 1000;
 
@@ -75,11 +87,15 @@ export function planRecovery(failures: number): { mode: "backoff" | "probe"; del
 export function useTaskFeed(
   taskId: string | null,
   onTerminal?: (state: string) => void,
+  onConnection?: (state: "reconnecting" | "probing" | "ok") => void,
 ): TaskView | null {
   const [view, setView] = useState<TaskView | null>(null);
   // 终态回调经 ref 透传（taskId 单依赖——回调引用变更不重建连接）
   const onTerminalRef = useRef(onTerminal);
   onTerminalRef.current = onTerminal;
+  // B7 D3：连接态回调同款 ref 透传（不入依赖数组）
+  const onConnectionRef = useRef(onConnection);
+  onConnectionRef.current = onConnection;
 
   useEffect(() => {
     setView(null); // 任务切换视图重置（null 面同走重置）
@@ -120,12 +136,21 @@ export function useTaskFeed(
       next.addEventListener("state", consume as EventListener);
       next.addEventListener("progress", consume as EventListener);
       next.addEventListener("stale", consume as EventListener);
+      // B7 D3：ok=重建连接且此前降级（failures>0）——首连接 open 零噪音
+      // （onopen 是 transport 级真信号；failures 归零仍仅由事件到达承载）。
+      next.onopen = () => {
+        if (failures > 0) {
+          onConnectionRef.current?.("ok");
+        }
+      };
       next.onerror = () => {
         // B6 D3：onerror 无 status 面——401/429/网络抖动同构计数覆盖。
         // close 夺回控制权（弃用浏览器内建无限重连），按计划退避/慢探测。
         next.close();
         failures += 1;
         const plan = planRecovery(failures);
+        // B7 D3：连接态通知（backoff 期=reconnecting/达限慢探测=probing）
+        onConnectionRef.current?.(plan.mode === "probe" ? "probing" : "reconnecting");
         timer = setTimeout(connect, plan.delayMs);
       };
     };

@@ -3,6 +3,9 @@
  *
  * 输入:  taskId+TaskView（useTaskFeed SSE 归约视图）+TaskStatus 快照
  *        （终态详情源——pane 注入）+statusError（快照查询错误文案）
+ *        +connection（SSE 连接态提示面——B7 D4：reconnecting/probing 显
+ *        中断 warning 行，ok/null 零渲染——与 statusError danger 段不同行
+ *        不同语义零互斥）
  * 输出:  状态徽标+进度条+阶段文案+失败三件回显（error_type/error/
  *        error_code）+running/queued 取消按钮+stale 提示
  *
@@ -53,11 +56,13 @@ const STAGE_LABELS: Record<string, string> = {
 export function TaskPanel({
   taskId,
   view,
+  connection,
   status,
   statusError,
 }: {
   taskId: string;
   view: TaskView | null;
+  connection?: "reconnecting" | "probing" | "ok" | null;
   status: TaskStatus | null;
   statusError: string | null;
 }) {
@@ -123,6 +128,16 @@ export function TaskPanel({
         ) : null}
         {effective?.stale ? (
           <Typography.Text type="warning">结果已过期（stale）</Typography.Text>
+        ) : null}
+        {connection === "reconnecting" || connection === "probing" ? (
+          // B7 D4：连接中断系统态信息（与 stale 同位同形态 warning 行）。
+          // 文案不写死退避秒数防漂移；probing 60s=useTaskFeed
+          // SSE_PROBE_INTERVAL_MS 固定值——改彼处须同步本文案。
+          <Typography.Text type="warning">
+            {connection === "probing"
+              ? "连接中断，每 60 秒重试一次…"
+              : "连接中断，自动重连中…"}
+          </Typography.Text>
         ) : null}
         {cancellable ? (
           <Button

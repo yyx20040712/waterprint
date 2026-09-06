@@ -169,6 +169,11 @@ export function SolutionsPane() {
   const [constraintKeys, setConstraintKeys] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("margin_min");
+  // B7 D3/D4：SSE 连接态（useTaskFeed onConnection 消费源→TaskPanel
+  // connection prop——reconnecting/probing 显中断提示行；ok/任务切换置 null）
+  const [connection, setConnection] = useState<
+    "reconnecting" | "probing" | "ok" | null
+  >(null);
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
@@ -205,21 +210,32 @@ export function SolutionsPane() {
     setEnumeratedUnitId(null);
   }, [projectId]);
 
+  // B7 D3：面板任务切换重置连接态（沿视图重置语义——旧任务中断提示不
+  // 残留到新任务；effect 声明先于 useTaskFeed 挂载序，重置先于新连接回调）。
+  useEffect(() => {
+    setConnection(null);
+  }, [panelTaskId]);
+
   // SSE 进度流（面板轨）：终态回调→失效面板任务快照（failed 三件详情）
   // AUDIT2-R R3（DS-03 跨基座一审发现）：终态再派发 TASK_EVENT——重算
   // 完成后已挂载 elevation/cost 自动刷新（stale 横幅随之解除）；apply 时刻
   // 的首派发只拉到旧快照+警示,二段刷新此前缺失。本 pane 自监听经 URL
   // 重读幂等（?task= 未再变,同值早退）。
-  const view = useTaskFeed(panelTaskId, () => {
-    if (panelTaskId !== null) {
-      void queryClient.invalidateQueries({
-        queryKey: [`/api/calc/tasks/${panelTaskId}`],
-      });
-      window.dispatchEvent(
-        new CustomEvent(TASK_EVENT, { detail: panelTaskId }),
-      );
-    }
-  });
+  // B7 D3：第三参 onConnection→connection 态（TaskPanel 中断提示行源）。
+  const view = useTaskFeed(
+    panelTaskId,
+    () => {
+      if (panelTaskId !== null) {
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/calc/tasks/${panelTaskId}`],
+        });
+        window.dispatchEvent(
+          new CustomEvent(TASK_EVENT, { detail: panelTaskId }),
+        );
+      }
+    },
+    setConnection,
+  );
   const panelStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(
     panelTaskId ?? "",
     { query: { enabled: panelTaskId !== null } },
@@ -428,6 +444,7 @@ export function SolutionsPane() {
             <TaskPanel
               taskId={panelTaskId}
               view={view}
+              connection={connection}
               status={panelStatusQuery.data ?? null}
               statusError={
                 panelStatusQuery.error instanceof Error

@@ -46,6 +46,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { customInstance } from "../../../shared/api/http";
 import { getApiToken } from "../../../shared/api/token";
 import { buildTaskStreamUrl } from "../../../shared/api/sseUrl";
+import { SSE_FAILURE_LIMIT } from "../../../shared/api/sseConstants";
 import { buildBatchExportBody } from "../lib/batchExport";
 
 /** 批量提交变量（units 序=items 序——Select multiple 选中序）。 */
@@ -187,9 +188,8 @@ export function batchStatusText(
  * 双实现收敛；taskId 路径段编码+token 非空 ？token= 查询通道）。 */
 
 /** SSE 等待治理（B6 D3 形态裁量）：一次性 awaitTerminal 的悬挂防线——
- * 连续失败上限（与 useTaskFeed.SSE_FAILURE_LIMIT 同值同构——features 互
- * 不 import 门禁下本地常量，cross-ref 记档）+总时长上界超时拒绝。 */
-const SSE_FAILURE_LIMIT = 5;
+ * 连续失败上限（shared/api/sseConstants 单源——B7 D5 收敛：useTaskFeed
+ * 同源消费，双处同值防线由注释挂账兑付为单源）+总时长上界超时拒绝。 */
 const SSE_AWAIT_TIMEOUT_MS = 10 * 60 * 1000; // 10 分钟（批量导出多产物长任务余量）
 
 /** 提交批量任务（单 body POST→句柄 JSON 取 task_id——D6②「句柄误当 blob」修复面）。 */
