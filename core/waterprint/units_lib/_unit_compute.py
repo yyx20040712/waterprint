@@ -13,12 +13,14 @@
 #   扩展[D5]：_factor 增 unit_id 入参、_inflow 增 edge_note 尾注入参，
 #   消息文案仅消费入参；_apply 签名零扩展——ctx 自带 unit_id/
 #   condition_key 语境）。
-# 【R-2 消费面】32 包 compute.py + _template（笔① CASS 试点先行落地，
-#   余 31 包笔②批量收敛）；测试要求=golden 全量+双跑 diff=0 常驻测试
-#   间接覆盖，零新测试（B3/ENG7/B7 纯搬迁先例三连）；共享件不 import
-#   任何包件（无环——D1）；import 面=contracts（L0）+registry（L1）
-#   向下合法（InvalidUnitConfig/UnitContext/PortRef/WaterFlow/
-#   ConditionSet/formulas——L2→L1/L0）。
+# 【R-2 消费面】32 包 compute.py 中实有同构面 19 包（B8 笔① cass 试点
+#   +笔② 18 包；余 13 包三变体族剔出——conveyance 股族/消息尾族/
+#   sludge 泥线族，证据在册 R3 二期挂账）；_template 为纯规格说明件
+#   零样板（30 行——无需消费，B8 R1 实证）；测试要求=golden 全量+
+#   双跑 diff=0 常驻测试间接覆盖，零新测试（B3/ENG7/B7 纯搬迁先例
+#   三连）；共享件不 import 任何包件（无环——D1）；import 面=
+#   contracts（L0）+registry（L1）向下合法（InvalidUnitConfig/
+#   UnitContext/PortRef/WaterFlow/ConditionSet/formulas——L2→L1/L0）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
