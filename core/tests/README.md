@@ -18,7 +18,9 @@ tests/
 │  network|project|trace|app/     镜像测试（test_<模块名>.py）
 ├─ properties_*       性质测试（hypothesis：非负/单调/守恒/边界/字节级等价）
 ├─ golden/            端到端（两大案例）+ golden_data/（期望值数据，人类维护）
-├─ snapshots/         syrupy 输出快照（Excel/DXF/审计报告内容哈希）
+├─ snapshots/         syrupy 输出快照：test_snapshots.py 三产物内容哈希锚
+│                     （xlsx/DXF/HTML——ADR-010；__snapshots__/*.ambr 不入
+│                     锁定清单，更新走 --snapshot-update+人审）
 └─ benchmark/         pytest-benchmark 性能基准（§18.1 预算）
 ```
 

@@ -139,9 +139,14 @@
 ## 8. 修改与提交
 
 - 每次改动一个逻辑单元；完成后 `git diff --stat` 自查范围蔓延（只应包含任务相关文件）。
-- 改核心模块（graph/registry/contracts）前先跑其镜像测试；快照回归挂账
-  （暂无快照测试——R2D 2026-09-02 口径对齐现状；快照测试落地时改输出
-  格式按 syrupy `--snapshot-update` 流程更新并显式说明）。
+- 改核心模块（graph/registry/contracts）前先跑其镜像测试；快照回归已
+  落地（批 14/ADR-010：tests/snapshots/ 锚三产物 xlsx/DXF/HTML 内容哈希
+  ——渲染面/模板/依赖升级改动=快照红，先人审定性：预期漂移按 syrupy
+  `--snapshot-update` 重录+diff 入批注记；非预期漂移=回归缺陷走修复，
+  禁改快照遮蔽。已知非内容噪声在测试层规范化吸收：xlsx core.xml
+  modified 时钟（openpyxl 落盘刷新）+DXF CLASSES/OBJECTS 记录序
+  （ezdxf 注册序跨进程不稳）；ezdxf 新翻转面出现时按预期漂移处置并
+  扩归一规则——两噪声对应产品确定性缺陷挂账待后续批）。
 - 项目文件序列化必须确定性：键排序、round(x,10) 浮点定点、无随机 ID、保存两次字节级相同；
   content_hash 只覆盖 design 态。
 - 提交信息中文描述意图；一个 commit 一个目的。首行=人类可读完整一句话

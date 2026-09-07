@@ -10,4 +10,8 @@
 - 只读锁定：`core/tests/` 与 `server/tests/` 全部文件由
   `test-lock.manifest.json`（sha256）+ 文件只读属性双重锁定，
   `scripts/check_readonly.py` 与 `tests/arch/test_lock.py` 本地/CI 双验；
-- 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`）。
+- 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`）；
+- 快照回归：`tests/snapshots/`（syrupy）锚三导出产物内容哈希
+  （xlsx/DXF/HTML——ADR-010）；快照红≠自动更新，先人审定性（预期漂移
+  `--snapshot-update` 重录+diff 入批注记；非预期=回归缺陷走修复）；
+  `__snapshots__/` 不入锁定清单，更新走显式命令+人审。

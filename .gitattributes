@@ -12,6 +12,7 @@
 *.dxf text eol=lf
 *.html text eol=lf
 *.css text eol=lf
+*.ambr text eol=lf
 
 # 二进制
 *.png binary
