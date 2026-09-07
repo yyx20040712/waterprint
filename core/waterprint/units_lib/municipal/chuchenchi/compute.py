@@ -107,7 +107,7 @@ def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, 
     q1h = _apply_batch(ctx, "CC-F1", {"q_design": _vec(flow.q_design), "n": _vec(p["n"])})
     f_req = _apply_batch(ctx, "CC-F2", {"q1h": q1h, "q_prime": _vec(p["q_prime"])})
     d_raw = _apply_batch(ctx, "CC-F3", {"f_req": f_req, "pi": _vec(math.pi)})
-    d = _vec(_ceil_step(float(d_raw[0]), p["dia_disc_step"]))
+    d = _ceil_vec(d_raw, p["dia_disc_step"])
     f_act = _apply_batch(ctx, "CC-F4", {"pi": _vec(math.pi), "D": d})
     q_prime_act = _apply_batch(ctx, "CC-F5", {"q1h": q1h, "f_act": f_act})
     h2 = _apply_batch(ctx, "CC-F6", {"q_prime_act": q_prime_act, "t_settle": _vec(p["t_settle"])})
