@@ -174,7 +174,8 @@
 ```
 units_lib/<line>/<unit>/
 ├─ manifest.py        # 声明式清单：参数/端口/去除率/规范引用/工况映射（唯一对外）
-├─ compute.py         # 唯一计算源：批量=逐行 compute 调用（禁双轨）；向量化增强挂 UF-36，≤400 行
+├─ compute.py         # 唯一计算源：批量=同源向量路径（formulas 批量正门，标量=N=1 退化
+│                     # ——禁第二实现，ADR-011 D1）；向量化载体=GR-37 强制，≤400 行
 ├─ constraints.py     # 声明式约束定义
 ├─ README.md          # 一段话职责 + 输入输出
 └─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）
