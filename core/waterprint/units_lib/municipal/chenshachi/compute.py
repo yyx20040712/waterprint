@@ -1,11 +1,15 @@
-"""旋流沉砂池计算实现：唯一计算源（CS-F1~F18 全经 registry.apply 求值）。
+"""旋流沉砂池计算实现：唯一计算源（CS-F1~F18 全经 registry.apply_batch
+求值——批 13-B 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M1a 实装：M1 先行示范（本批实装）/M2 正式验收）
+# 规格说明（M1a 实装：M1 先行示范（本批实装）/M2 正式验收；批 13-B
+#   向量化重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量
+#   路径唯一——标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=
+#   批 D 引擎正门]）
 #
 # 【公式组】CS-F1~F18（docs/norms/chenshachi.md 签字表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：池径 D/
@@ -31,6 +35,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -42,8 +48,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.chenshachi.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-B——公式链中间量形态）
 
 _UNIT_ID = "municipal_chenshachi"
 _NORM = "GB 50014-2021 §6.4（条文号待核对原文）"
@@ -65,6 +73,11 @@ _RETENTION_BAND = (
 _ceil_step = _make_ceil_step(_UNIT_ID, "length_disc_step", spaced=True)
 
 
+def _ceil_vec(raw: _Array, step: float) -> _Array:
+    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-B 数组链形态）。"""
+    return _vec(_ceil_step(float(raw[0]), step))
+
+
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：池数/负荷/停留/流速/渠宽/步长非正一律拒。"""
     for key in ("n", "q_surf", "t_retention", "t_clean", "theta", "b_channel", "v_channel"):
@@ -73,93 +86,97 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """CS-F1~F6：单池流量/池径/有效水深/径深比/有效容积/实际停留时间。"""
-    q1 = _apply(ctx, "CS-F1", {"q_design": flow.q_design, "n": p["n"]})
-    d = _ceil_step(
-        _apply(
+    q1 = _apply_batch(ctx, "CS-F1", {"q_design": _vec(flow.q_design), "n": _vec(p["n"])})
+    d = _ceil_vec(
+        _apply_batch(
             ctx,
             "CS-F2",
             {
                 "q1": q1,
-                "sec_per_hour": p["sec_per_hour"],
-                "pi": math.pi,
-                "q_surf": p["q_surf"],
+                "sec_per_hour": _vec(p["sec_per_hour"]),
+                "pi": _vec(math.pi),
+                "q_surf": _vec(p["q_surf"]),
             },
         ),
         p["length_disc_step"],
     )
-    h2 = _apply(ctx, "CS-F3", {"q_surf": p["q_surf"], "t_retention": p["t_retention"]})
-    v_eff = _apply(ctx, "CS-F5", {"pi": math.pi, "d": d, "h2": h2})
+    h2 = _apply_batch(
+        ctx, "CS-F3", {"q_surf": _vec(p["q_surf"]), "t_retention": _vec(p["t_retention"])}
+    )
+    v_eff = _apply_batch(ctx, "CS-F5", {"pi": _vec(math.pi), "d": d, "h2": h2})
     return {
         "q1": q1,
-        "q1h": q1 * p["sec_per_hour"],  # DSL 单输出导出量（F1 第二等式）
+        "q1h": q1 * _vec(p["sec_per_hour"]),  # DSL 单输出导出量（F1 第二等式）
         "d": d,
         "h2": h2,
-        "ratio_dh2": _apply(ctx, "CS-F4", {"d": d, "h2": h2}),
+        "ratio_dh2": _apply_batch(ctx, "CS-F4", {"d": d, "h2": h2}),
         "v_eff": v_eff,
-        "t_actual": _apply(ctx, "CS-F6", {"v_eff": v_eff, "q1": q1}),
+        "t_actual": _apply_batch(ctx, "CS-F6", {"v_eff": v_eff, "q1": q1}),
     }
 
 
 def _hopper(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, basin: dict[str, float]
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, basin: dict[str, _Array]
+) -> dict[str, _Array]:
     """CS-F7~F13：沉砂量/砂斗组容积/圆柱段/总高（含 V_storage 导出量）。"""
-    v_sand = _apply(
+    v_sand = _apply_batch(
         ctx,
         "CS-F7",
         {
-            "q_avg_daily": flow.q_avg_daily,
-            "x_sand": _factor(p, "factor.chenshachi.sand_yield_x", _UNIT_ID),
-            "n": p["n"],
+            "q_avg_daily": _vec(flow.q_avg_daily),
+            "x_sand": _vec(_factor(p, "factor.chenshachi.sand_yield_x", _UNIT_ID)),
+            "n": _vec(p["n"]),
         },
     )
-    v_hopper = _apply(
+    v_hopper = _apply_batch(
         ctx,
         "CS-F8",
         {
             "v_sand": v_sand,
-            "t_clean": p["t_clean"],
-            "safety": _factor(p, "factor.chenshachi.hopper.safety", _UNIT_ID),
+            "t_clean": _vec(p["t_clean"]),
+            "safety": _vec(_factor(p, "factor.chenshachi.hopper.safety", _UNIT_ID)),
         },
     )
     d = basin["d"]
-    d_upper = _apply(
+    d_upper = _apply_batch(
         ctx,
         "CS-F9",
-        {"upper_ratio": _factor(p, "factor.chenshachi.hopper_upper_ratio", _UNIT_ID), "d": d},
+        {"upper_ratio": _vec(_factor(p, "factor.chenshachi.hopper_upper_ratio", _UNIT_ID)), "d": d},
     )
     tan_theta = math.tan(math.radians(p["theta"]))
-    h4 = _apply(ctx, "CS-F10", {"d_upper": d_upper, "d_r": p["d_r"], "tan_theta": tan_theta})
-    v_cone = _apply(
+    h4 = _apply_batch(
+        ctx, "CS-F10", {"d_upper": d_upper, "d_r": _vec(p["d_r"]), "tan_theta": _vec(tan_theta)}
+    )
+    v_cone = _apply_batch(
         ctx,
         "CS-F11",
-        {"pi": math.pi, "h4": h4, "d_upper": d_upper, "d_r": p["d_r"]},
+        {"pi": _vec(math.pi), "h4": h4, "d_upper": d_upper, "d_r": _vec(p["d_r"])},
     )
-    h_cyl = _ceil_step(
-        _apply(
+    h_cyl = _ceil_vec(
+        _apply_batch(
             ctx,
             "CS-F12",
-            {"v_hopper": v_hopper, "v_cone": v_cone, "pi": math.pi, "d_upper": d_upper},
+            {"v_hopper": v_hopper, "v_cone": v_cone, "pi": _vec(math.pi), "d_upper": d_upper},
         ),
         p["length_disc_step"],
     )
-    h_total = _ceil_step(
-        _apply(
+    h_total = _ceil_vec(
+        _apply_batch(
             ctx,
             "CS-F13",
             {
-                "h1_super": _factor(p, "factor.chenshachi.superheight", _UNIT_ID),
+                "h1_super": _vec(_factor(p, "factor.chenshachi.superheight", _UNIT_ID)),
                 "h2": basin["h2"],
-                "h3_buffer": _factor(p, "factor.chenshachi.buffer_h3", _UNIT_ID),
+                "h3_buffer": _vec(_factor(p, "factor.chenshachi.buffer_h3", _UNIT_ID)),
                 "h4": h4,
                 "h_cyl": h_cyl,
             },
         ),
         p["length_disc_step"],
     )
-    upper_area = math.pi * (d_upper / 2) ** 2
+    upper_area = math.pi * (d_upper / _vec(2)) ** _vec(2)
     return {
         "v_sand": v_sand,
         "v_hopper": v_hopper,
@@ -172,62 +189,64 @@ def _hopper(
     }
 
 
-def _channel(ctx: UnitContext, p: dict[str, float], basin: dict[str, float]) -> dict[str, float]:
+def _channel(ctx: UnitContext, p: dict[str, float], basin: dict[str, _Array]) -> dict[str, _Array]:
     """CS-F14~F16：进水渠水深/直段长/出水渠宽（含 A渠/宽深比导出量）。"""
-    h_channel = _apply(
+    h_channel = _apply_batch(
         ctx,
         "CS-F14",
-        {"q1": basin["q1"], "v_channel": p["v_channel"], "b_channel": p["b_channel"]},
+        {"q1": basin["q1"], "v_channel": _vec(p["v_channel"]), "b_channel": _vec(p["b_channel"])},
     )
+    straight_mult = _vec(_factor(p, "factor.chenshachi.channel.straight_mult", _UNIT_ID))
+    straight_min = _vec(_factor(p, "factor.chenshachi.channel.straight_min", _UNIT_ID))
     return {
-        "a_channel": basin["q1"] / p["v_channel"],  # 4-26 子式导出量
+        "a_channel": basin["q1"] / _vec(p["v_channel"]),  # 4-26 子式导出量
         "h_channel": h_channel,
-        "ratio_bh": p["b_channel"] / h_channel,
-        "l_straight": _apply(
+        "ratio_bh": _vec(p["b_channel"]) / h_channel,
+        "l_straight": _apply_batch(
             ctx,
             "CS-F15",
             {
-                "straight_mult": _factor(p, "factor.chenshachi.channel.straight_mult", _UNIT_ID),
-                "b_channel": p["b_channel"],
-                "straight_min": _factor(p, "factor.chenshachi.channel.straight_min", _UNIT_ID),
+                "straight_mult": straight_mult,
+                "b_channel": _vec(p["b_channel"]),
+                "straight_min": straight_min,
             },
         ),
-        "b_outlet": _apply(
+        "b_outlet": _apply_batch(
             ctx,
             "CS-F16",
             {
-                "outlet_mult": _factor(p, "factor.chenshachi.channel.outlet_mult", _UNIT_ID),
-                "b_channel": p["b_channel"],
+                "outlet_mult": _vec(_factor(p, "factor.chenshachi.channel.outlet_mult", _UNIT_ID)),
+                "b_channel": _vec(p["b_channel"]),
             },
         ),
     }
 
 
 def _sludge(
-    ctx: UnitContext, p: dict[str, float], hopper: dict[str, float], h_total: float
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], hopper: dict[str, _Array], h_total: _Array
+) -> dict[str, _Array]:
     """CS-F17/F18：沉砂污泥口 DS（含 Q_wet 导出量）与混凝土量。"""
     return {
-        "q_wet": hopper["v_sand"] * p["n"],  # F17 全厂湿砂量导出量
-        "ds_grit": _apply(
+        "q_wet": hopper["v_sand"] * _vec(p["n"]),  # F17 全厂湿砂量导出量
+        "ds_grit": _apply_batch(
             ctx,
             "CS-F17",
             {
                 "v_sand": hopper["v_sand"],
-                "moisture": _factor(p, "factor.chenshachi.grit.moisture", _UNIT_ID),
-                "grit_density": _factor(p, "factor.chenshachi.grit.density", _UNIT_ID),
-                "n": p["n"],
+                "moisture": _vec(_factor(p, "factor.chenshachi.grit.moisture", _UNIT_ID)),
+                "grit_density": _vec(_factor(p, "factor.chenshachi.grit.density", _UNIT_ID)),
+                "n": _vec(p["n"]),
             },
         ),
-        "v_concrete": _apply(
+        "v_concrete": _apply_batch(
             ctx,
             "CS-F18",
             {
-                "pi": math.pi,
+                "pi": _vec(math.pi),
                 "d": hopper["d"],
                 "h_total": h_total,
-                "n": p["n"],
-                "wall_coef": _factor(p, "factor.chenshachi.wall_thickness_coef", _UNIT_ID),
+                "n": _vec(p["n"]),
+                "wall_coef": _vec(_factor(p, "factor.chenshachi.wall_thickness_coef", _UNIT_ID)),
             },
         ),
     }
@@ -252,9 +271,12 @@ def _band_warning(
     )
 
 
-def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ...]:
+def _warnings(p: dict[str, float], basin: dict[str, _Array]) -> tuple[Warning, ...]:
     """校核带检查：表面负荷/有效水深/径深比/实际停留时间（三表 CS 带）。"""
     found: list[Warning] = []
+    h2 = float(basin["h2"][0])
+    ratio_dh2 = float(basin["ratio_dh2"][0])
+    t_actual = float(basin["t_actual"][0])
     q_low = _factor(p, _SURFACE_BAND[0], _UNIT_ID)
     q_high = _factor(p, _SURFACE_BAND[1], _UNIT_ID)
     h2_low = _factor(p, _H2_BAND[0], _UNIT_ID)
@@ -273,23 +295,23 @@ def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ..
                 (q_low, q_high),
             )
         )
-    if not h2_low <= basin["h2"] <= h2_high:
+    if not h2_low <= h2 <= h2_high:
         found.append(
             _band_warning(
                 "t_retention",
                 f"{_NORM}；{_H2_BAND[0]}~{_H2_BAND[1]}",
                 "有效水深 m",
-                basin["h2"],
+                h2,
                 (h2_low, h2_high),
             )
         )
-    if not r_low <= basin["ratio_dh2"] <= r_high:
+    if not r_low <= ratio_dh2 <= r_high:
         found.append(
             Warning(
                 severity=Severity.WARN,
                 source=f"{_NORM}；{_RATIO_BAND[0]}~{_RATIO_BAND[1]}",
                 message=(
-                    f"径深比 D/h2 = {basin['ratio_dh2']:.4f} 越出建议带"
+                    f"径深比 D/h2 = {ratio_dh2:.4f} 越出建议带"
                     f" [{r_low}, {r_high}]（参数 q_surf——"
                     "调节方向：表面负荷 q_surf（影响 D）或停留时间"
                     " t_retention（影响 h2））"
@@ -297,13 +319,13 @@ def _warnings(p: dict[str, float], basin: dict[str, float]) -> tuple[Warning, ..
                 param_key="q_surf",
             )
         )
-    if not t_low <= basin["t_actual"] <= t_high:
+    if not t_low <= t_actual <= t_high:
         found.append(
             _band_warning(
                 "t_retention",
                 f"{_NORM}；{_RETENTION_BAND[0]}~{_RETENTION_BAND[1]}",
                 "实际停留时间 s",
-                basin["t_actual"],
+                t_actual,
                 (t_low, t_high),
             )
         )
@@ -343,7 +365,8 @@ class _Chenshachi:
         hopper["d"] = basin["d"]
         channel = _channel(ctx, p, basin)
         sludge = _sludge(ctx, p, hopper, hopper["h_total"])
-        dims = {**basin, **hopper, **channel, **sludge}
+        arrays = {**basin, **hopper, **channel, **sludge}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},

@@ -1,4 +1,5 @@
-"""辐流二沉池计算实现：唯一计算源（EC-F1~F15 全经 registry.apply 求值）。
+"""辐流二沉池计算实现：唯一计算源（EC-F1~F15 全经 registry.apply_batch
+求值——批 13-B 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
@@ -6,7 +7,9 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（M2a2 实装：M2a1 数据先行批的代码落地/M2 正式验收；
-#   公式路线 = ADR-008 ②清水表面负荷主控+固体负荷校核）
+#   公式路线 = ADR-008 ②清水表面负荷主控+固体负荷校核；批 13-B 向量化
+#   重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一
+#   ——标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【公式组】EC-F1~F15（docs/norms/erchunchi.md 起草表；manifest.py 登记）
 #   ——清水/固体表面负荷（EC-F1~F9）、回流污泥浓度（EC-F10）、停留时间
@@ -18,7 +21,7 @@
 # 【DSL 单输出导出量】q1（=q_design/n 清水口径单池秒流量）、v_check（=
 #   a_act×h2 校核容积）/t_hrt（=v_check/q1h 校核 HRT）/q_return_sludge
 #   （=r_external×q1h 回流污泥量）在 compute 以符号算术合成——零字面量、
-#   无新工程常数（registry 单输出限制的导出面）。
+#   无新工程常数（registry 单输出限制导出面）。
 # 【流量口径（三表逐字冻结）】清水表面负荷与池径按最高时 flow.q_design
 #   （不含回流）；固体负荷按含回流混合液 (1+R)×q1h；R/X 与 AAO 表联动
 #   （各包独立声明同值参数）——混合液 MLSS 由参数 x_mlss 承载，不经
@@ -39,6 +42,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -50,8 +55,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.erchunchi.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-B——公式链中间量形态）
 
 _UNIT_ID = "municipal_erchunchi"
 _GB = "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16"
@@ -80,6 +87,11 @@ _PARAMS_POSITIVE = (
 _ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
+def _ceil_vec(raw: _Array, step: float) -> _Array:
+    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-B 数组链形态）。"""
+    return _vec(_ceil_step(float(raw[0]), step))
+
+
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：池数/负荷/浓度/回流比/水深/构造/步长非正一律拒。"""
     for key in _PARAMS_POSITIVE:
@@ -88,22 +100,23 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _load(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _load(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """EC-F1~F10：单池流量/双控面积/池径/负荷校核/Xr（含 HRT 导出量）。"""
-    q1h = _apply(ctx, "EC-F1", {"q_design": flow.q_design, "n": p["n"]})
-    q1 = flow.q_design / p["n"]  # 清水口径单池秒流量（EC-F11/F12 入参）
-    a_q = _apply(ctx, "EC-F2", {"q1h": q1h, "q_nom": p["q_nom"]})
-    m_solid = _apply(
+    q1h = _apply_batch(ctx, "EC-F1", {"q_design": _vec(flow.q_design), "n": _vec(p["n"])})
+    q1 = _vec(flow.q_design) / _vec(p["n"])  # 清水口径单池秒流量（EC-F11/F12 入参）
+    a_q = _apply_batch(ctx, "EC-F2", {"q1h": q1h, "q_nom": _vec(p["q_nom"])})
+    m_solid = _apply_batch(
         ctx,
         "EC-F3",
-        {"r_external": p["r_external"], "q1h": q1h, "x_mlss": p["x_mlss"]},
+        {"r_external": _vec(p["r_external"]), "q1h": q1h, "x_mlss": _vec(p["x_mlss"])},
     )
-    a_solid = _apply(ctx, "EC-F4", {"m_solid": m_solid, "g_max": _factor(p, _SOLID_MAX, _UNIT_ID)})
-    a_tank = _apply(ctx, "EC-F5", {"a_q": a_q, "a_solid": a_solid})
-    d_raw = _apply(ctx, "EC-F6", {"a_tank": a_tank, "pi": math.pi})
-    d = _ceil_step(d_raw, p["dia_disc_step"])
-    a_act = _apply(ctx, "EC-F7", {"pi": math.pi, "D": d})
-    v_check = a_act * p["h2"]  # 校核容积（三表校核 HRT 行）
+    g_max = _vec(_factor(p, _SOLID_MAX, _UNIT_ID))
+    a_solid = _apply_batch(ctx, "EC-F4", {"m_solid": m_solid, "g_max": g_max})
+    a_tank = _apply_batch(ctx, "EC-F5", {"a_q": a_q, "a_solid": a_solid})
+    d_raw = _apply_batch(ctx, "EC-F6", {"a_tank": a_tank, "pi": _vec(math.pi)})
+    d = _ceil_vec(d_raw, p["dia_disc_step"])
+    a_act = _apply_batch(ctx, "EC-F7", {"pi": _vec(math.pi), "D": d})
+    v_check = a_act * _vec(p["h2"])  # 校核容积（三表校核 HRT 行）
     return {
         "q1": q1,
         "q1h": q1h,
@@ -114,70 +127,72 @@ def _load(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, f
         "d_raw": d_raw,
         "d": d,
         "a_act": a_act,
-        "q_act": _apply(ctx, "EC-F8", {"q1h": q1h, "a_act": a_act}),
-        "g_act": _apply(ctx, "EC-F9", {"m_solid": m_solid, "a_act": a_act}),
-        "x_r": _apply(ctx, "EC-F10", {"x_mlss": p["x_mlss"], "r_external": p["r_external"]}),
+        "q_act": _apply_batch(ctx, "EC-F8", {"q1h": q1h, "a_act": a_act}),
+        "g_act": _apply_batch(ctx, "EC-F9", {"m_solid": m_solid, "a_act": a_act}),
+        "x_r": _apply_batch(
+            ctx, "EC-F10", {"x_mlss": _vec(p["x_mlss"]), "r_external": _vec(p["r_external"])}
+        ),
         "v_check": v_check,
         "t_hrt": v_check / q1h,  # 校核 HRT（三表校核 HRT 行）
-        "q_return_sludge": p["r_external"] * q1h,  # 回流污泥量（排泥衔接行）
+        "q_return_sludge": _vec(p["r_external"]) * q1h,  # 回流污泥量（排泥衔接行）
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, float]) -> dict[str, float]:
+def _geometry(ctx: UnitContext, p: dict[str, float], load: dict[str, _Array]) -> dict[str, _Array]:
     """EC-F11~F15：堰负荷/中心筒/池底坡/总高（含离散）与混凝土量。"""
-    h4 = _ceil_step(
-        _apply(
+    h4 = _ceil_vec(
+        _apply_batch(
             ctx,
             "EC-F13",
             {
-                "i_slope": _factor(p, "factor.erchunchi.bottom_slope", _UNIT_ID),
+                "i_slope": _vec(_factor(p, "factor.erchunchi.bottom_slope", _UNIT_ID)),
                 "D": load["d"],
-                "r_pit": p["r_pit"],
+                "r_pit": _vec(p["r_pit"]),
             },
         ),
         p["length_disc_step"],
     )
-    h_total = _ceil_step(
-        _apply(
+    h_total = _ceil_vec(
+        _apply_batch(
             ctx,
             "EC-F14",
             {
-                "h_super": _factor(p, "factor.erchunchi.superheight", _UNIT_ID),
-                "h2": p["h2"],
-                "h_buf": _factor(p, "factor.erchunchi.buffer_h3", _UNIT_ID),
+                "h_super": _vec(_factor(p, "factor.erchunchi.superheight", _UNIT_ID)),
+                "h2": _vec(p["h2"]),
+                "h_buf": _vec(_factor(p, "factor.erchunchi.buffer_h3", _UNIT_ID)),
                 "h4": h4,
             },
         ),
         p["length_disc_step"],
     )
     return {
-        "q_weir": _apply(
-            ctx, "EC-F11", {"q1": load["q1"], "pi": math.pi, "D": load["d"]}
+        "q_weir": _apply_batch(
+            ctx, "EC-F11", {"q1": load["q1"], "pi": _vec(math.pi), "D": load["d"]}
         ),
-        "d_center": _ceil_step(
-            _apply(
+        "d_center": _ceil_vec(
+            _apply_batch(
                 ctx,
                 "EC-F12",
                 {
-                    "r_external": p["r_external"],
+                    "r_external": _vec(p["r_external"]),
                     "q1": load["q1"],
-                    "pi": math.pi,
-                    "v_center": _factor(p, "factor.erchunchi.center_velocity", _UNIT_ID),
+                    "pi": _vec(math.pi),
+                    "v_center": _vec(_factor(p, "factor.erchunchi.center_velocity", _UNIT_ID)),
                 },
             ),
             p["length_disc_step"],
         ),
         "h4": h4,
         "h_total": h_total,
-        "v_concrete": _apply(
+        "v_concrete": _apply_batch(
             ctx,
             "EC-F15",
             {
-                "pi": math.pi,
+                "pi": _vec(math.pi),
                 "D": load["d"],
                 "h_total": h_total,
-                "n": p["n"],
-                "wall_coef": _factor(p, "factor.erchunchi.wall_thickness_coef", _UNIT_ID),
+                "n": _vec(p["n"]),
+                "wall_coef": _vec(_factor(p, "factor.erchunchi.wall_thickness_coef", _UNIT_ID)),
             },
         ),
     }
@@ -194,36 +209,41 @@ def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
 
 
 def _warnings(
-    p: dict[str, float], load: dict[str, float], geometry: dict[str, float]
+    p: dict[str, float], load: dict[str, _Array], geometry: dict[str, _Array]
 ) -> tuple[Warning, ...]:
     """校核带检查：清水负荷/固体负荷/堰负荷/水深/Xr/HRT 六条。"""
     found: list[Warning] = []
+    q_act = float(load["q_act"][0])
+    g_act = float(load["g_act"][0])
+    x_r = float(load["x_r"][0])
+    t_hrt = float(load["t_hrt"][0])
     surf = _band(p, _SURFACE_BAND)
-    if not surf[0] <= load["q_act"] <= surf[1]:
+    if not surf[0] <= q_act <= surf[1]:
         found.append(
             _warn(
                 f"{_GB}；{_SURFACE_BAND[0]}~{_SURFACE_BAND[1]}",
-                f"实际清水表面负荷 = {load['q_act']:.4f} 越出建议带"
+                f"实际清水表面负荷 = {q_act:.4f} 越出建议带"
                 f" [{surf[0]}, {surf[1]}]——调节方向：q_nom（负荷）或 n（池数）",
                 "q_nom",
             )
         )
     solid = _factor(p, _SOLID_MAX, _UNIT_ID)
-    if load["g_act"] > solid:
+    if g_act > solid:
         found.append(
             _warn(
                 f"{_GB}；{_SOLID_MAX}",
-                f"实际固体面积负荷 = {load['g_act']:.4f} 超上限 {solid}"
+                f"实际固体面积负荷 = {g_act:.4f} 超上限 {solid}"
                 "——调节方向：x_mlss（↓）或 n（池数 ↑）",
                 "x_mlss",
             )
         )
     weir = _factor(p, _WEIR_MAX, _UNIT_ID)
-    if geometry["q_weir"] > weir:
+    q_weir = float(geometry["q_weir"][0])
+    if q_weir > weir:
         found.append(
             _warn(
                 f"GB 50014-2021（沉淀池堰负荷，二沉档）；{_WEIR_MAX}",
-                f"出水堰负荷 = {geometry['q_weir']:.4f} 超上限 {weir}——堰构造口径注记："
+                f"出水堰负荷 = {q_weir:.4f} 超上限 {weir}——堰构造口径注记："
                 "默认周边双侧出水堰（L=2πD），单侧口径敏感性见 docs/norms/erchunchi.md"
                 "（堰构造口径待领域专家追认）",
                 None,
@@ -240,21 +260,21 @@ def _warnings(
             )
         )
     xr = _band(p, _XR_BAND)
-    if not xr[0] <= load["x_r"] <= xr[1]:
+    if not xr[0] <= x_r <= xr[1]:
         found.append(
             _warn(
                 f"{_HB}；{_XR_BAND[0]}~{_XR_BAND[1]}（0.2.1 键）",
-                f"回流污泥浓度 Xr = {load['x_r']:.4f} mg/L 越出建议带"
+                f"回流污泥浓度 Xr = {x_r:.4f} mg/L 越出建议带"
                 f" [{xr[0]}, {xr[1]}]——调节方向：r_external（↑Xr↓，与 AAO 表联动）",
                 "r_external",
             )
         )
     hrt = _band(p, _HRT_BAND)
-    if not hrt[0] <= load["t_hrt"] <= hrt[1]:
+    if not hrt[0] <= t_hrt <= hrt[1]:
         found.append(
             _warn(
                 f"{_HB}；{_HRT_BAND[0]}~{_HRT_BAND[1]}（0.2.1 键）",
-                f"校核 HRT = {load['t_hrt']:.4f} h 越出建议带"
+                f"校核 HRT = {t_hrt:.4f} h 越出建议带"
                 f" [{hrt[0]}, {hrt[1]}]——调节方向：q_nom（↓池径↑t↑）或 h2（↑t↑）",
                 "q_nom",
             )
@@ -292,7 +312,8 @@ class _Erchunchi:
         in_ref, flow = _inflow(ctx, "二沉池单入单出语义")
         load = _load(ctx, p, flow)
         geometry = _geometry(ctx, p, load)
-        dims = {**load, **geometry}
+        arrays = {**load, **geometry}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},

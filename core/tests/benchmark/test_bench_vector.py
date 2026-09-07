@@ -1,18 +1,20 @@
-"""性能基准：批 13-A 向量化单元万级逐行枚举+apply_batch 万级直连（§18.1）。
+"""性能基准：批 13 向量化单元万级逐行枚举+apply_batch 万级直连（§18.1）。
 
-输入:  批 A 四单元之三新接线（aao/gaomidu/vxinglvchi——cass 已有
-       test_bench_enumerate 13500 先例）+ formulas.apply_batch 直连面
-输出:  pytest-benchmark 计时 + 预算断言（探针 §一 场景收编——批 A 面）
+输入:  批 A 三单元新接线（aao/gaomidu/vxinglvchi——cass 已有
+       test_bench_enumerate 13500 先例）+ 批 B chuchenchi（场景补登记）
+       + formulas.apply_batch 直连面
+输出:  pytest-benchmark 计时 + 预算断言（探针 §一 场景收编——批 A/B 面）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（批 13-A 附带件；task-13-design §一/§三.5、D4）
+# 规格说明（批 13-A 附带件；task-13-design §一/§三.5、D4；批 13-B 增
+#   chuchenchi 场景——批 A 注记「B/C/D 单元随批补」义务首笔）
 #
-# 【场景】§一 探针六场景收编（批 A 面）：
-#   - aao/gaomidu/vxinglvchi 各 2 维 100×100=10000 行逐行枚举
+# 【场景】§一 探针六场景收编（批 A/B 面）：
+#   - aao/gaomidu/vxinglvchi/chuchenchi 各 2 维 100×100=10000 行逐行枚举
 #     （N=1 退化路径——同源向量路径唯一化后的逐行守卫；cass 场景=
-#     test_bench_enumerate 既有 13500 先例承载，chuchenchi/bashi_
-#     jiliangcao 随批 B/D 补登记）；
+#     test_bench_enumerate 既有 13500 先例承载，bashi_jiliangcao 随批 D
+#     补登记）；
 #   - apply_batch 直连万级（AO-F1 混合绑定——批量正门本身的吞吐面）。
 # 【预算】万级 <5s（§18.1 沿承口径——M2-SOL 起）；apply_batch 直连
 #   <1.0s（纯核吞吐——数组语义零逐行 Python 开销的守卫）。
@@ -114,7 +116,7 @@ def _span(low: float, high: float, count: int) -> list[float]:
 
 
 def grid_of(unit_id: str) -> Any:
-    """§一 场景 2 维 100×100 网格（批 A 三单元敏感对）。
+    """§一 场景 2 维 100×100 网格（批 A 三单元敏感对+批 B chuchenchi）。
 
     §12.4 ≤4^k 护栏守 build_grid 声明面（用户网格——2 维上限 16 档）；
     本基准=探针先例直驱（§一 表同款 100×100）：直接构造 Grid 值而非
@@ -128,13 +130,16 @@ def grid_of(unit_id: str) -> Any:
         "municipal_aao": ("ns", [3000.0 + 20.0 * i for i in range(100)]),
         "municipal_gaomidu": ("q_surface", [2.0 + 0.06 * i for i in range(100)]),
         "municipal_vxinglvchi": ("v_filter", [4.0 + 0.08 * i for i in range(100)]),
+        "municipal_chuchenchi": ("q_prime", [1.5 + 0.03 * i for i in range(100)]),
     }
     first_field, first_values = axes[unit_id]
     second_values = _span(3000.0, 5000.0, 100) if unit_id == "municipal_aao" else _span(
         2.0, 8.0, 100
-    ) if unit_id == "municipal_gaomidu" else _span(4.0, 12.0, 100)
+    ) if unit_id == "municipal_gaomidu" else _span(4.0, 12.0, 100) if unit_id == (
+        "municipal_vxinglvchi"
+    ) else _span(2.0, 4.0, 100)
     second_field = {"municipal_aao": "x_mlss", "municipal_gaomidu": "n",
-                    "municipal_vxinglvchi": "n"}[unit_id]
+                    "municipal_vxinglvchi": "n", "municipal_chuchenchi": "n"}[unit_id]
     fields = (first_field, second_field)
     dtype = numpy.dtype([(field, "<f8") for field in fields])
     array = numpy.empty(10000, dtype=dtype)
@@ -144,9 +149,12 @@ def grid_of(unit_id: str) -> Any:
     return Grid(fields=fields, array=array, shape=(100, 100), total=10000)
 
 
-@pytest.mark.parametrize("unit_id", ["municipal_aao", "municipal_gaomidu", "municipal_vxinglvchi"])
+@pytest.mark.parametrize(
+    "unit_id",
+    ["municipal_aao", "municipal_gaomidu", "municipal_vxinglvchi", "municipal_chuchenchi"],
+)
 def test_vector_unit_10k_rowwise(benchmark, unit_id: str) -> None:
-    """批 A 单元万级逐行枚举在预算内（N=1 退化路径守卫——防退化不得放宽）。"""
+    """批 A/B 单元万级逐行枚举在预算内（N=1 退化路径守卫——防退化不得放宽）。"""
     grid, ctx, unit, env = _wiring(unit_id)
     benchmark.pedantic(
         enumerate_solutions, args=(grid, ctx, unit, env), rounds=1, iterations=1
