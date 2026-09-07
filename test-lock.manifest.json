@@ -1,5 +1,5 @@
 {
-  "core/tests/README.md": "6ccf0bbbba936b9c544729f856090862d1763fbba794aceff4002f56e5fa6519",
+  "core/tests/README.md": "abffd81a2ee65218e22eb2440ece84a6a0668bd82c8f9c545588b23c2c758b1a",
   "core/tests/app/test_app.py": "154037f319eca9bb952aeb69e23f80703508adc86043d03d48916183f97489d2",
   "core/tests/app/test_app_assembly.py": "c5e859ad841f966b221605611673577c6b664f23edfbd0e33c9cebc3d3deecd4",
   "core/tests/app/test_app_enumeration.py": "dfeacc3a6e016446cda2a8f8fbeb646edfce557d758741fc3791a748ae464b14",
@@ -109,6 +109,7 @@
   "core/tests/registry/test_dimensions.py": "d3da094b41f1df6400af979981601367acf9d587c5ef2fdd0685af60cdf264f5",
   "core/tests/registry/test_formulas.py": "778325f717cc6a0ce7edb85218bfae78624631ad9d850180944f9d2bce3575f2",
   "core/tests/snapshots/README.md": "105ee9862d092c986a3df8617700836d90112e1af1ca73fb65b6ab4c36c42444",
+  "core/tests/snapshots/test_snapshots.py": "86a95a1a82bf76abb7b3d2dc0c61a6b7238c447f5ffbee6e8f6990d32bc9b48b",
   "core/tests/solution/test_constraints.py": "baea055f28f4ea3deeecf3695dc2eff789bfc6700bdcc888dee764fb2f71e639",
   "core/tests/solution/test_diagnose.py": "35746d6ba53561789c30cadaa0e43b39ea71e5bd70741bddc8ba2935c880bfe1",
   "core/tests/solution/test_enumerate.py": "1faeba7f4e9be6562186919126b54e8bd424aa86ac2ea495a214eea6a280c4f0",
