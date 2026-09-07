@@ -111,7 +111,7 @@
   "core/tests/registry/test_dimension_specs.py": "6242b70a65433ee1a7699e70ed26cd3bdd9a8d5bf85da22dd1d340deda9036b8",
   "core/tests/registry/test_dimensions.py": "d3da094b41f1df6400af979981601367acf9d587c5ef2fdd0685af60cdf264f5",
   "core/tests/registry/test_formulas.py": "778325f717cc6a0ce7edb85218bfae78624631ad9d850180944f9d2bce3575f2",
-  "core/tests/registry/test_formulas_kernel.py": "ef4a2d501c5816ecf04567994b950feed684d5fb1e58ba1f10751641f2eac126",
+  "core/tests/registry/test_formulas_kernel.py": "6dd61705609cd57f1e0112e72ce543514f72b88317fbb8f8328d4b51c2c2d2e2",
   "core/tests/snapshots/README.md": "105ee9862d092c986a3df8617700836d90112e1af1ca73fb65b6ab4c36c42444",
   "core/tests/snapshots/test_snapshots.py": "86a95a1a82bf76abb7b3d2dc0c61a6b7238c447f5ffbee6e8f6990d32bc9b48b",
   "core/tests/solution/test_constraints.py": "baea055f28f4ea3deeecf3695dc2eff789bfc6700bdcc888dee764fb2f71e639",
