@@ -156,6 +156,8 @@
   "core/waterprint/units_lib/municipal/aao/tests/test_vector_variants.py": "a8a9cfd53a2ff4f04b544c6a40d98bd791dc516bcb9c691fd681806cf6c6a229",
   "core/waterprint/units_lib/municipal/bashi_jiliangcao/tests/properties.py": "33c55e1ffc54e43b2116dd81606d6944e86f91d6ed3c90e7802a0b5cdd0d04c3",
   "core/waterprint/units_lib/municipal/bashi_jiliangcao/tests/test_compute.py": "2fffe9178e73dfa5cb701e2d71be21e4a7ebc568e7b513751d598920c65b1bc4",
+  "core/waterprint/units_lib/municipal/bashi_jiliangcao/tests/test_vector_baseline.py": "b77b1fc9aa1fd14a21d8fbf21d907f30b5f753485d5a904e26c16434b38bc95e",
+  "core/waterprint/units_lib/municipal/bashi_jiliangcao/tests/test_vector_variants.py": "2d7f237dabd241626d0c5d1adcc5d487202aa513dc78603eda64cc71e884cf94",
   "core/waterprint/units_lib/municipal/cass/tests/properties.py": "592a6a7bf2927a47d0a4a940cb018acc43aeaf481313086f0c238460571d5417",
   "core/waterprint/units_lib/municipal/cass/tests/test_compute.py": "45081cecaaf3e9fe0bf49a062225278bb1df982366379c4a854517c34e3e585e",
   "core/waterprint/units_lib/municipal/cass/tests/test_vector_baseline.py": "e723c30dffc1406009241daa1b31d6b5c7d4234f7c45b835df67f1dae240cf83",
