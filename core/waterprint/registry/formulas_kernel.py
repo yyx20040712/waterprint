@@ -46,7 +46,7 @@
 #   dimensions.py）；禁 import formulas（同层环——消息构造归正门，
 #   本核异常中性）；本文件零数值字面量（魔法数字门禁区）。
 #
-# 【测试要求】tests/registry/test_formulas_batch.py（N=1 锁定/N>1 批
+# 【测试要求】tests/registry/test_formulas_kernel.py（N=1 锁定/N>1 批
 #   正确性/域拒混合批/GR-37 强制/节点子集防御）。
 #
 # 【参照】ADR-011；task-13-design §三；task-13A-batch-plan §三/§四

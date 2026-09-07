@@ -40,6 +40,7 @@ from waterprint.registry.formulas import (
     InvalidFormulaError,
     apply,
     apply_batch,
+    by_id,
     register,
 )
 from waterprint.registry.formulas_kernel import (
@@ -72,6 +73,8 @@ _probe("B13K-POW", "OUT = a ** 2 + sqrt(b)", {"a": ("LENGTH", "x"), "b": ("AREA"
 _probe("B13K-MINMAX", "OUT = min(a, b) + max(a, b) + abs(a - b)", {"a": ("LENGTH", "x"), "b": ("LENGTH", "x")}, "LENGTH")
 _probe("B13K-DIV", "OUT = a / b", {"a": ("VOLUME", "x"), "b": ("LENGTH", "x")}, "AREA")
 _probe("B13K-MUL", "OUT = a * a", {"a": ("LENGTH", "x")}, "AREA")
+_probe("B13K-LOG", "OUT = log10(a)", {"a": ("CONCENTRATION", "x")}, "DIMENSIONLESS")
+_probe("B13K-MIN3", "OUT = min(a, b, a - b)", {"a": ("LENGTH", "x"), "b": ("LENGTH", "x")}, "LENGTH")
 
 
 class _Sink:
@@ -105,18 +108,33 @@ def test_n1_identity_arithmetic_face() -> None:
         assert float(batch[0]) == scalar  # 位级(== 精确)
 
 
-def test_batch_matches_rowwise_scalar() -> None:
-    """R2：N=64 批量与逐行 apply 位级相同。"""
+@pytest.mark.parametrize(
+    "formula_id",
+    [
+        "B13K-ADD",
+        "B13K-MULDIV",
+        "B13K-POW",  # **2 快路径+sqrt（walker 幂/开方面——D 二版 G1-02）
+        "B13K-MINMAX",  # min/max/abs（最值面）
+        "B13K-DIV",
+        "B13K-MUL",
+        "B13K-LOG",  # log10（全语料零使用但核支持——G1-04 防御面常驻锚）
+        "B13K-MIN3",  # min 三参链接归约（G1-04）
+    ],
+)
+def test_batch_matches_rowwise_scalar(formula_id: str) -> None:
+    """R2：N=64 批量与逐行 apply 位级相同（全算术面探针参数化——幂/开方/
+    最值/对数位恒等从设计腿离线探针转常驻回归锚）。"""
     count = 64
-    arrays = {
+    pool = {
         "a": numpy.linspace(0.5, 4.5, count),
         "b": numpy.linspace(1.0, 9.0, count),
         "c": numpy.linspace(0.5, 2.0, count),
     }
-    batch = apply_batch("B13K-ADD", dict(arrays), _CTX)
+    arrays = {key: pool[key] for key in by_id(formula_id).symbols}
+    batch = apply_batch(formula_id, dict(arrays), _CTX)
     for row in range(count):
         expected = apply(
-            "B13K-ADD",
+            formula_id,
             {key: float(arrays[key][row]) for key in arrays},
             _CTX,
         )
@@ -211,6 +229,17 @@ def test_n1_sink_records_trace_node() -> None:
     assert node.unit_id == _CTX[0]
     assert node.condition_key == _CTX[1]
     assert node.bindings == {"a": 0.1, "b": 0.2, "c": 0.3}
+
+
+def test_kernel_zero_dim_broadcast_defensive() -> None:
+    """R6：裸常量右式 0 维广播（白盒合成树——登记期防线后不可达，语料外
+    防御面）。"""
+    tree = ast.Expression(body=ast.Constant(value=60.0))
+    outcome = kernel_evaluate_batch(
+        tree, {"a": numpy.asarray([1.0, 2.0])}
+    )
+    assert outcome.values.tolist() == [60.0, 60.0]
+    assert outcome.issues == (None, None)
 
 
 def test_kernel_unreachable_node_defensive() -> None:

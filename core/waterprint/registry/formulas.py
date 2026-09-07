@@ -429,44 +429,6 @@ def apply(
     return _apply_scalar(entry, values, ctx, sink, trace_bindings=bindings)
 
 
-def _batch_arrays(
-    formula_id: str, bindings: Mapping[str, object], expected: frozenset[str]
-) -> dict[str, numpy.ndarray]:
-    """数组绑定校验+归一：数值一维/等长/全有限（GR-02 输入即拒——批量面）。"""
-    if not expected:
-        raise InvalidFormulaError(f"公式 {formula_id!r} 零符号无批量语义（N 不可推断）")
-    arrays: dict[str, numpy.ndarray] = {}
-    count: int | None = None
-    for symbol, value in bindings.items():
-        if not isinstance(value, numpy.ndarray):
-            raise InvalidFormulaError(
-                f"公式 {formula_id!r} 符号 {symbol!r} 的批量绑定值必须为一维"
-                f"ndarray：得到 {type(value).__name__}"
-            )
-        if value.dtype.kind not in "iuf":
-            raise InvalidFormulaError(
-                f"公式 {formula_id!r} 符号 {symbol!r} 批量绑定 dtype 非数值：{value.dtype!r}"
-            )
-        column = numpy.ascontiguousarray(value, dtype=numpy.float64)
-        if column.ndim != 1 or column.size == 0:
-            raise InvalidFormulaError(
-                f"公式 {formula_id!r} 符号 {symbol!r} 批量绑定须非空一维：shape={value.shape!r}"
-            )
-        if not bool(numpy.isfinite(column).all()):
-            raise InvalidFormulaError(
-                f"公式 {formula_id!r} 符号 {symbol!r} 的批量绑定含非有限值"
-                "（GR-02 输入即拒）"
-            )
-        if count is None:
-            count = column.size
-        elif column.size != count:
-            raise InvalidFormulaError(
-                f"公式 {formula_id!r} 批量长度不一致：{symbol!r}={column.size}≠{count}（应等长 N）"
-            )
-        arrays[symbol] = column
-    return arrays
-
-
 def apply_batch(
     formula_id: str,
     bindings: Mapping[str, numpy.ndarray],
