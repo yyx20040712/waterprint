@@ -31,14 +31,15 @@
 #   norm_ref_of(formula_id: str) -> str   只读查询面：formula_id →
 #       norm_ref（UF-43①：collector 经此反查补 TraceNode 第六字段；
 #       未知 id=InvalidFormulaError——by_id 同款拒绝语义，纯 additive）
-#   apply(formula_id, bindings: Mapping[str→float],
-#         ctx: (unit_id, condition_key),
+#   apply(formula_id, bindings: Mapping[str→float], ctx,
 #         sink: TraceSink | None = None) -> float
-#       唯一求值正门：内部经 contracts/expr.py eval_checked 求值登记期
-#       缓存的解析树（禁止 Python eval/exec/lambda），sink 非 None 时
-#       记录一条 TraceNodeSpec 五字段快照（协议见 contracts/trace_api.py；
-#       bindings 传副本——trace_api 无快照防线，T3A-01 复发位防线前移；
-#       registry 只 import contracts——L1→L0 合法，永不 import L4 收集器）
+#       唯一求值正门（标量=N=1 退化——ADR-011 D1/批 13-A）：eval_checked
+#       求值缓存解析树（禁 eval/exec/lambda）；sink 记 TraceNodeSpec 五
+#       字段快照（bindings 副本——T3A-01；registry 只 import L0+numpy）
+#   apply_batch(formula_id, bindings: Mapping[str→ndarray], ctx, sink=None)
+#       -> ndarray：批量正门（批 13-A——GR-37 载体）。N==1=标量私核快路径
+#       （apply 同一实现——UF-36 机器锚）；N>1=formulas_kernel 数组语义
+#       （errstate 三态+isfinite 二道网）+域拒行 NaN；N>1 携 sink=拒
 #
 # 【表达式 DSL】（T0.5 冻结；求值内核 = contracts/expr.py 共享受限求值器）
 #   语法子集：算术表达式 = Name | Constant | + - * / ** | ( ) |
@@ -110,6 +111,8 @@ from math import isfinite
 from types import MappingProxyType
 from typing import Final, final
 
+import numpy
+
 from waterprint.contracts.expr import (
     ALLOWED_FUNCS,
     ExprSyntaxError,
@@ -118,6 +121,7 @@ from waterprint.contracts.expr import (
 )
 from waterprint.contracts.quantity import DimKey
 from waterprint.contracts.trace_api import TraceNodeSpec, TraceSink
+from waterprint.registry import formulas_kernel
 
 
 class InvalidFormulaError(Exception):
@@ -332,19 +336,18 @@ def norm_ref_of(formula_id: str) -> str:
     return by_id(formula_id).norm_ref
 
 
-def apply(
-    formula_id: str,
-    bindings: Mapping[str, float],
-    ctx: tuple[str, str],
-    sink: TraceSink | None = None,
-) -> float:
-    """唯一求值正门（R3/R6）：静态绑定校验 → 缓存树求值 → 有限性 → 落迹。"""
+def _lookup(formula_id: str) -> _Entry:
+    """登记项查取：未知 id=领域异常（apply/apply_batch 共用拒绝面）。"""
     entry = _REGISTRY.get(formula_id)
     if entry is None:
         raise InvalidFormulaError(
             f"未登记公式：{formula_id!r}（apply 只消费 register 登记项）"
         )
-    expected = frozenset(entry.spec.symbols)
+    return entry
+
+
+def _check_keys(formula_id: str, bindings: Mapping[str, object], expected: frozenset[str]) -> None:
+    """绑定键集==symbols 键集校验（双正门共用——消息恒等）。"""
     given = frozenset(bindings)
     if given != expected:
         raise InvalidFormulaError(
@@ -352,6 +355,56 @@ def apply(
             f"缺 {sorted(expected - given)}，多 {sorted(given - expected)}"
             f"（应恰为 {sorted(expected)}）"
         )
+
+
+def _apply_scalar(
+    entry: _Entry,
+    values: dict[str, float],
+    ctx: tuple[str, str],
+    sink: TraceSink | None,
+    trace_bindings: Mapping[str, float] | None = None,
+) -> float:
+    """标量求值私核（N=1 退化与 apply 同一实现——R1 锚②异常构造点）。"""
+    try:
+        outcome = eval_checked(entry.tree, values)
+    except (ArithmeticError, ValueError) as exc:
+        raise InvalidFormulaError(
+            f"公式 {entry.spec.formula_id!r} 求值数值域错误"
+            f"（除零/溢出/定义域，expr R5 原生异常包装）：{exc}"
+        ) from exc
+    if isinstance(outcome, bool) or not isinstance(outcome, int | float):
+        raise InvalidFormulaError(
+            f"公式 {entry.spec.formula_id!r} 求值结果非数值：{outcome!r}"
+            "（公式=纯数值；布尔面属工况映射 DSL）"
+        )
+    result = float(outcome)
+    if not isfinite(result):
+        raise InvalidFormulaError(
+            f"公式 {entry.spec.formula_id!r} 求值结果非有限：{result!r}"
+            "（GR-02 运算产生即转领域异常）"
+        )
+    if sink is not None:
+        sink.record(
+            TraceNodeSpec(
+                formula_id=entry.spec.formula_id,
+                unit_id=ctx[0],
+                condition_key=ctx[1],
+                bindings=dict(trace_bindings if trace_bindings is not None else values),
+                result=result,
+            )
+        )
+    return result
+
+
+def apply(
+    formula_id: str,
+    bindings: Mapping[str, float],
+    ctx: tuple[str, str],
+    sink: TraceSink | None = None,
+) -> float:
+    """唯一求值正门（R3/R6；标量=N=1 退化——批 13-A）：校验→标量私核。"""
+    entry = _lookup(formula_id)
+    _check_keys(formula_id, bindings, frozenset(entry.spec.symbols))
     values: dict[str, float] = {}
     for symbol, value in bindings.items():
         if isinstance(value, bool) or not isinstance(value, int | float):
@@ -373,32 +426,74 @@ def apply(
                 f"{number!r}（GR-02 输入即拒）"
             )
         values[symbol] = number
-    try:
-        outcome = eval_checked(entry.tree, values)
-    except (ArithmeticError, ValueError) as exc:
-        raise InvalidFormulaError(
-            f"公式 {formula_id!r} 求值数值域错误（除零/溢出/定义域，"
-            f"expr R5 原生异常包装）：{exc}"
-        ) from exc
-    if isinstance(outcome, bool) or not isinstance(outcome, int | float):
-        raise InvalidFormulaError(
-            f"公式 {formula_id!r} 求值结果非数值：{outcome!r}"
-            "（公式=纯数值；布尔面属工况映射 DSL）"
-        )
-    result = float(outcome)
-    if not isfinite(result):
-        raise InvalidFormulaError(
-            f"公式 {formula_id!r} 求值结果非有限：{result!r}"
-            "（GR-02 运算产生即转领域异常）"
-        )
-    if sink is not None:
-        sink.record(
-            TraceNodeSpec(
-                formula_id=formula_id,
-                unit_id=ctx[0],
-                condition_key=ctx[1],
-                bindings=dict(bindings),
-                result=result,
+    return _apply_scalar(entry, values, ctx, sink, trace_bindings=bindings)
+
+
+def _batch_arrays(
+    formula_id: str, bindings: Mapping[str, object], expected: frozenset[str]
+) -> dict[str, numpy.ndarray]:
+    """数组绑定校验+归一：数值一维/等长/全有限（GR-02 输入即拒——批量面）。"""
+    if not expected:
+        raise InvalidFormulaError(f"公式 {formula_id!r} 零符号无批量语义（N 不可推断）")
+    arrays: dict[str, numpy.ndarray] = {}
+    count: int | None = None
+    for symbol, value in bindings.items():
+        if not isinstance(value, numpy.ndarray):
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 符号 {symbol!r} 的批量绑定值必须为一维"
+                f"ndarray：得到 {type(value).__name__}"
             )
+        if value.dtype.kind not in "iuf":
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 符号 {symbol!r} 批量绑定 dtype 非数值：{value.dtype!r}"
+            )
+        column = numpy.ascontiguousarray(value, dtype=numpy.float64)
+        if column.ndim != 1 or column.size == 0:
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 符号 {symbol!r} 批量绑定须非空一维：shape={value.shape!r}"
+            )
+        if not bool(numpy.isfinite(column).all()):
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 符号 {symbol!r} 的批量绑定含非有限值"
+                "（GR-02 输入即拒）"
+            )
+        if count is None:
+            count = column.size
+        elif column.size != count:
+            raise InvalidFormulaError(
+                f"公式 {formula_id!r} 批量长度不一致：{symbol!r}={column.size}≠{count}（应等长 N）"
+            )
+        arrays[symbol] = column
+    return arrays
+
+
+def apply_batch(
+    formula_id: str,
+    bindings: Mapping[str, numpy.ndarray],
+    ctx: tuple[str, str],
+    sink: TraceSink | None = None,
+) -> numpy.ndarray:
+    """批量正门（批 13-A 同源向量路径）：N=1=标量私核；N>1=数组核+域拒 NaN。"""
+    entry = _lookup(formula_id)
+    _check_keys(formula_id, bindings, frozenset(entry.spec.symbols))
+    try:
+        scalars = formulas_kernel.n1_scalars(bindings)
+        if scalars is not None:
+            return numpy.asarray([_apply_scalar(entry, scalars, ctx, sink)])
+        arrays = formulas_kernel.validate_arrays(bindings, frozenset(entry.spec.symbols))
+    except formulas_kernel.BatchBindingError as exc:
+        raise InvalidFormulaError(f"公式 {formula_id!r} {exc}") from exc
+    count = len(next(iter(arrays.values())))
+    if sink is not None:
+        raise InvalidFormulaError(
+            f"公式 {formula_id!r} 批量求值（N={count}）禁携迹收集器：万级落迹会爆炸"
         )
-    return result
+    try:
+        outcome = formulas_kernel.evaluate_batch(entry.tree, arrays)
+    except formulas_kernel.KernelUnsupportedError as exc:
+        raise InvalidFormulaError(
+            f"公式 {formula_id!r} 求值核不可达节点：{exc}"
+            "（公式算术子集外——登记期防线后防御性拒绝）"
+        ) from exc
+    # 域拒行 NaN（§三.2）：核内重放已置 NaN；N>1 不抛——上浮交 nan_flag（R5 零变）。
+    return numpy.asarray(outcome.values, dtype=numpy.float64)

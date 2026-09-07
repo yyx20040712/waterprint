@@ -5,7 +5,9 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收）
+# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收；批 13-A 向量化
+#   重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一——
+#   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【公式组】XL-F1~F19（docs/norms/vxinglvchi.md 起草表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：单格宽 B/
@@ -31,6 +33,8 @@ from __future__ import annotations
 
 from typing import Final, final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -42,8 +46,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.vxinglvchi.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_vxinglvchi"
 _GB = "GB 50013-2018 §9.5（滤池：均质滤料滤速/强制滤速）"
@@ -115,19 +121,24 @@ def _validate(params: dict[str, float]) -> None:
             )
 
 
-def _filter(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _filter(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """XL-F1~F9：过滤流量/需面积/分格几何（B·L 0.5 m 档）/正常·强制滤速校核。"""
-    q_filter = _apply(
-        ctx, "XL-F1", {"q_design": flow.q_design, "selfuse_coef": _factor(p, _SELFUSE, _UNIT_ID)}
+    n = _vec(p["n"])
+    q_filter = _apply_batch(
+        ctx,
+        "XL-F1",
+        {"q_design": _vec(flow.q_design), "selfuse_coef": _vec(_factor(p, _SELFUSE, _UNIT_ID))},
     )
-    a_total_req = _apply(ctx, "XL-F2", {"q_filter": q_filter, "v_filter": p["v_filter"]})
-    a_cell = _apply(ctx, "XL-F3", {"a_total_req": a_total_req, "n": p["n"]})
-    b_raw = _apply(ctx, "XL-F4", {"a_cell": a_cell, "ratio_lb": p["ratio_lb"]})
-    b = _ceil_step(b_raw, p["side_disc_step"])
-    l_raw = _apply(ctx, "XL-F5", {"a_cell": a_cell, "B": b})
-    length = _ceil_step(l_raw, p["side_disc_step"])
-    a_cell_act = _apply(ctx, "XL-F6", {"B": b, "L": length})
-    a_total_act = _apply(ctx, "XL-F7", {"a_cell_act": a_cell_act, "n": p["n"]})
+    a_total_req = _apply_batch(
+        ctx, "XL-F2", {"q_filter": q_filter, "v_filter": _vec(p["v_filter"])}
+    )
+    a_cell = _apply_batch(ctx, "XL-F3", {"a_total_req": a_total_req, "n": n})
+    b_raw = _apply_batch(ctx, "XL-F4", {"a_cell": a_cell, "ratio_lb": _vec(p["ratio_lb"])})
+    b = _vec(_ceil_step(float(b_raw[0]), p["side_disc_step"]))
+    l_raw = _apply_batch(ctx, "XL-F5", {"a_cell": a_cell, "B": b})
+    length = _vec(_ceil_step(float(l_raw[0]), p["side_disc_step"]))
+    a_cell_act = _apply_batch(ctx, "XL-F6", {"B": b, "L": length})
+    a_total_act = _apply_batch(ctx, "XL-F7", {"a_cell_act": a_cell_act, "n": n})
     return {
         "q_filter": q_filter,
         "a_total_req": a_total_req,
@@ -138,8 +149,10 @@ def _filter(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str,
         "l": length,
         "a_cell_act": a_cell_act,
         "a_total_act": a_total_act,
-        "v_filter_act": _apply(ctx, "XL-F8", {"q_filter": q_filter, "a_total_act": a_total_act}),
-        "v_forced_act": _apply(
+        "v_filter_act": _apply_batch(
+            ctx, "XL-F8", {"q_filter": q_filter, "a_total_act": a_total_act}
+        ),
+        "v_forced_act": _apply_batch(
             ctx,
             "XL-F9",
             {"q_filter": q_filter, "a_total_act": a_total_act, "a_cell_act": a_cell_act},
@@ -148,51 +161,41 @@ def _filter(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str,
 
 
 def _wash(
-    ctx: UnitContext,
-    p: dict[str, float],
-    flow: WaterFlow,
-    filt: dict[str, float],
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, filt: dict[str, _Array]
+) -> dict[str, _Array]:
     """XL-F10~F17：气水反冲洗三阶段强度/单格次耗气耗水/日耗水率（平均日复核）。"""
-    q_air = _apply(
-        ctx,
-        "XL-F10",
-        {"a_cell_act": filt["a_cell_act"], "w_air": _factor(p, _W_AIR, _UNIT_ID)},
+    a_cell_act = filt["a_cell_act"]
+    q_air = _apply_batch(
+        ctx, "XL-F10", {"a_cell_act": a_cell_act, "w_air": _vec(_factor(p, _W_AIR, _UNIT_ID))}
     )
-    q_wash_sim = _apply(
+    q_wash_sim = _apply_batch(
         ctx,
         "XL-F11",
-        {"a_cell_act": filt["a_cell_act"], "w_water_sim": _factor(p, _W_WATER_SIM, _UNIT_ID)},
+        {"a_cell_act": a_cell_act, "w_water_sim": _vec(_factor(p, _W_WATER_SIM, _UNIT_ID))},
     )
-    q_wash = _apply(
-        ctx, "XL-F12", {"a_cell_act": filt["a_cell_act"], "w_water": _factor(p, _W_WATER, _UNIT_ID)}
+    q_wash = _apply_batch(
+        ctx, "XL-F12", {"a_cell_act": a_cell_act, "w_water": _vec(_factor(p, _W_WATER, _UNIT_ID))}
     )
-    q_sweep = _apply(
-        ctx, "XL-F13", {"a_cell_act": filt["a_cell_act"], "w_sweep": _factor(p, _W_SWEEP, _UNIT_ID)}
+    q_sweep = _apply_batch(
+        ctx, "XL-F13", {"a_cell_act": a_cell_act, "w_sweep": _vec(_factor(p, _W_SWEEP, _UNIT_ID))}
     )
-    v_air_per = _apply(
-        ctx,
-        "XL-F14",
-        {
-            "q_air": q_air,
-            "t_air": _factor(p, _T_AIR, _UNIT_ID),
-            "t_sim": _factor(p, _T_SIM, _UNIT_ID),
-        },
-    )
-    v_wash_per = _apply(
+    times = {
+        "t_air": _vec(_factor(p, _T_AIR, _UNIT_ID)), "t_sim": _vec(_factor(p, _T_SIM, _UNIT_ID))
+    }
+    v_air_per = _apply_batch(ctx, "XL-F14", {"q_air": q_air, **times})
+    v_wash_per = _apply_batch(
         ctx,
         "XL-F15",
         {
             "q_wash_sim": q_wash_sim,
             "q_wash": q_wash,
             "q_sweep": q_sweep,
-            "t_air": _factor(p, _T_AIR, _UNIT_ID),
-            "t_sim": _factor(p, _T_SIM, _UNIT_ID),
-            "t_water": _factor(p, _T_WATER, _UNIT_ID),
+            **times,
+            "t_water": _vec(_factor(p, _T_WATER, _UNIT_ID)),
         },
     )
-    v_wash_daily = _apply(
-        ctx, "XL-F16", {"v_wash_per": v_wash_per, "n": p["n"], "t_cycle": p["t_cycle"]}
+    v_wash_daily = _apply_batch(
+        ctx, "XL-F16", {"v_wash_per": v_wash_per, "n": _vec(p["n"]), "t_cycle": _vec(p["t_cycle"])}
     )
     return {
         "q_air": q_air,
@@ -202,33 +205,33 @@ def _wash(
         "v_air_per": v_air_per,
         "v_wash_per": v_wash_per,
         "v_wash_daily": v_wash_daily,
-        "ratio_wash": _apply(
-            ctx, "XL-F17", {"v_wash_daily": v_wash_daily, "q_avg_daily": flow.q_avg_daily}
+        "ratio_wash": _apply_batch(
+            ctx, "XL-F17", {"v_wash_daily": v_wash_daily, "q_avg_daily": _vec(flow.q_avg_daily)}
         ),
     }
 
 
-def _depth(ctx: UnitContext, p: dict[str, float], filt: dict[str, float]) -> dict[str, float]:
+def _depth(ctx: UnitContext, p: dict[str, float], filt: dict[str, _Array]) -> dict[str, _Array]:
     """XL-F18/F19：滤池总高（池深组成四段）与概算口径混凝土量。"""
-    h_total = _apply(
+    h_total = _apply_batch(
         ctx,
         "XL-F18",
         {
-            "h_super": _factor(p, "factor.vxinglvchi.superheight", _UNIT_ID),
-            "h_water_above": p["h_water_above"],
-            "h_sand": p["h_sand"],
-            "h_bottom": p["h_bottom"],
+            "h_super": _vec(_factor(p, "factor.vxinglvchi.superheight", _UNIT_ID)),
+            "h_water_above": _vec(p["h_water_above"]),
+            "h_sand": _vec(p["h_sand"]),
+            "h_bottom": _vec(p["h_bottom"]),
         },
     )
     return {
         "h_total": h_total,
-        "v_concrete": _apply(
+        "v_concrete": _apply_batch(
             ctx,
             "XL-F19",
             {
                 "a_total_act": filt["a_total_act"],
                 "h_total": h_total,
-                "wall_coef": _factor(p, "factor.vxinglvchi.wall_thickness_coef", _UNIT_ID),
+                "wall_coef": _vec(_factor(p, "factor.vxinglvchi.wall_thickness_coef", _UNIT_ID)),
             },
         ),
     }
@@ -244,25 +247,27 @@ def _band(p: dict[str, float], keys: tuple[str, str]) -> tuple[float, float]:
     return _factor(p, keys[0], _UNIT_ID), _factor(p, keys[1], _UNIT_ID)
 
 
-def _warnings(p: dict[str, float], filt: dict[str, float]) -> tuple[Warning, ...]:
+def _warnings(p: dict[str, float], filt: dict[str, _Array]) -> tuple[Warning, ...]:
     """校核带检查：正常滤速/长宽比/滤层厚/砂上水深/过滤周期带+强制滤速上限。"""
     found: list[Warning] = []
     vf = _band(p, _VFILTER_BAND)
-    if not vf[0] <= filt["v_filter_act"] <= vf[1]:
+    v_filter_act = float(filt["v_filter_act"][0])
+    if not vf[0] <= v_filter_act <= vf[1]:
         found.append(
             _warn(
                 f"{_GB}；{_VFILTER_BAND[0]}~{_VFILTER_BAND[1]}",
-                f"实际正常滤速 = {filt['v_filter_act']:.4f} 越出建议带"
+                f"实际正常滤速 = {v_filter_act:.4f} 越出建议带"
                 f" [{vf[0]}, {vf[1]}]——调节方向：v_filter（滤速）或 n（分格数）",
                 "v_filter",
             )
         )
     vfm = _factor(p, _VFORCED_MAX, _UNIT_ID)
-    if filt["v_forced_act"] > vfm:
+    v_forced_act = float(filt["v_forced_act"][0])
+    if v_forced_act > vfm:
         found.append(
             _warn(
                 f"{_GB}；{_VFORCED_MAX}（单向上限——带 11~13 为典型带，低于下限=保守合格）",
-                f"一格冲洗时强制滤速 = {filt['v_forced_act']:.4f} 超上限 {vfm}"
+                f"一格冲洗时强制滤速 = {v_forced_act:.4f} 超上限 {vfm}"
                 "——调节方向：n（↑加格）或 v_filter（↓滤速）",
                 "n",
             )
@@ -342,7 +347,8 @@ class _Vxinglvchi:
         filt = _filter(ctx, p, flow)
         wash = _wash(ctx, p, flow, filt)
         depth = _depth(ctx, p, filt)
-        dims = {**filt, **wash, **depth}
+        arrays = {**filt, **wash, **depth}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},

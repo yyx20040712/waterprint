@@ -1,11 +1,14 @@
-"""CASS 生物池计算实现：唯一计算源（CA-F1~F27 全经 registry.apply 求值）。
+"""CASS 生物池计算实现：唯一计算源（CA-F1~F27 全经 registry.apply_batch
+求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收）
+# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收；批 13-A 向量化重写：
+#   公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一——标量
+#   =N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【公式组】CA-F1~F27（docs/norms/cass.md 起草表；manifest.py 登记）——
 #   周期循环主线：周期数/滗水容积（F1~F2）、负荷法主容积+选择区+滗水
@@ -32,6 +35,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -43,8 +48,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.cass.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_cass"
 _GB = "GB 50014-2021 §7.6"
@@ -92,139 +99,155 @@ def _validate(params: dict[str, float]) -> None:
         raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 剩余污泥含水率须 ∈ (0,1)：得到 {moisture!r}")
 
 
-def _cycles(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _cycles(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """CA-F1/F2：周期数与单池单周期滗水容积（池均摊口径）。"""
-    n_cycle = _apply(ctx, "CA-F1", {"t_cycle": p["t_cycle"]})
+    n_cycle = _apply_batch(ctx, "CA-F1", {"t_cycle": _vec(p["t_cycle"])})
     return {
         "n_cycle": n_cycle,
-        "v_draw": _apply(
+        "v_draw": _apply_batch(
             ctx,
             "CA-F2",
-            {"q_avg_daily": flow.q_avg_daily, "n_pool": p["n_pool"], "n_cycle": n_cycle},
+            {
+                "q_avg_daily": _vec(flow.q_avg_daily),
+                "n_pool": _vec(p["n_pool"]),
+                "n_cycle": n_cycle,
+            },
         ),
     }
 
 
-def _areas(ctx: UnitContext, p: dict[str, float], v_bio: float, v_draw: float) -> dict[str, float]:
+def _areas(
+    ctx: UnitContext, p: dict[str, float], v_bio: _Array, v_draw: _Array
+) -> dict[str, _Array]:
     """CA-F6~F12：滗水/负荷双控单池面积、滗水深度与池容（滗水 1/3 池深联动）。"""
-    h_draw_max = _apply(ctx, "CA-F6", {"h2": p["h2"]})
-    a_draw = _apply(ctx, "CA-F7", {"v_draw": v_draw, "h_draw_max": h_draw_max})
-    a_load = _apply(ctx, "CA-F8", {"v_bio": v_bio, "n_pool": p["n_pool"], "h2": p["h2"]})
-    a_pool = _apply(ctx, "CA-F9", {"a_load": a_load, "a_draw": a_draw})
-    v_pool = _apply(ctx, "CA-F11", {"a_pool": a_pool, "h2": p["h2"]})
+    h2 = _vec(p["h2"])
+    n_pool = _vec(p["n_pool"])
+    h_draw_max = _apply_batch(ctx, "CA-F6", {"h2": h2})
+    a_draw = _apply_batch(ctx, "CA-F7", {"v_draw": v_draw, "h_draw_max": h_draw_max})
+    a_load = _apply_batch(ctx, "CA-F8", {"v_bio": v_bio, "n_pool": n_pool, "h2": h2})
+    a_pool = _apply_batch(ctx, "CA-F9", {"a_load": a_load, "a_draw": a_draw})
+    v_pool = _apply_batch(ctx, "CA-F11", {"a_pool": a_pool, "h2": h2})
     return {
         "h_draw_max": h_draw_max,
         "a_draw": a_draw,
         "a_load": a_load,
         "a_pool": a_pool,
-        "h_draw": _apply(ctx, "CA-F10", {"v_draw": v_draw, "a_pool": a_pool}),
+        "h_draw": _apply_batch(ctx, "CA-F10", {"v_draw": v_draw, "a_pool": a_pool}),
         "v_pool": v_pool,
-        "v_plant": _apply(ctx, "CA-F12", {"v_pool": v_pool, "n_pool": p["n_pool"]}),
+        "v_plant": _apply_batch(ctx, "CA-F12", {"v_pool": v_pool, "n_pool": n_pool}),
     }
 
 
-def _decant(ctx: UnitContext, p: dict[str, float], v_draw: float) -> dict[str, float]:
+def _decant(ctx: UnitContext, p: dict[str, float], v_draw: _Array) -> dict[str, _Array]:
     """CA-F13~F15：时段和（不变性载体）+ 滗水器选型（整台 ceil 收口）。"""
-    q_decant = _apply(ctx, "CA-F14", {"v_draw": v_draw, "t_draw": p["t_draw"]})
-    n_decant_raw = _apply(
+    q_decant = _apply_batch(ctx, "CA-F14", {"v_draw": v_draw, "t_draw": _vec(p["t_draw"])})
+    n_decant_raw = _apply_batch(
         ctx,
         "CA-F15",
         {
             "q_decant": q_decant,
-            "q_per_decant": _factor(p, "factor.cass.decant.q_per_unit", _UNIT_ID),
+            "q_per_decant": _vec(_factor(p, "factor.cass.decant.q_per_unit", _UNIT_ID)),
         },
     )
-    phases = {"t_react": p["t_react"], "t_settle": p["t_settle"], "t_draw": p["t_draw"]}
+    phases = {"t_react": _vec(p["t_react"]), "t_settle": _vec(p["t_settle"]),
+              "t_draw": _vec(p["t_draw"])}
     return {
-        "t_phase_sum": _apply(ctx, "CA-F13", phases),
+        "t_phase_sum": _apply_batch(ctx, "CA-F13", phases),
         "q_decant": q_decant,
         "n_decant_raw": n_decant_raw,
-        "n_decant": float(math.ceil(n_decant_raw)),
+        "n_decant": _vec(math.ceil(float(n_decant_raw[0]))),
     }
 
 
 def _sludge(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, float], v_load: float
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_load: _Array
+) -> dict[str, _Array]:
     """CA-F16~F18：剩余污泥量（干/湿）与泥龄校核（AAO 同族口径）。"""
-    s_y = _apply(
+    s_y = _apply_batch(
         ctx,
         "CA-F16",
         {
-            "q_avg_daily": flow.q_avg_daily,
+            "q_avg_daily": _vec(flow.q_avg_daily),
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "y_yield": _factor(p, "factor.cass.yield.y", _UNIT_ID),
+            "y_yield": _vec(_factor(p, "factor.cass.yield.y", _UNIT_ID)),
         },
     )
     return {
         "s_y": s_y,
-        "q_wet": _apply(
+        "q_wet": _apply_batch(
             ctx,
             "CA-F17",
-            {"s_y": s_y, "p_moisture": _factor(p, "factor.cass.sludge.moisture", _UNIT_ID)},
+            {
+                "s_y": s_y,
+                "p_moisture": _vec(_factor(p, "factor.cass.sludge.moisture", _UNIT_ID)),
+            },
         ),
-        "theta_c": _apply(ctx, "CA-F18", {"v_load": v_load, "x_mlss": p["x_mlss"], "s_y": s_y}),
+        "theta_c": _apply_batch(
+            ctx, "CA-F18", {"v_load": v_load, "x_mlss": _vec(p["x_mlss"]), "s_y": s_y}
+        ),
     }
 
 
 def _oxygen(
-    ctx: UnitContext,
-    p: dict[str, float],
-    flow: WaterFlow,
-    qual: dict[str, float],
-    v_load: float,
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_load: _Array
+) -> dict[str, _Array]:
     """CA-F19~F22：碳化/硝化/反硝化需氧量与设计需氧量（AAO 同族）。"""
-    x_vss = _factor(p, "factor.cass.vss_ratio", _UNIT_ID) * p["x_mlss"]
-    o2_carbon = _apply(
+    vss_ratio = _factor(p, "factor.cass.vss_ratio", _UNIT_ID)
+    x_vss = _vec(vss_ratio) * _vec(p["x_mlss"])
+    o2_carbon = _apply_batch(
         ctx,
         "CA-F19",
         {
-            "a_prime": _factor(p, "factor.cass.o2.a_prime", _UNIT_ID),
-            "q_avg_daily": flow.q_avg_daily,
+            "a_prime": _vec(_factor(p, "factor.cass.o2.a_prime", _UNIT_ID)),
+            "q_avg_daily": _vec(flow.q_avg_daily),
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "b_prime": _factor(p, "factor.cass.o2.b_prime", _UNIT_ID),
+            "b_prime": _vec(_factor(p, "factor.cass.o2.b_prime", _UNIT_ID)),
             "v_load": v_load,
             "x_vss": x_vss,
         },
     )
-    tkn = {"q_avg_daily": flow.q_avg_daily, "tkn_in": qual["tn_in"], "tn_eff": p["tn_eff"]}
-    o2_nit = _apply(ctx, "CA-F20", tkn)
-    o2_denit = _apply(ctx, "CA-F21", tkn)
+    tkn = {"q_avg_daily": _vec(flow.q_avg_daily), "tkn_in": qual["tn_in"],
+           "tn_eff": _vec(p["tn_eff"])}
+    o2_nit = _apply_batch(ctx, "CA-F20", tkn)
+    o2_denit = _apply_batch(ctx, "CA-F21", tkn)
     return {
         "x_vss": x_vss,
         "o2_carbon": o2_carbon,
         "o2_nit": o2_nit,
         "o2_denit": o2_denit,
-        "o2_total": _apply(
+        "o2_total": _apply_batch(
             ctx, "CA-F22", {"o2_carbon": o2_carbon, "o2_nit": o2_nit, "o2_denit": o2_denit}
         ),
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, float]) -> dict[str, float]:
+def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, _Array]) -> dict[str, _Array]:
     """CA-F24~F27：池体几何（0.5 m 档 ceil 收口）与概算混凝土量。"""
-    h_super = _factor(p, "factor.cass.superheight", _UNIT_ID)
-    h_pool = _apply(ctx, "CA-F24", {"h_super": h_super, "h2": p["h2"]})
-    binds = {"a_pool": areas["a_pool"], "ratio_lb": p["ratio_lb"]}
-    l_raw = _apply(ctx, "CA-F25", binds)
-    b_raw = _apply(ctx, "CA-F26", binds)
+    h2 = _vec(p["h2"])
+    h_pool = _apply_batch(
+        ctx,
+        "CA-F24",
+        {"h_super": _vec(_factor(p, "factor.cass.superheight", _UNIT_ID)), "h2": h2},
+    )
+    binds = {"a_pool": areas["a_pool"], "ratio_lb": _vec(p["ratio_lb"])}
+    l_raw = _apply_batch(ctx, "CA-F25", binds)
+    b_raw = _apply_batch(ctx, "CA-F26", binds)
     return {
         "h_pool": h_pool,
         "l_pool_raw": l_raw,
-        "l_pool": _ceil_step(l_raw, p["side_disc_step"]),
+        "l_pool": _vec(_ceil_step(float(l_raw[0]), p["side_disc_step"])),
         "b_pool_raw": b_raw,
-        "b_pool": _ceil_step(b_raw, p["side_disc_step"]),
-        "v_concrete": _apply(
+        "b_pool": _vec(_ceil_step(float(b_raw[0]), p["side_disc_step"])),
+        "v_concrete": _apply_batch(
             ctx,
             "CA-F27",
             {
                 "a_pool": areas["a_pool"],
                 "h_pool": h_pool,
-                "n_pool": p["n_pool"],
-                "wall_coef": _factor(p, "factor.cass.wall_thickness_coef", _UNIT_ID),
+                "n_pool": _vec(p["n_pool"]),
+                "wall_coef": _vec(_factor(p, "factor.cass.wall_thickness_coef", _UNIT_ID)),
             },
         ),
     }
@@ -252,7 +275,7 @@ _RESULT_BANDS: tuple[tuple[str, str, str, str], ...] = (
 
 
 def _warnings(
-    p: dict[str, float], areas: dict[str, float], sludge: dict[str, float], ns_act: float
+    p: dict[str, float], areas: dict[str, _Array], sludge: dict[str, _Array], ns_act: _Array
 ) -> tuple[Warning, ...]:
     """校核带检查：三参数带（ns/mlss/t_selector）+三结果带（theta_c/h_draw/ns_act）。"""
     found: list[Warning] = []
@@ -268,6 +291,7 @@ def _warnings(
                 )
             )
     values = {**areas, **sludge, "ns_act": ns_act}
+    scalars = {key: float(value[0]) for key, value in values.items()}
     band_source = {
         "sludge_age_band": f"{_HB}（CASS 泥龄 15~25d，主反应区口径）",
         "draw_band": f"business-logic §8 行 8；{_HB}（滗水器滗水深度）",
@@ -275,11 +299,11 @@ def _warnings(
     }
     for band_key, dim_key, quantity, param_key in _RESULT_BANDS:
         low, high = _band(p, band_key)
-        if not low <= values[dim_key] <= high:
+        if not low <= scalars[dim_key] <= high:
             found.append(
                 _warn(
                     f"{band_source[band_key]}；factor.cass.{band_key}.*",
-                    f"{quantity} = {values[dim_key]:.4f} 越出建议带 [{low}, {high}]"
+                    f"{quantity} = {scalars[dim_key]:.4f} 越出建议带 [{low}, {high}]"
                     f"——调节方向：{param_key}",
                     param_key,
                 )
@@ -321,31 +345,35 @@ class _Cass:
             raise InvalidUnitConfig(
                 f"单元 {ctx.unit_id!r} 入流缺 BOD5/TN 浓度（CA-F3/F20 计算前提，GR-09）"
             )
-        bod5_out = bod5_in * (1 - _factor(p, "removal.cass.bod5.mod_default", _UNIT_ID))
-        qual = {"bod5_in": bod5_in, "tn_in": tn_in, "bod5_out": bod5_out}
+        removal = _vec(_factor(p, "removal.cass.bod5.mod_default", _UNIT_ID))
+        qual = {
+            "bod5_in": _vec(bod5_in),
+            "tn_in": _vec(tn_in),
+            "bod5_out": _vec(bod5_in) * (1 - removal),
+        }
         cycles = _cycles(ctx, p, flow)
-        v_load = _apply(
+        v_load = _apply_batch(
             ctx,
             "CA-F3",
             {
-                "q_avg_daily": flow.q_avg_daily,
-                "bod5_in": bod5_in,
-                "ns": p["ns"],
-                "x_mlss": p["x_mlss"],
+                "q_avg_daily": _vec(flow.q_avg_daily),
+                "bod5_in": _vec(bod5_in),
+                "ns": _vec(p["ns"]),
+                "x_mlss": _vec(p["x_mlss"]),
             },
         )
-        sel = {"q_avg_daily": flow.q_avg_daily, "t_selector": p["t_selector"]}
-        v_selector = _apply(ctx, "CA-F4", sel)
-        v_bio = _apply(ctx, "CA-F5", {"v_load": v_load, "v_selector": v_selector})
+        sel = {"q_avg_daily": _vec(flow.q_avg_daily), "t_selector": _vec(p["t_selector"])}
+        v_selector = _apply_batch(ctx, "CA-F4", sel)
+        v_bio = _apply_batch(ctx, "CA-F5", {"v_load": v_load, "v_selector": v_selector})
         areas = _areas(ctx, p, v_bio, cycles["v_draw"])
         decant = _decant(ctx, p, cycles["v_draw"])
         sludge = _sludge(ctx, p, flow, qual, v_load)
         oxygen = _oxygen(ctx, p, flow, qual, v_load)
-        ns_act = _apply(
-            ctx, "CA-F23", {"ns": p["ns"], "v_bio": v_bio, "v_plant": areas["v_plant"]}
+        ns_act = _apply_batch(
+            ctx, "CA-F23", {"ns": _vec(p["ns"]), "v_bio": v_bio, "v_plant": areas["v_plant"]}
         )
         geometry = _geometry(ctx, p, areas)
-        dims = {
+        arrays = {
             **cycles,
             "v_load": v_load,
             "v_selector": v_selector,
@@ -357,6 +385,7 @@ class _Cass:
             "ns_act": ns_act,
             **geometry,
         }
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},

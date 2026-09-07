@@ -1,4 +1,5 @@
-"""AAO 生物池计算实现：唯一计算源（AO-F1~F19 全经 registry.apply 求值）。
+"""AAO 生物池计算实现：唯一计算源（AO-F1~F19 全经 registry.apply_batch
+求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
@@ -6,7 +7,9 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（M2a2 实装：M2a1 数据先行批的代码落地/M2 正式验收；
-#   公式路线 = ADR-008 ①负荷法主线+泥龄校核带）
+#   公式路线 = ADR-008 ①负荷法主线+泥龄校核带；批 13-A 向量化重写：
+#   公式链经 _apply_batch 批量正门（AGENTS §13.6 同源向量路径唯一——
+#   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门）
 #
 # 【公式组】AO-F1~F19（docs/norms/aao.md 起草表+L7 池体图元批几何族；
 #   manifest.py 登记）——
@@ -17,8 +20,8 @@
 # 【DSL 单输出导出量】delta_n（=TN_in−tn_eff）/x_vss（=vss_ratio×
 #   x_mlss）/bod5_out（=bod5_in×(1−removal.aao.bod5)）/v_total（三区
 #   容积合成）/t_total（HRT=v_total/q_avg_h）/v_o_series（=v_o/n 单系列）
-#   在 compute 以符号算术合成——零字面量、无新工程常数（registry 单
-#   输出限制的导出面）。
+#   在 compute 以符号算术合成（数组链——IEEE 元素运算位恒等）——零字面量、
+#   无新工程常数（registry 单输出限制的导出面）。
 # 【池体几何段（L7）】AO-F15~F19——ceil 在本文件收口（池长/池宽
 #   side_disc_step 档，沿 CASS；步长>0 已由 _validate 参数域守卫承载）；
 #   h2 参数复用键随水面声明入 dims（表 section_keys.water_depth 取数
@@ -45,6 +48,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -58,11 +63,10 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._constants import SECS_PER_DAY
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
-from waterprint.units_lib.municipal.aao.manifest import (
-    FORMULA_IDS,
-    manifest,
-)
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _vec
+from waterprint.units_lib.municipal.aao.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_aao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）"
@@ -100,150 +104,168 @@ def _validate(params: dict[str, float]) -> None:
 
 def _volumes(
     ctx: UnitContext, p: dict[str, float], flow: WaterFlow, bod5_in: float, tn_in: float
-) -> dict[str, float]:
-    """AO-F1~F5：好氧/厌氧/缺氧区容积与 HRT 校核（平均日口径）。"""
-    v_o = _apply(
+) -> dict[str, _Array]:
+    """AO-F1~F5：好氧/厌氧/缺氧区容积与 HRT 校核（平均日口径——数组链）。"""
+    q_avg = _vec(flow.q_avg_daily)
+    x_mlss = _vec(p["x_mlss"])
+    v_o = _apply_batch(
         ctx,
         "AO-F1",
-        {"q_avg_daily": flow.q_avg_daily, "bod5_in": bod5_in, "ns": p["ns"], "x_mlss": p["x_mlss"]},
+        {
+            "q_avg_daily": q_avg,
+            "bod5_in": _vec(bod5_in),
+            "ns": _vec(p["ns"]),
+            "x_mlss": x_mlss,
+        },
     )
-    v_anaerobic = _apply(ctx, "AO-F3", {"q_avg_daily": flow.q_avg_daily, "t_p": p["t_p"]})
-    delta_n = tn_in - p["tn_eff"]
-    if delta_n <= 0:
+    v_anaerobic = _apply_batch(ctx, "AO-F3", {"q_avg_daily": q_avg, "t_p": _vec(p["t_p"])})
+    if tn_in - p["tn_eff"] <= 0:
         raise InvalidUnitConfig(
             f"单元 {_UNIT_ID!r} 反硝化脱氮量 delta_n 必须 > 0：TN_in={tn_in!r}，"
             f"tn_eff={p['tn_eff']!r}（进水 TN 须高于设计出水 TN——AO-F4 前提）"
         )
-    v_anoxic = _apply(
+    delta_n = _vec(tn_in) - _vec(p["tn_eff"])
+    v_anoxic = _apply_batch(
         ctx,
         "AO-F4",
         {
-            "q_avg_daily": flow.q_avg_daily,
+            "q_avg_daily": q_avg,
             "delta_n": delta_n,
-            "k_denit": _factor(p, "factor.aao.k_denit", _UNIT_ID),
-            "x_mlss": p["x_mlss"],
+            "k_denit": _vec(_factor(p, "factor.aao.k_denit", _UNIT_ID)),
+            "x_mlss": x_mlss,
         },
     )
-    q_avg_h = flow.q_avg_daily * p["sec_per_hour"]  # 平均时流量 m3/h（AO-F14 同源）
+    q_avg_h = q_avg * _vec(p["sec_per_hour"])  # 平均时流量 m3/h（AO-F14 同源）
     v_total = v_o + v_anaerobic + v_anoxic  # 三区容积合成（三表 v_total 行）
     return {
         "v_o": v_o,
-        "t_o": _apply(ctx, "AO-F2", {"v_o": v_o, "q_avg_daily": flow.q_avg_daily}),
+        "t_o": _apply_batch(ctx, "AO-F2", {"v_o": v_o, "q_avg_daily": q_avg}),
         "v_anaerobic": v_anaerobic,
         "delta_n": delta_n,
         "v_anoxic": v_anoxic,
-        "t_n": _apply(ctx, "AO-F5", {"v_anoxic": v_anoxic, "q_avg_daily": flow.q_avg_daily}),
+        "t_n": _apply_batch(ctx, "AO-F5", {"v_anoxic": v_anoxic, "q_avg_daily": q_avg}),
         "v_total": v_total,
         "t_total": v_total / q_avg_h,  # 全池 HRT（三表 v_total 行括注）
-        "v_o_series": v_o / p["n"],  # 单系列好氧容积（三表 v_o 行括注）
+        "v_o_series": v_o / _vec(p["n"]),  # 单系列好氧容积（三表 v_o 行括注）
     }
 
 
 def _sludge(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, float], v_o: float
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_o: _Array
+) -> dict[str, _Array]:
     """AO-F6~F8：剩余污泥量（干/湿）与好氧泥龄校核。"""
-    s_y = _apply(
+    s_y = _apply_batch(
         ctx,
         "AO-F6",
         {
-            "q_avg_daily": flow.q_avg_daily,
+            "q_avg_daily": _vec(flow.q_avg_daily),
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "y_yield": _factor(p, "factor.aao.yield.y", _UNIT_ID),
+            "y_yield": _vec(_factor(p, "factor.aao.yield.y", _UNIT_ID)),
         },
     )
     return {
         "s_y": s_y,
-        "q_wet": _apply(
+        "q_wet": _apply_batch(
             ctx,
             "AO-F7",
-            {"s_y": s_y, "p_moisture": _factor(p, "factor.aao.sludge.moisture", _UNIT_ID)},
+            {
+                "s_y": s_y,
+                "p_moisture": _vec(_factor(p, "factor.aao.sludge.moisture", _UNIT_ID)),
+            },
         ),
-        "theta_c": _apply(ctx, "AO-F8", {"v_o": v_o, "x_mlss": p["x_mlss"], "s_y": s_y}),
+        "theta_c": _apply_batch(
+            ctx, "AO-F8", {"v_o": v_o, "x_mlss": _vec(p["x_mlss"]), "s_y": s_y}
+        ),
     }
 
 
 def _oxygen(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, float], v_o: float
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_o: _Array
+) -> dict[str, _Array]:
     """AO-F9~F12：碳化/硝化/反硝化需氧量与设计需氧量。"""
-    x_vss = _factor(p, "factor.aao.vss_ratio", _UNIT_ID) * p["x_mlss"]
-    o2_carbon = _apply(
+    vss_ratio = _factor(p, "factor.aao.vss_ratio", _UNIT_ID)
+    x_vss = _vec(vss_ratio) * _vec(p["x_mlss"])
+    o2_carbon = _apply_batch(
         ctx,
         "AO-F9",
         {
-            "a_prime": _factor(p, "factor.aao.o2.a_prime", _UNIT_ID),
-            "q_avg_daily": flow.q_avg_daily,
+            "a_prime": _vec(_factor(p, "factor.aao.o2.a_prime", _UNIT_ID)),
+            "q_avg_daily": _vec(flow.q_avg_daily),
             "bod5_in": qual["bod5_in"],
             "bod5_out": qual["bod5_out"],
-            "b_prime": _factor(p, "factor.aao.o2.b_prime", _UNIT_ID),
+            "b_prime": _vec(_factor(p, "factor.aao.o2.b_prime", _UNIT_ID)),
             "v_o": v_o,
             "x_vss": x_vss,
         },
     )
-    o2_nit = _apply(
-        ctx,
-        "AO-F10",
-        {"q_avg_daily": flow.q_avg_daily, "tkn_in": qual["tn_in"], "tn_eff": p["tn_eff"]},
-    )
-    o2_denit = _apply(
-        ctx,
-        "AO-F11",
-        {"q_avg_daily": flow.q_avg_daily, "tkn_in": qual["tn_in"], "tn_eff": p["tn_eff"]},
-    )
+    tkn = {"q_avg_daily": _vec(flow.q_avg_daily), "tkn_in": qual["tn_in"],
+           "tn_eff": _vec(p["tn_eff"])}
+    o2_nit = _apply_batch(ctx, "AO-F10", tkn)
+    o2_denit = _apply_batch(ctx, "AO-F11", tkn)
     return {
         "x_vss": x_vss,
         "o2_carbon": o2_carbon,
         "o2_nit": o2_nit,
         "o2_denit": o2_denit,
-        "o2_total": _apply(
+        "o2_total": _apply_batch(
             ctx, "AO-F12", {"o2_carbon": o2_carbon, "o2_nit": o2_nit, "o2_denit": o2_denit}
         ),
     }
 
 
-def _returns(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _returns(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """AO-F13/F14：外回流（最高时口径）/内回流（平均时口径）泵流量。"""
     return {
-        "q_return": _apply(
+        "q_return": _apply_batch(
             ctx,
             "AO-F13",
-            {"r_external": p["r_external"], "q_design_h": flow.q_design * p["sec_per_hour"]},
+            {
+                "r_external": _vec(p["r_external"]),
+                "q_design_h": _vec(flow.q_design) * _vec(p["sec_per_hour"]),
+            },
         ),
-        "q_internal": _apply(
+        "q_internal": _apply_batch(
             ctx,
             "AO-F14",
-            {"r_internal": p["r_internal"], "q_avg_h": flow.q_avg_daily * p["sec_per_hour"]},
+            {
+                "r_internal": _vec(p["r_internal"]),
+                "q_avg_h": _vec(flow.q_avg_daily) * _vec(p["sec_per_hour"]),
+            },
         ),
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], v_total: float) -> dict[str, float]:
+def _geometry(ctx: UnitContext, p: dict[str, float], v_total: _Array) -> dict[str, _Array]:
     """AO-F15~F19：池体几何——容积折水面/超高/长宽比定形（0.5 m 档 ceil 收口）。
 
     h2 参数复用键随水面声明入 dims（表 section_keys.water_depth 取数）；
     ceil 边长×h2=v_pool≥v_total 圆整裕量诚实呈现（沿 CASS，D12）。
     """
-    a_pool = _apply(ctx, "AO-F15", {"v_total": v_total, "h2": p["h2"]})
-    h_pool = _apply(
-        ctx, "AO-F16", {"h_super": _factor(p, "factor.aao.superheight", _UNIT_ID), "h2": p["h2"]}
+    h2 = _vec(p["h2"])
+    a_pool = _apply_batch(ctx, "AO-F15", {"v_total": v_total, "h2": h2})
+    h_pool = _apply_batch(
+        ctx,
+        "AO-F16",
+        {"h_super": _vec(_factor(p, "factor.aao.superheight", _UNIT_ID)), "h2": h2},
     )
-    binds = {"a_pool": a_pool, "ratio_lb": p["ratio_lb"]}
-    l_raw = _apply(ctx, "AO-F17", binds)
-    b_raw = _apply(ctx, "AO-F18", binds)
+    binds = {"a_pool": a_pool, "ratio_lb": _vec(p["ratio_lb"])}
+    l_raw = _apply_batch(ctx, "AO-F17", binds)
+    b_raw = _apply_batch(ctx, "AO-F18", binds)
     step = p["side_disc_step"]
-    l_pool = math.ceil(l_raw / step) * step
-    b_pool = math.ceil(b_raw / step) * step
+    l_pool = math.ceil(float(l_raw[0]) / step) * step
+    b_pool = math.ceil(float(b_raw[0]) / step) * step
     return {
-        "h2": p["h2"],
+        "h2": h2,
         "a_pool": a_pool,
         "h_pool": h_pool,
         "l_pool_raw": l_raw,
         "b_pool_raw": b_raw,
-        "l_pool": l_pool,
-        "b_pool": b_pool,
-        "v_pool": _apply(ctx, "AO-F19", {"l_pool": l_pool, "b_pool": b_pool, "h2": p["h2"]}),
+        "l_pool": _vec(l_pool),
+        "b_pool": _vec(b_pool),
+        "v_pool": _apply_batch(
+            ctx, "AO-F19", {"l_pool": _vec(l_pool), "b_pool": _vec(b_pool), "h2": h2}
+        ),
     }
 
 
@@ -253,7 +275,7 @@ def _warn(source: str, message: str, param_key: str) -> Warning:
 
 
 def _warnings(
-    p: dict[str, float], volumes: dict[str, float], sludge: dict[str, float]
+    p: dict[str, float], volumes: dict[str, _Array], sludge: dict[str, _Array]
 ) -> tuple[Warning, ...]:
     """校核带检查：五条参数带（ns/mlss/t_p/R/Ri）+两条结果带（t_n/theta_c）。"""
     found: list[Warning] = []
@@ -274,11 +296,12 @@ def _warnings(
         _factor(p, "factor.aao.sludge_age_band.min", _UNIT_ID),
         _factor(p, "factor.aao.sludge_age_band.max", _UNIT_ID),
     )
-    if not age[0] <= sludge["theta_c"] <= age[1]:
+    theta_c = float(sludge["theta_c"][0])
+    if not age[0] <= theta_c <= age[1]:
         found.append(
             _warn(
                 f"{_GB}（AAO 泥龄 11~23d，好氧泥龄判断口径）；factor.aao.sludge_age_band.*",
-                f"好氧泥龄 theta_c = {sludge['theta_c']:.4f} d 越出建议带 [{age[0]}, {age[1]}]"
+                f"好氧泥龄 theta_c = {theta_c:.4f} d 越出建议带 [{age[0]}, {age[1]}]"
                 "——调节方向：ns（↓泥龄↑）或 x_mlss（↑泥龄↑）；全池口径备考注记见"
                 " docs/norms/aao.md（口径待领域专家追认）",
                 "ns",
@@ -288,11 +311,12 @@ def _warnings(
         _factor(p, "factor.aao.hrt_anoxic_band.min", _UNIT_ID),
         _factor(p, "factor.aao.hrt_anoxic_band.max", _UNIT_ID),
     )
-    if not hrt[0] <= volumes["t_n"] <= hrt[1]:
+    t_n = float(volumes["t_n"][0])
+    if not hrt[0] <= t_n <= hrt[1]:
         found.append(
             _warn(
                 f"{_HB}；factor.aao.hrt_anoxic_band.*",
-                f"缺氧区 HRT t_n = {volumes['t_n']:.4f} h 越出建议带 [{hrt[0]}, {hrt[1]}]"
+                f"缺氧区 HRT t_n = {t_n:.4f} h 越出建议带 [{hrt[0]}, {hrt[1]}]"
                 "——调节方向：x_mlss（↑t_n↓）或反硝化速率 Kde（factor.aao.k_denit，↑t_n↓）",
                 "x_mlss",
             )
@@ -324,7 +348,7 @@ class _Aao:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """AO-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """AO-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult——向量路径 N=1）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "生物池单入单出语义")
@@ -334,14 +358,19 @@ class _Aao:
             raise InvalidUnitConfig(
                 f"单元 {ctx.unit_id!r} 入流缺 BOD5/TN 浓度（AO-F1/F4 计算前提，GR-09）"
             )
-        qual = {"bod5_in": bod5_in, "tn_in": tn_in,
-                "bod5_out": bod5_in * (1 - _factor(p, "removal.aao.bod5.mod_default", _UNIT_ID))}
+        qual = {
+            "bod5_in": _vec(bod5_in),
+            "tn_in": _vec(tn_in),
+            "bod5_out": _vec(bod5_in)
+            * (1 - _vec(_factor(p, "removal.aao.bod5.mod_default", _UNIT_ID))),
+        }
         volumes = _volumes(ctx, p, flow, bod5_in, tn_in)
         sludge = _sludge(ctx, p, flow, qual, volumes["v_o"])
         oxygen = _oxygen(ctx, p, flow, qual, volumes["v_o"])
         returns = _returns(ctx, p, flow)
         geometry = _geometry(ctx, p, volumes["v_total"])
-        dims = {**volumes, **sludge, **oxygen, **returns, **geometry}
+        arrays = {**volumes, **sludge, **oxygen, **returns, **geometry}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
@@ -352,8 +381,8 @@ class _Aao:
                 # AO-F7 dims 直用（与 HB-F2 同式）；moisture 与 hebing
                 # p_bio 默认同源（factor.aao.sludge.moisture）。
                 sludge_ref: SludgeFlow(
-                    q_wet=sludge["q_wet"] / SECS_PER_DAY,
-                    ds=sludge["s_y"] / SECS_PER_DAY,
+                    q_wet=float(sludge["q_wet"][0]) / SECS_PER_DAY,
+                    ds=float(sludge["s_y"][0]) / SECS_PER_DAY,
                     moisture=_factor(p, "factor.aao.sludge.moisture", _UNIT_ID),
                 ),
             },

@@ -1,11 +1,14 @@
-"""高密沉淀池计算实现：唯一计算源（GM-F1~F20 全经 registry.apply 求值）。
+"""高密沉淀池计算实现：唯一计算源（GM-F1~F20 全经 registry.apply_batch
+求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收）
+# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收；批 13-A 向量化
+#   重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一——
+#   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【公式组】GM-F1~F20（docs/norms/gaomidu.md 起草表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：池边长 B=
@@ -35,6 +38,8 @@ from __future__ import annotations
 
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -48,12 +53,10 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._constants import SECS_PER_DAY
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
-from waterprint.units_lib.municipal.gaomidu.manifest import (
-    FORMULA_IDS,
-    WATER_DENSITY,
-    manifest,
-)
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
+from waterprint.units_lib.municipal.gaomidu.manifest import FORMULA_IDS, WATER_DENSITY, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_gaomidu"
 _GT = "GB/T 50335-2016 §5.4.3（高密斜管清水区液面负荷）"
@@ -106,112 +109,107 @@ def _validate(params: dict[str, float]) -> None:
             )
 
 
-def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _basin(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """GM-F1~F5：单池流量/需蓄斜管区面积/池边长（0.5 m 档）/实际液面负荷。"""
-    q1h = _apply(ctx, "GM-F1", {"q_design": flow.q_design, "n": p["n"]})
-    a_incl_req = _apply(ctx, "GM-F2", {"q1h": q1h, "q_surface": p["q_surface"]})
-    b_raw = _apply(ctx, "GM-F3", {"a_incl_req": a_incl_req})
-    b = _ceil_step(b_raw, p["side_disc_step"])
-    a_act = _apply(ctx, "GM-F4", {"B": b})
+    q1h = _apply_batch(ctx, "GM-F1", {"q_design": _vec(flow.q_design), "n": _vec(p["n"])})
+    a_incl_req = _apply_batch(ctx, "GM-F2", {"q1h": q1h, "q_surface": _vec(p["q_surface"])})
+    b_raw = _apply_batch(ctx, "GM-F3", {"a_incl_req": a_incl_req})
+    b = _vec(_ceil_step(float(b_raw[0]), p["side_disc_step"]))
+    a_act = _apply_batch(ctx, "GM-F4", {"B": b})
     return {
         "q1h": q1h,
-        "q_design_h": q1h * p["n"],  # DSL 单输出导出量（GM-F11 全厂口径）
+        "q_design_h": q1h * _vec(p["n"]),  # DSL 单输出导出量（GM-F11 全厂口径）
         "a_incl_req": a_incl_req,
         "b_raw": b_raw,
         "b": b,
         "a_act": a_act,
-        "q_surface_act": _apply(ctx, "GM-F5", {"q1h": q1h, "a_act": a_act}),
+        "q_surface_act": _apply_batch(ctx, "GM-F5", {"q1h": q1h, "a_act": a_act}),
     }
 
 
-def _mix_floc(ctx: UnitContext, p: dict[str, float], basin: dict[str, float]) -> dict[str, float]:
+def _mix_floc(ctx: UnitContext, p: dict[str, float], basin: dict[str, _Array]) -> dict[str, _Array]:
     """GM-F6~F10：快混/絮凝区容积与 G 值法功率、GT 校核（单池）。"""
-    v_mix = _apply(ctx, "GM-F6", {"q1h": basin["q1h"], "t_mix": p["t_mix"]})
-    v_floc = _apply(ctx, "GM-F7", {"q1h": basin["q1h"], "t_floc": p["t_floc"]})
+    g_floc = _vec(_factor(p, _G_FLOC, _UNIT_ID))
+    v_mix = _apply_batch(ctx, "GM-F6", {"q1h": basin["q1h"], "t_mix": _vec(p["t_mix"])})
+    v_floc = _apply_batch(ctx, "GM-F7", {"q1h": basin["q1h"], "t_floc": _vec(p["t_floc"])})
     return {
         "v_mix": v_mix,
         "v_floc": v_floc,
-        "p_mix": _apply(ctx, "GM-F8", {"g_mix": _factor(p, _G_MIX, _UNIT_ID), "v_mix": v_mix}),
-        "p_floc": _apply(ctx, "GM-F9", {"g_floc": _factor(p, _G_FLOC, _UNIT_ID), "v_floc": v_floc}),
-        "gt_floc": _apply(
-            ctx,
-            "GM-F10",
-            {"g_floc": _factor(p, _G_FLOC, _UNIT_ID), "t_floc": p["t_floc"]},
+        "p_mix": _apply_batch(
+            ctx, "GM-F8", {"g_mix": _vec(_factor(p, _G_MIX, _UNIT_ID)), "v_mix": v_mix}
         ),
+        "p_floc": _apply_batch(ctx, "GM-F9", {"g_floc": g_floc, "v_floc": v_floc}),
+        "gt_floc": _apply_batch(ctx, "GM-F10", {"g_floc": g_floc, "t_floc": _vec(p["t_floc"])}),
     }
 
 
 def _sludge_dose(
-    ctx: UnitContext,
-    p: dict[str, float],
-    flow: WaterFlow,
-    basin: dict[str, float],
-    ss_in: float,
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, basin: dict[str, _Array], ss_in: float
+) -> dict[str, _Array]:
     """GM-F11~F15：污泥回流/干泥量/浓缩排泥/PAC·PAM 药剂耗量（平均日口径）。"""
-    ss_out = ss_in * (1 - _factor(p, "removal.gaomidu.ss.mod_default", _UNIT_ID))
-    s_dry = _apply(
-        ctx, "GM-F12", {"q_avg_daily": flow.q_avg_daily, "ss_in": ss_in, "ss_out": ss_out}
+    q_avg = _vec(flow.q_avg_daily)
+    ss_out = _vec(ss_in) * (1 - _vec(_factor(p, "removal.gaomidu.ss.mod_default", _UNIT_ID)))
+    s_dry = _apply_batch(
+        ctx, "GM-F12", {"q_avg_daily": q_avg, "ss_in": _vec(ss_in), "ss_out": ss_out}
     )
     return {
-        "q_return": _apply(
-            ctx, "GM-F11", {"r_sludge": p["r_sludge"], "q_design_h": basin["q_design_h"]}
+        "q_return": _apply_batch(
+            ctx, "GM-F11", {"r_sludge": _vec(p["r_sludge"]), "q_design_h": basin["q_design_h"]}
         ),
         "ss_out": ss_out,
         "s_dry": s_dry,
-        "q_sludge": _apply(
-            ctx, "GM-F13", {"s_dry": s_dry, "c_sludge": _factor(p, _C_SLUDGE, _UNIT_ID)}
+        "q_sludge": _apply_batch(
+            ctx, "GM-F13", {"s_dry": s_dry, "c_sludge": _vec(_factor(p, _C_SLUDGE, _UNIT_ID))}
         ),
-        "m_pac": _apply(
-            ctx,
-            "GM-F14",
-            {"q_avg_daily": flow.q_avg_daily, "dose_pac": _factor(p, _DOSE_PAC, _UNIT_ID)},
+        "m_pac": _apply_batch(
+            ctx, "GM-F14", {"q_avg_daily": q_avg, "dose_pac": _vec(_factor(p, _DOSE_PAC, _UNIT_ID))}
         ),
-        "m_pam": _apply(
-            ctx,
-            "GM-F15",
-            {"q_avg_daily": flow.q_avg_daily, "dose_pam": _factor(p, _DOSE_PAM, _UNIT_ID)},
+        "m_pam": _apply_batch(
+            ctx, "GM-F15", {"q_avg_daily": q_avg, "dose_pam": _vec(_factor(p, _DOSE_PAM, _UNIT_ID))}
         ),
     }
 
 
 def _depth(
-    ctx: UnitContext, p: dict[str, float], basin: dict[str, float], mixfloc: dict[str, float]
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], basin: dict[str, _Array], mixfloc: dict[str, _Array]
+) -> dict[str, _Array]:
     """GM-F16~F20：斜管区高/沉淀区总高/池总高（0.1 m 档）/絮凝水深校核/混凝土量。"""
-    h_tube_zone = _apply(ctx, "GM-F16", {"l_tube": p["l_tube"]})
-    h_settle = _apply(
+    h_tube_zone = _apply_batch(ctx, "GM-F16", {"l_tube": _vec(p["l_tube"])})
+    h_settle = _apply_batch(
         ctx,
         "GM-F17",
         {
-            "h_clear": p["h_clear"],
+            "h_clear": _vec(p["h_clear"]),
             "h_tube_zone": h_tube_zone,
-            "h_buffer": p["h_buffer"],
-            "h_thick": p["h_thick"],
+            "h_buffer": _vec(p["h_buffer"]),
+            "h_thick": _vec(p["h_thick"]),
         },
     )
-    h_total_raw = _apply(
+    h_total_raw = _apply_batch(
         ctx,
         "GM-F18",
-        {"h_super": _factor(p, "factor.gaomidu.superheight", _UNIT_ID), "h_settle": h_settle},
+        {
+            "h_super": _vec(_factor(p, "factor.gaomidu.superheight", _UNIT_ID)),
+            "h_settle": h_settle,
+        },
     )
-    h_total = _ceil_step(h_total_raw, p["length_disc_step"])
+    h_total = _vec(_ceil_step(float(h_total_raw[0]), p["length_disc_step"]))
     return {
         "h_tube_zone": h_tube_zone,
         "h_settle": h_settle,
         "h_total_raw": h_total_raw,
         "h_total": h_total,
-        "h_floc_calc": _apply(
+        "h_floc_calc": _apply_batch(
             ctx, "GM-F19", {"v_floc": mixfloc["v_floc"], "a_act": basin["a_act"]}
         ),
-        "v_concrete": _apply(
+        "v_concrete": _apply_batch(
             ctx,
             "GM-F20",
             {
                 "a_act": basin["a_act"],
                 "h_total": h_total,
-                "n": p["n"],
-                "wall_coef": _factor(p, "factor.gaomidu.wall_thickness_coef", _UNIT_ID),
+                "n": _vec(p["n"]),
+                "wall_coef": _vec(_factor(p, "factor.gaomidu.wall_thickness_coef", _UNIT_ID)),
             },
         ),
     }
@@ -235,18 +233,19 @@ def _param_band(p: dict[str, float], keys: tuple[str, str], key: str) -> bool:
 
 def _warnings(
     p: dict[str, float],
-    basin: dict[str, float],
-    mixfloc: dict[str, float],
-    depth: dict[str, float],
+    basin: dict[str, _Array],
+    mixfloc: dict[str, _Array],
+    depth: dict[str, _Array],
 ) -> tuple[Warning, ...]:
     """校核带检查：液面负荷/回流比/快混絮凝停留/GT 带+絮凝区布置校核。"""
     found: list[Warning] = []
     surf = _band(p, _SURFACE_BAND)
-    if not surf[0] <= basin["q_surface_act"] <= surf[1]:
+    q_surface_act = float(basin["q_surface_act"][0])
+    if not surf[0] <= q_surface_act <= surf[1]:
         found.append(
             _warn(
                 f"{_GT}；{_SURFACE_BAND[0]}~{_SURFACE_BAND[1]}",
-                f"实际液面负荷 = {basin['q_surface_act']:.4f} 越出建议带"
+                f"实际液面负荷 = {q_surface_act:.4f} 越出建议带"
                 f" [{surf[0]}, {surf[1]}]——调节方向：q_surface（负荷）或 n（池数）",
                 "q_surface",
             )
@@ -282,21 +281,24 @@ def _warnings(
             )
         )
     gt = _band(p, _GT_BAND)
-    if not gt[0] <= mixfloc["gt_floc"] <= gt[1]:
+    gt_floc = float(mixfloc["gt_floc"][0])
+    if not gt[0] <= gt_floc <= gt[1]:
         found.append(
             _warn(
                 f"{_HB}；{_GT_BAND[0]}~{_GT_BAND[1]}",
-                f"絮凝 GT 值 = {mixfloc['gt_floc']:.0f} 越出建议带"
+                f"絮凝 GT 值 = {gt_floc:.0f} 越出建议带"
                 f" [{gt[0]:.0f}, {gt[1]:.0f}]——调节方向：t_floc（历时）或 g_floc（系数键）",
                 "t_floc",
             )
         )
-    if depth["h_floc_calc"] >= depth["h_settle"]:
+    h_floc_calc = float(depth["h_floc_calc"][0])
+    h_settle = float(depth["h_settle"][0])
+    if h_floc_calc >= h_settle:
         found.append(
             _warn(
                 f"{_HB}；GM-F19 絮凝区布置校核（h_floc_calc < h_settle）",
-                f"絮凝区计算水深 = {depth['h_floc_calc']:.4f} m 不低于沉淀区总高"
-                f" {depth['h_settle']:.4f} m——布置不可行：t_floc（↓）或 q_surface（↑负荷缩面）",
+                f"絮凝区计算水深 = {h_floc_calc:.4f} m 不低于沉淀区总高"
+                f" {h_settle:.4f} m——布置不可行：t_floc（↓）或 q_surface（↑负荷缩面）",
                 "t_floc",
             )
         )
@@ -341,7 +343,8 @@ class _Gaomidu:
         mixfloc = _mix_floc(ctx, p, basin)
         sludge = _sludge_dose(ctx, p, flow, basin, ss_in)
         depth = _depth(ctx, p, basin, mixfloc)
-        dims = {**basin, **mixfloc, **sludge, **depth}
+        arrays = {**basin, **mixfloc, **sludge, **depth}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")
         return UnitResult(
@@ -353,8 +356,8 @@ class _Gaomidu:
                 # 1−c_sludge/WATER_DENSITY（=0.98 与 hebing p_chem 默认
                 # 同源——含固率↔含水率 ρ=1000 口径互推，manifest 注记）。
                 sludge_ref: SludgeFlow(
-                    q_wet=sludge["q_sludge"] / SECS_PER_DAY,
-                    ds=sludge["s_dry"] / SECS_PER_DAY,
+                    q_wet=float(sludge["q_sludge"][0]) / SECS_PER_DAY,
+                    ds=float(sludge["s_dry"][0]) / SECS_PER_DAY,
                     moisture=1 - _factor(p, _C_SLUDGE, _UNIT_ID) / WATER_DENSITY,
                 ),
             },

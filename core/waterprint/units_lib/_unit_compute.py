@@ -32,15 +32,20 @@
 #   异常分支最小直测（tests/units_lib/test_unit_compute.py——B15，
 #   含 _ceil_step 三组消息恒等用例；B8「知情接受」口径解除）；共享件
 #   不 import 任何包件（无环
-#   ——D1）；import 面=contracts（L0）+registry（L1）向下合法
-#   （InvalidUnitConfig/UnitContext/PortRef/WaterFlow/SludgeFlow/
-#   ConditionSet/formulas——L2→L1/L0）。
+#   ——D1）；import 面=contracts（L0）+registry（L1）+numpy（外部——
+#   批 13-A）向下合法（InvalidUnitConfig/UnitContext/PortRef/WaterFlow/
+#   SludgeFlow/ConditionSet/formulas——L2→L1/L0）；批 13-A 增
+#   _vec/_apply_batch 两件（向量化重写单元接线：符号算术与公式绑定以
+#   ndarray 流动+批量正门 N=1 退化——task-13A-batch-plan §五；_apply
+#   标量件服务未重写 28 包接口零变沿承）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+
+import numpy
 
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.flow import WaterFlow
@@ -49,6 +54,26 @@ from waterprint.contracts.ports import PortRef
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import UnitContext
 from waterprint.registry import formulas
+
+
+def _vec(value: float) -> numpy.ndarray:
+    """标量→长度 1 数组装箱（批 13-A 同源向量路径单元接线件——符号
+    算术与公式绑定以 ndarray 流动；N=1 退化在 formulas.apply_batch
+    内核汇合标量私核）。"""
+    return numpy.asarray([value], dtype=numpy.float64)
+
+
+def _apply_batch(
+    ctx: UnitContext, formula_id: str, bindings: Mapping[str, numpy.ndarray]
+) -> numpy.ndarray:
+    """apply_batch 薄封装：统一携带 (unit_id, condition_key)——批量正门
+    N=1 退化即单点（批 13-A 重写单元唯一公式路径；_apply 服务未重写包）。"""
+    return formulas.apply_batch(
+        formula_id,
+        dict(bindings),
+        (ctx.unit_id, ConditionSet.key(ctx.condition)),
+        sink=ctx.trace,
+    )
 
 
 def _ceil_step_core(
