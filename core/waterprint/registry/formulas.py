@@ -437,13 +437,22 @@ def apply_batch(
 ) -> numpy.ndarray:
     """批量正门（批 13-A 同源向量路径）：N=1=标量私核；N>1=数组核+域拒 NaN
     （域拒行仅以 NaN 表达、行级原因不对外——kernel issues 诊断在正门
-    收敛；下游行级标注交 enumerate nan_flag 既有列，R5 口径零变）。"""
+    收敛；下游行级标注交 enumerate nan_flag 既有列，R5 口径零变）。
+
+    形状合约（批 13-D A2-03/G1-03 兑现——接口文档+出口显式断言）：
+    bindings=等长一维数值 ndarray（非等长/零长/二维/非数值 dtype/非有限
+    绑定=InvalidFormulaError——kernel validate_arrays 承载）；N=1 →
+    返回 shape (1,)（快路径标量私核单点装箱）；N>1 → 返回 shape (N,)
+    （域拒行 NaN）——两出口断言见函数体。
+    """
     entry = _lookup(formula_id)
     _check_keys(formula_id, bindings, frozenset(entry.spec.symbols))
     try:
         scalars = formulas_kernel.n1_scalars(bindings)
         if scalars is not None:
-            return numpy.asarray([_apply_scalar(entry, scalars, ctx, sink)])
+            singleton = numpy.asarray([_apply_scalar(entry, scalars, ctx, sink)])
+            assert singleton.shape == (1,)  # G1-03：N=1 返回形状合约（防御性）
+            return singleton
         arrays = formulas_kernel.validate_arrays(bindings, frozenset(entry.spec.symbols))
     except formulas_kernel.BatchBindingError as exc:
         raise InvalidFormulaError(f"公式 {formula_id!r} {exc}") from exc
@@ -459,5 +468,7 @@ def apply_batch(
             f"公式 {formula_id!r} 求值核不可达节点：{exc}"
             "（公式算术子集外——登记期防线后防御性拒绝）"
         ) from exc
+    values = numpy.asarray(outcome.values, dtype=numpy.float64)
+    assert values.shape == (count,)  # A2-03：N>1 出口形状合约（防御性）
     # 域拒行 NaN（§三.2）：核内重放已置 NaN；N>1 不抛——上浮交 nan_flag（R5 零变）。
-    return numpy.asarray(outcome.values, dtype=numpy.float64)
+    return values

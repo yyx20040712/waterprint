@@ -1,30 +1,39 @@
-"""巴歇尔计量槽计算实现：唯一计算源（BL-F1~F9 全经 registry.apply 求值）。
+"""巴歇尔计量槽计算实现：唯一计算源（BL-F1~F9 全经 registry.apply_batch
+求值——批 13-D 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收）
+# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收；批 13-D
+#   向量化重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量
+#   路径唯一——标量=N=1 退化；档位选择/系数投影=标量参数面零变；
+#   N>1=批 D 引擎正门形状合约]）
 #
 # 【公式组】BL-F1~F9（docs/norms/bashi_jiliangcao.md 起草表；manifest.py
 #   登记）——B7 七档全档流量式主线：实测水头流量读数（F1）、设计/平均
 #   水头反解与选档校核（F2/F3）、标准型构造尺寸（F4~F7）、淹没度自由流
-#   判别（F8）、槽身水头损失（F9）。
+#   判别（F8）、槽身水头损失（F9）。两幂形态（变底变指 ha ** n_exp 与
+#   倒数式指 (q_design * 1000 / c_coef) ** (1 / n_exp)）经批 D 探针 P2
+#   七档 golden×邻域 112 对三向零位差实证（批 A/B/C 幂集未覆盖面）。
 # 【选档机制】喉宽 b_throat=grid 档位参数（B7 七档）；compute 按
 #   round(b,2) 命中档名（flume.<档名>.* 键段），非档位值=InvalidUnitConfig
-#   （档位面归 grid 层——Ruling ④同精神：compute 只保 b>0+命中）。
-#   换算常量 ×1000 内联于公式（manifest 白名单区），本文件零换算字面量。
+#   （档位面归 grid 层——Ruling ④同精神：compute 只保 b>0+命中）——
+#   **标量参数面零变**（N=1 边界前的守卫层逐字保留）。换算常量 ×1000
+#   内联于公式（manifest 白名单区），本文件零换算字面量。零 ceil 站点
+#   （喉宽=grid 档位直接取值——与批 B/C 各包 _ceil_vec 形态差异记档）。
 # 【流量口径（三表逐字冻结）】槽型选档与设计水头按最高时 flow.q_design
 #   （峰值可计量）；平均时水头按 flow.q_avg_daily 校核。
 # 【系数通道】factor.bashi_jiliangcao.*/removal.bashi_jiliangcao.* 经
 #   ctx.params 投影面取值（app._unit_params，M1a 现状对齐）；缺键=领域异常。
 # 【输出面（D2）】outflows=入流透传；dims=三表量测/构造结果全量 snake 键
-#   （q_meas 按平均时水头读数=往返闭环校载体）；outqualities=零去除键
-#   透传（removal.bashi_jiliangcao.*.mod_default 全 0.0——计量单元无
-#   处理，透传分支不经 apply、formula_ids 不含去除式，与 ziwai 零去除
-#   形态同款记档）；warnings=选档水头适用带（ha_design 越档 hmin/hmax）+
-#   淹没度自由流判别（σ>scrit）两条；formula_ids=实际求值公式号全量。
+#   （q_meas 按平均时水头读数=往返闭环校载体；N=1 边界取标 float(a[0])）；
+#   outqualities=零去除键透传（removal.bashi_jiliangcao.*.mod_default 全
+#   0.0——计量单元无处理，透传分支不经 apply、formula_ids 不含去除式，
+#   与 ziwai 零去除形态同款记档）；warnings=选档水头适用带（ha_design
+#   越档 hmin/hmax）+淹没度自由流判别（σ>scrit）两条——消息格式化在
+#   N=1 边界取标后逐字恒等；formula_ids=实际求值公式号全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
 #   R3 工况只经参数；R4 纯函数；R5 禁 import 其他单元与 L3；R6 ≤400 行。
 # ══════════════════════════════════════════════════════════════════
@@ -32,6 +41,8 @@
 from __future__ import annotations
 
 from typing import final
+
+import numpy
 
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
@@ -44,13 +55,15 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _vec
 from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
     FORMULA_IDS,
     GRADES,
     THROAT_GRID,
     manifest,
 )
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-D——公式链中间量形态）
 
 _UNIT_ID = "municipal_bashi_jiliangcao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）量水堰槽章"
@@ -87,47 +100,47 @@ def _grade_of(params: dict[str, float]) -> tuple[str, dict[str, float]]:
     }
 
 
-def _heads(
-    ctx: UnitContext, flow: WaterFlow, coef: dict[str, float]
-) -> dict[str, float]:
+def _heads(ctx: UnitContext, flow: WaterFlow, coef: dict[str, float]) -> dict[str, _Array]:
     """BL-F1~F3：设计/平均水头反解与平均时流量读数（往返闭环）。"""
-    binds = {"c_coef": coef["c_coef"], "n_exp": coef["n_exp"]}
-    ha_design = _apply(ctx, "BL-F2", {"q_design": flow.q_design, **binds})
-    ha_avg = _apply(ctx, "BL-F3", {"q_avg_daily": flow.q_avg_daily, **binds})
+    binds = {"c_coef": _vec(coef["c_coef"]), "n_exp": _vec(coef["n_exp"])}
+    ha_design = _apply_batch(ctx, "BL-F2", {"q_design": _vec(flow.q_design), **binds})
+    ha_avg = _apply_batch(ctx, "BL-F3", {"q_avg_daily": _vec(flow.q_avg_daily), **binds})
     return {
         "ha_design": ha_design,
         "ha_avg": ha_avg,
-        "q_meas": _apply(ctx, "BL-F1", {"ha": ha_avg, **binds}),
+        "q_meas": _apply_batch(ctx, "BL-F1", {"ha": ha_avg, **binds}),
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], b_throat: float) -> dict[str, float]:
+def _geometry(ctx: UnitContext, p: dict[str, float], b_throat: float) -> dict[str, _Array]:
     """BL-F4~F7：标准型构造尺寸（收缩/喉道/扩散段）与槽总长。"""
-    l1 = _apply(ctx, "BL-F5", {"b_throat": b_throat})
+    l1 = _apply_batch(ctx, "BL-F5", {"b_throat": _vec(b_throat)})
     l_throat = _factor(p, "factor.bashi_jiliangcao.geometry.l_throat", _UNIT_ID)
     l_diffuse = _factor(p, "factor.bashi_jiliangcao.geometry.l_diffuse", _UNIT_ID)
     return {
-        "b1": _apply(ctx, "BL-F4", {"b_throat": b_throat}),
+        "b1": _apply_batch(ctx, "BL-F4", {"b_throat": _vec(b_throat)}),
         "l1": l1,
-        "b2": _apply(ctx, "BL-F6", {"b_throat": b_throat}),
-        "l_total": _apply(
-            ctx, "BL-F7", {"l1": l1, "l_throat": l_throat, "l_diffuse": l_diffuse}
+        "b2": _apply_batch(ctx, "BL-F6", {"b_throat": _vec(b_throat)}),
+        "l_total": _apply_batch(
+            ctx,
+            "BL-F7",
+            {"l1": l1, "l_throat": _vec(l_throat), "l_diffuse": _vec(l_diffuse)},
         ),
-        "l_throat": l_throat,
-        "l_diffuse": l_diffuse,
+        "l_throat": _vec(l_throat),
+        "l_diffuse": _vec(l_diffuse),
         # 构造面常量（标准型：喉道底跌落 N/槽身边距 K——dims 承载供出图）
-        "n_depress": _factor(p, "factor.bashi_jiliangcao.geometry.n_depress", _UNIT_ID),
-        "k_margin": _factor(p, "factor.bashi_jiliangcao.geometry.k_margin", _UNIT_ID),
+        "n_depress": _vec(_factor(p, "factor.bashi_jiliangcao.geometry.n_depress", _UNIT_ID)),
+        "k_margin": _vec(_factor(p, "factor.bashi_jiliangcao.geometry.k_margin", _UNIT_ID)),
     }
 
 
-def _check(ctx: UnitContext, p: dict[str, float], ha_design: float) -> dict[str, float]:
+def _check(ctx: UnitContext, p: dict[str, float], ha_design: _Array) -> dict[str, _Array]:
     """BL-F8/F9：淹没度自由流判别与槽身水头损失（估算口径）。"""
     hb = _factor(p, "factor.bashi_jiliangcao.hb_design", _UNIT_ID)
     ratio = _factor(p, "factor.bashi_jiliangcao.loss_ratio", _UNIT_ID)
     return {
-        "sigma": _apply(ctx, "BL-F8", {"hb_design": hb, "ha_design": ha_design}),
-        "h_loss": _apply(ctx, "BL-F9", {"loss_ratio": ratio, "ha_design": ha_design}),
+        "sigma": _apply_batch(ctx, "BL-F8", {"hb_design": _vec(hb), "ha_design": ha_design}),
+        "h_loss": _apply_batch(ctx, "BL-F9", {"loss_ratio": _vec(ratio), "ha_design": ha_design}),
     }
 
 
@@ -140,26 +153,28 @@ def _warnings(
     p: dict[str, float],
     grade: str,
     coef: dict[str, float],
-    heads: dict[str, float],
-    check: dict[str, float],
+    heads: dict[str, _Array],
+    check: dict[str, _Array],
 ) -> tuple[Warning, ...]:
     """校核带检查：选档水头适用带（ha_design 越档）+ 淹没度自由流判别。"""
+    ha_design = float(heads["ha_design"][0])
+    sigma = float(check["sigma"][0])
     found: list[Warning] = []
-    if not coef["hmin"] <= heads["ha_design"] <= coef["hmax"]:
+    if not coef["hmin"] <= ha_design <= coef["hmax"]:
         found.append(
             _warn(
                 f"{_HB}；factor.bashi_jiliangcao.flume.{grade}.hmin/hmax",
-                f"设计水头 ha_design = {heads['ha_design']:.4f} m 越出本档适用带"
+                f"设计水头 ha_design = {ha_design:.4f} m 越出本档适用带"
                 f" [{coef['hmin']}, {coef['hmax']}]——调节方向：b_throat"
                 "（换档：小档加深水头/大档减浅水头，B7 七档 grid）",
                 "b_throat",
             )
         )
-    if check["sigma"] > coef["scrit"]:
+    if sigma > coef["scrit"]:
         found.append(
             _warn(
                 f"{_HB}；factor.bashi_jiliangcao.flume.{grade}.scrit",
-                f"淹没度 sigma = {check['sigma']:.4f} 超临界淹没度"
+                f"淹没度 sigma = {sigma:.4f} 超临界淹没度"
                 f" {coef['scrit']}（淹没流，Q=C·h^n 自由流式失效）——调节方向："
                 "hb_design（降低下游水深设计假定）或 b_throat（大档加深 ha）",
                 "b_throat",
@@ -188,7 +203,8 @@ class _Bashi:
         heads = _heads(ctx, flow, coef)
         geometry = _geometry(ctx, p, p["b_throat"])
         check = _check(ctx, p, heads["ha_design"])
-        dims = {**heads, **geometry, **check}
+        arrays = {**heads, **geometry, **check}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
