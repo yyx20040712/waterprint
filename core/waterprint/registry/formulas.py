@@ -435,7 +435,9 @@ def apply_batch(
     ctx: tuple[str, str],
     sink: TraceSink | None = None,
 ) -> numpy.ndarray:
-    """批量正门（批 13-A 同源向量路径）：N=1=标量私核；N>1=数组核+域拒 NaN。"""
+    """批量正门（批 13-A 同源向量路径）：N=1=标量私核；N>1=数组核+域拒 NaN
+    （域拒行仅以 NaN 表达、行级原因不对外——kernel issues 诊断在正门
+    收敛；下游行级标注交 enumerate nan_flag 既有列，R5 口径零变）。"""
     entry = _lookup(formula_id)
     _check_keys(formula_id, bindings, frozenset(entry.spec.symbols))
     try:

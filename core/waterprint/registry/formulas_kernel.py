@@ -172,7 +172,8 @@ def n1_scalars(arrays: Mapping[str, numpy.ndarray]) -> dict[str, float] | None:
 
     动因（批 13-A 基准实测）：逐行枚举（N=1 退化）经数组校验/装箱
     开销 5s 预算失守——快路径=标量私核直连（数组开销归零，万级复归
-    预算内）。"""
+    预算内）。非 float64 数值 dtype 两路统一 float64 语义（本路径
+    float() 取标量/全量路径 ascontiguousarray——A 二审置信注记闭合）。"""
     scalars: dict[str, float] = {}
     for symbol, column in arrays.items():
         if (
@@ -198,6 +199,8 @@ def validate_arrays(
 
     formula_id 由调用方前缀进消息（翻译层拼接——消息文本单源在本核）。"""
     if not expected:
+        # 零符号公式不得经 apply_batch 正门（仅核内防御面支持 0 维广播
+        # ——test_kernel_zero_dim_broadcast_defensive 白盒口径）。
         raise BatchBindingError("零符号无批量语义（N 不可推断）")
     columns: dict[str, numpy.ndarray] = {}
     count: int | None = None
