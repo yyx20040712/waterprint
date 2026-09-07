@@ -1,16 +1,22 @@
-"""粗格栅计算实现：唯一计算源（CG-F1~F14 全经 registry.apply 求值）。
+"""粗格栅计算实现：唯一计算源（CG-F1~F14 全经 registry.apply_batch
+求值——批 13-C 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M1a 实装：M1 先行示范（本批实装）/M2 正式验收）
+# 规格说明（M1a 实装：M1 先行示范（本批实装）/M2 正式验收；批 13-C
+#   向量化重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量
+#   路径唯一——标量=N=1 退化；守卫层/warnings/ceil/三角预处理=N=1
+#   边界件；N>1=批 D 引擎正门]）
 #
 # 【公式组】CG-F1~F14（docs/norms/cugeshan.md 签字表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：n_gap 取整
-#   =math.ceil；B/B1/H/L = ceil(raw, length_disc_step)（步长=manifest 参数，
-#   出处三表）；sin/tan 预处理值以符号传入公式。零数值字面量（模板 R2）。
+#   =math.ceil（N=1 边界件）；B/B1/H/L = ceil(raw, length_disc_step)
+#   （步长=manifest 参数，出处三表——spaced 形态四站点统一 _ceil_vec）；
+#   sin/tan 预处理值以符号传入公式（标量边界件：math 面算后 _vec 装箱
+#   绑定——math 模块面不进数组链）。零数值字面量（模板 R2）。
 # 【系数通道】factor.screen.*/factor.cugeshan.*/removal.cugeshan.* 经
 #   ctx.params 投影面取值（app._unit_params，D4 裁决）；缺键=领域异常。
 # 【输出面（D5）】outflows=入流透传（WaterFlow 直接构造，图内透传合法）；
@@ -26,6 +32,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -37,8 +45,10 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _ceil_step_core, _factor, _inflow
+from waterprint.units_lib._unit_compute import _apply_batch, _ceil_step_core, _factor, _inflow, _vec
 from waterprint.units_lib.municipal.cugeshan.manifest import FORMULA_IDS, manifest
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-C——公式链中间量形态）
 
 _BETA_KEYS: tuple[str, str, str] = (
     "factor.screen.beta.rect",
@@ -55,6 +65,11 @@ def _ceil_step(value: float, step: float, unit_id: str) -> float:
     return _ceil_step_core(value, step, unit_id, "length_disc_step", spaced=True)
 
 
+def _ceil_vec(raw: _Array, step: float, unit_id: str) -> _Array:
+    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-C 数组链形态）。"""
+    return _vec(_ceil_step(float(raw[0]), step, unit_id))
+
+
 def _validate(params: dict[str, float], unit_id: str) -> None:
     """参数域守卫：台数/几何/步长非正一律拒（GR-02 输入即拒精神）。"""
     for key in ("n", "b", "h", "s", "alpha"):
@@ -63,44 +78,48 @@ def _validate(params: dict[str, float], unit_id: str) -> None:
             raise InvalidUnitConfig(f"单元 {unit_id!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _geometry(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """CG-F1~F6：单台流量/间隙数/栅槽宽/渠宽/两流速校核值。"""
     sin_alpha = math.sin(math.radians(p["alpha"]))
     sqrt_sin_alpha = math.sqrt(sin_alpha)
     tan_alpha = math.tan(math.radians(p["alpha"]))
-    q = _apply(ctx, "CG-F1", {"q_design": flow.q_design, "n": p["n"]})
-    n_gap = float(
-        math.ceil(
-            _apply(
-                ctx,
-                "CG-F2",
-                {
-                    "q": q,
-                    "sqrt_sin_alpha": sqrt_sin_alpha,
-                    "b": p["b"],
-                    "h": p["h"],
-                    "v": p["v"],
-                },
+    q = _apply_batch(ctx, "CG-F1", {"q_design": _vec(flow.q_design), "n": _vec(p["n"])})
+    n_gap = _vec(
+        float(
+            math.ceil(
+                float(
+                    _apply_batch(
+                        ctx,
+                        "CG-F2",
+                        {
+                            "q": q,
+                            "sqrt_sin_alpha": _vec(sqrt_sin_alpha),
+                            "b": _vec(p["b"]),
+                            "h": _vec(p["h"]),
+                            "v": _vec(p["v"]),
+                        },
+                    )[0]
+                )
             )
         )
     )
     step = p["length_disc_step"]
-    b_width = _ceil_step(
-        _apply(
+    b_width = _ceil_vec(
+        _apply_batch(
             ctx,
             "CG-F3",
             {
-                "s": p["s"],
+                "s": _vec(p["s"]),
                 "n_gap": n_gap,
-                "b": p["b"],
-                "margin": _factor(p, "factor.screen.trough_width_margin", ctx.unit_id),
+                "b": _vec(p["b"]),
+                "margin": _vec(_factor(p, "factor.screen.trough_width_margin", ctx.unit_id)),
             },
         ),
         step,
         ctx.unit_id,
     )
-    b1_width = _ceil_step(
-        _apply(ctx, "CG-F4", {"q": q, "h": p["h"], "v1": p["v1"]}),
+    b1_width = _ceil_vec(
+        _apply_batch(ctx, "CG-F4", {"q": q, "h": _vec(p["h"]), "v1": _vec(p["v1"])}),
         step,
         ctx.unit_id,
     )
@@ -109,110 +128,114 @@ def _geometry(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[st
         "n_gap": n_gap,
         "B": b_width,
         "B1": b1_width,
-        "v_checked": _apply(
+        "v_checked": _apply_batch(
             ctx,
             "CG-F5",
             {
                 "q": q,
-                "sqrt_sin_alpha": sqrt_sin_alpha,
-                "b": p["b"],
-                "h": p["h"],
+                "sqrt_sin_alpha": _vec(sqrt_sin_alpha),
+                "b": _vec(p["b"]),
+                "h": _vec(p["h"]),
                 "n_gap": n_gap,
             },
         ),
-        "v1_checked": _apply(ctx, "CG-F6", {"q": q, "h": p["h"], "b1": b1_width}),
-        "_sin_alpha": sin_alpha,
-        "_tan_alpha": tan_alpha,
+        "v1_checked": _apply_batch(
+            ctx, "CG-F6", {"q": q, "h": _vec(p["h"]), "b1": b1_width}
+        ),
+        "_sin_alpha": _vec(sin_alpha),
+        "_tan_alpha": _vec(tan_alpha),
     }
 
 
 def _losses(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, geo: dict[str, float]
-) -> dict[str, float]:
+    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, geo: dict[str, _Array]
+) -> dict[str, _Array]:
     """CG-F7~F14：阻力/水头损失/总高总长/栅渣量/清渣判别/DS/混凝土量。"""
     unit_id = ctx.unit_id
     beta_key = _BETA_KEYS[int(p["bar_shape"])]
-    xi = _apply(
+    xi = _apply_batch(
         ctx,
         "CG-F7",
-        {"beta": _factor(p, beta_key, unit_id), "s_over_b": p["s"] / p["b"]},
+        {"beta": _vec(_factor(p, beta_key, unit_id)), "s_over_b": _vec(p["s"]) / _vec(p["b"])},
     )
-    h1 = _apply(
+    h1 = _apply_batch(
         ctx,
         "CG-F8",
         {
-            "k_headloss": _factor(p, "factor.screen.headloss.k", unit_id),
+            "k_headloss": _vec(_factor(p, "factor.screen.headloss.k", unit_id)),
             "xi": xi,
             "v_checked": geo["v_checked"],
-            "g": p["g_gravity"],
+            "g": _vec(p["g_gravity"]),
             "sin_alpha": geo["_sin_alpha"],
         },
     )
     step = p["length_disc_step"]
-    h_total = _ceil_step(
-        _apply(
+    h_total = _ceil_vec(
+        _apply_batch(
             ctx,
             "CG-F9",
             {
-                "h": p["h"],
+                "h": _vec(p["h"]),
                 "h1": h1,
-                "superheight": _factor(p, "factor.screen.superheight", unit_id),
+                "superheight": _vec(_factor(p, "factor.screen.superheight", unit_id)),
             },
         ),
         step,
         unit_id,
     )
-    l_total = _ceil_step(
-        _apply(
+    l_total = _ceil_vec(
+        _apply_batch(
             ctx,
             "CG-F10",
             {
                 "B": geo["B"],
                 "b1": geo["B1"],
                 "tan_alpha": geo["_tan_alpha"],
-                "l3_fixed": _factor(p, "factor.screen.trough_length.l3_fixed", unit_id),
-                "l4_fixed": _factor(p, "factor.screen.trough_length.l4_fixed", unit_id),
-                "drop_constant": _factor(p, "factor.screen.trough_length.drop_constant", unit_id),
-                "h": p["h"],
+                "l3_fixed": _vec(_factor(p, "factor.screen.trough_length.l3_fixed", unit_id)),
+                "l4_fixed": _vec(_factor(p, "factor.screen.trough_length.l4_fixed", unit_id)),
+                "drop_constant": _vec(
+                    _factor(p, "factor.screen.trough_length.drop_constant", unit_id)
+                ),
+                "h": _vec(p["h"]),
             },
         ),
         step,
         unit_id,
     )
-    w_slag = _apply(
+    w_slag = _apply_batch(
         ctx,
         "CG-F11",
         {
-            "q_design": flow.q_design,
-            "w1": _factor(p, "factor.cugeshan.w1_slag", unit_id),
-            "kz": flow.kz,
+            "q_design": _vec(flow.q_design),
+            "w1": _vec(_factor(p, "factor.cugeshan.w1_slag", unit_id)),
+            "kz": _vec(flow.kz),
         },
     )
-    mech_margin = _apply(
+    mech_margin = _apply_batch(
         ctx,
         "CG-F12",
         {
             "w_slag": w_slag,
-            "mech_clean_threshold": _factor(p, "factor.screen.mech_clean_threshold", unit_id),
+            "mech_clean_threshold": _vec(_factor(p, "factor.screen.mech_clean_threshold", unit_id)),
         },
     )
-    ds_slag = _apply(
+    ds_slag = _apply_batch(
         ctx,
         "CG-F13",
         {
             "w_slag": w_slag,
-            "moisture": _factor(p, "factor.screen.slag.moisture", unit_id),
+            "moisture": _vec(_factor(p, "factor.screen.slag.moisture", unit_id)),
         },
     )
-    v_concrete = _apply(
+    v_concrete = _apply_batch(
         ctx,
         "CG-F14",
         {
             "L": l_total,
             "B": geo["B"],
             "H": h_total,
-            "n": p["n"],
-            "wall_coef": _factor(p, "factor.screen.wall_thickness_coef", unit_id),
+            "n": _vec(p["n"]),
+            "wall_coef": _vec(_factor(p, "factor.screen.wall_thickness_coef", unit_id)),
         },
     )
     return {
@@ -221,7 +244,7 @@ def _losses(
         "H": h_total,
         "L": l_total,
         "w_slag": w_slag,
-        "mech_clean": float(mech_margin > 0),
+        "mech_clean": _vec(float(mech_margin[0] > 0)),
         "ds_slag": ds_slag,
         "v_concrete": v_concrete,
     }
@@ -240,25 +263,25 @@ def _band_warning(param_key: str, source: str, value: float, lower: float, upper
     )
 
 
-def _warnings(p: dict[str, float], geo: dict[str, float]) -> tuple[Warning, ...]:
+def _warnings(p: dict[str, float], geo: dict[str, _Array]) -> tuple[Warning, ...]:
     """校核带检查：过栅流速带 + 栅前流速带（三表 CG-F5/F6 约束带）。"""
     found: list[Warning] = []
+    v_checked = float(geo["v_checked"][0])
+    v1_checked = float(geo["v1_checked"][0])
     v_low = _factor(p, _V_BAND[0], "municipal_cugeshan")
     v_high = _factor(p, _V_BAND[1], "municipal_cugeshan")
     v1_low = _factor(p, _V1_BAND[0], "municipal_cugeshan")
     v1_high = _factor(p, _V1_BAND[1], "municipal_cugeshan")
-    if not v_low <= geo["v_checked"] <= v_high:
+    if not v_low <= v_checked <= v_high:
         found.append(
-            _band_warning(
-                "v", f"{_NORM}；{_V_BAND[0]}~{_V_BAND[1]}", geo["v_checked"], v_low, v_high
-            )
+            _band_warning("v", f"{_NORM}；{_V_BAND[0]}~{_V_BAND[1]}", v_checked, v_low, v_high)
         )
-    if not v1_low <= geo["v1_checked"] <= v1_high:
+    if not v1_low <= v1_checked <= v1_high:
         found.append(
             _band_warning(
                 "v1",
                 f"{_NORM}；{_V1_BAND[0]}~{_V1_BAND[1]}",
-                geo["v1_checked"],
+                v1_checked,
                 v1_low,
                 v1_high,
             )
@@ -296,7 +319,8 @@ class _Cugeshan:
         in_ref, flow = _inflow(ctx, "格栅单入单出语义")
         geo = _geometry(ctx, p, flow)
         loss = _losses(ctx, p, flow, geo)
-        dims = {name: value for name, value in {**geo, **loss}.items() if not name.startswith("_")}
+        arrays = {**geo, **loss}
+        dims = {name: float(value[0]) for name, value in arrays.items() if not name.startswith("_")}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},

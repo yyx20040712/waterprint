@@ -1,11 +1,15 @@
-"""污水提升泵房计算实现：唯一计算源（TS-F1~F14 全经 registry.apply 求值）。
+"""污水提升泵房计算实现：唯一计算源（TS-F1~F14 全经 registry.apply_batch
+求值——批 13-C 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
 输出:  UnitResult（输出端口量 + dims 全量 + 警告 + 已用公式清单）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收）
+# 规格说明（M2c 实装：表实合批的代码落地/M2 正式验收；批 13-C
+#   向量化重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量
+#   路径唯一——标量=N=1 退化；守卫层/warnings/ceil/DN 档表=N=1 边界件；
+#   N>1=批 D 引擎正门]）
 #
 # 【公式组】TS-F1~F14（docs/norms/wushui_tisheng.md 起草表；manifest.py
 #   登记）——集水井调节容积法+泵扬程三分量主线：选泵（F1~F3，整台
@@ -14,9 +18,11 @@
 #   承接）、集水井与启停校核（F10~F12）、井体几何与概算（F13~F14）。
 # 【DSL 收口】ceil 离散在本文件收口（DSL 无 ceil）：工作泵台数
 #   n_pump_duty=ceil(n_pump_raw) 整台；出水管径 d_pipe=ceil(d_pipe_raw,
-#   dia_disc_step 0.1 m 档=DN 档)。DN 档命中比阻表键（dn300~dn800），
-#   越表=领域异常（档表覆盖面显式声明）。q_design_h/q_pump_si 经
-#   sec_per_hour 参数符号合成（AO-F13 同款，零换算字面量）。
+#   dia_disc_step 0.1 m 档=DN 档)——两处均 N=1 边界件（取标→取整→
+#   回箱）。DN 档命中比阻表键（dn300~dn800）＝标量参数面（档值取标
+#   查表——数组化形态零变），越表=领域异常（档表覆盖面显式声明）。
+#   q_design_h/q_pump_si 经 sec_per_hour 参数符号合成（AO-F13 同款，
+#   零换算字面量——ndarray 符号算术，IEEE 元素运算位恒等）。
 # 【流量口径（三表逐字冻结）】水泵与压力管按最高时 flow.q_design
 #   （峰值提升能力）；集水井调节容积按最大一台泵出水量（工作泵均分）。
 # 【系数通道】factor.wushui_tisheng.*/removal.wushui_tisheng.* 经
@@ -38,6 +44,8 @@ from __future__ import annotations
 import math
 from typing import final
 
+import numpy
+
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -49,12 +57,20 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
-from waterprint.units_lib._unit_compute import _apply, _factor, _inflow, _make_ceil_step
+from waterprint.units_lib._unit_compute import (
+    _apply_batch,
+    _factor,
+    _inflow,
+    _make_ceil_step,
+    _vec,
+)
 from waterprint.units_lib.municipal.wushui_tisheng.manifest import (
     DN_RESISTANCE,
     FORMULA_IDS,
     manifest,
 )
+
+type _Array = numpy.ndarray  # 向量链注记别名（批 13-C——公式链中间量形态）
 
 _UNIT_ID = "municipal_wushui_tisheng"
 _GB = "GB 50014-2021 §6.1"
@@ -82,6 +98,11 @@ _ZETA = "factor.wushui_tisheng.pipe.zeta_total"
 _ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
 
+def _ceil_vec(raw: _Array, step: float) -> _Array:
+    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-C 数组链形态）。"""
+    return _vec(_ceil_step(float(raw[0]), step))
+
+
 def _validate(params: dict[str, float]) -> None:
     """参数域守卫：静扬程/流速/管长/备用台数/井几何/步长/换算非正一律拒。"""
     for key in _PARAMS_POSITIVE:
@@ -90,26 +111,31 @@ def _validate(params: dict[str, float]) -> None:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 
-def _pumps(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, float]:
+def _pumps(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
     """TS-F1~F3：选泵（整台 ceil 收口）与泵组配置（2 用 1 备档）。"""
-    q_design_h = flow.q_design * p["sec_per_hour"]
-    n_pump_raw = _apply(
-        ctx, "TS-F1", {"q_design_h": q_design_h, "q_per_pump": _factor(p, _Q_PER_PUMP, _UNIT_ID)}
+    q_design_h = _vec(flow.q_design) * _vec(p["sec_per_hour"])  # DSL 单输出导出量
+    n_pump_raw = _apply_batch(
+        ctx,
+        "TS-F1",
+        {"q_design_h": q_design_h, "q_per_pump": _vec(_factor(p, _Q_PER_PUMP, _UNIT_ID))},
     )
-    n_pump_duty = float(math.ceil(n_pump_raw))
+    n_pump_duty = _vec(float(math.ceil(n_pump_raw[0])))  # 整台 ceil＝N=1 边界件
     return {
         "q_design_h": q_design_h,
         "n_pump_raw": n_pump_raw,
         "n_pump_duty": n_pump_duty,
-        "q_pump": _apply(ctx, "TS-F2", {"q_design_h": q_design_h, "n_pump_duty": n_pump_duty}),
-        "n_pump_total": _apply(
-            ctx, "TS-F3", {"n_pump_duty": n_pump_duty, "n_standby": p["n_standby"]}
+        "q_pump": _apply_batch(
+            ctx, "TS-F2", {"q_design_h": q_design_h, "n_pump_duty": n_pump_duty}
+        ),
+        "n_pump_total": _apply_batch(
+            ctx, "TS-F3", {"n_pump_duty": n_pump_duty, "n_standby": _vec(p["n_standby"])}
         ),
     }
 
 
 def _a_pipe_of(p: dict[str, float], d_pipe: float) -> float:
-    """比阻档表命中：d_pipe 档值 → dnXXX 键取值（越表=领域异常）。"""
+    """比阻档表命中：d_pipe 档值 → dnXXX 键取值（越表=领域异常）——
+    标量参数面（档值查表，数组化形态零变）。"""
     segment = _DN_KEYS.get(round(d_pipe, 2))
     if segment is None:
         raise InvalidUnitConfig(
@@ -119,23 +145,23 @@ def _a_pipe_of(p: dict[str, float], d_pipe: float) -> float:
     return _factor(p, f"factor.wushui_tisheng.pipe.resistance.{segment}", _UNIT_ID)
 
 
-def _pipe(ctx: UnitContext, p: dict[str, float], q_pump: float) -> dict[str, float]:
+def _pipe(ctx: UnitContext, p: dict[str, float], q_pump: _Array) -> dict[str, _Array]:
     """TS-F4~F8：压力管水力（DN 0.1 m 档 ceil+比阻法沿程+局部）与总损。"""
-    q_pump_si = q_pump / p["sec_per_hour"]
-    d_pipe_raw = _apply(ctx, "TS-F4", {"q_pump_si": q_pump_si, "v_pipe": p["v_pipe"]})
-    d_pipe = _ceil_step(d_pipe_raw, p["dia_disc_step"])
-    a_pipe = _a_pipe_of(p, d_pipe)
-    h_friction = _apply(
-        ctx, "TS-F6", {"a_pipe": a_pipe, "l_pipe": p["l_pipe"], "q_pump_si": q_pump_si}
+    q_pump_si = q_pump / _vec(p["sec_per_hour"])  # DSL 单输出导出量
+    d_pipe_raw = _apply_batch(ctx, "TS-F4", {"q_pump_si": q_pump_si, "v_pipe": _vec(p["v_pipe"])})
+    d_pipe = _ceil_vec(d_pipe_raw, p["dia_disc_step"])
+    a_pipe = _vec(_a_pipe_of(p, float(d_pipe[0])))  # DN 档表命中＝N=1 取标查表
+    h_friction = _apply_batch(
+        ctx, "TS-F6", {"a_pipe": a_pipe, "l_pipe": _vec(p["l_pipe"]), "q_pump_si": q_pump_si}
     )
-    v_pipe_act = _apply(ctx, "TS-F5", {"q_pump_si": q_pump_si, "d_pipe": d_pipe})
-    h_local = _apply(
+    v_pipe_act = _apply_batch(ctx, "TS-F5", {"q_pump_si": q_pump_si, "d_pipe": d_pipe})
+    h_local = _apply_batch(
         ctx,
         "TS-F7",
         {
-            "zeta_total": _factor(p, _ZETA, _UNIT_ID),
+            "zeta_total": _vec(_factor(p, _ZETA, _UNIT_ID)),
             "v_pipe_act": v_pipe_act,
-            "g_gravity": p["g_gravity"],
+            "g_gravity": _vec(p["g_gravity"]),
         },
     )
     return {
@@ -145,43 +171,47 @@ def _pipe(ctx: UnitContext, p: dict[str, float], q_pump: float) -> dict[str, flo
         "v_pipe_act": v_pipe_act,
         "h_friction": h_friction,
         "h_local": h_local,
-        "h_loss": _apply(ctx, "TS-F8", {"h_friction": h_friction, "h_local": h_local}),
+        "h_loss": _apply_batch(ctx, "TS-F8", {"h_friction": h_friction, "h_local": h_local}),
     }
 
 
-def _head(ctx: UnitContext, p: dict[str, float], h_loss: float) -> dict[str, float]:
+def _head(ctx: UnitContext, p: dict[str, float], h_loss: _Array) -> dict[str, _Array]:
     """TS-F9：泵扬程三分量（静扬程+管路损失+自由水头——追认点 14 承接）。"""
     return {
-        "h_pump": _apply(
+        "h_pump": _apply_batch(
             ctx,
             "TS-F9",
             {
-                "h_static": p["h_static"],
+                "h_static": _vec(p["h_static"]),
                 "h_loss": h_loss,
-                "h_free": _factor(p, _FREE_HEAD, _UNIT_ID),
+                "h_free": _vec(_factor(p, _FREE_HEAD, _UNIT_ID)),
             },
         )
     }
 
 
-def _well(ctx: UnitContext, p: dict[str, float], q_pump_si: float) -> dict[str, float]:
+def _well(ctx: UnitContext, p: dict[str, float], q_pump_si: _Array) -> dict[str, _Array]:
     """TS-F10~F14：集水井调节容积/启停频率校核/井体几何与概算混凝土量。"""
-    v_well = _apply(ctx, "TS-F10", {"q_pump_si": q_pump_si, "t_well": p["t_well"]})
-    a_well = _apply(ctx, "TS-F11", {"v_well": v_well, "h_well": p["h_well"]})
+    v_well = _apply_batch(ctx, "TS-F10", {"q_pump_si": q_pump_si, "t_well": _vec(p["t_well"])})
+    a_well = _apply_batch(ctx, "TS-F11", {"v_well": v_well, "h_well": _vec(p["h_well"])})
     h_super = _factor(p, "factor.wushui_tisheng.superheight", _UNIT_ID)
-    h_well_total = _apply(ctx, "TS-F13", {"h_super": h_super, "h_well": p["h_well"]})
+    h_well_total = _apply_batch(
+        ctx, "TS-F13", {"h_super": _vec(h_super), "h_well": _vec(p["h_well"])}
+    )
     return {
         "v_well": v_well,
         "a_well": a_well,
-        "n_start": _apply(ctx, "TS-F12", {"q_pump_si": q_pump_si, "v_well": v_well}),
+        "n_start": _apply_batch(ctx, "TS-F12", {"q_pump_si": q_pump_si, "v_well": v_well}),
         "h_well_total": h_well_total,
-        "v_concrete": _apply(
+        "v_concrete": _apply_batch(
             ctx,
             "TS-F14",
             {
                 "a_well": a_well,
                 "h_well_total": h_well_total,
-                "wall_coef": _factor(p, "factor.wushui_tisheng.wall_thickness_coef", _UNIT_ID),
+                "wall_coef": _vec(
+                    _factor(p, "factor.wushui_tisheng.wall_thickness_coef", _UNIT_ID)
+                ),
             },
         ),
     }
@@ -201,26 +231,29 @@ def _band(p: dict[str, float], prefix: str) -> tuple[float, float]:
 
 
 def _warnings(
-    p: dict[str, float], pumps: dict[str, float], pipe: dict[str, float], well: dict[str, float]
+    p: dict[str, float], pumps: dict[str, _Array], pipe: dict[str, _Array], well: dict[str, _Array]
 ) -> tuple[Warning, ...]:
     """校核带检查：实际流速带/单泵流量带/启停上限/调节时间带。"""
     found: list[Warning] = []
+    v_pipe_act = float(pipe["v_pipe_act"][0])
+    q_pump = float(pumps["q_pump"][0])
+    n_start = float(well["n_start"][0])
     vel = _band(p, "pipe.velocity_band")
-    if not vel[0] <= pipe["v_pipe_act"] <= vel[1]:
+    if not vel[0] <= v_pipe_act <= vel[1]:
         found.append(
             _warn(
                 f"{_HB}；factor.wushui_tisheng.pipe.velocity_band.*",
-                f"实际流速 = {pipe['v_pipe_act']:.4f} m/s 越出建议带 [{vel[0]}, {vel[1]}]"
+                f"实际流速 = {v_pipe_act:.4f} m/s 越出建议带 [{vel[0]}, {vel[1]}]"
                 "——调节方向：v_pipe（名义流速）或泵台数（n_pump_duty 改变单泵流量）",
                 "v_pipe",
             )
         )
     qflow = _band(p, "pump.q_flow_band")
-    if not qflow[0] <= pumps["q_pump"] <= qflow[1]:
+    if not qflow[0] <= q_pump <= qflow[1]:
         found.append(
             _warn(
                 f"{_HB}；factor.wushui_tisheng.pump.q_flow_band.*",
-                f"单泵流量 = {pumps['q_pump']:.2f} m3/h 越出建议带 [{qflow[0]}, {qflow[1]}]"
+                f"单泵流量 = {q_pump:.2f} m3/h 越出建议带 [{qflow[0]}, {qflow[1]}]"
                 "——调节方向：factor.wushui_tisheng.pump.q_per_unit（概算锚/选泵型号面）",
                 # 归因唯一真实杠杆=概算锚系数键（n_standby 只进 TS-F3 与 q_pump
                 # 零耦合——M2c R1-b 修正 2026-08-26；系数键入 param_key 为新
@@ -229,11 +262,11 @@ def _warnings(
             )
         )
     limit = _factor(p, "factor.wushui_tisheng.pump.start_band.max", _UNIT_ID)
-    if well["n_start"] > limit:
+    if n_start > limit:
         found.append(
             _warn(
                 f"{_HB}；factor.wushui_tisheng.pump.start_band.max",
-                f"最大启动次数 = {well['n_start']:.4f} 次/h 超上限 {limit}"
+                f"最大启动次数 = {n_start:.4f} 次/h 超上限 {limit}"
                 "（水位启停频繁损泵）——调节方向：t_well（↑集水井调节容积↑）",
                 "t_well",
             )
@@ -272,7 +305,8 @@ class _WushuiTisheng:
         pipe = _pipe(ctx, p, pumps["q_pump"])
         head = _head(ctx, p, pipe["h_loss"])
         well = _well(ctx, p, pipe["q_pump_si"])
-        dims = {**pumps, **pipe, **head, **well}
+        arrays = {**pumps, **pipe, **head, **well}
+        dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(
             outflows={out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz)},
