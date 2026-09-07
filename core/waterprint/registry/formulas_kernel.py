@@ -39,8 +39,11 @@
 #      节点=KernelUnsupportedError（防御性——正常语料不可达）。
 #   R5 值恒等基础：numpy 元素运算（IEEE float64 确定性运算）与 Python
 #      标量运算位级恒等——含 **2 快路径（square）与 **0.5（sqrt）经
-#      值域 {1e-150..1e150} 全谱探针实证（批 13-A 设计腿）；±0 持平的
-#      min/max 取值差为语料域外边角（参数域守卫>0——设计腿注记在册）。
+#      值域 {1e-150..1e150} 全谱探针实证+CI Linux 机器证（批 13-A）；
+#      ±0 持平的 min/max 取值差为语料域外边角（参数域守卫>0）。log10
+#      例外：numpy SIMD 实现与 libm math.log10 平台相依末位 ulp 差
+#      （CI 实证）——非位保证运算，全语料零使用；批/标量恒等以 approx
+#      锚（test_formulas_kernel.py 平台注记——批 A CI 失守修锚笔）。
 #
 # 【禁区】import 面=numpy+contracts.expr（L1→L0 向下合法——numpy 先例
 #   dimensions.py）；禁 import formulas（同层环——消息构造归正门，

@@ -108,6 +108,22 @@ def test_n1_identity_arithmetic_face() -> None:
         assert float(batch[0]) == scalar  # 位级(== 精确)
 
 
+def test_batch_log10_rowwise_approx() -> None:
+    """R2 补面：log10 批/标量恒等以 approx 锚（非位级——平台注记）。
+
+    numpy log10（SIMD 实现）与 Python math.log10（libm）在 Linux 存在
+    末位 ulp 差（CI 34130863494 实证：-0.2491121963984876 vs …764），
+    Windows 同源零差——log10 非位保证运算；全语料 log10 零使用（32 包
+    manifest grep），批/标量恒等以 1e-15 相对容差锚（CI 失守修锚笔——
+    位级电池不含 log10，kernel R5 注记同步）。"""
+    count = 64
+    arrays = {"a": numpy.linspace(0.5, 4.5, count)}
+    batch = apply_batch("B13K-LOG", dict(arrays), _CTX)
+    for row in range(count):
+        expected = apply("B13K-LOG", {"a": float(arrays["a"][row])}, _CTX)
+        assert float(batch[row]) == pytest.approx(expected, rel=1e-15)
+
+
 @pytest.mark.parametrize(
     "formula_id",
     [
@@ -117,7 +133,6 @@ def test_n1_identity_arithmetic_face() -> None:
         "B13K-MINMAX",  # min/max/abs（最值面）
         "B13K-DIV",
         "B13K-MUL",
-        "B13K-LOG",  # log10（全语料零使用但核支持——G1-04 防御面常驻锚）
         "B13K-MIN3",  # min 三参链接归约（G1-04）
     ],
 )
