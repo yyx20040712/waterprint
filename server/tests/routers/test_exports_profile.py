@@ -59,3 +59,29 @@ async def test_profile_sheet_batch_rejected_wiring(client) -> None:  # type: ign
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert "sheet" in resp.json()["detail"] and "批量" in resp.json()["detail"]
 
+
+
+@pytest.mark.anyio
+async def test_item_level_sheet_not_silently_ignored_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """R 轮 P2A2-1 回归：item 级 sheet 并入提取——批量面诚实拒（禁静默吞错）。
+
+    顶层无 sheet+item 内携带 sheet=profile（与 unit_id 同层）——原实现
+    静默按普通 dxf 产出；R 轮并入提取后批量面统一拒（item 覆盖批级沿
+    unit_id 同语义，批量面 worker 无通道整体拒）。
+    """
+    project_id, _task_id = await _project_with_result(client)
+    resp = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "condition_key": "design",
+            "options": {
+                "items": [  # 顶层零 sheet——item 级携带（P2A2-1 缺陷形态）
+                    {"kind": "dxf", "condition_key": "design", "sheet": "profile"},
+                    {"kind": "dxf", "condition_key": "design", "unit_id": "municipal_cass"},
+                ]
+            },
+        },
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert "sheet" in resp.json()["detail"]

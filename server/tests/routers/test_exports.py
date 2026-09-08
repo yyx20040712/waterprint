@@ -488,4 +488,3 @@ async def test_dirty_coord_grid_returns_422_and_no_artifacts(
     assert resp.json()["error_type"] == "InvalidSitePlanError"
     assert "坐标网间距非法" in resp.json()["detail"]
     assert sorted(os.listdir(exports_dir)) == before_listing  # 拒绝即零落盘
-

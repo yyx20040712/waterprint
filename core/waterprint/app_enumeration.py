@@ -286,7 +286,8 @@ _PROFILE_SHEET_NO: Final[str] = "02"
 # 目录固定行数（总图行+纵断行——单元行序号自其后起：2+1=03，PROFILE2）。
 _FIXED_CATALOG_ROWS: Final[int] = 2
 _PROFILE_TITLE: Final[str] = "高程纵断图"
-_PROFILE_SCALE_TEXT: Final[str] = "1:1000/1:100"
+# 目录比例文本=常量派生单真源（双审 G1-02/P2A2-3——字面量双源漂移面消）。
+_PROFILE_SCALE_TEXT: Final[str] = f"1:{PROFILE_H_SCALE}/1:{PROFILE_V_SCALE}"
 
 
 def _export_dxf(  # noqa: PLR0913, PLR0917  # 六参=既有五参+sheet 路由（PROFILE2）；签名扩展沿 export_artifact 行内豁免先例

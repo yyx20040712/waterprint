@@ -26,7 +26,9 @@ _DATA = Path(__file__).resolve().parents[2].parent / "data" / "coefficients"
 
 
 def _plant() -> object:
-    """inlet→cass 全流程夹具（总图用例同源——纵断站=cass+汇点）。"""
+    """inlet→cass 全流程夹具（数值出处=tests/app/test_app_enumeration.py
+    总图用例逐字同源——golden municipal_34760 算例 1 值：q=34760.7 m³/d/
+    kz=1.4/COD=400/BOD=200/SS=250/TN=43；P2A2-5 出处注记）。"""
     from waterprint.app import run_full_calc
     from waterprint.contracts.condition import build_condition_set as _bcs
     from waterprint.contracts.project_schema import (
@@ -121,15 +123,20 @@ def test_profile_dxf_entities_and_meta(tmp_path: Path) -> None:
     assert b"AC1032" in payload[:512]  # DXF R2018 头魔面
     doc = ezdxf.readfile(out)
     msp = doc.modelspace()
-    layers = {e.dxf.layer for e in msp.query("LWPOLYLINE")}
+    from collections import Counter
+
     from waterprint.drafting.styles import LAYER_ELEV, LAYER_PIPE, LAYER_POOL
-    assert {LAYER_ELEV, LAYER_POOL, LAYER_PIPE} <= layers  # 四线三图层（PD1 四线齐备）
+    line_counts = Counter(e.dxf.layer for e in msp.query("LWPOLYLINE"))
+    # 四线齐备按图层计数锁死（P2A2-2——集合断言 LAYER_ELEV 单线假绿盲区）：
+    # 地面+水面=LAYER_ELEV 两条、池底=LAYER_POOL、管底=LAYER_PIPE。
+    assert line_counts[LAYER_ELEV] >= 2
+    assert line_counts[LAYER_POOL] >= 1 and line_counts[LAYER_PIPE] >= 1
     texts = {e.dxf.text for e in msp.query("TEXT")}
     assert "condition=design" in texts  # 工况标注（profile_sheet R5）
     assert "municipal_cass" in texts  # 站名（unit_id 原文——catalog 同款先例）
-    # meta 承载：write_dxf 将 DrawingMeta.title 写入 DXF 头变量（图名标准位）。
-    title = doc.header.get("$PROJECTNAME", "")
-    assert "高程纵断图" in str(title) or "高程纵断图" in texts  # 图名必有位（meta 或文本兜底断言）
+    # meta 承载精确断言（D1 G1-01——write_dxf L278 写 $PROJECTNAME=meta.title
+    # 实证在册；OR 兜底断言拆句钉死唯一承载路径）。
+    assert doc.header["$PROJECTNAME"] == "高程纵断图"
 
 
 def test_profile_dxf_site_design_optional(tmp_path: Path) -> None:

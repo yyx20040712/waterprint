@@ -285,7 +285,11 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量（unit 键进名
     # 防同名覆盖；批量面同收口——worker 透传同批落地，命名面随兑现）。
     unit_option = _unit_id_of(chosen)
-    sheet_option = _sheet_of(chosen)  # PROFILE2：图纸形态路由（纵断）——批量面拒（下方）
+    # PROFILE2：图纸形态路由（纵断）——顶层批级+item 级并入（item 覆盖批级
+    # 沿 unit_id 同语义；item 级静默忽略=A2 二审 P2A2-1 缺陷，批量面下方拒）。
+    sheet_option = _sheet_of(chosen) or next(
+        (sheet for sheet in map(_sheet_of, items) if sheet), None
+    )
     # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
     # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
     # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。

@@ -179,14 +179,13 @@ units_lib/<line>/<unit>/
 ├─ compute.py         # 唯一计算源：批量=同源向量路径（formulas 批量正门，标量=N=1 退化
 │                     # ——禁第二实现，ADR-011 D1）；向量化载体=GR-37 强制，≤400 行
 │                     # 向量接线共享件（_vec/_apply_batch/_make_ceil_vec/Array 别名）
-│                     # = units_lib/_unit_compute 单源（批 MINOR 2026-09-08 收口）；
-│                     # dxf 图纸形态路由 options sheet=profile=厂级纵断图独立 DXF
-│                     # （PROFILE2 2026-09-08——白名单成员，与 unit_id 互斥）
+│                     # = units_lib/_unit_compute 单源（批 MINOR 2026-09-08 收口）
 ├─ constraints.py     # 声明式约束定义
 ├─ README.md          # 一段话职责 + 输入输出
 └─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）
 ```
 
+- 导出面：dxf 图纸形态路由 options `sheet=profile`=厂级纵断图独立 DXF（PROFILE2 2026-09-08——白名单成员，与 unit_id 互斥；实现在 app_enumeration 的 export_artifact/_export_dxf）。
 - 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。
 - 新单元用 `wp new-unit <line> <name>`（core 的 cli.py）从 `_template` 生成。
 - 单元测试完成后由人类执行锁定（`python scripts/lock_tests.py <路径>`）——
