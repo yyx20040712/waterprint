@@ -60,6 +60,9 @@ SCAN_PY_ROOTS: tuple[Path, ...] = (
 _SAME_LAYER_EXEMPTS: tuple[tuple[str, str], ...] = (
     ("waterprint.app", "waterprint.app_enumeration"),
     ("waterprint.ifc_export", "waterprint.geometry"),
+    # PROFILE 批 2026-09-08：drafting→elevation PumpingPlan 纯类型/数据
+    # 消费（纵断图 R3 标注面——文件粒度对，包粒度不变；§1b 注记承载）。
+    ("waterprint.drafting.profile_drawing", "waterprint.elevation.pumps"),
 )
 
 # 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）

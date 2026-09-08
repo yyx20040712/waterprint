@@ -173,6 +173,10 @@ layers = [
 ignore_imports = [
     "waterprint.app -> waterprint.app_enumeration",
     "waterprint.ifc_export.* -> waterprint.geometry",
+    # PROFILE 批（2026-09-08）：drafting 纵断图消费 elevation PumpingPlan
+    # 纯类型/数据（R3 标注面）——L3 同层消费边豁免（ifc_export→geometry
+    # 先例同款；structure-graph.md §1b 注记承载）。
+    "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
 ]
 
 [[tool.importlinter.contracts]]
@@ -189,7 +193,12 @@ modules = [
     "waterprint.network",
 ]
 # L5c（2026-09-03）：ignore 同款（.* 通配）
-ignore_imports = ["waterprint.ifc_export.* -> waterprint.geometry"]
+ignore_imports = [
+    "waterprint.ifc_export.* -> waterprint.geometry",
+    # PROFILE 批（2026-09-08）：drafting→elevation.pumps PumpingPlan 纯
+    # 类型/数据消费（layers 契约同款豁免——两处一致机器强制）。
+    "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
+]
 # L5c（2026-09-03）：ifc_export 是 geometry 场景图的下游投影（非平行
 # 子系统），对 geometry 的消费边在此契约内同样显式豁免登记接受审查
 # ——白名单边界不因此放开（其余 L3 兄弟互禁不变；.* 通配语义同上）。

@@ -153,6 +153,16 @@
 > ifc_export→contracts 以正式边行承载（几何取数零直连，契约类型面白
 > 名单成员——C2）。
 
+> 同层消费边·文件粒度（PROFILE 批 2026-09-08，层序豁免注记第四例
+> ——第二例同款机制的文件粒度变体）：
+> `waterprint.drafting.profile_drawing` → `waterprint.elevation.pumps`
+> ——纵断图对 PumpingPlan 是纯类型/数据消费（R3 提升泵站/跌水标注面，
+> TYPE_CHECKING 类型引用+运行时 duck 取值，零水力计算）；机器强制=
+> core/pyproject importlinter 两契约 ignore_imports（layers 与 L3
+> independence 各一条）+ check_module_graph 同层豁免对（文件粒度对——
+> drafting 包与 elevation 包的兄弟互禁不因此放开）。本边**不入上方
+> 边表**（"严格向下"规则对同层边一律拒）。
+
 > 同节点伴生边（B7 笔① 2026-09-06，文件粒度拆件注记第三例——上两例
 > 同款机制）：`waterprint_server.services.exports` → `waterprint_server.
 > services.exports_registry`（读面拆件：resolve_export_file/list_exports
