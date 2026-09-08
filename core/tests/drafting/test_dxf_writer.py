@@ -117,11 +117,14 @@ def test_audit_header_custom_vars_roundtrip(tmp_path: Path) -> None:
 
 
 def _classes_blocks(data: bytes) -> list[tuple[bytes, ...]]:
-    """产物 CLASSES 段记录块（组码 0 分界——CRLF 行对解析）。
+    """产物 CLASSES 段记录块（组码 0 分界——行对解析）。
 
     批 14-FIX 断言辅助：缺段/配对破缺抛 ValueError（畸形输入响失败）。
+    行尾自适应（ezdxf ASCII 导出 Windows=CRLF/Linux=LF——CI 二验实录，
+    与实现 _sort_classes_section 同式检测）。
     """
-    lines = data.split(b"\r\n")
+    eol = b"\r\n" if b"\r\n" in data else b"\n"
+    lines = data.split(eol)
     start = end = -1
     for i in range(len(lines) - 1):
         if lines[i].strip() == b"0" and lines[i + 1] == b"SECTION" \
@@ -224,8 +227,9 @@ def test_classes_ezdxf_channel_crosscheck(tmp_path: Path) -> None:
 def test_sort_classes_malformed_failclosed(tmp_path: Path) -> None:
     """R 轮 G1-03 补强：畸形输入（缺段/配对破缺）fail-closed 实证。
 
-    构造不经解析器（bytes 子串定位）：段名破坏=缺段面；段体内行界
-    删除=组码-值配对破缺面——两形态均须抛 InvalidDrawingError。
+    构造不经解析器（bytes 子串定位，行尾随产物平台原生形态自适应）：
+    段名破坏=缺段面；段体内行界删除=组码-值配对破缺面——两形态均须
+    抛 InvalidDrawingError。
     """
     from waterprint.drafting.dxf_writer import InvalidDrawingError
     from waterprint.drafting.styles import base_styles
@@ -233,24 +237,28 @@ def test_sort_classes_malformed_failclosed(tmp_path: Path) -> None:
     sort_classes = getattr(_mod, "_sort_classes_section")
     good = write_dxf(_group(), base_styles(), tmp_path / "good.dxf", _meta())
     data = good.read_bytes()
+    eol = b"\r\n" if b"\r\n" in data else b"\n"
 
     bare = tmp_path / "bare.dxf"  # 缺段形态：段头名破坏（字面量唯一出现）
-    bare.write_bytes(data.replace(b"\r\nCLASSES\r\n", b"\r\nCLASSXS\r\n", 1))
+    bare.write_bytes(
+        data.replace(eol + b"CLASSES" + eol, eol + b"CLASSXS" + eol, 1)
+    )
     with pytest.raises(InvalidDrawingError):
         sort_classes(bare)
 
-    head = data.index(b"\r\nCLASSES\r\n")
-    first_class = data.index(b"\r\nCLASS\r\n", head)  # 段体内首记录行
-    cut = data.index(b"\r\n", first_class + len(b"\r\nCLASS"))
+    head = data.index(eol + b"CLASSES" + eol)
+    first_class = data.index(eol + b"CLASS" + eol, head)  # 段体内首记录行
+    cut = data.index(eol, first_class + len(eol + b"CLASS"))
     broken = tmp_path / "broken.dxf"  # 配对破缺：删一行界=两行并一（奇）
-    broken.write_bytes(data[:cut] + data[cut + 2:])
+    broken.write_bytes(data[:cut] + data[cut + len(eol):])
     with pytest.raises(InvalidDrawingError):
         sort_classes(broken)
 
 
 def test_sort_classes_lf_line_ending_platform(tmp_path: Path) -> None:
     """CI 首验回修（批 14-FIX 热修）：LF 行尾（Linux ezdxf 导出原生形态）
-    归一不误拒——行尾自适应防再发（Windows 本地单平台盲区补强）。"""
+    归一不误拒——行尾自适应防再发（Windows 本地单平台盲区补强；
+    断言两侧统一归一 LF 比较，跨平台无绑定）。"""
     sort_classes = getattr(_mod, "_sort_classes_section")
     from waterprint.drafting.styles import base_styles
 
@@ -260,5 +268,5 @@ def test_sort_classes_lf_line_ending_platform(tmp_path: Path) -> None:
     sort_classes(lf)  # LF 形态归一不抛（CI Linux 实红形态）
     normalized = lf.read_bytes()
     assert b"\r\n" not in normalized  # 写回保持 LF 原生形态
-    # LF 归一结果与 CRLF 归一结果仅行尾异（段内容/序一致）
-    assert normalized.replace(b"\n", b"\r\n") == good.read_bytes()
+    # LF 归一结果与产物原生形态仅行尾异（段内容/序一致——两侧归一 LF）
+    assert normalized == good.read_bytes().replace(b"\r\n", b"\n")
