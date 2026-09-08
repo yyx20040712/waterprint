@@ -10,6 +10,7 @@
 #   公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一——标量
 #   =N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
+# 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
 # 【公式组】CA-F1~F27（docs/norms/cass.md 起草表；manifest.py 登记）——
 #   周期循环主线：周期数/滗水容积（F1~F2）、负荷法主容积+选择区+滗水
 #   1/3 池深双控池面积（F3~F12）、时段和=周期不变性（F13，域拒非警告）、
@@ -35,8 +36,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -48,10 +47,9 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
+from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.cass.manifest import FORMULA_IDS, manifest
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_cass"
 _GB = "GB 50014-2021 §7.6"

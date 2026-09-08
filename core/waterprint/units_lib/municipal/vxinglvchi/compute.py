@@ -9,6 +9,7 @@
 #   重写：公式链经 _apply_batch 批量正门[AGENTS §13.6 同源向量路径唯一——
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
+# 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
 # 【公式组】XL-F1~F19（docs/norms/vxinglvchi.md 起草表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：单格宽 B/
 #   长 L=ceil(b_raw·l_raw, side_disc_step 0.5 m 档)。零数值字面量。
@@ -33,8 +34,6 @@ from __future__ import annotations
 
 from typing import Final, final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -46,10 +45,9 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
+from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
 from waterprint.units_lib.municipal.vxinglvchi.manifest import FORMULA_IDS, manifest
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_vxinglvchi"
 _GB = "GB 50013-2018 §9.5（滤池：均质滤料滤速/强制滤速）"

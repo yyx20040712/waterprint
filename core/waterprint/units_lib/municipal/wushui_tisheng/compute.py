@@ -11,6 +11,8 @@
 #   路径唯一——标量=N=1 退化；守卫层/warnings/ceil/DN 档表=N=1 边界件；
 #   N>1=批 D 引擎正门]）
 #
+# 【批 MINOR(2026-09-08)重复清理】_ceil_vec def 拷贝下沉 _unit_compute._make_ceil_vec
+#   （模块级绑定，调用点形态零变；两参空 extra 形态）；type _Array 收口 Array。
 # 【公式组】TS-F1~F14（docs/norms/wushui_tisheng.md 起草表；manifest.py
 #   登记）——集水井调节容积法+泵扬程三分量主线：选泵（F1~F3，整台
 #   ceil 收口）、压力管水力（F4~F6，DN 0.1 m 档 ceil+比阻档表键命中）、
@@ -44,8 +46,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -58,10 +58,14 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._unit_compute import (
+    Array as _Array,
+)
+from waterprint.units_lib._unit_compute import (
     _apply_batch,
     _factor,
     _inflow,
     _make_ceil_step,
+    _make_ceil_vec,
     _vec,
 )
 from waterprint.units_lib.municipal.wushui_tisheng.manifest import (
@@ -69,8 +73,6 @@ from waterprint.units_lib.municipal.wushui_tisheng.manifest import (
     FORMULA_IDS,
     manifest,
 )
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-C——公式链中间量形态）
 
 _UNIT_ID = "municipal_wushui_tisheng"
 _GB = "GB 50014-2021 §6.1"
@@ -97,10 +99,7 @@ _ZETA = "factor.wushui_tisheng.pipe.zeta_total"
 
 _ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
 
-
-def _ceil_vec(raw: _Array, step: float) -> _Array:
-    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-C 数组链形态）。"""
-    return _vec(_ceil_step(float(raw[0]), step))
+_ceil_vec = _make_ceil_vec(_ceil_step)  # ceil 离散 N=1 边界件（批 MINOR 下沉单源）
 
 
 def _validate(params: dict[str, float]) -> None:

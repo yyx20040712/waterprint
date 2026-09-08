@@ -11,6 +11,7 @@
 #   公式链经 _apply_batch 批量正门（AGENTS §13.6 同源向量路径唯一——
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门）
 #
+# 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
 # 【公式组】AO-F1~F19（docs/norms/aao.md 起草表+L7 池体图元批几何族；
 #   manifest.py 登记）——
 #   五项公式清单全覆盖义务：污泥负荷/分区容积（AO-F1~F5）、需氧量
@@ -48,8 +49,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -63,10 +62,9 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._constants import SECS_PER_DAY
+from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _vec
 from waterprint.units_lib.municipal.aao.manifest import FORMULA_IDS, manifest
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-A——公式链中间量形态）
 
 _UNIT_ID = "municipal_aao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）"

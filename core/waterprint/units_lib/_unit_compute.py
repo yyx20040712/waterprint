@@ -38,6 +38,14 @@
 #   _vec/_apply_batch 两件（向量化重写单元接线：符号算术与公式绑定以
 #   ndarray 流动+批量正门 N=1 退化——task-13A-batch-plan §五；_apply
 #   标量件服务未重写 28 包接口零变沿承）。
+# 【批 MINOR(2026-09-08)】批 13 向量化遗留重复清理两件：①_ceil_vec
+#   八包 def 拷贝下沉=_make_ceil_vec 闭包工厂（签名分叉由 *extra 透传
+#   吸收——三参包 unit_id 经 ctx 语境实参透传语义保真[基线锚消息
+#   实证]，两参包空 extra；消费面模块级绑定 _ceil_vec =
+#   _make_ceil_vec(_ceil_step)，24 调用点零 churn）；②type _Array
+#   十三包逐字重复收口=本层 type Array 公开别名（源批 13-A/B/C/D
+#   十三包同名件收敛；消费面 import as _Array 保名，注记归一本条）。
+#   行为零变更重构：四锚恒等机器锚定（briefs/task-MINOR-plan.md MD6）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -54,6 +62,8 @@ from waterprint.contracts.ports import PortRef
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import UnitContext
 from waterprint.registry import formulas
+
+type Array = numpy.ndarray  # 向量链注记别名（批 MINOR 十三包收口；消费面 import as _Array 保名）
 
 
 def _vec(value: float) -> numpy.ndarray:
@@ -100,6 +110,19 @@ def _make_ceil_step(
         return _ceil_step_core(value, step, unit_id, label, spaced=spaced)
 
     return _ceil_step
+
+
+def _make_ceil_vec(
+    ceil_step: Callable[..., float],
+) -> Callable[..., Array]:
+    """工厂：绑定包内 _ceil_step 的 ceil 离散 N=1 边界件（批 MINOR
+    八包 def 拷贝下沉单源；*extra 原样透传——三参包 unit_id ctx 语境
+    实参透传语义保真，两参包空；调用点形态零变）。"""
+
+    def _ceil_vec(raw: Array, step: float, *extra: object) -> Array:
+        return _vec(ceil_step(float(raw[0]), step, *extra))
+
+    return _ceil_vec
 
 
 def _factor(params: dict[str, float], key: str, unit_id: str) -> float:

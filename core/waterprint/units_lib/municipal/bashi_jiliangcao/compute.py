@@ -11,6 +11,7 @@
 #   路径唯一——标量=N=1 退化；档位选择/系数投影=标量参数面零变；
 #   N>1=批 D 引擎正门形状合约]）
 #
+# 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
 # 【公式组】BL-F1~F9（docs/norms/bashi_jiliangcao.md 起草表；manifest.py
 #   登记）——B7 七档全档流量式主线：实测水头流量读数（F1）、设计/平均
 #   水头反解与选档校核（F2/F3）、标准型构造尺寸（F4~F7）、淹没度自由流
@@ -42,8 +43,6 @@ from __future__ import annotations
 
 from typing import final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -55,6 +54,7 @@ from waterprint.contracts.unit_api import (
     UnitResult,
     Warning,
 )
+from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _vec
 from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
     FORMULA_IDS,
@@ -62,8 +62,6 @@ from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
     THROAT_GRID,
     manifest,
 )
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-D——公式链中间量形态）
 
 _UNIT_ID = "municipal_bashi_jiliangcao"
 _HB = "给水排水设计手册（第 5 册 城镇排水）量水堰槽章"

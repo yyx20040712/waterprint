@@ -11,6 +11,7 @@
 #   路径唯一——标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=
 #   批 D 引擎正门]）
 #
+# 【批 MINOR 2026-09-08】_ceil_vec 下沉 _make_ceil_vec+type _Array 收口 Array（四锚恒等）。
 # 【公式组】CC-F1~F18（docs/norms/chuchenchi.md 起草表；manifest.py 登记）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：池径 D=
 #   ceil(d_raw, dia_disc_step 0.5 m 档)/d_center/h4/h_total=ceil(raw,
@@ -37,8 +38,6 @@ from __future__ import annotations
 import math
 from typing import final
 
-import numpy
-
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint.contracts.ports import PortRef
@@ -52,10 +51,16 @@ from waterprint.contracts.unit_api import (
     Warning,
 )
 from waterprint.units_lib._constants import SECS_PER_DAY
-from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
+from waterprint.units_lib._unit_compute import Array as _Array
+from waterprint.units_lib._unit_compute import (
+    _apply_batch,
+    _factor,
+    _inflow,
+    _make_ceil_step,
+    _make_ceil_vec,
+    _vec,
+)
 from waterprint.units_lib.municipal.chuchenchi.manifest import FORMULA_IDS, manifest
-
-type _Array = numpy.ndarray  # 向量链注记别名（批 13-B——公式链中间量形态）
 
 _UNIT_ID = "municipal_chuchenchi"
 _NORM = "GB 50014-2021 §6.5（沉淀池）"
@@ -87,11 +92,7 @@ _PARAMS_POSITIVE = (
 
 
 _ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
-
-
-def _ceil_vec(raw: _Array, step: float) -> _Array:
-    """ceil 离散 N=1 边界件：取标→步长取整→回箱（批 13-B 数组链形态）。"""
-    return _vec(_ceil_step(float(raw[0]), step))
+_ceil_vec = _make_ceil_vec(_ceil_step)  # ceil 离散 N=1 边界件（批 MINOR 下沉单源）
 
 
 def _validate(params: dict[str, float]) -> None:
