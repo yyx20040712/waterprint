@@ -44,7 +44,7 @@
   "core/tests/cost/test_prices.py": "c0a8e6491d7b788a1e6fe7824ecfea9a54fdce280c8726ae5b07ea0590569c63",
   "core/tests/cost/test_takeoff.py": "ab5ebc6dbd53da23b29a4380f4b164ba76b603d516f95a2bfa615874362fc456",
   "core/tests/drafting/test_catalog.py": "b9b0f05728f7ec84b946353ba615645e36635b5d98c7ad947043f0b41291e68f",
-  "core/tests/drafting/test_dxf_writer.py": "0cc9b2f33bd6027587ea0f131e763273b8ed2ec363b2951272ceab25b4381324",
+  "core/tests/drafting/test_dxf_writer.py": "7251c29663d5b37e0972361e0f64a8ee18b5812c79147ab204fe1a454cee19c0",
   "core/tests/drafting/test_plan_view.py": "97d26b54f6b8b502a64ecb4764736926eaa6d57fc67d57d6622c524bab00fdce",
   "core/tests/drafting/test_profile_drawing.py": "ed4b177a3ce316109cf9883b67ac0b3d1cffc7941566e2d650f8413ff0f7b720",
   "core/tests/drafting/test_section_view.py": "1dd9f1a0dab18d8e14b9baa2e47f32862548278262f3a9ae49f9f446dff184c1",

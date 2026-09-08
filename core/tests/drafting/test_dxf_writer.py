@@ -156,6 +156,9 @@ def _classes_blocks(data: bytes) -> list[tuple[bytes, ...]]:
 
 
 _SUBPROC_SCRIPT = (
+    # 子进程经 -c 注入最小渲染链——依赖包可导入（core/.venv 安装态 /
+    # PYTHONPATH 指向 core/；CI pytest 同解释器同 cwd 可满足——R 轮
+    # G1-06 环境敏感性注记）。
     "from pathlib import Path;"
     "from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf;"
     "from waterprint.drafting.styles import Entity, EntityGroup, base_styles;"
@@ -195,3 +198,51 @@ def test_classes_sorted_and_crossprocess_bytes(tmp_path: Path) -> None:
     second = (tmp_path / "sub2.dxf").read_bytes()
     assert first == second  # 跨进程字节恒等（CLASSES 双稳态已归一）
     assert _classes_blocks(first) == sorted(_classes_blocks(first))
+
+
+def test_classes_ezdxf_channel_crosscheck(tmp_path: Path) -> None:
+    """R 轮 G1-01 补强：ezdxf readfile 独立通道交叉验证 CLASSES 解析。
+
+    测试辅助 _classes_blocks 与实现解析器同构（同错同绿风险——双审
+    G1-01）：本用例经 ezdxf 自身解析器（readfile 后 classes.classes
+    OrderedDict 键序=文件序）交叉验证名集合与序一致，解析规格不依赖
+    自写单侧。
+    """
+    import ezdxf
+
+    from waterprint.drafting.styles import base_styles
+
+    out = write_dxf(_group(), base_styles(), tmp_path / "cross.dxf", _meta())
+    names = [key[0] for key in ezdxf.readfile(out).classes.classes]
+    from_blocks = [
+        block[3].decode("utf-8") for block in _classes_blocks(out.read_bytes())
+    ]
+    assert sorted(from_blocks) == sorted(names)  # 名集合经独立通道一致
+    assert from_blocks == names  # 序一致（ezdxf 键序=文件序=归一字典序）
+
+
+def test_sort_classes_malformed_failclosed(tmp_path: Path) -> None:
+    """R 轮 G1-03 补强：畸形输入（缺段/配对破缺）fail-closed 实证。
+
+    构造不经解析器（bytes 子串定位）：段名破坏=缺段面；段体内行界
+    删除=组码-值配对破缺面——两形态均须抛 InvalidDrawingError。
+    """
+    from waterprint.drafting.dxf_writer import InvalidDrawingError
+    from waterprint.drafting.styles import base_styles
+
+    sort_classes = getattr(_mod, "_sort_classes_section")
+    good = write_dxf(_group(), base_styles(), tmp_path / "good.dxf", _meta())
+    data = good.read_bytes()
+
+    bare = tmp_path / "bare.dxf"  # 缺段形态：段头名破坏（字面量唯一出现）
+    bare.write_bytes(data.replace(b"\r\nCLASSES\r\n", b"\r\nCLASSXS\r\n", 1))
+    with pytest.raises(InvalidDrawingError):
+        sort_classes(bare)
+
+    head = data.index(b"\r\nCLASSES\r\n")
+    first_class = data.index(b"\r\nCLASS\r\n", head)  # 段体内首记录行
+    cut = data.index(b"\r\n", first_class + len(b"\r\nCLASS"))
+    broken = tmp_path / "broken.dxf"  # 配对破缺：删一行界=两行并一（奇）
+    broken.write_bytes(data[:cut] + data[cut + 2:])
+    with pytest.raises(InvalidDrawingError):
+        sort_classes(broken)
