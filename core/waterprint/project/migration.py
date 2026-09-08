@@ -114,11 +114,22 @@ _MIGRATIONS: Final[tuple[tuple[str, str, Callable[[MutableMapping[str, Any]], No
 
 
 def _version_key(version: str) -> tuple[int, ...] | None:
-    """点分数值版本串 → 整数序元组（"1.0"→(1,0)）；非数值格式 → None。"""
+    """点分数值版本串 → 整数序元组（"1.0"→(1,0)）；非数值格式 → None。
+
+    REWORK 审查 G1-01（2026-09-09）：isdigit 判定域逃逸收口——"②"/"²"
+    等 Unicode 数字 isdigit 真而 int() 裸 ValueError（与 PROFILE3 批
+    `_scale_denom_of` 同型）；isdecimal 前置 + int() 收编 try/except
+    （超长段 ≥3.11 的 4300 位上限同族）→ crafted 版本串一律归 None
+    =「未知历史版本」拒绝族（InvalidProjectError 4xx 语义，禁裸逃逸）。
+    G1-02：str.split(".") 恒非空列表，原 `not parts` 守卫为死分支，撤。
+    """
     parts = version.split(".")
-    if not parts or not all(part.isdigit() for part in parts):
+    if not all(part.isdecimal() for part in parts):
         return None
-    return tuple(int(part) for part in parts)
+    try:
+        return tuple(int(part) for part in parts)
+    except ValueError:
+        return None
 
 
 def _parse(data: Mapping[str, Any]) -> ProjectFile:

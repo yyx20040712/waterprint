@@ -49,6 +49,22 @@ def test_unmappable_field_rejected_wiring() -> None:
         migrate({"format_version": "0.9", "legacy_field": "旧字段样本"})
 
 
+def test_unicode_digit_version_rejected_wiring() -> None:
+    """REWORK 审查 G1-01（2026-09-09）：Unicode 数字（"②" isdigit 真而
+    int 炸）不得裸 ValueError 逃逸——isdecimal 前置归 None =「未知历史
+    版本」拒绝族（InvalidProjectError 4xx 语义；crafted 输入鲁棒性）。"""
+    with pytest.raises(InvalidProjectError, match="未知历史版本"):
+        migrate({"format_version": "1.②", "design": {}, "view": {}})
+
+
+def test_overlong_version_rejected_wiring() -> None:
+    """REWORK 审查 G1-01 同型：超长数字段（≥3.11 int() 4300 位上限抛
+    ValueError）经 try/except 收编归拒绝族——CI 矩阵 3.12/3.13 与本地
+    3.14 全量 ≥3.11，int() 必炸分支确定性覆盖。"""
+    with pytest.raises(InvalidProjectError, match="未知历史版本"):
+        migrate({"format_version": f"1.{'9' * 5000}", "design": {}, "view": {}})
+
+
 _MIGRATION_SAMPLES = (
     Path(__file__).resolve().parents[1] / "golden" / "golden_data" / "migrations"
 )
