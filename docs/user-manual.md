@@ -168,24 +168,30 @@ FAQ 第 2 问）。
 未注册的子命令（calc/validate/selfcheck/export 其余 kind）调用即
 用法错误（退出码 2）——实装归后续批。
 
-### 5.2 API（19 个端点 = 17 路径 × 方法，v1 冻结）
+### 5.2 API（27 操作，openapi 锁定断言恒）
 
 | 分组 | 端点 |
 |------|------|
-| projects（3） | `GET/POST /api/projects`、`GET/PUT /api/projects/{id}`、`POST /api/projects/{id}/validate` |
+| projects（5） | `GET/POST /api/projects`、`GET/PUT /api/projects/{id}`、`POST /api/projects/{id}/validate` |
 | calc（6） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply` |
-| exports（5） | `GET /api/exports`、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate` |
+| exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
-| scene（1） | `GET /api/scene/{project_id}` |
+| 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |
 
-### 5.3 导出产物四种 kind 的现行状态
+> 批量导出（M5 起）：`POST /api/exports/{kind}` 载荷 `items` 数组 >1 项
+> 即转低优先级批量任务（服务端幂等键防重复提交；进度走 SSE 订阅）；
+> 单产物即时生成上限 1 项。鉴权 token 与 SSE 限流为可配置开关
+> （环境变量，默认本地免鉴权）。
+
+### 5.3 导出产物五种 kind 的现行状态
 
 | kind | 状态 | 说明 |
 |------|------|------|
 | calcbook | API 可用 | Excel 计算书（模板已录入 `data/templates`） |
-| audit | CLI 可用；API 501 | HTML 审计报告——`wp export audit` 正门；API 通道归 M4 后续批 |
-| dxf | 501 | CAD 图纸（M2 出图批实现，服务模板未录入） |
-| estimate | 501 | 概算书（概算核心已实现；导出模板通道未录入——诚实 501） |
+| audit | CLI 可用；API 501 | HTML 审计报告——`wp export audit` 正门（内联样式自包含）；API 通道未接线（诚实 501） |
+| dxf | API 可用 | CAD 图纸：全厂总图（`site_design` 载荷）或单单元图（`unit_id`）或**高程纵断面图**（`sheet: "profile"`——横纵比例可定制 `h_scale`/`v_scale`，如 `"h_scale":"2000"`；批量面 items 逐项 sheet/unit 混装支持）；DXF 落盘后可选子进程转 DWG（`dwg_converter_path` 开关，转换器不随产品分发） |
+| estimate | 501 | 概算书（概算核心已实现——`GET /api/cost/{id}` 数据面可用；导出渲染分支未接线，诚实 501） |
+| ifc | API 可用 | 全厂 IFC 模型（BIM 交换格式；单产物端点语义，批量项 unit 须一致） |
 
 导出统一守门：结果集三元组与当前项目不一致且未 `?force=1` 时返回
 409；`force=1` 导出的产物文件名与元数据显式标注旧三元组（产物永不
@@ -217,10 +223,13 @@ FAQ 第 2 问）。
    文件路径即持有者信息）。锁的创建与清理由编辑会话负责；确认没有
    会话占用后可删除。
 8. **引擎或数据包升级后，旧项目文件还能用吗？** 项目带 `format_version`
-   （当前 1.0）。同版直通；未来版本经迁移链处理；无法识别的版本会被
-   拒绝（诚实失败，不猜测语义）。旧**结果**不受影响——三元组自证。
-9. **三维场景在哪看？** API 已就绪（`GET /api/scene/{id}`）；webapp
-   三维视图的工作区接线属后续前端批——规划中。
+   （当前 3.0——v1→v2 增厂区总平面、v2→v3 增边界红线，历史文件经
+   迁移链自动升级）。同版直通；未来版本拒绝（不降级打开，防静默丢
+   数据）；无法识别的版本会被拒绝（诚实失败，不猜测语义）。旧**结果**
+   不受影响——三元组自证。
+9. **三维场景在哪看？** webapp 工作区已接线（画布+三维视图，M4 起
+   交付）；数据面 `GET /api/scene/{id}`。布置编辑器支持边界红线与
+   间距校核（黄/红标示，`GET /api/site/spacing`）。
 10. **怎么自检安装是否成功？** `cd core && uv run pytest` 全量绿；
     或用 golden 案例实跑审计链路：拿 3.2 的 result_file 与项目文件跑
     `wp export audit`，能生成含公式逐条表的 HTML 即通。
