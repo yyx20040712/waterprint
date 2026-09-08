@@ -47,6 +47,8 @@ from waterprint.drafting.styles import (
 )
 
 __all__ = [
+    "PROFILE_H_SCALE",
+    "PROFILE_V_SCALE",
     "SHEET_SIZES",
     "SHEET_SOURCE",
     "SheetSpec",
@@ -65,6 +67,12 @@ SHEET_SIZES: Final[Mapping[str, tuple[float, float]]] = MappingProxyType({
     "A0": (1189.0, 841.0), "A1": (841.0, 594.0), "A2": (594.0, 420.0),
     "A3": (420.0, 297.0), "A4": (297.0, 210.0),
 })
+# 高程纵断图比例分母（横 1:1000/纵 1:100——横纵差一量级惯例）：GB/T
+# 50106《给水排水制图标准》纵断图比例惯例（声明面常量——PROFILE2 批
+# 2026-09-08 终裁 PD5：本节取值仅纵断装配用非全项目图例口径；定制
+# 透传面挂账）。app_enumeration 纵断装配经本声明面取值零副本。
+PROFILE_H_SCALE: Final[int] = 1000
+PROFILE_V_SCALE: Final[int] = 100
 # 图框留边（mm）：a=装订边（左），c=非装订边——GB/T 50001（A0~A2 与
 # A3~A4 两档）。
 _MARGIN_BIND: Final[float] = 25.0

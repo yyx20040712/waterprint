@@ -95,7 +95,7 @@
 | `waterprint.app` | `waterprint.contracts` | 契约类型 |
 | `waterprint.app_enumeration` | `waterprint.contracts` | 枚举/出图用例契约类型（伴生件同款）——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.drafting` | 单元三视图与 DXF 导出薄壳——ENG2 B3 补登 |
-| `waterprint.app_enumeration` | `waterprint.elevation` | 高程损失/纵断用例——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.elevation` | 高程损失/纵断用例——ENG2 B3 补登；PROFILE2 纵断产物接线（build_profile/evaluate_pumping 装配——既有边加密零新边） |
 | `waterprint.app_enumeration` | `waterprint.geometry` | ifc 导出分支场景图组装（build_scene 投影）——SC1 补登 |
 | `waterprint.app_enumeration` | `waterprint.ifc_export` | BIM 模型构造正门（build_ifc/write_ifc）——SC1 补登 |
 | `waterprint.app_enumeration` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设合成——ENG2 B3 补登 |

@@ -248,3 +248,24 @@ def test_dxf_content_hash(
     )
     out = write_dxf(entities, styles, tmp_path / "plan.dxf", meta)
     assert _canonical_dxf_sha(out) == snapshot
+
+
+def test_profile_dxf_content_hash(
+    v1_plant: PlantResult, tmp_path: Path, snapshot: SnapshotAssertion
+) -> None:
+    """快照锚④：纵断 DXF 内容哈希（PROFILE2 接线——export_artifact 正门 sheet=profile 产物管线）。
+
+    对象面=产物管线真源（_export_profile_dxf 装配：build_profile+
+    evaluate_pumping+profile_sheet 四线+write_dxf——非直接调 profile_sheet
+    零装配）；输入源纪律沿 D5（golden v1 实跑纯投影零自编）。ambr 第四
+    哈希走 D7 人审流程入册（--snapshot-update 显式重录+diff 人审+批注记
+    ——PROFILE2 实现笔预期红实录在案）。
+    """
+    from waterprint.app_enumeration import export_artifact
+
+    out = tmp_path / "profile.dxf"
+    export_artifact(  # type: ignore[misc]
+        "dxf", v1_plant, Path("unused"), out,
+        condition_key="design", sheet="profile",
+    )
+    assert _canonical_dxf_sha(out) == snapshot

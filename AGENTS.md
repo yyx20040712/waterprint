@@ -179,7 +179,9 @@ units_lib/<line>/<unit>/
 ├─ compute.py         # 唯一计算源：批量=同源向量路径（formulas 批量正门，标量=N=1 退化
 │                     # ——禁第二实现，ADR-011 D1）；向量化载体=GR-37 强制，≤400 行
 │                     # 向量接线共享件（_vec/_apply_batch/_make_ceil_vec/Array 别名）
-│                     # = units_lib/_unit_compute 单源（批 MINOR 2026-09-08 收口）
+│                     # = units_lib/_unit_compute 单源（批 MINOR 2026-09-08 收口）；
+│                     # dxf 图纸形态路由 options sheet=profile=厂级纵断图独立 DXF
+│                     # （PROFILE2 2026-09-08——白名单成员，与 unit_id 互斥）
 ├─ constraints.py     # 声明式约束定义
 ├─ README.md          # 一段话职责 + 输入输出
 └─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）

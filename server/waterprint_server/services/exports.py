@@ -151,6 +151,7 @@ from waterprint_server.services.exports_support import (
     StaleExportError,
     _batch_items_payload,
     _deterministic_name,
+    _sheet_of,
     _sidecar_text,
     _unit_id_of,
 )
@@ -284,6 +285,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # FE9 R1（DS-01）+S2 D6 命名收口：文件名恒附 unit 分量（unit 键进名
     # 防同名覆盖；批量面同收口——worker 透传同批落地，命名面随兑现）。
     unit_option = _unit_id_of(chosen)
+    sheet_option = _sheet_of(chosen)  # PROFILE2：图纸形态路由（纵断）——批量面拒（下方）
     # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
     # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
     # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。
@@ -298,9 +300,17 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             # unit_id；同工况同结果字节相同文件名应相同）；SVRB：余 kind
             # 逐项 unit（D1 归一——批内 unit 一致小闸保 ifc 命名唯一）。
             unit_id=None if item_kind == "ifc" else (str(item.get("unit_id") or "") or None),
+            sheet=sheet_option,
         )
         for item in items
     ]
+    if sheet_option and len(items) > _IMMEDIATE_LIMIT:
+        # PROFILE2：批量面暂不支持 sheet 选项（worker 通道未透传——沿 M5
+        # 「批量面暂不支持」诚实拒绝先例；静默忽略=意图变更禁）。
+        raise InvalidExportRequestError(
+            "导出选项 'sheet' 暂不支持批量导出（单产物通道可用——"
+            "PROFILE2 挂账 worker 透传面）"
+        )
     if len(items) > _IMMEDIATE_LIMIT:  # R3：超单产物上限转低优先级任务
         # SVRB D3：ifc 批内 unit 一致小闸（原 R1-5/M5 D5 两族拒绝删除——
         # worker kwargs 通道已与单产物等价；小闸定义见上方）。
@@ -380,6 +390,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         # SVRB D1：unit 归一后逐项真源（items 恒 1 项——item 覆盖批级同语义）。
         unit_id=str(items[0].get("unit_id") or "") or None,
         condition_key=condition_key or None,
+        sheet=sheet_option,
         **extra,
     )
     os.replace(tmp, out)

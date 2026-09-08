@@ -8,3 +8,6 @@
 # name: test_dxf_content_hash
   '46ef6f51ab5091913642e8fc9213c21b112c2ab0cbcf923c4f83be45b96a59c9'
 # ---
+# name: test_profile_dxf_content_hash
+  '9b9ea8e198a5044e06d0aff6f260fc3565894c8c0a8720891a3a31d635a35bc7'
+# ---

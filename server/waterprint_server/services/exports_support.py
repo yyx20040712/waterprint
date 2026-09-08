@@ -137,13 +137,14 @@ def _name_component(value: str, fallback: str, what: str) -> str:
         ) from exc
 
 
-def _deterministic_name(
+def _deterministic_name(  # noqa: PLR0913  # 六参=命名四真源+unit/sheet 两 keyword 分量（PROFILE2）；keyword-only 沿 export_artifact 豁免先例
     project_id: str,
     kind: str,
     condition_key: str,
     digest: str,
     *,
     unit_id: str | None = None,
+    sheet: str | None = None,
 ) -> str:
     """R4 确定性命名：项目 id+kind+(unit)+condition+三元组摘要（禁时钟）。
 
@@ -164,8 +165,13 @@ def _deterministic_name(
         if unit_id is not None
         else ""
     )
+    # PROFILE2：sheet 分量（sheet=profile 纵断与总图同 kind 同 unit 分量
+    # 形态——无分量必同名 os.replace 互覆盖，FE9 R1 同型缺陷防再发）。
+    sheet_part = (
+        f"-{_name_component(sheet, 'REQUIRED', 'sheet')}" if sheet else ""
+    )
     return (
-        f"{safe_project}-{kind}{unit_part}-{safe_condition}"
+        f"{safe_project}-{kind}{sheet_part}{unit_part}-{safe_condition}"
         f"-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
     )
 
@@ -177,6 +183,14 @@ def _unit_id_of(chosen: Mapping[str, Any]) -> str | None:
     """
     unit = chosen.get("unit_id")
     return unit if isinstance(unit, str) and unit else None
+
+
+def _sheet_of(chosen: Mapping[str, Any]) -> str | None:
+    """PROFILE2：sheet 选项归一提取（仅非空字符串；值域校验归 core
+    白名单——未知值 ArtifactKindNotReady 501 与未知 kind 同语义）。
+    """
+    sheet = chosen.get("sheet")
+    return sheet if isinstance(sheet, str) and sheet else None
 
 
 def _sidecar_text(meta: ExportMeta) -> str:

@@ -99,11 +99,14 @@ from waterprint.drafting.catalog import (
 )
 from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf
 from waterprint.drafting.plan_view import unit_plan
+from waterprint.drafting.profile_drawing import ProfileOptions, profile_sheet
 from waterprint.drafting.section_view import unit_section
+from waterprint.drafting.sheets import PROFILE_H_SCALE, PROFILE_V_SCALE
 from waterprint.drafting.site_plan import SiteOptions, site_layout
 from waterprint.drafting.styles import EntityGroup, base_styles
 from waterprint.elevation.losses import head_losses
 from waterprint.elevation.profile import build_profile
+from waterprint.elevation.pumps import evaluate_pumping
 from waterprint.geometry.scene import build_scene
 from waterprint.ifc_export import build_ifc, write_ifc
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
@@ -170,7 +173,9 @@ class ArtifactKindNotReady(Exception):  # noqa: N818  # 名载归属批次（D2 
     """产物 kind 未就绪（audit=M4/dxf=M2 出图批/estimate=M3）——GR-11 族。"""
 
 
-_EXPORT_OPTIONS: Final[frozenset[str]] = frozenset({"unit_id", "condition_key"})
+_EXPORT_OPTIONS: Final[frozenset[str]] = frozenset(
+    {"unit_id", "condition_key", "sheet"}
+)
 
 
 def _check_export_options(options: Mapping[str, str | None]) -> None:
@@ -214,6 +219,18 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
     if kind == "calcbook":
         return render_calcbook(plant.trace, plant, template, out).read_bytes()
     if kind == "dxf":
+        sheet = options.get("sheet")
+        if sheet is not None and sheet != "profile":
+            raise ArtifactKindNotReady(
+                f"export_artifact 未知 sheet 取值 {sheet!r}"
+                "（合法面 ['profile']——图纸形态路由，PROFILE2）"
+            )
+        if sheet == "profile" and options.get("unit_id") is not None:
+            raise ArtifactKindNotReady(
+                "options 'sheet=profile'（厂级纵断图）与 'unit_id'（单单元"
+                "图）互斥——纵断为跨单元厂级图纸，语义不可叠加（PROFILE2 "
+                "组合真值表，禁静默忽略任一意图）"
+            )
         if options.get("condition_key") is None and plant.conditions:
             warnings.warn(
                 "未指定工况，取 design 档出图——多工况请显式传 condition_key",
@@ -221,7 +238,7 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
             )
         return _export_dxf(
             plant, options.get("unit_id"), out, options.get("condition_key"),
-            site_design=site_design,
+            site_design=site_design, sheet=sheet,
         )
     if kind == "ifc":
         if options.get("condition_key") is None and plant.conditions:
@@ -260,13 +277,25 @@ _REL_DATUM: Final[Mapping[str, float]] = MappingProxyType(
     {"water_level": 0.0, "ground_elev": 0.0}
 )
 
+# 纵断图装配常量（PROFILE2 2026-09-08 终裁 PD5）：比例分母=GB/T 50106
+# 纵断图横纵差一量级工程惯例（本节取值仅纵断装配用，非全项目图例口径；
+# 透传定制面挂账）；图号沿 SITE_SHEET_NO（"01"）同型常量；图名=中文
+# 具名常量（总图行「全厂总图」sheet_title 先例同构——非单元行 unit_id
+# 口径）；目录比例列=横纵双比例复合字符串（CatalogRow str 列合法）。
+_PROFILE_SHEET_NO: Final[str] = "02"
+# 目录固定行数（总图行+纵断行——单元行序号自其后起：2+1=03，PROFILE2）。
+_FIXED_CATALOG_ROWS: Final[int] = 2
+_PROFILE_TITLE: Final[str] = "高程纵断图"
+_PROFILE_SCALE_TEXT: Final[str] = "1:1000/1:100"
 
-def _export_dxf(
+
+def _export_dxf(  # noqa: PLR0913, PLR0917  # 六参=既有五参+sheet 路由（PROFILE2）；签名扩展沿 export_artifact 行内豁免先例
     plant: PlantResult,
     unit_id: str | None,
     out: Path,
     condition_key: str | None = None,
     site_design: SiteDesign | None = None,
+    sheet: str | None = None,
 ) -> bytes:
     """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。
 
@@ -291,6 +320,11 @@ def _export_dxf(
             f"工况 {condition_key!r} 不在结果（合法 "
             f"{sorted(plant.conditions)}——dxf 出图工况校验，R1-1）"
         )
+    if sheet == "profile":
+        # PROFILE2（2026-09-08）：厂级纵断图独立编排——工况校验共享本层
+        # 入口（纵断与单元图/总图同 R1-1 口径）；site_design 零消费
+        # （纵断=流程拓扑序站位，与总平面摆放无关——终裁 §一.8 更正）。
+        return _export_profile_dxf(plant, out, condition_key)
     if unit_id is None:
         if site_design is None:
             raise ArtifactKindNotReady(
@@ -311,16 +345,21 @@ def _export_dxf(
         )
         sheet_title = "全厂总图"
         # M6 案乙目录行集（图之所绘——D3 总裁修正①）：总图行 01（常量桥
-        # 直承 site_plan 真源）+摆放单元行（unit_id 字典序 02..N+1——摆放
+        # 直承 site_plan 真源）+摆放单元行（unit_id 字典序 03..N+2——摆放
         # 结构列表为真源，悬空单元同入列；工况 units 含未摆放单元不采）；
         # 图名=unit_id 原文（中文名真源在 server，零第二真源）；比例=
         # DEFAULT_SCALE（write_dxf 缺省同一常量经 catalog 桥取值零副本）。
         # 图号/序号=本次导出会话内展示派生值，不入库不入 meta 不跨工况。
+        # PROFILE2（2026-09-08）：纵断行插位 2（图号 02——目录=会话图纸
+        # 集索引语义沿单元行先例[单单元 DXF 独立文件亦经目录行索引]；
+        # 图名=中文具名常量[总图行「全厂总图」先例同构]、比例=横纵双
+        # 比例复合字符串——总控终裁 PD2 改裁入目录）。
         rows: tuple[CatalogRow, ...] = (
             ("1", SITE_SHEET_NO, sheet_title, DEFAULT_SCALE),
+            ("2", _PROFILE_SHEET_NO, _PROFILE_TITLE, _PROFILE_SCALE_TEXT),
             *((str(number), f"{number:02d}", unit_id, DEFAULT_SCALE)
-              for number, unit_id
-              in enumerate(sorted(site_design.structures), start=2)),
+              for number, unit_id in enumerate(
+                  sorted(site_design.structures), start=_FIXED_CATALOG_ROWS + 1)),
         )
         catalog = catalog_sheet(rows, sheet_origin_below(layout.entities))
         entities = EntityGroup(entities=layout.entities + catalog.entities)
@@ -354,6 +393,41 @@ def _export_dxf(
     entities = EntityGroup(entities=plan.entities + section.entities)
     meta = DrawingMeta(
         title=unit_id,
+        condition_key=condition_key,
+        repro=(plant.repro.design_hash,
+               plant.repro.engine_version, plant.repro.data_version),
+    )
+    write_dxf(entities, styles, out, meta)
+    return out.read_bytes()
+
+
+def _export_profile_dxf(
+    plant: PlantResult, out: Path, condition_key: str
+) -> bytes:
+    """厂级纵断图编排（PROFILE2）：build_profile→evaluate_pumping→profile_sheet。
+
+    装配口径（终裁 PD5）：假设视图与单元分支同源（DEFAULT_ASSUMPTIONS
+    默认视图+_REL_DATUM 相对标高基准面——水力口径跨图纸一致）；
+    station_lengths=None 整表等距（v1——golden 18 站中 12 站无流程向
+    长度字段实测[辐流池 d=直径/污泥线站无长度语义]，逐站取数规则挂账
+    领域专家，零 Mapping 构造=零静默回退面——deepseek 必改 2 红线）；
+    meta.title=中文具名常量（DrawingMeta 承载图名，单单元图
+    meta.title=unit_id 先例同构——终裁必改 3）。
+    """
+    view = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
+    losses = head_losses((), ctx=("", condition_key), assumptions=view)
+    profile = build_profile(plant, losses, _REL_DATUM, view, condition_key)
+    pumping = evaluate_pumping(profile, view)
+    styles = base_styles()
+    options = ProfileOptions(
+        h_scale=PROFILE_H_SCALE,
+        v_scale=PROFILE_V_SCALE,
+        station_lengths=None,
+        pumping=pumping,
+    )
+    entities = profile_sheet(profile, styles, options)
+    meta = DrawingMeta(
+        title=_PROFILE_TITLE,
         condition_key=condition_key,
         repro=(plant.repro.design_hash,
                plant.repro.engine_version, plant.repro.data_version),

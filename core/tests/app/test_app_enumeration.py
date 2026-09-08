@@ -308,7 +308,7 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     texts = {e.dxf.text for e in msp.query("TEXT")}
     assert {"图纸目录", "序号", "图号", "图名", "比例"} <= texts  # 表题+四列表头
     assert {"01", "1:100"} <= texts  # 总图行图号+比例列（write_dxf 缺省同值）
-    assert {"02", "03", "municipal_cass", "municipal_aao"} <= texts  # 字典序 02..N+1
+    assert {"03", "04", "municipal_cass", "municipal_aao"} <= texts  # 字典序 03..N+2
     border = [e for e in msp.query("LWPOLYLINE")
               if e.dxf.layer == "WP-frame-border"]
     frame = max(border, key=lambda e: max(p[1] for p in e.get_points("xy")))
@@ -317,18 +317,18 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
     assert catalog_title.dxf.insert[1] < frame_bottom  # 目录在图框下方（mm 域读回）
 
     # G1-04 窗口全集精确（ENG8 B 件）：窗口锚与上方图框断言同源 frame_bottom，
-    # 期望按目录行装配规则自输入派生（总图行+单元行三值；scale 三行同值入基集）。
+    # 期望按目录行装配规则自输入派生（总图行+纵断行+单元行三值；scale 三行同值入基集）。
     catalog_texts = {e.dxf.text for e in msp.query("TEXT")
                      if e.dxf.insert[1] < frame_bottom}
     expected = {"图纸目录", "序号", "图号", "图名", "比例", "1:100"}
-    expected |= {"1", "01", "全厂总图"}  # 总图行（序号/图号/图名）
-    for n, uid in enumerate(sorted(site_design.structures), start=2):
+    expected |= {"1", "01", "全厂总图", "2", "02", "高程纵断图", "1:1000/1:100"}  # 总图行+纵断行（PROFILE2）
+    for n, uid in enumerate(sorted(site_design.structures), start=3):
         expected |= {str(n), f"{n:02d}", uid}  # 单元行三值（scale 已入基集）
     assert catalog_texts == expected  # G1-04：窗口全集精确（增补弱断言+R1 之第三层）
     # R2（G1-04 终裁）：实体级计数一行单语句（中间变量省略——PLR0915 41>40 红线，
     # 断言语义与终裁比较式逐字保持）。表题+表头+每行四格——set 折叠盲区兜底。
     assert len([e for e in msp.query("TEXT") if e.dxf.insert[1] < frame_bottom]) == (
-        1 + 4 + 4 * (1 + len(site_design.structures)))
+        1 + 4 + 4 * (2 + len(site_design.structures)))
 
     # R1 行级配对（G1-05 二审 CONFIRMED）：集合包含断言拦不住排序方向
     # 回归——总控变异实证：接线处 sorted→reversed(sorted()) 后旧断言面
@@ -346,10 +346,10 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
             key=lambda e: -e.dxf.insert[1],
         )
 
-    assert [e.dxf.text for e in column(no_x)] == ["01", "02", "03"]  # 图号列行序
+    assert [e.dxf.text for e in column(no_x)] == ["01", "02", "03", "04"]  # 图号列行序
     assert [e.dxf.text for e in column(name_x)] == [
-        "全厂总图", "municipal_aao", "municipal_cass",
-    ]  # 图名列=总图行+unit_id 字典序（aao<cass↔02/03 配对）
+        "全厂总图", "高程纵断图", "municipal_aao", "municipal_cass",
+    ]  # 图名列=总图行+纵断行（PROFILE2）+unit_id 字典序（aao<cass↔03/04 配对）
 
 
 def test_export_artifact_dxf_site_plan_requires_site_design(tmp_path: Path) -> None:
