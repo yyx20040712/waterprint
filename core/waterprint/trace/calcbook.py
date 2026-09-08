@@ -30,13 +30,20 @@
 #       未知占位符（不匹配语法/索引越界/键不存在）= InvalidTemplateError
 #       （消息含原占位符与单元格坐标，GR-09）。
 #   R4 字节确定性：保存经 ZipInfo 缺省时间戳重写 zip 条目（openpyxl
-#       save 默认携带落盘时刻，双渲染字节不同——重写后双渲染字节相同）。
+#       save 默认携带落盘时刻，双渲染字节不同——重写后双渲染字节相同）
+#       +core.xml dcterms:modified 值归一定值（批 14-FIX 修复：openpyxl
+#       save 链路无条件把 modified 刷新为落盘时刻——构造后/加载后显式
+#       赋定值均被覆盖[探针 b14-probe/probe_fixface.py 场景 A/C 实证]，
+#       赋值归一路不通，落盘后在 zip 条目链内改写该载荷行；modified
+#       =渲染时刻属非内容时钟噪声，归一为固定纪元定值。created 保留
+#       =模板属性传递仍锚[正式模板版本化定值/测试夹具归一定值]）。
 #
 # 【数值纪律】本文件不在魔法数字白名单——零数值字面量（ZipInfo 缺省
 #   date_time 即 zip 纪元，无字面量）。
 #
 # 【测试要求】最小模板渲染无 {{}} 残留、含公式模板拒、双渲染字节同、
-#   未知占位符拒。
+#   未知占位符拒；隔秒双渲染字节恒等+core.xml modified==定值
+#   （批 14-FIX——跨秒弱通过补强）。
 #
 # 【参照】重写计划 §2/§6.5/§11 R12；简报 M1b D2；data/templates/README.md
 # ══════════════════════════════════════════════════════════════════
@@ -77,6 +84,14 @@ _TRACE_FIELDS: Final[frozenset[str]] = frozenset(
 )
 # summary 平键展开（R3）：{f"{condition_key}.{字段ID}": value}
 _Summary = dict[str, float]
+# R4 modified 归一面（批 14-FIX）：正则与批 14 快照测试层规范化器同式
+# （tests/snapshots/test_snapshots.py _MODIFIED_RE——双保险两层同源）。
+_MODIFIED_RE: re.Pattern[bytes] = re.compile(
+    rb"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)"
+)
+# 归一定值=W3CDTF 固定纪元（与快照测试 _FIXED_EPOCH 同源纪元；字符串
+# 非数值字面量——AST 魔法数字门禁面外，dxf_writer _DEFAULT_SCALE 同款口径）。
+_FIXED_MODIFIED: Final[str] = "2000-01-01T00:00:00Z"
 
 
 class InvalidTemplateError(Exception):
@@ -164,15 +179,26 @@ def _check_no_formulas(workbook: Workbook) -> None:
 
 
 def _deterministic_save(workbook: Workbook, out: Path) -> None:
-    """R4 字节确定性保存：先入内存，再以 ZipInfo 缺省时间戳重写 zip 条目。"""
+    """R4 字节确定性保存：入内存→modified 载荷归一→ZipInfo 纪元重写条目。
+
+    归一在条目循环内完成（openpyxl save 无条件刷新 modified——批 14-FIX
+    机制注记见规格头 R4；未来 openpyxl 标签形态变致正则不匹配=no-op，
+    由隔秒双渲染字节恒等断言兜底响红）。
+    """
     buffer = BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
     with ZipFile(buffer) as source, ZipFile(out, "w", ZIP_DEFLATED) as target:
         for name in source.namelist():
+            payload = source.read(name)
+            if name == "docProps/core.xml":
+                payload = _MODIFIED_RE.sub(
+                    rb"\g<1>" + _FIXED_MODIFIED.encode("utf-8") + rb"\g<2>",
+                    payload,
+                )
             entry = ZipInfo(name)  # 缺省 date_time=zip 纪元——确定性锚点
             entry.compress_type = source.getinfo(name).compress_type
-            target.writestr(entry, source.read(name))
+            target.writestr(entry, payload)
 
 
 def render_calcbook(

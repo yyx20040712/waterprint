@@ -21,7 +21,13 @@
 #      图层/线型/文字样式从 styles 装配、DWG 转换是部署侧 ODA 外挂
 #      （不在本文件，§12.7）。
 #   R3 确定性落盘：同 EntityGroup 同字节（时间戳进 DXF 的字段固定为
-#      meta 值，禁用当前时钟——快照回归与可复算前提）。
+#      meta 值，禁用当前时钟——快照回归与可复算前提）+落盘后 CLASSES
+#      段记录序归一（批 14-FIX 修复：ezdxf 1.4.4 类注册序随进程熵翻转
+#      →CLASSES 段 CLASS 记录换位[同句柄同内容仅序异，跨进程双稳态，
+#      与 PYTHONHASHSEED 无关——探针 b14-probe/probe_fixface2.py 20
+#      采样实证]；CLASS 记录零顺序语义[类声明表]，记录块按组码 0 分界
+#      字典序排序——ezdxf readfile 往返完整+幂等+跨进程恒等三证。
+#      OBJECTS 段不归一：26 采样零漂移+首对象=根字典位置惯例保守不动）。
 #   R4 路径安全（§18）：输出路径限制在配置输出目录内拼接 + 分量校验，
 #      拒绝 ".."/绝对路径分量——越界抛领域异常。
 #   R5 m→mm 换算唯一住所：图形实体坐标（结果 m）→ 出图 mm 的比例换算
@@ -29,7 +35,8 @@
 #      1:1 mm 语义（sheets R3 分工）。
 #
 # 【测试要求】R2018 版本头断言、UTF-8 中文文字实体往返、确定性双跑
-#   字节级相同、路径越界拒绝、快照回归。
+#   字节级相同、路径越界拒绝、快照回归；CLASSES 记录序==字典序+双子
+#   进程渲染字节恒等（批 14-FIX——跨进程双稳态补强）。
 #
 # 【参照】重写计划 §12.5/§18 路径安全；ADR-006；R6/R7 风险行
 # ══════════════════════════════════════════════════════════════════
@@ -61,6 +68,11 @@ __all__ = [
 def _enable_fixed_meta() -> None:
     ezdxf.options.write_fixed_meta_data_for_testing = True  # type: ignore[attr-defined]
 _CREATOR: str = "WaterPrint"
+# DXF 文本结构常量（批 14-FIX CLASSES 归一面——非业务数值，AST 魔法数字
+# 门禁真源区外具名化，赋值仅用白名单值组合）：组码-值成对步距 2 行；
+# 段头行对（0/SECTION+2/<名>）共 2 对=4 行。
+_DXF_PAIR_LINES: Final[int] = 2
+_DXF_SECTION_HEAD_LINES: Final[int] = _DXF_PAIR_LINES * _DXF_PAIR_LINES
 # 出图默认比例（R1-2 裁定 2026-08-26：比例接线——write_dxf scale 关键字承接
 # SheetSpec 比例口径；缺省值=GB/T 50001 工程惯例常用出图比例 1:100，
 # M5 布图批接 SheetSpec 实例传递）。字符串比例非数值字面量（AST 门禁面外），
@@ -124,6 +136,67 @@ def _validate_out(out: Path) -> None:
             raise InvalidDrawingPathError(
                 f"输出路径含越界分量 '..'：{out!r}（§18 路径安全——SERVER 教训）"
             )
+
+
+def _classes_range(lines: list[bytes]) -> tuple[int, int]:
+    """CLASSES 段体行界（组码 0/SECTION+2/CLASSES … 0/ENDSEC）。
+
+    缺段/无终界=畸形输入 fail-closed（R2018 必有该段）。
+    """
+    for i in range(len(lines) - _DXF_SECTION_HEAD_LINES + 1):
+        if not (
+            lines[i].strip() == b"0"
+            and lines[i + 1] == b"SECTION"
+            and lines[i + _DXF_PAIR_LINES].strip() == b"2"
+            and lines[i + _DXF_SECTION_HEAD_LINES - 1] == b"CLASSES"
+        ):
+            continue
+        end = i + _DXF_SECTION_HEAD_LINES
+        while end + 1 < len(lines) and not (
+            lines[end].strip() == b"0" and lines[end + 1] == b"ENDSEC"
+        ):
+            end += 1
+        if end + 1 < len(lines):
+            return i + _DXF_SECTION_HEAD_LINES, end
+        break
+    raise InvalidDrawingError("DXF 缺 CLASSES 段或无 ENDSEC 终界（畸形输入）")
+
+
+def _group_pairs(body: list[bytes]) -> list[tuple[bytes, ...]]:
+    """段体行对 → 记录块列表（组码 0 分界）；行数非偶=配对破缺抛拒。"""
+    if len(body) % _DXF_PAIR_LINES != 0:
+        raise InvalidDrawingError(
+            f"DXF CLASSES 段体行数 {len(body)} 非偶（组码-值配对破缺）"
+        )
+    blocks: list[tuple[bytes, ...]] = []
+    current: list[bytes] = []
+    for i in range(0, len(body), _DXF_PAIR_LINES):
+        if body[i].strip() == b"0":
+            if current:
+                blocks.append(tuple(current))
+            current = [body[i], body[i + 1]]
+        else:
+            current.extend((body[i], body[i + 1]))
+    if current:
+        blocks.append(tuple(current))
+    return blocks
+
+
+def _sort_classes_section(out: Path) -> None:
+    """R3 补充（批 14-FIX）：落盘后 CLASSES 段记录块字典序归一（就地改写）。
+
+    仅动 CLASSES 段内记录序（ezdxf 注册序=进程熵噪声，跨进程双稳态）；
+    其余段/行零触碰（bytes 级 CRLF 分界往返无损）。畸形输入 fail-closed
+    抛 InvalidDrawingError——禁静默丢行。
+    """
+    data = out.read_bytes()
+    lines = data.split(b"\r\n")
+    start, end = _classes_range(lines)
+    merged: list[bytes] = []
+    for block in sorted(_group_pairs(lines[start:end])):
+        merged.extend(block)
+    lines[start:end] = merged
+    out.write_bytes(b"\r\n".join(lines))
 
 
 def _translate(doc: Drawing, entities: EntityGroup, styles: StyleTable,
@@ -230,4 +303,5 @@ def write_dxf(
     _fix_header(doc, meta)
     out.parent.mkdir(parents=True, exist_ok=True)
     doc.saveas(out)
+    _sort_classes_section(out)  # R3 批 14-FIX：注册序噪声归一（跨进程字节恒等）
     return out

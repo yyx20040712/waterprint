@@ -114,3 +114,84 @@ def test_audit_header_custom_vars_roundtrip(tmp_path: Path) -> None:
     assert custom["design_hash"] == "hash"
     assert custom["engine_version"] == "engine"
     assert custom["data_version"] == "data"  # 三元组不可再静默丢
+
+
+def _classes_blocks(data: bytes) -> list[tuple[bytes, ...]]:
+    """产物 CLASSES 段记录块（组码 0 分界——CRLF 行对解析）。
+
+    批 14-FIX 断言辅助：缺段/配对破缺抛 ValueError（畸形输入响失败）。
+    """
+    lines = data.split(b"\r\n")
+    start = end = -1
+    for i in range(len(lines) - 1):
+        if lines[i].strip() == b"0" and lines[i + 1] == b"SECTION" \
+                and i + 3 < len(lines) and lines[i + 2].strip() == b"2" \
+                and lines[i + 3] == b"CLASSES":
+            k = i + 4
+            while k + 1 < len(lines) and not (
+                lines[k].strip() == b"0" and lines[k + 1] == b"ENDSEC"
+            ):
+                k += 1
+            if k + 1 >= len(lines):
+                raise ValueError("CLASSES 段无 ENDSEC（畸形）")
+            start, end = i + 4, k
+            break
+    if start < 0:
+        raise ValueError("缺 CLASSES 段（畸形）")
+    body = lines[start:end]
+    if len(body) % 2 != 0:
+        raise ValueError("CLASSES 段体行数非偶（配对破缺）")
+    blocks: list[tuple[bytes, ...]] = []
+    current: list[bytes] = []
+    for i in range(0, len(body), 2):
+        if body[i].strip() == b"0":
+            if current:
+                blocks.append(tuple(current))
+            current = [body[i], body[i + 1]]
+        else:
+            current.extend((body[i], body[i + 1]))
+    if current:
+        blocks.append(tuple(current))
+    return blocks
+
+
+_SUBPROC_SCRIPT = (
+    "from pathlib import Path;"
+    "from waterprint.drafting.dxf_writer import DrawingMeta, write_dxf;"
+    "from waterprint.drafting.styles import Entity, EntityGroup, base_styles;"
+    "import sys;"
+    "group = EntityGroup(entities=(Entity('rect', 'WP-process-pool',"
+    " ((0.0, 0.0), (4.5, 3.0)), source_key='l_straight|d'),));"
+    "meta = DrawingMeta(title='t', condition_key='design',"
+    " repro=('h', 'e', 'd'));"
+    "write_dxf(group, base_styles(), Path(sys.argv[1]), meta)"
+)
+
+
+def test_classes_sorted_and_crossprocess_bytes(tmp_path: Path) -> None:
+    """R3 修复断言（批 14-FIX）：CLASSES 记录序==字典序+双子进程字节恒等。
+
+    ezdxf 1.4.4 类注册序随进程熵翻转 → CLASSES 记录换位（跨进程双稳
+    态，首样批缺陷②实证——进程内双跑测试不触发）→ 修复=落盘后 CLASSES
+    段记录块字典序归一。未修复时注册序≠字典序必红（ezdxf 默认注册序
+    非字典序）；双子进程（真跨进程）渲染字节恒等为归一后恒绿锚。
+    """
+    import subprocess
+    import sys
+
+    from waterprint.drafting.styles import base_styles
+
+    local = write_dxf(_group(), base_styles(), tmp_path / "local.dxf", _meta())
+    blocks = _classes_blocks(local.read_bytes())
+    assert blocks == sorted(blocks)  # CLASSES 记录序==字典序（归一后）
+
+    for i in (1, 2):  # 双子进程各渲染一份（真跨进程采样）
+        subprocess.run(
+            [sys.executable, "-c", _SUBPROC_SCRIPT, str(tmp_path / f"sub{i}.dxf")],
+            check=True,
+            capture_output=True,
+        )
+    first = (tmp_path / "sub1.dxf").read_bytes()
+    second = (tmp_path / "sub2.dxf").read_bytes()
+    assert first == second  # 跨进程字节恒等（CLASSES 双稳态已归一）
+    assert _classes_blocks(first) == sorted(_classes_blocks(first))

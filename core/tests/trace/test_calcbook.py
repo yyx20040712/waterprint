@@ -99,3 +99,26 @@ def test_formula_template_rejected_wiring(tmp_path: Path) -> None:
     workbook.save(template)
     with pytest.raises(InvalidTemplateError, match="A1"):
         render_calcbook(_trace(), _result(), template, tmp_path / "out.xlsx")  # type: ignore[misc]
+
+
+def test_modified_clock_normalised_and_cross_second_stable(tmp_path: Path) -> None:
+    """R4 修复断言（批 14-FIX）：modified 归一定值+隔秒双渲染字节恒等。
+
+    openpyxl save 无条件把 docProps/core.xml dcterms:modified 刷新为
+    落盘时刻（显式赋值被覆盖——首样批缺陷①实证）→ 修复=落盘后载荷
+    归一固定纪元。隔秒双渲染（同一模板——created 传递恒同）字节级
+    恒等：未修复时跨秒必红（既有双跑测试 <1s 弱通过的补强断言）。
+    """
+    import re
+    import time
+    import zipfile
+
+    template = _template(tmp_path / "tpl.xlsx", "{{trace[0].formula_id}}")
+    first = render_calcbook(_trace(), _result(), template, tmp_path / "a.xlsx")  # type: ignore[misc]
+    time.sleep(1.1)  # 跨秒——modified 秒粒度时钟面未归一时必现漂移
+    second = render_calcbook(_trace(), _result(), template, tmp_path / "b.xlsx")  # type: ignore[misc]
+    assert first.read_bytes() == second.read_bytes()  # 隔秒双渲染字节恒等
+    core_xml = zipfile.ZipFile(first).read("docProps/core.xml")
+    modified = re.search(rb"<dcterms:modified[^>]*>([^<]*)</dcterms:modified>", core_xml)
+    assert modified is not None
+    assert modified.group(1) == b"2000-01-01T00:00:00Z"  # 归一定值（批 14-FIX）
