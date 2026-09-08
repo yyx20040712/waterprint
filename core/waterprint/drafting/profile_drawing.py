@@ -13,8 +13,14 @@
 #                 options: ProfileOptions) -> EntityGroup
 #   class ProfileOptions：h_scale / v_scale（横纵比例分设，如横 1:500
 #      纵 1:100——工程惯例，取值来自 options 数据非硬编码；比例分母
-#      整数必填）+station_lengths（站间距米值映射，缺省等距）+pumping
-#      （PumpingPlan 标注数据，None 跳过——经 app 装配传入 R3）
+#      整数必填）+station_lengths（站间距米值映射，缺省等距，非正拒）
+#      +pumping（PumpingPlan 标注数据，None 跳过——经 app 装配传入
+#      R3；泵站/跌水注记仅取与本图 condition_key 同工况条目）
+#   〔styles 参数语义注记（R 轮 G1-01 双审呈报）：本文件不消费
+#      styles——EntityGroup 以图层名引用样式，装配在 dxf_writer.
+#      write_dxf._apply_styles 按图层名统一落盘；签名三参沿
+#      unit_section 同款先例（签名含 styles、函数体零消费——调用
+#      方链 styles 传至 write_dxf）〕
 #
 # 【行为规格】
 #   R1 四线齐备：地面线/水面线/池底线/管底线（§12.5 高程纵断图定义：
@@ -119,13 +125,22 @@ def _to_sheet(x_m: float, elev_m: float, factor: float,
 
 def _station_spans(profile: ElevationProfile,
                    options: ProfileOptions) -> tuple[float, ...]:
-    """各站横轴占宽（米）：station_lengths 实值 > 缺省等距占位（R2）。"""
+    """各站横轴占宽（米）：station_lengths 实值 > 缺省等距占位（R2）；
+    非正站距拒（R 轮 G1-03——零宽平台/倒退桩号与入口 fail-closed
+    姿态一致）。"""
     if options.station_lengths is None:
         return (_DEFAULT_SPAN,) * len(profile.stations)
-    return tuple(
+    spans = tuple(
         float(options.station_lengths.get(station.unit_id, _DEFAULT_SPAN))
         for station in profile.stations
     )
+    for station, span in zip(profile.stations, spans, strict=True):
+        if span <= 0.0:
+            raise InvalidProfileDrawingError(
+                f"站距非正：{station.unit_id!r} 得 {span:g} m"
+                "（station_lengths 米值须正——零宽平台/倒退桩号无图面语义）"
+            )
+    return spans
 
 
 # 四线声明表（R1）：(字段, 图层)——管底与池底同指 floor_elev、图层分
@@ -204,7 +219,12 @@ def profile_sheet(
         )
         x_m = x_right
     if options.pumping is not None:
+        # R 轮 G1-02：注记仅取与本图同工况条目（PumpingPlan 按工况独立
+        # 产出——异工况条目标到本图=工况混注）；跌水注记锚定受影响站
+        # 右界（affected_unit_ids 首元素——零原点堆叠）。
         for pump in options.pumping.stations:
+            if pump.condition_key != profile.condition_key:
+                continue  # 异工况泵站条目——不属于本图
             pump_station = profile.station_of(pump.unit_id)
             if pump_station is None:
                 continue  # 泵站位不在本纵断（工况差异）——跳过非异常
@@ -218,8 +238,21 @@ def profile_sheet(
                        source_key="pumping.total_head")
             )
         for drop in options.pumping.drop_warnings:
+            if drop.condition_key != profile.condition_key:
+                continue  # 异工况跌水条目——不属于本图
+            anchor_id = (
+                drop.affected_unit_ids[0] if drop.affected_unit_ids else None
+            )
+            if anchor_id is None or anchor_id not in right_of:
+                continue  # 无受影响站锚（或不在本图）——无法定位不标
+            anchor_station = profile.station_of(anchor_id)
+            if anchor_station is None:
+                continue
             entities.append(
-                Entity("text", LAYER_ELEV, ((0.0, 0.0),),
+                Entity("text", LAYER_ELEV,
+                       (_to_sheet(right_of[anchor_id],
+                                  anchor_station.ground_elev, factor,
+                                  options),),
                        text=drop.message,
                        source_key="pumping.drop_warnings")
             )

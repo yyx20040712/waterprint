@@ -2,8 +2,9 @@
 
 输入:  waterprint.drafting.profile_drawing（PROFILE 批实现，总裁定
        简报 task-PROFILE-plan.md PD8——与锁内契约件分离的实现面用例）
-输出:  纵断图行为断言（六用例：比例换算/station_lengths/工况标注/
-       pumping 注入/内容哈希自锚/单站边界）
+输出:  纵断图行为断言（八用例：比例换算/station_lengths/工况标注/
+       pumping 注入[含异工况过滤与跌水锚定]/内容哈希自锚/单站边界/
+       入口校验拒/站距非正拒——R 轮 G1-02/G1-03 补强）
 """
 
 from __future__ import annotations
@@ -137,20 +138,64 @@ def _pumping():
     )
 
 
+def _pumping_mixed():
+    """混合工况夹具：同工况（design）一站提升+一跌水 + 异工况（avg）
+    一站提升+一跌水——证注记按 condition_key 过滤（R 轮 G1-02）。"""
+    from waterprint.contracts.unit_api import Severity, Warning
+    from waterprint.elevation.pumps import PumpingPlan, PumpStation
+
+    design = _pumping()
+    return PumpingPlan(
+        stations=(
+            *design.stations,
+            PumpStation(unit_id="u1", static_head=9.0, total_head=9.9,
+                        design_flow=1.0, condition_key="avg"),
+        ),
+        drop_warnings=(
+            *design.drop_warnings,
+            Warning(severity=Severity.WARN, source="test",
+                    message="异工况跌水不应出现", condition_key="avg",
+                    affected_unit_ids=("u1",)),
+        ),
+    )
+
+
 def test_pumping_annotation_injected_or_skipped() -> None:
-    """PD3：pumping 注入产泵/跌水注记；None 整体跳过。"""
+    """PD3：pumping 注入产泵/跌水注记；None 整体跳过；异工况条目
+    过滤不混注（R 轮 G1-02）；跌水注记锚定受影响站右界非原点堆叠。"""
     plain = profile_sheet(_profile(), _styles(), ProfileOptions(1, 1))
     assert not [e for e in plain.entities
                 if e.source_key.startswith("pumping.")]
     injected = profile_sheet(
-        _profile(), _styles(), ProfileOptions(1, 1, pumping=_pumping())
+        _profile(), _styles(),
+        ProfileOptions(1, 1, pumping=_pumping_mixed()),
     )
     pumps = [e for e in injected.entities
              if e.source_key == "pumping.total_head"]
     drops = [e for e in injected.entities
              if e.source_key == "pumping.drop_warnings"]
-    assert len(pumps) == 1 and "0.800" in pumps[0].text
-    assert len(drops) == 1 and drops[0].text == "跌水警告注记"
+    assert len(pumps) == 1 and "0.800" in pumps[0].text  # 仅 design 泵
+    assert len(drops) == 1 and drops[0].text == "跌水警告注记"  # 仅 design 跌水
+    # 跌水锚定受影响站 u2 右界（桩号 20m×factor），非原点 (0,0)
+    assert drops[0].points[0][0] == pytest.approx(20.0 * 1000.0)
+
+
+def test_station_lengths_nonpositive_rejected() -> None:
+    """R 轮 G1-03：station_lengths 非正值拒（零宽平台/倒退桩号 fail-closed）。"""
+    from waterprint.drafting.profile_drawing import (
+        InvalidProfileDrawingError,
+    )
+
+    with pytest.raises(InvalidProfileDrawingError, match="站距非正"):
+        profile_sheet(
+            _profile(), _styles(),
+            ProfileOptions(1, 1, station_lengths={"u1": 0.0}),
+        )
+    with pytest.raises(InvalidProfileDrawingError, match="站距非正"):
+        profile_sheet(
+            _profile(), _styles(),
+            ProfileOptions(1, 1, station_lengths={"u2": -5.0}),
+        )
 
 
 def _canonical(group) -> str:
@@ -181,8 +226,9 @@ def test_content_hash_snapshot_anchor() -> None:
     digest = _canonical(first)
     assert digest == _canonical(second)  # 双跑恒等（确定性）
     assert len(digest) == 64  # sha256 十六进制形态
-    assert digest == (  # PROFILE 批首版实测冻结锚
-        "692780c8ecd019bb9881b1c2ccc5d5fee962dc2ad68f6401d74fc34fd806b725"
+    assert digest == (  # R 轮重锚（2026-09-08）：G1-02 工况过滤+跌水
+        # 锚定站右界改动实体坐标——首版 692780c8 预期漂移显式重锚
+        "296450a1bacd9c555715245a44600136eb1c93ada6003fb4e5b49173f2f1447c"
     )
 
 
