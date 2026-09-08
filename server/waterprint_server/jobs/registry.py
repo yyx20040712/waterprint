@@ -53,7 +53,8 @@
 #      读面恢复）。键集不做完整性声称——缺键由消费侧 KeyError→manager
 #      薄壳 catch 同款跳过兜底（R2 R4/DS-05：描述与实现对齐）。领域
 #      构造（TaskRequest kind 白名单等）归调用方，构造异常由调用方
-#      同款跳过（manager 薄壳）。
+#      同款跳过（manager 薄壳）。损坏跳过族=显式接受口径（边车/记录
+#      奇态一族·ENG-L 归一 2026-09-09——与 services 边车奇态注释同族）。
 #
 # 【测试要求】经 manager 薄壳由 server/tests/jobs/test_manager.py
 #   恢复矩阵用例覆盖（终态重启可查/损坏跳过/缺键跳过/非终态标

@@ -351,6 +351,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     )
     os.replace(tmp, out)
     # WP0 挂点（落盘后/边车前）：dxf 可选转 DWG，失败=跳过（DXF 不可破）。
+    # 〔边车奇态显式接受·ENG-L 归一 2026-09-09〕
     dwg_name = _post_export_dwg(ctx, kind, out)
     meta = ExportMeta(
         project_id=project_id,
@@ -363,6 +364,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         stale_labeled=stale and force,
     )
     _write_meta(ctx, meta)
+    # 〔边车奇态显式接受·ENG-L 归一 2026-09-09〕
     if dwg_name is not None:  # 双产物登记；R-1/G1-01 边车写失败=跳过登记（DWG 永不阻塞 DXF）
         try:
             _write_meta(ctx, replace(meta, file_name=dwg_name))

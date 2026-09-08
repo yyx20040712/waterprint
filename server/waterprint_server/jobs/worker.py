@@ -399,6 +399,7 @@ def _run_export_batch(
             failures.append({  # error 截 _FAILURE_TEXT_LIMIT 字符（清单体积面）
                 "index": index, "unit_id": unit_id, "condition_key": condition_key,
                 "error": f"{type(exc).__name__}: {exc}"[:_FAILURE_TEXT_LIMIT]})
+        # 〔边车奇态显式接受·ENG-L 归一 2026-09-09：失败收集=跳过续跑〕
         else:  # R2-C/R-1：成功项边车/DWG 登记面（失败项 continue 面已改 else 隔离）
             raw_sidecars = item.get("sidecars")
             if raw_sidecars is not None and not isinstance(raw_sidecars, Mapping):

@@ -26,6 +26,10 @@ api-contracts/openapi.json    ────►    webapp `pnpm orval`
 ## 规则
 
 1. openapi.json 只能由 `dump_openapi` 重新生成，禁手改；
+   - 知情决策注记（EXPD 挂账收口·ENG-L 2026-09-09）：`GET /api/exports/{file_name}`
+     的 200 面 application/json 为空 schema——文件流端点无 JSON 响应模型可声明，
+     生成形态如此，非缺陷；orval 生成物不受影响。响应形态变更须走契约面流程
+     （openapi 漂移检查会如实拦截）。
 2. 前端引用的任何类型必须来自 generated/（评审拒绝手写 interface
    复制服务端模型）；
 3. 契约变更 = 重新导出 + orval 重跑 + 前端类型错误清零，一个提交内完成。

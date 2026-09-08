@@ -141,6 +141,9 @@ async def list_exports(request: Request, project_id: str = "") -> list[ExportMet
 # EXPD D3：校验/异常全部在 service（后缀/stem/存在性双闸→422/404 经
 # main._EXCEPTION_STATUS 统一映射——本层零业务零 responses 声明）；
 # media_type 自猜与既有 POST FileResponse 行为一致（R4 文件流先例）。
+# EXPD 挂账收口（ENG-L 2026-09-09）：本端点 200 面 application/json
+# 空 schema=知情决策（文件流端点无 JSON 响应模型可声明——FastAPI 生成
+# 形态如此；orval 生成物不受影响）。非缺陷；若改响应形态须走契约面流程。
 @router.get("/{file_name}")
 async def download_export(file_name: str, request: Request) -> FileResponse:
     """按文件名下载产物（在册产物文件流——Content-Disposition 附原文件名）。"""

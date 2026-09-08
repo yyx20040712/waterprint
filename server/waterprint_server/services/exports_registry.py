@@ -95,5 +95,6 @@ def list_exports(ctx: ServiceContext, project_id: str) -> tuple[ExportMeta, ...]
             if isinstance(raw, dict) and raw.get("project_id") == project_id:
                 metas.append(ExportMeta(**raw))
         except (json.JSONDecodeError, TypeError):
+            # 〔边车奇态显式接受·ENG-L 归一 2026-09-09〕
             continue  # 损坏/非对象/键面不符边车不阻塞列表（WP4 修2+R-1 R2——跳过不 500）
     return tuple(metas)
