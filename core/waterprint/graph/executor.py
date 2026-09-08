@@ -116,7 +116,7 @@ from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生�
 from waterprint.graph.executor_dsl import (
     InvalidExecutionError,
     _apply_mappings,
-    _dotted,  # noqa: F401  # 再导出专用（消费面 From executor import 零改动）
+    _dotted,  # noqa: F401  # 再导出专用（消费面 from executor import 零改动）
     _rule_names,  # noqa: F401  # 同上
 )
 from waterprint.graph.executor_projection import (
