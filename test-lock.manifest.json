@@ -106,7 +106,7 @@
   "core/tests/network/test_solver_golden.py": "3f7e87bd0d337a3180a7ceade7e49d67eef6b02c98b1066a18dd3672ae19e2e4",
   "core/tests/project/test_content_hash.py": "927d9301e7f92754bbde88023e306367289a5277222cbed12e6f34cf5363689d",
   "core/tests/project/test_io.py": "6b0aa5ccfdf9ef26d982439776dd52caec187362c8df46602ecd8527b80491ed",
-  "core/tests/project/test_migration.py": "2fcac7acd83d4afba4917cea52abbbae858312333867ea914f2da2b538fcd8db",
+  "core/tests/project/test_migration.py": "7f97b7af427100b9ccfb70b6dcc407b01efac11d6864539003f454c3bbf88445",
   "core/tests/project/test_site_migration.py": "91b6a2bcb7ea1a903391159b52fbc0956232a9f34230f77a4ed083261b89d7e6",
   "core/tests/registry/test_apply_face_baseline.py": "eaabf3f04a9f89f2d6255f8a54402c5d6d28b0ffa46364bf60ceb2896a352a82",
   "core/tests/registry/test_assumptions.py": "f6d2c71dfa3707b19244fccd1ba4a12f2bca44ab11f35dbc98aae7150d28baa9",
