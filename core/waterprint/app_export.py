@@ -60,7 +60,11 @@ def _scale_denom_of(raw: str | None, what: str) -> int:
     （1≤值≤SCALE_DENOM_MAX）——判定语义与 server 422 预校验显式同一
     （双闸同构，防 422/501 边界漂移——deepseek 必改 1）；非法=诚实拒。"""
     text = (raw or "").strip()
-    if not (text.isdigit() and 1 <= int(text) <= SCALE_DENOM_MAX):
+    # R 轮（双审 D1-G1-01/A2-G1-01）：isdecimal 挡 Unicode 数字（"②"等
+    # isdigit 真而 int 炸）+长度短路挡超长串（≥3.11 int 4300 位上限
+    # ValueError 逃逸）——双闸判定域显式同一（server 预校验同式）。
+    if not (text.isdecimal() and len(text) <= len(str(SCALE_DENOM_MAX))
+            and 1 <= int(text) <= SCALE_DENOM_MAX):
         raise ArtifactKindNotReady(
             f"export_artifact 选项 {what} 须为正整数比例分母字符串"
             f"（1~{SCALE_DENOM_MAX}，如 '2000'）：收到 {raw!r}（PROFILE3）"
@@ -68,13 +72,25 @@ def _scale_denom_of(raw: str | None, what: str) -> int:
     return int(text)
 
 
-def _check_export_options(options: Mapping[str, str | None]) -> None:
-    """导出选项键白名单（未知键拒——GR-09 精神，防拼写漂移静默忽略）。"""
+def _check_export_options(
+    options: Mapping[str, str | None], kind: str
+) -> None:
+    """导出选项键白名单（未知键拒——GR-09 精神，防拼写漂移静默忽略）；
+    R 轮（D1-G1-04）：h/v 仅 kind=dxf 可传——calcbook/ifc 分支零消费
+    选项，传=意图错配诚实拒（禁静默吞）。"""
     unknown = frozenset(options) - _EXPORT_OPTIONS
     if unknown:
         raise ArtifactKindNotReady(
             f"export_artifact 未知选项：{sorted(unknown)}"
             f"（合法 {sorted(_EXPORT_OPTIONS)}）"
+        )
+    # 判非 None 值而非键存在（调用方归一层可传 None 占位——None=未传）。
+    if kind != "dxf" and (
+        options.get("h_scale") is not None or options.get("v_scale") is not None
+    ):
+        raise ArtifactKindNotReady(
+            "options 'h_scale'/'v_scale' 仅 kind='dxf'（纵断双比例）可传——"
+            f"kind={kind!r} 零消费选项面（PROFILE3 R 轮，禁静默吞意图）"
         )
 
 
@@ -105,7 +121,7 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
     全厂总图编排——site_layout 接线；dxf 链自建假设视图故 assumptions
     零涉）。
     """
-    _check_export_options(options)
+    _check_export_options(options, kind)
     if kind == "calcbook":
         return render_calcbook(plant.trace, plant, template, out).read_bytes()
     if kind == "dxf":

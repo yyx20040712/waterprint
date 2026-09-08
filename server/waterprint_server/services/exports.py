@@ -155,7 +155,7 @@ from waterprint_server.services.exports_support import (
     _sheet_of,
     _sidecar_text,
     _unit_id_of,
-    reject_bad_scale_forms,
+    reject_bad_route_options,
 )
 from waterprint_server.services.projects import _JSON_KWARGS, design_digest, read_project
 
@@ -293,7 +293,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     sheet_option = _sheet_of(chosen) or next(
         (sheet for sheet in map(_sheet_of, items) if sheet), None
     )
-    reject_bad_scale_forms(chosen, items)  # PROFILE3（PD6）：h/v 形态整批原子 422
+    reject_bad_route_options(chosen, items)  # PROFILE3（PD6+R 轮）：路由选项整批原子 422
     # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
     # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
     # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。
@@ -303,7 +303,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         {
             **item,
             "unit_id": _unit_id_of(item) or unit_option or "",
-            "sheet": _sheet_of(item) or _sheet_of(chosen) or "",
+            # R 轮（D1-G1-03/A2-G1-02）：unit 项（item 级或批级 unit_id）
+            # 不继承批级 sheet——互斥语义在归一层贯彻（继承=制造必败项；
+            # 显式 item 级共存已被 reject_bad_route_options 收单拒）。
+            "sheet": (_sheet_of(item) or (
+                _sheet_of(chosen) if not (_unit_id_of(item) or unit_option) else None
+            )) or "",
             "h_scale": _scale_text_of(item, "h_scale") or _scale_text_of(chosen, "h_scale") or "",
             "v_scale": _scale_text_of(item, "v_scale") or _scale_text_of(chosen, "v_scale") or "",
         }

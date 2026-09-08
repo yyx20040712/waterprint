@@ -177,7 +177,9 @@ def test_profile_scale_invalid_rejected(tmp_path: Path) -> None:
     """PD3 终闸：非法比例拒（strip 后全数字+1≤值≤100000）——空/字母/0/
     负数/越上限五形态（与 server 422 同判定语义；域上限防浮点除法溢出）。"""
     plant = _plant()
-    for bad in ("", "abc", "0", "-100", "999999"):
+    # R 轮（D1-G1-01/A2-G1-01）：Unicode 数字（"②" isdigit 真而 int 炸）与
+    # 超长串（≥3.11 int 4300 位上限 ValueError 逃逸）双逃逸面入册。
+    for bad in ("", "abc", "0", "-100", "999999", "②", "9" * 5000):
         with pytest.raises(ArtifactKindNotReady, match="比例分母"):
             export_artifact(  # type: ignore[misc]
                 "dxf", plant, Path("unused"), tmp_path / "x.dxf",
@@ -193,3 +195,14 @@ def test_profile_scale_requires_profile_sheet(tmp_path: Path) -> None:
             "dxf", plant, Path("unused"), tmp_path / "x.dxf",
             unit_id="municipal_cass", h_scale="2000",
         )
+
+
+def test_profile_scale_rejected_on_other_kinds(tmp_path: Path) -> None:
+    """R 轮（D1-G1-04）：h/v 仅 kind=dxf 可传——ifc/calcbook 分支零消费
+    选项面，传=意图错配诚实拒（禁静默吞）。"""
+    plant = _plant()
+    for kind in ("ifc", "calcbook"):
+        with pytest.raises(ArtifactKindNotReady, match="仅 kind='dxf'"):
+            export_artifact(  # type: ignore[misc]
+                kind, plant, Path("unused"), tmp_path / "x.out", h_scale="2000",
+            )

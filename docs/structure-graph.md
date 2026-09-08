@@ -94,9 +94,7 @@
 | `waterprint.app` | `waterprint.trace` | 计算迹收集与导出 |
 | `waterprint.app` | `waterprint.registry` | 假设/公式/系数装载 |
 | `waterprint.app` | `waterprint.contracts` | 契约类型 |
-| `waterprint.app_enumeration` | `waterprint.contracts` | 枚举/出图用例契约类型（伴生件同款）——ENG2 B3 补登 |
-| `waterprint.app_enumeration` | `waterprint.drafting` | 单元三视图与 DXF 导出薄壳——ENG2 B3 补登 |
-| `waterprint.app_enumeration` | `waterprint.elevation` | 高程损失/纵断用例——ENG2 B3 补登；PROFILE2 纵断产物接线（build_profile/evaluate_pumping 装配——既有边加密零新边） |
+| `waterprint.app_enumeration` | `waterprint.contracts` | 枚举用例契约类型——ENG2 B3 补登；PROFILE3 export 族拆出后剩枚举面（出图契约边随迁 app_export） |
 | `waterprint.app_export` | `waterprint.contracts` | 产物导出契约类型（PROFILE3 拆分自 app_enumeration——行为零变更纯搬迁） |
 | `waterprint.app_export` | `waterprint.drafting` | 单元三视图+总图+纵断 DXF/目录装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
 | `waterprint.app_export` | `waterprint.elevation` | build_profile/evaluate_pumping/head_losses 纵断装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
@@ -104,8 +102,6 @@
 | `waterprint.app_export` | `waterprint.ifc_export` | BIM 模型构造正门——PROFILE3 拆分（SC1 边随迁） |
 | `waterprint.app_export` | `waterprint.trace` | calcbook/audit 渲染正门——PROFILE3 拆分（calcbook 边随迁） |
 | `waterprint.app_export` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设视图——PROFILE3 拆分（registry 边随迁） |
-| `waterprint.app_enumeration` | `waterprint.geometry` | ifc 导出分支场景图组装（build_scene 投影）——SC1 补登 |
-| `waterprint.app_enumeration` | `waterprint.ifc_export` | BIM 模型构造正门（build_ifc/write_ifc）——SC1 补登 |
 | `waterprint.app_enumeration` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设合成——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.solution` | 网格/约束/诊断用例——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.trace` | TraceCollector 注入与计算书渲染——ENG2 B3 补登 |

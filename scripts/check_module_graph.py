@@ -59,6 +59,10 @@ SCAN_PY_ROOTS: tuple[Path, ...] = (
 #   （§10.2 路线 C——importlinter layers/independence 两契约同款豁免）。
 _SAME_LAYER_EXEMPTS: tuple[tuple[str, str], ...] = (
     ("waterprint.app", "waterprint.app_enumeration"),
+    # PROFILE3（2026-09-08）：export 族拆分再导出伴生边（§1b 后注记
+    # 承载——pyproject ignore_imports 同款豁免；方向单一 app_export 零
+    # app 系依赖）。
+    ("waterprint.app_enumeration", "waterprint.app_export"),
     ("waterprint.ifc_export", "waterprint.geometry"),
     # PROFILE 批 2026-09-08：drafting→elevation PumpingPlan 纯类型/数据
     # 消费（纵断图 R3 标注面——文件粒度对，包粒度不变；§1b 注记承载）。

@@ -128,3 +128,81 @@ async def test_scale_custom_naming_segment_wiring(client, test_settings) -> None
     assert b"AC1032" in resp.content[:512]
     saved = list(test_settings.exports_dir.glob("*h2000v200*.dxf"))
     assert len(saved) == 1 and "-dxf-profile-h2000v200-" in saved[0].name
+
+
+@pytest.mark.anyio
+async def test_route_mutex_collected_at_intake_422_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """R 轮（D1-G1-03/A2-G1-02）：sheet×unit 互斥=收单即拒（批级或项级
+    共存整批原子 422——不放行到 worker 必败项）。"""
+    project_id, _task_id = await _project_with_result(client)
+    for label, options in (
+        ("批级", {"sheet": "profile", "unit_id": "municipal_cass"}),
+        ("项级", {"items": [{"kind": "dxf", "condition_key": "design",
+                             "sheet": "profile", "unit_id": "municipal_cass"}]}),
+    ):
+        resp = await client.post(
+            "/api/exports/dxf",
+            json={"project_id": project_id, "condition_key": "design",
+                  "options": options},
+        )
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, label
+        assert "互斥" in resp.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_route_scale_bad_types_and_escapes_422_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """R 轮（D1-G1-01/05+A2-G1-01/03）：非字符串承载（数值型）与判定域
+    逃逸面（Unicode 数字/超长串）=整批原子 422。"""
+    project_id, _task_id = await _project_with_result(client)
+    # 形态畸形/数值承载/超长串（不可转换）=server 422（R 轮 G1-01：
+    # int 逃逸转本闸）；域越界（可转换但>上限）归 core 终闸 501。
+    for case, expected in (
+        ({"options": {"sheet": "profile", "h_scale": 2000}}, 422),
+        ({"options": {"sheet": "profile", "h_scale": "②"}}, 422),
+        ({"options": {"sheet": "profile", "h_scale": "9" * 5000}}, 422),
+    ):
+        resp = await client.post(
+            "/api/exports/dxf",
+            json={"project_id": project_id, "condition_key": "design", **case},
+        )
+        assert resp.status_code == expected, (case, resp.status_code)
+        assert "h_scale" in resp.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_batch_mixed_unit_item_not_inherit_sheet_e2e_wiring(client, test_settings) -> None:  # type: ignore[no-untyped-def]
+    """R 轮（A2-G1-04 端到端）：批级 sheet+unit 项混装——unit 项不继承批级
+    sheet（互斥归一层压制），任务 done 零 failures，双产物各自落位。"""
+    import asyncio
+
+    project_id, _task_id = await _project_with_result(client)
+    resp = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "condition_key": "design",
+            "options": {
+                "sheet": "profile",
+                "items": [  # 混装：厂级项（继承 sheet）+unit 项（不继承）
+                    {"kind": "dxf", "condition_key": "design"},
+                    {"kind": "dxf", "condition_key": "design", "unit_id": "municipal_cass"},
+                ],
+            },
+        },
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    task_id = resp.json()["task_id"]
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"  # 混装批无必败项（R 轮修复前 unit 项必入 failures）
+    assert not body.get("failures"), body.get("failures")
+    files = sorted(
+        p.name for p in test_settings.exports_dir.glob("*.dxf")
+        if "design" in p.name
+    )
+    assert len(files) == 2  # 纵断（-profile-）+单单元（municipal_cass）各一
+    assert sum("-dxf-profile-" in f for f in files) == 1
+    assert sum("municipal_cass" in f for f in files) == 1

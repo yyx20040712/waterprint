@@ -210,24 +210,55 @@ def _scale_text_of(chosen: Mapping[str, Any], key: str) -> str | None:
     return raw if isinstance(raw, str) and raw else None
 
 
-def reject_bad_scale_forms(
+def reject_bad_route_options(
     chosen: Mapping[str, Any], items: Sequence[Mapping[str, Any]]
 ) -> None:
-    """PROFILE3（PD6）：h/v 形态预校验=整批原子拒绝（任一项畸形=422 含
-    item 索引定位；域上限留 core 终闸——双闸分工判定零重叠漂移面）。"""
+    """PROFILE3（PD6+R 轮）：路由选项预校验=整批原子拒绝（任一项畸形=
+    422 含 item 索引定位）。覆盖面：h/v 形态（isdecimal+长度短路——与
+    core 终闸同式，Unicode/超长串双逃逸面闭合 D1-G1-01/A2-G1-01）+非
+    字符串类型显式拒（数值承载静默归 None=吞意图 D1-G1-05/A2-G1-03）
+    +sheet×unit 互斥（批级或项级共存=收单即拒，不放行到 worker 必败
+    项 D1-G1-03/A2-G1-02）；域上限留 core 终闸（双闸分工零重叠）。"""
     for label, source in [("options", chosen), *[
         (f"options.items[{i}]", item) for i, item in enumerate(items)
     ]]:
         for key in ("h_scale", "v_scale"):
-            raw = _scale_text_of(source, key)
+            if key not in source:
+                continue
+            raw = source.get(key)
             if raw is None:
                 continue
+            if not isinstance(raw, str):  # 非字符串类型=显式拒（数值承载等）
+                raise InvalidExportRequestError(
+                    f"导出 {label}.{key} 须为字符串（如 '2000'）："
+                    f"收到 {type(raw).__name__}（PROFILE3 整批原子拒绝）"
+                )
             text = raw.strip()
-            if not (text.isdigit() and int(text) >= 1):
+            # R 轮（G1-01 server 侧闭合）：int() 包 try/except——超长串
+            # 裸 ValueError 逃逸转本闸 422（A2 建议）；域上限（可转换但
+            # 越界）留 core 终闸 501——分层=server 拦不可转换/非正，
+            # core 拦域越界，判定零重叠且零常量依赖。
+            try:
+                value = int(text)
+            except ValueError:
+                raise InvalidExportRequestError(
+                    f"导出 {label}.{key} 数字串超长（与 core 域上限位"
+                    "数一致校验）：" f"收到 {len(text)} 位（PROFILE3 整批"
+                    "原子拒绝）"
+                ) from None
+            if not text.isdecimal() or value < 1:
                 raise InvalidExportRequestError(
                     f"导出 {label}.{key} 须为正整数比例分母字符串"
                     f"（如 '2000'）：收到 {raw!r}（PROFILE3 整批原子拒绝）"
                 )
+        has_unit = bool(_unit_id_of(source))
+        has_sheet = _sheet_of(source) is not None
+        if has_unit and has_sheet:
+            raise InvalidExportRequestError(
+                f"导出 {label} 的 'sheet' 与 'unit_id' 互斥（厂级纵断图与"
+                "单单元图不可叠加——收单即拒，不放行到执行必败项；"
+                "PROFILE3 R 轮整批原子拒绝）"
+            )
 
 
 def _sidecar_text(meta: ExportMeta) -> str:
