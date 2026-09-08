@@ -49,6 +49,7 @@ from waterprint.drafting.styles import (
 __all__ = [
     "PROFILE_H_SCALE",
     "PROFILE_V_SCALE",
+    "SCALE_DENOM_MAX",
     "SHEET_SIZES",
     "SHEET_SOURCE",
     "SheetSpec",
@@ -73,6 +74,10 @@ SHEET_SIZES: Final[Mapping[str, tuple[float, float]]] = MappingProxyType({
 # 透传面挂账）。app_enumeration 纵断装配经本声明面取值零副本。
 PROFILE_H_SCALE: Final[int] = 1000
 PROFILE_V_SCALE: Final[int] = 100
+# 比例分母合法域上限（PROFILE3 PD3：core 终闸与 server 422 同一判定——
+# 工程裁量值，远超实际出图比例域，防极大分母在 _to_sheet 浮点除法层
+# OverflowError；终裁必改 1 实证闭合）。
+SCALE_DENOM_MAX: Final[int] = 100000
 # 图框留边（mm）：a=装订边（左），c=非装订边——GB/T 50001（A0~A2 与
 # A3~A4 两档）。
 _MARGIN_BIND: Final[float] = 25.0

@@ -156,3 +156,40 @@ def test_profile_dxf_site_design_optional(tmp_path: Path) -> None:
         site_design=SiteDesign(structures={}),
     )
     assert payload_a and payload_a == payload_b  # site_design 零消费=字节恒等
+
+
+def test_profile_scale_overrides_bytes(tmp_path: Path) -> None:
+    """PD3 正向：h/v 透传覆盖常量——产物字节≠默认比例（缺省=None 结构性
+    恒等锚的逆命题：显式定制必改字节）。"""
+    plant = _plant()
+    default = export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), tmp_path / "d.dxf",
+        condition_key="design", sheet="profile",
+    )
+    custom = export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), tmp_path / "c.dxf",
+        condition_key="design", sheet="profile", h_scale="2000", v_scale="200",
+    )
+    assert custom and custom != default  # 定制比例必改图面几何（字节面）
+
+
+def test_profile_scale_invalid_rejected(tmp_path: Path) -> None:
+    """PD3 终闸：非法比例拒（strip 后全数字+1≤值≤100000）——空/字母/0/
+    负数/越上限五形态（与 server 422 同判定语义；域上限防浮点除法溢出）。"""
+    plant = _plant()
+    for bad in ("", "abc", "0", "-100", "999999"):
+        with pytest.raises(ArtifactKindNotReady, match="比例分母"):
+            export_artifact(  # type: ignore[misc]
+                "dxf", plant, Path("unused"), tmp_path / "x.dxf",
+                condition_key="design", sheet="profile", h_scale=bad,
+            )
+
+
+def test_profile_scale_requires_profile_sheet(tmp_path: Path) -> None:
+    """PD3 组合真值表：h/v 仅 sheet=profile 可传——单单元形态传=诚实拒。"""
+    plant = _plant()
+    with pytest.raises(ArtifactKindNotReady, match="仅在 sheet='profile'"):
+        export_artifact(  # type: ignore[misc]
+            "dxf", plant, Path("unused"), tmp_path / "x.dxf",
+            unit_id="municipal_cass", h_scale="2000",
+        )

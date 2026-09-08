@@ -375,3 +375,52 @@ async def test_export_batch_family_escape_fails_task_not_collects_wiring(
     assert status.state == "failed"  # 族外异常上抛=任务 failed（不收集 failures）
     assert status.error_type == "InvalidResultError"  # error_type 保真（诊断映射面）
     assert status.result is None  # result 无 failures 键（批共因上抛语义）
+
+
+async def test_export_batch_profile_sheet_stage_and_passthrough_wiring(
+    service_ctx, cass_payload, tmp_path  # type: ignore[no-untyped-def]
+) -> None:
+    """PROFILE3（PD1）：批量纵断项 stage 带 sheet 段（export:dxf:profile）
+    +sheet/h/v item 级透传到 core（替身 kwargs 锚）；unit 项现形态零改。"""
+    from waterprint import app as core
+
+    project_path, result_file = await _project_and_result(service_ctx, cass_payload)
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    messages: list[dict[str, object]] = []
+    seen: list[dict[str, object]] = []
+
+    class _Sink:
+        def put(self, message: dict[str, object]) -> None:
+            messages.append(message)
+
+    def _spy(  # type: ignore[no-untyped-def]  # noqa: PLR0913  # 替身签名镜像被测接口
+        kind, plant, template, out, *, unit_id=None, condition_key=None, **extra
+    ):
+        seen.append({"unit_id": unit_id, **extra})
+        Path(out).write_bytes(b"ok")
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(core, "export_artifact", _spy)
+        result = run_task(
+            _batch_payload(
+                project_path, result_file, out_dir,
+                [
+                    _item("dxf", "a.dxf", unit_id="u1", condition_key="design"),
+                    _item("dxf", "b.dxf", condition_key="design", sheet="profile"),
+                    _item("dxf", "c.dxf", condition_key="design", sheet="profile",
+                          h_scale="2000", v_scale="200"),
+                ],
+            ),
+            None,
+            _Sink(),
+        )
+    assert result["state"] == "done"
+    assert [m["stage"] for m in messages] == [  # unit 段现形态+纵断项 sheet 段
+        "export:dxf:u1",
+        "export:dxf:profile",
+        "export:dxf:profile",
+    ]
+    assert seen[1].get("sheet") == "profile"  # sheet item 级透传锚
+    assert seen[2].get("sheet") == "profile"
+    assert seen[2].get("h_scale") == "2000" and seen[2].get("v_scale") == "200"

@@ -137,7 +137,7 @@ def _name_component(value: str, fallback: str, what: str) -> str:
         ) from exc
 
 
-def _deterministic_name(  # noqa: PLR0913  # 六参=命名四真源+unit/sheet 两 keyword 分量（PROFILE2）；keyword-only 沿 export_artifact 豁免先例
+def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h/v 四 keyword 分量（PROFILE2/3）；keyword-only 沿 export_artifact 豁免先例
     project_id: str,
     kind: str,
     condition_key: str,
@@ -145,6 +145,8 @@ def _deterministic_name(  # noqa: PLR0913  # 六参=命名四真源+unit/sheet �
     *,
     unit_id: str | None = None,
     sheet: str | None = None,
+    h_scale: int | None = None,
+    v_scale: int | None = None,
 ) -> str:
     """R4 确定性命名：项目 id+kind+(unit)+condition+三元组摘要（禁时钟）。
 
@@ -170,8 +172,15 @@ def _deterministic_name(  # noqa: PLR0913  # 六参=命名四真源+unit/sheet �
     sheet_part = (
         f"-{_name_component(sheet, 'REQUIRED', 'sheet')}" if sheet else ""
     )
+    # PROFILE3（PD4）：比例段非 None 即出段（显式透传=定制标记；默认零段
+    # 保现名与快照锚恒——默认值判定零跨层常量依赖；h/v 独立出段）。
+    scale_part = (
+        (f"h{h_scale}" if h_scale is not None else "")
+        + (f"v{v_scale}" if v_scale is not None else "")
+    )
+    scale_seg = f"-{scale_part}" if scale_part else ""
     return (
-        f"{safe_project}-{kind}{sheet_part}{unit_part}-{safe_condition}"
+        f"{safe_project}-{kind}{sheet_part}{scale_seg}{unit_part}-{safe_condition}"
         f"-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
     )
 
@@ -191,6 +200,34 @@ def _sheet_of(chosen: Mapping[str, Any]) -> str | None:
     """
     sheet = chosen.get("sheet")
     return sheet if isinstance(sheet, str) and sheet else None
+
+
+def _scale_text_of(chosen: Mapping[str, Any], key: str) -> str | None:
+    """PROFILE3：比例选项归一提取（仅非空字符串；域校验在 create_export
+    预校验面与 core 终闸——提取面零校验防双处漂移）。
+    """
+    raw = chosen.get(key)
+    return raw if isinstance(raw, str) and raw else None
+
+
+def reject_bad_scale_forms(
+    chosen: Mapping[str, Any], items: Sequence[Mapping[str, Any]]
+) -> None:
+    """PROFILE3（PD6）：h/v 形态预校验=整批原子拒绝（任一项畸形=422 含
+    item 索引定位；域上限留 core 终闸——双闸分工判定零重叠漂移面）。"""
+    for label, source in [("options", chosen), *[
+        (f"options.items[{i}]", item) for i, item in enumerate(items)
+    ]]:
+        for key in ("h_scale", "v_scale"):
+            raw = _scale_text_of(source, key)
+            if raw is None:
+                continue
+            text = raw.strip()
+            if not (text.isdigit() and int(text) >= 1):
+                raise InvalidExportRequestError(
+                    f"导出 {label}.{key} 须为正整数比例分母字符串"
+                    f"（如 '2000'）：收到 {raw!r}（PROFILE3 整批原子拒绝）"
+                )
 
 
 def _sidecar_text(meta: ExportMeta) -> str:

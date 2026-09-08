@@ -156,7 +156,7 @@ name = "内核分层只许向下（L4.cli→L4.app→L4.project-trace→L3→L2�
 type = "layers"
 layers = [
     "waterprint.cli",
-    "waterprint.app | waterprint.app_enumeration",
+    "waterprint.app | waterprint.app_enumeration | waterprint.app_export",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.ifc_export | waterprint.network",
     "waterprint.units_lib",
@@ -172,6 +172,10 @@ layers = [
 # builder 为实际 import 现场——实测工具链行为注记）。
 ignore_imports = [
     "waterprint.app -> waterprint.app_enumeration",
+    # PROFILE3（2026-09-08）：app_enumeration→app_export 再导出伴生边
+    # （export 族拆分；方向单一防环=app_export 零 app 系依赖——SERVER D1
+    # app→app_enumeration 豁免同款忠实意图条款）。
+    "waterprint.app_enumeration -> waterprint.app_export",
     "waterprint.ifc_export.* -> waterprint.geometry",
     # PROFILE 批（2026-09-08）：drafting 纵断图消费 elevation PumpingPlan
     # 纯类型/数据（R3 标注面）——L3 同层消费边豁免（ifc_export→geometry

@@ -151,9 +151,11 @@ from waterprint_server.services.exports_support import (
     StaleExportError,
     _batch_items_payload,
     _deterministic_name,
+    _scale_text_of,
     _sheet_of,
     _sidecar_text,
     _unit_id_of,
+    reject_bad_scale_forms,
 )
 from waterprint_server.services.projects import _JSON_KWARGS, design_digest, read_project
 
@@ -286,14 +288,27 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # 防同名覆盖；批量面同收口——worker 透传同批落地，命名面随兑现）。
     unit_option = _unit_id_of(chosen)
     # PROFILE2：图纸形态路由（纵断）——顶层批级+item 级并入（item 覆盖批级
-    # 沿 unit_id 同语义；item 级静默忽略=A2 二审 P2A2-1 缺陷，批量面下方拒）。
+    # 沿 unit_id 同语义；item 级静默忽略=A2 二审 P2A2-1 缺陷修复）。
+    # PROFILE3（PD2）：批量面解锁（422 拒删）——items 逐项归一（下方）。
     sheet_option = _sheet_of(chosen) or next(
         (sheet for sheet in map(_sheet_of, items) if sheet), None
     )
+    reject_bad_scale_forms(chosen, items)  # PROFILE3（PD6）：h/v 形态整批原子 422
     # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
     # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
     # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。
-    items = [{**item, "unit_id": _unit_id_of(item) or unit_option or ""} for item in items]
+    # PROFILE3（PD2）：sheet/h/v 逐项归一（item 覆盖批级沿 unit_id SVRD
+    # 同语义）——批量混装命名/透传自洽的归一位（worker 面逐项读同键）。
+    items = [
+        {
+            **item,
+            "unit_id": _unit_id_of(item) or unit_option or "",
+            "sheet": _sheet_of(item) or _sheet_of(chosen) or "",
+            "h_scale": _scale_text_of(item, "h_scale") or _scale_text_of(chosen, "h_scale") or "",
+            "v_scale": _scale_text_of(item, "v_scale") or _scale_text_of(chosen, "v_scale") or "",
+        }
+        for item in items
+    ]
     names = [
         _deterministic_name(
             project_id,
@@ -304,17 +319,14 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             # unit_id；同工况同结果字节相同文件名应相同）；SVRB：余 kind
             # 逐项 unit（D1 归一——批内 unit 一致小闸保 ifc 命名唯一）。
             unit_id=None if item_kind == "ifc" else (str(item.get("unit_id") or "") or None),
-            sheet=sheet_option,
+            # PROFILE3（PD2）：命名逐项化（批级 sheet_option 曾致混装批量
+            # 非 sheet 项错带 -profile 段——解锁前置修复）。
+            sheet=str(item.get("sheet") or "") or None,
+            h_scale=int(item["h_scale"]) if item.get("h_scale") else None,
+            v_scale=int(item["v_scale"]) if item.get("v_scale") else None,
         )
         for item in items
     ]
-    if sheet_option and len(items) > _IMMEDIATE_LIMIT:
-        # PROFILE2：批量面暂不支持 sheet 选项（worker 通道未透传——沿 M5
-        # 「批量面暂不支持」诚实拒绝先例；静默忽略=意图变更禁）。
-        raise InvalidExportRequestError(
-            "导出选项 'sheet' 暂不支持批量导出（单产物通道可用——"
-            "PROFILE2 挂账 worker 透传面）"
-        )
     if len(items) > _IMMEDIATE_LIMIT:  # R3：超单产物上限转低优先级任务
         # SVRB D3：ifc 批内 unit 一致小闸（原 R1-5/M5 D5 两族拒绝删除——
         # worker kwargs 通道已与单产物等价；小闸定义见上方）。
@@ -395,6 +407,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         unit_id=str(items[0].get("unit_id") or "") or None,
         condition_key=condition_key or None,
         sheet=sheet_option,
+        h_scale=str(items[0].get("h_scale") or "") or None,
+        v_scale=str(items[0].get("v_scale") or "") or None,
         **extra,
     )
     os.replace(tmp, out)

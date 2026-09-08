@@ -23,6 +23,7 @@
 | `waterprint.cli` | L4.cli | `core/waterprint/cli.py` |
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
 | `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
+| `waterprint.app_export` | L4.app | `core/waterprint/app_export.py` |
 | `waterprint.project` | L4.project-trace | `core/waterprint/project` |
 | `waterprint.trace` | L4.project-trace | `core/waterprint/trace` |
 | `waterprint.graph` | L3 | `core/waterprint/graph` |
@@ -96,6 +97,13 @@
 | `waterprint.app_enumeration` | `waterprint.contracts` | 枚举/出图用例契约类型（伴生件同款）——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.drafting` | 单元三视图与 DXF 导出薄壳——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.elevation` | 高程损失/纵断用例——ENG2 B3 补登；PROFILE2 纵断产物接线（build_profile/evaluate_pumping 装配——既有边加密零新边） |
+| `waterprint.app_export` | `waterprint.contracts` | 产物导出契约类型（PROFILE3 拆分自 app_enumeration——行为零变更纯搬迁） |
+| `waterprint.app_export` | `waterprint.drafting` | 单元三视图+总图+纵断 DXF/目录装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
+| `waterprint.app_export` | `waterprint.elevation` | build_profile/evaluate_pumping/head_losses 纵断装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
+| `waterprint.app_export` | `waterprint.geometry` | ifc 分支场景图组装——PROFILE3 拆分（SC1 边随迁） |
+| `waterprint.app_export` | `waterprint.ifc_export` | BIM 模型构造正门——PROFILE3 拆分（SC1 边随迁） |
+| `waterprint.app_export` | `waterprint.trace` | calcbook/audit 渲染正门——PROFILE3 拆分（calcbook 边随迁） |
+| `waterprint.app_export` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设视图——PROFILE3 拆分（registry 边随迁） |
 | `waterprint.app_enumeration` | `waterprint.geometry` | ifc 导出分支场景图组装（build_scene 投影）——SC1 补登 |
 | `waterprint.app_enumeration` | `waterprint.ifc_export` | BIM 模型构造正门（build_ifc/write_ifc）——SC1 补登 |
 | `waterprint.app_enumeration` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设合成——ENG2 B3 补登 |
@@ -152,6 +160,11 @@
 > 豁免对登记。本边**不入上方边表**（"严格向下"规则对同层边一律拒）；
 > ifc_export→contracts 以正式边行承载（几何取数零直连，契约类型面白
 > 名单成员——C2）。
+
+> 同层伴生边·PROFILE3（2026-09-08）：`waterprint.app_enumeration` →
+> `waterprint.app_export`——export 族拆分的再导出边（消费面零改动；
+> 方向单一防环=app_export 零 app 系依赖；pyproject layers 契约
+> ignore_imports 显式豁免——app→app_enumeration 先例同款）。
 
 > 同层消费边·文件粒度（PROFILE 批 2026-09-08，层序豁免注记第四例
 > ——第二例同款机制的文件粒度变体）：

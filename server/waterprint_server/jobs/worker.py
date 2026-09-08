@@ -76,7 +76,7 @@ import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import Any, Final, Protocol, cast
 
 import structlog
 import yaml
@@ -333,6 +333,25 @@ def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
         )
 
 
+def _item_route_options(item: Mapping[str, Any]) -> dict[str, str]:
+    """PROFILE3（PD1）：sheet/h/v 归一提取（空串剔除=仅非 None 键——
+    未传不传，kwargs 精确集恒定沿既有断言面）。"""
+    options: dict[str, str] = {}
+    for key in ("sheet", "h_scale", "v_scale"):
+        value = str(item.get(key) or "") or None
+        if value is not None:
+            options[key] = value
+    return options
+
+
+def _stage_label(kind: str, unit_id: str | None, sheet: str | None) -> str:
+    """stage 点段序（SVRB D4+PROFILE3 PD1）：unit 项现形态零改；纵断项
+    （无 unit）带 sheet 段（export:dxf:profile）；余项省略段（既有语义）。"""
+    if unit_id:
+        return f"export:{kind}:{unit_id}"
+    return f"export:{kind}:{sheet}" if sheet else f"export:{kind}"
+
+
 def _run_export_batch(
     payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
 ) -> Mapping[str, Any]:
@@ -356,8 +375,11 @@ def _run_export_batch(
         out = exports_dir / _safe_out_name(str(item.get("out_name", "")), kind)
         unit_id = str(item.get("unit_id") or "") or None  # S2 D6+DS-06 归一口径
         condition_key = str(item.get("condition_key") or "") or None
-        _report(task_id, _StagePoint(  # SVRB D4：stage 带 unit 段（无-unit 项省略）
-            f"export:{kind}:{unit_id}" if unit_id else f"export:{kind}", index, len(items)
+        # PROFILE3（PD1）：sheet/h/v item 级提取（server 归一进 payload——
+        # item 覆盖批级已在上游完成，worker 直读归一值；域校验归 core 终闸）。
+        route_options = _item_route_options(item)
+        _report(task_id, _StagePoint(  # SVRB D4+PROFILE3 PD1
+            _stage_label(kind, unit_id, route_options.get("sheet")), index, len(items),
         ), progress, condition_key)
         tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
         try:  # SVRB D4：单项异常→failures 收集继续（部分失败=done+failures）
@@ -365,6 +387,9 @@ def _run_export_batch(
                 kind, deserialize(Path(str(item["result_file"])).read_bytes()),
                 Path(str(item["template"])), tmp,
                 unit_id=unit_id, condition_key=condition_key,
+                # route_options 键集恒 ⊆ core **options 白名单（str 值）——
+                # dict[str,str] 展开 mypy 撞 keyword-only 形参位，cast 收窄。
+                **cast(dict[str, Any], route_options),
                 **_build_drawing_kwargs(kind, project),
             )
             os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
