@@ -1,17 +1,21 @@
 /**
  * 批量导出任务 hook（SVRB D6②）：单 body 提交→句柄 JSON 解析→GET 兜底
  * →SSE 订阅→终态 outcome（任务态消费面——修复「句柄误当 blob」现状
- * 缺陷，仅本 hook 消费；useExportArtifact 单产物面零触碰）。
+ * 缺陷，仅本 hook 消费；useExportArtifact 单产物面零触碰）。SVRB2 增
+ * 取消面（cancelActive——服务端协作取消触发）+恢复面（挂载重订阅）。
  *
- * 输入:  hook 工厂参 kind（URL 模板 /api/exports/${kind}）+submitBatch(
- *        {projectId, units, conditionKey})——body 构造经 lib/batchExport
- *        单源纯函数
- * 输出:  {submitBatch: Promise<ExportBatchOutcome>, progress}——终态
+ * 输入:  hook 工厂参 kind（URL 模板 /api/exports/${kind}）+projectId
+ *        （SVRB2 D3/R3 终裁 A 案——恢复存储键维度显式入参）+
+ *        submitBatch({projectId, units, conditionKey})——body 构造经
+ *        lib/batchExport 单源纯函数
+ * 输出:  {submitBatch, cancelActive, activeTaskId, cancelError,
+ *        cancelPending, restoreNotice, progress, lastOutcome}——终态
  *        files/failures 双清单（乙案计数/首错消费面；列表出新行经终态
  *        invalidate ["/api/exports"] 承载——D5 乙案零下载动作）+
- *        progress {done,total,stageText}（messageApi 最小面消费源）
+ *        progress {done,total,stageText}（messageApi 最小面消费源）+
+ *        取消/恢复面（SVRB2 PD3~PD7）
  *
- * 规格说明（SVRB D6②/D5/D9③ 2026-09-05）：
+ * 规格说明（SVRB D6②/D5/D9③ 2026-09-05+SVRB2 PD3~PD7 2026-09-09）：
  *   - POST/GET 经 customInstance（JSON 面——与 useExportArtifact 手写
  *     blob fetch 职责分离；错误归一/Bearer 注入/401 通知复用 http.ts
  *     单源；响应句柄 JSON 的 task_id 是唯一消费字段——path 保留原样
@@ -38,16 +42,47 @@
  *     （toast 进度条/状态行双消费）+lastOutcome 最近终态（BatchStatusLine
  *     消费源；新提交清空）+sourceRef 覆盖前 close 旧流（二次提交脏写
  *     防御）+batchStatusText 状态行文案单源纯函数（node 直测）。
+ *   - SVRB2（2026-09-09 批量任务面二期·PD3~PD7）：取消面=cancelActive
+ *     （activeTaskId 空 no-op+cancelPending 防重；404=终止订阅+清在途+
+ *     清存储+行内 cancelError，网络失败=保留在途与订阅可重试；已终态
+ *     竞态=服务端 200 {cancelled:false} 无害直达 SSE 终态收束）；恢复面
+ *     =sessionStorage {taskId,total}（lib/batchTaskStore）挂载重订阅
+ *     （决策纯函数 lib/restoreDecision——四分支 fill/resume/drop/keep；
+ *     网络异常保留存储 R1；覆盖核对 R5；恢复等待拒绝以 activeTaskIdRef
+ *     取代判定防污染新任务）。
  */
 import { useEffect, useRef, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { customInstance } from "../../../shared/api/http";
+import { useCancelTaskApiCalcTasksTaskIdCancelPost } from "../../../shared/api/generated/calc/calc";
+import { customInstance, WaterprintApiError } from "../../../shared/api/http";
 import { getApiToken } from "../../../shared/api/token";
 import { buildTaskStreamUrl } from "../../../shared/api/sseUrl";
 import { SSE_FAILURE_LIMIT } from "../../../shared/api/sseConstants";
 import { buildBatchExportBody } from "../lib/batchExport";
+import {
+  deriveBatchProgress,
+  type ExportBatchOutcome,
+  type ExportBatchProgress,
+  isTerminalTaskState,
+  makeResumeProgress,
+  parseTaskEventData,
+  type TaskStatusFace,
+  toBatchOutcome,
+} from "../lib/batchTaskView";
+import {
+  clearBatchTask,
+  defaultBatchStorage,
+  readBatchTask,
+  writeBatchTask,
+} from "../lib/batchTaskStore";
+import {
+  isNotFoundApiError,
+  resolveRestore,
+  stillCurrent,
+  type RestoreSnapshot,
+} from "../lib/restoreDecision";
 
 /** 批量提交变量（units 序=items 序——Select multiple 选中序）。 */
 export type ExportBatchInput = {
@@ -56,133 +91,26 @@ export type ExportBatchInput = {
   conditionKey: string;
 };
 
-/** 单项失败记录（worker failures 面逐项四键——SVRB D4 result schema）。 */
-export type ExportBatchFailure = {
-  index: number;
-  unit_id: string | null;
-  condition_key: string | null;
-  error: string;
-};
-
-/** 任务终态产物束（files=产物清单计数面；error=failed 面任务诊断）。 */
-export type ExportBatchOutcome = {
-  state: string; // done|cancelled|failed
-  files: string[];
-  failures: ExportBatchFailure[];
-  error: string | null;
-};
-
-/** 进度视图（done 序数+total+stage 文本+原始 percent——「导出中 i/N·kind·unit」
- * 与 B5 进度条/状态行双消费源）。 */
-export type ExportBatchProgress = {
-  done: number;
-  total: number;
-  stageText: string;
-  percent: number;
-};
-
-/** 任务状态 JSON 松面（GET /api/calc/tasks 面——result/error 消费位）。 */
-type TaskStatusFace = {
-  state?: unknown;
-  error?: unknown;
-  result?: unknown;
-};
+// SVRB2 实现期拆件（useExportBatch 507>500 预算红线）：纯投影面（三类型
+// +六函数）迁 lib/batchTaskView——本件透传再导出保公开面（executor/
+// exports_support 先例同旨；BatchStatusLine/测试件 import 零改动）。
+export type {
+  ExportBatchFailure,
+  ExportBatchOutcome,
+  ExportBatchProgress,
+  TaskStatusFace,
+} from "../lib/batchTaskView";
+export {
+  batchStatusText,
+  deriveBatchProgress,
+  isTerminalTaskState,
+  makeResumeProgress,
+  parseTaskEventData,
+  toBatchOutcome,
+} from "../lib/batchTaskView";
 
 /** 服务端批量句柄 JSON 松面（ExportHandle asdict——task_id 唯一消费字段）。 */
 type ExportHandleFace = { task_id?: unknown };
-
-/** 终态判定（状态机 done/cancelled/failed——manager 三终态单源镜像）。 */
-export function isTerminalTaskState(state: string): boolean {
-  return state === "done" || state === "cancelled" || state === "failed";
-}
-
-/** SSE 事件 data 解析（{type, message, percent} 三面；畸形/缺型拒 null）。 */
-export function parseTaskEventData(
-  data: string,
-): { type: string; message: string | null; percent: number | null } | null {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(data);
-  } catch {
-    return null;
-  }
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    return null;
-  }
-  const record = parsed as Record<string, unknown>;
-  if (typeof record.type !== "string") {
-    return null;
-  }
-  return {
-    type: record.type,
-    message: typeof record.message === "string" ? record.message : null,
-    percent: typeof record.percent === "number" ? record.percent : null,
-  };
-}
-
-/** 终态 outcome 投影（TaskStatus→files/failures/error 四面；result null 兜底空清单）。 */
-export function toBatchOutcome(status: TaskStatusFace): ExportBatchOutcome {
-  const state = typeof status.state === "string" ? status.state : "failed";
-  const result =
-    typeof status.result === "object" && status.result !== null && !Array.isArray(status.result)
-      ? (status.result as Record<string, unknown>)
-      : null;
-  return {
-    state,
-    files: Array.isArray(result?.files)
-      ? result.files.filter((file): file is string => typeof file === "string")
-      : [],
-    failures: Array.isArray(result?.failures)
-      ? (result.failures.filter(
-          (failure) => typeof failure === "object" && failure !== null,
-        ) as ExportBatchFailure[])
-      : [],
-    error: typeof status.error === "string" ? status.error : null,
-  };
-}
-
-/** 进度派生（percent 幂商式 (i+1)/(total+1) 还原序数+stage 文本化+percent 透传）。 */
-export function deriveBatchProgress(
-  percent: number,
-  total: number,
-  stage: string,
-): ExportBatchProgress {
-  return {
-    done: Math.round(percent * (total + 1)),
-    total,
-    stageText: stage.startsWith("export:")
-      ? stage.slice("export:".length).replace(/:/g, "·")
-      : stage,
-    percent,
-  };
-}
-
-/** 状态行文案派生（B5 D3——BatchStatusLine 单源；终态优先于残留 progress，
- *  双 null=null〔从未提交〕）。四态：进行中 percent·i/N｜完成 N 项｜失败
- *  kind·unit·原因（首错 failures[0]，兜底任务级 error）｜取消=已产计数行。
- *  percent（幂商平滑值）与 done/total（序数）并列=双信息面——worker
- *  percent=(i+1)/(total+1) 幂商式设计意图，非数值不一致（B5 R1 钉口径）。 */
-export function batchStatusText(
-  kind: string,
-  progress: ExportBatchProgress | null,
-  outcome: ExportBatchOutcome | null,
-): string | null {
-  if (outcome !== null) {
-    if (outcome.state === "done") {
-      return `批量出图完成：${outcome.files.length} 项`;
-    }
-    if (outcome.state === "failed") {
-      const failure = outcome.failures[0];
-      const reason = failure?.error ?? outcome.error ?? "未知错误";
-      return `批量出图失败：${kind}·${failure?.unit_id ?? "—"}·${reason}`;
-    }
-    return `批量出图已取消：已产 ${outcome.files.length} 项`;
-  }
-  if (progress !== null) {
-    return `批量出图进行中 ${Math.round(progress.percent * 100)}%·${progress.done}/${progress.total}`;
-  }
-  return null;
-}
 
 /** SSE 订阅 URL：shared/api/sseUrl 单源（B6 D8 迁出本文件——useTaskFeed
  * 双实现收敛；taskId 路径段编码+token 非空 ？token= 查询通道）。 */
@@ -208,9 +136,17 @@ export async function submitExportBatch(
   return handle.task_id;
 }
 
-/** 批量导出任务 hook（提交→GET 兜底→SSE→终态 outcome+列表失效）。 */
-export function useExportBatch(kind: string): {
+/** 批量导出任务 hook（提交→GET 兜底→SSE→终态 outcome+列表失效+取消/恢复面）。 */
+export function useExportBatch(
+  kind: string,
+  projectId: string,
+): {
   submitBatch: (input: ExportBatchInput) => Promise<ExportBatchOutcome>;
+  cancelActive: () => Promise<void>;
+  activeTaskId: string | null;
+  cancelError: string | null;
+  cancelPending: boolean;
+  restoreNotice: string | null;
   progress: ExportBatchProgress | null;
   lastOutcome: ExportBatchOutcome | null;
 } {
@@ -218,8 +154,22 @@ export function useExportBatch(kind: string): {
   const [progress, setProgress] = useState<ExportBatchProgress | null>(null);
   // B5 D3：最近终态 outcome（BatchStatusLine 常驻回溯行消费源；新提交清空）
   const [lastOutcome, setLastOutcome] = useState<ExportBatchOutcome | null>(null);
+  // SVRB2 D3：在途任务 id（取消动作/恢复重订阅/按钮显隐公共派生面）+
+  // ref 镜像（恢复等待的取代判定读 ref——渲染期闭包陈旧态免疫）。
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const activeTaskIdRef = useRef<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelPending, setCancelPending] = useState(false);
+  const [restoreNotice, setRestoreNotice] = useState<string | null>(null);
   const sourceRef = useRef<EventSource | null>(null);
+  const cancelMutation = useCancelTaskApiCalcTasksTaskIdCancelPost<WaterprintApiError>();
   useEffect(() => () => sourceRef.current?.close(), []); // 卸载即清理（无泄漏句柄）
+
+  /** 在途态单一写口（state+ref 镜像同步）。 */
+  const setActiveTask = (taskId: string | null) => {
+    activeTaskIdRef.current = taskId;
+    setActiveTaskId(taskId);
+  };
 
   const fetchStatus = (taskId: string) =>
     customInstance<TaskStatusFace>({
@@ -252,6 +202,8 @@ export function useExportBatch(kind: string): {
         clearTimeout(guard);
         sourceRef.current?.close(); // 终态即收流：close 阻断自动重连循环
         sourceRef.current = null;
+        setActiveTask(null); // SVRB2：终态退出在途面（取消按钮隐去）
+        clearBatchTask(defaultBatchStorage(), projectId, kind); // SVRB2 D4 清除点①
         try {
           const outcome = toBatchOutcome(await fetchStatus(taskId));
           setLastOutcome(outcome); // B5 D3：终态回填状态行
@@ -305,13 +257,24 @@ export function useExportBatch(kind: string): {
   const submitBatch = async (input: ExportBatchInput): Promise<ExportBatchOutcome> => {
     setProgress(null);
     setLastOutcome(null); // B5 D3：新提交清空终态回溯（状态行回「进行中」面）
+    setCancelError(null);
+    setRestoreNotice(null);
     try {
       const taskId = await submitExportBatch(kind, input);
+      // SVRB2 D4：写入点=POST 成功取得 task_id 后立即（早于 SSE 订阅——
+      // 订阅期刷新仍可恢复）；同键覆盖=旧任务恢复通道自然失效（U3 记档）。
+      writeBatchTask(defaultBatchStorage(), projectId, kind, {
+        taskId,
+        total: input.units.length,
+      });
+      setActiveTask(taskId);
       // 竞态缓解（D9③）：先 GET 一次——终态即直取（零 SSE 依赖）。
       const first = await fetchStatus(taskId);
       if (typeof first.state === "string" && isTerminalTaskState(first.state)) {
         const early = toBatchOutcome(first);
         setLastOutcome(early); // B5 D3：快路径终态同回填状态行
+        setActiveTask(null); // SVRB2：快路径同步终态清理面
+        clearBatchTask(defaultBatchStorage(), projectId, kind);
         void queryClient.invalidateQueries({ queryKey: ["/api/exports"] }); // D5 乙案
         return early;
       }
@@ -319,6 +282,7 @@ export function useExportBatch(kind: string): {
     } catch (error) {
       // B5 R4（G1-09）：提交/在途异常回填失败终态——常驻回溯行不因失败路径
       // 退化（错误原文走调用方 toast，本面记「最近一次尝试=失败」）。
+      // SVRB2：activeTaskId/存储保留——POST 已成任务在服务端仍活（可取消）。
       setLastOutcome({
         state: "failed",
         files: [],
@@ -329,5 +293,111 @@ export function useExportBatch(kind: string): {
     }
   };
 
-  return { submitBatch, progress, lastOutcome };
+  /** SVRB2 D7：取消当前在途批量任务（协作取消——SSE state=cancelled 事件
+   * 既有收束闭环零改；activeTaskId 空=非在途 no-op；cancelPending 防重）。 */
+  const cancelActive = async (): Promise<void> => {
+    const taskId = activeTaskIdRef.current;
+    if (taskId === null || cancelPending) {
+      return;
+    }
+    setCancelPending(true);
+    setCancelError(null);
+    try {
+      await cancelMutation.mutateAsync({ taskId });
+      // 200+cancelled:false（已终态竞态）无害——SSE 终态事件随即到达收束
+      //（manager.cancel 已终态返回 False，calc.py CancelResponse 实态）。
+    } catch (error) {
+      if (isNotFoundApiError(error)) {
+        // PD7：任务不可达——终止订阅+清在途+清存储（订阅必死不留双错误面）。
+        sourceRef.current?.close();
+        sourceRef.current = null;
+        setActiveTask(null);
+        clearBatchTask(defaultBatchStorage(), projectId, kind);
+      }
+      // 网络失败：保留在途与订阅（任务仍在跑——可重试取消或等终态收束）。
+      setCancelError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setCancelPending(false);
+    }
+  };
+
+  // SVRB2 D5：挂载恢复——读存储→GET 快照→四分支（同挂载一次不自动重试；
+  // 决策纯函数 lib/restoreDecision node 直测）。恢复 resume 的等待拒绝以
+  // activeTaskIdRef 取代判定兜底（R5 覆盖防护延伸到等待面：新提交
+  // sourceRef 覆盖后旧流超时拒绝不污染新任务状态行）。
+  useEffect(() => {
+    let disposed = false;
+    const stored = readBatchTask(defaultBatchStorage(), projectId, kind);
+    if (stored === null) {
+      return;
+    }
+    const restore = async () => {
+      let snapshot: RestoreSnapshot;
+      try {
+        const status = await fetchStatus(stored.taskId);
+        snapshot = {
+          kind: "status",
+          terminal: typeof status.state === "string" && isTerminalTaskState(status.state),
+          status,
+        };
+      } catch (error) {
+        snapshot = isNotFoundApiError(error)
+          ? { kind: "notFound" }
+          : { kind: "unreachable" };
+      }
+      if (disposed) {
+        return;
+      }
+      const plan = resolveRestore(stored, snapshot);
+      if (plan.plan === "fill" && snapshot.kind === "status") {
+        setLastOutcome(toBatchOutcome(snapshot.status as TaskStatusFace));
+        setActiveTask(null);
+        clearBatchTask(defaultBatchStorage(), projectId, kind);
+        void queryClient.invalidateQueries({ queryKey: ["/api/exports"] });
+        return;
+      }
+      if (plan.plan === "drop") {
+        clearBatchTask(defaultBatchStorage(), projectId, kind);
+        setRestoreNotice("批量任务记录已失效（服务端无此任务——已清除本地记录）");
+        return;
+      }
+      if (plan.plan === "keep") {
+        setRestoreNotice("批量任务自动恢复未成功（网络异常）——刷新页面可重试");
+        return;
+      }
+      if (!stillCurrent(readBatchTask(defaultBatchStorage(), projectId, kind), stored.taskId)) {
+        return; // R5：异步窗口内已被新提交覆盖/清除——静默放弃本次恢复
+      }
+      setActiveTask(stored.taskId);
+      setProgress(makeResumeProgress(stored.total)); // D6 合成首帧
+      void awaitTerminal(stored.taskId, stored.total).catch((error) => {
+        if (activeTaskIdRef.current !== stored.taskId) {
+          return; // 已被新提交取代（sourceRef 覆盖致本流悬挂）——状态归新任务
+        }
+        setLastOutcome({
+          state: "failed",
+          files: [],
+          failures: [],
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    };
+    void restore();
+    return () => {
+      disposed = true;
+    };
+    // 挂载恢复恰一次（fetchStatus/awaitTerminal 为渲染期闭包——稳定依赖
+    // 面仅 projectId/kind 两键；hook 消费方 ExportButton 两参恒定）。
+  }, [projectId, kind]);
+
+  return {
+    submitBatch,
+    cancelActive,
+    activeTaskId,
+    cancelError,
+    cancelPending,
+    restoreNotice,
+    progress,
+    lastOutcome,
+  };
 }

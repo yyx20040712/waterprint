@@ -46,6 +46,10 @@
  *     （三按钮统一 in-flight 门）；进度 toast 内嵌 antd Progress 行内条
  *     （duration=0 持有+终态 destroy 销毁——同键原位更新形态不变）；挂
  *     BatchStatusLine 常驻回溯行（最近批量任务三态——hook lastOutcome 消费）。
+ *   - SVRB2（2026-09-09 批量任务面二期·PD2/PD7）：在途行内「取消批量」
+ *     按钮（activeTaskId 非空即显——TaskPanel 取消先例形态；恢复态同享）
+ *     +cancelError 行内 danger 行+restoreNotice 一次性 info（挂载恢复
+ *     失效/未成功提示——非 error 非用户过错）。
  */
 import { useEffect, useState } from "react";
 import { Button, Modal, Progress, Select, Space, Typography, message } from "antd";
@@ -86,7 +90,7 @@ export function ExportButton({
   const [messageApi, contextHolder] = message.useMessage();
   const dxfMutation = useExportArtifact("dxf");
   const ifcMutation = useExportArtifact("ifc");
-  const batchApi = useExportBatch("dxf"); // SVRB D6②：N>1 服务端批量任务面
+  const batchApi = useExportBatch("dxf", projectId); // SVRB D6②+SVRB2 D3（projectId=恢复键维度）
 
   // 受控回显口径沿承：未交互=首单元预选（null 兜底）；交互后 []=显式清空。
   const chosenUnits = selectedUnits ?? units.slice(0, 1);
@@ -174,6 +178,14 @@ export function ExportButton({
   // 下 antd message 独立于组件树驻留，卸载即销毁（同 key 无残留）。
   useEffect(() => () => messageApi.destroy(BATCH_PROGRESS_KEY), [messageApi]);
 
+  // SVRB2 D5：挂载恢复失效/未成功一次性提示（drop/keep 分支文案——非
+  // error 非用户过错；state 变化触发恰一次，新提交时 hook 侧清空）。
+  useEffect(() => {
+    if (batchApi.restoreNotice !== null) {
+      messageApi.info(batchApi.restoreNotice);
+    }
+  }, [batchApi.restoreNotice, messageApi]);
+
   // B5 D3：进度=message 文本+antd Progress 行内条（percent=Math.round(*100)
   // TaskPanel 先例；duration=0 持有——终态 destroy 销毁，同键原位更新不变）。
   useEffect(() => {
@@ -255,6 +267,21 @@ export function ExportButton({
         progress={batchApi.progress}
         lastOutcome={batchApi.lastOutcome}
       />
+      {/* SVRB2 PD2/PD7：在途行内取消（activeTaskId 非空即显——提交与恢复
+          两路径同享；loading=cancelPending 防重；SSE cancelled 事件收束闭环） */}
+      {batchApi.activeTaskId !== null ? (
+        <Button
+          size="small"
+          danger
+          loading={batchApi.cancelPending}
+          onClick={() => void batchApi.cancelActive()}
+        >
+          取消批量
+        </Button>
+      ) : null}
+      {batchApi.cancelError !== null ? (
+        <Typography.Text type="danger">取消失败：{batchApi.cancelError}</Typography.Text>
+      ) : null}
     </Space>
   );
 }

@@ -16,6 +16,7 @@ import {
   batchStatusText,
   deriveBatchProgress,
   isTerminalTaskState,
+  makeResumeProgress,
   parseTaskEventData,
   submitExportBatch,
   toBatchOutcome,
@@ -194,5 +195,16 @@ describe("任务面纯函数（SSE 消费/终态投影）", () => {
     expect(
       batchStatusText("dxf", null, { state: "cancelled", files: ["a.dxf"], failures: [], error: null }),
     ).toBe("批量出图已取消：已产 1 项"); // B5 R3：四态文案主语统一「批量出图」
+  });
+
+  it("batchStatusText：空 stageText 进行中态文案完整（SVRB2 D6/R4——恢复首帧不产生残缺文案）", () => {
+    // 恢复合成首帧 stageText=""：进行中分支不消费 stageText（无 undefined 段）。
+    expect(batchStatusText("dxf", { done: 0, total: 3, stageText: "", percent: 0 }, null)).toBe(
+      "批量出图进行中 0%·0/3",
+    );
+  });
+
+  it("makeResumeProgress：恢复首帧合成（done=0 保守下界+存储 total+空 stageText+percent 0）", () => {
+    expect(makeResumeProgress(3)).toEqual({ done: 0, total: 3, stageText: "", percent: 0 });
   });
 });
