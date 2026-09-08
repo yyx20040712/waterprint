@@ -246,3 +246,19 @@ def test_sort_classes_malformed_failclosed(tmp_path: Path) -> None:
     broken.write_bytes(data[:cut] + data[cut + 2:])
     with pytest.raises(InvalidDrawingError):
         sort_classes(broken)
+
+
+def test_sort_classes_lf_line_ending_platform(tmp_path: Path) -> None:
+    """CI 首验回修（批 14-FIX 热修）：LF 行尾（Linux ezdxf 导出原生形态）
+    归一不误拒——行尾自适应防再发（Windows 本地单平台盲区补强）。"""
+    sort_classes = getattr(_mod, "_sort_classes_section")
+    from waterprint.drafting.styles import base_styles
+
+    good = write_dxf(_group(), base_styles(), tmp_path / "crlf.dxf", _meta())
+    lf = tmp_path / "lf.dxf"
+    lf.write_bytes(good.read_bytes().replace(b"\r\n", b"\n"))
+    sort_classes(lf)  # LF 形态归一不抛（CI Linux 实红形态）
+    normalized = lf.read_bytes()
+    assert b"\r\n" not in normalized  # 写回保持 LF 原生形态
+    # LF 归一结果与 CRLF 归一结果仅行尾异（段内容/序一致）
+    assert normalized.replace(b"\n", b"\r\n") == good.read_bytes()

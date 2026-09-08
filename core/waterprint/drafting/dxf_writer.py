@@ -27,6 +27,8 @@
 #      与 PYTHONHASHSEED 无关——探针 b14-probe/probe_fixface2.py 20
 #      采样实证]；CLASS 记录零顺序语义[类声明表]，记录块按组码 0 分界
 #      字典序排序——ezdxf readfile 往返完整+幂等+跨进程恒等三证。
+#      行尾自适应：ezdxf ASCII 导出 Windows=CRLF/Linux=LF 平台原生
+#      [CI 首验实录]，归一按原生行尾就地改写。
 #      OBJECTS 段不归一：26 采样零漂移+首对象=根字典位置惯例保守不动）。
 #   R4 路径安全（§18）：输出路径限制在配置输出目录内拼接 + 分量校验，
 #      拒绝 ".."/绝对路径分量——越界抛领域异常。
@@ -186,17 +188,20 @@ def _sort_classes_section(out: Path) -> None:
     """R3 补充（批 14-FIX）：落盘后 CLASSES 段记录块字典序归一（就地改写）。
 
     仅动 CLASSES 段内记录序（ezdxf 注册序=进程熵噪声，跨进程双稳态）；
-    其余段/行零触碰（bytes 级 CRLF 分界往返无损）。畸形输入 fail-closed
-    抛 InvalidDrawingError——禁静默丢行。
+    其余段/行零触碰。行尾自适应（ezdxf ASCII 导出 Windows=CRLF/Linux
+    =LF 平台原生——CI 首验实录；快照测试规范化器 replace 归一同款
+    差异面对象，此处按原生形态就地改写不引入跨平台字节变更）。
+    畸形输入 fail-closed 抛 InvalidDrawingError——禁静默丢行。
     """
     data = out.read_bytes()
-    lines = data.split(b"\r\n")
+    eol = b"\r\n" if b"\r\n" in data else b"\n"
+    lines = data.split(eol)
     start, end = _classes_range(lines)
     merged: list[bytes] = []
     for block in sorted(_group_pairs(lines[start:end])):
         merged.extend(block)
     lines[start:end] = merged
-    out.write_bytes(b"\r\n".join(lines))
+    out.write_bytes(eol.join(lines))
 
 
 def _translate(doc: Drawing, entities: EntityGroup, styles: StyleTable,
