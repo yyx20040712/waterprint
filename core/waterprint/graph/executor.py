@@ -70,11 +70,16 @@
 #   镜像测试零波移）；回路域/_RunState/execute_graph/_solve_group 全
 #   留守。上方【工况映射 DSL】/【UF-42 投影表】节语义注记为历史全文
 #   ——定义面见两伴生件。
+# 【TD1 拆分注记】（2026-09-09）：输入装配域六件（_LOOP_KEYS/_NullSink/
+#   _endpoint/_edges_from_design/_loop_config/_unit_params）迁
+#   executor_assembly.py（缝 A——预算减压+伴生件第三例，行为零变更
+#   纯搬迁）；本文件顶部同名导入保引用连续（恒等钉
+#   tests/graph/test_executor_assembly.py）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final, Protocol, final
@@ -90,7 +95,7 @@ from waterprint.contracts.quantity import DimKey, parse
 from waterprint.contracts.result_schema import PlantResult, ReproTriple, UnitResultSnapshot
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import InvalidSludgeError, SludgeFlow
-from waterprint.contracts.trace_api import TraceNodeSpec, TraceSink
+from waterprint.contracts.trace_api import TraceSink
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 
 # B3 R2 再导出（修正③——显式清单；冗余别名形态被 ruff PLC0414 拦）
@@ -100,10 +105,18 @@ from waterprint.graph.cache import (
     default_cache,
     design_fingerprint,
 )
+from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生件
+    _LOOP_KEYS,  # noqa: F401  # 引用连续专用（消费面=executor_assembly._loop_config）
+    _edges_from_design,
+    _endpoint,  # noqa: F401  # 同上（消费面=executor_assembly._edges_from_design）
+    _loop_config,
+    _NullSink,
+    _unit_params,
+)
 from waterprint.graph.executor_dsl import (
     InvalidExecutionError,
     _apply_mappings,
-    _dotted,  # noqa: F401  # 再导出专用（消费面 from executor import 零改动）
+    _dotted,  # noqa: F401  # 再导出专用（消费面 From executor import 零改动）
     _rule_names,  # noqa: F401  # 同上
 )
 from waterprint.graph.executor_projection import (
@@ -128,83 +141,12 @@ _WATER_INIT: Final[dict[str, float]] = {"q_avg_daily": 0.0, "kz": 1.0}
 # SLUDGE 初值 q_wet=1e-6（R1 墙 B——语义见【回路闭包口径】；mm×mm 借用派生）。
 _SLUDGE_INIT: Final[dict[str, float]] = {
     "q_wet": parse(1.0, "mm", DimKey.LENGTH) ** 2, "ds": 0.0, "moisture": 0.0}
-_LOOP_KEYS: Final[tuple[str, ...]] = (
-    "loop.tolerance", "loop.max_iterations", "loop.damping"
-)
 
 
 class UnitRegistry(Protocol):
     """单元注册表协议：unit_id → Unit 实例（app.py 装配，R2 装配边界）。"""
 
     def __getitem__(self, unit_id: str) -> Unit: ...
-
-
-@final
-class _NullSink:
-    """空迹收集器（env.trace_sink 缺省占位；trace 结果面归 M1——D10 记档）。"""
-
-    def record(self, node: TraceNodeSpec) -> None:
-        """丢弃记录（结构满足 TraceSink 协议）。"""
-
-
-def _endpoint(raw: object, side: str, index: int) -> PortRef:
-    """边端点转换：{"unit_id","port_id"} → PortRef（键缺失/类型错拒）。"""
-    if not isinstance(raw, Mapping):
-        raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须为对象（含 unit_id/port_id）：{type(raw).__name__}")
-    unit_id = raw.get("unit_id")
-    port_id = raw.get("port_id")
-    if not isinstance(unit_id, str) or not isinstance(port_id, str):
-        raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须含字符串 unit_id/port_id：{unit_id!r}, {port_id!r}")
-    return PortRef(unit_id=unit_id, port_id=port_id)
-
-
-def _edges_from_design(raw_edges: Sequence[object]) -> tuple[Edge, ...]:
-    """design.edges（D3 冻结元素形态）→ contracts.ports.Edge 元组。"""
-    edges: list[Edge] = []
-    for index, element in enumerate(raw_edges):
-        if not isinstance(element, Mapping):
-            raise InvalidExecutionError(
-                f"design.edges[{index}] 须为对象（src/dst/recycle）："
-                f"得到 {type(element).__name__}")
-        recycle = element.get("recycle", False)
-        if not isinstance(recycle, bool):
-            raise InvalidExecutionError(
-                f"design.edges[{index}].recycle 须为布尔：得到 {recycle!r}")
-        edges.append(
-            Edge(src=_endpoint(element.get("src"), "src", index),
-                 dst=_endpoint(element.get("dst"), "dst", index), recycle=recycle))
-    return tuple(edges)
-
-
-def _loop_config(env: RunEnv) -> LoopConfig:
-    """RunEnv.engine_params 的 loop.* 三键 → LoopConfig（缺键=装配缺陷拒）。"""
-    missing = [key for key in _LOOP_KEYS if key not in env.engine_params]
-    if missing:
-        raise InvalidExecutionError(
-            f"RunEnv.engine_params 缺引擎参数键 {missing}"
-            "（app 装配应经 _engine_params 投影补齐——UF-08）"
-        )
-    values = {key: env.engine_params[key].value for key in _LOOP_KEYS}
-    count = values["loop.max_iterations"]
-    if count != int(count):
-        raise InvalidExecutionError(f"loop.max_iterations 须为整数值：得到 {count!r}")
-    return LoopConfig(tolerance=values["loop.tolerance"], max_iterations=int(count),
-                      damping=values["loop.damping"])
-
-
-def _unit_params(unit: Unit, node_value: Mapping[str, object]) -> dict[str, float]:
-    """ctx.params 装配：manifest 默认值 ∪ design 节点值覆盖（bool 拒，GR-02）。"""
-    params = {spec.field_id: spec.default for spec in unit.manifest.params}
-    for key, value in node_value.items():
-        if key == "kind":
-            continue  # 内置节点结构元数据（D5 装配口径），不进参数面
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            raise InvalidExecutionError(
-                f"design 节点参数 {key!r} 须为数值（bool 拒，GR-02）：得到 {value!r}")
-        params[key] = float(value)
-    return params
 
 
 def _fields(fluid: FluidKind) -> tuple[str, ...]:

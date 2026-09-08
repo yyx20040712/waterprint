@@ -114,6 +114,13 @@
 #     注册表读面——下载校验+清单扫描）；顶部 import 透传再导出保公开面
 #     （__all__ 10 名恒等——main/routers/测试零改动）；_write_meta 留守
 #     本件（唯一调用方=create_export，消费方内聚优先——D1 终裁）。
+#   - TD1（2026-09-09 技术债小批 PD4-bis）：预算预拆第二轮——五私有
+#     helper（_template_for/_latest_calc_result/_reject_conflicting_
+#     batch_pairs/_write_meta/_post_export_dwg）+常量 _TEMPLATE_KINDS 迁
+#     新件 exports_io.py（IO 支撑域——support R-1 纯度声明不可承载四件
+#     IO/ctx 面；B7 D1「_write_meta 留守」内聚裁定随预算减压改裁，搬迁
+#     非删除调用面零变）；dwg_convert import 随 _post_export_dwg 迁（唯一
+#     services 消费方）；449 行→预算注记刷新。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -135,10 +142,16 @@ import structlog
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
-from waterprint_server.jobs.dwg import dwg_convert
 from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
+from waterprint_server.services.exports_io import (  # TD1 PD4-bis：IO 支撑域伴生件
+    _latest_calc_result,
+    _post_export_dwg,
+    _reject_conflicting_batch_pairs,
+    _template_for,
+    _write_meta,
+)
 from waterprint_server.services.exports_registry import list_exports, resolve_export_file
 from waterprint_server.services.exports_support import (
     _KINDS,
@@ -153,7 +166,6 @@ from waterprint_server.services.exports_support import (
     _deterministic_name,
     _scale_text_of,
     _sheet_of,
-    _sidecar_text,
     _unit_id_of,
     reject_bad_route_options,
 )
@@ -176,86 +188,7 @@ __all__ = [
 ]
 
 _IMMEDIATE_LIMIT: Final[int] = 1  # 单产物即时上限（R3 v1：超过即转任务）
-# FE9 D2：模板消费 kind 面（唯一）——存在性闸只对 calcbook 执行（core
-# calcbook 分支真读模板；dxf/audit/estimate/ifc core 链零模板消费——注记区）。
-_TEMPLATE_KINDS: Final[frozenset[str]] = frozenset({"calcbook"})
 _LOGGER = structlog.get_logger(__name__)
-
-
-def _template_for(ctx: ServiceContext, kind: str) -> Path:
-    """模板解析（data/templates；缺位=诚实未就绪，UF-16）。
-
-    FE9 D2 收窄：存在性闸仅对 _TEMPLATE_KINDS（calcbook）执行——其余
-    kind 名义路径不闸（core 链零模板消费，闸在 core 正门，注记区）。
-    """
-    template = ctx.templates_dir / f"{kind}_unit.xlsx"
-    if kind in _TEMPLATE_KINDS and not template.is_file():
-        raise ExportTemplateMissingError(
-            f"导出模板未就绪：{template} 不存在（UF-16——模板归 "
-            "data/templates 录入批；禁静默空产物）"
-        )
-    return template
-
-
-def _latest_calc_result(
-    ctx: ServiceContext, project_id: str
-) -> Mapping[str, Any]:
-    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37；
-    ENG4 D2：原二元组收敛单值——scene/elevation/cost 三服务同款签名）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    if latest is None:
-        raise ExportSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return latest
-
-
-def _reject_conflicting_batch_pairs(
-    items: Sequence[Mapping[str, Any]],
-) -> None:
-    """ifc 批内 unit 一致小闸（SVRB D3 第三族 422；函数沿承载原闸名）。
-
-    SVRB 起 worker 经 project_path 通道透传 assumptions/site_design——原
-    两族拒绝（ifc 项任何/批级 unit 空+dxf 项，根因「worker 无透传通道」）
-    删除；本闸改载：items 归一后 ifc 项 unit_id 须全相同（含全缺省）——
-    ifc 为模型级产物不分单元（命名 unit 分量置 None：混合单元=同名覆盖
-    或 N 份冗余两态皆错）；同 unit 多工况由 condition 分量保证唯一。
-    """
-    units = {
-        str(item.get("unit_id") or "")
-        for item in items
-        if str(item.get("kind", "")) == "ifc"
-    }
-    if len(units) > 1:
-        raise InvalidExportRequestError(
-            "ifc 批量项 unit_id 须全一致（ifc 为模型级产物不分单元——"
-            "混合单元即拒；同单元多工况请保持 unit 一致或全缺省）"
-        )
-
-
-def _write_meta(ctx: ServiceContext, meta: ExportMeta) -> None:
-    """注册表边车（原子写；只记元数据，R2；M8-A/W3 tmp 唯一化——worker 同族）。"""
-    sidecar = ctx.exports_dir / f"{meta.file_name}.meta.json"
-    tmp = sidecar.with_name(f"{sidecar.name}.{uuid.uuid4().hex}.tmp")
-    tmp.write_text(_sidecar_text(meta), encoding="utf-8", newline="\n")
-    os.replace(tmp, sidecar)
-
-
-def _post_export_dwg(ctx: ServiceContext, kind: str, artifact: Path) -> str | None:
-    """WP0（ODA-A）挂点：dxf 且开关非空→子进程转 DWG 同名并排（原语
-    jobs.dwg.dwg_convert）；失败/超时=warning 跳过，成功返回名供边车登记。
-    """
-    if kind != "dxf":
-        return None
-    converter = ctx.settings.dwg_converter_path.strip()
-    if not converter:  # 默认空=关（容器内无转换器，零行为漂移）
-        return None
-    dwg = dwg_convert(converter, artifact, ctx.settings.dwg_converter_timeout_s)
-    return dwg.name if dwg is not None else None
 
 
 async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参惯例（PLR0915 已消——ENG7 P3b 抽批量对偶拒绝闸与 dxf kwargs 组装两子函数）

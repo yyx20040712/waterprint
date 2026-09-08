@@ -11,6 +11,8 @@
 # 其余为零依赖门禁（系统 Python 直接可跑）。
 # 第十门禁 check_trust_root.py（外审整改#3 H1）：三信任根变更须带
 # [HUMAN-LOCK]（AGENTS §7）——门禁数基线 9→10（WP2 台账）。
+# 第十一门禁 check_deprecation_gate.py（TD1 2026-09-09）：GR-21
+# 弃用到期门禁——门禁数基线 10→11（TD1 台账）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 GATES = (
     "check_contract_headers.py",
+    "check_deprecation_gate.py",
     "check_file_budgets.py",
     "check_grep_gates.py",
     "check_magic_numbers.py",
