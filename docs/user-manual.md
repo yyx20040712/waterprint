@@ -179,7 +179,9 @@ FAQ 第 2 问）。
 | 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |
 
 > 批量导出（M5 起）：`POST /api/exports/{kind}` 载荷 `items` 数组 >1 项
-> 即转低优先级批量任务（服务端幂等键防重复提交；进度走 SSE 订阅）；
+> 即转低优先级批量任务（服务端幂等键防重复提交；进度走 SSE 订阅；
+> 在途可点「取消批量」协作取消[已产清单如实计数]；刷新/切页重挂后经
+> 本地会话存储自动恢复在途跟踪[SVRB2]）；
 > 单产物即时生成上限 1 项。鉴权 token 与 SSE 限流为可配置开关
 > （环境变量，默认本地免鉴权）。
 
