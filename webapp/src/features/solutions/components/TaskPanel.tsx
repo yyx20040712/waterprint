@@ -89,6 +89,11 @@ export function TaskPanel({
     effective?.percent !== null && effective?.percent !== undefined
       ? Math.round(effective.percent * 100)
       : null;
+  // FIX-ACC1①：done 态显示层归一 100%——服务端阶段点位 percent=(index+1)/
+  // (total+1)（worker._report 幂商式），三阶段任务终值=75% 且 done 事件不再
+  // 发射 100%；任务实际已完成，进度条停在 75% 误导验收（用户报告 2026-09-09）。
+  // cancelled/failed 不覆写——保留诚实末值（半途语义）。
+  const displayPercent = state === "done" ? 100 : percent;
   const stageText =
     effective !== null && effective.stage !== ""
       ? (STAGE_LABELS[effective.stage] ?? effective.stage)
@@ -117,9 +122,9 @@ export function TaskPanel({
       </Typography.Text>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
         <Tag color={label.color}>{label.text}</Tag>
-        {percent !== null ? (
+        {displayPercent !== null ? (
           <Progress
-            percent={percent}
+            percent={displayPercent}
             size="small"
             style={{ width: 220, marginBottom: 0 }}
           />

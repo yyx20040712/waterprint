@@ -41,6 +41,7 @@ import { Button, Input, Typography } from "antd";
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
+import { dimLabel } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
@@ -70,7 +71,9 @@ function OverrideDot() {
 /** 灰阶小字声明面（dim/默认/范围/档位——展示数据不参与校验；覆盖行默认
  *  与 design 值并列显示——R2 修复（一审 M1），AssumptionsPanel 双显同构）。 */
 function MetaLine({ entry }: { entry: ParamEntry }) {
-  const parts: string[] = [entry.dim];
+  // FIX-ACC1③：dim 裸枚举名→中文量名+单位符号（shared/dimLabels 显示层
+  // 映射——CANONICAL_UNITS 真源镜像，零换算）；未知枚举原样诚实呈现。
+  const parts: string[] = [dimLabel(entry.dim)];
   if (entry.default !== null && entry.default !== undefined) {
     parts.push(`默认 ${entry.default}`);
   }

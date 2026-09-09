@@ -31,9 +31,11 @@
  *     重挂载告警）；编辑态 store（canvasStore）/连线规则/自动布局维持
  *     骨架挂账段二（D5：只读批无编辑态入 store）。
  */
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
+  useNodesInitialized,
+  useReactFlow,
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -48,6 +50,29 @@ import { UnitNode } from "./UnitNode";
 
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: UnitNode };
+
+/** 视口收敛子件（FIX-ACC1②，2026-09-09 验收缺陷）：节点集就绪且**测量
+ * 完成**后显式 fitView。两层前置缺陷：① StrictMode dev 双挂载使
+ * <ReactFlow fitView> 挂载期一次性拟合失效；② 拟合早于节点测量时
+ * fitView 拿不到尺寸=空拟合（rAF 一帧不够——实测 19 节点仍 9 个溢出
+ * 容器被裁剪）。useNodesInitialized 门控+fitKey 去重（同节点集只拟合
+ * 一次——选中态变化不重置视口）。 */
+function FitViewOnNodes({ fitKey }: { fitKey: string }) {
+  const { fitView } = useReactFlow();
+  const nodesReady = useNodesInitialized();
+  const fittedRef = useRef("");
+  useEffect(() => {
+    if (!nodesReady || fitKey === "" || fittedRef.current === fitKey) {
+      return;
+    }
+    fittedRef.current = fitKey;
+    // includeHiddenNodes：未测量节点按位置零尺寸纳入——防部分测量时
+    // 拟合范围漏节点（minZoom 0.1 见 ReactFlow prop——默认 0.5 会钳住
+    // 宽图幅的收敛缩放，19 节点三线图实测被钳后仍左右溢出）。
+    void fitView({ padding: 0.1, duration: 200, includeHiddenNodes: true });
+  }, [nodesReady, fitKey, fitView]);
+  return null;
+}
 
 export function CanvasFlow({
   projectId,
@@ -90,6 +115,9 @@ export function CanvasFlow({
       })),
     [projection.flow, selectedUnitId],
   );
+  // 视口收敛键：节点集签名（选中态变化不触发重拟合——只有数据面变化才收敛）
+  const fitKey =
+    nodes.length > 0 ? `${nodes.length}:${nodes[0]?.id ?? ""}` : "";
 
   if (query.isError) {
     return (
@@ -123,6 +151,7 @@ export function CanvasFlow({
         edges={flow.edges}
         nodeTypes={NODE_TYPES}
         fitView
+        minZoom={0.1}
         colorMode="dark"
         nodesDraggable={false}
         nodesConnectable={false}
@@ -134,7 +163,9 @@ export function CanvasFlow({
         }}
         proOptions={{ hideAttribution: true }}
         style={{ backgroundColor: "#141414" }}
-      />
+      >
+        <FitViewOnNodes fitKey={fitKey} />
+      </ReactFlow>
     </div>
   );
 }

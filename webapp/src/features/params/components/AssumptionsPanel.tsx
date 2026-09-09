@@ -39,6 +39,7 @@ import {
   useSaveProjectApiProjectsProjectIdPut,
 } from "../../../shared/api/generated/projects/projects";
 import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
+import { dimLabel } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
 import { useAssumptionCatalog } from "../api/useUnitCatalog";
 import { useProjectDesign } from "../api/useProjectDesign";
@@ -109,7 +110,11 @@ function AssumptionLine({
           : row.overridden
             ? "（覆盖；目录外键）"
             : "（默认）"}
-        {row.dim ? ` · ${row.dim}` : ""}
+        {/* FIX-ACC1③：dim 裸枚举→中文量名+单位（shared/dimLabels——与
+            ParamForm MetaLine 同源同口径）；假设行说明文内的裸枚举字样
+            （如「DIMENSIONLESS 裸值登记」）系假设登记原文——元数据面归
+            显示层，说明文保持登记原文不重写。 */}
+        {row.dim ? ` · ${dimLabel(row.dim)}` : ""}
       </div>
       <div style={{ display: "flex", gap: 4, alignItems: "center", marginTop: 2 }}>
         <InputNumber

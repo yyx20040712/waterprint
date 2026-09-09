@@ -163,9 +163,16 @@ export function SolutionsPane() {
 
   // R3：?task= 回写驱动已挂载 pane（ParamForm dispatchEvent——URL 单一
   // 真相重读比对；同值早退不扰动；卸载移除监听）
+  // FIX-ACC1④（2026-09-09 验收缺陷）：重读口径与初始态对齐（task 轨
+  // 优先，缺则 enum 轨）。原实现只读 ?task=——枚举任务终态回调派发
+  // TASK_EVENT 时，enum-only URL 解析得 null → 面板被误卸载：失败枚举
+  // 的错误详情整面不可见（成功枚举因方案表在场而不显眼）。双轨重读后
+  // enum 终态重读=同值早退，面板驻留呈现终态/失败详情。
   useEffect(() => {
     const onTaskParam = () => {
-      const next = parseTaskParam(window.location.search);
+      const next =
+        parseTaskParam(window.location.search) ??
+        parseEnumParam(window.location.search);
       setPanelTaskId((prev) => (prev === next ? prev : next));
     };
     window.addEventListener(TASK_EVENT, onTaskParam);
