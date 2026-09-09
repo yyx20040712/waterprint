@@ -39,7 +39,7 @@
  */
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Input, Typography } from "antd";
+import { Button, Input, InputNumber, Modal, Select, Typography } from "antd";
 
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
@@ -49,6 +49,12 @@ import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
 import { collectParamChanges, indexUnits } from "../lib/designParams";
+import { deriveStep, isContinuousParam } from "../lib/deriveStep";
+import { useDesignMap } from "../feasibility/api/useDesignMap";
+import { FeasibilityBar } from "../feasibility/components/FeasibilityBar";
+import { FeasibilityHeatmap } from "../feasibility/components/FeasibilityHeatmap";
+import { formatBackfill } from "../feasibility/lib/feasibility";
+import type { DesignMapResponse } from "../../../shared/api/generated/model";
 
 /** 侧栏宽度常量（canvasPane D4 组合面同款）。 */
 const SELECT_BLUE = "#1668dc";
@@ -152,6 +158,48 @@ export function ParamForm({
         }`
       : null;
 
+  // ── FD 可行域引导（PD7 2026-09-09）：行内 1D+模态 2D ──
+  const [fdField, setFdField] = useState<string | null>(null);
+  const [fdSecond, setFdSecond] = useState<string | null>(null);
+  const [fdProduct, setFdProduct] = useState<DesignMapResponse | null>(null);
+  const designMap = useDesignMap(projectId, unitId);
+  const fdLoading = designMap.isPending;
+  const runFeasibility = (axes: { field_id: string }[]) => {
+    designMap.mutate(
+      { axes },
+      { onSuccess: (product) => setFdProduct(product) },
+    );
+  };
+  const openFeasibility = (fieldId: string) => {
+    if (fdField === fieldId) {
+      return; // 已展开——不重复请求（继续微调面）
+    }
+    setFdField(fieldId);
+    setFdSecond(null);
+    setFdProduct(null);
+    runFeasibility([{ field_id: fieldId }]);
+  };
+  const pickSecondAxis = (fieldId: string) => {
+    if (fdField === null) {
+      return;
+    }
+    setFdSecond(fieldId);
+    setFdProduct(null);
+    runFeasibility([{ field_id: fdField }, { field_id: fieldId }]);
+  };
+  const backfill = (key: string, value: number) => {
+    setDrafts((prev) => ({ ...prev, [key]: formatBackfill(value) }));
+  };
+  const fdSecondOptions = params
+    .filter(
+      (entry) =>
+        isContinuousParam(entry) && entry.field_id !== fdField,
+    )
+    .map((entry) => ({
+      value: entry.field_id,
+      label: `${entry.label_zh ?? entry.field_id}（${entry.field_id}）`,
+    }));
+
   return (
     <section>
       <Typography.Title level={5} style={{ marginTop: 0 }}>
@@ -180,6 +228,9 @@ export function ParamForm({
             const draftText = drafts[fieldId];
             const invalid =
               draftText !== undefined && invalidFields.includes(fieldId);
+            // PD7 入口精确条件：仅连续区间参数（grid 缺席且 range 在场）
+            const continuous = isContinuousParam(entry);
+            const range = entry.range ?? null;
             return (
               <label key={fieldId} style={{ display: "block" }}>
                 {/* B2 PD8：主标签=label_zh ?? fieldId（中文真源，null 诚实
@@ -189,34 +240,106 @@ export function ParamForm({
                 <span style={{ fontFamily: "monospace", fontSize: 12 }}>
                   {entry.label_zh ?? fieldId}
                   {overridden ? <OverrideDot /> : null}
+                  {continuous ? (
+                    <Button
+                      size="small"
+                      type="link"
+                      style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 12 }}
+                      data-testid={`fd-entry-${fieldId}`}
+                      loading={fdLoading && fdField === fieldId}
+                      onClick={() => openFeasibility(fieldId)}
+                    >
+                      可行域
+                    </Button>
+                  ) : null}
                 </span>
                 {entry.label_zh ? (
                   <div style={{ ...GRAY_SMALL, fontFamily: "monospace" }}>
                     {fieldId}
                   </div>
                 ) : null}
-                <Input
-                  size="small"
-                  status={invalid ? "error" : undefined}
-                  value={
-                    draftText !== undefined
-                      ? draftText
-                      : overridden
-                        ? String(values[fieldId])
-                        : ""
-                  }
-                  onChange={(event) => {
-                    setDrafts((prev) => ({
-                      ...prev,
-                      [fieldId]: event.target.value,
-                    }));
-                  }}
-                />
+                {continuous && range !== null ? (
+                  // PD8：Input→InputNumber（仅 93 连续区间参数）——箭头步长
+                  // =(max-min)/10 单源派生（deriveStep——与 FD 轴缺省同式，
+                  // 键盘任意值不受限，P0-4 概念锁定）
+                  <InputNumber
+                    size="small"
+                    status={invalid ? "error" : undefined}
+                    step={deriveStep(range)}
+                    style={{ width: "100%" }}
+                    value={
+                      draftText !== undefined
+                        ? draftText
+                        : overridden
+                          ? String(values[fieldId])
+                          : ""
+                    }
+                    onChange={(value) => {
+                      setDrafts((prev) => ({
+                        ...prev,
+                        [fieldId]: value === null || value === "" ? "" : String(value),
+                      }));
+                    }}
+                  />
+                ) : (
+                  <Input
+                    size="small"
+                    status={invalid ? "error" : undefined}
+                    value={
+                      draftText !== undefined
+                        ? draftText
+                        : overridden
+                          ? String(values[fieldId])
+                          : ""
+                    }
+                    onChange={(event) => {
+                      setDrafts((prev) => ({
+                        ...prev,
+                        [fieldId]: event.target.value,
+                      }));
+                    }}
+                  />
+                )}
                 <MetaLine entry={entry} />
                 {invalid ? (
                   <Typography.Text type="danger" style={{ fontSize: 11 }}>
                     非数值或空——修正后才能提交
                   </Typography.Text>
+                ) : null}
+                {fdField === fieldId ? (
+                  <div data-testid={`fd-panel-${fieldId}`}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                        第二轴（2D 热力图）
+                      </Typography.Text>
+                      <Select
+                        size="small"
+                        style={{ minWidth: 180 }}
+                        placeholder="选第二轴"
+                        value={fdSecond ?? undefined}
+                        options={fdSecondOptions}
+                        onChange={pickSecondAxis}
+                        data-testid="fd-second-axis"
+                      />
+                    </div>
+                    {designMap.isError ? (
+                      <Typography.Text type="danger" style={{ fontSize: 11 }}>
+                        可行域求值失败：
+                        {designMap.error instanceof Error
+                          ? designMap.error.message
+                          : "未知错误"}
+                      </Typography.Text>
+                    ) : fdProduct !== null && fdProduct.stats.total > 0 && fdSecond === null ? (
+                      <FeasibilityBar
+                        product={fdProduct}
+                        onPick={(value) => backfill(fieldId, value)}
+                      />
+                    ) : fdLoading ? (
+                      <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                        可行域求值中…
+                      </Typography.Text>
+                    ) : null}
+                  </div>
                 ) : null}
               </label>
             );
@@ -249,6 +372,41 @@ export function ParamForm({
           ) : null}
         </div>
       )}
+      {/* PD7 呈裁④：2D 模态热力图（第二轴选取→Modal——手动关；回填后
+          不自动关闭，用户可继续微调） */}
+      <Modal
+        open={fdSecond !== null}
+        title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${
+          fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""
+        }`}
+        footer={null}
+        onCancel={() => setFdSecond(null)}
+        width={720}
+      >
+        {designMap.isError ? (
+          <Typography.Text type="danger">
+            可行域求值失败：
+            {designMap.error instanceof Error ? designMap.error.message : "未知错误"}
+          </Typography.Text>
+        ) : fdProduct !== null && fdProduct.mask !== null && fdField !== null && fdSecond !== null ? (
+          <>
+            <FeasibilityHeatmap
+              product={fdProduct}
+              onPick={(valueA, valueB) => {
+                backfill(fdField, valueA);
+                backfill(fdSecond, valueB);
+              }}
+            />
+            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+              点击可行格（绿）回填两参数；点击不可行格（灰）吸附最近可行格。
+              可行 {fdProduct.stats.feasible}/{fdProduct.stats.total}（
+              {(fdProduct.stats.feasible_ratio * 100).toFixed(1)}%）。
+            </Typography.Text>
+          </>
+        ) : (
+          <Typography.Text type="secondary">可行域求值中…</Typography.Text>
+        )}
+      </Modal>
     </section>
   );
 }
