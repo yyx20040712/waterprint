@@ -16,11 +16,12 @@
 #   直用，SceneGraph 服务层再导出先例：禁协议层重复声明漂移面）
 #
 # 【行为规格】
-#   R1 真源投影：参数五字段（field_id/dim[DimKey 枚举名]/default/
-#      range/grid）与 ports 逐字来自 manifest——服务层零数值字面量、
-#      不建工程单位映射（D3）；中文名=D1 映射（源 docs/structure-graph.md
-#      §3 总表 32 行+内置四 kind——影子双源风险以镜像测试键集恰等钳制
-#      「缺名/多影即红」；manifest 扩中文字段归数据批收口）。
+#   R1 真源投影：参数六字段（field_id/dim[DimKey 枚举名]/default/
+#      range/grid/label_zh[B2 中文真源——null 诚实缺省]）与 ports 逐字来自
+#      manifest——服务层零数值字面量、不建工程单位映射（D3）；中文名=D1 映射
+#      （源 docs/structure-graph.md §3 总表 32 行+内置四 kind——影子双源风险
+#      以镜像测试键集恰等钳制「缺名/多影即红」；参数级中文名真源=manifest
+#      label_zh，B2 起随六字段投影——数据批收口已兑现）。
 #   R2 builtin 投影（D7）：参数面 server 硬编码（municipal_input=
 #      q_avg_daily/kz+INDICATORS 六键、quality_edit=INDICATORS 六键、
 #      junction/recycle_junction 空参；default/range/grid=null 诚实缺省
@@ -153,7 +154,8 @@ class RangeEntry(BaseModel):
 
 
 class ParamEntry(BaseModel):
-    """单参数条目：五字段全出（D3——dim=DimKey 枚举名，不建工程单位映射）。"""
+    """单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；
+    label_zh=manifest 中文真源投影，builtin 无声明面=null 诚实缺省）。"""
 
     model_config = ConfigDict(frozen=True)
 
@@ -162,6 +164,7 @@ class ParamEntry(BaseModel):
     default: float | None = None  # builtin 无声明面=null 诚实缺省（D7）
     range: RangeEntry | None = None
     grid: tuple[float, ...] | None = None
+    label_zh: str | None = None  # builtin 无声明面=null 诚实缺省（B2——default 字段先例）
 
 
 class PortEntry(BaseModel):
@@ -218,13 +221,14 @@ class AssumptionCatalog(BaseModel):
 
 
 def _param_entry(spec: ParamSpec) -> ParamEntry:
-    """manifest ParamSpec → ParamEntry（五字段逐字——R1）。"""
+    """manifest ParamSpec → ParamEntry（六字段逐字——R1+B2 label_zh 投影）。"""
     return ParamEntry(
         field_id=spec.field_id,
         dim=str(spec.dim),
         default=spec.default,
         range=None if spec.range is None else RangeEntry(min=spec.range[0], max=spec.range[1]),
         grid=spec.grid,
+        label_zh=spec.label_zh,
     )
 
 

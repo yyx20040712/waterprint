@@ -59,17 +59,20 @@ def test_unit_names_keys_clamp_discovered_union_builtin() -> None:
     assert set(_unit_names) == discovered | set(_BUILTIN_KINDS)
 
 
-def test_param_depth_five_fields_from_manifest() -> None:
-    """D3：参数五字段全出（dim=DimKey 枚举名；default/range/grid manifest 原样）。"""
+def test_param_depth_six_fields_from_manifest() -> None:
+    """D3+B2：参数六字段全出（dim=DimKey 枚举名；default/range/grid manifest
+    原样；label_zh=中文真源投影非空）。"""
     catalog = list_units()
     aao = next(entry for entry in catalog.units if entry.unit_id == "municipal_aao")
     n = next(p for p in aao.params if p.field_id == "n")
     assert (n.dim, n.default) == ("DIMENSIONLESS", 2.0)
     assert n.grid == (2.0, 3.0, 4.0, 5.0, 6.0)
     assert n.range is None
+    assert n.label_zh == "池数（格）"  # C1 manifest 填充值（B2 参数级中文真源）
     ns = next(p for p in aao.params if p.field_id == "ns")
     assert ns.grid is None
     assert ns.range is not None and (ns.range.min, ns.range.max) == (0.05, 0.15)
+    assert ns.label_zh == "BOD5 污泥负荷"  # 非网格参数同投影（全参数面非空）
 
 
 def test_builtin_projection_params_and_ports() -> None:
@@ -88,8 +91,9 @@ def test_builtin_projection_params_and_ports() -> None:
         ("TP", "CONCENTRATION"),
     ]  # 必需两键+INDICATORS 六键（sorted 序确定性）
     assert all(
-        p.default is None and p.range is None and p.grid is None for p in municipal.params
-    )  # 无声明面=诚实缺省
+        p.default is None and p.range is None and p.grid is None and p.label_zh is None
+        for p in municipal.params
+    )  # 无声明面=诚实缺省（label_zh 同 default 先例——B2）
     assert [(p.port_id, p.fluid, p.direction) for p in municipal.ports] == [("out", "WATER", "OUT")]
     quality = by_id["quality_edit"]
     assert [p.field_id for p in quality.params] == [

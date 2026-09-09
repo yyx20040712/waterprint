@@ -275,6 +275,15 @@ def _run_enumerate(
             "fail_counts": dict(outcome.diagnosis.fail_counts),
             "suggestions": [dataclasses.asdict(s) for s in outcome.diagnosis.suggestions],
         }
+    # B2②（PD4/PD6）：grid_fields 载荷 [{key,dim,label_zh}]——dim/label_zh 自该
+    # 单元 manifest.params 按 field_id 查（discover_units 注册表=run_enumeration
+    # 装配同源；枚举 done 面 unit_id 恒注册表键——builtin manifest params 空表
+    # 在 build_grid 即拒）；label_zh 真源缺=None 直传，禁 field_id 降级填充
+    # （显示兜底归 webapp label_zh ?? key）。
+    spec_by_field = {
+        spec.field_id: spec
+        for spec in core.discover_units()[str(payload["unit_id"])][0].params
+    }
     return {
         "state": "done",
         "rows_file": str(rows_file),
@@ -283,7 +292,14 @@ def _run_enumerate(
         "truncated": bool(outcome.truncated),
         "diagnosis": diagnosis,
         "columns": [str(column) for column in outcome.rows.columns],
-        "grid_fields": list(outcome.grid.fields),
+        "grid_fields": [
+            {
+                "key": field,
+                "dim": str(spec_by_field[field].dim),
+                "label_zh": spec_by_field[field].label_zh,
+            }
+            for field in outcome.grid.fields
+        ],
         "project_id": payload.get("project_id", ""),
     }
 

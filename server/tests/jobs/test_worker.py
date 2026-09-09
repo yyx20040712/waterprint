@@ -120,6 +120,34 @@ def test_large_result_returns_file_handle_wiring(test_settings, tmp_path) -> Non
     assert len(frame) >= 1  # CASS manifest 网格非空（数据面前提）
 
 
+def test_enumerate_grid_fields_object_payload(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """B2②：grid_fields 载荷=对象数组 [{key,dim,label_zh}]（dim/label_zh 自该
+    单元 manifest.params 按 field_id 查；label_zh 真源缺失=None 直传——禁
+    field_id 降级填充，显示兜底归 webapp）。CASS 二维网格锚定值。"""
+    artifacts = test_settings.exports_dir / "tasks"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "kind": "enumerate",
+        "task_id": "grid-fields-probe",
+        "project_id": "p",
+        "project_path": str(_cass_project_file(tmp_path)),
+        "unit_id": "municipal_cass",
+        "conditions": [],
+        "options": {},
+        "data_dir": str(test_settings.data_dir),
+        "artifacts_dir": str(artifacts),
+    }
+    outcome = run_task(payload, None, None)
+    assert outcome["state"] == "done"
+    grid_fields = outcome["grid_fields"]
+    assert [item["key"] for item in grid_fields] == ["n_pool", "t_cycle"]  # field_id 序
+    assert all(set(item) == {"key", "dim", "label_zh"} for item in grid_fields)  # 三键恰等
+    assert [(item["dim"], item["label_zh"]) for item in grid_fields] == [
+        ("DIMENSIONLESS", "池数（格）"),
+        ("DIMENSIONLESS", "运行周期"),
+    ]  # manifest 真源投影（dim=DimKey 枚举名；label_zh=C1 填充值）
+
+
 def test_unknown_kind_rejected_at_serialization_boundary(tmp_path) -> None:  # type: ignore[no-untyped-def]
     """R1 镜像缺失收口：未知 kind 在 pickle 边界即拒（禁静默空结果）。"""
     from waterprint_server.jobs.worker import InvalidTaskPayloadError
