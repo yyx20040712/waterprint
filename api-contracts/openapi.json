@@ -913,7 +913,7 @@
         "type": "object"
       },
       "ParamEntry": {
-        "description": "单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；\nlabel_zh=manifest 中文真源投影，builtin 无声明面=null 诚实缺省）。",
+        "description": "单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；\nlabel_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面）。",
         "properties": {
           "default": {
             "anyOf": [

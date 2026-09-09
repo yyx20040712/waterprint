@@ -104,6 +104,7 @@ import { LOCK_HINT, isLockConflict } from "../shared/api/http";
 import {
   narrowGridFields,
   resultField,
+  unitOptionLabel,
 } from "../features/solutions/lib/solutionsFields";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
@@ -363,16 +364,13 @@ export function SolutionsPane() {
             value={unitId ?? undefined}
             loading={unitsQuery.isLoading}
             status={unitsQuery.isError ? "error" : undefined}
-            options={units.map((unit) => {
-              // B2 扩面：manifest=目录中文名纯中文；builtin=kind 中文名+
-              // （node_id）后缀；缺席=英文 id 诚实回退（value 仍 node id）
-              const nameZh = nameById.get(unit.kind ?? unit.unitId);
-              const label =
-                unit.kind !== null
-                  ? `${nameZh ?? unit.unitId}（${unit.unitId}）`
-                  : (nameZh ?? unit.unitId);
-              return { value: unit.unitId, label };
-            })}
+            options={units.map((unit) => ({
+              // B2 扩面：label 形态收口 solutionsFields.unitOptionLabel
+              // （manifest 纯中文/builtin 中文名+（node_id）后缀/缺席英文
+              // id 诚实回退；value 仍 node id 零漂移）
+              value: unit.unitId,
+              label: unitOptionLabel(unit, nameById),
+            }))}
             onChange={(value) => {
               setUnitId(value);
               // CP2 D4：单元切换不清空勾选（持久全集∩供选面——切回再现）
