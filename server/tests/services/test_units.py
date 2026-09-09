@@ -76,7 +76,9 @@ def test_param_depth_six_fields_from_manifest() -> None:
 
 
 def test_builtin_projection_params_and_ports() -> None:
-    """D7：builtin 参数面/端口表投影（default/range/grid=null 诚实缺省）。"""
+    """D7+B2 扩面：builtin 参数面/端口表投影（default/range/grid=null 诚实
+    缺省；label_zh=_BUILTIN_PARAM_LABELS 声明面——两 kind 全量非空+junction
+    零参数零条目）。"""
     catalog = list_units()
     by_id = {entry.unit_id: entry for entry in catalog.units if entry.kind == "builtin"}
     municipal = by_id["municipal_input"]
@@ -91,15 +93,21 @@ def test_builtin_projection_params_and_ports() -> None:
         ("TP", "CONCENTRATION"),
     ]  # 必需两键+INDICATORS 六键（sorted 序确定性）
     assert all(
-        p.default is None and p.range is None and p.grid is None and p.label_zh is None
+        p.default is None and p.range is None and p.grid is None and p.label_zh
         for p in municipal.params
-    )  # 无声明面=诚实缺省（label_zh 同 default 先例——B2）
+    )  # 数值三面无声明=诚实缺省；label_zh 声明面全量非空（B2 扩面）
+    labels = {p.field_id: p.label_zh for p in municipal.params}
+    assert labels["q_avg_daily"] == "平均日流量"  # mine_water_input manifest 同术语
+    assert labels["kz"] == "总变化系数"
+    assert labels["CODCR"] == "COD 浓度"  # 指标可读名+「浓度」后缀（非键名直拼）
     assert [(p.port_id, p.fluid, p.direction) for p in municipal.ports] == [("out", "WATER", "OUT")]
     quality = by_id["quality_edit"]
     assert [p.field_id for p in quality.params] == [
         "BOD5", "CODCR", "NH3N", "SS", "TN", "TP"
     ]
-    assert by_id["junction"].params == () and by_id["recycle_junction"].params == ()
+    assert all(p.label_zh for p in quality.params)  # 同 INDICATORS 口径
+    assert {p.field_id: p.label_zh for p in quality.params}["NH3N"] == "氨氮浓度"
+    assert by_id["junction"].params == () and by_id["recycle_junction"].params == ()  # 零参数零条目
     assert [(p.port_id, p.fluid, p.direction) for p in by_id["junction"].ports] == [
         ("in_1", "WATER", "IN"),
         ("in_2", "WATER", "IN"),

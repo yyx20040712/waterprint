@@ -40,7 +40,8 @@
  *     ?task= 比对更新 panelTaskId（不触发导航不抢焦点——跨标签自动跳转
  *     挂账 UX 批；Tabs 保活下 replaceState 无事件、useState 初始化器仅首
  *     挂载执行的双局限经此事件桥收口）；
- *   - D8 枚举提交面：单元下拉（useProjectUnits——design.nodes 投影）
+ *   - D8 枚举提交面：单元下拉（useProjectUnits——design.nodes 投影；B2
+ *     扩面：label 经 useUnitCatalog 中文化，value 仍 node id 零漂移）
  *     +useRunEnumeration（body={project_id, unit_ids:[unitId], options:
  *     选中约束时 {constraints: 三键载荷}——CP1 兑现「constraints 空槽
  *     挂账」：ConstraintPicker[features/params] 挂单元下拉与提交钮间，
@@ -71,7 +72,7 @@
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目——项目
  *     选择器不重复建，挂账 UX 批）；ErrorBoundary label=方案浏览。
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Select, Typography, message } from "antd";
 
@@ -88,6 +89,7 @@ import {
 import { WaterprintApiError } from "../shared/api/http";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
+import { useUnitCatalog } from "../features/params/api/useUnitCatalog";
 import { useConstraints } from "../features/params/api/useConstraints";
 import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
 import {
@@ -153,6 +155,15 @@ export function SolutionsPane() {
   );
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
+  // B2 扩面：目录中文名查询面（未就绪/键缺席=英文 id 诚实回退不阻断）
+  const catalogQuery = useUnitCatalog();
+  const nameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entry of catalogQuery.data?.units ?? []) {
+      map.set(entry.unit_id, entry.name_zh);
+    }
+    return map;
+  }, [catalogQuery.data]);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
   const constraintsQuery = useConstraints();
   // CP2 D3：原始 GET 体（同键不带 select——raw 缓存共享；恢复+PUT 唯一数据源）
@@ -352,10 +363,16 @@ export function SolutionsPane() {
             value={unitId ?? undefined}
             loading={unitsQuery.isLoading}
             status={unitsQuery.isError ? "error" : undefined}
-            options={units.map((unit) => ({
-              value: unit.unitId,
-              label: unit.kind !== null ? `${unit.unitId}（${unit.kind}）` : unit.unitId,
-            }))}
+            options={units.map((unit) => {
+              // B2 扩面：manifest=目录中文名纯中文；builtin=kind 中文名+
+              // （node_id）后缀；缺席=英文 id 诚实回退（value 仍 node id）
+              const nameZh = nameById.get(unit.kind ?? unit.unitId);
+              const label =
+                unit.kind !== null
+                  ? `${nameZh ?? unit.unitId}（${unit.unitId}）`
+                  : (nameZh ?? unit.unitId);
+              return { value: unit.unitId, label };
+            })}
             onChange={(value) => {
               setUnitId(value);
               // CP2 D4：单元切换不清空勾选（持久全集∩供选面——切回再现）

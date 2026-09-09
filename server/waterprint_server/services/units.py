@@ -25,9 +25,11 @@
 #   R2 builtin 投影（D7）：参数面 server 硬编码（municipal_input=
 #      q_avg_daily/kz+INDICATORS 六键、quality_edit=INDICATORS 六键、
 #      junction/recycle_junction 空参；default/range/grid=null 诚实缺省
-#      ——core nodes.py 参数面散在 __init__ 校验无声明面，挂账数据批）；
-#      端口表按冻结 §二常量（municipal_input=out；junction=in_1/in_2+out；
-#      quality_edit=in+out；recycle_junction=in SLUDGE+out WATER 泥进水出）。
+#      ——core nodes.py 参数面散在 __init__ 校验无声明面，挂账数据批；
+#      label_zh=_BUILTIN_PARAM_LABELS 声明面（B2 扩面——映射缺席键仍
+#      null 诚实缺省）；端口表按冻结 §二常量（municipal_input=out；
+#      junction=in_1/in_2+out；quality_edit=in+out；recycle_junction=
+#      in SLUDGE+out WATER 泥进水出）。
 #   R3 assumptions 投影：DEFAULT_ASSUMPTIONS 六字段取五（tuning_direction
 #      =tuning_impact.direction；constraint_keys 不交付——constraint_kb
 #      0.0.0 空槽无数据，D2）。
@@ -131,6 +133,32 @@ _BUILTIN_PARAM_DIMS: Final[dict[str, tuple[tuple[str, str], ...]]] = {
     "junction": (),
     "recycle_junction": (),
 }
+# builtin 参数中文名（B2 扩面——同 _UNIT_NAMES 声明面形态）：流量两键与
+# mine_water_input manifest 同术语；指标键=可读名+「浓度」后缀（CODCR 键
+# 呈「COD 浓度」非键名直拼——manifest mine_water 口径同款）；junction/
+# recycle_junction 零参数零条目（键在场值空集）。
+_BUILTIN_PARAM_LABELS: Final[dict[str, dict[str, str]]] = {
+    "municipal_input": {
+        "q_avg_daily": "平均日流量",
+        "kz": "总变化系数",
+        "BOD5": "BOD5 浓度",
+        "CODCR": "COD 浓度",
+        "NH3N": "氨氮浓度",
+        "SS": "SS 浓度",
+        "TN": "总氮浓度",
+        "TP": "总磷浓度",
+    },
+    "quality_edit": {
+        "BOD5": "BOD5 浓度",
+        "CODCR": "COD 浓度",
+        "NH3N": "氨氮浓度",
+        "SS": "SS 浓度",
+        "TN": "总氮浓度",
+        "TP": "总磷浓度",
+    },
+    "junction": {},
+    "recycle_junction": {},
+}
 # 端口表 (port_id, fluid, direction)——冻结 §二逐字（recycle_junction 泥进水出）。
 _BUILTIN_PORTS: Final[dict[str, tuple[tuple[str, str, str], ...]]] = {
     "municipal_input": (("out", "WATER", "OUT"),),
@@ -155,7 +183,7 @@ class RangeEntry(BaseModel):
 
 class ParamEntry(BaseModel):
     """单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；
-    label_zh=manifest 中文真源投影，builtin 无声明面=null 诚实缺省）。"""
+    label_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面）。"""
 
     model_config = ConfigDict(frozen=True)
 
@@ -164,7 +192,7 @@ class ParamEntry(BaseModel):
     default: float | None = None  # builtin 无声明面=null 诚实缺省（D7）
     range: RangeEntry | None = None
     grid: tuple[float, ...] | None = None
-    label_zh: str | None = None  # builtin 无声明面=null 诚实缺省（B2——default 字段先例）
+    label_zh: str | None = None  # builtin=_BUILTIN_PARAM_LABELS 映射缺席键 null 诚实缺省（B2 扩面）
 
 
 class PortEntry(BaseModel):
@@ -262,7 +290,11 @@ def _builtin_entry(kind: str) -> UnitMetaEntry:
         business_line="municipal",  # core nodes _manifest 归市政图源族（§14.3 v1 裁决）
         kind="builtin",
         params=tuple(
-            ParamEntry(field_id=field_id, dim=dim)
+            ParamEntry(
+                field_id=field_id,
+                dim=dim,
+                label_zh=_BUILTIN_PARAM_LABELS[kind].get(field_id),
+            )
             for field_id, dim in _BUILTIN_PARAM_DIMS[kind]
         ),
         ports=tuple(
