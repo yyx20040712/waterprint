@@ -9,7 +9,8 @@
 #
 # 【公开接口】
 #   build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]], *,
-#              overrides: Mapping[str, float] | None = None) -> Grid
+#              overrides: Mapping[str, float] | None = None,
+#              guard_base: bool = True) -> Grid
 #       （I-2 二审追认 2026-08-26：签名自简报冻结的 Sequence[ParamSpec]
 #        拓宽为 union——ParamSpec 无 step 字段且 range 归约束层消费，
 #        "起止步长生成"唯一 sane 载体=Mapping 声明面（values 显式值域
@@ -18,7 +19,12 @@
 #        实现报告 §6.3。
 #        B2 A2 追认 2026-09-09：增 keyword-only overrides——护栏基数
 #        base 接入项目假设覆盖管道（app.run_enumeration 传
-#        env.assumptions）；None=不覆盖（缺省基数，向后兼容））
+#        env.assumptions）；None=不覆盖（缺省基数，向后兼容）。
+#        FD 批追认 2026-09-09：增 keyword-only guard_base——False 时
+#        跳过 R1 组合数护栏（调用方自持独立护栏的场合；唯一消费方=
+#        app.run_design_map：PD4 终裁 max_points 与 base_per_dim 独立
+#        不共用，2500 点可行域扫描不受枚举基数 7**k 约束——默认 True
+#        既有语义零变，B2 A2 keyword-only 先例第二例）
 #   class Grid：fields（字段序）、array（结构化数组：笛卡尔积展平）、
 #       shape（各维取值数）、total（总组合数 = 各维乘积）
 #   class GridTooLarge(Exception)：组合数超护栏（领域异常）
@@ -178,11 +184,14 @@ def build_grid(
     param_specs: Sequence[ParamSpec | Mapping[str, Any]],
     *,
     overrides: Mapping[str, float] | None = None,
+    guard_base: bool = True,
 ) -> Grid:
     """构建正门：逐维声明归一（字典序稳定）→ 护栏校验 → 笛卡尔积展平。
 
     B2 A2：护栏基数 base 经 overrides 接入项目假设覆盖管道
     （None=不覆盖，取 assumptions 缺省基数——向后兼容）。
+    FD 批：guard_base=False 跳过 R1 护栏（独立护栏场合——run_design_map
+    消费，PD4 与 base_per_dim 独立不共用；默认 True 语义零变）。
     """
     if not param_specs:
         raise InvalidGridError(
@@ -199,14 +208,15 @@ def build_grid(
     values = tuple(vals for _, vals in dimensions)
     shape = tuple(len(vals) for vals in values)
     total = prod(shape)
-    base = assumption(_BASE_KEY, overrides if overrides is not None else {})
-    limit = base ** len(fields)
-    if total > limit:
-        raise GridTooLarge(
-            f"网格组合数 {total} 超护栏 base**k = {limit:g}"
-            f"（base={_BASE_KEY}={base:g}，k={len(fields)}，护栏基数经假设覆盖可调——"
-            "建议缩小某维步长/范围或减少枚举维数）"
-        )
+    if guard_base:
+        base = assumption(_BASE_KEY, overrides if overrides is not None else {})
+        limit = base ** len(fields)
+        if total > limit:
+            raise GridTooLarge(
+                f"网格组合数 {total} 超护栏 base**k = {limit:g}"
+                f"（base={_BASE_KEY}={base:g}，k={len(fields)}，护栏基数经假设覆盖可调——"
+                "建议缩小某维步长/范围或减少枚举维数）"
+            )
     array = numpy.empty(total, dtype=_dtype(fields))
     for row, combo in enumerate(product(*values)):
         for field_id, value in zip(fields, combo, strict=True):

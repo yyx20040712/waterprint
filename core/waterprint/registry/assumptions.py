@@ -96,6 +96,7 @@ from math import isfinite
 from typing import Final, final
 
 from waterprint.contracts.quantity import DimKey
+from waterprint.registry.assumptions_design_map import design_map_entries
 
 
 class InvalidAssumptionError(Exception):
@@ -263,8 +264,7 @@ def assumption(key: str, overrides: Mapping[str, float]) -> float:
 
 # ── 默认清单种子（D5 数值红线：default 与 source 逐字取自已签字数据包）──
 # data/coefficients/factors.yaml 的 factor.screen.superheight 条目
-# （0.1.0 已签字批次 2026-08-23）——双真源关系以 note 显式声明，
-# 条文核对完成后随数据批同步升版（本文件唯一数值面）。
+# （0.1.0 已签字批次）——note 显式声明双真源，随数据批同步升版（本文件唯一数值面）。
 _SUPERHEIGHT: Final[Assumption] = Assumption(
     key="safety.superheight",
     default=0.3,
@@ -334,9 +334,8 @@ _LOOP_DAMPING: Final[Assumption] = Assumption(
 )
 
 # ── 网格护栏条目（M2-SOL D1 裁决 2026-08-26）：重写计划 §12.4
-#    "自由参数网格 ≤4^k"/ADR-005 的机器强制基数——solution/grid.py
-#    构建期消费（total > base**k → GridTooLarge）；registry 白名单区
-#    数值合法，出处入库。──
+#    "自由参数网格 ≤4^k"/ADR-005 机器强制基数——solution/grid.py 构建期消费
+#    （total > base**k → GridTooLarge）；registry 白名单区数值合法，出处入库。──
 _GRID_BASE_PER_DIM: Final[Assumption] = Assumption(
     key="solution.grid.base_per_dim",
     default=7.0,
@@ -496,5 +495,6 @@ DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
         _GRID_BASE_PER_DIM,
         *_DRAFT_GEO,
         *_NETWORK,
+        *design_map_entries(Assumption, TuningImpact),  # FD PD4：伴生件类注入装配（防环）
     )
 )

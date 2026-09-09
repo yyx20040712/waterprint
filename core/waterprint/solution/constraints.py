@@ -1,6 +1,6 @@
 """布尔约束过滤（含 UI 覆盖）：可行方案子集与逐约束通过矩阵。
 
-输入:  枚举 DataFrame + 约束集（constraint_kb 迁移 51 条 + UI 临时覆盖）
+输入:  枚举 DataFrame + 约束集（constraint_kb 迁移 21 条 + UI 临时覆盖）
 输出:  可行子集 + 每行×每约束的通过矩阵（供 diagnose）
 """
 
@@ -19,7 +19,8 @@
 #       非法算符/非法常数/空表达式）——GR-11 族，本文件定义
 #
 # 【行为规格】
-#   R1 约束是数据：知识库 51 条（旧 constraint_hints 迁移）+ UI 覆盖，
+#   R1 约束是数据：知识库 21 条（旧 constraint_hints 迁移；kb 1.4.0
+#      实数——FD 批勘正历史构想字样 51→21）+ UI 覆盖，
 #      表达式走受限 DSL（白名单字段 ID 与运算符），禁止任意 Python
 #      lambda 注入（安全与可序列化）。
 #   R2 pass_matrix 必须完整产出（哪怕全 False）——diagnose 的输入，
@@ -190,7 +191,7 @@ def apply_constraints(
 ) -> FilterResult:
     """过滤正门：逐约束向量化求值（列名=表达式串）→ 可行索引 + 完整矩阵。
 
-    约束空集合法=全可行（本批约束由调用方传入；constraint_kb 51 条
+    约束空集合法=全可行（本批约束由调用方传入；constraint_kb 21 条
     迁移 0.0.0→1.0.0 不属本批——独立数据批挂账）。
     """
     columns: dict[str, pandas.Series] = {}

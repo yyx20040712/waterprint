@@ -63,3 +63,57 @@ def test_suggestions_reference_evidence() -> None:
     for suggestion in report.suggestions:
         text = str(suggestion)
         assert any(key in text for key in ("c_len_max", "c_len_min", "c_velocity"))
+
+
+# ── FD 批（PD9 来源②销账 2026-09-09）：grid 在场的幅度/可行率接线 ──
+
+
+def _axis_grid() -> object:
+    """单轴网格（v_filter 7~10 步 0.5=7 点；guard_base=False 免枚举基数）。"""
+    from waterprint.solution.grid import build_grid
+
+    return build_grid(
+        [{"field_id": "v_filter", "range": {"min": 7.0, "max": 10.0}, "step": 0.5}],
+        guard_base=False,
+    )
+
+
+def _band_matrix() -> "pd.DataFrame":
+    """7 点单约束矩阵：7.0~8.5 过（4 行），9.0+ 拒（3 行）——列名=表达式。"""
+    return pd.DataFrame(
+        {"v_filter <= 8.5": [True, True, True, True, False, False, False]}
+    )
+
+
+def _band_constraints() -> dict[str, object]:
+    key = "v_filter <= 8.5"
+    return {key: {"key": key, "expression": key, "source": "kb"}}
+
+
+def test_grid_magnitude_filled_for_axis_field() -> None:
+    """PD9：param_key 命中轴字段 → magnitude=最宽可行段半宽+文案可行率。"""
+    report = diagnose_infeasibility(_band_matrix(), _band_constraints(), grid=_axis_grid())
+    assert report.suggestions
+    for suggestion in report.suggestions:
+        assert suggestion.param_key == "v_filter"
+        assert suggestion.magnitude == 0.75  # 段 [7.0, 8.5] 半宽（grid 真值列）
+        assert "可行率 57.1%" in suggestion.expected_effect
+
+
+def test_grid_absent_keeps_none_semantics() -> None:
+    """grid=None（既有调用面零破坏）：幅度 None+文案无可行率字样。"""
+    report = diagnose_infeasibility(_band_matrix(), _band_constraints(), grid=None)
+    assert report.suggestions
+    for suggestion in report.suggestions:
+        assert suggestion.magnitude is None
+        assert "可行率" not in suggestion.expected_effect
+
+
+def test_grid_no_feasible_rows_honest_none() -> None:
+    """无可行段（全 False）：幅度 None 不编造+可行率 0.0% 在文案。"""
+    matrix = pd.DataFrame({"v_filter <= 8.5": [False] * 7})
+    report = diagnose_infeasibility(matrix, _band_constraints(), grid=_axis_grid())
+    assert report.suggestions
+    for suggestion in report.suggestions:
+        assert suggestion.magnitude is None
+        assert "可行率 0.0%" in suggestion.expected_effect

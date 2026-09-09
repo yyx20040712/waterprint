@@ -44,6 +44,12 @@
 #       EnumerationOutcome（UF-33 方案 A 已落地 2026-08-26 M2-SOL D2；
 #       类型面/导出薄壳/上游快照重建=app_enumeration.py 伴生件，本文件
 #       再导出保持 server 单入口；Constraint 再导出同理（SERVER D1）
+#   run_design_map(project, unit_id, conditions, env, *, axes,
+#       fixed_params, constraints=()) -> DesignMap（FD 批 2026-09-09
+#       PD1~PD3：可行域引导正门——轴解析/预算拦截/build_grid Mapping
+#       路径/enumerate 同管线稠密求值/双源可行掩码的装配编排；
+#       DesignMap/DesignMapTooLarge/InvalidDesignMapError 再导出=
+#       server 消费与 4xx/422 映射面）
 #   装配 grid 档命中校验（D3 Ruling ④）：grid 声明参数终值未命中档
 #       =InvalidAssemblyError（详见本文件 _check_grid_hits——M-1 R1 指针修正）
 #
@@ -156,6 +162,17 @@ from waterprint.project.io import save_project as _project_save
 from waterprint.project.migration import SUPPORTED_VERSIONS, migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.design_map import (
+    DesignMap,
+    DesignMapOptions,
+    DesignMapTooLarge,  # 再导出专用（server 4xx 映射面——UF-33 单入口先例）
+    InvalidDesignMapError,  # 再导出专用（server 422 映射面同上）
+    axis_mappings,
+    build_design_map,
+    ensure_budget,
+    feasible_mask,
+    resolve_axes,
+)
 from waterprint.solution.diagnose import diagnose_infeasibility
 from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import build_grid
@@ -168,8 +185,11 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "ArtifactKindNotReady",
     "AssembledGraph",
     "Constraint",
+    "DesignMap", "DesignMapOptions",
+    "DesignMapTooLarge",
     "EnumerationOptions", "EnumerationOutcome",
     "InvalidAssemblyError",
+    "InvalidDesignMapError",
     "InvalidProjectError", "InvalidSitePlanError",  # 后者=ENG7 再导出（server 422 面）
     "Node", "ResultBundle",  # Node 再导出=AUDIT2 FIX1（server SceneResponse 类型面）
     "RunEnv",
@@ -178,6 +198,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "discover_units",
     "export_artifact",
     "load_project",
+    "run_design_map",
     "run_enumeration",
     "run_full_calc",
     "save_project",
@@ -343,4 +364,61 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
         rows=ranked.rows, total_feasible=ranked.total_feasible, truncated=ranked.truncated,
         grid=grid,
         diagnosis=None if filtered.feasible else diagnose_infeasibility(
-            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}))
+            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}, grid=grid))
+
+
+def run_design_map(
+    project: ProjectFile,
+    unit_id: str,
+    conditions: ConditionSet,
+    env: RunEnv,
+    options: DesignMapOptions | None = None,
+) -> DesignMap:
+    """可行域引导正门（FD PD1~PD3）：装配→轴解析预算→网格→稠密求值→双源掩码→产物。
+
+    options（DesignMapOptions——EnumerationOptions 同位形态）：axes 轴声明
+    +fixed_params 显式映射（PD1：server 装配 design 覆盖值 ?? manifest
+    default——core 不自查项目，分层洁癖；叠加进上游快照 params，轴字段
+    由网格行覆盖）+constraints 约束集（server 装配 constraint_kb
+    unit_kinds ∩ 项目勾选——与枚举面同数据源，PD2）；稠密求值=
+    enumerate_solutions 同管线（R1 单实现双用——unit.compute 逐行 N=1
+    汇合 apply_batch 私核）；可行掩码=行非 NaN AND 约束通过（PD2 双源）。
+    """
+    chosen = options if options is not None else DesignMapOptions(axes=(), fixed_params={})
+    assembled = assemble(project, env)
+    unit = assembled.units.get(unit_id)
+    if unit is None:
+        raise InvalidAssemblyError(
+            f"可行域目标单元 {unit_id!r} 不在装配图（FD 单单元语义同枚举"
+            " ADR-005——core 侧未命中=InvalidAssemblyError）"
+        )
+    resolved = resolve_axes(unit.manifest.params, chosen.axes)
+    ensure_budget(resolved, env.assumptions)  # P1-5：解析期拦截（先于 build_grid）
+    # guard_base=False：FD 护栏=max_points（PD4 与枚举基数独立不共用——
+    # 2500 点扫描不受 base**k=7**k 约束；ensure_budget 已先行拒超限）
+    grid = build_grid(
+        axis_mappings(resolved), overrides=env.assumptions, guard_base=False
+    )
+    condition = next(iter(conditions.iter_all()), None)  # M-5 R1：空集显式领域异常
+    if condition is None:
+        raise InvalidAssemblyError(
+            "conditions 为空集（可行域工况取选定档前提失败——正门 build_condition_set "
+            "恒非空，空集=直构程序缺陷；GR-11 收口，M-5）"
+        )
+    plant = execute_graph(
+        project.design, assembled.units, conditions, _completed_env(env, project.design)
+    )
+    context = upstream_context(
+        UpstreamSource(assembled.units, assembled.edges, project.design, plant),
+        unit_id, condition, env)
+    params = dict(context.params)
+    params.update(chosen.fixed_params)  # 显式固定参数叠加（PD1——server 装配面权威）
+    frame = enumerate_solutions(grid, replace(context, params=params), unit, env)
+    filtered = apply_constraints(frame, chosen.constraints)
+    return build_design_map(
+        unit_id,
+        grid,
+        feasible_mask(frame, filtered.pass_matrix),  # PD2 双源（design_map 件语义）
+        resolved,
+        coverage="full" if chosen.constraints else "degraded",  # R3 降级不拒
+    )

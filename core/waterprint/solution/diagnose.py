@@ -9,8 +9,10 @@
 #
 # 【公开接口】
 #   diagnose_infeasibility(pass_matrix, constraints, grid=None)
-#       -> DiagnosisReport（grid=枚举网格，建议幅度统计源——当前无
-#       网格数据时 magnitude=None 不编造，R2 来源③挂账）
+#       -> DiagnosisReport（grid=枚举/可行域网格，建议幅度统计源——
+#       FD 批销账：grid 在场且存在可行行时 magnitude=该轴最宽可行段
+#       半宽（param_key 命中轴字段才充实，否则 None 不编造）；
+#       expected_effect 追加可行率口径）
 #   class DiagnosisReport(不可变)：
 #       minimal_conflicts: tuple[frozenset[str], ...]   最小冲突集（去重）
 #       fail_counts: Mapping[约束键→失败行数]
@@ -34,7 +36,9 @@
 #      禁止"建议放宽所有约束"式无用输出。建议来源三条按优先级
 #      （business-logic.md §4）：①constraint_kb 规则（约束自带
 #      "失败时建议"，带出处）；②枚举统计（可行域边缘分布→方向幅度
-#      ——需 grid，挂账）；③专家经验表（coefficients，归数据批）。
+#      ——FD 批销账：grid 在场经 _grid_statistics 充实 magnitude+
+#      expected_effect 可行率口径）；③专家经验表（coefficients，
+#      归数据批）。
 #   R3 无 pass_matrix（调用前置条件违反）→ 领域异常；空网格同抛。
 #   R4 输出可序列化（UI 渲染 + 持久化诊断面板记录，§19.3 反馈三通道）。
 #   R5 本模块只"建议"不"改值"：建议应用 = 上层（services/calculation）
@@ -55,7 +59,10 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import final
 
+import numpy
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
+
+from waterprint.solution.design_map import widest_segment
 
 _DIRECTION: dict[str, str] = {
     "<": "上调该上限档或放宽约束",
@@ -147,26 +154,70 @@ def _suggestions(
     conflicts: tuple[frozenset[str], ...],
     fail_counts: Mapping[str, int],
     constraints: Mapping[str, object],
+    magnitudes: Mapping[str, float] | None = None,
+    feasible_ratio: float | None = None,
 ) -> tuple[Suggestion, ...]:
-    """R2 建议生成：逐冲突集逐约束，必引冲突键与失败计数。"""
+    """R2 建议生成：逐冲突集逐约束，必引冲突键与失败计数。
+
+    幅度/可行率=FD 来源②销账面（PD9）：数据源在场才充实——magnitudes
+    按 param_key 命中取值（轴字段外的建议=None 诚实缺省，不编造）。
+    """
     made: list[Suggestion] = []
     for conflict in conflicts:
         for key in sorted(conflict):
             param_key, direction = _param_direction(constraints.get(key, key), key)
+            effect = (
+                f"放宽 {key} 预期化解冲突集 {sorted(conflict)}"
+                f"（该约束失败 {fail_counts[key]} 行——矩阵列求和口径）"
+            )
+            if feasible_ratio is not None:
+                effect += f"；当前网格可行率 {feasible_ratio:.1%}"
             made.append(
                 Suggestion(
                     param_key=param_key,
                     direction=direction,
-                    magnitude=None,  # 幅度来源②（枚举统计）需 grid——挂账，不编造
+                    magnitude=(
+                        None
+                        if magnitudes is None
+                        else magnitudes.get(param_key)  # 幅度=该轴最宽可行段半宽（FD PD9）
+                    ),
                     basis=_basis_of(constraints.get(key, key), key),
                     affected_conflicts=tuple(sorted(conflict)),
-                    expected_effect=(
-                        f"放宽 {key} 预期化解冲突集 {sorted(conflict)}"
-                        f"（该约束失败 {fail_counts[key]} 行——矩阵列求和口径）"
-                    ),
+                    expected_effect=effect,
                 )
             )
     return tuple(made)
+
+
+def _grid_statistics(
+    matrix: pandas.DataFrame, grid: object
+) -> tuple[dict[str, float], float]:
+    """grid 幅度统计（FD 来源②销账，PD9）：逐轴最宽可行段半宽 + 可行率。
+
+    可行=行全通过（NaN 行比较恒 False 自然落不可行侧）；多维投影口径=
+    任一补全可行（OR 归约——design_map 诊断块同式，禁 B4 双胞胎）；
+    grid 形面不符（无 fields/长度不齐）=空幅度 + 实测可行率诚实降级
+    （防御面——形参为 object，非 Grid 强类型）。
+    """
+    feasible = matrix.all(axis=1).to_numpy(dtype=bool)
+    ratio = float(feasible.mean()) if feasible.size else 0.0
+    fields = tuple(getattr(grid, "fields", None) or ())
+    shape = tuple(int(size) for size in getattr(grid, "shape", None) or ())
+    array = getattr(grid, "array", None)
+    magnitudes: dict[str, float] = {}
+    if not fields or array is None or not shape:
+        return magnitudes, ratio
+    if feasible.size != int(numpy.prod(shape)):
+        return magnitudes, ratio
+    core = feasible.reshape(shape)
+    for position, field in enumerate(fields):
+        others = tuple(axis for axis in range(len(shape)) if axis != position)
+        projection = core.any(axis=others) if others else core
+        values = sorted({float(value) for value in numpy.asarray(array[field])})
+        widest = widest_segment(values, projection)
+        if widest is not None:
+            magnitudes[field] = (widest["end"] - widest["start"]) / 2
+    return magnitudes, ratio
 
 
 def diagnose_infeasibility(
@@ -176,10 +227,11 @@ def diagnose_infeasibility(
 ) -> DiagnosisReport:
     """诊断正门：失败超图 → 极小横截集（R1）+ 失败计数 + 有据建议（R2/R5）。
 
-    grid 为枚举网格占位（建议幅度统计源，R2 来源②——当前无网格数据
-    时 magnitude=None；R5 只建议不改值）。
+    grid 为网格统计源（FD 来源②销账，PD9）：在场时经 _grid_statistics
+    充实建议幅度（param_key 命中轴字段=该轴最宽可行段半宽）与
+    expected_effect 可行率口径；无可行段=幅度 None 诚实缺省（不编造）。
+    R5 只建议不改值。
     """
-    del grid  # 占位透传（R2 来源②挂账；幅面统计随服务层接入落地）
     if pass_matrix is None:
         raise InvalidDiagnosisError(
             "无 pass_matrix（调用前置条件违反——diagnose 消费 constraints."
@@ -193,6 +245,10 @@ def diagnose_infeasibility(
         str(column): int((~pass_matrix[column]).sum())
         for column in pass_matrix.columns
     }
+    magnitudes: dict[str, float] | None = None
+    ratio: float | None = None
+    if grid is not None:  # FD 来源②销账：网格在场才充实（PD9）
+        magnitudes, ratio = _grid_statistics(pass_matrix, grid)
     edges = _failure_edges(pass_matrix)
     if not edges:
         return DiagnosisReport((), MappingProxyType(fail_counts), ())  # 存在可行行
@@ -201,5 +257,7 @@ def diagnose_infeasibility(
     return DiagnosisReport(
         minimal_conflicts=conflicts,
         fail_counts=MappingProxyType(fail_counts),
-        suggestions=_suggestions(conflicts, fail_counts, constraints),
+        suggestions=_suggestions(
+            conflicts, fail_counts, constraints, magnitudes, ratio
+        ),
     )

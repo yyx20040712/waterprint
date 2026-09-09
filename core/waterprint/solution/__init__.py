@@ -16,21 +16,51 @@
 #   constraints: apply_constraints
 #   ranking:     rank
 #   diagnose:    diagnose_infeasibility
+#   design_map:  resolve_axes, ensure_budget, axis_mappings,
+#                build_design_map, derive_step, axis_point_budget,
+#                widest_segment, DesignMap, ResolvedAxis,
+#                DesignMapTooLarge, InvalidDesignMapError
+#                （FD 批 2026-09-09：可行域引导正门件——app.run_design_map
+#                装配消费；导出面与 grid/constraints 同门风格）
 # 语义边界（ADR-005）：枚举对象永远是**单个工艺单元**（上游结果为固定
 # 上下文）；全厂联合枚举为远期研究项，禁止伪装成本轮功能。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.design_map import (
+    DesignMap,
+    DesignMapTooLarge,
+    InvalidDesignMapError,
+    ResolvedAxis,
+    axis_mappings,
+    axis_point_budget,
+    build_design_map,
+    derive_step,
+    ensure_budget,
+    resolve_axes,
+    widest_segment,
+)
 from waterprint.solution.diagnose import diagnose_infeasibility
 from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import GridTooLarge, build_grid
 from waterprint.solution.ranking import rank
 
 __all__ = [
+    "DesignMap",
+    "DesignMapTooLarge",
     "GridTooLarge",
+    "InvalidDesignMapError",
+    "ResolvedAxis",
     "apply_constraints",
+    "axis_mappings",
+    "axis_point_budget",
+    "build_design_map",
     "build_grid",
+    "derive_step",
     "diagnose_infeasibility",
+    "ensure_budget",
     "enumerate_solutions",
     "rank",
+    "resolve_axes",
+    "widest_segment",
 ]
