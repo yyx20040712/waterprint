@@ -29,6 +29,7 @@ _EXPECTED = {
     ("post", "/api/calc/tasks/{task_id}/cancel"),
     ("get", "/api/calc/tasks/{task_id}/solutions"),
     ("post", "/api/calc/solutions/apply"),
+    ("post", "/api/calc/design-map"),  # FD PD6（2026-09-09）：可行域同步求值
 }
 
 
@@ -41,8 +42,8 @@ async def _wait_terminal(client, task_id: str) -> dict[str, object]:  # type: ig
     raise TimeoutError(task_id)
 
 
-def test_router_exposes_six_endpoints_wiring() -> None:
-    """端点集 == 规格六件（run/enumerate/tasks/cancel/solutions/apply）。"""
+def test_router_exposes_seven_endpoints_wiring() -> None:
+    """端点集 == 规格七件（run/enumerate/tasks/cancel/solutions/apply/design-map）。"""
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]

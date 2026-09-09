@@ -48,6 +48,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/calc/tasks/{task_id}/cancel": {"post"},
     "/api/calc/tasks/{task_id}/solutions": {"get"},
     "/api/calc/solutions/apply": {"post"},
+    "/api/calc/design-map": {"post"},  # FD PD6（2026-09-09）：可行域同步求值
     "/api/exports": {"get"},
     "/api/exports/calcbook": {"post"},
     "/api/exports/audit": {"post"},
@@ -76,7 +77,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 27  # 5+6+7+2+1+1+2+1+1+1（projects5/calc6/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
+    assert sum(len(methods) for methods in observed.values()) == 28  # 5+7+7+2+1+1+2+1+1+1（projects5/calc7[FD +design-map]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
 
 
 @pytest.mark.anyio

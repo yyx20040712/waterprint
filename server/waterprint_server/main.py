@@ -33,7 +33,7 @@
 #     waterprint.graph）——类基映射覆盖可导入面，LoopDivergence 等
 #     仅 worker 侧产生的领域异常经 DOMAIN_ERROR_CODES 名义表映射
 #     （failed 任务诊断消费面），集中一处不散落。
-#   - R3 契约自检：OpenAPI 生成成功 + 端点集==27（九路由器规格并集
+#   - R3 契约自检：OpenAPI 生成成功 + 端点集==28（FD 起 calc6→7，九路由器并集
 #     ——META1 注释同步勘误：原记 18 系 FE1 前陈数；FE7 +elevation1；
 #     FE8 +cost1；EXPD 勘误：原记 25 系 SC1 前陈数）+ A2 面（schema 无
 #     Any 泄漏）由镜像测试常驻；
@@ -88,6 +88,7 @@ from waterprint_server.services.cost import (
     CostSourceNotFoundError,
     InvalidCostRequestError,
 )
+from waterprint_server.services.design_map import DesignMapSourceNotFoundError
 from waterprint_server.services.elevation import (
     ElevationSourceNotFoundError,
     InvalidElevationRequestError,
@@ -158,6 +159,13 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     # ENG7：脏 site 几何（coord_grid 非有限/非正——用户输入非法同族，
     # GR-11 族；core 再导出面经 app 正门，main→app 边在册零图谱改动）。
     (core.InvalidSitePlanError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # FD 批（PD6 2026-09-09）：轴声明非法（长度 pydantic 面/字段不存在/
+    # min≥max/⊆manifest 越界/step 非正——core 防御面）→422；护栏超限
+    # （DesignMapTooLarge=4xx 呈裁落 400——InvalidUnitConfig 同族）；
+    # 目标单元不在项目=404（services 面前置拒）。
+    (core.InvalidDesignMapError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (core.DesignMapTooLarge, status.HTTP_400_BAD_REQUEST),
+    (DesignMapSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     # ENG2 D3：非弃用名（HTTP_413_CONTENT_TOO_LARGE==413，值同简报所书
     # REQUEST_ENTITY_TOO_LARGE 旧别名——用旧名会常驻 StarletteDeprecationWarning）。
     (PayloadTooLargeError, status.HTTP_413_CONTENT_TOO_LARGE),
@@ -184,8 +192,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # +1=site/spacing GET，L4b D1——间距校核取数端点；+1=exports/ifc POST，
 # SC1 D7——BIM 模型导出端点，openapi 25→26 破面已授权；+1=exports/
 # {file_name} GET，EXPD D4——产物下载端点，openapi 26→27 破面已授权
-# [Ruling 2026-09-05 ②]）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1
+# [Ruling 2026-09-05 ②]；+1=calc/design-map POST，FD PD6——可行域引导
+# 同步求值端点，openapi 27→28 破面已授权[Ruling 2026-09-09 序列批复①
+# +常设指令]）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (
@@ -259,13 +269,13 @@ def _register_exception_handlers(app: FastAPI) -> None:
 
 
 def _contract_self_check(app: FastAPI) -> None:
-    """R3 契约自检：OpenAPI 生成成功 + 端点集==27（漂移前置到启动期）。"""
+    """R3 契约自检：OpenAPI 生成成功 + 端点集==28（FD 起 calc6→7；漂移前置到启动期）。"""
     schema = app.openapi()
     operations = sum(len(methods) for methods in schema["paths"].values())
     if operations != _EXPECTED_ENDPOINTS:
         raise RuntimeError(
             f"契约自检失败：端点集 {operations} != {_EXPECTED_ENDPOINTS}"
-            "（九路由器规格并集 projects5+calc6+exports6+events2+scene1"
+            "（九路由器规格并集 projects5+calc7+exports6+events2+scene1"
             "+elevation1+units2+cost1+constraints1+site1——A1 锁定；SC1 ifc 增）"
         )
 

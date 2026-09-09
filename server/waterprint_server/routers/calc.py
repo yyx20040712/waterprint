@@ -17,6 +17,10 @@
 #                                      （默认 200/页 §12.2）
 #   POST /api/calc/solutions/apply     方案应用（原子写 design + 新 hash
 #                                      + 触发重算 §17.1）
+#   POST /api/calc/design-map          可行域引导同步求值（FD PD6 甲案
+#                                      2026-09-09——27→28 破面已授权
+#                                      Ruling 序列批复+常设指令；≤2500 点
+#                                      ~1s 级同步直返不进任务队列）
 #
 # 【行为规格】
 #   R1 幂等（§15 工程细节 3）：提交键 = (design_hash, condition/
@@ -47,6 +51,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Query, Request
@@ -54,8 +59,10 @@ from pydantic import BaseModel, Field
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import calculation as calc_service
+from waterprint_server.services import design_map as design_map_service
 from waterprint_server.services import enumeration as enum_service
 from waterprint_server.services.calculation import ApplyOutcome, TaskStatus
+from waterprint_server.services.design_map import DesignMapResponse
 from waterprint_server.services.enumeration import SolutionPage
 
 router = APIRouter(prefix="/api/calc", tags=["calc"])
@@ -99,6 +106,29 @@ class ApplyRequest(BaseModel):
     project_id: str
     unit_id: str
     params: dict[str, Any]
+
+
+class DesignAxisRangePayload(BaseModel):
+    """轴区间覆盖（min/max——⊆manifest 由 core 防御面拒）。"""
+
+    min: float
+    max: float
+
+
+class DesignMapAxisPayload(BaseModel):
+    """可行域轴声明（FD PD1：field_id+可选 step/range 覆盖）。"""
+
+    field_id: str
+    step: float | None = None
+    range: DesignAxisRangePayload | None = None
+
+
+class DesignMapRequest(BaseModel):
+    """可行域引导请求（PD6 载荷：axes 长度 1~2=pydantic 面 422）。"""
+
+    project_id: str
+    unit_id: str
+    axes: list[DesignMapAxisPayload] = Field(min_length=1, max_length=2)
 
 
 @router.post("/run", response_model=TaskIdResponse)
@@ -146,4 +176,16 @@ async def apply_solution(body: ApplyRequest, request: Request) -> ApplyOutcome:
     """方案应用（原子事务：失败回滚不半写 R5）。"""
     return await calc_service.apply_solution(
         _ctx(request), body.project_id, {"unit_id": body.unit_id, "params": body.params}
+    )
+
+
+@router.post("/design-map", response_model=DesignMapResponse)
+async def post_design_map(body: DesignMapRequest, request: Request) -> DesignMapResponse:
+    """可行域引导（FD PD6 甲案：同步直返——to_thread 承载 ~1s 级 CPU 防阻塞）。"""
+    return await asyncio.to_thread(
+        design_map_service.compute_design_map,
+        _ctx(request),
+        body.project_id,
+        body.unit_id,
+        [axis.model_dump() for axis in body.axes],
     )

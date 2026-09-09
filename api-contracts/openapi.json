@@ -312,6 +312,375 @@
         "title": "CreateProjectRequest",
         "type": "object"
       },
+      "DesignAxisDiagnosis": {
+        "description": "诊断块逐轴面（PD9——无可行段 None 不编造）。",
+        "properties": {
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "magnitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Magnitude"
+          },
+          "recommended_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Value"
+          },
+          "widest_segment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DesignWidestSegment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "field_id",
+          "magnitude",
+          "widest_segment",
+          "recommended_value"
+        ],
+        "title": "DesignAxisDiagnosis",
+        "type": "object"
+      },
+      "DesignAxisMeta": {
+        "description": "轴元数据（grid_fields 三字段同源+range/step/points——PD3）。",
+        "properties": {
+          "dim": {
+            "title": "Dim",
+            "type": "string"
+          },
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "label_zh": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Zh"
+          },
+          "points": {
+            "title": "Points",
+            "type": "integer"
+          },
+          "range": {
+            "$ref": "#/components/schemas/DesignAxisRange"
+          },
+          "step": {
+            "title": "Step",
+            "type": "number"
+          }
+        },
+        "required": [
+          "field_id",
+          "dim",
+          "label_zh",
+          "range",
+          "step",
+          "points"
+        ],
+        "title": "DesignAxisMeta",
+        "type": "object"
+      },
+      "DesignAxisRange": {
+        "description": "轴扫描区间（实际扫描范围=用户覆盖 ?? manifest——PD3 附注）。",
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "DesignAxisRange",
+        "type": "object"
+      },
+      "DesignAxisRangePayload": {
+        "description": "轴区间覆盖（min/max——⊆manifest 由 core 防御面拒）。",
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "DesignAxisRangePayload",
+        "type": "object"
+      },
+      "DesignMapAxisPayload": {
+        "description": "可行域轴声明（FD PD1：field_id+可选 step/range 覆盖）。",
+        "properties": {
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DesignAxisRangePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          }
+        },
+        "required": [
+          "field_id"
+        ],
+        "title": "DesignMapAxisPayload",
+        "type": "object"
+      },
+      "DesignMapDiagnosis": {
+        "description": "诊断块（feasible_ratio+逐轴面）。",
+        "properties": {
+          "axes": {
+            "items": {
+              "$ref": "#/components/schemas/DesignAxisDiagnosis"
+            },
+            "title": "Axes",
+            "type": "array"
+          },
+          "feasible_ratio": {
+            "title": "Feasible Ratio",
+            "type": "number"
+          }
+        },
+        "required": [
+          "feasible_ratio",
+          "axes"
+        ],
+        "title": "DesignMapDiagnosis",
+        "type": "object"
+      },
+      "DesignMapRequest": {
+        "description": "可行域引导请求（PD6 载荷：axes 长度 1~2=pydantic 面 422）。",
+        "properties": {
+          "axes": {
+            "items": {
+              "$ref": "#/components/schemas/DesignMapAxisPayload"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Axes",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "unit_id",
+          "axes"
+        ],
+        "title": "DesignMapRequest",
+        "type": "object"
+      },
+      "DesignMapResponse": {
+        "description": "可行域产物响应面（core DesignMap.payload 的冻结模型）。",
+        "properties": {
+          "axes": {
+            "items": {
+              "$ref": "#/components/schemas/DesignAxisMeta"
+            },
+            "title": "Axes",
+            "type": "array"
+          },
+          "axis_values": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Axis Values",
+            "type": "array"
+          },
+          "constraint_coverage": {
+            "title": "Constraint Coverage",
+            "type": "string"
+          },
+          "diagnosis": {
+            "$ref": "#/components/schemas/DesignMapDiagnosis"
+          },
+          "mask": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mask"
+          },
+          "segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DesignSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segments"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/DesignMapStats"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "axes",
+          "stats",
+          "axis_values",
+          "segments",
+          "mask",
+          "constraint_coverage",
+          "diagnosis"
+        ],
+        "title": "DesignMapResponse",
+        "type": "object"
+      },
+      "DesignMapStats": {
+        "description": "统计面（total/feasible/infeasible/feasible_ratio）。",
+        "properties": {
+          "feasible": {
+            "title": "Feasible",
+            "type": "integer"
+          },
+          "feasible_ratio": {
+            "title": "Feasible Ratio",
+            "type": "number"
+          },
+          "infeasible": {
+            "title": "Infeasible",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "feasible",
+          "infeasible",
+          "feasible_ratio"
+        ],
+        "title": "DesignMapStats",
+        "type": "object"
+      },
+      "DesignSegment": {
+        "description": "可行段（1D——[{start,end}] 值域对）。",
+        "properties": {
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "DesignSegment",
+        "type": "object"
+      },
+      "DesignWidestSegment": {
+        "description": "最宽可行段（诊断块——含质心）。",
+        "properties": {
+          "centroid": {
+            "title": "Centroid",
+            "type": "number"
+          },
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "centroid"
+        ],
+        "title": "DesignWidestSegment",
+        "type": "object"
+      },
       "ElevationResponse": {
         "description": "高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。\n\nAUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——\n投影含活档假设[I-1]时消费方据此显式提示，禁静默使用）。",
         "properties": {
@@ -1715,6 +2084,53 @@
         "summary": "List Assumptions",
         "tags": [
           "units"
+        ]
+      }
+    },
+    "/api/calc/design-map": {
+      "post": {
+        "description": "可行域引导（FD PD6 甲案：同步直返——to_thread 承载 ~1s 级 CPU 防阻塞）。",
+        "operationId": "post_design_map_api_calc_design_map_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DesignMapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DesignMapResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Post Design Map",
+        "tags": [
+          "calc"
         ]
       }
     },
