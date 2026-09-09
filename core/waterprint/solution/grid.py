@@ -8,13 +8,17 @@
 # 规格说明（骨架冻结；镜像测试 tests/solution/test_grid.py）
 #
 # 【公开接口】
-#   build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]]) -> Grid
+#   build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]], *,
+#              overrides: Mapping[str, float] | None = None) -> Grid
 #       （I-2 二审追认 2026-08-26：签名自简报冻结的 Sequence[ParamSpec]
 #        拓宽为 union——ParamSpec 无 step 字段且 range 归约束层消费，
 #        "起止步长生成"唯一 sane 载体=Mapping 声明面（values 显式值域
 #        或 range{min,max}+step）；该面是服务层 UI 网格/万级大网格
 #        （探针② 13500 行）的功能前提，偏离随二审追认记档——
-#        实现报告 §6.3）
+#        实现报告 §6.3。
+#        B2 A2 追认 2026-09-09：增 keyword-only overrides——护栏基数
+#        base 接入项目假设覆盖管道（app.run_enumeration 传
+#        env.assumptions）；None=不覆盖（缺省基数，向后兼容））
 #   class Grid：fields（字段序）、array（结构化数组：笛卡尔积展平）、
 #       shape（各维取值数）、total（总组合数 = 各维乘积）
 #   class GridTooLarge(Exception)：组合数超护栏（领域异常）
@@ -22,9 +26,11 @@
 #       重复字段/非有限值——GR-11 族，本文件定义）
 #
 # 【行为规格】
-#   R1 组合数护栏：total > 4^k 上限（默认上限来自 assumptions，出处入库）
-#      → 抛 GridTooLarge（附建议：缩小某维步长/范围）——§12.4
-#      "自由参数网格 ≤4^k" 的机器强制。
+#   R1 组合数护栏：total > base**k 上限（base 缺省来自 assumptions
+#      ——B2 A1 起 7.0；经 overrides 可按项目假设覆盖收紧/抬升，
+#      出处入库）→ 抛 GridTooLarge（附建议：缩小某维步长/范围
+#      或经假设覆盖调整 base）——§12.4 护栏口径的机器强制
+#      （B2 起消息不再引死基数字样）。
 #   R2 网格确定性：同 manifest 同 Grid（字段序按 field_id 字典序稳定）。
 #   R3 网格值只来自 manifest 声明（枚举值或起止步长生成）；
 #      代码不注入任何隐含取值。
@@ -168,8 +174,16 @@ def _dtype(fields: tuple[str, ...]) -> numpy.dtype[numpy.void]:
         return numpy.dtype([(field_id, "<f8") for field_id in fields])
 
 
-def build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]]) -> Grid:
-    """构建正门：逐维声明归一（字典序稳定）→ 护栏校验 → 笛卡尔积展平。"""
+def build_grid(
+    param_specs: Sequence[ParamSpec | Mapping[str, Any]],
+    *,
+    overrides: Mapping[str, float] | None = None,
+) -> Grid:
+    """构建正门：逐维声明归一（字典序稳定）→ 护栏校验 → 笛卡尔积展平。
+
+    B2 A2：护栏基数 base 经 overrides 接入项目假设覆盖管道
+    （None=不覆盖，取 assumptions 缺省基数——向后兼容）。
+    """
     if not param_specs:
         raise InvalidGridError(
             "网格声明为空：无自由参数的枚举=装配缺陷（GR-14 空集显式语义）"
@@ -185,12 +199,12 @@ def build_grid(param_specs: Sequence[ParamSpec | Mapping[str, Any]]) -> Grid:
     values = tuple(vals for _, vals in dimensions)
     shape = tuple(len(vals) for vals in values)
     total = prod(shape)
-    base = assumption(_BASE_KEY, {})
+    base = assumption(_BASE_KEY, overrides if overrides is not None else {})
     limit = base ** len(fields)
     if total > limit:
         raise GridTooLarge(
             f"网格组合数 {total} 超护栏 base**k = {limit:g}"
-            f"（base={_BASE_KEY}={base:g}，k={len(fields)}——§12.4 ≤4^k；"
+            f"（base={_BASE_KEY}={base:g}，k={len(fields)}，护栏基数经假设覆盖可调——"
             "建议缩小某维步长/范围或减少枚举维数）"
         )
     array = numpy.empty(total, dtype=_dtype(fields))

@@ -153,18 +153,21 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "p_out",
+                "label_zh": "干化后含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.25,
                 "range": {"min": 0.2, "max": 0.4},
             },
             {
                 "field_id": "t_op",
+                "label_zh": "日运行时",
                 "dim": "DIMENSIONLESS",
                 "default": 24.0,
                 "grid": [8.0, 16.0, 24.0],
             },
             {
                 "field_id": "r_evap",
+                "label_zh": "传热面积蒸发强度",
                 "dim": "DIMENSIONLESS",
                 "default": 8.0,
                 "range": {"min": 4.0, "max": 15.0},

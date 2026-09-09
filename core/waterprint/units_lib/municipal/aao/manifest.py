@@ -299,33 +299,44 @@ manifest = load_manifest(
         # 两参数——CASS 同值同 range 平移），tn_eff 出水标准值与构造参数
         # n/sec_per_hour/side_disc_step 无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
+            {
+                "field_id": "n",
+                "label_zh": "池数（格）",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2, 3, 4, 5, 6],
+            },
             {
                 "field_id": "ns",
+                "label_zh": "BOD5 污泥负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 0.10,
                 "range": {"min": 0.05, "max": 0.15},
             },
             {
                 "field_id": "x_mlss",
+                "label_zh": "设计 MLSS",
                 "dim": "CONCENTRATION",
                 "default": 4000.0,
                 "range": {"min": 3500.0, "max": 4500.0},
             },
             {
                 "field_id": "t_p",
+                "label_zh": "厌氧区 HRT",
                 "dim": "DIMENSIONLESS",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
             {
                 "field_id": "r_external",
+                "label_zh": "外回流比",
                 "dim": "DIMENSIONLESS",
                 "default": 1.0,
                 "range": {"min": 0.5, "max": 1.0},
             },
             {
                 "field_id": "r_internal",
+                "label_zh": "内回流比",
                 "dim": "DIMENSIONLESS",
                 "default": 2.0,
                 "range": {"min": 1.0, "max": 3.0},
@@ -334,20 +345,42 @@ manifest = load_manifest(
             # （AO-F4 入参 delta_n=TN_in−tn_eff，辖池容机理链）与出流水质
             # 键族 TN=TN_in×(1−removal.aao.tn)（辖出流水质链）双口径并行
             # ——语义不冲突（机理池容 vs 出流浓度两链各辖其面）。
-            {"field_id": "tn_eff", "dim": "CONCENTRATION", "default": 15.0},
-            {"field_id": "sec_per_hour", "dim": "DIMENSIONLESS", "default": 3600.0},
+            {
+                "field_id": "tn_eff",
+                "label_zh": "设计出水 TN",
+                "dim": "CONCENTRATION",
+                "default": 15.0,
+            },
+            {
+                "field_id": "sec_per_hour",
+                "label_zh": "时换算系数",
+                "dim": "DIMENSIONLESS",
+                "default": 3600.0,
+            },
             # L7 池体图元批几何形态参数三件（CASS 同值同 range 平移——
             # 出处=GB 50014-2021 §6+给水排水设计手册第 5 册，CASS manifest
             # 先例措辞；h2=有效水深 m、ratio_lb=池长宽比、side_disc_step=
             # 边长圆整档 m——AO-F15~F19 几何族消费）
-            {"field_id": "h2", "dim": "LENGTH", "default": 5.0, "range": {"min": 4.0, "max": 6.0}},
+            {
+                "field_id": "h2",
+                "label_zh": "有效水深",
+                "dim": "LENGTH",
+                "default": 5.0,
+                "range": {"min": 4.0, "max": 6.0},
+            },
             {
                 "field_id": "ratio_lb",
+                "label_zh": "池长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 2.5,
                 "range": {"min": 2.0, "max": 3.0},
             },
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

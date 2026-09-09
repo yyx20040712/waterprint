@@ -240,18 +240,73 @@ manifest = load_manifest(
         # 含水率三参数 (0,1) 开域、ds 三股/流量/水质/BOD 对均无出处带——
         # 不设 range/grid（域守卫在 compute，缺出处不编造档位）
         "params": [
-            {"field_id": "ds_primary", "dim": "DIMENSIONLESS", "default": 3240.12},
-            {"field_id": "p_primary", "dim": "DIMENSIONLESS", "default": 0.96},
-            {"field_id": "ds_bio", "dim": "DIMENSIONLESS", "default": 1928.690},
-            {"field_id": "p_bio", "dim": "DIMENSIONLESS", "default": 0.994},
-            {"field_id": "ds_chem", "dim": "DIMENSIONLESS", "default": 137.7050},
-            {"field_id": "p_chem", "dim": "DIMENSIONLESS", "default": 0.98},
-            {"field_id": "q_avg_daily", "dim": "DIMENSIONLESS", "default": 34760.7},
-            {"field_id": "s0_bod", "dim": "CONCENTRATION", "default": 123.2996},
-            {"field_id": "se_bod", "dim": "CONCENTRATION", "default": 12.32996},
-            {"field_id": "v_bio", "dim": "VOLUME", "default": 10714.95},
-            {"field_id": "x_vss", "dim": "CONCENTRATION", "default": 3000.0},
-            {"field_id": "t_design", "dim": "DIMENSIONLESS", "default": 15.0},
+            {
+                "field_id": "ds_primary",
+                "label_zh": "初沉股干泥",
+                "dim": "DIMENSIONLESS",
+                "default": 3240.12,
+            },
+            {
+                "field_id": "p_primary",
+                "label_zh": "初沉污泥含水率",
+                "dim": "DIMENSIONLESS",
+                "default": 0.96,
+            },
+            {
+                "field_id": "ds_bio",
+                "label_zh": "剩余污泥股干泥",
+                "dim": "DIMENSIONLESS",
+                "default": 1928.690,
+            },
+            {
+                "field_id": "p_bio",
+                "label_zh": "剩余污泥含水率",
+                "dim": "DIMENSIONLESS",
+                "default": 0.994,
+            },
+            {
+                "field_id": "ds_chem",
+                "label_zh": "化学污泥股干泥",
+                "dim": "DIMENSIONLESS",
+                "default": 137.7050,
+            },
+            {
+                "field_id": "p_chem",
+                "label_zh": "化学污泥含水率",
+                "dim": "DIMENSIONLESS",
+                "default": 0.98,
+            },
+            {
+                "field_id": "q_avg_daily",
+                "label_zh": "平均日流量",
+                "dim": "DIMENSIONLESS",
+                "default": 34760.7,
+            },
+            {
+                "field_id": "s0_bod",
+                "label_zh": "生物池进水 BOD5",
+                "dim": "CONCENTRATION",
+                "default": 123.2996,
+            },
+            {
+                "field_id": "se_bod",
+                "label_zh": "生物池出水 BOD5",
+                "dim": "CONCENTRATION",
+                "default": 12.32996,
+            },
+            {"field_id": "v_bio", "label_zh": "生物池容积", "dim": "VOLUME", "default": 10714.95},
+            {
+                "field_id": "x_vss",
+                "label_zh": "挥发性污泥浓度（MLVSS）",
+                "dim": "CONCENTRATION",
+                "default": 3000.0,
+            },
+            {
+                "field_id": "t_design",
+                "label_zh": "设计水温",
+                "dim": "DIMENSIONLESS",
+                "default": 15.0,
+            },
         ],
         # GOLDEN4a D1（2026-08-28）：三股 IN 口实体化（in_primary/in_bio/
         # in_chem——与 ds_primary 参数族对应）+出流一口 SLUDGE。三口全无边

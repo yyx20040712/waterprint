@@ -258,44 +258,55 @@ manifest = load_manifest(
         # depth_band 2.5~4.0/cell_ratio_lb_band 0.8~1.5），池数/取整档
         # 无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "label_zh": "池数（格）", "dim": "DIMENSIONLESS", "default": 2.0},
             {
                 "field_id": "t_mix",
+                "label_zh": "混合区停留",
                 "dim": "DIMENSIONLESS",
                 "default": 1.0,
                 "range": {"min": 0.5, "max": 2.0},
             },
             {
                 "field_id": "t_seed",
+                "label_zh": "磁种混合区停留",
                 "dim": "DIMENSIONLESS",
                 "default": 2.0,
                 "range": {"min": 1.0, "max": 3.0},
             },
             {
                 "field_id": "t_floc",
+                "label_zh": "絮凝区停留",
                 "dim": "DIMENSIONLESS",
                 "default": 3.0,
                 "range": {"min": 2.0, "max": 4.0},
             },
             {
                 "field_id": "t_ripen",
+                "label_zh": "熟化区停留",
                 "dim": "DIMENSIONLESS",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
             {
                 "field_id": "h2",
+                "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 3.0,
                 "range": {"min": 2.5, "max": 4.0},
             },
             {
                 "field_id": "ratio_lb",
+                "label_zh": "最大区长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 1.2,
                 "range": {"min": 0.8, "max": 1.5},
             },
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

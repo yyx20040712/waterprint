@@ -162,11 +162,12 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "v_press",
+                "label_zh": "压力流设计流速",
                 "dim": "VELOCITY",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
-            {"field_id": "d_grav", "dim": "LENGTH", "default": 0.15},
+            {"field_id": "d_grav", "label_zh": "重力段管径", "dim": "LENGTH", "default": 0.15},
         ],
         "ports": [
             {"port_id": "in", "fluid": "SLUDGE", "direction": "IN"},

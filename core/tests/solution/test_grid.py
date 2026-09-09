@@ -32,10 +32,14 @@ def test_cartesian_product_shape() -> None:
 
 
 def test_too_many_dimensions_rejected() -> None:
-    """R1：总组合数超过护栏（默认上限）→ GridTooLarge。"""
+    """R1：总组合数超过护栏（默认上限）→ GridTooLarge。
+
+    B2 A1 重锚：护栏基数 4→7 后 5^10 不再拒——重锚为 8 档（8^10 > 7^10）。
+    """
     big = [
-        _param(f"f{i}", [1.0, 2.0, 3.0, 4.0, 5.0]) for i in range(10)
-    ]  # 5^10 远超任何合理护栏
+        _param(f"f{i}", [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+        for i in range(10)
+    ]  # 8^10 超缺省护栏 7^10
     with pytest.raises(GridTooLarge):
         build_grid(big)
 
@@ -47,3 +51,21 @@ def test_grid_is_deterministic() -> None:
     second = build_grid(list(reversed(params)))
     assert first.fields == second.fields
     assert str(first.array) == str(second.array)
+
+
+def test_guardrail_overrides_tighten() -> None:
+    """B2 PD13 A2：overrides 收紧护栏——5 档单维在 base=4 覆盖下拒（5 > 4^1）。"""
+    with pytest.raises(GridTooLarge):
+        build_grid(
+            [_param("n", [2.0, 3.0, 4.0, 5.0, 6.0])],
+            overrides={"solution.grid.base_per_dim": 4.0},
+        )
+
+
+def test_guardrail_overrides_raise() -> None:
+    """B2 PD13 A2：overrides 抬升护栏——8 档单维（默认 base 拒）在 base=8 覆盖下过。"""
+    grid = build_grid(
+        [_param("n", [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])],
+        overrides={"solution.grid.base_per_dim": 8.0},
+    )
+    assert grid.total == 8

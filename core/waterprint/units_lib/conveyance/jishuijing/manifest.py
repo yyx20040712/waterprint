@@ -145,17 +145,24 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "t_well",
+                "label_zh": "汇流停留时间",
                 "dim": "DIMENSIONLESS",
                 "default": 5.0,
                 "range": {"min": 2.0, "max": 10.0},
             },
             {
                 "field_id": "h_well",
+                "label_zh": "集水井有效水深",
                 "dim": "LENGTH",
                 "default": 3.0,
                 "range": {"min": 2.0, "max": 4.0},
             },
-            {"field_id": "dia_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "dia_disc_step",
+                "label_zh": "直径圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         # 集水类=汇流单出流：in 口多股经图入边汇流（propagate 合并面），
         # out 口穿流透传（零去除——水量/水质双透传）

@@ -71,19 +71,23 @@ def test_range_step_generation_inclusive() -> None:
 
 
 def test_single_dim_over_base_rejected() -> None:
-    """R1 护栏字面口径：1 维 5 档（5 > 4^1）→ 拒（六池单元单维枚举同此，
-    追认点记档——多于一维即放行，如 CASS n_pool×t_cycle=15 ≤ 4^2）。"""
-    with pytest.raises(GridTooLarge, match="4"):  # type: ignore[misc]
-        build_grid([{"field_id": "n", "values": [2.0, 3.0, 4.0, 5.0, 6.0]}])  # type: ignore[misc]
+    """R1 护栏字面口径：1 维 8 档（8 > 7^1）→ 拒（B2 A1 重锚：护栏基数
+    4→7，原 5 档单维不再拒；六池单元单维枚举同此——多于一维即放行，
+    如 CASS n_pool×t_cycle=15 ≤ 7^2）。"""
+    with pytest.raises(GridTooLarge, match="7"):  # type: ignore[misc]
+        build_grid(  # type: ignore[misc]
+            [{"field_id": "n", "values": [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]}]
+        )
 
 
 def test_paramspec_form_guard_too_large() -> None:
-    """R1 护栏（探针④证据同源）：ParamSpec 形 10 维 × 5 档=5^10 > 4^10 → 拒。"""
+    """R1 护栏（探针④证据同源）：ParamSpec 形 10 维 × 8 档=8^10 > 7^10 → 拒
+    （B2 A1 重锚：基数 4→7，原 5 档 5^10 不再拒）。"""
     from waterprint.contracts.manifest import ParamSpec
 
     specs = [
         ParamSpec(field_id=f"f{i}", dim="DIMENSIONLESS", default=1.0,
-                  grid=(1.0, 2.0, 3.0, 4.0, 5.0))
+                  grid=(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0))
         for i in range(10)
     ]
     with pytest.raises(GridTooLarge, match="护栏"):  # type: ignore[misc]

@@ -9,7 +9,9 @@
 #
 # 【导出白名单】（M-6 R1 轮落实际导出语句，2026-08-26 二审追认——
 #   此前仅有注释清单无导出，D1 末条欠账补齐）
-#   grid:        build_grid, GridTooLarge
+#   grid:        build_grid, GridTooLarge（B2 A2 2026-09-09 起 build_grid
+#                增 keyword-only overrides——护栏基数接入假设覆盖管道，
+#                公开导出签名变更注记）
 #   enumerate:   enumerate_solutions
 #   constraints: apply_constraints
 #   ranking:     rank

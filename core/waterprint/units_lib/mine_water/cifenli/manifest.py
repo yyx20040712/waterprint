@@ -203,15 +203,26 @@ manifest = load_manifest(
         # range 仅一条有出处带参数（surface_load_band 20~40 m³/(m²·h)），
         # 台数/转速/磁种投加量无范围来源不设
         "params": [
-            {"field_id": "n_units", "dim": "DIMENSIONLESS", "default": 4.0},
-            {"field_id": "omega", "dim": "DIMENSIONLESS", "default": 3.0},
+            {
+                "field_id": "n_units",
+                "label_zh": "分离机台数",
+                "dim": "DIMENSIONLESS",
+                "default": 4.0,
+            },
+            {"field_id": "omega", "label_zh": "盘转速", "dim": "DIMENSIONLESS", "default": 3.0},
             {
                 "field_id": "q_surf",
+                "label_zh": "盘面表面负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 25.0,
                 "range": {"min": 20.0, "max": 40.0},
             },
-            {"field_id": "m_seed", "dim": "DIMENSIONLESS", "default": 21918.0},
+            {
+                "field_id": "m_seed",
+                "label_zh": "磁种投加",
+                "dim": "DIMENSIONLESS",
+                "default": 21918.0,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

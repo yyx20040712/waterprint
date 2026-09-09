@@ -208,23 +208,52 @@ manifest = load_manifest(
         # 同口径）；v/v_channel/h_well 带=range 面逐字；g_gravity=物理
         # 常数参数承载；出流口 0.1 m 档（DN 档）/井径 0.5 m 档
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2.0, 3.0, 4.0]},
-            {"field_id": "v", "dim": "VELOCITY", "default": 1.0, "range": {"min": 0.8, "max": 1.5}},
-            {"field_id": "g_gravity", "dim": "DIMENSIONLESS", "default": 9.81},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {
+                "field_id": "n",
+                "label_zh": "出流口数/并联系列数",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2.0, 3.0, 4.0],
+            },
+            {
+                "field_id": "v",
+                "label_zh": "名义出流流速",
+                "dim": "VELOCITY",
+                "default": 1.0,
+                "range": {"min": 0.8, "max": 1.5},
+            },
+            {
+                "field_id": "g_gravity",
+                "label_zh": "重力加速度",
+                "dim": "DIMENSIONLESS",
+                "default": 9.81,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
             {
                 "field_id": "v_channel",
+                "label_zh": "井室过流断面流速",
                 "dim": "VELOCITY",
                 "default": 0.6,
                 "range": {"min": 0.4, "max": 0.8},
             },
             {
                 "field_id": "h_well",
+                "label_zh": "配水井有效水深",
                 "dim": "LENGTH",
                 "default": 2.0,
                 "range": {"min": 1.5, "max": 2.5},
             },
-            {"field_id": "dia_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "dia_disc_step",
+                "label_zh": "直径圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         # 配水类=动态多口：ports 声明单 OUT 口 "out"（流体/方向声明锚点），
         # compute 按参数 n 产 out_1~out_n 多键出流（表内冻结口径——

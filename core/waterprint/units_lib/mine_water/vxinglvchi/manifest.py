@@ -220,34 +220,43 @@ manifest = load_manifest(
         # 0.8~1.2 偏薄档、water_above_band 1.0~1.5），格数/滤板厚/
         # 承托层/取整档无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 16.0},
+            {"field_id": "n", "label_zh": "滤池格数", "dim": "DIMENSIONLESS", "default": 16.0},
             {
                 "field_id": "v_filter",
+                "label_zh": "正常滤速",
                 "dim": "DIMENSIONLESS",
                 "default": 5.0,
                 "range": {"min": 4.0, "max": 6.0},
             },
             {
                 "field_id": "t_filter",
+                "label_zh": "过滤周期",
                 "dim": "DIMENSIONLESS",
                 "default": 24.0,
                 "range": {"min": 24.0, "max": 48.0},
             },
             {
                 "field_id": "h_media",
+                "label_zh": "滤层厚",
                 "dim": "LENGTH",
                 "default": 1.0,
                 "range": {"min": 0.8, "max": 1.2},
             },
             {
                 "field_id": "h_water",
+                "label_zh": "砂上水深",
                 "dim": "LENGTH",
                 "default": 1.2,
                 "range": {"min": 1.0, "max": 1.5},
             },
-            {"field_id": "h_plate", "dim": "LENGTH", "default": 0.1},
-            {"field_id": "h_under", "dim": "LENGTH", "default": 0.9},
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "h_plate", "label_zh": "滤板厚", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "h_under", "label_zh": "承托层厚", "dim": "LENGTH", "default": 0.9},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

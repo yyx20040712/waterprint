@@ -205,35 +205,40 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "q_solid",
+                "label_zh": "固体负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 50.0,
                 "range": {"min": 30.0, "max": 60.0},
             },
             {
                 "field_id": "t_thicken",
+                "label_zh": "浓缩时间",
                 "dim": "DIMENSIONLESS",
                 "default": 16.0,
                 "range": {"min": 12.0, "max": 24.0},
             },
             {
                 "field_id": "h_eff",
+                "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 4.0,
                 "range": {"min": 3.0, "max": 5.0},
             },
             {
                 "field_id": "n",
+                "label_zh": "池数（格）",
                 "dim": "DIMENSIONLESS",
                 "default": 2.0,
                 "grid": [2.0, 3.0, 4.0],
             },
             {
                 "field_id": "p_out",
+                "label_zh": "底流含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.96,
                 "range": {"min": 0.95, "max": 0.98},
             },
-            {"field_id": "h_cone", "dim": "LENGTH", "default": 2.0},
+            {"field_id": "h_cone", "label_zh": "锥底高", "dim": "LENGTH", "default": 2.0},
         ],
         # 三口 SLUDGE：in/out 常规 + sup 上清液回流口（recycle=True 声明
         # 先行——Q1 未裁默认关=边不连，business-logic §6；UF-11 Ruling ②）

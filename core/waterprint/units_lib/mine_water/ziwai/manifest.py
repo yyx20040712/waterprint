@@ -214,16 +214,27 @@ manifest = load_manifest(
         # 矿井水高于市政 55~65 档），渠数/渠宽/水深/灯功率/每排灯数/
         # 排间距/损失系数和/透光指数构造参数无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 3.0},
-            {"field_id": "b_channel", "dim": "LENGTH", "default": 1.7},
-            {"field_id": "h_channel", "dim": "LENGTH", "default": 1.2},
-            {"field_id": "p_lamp", "dim": "DIMENSIONLESS", "default": 250.0},
-            {"field_id": "n_layer", "dim": "DIMENSIONLESS", "default": 6.0},
-            {"field_id": "d_long", "dim": "LENGTH", "default": 0.12},
-            {"field_id": "xi_total", "dim": "DIMENSIONLESS", "default": 3.0},
-            {"field_id": "n_t", "dim": "DIMENSIONLESS", "default": 1.5},
+            {"field_id": "n", "label_zh": "渠数", "dim": "DIMENSIONLESS", "default": 3.0},
+            {"field_id": "b_channel", "label_zh": "渠宽", "dim": "LENGTH", "default": 1.7},
+            {"field_id": "h_channel", "label_zh": "渠内有效水深", "dim": "LENGTH", "default": 1.2},
+            {
+                "field_id": "p_lamp",
+                "label_zh": "单灯功率",
+                "dim": "DIMENSIONLESS",
+                "default": 250.0,
+            },
+            {"field_id": "n_layer", "label_zh": "每排灯数", "dim": "DIMENSIONLESS", "default": 6.0},
+            {"field_id": "d_long", "label_zh": "灯排间距", "dim": "LENGTH", "default": 0.12},
+            {
+                "field_id": "xi_total",
+                "label_zh": "渠内局部损失系数和",
+                "dim": "DIMENSIONLESS",
+                "default": 3.0,
+            },
+            {"field_id": "n_t", "label_zh": "透光指数", "dim": "DIMENSIONLESS", "default": 1.5},
             {
                 "field_id": "t254",
+                "label_zh": "254 nm 穿透率",
                 "dim": "DIMENSIONLESS",
                 "default": 65.0,
                 "range": {"min": 60.0, "max": 70.0},

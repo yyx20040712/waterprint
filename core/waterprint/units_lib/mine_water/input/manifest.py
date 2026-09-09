@@ -141,32 +141,70 @@ manifest = load_manifest(
         # range 仅三条有出处带参数（kz 1.3~1.5 井下脉动/dn_inlet 600~1000 mm/
         # h_pool 2.5~4.0 m），标高与水质注入面无范围来源不设
         "params": [
-            {"field_id": "q_avg_daily", "dim": "DIMENSIONLESS", "default": 43836.0},
+            {
+                "field_id": "q_avg_daily",
+                "label_zh": "平均日流量",
+                "dim": "DIMENSIONLESS",
+                "default": 43836.0,
+            },
             {
                 "field_id": "kz",
+                "label_zh": "总变化系数",
                 "dim": "DIMENSIONLESS",
                 "default": 1.5,
                 "range": {"min": 1.3, "max": 1.5},
             },
             {
                 "field_id": "dn_inlet",
+                "label_zh": "进水管径",
                 "dim": "DIMENSIONLESS",
                 "default": 800.0,
                 "range": {"min": 600.0, "max": 1000.0},
             },
-            {"field_id": "z_water_inlet", "dim": "LENGTH", "default": 100.0},
-            {"field_id": "z_ground", "dim": "LENGTH", "default": 102.0},
+            {
+                "field_id": "z_water_inlet",
+                "label_zh": "进水水面标高",
+                "dim": "LENGTH",
+                "default": 100.0,
+            },
+            {"field_id": "z_ground", "label_zh": "地面标高", "dim": "LENGTH", "default": 102.0},
             {
                 "field_id": "h_pool",
+                "label_zh": "井下提升有效水深",
                 "dim": "LENGTH",
                 "default": 3.0,
                 "range": {"min": 2.5, "max": 4.0},
             },
-            {"field_id": "ss_in", "dim": "CONCENTRATION", "default": 800.0},
-            {"field_id": "cod_in", "dim": "CONCENTRATION", "default": 200.0},
-            {"field_id": "nh3n_in", "dim": "CONCENTRATION", "default": 1.0},
-            {"field_id": "tn_in", "dim": "CONCENTRATION", "default": 60.0},
-            {"field_id": "tp_in", "dim": "CONCENTRATION", "default": 2.0},
+            {
+                "field_id": "ss_in",
+                "label_zh": "进水 SS 浓度",
+                "dim": "CONCENTRATION",
+                "default": 800.0,
+            },
+            {
+                "field_id": "cod_in",
+                "label_zh": "进水 COD 浓度",
+                "dim": "CONCENTRATION",
+                "default": 200.0,
+            },
+            {
+                "field_id": "nh3n_in",
+                "label_zh": "进水氨氮浓度",
+                "dim": "CONCENTRATION",
+                "default": 1.0,
+            },
+            {
+                "field_id": "tn_in",
+                "label_zh": "进水总氮浓度",
+                "dim": "CONCENTRATION",
+                "default": 60.0,
+            },
+            {
+                "field_id": "tp_in",
+                "label_zh": "进水总磷浓度",
+                "dim": "CONCENTRATION",
+                "default": 2.0,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

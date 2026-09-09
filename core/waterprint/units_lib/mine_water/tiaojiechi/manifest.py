@@ -189,27 +189,40 @@ manifest = load_manifest(
         # ratio_lb_band 2.0~4.0——井下脉动+高 SS+地下式布置独立起草），
         # 分格数/取整档无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 16.0},
+            {"field_id": "n", "label_zh": "分格数", "dim": "DIMENSIONLESS", "default": 16.0},
             {
                 "field_id": "t_reg",
+                "label_zh": "调节停留时间",
                 "dim": "DIMENSIONLESS",
                 "default": 8.0,
                 "range": {"min": 8.0, "max": 12.0},
             },
             {
                 "field_id": "h2",
+                "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 3.0,
                 "range": {"min": 3.0, "max": 5.0},
             },
             {
                 "field_id": "ratio_lb",
+                "label_zh": "池长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 3.0,
                 "range": {"min": 2.0, "max": 4.0},
             },
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.05},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.05,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

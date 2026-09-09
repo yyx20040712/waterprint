@@ -118,7 +118,7 @@ _BUSINESS_LINES: frozenset[str] = frozenset(
     {"municipal", "mine_water", "sludge", "conveyance"}
 )
 _PARAM_KEYS: frozenset[str] = frozenset(
-    {"field_id", "dim", "default", "grid", "range"}
+    {"field_id", "dim", "default", "grid", "range", "label_zh"}
 )
 _PORT_KEYS: frozenset[str] = frozenset(
     {"port_id", "fluid", "direction", "recycle"}

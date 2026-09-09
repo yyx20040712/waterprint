@@ -258,26 +258,49 @@ manifest = load_manifest(
         # mod.json min=30 与带不一致矛盾 3：总控工程惯例裁定 2026-08-25
         # 表载 t=30 生效、待领域专家追认），其余参数无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
+            {
+                "field_id": "n",
+                "label_zh": "池数（格）",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2, 3, 4, 5, 6],
+            },
             {
                 "field_id": "q_surf",
+                "label_zh": "表面负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 150.0,
                 "range": {"min": 150.0, "max": 200.0},
             },
             {
                 "field_id": "t_retention",
+                "label_zh": "停留时间",
                 "dim": "TIME",
                 "default": 30.0,
                 "range": {"min": 25.0, "max": 60.0},
             },
-            {"field_id": "t_clean", "dim": "DIMENSIONLESS", "default": 2.0},
-            {"field_id": "theta", "dim": "DIMENSIONLESS", "default": 55.0},
-            {"field_id": "d_r", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "b_channel", "dim": "LENGTH", "default": 0.8},
-            {"field_id": "v_channel", "dim": "VELOCITY", "default": 1.0},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
-            {"field_id": "sec_per_hour", "dim": "DIMENSIONLESS", "default": 3600.0},
+            {"field_id": "t_clean", "label_zh": "清砂间隔", "dim": "DIMENSIONLESS", "default": 2.0},
+            {
+                "field_id": "theta",
+                "label_zh": "砂斗壁倾角",
+                "dim": "DIMENSIONLESS",
+                "default": 55.0,
+            },
+            {"field_id": "d_r", "label_zh": "排砂口直径", "dim": "LENGTH", "default": 0.5},
+            {"field_id": "b_channel", "label_zh": "进水渠宽", "dim": "LENGTH", "default": 0.8},
+            {"field_id": "v_channel", "label_zh": "进水流速", "dim": "VELOCITY", "default": 1.0},
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
+            {
+                "field_id": "sec_per_hour",
+                "label_zh": "时换算系数",
+                "dim": "DIMENSIONLESS",
+                "default": 3600.0,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

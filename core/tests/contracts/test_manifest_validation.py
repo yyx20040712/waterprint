@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import copy
 import importlib
 
 import pytest
@@ -60,3 +61,14 @@ def test_slot_keeps_binding_after_rejected_rebind() -> None:
     manifest = load_manifest(_MINIMAL)
     assert manifest.unit_id == "mirror_validation_unit"
     assert manifest.params[0].field_id == "pool_length"
+
+
+def test_param_label_zh_accepted_and_unknown_key_rejected() -> None:
+    """B2 PD1/PD3：params 条目 label_zh 接受（五键→六键）+未知键仍拒（防拼写静默）。"""
+    with_label = copy.deepcopy(_MINIMAL)
+    with_label["params"][0]["label_zh"] = "池长"
+    assert load_manifest(with_label).params[0].label_zh == "池长"
+    bad = copy.deepcopy(_MINIMAL)
+    bad["params"][0]["label_zh_cn"] = "池长"
+    with pytest.raises(Exception, match="条目未知键"):
+        load_manifest(bad)

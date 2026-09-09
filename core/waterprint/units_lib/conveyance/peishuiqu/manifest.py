@@ -158,26 +158,40 @@ manifest = load_manifest(
         # 参数档）；n=grid 档（§7.1 并联系列≥2 精神）；b_channel/
         # v_channel/b 带=range 面逐字；g_gravity=物理常数参数承载
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2.0, 3.0, 4.0]},
+            {
+                "field_id": "n",
+                "label_zh": "出流口数/并联系列数",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2.0, 3.0, 4.0],
+            },
             {
                 "field_id": "b_channel",
+                "label_zh": "渠宽",
                 "dim": "LENGTH",
                 "default": 1.2,
                 "range": {"min": 0.8, "max": 2.0},
             },
             {
                 "field_id": "v_channel",
+                "label_zh": "渠内设计流速",
                 "dim": "VELOCITY",
                 "default": 0.8,
                 "range": {"min": 0.6, "max": 1.0},
             },
             {
                 "field_id": "b",
+                "label_zh": "每系列堰长",
                 "dim": "LENGTH",
                 "default": 2.0,
                 "range": {"min": 1.5, "max": 3.0},
             },
-            {"field_id": "g_gravity", "dim": "DIMENSIONLESS", "default": 9.81},
+            {
+                "field_id": "g_gravity",
+                "label_zh": "重力加速度",
+                "dim": "DIMENSIONLESS",
+                "default": 9.81,
+            },
         ],
         # 配水渠=动态多口：ports 声明单 OUT 口 "out"（流体/方向声明锚点），
         # compute 按参数 n 产 out_1~out_n 多键出流（表内冻结口径——

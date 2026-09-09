@@ -220,21 +220,43 @@ manifest = load_manifest(
         # range 只在流速带（factor.screen.velocity_band，三表校核带）落，
         # 其余参数三表无范围来源不设（数值纪律：禁编造）
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 3.0},
-            {"field_id": "b", "dim": "LENGTH", "default": 0.065},
-            {"field_id": "alpha", "dim": "DIMENSIONLESS", "default": 75.0},
-            {"field_id": "h", "dim": "LENGTH", "default": 0.6},
-            {"field_id": "v", "dim": "VELOCITY", "default": 0.8, "range": {"min": 0.6, "max": 1.0}},
+            {"field_id": "n", "label_zh": "格栅台数", "dim": "DIMENSIONLESS", "default": 3.0},
+            {"field_id": "b", "label_zh": "栅条间隙", "dim": "LENGTH", "default": 0.065},
+            {"field_id": "alpha", "label_zh": "格栅倾角", "dim": "DIMENSIONLESS", "default": 75.0},
+            {"field_id": "h", "label_zh": "栅前水深", "dim": "LENGTH", "default": 0.6},
+            {
+                "field_id": "v",
+                "label_zh": "过栅流速设计值",
+                "dim": "VELOCITY",
+                "default": 0.8,
+                "range": {"min": 0.6, "max": 1.0},
+            },
             {
                 "field_id": "v1",
+                "label_zh": "栅前流速",
                 "dim": "VELOCITY",
                 "default": 0.7,
                 "range": {"min": 0.4, "max": 0.9},
             },
-            {"field_id": "s", "dim": "LENGTH", "default": 0.010},
-            {"field_id": "bar_shape", "dim": "DIMENSIONLESS", "default": 0.0},
-            {"field_id": "g_gravity", "dim": "DIMENSIONLESS", "default": 9.81},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "s", "label_zh": "栅条宽", "dim": "LENGTH", "default": 0.010},
+            {
+                "field_id": "bar_shape",
+                "label_zh": "栅条断面形状代号",
+                "dim": "DIMENSIONLESS",
+                "default": 0.0,
+            },
+            {
+                "field_id": "g_gravity",
+                "label_zh": "重力加速度",
+                "dim": "DIMENSIONLESS",
+                "default": 9.81,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

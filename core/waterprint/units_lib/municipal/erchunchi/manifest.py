@@ -215,29 +215,53 @@ manifest = load_manifest(
         # 有出处带参数（surface_load_band 0.6~1.5/depth_band 2.5~3.5/
         # r_external_band 0.5~1.0[联动 AAO 带出处]），构造参数与取整档不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
+            {
+                "field_id": "n",
+                "label_zh": "池数（格）",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2, 3, 4, 5, 6],
+            },
             {
                 "field_id": "q_nom",
+                "label_zh": "名义清水表面负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 1.2,
                 "range": {"min": 0.6, "max": 1.5},
             },
-            {"field_id": "x_mlss", "dim": "CONCENTRATION", "default": 4000.0},
+            {
+                "field_id": "x_mlss",
+                "label_zh": "污泥浓度（MLSS）",
+                "dim": "CONCENTRATION",
+                "default": 4000.0,
+            },
             {
                 "field_id": "r_external",
+                "label_zh": "外回流比",
                 "dim": "DIMENSIONLESS",
                 "default": 1.0,
                 "range": {"min": 0.5, "max": 1.0},
             },
             {
                 "field_id": "h2",
+                "label_zh": "池边有效水深",
                 "dim": "LENGTH",
                 "default": 3.0,
                 "range": {"min": 2.5, "max": 3.5},
             },
-            {"field_id": "r_pit", "dim": "LENGTH", "default": 1.0},
-            {"field_id": "dia_disc_step", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "r_pit", "label_zh": "中心配水井半径", "dim": "LENGTH", "default": 1.0},
+            {
+                "field_id": "dia_disc_step",
+                "label_zh": "直径圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

@@ -169,6 +169,7 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "b_throat",
+                "label_zh": "喉宽",
                 "dim": "LENGTH",
                 "default": 0.75,
                 "grid": list(THROAT_GRID),

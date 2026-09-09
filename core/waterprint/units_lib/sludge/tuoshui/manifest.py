@@ -163,23 +163,31 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "machine_type",
+                "label_zh": "污泥脱水机机型",
                 "dim": "DIMENSIONLESS",
                 "default": 1.0,
                 "grid": [1.0, 2.0],
             },
             {
                 "field_id": "dose_pam",
+                "label_zh": "PAM 投加量",
                 "dim": "DIMENSIONLESS",
                 "default": 4.0,
                 "range": {"min": 2.0, "max": 8.0},
             },
             {
                 "field_id": "p_cake",
+                "label_zh": "泥饼含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.78,
                 "range": {"min": 0.75, "max": 0.8},
             },
-            {"field_id": "n_standby", "dim": "DIMENSIONLESS", "default": 1.0},
+            {
+                "field_id": "n_standby",
+                "label_zh": "备用台数",
+                "dim": "DIMENSIONLESS",
+                "default": 1.0,
+            },
         ],
         # 三口 SLUDGE：in/out 常规 + filtrate 滤液回流口（recycle=True
         # 声明先行——Q1 未裁默认关=边不连，business-logic §6；UF-11 ②）

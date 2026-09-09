@@ -318,7 +318,10 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
             f"枚举目标单元 {unit_id!r} 不在装配图（单单元语义 ADR-005——多单元拒绝在"
             " server 层；core 侧未命中=InvalidAssemblyError）"
         )
-    grid = build_grid([spec for spec in unit.manifest.params if spec.grid is not None])
+    grid = build_grid(
+        [spec for spec in unit.manifest.params if spec.grid is not None],
+        overrides=env.assumptions,
+    )
     condition = next(iter(conditions.iter_all()), None)  # M-5 R1：空集显式领域异常
     if condition is None:
         raise InvalidAssemblyError(

@@ -195,30 +195,35 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "t_digest",
+                "label_zh": "消化时间",
                 "dim": "DIMENSIONLESS",
                 "default": 20.0,
                 "range": {"min": 15.0, "max": 30.0},
             },
             {
                 "field_id": "n",
+                "label_zh": "池数（格）",
                 "dim": "DIMENSIONLESS",
                 "default": 2.0,
                 "grid": [2.0, 3.0, 4.0],
             },
             {
                 "field_id": "t_digest_temp",
+                "label_zh": "消化温度",
                 "dim": "DIMENSIONLESS",
                 "default": 35.0,
                 "range": {"min": 33.0, "max": 37.0},
             },
             {
                 "field_id": "eta_vs",
+                "label_zh": "挥发分降解率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.45,
                 "range": {"min": 0.3, "max": 0.6},
             },
             {
                 "field_id": "r_biogas",
+                "label_zh": "产气率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.9,
                 "range": {"min": 0.8, "max": 1.1},

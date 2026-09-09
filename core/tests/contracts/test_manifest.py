@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import importlib
+from pathlib import Path
 
 import pytest
 
@@ -45,6 +46,40 @@ def test_valid_minimal_manifest_roundtrips() -> None:
     """合法最小清单加载成功且可确定性序列化往返。"""
     manifest = load_manifest(copy.deepcopy(VALID_MINIMAL))
     assert manifest.unit_id == "test_demo_unit"
+
+
+def test_label_zh_roundtrip_and_default_none() -> None:
+    """B2 PD1/PD3：label_zh 声明值透传 + 可选键缺省 None。"""
+    with_label = copy.deepcopy(VALID_MINIMAL)
+    with_label["params"][0]["label_zh"] = "池长"
+    manifest = load_manifest(with_label)
+    assert manifest.params[0].label_zh == "池长"
+    # 可选键：不声明 label_zh 的既有清单零改动可加载（VALID_MINIMAL 夹具绿）
+    default_manifest = load_manifest(copy.deepcopy(VALID_MINIMAL))
+    assert default_manifest.params[0].label_zh is None
+
+
+# B2 PD3 完备性巡检：32 个单元数据件（units_lib/<line>/<unit>/manifest.py
+# 两层深度）。_template/manifest.py 是纯规格头样例件（无 params 条目零数据），
+# 不在 glob 两层命中面内——33 件口径中的它不计入 233 条统计（简报 PD3 注记）。
+_CORE_ROOT = Path(__file__).resolve().parents[2]
+_UNITS_ROOT = _CORE_ROOT / "waterprint" / "units_lib"
+_UNIT_DIRS = sorted(path.parent for path in _UNITS_ROOT.glob("*/*/manifest.py"))
+
+
+@pytest.mark.parametrize(
+    "unit_dir", _UNIT_DIRS, ids=lambda d: f"{d.parent.name}_{d.name}"
+)
+def test_unit_params_label_zh_complete(unit_dir: Path) -> None:
+    """B2 PD3 巡检：每单元全参数 label_zh 非空 str（233 条无开天窗拦截）。"""
+    parts = unit_dir.relative_to(_CORE_ROOT).parts
+    module = importlib.import_module(".".join(parts) + ".manifest")
+    params = module.manifest.params
+    assert params, f"{unit_dir} 无参数条目（异常数据件）"
+    for spec in params:
+        assert isinstance(spec.label_zh, str) and spec.label_zh, (
+            f"{unit_dir} 参数 {spec.field_id} label_zh 缺失或空（B2 全量填充开天窗）"
+        )
 
 
 def test_unknown_field_id_rejected() -> None:

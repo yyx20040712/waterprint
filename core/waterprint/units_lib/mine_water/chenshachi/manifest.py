@@ -219,28 +219,41 @@ manifest = load_manifest(
         # 30~60/depth_band 0.4~1.2——平流型主控三带，区别市政旋流表面
         # 负荷口径），格数/清砂周期/取整档无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 8.0},
+            {"field_id": "n", "label_zh": "格数", "dim": "DIMENSIONLESS", "default": 8.0},
             {
                 "field_id": "v_h",
+                "label_zh": "设计水平流速",
                 "dim": "VELOCITY",
                 "default": 0.25,
                 "range": {"min": 0.15, "max": 0.3},
             },
             {
                 "field_id": "t_stay",
+                "label_zh": "停留时间",
                 "dim": "DIMENSIONLESS",
                 "default": 60.0,
                 "range": {"min": 30.0, "max": 60.0},
             },
             {
                 "field_id": "h2",
+                "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 0.5,
                 "range": {"min": 0.4, "max": 1.2},
             },
-            {"field_id": "t_clean", "dim": "DIMENSIONLESS", "default": 2.0},
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "t_clean", "label_zh": "清砂周期", "dim": "DIMENSIONLESS", "default": 2.0},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

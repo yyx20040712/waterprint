@@ -211,19 +211,30 @@ manifest = load_manifest(
         # range 仅一条有出处带参数（velocity_band 0.3~0.6），构造参数
         # （渠道数/渠宽/模块几何/稳流段/取整档）无范围来源不设
         "params": [
-            {"field_id": "n_channel", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n_channel", "label_zh": "渠道数", "dim": "DIMENSIONLESS", "default": 2.0},
             {
                 "field_id": "v_channel",
+                "label_zh": "渠内流速",
                 "dim": "VELOCITY",
                 "default": 0.4,
                 "range": {"min": 0.3, "max": 0.6},
             },
-            {"field_id": "b_c", "dim": "LENGTH", "default": 1.2},
-            {"field_id": "n_lamp_module", "dim": "DIMENSIONLESS", "default": 8.0},
-            {"field_id": "l_module", "dim": "LENGTH", "default": 0.6},
-            {"field_id": "l_stab", "dim": "LENGTH", "default": 1.2},
-            {"field_id": "h_module", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {"field_id": "b_c", "label_zh": "渠宽", "dim": "LENGTH", "default": 1.2},
+            {
+                "field_id": "n_lamp_module",
+                "label_zh": "每模块灯管数",
+                "dim": "DIMENSIONLESS",
+                "default": 8.0,
+            },
+            {"field_id": "l_module", "label_zh": "模块长", "dim": "LENGTH", "default": 0.6},
+            {"field_id": "l_stab", "label_zh": "进/出水稳流段长", "dim": "LENGTH", "default": 1.2},
+            {"field_id": "h_module", "label_zh": "模块高", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

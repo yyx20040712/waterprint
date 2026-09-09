@@ -220,30 +220,38 @@ manifest = load_manifest(
         # 市政 10~20 档、t_mix_band 0.5~2.0、t_floc_band 8~15），池数/斜管长/
         # 三构造区高/取整档无范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "n", "label_zh": "池数（格）", "dim": "DIMENSIONLESS", "default": 2.0},
             {
                 "field_id": "t_mix",
+                "label_zh": "快速混合停留",
                 "dim": "DIMENSIONLESS",
                 "default": 0.5,
                 "range": {"min": 0.5, "max": 2.0},
             },
             {
                 "field_id": "t_floc",
+                "label_zh": "絮凝停留",
                 "dim": "DIMENSIONLESS",
                 "default": 12.0,
                 "range": {"min": 8.0, "max": 15.0},
             },
             {
                 "field_id": "q_surf",
+                "label_zh": "斜管清水区液面负荷",
                 "dim": "DIMENSIONLESS",
                 "default": 6.0,
                 "range": {"min": 5.0, "max": 8.0},
             },
-            {"field_id": "l_tube", "dim": "LENGTH", "default": 1.0},
-            {"field_id": "h_clear", "dim": "LENGTH", "default": 1.0},
-            {"field_id": "h_dist", "dim": "LENGTH", "default": 1.5},
-            {"field_id": "h_thick", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
+            {"field_id": "l_tube", "label_zh": "斜管长", "dim": "LENGTH", "default": 1.0},
+            {"field_id": "h_clear", "label_zh": "清水区高", "dim": "LENGTH", "default": 1.0},
+            {"field_id": "h_dist", "label_zh": "布水区高", "dim": "LENGTH", "default": 1.5},
+            {"field_id": "h_thick", "label_zh": "浓缩泥区高", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

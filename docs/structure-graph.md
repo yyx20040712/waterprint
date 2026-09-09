@@ -196,6 +196,8 @@
 
 ## 3. 业务单元总表（32 包；与 file-contracts.md §3、units_lib 目录三方互验）
 
+> 参数级中文名真源=各单元 manifest.py params 的 `label_zh`（B2 起，233 条全量——本表"中文名"列是单元级映射，参数级不入本表防双源）。
+
 | 包路径 | 业务线 | 中文名 | 旧 mod | 里程碑 | golden 绑定 | 典型上下游 |
 |--------|--------|--------|--------|--------|-------------|------------|
 | `core/waterprint/units_lib/municipal/cugeshan/` | 市政污水 | 粗格栅 | `cugeshan` | M1 先行示范 / M2 正式验收 | municipal_34760 | 市政输入节点或 wushui_tisheng 提升泵房 → xigeshan 细格栅 |

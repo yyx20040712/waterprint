@@ -195,28 +195,52 @@ manifest = load_manifest(
         # ratio_lb_band 2.0~3.0），构造参数（池数/泵台数/取整档）无范围
         # 来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2, 3, 4, 5, 6]},
+            {
+                "field_id": "n",
+                "label_zh": "池数（格）",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2, 3, 4, 5, 6],
+            },
             {
                 "field_id": "t_reg",
+                "label_zh": "调节停留时间",
                 "dim": "DIMENSIONLESS",
                 "default": 8.0,
                 "range": {"min": 6.0, "max": 12.0},
             },
             {
                 "field_id": "h2",
+                "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 5.0,
                 "range": {"min": 4.0, "max": 6.0},
             },
             {
                 "field_id": "ratio_lb",
+                "label_zh": "池长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 2.5,
                 "range": {"min": 2.0, "max": 3.0},
             },
-            {"field_id": "n_pump_duty", "dim": "DIMENSIONLESS", "default": 2.0},
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
-            {"field_id": "length_disc_step", "dim": "LENGTH", "default": 0.1},
+            {
+                "field_id": "n_pump_duty",
+                "label_zh": "工作泵台数",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+            },
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
+            {
+                "field_id": "length_disc_step",
+                "label_zh": "长度圆整步长",
+                "dim": "LENGTH",
+                "default": 0.1,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

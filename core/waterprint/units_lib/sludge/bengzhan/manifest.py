@@ -255,23 +255,31 @@ manifest = load_manifest(
         # t_well/h_well 双带与 v_pipe 流速带有出处带设 range（数值=表
         # 参数档逐字）；n_standby/h_static/l_pipe 无带不设
         "params": [
-            {"field_id": "n_standby", "dim": "DIMENSIONLESS", "default": 1.0},
-            {"field_id": "h_static", "dim": "LENGTH", "default": 10.0},
-            {"field_id": "l_pipe", "dim": "LENGTH", "default": 100.0},
+            {
+                "field_id": "n_standby",
+                "label_zh": "备用泵台数",
+                "dim": "DIMENSIONLESS",
+                "default": 1.0,
+            },
+            {"field_id": "h_static", "label_zh": "静扬程", "dim": "LENGTH", "default": 10.0},
+            {"field_id": "l_pipe", "label_zh": "出泥管长", "dim": "LENGTH", "default": 100.0},
             {
                 "field_id": "v_pipe",
+                "label_zh": "出泥管名义流速",
                 "dim": "VELOCITY",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
             {
                 "field_id": "t_well",
+                "label_zh": "集泥井调节时间",
                 "dim": "DIMENSIONLESS",
                 "default": 10.0,
                 "range": {"min": 5.0, "max": 15.0},
             },
             {
                 "field_id": "h_well",
+                "label_zh": "集泥井有效水深",
                 "dim": "LENGTH",
                 "default": 2.0,
                 "range": {"min": 1.5, "max": 2.5},

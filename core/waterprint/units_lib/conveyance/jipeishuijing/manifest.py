@@ -183,18 +183,31 @@ manifest = load_manifest(
         "params": [
             {
                 "field_id": "t_well",
+                "label_zh": "汇流停留时间",
                 "dim": "DIMENSIONLESS",
                 "default": 4.0,
                 "range": {"min": 3.0, "max": 10.0},
             },
             {
                 "field_id": "h_well",
+                "label_zh": "集配水井有效水深",
                 "dim": "LENGTH",
                 "default": 2.5,
                 "range": {"min": 2.0, "max": 3.5},
             },
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 2.0, "grid": [2.0, 3.0, 4.0]},
-            {"field_id": "dia_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "n",
+                "label_zh": "出流口数/并联系列数",
+                "dim": "DIMENSIONLESS",
+                "default": 2.0,
+                "grid": [2.0, 3.0, 4.0],
+            },
+            {
+                "field_id": "dia_disc_step",
+                "label_zh": "直径圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         # 集配水类=汇流+动态多口：in 口多股经图入边汇流（propagate 合并
         # 面）；ports 声明单 OUT 口 "out"（声明锚点），compute 按参数 n

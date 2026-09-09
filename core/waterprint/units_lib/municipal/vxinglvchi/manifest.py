@@ -264,39 +264,60 @@ manifest = load_manifest(
         # cycle_band 24~48），构造参数（分格数/滤板气水区高/取整档）无
         # 范围来源不设
         "params": [
-            {"field_id": "n", "dim": "DIMENSIONLESS", "default": 6.0, "grid": [4, 6, 8, 10]},
+            {
+                "field_id": "n",
+                "label_zh": "滤池格数",
+                "dim": "DIMENSIONLESS",
+                "default": 6.0,
+                "grid": [4, 6, 8, 10],
+            },
             {
                 "field_id": "v_filter",
+                "label_zh": "设计滤速",
                 "dim": "DIMENSIONLESS",
                 "default": 8.0,
                 "range": {"min": 7.0, "max": 10.0},
             },
             {
                 "field_id": "ratio_lb",
+                "label_zh": "长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 2.5,
                 "range": {"min": 2.0, "max": 3.0},
             },
             {
                 "field_id": "h_water_above",
+                "label_zh": "砂面上水深",
                 "dim": "LENGTH",
                 "default": 1.3,
                 "range": {"min": 1.2, "max": 1.5},
             },
             {
                 "field_id": "h_sand",
+                "label_zh": "滤料层厚度",
                 "dim": "LENGTH",
                 "default": 1.3,
                 "range": {"min": 1.2, "max": 1.5},
             },
-            {"field_id": "h_bottom", "dim": "LENGTH", "default": 1.0},
+            {
+                "field_id": "h_bottom",
+                "label_zh": "底部配水空间高度",
+                "dim": "LENGTH",
+                "default": 1.0,
+            },
             {
                 "field_id": "t_cycle",
+                "label_zh": "反冲洗周期",
                 "dim": "DIMENSIONLESS",
                 "default": 24.0,
                 "range": {"min": 24.0, "max": 48.0},
             },
-            {"field_id": "side_disc_step", "dim": "LENGTH", "default": 0.5},
+            {
+                "field_id": "side_disc_step",
+                "label_zh": "边长圆整步长",
+                "dim": "LENGTH",
+                "default": 0.5,
+            },
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

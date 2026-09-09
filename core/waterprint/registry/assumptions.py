@@ -339,9 +339,11 @@ _LOOP_DAMPING: Final[Assumption] = Assumption(
 #    数值合法，出处入库。──
 _GRID_BASE_PER_DIM: Final[Assumption] = Assumption(
     key="solution.grid.base_per_dim",
-    default=4.0,
+    default=7.0,
     dim=DimKey.DIMENSIONLESS,
-    source="重写计划 §12.4（自由参数网格 ≤4^k）/ADR-005（枚举语义）——M2-SOL D1 裁决",
+    source=("重写计划 §12.4（自由参数网格 ≤4^k）/ADR-005（枚举语义）——M2-SOL D1 裁决；"
+            "Ruling 2026-09-09 B2 批呈裁·用户裁决 A1+A2：市政 5/7 档单元开箱即拒体验"
+            "缺陷>组合爆炸面预算收紧——基数 4→7；最大实际网格 15≤7²=49 仍远离爆炸面"),
     note=(
         "枚举网格组合数护栏的每维基数上限（总组合 total > base**k 拒，"
         "GridTooLarge 附缩小步长/范围建议）；solution/grid.py 消费，"

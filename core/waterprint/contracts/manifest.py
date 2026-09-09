@@ -11,7 +11,9 @@
 #   class ParamSpec(不可变)：field_id: str、dim: DimKey、default: float、
 #       grid: tuple[float, ...] | None（离散网格，solution/grid.py 消费）、
 #       range: tuple[float, float] | None（闭区间 (min, max)，GR-06，
-#       结构 {min,max}，约束层消费）
+#       结构 {min,max}，约束层消费）、label_zh: str | None = None
+#       （参数级中文名，B2 可选键——真源=各单元 manifest 数据声明，
+#       server ParamEntry 投影/webapp 显示层消费）
 #   class ConditionMapping(不可变)：target: str（目标参数键）+ rule: str
 #       （受限表达式 DSL，形如 "n if pool.all_pools else n - 1"）
 #   class UnitManifest(不可变)：
@@ -151,6 +153,7 @@ class ParamSpec:
     default: float
     grid: tuple[float, ...] | None = None
     range: tuple[float, float] | None = None
+    label_zh: str | None = None
 
 
 @dataclass(frozen=True)
@@ -189,6 +192,7 @@ def _param_spec(entry: Mapping[str, Any], field_id: str) -> ParamSpec:
         default=default,
         grid=_float_tuple(entry.get("grid"), field_id, "grid"),
         range=_range_tuple(entry.get("range"), field_id),
+        label_zh=entry.get("label_zh"),
     )
 
 
