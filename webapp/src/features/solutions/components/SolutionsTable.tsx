@@ -12,6 +12,9 @@
  *   - 动态列=buildTableColumns(columns, gridFields) 列模型映射（列序=
  *     响应序——服务端构造序 grid 先→dim→margin_min/nan_flag/
  *     condition_key，前端不重排；行无固定列名——以 columns 建列）；
+ *     B2（PD9）：grid 列头=model.title「label_zh 单位」中文（label_zh=null
+ *     降级 key）；悬浮 title 呈 field_id 仅当列头文案≠field_id（降级态
+ *     无悬浮——两行重复抑制）；非 grid 列维持 key 现状；
  *   - margin_min 语义色：正绿负红 null 灰（骨架规格；0 中性默认色）；
  *     nan_flag true→「不可行」红色标记（false→「—」不标）；
  *   - 数字列 fontVariantNumeric:'tabular-nums'（§19.3 等宽对齐）+右对齐；
@@ -25,6 +28,7 @@ import { Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 import type { ApplyOutcome } from "../../../shared/api/generated/model";
+import type { GridField } from "../lib/solutionsFields";
 import {
   buildTableColumns,
   type SolutionColumnModel,
@@ -83,7 +87,7 @@ export function SolutionsTable({
   onApplied,
 }: {
   page: SolutionPageView;
-  gridFields: string[];
+  gridFields: GridField[];
   projectId: string;
   unitId: string | null;
   currentPage: number;
@@ -94,7 +98,14 @@ export function SolutionsTable({
     page.columns,
     gridFields,
   ).map((model) => ({
-    title: model.key,
+    // B2 PD9：grid 列头=中文文案；悬浮 title 呈 field_id 仅当列头文案≠
+    // field_id（降级态=文案即 field_id，无悬浮防两行重复）
+    title:
+      model.title === model.key ? (
+        model.key
+      ) : (
+        <span title={model.key}>{model.title}</span>
+      ),
     dataIndex: model.key,
     key: model.key,
     align: model.numeric ? ("right" as const) : ("left" as const),
@@ -121,7 +132,7 @@ export function SolutionsTable({
       size="small"
       rowKey={(row, index) =>
         gridFields.length > 0
-          ? gridFields.map((field) => String(row[field])).join("|")
+          ? gridFields.map((field) => String(row[field.key])).join("|")
           : `row-${index ?? 0}`
       }
       columns={columns}

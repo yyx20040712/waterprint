@@ -27,6 +27,7 @@ import { Button, Typography } from "antd";
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ApplyOutcome } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
+import type { GridField } from "../lib/solutionsFields";
 import { buildApplyPayload, type SolutionRow } from "../lib/solutionsView";
 
 export function ApplySolutionButton({
@@ -37,7 +38,7 @@ export function ApplySolutionButton({
   onApplied,
 }: {
   row: SolutionRow;
-  gridFields: string[];
+  gridFields: GridField[];
   projectId: string;
   unitId: string | null;
   onApplied?: (outcome: ApplyOutcome) => void;

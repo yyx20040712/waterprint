@@ -442,6 +442,7 @@ export function SolutionsPane() {
             <div style={{ marginBottom: 8 }}>
               <RankingControls
                 columns={solutionsQuery.data.columns}
+                gridFields={gridFields}
                 value={sort}
                 onChange={(next) => {
                   setSort(next);

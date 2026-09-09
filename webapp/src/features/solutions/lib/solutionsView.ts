@@ -20,18 +20,26 @@
  *     flag/condition_key→text——与 gridFields 无关），gridFields 集内→grid
  *     （可应用标识），其余=dim 输出；numeric=数字列（grid/dim/margin——
  *     组件面 tabular-nums §19.3）；列序=响应序（服务端构造序：grid 先→
- *     dim→margin_min/nan_flag/condition_key——前端不重排）；
+ *     dim→margin_min/nan_flag/condition_key——前端不重排）；B2（PD9）：
+ *     列模型增 title——grid 列=「label_zh 单位」（label_zh=null 降级 key；
+ *     单位经 dim 经 shared/dimLabels），非 grid 列=key 维持现状；
  *   - D6 apply 载荷=grid 字段投影（dim 输出不可应用——ADR-005 单单元
  *     语义；params 值全 number：grid 值非数值（null/string/boolean）跳过
  *     不进载荷）；gridFields 空=空 params 合法载荷（服务端 design_changed=
  *     false 面）；ApplyRequest 类型只从 generated/ 取（禁手写双份）；
+ *     B2②：gridFields 签名扩 GridField[]（对象载荷）——仅投影 key，
+ *     键序不变零行为差；
  *   - D9 排序选项=响应 columns 白名单（服务端 422 拒白名单外——前端只出
  *     columns 内选项；cost 列现状无列不加——概算注入挂账；服务端恒降序
- *     ascending=False 默认，UI 不提供方向切换）；
+ *     ascending=False 默认，UI 不提供方向切换）；B2（PD10）：grid 列
+ *     label 中文化与列头同文案（防同列两处两语），非 grid=label=key；
  *   - 零运行期库 import（node 测试不拖 antd/react-query 链——type import
- *     编译期擦除）。
+ *     编译期擦除；运行期 import 仅本地零依赖纯件 shared/dimLabels 与
+ *     ./solutionsFields——node 测试链零增重）。
  */
 import type { ApplyRequest } from "../../../shared/api/generated/model";
+import { dimLabel } from "../../../shared/dimLabels";
+import type { GridField } from "./solutionsFields";
 
 /** 方案行（值域四类：grid/dim 数值列、condition_key 字符串、nan_flag 布尔、NaN→null）。 */
 export type SolutionRow = Record<string, number | string | boolean | null>;
@@ -61,6 +69,8 @@ export type SolutionColumnKind = "grid" | "dim" | "margin" | "flag" | "text";
 /** 动态列模型（纯数据——组件面映射 antd Table columns）。 */
 export type SolutionColumnModel = {
   key: string;
+  /** 列头文案（B2 PD9：grid 列=「label_zh 单位」中文；非 grid=key 现状）。 */
+  title: string;
   kind: SolutionColumnKind;
   /** 数字列（组件面 fontVariantNumeric: tabular-nums §19.3）。 */
   numeric: boolean;
@@ -156,47 +166,72 @@ export function narrowSolutionPage(raw: unknown): SolutionPageView {
   };
 }
 
+/** dim 单位段：dimLabel 输出「量名 单位」的空格后段（无量纲/未知枚举
+ * 无单位段——单位符号串零空格为 CANONICAL_UNITS 真源约定；纯显示层
+ * 派生，不建第二单位真源）。 */
+function dimUnitOf(dim: string): string {
+  const label = dimLabel(dim);
+  const at = label.indexOf(" ");
+  return at === -1 ? "" : label.slice(at + 1);
+}
+
+/** grid 列头文案（PD9/PD10 单源）：「label_zh 单位」——label_zh=null
+ * 降级 key（显示层兜底）；无单位段不附后缀。 */
+function gridColumnTitle(field: GridField): string {
+  const base = field.label_zh ?? field.key;
+  const unit = dimUnitOf(field.dim);
+  return unit === "" ? base : `${base} ${unit}`;
+}
+
 /**
  * D5 动态列模型：响应 columns → ColumnModel[]（列序=响应序；固定列名
  * kind 分类优先于 gridFields 判定——margin_min 等语义列不可被覆盖）。
  */
 export function buildTableColumns(
   columns: string[],
-  gridFields: string[],
+  gridFields: GridField[],
 ): SolutionColumnModel[] {
-  const gridSet = new Set(gridFields);
+  const gridByKey = new Map(gridFields.map((field) => [field.key, field]));
   return columns.map((key) => {
     if (key === "margin_min") {
-      return { key, kind: "margin", numeric: true, applicable: false };
+      return { key, title: key, kind: "margin", numeric: true, applicable: false };
     }
     if (key === "nan_flag") {
-      return { key, kind: "flag", numeric: false, applicable: false };
+      return { key, title: key, kind: "flag", numeric: false, applicable: false };
     }
     if (key === "condition_key") {
-      return { key, kind: "text", numeric: false, applicable: false };
+      return { key, title: key, kind: "text", numeric: false, applicable: false };
     }
-    if (gridSet.has(key)) {
-      return { key, kind: "grid", numeric: true, applicable: true };
+    const field = gridByKey.get(key);
+    if (field !== undefined) {
+      return {
+        key,
+        title: gridColumnTitle(field),
+        kind: "grid",
+        numeric: true,
+        applicable: true,
+      };
     }
-    return { key, kind: "dim", numeric: true, applicable: false };
+    return { key, title: key, kind: "dim", numeric: true, applicable: false };
   });
 }
 
 /**
  * D6 apply 载荷：行+gridFields → {project_id, unit_id, params}（仅 grid
- * 字段投影——dim 输出不可应用；grid 值非有限数值跳过不进 params）。
+ * 字段投影——dim 输出不可应用；grid 值非有限数值跳过不进 params；
+ * B2②对象数组签名仅投影 key——键序不变零行为差）。
  */
 export function buildApplyPayload(
   row: SolutionRow,
-  gridFields: string[],
+  gridFields: GridField[],
   projectId: string,
   unitId: string,
 ): ApplyRequest {
   const params: Record<string, number> = {};
   for (const field of gridFields) {
-    const value = row[field];
+    const value = row[field.key];
     if (isFiniteNumber(value)) {
-      params[field] = value;
+      params[field.key] = value;
     }
   }
   return { project_id: projectId, unit_id: unitId, params };
@@ -204,10 +239,19 @@ export function buildApplyPayload(
 
 /**
  * D9 排序选项：响应 columns → Select 选项（白名单=columns∪{cost}——前端
- * 只出 columns 内选项，cost 列现状无列不加）。
+ * 只出 columns 内选项，cost 列现状无列不加）；B2 PD10：grid 列 label
+ * 中文化与列头同文案（gridColumnTitle 单源），非 grid=label=key。
  */
 export function buildSortOptions(
   columns: string[],
+  gridFields: GridField[],
 ): { value: string; label: string }[] {
-  return columns.map((column) => ({ value: column, label: column }));
+  const gridByKey = new Map(gridFields.map((field) => [field.key, field]));
+  return columns.map((column) => {
+    const field = gridByKey.get(column);
+    return {
+      value: column,
+      label: field === undefined ? column : gridColumnTitle(field),
+    };
+  });
 }

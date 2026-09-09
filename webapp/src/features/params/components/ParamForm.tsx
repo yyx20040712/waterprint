@@ -14,6 +14,9 @@
  *     design.nodes[unit_id] 覆盖值（有覆盖标蓝点）；builtin 条目（值含
  *     kind——nodeKinds 面换目录键，如 inlet→municipal_input）=META1 builtin
  *     投影 params（default 全 null：字段清单无默认值+design 值可编辑）；
+ *     B2（PD8）：主标签=entry.label_zh ?? fieldId（中文真源六字段投影，
+ *     builtin 无声明面=null 诚实降级 field_id）+field_id monospace 副行
+ *     （追溯链）仅当 label_zh 非空渲染——空值显隐防两行重复；
  *   - D5 提交通道=POST /api/calc/solutions/apply（服务端原子样板：
  *     merged.update→save→自动 submit_calculation→失败回滚——借用语义+
  *     「params 专属端点归 server 批裁量」挂账）；成功后 invalidateQueries
@@ -179,10 +182,19 @@ export function ParamForm({
               draftText !== undefined && invalidFields.includes(fieldId);
             return (
               <label key={fieldId} style={{ display: "block" }}>
+                {/* B2 PD8：主标签=label_zh ?? fieldId（中文真源，null 诚实
+                    降级）；field_id 副行 monospace 小字（追溯链——calcbook/
+                    apply payload 键）仅当 label_zh 非空渲染（null 时主标签
+                    已回落 field_id，副行再渲染=两行重复） */}
                 <span style={{ fontFamily: "monospace", fontSize: 12 }}>
-                  {fieldId}
+                  {entry.label_zh ?? fieldId}
                   {overridden ? <OverrideDot /> : null}
                 </span>
+                {entry.label_zh ? (
+                  <div style={{ ...GRAY_SMALL, fontFamily: "monospace" }}>
+                    {fieldId}
+                  </div>
+                ) : null}
                 <Input
                   size="small"
                   status={invalid ? "error" : undefined}
