@@ -186,7 +186,8 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+6+5+2+1+1+2+1+1+1+1+1=27（白名单字面量和式；+1=scene GET，FE1 D1；
+# 端点集冻结 5+7+5+2+1+1+2+1+1+1+1+1=28（白名单字面量和式[calc 6→7=FD design-map，
+# A2-N-01 勘正]；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
 # 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4；
 # +1=site/spacing GET，L4b D1——间距校核取数端点；+1=exports/ifc POST，

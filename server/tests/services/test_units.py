@@ -119,7 +119,7 @@ def test_builtin_projection_params_and_ports() -> None:
     ]  # 泥进水出=转换节点（冻结 §二）
 
 
-def test_assumptions_projection_twenty_one_entries() -> None:
+def test_assumptions_projection_twenty_two_entries() -> None:
     """R3：22 条六字段取五（FD +max_points；tuning_direction 在场；首条 safety.superheight）。"""
     catalog = list_assumptions()
     entries = catalog.assumptions

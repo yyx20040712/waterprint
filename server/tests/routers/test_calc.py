@@ -47,7 +47,7 @@ def test_router_exposes_seven_endpoints_wiring() -> None:
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰六件无漂移
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰七件无漂移（G1-07 勘正——FD design-map 入集）
     solutions = next(route for route in router.routes
                      if getattr(route, "path", "") == "/api/calc/tasks/{task_id}/solutions")
     signature = inspect.signature(solutions.endpoint)

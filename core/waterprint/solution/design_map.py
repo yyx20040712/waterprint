@@ -158,8 +158,10 @@ def derive_step(span: tuple[float, float]) -> float:
 
 
 def axis_point_budget(span: tuple[float, float], step: float) -> int:
-    """解析期点数预算（P1-5）：grid._ranged_values 生成式逐字镜像
-    （arange 长度——闭区间含首末点口径），零漂移由同式保证。"""
+    """解析期点数预算（P1-5）：grid._ranged_values 生成式同源 arange 长度
+    （闭区间含首末点口径）。R 轮注记：_ranged_values 另有 I-1 钳制面
+    （非整除上界裁 v≤high）——预算恒 ≥ 实际点数（安全方向上界，护栏
+    无旁路；「逐字镜像」仅指 arange 展开同式）。"""
     return len(numpy.arange(span[0], span[1] + step / 2, step))
 
 
@@ -210,13 +212,20 @@ def _resolve_range(
         raise InvalidDesignMapError(
             f"{where} 的 range 覆盖须 min<max（得到 min={low!r}, max={high!r}）"
         )
-    if spec.range is not None:
-        base_low, base_high = spec.range
-        if low < base_low or high > base_high:
-            raise InvalidDesignMapError(
-                f"{where} 的 range 覆盖越界：[{low:g}, {high:g}] 须 ⊆ manifest"
-                f" [{base_low:g}, {base_high:g}]（fail-closed 拒——PD1）"
-            )
+    # R-2（G1-03，R 轮 2026-09-10）：manifest 无 range 基准时显式覆盖一律拒
+    # ——无基准即无处 ⊆ 校验（fail-closed；原 if spec.range is not None
+    # 守卫使无基准参数直通，与函数注释/PD1 矛盾——D 一审+二审双确认）
+    if spec.range is None:
+        raise InvalidDesignMapError(
+            f"{where} 无 manifest range 基准（fail-closed 拒——FD 轴须为"
+            "连续区间参数，覆盖无处 ⊆ 校验）"
+        )
+    base_low, base_high = spec.range
+    if low < base_low or high > base_high:
+        raise InvalidDesignMapError(
+            f"{where} 的 range 覆盖越界：[{low:g}, {high:g}] 须 ⊆ manifest"
+            f" [{base_low:g}, {base_high:g}]（fail-closed 拒——PD1）"
+        )
     return low, high
 
 

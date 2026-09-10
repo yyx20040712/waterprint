@@ -136,12 +136,19 @@ def test_resolve_axes_rejects(axes: list[Mapping[str, object]], match: str) -> N
 
 
 def test_resolve_axes_requires_manifest_range() -> None:
-    """无 range 参数（grid 档/无域声明）不可作轴——无扫描基准 fail-closed。"""
+    """无 range 参数（grid 档/无域声明）不可作轴——无扫描基准 fail-closed。
+
+    R-2（G1-03）：显式覆盖亦拒——无基准即无处 ⊆ 校验（原直通放行为
+    D 一审+二审双确认缺陷）。"""
     from waterprint.contracts.manifest import ParamSpec
 
     spec = ParamSpec(field_id="n", dim="DIMENSIONLESS", default=4.0, grid=(2.0, 3.0))
     with pytest.raises(InvalidDesignMapError, match="无 range 声明可扫描"):  # type: ignore[misc]
         resolve_axes([spec], [{"field_id": "n"}])  # type: ignore[misc]
+    with pytest.raises(InvalidDesignMapError, match="无 manifest range 基准"):  # type: ignore[misc]
+        resolve_axes(  # type: ignore[misc]
+            [spec], [{"field_id": "n", "range": {"min": 2.0, "max": 6.0}}]
+        )
 
 
 # ── 二、护栏（PD4/P1-5：解析期拦截）────────────────────────────────
@@ -450,17 +457,32 @@ def test_run_design_map_guard_fires_before_grid() -> None:
         )
 
 
-def test_run_design_map_fixed_params_authoritative() -> None:
-    """PD1 固定参数=显式映射叠加（server 装配面权威）：跨轴参数注入生效。"""
+def test_run_design_map_fixed_params_authoritative(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """PD1 固定参数叠加；R-3（G1-04）：拦截实收 params 断言——原 total==11
+    单断言在 fixed_params 被忽略时亦成立（空转；aao 可行数不随 x_mlss 变）。"""
+    from waterprint import app as app_mod
     from waterprint.app import run_design_map
     from waterprint.solution.design_map import DesignMapOptions
 
+    captured: list[Mapping[str, float]] = []
+    real_enumerate = app_mod.enumerate_solutions
+
+    def _spy(grid: Any, upstream: Any, unit: Any, env: Any) -> Any:
+        captured.append(dict(upstream.params))
+        return real_enumerate(grid, upstream, unit, env)
+
+    monkeypatch.setattr(app_mod, "enumerate_solutions", _spy)
     product = run_design_map(
         _fd_project("municipal_aao"), "municipal_aao", _conditions(), _fd_env(),
         DesignMapOptions(axes=[{"field_id": "ns"}],
-                         fixed_params={"x_mlss": 4000.0, "t_p": 1.5}),
-    )
+                         fixed_params={"x_mlss": 4000.0, "t_p": 1.5}))
     assert product.payload()["stats"]["total"] == 11  # 扫描面不受固定参数影响
+    merged = captured[0]
+    assert merged["x_mlss"] == 4000.0 and merged["t_p"] == 1.5  # R-3 跨轴注入生效
+    # 轴字段在 context 仍=manifest 缺省——网格行值在 enumerate 行内覆盖
+    assert merged["ns"] == pytest.approx(0.10)
 
 
 def test_run_design_map_unit_missing_rejected() -> None:

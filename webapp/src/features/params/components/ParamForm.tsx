@@ -45,7 +45,7 @@
  *     ——键盘任意值不限）；第二轴 Select 不用占位文案属性（grep 门禁
  *     英文占位特征词命中该 prop 名——FE3 C3/solutionsPane 同款规避）。
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Input, InputNumber, Modal, Select, Typography } from "antd";
 
@@ -172,10 +172,20 @@ export function ParamForm({
   const [fdProduct, setFdProduct] = useState<DesignMapResponse | null>(null);
   const designMap = useDesignMap(projectId, unitId);
   const fdLoading = designMap.isPending;
+  // R-1（A2-N-04，R 轮）：请求令牌——快速切换轴/第二轴时旧请求晚到
+  // 不得覆盖新轴产物（useMutation 无请求身份校验，onSuccess 比对拦截）
+  const fdReqId = useRef(0);
   const runFeasibility = (axes: { field_id: string }[]) => {
+    const requestId = ++fdReqId.current;
     designMap.mutate(
       { axes },
-      { onSuccess: (product) => setFdProduct(product) },
+      {
+        onSuccess: (product) => {
+          if (requestId === fdReqId.current) {
+            setFdProduct(product);
+          }
+        },
+      },
     );
   };
   const openFeasibility = (fieldId: string) => {
@@ -380,14 +390,22 @@ export function ParamForm({
         </div>
       )}
       {/* PD7 呈裁④：2D 模态热力图（第二轴选取→Modal——手动关；回填后
-          不自动关闭，用户可继续微调） */}
+          不自动关闭，用户可继续微调）。R-1（G1-02，R 轮）：关闭时清产物
+          并重取 1D——fdProduct 残留 2D 产物（segments=null）会使行内条
+          退化全灰死条+点击吸附空段无响应 */}
       <Modal
         open={fdSecond !== null}
         title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${
           fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""
         }`}
         footer={null}
-        onCancel={() => setFdSecond(null)}
+        onCancel={() => {
+          setFdSecond(null);
+          setFdProduct(null);
+          if (fdField !== null) {
+            runFeasibility([{ field_id: fdField }]);
+          }
+        }}
         width={720}
       >
         {designMap.isError ? (

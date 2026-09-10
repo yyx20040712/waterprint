@@ -44,12 +44,13 @@
 #       EnumerationOutcome（UF-33 方案 A 已落地 2026-08-26 M2-SOL D2；
 #       类型面/导出薄壳/上游快照重建=app_enumeration.py 伴生件，本文件
 #       再导出保持 server 单入口；Constraint 再导出同理（SERVER D1）
-#   run_design_map(project, unit_id, conditions, env, *, axes,
-#       fixed_params, constraints=()) -> DesignMap（FD 批 2026-09-09
+#   run_design_map(project, unit_id, conditions, env, options:
+#       DesignMapOptions | None = None) -> DesignMap（FD 批 2026-09-09
 #       PD1~PD3：可行域引导正门——轴解析/预算拦截/build_grid Mapping
-#       路径/enumerate 同管线稠密求值/双源可行掩码的装配编排；
-#       DesignMap/DesignMapTooLarge/InvalidDesignMapError 再导出=
-#       server 消费与 4xx/422 映射面）
+#       路径/enumerate 同管线稠密求值/双源可行掩码的装配编排——
+#       R-4a 勘正：规格头签名与实现对齐[options 聚合形态，
+#       EnumerationOptions 同位]；DesignMap/DesignMapTooLarge/
+#       InvalidDesignMapError 再导出=server 消费与 4xx/422 映射面）
 #   装配 grid 档命中校验（D3 Ruling ④）：grid 声明参数终值未命中档
 #       =InvalidAssemblyError（详见本文件 _check_grid_hits——M-1 R1 指针修正）
 #
