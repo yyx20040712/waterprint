@@ -1,80 +1,174 @@
 /**
- * 方案浏览器表格：动态列+受控分页+行级应用（D5/D6/D9——替换 M0.5 骨架）。
+ * 方案浏览器表格：动态列+受控分页+行级应用（D5/D6/D9——替换 M0.5 骨架；
+ * C2 方案表重制 2026-09-10——briefs/task-C2-plan.md §2）。
  *
  * 输入:  SolutionPageView（窄化后分页数据）+gridFields+projectId/unitId
  *        +受控分页（currentPage/onPageChange）+onApplied 回调透传
- * 输出:  antd Table（响应 columns 动态建列——margin_min 语义色/nan_flag
- *        不可行标记/数字列 tabular-nums；行尾「应用」按钮；受控分页）
+ * 输出:  antd Table（响应 columns 动态建列——列宽策略/固定首列与尾列/
+ *        表头两行制[标签主行+单位副行]/数值格式化+悬浮全精度/margin_min
+ *        语义色/nan_flag 不可行标记/受控分页+表头吸顶）
  *
- * 规格说明（FE6 批 6b 段四，D5/D6/D9；骨架「AntD Table virtual 虚拟
- *   滚动」随实装校正——行数=网格组合数（golden 案例个位数~几十行），
- *   antd Table 常规渲染足够；万级行虚拟滚动挂账）：
+ * 规格说明（FE6 批 6b 段四，D5/D6/D9；C2 重制六处置）：
  *   - 动态列=buildTableColumns(columns, gridFields) 列模型映射（列序=
  *     响应序——服务端构造序 grid 先→dim→margin_min/nan_flag/
  *     condition_key，前端不重排；行无固定列名——以 columns 建列）；
- *     B2（PD9）：grid 列头=model.title「label_zh 单位」中文（label_zh=null
- *     降级 key）；悬浮 title 呈 field_id 仅当列头文案≠field_id（降级态
- *     无悬浮——两行重复抑制）；非 grid 列维持 key 现状；
- *   - margin_min 语义色：正绿负红 null 灰（骨架规格；0 中性默认色）；
+ *     B2（PD9）+C2：列头=中文标签（固定列名 margin_min→「最小裕量」
+ *     等三列中文映射；grid 列 label_zh 降级 key）+悬浮 title 呈原 key
+ *     仅当列头文案≠key（降级态无悬浮——两行重复抑制）；**两行制**：
+ *     grid 列单位段=副行（11px 弱色 mono——dimUnitOf 经列模型 unit
+ *     字段；空=无副行，th 底对齐保基线）；
+ *   - C2 列宽策略（§2a）：tableLayout fixed+按 kind 定宽（grid 120/
+ *     数值 128/可行性 96/工况 180/操作 88——antd 无 width 自适应压缩
+ *     根治）；scroll.x=列宽和（容器窄出横滚——glm E① 防缝隙）；
+ *     **固定首列**（index 0 fixed left——横滚行身份恒在）+**固定尾列**
+ *     （操作 fixed right——应用入口恒在）；
+ *   - C2 表头吸顶（§2d）：sticky（吸附最近滚动容器=body-holder 滚动域
+ *     ——不引入 scroll.y 内滚域，GR-40 单一滚动域纪律防回归）；
+ *   - C2 数值格式化（§2c）：formatSolutionValue（整数千分位/非整数恒
+ *     3 位小数/小值 3 位有效）——16 位浮点直出根除；**全精度保留**：
+ *     数字单元格 title=String(value) 悬浮原值（工程师复核通道）；
+ *   - margin_min 语义色：正绿负红 null 灰（0 中性默认色——色源=C1
+ *     token colorSuccess/colorError/colorTextTertiary[useToken]，GR-39
+ *     散写字面量收敛——「SemanticColor 封装挂账」头注收口）；
  *     nan_flag true→「不可行」红色标记（false→「—」不标）；
  *   - 数字列 fontVariantNumeric:'tabular-nums'（§19.3 等宽对齐）+右对齐；
  *   - rowKey=grid 字段值组合（枚举网格组合唯一——兜底行序）；
  *   - 受控分页（current/total/onChange——size 面恒 50 固定不切换；
  *     服务端分页排序，前端零业务计算零重排）；
  *   - 枚举语义永远单单元（ADR-005）——表内行全属 unitId 单元，无跨
- *     单元多选入口；应用后数据为已提交任务快照不自动刷新（注记）。
+ *     单元多选入口；应用后数据为已提交任务快照不自动刷新（注记）；
+ *   - 行密度=size small 维持（C1 controlHeight 28+fontSize 13 工程密度
+ *     基线已足——§2e 不再压 cellPadding）。
  */
-import { Table, Typography } from "antd";
+import { Table, Typography, theme } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import type { ReactNode } from "react";
 
 import type { ApplyOutcome } from "../../../shared/api/generated/model";
 import type { GridField } from "../lib/solutionsFields";
 import {
   buildTableColumns,
+  formatSolutionValue,
   type SolutionColumnModel,
   type SolutionPageView,
   type SolutionRow,
 } from "../lib/solutionsView";
 import { ApplySolutionButton } from "./ApplySolutionButton";
 
-/** 语义色 token（正绿负红 null 灰——margin 列骨架规格；SemanticColor
- * 封装未实装，本处直用色值挂账统一出口批）。 */
-const MARGIN_POSITIVE = "#52c41a";
-const MARGIN_NEGATIVE = "#ff4d4f";
-const VALUE_NULL = "#8c8c8c";
+/** C2 列宽策略（§2a——px；tableLayout fixed 逐列显式宽，glm E②；
+ * R 轮 A2-N-01：首列恒 120（行身份固定列——不问 kind），非首列按
+ * kind 分流（grid 非首/dim/margin=数值 128——§2a 表两行口径）。 */
+const FIRST_COL_WIDTH = 120;
+const NUM_COL_WIDTH = 128;
+const FLAG_COL_WIDTH = 96;
+const TEXT_COL_WIDTH = 180;
+const APPLY_COL_WIDTH = 88;
 
-/** 单元格呈现（纯数据→ReactNode——数字 tabular-nums/语义色/标记）。 */
-function renderCell(model: SolutionColumnModel, value: unknown) {
+/** kind→列宽（非首列——数值列右对齐 mono 千分位 9 字符≈81px+余量）。 */
+function columnWidth(model: SolutionColumnModel, isFirst: boolean): number {
+  if (isFirst) {
+    return FIRST_COL_WIDTH;
+  }
+  if (model.kind === "flag") {
+    return FLAG_COL_WIDTH;
+  }
+  if (model.kind === "text") {
+    return TEXT_COL_WIDTH;
+  }
+  return NUM_COL_WIDTH;
+}
+
+/** 全精度原值串（R 轮 A2-N-03：String(-0)="0" 失负号——Object.is 支
+ * 保真 "-0"；显示面 formatSolutionValue 同走 INT_FORMAT 输出 "-0"）。 */
+function rawValueText(value: number): string {
+  return Object.is(value, -0) ? "-0" : String(value);
+}
+
+/** 语义色档（margin 列骨架规格——C1 token 色，useToken 消费）。 */
+type SemanticColors = {
+  positive: string;
+  negative: string;
+  null: string;
+  tertiary: string;
+  mono: string;
+};
+
+/** 单元格呈现（纯数据→ReactNode——格式化/tabular-nums/语义色/标记；
+ * title=原值全精度悬浮）。 */
+function renderCell(
+  model: SolutionColumnModel,
+  value: unknown,
+  colors: SemanticColors,
+): ReactNode {
   if (model.kind === "margin") {
     if (value === null || value === undefined) {
-      return <span style={{ color: VALUE_NULL }}>—</span>;
+      return <span style={{ color: colors.null }}>—</span>;
     }
-    const numeric = typeof value === "number" ? value : null;
-    if (numeric === null) {
-      return <span>{String(value)}</span>;
+    if (typeof value === "number") {
+      const color =
+        value > 0 ? colors.positive : value < 0 ? colors.negative : undefined;
+      return (
+        <span
+          title={rawValueText(value)}
+          style={{ color, fontVariantNumeric: "tabular-nums" }}
+        >
+          {formatSolutionValue(value)}
+        </span>
+      );
     }
-    const color =
-      numeric > 0 ? MARGIN_POSITIVE : numeric < 0 ? MARGIN_NEGATIVE : undefined;
-    return <span style={{ color, fontVariantNumeric: "tabular-nums" }}>{numeric}</span>;
+    return <span>{String(value)}</span>;
   }
   if (model.kind === "flag") {
     return value === true ? (
       <Typography.Text type="danger">不可行</Typography.Text>
     ) : (
-      <span style={{ color: VALUE_NULL }}>—</span>
+      <span style={{ color: colors.null }}>—</span>
     );
   }
   if (value === null || value === undefined) {
-    return <span style={{ color: VALUE_NULL }}>—</span>;
+    return <span style={{ color: colors.null }}>—</span>;
   }
-  if (model.numeric) {
+  if (model.numeric && typeof value === "number") {
     return (
-      <span style={{ fontVariantNumeric: "tabular-nums" }}>
-        {typeof value === "number" ? value : String(value)}
+      <span
+        title={rawValueText(value)}
+        style={{ fontVariantNumeric: "tabular-nums" }}
+      >
+        {formatSolutionValue(value)}
       </span>
     );
   }
   return <span>{String(value)}</span>;
+}
+
+/** 两行表头（§2b）：标签主行+单位副行（11px 弱色 mono；空=无副行）；
+ * 悬浮 title 呈原 key 仅当文案≠key（B2 PD9 防两行重复口径沿）。 */
+function renderHeader(model: SolutionColumnModel, colors: SemanticColors): ReactNode {
+  const label =
+    model.title === model.key ? (
+      model.title
+    ) : (
+      <span title={model.key}>{model.title}</span>
+    );
+  if (model.unit === "") {
+    return <span>{label}</span>;
+  }
+  return (
+    <span>
+      <span style={{ display: "block" }}>{label}</span>
+      <span
+        style={{
+          display: "block",
+          fontSize: 11,
+          fontFamily: colors.mono,
+          color: colors.tertiary,
+          fontWeight: 400,
+        }}
+      >
+        {model.unit}
+      </span>
+    </span>
+  );
 }
 
 export function SolutionsTable({
@@ -94,28 +188,38 @@ export function SolutionsTable({
   onPageChange: (page: number) => void;
   onApplied?: (outcome: ApplyOutcome) => void;
 }) {
+  // C2 语义色收敛（§2f）：antd token 主源（GR-39——散写字面量删除）
+  const { token } = theme.useToken();
+  const colors: SemanticColors = {
+    positive: token.colorSuccess,
+    negative: token.colorError,
+    null: token.colorTextTertiary,
+    tertiary: token.colorTextTertiary,
+    mono: token.fontFamilyCode,
+  };
+
   const columns: ColumnsType<SolutionRow> = buildTableColumns(
     page.columns,
     gridFields,
-  ).map((model) => ({
-    // B2 PD9：grid 列头=中文文案；悬浮 title 呈 field_id 仅当列头文案≠
-    // field_id（降级态=文案即 field_id，无悬浮防两行重复）
-    title:
-      model.title === model.key ? (
-        model.key
-      ) : (
-        <span title={model.key}>{model.title}</span>
-      ),
+  ).map((model, index) => ({
+    title: renderHeader(model, colors),
     dataIndex: model.key,
     key: model.key,
+    width: columnWidth(model, index === 0),
+    // R 轮 G2-01：th 底对齐（视觉稿同形态——单/两行表头混排基线齐）
+    onHeaderCell: () => ({ style: { verticalAlign: "bottom" } }),
     align: model.numeric ? ("right" as const) : ("left" as const),
-    render: (value: unknown) => renderCell(model, value),
+    // C2 固定首列（§2a）：横滚行身份恒在
+    fixed: index === 0 ? ("left" as const) : undefined,
+    render: (value: unknown) => renderCell(model, value, colors),
   }));
-  // 行尾操作列（方案应用——D6）
+  // 行尾操作列（方案应用——D6；固定尾列：应用入口横滚恒在）
   columns.push({
     title: "操作",
     key: "apply",
+    width: APPLY_COL_WIDTH,
     align: "left",
+    fixed: "right",
     render: (_, row) => (
       <ApplySolutionButton
         row={row}
@@ -126,10 +230,19 @@ export function SolutionsTable({
       />
     ),
   });
+  // C2 scroll.x=列宽和（glm E①：总宽不溢出则固定列空转/缝隙；width 面
+  // ColumnsType 允许 string——本表恒 number，非 number 不计）
+  const scrollX = columns.reduce(
+    (sum, column) => sum + (typeof column.width === "number" ? column.width : 0),
+    0,
+  );
 
   return (
     <Table<SolutionRow>
       size="small"
+      sticky
+      tableLayout="fixed"
+      scroll={{ x: scrollX }}
       rowKey={(row, index) =>
         gridFields.length > 0
           ? gridFields.map((field) => String(row[field.key])).join("|")

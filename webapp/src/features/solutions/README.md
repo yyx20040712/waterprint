@@ -7,8 +7,8 @@
 
 | 文件 | 状态 | 职责 |
 |------|------|------|
-| `lib/solutionsView.ts` | FE6 实装 | 纯函数层：SolutionPage 窄化门+动态列模型+apply 载荷+排序选项 |
-| `lib/solutionsView.test.ts` | FE6 实装 | 四纯函数族 node 测试（golden aao 内联夹具+负例族带键定位） |
+| `lib/solutionsView.ts` | FE6 实装+C2 重制 | 纯函数层：SolutionPage 窄化门+动态列模型（两行制 title/unit+固定列名中文）+apply 载荷+排序选项+formatSolutionValue 数值格式化 |
+| `lib/solutionsView.test.ts` | FE6 实装+C2 扩面 | 五纯函数族 node 测试（golden aao 内联夹具+负例族带键定位+格式化三支用例族） |
 | `lib/solutionsFields.ts` | B7 R+ 提取 | 枚举结果字段窄化（resultField/grid_fields）+409 锁冲突判定（isLockConflict/LOCK_HINT）纯函数——solutionsPane 行数预算越界修前进 |
 | `lib/solutionsFields.test.ts` | B2 扩面 R 轮 | unitOptionLabel 四分支 node 测试（中文名/英文回退/builtin 后缀/未就绪旧形态防自重复） |
 | `lib/taskFeed.ts` | FE6 实装 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定 |
@@ -16,7 +16,7 @@
 | `api/useTaskFeed.ts` | FE6 实装 | EventSource 自建薄壳（SSE 不走 customInstance——生成 useTaskEvents* 是一次性 JSON 读不可用） |
 | `api/useProjectUnits.ts` | FE6 实装 | useReadProject 薄封装 select 窄化 {unitId,kind}[]（read 键三面共享） |
 | `components/TaskPanel.tsx` | FE6 实装 | 任务态面板：SSE 进度徽标/进度条/阶段文案/failed 三件回显/取消 |
-| `components/SolutionsTable.tsx` | FE6 实装 | 动态列方案表（响应 columns 建列+margin_min 语义色+受控分页+行级应用） |
+| `components/SolutionsTable.tsx` | FE6 实装+C2 重制 | 动态列方案表（列宽策略/固定首尾列/表头两行制吸顶/数值格式化+悬浮全精度/语义色 useToken/受控分页+行级应用） |
 | `components/RankingControls.tsx` | FE6 实装 | 排序键 Select（响应 columns 白名单；服务端恒降序不提供方向切换） |
 | `components/DiagnosisPanel.tsx` | FE6 实装 | 无解诊断三段只读呈现（最小冲突集/失败计数/调参建议） |
 | `components/ApplySolutionButton.tsx` | FE6 实装 | 行级应用（grid 字段投影 params——服务端 R5 原子事务非乐观更新） |

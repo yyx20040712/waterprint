@@ -468,6 +468,22 @@
 - 绑定：global.css 高度链+body-holder 滚动域、App.tsx 滚动骨架、
   shoot_c1_impl.py 无头断言（回归锚）；C1 批 2026-09-10 立。
 
+### GR-41 数据表格列规格：定宽+固定首尾列+吸顶+工程数值格式化
+- 规则：webapp 数据表格（动态列宽表）重制/新建遵守——`tableLayout:
+  "fixed"`+按列型定宽（语义列型 width 单源组件内常量）；`scroll.x`=
+  列宽和；首列 `fixed`（行身份）与操作列 `fixed:"right"`（入口）横滚
+  恒在；表头吸顶用 `sticky`（吸附最近滚动容器，GR-40 单滚动域——**禁
+  scroll.y 内滚域**）；数值列=右对齐+tabular-nums+`formatSolutionValue`
+  形态（整数千分位/非整数恒 3 位小数/|v|<0.001 三位有效——列内小数位
+  对齐），全精度经 `title` 悬浮保留；两行表头（标签主行+单位副行弱色
+  mono，无量纲无副行）。
+- 为什么：C2 前 antd 默认自适应压缩列宽致表头竖排一字一行/英文键截断
+  （用户需求①余面，c-analysis S2 实证）；16 位浮点直出不可读；横滚
+  失锚后行身份与应用入口双双滚出视口。
+- 绑定：SolutionsTable.tsx 头注、solutionsView.ts（formatSolutionValue
+  /FIXED_TITLES）、shoot_c2_impl.py 无头断言（回归锚）；C2 批
+  2026-09-10 立。
+
 ## 与既有规格的关系
 
 - 本文档一切条目遇既有规格头/ADR/宪法明文时**以既有规格为准**；条目

@@ -27,8 +27,11 @@
  *   - cssVar：antd v6 默认已开 CSS 变量模式（显式 true 的类型面为
  *     {prefix/key} 对象——省略即默认开，运行时样式零重编译）；
  *   - components 微调：Layout 头底分离（headerBg 深一档 #0a1220）+
- *     Tabs 墨条=鎏金（选中指示——品牌点缀）+Table 表头/悬停（数据密度
- *     面基线；列宽/格式化=二期方案标签重制）；
+ *     Tabs 墨条=鎏金（选中指示——品牌点缀）+Table 表头/悬停/固定列阴影
+ *     （数据密度面基线；C2 批补 colorSplit=固定列阴影加深 rgba(130,170,
+ *     246,.16)——darkAlgorithm 派生 .08 过淡；Table 面 colorSplit 仅消费
+ *     于 fix 列阴影+虚拟滚动条[未用]，覆写不泄漏表分割线；列宽/格式化
+ *     随 C2 方案表重制落 SolutionsTable 组件）；
  *   - QueryClient 默认项在 ./queryClient（D3 领域错误 retry 口径）；
  *     StrictMode 双挂载安全：模块级单例（组件外创建）。
  */
@@ -81,6 +84,10 @@ const themeConfig: ThemeConfig = {
     Table: {
       headerBg: "#16263f",
       rowHoverBg: "#1c2f52",
+      // C2：固定列阴影加深（colorSplit 派生暗色 rgba(130,170,246,.08)
+      // 过淡——glm 实现评审发现；Table 面该 token 仅消费于 fix 列阴影+
+      // 虚拟滚动条[未用]，组件级覆写不泄漏表分割线）
+      colorSplit: "rgba(130, 170, 246, 0.16)",
     },
   },
 };
