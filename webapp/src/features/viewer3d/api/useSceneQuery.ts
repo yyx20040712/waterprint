@@ -8,11 +8,19 @@
  *   - queryKey 由 orval 生成器按 [url, params] 组装（§17.2 输入变自动
  *     失效——工况切换即新键，杜绝旧场景上屏）；
  *   - 类型只从 generated/ 取（禁手写双份，教训 A2）；
- *   - 错误归一在 shared/api/http.ts（本封装零错误处理逻辑）。
+ *   - 错误归一在 shared/api/http.ts（本封装零错误处理逻辑）；
+ *   - C2-thumb（2026-09-11）：第三参 enabled 透传（canvasPane 缩略图
+ *     面复用同键——projectId 空态禁发守门；默认 true 现调用面零改动）。
  */
 import { useGetSceneApiSceneProjectIdGet } from "../../../shared/api/generated/scene/scene";
 
-export function useSceneQuery(projectId: string, conditionKey?: string) {
+export function useSceneQuery(
+  projectId: string,
+  conditionKey?: string,
+  options?: { enabled?: boolean },
+) {
   const params = conditionKey === undefined ? undefined : { condition_key: conditionKey };
-  return useGetSceneApiSceneProjectIdGet(projectId, params);
+  return useGetSceneApiSceneProjectIdGet(projectId, params, {
+    query: { enabled: options?.enabled ?? true },
+  });
 }

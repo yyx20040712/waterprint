@@ -27,7 +27,9 @@
 
 | 文件 | 职责 |
 |------|------|
-| `lib/projectScene.ts` | 投影层纯函数（SceneGraph JSON→渲染描述：版本门/分组/摆置/bounds 聚合——组件唯一数据源） |
+| `lib/thumbnailStage.ts` | C2-thumb 实装（2026-09-11） | 节点 3D 缩略图纯函数层：groupUnitConstructs（unit:: 前缀分组[waters 不入——呈裁③]）/unitBounds（placements∪dims 外接 AABB——cylinder 圆外接方保守幅）/thumbCamera（V4 iso 30/×1.25 取景派生——Scene.tsx 同值双源）/thumbCacheKey（场景三组成缓存键） |
+| `lib/thumbnailStage.test.ts` | C2-thumb 实装 | 纯函数族 7 用例（分组/AABB/取景/缓存键） |
+| `components/ThumbnailStage.tsx` | C2-thumb 实装（2026-09-11） | 缩略图离屏舞台（96×96 viewport 外定位+frameloop never 单帧手渲+顺序 rAF 队列[V2 预算 ≤350ms/19 单元]+PoolBox 构型直用[构型真源单点]+V2 光比/V1 底色冻结口径复用无阴影；app 层 canvasPane 组合穿线——features 互不依赖红线） | 投影层纯函数（SceneGraph JSON→渲染描述：版本门/分组/摆置/bounds 聚合——组件唯一数据源） |
 | `lib/projectSceneFixtures.ts` | 投影层测试夹具工厂（B3 R6 三分拆出：fixture() 基准场景+FixtureNode 类型+VERSION 锚串——纯工厂零断言零 import 自足，core/layers 两测试件共用） |
 | `lib/projectScene.core.test.ts` | 投影层 vitest·核心面（B3 R6 三分：SCENE_VERSION 门/五 kind 完备映射/摆置确定性/语义 token 色值隔离/root 序一致性五 describe——用例随迁零增减） |
 | `lib/projectScene.layers.test.ts` | 投影层 vitest·图层扩展面（B3 R6 三分：L5R 非默认变换门/L5b 红线分组/L6 条带 strip/Internals 图元选择〔动态 import 随块整迁〕/UX2 bounds 聚合/L5R 换轴锚六 describe——用例随迁零增减） |

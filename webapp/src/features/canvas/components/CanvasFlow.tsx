@@ -62,6 +62,7 @@ import {
   type ProjectFlow,
 } from "../lib/projectFlow";
 import { domainColorOf, streamColorOf } from "../lib/unitGlyph";
+import { EMPTY_THUMBNAILS, ThumbnailProvider } from "../lib/thumbnailContext";
 import { UnitNode } from "./UnitNode";
 
 /** 自定义节点注册（模块级常量——引用稳定）。 */
@@ -108,11 +109,15 @@ export function CanvasFlow({
   projectId,
   selectedUnitId = null,
   libraryFocusId = null,
+  unitThumbnails = EMPTY_THUMBNAILS,
   onNodeClick,
 }: {
   projectId: string;
   /** 受控选中单元（null=无选中——app 层 D2 props 单一持有面）。 */
   selectedUnitId?: string | null;
+  /** C2-thumb V3：节点 3D 缩略图（app 层组合穿线——Viewer3d 域
+   *  ThumbnailStage 产出；缺省空 Map=全节点回退象形图标）。 */
+  unitThumbnails?: ReadonlyMap<string, string>;
   /** 单元库定位单元（C2-lib U3——app 层穿线：命中节点 wrapper 附
    * wp-lib-hit 水蓝光环[global.css]；未命中不压暗[用户裁定「仅光环」]；
    * 命中键=kind ?? unitId[内置节点归 catalog kind 键——画布查表口径]；
@@ -250,6 +255,9 @@ export function CanvasFlow({
           "radial-gradient(1100px 500px at 62% 30%, rgba(37,72,128,.16), transparent 70%), var(--wp-bg-page)",
       }}
     >
+      {/* C2-thumb V3：缩略图 context 注入（UnitNode 深树消费——投影
+          data 零触碰红线维持） */}
+      <ThumbnailProvider value={unitThumbnails}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -301,6 +309,7 @@ export function CanvasFlow({
           }}
         />
       </ReactFlow>
+      </ThumbnailProvider>
       {/* P1 点阵层（C1 工具类消费兑现——指针穿透） */}
       <div
         aria-hidden

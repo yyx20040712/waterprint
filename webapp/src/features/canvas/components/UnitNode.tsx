@@ -25,13 +25,19 @@
  *     ——P8 端口描边随域色（挂账④流体色兑现）；
  *   - 多端口垂直均布（工程图例惯例）；卡片底色 --wp-bg-elevated
  *     配 ConfigProvider 深色主题（CanvasFlow colorMode=dark 同谱）；
- *   - 只读批：节点拖动面归 CanvasFlow 裁量（本卡片不消费拖拽态）。
+ *   - 只读批：节点拖动面归 CanvasFlow 裁量（本卡片不消费拖拽态）；
+ *   - C2-thumb（2026-09-11 节点 3D 缩略图②）：图标槽双态=44×44 圆角
+ *     深底 3D 缩略图（ThumbnailStage 离屏产出——context 注入[app 层
+ *     组合穿线]）优先/缺席回退 24×24 象形（未算/无构型——零回归）；
+ *     卡片最小高 56→64+端口首距 20→26（V4 布局校准）；设计真源=
+ *     briefs/task-C2-thumb-plan.md。
  */
 import { useMemo } from "react";
 import type { NodeProps } from "@xyflow/react";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { domainColorOf, unitGlyph } from "../lib/unitGlyph";
+import { useUnitThumbnail } from "../lib/thumbnailContext";
 import type { UnitFlowNode } from "../lib/projectFlow";
 import { PortHandle } from "./PortHandle";
 
@@ -45,7 +51,11 @@ const KIND_LABELS: Record<string, string> = {
 
 /** 卡片骨架（视觉稿冻结——与 C1 变量轴同值双源：改色红线双处联动）。 */
 const CARD_WIDTH = 168;
-const CARD_MIN_HEIGHT = 56;
+const CARD_MIN_HEIGHT = 64; // C2-thumb：56→64（44 缩略图槽升档）
+
+/** C2-thumb V3（呈裁① 推荐）：3D 缩略图 44×44 圆角深底（构型在场景底色
+ * 上可读）；缩略图缺席=24×24 象形图标原槽（零回归回退态）。 */
+const THUMB_SIZE = 44;
 
 /** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色；
  * R-G3 联动清单成员：改鎏金须与 global.css --wp-gold 同步）。 */
@@ -63,12 +73,15 @@ const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: strin
 };
 const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c" };
 
-/** 端口列垂直排布（首个端口距顶 20px、行距 16px——多端口均布）。 */
-const PORT_TOP = 20;
+/** 端口列垂直排布（首个端口距顶 26px、行距 16px——C2-thumb 卡片升档
+ * 同步 +6；多端口均布）。 */
+const PORT_TOP = 26;
 const PORT_ROW = 16;
 
 export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
+  // C2-thumb V3：本节点 3D 缩略图（context 注入——缺席=回退象形图标）
+  const thumbnail = useUnitThumbnail(data.unitId);
   // 域色/中文名数据源=单元清单端点（同一 hook 同一缓存——React Query
   // 去重使多卡片订阅零额外请求）。域色查表键=kind ?? unitId（内置节点
   // 归 catalog kind 键；匹配=精确等值 ParamForm 同构）
@@ -119,24 +132,45 @@ export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
         }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px 5px 13px" }}>
-        <span
-          aria-hidden
-          style={{
-            width: 24,
-            height: 24,
-            flex: "none",
-            borderRadius: 6,
-            fontSize: 12,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: iconStyle.bg,
-            border: `1px solid ${iconStyle.border}`,
-            color: iconStyle.fg,
-          }}
-        >
-          {unitGlyph(data.unitId, data.kind)}
-        </span>
+        {thumbnail !== null ? (
+          // C2-thumb V3：3D 缩略图（44×44 圆角深底——aria-hidden 装饰面，
+          // 名称/键仍由文本承载）；构型=该项目该单元实况（Scene 同源）
+          <img
+            aria-hidden
+            src={thumbnail}
+            alt=""
+            width={THUMB_SIZE}
+            height={THUMB_SIZE}
+            style={{
+              width: THUMB_SIZE,
+              height: THUMB_SIZE,
+              flex: "none",
+              borderRadius: 8,
+              background: "#0b1526",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        ) : (
+          <span
+            aria-hidden
+            style={{
+              width: 24,
+              height: 24,
+              flex: "none",
+              borderRadius: 6,
+              fontSize: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: iconStyle.bg,
+              border: `1px solid ${iconStyle.border}`,
+              color: iconStyle.fg,
+            }}
+          >
+            {unitGlyph(data.unitId, data.kind)}
+          </span>
+        )}
         <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--wp-text)" }}>
           {nameZh ?? data.unitId}
         </span>

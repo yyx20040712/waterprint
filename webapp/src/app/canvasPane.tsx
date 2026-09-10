@@ -36,12 +36,18 @@
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
  *     名——FE3 C3 同款规避；指引由段落承担）。
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Select, Typography } from "antd";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
 import { AssumptionsPanel } from "../features/params/components/AssumptionsPanel";
 import { ParamForm } from "../features/params/components/ParamForm";
+import { useSceneQuery } from "../features/viewer3d/api/useSceneQuery";
+import { ThumbnailStage } from "../features/viewer3d/components/ThumbnailStage";
+import {
+  SceneProjectionError,
+  projectScene,
+} from "../features/viewer3d/lib/projectScene";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
 import { CreateProjectModal } from "./createProjectModal";
 import { projectOptionLabel } from "./projectCreate";
@@ -75,6 +81,31 @@ export function CanvasPane({
   const [projectId, setProjectId] = useProjectId();
   // P0-1：建项 Modal 开态（空态 CTA 挂点——成功后 onCreated 切入新项目）
   const [createOpen, setCreateOpen] = useState(false);
+  // C2-thumb V3/V5：节点 3D 缩略图（app 组合层——Viewer3d 域舞台产出；
+  // sceneQuery 与 viewer3d 同键零重复请求；404[未算]/失败=静默回退象形
+  // 图标——仅缩略图功能降级，禁影响画布主流程）
+  const sceneQuery = useSceneQuery(projectId ?? "", undefined, {
+    enabled: projectId !== null,
+  });
+  const [unitThumbnails, setUnitThumbnails] = useState<
+    ReadonlyMap<string, string>
+  >(() => new Map());
+  useEffect(() => {
+    setUnitThumbnails(new Map()); // 切项目清批（旧项目缩略图不跨项目残留）
+  }, [projectId]);
+  const thumbScene = useMemo(() => {
+    if (sceneQuery.data === undefined) {
+      return null;
+    }
+    try {
+      return projectScene(sceneQuery.data);
+    } catch (error) {
+      if (error instanceof SceneProjectionError) {
+        return null; // 投影拒（版本门/未知 kind）=缩略图面静默降级
+      }
+      return null;
+    }
+  }, [sceneQuery.data]);
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   // Q8 侧栏拖拽宽度（会话内 state——纯 UI 偏好不进 URL；view 态写侧挂账）
@@ -195,10 +226,17 @@ export function CanvasPane({
             </div>
           </aside>
           <div style={{ flex: 1, minWidth: 0 }}>
+            {/* C2-thumb V5：缩略图舞台挂载（离屏——场景数据就绪且投影
+                通过才渲；onReady 整批 Map 一次交付——场景数据变即重渲
+                [useMemo 随 sceneQuery.data 新引用重建队列]） */}
+            {thumbScene !== null ? (
+              <ThumbnailStage scene={thumbScene} onReady={setUnitThumbnails} />
+            ) : null}
             <CanvasFlow
               projectId={projectId}
               selectedUnitId={selectedUnitId}
               libraryFocusId={libraryFocusId}
+              unitThumbnails={unitThumbnails}
               onNodeClick={setSelectedUnitId}
             />
           </div>
