@@ -7,8 +7,8 @@
 
 | 文件 | 职责 | 状态 |
 |------|------|------|
-| `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE9 更新（2026-08-30）：六标签全实装（drawings 挂 DrawingsPane），占位屏组件退役删除；UX1 更新：?tab= 路由态进 URL（初值三级解析+onChange replaceState 写入）；ENG5 更新（2026-08-31）：深链判据扩 ?enum=（无 ?tab= 有 ?task= 或 ?enum=→solutions——枚举轨深链同落方案浏览）；R2-A 批2 更新（2026-09-02）：Header 设置按钮+连接设置 Modal+AUTH_EVENT 自愈回路监听；?token= 首参引导编排放模块顶层（读→写 localStorage+replaceState 剥离） |
-| `providers.tsx` | Provider 组合：AntD ConfigProvider（深色默认）/ QueryClient | FE3 实装：模块级 QueryClient 单例（组件外创建）+darkAlgorithm |
+| `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE9 更新（2026-08-30）：六标签全实装（drawings 挂 DrawingsPane），占位屏组件退役删除；UX1 更新：?tab= 路由态进 URL（初值三级解析+onChange replaceState 写入）；ENG5 更新（2026-08-31）：深链判据扩 ?enum=（无 ?tab= 有 ?task= 或 ?enum=→solutions——枚举轨深链同落方案浏览）；R2-A 批2 更新（2026-09-02）：Header 设置按钮+连接设置 Modal+AUTH_EVENT 自愈回路监听；?token= 首参引导编排放模块顶层（读→写 localStorage+replaceState 剥离）；C1 更新（2026-09-10）：滚动容器重构（根 Layout overflow 收敛+Tabs wp-scroll-tabs 统一滚动域+Sider 自滚——需求①根治）+顶栏品牌区（水滴标+双语名+鎏金收边线）+StatusBar 挂载+Sider 280→232 |
+| `providers.tsx` | Provider 组合：AntD ConfigProvider（C1 主题骨架全量 token）/ QueryClient | FE3 实装；C1 重制（2026-09-10）：darkAlgorithm+cssVar+方向 A 全量 seed token（工程蓝主色/三层底/文字三档/语义三色/13px 工程密度/等宽数值栈）+components 微调（Layout 头底分离/Tabs 鎏金墨条/Table 表头基线）；深色锁定（亮色维持 UX 批挂账） |
 | `router.tsx` | 路由表：画布/三维（懒加载）/高程/图纸/概算 | 路由名冻结；机制定 D1=Tabs 状态机（App.tsx 持 activeKey），本文件类型面零消费变化；UX1：view 态持久化挂账行收口（?tab= URL 落地——纯注记） |
 | `ErrorBoundary.tsx` | 每 feature 一个边界的封装件+errorReportPayload 导出 | FE3 最小接线：componentDidCatch 结构化上报+重试 fallback（复制诊断挂账 UX 批） |
 | `queryClient.ts` | QueryClient 工厂+retry 策略（D3 领域错误口径：WaterprintApiError 不重试/网络族重试 1 次） | FE3 实装（providers 消费） |
@@ -22,6 +22,8 @@
 | `elevationPane.tsx` | elevation 标签页装配：?project= 消费+lazy ProfileChart（echarts 独立 chunk）+ErrorBoundary+空态/404 引导+ConditionSwitcher+PumpStationsPanel+TASK_EVENT 事件桥监听 invalidate | FE7 实装；UX1：S3 读方换 useProjectId 订阅（D7 勘误措辞） |
 | `costPane.tsx` | cost 标签页装配：?project= 消费+ErrorBoundary+空态/404 引导+工况 Select（缺省=design 回显）+EstimateTable 分级汇总+IndicatorsCard 指标对照+TASK_EVENT 事件桥监听 invalidate（第四处监听——非 lazy 无大件） | FE8 实装；UX1：S3 读方换 useProjectId 订阅（D7 勘误措辞） |
 | `drawingsPane.tsx` | drawings 标签页装配：?project= 消费+ErrorBoundary+空态引导+工况/单元源 404 分级+ExportButton 导出发起（UX1 D3 单元 Select 可投影面过滤——目录 builtin 集判别，catalog 未就绪不过滤）+SheetList 产物目录+DrawingPreview 元数据卡+TASK_EVENT 事件桥监听 invalidate（第五处监听——非 lazy 无大件） | FE9 实装；UX1 更新（S3 订阅+D3 过滤） |
+| `global.css` | 全局样式底座（C1 批 2026-09-10 首个 CSS 文件——此前纯 inline style）：body 底色/字体栈/document 滚动根除+WebKit 滚动条+项目色变量轴（--wp-gold/water/sludge——antd 无槽位色单一真相源）+antd Tabs 内容滚动域结构微调（wp-scroll-tabs）+画布点阵工具类（二期消费面）；check_webapp/file_budgets 均不扫 .css——本清单即登记面 | C1 实装（方向 A 冻结值） |
+| `statusBar.tsx` | 状态栏：底部全局信息条（C1 视觉稿新增件，用户裁选一期即做）——projectId 订阅（useProjectId）+就绪态绿点；版本号面减配（server 无现成端点，webapp-only 纪律不新增——二期有端点再上）；薄壳不测裁量（app 层惯例，行为面归无头 DOM 断言） | C1 实装 |
 | `tokenSettingsModal.tsx` | 连接设置 Modal：API token 查看/保存/清除（Input.Password 受控+保存=setApiToken/清除=clearApiToken/关闭；零即时校验——错 token→401→AUTH_EVENT→App 重开本 Modal=自愈回路） | R2-A 批2 实装（2026-09-02）：Modal 形态（不动 router.tsx AppRoute 冻结面）；开态同步现读 localStorage 回显 |
 
 ## 交互规范基线（§19，实现期遵守）

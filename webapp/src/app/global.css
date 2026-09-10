@@ -1,0 +1,112 @@
+/**
+ * 全局样式底座（C1 主题骨架——全库首个 CSS 文件；此前纯 inline style）。
+ *
+ * 职责: body 底色/字体栈/document 滚动根除（需求①骨架面）+WebKit 滚动条
+ *       +项目色变量轴（鎏金/水线/泥线——antd 无对应 token 槽位的自建轴）
+ *       +antd Tabs 内容滚动域结构微调+画布点阵背景工具类。
+ * 输入: 无（静态样式；色值=方向 A 视觉稿冻结值——.workflow/c1-design）
+ * 输出: 全局样式（main.tsx 引入一次；组件层经 var(--wp-*) 消费变量轴）
+ *
+ * 规格（task-C1-plan.md §3b；check_webapp/file_budgets 均不扫 .css——
+ *   登记面=src/app/README.md 清单行）：
+ *   - html/body/#root 高度链 100%——document 级滚动根除，滚动域下放
+ *     Tabs 内容层（.ant-tabs 结构微调）与 Sider 自滚；
+ *   - 变量轴命名 --wp-*（waterprint 项目色）——与 antd v6 cssVar 的
+ *     --ant-* 命名空间不冲突；鎏金限品牌点缀（选中描边/收边线），
+ *     水线/泥线=连线语义色（二期画布重制消费面）；
+ *   - Tabs 滚动域：.ant-tabs 高 100% flex 化+content-holder 滚动——
+ *     antd v6 DOM 类名沿 v5（nav/content-holder 两级）；
+ *   - 滚动条：WebKit 细滚动条（深色系）；Firefox 用 scrollbar-width
+ *     窄版兜底（细样式不苛求）。
+ */
+
+/* ── 项目色变量轴（antd token 无槽位的色——单一真相源）── */
+:root {
+  --wp-bg-page: #0b1526;
+  --wp-bg-panel: #12213a;
+  --wp-bg-elevated: #1a2d4d;
+  --wp-bg-hover: #213457;
+  --wp-border: #243a5e;
+  --wp-border-2: #1b2c49;
+  --wp-gold: #d9a94a;
+  --wp-gold-soft: rgba(217, 169, 74, 0.65);
+  --wp-water: #4da3ff;
+  --wp-sludge: #9c6b45;
+  --wp-text: #e8eef7;
+  --wp-text-2: #9db0c9;
+  --wp-text-3: #5d7290;
+  --wp-success: #3ddc97;
+  --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+}
+
+/* ── 高度链与 document 滚动根除（需求①骨架面）── */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--wp-bg-page);
+  color: var(--wp-text);
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui,
+    sans-serif;
+  font-size: 13px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wp-border) transparent;
+}
+
+/* ── WebKit 细滚动条（深色工程系）── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--wp-border);
+  border-radius: 5px;
+  border: 2px solid var(--wp-bg-page);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2f4d7d;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── antd Tabs 内容滚动域（每标签统一滚动——v6 类名：body-holder）── */
+.ant-tabs.wp-scroll-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.ant-tabs.wp-scroll-tabs > .ant-tabs-nav {
+  flex: none;
+  margin-bottom: 0;
+}
+.ant-tabs.wp-scroll-tabs > .ant-tabs-body-holder {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ── 顶栏鎏金收边线（品牌点缀——原神式分寸）── */
+.wp-gold-edge {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--wp-gold-soft) 18%,
+      var(--wp-gold-soft) 82%,
+      transparent 100%
+    )
+    1;
+}
+
+/* ── 画布点阵背景工具类（二期画布标签重制消费面）── */
+.wp-dotgrid {
+  background-image: radial-gradient(#1e3153 1.1px, transparent 1.1px);
+  background-size: 24px 24px;
+}

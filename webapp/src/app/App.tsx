@@ -12,7 +12,8 @@
  *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
  *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除；UX1 批
  *   6b 段八 D2 增 ?tab= 路由态进 URL；R2-A 批 2 增 token 运行期面；
- *   M3 批 2026-09-03 D2 扩七值：siteplan=厂区布置，插 canvas 后第二位）：
+ *   M3 批 2026-09-03 D2 扩七值：siteplan=厂区布置，插 canvas 后第二位；
+ *   C1 批 2026-09-10 主题骨架批：滚动容器重构+顶栏品牌区+状态栏）：
  *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
  *     路由名与次序=router.tsx AppRoute 冻结面七值 canvas/siteplan/
  *     solutions/viewer3d/elevation/drawings/cost——solutions 插 canvas 后=
@@ -61,11 +62,23 @@
  *   - M2 左侧 Sider=UnitLibrary 单元库浏览（app 层薄壳：四线分组树+
  *     搜索+Drawer 详情——组装面在 ./unitLibraryTree 纯函数；onNavigateTab
  *     复用 handleTabChange 切 canvas——AppRoute 七键冻结面零扩，单元库=
- *     Sider UI 态不进 URL）。
+ *     Sider UI 态不进 URL）；
+ *   - C1 滚动容器骨架（需求①根治——task-C1-plan.md §3c）：根 Layout
+ *     100vh+overflow hidden，document 级整页滚动根除；滚动域下放=Tabs
+ *     内容层（className wp-scroll-tabs——global.css 结构微调：content-
+ *     holder overflow auto 每标签统一滚动域）+Sider 自滚（overflow auto
+ *     ）+内层 Layout/Content minHeight 0 收敛——原 Content/Tabs 零约束
+ *     致滚出窗口暴露 body 底色（c-analysis S3 实证）；画布标签内部
+ *     CanvasFlow 560 固定高自含（React Flow fitView 自管，二期重制面）；
+ *   - C1 顶栏品牌区+状态栏（方向 A「深海工程台」呈裁通过 2026-09-10）：
+ *     品牌区=水滴标（radial-gradient+鎏金描边阴影）+「智水蓝图
+ *     WaterPrint」双语名；顶栏底=wp-gold-edge 鎏金收边线（global.css）；
+ *     StatusBar 挂根 Layout 内（flex 列末项——100vh 内不被推出视口）；
+ *     Sider 宽 280→232+去 theme light（token siderBg 承载）。
  */
 import { SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { Button, Layout, Tabs } from "antd";
+import { Button, Layout, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
@@ -83,11 +96,13 @@ import {
 } from "./projectParam";
 import { SiteplanPane } from "./siteplanPane";
 import { SolutionsPane } from "./solutionsPane";
+import { StatusBar } from "./statusBar";
 import { TokenSettingsModal } from "./tokenSettingsModal";
 import { UnitLibrary } from "./unitLibrary";
 import { Viewer3dPane } from "./viewer3dPane";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
+import { useProjectId } from "./useProjectId";
 
 const { Sider, Content, Header } = Layout;
 
@@ -138,6 +153,8 @@ export function App() {
   const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
   // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
+  const [projectId] = useProjectId();
 
   // R2-A 批 2 D4/D5 自愈回路：customInstance 401 → AUTH_EVENT → 自动开
   // 连接设置（错 token 用户改对的引导面）；卸载移除监听。
@@ -162,31 +179,111 @@ export function App() {
   };
   return (
     <Providers>
-      <Layout style={{ height: "100vh" }}>
+      {/* C1 滚动容器骨架（需求①根治）：100vh 布局+overflow 每层收敛——
+          document 级整页滚动根除（原 Content/Tabs 零约束→滚出窗口暴露
+          body 底色）；滚动域=Tabs 内容层（wp-scroll-tabs）+Sider 自滚 */}
+      <Layout style={{ height: "100vh", overflow: "hidden" }}>
         <Header
+          className="wp-gold-edge"
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            padding: "0 16px",
+            flex: "none",
           }}
         >
-          <span>WaterPrint 智水蓝图</span>
-          {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
-          <Button
-            type="text"
-            icon={<SettingOutlined />}
-            onClick={() => setSettingsOpen(true)}
-            aria-label="连接设置"
-            title="连接设置"
-          />
+          {/* C1 品牌区：水滴标+双语名（鎏金点缀——global.css 变量轴） */}
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span
+              aria-hidden
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                position: "relative",
+                display: "inline-block",
+                background:
+                  "radial-gradient(circle at 30% 25%, #4da3ff 0%, #1d5fd0 60%, #0e3a8f 100%)",
+                boxShadow:
+                  "0 0 0 1px rgba(217, 169, 74, 0.45), 0 2px 8px rgba(29, 95, 208, 0.35)",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  left: 8,
+                  top: 6,
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "#cfe6ff",
+                  opacity: 0.85,
+                }}
+              />
+            </span>
+            <Typography.Text strong style={{ fontSize: 15, letterSpacing: 0.5 }}>
+              智水蓝图
+            </Typography.Text>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, marginLeft: -2 }}
+            >
+              WaterPrint
+            </Typography.Text>
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* C1 项目徽章（视觉稿件）：绿点=已选项目上下文+截断 id */}
+            {projectId === null ? null : (
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  height: 28,
+                  padding: "0 12px",
+                  background: "var(--wp-bg-elevated)",
+                  border: "1px solid var(--wp-border)",
+                  borderRadius: 6,
+                  color: "var(--wp-text-2)",
+                  fontSize: 12,
+                  userSelect: "none",
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "var(--wp-success)",
+                  }}
+                />
+                <span style={{ fontFamily: "var(--wp-font-mono)" }}>
+                  {projectId.slice(0, 8)}
+                </span>
+              </span>
+            )}
+            {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              onClick={() => setSettingsOpen(true)}
+              aria-label="连接设置"
+              title="连接设置"
+            />
+          </span>
         </Header>
-        <Layout>
-          {/* M2：单元库浏览实装替换占位——固定宽 280（简报 §一.2） */}
-          <Sider theme="light" width={280}>
+        <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+          {/* M2：单元库浏览实装替换占位——C1 宽 280→232（工程密度）+自滚 */}
+          <Sider
+            width={232}
+            style={{ overflow: "auto", flex: "none" }}
+          >
             <UnitLibrary onNavigateTab={() => handleTabChange("canvas")} />
           </Sider>
-          <Content>
+          <Content style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
             <Tabs
+              className="wp-scroll-tabs"
               activeKey={activeKey}
               onChange={handleTabChange}
               items={[
@@ -229,6 +326,9 @@ export function App() {
             />
           </Content>
         </Layout>
+        {/* C1 状态栏：底部全局信息条（项目 id+就绪态——工程软件标配；
+            在根 Layout 内=flex 列末项，不被 100vh 推出视口 */}
+        <StatusBar />
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </Providers>
