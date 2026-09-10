@@ -33,9 +33,9 @@ _PIPE_SECTION_M: Final[float] = 0.8
 _PIPE_CLEARANCE_M: Final[float] = 1.2
 _PIPE_SEMANTIC_WATER: Final[str] = "pipe_water"
 _PIPE_SEMANTIC_SLUDGE: Final[str] = "pipe_sludge"
-_PIPE_SLUDGE_PREFIX: Final[str] = "sludge_"
+_PIPE_SLUDGE_PREFIX: Final[str] = "sludge_"  # 泥线判据=命名前缀（v1 口径——catalog 在册全库一致）
 # 管端缩进上限比例（每端 ≤ 中心距×0.25——防过缩；魔法数门禁真源化）
-_PIPE_INSET_MAX_FRAC: Final[float] = 0.25  # 泥线判据=命名前缀（v1 口径——catalog 在册全库一致）
+_PIPE_INSET_MAX_FRAC: Final[float] = 0.25
 def _edge_unit(edge: Mapping[str, Any], side: str) -> str | None:
     """design.edges 原始字典端点单元提取（防御读——畸形边静默跳过：
     design 上游已验证，装配层按纯投影零异常纪律消费）。"""

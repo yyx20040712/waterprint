@@ -14,7 +14,7 @@
  *   - 重制=按单元分组（"unit::" 前缀切分——一条/单元；管廊
  *     pipe::* 与非「::」id 整体跳过：管线/图示语义不标注）；中文名
  *     catalog join；亮色 #e8eef7+深描边（troika outlineWidth——深底
- *     可读）；字号随场景对角线自适应（0.6~2.4m 钳位）；
+ *     可读）；字号随场景对角线自适应（0.6~6m 钳位）；
  *   - 抬升=分组最高顶+1.2 字号位（标注位摆放，非业务推导）；
  *   - troika Text 持 SDF 纹理/字形图集/后台 worker——useEffect 卸载面
  *     dispose（primitive 不托管外部对象生命周期；工况/项目切换不泄漏，
@@ -70,6 +70,8 @@ export function Annotations({ nodes, diagonal = 0 }: AnnotationsProps) {
       if (unitId === "pipe" || unitId === "site") {
         continue;
       }
+      // 水平位=单元组首个节点（组内节点水平聚拢——fallback 排布同源
+      // 近似）；高度=组内最高顶（A 二审 GD-N-05 口径记档）
       const acc = tops.get(unitId) ?? { x: node.position[0], z: node.position[2], top: 0 };
       acc.top = Math.max(acc.top, node.position[1] + (node.dims["depth"] ?? 0));
       tops.set(unitId, acc);

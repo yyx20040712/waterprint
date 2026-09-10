@@ -30,7 +30,7 @@
  *     顶点序即权威，闭合段渲染层补）；
  *   - C2-3d（2026-09-10）：V1 地面/双层工程网格（10m/2m）+雾边融+
  *     画布底色黑→#0b1526（「黑背景无边融」痛点收口）；V2 光影档
- *     （环境 0.5/方向 1.2+阴影正交半幅随对角线+灯位 target=bounds
+ *     （环境 0.4/方向 1.4+阴影正交半幅随对角线+灯位 target=bounds
  *     中心）；V4 取景系数 1.5→1.25+iso 俯角 30（呈裁④「更近更俯」）；
  *     地面/网格/灯位全 bounds 派生（零场景零地面——零尺度基准沿
  *     sceneCenter 先例）；
@@ -223,7 +223,9 @@ export function Scene({
     const sizeX = bounds.max[0] - bounds.min[0];
     const sizeZ = bounds.max[2] - bounds.min[2];
     const span = Math.max(sizeX, sizeZ, 10);
-    // 主格 10m：格数=尺寸/10 向上取偶（gridHelper 方格对称）；总尺寸外扩 60%
+    // 主格 10m：总尺寸=最大边×3.2 向上取整到 10m 倍数（gridHelper 以
+    // 中心对称布格——奇偶格数均可；3.2=glm 二轮 2.2→3.2 调档，雾远缘
+    // 3.2×对角同档淡出余量）
     const groundSize = Math.ceil((span * 3.2) / 10) * 10;
     const diagonal = Math.hypot(sizeX, bounds.max[1] - bounds.min[1], sizeZ);
     return {
@@ -345,6 +347,9 @@ export function Scene({
             onUpdate={(light) => light.shadow.camera.updateProjectionMatrix()}
           />
         ) : (
+          // 空场景回退档（bounds=null 零尺度基准——对角线派生面[灯位/
+          // 阴影幅]不可得，v1 常量灯保持；非 V2 调档对象——A 二审
+          // GD-N-04 口径记档）
           <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
         )}
         <CameraRig preset={cameraPreset} scene={scene} />

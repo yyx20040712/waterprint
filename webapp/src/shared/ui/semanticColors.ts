@@ -9,7 +9,8 @@
  *
  * 迁移口径（SC1 D1/D2）：3D 图元色族 12 键自 PoolBox 本地表迁移、
  * 2D 场面色族 7 键自 SiteRoutes/SiteBoundary/SiteCanvas 平行拷贝收编、
- * 2D 单点彩色语义族 5 键自 SiteCanvas 收编——全部原值迁移零色值变更
+ * 2D 单点彩色语义族 6 键自 SiteCanvas 收编（SC1 5 键+SPC2
+ * boundary_error——测试键集冻结注释同口径）——全部原值迁移零色值变更
  * （像素零漂移）。灰阶族（结构/网格/UI 边框灰）与图表色族
  * （profileChart）不收编（非本批漂移面）。键集冻结锚=
  * semanticColors.test.ts（增删键/改值必须同步字面清单）。
