@@ -34,7 +34,7 @@
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
  *     名——FE3 C3 同款规避；指引由段落承担）。
  */
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Select, Typography } from "antd";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
@@ -91,6 +91,15 @@ export function CanvasPane() {
     },
     [sidebarWidth, onHandlePointerMove, onHandlePointerUp],
   );
+  // GP-02（D 一审 R 轮）：拖拽途中组件卸载（切项目/标签）→ document
+  // 监听与 body.cursor 兜底清理（pointerup 不触达的泄漏面）
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("pointermove", onHandlePointerMove);
+      document.removeEventListener("pointerup", onHandlePointerUp);
+      document.body.style.cursor = "";
+    };
+  }, [onHandlePointerMove, onHandlePointerUp]);
   // 空态才拉列表（projectId 已定=deep-link 直进画布，省一次列表请求）
   const projectsQuery = useListProjectsApiProjectsGet({
     query: { enabled: projectId === null },

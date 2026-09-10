@@ -417,6 +417,7 @@ export function ParamForm({
           </Button>
           <Button
             size="small"
+            ghost
             disabled={apply.isPending}
             onClick={() => {
               setDrafts({});
