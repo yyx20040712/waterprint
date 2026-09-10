@@ -193,7 +193,10 @@ export function App() {
             flex: "none",
           }}
         >
-          {/* C1 品牌区：水滴标+双语名（鎏金点缀——global.css 变量轴） */}
+          {/* C1 品牌区：水滴标+双语名（G1-03 R 轮：--wp-water/--wp-gold
+              经 var()/color-mix 消费；#1d5fd0/#0e3a8f/#cfe6ff 与投影
+              rgba(29,95,208,.35)=品牌装饰色，不入语义轴——渐变造型
+              专用值，登记于本注记） */}
           <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span
               aria-hidden
@@ -204,9 +207,9 @@ export function App() {
                 position: "relative",
                 display: "inline-block",
                 background:
-                  "radial-gradient(circle at 30% 25%, #4da3ff 0%, #1d5fd0 60%, #0e3a8f 100%)",
+                  "radial-gradient(circle at 30% 25%, var(--wp-water) 0%, #1d5fd0 60%, #0e3a8f 100%)",
                 boxShadow:
-                  "0 0 0 1px rgba(217, 169, 74, 0.45), 0 2px 8px rgba(29, 95, 208, 0.35)",
+                  "0 0 0 1px color-mix(in srgb, var(--wp-gold) 45%, transparent), 0 2px 8px rgba(29, 95, 208, 0.35)",
               }}
             >
               <span

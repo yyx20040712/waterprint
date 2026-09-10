@@ -34,7 +34,7 @@ export function StatusBar() {
         alignItems: "center",
         gap: 18,
         padding: "0 14px",
-        background: "#0a1220",
+        background: "var(--wp-bg-deep)",
         borderTop: "1px solid var(--wp-border-2)",
         fontSize: 11,
         color: "var(--wp-text-3)",
@@ -60,7 +60,7 @@ export function StatusBar() {
             height: 6,
             borderRadius: "50%",
             background: "var(--wp-success)",
-            boxShadow: "0 0 6px rgba(61, 220, 151, 0.7)",
+            boxShadow: "0 0 6px color-mix(in srgb, var(--wp-success) 70%, transparent)",
           }}
         />
         {STATUS_READY}

@@ -8,7 +8,7 @@
 | 文件 | 职责 | 状态 |
 |------|------|------|
 | `App.tsx` | 应用布局壳+Tabs 路由状态机+Providers 组合（§19.2 骨架，见文件头规格） | FE9 更新（2026-08-30）：六标签全实装（drawings 挂 DrawingsPane），占位屏组件退役删除；UX1 更新：?tab= 路由态进 URL（初值三级解析+onChange replaceState 写入）；ENG5 更新（2026-08-31）：深链判据扩 ?enum=（无 ?tab= 有 ?task= 或 ?enum=→solutions——枚举轨深链同落方案浏览）；R2-A 批2 更新（2026-09-02）：Header 设置按钮+连接设置 Modal+AUTH_EVENT 自愈回路监听；?token= 首参引导编排放模块顶层（读→写 localStorage+replaceState 剥离）；C1 更新（2026-09-10）：滚动容器重构（根 Layout overflow 收敛+Tabs wp-scroll-tabs 统一滚动域+Sider 自滚——需求①根治）+顶栏品牌区（水滴标+双语名+鎏金收边线）+StatusBar 挂载+Sider 280→232 |
-| `providers.tsx` | Provider 组合：AntD ConfigProvider（C1 主题骨架全量 token）/ QueryClient | FE3 实装；C1 重制（2026-09-10）：darkAlgorithm+cssVar+方向 A 全量 seed token（工程蓝主色/三层底/文字三档/语义三色/13px 工程密度/等宽数值栈）+components 微调（Layout 头底分离/Tabs 鎏金墨条/Table 表头基线）；深色锁定（亮色维持 UX 批挂账） |
+| `providers.tsx` | Provider 组合：AntD ConfigProvider（C1 主题骨架全量 token）/ QueryClient | FE3 实装；C1 重制（2026-09-10）：darkAlgorithm+方向 A 全量 seed token（cssVar 显式传参省略——v6 样式面默认开，A2-N-04 勘误）（工程蓝主色/三层底/文字三档/语义三色/13px 工程密度/等宽数值栈）+components 微调（Layout 头底分离/Tabs 鎏金墨条/Table 表头基线）；深色锁定（亮色维持 UX 批挂账） |
 | `router.tsx` | 路由表：画布/三维（懒加载）/高程/图纸/概算 | 路由名冻结；机制定 D1=Tabs 状态机（App.tsx 持 activeKey），本文件类型面零消费变化；UX1：view 态持久化挂账行收口（?tab= URL 落地——纯注记） |
 | `ErrorBoundary.tsx` | 每 feature 一个边界的封装件+errorReportPayload 导出 | FE3 最小接线：componentDidCatch 结构化上报+重试 fallback（复制诊断挂账 UX 批） |
 | `queryClient.ts` | QueryClient 工厂+retry 策略（D3 领域错误口径：WaterprintApiError 不重试/网络族重试 1 次） | FE3 实装（providers 消费） |

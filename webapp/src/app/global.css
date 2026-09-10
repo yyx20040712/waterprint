@@ -2,8 +2,10 @@
  * 全局样式底座（C1 主题骨架——全库首个 CSS 文件；此前纯 inline style）。
  *
  * 职责: body 底色/字体栈/document 滚动根除（需求①骨架面）+WebKit 滚动条
- *       +项目色变量轴（鎏金/水线/泥线——antd 无对应 token 槽位的自建轴）
- *       +antd Tabs 内容滚动域结构微调+画布点阵背景工具类。
+ *       +项目色变量轴（鎏金/水线/泥线——antd 无对应 token 槽位的自建轴；
+ *       其余同值色与 providers token 双源联动——见变量轴节契约）
+ *       +antd Tabs 内容滚动域结构微调（v6 类名 body-holder——v5 的
+ *       content-holder 在 v6 DOM 零命中，R 轮实测勘正）+画布点阵工具类。
  * 输入: 无（静态样式；色值=方向 A 视觉稿冻结值——.workflow/c1-design）
  * 输出: 全局样式（main.tsx 引入一次；组件层经 var(--wp-*) 消费变量轴）
  *
@@ -20,12 +22,25 @@
  *     窄版兜底（细样式不苛求）。
  */
 
-/* ── 项目色变量轴（antd token 无槽位的色——单一真相源）── */
+/* ── 项目色变量轴（单一真相源——A2-N-01 R 轮双源联动契约）──
+ * 本轴与 providers.tsx antd token 存在同值双源（antd cssVar 变量挂组件
+ * 作用域非 :root——R 轮实测零命中，跨组件消费不可走 --ant-*，故轴
+ * 保留）。改色红线=双处联动（R 轮 A2-N-01 收口契约）：
+ *   --wp-bg-page   ↔ providers colorBgLayout
+ *   --wp-bg-elevated ↔ providers colorBgElevated（+components.Layout 无）
+ *   --wp-bg-deep   ↔ providers components.Layout.headerBg（G1-04 收口）
+ *   --wp-border    ↔ providers colorBorder
+ *   --wp-border-2  ↔ providers colorBorderSecondary
+ *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
+ *   --wp-success   ↔ providers colorSuccess
+ *   --wp-font-mono ↔ providers fontFamilyCode
+ * 以下为 antd 无槽位色（轴独有，无双源）：gold/water/sludge/dot。
+ * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
+ * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
   --wp-bg-page: #0b1526;
-  --wp-bg-panel: #12213a;
   --wp-bg-elevated: #1a2d4d;
-  --wp-bg-hover: #213457;
+  --wp-bg-deep: #0a1220;
   --wp-border: #243a5e;
   --wp-border-2: #1b2c49;
   --wp-gold: #d9a94a;
@@ -36,6 +51,9 @@
   --wp-text-2: #9db0c9;
   --wp-text-3: #5d7290;
   --wp-success: #3ddc97;
+  --wp-scrollbar-hover: #2f4d7d;
+  --wp-dot-color: #1e3153;
+  --wp-dot-size: 24px;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
@@ -69,7 +87,7 @@ body {
   border: 2px solid var(--wp-bg-page);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2f4d7d;
+  background: var(--wp-scrollbar-hover);
 }
 ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
@@ -107,6 +125,9 @@ body {
 
 /* ── 画布点阵背景工具类（二期画布标签重制消费面）── */
 .wp-dotgrid {
-  background-image: radial-gradient(#1e3153 1.1px, transparent 1.1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(
+    var(--wp-dot-color) 1.1px,
+    transparent 1.1px
+  );
+  background-size: var(--wp-dot-size) var(--wp-dot-size);
 }

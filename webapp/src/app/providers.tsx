@@ -9,6 +9,11 @@
  *   - 深色主题锁定（用户裁选：一期锁定暗色——多层暗底难映射亮色，
  *     亮色切换维持 UX 批挂账；原「亮色经 zustand UI slice」注记同步
  *     挂账化）：algorithm=darkAlgorithm+全量 seed token 覆盖；
+ *   - 鎏金双源联动（G1-02/A2-N-02 R 轮契约）：Tabs inkBarColor
+ *     #d9a94a 与 global.css --wp-gold 同值双源——antd 组件 token 为
+ *     JS 字面量面无法 var() 引用 CSS 变量，改鎏金须两处联动改
+ *     （规格 §3a「鎏金不入 antd token」原表述勘误：Tabs 存在
+ *     inkBarColor 槽位，组件级可用）；
  *   - token 层级：seed 色（colorPrimary 工程蓝 #3d8bfd）+三层底
  *     （Layout #0b1526 页面/Container #12213a 面板/Elevated #1a2d4d
  *     浮层——纵深层级感）+文字三档（#e8eef7/#9db0c9/#5d7290——对比度
