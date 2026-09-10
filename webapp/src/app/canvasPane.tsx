@@ -38,6 +38,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Select, Typography } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
 import { AssumptionsPanel } from "../features/params/components/AssumptionsPanel";
@@ -49,6 +50,7 @@ import {
   projectScene,
 } from "../features/viewer3d/lib/projectScene";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
+import { TASK_EVENT } from "../shared/events";
 import { CreateProjectModal } from "./createProjectModal";
 import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -81,6 +83,7 @@ export function CanvasPane({
   const [projectId, setProjectId] = useProjectId();
   // P0-1：建项 Modal 开态（空态 CTA 挂点——成功后 onCreated 切入新项目）
   const [createOpen, setCreateOpen] = useState(false);
+  const queryClient = useQueryClient();
   // C2-thumb V3/V5：节点 3D 缩略图（app 组合层——Viewer3d 域舞台产出；
   // sceneQuery 与 viewer3d 同键零重复请求；404[未算]/失败=静默回退象形
   // 图标——仅缩略图功能降级，禁影响画布主流程）
@@ -93,6 +96,20 @@ export function CanvasPane({
   useEffect(() => {
     setUnitThumbnails(new Map()); // 切项目清批（旧项目缩略图不跨项目残留）
   }, [projectId]);
+  // C2-thumb V5+GD-01（AUDIT2 R3 DS-03 先例族第六处监听）：apply/ParamForm
+  // 重算终态派发 TASK_EVENT→失效 scene 键→同键原地 refetch（GD-01 复位
+  // effect 的真实触发路径——缩略图随重算刷新；viewer3d 标签同键受益）
+  useEffect(() => {
+    const onTaskParam = () => {
+      if (projectId !== null) {
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/scene/${projectId}`],
+        });
+      }
+    };
+    window.addEventListener(TASK_EVENT, onTaskParam);
+    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
+  }, [projectId, queryClient]);
   const thumbScene = useMemo(() => {
     if (sceneQuery.data === undefined) {
       return null;
@@ -100,8 +117,10 @@ export function CanvasPane({
     try {
       return projectScene(sceneQuery.data);
     } catch (error) {
-      if (error instanceof SceneProjectionError) {
-        return null; // 投影拒（版本门/未知 kind）=缩略图面静默降级
+      // 投影拒（版本门/未知 kind）=预期域错静默降级；非投影异常留痕
+      // 可见（fail-visible——GD-03 D 一审处置：禁把代码 bug 一并吞掉）
+      if (!(error instanceof SceneProjectionError)) {
+        console.warn("缩略图场景投影异常（非预期域错）:", error);
       }
       return null;
     }

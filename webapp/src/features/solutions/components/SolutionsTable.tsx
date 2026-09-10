@@ -261,7 +261,8 @@ export function SolutionsTable({
       rowKey={(row) =>
         gridFields.length > 0
           ? gridFields.map((field) => String(row[field.key])).join("|")
-          : JSON.stringify(row).slice(0, 80)
+          : JSON.stringify(row) // GD-04：退化分支不截断（长公共前缀撞键
+          // 残余风险——行数据量小全量串无代价；antd v6 index 参数弃用沿 D2）
       }
       columns={columns}
       dataSource={page.rows}

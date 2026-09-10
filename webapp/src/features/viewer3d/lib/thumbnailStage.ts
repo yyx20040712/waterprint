@@ -40,7 +40,7 @@ export function groupUnitConstructs(scene: RenderScene): UnitConstructs {
     if (sep <= 0) {
       continue; // 裸 id/空首段不属单元构型（防御位——现载荷全带 ::）
     }
-    const unitId = node.id.slice(0, sep) ?? "";
+    const unitId = node.id.slice(0, sep);
     if (unitId === "pipe") {
       continue; // 管廊场景级件（C2-3d V5）不属单元构型
     }

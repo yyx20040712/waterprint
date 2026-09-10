@@ -75,7 +75,7 @@ export function EnumerateBar({
             // （manifest 纯中文/builtin 中文名+（node_id）后缀/缺席英文
             // id 诚实回退；value 仍 node id 零漂移）
             value: unit.unitId,
-            label: unitOptionLabel(unit, nameById as Map<string, string>),
+            label: unitOptionLabel(unit, nameById),
           }))}
           onChange={(value) => {
             onUnitChange(value);

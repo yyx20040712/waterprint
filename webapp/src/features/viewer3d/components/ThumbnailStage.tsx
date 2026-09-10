@@ -110,6 +110,13 @@ export function ThumbnailStage({
   const thumbsRef = useRef(new Map<string, string>());
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  // GD-01（D 一审修复）：scene 变（同键原地 refetch——重算后场景内容变）
+  // 队列态/半成品批复位重渲——否则旧完成态 index 卡住或交付陈旧 Map
+  // （跨项目切换经卸载重挂载幸免；同项目重算路径此前无复位）。
+  useEffect(() => {
+    setIndex(0);
+    thumbsRef.current = new Map();
+  }, [scene]);
 
   // 队列耗尽=整批交付（一次性 setState 上抛——消费面 Map 引用稳定）
   useEffect(() => {
