@@ -51,6 +51,10 @@ WHITELIST_DECLARATION = (
     # （512 条——§17.2 出处；落盘 512MB 语义载 cache.py 规格头，常量
     # 随落盘批实装；B8 _constants.py 同款先例）。
     "core/waterprint/graph/cache.py",
+    # C2-3d V5：管廊工程常量声明面（断面 0.8m/净空 1.2m/缩进上限比例
+    # 0.25——briefs/task-C2-3d-plan.md §二 V5 出处+glm 三/四轮调档记档；
+    # 渲染几何常量非业务假设——registry 面外声明式真源，cache.py 同款）。
+    "core/waterprint/geometry/pipes.py",
 )
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
 # 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。

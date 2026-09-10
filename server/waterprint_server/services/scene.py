@@ -138,8 +138,10 @@ def build_scene_for_project(
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     try:
+        # C2-3d 管廊：design.edges 原始字典序列透传（core 装配层防御消费）
         graph = core.build_scene(plant, assumptions, chosen,
-                                 site_design=project.design.site)
+                                 site_design=project.design.site,
+                                 edges=project.design.edges)
     except KeyError as exc:
         raise InvalidSceneRequestError(str(exc)) from exc
     return SceneResponse(

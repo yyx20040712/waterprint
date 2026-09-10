@@ -19,13 +19,15 @@ import {
 } from "./semanticColors";
 
 describe("semanticColors 语义色真源表", () => {
-  it("键集冻结：恰 25 键（3D 图元 12+2D 场面 7+2D 单点 6）", () => {
+  it("键集冻结：恰 27 键（3D 图元 12+2D 场面 7+2D 单点 6+管廊 2[C2-3d]）", () => {
     expect(Object.keys(SEMANTIC_COLORS).sort()).toEqual(
       [
         // 3D 图元色族（12）
         "pool_wall", "partition", "channel", "ground",
         "water_surface", "sludge", "aerator", "paddle",
         "media", "gate", "pipe", "decant",
+        // C2-3d 管廊两色制（2——与画布域色轴同值）
+        "pipe_water", "pipe_sludge",
         // 2D 场面色族（7）
         "road", "boundary",
         "corridor_water", "corridor_power", "corridor_gas",
@@ -50,6 +52,9 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.gate).toBe("#5b8db8");
     expect(SEMANTIC_COLORS.pipe).toBe("#5b8db8");
     expect(SEMANTIC_COLORS.decant).toBe("#5b8db8");
+    // C2-3d 管廊：水蓝/泥棕（--wp-water/--wp-sludge 轴同值）
+    expect(SEMANTIC_COLORS.pipe_water).toBe("#4da3ff");
+    expect(SEMANTIC_COLORS.pipe_sludge).toBe("#9c6b45");
     expect(SEMANTIC_COLORS.road).toBe("#6b6f76");
     expect(SEMANTIC_COLORS.boundary).toBe("#d4380d");
     expect(SEMANTIC_COLORS.corridor_water).toBe("#2f7fd1");

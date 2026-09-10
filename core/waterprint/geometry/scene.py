@@ -64,7 +64,7 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from itertools import pairwise
-from typing import Final, final
+from typing import Any, Final, final
 
 from waterprint.contracts.drawing_projection import PROJECTION_TABLE
 from waterprint.contracts.project_schema import (
@@ -74,6 +74,7 @@ from waterprint.contracts.project_schema import (
 )
 from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.geometry.internals import internal_instances
+from waterprint.geometry.pipes import pipe_nodes
 from waterprint.geometry.pools import (
     Node,
     Primitive,
@@ -94,7 +95,9 @@ __all__ = ["SCENE_VERSION", "Node", "Primitive", "SceneGraph", "build_scene"]
 # 场景图语义变——「语义变即步进」先例）。
 # L7 步进 -4：AAO 容积法池体图元批——池壁 box/水面/渠道三节点入场景
 # （表行三槽+compute 几何段 8 键接线；新单元产图元=场景图语义变）。
-SCENE_VERSION: Final[str] = "waterprint-scene-5/z-up/m"
+# C2-3d 步进 -6：单元间高架管廊图元（design.edges→pipe_water/pipe_sludge
+# 两语义 box——新 semantic 族=场景图语义变，沿「语义变即步进」先例）。
+SCENE_VERSION: Final[str] = "waterprint-scene-6/z-up/m"
 _INSTANCE_KINDS: Final[frozenset[str]] = frozenset({
     "aerator", "paddle", "media", "gate", "lamp", "module", "decant",
     "pump", "mech_cleaner", "pipe", "opening", "disk", "machine",  # disk=M3D1；machine=M3D2 脱水机
@@ -262,12 +265,55 @@ def _site_overlay(site_design: SiteDesign) -> tuple[Node, ...]:
     return tuple(overlay)
 
 
+def _internals_nodes(
+    unit_id: str,
+    snapshot: UnitResultSnapshot,
+    assumptions: Mapping[str, float],
+    *,
+    placement: StructurePlacement | None,
+    cursor_x: float,
+) -> tuple[Node, ...]:
+    """单元内部构件实例组装配（build_scene 段抽离——PLR0915 语句收限）。
+
+    摆放双模同构：placement 定位（origin 偏移+标高+绕 Z 旋转）/fallback
+    排布原点（cursor_x 平移零旋转）；InstanceGroup 原型直传。
+    """
+    assembled: list[Node] = []
+    for group in internal_instances(snapshot, assumptions):
+        origin = group.placements.get("origin", (0.0, 0.0))
+        assert isinstance(origin, tuple)
+        origin_x = float(origin[0])
+        origin_y = float(origin[1]) if len(origin) > 1 else 0.0
+        if placement is not None:
+            position = (
+                placement.x + origin_x,
+                placement.y + origin_y,
+                _ground_z(placement),
+            )
+            rotation = (0.0, 0.0, math.radians(placement.rotation))
+        else:
+            position = (origin_x + cursor_x, origin_y, 0.0)
+            rotation = (0.0, 0.0, 0.0)
+        assembled.append(
+            Node(
+                node_id=f"{unit_id}::{group.semantic}",
+                primitive=group.prototype,
+                semantic=group.semantic,
+                position=position,
+                rotation=rotation,
+                instance_count=group.count,
+            )
+        )
+    return tuple(assembled)
+
+
 def build_scene(
     plant_result: PlantResult,
     assumptions: Mapping[str, float],
     condition_key: str,
     *,
     site_design: SiteDesign | None = None,
+    edges: Sequence[Mapping[str, Any]] | None = None,
 ) -> SceneGraph:
     """全厂场景图装配正门（R1 纯投影：同结果同场景图，<100ms 预算 R5）。
 
@@ -277,6 +323,9 @@ def build_scene(
     instance_counts→InstanceGroup（R3 千级构件一次 draw call 数据前提）。
     roads/corridors（L6）：site_design 非 None 且列表非空即挂 strip 条带
     图元（沿 boundary 先例，不受 structures 空回退门影响）。
+    管廊（C2-3d）：edges 非 None 即挂单元间高架方管（两端均在场景才画
+    ——inlet/未摆放端跳过；与 site overlay 同级不受 structures 空回退门
+    影响；调用方 server 传 project.design.edges 原始字典序列）。
     """
     if condition_key not in plant_result.conditions:
         raise KeyError(
@@ -288,6 +337,12 @@ def build_scene(
     site_mode = bool(placements)
     nodes: list[Node] = []
     root: list[str] = []
+    # C2-3d 管廊数据面：单元中心（fallback=排布中点/site=placement 位）+
+    # 单元顶标高（position.z+depth——box/extrusion/cylinder 垂直尺寸恒
+    # depth 键，FE PoolBox 同口径；水面 plane 无 depth=0 不抬架）
+    pipe_centers: dict[str, tuple[float, float]] = {}
+    pipe_tops: dict[str, float] = {}
+    pipe_extents: dict[str, float] = {}
     cursor_x = 0.0
     for unit_id, snapshot in snapshots.items():
         if unit_id == "inlet":
@@ -310,32 +365,28 @@ def build_scene(
         )
         nodes.extend(located)
         root.extend(node.node_id for node in located)
-        for group in internal_instances(snapshot, assumptions):
-            origin = group.placements.get("origin", (0.0, 0.0))
-            assert isinstance(origin, tuple)
-            origin_x = float(origin[0])
-            origin_y = float(origin[1]) if len(origin) > 1 else 0.0
-            if placement is not None:
-                position = (
-                    placement.x + origin_x,
-                    placement.y + origin_y,
-                    _ground_z(placement),
-                )
-                rotation = (0.0, 0.0, math.radians(placement.rotation))
-            else:
-                position = (origin_x + cursor_x, origin_y, 0.0)
-                rotation = (0.0, 0.0, 0.0)
-            nodes.append(
-                Node(
-                    node_id=f"{unit_id}::{group.semantic}",
-                    primitive=group.prototype,
-                    semantic=group.semantic,
-                    position=position,
-                    rotation=rotation,
-                    instance_count=group.count,
-                )
-            )
+        nodes.extend(
+            _internals_nodes(unit_id, snapshot, assumptions,
+                             placement=placement, cursor_x=cursor_x)
+        )
+        pipe_centers[unit_id] = (
+            (placement.x, placement.y)
+            if placement is not None
+            else (cursor_x + _unit_extent(pool_nodes) / 2, 0.0)
+        )
+        pipe_extents[unit_id] = _unit_extent(pool_nodes)
+        pipe_tops[unit_id] = max(
+            (
+                node.position[2] + node.primitive.dims.get("depth", 0.0)
+                for node in located
+            ),
+            default=0.0,
+        )
         cursor_x += _unit_extent(pool_nodes) + _UNIT_GAP
+    if edges is not None:
+        for pipe in pipe_nodes(edges, pipe_centers, pipe_tops, pipe_extents):
+            nodes.append(pipe)
+            root.append(pipe.node_id)
     if site_design is not None:
         for route in _site_overlay(site_design):
             nodes.append(route)

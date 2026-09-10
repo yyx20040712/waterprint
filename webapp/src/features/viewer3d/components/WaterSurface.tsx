@@ -48,7 +48,7 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
 
   const diameter = node.dims["diameter"]; // SC1 真圆：cylinder 池水面足迹键
   return (
-    <mesh position={node.position} rotation={node.rotation}>
+    <mesh position={node.position} rotation={node.rotation} receiveShadow>
       {diameter !== undefined ? (
         <cylinderGeometry
           args={[diameter / 2, diameter / 2, node.dims["depth"] ?? 1, RADIAL_SEGMENTS]}

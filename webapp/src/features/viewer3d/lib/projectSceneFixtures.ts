@@ -11,7 +11,7 @@
  */
 
 /** 场景版本锚（SCENE_VERSION 门用例断言串——RENDER_SCENE_VERSION 同值）。 */
-export const VERSION = "waterprint-scene-5/z-up/m";
+export const VERSION = "waterprint-scene-6/z-up/m";
 
 /** 夹具节点形态（宽松面——投影层入口本收 unknown）。 */
 export type FixtureNode = {

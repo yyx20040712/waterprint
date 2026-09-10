@@ -19,7 +19,7 @@ import {
 
 describe("projectScene：SCENE_VERSION 门", () => {
   it("RENDER_SCENE_VERSION 步进 -5（SC1 cylinder 池水面 diameter 真圆足迹——core SCENE_VERSION 双端同窗）", () => {
-    expect(RENDER_SCENE_VERSION).toBe("waterprint-scene-5/z-up/m");
+    expect(RENDER_SCENE_VERSION).toBe("waterprint-scene-6/z-up/m");
   });
 
   it("非 z-up 标签拒且原因附版本值（L5R 轴标签勘正——步进时误记的 y-up 串同拒）", () => {

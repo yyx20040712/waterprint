@@ -3,7 +3,7 @@
  * 描绘统一消费；features 互不 import 的字面平行拷贝全数收编于此）。
  *
  * 输入:  语义 token 字符串（渲染描述/组件携带的 semantic 键）
- * 输出:  SEMANTIC_COLORS（25 键字面表）+ FALLBACK_COLOR（未登记兜底
+ * 输出:  SEMANTIC_COLORS（27 键字面表）+ FALLBACK_COLOR（未登记兜底
  *        灰阶）+ semanticColor()（查表函数——未登记语义回退兜底，
  *        禁抛错打断渲染）
  *
@@ -37,6 +37,10 @@ export const SEMANTIC_COLORS = {
   corridor_gas: "#3fa34d",
   corridor_comm: "#9a6dd7",
   corridor_fallback: "#8c8c8c",
+  // C2-3d 管廊两键（三维管线两色制——与画布域色轴同值[--wp-water/
+  // --wp-sludge]：R-G3 联动清单成员，改色以 unitGlyph.domainColorOf 为基准）
+  pipe_water: "#4da3ff",
+  pipe_sludge: "#9c6b45",
   // 2D 单点彩色语义族（自 SiteCanvas 收编，5 键）
   selected: "#1668dc",
   pending: "#d48806",

@@ -42,6 +42,21 @@
 | `store/viewer3dStore.ts` | 相机/剖切/显示开关 slice（zustand，纯 view 态 §12.3） |
 | `api/useSceneQuery.ts` | 场景图查询（orval hooks 消费封装：projectId+可选 conditionKey） |
 
+## C2-3d 批注记（2026-09-10——三维空旷议题）
+
+真源=briefs/task-C2-3d-plan.md（§四b glm 四轮实录+§五呈裁实录）。要点：
+scene 版本 5→6（管廊 pipe_water/pipe_sludge 两语义族——core
+geometry/pipes.py 装配段抽离[boundary/internals 同件先例]；projectScene
+门同步+fixtures 版本串）；Scene.tsx=V1 地面/双层工程网格（10m/2m）/
+雾边融/底色深蓝 #0b1526+V2 光影档（环境 0.4/方向 1.4+阴影正交半幅随
+对角线+onUpdate updateProjectionMatrix）+V4 取景 1.25/iso 俯角 30（呈裁④）；
+Annotations 重制=按「unit::」前缀分组+中文名 catalog join+亮色描边
++三高度带错位+字号随对角线（glm 标签防叠三轮未全收敛——碰撞避让挂账）；
+WaterSurface receiveShadow；shared/ui semanticColors +pipe 两键（27 键
+——画布域色轴同值 R-G3 清单成员）。无头 T 族 8/8（shoot_c2_3d_impl.py：
+版本 6/16 管两色/管端缩进 bbox 判据/架顶净空/渲染面/底色/标签通道/
+preset 回归）+四族回归零回归。
+
 ## 规格要点
 
 - **前端零业务几何推导**（§10.5/§16 A7）：一切尺寸来自场景图

@@ -18,6 +18,9 @@ declare module "troika-three-text" {
     anchorY: "top" | "middle" | "bottom";
     maxWidth: number;
     letterSpacing: number;
+    /** C2-3d V3：深底可读描边（troika 运行时支持——类型面补全）。 */
+    outlineWidth: number;
+    outlineColor: string;
     sync(): void;
     dispose(): void;
   }

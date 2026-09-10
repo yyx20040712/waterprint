@@ -28,6 +28,12 @@
  *   - 图层开关：水面/内部构件/标注（store 显隐——渲染密度控制）；
  *   - 总装红线（L5b）：boundaries 组挂 SiteBoundary（闭合折线——core
  *     顶点序即权威，闭合段渲染层补）；
+ *   - C2-3d（2026-09-10）：V1 地面/双层工程网格（10m/2m）+雾边融+
+ *     画布底色黑→#0b1526（「黑背景无边融」痛点收口）；V2 光影档
+ *     （环境 0.5/方向 1.2+阴影正交半幅随对角线+灯位 target=bounds
+ *     中心）；V4 取景系数 1.5→1.25+iso 俯角 30（呈裁④「更近更俯」）；
+ *     地面/网格/灯位全 bounds 派生（零场景零地面——零尺度基准沿
+ *     sceneCenter 先例）；
  *   - 性能预算 1080p ≥60fps（InstancedMesh 前提，§18.1）；
  *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）；UX1 D5：
  *     404 领域码门控附引导——仅 code==="SceneSourceNotFoundError"（无
@@ -68,10 +74,17 @@ declare module "@react-three/fiber" {
 }
 
 const CAMERA_PRESETS = {
-  iso: [30, 25, 30] as [number, number, number],
+  // C2-3d V4（呈裁④「更近更俯」）：iso 俯角 25→30（俯瞰厂区感）
+  iso: [30, 30, 30] as [number, number, number],
   top: [0, 60, 1] as [number, number, number],
   side: [40, 5, 0] as [number, number, number],
 };
+
+/** C2-3d V1 地面/雾色（场景底=--wp-bg-page 同值 #0b1526——页面边融一致；
+ * 网格两色=主格/次格分层——工程参考系 GPS-X 惯例）。 */
+const SCENE_BG = "#0b1526";
+const GRID_MAJOR = "#3d619c";
+const GRID_MINOR = "#1b2c49";
 
 /** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
  *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
@@ -117,7 +130,8 @@ function cameraPosition(
     bounds.max[1] - bounds.min[1],
     bounds.max[2] - bounds.min[2],
   );
-  const distance = diagonal * 1.5;
+  // C2-3d V4（呈裁④）：距离系数 1.5→1.25（更近一档——「偏远」感收口）
+  const distance = diagonal * 1.25;
   return [
     center[0] + unit[0] * distance,
     center[1] + unit[1] * distance,
@@ -199,6 +213,39 @@ export function Scene({
     return [plane];
   }, [clippingEnabled, clippingHeight]);
 
+  // C2-3d V1/V2 地面/网格/灯位数据面（bounds 派生——空场景 bounds=null
+  // 零地面：零场景零尺度基准沿 sceneCenter 先例）
+  const ground = useMemo(() => {
+    const bounds = projection.scene?.bounds ?? null;
+    if (bounds === null) {
+      return null;
+    }
+    const sizeX = bounds.max[0] - bounds.min[0];
+    const sizeZ = bounds.max[2] - bounds.min[2];
+    const span = Math.max(sizeX, sizeZ, 10);
+    // 主格 10m：格数=尺寸/10 向上取偶（gridHelper 方格对称）；总尺寸外扩 60%
+    const groundSize = Math.ceil((span * 3.2) / 10) * 10;
+    const diagonal = Math.hypot(sizeX, bounds.max[1] - bounds.min[1], sizeZ);
+    return {
+      size: groundSize,
+      majorDivisions: groundSize / 10,
+      minorDivisions: groundSize / 2,
+      centerX: (bounds.min[0] + bounds.max[0]) / 2,
+      centerZ: (bounds.min[2] + bounds.max[2]) / 2,
+      // V2 灯位/阴影覆盖：对角线驱动（阴影正交相机半幅=对角线×0.75）
+      diagonal,
+    };
+  }, [projection.scene]);
+  // V2 方向光 target（bounds 中心——阴影相机随场景中心覆盖；primitive
+  // 挂载进场景使 target 变换生效）
+  const lightTarget = useMemo(() => new THREE.Object3D(), []);
+  useEffect(() => {
+    if (ground !== null) {
+      lightTarget.position.set(ground.centerX, 0, ground.centerZ);
+      lightTarget.updateMatrixWorld();
+    }
+  }, [lightTarget, ground]);
+
   if (query.isError) {
     return (
       <div role="alert">
@@ -261,11 +308,69 @@ export function Scene({
         camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows
         gl={{ localClippingEnabled: clippingEnabled }}
-        style={{ height: CANVAS_HEIGHT, minHeight: CANVAS_MIN_HEIGHT }}
+        style={{
+          height: CANVAS_HEIGHT,
+          minHeight: CANVAS_MIN_HEIGHT,
+          background: SCENE_BG,
+        }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
+        {/* C2-3d V1 雾边融：远缘网格/地面淡出至场景底色（近/远=对角线
+            档距——bounds 空零地面时雾不挂） */}
+        {ground !== null && (
+          <>
+            <fog attach="fog" args={[SCENE_BG, ground.diagonal * 1.2, ground.diagonal * 3.2]} />
+            <primitive object={lightTarget} />
+          </>
+        )}
+        {/* C2-3d V2 光影：环境光降档+方向光提档（阴影对比度）；灯位/阴影
+            正交半幅按对角线适配+target=bounds 中心（覆盖随场景） */}
+        <ambientLight intensity={0.4} />
+        {ground !== null ? (
+          <directionalLight
+            position={[
+              ground.centerX + ground.diagonal * 0.5,
+              ground.diagonal * 0.8,
+              ground.centerZ + ground.diagonal * 0.35,
+            ]}
+            intensity={1.4}
+            castShadow
+            target={lightTarget}
+            shadow-mapSize-width={4096}
+            shadow-mapSize-height={4096}
+            shadow-camera-left={-ground.diagonal * 0.75}
+            shadow-camera-right={ground.diagonal * 0.75}
+            shadow-camera-top={ground.diagonal * 0.75}
+            shadow-camera-bottom={-ground.diagonal * 0.75}
+            shadow-camera-far={ground.diagonal * 2.5}
+            onUpdate={(light) => light.shadow.camera.updateProjectionMatrix()}
+          />
+        ) : (
+          <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
+        )}
         <CameraRig preset={cameraPreset} scene={scene} />
+        {/* C2-3d V1 地面（V2 阴影承接面）+双层工程参考网格（主格 10m/
+            次格 2m——GPS-X 厂区参考系；y 分层避 z-fight：地面 -0.02<
+            次格 -0.012<主格 -0.008<条带 0.01） */}
+        {ground !== null && (
+          <>
+            <mesh
+              position={[ground.centerX, -0.02, ground.centerZ]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              receiveShadow
+            >
+              <planeGeometry args={[ground.size, ground.size]} />
+              <meshStandardMaterial color="#0d1a30" />
+            </mesh>
+            <gridHelper
+              args={[ground.size, ground.majorDivisions, GRID_MAJOR, GRID_MAJOR]}
+              position={[ground.centerX, -0.008, ground.centerZ]}
+            />
+            <gridHelper
+              args={[ground.size, ground.minorDivisions, GRID_MINOR, GRID_MINOR]}
+              position={[ground.centerX, -0.012, ground.centerZ]}
+            />
+          </>
+        )}
         {scene.solids.map((node) => (
           <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} />
         ))}
@@ -281,7 +386,10 @@ export function Scene({
         {scene.boundaries.map((node) => (
           <SiteBoundary key={node.id} node={node} />
         ))}
-        {showAnnotations && <Annotations nodes={scene.solids} />}
+        {/* C2-3d V3：对角线传参（字号自适应——bounds 空=下钳） */}
+        {showAnnotations && (
+          <Annotations nodes={scene.solids} diagonal={ground?.diagonal ?? 0} />
+        )}
       </Canvas>
     </>
   );

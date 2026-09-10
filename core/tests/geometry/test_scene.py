@@ -98,9 +98,11 @@ def test_scene_version_stepped_to_site() -> None:
     （新单元产图元=场景图语义变，沿 -3 先例）。
     SC1 步进 -5：cylinder 池水面足迹改 diameter 直读（L5R-A01 真圆销账
     ——水面 dims 键集变=场景图语义变，沿「语义变即步进」先例）。
+    C2-3d 步进 -6：单元间高架管廊（pipe_water/pipe_sludge 新 semantic
+    族——沿「语义变即步进」先例）。
     """
     graph = build_scene(_plant(), _assumptions(), "design")
-    assert graph.scene_version == "waterprint-scene-5/z-up/m"
+    assert graph.scene_version == "waterprint-scene-6/z-up/m"
 
 
 def test_site_mode_places_units_and_boundary() -> None:
@@ -352,3 +354,4 @@ def test_purity_wiring() -> None:
     # mech_cleaner=1 → 节点 instance_count 取结果字段
     mech = next(n for n in first.nodes if n.semantic == "mech_cleaner")
     assert mech.instance_count == 1
+
