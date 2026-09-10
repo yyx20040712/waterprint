@@ -34,7 +34,7 @@
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
  *     名——FE3 C3 同款规避；指引由段落承担）。
  */
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Select, Typography } from "antd";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
@@ -53,14 +53,44 @@ const EMPTY_GUIDE =
 const UNSELECTED_HINT =
   "在画布中点击构筑物节点，即可在此编辑其参数并提交重算；设计假设清单始终展示于下方。";
 
-/** 参数侧栏宽度（D4 300px 级——flexShrink 0 固定）。 */
-const SIDEBAR_WIDTH = 320;
+/** 侧栏宽度：默认 280（C2-params 呈裁④——视觉稿 A 值）+拖拽可调
+ * （用户裁选「边界可拉伸」Q8：240~480px clamp——下限=标签列+控件最小
+ * 容宽，上限=画布区 min 宽保障）。 */
+const SIDEBAR_DEFAULT = 280;
+const SIDEBAR_MIN = 240;
+const SIDEBAR_MAX = 480;
 
 export function CanvasPane() {
   // S3 写方：hook setter 收敛回写 URL+派发（原三行 replaceState 内联退役）
   const [projectId, setProjectId] = useProjectId();
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  // Q8 侧栏拖拽宽度（会话内 state——纯 UI 偏好不进 URL；view 态写侧挂账）
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
+  const dragging = useRef<{ startX: number; startWidth: number } | null>(null);
+  const onHandlePointerMove = useCallback((event: PointerEvent) => {
+    const drag = dragging.current;
+    if (drag === null) {
+      return;
+    }
+    const width = drag.startWidth + (event.clientX - drag.startX);
+    setSidebarWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, width)));
+  }, []);
+  const onHandlePointerUp = useCallback(() => {
+    dragging.current = null;
+    document.body.style.cursor = "";
+    document.removeEventListener("pointermove", onHandlePointerMove);
+    document.removeEventListener("pointerup", onHandlePointerUp);
+  }, [onHandlePointerMove]);
+  const onHandlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      dragging.current = { startX: event.clientX, startWidth: sidebarWidth };
+      document.body.style.cursor = "col-resize";
+      document.addEventListener("pointermove", onHandlePointerMove);
+      document.addEventListener("pointerup", onHandlePointerUp);
+    },
+    [sidebarWidth, onHandlePointerMove, onHandlePointerUp],
+  );
   // 空态才拉列表（projectId 已定=deep-link 直进画布，省一次列表请求）
   const projectsQuery = useListProjectsApiProjectsGet({
     query: { enabled: projectId === null },
@@ -70,35 +100,70 @@ export function CanvasPane() {
     return (
       <ErrorBoundary label="工艺画布">
         {/* C2-canvas P2 满高链：flex 行 height 100%（Tabs content/tabpane
-            满高链配套在 global.css——画布区随视口满高，560 固定高退役） */}
+            满高链配套在 global.css）；C2-params Q1：aside 改 flex 列
+            （滚动下放 ParamForm body/假设清单限高面——GR-40 收敛）；
+            Q8 拖拽把手（col-resize——右缘 8px 命中区） */}
         <div style={{ display: "flex", gap: 12, alignItems: "stretch", height: "100%" }}>
           <aside
             style={{
-              width: SIDEBAR_WIDTH,
+              width: sidebarWidth,
               flexShrink: 0,
-              padding: "0 12px",
-              borderRight: "1px solid #434343",
-              overflow: "auto",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
               minHeight: 0,
+              borderRight: "1px solid #434343",
             }}
           >
-            {selectedUnitId === null ? (
-              <Typography.Paragraph type="secondary">
-                {UNSELECTED_HINT}
-              </Typography.Paragraph>
-            ) : (
-              // key=R1 修复（一审 I1）：切单元/切项目强制重挂载——草稿与
-              // mutation 态不跨单元残留（消息残留+drafts 串单元双隐患）
-              <ParamForm
-                key={`${projectId}:${selectedUnitId}`}
-                projectId={projectId}
-                unitId={selectedUnitId}
+            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              {selectedUnitId === null ? (
+                <div style={{ padding: "0 12px", flex: 1, overflow: "auto" }}>
+                  <Typography.Paragraph type="secondary">
+                    {UNSELECTED_HINT}
+                  </Typography.Paragraph>
+                </div>
+              ) : (
+                // key=R1 修复（一审 I1）：切单元/切项目强制重挂载——草稿与
+                // mutation 态不跨单元残留（消息残留+drafts 串单元双隐患）
+                <ParamForm
+                  key={`${projectId}:${selectedUnitId}`}
+                  projectId={projectId}
+                  unitId={selectedUnitId}
+                />
+              )}
+            </div>
+            {/* R 轮 R2（DS-05⑥ 跨项目草稿残留）：key=projectId 切项目强制
+                重挂载；C2-params Q1：限高 42% 自滚（参数面板主面 flex 1） */}
+            <div style={{ maxHeight: "42%", overflow: "auto", flex: "none", padding: "0 12px" }}>
+              <AssumptionsPanel key={projectId} projectId={projectId} />
+            </div>
+            {/* Q8 拖拽把手（视觉稿冻结形态：8px 命中区+3px 可视条 hover 蓝） */}
+            <div
+              onPointerDown={onHandlePointerDown}
+              title="拖拽调整面板宽度"
+              style={{
+                position: "absolute",
+                right: -4,
+                top: 0,
+                bottom: 0,
+                width: 8,
+                cursor: "col-resize",
+                zIndex: 6,
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  right: 3,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 3,
+                  height: 36,
+                  borderRadius: 2,
+                  background: "var(--wp-border)",
+                }}
               />
-            )}
-            {/* R 轮 R2（DS-05⑥ 跨项目草稿残留——FE5 I1 同族）：key=
-                projectId 切项目强制重挂载——drafts/resets 编辑态不跨项目
-                残留（ParamForm 上方 key 已含 projectId 面，此处单补假设面） */}
-            <AssumptionsPanel key={projectId} projectId={projectId} />
+            </div>
           </aside>
           <div style={{ flex: 1, minWidth: 0 }}>
             <CanvasFlow

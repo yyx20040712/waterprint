@@ -3,56 +3,40 @@
  *
  * 输入:  projectId+unitId（canvasPane 选中态——D2 props 通道）+useUnitCatalog
  *        声明面+useProjectDesign 覆盖值（组件薄壳唯一数据源 §17.2）
- * 输出:  参数编辑表单（灰阶小字声明面/蓝点覆盖标记/草稿态/提交按钮+
- *        apply mutation 成功失效 read 键/错误 WaterprintApiError 透出）
+ * 输出:  参数编辑表单（C2-params 工程表单化重制 Q1~Q7——task-C2-params-
+ *        plan.md §二+呈裁实录 §四b；glm D④「开发者表单」痛点收口）
  *
- * 规格说明（FE5 批 6b 段三，D1/D5/D7 实装——骨架期「错误消息来自 core/
- *   禁前端复制校验规则/单位换算在边界」三约沿袭：本表单零校验规则复制，
- *   range/grid 纯展示（range 无执行点=UI 展示数据——冻结 §三），语义校验
- *   经 calc 任务 failed 回流挂账 solutions 批）：
- *   - D1 声明面=UnitMetaEntry.params（default/dim/range/grid 灰阶小字）+
- *     design.nodes[unit_id] 覆盖值（有覆盖标蓝点）；builtin 条目（值含
- *     kind——nodeKinds 面换目录键，如 inlet→municipal_input）=META1 builtin
- *     投影 params（default 全 null：字段清单无默认值+design 值可编辑）；
- *     B2（PD8）：主标签=entry.label_zh ?? fieldId（中文真源六字段投影，
- *     builtin 无声明面=null 诚实降级 field_id）+field_id monospace 副行
- *     （追溯链）仅当 label_zh 非空渲染——空值显隐防两行重复；
- *   - D5 提交通道=POST /api/calc/solutions/apply（服务端原子样板：
- *     merged.update→save→自动 submit_calculation→失败回滚——借用语义+
- *     「params 专属端点归 server 批裁量」挂账）；成功后 invalidateQueries
- *     ['/api/projects/${projectId}']（read 键——canvas/params/假设三面同步
- *     刷新）；提交提示「已提交重算」（任务进度/failed 回显挂账 solutions 批）；
- *   - D7 草稿态=组件内 useState（单面板无跨组件态——paramsStore 挂账）：
- *     输入串经 normalizeDraftValue 归一，null（空/非数/非有限）=禁提交态
- *     （invalidFields 锁提交）；提交 payload=collectParamChanges 差异面
- *     （等值不产空写），值全 number（JSON 天然浮点形态）；
- *   - 错误呈现=Error.message 透出（WaterprintApiError message 归一——
- *     422/404/409 全走此面；窄化 DesignParamsError 同 Error 面）；
- *   - FE6 D3-③（挂账③收口）：apply onSuccess 回写 URL ?task=
- *     recalc_task_id（app/projectParam withTaskParam 逻辑内联四行——分层
- *     禁 import app；replaceState 不触发导航）——方案浏览标签的任务态
- *     面板经 ?task= 联动呈现重算进度与失败回显（消息文案同幅改）；
- *     R3（yI-1）回写后 dispatchEvent("wp:task")（事件名常量与
- *     solutionsPane 侧各自内联——分层禁 import app 双处注记对齐）：已
- *     挂载的方案 pane 经事件重读 URL 更新任务态（Tabs 保活下 useState
- *     初始化器仅首挂载执行+replaceState 无 popstate 的双局限收口）；
- *   - FD 可行域引导（PD7/PD8 终裁 2026-09-09）：93 连续参数
- *     （isContinuousParam——grid 缺席且 range 在场）渲染「可行域」链接钮
- *     →行内 1D 区间条（FeasibilityBar）+「第二轴」Select→antd Modal 2D
- *     热力图（FeasibilityHeatmap——手动关+回填不自动关闭，继续微调面）；
- *     点击回填/吸附走 drafts 通道 formatBackfill→String（apply payload
- *     键零漂移）；连续参数 Input→InputNumber（step=deriveStep 箭头步进
- *     ——键盘任意值不限）；第二轴 Select 不用占位文案属性（grep 门禁
- *     英文占位特征词命中该 prop 名——FE3 C3/solutionsPane 同款规避）。
+ * 规格说明（FE5 D1/D5/D7+FD PD7/PD8 沿袭；C2-params Q1~Q7）：
+ *   - Q1 骨架=flex 列三层：head 固定/body 滚动（GR-40 收敛——canvasPane
+ *     aside 外滚退役）/foot 固定（提交+重置常驻）；Q2 头部=眉标+单元名
+ *     （secondary）+域 badge+unitId **隐藏**（用户裁选——收进 title 悬浮，
+ *     B2 PD8 追溯链保持悬浮通道）；
+ *   - Q3 单行 field：左=label_zh（12.5px **secondary**——视觉稿 A「数据
+ *     亮标签沉」层次[用户多模态对比裁选]+覆盖蓝点+field_id 悬浮）；右=
+ *     控件 122px 级（值 mono 白聚焦）；声明面 MetaLine **收敛进控件组
+ *     title 悬浮**（dim/默认/范围/档位全量+field_id——呈裁②用户已裁
+ *     「进悬浮」：视觉降噪与信息保留并存）；
+ *   - Q4 单位入控件：InputNumber addonAfter=dimUnit（shared/dimLabels
+ *     新导出零换算；无量纲/未知→无 addon）；步进钮 antd 内建（93 连续
+ *     参数 deriveStep 保持——键盘任意值不限 P0-4 沿袭）；
+ *   - Q5 grid 档位 chips：行内嵌 chips（Tag 可点——回填 drafts 同通道
+ *     [FD formatBackfill 同口径]）；当前显示值命中→蓝 fill 高亮；≤12 档
+ *     换行/超 12 横滚；档位外自由值仍可手输（grid 纯展示冻结 §三沿袭）；
+ *   - Q6 foot：提交重算（变更计数+disabled 保持）+重置 ghost（清 drafts
+ *     ——apply 态不清）；apply 提示收敛 foot 上缘；
+ *   - Q7 FD 可行域入口：◈+「可行域」蓝链保持——FeasibilityBar/
+ *     Heatmap/回填/请求令牌零触碰（FD 已验收）；
+ *   - 行为通道零变：D5 apply 原子提交+invalidate+?task= 回写+wp:task
+ *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持。
  */
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Input, InputNumber, Modal, Select, Typography } from "antd";
+import { Button, Input, InputNumber, Modal, Select, Tag, Typography } from "antd";
 
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
-import { dimLabel } from "../../../shared/dimLabels";
+import { dimLabel, dimUnit } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
@@ -64,33 +48,24 @@ import { FeasibilityHeatmap } from "../feasibility/components/FeasibilityHeatmap
 import { formatBackfill } from "../feasibility/lib/feasibility";
 import type { DesignMapResponse } from "../../../shared/api/generated/model";
 
-/** 侧栏宽度常量（canvasPane D4 组合面同款）。 */
-const SELECT_BLUE = "#1668dc";
-const GRAY_SMALL = { color: "#8c8c8c", fontSize: 11 };
-
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
-function OverrideDot() {
-  return (
-    <span
-      title="design 覆盖值（非 manifest 默认）"
-      style={{
-        display: "inline-block",
-        width: 6,
-        height: 6,
-        margin: "0 0 0 6px",
-        borderRadius: 3,
-        background: SELECT_BLUE,
-      }}
-    />
-  );
-}
+const SELECT_BLUE = "#1668dc";
 
-/** 灰阶小字声明面（dim/默认/范围/档位——展示数据不参与校验；覆盖行默认
- *  与 design 值并列显示——R2 修复（一审 M1），AssumptionsPanel 双显同构）。 */
-function MetaLine({ entry }: { entry: ParamEntry }) {
-  // FIX-ACC1③：dim 裸枚举名→中文量名+单位符号（shared/dimLabels 显示层
-  // 映射——CANONICAL_UNITS 真源镜像，零换算）；未知枚举原样诚实呈现。
-  const parts: string[] = [dimLabel(entry.dim)];
+/** business_line 中文词（badge——unitGlyph/图例同词本地映射：features
+ * 不向上 import app 层 §13.5；展示层翻译非业务复制）。 */
+const LINE_LABELS: Record<string, string> = {
+  municipal: "市政污水",
+  conveyance: "输送提升",
+  mine_water: "矿井水",
+  sludge: "污泥处理",
+};
+
+/** 控件列宽（视觉稿 A num-input 122px 级——flex none 右对齐）。 */
+const CONTROL_WIDTH = 122;
+
+/** 声明面悬浮全量（Q3：MetaLine 常显收敛进 title——dim/默认/范围/档位）。 */
+function metaTooltipText(entry: ParamEntry): string {
+  const parts = [dimLabel(entry.dim)];
   if (entry.default !== null && entry.default !== undefined) {
     parts.push(`默认 ${entry.default}`);
   }
@@ -100,7 +75,18 @@ function MetaLine({ entry }: { entry: ParamEntry }) {
   if (entry.grid) {
     parts.push(`档位 [${entry.grid.join(", ")}]`);
   }
-  return <div style={GRAY_SMALL}>{parts.join(" · ")}</div>;
+  parts.push(`field_id: ${entry.field_id}`);
+  return parts.join(" · ");
+}
+
+/** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
+function OverrideDot() {
+  return (
+    <span
+      title="design 覆盖值（非 manifest 默认）"
+      style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: SELECT_BLUE }}
+    />
+  );
 }
 
 export function ParamForm({
@@ -131,8 +117,7 @@ export function ParamForm({
           "",
           `${window.location.pathname}?${search.toString()}`,
         );
-        // R3（yI-1）：通知已挂载的 pane 重读 URL/失效查询键（事件名常量
-        // 经 shared/events——AUDIT2 FIX2 S12 内联收敛）
+        // R3（yI-1）：通知已挂载的 pane 重读 URL/失效查询键
         window.dispatchEvent(
           new CustomEvent(TASK_EVENT, { detail: outcome.recalc_task_id }),
         );
@@ -166,7 +151,7 @@ export function ParamForm({
         }`
       : null;
 
-  // ── FD 可行域引导（PD7 2026-09-09）：行内 1D+模态 2D ──
+  // ── FD 可行域引导（PD7 2026-09-09）：行内 1D+模态 2D（Q7 零触碰） ──
   const [fdField, setFdField] = useState<string | null>(null);
   const [fdSecond, setFdSecond] = useState<string | null>(null);
   const [fdProduct, setFdProduct] = useState<DesignMapResponse | null>(null);
@@ -218,29 +203,44 @@ export function ParamForm({
       label: `${entry.label_zh ?? entry.field_id}（${entry.field_id}）`,
     }));
 
+  const loading = !catalogQuery.data || !design;
+
   return (
-    <section>
-      <Typography.Title level={5} style={{ marginTop: 0 }}>
-        参数面板
-      </Typography.Title>
-      <div style={{ fontFamily: "monospace", fontSize: 12, wordBreak: "break-all" }}>
-        {unitId}
-        {meta ? `（${meta.name_zh}·${meta.kind === "builtin" ? "内置节点" : meta.business_line}）` : null}
-        {kind !== null && kind !== unitId ? ` ← ${kind}` : null}
-      </div>
-      {errorText !== null ? (
-        <Typography.Text type="danger">{errorText}</Typography.Text>
-      ) : !catalogQuery.data || !design ? (
-        <Typography.Text type="secondary">参数面加载中…</Typography.Text>
-      ) : !meta ? (
-        <Typography.Text type="warning">
-          单元 {kind ?? unitId} 未在单元目录登记（GET /api/units）——无法编辑参数。
-        </Typography.Text>
-      ) : params.length === 0 ? (
-        <Typography.Text type="secondary">该单元无声明参数面。</Typography.Text>
-      ) : (
-        <div style={{ display: "grid", rowGap: 8, marginTop: 8 }}>
-          {params.map((entry) => {
+    <section style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+      {/* Q2 头部：眉标+单元名+域 badge（unitId 隐藏进 title 悬浮） */}
+      <header style={{ flex: "none", padding: "11px 14px 10px", borderBottom: "1px solid var(--wp-border-2)" }}>
+        <div style={{ fontSize: 10, letterSpacing: 1.5, color: "var(--wp-text-3)" }}>
+          参数面板
+        </div>
+        <div
+          style={{ fontSize: 13.5, fontWeight: 600, color: "var(--wp-text-2)", marginTop: 2, display: "flex", alignItems: "center", gap: 8 }}
+          title={unitId + (kind !== null && kind !== unitId ? ` ← ${kind}` : "")}
+        >
+          {meta?.name_zh ?? unitId}
+          {meta ? (
+            <span
+              style={{ fontSize: 10, padding: "1px 7px", borderRadius: 8, background: "rgba(61,139,253,.16)", color: "#7ab2ff", border: "1px solid rgba(61,139,253,.35)" }}
+            >
+              {meta.kind === "builtin" ? "内置节点" : LINE_LABELS[meta.business_line] ?? meta.business_line}
+            </span>
+          ) : null}
+        </div>
+      </header>
+
+      {/* Q1 body 滚动域 */}
+      <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 14px 12px" }}>
+        {errorText !== null ? (
+          <Typography.Text type="danger">{errorText}</Typography.Text>
+        ) : loading ? (
+          <Typography.Text type="secondary">参数面加载中…</Typography.Text>
+        ) : !meta ? (
+          <Typography.Text type="warning">
+            单元 {kind ?? unitId} 未在单元目录登记（GET /api/units）——无法编辑参数。
+          </Typography.Text>
+        ) : params.length === 0 ? (
+          <Typography.Text type="secondary">该单元无声明参数面。</Typography.Text>
+        ) : (
+          params.map((entry) => {
             const fieldId = entry.field_id;
             const overridden = fieldId in values;
             const draftText = drafts[fieldId];
@@ -249,76 +249,100 @@ export function ParamForm({
             // PD7 入口精确条件：仅连续区间参数（grid 缺席且 range 在场）
             const continuous = isContinuousParam(entry);
             const range = entry.range ?? null;
+            // 当前显示值（chips 高亮判定源：草稿优先→design 覆盖→空）
+            const shownValue =
+              draftText !== undefined
+                ? draftText
+                : overridden
+                  ? String(values[fieldId])
+                  : "";
+            const shownStr = shownValue === "" ? null : shownValue;
             return (
-              <label key={fieldId} style={{ display: "block" }}>
-                {/* B2 PD8：主标签=label_zh ?? fieldId（中文真源，null 诚实
-                    降级）；field_id 副行 monospace 小字（追溯链——calcbook/
-                    apply payload 键）仅当 label_zh 非空渲染（null 时主标签
-                    已回落 field_id，副行再渲染=两行重复） */}
-                <span style={{ fontFamily: "monospace", fontSize: 12 }}>
-                  {entry.label_zh ?? fieldId}
-                  {overridden ? <OverrideDot /> : null}
-                  {continuous ? (
-                    <Button
-                      size="small"
-                      type="link"
-                      style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 12 }}
-                      data-testid={`fd-entry-${fieldId}`}
-                      loading={fdLoading && fdField === fieldId}
-                      onClick={() => openFeasibility(fieldId)}
+              <label
+                key={fieldId}
+                style={{ display: "block", padding: "7px 0", borderBottom: "1px solid rgba(27,44,73,.55)" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  {/* Q3 标签列：label_zh secondary+蓝点+field_id 悬浮+FD 链 */}
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span
+                      title={fieldId}
+                      style={{ fontSize: 12.5, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
-                      可行域
-                    </Button>
-                  ) : null}
-                </span>
-                {entry.label_zh ? (
-                  <div style={{ ...GRAY_SMALL, fontFamily: "monospace" }}>
-                    {fieldId}
-                  </div>
+                      {entry.label_zh ?? fieldId}
+                      {overridden ? <OverrideDot /> : null}
+                    </span>
+                    {continuous ? (
+                      <Button
+                        size="small"
+                        type="link"
+                        style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 11.5 }}
+                        data-testid={`fd-entry-${fieldId}`}
+                        loading={fdLoading && fdField === fieldId}
+                        onClick={() => openFeasibility(fieldId)}
+                      >
+                        ◈ 可行域
+                      </Button>
+                    ) : null}
+                  </span>
+                  {/* Q4 控件列：值 mono 白+单位 addon+步进（声明面进 title） */}
+                  {continuous && range !== null ? (
+                    <InputNumber
+                      size="small"
+                      status={invalid ? "error" : undefined}
+                      step={deriveStep(range)}
+                      addonAfter={dimUnit(entry.dim) || undefined}
+                      style={{ width: CONTROL_WIDTH + (dimUnit(entry.dim) ? 34 : 0), flex: "none" }}
+                      title={metaTooltipText(entry)}
+                      value={shownValue === "" ? "" : shownValue}
+                      onChange={(value) => {
+                        setDrafts((prev) => ({
+                          ...prev,
+                          [fieldId]: value === null || value === "" ? "" : String(value),
+                        }));
+                      }}
+                    />
+                  ) : (
+                    <Input
+                      size="small"
+                      status={invalid ? "error" : undefined}
+                      style={{ width: CONTROL_WIDTH, flex: "none" }}
+                      title={metaTooltipText(entry)}
+                      value={shownValue}
+                      onChange={(event) => {
+                        setDrafts((prev) => ({
+                          ...prev,
+                          [fieldId]: event.target.value,
+                        }));
+                      }}
+                    />
+                  )}
+                </div>
+                {/* Q5 grid 档位 chips：点击回填+当前值高亮（≤12 换行/超 12 横滚） */}
+                {entry.grid && entry.grid.length > 0 ? (
+                  <span
+                    style={{ display: "flex", flexWrap: entry.grid.length <= 12 ? "wrap" : "nowrap", overflowX: entry.grid.length <= 12 ? undefined : "auto", gap: 4, paddingTop: 5, justifyContent: "flex-end" }}
+                  >
+                    {entry.grid.map((option) => (
+                      <Tag
+                        key={String(option)}
+                        style={{
+                          marginInlineEnd: 0, fontSize: 10.5, lineHeight: "17px",
+                          paddingInline: 8, borderRadius: 9, cursor: "pointer",
+                          flex: "none", fontFamily: "var(--wp-font-mono)",
+                          ...(shownStr !== null && shownStr === String(option)
+                            ? { background: "rgba(61,139,253,.18)", color: "#7ab2ff", borderColor: "rgba(61,139,253,.45)" }
+                            : {}),
+                        }}
+                        onClick={() => {
+                          setDrafts((prev) => ({ ...prev, [fieldId]: String(option) }));
+                        }}
+                      >
+                        {String(option)}
+                      </Tag>
+                    ))}
+                  </span>
                 ) : null}
-                {continuous && range !== null ? (
-                  // PD8：Input→InputNumber（仅 93 连续区间参数）——箭头步长
-                  // =(max-min)/10 单源派生（deriveStep——与 FD 轴缺省同式，
-                  // 键盘任意值不受限，P0-4 概念锁定）
-                  <InputNumber
-                    size="small"
-                    status={invalid ? "error" : undefined}
-                    step={deriveStep(range)}
-                    style={{ width: "100%" }}
-                    value={
-                      draftText !== undefined
-                        ? draftText
-                        : overridden
-                          ? String(values[fieldId])
-                          : ""
-                    }
-                    onChange={(value) => {
-                      setDrafts((prev) => ({
-                        ...prev,
-                        [fieldId]: value === null || value === "" ? "" : String(value),
-                      }));
-                    }}
-                  />
-                ) : (
-                  <Input
-                    size="small"
-                    status={invalid ? "error" : undefined}
-                    value={
-                      draftText !== undefined
-                        ? draftText
-                        : overridden
-                          ? String(values[fieldId])
-                          : ""
-                    }
-                    onChange={(event) => {
-                      setDrafts((prev) => ({
-                        ...prev,
-                        [fieldId]: event.target.value,
-                      }));
-                    }}
-                  />
-                )}
-                <MetaLine entry={entry} />
                 {invalid ? (
                   <Typography.Text type="danger" style={{ fontSize: 11 }}>
                     非数值或空——修正后才能提交
@@ -360,44 +384,57 @@ export function ParamForm({
                 ) : null}
               </label>
             );
-          })}
-          <div>
-            <Button
-              size="small"
-              type="primary"
-              loading={apply.isPending}
-              disabled={submitDisabled}
-              onClick={() => {
-                apply.mutate({
-                  data: { project_id: projectId, unit_id: unitId, params: changes },
-                });
-              }}
-            >
-              提交重算{changeCount > 0 ? `（${changeCount} 项）` : ""}
-            </Button>
+          })
+        )}
+      </div>
+
+      {/* Q6 foot：apply 提示行+提交/重置常驻 */}
+      <footer style={{ flex: "none", borderTop: "1px solid var(--wp-border-2)" }}>
+        {apply.isSuccess ? (
+          <div style={{ padding: "0 14px", paddingTop: 8, fontSize: 11, color: "var(--wp-success)" }}>
+            ✓ 已提交重算（任务 {(apply.data?.recalc_task_id ?? "").slice(0, 8)}…）——方案页可看进度
           </div>
-          {apply.isSuccess ? (
-            <Typography.Text type="success">
-              已提交重算（任务 {(apply.data?.recalc_task_id ?? "").slice(0, 8)}…）——
-              方案页可看进度与失败回显。
-            </Typography.Text>
-          ) : null}
-          {apply.isError ? (
-            <Typography.Text type="danger">
-              提交失败：{apply.error instanceof Error ? apply.error.message : "未知错误"}
-            </Typography.Text>
-          ) : null}
+        ) : null}
+        {apply.isError ? (
+          <div style={{ padding: "0 14px", paddingTop: 8, fontSize: 11, color: "#ff6b6b" }}>
+            提交失败：{apply.error instanceof Error ? apply.error.message : "未知错误"}
+          </div>
+        ) : null}
+        <div style={{ padding: 10, display: "flex", gap: 8, alignItems: "center" }}>
+          <Button
+            size="small"
+            type="primary"
+            loading={apply.isPending}
+            disabled={submitDisabled}
+            style={{ flex: 1 }}
+            onClick={() => {
+              apply.mutate({
+                data: { project_id: projectId, unit_id: unitId, params: changes },
+              });
+            }}
+          >
+            提交重算{changeCount > 0 ? `（${changeCount} 项）` : ""}
+          </Button>
+          <Button
+            size="small"
+            disabled={apply.isPending}
+            onClick={() => {
+              setDrafts({});
+            }}
+            title="清空全部草稿（恢复 design 值显示）"
+          >
+            ↺ 重置
+          </Button>
         </div>
-      )}
+      </footer>
+
       {/* PD7 呈裁④：2D 模态热力图（第二轴选取→Modal——手动关；回填后
           不自动关闭，用户可继续微调）。R-1（G1-02，R 轮）：关闭时清产物
           并重取 1D——fdProduct 残留 2D 产物（segments=null）会使行内条
           退化全灰死条+点击吸附空段无响应 */}
       <Modal
         open={fdSecond !== null}
-        title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${
-          fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""
-        }`}
+        title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""}`}
         footer={null}
         onCancel={() => {
           setFdSecond(null);

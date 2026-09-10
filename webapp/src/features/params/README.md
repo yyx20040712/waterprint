@@ -10,7 +10,7 @@
 | `lib/designParams.test.ts` | FE5 实装+UX2 扩 | 纯函数 node 测试（golden 内联节选+负例族+UX2 假设编辑 9 用例） |
 | `api/useUnitCatalog.ts` | FE5 实装 | 单元目录/假设清单查询薄封装（静态键） |
 | `api/useProjectDesign.ts` | FE5 实装 | 项目 design 参数面查询（select 窄化；read 键 invalidate 面） |
-| `components/ParamForm.tsx` | FE5 实装 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算 |
+| `components/ParamForm.tsx` | FE5 实装+C2-params 重制 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit addon+grid 档位 chips 点击回填+重置钮；FD 可行域入口零动——glm D④「开发者表单」痛点收口，2026-09-10） |
 | `components/AssumptionsPanel.tsx` | FE5 实装+UX2 编辑化 | 设计假设清单+行内编辑：InputNumber/恢复默认→面板级「提交修改」一次 PUT+自动重算（FE5「编辑挂账」收口） |
 | `components/ConstraintPicker.tsx` | 占位维持 | 约束勾选——数据通道待 constraint_kb 迁移批（D3：空槽+无读取端点） |
 | `store/paramsStore.ts` | 占位维持 | 编辑态 slice——草稿态组件内 useState（单面板无跨组件态；zustand 首例留 canvas 编辑批） |
@@ -46,3 +46,13 @@
   覆盖窄化=**读侧有限数值面**（JS 无 int/float 之分——整数值宽容；
   server 写侧 strict float 拒 int 属 Python 语义，读取链不复制——R 轮 M2 注记）；
 - 工况面（checked_units/conditions/condition_mappings）无数据源出批挂账。
+
+## C2-params 批（2026-09-10）增量面
+
+- 行为通道零变（drafts/apply/?task=/FD 引导全保持）；渲染面重制：
+  单行布局/单位 addon（antd v6=.ant-space-addon）/chips/foot 常驻；
+- canvasPane 配套：侧栏 280 默认+**拖拽把手**（240~480 clamp——用户
+  裁选「边界可拉伸」）+假设清单限高 42% 自滚；
+- shared/dimLabels 新导出 dimUnit（单位符号直取——零换算纪律沿袭）；
+- 挂账：参数分组（manifest 无分组元数据——server/core 扩面呈裁量）/
+  单元库选中联动（单元库子面统筹）。

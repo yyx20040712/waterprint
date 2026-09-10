@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { dimLabel } from "./dimLabels";
+import { dimLabel, dimUnit } from "./dimLabels";
 
 describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
   it("FLOW → 流量 m³/d（上标美化——真源 m3/d 纯展示层）", () => {
@@ -44,5 +44,21 @@ describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
 
   it("未知枚举 → 原样返回（诚实呈现不猜语义）", () => {
     expect(dimLabel("SOMETHING_NEW")).toBe("SOMETHING_NEW");
+  });
+});
+
+describe("dimUnit：单位符号直取（C2-params Q4）", () => {
+  it("已知枚举 → 单位符号（同表同源）", () => {
+    expect(dimUnit("FLOW")).toBe("m³/d");
+    expect(dimUnit("LENGTH")).toBe("m");
+    expect(dimUnit("CONCENTRATION")).toBe("mg/L");
+  });
+
+  it("无量纲 → 空串（无 addon 形态）", () => {
+    expect(dimUnit("DIMENSIONLESS")).toBe("");
+  });
+
+  it("未知枚举 → 空串（诚实降级无单位）", () => {
+    expect(dimUnit("SOMETHING_NEW")).toBe("");
   });
 });
