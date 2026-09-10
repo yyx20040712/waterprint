@@ -1,34 +1,37 @@
 /**
- * 构筑物节点卡片：中文名主标（单元清单 name_zh）+unit_id 等宽副标+
- * 内置 kind 徽标+左右方向端口排布+选中描边。
+ * 构筑物节点卡片：域色象形图标+中文名主标+unit_id 等宽副标+内置 kind
+ * 徽标+左域色 bar+选中鎏金描边+方向端口排布。
  *
  * 输入:  NodeProps<UnitFlowNode>（投影层 data：unitId/kind/sourcePorts/
- *        targetPorts——D2 纯 key+kind+React Flow 受控 selected 标记）
+ *        targetPorts——React Flow 受控 selected 标记）
  * 输出:  React Flow 自定义节点渲染件（type="unit" 注册键）
  *
- * 规格说明（FE4 批 6b 段一，D1/D2 裁决；FE5 批 6b 段三增选中面；
- * M6 批 2026-09-03 中文名收口 FE4 段二挂账）：
- *   - D2 卡片=纯 unit key+内置 kind 标注：unit_id 等宽字体（同名构筑物
- *     跨线各自渲染的唯一键）；值含 kind=内置节点加徽标（municipal_input/
- *     junction/quality_edit/recycle_junction——投影层透传不设白名单）；
- *   - M6 中文名：工艺单元主标=单元清单 name_zh（useListUnitsApiUnitsGet
- *     生成 hook 直用——与单元库侧栏同一数据源同一缓存；清单未达/未收录
- *     （内置节点/自定义键）回退 unit_id 主标）；unit_id 恒留等宽副标
- *     （唯一键语义不因显示层弱化）；节点结果摘要仍挂账段二；
- *   - D1 端口=方向中性：targetPorts 左侧（入）/sourcePorts 右侧（出）——
- *     端口集合来自投影层边端点方向聚合（端口表不在项目文件）；灰阶中性
- *     色承载（§19.3 语义色之外禁彩色）；
- *   - FE5 选中反馈（D2 受控 selected——CanvasFlow 映射 node.selected）：
- *     选中描边 2px 主题蓝+微光晕（交互状态色非语义色；React Flow 内建
- *     elementsSelectable 高亮之上的明确视觉反馈）；
- *   - 多端口垂直均布（工程图例惯例）；卡片底色深灰配 ConfigProvider
- *     深色主题（CanvasFlow colorMode=dark 同谱）；
+ * 规格说明（FE4 D1/D2+FE5 选中面+M6 中文名；C2-canvas 批 P3 重制——
+ * task-C2-canvas-plan.md §二+glm D 项①⑤ 痛点处置）：
+ *   - 重制=视觉稿 A 冻结语言（c2-design/canvas-flow.html 态二）：168 宽
+ *     卡片+左 3px 域色 bar（四域色——unitGlyph.domainColorOf）+24×24
+ *     象形图标（Unicode 稳定集+域色三色组底/边/前景）+中文名 12.5px
+ *     600 主标（#e8eef7——C1 冻结主文字色，glm ⑤对比度痛点收口）+
+ *     unit_id 等宽 10.5px 副标（tertiary 弱色）+选中**鎏金**描边+光晕
+ *     （C1 变量轴注释「鎏金限品牌点缀（选中描边/收边线）」既定意图——
+ *     替换 FE5 蓝描边；--wp-gold 同值字面量双源）；
+ *   - 域色数据=单元清单端点（useListUnitsApiUnitsGet——name_zh 同源
+ *     同缓存）；查表键=kind ?? unitId（内置节点归 catalog kind 键
+ *     「municipal_input 等——business_line=municipal §14.3 裁决」；
+ *     未收录回退中性灰不误导）；
+ *   - 中文名数据源=M6 制（清单 name_zh 精确等值；未达/未收录回退
+ *     unit_id 主标）；unit_id 恒留等宽副标（唯一键语义不弱化）；
+ *   - D1 端口=方向中性：targetPorts 左侧（入）/sourcePorts 右侧（出）
+ *     ——P8 端口描边随域色（挂账④流体色兑现）；
+ *   - 多端口垂直均布（工程图例惯例）；卡片底色 --wp-bg-elevated
+ *     配 ConfigProvider 深色主题（CanvasFlow colorMode=dark 同谱）；
  *   - 只读批：节点拖动面归 CanvasFlow 裁量（本卡片不消费拖拽态）。
  */
 import { useMemo } from "react";
 import type { NodeProps } from "@xyflow/react";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { domainColorOf, unitGlyph } from "../lib/unitGlyph";
 import type { UnitFlowNode } from "../lib/projectFlow";
 import { PortHandle } from "./PortHandle";
 
@@ -40,15 +43,23 @@ const KIND_LABELS: Record<string, string> = {
   recycle_junction: "回流汇流",
 };
 
-/** 卡片底色/描边（灰阶——ConfigProvider 深色主题同谱）。 */
-const CARD_BACKGROUND = "#1f1f1f";
-const CARD_BORDER = "#434343";
-const CARD_WIDTH = 176;
+/** 卡片骨架（视觉稿冻结——与 C1 变量轴同值双源：改色红线双处联动）。 */
+const CARD_WIDTH = 168;
 const CARD_MIN_HEIGHT = 56;
 
-/** 选中态描边/微光晕（AntD 暗色主题蓝——交互状态色非 §19.3 语义色）。 */
-const SELECT_BORDER = "#1668dc";
-const SELECT_GLOW = "0 0 6px rgba(22, 104, 220, 0.6)";
+/** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色）。 */
+const SELECT_BORDER = "rgba(217, 169, 74, 0.75)";
+const SELECT_GLOW =
+  "0 0 0 1px rgba(217,169,74,.35), 0 4px 18px rgba(217,169,74,.14), 0 3px 12px rgba(3,10,22,.45)";
+
+/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生）。 */
+const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: string }> = {
+  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
+  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
+  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
+  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
+};
+const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c" };
 
 /** 端口列垂直排布（首个端口距顶 20px、行距 16px——多端口均布）。 */
 const PORT_TOP = 20;
@@ -56,11 +67,20 @@ const PORT_ROW = 16;
 
 export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
-  // 中文名数据源=单元清单端点（与单元库侧栏同一 hook 同一缓存——React Query
-  // 去重使多卡片订阅零额外请求）。匹配=精确等值（ParamForm index.get(kind??
-  // unitId) 同构——工艺单元节点键即类型键；内置节点 kind 徽标已有中文面不
-  // 重复取名；未达/未收录回退 unit_id 主标）
+  // 域色/中文名数据源=单元清单端点（同一 hook 同一缓存——React Query
+  // 去重使多卡片订阅零额外请求）。域色查表键=kind ?? unitId（内置节点
+  // 归 catalog kind 键；匹配=精确等值 ParamForm 同构）
   const catalog = useListUnitsApiUnitsGet();
+  const businessLine = useMemo(() => {
+    const units = catalog.data?.units;
+    if (units === undefined) {
+      return null;
+    }
+    const key = data.kind ?? data.unitId;
+    return units.find((unit) => unit.unit_id === key)?.business_line ?? null;
+  }, [catalog.data, data.unitId, data.kind]);
+  const domainColor = domainColorOf(businessLine);
+  const iconStyle = DOMAIN_ICON_STYLES[businessLine ?? ""] ?? NEUTRAL_ICON;
   const nameZh = useMemo(() => {
     const units = catalog.data?.units;
     if (units === undefined || data.kind !== null) {
@@ -74,54 +94,86 @@ export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
         position: "relative",
         width: CARD_WIDTH,
         minHeight: CARD_MIN_HEIGHT,
-        padding: "6px 14px",
-        background: CARD_BACKGROUND,
+        background: "var(--wp-bg-elevated)",
         border: selected
-          ? `2px solid ${SELECT_BORDER}`
-          : `1px solid ${CARD_BORDER}`,
-        boxShadow: selected ? SELECT_GLOW : undefined,
-        borderRadius: 6,
-        color: "#d9d9d9",
-        fontSize: 12,
-        lineHeight: 1.6,
+          ? `1px solid ${SELECT_BORDER}`
+          : "1px solid #2c4568",
+        boxShadow: selected ? SELECT_GLOW : "0 3px 12px rgba(3,10,22,.45)",
+        borderRadius: 8,
+        color: "var(--wp-text)",
       }}
     >
-      {nameZh !== null ? (
-        <>
-          <div style={{ fontWeight: 600 }}>{nameZh}</div>
-          <div style={{ fontFamily: "monospace", fontSize: 11, color: "#a6a6a6", wordBreak: "break-all" }}>
-            {data.unitId}
-          </div>
-        </>
-      ) : (
-        <div style={{ fontFamily: "monospace", wordBreak: "break-all" }}>
-          {data.unitId}
-        </div>
-      )}
-      {badge !== null && (
-        <div
+      {/* 左域色 bar（视觉稿冻结：3px 圆角条 inset 8px） */}
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: -1,
+          top: 8,
+          bottom: 8,
+          width: 3,
+          borderRadius: 2,
+          background: domainColor,
+        }}
+      />
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px 5px 13px" }}>
+        <span
+          aria-hidden
           style={{
-            display: "inline-block",
-            marginTop: 2,
-            padding: "0 6px",
-            border: `1px solid ${CARD_BORDER}`,
-            borderRadius: 4,
-            fontSize: 11,
-            color: "#a6a6a6",
+            width: 24,
+            height: 24,
+            flex: "none",
+            borderRadius: 6,
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: iconStyle.bg,
+            border: `1px solid ${iconStyle.border}`,
+            color: iconStyle.fg,
           }}
-          title={data.kind ?? undefined}
         >
-          {badge}
-        </div>
-      )}
+          {unitGlyph(data.unitId, data.kind)}
+        </span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--wp-text)" }}>
+          {nameZh ?? data.unitId}
+        </span>
+        {badge !== null && (
+          <span
+            style={{
+              marginLeft: "auto",
+              fontSize: 10,
+              color: "var(--wp-text-3)",
+              border: "1px solid var(--wp-border-2)",
+              borderRadius: 4,
+              padding: "0 5px",
+              flex: "none",
+            }}
+            title={data.kind ?? undefined}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+      <div
+        style={{
+          padding: "0 10px 8px 13px",
+          fontFamily: "var(--wp-font-mono)",
+          fontSize: 10.5,
+          color: "var(--wp-text-3)",
+          wordBreak: "break-all",
+        }}
+      >
+        {data.unitId}
+      </div>
       {data.targetPorts.map((portId, index) => (
         <div key={`t-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, left: -5 }}>
-          <PortHandle portId={portId} direction="target" />
+          <PortHandle portId={portId} direction="target" domainColor={domainColor} />
         </div>
       ))}
       {data.sourcePorts.map((portId, index) => (
         <div key={`s-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, right: -5 }}>
-          <PortHandle portId={portId} direction="source" />
+          <PortHandle portId={portId} direction="source" domainColor={domainColor} />
         </div>
       ))}
     </div>

@@ -69,13 +69,17 @@ export function CanvasPane() {
   if (projectId !== null) {
     return (
       <ErrorBoundary label="工艺画布">
-        <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
+        {/* C2-canvas P2 满高链：flex 行 height 100%（Tabs content/tabpane
+            满高链配套在 global.css——画布区随视口满高，560 固定高退役） */}
+        <div style={{ display: "flex", gap: 12, alignItems: "stretch", height: "100%" }}>
           <aside
             style={{
               width: SIDEBAR_WIDTH,
               flexShrink: 0,
               padding: "0 12px",
               borderRight: "1px solid #434343",
+              overflow: "auto",
+              minHeight: 0,
             }}
           >
             {selectedUnitId === null ? (

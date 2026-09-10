@@ -25,9 +25,9 @@
  *   - D3 坐标=layout 优先+拓扑兜底：view.layout 读侧约定
  *     {[unit_id]:{x,y}}——须形状合规且覆盖全部节点才整体采用，否则整段
  *     忽略走兜底（不炸）；兜底=波次分层（Kahn 波：入度归零为波，无波时
- *     取字典序最小破环——BFS 层深等价），X=波次*LAYOUT_X_STEP，层内按
- *     unit_id 字典序排 Y=LAYOUT_Y_STEP 等距；D6 悬空边拒在前，布局阶段
- *     无悬空端点；全无边=单列 key 排序；确定性纯函数可 node 测；写侧
+ *     取字典序最小破环——BFS 层深等价）+S 形折行（C2-canvas R-1：波数
+ *     >1 时每 ceil(sqrt(波数)) 波一行——X=行内波序*步距，Y=行基累计；
+ *     单波/全无边保持单列直排 FE4 语义）；确定性纯函数可 node 测；写侧
  *     （拖拽持久化）挂账段二；
  *   - 零运行期库 import（FE1 projectScene 同构）：@xyflow/react 只取
  *     type——node 测试不拖 window/document 面；markerEnd 箭头用
@@ -37,9 +37,13 @@
  */
 import type { Edge, Node } from "@xyflow/react";
 
-/** 兜底布局步距（X=波次层距/Y=层内行距——导出供测试计算期望坐标）。 */
+/** 兜底布局步距（X=波次列距/Y=波内行距——导出供测试计算期望坐标）。 */
 export const LAYOUT_X_STEP = 260;
 export const LAYOUT_Y_STEP = 120;
+
+/** 兜底布局换行行距（C2-canvas R-1：S 形折行——双链横幅 fitView 后
+ * 节点缩成细带的根治面；导出供测试）。 */
+export const LAYOUT_ROW_GAP = 80;
 
 /** recycle 虚线样式串（README 回流虚线语义——灰阶中性非语义色）。 */
 const RECYCLE_DASH = "6 4";
@@ -110,9 +114,12 @@ function narrowEndpoint(
 }
 
 /**
- * 拓扑兜底布局（D3 波次分层——确定性纯函数）。
+ * 拓扑兜底布局（D3 波次分层+C2-canvas R-1 S 形折行——确定性纯函数）。
  * 波=入度归零节点集（Kahn 波）；无波（纯环/残余环）取字典序最小破环；
  * 全无边时全部节点归波 0=单列 key 排序。
+ * 折行（R-1）：波数>1 时每 K=ceil(sqrt(波数)) 波一行——行内波序为列
+ * （X=列*步距），行基 Y=前行幅累计+LAYOUT_ROW_GAP。单波（含全无边）
+ * 不折行=单列直排（FE4 原语义保持）。
  */
 export function fallbackLayout(
   nodeIds: string[],
@@ -125,24 +132,42 @@ export function fallbackLayout(
   for (const edge of edges) {
     incoming.get(edge.dst)?.push(edge.src);
   }
-  const positions = new Map<string, { x: number; y: number }>();
-  // remaining 恒字典序（排序一次+filter 保序——破环取 remaining[0] 确定）
+  // 波收集（remaining 恒字典序——排序一次+filter 保序——破环取
+  // remaining[0] 确定）；每波保字典序（层内行序）
+  const waves: string[][] = [];
   let remaining = [...nodeIds].sort();
-  let layer = 0;
   while (remaining.length > 0) {
-    const settled = new Set(positions.keys());
+    const settled = new Set(
+      waves.flatMap((wave) => wave),
+    );
     const wave = remaining.filter((id) =>
       (incoming.get(id) ?? []).every((src) => settled.has(src)),
     );
     if (wave.length === 0) {
       wave.push(remaining[0] as string);
     }
-    wave.forEach((id, row) => {
-      positions.set(id, { x: layer * LAYOUT_X_STEP, y: row * LAYOUT_Y_STEP });
-    });
+    waves.push(wave);
     const waved = new Set(wave);
     remaining = remaining.filter((id) => !waved.has(id));
-    layer += 1;
+  }
+  // S 形折行（R-1）：K 波/行——双链横幅（12 波 19 节点幅宽 2860+）
+  // fitView 后节点缩成细带不可辨的根治；K 自适应平方根使大图近方形
+  const perRow = Math.max(1, Math.ceil(Math.sqrt(waves.length)));
+  const positions = new Map<string, { x: number; y: number }>();
+  let yBase = 0;
+  for (let row = 0; row * perRow < waves.length; row++) {
+    const chunk = waves.slice(row * perRow, (row + 1) * perRow);
+    chunk.forEach((wave, col) => {
+      wave.forEach((id, index) => {
+        positions.set(id, {
+          x: col * LAYOUT_X_STEP,
+          y: yBase + index * LAYOUT_Y_STEP,
+        });
+      });
+    });
+    yBase +=
+      Math.max(...chunk.map((wave) => wave.length)) * LAYOUT_Y_STEP +
+      LAYOUT_ROW_GAP;
   }
   return positions;
 }

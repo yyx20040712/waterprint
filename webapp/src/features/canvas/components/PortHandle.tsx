@@ -1,16 +1,18 @@
 /**
- * 类型化端口渲染件：方向→Position 映射+灰阶中性色 Handle 封装。
+ * 类型化端口渲染件：方向→Position 映射+域色 Handle 封装。
  *
- * 输入:  portId（Handle 唯一键=design.edges 端点 port_id）+ 方向
+ * 输入:  portId（Handle 唯一键=design.edges 端点 port_id）+方向
  *        （target=左入/source=右出——投影层边端点方向聚合）
+ *        +domainColor?（节点域色——C2-canvas P8 端口流体色）
  * 输出:  React Flow Handle（只读渲染——isConnectable 关闭连线交互）
  *
- * 规格说明（FE4 批 6b 段一，D1 方向中性裁决）：
+ * 规格说明（FE4 批 6b 段一 D1；C2-canvas 批 P8 流体色兑现）：
  *   - 端口表不在项目文件（端口声明只在 core manifest——TS 侧零业务复制
  *     红线不可破），本渲染件只按端点方向呈现：target=Position.Left/
  *     source=Position.Right；
- *   - 灰阶中性色（§19.3「语义色之外禁彩色」）——流体色（水蓝/泥棕）
- *     与端口表挂账段二（届时 server 单元清单端点另批立项）；
+ *   - FE4 挂账④「端口流体色（水蓝/泥棕）」本批兑现：默认灰阶中性色
+ *     保持（未传域色=中性兼容面）；domainColor 传入时描边随域
+ *     （填充恒底色深蓝——工程图例端口惯例：描边承语义、填充承底）；
  *   - 只读批无连线交互：isConnectable=false（编辑面挂账段二——
  *     useConnectionRules 维持骨架契约头）；
  *   - 微型圆点+描边（工程图例端口惯例）；title 提示=port_id（一级信息
@@ -24,16 +26,18 @@ const DIRECTION_POSITION = {
   target: Position.Left,
 } as const;
 
-/** 灰阶中性色（§19.3 非语义承载——蓝/棕语义色挂账段二）。 */
-const NEUTRAL_FILL = "#8c8c8c";
+/** 灰阶中性色（未传域色回退——§19.3 非语义承载）。 */
 const NEUTRAL_BORDER = "#595959";
 
 export function PortHandle({
   portId,
   direction,
+  domainColor,
 }: {
   portId: string;
   direction: "source" | "target";
+  /** 节点域色（可选——缺省灰阶中性；视觉稿端口=描边承域语义）。 */
+  domainColor?: string;
 }) {
   return (
     <Handle
@@ -45,8 +49,8 @@ export function PortHandle({
       style={{
         width: 8,
         height: 8,
-        background: NEUTRAL_FILL,
-        border: `1.5px solid ${NEUTRAL_BORDER}`,
+        background: "var(--wp-bg-page)",
+        border: `1.5px solid ${domainColor ?? NEUTRAL_BORDER}`,
         borderRadius: "50%",
       }}
     />

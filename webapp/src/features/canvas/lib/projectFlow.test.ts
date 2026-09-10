@@ -16,6 +16,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  LAYOUT_ROW_GAP,
   LAYOUT_X_STEP,
   LAYOUT_Y_STEP,
   ProjectFlowError,
@@ -411,28 +412,28 @@ describe("projectFlow：layout 优先（D3）", () => {
   });
 });
 
-describe("projectFlow：拓扑兜底确定性（D3 波次分层）", () => {
-  it("golden 双链分层：波 0={inlet, sludge_hebing}；链 A 末端层 11", () => {
+describe("projectFlow：拓扑兜底确定性（D3 波次分层+C2-canvas R-1 折行）", () => {
+  it("golden 双链分层+折行：12 波 K=4 三行；波 0 双链首/波 6 双节点/链尾列 3", () => {
     const out = projectFlow(goldenFixture());
     const byId = new Map(out.nodes.map((node) => [node.id, node.position]));
-    // 波 0：两链首（字典序 inlet < sludge_hebing → y 序 0/1）
+    // 行 0（波 0~3）Y 基 0：波 0 两链首/波 1 两链第二节点（字典序定 y 序）
     expect(byId.get("inlet")).toEqual({ x: 0, y: 0 });
     expect(byId.get("sludge_hebing")).toEqual({ x: 0, y: LAYOUT_Y_STEP });
-    // 波 1：两链第二节点
     expect(byId.get("municipal_wushui_tisheng")).toEqual({ x: LAYOUT_X_STEP, y: 0 });
     expect(byId.get("sludge_shusong")).toEqual({ x: LAYOUT_X_STEP, y: LAYOUT_Y_STEP });
-    // 链 A（12 节点）末端层 11（单节点行首）；链 B（7 节点）末端层 6
-    // ——波 6 双节点（municipal_aao<sludge_ganhua 字典序 → y 序 0/1）
-    expect(byId.get("municipal_bashi_jiliangcao")).toEqual({
-      x: 11 * LAYOUT_X_STEP,
-      y: 0,
-    });
-    expect(byId.get("municipal_aao")).toEqual({ x: 6 * LAYOUT_X_STEP, y: 0 });
+    // 行 1（波 4~7，行高 2）Y 基=2*Y+GAP：波 6 双节点（aao<ganhua 字典序）
+    const row1 = 2 * LAYOUT_Y_STEP + LAYOUT_ROW_GAP;
+    expect(byId.get("municipal_aao")).toEqual({ x: 2 * LAYOUT_X_STEP, y: row1 });
     expect(byId.get("sludge_ganhua")).toEqual({
-      x: 6 * LAYOUT_X_STEP,
-      y: LAYOUT_Y_STEP,
+      x: 2 * LAYOUT_X_STEP,
+      y: row1 + LAYOUT_Y_STEP,
     });
-    expect(byId.get("municipal_ziwai")).toEqual({ x: 10 * LAYOUT_X_STEP, y: 0 });
+    // 行 2（波 8~11 单链各 1）：链尾 bashi 波 11=列 3（x 幅 3 步距）
+    const row2 = row1 + 2 * LAYOUT_Y_STEP + LAYOUT_ROW_GAP;
+    expect(byId.get("municipal_bashi_jiliangcao")).toEqual({
+      x: 3 * LAYOUT_X_STEP,
+      y: row2,
+    });
   });
 
   it("同输入双跑输出 deep equal（确定性纯函数）", () => {

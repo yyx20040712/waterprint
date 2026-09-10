@@ -34,7 +34,9 @@
  *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
  *   --wp-success   ↔ providers colorSuccess
  *   --wp-font-mono ↔ providers fontFamilyCode
- * 以下为 antd 无槽位色（轴独有，无双源）：gold/water/sludge/dot。
+ * 以下为 antd 无槽位色（轴独有，无双源）：gold/water/sludge/mine/convey/dot。
+ * C2-canvas 批新增：--wp-mine/--wp-convey（四域色板完备面——节点域色
+ * unitGlyph.domainColorOf 字面量同值双源，改色红线双处联动）。
  * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
  * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
@@ -47,6 +49,8 @@
   --wp-gold-soft: rgba(217, 169, 74, 0.65);
   --wp-water: #4da3ff;
   --wp-sludge: #9c6b45;
+  --wp-mine: #35c9b0;
+  --wp-convey: #9aa8b8;
   --wp-text: #e8eef7;
   --wp-text-2: #9db0c9;
   --wp-text-3: #5d7290;
@@ -108,6 +112,17 @@ body {
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+/* C2-canvas P2 满高链：body/content/tabpane 亦 100%（v6 DOM 实测：
+ * body-holder>body>content>tabpane 四层——body 层 C1 未覆盖致断链）——
+ * 满高类标签（画布）随视口撑满；自然高类标签（表单/表）内容超出
+ * tabpane 盒仍溢出可见，body-holder 滚动范围含溢出面不回归。 */
+.ant-tabs.wp-scroll-tabs .ant-tabs-body,
+.ant-tabs.wp-scroll-tabs .ant-tabs-content {
+  height: 100%;
+}
+.ant-tabs.wp-scroll-tabs .ant-tabs-tabpane {
+  height: 100%;
 }
 
 /* ── 顶栏鎏金收边线（品牌点缀——原神式分寸）── */
