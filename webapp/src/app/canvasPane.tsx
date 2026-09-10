@@ -84,10 +84,17 @@ export function CanvasPane() {
   }, [onHandlePointerMove]);
   const onHandlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      // GP-N-02（A 二审 R2）：仅主键启动拖拽（右/中键不触发）
+      if (event.button !== 0) {
+        return;
+      }
       dragging.current = { startX: event.clientX, startWidth: sidebarWidth };
       document.body.style.cursor = "col-resize";
       document.addEventListener("pointermove", onHandlePointerMove);
       document.addEventListener("pointerup", onHandlePointerUp);
+      // GP-N-01（A 二审 R2）：pointercancel（触摸/浏览器手势取消）路径
+      // ——与 pointerup 同收口
+      document.addEventListener("pointercancel", onHandlePointerUp);
     },
     [sidebarWidth, onHandlePointerMove, onHandlePointerUp],
   );
@@ -97,6 +104,7 @@ export function CanvasPane() {
     return () => {
       document.removeEventListener("pointermove", onHandlePointerMove);
       document.removeEventListener("pointerup", onHandlePointerUp);
+      document.removeEventListener("pointercancel", onHandlePointerUp);
       document.body.style.cursor = "";
     };
   }, [onHandlePointerMove, onHandlePointerUp]);
