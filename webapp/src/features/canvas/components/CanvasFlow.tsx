@@ -107,11 +107,17 @@ function FitViewOnNodes({ fitKey }: { fitKey: string }) {
 export function CanvasFlow({
   projectId,
   selectedUnitId = null,
+  libraryFocusId = null,
   onNodeClick,
 }: {
   projectId: string;
   /** 受控选中单元（null=无选中——app 层 D2 props 单一持有面）。 */
   selectedUnitId?: string | null;
+  /** 单元库定位单元（C2-lib U3——app 层穿线：命中节点 wrapper 附
+   * wp-lib-hit 水蓝光环[global.css]；未命中不压暗[用户裁定「仅光环」]；
+   * 命中键=kind ?? unitId[内置节点归 catalog kind 键——画布查表口径]；
+   * 投影 data 零触碰沿袭）。 */
+  libraryFocusId?: string | null;
   /** 节点点击回调（unitId=React Flow node.id=design.nodes 键）。 */
   onNodeClick?: (unitId: string) => void;
 }) {
@@ -139,14 +145,27 @@ export function CanvasFlow({
       };
     }
   }, [query.data]);
-  // 选中标记：selectedUnitId → node.selected（受控字段——投影 data 零触碰）
+  // 选中标记：selectedUnitId → node.selected（受控字段——投影 data 零触碰）；
+  // C2-lib 定位光环：libraryFocusId 命中 → wrapper className wp-lib-hit
+  // （global.css 水蓝光环——仅光环不压暗[用户裁定]；命中键=kind ?? unitId）。
+  // GL-02（D 一审 R 轮）：条件合并而非字面量 undefined——显式 undefined 会
+  // 抹掉 spread 带入的既有 className（投影现无挂类面，防御合并[含命中时
+  // 追加而非覆盖]）
   const nodes = useMemo(
     () =>
-      (projection.flow?.nodes ?? []).map((node) => ({
-        ...node,
-        selected: node.id === selectedUnitId,
-      })),
-    [projection.flow, selectedUnitId],
+      (projection.flow?.nodes ?? []).map((node) => {
+        const hit =
+          libraryFocusId !== null &&
+          (node.data.kind ?? node.data.unitId) === libraryFocusId;
+        return {
+          ...node,
+          selected: node.id === selectedUnitId,
+          className: hit
+            ? [node.className, "wp-lib-hit"].filter(Boolean).join(" ")
+            : node.className,
+        };
+      }),
+    [projection.flow, selectedUnitId, libraryFocusId],
   );
   // 域归属表：nodeId → business_line（查表键=kind ?? unitId——内置节点
   // 归 catalog kind 键「municipal_input 等，business_line=municipal」）

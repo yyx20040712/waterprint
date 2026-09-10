@@ -60,7 +60,13 @@ const SIDEBAR_DEFAULT = 280;
 const SIDEBAR_MIN = 240;
 const SIDEBAR_MAX = 480;
 
-export function CanvasPane() {
+export function CanvasPane({
+  libraryFocusId = null,
+}: {
+  /** 单元库定位单元（App 持态穿线——C2-lib U3：命中画布节点水蓝光环
+   * wp-lib-hit；null=无定位。生命周期=单元库 Drawer 开闭[关抽屉解除]）。 */
+  libraryFocusId?: string | null;
+}) {
   // S3 写方：hook setter 收敛回写 URL+派发（原三行 replaceState 内联退役）
   const [projectId, setProjectId] = useProjectId();
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
@@ -186,6 +192,7 @@ export function CanvasPane() {
             <CanvasFlow
               projectId={projectId}
               selectedUnitId={selectedUnitId}
+              libraryFocusId={libraryFocusId}
               onNodeClick={setSelectedUnitId}
             />
           </div>

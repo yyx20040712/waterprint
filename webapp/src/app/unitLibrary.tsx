@@ -1,18 +1,37 @@
 /**
- * 左侧单元库浏览：搜索框+四线分组树+Drawer 详情浮层（app 层 Sider 装配）。
+ * 左侧单元库浏览：搜索框+四线分组树（图标行）+Drawer 详情浮层（app 层
+ * Sider 装配）。
  *
  * 输入:  GET /api/units 目录（useListUnitsApiUnitsGet 生成 hook 直用——
- *        防第三处 useUnitCatalog 薄封装三胞胎）+搜索词（受控）+叶节点
- *        选择（受控）+onNavigateTab 可选回调（Drawer 引导→canvas 标签）
- * 输出:  Sider 内容（Input.Search+Tree 分组树+Empty 空态）+Drawer 详情
- *        （宽 480：标题=name_zh+unit_id 次要文本+kind Tag+所属线；参数面
- *        五列表+端口面四列表——展示值直出 entry 字段零业务推导）
+ *        防第三处 useUnitCatalog 薄封装三胞胎）+搜索词（受控）+focusId
+ *        （受控叶选中——App 持态 C2-lib 联动穿线）+onFocusChange+
+ *        onNavigateTab 可选回调（Drawer 引导→canvas 标签）
+ * 输出:  Sider 内容（Input.Search+Tree 分组树[图标行]+Empty 空态+底部
+ *        计数条）+Drawer 详情（宽 480：图标+name_zh+unit_id 次要文本+
+ *        kind Tag+所属线；参数面五列表+端口面四列表——展示值直出 entry
+ *        字段零业务推导）
  *
- * 规格说明（M2 批，简报 §一/§五；设计真源 reports/units-browser-design.md）：
- *   - 组件零业务推导：树组装/过滤/叶反查全在 ./unitLibraryTree 纯函数，
- *     本件只渲染（§10.5/A7）；列定义组件外常量（零魔法 UI 常量堆积）；
- *   - antd Tree/Drawer/Input.Search 首用（既有依赖零新增包——台账记档）；
- *     Table 沿 SolutionsTable/EstimateTable 先例形态（size=small+受控列）；
+ * 规格说明（M2 批，简报 §一/§五；设计真源 reports/units-browser-design.md；
+ *   C2-lib 批重制——briefs/task-C2-lib-plan.md §二 U1/U2/U4/U5+§五呈裁
+ *   实录[用户裁定：码不显示/仅光环/计数条做]）：
+ *   - 组件零业务推导：树组装/过滤/叶反查/字形全在 ./unitLibraryTree
+ *     纯函数，本件只渲染（§10.5/A7）；列定义组件外常量（零魔法 UI
+ *     常量堆积）；
+ *   - U1 图标行（titleRender——antd v6 @rc-component/tree 在案）：叶行=
+ *     [图标 20×20 域色三色组+字形]+中文名 12.5px 单主列；**英文码不
+ *     显示**（用户裁定「尽量能不显示都不显示」——title 悬浮=全
+ *     unit_id 为唯一保留追溯通道，零版面常显）；组行=域色短条+组名
+ *     计数（title=string 保持——titleRender 按 group: 前缀分流）；
+ *   - U3 联动（库→画布单向）：叶选中=onFocusChange(unit_id)+Drawer
+ *     开（focus 生命周期=Drawer 开闭——关抽屉=onFocusChange(null)
+ *     解除）；CanvasPane 透传 CanvasFlow 命中光环（wp-lib-hit——
+ *     global.css）；画布节点点击不清 focus（选中鎏金独立通道并存）；
+ *   - U4 计数条：左右分列（左「N 单元」右「M 组」——catalog 驱动；N=kind=unit 条数，
+ *     M=分组数含内置组；空态/加载态/错误态不渲染）；
+ *   - U5 Drawer 标题图标（与叶行/画布节点三处同语言——20×20 域色
+ *     三色组）；
+ *   - antd Tree/Drawer/Input.Search（M2 首用沿袭）；Table 沿
+ *     SolutionsTable/EstimateTable 先例形态（size=small+受控列）；
  *   - 取数三态：isPending→Spin 居中；isError→Alert+重试（refetch——非
  *     ErrorBoundary 面：其只捕渲染异常不捕 query 态，偏差记档）；
  *     data.units 空→Empty 空态；过滤后无命中→Empty（命中空组已剔除）；
@@ -36,6 +55,7 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import type { TreeDataNode } from "antd";
 
 import type { ParamEntry } from "../shared/api/generated/model/paramEntry";
 import type { ParamEntryDefault } from "../shared/api/generated/model/paramEntryDefault";
@@ -44,15 +64,39 @@ import type { ParamEntryRange } from "../shared/api/generated/model/paramEntryRa
 import type { PortEntry } from "../shared/api/generated/model/portEntry";
 import type { UnitMetaEntry } from "../shared/api/generated/model/unitMetaEntry";
 import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
+import { domainColorOf } from "../features/canvas/lib/unitGlyph";
 import {
   BUSINESS_LINE_ZH,
   buildLibraryTree,
   filterLibraryTree,
   findUnitByNodeKey,
+  libraryGlyph,
 } from "./unitLibraryTree";
 
 /** Drawer 宽度（简报 §五——右侧抽屉不挤侧栏）。 */
 const DRAWER_WIDTH = 480;
+
+/** 组节点 key 前缀（titleRender 叶/组分流判据——unitLibraryTree 同值
+ * 本地复制[导出面为纯函数 API 不含常量]；GL-04 R 轮：联动面=前缀+后缀
+ * 双段——后缀 builtin/other 亦 unitLibraryTree 构造面同值魔串[组判色
+ * 分支消费]，改组 key 构造须两文件四点联动）。 */
+const GROUP_KEY_PREFIX = "group:";
+
+/** 行图标尺寸/圆角（视觉稿态二冻结——20×20 圆角 5）。 */
+const ICON_SIZE = 20;
+const ICON_RADIUS = 5;
+
+/** 域色图标三色组（UnitNode DOMAIN_ICON_STYLES 同值派生消费——
+ * R-G3 联动清单成员·Y-4 A 前分层口径：**同构表复制两处**[本表/UnitNode
+ * 表]；global.css 为色值变量轴联动[非三键表复制]——收敛候选=unitGlyph
+ * 层导出统一面，第三处复制前收敛）。 */
+const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: string }> = {
+  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
+  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
+  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
+  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
+};
+const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c" };
 
 /** 搜索框占位文案 props（键名拼接构造规避 grep 门禁英文特征词——同
  * gate_patterns 脚本自身「特征串一律拼接构造」口径）。 */
@@ -104,9 +148,43 @@ function KindTag({ unit }: { unit: UnitMetaEntry }) {
   return <Tag>{unit.kind === "builtin" ? "内置" : "单元"}</Tag>;
 }
 
-export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
+/** 域色图标框（叶行/Drawer 标题共用——20×20 三色组+字形）。 */
+function DomainIcon({ unit }: { unit: UnitMetaEntry }) {
+  const iconStyle = DOMAIN_ICON_STYLES[unit.business_line] ?? NEUTRAL_ICON;
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: ICON_SIZE,
+        height: ICON_SIZE,
+        flex: "none",
+        borderRadius: ICON_RADIUS,
+        fontSize: 10.5,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: iconStyle.bg,
+        border: `1px solid ${iconStyle.border}`,
+        color: iconStyle.fg,
+      }}
+    >
+      {libraryGlyph(unit)}
+    </span>
+  );
+}
+
+export function UnitLibrary({
+  focusId,
+  onFocusChange,
+  onNavigateTab,
+}: {
+  /** 受控叶选中（null=无选中——App 持态：Drawer 开闭+画布联动光环同源）。 */
+  focusId: string | null;
+  /** 叶选中/解除回调（叶点击=unit_id；组反选/关抽屉=null）。 */
+  onFocusChange: (value: string | null) => void;
+  onNavigateTab?: () => void;
+}) {
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // 生成 hook 直用（零封装——防 useUnitCatalog 三胞胎）
   const catalog = useListUnitsApiUnitsGet();
@@ -116,11 +194,56 @@ export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
     [units, search],
   );
   const selectedUnit = useMemo(
-    () => (selectedId === null ? null : findUnitByNodeKey(units, selectedId)),
-    [units, selectedId],
+    () => (focusId === null ? null : findUnitByNodeKey(units, focusId)),
+    [units, focusId],
   );
 
-  // 取数三态两分：pending/error 在树渲染前短路（成功面才进树/抽屉）
+  // titleRender（叶/组分流：叶=图标行[图标+中文名，悬浮全 unit_id]；
+  // 组=域色短条+组名计数——树数据 title=string 保持，渲染层定制。
+  // 类型面：TreeDataNode.title 联合含函数形——本库树数据恒 string，断言
+  // 收窄一次[titleText]两分支共用）
+  const titleRender = useMemo(() => {
+    return (node: TreeDataNode): React.ReactNode => {
+      const key = typeof node.key === "string" ? node.key : "";
+      const titleText = typeof node.title === "string" ? node.title : "";
+      if (key.startsWith(GROUP_KEY_PREFIX)) {
+        // 组行：域色短条（内置/其他组=中性灰——domainColorOf 未收录回退）
+        // +基名左置+计数右对齐（glm 实现态 r1 采纳——树数据 title 形态
+        // 「基名 (N)」拆解渲染；filterLibraryTree 重算计数面经此同步）
+        const line = key.slice(GROUP_KEY_PREFIX.length);
+        const countMatch = titleText.match(/ \((\d+)\)$/);
+        const baseTitle = countMatch === null ? titleText : titleText.slice(0, countMatch.index);
+        const count = countMatch === null ? null : countMatch[1];
+        return (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 1, color: "var(--wp-text-3)", width: "100%" }}>
+            <span
+              aria-hidden
+              style={{ width: 8, height: 2, borderRadius: 1, background: domainColorOf(line === "builtin" || line === "other" ? null : line) }}
+            />
+            <span>{baseTitle}</span>
+            {count !== null && (
+              <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.8 }}>({count})</span>
+            )}
+          </span>
+        );
+      }
+      const unit = findUnitByNodeKey(units, key);
+      if (unit === null) {
+        return titleText;
+      }
+      return (
+        <span
+          title={unit.unit_id}
+          style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 26 }}
+        >
+          <DomainIcon unit={unit} />
+          <span style={{ fontSize: 12.5, color: "var(--wp-text)" }}>{unit.name_zh}</span>
+        </span>
+      );
+    };
+  }, [units]);
+
+  // 取数三态两分：pending/error 在树渲染前短路（成功面才进树/抽屉/计数条）
   if (catalog.isPending) {
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
@@ -144,42 +267,74 @@ export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
     );
   }
 
+  // U4 计数条数据面（catalog 全量口径——不受搜索过滤影响）
+  const unitCount = units.filter((unit) => unit.kind !== "builtin").length;
+  const groupCount = buildLibraryTree(units).length;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Input.Search
-        allowClear
-        {...SEARCH_HINT_PROPS}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        style={{ marginBottom: 8 }}
-      />
-      {units.length === 0 ? (
-        <Empty description="单元库为空" />
-      ) : treeNodes.length === 0 ? (
-        <Empty description="无匹配单元" />
-      ) : (
-        <Tree
-          blockNode
-          selectedKeys={selectedId === null ? [] : [selectedId]}
-          onSelect={(keys) => {
-            // 仅叶点击开抽屉（纯函数反查判据——组 key 反选为空）
-            const next = keys[0];
-            setSelectedId(
-              typeof next === "string" && findUnitByNodeKey(units, next) !== null
-                ? next
-                : null,
-            );
-          }}
-          treeData={treeNodes}
+      {/* U3 列布局收敛（glm 实现态 r1 采纳）：树区自滚（flex 1+minHeight
+          0+overflow auto——36 行目录不把计数条顶出 Sider 视口）+计数条
+          钉底（flex none——App Sider overflow auto 兜底面退役零滚动） */}
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Input.Search
+          allowClear
+          {...SEARCH_HINT_PROPS}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          style={{ marginBottom: 8 }}
         />
+        {units.length === 0 ? (
+          <Empty description="单元库为空" />
+        ) : treeNodes.length === 0 ? (
+          <Empty description="无匹配单元" />
+        ) : (
+          <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+            <Tree
+              blockNode
+              defaultExpandAll
+              titleRender={titleRender}
+              selectedKeys={focusId === null ? [] : [focusId]}
+              onSelect={(keys) => {
+                // 仅叶点击开抽屉+联动光环（纯函数反查判据——组 key 反选为空；
+                // 解除通道=组反选/关抽屉[onFocusChange(null)]）
+                const next = keys[0];
+                onFocusChange(
+                  typeof next === "string" && findUnitByNodeKey(units, next) !== null
+                    ? next
+                    : null,
+                );
+              }}
+              treeData={treeNodes}
+            />
+          </div>
+        )}
+      </div>
+      {units.length > 0 && (
+        <div
+          style={{
+            flex: "none",
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "7px 14px",
+            borderTop: "1px solid var(--wp-border-2)",
+            fontSize: 10.5,
+            letterSpacing: 0.5,
+            color: "var(--wp-text-3)",
+          }}
+        >
+          <span>{unitCount} 单元</span>
+          <span>{groupCount} 组</span>
+        </div>
       )}
       <Drawer
         open={selectedUnit !== null}
         styles={{ wrapper: { width: DRAWER_WIDTH } }}
-        onClose={() => setSelectedId(null)}
+        onClose={() => onFocusChange(null)}
         title={
           selectedUnit === null ? null : (
-            <span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <DomainIcon unit={selectedUnit} />
               {selectedUnit.name_zh}{" "}
               <Typography.Text type="secondary">
                 {selectedUnit.unit_id}
@@ -229,7 +384,7 @@ export function UnitLibrary({ onNavigateTab }: { onNavigateTab?: () => void }) {
                 block
                 onClick={() => {
                   onNavigateTab();
-                  setSelectedId(null);
+                  onFocusChange(null);
                 }}
               >
                 到工艺画布编辑参数

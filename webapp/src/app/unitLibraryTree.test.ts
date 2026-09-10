@@ -26,6 +26,7 @@ import {
   buildLibraryTree,
   filterLibraryTree,
   findUnitByNodeKey,
+  libraryGlyph,
 } from "./unitLibraryTree";
 
 /** 目录样例工厂（必填字段直给——kind 缺省 unit）。 */
@@ -179,5 +180,32 @@ describe("M2 findUnitByNodeKey（叶 key 反查 entry）", () => {
   it("组 key → null；未命中 key → null", () => {
     expect(findUnitByNodeKey(CATALOG, "group:municipal")).toBeNull();
     expect(findUnitByNodeKey(CATALOG, "no.such.unit")).toBeNull();
+  });
+});
+
+describe("C2-lib libraryGlyph（目录条目→象形字形——画布查表键同口径）", () => {
+  it("unit 条目 → UNIT_GLYPHS 精确键（kind 槽 null）", () => {
+    // 现网 32 单元键前缀=业务线_（municipal_aao 等）——样例键对齐形态
+    const aao = makeUnit("municipal_aao", "AAO 生物池", "municipal");
+    expect(libraryGlyph(aao)).toBe("◉");
+  });
+
+  it("builtin 条目 → KIND_GLYPHS 查表（kind 槽喂 unit_id——unit_id=kind 串）", () => {
+    const input = makeUnit("municipal_input", "市政进水", "municipal", "builtin");
+    const junction = makeUnit("junction", "汇合节点", "conveyance", "builtin");
+    expect(libraryGlyph(input)).toBe("▽");
+    expect(libraryGlyph(junction)).toBe("⊕");
+  });
+
+  it("未收录 unit_id → 回退 ▢（显示层降级非错误）", () => {
+    const custom = makeUnit("custom_unknown", "自定义单元", "municipal");
+    expect(libraryGlyph(custom)).toBe("▢");
+  });
+
+  it("四线 glyph 全谱采样（水/泥/矿/输各一键——聚类映射面）", () => {
+    expect(libraryGlyph(makeUnit("conveyance_peishuijing", "配水井", "conveyance"))).toBe("◇");
+    expect(libraryGlyph(makeUnit("sludge_nongsuo", "污泥浓缩", "sludge"))).toBe("◐");
+    expect(libraryGlyph(makeUnit("mine_water_cifenli", "磁分离", "mine_water"))).toBe("⊛");
+    expect(libraryGlyph(makeUnit("municipal_vxinglvchi", "V型滤池", "municipal"))).toBe("⋀");
   });
 });

@@ -155,3 +155,19 @@ body {
   );
   background-size: var(--wp-dot-size) var(--wp-dot-size);
 }
+
+/* ── C2-lib 单元库定位光环（库→画布单向联动 U3——用户裁定「仅光环
+ * 不压暗」）：命中节点 wrapper（.react-flow__node）外扩水蓝环。水蓝=
+ * 定位语义非选中鎏金（交互状态色非语义色）；色值=--wp-water #4da3ff
+ * 轴 rgba 派生——R-G3 联动清单成员（改色以 unitGlyph.domainColorOf
+ * 为基准同步）；命中键=kind ?? unitId（CanvasFlow nodes memo 注入，
+ * UnitNode 零触碰）。inset -5px+圆角 10≈卡片 8px+2px 外扩。 */
+.react-flow__node.wp-lib-hit::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 10px;
+  border: 2px solid rgba(77, 163, 255, 0.55);
+  box-shadow: 0 0 22px rgba(77, 163, 255, 0.28);
+  pointer-events: none;
+}

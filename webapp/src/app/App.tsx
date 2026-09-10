@@ -62,7 +62,9 @@
  *   - M2 左侧 Sider=UnitLibrary 单元库浏览（app 层薄壳：四线分组树+
  *     搜索+Drawer 详情——组装面在 ./unitLibraryTree 纯函数；onNavigateTab
  *     复用 handleTabChange 切 canvas——AppRoute 七键冻结面零扩，单元库=
- *     Sider UI 态不进 URL）；
+ *     Sider UI 态不进 URL）；C2-lib 图标行重制+libraryFocusId 受控
+ *     （App 持态→Sider[Drawer 开闭]与 CanvasPane[画布定位光环]双穿线
+ *     ——briefs/task-C2-lib-plan.md §二 U3）；
  *   - C1 滚动容器骨架（需求①根治——task-C1-plan.md §3c）：根 Layout
  *     100vh+overflow hidden，document 级整页滚动根除；滚动域下放=Tabs
  *     内容层（className wp-scroll-tabs——global.css 结构微调：content-
@@ -155,6 +157,10 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
   const [projectId] = useProjectId();
+  // C2-lib 联动态（U3）：单元库叶选中=Drawer 开闭+画布定位光环同源
+  // （App 持态受控穿线——FE5 D2 selectedUnitId 同制；生命周期=Drawer
+  // 开闭，关抽屉=解除）
+  const [libraryFocusId, setLibraryFocusId] = useState<string | null>(null);
 
   // R2-A 批 2 D4/D5 自愈回路：customInstance 401 → AUTH_EVENT → 自动开
   // 连接设置（错 token 用户改对的引导面）；卸载移除监听。
@@ -277,12 +283,17 @@ export function App() {
           </span>
         </Header>
         <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-          {/* M2：单元库浏览实装替换占位——C1 宽 280→232（工程密度）+自滚 */}
+          {/* M2：单元库浏览实装替换占位——C1 宽 280→232（工程密度）+自滚；
+              C2-lib：图标行重制+focusId 受控（联动穿线） */}
           <Sider
             width={232}
             style={{ overflow: "auto", flex: "none" }}
           >
-            <UnitLibrary onNavigateTab={() => handleTabChange("canvas")} />
+            <UnitLibrary
+              focusId={libraryFocusId}
+              onFocusChange={setLibraryFocusId}
+              onNavigateTab={() => handleTabChange("canvas")}
+            />
           </Sider>
           <Content style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
             <Tabs
@@ -293,7 +304,7 @@ export function App() {
                 {
                   key: "canvas",
                   label: "工艺画布",
-                  children: <CanvasPane />,
+                  children: <CanvasPane libraryFocusId={libraryFocusId} />,
                 },
                 {
                   key: "siteplan",

@@ -8,7 +8,8 @@
  *        计数=过滤后）；叶 key 反查 entry（非叶/未命中=null）
  *
  * 规格说明（M2 批，简报 §一.5/§一.6/§三；设计真源
- *   reports/units-browser-design.md）：
+ *   reports/units-browser-design.md；C2-lib 批 +libraryGlyph——
+ *   briefs/task-C2-lib-plan.md §二）：
  *   - 分组序=BUSINESS_LINE_ZH 声明序（municipal/conveyance/mine_water/
  *     sludge）→未知线「其他」→「内置节点」末位；kind=builtin 一律归
  *     内置组（即使声明 business_line——现网 4 内置不落业务线组）；
@@ -19,6 +20,7 @@
  *   - 纯函数零 React 零 antd 依赖——node 直测（app 层 projectParam 形态）。
  */
 import type { UnitMetaEntry } from "../shared/api/generated/model/unitMetaEntry";
+import { unitGlyph } from "../features/canvas/lib/unitGlyph";
 
 /** 四线中文名映射（展示层常量，非业务复制——分组标题翻译）。 */
 export const BUSINESS_LINE_ZH: Record<string, string> = {
@@ -144,4 +146,12 @@ export function findUnitByNodeKey(
     return null;
   }
   return units.find((unit) => unit.unit_id === key) ?? null;
+}
+
+/** 目录条目 → 象形字形（C2-lib 图标行——画布节点查表键同口径：builtin
+ * 条目 unit_id=kind 串[municipal_input 等]→kind 槽喂 unit_id；unit
+ * 条目→unitId 槽 kind 传 null[UNIT_GLYPHS 精确键]。未收录回退 ▢ 由
+ * unitGlyph 内建）。 */
+export function libraryGlyph(unit: UnitMetaEntry): string {
+  return unitGlyph(unit.unit_id, unit.kind === "builtin" ? unit.unit_id : null);
 }
