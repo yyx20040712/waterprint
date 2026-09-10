@@ -1,5 +1,11 @@
 /**
  * 可行域纯函数测试（PD7）：吸附边界/回填格式化/值定位/最近可行格。
+ *
+ * 输入:  feasibility 纯函数族（node 环境——零 antd/react-query import 链）
+ * 输出:  纯函数契约断言（段内原值回填/段外吸附最近边界/等距并列取
+ *        先段边界确定性/空段 null 诚实缺省/formatBackfill 草稿串形态/
+ *        valueAtRatio 条位端点钳制/isFeasibleValue 段内外/
+ *        nearestFeasibleCell 2D 欧氏最近可行格——含全灰 null 面）
  */
 import { describe, expect, it } from "vitest";
 

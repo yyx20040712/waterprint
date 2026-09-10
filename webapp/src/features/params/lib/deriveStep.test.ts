@@ -3,6 +3,11 @@
  * _GOLDEN_STEPS 共享同一组期望——同一 range→同一 step，防 Python/JS
  * 派生漂移（IEEE754 双精度两语言同算术）；isContinuousParam=PD7 入口
  * 精确条件（grid None 且 range 非 None——93 连续区间参数主战场）。
+ *
+ * 输入:  deriveStep 纯函数族（node 环境——零 antd/react-query import 链）
+ * 输出:  纯函数契约断言（黄金值三锚[浮点尾差面 aao ns+精确面 aao
+ *        x_mlss/vxinglvchi v_filter]/点数期望 11 点[core axis_point_budget
+ *        同式]/入口条件三族[真+档位拒+无 range 拒——undefined 归一面]）
  */
 import { describe, expect, it } from "vitest";
 

@@ -35,7 +35,15 @@
  *     R3（yI-1）回写后 dispatchEvent("wp:task")（事件名常量与
  *     solutionsPane 侧各自内联——分层禁 import app 双处注记对齐）：已
  *     挂载的方案 pane 经事件重读 URL 更新任务态（Tabs 保活下 useState
- *     初始化器仅首挂载执行+replaceState 无 popstate 的双局限收口）。
+ *     初始化器仅首挂载执行+replaceState 无 popstate 的双局限收口）；
+ *   - FD 可行域引导（PD7/PD8 终裁 2026-09-09）：93 连续参数
+ *     （isContinuousParam——grid 缺席且 range 在场）渲染「可行域」链接钮
+ *     →行内 1D 区间条（FeasibilityBar）+「第二轴」Select→antd Modal 2D
+ *     热力图（FeasibilityHeatmap——手动关+回填不自动关闭，继续微调面）；
+ *     点击回填/吸附走 drafts 通道 formatBackfill→String（apply payload
+ *     键零漂移）；连续参数 Input→InputNumber（step=deriveStep 箭头步进
+ *     ——键盘任意值不限）；第二轴 Select 不用占位文案属性（grep 门禁
+ *     英文占位特征词命中该 prop 名——FE3 C3/solutionsPane 同款规避）。
  */
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -315,7 +323,6 @@ export function ParamForm({
                       <Select
                         size="small"
                         style={{ minWidth: 180 }}
-                        placeholder="选第二轴"
                         value={fdSecond ?? undefined}
                         options={fdSecondOptions}
                         onChange={pickSecondAxis}

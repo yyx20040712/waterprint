@@ -139,6 +139,30 @@ uv run python -m waterprint.cli export audit <project.json> <result.json> [--out
 > 说明：`POST /api/exports/audit` 端点当前返回 501（服务层导出通道
 > 归 M4 后续批），CLI 是审计报告的现行正门。
 
+### 3.6 参数面板「可行域」引导（webapp，FD 批 2026-09-10）
+
+选中单元后，参数面板对**连续区间参数**（声明 min/max 范围且无档位
+网格——当前目录 93 个）在参数行提供「可行域」链接入口：
+
+- **1D 区间条**：点击后在该参数行下方展开——绿色段=当前工况与约束
+  下计算可行的取值区间，灰色段=不可行；点击区间任意位置把该值回填
+  到输入框（点在灰色区自动**吸附**到最近可行段边界，不静默无响应）；
+  行尾附可行率（可行点数/总点数）。
+- **第二轴 2D 热力图**：展开后在「第二轴」下拉选同单元另一连续参数，
+  弹出热力图模态（绿=两参组合可行，灰=不可行；悬停格点显示两参
+  取值）；点击格点把两个参数同时回填（不可行格自动吸附最近可行格）。
+  模态**不自动关闭**——便于回填后继续微调，手动关闭返回。
+- **degraded 标注**：单元没有适用可行性约束时，区间条整条绿色并标注
+  「本单元暂无适用可行性约束——绿色区=计算有效域」——诚实呈现降级
+  态，绿色不代表约束结论。
+- **步长派生口径**：连续参数输入框为数字组件，上下箭头增量恒=
+  (max−min)/10（缺省 11 档指引粒度）；键盘可输入任意值不受步长限制
+  ——步长只是调参效率指引，不是校验规则（语义校验仍在计算侧）。
+
+接口面：`POST /api/calc/design-map`（同步直返，轴 1~2 个；扫描总点数
+上限 2500，超限显式拒绝——项目假设面板可按项目覆盖键
+`solution.design_map.max_points`）。
+
 ## 4. 核心概念
 
 **项目-设计-工况-方案**：项目文件是双态结构——`design` 态（工艺图：
@@ -171,12 +195,12 @@ FAQ 第 2 问）。
 未注册的子命令（calc/validate/selfcheck/export 其余 kind）调用即
 用法错误（退出码 2）——实装归后续批。
 
-### 5.2 API（27 操作，openapi 锁定断言恒）
+### 5.2 API（28 操作，openapi 锁定断言恒）
 
 | 分组 | 端点 |
 |------|------|
 | projects（5） | `GET/POST /api/projects`、`GET/PUT /api/projects/{id}`、`POST /api/projects/{id}/validate` |
-| calc（6） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply` |
+| calc（7） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply` |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
 | 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |
