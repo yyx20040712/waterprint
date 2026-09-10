@@ -436,6 +436,38 @@
   产物且无报警）；留存无上限则磁盘无界增长。
 - 绑定：io.py R4、UF-38；本条新增。
 
+## 12. webapp 样式与主题（C1 批 2026-09-10）
+
+### GR-39 webapp 色值两源制：antd token 主源+--wp-* 变量轴副源，联动红线
+- 规则：webapp 色值真源两处——**组件面**（antd 组件样式/props）一律
+  经 `providers.tsx` ConfigProvider token（含 components 微调）；
+  **非 antd 消费面**（全局 CSS/inline style/自绘组件）经
+  `webapp/src/app/global.css` 的 `--wp-*` 变量轴（`var()` 引用，禁
+  再散写 hex——品牌装饰色例外，须头注登记）。两源同值色构成**双源
+  联动清单**（global.css 头注契约：`--wp-bg-page ↔ colorBgLayout` 等）
+  ——改任一色须双处联动改。antd v6 cssVar 变量挂组件作用域非
+  `:root`（C1 无头实测零命中），跨组件消费不走 `--ant-*`，故变量轴
+  是必要副源而非冗余。
+- 为什么：C1 前 22 个 tsx 散写 inline 色值无单一真相源；antd token
+  为 JS 字面量面无法被 CSS `var()` 引用，而变量轴又管不到 antd 组件
+  内部——两源各守一面，缺联动契约则改色漏改一半（A2-N-01 双审
+  Important 发现的收口形态）。
+- 绑定：providers.tsx/global.css 头注契约、task-C1-plan.md §3a/§3b
+  （含 R 轮勘误）；C1 批 2026-09-10 立。
+
+### GR-40 新组件滚动域收敛：应用壳恒在视口，溢出走最近滚动容器
+- 规则：webapp 新增/重制组件的高度行为遵守滚动骨架（C1 落地）：
+  应用壳（顶栏/单元库/标签栏/状态栏）恒在视口；内容溢出滚动发生在
+  标签内容区（`.ant-tabs-body-holder` 统一滚动域）或组件自管的
+  `overflow:auto` 容器——**禁止依赖或触发 document 级整页滚动**
+  （body `overflow:hidden` 全局根除）。画布类组件（React Flow/
+  自绘 SVG）自管 pan/zoom 的例外须头注注明。
+- 为什么：C1 前内容超高直接顶开 document 滚动，滚轮一滚顶栏/侧栏
+  被顶出视口、暴露 body 底色（用户需求①，c-analysis S3 实证）；
+  无此条则新组件可能重新引入整页滚动。
+- 绑定：global.css 高度链+body-holder 滚动域、App.tsx 滚动骨架、
+  shoot_c1_impl.py 无头断言（回归锚）；C1 批 2026-09-10 立。
+
 ## 与既有规格的关系
 
 - 本文档一切条目遇既有规格头/ADR/宪法明文时**以既有规格为准**；条目

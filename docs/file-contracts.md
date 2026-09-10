@@ -205,4 +205,9 @@ check_structure 按 §13.6 校验，不逐文件登记。
   shared 不 import features/app、入口 main.tsx 只 import app/**；
 - 逐文件职责见 `webapp/src/app/README.md` 与各 feature/shared README 的
   文件清单（M0.5 已全部落地为规格骨架）；硬规则（≤500 行、类型单源）
-  另由行数门禁与 CI 构建强制。
+  另由行数门禁与 CI 构建强制；
+- **样式底座（C1 2026-09-10）**：`webapp/src/app/global.css` 为全库唯一
+  全局 CSS（变量轴 `--wp-*`+滚动骨架+滚动条——职责登记在 app/README）；
+  .css 不入契约头/行数门禁扫描面（check_webapp/check_file_budgets 均只
+  扫 .ts/.tsx/.py/.md）——新 CSS 文件的准入判据=GR-39 变量轴纪律+app
+  清单登记，禁止绕过 token/变量轴另起散写样式面。
