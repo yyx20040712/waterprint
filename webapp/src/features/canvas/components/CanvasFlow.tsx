@@ -76,7 +76,8 @@ const DOMAIN_LABELS: Record<string, string> = {
   sludge: "污泥处理",
 };
 
-/** 图例线型项（视觉稿冻结——水/泥/回流三项）。 */
+/** 图例线型项（视觉稿冻结——水/泥/回流三项；色值=unitGlyph 主源
+ * 联动面成员 R-G3——回流灰沿 text-2 轴）。 */
 const LEGEND_LINES = [
   { key: "water", label: "水线流向", color: "#4da3ff" },
   { key: "sludge", label: "污泥线", color: "#9c6b45" },
@@ -161,22 +162,25 @@ export function CanvasFlow({
     return byNode;
   }, [catalog.data, projection.flow]);
   // P4 边着色（渲染层聚合——投影产物叠加 stroke/箭头色+域分宽，recycle
-  // 虚线保持）：水线 2px/泥线 1.8px（视觉稿冻结——glm 实现评审 R2 发现
-  // 只着色未设宽，React Flow 默认 1px 细线对比度不足）
+  // 虚线保持）：水线 2px/泥线 1.8px/未知域中性 1.5px（三分支按
+  // business_line 判——R-G2 处置：判据不比较色值字面量[改色联动失配
+  // 风险]，GC-04 中性独立档；视觉稿冻结宽——glm 实现评审 R2 发现只
+  // 着色未设宽，React Flow 默认 1px 细线对比度不足）
   const edges = useMemo<Edge[]>(
     () =>
       (projection.flow?.edges ?? []).map((edge) => {
-        const color = streamColorOf(
-          lineByNodeId.get(edge.source),
-          lineByNodeId.get(edge.target),
-        );
+        const srcLine = lineByNodeId.get(edge.source);
+        const dstLine = lineByNodeId.get(edge.target);
+        const color = streamColorOf(srcLine, dstLine);
+        const width =
+          srcLine === "sludge" || dstLine === "sludge"
+            ? 1.8
+            : srcLine != null && dstLine != null
+              ? 2
+              : 1.5;
         return {
           ...edge,
-          style: {
-            ...edge.style,
-            stroke: color,
-            strokeWidth: color === "#9c6b45" ? 1.8 : 2,
-          },
+          style: { ...edge.style, stroke: color, strokeWidth: width },
           markerEnd: { type: "arrowclosed", color },
         };
       }),

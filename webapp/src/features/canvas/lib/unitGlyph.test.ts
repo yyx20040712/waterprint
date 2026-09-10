@@ -54,16 +54,15 @@ const ALL_UNIT_IDS = [
 ] as const;
 
 describe("unitGlyph：全库字形映射", () => {
-  it("32 unit_id 全枚举无回退（漏键/重键即红——表键数恰 32）", () => {
-    // 非回退断言：每键返回非 ▢ 字形
+  it("32 unit_id 全枚举无回退（漏键方向完备钳制；多键方向由聚类抽样钳制"
+      + "——GC-07 措辞收窄：object literal 重键=后键覆盖前键必改抽样期望）", () => {
+    // 非回退断言：每键返回非 ▢ 字形（表漏 ANY 键即红——防漏主目标）
     for (const unitId of ALL_UNIT_IDS) {
       const glyph = unitGlyph(unitId, null);
       expect(glyph, `${unitId} 应有映射字形`).not.toBe(GLYPH_FALLBACK);
       expect(glyph, `${unitId} 字形应非空`).toBeTruthy();
     }
-    // 表键数恰 32：ALL_UNIT_IDS 若与表漂移（漏键→上断言红；表多键→此处由
-    // 回退分支测试+聚类抽样双面钳制；重键不可能——object literal 后键覆盖
-    // 前键会改变聚类抽样期望）
+    // 清单长度自证（测试面常量——与 core discover_units 枚举同源维护）
     expect(ALL_UNIT_IDS.length).toBe(32);
   });
 

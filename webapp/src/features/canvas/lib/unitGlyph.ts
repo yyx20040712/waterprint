@@ -13,10 +13,12 @@
  *     Chromium 零缺字；避 emoji 化字符如 ☀）；映射=工艺功能聚类
  *     （32 unit_id 精确键——unitGlyph.test.ts 全库枚举防漏键）；
  *     未收录键回退 ▢（自定义键不炸——显示层降级非错误）；
- *   - 域色四色制+选中鎏金=视觉稿 A 冻结语言（C1 变量轴 --wp-water/
- *     --wp-sludge 同值字面量——GR-39 双源纪律：改色红线=本处与
- *     global.css 变量轴双处联动；--wp-mine/--wp-convey 本批新增轴
- *     同步登记）；中性灰 #595959=未收录键回退（antd 无槽位灰——
+ *   - 域色四色制+选中鎏金=视觉稿 A 冻结语言；**本文件为四域色主源**
+ *     （R-G3 联动清单——GC-02 处置）：同值字面量消费面=global.css 变量
+ *     轴（--wp-water/sludge/mine/convey）+CanvasFlow LEGEND_LINES+
+ *     UnitNode（SELECT 鎏金组与 DOMAIN_ICON_STYLES 域派生组）——改色
+ *     红线=N 处联动（本表
+ *     为比对基准）；中性灰 #595959=未收录键回退（antd 无槽位灰——
  *     PortHandle NEUTRAL_BORDER 先例）；
  *   - 流色两色制（P4）：任一端 sludge→泥棕（污泥去向判定——剩余
  *     污泥/回流混合边归泥）；双端已知非 sludge→水蓝；任一端未知

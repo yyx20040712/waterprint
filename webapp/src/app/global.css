@@ -34,9 +34,13 @@
  *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
  *   --wp-success   ↔ providers colorSuccess
  *   --wp-font-mono ↔ providers fontFamilyCode
- * 以下为 antd 无槽位色（轴独有，无双源）：gold/water/sludge/mine/convey/dot。
- * C2-canvas 批新增：--wp-mine/--wp-convey（四域色板完备面——节点域色
- * unitGlyph.domainColorOf 字面量同值双源，改色红线双处联动）。
+ * 以下为 antd 无槽位色（轴真源——字面量联动面见下两行；dot/
+ * scrollbar-hover 两键零消费方字面量）：gold/water/sludge/mine/convey。
+ * C2-canvas 批（R-G3 联动清单——GC-02/03 处置）：water/sludge/mine/
+ * convey 四色与 unitGlyph.ts（domainColorOf/streamColorOf——SVG 面
+ * 技术根因 var() 不可用）+CanvasFlow.tsx（LEGEND_LINES）/UnitNode.tsx
+ * （SELECT_* 鎏金派生+DOMAIN_ICON_STYLES 域派生组）同值多源，改色
+ * 红线=N 处联动（unitGlyph 主源为比对基准）。
  * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
  * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
@@ -116,7 +120,10 @@ body {
 /* C2-canvas P2 满高链：body/content/tabpane 亦 100%（v6 DOM 实测：
  * body-holder>body>content>tabpane 四层——body 层 C1 未覆盖致断链）——
  * 满高类标签（画布）随视口撑满；自然高类标签（表单/表）内容超出
- * tabpane 盒仍溢出可见，body-holder 滚动范围含溢出面不回归。 */
+ * tabpane 盒仍溢出可见，body-holder 滚动范围含溢出面不回归。
+ * GC-08 记档：后代选择器（非 >）——pane 内嵌套 antd Tabs 将被误拉满
+ * 高，嵌套 Tabs 属禁用面（全库零嵌套实证）；未来若需嵌套改子代
+ * 组合器。 */
 .ant-tabs.wp-scroll-tabs .ant-tabs-body,
 .ant-tabs.wp-scroll-tabs .ant-tabs-content {
   height: 100%;

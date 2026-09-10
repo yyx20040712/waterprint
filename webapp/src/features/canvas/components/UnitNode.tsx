@@ -47,12 +47,14 @@ const KIND_LABELS: Record<string, string> = {
 const CARD_WIDTH = 168;
 const CARD_MIN_HEIGHT = 56;
 
-/** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色）。 */
+/** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色；
+ * R-G3 联动清单成员：改鎏金须与 global.css --wp-gold 同步）。 */
 const SELECT_BORDER = "rgba(217, 169, 74, 0.75)";
 const SELECT_GLOW =
   "0 0 0 1px rgba(217,169,74,.35), 0 4px 18px rgba(217,169,74,.14), 0 3px 12px rgba(3,10,22,.45)";
 
-/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生）。 */
+/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生；同值
+ * 联动面=R-G3 清单：改域色以 unitGlyph.domainColorOf 为基准同步）。 */
 const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: string }> = {
   municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
   sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
