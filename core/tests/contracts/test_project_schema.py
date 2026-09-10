@@ -60,3 +60,36 @@ def test_unknown_field_rejected() -> None:
     data["mystery_field"] = 42
     with pytest.raises(Exception, match=".+"):
         parse_project(data)
+
+
+# ═══ P0-1（建项入口 2026-09-11）：view.name 显示名字段 ═══
+
+
+def test_view_name_defaults_and_strips() -> None:
+    """P0-1：view.name 缺省空串（历史项目零迁移装载）+strip 规范化。"""
+    project = parse_project(dict(MINIMAL))
+    assert project.view.name == ""  # 旧文件缺键=默认空串（向后兼容）
+    named = dict(MINIMAL)
+    named["view"] = {"name": "  城市一期  "}
+    assert parse_project(named).view.name == "城市一期"  # 首尾空白剥除
+
+
+def test_view_name_length_limit() -> None:
+    """P0-1：去空白后超 100 字符拒（与 server CreateRequest 同口径）。"""
+    named = dict(MINIMAL)
+    named["view"] = {"name": "名" * 101}
+    with pytest.raises(ValueError, match="100"):
+        parse_project(named)
+    named["view"] = {"name": "名" * 100}
+    assert len(parse_project(named).view.name) == 100  # 恰上限含
+
+
+def test_view_name_not_in_design_hash() -> None:
+    """P0-1/R1：改名=view 态变更，design 摘要零扰动（改名不算 dirty）。"""
+    from waterprint.project.content_hash import design_hash
+
+    project = parse_project(dict(MINIMAL))
+    renamed = project.model_copy(
+        update={"view": project.view.model_copy(update={"name": "改名后"})}
+    )
+    assert design_hash(project.design) == design_hash(renamed.design)

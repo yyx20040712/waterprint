@@ -13,7 +13,8 @@
  *     normalizeProjectId 归一[.wp 尾缀——真服务探针实证 /api/scene/<id>.wp
  *     422；服务端根治挂账 C1]）；列表空/查询失败=指引文案（先经 CLI/API
  *     建项目——docs/user-manual.md §3 五步链「建项目→提交计算→看方案→
- *     三维场景→出审计报告」）；
+ *     三维场景→出审计报告」）；P0-1（2026-09-11）：空态 CTA 化——
+ *     「新建项目」Modal（与 canvasPane 同件）+下拉「名称 (id 前 8)」；
  *   - 懒加载+chunk 失败重试（R1/一审 I-1）：React.lazy 的 thenable 跨挂载
  *     持久——动态 import 一旦 reject，复位边界重挂载不会重执行 import；
  *     故 lazy 持入组件 state，重试回调经 ErrorBoundary onRetry 以新 lazy
@@ -24,9 +25,11 @@
  *   - ErrorBoundary 逐面板隔离（label=三维视图——渲染崩溃不清空应用）。
  */
 import { lazy, Suspense, useState } from "react";
-import { Select, Typography } from "antd";
+import { Button, Select, Typography } from "antd";
 
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
+import { CreateProjectModal } from "./createProjectModal";
+import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { normalizeProjectId } from "./projectParam";
 import { useProjectId } from "./useProjectId";
@@ -38,13 +41,15 @@ const sceneLoader = () =>
     default: module.Scene,
   }));
 
-/** 空态指引（docs/user-manual.md §3 五步链——先建项目再提交计算）。 */
+/** 空态指引（P0-1 CTA 化——与 canvasPane 同款：不再教 API 句式）。 */
 const EMPTY_GUIDE =
-  "暂无项目可加载：请先创建项目并提交计算（CLI 或 API：POST /api/projects → POST /api/calc/run，见 docs/user-manual.md「快速开始」五步链），完成后刷新本页。";
+  "暂无项目：点击「新建项目」创建空白项目或导入已有项目 JSON 文件（三维场景在项目提交计算后展示）。";
 
 export function Viewer3dPane() {
   // S3 写方：hook setter 收敛回写 URL+派发（原 D5 三行 replaceState 内联退役）
   const [projectId, setProjectId] = useProjectId();
+  // P0-1：建项 Modal 开态（空态 CTA 挂点——成功后 onCreated 切入新项目）
+  const [createOpen, setCreateOpen] = useState(false);
   // R1（一审 I-1）：lazy 持入 state——chunk 加载失败后以新 lazy 实例重建
   // thenable（模块级 lazy 单例的失败缓存跨挂载持久，复位重挂载无效）
   const [Scene, setScene] = useState(() => lazy(sceneLoader));
@@ -70,19 +75,34 @@ export function Viewer3dPane() {
   return (
     <div>
       <Typography.Paragraph>请选择要加载三维场景的项目：</Typography.Paragraph>
-      <Select
-        style={{ minWidth: 280 }}
-        loading={projectsQuery.isLoading}
-        status={projectsQuery.isError ? "error" : undefined}
-        options={projects.map((summary) => ({
-          // R2：与 deep-link 初值共用 normalizeProjectId（.wp 尾缀归一）
-          value: normalizeProjectId(summary.project_id),
-          label: normalizeProjectId(summary.project_id),
-        }))}
-        onChange={(value) => {
-          // S3：同步回写+写后派发（useProjectId setter——不清其余参数）
-          setProjectId(value);
-        }}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <Select
+          style={{ minWidth: 280 }}
+          loading={projectsQuery.isLoading}
+          status={projectsQuery.isError ? "error" : undefined}
+          options={projects.map((summary) => ({
+            // R2：与 deep-link 初值共用 normalizeProjectId（.wp 尾缀归一）；
+            // P0-1/F3：显示名 (id 前 8)——无名回退全 id
+            value: normalizeProjectId(summary.project_id),
+            label: projectOptionLabel(
+              summary.name ?? "",
+              normalizeProjectId(summary.project_id),
+            ),
+          }))}
+          onChange={(value) => {
+            // S3：同步回写+写后派发（useProjectId setter——不清其余参数）
+            setProjectId(value);
+          }}
+        />
+        {/* P0-1/F1：建项入口（与 canvasPane 同件——成功后切入新项目） */}
+        <Button type="primary" onClick={() => setCreateOpen(true)}>
+          新建项目
+        </Button>
+      </div>
+      <CreateProjectModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(created) => setProjectId(created)}
       />
       {projectsQuery.isError ? (
         <Typography.Text type="danger">

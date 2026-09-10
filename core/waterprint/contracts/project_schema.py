@@ -28,6 +28,8 @@
 #       timestamp: str = ""（时间戳；非空必须零偏移 UTC ISO 8601
 #           （Z 或 +00:00）——GR-19 含 Z 口径，禁本地时间字符串与
 #           非零偏移时区；空串 = 无时间戳的最小态 view={}）
+#       name: str = ""（项目显示名——P0-1 建项入口 2026-09-11；
+#           strip 后 1~100 字符，空串=未命名回退 id 显示）
 #   class Metadata(BaseModel)：format_version / content_hash /
 #       engine_version / data_version（全 str 必填——可复算三元组 +
 #       版本，R3）+ migrated_from: str | None = None（迁移来源版，
@@ -174,6 +176,11 @@ class DesignState(BaseModel):
     site: SiteDesign = Field(default_factory=SiteDesign)
 
 
+# 显示名长度上限（P0-1：Final 常量化解 PLR2004——_BOUNDARY_MIN_POINTS
+# 同款先例；1~100 与 FE projectCreate.PROJECT_NAME_MAX 同口径）。
+_NAME_MAX: Final[int] = 10**2
+
+
 class ViewState(BaseModel):
     """view 态：不参与哈希的展示层状态（R1）。"""
 
@@ -183,6 +190,22 @@ class ViewState(BaseModel):
     camera: dict[str, Any] = Field(default_factory=dict)
     windows: dict[str, Any] = Field(default_factory=dict)
     timestamp: str = ""
+    # 项目显示名（P0-1 建项入口 2026-09-11）：view 态语义=用户偏好展示层
+    # （R1 不参与 content_hash——改名不算 design 变更不触发重算）；缺省 ""
+    # =未命名（历史项目零迁移装载，列表显示回退 id）；非空约束=去首尾
+    # 空白后 1~100 字符（FE 输入框同口径；GR-21 只增字段向后兼容）。
+    name: str = ""
+
+    @field_validator("name")
+    @classmethod
+    def _name_stripped(cls, value: str) -> str:
+        """显示名规范化：strip 后非空须 1~_NAME_MAX 字符（空串=未命名合法态）。"""
+        stripped = value.strip()
+        if len(stripped) > _NAME_MAX:
+            raise ValueError(
+                f"view.name 须 1~{_NAME_MAX} 字符（去首尾空白后）：得到 {len(stripped)} 字符"
+            )
+        return stripped
 
     @field_validator("timestamp")
     @classmethod

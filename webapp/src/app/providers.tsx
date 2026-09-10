@@ -95,7 +95,13 @@ const themeConfig: ThemeConfig = {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={themeConfig}>{children}</ConfigProvider>
+      {/* P0-2 顺手收口（F10/教训 24）：两汉字按钮自动插空格根除（「应 用」
+          →「应用」——antd Button 默认在中日韩两字符间插半角空格；SSR 测试
+          实证：方案表应用钮「应 用」）。antd v6 面=ConfigProvider button
+          prop（theme.components.Button.autoInsertSpace 为已弃用旧位）。 */}
+      <ConfigProvider theme={themeConfig} button={{ autoInsertSpace: false }}>
+        {children}
+      </ConfigProvider>
     </QueryClientProvider>
   );
 }

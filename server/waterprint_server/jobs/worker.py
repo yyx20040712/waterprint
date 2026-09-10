@@ -301,6 +301,13 @@ def _run_enumerate(
             for field in outcome.grid.fields
         ],
         "project_id": payload.get("project_id", ""),
+        # P0-2（2026-09-11 深链死锁修复）：unit_id=枚举目标单元（服务面
+        # submit 已守 len==1 单单元语义——ADR-005；深链 ?enum= 面 FE 经
+        # 任务状态 result 回填 enumeratedUnitId）；design_hash=枚举时点
+        # design 摘要（calc result 同键先例——FE 与当前项目 metadata.
+        # content_hash 比对做「设计已变更，方案基于旧版本」漂移警示）。
+        "unit_id": str(payload["unit_id"]),
+        "design_hash": core.design_hash(project.design),
     }
 
 

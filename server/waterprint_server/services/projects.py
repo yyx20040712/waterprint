@@ -77,6 +77,7 @@ from waterprint.contracts.project_schema import (
     DesignState,
     Metadata,
     ProjectFile,
+    ViewState,
     parse_project,
 )
 
@@ -85,6 +86,8 @@ from waterprint_server.settings import ENGINE_VERSION, safe_child
 
 _PROJECT_SUFFIX: Final[str] = ".wp.json"
 _ROUND_DIGITS: Final[int] = 10  # 与 core io._ROUND_DIGITS 同源（B4 双胞胎）
+# 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68）
+_NAME_MAX: Final[int] = 10**2
 _DESIGN_FORMAT_VERSION: Final[str] = "3.0"  # 与 core io._FORMAT_VERSION 同源（L4a 随行）
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
@@ -131,7 +134,7 @@ class SaveOutcome:
 
 @dataclass(frozen=True)
 class ProjectSummary:
-    """列表元数据（R4：来自文件读取，无独立索引库）。"""
+    """列表元数据（R4：来自文件读取，无独立索引库；name=view 态显示名）。"""
 
     project_id: str
     format_version: str
@@ -139,6 +142,7 @@ class ProjectSummary:
     engine_version: str
     data_version: str
     view_timestamp: str
+    name: str = ""  # P0-1：显示名（历史项目缺省=空串→FE 回退 id 显示）
 
 
 @dataclass(frozen=True)
@@ -307,13 +311,25 @@ def refresh_lock_mtime(ctx: ServiceContext, project_id: str) -> bool:
 
 
 def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutcome:
-    """创建（空项目或导入 JSON 深度闸装载）→ 落盘（经 app.save_project）。"""
+    """创建（空项目或导入 JSON 深度闸装载）→ 落盘（经 app.save_project）。
+
+    P0-1（2026-09-11）：payload.name → view.name 注入（空白新建直带名称；
+    导入时请求 name 非空覆盖导入文件自带名，缺省保留导入值——重命名轻
+    通道=保存面 view 态改写，不涉 design/hash）。
+    """
     _check_depth(payload, ctx.settings.max_json_depth)
+    raw_name = payload.get("name")
+    name = raw_name.strip() if isinstance(raw_name, str) else ""
+    if len(name) > _NAME_MAX:  # 与 core ViewState.name 同口径（schema 面亦拒）
+        raise InvalidProjectPayloadError(
+            f"项目名称须 1~{_NAME_MAX} 字符（去首尾空白后）：得到 {len(name)} 字符"
+        )
     raw = payload.get("project")
     if raw is None:
         project = ProjectFile(
             format_version=_DESIGN_FORMAT_VERSION,
             design=DesignState(),
+            view=ViewState(name=name),
             metadata=Metadata(
                 format_version=_DESIGN_FORMAT_VERSION,
                 content_hash="",
@@ -327,6 +343,10 @@ def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutco
             project = parse_project(raw)
         except ValueError as exc:  # pydantic ValidationError 族（ValueError 基）→422
             raise InvalidProjectPayloadError(f"导入项目校验失败：{exc}") from exc
+        if name and project.view.name != name:
+            project = project.model_copy(
+                update={"view": project.view.model_copy(update={"name": name})}
+            )
     project_id = uuid.uuid4().hex
     digest = design_digest(project.design)
     core.save_project(_with_hash(project, digest), _project_path(ctx, project_id))
@@ -349,6 +369,7 @@ def list_projects(ctx: ServiceContext) -> tuple[ProjectSummary, ...]:
                 engine_version=project.metadata.engine_version,
                 data_version=project.metadata.data_version,
                 view_timestamp=project.view.timestamp,
+                name=project.view.name,
             )
         )
     return tuple(summaries)

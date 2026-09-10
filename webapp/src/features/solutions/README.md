@@ -8,7 +8,9 @@
 | 文件 | 状态 | 职责 |
 |------|------|------|
 | `lib/solutionsView.ts` | FE6 实装+C2 重制 | 纯函数层：SolutionPage 窄化门+动态列模型（两行制 title/unit+固定列名中文）+apply 载荷+排序选项+formatSolutionValue 数值格式化 |
+| `lib/applyGates.test.ts` | P0-2 实装 | 三闸纯函数族 node 测试（三源窄化缺键降级/闸①②禁用因五分支/闸③漂移缺源不警示） |
 | `lib/solutionsView.test.ts` | FE6 实装+C2 扩面 | 五纯函数族 node 测试（golden aao 内联夹具+负例族带键定位+格式化三支用例族） |
+| `lib/applyGates.ts` | P0-2 实装 | 应用闸纯函数层：narrowEnumSource（result unit_id/design_hash+当前 content_hash 三源窄化）/applyGateReason（闸①下拉≠表源+闸②单元缺席→禁用述因）/applyDriftWarn（闸③漂移警示——呈裁⑧ 甲案警示后放行）；solutionsPane 行数预算越界修沿 solutionsFields B7 先例 |
 | `lib/solutionsFields.ts` | B7 R+ 提取 | 枚举结果字段窄化（resultField/grid_fields）+409 锁冲突判定（isLockConflict/LOCK_HINT）纯函数——solutionsPane 行数预算越界修前进 |
 | `lib/solutionsFields.test.ts` | B2 扩面 R 轮 | unitOptionLabel 四分支 node 测试（中文名/英文回退/builtin 后缀/未就绪旧形态防自重复） |
 | `lib/taskFeed.ts` | FE6 实装 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定 |

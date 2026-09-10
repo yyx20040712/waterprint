@@ -113,3 +113,26 @@ async def test_infeasible_enumeration_is_done_not_failed_wiring(service_ctx) -> 
     assert page.size == 2 and len(page.rows) <= 2 and page.total >= 1  # 分页+重载
     with pytest.raises(_mod.InvalidPageParameterError):  # 排序白名单外 422 面
         fetch_solutions(service_ctx, ok_handle.task_id, 1, 2, "not_a_field")
+
+
+# ═══ P0-2（深链死锁修复 2026-09-11）：result unit_id/design_hash 扩源 ═══
+
+
+async def test_result_carries_unit_id_and_design_hash_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """P0-2：枚举 result 载荷带 unit_id（FE 深链回填源）+design_hash（漂移
+    闸③比对源——与当前项目 design digest 一致锚：core/服务双胞胎镜像面）。"""
+    project_id = await _cass_project(service_ctx)
+    handle = await submit_enumeration(service_ctx, project_id, ["municipal_cass"])
+    await _await_terminal(service_ctx, handle.task_id)
+    status = service_ctx.manager.status(handle.task_id)
+    assert status.state == "done"
+    assert status.result is not None
+    assert status.result["unit_id"] == "municipal_cass"
+    # design_hash=枚举时点 design 摘要（calc result 同键先例）；未改设计时
+    # 与当前项目 digest 一致（B4 双胞胎与 core 真源逐字节一致——镜像锁面）
+    assert status.result["design_hash"] == projects_mod.design_digest(
+        projects_mod.read_project(service_ctx, project_id).design
+    )
+    # SolutionPage 透传（分页消费方零额外查询可知表源单元）
+    page = fetch_solutions(service_ctx, handle.task_id, 1, 2, "margin_min")
+    assert page.unit_id == "municipal_cass"

@@ -3,7 +3,8 @@
  * C2 方案表重制 2026-09-10——briefs/task-C2-plan.md §2）。
  *
  * 输入:  SolutionPageView（窄化后分页数据）+gridFields+projectId/unitId
- *        +受控分页（currentPage/onPageChange）+onApplied 回调透传
+ *        +applyGateReason/applyDriftWarn（P0-2 三闸透传面）+受控分页
+ *        （currentPage/onPageChange）+onApplied 回调透传
  * 输出:  antd Table（响应 columns 动态建列——列宽策略/固定首列与尾列/
  *        表头两行制[标签主行+单位副行]/数值格式化+悬浮全精度/margin_min
  *        语义色/nan_flag 不可行标记/受控分页+表头吸顶）
@@ -182,6 +183,8 @@ export function SolutionsTable({
   gridFields,
   projectId,
   unitId,
+  applyGateReason,
+  applyDriftWarn,
   currentPage,
   onPageChange,
   onApplied,
@@ -190,6 +193,10 @@ export function SolutionsTable({
   gridFields: GridField[];
   projectId: string;
   unitId: string | null;
+  /** P0-2 应用闸禁用因（非 null=行级应用钮禁用+title 述因）。 */
+  applyGateReason: string | null;
+  /** P0-2 版本漂移警示（true=应用钮 Popconfirm 二次确认）。 */
+  applyDriftWarn: boolean;
   currentPage: number;
   onPageChange: (page: number) => void;
   onApplied?: (outcome: ApplyOutcome) => void;
@@ -232,6 +239,8 @@ export function SolutionsTable({
         gridFields={gridFields}
         projectId={projectId}
         unitId={unitId}
+        gateReason={applyGateReason}
+        driftWarn={applyDriftWarn}
         onApplied={onApplied}
       />
     ),
@@ -249,10 +258,10 @@ export function SolutionsTable({
       sticky
       tableLayout="fixed"
       scroll={{ x: scrollX }}
-      rowKey={(row, index) =>
+      rowKey={(row) =>
         gridFields.length > 0
           ? gridFields.map((field) => String(row[field.key])).join("|")
-          : `row-${index ?? 0}`
+          : JSON.stringify(row).slice(0, 80)
       }
       columns={columns}
       dataSource={page.rows}

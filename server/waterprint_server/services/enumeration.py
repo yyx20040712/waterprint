@@ -71,7 +71,11 @@ class DiagnosisNotAvailableError(RuntimeError):
 
 @dataclass(frozen=True)
 class SolutionPage:
-    """分页方案集（§12.2 默认 200/页；rows=行记录列表）。"""
+    """分页方案集（§12.2 默认 200/页；rows=行记录列表）。
+
+    P0-2（2026-09-11）：unit_id=枚举目标单元（result 载荷透传——深链
+    ?enum= 面消费方零额外查询可知表源单元）。
+    """
 
     task_id: str
     page: int
@@ -80,6 +84,7 @@ class SolutionPage:
     sort: str
     columns: tuple[str, ...]
     rows: tuple[Mapping[str, Any], ...]
+    unit_id: str = ""
 
 
 async def submit_enumeration(
@@ -173,6 +178,8 @@ def fetch_solutions(
         sort=sort,
         columns=columns,
         rows=tuple(records),
+        # P0-2：result 载荷透传（历史任务缺键=空串——FE 布尔判据自然禁用面）
+        unit_id=str(status.result.get("unit_id", "")),
     )
 
 

@@ -27,27 +27,31 @@
  *   - ErrorBoundary label=工艺画布（渲染崩溃不清空应用 §15 细节 4；
  *     params 两件同界隔离）；不传 onRetry（无 lazy thenable 重建需求——
  *     复位复位态即重挂载，取数经 react-query 有自身重试）；
- *   - 空态=AntD Select：选项来自 GET /api/projects；列表空/查询失败=
- *     指引文案（CLI/API 建项目五步链——docs/user-manual.md §3）；
- *     本文件与 viewer3dPane 内联同构（app 层两处各持）——公共抽取
- *     挂账 UX 批（白名单限定本批不动 app 既有文件面）；
+ *   - 空态=AntD Select：选项来自 GET /api/projects（P0-1/F3：label=
+ *     「名称 (id 前 8)」——projectOptionLabel，无名回退全 id）+「新建项目」
+ *     CTA（P0-1/F1/F4-文案面：CreateProjectModal 两态——空白新建/导入
+ *     JSON；成功经 useProjectId setter 切入）；列表空=指引文案（不再教
+ *     API——docs/user-manual.md §3 五步链降级为参考文档）；查询失败=
+ *     错误文案（AUDIT2 I-3 纪律维持：不挂建项目引导）；
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
  *     名——FE3 C3 同款规避；指引由段落承担）。
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Select, Typography } from "antd";
+import { Button, Select, Typography } from "antd";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
 import { AssumptionsPanel } from "../features/params/components/AssumptionsPanel";
 import { ParamForm } from "../features/params/components/ParamForm";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
+import { CreateProjectModal } from "./createProjectModal";
+import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { normalizeProjectId } from "./projectParam";
 import { useProjectId } from "./useProjectId";
 
-/** 空态指引（与 viewer3dPane 同款——先建项目再提交计算）。 */
+/** 空态指引（P0-1 CTA 化——F4-文案面收口：新建/导入经 Modal，不再教 API）。 */
 const EMPTY_GUIDE =
-  "暂无项目可加载：请先创建项目并提交计算（CLI 或 API：POST /api/projects → POST /api/calc/run，见 docs/user-manual.md「快速开始」五步链），完成后刷新本页。";
+  "暂无项目：点击「新建项目」创建空白项目或导入已有项目 JSON 文件。";
 
 /** 未选中提示（D4——ParamForm 槽位文案，假设清单恒展示）。 */
 const UNSELECTED_HINT =
@@ -69,6 +73,8 @@ export function CanvasPane({
 }) {
   // S3 写方：hook setter 收敛回写 URL+派发（原三行 replaceState 内联退役）
   const [projectId, setProjectId] = useProjectId();
+  // P0-1：建项 Modal 开态（空态 CTA 挂点——成功后 onCreated 切入新项目）
+  const [createOpen, setCreateOpen] = useState(false);
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   // Q8 侧栏拖拽宽度（会话内 state——纯 UI 偏好不进 URL；view 态写侧挂账）
@@ -205,18 +211,33 @@ export function CanvasPane({
   return (
     <div>
       <Typography.Paragraph>请选择要加载工艺画布的项目：</Typography.Paragraph>
-      <Select
-        style={{ minWidth: 280 }}
-        loading={projectsQuery.isLoading}
-        status={projectsQuery.isError ? "error" : undefined}
-        options={projects.map((summary) => ({
-          value: normalizeProjectId(summary.project_id),
-          label: normalizeProjectId(summary.project_id),
-        }))}
-        onChange={(value) => {
-          // S3：单一真相回写+写后派发（useProjectId setter——不清其余参数）
-          setProjectId(value);
-        }}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <Select
+          style={{ minWidth: 280 }}
+          loading={projectsQuery.isLoading}
+          status={projectsQuery.isError ? "error" : undefined}
+          options={projects.map((summary) => ({
+            value: normalizeProjectId(summary.project_id),
+            // P0-1/F3：显示名 (id 前 8)——无名回退全 id
+            label: projectOptionLabel(
+              summary.name ?? "",
+              normalizeProjectId(summary.project_id),
+            ),
+          }))}
+          onChange={(value) => {
+            // S3：单一真相回写+写后派发（useProjectId setter——不清其余参数）
+            setProjectId(value);
+          }}
+        />
+        {/* P0-1/F1：建项入口（空白新建/导入 JSON——Modal 两态） */}
+        <Button type="primary" onClick={() => setCreateOpen(true)}>
+          新建项目
+        </Button>
+      </div>
+      <CreateProjectModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(created) => setProjectId(created)}
       />
       {projectsQuery.isError ? (
         <Typography.Text type="danger">

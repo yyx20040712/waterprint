@@ -16,6 +16,7 @@ save_project = getattr(_mod, "save_project")
 import_legacy = getattr(_mod, "import_legacy")
 create_project = getattr(_mod, "create_project")
 read_project = getattr(_mod, "read_project")
+list_projects = getattr(_mod, "list_projects")
 result_is_stale = getattr(_mod, "result_is_stale")
 
 pytestmark = [
@@ -111,3 +112,36 @@ async def test_constraint_choices_uncheck_returns_to_empty_wiring(service_ctx) -
     assert outcome.design_changed is True  # 解勾也是 design 变更
     assert outcome.content_hash == outcome0.content_hash  # 回环=初始空档 digest
     assert read_project(service_ctx, project_id).design.constraint_choices == {}
+
+
+# ═══ P0-1（建项入口 2026-09-11）：name→view.name 持久/列表回显/导入覆盖 ═══
+
+
+async def test_create_with_name_persists_and_lists_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """P0-1：空白新建带 name→view.name 持久+列表回显；缺省名=空串回退。"""
+    outcome = create_project(service_ctx, {"name": "城市一期"})
+    assert read_project(service_ctx, outcome.project_id).view.name == "城市一期"
+    by_id = {s.project_id.removesuffix(".wp"): s.name for s in list_projects(service_ctx)}
+    assert by_id[outcome.project_id] == "城市一期"
+    # 历史项目（不带 name 创建）=空串（FE 回退 id 显示面）
+    outcome_blank = create_project(service_ctx, {})
+    by_id = {s.project_id.removesuffix(".wp"): s.name for s in list_projects(service_ctx)}
+    assert by_id[outcome_blank.project_id] == ""
+
+
+async def test_create_name_strip_and_length_guard_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """P0-1：name strip 规范（首尾空白剥除——core ViewState 同口径）+超限拒。"""
+    outcome = create_project(service_ctx, {"name": "  一期  "})
+    assert read_project(service_ctx, outcome.project_id).view.name == "一期"
+    with pytest.raises(_mod.InvalidProjectPayloadError, match="100"):
+        create_project(service_ctx, {"name": "名" * (100 + 1)})
+
+
+async def test_import_name_override_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """P0-1：导入时请求 name 非空=覆盖导入文件自带名；缺省=保留导入值。"""
+    outcome = create_project(service_ctx, {"name": "原名"})
+    raw = read_project(service_ctx, outcome.project_id).model_dump(mode="json")
+    overridden = create_project(service_ctx, {"project": raw, "name": "覆盖名"})
+    assert read_project(service_ctx, overridden.project_id).view.name == "覆盖名"
+    kept = create_project(service_ctx, {"project": raw})
+    assert read_project(service_ctx, kept.project_id).view.name == "原名"

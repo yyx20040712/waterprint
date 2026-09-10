@@ -75,9 +75,14 @@ def _reject_oversized_body(request: Request) -> None:
 
 
 class CreateProjectRequest(BaseModel):
-    """创建请求：空创建（project 缺省）或导入 JSON（§18 深度闸在服务面）。"""
+    """创建请求：空创建（project 缺省）或导入 JSON（§18 深度闸在服务面）。
+
+    P0-1：name=项目显示名（可选；空白新建直带名称省一次回写 PUT；
+    导入时非空则覆盖导入文件自带名）。
+    """
 
     project: dict[str, Any] | None = None
+    name: str | None = None
 
 
 class SaveOutcomeResponse(BaseModel):
@@ -89,7 +94,7 @@ class SaveOutcomeResponse(BaseModel):
 
 
 class ProjectSummaryResponse(BaseModel):
-    """列表条目（名称=文件 id；哈希/时间元数据）。"""
+    """列表条目（name=显示名；空串=未命名回退 id；哈希/时间元数据）。"""
 
     project_id: str
     format_version: str
@@ -97,6 +102,7 @@ class ProjectSummaryResponse(BaseModel):
     engine_version: str
     data_version: str
     view_timestamp: str
+    name: str = ""
 
 
 class ValidationResponse(BaseModel):
@@ -111,7 +117,9 @@ class ValidationResponse(BaseModel):
 )
 async def create_project(body: CreateProjectRequest, request: Request) -> SaveOutcomeResponse:
     """创建（空项目或导入）——薄转换：调 service → 响应包装。"""
-    outcome = service.create_project(_ctx(request), {"project": body.project})
+    outcome = service.create_project(
+        _ctx(request), {"project": body.project, "name": body.name}
+    )
     return SaveOutcomeResponse(
         project_id=outcome.project_id,
         content_hash=outcome.content_hash,
@@ -130,6 +138,7 @@ async def list_projects(request: Request) -> list[ProjectSummaryResponse]:
             engine_version=item.engine_version,
             data_version=item.data_version,
             view_timestamp=item.view_timestamp,
+            name=item.name,
         )
         for item in service.list_projects(_ctx(request))
     ]

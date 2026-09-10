@@ -294,8 +294,19 @@
         "type": "object"
       },
       "CreateProjectRequest": {
-        "description": "创建请求：空创建（project 缺省）或导入 JSON（§18 深度闸在服务面）。",
+        "description": "创建请求：空创建（project 缺省）或导入 JSON（§18 深度闸在服务面）。\n\nP0-1：name=项目显示名（可选；空白新建直带名称省一次回写 PUT；\n导入时非空则覆盖导入文件自带名）。",
         "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "project": {
             "anyOf": [
               {
@@ -1411,7 +1422,7 @@
         "type": "object"
       },
       "ProjectSummaryResponse": {
-        "description": "列表条目（名称=文件 id；哈希/时间元数据）。",
+        "description": "列表条目（name=显示名；空串=未命名回退 id；哈希/时间元数据）。",
         "properties": {
           "content_hash": {
             "title": "Content Hash",
@@ -1427,6 +1438,11 @@
           },
           "format_version": {
             "title": "Format Version",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
             "type": "string"
           },
           "project_id": {
@@ -1622,7 +1638,7 @@
         "type": "string"
       },
       "SolutionPage": {
-        "description": "分页方案集（§12.2 默认 200/页；rows=行记录列表）。",
+        "description": "分页方案集（§12.2 默认 200/页；rows=行记录列表）。\n\nP0-2（2026-09-11）：unit_id=枚举目标单元（result 载荷透传——深链\n?enum= 面消费方零额外查询可知表源单元）。",
         "properties": {
           "columns": {
             "items": {
@@ -1658,6 +1674,11 @@
           "total": {
             "title": "Total",
             "type": "integer"
+          },
+          "unit_id": {
+            "default": "",
+            "title": "Unit Id",
+            "type": "string"
           }
         },
         "required": [

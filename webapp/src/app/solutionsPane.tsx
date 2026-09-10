@@ -22,9 +22,10 @@
  *     onSuccess 两轨同更（新枚举=新表源+新面板任务）；
  *   - R2 应用目标固化（yI-2）：枚举 onSuccess 固化 enumeratedUnitId
  *     快照（表源任务的单元）——ApplySolutionButton 消费固化值（实时
- *     下拉仅驱动新枚举提交，改选不影响已展示行的应用目标——服务端
- *     apply 无单元-参数域匹配防护，错位应用会真实原子写错单元）；
- *     deep-link 进 ?task= 时固化值 null→应用按钮禁用维持；
+ *     下拉仅驱动新枚举提交，改选不影响已展示行的应用目标）；P0-2
+ *     （2026-09-11 F5 修复）：深链 ?enum= 经 result.unit_id 回填固化值
+ *     +应用三闸/漂移横幅（闸语义与文案真源=features/solutions/lib/
+ *     applyGates.ts 头注——op-chain-fix-plan §二 r2）；
  *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面：
  *     写方 canvas/viewer3d 切项目后本 pane 响应刷新）；面板只读不回写
  *     （项目选择器归 canvas 面）；
@@ -72,9 +73,9 @@
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目——项目
  *     选择器不重复建，挂账 UX 批）；ErrorBoundary label=方案浏览。
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Select, Typography, message } from "antd";
+import { Typography, message } from "antd";
 
 import {
   useGetSolutionsApiCalcTasksTaskIdSolutionsGet,
@@ -89,9 +90,7 @@ import {
 import { WaterprintApiError } from "../shared/api/http";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
-import { useUnitCatalog } from "../features/params/api/useUnitCatalog";
 import { useConstraints } from "../features/params/api/useConstraints";
-import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
 import {
   filterSelectable,
   mergeGroupSelection,
@@ -101,11 +100,8 @@ import {
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
 import { LOCK_HINT, isLockConflict } from "../shared/api/http";
-import {
-  narrowGridFields,
-  resultField,
-  unitOptionLabel,
-} from "../features/solutions/lib/solutionsFields";
+import { applyDriftWarn, applyGateReason, narrowEnumSource } from "../features/solutions/lib/applyGates";
+import { narrowGridFields, resultField } from "../features/solutions/lib/solutionsFields";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
 import { SolutionsTable } from "../features/solutions/components/SolutionsTable";
@@ -114,6 +110,7 @@ import {
   narrowSolutionPage,
   type SolutionPageView,
 } from "../features/solutions/lib/solutionsView";
+import { EnumerateBar } from "./enumerateBar";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { parseEnumParam, parseTaskParam } from "./projectParam";
 import { useProjectId } from "./useProjectId";
@@ -128,6 +125,14 @@ const NO_PROJECT_HINT =
 
 /** 分页大小（D9：50 固定——服务端分页默认 200 属全量面，浏览取 50）。 */
 const PAGE_SIZE = 50;
+
+/** 错误文案（两处同构收口——Error.message 优先，未知错误兜底）。 */
+function errorText(error: unknown, isError: boolean): string | null {
+  if (!isError) {
+    return null;
+  }
+  return error instanceof Error ? error.message : "未知错误";
+}
 
 export function SolutionsPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
@@ -156,15 +161,6 @@ export function SolutionsPane() {
   );
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
-  // B2 扩面：目录中文名查询面（未就绪/键缺席=英文 id 诚实回退不阻断）
-  const catalogQuery = useUnitCatalog();
-  const nameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const entry of catalogQuery.data?.units ?? []) {
-      map.set(entry.unit_id, entry.name_zh);
-    }
-    return map;
-  }, [catalogQuery.data]);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
   const constraintsQuery = useConstraints();
   // CP2 D3：原始 GET 体（同键不带 select——raw 缓存共享；恢复+PUT 唯一数据源）
@@ -250,6 +246,7 @@ export function SolutionsPane() {
       ? feasibleRaw
       : null;
   const diagnosis = resultField(result, "diagnosis");
+  const enumSource = narrowEnumSource(result, rawQuery.data); // P0-2 三源窄化
   const enumerateDone =
     enumerateTaskId !== null &&
     tableStatus?.kind === "enumerate" &&
@@ -259,6 +256,24 @@ export function SolutionsPane() {
   const payloadMissing = enumerateDone && feasibleCount === null;
   const tableEnabled =
     enumerateDone && feasibleCount !== null && feasibleCount > 0;
+
+  // P0-2 回填 effect（F5 收口）：深链 ?enum= 固化值 null 死锁修复——
+  // result.unit_id 就绪且未固化时回填（下拉同步恢复；已选不覆写——闸①
+  // 自然呈现差异）；竞态守卫=task_id 比对当前 enumerateTaskId（旧查询
+  // 返回不回填新上下文——react-query 键随任务变，比对为双保险）。
+  useEffect(() => {
+    const sourceUnitId = enumSource.resultUnitId;
+    if (
+      enumerateTaskId === null ||
+      enumeratedUnitId !== null ||
+      sourceUnitId === null ||
+      tableStatus?.task_id !== enumerateTaskId
+    ) {
+      return;
+    }
+    setEnumeratedUnitId(sourceUnitId);
+    setUnitId((prev) => (prev === null ? sourceUnitId : prev));
+  }, [enumerateTaskId, enumeratedUnitId, enumSource.resultUnitId, tableStatus]);
 
   const solutionsQuery =
     useGetSolutionsApiCalcTasksTaskIdSolutionsGet<SolutionPageView, Error>(
@@ -321,6 +336,15 @@ export function SolutionsPane() {
   }
 
   const units = unitsQuery.data ?? [];
+  // P0-2 应用三闸（r2）：闸①②禁用因+闸③漂移警示——applyGates 纯函数
+  // （呈裁⑧ 甲案：漂移警示后放行——横幅+应用钮 Popconfirm 二次确认）。
+  const applyGateReasonValue = applyGateReason({
+    enumeratedUnitId,
+    unitId,
+    units,
+    tableEnabled,
+  });
+  const applyDriftWarnValue = applyDriftWarn(enumSource, tableEnabled);
   const selectableConstraints = filterSelectable(
     constraintsQuery.data ?? [],
     unitId,
@@ -358,67 +382,34 @@ export function SolutionsPane() {
           方案浏览（单单元枚举——ADR-005）
         </Typography.Title>
         {contextHolder}
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <Select
-            style={{ minWidth: 260 }}
-            value={unitId ?? undefined}
-            loading={unitsQuery.isLoading}
-            status={unitsQuery.isError ? "error" : undefined}
-            options={units.map((unit) => ({
-              // B2 扩面：label 形态收口 solutionsFields.unitOptionLabel
-              // （manifest 纯中文/builtin 中文名+（node_id）后缀/缺席英文
-              // id 诚实回退；value 仍 node id 零漂移）
-              value: unit.unitId,
-              label: unitOptionLabel(unit, nameById),
-            }))}
-            onChange={(value) => {
-              setUnitId(value);
-              // CP2 D4：单元切换不清空勾选（持久全集∩供选面——切回再现）
-            }}
-          />
-          <ConstraintPicker
-            entries={selectableConstraints}
-            selectedKeys={constraintKeys}
-            onChange={handleConstraintChange}
-          />
-          <Button
-            type="primary"
-            loading={enumerate.isPending}
-            disabled={unitId === null}
-            onClick={() => {
-              if (unitId === null) {
-                return;
-              }
-              // R-3：本组投影空回 null（全集含跨单元键时禁发 {constraints:[]}）
-              const items = toPayloadItems(selectableConstraints, constraintKeys);
-              enumerate.mutate({
-                data: {
-                  project_id: projectId,
-                  unit_ids: [unitId],
-                  options: items.length === 0 ? null : { constraints: items },
-                },
-              });
-            }}
-          >
-            提交枚举
-          </Button>
-          {enumerate.isError ? (
-            <Typography.Text type="danger">
-              提交失败：
-              {enumerate.error instanceof Error
-                ? enumerate.error.message
-                : "未知错误"}
-            </Typography.Text>
-          ) : null}
-        </div>
-        {unitsQuery.isError ? (
-          <Typography.Paragraph type="danger">
-            单元清单加载失败：
-            {unitsQuery.error instanceof Error
-              ? unitsQuery.error.message
-              : "未知错误"}
-          </Typography.Paragraph>
-        ) : null}
+        {/* P0-2 行数预算修：提交条抽取 app/enumerateBar（跨 feature 组合
+            归 app 层——FE6 D8/CP1/CP2 逻辑零变更） */}
+        <EnumerateBar
+          units={units}
+          unitId={unitId}
+          onUnitChange={setUnitId}
+          constraintEntries={selectableConstraints}
+          constraintKeys={constraintKeys}
+          onConstraintChange={handleConstraintChange}
+          enumeratePending={enumerate.isPending}
+          onEnumerate={() => {
+            if (unitId === null) {
+              return;
+            }
+            // R-3：本组投影空回 null（全集含跨单元键时禁发 {constraints:[]}）
+            const items = toPayloadItems(selectableConstraints, constraintKeys);
+            enumerate.mutate({
+              data: {
+                project_id: projectId,
+                unit_ids: [unitId],
+                options: items.length === 0 ? null : { constraints: items },
+              },
+            });
+          }}
+          enumerateError={errorText(enumerate.error, enumerate.isError)}
+          unitsLoading={unitsQuery.isLoading}
+          unitsError={errorText(unitsQuery.error, unitsQuery.isError)}
+        />
 
         <div style={{ marginTop: 12 }}>
           {panelTaskId !== null ? (
@@ -444,6 +435,15 @@ export function SolutionsPane() {
         </div>
 
         {noSolutions ? <DiagnosisPanel diagnosis={diagnosis} /> : null}
+        {/* P0-2 闸③漂移横幅：枚举结果基于旧版设计（应用钮另有二次确认）。 */}
+        {applyDriftWarnValue ? (
+          <Typography.Paragraph
+            type="warning"
+            style={{ marginBottom: 0, marginTop: 8 }}
+          >
+            设计已变更——方案表来自旧版本设计的枚举结果，应用前将再次提示确认。
+          </Typography.Paragraph>
+        ) : null}
         {payloadMissing ? (
           <Typography.Paragraph
             type="warning"
@@ -470,6 +470,8 @@ export function SolutionsPane() {
               gridFields={gridFields}
               projectId={projectId}
               unitId={enumeratedUnitId}
+              applyGateReason={applyGateReasonValue}
+              applyDriftWarn={applyDriftWarnValue}
               currentPage={page}
               onPageChange={setPage}
               onApplied={handleApplied}

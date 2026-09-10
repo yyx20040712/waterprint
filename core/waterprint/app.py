@@ -186,7 +186,7 @@ from waterprint.solution.ranking import RankingKey, rank
 from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
-__all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单入口，纯转发零行为）
+__all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单入口，纯转发零行为）；
     "DEFAULT_ASSUMPTIONS",
     "ArtifactKindNotReady",
     "AssembledGraph",
@@ -201,6 +201,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "RunEnv",
     "SceneGraph",
     "assemble", "build_scene",
+    "design_hash",  # P0-2 再导出（server 枚举 worker 漂移闸③源——app 单入口语义同款）
     "discover_units",
     "export_artifact",
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
