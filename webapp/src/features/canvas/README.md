@@ -46,5 +46,6 @@
 - 内置节点（市政进水/汇流/水质编辑/回流汇流）与单元节点同一渲染管线；
 - 域色四色制（municipal 水蓝/sludge 泥棕/mine_water 青绿/conveyance
   钢灰蓝——unitGlyph 单源+global.css 变量轴同值双源）；连线两色制
-  （任一 sludge 端→泥棕；GR-39 改色红线双处联动）；选中=鎏金
+  （任一 sludge 端→泥棕；改色红线=N 处联动——R-G3 清单见 global.css
+  头注）；选中=鎏金
   （C1 变量轴既定意图）。

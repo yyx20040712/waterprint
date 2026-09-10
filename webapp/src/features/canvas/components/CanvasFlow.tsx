@@ -274,7 +274,7 @@ export function CanvasFlow({
           style={{
             left: "auto",
             right: 14,
-            background: "var(--wp-bg-container)",
+            background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border)",
             borderRadius: 8,
             overflow: "hidden",

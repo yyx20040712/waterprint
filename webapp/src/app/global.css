@@ -36,11 +36,13 @@
  *   --wp-font-mono ↔ providers fontFamilyCode
  * 以下为 antd 无槽位色（轴真源——字面量联动面见下两行；dot/
  * scrollbar-hover 两键零消费方字面量）：gold/water/sludge/mine/convey。
- * C2-canvas 批（R-G3 联动清单——GC-02/03 处置）：water/sludge/mine/
- * convey 四色与 unitGlyph.ts（domainColorOf/streamColorOf——SVG 面
- * 技术根因 var() 不可用）+CanvasFlow.tsx（LEGEND_LINES）/UnitNode.tsx
- * （SELECT_* 鎏金派生+DOMAIN_ICON_STYLES 域派生组）同值多源，改色
- * 红线=N 处联动（unitGlyph 主源为比对基准）。
+ * C2-canvas 批（R-G3 联动清单——GC-02/03 处置，R2-4 拆两段）：
+ * ①四域色同值面：water/sludge/mine/convey 与 unitGlyph.ts
+ * （domainColorOf/streamColorOf——SVG 面技术根因 var() 不可用）+
+ * CanvasFlow LEGEND_LINES 同值多源，改色红线=N 处联动（unitGlyph
+ * 主源为比对基准）；②同族派生面（非同值）：UnitNode SELECT_* 鎏金
+ * 派生组[基准=--wp-gold]与 DOMAIN_ICON_STYLES 图标底/边/前景派生组
+ * [基准=四域色]——改基准色须同步复核派生组。
  * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
  * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
