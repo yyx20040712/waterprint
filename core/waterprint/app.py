@@ -162,6 +162,11 @@ from waterprint.project.io import load_project as _io_load
 from waterprint.project.io import save_project as _project_save
 from waterprint.project.migration import SUPPORTED_VERSIONS, migrate
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+
+# 再导出专用（CI 补笔 2026-09-10）：FD services env 直算消费面——server
+# 单入口；直连 registry 违 UF-33 server 面 import-linter 契约（CI 服务层
+# 质量拦——本地门禁盲区记档）
+from waterprint.registry.coefficients import load_coefficients
 from waterprint.solution.constraints import apply_constraints
 from waterprint.solution.design_map import (
     DesignMap,
@@ -198,6 +203,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "assemble", "build_scene",
     "discover_units",
     "export_artifact",
+    "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
     "load_project",
     "run_design_map",
     "run_enumeration",

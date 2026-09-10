@@ -34,8 +34,9 @@
 #
 # 【实现注记】env 装配为 services 面首例直算（scene/elevation 消费
 #   存量结果集无 env）：engine_version=ENGINE_VERSION（worker._build_env
-#   同源）；系数经 core.registry.load_coefficients 正门
-#   （jobs/datapack._YamlCoefficients 为 worker 进程池镜像装载，
+#   同源）；系数经 app 再导出面 core.load_coefficients（CI 补笔：直连
+#   registry 违 UF-33 server 单入口契约——server 面 import-linter 拦；
+#   jobs/datapack._YamlCoefficients 为 worker 进程池镜像装载，
 #   B4 双胞胎在册——同步面不经 spawn，直取 L1 唯一真源）；版本聚合
 #   取 coefficients 单源（price_book 空——run_design_map 零消费）。
 #
@@ -55,7 +56,6 @@ from waterprint import app as core
 from waterprint.contracts.condition import build_condition_set
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.run_env import RunEnv
-from waterprint.registry import load_coefficients
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import constraints as constraints_service
@@ -192,7 +192,7 @@ def _constraints(
 
 def _env(data_dir: Path, project: ProjectFile) -> RunEnv:
     """RunEnv 装配（services 直算首例注记见规格头）。"""
-    lib = load_coefficients(data_dir / "coefficients")
+    lib = core.load_coefficients(data_dir / "coefficients")
     assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     return RunEnv(

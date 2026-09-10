@@ -73,7 +73,6 @@
 | `waterprint_server.services` | `waterprint.elevation` | 高程纵断用例直取（FE7 D1——build_profile/evaluate_pumping/head_losses 不在 app.py 再导出面；FE7 总控裁决 2026-08-29 补登） |
 | `waterprint_server.services` | `waterprint.cost` | 概算用例直取（FE8 D1——takeoff/estimate/prices/indicators 四模块不在 app.py 再导出面；FE8 D9 预登记 2026-08-29） |
 | `waterprint_server.services` | `waterprint.geometry` | 间距校核用例直取（L4b 2026-09-03——core geometry/spacing spacing_report 裁判不在 app.py 再导出面；总控预裁 6 装配器补登） |
-| `waterprint_server.services` | `waterprint.registry` | 可行域求值 env 装配直取（FD 2026-09-10——services/design_map load_coefficients L1 正门，env 直算 services 面首例；load_coefficients 不在 app.py 再导出面；jobs 面仍走 worker CoefficientsView 协议适配器不变——交接「无新边」勘误） |
 | `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界） |
 | `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况）——ENG2 B3 补登 |
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |
