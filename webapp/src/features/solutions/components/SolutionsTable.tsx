@@ -30,7 +30,8 @@
  *   - margin_min 语义色：正绿负红 null 灰（0 中性默认色——色源=C1
  *     token colorSuccess/colorError/colorTextTertiary[useToken]，GR-39
  *     散写字面量收敛——「SemanticColor 封装挂账」头注收口）；
- *     nan_flag true→「不可行」红色标记（false→「—」不标）；
+ *     nan_flag true→「不可行」红/false→「可行」绿/null→「—」灰（C2b
+ *     用户验收反馈修订——FE6「false 不标」骨架规格就此收口）；
  *   - 数字列 fontVariantNumeric:'tabular-nums'（§19.3 等宽对齐）+右对齐；
  *   - rowKey=grid 字段值组合（枚举网格组合唯一——兜底行序）；
  *   - 受控分页（current/total/onChange——size 面恒 50 固定不切换；
@@ -119,11 +120,16 @@ function renderCell(
     return <span>{String(value)}</span>;
   }
   if (model.kind === "flag") {
-    return value === true ? (
-      <Typography.Text type="danger">不可行</Typography.Text>
-    ) : (
-      <span style={{ color: colors.null }}>—</span>
-    );
+    // C2b（用户验收反馈 2026-09-10）：三态呈现——true→红「不可行」/
+    // false→绿「可行」（全库 nan_flag 恒 false 数据现实下列面全「—」
+    // 空观感——FE6「false 不标」骨架规格就此修订）/null→灰「—」（缺值）
+    if (value === true) {
+      return <Typography.Text type="danger">不可行</Typography.Text>;
+    }
+    if (value === false) {
+      return <Typography.Text type="success">可行</Typography.Text>;
+    }
+    return <span style={{ color: colors.null }}>—</span>;
   }
   if (value === null || value === undefined) {
     return <span style={{ color: colors.null }}>—</span>;
