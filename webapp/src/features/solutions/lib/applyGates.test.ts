@@ -51,6 +51,7 @@ describe("applyGateReason（闸①②禁用因）", () => {
         enumeratedUnitId: null,
         unitId: null,
         units: [],
+        unitsReady: true,
         tableEnabled: false,
       }),
     ).toBeNull();
@@ -62,6 +63,7 @@ describe("applyGateReason（闸①②禁用因）", () => {
         enumeratedUnitId: null,
         unitId: "municipal_aao",
         units: UNITS,
+        unitsReady: true,
         tableEnabled: true,
       }),
     ).toContain("历史任务载荷缺 unit_id");
@@ -72,6 +74,7 @@ describe("applyGateReason（闸①②禁用因）", () => {
       enumeratedUnitId: "municipal_aao",
       unitId: "inlet",
       units: UNITS,
+      unitsReady: true,
       tableEnabled: true,
     });
     expect(reason).toContain("方案表来自 municipal_aao");
@@ -84,6 +87,7 @@ describe("applyGateReason（闸①②禁用因）", () => {
         enumeratedUnitId: "municipal_aao",
         unitId: null,
         units: UNITS,
+        unitsReady: true,
         tableEnabled: true,
       }),
     ).toBeNull();
@@ -94,9 +98,22 @@ describe("applyGateReason（闸①②禁用因）", () => {
       enumeratedUnitId: "removed_unit",
       unitId: "removed_unit",
       units: UNITS,
+      unitsReady: true,
       tableEnabled: true,
     });
     expect(reason).toContain("已不在当前项目设计");
+  });
+
+  it("GD-N-01：units 清单未就绪=跳闸②（空表≠已删除——防误禁窗口）", () => {
+    expect(
+      applyGateReason({
+        enumeratedUnitId: "municipal_aao",
+        unitId: "municipal_aao",
+        units: [],
+        unitsReady: false,
+        tableEnabled: true,
+      }),
+    ).toBeNull();
   });
 
   it("齐态放行=null", () => {
@@ -105,6 +122,7 @@ describe("applyGateReason（闸①②禁用因）", () => {
         enumeratedUnitId: "municipal_aao",
         unitId: "municipal_aao",
         units: UNITS,
+        unitsReady: true,
         tableEnabled: true,
       }),
     ).toBeNull();

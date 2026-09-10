@@ -53,14 +53,17 @@ export function narrowEnumSource(
   };
 }
 
-/** 闸①②：应用禁用因（null=放行；表未挂载恒 null——无应用面）。 */
+/** 闸①②：应用禁用因（null=放行；表未挂载恒 null——无应用面）。
+ * GD-N-01（A 二审）：units 未就绪（清单加载中）跳闸②——空表≠单元
+ * 已删除，禁用面只对「清单已就绪且缺席」成立（防误禁+误导述因窗口）。 */
 export function applyGateReason(options: {
   enumeratedUnitId: string | null;
   unitId: string | null;
   units: readonly UnitOption[];
+  unitsReady: boolean;
   tableEnabled: boolean;
 }): string | null {
-  const { enumeratedUnitId, unitId, units, tableEnabled } = options;
+  const { enumeratedUnitId, unitId, units, unitsReady, tableEnabled } = options;
   if (!tableEnabled) {
     return null;
   }
@@ -71,7 +74,7 @@ export function applyGateReason(options: {
   if (unitId !== null && unitId !== enumeratedUnitId) {
     return `单元下拉已选 ${unitId}，方案表来自 ${enumeratedUnitId} 的枚举——切回 ${enumeratedUnitId} 或重新提交枚举后再应用`;
   }
-  if (!units.some((unit) => unit.unitId === enumeratedUnitId)) {
+  if (unitsReady && !units.some((unit) => unit.unitId === enumeratedUnitId)) {
     return "方案表源单元已不在当前项目设计中（可能已被删除）——不可应用";
   }
   return null;

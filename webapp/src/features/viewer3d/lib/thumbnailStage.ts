@@ -25,7 +25,9 @@ import type { RenderNode, RenderScene, Vec3 } from "./projectScene";
 /** 单元构型组（unit_id=design.nodes 键——`unit::` 前缀剥除）。 */
 export type UnitConstructs = ReadonlyMap<string, readonly RenderNode[]>;
 
-/** C2-3d V4 取景冻结值（Scene.tsx CAMERA_PRESETS.iso 同值双源）。 */
+/** C2-3d V4 取景冻结值（Scene.tsx CAMERA_PRESETS.iso 同值双源）。30=方向
+ * 分量值非俯角（(30,30,30) 与水平面夹角≈35.26°——GD-N-06 措辞澄清：
+ * 与 Scene.tsx 逐分量同值即取景同源，改取景须两处联动）。 */
 const ISO_DIRECTION: readonly [number, number, number] = [30, 30, 30];
 const DISTANCE_FACTOR = 1.25;
 
@@ -110,7 +112,7 @@ export function unitBounds(nodes: readonly RenderNode[]): {
   return { min, max };
 }
 
-/** 缩略图机位（V4 口径派生：iso 方向归一×对角线×1.25+AABB 中心）。 */
+/** 缩略图机位（V4 口径派生：iso 方向分量归一×对角线×1.25+AABB 中心）。 */
 export function thumbCamera(bounds: { min: Vec3; max: Vec3 }): {
   center: Vec3;
   position: Vec3;

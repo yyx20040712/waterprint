@@ -342,6 +342,7 @@ export function SolutionsPane() {
     enumeratedUnitId,
     unitId,
     units,
+    unitsReady: !unitsQuery.isLoading && !unitsQuery.isError,
     tableEnabled,
   });
   const applyDriftWarnValue = applyDriftWarn(enumSource, tableEnabled);

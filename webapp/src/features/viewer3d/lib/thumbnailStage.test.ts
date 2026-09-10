@@ -109,9 +109,14 @@ describe("thumbCamera（V4 口径派生——iso 30/×1.25 复用）", () => {
     expect(spec.position[2]).toBeCloseTo(offset, 5);
   });
 
-  it("微构型最小距离钳（4——零尺度盒不零距离贴脸）", () => {
-    const spec = thumbCamera({ min: [0, 0, 0], max: [0.1, 0.1, 0.1] });
-    expect(Math.hypot(...spec.position)).toBeGreaterThanOrEqual(4);
+  it("微构型最小距离钳（4——GD-N-05：断言=机位到 AABB 中心距非原点距）", () => {
+    const spec = thumbCamera({ min: [500, 500, 500], max: [500.1, 500.1, 500.1] });
+    const dist = Math.hypot(
+      spec.position[0] - spec.center[0],
+      spec.position[1] - spec.center[1],
+      spec.position[2] - spec.center[2],
+    );
+    expect(dist).toBeGreaterThanOrEqual(4 - 1e-9); // 浮点尾差容差（钳值恰 4）
   });
 });
 

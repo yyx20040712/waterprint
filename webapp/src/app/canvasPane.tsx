@@ -49,6 +49,7 @@ import {
   SceneProjectionError,
   projectScene,
 } from "../features/viewer3d/lib/projectScene";
+import { thumbCacheKey } from "../features/viewer3d/lib/thumbnailStage";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
 import { TASK_EVENT } from "../shared/events";
 import { CreateProjectModal } from "./createProjectModal";
@@ -249,7 +250,18 @@ export function CanvasPane({
                 通过才渲；onReady 整批 Map 一次交付——场景数据变即重渲
                 [useMemo 随 sceneQuery.data 新引用重建队列]） */}
             {thumbScene !== null ? (
-              <ThumbnailStage scene={thumbScene} onReady={setUnitThumbnails} />
+              // GD-N-02（A 二审）：thumbCacheKey 接线为挂载键——场景三组成
+              // （项目/工况/版本）任一变强制重挂载全复位（内容级变更[同
+              // 版本摆置变]由舞台内 [scene] 复位 effect 承接——两级复位）
+              <ThumbnailStage
+                key={thumbCacheKey(
+                  projectId,
+                  thumbScene.conditionKey,
+                  thumbScene.sceneVersion,
+                )}
+                scene={thumbScene}
+                onReady={setUnitThumbnails}
+              />
             ) : null}
             <CanvasFlow
               projectId={projectId}
