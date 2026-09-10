@@ -87,7 +87,7 @@ import {
   useReadProjectApiProjectsProjectIdGet,
   useSaveProjectApiProjectsProjectIdPut,
 } from "../shared/api/generated/projects/projects";
-import { WaterprintApiError } from "../shared/api/http";
+import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../shared/api/http";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
 import { useConstraints } from "../features/params/api/useConstraints";
@@ -99,7 +99,6 @@ import {
 } from "../features/params/lib/constraintPicker";
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
-import { LOCK_HINT, isLockConflict } from "../shared/api/http";
 import { applyDriftWarn, applyGateReason, narrowEnumSource } from "../features/solutions/lib/applyGates";
 import { narrowGridFields, resultField } from "../features/solutions/lib/solutionsFields";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
@@ -337,12 +336,12 @@ export function SolutionsPane() {
 
   const units = unitsQuery.data ?? [];
   // P0-2 应用三闸（r2）：闸①②禁用因+闸③漂移警示——applyGates 纯函数
-  // （呈裁⑧ 甲案：漂移警示后放行——横幅+应用钮 Popconfirm 二次确认）。
+  // （呈裁⑧ 甲案：警示后放行——unitsReady 面 GD-N-01）。
   const applyGateReasonValue = applyGateReason({
     enumeratedUnitId,
     unitId,
     units,
-    unitsReady: !unitsQuery.isLoading && !unitsQuery.isError,
+    unitsReady: !unitsQuery.isLoading && !unitsQuery.isError, // GD-N-01 未就绪跳闸②
     tableEnabled,
   });
   const applyDriftWarnValue = applyDriftWarn(enumSource, tableEnabled);
