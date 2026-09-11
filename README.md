@@ -91,12 +91,19 @@
 > （openapi 31→32）+webapp 第八标签「可信度」[四区块卡：收敛口径/
 > 水量平衡/出水裕度 GB18918 参考面/校核警告汇总——降级语义
 > diagnostics_available=False 禁伪造空诊断]；core 714+server 287+
-> vitest 621+无头 p2t 族 ALL PASS+九族回归）**。
+> vitest 621+无头 p2t 族 ALL PASS+九族回归）**；**GOV1 治理熵减批
+> 收官（2026-09-12，ADR-013——深度审计裁决落地）：中文硬封词族六词
+> 入 grep 门禁[封存根盲区]+通用语义代数门禁[core/tests/units_lib/
+> test_removal_semantics.py——20 个 removal_refs 单元 out=in×(1−r)
+> 参数化常驻断言，UF-51 类声明去除而透传即刻红]+skip==0 CI 机器化
+> [core/server 两 pytest 步骤]+testing.md 两处勘正[收集口径/锁面
+> 范围]+webapp 样式惯例 GR-39~41 拆件守 500 预算；core 1215+门禁
+> 11 全绿）**。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：
-> 门禁 11 项（含 GR-21 弃用到期门禁，TD1）/GR-01~GR-41 治理规则/
-> test-lock 266 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
+> 门禁 11 项（含 GR-21 弃用到期门禁，TD1）/GR-01~GR-42 治理规则/
+> test-lock 271 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
 > 四块→M3 三线战役→M4 工业化→M5 图纸面→B2/FD→C1 主题骨架→C2（进行中）。
 > 数据面键计数基准（ENG3 2026-08-28 探针实测：load_coefficients/
 > load_prices/templates manifest 装载正门）：coefficients 1.1.0（577 键）
