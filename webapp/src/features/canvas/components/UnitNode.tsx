@@ -31,15 +31,34 @@
  *     组合穿线]）优先/缺席回退 24×24 象形（未算/无构型——零回归）；
  *     卡片最小高 56→64+端口首距 20→26（V4 布局校准）；设计真源=
  *     briefs/task-C2-thumb-plan.md。
+ *   - P0-3（画布编辑最小闭环——task-c2-edit-plan）：编辑态（data.editing
+ *     由 CanvasFlow 渲染层聚合注入——投影 data 字段零触碰）端口面=
+ *     catalog 端口表渲染（红线④：纯 catalog 数据展示可——新节点零边
+ *     时边聚合面空,manifest 端口面完整呈现 IN 左/OUT 右）+右上删除钮
+ *     （store 薄壳 deleteNodes——级联清在纯函数层）；只读面零回归
+ *     （editing 缺省=边聚合端口+无删除钮原样）。
  */
 import { useMemo } from "react";
-import type { NodeProps } from "@xyflow/react";
+import type { Node, NodeProps } from "@xyflow/react";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { domainColorOf, unitGlyph } from "../lib/unitGlyph";
 import { useUnitThumbnail } from "../lib/thumbnailContext";
-import type { UnitFlowNode } from "../lib/projectFlow";
+import type { UnitFlowNode, UnitFlowNodeData } from "../lib/projectFlow";
+import { useCanvasStore } from "../store/canvasStore";
 import { PortHandle } from "./PortHandle";
+
+/** catalog 端口声明（编辑态端口面数据——CanvasFlow 渲染层聚合注入）。 */
+export type EditPortDecl = { portId: string; direction: "IN" | "OUT" };
+
+/** 编辑态扩展 data（投影 UnitFlowNodeData 的超集——editing 面非投影产物）。 */
+export type UnitNodeData = UnitFlowNodeData & {
+  editing?: boolean;
+  catalogPorts?: readonly EditPortDecl[];
+};
+
+/** 编辑态扩展节点（React Flow 泛型——NODE_TYPES 注册面消费）。 */
+export type EditableUnitNode = Node<UnitNodeData, "unit">;
 
 /** 内置节点 kind 徽标文案（D2 四 kind——core graph/nodes.py 内置域）。 */
 const KIND_LABELS: Record<string, string> = {
@@ -78,7 +97,7 @@ const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg
 const PORT_TOP = 26;
 const PORT_ROW = 16;
 
-export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
+export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
   // C2-thumb V3：本节点 3D 缩略图（context 注入——缺席=回退象形图标）
   const thumbnail = useUnitThumbnail(data.unitId);
@@ -202,16 +221,82 @@ export function UnitNode({ data, selected }: NodeProps<UnitFlowNode>) {
       >
         {data.unitId}
       </div>
-      {data.targetPorts.map((portId, index) => (
-        <div key={`t-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, left: -5 }}>
-          <PortHandle portId={portId} direction="target" domainColor={domainColor} />
-        </div>
-      ))}
-      {data.sourcePorts.map((portId, index) => (
-        <div key={`s-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, right: -5 }}>
-          <PortHandle portId={portId} direction="source" domainColor={domainColor} />
-        </div>
-      ))}
+      {/* P0-3 编辑态删除钮（右上角——stopPropagation 免选中；store 薄壳
+          通道→designWriter.deleteNodes 级联清边/摆放/受检） */}
+      {data.editing === true && (
+        <button
+          type="button"
+          title="删除该单元（所连边/摆放一并清除）"
+          onClick={(event) => {
+            event.stopPropagation();
+            useCanvasStore.getState().deleteNodes([data.unitId]);
+          }}
+          style={{
+            position: "absolute",
+            top: -9,
+            right: -9,
+            width: 18,
+            height: 18,
+            lineHeight: 1,
+            fontSize: 11,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            cursor: "pointer",
+            color: "#ff7875",
+            background: "var(--wp-bg-elevated)",
+            border: "1px solid rgba(255,77,79,.55)",
+          }}
+        >
+          ✕
+        </button>
+      )}
+      {data.editing === true && data.catalogPorts !== undefined
+        ? // P0-3 编辑态端口面=manifest catalog 声明（红线④纯数据展示——
+          // 新节点零边聚合面亦完整呈现；规则判断不在渲染层）；IN/OUT
+          // 各自独立计数列（左入右出——工程图惯例）
+          data.catalogPorts
+            .filter((port) => port.direction === "IN")
+            .map((port, index) => (
+              <div
+                key={`t-${port.portId}`}
+                style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, left: -5 }}
+              >
+                <PortHandle
+                  portId={port.portId}
+                  direction="target"
+                  domainColor={domainColor}
+                  connectable
+                />
+              </div>
+            ))
+        : data.targetPorts.map((portId, index) => (
+            <div key={`t-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, left: -5 }}>
+              <PortHandle portId={portId} direction="target" domainColor={domainColor} />
+            </div>
+          ))}
+      {data.editing === true && data.catalogPorts !== undefined
+        ? data.catalogPorts
+            .filter((port) => port.direction === "OUT")
+            .map((port, index) => (
+              <div
+                key={`s-${port.portId}`}
+                style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, right: -5 }}
+              >
+                <PortHandle
+                  portId={port.portId}
+                  direction="source"
+                  domainColor={domainColor}
+                  connectable
+                />
+              </div>
+            ))
+        : data.sourcePorts.map((portId, index) => (
+            <div key={`s-${portId}`} style={{ position: "absolute", top: PORT_TOP + index * PORT_ROW, right: -5 }}>
+              <PortHandle portId={portId} direction="source" domainColor={domainColor} />
+            </div>
+          ))}
     </div>
   );
 }

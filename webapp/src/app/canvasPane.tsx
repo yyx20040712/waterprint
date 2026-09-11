@@ -34,7 +34,10 @@
  *     API——docs/user-manual.md §3 五步链降级为参考文档）；查询失败=
  *     错误文案（AUDIT2 I-3 纪律维持：不挂建项目引导）；
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
- *     名——FE3 C3 同款规避；指引由段落承担）。
+ *     名——FE3 C3 同款规避；指引由段落承担）；
+ *   - P0-3（task-c2-edit-plan）：画布区顶部挂 CanvasEditToolbar（编辑
+ *     会话开关⑤/校验⑦/保存 dirty/常驻提交计算⑥——app 层组合件）；画布
+ *     区改 flex 列（工具条+画布满高链不破）。
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Select, Typography } from "antd";
@@ -52,6 +55,7 @@ import {
 import { thumbCacheKey } from "../features/viewer3d/lib/thumbnailStage";
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
 import { TASK_EVENT } from "../shared/events";
+import { CanvasEditToolbar } from "./canvasEditToolbar";
 import { CreateProjectModal } from "./createProjectModal";
 import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -245,31 +249,35 @@ export function CanvasPane({
               />
             </div>
           </aside>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* C2-thumb V5：缩略图舞台挂载（离屏——场景数据就绪且投影
-                通过才渲；onReady 整批 Map 一次交付——场景数据变即重渲
-                [useMemo 随 sceneQuery.data 新引用重建队列]） */}
-            {thumbScene !== null ? (
-              // GD-N-02（A 二审）：thumbCacheKey 接线为挂载键——场景三组成
-              // （项目/工况/版本）任一变强制重挂载全复位（内容级变更[同
-              // 版本摆置变]由舞台内 [scene] 复位 effect 承接——两级复位）
-              <ThumbnailStage
-                key={thumbCacheKey(
-                  projectId,
-                  thumbScene.conditionKey,
-                  thumbScene.sceneVersion,
-                )}
-                scene={thumbScene}
-                onReady={setUnitThumbnails}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+            {/* P0-3 编辑工具条（编辑/校验/保存/提交计算——常驻首算钮⑥甲） */}
+            <CanvasEditToolbar projectId={projectId} />
+            <div style={{ flex: 1, minHeight: 0 }}>
+              {/* C2-thumb V5：缩略图舞台挂载（离屏——场景数据就绪且投影
+                  通过才渲；onReady 整批 Map 一次交付——场景数据变即重渲
+                  [useMemo 随 sceneQuery.data 新引用重建队列]） */}
+              {thumbScene !== null ? (
+                // GD-N-02（A 二审）：thumbCacheKey 接线为挂载键——场景三组成
+                // （项目/工况/版本）任一变强制重挂载全复位（内容级变更[同
+                // 版本摆置变]由舞台内 [scene] 复位 effect 承接——两级复位）
+                <ThumbnailStage
+                  key={thumbCacheKey(
+                    projectId,
+                    thumbScene.conditionKey,
+                    thumbScene.sceneVersion,
+                  )}
+                  scene={thumbScene}
+                  onReady={setUnitThumbnails}
+                />
+              ) : null}
+              <CanvasFlow
+                projectId={projectId}
+                selectedUnitId={selectedUnitId}
+                libraryFocusId={libraryFocusId}
+                unitThumbnails={unitThumbnails}
+                onNodeClick={setSelectedUnitId}
               />
-            ) : null}
-            <CanvasFlow
-              projectId={projectId}
-              selectedUnitId={selectedUnitId}
-              libraryFocusId={libraryFocusId}
-              unitThumbnails={unitThumbnails}
-              onNodeClick={setSelectedUnitId}
-            />
+            </div>
           </div>
         </div>
       </ErrorBoundary>

@@ -39,9 +39,14 @@
  *     handleTabChange("canvas")——AppRoute 六键冻结面零扩，单元库=Sider
  *     UI 态不进 URL）；未传回调不渲染按钮；
  *   - 搜索占位文案 props 键名拼接构造（grep 门禁扫描英文占位特征词——
- *     FE3 C3 同款规避口径，中文文案本身不受扫描面）。
+ *     FE3 C3 同款规避口径，中文文案本身不受扫描面）；
+ *   - P0-3（task-c2-edit-plan 呈裁② 甲案双入口）：编辑态（canvasStore
+ *     会话——projectId 守卫）叶行悬浮「＋」钮+Drawer 详情主钮「添加
+ *     到画布」→ store.addUnit（designWriter 零默认填充③/`_2` 后缀③）
+ *     +message 反馈实例 id；只读态零呈现（编辑入口=画布工具条「编辑」
+ *     钮——F2 断链根路径）。
  */
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -53,6 +58,7 @@ import {
   Tag,
   Tree,
   Typography,
+  message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { TreeDataNode } from "antd";
@@ -65,6 +71,7 @@ import type { PortEntry } from "../shared/api/generated/model/portEntry";
 import type { UnitMetaEntry } from "../shared/api/generated/model/unitMetaEntry";
 import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
 import { domainColorOf } from "../features/canvas/lib/unitGlyph";
+import { useCanvasStore, useEditing } from "../features/canvas/store/canvasStore";
 import {
   BUSINESS_LINE_ZH,
   buildLibraryTree,
@@ -72,6 +79,7 @@ import {
   findUnitByNodeKey,
   libraryGlyph,
 } from "./unitLibraryTree";
+import { useProjectId } from "./useProjectId";
 
 /** Drawer 宽度（简报 §五——右侧抽屉不挤侧栏）。 */
 const DRAWER_WIDTH = 480;
@@ -185,6 +193,23 @@ export function UnitLibrary({
   onNavigateTab?: () => void;
 }) {
   const [search, setSearch] = useState("");
+  // P0-3：编辑会话消费（projectId 守卫——store 会话与当前项目一致才可加）
+  const [projectId] = useProjectId();
+  const editing = useEditing(projectId);
+  const [messageApi, contextHolder] = message.useMessage();
+  const addToCanvas = useCallback(
+    (unit: UnitMetaEntry) => {
+      const nodeId = useCanvasStore.getState().addUnit(unit.unit_id, unit.kind);
+      if (nodeId !== null) {
+        messageApi.success(`已添加到画布：${nodeId}`);
+      } else if (unit.kind === "unit") {
+        // 引擎 v1 单实例约束（designWriter.addUnit 拒绝面——装配按
+        // node_id=注册表键精确匹配，_2 包实例 calc 必败）
+        messageApi.warning("该单元已在画布上（引擎 v1 单实例约束——多实例扩展挂账）");
+      }
+    },
+    [messageApi],
+  );
 
   // 生成 hook 直用（零封装——防 useUnitCatalog 三胞胎）
   const catalog = useListUnitsApiUnitsGet();
@@ -234,14 +259,30 @@ export function UnitLibrary({
       return (
         <span
           title={unit.unit_id}
-          style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 26 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 26, width: "100%" }}
         >
           <DomainIcon unit={unit} />
           <span style={{ fontSize: 12.5, color: "var(--wp-text)" }}>{unit.name_zh}</span>
+          {/* P0-3 呈裁②：编辑态叶行悬浮添加钮（stopPropagation 免叶选中
+              开抽屉——添加即反馈实例 id，抽屉不抢焦点） */}
+          {editing ? (
+            <Button
+              type="text"
+              size="small"
+              title="添加到画布"
+              onClick={(event) => {
+                event.stopPropagation();
+                addToCanvas(unit);
+              }}
+              style={{ marginLeft: "auto", padding: "0 4px", fontSize: 12, lineHeight: "20px", height: 20 }}
+            >
+              ＋
+            </Button>
+          ) : null}
         </span>
       );
     };
-  }, [units]);
+  }, [units, editing, addToCanvas]);
 
   // 取数三态两分：pending/error 在树渲染前短路（成功面才进树/抽屉/计数条）
   if (catalog.isPending) {
@@ -273,6 +314,7 @@ export function UnitLibrary({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {contextHolder}
       {/* U3 列布局收敛（glm 实现态 r1 采纳）：树区自滚（flex 1+minHeight
           0+overflow auto——36 行目录不把计数条顶出 Sider 视口）+计数条
           钉底（flex none——App Sider overflow auto 兜底面退役零滚动） */}
@@ -378,16 +420,23 @@ export function UnitLibrary({
               dataSource={selectedUnit.ports ?? []}
               pagination={false}
             />
+            {/* P0-3 呈裁② 甲案：编辑态主钮=添加到画布（零默认填充空参
+                新建——参数面经参数面板后续编辑）；导航钮降次钮沿册 */}
+            {editing && selectedUnit !== null ? (
+              <Button type="primary" block onClick={() => addToCanvas(selectedUnit)}>
+                添加到画布
+              </Button>
+            ) : null}
             {onNavigateTab === undefined ? null : (
               <Button
-                type="primary"
                 block
+                type={editing ? "default" : "primary"}
                 onClick={() => {
                   onNavigateTab();
                   onFocusChange(null);
                 }}
               >
-                到工艺画布编辑参数
+                到工艺画布{editing ? "" : "编辑参数"}
               </Button>
             )}
           </div>

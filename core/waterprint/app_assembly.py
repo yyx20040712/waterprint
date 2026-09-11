@@ -39,11 +39,17 @@ from math import isclose
 from types import MappingProxyType
 from typing import final
 
-from waterprint.contracts.ports import Edge, PortRef
+from waterprint.contracts.ports import (
+    Edge,
+    InvalidConnection,
+    Port,
+    PortRef,
+    validate_edge,
+)
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.run_env import CoefficientsView, RunEnv
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
-from waterprint.graph.nodes import builtin_unit
+from waterprint.graph.nodes import InvalidNodeError, builtin_ports, builtin_unit
 from waterprint.units_lib import discover_units
 
 
@@ -214,3 +220,70 @@ def _check_grid_hits(design: DesignState, units: Mapping[str, Unit]) -> None:
                     "浮点容差 math.isclose 默认相对 1e-9；系数投影键 factor.* "
                     "不在此面）"
                 )
+
+
+def validate_design_structure(design: DesignState) -> tuple[str, ...]:
+    """设计结构校验（P0-3 呈裁④甲）：错误清单汇总非拒式（⑦甲——中间态
+    合法工作流，结构发现=呈报不阻断）。
+
+    三查（任务书 §三.2）：①边端点存在性（unit_id 在 design.nodes）；
+    ②端口在册（端口声明真源=manifest——包单元 discover_units/内置
+    builtin_ports 只读面）；③方向+流体匹配（contracts.validate_edge
+    唯一裁判复用——R1/R2 语义零复制）。单元解析口径同 assemble：值含
+    kind 字符串=内置节点，否则 node_id=注册表键；未知单元/未知内置
+    kind 亦汇总为错误（assemble 期拒的先呈报面）。边形状非法（缺
+    src/dst、端点非双 string）在 _endpoint 同款窄化下汇总。
+    """
+    discovered = discover_units()
+    errors: list[str] = []
+    ports_index: dict[tuple[str, str], Port] = {}
+    for node_id, node_value in design.nodes.items():
+        kind = (
+            node_value.get("kind")
+            if isinstance(node_value, Mapping)
+            else None
+        )
+        if isinstance(kind, str):
+            try:
+                decls = builtin_ports(kind)
+            except InvalidNodeError as exc:
+                errors.append(f"design.nodes[{node_id!r}]：{exc}")
+                continue
+        elif node_id in discovered:
+            decls = discovered[node_id][0].ports
+        else:
+            errors.append(
+                f"design.nodes[{node_id!r}] 不在单元注册表且无 kind 内置声明"
+                f"（已发现单元 {sorted(discovered)}——GR-09 同 assemble 口径）"
+            )
+            continue
+        for port in decls:
+            ports_index[(node_id, port.port_id)] = port
+    for index, element in enumerate(design.edges):
+        if not isinstance(element, Mapping):
+            errors.append(
+                f"design.edges[{index}] 须为对象（src/dst/recycle）："
+                f"得到 {type(element).__name__}"
+            )
+            continue
+        try:
+            src = _endpoint(element.get("src"), "src", index)
+            dst = _endpoint(element.get("dst"), "dst", index)
+        except InvalidAssemblyError as exc:
+            errors.append(str(exc))
+            continue
+        dangling = [
+            f"{side} 悬空 unit_id：{ref.unit_id} 不在 design.nodes"
+            for side, ref in (("src", src), ("dst", dst))
+            if ref.unit_id not in design.nodes
+        ]
+        if dangling:
+            errors.extend(
+                f"design.edges[{index}].{line}" for line in dangling
+            )
+            continue
+        try:
+            validate_edge(Edge(src=src, dst=dst), ports_index)
+        except InvalidConnection as exc:
+            errors.append(f"design.edges[{index}]：{exc}")
+    return tuple(errors)

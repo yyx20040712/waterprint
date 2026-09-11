@@ -3297,7 +3297,7 @@
     },
     "/api/projects/{project_id}/validate": {
       "post": {
-        "description": "校验（零计算快速反馈——装载面错误清单）。",
+        "description": "校验（零计算快速反馈——装载面+结构面；body 可选=待存草稿 P0-3 呈裁④甲）。",
         "operationId": "validate_project_api_projects__project_id__validate_post",
         "parameters": [
           {
@@ -3310,6 +3310,24 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {

@@ -145,3 +145,75 @@ async def test_import_name_override_wiring(service_ctx) -> None:  # type: ignore
     assert read_project(service_ctx, overridden.project_id).view.name == "覆盖名"
     kept = create_project(service_ctx, {"project": raw})
     assert read_project(service_ctx, kept.project_id).view.name == "原名"
+
+
+# ── P0-3 呈裁④甲：validate_payload 草稿校验+validate_project 结构面 ──
+
+_VALID_DESIGN_NODES: dict[str, dict[str, object]] = {
+    "inlet": {"kind": "municipal_input", "q_avg_daily": 0.4, "kz": 1.4},
+    "municipal_aao": {},
+}
+_VALID_EDGE: dict[str, object] = {
+    "src": {"unit_id": "inlet", "port_id": "out"},
+    "dst": {"unit_id": "municipal_aao", "port_id": "in"},
+}
+
+
+async def _draft_payload(ctx, edges: list[dict[str, object]]) -> dict[str, object]:  # type: ignore[no-untyped-def]
+    """合法草稿基座+edges 覆写（基座=已存空白项目 dump——schema 全字段落位）。"""
+    outcome = create_project(ctx, {})
+    base = read_project(ctx, outcome.project_id).model_dump(mode="json")
+    base["design"]["nodes"] = dict(_VALID_DESIGN_NODES)  # type: ignore[assignment]
+    base["design"]["edges"] = edges  # type: ignore[assignment]
+    return base
+
+
+async def test_validate_payload_families_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """草稿校验四族：合法/悬空边/端口不在册/方向错（错误清单带定位）。"""
+    validate_payload = getattr(_mod, "validate_payload")
+    valid_base = await _draft_payload(service_ctx, [_VALID_EDGE])
+    assert validate_payload(valid_base).valid is True
+    report = validate_payload(await _draft_payload(service_ctx, [
+        {"src": {"unit_id": "inlet", "port_id": "out"},
+         "dst": {"unit_id": "ghost", "port_id": "in"}}]
+    ))
+    assert report.valid is False
+    assert any("悬空 unit_id：ghost" in item for item in report.errors)
+    undeclared = validate_payload(await _draft_payload(service_ctx, [
+        {"src": {"unit_id": "inlet", "port_id": "nope"},
+         "dst": {"unit_id": "municipal_aao", "port_id": "in"}}]
+    ))
+    assert any("端口未声明" in item for item in undeclared.errors)
+    wrong_dir = validate_payload(await _draft_payload(service_ctx, [
+        {"src": {"unit_id": "inlet", "port_id": "out"},
+         "dst": {"unit_id": "municipal_aao", "port_id": "out"}}]
+    ))
+    assert any("边方向非法" in item for item in wrong_dir.errors)
+
+
+async def test_validate_payload_schema_reject_is_report_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """schema 拒=报告面非抛（422 归 PUT 保存语义——校验端点只呈报⑦甲）。"""
+    validate_payload = getattr(_mod, "validate_payload")
+    report = validate_payload({"format_version": 3})
+    assert report.valid is False
+    assert report.errors
+
+
+async def test_validate_project_saved_structure_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """已存项目校验含结构面：schema 合法但悬空边的存量体 → invalid。"""
+    project_id, project = await _created(service_ctx)
+    dangling = project.model_copy(
+        update={
+            "design": project.design.model_copy(
+                update={
+                    "nodes": _VALID_DESIGN_NODES,  # type: ignore[arg-type]
+                    "edges": [{"src": {"unit_id": "inlet", "port_id": "out"},
+                               "dst": {"unit_id": "ghost", "port_id": "in"}}],
+                }
+            )
+        }
+    )
+    save_project(service_ctx, project_id, dangling)  # schema 面放行（边自由 dict）
+    report = getattr(_mod, "validate_project")(service_ctx, project_id)
+    assert report.valid is False
+    assert any("悬空" in item for item in report.errors)

@@ -170,7 +170,12 @@ async def save_project(
 
 
 @router.post("/{project_id}/validate", response_model=ValidationResponse)
-async def validate_project(project_id: str, request: Request) -> ValidationResponse:
-    """校验（零计算快速反馈——装载面错误清单）。"""
-    report = service.validate_project(_ctx(request), project_id)
+async def validate_project(
+    project_id: str, request: Request, body: dict[str, Any] | None = None
+) -> ValidationResponse:
+    """校验（零计算快速反馈——装载面+结构面；body 可选=待存草稿 P0-3 呈裁④甲）。"""
+    if body is None:
+        report = service.validate_project(_ctx(request), project_id)
+    else:
+        report = service.validate_payload(body)
     return ValidationResponse(valid=report.valid, errors=list(report.errors))

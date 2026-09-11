@@ -39,8 +39,16 @@
  *   - D4 不 lazy 维持（canvas=默认标签首屏必渲染）；D7 样式：
  *     @xyflow/react/dist/style.css 组件内引入+colorMode=dark 维持；
  *   - 投影层三类显式拒（D6）在 useMemo try/catch 落错误薄壳维持；
- *     nodeTypes 模块级常量（引用稳定）；编辑态 store（canvasStore）/
- *     连线规则/自动布局维持骨架挂账（D5）。
+ *     nodeTypes 模块级常量（引用稳定）；~~编辑态 store（canvasStore）/
+ *     连线规则/自动布局维持骨架挂账（D5）~~ P0-3 兑现（task-c2-edit-plan）：
+ *     - 编辑会话=canvasStore（beginEdit 快照隔离红线⑤——服务端 refetch
+ *       不回流草稿；投影输入切 draftProjectRaw(baseRaw,draft) 合成体）；
+ *     - 只读三关开闭随编辑态（nodesDraggable/nodesConnectable/
+ *       deleteKeyCode——onConnect/onNodesDelete/onEdgesDelete/
+ *       onNodesChange[position] 五通道接 store 薄壳→designWriter 纯函数）；
+ *     - 编辑态节点 data 注入 catalogPorts+editing（渲染层聚合——投影
+ *       data 字段零触碰；红线④端口表渲染=纯 catalog 数据展示）；
+ *     - 空图编辑态照常渲染画布（空白项目加首单元入口——F2/F4 断链根治）。
  */
 import { useEffect, useMemo, useRef } from "react";
 import {
@@ -49,7 +57,9 @@ import {
   ReactFlow,
   useNodesInitialized,
   useReactFlow,
+  type Connection,
   type Edge,
+  type NodeChange,
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -61,9 +71,16 @@ import {
   projectFlow,
   type ProjectFlow,
 } from "../lib/projectFlow";
+import { draftProjectRaw } from "../lib/designWriter";
 import { domainColorOf, streamColorOf } from "../lib/unitGlyph";
 import { EMPTY_THUMBNAILS, ThumbnailProvider } from "../lib/thumbnailContext";
-import { UnitNode } from "./UnitNode";
+import {
+  useCanvasStore,
+  useDraft,
+  useEditBaseRaw,
+  useEditing,
+} from "../store/canvasStore";
+import { UnitNode, type EditPortDecl } from "./UnitNode";
 
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: UnitNode };
@@ -127,19 +144,32 @@ export function CanvasFlow({
   onNodeClick?: (unitId: string) => void;
 }) {
   const query = useProjectQuery(projectId);
+  // P0-3 编辑会话（store selector 带 projectId 守卫——异项目/非编辑=null
+  // 走只读渲染；快照隔离红线⑤：草稿基座=beginEdit 时点 baseRaw）
+  const editing = useEditing(projectId);
+  const draft = useDraft(projectId);
+  const baseRaw = useEditBaseRaw(projectId);
   // 域色数据源=单元清单端点（UnitNode 同一 hook 同一缓存——React Query
   // 去重；P4 边着色/P5 图例域集/P6 MiniMap nodeColor 三面消费）
   const catalog = useListUnitsApiUnitsGet();
+  // P0-3 编辑态投影输入=合成体（draftProjectRaw：快照 baseRaw+草稿四面
+  // +会话布局）；只读=服务端原始体（编辑器零回流——服务端数据不进 store）
+  const projectionRaw = useMemo<Record<string, unknown> | undefined>(() => {
+    if (draft !== null && baseRaw !== null) {
+      return draftProjectRaw(baseRaw, draft);
+    }
+    return query.data;
+  }, [draft, baseRaw, query.data]);
   // 投影围栏：D6 显式拒在此收编落错误薄壳（fetch isError 之外第二出口）
   const projection = useMemo<{
     flow: ProjectFlow | null;
     error: ProjectFlowError | null;
   }>(() => {
-    if (!query.data) {
+    if (projectionRaw === undefined) {
       return { flow: null, error: null };
     }
     try {
-      return { flow: projectFlow(query.data), error: null };
+      return { flow: projectFlow(projectionRaw), error: null };
     } catch (error) {
       return {
         flow: null,
@@ -149,28 +179,62 @@ export function CanvasFlow({
             : new ProjectFlowError(String(error)),
       };
     }
-  }, [query.data]);
+  }, [projectionRaw]);
+  // P0-3 catalog 端口面（编辑态节点 data 注入源——查表键=kind ?? unitId
+  // 内置归 kind 键；红线④纯数据展示）
+  const editPortsByUnit = useMemo(() => {
+    const map = new Map<string, EditPortDecl[]>();
+    for (const unit of catalog.data?.units ?? []) {
+      map.set(
+        unit.unit_id,
+        (unit.ports ?? []).map((port) => ({
+          portId: port.port_id,
+          direction: port.direction as "IN" | "OUT",
+        })),
+      );
+    }
+    return map;
+  }, [catalog.data]);
   // 选中标记：selectedUnitId → node.selected（受控字段——投影 data 零触碰）；
   // C2-lib 定位光环：libraryFocusId 命中 → wrapper className wp-lib-hit
   // （global.css 水蓝光环——仅光环不压暗[用户裁定]；命中键=kind ?? unitId）。
   // GL-02（D 一审 R 轮）：条件合并而非字面量 undefined——显式 undefined 会
   // 抹掉 spread 带入的既有 className（投影现无挂类面，防御合并[含命中时
-  // 追加而非覆盖]）
+  // 追加而非覆盖]）；P0-3 编辑态再叠 data 注入面（editing+catalogPorts
+  // ——投影字段不触碰，扩展键注入）
   const nodes = useMemo(
     () =>
       (projection.flow?.nodes ?? []).map((node) => {
         const hit =
           libraryFocusId !== null &&
           (node.data.kind ?? node.data.unitId) === libraryFocusId;
+        // GD-N-06（A 二审）：editing 注入与 catalogPorts 解耦——catalog
+        // 瞬态未就绪时删除钮/编辑态标记先到场（端口面暂回退边聚合，
+        // catalog 就绪后自然切 manifest 面——零业务复制红线不变）
+        const editData =
+          editing
+            ? {
+                ...node.data,
+                editing: true,
+                ...(editPortsByUnit.size > 0
+                  ? {
+                      catalogPorts: editPortsByUnit.get(
+                        node.data.kind ?? node.data.unitId,
+                      ),
+                    }
+                  : {}),
+              }
+            : {};
         return {
           ...node,
           selected: node.id === selectedUnitId,
           className: hit
             ? [node.className, "wp-lib-hit"].filter(Boolean).join(" ")
             : node.className,
+          ...(Object.keys(editData).length > 0 ? { data: editData } : {}),
         };
       }),
-    [projection.flow, selectedUnitId, libraryFocusId],
+    [projection.flow, selectedUnitId, libraryFocusId, editing, editPortsByUnit],
   );
   // 域归属表：nodeId → business_line（查表键=kind ?? unitId——内置节点
   // 归 catalog kind 键「municipal_input 等，business_line=municipal」）
@@ -236,11 +300,11 @@ export function CanvasFlow({
   if (!flow) {
     return <div>工艺图加载中…（{projectId.slice(0, 8)}）</div>;
   }
-  if (flow.nodes.length === 0) {
+  if (flow.nodes.length === 0 && !editing) {
     return (
       <div>
-        该项目工艺图为空（design.nodes 无节点）——建图流程见
-        docs/user-manual.md「快速开始」。
+        该项目工艺图为空——点击工具条「编辑」后，在左侧单元库点击
+        「添加到画布」构筑工艺流程（导入路径见 docs/user-manual.md）。
       </div>
     );
   }
@@ -265,14 +329,69 @@ export function CanvasFlow({
         fitView
         minZoom={0.1}
         colorMode="dark"
-        nodesDraggable={false}
-        nodesConnectable={false}
+        nodesDraggable={editing}
+        nodesConnectable={editing}
         edgesFocusable={false}
         elementsSelectable
-        deleteKeyCode={null}
+        deleteKeyCode={editing ? ["Backspace", "Delete"] : null}
         onNodeClick={(_event, node) => {
           onNodeClick?.(node.id);
         }}
+        onConnect={
+          editing
+            ? (connection: Connection) => {
+                // 端点四值齐备才落草稿（Handle 拖拽连线——规则判断归
+                // 校验时点 core validate，红线④：此处零规则求值）
+                const { source, sourceHandle, target, targetHandle } = connection;
+                if (source == null || sourceHandle == null || target == null || targetHandle == null) {
+                  return;
+                }
+                useCanvasStore
+                  .getState()
+                  .connect(
+                    { unit_id: source, port_id: sourceHandle },
+                    { unit_id: target, port_id: targetHandle },
+                  );
+              }
+            : undefined
+        }
+        onNodesDelete={
+          editing
+            ? (deleted) => {
+                useCanvasStore.getState().deleteNodes(deleted.map((node) => node.id));
+              }
+            : undefined
+        }
+        onEdgesDelete={
+          editing
+            ? (deleted) => {
+                for (const edge of deleted) {
+                  if (edge.sourceHandle == null || edge.targetHandle == null) {
+                    continue;
+                  }
+                  useCanvasStore.getState().deleteEdge(
+                    { unit_id: edge.source, port_id: edge.sourceHandle },
+                    { unit_id: edge.target, port_id: edge.targetHandle },
+                  );
+                }
+              }
+            : undefined
+        }
+        onNodesChange={
+          editing
+            ? (changes: NodeChange[]) => {
+                // 会话拖拽位通道（position 变更——其余变更类型[select/
+                // dimensions/remove]由受控 selected/内部测量/删除回调承接）
+                for (const change of changes) {
+                  if (change.type === "position" && change.position != null) {
+                    useCanvasStore
+                      .getState()
+                      .position(change.id, change.position);
+                  }
+                }
+              }
+            : undefined
+        }
         proOptions={{ hideAttribution: true }}
         style={{ backgroundColor: "transparent" }}
       >

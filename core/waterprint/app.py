@@ -138,6 +138,7 @@ from waterprint.app_assembly import (
     InvalidAssemblyError,
     _unit_params,  # noqa: F401  # 再导出专用（tests/app/test_unit_params_projection 直 import 零改动）
     assemble,
+    validate_design_structure,  # P0-3 再导出（server 校验端点——呈裁④甲）
 )
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
@@ -210,6 +211,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "run_enumeration",
     "run_full_calc",
     "save_project",
+    "validate_design_structure",  # P0-3 再导出（server validate 端点扩面——app 单入口语义）
 ]
 
 _LOOP_KEYS: Final[tuple[str, ...]] = ("loop.tolerance", "loop.max_iterations", "loop.damping")

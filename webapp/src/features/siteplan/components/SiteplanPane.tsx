@@ -149,7 +149,8 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   // 仓内无 undo，删除须确认；取消路径=零动作）
   const [removeRequest, setRemoveRequest] = useState<RemovableSelection | null>(null);
   // 拒删提示（B4 笔③：useMessage+contextHolder——SheetList 先例，不用静态
-  // message；交互提示即反馈，成功路径零额外消息）
+  // message）；F12（P0-3 同制一并）：保存成功 toast——走查实证零反馈致
+  // 「存没存上」不可知（原「成功路径零额外消息」口径就此面废止）
   const [messageApi, contextHolder] = message.useMessage();
 
   const save = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>({
@@ -157,6 +158,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
       onSuccess: () => {
         // 仅 invalidate——refetch 后 raw 新身份经 loadedSite useEffect 同步 draft
         // （此处 setDraft 闭包旧 loadedSite=回滚闪烁；refetch 失败则已存内容丢失）
+        messageApi.success("布置已保存"); // F12：保存反馈（P0-3 同制）
         void queryClient.invalidateQueries({
           queryKey: [`/api/projects/${projectId}`],
         });

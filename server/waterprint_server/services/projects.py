@@ -72,6 +72,7 @@ from math import isfinite
 from pathlib import Path
 from typing import Any, Final
 
+from pydantic import ValidationError
 from waterprint import app as core
 from waterprint.contracts.project_schema import (
     DesignState,
@@ -415,12 +416,27 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
 
 
 def validate_project(ctx: ServiceContext, project_id: str) -> ValidationReport:
-    """零计算快速校验（R3：装载面=严格 schema+版本门+双闸）。"""
+    """零计算校验（R3 装载面+P0-3 结构面——结构发现呈报不阻断保存⑦甲）。"""
     try:
-        read_project(ctx, project_id)
+        project = read_project(ctx, project_id)
     except core.InvalidProjectError as exc:
         return ValidationReport(valid=False, errors=(str(exc),))
-    return ValidationReport(valid=True, errors=())
+    return _structure_report(project)
+
+
+def validate_payload(payload: Mapping[str, Any]) -> ValidationReport:
+    """待存草稿校验（P0-3 呈裁④甲：schema 拒=报告面非 422——校验端点语义）。"""
+    try:
+        project = parse_project(payload)
+    except ValidationError as exc:
+        return ValidationReport(valid=False, errors=(str(exc),))
+    return _structure_report(project)
+
+
+def _structure_report(project: ProjectFile) -> ValidationReport:
+    """结构面报告（core.validate_design_structure 错误清单——⑦甲仅提示）。"""
+    errors = core.validate_design_structure(project.design)
+    return ValidationReport(valid=not errors, errors=errors)
 
 
 def import_legacy(ctx: ServiceContext, payload: Mapping[str, Any]) -> None:

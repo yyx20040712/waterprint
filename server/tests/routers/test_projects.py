@@ -46,3 +46,27 @@ async def test_project_id_traversal_rejected_wiring(client) -> None:  # type: ig
         assert 400 <= response.status_code < 500, f"{evil} → {response.status_code}"
         response = await client.put(evil, json={})
         assert 400 <= response.status_code < 500, f"PUT {evil} → {response.status_code}"
+
+
+@pytest.mark.anyio
+async def test_validate_endpoint_accepts_draft_body_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """P0-3 呈裁④甲：POST validate 可选 body=待存草稿（报告面 200 非 422）。"""
+    created = await client.post("/api/projects", json={"name": "草稿校验"})
+    assert created.status_code == 200, created.text
+    project_id = created.json()["project_id"]
+    draft = (await client.get(f"/api/projects/{project_id}")).json()
+    draft["design"]["nodes"] = {"inlet": {"kind": "municipal_input",
+                                          "q_avg_daily": 0.4, "kz": 1.4}}
+    draft["design"]["edges"] = [
+        {"src": {"unit_id": "inlet", "port_id": "out"},
+         "dst": {"unit_id": "ghost", "port_id": "in"}}
+    ]
+    with_body = await client.post(f"/api/projects/{project_id}/validate", json=draft)
+    assert with_body.status_code == 200, with_body.text
+    body = with_body.json()
+    assert body["valid"] is False
+    assert any("悬空" in item for item in body["errors"])
+    # 无 body 面=已存项目（空 design 结构合法）
+    without_body = await client.post(f"/api/projects/{project_id}/validate")
+    assert without_body.status_code == 200
+    assert without_body.json()["valid"] is True

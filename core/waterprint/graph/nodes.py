@@ -72,11 +72,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from math import isfinite
+from types import MappingProxyType
 from typing import Any, Final, final
 
 from waterprint.contracts.flow import WaterFlow, make_flow
 from waterprint.contracts.manifest import UnitManifest, load_manifest
-from waterprint.contracts.ports import PortRef
+from waterprint.contracts.ports import Port, PortRef
 from waterprint.contracts.quality import INDICATORS, WaterQuality
 from waterprint.contracts.quantity import DimKey, Quantity, parse
 from waterprint.contracts.sludge import SludgeFlow
@@ -353,3 +354,28 @@ def builtin_unit(kind: str, params: Mapping[str, Any]) -> Unit:
         f"（合法 {sorted(_BUILTIN_KINDS)}——§14.3 归属表 v1 三 kind"
         "+GOLDEN3 D1 回流转换）"
     )
+
+
+_BUILTIN_PORT_DECLS: Final[Mapping[str, tuple[Port, ...]]] = MappingProxyType({
+    "municipal_input": _MunicipalInput.manifest.ports,
+    "junction": _Junction.manifest.ports,
+    "quality_edit": _QualityEdit.manifest.ports,
+    "recycle_junction": _RecycleJunction.manifest.ports,
+})
+
+
+def builtin_ports(kind: str) -> tuple[Port, ...]:
+    """内置 kind 端口声明只读面（零构造——P0-3 validate_design_structure 消费）。
+
+    与 builtin_unit 工厂分面：结构校验只需端口表，构造期必填参数校验
+    （municipal_input q_avg_daily/kz——GR-09）不在此面（空参节点 {}
+    为合法中间态，校验时点=保存后计算装配）。表源=四类 class manifest
+    属性（端口真源单点——不另立第二份声明表）。
+    """
+    decls = _BUILTIN_PORT_DECLS.get(kind)
+    if decls is None:
+        raise InvalidNodeError(
+            f"未知内置节点 kind：{kind!r}（合法 {sorted(_BUILTIN_KINDS)}"
+            "——builtin_ports 只读端口面同 builtin_unit 域）"
+        )
+    return decls
