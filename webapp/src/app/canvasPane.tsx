@@ -186,8 +186,10 @@ export function CanvasPane({
         {/* C2-canvas P2 满高链：flex 行 height 100%（Tabs content/tabpane
             满高链配套在 global.css）；C2-params Q1：aside 改 flex 列
             （滚动下放 ParamForm body/假设清单限高面——GR-40 收敛）；
-            Q8 拖拽把手（col-resize——右缘 8px 命中区） */}
-        <div style={{ display: "flex", gap: 12, alignItems: "stretch", height: "100%" }}>
+            Q8 拖拽把手（col-resize——右缘 8px 命中区）；
+            C2-visual D2：wp-full-bleed 满铺回收（tabpane gutter 分策
+            ——画布编辑器面满铺，类内含 height 补偿，内联 height 退役） */}
+        <div className="wp-full-bleed" style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
           <aside
             style={{
               width: sidebarWidth,
@@ -196,7 +198,7 @@ export function CanvasPane({
               display: "flex",
               flexDirection: "column",
               minHeight: 0,
-              borderRight: "1px solid #434343",
+              borderRight: "1px solid var(--wp-border-2)",
             }}
           >
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>

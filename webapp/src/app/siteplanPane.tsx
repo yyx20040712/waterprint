@@ -36,7 +36,9 @@ export function SiteplanPane() {
   }
   return (
     <ErrorBoundary label="厂区布置">
-      <div style={{ height: "100%" }}>
+      {/* C2-visual D2：wp-full-bleed 满铺回收（tabpane gutter 分策——
+          厂区布置=编辑器面满铺；类内含 height 补偿，内联 height 退役） */}
+      <div className="wp-full-bleed">
         <SiteplanEditor projectId={projectId} />
       </div>
     </ErrorBoundary>

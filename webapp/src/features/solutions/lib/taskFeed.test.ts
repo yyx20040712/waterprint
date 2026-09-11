@@ -23,6 +23,7 @@ import {
   parseEventData,
   parseSseBlock,
   reduceTaskEvent,
+  errorTypeLabel,
   taskStatusToView,
   type TaskFeedEvent,
 } from "./taskFeed";
@@ -257,5 +258,33 @@ describe("AUDIT2 I-8 taskFeed 未测分支", () => {
     expect(event).not.toBeNull(); // 事件保留（type 合法）
     expect(event?.type).toBe("progress");
     expect(event?.percent).toBeNull(); // 非有限数值归 null（宽容门字段级）
+  });
+});
+
+// ═══ F6（C2-visual 批）：error_type 中文用户语映射——core GR-14 语义不动 ═══
+describe("errorTypeLabel（F6 error_type 显示层映射）", () => {
+  it("登记键=「中文（error_type）」双呈保追溯", () => {
+    expect(errorTypeLabel("InvalidAssemblyError")).toBe(
+      "装配失败（InvalidAssemblyError）",
+    );
+    expect(errorTypeLabel("GridTooLargeError")).toBe(
+      "枚举网格超限（GridTooLargeError）",
+    );
+  });
+
+  it("未登记键=原样透传（不猜语义）", () => {
+    expect(errorTypeLabel("SomethingNewError")).toBe("SomethingNewError");
+  });
+
+  it("taskStatusToView failed 组合消费映射（中文前缀+消息+HTTP 段）", () => {
+    const view = taskStatusToView({
+      state: "failed",
+      error_type: "InvalidAssemblyError",
+      error: "nodes 缺 municipal_aao 参数",
+      error_code: 422,
+    });
+    expect(view.error).toBe(
+      "装配失败（InvalidAssemblyError）：nodes 缺 municipal_aao 参数（HTTP 422）",
+    );
   });
 });

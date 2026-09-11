@@ -171,6 +171,20 @@ export function normalizeDraftValue(text: string): number | null {
 }
 
 /**
+ * F8（C2-visual 批）浮点噪声归一：number → 12 位有效数字显示串（二进制
+ * 浮点尾差面收口——0.009999999999999998→"0.01"、266.13660939704994→
+ * "266.136609397"；12 位=全库量纲精度上界[长度/浓度/时间等]——比 6 位
+ * 保真、比 17 位去噪）。draft 通道/显示面统一经此（normalizeDraftValue
+ * 提交面不受影响——等值比较 collectParamChanges 数字面恒等）。
+ */
+export function trimFloatNoise(value: number): string {
+  if (!Number.isFinite(value)) {
+    return String(value); // Infinity/NaN 诚实直出（禁抛错）
+  }
+  return String(Number(value.toPrecision(12)));
+}
+
+/**
  * D5 脏比较+提交面收集：草稿 vs 当前有效值（design 覆盖 ?? manifest 默认）。
  * 返回 changes（差异项——等值不产空写）+invalidFields（null 禁提交项）。
  */

@@ -2,7 +2,9 @@
  * 职责：枚举结果字段窄化+单元下拉中文化 label 纯函数（B7 R+ 自
  * solutionsPane 提取——行数预算 516>500 越界修前进；零行为变更纯搬迁；
  * B15 409 锁冲突判定面上移 shared/api/http.ts 单源——本件不再承载；
- * B2 扩面 R-1 增 unitOptionLabel——下拉 label 形态收口本件单源）。
+ * B2 扩面 R-1 增 unitOptionLabel——下拉 label 形态收口本件单源；
+ * C2-visual F6 增 isUnitEnumerable/enumerateOptions——枚举下拉过滤
+ * 判据与选项构建本件单源）。
  *
  * 输入:  TaskStatus.result 弱类型载荷（unknown）+单元引用与目录中文名映射
  * 输出:  窄化字段值/grid_fields {key,dim,label_zh}[]（B2②对象载荷窄化；
@@ -70,4 +72,65 @@ export function unitOptionLabel(
   return nameZh !== undefined
     ? `${nameZh}（${unit.unitId}）`
     : `${unit.unitId}（${unit.kind}）`;
+}
+
+/** 目录单元参数条目（F6 结构最小面——仅枚举判据所需 grid 键）。 */
+export type CatalogParamEntry = {
+  grid?: number[] | null;
+};
+
+/** 目录单元条目（F6 结构最小面：unit_id+params——真源形状=shared/api
+ * generated model UnitMetaEntry，此处按判据所需收窄引用零整型拷贝）。 */
+export type CatalogEntryLike = {
+  unit_id: string;
+  params?: readonly CatalogParamEntry[];
+};
+
+/** 枚举下拉选项（F6——value=node id 零漂移+disabled=不可枚举+label 附
+ * 述因后缀）。 */
+export type EnumerateOption = {
+  value: string;
+  label: string;
+  disabled: boolean;
+};
+
+/** 单元可枚举判据（F6）：目录 params 任一 grid 档位数组非空（manifest
+ * 网格声明——开工实核 /api/units 暴露 grid[16/36 单元可枚举]）。
+ * 目录未就绪（entries=null）=fail-open 全可（与中文名回退同口径——
+ * 目录数据面故障不阻断枚举提交）。 */
+export function isUnitEnumerable(
+  unit: UnitOptionRef,
+  entries: readonly CatalogEntryLike[] | null,
+): boolean {
+  if (entries === null) {
+    return true;
+  }
+  const key = unit.kind ?? unit.unitId;
+  const entry = entries.find((item) => item.unit_id === key);
+  const params = entry?.params;
+  if (params === undefined) {
+    return false; // 目录在场而该键缺席=无网格声明（诚实拒）
+  }
+  return params.some(
+    (param) => Array.isArray(param.grid) && param.grid.length > 0,
+  );
+}
+
+/** 枚举下拉选项构建（F6——全列保留+不可枚举 disabled 附提示后缀；
+ * 可枚举项零后缀零行为变化）。 */
+export function enumerateOptions(
+  units: readonly UnitOptionRef[],
+  entries: readonly CatalogEntryLike[] | null,
+  nameById: Map<string, string>,
+): EnumerateOption[] {
+  return units.map((unit) => {
+    const enumerable = isUnitEnumerable(unit, entries);
+    return {
+      value: unit.unitId,
+      label: enumerable
+        ? unitOptionLabel(unit, nameById)
+        : `${unitOptionLabel(unit, nameById)}（无档位参数）`,
+      disabled: !enumerable,
+    };
+  });
 }

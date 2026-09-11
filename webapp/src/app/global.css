@@ -27,6 +27,7 @@
  * 作用域非 :root——R 轮实测零命中，跨组件消费不可走 --ant-*，故轴
  * 保留）。改色红线=双处联动（R 轮 A2-N-01 收口契约）：
  *   --wp-bg-page   ↔ providers colorBgLayout
+ *   --wp-bg-container ↔ providers colorBgContainer+components.Layout.siderBg
  *   --wp-bg-elevated ↔ providers colorBgElevated（+components.Layout 无）
  *   --wp-bg-deep   ↔ providers components.Layout.headerBg（G1-04 收口）
  *   --wp-border    ↔ providers colorBorder
@@ -47,6 +48,7 @@
  * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
   --wp-bg-page: #0b1526;
+  --wp-bg-container: #12213a;
   --wp-bg-elevated: #1a2d4d;
   --wp-bg-deep: #0a1220;
   --wp-border: #243a5e;
@@ -110,28 +112,53 @@ body {
   display: flex;
   flex-direction: column;
 }
+/* C2-visual D1：页签行=方案 A 面板蓝（direction-a .tabbar 同构——底色
+ * --colorBgContainer+下边框 BorderSecondary+水平内距 8px；用户反馈
+ * 「上方的选择栏应用浅蓝」即此面板蓝——原透明底浮于页面底被读作深色）。
+ * 8px 内距+tab 文字 14px 内距=首页签文字距 Sider 右缘 22px（设计稿
+ * 同构——gutter 根因主修面）。 */
 .ant-tabs.wp-scroll-tabs > .ant-tabs-nav {
   flex: none;
   margin-bottom: 0;
+  background: var(--wp-bg-container);
+  border-bottom: 1px solid var(--wp-border-2);
+  padding: 0 8px;
 }
 .ant-tabs.wp-scroll-tabs > .ant-tabs-body-holder {
   flex: 1;
   min-height: 0;
   overflow: auto;
 }
-/* C2-canvas P2 满高链：body/content/tabpane 亦 100%（v6 DOM 实测：
- * body-holder>body>content>tabpane 四层——body 层 C1 未覆盖致断链）——
- * 满高类标签（画布）随视口撑满；自然高类标签（表单/表）内容超出
- * tabpane 盒仍溢出可见，body-holder 滚动范围含溢出面不回归。
- * GC-08 记档：后代选择器（非 >）——pane 内嵌套 antd Tabs 将被误拉满
- * 高，嵌套 Tabs 属禁用面（全库零嵌套实证）；未来若需嵌套改子代
- * 组合器。 */
+/* C2-canvas P2 满高链：body/content 亦 100%（C2-visual 勘正：v6 现版
+ * DOM 实测=content 直挂 pane 子节点、.ant-tabs-tabpane 包装层零命中
+ * ——C2-canvas 时注记的四层链已随 v6 演进退役，原 tabpane 规则死码
+ * 删除；满高链经 body/content 两层达成）——满高类标签（画布）随视口
+ * 撑满；自然高类标签（表单/表）内容超出仍溢出可见，body-holder 滚动
+ * 范围含溢出面不回归。GC-08 记档沿册：后代选择器（非 >）——pane 内
+ * 嵌套 antd Tabs 将被误拉满高，嵌套 Tabs 属禁用面（全库零嵌套实证）。 */
 .ant-tabs.wp-scroll-tabs .ant-tabs-body,
 .ant-tabs.wp-scroll-tabs .ant-tabs-content {
   height: 100%;
 }
-.ant-tabs.wp-scroll-tabs .ant-tabs-tabpane {
-  height: 100%;
+
+/* C2-visual D2：主区 gutter 分策——内容流 pane（solutions/viewer3d/
+ * elevation/drawings/cost）水平 16px+顶 12px 内距（文字/表格与 Sider
+ * 呼吸位——n+36 勘正补笔根因收口；v6 单 pane 直挂→内距落 content 层
+ * ——活性 pane 子节点即 content 唯一子）；编辑器类 pane（canvas/
+ * siteplan）根元素加 wp-full-bleed 精确逆收满铺（设计稿同构——params
+ * 面板+画布点阵自含呈现）。viewer3d 裁量走 gutter：3D 视口损 32px 换
+ * 横幅/工具条与页签行文字对齐。height 恒 100%（border-box 含内距——
+ * 满高链不破）。 */
+.ant-tabs.wp-scroll-tabs .ant-tabs-content {
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+/* 满铺回收：margin 逆收水平+垂直，height 补回内距双倍（content 的
+ * height:100% 系 border-box 含内距——子元素 100% 只得净高，须 calc
+ * 补偿才与 content 盒同高，否则底部短 24px）。 */
+.wp-full-bleed {
+  margin: -12px -16px;
+  height: calc(100% + 24px);
 }
 
 /* ── 顶栏鎏金收边线（品牌点缀——原神式分寸）── */

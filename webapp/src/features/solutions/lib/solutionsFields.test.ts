@@ -8,7 +8,11 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { unitOptionLabel } from "./solutionsFields";
+import {
+  enumerateOptions,
+  isUnitEnumerable,
+  unitOptionLabel,
+} from "./solutionsFields";
 
 describe("unitOptionLabel（B2 扩面——单元下拉中文化形态）", () => {
   const catalog = new Map([
@@ -38,5 +42,74 @@ describe("unitOptionLabel（B2 扩面——单元下拉中文化形态）", () =
     expect(
       unitOptionLabel({ unitId: "inlet", kind: "municipal_input" }, new Map()),
     ).toBe("inlet（municipal_input）");
+  });
+});
+
+describe("isUnitEnumerable/enumerateOptions（F6——枚举下拉过滤判据）", () => {
+  const catalog = new Map([["municipal_aao", "AAO 生物池"]]);
+  const entries = [
+    {
+      unit_id: "municipal_aao",
+      params: [{ field_id: "n", grid: [2, 3, 4] }],
+    },
+    {
+      unit_id: "mine_water_chenshachi",
+      params: [{ field_id: "q", grid: null, range: { min: 0, max: 9 } }],
+    },
+    { unit_id: "conveyance_jishuijing", params: [] },
+  ];
+
+  it("grid 档位非空=可枚举", () => {
+    expect(
+      isUnitEnumerable({ unitId: "municipal_aao", kind: null }, entries),
+    ).toBe(true);
+  });
+
+  it("grid null/空数组/params 空=不可枚举（键在场诚实拒）", () => {
+    expect(
+      isUnitEnumerable({ unitId: "mine_water_chenshachi", kind: null }, entries),
+    ).toBe(false);
+    expect(
+      isUnitEnumerable({ unitId: "conveyance_jishuijing", kind: null }, entries),
+    ).toBe(false);
+  });
+
+  it("目录键缺席（该单元无目录条目）=不可枚举", () => {
+    expect(
+      isUnitEnumerable({ unitId: "municipal_uv", kind: null }, entries),
+    ).toBe(false);
+  });
+
+  it("目录未就绪（null）=fail-open 全可（数据面故障不阻断提交）", () => {
+    expect(isUnitEnumerable({ unitId: "municipal_uv", kind: null }, null)).toBe(
+      true,
+    );
+  });
+
+  it("builtin 节点经 kind 键判（目录 kind 条目命中）", () => {
+    expect(
+      isUnitEnumerable({ unitId: "inlet", kind: "municipal_input" }, [
+        { unit_id: "municipal_input", params: [] },
+      ]),
+    ).toBe(false);
+  });
+
+  it("enumerateOptions：可枚举零后缀零禁用+不可枚举 disabled 附提示", () => {
+    const options = enumerateOptions(
+      [
+        { unitId: "municipal_aao", kind: null },
+        { unitId: "mine_water_chenshachi", kind: null },
+      ],
+      entries,
+      catalog,
+    );
+    expect(options).toEqual([
+      { value: "municipal_aao", label: "AAO 生物池", disabled: false },
+      {
+        value: "mine_water_chenshachi",
+        label: "mine_water_chenshachi（无档位参数）",
+        disabled: true,
+      },
+    ]);
   });
 });

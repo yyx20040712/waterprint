@@ -12,6 +12,9 @@
  * 规格说明（FE6 D8/CP1/CP2 沿革——逻辑零变更纯抽取）：
  *   - 下拉 label=unitOptionLabel（B2 扩面：manifest 中文名/builtin 后缀/
  *     英文 id 诚实回退；value=node id 零漂移）；
+ *   - F6（C2-visual 批）：不可枚举项 disabled 附「无档位参数」提示
+ *     （判据=manifest grid 声明——enumerateOptions 单源）+showSearch
+ *     中文/英文双匹配（30+ 项目录防误选——走查 F6 实录收口）；
  *   - 单元切换不清空勾选（CP2 D4——持久全集∩供选面）；
  *   - 提交钮 disabled=unitId null；载荷（R-3 本组投影空回 null）归 pane
  *     onEnumerate 回调——组件零业务逻辑；
@@ -24,7 +27,7 @@ import { useUnitCatalog } from "../features/params/api/useUnitCatalog";
 
 import { ConstraintPicker } from "../features/params/components/ConstraintPicker";
 import type { ConstraintEntryView } from "../features/params/lib/constraintPicker";
-import { unitOptionLabel } from "../features/solutions/lib/solutionsFields";
+import { enumerateOptions } from "../features/solutions/lib/solutionsFields";
 import type { UnitOptionRef } from "../features/solutions/lib/solutionsFields";
 
 export function EnumerateBar({
@@ -62,6 +65,13 @@ export function EnumerateBar({
     }
     return map;
   }, [catalogQuery.data]);
+  // F6（C2-visual 批）：枚举下拉选项——全列保留+不可枚举 disabled 附
+  // 述因后缀（判据=manifest grid 声明——solutionsFields.enumerateOptions
+  // 单源；目录未就绪=fail-open 全可）+showSearch 中文名/英文 id 双匹配
+  const options = useMemo(
+    () => enumerateOptions(units, catalogQuery.data?.units ?? null, nameById),
+    [units, catalogQuery.data, nameById],
+  );
   return (
     <>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -70,13 +80,9 @@ export function EnumerateBar({
           value={unitId ?? undefined}
           loading={unitsLoading}
           status={unitsError !== null ? "error" : undefined}
-          options={units.map((unit) => ({
-            // B2 扩面：label 形态收口 solutionsFields.unitOptionLabel
-            // （manifest 纯中文/builtin 中文名+（node_id）后缀/缺席英文
-            // id 诚实回退；value 仍 node id 零漂移）
-            value: unit.unitId,
-            label: unitOptionLabel(unit, nameById),
-          }))}
+          showSearch
+          optionFilterProp="label"
+          options={options}
           onChange={(value) => {
             onUnitChange(value);
             // CP2 D4：单元切换不清空勾选（持久全集∩供选面——切回再现）

@@ -39,7 +39,7 @@ export function LineSidebar({
   const boundary = selection.kind === "boundary"; // 红线删除=清空通路（同工具栏文案族）
   return (
     <aside
-      style={{ width: LINE_SIDE_WIDTH, flexShrink: 0, padding: "8px 12px", borderLeft: "1px solid #434343" }}
+      style={{ width: LINE_SIDE_WIDTH, flexShrink: 0, padding: "8px 12px", borderLeft: "1px solid var(--wp-border-2)" }}
     >
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         {boundary ? "选中边界红线（单例）" : `选中${label} #${selection.index + 1}`}

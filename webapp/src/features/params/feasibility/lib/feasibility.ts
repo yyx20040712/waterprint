@@ -11,10 +11,11 @@
  *   - 不可行区点击=吸附最近可行段边界回填（引导行为——静默无响应弃）；
  *     值已可行=原值回填；无可行段=null（调用方诚实呈现，不编造）；
  *   - 等距并列取先段下界（确定性——首段优先，与 core widest 同精神）；
- *   - formatBackfill=String(number)（draft 通道既有形态——apply payload
- *     键零漂移，PD7 回填条款）；
+ *   - formatBackfill=number→草稿串（F8[C2-visual 批]改经 trimFloatNoise
+ *     浮点噪声归一——apply payload 键零漂移，PD7 回填条款维持）；
  *   - 2D 最近可行格=数据空间欧氏距离最小格（等距取先行序——确定性）。
  */
+import { trimFloatNoise } from "../../lib/designParams";
 
 /** 可行段类型（orval DesignSegment 同形——{start,end}）。 */
 export type Segment = { start: number; end: number };
@@ -44,9 +45,11 @@ export function snapToBoundary(value: number, segments: Segment[]): number | nul
   return best;
 }
 
-/** 回填格式化：number→draft 串（String 形态——既有草稿通道零漂移）。 */
+/** 回填格式化：number→draft 串（F8[C2-visual 批]改经 trimFloatNoise
+ * 浮点噪声归一——0.009999999999999998→"0.01"；draft 通道形态零漂移
+ * [仍数字串]，同 feature lib 直引）。 */
 export function formatBackfill(value: number): string {
-  return String(value);
+  return trimFloatNoise(value);
 }
 
 /** 1D 条位定位：比例（0~1）→轴值域线性值（越界钳制到端点）。 */

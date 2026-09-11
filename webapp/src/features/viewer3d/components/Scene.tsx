@@ -48,6 +48,7 @@ import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber"
 import { Button, Space } from "antd";
 
 import { useSceneQuery } from "../api/useSceneQuery";
+import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { semanticColor } from "../../../shared/ui/semanticColors";
 import {
@@ -55,6 +56,7 @@ import {
   projectScene,
   type RenderScene,
 } from "../lib/projectScene";
+import { placementSummary } from "../lib/placementSummary";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
 import { Internals } from "./Internals";
@@ -175,6 +177,10 @@ export function Scene({
   conditionKey?: string;
 }) {
   const query = useSceneQuery(projectId, conditionKey);
+  // F9（C2-visual 批）：design.nodes 总数（摆放态横幅 M 值——shared orval
+  // hook 经 shared 层合法引用，react-query 同键缓存与 canvas 面复用零
+  // 额外请求；详情未就绪/形状异常=横幅不挂 fail-open）
+  const projectQuery = useReadProjectApiProjectsProjectIdGet(projectId);
   // R2 C2 渲染期围栏：投影层显式拒（版本门/未知 kind/root 悬空）在此
   // 收编——落错误态薄壳（fetch 面 isError 之外的第二个错误出口，不白屏）。
   const projection = useMemo<{
@@ -284,6 +290,28 @@ export function Scene({
           设计已修改但未重算——本场景基于旧结果集（重新提交计算后刷新）
         </div>
       ) : null}
+      {/* F9（C2-visual 批）：摆放态解释横幅——scene 仅收已布置单元（core
+          build_scene 诚实语义），部分摆放时显式告知防「三维骤降」误读
+          （placementSummary 判据收口=structures 非空且 placed<total[GV-01
+          R 轮]；兜底满场/全覆盖/详情不可达均返 null 不挂）。 */}
+      {(() => {
+        const summary = placementSummary(scene, projectQuery.data ?? null);
+        return summary !== null ? (
+          <div
+            role="status"
+            data-testid="placement-banner"
+            style={{
+              padding: "4px 8px",
+              color: semanticColor("pending"),
+              fontSize: 12,
+            }}
+          >
+            三维仅显示已在「厂区布置」标签摆放的构筑物与相关管廊（
+            {summary.placed}/{summary.total}）——未摆放单元不参与三维
+            场景，摆放并重新计算后可见。
+          </div>
+        ) : null;
+      })()}
       {/* ENG6 preset 按钮面：Canvas 前兄弟元素（stale 横幅同形态）——点击
           驱动 store.cameraPreset（CameraRig effect 负责落机位一次）；当前
           preset=primary（siteplan 工具栏先例）；四字标签避 antd 两字

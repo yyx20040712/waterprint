@@ -40,7 +40,12 @@ import { dimLabel, dimUnit } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
-import { collectParamChanges, indexUnits } from "../lib/designParams";
+import {
+  collectParamChanges,
+  indexUnits,
+  normalizeDraftValue,
+  trimFloatNoise,
+} from "../lib/designParams";
 import { deriveStep, isContinuousParam } from "../lib/deriveStep";
 import { useDesignMap } from "../feasibility/api/useDesignMap";
 import { FeasibilityBar } from "../feasibility/components/FeasibilityBar";
@@ -249,12 +254,13 @@ export function ParamForm({
             // PD7 入口精确条件：仅连续区间参数（grid 缺席且 range 在场）
             const continuous = isContinuousParam(entry);
             const range = entry.range ?? null;
-            // 当前显示值（chips 高亮判定源：草稿优先→design 覆盖→空）
+            // 当前显示值（chips 高亮判定源：草稿优先→design 覆盖→空；
+            // F8：覆盖值经 trimFloatNoise 归一——18 位浮点尾差根除）
             const shownValue =
               draftText !== undefined
                 ? draftText
-                : overridden
-                  ? String(values[fieldId])
+                : overridden && values[fieldId] !== undefined
+                  ? trimFloatNoise(values[fieldId])
                   : "";
             const shownStr = shownValue === "" ? null : shownValue;
             return (
@@ -290,7 +296,11 @@ export function ParamForm({
                     <InputNumber
                       size="small"
                       status={invalid ? "error" : undefined}
-                      step={deriveStep(range)}
+                      // F8：步长经 trimFloatNoise 归一后再喂（deriveStep
+                      // 本体跨语言黄金锁不可动[core derive_step 同式互锁]
+                      // ——噪声步长[如 0.009999999999999998]会被 antd 按
+                      // 步长小数位放大成 18 位精度显示，消费点收口）
+                      step={Number(trimFloatNoise(deriveStep(range)))}
                       addonAfter={dimUnit(entry.dim) || undefined}
                       style={{ width: CONTROL_WIDTH + (dimUnit(entry.dim) ? 34 : 0), flex: "none" }}
                       title={metaTooltipText(entry)}
@@ -298,7 +308,14 @@ export function ParamForm({
                       onChange={(value) => {
                         setDrafts((prev) => ({
                           ...prev,
-                          [fieldId]: value === null || value === "" ? "" : String(value),
+                          // F8：步进/键入值归一（噪声面在通道口收口；非数
+                          // 值形态[防御]原样走 invalid 诚实拒路径）
+                          [fieldId]:
+                            value === null || value === ""
+                              ? ""
+                              : typeof value === "number"
+                                ? trimFloatNoise(value)
+                                : value,
                         }));
                       }}
                     />
@@ -314,6 +331,14 @@ export function ParamForm({
                           ...prev,
                           [fieldId]: event.target.value,
                         }));
+                      }}
+                      onBlur={(event) => {
+                        // F8：失焦归一（可解析→trimFloatNoise；非数/空
+                        // 保持原样走 invalid 诚实拒路径）
+                        const parsed = normalizeDraftValue(event.target.value);
+                        if (parsed !== null) {
+                          setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
+                        }
                       }}
                     />
                   )}

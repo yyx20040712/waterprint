@@ -20,7 +20,7 @@ const PANEL_WIDTH = 180;
 const ITEM_STYLE: React.CSSProperties = {
   margin: "4px 0",
   padding: "2px 8px",
-  border: "1px solid #434343",
+  border: "1px solid var(--wp-border-2)",
   borderRadius: 4,
   fontFamily: "monospace",
   fontSize: 12,
@@ -41,7 +41,7 @@ export function PendingPanel({
         width: PANEL_WIDTH,
         flexShrink: 0,
         padding: "0 8px",
-        borderRight: "1px solid #434343",
+        borderRight: "1px solid var(--wp-border-2)",
         overflowY: "auto",
       }}
     >

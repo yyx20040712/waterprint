@@ -169,6 +169,28 @@ export function isTerminalState(state: string): boolean {
   return state === "done" || state === "cancelled" || state === "failed";
 }
 
+/** F6（C2-visual 批）：error_type 键→中文用户语前缀（core GR-14 语义
+ * 不动——纯显示层映射；未登记键=原样透传不猜语义）。键集=server 任务
+ * 失败族实测（装配/节点/网格/约束/载荷/项目）。 */
+const ERROR_TYPE_LABELS: Record<string, string> = {
+  InvalidAssemblyError: "装配失败",
+  InvalidNodeError: "单元数据无效",
+  InvalidEdgeError: "连接数据无效",
+  GridTooLargeError: "枚举网格超限",
+  InvalidConstraintChoiceError: "约束选择无效",
+  InvalidPayloadError: "提交载荷无效",
+  InvalidProjectError: "项目数据无效",
+};
+
+/** error_type 中文前缀（登记键=「中文（error_type）」双呈保追溯；未登记
+ * =原样——禁吞原键）。消费面=taskStatusToView 快照单源——SSE 流面
+ * 恒不组入 error 串（reduceTaskEvent 零 error 组装[GV-02 R 轮记档：
+ * 流/快照两路呈现一致性由「快照单源」保证]）。 */
+export function errorTypeLabel(errorType: string): string {
+  const zh = ERROR_TYPE_LABELS[errorType];
+  return zh === undefined ? errorType : `${zh}（${errorType}）`;
+}
+
 /**
  * TaskStatus 快照归一：弱类型 JSON 体 → TaskView（与 SSE 流同形双源归一；
  * failed 面 error 组合 error_type+error+error_code——SSE 源恒缺的详情面）。
@@ -187,7 +209,7 @@ export function taskStatusToView(status: unknown): TaskView {
       typeof raw["error"] === "string" ? raw["error"] : null;
     const parts: string[] = [];
     if (errorType !== null || errorMessage !== null) {
-      parts.push(errorType ?? "未知异常");
+      parts.push(errorType !== null ? errorTypeLabel(errorType) : "未知异常");
       if (errorMessage !== null) {
         parts.push(`：${errorMessage}`);
       }

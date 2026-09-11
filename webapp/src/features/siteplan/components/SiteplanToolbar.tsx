@@ -69,7 +69,7 @@ export function SiteplanToolbar({
   onSave: () => void;
 }) {
   return (
-    <div style={{ padding: "4px 0", borderBottom: "1px solid #434343" }}>
+    <div style={{ padding: "4px 0", borderBottom: "1px solid var(--wp-border-2)" }}>
       <Space size="small" wrap>
         {TOOL_BUTTONS.map(([value, label]) => (
           <Button

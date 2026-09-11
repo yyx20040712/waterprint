@@ -35,7 +35,7 @@
 | `lib/unitGlyph.test.ts` | 字形/域色 vitest（9 用例：32 键全枚举防漏+聚类抽样+回退 ▢+域色五值+流色三态） |
 | `components/CanvasFlow.tsx` | React Flow 画布容器（只读渲染：nodeTypes 注册/fitView/投影错误薄壳+点阵底/满高/边着色聚合/图例/MiniMap/Controls——C2-canvas；P0-3：编辑态投影切 draftProjectRaw 合成体+三关开闭+onConnect/onNodesDelete/onEdgesDelete/onNodesChange[position] 五通道+catalogPorts 渲染层注入+空图编辑态照常渲染） |
 | `lib/thumbnailContext.ts` | C2-thumb 实装（2026-09-11）：节点缩略图 context——app 层组合穿线消费面（Viewer3d 域产出经 Provider 注入/缺省空 Map 回退象形；投影 data 零触碰红线维持） |
-| `components/UnitNode.tsx` | 节点卡片（域色象形图标+左域色 bar+中文名+unit_id 等宽副标+kind 徽标+鎏金选中态+域色端口——C2-canvas 重制；C2-thumb 缩略图双态；P0-3：编辑态 catalog 端口面[IN 左/OUT 右独立计数]+右上删除钮） |
+| `components/UnitNode.tsx` | 节点卡片（域色象形图标+左域色 bar+中文名+unit_id 等宽副标+kind 徽标+鎏金选中态+域色端口——C2-canvas 重制；C2-thumb 缩略图双态；C2-visual T3：缩略图槽 hover 悬浮大图 160[fixed+createPortal 逃逸 React Flow 裁剪+视口钳位]；P0-3：编辑态 catalog 端口面[IN 左/OUT 右独立计数]+右上删除钮） |
 | `components/PortHandle.tsx` | 方向端口渲染件（target=Left/source=Right Handle 封装+可选域色描边——挂账④兑现；P0-3：connectable 透传——编辑态连线交互） |
 | `hooks/useConnectionRules.ts` | 连线规则（骨架维持——段二实装，与 core contracts/ports.validate 同源） |
 | `hooks/useAutoLayout.ts` | 自动布局（骨架维持——段二实装，Ctrl+L 拓扑分层） |

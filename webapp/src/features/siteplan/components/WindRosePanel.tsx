@@ -47,7 +47,7 @@ export function WindRosePanel({ value, onChange, onClear }: WindRosePanelProps) 
     onChange(mergeWindRose(value, values));
   };
   return (
-    <aside style={{ width: WIND_SIDE_WIDTH, flexShrink: 0, padding: "8px 12px", borderLeft: "1px solid #434343" }}>
+    <aside style={{ width: WIND_SIDE_WIDTH, flexShrink: 0, padding: "8px 12px", borderLeft: "1px solid var(--wp-border-2)" }}>
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         风玫瑰（八方位频率）
       </Typography.Text>

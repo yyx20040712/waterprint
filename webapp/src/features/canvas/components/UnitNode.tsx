@@ -30,7 +30,8 @@
  *     深底 3D 缩略图（ThumbnailStage 离屏产出——context 注入[app 层
  *     组合穿线]）优先/缺席回退 24×24 象形（未算/无构型——零回归）；
  *     卡片最小高 56→64+端口首距 20→26（V4 布局校准）；设计真源=
- *     briefs/task-C2-thumb-plan.md。
+ *     briefs/task-C2-thumb-plan.md；C2-visual T3：缩略图槽 hover 悬浮
+ *     大图 160px（portal+fixed——task-c2-visual-plan §二 T3）。
  *   - P0-3（画布编辑最小闭环——task-c2-edit-plan）：编辑态（data.editing
  *     由 CanvasFlow 渲染层聚合注入——投影 data 字段零触碰）端口面=
  *     catalog 端口表渲染（红线④：纯 catalog 数据展示可——新节点零边
@@ -38,7 +39,8 @@
  *     （store 薄壳 deleteNodes——级联清在纯函数层）；只读面零回归
  *     （editing 缺省=边聚合端口+无删除钮原样）。
  */
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Node, NodeProps } from "@xyflow/react";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
@@ -76,6 +78,10 @@ const CARD_MIN_HEIGHT = 64; // C2-thumb：56→64（44 缩略图槽升档）
  * 上可读）；缩略图缺席=24×24 象形图标原槽（零回归回退态）。 */
 const THUMB_SIZE = 44;
 
+/** C2-visual T3：hover 悬浮大图边长（卡片上方预览——192 渲染近原生显）。 */
+const POP_SIZE = 160;
+const POP_VIEWPORT_MARGIN = 8;
+
 /** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色；
  * R-G3 联动清单成员：改鎏金须与 global.css --wp-gold 同步）。 */
 const SELECT_BORDER = "rgba(217, 169, 74, 0.75)";
@@ -101,6 +107,14 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
   // C2-thumb V3：本节点 3D 缩略图（context 注入——缺席=回退象形图标）
   const thumbnail = useUnitThumbnail(data.unitId);
+  // C2-visual T3：hover 悬浮大图定位（fixed+portal——React Flow 容器
+  // overflow:hidden 会裁剪节点内 absolute 弹层，逃逸到 body；槽位矩形
+  // 快照驱动，视口钳位+上方优先下方回退）
+  const [popRect, setPopRect] = useState<{
+    x: number;
+    top: number;
+  } | null>(null);
+  const thumbSlotRef = useRef<HTMLImageElement | null>(null);
   // 域色/中文名数据源=单元清单端点（同一 hook 同一缓存——React Query
   // 去重使多卡片订阅零额外请求）。域色查表键=kind ?? unitId（内置节点
   // 归 catalog kind 键；匹配=精确等值 ParamForm 同构）
@@ -153,22 +167,45 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px 5px 13px" }}>
         {thumbnail !== null ? (
           // C2-thumb V3：3D 缩略图（44×44 圆角深底——aria-hidden 装饰面，
-          // 名称/键仍由文本承载）；构型=该项目该单元实况（Scene 同源）
+          // 名称/键仍由文本承载）；构型=该项目该单元实况（Scene 同源）；
+          // C2-visual T3：hover 悬浮大图（fixed+portal 逃逸容器裁剪）
           <img
             aria-hidden
+            ref={thumbSlotRef}
             src={thumbnail}
             alt=""
             width={THUMB_SIZE}
             height={THUMB_SIZE}
+            data-testid={`thumb-slot-${data.unitId}`}
             style={{
               width: THUMB_SIZE,
               height: THUMB_SIZE,
               flex: "none",
               borderRadius: 8,
-              background: "#0b1526",
+              background: "var(--wp-bg-page)",
               objectFit: "cover",
               display: "block",
             }}
+            onMouseEnter={() => {
+              const slot = thumbSlotRef.current;
+              if (slot === null) {
+                return;
+              }
+              const rect = slot.getBoundingClientRect();
+              const above = rect.top - POP_SIZE - 10 >= POP_VIEWPORT_MARGIN;
+              setPopRect({
+                x: rect.left + rect.width / 2,
+                // GV-04（R 轮）：下翻分支纵向同样钳位（槽位贴底时 160px
+                // 大图下缘不溢出视口——与水平向口径对称）
+                top: above
+                  ? rect.top - POP_SIZE - 10
+                  : Math.min(
+                      rect.bottom + 10,
+                      window.innerHeight - POP_SIZE - POP_VIEWPORT_MARGIN,
+                    ),
+              });
+            }}
+            onMouseLeave={() => setPopRect(null)}
           />
         ) : (
           <span
@@ -297,6 +334,36 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
               <PortHandle portId={portId} direction="source" domainColor={domainColor} />
             </div>
           ))}
+      {/* C2-visual T3：hover 悬浮大图（portal 到 body——fixed 定位逃逸
+          React Flow overflow:hidden 裁剪；视口水平钳位；pointer-events
+          none 纯预览不挡交互；仅 hover 态挂载零常驻开销） */}
+      {popRect !== null && thumbnail !== null
+        ? createPortal(
+            <img
+              src={thumbnail}
+              alt=""
+              data-testid="wp-thumb-pop"
+              style={{
+                position: "fixed",
+                left: Math.min(
+                  Math.max(popRect.x - POP_SIZE / 2, POP_VIEWPORT_MARGIN),
+                  window.innerWidth - POP_SIZE - POP_VIEWPORT_MARGIN,
+                ),
+                top: popRect.top,
+                width: POP_SIZE,
+                height: POP_SIZE,
+                boxSizing: "border-box",
+                borderRadius: 10,
+                border: "1px solid var(--wp-border)",
+                boxShadow: "0 8px 32px rgba(3,10,22,.6)",
+                background: "var(--wp-bg-page)",
+                zIndex: 1000,
+                pointerEvents: "none",
+              }}
+            />,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -11,10 +11,10 @@
 | `lib/applyGates.test.ts` | P0-2 实装 | 三闸纯函数族 node 测试（三源窄化缺键降级/闸①②禁用因五分支/闸③漂移缺源不警示） |
 | `lib/solutionsView.test.ts` | FE6 实装+C2 扩面 | 五纯函数族 node 测试（golden aao 内联夹具+负例族带键定位+格式化三支用例族） |
 | `lib/applyGates.ts` | P0-2 实装 | 应用闸纯函数层：narrowEnumSource（result unit_id/design_hash+当前 content_hash 三源窄化）/applyGateReason（闸①下拉≠表源+闸②单元缺席→禁用述因）/applyDriftWarn（闸③漂移警示——呈裁⑧ 甲案警示后放行）；solutionsPane 行数预算越界修沿 solutionsFields B7 先例 |
-| `lib/solutionsFields.ts` | B7 R+ 提取 | 枚举结果字段窄化（resultField/grid_fields）+409 锁冲突判定（isLockConflict/LOCK_HINT）纯函数——solutionsPane 行数预算越界修前进 |
-| `lib/solutionsFields.test.ts` | B2 扩面 R 轮 | unitOptionLabel 四分支 node 测试（中文名/英文回退/builtin 后缀/未就绪旧形态防自重复） |
-| `lib/taskFeed.ts` | FE6 实装 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定 |
-| `lib/taskFeed.test.ts` | FE6 实装 | 事件序列归约/线格式/快照归一 node 测试（畸形 data 拒负例） |
+| `lib/solutionsFields.ts` | B7 R+ 提取；C2-visual F6 扩 | 枚举结果字段窄化（resultField/grid_fields）+409 锁冲突判定（isLockConflict/LOCK_HINT）+isUnitEnumerable/enumerateOptions（F6 可枚举判据=manifest grid 非空——不可枚举 disabled 附「无档位参数」后缀；目录未就绪 fail-open）纯函数——solutionsPane 行数预算越界修前进 |
+| `lib/solutionsFields.test.ts` | B2 扩面 R 轮；C2-visual F6 | unitOptionLabel 四分支 node 测试（中文名/英文回退/builtin 后缀/未就绪旧形态防自重复）+enumerateOptions 族（grid 判据/键缺席诚实拒/fail-open/disabled 后缀） |
+| `lib/taskFeed.ts` | FE6 实装；C2-visual F6 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定+errorTypeLabel（F6 error_type 中文用户语映射——七键登记未登记原样透传，core GR-14 语义不动） |
+| `lib/taskFeed.test.ts` | FE6 实装 | 事件序列归约/线格式/快照归一 node 测试（畸形 data 拒负例）；C2-visual F6：errorTypeLabel 映射/透传/快照组合 3 用例 |
 | `api/useTaskFeed.ts` | FE6 实装 | EventSource 自建薄壳（SSE 不走 customInstance——生成 useTaskEvents* 是一次性 JSON 读不可用） |
 | `api/useProjectUnits.ts` | FE6 实装 | useReadProject 薄封装 select 窄化 {unitId,kind}[]（read 键三面共享） |
 | `components/TaskPanel.tsx` | FE6 实装 | 任务态面板：SSE 进度徽标/进度条/阶段文案/failed 三件回显/取消 |

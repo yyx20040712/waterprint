@@ -102,7 +102,7 @@ export function TaskPanel({
   const cancellable = state === "queued" || state === "running";
 
   return (
-    <div style={{ border: "1px solid #434343", padding: 12, borderRadius: 4 }}>
+    <div style={{ border: "1px solid var(--wp-border-2)", padding: 12, borderRadius: 4 }}>
       <Typography.Text
         type="secondary"
         style={{ fontFamily: "monospace", fontSize: 11 }}

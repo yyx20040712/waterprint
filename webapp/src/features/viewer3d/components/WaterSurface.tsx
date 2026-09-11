@@ -14,11 +14,14 @@
  *     真圆盘（径向 48 段：弦高误差≈0.11%d 肉眼不可辨，<24 棱线可见）；
  *     否则 boxGeometry 旧径（box 池 length×width——diameter→radius=
  *     three 接口适配，非业务推导）；
- *   - 剖切平面随 props（store → Scene → 材质）。
+ *   - 剖切平面随 props（store → Scene → 材质）；C2-visual T2：材质
+ *     DoubleSide（剖切语境内面可见——半剖后水体剖面蓝不被背面剔除
+ *     挖空；主场景预设机位恒水上俯视零观感变化，自由漫游转至水下
+ *     仰视时水面转为可见[背面此前剔除]——观感改进向[GV-03 R 轮口径]）。
  */
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import type * as THREE from "three";
+import * as THREE from "three";
 
 import { semanticColor } from "../../../shared/ui/semanticColors";
 
@@ -64,6 +67,7 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
         transparent
         opacity={BASE_OPACITY}
         depthWrite={false}
+        side={THREE.DoubleSide}
         clippingPlanes={clippingPlanes}
       />
     </mesh>
