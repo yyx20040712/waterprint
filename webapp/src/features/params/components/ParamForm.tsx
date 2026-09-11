@@ -54,23 +54,17 @@ import type { DesignMapResponse } from "../../../shared/api/generated/model";
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
 const SELECT_BLUE = "#1668dc";
 
-/** business_line 中文词（badge——unitGlyph/图例同词本地映射：features
- * 不向上 import app 层 §13.5；展示层翻译非业务复制）。 */
-const LINE_LABELS: Record<string, string> = {
-  municipal: "市政污水",
-  conveyance: "输送提升",
-  mine_water: "矿井水",
-  sludge: "污泥处理",
-};
-
-/** 控件列宽（视觉稿 A num-input 122px 级——flex none 右对齐）。 */
-const CONTROL_WIDTH = 122;
+/** 控件列宽（视觉稿 A num-input 122px 级——flex none 右对齐）。
+ * C2-ALIGN A5r 导出共享：AssumptionsPanel（经验取值页）行格式对齐
+ * 本面板——同宽控件列=「格式和约束参数面板里一样」的物理面。 */
+export const CONTROL_WIDTH = 122;
 
 /** C2VD V6：单位后缀样式（addonAfter→Space.Compact 迁移件——antd 内部
  * 类不依赖[v6 DOM 变体记档制]；取色全走 --wp 变量轴；-1px 左缘叠缝=
  * Compact 邻接共享边框惯例，右圆角 4=small 控件档。文字=--wp-text-2
- * （三段流 ds 建议提亮——text-3 在深底层级过低）。 */
-const UNIT_SUFFIX_STYLE: React.CSSProperties = {
+ * （三段流 ds 建议提亮——text-3 在深底层级过低）。C2-ALIGN A5r 导出
+ * 共享：AssumptionsPanel（经验取值页）行格式对齐本面板——同款后缀。 */
+export const UNIT_SUFFIX_STYLE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
@@ -237,25 +231,9 @@ export function ParamForm({
 
   return (
     <section style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
-      {/* Q2 头部：眉标+单元名+域 badge（unitId 隐藏进 title 悬浮） */}
-      <header style={{ flex: "none", padding: "11px 14px 10px", borderBottom: "1px solid var(--wp-border-2)" }}>
-        <div style={{ fontSize: 10, letterSpacing: 1.5, color: "var(--wp-text-3)" }}>
-          参数面板
-        </div>
-        <div
-          style={{ fontSize: 13.5, fontWeight: 600, color: "var(--wp-text-2)", marginTop: 2, display: "flex", alignItems: "center", gap: 8 }}
-          title={unitId + (kind !== null && kind !== unitId ? ` ← ${kind}` : "")}
-        >
-          {meta?.name_zh ?? unitId}
-          {meta ? (
-            <span
-              style={{ fontSize: 10, padding: "1px 7px", borderRadius: 8, background: "rgba(61,139,253,.16)", color: "#7ab2ff", border: "1px solid rgba(61,139,253,.35)" }}
-            >
-              {meta.kind === "builtin" ? "内置节点" : LINE_LABELS[meta.business_line] ?? meta.business_line}
-            </span>
-          ) : null}
-        </div>
-      </header>
+      {/* C2-ALIGN A5r：Q2 头部（眉标+单元名+badge）外提至 ParamTabs
+          ——「AAO 生物池」下方直接接双分页（用户澄清 2026-09-12）；
+          本件自此=约束参数页体（body+foot），格式零变（Q1/Q3~Q7 沿袭）。 */}
 
       {/* Q1 body 滚动域 */}
       <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 14px 12px" }}>
@@ -424,7 +402,7 @@ export function ParamForm({
           </div>
         ) : null}
         {apply.isError ? (
-          <div style={{ padding: "0 14px", paddingTop: 8, fontSize: 11, color: "#ff6b6b" }}>
+          <div style={{ padding: "0 14px", paddingTop: 8, fontSize: 11, color: "var(--wp-error)" }}>
             提交失败：{apply.error instanceof Error ? apply.error.message : "未知错误"}
           </div>
         ) : null}

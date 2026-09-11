@@ -284,10 +284,16 @@ export function App() {
         </Header>
         <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
           {/* M2：单元库浏览实装替换占位——C1 宽 280→232（工程密度）+自滚；
-              C2-lib：图标行重制+focusId 受控（联动穿线） */}
+              C2-lib：图标行重制+focusId 受控（联动穿线）。
+              C2-ALIGN A1：右缘浅色分割线（direction-a .sider border-right
+              同构——--wp-border-2=#1b2c49=--colorBorderSecondary 同值轴）。 */}
           <Sider
             width={232}
-            style={{ overflow: "auto", flex: "none" }}
+            style={{
+              overflow: "auto",
+              flex: "none",
+              borderRight: "1px solid var(--wp-border-2)",
+            }}
           >
             <UnitLibrary
               focusId={libraryFocusId}

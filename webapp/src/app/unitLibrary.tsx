@@ -90,9 +90,17 @@ const DRAWER_WIDTH = 480;
  * 分支消费]，改组 key 构造须两文件四点联动）。 */
 const GROUP_KEY_PREFIX = "group:";
 
-/** 行图标尺寸/圆角（视觉稿态二冻结——20×20 圆角 5）。 */
-const ICON_SIZE = 20;
+/** 行图标尺寸/圆角（C2-ALIGN A4：20→22=direction-a .unit-ico 22×22
+ * 对齐——「视觉稿态二冻结 20×20」由本批用户反馈+方向 A 真源取代）。 */
+const ICON_SIZE = 22;
 const ICON_RADIUS = 5;
+/** 图标字形字号（C2-ALIGN A4：10.5→11=设计 .unit-ico font-size）。 */
+const ICON_GLYPH_SIZE = 11;
+/** 叶行中文名字号（C2-ALIGN A4：12.5→13——用户「文字大一点」，升至
+ * 基准字号=providers fontSize 同值）。 */
+const LEAF_NAME_SIZE = 13;
+/** 组行题字号（C2-ALIGN A4：11→12——用户「大一点」+1 档）。 */
+const GROUP_TITLE_SIZE = 12;
 
 /** 域色图标三色组（UnitNode DOMAIN_ICON_STYLES 同值派生消费——
  * R-G3 联动清单成员·Y-4 A 前分层口径：**同构表复制两处**[本表/UnitNode
@@ -112,10 +120,18 @@ const SEARCH_HINT_PROPS = {
   ["place" + "holder"]: "搜索单元/名称",
 } as const;
 
-/** 参数面五列（default 空值「—」/range「min~max」/grid 长度或「—」——
- * 展示值直出 entry 字段零推导）。 */
+/** 参数面五列（default 空值「—」/range「min~max」/grid 长度或「—」。
+ * C2-ALIGN A5r：参数列显 label_zh 物理意义（?? field_id 回退——
+ * 「所有参数都要显示物理意义」），field_id 悬浮保留代码名追溯）。 */
 const PARAM_COLUMNS: ColumnsType<ParamEntry> = [
-  { title: "参数", dataIndex: "field_id", key: "field_id" },
+  {
+    title: "参数",
+    dataIndex: "label_zh",
+    key: "label_zh",
+    render: (value: string | null, entry: ParamEntry) => (
+      <span title={entry.field_id}>{value ?? entry.field_id}</span>
+    ),
+  },
   { title: "量纲", dataIndex: "dim", key: "dim" },
   {
     title: "默认值",
@@ -167,7 +183,7 @@ function DomainIcon({ unit }: { unit: UnitMetaEntry }) {
         height: ICON_SIZE,
         flex: "none",
         borderRadius: ICON_RADIUS,
-        fontSize: 10.5,
+        fontSize: ICON_GLYPH_SIZE,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -240,13 +256,15 @@ export function UnitLibrary({
         const baseTitle = countMatch === null ? titleText : titleText.slice(0, countMatch.index);
         const count = countMatch === null ? null : countMatch[1];
         return (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 1, color: "var(--wp-text-3)", width: "100%" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: GROUP_TITLE_SIZE, letterSpacing: 1, color: "var(--wp-text-3)", width: "100%" }}>
             <span
               aria-hidden
               style={{ width: 8, height: 2, borderRadius: 1, background: domainColorOf(line === "builtin" || line === "other" ? null : line) }}
             />
             <span>{baseTitle}</span>
             {count !== null && (
+              // 角标 10px=direction-a .unit-row .tag 同值（设计真源——
+              // 不随组题 12px 联动；AL-04 R 轮注记）
               <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.8 }}>({count})</span>
             )}
           </span>
@@ -259,10 +277,10 @@ export function UnitLibrary({
       return (
         <span
           title={unit.unit_id}
-          style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 26, width: "100%" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 28, width: "100%" }}
         >
           <DomainIcon unit={unit} />
-          <span style={{ fontSize: 12.5, color: "var(--wp-text)" }}>{unit.name_zh}</span>
+          <span style={{ fontSize: LEAF_NAME_SIZE, color: "var(--wp-text)" }}>{unit.name_zh}</span>
           {/* P0-3 呈裁②：编辑态叶行悬浮添加钮（stopPropagation 免叶选中
               开抽屉——添加即反馈实例 id，抽屉不抢焦点） */}
           {editing ? (
@@ -360,7 +378,8 @@ export function UnitLibrary({
             justifyContent: "space-between",
             padding: "7px 14px",
             borderTop: "1px solid var(--wp-border-2)",
-            fontSize: 10.5,
+            /* C2-ALIGN A2：10.5→11=设计 .sider-foot font-size */
+            fontSize: 11,
             letterSpacing: 0.5,
             color: "var(--wp-text-3)",
           }}

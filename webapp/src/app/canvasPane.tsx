@@ -17,11 +17,12 @@
  *   - FE5 选中态（D2 props 提升）：selectedUnitId 本组件 useState 持有
  *     ——CanvasFlow onNodeClick 写入+ParamForm 消费；不建全局 store
  *     （最小面；§17.2 UI 态走 store 红线不阻但单面板无必要——简报 D2）；
- *   - FE5 挂载（D4 左侧固定宽侧栏）：flex 行=params 侧栏 320px+画布余宽
- *     （视觉近似 §19.2 左面板且 selectedUnitId 不跨层）；ParamsPanel=
- *     ParamForm+AssumptionsPanel 两件叠放，未选中=提示文案（假设清单
- *     恒展示）；App 层 Sider=UnitLibrary 单元库树（M2 实装替换占位——
- *     单元库≠params，参数编辑面恒在本标签 ParamForm）；
+ *   - FE5 挂载（D4 左侧固定宽侧栏）：flex 行=params 侧栏 280px+画布余宽
+ *     （视觉近似 §19.2 左面板且 selectedUnitId 不跨层）；C2-ALIGN A5r
+ *     起 params 侧栏=ParamTabs 双分页容器（约束参数=ParamForm 体/
+ *     经验取值=AssumptionsPanel 体——升位自底部假设区，2026-09-12）；
+ *     App 层 Sider=UnitLibrary 单元库树（M2 实装替换占位——单元库≠
+ *     params，参数编辑面恒在本标签 ParamTabs）；
  *   - D4 不 lazy 不 Suspense：canvas=默认标签首屏必渲染（App activeKey
  *     默认 canvas）——零动态 import，xyflow 进首屏入口 bundle 为预期；
  *   - ErrorBoundary label=工艺画布（渲染崩溃不清空应用 §15 细节 4；
@@ -44,8 +45,7 @@ import { Button, Select, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
-import { AssumptionsPanel } from "../features/params/components/AssumptionsPanel";
-import { ParamForm } from "../features/params/components/ParamForm";
+import { ParamTabs } from "../features/params/components/ParamTabs";
 import { useSceneQuery } from "../features/viewer3d/api/useSceneQuery";
 import { ThumbnailStage } from "../features/viewer3d/components/ThumbnailStage";
 import {
@@ -65,10 +65,6 @@ import { useProjectId } from "./useProjectId";
 /** 空态指引（P0-1 CTA 化——F4-文案面收口：新建/导入经 Modal，不再教 API）。 */
 const EMPTY_GUIDE =
   "暂无项目：点击「新建项目」创建空白项目或导入已有项目 JSON 文件。";
-
-/** 未选中提示（D4——ParamForm 槽位文案，假设清单恒展示）。 */
-const UNSELECTED_HINT =
-  "在画布中点击构筑物节点，即可在此编辑其参数并提交重算；设计假设清单始终展示于下方。";
 
 /** 侧栏宽度：默认 280（C2-params 呈裁④——视觉稿 A 值）+拖拽可调
  * （用户裁选「边界可拉伸」Q8：240~480px clamp——下限=标签列+控件最小
@@ -205,27 +201,13 @@ export function CanvasPane({
               borderRight: "1px solid var(--wp-border-2)",
             }}
           >
+            {/* C2-ALIGN A5r：参数侧栏=ParamTabs 双分页容器（单元标题+
+                [约束参数|经验取值] Segmented——假设区自底部升位进页，
+                用户澄清 2026-09-12；约束页=ParamForm 体格式零变[选中
+                单元]/提示文案[未选中]，经验页=假设清单恒可达）。
+                原 UNSELECTED_HINT 提示与底部 42% 假设容器退役迁入。 */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-              {selectedUnitId === null ? (
-                <div style={{ padding: "0 12px", flex: 1, overflow: "auto" }}>
-                  <Typography.Paragraph type="secondary">
-                    {UNSELECTED_HINT}
-                  </Typography.Paragraph>
-                </div>
-              ) : (
-                // key=R1 修复（一审 I1）：切单元/切项目强制重挂载——草稿与
-                // mutation 态不跨单元残留（消息残留+drafts 串单元双隐患）
-                <ParamForm
-                  key={`${projectId}:${selectedUnitId}`}
-                  projectId={projectId}
-                  unitId={selectedUnitId}
-                />
-              )}
-            </div>
-            {/* R 轮 R2（DS-05⑥ 跨项目草稿残留）：key=projectId 切项目强制
-                重挂载；C2-params Q1：限高 42% 自滚（参数面板主面 flex 1） */}
-            <div style={{ maxHeight: "42%", overflow: "auto", flex: "none", padding: "0 12px" }}>
-              <AssumptionsPanel key={projectId} projectId={projectId} />
+              <ParamTabs key={projectId} projectId={projectId} unitId={selectedUnitId} />
             </div>
             {/* Q8 拖拽把手（视觉稿冻结形态：8px 命中区+3px 可视条 hover 蓝） */}
             <div

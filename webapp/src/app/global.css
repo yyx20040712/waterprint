@@ -63,6 +63,11 @@
   --wp-text-2: #9db0c9;
   --wp-text-3: #5d7290;
   --wp-success: #3ddc97;
+  /* C2-ALIGN R 轮（AL-02）：错误色入轴——与 providers colorError 同值
+   * 双源（A2-N-01 联动清单扩行：--wp-error ↔ providers colorError）；
+   * 消费面=AssumptionsPanel/ParamForm 页脚错误行（原 #ff6b6b 字面量
+   * 三处+存量一处轴化）。 */
+  --wp-error: #ff6b6b;
   --wp-scrollbar-hover: #2f4d7d;
   --wp-dot-color: #1e3153;
   --wp-dot-size: 24px;
@@ -123,6 +128,39 @@ body {
   background: var(--wp-bg-container);
   border-bottom: 1px solid var(--wp-border-2);
   padding: 0 8px;
+}
+/* C2-ALIGN A3：页签选中态=direction-a .tab.active 同构（白字 w500+
+ * 鎏金渐变下划线——内缩 12px/2px/上缘圆角/叠于 nav 下边框；渐变三停
+ * #b98a35→--wp-gold 45%→#f0cf8a 首尾两停=设计字面量）。实现路线=墨条
+ * 隐藏+.ant-tabs-tab-active::after 自绘：antd v6.6.2 墨条位置/宽=inline
+ * style（left/width/transform），内缩 12px 逐属性 !important 对抗运行时
+ * 定位脆——::after 即设计稿自身机制，确定性优；inkBarColor token 保留
+ * （providers——墨条隐藏后为潜在回退面+同值双源清单成员）。tab 态色=
+ * providers components.Tabs item* 三 token（JS 面同值双源）。 */
+.ant-tabs.wp-scroll-tabs .ant-tabs-tab {
+  position: relative;
+}
+.ant-tabs.wp-scroll-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  font-weight: 500;
+}
+.ant-tabs.wp-scroll-tabs .ant-tabs-ink-bar {
+  display: none;
+}
+.ant-tabs.wp-scroll-tabs .ant-tabs-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(
+    90deg,
+    #b98a35,
+    var(--wp-gold) 45%,
+    #f0cf8a
+  );
+  pointer-events: none;
 }
 .ant-tabs.wp-scroll-tabs > .ant-tabs-body-holder {
   flex: 1;

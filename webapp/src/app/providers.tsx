@@ -80,6 +80,16 @@ const themeConfig: ThemeConfig = {
     Tabs: {
       inkBarColor: "#d9a94a",
       horizontalItemPadding: "10px 14px",
+      // C2-ALIGN A3：页签三态色=direction-a .tab 同构（未选=次档灰蓝/
+      // 悬浮按压=全白/选中=全白——darkAlgorithm 默认恰与设计互换：默认
+      // 未选=文字白+选中=主蓝；antd token 为 JS 字面量无法 var() 引轴
+      // ——与 global.css --wp-text/--wp-text-2 同值双源，A2-N-01 联动
+      // 清单成员，改色两处联动）。渐变下划线/选中字重=global.css
+      // scoped 面（墨条 inline 定位改写代价高→::after 路线，见彼处注记）。
+      itemColor: "#9db0c9",
+      itemHoverColor: "#e8eef7",
+      itemActiveColor: "#e8eef7",
+      itemSelectedColor: "#e8eef7",
     },
     Table: {
       headerBg: "#16263f",
