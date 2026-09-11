@@ -188,7 +188,10 @@ export function CanvasPane({
             （滚动下放 ParamForm body/假设清单限高面——GR-40 收敛）；
             Q8 拖拽把手（col-resize——右缘 8px 命中区）；
             C2-visual D2：wp-full-bleed 满铺回收（tabpane gutter 分策
-            ——画布编辑器面满铺，类内含 height 补偿，内联 height 退役） */}
+            ——画布编辑器面满铺，类内含 height 补偿，内联 height 退役）；
+            C2VD 补笔：底色=var(--wp-bg-container) 面板蓝（direction-a
+            .params background 同构——n+37「左侧面板应用浅蓝」反馈漏网
+            面，D1/Sider 同 token 三源轴[A2-N-01 联动清单]） */}
         <div className="wp-full-bleed" style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
           <aside
             style={{
@@ -198,6 +201,7 @@ export function CanvasPane({
               display: "flex",
               flexDirection: "column",
               minHeight: 0,
+              background: "var(--wp-bg-container)",
               borderRight: "1px solid var(--wp-border-2)",
             }}
           >

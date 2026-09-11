@@ -60,7 +60,7 @@
 > [SectionCap 新件——模板计数语义=剖切面∩实体材质区，水体断面蓝保持]
 > +unit_id 分隔符整词断行[孤字根除]+主视图构筑物棱边描边[EdgesGeometry
 > +polygonOffset 共面深度竞争修复]+MiniMap 实底+addonAfter→Space.Compact
-> 迁移；**PoolBox 材质级剖切静默缺陷勘正**[旧 mesh 级摊派 R3F 无转发
+> 迁移+参数面板面板蓝[direction-a .params 同构——n+37 反馈漏网面]；**PoolBox 材质级剖切静默缺陷勘正**[旧 mesh 级摊派 R3F 无转发
 > ——半剖/§12.3 剖切此前从未生效]；语义色 +section_cap 28 键；视觉
 > 三段流终裁「准予收面」+D/A 双审通过[R/R2 真修 4 处]；vitest 603+
 > 无头 cvd 族 11/11+八族回归）**。
