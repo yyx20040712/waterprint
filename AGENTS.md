@@ -145,8 +145,9 @@
 - 镜像命名：`topo.py` ↔ `test_topo.py`；性质测试独立 `properties_topo.py`。
 - 骨架期休眠测试：测试文件内用 `getattr(module, 符号, None)` 判定，符号缺失 = skip
   （理由注明缺什么）；实现合入后 skip 数必须归零——**CI 机器拦截**（ci.yml
-  core/server 两 pytest 步骤 grep 非零 skipped 即 FAIL，GOV1 A3；`-ra` 输出
-  skip 原因供定位）。
+  core/server 两 pytest 步骤：`-ra` 逐条 SKIPPED 中**平台守卫白名单外**
+  即 FAIL——白名单=「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest
+  哈希覆盖，test_lock 先例]，GOV1 A3+CI 修复笔定版）。
 - 公式数值基准来自 docs/norms 手算对照表（数据策略 v2，§14：AI 按工程常用
   范围起草 + 领域专家批量追认），不得编造数字；
   golden 端到端期望值只存放在 `core/tests/golden/golden_data/`（数据文件，非代码）。

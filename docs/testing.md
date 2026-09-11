@@ -16,8 +16,8 @@
   92——GOV1 勘正：本页原漏 units_lib 面；core/tests 139 内含 core/tests/units_lib/ 2 件跨单元测试），
   `scripts/check_readonly.py` 与 `tests/arch/test_lock.py` 本地/CI 双验；
 - 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`；
-  **skip>0 即 CI FAIL——GOV1 A3 机器化**，ci.yml core/server 两 pytest
-  步骤拦截）；
+  **平台守卫白名单外的 SKIPPED 即 CI FAIL——GOV1 A3 机器化**，白名单=
+  「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest 哈希覆盖]）；
 - 快照回归：`tests/snapshots/`（syrupy）锚三导出产物内容哈希
   （xlsx/DXF/HTML——ADR-010）；快照红≠自动更新，先人审定性（预期漂移
   `--snapshot-update` 重录+diff 入批注记；非预期=回归缺陷走修复）；
