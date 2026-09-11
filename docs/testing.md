@@ -13,7 +13,7 @@
 - 只读锁定：`core/tests/`、`server/tests/` 与 **units_lib 包内 tests/**
   全部文件由 `test-lock.manifest.json`（sha256）+ 文件只读属性双重锁定
   （实测口径 270 键 = core/tests 139 + server/tests 39 + units_lib 包内
-  94——GOV1 勘正：本页原漏 units_lib 面），
+  92——GOV1 勘正：本页原漏 units_lib 面；core/tests 139 内含 core/tests/units_lib/ 2 件跨单元测试），
   `scripts/check_readonly.py` 与 `tests/arch/test_lock.py` 本地/CI 双验；
 - 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`；
   **skip>0 即 CI FAIL——GOV1 A3 机器化**，ci.yml core/server 两 pytest

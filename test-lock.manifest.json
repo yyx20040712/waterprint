@@ -137,6 +137,7 @@
   "core/tests/trace/test_calcbook.py": "a129461223ab99d75334f6c18ac30e8372a93200b88ed28d054e5576ba75fbba",
   "core/tests/trace/test_collector.py": "49fe6756dd5094932d3be9c4b07bb52cb756e2bcdfde3014342590837fa0970e",
   "core/tests/units_lib/test_n1_degenerate_battery.py": "b2ed06dd8cdf2817c269a66dad11947c318003672b13d0249129cf359addb9ac",
+  "core/tests/units_lib/test_removal_semantics.py": "fa0e72b0a42a6eee812993216a3b37e0fb0c9b3c55f1baa20dae6b706ca519c1",
   "core/tests/units_lib/test_unit_compute.py": "0d3614426f60a664c5ef0fc9c70610020e16f6ea9a7a7583f5a2ed500347d1a9",
   "core/waterprint/units_lib/_template/tests/properties.py": "7f258d0a9cbd0647ced587ec331a805b9faf68519242534cbf5a03af5aae89aa",
   "core/waterprint/units_lib/_template/tests/test_compute.py": "6b1edf7627c5848ea801d3c8458662c938408665d293ccc5a4bc8c77aa194adf",
