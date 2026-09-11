@@ -82,7 +82,16 @@
 > 污染前置勘正**[path.stem 只剥末段——列表 id 恒带 .wp，FE normalize 与
 > 测试 removesuffix 双补偿实锚；根治=精确全后缀剥除回显裸 id]+unit_id
 > 节点副标隐藏搭车[用户裁定——title 悬浮追溯链 B2 PD8 同制]；server
-> 276+vitest 611+无头 p2l 族 16/16+九族回归）**。
+> 276+vitest 611+无头 p2l 族 16/16+九族回归）**；**P2 次批·结果可信度
+> 面板收官（2026-09-12，ADR-012）：core 诊断契约[contracts/trust.py
+> 新件——独立并列 artifact calc-diag-{task_id}.json，PlantResult 总线
+> 零触碰]+executor 回路统计采集[compute 包装复算残差——solve_loop
+> 四参锁零触碰]+水量闭合/出水裕度纯投影[app_trust.py]+UF-39 出水标准
+> 装载清偿[registry/effluent.py fail-fast]+server GET /api/calc/trust
+> （openapi 31→32）+webapp 第八标签「可信度」[四区块卡：收敛口径/
+> 水量平衡/出水裕度 GB18918 参考面/校核警告汇总——降级语义
+> diagnostics_available=False 禁伪造空诊断]；core 714+server 287+
+> vitest 621+无头 p2t 族 ALL PASS+九族回归）**。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：

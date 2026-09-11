@@ -168,6 +168,35 @@
         "title": "CancelResponse",
         "type": "object"
       },
+      "ClosureLineModel": {
+        "description": "单流体线厂级闭合（contracts.trust.ClosureLine 直投影）。",
+        "properties": {
+          "closure_rel": {
+            "title": "Closure Rel",
+            "type": "number"
+          },
+          "fluid": {
+            "title": "Fluid",
+            "type": "string"
+          },
+          "q_sinks_total": {
+            "title": "Q Sinks Total",
+            "type": "number"
+          },
+          "q_sources_total": {
+            "title": "Q Sources Total",
+            "type": "number"
+          }
+        },
+        "required": [
+          "fluid",
+          "q_sources_total",
+          "q_sinks_total",
+          "closure_rel"
+        ],
+        "title": "ClosureLineModel",
+        "type": "object"
+      },
       "ConstraintCatalog": {
         "description": "约束目录响应体（D6 不分页整发——kb 声明序）。",
         "properties": {
@@ -1128,6 +1157,36 @@
         "title": "FeeLineModel",
         "type": "object"
       },
+      "FlowClosureModel": {
+        "description": "单工况水量闭合审计（contracts.trust.FlowClosure 直投影）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ClosureLineModel"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "unit_imbalances": {
+            "items": {
+              "$ref": "#/components/schemas/UnitImbalanceModel"
+            },
+            "title": "Unit Imbalances",
+            "type": "array"
+          }
+        },
+        "required": [
+          "condition_key",
+          "lines",
+          "unit_imbalances"
+        ],
+        "title": "FlowClosureModel",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1139,6 +1198,45 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IndicatorMarginModel": {
+        "description": "出水指标裕度条目（contracts.trust.IndicatorMargin 直投影）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "indicator": {
+            "title": "Indicator",
+            "type": "string"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "number"
+          },
+          "margin": {
+            "title": "Margin",
+            "type": "number"
+          },
+          "standard_id": {
+            "title": "Standard Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "condition_key",
+          "standard_id",
+          "indicator",
+          "value",
+          "limit",
+          "margin"
+        ],
+        "title": "IndicatorMarginModel",
         "type": "object"
       },
       "IndicatorReadingModel": {
@@ -1194,6 +1292,38 @@
           "checked"
         ],
         "title": "IndicatorReportModel",
+        "type": "object"
+      },
+      "LoopRunModel": {
+        "description": "回路收敛统计条目（contracts.trust.LoopRunStats 直投影）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "final_residual": {
+            "title": "Final Residual",
+            "type": "number"
+          },
+          "iterations": {
+            "title": "Iterations",
+            "type": "integer"
+          },
+          "loop_nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Loop Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "condition_key",
+          "loop_nodes",
+          "iterations",
+          "final_residual"
+        ],
+        "title": "LoopRunModel",
         "type": "object"
       },
       "Node": {
@@ -1911,6 +2041,156 @@
         "title": "TaskStatus",
         "type": "object"
       },
+      "TrustReportResponse": {
+        "description": "结果可信度报告（全工况聚合——R2/R4）。",
+        "properties": {
+          "convergence": {
+            "items": {
+              "$ref": "#/components/schemas/LoopRunModel"
+            },
+            "title": "Convergence",
+            "type": "array"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "diagnostics_available": {
+            "title": "Diagnostics Available",
+            "type": "boolean"
+          },
+          "effluent": {
+            "items": {
+              "$ref": "#/components/schemas/IndicatorMarginModel"
+            },
+            "title": "Effluent",
+            "type": "array"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "loop_params": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Loop Params",
+            "type": "object"
+          },
+          "mass_balance": {
+            "items": {
+              "$ref": "#/components/schemas/FlowClosureModel"
+            },
+            "title": "Mass Balance",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "warning_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Warning Counts",
+            "type": "object"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/TrustWarningModel"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "diagnostics_available",
+          "loop_params",
+          "convergence",
+          "mass_balance",
+          "effluent",
+          "warnings",
+          "warning_counts"
+        ],
+        "title": "TrustReportResponse",
+        "type": "object"
+      },
+      "TrustWarningModel": {
+        "description": "结果警告条目（WarningEntry 六键+unit_id 定位——R3）。",
+        "properties": {
+          "affected_unit_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Unit Ids",
+            "type": "array"
+          },
+          "condition_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Key"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "param_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Param Key"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "severity",
+          "source",
+          "message"
+        ],
+        "title": "TrustWarningModel",
+        "type": "object"
+      },
       "UnitCatalog": {
         "description": "单元目录响应体（D6 不分页整发）。",
         "properties": {
@@ -1926,6 +2206,40 @@
           "units"
         ],
         "title": "UnitCatalog",
+        "type": "object"
+      },
+      "UnitImbalanceModel": {
+        "description": "单元×流体进出闭合（contracts.trust.UnitImbalance 直投影）。",
+        "properties": {
+          "delta_rel": {
+            "title": "Delta Rel",
+            "type": "number"
+          },
+          "fluid": {
+            "title": "Fluid",
+            "type": "string"
+          },
+          "q_in": {
+            "title": "Q In",
+            "type": "number"
+          },
+          "q_out": {
+            "title": "Q Out",
+            "type": "number"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "fluid",
+          "q_in",
+          "q_out",
+          "delta_rel"
+        ],
+        "title": "UnitImbalanceModel",
         "type": "object"
       },
       "UnitMetaEntry": {
@@ -2501,6 +2815,54 @@
           }
         ],
         "summary": "Get Solutions",
+        "tags": [
+          "calc"
+        ]
+      }
+    },
+    "/api/calc/trust/{project_id}": {
+      "get": {
+        "description": "结果可信度报告（最近完成结果集纯投影——ADR-012 D8：诊断/警告聚合\n/新鲜度；diag 件缺失=diagnostics_available=False 降级呈现 R2）。",
+        "operationId": "get_trust_report_api_calc_trust__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrustReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Trust Report",
         "tags": [
           "calc"
         ]

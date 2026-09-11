@@ -33,7 +33,7 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 28 条路径/31 操作；FE1 +scene1；
+# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 29 条路径/32 操作；FE1 +scene1；
 # META1 +units2；FE7 +elevation1；FE8 +cost1；CP1 +constraints1；
 # L4b +site/spacing1；SC1 +exports/ifc1——BIM 模型导出，openapi 25→26
 # 破面已授权；EXPD +exports/{file_name}1——产物下载端点，openapi 26→27
@@ -52,6 +52,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/calc/tasks/{task_id}/solutions": {"get"},
     "/api/calc/solutions/apply": {"post"},
     "/api/calc/design-map": {"post"},  # FD PD6（2026-09-09）：可行域同步求值
+    "/api/calc/trust/{project_id}": {"get"},  # P2 次批（2026-09-12）：可信度报告 ADR-012 D8
     "/api/exports": {"get"},
     "/api/exports/calcbook": {"post"},
     "/api/exports/audit": {"post"},
@@ -80,7 +81,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 31  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc7[FD +design-map]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
+    assert sum(len(methods) for methods in observed.values()) == 32  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc8[P2 次批 +trust 2026-09-12——ADR-012 D8]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
 
 
 @pytest.mark.anyio

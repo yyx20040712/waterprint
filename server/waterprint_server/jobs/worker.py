@@ -85,6 +85,8 @@ from waterprint.contracts.condition import ConditionSet, build_condition_set
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
+from waterprint.contracts.trust import serialize_diag
+from waterprint.registry.effluent import load_effluent_standards
 
 # B3 R5 再导出（消费面零改动；冗余别名形态被 PLC0414 拦——平名+定向 F401 豁免）
 from waterprint_server.jobs.datapack import (
@@ -210,7 +212,12 @@ def _run_calc(
     if _cancelled(cancel_token):
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("run", 1, len(stages)), progress)
-    bundle = core.run_full_calc(project, conditions, env)
+    # P2 次批 ADR-012 D4/D6：出水标准经 server 数据装配注入（裕度投影
+    # 数据源——constraint_kb 固定资产 fail-fast：缺文件=数据装配缺陷）。
+    standards = load_effluent_standards(
+        Path(str(payload["data_dir"])) / "constraint_kb" / "constraints.json"
+    )
+    bundle = core.run_full_calc(project, conditions, env, standards=standards)
     if _cancelled(cancel_token):  # 结果落地前检查（R4：不写半途结果）
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("serialize", 2, len(stages)), progress)
@@ -218,9 +225,16 @@ def _run_calc(
         Path(str(payload["artifacts_dir"])) / f"calc-{task_id}.json",
         serialize(bundle.plant),
     )
+    # ADR-012 D1：诊断独立并列 artifact（calc-diag-{task_id}.json——同
+    # task_id 命名绑定+各自原子写；worker 串行保证一致性）。
+    diag_file = _atomic_write_bytes(
+        Path(str(payload["artifacts_dir"])) / f"calc-diag-{task_id}.json",
+        serialize_diag(bundle.diagnostics),
+    )
     return {
         "state": "done",
         "result_file": str(result_file),
+        "diag_file": str(diag_file),
         "design_hash": bundle.repro.design_hash,
         "engine_version": bundle.repro.engine_version,
         "data_version": bundle.repro.data_version,

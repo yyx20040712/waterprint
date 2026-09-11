@@ -1,5 +1,5 @@
 /**
- * 路由表：标签页式工作区（画布/厂区布置/方案/三维/高程/图纸/概算）。
+ * 路由表：标签页式工作区（画布/厂区布置/方案/三维/高程/图纸/概算/可信度）。
  *
  * 输入:  各 feature 切片的路由组件
  * 输出:  路由配置（AntD Tabs 标签页状态机——App.tsx activeKey 消费）
@@ -27,7 +27,8 @@ export type AppRoute =
   | "viewer3d"
   | "elevation"
   | "drawings"
-  | "cost";
+  | "cost"
+  | "trust";
 
 export const ROUTES: readonly AppRoute[] = [
   "canvas",
@@ -37,4 +38,5 @@ export const ROUTES: readonly AppRoute[] = [
   "elevation",
   "drawings",
   "cost",
+  "trust",
 ] as const;

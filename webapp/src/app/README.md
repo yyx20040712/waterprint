@@ -28,6 +28,7 @@
 | `unitLibraryTree.ts` | 单元库树纯函数：目录→Tree 数据（四线分组+内置排末+过滤+叶反查） | M2 实装；C2-lib 增 libraryGlyph（条目→象形字形——画布查表键同口径：builtin 喂 kind 槽） |
 | `unitLibraryTree.test.ts` | unitLibraryTree 纯函数 vitest（node 环境） | M2 实装；C2-lib 增 libraryGlyph 4 用例（18 用例绿——以 vitest 实跑为准） |
 | `solutionsPane.tsx` | solutions 标签页装配：?project=/?task=/?enum= 三参+单单元枚举提交+TaskPanel（SSE）+方案表/诊断面板+apply 任务轨分立（R1 状态双轨+ENG5 D6 键双轨：表源=enum 键/面板=task 键优先） | FE6 实装（FE6 批记账遗漏，FE7 补登 2026-08-29）；UX1：S3 读方换 useProjectId 订阅；ENG5：枚举提交写 ?enum=（apply 后深链不丢方案表）；R1：表源轨初值 ?enum= 优先、纯 ?task= 旧链兜底（DS-01 修复——FE6 时代分享链表挂载回归）；CP1：ConstraintPicker 挂载（约束勾选→options.constraints 三键载荷——features/params 面组件） |
+| `trustPane.tsx` | trust 标签页装配（P2 次批 2026-09-12）：?project= 消费+useTrustQuery 全工况聚合报告+ErrorBoundary+空态/404 分级引导+TASK_EVENT 事件桥第五处 invalidate——TrustReportView 四区块卡（收敛/水量平衡/出水裕度/警告汇总+stale/降级状态条） | P2 次批实装 |
 | `elevationPane.tsx` | elevation 标签页装配：?project= 消费+lazy ProfileChart（echarts 独立 chunk）+ErrorBoundary+空态/404 引导+ConditionSwitcher+PumpStationsPanel+TASK_EVENT 事件桥监听 invalidate | FE7 实装；UX1：S3 读方换 useProjectId 订阅（D7 勘误措辞） |
 | `costPane.tsx` | cost 标签页装配：?project= 消费+ErrorBoundary+空态/404 引导+工况 Select（缺省=design 回显）+EstimateTable 分级汇总+IndicatorsCard 指标对照+TASK_EVENT 事件桥监听 invalidate（第四处监听——非 lazy 无大件） | FE8 实装；UX1：S3 读方换 useProjectId 订阅（D7 勘误措辞） |
 | `drawingsPane.tsx` | drawings 标签页装配：?project= 消费+ErrorBoundary+空态引导+工况/单元源 404 分级+ExportButton 导出发起（UX1 D3 单元 Select 可投影面过滤——目录 builtin 集判别，catalog 未就绪不过滤）+SheetList 产物目录+DrawingPreview 元数据卡+TASK_EVENT 事件桥监听 invalidate（第五处监听——非 lazy 无大件） | FE9 实装；UX1 更新（S3 订阅+D3 过滤） |

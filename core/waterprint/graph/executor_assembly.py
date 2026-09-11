@@ -15,11 +15,13 @@
 #   顶部同名导入保引用连续（消费面零改动）。
 #   InvalidExecutionError 定义面在 executor_dsl（B3 R2 修正①），本件经
 #   import 消费——同向无环。
+#   _LoopProbe（P2 次批 2026-09-12，ADR-012 D2）：回路统计包装器——
+#   solve_loop 四参锁零触碰，executor 消费（跨件私有引用同先例）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Final, final
 
 from waterprint.contracts.ports import Edge, PortRef
@@ -40,6 +42,48 @@ class _NullSink:
 
     def record(self, node: TraceNodeSpec) -> None:
         """丢弃记录（结构满足 TraceSink 协议）。"""
+
+
+@final
+class _LoopProbe:
+    """回路统计包装器（ADR-012 D2——solve_loop 四参锁零触碰）。
+
+    计数=iterations（compute 被调次数，收敛首步即 1）；末步残差=末次
+    入参 state × 返回 evaluated 按 loop._step 同款公式复算（阻尼更新+
+    全变量相对残差取 max——确定性计算，复算值与 solve_loop 内部恒等）。"""
+
+    __slots__ = ("_inner", "_last_evaluated", "_last_state", "iterations")
+
+    def __init__(
+        self, inner: Callable[[dict[str, float]], dict[str, float]]
+    ) -> None:
+        self._inner = inner
+        self.iterations = 0
+        self._last_state: dict[str, float] | None = None
+        self._last_evaluated: dict[str, float] | None = None
+
+    def compute(self, flat: dict[str, float]) -> dict[str, float]:
+        """包装回调：计数+末步入/出快照（值透传零修改——数值行为不变）。"""
+        self.iterations += 1
+        evaluated = self._inner(flat)
+        self._last_state = dict(flat)
+        self._last_evaluated = dict(evaluated)
+        return evaluated
+
+    def final_residual(self, config: LoopConfig) -> float:
+        """末步全变量相对残差复算（loop._step 同式 R1 口径；未驱动即取=装配缺陷）。"""
+        if self._last_state is None or self._last_evaluated is None:
+            raise InvalidExecutionError(
+                "LoopProbe.final_residual 在 compute 未被调用时即取"
+                "（装配缺陷——probe 必须先经 solve_loop 驱动）"
+            )
+        residual_max = 0.0
+        for name, old in self._last_state.items():
+            fresh = self._last_evaluated[name]
+            new = old + config.damping * (fresh - old)
+            residual = abs(new - old) / max(abs(old), 1.0)
+            residual_max = max(residual_max, residual)
+        return residual_max
 
 
 def _endpoint(raw: object, side: str, index: int) -> PortRef:

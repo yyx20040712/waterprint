@@ -36,9 +36,12 @@
 #   run_full_calc(project, conditions, env) -> ResultBundle
 #       内部 assemble → engine_params 补齐 → execute_graph →
 #       design_hash 回填 → ResultBundle
+#       ——第四可选参 standards: tuple[EffluentStandard, ...] = ()
+#       （P2 次批 ADR-012 D4：出水标准注入——裕度投影数据源）
 #   ResultBundle(不可变)：T7b 落两字段子集 plant: PlantResult +
 #       repro: ReproTriple（规格头愿景六字段中 profiles/scene/estimate
-#       归 M1/M3 批，注记不删愿景）
+#       归 M1/M3 批，注记不删愿景）+ P2 次批第三字段 diagnostics:
+#       DiagnosticsReport（ADR-012——独立并列 artifact 数据源）
 #   class InvalidAssemblyError(Exception)（GR-11 族，本文件定义）
 #   run_enumeration(project, unit_id, conditions, env, options) ->
 #       EnumerationOutcome（UF-33 方案 A 已落地 2026-08-26 M2-SOL D2；
@@ -149,11 +152,14 @@ from waterprint.app_enumeration import (
     export_artifact,
     upstream_context,
 )
+from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.ports import Edge
 from waterprint.contracts.project_schema import DesignState, ProjectFile
+from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
 from waterprint.contracts.run_env import EngineParam, RunEnv
+from waterprint.contracts.trust import DiagnosticsReport
 from waterprint.drafting.site_plan import InvalidSitePlanError
 from waterprint.geometry import Node, SceneGraph, build_scene
 from waterprint.graph.executor import execute_graph
@@ -262,10 +268,13 @@ def _assumption_view(overrides: Mapping[str, float]) -> dict[str, float]:
 @dataclass(frozen=True)
 @final
 class ResultBundle:
-    """全厂结果包（T7b 两字段子集）：plant + repro（愿景六字段归 M1/M3 批）。"""
+    """全厂结果包（T7b 两字段+P2 次批第三字段 diagnostics——ADR-012：
+    诊断独立并列 artifact 数据源（PlantResult 总线零触碰）；愿景余字段
+    归 M1/M3 批）。"""
 
     plant: PlantResult
     repro: ReproTriple
+    diagnostics: DiagnosticsReport
 
 
 def _completed_env(env: RunEnv, design: DesignState) -> RunEnv:
@@ -301,15 +310,26 @@ def _summary_of(plant: PlantResult, edges: tuple[Edge, ...]) -> dict[str, dict[s
     return summary
 
 
-def run_full_calc(project: ProjectFile, conditions: ConditionSet, env: RunEnv) -> ResultBundle:
-    """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5/D10）。"""
+def run_full_calc(
+    project: ProjectFile, conditions: ConditionSet, env: RunEnv,
+    standards: tuple[EffluentStandard, ...] = (),
+) -> ResultBundle:
+    """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5/D10）。
+
+    standards（P2 次批 ADR-012 D4 可选注入）：出水标准族（server 数据装配
+    调用方装载；空=诊断 effluent 面空元组合法）。诊断通道（回路统计/水量
+    闭合/裕度）随本门产出 bundle.diagnostics——独立并列 artifact 数据源。
+    """
     assembled = assemble(project, env)
     effective = _completed_env(env, project.design)
     collector: TraceCollector | None = None
     if effective.trace_sink is None:
         collector = TraceCollector()
         effective = replace(effective, trace_sink=collector)
-    plant = execute_graph(project.design, assembled.units, conditions, effective)
+    diag_collector = DiagCollector()
+    plant = execute_graph(
+        project.design, assembled.units, conditions, effective,
+        diag_sink=diag_collector)
     tree: TraceTree = collector.tree() if collector is not None else _external_tree(env)
     filled = replace(
         plant,
@@ -321,7 +341,13 @@ def run_full_calc(project: ProjectFile, conditions: ConditionSet, env: RunEnv) -
         ),
         summary=_summary_of(plant, assembled.edges),
     )
-    return ResultBundle(plant=filled, repro=filled.repro)
+    diagnostics = build_diagnostics(
+        filled,
+        TrustContext(assembled, conditions, standards, effective),
+        diag_collector,
+    )
+    return ResultBundle(
+        plant=filled, repro=filled.repro, diagnostics=diagnostics)
 
 
 def _external_tree(env: RunEnv) -> TraceTree:

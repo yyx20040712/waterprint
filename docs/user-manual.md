@@ -340,6 +340,34 @@ API 面：`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`、
 同批随裁：工艺画布节点卡片的 unit_id 等宽副标行隐藏（该编码对用户
 无信息量——鼠标悬浮单元名可查看完整键用于追溯）。
 
+### 3.14 结果可信度（webapp，P2 次批 2026-09-12）
+
+「可信度」标签（第八标签，概算之后）展示最近一次完成计算的可信度
+报告——全工况聚合，无工况切换（`GET /api/calc/trust/{project_id}`，
+openapi 31→32 操作）：
+
+- **状态条**：结果过期（设计已改未重算）显示黄色警示条；结果溯源
+  （design_hash/引擎版本/数据版本/任务号）常驻小字；
+- **回路收敛**：迭代参数口径（收敛容差/迭代上限/阻尼系数——实际
+  生效值）+各回路组的迭代步数与末步残差；无回路的工艺图显示
+  「前馈直算」注记；
+- **水量平衡（数值闭合审计）**：水线/泥线分列的厂级源-汇闭合差
+  （栅格/沉砂/生物池等直通单元应为 0）+单元级进出偏差清单——泥线
+  浓缩/消化/脱水/干化单元的水量变化属工艺性减量，非数值错误（面板
+  有注记）；
+- **出水达标裕度**：终端出水六指标（BOD5/COD/SS/NH3N/TN/TP）×
+  GB 18918-2002 一级A/一级B 参考限值对照，裕度=（限值−计算值）/限值
+  ——正值绿色（+x%）、负值红色（−x%=超限幅度）；
+- **校核警告汇总**：全工况×全单元的越带警告（级别/单元/提示/出处/
+  调节方向参数），按级别计数徽标；零警告显示「全工况零警告」空态。
+
+兼容语义：旧版本计算的结果没有诊断数据（收敛/水量平衡/裕度区显示
+「诊断数据不可用（旧版本结果）」蓝条，重新提交计算后即获取）——
+警告汇总不受影响（自结果总线常在）。
+
+部署前提：计算管线装载出水标准依赖 `data/constraint_kb/constraints.json`
+（固定资产；缺失时计算任务直接失败——fail-fast 设计，ADR-012 D6）。
+
 ## 4. 核心概念
 
 **项目-设计-工况-方案**：项目文件是双态结构——`design` 态（工艺图：
@@ -372,12 +400,12 @@ FAQ 第 2 问）。
 未注册的子命令（calc/validate/selfcheck/export 其余 kind）调用即
 用法错误（退出码 2）——实装归后续批。
 
-### 5.2 API（31 操作，openapi 锁定断言恒）
+### 5.2 API（32 操作，openapi 锁定断言恒）
 
 | 分组 | 端点 |
 |------|------|
 | projects（8） | `GET/POST /api/projects`、`GET/PUT/DELETE /api/projects/{id}`、`POST /api/projects/{id}/validate`、`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`（P2 生命周期批 2026-09-12） |
-| calc（7） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply` |
+| calc（8） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12） |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
 | 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |

@@ -11,6 +11,9 @@
 #   UnitRegistry(Protocol)：unit_id → Unit 实例（app.py 构建；executor
 #       不 import units_lib——装配点唯一）
 #   execute_graph(design, units, conditions, env) -> PlantResult 唯一执行正门（UF-31）
+#       ——第五可选参 diag_sink: DiagSink | None = None（P2 次批
+#       ADR-012 D3：None 行为不变；在场时成功收敛回路统计经协议上报，
+#       发散路径仍走异常面不进统计）
 #   InvalidExecutionError(Exception)（GR-11 族，本文件定义）
 #   design.edges 元素形态（D3 冻结）：{"src": {"unit_id","port_id"},
 #       "dst": 同, "recycle": bool=False}——私有 _edges_from_design 转
@@ -96,6 +99,7 @@ from waterprint.contracts.result_schema import PlantResult, ReproTriple, UnitRes
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import InvalidSludgeError, SludgeFlow
 from waterprint.contracts.trace_api import TraceSink
+from waterprint.contracts.trust import DiagSink
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 
 # B3 R2 再导出（修正③——显式清单；冗余别名形态被 ruff PLC0414 拦）
@@ -110,6 +114,7 @@ from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生�
     _edges_from_design,
     _endpoint,  # noqa: F401  # 同上（消费面=executor_assembly._edges_from_design）
     _loop_config,
+    _LoopProbe,
     _NullSink,
     _unit_params,
 )
@@ -174,10 +179,11 @@ def _estimate(
 @dataclass(frozen=True)
 @final
 class _ConditionContext:
-    """单工况只读上下文（execute_graph 四参的内部展开，工况间零共享）。
+    """单工况只读上下文（execute_graph 五参的内部展开，工况间零共享）。
 
     design_fingerprint/condition_key：缓存键材料（B12——指纹每 execute_graph
-    一次、工况键每工况一次，免逐单元重算）。"""
+    一次、工况键每工况一次，免逐单元重算）。
+    diag_sink：可信度诊断通道（ADR-012 D3——None 时统计旁路零开销）。"""
 
     design: DesignState
     units: UnitRegistry
@@ -188,6 +194,7 @@ class _ConditionContext:
     loop_config: LoopConfig
     design_fingerprint: str
     condition_key: str
+    diag_sink: DiagSink | None = None  # ADR-012 D3 诊断通道（缺省行为不变）
 
 
 @final
@@ -382,12 +389,21 @@ class _RunState:
                     getattr(self.flows[edge.src], field))
                 for edge in internal for field in _fields(fluid_of[edge])}
 
+        probe: _LoopProbe | None = (
+            _LoopProbe(compute) if self.ctx.diag_sink is not None else None
+        )
         try:
-            solution = solve_loop(list(group), compute, guess, self.ctx.loop_config)
+            solution = solve_loop(
+                list(group), probe.compute if probe is not None else compute,
+                guess, self.ctx.loop_config)
         except LoopDivergence as exc:
             key = ConditionSet.key(self.ctx.condition)
             raise InvalidExecutionError(
                 f"回路组 {list(group)} 在工况 {key!r} 不收敛：{exc}") from exc
+        if probe is not None and self.ctx.diag_sink is not None:
+            self.ctx.diag_sink.record_loop(
+                self.ctx.condition_key, tuple(group), probe.iterations,
+                probe.final_residual(self.ctx.loop_config))
         compute({k: v for bucket in solution.values() for k, v in bucket.items()})
 
 
@@ -396,10 +412,12 @@ def execute_graph(
     units: UnitRegistry,
     conditions: ConditionSet,
     env: RunEnv,
+    diag_sink: DiagSink | None = None,
 ) -> PlantResult:
     """唯一执行正门：逐工况整图计算（层-SCC 调度+DSL 映射+UF-42 投影）。
 
     repro.design_hash 置空串占位（禁向上依赖，app 回填 D3/D5）；trace 占位冲突记档 D10。
+    diag_sink（ADR-012 D3 可选通道）：在场时成功收敛回路统计经协议上报。
     """
     edges = _edges_from_design(design.edges)
     sink: TraceSink = env.trace_sink if env.trace_sink is not None else _NullSink()
@@ -411,7 +429,8 @@ def execute_graph(
         state = _RunState(_ConditionContext(
             design=design, units=units, condition=condition, env=env,
             edges=edges, sink=sink, loop_config=loop_config,
-            design_fingerprint=fingerprint, condition_key=key))
+            design_fingerprint=fingerprint, condition_key=key,
+            diag_sink=diag_sink))
         state.run_all()
         result_conditions[key] = MappingProxyType(
             dict(state.snapshots))

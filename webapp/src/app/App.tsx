@@ -40,7 +40,9 @@
  *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
  *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
  *     懒加载 ProfileChart（echarts 独立 chunk）+工况切换+提升面板，
- *     "wp:task" 事件桥 invalidate 刷新）；cost 标签=CostPane（FE8：
+ *     "wp:task" 事件桥 invalidate 刷新）；trust 标签=TrustPane（P2 次批
+ *   2026-09-12：结果可信度报告——ADR-012 D8 第八标签，全工况聚合
+ *   无工况切换）；cost 标签=CostPane（FE8：
  *     latest done calc 四模块概算装配——分级汇总表+可折叠溯源+指标
  *     对照卡+工况切换，非 lazy 无大件，"wp:task" 事件桥第四处）；
  *     drawings 标签=DrawingsPane（FE9：dxf 单元图导出+产物目录+元数据
@@ -84,6 +86,7 @@ import { Button, Layout, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
+import { TrustPane } from "./trustPane";
 import { DrawingsPane } from "./drawingsPane";
 import { ElevationPane } from "./elevationPane";
 import { ProjectManagerModal } from "./projectManagerModal";
@@ -354,6 +357,11 @@ export function App() {
                   key: "cost",
                   label: "概算",
                   children: <CostPane />,
+                },
+                {
+                  key: "trust",
+                  label: "可信度",
+                  children: <TrustPane />,
                 },
               ]}
             />

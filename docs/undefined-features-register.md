@@ -163,7 +163,7 @@ grep -rn "保留\|清理\|retention" server/waterprint_server core/waterprint do
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-39 | 数据装载 | 出水标准库装载机制：quality.py 规格仅一句"STANDARDS 数据驱动加载自 data/coefficients，构造时注入"——加载者（quality 自读 YAML？registry 注入？）、注入形态、与 GR-36"L0 禁 I/O"的调和均未写；data/coefficients 0.1.0 无标准条目（README 规划六文件亦无标准文件），镜像测试不触碰 STANDARDS（工厂内联构造 EffluentStandard）。**消歧注记（2026-08-28）：本条=出水标准库装载；流程旧文档曾以"UF-39"指 N/P 去除建模属编号误用——N/P 建模为另一特性，M3 N/P 批开新 UF 条目承载（handover §四.2）** | **疑似**→T2 只交付类型+margin+守卫（STANDARDS 整体挂起）；装载机制待定义→数据工作包同期（A8 类）或 T4，落点须过 GR-36（L0 禁 I/O→倾向 registry(L1) 加载后注入） | T2 起草 |
+| UF-39 | 数据装载 | 出水标准库装载机制：quality.py 规格仅一句"STANDARDS 数据驱动加载自 data/coefficients，构造时注入"——加载者（quality 自读 YAML？registry 注入？）、注入形态、与 GR-36"L0 禁 I/O"的调和均未写；data/coefficients 0.1.0 无标准条目（README 规划六文件亦无标准文件），镜像测试不触碰 STANDARDS（工厂内联构造 EffluentStandard）。**消歧注记（2026-08-28）：本条=出水标准库装载；流程旧文档曾以"UF-39"指 N/P 去除建模属编号误用——N/P 建模为另一特性，M3 N/P 批开新 UF 条目承载（handover §四.2）** | **疑似**→T2 只交付类型+margin+守卫（STANDARDS 整体挂起）；装载机制待定义→数据工作包同期（A8 类）或 T4，落点须过 GR-36（L0 禁 I/O→倾向 registry(L1) 加载后注入） | **已清偿（P2 次批 2026-09-12 ADR-012 D6）**：registry/effluent.py load_effluent_standards 落地（constraint_kb effluent_standard 12 条→EffluentStandard 族，fail-fast；GR-36 调和=registry(L1) 加载后由 server worker 注入 run_full_calc standards 参——quality.py 零 I/O 纪律保持，STANDARDS 符号不进 contracts） | T2 起草→P2 次批清偿 |
 
 ### 七批验证命令摘要（仓库根执行，2026-08-23）
 

@@ -69,13 +69,16 @@ _READING_KEYS = {"indicator_key", "value", "band", "status", "reason"}
 def cost_settings(tmp_path: Path) -> Settings:
     """cost 消费面 Settings（conftest.test_settings 同款+unit_prices 拷贝）。
 
-    conftest 只拷 coefficients（elevation 前批口径——unit_prices 归 FE8
-    消费面）；本 fixture 在 tests/test_cost.py 内自备（conftest 零触碰）。
+    conftest 只拷 coefficients+constraint_kb（elevation 前批口径+CP1 D4
+    kb 面——unit_prices 归 FE8 消费面）；本 fixture 在 tests/test_cost.py
+    内自备（conftest 零触碰）。P2 次批（2026-09-12）：constraint_kb 拷贝
+    补齐——worker calc 管线装载出水标准（ADR-012 D4/D6 fail-fast 前提）。
     """
     data_dir = tmp_path / "data"
     (data_dir / "templates").mkdir(parents=True)
     shutil.copytree(_REPO_DATA / "coefficients", data_dir / "coefficients")
     shutil.copytree(_REPO_DATA / "unit_prices", data_dir / "unit_prices")
+    shutil.copytree(_REPO_DATA / "constraint_kb", data_dir / "constraint_kb")
     return Settings(
         projects_dir=tmp_path / "projects",
         exports_dir=tmp_path / "exports",

@@ -64,6 +64,7 @@ from waterprint_server.services import enumeration as enum_service
 from waterprint_server.services.calculation import ApplyOutcome, TaskStatus
 from waterprint_server.services.design_map import DesignMapResponse
 from waterprint_server.services.enumeration import SolutionPage
+from waterprint_server.services.trust import TrustReportResponse, build_trust_for_project
 
 router = APIRouter(prefix="/api/calc", tags=["calc"])
 
@@ -151,6 +152,13 @@ async def run_enumeration(body: EnumerateRequest, request: Request) -> TaskIdRes
 async def get_task_status(task_id: str, request: Request) -> TaskStatus:
     """状态（stale=提示性标记 R1/R2；结果载荷含无解诊断交付面）。"""
     return calc_service.task_status(_ctx(request), task_id)
+
+
+@router.get("/trust/{project_id}", response_model=TrustReportResponse)
+async def get_trust_report(project_id: str, request: Request) -> TrustReportResponse:
+    """结果可信度报告（最近完成结果集纯投影——ADR-012 D8：诊断/警告聚合
+    /新鲜度；diag 件缺失=diagnostics_available=False 降级呈现 R2）。"""
+    return build_trust_for_project(_ctx(request), project_id)
 
 
 @router.post("/tasks/{task_id}/cancel", response_model=CancelResponse)
