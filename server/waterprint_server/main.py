@@ -106,6 +106,7 @@ from waterprint_server.services.exports import (
     InvalidExportRequestError,
     StaleExportError,
 )
+from waterprint_server.services.project_lifecycle import ProjectBusyError
 from waterprint_server.services.projects import (
     ImportNotReadyError,
     InvalidProjectPayloadError,
@@ -145,6 +146,8 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (ElevationSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (CostSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
+    # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
+    (ProjectBusyError, status.HTTP_409_CONFLICT),
     (StaleExportError, status.HTTP_409_CONFLICT),
     (TaskNotCompleteError, status.HTTP_409_CONFLICT),
     (MultiUnitEnumerationError, status.HTTP_422_UNPROCESSABLE_CONTENT),
@@ -186,7 +189,7 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
-# 端点集冻结 5+7+5+2+1+1+2+1+1+1+1+1=28（白名单字面量和式[calc 6→7=FD design-map，
+# 端点集冻结 5+7+5+2+1+1+2+1+1+1+1+1+3=31（白名单字面量和式[calc 6→7=FD design-map，
 # A2-N-01 勘正]；+1=scene GET，FE1 D1；
 # +1=elevation GET，FE7 D1；+2=units/assumptions GET，META1 D2——静态只读
 # 目录两端点；+1=cost GET，FE8 D1；+1=constraints GET，CP1 D4；
@@ -195,8 +198,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # {file_name} GET，EXPD D4——产物下载端点，openapi 26→27 破面已授权
 # [Ruling 2026-09-05 ②]；+1=calc/design-map POST，FD PD6——可行域引导
 # 同步求值端点，openapi 27→28 破面已授权[Ruling 2026-09-09 序列批复①
-# +常设指令]）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1
+# +常设指令]；+1+1+1=projects/{id}/copy POST+rename POST+{id} DELETE，
+# P2 项目生命周期治理批——openapi 28→31 破面[常设指令推荐序沿册：
+# op-chain-fix-plan §五+briefs/task-p2-lifecycle-plan.md]）
+_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (

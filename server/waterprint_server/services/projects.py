@@ -13,6 +13,9 @@
 #   validate_project(id) -> ValidationReport
 #   import_legacy(payload) -> ImportReport（M4，best-effort 映射清单）
 #   refresh_lock_mtime(id) -> bool（K-5 心跳原语：touch 已存锁 mtime）
+#   P2 生命周期批（2026-09-12）共享单源提升：project_path/with_hash/
+#   normalize_name/PROJECT_NAME_MAX——project_lifecycle 姊妹件复用
+#   （下划线私名跨件禁引沿 units_lib 同构纪律）。
 #
 # 【行为规格】
 #   R1 文件操作只经 core.project.io（确定性序列化/原子保存/锁探测
@@ -87,8 +90,9 @@ from waterprint_server.settings import ENGINE_VERSION, safe_child
 
 _PROJECT_SUFFIX: Final[str] = ".wp.json"
 _ROUND_DIGITS: Final[int] = 10  # 与 core io._ROUND_DIGITS 同源（B4 双胞胎）
-# 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68）
-_NAME_MAX: Final[int] = 10**2
+# 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68；
+# P2 生命周期批提升公开：project_lifecycle 副本名截断共用单源）
+PROJECT_NAME_MAX: Final[int] = 10**2
 _DESIGN_FORMAT_VERSION: Final[str] = "3.0"  # 与 core io._FORMAT_VERSION 同源（L4a 随行）
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
@@ -205,7 +209,7 @@ def result_is_stale(latest: Mapping[str, Any], project: ProjectFile) -> bool:
     return bool(latest.get("design_hash") != design_digest(project.design))
 
 
-def _with_hash(project: ProjectFile, digest: str) -> ProjectFile:
+def with_hash(project: ProjectFile, digest: str) -> ProjectFile:
     """metadata.content_hash 回填（保存前一致化——可复算三元组 R3）。"""
     return project.model_copy(
         update={"metadata": project.metadata.model_copy(update={"content_hash": digest})}
@@ -227,8 +231,12 @@ def _check_depth(value: Any, limit: int) -> None:
             stack.extend((item, depth + 1) for item in current)
 
 
-def _project_path(ctx: ServiceContext, project_id: str) -> Path:
-    """基点内拼接（R1：safe_child 分量校验拒 ../ 与绝对路径）。"""
+def project_path(ctx: ServiceContext, project_id: str) -> Path:
+    """基点内拼接（R1：safe_child 分量校验拒 ../ 与绝对路径）。
+
+    P2 生命周期批（2026-09-12）：_project_path 提升公开——姊妹件
+    project_lifecycle 复制/删除共用途径拼接（单源纪律，禁复刻后缀常量）。
+    """
     return safe_child(ctx.projects_dir, project_id).with_name(project_id + _PROJECT_SUFFIX)
 
 
@@ -267,7 +275,7 @@ def _lock_snapshot(lock: Path) -> tuple[float, bytes] | None:
         return None
 
 
-def _clear_stale_lock(lock: Path, expiry_s: int) -> None:
+def clear_stale_lock(lock: Path, expiry_s: int) -> None:
     """K-5（R2-C 修1）+M8-A/W1：陈旧锁清除=原子摘下+双快照一致才删。
 
     判定快照过期后：os.rename 把锁摘下为同目录私有名（原子——摘下即锁面
@@ -298,10 +306,10 @@ def refresh_lock_mtime(ctx: ServiceContext, project_id: str) -> bool:
 
     锁=外部协调件（server 零写入方不变）——只 touch 已存在锁的 mtime
     （os.utime(None)=now），缺锁不创建（False）；长保存/长编辑会话的
-    持有者周期调用，配合 _clear_stale_lock 二次校验：判定窗口内任何
+    持有者周期调用，配合 clear_stale_lock 二次校验：判定窗口内任何
     心跳触碰=持有者活性铁证→409 不清除（K-5 完整语义）。
     """
-    lock = _project_path(ctx, project_id).with_suffix(".lock")
+    lock = project_path(ctx, project_id).with_suffix(".lock")
     if not lock.is_file():
         return False
     try:
@@ -309,6 +317,20 @@ def refresh_lock_mtime(ctx: ServiceContext, project_id: str) -> bool:
     except OSError:
         return False
     return True
+
+
+def normalize_name(raw: object) -> str:
+    """显示名规整（P0-1 口径：strip；>PROJECT_NAME_MAX 拒 422）。
+
+    P2 生命周期批提取共用（创建/重命名/副本名单源）；空串=未命名合法值
+    （创建可缺省——重命名的非空约束在调用面）。
+    """
+    name = raw.strip() if isinstance(raw, str) else ""
+    if len(name) > PROJECT_NAME_MAX:  # 与 core ViewState.name 同口径（schema 面亦拒）
+        raise InvalidProjectPayloadError(
+            f"项目名称须 1~{PROJECT_NAME_MAX} 字符（去首尾空白后）：得到 {len(name)} 字符"
+        )
+    return name
 
 
 def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutcome:
@@ -319,12 +341,7 @@ def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutco
     通道=保存面 view 态改写，不涉 design/hash）。
     """
     _check_depth(payload, ctx.settings.max_json_depth)
-    raw_name = payload.get("name")
-    name = raw_name.strip() if isinstance(raw_name, str) else ""
-    if len(name) > _NAME_MAX:  # 与 core ViewState.name 同口径（schema 面亦拒）
-        raise InvalidProjectPayloadError(
-            f"项目名称须 1~{_NAME_MAX} 字符（去首尾空白后）：得到 {len(name)} 字符"
-        )
+    name = normalize_name(payload.get("name"))
     raw = payload.get("project")
     if raw is None:
         project = ProjectFile(
@@ -350,12 +367,19 @@ def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutco
             )
     project_id = uuid.uuid4().hex
     digest = design_digest(project.design)
-    core.save_project(_with_hash(project, digest), _project_path(ctx, project_id))
+    core.save_project(with_hash(project, digest), project_path(ctx, project_id))
     return SaveOutcome(content_hash=digest, design_changed=True, project_id=project_id)
 
 
 def list_projects(ctx: ServiceContext) -> tuple[ProjectSummary, ...]:
-    """项目列表（R4：文件读取——名称=文件 id、哈希/时间元数据）。"""
+    """项目列表（R4：文件读取——名称=文件 id、哈希/时间元数据）。
+
+    P2 生命周期批前置勘正（2026-09-12）：project_id 原经 path.stem 回显
+    ="{id}.wp"（.wp.json 只剥末段后缀）——copy/rename/delete 流以 id 对照
+    即错位（FE normalizeProjectId 与既有测试 removesuffix('.wp') 双补偿
+    实锚=已知疣面）；根治=精确全后缀剥除回显裸 id（FE 归一面保留为
+    URL 手输防线，对净 id 恒等直通）。
+    """
     summaries: list[ProjectSummary] = []
     for path in sorted(ctx.projects_dir.glob(f"*{_PROJECT_SUFFIX}")):
         try:
@@ -364,7 +388,7 @@ def list_projects(ctx: ServiceContext) -> tuple[ProjectSummary, ...]:
             continue  # 损坏文件不阻塞列表（装载错误走 read/validate 端点）
         summaries.append(
             ProjectSummary(
-                project_id=path.stem,
+                project_id=path.name.removesuffix(_PROJECT_SUFFIX),
                 format_version=project.format_version,
                 content_hash=project.metadata.content_hash,
                 engine_version=project.metadata.engine_version,
@@ -378,7 +402,7 @@ def list_projects(ctx: ServiceContext) -> tuple[ProjectSummary, ...]:
 
 def read_project(ctx: ServiceContext, project_id: str) -> ProjectFile:
     """读取完整 ProjectFile（经 app.load_project：M-3 版本门+SERVER D2 双闸）。"""
-    path = _project_path(ctx, project_id)
+    path = project_path(ctx, project_id)
     if not path.is_file():
         raise ProjectNotFoundError(f"项目 {project_id!r} 不存在（基点内无 {path.name}）")
     return core.load_project(path)
@@ -391,18 +415,18 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
     view 态不触发计算）；编辑 design 后对在途任务置 stale 提示标记
     （UF-37：守门在消费侧实时比对，本标记仅 UI 提示）。WP4：入口深度
     闸（修3）+锁过期放行（修4）。K-5（R2-C 修1）：陈旧锁清除=双快照
-    一致才 unlink（见 _clear_stale_lock——窗口内换锁/心跳=409）。
+    一致才 unlink（见 clear_stale_lock——窗口内换锁/心跳=409）。
     """
     _check_project_depth(project, ctx.settings.max_json_depth)  # 修3：PUT 深度闸接线
-    path = _project_path(ctx, project_id)
+    path = project_path(ctx, project_id)
     if not path.is_file():
         raise ProjectNotFoundError(f"项目 {project_id!r} 不存在（基点内无 {path.name}）")
     lock = path.with_suffix(".lock")
     if lock.exists():
-        _clear_stale_lock(lock, ctx.settings.lock_expiry_s)  # K-5：新鲜/活性 409，陈旧清除放行
+        clear_stale_lock(lock, ctx.settings.lock_expiry_s)  # K-5：新鲜/活性 409，陈旧清除放行
     old = core.load_project(path)
     digest = design_digest(project.design)
-    core.save_project(_with_hash(project, digest), path)
+    core.save_project(with_hash(project, digest), path)
     if old.design != project.design:
         for task_id in ctx.manager.task_ids_for_project(project_id):
             record = ctx.manager.status(task_id)

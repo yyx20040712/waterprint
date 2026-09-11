@@ -57,6 +57,7 @@ import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/
 import { TASK_EVENT } from "../shared/events";
 import { CanvasEditToolbar } from "./canvasEditToolbar";
 import { CreateProjectModal } from "./createProjectModal";
+import { ProjectManagerModal } from "./projectManagerModal";
 import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { normalizeProjectId } from "./projectParam";
@@ -84,6 +85,8 @@ export function CanvasPane({
   const [projectId, setProjectId] = useProjectId();
   // P0-1：建项 Modal 开态（空态 CTA 挂点——成功后 onCreated 切入新项目）
   const [createOpen, setCreateOpen] = useState(false);
+  // P2 生命周期 L4：项目管理 Modal 开态（空态第二入口——Header 钮同件）
+  const [managerOpen, setManagerOpen] = useState(false);
   const queryClient = useQueryClient();
   // C2-thumb V3/V5：节点 3D 缩略图（app 组合层——Viewer3d 域舞台产出；
   // sceneQuery 与 viewer3d 同键零重复请求；404[未算]/失败=静默回退象形
@@ -298,12 +301,17 @@ export function CanvasPane({
         <Button type="primary" onClick={() => setCreateOpen(true)}>
           新建项目
         </Button>
+        {/* P2 生命周期 L4：治理入口（重命名/复制/删除——Header 钮同件） */}
+        <Button onClick={() => setManagerOpen(true)} data-testid="wp-open-manager">
+          管理项目
+        </Button>
       </div>
       <CreateProjectModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(created) => setProjectId(created)}
       />
+      <ProjectManagerModal open={managerOpen} onClose={() => setManagerOpen(false)} />
       {projectsQuery.isError ? (
         <Typography.Text type="danger">
           项目列表加载失败：

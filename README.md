@@ -74,6 +74,15 @@
 > assumptionLabels 22 键字典+Drawer label_zh；11+11 分类案随用户
 > 澄清取缔]；--wp-error 入轴；视觉三段流终裁「收面通过」+D/A 双审
 > 通过[R/R2 真修 6+注记 4]；vitest 609+无头 align 族 22/22+九族回归）**。
+> **操作链 P2 启动批·项目生命周期治理已收官（2026-09-12 n+41：server
+> 三端点 [POST copy/POST rename/DELETE /api/projects/{id}——openapi
+> 28→31]+ProjectManagerModal 治理面板[Header 文件夹钮+空态「管理项目」
+> 双入口：打开/重命名/复制/删除行操作+新建复用件；删除=三守卫
+> 404/锁 409/在途任务 409+Popconfirm 名称回显双保险]+**list id ".wp"
+> 污染前置勘正**[path.stem 只剥末段——列表 id 恒带 .wp，FE normalize 与
+> 测试 removesuffix 双补偿实锚；根治=精确全后缀剥除回显裸 id]+unit_id
+> 节点副标隐藏搭车[用户裁定——title 悬浮追溯链 B2 PD8 同制]；server
+> 276+vitest 611+无头 p2l 族 16/16+九族回归）**。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：

@@ -7,13 +7,19 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格说明（骨架冻结；镜像测试 server/tests/routers/test_projects.py）
 #
-# 【端点集（v1 冻结）】
+# 【端点集（v1 冻结+P2 生命周期扩面 2026-09-12）】
 #   POST   /api/projects                    创建（空项目或导入 JSON）
 #   GET    /api/projects                    列表（名称/哈希/时间元数据）
 #   GET    /api/projects/{id}               读取（完整 ProjectFile）
 #   PUT    /api/projects/{id}               保存（design+view，返回新
 #                                          content_hash 与 dirty 状态）
 #   POST   /api/projects/{id}/validate      校验（零计算快速反馈）
+#   POST   /api/projects/{id}/copy          复制（P2——新 id 落盘，design
+#                                          不动同 digest）
+#   POST   /api/projects/{id}/rename        重命名（P2——view.name 轻通道
+#                                          design_changed=False）
+#   DELETE /api/projects/{id}               删除（P2——404/锁/在途三守卫
+#                                          后 unlink）
 #
 # 【行为规格】
 #   R1 路径安全：{id} 白名单字符集校验（拒绝 ../ 与绝对路径），
@@ -42,6 +48,7 @@ from pydantic import BaseModel
 from waterprint.contracts.project_schema import parse_project
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services import project_lifecycle as lifecycle
 from waterprint_server.services import projects as service
 from waterprint_server.services.projects import PayloadTooLargeError
 
@@ -112,6 +119,18 @@ class ValidationResponse(BaseModel):
     errors: list[str]
 
 
+class RenameProjectRequest(BaseModel):
+    """重命名请求（P2）：新显示名（strip/1~100 校验在服务面）。"""
+
+    name: str
+
+
+class DeleteOutcomeResponse(BaseModel):
+    """删除确认（P2）：project_id 回显。"""
+
+    project_id: str
+
+
 @router.post(
     "", response_model=SaveOutcomeResponse, dependencies=[Depends(_reject_oversized_body)]
 )
@@ -179,3 +198,38 @@ async def validate_project(
     else:
         report = service.validate_payload(body)
     return ValidationResponse(valid=report.valid, errors=list(report.errors))
+
+
+@router.post("/{project_id}/copy", response_model=SaveOutcomeResponse)
+async def copy_project(project_id: str, request: Request) -> SaveOutcomeResponse:
+    """复制（P2 生命周期）——薄转换：新 id+副本名在服务面，design 零动。"""
+    outcome = lifecycle.copy_project(_ctx(request), project_id)
+    return SaveOutcomeResponse(
+        project_id=outcome.project_id,
+        content_hash=outcome.content_hash,
+        design_changed=outcome.design_changed,
+    )
+
+
+@router.post(
+    "/{project_id}/rename",
+    response_model=SaveOutcomeResponse,
+    dependencies=[Depends(_reject_oversized_body)],  # PL-N-03 R2：name 自由文本面同制防线
+)
+async def rename_project(
+    project_id: str, body: RenameProjectRequest, request: Request
+) -> SaveOutcomeResponse:
+    """重命名（P2 生命周期）——view.name 轻通道（design_changed=False）。"""
+    outcome = lifecycle.rename_project(_ctx(request), project_id, body.name)
+    return SaveOutcomeResponse(
+        project_id=outcome.project_id,
+        content_hash=outcome.content_hash,
+        design_changed=outcome.design_changed,
+    )
+
+
+@router.delete("/{project_id}", response_model=DeleteOutcomeResponse)
+async def delete_project(project_id: str, request: Request) -> DeleteOutcomeResponse:
+    """删除（P2 生命周期）——404/锁/在途三守卫后 unlink（不可逆）。"""
+    outcome = lifecycle.delete_project(_ctx(request), project_id)
+    return DeleteOutcomeResponse(project_id=outcome.project_id)

@@ -35,7 +35,11 @@ import {
 /** projectId 共享态（读写双元组——读方 [id]、写方 [id, setter] 按需解构）。 */
 export function useProjectId(): [string | null, (value: string | null) => void] {
   const [projectId, setProjectId] = useState<string | null>(() =>
-    normalizeProjectId(parseProjectParam(window.location.search)),
+    // P2 生命周期批：node 面（无 window——SSR 测试面）守卫跳过（App.tsx
+    // 首参引导 R 轮 G1-02 同制；浏览器语义与时序零变）
+    typeof window === "undefined"
+      ? null
+      : normalizeProjectId(parseProjectParam(window.location.search)),
   );
 
   // S3 订阅面：写方派发后重读 URL（同值早退）；卸载移除监听

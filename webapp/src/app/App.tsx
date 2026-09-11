@@ -78,7 +78,7 @@
  *     StatusBar 挂根 Layout 内（flex 列末项——100vh 内不被推出视口）；
  *     Sider 宽 280→232+去 theme light（token siderBg 承载）。
  */
-import { SettingOutlined } from "@ant-design/icons";
+import { FolderOpenOutlined, SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { Button, Layout, Tabs, Typography } from "antd";
 
@@ -86,6 +86,7 @@ import { CanvasPane } from "./canvasPane";
 import { CostPane } from "./costPane";
 import { DrawingsPane } from "./drawingsPane";
 import { ElevationPane } from "./elevationPane";
+import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
 import {
@@ -155,6 +156,8 @@ export function App() {
   const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
   // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // P2 生命周期 L4：项目管理 Modal 开态（入口=Header 文件夹钮+空态钮双入口）
+  const [managerOpen, setManagerOpen] = useState(false);
   // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
   const [projectId] = useProjectId();
   // C2-lib 联动态（U3）：单元库叶选中=Drawer 开闭+画布定位光环同源
@@ -272,6 +275,16 @@ export function App() {
                 </span>
               </span>
             )}
+            {/* P2 生命周期 L4：项目管理入口（治理面常驻——文件夹钮开
+                ProjectManagerModal：重命名/复制/删除/打开） */}
+            <Button
+              type="text"
+              icon={<FolderOpenOutlined />}
+              onClick={() => setManagerOpen(true)}
+              aria-label="项目管理"
+              title="项目管理（重命名/复制/删除）"
+              data-testid="wp-open-manager-header"
+            />
             {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
             <Button
               type="text"
@@ -351,6 +364,7 @@ export function App() {
         <StatusBar />
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ProjectManagerModal open={managerOpen} onClose={() => setManagerOpen(false)} />
     </Providers>
   );
 }

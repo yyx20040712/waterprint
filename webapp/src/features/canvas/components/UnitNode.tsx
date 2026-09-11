@@ -1,26 +1,28 @@
 /**
- * 构筑物节点卡片：域色象形图标+中文名主标+unit_id 等宽副标+内置 kind
- * 徽标+左域色 bar+选中鎏金描边+方向端口排布。
+ * 构筑物节点卡片：域色象形图标+中文名主标（unit_id 收进 title 悬浮）+
+ * 内置 kind 徽标+左域色 bar+选中鎏金描边+方向端口排布。
  *
  * 输入:  NodeProps<UnitFlowNode>（投影层 data：unitId/kind/sourcePorts/
  *        targetPorts——React Flow 受控 selected 标记）
  * 输出:  React Flow 自定义节点渲染件（type="unit" 注册键）
  *
  * 规格说明（FE4 D1/D2+FE5 选中面+M6 中文名；C2-canvas 批 P3 重制——
- * task-C2-canvas-plan.md §二+glm D 项①⑤ 痛点处置）：
+ *   task-C2-canvas-plan.md §二+glm D 项①⑤ 痛点处置）：
  *   - 重制=视觉稿 A 冻结语言（c2-design/canvas-flow.html 态二）：168 宽
  *     卡片+左 3px 域色 bar（四域色——unitGlyph.domainColorOf）+24×24
  *     象形图标（Unicode 稳定集+域色三色组底/边/前景）+中文名 12.5px
- *     600 主标（#e8eef7——C1 冻结主文字色，glm ⑤对比度痛点收口）+
- *     unit_id 等宽 10.5px 副标（tertiary 弱色）+选中**鎏金**描边+光晕
- *     （C1 变量轴注释「鎏金限品牌点缀（选中描边/收边线）」既定意图——
- *     替换 FE5 蓝描边；--wp-gold 同值字面量双源）；
+ *     600 主标（#e8eef7——C1 冻结主文字色，glm ⑤对比度痛点收口）
+ *     +选中**鎏金**描边+光晕（C1 变量轴注释「鎏金限品牌点缀（选中
+ *     描边/收边线）」既定意图——替换 FE5 蓝描边；--wp-gold 同值字面量
+ *     双源）；
  *   - 域色数据=单元清单端点（useListUnitsApiUnitsGet——name_zh 同源
  *     同缓存）；查表键=kind ?? unitId（内置节点归 catalog kind 键
  *     「municipal_input 等——business_line=municipal §14.3 裁决」；
  *     未收录回退中性灰不误导）；
  *   - 中文名数据源=M6 制（清单 name_zh 精确等值；未达/未收录回退
- *     unit_id 主标）；unit_id 恒留等宽副标（唯一键语义不弱化）；
+ *     unit_id 主标）；P2 生命周期批（2026-09-12 用户裁定「unit_id 对
+ *     用户无效」）：常驻等宽副标行退役——unitId 收进主标 title 悬浮
+ *     （ParamForm B2 PD8 追溯链同制；C2VD V2 断行工艺随副标退役）；
  *   - D1 端口=方向中性：targetPorts 左侧（入）/sourcePorts 右侧（出）
  *     ——P8 端口描边随域色（挂账④流体色兑现）；
  *   - 多端口垂直均布（工程图例惯例）；卡片底色 --wp-bg-elevated
@@ -102,14 +104,6 @@ const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg
  * 同步 +6；多端口均布）。 */
 const PORT_TOP = 26;
 const PORT_ROW = 16;
-
-/** C2VD V2（终裁 L1）：unit_id 断行分段——分隔符 `_` `/` 后置 wbr 断点
- * （整词换行），`word-break: break-all` 任意断字的孤字（如「…tishen/g」
- * 「…jiliang/cao」单字成行）根除；overflowWrap anywhere 兜底超长无分隔
- * token（防御位——现网 id 恒带分隔符）。 */
-function unitIdSegments(id: string): string[] {
-  return id.split(/(?<=[_/])/);
-}
 
 export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
@@ -235,7 +229,13 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
             {unitGlyph(data.unitId, data.kind)}
           </span>
         )}
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--wp-text)" }}>
+        {/* P2 生命周期批：unitId 收进 title 悬浮（用户裁定副标隐藏——
+            ParamForm B2 PD8 追溯链同制；nameZh 缺席时主标回退 unitId
+            为瞬时未达态非常驻） */}
+        <span
+          title={data.unitId}
+          style={{ fontSize: 12.5, fontWeight: 600, color: "var(--wp-text)" }}
+        >
           {nameZh ?? data.unitId}
         </span>
         {badge !== null && (
@@ -254,23 +254,6 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
             {badge}
           </span>
         )}
-      </div>
-      <div
-        data-testid={`unit-id-${data.unitId}`}
-        style={{
-          padding: "0 10px 8px 13px",
-          fontFamily: "var(--wp-font-mono)",
-          fontSize: 10.5,
-          color: "var(--wp-text-3)",
-          overflowWrap: "anywhere",
-        }}
-      >
-        {unitIdSegments(data.unitId).map((segment, index) => (
-          <span key={index}>
-            {segment}
-            <wbr />
-          </span>
-        ))}
       </div>
       {/* P0-3 编辑态删除钮（右上角——stopPropagation 免选中；store 薄壳
           通道→designWriter.deleteNodes 级联清边/摆放/受检） */}

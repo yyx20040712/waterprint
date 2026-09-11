@@ -323,6 +323,20 @@
         "title": "CreateProjectRequest",
         "type": "object"
       },
+      "DeleteOutcomeResponse": {
+        "description": "删除确认（P2）：project_id 回显。",
+        "properties": {
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "title": "DeleteOutcomeResponse",
+        "type": "object"
+      },
       "DesignAxisDiagnosis": {
         "description": "诊断块逐轴面（PD9——无可行段 None 不编造）。",
         "properties": {
@@ -1516,6 +1530,20 @@
           "max"
         ],
         "title": "RangeEntry",
+        "type": "object"
+      },
+      "RenameProjectRequest": {
+        "description": "重命名请求（P2）：新显示名（strip/1~100 校验在服务面）。",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "RenameProjectRequest",
         "type": "object"
       },
       "ReproModel": {
@@ -3188,6 +3216,52 @@
       }
     },
     "/api/projects/{project_id}": {
+      "delete": {
+        "description": "删除（P2 生命周期）——404/锁/在途三守卫后 unlink（不可逆）。",
+        "operationId": "delete_project_api_projects__project_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteOutcomeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Delete Project",
+        "tags": [
+          "projects"
+        ]
+      },
       "get": {
         "description": "读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。",
         "operationId": "read_project_api_projects__project_id__get",
@@ -3290,6 +3364,112 @@
           }
         ],
         "summary": "Save Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/projects/{project_id}/copy": {
+      "post": {
+        "description": "复制（P2 生命周期）——薄转换：新 id+副本名在服务面，design 零动。",
+        "operationId": "copy_project_api_projects__project_id__copy_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveOutcomeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Copy Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/projects/{project_id}/rename": {
+      "post": {
+        "description": "重命名（P2 生命周期）——view.name 轻通道（design_changed=False）。",
+        "operationId": "rename_project_api_projects__project_id__rename_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveOutcomeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Rename Project",
         "tags": [
           "projects"
         ]

@@ -27,15 +27,18 @@ _EXPECTED = {
     ("get", "/api/projects/{project_id}"),
     ("put", "/api/projects/{project_id}"),
     ("post", "/api/projects/{project_id}/validate"),
+    ("post", "/api/projects/{project_id}/copy"),
+    ("post", "/api/projects/{project_id}/rename"),
+    ("delete", "/api/projects/{project_id}"),
 }
 
 
-def test_router_exposes_five_endpoints_wiring() -> None:
-    """端点集 == 规格五件（POST/GET/GET/PUT/POST validate）。"""
+def test_router_exposes_eight_endpoints_wiring() -> None:
+    """端点集 == 规格八件（CRUD 五件+P2 生命周期三件 copy/rename/delete）。"""
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰五件无漂移
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰八件无漂移
 
 
 @pytest.mark.anyio
@@ -70,3 +73,43 @@ async def test_validate_endpoint_accepts_draft_body_wiring(client) -> None:  # t
     without_body = await client.post(f"/api/projects/{project_id}/validate")
     assert without_body.status_code == 200
     assert without_body.json()["valid"] is True
+
+
+@pytest.mark.anyio
+async def test_lifecycle_copy_rename_delete_roundtrip_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """P2 生命周期三端点：copy（副本名）→rename（轻通道）→delete（回显）。"""
+    created = await client.post("/api/projects", json={"name": "治理面"})
+    assert created.status_code == 200, created.text
+    project_id = created.json()["project_id"]
+
+    copied = await client.post(f"/api/projects/{project_id}/copy")
+    assert copied.status_code == 200, copied.text
+    copy_id = copied.json()["project_id"]
+    assert copy_id != project_id
+    listing = (await client.get("/api/projects")).json()
+    names = {item["project_id"]: item["name"] for item in listing}
+    assert names[copy_id] == "治理面 (副本)"
+
+    renamed = await client.post(
+        f"/api/projects/{project_id}/rename", json={"name": "治理面·改名"}
+    )
+    assert renamed.status_code == 200, renamed.text
+    body = renamed.json()
+    assert body["design_changed"] is False  # view 轻通道
+    listing = (await client.get("/api/projects")).json()
+    names = {item["project_id"]: item["name"] for item in listing}
+    assert names[project_id] == "治理面·改名"
+
+    deleted = await client.delete(f"/api/projects/{copy_id}")
+    assert deleted.status_code == 200, deleted.text
+    assert deleted.json()["project_id"] == copy_id
+    gone = await client.get(f"/api/projects/{copy_id}")
+    assert gone.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_lifecycle_delete_missing_returns_404_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """P2 生命周期守卫①：删除不存在→404（统一错误体 error_type）。"""
+    response = await client.delete("/api/projects/absent-project")
+    assert response.status_code == 404
+    assert response.json()["error_type"] == "ProjectNotFoundError"

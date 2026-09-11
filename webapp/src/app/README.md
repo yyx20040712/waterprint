@@ -18,6 +18,7 @@
 | `useProjectId.ts` | projectId 跨面板共享 hook（UX1 S3——URL ?project= 单一真相订阅面：PROJECT_EVENT 监听重读同值早退+setter 回写 replaceState 写后派发） | UX1 实装（六 pane 消费：写方 canvas/viewer3d setter、读方四 pane 订阅；薄壳不测裁量见头注） |
 | `projectCreate.ts` | 建项纯函数面（P0-1）：normalizeProjectName（strip+1~100 与 core ViewState.name 同口径）/projectOptionLabel（F3「名称 (id8)」无名回退全 id）/parseProjectJson（导入解析判别联合——结构校验归 server 422 面） | P0-1 实装（2026-09-11）——createProjectModal 消费；测试 projectCreate.test.ts |
 | `createProjectModal.tsx` | 建项 Modal（P0-1——F1/F4-文案面）：空白新建（名称必填）/导入 JSON（File.text 解析）两态+POST {name, project?}+成功 invalidate 列表+onCreated 切入 | P0-1 实装（2026-09-11）——canvasPane/viewer3dPane 空态 CTA 共用件（「两处内联同构挂账 UX 批」就此收口） |
+| `projectManagerModal.tsx` | 项目管理 Modal（P2 生命周期治理 L3）：项目表（名称[无名回退 id]/ID/更新时间）+行操作（打开[当前项目 disabled]/重命名[嵌套 Modal+normalizeProjectName 复用]/复制/删除[Popconfirm danger 名称回显]）+新建（CreateProjectModal 复用件）/刷新头部钮；突变后 invalidate 列表；删除当前项目→setter(null) 回空态 | P2 启动批实装（2026-09-12）——Header 文件夹钮+canvasPane 空态「管理项目」钮双入口同件（briefs/task-p2-lifecycle-plan.md §一 L3/L4） |
 | `projectCreate.test.ts` | projectCreate 纯函数 vitest（node 环境） | P0-1 实装（名称校验/label 格式/导入解析三组） |
 | `enumerateBar.tsx` | 枚举提交条（P0-2 行数预算修自 solutionsPane 抽取——组合层件：ConstraintPicker[params]×unitOptionLabel[solutions] 跨 feature 组合归 app；单元下拉[useUnitCatalog nameById 内聚]+约束勾选+提交钮+两错误行，逻辑零变更纯展示） | P0-2 实装（2026-09-11） |
 | `viewer3dPane.tsx` | viewer3d 标签页装配：lazy Scene+ErrorBoundary+projectId 空态 Select+URL 同步 | FE3 实装；UX1：S3 写方换 useProjectId（回写+派发收敛进 hook setter） |

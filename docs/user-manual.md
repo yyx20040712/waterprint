@@ -316,6 +316,30 @@ C2-ALIGN A5r 批 2026-09-12 双分页升位）：
   （远观不再「近乎不可辨」）；
 - 剖切/图层开关（水面/内部构件/标注）不变。
 
+### 3.13 项目管理（webapp，P2 生命周期批 2026-09-12）
+
+顶栏右侧「项目管理」按钮（文件夹图标，常驻）打开项目管理面板；
+未选项目时画布空态的「管理项目」按钮打开同一面板：
+
+- **项目表**：名称（未命名回退显示完整 id）/ID（前 8 位，悬浮见全量）/
+  更新时间三列（UTC 直显，与后端日志同钟）；当前已打开的项目行显示
+  「已打开」；
+- **打开**：切换当前项目（等价画布空态下拉选择）；
+- **重命名**：弹窗输入新名称（1~100 字符）——改名不触碰工艺设计与
+  计算结果（view 态轻通道，不算设计变更）；
+- **复制**：服务端整文件复制，副本名自动递增（「名称 (副本)」
+  「(副本2)」…）——用于方案分支试算；
+- **删除**：二次确认（回显项目名）后删除项目文件，不可恢复；项目
+  有编辑锁或有排队/进行中任务时拒绝删除（409 提示）；删除当前打开
+  的项目会自动回到项目选择空态；
+- **新建项目**：面板内可直接新建（空白/导入 JSON，与空态建项同件）。
+
+API 面：`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`、
+`DELETE /api/projects/{id}`（openapi 28→31 操作，2026-09-12）。
+
+同批随裁：工艺画布节点卡片的 unit_id 等宽副标行隐藏（该编码对用户
+无信息量——鼠标悬浮单元名可查看完整键用于追溯）。
+
 ## 4. 核心概念
 
 **项目-设计-工况-方案**：项目文件是双态结构——`design` 态（工艺图：
@@ -348,11 +372,11 @@ FAQ 第 2 问）。
 未注册的子命令（calc/validate/selfcheck/export 其余 kind）调用即
 用法错误（退出码 2）——实装归后续批。
 
-### 5.2 API（28 操作，openapi 锁定断言恒）
+### 5.2 API（31 操作，openapi 锁定断言恒）
 
 | 分组 | 端点 |
 |------|------|
-| projects（5） | `GET/POST /api/projects`、`GET/PUT /api/projects/{id}`、`POST /api/projects/{id}/validate` |
+| projects（8） | `GET/POST /api/projects`、`GET/PUT/DELETE /api/projects/{id}`、`POST /api/projects/{id}/validate`、`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`（P2 生命周期批 2026-09-12） |
 | calc（7） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply` |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
