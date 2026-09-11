@@ -68,10 +68,19 @@ jobs:
       - name: import-linter 架构契约
         run: uv run lint-imports
       - name: Pytest（全量：tests + units_lib——与本地口径/门禁基线一致，WP3·M8）
-        run: uv run pytest tests waterprint/units_lib --cov
+        run: |
+          uv run pytest tests waterprint/units_lib --cov > /tmp/pytest-core.log 2>&1
+          cat /tmp/pytest-core.log
+          if grep -Eq '[1-9][0-9]* skipped' /tmp/pytest-core.log; then
+            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——GOV1 A3 机器化）"
+            grep -E '[1-9][0-9]* skipped|SKIPPED' /tmp/pytest-core.log | head -20
+            exit 1
+          fi
       # 覆盖率门禁（R2-B 真门禁化，core 面先行）：fail_under 取值与裁决
       # 注记见 core/pyproject.toml coverage 段（实测基线下取整；本地
       # addopts 不加 --cov——门禁只在 CI 面）。server/webapp 挂沿册。
+      # skip==0 拦截（GOV1 A3）：pytest 退出码先行（-e 中断），其后
+      # 汇总行/短摘要出现非零 skipped 即 FAIL——与覆盖率门禁同为 CI 面。
 
   server:
     name: 服务层质量
@@ -90,7 +99,15 @@ jobs:
       - run: uv run mypy
       - name: import-linter 架构契约（UF-13 机器强制 CI 化——ENG2 D1）
         run: uv run lint-imports
-      - run: uv run pytest --cov
+      - name: Pytest（含 skip==0 拦截——GOV1 A3 同 core 面形态）
+        run: |
+          uv run pytest --cov > /tmp/pytest-server.log 2>&1
+          cat /tmp/pytest-server.log
+          if grep -Eq '[1-9][0-9]* skipped' /tmp/pytest-server.log; then
+            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——GOV1 A3 机器化）"
+            grep -E '[1-9][0-9]* skipped|SKIPPED' /tmp/pytest-server.log | head -20
+            exit 1
+          fi
       # 覆盖率门禁（server 面立项——2026-09-03 用户晨裁 Ruling②；core
       # R2-B 同款形态）：fail_under 取值与裁决注记见 server/pyproject.toml
       # coverage 段（实测基线 93.27% 留 ~1pp 平台差=92；本地 addopts 不

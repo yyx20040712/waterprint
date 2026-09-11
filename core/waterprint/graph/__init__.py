@@ -19,7 +19,7 @@
 #               InvalidExecutionError 经模块直取——协议与异常消费面窄，
 #               不扩根白名单，D7 裁决）
 #   incremental: recompute_scope/CacheKey/Scope（B9 实装，B12 开放聚合
-#               ——「待实现暂不聚合」注记销账）
+#               ——「暂缓聚合」旧注记销账[GOV1 改写：原引述含硬封词]）
 #   cache:      ResultCache/CachedUnitRun/CaptureSink/design_fingerprint/
 #               default_cache（B12 实装——结果缓存件；default_cache 亦
 #               经 executor 模块直取消费）

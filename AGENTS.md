@@ -84,8 +84,13 @@
 
 ## 3. 代码硬规则（scripts/check_grep_gates.py + ruff 强制）
 
-- 禁止占位实现与未完成标记：`not implemented` / `placeholder` / `TODO` / `FIXME` 计数 = 0。
-  未完成的功能不写存根，留空并更新职责表归属里程碑。
+- 禁止占位实现与未完成标记：`not implemented` / `placeholder` / `TODO` / `FIXME`
+  + 中文硬封族 `未实现/待实现/待实装/暂不实现/留空待/待接入`，计数 = 0
+  （GOV1 2026-09-12 审计裁决 A1：六词入库时源码零命中，封中文存根盲区）。
+  未完成的功能不写存根，留空并更新职责表归属里程碑。`占位/未就绪/挂起`
+  为过载域词（模板占位符/限流槽/loading 态/挂起态流——337 处合法用法）
+  **不入封禁表**：诚实拒绝面靠 UF 登记+归属注记+领域异常→501 映射+
+  端点确定性测试四重保障（ADR-013 裁决记录）。
 - 禁止裸 `except:` 与 `except Exception`；可预期错误用领域异常（InvalidUnitConfig /
   LoopDivergence 等）或 Result 风格返回；禁止让错误静默通过。
 - 内核禁止抛 HTTP 语义异常；server 层统一 exception handler 做映射。
@@ -139,7 +144,9 @@
 - 每个测试必须"先失败一次再通过"才算数；新功能必须自带测试。
 - 镜像命名：`topo.py` ↔ `test_topo.py`；性质测试独立 `properties_topo.py`。
 - 骨架期休眠测试：测试文件内用 `getattr(module, 符号, None)` 判定，符号缺失 = skip
-  （理由注明缺什么）；实现合入后 skip 数必须归零（CI 以 `-ra` 输出 skip 原因）。
+  （理由注明缺什么）；实现合入后 skip 数必须归零——**CI 机器拦截**（ci.yml
+  core/server 两 pytest 步骤 grep 非零 skipped 即 FAIL，GOV1 A3；`-ra` 输出
+  skip 原因供定位）。
 - 公式数值基准来自 docs/norms 手算对照表（数据策略 v2，§14：AI 按工程常用
   范围起草 + 领域专家批量追认），不得编造数字；
   golden 端到端期望值只存放在 `core/tests/golden/golden_data/`（数据文件，非代码）。
