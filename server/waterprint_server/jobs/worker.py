@@ -86,7 +86,6 @@ from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import serialize_diag
-from waterprint.registry.effluent import load_effluent_standards
 
 # B3 R5 再导出（消费面零改动；冗余别名形态被 PLC0414 拦——平名+定向 F401 豁免）
 from waterprint_server.jobs.datapack import (
@@ -214,7 +213,7 @@ def _run_calc(
     _report(task_id, _StagePoint("run", 1, len(stages)), progress)
     # P2 次批 ADR-012 D4/D6：出水标准经 server 数据装配注入（裕度投影
     # 数据源——constraint_kb 固定资产 fail-fast：缺文件=数据装配缺陷）。
-    standards = load_effluent_standards(
+    standards = core.load_effluent_standards(
         Path(str(payload["data_dir"])) / "constraint_kb" / "constraints.json"
     )
     bundle = core.run_full_calc(project, conditions, env, standards=standards)

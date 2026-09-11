@@ -174,6 +174,7 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 单入口；直连 registry 违 UF-33 server 面 import-linter 契约（CI 服务层
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
+from waterprint.registry.effluent import load_effluent_standards
 from waterprint.solution.constraints import apply_constraints
 from waterprint.solution.design_map import (
     DesignMap,
@@ -212,6 +213,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "discover_units",
     "export_artifact",
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
+    "load_effluent_standards",  # 再导出（P2 次批 ADR-012 D6——worker 装载单入口同款）
     "load_project",
     "run_design_map",
     "run_enumeration",

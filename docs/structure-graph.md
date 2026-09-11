@@ -73,9 +73,8 @@
 | `waterprint_server.services` | `waterprint.elevation` | 高程纵断用例直取（FE7 D1——build_profile/evaluate_pumping/head_losses 不在 app.py 再导出面；FE7 总控裁决 2026-08-29 补登） |
 | `waterprint_server.services` | `waterprint.cost` | 概算用例直取（FE8 D1——takeoff/estimate/prices/indicators 四模块不在 app.py 再导出面；FE8 D9 预登记 2026-08-29） |
 | `waterprint_server.services` | `waterprint.geometry` | 间距校核用例直取（L4b 2026-09-03——core geometry/spacing spacing_report 裁判不在 app.py 再导出面；总控预裁 6 装配器补登） |
-| `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界） |
+| `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界；P2 次批出水标准装载经 app 再导出单入口——ADR-012 D6，jobs→registry 直连被 UF-33 契约拒 CI 实证） |
 | `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况/诊断序列化——P2 次批 trust 扩）——ENG2 B3 补登 |
-| `waterprint_server.jobs` | `waterprint.registry` | worker 出水标准装载（load_effluent_standards——ADR-012 D6 数据装配面；P2 次批补登 2026-09-12） |
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |
 | `waterprint.cli` | `waterprint.app` | 命令编排调用用例（经唯一装配点） |
 | `waterprint.cli` | `waterprint.contracts` | 参数与项目 schema 校验 |
