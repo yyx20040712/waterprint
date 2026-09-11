@@ -39,12 +39,20 @@
 > **+操作链 P0 已收官（P0-1 建项入口[F1/F3/F4-文案面：CTA Modal 两态
 > +view.name 显示名+导入全链]+P0-2 方案应用深链死锁[F5：result unit_id/
 > design_hash 扩源+回填 effect+应用三闸/漂移二次确认]——无头 21 断言
-> 全过；op-chain-fix-plan v2 全文沿推荐；[HUMAN-LOCK] 251b706 沿册）**。
+> 全过；op-chain-fix-plan v2 全文沿推荐；[HUMAN-LOCK] 251b706 沿册）**；
+> **P0-3 画布编辑最小闭环已收官（F2 结构性大面：单元库双入口加单元
+> [包单元={} 空参/内置={kind}——引擎 v1 单实例闸实装修正]+端口拖拽连线
+> [规则判断唯一源=校验时点 core validate_design_structure 新正门——
+> 边端点/端口在册/方向+流体三查]+✕/键盘删除级联清[边/site.structures/
+> checked_units——D3 悬空防线]+编辑会话快照隔离[事件桥刷新零回流草稿]
+> +校验 Alert 警告放行⑦甲+保存 dirty/toast+常驻提交计算⑥甲[F4 残余
+> 根治]——无头 edit 族全过+五族回归；D 一审通过无 Important/A 二审
+> R2 四修一反驳；[HUMAN-LOCK] cbcf1a3 沿册 265 键）**。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：
 > 门禁 11 项（含 GR-21 弃用到期门禁，TD1）/GR-01~GR-41 治理规则/
-> test-lock 264 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
+> test-lock 265 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
 > 四块→M3 三线战役→M4 工业化→M5 图纸面→B2/FD→C1 主题骨架→C2（进行中）。
 > 数据面键计数基准（ENG3 2026-08-28 探针实测：load_coefficients/
 > load_prices/templates manifest 装载正门）：coefficients 1.1.0（577 键）
