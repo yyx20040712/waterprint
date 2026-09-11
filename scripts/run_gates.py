@@ -7,12 +7,16 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格：门禁清单与 AGENTS.md §2/§3、docs/file-contracts.md §4 一致；
 # ruff 经 check_ruff.py（core venv 依赖）聚合入列——与 CI core-quality
-# 对齐（T7a C416 教训）；mypy/import-linter/pytest 仍属 CI/venv 单独跑；
+# 对齐（T7a C416 教训）；mypy/pytest 仍属 CI/venv 单独跑；
 # 其余为零依赖门禁（系统 Python 直接可跑）。
 # 第十门禁 check_trust_root.py（外审整改#3 H1）：三信任根变更须带
 # [HUMAN-LOCK]（AGENTS §7）——门禁数基线 9→10（WP2 台账）。
 # 第十一门禁 check_deprecation_gate.py（TD1 2026-09-09）：GR-21
 # 弃用到期门禁——门禁数基线 10→11（TD1 台账）。
+# 第十二门禁 check_lint_imports.py（GOV2 2026-09-12）：双根
+# lint-imports 本地聚合（CI quality job 同款口径——n+42 UF-33 挂账
+# 盲区销账，check_ruff 双根三态先例同制）——门禁数基线 11→12
+# （GOV2 台账；import-linter 自此本地门禁化，mypy 单独跑）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -27,6 +31,7 @@ GATES = (
     "check_deprecation_gate.py",
     "check_file_budgets.py",
     "check_grep_gates.py",
+    "check_lint_imports.py",
     "check_magic_numbers.py",
     "check_module_graph.py",
     "check_readonly.py",

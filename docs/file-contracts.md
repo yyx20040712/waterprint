@@ -193,13 +193,16 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0 |
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
-| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径） |
+| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014） |
+| `scripts/same_layer_lib.py` | 同层边声明块共享库：§1c 解析+展开+两面校验单源（check_module_graph 与 gen_same_layer_edges 共用，防两套解析漂移——ADR-014） |
+| `scripts/gen_same_layer_edges.py` | 同层边生成器：structure-graph §1c 声明块 → core/pyproject 两契约 ignore_imports 标记段重写（幂等；ADR-014 唯一声明面的机器展开半边） |
 | `scripts/check_webapp.py` | webapp 结构门禁（TS 契约头 + features 互不依赖分层） |
 | `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity/units_lib manifest 真源区 + drafting styles/sheets 声明面——DRAFT 批总控问询放行 2026-08-26） |
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
 | `scripts/check_trust_root.py` | 信任根守卫：触碰三信任根（manifest/lock_tests/check_readonly）的 commit 必带 [HUMAN-LOCK]（外审整改#3 H1） |
 | `scripts/check_deprecation_gate.py` | GR-21 弃用到期门禁：file-contracts 弃用登记（弃用: 旧 -> 新, 移除: YYYY-MM-DD）逾期/格式错即 FAIL（TD1 2026-09-09 机制就绪件——零登记首检绿） |
 | `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1） |
+| `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 

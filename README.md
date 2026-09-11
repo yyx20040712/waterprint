@@ -98,11 +98,14 @@
 > 参数化常驻断言，UF-51 类声明去除而透传即刻红]+skip==0 CI 机器化
 > [core/server 两 pytest 步骤]+testing.md 两处勘正[收集口径/锁面
 > 范围]+webapp 样式惯例 GR-39~41 拆件守 500 预算；core 1215+门禁
-> 11 全绿）**。
+> 11 全绿）**。GOV2 规则熵减批（同日）：规则四源同源去重
+> 30 处（123→92，24.4%）+同层边 §1c 一等公民化（ADR-014）+C2 DoD
+> 扩面+门禁 11→12（lint-imports 本地化）+core 1215 不变。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：
-> 门禁 11 项（含 GR-21 弃用到期门禁，TD1）/GR-01~GR-42 治理规则/
+> 门禁 12 项（含 GR-21 弃用到期门禁 TD1+lint-imports 本地门禁 GOV2）
+> /GR-01~GR-42 治理规则/
 > test-lock 271 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
 > 四块→M3 三线战役→M4 工业化→M5 图纸面→B2/FD→C1 主题骨架→C2（进行中）。
 > 数据面键计数基准（ENG3 2026-08-28 探针实测：load_coefficients/
@@ -127,7 +130,7 @@
 ```bash
 # Python 内核（需要 uv，见下方环境待办）
 cd core && uv sync && uv run pytest          # 全量测试（含架构门禁测试）
-uv run python ../scripts/run_gates.py        # 门禁脚本 11 项（清单见 scripts/run_gates.py——行数/契约头/弃用到期/占位符/乱码/只读/信任根/结构图谱/webapp/魔法数字/ruff）
+uv run python ../scripts/run_gates.py        # 门禁脚本 12 项（清单见 scripts/run_gates.py——行数/契约头/弃用到期/占位符/乱码/只读/信任根/结构图谱/webapp/魔法数字/ruff/lint-imports）
 
 # 前端（需要 pnpm，经 corepack 启用）
 pnpm install && pnpm -C webapp dev

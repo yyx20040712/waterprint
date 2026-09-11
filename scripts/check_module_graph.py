@@ -6,28 +6,32 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明：AGENTS.md §13 结构图谱规则。校验六件事：
+# 规格说明：AGENTS.md §13 结构图谱规则。校验七件事：
 #   a) §1a 节点表：节点对应路径存在；层归属与 pyproject import-linter
 #      第一条 layers 契约双源一致（互相覆盖，漏一边 = 失败）；
 #   b) §1b 边表：两端节点已声明；方向沿层序严格向下（同层/向上 = 失败）；
-#      依赖图无环（Kahn）；
-#   c) §3 单元总表 ↔ file-contracts.md §3 包登记 ↔ units_lib 实际目录
+#      依赖图无环（Kahn）；同层边不入 §1b 边表——以 §1c 声明块承载；
+#   c) §1c 同层边声明块（ADR-014 唯一声明面，GOV2 2026-09-12）：toml
+#      围栏块——本脚本解析后两用（真实 import 校验豁免面 + pyproject
+#      两契约 ignore_imports 双向对照，多/少即 FAIL；块缺失或空 =
+#      FAIL——fail-closed）。pyproject 的 ignore_imports =
+#      scripts/gen_same_layer_edges.py 自本块展开的**生成物**（标记段
+#      内禁手编——三处手工同步归一为一处声明+一条命令）；
+#   d) §3 单元总表 ↔ file-contracts.md §3 包登记 ↔ units_lib 实际目录
 #      三方一致，恰好 32 包；
-#   d) §2 调用链中引用的仓库路径真实存在（防"链路指向幽灵文件"）；
-#   e) pyproject"工艺单元包互相独立"independence 契约逐包列出实际单元包，
+#   e) §2 调用链中引用的仓库路径真实存在（防"链路指向幽灵文件"）；
+#   f) pyproject"工艺单元包互相独立"independence 契约逐包列出实际单元包，
 #      模块集合与目录实际单元包集合双向一致（数量与名字；漏列/多列/退回
 #      线级粒度 = 失败，DS-01 裁决的机器防线）；
-#   f) 真实 import ⊆ §1b 声明边（B3 收口——ENG2 D5/R1-b 裁决 2026-08-27）：
+#   g) 真实 import ⊆ §1b 声明边（B3 收口——ENG2 D5/R1-b 裁决 2026-08-27）：
 #      stdlib ast 扫描 core/waterprint/** 与 server/waterprint_server/**
 #      （排除任意 tests 目录），import 目标解析到 §1a 节点粒度（同节点内
 #      import 忽略——跨单元互 import 由 independence 契约另行强制），
 #      违者 FAIL 输出 from→to+文件清单。三条硬编码规则：
 #      ① `if TYPE_CHECKING:` 块内 import 豁免（类型面依赖——UF-31 口径，
 #         contracts/unit_api.py 在册先例）；
-#      ② 同层豁免对集 `_SAME_LAYER_EXEMPTS`（§1b 后注记承载——同层边
-#         不入边表：SERVER D1 2026-08-26 app→app_enumeration 伴生边；
-#         L5c 2026-09-03 ifc_export→geometry 投影消费边第二例——
-#         "严格向下"规则与边表均不为其放开）；
+#      ② 同层豁免面=§1c 声明块解析结果（原硬编码 _SAME_LAYER_EXEMPTS
+#         于 GOV2 删除——同层边不入边表："严格向下"规则不为其放开）；
 #      ③ stdlib/三方 import 忽略（只认 waterprint*/waterprint_server*
 #         且命中 §1a 节点者）。§1a 之外的伴生 .py 节点粒度不覆盖。
 #      零依赖纯标准库（ast），py3.12/3.13 双兼容
@@ -44,6 +48,13 @@ from pathlib import Path
 
 import tomllib
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from same_layer_lib import (  # noqa: E402
+    check_same_layer_block,
+    check_same_layer_pyproject,
+    parse_same_layer_edges,
+)
+
 REPO = Path(__file__).resolve().parent.parent
 GRAPH_MD = REPO / "docs" / "structure-graph.md"
 CONTRACTS_MD = REPO / "docs" / "file-contracts.md"
@@ -53,21 +64,12 @@ SCAN_PY_ROOTS: tuple[Path, ...] = (
     REPO / "core" / "waterprint",
     REPO / "server" / "waterprint_server",
 )
-# 同层豁免对集（规则②：§1b 后注记承载——同层边不入边表）
-# - app → app_enumeration：SERVER D1 2026-08-26 同层伴生边（唯一先例）；
-# - ifc_export → geometry：L5c 2026-09-03 BIM 互操作投影消费场景图
-#   （§10.2 路线 C——importlinter layers/independence 两契约同款豁免）。
-_SAME_LAYER_EXEMPTS: tuple[tuple[str, str], ...] = (
-    ("waterprint.app", "waterprint.app_enumeration"),
-    # PROFILE3（2026-09-08）：export 族拆分再导出伴生边（§1b 后注记
-    # 承载——pyproject ignore_imports 同款豁免；方向单一 app_export 零
-    # app 系依赖）。
-    ("waterprint.app_enumeration", "waterprint.app_export"),
-    ("waterprint.ifc_export", "waterprint.geometry"),
-    # PROFILE 批 2026-09-08：drafting→elevation PumpingPlan 纯类型/数据
-    # 消费（纵断图 R3 标注面——文件粒度对，包粒度不变；§1b 注记承载）。
-    ("waterprint.drafting.profile_drawing", "waterprint.elevation.pumps"),
-)
+
+NODE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([A-Za-z0-9.\-]+)\s*\|\s*`([^`]+)`")
+EDGE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*`([^`]+)`")
+UNIT_ROW = re.compile(r"^\|\s*`([^`]+/)`\s*\|")
+TICK = re.compile(r"`([^`]+)`")
+HEADING = re.compile(r"^#{2,3}\s+(.*)$")
 
 # 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）
 LAYER_ORDER: tuple[str, ...] = (
@@ -83,12 +85,6 @@ CORE_LAYER_OF_TOKEN: dict[str, int] = {
 }
 EXPECTED_UNIT_COUNT = 32
 UNIT_LINE_DIRS = ("municipal", "mine_water", "sludge", "conveyance")
-
-NODE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([A-Za-z0-9.\-]+)\s*\|\s*`([^`]+)`")
-EDGE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*`([^`]+)`")
-UNIT_ROW = re.compile(r"^\|\s*`([^`]+/)`\s*\|")
-TICK = re.compile(r"`([^`]+)`")
-HEADING = re.compile(r"^#{2,3}\s+(.*)$")
 
 
 def sections(text: str) -> dict[str, str]:
@@ -378,11 +374,13 @@ def iter_import_targets(
 
 
 def check_real_imports(
-    nodes: dict[str, tuple[str, str]], edges: list[tuple[str, str]]
+    nodes: dict[str, tuple[str, str]],
+    edges: list[tuple[str, str]],
+    same_layer: list[tuple[str, str, bool, bool, str]],
 ) -> list[str]:
-    """f) 跨节点真实 import ⊆ §1b 声明边（违者中文清单：from→to+现场）。"""
+    """g) 跨节点真实 import ⊆ §1b 声明边 ∪ §1c 同层边声明块。"""
     declared = {(src, dst) for src, dst in edges if src in nodes and dst in nodes}
-    declared.update(_SAME_LAYER_EXEMPTS)
+    declared.update((src, dst) for src, dst, _, _, _ in same_layer)
     violations: dict[tuple[str, str], list[str]] = {}
     for root in SCAN_PY_ROOTS:
         for path in sorted(root.rglob("*.py")):
@@ -420,9 +418,11 @@ def main() -> int:
     edge_sec = next((v for k, v in parts.items() if k.startswith("1b.")), "")
     chain_sec = next((v for k, v in parts.items() if k.startswith("2.")), "")
     unit_sec = next((v for k, v in parts.items() if k.startswith("3.")), "")
+    same_layer_sec = next((v for k, v in parts.items() if k.startswith("1c.")), "")
 
     nodes = parse_nodes(node_sec)
     edges = parse_edges(edge_sec)
+    same_layer = parse_same_layer_edges(same_layer_sec)
     problems += check_nodes_exist(nodes)
     problems += check_edges(nodes, edges)
     problems += check_acyclic(nodes, edges)
@@ -430,7 +430,9 @@ def main() -> int:
     problems += check_units(parse_unit_rows(unit_sec))
     problems += check_independence_units()
     problems += check_chains(chain_sec)
-    problems += check_real_imports(nodes, edges)
+    problems += check_same_layer_block(same_layer, nodes, resolve_node)
+    problems += check_same_layer_pyproject(same_layer, PYPROJECT)
+    problems += check_real_imports(nodes, edges, same_layer)
 
     if problems:
         print(f"[FAIL] 结构图谱违规 {len(problems)} 处：")
@@ -441,7 +443,9 @@ def main() -> int:
         f"[OK] 结构图谱：{len(nodes)} 节点 / {len(edges)} 依赖边全部沿层序向下、"
         f"无环、与 import-linter 一致；单元包三方一致（{EXPECTED_UNIT_COUNT} 包）"
         f"且 independence 契约逐包吻合；调用链路径全部存在；"
-        f"真实 import 全库扫描 ⊆ §1b 声明边（含同层豁免对）"
+        f"同层边声明块 {len(same_layer)} 条（§1c 唯一声明面）与 pyproject"
+        f" ignore_imports 双向一致；"
+        f"真实 import 全库扫描 ⊆ §1b 声明边 ∪ §1c 同层边"
     )
     return 0
 

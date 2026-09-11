@@ -136,52 +136,68 @@
 > contracts 与 main → waterprint.app）属 UF-33 core 调用白名单
 > [app+contracts] 合法面；elevation/geometry/solution → registry 三边属
 > UF-12 在册图谱缺口；app_enumeration 六边为 SERVER D1 伴生件滞后登记。
-> 第 15 组 waterprint.app → waterprint.app_enumeration 为同层边，按下方
-> 同层豁免注记承载（不入边表——"严格向下"规则不为同层边放开）。
+> 第 15 组 waterprint.app → waterprint.app_enumeration 为同层边，按 §1c
+> 同层边声明块承载（不入边表——"严格向下"规则不为同层边放开）。
 
-> 同层伴生边（SERVER D1 2026-08-26，层序豁免注记）：
-> `waterprint.app` → `waterprint.app_enumeration`——app 对伴生件（类型
-> 面/导出薄壳/上游快照重建）的再导出 import，保持 server 经 app 单入口
-> （UF-33）；方向单一（app→app_enumeration，反向被 import-linter 禁止
-> ——防环）；机器强制=core/pyproject importlinter 同层并列声明 +
-> `ignore_imports` 显式豁免该唯一边（"|" 兄弟默认互禁的忠实意图条款）。
-> 本边**不入上方边表**：check_module_graph 的"严格向下"规则对同层边
-> 一律拒，故以本注记登记（UF-33"相抵处置"的落点）。
+> **同层边机制说明（ADR-014，GOV2 2026-09-12 一等公民化）**：同层边=
+> 跨节点、同层 token 的合法依赖边，历史上以本节后散置注记承载（SERVER
+> D1 app→app_enumeration / L5c ifc_export→geometry / PROFILE3
+> app_enumeration→app_export / PROFILE drafting→elevation.pumps 四段）
+> ——GOV2 起唯一声明面=下方 §1c 机器声明块（历史注记原文见 git 历史；
+> 每边出处入块内 note 字段）。机器强制两面：core/pyproject importlinter
+> 两契约 ignore_imports=**生成物**（`scripts/gen_same_layer_edges.py`
+> 自 §1c 块展开，标记段内禁手编）+ check_module_graph 解析块并双向
+> 校验 pyproject（多/少即 FAIL）。新增同层边工序=编辑 §1c 块→跑
+> 生成器→门禁绿（三处手工同步归一）。
 
-> 同层消费边（L5c 2026-09-03，层序豁免注记第二例——上例同款机制）：
-> `waterprint.ifc_export` → `waterprint.geometry`——IFC 导出是 geometry
-> 场景图的 BIM 互操作投影（§10.2 路线 C 纯投影消费），不持有独立状态；
-> 机器强制=core/pyproject importlinter 两处显式豁免（layers 与 L3
-> independence 契约各一条 ignore_imports）+ check_module_graph 同层
-> 豁免对登记。本边**不入上方边表**（"严格向下"规则对同层边一律拒）；
-> ifc_export→contracts 以正式边行承载（几何取数零直连，契约类型面白
-> 名单成员——C2）。
+> 同节点伴生边（B7 笔① 2026-09-06，文件粒度拆件注记——与同层边不同
+> 面：同节点内拆件由 check_module_graph 节点粒度对同节点 import 忽略
+> （f) 规则）天然豁免，无 §1c 声明义务）：`waterprint_server.services.
+> exports` → `waterprint_server.services.exports_registry`（读面拆件：
+> resolve_export_file/list_exports 逐字迁出，经 exports 顶部 import
+> 透传再导出+调用——公开面/__all__ 恒等）与 `waterprint_server.services.
+> exports_registry` → `waterprint_server.services.exports_support`
+> （下载两闸常量 DOWNLOAD_SUFFIXES/_DOWNLOAD_STEM_PATTERN+ExportMeta+
+> raise 面两异常消费）。两边均在 `waterprint_server.services` 包节点
+> 内部（文件粒度），故不入上方边表而以本注记登记（ENG7 的 exports→
+> exports_support 既有同面边同此口径）。
 
-> 同层伴生边·PROFILE3（2026-09-08）：`waterprint.app_enumeration` →
-> `waterprint.app_export`——export 族拆分的再导出边（消费面零改动；
-> 方向单一防环=app_export 零 app 系依赖；pyproject layers 契约
-> ignore_imports 显式豁免——app→app_enumeration 先例同款）。
+### 1c. 同层边声明块（唯一声明面——ADR-014；改此处后跑 scripts/gen_same_layer_edges.py 展开 pyproject）
 
-> 同层消费边·文件粒度（PROFILE 批 2026-09-08，层序豁免注记第四例
-> ——第二例同款机制的文件粒度变体）：
-> `waterprint.drafting.profile_drawing` → `waterprint.elevation.pumps`
-> ——纵断图对 PumpingPlan 是纯类型/数据消费（R3 提升泵站/跌水标注面，
-> TYPE_CHECKING 类型引用+运行时 duck 取值，零水力计算）；机器强制=
-> core/pyproject importlinter 两契约 ignore_imports（layers 与 L3
-> independence 各一条）+ check_module_graph 同层豁免对（文件粒度对——
-> drafting 包与 elevation 包的兄弟互禁不因此放开）。本边**不入上方
-> 边表**（"严格向下"规则对同层边一律拒）。
+> 字段：`from`/`to`=模块名（文件粒度边写至文件模块）；`note`=出处注记
+> （生成 pyproject 注释+人读先例，改写须携历史日期）；`independence`=
+> true 时该边同时展开入 L3 independence 契约豁免（同层且跨 L3 子系统的
+> 消费边）；`glob`=true 时 pyproject 展开为 `<from>.* -> <to>`（grimp
+> 精确模块匹配语义——importer 为包子模块的边需通配，先例 ifc_export
+> .builder）。本块为唯一声明面——check_module_graph 直接解析（块缺失
+> 或空=FAIL，fail-closed）。
 
-> 同节点伴生边（B7 笔① 2026-09-06，文件粒度拆件注记第三例——上两例
-> 同款机制）：`waterprint_server.services.exports` → `waterprint_server.
-> services.exports_registry`（读面拆件：resolve_export_file/list_exports
-> 逐字迁出，经 exports 顶部 import 透传再导出+调用——公开面/__all__ 恒等）
-> 与 `waterprint_server.services.exports_registry` → `waterprint_server.
-> services.exports_support`（下载两闸常量 DOWNLOAD_SUFFIXES/
-> _DOWNLOAD_STEM_PATTERN+ExportMeta+raise 面两异常消费）。两边均在
-> `waterprint_server.services` 包节点内部（文件粒度）——check_module_graph
-> 节点粒度对同节点内 import 忽略（f) 规则），故不入上方边表而以本注记
-> 登记（ENG7 的 exports→exports_support 既有同面边同此口径）。
+```toml
+[[edge]]
+from = "waterprint.app"
+to = "waterprint.app_enumeration"
+note = "SERVER D1 2026-08-26 同层伴生边：app 再导出保 server 单入口（UF-33）；方向单一防环=app_enumeration 零 app 依赖"
+independence = false
+
+[[edge]]
+from = "waterprint.app_enumeration"
+to = "waterprint.app_export"
+note = "PROFILE3 2026-09-08 export 族拆分再导出伴生边；方向单一防环=app_export 零 app 系依赖"
+independence = false
+
+[[edge]]
+from = "waterprint.ifc_export"
+to = "waterprint.geometry"
+note = "L5c 2026-09-03 BIM 互操作纯投影消费场景图（§10.2 路线 C）；importer 侧通配=grimp 精确模块匹配语义（builder 为实际 import 现场）"
+independence = true
+glob = true
+
+[[edge]]
+from = "waterprint.drafting.profile_drawing"
+to = "waterprint.elevation.pumps"
+note = "PROFILE 2026-09-08 纵断图 PumpingPlan 纯类型/数据消费（R3 标注面，文件粒度对——包粒度兄弟互禁不放开）"
+independence = true
+```
 
 ## 2. 端到端调用链（一次业务动作经过的文件，路径均实际存在）
 
