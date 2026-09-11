@@ -35,12 +35,15 @@ import * as THREE from "three";
 import {
   groupUnitConstructs,
   groupUnitWaters,
+  hasCapWriters,
+  sectionCapQuad,
   sectionPlane,
   thumbCamera,
   unitBounds,
 } from "../lib/thumbnailStage";
 import type { RenderNode, RenderScene, Vec3 } from "../lib/projectScene";
 import { PoolBox } from "./PoolBox";
+import { SectionCap } from "./SectionCap";
 import { WaterSurface } from "./WaterSurface";
 
 /** C2-3d 冻结口径（Scene.tsx 同值双源——V2 光比/V1 底色；C2-visual T4
@@ -64,6 +67,17 @@ const STAGE_STYLE: React.CSSProperties = {
   pointerEvents: "none",
 };
 
+/** Canvas 配置常量（CV-N-01 R2 轮外提——内联对象在 index 推进重渲时
+ * 引用变更，R3F 视为配置漂移有相机/renderer 重建风险；fov 50=V4 取景
+ * 冻结值，near/far=场景尺度域，初始 position 由 CameraRig/effect 落位）。 */
+const CANVAS_CAMERA: Record<string, unknown> = {
+  fov: 50,
+  near: 0.1,
+  far: 4000,
+  position: [30, 30, 30],
+};
+const CANVAS_GL: Record<string, unknown> = { antialias: true, stencil: true };
+
 /** 单单元截取器：挂载该单元构型→rAF 手动渲染→dataURL 回传。
  * C2-visual T1/T2：纵向对角半剖（sectionPlane 派生——面向相机剖近半
  * 露横断面；GV-N-02 R2 轮注释同步）+waters 半透明入图（WaterSurface
@@ -86,16 +100,19 @@ function Capture({
   captureRef.current = onCapture;
   const cameraSpec = useMemo(() => thumbCamera(bounds), [bounds]);
   // 半剖平面（T1 二轮勘正=纵向对角剖——面向相机剖掉近半露横断面；
-  // Scene.tsx §12.3 剖切先例同构消费 THREE.Plane）
-  const clippingPlanes = useMemo(() => {
+  // Scene.tsx §12.3 剖切先例同构消费 THREE.Plane；C2VD V1 起单实例
+  // memo——SectionCap writer 与材质 clippingPlanes 同引用共享）
+  const clipPlane = useMemo(() => {
     const spec = sectionPlane(bounds);
-    return [
-      new THREE.Plane(
-        new THREE.Vector3(spec.normal[0], spec.normal[1], spec.normal[2]),
-        spec.constant,
-      ),
-    ];
+    return new THREE.Plane(
+      new THREE.Vector3(spec.normal[0], spec.normal[1], spec.normal[2]),
+      spec.constant,
+    );
   }, [bounds]);
+  const clippingPlanes = useMemo(() => [clipPlane], [clipPlane]);
+  // C2VD V1 剖切帽盖面片派生（中心投影至剖切面+过幅边长——纯函数）
+  const capQuad = useMemo(() => sectionCapQuad(bounds), [bounds]);
+  const capped = useMemo(() => hasCapWriters(nodes), [nodes]);
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
       camera.position.set(...cameraSpec.position);
@@ -117,6 +134,9 @@ function Capture({
       {waters.map((node) => (
         <WaterSurface key={node.id} node={node} clippingPlanes={clippingPlanes} />
       ))}
+      {/* C2VD V1 剖切帽盖：stencil writer+共享面片——材质断面区封实
+          （水体/空腔区不入——writer 仅封闭构型件）；全 plane 件单元不挂 */}
+      {capped ? <SectionCap nodes={nodes} plane={clipPlane} quad={capQuad} /> : null}
     </>
   );
 }
@@ -174,9 +194,9 @@ export function ThumbnailStage({
     <div style={STAGE_STYLE} aria-hidden>
       <Canvas
         frameloop="never"
-        camera={{ fov: 50, near: 0.1, far: 4000, position: [30, 30, 30] }}
+        camera={CANVAS_CAMERA}
         style={{ width: THUMB_SIZE, height: THUMB_SIZE, background: SCENE_BG }}
-        gl={{ antialias: true }}
+        gl={CANVAS_GL}
         onCreated={({ gl }) => {
           gl.setSize(THUMB_SIZE, THUMB_SIZE, false);
           // T1 半剖前置：材质 clippingPlanes 生效需本地剖切开关

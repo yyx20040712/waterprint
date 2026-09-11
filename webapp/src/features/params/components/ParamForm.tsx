@@ -7,18 +7,16 @@
  *        plan.md §二+呈裁实录 §四b；glm D④「开发者表单」痛点收口）
  *
  * 规格说明（FE5 D1/D5/D7+FD PD7/PD8 沿袭；C2-params Q1~Q7）：
- *   - Q1 骨架=flex 列三层：head 固定/body 滚动（GR-40 收敛——canvasPane
- *     aside 外滚退役）/foot 固定（提交+重置常驻）；Q2 头部=眉标+单元名
- *     （secondary）+域 badge+unitId **隐藏**（用户裁选——收进 title 悬浮，
- *     B2 PD8 追溯链保持悬浮通道）；
- *   - Q3 单行 field：左=label_zh（12.5px **secondary**——视觉稿 A「数据
- *     亮标签沉」层次[用户多模态对比裁选]+覆盖蓝点+field_id 悬浮）；右=
- *     控件 122px 级（值 mono 白聚焦）；声明面 MetaLine **收敛进控件组
- *     title 悬浮**（dim/默认/范围/档位全量+field_id——呈裁②用户已裁
- *     「进悬浮」：视觉降噪与信息保留并存）；
- *   - Q4 单位入控件：InputNumber addonAfter=dimUnit（shared/dimLabels
- *     新导出零换算；无量纲/未知→无 addon）；步进钮 antd 内建（93 连续
- *     参数 deriveStep 保持——键盘任意值不限 P0-4 沿袭）；
+ *   - Q1 骨架=flex 列三层：head 固定/body 滚动（GR-40 收敛）/foot 固定
+ *     （提交+重置常驻）；Q2 头部=眉标+单元名（secondary）+域 badge
+ *     +unitId 隐藏（用户裁选——收进 title 悬浮，B2 PD8 追溯链保持）；
+ *   - Q3 单行 field：左=label_zh（12.5px secondary——视觉稿 A「数据亮
+ *     标签沉」[用户多模态对比裁选]+覆盖蓝点+field_id 悬浮）；右=控件
+ *     122px 级（值 mono 白聚焦）；声明面 MetaLine 收敛进控件组 title
+ *     悬浮（dim/默认/范围/档位全量——呈裁②已裁「进悬浮」）；
+ *   - Q4 单位入控件：单位后缀 span（C2VD V6 addonAfter 弃用迁移——
+ *     Space.Compact 包裹；dimUnit 零换算，无量纲/未知→无后缀）；步进钮
+ *     antd 内建（93 连续参数 deriveStep 保持——键盘任意值不限 P0-4 沿袭）；
  *   - Q5 grid 档位 chips：行内嵌 chips（Tag 可点——回填 drafts 同通道
  *     [FD formatBackfill 同口径]）；当前显示值命中→蓝 fill 高亮；≤12 档
  *     换行/超 12 横滚；档位外自由值仍可手输（grid 纯展示冻结 §三沿袭）；
@@ -31,7 +29,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Input, InputNumber, Modal, Select, Tag, Typography } from "antd";
+import { Button, Input, InputNumber, Modal, Select, Space, Tag, Typography } from "antd";
 
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
@@ -67,6 +65,35 @@ const LINE_LABELS: Record<string, string> = {
 
 /** 控件列宽（视觉稿 A num-input 122px 级——flex none 右对齐）。 */
 const CONTROL_WIDTH = 122;
+
+/** C2VD V6：单位后缀样式（addonAfter→Space.Compact 迁移件——antd 内部
+ * 类不依赖[v6 DOM 变体记档制]；取色全走 --wp 变量轴；-1px 左缘叠缝=
+ * Compact 邻接共享边框惯例，右圆角 4=small 控件档。文字=--wp-text-2
+ * （三段流 ds 建议提亮——text-3 在深底层级过低）。 */
+const UNIT_SUFFIX_STYLE: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 34,
+  flex: "none",
+  fontSize: 11,
+  color: "var(--wp-text-2)",
+  background: "var(--wp-bg-elevated)",
+  border: "1px solid var(--wp-border)",
+  borderLeft: "none",
+  marginLeft: -1,
+  borderTopRightRadius: 4,
+  borderBottomRightRadius: 4,
+};
+
+/** F8 通道口归一（InputNumber onChange——步进/键入值 trimFloatNoise；
+ * 非数值形态[防御]原样走 invalid 诚实拒路径）。 */
+const draftValueOf = (value: number | string | null): string =>
+  value === null || value === ""
+    ? ""
+    : typeof value === "number"
+      ? trimFloatNoise(value)
+      : value;
 
 /** 声明面悬浮全量（Q3：MetaLine 常显收敛进 title——dim/默认/范围/档位）。 */
 function metaTooltipText(entry: ParamEntry): string {
@@ -151,9 +178,7 @@ export function ParamForm({
   const loadError = catalogQuery.error ?? designQuery.error;
   const errorText =
     catalogQuery.isError || designQuery.isError
-      ? `参数面加载失败：${
-          loadError instanceof Error ? loadError.message : "未知错误"
-        }`
+      ? `参数面加载失败：${loadError instanceof Error ? loadError.message : "未知错误"}`
       : null;
 
   // ── FD 可行域引导（PD7 2026-09-09）：行内 1D+模态 2D（Q7 零触碰） ──
@@ -254,14 +279,13 @@ export function ParamForm({
             // PD7 入口精确条件：仅连续区间参数（grid 缺席且 range 在场）
             const continuous = isContinuousParam(entry);
             const range = entry.range ?? null;
-            // 当前显示值（chips 高亮判定源：草稿优先→design 覆盖→空；
-            // F8：覆盖值经 trimFloatNoise 归一——18 位浮点尾差根除）
-            const shownValue =
-              draftText !== undefined
-                ? draftText
-                : overridden && values[fieldId] !== undefined
-                  ? trimFloatNoise(values[fieldId])
-                  : "";
+            // 显示值（chips 高亮判定源：草稿优先→design 覆盖→空；F8：
+            // 覆盖值经 trimFloatNoise 归一——18 位浮点尾差根除）
+            const overriddenValue =
+              overridden && values[fieldId] !== undefined
+                ? trimFloatNoise(values[fieldId])
+                : null;
+            const shownValue = draftText ?? overriddenValue ?? "";
             const shownStr = shownValue === "" ? null : shownValue;
             return (
               <label
@@ -279,9 +303,7 @@ export function ParamForm({
                       {overridden ? <OverrideDot /> : null}
                     </span>
                     {continuous ? (
-                      <Button
-                        size="small"
-                        type="link"
+                      <Button size="small" type="link"
                         style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 11.5 }}
                         data-testid={`fd-entry-${fieldId}`}
                         loading={fdLoading && fdField === fieldId}
@@ -291,34 +313,26 @@ export function ParamForm({
                       </Button>
                     ) : null}
                   </span>
-                  {/* Q4 控件列：值 mono 白+单位 addon+步进（声明面进 title） */}
+                  {/* Q4 控件列：值 mono 白+单位后缀+步进（C2VD V6 迁移注记）。 */}
                   {continuous && range !== null ? (
-                    <InputNumber
-                      size="small"
-                      status={invalid ? "error" : undefined}
-                      // F8：步长经 trimFloatNoise 归一后再喂（deriveStep
-                      // 本体跨语言黄金锁不可动[core derive_step 同式互锁]
-                      // ——噪声步长[如 0.009999999999999998]会被 antd 按
-                      // 步长小数位放大成 18 位精度显示，消费点收口）
-                      step={Number(trimFloatNoise(deriveStep(range)))}
-                      addonAfter={dimUnit(entry.dim) || undefined}
-                      style={{ width: CONTROL_WIDTH + (dimUnit(entry.dim) ? 34 : 0), flex: "none" }}
-                      title={metaTooltipText(entry)}
-                      value={shownValue === "" ? "" : shownValue}
-                      onChange={(value) => {
-                        setDrafts((prev) => ({
-                          ...prev,
-                          // F8：步进/键入值归一（噪声面在通道口收口；非数
-                          // 值形态[防御]原样走 invalid 诚实拒路径）
-                          [fieldId]:
-                            value === null || value === ""
-                              ? ""
-                              : typeof value === "number"
-                                ? trimFloatNoise(value)
-                                : value,
-                        }));
-                      }}
-                    />
+                    <Space.Compact style={{ flex: "none" }}>
+                      <InputNumber size="small" status={invalid ? "error" : undefined}
+                        // F8：步长经 trimFloatNoise 归一后再喂（deriveStep
+                        // 黄金锁不动——噪声步长会被 antd 放大 18 位精度，消费点收口）
+                        step={Number(trimFloatNoise(deriveStep(range)))}
+                        style={{ width: CONTROL_WIDTH }}
+                        title={metaTooltipText(entry)}
+                        value={shownValue === "" ? "" : shownValue}
+                        onChange={(value) =>
+                          setDrafts((prev) => ({ ...prev, [fieldId]: draftValueOf(value) }))
+                        }
+                      />
+                      {dimUnit(entry.dim) ? (
+                        <span data-testid={`param-unit-${fieldId}`} style={UNIT_SUFFIX_STYLE}>
+                          {dimUnit(entry.dim)}
+                        </span>
+                      ) : null}
+                    </Space.Compact>
                   ) : (
                     <Input
                       size="small"
@@ -326,15 +340,11 @@ export function ParamForm({
                       style={{ width: CONTROL_WIDTH, flex: "none" }}
                       title={metaTooltipText(entry)}
                       value={shownValue}
-                      onChange={(event) => {
-                        setDrafts((prev) => ({
-                          ...prev,
-                          [fieldId]: event.target.value,
-                        }));
-                      }}
+                      onChange={(event) =>
+                        setDrafts((prev) => ({ ...prev, [fieldId]: event.target.value }))
+                      }
                       onBlur={(event) => {
-                        // F8：失焦归一（可解析→trimFloatNoise；非数/空
-                        // 保持原样走 invalid 诚实拒路径）
+                        // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
                         const parsed = normalizeDraftValue(event.target.value);
                         if (parsed !== null) {
                           setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
@@ -359,9 +369,7 @@ export function ParamForm({
                             ? { background: "rgba(61,139,253,.18)", color: "#7ab2ff", borderColor: "rgba(61,139,253,.45)" }
                             : {}),
                         }}
-                        onClick={() => {
-                          setDrafts((prev) => ({ ...prev, [fieldId]: String(option) }));
-                        }}
+                        onClick={() => setDrafts((prev) => ({ ...prev, [fieldId]: String(option) }))}
                       >
                         {String(option)}
                       </Tag>
@@ -379,13 +387,8 @@ export function ParamForm({
                       <Typography.Text type="secondary" style={{ fontSize: 11 }}>
                         第二轴（2D 热力图）
                       </Typography.Text>
-                      <Select
-                        size="small"
-                        style={{ minWidth: 180 }}
-                        value={fdSecond ?? undefined}
-                        options={fdSecondOptions}
-                        onChange={pickSecondAxis}
-                        data-testid="fd-second-axis"
+                      <Select size="small" style={{ minWidth: 180 }} value={fdSecond ?? undefined}
+                        options={fdSecondOptions} onChange={pickSecondAxis} data-testid="fd-second-axis"
                       />
                     </div>
                     {designMap.isError ? (
@@ -432,11 +435,9 @@ export function ParamForm({
             loading={apply.isPending}
             disabled={submitDisabled}
             style={{ flex: 1 }}
-            onClick={() => {
-              apply.mutate({
-                data: { project_id: projectId, unit_id: unitId, params: changes },
-              });
-            }}
+            onClick={() =>
+              apply.mutate({ data: { project_id: projectId, unit_id: unitId, params: changes } })
+            }
           >
             提交重算{changeCount > 0 ? `（${changeCount} 项）` : ""}
           </Button>
@@ -444,9 +445,7 @@ export function ParamForm({
             size="small"
             ghost
             disabled={apply.isPending}
-            onClick={() => {
-              setDrafts({});
-            }}
+            onClick={() => setDrafts({})}
             title="清空全部草稿（恢复 design 值显示）"
           >
             ↺ 重置
@@ -454,10 +453,8 @@ export function ParamForm({
         </div>
       </footer>
 
-      {/* PD7 呈裁④：2D 模态热力图（第二轴选取→Modal——手动关；回填后
-          不自动关闭，用户可继续微调）。R-1（G1-02，R 轮）：关闭时清产物
-          并重取 1D——fdProduct 残留 2D 产物（segments=null）会使行内条
-          退化全灰死条+点击吸附空段无响应 */}
+      {/* PD7 呈裁④：2D 模态热力图（手动关；回填后不自动关闭可微调）。
+          R-1（G1-02）：关闭清产物并重取 1D——残留 2D 产物会使行内条死灰 */}
       <Modal
         open={fdSecond !== null}
         title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""}`}

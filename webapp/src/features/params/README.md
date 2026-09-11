@@ -10,7 +10,7 @@
 | `lib/designParams.test.ts` | FE5 实装+UX2 扩 | 纯函数 node 测试（golden 内联节选+负例族+UX2 假设编辑 9 用例）；trimFloatNoise 用例=独立件 trimFloatNoise.test.ts（本件行数预算拆分——C2-visual F8） |
 | `api/useUnitCatalog.ts` | FE5 实装 | 单元目录/假设清单查询薄封装（静态键） |
 | `api/useProjectDesign.ts` | FE5 实装 | 项目 design 参数面查询（select 窄化；read 键 invalidate 面） |
-| `components/ParamForm.tsx` | FE5 实装+C2-params 重制 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit addon+grid 档位 chips 点击回填+重置钮；FD 可行域入口零动——glm D④「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填） |
+| `components/ParamForm.tsx` | FE5 实装+C2-params 重制 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit[C2VD V6 迁移 Space.Compact+自样式后缀 span——addonAfter 弃用根除]+grid 档位 chips 点击回填+重置钮；FD 可行域入口零动——glm D④「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填） |
 | `components/AssumptionsPanel.tsx` | FE5 实装+UX2 编辑化 | 设计假设清单+行内编辑：InputNumber/恢复默认→面板级「提交修改」一次 PUT+自动重算（FE5「编辑挂账」收口） |
 | `components/ConstraintPicker.tsx` | 占位维持 | 约束勾选——数据通道待 constraint_kb 迁移批（D3：空槽+无读取端点） |
 | `store/paramsStore.ts` | 占位维持 | 编辑态 slice——草稿态组件内 useState（单面板无跨组件态；zustand 首例留 canvas 编辑批） |

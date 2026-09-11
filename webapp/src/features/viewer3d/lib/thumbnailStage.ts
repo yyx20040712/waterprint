@@ -19,7 +19,13 @@
  *     距离=单元对角线×1.25/fov 50）——系数/方向与 Scene.tsx 常量同值
  *     双源注记（改取景须两处联动——R-G3 清单同族）；
  *   - 缓存键=projectId+conditionKey+sceneVersion（在册「缓存键=unit_id」
- *     =Map 内层键语义——场景变（任一组成变）整批失效重渲）。
+ *     =Map 内层键语义——场景变（任一组成变）整批失效重渲）；
+ *   - C2VD V1（剖切帽盖）：solidGeometry（封闭件几何规格——box/
+ *     cylinder 两封闭 kind 数值 args 派生+plane 开面片返 null；PoolBox
+ *     与 SectionCap 单源消费[几何规格双源根除]）/sectionCapQuad（帽盖
+ *     面片中心=AABB 中心投影至剖切面+边长=垂面过幅——模板测试裁至
+ *     材质区过幅无害）/hasCapWriters（封闭件在场判定——全 plane 件
+ *     单元不挂帽盖）。
  */
 import type { RenderNode, RenderScene, Vec3 } from "./projectScene";
 
@@ -194,4 +200,72 @@ export function sectionPlane(bounds: {
     normal: [-invSqrt2, 0, -invSqrt2],
     constant: centerDiagonal * invSqrt2,
   };
+}
+
+/** 封闭件几何规格（C2VD V1）：box/cylinder 两封闭 kind 数值 args 派生
+ * （与 PoolBox 渲染同式——length/depth/width 与 diameter→radius 直读，
+ * 零业务推导）；plane=开面片（单面薄壳——stencil 背/正面计数不闭合）
+ * 返 null 不入 writer。PoolBox（渲染）与 SectionCap（writer 双 mesh）
+ * 单源消费——几何规格双源根除。 */
+export type SolidGeometrySpec =
+  | { kind: "box"; args: [number, number, number] }
+  | { kind: "cylinder"; args: [number, number, number] };
+
+export function solidGeometry(node: RenderNode): SolidGeometrySpec | null {
+  if (node.kind === "box" || node.kind === "extrusion") {
+    return {
+      kind: "box",
+      args: [
+        node.dims["length"] ?? 1,
+        node.dims["depth"] ?? 1,
+        node.dims["width"] ?? 1,
+      ],
+    };
+  }
+  if (node.kind === "cylinder") {
+    const radius = (node.dims["diameter"] ?? 1) / 2; // three 接口适配（非业务推导）
+    return {
+      kind: "cylinder",
+      args: [radius, radius, node.dims["depth"] ?? 1],
+    };
+  }
+  return null; // plane 开面片/未知 kind（防御位——投影层已拒未知 kind）
+}
+
+/** 帽盖面片中心与边长（C2VD V1）：中心=AABB 中心沿法向投影至剖切面
+ * （n·center+constant=0——用例验证锚）；边长=max(竖幅 Y, 水平对角
+ * hypot(X,Z))×1.1 过幅——帽盖经模板测试仅画在材质断面区，过幅仅保障
+ * 覆盖、无害（stencil 裁非材质区像素）。three 对象构造归组件层。 */
+export function sectionCapQuad(bounds: {
+  min: Vec3;
+  max: Vec3;
+}): { center: Vec3; size: number } {
+  const plane = sectionPlane(bounds);
+  const center: Vec3 = [
+    (bounds.min[0] + bounds.max[0]) / 2,
+    (bounds.min[1] + bounds.max[1]) / 2,
+    (bounds.min[2] + bounds.max[2]) / 2,
+  ];
+  const distance =
+    plane.normal[0] * center[0] +
+    plane.normal[1] * center[1] +
+    plane.normal[2] * center[2] +
+    plane.constant;
+  const projected: Vec3 = [
+    center[0] - plane.normal[0] * distance,
+    center[1] - plane.normal[1] * distance,
+    center[2] - plane.normal[2] * distance,
+  ];
+  const span = Math.max(
+    bounds.max[1] - bounds.min[1],
+    Math.hypot(bounds.max[0] - bounds.min[0], bounds.max[2] - bounds.min[2]),
+  );
+  return { center: projected, size: Math.max(span * 1.1, 2) };
+}
+
+/** 封闭件在场判定（C2VD V1）：任一 solidGeometry 非 null 即挂帽盖——
+ * 全 plane 件（地面薄壳）单元 writer 空=模板恒 0 帽盖恒不画，不挂省
+ * 渲染（空挂无害但冗余）。 */
+export function hasCapWriters(nodes: readonly RenderNode[]): boolean {
+  return nodes.some((node) => solidGeometry(node) !== null);
 }

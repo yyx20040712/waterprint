@@ -1,22 +1,28 @@
 /**
- * thumbnailStage 纯函数测试（C2-thumb V1/V2——分组/AABB/取景/缓存键）。
+ * thumbnailStage 纯函数测试（C2-thumb V1/V2——分组/AABB/取景/缓存键；
+ * C2VD V1——几何规格/帽盖面片/writer 判定）。
  *
- * 输入:  groupUnitConstructs/unitBounds/thumbCamera/thumbCacheKey 纯函数
+ * 输入:  groupUnitConstructs/unitBounds/thumbCamera/thumbCacheKey/
+ *        solidGeometry/sectionCapQuad/hasCapWriters 纯函数
  * 输出:  unit:: 前缀分组（多构型件合组/场景级件滤除）/AABB 外接
  *        （placements∪dims 合并+cylinder 圆外接方）/取景派生（iso 方向
- *        ×1.25+中心）+最小距离钳/缓存键三组成
+ *        ×1.25+中心）+最小距离钳/缓存键三组成/封闭件几何规格三分支/
+ *        帽盖中心在面+过幅边长/writer 在场判定
  */
 import { describe, expect, it } from "vitest";
 
 import {
   groupUnitConstructs,
   groupUnitWaters,
+  hasCapWriters,
+  sectionCapQuad,
   sectionPlane,
+  solidGeometry,
   thumbCacheKey,
   thumbCamera,
   unitBounds,
 } from "./thumbnailStage";
-import type { RenderNode, RenderScene } from "./projectScene";
+import type { RenderNode, RenderScene, Vec3 } from "./projectScene";
 
 function node(
   id: string,
@@ -168,5 +174,68 @@ describe("sectionPlane（T1 半剖切面——纵向对角剖·二轮勘正）",
     const spec = sectionPlane({ min: [10, 0, 20], max: [20, 4, 30] });
     // 中心 x=15,z=25 → x+z=40 → 常数 40/√2
     expect(spec.constant).toBeCloseTo(40 / Math.SQRT2, 9);
+  });
+});
+
+// ═══ C2VD V1：剖切帽盖派生族（几何规格单源/帽盖面片/writer 判定） ═══
+describe("solidGeometry（封闭件几何规格——PoolBox/SectionCap 单源）", () => {
+  it("box/extrusion→box spec、cylinder→半径 spec、plane→null 开面片", () => {
+    const box = solidGeometry(node("u::a", "box", { length: 8, depth: 2, width: 4 }, [[0, 0, 0]]));
+    expect(box).toEqual({ kind: "box", args: [8, 2, 4] });
+    const extrusion = solidGeometry(
+      node("u::b", "extrusion", { length: 6, depth: 2, width: 1 }, [[0, 0, 0]]),
+    );
+    expect(extrusion).toEqual({ kind: "box", args: [6, 2, 1] });
+    const cylinder = solidGeometry(
+      node("u::c", "cylinder", { diameter: 10, depth: 6 }, [[0, 0, 0]]),
+    );
+    expect(cylinder).toEqual({ kind: "cylinder", args: [5, 5, 6] });
+    expect(solidGeometry(node("u::d", "plane", { length: 9, width: 9 }, [[0, 0, 0]]))).toBeNull();
+  });
+
+  it("dims 缺键兜底 1（渲染同式——非业务推导面）", () => {
+    const spec = solidGeometry(node("u::e", "box", {}, [[0, 0, 0]]));
+    expect(spec).toEqual({ kind: "box", args: [1, 1, 1] });
+  });
+});
+
+describe("sectionCapQuad（帽盖面片中心/边长——C2VD V1）", () => {
+  it("中心=AABB 中心投影至剖切面（n·center+constant=0）", () => {
+    const bounds: { min: Vec3; max: Vec3 } = { min: [-5, 0, -5], max: [5, 6, 5] };
+    const quad = sectionCapQuad(bounds);
+    const plane = sectionPlane(bounds);
+    const distance =
+      plane.normal[0] * quad.center[0] +
+      plane.normal[1] * quad.center[1] +
+      plane.normal[2] * quad.center[2] +
+      plane.constant;
+    expect(distance).toBeCloseTo(0, 9);
+    // 对称盒中心 (0,3,0) 恰在面 x+z=0 上——投影即自身
+    expect(quad.center[1]).toBeCloseTo(3, 9);
+  });
+
+  it("边长=垂面过幅（≥max(竖幅,水平对角)×1.1——模板裁至材质区过幅无害）", () => {
+    const quad = sectionCapQuad({ min: [0, 0, 0], max: [30, 6, 16] });
+    expect(quad.size).toBeGreaterThanOrEqual(Math.hypot(30, 16) * 1.1 - 1e-9);
+  });
+
+  it("微构型尺寸钳（2——退化面片防线）", () => {
+    const quad = sectionCapQuad({ min: [0, 0, 0], max: [0.1, 0.1, 0.1] });
+    expect(quad.size).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("hasCapWriters（封闭件在场判定——全 plane 件不挂帽盖）", () => {
+  it("box/cylinder/extrusion 任一在场=true；全 plane=false", () => {
+    expect(
+      hasCapWriters([
+        node("u::p", "plane", { length: 9, width: 9 }, [[0, 0, 0]]),
+        node("u::w", "box", { length: 8, depth: 2, width: 4 }, [[0, 0, 0]]),
+      ]),
+    ).toBe(true);
+    expect(
+      hasCapWriters([node("u::p2", "plane", { length: 9, width: 9 }, [[0, 0, 0]])]),
+    ).toBe(false);
+    expect(hasCapWriters([])).toBe(false);
   });
 });

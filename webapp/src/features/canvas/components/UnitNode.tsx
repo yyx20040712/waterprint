@@ -103,6 +103,14 @@ const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg
 const PORT_TOP = 26;
 const PORT_ROW = 16;
 
+/** C2VD V2（终裁 L1）：unit_id 断行分段——分隔符 `_` `/` 后置 wbr 断点
+ * （整词换行），`word-break: break-all` 任意断字的孤字（如「…tishen/g」
+ * 「…jiliang/cao」单字成行）根除；overflowWrap anywhere 兜底超长无分隔
+ * token（防御位——现网 id 恒带分隔符）。 */
+function unitIdSegments(id: string): string[] {
+  return id.split(/(?<=[_/])/);
+}
+
 export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
   const badge = data.kind === null ? null : KIND_LABELS[data.kind] ?? data.kind;
   // C2-thumb V3：本节点 3D 缩略图（context 注入——缺席=回退象形图标）
@@ -248,15 +256,21 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
         )}
       </div>
       <div
+        data-testid={`unit-id-${data.unitId}`}
         style={{
           padding: "0 10px 8px 13px",
           fontFamily: "var(--wp-font-mono)",
           fontSize: 10.5,
           color: "var(--wp-text-3)",
-          wordBreak: "break-all",
+          overflowWrap: "anywhere",
         }}
       >
-        {data.unitId}
+        {unitIdSegments(data.unitId).map((segment, index) => (
+          <span key={index}>
+            {segment}
+            <wbr />
+          </span>
+        ))}
       </div>
       {/* P0-3 编辑态删除钮（右上角——stopPropagation 免选中；store 薄壳
           通道→designWriter.deleteNodes 级联清边/摆放/受检） */}

@@ -405,7 +405,9 @@ export function Scene({
           </>
         )}
         {scene.solids.map((node) => (
-          <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} />
+          // C2VD V3（终裁 L2）：主视图描边——灰阶构筑物对蓝底/蓝网格
+          // 对比度收口（EdgesGeometry 棱线=语义色派生亮化；缩略图不挂）
+          <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
         ))}
         {showWater &&
           scene.waters.map((node) => (

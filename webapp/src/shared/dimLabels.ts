@@ -40,8 +40,9 @@ export function dimLabel(dim: string): string {
   return entry.unit === "" ? entry.name : `${entry.name} ${entry.unit}`;
 }
 
-/** 单位符号直取（C2-params Q4：输入控件 addonAfter 消费——与 dimLabel
- * 同表同源零换算；无量纲/未知→空串=无 addon，量名经声明面悬浮通道）。 */
+/** 单位符号直取（C2-params Q4：输入控件单位后缀消费[原 addonAfter——
+ * C2VD V6 迁移 Space.Compact+后缀 span]——与 dimLabel 同表同源零换算；
+ * 无量纲/未知→空串=无后缀，量名经声明面悬浮通道）。 */
 export function dimUnit(dim: string): string {
   return DIM_LABELS[dim]?.unit ?? "";
 }

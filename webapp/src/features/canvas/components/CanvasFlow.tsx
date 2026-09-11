@@ -396,7 +396,9 @@ export function CanvasFlow({
         style={{ backgroundColor: "transparent" }}
       >
         <FitViewOnNodes fitKey={fitKey} />
-        {/* P6 MiniMap（左下——默认右下位覆盖）：域色节点缩略+视口框 */}
+        {/* P6 MiniMap（左下——默认右下位覆盖）：域色节点缩略+视口框。
+            C2VD V5：底色 token 化 var(--wp-bg-container) 实底（原
+            rgba(18,33,58,.88) 透点阵糊感收口——D1 面板蓝同语言）。 */}
         <MiniMap
           pannable
           zoomable
@@ -407,7 +409,7 @@ export function CanvasFlow({
           style={{
             left: 14,
             right: "auto",
-            background: "rgba(18,33,58,.88)",
+            background: "var(--wp-bg-container)",
             border: "1px solid var(--wp-border)",
             borderRadius: 8,
             width: 168,
