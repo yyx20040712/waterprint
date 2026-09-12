@@ -261,7 +261,7 @@
   "server/tests/services/test_scene.py": "300d12b4566cdba0258d2ce10af6c49e97345b89da6c1994f988fe425a97af16",
   "server/tests/services/test_site.py": "424f058090b1e9765df4ff6b1866765b0b345c0837ba1a701e343f06faad4f05",
   "server/tests/services/test_units.py": "2fa046b89b23703736bfd468342d4fb1fc3bfe946415552b7b31d0595a29c343",
-  "server/tests/test_api_contract.py": "c0e7b28ae6b5a5e2e546e083f854705d9c8ee33779d1035f369be271e42ac6f3",
+  "server/tests/test_api_contract.py": "028ec8a63409d321e26bab1cb2150043a793b2142b419c597edde92ab6befe20",
   "server/tests/test_app_factory.py": "6e99cbae56a81c1ab5284573fdd3280c2333fe8981e459e0e6d1f5a0f69bc2af",
   "server/tests/test_auth.py": "6262639de0af536fcacc8494e4bd6cc666219df838716d66e9b6203adaa0e55d",
   "server/tests/test_cost.py": "7a98f0ba59142372025bc297c8219fa6193f95dbe7e6fcd65ed4853e7d743a53",
