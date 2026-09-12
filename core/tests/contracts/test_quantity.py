@@ -93,3 +93,35 @@ def test_attach_rejects_non_finite():
     """GR-02 出口同守：attach 对非有限值拒绝。"""
     with pytest.raises(InvalidQuantityError, match="非有限"):
         attach(float("nan"), DimKey.FLOW)
+
+
+# ── DimKey 扩成员批（2026-09-12 用户裁定「HRT/泥龄应显示单位」；UF-20
+#    白名单增补=规格变更，本组=补锁定测试）──
+
+
+def test_scale_members_canonical_units():
+    """扩档三成员规范刻度：TIME_H→h、TIME_D→d、FLOW_H→m3/h。"""
+    assert CANONICAL_UNITS[DimKey.TIME_H] == "h"
+    assert CANONICAL_UNITS[DimKey.TIME_D] == "d"
+    assert CANONICAL_UNITS[DimKey.FLOW_H] == "m3/h"
+
+
+def test_scale_members_parse_identity():
+    """扩档成员：白名单内写法恒等换算（h/d/m3/h 均为自身规范串）。"""
+    assert parse(4.0, "h", DimKey.TIME_H) == pytest.approx(4.0)
+    assert parse(20.0, "d", DimKey.TIME_D) == pytest.approx(20.0)
+    assert parse(50.0, "m3/h", DimKey.FLOW_H) == pytest.approx(50.0)
+
+
+def test_scale_members_whitelist_negative():
+    """扩档成员白名单负例：跨刻度写法与未列工程单位一律拒（UF-20）。"""
+    # TIME_H 只收 h：s/d/min 均拒（跨档换算不做——刻度档=声明口径非自由换算面）
+    for bad in ("s", "d", "min"):
+        with pytest.raises(InvalidUnitError, match="白名单"):
+            parse(1.0, bad, DimKey.TIME_H)
+    with pytest.raises(InvalidUnitError, match="白名单"):
+        parse(1.0, "h", DimKey.TIME_D)
+    with pytest.raises(InvalidUnitError, match="白名单"):
+        parse(1.0, "m3/d", DimKey.FLOW_H)
+    with pytest.raises(InvalidUnitError, match="白名单"):
+        parse(1.0, "m3/s", DimKey.FLOW_H)
