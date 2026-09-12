@@ -27,6 +27,12 @@
 
 | 文件 | 职责 |
 |------|------|
+| `assemble/spec.md` | 批3 首件（2026-09-12）：模板归一化与变换矩阵规格——S1~S12 采纳清单全落规格（统一归一化空间/列矢量统一公式/轴映射表/数值极端算例/equipment 数据链/比例域/剖切 stencil 条款/水密 CI 规格/registry schema v1 草案/命名规约/呈裁挂账）；状态=冻结候选待批3 启动会签核（未过签核主体件不动工） |
+| `assemble/types.ts` | 批3 首件：装配词汇层（Vec3/GroupKind/AxisMask/TargetDims/TemplateSize/TemplateNodeMeta/EquipmentSpec/GroupTransform/RatioDomainEntry/DeviationResult+DEFAULT_TRIM_STRETCH 冻结常量）——零 three 依赖 |
+| `assemble/computeTransforms.ts` | 批3 首件：分组变换数学核（sceneDimsToTarget 轴对应/shellScale 壳缩放[grouped glTF 轴序]/groupTransform 统一公式 M=T(anchor⊙(s−σ))·diag(σ)——S1 唯一定法位置缩放+截面逆缩放抵消/transformDeterminant S6 断言；AssembleSpecError 显式拒防线） |
+| `assemble/deviation.ts` | 批3 首件：比例域降级判定（非正尺寸/逐条目闭域判定→fallback 结果对象零异常——两层分工：数据级决策在此、数学核 throw=漏裁防线） |
+| `assemble/computeTransforms.test.ts` | 批3 首件冻结单测（19 例）：轴对应表/壳缩放轴序三值互异/projectScene 实跑轴映射跨面对拍/S2-② H=3/6 栏杆极端算例（锚定+截面恒定全数值锚）/equipment 保圆+S3 数据链/S6 行列式恒正/instance 越权拒（P7） |
+| `assemble/deviation.test.ts` | 批3 首件冻结单测（8 例）：域内/闭域边界恰等/出域明细数值/非正尺寸/多条目遍历/空表无约束 |
 | `lib/thumbnailStage.ts` | C2-thumb 实装（2026-09-11；C2-visual 迭代同日；C2VD V1 帽盖派生同日）：节点 3D 缩略图纯函数层——groupUnitConstructs（node_id 首段分组[scene API 实锚 {unit_id}::{part} 形态/pipe:: 排除]）/groupUnitWaters（{unit}::water_surface 分组——C2-visual T2 waters 入图[呈裁③ 复核推翻]）/unitBounds（placements∪dims 外接 AABB——cylinder 圆外接方保守幅）/thumbCamera（V4 iso 方向 (30,30,30) 分量同值×1.25 取景派生——Scene.tsx 同值双源）/sectionPlane（T1 纵向对角半剖面——面向相机剖近半露横断面，二轮勘正[水平剖观感=浅池 glm/ds 双证]）/thumbCacheKey（场景三组成缓存键）/solidGeometry（C2VD：封闭件几何规格 box/cylinder→args、plane→null 开面片——PoolBox 与 SectionCap 单源消费）/sectionCapQuad（帽盖面片中心=AABB 中心投影至剖切面+过幅边长）/hasCapWriters（封闭件在场判定——全 plane 件不挂帽盖） |
 | `lib/thumbnailStage.test.ts` | C2-thumb 实装；C2-visual/C2VD 扩 | 纯函数族（分组/AABB/取景/缓存键+waters 分组+sectionPlane 对角剖面派生+C2VD：solidGeometry 三分支/sectionCapQuad 中心在面+过幅+微构型钳/hasCapWriters 三态） |
 | `lib/placementSummary.ts` | C2-visual F9 实装（2026-09-11） | 摆放态汇总纯函数：countPlacedUnits（scene 单元组在场数——首段去重/pipe 排除）/designNodesCount（design.nodes 可布置窄化——内置 kind 节点排除）/siteStructuresCount（structures 键数）/placementSummary（横幅判据——structures 非空且 placed<total，兜底满场不挂） |
