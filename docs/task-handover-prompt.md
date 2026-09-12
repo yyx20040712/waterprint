@@ -26,10 +26,13 @@
    "疑似"）再继续，禁止就地自创语义**；sweep 新登记项必须 grep 验证
    "规格确实沉默"并附命令摘要。
 4. 按涉及面读对应文档（只读涉及的，不全读）：
-   - 动哪个文件 → `docs/file-contracts.md`（职责表，新文件先登记）
-   - 依赖/调用链 → `docs/structure-graph.md`（改依赖先改图谱 §1）
+   - 动哪个文件 → `docs/file-contracts.md`（职责表，新文件先登记；
+     表内「N 行」注记数字=生成物，`scripts/gen_contract_lines.py` 刷新——ADR-016）
+   - 依赖/调用链 → `docs/structure-graph.md`（依赖边先改 §1b；模块层归属
+     =改 core/server pyproject layers 契约→跑 `scripts/gen_structure_nodes.py`
+     展开 §1a——§1a 生成物禁手编，ADR-017）
    - 单元间业务规则 → `docs/business-logic.md`（参数链/耦合归属/守恒/可行解）
-   - 已拍板决策 → `docs/adr/`（ADR-001~009，索引见 mkdocs nav）
+   - 已拍板决策 → `docs/adr/`（ADR-001~017，索引见 mkdocs nav）
 5. 读目标文件头部"规格说明"节 + 对应镜像测试（core/tests/**/test_*.py，
    只读锁定）——这是正确行为的定义；实现必须满足规格，不得反向迁就。
 6. 任务简报（五层规约，占位由派发方填全）：
