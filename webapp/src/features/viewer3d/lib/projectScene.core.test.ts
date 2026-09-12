@@ -96,6 +96,29 @@ describe("projectScene：instance_count>1 摆置确定性", () => {
     expect(left).toEqual(right);
   });
 
+  it("cylinder 多实例步距=diameter（批3 主体 S5 前提——真圆足迹自身占位）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "municipal_erchunchi::pool_cylinder",
+        semantic: "pool_wall",
+        primitive: {
+          kind: "cylinder",
+          dims: { diameter: 40, depth: 4 },
+          semantic: "pool_wall",
+        },
+        position: [0, 0, 0],
+        instance_count: 2,
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: nodes.map((n) => n.node_id) }) as never);
+    const pool = out.internals.find((n) => n.id === "municipal_erchunchi::pool_cylinder");
+    expect(pool?.placements).toHaveLength(2);
+    // 相邻双池：步距=diameter=40（length/width 缺键回退 diameter——L5R-A01 同口径）
+    expect(pool?.placements[0]).toEqual([0, 0, 0]);
+    expect(pool?.placements[1]?.[0]).toBeCloseTo(40, 10);
+    expect(pool?.placements[1]?.[2]).toBeCloseTo(0, 10);
+  });
+
   it("instance_count 缺省=1（生成类型可选——单实例组归 solids）", () => {
     const nodes: FixtureNode[] = [
       {

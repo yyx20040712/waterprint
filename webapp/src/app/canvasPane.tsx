@@ -48,6 +48,12 @@ import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
 import { ParamTabs } from "../features/params/components/ParamTabs";
 import { useSceneQuery } from "../features/viewer3d/api/useSceneQuery";
 import { ThumbnailStage } from "../features/viewer3d/components/ThumbnailStage";
+import { resolvePngThumbs } from "../features/viewer3d/assemble/thumbSource";
+import { registerProbe } from "../features/viewer3d/assemble/probe";
+
+// 批3 主体（S9）：canvas 页也注册探针（注册位原在 Scene 模块——缩略图
+// 降级计数在 canvas 页消费，两入口幂等同挂）
+registerProbe();
 import {
   SceneProjectionError,
   projectScene,
@@ -94,11 +100,27 @@ export function CanvasPane({
   const sceneQuery = useSceneQuery(projectId ?? "", undefined, {
     enabled: projectId !== null,
   });
-  const [unitThumbnails, setUnitThumbnails] = useState<
+  const [realtimeThumbnails, setRealtimeThumbnails] = useState<
     ReadonlyMap<string, string>
   >(() => new Map());
+  // 批3 主体（S9 PNG-first）：registry ready 族缩略图先取静态 PNG——
+  // 命中直用（省离屏渲染）；失败[404/网络]→单元入 ThumbnailStage 实时
+  // 后备队列（顺序队列并发 1 ≤2 合规）；probe 计数归 thumbSource。
+  const [pngThumbs, setPngThumbs] = useState<ReadonlyMap<string, string>>(
+    () => new Map(),
+  );
+  // 合成批（PNG 命中∪实时交付——PNG 键优先[族级资产真源]）
+  const mergedThumbnails = useMemo(() => {
+    const merged = new Map(realtimeThumbnails);
+    for (const [key, value] of pngThumbs) {
+      merged.set(key, value);
+    }
+    return merged;
+  }, [realtimeThumbnails, pngThumbs]);
+  const pngSkip = useMemo(() => new Set(pngThumbs.keys()), [pngThumbs]);
   useEffect(() => {
-    setUnitThumbnails(new Map()); // 切项目清批（旧项目缩略图不跨项目残留）
+    setRealtimeThumbnails(new Map()); // 切项目清批（旧项目缩略图不跨项目残留）
+    setPngThumbs(new Map());
   }, [projectId]);
   // C2-thumb V5+GD-01（AUDIT2 R3 DS-03 先例族第六处监听）：apply/ParamForm
   // 重算终态派发 TASK_EVENT→失效 scene 键→同键原地 refetch（GD-01 复位
@@ -129,6 +151,28 @@ export function CanvasPane({
       return null;
     }
   }, [sceneQuery.data]);
+
+  useEffect(() => {
+    if (thumbScene === null) {
+      return;
+    }
+    let alive = true;
+    const unitIds = new Set<string>();
+    for (const node of thumbScene.solids) {
+      const sep = node.id.indexOf("::");
+      if (sep > 0) {
+        unitIds.add(node.id.slice(0, sep));
+      }
+    }
+    void resolvePngThumbs([...unitIds]).then((hits) => {
+      if (alive) {
+        setPngThumbs(hits);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [thumbScene]);
   // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   // Q8 侧栏拖拽宽度（会话内 state——纯 UI 偏好不进 URL；view 态写侧挂账）
@@ -258,14 +302,15 @@ export function CanvasPane({
                     thumbScene.sceneVersion,
                   )}
                   scene={thumbScene}
-                  onReady={setUnitThumbnails}
+                  onReady={setRealtimeThumbnails}
+                  skip={pngSkip}
                 />
               ) : null}
               <CanvasFlow
                 projectId={projectId}
                 selectedUnitId={selectedUnitId}
                 libraryFocusId={libraryFocusId}
-                unitThumbnails={unitThumbnails}
+                unitThumbnails={mergedThumbnails}
                 onNodeClick={setSelectedUnitId}
               />
             </div>

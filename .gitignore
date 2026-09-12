@@ -43,3 +43,6 @@ webapp/src/shared/api/generated/
 
 # 组织运营件（org-config 覆盖件/org-delta/org-ledger；技能 05 §6 协议，默认不入库）
 .zcode/
+
+# Blender 模板工序再生成产物（tools/blender/README.md——脚本+资产入库，build/ 不入库）
+tools/blender/build/

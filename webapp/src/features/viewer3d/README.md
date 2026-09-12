@@ -33,6 +33,20 @@
 | `assemble/deviation.ts` | 批3 首件：比例域降级判定（非正尺寸/逐条目闭域判定→fallback 结果对象零异常——两层分工：数据级决策在此、数学核 throw=漏裁防线） |
 | `assemble/computeTransforms.test.ts` | 批3 首件冻结单测（19 例）：轴对应表/壳缩放轴序三值互异/projectScene 实跑轴映射跨面对拍/S2-② H=3/6 栏杆极端算例（锚定+截面恒定全数值锚）/equipment 保圆+S3 数据链/S6 行列式恒正/instance 越权拒（P7） |
 | `assemble/deviation.test.ts` | 批3 首件冻结单测（8 例）：域内/闭域边界恰等/出域明细数值/非正尺寸/多条目遍历/空表无约束 |
+| `assemble/registry.json` | 批3 主体（2026-09-12）：registry 数据真源 v1（§9 schema——unit_id 键→族条目：family/prefix/glb/thumb/dimSource/templateSize/ratioDomain/equipment/instanceSpacing/badges/status；辐流首条目 clarifier_radial Φ40×4+域 L/H[4,14]+equipment 三件+立柱间距 1.5m）——check_templates.mjs 语法/资产在场门校验对象 |
+| `assemble/registry.ts` | 批3 主体：registry typed 视图（FamilyEntry/EquipmentEntry+familyForUnit/isReady——actualFactor=×L 主轴派生口径；pending=缺资产合法降级不登记） |
+| `assemble/groupScan.ts` | 批3 主体：模板扫描层（§3/§10——glTF 节点树规约名解析[前缀门/组词表归一/掩码 y↔z 换轴/__nc]+世界 AABB 锚点派生[trim=AABB min/equipment=registry 语义锚/inst=基座位]；量化重定心补偿后世界位不变——锚点恒用世界 AABB 勿读节点 TRS 裸值） |
+| `assemble/templateAssembly.ts` | 批3 主体：装配计划派生（§3/§5/§6——deviation 判定→shellScale+groupTransform 统一公式产出；equipment actual=actualFactor×L→u 等比；数学核异常收编 fallback[assemble_error]；instance 组不经[P7]） |
+| `assemble/instanceLayout.ts` | 批3 主体：inst 组布局（P7 已裁——数量唯一真源=场景图 instance_count，无值 skipped 不渲染禁推导；位姿=统一公式 σ=𝟙 形 anchor⊙s 环均布） |
+| `assemble/loader.ts` | 批3 主体：模板资产加载器（GLTFLoader+MeshoptDecoder 动态 import[chunk 零成本]+族级 Promise 缓存；失败不缓存自愈重试） |
+| `assemble/fallbackLog.ts` | 批3 主体：降级登记簿（铁律 5 不静默——环形 200 条；probe/测试消费；合法态不登记[pending/无条目]） |
+| `assemble/thumbSource.ts` | 批3 主体：S9 PNG-first 缩略图源（registry ready 族静态 PNG 先取——命中省离屏渲染；失败计数 pngMisses/realtimeSwitches→C2-thumb 实时后备[顺序队列并发 1 ≤2 合规]） |
+| `assemble/probe.ts` | 批3 主体：viewer3d 探针面（window.__probe.viewer3d——templates 计数/fallbacks/thumbnailFallbacks/glInfo[drawcalls]/setClipping[S5 半剖驱动位]；Scene 与 canvasPane 双入口幂等注册） |
+| `assemble/groupScan.test.ts` | 批3 主体单测：掩码换轴四向/命名语法/组归一/锚点派生三组/结构名跳过/前缀不匹配拒（12 例） |
+| `assemble/instanceLayout.test.ts` | 批3 主体单测：P7 无值 skipped/非计数防御/原型位恒等/anchor⊙s/环均布半径恒定（5 例） |
+| `assemble/templateAssembly.test.ts` | 批3 主体单测：registry 数据面[字段/资产在场/预算]+Φ40 恒等自检[actualFactor 同源]/Φ30 保圆/trim 定值锚定/出域明细/dim_source_mismatch/equipment 缺规格收编（9 例） |
+| `components/TemplateUnit.tsx` | 批3 主体：模板单元实例（装配渲染器——逐 placement[World=T(pos)·Ry(rz)·M_group]+共享材质 effect[剖切面+非封盖件 DoubleSide]+inst 组 P7 布局+加载/失败/出域三降级态[原语保持/盒体+登记]；sceneInstanceCount=场景图计数源） |
+| `components/TemplateCap.tsx` | 批3 主体：S5 逐实例剖切帽盖（shell 未标 __nc 双 writer[对象克隆承载量化重定心 TRS]+逐实例 cap 面[足迹对角×1.1 过幅/邻池距钳制 95%]；奇偶计数 NotEqual 0 多封闭体保持；C2VD 同制 renderOrder 0/1/2） |
 | `lib/thumbnailStage.ts` | C2-thumb 实装（2026-09-11；C2-visual 迭代同日；C2VD V1 帽盖派生同日）：节点 3D 缩略图纯函数层——groupUnitConstructs（node_id 首段分组[scene API 实锚 {unit_id}::{part} 形态/pipe:: 排除]）/groupUnitWaters（{unit}::water_surface 分组——C2-visual T2 waters 入图[呈裁③ 复核推翻]）/unitBounds（placements∪dims 外接 AABB——cylinder 圆外接方保守幅）/thumbCamera（V4 iso 方向 (30,30,30) 分量同值×1.25 取景派生——Scene.tsx 同值双源）/sectionPlane（T1 纵向对角半剖面——面向相机剖近半露横断面，二轮勘正[水平剖观感=浅池 glm/ds 双证]）/thumbCacheKey（场景三组成缓存键）/solidGeometry（C2VD：封闭件几何规格 box/cylinder→args、plane→null 开面片——PoolBox 与 SectionCap 单源消费）/sectionCapQuad（帽盖面片中心=AABB 中心投影至剖切面+过幅边长）/hasCapWriters（封闭件在场判定——全 plane 件不挂帽盖） |
 | `lib/thumbnailStage.test.ts` | C2-thumb 实装；C2-visual/C2VD 扩 | 纯函数族（分组/AABB/取景/缓存键+waters 分组+sectionPlane 对角剖面派生+C2VD：solidGeometry 三分支/sectionCapQuad 中心在面+过幅+微构型钳/hasCapWriters 三态） |
 | `lib/placementSummary.ts` | C2-visual F9 实装（2026-09-11） | 摆放态汇总纯函数：countPlacedUnits（scene 单元组在场数——首段去重/pipe 排除）/designNodesCount（design.nodes 可布置窄化——内置 kind 节点排除）/siteStructuresCount（structures 键数）/placementSummary（横幅判据——structures 非空且 placed<total，兜底满场不挂） |

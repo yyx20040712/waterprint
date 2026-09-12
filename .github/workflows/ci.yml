@@ -167,6 +167,9 @@ jobs:
       - run: pnpm install
       - run: pnpm orval
       - run: pnpm build
+      # 批3 主体：模板水密 CI（spec §8 四步+registry/资产/预算门——
+      # registry.json ready 族对 public/assets/units 资产校验）
+      - run: pnpm check:templates
       - run: pnpm test
 
   benchmarks:

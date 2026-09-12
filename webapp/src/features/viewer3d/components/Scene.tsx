@@ -51,9 +51,12 @@ import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { semanticColor } from "../../../shared/ui/semanticColors";
+import { claimTemplateUnits } from "../assemble/templateAssembly";
+import { attachGlInfo, registerProbe } from "../assemble/probe";
 import {
   SceneProjectionError,
   projectScene,
+  type RenderNode,
   type RenderScene,
 } from "../lib/projectScene";
 import { placementSummary } from "../lib/placementSummary";
@@ -63,7 +66,17 @@ import { Internals } from "./Internals";
 import { PoolBox } from "./PoolBox";
 import { SiteBoundary } from "./SiteBoundary";
 import { SiteRoutes } from "./SiteRoutes";
+import { TemplateUnit } from "./TemplateUnit";
 import { WaterSurface } from "./WaterSurface";
+
+// 批3 主体：探针注册（模块级——viewer3d 路由 chunk 载入即挂载；幂等）
+registerProbe();
+
+/** 节点 id 首段（{unit_id}::{part} 形态——裸 id=null 非单元构型件）。 */
+function unitIdOf(nodeId: string): string | null {
+  const sep = nodeId.indexOf("::");
+  return sep > 0 ? nodeId.slice(0, sep) : null;
+}
 
 // L5b 漫游：three 包内 OrbitControls 经 extend 注册为 R3F 元素——
 // 零新 npm 依赖（预裁 6）；类型经 ThreeElements 声明合并进 R3F 命名空间
@@ -254,6 +267,13 @@ export function Scene({
     }
   }, [lightTarget, ground]);
 
+  // 批3 主体：模板族声明（assemble/claimTemplateUnits——取数节点=kind
+  // 匹配 dimSource；多实例池节点在 internals——S5 相邻双池前提）
+  const templateClaims = useMemo(
+    () => claimTemplateUnits(projection.scene),
+    [projection.scene],
+  );
+
   if (query.isError) {
     return (
       <div role="alert">
@@ -338,6 +358,10 @@ export function Scene({
         camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows
         gl={{ localClippingEnabled: clippingEnabled }}
+        onCreated={({ gl }) => {
+          // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）
+          attachGlInfo(gl);
+        }}
         style={{
           height: CANVAS_HEIGHT,
           minHeight: CANVAS_MIN_HEIGHT,
@@ -404,19 +428,59 @@ export function Scene({
             />
           </>
         )}
-        {scene.solids.map((node) => (
-          // C2VD V3（终裁 L2）：主视图描边——灰阶构筑物对蓝底/蓝网格
-          // 对比度收口（EdgesGeometry 棱线=语义色派生亮化；缩略图不挂）
-          <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
-        ))}
+        {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
+            （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
+            [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/
+            出域降级链归 TemplateUnit 内部——原语/盒体保持不白屏） */}
+        {scene.solids.map((node) => {
+          const unitId = unitIdOf(node.id);
+          const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
+          if (claim !== undefined && node === claim.dimNode) {
+            return (
+              <TemplateUnit
+                key={node.id}
+                entry={claim.entry}
+                unitId={unitId ?? node.id}
+                dimNode={node}
+                scene={scene}
+                clippingPlanes={clippingPlanes}
+              />
+            );
+          }
+          if (claim !== undefined) {
+            return null; // 单元整族承载——构型件由模板呈现
+          }
+          return (
+            // C2VD V3（终裁 L2）：主视图描边——灰阶构筑物对蓝底/蓝网格
+            // 对比度收口（EdgesGeometry 棱线=语义色派生亮化；缩略图不挂）
+            <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
+          );
+        })}
         {showWater &&
           scene.waters.map((node) => (
             <WaterSurface key={node.id} node={node} clippingPlanes={clippingPlanes} />
           ))}
         {showInternals &&
-          scene.internals.map((node) => (
-            <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />
-          ))}
+          scene.internals.map((node) => {
+            const unitId = unitIdOf(node.id);
+            const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
+            if (claim !== undefined && node === claim.dimNode) {
+              return (
+                <TemplateUnit
+                  key={node.id}
+                  entry={claim.entry}
+                  unitId={unitId ?? node.id}
+                  dimNode={node}
+                  scene={scene}
+                  clippingPlanes={clippingPlanes}
+                />
+              );
+            }
+            if (claim !== undefined) {
+              return null; // 整族承载（含未来 inst 计数承载节点——数据源不重复渲染）
+            }
+            return <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />;
+          })}
         <SiteRoutes routes={scene.routes} />
         {scene.boundaries.map((node) => (
           <SiteBoundary key={node.id} node={node} />

@@ -144,10 +144,14 @@ function Capture({
 export function ThumbnailStage({
   scene,
   onReady,
+  skip,
 }: {
   scene: RenderScene;
   /** 全批完成回调（含全部成功截取的单元——一次性整批交付）。 */
   onReady: (thumbs: ReadonlyMap<string, string>) => void;
+  /** 批3 主体（S9）：PNG 命中单元跳过实时渲染（PNG-first 候选集——
+   * 调用方 canvasPane 注入；缺省空集=旧行为全量实时）。 */
+  skip?: ReadonlySet<string>;
 }) {
   // 单元构型分组+AABB 预派生（渲染序稳定——Map 建立序=solids 遭遇序；
   // C2-visual T2：waters 并入分组与 AABB（取景含水面稳定））
@@ -156,6 +160,9 @@ export function ThumbnailStage({
     const waterGroups = groupUnitWaters(scene);
     const entries: Array<{ unitId: string; nodes: readonly RenderNode[]; waters: readonly RenderNode[]; bounds: { min: Vec3; max: Vec3 } }> = [];
     for (const [unitId, nodes] of groups) {
+      if (skip?.has(unitId)) {
+        continue; // S9：PNG 命中——实时后备队列跳过（省离屏渲染）
+      }
       const waters = waterGroups.get(unitId) ?? [];
       const bounds = unitBounds([...nodes, ...waters]);
       if (bounds !== null) {
@@ -163,7 +170,7 @@ export function ThumbnailStage({
       }
     }
     return entries;
-  }, [scene]);
+  }, [scene, skip]);
   const [index, setIndex] = useState(0);
   const thumbsRef = useRef(new Map<string, string>());
   const onReadyRef = useRef(onReady);

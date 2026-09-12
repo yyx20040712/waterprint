@@ -129,8 +129,12 @@ function placementsOf(origin: Vec3, count: number, dims: Record<string, number>)
     return [origin];
   }
   const cols = Math.ceil(Math.sqrt(count));
-  const stepX = dims["length"] ?? 0; // 步距=原型自身占位（缺键=0 重叠——数据面负责）
-  const stepZ = dims["width"] ?? 0;
+  // 步距=原型自身占位（缺键=0 重叠——数据面负责）；cylinder 族自身
+  // 占位=diameter（L5R-A01 真圆足迹同口径——批3 主体：模板多实例
+  // [S5] 相邻双池排布前提；box/plane 沿 length/width 键）
+  const diameter = dims["diameter"] ?? 0;
+  const stepX = dims["length"] ?? diameter;
+  const stepZ = dims["width"] ?? diameter;
   const placed: Vec3[] = [];
   for (let index = 0; index < count; index += 1) {
     const column = index % cols;

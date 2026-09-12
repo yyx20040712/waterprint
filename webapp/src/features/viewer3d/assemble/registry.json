@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "families": {
+    "municipal_erchunchi": {
+      "family": "clarifier_radial",
+      "prefix": "clarifier",
+      "glb": "/assets/units/clarifier_radial.glb",
+      "thumb": "/assets/units/clarifier_radial.png",
+      "dimSource": { "primitiveKind": "cylinder" },
+      "templateSize": { "L0": 40, "W0": 40, "H0": 4 },
+      "ratioDomain": [
+        {
+          "key": "clarifier_L_over_H",
+          "numerator": "L",
+          "denominator": "H",
+          "min": 4,
+          "max": 14
+        }
+      ],
+      "equipment": {
+        "center_well": {
+          "templateFeature": 4.8,
+          "actualFactor": 0.12,
+          "anchor": "pool_center_bottom"
+        },
+        "bridge": {
+          "templateFeature": 21.5,
+          "actualFactor": 0.5375,
+          "anchor": "aabb_min"
+        },
+        "bridge_drive": {
+          "templateFeature": 1.6,
+          "actualFactor": 0.04,
+          "anchor": "pool_center_bottom"
+        }
+      },
+      "instanceSpacing": { "rail_post": 1.5 },
+      "badges": { "poolCount": true, "maintenanceNA": false },
+      "status": "ready"
+    }
+  }
+}
