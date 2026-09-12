@@ -20,7 +20,15 @@
   补偿——世界位不变；扫描层锚点/inst 基座一律用**世界 AABB** 派生，
   勿读节点 translation 裸值（实测 post 节点 y=4.67≠基座 4.12）。
 - 新族接入：按 build_clarifier_radial.py 同构新增 build_<family>.py +
-  registry.json 加条目 + check_templates.mjs 自动覆盖。
+  registry.json 加条目（**built 日期必填**）+ check_templates.mjs 自动覆盖。
+- **视觉资产批五步门**（宪法 §0.1——2026-09-12 用户 Ruling「执行漂移
+  系统性修复」，与代码批「调研先行+多模型双审」同构）：
+  ①建模前参考调研（多模态读真实照片/图纸→部件清单入 STYLE-BASE.md
+  细节档位表）→②风格基准提案过 glm-look 三段流→③实现（pipeline 五步）
+  →④出图后三段流复审（判据=reviews/criteria-template.md；报告落
+  reviews/<family>-<日期>.md）→⑤用户视觉验收必发必答。
+  机器门=check_templates.mjs 断言 designReview≥built+报告在场
+  （缺=CI WARN 记债；过期/谎报=FAIL）。**审查类技能弃用须用户裁定**。
 
 ## 生成物与再生成
 

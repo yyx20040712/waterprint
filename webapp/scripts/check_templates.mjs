@@ -304,6 +304,30 @@ async function checkFamily(unitId, entry) {
   notes.push(
     `${unitId}: 水密四步过+AABB 对拍过（tris=${totalTris}, ε=${eps.toFixed(4)}m）`,
   );
+  // 宪法 §0.1 视觉资产批五步门·机器面：designReview≥built+三段流报告
+  // 在场（reviews/<family>-<date>.md）。缺声明=过渡 WARN 记债（制度
+  // 落地前资产）；审查过期/谎报日期=FAIL（数据病拒）。
+  const built = entry.built ?? null;
+  const reviewed = entry.designReview ?? null;
+  if (built === null) {
+    notes.push(
+      `${unitId}: [WARN] 未声明 built（五步门制度面——资产重建时补声明）`,
+    );
+  } else if (reviewed === null) {
+    notes.push(
+      `${unitId}: [WARN] 未声明 designReview（三段流补审待跑——过渡记债）`,
+    );
+  } else if (reviewed < built) {
+    fail(`${unitId}: designReview(${reviewed}) 早于 built(${built})——审查过期（五步门④）`);
+  } else {
+    const report = join(WEBAPP, "..", "tools/blender/reviews",
+      `${entry.family}-${reviewed}.md`);
+    if (!existsSync(report)) {
+      fail(`${unitId}: designReview=${reviewed} 但三段流报告缺位 ${report}`);
+    } else {
+      notes.push(`${unitId}: 设计审查在案（${reviewed}）`);
+    }
+  }
 }
 
 async function main() {

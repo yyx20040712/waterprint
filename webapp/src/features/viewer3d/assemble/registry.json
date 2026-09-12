@@ -36,7 +36,8 @@
       },
       "instanceSpacing": { "rail_post": 1.5 },
       "badges": { "poolCount": true, "maintenanceNA": false },
-      "status": "ready"
+      "status": "ready",
+      "built": "2026-09-12"
     }
   }
 }

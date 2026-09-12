@@ -43,6 +43,10 @@ export type FamilyEntry = {
   readonly instanceSpacing: Readonly<Record<string, number | null>>;
   readonly badges: { readonly poolCount: boolean; readonly maintenanceNA: boolean };
   readonly status: "ready" | "pending";
+  /** 五步门机器面（宪法 §0.1 视觉资产批）：资产构建日期+三段流审查
+   *  日期（check_templates.mjs 断言 designReview≥built+报告在场）。 */
+  readonly built?: string;
+  readonly designReview?: string;
 };
 
 type RegistryFile = {
