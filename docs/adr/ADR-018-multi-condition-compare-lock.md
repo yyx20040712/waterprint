@@ -55,6 +55,19 @@
     engineering-conventions GR-42（声明路线分轨）；FE 词典镜像门禁=
     scripts/check_dim_labels_mirror.py（门禁 13→14 与对账门禁 12→13
     同批）。
+  - **DimKey 扩成员批追记（2026-09-12——上段挂账收口，用户裁定
+    「HRT/泥龄应显示单位」插队）**：core quantity.py 扩 TIME_H（h）/
+    TIME_D（d）/FLOW_H（m3/h）三刻度档成员（同量纲异规范刻度——
+    CANONICAL_UNITS+UF-20 白名单+规格头注全链，锁定测试补笔
+    test_quantity.py 三件）；三写面翻案 8 键归位真刻度——AAO
+    t_o/t_n/t_total→TIME_H、theta_c→TIME_D（件 4 归一时的
+    DIMENSIONLESS 次害选择终结）+CASS theta_c→TIME_D/q_decant→
+    FLOW_H/t_phase_sum TIME→TIME_H（原 TIME 规范 s 对 h 值=错误
+    单位显示，批内语义修正——①②③三面一致故对账门禁不拦，系值
+    语义病非分叉病）；FE DIM_LABELS 镜像 +3 行（dimLabels 13 成员，
+    镜像门禁自动对账）。参数面 h/d 语义字段（t_p/t_cycle 族 ~25 个）
+    沿 dimensions 注册表「单位语义随 i18n 键走」既有口径不入本批
+    （R1a 登记+四行业横扫=独立挂账）。
 - 细化归属：core 枚举全工况（app.py 循环 + app_enumeration 抽件）→
   server compare 端点与 worker 载荷与 ViewState.compare 字段 → webapp
   对比 pane/工况校核面板/锁定横幅/rowKey 修复；测试三层新件 +

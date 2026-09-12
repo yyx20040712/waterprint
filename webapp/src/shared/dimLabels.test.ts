@@ -22,24 +22,36 @@ describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
     expect(dimLabel("DIMENSIONLESS")).toBe("无量纲");
   });
 
-  it("十量类全量在册（core DimKey 成员数对齐——防漏登记静默退化为原样）", () => {
-    const ten = [
+  it("十三量类全量在册（core DimKey 成员数对齐——防漏登记静默退化为原样）", () => {
+    const all = [
       "FLOW",
+      "FLOW_H",
       "CONCENTRATION",
       "LENGTH",
       "AREA",
       "VOLUME",
       "MASS",
       "TIME",
+      "TIME_H",
+      "TIME_D",
       "VELOCITY",
       "POWER",
       "DIMENSIONLESS",
     ];
-    for (const dim of ten) {
+    for (const dim of all) {
       const label = dimLabel(dim);
       expect(label).not.toBe(dim);
       expect(label.length).toBeGreaterThan(0);
     }
+  });
+
+  it("扩档三成员（DimKey 扩成员批）：HRT h/泥龄 d/滗水 m³/h 单位符号", () => {
+    expect(dimLabel("TIME_H")).toBe("时间 h");
+    expect(dimLabel("TIME_D")).toBe("时间 d");
+    expect(dimLabel("FLOW_H")).toBe("流量 m³/h");
+    expect(dimUnit("TIME_H")).toBe("h");
+    expect(dimUnit("TIME_D")).toBe("d");
+    expect(dimUnit("FLOW_H")).toBe("m³/h");
   });
 
   it("未知枚举 → 原样返回（诚实呈现不猜语义）", () => {

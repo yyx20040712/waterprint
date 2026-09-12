@@ -133,6 +133,13 @@
 > 勘正，App Sider 挂点拆除）+out_dims.dim 三写面对账收口（7 键归一
 > ①公式表镜像；量纲真源单归 FormulaSpec.output_dim——GR-42 准则成文
 > +对账/镜像双门禁 12→14）；无头验收探针 22/22。
+> **DimKey 扩成员批已收官（同日批尾续，用户裁定「HRT/泥龄应显示
+> 单位」插队）**：core quantity.py 扩 TIME_H（h）/TIME_D（d）/FLOW_H
+> （m3/h）三刻度档成员（CANONICAL_UNITS+UF-20 白名单+锁定测试补笔）
+> +三写面翻案 8 键归位真刻度（AAO t_o/t_n/t_total→TIME_H、theta_c→
+> TIME_D；CASS t_phase_sum TIME→TIME_H[错误单位显示语义修正]/
+> q_decant→FLOW_H/theta_c→TIME_D）+FE dimLabels 镜像 13 成员——方案
+> 表/对比矩阵 HRT、泥龄、滗水能力需求列显示 h/d/m³/h 单位。
 > **V2 方案表输出列中文化已收官（同日批尾，用户批注②兑现）**：
 > UnitManifest +out_dims 输出量声明面（OutDimSpec {field_id,dim,
 > label_zh}——R1a 登记守卫不适用[派生量非输入面]，370 符号 132 跨单元
@@ -144,9 +151,10 @@
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：
-> 门禁 12 项（含 GR-21 弃用到期门禁 TD1+lint-imports 本地门禁 GOV2）
+> 门禁 14 项（含 GR-21 弃用到期门禁 TD1+lint-imports 本地门禁 GOV2+
+> out_dims 对账/dimLabels 镜像双门禁）
 > /GR-01~GR-42 治理规则/
-> test-lock 271 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
+> test-lock 274 键只读锁/快照四哈希锚。里程碑：M0 骨架→M1 内核→M2
 > 四块→M3 三线战役→M4 工业化→M5 图纸面→B2/FD→C1 主题骨架→C2（进行中）。
 > 数据面键计数基准（ENG3 2026-08-28 探针实测：load_coefficients/
 > load_prices/templates manifest 装载正门）：coefficients 1.1.0（577 键）

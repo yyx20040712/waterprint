@@ -51,6 +51,12 @@ _L = DimKey.LENGTH
 _AREA = DimKey.AREA
 _M = DimKey.MASS
 _T = DimKey.TIME
+# DimKey 扩成员批（2026-09-12 用户裁定「HRT/泥龄应显示单位」）：时段
+# 合计 h/泥龄 d/滗水流量 m3/h 刻度档——CA-F13 原声明 TIME（规范 s）
+# 对 h 值=错误单位显示，本批一并翻案归位。
+_TH = DimKey.TIME_H
+_TD = DimKey.TIME_D
+_FH = DimKey.FLOW_H
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
@@ -162,7 +168,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "t_settle": (_D, "沉淀时段 h（参数 t_settle）"),
             "t_draw": (_D, "滗水时段 h（参数 t_draw）"),
         },
-        _T,
+        _TH,
         "GB 50014-2021 §7.6（序批式时段分配）；"
         "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/cass.md 起草表，待追认）",
     ),
@@ -170,14 +176,14 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "CA-F14",
         "q_decant = v_draw / t_draw",
         {"v_draw": (_VOL, "单池单周期滗水容积 m3"), "t_draw": (_D, "滗水时段 h（参数 t_draw）")},
-        _D,
+        _FH,
         _HB,
     ),
     FormulaSpec(
         "CA-F15",
         "n_decant_raw = q_decant / q_per_decant",
         {
-            "q_decant": (_D, "滗水能力需求 m3/h"),
+            "q_decant": (_FH, "滗水能力需求 m3/h"),
             "q_per_decant": (_D, "单台滗水器滗水量 m3/h（factor.cass.decant.q_per_unit）"),
         },
         _D,
@@ -214,7 +220,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "x_mlss": (_C, "设计 MLSS mg/L"),
             "s_y": (_M, "剩余污泥干固体 kg/d"),
         },
-        _D,
+        _TD,
         "《给水排水设计手册（第 5 册 城镇排水）》CASS 泥龄 15~25d 常用带"
         "（主反应区口径；docs/norms/cass.md 起草表 2026-08-26，待追认）",
     ),
@@ -402,10 +408,12 @@ manifest = load_manifest(
         # 中文名采公式符号表 meaning 真源（CA-F1~F27 输入槽 meaning 与
         # formula 串面）；枚举方案表 dim 列族中文+对比矩阵指标面消费。
         # 工况面 UX 反馈批件 4（2026-09-12 三写面对账归一）：dim 值=
-        # ①公式表 output_dim/②projection dim_of 镜像（真源单归——2 键
-        # 翻案：q_decant VOLUME→DIMENSIONLESS[CA-F14 m³/h 无贴切档——
-        # DimKey 扩成员候选挂账]、theta_c TIME→DIMENSIONLESS[泥龄 d 同
-        # 理]；对账门禁=scripts/check_out_dims_consistency.py）。
+        # ①公式表 output_dim/②projection dim_of 镜像（真源单归）；对账
+        # 门禁=scripts/check_out_dims_consistency.py。
+        # DimKey 扩成员批（2026-09-12 用户裁定「HRT/泥龄应显示单位」）：
+        # 3 键翻案归位真刻度——t_phase_sum TIME→TIME_H（原 TIME 规范 s
+        # 对 h 值=错误单位显示，本批语义修正）、q_decant DIMENSIONLESS→
+        # FLOW_H（m3/h 档）、theta_c DIMENSIONLESS→TIME_D（泥龄 d 档）。
         "out_dims": [
             {"field_id": "n_cycle", "dim": "DIMENSIONLESS", "label_zh": "每日周期数"},
             {"field_id": "v_draw", "dim": "VOLUME", "label_zh": "单池单周期滗水容积"},
@@ -419,13 +427,13 @@ manifest = load_manifest(
             {"field_id": "h_draw", "dim": "LENGTH", "label_zh": "滗水深度"},
             {"field_id": "v_pool", "dim": "VOLUME", "label_zh": "单池有效容积"},
             {"field_id": "v_plant", "dim": "VOLUME", "label_zh": "全厂池容"},
-            {"field_id": "t_phase_sum", "dim": "TIME", "label_zh": "周期时段合计"},
-            {"field_id": "q_decant", "dim": "DIMENSIONLESS", "label_zh": "滗水能力需求"},
+            {"field_id": "t_phase_sum", "dim": "TIME_H", "label_zh": "周期时段合计"},
+            {"field_id": "q_decant", "dim": "FLOW_H", "label_zh": "滗水能力需求"},
             {"field_id": "n_decant_raw", "dim": "DIMENSIONLESS", "label_zh": "滗水器台数（计算）"},
             {"field_id": "n_decant", "dim": "DIMENSIONLESS", "label_zh": "滗水器台数"},
             {"field_id": "s_y", "dim": "MASS", "label_zh": "剩余污泥干固体量"},
             {"field_id": "q_wet", "dim": "VOLUME", "label_zh": "湿污泥量"},
-            {"field_id": "theta_c", "dim": "DIMENSIONLESS", "label_zh": "污泥龄"},
+            {"field_id": "theta_c", "dim": "TIME_D", "label_zh": "污泥龄"},
             {"field_id": "x_vss", "dim": "CONCENTRATION", "label_zh": "MLVSS 浓度"},
             {"field_id": "o2_carbon", "dim": "MASS", "label_zh": "碳化需氧量"},
             {"field_id": "o2_nit", "dim": "MASS", "label_zh": "硝化需氧量"},

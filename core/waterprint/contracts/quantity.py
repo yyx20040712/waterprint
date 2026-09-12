@@ -10,11 +10,15 @@
 #   + tests/contracts/properties_quantity.py；白名单锁定测试挂人类解锁批 U-C2）
 #
 # 【公开接口】
-#   class DimKey(StrEnum)        量类枚举（10 成员，值=成员名 ASCII；
+#   class DimKey(StrEnum)        量类枚举（13 成员，值=成员名 ASCII；
 #                                签名基型 (str, Enum) 按 ruff UP042 升格为
 #                                其 3.12 规范形态 StrEnum，语义等价）：
-#                                FLOW/CONCENTRATION/LENGTH/AREA/VOLUME/MASS/
-#                                TIME/VELOCITY/POWER/DIMENSIONLESS
+#                                FLOW/FLOW_H/CONCENTRATION/LENGTH/AREA/VOLUME/
+#                                MASS/TIME/TIME_H/TIME_D/VELOCITY/POWER/
+#                                DIMENSIONLESS（DimKey 扩成员批 2026-09-12
+#                                用户裁定「HRT/泥龄应显示单位」：+TIME_H h/
+#                                TIME_D d/FLOW_H m3/h——同量纲异规范刻度档，
+#                                声明显示面无贴切档的次害选择终结）
 #   class Quantity               (magnitude: float, unit: str) 不可变哑值对象：
 #                                构造不校验单位、不换算（校验/换算只发生在 parse）
 #   class InvalidUnitError(Exception)
@@ -35,18 +39,26 @@
 #   接受面；pint 永不接触未审字符串。增补 = 规格变更，走显式 commit
 #   + 人类解锁批补锁定测试，不允许实现期顺手扩）
 #     FLOW          {"m3/s", "m3/d"}
+#     FLOW_H        {"m3/h"}         （DimKey 扩成员批 2026-09-12）
 #     CONCENTRATION {"mg/L", "g/m3"}
 #     LENGTH        {"m", "mm"}
 #     AREA          {"m2"}            VOLUME {"m3"}       MASS {"kg"}
-#     TIME          {"s"}             VELOCITY {"m/s"}    POWER {"W"}
+#     TIME          {"s"}             TIME_H {"h"}        TIME_D {"d"}
+#     VELOCITY      {"m/s"}           POWER {"W"}
 #     DIMENSIONLESS {""}
 #   规范串本身天然合法（均为接受集成员）。
+#   DimKey 扩成员批（2026-09-12 用户裁定）注记：TIME_H/TIME_D/FLOW_H 为
+#   同量纲异规范刻度档（h/d/m3/h——工程显示口径；pint 量纲校验与 TIME/
+#   FLOW 同维，刻度=规范单位表口径）。pint 原生别名 h=hour/d=day（实测
+#   0.25.3），无 ureg.define 需求。
 #
 # 【行为规格】
-#   R1 规范单位表（锁定三项 + 评审补充七项，与 registry/dimensions.py 一致）：
-#      FLOW→"m3/s"，CONCENTRATION→"mg/L"，LENGTH→"m"（重写计划 §12.1 明示三项）；
-#      AREA→"m2"，VOLUME→"m3"，MASS→"kg"，TIME→"s"，VELOCITY→"m/s"，
-#      POWER→"W"（SI 口径，kW 属显示层），DIMENSIONLESS→""。
+#   R1 规范单位表（锁定三项 + 评审补充七项，与 registry/dimensions.py 一致；
+#      DimKey 扩成员批 2026-09-12 +3 刻度档）：
+#      FLOW→"m3/s"，FLOW_H→"m3/h"，CONCENTRATION→"mg/L"，LENGTH→"m"（重写计划
+#      §12.1 明示三项）；AREA→"m2"，VOLUME→"m3"，MASS→"kg"，TIME→"s"，
+#      TIME_H→"h"，TIME_D→"d"，VELOCITY→"m/s"，POWER→"W"（SI 口径，kW 属
+#      显示层），DIMENSIONLESS→""。
 #   R2 换算必须经 pint 完成，禁止手写换算系数；1 m3/d == 1/86400 m3/s、
 #      1 mg/L == 1 g/m3 等换算正确性由性质测试覆盖（往返/结合律）。
 #      换算因子按 (unit, canonical) 维度 lru_cache——parse 只在边界，
@@ -99,15 +111,26 @@ import pint
 
 
 class DimKey(StrEnum):
-    """量类枚举：规范单位表的键，全库单位语义的维度锚点。"""
+    """量类枚举：规范单位表的键，全库单位语义的维度锚点。
+
+    DimKey 扩成员批（2026-09-12 用户裁定「HRT/泥龄应显示单位」）：
+    TIME_H/TIME_D/FLOW_H 为同量纲异规范刻度档——HRT（h）/泥龄（d）/
+    滗水流量（m3/h）等工程显示口径量原先无贴切档（TIME 规范 s/FLOW
+    规范 m3/s 会呈现错误单位），声明面退 DIMENSIONLESS=「无单位显示」
+    次害选择；扩档后三写面（公式表 output_dim/projection dim_of/
+    out_dims）归位真刻度。
+    """
 
     FLOW = "FLOW"
+    FLOW_H = "FLOW_H"
     CONCENTRATION = "CONCENTRATION"
     LENGTH = "LENGTH"
     AREA = "AREA"
     VOLUME = "VOLUME"
     MASS = "MASS"
     TIME = "TIME"
+    TIME_H = "TIME_H"
+    TIME_D = "TIME_D"
     VELOCITY = "VELOCITY"
     POWER = "POWER"
     DIMENSIONLESS = "DIMENSIONLESS"
@@ -123,12 +146,15 @@ class InvalidQuantityError(Exception):
 
 CANONICAL_UNITS: dict[DimKey, str] = {
     DimKey.FLOW: "m3/s",
+    DimKey.FLOW_H: "m3/h",
     DimKey.CONCENTRATION: "mg/L",
     DimKey.LENGTH: "m",
     DimKey.AREA: "m2",
     DimKey.VOLUME: "m3",
     DimKey.MASS: "kg",
     DimKey.TIME: "s",
+    DimKey.TIME_H: "h",
+    DimKey.TIME_D: "d",
     DimKey.VELOCITY: "m/s",
     DimKey.POWER: "W",
     DimKey.DIMENSIONLESS: "",
@@ -136,12 +162,15 @@ CANONICAL_UNITS: dict[DimKey, str] = {
 
 ACCEPTED_INPUT_UNITS: dict[DimKey, frozenset[str]] = {
     DimKey.FLOW: frozenset({"m3/s", "m3/d"}),
+    DimKey.FLOW_H: frozenset({"m3/h"}),
     DimKey.CONCENTRATION: frozenset({"mg/L", "g/m3"}),
     DimKey.LENGTH: frozenset({"m", "mm"}),
     DimKey.AREA: frozenset({"m2"}),
     DimKey.VOLUME: frozenset({"m3"}),
     DimKey.MASS: frozenset({"kg"}),
     DimKey.TIME: frozenset({"s"}),
+    DimKey.TIME_H: frozenset({"h"}),
+    DimKey.TIME_D: frozenset({"d"}),
     DimKey.VELOCITY: frozenset({"m/s"}),
     DimKey.POWER: frozenset({"W"}),
     DimKey.DIMENSIONLESS: frozenset({""}),

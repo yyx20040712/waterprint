@@ -62,6 +62,11 @@ _M = DimKey.MASS
 _T = DimKey.TIME
 _VEL = DimKey.VELOCITY
 _C = DimKey.CONCENTRATION
+# DimKey 扩成员批（2026-09-12 用户裁定「HRT/泥龄应显示单位」）：HRT h/
+# 泥龄 d/滗水流量 m3/h 刻度档——AAO/CASS dim_of 7 键随三写面翻案。
+_TH = DimKey.TIME_H
+_TD = DimKey.TIME_D
+_FH = DimKey.FLOW_H
 
 # ── 市政线 13 单元冻结取数表（2026-08-26 实跑提取 249 键逐键归位；AI 起草
 #    待追认。cugeshan/xigeshan 同构不合并——逐行各自声明，D1 明文）────
@@ -161,7 +166,7 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "h2": _L, "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
                 "o2_carbon": _M, "o2_denit": _M, "o2_nit": _M, "o2_total": _M,
                 "q_internal": _D, "q_return": _D, "q_wet": _V, "s_y": _M,
-                "t_n": _D, "t_o": _D, "t_total": _D, "theta_c": _D,
+                "t_n": _TH, "t_o": _TH, "t_total": _TH, "theta_c": _TD,
                 "v_anaerobic": _V, "v_anoxic": _V, "v_o": _V,
                 "v_o_series": _V, "v_pool": _V, "v_total": _V, "x_vss": _C},
     ),
@@ -185,8 +190,8 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
                 "n_cycle": _D, "n_decant": _D, "n_decant_raw": _D,
                 "ns_act": _D, "o2_carbon": _M, "o2_denit": _M,
-                "o2_nit": _M, "o2_total": _M, "q_decant": _D, "q_wet": _V,
-                "s_y": _M, "t_phase_sum": _T, "theta_c": _D, "v_bio": _V,
+                "o2_nit": _M, "o2_total": _M, "q_decant": _FH, "q_wet": _V,
+                "s_y": _M, "t_phase_sum": _TH, "theta_c": _TD, "v_bio": _V,
                 "v_concrete": _V, "v_draw": _V, "v_load": _V,
                 "v_plant": _V, "v_pool": _V, "v_selector": _V,
                 "x_vss": _C},
