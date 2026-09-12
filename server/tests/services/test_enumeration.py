@@ -141,19 +141,22 @@ async def test_result_carries_unit_id_and_design_hash_wiring(service_ctx) -> Non
 @pytest.mark.anyio
 async def test_result_carries_dim_fields_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
     """V2 GOV5 批尾：枚举 result 载荷带 dim_fields（计算派生输出量列族
-    [{key,dim,label_zh}]——manifest.out_dims 声明面真源）。CASS 未声明
-    out_dims=空数组（诚实缺省非缺键）；AAO 声明 21 条中文名。"""
+    [{key,dim,label_zh}]——manifest.out_dims 声明面真源）。ADR-018 批
+    顺带（2026-09-12）：CASS 补声明 31 条 out_dims——本断言面随真源
+    翻案（原「未声明全 None」→「声明面中文名透传」）。"""
     project_id = await _cass_project(service_ctx)
     handle = await submit_enumeration(service_ctx, project_id, ["municipal_cass"])
     await _await_terminal(service_ctx, handle.task_id)
     status = service_ctx.manager.status(handle.task_id)
     assert status.state == "done"
     assert status.result is not None
-    # CASS 未声明 out_dims：全部 dim 列在场但 label_zh=None（诚实缺省
-    # ——降级 key 兜底归 webapp；非缺键）
+    # CASS 已声明 out_dims（31 条——ADR-018 批顺带）：dim 列族中文名
+    # 透传真源（v_plant=全厂池容锚）；未声明键才降级 None（兜底归 webapp）
     dim_fields = status.result["dim_fields"]
     assert isinstance(dim_fields, list) and dim_fields, "dim 列族非空"
-    assert all(item["label_zh"] is None for item in dim_fields)
+    by_key = {item["key"]: item for item in dim_fields}
+    assert by_key["v_plant"]["label_zh"] == "全厂池容"
+    assert by_key["theta_c"]["label_zh"] == "污泥龄"
     assert all(item["key"] for item in dim_fields)
     # grid 轴列不重复入 dim_fields（两族互斥）
     grid_keys = {item["key"] for item in status.result["grid_fields"]}

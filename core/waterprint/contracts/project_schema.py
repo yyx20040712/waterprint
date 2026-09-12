@@ -190,6 +190,10 @@ class ViewState(BaseModel):
     camera: dict[str, Any] = Field(default_factory=dict)
     windows: dict[str, Any] = Field(default_factory=dict)
     timestamp: str = ""
+    # 多工况对比锁定（ADR-018 D3）：{"pinned": [condition_key, ...],
+    # "pinned_hash": 锁定时刻结果件 design_hash}——视图偏好非设计事实，
+    # 不参与哈希（R1）；FE 比对结果件 repro.design_hash 判「基准已过期」。
+    compare: dict[str, Any] = Field(default_factory=dict)
     # 项目显示名（P0-1 建项入口 2026-09-11）：view 态语义=用户偏好展示层
     # （R1 不参与 content_hash——改名不算 design 变更不触发重算）；缺省 ""
     # =未命名（历史项目零迁移装载，列表显示回退 id）；非空约束=去首尾

@@ -21,6 +21,9 @@
 #                                      2026-09-09——27→28 破面已授权
 #                                      Ruling 序列批复+常设指令；≤2500 点
 #                                      ~1s 级同步直返不进任务队列）
+#   GET  /api/calc/compare/{project_id} 多工况对比矩阵（ADR-018 D5
+#                                      2026-09-12——指标×工况聚合+stale+
+#                                      design_hash 回显；端点集 32→33）
 #
 # 【行为规格】
 #   R1 幂等（§15 工程细节 3）：提交键 = (design_hash, condition/
@@ -63,6 +66,7 @@ from waterprint_server.services import calculation as calc_service
 from waterprint_server.services import design_map as design_map_service
 from waterprint_server.services import enumeration as enum_service
 from waterprint_server.services.calculation import ApplyOutcome, TaskStatus
+from waterprint_server.services.compare import CompareReportResponse, build_compare_for_project
 from waterprint_server.services.design_map import DesignMapResponse
 from waterprint_server.services.enumeration import SolutionPage
 from waterprint_server.services.trust import TrustReportResponse, build_trust_for_project
@@ -175,6 +179,28 @@ async def get_trust_report(project_id: str, request: Request) -> TrustReportResp
     """结果可信度报告（最近完成结果集纯投影——ADR-012 D8：诊断/警告聚合
     /新鲜度；diag 件缺失=diagnostics_available=False 降级呈现 R2）。"""
     return build_trust_for_project(_ctx(request), project_id)
+
+
+# PL-03 契约枚举（ADR-018 2026-09-12）：compare 端点实际 404（未知项目/
+# 无结果集——行为面 test_compare.py 404 家族）——responses 声明使 openapi
+# 与行为一致（trust 同制）。
+_COMPARE_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorResponse,
+        "description": "项目不存在或无对比报告的结果集",
+    },
+}
+
+
+@router.get(
+    "/compare/{project_id}",
+    response_model=CompareReportResponse,
+    responses=_COMPARE_RESPONSES,
+)
+async def get_compare_report(project_id: str, request: Request) -> CompareReportResponse:
+    """多工况对比矩阵（最近完成结果集纯投影——ADR-018 D5：指标×工况聚合
+    +警告计数+stale+design_hash 回显[FE 锁定基准比对真源 D3]）。"""
+    return build_compare_for_project(_ctx(request), project_id)
 
 
 @router.post("/tasks/{task_id}/cancel", response_model=CancelResponse)

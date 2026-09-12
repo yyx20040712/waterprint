@@ -84,6 +84,7 @@ from waterprint_server.routers import (
 )
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.calculation import InvalidSolutionRefError
+from waterprint_server.services.compare import CompareSourceNotFoundError
 from waterprint_server.services.cost import (
     CostSourceNotFoundError,
     InvalidCostRequestError,
@@ -148,6 +149,8 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (CostSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     # P2 次批（2026-09-12）：可信度报告源不可得→404（ADR-012 D8）。
     (TrustSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    # P2 第三批（2026-09-12）：多工况对比源不可得→404（ADR-018 D5）。
+    (CompareSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),
@@ -205,7 +208,11 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # P2 项目生命周期治理批——openapi 28→31 破面[常设指令推荐序沿册：
 # op-chain-fix-plan §五+briefs/task-p2-lifecycle-plan.md]）
 # +1=P2 次批 trust（GET /api/calc/trust/{project_id}——ADR-012 D8，2026-09-12）
-_EXPECTED_ENDPOINTS: Final[int] = 10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+# +1=P2 第三批 compare（GET /api/calc/compare/{project_id}——ADR-018 D5，
+# 2026-09-12：多工况对比矩阵，32→33 破面[常设指令推荐序沿册]）
+_EXPECTED_ENDPOINTS: Final[int] = (
+    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+)
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
 _DEV_ORIGINS: Final[tuple[str, ...]] = (

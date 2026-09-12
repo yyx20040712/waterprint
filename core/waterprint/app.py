@@ -149,6 +149,7 @@ from waterprint.app_enumeration import (
     EnumerationOptions,
     EnumerationOutcome,
     UpstreamSource,
+    enumerate_across_conditions,
     export_artifact,
     upstream_context,
 )
@@ -381,19 +382,21 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
         [spec for spec in unit.manifest.params if spec.grid is not None],
         overrides=env.assumptions,
     )
-    condition = next(iter(conditions.iter_all()), None)  # M-5 R1：空集显式领域异常
-    if condition is None:
+    # ADR-018 D2 枚举全工况化：空集守卫语义从「取首档」转为「迭代前提」——
+    # 正门 build_condition_set 恒非空，空集=直构程序缺陷（GR-11 收口，M-5）。
+    if not conditions.baseline and not conditions.sensitivity:
         raise InvalidAssemblyError(
-            "conditions 为空集（枚举工况取选定档前提失败——正门 build_condition_set "
+            "conditions 为空集（枚举逐工况迭代前提失败——正门 build_condition_set "
             "恒非空，空集=直构程序缺陷；GR-11 收口，M-5）"
         )
     plant = execute_graph(
         project.design, assembled.units, conditions, _completed_env(env, project.design)
     )
-    ctx = upstream_context(
+    # 逐工况上游快照重建→枚举→concat（行序=工况序×网格序，condition_key
+    # 列逐帧自标）——app_enumeration 伴生件承载（app.py 行数预算正解）。
+    df = enumerate_across_conditions(
         UpstreamSource(assembled.units, assembled.edges, project.design, plant),
-        unit_id, condition, env)
-    df = enumerate_solutions(grid, ctx, unit, env)
+        unit_id, conditions, grid, env)
     chosen = options if options is not None else EnumerationOptions()
     filtered = apply_constraints(df, chosen.constraints)
     ranked = rank(filtered, df, RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
@@ -402,7 +405,9 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
         rows=ranked.rows, total_feasible=ranked.total_feasible, truncated=ranked.truncated,
         grid=grid,
         diagnosis=None if filtered.feasible else diagnose_infeasibility(
-            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}, grid=grid))
+            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}, grid=grid),
+        condition_fields=tuple(
+            spec.label_zh or spec.field_id for spec in unit.manifest.out_dims))
 
 
 def run_design_map(

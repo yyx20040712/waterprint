@@ -197,6 +197,135 @@
         "title": "ClosureLineModel",
         "type": "object"
       },
+      "CompareMetricModel": {
+        "description": "矩阵指标行：单元×字段 → 各工况取值（NaN 无值键不出——R2）。",
+        "properties": {
+          "dim": {
+            "title": "Dim",
+            "type": "string"
+          },
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "label_zh": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Zh"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "unit_id",
+          "field_id",
+          "label_zh",
+          "dim",
+          "values"
+        ],
+        "title": "CompareMetricModel",
+        "type": "object"
+      },
+      "CompareReportResponse": {
+        "description": "多工况对比报告（全工况聚合——R2/R3/R4）。",
+        "properties": {
+          "condition_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Condition Keys",
+            "type": "array"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/CompareMetricModel"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/CompareWarningModel"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "condition_keys",
+          "metrics",
+          "warnings"
+        ],
+        "title": "CompareReportResponse",
+        "type": "object"
+      },
+      "CompareWarningModel": {
+        "description": "警告计数行：单元 → 各工况警告总数（零计数单元不出——R3）。",
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "counts"
+        ],
+        "title": "CompareWarningModel",
+        "type": "object"
+      },
       "ConstraintCatalog": {
         "description": "约束目录响应体（D6 不分页整发——kb 声明序）。",
         "properties": {
@@ -2466,6 +2595,64 @@
         "summary": "List Assumptions",
         "tags": [
           "units"
+        ]
+      }
+    },
+    "/api/calc/compare/{project_id}": {
+      "get": {
+        "description": "多工况对比矩阵（最近完成结果集纯投影——ADR-018 D5：指标×工况聚合\n+警告计数+stale+design_hash 回显[FE 锁定基准比对真源 D3]）。",
+        "operationId": "get_compare_report_api_calc_compare__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在或无对比报告的结果集"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Compare Report",
+        "tags": [
+          "calc"
         ]
       }
     },

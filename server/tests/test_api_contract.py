@@ -33,12 +33,14 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 29 条路径/32 操作；FE1 +scene1；
+# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 30 条路径/33 操作；FE1 +scene1；
 # META1 +units2；FE7 +elevation1；FE8 +cost1；CP1 +constraints1；
 # L4b +site/spacing1；SC1 +exports/ifc1——BIM 模型导出，openapi 25→26
 # 破面已授权；EXPD +exports/{file_name}1——产物下载端点，openapi 26→27
 # 破面已授权 [Ruling 2026-09-05 ②]；P2 生命周期治理批 +copy/rename/
-# delete3——openapi 28→31 破面[常设指令推荐序沿册 2026-09-12]）。
+# delete3——openapi 28→31 破面[常设指令推荐序沿册 2026-09-12]；ADR-018
+# +calc/compare1——多工况对比矩阵，32→33 破面[常设指令推荐序沿册
+# 2026-09-12]）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put", "delete"},
@@ -53,6 +55,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/calc/solutions/apply": {"post"},
     "/api/calc/design-map": {"post"},  # FD PD6（2026-09-09）：可行域同步求值
     "/api/calc/trust/{project_id}": {"get"},  # P2 次批（2026-09-12）：可信度报告 ADR-012 D8
+    "/api/calc/compare/{project_id}": {"get"},  # P2 第三批（2026-09-12）：多工况对比矩阵 ADR-018 D5
     "/api/exports": {"get"},
     "/api/exports/calcbook": {"post"},
     "/api/exports/audit": {"post"},
@@ -81,7 +84,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 32  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc8[P2 次批 +trust 2026-09-12——ADR-012 D8]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
+    assert sum(len(methods) for methods in observed.values()) == 33  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
 
 
 @pytest.mark.anyio
@@ -105,9 +108,13 @@ async def test_openapi_schema_no_any_leak(client) -> None:  # type: ignore[no-un
 # PL-03 契约枚举（GOV5 治理余账批 2026-09-12）：声明面锚——端点实际
 # 404/409（_EXCEPTION_STATUS 映射）须在 openapi responses 有对应声明
 # （行为与文档一致）。首批点名面=lifecycle 三端点（n+41 挂账）+trust
-# （n+42 增量——404 行为已测 test_trust.py）；其余端点统一枚举挂账。
+# （n+42 增量——404 行为已测 test_trust.py）+compare（ADR-018 增量——
+# 404 行为已测 test_compare.py）；其余端点统一枚举挂账。
 _PL03_DECLARED: dict[str, dict[str, set[str]]] = {
     "/api/calc/trust/{project_id}": {
+        "get": {"200", "404", "422"},
+    },
+    "/api/calc/compare/{project_id}": {
         "get": {"200", "404", "422"},
     },
     "/api/projects/{project_id}/copy": {"post": {"200", "404", "409", "422"}},

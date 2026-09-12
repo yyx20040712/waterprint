@@ -99,7 +99,11 @@ def test_grid_miss_rejected_with_message() -> None:
 
 
 def test_run_enumeration_cass_fifteen_rows() -> None:
-    """D2 端到端：CASS 全 grid 15 档——行数/列名/行序/无截断（探针⑤同源）。"""
+    """D2 端到端：CASS 全 grid 15 档 × 双工况=30 行（ADR-018 D2 全工况化）。
+
+    行数/列名/condition_key 双档/无截断（探针⑤同源）。原「15 行单工况」
+    语义 2026-09-12 ADR-018 D2 翻案：枚举逐工况产出，行数=grid×(2+k)。
+    """
     from waterprint.contracts.condition import build_condition_set
 
     outcome = run_enumeration(  # type: ignore[misc]
@@ -107,27 +111,37 @@ def test_run_enumeration_cass_fifteen_rows() -> None:
     )
     assert outcome.grid.total == 15
     assert outcome.grid.fields == ("n_pool", "t_cycle")  # field_id 字典序
-    assert len(outcome.rows) == 15  # limit 默认取全部（core 侧口径）
-    assert outcome.total_feasible == 15  # 无约束=全可行
+    assert len(outcome.rows) == 30  # 15 档 × baseline 双工况（ADR-018 D2）
+    assert outcome.total_feasible == 30  # 无约束=全可行
     assert outcome.truncated is False
     assert outcome.diagnosis is None
     columns = list(outcome.rows.columns)
     assert columns[:2] == ["n_pool", "t_cycle"]  # R4：参数列居首
     for extra in ("margin_min", "nan_flag", "condition_key", "v_plant", "a_pool"):
         assert extra in columns  # 预备/标注/工况列 + dims 结果列
-    assert outcome.rows["condition_key"].eq("design").all()  # R3 工况标注
+    # R3 工况标注双档各 15 行（ADR-018 D2——行序=工况序×网格序）
+    assert outcome.rows["condition_key"].value_counts().to_dict() == {
+        "design": 15,
+        "avg": 15,
+    }
     # R5 行级域拒：t_cycle∈{6,8} 与默认时段 2/1/1 破坏 CA-F13 不变性
-    # → 10 行域拒标注（dims 全 NaN），5 行实算（t_cycle=4）
-    assert int(outcome.rows["nan_flag"].sum()) == 10
-    assert int(outcome.rows["v_plant"].notna().sum()) == 5
-    # 行序=grid 序（margin_min 全 NaN → 稳定排序保持原序；n_pool 慢变）
-    assert outcome.rows["n_pool"].tolist() == sorted(
-        outcome.rows["n_pool"].tolist(), key=float
+    # → 每工况 10 行域拒（dims 全 NaN）、5 行实算（t_cycle=4）×双工况
+    assert int(outcome.rows["nan_flag"].sum()) == 20
+    assert int(outcome.rows["v_plant"].notna().sum()) == 10
+    # 行序=工况序×网格序（margin_min 全 NaN → 稳定排序保持原序；design
+    # 工况块先于 avg 块，块内 n_pool 慢变）
+    design_block = outcome.rows[outcome.rows["condition_key"] == "design"]
+    assert design_block["n_pool"].tolist() == sorted(
+        design_block["n_pool"].tolist(), key=float
     )
 
 
 def test_run_enumeration_sort_and_truncation() -> None:
-    """D2 排序/截断：sort_by=v_plant 升序 + limit=5 → 截断显式标注。"""
+    """D2 排序/截断：sort_by=v_plant 升序 + limit=5 → 截断显式标注（跨工况全局序）。
+
+    ADR-018 D5：margin_min/字段键跨工况全局排序（页内混工况）——
+    total_feasible=15 档×双工况=30（2026-09-12 ADR-018 D2 翻案）。
+    """
     from waterprint.contracts.condition import build_condition_set
 
     options = EnumerationOptions(sort_by="v_plant", ascending=True, limit=5)  # type: ignore[misc]
@@ -135,7 +149,7 @@ def test_run_enumeration_sort_and_truncation() -> None:
         _project({}), "municipal_cass", build_condition_set([]), _env(), options  # type: ignore[misc]
     )
     assert outcome.truncated is True
-    assert outcome.total_feasible == 15
+    assert outcome.total_feasible == 30  # 15 档 × baseline 双工况（ADR-018 D2）
     assert len(outcome.rows) == 5
     volumes = outcome.rows["v_plant"].dropna().tolist()
     assert volumes == sorted(volumes)  # 升序生效（NaN 行殿后不入前 5）

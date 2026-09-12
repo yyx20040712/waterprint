@@ -69,7 +69,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import multiprocessing as mp
 import os
 import uuid
@@ -94,6 +93,7 @@ from waterprint_server.jobs.datapack import (
     _YamlCoefficients,
 )
 from waterprint_server.jobs.dwg import batch_dwg_artifact
+from waterprint_server.jobs.enum_payload import enumeration_payload
 from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.settings import ENGINE_VERSION
 
@@ -279,51 +279,10 @@ def _run_enumerate(
     tmp = rows_file.with_name(f"{rows_file.name}.{uuid.uuid4().hex}.tmp")
     outcome.rows.to_feather(tmp)
     os.replace(tmp, rows_file)
-    diagnosis = None
-    if outcome.diagnosis is not None:  # 无解交付：done + feasible_count=0 合法（R4）
-        diagnosis = {
-            "minimal_conflicts": [
-                sorted(conflict) for conflict in outcome.diagnosis.minimal_conflicts
-            ],
-            "fail_counts": dict(outcome.diagnosis.fail_counts),
-            "suggestions": [dataclasses.asdict(s) for s in outcome.diagnosis.suggestions],
-        }
-    # B2②（PD4/PD6）：grid_fields 载荷 [{key,dim,label_zh}]——dim/label_zh 自该
-    # 单元 manifest.params 按 field_id 查（discover_units 注册表=装配同源；
-    # label_zh 真源缺=None 直传，禁 field_id 降级填充——兜底归 webapp）。
-    unit_manifest = core.discover_units()[str(payload["unit_id"])][0]
-    spec_by_field = {s.field_id: s for s in unit_manifest.params}
-    # V2 GOV5 批尾：dim_fields 载荷同制——自 manifest.out_dims 查
-    # （计算派生输出量；未声明键 label_zh=None 直传，key 兜底归 webapp）。
-    out_dim_by_field = {s.field_id: s for s in unit_manifest.out_dims}
-    dim_field_names = [
-        k for k in outcome.rows.columns
-        if k not in {*outcome.grid.fields, "margin_min", "nan_flag", "condition_key"}
-    ]
-    return {
-        "state": "done",
-        "rows_file": str(rows_file),
-        "total_feasible": int(outcome.total_feasible),
-        "feasible_count": int(outcome.total_feasible),
-        "truncated": bool(outcome.truncated),
-        "diagnosis": diagnosis,
-        "columns": [str(column) for column in outcome.rows.columns],
-        "grid_fields": [
-            {"key": f, "dim": str(spec_by_field[f].dim), "label_zh": spec_by_field[f].label_zh}
-            for f in outcome.grid.fields
-        ],
-        "dim_fields": [
-            {"key": k, "dim": str(spec.dim), "label_zh": spec.label_zh}
-            if (spec := out_dim_by_field.get(k)) is not None
-            else {"key": k, "dim": "", "label_zh": None}
-            for k in dim_field_names
-        ],
-        "project_id": payload.get("project_id", ""),
-        # P0-2（2026-09-11 深链）：unit_id=枚举目标单元（?enum= 面 FE 回填）；
-        # design_hash=枚举时点摘要（FE 比对 content_hash 做「已变更」警示）。
-        "unit_id": str(payload["unit_id"]),
-        "design_hash": core.design_hash(project.design),
-    }
+    # 载荷组装归 jobs/enum_payload.py（ADR-018 D5 拆件——worker 500 行
+    # 预算减压；diagnosis/grid_fields/dim_fields/unit_id/design_hash/
+    # condition_keys 六面语义见该件规格）。
+    return enumeration_payload(outcome, rows_file, payload, project, conditions)
 
 
 _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")

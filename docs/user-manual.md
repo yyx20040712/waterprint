@@ -372,6 +372,31 @@ openapi 31→32 操作）：
 部署前提：计算管线装载出水标准依赖 `data/constraint_kb/constraints.json`
 （固定资产；缺失时计算任务直接失败——fail-fast 设计，ADR-012 D6）。
 
+### 3.15 多工况对比与锁定（webapp，P2 第三批 2026-09-12）
+
+「工况对比」标签（第九标签，概算与可信度之间）展示最近一次完成计算
+的多工况对比矩阵——行=指标（已声明 out_dims 输出量的单元指标面，中
+文名真源），列=工况（design/avg 基线+检修敏感性，sorted 序）——
+`GET /api/calc/compare/{project_id}`（openapi 32→33 操作，ADR-018）：
+
+- **矩阵呈现**：单元格缺值显示「—」；行内跨工况最大值加粗、最小值
+  下划线（差异高亮——全等行零标注）；单位列=量纲单位（m³/m²/h 等）；
+- **警告计数行**：全工况×全单元越带警告总数（分级明细见「可信度」
+  标签——两数据通道语义分界）；
+- **锁定基准**：勾选工况键集→「锁定基准」→存入项目 view 态
+  （不参与设计哈希——锁定是视图偏好，不算修改、不触发重算；已锁定
+  工况列头打 ★ 标）。基准过期自动检测：锁定后若改设计并重算，结果
+  摘要变化→黄色横幅「锁定基准基于旧版设计」+一键「重新锁定」；受检
+  集变更后失效工况键灰显「（已移除）」；
+- **工况校核面板**：工艺画布左侧栏新增「工况校核」折叠区——勾选受
+  检单元（n-1 池检修敏感性）即保存（标题行直出「受检 k 单元 → 计算
+  工况 2+k 档」代价提示）。注意：勾选受检单元需相应单元包声明检修
+  降级映射（当前版本 13 个市政单元尚未声明——勾选后提交计算会被明确
+  拒绝并提示，属数据面待补全的已知前置）；
+- **方案表多工况行**：枚举结果现按全部所选工况产出（同一参数档在各
+  工况下各一行，「工况条件」列区分；行序=网格行主序、同档各工况相邻
+  ——跨工况比裕度/比输出一目了然）。
+
 ## 4. 核心概念
 
 **项目-设计-工况-方案**：项目文件是双态结构——`design` 态（工艺图：
@@ -404,12 +429,12 @@ FAQ 第 2 问）。
 未注册的子命令（calc/validate/selfcheck/export 其余 kind）调用即
 用法错误（退出码 2）——实装归后续批。
 
-### 5.2 API（32 操作，openapi 锁定断言恒）
+### 5.2 API（33 操作，openapi 锁定断言恒）
 
 | 分组 | 端点 |
 |------|------|
 | projects（8） | `GET/POST /api/projects`、`GET/PUT/DELETE /api/projects/{id}`、`POST /api/projects/{id}/validate`、`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`（P2 生命周期批 2026-09-12） |
-| calc（8） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12） |
+| calc（9） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12）、`GET /api/calc/compare/{project_id}`（多工况对比矩阵——P2 第三批 ADR-018） |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
 | 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |

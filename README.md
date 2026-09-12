@@ -118,6 +118,14 @@
 > +K-01 增量复评 W9~W16 零整改闭账+CI 3.14 扩面（server 矩阵+
 > gates）+视觉验收五面（V1 等宽修复/V2 输出列中文/V3 通过/V5 维持）
 > ——三笔 96e7556+1f18ed5+99da536，CI success。
+> **P2 第三批·多工况对比与锁定已收官（2026-09-12 n+48，ADR-018）**：
+> 枚举全工况化（run_enumeration 逐工况快照→concat，签名零变——行数
+> ×(2+k) 线性；margin_min 跨工况全局排序）+工况对比矩阵端点
+> （GET /api/calc/compare——指标×工况聚合+stale+design_hash，32→33）+
+> 锁定基准 view 态（pinned+pinned_hash 不参与哈希；基准过期横幅+失效
+> 工况键灰显+一键重锁）+工况校核面板（Sider 勾选=checked_units 一等
+> 态，2+k 代价提示）+方案表多工况行（rowKey 前缀修复）+CASS out_dims
+> 31 条顺带（V2 制式扩面）；无头验收探针 22/22。
 > **V2 方案表输出列中文化已收官（同日批尾，用户批注②兑现）**：
 > UnitManifest +out_dims 输出量声明面（OutDimSpec {field_id,dim,
 > label_zh}——R1a 登记守卫不适用[派生量非输入面]，370 符号 132 跨单元

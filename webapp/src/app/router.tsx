@@ -18,6 +18,8 @@
  *     落地=?tab= URL 参数（App.tsx 初值三级解析+onChange replaceState
  *     写入；本文件类型面零消费——AppRoute/ROUTES 冻结面不变；原
  *     「挂账 UX 批」行收口）；
+ *   - P2 第三批（ADR-018 2026-09-12）扩九值：compare 插 cost 后=
+ *     结果域三标签就近（概算→工况对比→可信度——同读最近 done calc）；
  *   - 本文件只做路由组合，禁止业务逻辑。
  */
 export type AppRoute =
@@ -28,6 +30,7 @@ export type AppRoute =
   | "elevation"
   | "drawings"
   | "cost"
+  | "compare"
   | "trust";
 
 export const ROUTES: readonly AppRoute[] = [
@@ -38,5 +41,6 @@ export const ROUTES: readonly AppRoute[] = [
   "elevation",
   "drawings",
   "cost",
+  "compare",
   "trust",
 ] as const;

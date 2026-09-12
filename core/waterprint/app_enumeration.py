@@ -16,7 +16,9 @@
 #       sort_by（默认 "margin_min"）/ascending（默认 False=裕度宽优先）/
 #       limit（None=取全部；分页默认 200 在服务层，§12.2）
 #   class EnumerationOutcome(不可变)：rows/total_feasible/truncated/
-#       diagnosis（无解时非 None）/grid（网格元信息）
+#       diagnosis（无解时非 None）/grid（网格元信息）/condition_fields
+#       （ADR-018 D2：枚举工况键中文标签族——按 manifest.out_dims 声明
+#       序取 label_zh 真源，未声明降级 field_id；方案表条件列展示面）
 #   class ArtifactKindNotReady(Exception)：产物 kind 未就绪——消息注明
 #       归属（audit=M4/estimate=M3），禁静默空产物
 #   export_artifact(kind, plant, template, out) -> bytes
@@ -30,6 +32,10 @@
 #   upstream_context(source, unit_id, condition, env) -> UnitContext：
 #       枚举上游快照重建（execute_graph 既有产物 UF-42 投影表反解入流
 #       股——禁另写上游计算，D2）
+#   enumerate_across_conditions(source, unit_id, conditions, grid, env)
+#       -> DataFrame：枚举全工况化（ADR-018 D2）——逐工况 upstream_
+#       context→enumerate_solutions→concat（行序=工况序×网格序确定；
+#       condition_key 常量列各帧自标）
 #
 # 【依赖足迹】（I-4 R1 修正 2026-08-26：二审实录——原"只消费 L0 契约
 #   类型"表述失实撤回）零 waterprint.app 依赖（防 import 环成立）；
@@ -65,6 +71,8 @@
 #      已过 GR-02 守卫）。工况映射（ADR-007）当前 13 单元全空——非空
 #      映射与网格行的优先序归 server 批定义（UF-36 注记并入记档）。
 #   R3 产物导出字节确定性由 render_calcbook R4 承载（本文件零落盘逻辑）。
+#   R4 全工况枚举确定性（ADR-018 D2）：帧序=conditions.iter_all() 工况
+#      序 × 网格序；condition_key 逐帧常量自标；行数=grid.total×(2+k)。
 #
 # 【参照】重写计划 §12.4/§13.1；ADR-005；简报 M2-SOL D2
 # ══════════════════════════════════════════════════════════════════
@@ -75,7 +83,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import final
 
-from pandas import DataFrame  # type: ignore[import-untyped]  # pandas-stubs 未随包分发
+import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（concat 面）
+from pandas import DataFrame
 
 from waterprint.app_export import (  # PROFILE3 拆分再导出——消费面零改动
     ArtifactKindNotReady,
@@ -92,6 +101,7 @@ from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Unit, UnitContext
 from waterprint.solution.constraints import Constraint
 from waterprint.solution.diagnose import DiagnosisReport
+from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import Grid
 from waterprint.trace import TraceCollector
 
@@ -101,6 +111,7 @@ __all__ = [
     "EnumerationOptions",
     "EnumerationOutcome",
     "UpstreamSource",
+    "enumerate_across_conditions",
     "export_artifact",
     "upstream_context",
 ]
@@ -147,6 +158,7 @@ class EnumerationOutcome:
     truncated: bool
     diagnosis: DiagnosisReport | None
     grid: Grid
+    condition_fields: tuple[str, ...] = ()  # ADR-018 D2 工况键标签族（缺省=空兼容旧构造面）
 
 def upstream_context(
     source: UpstreamSource,
@@ -194,3 +206,27 @@ def upstream_context(
         assumptions=env.assumptions,
         trace=TraceCollector(),  # 占位（枚举行迹由 enumerate 内部空 sink 承载）
     )
+
+
+def enumerate_across_conditions(
+    source: UpstreamSource,
+    unit_id: str,
+    conditions: ConditionSet,
+    grid: Grid,
+    env: RunEnv,
+) -> DataFrame:
+    """枚举全工况化（ADR-018 D2）：逐工况重建上游快照→枚举→concat。
+
+    行序=conditions.iter_all() 工况序 × 网格序（确定性，concat 保序——
+    枚举序 tie_break 语义跨工况成立）；condition_key 常量列由各帧
+    enumerate_solutions 自标（enumerate.py 既有机制）。行数=grid.total
+    ×(2+k) 线性（ADR-007 决策 2 口径）。约束过滤/排序/诊断归
+    app.run_enumeration 在 concat 整帧上执行一次（跨工况 margin_min
+    全局排序，ADR-018 D5）。
+    """
+    unit = source.units[unit_id]
+    frames = [
+        enumerate_solutions(grid, upstream_context(source, unit_id, condition, env), unit, env)
+        for condition in conditions.iter_all()
+    ]
+    return pandas.concat(frames, ignore_index=True)

@@ -93,3 +93,33 @@ def test_view_name_not_in_design_hash() -> None:
         update={"view": project.view.model_copy(update={"name": "改名后"})}
     )
     assert design_hash(project.design) == design_hash(renamed.design)
+
+
+# ═══ ADR-018 D3（多工况对比与锁定 2026-09-12）：view.compare 锁定基准字段 ═══
+
+
+def test_view_compare_defaults_empty() -> None:
+    """ADR-018 D3：view.compare 缺省空 dict（历史项目零迁移装载，向后兼容）。"""
+    project = parse_project(dict(MINIMAL))
+    assert project.view.compare == {}  # 旧文件缺键=默认空（GR-21 只增字段）
+    pinned = dict(MINIMAL)
+    pinned["view"] = {"compare": {"pinned": ["design", "avg"], "pinned_hash": "abc"}}
+    assert parse_project(pinned).view.compare == {
+        "pinned": ["design", "avg"],
+        "pinned_hash": "abc",
+    }
+
+
+def test_view_compare_not_in_design_hash() -> None:
+    """ADR-018 D3/R1：锁定/解锁=view 态变更，design 摘要零扰动（不触发 stale）。"""
+    from waterprint.project.content_hash import design_hash
+
+    project = parse_project(dict(MINIMAL))
+    locked = project.model_copy(
+        update={
+            "view": project.view.model_copy(
+                update={"compare": {"pinned": ["design"], "pinned_hash": "h"}}
+            )
+        }
+    )
+    assert design_hash(project.design) == design_hash(locked.design)

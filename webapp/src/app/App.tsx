@@ -85,6 +85,7 @@ import { useEffect, useState } from "react";
 import { Button, Layout, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
+import { ComparePane } from "./comparePane";
 import { CostPane } from "./costPane";
 import { TrustPane } from "./trustPane";
 import { DrawingsPane } from "./drawingsPane";
@@ -92,6 +93,7 @@ import { ElevationPane } from "./elevationPane";
 import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
+import { CheckedUnitsPanel } from "../features/params/components/CheckedUnitsPanel";
 import {
   clearTokenParam,
   parseEnumParam,
@@ -316,6 +318,10 @@ export function App() {
               onFocusChange={setLibraryFocusId}
               onNavigateTab={() => handleTabChange("canvas")}
             />
+            {/* P2 第三批（ADR-018 D4）：工况校核集合面板——Sider 第二区
+                （单元库下方；受检单元勾选=design.checked_units 一等态编辑
+                入口，CP2 勾选持久化样板；仅项目选中时呈现） */}
+            {projectId !== null ? <CheckedUnitsPanel projectId={projectId} /> : null}
           </Sider>
           <Content style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
             <Tabs
@@ -357,6 +363,11 @@ export function App() {
                   key: "cost",
                   label: "概算",
                   children: <CostPane />,
+                },
+                {
+                  key: "compare",
+                  label: "工况对比",
+                  children: <ComparePane />,
                 },
                 {
                   key: "trust",
