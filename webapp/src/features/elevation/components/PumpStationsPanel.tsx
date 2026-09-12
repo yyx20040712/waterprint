@@ -91,7 +91,7 @@ export function PumpStationsPanel({ view }: { view: ElevationView }) {
               // R2（zM-6）：index 前缀防同源同构消息撞键
               key={`${index}-${warning.source}`}
               type={alertTypeOfSeverity(warning.severity)}
-              message={warning.message}
+              title={warning.message}
               showIcon
               style={{ marginBottom: 4 }}
             />

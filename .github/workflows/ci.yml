@@ -39,7 +39,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.13"
+          python-version: "3.14"  # GOV5 顺手件：门禁面同升 3.14（python-build 现役）
       - run: python scripts/run_gates.py
         env:
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
@@ -95,16 +95,20 @@ jobs:
       # 汇总行/短摘要出现非零 skipped 即 FAIL——与覆盖率门禁同为 CI 面。
 
   server:
-    name: 服务层质量
+    name: 服务层质量（3.14 前瞻覆盖——GOV5 沿 core 矩阵先例）
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13", "3.14"]
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python-version }}
       - name: 安装依赖（server/uv.lock 入库——ENG1 遗留收口 SERVER D6：frozen 安装不重解析）
         run: uv sync --frozen
       - run: uv run ruff check .

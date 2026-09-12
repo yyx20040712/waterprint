@@ -62,29 +62,19 @@ afterEach(() => {
 describe("customInstance 路径锁定（C1 防回归）", () => {
   it("请求 url 恰 /api/scene/{id}——无 /api 双前缀", async () => {
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({ url: "/api/scene/p1", method: "GET" });
+    await customInstance<unknown>("/api/scene/p1", { method: "GET" });
     expect(mock).toHaveBeenCalledOnce();
     expect(mock.mock.calls[0]?.[0]).toBe("/api/scene/p1");
   });
 
-  it("params 拼接后仍无双前缀（查询串保序）", async () => {
+  it("生成侧拼好的查询串 url 原样透传（无双前缀）", async () => {
+    // GOV5-1（orval 8）：查询串改由生成侧 getUrl 拼接后传入——
+    // mutator 职责=原样透传，不再二次拼接
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({
-      url: "/api/scene/p1",
+    await customInstance<unknown>("/api/scene/p1?condition_key=design", {
       method: "GET",
-      params: { condition_key: "design" },
     });
     expect(mock.mock.calls[0]?.[0]).toBe("/api/scene/p1?condition_key=design");
-  });
-
-  it("undefined 可选参数不进查询串（condition_key 缺省=服务端排序首键）", async () => {
-    const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({
-      url: "/api/scene/p1",
-      method: "GET",
-      params: { condition_key: undefined },
-    });
-    expect(mock.mock.calls[0]?.[0]).toBe("/api/scene/p1");
   });
 });
 
@@ -96,10 +86,7 @@ describe("customInstance 错误归一（M3 对称面）", () => {
         { status: 404 },
       ),
     );
-    const caught = await customInstance<unknown>({
-      url: "/api/scene/x",
-      method: "GET",
-    }).then(
+    const caught = await customInstance<unknown>("/api/scene/x", { method: "GET" }).then(
       () => null,
       (error: unknown) => error,
     );
@@ -112,10 +99,7 @@ describe("customInstance 错误归一（M3 对称面）", () => {
 
   it("非 2xx 无 JSON 体：code=HTTP_<status> 兜底（网关页等）", async () => {
     stubFetch(new Response("Bad Gateway", { status: 502 }));
-    const caught = await customInstance<unknown>({
-      url: "/api/scene/x",
-      method: "GET",
-    }).then(
+    const caught = await customInstance<unknown>("/api/scene/x", { method: "GET" }).then(
       () => null,
       (error: unknown) => error,
     );
@@ -130,10 +114,7 @@ describe("customInstance 错误归一（M3 对称面）", () => {
         headers: { "content-type": "text/html" },
       }),
     );
-    const caught = await customInstance<unknown>({
-      url: "/api/scene/p1",
-      method: "GET",
-    }).then(
+    const caught = await customInstance<unknown>("/api/scene/p1", { method: "GET" }).then(
       () => null,
       (error: unknown) => error,
     );
@@ -146,7 +127,7 @@ describe("customInstance 错误归一（M3 对称面）", () => {
   it("空体 2xx → undefined（204 语义）", async () => {
     stubFetch(new Response(null, { status: 204 }));
     await expect(
-      customInstance<unknown>({ url: "/api/projects", method: "PUT" }),
+      customInstance<unknown>("/api/projects", { method: "PUT" }),
     ).resolves.toBeUndefined();
   });
 });
@@ -176,7 +157,7 @@ describe("token 存取（R2-A 批2 D1——localStorage 三函数+node 守卫）
 describe("Bearer 注入（R2-A 批2 D3——token 空=零注入零行为变化）", () => {
   it("token 空：请求零 Authorization 头（缺省态防回归锁）", async () => {
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({ url: "/api/scene/p1", method: "GET" });
+    await customInstance<unknown>("/api/scene/p1", { method: "GET" });
     expect(sentHeaders(mock).Authorization).toBeUndefined();
   });
 
@@ -184,7 +165,7 @@ describe("Bearer 注入（R2-A 批2 D3——token 空=零注入零行为变化�
     stubLocalStorage();
     setApiToken("secret-token-42");
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({ url: "/api/scene/p1", method: "GET" });
+    await customInstance<unknown>("/api/scene/p1", { method: "GET" });
     expect(sentHeaders(mock).Authorization).toBe("Bearer secret-token-42");
   });
 
@@ -193,7 +174,7 @@ describe("Bearer 注入（R2-A 批2 D3——token 空=零注入零行为变化�
     setApiToken("secret-token-42");
     clearApiToken();
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({ url: "/api/scene/p1", method: "GET" });
+    await customInstance<unknown>("/api/scene/p1", { method: "GET" });
     expect(sentHeaders(mock).Authorization).toBeUndefined();
   });
 
@@ -201,10 +182,10 @@ describe("Bearer 注入（R2-A 批2 D3——token 空=零注入零行为变化�
     stubLocalStorage();
     setApiToken("t-json");
     const mock = stubFetch(new Response("{}", { status: 200 }));
-    await customInstance<unknown>({
-      url: "/api/projects",
+    await customInstance<unknown>("/api/projects", {
       method: "POST",
-      data: { name: "p" },
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "p" }),
     });
     expect(sentHeaders(mock).Authorization).toBe("Bearer t-json");
     expect(sentHeaders(mock)["Content-Type"]).toBe("application/json");
@@ -226,10 +207,7 @@ describe("401 → AUTH_EVENT 派发（R2-A 批2 D4——先通知再归一化 th
         status: 401,
       }),
     );
-    const caught = await customInstance<unknown>({
-      url: "/api/scene/p1",
-      method: "GET",
-    }).then(
+    const caught = await customInstance<unknown>("/api/scene/p1", { method: "GET" }).then(
       () => null,
       (error: unknown) => {
         order.push("throw");
@@ -250,19 +228,13 @@ describe("401 → AUTH_EVENT 派发（R2-A 批2 D4——先通知再归一化 th
     const dispatchEvent = stubWindow();
     stubFetch(new Response("Bad Gateway", { status: 502 }));
     // 归一化 throw 语义既有——本例只断言零派发（拒绝面吞掉）
-    await customInstance<unknown>({
-      url: "/api/scene/p1",
-      method: "GET",
-    }).catch(() => undefined);
+    await customInstance<unknown>("/api/scene/p1", { method: "GET" }).catch(() => undefined);
     expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   it("node 无 window：401 归一化 throw 正常、零派发不崩（守卫面）", async () => {
     stubFetch(new Response("Unauthorized", { status: 401 }));
-    const caught = await customInstance<unknown>({
-      url: "/api/scene/p1",
-      method: "GET",
-    }).then(
+    const caught = await customInstance<unknown>("/api/scene/p1", { method: "GET" }).then(
       () => null,
       (error: unknown) => error,
     );

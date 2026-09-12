@@ -166,7 +166,7 @@ export function DrawingsPane() {
             <Alert
               type="info"
               showIcon
-              message="本项目尚无导出产物——经上方「导出图纸」产出后，目录与元数据预览在此呈现"
+              title="本项目尚无导出产物——经上方「导出图纸」产出后，目录与元数据预览在此呈现"
             />
           )
         ) : (

@@ -102,6 +102,41 @@ async def test_openapi_schema_no_any_leak(client) -> None:  # type: ignore[no-un
             )
 
 
+# PL-03 契约枚举（GOV5 治理余账批 2026-09-12）：声明面锚——端点实际
+# 404/409（_EXCEPTION_STATUS 映射）须在 openapi responses 有对应声明
+# （行为与文档一致）。首批点名面=lifecycle 三端点（n+41 挂账）+trust
+# （n+42 增量——404 行为已测 test_trust.py）；其余端点统一枚举挂账。
+_PL03_DECLARED: dict[str, dict[str, set[str]]] = {
+    "/api/calc/trust/{project_id}": {
+        "get": {"200", "404", "422"},
+    },
+    "/api/projects/{project_id}/copy": {"post": {"200", "404", "409", "422"}},
+    "/api/projects/{project_id}/rename": {"post": {"200", "404", "409", "422"}},
+    "/api/projects/{project_id}": {"delete": {"200", "404", "409", "422"}},
+}
+
+
+@pytest.mark.anyio
+async def test_pl03_error_responses_declared(client) -> None:  # type: ignore[no-untyped-def]
+    """PL-03：点名端点的 404/409 错误响应已声明+统一错误体模型引用。"""
+    schema = _main.app.openapi()
+    for path, per_method in _PL03_DECLARED.items():
+        for method, expected_keys in per_method.items():
+            op = schema["paths"][path][method]
+            assert set(op["responses"]) == expected_keys, (
+                f"{method.upper()} {path} responses={sorted(op['responses'])}"
+                f" != {sorted(expected_keys)}（PL-03 声明面漂移）"
+            )
+            for code in expected_keys - {"200", "422"}:  # 404/409=统一错误体
+                schema_ref = op["responses"][code]["content"]["application/json"]["schema"]
+                assert schema_ref == {"$ref": "#/components/schemas/ErrorResponse"}, (
+                    f"{method.upper()} {path} {code} 非 ErrorResponse 统一体"
+                )
+    # 统一错误体组件在场（detail/error_type 双字段——R2 冻结形态）
+    error_model = schema["components"]["schemas"]["ErrorResponse"]["properties"]
+    assert set(error_model) == {"detail", "error_type"}
+
+
 @pytest.mark.anyio
 async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-def]
     """A3：领域异常 → HTTP 映射表完整（真实端点触发面：404/422）。"""

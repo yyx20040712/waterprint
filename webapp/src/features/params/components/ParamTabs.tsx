@@ -94,8 +94,11 @@ export function ParamTabs({
           ) : null}
         </div>
       </header>
-      {/* A5r 双分页（Segmented——嵌套 Tabs 禁用面 GC-08；计数=目录驱动） */}
+      {/* A5r 双分页（Segmented——嵌套 Tabs 禁用面 GC-08；计数=目录驱动）；
+          GOV5 视觉验收 V1 批注（2026-09-12 用户）：双选项等宽——block
+          平分容器宽，取代按内容自适应（计数位数致两选项宽窄不一） */}
       <Segmented
+        block
         value={tab}
         onChange={(value) => setTab(value as typeof tab)}
         style={{ flex: "none", margin: "0 14px 8px" }}

@@ -54,9 +54,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query, Request, status
 from pydantic import BaseModel, Field
 
+from waterprint_server.errors import ErrorResponse
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import calculation as calc_service
 from waterprint_server.services import design_map as design_map_service
@@ -154,7 +155,22 @@ async def get_task_status(task_id: str, request: Request) -> TaskStatus:
     return calc_service.task_status(_ctx(request), task_id)
 
 
-@router.get("/trust/{project_id}", response_model=TrustReportResponse)
+# PL-03 契约枚举（GOV5·n+42 增量）：trust 端点实际 404（未知项目/
+# 无结果集——行为面已测 test_trust.py 404 家族）——responses 声明使
+# openapi 与行为一致。
+_TRUST_RESPONSES = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorResponse,
+        "description": "项目不存在或无可信度报告的结果集",
+    },
+}
+
+
+@router.get(
+    "/trust/{project_id}",
+    response_model=TrustReportResponse,
+    responses=_TRUST_RESPONSES,
+)
 async def get_trust_report(project_id: str, request: Request) -> TrustReportResponse:
     """结果可信度报告（最近完成结果集纯投影——ADR-012 D8：诊断/警告聚合
     /新鲜度；diag 件缺失=diagnostics_available=False 降级呈现 R2）。"""

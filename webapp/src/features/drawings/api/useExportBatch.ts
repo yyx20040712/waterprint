@@ -129,10 +129,10 @@ export async function submitExportBatch(
   kind: string,
   input: ExportBatchInput,
 ): Promise<string> {
-  const handle = await customInstance<ExportHandleFace>({
-    url: `/api/exports/${kind}`,
+  const handle = await customInstance<ExportHandleFace>(`/api/exports/${kind}`, {
     method: "POST",
-    data: buildBatchExportBody(input.projectId, input.units, input.conditionKey),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildBatchExportBody(input.projectId, input.units, input.conditionKey)),
   });
   if (typeof handle?.task_id !== "string" || !handle.task_id) {
     throw new Error(`批量导出响应缺 task_id（非任务句柄形态——kind=${kind}）`);
@@ -182,8 +182,7 @@ export function useExportBatch(
   };
 
   const fetchStatus = (taskId: string) =>
-    customInstance<TaskStatusFace>({
-      url: `/api/calc/tasks/${encodeURIComponent(taskId)}`,
+    customInstance<TaskStatusFace>(`/api/calc/tasks/${encodeURIComponent(taskId)}`, {
       method: "GET",
     });
 

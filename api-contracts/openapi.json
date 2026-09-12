@@ -898,6 +898,25 @@
         "title": "EnumerateRequest",
         "type": "object"
       },
+      "ErrorResponse": {
+        "description": "统一错误体（{detail, error_type}——R2 起冻结形态）。",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "error_type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail",
+          "error_type"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
       "EstimateRowModel": {
         "description": "单笔分部分项（core EstimateRow 八字段+name_zh 中文列名=D4）。",
         "properties": {
@@ -2846,6 +2865,16 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在或无可信度报告的结果集"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3603,6 +3632,26 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "写锁冲突或在途任务"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3757,6 +3806,26 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "写锁冲突或在途任务"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3814,6 +3883,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "写锁冲突或在途任务"
           },
           "422": {
             "content": {

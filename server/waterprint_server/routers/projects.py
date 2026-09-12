@@ -41,12 +41,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from waterprint.contracts.project_schema import parse_project
 
+from waterprint_server.errors import ErrorResponse
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import project_lifecycle as lifecycle
 from waterprint_server.services import projects as service
@@ -200,7 +201,20 @@ async def validate_project(
     return ValidationResponse(valid=report.valid, errors=list(report.errors))
 
 
-@router.post("/{project_id}/copy", response_model=SaveOutcomeResponse)
+# PL-03 契约枚举（GOV5）：lifecycle 三端点实际 404/409（_EXCEPTION_STATUS
+# 映射）——responses 声明使 openapi 与行为一致（行为面测试见
+# services/test_project_lifecycle.py 404/409 家族）。
+_LIFECYCLE_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_404_NOT_FOUND: {"model": ErrorResponse, "description": "项目不存在"},
+    status.HTTP_409_CONFLICT: {"model": ErrorResponse, "description": "写锁冲突或在途任务"},
+}
+
+
+@router.post(
+    "/{project_id}/copy",
+    response_model=SaveOutcomeResponse,
+    responses=_LIFECYCLE_RESPONSES,
+)
 async def copy_project(project_id: str, request: Request) -> SaveOutcomeResponse:
     """复制（P2 生命周期）——薄转换：新 id+副本名在服务面，design 零动。"""
     outcome = lifecycle.copy_project(_ctx(request), project_id)
@@ -215,6 +229,7 @@ async def copy_project(project_id: str, request: Request) -> SaveOutcomeResponse
     "/{project_id}/rename",
     response_model=SaveOutcomeResponse,
     dependencies=[Depends(_reject_oversized_body)],  # PL-N-03 R2：name 自由文本面同制防线
+    responses=_LIFECYCLE_RESPONSES,
 )
 async def rename_project(
     project_id: str, body: RenameProjectRequest, request: Request
@@ -228,7 +243,11 @@ async def rename_project(
     )
 
 
-@router.delete("/{project_id}", response_model=DeleteOutcomeResponse)
+@router.delete(
+    "/{project_id}",
+    response_model=DeleteOutcomeResponse,
+    responses=_LIFECYCLE_RESPONSES,
+)
 async def delete_project(project_id: str, request: Request) -> DeleteOutcomeResponse:
     """删除（P2 生命周期）——404/锁/在途三守卫后 unlink（不可逆）。"""
     outcome = lifecycle.delete_project(_ctx(request), project_id)

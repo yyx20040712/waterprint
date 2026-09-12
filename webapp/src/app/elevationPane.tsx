@@ -125,7 +125,7 @@ export function ElevationPane() {
                 type="warning"
                 showIcon
                 style={{ marginBottom: 8 }}
-                message="设计已修改但未重算——下图基于旧结果集（服务端 stale 旗标；重新提交计算后刷新）"
+                title="设计已修改但未重算——下图基于旧结果集（服务端 stale 旗标；重新提交计算后刷新）"
               />
             ) : null}
             <div

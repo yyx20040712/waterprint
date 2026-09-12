@@ -64,9 +64,6 @@ import type { ColumnsType } from "antd/es/table";
 import type { TreeDataNode } from "antd";
 
 import type { ParamEntry } from "../shared/api/generated/model/paramEntry";
-import type { ParamEntryDefault } from "../shared/api/generated/model/paramEntryDefault";
-import type { ParamEntryGrid } from "../shared/api/generated/model/paramEntryGrid";
-import type { ParamEntryRange } from "../shared/api/generated/model/paramEntryRange";
 import type { PortEntry } from "../shared/api/generated/model/portEntry";
 import type { UnitMetaEntry } from "../shared/api/generated/model/unitMetaEntry";
 import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
@@ -137,20 +134,22 @@ const PARAM_COLUMNS: ColumnsType<ParamEntry> = [
     title: "默认值",
     dataIndex: "default",
     key: "default",
-    render: (value: ParamEntryDefault) => value ?? "—",
+    // GOV5-1（orval 8）：anyOf 分支类型内联为 ParamEntry 可选字段，
+    // 索引访问形取代原独立 schema 文件类型。
+    render: (value: ParamEntry["default"]) => value ?? "—",
   },
   {
     title: "范围",
     dataIndex: "range",
     key: "range",
-    render: (value: ParamEntryRange) =>
+    render: (value: ParamEntry["range"]) =>
       value ? `${value.min}~${value.max}` : "—",
   },
   {
     title: "网格",
     dataIndex: "grid",
     key: "grid",
-    render: (value: ParamEntryGrid) => (value ? value.length : "—"),
+    render: (value: ParamEntry["grid"]) => (value ? value.length : "—"),
   },
 ];
 
@@ -315,7 +314,7 @@ export function UnitLibrary({
       <Alert
         type="error"
         showIcon
-        message="单元目录加载失败"
+        title="单元目录加载失败"
         description="GET /api/units 不可达——请确认服务已启动后重试。"
         action={
           <Button size="small" onClick={() => catalog.refetch()}>

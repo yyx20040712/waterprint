@@ -22,6 +22,13 @@ export default defineConfig({
           path: "./src/shared/api/http.ts",
           name: "customInstance",
         },
+        // GOV5-1（orval 8 迁移）：fetch client 默认把 status/headers 包进
+        // 返回类型（{data,status,headers} 成功/错误联合）——关掉后直接
+        // 返回 data 本体，保持 orval 7 时代的消费面契约（配置解优于
+        // 全量消费面解包改造）。
+        fetch: {
+          includeHttpResponseReturnType: false,
+        },
       },
     },
   },
