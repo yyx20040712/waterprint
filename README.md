@@ -110,6 +110,22 @@
 > 自两 pyproject 契约展开——同一变更手工登记面 ≥6→≤3）+.workflow
 > 过程产物归档（181MB→4.9MB zip 保全）+16 派发器合一 dispatch.py
 > +台账索引层——治深度审计 P0 风险②治理面熵增清偿。
+> **GOV5 治理余账批已收官（同日 n+47，七件）**：orval 7→8 迁移
+> （配置解 includeHttpResponseReturnType=false——响应联合包装关掉
+> 保消费面契约，mutator 双参签名适配；EPERM 实因=遗留 vite watcher
+> 句柄非 orval 缺陷）+antd Alert title= 存量五处+PL-03 契约枚举
+> （ErrorResponse 声明面+lifecycle 404/409+trust 404 入 openapi）
+> +K-01 增量复评 W9~W16 零整改闭账+CI 3.14 扩面（server 矩阵+
+> gates）+视觉验收五面（V1 等宽修复/V2 输出列中文/V3 通过/V5 维持）
+> ——三笔 96e7556+1f18ed5+99da536，CI success。
+> **V2 方案表输出列中文化已收官（同日批尾，用户批注②兑现）**：
+> UnitManifest +out_dims 输出量声明面（OutDimSpec {field_id,dim,
+> label_zh}——R1a 登记守卫不适用[派生量非输入面]，370 符号 132 跨单元
+> 冲突实证单元级真源必要性；AAO 首例 21 条）→worker 枚举 result
+> +dim_fields 载荷（grid_fields 同制）→webapp SolutionsTable dim 列
+> title=label_zh ?? key+单位副行（dimLabels m³/s 复用）——无头复截
+> 6/6（表头全中文零代码列名）；其余单元声明随批顺带（真源=各单元
+> manifest 数据面）。
 > **剩余面**：纵断
 > 真实站距与 L0 独立管底（专业精度，停档待裁决）/表尺寸 ODA E2E
 > 验收与字体随附（用户承办）/软著申请与开源准备（用户目标）。工程面：

@@ -51,6 +51,16 @@ export function narrowGridFields(result: unknown): GridField[] {
     : [];
 }
 
+/** V2 GOV5 批尾（视觉验收批注②）：dim_fields 窄化（计算派生输出量
+ * 列族——与 grid_fields 同形状 [{key,dim,label_zh}]；manifest.out_dims
+ * 声明面真源，未声明键 label_zh=null 直传，显示层 key 兜底）。 */
+export function narrowDimFields(result: unknown): GridField[] {
+  const value = resultField(result, "dim_fields");
+  return Array.isArray(value) && value.every(isGridField)
+    ? (value as GridField[])
+    : [];
+}
+
 /** 单元下拉选项引用（useProjectUnits 投影形态——node 键+内置 kind 键）。 */
 export type UnitOptionRef = {
   unitId: string;

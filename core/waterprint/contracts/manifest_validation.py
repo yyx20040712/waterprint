@@ -114,6 +114,9 @@ _REQUIRED_KEYS: frozenset[str] = frozenset(
         "removal_refs", "norm_refs", "condition_mappings", "constraint_refs",
     }
 )
+# V2 GOV5 批尾：out_dims=可选顶层键（合法但不必填——缺省空 tuple 由
+# load_manifest data.get 兜底；必填守卫只查 _REQUIRED_KEYS）
+_OPTIONAL_KEYS: frozenset[str] = frozenset({"out_dims"})
 _BUSINESS_LINES: frozenset[str] = frozenset(
     {"municipal", "mine_water", "sludge", "conveyance"}
 )
@@ -167,11 +170,11 @@ def _require_str(value: Any, what: str) -> str:
 
 
 def _require_top_keys(data: Mapping[str, Any]) -> None:
-    """顶层键完备性：未知键拒（防拼写静默）+ 缺键拒（十键必填）。"""
-    unknown = sorted(set(data) - _REQUIRED_KEYS)
+    """顶层键完备性：未知键拒（防拼写静默）+ 缺键拒（十键必填；out_dims 可选）。"""
+    unknown = sorted(set(data) - _REQUIRED_KEYS - _OPTIONAL_KEYS)
     if unknown:
         raise InvalidUnitConfig(
-            f"清单未知顶层键：{unknown}（合法键 {sorted(_REQUIRED_KEYS)}"
+            f"清单未知顶层键：{unknown}（合法键 {sorted(_REQUIRED_KEYS | _OPTIONAL_KEYS)}"
             "——防拼写静默，与 project_schema extra=forbid 同精神）"
         )
     missing = sorted(_REQUIRED_KEYS - set(data))

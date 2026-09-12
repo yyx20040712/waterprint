@@ -100,7 +100,7 @@ import {
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
 import { applyDriftWarn, applyGateReason, narrowEnumSource } from "../features/solutions/lib/applyGates";
-import { narrowGridFields, resultField } from "../features/solutions/lib/solutionsFields";
+import { narrowDimFields, narrowGridFields, resultField } from "../features/solutions/lib/solutionsFields";
 import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
 import { SolutionsTable } from "../features/solutions/components/SolutionsTable";
@@ -238,18 +238,14 @@ export function SolutionsPane() {
   );
   const tableStatus = tableStatusQuery.data ?? null;
   const result = tableStatus?.result ?? null;
+  // grid/dim 双列族（V2：dim_fields=计算派生输出量——out_dims 声明面）
   const gridFields = narrowGridFields(result);
+  const dimFields = narrowDimFields(result);
   const feasibleRaw = resultField(result, "feasible_count");
-  const feasibleCount =
-    typeof feasibleRaw === "number" && Number.isFinite(feasibleRaw)
-      ? feasibleRaw
-      : null;
+  const feasibleCount = typeof feasibleRaw === "number" && Number.isFinite(feasibleRaw) ? feasibleRaw : null;
   const diagnosis = resultField(result, "diagnosis");
   const enumSource = narrowEnumSource(result, rawQuery.data); // P0-2 三源窄化
-  const enumerateDone =
-    enumerateTaskId !== null &&
-    tableStatus?.kind === "enumerate" &&
-    tableStatus?.state === "done";
+  const enumerateDone = enumerateTaskId !== null && tableStatus?.kind === "enumerate" && tableStatus?.state === "done";
   const noSolutions = enumerateDone && feasibleCount === 0;
   // R7：done 而 feasible_count 缺失（result 载荷异形）——防御提示面
   const payloadMissing = enumerateDone && feasibleCount === null;
@@ -468,6 +464,7 @@ export function SolutionsPane() {
             <SolutionsTable
               page={solutionsQuery.data}
               gridFields={gridFields}
+              dimFields={dimFields}
               projectId={projectId}
               unitId={enumeratedUnitId}
               applyGateReason={applyGateReasonValue}

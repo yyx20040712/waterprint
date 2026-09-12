@@ -167,8 +167,23 @@ class ConditionMapping:
 
 @dataclass(frozen=True)
 @final
+class OutDimSpec:
+    """单输出量声明（V2 GOV5 批尾）：dims 键 + 量纲 + 中文名。
+
+    方案表输出列中文化的单元级真源——枚举 rows 的 dims 列（dim 列族，
+    非 grid 轴）经 server 载荷 dim_fields 投影，webapp SolutionsTable
+    两行表头 title=label_zh ?? key 消费（B2 PD9 模式沿承）。
+    """
+
+    field_id: str
+    dim: DimKey
+    label_zh: str | None = None
+
+
+@dataclass(frozen=True)
+@final
 class UnitManifest:
-    """单元清单（不可变）：参数/端口/去除率引用/条文/工况映射/约束引用。"""
+    """单元清单（不可变）：参数/端口/去除率引用/条文/工况映射/约束引用/输出量声明。"""
 
     unit_id: str
     i18n_key: str
@@ -180,6 +195,9 @@ class UnitManifest:
     norm_refs: tuple[str, ...]
     condition_mappings: tuple[ConditionMapping, ...]
     constraint_refs: tuple[str, ...]
+    # V2 GOV5 批尾：输出量（dims 键）声明——可选键，缺省=空 tuple（
+    # 既有单元零行为变化；声明后经 server dim_fields 投影到方案表）。
+    out_dims: tuple[OutDimSpec, ...] = ()
 
 
 def _param_spec(entry: Mapping[str, Any], field_id: str) -> ParamSpec:
@@ -257,4 +275,40 @@ def load_manifest(data: Mapping[str, Any]) -> UnitManifest:
             frozenset(spec.field_id for spec in params),
         ),
         constraint_refs=_str_tuple(data["constraint_refs"], "constraint_refs"),
+        out_dims=_out_dim_specs(data.get("out_dims")),
     )
+
+
+# V2 GOV5 批尾：out_dims 键集（field_id/dim/label_zh——与 params 键族同形；
+# 无 default/grid/range——输出量为计算派生非用户输入）
+_OUT_DIM_KEYS: frozenset[str] = frozenset({"field_id", "dim", "label_zh"})
+
+
+def _out_dim_spec(entry: Mapping[str, Any], field_id: str) -> OutDimSpec:
+    """单输出量构造：量纲校验（无默认值/网格/范围——派生量无输入面）。
+
+    R1a 登记守卫不适用：dims 键=compute 派生中间量（非用户输入字段，
+    不入 dimensions 注册表——V2 裁量：注册表语义=参数输入面 R1a 沿承，
+    输出量仅做 DimKey 枚举校验）。
+    """
+    return OutDimSpec(
+        field_id=field_id,
+        dim=_dim_key(entry["dim"]),
+        label_zh=entry.get("label_zh"),
+    )
+
+
+def _out_dim_specs(raw: Any) -> tuple[OutDimSpec, ...]:
+    """out_dims 列表构造：条目键/重复字段守卫+逐条 OutDimSpec；缺省=空。"""
+    if raw is None:
+        return ()
+    specs: list[OutDimSpec] = []
+    seen: set[str] = set()
+    for entry in _dict_entries(raw, "out_dims"):
+        _unknown_keys(entry, _OUT_DIM_KEYS, "out_dims")
+        field_id = _identifier(entry["field_id"], "out_dims.field_id")
+        if field_id in seen:
+            raise InvalidUnitConfig(f"out_dims 字段重复：{field_id!r}（V2 守卫）")
+        seen.add(field_id)
+        specs.append(_out_dim_spec(entry, field_id))
+    return tuple(specs)

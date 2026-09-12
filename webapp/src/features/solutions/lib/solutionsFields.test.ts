@@ -11,6 +11,8 @@ import { describe, expect, it } from "vitest";
 import {
   enumerateOptions,
   isUnitEnumerable,
+  narrowDimFields,
+  narrowGridFields,
   unitOptionLabel,
 } from "./solutionsFields";
 
@@ -111,5 +113,31 @@ describe("isUnitEnumerable/enumerateOptions（F6——枚举下拉过滤判据�
         disabled: true,
       },
     ]);
+  });
+});
+
+describe("narrowDimFields（V2 GOV5 批尾——dim_fields 载荷窄化）", () => {
+  it("合法载荷透传（manifest.out_dims 声明面——label_zh=null 直传）", () => {
+    const result = {
+      grid_fields: [{ key: "n", dim: "DIMENSIONLESS", label_zh: "池数（格）" }],
+      dim_fields: [
+        { key: "v_o", dim: "VOLUME", label_zh: "好氧区容积" },
+        { key: "v_unseen", dim: "", label_zh: null },
+      ],
+    };
+    expect(narrowDimFields(result)).toEqual([
+      { key: "v_o", dim: "VOLUME", label_zh: "好氧区容积" },
+      { key: "v_unseen", dim: "", label_zh: null },
+    ]);
+    // grid_fields 不受影响（两族独立窄化）
+    expect(narrowGridFields(result)).toEqual([
+      { key: "n", dim: "DIMENSIONLESS", label_zh: "池数（格）" },
+    ]);
+  });
+
+  it("载荷缺键/形状非法 → 空（历史任务降级——表挂载仍可）", () => {
+    expect(narrowDimFields(null)).toEqual([]);
+    expect(narrowDimFields({})).toEqual([]);
+    expect(narrowDimFields({ dim_fields: [{ key: 1 }] })).toEqual([]);
   });
 });

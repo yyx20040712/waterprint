@@ -236,6 +236,43 @@ describe("buildTableColumns（D5 动态列模型——响应序直传；B2 grid 
     );
     expect(models[0]).toMatchObject({ kind: "margin", applicable: false });
   });
+
+  it("V2 GOV5 批尾：dim 列族中文名+单位副行（dimFields=manifest.out_dims 声明面）", () => {
+    const models = buildTableColumns(
+      ["v_o", "t_o", "v_unseen"],
+      [],
+      [
+        { key: "v_o", dim: "VOLUME", label_zh: "好氧区容积" },
+        { key: "t_o", dim: "TIME", label_zh: "好氧区 HRT" },
+        { key: "v_unseen", dim: "VOLUME", label_zh: null },
+      ],
+    );
+    const byKey = new Map(models.map((m) => [m.key, m]));
+    // 声明键：中文 title+单位副行，kind=dim（派生输出量不可 apply）
+    expect(byKey.get("v_o")).toMatchObject({
+      kind: "dim", numeric: true, applicable: false, title: "好氧区容积",
+    });
+    expect(byKey.get("v_o")?.unit).toBe("m³");
+    expect(byKey.get("t_o")?.title).toBe("好氧区 HRT");
+    // 未声明键 label_zh=null：降级 key（诚实兜底——B2 PD9 同制）
+    expect(byKey.get("v_unseen")?.title).toBe("v_unseen");
+    expect(byKey.get("v_unseen")?.unit).toBe("m³");
+  });
+
+  it("V2 GOV5 批尾：dimFields 缺省（历史载荷）——dim 列降级 key 零回归", () => {
+    const models = buildTableColumns(["v_o"], []);
+    expect(models[0]).toMatchObject({ kind: "dim", title: "v_o", unit: "" });
+  });
+
+  it("V2 GOV5 批尾：gridFields 命中优先于 dimFields（同键双源歧义不混）", () => {
+    const models = buildTableColumns(
+      ["n"],
+      [{ key: "n", dim: "DIMENSIONLESS", label_zh: "池数（格）" }],
+      [{ key: "n", dim: "DIMENSIONLESS", label_zh: "错误覆盖" }],
+    );
+    expect(models[0]?.kind).toBe("grid");
+    expect(models[0]?.title).toBe("池数（格）");
+  });
 });
 
 describe("buildApplyPayload（D6 grid 字段投影——dim 输出不可应用；B2②对象数组签名）", () => {

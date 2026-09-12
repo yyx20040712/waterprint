@@ -289,14 +289,17 @@ def _run_enumerate(
             "suggestions": [dataclasses.asdict(s) for s in outcome.diagnosis.suggestions],
         }
     # B2②（PD4/PD6）：grid_fields 载荷 [{key,dim,label_zh}]——dim/label_zh 自该
-    # 单元 manifest.params 按 field_id 查（discover_units 注册表=run_enumeration
-    # 装配同源；枚举 done 面 unit_id 恒注册表键——builtin manifest params 空表
-    # 在 build_grid 即拒）；label_zh 真源缺=None 直传，禁 field_id 降级填充
-    # （显示兜底归 webapp label_zh ?? key）。
-    spec_by_field = {
-        spec.field_id: spec
-        for spec in core.discover_units()[str(payload["unit_id"])][0].params
-    }
+    # 单元 manifest.params 按 field_id 查（discover_units 注册表=装配同源；
+    # label_zh 真源缺=None 直传，禁 field_id 降级填充——兜底归 webapp）。
+    unit_manifest = core.discover_units()[str(payload["unit_id"])][0]
+    spec_by_field = {s.field_id: s for s in unit_manifest.params}
+    # V2 GOV5 批尾：dim_fields 载荷同制——自 manifest.out_dims 查
+    # （计算派生输出量；未声明键 label_zh=None 直传，key 兜底归 webapp）。
+    out_dim_by_field = {s.field_id: s for s in unit_manifest.out_dims}
+    dim_field_names = [
+        k for k in outcome.rows.columns
+        if k not in {*outcome.grid.fields, "margin_min", "nan_flag", "condition_key"}
+    ]
     return {
         "state": "done",
         "rows_file": str(rows_file),
@@ -306,19 +309,18 @@ def _run_enumerate(
         "diagnosis": diagnosis,
         "columns": [str(column) for column in outcome.rows.columns],
         "grid_fields": [
-            {
-                "key": field,
-                "dim": str(spec_by_field[field].dim),
-                "label_zh": spec_by_field[field].label_zh,
-            }
-            for field in outcome.grid.fields
+            {"key": f, "dim": str(spec_by_field[f].dim), "label_zh": spec_by_field[f].label_zh}
+            for f in outcome.grid.fields
+        ],
+        "dim_fields": [
+            {"key": k, "dim": str(spec.dim), "label_zh": spec.label_zh}
+            if (spec := out_dim_by_field.get(k)) is not None
+            else {"key": k, "dim": "", "label_zh": None}
+            for k in dim_field_names
         ],
         "project_id": payload.get("project_id", ""),
-        # P0-2（2026-09-11 深链死锁修复）：unit_id=枚举目标单元（服务面
-        # submit 已守 len==1 单单元语义——ADR-005；深链 ?enum= 面 FE 经
-        # 任务状态 result 回填 enumeratedUnitId）；design_hash=枚举时点
-        # design 摘要（calc result 同键先例——FE 与当前项目 metadata.
-        # content_hash 比对做「设计已变更，方案基于旧版本」漂移警示）。
+        # P0-2（2026-09-11 深链）：unit_id=枚举目标单元（?enum= 面 FE 回填）；
+        # design_hash=枚举时点摘要（FE 比对 content_hash 做「已变更」警示）。
         "unit_id": str(payload["unit_id"]),
         "design_hash": core.design_hash(project.design),
     }

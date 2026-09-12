@@ -208,13 +208,16 @@ function gridColumnTitle(field: GridField): string {
 /**
  * D5 动态列模型：响应 columns → ColumnModel[]（列序=响应序；固定列名
  * kind 分类优先于 gridFields 判定——margin_min 等语义列不可被覆盖；
- * C2：title 纯标签+unit 单位段两行制，固定列名中文映射）。
+ * C2：title 纯标签+unit 单位段两行制，固定列名中文映射；V2 GOV5 批尾：
+ * dim 列族中文名=dimFields（manifest.out_dims 声明面真源）降级 key）。
  */
 export function buildTableColumns(
   columns: string[],
   gridFields: GridField[],
+  dimFields: GridField[] = [],
 ): SolutionColumnModel[] {
   const gridByKey = new Map(gridFields.map((field) => [field.key, field]));
+  const dimByKey = new Map(dimFields.map((field) => [field.key, field]));
   return columns.map((key) => {
     if (key === "margin_min") {
       return {
@@ -255,6 +258,20 @@ export function buildTableColumns(
         kind: "grid",
         numeric: true,
         applicable: true,
+      };
+    }
+    // V2 GOV5 批尾（视觉验收批注②）：dim 列（计算派生输出量）——
+    // manifest.out_dims 声明面中文名+单位；未声明键降级 key（B2 PD9
+    // 同制：title≠key 时悬浮 title 呈原 key 追溯链）。
+    const outField = dimByKey.get(key);
+    if (outField !== undefined) {
+      return {
+        key,
+        title: outField.label_zh ?? key,
+        unit: dimUnitOf(outField.dim),
+        kind: "dim",
+        numeric: true,
+        applicable: false,
       };
     }
     return { key, title: key, unit: "", kind: "dim", numeric: true, applicable: false };

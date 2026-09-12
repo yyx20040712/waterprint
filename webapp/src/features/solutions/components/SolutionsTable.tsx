@@ -181,6 +181,7 @@ function renderHeader(model: SolutionColumnModel, colors: SemanticColors): React
 export function SolutionsTable({
   page,
   gridFields,
+  dimFields,
   projectId,
   unitId,
   applyGateReason,
@@ -191,6 +192,9 @@ export function SolutionsTable({
 }: {
   page: SolutionPageView;
   gridFields: GridField[];
+  /** V2 GOV5 批尾：计算派生输出量列族（manifest.out_dims 声明面——
+   * dim 列中文名真源；缺省 []=历史任务载荷无此键的降级形态）。 */
+  dimFields?: GridField[];
   projectId: string;
   unitId: string | null;
   /** P0-2 应用闸禁用因（非 null=行级应用钮禁用+title 述因）。 */
@@ -214,6 +218,7 @@ export function SolutionsTable({
   const columns: ColumnsType<SolutionRow> = buildTableColumns(
     page.columns,
     gridFields,
+    dimFields ?? [],
   ).map((model, index) => ({
     title: renderHeader(model, colors),
     dataIndex: model.key,
