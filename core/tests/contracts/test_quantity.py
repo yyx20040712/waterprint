@@ -125,3 +125,21 @@ def test_scale_members_whitelist_negative():
         parse(1.0, "m3/d", DimKey.FLOW_H)
     with pytest.raises(InvalidUnitError, match="白名单"):
         parse(1.0, "m3/s", DimKey.FLOW_H)
+
+
+# ── 参数面单位批同制补齐（2026-09-12 用户裁定「同制补齐」；UF-20 白名单
+#    增补=规格变更，本组=补锁定测试）──
+
+
+def test_time_min_and_temperature_members():
+    """同制补齐两成员：TIME_MIN→min、TEMPERATURE→degC（恒等换算+跨档拒）。"""
+    assert CANONICAL_UNITS[DimKey.TIME_MIN] == "min"
+    assert CANONICAL_UNITS[DimKey.TEMPERATURE] == "degC"
+    assert parse(1.5, "min", DimKey.TIME_MIN) == pytest.approx(1.5)
+    assert parse(35.0, "degC", DimKey.TEMPERATURE) == pytest.approx(35.0)
+    for bad in ("s", "h", "d"):
+        with pytest.raises(InvalidUnitError, match="白名单"):
+            parse(1.0, bad, DimKey.TIME_MIN)
+    for bad in ("K", "degF", "℃"):
+        with pytest.raises(InvalidUnitError, match="白名单"):
+            parse(1.0, bad, DimKey.TEMPERATURE)
