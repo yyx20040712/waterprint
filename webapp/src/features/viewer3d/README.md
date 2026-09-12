@@ -27,7 +27,7 @@
 
 | 文件 | 职责 |
 |------|------|
-| `assemble/spec.md` | 批3 首件（2026-09-12）：模板归一化与变换矩阵规格——S1~S12 采纳清单全落规格（统一归一化空间/列矢量统一公式/轴映射表/数值极端算例/equipment 数据链/比例域/剖切 stencil 条款/水密 CI 规格/registry schema v1 草案/命名规约/呈裁挂账）；状态=冻结候选待批3 启动会签核（未过签核主体件不动工） |
+| `assemble/spec.md` | 批3 首件（2026-09-12）：模板归一化与变换矩阵规格——S1~S12 采纳清单全落规格（统一归一化空间/列矢量统一公式/轴映射表/数值极端算例/equipment 数据链/比例域/剖切 stencil 条款/水密 CI 规格/registry schema v1 草案/命名规约/裁定记录）；状态=**已签核**（2026-09-12 批3 启动会七裁全按推荐序——P2~P7/S11/预算裁定记录 §11）——批3 主体可动工 |
 | `assemble/types.ts` | 批3 首件：装配词汇层（Vec3/GroupKind/AxisMask/TargetDims/TemplateSize/TemplateNodeMeta/EquipmentSpec/GroupTransform/RatioDomainEntry/DeviationResult+DEFAULT_TRIM_STRETCH 冻结常量）——零 three 依赖 |
 | `assemble/computeTransforms.ts` | 批3 首件：分组变换数学核（sceneDimsToTarget 轴对应/shellScale 壳缩放[grouped glTF 轴序]/groupTransform 统一公式 M=T(anchor⊙(s−σ))·diag(σ)——S1 唯一定法位置缩放+截面逆缩放抵消/transformDeterminant S6 断言；AssembleSpecError 显式拒防线） |
 | `assemble/deviation.ts` | 批3 首件：比例域降级判定（非正尺寸/逐条目闭域判定→fallback 结果对象零异常——两层分工：数据级决策在此、数学核 throw=漏裁防线） |

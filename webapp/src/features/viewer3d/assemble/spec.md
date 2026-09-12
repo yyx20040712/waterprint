@@ -1,6 +1,7 @@
 # 模板归一化与变换矩阵规格（assemble spec——批3 首件）
 
-> 状态：**冻结候选——待批3 启动会评审签核（未过签核，批3 主体件不动工）**。
+> 状态：**已签核（2026-09-12 批3 启动会·用户两轮七裁全按推荐序）——
+> 批3 主体件可动工**。裁定记录见 §11；呈裁余面零残留。
 > 真源链：brief（.workflow/packages/3d-visual-brief.md）→ Kimi 规划
 > （reports/3d-visual-plan-kimi.md）→ 双源审查（reports/3d-visual-final-ds-review{,-v2}.md）
 > → 总裁采纳清单 S1~S12（reports/3d-visual-plan-summary.md §四）→ **本件**。
@@ -17,9 +18,9 @@
 - **本批（首件）已冻结件**：`types.ts`（词汇+缺省掩码）/
   `computeTransforms.ts`（数学核：sceneDimsToTarget/shellScale/
   groupTransform/transformDeterminant）/`deviation.ts`+两测试件；
-- **批3 主体件（未动工，签核后开工）**：groupScan/instanceLayout/
-  loader/registry 实装/UnitTemplateInstance/FallbackBox/fallbackLog/
-  check_templates.mjs/Blender 工序（build_*脚本四库文件）。
+- **批3 主体件（未动工；签核已过 §11——启动会后可开工）**：groupScan/
+  instanceLayout/loader/registry 实装/UnitTemplateInstance/FallbackBox/
+  fallbackLog/check_templates.mjs/Blender 工序（build_*脚本四库文件）。
 
 ## 1. 坐标系与轴映射表（S2-③）
 
@@ -148,7 +149,7 @@ u = actual / templateFeature        （等比缩放——保圆/保形）
   建条目时以 templateSize 标定入绝对域，运行时零典型比计算；
 - **非正尺寸**（H≤0 类）→nonpositive_dim（Kimi「绝对域 sanity 同路径」
   ——L>10×典型幅极端由比例域覆盖）；
-- **P2 初始域草案**（呈裁签核后入 registry）：AAO 廊道 L/W∈[6,15]
+- **P2 初始域（已签核 §11——入 registry）**：AAO 廊道 L/W∈[6,15]
   （典型 60/12）、辐流 L/H∈[4,14]（典型 40/4=10）、CASS L/W∈[3,8]
   ——典型 ±50% 标定起点，试点后按 R2（圆柱族环形 trim 非均匀残余
   失真）收紧；圆柱族域内 R 变幅收紧至 ≤2.5×（R2 对策记档）；
@@ -244,31 +245,36 @@ type FamilyEntry = {
   glb 剔除水面层（§2）；无位图贴图（PBR 常量——体积预算前提）；
   单族 ≤8k tri（CI 卡）。
 
-## 11. 横切条款与挂账（S8~S11 呈裁/记档）
+## 11. 横切条款与裁定记录（S8~S11；P2~P7=2026-09-12 批3 启动会七裁收讫）
 
-- **S8/P7（instance_count 推导分支）**：spec 立场=**数量唯一真源=场景图
-  `instance_count`**（core scene.py R3 口径）；「缺省由布置域÷间距常量
-  推导」分支**未裁前禁用**（渲染层几何推导嫌疑，铁律 3 边界）——批3
-  启动会裁：禁推导分支（推荐）or 定义其为显示层样式派生；
+- **S8/P7（instance_count 推导分支）——已裁：禁用推导分支**：数量唯一
+  真源=场景图 `instance_count`（core scene.py R3 口径）；场景图无值时
+  **不渲染该 instance 组+fallbackLog 登记**（禁由布置域÷间距常量推导
+  ——渲染层几何推导嫌疑，铁律 3 边界；数学核 groupTransform 对
+  instance 组显式拒=防线）；
 - **S9（缩略图降级链）**：PNG 失败→C2-thumb 实时后备的降级队列**并发
   上限 ≤2**（19 单元同 404 时不并发 19 离屏 R3F——350ms 预算/主视图
   GPU 争用防线）；超限直落 UnitGlyph 占位；probe 增降级计数（PNG 404
   率/切后备频次可观测——window.__probe.thumbnailFallbacks）；
 - **S10（批5 预算分档）**：半剖双 writer≈shell 两遍+cap 填充率——批5
   预算分**无剖/半剖两档**，probe 阈值批5 启动前重标定（本批记档不实装）；
-- **S11（检修缺位→占位）**：纯函数契约冻结——
+- **S11（检修缺位→占位）——已裁：数据源=params/结果面**（零 core 改；
+  场景图现状单包络发射实录见下）：纯函数契约冻结——
   `missingSlotPlaceholders(nPools, nActive, spacing) → {index, position}[]`
   （缺位索引与占位坐标——渲染层警示占位[半透明轮廓/虚线框]+徽标消费）；
   **13 kind 覆盖核对清单批3 验收前出**。摸底实录（2026-09-12）：场景图
   现状=单元单包络发射（pools.py pool_primitives 单体一节点），R4 文档
-  承诺的 n_active 分池排布+缺位标注**未在场景图实现**；缺位数据源候选
-  =params/结果面（FE 零 core 改可达——推荐）vs 场景图扩展（违铁律 1
-  排除）——与 P7 同窗呈裁；
-- **P2~P6 呈裁预研**（ds-P2-3 启动会前到可签核）：P2 初始域=§6 草案表；
-  P3 压缩=**meshopt**（推荐：解码器小/纯 JS/无 wasm 分发负担；Draco
-  备选）；P4 缩略图相机=轻透视 50mm 等效（贴近厂区图首视角）；P5 间距
-  常量草案=栏杆立柱 1.5m/曝气头 0.8m 网格（显示层常量——数值签核）；
-  P6 污泥族合并=**推荐采纳**（§9 kindAliases 已按合并形设计）。
+  承诺的 n_active 分池排布+缺位标注**未在场景图实现**；
+- **P2~P6——已签核（启动会一并按推荐序）**：P2 初始域=§6 草案表
+  （AAO L/W∈[6,15]、辐流 L/H∈[4,14]、CASS L/W∈[3,8]——入 registry，
+  试点后收紧）；P3 压缩=**meshopt**；P4 缩略图相机=轻透视 50mm 等效；
+  P5 间距常量=栏杆立柱 1.5m/曝气头 0.8m 网格；P6 污泥族合并=**采纳**
+  （§9 kindAliases 按合并形）；P7 见上条；
+- **批3 预算——已确认**：18–25 人日（Blender 占 ~40%，先辐流单族
+  3–4 人日走通全链再并行）+水密 CI 2–3 人日（§7/§8），含风格基准冻结；
+  执行环境实录：本机 Blender 5.0.0（D:\blender5.0\blender.exe，
+  2025-11-18 构建——无头 `-b -P` 可跑；Eevee 无头出图 GPU 依赖=批3
+  首族实测项，无 GPU 降级 Workbench/Cycles CPU 备选）。
 
 ## 12. 冻结面·变更纪律
 
