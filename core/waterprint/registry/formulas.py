@@ -357,6 +357,19 @@ def _check_keys(formula_id: str, bindings: Mapping[str, object], expected: froze
         )
 
 
+def _canonical_native(exc: ArithmeticError | ValueError) -> str:
+    """原生异常消息跨版本归一（GOV4 维护小批·3.14 入矩阵配套）。
+
+    Python 3.14 起 ZeroDivisionError 统一为 'division by zero'（3.12/3.13
+    float 路径为 'float division by zero'）——本求值器绑定值恒 float，
+    除零必经 float 路径，锚文本以 float 形为准（R1 锚②锁定测试的逐字
+    锚面=领域诊断消息版本稳定性契约）。
+    """
+    if isinstance(exc, ZeroDivisionError) and str(exc) == "division by zero":
+        return "float division by zero"
+    return str(exc)
+
+
 def _apply_scalar(
     entry: _Entry,
     values: dict[str, float],
@@ -370,7 +383,7 @@ def _apply_scalar(
     except (ArithmeticError, ValueError) as exc:
         raise InvalidFormulaError(
             f"公式 {entry.spec.formula_id!r} 求值数值域错误"
-            f"（除零/溢出/定义域，expr R5 原生异常包装）：{exc}"
+            f"（除零/溢出/定义域，expr R5 原生异常包装）：{_canonical_native(exc)}"
         ) from exc
     if isinstance(outcome, bool) or not isinstance(outcome, int | float):
         raise InvalidFormulaError(
