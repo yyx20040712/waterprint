@@ -4,12 +4,13 @@
 
 - 分层：架构门禁测试（active）→ 休眠镜像测试（实现合入自动激活）→
   性质测试（hypothesis）→ golden 端到端 → 性能基准；
-- 收集口径：core 的 `python_files = ["test_*.py", "properties_*.py"]`
-  （tests/ 与 units_lib 包内**真性质测试** `properties_*.py` 入全量收集——
+- 收集口径：core 的 `python_files = ["test_*.py", "properties_*.py",
+  "properties.py"]`（tests/ 与 units_lib 包内**真性质测试**入全量收集——
   默认 test_*.py 模式曾漏收，0ac8c73 起补齐）；包内裸 `properties.py`
-  33 份为**结构预留件**（含各单元物理性质清单规格——C1-续批转实内容），
-  **不入收集**（R2D 2026-09-02 收口，见 `core/pyproject.toml` 注记；
-  GOV1 2026-09-12 勘正：本页原称"含 properties.py"失实）；
+  33 份已 **GOV3 2026-09-12 全量转实**（32 单元包各按规格头性质清单
+  断言+模板件可执行蓝本——治深度审计 P0 风险③；R2D 2026-09-02
+  "移出收集"注记随批作废——实装后不收集=假覆盖，全量收集数
+  1215→1406）；
 - 只读锁定：`core/tests/`、`server/tests/` 与 **units_lib 包内 tests/**
   全部文件由 `test-lock.manifest.json`（sha256）+ 文件只读属性双重锁定
   （实测口径 270 键 = core/tests 139 + server/tests 39 + units_lib 包内
