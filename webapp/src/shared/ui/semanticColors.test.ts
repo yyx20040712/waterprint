@@ -42,8 +42,8 @@ describe("semanticColors 语义色真源表", () => {
   });
 
   it("逐键值冻结：字面 hex 原值迁移（像素零漂移）", () => {
-    expect(SEMANTIC_COLORS.pool_wall).toBe("#8d99a6");
-    expect(SEMANTIC_COLORS.partition).toBe("#7a8694");
+    expect(SEMANTIC_COLORS.pool_wall).toBe("#a3a9ad"); // 批3 首族视觉验收迭代调灰
+    expect(SEMANTIC_COLORS.partition).toBe("#8f9599");
     expect(SEMANTIC_COLORS.channel).toBe("#7f8a93");
     expect(SEMANTIC_COLORS.ground).toBe("#cfd6dc");
     expect(SEMANTIC_COLORS.water_surface).toBe("#2f7fd1");

@@ -97,9 +97,11 @@ const CAMERA_PRESETS = {
 
 /** C2-3d V1 地面/雾色（场景底=--wp-bg-page 同值 #0b1526——页面边融一致；
  * 网格两色=主格/次格分层——工程参考系 GPS-X 惯例）。 */
-const SCENE_BG = "#0b1526";
-const GRID_MAJOR = "#3d619c";
-const GRID_MINOR = "#1b2c49";
+// 批3 首族视觉验收迭代（2026-09-12 用户批注 b）：环境换绿草地——
+// 底色/雾=暗绿（页面 antd 深蓝主题不动，画布=绿世界视口）+网格绿系
+const SCENE_BG = "#0e2415";
+const GRID_MAJOR = "#4a7a5c";
+const GRID_MINOR = "#1f3a28";
 
 /** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
  *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
@@ -416,7 +418,7 @@ export function Scene({
               receiveShadow
             >
               <planeGeometry args={[ground.size, ground.size]} />
-              <meshStandardMaterial color="#0d1a30" />
+              <meshStandardMaterial color="#2e5239" />
             </mesh>
             <gridHelper
               args={[ground.size, ground.majorDivisions, GRID_MAJOR, GRID_MAJOR]}

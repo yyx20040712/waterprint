@@ -49,7 +49,7 @@ import { WaterSurface } from "./WaterSurface";
 /** C2-3d 冻结口径（Scene.tsx 同值双源——V2 光比/V1 底色；C2-visual T4
  * 亮度微调：0.4/1.4→0.55/1.6[紫外消毒暗构型提升]——与 Scene.tsx 主视图
  * 光比自此分源[缩略图小图面独立裁量]，非联动面）。 */
-const SCENE_BG = "#0b1526";
+const SCENE_BG = "#0e2415"; // 批3 首族迭代：绿世界底色（Scene.tsx 同值双源）
 const AMBIENT_INTENSITY = 0.55;
 const DIRECTIONAL_INTENSITY = 1.6;
 

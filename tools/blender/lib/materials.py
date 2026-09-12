@@ -15,7 +15,8 @@ import bpy  # noqa: F401 —— Blender 内嵌运行（-b -P）
 
 # 与 shared/ui/semanticColors.ts 同值镜像（改色须双端同窗——R-G3 族）
 PALETTE = {
-    "pool_wall": (0x8D / 255, 0x99 / 255, 0xA6 / 255, 1.0),  # 灰白混凝土
+    # 批3 首族视觉验收迭代（2026-09-12 用户批注 a）：混凝土调中性灰
+    "pool_wall": (0xA3 / 255, 0xA9 / 255, 0xAD / 255, 1.0),  # 灰白混凝土
     "steel": (0x5B / 255, 0x8D / 255, 0xB8 / 255, 1.0),  # 钢构（pipe 同值）
     "water_surface": (0x2F / 255, 0x7F / 255, 0xD1 / 255, 1.0),  # 蓝水体（PNG 专用层）
 }

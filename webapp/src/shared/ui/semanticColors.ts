@@ -17,9 +17,10 @@
  */
 /** 语义色表（token→色值唯一映射处——全 webapp 渲染/2D 描绘统一消费）。 */
 export const SEMANTIC_COLORS = {
-  // 3D 图元色族（自 PoolBox 迁移，12 键）
-  pool_wall: "#8d99a6",
-  partition: "#7a8694",
+  // 3D 图元色族（自 PoolBox 迁移，12 键；批3 首族视觉验收迭代[2026-09-12
+  // 用户批注 a]：混凝土族调中性灰——pool_wall 蓝偏置 +25→+10）
+  pool_wall: "#a3a9ad",
+  partition: "#8f9599",
   channel: "#7f8a93",
   ground: "#cfd6dc",
   water_surface: "#2f7fd1", // 蓝水线
