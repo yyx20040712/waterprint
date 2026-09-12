@@ -43,6 +43,7 @@ UNIT_ID = "municipal_chenshachi"
 
 _GB = "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）"
 _D = DimKey.DIMENSIONLESS
+_TD = DimKey.TIME_D
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _V = DimKey.VELOCITY
@@ -118,7 +119,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_hopper = v_sand * t_clean * safety",
         {
             "v_sand": (_VOL, "单池日沉砂量 m3/d"),
-            "t_clean": (_D, "清砂间隔 d（参数 t_clean）"),
+            "t_clean": (_TD, "清砂间隔 d（参数 t_clean）"),
             "safety": (_D, "砂斗容积安全系数（factor.chenshachi.hopper.safety）"),
         },
         _VOL,
@@ -279,7 +280,7 @@ manifest = load_manifest(
                 "default": 30.0,
                 "range": {"min": 25.0, "max": 60.0},
             },
-            {"field_id": "t_clean", "label_zh": "清砂间隔", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "t_clean", "label_zh": "清砂间隔", "dim": "TIME_D", "default": 2.0},
             {
                 "field_id": "theta",
                 "label_zh": "砂斗壁倾角",

@@ -62,7 +62,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
         "CA-F1",
         "n_cycle = 24 / t_cycle",
-        {"t_cycle": (_D, "周期 h（参数 t_cycle，4h 档主线，business-logic §7 周期档）")},
+        {"t_cycle": (_TH, "周期 h（参数 t_cycle，4h 档主线，business-logic §7 周期档）")},
         _D,
         _HB,
     ),
@@ -95,7 +95,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_selector = q_avg_daily * 86400 * t_selector / 24",
         {
             "q_avg_daily": (_F, "平均日流量 m3/s"),
-            "t_selector": (_D, "生物选择区 HRT h（参数 t_selector）"),
+            "t_selector": (_TH, "生物选择区 HRT h（参数 t_selector）"),
         },
         _VOL,
         _HB,
@@ -164,9 +164,9 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "CA-F13",
         "t_phase_sum = t_react + t_settle + t_draw",
         {
-            "t_react": (_D, "反应时段 h（参数 t_react）"),
-            "t_settle": (_D, "沉淀时段 h（参数 t_settle）"),
-            "t_draw": (_D, "滗水时段 h（参数 t_draw）"),
+            "t_react": (_TH, "反应时段 h（参数 t_react）"),
+            "t_settle": (_TH, "沉淀时段 h（参数 t_settle）"),
+            "t_draw": (_TH, "滗水时段 h（参数 t_draw）"),
         },
         _TH,
         "GB 50014-2021 §7.6（序批式时段分配）；"
@@ -175,7 +175,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
         "CA-F14",
         "q_decant = v_draw / t_draw",
-        {"v_draw": (_VOL, "单池单周期滗水容积 m3"), "t_draw": (_D, "滗水时段 h（参数 t_draw）")},
+        {"v_draw": (_VOL, "单池单周期滗水容积 m3"), "t_draw": (_TH, "滗水时段 h（参数 t_draw）")},
         _FH,
         _HB,
     ),
@@ -349,18 +349,18 @@ manifest = load_manifest(
             {
                 "field_id": "t_cycle",
                 "label_zh": "运行周期",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 4.0,
                 "grid": [4, 6, 8],
             },
-            {"field_id": "t_react", "label_zh": "反应时段", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "t_react", "label_zh": "反应时段", "dim": "TIME_H", "default": 2.0},
             {
                 "field_id": "t_settle",
                 "label_zh": "沉淀时段",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 1.0,
             },
-            {"field_id": "t_draw", "label_zh": "滗水时段", "dim": "DIMENSIONLESS", "default": 1.0},
+            {"field_id": "t_draw", "label_zh": "滗水时段", "dim": "TIME_H", "default": 1.0},
             {
                 "field_id": "ns",
                 "label_zh": "BOD5 污泥负荷",
@@ -378,7 +378,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_selector",
                 "label_zh": "选择器停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 0.75,
                 "range": {"min": 0.5, "max": 1.0},
             },

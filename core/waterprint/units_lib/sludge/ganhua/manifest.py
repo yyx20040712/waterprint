@@ -47,6 +47,7 @@ _HB5 = (
     "docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TH = DimKey.TIME_H
 
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
@@ -128,7 +129,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         {
             "w_evap": (_D, "蒸发水量 kg/d（GH-F2）"),
             "r_evap": (_D, "传热面积蒸发强度 kg/(m²·h)（参数 r_evap）"),
-            "t_op": (_D, "日运行时 h（参数 t_op，grid 8/16/24）"),
+            "t_op": (_TH, "日运行时 h（参数 t_op，grid 8/16/24）"),
         },
         _D,
         _HB5,
@@ -161,7 +162,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_op",
                 "label_zh": "日运行时",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 24.0,
                 "grid": [8.0, 16.0, 24.0],
             },

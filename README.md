@@ -140,6 +140,17 @@
 > TIME_D；CASS t_phase_sum TIME→TIME_H[错误单位显示语义修正]/
 > q_decant→FLOW_H/theta_c→TIME_D）+FE dimLabels 镜像 13 成员——方案
 > 表/对比矩阵 HRT、泥龄、滗水能力需求列显示 h/d/m³/h 单位。
+> **图标对齐小批已收官（同日批尾续二，总序第二）**：域色图标三色组
+> 自 UnitNode/unitLibrary 两处同构复制收敛 unitGlyph.ts 单源导出
+> domainIconStyle（画布节点图标↔单元库行图标恒同值渲染；零视觉变更
+> =同值搬家；vitest 651）。
+> **参数面单位批已收官（同日批尾续三，用户裁定「入批处理」）**：参数
+> 面时序字段显示单位——h 字段 10 族翻 TIME_H（厌氧区 HRT/运行周期/
+> 反应·沉淀·滗水·选择器时段/调节停留/过滤周期/日运行时/浓缩时间）、
+> d 字段 3 族翻 TIME_D（清砂周期/贮泥周期/消化时间）、t_stay 真秒翻
+> TIME（注册表+manifest params+公式输入槽三面同翻）；FE ParamForm
+> grid 档/自由值参数补单位后缀（此前仅连续区间参数有）——无头探针
+> 9/9。
 > **V2 方案表输出列中文化已收官（同日批尾，用户批注②兑现）**：
 > UnitManifest +out_dims 输出量声明面（OutDimSpec {field_id,dim,
 > label_zh}——R1a 登记守卫不适用[派生量非输入面]，370 符号 132 跨单元

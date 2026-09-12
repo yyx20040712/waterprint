@@ -55,6 +55,8 @@ _HB = (
     " 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_T = DimKey.TIME
+_TD = DimKey.TIME_D
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -77,7 +79,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "l_cell_raw = v_h * t_stay",
         {
             "v_h": (_V, "设计水平流速 m/s（参数 v_h，平流型主控参数）"),
-            "t_stay": (_D, "停留时间 s（参数 t_stay）"),
+            "t_stay": (_T, "停留时间 s（参数 t_stay）"),
         },
         _L,
         f"{_GB}；{_HB}",
@@ -133,7 +135,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_hopper = v_sand * t_clean * safety",
         {
             "v_sand": (_VOL, "每日沉砂量 m3/d"),
-            "t_clean": (_D, "清砂周期 d（参数 t_clean，声明面默认 2）"),
+            "t_clean": (_TD, "清砂周期 d（参数 t_clean，声明面默认 2）"),
             "safety": (_D, "贮砂安全系数（factor.mine_chenshachi.hopper.safety）"),
         },
         _VOL,
@@ -230,7 +232,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_stay",
                 "label_zh": "停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME",
                 "default": 60.0,
                 "range": {"min": 30.0, "max": 60.0},
             },
@@ -241,7 +243,7 @@ manifest = load_manifest(
                 "default": 0.5,
                 "range": {"min": 0.4, "max": 1.2},
             },
-            {"field_id": "t_clean", "label_zh": "清砂周期", "dim": "DIMENSIONLESS", "default": 2.0},
+            {"field_id": "t_clean", "label_zh": "清砂周期", "dim": "TIME_D", "default": 2.0},
             {
                 "field_id": "side_disc_step",
                 "label_zh": "边长圆整步长",

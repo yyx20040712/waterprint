@@ -59,6 +59,7 @@ _HB = (
     " 起草表 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TH = DimKey.TIME_H
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -83,7 +84,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "t_w = 24 - 24 * (t_bw / 60) / t_filter",
         {
             "t_bw": (_D, "单格反冲停滤历时 min（三阶段合计，compute 合成审计面）"),
-            "t_filter": (_D, "过滤周期 h（参数 t_filter）"),
+            "t_filter": (_TH, "过滤周期 h（参数 t_filter）"),
         },
         _D,
         _HB,
@@ -164,7 +165,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "eta_wash = w_wash * (24 / t_filter) / (q_d / n)",
         {
             "w_wash": (_D, "单格次反冲水量 m3/(格·次)（KV-F8）"),
-            "t_filter": (_D, "过滤周期 h（参数 t_filter；24/t=日冲次数——单格日冲一次口径）"),
+            "t_filter": (_TH, "过滤周期 h（参数 t_filter；24/t=日冲次数——单格日冲一次口径）"),
             "q_d": (_D, "日处理量 m3/d（KV-F1）"),
             "n": (_D, "格数"),
         },
@@ -231,7 +232,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_filter",
                 "label_zh": "过滤周期",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 24.0,
                 "range": {"min": 24.0, "max": 48.0},
             },

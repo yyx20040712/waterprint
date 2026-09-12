@@ -47,6 +47,8 @@ _HB = (
     "（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TD = DimKey.TIME_D
+_TH = DimKey.TIME_H
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -97,7 +99,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "h2 = q_prime_act * t_settle",
         {
             "q_prime_act": (_D, "实际表面水力负荷 m3/(m2.h)"),
-            "t_settle": (_D, "沉淀时间 h（参数 t_settle）"),
+            "t_settle": (_TH, "沉淀时间 h（参数 t_settle）"),
         },
         _L,
         _GB,
@@ -158,7 +160,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_need = s_wet_1 * t_sludge",
         {
             "s_wet_1": (_VOL, "单池湿泥量 m3/d"),
-            "t_sludge": (_D, "贮泥（排泥）周期 d（参数 t_sludge）"),
+            "t_sludge": (_TD, "贮泥（排泥）周期 d（参数 t_sludge）"),
         },
         _VOL,
         _GB,
@@ -267,14 +269,14 @@ manifest = load_manifest(
             {
                 "field_id": "t_settle",
                 "label_zh": "沉淀时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 1.2,
                 "range": {"min": 1.0, "max": 2.5},
             },
             {
                 "field_id": "t_sludge",
                 "label_zh": "贮泥周期",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_D",
                 "default": 2.0,
                 "range": {"min": 1.0, "max": 2.0},
             },

@@ -55,6 +55,7 @@ _HB = (
     "（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TH = DimKey.TIME_H
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -206,7 +207,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         {
             "v_wash_per": (_VOL, "单格次耗水 m3"),
             "n": (_D, "分格数"),
-            "t_cycle": (_D, "过滤周期 h（参数 t_cycle）"),
+            "t_cycle": (_TH, "过滤周期 h（参数 t_cycle）"),
         },
         _VOL,
         _HB,
@@ -308,7 +309,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_cycle",
                 "label_zh": "反冲洗周期",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 24.0,
                 "range": {"min": 24.0, "max": 48.0},
             },

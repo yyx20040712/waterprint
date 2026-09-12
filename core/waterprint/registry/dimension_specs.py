@@ -19,6 +19,13 @@
 #
 # 【测试要求】B3-R11 test_dimension_specs 数据形态契约（每项恰五元组
 #   且全 str、组数>0）。
+# 【参数面单位批注记（2026-09-12 用户裁定「入批处理」）】h 字段 10 族
+#   （t_p/t_cycle/t_react/t_settle/t_selector/t_draw/t_reg/t_filter/
+#   t_op/t_thicken）→TIME_H、d 字段 3 族（t_clean/t_sludge/t_digest）
+#   →TIME_D、t_stay 真秒→TIME——各批次组注释为历史出处记档（禁删），
+#   其中「h/d 按DIMENSIONLESS 裸值登记」口径已被本批取代；min 族
+#   （t_mix/t_floc/t_seed/t_ripen/t_well）与温度（t_design/
+#   t_digest_temp）无贴切档维持 DIMENSIONLESS（挂账）。
 #
 # 【参照】B3 简报 R3；重写计划 §2 单位制行/§12.1；简报 T3 D2
 # ══════════════════════════════════════════════════════════════════
@@ -50,7 +57,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
      "geometry"),
     ("q_surf", "DIMENSIONLESS", "", "units.fields.q_surf", "load"),
     ("t_retention", "TIME", "s", "units.fields.t_retention", "load"),
-    ("t_clean", "DIMENSIONLESS", "", "units.fields.t_clean", "operation"),
+    ("t_clean", "TIME_D", "d", "units.fields.t_clean", "operation"),
     ("theta", "DIMENSIONLESS", "", "units.fields.theta", "geometry"),
     ("d_r", "LENGTH", "m", "units.fields.d_r", "geometry"),
     ("b_channel", "LENGTH", "m", "units.fields.b_channel", "geometry"),
@@ -65,8 +72,8 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # chuchenchi 辐流初沉池（算例 1：q'=2.3/T=1.2 h/T_sludge=2 d/r1=1.8/
     # r2=0.8/h5=1.5；D 档 0.5 m/长度档 0.1 m）
     ("q_prime", "DIMENSIONLESS", "", "units.fields.q_prime", "load"),
-    ("t_settle", "DIMENSIONLESS", "", "units.fields.t_settle", "load"),
-    ("t_sludge", "DIMENSIONLESS", "", "units.fields.t_sludge", "operation"),
+    ("t_settle", "TIME_H", "h", "units.fields.t_settle", "load"),
+    ("t_sludge", "TIME_D", "d", "units.fields.t_sludge", "operation"),
     ("r1", "LENGTH", "m", "units.fields.r1", "geometry"),
     ("r2", "LENGTH", "m", "units.fields.r2", "geometry"),
     ("h5", "LENGTH", "m", "units.fields.h5", "geometry"),
@@ -75,7 +82,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # TN_eff=15；sec_per_hour=3600 时换算）
     ("ns", "DIMENSIONLESS", "", "units.fields.ns", "load"),
     ("x_mlss", "CONCENTRATION", "mg/L", "units.fields.x_mlss", "load"),
-    ("t_p", "DIMENSIONLESS", "", "units.fields.t_p", "load"),
+    ("t_p", "TIME_H", "h", "units.fields.t_p", "load"),
     ("r_external", "DIMENSIONLESS", "", "units.fields.r_external", "operation"),
     ("r_internal", "DIMENSIONLESS", "", "units.fields.r_internal", "operation"),
     ("tn_eff", "CONCENTRATION", "mg/L", "units.fields.tn_eff", "load"),
@@ -93,7 +100,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     #    共用语义形态，与 M2a2 dia_disc_step 池径档对称）。 ──
     # tiaojiechi 调节池（算例 1：t_reg=8.0 h/h2=5.0 m/ratio_lb=2.5/
     # n_pump_duty=2；B/L 档 0.5 m、DN 档 0.1 m）
-    ("t_reg", "DIMENSIONLESS", "", "units.fields.t_reg", "load"),
+    ("t_reg", "TIME_H", "h", "units.fields.t_reg", "load"),
     ("ratio_lb", "DIMENSIONLESS", "", "units.fields.ratio_lb", "geometry"),
     ("n_pump_duty", "DIMENSIONLESS", "", "units.fields.n_pump_duty", "equipment"),
     ("side_disc_step", "LENGTH", "m", "units.fields.side_disc_step", "geometry"),
@@ -114,7 +121,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("h_water_above", "LENGTH", "m", "units.fields.h_water_above", "geometry"),
     ("h_sand", "LENGTH", "m", "units.fields.h_sand", "geometry"),
     ("h_bottom", "LENGTH", "m", "units.fields.h_bottom", "geometry"),
-    ("t_cycle", "DIMENSIONLESS", "", "units.fields.t_cycle", "operation"),
+    ("t_cycle", "TIME_H", "h", "units.fields.t_cycle", "operation"),
     # ziwai 紫外消毒（算例 1：n_channel=2/v_channel=0.4/b_c=1.2/
     # n_lamp_module=8/l_module=0.6/l_stab=1.2/h_module=0.5；h_w 档 0.1 m）
     ("n_channel", "DIMENSIONLESS", "", "units.fields.n_channel", "equipment"),
@@ -134,9 +141,9 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # cass CASS 生物池（算例 1：n_pool=4/t_cycle=4 h/t_react=2.0/
     # t_settle=1.0[复用 M2a2]/t_draw=1.0/t_selector=0.75 h；L/B 0.5 m 档）
     ("n_pool", "DIMENSIONLESS", "", "units.fields.n_pool", "equipment"),
-    ("t_react", "DIMENSIONLESS", "", "units.fields.t_react", "operation"),
-    ("t_draw", "DIMENSIONLESS", "", "units.fields.t_draw", "operation"),
-    ("t_selector", "DIMENSIONLESS", "", "units.fields.t_selector", "load"),
+    ("t_react", "TIME_H", "h", "units.fields.t_react", "operation"),
+    ("t_draw", "TIME_H", "h", "units.fields.t_draw", "operation"),
+    ("t_selector", "TIME_H", "h", "units.fields.t_selector", "load"),
     # bashi_jiliangcao 巴歇尔计量槽（算例 1：b_throat=0.75 m，B7 七档离散）
     ("b_throat", "LENGTH", "m", "units.fields.b_throat", "geometry"),
     # wushui_tisheng 污水提升泵房（算例 1：t_well=10 min/h_static=10.0 m/
@@ -176,7 +183,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # h2=0.5 m 复用/n=8 复用/t_clean=2 d 复用 M1A；l_cell 0.5 m 档/
     # B 0.1 m 档复用 side_disc_step/length_disc_step）
     ("v_h", "VELOCITY", "m/s", "units.fields.v_h", "load"),
-    ("t_stay", "DIMENSIONLESS", "", "units.fields.t_stay", "load"),
+    ("t_stay", "TIME", "s", "units.fields.t_stay", "load"),
     # mine_water_ningjiao 混凝反应池（算例 1：t_mix=1.0/t_floc=3.0 复用
     # M2B2；t_seed=2.0/t_ripen=1.5 新增；h2/ratio_lb/n/B 0.5 m 档复用）
     ("t_seed", "DIMENSIONLESS", "", "units.fields.t_seed", "load"),
@@ -202,7 +209,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # mine_water_vxinglvchi V 型滤池（主算例：n=16 复用/v_filter=5.0 复用
     # M2B2；t_filter=24 h/h_media=1.0/h_water=1.2/h_plate=0.1/h_under=0.9
     # 新增；B/L 0.1 m 档复用 side_disc_step 包独立默认）
-    ("t_filter", "DIMENSIONLESS", "", "units.fields.t_filter", "operation"),
+    ("t_filter", "TIME_H", "h", "units.fields.t_filter", "operation"),
     ("h_media", "LENGTH", "m", "units.fields.h_media", "geometry"),
     ("h_water", "LENGTH", "m", "units.fields.h_water", "geometry"),
     ("h_plate", "LENGTH", "m", "units.fields.h_plate", "geometry"),
@@ -232,11 +239,11 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("v_press", "VELOCITY", "m/s", "units.fields.v_press", "load"),
     ("d_grav", "LENGTH", "m", "units.fields.d_grav", "geometry"),
     ("q_solid", "DIMENSIONLESS", "", "units.fields.q_solid", "load"),
-    ("t_thicken", "DIMENSIONLESS", "", "units.fields.t_thicken", "load"),
+    ("t_thicken", "TIME_H", "h", "units.fields.t_thicken", "load"),
     ("h_eff", "LENGTH", "m", "units.fields.h_eff", "geometry"),
     ("p_out", "DIMENSIONLESS", "", "units.fields.p_out", "sludge"),
     ("h_cone", "LENGTH", "m", "units.fields.h_cone", "geometry"),
-    ("t_digest", "DIMENSIONLESS", "", "units.fields.t_digest", "operation"),
+    ("t_digest", "TIME_D", "d", "units.fields.t_digest", "operation"),
     ("t_digest_temp", "DIMENSIONLESS", "", "units.fields.t_digest_temp",
      "operation"),
     ("eta_vs", "DIMENSIONLESS", "", "units.fields.eta_vs", "sludge"),
@@ -245,6 +252,6 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
      "equipment"),
     ("dose_pam", "DIMENSIONLESS", "", "units.fields.dose_pam", "operation"),
     ("p_cake", "DIMENSIONLESS", "", "units.fields.p_cake", "sludge"),
-    ("t_op", "DIMENSIONLESS", "", "units.fields.t_op", "operation"),
+    ("t_op", "TIME_H", "h", "units.fields.t_op", "operation"),
     ("r_evap", "DIMENSIONLESS", "", "units.fields.r_evap", "equipment"),
 )

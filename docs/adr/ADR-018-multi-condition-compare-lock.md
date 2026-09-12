@@ -67,7 +67,14 @@
     语义病非分叉病）；FE DIM_LABELS 镜像 +3 行（dimLabels 13 成员，
     镜像门禁自动对账）。参数面 h/d 语义字段（t_p/t_cycle 族 ~25 个）
     沿 dimensions 注册表「单位语义随 i18n 键走」既有口径不入本批
-    （R1a 登记+四行业横扫=独立挂账）。
+    （R1a 登记+四行业横扫=独立挂账）。**参数面单位批追记（同日批尾
+    续二——上段挂账即批收口，n+50 批尾用户裁定「入批处理」）**：
+    h 字段 10 族（t_p/t_cycle/t_react/t_settle/t_selector/t_draw/
+    t_reg/t_filter/t_op/t_thicken）翻 TIME_H、d 字段 3 族（t_clean/
+    t_sludge/t_digest）翻 TIME_D、t_stay 真秒翻 TIME（三面=注册表+
+    manifest params+公式输入槽同翻；min 族 8 处与温度 2 处无贴切档
+    维持 DIMENSIONLESS 记档）；FE ParamForm 非 continuous 分支补
+    单位后缀（grid 档/自由值参数同获后缀——此前仅连续区间参数有）。
 - 细化归属：core 枚举全工况（app.py 循环 + app_enumeration 抽件）→
   server compare 端点与 worker 载荷与 ViewState.compare 字段 → webapp
   对比 pane/工况校核面板/锁定横幅/rowKey 修复；测试三层新件 +

@@ -53,6 +53,7 @@ _HB5 = (
     " 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TH = DimKey.TIME_H
 
 # 单位换算常量（工程口径 m³/d、kg/d ↔ 契约口径 m3/s、kg/s）与构造档
 # 步长（池径 0.5 m 档向上取整——表公式表头注记口径；manifest=数值
@@ -75,7 +76,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "a_time = q_wet * t_thicken / (24 * h_eff)",
         {
             "q_wet": (_D, "入流湿泥量 m³/d"),
-            "t_thicken": (_D, "浓缩时间 h（参数 t_thicken）"),
+            "t_thicken": (_TH, "浓缩时间 h（参数 t_thicken）"),
             "h_eff": (_D, "有效水深 m（参数 h_eff）"),
         },
         _D,
@@ -213,7 +214,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_thicken",
                 "label_zh": "浓缩时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 16.0,
                 "range": {"min": 12.0, "max": 24.0},
             },

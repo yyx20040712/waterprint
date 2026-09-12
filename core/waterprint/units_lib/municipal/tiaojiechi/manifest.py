@@ -50,6 +50,7 @@ _HB = (
     "（docs/norms/tiaojiechi.md 起草表 2026-08-25，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TH = DimKey.TIME_H
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -62,7 +63,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_total = q_avg_daily * 86400 * t_reg / 24",
         {
             "q_avg_daily": (_F, "平均日流量 m3/s（×86400 转 m3/d 口径）"),
-            "t_reg": (_D, "调节停留时间 h（参数 t_reg，停留时间法）"),
+            "t_reg": (_TH, "调节停留时间 h（参数 t_reg，停留时间法）"),
         },
         _VOL,
         _HB,
@@ -205,7 +206,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_reg",
                 "label_zh": "调节停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 8.0,
                 "range": {"min": 6.0, "max": 12.0},
             },

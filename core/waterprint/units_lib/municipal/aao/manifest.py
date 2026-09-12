@@ -98,7 +98,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
         "AO-F3",
         "v_anaerobic = q_avg_daily * 86400 * t_p / 24",
-        {"q_avg_daily": (_F, "平均日流量 m3/s"), "t_p": (_D, "厌氧区 HRT h（参数 t_p）")},
+        {"q_avg_daily": (_F, "平均日流量 m3/s"), "t_p": (_TH, "厌氧区 HRT h（参数 t_p）")},
         _VOL,
         "GB 50014-2021 §7.6.39（厌氧区 HRT 1~2h；docs/norms/aao.md 起草表 2026-08-25，待追认）",
     ),
@@ -328,7 +328,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_p",
                 "label_zh": "厌氧区 HRT",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_H",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },

@@ -312,23 +312,33 @@ export function ParamForm({
                       ) : null}
                     </Space.Compact>
                   ) : (
-                    <Input
-                      size="small"
-                      status={invalid ? "error" : undefined}
-                      style={{ width: CONTROL_WIDTH, flex: "none" }}
-                      title={metaTooltipText(entry)}
-                      value={shownValue}
-                      onChange={(event) =>
-                        setDrafts((prev) => ({ ...prev, [fieldId]: event.target.value }))
-                      }
-                      onBlur={(event) => {
-                        // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
-                        const parsed = normalizeDraftValue(event.target.value);
-                        if (parsed !== null) {
-                          setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
+                    <Space.Compact style={{ flex: "none" }}>
+                      <Input
+                        size="small"
+                        status={invalid ? "error" : undefined}
+                        style={{ width: CONTROL_WIDTH, flex: "none" }}
+                        title={metaTooltipText(entry)}
+                        value={shownValue}
+                        onChange={(event) =>
+                          setDrafts((prev) => ({ ...prev, [fieldId]: event.target.value }))
                         }
-                      }}
-                    />
+                        onBlur={(event) => {
+                          // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
+                          const parsed = normalizeDraftValue(event.target.value);
+                          if (parsed !== null) {
+                            setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
+                          }
+                        }}
+                      />
+                      {/* 参数面单位批（2026-09-12 用户裁定「入批处理」）：grid
+                          档/自由值参数同获单位后缀——此前仅连续区间参数分支
+                          有后缀（C2VD V6 Space.Compact 同制补齐）。 */}
+                      {dimUnit(entry.dim) ? (
+                        <span data-testid={`param-unit-${fieldId}`} style={UNIT_SUFFIX_STYLE}>
+                          {dimUnit(entry.dim)}
+                        </span>
+                      ) : null}
+                    </Space.Compact>
                   )}
                 </div>
                 {/* Q5 grid 档位 chips：点击回填+当前值高亮（≤12 换行/超 12 横滚） */}

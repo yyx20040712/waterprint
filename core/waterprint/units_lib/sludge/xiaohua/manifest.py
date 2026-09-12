@@ -53,6 +53,7 @@ _HB5 = (
     " 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TD = DimKey.TIME_D
 
 # 单位换算常量（工程口径 m³/d、kg/d ↔ 契约口径 m3/s、kg/s）与构造档
 # 步长（池径 0.5 m 档向上取整——表公式表头注记口径；manifest=数值
@@ -75,7 +76,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_total = q_wet * t_digest",
         {
             "q_wet": (_D, "入流湿泥量 m³/d"),
-            "t_digest": (_D, "消化时间 d（参数 t_digest）"),
+            "t_digest": (_TD, "消化时间 d（参数 t_digest）"),
         },
         _D,
         _GB,
@@ -196,7 +197,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_digest",
                 "label_zh": "消化时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_D",
                 "default": 20.0,
                 "range": {"min": 15.0, "max": 30.0},
             },
