@@ -45,7 +45,6 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber";
-import { Button, Space } from "antd";
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
@@ -67,6 +66,7 @@ import { PoolBox } from "./PoolBox";
 import { SiteBoundary } from "./SiteBoundary";
 import { SiteRoutes } from "./SiteRoutes";
 import { TemplateUnit } from "./TemplateUnit";
+import { ViewerToolbar } from "./ViewerToolbar";
 import { WaterSurface } from "./WaterSurface";
 
 // 批3 主体：探针注册（模块级——viewer3d 路由 chunk 载入即挂载；幂等）
@@ -95,13 +95,15 @@ const CAMERA_PRESETS = {
   side: [40, 5, 0] as [number, number, number],
 };
 
-/** C2-3d V1 地面/雾色（场景底=--wp-bg-page 同值 #0b1526——页面边融一致；
- * 网格两色=主格/次格分层——工程参考系 GPS-X 惯例）。 */
-// 批3 首族视觉验收迭代（2026-09-12 用户批注 b）：环境换绿草地——
-// 底色/雾=暗绿（页面 antd 深蓝主题不动，画布=绿世界视口）+网格绿系
-const SCENE_BG = "#0e2415";
-const GRID_MAJOR = "#4a7a5c";
-const GRID_MINOR = "#1f3a28";
+/** C2-3d V1 地面/雾色——批3 迭代二（用户批注 b-①）：绿草地可隐藏图层，
+ * 关=回深蓝工程底（页面 --wp-bg-page 同值 #0b1526）；网格恒蓝系
+ * （绿草地+蓝工程网格——GPS-X 厂区参考系）；
+ * 网格两色=主格/次格分层。缩略图台（ThumbnailStage）恒绿世界底
+ * ——与 PNG 资产同源，不随本图层开关。 */
+const SCENE_BG_GRASS = "#0e2415";
+const SCENE_BG_DARK = "#0b1526";
+const GRID_MAJOR = "#3d619c";
+const GRID_MINOR = "#1b2c49";
 
 /** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
  *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
@@ -218,12 +220,13 @@ export function Scene({
     }
   }, [query.data]);
   const cameraPreset = useViewer3dStore((state) => state.cameraPreset);
-  const setCameraPreset = useViewer3dStore((state) => state.setCameraPreset);
   const clippingEnabled = useViewer3dStore((state) => state.clippingEnabled);
   const clippingHeight = useViewer3dStore((state) => state.clippingHeight);
+  const showGrass = useViewer3dStore((state) => state.showGrass);
   const showWater = useViewer3dStore((state) => state.showWater);
   const showInternals = useViewer3dStore((state) => state.showInternals);
   const showAnnotations = useViewer3dStore((state) => state.showAnnotations);
+  const sceneBg = showGrass ? SCENE_BG_GRASS : SCENE_BG_DARK;
 
   const clippingPlanes = useMemo(() => {
     if (!clippingEnabled) {
@@ -334,28 +337,10 @@ export function Scene({
           </div>
         ) : null;
       })()}
-      {/* ENG6 preset 按钮面：Canvas 前兄弟元素（stale 横幅同形态）——点击
-          驱动 store.cameraPreset（CameraRig effect 负责落机位一次）；当前
-          preset=primary（siteplan 工具栏先例）；四字标签避 antd 两字
-          插空格坑（教训 24）。 */}
-      <Space size="small" wrap style={{ padding: "4px 0" }}>
-        {(
-          [
-            ["iso", "等轴视角"],
-            ["top", "俯视视角"],
-            ["side", "侧视视角"],
-          ] as const
-        ).map(([value, label]) => (
-          <Button
-            key={value}
-            size="small"
-            type={cameraPreset === value ? "primary" : "default"}
-            onClick={() => setCameraPreset(value)}
-          >
-            {label}
-          </Button>
-        ))}
-      </Space>
+      {/* ENG6 工具条（preset 按钮组+图层开关面——批3 迭代二抽件
+          ViewerToolbar[行数预算门 500]；图层开关=用户批注 b-① 草地
+          可隐藏+水面/内部/标注 store 三键同制补 UI 调用方） */}
+      <ViewerToolbar />
       <Canvas
         camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
         shadows
@@ -367,14 +352,14 @@ export function Scene({
         style={{
           height: CANVAS_HEIGHT,
           minHeight: CANVAS_MIN_HEIGHT,
-          background: SCENE_BG,
+          background: sceneBg,
         }}
       >
         {/* C2-3d V1 雾边融：远缘网格/地面淡出至场景底色（近/远=对角线
-            档距——bounds 空零地面时雾不挂） */}
+            档距——bounds 空零地面时雾不挂；批3 迭代二：雾色随草地开关） */}
         {ground !== null && (
           <>
-            <fog attach="fog" args={[SCENE_BG, ground.diagonal * 1.2, ground.diagonal * 3.2]} />
+            <fog attach="fog" args={[sceneBg, ground.diagonal * 1.2, ground.diagonal * 3.2]} />
             <primitive object={lightTarget} />
           </>
         )}
@@ -407,10 +392,10 @@ export function Scene({
           <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
         )}
         <CameraRig preset={cameraPreset} scene={scene} />
-        {/* C2-3d V1 地面（V2 阴影承接面）+双层工程参考网格（主格 10m/
-            次格 2m——GPS-X 厂区参考系；y 分层避 z-fight：地面 -0.02<
-            次格 -0.012<主格 -0.008<条带 0.01） */}
-        {ground !== null && (
+        {/* C2-3d V1 地面（V2 阴影承接面——批3 迭代二：草地=可隐藏图层，
+            关=深蓝工程底+蓝网格恒在；y 分层避 z-fight：地面 -0.02<
+            次格 -0.012<主格 -0.008） */}
+        {ground !== null && showGrass && (
           <>
             <mesh
               position={[ground.centerX, -0.02, ground.centerZ]}
@@ -420,6 +405,10 @@ export function Scene({
               <planeGeometry args={[ground.size, ground.size]} />
               <meshStandardMaterial color="#2e5239" />
             </mesh>
+          </>
+        )}
+        {ground !== null && (
+          <>
             <gridHelper
               args={[ground.size, ground.majorDivisions, GRID_MAJOR, GRID_MAJOR]}
               position={[ground.centerX, -0.008, ground.centerZ]}

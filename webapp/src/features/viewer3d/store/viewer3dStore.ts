@@ -7,19 +7,22 @@
  * 规格说明（FE1 实装 v1）：
  *   - 剖切 clipping plane 参数（enabled+height——Y-up 高度面）与相机位姿
  *     属 view 态，不入 URL/项目文件；
- *   - 显示开关=图层级（水面/内部构件/标注）——渲染密度控制；
+ *   - 显示开关=图层级（草地/水面/内部构件/标注）——渲染密度控制
+ *    （草地=批3 迭代二[用户批注 b-①]：绿草地地面/雾可隐藏，关=回深蓝
+ *     工程底——沿 showWater 先例 toggleLayer 扩位）；
  *   - 禁业务字段（工况/尺寸等数据一律走 useSceneQuery 数据通道）。
  */
 import { create } from "zustand";
 
 export type CameraPreset = "iso" | "top" | "side";
 
-export type Viewer3dLayer = "water" | "internals" | "annotations";
+export type Viewer3dLayer = "grass" | "water" | "internals" | "annotations";
 
 type Viewer3dState = {
   cameraPreset: CameraPreset;
   clippingEnabled: boolean;
   clippingHeight: number;
+  showGrass: boolean;
   showWater: boolean;
   showInternals: boolean;
   showAnnotations: boolean;
@@ -33,6 +36,7 @@ export const useViewer3dStore = create<Viewer3dState>((set) => ({
   cameraPreset: "iso",
   clippingEnabled: false,
   clippingHeight: 0,
+  showGrass: true,
   showWater: true,
   showInternals: true,
   showAnnotations: true,
@@ -41,6 +45,7 @@ export const useViewer3dStore = create<Viewer3dState>((set) => ({
   setClippingHeight: (height) => set({ clippingHeight: height }),
   toggleLayer: (layer) =>
     set((state) => ({
+      showGrass: layer === "grass" ? !state.showGrass : state.showGrass,
       showWater: layer === "water" ? !state.showWater : state.showWater,
       showInternals: layer === "internals" ? !state.showInternals : state.showInternals,
       showAnnotations: layer === "annotations" ? !state.showAnnotations : state.showAnnotations,
