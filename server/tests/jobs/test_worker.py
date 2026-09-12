@@ -144,7 +144,8 @@ def test_enumerate_grid_fields_object_payload(test_settings, tmp_path) -> None: 
     assert all(set(item) == {"key", "dim", "label_zh"} for item in grid_fields)  # 三键恰等
     assert [(item["dim"], item["label_zh"]) for item in grid_fields] == [
         ("DIMENSIONLESS", "池数（格）"),
-        ("DIMENSIONLESS", "运行周期"),
+        # 参数面单位批（2026-09-12 用户裁定）：t_cycle 翻 TIME_H（h 档）
+        ("TIME_H", "运行周期"),
     ]  # manifest 真源投影（dim=DimKey 枚举名；label_zh=C1 填充值）
 
 
