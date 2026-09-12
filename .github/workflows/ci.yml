@@ -57,7 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12", "3.13"]
+        # GOV4 维护小批（2026-09-12 用户裁定）：3.14 入矩阵——本地解释器
+        # 3.14（eba86b8）已是事实主环境，纳入消除「本地绿/CI 红」版本
+        # 盲区面；并行 job 不拖总时长。
+        python-version: ["3.12", "3.13", "3.14"]
     defaults:
       run:
         working-directory: core
