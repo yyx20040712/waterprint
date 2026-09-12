@@ -52,7 +52,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Final
 
 from fastapi import APIRouter, Query, Request, status
 from pydantic import BaseModel, Field
@@ -158,7 +158,7 @@ async def get_task_status(task_id: str, request: Request) -> TaskStatus:
 # PL-03 契约枚举（GOV5·n+42 增量）：trust 端点实际 404（未知项目/
 # 无结果集——行为面已测 test_trust.py 404 家族）——responses 声明使
 # openapi 与行为一致。
-_TRUST_RESPONSES = {
+_TRUST_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
     status.HTTP_404_NOT_FOUND: {
         "model": ErrorResponse,
         "description": "项目不存在或无可信度报告的结果集",
