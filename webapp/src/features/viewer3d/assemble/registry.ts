@@ -21,6 +21,7 @@
  */
 
 import raw from "./registry.json";
+import type { InstanceMode } from "./instanceLayout";
 import type { RatioDomainEntry, TemplateSize } from "./types";
 
 /** equipment 条目（§9；anchor 缺省 aabb_min）。 */
@@ -41,6 +42,9 @@ export type FamilyEntry = {
   readonly ratioDomain: readonly RatioDomainEntry[];
   readonly equipment: Readonly<Record<string, EquipmentEntry>>;
   readonly instanceSpacing: Readonly<Record<string, number | null>>;
+  /** inst 组布局模式（段二 box 族——缺省 ring=辐流立柱零改；
+   *  模式语义=位置推导面，数量恒由场景图 instance_count 提供[P7]。 */
+  readonly instanceModes?: Readonly<Record<string, InstanceMode>>;
   readonly badges: { readonly poolCount: boolean; readonly maintenanceNA: boolean };
   readonly status: "ready" | "pending";
   /** 五步门机器面（宪法 §0.1 视觉资产批）：资产构建日期+三段流审查

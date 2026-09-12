@@ -178,6 +178,19 @@ function CameraRig({ preset, scene }: { preset: CameraPreset; scene: RenderScene
       camera.lookAt(center[0], center[1], center[2]);
     }
   }, [preset, scene, camera, controls]);
+  // 观测面（段二 r3 补正诊断——零生产消费）：camera/controls 引用入 probe
+  useEffect(() => {
+    const w = window as Window & {
+      __probe?: { viewer3d?: { camera?: unknown; controls?: unknown } };
+    };
+    const probe = w.__probe?.viewer3d;
+    if (probe !== undefined) {
+      probe.camera = camera;
+      if (controls !== null) {
+        probe.controls = controls;
+      }
+    }
+  }, [camera, controls]);
   return <orbitControls args={[camera, gl.domElement]} makeDefault />;
 }
 
@@ -346,7 +359,8 @@ export function Scene({
         shadows
         gl={{ localClippingEnabled: clippingEnabled }}
         onCreated={({ gl }) => {
-          // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）
+          // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）；
+          // 相机/controls 观测位归 CameraRig（段二 r3 补正诊断）
           attachGlInfo(gl);
         }}
         style={{

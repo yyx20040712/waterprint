@@ -124,8 +124,30 @@ export class SceneProjectionError extends Error {
   }
 }
 
-function placementsOf(origin: Vec3, count: number, dims: Record<string, number>): Vec3[] {
-  if (count <= 1) {
+/** 节点几何足迹角点（bounds 聚合——段二 r3 补正实拦修复：原聚合只并
+ * placement 点，单池场景[单点 (0,0,0)]bounds 塌缩致相机入池[取景
+ * 距离=对角×1.25 缩到 6.8m]；本 helper 把每 placement 按图元半尺寸扩
+ * 为 AABB 八角——半尺寸取 length/width/depth/diameter 键（缺=0 沿
+ * 点语义——polyline/extrusion 无三维尺寸键时退化旧口径）。 */
+function footprintOfNode(node: RenderNode): Vec3[] {
+  const diameter = node.dims["diameter"] ?? 0;
+  const hx = (node.dims["length"] ?? diameter) / 2;
+  const hy = (node.dims["depth"] ?? 0) / 2;
+  const hz = (node.dims["width"] ?? diameter) / 2;
+  const points: Vec3[] = [];
+  for (const [px, py, pz] of node.placements) {
+    for (const sx of [-hx, hx]) {
+      for (const sy of [-hy, hy]) {
+        for (const sz of [-hz, hz]) {
+          points.push([px + sx, py + sy, pz + sz]);
+        }
+      }
+    }
+  }
+  return points;
+}
+
+function placementsOf(origin: Vec3, count: number, dims: Record<string, number>): Vec3[] {  if (count <= 1) {
     return [origin];
   }
   const cols = Math.ceil(Math.sqrt(count));
@@ -326,15 +348,15 @@ export function projectScene(scene: SceneResponse): RenderScene {
       solids.push(rendered);
     }
   }
-  const boundPoints: Vec3[] = [
-    ...[...solids, ...waters, ...internals].flatMap((node) => node.placements),
-    ...boundaries.flatMap((boundary) =>
-      boundary.points.map(([x, z]): Vec3 => [x, 0, z]),
-    ),
-    ...routes.flatMap((route) =>
-      route.points.map(([x, z]): Vec3 => [x, 0, z]),
-    ),
-  ];
+    const boundPoints: Vec3[] = [
+      ...[...solids, ...waters, ...internals].flatMap(footprintOfNode),
+      ...boundaries.flatMap((boundary) =>
+        boundary.points.map(([x, z]): Vec3 => [x, 0, z]),
+      ),
+      ...routes.flatMap((route) =>
+        route.points.map(([x, z]): Vec3 => [x, 0, z]),
+      ),
+    ];
   return {
     sceneVersion: scene.scene_version,
     conditionKey: scene.condition_key,

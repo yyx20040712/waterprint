@@ -14,16 +14,33 @@ import { fallbackEntries } from "./fallbackLog";
 import { thumbnailCounters } from "./thumbSource";
 import { useViewer3dStore } from "../store/viewer3dStore";
 
-/** 模板实例计数（UnitTemplateInstance 挂载/降级递增——验收读数）。 */
-export const templateCounters = { rendered: 0, fallbackBoxes: 0 };
+/** 模板实例计数（UnitTemplateInstance 挂载/降级递增——验收读数）。
+ *  instancesByPart=inst 组克隆挂载计数（段二 P2/P5 验收——grid/line
+ *  布局实例在场判据；累计口径探针页独立，断言用 ≥ 阈值）。 */
+export const templateCounters = {
+  rendered: 0,
+  fallbackBoxes: 0,
+  instancesRendered: 0,
+  instancesByPart: {} as Record<string, number>,
+};
+
+/** inst 克隆挂载计数（TemplateUnit 挂载 effect 消费——观测面）。 */
+export function noteInstances(part: string, count: number): void {
+  templateCounters.instancesRendered += count;
+  templateCounters.instancesByPart[part] =
+    (templateCounters.instancesByPart[part] ?? 0) + count;
+}
 
 export type Viewer3dProbe = {
   templates: typeof templateCounters;
   fallbacks: () => ReturnType<typeof fallbackEntries>;
   thumbnailFallbacks: typeof thumbnailCounters;
   glInfo: { render: { calls: number; triangles: number } } | null;
-  /** 验收驱动位（§12.3 剖切无 UI 控件——S5 半剖工况探针直驱 store）。 */
+  /** 验收驱动位（§12.3 剖切无 UI 控件——S5 半剖工况探针直驱 store；
+   *  段二 r3 补正：相机档位直驱——单池场景 iso 档取景偏远裁切，探针
+   *  需 top 俯视全幅帧作证据件）。 */
   setClipping: (enabled: boolean, height: number) => void;
+  setCameraPreset: (preset: "iso" | "top" | "side") => void;
 };
 
 declare global {
@@ -49,6 +66,9 @@ export function registerProbe(): void {
     glInfo: null,
     setClipping: (enabled: boolean, height: number) => {
       useViewer3dStore.setState({ clippingEnabled: enabled, clippingHeight: height });
+    },
+    setCameraPreset: (preset: "iso" | "top" | "side") => {
+      useViewer3dStore.setState({ cameraPreset: preset });
     },
   };
   (w.__probe as Record<string, unknown>).viewer3d = probe;

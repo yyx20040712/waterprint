@@ -1,7 +1,8 @@
-"""模板 glb 导出（spec §10 Blender 导出规约——批3 主体）。
+"""模板 glb 导出（spec §10 Blender 导出规约——批3 主体；段二 family 参数化）。
 
-输入:  build/clarifier_radial.blend（build_clarifier_radial.py 产物）
-输出:  build/clarifier_radial.raw.glb（meshopt 压缩前——压缩归资产工序
+输入:  build/<family>.blend（build_*.py 产物——FAMILY 环境变量选族，
+        缺省 clarifier_radial[辐流已冻结资产——重跑产物应逐字节等价]）
+输出:  build/<family>.raw.glb（meshopt 压缩前——压缩归资产工序
         gltf-transform，见 tools/blender/README.md）
 
 规格说明（spec §10）：
@@ -16,6 +17,7 @@
 from __future__ import annotations
 
 import json
+import os
 import struct
 import sys
 from pathlib import Path
@@ -23,6 +25,7 @@ from pathlib import Path
 import bpy
 
 BUILD = Path(__file__).resolve().parent / "build"
+FAMILY = os.environ.get("FAMILY", "clarifier_radial")
 
 
 def _template_objects() -> list[bpy.types.Object]:
@@ -36,13 +39,16 @@ def _template_objects() -> list[bpy.types.Object]:
 
 
 def export() -> None:
-    blend = BUILD / "clarifier_radial.blend"
+    blend = BUILD / f"{FAMILY}.blend"
+    if not blend.exists():
+        print(f"[ERROR] blend 不在场：{blend}（先跑 build 脚本）", file=sys.stderr)
+        raise SystemExit(2)
     bpy.ops.wm.open_mainfile(filepath=str(blend))
     objects = _template_objects()
     bpy.ops.object.select_all(action="DESELECT")
     for obj in objects:
         obj.select_set(True)
-    out = BUILD / "clarifier_radial.raw.glb"
+    out = BUILD / f"{FAMILY}.raw.glb"
     bpy.ops.export_scene.gltf(
         filepath=str(out),
         export_format="GLB",

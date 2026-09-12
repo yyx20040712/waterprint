@@ -33,11 +33,11 @@
 | `assemble/deviation.ts` | 批3 首件：比例域降级判定（非正尺寸/逐条目闭域判定→fallback 结果对象零异常——两层分工：数据级决策在此、数学核 throw=漏裁防线） |
 | `assemble/computeTransforms.test.ts` | 批3 首件冻结单测（19 例）：轴对应表/壳缩放轴序三值互异/projectScene 实跑轴映射跨面对拍/S2-② H=3/6 栏杆极端算例（锚定+截面恒定全数值锚）/equipment 保圆+S3 数据链/S6 行列式恒正/instance 越权拒（P7） |
 | `assemble/deviation.test.ts` | 批3 首件冻结单测（8 例）：域内/闭域边界恰等/出域明细数值/非正尺寸/多条目遍历/空表无约束 |
-| `assemble/registry.json` | 批3 主体（2026-09-12）：registry 数据真源 v1（§9 schema——unit_id 键→族条目：family/prefix/glb/thumb/dimSource/templateSize/ratioDomain/equipment/instanceSpacing/badges/status；辐流首条目 clarifier_radial Φ40×4+域 L/H[4,14]+equipment 三件+立柱间距 1.5m）——check_templates.mjs 语法/资产在场门校验对象 |
-| `assemble/registry.ts` | 批3 主体：registry typed 视图（FamilyEntry/EquipmentEntry+familyForUnit/isReady——actualFactor=×L 主轴派生口径；pending=缺资产合法降级不登记） |
+| `assemble/registry.json` | 批3 主体（2026-09-12；段二 2026-09-13 扩三族）：registry 数据真源 v1（§9 schema——unit_id 键→族条目：family/prefix/glb/thumb/dimSource/templateSize/ratioDomain/equipment/instanceSpacing[+段二 instanceModes 布局模式]/badges/status/built/designReview；三族=辐流 clarifier_radial Φ40×4+域 L/H[4,14]/AAO aao_corridor 95×38×5.3+域 L/W[1.5,15][段二实测锚定——P2 签核 [6,15] 与单 box 整池取数冲突适配记档]/CASS cass_batch 48.5×19.5×5.5+域 L/W[1.5,8][同窗]）——check_templates.mjs 语法/资产在场门校验对象 |
+| `assemble/registry.ts` | 批3 主体（段二扩 instanceModes 类型）：registry typed 视图（FamilyEntry/EquipmentEntry+familyForUnit/isReady——actualFactor=×L 主轴派生口径；pending=缺资产合法降级不登记） |
 | `assemble/groupScan.ts` | 批3 主体：模板扫描层（§3/§10——glTF 节点树规约名解析[前缀门/组词表归一/掩码 y↔z 换轴/__nc]+世界 AABB 锚点派生[trim=AABB min/equipment=registry 语义锚/inst=基座位]；量化重定心补偿后世界位不变——锚点恒用世界 AABB 勿读节点 TRS 裸值） |
 | `assemble/templateAssembly.ts` | 批3 主体：装配计划派生（§3/§5/§6——deviation 判定→shellScale+groupTransform 统一公式产出；equipment actual=actualFactor×L→u 等比；数学核异常收编 fallback[assemble_error]；instance 组不经[P7]） |
-| `assemble/instanceLayout.ts` | 批3 主体：inst 组布局（P7 已裁——数量唯一真源=场景图 instance_count，无值 skipped 不渲染禁推导；位姿=统一公式 σ=𝟙 形 anchor⊙s 环均布） |
+| `assemble/instanceLayout.ts` | 批3 主体（段二扩四模式）：inst 组布局（P7 已裁——数量唯一真源=场景图 instance_count，无值 skipped 不渲染禁推导；位姿=统一公式 σ=𝟙 形 anchor⊙s；模式=ring[辐流立柱缺省]/grid[AAO·CASS 曝气头 0.8m 网格——包络行列居中行优先]/line_x·line_z[滗水器线列——正交轴原型中心]/rect[box 族走道立柱——周界弧长步进]；spacing 病=bad_spacing skipped 登记） |
 | `assemble/loader.ts` | 批3 主体：模板资产加载器（GLTFLoader+MeshoptDecoder 动态 import[chunk 零成本]+族级 Promise 缓存；失败不缓存自愈重试） |
 | `assemble/fallbackLog.ts` | 批3 主体：降级登记簿（铁律 5 不静默——环形 200 条；probe/测试消费；合法态不登记[pending/无条目]） |
 | `assemble/thumbSource.ts` | 批3 主体：S9 PNG-first 缩略图源（registry ready 族静态 PNG 先取——命中省离屏渲染；失败计数 pngMisses/realtimeSwitches→C2-thumb 实时后备[顺序队列并发 1 ≤2 合规]） |

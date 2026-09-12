@@ -50,6 +50,103 @@
       "status": "ready",
       "built": "2026-09-13",
       "designReview": "2026-09-13"
+    },
+    "municipal_aao": {
+      "family": "aao_corridor",
+      "prefix": "aao",
+      "glb": "/assets/units/aao_corridor.glb",
+      "thumb": "/assets/units/aao_corridor.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 95,
+        "W0": 38,
+        "H0": 5.3
+      },
+      "ratioDomain": [
+        {
+          "key": "aao_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 15
+        }
+      ],
+      "equipment": {
+        "mixer_mount_ana": {
+          "templateFeature": 4.75,
+          "actualFactor": 0.05,
+          "anchor": "aabb_min"
+        },
+        "mixer_mount_anox": {
+          "templateFeature": 4.75,
+          "actualFactor": 0.05,
+          "anchor": "aabb_min"
+        }
+      },
+      "instanceSpacing": {
+        "aerator": 0.8,
+        "rail_post": 3.5
+      },
+      "instanceModes": {
+        "aerator": "grid",
+        "rail_post": "rect"
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_cass": {
+      "family": "cass_batch",
+      "prefix": "cass",
+      "glb": "/assets/units/cass_batch.glb",
+      "thumb": "/assets/units/cass_batch.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 48.5,
+        "W0": 19.5,
+        "H0": 5.5
+      },
+      "ratioDomain": [
+        {
+          "key": "cass_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 8
+        }
+      ],
+      "equipment": {
+        "mixer_mount": {
+          "templateFeature": 2.425,
+          "actualFactor": 0.05,
+          "anchor": "aabb_min"
+        }
+      },
+      "instanceSpacing": {
+        "decant": 7.5,
+        "aerator": 0.8,
+        "rail_post": 3.5
+      },
+      "instanceModes": {
+        "decant": "line_z",
+        "aerator": "grid",
+        "rail_post": "rect"
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
     }
   }
 }

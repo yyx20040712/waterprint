@@ -32,7 +32,8 @@ import { logFallback } from "../assemble/fallbackLog";
 import type { FamilyEntry } from "../assemble/registry";
 import { assemblePlan } from "../assemble/templateAssembly";
 import { sceneDimsToTarget } from "../assemble/computeTransforms";
-import { templateCounters } from "../assemble/probe";
+import { templateCounters, noteInstances } from "../assemble/probe";
+import { strippedClone } from "../assemble/strippedClone";
 import type { Vec3 } from "../assemble/types";
 import type { RenderNode, RenderScene } from "../lib/projectScene";
 import { PoolBox } from "./PoolBox";
@@ -127,6 +128,8 @@ export function TemplateUnit(props: TemplateUnitProps) {
   }, [tpl, clippingPlanes]);
 
   // inst 组布局（P7）——数量源=场景图；无值不渲染+登记（一次性）。
+  // 段二：registry instanceModes/instanceSpacing 声明布局模式与点距
+  // （缺省 ring=辐流立柱；grid/line/rect=box 族位置推导面——数量不推导）。
   const instGroups = useMemo(() => {
     if (tpl === null || plan === null || plan.kind !== "template") {
       return [];
@@ -137,19 +140,33 @@ export function TemplateUnit(props: TemplateUnitProps) {
         continue;
       }
       const count = sceneInstanceCount(scene, unitId, proto.part);
-      const layout = instanceLayout(proto.aabb, count, plan.shell);
+      const layout = instanceLayout(proto.aabb, count, plan.shell, {
+        mode: entry.instanceModes?.[proto.part],
+        spacing: entry.instanceSpacing[proto.part] ?? undefined,
+        envelope: { L0: entry.templateSize.L0, W0: entry.templateSize.W0 },
+      });
       if (layout.kind === "skipped") {
         logFallback(
           unitId,
-          "instance_no_scene_count",
-          `${proto.part}——P7：数量唯一真源=场景图 instance_count`,
+          layout.reason === "bad_spacing"
+            ? "instance_bad_spacing"
+            : "instance_no_scene_count",
+          layout.reason === "bad_spacing"
+            ? `${proto.part}——instanceSpacing 声明病（非 ring 模式须正间距）`
+            : `${proto.part}——P7：数量唯一真源=场景图 instance_count`,
         );
         continue;
       }
       laid.push({ proto, positions: layout.positions });
     }
     return laid;
-  }, [tpl, plan, scene, unitId]);
+  }, [tpl, plan, scene, unitId, entry]);
+
+  useEffect(() => {
+    for (const { proto, positions } of instGroups) {
+      noteInstances(proto.part, positions.length);
+    }
+  }, [instGroups]);
 
   useEffect(() => {
     if (plan !== null && plan.kind === "template") {
@@ -185,7 +202,11 @@ export function TemplateUnit(props: TemplateUnitProps) {
           {instGroups.map(({ proto, positions }) =>
             positions.map((position, i) => (
               <group key={`${proto.name}:${i}`} position={toThree(position)}>
-                <primitive object={proto.object.clone()} />
+                {/* 布局位置=绝对模板位（几何中心语义）——clone 清
+                    position 保 scale/rotation（量化补偿——门二 P0）；
+                    辐流立柱数据面恒 skipped[P7]，本路径段二 CASS 滗水器
+                    首次真实消费 */}
+                <primitive object={strippedClone(proto.object)} />
               </group>
             )),
           )}
@@ -206,6 +227,7 @@ export function TemplateUnit(props: TemplateUnitProps) {
 function toThree(v: Vec3): [number, number, number] {
   return [v[0], v[1], v[2]];
 }
+
 
 /** 加载期/失败原语保持（多 placement 同构——placement 外包 group）。 */
 function PrimitiveFallback({

@@ -251,15 +251,14 @@ describe("Internals 图元选择（dims 键驱动——FE1 M2）", () => {
 // ═══ UX2 U2（取景自适应 2026-08-30）：bounds 聚合 TDD 红先——AABB 全
 // placements（solids+waters+internals）；机位薄壳不测（app 层惯例） ═══
 describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", () => {
-  it("数值锚：fixture 全 placements 的 AABB（含 internals 摆置极值，换轴后世界系）", () => {
+  it("数值锚：fixture 全足迹 AABB（placement±图元半尺寸——段二 r3 补正翻案）", () => {
     const out = projectScene(fixture() as never);
-    // 换轴后世界系（y=标高槽=source z、z=−北槽）：y max=1（aerator 标高
-    // 槽=source z=1）、z 极值 ±0.5（aerator 12 实例方阵 z=−0.5+row*0.5
-    // 至 0.5）；x 极值=chan-1 的 30；y min=0（池体/水面标高槽全 0——
-    // surf source y=0.1/ground −0.01 归世界 z=−0.1/0.01 在 z 极值内）。
+    // bounds=几何足迹角点 ∪（段二修复：原只并 placement 点，单池场景
+    // bounds 塌缩致相机入池——r3 补正实拦）；数值=fixture 各节点
+    // 半尺寸展开后极值（chan-1 足迹 30+半宽等——实测锚）。
     expect(out.bounds).toEqual({
-      min: [0, 0, -0.5],
-      max: [30, 1, 0.5],
+      min: [-25, -2, -14.99],
+      max: [34, 2, 15.01],
     });
   });
 
@@ -268,7 +267,7 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
     expect(out.bounds).toBeNull();
   });
 
-  it("单节点场景 bounds=该 placement 的退化盒（min=max，换轴后世界系）", () => {
+  it("单节点场景 bounds=足迹盒（placement±半尺寸——段二翻案：非退化点盒）", () => {
     const nodes: FixtureNode[] = [
       {
         node_id: "solo-1",
@@ -278,7 +277,7 @@ describe("UX2 projectScene：bounds 聚合（全 placements AABB——D5）", ()
       },
     ];
     const out = projectScene(fixture({ nodes, root: ["solo-1"] }) as never);
-    expect(out.bounds).toEqual({ min: [5, -3, -2], max: [5, -3, -2] });
+    expect(out.bounds).toEqual({ min: [4.5, -3.5, -2.5], max: [5.5, -2.5, -1.5] });
   });
 });
 

@@ -57,7 +57,24 @@ describe("registry 数据面（§9 schema v1+资产在场+预算门）", () => {
     expect(ENTRY.status).toBe("ready");
   });
   it("familyForUnit 未登记单元=null", () => {
-    expect(familyForUnit("municipal_aao")).toBeNull();
+    expect(familyForUnit("municipal_gaomidu")).toBeNull();
+  });
+  it("段二双族条目（AAO/CASS——box 取数+恒等锚 templateSize）", () => {
+    const aao = familyForUnit("municipal_aao");
+    expect(aao).not.toBeNull();
+    expect(aao?.family).toBe("aao_corridor");
+    expect(aao?.dimSource.primitiveKind).toBe("box");
+    expect(aao?.templateSize).toEqual({ L0: 95, W0: 38, H0: 5.3 });
+    expect(aao?.instanceModes).toEqual({ aerator: "grid", rail_post: "rect" });
+    const cass = familyForUnit("municipal_cass");
+    expect(cass?.family).toBe("cass_batch");
+    expect(cass?.templateSize).toEqual({ L0: 48.5, W0: 19.5, H0: 5.5 });
+    expect(cass?.instanceModes?.["decant"]).toBe("line_z");
+    // 资产在场+预算（段二两族同门）
+    for (const fam of ["aao_corridor", "cass_batch"]) {
+      expect(statSync(join(ASSET_DIR, `${fam}.glb`)).size).toBeLessThanOrEqual(150 * 1024);
+      expect(statSync(join(ASSET_DIR, `${fam}.png`)).size).toBeLessThanOrEqual(80 * 1024);
+    }
   });
   it("资产在场+预算（glb ≤150KB/PNG ≤80KB——Kimi §1.5）", () => {
     const glb = join(ASSET_DIR, "clarifier_radial.glb");
