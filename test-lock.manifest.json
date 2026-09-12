@@ -251,7 +251,7 @@
   "server/tests/services/test_calculation.py": "a3c887be501d44996f54293d945f126a1c2a34df43fe694ffd88482d5f5cc5c1",
   "server/tests/services/test_constraints.py": "ab45652c1b6606d12fedec3bb74e369bbf5057039e79c38ead1d5d63d13ad839",
   "server/tests/services/test_design_digest_mirror.py": "1ea829129318f8744037955ee3aba8213e5b0184239210535f630a7aa02ef4f0",
-  "server/tests/services/test_enumeration.py": "66c30ad6053c32d505b7c6c6969d697f33312ce7b4821738db9a997940f28a09",
+  "server/tests/services/test_enumeration.py": "fa9aa8b7f3eb9b99b51fd53c4ee4b688b20ed9cf72adc4ed5e73d5c5641acfbf",
   "server/tests/services/test_exports.py": "897ada8d7d69115a575246c9a49bf12a2ca29a1ad74182f9e3564b546be12cfd",
   "server/tests/services/test_exports_download.py": "a26e6353cf109a492ca82e9d87553b582c80705b469575f81421e03d8bcbe817",
   "server/tests/services/test_exports_dwg.py": "f4bbe363273c975d95037c9a29de7c279d67ad8462ed2eabeda419bfee353ae7",
