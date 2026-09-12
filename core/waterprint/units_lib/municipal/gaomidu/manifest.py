@@ -70,6 +70,7 @@ _HB = (
     "（docs/norms/gaomidu.md 起草表 2026-08-25，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMIN = DimKey.TIME_MIN
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -119,14 +120,14 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
         "GM-F6",
         "v_mix = q1h * t_mix / 60",
-        {"q1h": (_D, "单池流量 m3/h"), "t_mix": (_D, "快速混合停留时间 min（参数 t_mix）")},
+        {"q1h": (_D, "单池流量 m3/h"), "t_mix": (_TMIN, "快速混合停留时间 min（参数 t_mix）")},
         _VOL,
         _HB,
     ),
     FormulaSpec(
         "GM-F7",
         "v_floc = q1h * t_floc / 60",
-        {"q1h": (_D, "单池流量 m3/h"), "t_floc": (_D, "絮凝停留时间 min（参数 t_floc）")},
+        {"q1h": (_D, "单池流量 m3/h"), "t_floc": (_TMIN, "絮凝停留时间 min（参数 t_floc）")},
         _VOL,
         _HB,
     ),
@@ -153,7 +154,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
         "GM-F10",
         "gt_floc = g_floc * t_floc * 60",
-        {"g_floc": (_D, "絮凝速度梯度 s-1"), "t_floc": (_D, "絮凝停留时间 min（参数 t_floc）")},
+        {"g_floc": (_D, "絮凝速度梯度 s-1"), "t_floc": (_TMIN, "絮凝停留时间 min（参数 t_floc）")},
         _D,
         _HB,
     ),
@@ -296,14 +297,14 @@ manifest = load_manifest(
             {
                 "field_id": "t_mix",
                 "label_zh": "快速混合停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
             {
                 "field_id": "t_floc",
                 "label_zh": "絮凝停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 12.0,
                 "range": {"min": 8.0, "max": 15.0},
             },

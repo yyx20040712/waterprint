@@ -75,6 +75,11 @@
     manifest params+公式输入槽同翻；min 族 8 处与温度 2 处无贴切档
     维持 DIMENSIONLESS 记档）；FE ParamForm 非 continuous 分支补
     单位后缀（grid 档/自由值参数同获后缀——此前仅连续区间参数有）。
+    **同制补齐批（同日批尾续三末，用户裁定「同制补齐」）**：+TIME_MIN
+    （min）/TEMPERATURE（degC——FE 显示 ℃ 美化；pint 偏移单位
+    parse 恒等路径实测可用）两成员，min 族 5 键 8 处（t_mix/t_floc/
+    t_seed/t_ripen/t_well）与温度 2 处（t_design/t_digest_temp）三面
+    同翻——时序/温度参数 DIMENSIONLESS 裸值口径全面终结。
 - 细化归属：core 枚举全工况（app.py 循环 + app_enumeration 抽件）→
   server compare 端点与 worker 载荷与 ViewState.compare 字段 → webapp
   对比 pane/工况校核面板/锁定横幅/rowKey 修复；测试三层新件 +

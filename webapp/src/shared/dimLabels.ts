@@ -2,7 +2,7 @@
  * 量纲显示映射：DimKey 枚举 →（中文量名, 单位符号）。
  *
  * 输入:  entry.dim 字符串（/api/units params 与结果载荷的 DimKey 枚举名——
- *        core contracts/quantity.py DimKey 13 成员）
+ *        core contracts/quantity.py DimKey 15 成员）
  * 输出:  dimLabel(dim) → 中文量名+单位符号显示串（如 FLOW→「流量 m³/d」）；
  *        未知枚举原样返回（诚实呈现不猜语义——与 STAGE_LABELS 同口径）
  *
@@ -17,9 +17,9 @@
 /** 量纲条目：中文量名 + 单位符号（DIMENSIONLESS 单位串为空）。 */
 export type DimLabel = { name: string; unit: string };
 
-/** DimKey → 显示条目（13 成员全量——core quantity.py CANONICAL_UNITS 镜像；
- * DimKey 扩成员批 2026-09-12：+TIME_H/TIME_D/FLOW_H 刻度档——HRT/泥龄/
- * 滗水流量工程显示口径，单位符号随 core 真源零换算）。 */
+/** DimKey → 显示条目（15 成员全量——core quantity.py CANONICAL_UNITS 镜像；
+ * DimKey 扩成员批 2026-09-12：+TIME_H/TIME_D/FLOW_H 刻度档；参数面单位批
+ * 同制补齐：+TIME_MIN/TEMPERATURE——degC→℃ 纯显示层美化，零换算）。 */
 const DIM_LABELS: Record<string, DimLabel> = {
   FLOW: { name: "流量", unit: "m³/d" },
   FLOW_H: { name: "流量", unit: "m³/h" },
@@ -30,9 +30,11 @@ const DIM_LABELS: Record<string, DimLabel> = {
   MASS: { name: "质量", unit: "kg" },
   TIME: { name: "时间", unit: "s" },
   TIME_H: { name: "时间", unit: "h" },
+  TIME_MIN: { name: "时间", unit: "min" },
   TIME_D: { name: "时间", unit: "d" },
   VELOCITY: { name: "流速", unit: "m/s" },
   POWER: { name: "功率", unit: "W" },
+  TEMPERATURE: { name: "温度", unit: "℃" },
   DIMENSIONLESS: { name: "无量纲", unit: "" },
 };
 

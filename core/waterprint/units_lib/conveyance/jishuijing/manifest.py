@@ -48,6 +48,7 @@ _HB = (
     " 起草表 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMIN = DimKey.TIME_MIN
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -60,7 +61,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_well = q_design * 60 * t_well",
         {
             "q_design": (_F, "最高时设计流量 m3/s（入流 flow.q_design）"),
-            "t_well": (_D, "汇流停留时间 min（参数 t_well，×60 折 s 入式）"),
+            "t_well": (_TMIN, "汇流停留时间 min（参数 t_well，×60 折 s 入式）"),
         },
         _VOL,
         f"{_GB61}；{_HB}",
@@ -146,7 +147,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_well",
                 "label_zh": "汇流停留时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 5.0,
                 "range": {"min": 2.0, "max": 10.0},
             },

@@ -10,14 +10,18 @@
 #   + tests/contracts/properties_quantity.py；白名单锁定测试挂人类解锁批 U-C2）
 #
 # 【公开接口】
-#   class DimKey(StrEnum)        量类枚举（13 成员，值=成员名 ASCII；
+#   class DimKey(StrEnum)        量类枚举（15 成员，值=成员名 ASCII；
 #                                签名基型 (str, Enum) 按 ruff UP042 升格为
 #                                其 3.12 规范形态 StrEnum，语义等价）：
-#                                FLOW/FLOW_H/CONCENTRATION/LENGTH/AREA/VOLUME/
-#                                MASS/TIME/TIME_H/TIME_D/VELOCITY/POWER/
-#                                DIMENSIONLESS（DimKey 扩成员批 2026-09-12
-#                                用户裁定「HRT/泥龄应显示单位」：+TIME_H h/
-#                                TIME_D d/FLOW_H m3/h——同量纲异规范刻度档，
+#                                FLOW/FLOW_H/CONCENTRATION/LENGTH/AREA/
+#                                VOLUME/MASS/TIME/TIME_H/TIME_MIN/TIME_D/
+#                                VELOCITY/POWER/TEMPERATURE/DIMENSIONLESS
+#                                （DimKey 扩成员批 2026-09-12 用户裁定
+#                                「HRT/泥龄应显示单位」：+TIME_H h/TIME_D d/
+#                                FLOW_H m3/h——同量纲异规范刻度档；参数面
+#                                单位批同制补齐（同日批尾续三）：+TIME_MIN
+#                                min（快混/絮凝/熟化/集水井调节族）/
+#                                TEMPERATURE degC（设计水温/消化温度）——
 #                                声明显示面无贴切档的次害选择终结）
 #   class Quantity               (magnitude: float, unit: str) 不可变哑值对象：
 #                                构造不校验单位、不换算（校验/换算只发生在 parse）
@@ -44,21 +48,24 @@
 #     LENGTH        {"m", "mm"}
 #     AREA          {"m2"}            VOLUME {"m3"}       MASS {"kg"}
 #     TIME          {"s"}             TIME_H {"h"}        TIME_D {"d"}
+#     TIME_MIN      {"min"}           （参数面单位批同制补齐 2026-09-12）
 #     VELOCITY      {"m/s"}           POWER {"W"}
+#     TEMPERATURE   {"degC"}          （同上——℃ 为 FE 显示层美化）
 #     DIMENSIONLESS {""}
 #   规范串本身天然合法（均为接受集成员）。
 #   DimKey 扩成员批（2026-09-12 用户裁定）注记：TIME_H/TIME_D/FLOW_H 为
 #   同量纲异规范刻度档（h/d/m3/h——工程显示口径；pint 量纲校验与 TIME/
-#   FLOW 同维，刻度=规范单位表口径）。pint 原生别名 h=hour/d=day（实测
-#   0.25.3），无 ureg.define 需求。
+#   FLOW 同维，刻度=规范单位表口径）。pint 原生别名 h=hour/d=day/min=
+#   minute/degC（实测 0.25.3），无 ureg.define 需求。
 #
 # 【行为规格】
 #   R1 规范单位表（锁定三项 + 评审补充七项，与 registry/dimensions.py 一致；
-#      DimKey 扩成员批 2026-09-12 +3 刻度档）：
+#      DimKey 扩成员批 2026-09-12 +3 刻度档；参数面单位批同制补齐 +2）：
 #      FLOW→"m3/s"，FLOW_H→"m3/h"，CONCENTRATION→"mg/L"，LENGTH→"m"（重写计划
 #      §12.1 明示三项）；AREA→"m2"，VOLUME→"m3"，MASS→"kg"，TIME→"s"，
-#      TIME_H→"h"，TIME_D→"d"，VELOCITY→"m/s"，POWER→"W"（SI 口径，kW 属
-#      显示层），DIMENSIONLESS→""。
+#      TIME_H→"h"，TIME_MIN→"min"，TIME_D→"d"，VELOCITY→"m/s"，POWER→"W"
+#      （SI 口径，kW 属显示层），TEMPERATURE→"degC"（℃ 属显示层），
+#      DIMENSIONLESS→""。
 #   R2 换算必须经 pint 完成，禁止手写换算系数；1 m3/d == 1/86400 m3/s、
 #      1 mg/L == 1 g/m3 等换算正确性由性质测试覆盖（往返/结合律）。
 #      换算因子按 (unit, canonical) 维度 lru_cache——parse 只在边界，
@@ -119,6 +126,9 @@ class DimKey(StrEnum):
     规范 m3/s 会呈现错误单位），声明面退 DIMENSIONLESS=「无单位显示」
     次害选择；扩档后三写面（公式表 output_dim/projection dim_of/
     out_dims）归位真刻度。
+    参数面单位批同制补齐（同日批尾续三，用户裁定「同制补齐」）：
+    TIME_MIN（min——快混/絮凝/熟化/集水井调节族）与 TEMPERATURE
+    （degC——设计水温/消化温度）同理入册。
     """
 
     FLOW = "FLOW"
@@ -130,9 +140,11 @@ class DimKey(StrEnum):
     MASS = "MASS"
     TIME = "TIME"
     TIME_H = "TIME_H"
+    TIME_MIN = "TIME_MIN"
     TIME_D = "TIME_D"
     VELOCITY = "VELOCITY"
     POWER = "POWER"
+    TEMPERATURE = "TEMPERATURE"
     DIMENSIONLESS = "DIMENSIONLESS"
 
 
@@ -154,9 +166,11 @@ CANONICAL_UNITS: dict[DimKey, str] = {
     DimKey.MASS: "kg",
     DimKey.TIME: "s",
     DimKey.TIME_H: "h",
+    DimKey.TIME_MIN: "min",
     DimKey.TIME_D: "d",
     DimKey.VELOCITY: "m/s",
     DimKey.POWER: "W",
+    DimKey.TEMPERATURE: "degC",
     DimKey.DIMENSIONLESS: "",
 }
 
@@ -170,9 +184,11 @@ ACCEPTED_INPUT_UNITS: dict[DimKey, frozenset[str]] = {
     DimKey.MASS: frozenset({"kg"}),
     DimKey.TIME: frozenset({"s"}),
     DimKey.TIME_H: frozenset({"h"}),
+    DimKey.TIME_MIN: frozenset({"min"}),
     DimKey.TIME_D: frozenset({"d"}),
     DimKey.VELOCITY: frozenset({"m/s"}),
     DimKey.POWER: frozenset({"W"}),
+    DimKey.TEMPERATURE: frozenset({"degC"}),
     DimKey.DIMENSIONLESS: frozenset({""}),
 }
 

@@ -59,6 +59,7 @@ _ADR = (
     "2026-08-22；偏差>20% 出警告提示核对 SS/BOD 比）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMP = DimKey.TEMPERATURE
 
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
@@ -160,7 +161,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         {
             "k_d20": (_D, "自身氧化率 Kd@20℃ d⁻¹（factor.hebing.k_decay20）"),
             "theta_kd": (_D, "Kd 温度修正系数 θ（factor.hebing.theta_kd）"),
-            "t_design": (_D, "设计水温 ℃（参数 t_design，20=修正基准）"),
+            "t_design": (_TMP, "设计水温 ℃（参数 t_design，20=修正基准）"),
         },
         _D,
         _HB,
@@ -304,7 +305,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_design",
                 "label_zh": "设计水温",
-                "dim": "DIMENSIONLESS",
+                "dim": "TEMPERATURE",
                 "default": 15.0,
             },
         ],

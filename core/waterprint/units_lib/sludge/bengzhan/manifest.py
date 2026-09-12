@@ -52,6 +52,7 @@ _HB5 = (
     " 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMIN = DimKey.TIME_MIN
 
 # 单位换算常量（工程口径 m³/d、kg/d ↔ 契约口径 m3/s、kg/s）与构造档
 # 步长（出泥管径 DN25=0.025 m 档向上取整——表公式表头注记口径；
@@ -177,7 +178,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_well = q_pump_si * 60 * t_well",
         {
             "q_pump_si": (_D, "最大一台泵秒流量 m³/s（BZ-F4）"),
-            "t_well": (_D, "集泥井调节时间 min（参数 t_well）"),
+            "t_well": (_TMIN, "集泥井调节时间 min（参数 t_well）"),
         },
         _D,
         _GB,
@@ -273,7 +274,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_well",
                 "label_zh": "集泥井调节时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 10.0,
                 "range": {"min": 5.0, "max": 15.0},
             },

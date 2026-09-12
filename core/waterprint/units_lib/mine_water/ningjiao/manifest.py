@@ -54,6 +54,7 @@ _HB = (
     " 起草表 2026-08-27，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMIN = DimKey.TIME_MIN
 _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
@@ -68,7 +69,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
                 _F,
                 "最高时设计流量 m3/s（×3600 转 m3/h 口径——表内 q1=q_design_h/n 展开内联）",
             ),
-            "t_mix": (_D, "混合区停留 min（参数 t_mix，÷60 折 h 入式）"),
+            "t_mix": (_TMIN, "混合区停留 min（参数 t_mix，÷60 折 h 入式）"),
             "n": (_D, "池数"),
         },
         _VOL,
@@ -79,7 +80,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v2 = q_design * 3600 * t_seed / (60 * n)",
         {
             "q_design": (_F, "最高时设计流量 m3/s（×3600 转 m3/h 口径）"),
-            "t_seed": (_D, "磁种混合区停留 min（参数 t_seed）"),
+            "t_seed": (_TMIN, "磁种混合区停留 min（参数 t_seed）"),
             "n": (_D, "池数"),
         },
         _VOL,
@@ -90,7 +91,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v3 = q_design * 3600 * t_floc / (60 * n)",
         {
             "q_design": (_F, "最高时设计流量 m3/s（×3600 转 m3/h 口径）"),
-            "t_floc": (_D, "絮凝区停留 min（参数 t_floc）"),
+            "t_floc": (_TMIN, "絮凝区停留 min（参数 t_floc）"),
             "n": (_D, "池数"),
         },
         _VOL,
@@ -101,7 +102,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v4 = q_design * 3600 * t_ripen / (60 * n)",
         {
             "q_design": (_F, "最高时设计流量 m3/s（×3600 转 m3/h 口径）"),
-            "t_ripen": (_D, "熟化区停留 min（参数 t_ripen）"),
+            "t_ripen": (_TMIN, "熟化区停留 min（参数 t_ripen）"),
             "n": (_D, "池数"),
         },
         _VOL,
@@ -169,13 +170,13 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         ),
         {
             "g_mix": (_D, "混合区速度梯度 s⁻¹（factor.mine_ningjiao.g_mix）"),
-            "t_mix": (_D, "混合区停留 min（参数 t_mix）"),
+            "t_mix": (_TMIN, "混合区停留 min（参数 t_mix）"),
             "g_seed": (_D, "磁种混合区速度梯度 s⁻¹（factor.mine_ningjiao.g_seed）"),
-            "t_seed": (_D, "磁种混合区停留 min（参数 t_seed）"),
+            "t_seed": (_TMIN, "磁种混合区停留 min（参数 t_seed）"),
             "g_floc": (_D, "絮凝区速度梯度 s⁻¹（factor.mine_ningjiao.g_floc）"),
-            "t_floc": (_D, "絮凝区停留 min（参数 t_floc）"),
+            "t_floc": (_TMIN, "絮凝区停留 min（参数 t_floc）"),
             "g_ripen": (_D, "熟化区速度梯度 s⁻¹（factor.mine_ningjiao.g_ripen）"),
-            "t_ripen": (_D, "熟化区停留 min（参数 t_ripen）"),
+            "t_ripen": (_TMIN, "熟化区停留 min（参数 t_ripen）"),
         },
         _D,
         _HB,
@@ -262,28 +263,28 @@ manifest = load_manifest(
             {
                 "field_id": "t_mix",
                 "label_zh": "混合区停留",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 1.0,
                 "range": {"min": 0.5, "max": 2.0},
             },
             {
                 "field_id": "t_seed",
                 "label_zh": "磁种混合区停留",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 2.0,
                 "range": {"min": 1.0, "max": 3.0},
             },
             {
                 "field_id": "t_floc",
                 "label_zh": "絮凝区停留",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 3.0,
                 "range": {"min": 2.0, "max": 4.0},
             },
             {
                 "field_id": "t_ripen",
                 "label_zh": "熟化区停留",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },

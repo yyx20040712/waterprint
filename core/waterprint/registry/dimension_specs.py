@@ -25,7 +25,8 @@
 #   →TIME_D、t_stay 真秒→TIME——各批次组注释为历史出处记档（禁删），
 #   其中「h/d 按DIMENSIONLESS 裸值登记」口径已被本批取代；min 族
 #   （t_mix/t_floc/t_seed/t_ripen/t_well）与温度（t_design/
-#   t_digest_temp）无贴切档维持 DIMENSIONLESS（挂账）。
+#   t_digest_temp）随后于同制补齐批（同日批尾续三用户裁定「同制补齐」）
+#   翻 TIME_MIN/TEMPERATURE——时序参数 DIMENSIONLESS 裸值口径全面终结。
 #
 # 【参照】B3 简报 R3；重写计划 §2 单位制行/§12.1；简报 T3 D2
 # ══════════════════════════════════════════════════════════════════
@@ -109,8 +110,8 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # B 档 0.5 m、h_total 档 0.1 m）
     ("q_surface", "DIMENSIONLESS", "", "units.fields.q_surface", "load"),
     ("r_sludge", "DIMENSIONLESS", "", "units.fields.r_sludge", "operation"),
-    ("t_mix", "DIMENSIONLESS", "", "units.fields.t_mix", "load"),
-    ("t_floc", "DIMENSIONLESS", "", "units.fields.t_floc", "load"),
+    ("t_mix", "TIME_MIN", "min", "units.fields.t_mix", "load"),
+    ("t_floc", "TIME_MIN", "min", "units.fields.t_floc", "load"),
     ("l_tube", "LENGTH", "m", "units.fields.l_tube", "geometry"),
     ("h_clear", "LENGTH", "m", "units.fields.h_clear", "geometry"),
     ("h_buffer", "LENGTH", "m", "units.fields.h_buffer", "geometry"),
@@ -148,7 +149,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("b_throat", "LENGTH", "m", "units.fields.b_throat", "geometry"),
     # wushui_tisheng 污水提升泵房（算例 1：t_well=10 min/h_static=10.0 m/
     # v_pipe=1.2 m/s/l_pipe=100 m/n_standby=1/h_well=2.0 m；DN 0.1 m 档）
-    ("t_well", "DIMENSIONLESS", "", "units.fields.t_well", "load"),
+    ("t_well", "TIME_MIN", "min", "units.fields.t_well", "load"),
     ("h_static", "LENGTH", "m", "units.fields.h_static", "load"),
     ("v_pipe", "VELOCITY", "m/s", "units.fields.v_pipe", "load"),
     ("l_pipe", "LENGTH", "m", "units.fields.l_pipe", "geometry"),
@@ -186,8 +187,8 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("t_stay", "TIME", "s", "units.fields.t_stay", "load"),
     # mine_water_ningjiao 混凝反应池（算例 1：t_mix=1.0/t_floc=3.0 复用
     # M2B2；t_seed=2.0/t_ripen=1.5 新增；h2/ratio_lb/n/B 0.5 m 档复用）
-    ("t_seed", "DIMENSIONLESS", "", "units.fields.t_seed", "load"),
-    ("t_ripen", "DIMENSIONLESS", "", "units.fields.t_ripen", "load"),
+    ("t_seed", "TIME_MIN", "min", "units.fields.t_seed", "load"),
+    ("t_ripen", "TIME_MIN", "min", "units.fields.t_ripen", "load"),
     # ── M3a3 矿井水线后段单元参数字段（2026-08-27；出处=docs/norms/
     #    mine_water_{cifenli,gaomidu,vxinglvchi,ziwai}.md 四表参数档/
     #    算例 1 输入行——同名跨单元字段 ID 不耦合：各包 manifest 各写各的
@@ -235,7 +236,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("se_bod", "CONCENTRATION", "mg/L", "units.fields.se_bod", "load"),
     ("v_bio", "VOLUME", "m3", "units.fields.v_bio", "geometry"),
     ("x_vss", "CONCENTRATION", "mg/L", "units.fields.x_vss", "load"),
-    ("t_design", "DIMENSIONLESS", "", "units.fields.t_design", "operation"),
+    ("t_design", "TEMPERATURE", "degC", "units.fields.t_design", "operation"),
     ("v_press", "VELOCITY", "m/s", "units.fields.v_press", "load"),
     ("d_grav", "LENGTH", "m", "units.fields.d_grav", "geometry"),
     ("q_solid", "DIMENSIONLESS", "", "units.fields.q_solid", "load"),
@@ -244,7 +245,7 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("p_out", "DIMENSIONLESS", "", "units.fields.p_out", "sludge"),
     ("h_cone", "LENGTH", "m", "units.fields.h_cone", "geometry"),
     ("t_digest", "TIME_D", "d", "units.fields.t_digest", "operation"),
-    ("t_digest_temp", "DIMENSIONLESS", "", "units.fields.t_digest_temp",
+    ("t_digest_temp", "TEMPERATURE", "degC", "units.fields.t_digest_temp",
      "operation"),
     ("eta_vs", "DIMENSIONLESS", "", "units.fields.eta_vs", "sludge"),
     ("r_biogas", "DIMENSIONLESS", "", "units.fields.r_biogas", "operation"),

@@ -211,7 +211,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_digest_temp",
                 "label_zh": "消化温度",
-                "dim": "DIMENSIONLESS",
+                "dim": "TEMPERATURE",
                 "default": 35.0,
                 "range": {"min": 33.0, "max": 37.0},
             },

@@ -68,6 +68,7 @@ _HB1 = (
     "（docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认）"
 )
 _D = DimKey.DIMENSIONLESS
+_TMIN = DimKey.TIME_MIN
 _F = DimKey.FLOW
 _VOL = DimKey.VOLUME
 _L = DimKey.LENGTH
@@ -170,7 +171,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "v_well = q_pump_si * 60 * t_well",
         {
             "q_pump_si": (_F, "单泵流量 m3/s"),
-            "t_well": (_D, "集水井调节时间 min（参数 t_well；60=min→s 条文常量）"),
+            "t_well": (_TMIN, "集水井调节时间 min（参数 t_well；60=min→s 条文常量）"),
         },
         _VOL,
         f"{_GB}（不小于最大一台泵 5 min 出水量口径）；{_HB}",
@@ -269,7 +270,7 @@ manifest = load_manifest(
             {
                 "field_id": "t_well",
                 "label_zh": "集水井调节时间",
-                "dim": "DIMENSIONLESS",
+                "dim": "TIME_MIN",
                 "default": 10.0,
                 "range": {"min": 5.0, "max": 15.0},
             },

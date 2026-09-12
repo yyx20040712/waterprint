@@ -22,7 +22,7 @@ describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
     expect(dimLabel("DIMENSIONLESS")).toBe("无量纲");
   });
 
-  it("十三量类全量在册（core DimKey 成员数对齐——防漏登记静默退化为原样）", () => {
+  it("十五量类全量在册（core DimKey 成员数对齐——防漏登记静默退化为原样）", () => {
     const all = [
       "FLOW",
       "FLOW_H",
@@ -33,9 +33,11 @@ describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
       "MASS",
       "TIME",
       "TIME_H",
+      "TIME_MIN",
       "TIME_D",
       "VELOCITY",
       "POWER",
+      "TEMPERATURE",
       "DIMENSIONLESS",
     ];
     for (const dim of all) {
@@ -52,6 +54,13 @@ describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
     expect(dimUnit("TIME_H")).toBe("h");
     expect(dimUnit("TIME_D")).toBe("d");
     expect(dimUnit("FLOW_H")).toBe("m³/h");
+  });
+
+  it("同制补齐两成员（参数面单位批）：min 档与温度 ℃ 显示符号", () => {
+    expect(dimLabel("TIME_MIN")).toBe("时间 min");
+    expect(dimLabel("TEMPERATURE")).toBe("温度 ℃");
+    expect(dimUnit("TIME_MIN")).toBe("min");
+    expect(dimUnit("TEMPERATURE")).toBe("℃");
   });
 
   it("未知枚举 → 原样返回（诚实呈现不猜语义）", () => {
