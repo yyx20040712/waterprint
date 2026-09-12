@@ -1,11 +1,12 @@
 /**
- * unitGlyph/domainColorOf/streamColorOf vitest（C2-canvas 批——
- * task-C2-canvas-plan.md §三测试面）。
+ * unitGlyph/domainColorOf/domainIconStyle/streamColorOf vitest（C2-canvas
+ * 批——task-C2-canvas-plan.md §三测试面；图标对齐小批 +domainIconStyle）。
  *
  * 输入:  全库 32 unit_id 清单（四域——core discover_units 枚举同源）
  *        +内置 kind/未收录键样例+business_line 值域样例
  * 输出:  覆盖断言：32 键全枚举无回退（漏键即红）+4 内置 kind 字形
- *        +未收录回退 ▢+域色五值+流色三态（泥优先/水/中性）
+ *        +未收录回退 ▢+域色五值+图标三色组（单源收敛冻结值）+流色三态
+ *        （泥优先/水/中性）
  */
 import { describe, expect, it } from "vitest";
 
@@ -13,6 +14,7 @@ import {
   GLYPH_FALLBACK,
   NEUTRAL_DOMAIN,
   domainColorOf,
+  domainIconStyle,
   streamColorOf,
   unitGlyph,
 } from "./unitGlyph";
@@ -123,5 +125,29 @@ describe("streamColorOf：两色制流色（泥优先/水/中性三态）", () =
     expect(streamColorOf("municipal", null)).toBe(NEUTRAL_DOMAIN);
     expect(streamColorOf(undefined, "sludge")).toBe("#9c6b45");
     expect(streamColorOf(null, undefined)).toBe(NEUTRAL_DOMAIN);
+  });
+});
+
+describe("domainIconStyle：域色图标三色组（图标对齐小批单源收敛）", () => {
+  it("四域三键冻结值（原 UnitNode/unitLibrary 两表同值搬家——零视觉变更）", () => {
+    expect(domainIconStyle("municipal")).toEqual({
+      bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff",
+    });
+    expect(domainIconStyle("sludge")).toEqual({
+      bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273",
+    });
+    expect(domainIconStyle("mine_water")).toEqual({
+      bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2",
+    });
+    expect(domainIconStyle("conveyance")).toEqual({
+      bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6",
+    });
+  });
+
+  it("未知/缺省回退中性灰组（bg/border/fg 三键齐）", () => {
+    expect(domainIconStyle("future_domain")).toEqual({
+      bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c",
+    });
+    expect(domainIconStyle(null)).toEqual(domainIconStyle(undefined));
   });
 });

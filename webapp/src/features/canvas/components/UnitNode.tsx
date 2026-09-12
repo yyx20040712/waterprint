@@ -46,7 +46,7 @@ import { createPortal } from "react-dom";
 import type { Node, NodeProps } from "@xyflow/react";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
-import { domainColorOf, unitGlyph } from "../lib/unitGlyph";
+import { domainColorOf, domainIconStyle, unitGlyph } from "../lib/unitGlyph";
 import { useUnitThumbnail } from "../lib/thumbnailContext";
 import type { UnitFlowNode, UnitFlowNodeData } from "../lib/projectFlow";
 import { useCanvasStore } from "../store/canvasStore";
@@ -90,16 +90,6 @@ const SELECT_BORDER = "rgba(217, 169, 74, 0.75)";
 const SELECT_GLOW =
   "0 0 0 1px rgba(217,169,74,.35), 0 4px 18px rgba(217,169,74,.14), 0 3px 12px rgba(3,10,22,.45)";
 
-/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生；同值
- * 联动面=R-G3 清单：改域色以 unitGlyph.domainColorOf 为基准同步）。 */
-const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: string }> = {
-  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
-  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
-  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
-  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
-};
-const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c" };
-
 /** 端口列垂直排布（首个端口距顶 26px、行距 16px——C2-thumb 卡片升档
  * 同步 +6；多端口均布）。 */
 const PORT_TOP = 26;
@@ -130,7 +120,8 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
     return units.find((unit) => unit.unit_id === key)?.business_line ?? null;
   }, [catalog.data, data.unitId, data.kind]);
   const domainColor = domainColorOf(businessLine);
-  const iconStyle = DOMAIN_ICON_STYLES[businessLine ?? ""] ?? NEUTRAL_ICON;
+  // 图标对齐小批：域色三色组自 unitGlyph 单源消费（原本地表已收敛）
+  const iconStyle = domainIconStyle(businessLine);
   const nameZh = useMemo(() => {
     const units = catalog.data?.units;
     if (units === undefined || data.kind !== null) {

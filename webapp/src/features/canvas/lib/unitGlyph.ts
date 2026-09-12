@@ -15,11 +15,11 @@
  *     未收录键回退 ▢（自定义键不炸——显示层降级非错误）；
  *   - 域色四色制+选中鎏金=视觉稿 A 冻结语言；**本文件为四域色主源**
  *     （R-G3 联动清单——GC-02 处置）：同值字面量消费面=global.css 变量
- *     轴（--wp-water/sludge/mine/convey）+CanvasFlow LEGEND_LINES+
- *     UnitNode（SELECT 鎏金组与 DOMAIN_ICON_STYLES 域派生组）——改色
- *     红线=N 处联动（本表
- *     为比对基准）；中性灰 #595959=未收录键回退（antd 无槽位灰——
- *     PortHandle NEUTRAL_BORDER 先例）；
+ *     轴（--wp-water/sludge/mine/convey）+CanvasFlow LEGEND_LINES+域色
+ *     图标三色组（domainIconStyle 单源——UnitNode/单元库行两消费面
+ *     import 同构渲染）+UnitNode SELECT 鎏金组——改色红线=N 处联动
+ *     （本表为比对基准）；中性灰 #595959=未收录键回退（antd 无槽位灰
+ *     ——PortHandle NEUTRAL_BORDER 先例）；
  *   - 流色两色制（P4）：任一端 sludge→泥棕（污泥去向判定——剩余
  *     污泥/回流混合边归泥）；双端已知非 sludge→水蓝；任一端未知
  *     （未收录）→中性灰（不误导域归属）；recycle 虚线由投影层
@@ -104,6 +104,37 @@ export function domainColorOf(businessLine: string | null | undefined): string {
 
 /** 未收录/清单未达回退色（灰——不误导域归属）。 */
 export const NEUTRAL_DOMAIN = "#595959";
+
+/** 域色图标三色组条目（底/边框/前景——视觉稿态三冻结）。 */
+export interface DomainIconStyle {
+  bg: string;
+  border: string;
+  fg: string;
+}
+
+/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生；同值
+ * 联动面=R-G3 清单：改域色以 domainColorOf 为基准同步）。
+ * 图标对齐小批（2026-09-12，3d-visual-brief「unitGlyph 同源对齐」）：
+ * 本表自 UnitNode.tsx/unitLibrary.tsx 两处同构复制收敛至此单源导出
+ * （两消费面 import 消费——第三处复制前收敛的候选已兑现）。 */
+const DOMAIN_ICON_STYLES: Record<string, DomainIconStyle> = {
+  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
+  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
+  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
+  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
+};
+
+const NEUTRAL_ICON: DomainIconStyle = {
+  bg: "rgba(89,89,89,.14)",
+  border: "rgba(89,89,89,.3)",
+  fg: "#8c8c8c",
+};
+
+/** 业务线 → 域色图标三色组（未收录回退中性灰组——画布节点与单元库
+ * 行图标同源消费，两处视觉恒一致）。 */
+export function domainIconStyle(businessLine: string | null | undefined): DomainIconStyle {
+  return DOMAIN_ICON_STYLES[businessLine ?? ""] ?? NEUTRAL_ICON;
+}
 
 /** 边流色（两色制 P4）：任一 sludge→泥；双端已知非 sludge→水；否则中性。 */
 export function streamColorOf(

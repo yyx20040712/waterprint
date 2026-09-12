@@ -67,7 +67,7 @@ import type { ParamEntry } from "../shared/api/generated/model/paramEntry";
 import type { PortEntry } from "../shared/api/generated/model/portEntry";
 import type { UnitMetaEntry } from "../shared/api/generated/model/unitMetaEntry";
 import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
-import { domainColorOf } from "../features/canvas/lib/unitGlyph";
+import { domainColorOf, domainIconStyle } from "../features/canvas/lib/unitGlyph";
 import { useCanvasStore, useEditing } from "../features/canvas/store/canvasStore";
 import {
   BUSINESS_LINE_ZH,
@@ -98,18 +98,6 @@ const ICON_GLYPH_SIZE = 11;
 const LEAF_NAME_SIZE = 13;
 /** 组行题字号（C2-ALIGN A4：11→12——用户「大一点」+1 档）。 */
 const GROUP_TITLE_SIZE = 12;
-
-/** 域色图标三色组（UnitNode DOMAIN_ICON_STYLES 同值派生消费——
- * R-G3 联动清单成员·Y-4 A 前分层口径：**同构表复制两处**[本表/UnitNode
- * 表]；global.css 为色值变量轴联动[非三键表复制]——收敛候选=unitGlyph
- * 层导出统一面，第三处复制前收敛）。 */
-const DOMAIN_ICON_STYLES: Record<string, { bg: string; border: string; fg: string }> = {
-  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
-  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
-  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
-  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
-};
-const NEUTRAL_ICON = { bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c" };
 
 /** 搜索框占位文案 props（键名拼接构造规避 grep 门禁英文特征词——同
  * gate_patterns 脚本自身「特征串一律拼接构造」口径）。 */
@@ -173,7 +161,9 @@ function KindTag({ unit }: { unit: UnitMetaEntry }) {
 
 /** 域色图标框（叶行/Drawer 标题共用——20×20 三色组+字形）。 */
 function DomainIcon({ unit }: { unit: UnitMetaEntry }) {
-  const iconStyle = DOMAIN_ICON_STYLES[unit.business_line] ?? NEUTRAL_ICON;
+  // 图标对齐小批：域色三色组自 unitGlyph 单源消费（同构表复制收敛，
+  // 与画布节点图标恒同值——Y-4「第三处复制前收敛」候选兑现）
+  const iconStyle = domainIconStyle(unit.business_line);
   return (
     <span
       aria-hidden
