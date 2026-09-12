@@ -27,6 +27,8 @@ import { Button, Progress, Tag, Typography } from "antd";
 
 import { useCancelTaskApiCalcTasksTaskIdCancelPost } from "../../../shared/api/generated/calc/calc";
 import type { TaskStatus } from "../../../shared/api/generated/model";
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { type ConnectionState } from "../api/useTaskFeed";
 import { taskStatusToView, type TaskView } from "../lib/taskFeed";
@@ -69,6 +71,9 @@ export function TaskPanel({
 }) {
   // 取消失败文案（行内呈现——不弹窗）
   const [cancelError, setCancelError] = useState<string | null>(null);
+  // 工况面 UX 反馈批件 1：工况后缀中文名（catalog name_zh 真源）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
   const cancel = useCancelTaskApiCalcTasksTaskIdCancelPost<WaterprintApiError>({
     mutation: {
       onError: (error) => {
@@ -115,9 +120,12 @@ export function TaskPanel({
             : "任务"}
         {status !== null &&
         status.condition_key !== null &&
-        status.condition_key !== ""
-          ? `·工况 ${status.condition_key}`
-          : ""}
+        status.condition_key !== "" ? (
+          // 件 1：工程全称+悬浮原始键（monospace 面内嵌 span 承载 title）
+          <span title={status.condition_key}>
+            ·工况 {conditionLabel(status.condition_key, unitNames)}
+          </span>
+        ) : null}
         ）
       </Typography.Text>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>

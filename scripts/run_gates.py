@@ -17,6 +17,13 @@
 # lint-imports 本地聚合（CI quality job 同款口径——n+42 UF-33 挂账
 # 盲区销账，check_ruff 双根三态先例同制）——门禁数基线 11→12
 # （GOV2 台账；import-linter 自此本地门禁化，mypy 单独跑）。
+# 第十三门禁 check_out_dims_consistency.py（工况面 UX 反馈批件 4
+# 2026-09-12）：out_dims.dim 三写面对账——manifest 声明必须=①公式表
+# output_dim/②projection dim_of 镜像（真源单归；AST 静态实读零依赖）
+# ——门禁数基线 12→13。
+# 第十四门禁 check_dim_labels_mirror.py（同批件 4 缺口②）：FE
+# DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典
+# 即拦）——门禁数基线 13→14。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -29,11 +36,13 @@ REPO = Path(__file__).resolve().parent.parent
 GATES = (
     "check_contract_headers.py",
     "check_deprecation_gate.py",
+    "check_dim_labels_mirror.py",
     "check_file_budgets.py",
     "check_grep_gates.py",
     "check_lint_imports.py",
     "check_magic_numbers.py",
     "check_module_graph.py",
+    "check_out_dims_consistency.py",
     "check_readonly.py",
     "check_ruff.py",
     "check_structure.py",

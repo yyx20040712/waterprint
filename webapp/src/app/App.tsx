@@ -93,7 +93,6 @@ import { ElevationPane } from "./elevationPane";
 import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
-import { CheckedUnitsPanel } from "../features/params/components/CheckedUnitsPanel";
 import {
   clearTokenParam,
   parseEnumParam,
@@ -318,10 +317,8 @@ export function App() {
               onFocusChange={setLibraryFocusId}
               onNavigateTab={() => handleTabChange("canvas")}
             />
-            {/* P2 第三批（ADR-018 D4）：工况校核集合面板——Sider 第二区
-                （单元库下方；受检单元勾选=design.checked_units 一等态编辑
-                入口，CP2 勾选持久化样板；仅项目选中时呈现） */}
-            {projectId !== null ? <CheckedUnitsPanel projectId={projectId} /> : null}
+            {/* 工况面 UX 反馈批件 2：CheckedUnitsPanel 自 Sider 拆除归位
+                comparePane 双页（ADR-018 D4 附勘正——Sider 减负为副产物） */}
           </Sider>
           <Content style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
             <Tabs

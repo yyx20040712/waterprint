@@ -47,6 +47,8 @@ import type { ColumnsType } from "antd/es/table";
 import type { ReactNode } from "react";
 
 import type { ApplyOutcome } from "../../../shared/api/generated/model";
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
 import type { GridField } from "../lib/solutionsFields";
 import {
   buildTableColumns,
@@ -96,11 +98,13 @@ type SemanticColors = {
 };
 
 /** 单元格呈现（纯数据→ReactNode——格式化/tabular-nums/语义色/标记；
- * title=原值全精度悬浮）。 */
+ * title=原值全精度悬浮；工况面 UX 反馈批件 1：text 列=condition_key
+ * 值中文化（conditionLabel 工程全称，悬浮原始键）。 */
 function renderCell(
   model: SolutionColumnModel,
   value: unknown,
   colors: SemanticColors,
+  unitNames: Record<string, string>,
 ): ReactNode {
   if (model.kind === "margin") {
     if (value === null || value === undefined) {
@@ -144,6 +148,12 @@ function renderCell(
         {formatSolutionValue(value)}
       </span>
     );
+  }
+  // 件 1：text 列值域=condition_key（FIXED_TITLES 唯一 text 列）——
+  // 工程全称+悬浮原始键（用户裁定追溯面口径）
+  if (model.kind === "text") {
+    const key = String(value);
+    return <span title={key}>{conditionLabel(key, unitNames)}</span>;
   }
   return <span>{String(value)}</span>;
 }
@@ -207,6 +217,9 @@ export function SolutionsTable({
 }) {
   // C2 语义色收敛（§2f）：antd token 主源（GR-39——散写字面量删除）
   const { token } = theme.useToken();
+  // 工况面 UX 反馈批件 1：工况条件列值中文名（catalog name_zh 真源）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
   const colors: SemanticColors = {
     positive: token.colorSuccess,
     negative: token.colorError,
@@ -229,7 +242,7 @@ export function SolutionsTable({
     align: model.numeric ? ("right" as const) : ("left" as const),
     // C2 固定首列（§2a）：横滚行身份恒在
     fixed: index === 0 ? ("left" as const) : undefined,
-    render: (value: unknown) => renderCell(model, value, colors),
+    render: (value: unknown) => renderCell(model, value, colors, unitNames),
   }));
   // 行尾操作列（方案应用——D6；固定尾列：应用入口横滚恒在）
   columns.push({

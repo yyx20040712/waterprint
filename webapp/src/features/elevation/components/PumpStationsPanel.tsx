@@ -20,6 +20,8 @@
 import type { CSSProperties } from "react";
 import { Alert, Table, Typography } from "antd";
 
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
 import type { ElevationView } from "../lib/profileChart";
 
 const NUMERIC_STYLE: CSSProperties = { fontVariantNumeric: "tabular-nums" };
@@ -53,6 +55,7 @@ const PUMP_COLUMNS = [
       <span style={NUMERIC_STYLE}>{value.toFixed(6)}</span>
     ),
   },
+  // 工况列在组件内补 render（中文名+悬浮原键——工况面 UX 反馈批件 1）
   { title: "工况", dataIndex: "condition_key", key: "condition_key" },
 ];
 
@@ -65,6 +68,19 @@ function alertTypeOfSeverity(severity: string): "error" | "warning" | "info" {
 }
 
 export function PumpStationsPanel({ view }: { view: ElevationView }) {
+  // 工况面 UX 反馈批件 1：工况列值中文名（catalog name_zh 真源）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
+  const columns = PUMP_COLUMNS.map((column) =>
+    column.dataIndex === "condition_key"
+      ? {
+          ...column,
+          render: (key: string) => (
+            <span title={key}>{conditionLabel(key, unitNames)}</span>
+          ),
+        }
+      : column,
+  );
   return (
     <section style={{ marginTop: 16 }}>
       <Typography.Title level={5} style={{ marginTop: 0 }}>
@@ -79,7 +95,7 @@ export function PumpStationsPanel({ view }: { view: ElevationView }) {
         <Table
           size="small"
           rowKey="unit_id"
-          columns={PUMP_COLUMNS}
+          columns={columns}
           dataSource={view.pump_stations}
           pagination={false}
         />

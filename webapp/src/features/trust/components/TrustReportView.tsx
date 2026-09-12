@@ -1,8 +1,10 @@
 /**
  * 可信度报告主体视图：状态条+四区块卡（收敛/水量平衡/出水裕度/警告汇总）。
  *
- * 输入:  TrustReport 窄化产物（useTrustQuery select 通道）
- * 输出:  纯展示组件（无取数无路由——trustPane 装配壳消费）
+ * 输入:  TrustReport 窄化产物（useTrustQuery select 通道）+catalog name_zh
+ *        （工况列中文名——工况面 UX 反馈批件 1 接线）
+ * 输出:  纯展示组件（无取数无路由——trustPane 装配壳消费；工况列 label
+ *        取数为 catalog 查询非业务态——纯展示口径不破）
  *
  * 规格说明（P2 次批 ADR-012；IndicatorsCard/PumpStationsPanel 展示先例）：
  *   - 状态条：stale 黄条（结果过期——重算提示）+降级蓝条（旧结果无诊断件
@@ -15,10 +17,14 @@
  *   - 出水裕度卡：工况×标准×六指标对照（margin 语义色正绿负红——
  *     SolutionsTable 同纪律；值/限值 mg/L 直显）；
  *   - 警告汇总卡：分级计数 Tag+明细表（severity Alert 语义色
- *     PumpStationsPanel 同映射；unit_id 定位+param_key 调节方向）。
+ *     PumpStationsPanel 同映射；unit_id 定位+param_key 调节方向）；
+ *   - 件 1（2026-09-12）：四卡「工况」列值中文化=conditionLabel 工程
+ *     全称+悬浮原始键（conditionColumn 公共列定义——五处消费面单源）。
  */
 import { Alert, Card, Descriptions, Empty, Table, Tag, Typography } from "antd";
 
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
 import {
   fluidLabel,
   formatFlow,
@@ -30,6 +36,24 @@ import {
   severityTone,
   type TrustReport,
 } from "../lib/trustView";
+
+/** 件 1：工况列公共定义（中文名+悬浮原始键——四卡五处消费面单源）。 */
+function conditionColumn(unitNames: Record<string, string>) {
+  return {
+    title: "工况",
+    dataIndex: "condition_key",
+    render: (key: string) => (
+      <span title={key}>{conditionLabel(key, unitNames)}</span>
+    ),
+  };
+}
+
+/** 件 1：工况列中文名索引（catalog name_zh 真源——各卡同 hook 共缓存）。 */
+function useUnitNames(): Record<string, string> {
+  return (
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {}
+  );
+}
 
 const MARGIN_COLORS: Record<"ok" | "over", string> = {
   ok: "green",
@@ -71,6 +95,7 @@ function StatusStrip({ report }: { report: TrustReport }) {
 }
 
 function ConvergenceCard({ report }: { report: TrustReport }) {
+  const unitNames = useUnitNames();
   const paramEntries = Object.entries(report.loop_params);
   return (
     <Card
@@ -106,7 +131,7 @@ function ConvergenceCard({ report }: { report: TrustReport }) {
           pagination={false}
           dataSource={[...report.convergence]}
           columns={[
-            { title: "工况", dataIndex: "condition_key" },
+            conditionColumn(unitNames),
             {
               title: "回路单元",
               dataIndex: "loop_nodes",
@@ -127,6 +152,7 @@ function ConvergenceCard({ report }: { report: TrustReport }) {
 }
 
 function BalanceCard({ report }: { report: TrustReport }) {
+  const unitNames = useUnitNames();
   const lineRows = report.mass_balance.flatMap((closure) =>
     closure.lines.map((line) => ({
       key: `${closure.condition_key}:${line.fluid}`,
@@ -172,7 +198,7 @@ function BalanceCard({ report }: { report: TrustReport }) {
             pagination={false}
             dataSource={lineRows}
             columns={[
-              { title: "工况", dataIndex: "condition_key" },
+              conditionColumn(unitNames),
               {
                 title: "流体线",
                 dataIndex: "fluid",
@@ -214,7 +240,7 @@ function BalanceCard({ report }: { report: TrustReport }) {
                 pagination={{ pageSize: 8, hideOnSinglePage: true }}
                 dataSource={unitRows}
                 columns={[
-                  { title: "工况", dataIndex: "condition_key" },
+                  conditionColumn(unitNames),
                   { title: "单元", dataIndex: "unit_id" },
                   {
                     title: "流体线",
@@ -250,6 +276,7 @@ function BalanceCard({ report }: { report: TrustReport }) {
 }
 
 function EffluentCard({ report }: { report: TrustReport }) {
+  const unitNames = useUnitNames();
   return (
     <Card
       size="small"
@@ -275,7 +302,7 @@ function EffluentCard({ report }: { report: TrustReport }) {
           pagination={{ pageSize: 24, hideOnSinglePage: true }}
           dataSource={[...report.effluent]}
           columns={[
-            { title: "工况", dataIndex: "condition_key" },
+            conditionColumn(unitNames),
             { title: "标准", dataIndex: "standard_id" },
             { title: "指标", dataIndex: "indicator" },
             {
@@ -308,6 +335,7 @@ function EffluentCard({ report }: { report: TrustReport }) {
 }
 
 function WarningsCard({ report }: { report: TrustReport }) {
+  const unitNames = useUnitNames();
   const counts = Object.entries(report.warning_counts);
   return (
     <Card
@@ -350,7 +378,7 @@ function WarningsCard({ report }: { report: TrustReport }) {
                 <Tag color={SEVERITY_COLORS[severityTone(value)]}>{value}</Tag>
               ),
             },
-            { title: "工况", dataIndex: "condition_key" },
+            conditionColumn(unitNames),
             { title: "提示", dataIndex: "message" },
             { title: "出处", dataIndex: "source" },
             {

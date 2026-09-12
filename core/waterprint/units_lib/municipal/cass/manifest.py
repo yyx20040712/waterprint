@@ -401,6 +401,11 @@ manifest = load_manifest(
         # V2 制式扩面（ADR-018 批顺带 2026-09-12）：计算输出量声明——
         # 中文名采公式符号表 meaning 真源（CA-F1~F27 输入槽 meaning 与
         # formula 串面）；枚举方案表 dim 列族中文+对比矩阵指标面消费。
+        # 工况面 UX 反馈批件 4（2026-09-12 三写面对账归一）：dim 值=
+        # ①公式表 output_dim/②projection dim_of 镜像（真源单归——2 键
+        # 翻案：q_decant VOLUME→DIMENSIONLESS[CA-F14 m³/h 无贴切档——
+        # DimKey 扩成员候选挂账]、theta_c TIME→DIMENSIONLESS[泥龄 d 同
+        # 理]；对账门禁=scripts/check_out_dims_consistency.py）。
         "out_dims": [
             {"field_id": "n_cycle", "dim": "DIMENSIONLESS", "label_zh": "每日周期数"},
             {"field_id": "v_draw", "dim": "VOLUME", "label_zh": "单池单周期滗水容积"},
@@ -415,12 +420,12 @@ manifest = load_manifest(
             {"field_id": "v_pool", "dim": "VOLUME", "label_zh": "单池有效容积"},
             {"field_id": "v_plant", "dim": "VOLUME", "label_zh": "全厂池容"},
             {"field_id": "t_phase_sum", "dim": "TIME", "label_zh": "周期时段合计"},
-            {"field_id": "q_decant", "dim": "VOLUME", "label_zh": "滗水能力需求"},
+            {"field_id": "q_decant", "dim": "DIMENSIONLESS", "label_zh": "滗水能力需求"},
             {"field_id": "n_decant_raw", "dim": "DIMENSIONLESS", "label_zh": "滗水器台数（计算）"},
             {"field_id": "n_decant", "dim": "DIMENSIONLESS", "label_zh": "滗水器台数"},
             {"field_id": "s_y", "dim": "MASS", "label_zh": "剩余污泥干固体量"},
             {"field_id": "q_wet", "dim": "VOLUME", "label_zh": "湿污泥量"},
-            {"field_id": "theta_c", "dim": "TIME", "label_zh": "污泥龄"},
+            {"field_id": "theta_c", "dim": "DIMENSIONLESS", "label_zh": "污泥龄"},
             {"field_id": "x_vss", "dim": "CONCENTRATION", "label_zh": "MLVSS 浓度"},
             {"field_id": "o2_carbon", "dim": "MASS", "label_zh": "碳化需氧量"},
             {"field_id": "o2_nit", "dim": "MASS", "label_zh": "硝化需氧量"},

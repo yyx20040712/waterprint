@@ -420,14 +420,20 @@ manifest = load_manifest(
         # dims 键族（grid 轴列在 params.label_zh；此处声明计算派生输出
         # 量）——中文名采公式符号表 meaning 真源（AO-F* 声明面）。方案表
         # 仅显示数据列（键位由 enumerate rows 驱动），未声明键降级 key。
+        # 工况面 UX 反馈批件 4（2026-09-12 三写面对账归一）：dim 值=
+        # ①公式表 output_dim/②projection dim_of 镜像（真源单归——5 键
+        # 翻案：t_o/t_n/t_total/theta_c TIME→DIMENSIONLESS[HRT/泥龄
+        # 单位 h/d 无贴切档——DimKey 扩成员候选挂账]、q_wet FLOW→
+        # VOLUME[AO-F7 output_dim 口径]；对账门禁=scripts/
+        # check_out_dims_consistency.py）。
         "out_dims": [
             {"field_id": "v_o", "dim": "VOLUME", "label_zh": "好氧区容积"},
-            {"field_id": "t_o", "dim": "TIME", "label_zh": "好氧区 HRT"},
+            {"field_id": "t_o", "dim": "DIMENSIONLESS", "label_zh": "好氧区 HRT"},
             {"field_id": "v_anaerobic", "dim": "VOLUME", "label_zh": "厌氧区容积"},
             {"field_id": "v_anoxic", "dim": "VOLUME", "label_zh": "缺氧区容积"},
-            {"field_id": "t_n", "dim": "TIME", "label_zh": "缺氧区 HRT"},
+            {"field_id": "t_n", "dim": "DIMENSIONLESS", "label_zh": "缺氧区 HRT"},
             {"field_id": "v_total", "dim": "VOLUME", "label_zh": "三区总容积"},
-            {"field_id": "t_total", "dim": "TIME", "label_zh": "全池 HRT"},
+            {"field_id": "t_total", "dim": "DIMENSIONLESS", "label_zh": "全池 HRT"},
             {"field_id": "v_o_series", "dim": "VOLUME", "label_zh": "单系列好氧容积"},
             {"field_id": "delta_n", "dim": "CONCENTRATION", "label_zh": "反硝化脱氮量"},
             {"field_id": "a_pool", "dim": "AREA", "label_zh": "池体水面总面积"},
@@ -435,9 +441,9 @@ manifest = load_manifest(
             {"field_id": "l_pool", "dim": "LENGTH", "label_zh": "池长（圆整）"},
             {"field_id": "h_pool", "dim": "LENGTH", "label_zh": "池深（构造）"},
             {"field_id": "v_pool", "dim": "VOLUME", "label_zh": "池体容积（构造）"},
-            {"field_id": "theta_c", "dim": "TIME", "label_zh": "污泥龄"},
+            {"field_id": "theta_c", "dim": "DIMENSIONLESS", "label_zh": "污泥龄"},
             {"field_id": "s_y", "dim": "MASS", "label_zh": "剩余污泥干固体量"},
-            {"field_id": "q_wet", "dim": "FLOW", "label_zh": "湿污泥量"},
+            {"field_id": "q_wet", "dim": "VOLUME", "label_zh": "湿污泥量"},
             {"field_id": "o2_total", "dim": "MASS", "label_zh": "总需氧量"},
             {"field_id": "o2_carbon", "dim": "MASS", "label_zh": "碳化需氧量"},
             {"field_id": "o2_nit", "dim": "MASS", "label_zh": "硝化需氧量"},

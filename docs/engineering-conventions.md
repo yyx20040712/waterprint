@@ -294,6 +294,22 @@
   单点样例；AGENTS §4（概算/图纸按字段 ID 取数、禁中文模糊匹配）；
   本条新增——推广为全类标识符通则。
 
+### GR-42 中文名/量纲的声明路线选择（单一真相源分轨）
+- 规则：值随数据包演进的键（label_zh 等元数据）→ manifest 声明制
+  （out_dims/params 的 label_zh 真源）；值域由冻结契约枚举的键
+  （condition_key 三族/DimKey 十成员）→ FE 显示层词典
+  （shared/conditionLabels.ts / dimLabels.ts——dimLabels 先例同制）；
+  量纲真源单归 FormulaSpec.output_dim（manifest out_dims.dim 是消费
+  投影+对账断言件，非第二真源——scripts/check_out_dims_consistency.py
+  门禁；FE 词典镜像由 check_dim_labels_mirror.py 门禁双向对账）。
+- 为什么：中文名/量纲一旦两处独立推写即分叉（2026-09-12 用户质询
+  「单一真相源」审计实录：out_dims.dim 手工推写致 7 键三写面冲突）；
+  冻结枚举值域可穷举=词典法零漂移前提，数据包演进值不可穷举=声明制
+  前提——两轨按值域性质分流，各自单源。
+- 绑定：工况面 UX 反馈批件 4（2026-09-12）新增；result_schema R2
+  （稳定字段 ID+中文名只在 i18n 显示层）、GR-20（condition_key 键族
+  冻结）、GR-25（单位不进变量名）为既有分轨先例。
+
 ## 7. 测试惯例
 
 ### GR-27 断言必须检验行为，不只"不抛"

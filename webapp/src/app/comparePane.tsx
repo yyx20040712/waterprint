@@ -5,9 +5,12 @@
  * 输入:  URL ?project=（useProjectId 共享 hook）+useCompareQuery 多工况
  *        对比报告（latest done calc 全工况聚合矩阵）+useProjectQuery raw
  *        （view.compare 锁定态读取/PUT 基座）+TASK_EVENT（apply 重算后）
- * 输出:  工况对比标签页（空态引导/404 引导/过期横幅/锁定基准条+矩阵）
+ *        +catalog name_zh（工况键中文名——工况面 UX 反馈批件 1）
+ * 输出:  工况对比标签页（空态引导/404 引导/过期横幅/锁定基准条+矩阵；
+ *        双页=对比矩阵|工况校核 Segmented——件 2 归位，ParamTabs 制式）
  *
- * 规格说明（P2 第三批 ADR-018；trustPane 同构第六例）：
+ * 规格说明（P2 第三批 ADR-018；trustPane 同构第六例；工况面 UX 反馈批
+ *   2026-09-12 件 1/件 2）：
  *   - projectId 单一真相=URL；面板只读不回写（锁定除外——view 态 PUT，
  *     不参与 design_hash 不触发 stale——D3 语义）；
  *   - 锁定基准（D3）：view.compare={pinned,pinned_hash}——锁定时刻取
@@ -17,13 +20,21 @@
  *   - 表层 stale（result_is_stale）：提示性信息横幅（建议重算），不阻断
  *     比对（与基准过期判定正交——ADR-018 D3 记档）；
  *   - TASK_EVENT 事件桥 invalidate compare 键（第六处监听——trustPane
- *     同制）。
+ *     同制）；
+ *   - 件 2 归位（ADR-018 D4 附勘正——用户反馈「工况校核应该放在工况
+ *     对比面板中，位置和工艺画布的参数面板 tab 一样」）：顶部
+ *     Segmented 双页[对比矩阵|工况校核]（ParamTabs A5r 制式直复刻——
+ *     嵌套 antd Tabs 属禁用面 GC-08）+双页体 display 切换恒挂载；
+ *     CheckedUnitsPanel 勾选→PUT→invalidate→矩阵列联动同面板闭环；
+ *   - 件 1 中文化：锁定条 Checkbox/失效工况提示=conditionLabel 词典
+ *     （工程全称+悬浮原始键——用户裁定）。
  */
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Checkbox, Typography, message } from "antd";
+import { Alert, Button, Checkbox, Segmented, Typography, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectQuery } from "../features/canvas/api/useProjectQuery";
+import { CheckedUnitsPanel } from "../features/compare/components/CheckedUnitsPanel";
 import { CompareMatrix } from "../features/compare/components/CompareMatrix";
 import { useCompareQuery } from "../features/compare/api/useCompareQuery";
 import {
@@ -36,6 +47,8 @@ import { WaterprintApiError } from "../shared/api/http";
 import {
   useSaveProjectApiProjectsProjectIdPut,
 } from "../shared/api/generated/projects/projects";
+import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../shared/conditionLabels";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -77,6 +90,11 @@ export function ComparePane() {
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedKeys, setSelectedKeys] = useState<string[] | null>(null);
+  // 件 2 双页态（对比矩阵|工况校核——ParamTabs Segmented 制式）
+  const [page, setPage] = useState<"matrix" | "check">("matrix");
+  // 件 1：工况键中文名索引（catalog name_zh 真源——offline 键拆段消费）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
 
   // TASK_EVENT 事件桥监听（第六处——apply 重算后失效键，面板刷新）
   useEffect(() => {
@@ -162,109 +180,135 @@ export function ComparePane() {
           场景下是否都满足要求。
         </Typography.Paragraph>
         {contextHolder}
-        {query.isError ? (
-          <Typography.Paragraph type="danger">
-            多工况对比报告取数失败：
-            {query.error instanceof Error ? query.error.message : "未知错误"}
-            {/* 仅 404 无 done calc 面附引导——网络错/窄化错不挂（trustPane 同款） */}
-            {query.error instanceof WaterprintApiError &&
-            query.error.code === "CompareSourceNotFoundError"
-              ? NO_CALC_HINT
-              : null}
-          </Typography.Paragraph>
-        ) : report === null ? (
-          <Typography.Paragraph type="secondary">正在加载多工况对比报告…</Typography.Paragraph>
-        ) : (
-          <>
-            {/* 表层 stale（提示性——结果已过期建议重算，不阻断比对） */}
-            {report.stale ? (
-              <Alert
-                style={{ marginBottom: 8 }}
-                type="info"
-                showIcon
-                title="当前结果集已过期（设计在计算后有变更）——建议重新提交计算后再比对。"
-              />
-            ) : null}
-            {/* 锁定基准过期横幅（D3：pinned_hash≠结果件 design_hash） */}
-            {pinExpired ? (
-              <Alert
-                style={{ marginBottom: 8 }}
-                type="warning"
-                showIcon
-                title="锁定基准基于旧版设计，当前对比可能失真。"
-                action={
-                  <Button size="small" onClick={() => lockBaseline("relock")}>
-                    重新锁定
-                  </Button>
-                }
-              />
-            ) : null}
-            {/* 失效工况键提示（受检集变更后 pinned 键不在当前结果） */}
-            {livePins !== null && livePins.expired.length > 0 ? (
-              <Alert
-                style={{ marginBottom: 8 }}
-                type="info"
-                showIcon
-                title={`锁定基准含已移除工况：${livePins.expired.join("、")}（勾选集变更所致——重新锁定可清理）`}
-              />
-            ) : null}
-            {/* 锁定基准条：勾选工况键集+锁定/解锁（view 态——不算 dirty） */}
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                alignItems: "center",
-                flexWrap: "wrap",
-                marginBottom: 8,
-              }}
-            >
-              <Typography.Text type="secondary">对比基准：</Typography.Text>
-              <Checkbox.Group
-                options={report.condition_keys.map((key) => ({
-                  value: key,
-                  label: key,
-                }))}
-                value={checkKeys}
-                onChange={(next) => setSelectedKeys(next as string[])}
-              />
-              {pin !== null ? (
-                <>
+        {/* 件 2 双页（Segmented——嵌套 Tabs 禁用面 GC-08；ParamTabs A5r
+            制式直复刻：block 等宽+双页体 display 切换恒挂载） */}
+        <Segmented
+          block
+          value={page}
+          onChange={(value) => setPage(value as typeof page)}
+          style={{ marginBottom: 8, maxWidth: 360 }}
+          options={[
+            { value: "matrix", label: "对比矩阵" },
+            { value: "check", label: "工况校核" },
+          ]}
+        />
+        {/* 对比矩阵页（display 切换恒挂载——锁定勾选态跨页保留） */}
+        <div style={{ display: page === "matrix" ? "block" : "none" }}>
+          {query.isError ? (
+            <Typography.Paragraph type="danger">
+              多工况对比报告取数失败：
+              {query.error instanceof Error ? query.error.message : "未知错误"}
+              {/* 仅 404 无 done calc 面附引导——网络错/窄化错不挂（trustPane 同款） */}
+              {query.error instanceof WaterprintApiError &&
+              query.error.code === "CompareSourceNotFoundError"
+                ? NO_CALC_HINT
+                : null}
+            </Typography.Paragraph>
+          ) : report === null ? (
+            <Typography.Paragraph type="secondary">正在加载多工况对比报告…</Typography.Paragraph>
+          ) : (
+            <>
+              {/* 表层 stale（提示性——结果已过期建议重算，不阻断比对） */}
+              {report.stale ? (
+                <Alert
+                  style={{ marginBottom: 8 }}
+                  type="info"
+                  showIcon
+                  title="当前结果集已过期（设计在计算后有变更）——建议重新提交计算后再比对。"
+                />
+              ) : null}
+              {/* 锁定基准过期横幅（D3：pinned_hash≠结果件 design_hash） */}
+              {pinExpired ? (
+                <Alert
+                  style={{ marginBottom: 8 }}
+                  type="warning"
+                  showIcon
+                  title="锁定基准基于旧版设计，当前对比可能失真。"
+                  action={
+                    <Button size="small" onClick={() => lockBaseline("relock")}>
+                      重新锁定
+                    </Button>
+                  }
+                />
+              ) : null}
+              {/* 失效工况键提示（受检集变更后 pinned 键不在当前结果）——
+                  件 1：工况键中文名（悬浮原键） */}
+              {livePins !== null && livePins.expired.length > 0 ? (
+                <Alert
+                  style={{ marginBottom: 8 }}
+                  type="info"
+                  showIcon
+                  title={`锁定基准含已移除工况：${livePins.expired
+                    .map((key) => conditionLabel(key, unitNames))
+                    .join("、")}（勾选集变更所致——重新锁定可清理）`}
+                />
+              ) : null}
+              {/* 锁定基准条：勾选工况键集+锁定/解锁（view 态——不算 dirty）；
+                  件 1：选项中文名+悬浮原始键 */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  marginBottom: 8,
+                }}
+              >
+                <Typography.Text type="secondary">对比基准：</Typography.Text>
+                <Checkbox.Group
+                  options={report.condition_keys.map((key) => ({
+                    value: key,
+                    label: (
+                      <span title={key}>{conditionLabel(key, unitNames)}</span>
+                    ),
+                  }))}
+                  value={checkKeys}
+                  onChange={(next) => setSelectedKeys(next as string[])}
+                />
+                {pin !== null ? (
+                  <>
+                    <Button
+                      size="small"
+                      type="primary"
+                      loading={save.isPending}
+                      disabled={checkKeys.length === 0}
+                      onClick={() => lockBaseline("relock")}
+                    >
+                      重新锁定
+                    </Button>
+                    <Button size="small" loading={save.isPending} onClick={() => lockBaseline("unlock")}>
+                      解除锁定
+                    </Button>
+                  </>
+                ) : (
                   <Button
                     size="small"
                     type="primary"
                     loading={save.isPending}
                     disabled={checkKeys.length === 0}
-                    onClick={() => lockBaseline("relock")}
+                    onClick={() => lockBaseline("lock")}
                   >
-                    重新锁定
+                    锁定基准
                   </Button>
-                  <Button size="small" loading={save.isPending} onClick={() => lockBaseline("unlock")}>
-                    解除锁定
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="small"
-                  type="primary"
-                  loading={save.isPending}
-                  disabled={checkKeys.length === 0}
-                  onClick={() => lockBaseline("lock")}
-                >
-                  锁定基准
-                </Button>
-              )}
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {pin !== null && !pinExpired
-                  ? `已锁定（结果 ${pin.pinned_hash.slice(0, 8)}…）`
-                  : "未锁定"}
-              </Typography.Text>
-            </div>
-            <CompareMatrix
-              report={report}
-              pinned={pin !== null ? pin.pinned : null}
-            />
-          </>
-        )}
+                )}
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {pin !== null && !pinExpired
+                    ? `已锁定（结果 ${pin.pinned_hash.slice(0, 8)}…）`
+                    : "未锁定"}
+                </Typography.Text>
+              </div>
+              <CompareMatrix
+                report={report}
+                pinned={pin !== null ? pin.pinned : null}
+              />
+            </>
+          )}
+        </div>
+        {/* 工况校核页（件 2 归位——ADR-018 D4 附勘正；恒挂载 display 切换：
+            勾选乐观态跨页保留） */}
+        <div style={{ display: page === "check" ? "block" : "none" }}>
+          <CheckedUnitsPanel projectId={projectId} />
+        </div>
       </section>
     </ErrorBoundary>
   );

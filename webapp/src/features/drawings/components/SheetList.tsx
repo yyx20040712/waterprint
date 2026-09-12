@@ -27,6 +27,8 @@
 import { Button, Table, Tag, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { useExportDownload } from "../api/useExportDownload";
 import type { SheetRow } from "../lib/drawingsView";
@@ -46,6 +48,7 @@ const COLUMNS: ColumnsType<SheetRow> = [
     key: "kind",
     width: 96,
   },
+  // 工况列 render 在组件内 map 补（中文名+悬浮原键——工况面 UX 反馈批件 1）
   {
     title: "工况",
     dataIndex: "conditionKey",
@@ -119,8 +122,21 @@ export function SheetList({
       ); // 网络错/未知面（I-3 分级——不挂误导引导）
     });
   };
+  // 工况面 UX 反馈批件 1：工况列值中文名（catalog name_zh 真源——
+  // 模块级 COLUMNS 工况列占位，此处 map 补 render[列位不动]）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
   const columns: ColumnsType<SheetRow> = [
-    ...COLUMNS,
+    ...COLUMNS.map((column) =>
+      !("children" in column) && column.dataIndex === "conditionKey"
+        ? {
+            ...column,
+            render: (value: string) => (
+              <span title={value}>{conditionLabel(value, unitNames)}</span>
+            ),
+          }
+        : column,
+    ),
     {
       // EXPD D5：操作列下载（行级 pending——仅当前行禁用转圈不阻塞他行）。
       title: "操作",

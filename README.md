@@ -126,6 +126,13 @@
 > 工况键灰显+一键重锁）+工况校核面板（Sider 勾选=checked_units 一等
 > 态，2+k 代价提示）+方案表多工况行（rowKey 前缀修复）+CASS out_dims
 > 31 条顺带（V2 制式扩面）；无头验收探针 22/22。
+> **工况面 UX 反馈批已收官（同日批尾，用户反馈三件）**：工况键全 UI
+> 中文化（shared/conditionLabels 词典——design→最高日最高时/avg→
+> 平均日/offline→单元名+检修；九处消费面+悬浮原始键）+工况校核面板
+> 归位对比标签双页（Segmented[对比矩阵|工况校核]——ADR-018 D4 位置
+> 勘正，App Sider 挂点拆除）+out_dims.dim 三写面对账收口（7 键归一
+> ①公式表镜像；量纲真源单归 FormulaSpec.output_dim——GR-42 准则成文
+> +对账/镜像双门禁 12→14）；无头验收探针 22/22。
 > **V2 方案表输出列中文化已收官（同日批尾，用户批注②兑现）**：
 > UnitManifest +out_dims 输出量声明面（OutDimSpec {field_id,dim,
 > label_zh}——R1a 登记守卫不适用[派生量非输入面]，370 符号 132 跨单元

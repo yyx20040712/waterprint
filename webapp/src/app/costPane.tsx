@@ -33,6 +33,8 @@ import { useCostQuery } from "../features/cost/api/useCostQuery";
 import { EstimateTable } from "../features/cost/components/EstimateTable";
 import { IndicatorsCard } from "../features/cost/components/IndicatorsCard";
 import { WaterprintApiError } from "../shared/api/http";
+import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
+import { conditionLabel, unitNameIndex } from "../shared/conditionLabels";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -69,6 +71,9 @@ export function CostPane() {
 
   const query = useCostQuery(projectId, conditionKey);
   const view = query.data ?? null;
+  // 工况面 UX 反馈批件 1：工况下拉中文名（catalog name_zh 真源）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
 
   if (projectId === null) {
     return (
@@ -122,7 +127,8 @@ export function CostPane() {
                   value={conditionKey ?? view.condition_key}
                   options={view.conditions.map((key) => ({
                     value: key,
-                    label: key,
+                    label: conditionLabel(key, unitNames),
+                    title: key,
                   }))}
                   onChange={(next) => setConditionKey(next)}
                 />

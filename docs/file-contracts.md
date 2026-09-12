@@ -209,6 +209,8 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_deprecation_gate.py` | GR-21 弃用到期门禁：file-contracts 弃用登记（弃用: 旧 -> 新, 移除: YYYY-MM-DD）逾期/格式错即 FAIL（TD1 2026-09-09 机制就绪件——零登记首检绿） |
 | `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1） |
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
+| `scripts/check_out_dims_consistency.py` | out_dims.dim 三写面对账门禁：manifest 声明必须=①公式表 output_dim/②projection dim_of 镜像（AST 静态实读零依赖；真源单归——工况面 UX 反馈批件 4，门禁 12→13） |
+| `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；AI 可跑——AGENTS §7 禁项不含；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
