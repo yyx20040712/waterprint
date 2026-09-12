@@ -23,9 +23,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ["three", "@react-three/fiber"],
-        },
+        // vite 8 类型面收窄：manualChunks 仅函数形（对象形 TS2769）——
+        // "three" 子串同时命中 three 与 @react-three/fiber 及其依赖树
+        manualChunks: (id: string) => (id.includes("three") ? "three" : undefined),
       },
     },
   },

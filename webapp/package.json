@@ -10,10 +10,10 @@
     "orval": "orval"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.3.2",
+    "@ant-design/icons": "^6.3.4",
     "@react-three/fiber": "^9.7.0",
-    "@tanstack/react-query": "^5.102.7",
-    "@xyflow/react": "^12.11.5",
+    "@tanstack/react-query": "^5.102.8",
+    "@xyflow/react": "^12.11.6",
     "antd": "^6.6.2",
     "dxf-parser": "^1.1.2",
     "echarts": "^6.1.0",
@@ -27,10 +27,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@types/three": "^0.185.4",
-    "@vitejs/plugin-react": "^5.2.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "orval": "^7.21.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
     "vitest": "^4.1.11"
   }
 }
