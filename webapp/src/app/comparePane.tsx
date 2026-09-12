@@ -152,6 +152,15 @@ export function ComparePane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           多工况对比（基准 design/avg × 检修敏感性——行=指标，列=工况）
         </Typography.Title>
+        {/* 术语说明（验收问询实录 2026-09-12「这个工况是干什么的」——
+            工况=同一设计在不同运行条件下的计算口径，三族注释通俗化） */}
+        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0 }}>
+          「工况」= 同一套设计在不同运行条件下的计算口径：design=最高日
+          最高时流量（设计峰值）、avg=平均日流量（日常运行）、
+          design_offline_×××=某单元单池检修时的校核（该单元 n−1 池运行）。
+          对比同一指标在各工况下的取值，可检验设计在峰值/日常/检修三种
+          场景下是否都满足要求。
+        </Typography.Paragraph>
         {contextHolder}
         {query.isError ? (
           <Typography.Paragraph type="danger">
