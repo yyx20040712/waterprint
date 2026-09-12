@@ -19,6 +19,10 @@ python scripts/run_gates.py     # 一键跑全部门禁
 | check_magic_numbers.py | 魔法数字：代码数值字面量仅限 registry/quantity 真源区（白名单值 0/1/2/10） | AGENTS §3 / business-logic §9 |
 | run_gates.py | 门禁聚合入口（一键跑全部，CI gates job 同口径） | — |
 | lock_tests.py | **仅人类执行**：生成锁定清单并设置只读属性（键集只增不减守卫：漏根挤出既有条目 → 拒写 return 2；`--prune` 显式放行） | AGENTS §7 |
+| draft_lock_manifest.py | 锁面草稿器（只读，AI 可跑）：工作树实测 vs manifest 三类差异+全根清单重锁命令；CI gates 红面时自动输出 | ADR-015 |
+| gen_contract_lines.py | file-contracts「N 行」注记数字刷新（幂等；在场/缺席人审定夺） | ADR-016 |
+| gen_structure_nodes.py | §1a 节点表标记段展开（两 pyproject layers 契约+固定三叶；忘跑检测器=check_module_graph） | ADR-017 |
+| structure_nodes_lib.py | §1a 取数/渲染/标记段共享库（校验端+生成端单源） | ADR-017 |
 | gate_patterns.py | 特征串集中定义（供上面脚本与 pytest 复用） | — |
 
 > venv 内工具链（ruff/mypy/import-linter/pytest/coverage）在 CI 与

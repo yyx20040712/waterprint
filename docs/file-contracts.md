@@ -189,12 +189,15 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | 路径 | 唯一职责 |
 |------|----------|
 | `scripts/gate_patterns.py` | 占位（英文四词+中文硬封族六词，GOV1/ADR-013）/裸异常/乱码特征串集中定义（拼接构造避免自匹配） |
-| `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁+90% 提前告警（[WARN] 档零退出码变化——ENG8） |
+| `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁+90% 提前告警（[WARN] 档零退出码变化——ENG8）+file-contracts 行数注记一致性面（GOV4 起兼作 gen_contract_lines 忘跑检测器——注记漂移即红，ADR-016） |
+| `scripts/gen_contract_lines.py` | 行数注记生成器：表内「N 行」数字刷新为实体实数（幂等；在场/缺席仍人审——ADR-016；解析口径单源=check_file_budgets） |
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0 |
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
-| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014） |
+| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014；§1a 数据行=生成物渲染比对[GOV4 h 面，ADR-017——手编/忘跑即红]） |
 | `scripts/same_layer_lib.py` | 同层边声明块共享库：§1c 解析+展开+两面校验单源（check_module_graph 与 gen_same_layer_edges 共用，防两套解析漂移——ADR-014） |
+| `scripts/structure_nodes_lib.py` | §1a 节点表共享库：两 pyproject layers 契约+固定三叶取数·渲染·标记段单源（check_module_graph 与 gen_structure_nodes 共用——ADR-017；层 token 组序映射=层重构同步点） |
+| `scripts/gen_structure_nodes.py` | §1a 节点表生成器：两 pyproject layers 契约 → structure-graph §1a STRUCT-NODES 标记段重写（幂等；标记段内禁手编——ADR-017；忘跑检测器=check_module_graph 渲染比对面） |
 | `scripts/gen_same_layer_edges.py` | 同层边生成器：structure-graph §1c 声明块 → core/pyproject 两契约 ignore_imports 标记段重写（幂等；ADR-014 唯一声明面的机器展开半边） |
 | `scripts/check_webapp.py` | webapp 结构门禁（TS 契约头 + features 互不依赖分层） |
 | `scripts/check_magic_numbers.py` | 魔法数字门禁（代码数值字面量仅限 registry/quantity/units_lib manifest 真源区 + drafting styles/sheets 声明面——DRAFT 批总控问询放行 2026-08-26） |
@@ -204,6 +207,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1） |
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
+| `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；AI 可跑——AGENTS §7 禁项不含；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
 ## 5. webapp（M0.5 起机器检查：scripts/check_webapp.py）

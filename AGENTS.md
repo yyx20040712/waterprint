@@ -175,6 +175,10 @@
 - 只有人类可以：解锁（清除只读属性）→ 修改/新增测试 → 重新运行
   `python scripts/lock_tests.py`（新增单元测试后可带路径参数追加）→
   该变更作为独立 commit 接受审查。测试变更是显式事件，不是顺手行为。
+- **锁面草稿器**（GOV4/ADR-015）：`scripts/draft_lock_manifest.py`
+  =只读投影（差异三类清单+全根清单重锁命令，绝不写出 manifest）——
+  AI 可跑（本地预检/CI gates 红面自动输出）；重锁动作本身仍是
+  上面的纯人类流程，§7 边界不因草稿器放开。
 - 新增测试文件=**三连锁同批闭合**（新键入 manifest+文件只读位设置+
   core 侧镜像件义务——文件名全树匹配规则会连带触发）；[HUMAN-LOCK]
   锁面笔 commit message 必带逐文件修改动机（B3/B6 实录，GOV2 B3 并档）。
@@ -261,8 +265,10 @@ units_lib/<line>/<unit>/
   `scripts/gen_same_layer_edges.py` 展开 pyproject → 门禁绿——pyproject
   两契约 ignore_imports 标记段是生成物，标记段内禁手编（门禁双向对照，
   漂移即红）。
-- 图谱 §1a 层归属与 `core/pyproject.toml` 的 import-linter 契约**双源一致**
-  （门禁双向覆盖校验；改一处必须同步另一处，否则 CI 失败）。
+- **§1a 节点表=生成物**（ADR-017）：数据行由
+  `scripts/gen_structure_nodes.py` 自两 pyproject 的 layers 契约+固定
+  三叶节点展开；工序=改契约 → 跑生成器 → 门禁绿（标记段内禁手编，
+  check_module_graph 渲染比对面拦截漂移）。
 - **新单元三步**：先在图谱 §3 与 file-contracts.md §3 登记 → 再建包目录
   （_template 固定结构）→ 最后实现；三方一致性由门禁强制。业务线扩充时
   同步更新脚本内 EXPECTED_UNIT_COUNT 断言。

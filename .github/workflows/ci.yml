@@ -44,6 +44,13 @@ jobs:
         env:
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
           GITHUB_PR_BASE: ${{ github.event.pull_request.base.sha }}
+      # 锁面草稿（GOV4 B1-1/ADR-015）：gates 红面时输出「工作树实测 →
+      # 应然 manifest」差异草稿+全根清单重锁命令（只读投影，不写
+      # manifest）。人审工序不变：重锁仍=人类跑 lock_tests.py+独立
+      # [HUMAN-LOCK] commit（AGENTS §7）；绿面零噪声（step 跳过）。
+      - name: 锁面草稿（漂移时的机器草稿——人审重锁工序不变）
+        if: failure()
+        run: python scripts/draft_lock_manifest.py
 
   core:
     name: 内核质量（ruff/mypy/import-linter/pytest）

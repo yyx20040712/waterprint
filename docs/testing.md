@@ -16,6 +16,9 @@
   （实测口径 270 键 = core/tests 139 + server/tests 39 + units_lib 包内
   92——GOV1 勘正：本页原漏 units_lib 面；core/tests 139 内含 core/tests/units_lib/ 2 件跨单元测试），
   `scripts/check_readonly.py` 与 `tests/arch/test_lock.py` 本地/CI 双验；
+  漂移修复的机器半边=`scripts/draft_lock_manifest.py` 草稿器（差异三类
+  清单+全根清单重锁命令，只读投影；CI gates 红面自动输出——ADR-015；
+  重锁动作本身仍=人类执行 lock_tests.py+独立 [HUMAN-LOCK] commit）；
 - 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`；
   **平台守卫白名单外的 SKIPPED 即 CI FAIL——GOV1 A3 机器化**，白名单=
   「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest 哈希覆盖]）；

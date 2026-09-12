@@ -9,6 +9,8 @@
 # 规格说明：AGENTS.md §13 结构图谱规则。校验七件事：
 #   a) §1a 节点表：节点对应路径存在；层归属与 pyproject import-linter
 #      第一条 layers 契约双源一致（互相覆盖，漏一边 = 失败）；
+#      §1a 数据行=生成物（GOV4/ADR-017）——标记段内容须与
+#      gen_structure_nodes.py 渲染输出一致（手编/忘跑即失败）；
 #   b) §1b 边表：两端节点已声明；方向沿层序严格向下（同层/向上 = 失败）；
 #      依赖图无环（Kahn）；同层边不入 §1b 边表——以 §1c 声明块承载；
 #   c) §1c 同层边声明块（ADR-014 唯一声明面，GOV2 2026-09-12）：toml
@@ -54,6 +56,15 @@ from same_layer_lib import (  # noqa: E402
     check_same_layer_pyproject,
     parse_same_layer_edges,
 )
+from structure_nodes_lib import (  # noqa: E402
+    BEGIN_MARK,
+    END_MARK,
+    LAYER_ORDER,
+    CORE_LAYER_OF_TOKEN,
+    extract_segment,
+    load_node_rows,
+    render_table,
+)
 
 REPO = Path(__file__).resolve().parent.parent
 GRAPH_MD = REPO / "docs" / "structure-graph.md"
@@ -71,18 +82,9 @@ UNIT_ROW = re.compile(r"^\|\s*`([^`]+/)`\s*\|")
 TICK = re.compile(r"`([^`]+)`")
 HEADING = re.compile(r"^#{2,3}\s+(.*)$")
 
-# 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）
-LAYER_ORDER: tuple[str, ...] = (
-    "L6", "L5.main", "L5.routers", "L5.services", "L5.jobs", "L5.settings",
-    "L4.cli", "L4.app", "L4.project-trace", "L3", "L2", "L1", "L0",
-    "DATA", "CONTRACT",
-)
-# 内核层 token → pyproject import-linter layers 契约（第一条）的层序号
-# （L4 为三行子层：cli=0 → app=1 → project|trace=2，与 pyproject 拆分一致）
-CORE_LAYER_OF_TOKEN: dict[str, int] = {
-    "L4.cli": 0, "L4.app": 1, "L4.project-trace": 2,
-    "L3": 3, "L2": 4, "L1": 5, "L0": 6,
-}
+# 层序与内核层 token 映射自 structure_nodes_lib 单源导入（GOV4/ADR-017：
+# §1a 数据行=生成物，校验端与生成端共用取数/渲染）；EXPECTED_UNIT_COUNT
+# 为本脚本既定断言（业务线扩充时同步——AGENTS §13）。
 EXPECTED_UNIT_COUNT = 32
 UNIT_LINE_DIRS = ("municipal", "mine_water", "sludge", "conveyance")
 
@@ -296,6 +298,28 @@ def check_chains(body: str) -> list[str]:
     return problems
 
 
+# ── h) §1a 生成物一致（GOV4/ADR-017）─────────────────────────────
+
+def check_nodes_generated(graph_text: str) -> list[str]:
+    """§1a 标记段内容 ↔ 渲染输出（两 pyproject 契约+固定三叶展开）。
+
+    漂移三源全拦：标记段内手编（内容≠渲染）/ 改契约后忘跑生成器 /
+    标记段整体缺失（fail-closed）。取数失败（层重构/幽灵模块）同报。
+    """
+    if BEGIN_MARK not in graph_text or END_MARK not in graph_text:
+        return ["§1a 缺 STRUCT-NODES:BEGIN/END 标记段（生成物脚手架不得移除）"]
+    try:
+        expected = render_table(load_node_rows())
+    except ValueError as exc:
+        return [f"§1a 生成物取数失败：{exc}"]
+    if extract_segment(graph_text) != expected:
+        return [
+            "§1a 节点表与生成器输出不符（标记段内禁手编/改契约后须跑"
+            " scripts/gen_structure_nodes.py 展开后再过门禁）"
+        ]
+    return []
+
+
 # ── f) 真实 import 扫描（规则①②③见文件头规格说明）────────────────
 
 def module_of(rel: str) -> tuple[str, bool]:
@@ -433,6 +457,7 @@ def main() -> int:
     problems += check_same_layer_block(same_layer, nodes, resolve_node)
     problems += check_same_layer_pyproject(same_layer, PYPROJECT)
     problems += check_real_imports(nodes, edges, same_layer)
+    problems += check_nodes_generated(GRAPH_MD.read_text(encoding="utf-8"))
 
     if problems:
         print(f"[FAIL] 结构图谱违规 {len(problems)} 处：")
@@ -445,7 +470,8 @@ def main() -> int:
         f"且 independence 契约逐包吻合；调用链路径全部存在；"
         f"同层边声明块 {len(same_layer)} 条（§1c 唯一声明面）与 pyproject"
         f" ignore_imports 双向一致；"
-        f"真实 import 全库扫描 ⊆ §1b 声明边 ∪ §1c 同层边"
+        f"真实 import 全库扫描 ⊆ §1b 声明边 ∪ §1c 同层边；"
+        f"§1a 节点表=生成物（渲染比对一致）"
     )
     return 0
 

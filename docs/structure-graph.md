@@ -12,6 +12,12 @@
 
 ### 1a. 节点表
 
+> **数据行=生成物**（ADR-017）：下方标记段由 `scripts/gen_structure_nodes.py`
+> 自 core/server 两 pyproject 的 import-linter layers 契约 + 固定三叶节点
+> （webapp/data/api-contracts）展开；工序=改契约 → 跑生成器 → 门禁绿
+> （check_module_graph 渲染比对面，忘跑即红）；标记段内禁手编。
+
+<!-- STRUCT-NODES:BEGIN（生成物——gen_structure_nodes.py 自两 pyproject layers 契约展开，标记段内禁手编；工序=改契约→跑生成器→门禁绿） -->
 | 节点 | 层 | 对应路径 |
 |------|----|----------|
 | `webapp` | L6 | `webapp/src` |
@@ -39,6 +45,7 @@
 | `waterprint.contracts` | L0 | `core/waterprint/contracts` |
 | `data` | DATA | `data` |
 | `api-contracts` | CONTRACT | `api-contracts` |
+<!-- STRUCT-NODES:END -->
 
 > 层序（自上而下）：L6 → L5.main → L5.routers → L5.services → L5.jobs →
 > L5.settings → L4.cli → L4.app（app 与 app_enumeration 同层伴生，SERVER
