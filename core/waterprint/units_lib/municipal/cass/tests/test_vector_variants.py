@@ -83,6 +83,7 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.cass.superheight': 0.5,
     'factor.cass.wall_thickness_coef': 0.4,
     'factor.cass.elevation_loss': 0.5,
+    'factor.cass.aerator.service_area': 0.5,
     'removal.cass.bod5.mod_default': 0.9,
     'removal.cass.cod.mod_default': 0.85,
     'removal.cass.ss.mod_default': 0.9,
@@ -175,6 +176,8 @@ def test_baseline_var1_full_surface() -> None:
         'b_pool_raw': 37.28844324988642,
         'b_pool': 37.5,
         'v_concrete': 7647.353999999999,
+        'n_aerator_raw': 6517.631249999999,
+        'n_aerator': 6518.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -234,6 +237,8 @@ def test_baseline_var2_full_surface() -> None:
         'b_pool_raw': 18.64422162494321,
         'b_pool': 19.0,
         'v_concrete': 7647.353999999999,
+        'n_aerator_raw': 1629.4078124999999,
+        'n_aerator': 1630.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -307,6 +312,8 @@ def test_baseline_var3_full_surface() -> None:
         'b_pool_raw': 21.22082651717411,
         'b_pool': 21.5,
         'v_concrete': 9907.116517584,
+        'n_aerator_raw': 2142.99020286,
+        'n_aerator': 2143.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -373,6 +380,8 @@ def test_baseline_var4_full_surface() -> None:
         'b_pool_raw': 13.896582313648201,
         'b_pool': 14.0,
         'v_concrete': 7338.37,
+        'n_aerator_raw': 905.2265624999999,
+        'n_aerator': 906.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -439,6 +448,8 @@ def test_baseline_var5_full_surface() -> None:
         'b_pool_raw': 26.366911081884428,
         'b_pool': 26.5,
         'v_concrete': 15294.707999999999,
+        'n_aerator_raw': 3367.4428124999995,
+        'n_aerator': 3368.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

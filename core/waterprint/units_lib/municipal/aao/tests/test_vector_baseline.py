@@ -114,6 +114,7 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.aao.sludge.moisture': 0.994,
     'factor.aao.elevation_loss': 0.5,
     'factor.aao.superheight': 0.3,
+    'factor.aao.aerator.service_area': 0.5,
     'removal.aao.bod5.mod_default': 0.9,
     'removal.aao.cod.mod_default': 0.85,
     'removal.aao.ss.mod_default': 0.9,
@@ -179,6 +180,8 @@ def test_baseline_main_full_surface() -> None:
         'l_pool': 94.5,
         'b_pool': 38.0,
         'v_pool': 17955.0,
+        'n_aerator_raw': 2142.99020286,
+        'n_aerator': 2143.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

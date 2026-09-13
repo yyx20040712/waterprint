@@ -213,7 +213,8 @@ def test_line_sets_disjoint() -> None:
 
 
 def test_aao_pool_slots_declared_l7() -> None:
-    """L7：AAO 表行池体声明冻结口径——三槽+剖面双键+23 键 non_drawn（§二）。"""
+    """L7：AAO 表行池体声明冻结口径——三槽+剖面双键+24 键 non_drawn（§二
+    +曝气头数据面批 n_aerator_raw——n_aerator 归 instance_counts）。"""
     projection = PROJECTION_TABLE["municipal_aao"]
     # primitive_dims：box 三槽（length/width/depth→几何段圆整键）
     assert projection.primitive_dims == {
@@ -225,15 +226,16 @@ def test_aao_pool_slots_declared_l7() -> None:
     assert "high_water" not in projection.section_keys
     # plan_keys 不声明（unit_plan 走 primitive_dims 回退自动画外框——预裁 6）
     assert projection.plan_keys == {}
-    # non_drawn：19 旧键 + a_pool/l_pool_raw/b_pool_raw/v_pool（=23）
+    # non_drawn：19 旧键 + a_pool/l_pool_raw/b_pool_raw/v_pool/n_aerator_raw（=24）
     assert frozenset(projection.non_drawn) == frozenset({
-        "a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "o2_carbon",
-        "o2_denit", "o2_nit", "o2_total", "q_internal", "q_return", "q_wet",
-        "s_y", "t_n", "t_o", "t_total", "theta_c", "v_anaerobic", "v_anoxic",
-        "v_o", "v_o_series", "v_pool", "v_total", "x_vss",
+        "a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "n_aerator_raw",
+        "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_internal", "q_return",
+        "q_wet", "s_y", "t_n", "t_o", "t_total", "theta_c", "v_anaerobic",
+        "v_anoxic", "v_o", "v_o_series", "v_pool", "v_total", "x_vss",
     })
     # R1 键集自洽：四槽取数键=恰 4 键（h2 随水面声明入表；h_pool 双槽同键）
-    assert projection.drawn_keys() == frozenset({"h2", "l_pool", "b_pool", "h_pool"})
+    assert projection.drawn_keys() == frozenset(
+        {"h2", "l_pool", "b_pool", "h_pool", "n_aerator"})
 
 
 @pytest.mark.parametrize("unit_id", sorted(_EXPECTED_UNITS))

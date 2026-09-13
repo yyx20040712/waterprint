@@ -102,6 +102,7 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.cass.superheight": 0.5,
         "factor.cass.wall_thickness_coef": 0.40,
         "factor.cass.elevation_loss": 0.5,
+        "factor.cass.aerator.service_area": 0.5,
         # removal_rates.yaml mod_default 档逐字（AAO 同族档+N/P 三键 0.8.0
         # NP1/RATIFY3——tn 档 0.70 略低于 aao 0.75，SBR 时空分档）
         "removal.cass.bod5.mod_default": 0.90,
@@ -211,6 +212,10 @@ def test_main_case_geometry() -> None:
     assert dims["b_pool_raw"] == pytest.approx(18.64422, abs=1e-3)  # CA-F26
     assert dims["b_pool"] == pytest.approx(19.0, abs=1e-9)  # 0.5 m 档取整
     assert dims["v_concrete"] == pytest.approx(7647.354, abs=1e-1)  # CA-F27：概算
+    # CA-F28 曝气头（主反应区口径——a_pool 扣选择区面积；曝气头数据面批）：
+    # a_pool=869.0175−1086.271875/(4×5.0)=814.7039 → /0.5=1629.408 → ceil 1630
+    assert dims["n_aerator_raw"] == pytest.approx(1629.408, abs=1e-2)  # CA-F28
+    assert dims["n_aerator"] == pytest.approx(1630.0, abs=1e-9)  # 整台 ceil
     result = make_unit().compute(_ctx(_params()))
     assert result.warnings == ()  # 主算例六条校核带均合格
 
@@ -313,7 +318,7 @@ def test_pure_function_double_run() -> None:
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"CA-F{index}" for index in range(1, 28))
+    assert result.formula_ids == tuple(f"CA-F{index}" for index in range(1, 29))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

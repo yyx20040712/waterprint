@@ -13,10 +13,10 @@
     "design_offline_municipal_erchunchi"
   ],
   "generated": {
-    "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.2.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 5881274,
-    "serialize_sha256_head": "02466a7eaf3f5e3f",
+    "serialize_bytes": 5922449,
+    "serialize_sha256_head": "4d9646b32e0fbdf0",
     "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
   },
   "tolerance": {

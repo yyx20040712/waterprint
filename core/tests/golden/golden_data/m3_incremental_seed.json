@@ -1,569 +1,569 @@
 {
- "meta": {
-  "source": "core/tests/golden/golden_data/municipal_34760_loop/input_project.json",
-  "engine_version": "waterprint-server 0.1.0",
-  "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
-  "generator": ".workflow/b11-probe/generate_m3_seed.py",
-  "note": "Ruling 2026-09-07 ② 方案 B：golden municipal_34760_loop 派生种子草稿——用户/领域专家审定后锁面登记（golden_data 人类维护纪律沿承）；工况集=base_design.checked_units 派生（本案例空表→design/avg 两工况）；full_graph 步无快照重用面（语义本然——重用安全性质咬合住在部分重算步）",
-  "base_serialize_sha256_head": "be691f2f0ea9a4dd",
-  "base_serialize_bytes": 2237458
- },
- "base_design": {
-  "nodes": {
-   "inlet": {
-    "BOD5": 200.0,
-    "CODCR": 400.0,
-    "NH3N": 26.0,
-    "SS": 250.0,
-    "TN": 43.0,
-    "TP": 6.5,
-    "kind": "municipal_input",
-    "kz": 1.4,
-    "q_avg_daily": 0.4023229167
-   },
-   "municipal_aao": {},
-   "municipal_bashi_jiliangcao": {},
-   "municipal_chenshachi": {},
-   "municipal_chuchenchi": {},
-   "municipal_cugeshan": {},
-   "municipal_erchunchi": {},
-   "municipal_gaomidu": {},
-   "municipal_vxinglvchi": {},
-   "municipal_wushui_tisheng": {},
-   "municipal_xigeshan": {},
-   "municipal_ziwai": {},
-   "rj_filtrate": {
-    "kind": "recycle_junction"
-   },
-   "rj_sup": {
-    "kind": "recycle_junction"
-   },
-   "sludge_bengzhan": {},
-   "sludge_ganhua": {},
-   "sludge_hebing": {
-    "q_avg_daily": 34760.7,
-    "s0_bod": 123.2996,
-    "se_bod": 12.32996,
-    "t_design": 15.0,
-    "v_bio": 10714.95,
-    "x_vss": 3000.0
-   },
-   "sludge_nongsuo": {},
-   "sludge_shusong": {},
-   "sludge_tuoshui": {},
-   "sludge_xiaohua": {}
+  "meta": {
+    "source": "core/tests/golden/golden_data/municipal_34760_loop/input_project.json",
+    "engine_version": "waterprint-server 0.1.0",
+    "data_version": "coefficients@1.2.0+unit_prices@1.0.0",
+    "generator": ".workflow/b11-probe/generate_m3_seed.py",
+    "note": "Ruling 2026-09-07 ② 方案 B：golden municipal_34760_loop 派生种子草稿——用户/领域专家审定后锁面登记（golden_data 人类维护纪律沿承）；工况集=base_design.checked_units 派生（本案例空表→design/avg 两工况）；full_graph 步无快照重用面（语义本然——重用安全性质咬合住在部分重算步）",
+    "base_serialize_sha256_head": "f6402511ca7d2446",
+    "base_serialize_bytes": 2237458
   },
-  "edges": [
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_wushui_tisheng"
+  "base_design": {
+    "nodes": {
+      "inlet": {
+        "BOD5": 200.0,
+        "CODCR": 400.0,
+        "NH3N": 26.0,
+        "SS": 250.0,
+        "TN": 43.0,
+        "TP": 6.5,
+        "kind": "municipal_input",
+        "kz": 1.4,
+        "q_avg_daily": 0.4023229167
+      },
+      "municipal_aao": {},
+      "municipal_bashi_jiliangcao": {},
+      "municipal_chenshachi": {},
+      "municipal_chuchenchi": {},
+      "municipal_cugeshan": {},
+      "municipal_erchunchi": {},
+      "municipal_gaomidu": {},
+      "municipal_vxinglvchi": {},
+      "municipal_wushui_tisheng": {},
+      "municipal_xigeshan": {},
+      "municipal_ziwai": {},
+      "rj_filtrate": {
+        "kind": "recycle_junction"
+      },
+      "rj_sup": {
+        "kind": "recycle_junction"
+      },
+      "sludge_bengzhan": {},
+      "sludge_ganhua": {},
+      "sludge_hebing": {
+        "q_avg_daily": 34760.7,
+        "s0_bod": 123.2996,
+        "se_bod": 12.32996,
+        "t_design": 15.0,
+        "v_bio": 10714.95,
+        "x_vss": 3000.0
+      },
+      "sludge_nongsuo": {},
+      "sludge_shusong": {},
+      "sludge_tuoshui": {},
+      "sludge_xiaohua": {}
     },
-    "src": {
-     "port_id": "out",
-     "unit_id": "inlet"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_cugeshan"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_wushui_tisheng"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_xigeshan"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_cugeshan"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_chenshachi"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_xigeshan"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_chuchenchi"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_chenshachi"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_aao"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_chuchenchi"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_erchunchi"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_aao"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_gaomidu"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_erchunchi"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_vxinglvchi"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_gaomidu"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_ziwai"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_vxinglvchi"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_bashi_jiliangcao"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "municipal_ziwai"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_shusong"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_hebing"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_bengzhan"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_shusong"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_nongsuo"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_bengzhan"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_xiaohua"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_nongsuo"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_tuoshui"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_xiaohua"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "sludge_ganhua"
-    },
-    "src": {
-     "port_id": "out",
-     "unit_id": "sludge_tuoshui"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in_primary",
-     "unit_id": "sludge_hebing"
-    },
-    "recycle": false,
-    "src": {
-     "port_id": "sludge_out",
-     "unit_id": "municipal_chuchenchi"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in_bio",
-     "unit_id": "sludge_hebing"
-    },
-    "recycle": false,
-    "src": {
-     "port_id": "sludge_out",
-     "unit_id": "municipal_aao"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in_chem",
-     "unit_id": "sludge_hebing"
-    },
-    "recycle": false,
-    "src": {
-     "port_id": "sludge_out",
-     "unit_id": "municipal_gaomidu"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "rj_sup"
-    },
-    "recycle": true,
-    "src": {
-     "port_id": "sup",
-     "unit_id": "sludge_nongsuo"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_wushui_tisheng"
-    },
-    "recycle": false,
-    "src": {
-     "port_id": "out",
-     "unit_id": "rj_sup"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "rj_filtrate"
-    },
-    "recycle": true,
-    "src": {
-     "port_id": "filtrate",
-     "unit_id": "sludge_tuoshui"
-    }
-   },
-   {
-    "dst": {
-     "port_id": "in",
-     "unit_id": "municipal_wushui_tisheng"
-    },
-    "recycle": false,
-    "src": {
-     "port_id": "out",
-     "unit_id": "rj_filtrate"
-    }
-   }
-  ],
-  "constraint_choices": {},
-  "checked_units": [],
-  "assumption_overrides": {},
-  "influent": {},
-  "standard_binding": {},
-  "site": {
-   "structures": {},
-   "roads": [],
-   "corridors": [],
-   "options": {
-    "coord_grid": 10.0,
-    "wind_rose": null
-   },
-   "boundary": []
-  }
- },
- "edits": [
-  {
-   "kind": "param",
-   "target": {
-    "unit_id": "sludge_hebing",
-    "field": "t_design"
-   },
-   "payload": {
-    "value": 16.0
-   },
-   "note": "族A-1 规则③参数 diff（同单元字段一）",
-   "expect": {
-    "full_graph": false,
-    "changed_units": [
-     "sludge_hebing"
-    ],
-    "affected_count": 20,
-    "loop_group_count": 1,
-    "serialize_sha256_head": "c3bce225cd8c393b",
-    "serialize_bytes": 2237458
-   }
-  },
-  {
-   "kind": "param",
-   "target": {
-    "unit_id": "sludge_hebing",
-    "field": "q_avg_daily"
-   },
-   "payload": {
-    "value": 38236.77
-   },
-   "note": "族A-2 规则③参数 diff（同单元字段二）",
-   "expect": {
-    "full_graph": false,
-    "changed_units": [
-     "sludge_hebing"
-    ],
-    "affected_count": 20,
-    "loop_group_count": 1,
-    "serialize_sha256_head": "a17bb921c4a8f55e",
-    "serialize_bytes": 2237621
-   }
-  },
-  {
-   "kind": "param",
-   "target": {
-    "unit_id": "sludge_hebing",
-    "field": "m3_incremental_negctrl"
-   },
-   "payload": {
-    "value": 1.0
-   },
-   "note": "族A-3 负控：无关字段新增（载荷全字段口径→仍入 changed_units；结果快照与上一步恒等——serialize 差异唯一来源=repro.design_hash 随设计字节变化）",
-   "negative_control": true,
-   "expect": {
-    "full_graph": false,
-    "changed_units": [
-     "sludge_hebing"
-    ],
-    "affected_count": 20,
-    "loop_group_count": 1,
-    "serialize_sha256_head": "a847693e8ceaefd4",
-    "serialize_bytes": 2237621,
-    "results_identical_to_prev": true
-   }
-  },
-  {
-   "kind": "remove_unit",
-   "target": {
-    "unit_id": "sludge_ganhua"
-   },
-   "payload": {
-    "edges_removed": 1
-   },
-   "note": "族B-1 规则①拓扑短路（删叶单元+其入边——24 边全结构刚需探针实证后唯一可执行删拓扑形态）",
-   "expect": {
-    "full_graph": true,
-    "changed_units": [
-     "inlet",
-     "municipal_aao",
-     "municipal_bashi_jiliangcao",
-     "municipal_chenshachi",
-     "municipal_chuchenchi",
-     "municipal_cugeshan",
-     "municipal_erchunchi",
-     "municipal_gaomidu",
-     "municipal_vxinglvchi",
-     "municipal_wushui_tisheng",
-     "municipal_xigeshan",
-     "municipal_ziwai",
-     "rj_filtrate",
-     "rj_sup",
-     "sludge_bengzhan",
-     "sludge_hebing",
-     "sludge_nongsuo",
-     "sludge_shusong",
-     "sludge_tuoshui",
-     "sludge_xiaohua"
-    ],
-    "affected_count": 20,
-    "loop_group_count": 0,
-    "serialize_sha256_head": "9164a236e1b907ff",
-    "serialize_bytes": 2230582
-   }
-  },
-  {
-   "kind": "restore_unit",
-   "payload": {
-    "unit_id": "sludge_ganhua",
-    "node": {},
     "edges": [
-     {
-      "src": {
-       "unit_id": "sludge_tuoshui",
-       "port_id": "out"
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_wushui_tisheng"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "inlet"
+        }
       },
-      "dst": {
-       "unit_id": "sludge_ganhua",
-       "port_id": "in"
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_cugeshan"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_wushui_tisheng"
+        }
       },
-      "recycle": false
-     }
-    ]
-   },
-   "note": "族B-2 规则①拓扑短路（叶单元+边复原——拓扑再变，增拓扑路径；结果快照与删改前恒等——serialize 差异仅 repro.design_hash 边序面）",
-   "expect": {
-    "full_graph": true,
-    "changed_units": [
-     "inlet",
-     "municipal_aao",
-     "municipal_bashi_jiliangcao",
-     "municipal_chenshachi",
-     "municipal_chuchenchi",
-     "municipal_cugeshan",
-     "municipal_erchunchi",
-     "municipal_gaomidu",
-     "municipal_vxinglvchi",
-     "municipal_wushui_tisheng",
-     "municipal_xigeshan",
-     "municipal_ziwai",
-     "rj_filtrate",
-     "rj_sup",
-     "sludge_bengzhan",
-     "sludge_ganhua",
-     "sludge_hebing",
-     "sludge_nongsuo",
-     "sludge_shusong",
-     "sludge_tuoshui",
-     "sludge_xiaohua"
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_xigeshan"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_cugeshan"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_chenshachi"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_xigeshan"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_chuchenchi"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_chenshachi"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_aao"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_chuchenchi"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_erchunchi"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_aao"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_gaomidu"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_erchunchi"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_vxinglvchi"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_gaomidu"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_ziwai"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_vxinglvchi"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_bashi_jiliangcao"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "municipal_ziwai"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_shusong"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_hebing"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_bengzhan"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_shusong"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_nongsuo"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_bengzhan"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_xiaohua"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_nongsuo"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_tuoshui"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_xiaohua"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "sludge_ganhua"
+        },
+        "src": {
+          "port_id": "out",
+          "unit_id": "sludge_tuoshui"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in_primary",
+          "unit_id": "sludge_hebing"
+        },
+        "recycle": false,
+        "src": {
+          "port_id": "sludge_out",
+          "unit_id": "municipal_chuchenchi"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in_bio",
+          "unit_id": "sludge_hebing"
+        },
+        "recycle": false,
+        "src": {
+          "port_id": "sludge_out",
+          "unit_id": "municipal_aao"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in_chem",
+          "unit_id": "sludge_hebing"
+        },
+        "recycle": false,
+        "src": {
+          "port_id": "sludge_out",
+          "unit_id": "municipal_gaomidu"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "rj_sup"
+        },
+        "recycle": true,
+        "src": {
+          "port_id": "sup",
+          "unit_id": "sludge_nongsuo"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_wushui_tisheng"
+        },
+        "recycle": false,
+        "src": {
+          "port_id": "out",
+          "unit_id": "rj_sup"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "rj_filtrate"
+        },
+        "recycle": true,
+        "src": {
+          "port_id": "filtrate",
+          "unit_id": "sludge_tuoshui"
+        }
+      },
+      {
+        "dst": {
+          "port_id": "in",
+          "unit_id": "municipal_wushui_tisheng"
+        },
+        "recycle": false,
+        "src": {
+          "port_id": "out",
+          "unit_id": "rj_filtrate"
+        }
+      }
     ],
-    "affected_count": 21,
-    "loop_group_count": 0,
-    "serialize_sha256_head": "b2d41391b2405efb",
-    "serialize_bytes": 2237621
-   }
+    "constraint_choices": {},
+    "checked_units": [],
+    "assumption_overrides": {},
+    "influent": {},
+    "standard_binding": {},
+    "site": {
+      "structures": {},
+      "roads": [],
+      "corridors": [],
+      "options": {
+        "coord_grid": 10.0,
+        "wind_rose": null
+      },
+      "boundary": []
+    }
   },
-  {
-   "kind": "assumption",
-   "target": {
-    "key": "loop.damping"
-   },
-   "payload": {
-    "value": 0.7
-   },
-   "note": "族C-1 规则②保守回落（五键面 assumption_overrides；serialize 2237621→2747903B 增量=迹树面迭代迹节点 6898→8498[阻尼 0.7 收敛变慢——每迭代全公式 applyings 进迹树]，结果面单元快照体量恒定）",
-   "expect": {
-    "full_graph": true,
-    "changed_units": [
-     "inlet",
-     "municipal_aao",
-     "municipal_bashi_jiliangcao",
-     "municipal_chenshachi",
-     "municipal_chuchenchi",
-     "municipal_cugeshan",
-     "municipal_erchunchi",
-     "municipal_gaomidu",
-     "municipal_vxinglvchi",
-     "municipal_wushui_tisheng",
-     "municipal_xigeshan",
-     "municipal_ziwai",
-     "rj_filtrate",
-     "rj_sup",
-     "sludge_bengzhan",
-     "sludge_ganhua",
-     "sludge_hebing",
-     "sludge_nongsuo",
-     "sludge_shusong",
-     "sludge_tuoshui",
-     "sludge_xiaohua"
-    ],
-    "affected_count": 21,
-    "loop_group_count": 0,
-    "serialize_sha256_head": "beec15a5fa613751",
-    "serialize_bytes": 2747903
-   }
-  },
-  {
-   "kind": "site_boundary",
-   "target": {},
-   "payload": {
-    "points": [
-     {
-      "x": 0.0,
-      "y": 0.0
-     },
-     {
-      "x": 100.0,
-      "y": 0.0
-     },
-     {
-      "x": 100.0,
-      "y": 100.0
-     }
-    ]
-   },
-   "note": "族C-2 规则②保守回落（site 面 boundary 红线——SitePoint 三点，闭合由 validator 隐式处理）",
-   "expect": {
-    "full_graph": true,
-    "changed_units": [
-     "inlet",
-     "municipal_aao",
-     "municipal_bashi_jiliangcao",
-     "municipal_chenshachi",
-     "municipal_chuchenchi",
-     "municipal_cugeshan",
-     "municipal_erchunchi",
-     "municipal_gaomidu",
-     "municipal_vxinglvchi",
-     "municipal_wushui_tisheng",
-     "municipal_xigeshan",
-     "municipal_ziwai",
-     "rj_filtrate",
-     "rj_sup",
-     "sludge_bengzhan",
-     "sludge_ganhua",
-     "sludge_hebing",
-     "sludge_nongsuo",
-     "sludge_shusong",
-     "sludge_tuoshui",
-     "sludge_xiaohua"
-    ],
-    "affected_count": 21,
-    "loop_group_count": 0,
-    "serialize_sha256_head": "b66e830387552f12",
-    "serialize_bytes": 2747903
-   }
-  }
- ]
+  "edits": [
+    {
+      "kind": "param",
+      "target": {
+        "unit_id": "sludge_hebing",
+        "field": "t_design"
+      },
+      "payload": {
+        "value": 16.0
+      },
+      "note": "族A-1 规则③参数 diff（同单元字段一）",
+      "expect": {
+        "full_graph": false,
+        "changed_units": [
+          "sludge_hebing"
+        ],
+        "affected_count": 20,
+        "loop_group_count": 1,
+        "serialize_sha256_head": "6424bca08c55da08",
+        "serialize_bytes": 2253362
+      }
+    },
+    {
+      "kind": "param",
+      "target": {
+        "unit_id": "sludge_hebing",
+        "field": "q_avg_daily"
+      },
+      "payload": {
+        "value": 38236.77
+      },
+      "note": "族A-2 规则③参数 diff（同单元字段二）",
+      "expect": {
+        "full_graph": false,
+        "changed_units": [
+          "sludge_hebing"
+        ],
+        "affected_count": 20,
+        "loop_group_count": 1,
+        "serialize_sha256_head": "7bc0d3c73ea8eaf5",
+        "serialize_bytes": 2253525
+      }
+    },
+    {
+      "kind": "param",
+      "target": {
+        "unit_id": "sludge_hebing",
+        "field": "m3_incremental_negctrl"
+      },
+      "payload": {
+        "value": 1.0
+      },
+      "note": "族A-3 负控：无关字段新增（载荷全字段口径→仍入 changed_units；结果快照与上一步恒等——serialize 差异唯一来源=repro.design_hash 随设计字节变化）",
+      "negative_control": true,
+      "expect": {
+        "full_graph": false,
+        "changed_units": [
+          "sludge_hebing"
+        ],
+        "affected_count": 20,
+        "loop_group_count": 1,
+        "serialize_sha256_head": "dd23af4ceada2b8d",
+        "serialize_bytes": 2253525,
+        "results_identical_to_prev": true
+      }
+    },
+    {
+      "kind": "remove_unit",
+      "target": {
+        "unit_id": "sludge_ganhua"
+      },
+      "payload": {
+        "edges_removed": 1
+      },
+      "note": "族B-1 规则①拓扑短路（删叶单元+其入边——24 边全结构刚需探针实证后唯一可执行删拓扑形态）",
+      "expect": {
+        "full_graph": true,
+        "changed_units": [
+          "inlet",
+          "municipal_aao",
+          "municipal_bashi_jiliangcao",
+          "municipal_chenshachi",
+          "municipal_chuchenchi",
+          "municipal_cugeshan",
+          "municipal_erchunchi",
+          "municipal_gaomidu",
+          "municipal_vxinglvchi",
+          "municipal_wushui_tisheng",
+          "municipal_xigeshan",
+          "municipal_ziwai",
+          "rj_filtrate",
+          "rj_sup",
+          "sludge_bengzhan",
+          "sludge_hebing",
+          "sludge_nongsuo",
+          "sludge_shusong",
+          "sludge_tuoshui",
+          "sludge_xiaohua"
+        ],
+        "affected_count": 20,
+        "loop_group_count": 0,
+        "serialize_sha256_head": "025f58b616ec88d3",
+        "serialize_bytes": 2246486
+      }
+    },
+    {
+      "kind": "restore_unit",
+      "payload": {
+        "unit_id": "sludge_ganhua",
+        "node": {},
+        "edges": [
+          {
+            "src": {
+              "unit_id": "sludge_tuoshui",
+              "port_id": "out"
+            },
+            "dst": {
+              "unit_id": "sludge_ganhua",
+              "port_id": "in"
+            },
+            "recycle": false
+          }
+        ]
+      },
+      "note": "族B-2 规则①拓扑短路（叶单元+边复原——拓扑再变，增拓扑路径；结果快照与删改前恒等——serialize 差异仅 repro.design_hash 边序面）",
+      "expect": {
+        "full_graph": true,
+        "changed_units": [
+          "inlet",
+          "municipal_aao",
+          "municipal_bashi_jiliangcao",
+          "municipal_chenshachi",
+          "municipal_chuchenchi",
+          "municipal_cugeshan",
+          "municipal_erchunchi",
+          "municipal_gaomidu",
+          "municipal_vxinglvchi",
+          "municipal_wushui_tisheng",
+          "municipal_xigeshan",
+          "municipal_ziwai",
+          "rj_filtrate",
+          "rj_sup",
+          "sludge_bengzhan",
+          "sludge_ganhua",
+          "sludge_hebing",
+          "sludge_nongsuo",
+          "sludge_shusong",
+          "sludge_tuoshui",
+          "sludge_xiaohua"
+        ],
+        "affected_count": 21,
+        "loop_group_count": 0,
+        "serialize_sha256_head": "79bbcc3382d8be34",
+        "serialize_bytes": 2253525
+      }
+    },
+    {
+      "kind": "assumption",
+      "target": {
+        "key": "loop.damping"
+      },
+      "payload": {
+        "value": 0.7
+      },
+      "note": "族C-1 规则②保守回落（五键面 assumption_overrides；serialize 2237621→2747903B 增量=迹树面迭代迹节点 6898→8498[阻尼 0.7 收敛变慢——每迭代全公式 applyings 进迹树]，结果面单元快照体量恒定）",
+      "expect": {
+        "full_graph": true,
+        "changed_units": [
+          "inlet",
+          "municipal_aao",
+          "municipal_bashi_jiliangcao",
+          "municipal_chenshachi",
+          "municipal_chuchenchi",
+          "municipal_cugeshan",
+          "municipal_erchunchi",
+          "municipal_gaomidu",
+          "municipal_vxinglvchi",
+          "municipal_wushui_tisheng",
+          "municipal_xigeshan",
+          "municipal_ziwai",
+          "rj_filtrate",
+          "rj_sup",
+          "sludge_bengzhan",
+          "sludge_ganhua",
+          "sludge_hebing",
+          "sludge_nongsuo",
+          "sludge_shusong",
+          "sludge_tuoshui",
+          "sludge_xiaohua"
+        ],
+        "affected_count": 21,
+        "loop_group_count": 0,
+        "serialize_sha256_head": "631eba19ce601ebc",
+        "serialize_bytes": 2767524
+      }
+    },
+    {
+      "kind": "site_boundary",
+      "target": {},
+      "payload": {
+        "points": [
+          {
+            "x": 0.0,
+            "y": 0.0
+          },
+          {
+            "x": 100.0,
+            "y": 0.0
+          },
+          {
+            "x": 100.0,
+            "y": 100.0
+          }
+        ]
+      },
+      "note": "族C-2 规则②保守回落（site 面 boundary 红线——SitePoint 三点，闭合由 validator 隐式处理）",
+      "expect": {
+        "full_graph": true,
+        "changed_units": [
+          "inlet",
+          "municipal_aao",
+          "municipal_bashi_jiliangcao",
+          "municipal_chenshachi",
+          "municipal_chuchenchi",
+          "municipal_cugeshan",
+          "municipal_erchunchi",
+          "municipal_gaomidu",
+          "municipal_vxinglvchi",
+          "municipal_wushui_tisheng",
+          "municipal_xigeshan",
+          "municipal_ziwai",
+          "rj_filtrate",
+          "rj_sup",
+          "sludge_bengzhan",
+          "sludge_ganhua",
+          "sludge_hebing",
+          "sludge_nongsuo",
+          "sludge_shusong",
+          "sludge_tuoshui",
+          "sludge_xiaohua"
+        ],
+        "affected_count": 21,
+        "loop_group_count": 0,
+        "serialize_sha256_head": "f1d40a0f8ffdf252",
+        "serialize_bytes": 2767524
+      }
+    }
+  ]
 }

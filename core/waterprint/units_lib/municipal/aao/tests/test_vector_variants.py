@@ -86,6 +86,7 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.aao.sludge.moisture': 0.994,
     'factor.aao.elevation_loss': 0.5,
     'factor.aao.superheight': 0.3,
+    'factor.aao.aerator.service_area': 0.5,
     'removal.aao.bod5.mod_default': 0.9,
     'removal.aao.cod.mod_default': 0.85,
     'removal.aao.ss.mod_default': 0.9,
@@ -171,6 +172,8 @@ def test_baseline_var1_full_surface() -> None:
         'l_pool': 130.5,
         'b_pool': 52.5,
         'v_pool': 34256.25,
+        'n_aerator_raw': 5357.4755071499985,
+        'n_aerator': 5358.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -244,6 +247,8 @@ def test_baseline_var2_full_surface() -> None:
         'l_pool': 73.0,
         'b_pool': 29.5,
         'v_pool': 10767.5,
+        'n_aerator_raw': 714.3300676199999,
+        'n_aerator': 715.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -317,6 +322,8 @@ def test_baseline_var3_full_surface() -> None:
         'l_pool': 71.0,
         'b_pool': 28.5,
         'v_pool': 10117.5,
+        'n_aerator_raw': 1071.49510143,
+        'n_aerator': 1072.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -389,6 +396,8 @@ def test_baseline_var4_full_surface() -> None:
         'l_pool': 86.5,
         'b_pool': 34.5,
         'v_pool': 17905.5,
+        'n_aerator_raw': 1785.8251690499999,
+        'n_aerator': 1786.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -448,6 +457,8 @@ def test_baseline_var5_full_surface() -> None:
         'l_pool': 103.5,
         'b_pool': 34.5,
         'v_pool': 17853.75,
+        'n_aerator_raw': 2142.99020286,
+        'n_aerator': 2143.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

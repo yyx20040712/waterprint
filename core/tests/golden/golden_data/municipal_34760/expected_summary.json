@@ -627,10 +627,10 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.2.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 510955,
-    "serialize_sha256_head": "9cda219283bc76c2",
+    "serialize_bytes": 513661,
+    "serialize_sha256_head": "4b51eb546912c7dd",
     "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
   },
   "m3_deferred": {

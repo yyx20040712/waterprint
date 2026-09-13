@@ -111,6 +111,7 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.cass.superheight': 0.5,
     'factor.cass.wall_thickness_coef': 0.4,
     'factor.cass.elevation_loss': 0.5,
+    'factor.cass.aerator.service_area': 0.5,
     'removal.cass.bod5.mod_default': 0.9,
     'removal.cass.cod.mod_default': 0.85,
     'removal.cass.ss.mod_default': 0.9,
@@ -180,6 +181,8 @@ def test_baseline_main_full_surface() -> None:
         'b_pool_raw': 18.64422162494321,
         'b_pool': 19.0,
         'v_concrete': 7647.353999999999,
+        'n_aerator_raw': 1629.4078124999999,
+        'n_aerator': 1630.0,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

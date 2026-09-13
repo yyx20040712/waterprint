@@ -197,11 +197,11 @@ def test_empty_condition_set_guard(golden_data_dir: Path) -> None:
 
 
 def test_condition_fields_from_out_dims_label_zh(golden_data_dir: Path) -> None:
-    """D2 condition_fields=按 manifest.out_dims 声明序取 label_zh 真源（AAO 21 条）。"""
+    """D2 condition_fields=按 manifest.out_dims 声明序取 label_zh 真源（AAO 23 条）。"""
     from waterprint.contracts.condition import build_condition_set
 
     outcome = run_enumeration(  # type: ignore[misc]
         _project(), "municipal_aao", build_condition_set([]), _env()  # type: ignore[misc]
     )
     assert outcome.condition_fields[:4] == _AAO_OUT_DIMS_ZH  # 声明序前四条中文名
-    assert len(outcome.condition_fields) == 21  # AAO 首例 21 条（V2 批）
+    assert len(outcome.condition_fields) == 23  # AAO 21→23 条（V2 批+曝气头数据面批两键）

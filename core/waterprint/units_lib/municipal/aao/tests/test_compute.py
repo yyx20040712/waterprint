@@ -12,7 +12,8 @@
 # 【用例面】主算例逐项断言（v_o/t_o/v_anaerobic/delta_n/v_anoxic/t_n/
 #   v_total/t_total/v_o_series/s_y/q_wet/theta_c/x_vss/o2_carbon/o2_nit/
 #   o2_denit/o2_total/q_return/q_internal）+ 池体几何 8 键（L7 批：
-#   h2/a_pool/l_pool/b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool——期望值=
+#   h2/a_pool/l_pool/b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool+曝气头
+#   两键（AO-F20 n_aerator_raw/n_aerator——曝气头数据面批）——期望值=
 #   v_total 锚独立手算，AO-F15~F19 CASS 公式族平移）+ 校核带越界产
 #   Warning（ns 带/t_p 带/缺氧 HRT 带/泥龄带[好氧口径]）+ 参数域拒绝
 #   （ns≤0/delta_n≤0）+ 纯函数双跑一致 + formula_ids 全部可在公式注册表解析。
@@ -102,6 +103,7 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.aao.sludge.moisture": 0.994,
         "factor.aao.elevation_loss": 0.5,
         "factor.aao.superheight": 0.3,
+        "factor.aao.aerator.service_area": 0.5,
         # removal_rates.yaml mod_default 档逐字（N/P 三键 0.8.0 NP1/RATIFY3）
         "removal.aao.bod5.mod_default": 0.90,
         "removal.aao.cod.mod_default": 0.85,
@@ -207,6 +209,10 @@ def test_main_case_geometry() -> None:
     assert dims["h_pool"] == pytest.approx(5.3, abs=1e-9)  # AO-F16：0.3+5.0
     assert dims["v_pool"] == pytest.approx(17955.0, abs=0.01)  # AO-F19
     assert dims["v_pool"] > dims["v_total"]  # 圆整裕量诚实呈现（D12）
+    # AO-F20 曝气头（好氧区单池服务面积法——曝气头数据面批）：
+    # v_o_series=5357.4755/（h2=5.0×f_sa=0.5）=2142.9902 → ceil 2143
+    assert dims["n_aerator_raw"] == pytest.approx(2142.990, abs=1e-2)  # AO-F20
+    assert dims["n_aerator"] == pytest.approx(2143.0, abs=1e-9)  # 整台 ceil
 
 
 def test_geometry_ceil_boundary_exact_multiple() -> None:
@@ -309,7 +315,7 @@ def test_pure_function_double_run() -> None:
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 20))
+    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 21))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 
