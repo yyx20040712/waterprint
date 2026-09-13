@@ -48,9 +48,11 @@ import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber"
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { semanticColor } from "../../../shared/ui/semanticColors";
 import { claimTemplateUnits } from "../assemble/templateAssembly";
+import { buildPoolBadges, buildPoolPlans } from "../assemble/poolGroup";
 import { attachGlInfo, registerProbe } from "../assemble/probe";
 import {
   SceneProjectionError,
@@ -58,7 +60,8 @@ import {
   type RenderNode,
   type RenderScene,
 } from "../lib/projectScene";
-import { placementSummary } from "../lib/placementSummary";
+import { groundPlan } from "../lib/groundPlan";
+import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
 import { Internals } from "./Internals";
@@ -67,7 +70,8 @@ import { SiteBoundary } from "./SiteBoundary";
 import { SiteRoutes } from "./SiteRoutes";
 import { TemplateUnit } from "./TemplateUnit";
 import { ViewerToolbar } from "./ViewerToolbar";
-import { WaterSurface } from "./WaterSurface";
+import { PlacementBanner } from "./PlacementBanner";
+import { PoolWaterSurfaces } from "./WaterSurface";
 
 // 批3 主体：探针注册（模块级——viewer3d 路由 chunk 载入即挂载；幂等）
 registerProbe();
@@ -251,30 +255,11 @@ export function Scene({
   }, [clippingEnabled, clippingHeight]);
 
   // C2-3d V1/V2 地面/网格/灯位数据面（bounds 派生——空场景 bounds=null
-  // 零地面：零场景零尺度基准沿 sceneCenter 先例）
-  const ground = useMemo(() => {
-    const bounds = projection.scene?.bounds ?? null;
-    if (bounds === null) {
-      return null;
-    }
-    const sizeX = bounds.max[0] - bounds.min[0];
-    const sizeZ = bounds.max[2] - bounds.min[2];
-    const span = Math.max(sizeX, sizeZ, 10);
-    // 主格 10m：总尺寸=最大边×3.2 向上取整到 10m 倍数（gridHelper 以
-    // 中心对称布格——奇偶格数均可；3.2=glm 二轮 2.2→3.2 调档，雾远缘
-    // 3.2×对角同档淡出余量）
-    const groundSize = Math.ceil((span * 3.2) / 10) * 10;
-    const diagonal = Math.hypot(sizeX, bounds.max[1] - bounds.min[1], sizeZ);
-    return {
-      size: groundSize,
-      majorDivisions: groundSize / 10,
-      minorDivisions: groundSize / 2,
-      centerX: (bounds.min[0] + bounds.max[0]) / 2,
-      centerZ: (bounds.min[2] + bounds.max[2]) / 2,
-      // V2 灯位/阴影覆盖：对角线驱动（阴影正交相机半幅=对角线×0.75）
-      diagonal,
-    };
-  }, [projection.scene]);
+  // 零地面：零场景零尺度基准沿 sceneCenter 先例；lib/groundPlan 抽离件）
+  const ground = useMemo(
+    () => groundPlan(projection.scene?.bounds ?? null),
+    [projection.scene],
+  );
   // V2 方向光 target（bounds 中心——阴影相机随场景中心覆盖；primitive
   // 挂载进场景使 target 变换生效）
   const lightTarget = useMemo(() => new THREE.Object3D(), []);
@@ -290,6 +275,14 @@ export function Scene({
   const templateClaims = useMemo(
     () => claimTemplateUnits(projection.scene),
     [projection.scene],
+  );
+
+  // S11 池组计划+徽标（三呈裁 2026-09-13；hooks 恒序位=早退前；通道=lib/usePoolGroups，builder=assemble/poolGroup）
+  const sceneConditionKey = projection.scene?.conditionKey ?? "";
+  const { poolPlans, poolBadges } = usePoolGroups(
+    templateClaims,
+    projectQuery.data,
+    sceneConditionKey,
   );
 
   if (query.isError) {
@@ -328,28 +321,9 @@ export function Scene({
           设计已修改但未重算——本场景基于旧结果集（重新提交计算后刷新）
         </div>
       ) : null}
-      {/* F9（C2-visual 批）：摆放态解释横幅——scene 仅收已布置单元（core
-          build_scene 诚实语义），部分摆放时显式告知防「三维骤降」误读
-          （placementSummary 判据收口=structures 非空且 placed<total[GV-01
-          R 轮]；兜底满场/全覆盖/详情不可达均返 null 不挂）。 */}
-      {(() => {
-        const summary = placementSummary(scene, projectQuery.data ?? null);
-        return summary !== null ? (
-          <div
-            role="status"
-            data-testid="placement-banner"
-            style={{
-              padding: "4px 8px",
-              color: semanticColor("pending"),
-              fontSize: 12,
-            }}
-          >
-            三维仅显示已在「厂区布置」标签摆放的构筑物与相关管廊（
-            {summary.placed}/{summary.total}）——未摆放单元不参与三维
-            场景，摆放并重新计算后可见。
-          </div>
-        ) : null;
-      })()}
+      {/* F9（C2-visual 批）：摆放态解释横幅（抽件 PlacementBanner——
+          placementSummary 判据收口见该件头注） */}
+      <PlacementBanner scene={scene} projectDetail={projectQuery.data ?? null} />
       {/* ENG6 工具条（preset 按钮组+图层开关面——批3 迭代二抽件
           ViewerToolbar[行数预算门 500]；图层开关=用户批注 b-① 草地
           可隐藏+水面/内部/标注 store 三键同制补 UI 调用方） */}
@@ -449,6 +423,7 @@ export function Scene({
                 dimNode={node}
                 scene={scene}
                 clippingPlanes={clippingPlanes}
+                poolPlan={poolPlans.get(unitId ?? node.id) ?? null}
               />
             );
           }
@@ -461,10 +436,23 @@ export function Scene({
             <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
           );
         })}
+        {/* S11 分池水面（PoolWaterSurfaces——cell 域在用槽各一份；
+            unit 域/无池组=现状单份） */}
         {showWater &&
-          scene.waters.map((node) => (
-            <WaterSurface key={node.id} node={node} clippingPlanes={clippingPlanes} />
-          ))}
+          scene.waters.map((node) => {
+            const unitId = unitIdOf(node.id);
+            const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
+            const plan =
+              claim !== undefined ? poolPlans.get(unitId ?? node.id) : undefined;
+            return (
+              <PoolWaterSurfaces
+                key={node.id}
+                node={node}
+                plan={plan ?? null}
+                clippingPlanes={clippingPlanes}
+              />
+            );
+          })}
         {showInternals &&
           scene.internals.map((node) => {
             const unitId = unitIdOf(node.id);
@@ -478,6 +466,7 @@ export function Scene({
                   dimNode={node}
                   scene={scene}
                   clippingPlanes={clippingPlanes}
+                  poolPlan={poolPlans.get(unitId ?? node.id) ?? null}
                 />
               );
             }
@@ -490,9 +479,14 @@ export function Scene({
         {scene.boundaries.map((node) => (
           <SiteBoundary key={node.id} node={node} />
         ))}
-        {/* C2-3d V3：对角线传参（字号自适应——bounds 空=下钳） */}
+        {/* C2-3d V3：对角线传参（字号自适应——bounds 空=下钳）；
+            S11 徽标=poolBadges（×n/检修 nActive/nPools） */}
         {showAnnotations && (
-          <Annotations nodes={scene.solids} diagonal={ground?.diagonal ?? 0} />
+          <Annotations
+            nodes={scene.solids}
+            diagonal={ground?.diagonal ?? 0}
+            poolBadges={poolBadges}
+          />
         )}
       </Canvas>
     </>

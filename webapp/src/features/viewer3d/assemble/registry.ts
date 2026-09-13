@@ -31,6 +31,18 @@ export type EquipmentEntry = {
   readonly anchor?: "pool_center_bottom" | "aabb_min";
 };
 
+/** 池组声明（S11 接线批——检修缺位占位+分池排布的数据面）。
+ *  countParam=params 池数键（AAO n 格/CASS n_pool 池）；templateScope=
+ *  模板粒度——cell=模板即单池（CASS，分池多份渲染）、unit=模板含全部
+ *  池（AAO 整单元 1 份渲染，格宽=b_pool÷nPools 派生）；gap=池组净距
+ *  常量 m（spacing 组合=max(格长,格宽)+gap——方阵不重叠优先，用户
+ *  呈裁① 2026-09-13）。缺省（无 poolGroup 键）=不参与（辐流单池）。 */
+export type PoolGroupEntry = {
+  readonly countParam: string;
+  readonly templateScope: "cell" | "unit";
+  readonly gap: number;
+};
+
 /** registry 家族条目（§9 schema v1——json 数据的 typed 视图）。 */
 export type FamilyEntry = {
   readonly family: string;
@@ -42,6 +54,7 @@ export type FamilyEntry = {
   readonly ratioDomain: readonly RatioDomainEntry[];
   readonly equipment: Readonly<Record<string, EquipmentEntry>>;
   readonly instanceSpacing: Readonly<Record<string, number | null>>;
+  readonly poolGroup?: PoolGroupEntry;
   /** inst 组布局模式（段二 box 族——缺省 ring=辐流立柱零改；
    *  模式语义=位置推导面，数量恒由场景图 instance_count 提供[P7]。 */
   readonly instanceModes?: Readonly<Record<string, InstanceMode>>;

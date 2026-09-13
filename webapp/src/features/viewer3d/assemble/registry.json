@@ -93,6 +93,11 @@
         "aerator": "grid",
         "rail_post": "rect"
       },
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "unit",
+        "gap": 1.0
+      },
       "badges": {
         "poolCount": true,
         "maintenanceNA": false
@@ -139,6 +144,11 @@
         "decant": "line_z",
         "aerator": "grid",
         "rail_post": "rect"
+      },
+      "poolGroup": {
+        "countParam": "n_pool",
+        "templateScope": "cell",
+        "gap": 1.0
       },
       "badges": {
         "poolCount": true,

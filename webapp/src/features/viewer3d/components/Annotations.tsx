@@ -25,6 +25,7 @@ import { useEffect, useMemo } from "react";
 import { Text } from "troika-three-text";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import type { PoolBadge } from "../assemble/poolGroup";
 import type { RenderNode } from "../lib/projectScene";
 
 const LABEL_COLOR = "#e8eef7";
@@ -46,13 +47,16 @@ type UnitLabel = {
   position: [number, number, number];
 };
 
+
 type AnnotationsProps = {
   nodes: RenderNode[];
   /** 场景对角线（字号自适应——缺省走下钳）。 */
   diagonal?: number;
+  /** 池组徽标（unit_id→池数/检修态——缺省/未收录=零徽标）。 */
+  poolBadges?: Readonly<Record<string, PoolBadge>>;
 };
 
-export function Annotations({ nodes, diagonal = 0 }: AnnotationsProps) {
+export function Annotations({ nodes, diagonal = 0, poolBadges }: AnnotationsProps) {
   const catalog = useListUnitsApiUnitsGet();
   const fontSize = useMemo(
     () => Math.min(FONT_MAX, Math.max(FONT_MIN, diagonal * FONT_PER_DIAGONAL)),
@@ -95,14 +99,23 @@ export function Annotations({ nodes, diagonal = 0 }: AnnotationsProps) {
   }, [catalog.data]);
   return (
     <group>
-      {labels.map((label) => (
-        <LabelMesh
-          key={label.unitId}
-          text={nameByUnit.get(label.unitId) ?? label.unitId}
-          position={label.position}
-          fontSize={fontSize}
-        />
-      ))}
+      {labels.map((label) => {
+        const badge = poolBadges?.[label.unitId];
+        const suffix =
+          badge === undefined
+            ? ""
+            : badge.offline
+              ? ` ×${badge.count}（${badge.active}/${badge.count} 检修中）`
+              : ` ×${badge.count}`;
+        return (
+          <LabelMesh
+            key={label.unitId}
+            text={`${nameByUnit.get(label.unitId) ?? label.unitId}${suffix}`}
+            position={label.position}
+            fontSize={fontSize}
+          />
+        );
+      })}
     </group>
   );
 }

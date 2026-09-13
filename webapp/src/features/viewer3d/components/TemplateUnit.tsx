@@ -30,12 +30,14 @@ import { loadTemplate } from "../assemble/loader";
 import { instanceLayout } from "../assemble/instanceLayout";
 import { logFallback } from "../assemble/fallbackLog";
 import type { FamilyEntry } from "../assemble/registry";
+import { poolCapSize, type PoolGroupPlan } from "../assemble/poolGroup";
 import { assemblePlan } from "../assemble/templateAssembly";
 import { sceneDimsToTarget } from "../assemble/computeTransforms";
 import { templateCounters, noteInstances } from "../assemble/probe";
 import { strippedClone } from "../assemble/strippedClone";
 import type { Vec3 } from "../assemble/types";
 import type { RenderNode, RenderScene } from "../lib/projectScene";
+import { MissingSlotPlaceholder } from "./MissingSlotPlaceholder";
 import { PoolBox } from "./PoolBox";
 import { TemplateCap } from "./TemplateCap";
 
@@ -45,6 +47,8 @@ type TemplateUnitProps = {
   readonly dimNode: RenderNode;
   readonly scene: RenderScene;
   readonly clippingPlanes?: THREE.Plane[];
+  /** S11 池组计划（null=无声明/数据病——现状单份渲染；Scene 组装）。 */
+  readonly poolPlan?: PoolGroupPlan | null;
 };
 
 /** P7 计数源：场景图 `{unit}::{part}` 节点 instance_count（无值=null）。 */
@@ -59,7 +63,7 @@ export function sceneInstanceCount(
 }
 
 export function TemplateUnit(props: TemplateUnitProps) {
-  const { entry, unitId, dimNode, scene, clippingPlanes } = props;
+  const { entry, unitId, dimNode, scene, clippingPlanes, poolPlan = null } = props;
   const [tpl, setTpl] = useState<LoadedTemplate | null>(null);
   useEffect(() => {
     let alive = true;
@@ -162,15 +166,30 @@ export function TemplateUnit(props: TemplateUnitProps) {
     return laid;
   }, [tpl, plan, scene, unitId, entry]);
 
+  // S11 分池排布（呈裁②）：cell 域模板=单池→在用槽各渲染一份；unit 域
+  // 模板=整单元（格在模板内）→单份；无池组/数据病→现状单份（null 链）。
+  // nActive=0（cell 全停）→空数组=零份模板+全槽占位（诚实呈现）。
+  const poolOffsets: readonly Vec3[] = useMemo(() => {
+    if (
+      poolPlan !== null &&
+      poolPlan !== undefined &&
+      poolPlan.templateScope === "cell"
+    ) {
+      return poolPlan.activeSlots;
+    }
+    return [[0, 0, 0]];
+  }, [poolPlan]);
+
   useEffect(() => {
     for (const { proto, positions } of instGroups) {
-      noteInstances(proto.part, positions.length);
+      // 分池路径 inst 实渲染量=单池布局×池份数（诚实计数——probe 读数面）
+      noteInstances(proto.part, positions.length * poolOffsets.length);
     }
-  }, [instGroups]);
+  }, [instGroups, poolOffsets]);
 
   useEffect(() => {
     if (plan !== null && plan.kind === "template") {
-      templateCounters.rendered += dimNode.placements.length;
+      templateCounters.rendered += dimNode.placements.length * poolOffsets.length;
     } else if (plan !== null) {
       templateCounters.fallbackBoxes += dimNode.placements.length;
     }
@@ -186,38 +205,60 @@ export function TemplateUnit(props: TemplateUnitProps) {
     return <FallbackBoxes node={dimNode} target={target} clippingPlanes={clippingPlanes} />;
   }
   const capPlane = clippingPlanes?.[0] ?? null;
+  // 分池帽盖（deepseek 讨论稿 A4+ε 主控裁定）：cell 域钳本池足迹+ε
+  // （diag×1.1 过幅在分池槽距下被保覆盖下钳顶掉——见 poolCapSize 注释）；
+  // unit/无池组=undefined 走 capQuadFor 现行推导（零回归）。
+  const poolCap = poolPlan?.templateScope === "cell" ? poolCapSize(poolPlan.cellL, poolPlan.cellW) : undefined;
   return (
     <>
       {dimNode.placements.map((placement, index) => (
         <group key={index} position={placement} rotation={dimNode.rotation}>
-          {plan.groups.map(({ node, transform }) => (
-            <group
-              key={node.name}
-              position={toThree(transform.translation)}
-              scale={toThree(transform.scale)}
-            >
-              <primitive object={node.object.clone()} />
+          {poolOffsets.map((offset, poolIndex) => (
+            <group key={`pool:${poolIndex}`} position={toThree(offset)}>
+              {plan.groups.map(({ node, transform }) => (
+                <group
+                  key={node.name}
+                  position={toThree(transform.translation)}
+                  scale={toThree(transform.scale)}
+                >
+                  <primitive object={node.object.clone()} />
+                </group>
+              ))}
+              {instGroups.map(({ proto, positions }) =>
+                positions.map((position, i) => (
+                  <group key={`${proto.name}:${i}`} position={toThree(position)}>
+                    {/* 布局位置=绝对模板位（几何中心语义）——clone 清
+                        position 保 scale/rotation（量化补偿——门二 P0）；
+                        辐流立柱数据面恒 skipped[P7]，本路径段二 CASS 滗水器
+                        首次真实消费 */}
+                    <primitive object={strippedClone(proto.object)} />
+                  </group>
+                )),
+              )}
+              {capPlane !== null ? (
+                <TemplateCap
+                  plan={plan}
+                  placement={poolCap !== undefined ? offset : placement}
+                  placements={poolCap !== undefined ? poolOffsets : dimNode.placements}
+                  plane={capPlane}
+                  capSizeOverride={poolCap}
+                />
+              ) : null}
             </group>
           ))}
-          {instGroups.map(({ proto, positions }) =>
-            positions.map((position, i) => (
-              <group key={`${proto.name}:${i}`} position={toThree(position)}>
-                {/* 布局位置=绝对模板位（几何中心语义）——clone 清
-                    position 保 scale/rotation（量化补偿——门二 P0）；
-                    辐流立柱数据面恒 skipped[P7]，本路径段二 CASS 滗水器
-                    首次真实消费 */}
-                <primitive object={strippedClone(proto.object)} />
-              </group>
-            )),
-          )}
-          {capPlane !== null ? (
-            <TemplateCap
-              plan={plan}
-              placement={placement}
-              placements={dimNode.placements}
-              plane={capPlane}
-            />
-          ) : null}
+          {/* S11 缺位警示占位（池底平面虚线框+半透明面——冻结契约槽位；
+              nActive≥nPools（正常工况）时 missing 恒空零渲染 */}
+          {poolPlan !== null && poolPlan !== undefined && entry.badges.maintenanceNA === false
+            ? poolPlan.missing.map((slot) => (
+                <MissingSlotPlaceholder
+                  key={`missing:${slot.index}`}
+                  position={slot.position}
+                  cellL={poolPlan.cellL}
+                  cellW={poolPlan.cellW}
+                  clippingPlanes={clippingPlanes}
+                />
+              ))
+            : null}
         </group>
       ))}
     </>

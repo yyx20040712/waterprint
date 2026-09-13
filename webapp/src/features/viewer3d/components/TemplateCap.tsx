@@ -108,11 +108,15 @@ export function TemplateCap({
   placement,
   placements,
   plane,
+  capSizeOverride,
 }: {
   plan: Extract<AssemblyPlan, { kind: "template" }>;
   placement: Vec3;
   placements: readonly Vec3[];
   plane: THREE.Plane;
+  /** S11 分池路径帽盖边长覆盖（poolCapSize=A4+ε——本池足迹+防 z-fight
+   *  余量；缺省=capQuadFor 现行 diag×1.1 推导，unit 路径零回归）。 */
+  capSizeOverride?: number;
 }) {
   // S4 封盖材质集：shell 未标 __nc（trim/equipment/instance 恒不入）
   const shellNodes = useMemo(
@@ -120,10 +124,12 @@ export function TemplateCap({
     [plan],
   );
   const writers = useMemo(() => buildWriters(shellNodes, plane), [shellNodes, plane]);
-  const quad = useMemo(
-    () => capQuadFor(placement, placements, plan.target, planeHeight(plane)),
-    [placement, placements, plan.target, plane],
-  );
+  const quad = useMemo(() => {
+    const base = capQuadFor(placement, placements, plan.target, planeHeight(plane));
+    return capSizeOverride === undefined
+      ? base
+      : { ...base, size: capSizeOverride };
+  }, [placement, placements, plan.target, plane, capSizeOverride]);
   const capMaterial = useMemo(
     () =>
       new THREE.MeshBasicMaterial({

@@ -25,6 +25,7 @@ import * as THREE from "three";
 
 import { semanticColor } from "../../../shared/ui/semanticColors";
 
+import type { PoolGroupPlan } from "../assemble/poolGroup";
 import type { RenderNode } from "../lib/projectScene";
 
 const BASE_OPACITY = 0.55;
@@ -72,4 +73,41 @@ export function WaterSurface({ node, clippingPlanes }: WaterSurfaceProps) {
       />
     </mesh>
   );
+}
+
+/**
+ * S11 分池水面（Scene waters 渲染段抽离件——500 行预算门）：cell 域
+ * 在用槽各一份（检修缺位池无水面——nActive 语义；kind-coverage
+ * 「waters 零动作」口径随分池批作废）；unit 域/无池组=现状单份。
+ */
+export function PoolWaterSurfaces({
+  node,
+  plan,
+  clippingPlanes,
+}: {
+  node: RenderNode;
+  plan: PoolGroupPlan | null;
+  clippingPlanes?: THREE.Plane[];
+}) {
+  if (plan !== null && plan.templateScope === "cell") {
+    // 门一 B-1 修复：槽位偏移在单元本地系——position/rotation 外层组
+    // 承载世界位姿、子件坐标归零（与 TemplateUnit 分池路径同构）
+    const shifted: RenderNode = {
+      ...node,
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+    };
+    return (
+      <>
+        {plan.activeSlots.map((offset, i) => (
+          <group key={i} position={node.position} rotation={node.rotation}>
+            <group position={offset}>
+              <WaterSurface node={shifted} clippingPlanes={clippingPlanes} />
+            </group>
+          </group>
+        ))}
+      </>
+    );
+  }
+  return <WaterSurface node={node} clippingPlanes={clippingPlanes} />;
 }

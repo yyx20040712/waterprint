@@ -19,7 +19,7 @@ import {
 } from "./semanticColors";
 
 describe("semanticColors 语义色真源表", () => {
-  it("键集冻结：恰 28 键（3D 图元 12+2D 场面 7+2D 单点 6+管廊 2[C2-3d]+剖切帽盖 1[C2VD]）", () => {
+  it("键集冻结：恰 29 键（3D 图元 12+2D 场面 7+2D 单点 6+管廊 2[C2-3d]+剖切帽盖 1[C2VD]+检修占位 1[S11]）", () => {
     expect(Object.keys(SEMANTIC_COLORS).sort()).toEqual(
       [
         // 3D 图元色族（12）
@@ -30,13 +30,15 @@ describe("semanticColors 语义色真源表", () => {
         "pipe_water", "pipe_sludge",
         // C2VD V1 剖切帽盖（1——缩略图半剖剖面封盖灰）
         "section_cap",
-        // 2D 场面色族（7）
+        // 2D 场景色族（7）
         "road", "boundary",
         "corridor_water", "corridor_power", "corridor_gas",
         "corridor_comm", "corridor_fallback",
         // 2D 单点彩色语义族（6——SPC2 +boundary_error 红线越界）
         "selected", "pending", "measure", "spacing_warn", "spacing_error",
         "boundary_error",
+        // S11 检修缺位占位（1——viewer3d 警示面）
+        "maintenance",
       ].sort(),
     );
   });
@@ -72,6 +74,8 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.spacing_warn).toBe("#faad14");
     expect(SEMANTIC_COLORS.spacing_error).toBe("#ff4d4f");
     expect(SEMANTIC_COLORS.boundary_error).toBe("#fa541c");
+    // S11 检修缺位占位警示橙
+    expect(SEMANTIC_COLORS.maintenance).toBe("#fa8c16");
   });
 
   it("兜底：未登记语义回退 FALLBACK_COLOR（禁抛错打断渲染）", () => {

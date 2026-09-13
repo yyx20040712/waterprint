@@ -105,6 +105,19 @@ function validateRegistry(registry) {
     if (!["ready", "pending"].includes(entry.status)) {
       fail(`${tag}: status 非法（${entry.status}）`);
     }
+    // S11 poolGroup（可选键——声明即校验三字段）
+    if (entry.poolGroup !== undefined) {
+      const pg = entry.poolGroup;
+      if (typeof pg.countParam !== "string" || pg.countParam.length === 0) {
+        fail(`${tag}.poolGroup.countParam 非法（${JSON.stringify(pg.countParam)}）`);
+      }
+      if (!["cell", "unit"].includes(pg.templateScope)) {
+        fail(`${tag}.poolGroup.templateScope 非法（${pg.templateScope}）`);
+      }
+      if (!(pg.gap > 0.05)) {
+        fail(`${tag}.poolGroup.gap ≤0.05（${pg.gap}——poolCapSize 恒<spacing 的充要：gap>POOL_CAP_EPS[0.05]）`);
+      }
+    }
     notes.push(`${tag} → ${entry.family}（${entry.status}）`);
   }
 }

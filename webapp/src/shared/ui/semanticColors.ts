@@ -53,6 +53,9 @@ export const SEMANTIC_COLORS = {
   spacing_warn: "#faad14", // L4b 校核 WARN 黄
   spacing_error: "#ff4d4f", // L4b 校核 ERROR 红（三色并存：pending=未计算）
   boundary_error: "#fa541c", // SPC2 红线越界 ERROR（红族异相橙红——与 spacing_error 语义区分）
+  // S11 检修缺位占位（viewer3d 警示面——图示语义警示橙，与 pending
+  // 同族暖色档但独立键：池组检修占位非「未计算」语义）
+  maintenance: "#fa8c16",
 } as const;
 
 /** 未登记语义兜底灰阶（禁抛错打断渲染）。 */
