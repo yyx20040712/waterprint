@@ -1,0 +1,105 @@
+[project]
+name = "waterprint-agent"
+version = "0.1.0"
+description = "WaterPrint agent 面：MCP server（ZCode 等 MCP 客户端宿主驱动内核）+设计说明书管线——AI 只编排不算数（ADR-019）"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=3.0,<3.1",
+    "waterprint-core",
+    "waterprint-server",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "import-linter>=2.0",
+]
+
+[tool.uv.sources]
+waterprint-core = { path = "../core" }
+waterprint-server = { path = "../server" }
+
+# 镜像源（同 core/server/pyproject.toml 口径）
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["waterprint_agent"]
+
+[project.scripts]
+waterprint-mcp = "waterprint_agent.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "PL", "RUF"]
+# 全角中文标点是本项目文档与注释的规范写法（同 core/server 策略）。
+# PLC0415（import 不在顶层）全局面豁免：agent 面懒加载是 D1 架构裁决
+# （spawn→tools/list <1.5s——core/server 重依赖一律工具函数体内首次 import），
+# 非 core/server 那种存量样式债（tests 面两先例同款口径收编）。
+ignore = ["RUF001", "RUF002", "RUF003", "PLC0415"]
+
+[tool.ruff.lint.per-file-ignores]
+# 测试面豁免（server tests/** 同款先例）：PLR2004=基线数字字面量
+# （36 单元/19 节点等冻结口径）属测试期望真源；E501=注释长锚路径。
+"tests/**" = ["PLR2004", "E501"]
+
+# agent 面分层契约（ADR-020/022——UF-33 扩展至 agent 面）：
+# 只许 core 正门（app/flows）+trace.audit 例外+server services/settings；
+# 禁 core L1-L3 直连、禁 fastapi、禁 core CLI。
+[tool.importlinter]
+# 双根（SERVER D7 同款先例）：waterprint 为外部真源包——禁其子包
+# （units_lib/registry/graph/…）须以根包身份纳入契约域（import-linter
+# 外部包子包不可作 forbidden 模块，工具链实测；fastapi 仍走外部包面）。
+root_packages = ["waterprint_agent", "waterprint"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "agent 面只经 core 正门与 services（禁 L1-L3 直连/禁 web 框架/禁 CLI）"
+type = "forbidden"
+# 双根化后 waterprint.* 为契约域内模块——indirect 链默认计违规；直查口径
+# （经 waterprint.app 的合法转发链不构成违规）=SERVER D7 同款条款。
+allow_indirect_imports = true
+source_modules = ["waterprint_agent"]
+forbidden_modules = [
+    "waterprint.units_lib",
+    "waterprint.registry",
+    "waterprint.graph",
+    "waterprint.solution",
+    "waterprint.elevation",
+    "waterprint.cost",
+    "waterprint.drafting",
+    "waterprint.geometry",
+    "waterprint.ifc_export",
+    "waterprint.network",
+    "waterprint.project",
+    "waterprint.cli",
+    "fastapi",
+]
+
+[[tool.importlinter.contracts]]
+name = "agent 面禁 trace.audit 之外的 trace 直连（audit 例外通道须 ADR-020 登记）"
+type = "forbidden"
+allow_indirect_imports = true  # 直查口径（同上——app 再导出链不计违规）
+source_modules = ["waterprint_agent"]
+forbidden_modules = ["waterprint.trace"]
+# ADR-020 例外通道：audit HTML 渲染（flows.audit_render_flow 为正门，直连为后备）。
+# 豁免项挂起注记（AI1-TRACK-B 2026-09-13）：tools.exports 模块属导出批（未落地），
+# ignore_imports 零匹配会被 import-linter 拒（exit 1，实测）——模块落地批接线时恢复：
+# ignore_imports = [
+#     "waterprint_agent.tools.exports -> waterprint.trace.audit",
+# ]
