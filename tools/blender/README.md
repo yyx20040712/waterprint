@@ -1,22 +1,29 @@
-# 模板资产工序（tools/blender——批3 主体；段二 family 参数化）
+# 模板资产工序（tools/blender——批3 主体；段二 family 参数化；批4 第一窗六族铺开）
 
 辐流二沉池单族 bpy→glb→PNG 全链（spec.md §10 已签核）+段二 AAO/CASS
-双族并行（2026-09-13）。资产落位 `webapp/public/assets/units/`（静态
-fetch 非代码分包——§9 预算注记）。
+双族并行+批4 第一窗六族（2026-09-13）。资产落位
+`webapp/public/assets/units/`（静态 fetch 非代码分包——§9 预算注记）。
 
 ## 工序（pipeline.sh 一键=下述五步——`bash pipeline.sh [family ...]`）
 
 | 步 | 脚本 | 产物（build/ 下，不入库） | 说明 |
 |----|------|--------------------------|------|
-| 1 建模 | `build_clarifier_radial.py` / `build_aao.py` / `build_cass.py` | `<family>.blend` | 命名四组+水密快检+AABB 对拍（违例中止）；族名→脚本映射在 pipeline.sh `build_script()` |
+| 1 建模 | `build_clarifier_radial.py` / `build_aao.py` / `build_cass.py` / 批4 六件（见族清单） | `<family>.blend` | 命名四组+水密快检+AABB 对拍（违例中止）；族名→脚本映射在 pipeline.sh `build_script()` |
 | 2 导出 | `export_glb.py`（FAMILY 环境变量） | `<family>.raw.glb` | +Y up 恒/勿 apply transforms/剔水面层/extras；缺省 FAMILY=clarifier_radial |
 | 3 压缩 | `gltf-transform meshopt`（webapp devDep） | `<family>.meshopt.glb` | P3 签核=EXT_meshopt_compression+KHR_mesh_quantization；**勿用 `optimize`**（节点合并毁 inst 原型 TRS——实测记档） |
-| 4 出图 | `render_thumb.py`（FAMILY+ENVELOPES 取景表） | `<family>.png` | Eevee 512² 透明底/50mm 轻透视（P4）；曝光档 STYLE-BASE §二三族复用 |
+| 4 出图 | `render_thumb.py`（FAMILY+ENVELOPES 取景表） | `<family>.png` | **Cycles+OptiX 1024²** 透明底/50mm 轻透视（v1.1 用户裁定四项画质升级——EV −0.85+AgX+HDRI 0.50；ENVELOPES=glb 实测外接盒[门一 W1：z 向含栏杆顶]——STYLE-BASE §二） |
 | 5 落位 | pipeline.sh 末段 | `webapp/public/assets/units/` | glb 直拷+PNG 调色板量化（平涂渲染 256 色无损感——过 ≤80KB 预算） |
 
 - 族清单：`clarifier_radial`（辐流 Φ40×4——v1.0 冻结资产，非必要不
   重跑）/`aao_corridor`（AAO 廊道 95×38×5.3——段二）/`cass_batch`
-  （CASS 序批 48.5×19.5×5.5——段二）。
+  （CASS 序批 48.5×19.5×5.5——段二）/批4 第一窗六族（2026-09-13——
+  取数锚档案=.workflow/b4-window1/anchor-sizes.md）：
+  `coarse_screen`（粗格栅渠 1.8×0.6×1.0）/`fine_screen`（细格栅渠
+  1.9×0.8×1.0）/`grit_vortex`（旋流沉砂 5.6×3.0×3.3——厚壁圆杯
+  ring_geo+真圆环栏杆[截面径向平面]）/`vfilter_cell`（V 滤单格
+  10×4.5×3.9）/`parshall_flume`（巴歇尔槽 3.095×1.05×0.479——上游
+  抬高制）/`eq_basin_cell`（调节池单池 53×22×5.5——CASS 制式复用）。
+  初沉池 chuchenchi=registry 复用条目同辐流 glb 零新建模。
 
 - 环境：Blender 5.0.0=`D:\blender5.0\blender.exe`（无头 `-b -P`；
   脚本内绝对路径免 PATH 依赖）；PNG 量化=系统 Python Pillow；
@@ -37,8 +44,9 @@ fetch 非代码分包——§9 预算注记）。
 
 ## 生成物与再生成
 
-build/ 目录全部为再生成产物（.gitignore 已排除）；入库面=脚本六件
-（三 build+export/render/pipeline）+lib 四件（naming/normalize/
-materials/rectbuild）+资产六枚（三族 glb/PNG）。改模板几何/材质 →
-重跑 `pipeline.sh <family>` → check_templates.mjs 水密复验 → 提交
-资产。
+build/ 目录全部为再生成产物（.gitignore 已排除）；入库面=脚本十五件
+（九 build[辐流+段二双+批4 六]+export/render/pipeline）+lib 四件
+（naming/normalize/materials/rectbuild）+资产十八枚（九族 glb/PNG）。
+改模板几何/材质 → 重跑 `pipeline.sh <family>` → check_templates.mjs
+水密复验 → 提交资产。批4 制式沉淀（微缝终制/真圆环/恒等锚实测源——
+交接 §二）随 build 脚本 docstring 在案。
