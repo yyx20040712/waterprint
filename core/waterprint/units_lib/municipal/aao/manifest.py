@@ -284,6 +284,23 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _GEO_HB,
     ),
+    FormulaSpec(
+        "AO-F20",
+        "n_aerator_raw = v_o_series / (h2 * f_aerator_service)",
+        {
+            "v_o_series": (_VOL, "单系列好氧容积 m3（曝气头只布好氧区——缺氧/厌氧为搅拌器）"),
+            "h2": (_L, "有效水深 m（参数 h2）"),
+            "f_aerator_service": (
+                _AREA,
+                "微孔曝气器单头服务面积 m2（factor.aao.aerator.service_area）",
+            ),
+        },
+        _D,
+        "GB 50014-2021 §7.9.6（曝气器数量按供气量与服务面积确定——"
+        "服务面积法估算主线，供气量法校核挂账后续批[ds 审 W-1]）；"
+        "微孔盘式服务面积 0.5 m²/个（带 0.3~0.65[ds 审 W-2]；"
+        "docs/norms/aao.md 同档——待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:
@@ -454,6 +471,9 @@ manifest = load_manifest(
             {"field_id": "o2_carbon", "dim": "MASS", "label_zh": "碳化需氧量"},
             {"field_id": "o2_nit", "dim": "MASS", "label_zh": "硝化需氧量"},
             {"field_id": "o2_denit", "dim": "MASS", "label_zh": "反硝化供氧量"},
+            {"field_id": "n_aerator_raw", "dim": "DIMENSIONLESS", "label_zh": "曝气头个数（计算）"},
+            {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
+             "label_zh": "曝气头个数（单池好氧区）"},
         ],
     }
 )

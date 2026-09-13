@@ -1,6 +1,16 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.1.0"
+data_version: "1.2.0"
 # 变更记录：
+#   - 1.2.0: 曝气头数据面批（批3 段三候选先行——用户已裁）：factors.yaml
+#       增 2 键（577→579：factor.aao.aerator.service_area=0.5 +
+#       factor.cass.aerator.service_area=0.5，单位 m2——微孔曝气器单头
+#       服务面积，盘式 φ215~300 常规带 0.3~0.65[ds 审 W-2]，工程常用取
+#       0.5 偏密保守档；GB 50014-2021 §7.9.6 服务面积法估算口径——未经
+#       供气量法校核[ds 审 W-1]，供气量法校核挂账后续批；消费面=AAO
+#       AO-F20/CASS CA-F28 曝气头数量 n_aerator）。1.1.0 既有 577 键
+#       零扰动。ds 独立复算+专家审查档=.workflow/b3-aerator/ds-review-out.md
+#       （有条件通过——四条件①②已落注释链、③CASS 主反应区口径已落、
+#       ④带收窄已落；用户锁面批准 2026-09-13）。
 #   - 1.1.0: GOLDEN3 std 键族批（std.gb3838_iii 五键——GB 3838-2002
 #       表 1 III 类限值[I1 从严]；AI 起草待追认[I2——数据策略 v2]，追认前
 #       不进消费面实装）。factors.yaml 末尾增键共 5 条（572→577 键：

@@ -1,4 +1,4 @@
-"""CASS 生物池计算实现：唯一计算源（CA-F1~F27 全经 registry.apply_batch
+"""CASS 生物池计算实现：唯一计算源（CA-F1~F28 全经 registry.apply_batch
 求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
@@ -11,11 +11,11 @@
 #   =N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
-# 【公式组】CA-F1~F27（docs/norms/cass.md 起草表；manifest.py 登记）——
+# 【公式组】CA-F1~F28（docs/norms/cass.md 起草表+曝气头数据面批；manifest.py 登记）——
 #   周期循环主线：周期数/滗水容积（F1~F2）、负荷法主容积+选择区+滗水
 #   1/3 池深双控池面积（F3~F12）、时段和=周期不变性（F13，域拒非警告）、
 #   滗水器选型（F14~F15，整台 ceil）、剩余污泥/泥龄（F16~F18，AAO 同族
-#   口径）、需氧量（F19~F22）、实际负荷校核（F23）、几何与概算（F24~F27）。
+#   口径）、需氧量（F19~F22）、实际负荷校核（F23）、几何与概算（F24~F27）+曝气头选型（F28）。
 # 【DSL 收口】ceil 在本文件收口：滗水器台数整台；池长/池宽 0.5 m 档。
 #   零数值字面量。流量口径（三表逐字冻结）：生物反应/剩余污泥/需氧量按
 #   平均日 flow.q_avg_daily（AAO 同族）；滗水水力按池均摊。
@@ -221,17 +221,21 @@ def _oxygen(
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, _Array]) -> dict[str, _Array]:
-    """CA-F24~F27：池体几何（0.5 m 档 ceil 收口）与概算混凝土量。"""
+def _geometry(
+    ctx: UnitContext, p: dict[str, float], areas: dict[str, _Array], v_selector: _Array
+) -> dict[str, _Array]:
+    """CA-F24~F28：几何+概算+曝气头选型（CA-F28 主反应区口径——数量唯一
+    真源在本字段，几何层只摆放不计数 §10.5 R1）。"""
     h2 = _vec(p["h2"])
-    h_pool = _apply_batch(
-        ctx,
-        "CA-F24",
-        {"h_super": _vec(_factor(p, "factor.cass.superheight", _UNIT_ID)), "h2": h2},
-    )
+    h_pool = _apply_batch(ctx, "CA-F24", {"h_super": _vec(_factor(
+        p, "factor.cass.superheight", _UNIT_ID)), "h2": h2})
     binds = {"a_pool": areas["a_pool"], "ratio_lb": _vec(p["ratio_lb"])}
     l_raw = _apply_batch(ctx, "CA-F25", binds)
     b_raw = _apply_batch(ctx, "CA-F26", binds)
+    binds28 = {"a_pool": areas["a_pool"], "v_selector": v_selector,
+               "n_pool": _vec(p["n_pool"]), "h2": h2, "f_aerator_service": _vec(
+        _factor(p, "factor.cass.aerator.service_area", _UNIT_ID))}
+    n_aerator_raw = _apply_batch(ctx, "CA-F28", binds28)
     return {
         "h_pool": h_pool,
         "l_pool_raw": l_raw,
@@ -248,6 +252,8 @@ def _geometry(ctx: UnitContext, p: dict[str, float], areas: dict[str, _Array]) -
                 "wall_coef": _vec(_factor(p, "factor.cass.wall_thickness_coef", _UNIT_ID)),
             },
         ),
+        "n_aerator_raw": n_aerator_raw,
+        "n_aerator": _vec(math.ceil(float(n_aerator_raw[0]))),
     }
 
 
@@ -333,7 +339,7 @@ class _Cass:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """CA-F1~F27 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """CA-F1~F28 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "生物池单入单出语义")
@@ -370,7 +376,7 @@ class _Cass:
         ns_act = _apply_batch(
             ctx, "CA-F23", {"ns": _vec(p["ns"]), "v_bio": v_bio, "v_plant": areas["v_plant"]}
         )
-        geometry = _geometry(ctx, p, areas)
+        geometry = _geometry(ctx, p, areas, v_selector)
         arrays = {
             **cycles,
             "v_load": v_load,

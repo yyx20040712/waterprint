@@ -144,33 +144,37 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "v_concrete": _V, "v_need": _V, "v_storage": _V},
     ),
     # AAO 生物池：L7 池体图元批——compute 几何段产 8 键（h2/a_pool/l_pool/
-    # b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool，AO-F15~F19 CASS 族平移）。
-    #   primitive 三槽+剖面双键（water_depth=h2 常水位、pool_depth=h_pool
-    #   ——h_pool 双槽=CASS 先例；不声明 high_water：连续流无滗水高水位
-    #   概念，声明=语义虚构[D6 裁定]）；plan_keys 不声明（unit_plan 走
-    #   primitive_dims 回退自动画外框矩形+总尺寸——预裁 6 正向连带）；
-    #   尺寸分格（厌氧/缺氧/好氧分区隔墙）仍挂账 M3 方案批；校核 23 键
-    #   全列 non_drawn（显式不静默，R1）
+    # b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool，AO-F15~F19 CASS 族平移）
+    # +曝气头数据面批 AO-F20 两键（n_aerator_raw/n_aerator——好氧区
+    # 服务面积法）。primitive 三槽+剖面双键（water_depth=h2 常水位、
+    #   pool_depth=h_pool——h_pool 双槽=CASS 先例；不声明 high_water：连续流
+    #   无滗水高水位概念，声明=语义虚构[D6 裁定]）；plan_keys 不声明
+    #   （unit_plan 走 primitive_dims 回退自动画外框矩形+总尺寸——预裁 6
+    #   正向连带）；尺寸分格（厌氧/缺氧/好氧分区隔墙）仍挂账 M3 方案批；
+    #   aerator→InstanceGroup（internals 消费）；校核 24 键全列 non_drawn
+    #   （显式不静默，R1）
     "municipal_aao": UnitProjection(
         "municipal_aao",
         plan_keys={},
         section_keys={"water_depth": "h2", "pool_depth": "h_pool"},
         primitive_dims={"length": "l_pool", "width": "b_pool", "depth": "h_pool"},
-        instance_counts={},
-        non_drawn=("a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "o2_carbon",
-                   "o2_denit", "o2_nit", "o2_total", "q_internal", "q_return",
-                   "q_wet", "s_y", "t_n", "t_o", "t_total", "theta_c",
+        instance_counts={"aerator": "n_aerator"},
+        non_drawn=("a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "n_aerator_raw",
+                   "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_internal",
+                   "q_return", "q_wet", "s_y", "t_n", "t_o", "t_total", "theta_c",
                    "v_anaerobic", "v_anoxic", "v_o", "v_o_series", "v_pool",
                    "v_total", "x_vss"),
         dim_of={"a_pool": _A, "b_pool": _L, "b_pool_raw": _L, "delta_n": _C,
                 "h2": _L, "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
+                "n_aerator": _D, "n_aerator_raw": _D,
                 "o2_carbon": _M, "o2_denit": _M, "o2_nit": _M, "o2_total": _M,
                 "q_internal": _D, "q_return": _D, "q_wet": _V, "s_y": _M,
                 "t_n": _TH, "t_o": _TH, "t_total": _TH, "theta_c": _TD,
                 "v_anaerobic": _V, "v_anoxic": _V, "v_o": _V,
                 "v_o_series": _V, "v_pool": _V, "v_total": _V, "x_vss": _C},
     ),
-    # CASS 生物池：n_decant 滗水器台数（CA-F 族 ceil 收口）→实例数
+    # CASS 生物池：n_decant 滗水器台数（CA-F 族 ceil 收口）+n_aerator 曝气头
+    #   个数（CA-F28 服务面积法，主反应区口径扣选择区——曝气头数据面批）→实例数
     "municipal_cass": UnitProjection(
         "municipal_cass",
         plan_keys={"overall_length": "l_pool", "overall_width": "b_pool"},
@@ -178,16 +182,17 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                       "high_water": "h_draw_max"},
         primitive_dims={"length": "l_pool", "width": "b_pool",
                         "depth": "h_pool"},
-        instance_counts={"decant": "n_decant"},
+        instance_counts={"aerator": "n_aerator", "decant": "n_decant"},
         non_drawn=("a_draw", "a_load", "a_pool", "b_pool_raw", "l_pool_raw",
-                   "n_cycle", "n_decant_raw", "ns_act", "o2_carbon",
-                   "o2_denit", "o2_nit", "o2_total", "q_decant", "q_wet",
-                   "s_y", "t_phase_sum", "theta_c", "v_bio", "v_concrete",
-                   "v_draw", "v_load", "v_plant", "v_pool", "v_selector",
-                   "x_vss"),
+                   "n_aerator_raw", "n_cycle", "n_decant_raw", "ns_act",
+                   "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_decant",
+                   "q_wet", "s_y", "t_phase_sum", "theta_c", "v_bio",
+                   "v_concrete", "v_draw", "v_load", "v_plant", "v_pool",
+                   "v_selector", "x_vss"),
         dim_of={"a_draw": _A, "a_load": _A, "a_pool": _A, "b_pool": _L,
                 "b_pool_raw": _L, "h_draw": _L, "h_draw_max": _L,
                 "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
+                "n_aerator": _D, "n_aerator_raw": _D,
                 "n_cycle": _D, "n_decant": _D, "n_decant_raw": _D,
                 "ns_act": _D, "o2_carbon": _M, "o2_denit": _M,
                 "o2_nit": _M, "o2_total": _M, "q_decant": _FH, "q_wet": _V,

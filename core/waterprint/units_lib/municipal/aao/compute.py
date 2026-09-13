@@ -1,4 +1,4 @@
-"""AAO 生物池计算实现：唯一计算源（AO-F1~F19 全经 registry.apply_batch
+"""AAO 生物池计算实现：唯一计算源（AO-F1~F20 全经 registry.apply_batch
 求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
@@ -12,7 +12,7 @@
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
-# 【公式组】AO-F1~F19（docs/norms/aao.md 起草表+L7 池体图元批几何族；
+# 【公式组】AO-F1~F20（docs/norms/aao.md 起草表+L7 池体图元批几何族+曝气头数据面批；
 #   manifest.py 登记）——
 #   五项公式清单全覆盖义务：污泥负荷/分区容积（AO-F1~F5）、需氧量
 #   （AO-F9~F12）、内外回流比（AO-F13/F14）、剩余污泥量（AO-F6~F8）、
@@ -234,12 +234,12 @@ def _returns(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str
     }
 
 
-def _geometry(ctx: UnitContext, p: dict[str, float], v_total: _Array) -> dict[str, _Array]:
-    """AO-F15~F19：池体几何——容积折水面/超高/长宽比定形（0.5 m 档 ceil 收口）。
-
-    h2 参数复用键随水面声明入 dims（表 section_keys.water_depth 取数）；
-    ceil 边长×h2=v_pool≥v_total 圆整裕量诚实呈现（沿 CASS，D12）。
-    """
+def _geometry(
+    ctx: UnitContext, p: dict[str, float], v_total: _Array, v_o_series: _Array
+) -> dict[str, _Array]:
+    """AO-F15~F20：池体几何定形（ceil 边长×h2≥v_total 裕量诚实呈现——
+    D12；h2 复用键随水面声明入 dims）+好氧区曝气头选型（AO-F20 服务
+    面积法——缺氧/厌氧为搅拌器挂账；数量唯一真源在本字段 §10.5 R1）。"""
     h2 = _vec(p["h2"])
     a_pool = _apply_batch(ctx, "AO-F15", {"v_total": v_total, "h2": h2})
     h_pool = _apply_batch(
@@ -253,6 +253,9 @@ def _geometry(ctx: UnitContext, p: dict[str, float], v_total: _Array) -> dict[st
     step = p["side_disc_step"]
     l_pool = math.ceil(float(l_raw[0]) / step) * step
     b_pool = math.ceil(float(b_raw[0]) / step) * step
+    binds20 = {"v_o_series": v_o_series, "h2": h2, "f_aerator_service": _vec(
+        _factor(p, "factor.aao.aerator.service_area", _UNIT_ID))}
+    n_aerator_raw = _apply_batch(ctx, "AO-F20", binds20)
     return {
         "h2": h2,
         "a_pool": a_pool,
@@ -264,6 +267,8 @@ def _geometry(ctx: UnitContext, p: dict[str, float], v_total: _Array) -> dict[st
         "v_pool": _apply_batch(
             ctx, "AO-F19", {"l_pool": _vec(l_pool), "b_pool": _vec(b_pool), "h2": h2}
         ),
+        "n_aerator_raw": n_aerator_raw,
+        "n_aerator": _vec(math.ceil(float(n_aerator_raw[0]))),
     }
 
 
@@ -346,7 +351,7 @@ class _Aao:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """AO-F1~F19 主算路径（纯函数：同 ctx 必同 UnitResult——向量路径 N=1）。"""
+        """AO-F1~F20 主算路径（纯函数：同 ctx 必同 UnitResult——向量路径 N=1）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "生物池单入单出语义")
@@ -366,7 +371,7 @@ class _Aao:
         sludge = _sludge(ctx, p, flow, qual, volumes["v_o"])
         oxygen = _oxygen(ctx, p, flow, qual, volumes["v_o"])
         returns = _returns(ctx, p, flow)
-        geometry = _geometry(ctx, p, volumes["v_total"])
+        geometry = _geometry(ctx, p, volumes["v_total"], volumes["v_o_series"])
         arrays = {**volumes, **sludge, **oxygen, **returns, **geometry}
         dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")

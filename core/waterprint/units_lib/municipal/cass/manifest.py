@@ -320,6 +320,24 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    FormulaSpec(
+        "CA-F28",
+        "n_aerator_raw = (a_pool - v_selector / (n_pool * h2)) / f_aerator_service",
+        {
+            "a_pool": (_AREA, "单池水面面积 m2"),
+            "v_selector": (_VOL, "全厂选择区总容积 m3（扣单池 v_selector/(n_pool·h2)"
+                                "——预反应区为缺氧-兼氧选择器仅搅拌/微量曝气）"),
+            "n_pool": (_D, "池数（参数 n_pool）"),
+            "h2": (_L, "有效水深 m（参数 h2）"),
+            "f_aerator_service": (_AREA, "微孔曝气器单头服务面积 m2"
+                                         "（factor.cass.aerator.service_area）"),
+        },
+        _D,
+        "GB 50014-2021 §7.9.6（数量按供气量与服务面积确定——服务面积"
+        "法估算主线，供气量法校核挂账后续批[ds 审 W-1 条件①②]）；主反应"
+        "区口径=扣选择区（选择器缺氧-兼氧惯例[ds 审 W-3]）；微孔盘式 0.5"
+        "m²/个、带 0.3~0.65[ds 审 W-2]——待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:
@@ -446,6 +464,9 @@ manifest = load_manifest(
             {"field_id": "b_pool_raw", "dim": "LENGTH", "label_zh": "池宽（未圆整）"},
             {"field_id": "b_pool", "dim": "LENGTH", "label_zh": "池宽（圆整）"},
             {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "n_aerator_raw", "dim": "DIMENSIONLESS", "label_zh": "曝气头个数（计算）"},
+            {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
+             "label_zh": "曝气头个数（单池主反应区）"},
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},
