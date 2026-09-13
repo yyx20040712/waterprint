@@ -12,7 +12,9 @@
 #      表中 .py 路径必须存在；
 #   b) units_lib 单元包按"包目录（带斜杠）"登记；包内结构按 §13.6 校验
 #      （manifest.py/compute.py/constraints.py/README.md/tests/ 两测试）；
-#   c) scripts/*.py 必须登记于第 4 节。
+#   c) scripts/*.py 必须登记于第 4 节；
+#   d) agent/waterprint_agent 下每个非 __init__.py 必须登记（AI1 集成批
+#      2026-09-13——agent 面纳入与 core/server 同款双向机器强制）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -81,6 +83,8 @@ def main() -> int:
     actual = actual_py_files(REPO / "core" / "waterprint", packages)
     actual |= actual_py_files(REPO / "server" / "waterprint_server", packages)
     actual |= actual_py_files(REPO / "scripts", packages)
+    # AI1 集成批：agent 面纳入双向校验（规则 d）
+    actual |= actual_py_files(REPO / "agent" / "waterprint_agent", packages)
 
     unlisted = sorted(actual - files)
     for rel in unlisted:

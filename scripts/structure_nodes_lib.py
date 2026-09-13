@@ -34,13 +34,14 @@ END_MARK = "<!-- STRUCT-NODES:END -->"
 # 层序（自上而下）；依赖边只许沿此序前进（to 的序号必须 > from 的序号）
 LAYER_ORDER: tuple[str, ...] = (
     "L6", "L5.main", "L5.routers", "L5.services", "L5.jobs", "L5.settings",
-    "L4.cli", "L4.app", "L4.project-trace", "L3", "L2", "L1", "L0",
+    "L4.cli", "L4.flows", "L4.app", "L4.project-trace", "L3", "L2", "L1", "L0",
     "DATA", "CONTRACT",
 )
-# core layers 契约组序 → 层 token（L4 三行子层：cli=0 → app=1 →
-# project|trace=2，与 pyproject 拆分一致——check_module_graph 旧常量迁移）
+# core layers 契约组序 → 层 token（L4 四行子层：cli=0 → flows=1 → app=2 →
+# project|trace=3，与 pyproject 拆分一致——AI1 集成批 flows 插层同步；
+# check_module_graph 旧常量迁移）
 CORE_TOKEN_OF_GROUP: tuple[str, ...] = (
-    "L4.cli", "L4.app", "L4.project-trace", "L3", "L2", "L1", "L0",
+    "L4.cli", "L4.flows", "L4.app", "L4.project-trace", "L3", "L2", "L1", "L0",
 )
 SERVER_TOKEN_OF_GROUP: tuple[str, ...] = (
     "L5.main", "L5.routers", "L5.services", "L5.jobs", "L5.settings",
@@ -49,6 +50,9 @@ SERVER_TOKEN_OF_GROUP: tuple[str, ...] = (
 # API 契约——固定声明，路径变更=人工同步本表
 FIXED_NODES: tuple[tuple[str, str, str], ...] = (
     ("webapp", "L6", "webapp/src"),
+    # AI1 集成批（2026-09-13）：agent 面（AI 智能体接口）与 webapp 同层 L6
+    # （内核的两种客户端形态：浏览器 / MCP 宿主）
+    ("waterprint_agent", "L6", "agent/waterprint_agent"),
     ("data", "DATA", "data"),
     ("api-contracts", "CONTRACT", "api-contracts"),
 )

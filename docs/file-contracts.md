@@ -93,7 +93,8 @@
 | `core/waterprint/units_lib/__init__.py` | L2 | 单元库包根：四线物理隔离 + discover_units 发现机制唯一入口（T7b 最小实现：骨架包无导出=空注册表合法；M1 实装后自然填充） | 各单元包 __init__ 白名单导出（manifest+make_unit） | discover_units（Mapping[unit_id → (UnitManifest, Unit 工厂)]） |
 | `core/waterprint/units_lib/_unit_compute.py` | L2 | 单元包共享计算 helper 单源（B8 R3 样板收敛笔①：_factor/_inflow/_apply 三件自 municipal/cass/compute.py 逐字迁移——计算与消息运行时输出恒等，签名语境参数最小扩展[D5]：_factor 增 unit_id/_inflow 增 edge_note 入参，_apply 零扩展；B10 笔①：泥线变体 _inflow_sludge 自 sludge/bengzhan 逐字迁移[edge_note 尾注入同款——AST 普查 6 泥线包 _inflow 本体同构实证；hebing _inflow_stocks 异语义件维持不收敛注记]+族2 三包（municipal/chenshachi、cugeshan、xigeshan）即换；B10 笔②族1 四股包+族3 六泥线包收口——**终态 32/32 包全收敛**（_inflow 面 30 包[水线 24+泥线 _inflow_sludge 6——B10 R 轮 A2-01 勘误]+hebing 异语义件+input 零入边；外审 #7 清零）；共享件不 import 任何包件[无环 D1]，import 面=contracts[L0]+registry[L1] 向下合法；_template 纯规格件零样板无需消费[B8 R1 实证]；B15：_ceil_step 单源收敛（_ceil_step_core 共享核心+_make_ceil_step 工厂闭包——21 包三逻辑组[组1 取整步长 18 包绑定/组2 length_disc_step 1 包绑定/组3 参数面 2 包 wrapper]；运行时消息恒等 R-1 经最小直测锁死）；测试面=golden 全量+双跑 diff=0 间接覆盖+异常分支最小直测[tests/units_lib/test_unit_compute.py——B15，B8「知情接受」口径解除]） | params 投影（dict[str, float]）+UnitContext（入流/工况/迹）+公式绑定 | _factor 系数值、_inflow 入流装配 (PortRef, WaterFlow)、_inflow_sludge 入流装配 SludgeFlow（泥线族 6 包）、_apply 公式求值 float、_ceil_step_core/_make_ceil_step 步长取整（B15） |
 | `core/waterprint/units_lib/_constants.py` | L2 | units_lib 共享常量件（B8 R3：SECS_PER_DAY 单源真源——收敛 13 份 manifest 重复定义[chuchenchi/aao/gaomidu×2/chenshachi/cifenli/hebing/shusong/bengzhan/nongsuo/xiaohua/tuoshui/ganhua]；笔②起各 manifest 删定义行+对应 compute import 改源本件[manifest 纯度零破——总控改裁②]；WHITELIST_DECLARATION 声明面白名单在册[check_magic_numbers.py 动机注记]） | 无（纯常量声明，带出处注记） | SECS_PER_DAY（Final[float]=86400.0——时间量纲换算 24×3600，manifest 先例注释同款） |
-| `core/waterprint/cli.py` | L4 | 命令行入口（calc/export/new-unit/validate/selfcheck） | argv | 退出码/产物 |
+| `core/waterprint/flows/__init__.py` | L4.flows | 用例流编排层（ADR-022：CLI/agent 双壳共享单一编排真源——env/conditions/standards 装配、run_calc/result 持久化/枚举/可行域/validate、export+audit 渲染分派、estimate 概算流、params_guard 参数三面守护[清单式，server 转调真源]） | ProjectFile+数据包路径+PlantResult | CalcFlowResult/EstimateFlowResult/EnumerationOutcome/DesignMap/ParamVerdict/InvalidFlowError |
+| `core/waterprint/cli.py` | L4 | 命令行入口（calc/validate/export{calcbook\|audit\|dxf}/network/new-unit/selfcheck——AI1 起经 flows 编排，退出码 0/2/3/4） | argv | 退出码/产物 |
 
 ## 2. server 服务层
 
@@ -116,7 +117,7 @@
 | `server/waterprint_server/routers/site.py` | 间距校核端点（L4b：GET /api/site/spacing 一端点[project_id 必填+condition_key 可选——查询参数面]；response_model=服务层冻结模型再导出；verify_token 鉴权族挂载，51 行） | project_id+condition_key | SpacingReportResponse |
 | `server/waterprint_server/services/projects.py` | 项目用例（SERVER 实装：design_digest=content_hash B4 双胞胎[UF-47]/result_is_stale 三读端点共用[AUDIT2 FIX1 C-1]/深度闸/锁 409/import_legacy M4 未就绪） | 项目 id/数据 | SaveOutcome/ProjectSummary/ValidationReport |
 | `server/waterprint_server/services/project_lifecycle.py` | 项目生命周期用例（P2 启动批 2026-09-12：copy_project 副本名占用面递增+rename_project view.name 轻通道[save_project 复用面——锁/深度闸/design_changed=False 同源]+delete_project 三守卫[404/新鲜锁 409/在途任务 ProjectBusyError 409]后 unlink；共享单源经 projects 提升名 project_path/with_hash/normalize_name/clear_stale_lock/PROJECT_NAME_MAX） | 项目 id/新名称 | SaveOutcome/DeleteOutcome |
-| `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚+AUDIT2 FIX1 C-4 参数域守护[数值/已知键/grid 档位——META1 目录真源]；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
+| `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚+AUDIT2 FIX1 C-4 参数域守护[数值/已知键/grid 档位——AI1 起转调 waterprint.flows.params_guard 守护真源收敛，ADR-022 D2]；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
 | `server/waterprint_server/services/enumeration.py` | 枚举用例（多单元 422[ADR-005]/分页白名单/feather 重载/无解 done+诊断[UF-48 随载荷交付]） | 枚举请求 | TaskHandle/SolutionPage/诊断 |
 | `server/waterprint_server/services/design_map.py` | 可行域求值用例（FD PD6 甲案同步直返——≤2500 点 ~1s 级不进任务队列：R1 固定参数=manifest defaults∪design 覆盖[core 收显式映射不自查项目，分层洁癖]/R2 约束装配=constraint_kb unit_kinds∩项目勾选 on[CP2 档位语义，枚举同数据源]/工况=checked_units 枚举同口径/env 直算 services 面首例[ENGINE_VERSION worker 同源+core.load_coefficients 经 app 再导出面——CI 补笔：直连 registry 违 UF-33 server 单入口契约]；DesignMapResponse 族九模型=model_validate 消费 core payload 双面漂移防线；DesignMapSourceNotFoundError→404） | project_id+unit_id+轴声明 | DesignMapResponse |
 | `server/waterprint_server/services/exports.py` | 导出用例编排主件（stale 409+force 标注/确定性命名[FE9 R1：dxf 单产物附 unit 分量防同名覆盖]/单产物上限 1 转任务/元数据边车；FE9 D2/D3/D4：模板闸收窄至 calcbook+单产物 options 透传 unit_id/condition_key[R3 严格化]+kind 后缀映射 dxf→.dxf；ENG7 P3a/P3b：五纯函数+ExportMeta+三常量+命名闸异常迁 exports_support[顶部 import+`__all__` 透传保公开面]+create_export 抽批量对偶拒绝闸与图纸族 kwargs 组装两子函数消 PLR0915 豁免；SVRB：items 逐项 unit_id 归一[item 覆盖批级]+payload 增 project_path[提交时绝对路径]/design_digest[快照信任留痕]+_build_drawing_kwargs 迁 jobs/export_kwargs[worker 共享真源]+拒绝闸改载 ifc 批内 unit 一致小闸[原两族删除]；B7 笔①：异常族四类+ExportHandle 迁 exports_support+读面两函数[resolve_export_file/list_exports]迁新件 exports_registry[顶部 import 透传再导出保公开面——`__all__` 10 名恒等，main/routers/测试零改动]；PROFILE2：sheet 选项提取透传[core 纵断路由；R 轮 P2A2-1：item 级并入 item 覆盖批级]+命名 sheet 分量[防总图纵断同名覆盖]+批量面 sheet 诚实拒[worker 透传挂账]；PROFILE3：批量面 sheet 解锁+sheet/h/v 逐项归一+命名逐项化+h/v 透传；R 轮互斥继承压制+闸更名；TD1 PD4-bis：五私有 helper+_TEMPLATE_KINDS 迁 exports_io.py[IO 支撑域——support R-1 纯度不可承载；B7 D1 内聚裁定随预算减压改裁]，384 行） | 导出请求 | ExportHandle/ExportMeta |
@@ -229,3 +230,24 @@ check_structure 按 §13.6 校验，不逐文件登记。
   .css 不入契约头/行数门禁扫描面（check_webapp/check_file_budgets 均只
   扫 .ts/.tsx/.py/.md）——新 CSS 文件的准入判据=GR-39 变量轴纪律+app
   清单登记，禁止绕过 token/变量轴另起散写样式面。
+
+## 6. agent 面（AI1 2026-09-13：AI 智能体接口——MCP server+说明书管线；机器检查=check_structure 规则 d+agent/pyproject import-linter+check_module_graph L6 节点）
+
+| 路径 | 唯一职责 | 输入 | 输出 |
+|------|----------|------|------|
+| `agent/waterprint_agent/main.py` | MCP server 入口（FastMCP 懒加载单例+五组 21 工具注册+instructions） | env/stdio | MCP 会话 |
+| `agent/waterprint_agent/context.py` | AgentContext 装配束（私有 Manager/绝对路径 Settings/PathGuard/SessionLog/run_tool 统一包装+异常兜底） | 沙箱根+数据包路径 | AgentContext |
+| `agent/waterprint_agent/pathguard.py` | 沙箱唯一 IO 门（realpath+normcase 归一后前缀判定；拒 ../UNC/跨盘符；正式区只读门） | 相对路径+area | 解析后绝对路径/PathGuardError |
+| `agent/waterprint_agent/sandbox.py` | 沙箱根解析（env 覆盖）+五区目录树幂等初始化+workspace.toml | 沙箱根 | 初始化目录树 |
+| `agent/waterprint_agent/sessionlog.py` | 会话追溯日志（jsonl 逐事件+seq 续接+脱敏三条款——先路径后 env 顺序铁律） | 事件 | sessions/*.jsonl |
+| `agent/waterprint_agent/tools/knowledge.py` | 知识组 #1~#3（单元目录/manifest 裁剪投影/系数与约束检索） | 查询参数 | 摘要 dict |
+| `agent/waterprint_agent/tools/projects.py` | 项目组 #4~#7（建项目[blank+golden 四种子]/outline/结构校验/params_guard 清单式改参+undo 快照） | project_id/patches | 状态 dict |
+| `agent/waterprint_agent/tools/calc.py` | 计算组 #8~#10+结果簿记真源（全厂计算/枚举/可行域；digest 命名落盘+.diag；stale 门） | project_id | 摘要+产物路径 |
+| `agent/waterprint_agent/tools/results.py` | 结果组 #11~#16（压缩摘要/三源诊断/单元切片/迹切片/概算摘要/布置摘要——_SandboxResultView 服务聚合适配器） | project_id | 摘要 dict |
+| `agent/waterprint_agent/tools/exports.py` | 导出组 #17~#21（flows.export_flow 单一真源+确定性命名+八键边车；#21 说明书管线入口） | project_id/options | 产物路径+verify |
+| `agent/waterprint_agent/report/blocks.py` | 说明书块类型族+EstimateSheetLike 协议+纯投影辅助（预算拆分件——build 再导出） | 结构化块数据 | 块类型 |
+| `agent/waterprint_agent/report/build.py` | 说明书七章节 AST 装配（NumberLine 绑定数字+单位+公式 ID；诚实不伪锚） | ProjectFile+PlantResult | ReportAST |
+| `agent/waterprint_agent/report/render_md.py` | AST→Markdown 渲染器+溯源索引（标准库拼装，确定性输出） | ReportAST+narrative_fills | markdown 字符串 |
+| `agent/waterprint_agent/report/anchors.py` | 叙述章禁数字守卫（数字形态族正则+序号豁免；宁误报不漏报） | 文本 | 违例清单 |
+| `agent/waterprint_agent/report/checks.py` | verify_report 数值锚定断言件（公式 ID 可查/锚定值逐项相等/值域全集/叙述零违例） | markdown+PlantResult | CheckReport |
+| `agent/skills/waterprint/SKILL.md` | ZCode 技能文档（21 工具用法+调参回路剧本+沙箱约定） | — | 知识文档 |

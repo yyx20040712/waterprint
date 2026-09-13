@@ -74,6 +74,8 @@ UNITS_ROOT = REPO / "core" / "waterprint" / "units_lib"
 SCAN_PY_ROOTS: tuple[Path, ...] = (
     REPO / "core" / "waterprint",
     REPO / "server" / "waterprint_server",
+    # AI1 集成批（2026-09-13）：agent 面纳入真实 import 子集校验
+    REPO / "agent" / "waterprint_agent",
 )
 
 NODE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([A-Za-z0-9.\-]+)\s*\|\s*`([^`]+)`")
@@ -329,7 +331,7 @@ def module_of(rel: str) -> tuple[str, bool]:
     （相对导入的包基点语义）。
     """
     parts = rel.split("/")
-    if parts[0] in {"core", "server"}:
+    if parts[0] in {"core", "server", "agent"}:
         parts = parts[1:]
     is_package = parts[-1] == "__init__.py"
     if is_package:

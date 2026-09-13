@@ -21,12 +21,14 @@
 | 节点 | 层 | 对应路径 |
 |------|----|----------|
 | `webapp` | L6 | `webapp/src` |
+| `waterprint_agent` | L6 | `agent/waterprint_agent` |
 | `waterprint_server.main` | L5.main | `server/waterprint_server/main.py` |
 | `waterprint_server.routers` | L5.routers | `server/waterprint_server/routers` |
 | `waterprint_server.services` | L5.services | `server/waterprint_server/services` |
 | `waterprint_server.jobs` | L5.jobs | `server/waterprint_server/jobs` |
 | `waterprint_server.settings` | L5.settings | `server/waterprint_server/settings.py` |
 | `waterprint.cli` | L4.cli | `core/waterprint/cli.py` |
+| `waterprint.flows` | L4.flows | `core/waterprint/flows` |
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
 | `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
 | `waterprint.app_export` | L4.app | `core/waterprint/app_export.py` |
@@ -47,8 +49,10 @@
 | `api-contracts` | CONTRACT | `api-contracts` |
 <!-- STRUCT-NODES:END -->
 
-> 层序（自上而下）：L6 → L5.main → L5.routers → L5.services → L5.jobs →
-> L5.settings → L4.cli → L4.app（app 与 app_enumeration 同层伴生，SERVER
+> 层序（自上而下）：L6（webapp / waterprint_agent——内核的两种客户端：
+> 浏览器与 MCP 宿主，AI1 集成批）→ L5.main → L5.routers → L5.services →
+> L5.jobs → L5.settings → L4.cli → L4.flows（CLI 与 agent 共享用例流层，
+> ADR-022）→ L4.app（app 与 app_enumeration 同层伴生，SERVER
 > D1 2026-08-26——app 再导出保持 server 单入口，方向单一 app→
 > app_enumeration 防环）→ L4.project-trace → L3 → L2 → L1 → L0 →
 > DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制；同层伴生边
@@ -62,6 +66,12 @@
 
 | from | to | 关系 |
 |------|----|------|
+| `waterprint_agent` | `waterprint.flows` | MCP 工具经 flows 用例流正门（ADR-020/022——AI1 集成批） |
+| `waterprint_agent` | `waterprint.app` | 知识/项目工具经内核正门（discover_units/load_project 再导出面） |
+| `waterprint_agent` | `waterprint.contracts` | 结果/诊断 schema 类型面（serialize/deserialize） |
+| `waterprint_agent` | `waterprint_server.services` | 进程内复用服务层（零 web 框架实证——ADR-021 D2 装配） |
+| `waterprint_agent` | `waterprint_server.settings` | 私有 Settings 绝对路径装配（cwd 钉死） |
+| `waterprint_agent` | `waterprint_server.jobs` | 私有 Manager 装配填充（不提交任务——ADR-021 D2） |
 | `webapp` | `api-contracts` | orval 自 OpenAPI 生成 TS 客户端（类型单源，禁手写） |
 | `waterprint_server.main` | `waterprint_server.routers` | 应用工厂挂载路由 |
 | `waterprint_server.main` | `waterprint_server.services` | 依赖注入装配服务 |
@@ -83,6 +93,13 @@
 | `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界；P2 次批出水标准装载经 app 再导出单入口——ADR-012 D6，jobs→registry 直连被 UF-33 契约拒 CI 实证） |
 | `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况/诊断序列化——P2 次批 trust 扩）——ENG2 B3 补登 |
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |
+| `waterprint.cli` | `waterprint.flows` | CLI 壳经 flows 用例流编排（ADR-022 两壳分工——AI1 集成批） |
+| `waterprint.flows` | `waterprint.app` | 用例流只经内核正门（ADR-022 D1） |
+| `waterprint.flows` | `waterprint.contracts` | RunEnv/条件集/结果序列化类型面（ADR-022） |
+| `waterprint.flows` | `waterprint.trace` | audit 渲染包装例外通道（trace.audit 直调——ADR-020 D2 正门） |
+| `waterprint.flows` | `waterprint.cost` | 概算流直取 cost 四模块链（estimate_summary_flow——ADR-022 D2） |
+| `waterprint.cli` | `waterprint.graph` | 退出码映射的执行期领域异常族（LoopDivergence 等——AI1 T5 回填补登） |
+| `waterprint_server.services` | `waterprint.flows` | apply 参数守护转调 params_guard（守护真源收敛 flows——ADR-022 D2） |
 | `waterprint.cli` | `waterprint.app` | 命令编排调用用例（经唯一装配点） |
 | `waterprint.cli` | `waterprint.contracts` | 参数与项目 schema 校验 |
 | `waterprint.cli` | `waterprint.drafting` | export 命令出图 |
