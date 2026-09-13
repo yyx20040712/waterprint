@@ -1,6 +1,76 @@
 {
   "components": {
     "schemas": {
+      "AiConnectionSetupResult": {
+        "description": "一键接入结果响应体（写入路径清单+server 条目摘要——R3/R5）。",
+        "properties": {
+          "server_entry": {
+            "$ref": "#/components/schemas/McpServerEntry"
+          },
+          "written_paths": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Written Paths",
+            "type": "array"
+          }
+        },
+        "required": [
+          "written_paths",
+          "server_entry"
+        ],
+        "title": "AiConnectionSetupResult",
+        "type": "object"
+      },
+      "AiConnectionStatus": {
+        "description": "接入状态响应体（四项检查+ready 聚合——R2）。",
+        "properties": {
+          "agent_importable": {
+            "title": "Agent Importable",
+            "type": "boolean"
+          },
+          "config_paths": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Config Paths",
+            "type": "array"
+          },
+          "config_written": {
+            "title": "Config Written",
+            "type": "boolean"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "sandbox_root": {
+            "title": "Sandbox Root",
+            "type": "string"
+          },
+          "uv_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uv Path"
+          }
+        },
+        "required": [
+          "config_written",
+          "config_paths",
+          "agent_importable",
+          "uv_path",
+          "sandbox_root",
+          "ready"
+        ],
+        "title": "AiConnectionStatus",
+        "type": "object"
+      },
       "ApplyOutcome": {
         "description": "方案应用结果（§17.1：原子写+新 hash+触发重算）。",
         "properties": {
@@ -1474,6 +1544,36 @@
         "title": "LoopRunModel",
         "type": "object"
       },
+      "McpServerEntry": {
+        "description": "MCP server 条目固定 schema（R5——三键：command/args/env）。",
+        "properties": {
+          "args": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Args",
+            "type": "array"
+          },
+          "command": {
+            "title": "Command",
+            "type": "string"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Env",
+            "type": "object"
+          }
+        },
+        "required": [
+          "command",
+          "args",
+          "env"
+        ],
+        "title": "McpServerEntry",
+        "type": "object"
+      },
       "Node": {
         "description": "场景节点（不可变）：图元 + 语义 + 局部变换 + 实例数 + 假设来源键。",
         "properties": {
@@ -2575,6 +2675,60 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/ai/connection": {
+      "get": {
+        "description": "接入状态四项检查（配置/agent 模块/uv/沙箱——ready 聚合直投）。",
+        "operationId": "get_connection_status_api_ai_connection_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConnectionStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Connection Status",
+        "tags": [
+          "ai-connection"
+        ]
+      }
+    },
+    "/api/ai/connection/setup": {
+      "post": {
+        "description": "一键接入：两份工作区 .zcode/config.json merge 式原子写 server 条目。",
+        "operationId": "setup_connection_api_ai_connection_setup_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConnectionSetupResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Setup Connection",
+        "tags": [
+          "ai-connection"
+        ]
+      }
+    },
     "/api/assumptions": {
       "get": {
         "description": "设计假设清单（21 条 registry 声明序——六字段取五，D2/D6）。",

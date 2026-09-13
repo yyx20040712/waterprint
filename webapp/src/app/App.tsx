@@ -107,6 +107,8 @@ import { StatusBar } from "./statusBar";
 import { TokenSettingsModal } from "./tokenSettingsModal";
 import { UnitLibrary } from "./unitLibrary";
 import { Viewer3dPane } from "./viewer3dPane";
+import { AiConnectButton } from "../features/aiconnect/components/AiConnectButton";
+import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -160,6 +162,9 @@ export function App() {
   const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
   // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // AI2（2026-09-13）：AI 接入 Modal 开态（入口=Header AiConnectButton——
+  // 状态四项检查+一键接入 waterprint-mcp）
+  const [aiConnectOpen, setAiConnectOpen] = useState(false);
   // P2 生命周期 L4：项目管理 Modal 开态（入口=Header 文件夹钮+空态钮双入口）
   const [managerOpen, setManagerOpen] = useState(false);
   // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
@@ -289,6 +294,8 @@ export function App() {
               title="项目管理（重命名/复制/删除）"
               data-testid="wp-open-manager-header"
             />
+            {/* AI2：AI 接入入口（设置图标旁——waterprint-mcp 一键连接引导） */}
+            <AiConnectButton onClick={() => setAiConnectOpen(true)} />
             {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
             <Button
               type="text"
@@ -380,6 +387,7 @@ export function App() {
         <StatusBar />
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
       <ProjectManagerModal open={managerOpen} onClose={() => setManagerOpen(false)} />
     </Providers>
   );

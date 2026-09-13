@@ -72,6 +72,7 @@ from waterprint_server.auth import AuthError, verify_token, verify_token_sse
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
 from waterprint_server.routers import (
+    ai_connection,
     calc,
     cost,
     elevation,
@@ -83,6 +84,7 @@ from waterprint_server.routers import (
     units,
 )
 from waterprint_server.services import ServiceContext
+from waterprint_server.services.ai_connection import UvNotFoundError
 from waterprint_server.services.calculation import InvalidSolutionRefError
 from waterprint_server.services.compare import CompareSourceNotFoundError
 from waterprint_server.services.cost import (
@@ -136,6 +138,8 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     # openapi 零字节破面）。
     (RateLimitedError, status.HTTP_429_TOO_MANY_REQUESTS),
     (InvalidUnitConfig, status.HTTP_400_BAD_REQUEST),
+    # AI2（2026-09-13）：uv 不在 PATH=一键接入前置依赖缺（用户环境面）→400。
+    (UvNotFoundError, status.HTTP_400_BAD_REQUEST),
     (core.InvalidAssemblyError, status.HTTP_400_BAD_REQUEST),
     (core.InvalidProjectError, status.HTTP_400_BAD_REQUEST),
     (ProjectNotFoundError, status.HTTP_404_NOT_FOUND),
@@ -210,8 +214,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # +1=P2 次批 trust（GET /api/calc/trust/{project_id}——ADR-012 D8，2026-09-12）
 # +1=P2 第三批 compare（GET /api/calc/compare/{project_id}——ADR-018 D5，
 # 2026-09-12：多工况对比矩阵，32→33 破面[常设指令推荐序沿册]）
+# +1+1=AI2（GET /api/ai/connection + POST /api/ai/connection/setup——MCP
+# 一键接入面，2026-09-13：33→35 破面[AI2 任务书预裁决授权]）
 _EXPECTED_ENDPOINTS: Final[int] = (
-    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -367,6 +373,8 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     app.include_router(cost.router, dependencies=[Depends(verify_token)])
     # L4b：site/spacing 鉴权族挂载（项目数据面——units 静态目录族外同保）
     app.include_router(site.router, dependencies=[Depends(verify_token)])
+    # AI2（2026-09-13）：AI 接入面挂载（状态检查+一键接入——Bearer 沿册同保）
+    app.include_router(ai_connection.router, dependencies=[Depends(verify_token)])
     # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，
     # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
     # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，

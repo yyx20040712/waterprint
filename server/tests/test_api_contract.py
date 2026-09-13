@@ -33,14 +33,15 @@ pytestmark = pytest.mark.skipif(
     reason="实现未就绪：waterprint_server.main.create_app（服务层 M2 起实现）",
 )
 
-# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 30 条路径/33 操作；FE1 +scene1；
+# 九路由器端点集（v1 冻结——A1 锁定面：路径×方法 恰 32 条路径/35 操作；FE1 +scene1；
 # META1 +units2；FE7 +elevation1；FE8 +cost1；CP1 +constraints1；
 # L4b +site/spacing1；SC1 +exports/ifc1——BIM 模型导出，openapi 25→26
 # 破面已授权；EXPD +exports/{file_name}1——产物下载端点，openapi 26→27
 # 破面已授权 [Ruling 2026-09-05 ②]；P2 生命周期治理批 +copy/rename/
 # delete3——openapi 28→31 破面[常设指令推荐序沿册 2026-09-12]；ADR-018
 # +calc/compare1——多工况对比矩阵，32→33 破面[常设指令推荐序沿册
-# 2026-09-12]）。
+# 2026-09-12]；AI2 +ai/connection1 +ai/connection/setup1——MCP 一键
+# 接入面，33→35 破面[AI2 任务书预裁决授权 2026-09-13]）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put", "delete"},
@@ -72,6 +73,8 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/assumptions": {"get"},
     "/api/constraints": {"get"},  # CP1 D5——kb 装载投影（META1 静态目录族）
     "/api/site/spacing": {"get"},  # L4b——间距校核（scene 同构取数端点族）
+    "/api/ai/connection": {"get"},  # AI2——MCP 接入状态四项检查（2026-09-13）
+    "/api/ai/connection/setup": {"post"},  # AI2——一键接入配置写入（2026-09-13）
 }
 
 
@@ -84,7 +87,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 33  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET）
+    assert sum(len(methods) for methods in observed.values()) == 35  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13）
 
 
 @pytest.mark.anyio
