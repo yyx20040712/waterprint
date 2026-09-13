@@ -472,7 +472,7 @@ def build() -> None:
     mesh.update()
     water = bpy.data.objects.new("preview_water", mesh)
     water.data.materials.append(
-        materials.ensure_material("water_surface", alpha=0.72))
+        materials.ensure_material("water_clarified", alpha=0.72))
     preview.objects.link(water)
 
     # 归一校验（§2 AABB 对拍+水密快检——违例即中止导出面；__nc 单面

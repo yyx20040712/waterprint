@@ -217,22 +217,28 @@ def build() -> None:
         except (RuntimeError, TypeError):
             pass
 
-    # PNG 专用水面（preview_only 集合——单面片 +z）
+    # PNG 专用水面（preview_only 集合——**分工序水色**[用户裁定+调研锚]：
+    # 预反应区深色混合/主反应区好氧茶褐；周界序 CCW +z 法线——蝴蝶结
+    # 四边形用户目检实拦教训）
     from lib import materials
     preview = bpy.data.collections.new("preview_only")
     scene.collection.children.link(preview)
-    water_mesh = bpy.data.meshes.new("preview_water")
-    water_mesh.from_pydata(
-        [Vector((x, y, WATER_LEVEL))
-         for x in (-IX, IX) for y in (-IY, IY)],
-        [], [(0, 1, 2, 3)],
+    cass_zones = (
+        ("water_selector", -IX, SELECT_X - SELECT_T / 2),   # 预反应区
+        ("water_aerobic", SELECT_X + SELECT_T / 2, IX),     # 主反应区
     )
-    water_mesh.validate()
-    water_mesh.update()
-    water = bpy.data.objects.new("preview_water", water_mesh)
-    water.data.materials.append(
-        materials.ensure_material("water_surface", alpha=0.72))
-    preview.objects.link(water)
+    for zi, (token, zx0, zx1) in enumerate(cass_zones):
+        water_mesh = bpy.data.meshes.new(f"preview_water_{zi}")
+        water_mesh.from_pydata(
+            [Vector((x, y, WATER_LEVEL))
+             for x, y in ((zx0, -IY), (zx1, -IY), (zx1, IY), (zx0, IY))],
+            [], [(0, 1, 2, 3)],
+        )
+        water_mesh.validate()
+        water_mesh.update()
+        water = bpy.data.objects.new(f"preview_water_{zi}", water_mesh)
+        water.data.materials.append(materials.ensure_material(token, alpha=0.85))
+        preview.objects.link(water)
 
     # 归一校验（§2 AABB 对拍+水密快检——违例即中止；__nc 豁免）
     normalize.assert_shell_aabb(shell, TEMPLATE_SIZE)

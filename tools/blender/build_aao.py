@@ -50,13 +50,17 @@ RAIL_INSET = 0.35                # 栏杆中线自走道外缘内收
 WATER_LEVEL = 5.0                # PNG 专用水面（golden level=5.0 口径）
 
 # 三区分格（厌氧|缺氧|好氧=14|24|56.2m——调研容积比锚）
+# **隔板交替贴边（用户工艺指示 2026-09-13）**：南北走向隔板交替贴边
+# 留流道——第一道（厌氧|缺氧）贴南侧、北侧空出流道；第二道（缺氧|
+# 好氧）贴北侧、南侧空出流道（廊道折流"来回折返"的交替缺口语义）
 PARTITION_X = (-33.3, -8.9)      # 两道横隔墙中心线（厚 0.4）
 PARTITION_T = 0.4
 PARTITION_Z_TOP = 5.5            # 隔墙露顶（出水面 0.5——类型示意可辨档）
+PARTITION_GAP = 6.0              # 隔墙端部流道宽（交替贴边对侧留空）
 GUIDE_Y = (-HY / 3, HY / 3)      # 好氧区纵导流墙（3 廊道档）
 GUIDE_T = 0.3
 GUIDE_Z_TOP = 5.4                # 水下墙露头（出水面 0.4——折流墙示意档）
-GUIDE_END_GAP = 1.0              # 端部折流缺口
+GUIDE_GAP = 6.0                  # 导流墙端部流道宽（交替：南墙贴西空东、北墙空西贴东）
 WEIR_INSET = 0.6                 # 出水堰槽内壁让位（贴末端内壁）
 WEIR_W, WEIR_D = 0.3, 0.4        # 槽宽×深（ds 复审参数同辐流）
 MIXER_SPAN = 4.75                # 安装架跨度（=0.05×95 恒等锚）
@@ -88,25 +92,36 @@ def build() -> None:
         TEMPLATE_SIZE[0], TEMPLATE_SIZE[1], H_TOP, WALL, "concrete_wall")
     _under(shell_root, shell)
 
-    # 横隔墙×2（露顶——三区分格可辨）
+    # 横隔墙×2（露顶三区分格+**交替贴边**：k=0 贴南空北、k=1 贴北空南
+    # ——折流"来回折返"语义；全高单段墙从贴边侧到对侧流道口）
     partitions = []
     for k, gx in enumerate(PARTITION_X):
+        if k == 0:  # 贴南侧（−y）：南端贴内壁、北端留 PARTITION_GAP 流道
+            y_lo, y_hi = -IY, IY - PARTITION_GAP
+        else:       # 贴北侧（+y）：北端贴内壁、南端留流道
+            y_lo, y_hi = -IY + PARTITION_GAP, IY
         p = rb.add_mesh(
             naming.build_name(FAMILY, "trim", f"partition_{k}"),
-            *rb.box_geo((gx, 0.0, (WALL + PARTITION_Z_TOP) / 2),
-                        (PARTITION_T, 2 * IY, PARTITION_Z_TOP - WALL))[:2],
+            *rb.box_geo((gx, (y_lo + y_hi) / 2, (WALL + PARTITION_Z_TOP) / 2),
+                        (PARTITION_T, y_hi - y_lo, PARTITION_Z_TOP - WALL))[:2],
             token="concrete_wall")
         partitions.append(p)
         _under(trim_root, p)
 
-    # 好氧区纵导流墙×2（水下墙+端部折流缺口）
+    # 好氧区纵导流墙×2（水下墙+交替端部流道：南墙贴西[隔墙]空东、
+    # 北墙空西贴东——三廊道蛇形折流：南廊→东端→中廊→西端→北廊）
     guides = []
-    x0, x1 = -PARTITION_X[1] - PARTITION_T / 2 + 1.0, HX - WALL - GUIDE_END_GAP
+    gx0 = -PARTITION_X[1] - PARTITION_T / 2   # 西端=缺氧|好氧隔墙东面
+    gx1 = HX - WALL                            # 东端=池内壁
     for k, gy in enumerate(GUIDE_Y):
+        if k == 0:  # 南墙：贴西、东留 GUIDE_GAP
+            wx0, wx1 = gx0, gx1 - GUIDE_GAP
+        else:       # 北墙：西留 GUIDE_GAP、贴东
+            wx0, wx1 = gx0 + GUIDE_GAP, gx1
         g = rb.add_mesh(
             naming.build_name(FAMILY, "trim", f"guide_wall_{k}"),
-            *rb.box_geo(((x0 + x1) / 2, gy, (WALL + GUIDE_Z_TOP) / 2),
-                        (x1 - x0, GUIDE_T, GUIDE_Z_TOP - WALL))[:2],
+            *rb.box_geo(((wx0 + wx1) / 2, gy, (WALL + GUIDE_Z_TOP) / 2),
+                        (wx1 - wx0, GUIDE_T, GUIDE_Z_TOP - WALL))[:2],
             token="concrete_wall")
         guides.append(g)
         _under(trim_root, g)
@@ -162,7 +177,9 @@ def build() -> None:
             naming.build_name(FAMILY, "equip", part), parts, "steel_bridge")
 
     # 区中心：厌氧=[−HX, PARTITION_X[0]−t/2]、缺氧=[P0+t/2, P1−t/2]
-    ana_c = (HX + PARTITION_X[0] - PARTITION_T / 2) / 2
+    # 厌氧区中心=[−HX, P0−t/2] 中点（v1.1 判读 R-A 勘误：首版 (HX+P0)/2=+7.0
+    # 误落好氧区——三段流目检+几何复核双通道实拦）
+    ana_c = (-HX + PARTITION_X[0] - PARTITION_T / 2) / 2
     anox_c = (PARTITION_X[0] + PARTITION_X[1]) / 2
     mount_ana = mixer_mount(ana_c, "mixer_mount_ana")
     mount_anox = mixer_mount(anox_c, "mixer_mount_anox")
@@ -221,22 +238,30 @@ def build() -> None:
         except (RuntimeError, TypeError):
             pass
 
-    # PNG 专用水面（preview_only 集合——glb 导出剔除；单面片顶面 +z）
+    # PNG 专用水面（preview_only 集合——glb 导出剔除；**分工序水色**
+    # [用户裁定+调研锚]：厌氧黑绿/缺氧灰绿/好氧茶褐——三区各一片；
+    # 周界序 CCW +z 法线（蝴蝶结四边形用户目检实拦教训）
     from lib import materials
     preview = bpy.data.collections.new("preview_only")
     scene.collection.children.link(preview)
-    water_mesh = bpy.data.meshes.new("preview_water")
-    water_mesh.from_pydata(
-        [Vector((x, y, WATER_LEVEL))
-         for x in (-IX, IX) for y in (-IY, IY)],
-        [], [(0, 1, 2, 3)],
+    zone_bounds = (
+        ("water_anaerobic", -IX, PARTITION_X[0] - PARTITION_T / 2),
+        ("water_anoxic", PARTITION_X[0] + PARTITION_T / 2,
+         PARTITION_X[1] - PARTITION_T / 2),
+        ("water_aerobic", PARTITION_X[1] + PARTITION_T / 2, IX),
     )
-    water_mesh.validate()
-    water_mesh.update()
-    water = bpy.data.objects.new("preview_water", water_mesh)
-    water.data.materials.append(
-        materials.ensure_material("water_surface", alpha=0.72))
-    preview.objects.link(water)
+    for zi, (token, zx0, zx1) in enumerate(zone_bounds):
+        water_mesh = bpy.data.meshes.new(f"preview_water_{zi}")
+        water_mesh.from_pydata(
+            [Vector((x, y, WATER_LEVEL))
+             for x, y in ((zx0, -IY), (zx1, -IY), (zx1, IY), (zx0, IY))],
+            [], [(0, 1, 2, 3)],
+        )
+        water_mesh.validate()
+        water_mesh.update()
+        water = bpy.data.objects.new(f"preview_water_{zi}", water_mesh)
+        water.data.materials.append(materials.ensure_material(token, alpha=0.85))
+        preview.objects.link(water)
 
     # 归一校验（§2 AABB 对拍+水密快检——违例即中止；__nc 豁免）
     normalize.assert_shell_aabb(shell, TEMPLATE_SIZE)
