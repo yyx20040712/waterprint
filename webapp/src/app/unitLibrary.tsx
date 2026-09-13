@@ -99,10 +99,10 @@ const LEAF_NAME_SIZE = 13;
 /** 组行题字号（C2-ALIGN A4：11→12——用户「大一点」+1 档）。 */
 const GROUP_TITLE_SIZE = 12;
 
-/** 搜索框占位文案 props（键名拼接构造规避 grep 门禁英文特征词——同
- * gate_patterns 脚本自身「特征串一律拼接构造」口径）。 */
+/** 搜索框占位文案 props（批3 段三豁免后还原明文——英文 place"holder"
+ * 已移出 grep 门禁特征表[gate_patterns 豁免注记]，拼接规避退役）。 */
 const SEARCH_HINT_PROPS = {
-  ["place" + "holder"]: "搜索单元/名称",
+  placeholder: "搜索单元/名称",
 } as const;
 
 /** 参数面五列（default 空值「—」/range「min~max」/grid 长度或「—」。

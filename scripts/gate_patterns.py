@@ -21,7 +21,6 @@ import re
 # 用法），不封；其语义靠 UF 登记+诚实 501+代数不变式测试保障（ADR-013）。
 UNFINISHED_MARKERS: tuple[str, ...] = (
     "not" + " implemented",
-    "place" + "holder",
     "TO" + "DO",
     "FIX" + "ME",
     "未" + "实现",
@@ -31,6 +30,17 @@ UNFINISHED_MARKERS: tuple[str, ...] = (
     "留空" + "待",
     "待" + "接入",
 )
+# 英文 place"holder" 豁免注记（批3 段三 2026-09-13，GOV1 A1 对称裁定；
+# 门一 P1 论证勘正同批）：该词为过载域词——合法载体两类实证在案=
+# antd placeholder UI 属性（JSX 属性位 place"holder"="…"，等号/引号
+# 构成词边界——unitLibrary.tsx 曾以拼接规避）+spec §11 用户签核冻结
+# 签名 missingSlotPlaceholders（子串匹配误伤标识符段；词边界正则不
+# 命中驼峰标识符[前邻恒词字符]但误伤 JSX 属性位——两形态均不可用，
+# 故整词移出特征表）。与中文「占位」同待遇（GOV1 A1 过载域词不封；
+# 语义靠 UF 登记+诚实 501+代数不变式测试保障，ADR-013）。**已接受
+# 残余风险（显式登记）**：英文 place"holder" 作存根注释的形态（如
+# "// place"holder": wire later"）不再拦截——英文存根拦截主力="TO"+
+# "DO"/"FIX"+"ME"/"not"+" implemented" 三特征兜底，中文六词硬封不变。
 
 # 裸异常/过宽捕获（可预期错误必须用领域异常，AGENTS.md §3）
 BARE_EXCEPT_RE = re.compile(r"except\s+Exception|except\s*:")
