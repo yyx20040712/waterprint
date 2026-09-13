@@ -196,8 +196,9 @@ describe("claimTemplateUnits（Scene 分支声明——solids+internals 双扫�
     expect(claimsInternals.size).toBe(1);
   });
   it("未登记单元/空场景零声明", () => {
+    // 未登记示例=永久伪名（门一 W5：gaomidu 第二窗排期登记后必再破）
     expect(claimTemplateUnits(sceneOf([
-      cylinderNode("municipal_chuchenchi::pool_cylinder"),
+      cylinderNode("municipal_nonexistent_unit::pool_cylinder"),
     ])).size).toBe(0);
     expect(claimTemplateUnits(null).size).toBe(0);
   });

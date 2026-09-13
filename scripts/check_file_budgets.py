@@ -29,6 +29,11 @@ EXCLUDED_DIRS = {
     ".git", ".venv", "venv", "node_modules", "__pycache__",
     ".pytest_cache", ".mypy_cache", ".ruff_cache", ".hypothesis",
     "__snapshots__", "dist", "build", "generated", ".mimosa",
+    # 批4 门二 P1-1（2026-09-13）：.workflow/=工作档案区（.gitignore 已
+    # 忽略——审查包/探针证据/判据等过程件不入库）。预算门口径对齐
+    # gitignore「只查入库文件」；过程档案超限非产品债（gate1-package.md
+    # 1973 行实录红面根因）
+    ".workflow",
 }
 
 

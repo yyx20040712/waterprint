@@ -13,7 +13,13 @@ build_script() {
     clarifier_radial) echo "build_clarifier_radial.py" ;;
     aao_corridor) echo "build_aao.py" ;;
     cass_batch) echo "build_cass.py" ;;
-    *) echo "未知族：$1（合法 clarifier_radial|aao_corridor|cass_batch）" >&2; exit 2 ;;
+    coarse_screen) echo "build_coarse_screen.py" ;;
+    fine_screen) echo "build_fine_screen.py" ;;
+    grit_vortex) echo "build_grit.py" ;;
+    vfilter_cell) echo "build_vfilter.py" ;;
+    parshall_flume) echo "build_parshall.py" ;;
+    eq_basin_cell) echo "build_eqbasin.py" ;;
+    *) echo "未知族：$1（合法 clarifier_radial|aao_corridor|cass_batch|coarse_screen|fine_screen|grit_vortex|vfilter_cell|parshall_flume|eq_basin_cell）" >&2; exit 2 ;;
   esac
 }
 

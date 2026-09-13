@@ -157,6 +157,311 @@
       "status": "ready",
       "built": "2026-09-13",
       "designReview": "2026-09-13"
+    },
+    "municipal_cugeshan": {
+      "family": "coarse_screen",
+      "prefix": "coarse",
+      "glb": "/assets/units/coarse_screen.glb",
+      "thumb": "/assets/units/coarse_screen.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 1.8,
+        "W0": 0.6,
+        "H0": 1.0
+      },
+      "ratioDomain": [
+        {
+          "key": "coarse_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 6
+        }
+      ],
+      "equipment": {},
+      "instanceSpacing": {
+        "mech_cleaner": 1.0
+      },
+      "instanceModes": {
+        "mech_cleaner": "grid"
+      },
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "cell",
+        "gap": 0.8
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_xigeshan": {
+      "family": "fine_screen",
+      "prefix": "fine",
+      "glb": "/assets/units/fine_screen.glb",
+      "thumb": "/assets/units/fine_screen.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 1.9,
+        "W0": 0.8,
+        "H0": 1.0
+      },
+      "ratioDomain": [
+        {
+          "key": "fine_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 6
+        }
+      ],
+      "equipment": {},
+      "instanceSpacing": {
+        "mech_cleaner": 1.0
+      },
+      "instanceModes": {
+        "mech_cleaner": "grid"
+      },
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "cell",
+        "gap": 0.8
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_chenshachi": {
+      "family": "grit_vortex",
+      "prefix": "grit",
+      "glb": "/assets/units/grit_vortex.glb",
+      "thumb": "/assets/units/grit_vortex.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 5.6,
+        "W0": 3.0,
+        "H0": 3.3
+      },
+      "ratioDomain": [
+        {
+          "key": "grit_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.2,
+          "max": 3
+        }
+      ],
+      "equipment": {
+        "agitator": {
+          "templateFeature": 3.81,
+          "actualFactor": 0.6804,
+          "anchor": "pool_center_bottom"
+        }
+      },
+      "instanceSpacing": {},
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "cell",
+        "gap": 1.0
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_chuchenchi": {
+      "family": "clarifier_radial",
+      "prefix": "clarifier",
+      "glb": "/assets/units/clarifier_radial.glb",
+      "thumb": "/assets/units/clarifier_radial.png",
+      "dimSource": {
+        "primitiveKind": "cylinder"
+      },
+      "templateSize": {
+        "L0": 40,
+        "W0": 40,
+        "H0": 4
+      },
+      "ratioDomain": [
+        {
+          "key": "clarifier_L_over_H",
+          "numerator": "L",
+          "denominator": "H",
+          "min": 4,
+          "max": 14
+        }
+      ],
+      "equipment": {
+        "center_well": {
+          "templateFeature": 4.8,
+          "actualFactor": 0.12,
+          "anchor": "pool_center_bottom"
+        },
+        "bridge": {
+          "templateFeature": 21.5,
+          "actualFactor": 0.5375,
+          "anchor": "aabb_min"
+        },
+        "bridge_drive": {
+          "templateFeature": 1.6,
+          "actualFactor": 0.04,
+          "anchor": "pool_center_bottom"
+        }
+      },
+      "instanceSpacing": {
+        "rail_post": 1.5
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_tiaojiechi": {
+      "family": "eq_basin_cell",
+      "prefix": "eqbasin",
+      "glb": "/assets/units/eq_basin_cell.glb",
+      "thumb": "/assets/units/eq_basin_cell.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 53,
+        "W0": 22,
+        "H0": 5.5
+      },
+      "ratioDomain": [
+        {
+          "key": "eq_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 3.5
+        }
+      ],
+      "equipment": {
+        "mixer_mount_a": {
+          "templateFeature": 2.65,
+          "actualFactor": 0.05,
+          "anchor": "aabb_min"
+        },
+        "mixer_mount_b": {
+          "templateFeature": 2.65,
+          "actualFactor": 0.05,
+          "anchor": "aabb_min"
+        }
+      },
+      "instanceSpacing": {
+        "rail_post": 3.5
+      },
+      "instanceModes": {
+        "rail_post": "rect"
+      },
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "cell",
+        "gap": 1.0
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_bashi_jiliangcao": {
+      "family": "parshall_flume",
+      "prefix": "parshall",
+      "glb": "/assets/units/parshall_flume.glb",
+      "thumb": "/assets/units/parshall_flume.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 3.095,
+        "W0": 1.05,
+        "H0": 0.479
+      },
+      "ratioDomain": [
+        {
+          "key": "parshall_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 2.2,
+          "max": 4
+        }
+      ],
+      "equipment": {
+        "level_gauge": {
+          "templateFeature": 0.639,
+          "actualFactor": 0.2065,
+          "anchor": "aabb_min"
+        }
+      },
+      "instanceSpacing": {},
+      "badges": {
+        "poolCount": false,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
+    },
+    "municipal_vxinglvchi": {
+      "family": "vfilter_cell",
+      "prefix": "vfilter",
+      "glb": "/assets/units/vfilter_cell.glb",
+      "thumb": "/assets/units/vfilter_cell.png",
+      "dimSource": {
+        "primitiveKind": "box"
+      },
+      "templateSize": {
+        "L0": 10,
+        "W0": 4.5,
+        "H0": 3.9
+      },
+      "ratioDomain": [
+        {
+          "key": "vfilter_L_over_W",
+          "numerator": "L",
+          "denominator": "W",
+          "min": 1.5,
+          "max": 4
+        }
+      ],
+      "equipment": {},
+      "instanceSpacing": {},
+      "poolGroup": {
+        "countParam": "n",
+        "templateScope": "cell",
+        "gap": 0.2
+      },
+      "badges": {
+        "poolCount": true,
+        "maintenanceNA": false
+      },
+      "status": "ready",
+      "built": "2026-09-13",
+      "designReview": "2026-09-13"
     }
   }
 }

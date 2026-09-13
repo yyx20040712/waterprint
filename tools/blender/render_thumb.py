@@ -28,6 +28,14 @@ ENVELOPES: dict[str, tuple[float, float, float, float]] = {
     "clarifier_radial": (43.2, 43.2, 5.3, 2.6),   # 栏杆环 R21.5+管径→43.2
     "aao_corridor": (98.2, 41.2, 6.9, 3.0),      # 走道外挑 49.1/20.6
     "cass_batch": (51.7, 22.7, 6.8, 3.0),        # 25.85/11.35
+    # 批4 第一窗 6 族（取数锚=server 最小图——.workflow/b4-window1/；
+    # 包络=glb 实测外接盒[门一 W1：z 向含栏杆顶——grit 4.525/vfilter 5.125]）
+    "coarse_screen": (2.0, 0.8, 2.1, 1.0),       # 清渣机顶实测 2.03
+    "fine_screen": (2.1, 1.0, 2.1, 1.0),         # 同粗格栅档（渠宽 0.8）
+    "grit_vortex": (5.6, 4.4, 4.6, 2.2),         # 栏杆顶实测 4.525（驱动头 3.81）
+    "vfilter_cell": (12.4, 6.9, 5.2, 2.5),       # 栏杆顶实测 5.125（排水槽顶 4.25）
+    "parshall_flume": (3.2, 1.35, 0.8, 0.3),     # 液位计外延实测 1.31（N5）
+    "eq_basin_cell": (56.2, 25.2, 6.8, 3.0),     # 栏杆顶实测 6.75
 }
 
 SIZE = 1024                   # 用户裁定②分辨率提升（512→1024）
@@ -40,8 +48,10 @@ EXPOSURE_EV = -0.85           # Cycles 物理光照提档（Eevee -1.15 实测�
 SUN_ENERGY = 3.3
 FILL_ENERGY = 1.2
 HDRI_PATH = r"D:\blender_work\HDRI\studio_small_08_4k.exr"  # 用户指定库
-HDRI_STRENGTH = 0.50          # HDRI=环境反射/补光（0.55 实测辐流峰值 92.4%
-                              # 微超 0.92 带——降 0.05 复验）
+HDRI_STRENGTH = 0.50          # HDRI=环境反射/补光（0.55 辐流峰 92.4% 微超
+                              # 0.92 带→0.50 复验；批4 曾试 0.45——门一 W7
+                              # 全局档影响面（既往三族基线漂移）回滚，grit
+                              # 峰值归因=折线杆几何[已修真圆环]复测 0.50 档）
 CYCLES_SAMPLES = 128          # OptiX 降噪档（5070Ti 实测 2.1s@512² 档）
 
 
