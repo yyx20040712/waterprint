@@ -49,12 +49,12 @@
 from __future__ import annotations
 
 import dataclasses
-import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
 from waterprint import app as core
+from waterprint.flows import InvalidFlowError, params_guard
 
 from waterprint_server.jobs.manager import TaskHandle, TaskRequest, TaskStatus
 
@@ -67,7 +67,6 @@ from waterprint_server.services.projects import (
     read_project,
     save_project,
 )
-from waterprint_server.services.units import list_units
 
 # 回滚捕获面：重算触发的现实异常族（grep 门禁禁过宽 except——领域面枚举）。
 _TRIGGER_FAILURES = (OSError, RuntimeError, ValueError, KeyError)
@@ -191,47 +190,22 @@ def _validate_apply_params(
 ) -> None:
     """AUDIT2 C-4：apply 参数域服务端守护（提交面 422 先于异步失败）。
 
-    探针实录（2026-08-30）：字符串值/未知键 200 入档→此后该项目所有
-    calc failed（InvalidAssemblyError 未命中 grid 档位）且回滚不覆盖
-    异步重算失败——与 ADR-005「值全 number」不符。守护三面：
-    值=有限数值（bool/str/NaN 拒）；键=单元目录已知参数（META1 目录
-    真源——kind 通道：节点覆写含 kind 用 kind，否则 unit_id）；grid
-    声明时值须命中档位（与 core 装配期同口径前置）。range 面不在
-    本守护（core 语义未锚——policy 后续批裁量）。
+    AI1 轨道甲（2026-09-13）提取：三面守护逻辑迁 core.waterprint.flows.
+    params_guard（纯函数——CLI/MCP 共用），本函数转调并保持 server 版
+    整批拒语义=任一 verdict.accepted 为 False 即 raise InvalidSolutionRef
+    Error（消息含全部拒绝项）；目录外单元的 InvalidFlowError 同消息映射
+    422。守护三面（探针实录 2026-08-30）：值=有限数值（bool/str/NaN 拒）；
+    键=单元目录已知参数（META1 目录真源——kind 通道：节点覆写含 kind 用
+    kind，否则 unit_id）；grid 声明时值须命中档位（与 core 装配期同口径
+    前置）。range 面不在本守护（core 语义未锚——policy 后续批裁量）。
     """
-    node = project.design.nodes[unit_id]
-    catalog_key = node.get("kind") if isinstance(node.get("kind"), str) else unit_id
-    entry = next(
-        (u for u in list_units().units if u.unit_id == catalog_key), None
-    )
-    if entry is None:
+    try:
+        verdicts = params_guard(project, unit_id, params)
+    except InvalidFlowError as exc:
+        raise InvalidSolutionRefError(str(exc)) from exc
+    rejected = [v for v in verdicts if not v.accepted]
+    if rejected:
         raise InvalidSolutionRefError(
-            f"方案目标单元 {unit_id!r} 无单元目录声明（kind={catalog_key!r}"
-            "——META1 目录外不可应用）"
+            f"方案参数守护拒绝 {len(rejected)} 项（整批拒——AUDIT2 C-4）："
+            + "；".join(v.reason or "" for v in rejected)
         )
-    specs = {p.field_id: p for p in entry.params}
-    for key, value in params.items():
-        if not isinstance(key, str) or not key:
-            raise InvalidSolutionRefError(
-                f"方案参数 {key!r} 非法（字段 ID: str）"
-            )
-        spec = specs.get(key)
-        if spec is None:
-            raise InvalidSolutionRefError(
-                f"方案参数 {key!r} 不在单元 {unit_id!r} 目录参数面"
-                f"（合法 {sorted(specs)}——ADR-005 grid 字段投影语义）"
-            )
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, (int, float))
-            or not math.isfinite(value)
-        ):
-            raise InvalidSolutionRefError(
-                f"方案参数 {key!r}={value!r} 非法（数值: int/float 有限值"
-                "——bool/字符串/NaN 拒，ADR-005「值全 number」服务端口径）"
-            )
-        if spec.grid is not None and float(value) not in {float(g) for g in spec.grid}:
-            raise InvalidSolutionRefError(
-                f"方案参数 {key!r} 值 {value!r} 未命中 grid 档位"
-                f" {list(spec.grid)}（枚举维——§12.4，与 core 装配期同口径前置）"
-            )

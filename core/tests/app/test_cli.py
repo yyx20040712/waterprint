@@ -135,7 +135,9 @@ def test_export_audit_failure_paths_wiring(
         == 3
     )
     assert "越界分量" in capsys.readouterr().err  # 路径检查先于结果读入（裁定面）
-    assert main(["export", "calcbook", str(project), str(project)]) == 2
+    # AI1 轨道甲（2026-09-13）：calcbook 已实装——未注册语义断言换 scene
+    # （愿景行其余成员——U7 授权翻转，语义不变=argparse 用法错误 2）。
+    assert main(["export", "scene", str(project), str(project)]) == 2
 
 
 def test_export_audit_fresh_process_wiring(golden_data_dir: Path, tmp_path: Path) -> None:
@@ -174,3 +176,74 @@ def test_export_audit_fresh_process_wiring(golden_data_dir: Path, tmp_path: Path
     assert completed.returncode == 0, completed.stderr
     assert out.is_file()
     assert "公式溯源审计报告" in out.read_text(encoding="utf-8")
+
+
+def test_calc_end_to_end_wiring(
+    golden_data_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """AI1 轨道甲：wp calc → flows 全链 → 默认 <stem>.result.json 落盘+摘要。
+
+    --out 显式路径再证一次（嵌套目录 mkdir 面）；stdout 摘要含六指标/
+    warnings 计数/design_digest；坏项目→3（读入校验面）。"""
+    project = golden_data_dir / "municipal_34760" / "input_project.json"
+    copied = tmp_path / "proj" / "input_project.json"
+    copied.parent.mkdir(parents=True)
+    copied.write_bytes(project.read_bytes())
+    assert main(["calc", str(copied)]) == 0
+    default_out = copied.with_suffix(".result.json")
+    assert default_out.is_file()
+    out = capsys.readouterr().out
+    assert "计算完成" in out and "design_digest" in out and "warnings" in out
+    assert "BOD5" in out  # 六指标摘要（golden 终水键）
+    explicit = tmp_path / "nested" / "r.json"
+    assert main(["calc", str(copied), "--out", str(explicit)]) == 0
+    assert explicit.is_file()
+    assert explicit.read_bytes() == default_out.read_bytes()  # 双跑字节同（R3 确定性）
+    assert main(["calc", str(tmp_path / "nope.json")]) == 3
+    escape = tmp_path / ".." / "escape.json"
+    assert main(["calc", str(copied), "--out", str(escape)]) == 3
+
+
+def test_validate_wiring(golden_data_dir: Path, tmp_path: Path) -> None:
+    """AI1 轨道甲：wp validate → 结构校验清单（好项目 0 / 坏拓扑 3+清单行）。"""
+    project = golden_data_dir / "municipal_34760" / "input_project.json"
+    assert main(["validate", str(project)]) == 0
+    payload = json.loads(project.read_text(encoding="utf-8"))
+    payload["design"]["edges"] = [
+        {
+            "src": {"unit_id": "ghost_unit", "port_id": "out"},
+            "dst": {"unit_id": "municipal_aao", "port_id": "in"},
+        }
+    ]
+    broken = tmp_path / "broken.json"
+    broken.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    assert main(["validate", str(broken)]) == 3
+
+
+def test_export_calcbook_and_dxf_wiring(
+    golden_data_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """AI1 轨道甲：wp export calcbook/dxf → flows.export_flow 落盘（0）。"""
+    project_path, result_path, _plant = _golden_result(golden_data_dir, tmp_path)
+    book = tmp_path / "book.xlsx"
+    assert main(["export", "calcbook", str(project_path), str(result_path),
+                 "--out", str(book)]) == 0
+    assert book.is_file() and book.stat().st_size > 0
+    drawing = tmp_path / "u.dxf"
+    assert main(["export", "dxf", str(project_path), str(result_path),
+                 "--out", str(drawing), "--unit-id", "municipal_aao",
+                 "--condition-key", "design"]) == 0
+    assert drawing.is_file() and drawing.stat().st_size > 0
+    assert main(["export", "dxf", str(project_path), str(result_path),
+                 "--out", str(tmp_path / "x.dxf")]) == 3  # 无 unit_id 无 --site=总图拒
+    assert main(["export", "calcbook", str(project_path), str(result_path),
+                 "--data-dir", str(tmp_path / "no_data")]) == 3  # 模板缺失
+    assert "模板缺失" in capsys.readouterr().err
+
+
+def test_selfcheck_wiring(capsys: pytest.CaptureFixture[str]) -> None:
+    """AI1 轨道甲：wp selfcheck → 装载报告+manifest 计数（0）。"""
+    assert main(["selfcheck"]) == 0
+    out = capsys.readouterr().out
+    assert "注册表装载" in out and "单元包" in out
+    assert "manifest 参数" in out  # 计数行

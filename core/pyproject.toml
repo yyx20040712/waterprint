@@ -148,15 +148,20 @@ include_external_packages = true
 # app_enumeration 同层伴生并列——app 再导出保持 server 单入口；方向单一
 # app→app_enumeration 防环由伴生件规格头【依赖足迹】承载，该唯一边经
 # 下方 ignore_imports 显式豁免登记，反向 app_enumeration→app 仍被禁）。
+# AI1 轨道甲（2026-09-13，ADR-022/E4）：waterprint.flows 用例流层插入 cli
+# 之下（cli → flows → app…）——CLI/MCP 两壳共用编排层；flows 禁依赖
+# server/cli（root_package 外天然不可见）。structure-graph §1a 节点表
+# 双源同步与 file-contracts 登记归集成批（禁改文件，时序记档任务书 §1）。
 # L5c 2026-09-03：waterprint.ifc_export 并入 L3 行（BIM 互操作投影与
 # drafting/geometry 同层消费面）；其对 geometry 的场景图消费边为同层
 # 边，经下方 ignore_imports 显式豁免登记（SERVER D1 同款忠实意图条款
 # ——structure-graph.md §1b 后注记承载）。
 [[tool.importlinter.contracts]]
-name = "内核分层只许向下（L4.cli→L4.app→L4.project-trace→L3→L2→L1→L0）"
+name = "内核分层只许向下（L4.cli→L4.flows→L4.app→L4.project-trace→L3→L2→L1→L0）"
 type = "layers"
 layers = [
     "waterprint.cli",
+    "waterprint.flows",
     "waterprint.app | waterprint.app_enumeration | waterprint.app_export",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.ifc_export | waterprint.network",
@@ -301,5 +306,8 @@ source_modules = [
     "waterprint.trace",
     "waterprint.app",
     "waterprint.cli",
+    # AI1 集成批（2026-09-13）：flows 用例流层纳入 pint 禁令 source 面
+    # （轨道甲报告疑虑 1 收口——flows 与 cli/app 同层同守 ADR-002 边界）。
+    "waterprint.flows",
 ]
 forbidden_modules = ["pint"]
