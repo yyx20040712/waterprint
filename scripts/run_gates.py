@@ -21,6 +21,9 @@
 # 2026-09-12）：out_dims.dim 三写面对账——manifest 声明必须=①公式表
 # output_dim/②projection dim_of 镜像（真源单归；AST 静态实读零依赖）
 # ——门禁数基线 12→13。
+# 第十五门禁 check_model_names.py（清洗批 2026-09-16）：源码不得
+# 出现 AI 模型代号（与"独立开发"口径冲突的过程痕迹；词表拼接构造防
+# 自匹配，scripts/ 不在扫描面）——门禁数基线 14→15。
 # 第十四门禁 check_dim_labels_mirror.py（同批件 4 缺口②）：FE
 # DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典
 # 即拦）——门禁数基线 13→14。
@@ -42,6 +45,7 @@ GATES = (
     "check_lint_imports.py",
     "check_magic_numbers.py",
     "check_module_graph.py",
+    "check_model_names.py",
     "check_out_dims_consistency.py",
     "check_readonly.py",
     "check_ruff.py",
