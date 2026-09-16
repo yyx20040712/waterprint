@@ -41,7 +41,7 @@ _INSTRUCTIONS = (
     "wp_get_result_summary/wp_get_diagnostics 读结果与诊断迭代，"
     "wp_get_unit_detail/wp_get_trace_excerpt/wp_get_estimate_summary/"
     "wp_get_layout_summary 按需回取，导出走 wp_export_* 五件套"
-    "（calcbook/audit/dxf/ifc/report）。AI 只编排不算数（ADR-019）。"
+    "（calcbook/audit/dxf/ifc/report）。只编排不算数（ADR-019）。"
 )
 
 _MCP: object | None = None  # FastMCP 实例（类型不顶层导入——懒加载）

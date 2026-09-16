@@ -79,7 +79,7 @@ class TestNarrativeSlotRender:
     def test_default_placeholder(self) -> None:
         slot = NarrativeSlot(slot_id="process_selection", hint="围绕已注入结论论证")
         md = render_markdown((Chapter("c", "样章", (slot,)),))
-        assert "（本段由 AI 撰写——见管线说明）" in md
+        assert "（本段由撰写管线生成——见管线说明）" in md
         assert "<!-- narrative:process_selection -->" in md
         assert "<!-- /narrative -->" in md
 
@@ -90,7 +90,7 @@ class TestNarrativeSlotRender:
             narrative_fills={"process_selection": "本方案以 AA 工艺为核心论证。"},
         )
         assert "本方案以 AA 工艺为核心论证。" in md
-        assert "（本段由 AI 撰写——见管线说明）" not in md
+        assert "（本段由撰写管线生成——见管线说明）" not in md
 
     def test_extra_fill_ignored(self) -> None:
         slot = NarrativeSlot(slot_id="a", hint="h")

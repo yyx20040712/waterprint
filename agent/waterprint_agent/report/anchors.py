@@ -150,7 +150,7 @@ def validate_narrative(text: str) -> list[NarrativeViolation]:
     """叙述文本数字后检：检出全部违例（按 offset 升序），干净文本返回空表。
 
     严格姿态（K4 缓解策略）：中文数字按字符族整体检出——「一体化」「千万」
-    类普通词会误报，宁误报不漏报，由 AI 改写规避；豁免仅覆盖显式序号形态。
+    类普通词会误报，宁误报不漏报，由撰写侧改写规避；豁免仅覆盖显式序号形态。
     """
     exemptions = _exempt_spans(text)
     hits: list[NarrativeViolation] = []

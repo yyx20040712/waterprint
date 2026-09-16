@@ -97,7 +97,7 @@ def _chapter_design_basis(project: ProjectFile, plant: PlantResult) -> Chapter:
         ),
         NoteLine(
             "本章全部数据由程序自项目 metadata 与计算迹（trace）条文自动"
-            "汇编——AI 永不直算原则下，设计依据与结果数值同源可溯。"
+            "汇编——数值溯源原则下，设计依据与结果数值同源可溯。"
         ),
     )
     return Chapter(id="design_basis", title="设计依据", blocks=blocks)
@@ -204,7 +204,7 @@ def _chapter_process_selection(
         NarrativeSlot(
             slot_id="process_selection",
             hint="只承接上表已注入的工序结论展开论证（比选理由／规范依据），"
-            "正文禁新增任何数字——支撑数值由程序给，不由 AI 写。",
+            "正文禁新增任何数字——支撑数值由程序给，不由叙述写。",
         ),
     )
     return Chapter(id="process_selection", title="工艺流程比选", blocks=blocks)

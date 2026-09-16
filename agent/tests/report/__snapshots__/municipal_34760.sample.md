@@ -1,6 +1,6 @@
 # 污水处理厂设计说明书
 
-> 本说明书由 WaterPrint 设计说明书管线生成：计算章（第 2／4／6 章）数值全部由程序自计算迹锚定回填，AI 永不算数；叙述章（第 3／5 章）由 AI 承接程序已注入的结论撰写，正文禁新增数字（后检守卫）。
+> 本说明书由 WaterPrint 设计说明书管线生成：计算章（第 2／4／6 章）数值全部由程序自计算迹锚定回填，不经撰写环节；叙述章（第 3／5 章）由撰写管线承接程序已注入的结论撰写，正文禁新增数字（后检守卫）。
 
 ## 第 1 章 设计依据
 
@@ -9,7 +9,7 @@
 | 项目 | 值 |
 | --- | --- |
 | 设计内容哈希（content_hash） | c8043a5cdef57d6a374dc23f8001f8847f75e84cca9acf84659ad5e2773bf591 |
-| 引擎版本（engine_version） | waterprint-server 0.1.0 |
+| 引擎版本（engine_version） | 0.1.2 |
 | 数据版本（data_version） | coefficients@1.2.0+unit_prices@1.0.0 |
 | 项目文件格式版本（format_version） | 3.0 |
 | 工艺单元数 | 19 |
@@ -101,7 +101,7 @@
 | 依据 80 | 中期报告 §3.3 式(4-28)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23） |
 | 依据 81 | 中期报告 §3.3 式(4-29)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23） |
 
-本章全部数据由程序自项目 metadata 与计算迹（trace）条文自动汇编——AI 永不直算原则下，设计依据与结果数值同源可溯。
+本章全部数据由程序自项目 metadata 与计算迹（trace）条文自动汇编——数值溯源原则下，设计依据与结果数值同源可溯。
 
 
 ## 第 2 章 设计水量水质
@@ -131,9 +131,6 @@
 | --- | --- |
 | avg | 平均时工况 |
 | design | 最高日最高时设计工况 |
-| design_offline_municipal_aao | 单元 AAO 生物池（municipal_aao）检修敏感性工况（n-1 池） |
-| design_offline_municipal_chuchenchi | 单元 辐流初沉池（municipal_chuchenchi）检修敏感性工况（n-1 池） |
-| design_offline_municipal_erchunchi | 单元 辐流二沉池（municipal_erchunchi）检修敏感性工况（n-1 池） |
 
 **出水达标校核（design 工况，mg/L）**
 
@@ -183,10 +180,10 @@
 | 6 | 污泥脱水 | sludge_tuoshui |
 | 7 | 污泥消化 | sludge_xiaohua |
 
-> 撰写要点：只承接上表已注入的工序结论展开论证（比选理由／规范依据），正文禁新增任何数字——支撑数值由程序给，不由 AI 写。
+> 撰写要点：只承接上表已注入的工序结论展开论证（比选理由／规范依据），正文禁新增任何数字——支撑数值由程序给，不由叙述写。
 
 <!-- narrative:process_selection -->
-（本段由 AI 撰写——见管线说明）
+（本段由撰写管线生成——见管线说明）
 <!-- /narrative -->
 
 
@@ -1077,7 +1074,7 @@
 > 撰写要点：围绕程序注入的高程与闭合结论论述布置原则（流程顺畅／近远期结合／检修条件），正文禁新增任何数字。
 
 <!-- narrative:layout_narrative -->
-（本段由 AI 撰写——见管线说明）
+（本段由撰写管线生成——见管线说明）
 <!-- /narrative -->
 
 **水力闭合校核（源汇两侧合计与相对闭合）**
@@ -1088,12 +1085,6 @@
 | design | SLUDGE | 0.0047376919 | 4.95367e-05 | 0.0046881553 |
 | avg | WATER | 0.4023229167 | 0.4023229167 | 0.0 |
 | avg | SLUDGE | 0.0047376919 | 4.95367e-05 | 0.0046881553 |
-| design_offline_municipal_chuchenchi | WATER | 0.5632520834 | 0.5632520834 | 0.0 |
-| design_offline_municipal_chuchenchi | SLUDGE | 0.0047376919 | 4.95367e-05 | 0.0046881553 |
-| design_offline_municipal_aao | WATER | 0.5632520834 | 0.5632520834 | 0.0 |
-| design_offline_municipal_aao | SLUDGE | 0.0047376919 | 4.95367e-05 | 0.0046881553 |
-| design_offline_municipal_erchunchi | WATER | 0.5632520834 | 0.5632520834 | 0.0 |
-| design_offline_municipal_erchunchi | SLUDGE | 0.0047376919 | 4.95367e-05 | 0.0046881553 |
 
 回路收敛：本图无回路迭代（convergence 空）。
 

@@ -13,7 +13,7 @@
 #       本模块兼结果簿记真源（digest10 命名/最近结果集/stale 门）——
 #       结果组与导出组经此共享（单一真源禁双胞胎）。
 #   禁区：顶层禁 import core/server/fastmcp（懒加载铁律）；工具签名
-#       冻结（v2 D3 权威表）；AI 永不算数（ADR-019——只编排 flows）。
+#       冻结（v2 D3 权威表）；数值永不出自编排层（ADR-019——只编排 flows）。
 #
 # 【行为规格】
 #   R1 #8 装配链=flows.build_env_flow/build_condition_flow/

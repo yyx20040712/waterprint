@@ -165,7 +165,7 @@ def test_export_report_rejects_digit_bearing_narrative(sandbox: Path, pid: str) 
     markdown = path.read_text(encoding="utf-8")
     assert "34760" not in markdown.split("## 附录")[0]  # 拒绝文本未入正文
     # validate_narrative 抽查（D8③）：占位文案零违例
-    assert validate_narrative("（本段由 AI 撰写——见管线说明）") == []
+    assert validate_narrative("（本段由撰写管线生成——见管线说明）") == []
 
 
 def test_export_report_name_digest(sandbox: Path, pid: str) -> None:

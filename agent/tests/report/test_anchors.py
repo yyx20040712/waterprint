@@ -160,7 +160,7 @@ class TestPlaceholderCompat:
     """管线占位文本自身必须零违例（渲染默认占位即守卫通过）。"""
 
     def test_default_placeholder_is_clean(self) -> None:
-        assert validate_narrative("（本段由 AI 撰写——见管线说明）") == []
+        assert validate_narrative("（本段由撰写管线生成——见管线说明）") == []
 
 
 @pytest.mark.parametrize(

@@ -33,7 +33,7 @@ _NARRATIVE_OPEN = "<!-- narrative:{slot_id} -->"
 _NARRATIVE_CLOSE = "<!-- /narrative -->"
 
 # 叙述槽缺省占位（管线约定文案——自身零数字，validate_narrative 可过）
-_NARRATIVE_PLACEHOLDER = "（本段由 AI 撰写——见管线说明）"
+_NARRATIVE_PLACEHOLDER = "（本段由撰写管线生成——见管线说明）"
 
 
 def _fmt(value: float) -> str:
@@ -154,8 +154,8 @@ def render_markdown(
         "# 污水处理厂设计说明书",
         "",
         "> 本说明书由 WaterPrint 设计说明书管线生成：计算章（第 2／4／6 章）"
-        "数值全部由程序自计算迹锚定回填，AI 永不算数；叙述章（第 3／5 章）"
-        "由 AI 承接程序已注入的结论撰写，正文禁新增数字（后检守卫）。",
+        "数值全部由程序自计算迹锚定回填，不经撰写环节；叙述章（第 3／5 章）"
+        "由撰写管线承接程序已注入的结论撰写，正文禁新增数字（后检守卫）。",
         "",
     ]
     for chapter_no, chapter in enumerate(ast, start=1):

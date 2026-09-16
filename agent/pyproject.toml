@@ -1,7 +1,7 @@
 [project]
 name = "waterprint-agent"
 version = "0.1.0"
-description = "WaterPrint agent 面：MCP server（ZCode 等 MCP 客户端宿主驱动内核）+设计说明书管线——AI 只编排不算数（ADR-019）"
+description = "WaterPrint agent 面：MCP server（ZCode 等 MCP 客户端宿主驱动内核）+设计说明书管线——只编排不算数（ADR-019）"
 requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=3.0,<3.1",
