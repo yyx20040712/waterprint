@@ -214,7 +214,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
 | `scripts/check_out_dims_consistency.py` | out_dims.dim 三写面对账门禁：manifest 声明必须=①公式表 output_dim/②projection dim_of 镜像（AST 静态实读零依赖；真源单归——工况面 UX 反馈批件 4，门禁 12→13） |
 | `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
-| `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配（清洗批 2026-09-16，门禁 14→15） |
+| `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）+ 仓库级 md 面不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配；md 面排除治理目录（.workflow/.zcode/.mimosa）+白名单 AGENTS.md（终裁 N3 保留件）（清洗批 2026-09-16 门禁 14→15；T4 扩 .md 面同批） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；不在 AGENTS §7 禁项（禁项=跑 lock_tests.py/改 manifest），任何会话可作漂移自查；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
