@@ -46,3 +46,5 @@ webapp/src/shared/api/generated/
 
 # Blender 模板工序再生成产物（tools/blender/README.md——脚本+资产入库，build/ 不入库）
 tools/blender/build/
+tools/blender/reviews/
+docs/task-handover-prompt.md
