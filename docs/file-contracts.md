@@ -216,7 +216,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
 | `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配（清洗批 2026-09-16，门禁 14→15） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
-| `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；本件可跑——AGENTS §7 禁项不含；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
+| `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；不在 AGENTS §7 禁项（禁项=跑 lock_tests.py/改 manifest），任何会话可作漂移自查；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
 ## 5. webapp（M0.5 起机器检查：scripts/check_webapp.py）
