@@ -85,7 +85,7 @@ def test_pipe_rack_wired_two_colors() -> None:
     assert pipe.primitive.kind == "box"
     assert set(pipe.primitive.dims) == {"length", "width", "depth"}
     assert pipe.primitive.dims["width"] == 0.8
-    # 架顶=最高构筑物顶+1.2 净空（glm 一轮 0.8→1.2——圆池顶视觉贴管收口）
+    # 架顶=最高构筑物顶+1.2 净空（净空由 0.8 调至 1.2——圆池顶视觉贴管）
     assert isclose(pipe.position[2], 5.3 + 1.2)
     # 中心连线几何：fallback 排布 y=0 → rz=0（atan2 同款）
     assert isclose(pipe.rotation[2], 0.0)
