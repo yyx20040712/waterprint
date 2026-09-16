@@ -10,7 +10,7 @@
 | `lib/designParams.test.ts` | FE5 实装+UX2 扩 | 纯函数 node 测试（golden 内联节选+负例族+UX2 假设编辑 9 用例）；trimFloatNoise 用例=独立件 trimFloatNoise.test.ts（本件行数预算拆分——C2-visual F8） |
 | `api/useUnitCatalog.ts` | FE5 实装 | 单元目录/假设清单查询薄封装（静态键） |
 | `api/useProjectDesign.ts` | FE5 实装 | 项目 design 参数面查询（select 窄化；read 键 invalidate 面） |
-| `components/ParamForm.tsx` | FE5 实装+C2-params 重制 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit[C2VD V6 迁移 Space.Compact+自样式后缀 span——addonAfter 弃用根除]+grid 档位 chips 点击回填+重置钮；FD 可行域入口零动——glm D④「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填） |
+| `components/ParamForm.tsx` | FE5 实装+C2-params 重制 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit[C2VD V6 迁移 Space.Compact+自样式后缀 span——addonAfter 弃用根除]+grid 档位 chips 点击回填+重置钮；FD 可行域入口零动——「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填） |
 | `components/AssumptionsPanel.tsx` | FE5 实装+UX2 编辑化+C2-ALIGN A5r 页体化 | 经验取值页体（原设计假设独立 section 升位进 ParamTabs——2026-09-12 用户澄清）：行=左 ▸/▾ 展开钮+中文物理意义标签（assumptionLabel——key 悬浮追溯）+控件列 Space.Compact[122px+dimUnit 后缀]=ParamForm 同貌；展开=「默认 X · 出处」小字+覆盖行恢复默认链接；「提交修改」一次 PUT+自动重算（UX2 D1-D4 链路零变） |
 | `components/ParamTabs.tsx` | C2-ALIGN A5r 新件 | 参数面板双分页容器：单元标题（ParamForm Q2 头部升位）+Segmented[约束参数 N\|经验取值 22]+双页体 display 切换恒挂载（草稿跨页保留；嵌套 antd Tabs 属禁用面 GC-08） |
 | `lib/assumptionLabels.ts` | C2-ALIGN A5r 新件 | 22 键→中文物理意义字典（registry note 语义提炼；fail-open 回退 key；dimLabels 同款显示层纪律——core label_zh 化挂账；assumptionScope 11+11 分类案随用户澄清取缔[裁量史=brief §六]） |

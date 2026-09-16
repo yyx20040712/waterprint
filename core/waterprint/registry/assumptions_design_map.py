@@ -36,7 +36,7 @@ from collections.abc import Callable
 from typing import Final
 
 _SOURCE: Final[str] = (
-    "FD 终裁 PD4（总控 GLM-5.3 会话 n+28，2026-09-09）——2500=50×50；"
+    "FD 终裁 PD4（2026-09-09）——2500=50×50；"
     "待专家追认（.workflow/pending-domain-expert.md §31.4）"
 )
 _NOTE: Final[str] = (

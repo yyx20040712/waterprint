@@ -32,7 +32,7 @@
 #      文字每格一个（锚=格左下+(0.15, 0.25×row_h) 内缩）。实体段序：
 #      表题→横线族→竖线族→行文字族（行序×列序）；默认列宽下实体数
 #      =1+(R+1)+5+4R。默认几何（表宽 10 m/行高 0.8 m/gap 1.0 m）=设计
-#      取值（总图 m 域跨度数十 m，与图内注记同量级打印后可读——Kimi D2）。
+#      取值（总图 m 域跨度数十 m，与图内注记同量级打印后可读）。
 #   R3 层用法零新层零 styles 触碰：表线=LAYER_BORDER（site_plan 图框
 #      先例）/表头与表题=LAYER_TITLE（标题先例）/数据=LAYER_LABEL
 #      （注记先例）；source_key 统一 "catalog"（目录族回溯）。
@@ -93,7 +93,7 @@ DEFAULT_SCALE: Final[str] = _DEFAULT_SCALE
 
 # 表头行（R2：四列固定语义）。
 _HEADER_ROW: Final[CatalogRow] = ("序号", "图号", "图名", "比例")
-# 格内文字锚点内缩：x 向 0.15 m、y 向 0.25×row_h（Kimi D2 算式——
+# 格内文字锚点内缩：x 向 0.15 m、y 向 0.25×row_h（
 # 算术形态绕字面量门禁沿 site_plan CIRCLE_SEGMENTS 幂积先例）。
 _CELL_PAD_X: Final[float] = (1 + 2) / (2 * 10)
 _CELL_PAD_Y_FRAC: Final[float] = 1 / (2 * 2)

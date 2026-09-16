@@ -82,7 +82,7 @@
 #   R7 异常消息（GR-09，进发布即冻结）：InvalidUnitError 必含「单位串 + 期望
 #      DimKey」；InvalidQuantityError 必含「值 repr + 原因」；转换 pint 异常时
 #      raise ... from exc（GR-12）。白名单展示中空串写法渲染为 "<空串>"
-#      （GLM-01：可读且确定性；判定用原串，行为不变）。
+#      （可读且确定性；判定用原串，行为不变）。
 #   R8 parse 路径：值有限性 → 白名单（白名单外→InvalidUnitError，pint 永不
 #      接触未审字符串）→ 量纲校验 → pint 换算。本文件是魔法数字门禁真源区，
 #      豁免仅覆盖单位定义字符串，不豁免换算系数。
@@ -239,7 +239,7 @@ def _conversion_factor(unit: str, canonical: str, expect: DimKey) -> float:
 def _accepted_writing(dim: DimKey) -> str:
     """白名单写法的确定性展示串（排序冻结，供异常消息 GR-09）。
 
-    空串写法以 "<空串>" 形态可读展示（GLM-01：DIMENSIONLESS 的合法空输入
+    空串写法以 "<空串>" 形态可读展示（DIMENSIONLESS 的合法空输入
     不得渲染为空白残缺消息）；仅展示层换形，白名单判定仍用原串，行为不变。
     """
     return "/".join(w or "<空串>" for w in sorted(ACCEPTED_INPUT_UNITS[dim]))

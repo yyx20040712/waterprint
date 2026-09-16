@@ -168,7 +168,7 @@ def build() -> None:
 
     # trim：砂斗锥（池内水下——截锥；缩略图外视被池壁遮挡属物理事实，
     # 判读面归剖切增强批）+**环形走道+圆环栏杆**（圆池制——辐流
-    # _ring_slab/_torus 同构；glm pass1 实拦：rect 环板错接圆柱池）
+    # _ring_slab/_torus 同构；实拦：rect 环板错接圆柱池）
     hopper = rb.add_mesh(
         naming.build_name(FAMILY, "trim", "sand_hopper"),
         *cone_geo(POOL_R - 0.10, 0.25, WALL + HOPPER_H, WALL)[:2],

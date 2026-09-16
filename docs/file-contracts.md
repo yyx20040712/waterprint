@@ -115,7 +115,7 @@
 | `server/waterprint_server/routers/elevation.py` | 高程纵断端点（FE7：GET /api/elevation/{project_id} 一端点[condition_key 可选——缺省=排序首键回显]；response_model=服务层冻结模型再导出，51 行） | project_id+condition_key | ElevationResponse |
 | `server/waterprint_server/routers/cost.py` | 概算端点（FE8：GET /api/cost/{project_id} 一端点[condition_key 可选——缺省=design 基线档]；response_model=服务层冻结模型再导出，50 行） | project_id+condition_key | CostResponse |
 | `server/waterprint_server/routers/site.py` | 间距校核端点（L4b：GET /api/site/spacing 一端点[project_id 必填+condition_key 可选——查询参数面]；response_model=服务层冻结模型再导出；verify_token 鉴权族挂载，51 行） | project_id+condition_key | SpacingReportResponse |
-| `server/waterprint_server/routers/ai_connection.py` | AI 接入两端点（AI2 2026-09-13：GET /api/ai/connection 状态四项检查+POST /api/ai/connection/setup 一键接入——零业务薄封装[routers exports 先例]，业务全在 services.ai_connection；verify_token 鉴权族挂载[main include 面]，54 行） | 无请求体无路径参（写目标=服务端推导固定工作区路径） | AiConnectionStatus/AiConnectionSetupResult |
+| `server/waterprint_server/routers/ai_connection.py` | AI 接入两端点（2026-09-13 批：GET /api/ai/connection 状态四项检查+POST /api/ai/connection/setup 一键接入——零业务薄封装[routers exports 先例]，业务全在 services.ai_connection；verify_token 鉴权族挂载[main include 面]，54 行） | 无请求体无路径参（写目标=服务端推导固定工作区路径） | AiConnectionStatus/AiConnectionSetupResult |
 | `server/waterprint_server/services/projects.py` | 项目用例（SERVER 实装：design_digest=content_hash B4 双胞胎[UF-47]/result_is_stale 三读端点共用[AUDIT2 FIX1 C-1]/深度闸/锁 409/import_legacy M4 未就绪） | 项目 id/数据 | SaveOutcome/ProjectSummary/ValidationReport |
 | `server/waterprint_server/services/project_lifecycle.py` | 项目生命周期用例（P2 启动批 2026-09-12：copy_project 副本名占用面递增+rename_project view.name 轻通道[save_project 复用面——锁/深度闸/design_changed=False 同源]+delete_project 三守卫[404/新鲜锁 409/在途任务 ProjectBusyError 409]后 unlink；共享单源经 projects 提升名 project_path/with_hash/normalize_name/clear_stale_lock/PROJECT_NAME_MAX） | 项目 id/新名称 | SaveOutcome/DeleteOutcome |
 | `server/waterprint_server/services/calculation.py` | 计算用例（幂等键/快照绑定/消费时 stale/apply 事务回滚+AUDIT2 FIX1 C-4 参数域守护[数值/已知键/grid 档位——AI1 起转调 waterprint.flows.params_guard 守护真源收敛，ADR-022 D2]；TaskStatus 再导出） | 项目+工况 | TaskHandle/ApplyOutcome |
@@ -130,7 +130,7 @@
 | `server/waterprint_server/services/units.py` | 单元目录+假设清单用例（META1：discover_units 32 包+D7 builtin 四 kind 投影 36 条+D1 中文名映射 36 条+DEFAULT_ASSUMPTIONS 21 条六字段取五；B2：ParamEntry 六字段投影——参数级中文真源=manifest label_zh 随六字段透传[builtin=_BUILTIN_PARAM_LABELS 声明面 14 条，扩面笔 C6——映射缺席键仍 null 诚实缺省]；lru_cache(maxsize=1) 静态缓存，341 行） | core.app+contracts | UnitCatalog/AssumptionCatalog |
 | `server/waterprint_server/services/trust.py` | 可信度报告用例（P2 次批 ADR-012：latest done calc 取数[scene 同款模式复制]+plant 反序列化+diag 件读取[缺失/损坏→diagnostics_available=False 降级呈现 R2——禁伪造空诊断]+warnings 全工况×全单元六键聚合[WarningEntry 复用+unit_id 定位]+warning_counts 按级计数+stale[result_is_stale 四端点同口径]；无结果 404 附重算指引；316 行） | 项目 id | TrustReportResponse |
 | `server/waterprint_server/services/compare.py` | 多工况对比矩阵用例（P2 第三批 ADR-018 D5：latest done calc 取数[trust 同款模式复制]+plant 反序列化+指标行投影[out_dims 声明面×工况取值——NaN 无值键不出+全空行不呈现]+警告计数行[全工况×全单元总数稀疏面]+stale[result_is_stale 同口径]+design_hash 回显[结果件 repro 真源——FE 锁定基准 pinned_hash 比对面 D3]；无结果 404 附重算指引） | 项目 id | CompareReportResponse |
-| `server/waterprint_server/services/ai_connection.py` | AI 接入用例（AI2 2026-09-13：connection_status 四项检查[data_dir 上溯推导仓库根/父目录——禁硬编码绝对路径；两份 .zcode/config.json 任一含 waterprint 条目/PathFinder 探测 agent 包零 sys.path 污染/shutil.which 解析 uv/ready 三真聚合]+setup_connection merge 式原子写两份工作区配置[读现有 JSON 损坏缺失视为 {}、保留他 server 与无关顶层键、GR-38 同款 .tmp→os.replace]；server 条目固定 schema 三键[command=uv 绝对路径 args=run --directory agent waterprint-mcp env=WATERPRINT_AI_SANDBOX 父目录/ai-sandbox]；uv 缺失 UvNotFoundError→400；回炉批[2026-09-13·门一]：锚点校验 WorkspaceLayoutError[data_dir≠<仓库根>/data 布局即拒 400——防越权写]+agent 缺失前置拒写+跨文件半写补偿[写前快照原始字节，第二份失败恢复第一份]+.tmp 失败清理，285 行） | ServiceContext | AiConnectionStatus/AiConnectionSetupResult/UvNotFoundError |
+| `server/waterprint_server/services/ai_connection.py` | AI 接入用例（2026-09-13 批：connection_status 四项检查[data_dir 上溯推导仓库根/父目录——禁硬编码绝对路径；两份 .zcode/config.json 任一含 waterprint 条目/PathFinder 探测 agent 包零 sys.path 污染/shutil.which 解析 uv/ready 三真聚合]+setup_connection merge 式原子写两份工作区配置[读现有 JSON 损坏缺失视为 {}、保留他 server 与无关顶层键、GR-38 同款 .tmp→os.replace]；server 条目固定 schema 三键[command=uv 绝对路径 args=run --directory agent waterprint-mcp env=WATERPRINT_AI_SANDBOX 父目录/ai-sandbox]；uv 缺失 UvNotFoundError→400；回炉批[2026-09-13·门一]：锚点校验 WorkspaceLayoutError[data_dir≠<仓库根>/data 布局即拒 400——防越权写]+agent 缺失前置拒写+跨文件半写补偿[写前快照原始字节，第二份失败恢复第一份]+.tmp 失败清理，285 行） | ServiceContext | AiConnectionStatus/AiConnectionSetupResult/UvNotFoundError |
 | `server/waterprint_server/services/elevation.py` | 高程纵断用例（FE7：最近结果集取数[scene 同款模式复制]/假设合成视图/head_losses 空段+±0.00 相对标高+build_profile+evaluate_pumping 装配/crest_elev 服务端投影；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，284 行） | 项目 id+工况键 | ElevationResponse |
 | `server/waterprint_server/services/cost.py` | 概算用例（FE8：最近结果集取数[scene 同款模式复制]/load_prices→load_fee_rules→takeoff→build_estimate→check_indicators 四模块装配/design_scale 经 pint 换算服务面注入/name_zh 单价包直投；无结果 404/工况非法 422/确定性继承+AUDIT2 FIX1 C-1 stale 旗标，385 行） | 项目 id+工况键 | CostResponse |
 | `server/waterprint_server/services/site.py` | 间距校核装配用例（L4b：placements 自 design.site.structures+footprints 自最近结果 dims 投影[PROJECTION_TABLE 槽：length/width 直取、diameter→等宽]+thresholds 自 kb spacing_check expression 唯一解析面[unit_kinds 空=全对/两键=kind→unit_id 成员集]→core spacing_report；无完成计算/结果不可读/空工况=降级 uncalculated 全量 200 非 404/409；工况非法 422，316 行） | 项目 id+工况键 | SpacingReportResponse |
@@ -214,8 +214,9 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
 | `scripts/check_out_dims_consistency.py` | out_dims.dim 三写面对账门禁：manifest 声明必须=①公式表 output_dim/②projection dim_of 镜像（AST 静态实读零依赖；真源单归——工况面 UX 反馈批件 4，门禁 12→13） |
 | `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
+| `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配（清洗批 2026-09-16，门禁 14→15） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
-| `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；AI 可跑——AGENTS §7 禁项不含；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
+| `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；本件可跑——AGENTS §7 禁项不含；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
 
 ## 5. webapp（M0.5 起机器检查：scripts/check_webapp.py）
@@ -233,7 +234,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
   扫 .ts/.tsx/.py/.md）——新 CSS 文件的准入判据=GR-39 变量轴纪律+app
   清单登记，禁止绕过 token/变量轴另起散写样式面。
 
-## 6. agent 面（AI1 2026-09-13：AI 智能体接口——MCP server+说明书管线；机器检查=check_structure 规则 d+agent/pyproject import-linter+check_module_graph L6 节点）
+## 6. agent 面（2026-09-13 批：智能体接口——MCP server+说明书管线；机器检查=check_structure 规则 d+agent/pyproject import-linter+check_module_graph L6 节点）
 
 | 路径 | 唯一职责 | 输入 | 输出 |
 |------|----------|------|------|

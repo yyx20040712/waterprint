@@ -15,7 +15,7 @@
  *   - 摘要/文件名列 tabular-nums（FE6 数字等宽口径——hex 串目视对位）；
  *   - 空态=antd Table 自带空表现（项目尚无产物——面板层引导语在外）；
  *   - EXPD 操作列：hook（useExportDownload）组件内直调（行操作与行渲染
- *     同文件内聚——Kimi D5 裁量）；每行下载 Button loading=行 pending
+ *     同文件内聚）；每行下载 Button loading=行 pending
  *     （仅当前行禁用转圈不阻塞他行）；错误呈现沿 ExportButton 先例
  *     message.useMessage()+contextHolder（不用静态 message.error）——
  *     WaterprintApiError→messageApi.error(err.message)，网络错/未知面

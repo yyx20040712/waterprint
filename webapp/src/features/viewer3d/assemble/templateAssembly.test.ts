@@ -76,7 +76,7 @@ describe("registry 数据面（§9 schema v1+资产在场+预算门）", () => {
       expect(statSync(join(ASSET_DIR, `${fam}.png`)).size).toBeLessThanOrEqual(80 * 1024);
     }
   });
-  it("资产在场+预算（glb ≤150KB/PNG ≤80KB——Kimi §1.5）", () => {
+  it("资产在场+预算（glb ≤150KB/PNG ≤80KB）", () => {
     const glb = join(ASSET_DIR, "clarifier_radial.glb");
     const png = join(ASSET_DIR, "clarifier_radial.png");
     expect(existsSync(glb)).toBe(true);

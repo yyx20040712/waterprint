@@ -95,7 +95,7 @@ const themeConfig: ThemeConfig = {
       headerBg: "#16263f",
       rowHoverBg: "#1c2f52",
       // C2：固定列阴影加深（colorSplit 派生暗色 rgba(130,170,246,.08)
-      // 过淡——glm 实现评审发现；Table 面该 token 仅消费于 fix 列阴影+
+      // 过淡；Table 面该 token 仅消费于 fix 列阴影+
       // 虚拟滚动条[未用]，组件级覆写不泄漏表分割线）
       colorSplit: "rgba(130, 170, 246, 0.16)",
     },

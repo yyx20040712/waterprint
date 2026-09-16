@@ -2,8 +2,8 @@
 
 > 状态：**已签核（2026-09-12 批3 启动会·用户两轮七裁全按推荐序）——
 > 批3 主体件可动工**。裁定记录见 §11；呈裁余面零残留。
-> 真源链：brief（.workflow/packages/3d-visual-brief.md）→ Kimi 规划
-> （reports/3d-visual-plan-kimi.md）→ 双源审查（reports/3d-visual-final-ds-review{,-v2}.md）
+> 真源链：brief（.workflow/packages/3d-visual-brief.md）→ 设计规划
+> （规划档）→ 双源审查（审查档两轮）
 > → 总裁采纳清单 S1~S12（reports/3d-visual-plan-summary.md §四）→ **本件**。
 > 本件与 S1~S12 冲突时以 summary §四 为准并记档呈裁。
 > 机器锚：本件 §4 数值算例与 `computeTransforms.test.ts`/`deviation.test.ts`
@@ -62,7 +62,7 @@
 
 - **列矢量约定**：顶点 `v' = M·v`（v 列矢量）；组合 `M = M_n···M_1`
   右者先作用；**缩放先作用**——`M = T(t)·diag(σ)`（缩放在最右）。
-  行矢量口径禁用（Kimi §2.2 原 `T(anchor)·diag` 记法即顺序歧义病根，
+  行矢量口径禁用（§2.2 原 `T(anchor)·diag` 记法即顺序歧义病根，
   本件起以本节为准）；
 - **统一公式（全组类一式）**：
 
@@ -89,7 +89,7 @@
   （S1 立法——数学核显式拒）；
 - **单元级合成**：`World = T(unitPos)·R_y(rz)·M_group`（unitPos/rz=
   projectScene 摆置；同族同尺寸多池合批时实例矩阵=摆置矩阵×组矩阵，
-  归并策略归批3 主体 Kimi §2.3）；
+  归并策略归批3 主体 §2.3）；
 - **数值细节**：−0 归一 +0（负锚点×零差积；沿 projectScene 先例）；
   浮点断言容差 12 位（测试冻结惯例）。
 
@@ -147,13 +147,13 @@ u = actual / templateFeature        （等比缩放——保圆/保形）
   （**边界恰等 ok**）；首条出域即返（明细携 key/ratio/domain 供登记）；
   空声明表=无约束 ok；典型比（ln|actual/typical| 度量）归 registry
   建条目时以 templateSize 标定入绝对域，运行时零典型比计算；
-- **非正尺寸**（H≤0 类）→nonpositive_dim（Kimi「绝对域 sanity 同路径」
+- **非正尺寸**（H≤0 类）→nonpositive_dim（「绝对域 sanity 同路径」
   ——L>10×典型幅极端由比例域覆盖）；
 - **P2 初始域（已签核 §11——入 registry）**：AAO 廊道 L/W∈[6,15]
   （典型 60/12）、辐流 L/H∈[4,14]（典型 40/4=10）、CASS L/W∈[3,8]
   ——典型 ±50% 标定起点，试点后按 R2（圆柱族环形 trim 非均匀残余
   失真）收紧；圆柱族域内 R 变幅收紧至 ≤2.5×（R2 对策记档）；
-- **极端比例验证矩阵**（批3 验收工况，Kimi §6.4）：AAO L:W=10:1 域内
+- **极端比例验证矩阵**（批3 验收工况，§6.4）：AAO L:W=10:1 域内
   模板+栏杆高恒定目检 / L:W=20:1 出域回退盒体+登记 / 辐流 L/H=3 与
   15 边界与出域 / CASS 双池 n-1 检修缺格徽标。
 
@@ -165,7 +165,7 @@ u = actual / templateFeature        （等比缩放——保圆/保形）
 - **封盖材质集（S4）**：仅 **shell 组内未标 `__nc` 的水密封闭流形体**
   参与双 writer（IncrementWrap 背面/DecrementWrap 正面）；水面/单面片/
   装饰体排除（`__nc` 标记）；trim/equipment/instance 恒不入封盖材质集
-  ——被剖时材质 `side: DoubleSide`+**穿帮入视觉验收口径**（kimi P1-3
+  ——被剖时材质 `side: DoubleSide`+**穿帮入视觉验收口径**（P1-3
   合并侧裁）；前提硬约束：**shell 封盖子件必须水密封闭**（§8 CI 校验）；
 - **多实例隔离（S5 定案）**：**逐实例 cap 面片**——每池实例一枚，规格
   =该实例单元 AABB 投影至剖切面+过幅 1.1×（sectionCapQuad 先制扩
@@ -224,7 +224,7 @@ type FamilyEntry = {
 - **S12 验证条款**：schema v1 冻结前以污泥族样例条目验证 kindAliases
   分条目表达能力（6 kind 共 1 glb、各 kind 独立 dimSource/ratioDomain）
   ——批4 铺开前置；
-- 体积预算/懒加载/chunk 纪律沿 Kimi §1.5（真源不复述：glb ≤150KB/
+- 体积预算/懒加载/chunk 纪律沿 §1.5（真源不复述：glb ≤150KB/
   PNG ≤80KB/全族 ≤2MB；public/assets 静态 fetch 非代码分包）。
 
 ## 10. 命名与资产规约（R1 终裁+S4 增补）

@@ -10,7 +10,7 @@
  *        图例/MiniMap/缩放工具条浮层；加载/空态/错误薄壳）
  *
  * 规格说明（FE4 批 6b 段一 D1/D4/D5/D7；FE5 批 6b 段三；C2-canvas 批
- *   P1/P2/P4~P7 重制——task-C2-canvas-plan.md §二；glm D 项②③痛点处置）：
+ *   P1/P2/P4~P7 重制——task-C2-canvas-plan.md §二）：
  *   - 只读批交互面：视图态（缩放/平移/框选）开；编辑面全关——edges
  *     Connectable=false+不传 onConnect/onNodesChange；nodesDraggable=false
  *     （明示只读免误导光标）；elementsSelectable=true（选中高亮非编辑）；
@@ -19,7 +19,7 @@
  *     描边（C2-canvas：选中色沿 C1 鎏金意图）；只读面加回调不破只读
  *     三重闭合；
  *   - P1 画布底色（视觉稿 A 冻结）：--wp-bg-page 深蓝底+radial 光晕层
- *     +wp-dotgrid 点阵层（C1 预备工具类本批消费兑现——glm「纯黑横带」
+ *     +wp-dotgrid 点阵层（C1 预备工具类本批消费兑现——「纯黑横带」
  *     观感项根除）；ReactFlow 内建 backgroundColor 退役；
  *   - P2 满高：根容器 100%（canvasPane flex 行高度链+global.css tabs
  *     content 链满高配套）；560 固定高+1px 边框退役（视觉稿无边框）；
@@ -252,7 +252,7 @@ export function CanvasFlow({
   // P4 边着色（渲染层聚合——投影产物叠加 stroke/箭头色+域分宽，recycle
   // 虚线保持）：水线 2px/泥线 1.8px/未知域中性 1.5px（三分支按
   // business_line 判——R-G2 处置：判据不比较色值字面量[改色联动失配
-  // 风险]，GC-04 中性独立档；视觉稿冻结宽——glm 实现评审 R2 发现只
+  // 风险]，GC-04 中性独立档；视觉稿冻结宽——实现评审发现只
   // 着色未设宽，React Flow 默认 1px 细线对比度不足）
   const edges = useMemo<Edge[]>(
     () =>

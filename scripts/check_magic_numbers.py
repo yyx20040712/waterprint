@@ -52,7 +52,7 @@ WHITELIST_DECLARATION = (
     # 随落盘批实装；B8 _constants.py 同款先例）。
     "core/waterprint/graph/cache.py",
     # C2-3d V5：管廊工程常量声明面（断面 0.8m/净空 1.2m/缩进上限比例
-    # 0.25——briefs/task-C2-3d-plan.md §二 V5 出处+glm 三/四轮调档记档；
+    # 0.25——briefs/task-C2-3d-plan.md §二 V5 出处；
     # 渲染几何常量非业务假设——registry 面外声明式真源，cache.py 同款）。
     "core/waterprint/geometry/pipes.py",
 )

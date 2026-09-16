@@ -50,7 +50,7 @@ def resolve_export_file(ctx: ServiceContext, file_name: str) -> Path:
     在册；弃 validate_component 即此故，非 _name_component 亦同——其
     fallback 属生成面语义）。存在性=产物与 .meta.json 边车双闸（注册口径
     ——仅产物在盘而边车缺=不可下载）。边车内容不解析（下载面与列表扫描
-    解析面奇态漂移显式接受记档——Kimi D10②）。
+    解析面奇态漂移显式接受记档）。
     """
     if Path(file_name).name != file_name:
         raise InvalidExportRequestError(

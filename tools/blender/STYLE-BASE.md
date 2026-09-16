@@ -2,7 +2,7 @@
 
 > 状态：**v1.1（2026-09-13 用户裁定四项画质升级——引擎/分辨率/取景/
 > 水色冻结面变更批；v1.0=辐流定调基线[2026-09-13 验收通过]**）。
-> 依据：用户两轮视觉验收批注（2026-09-12）+deepseek 复审参数
+> 依据：用户两轮视觉验收批注（2026-09-12）+复审参数
 > （.workflow/b3-probe/thumb-review-ds.md）+中心传动刮泥机部件调研+
 > 三段流过审（reviews/clarifier_radial-2026-09-13.md）+**v1.1 变更
 > 裁定（2026-09-13）：①渲染引擎全量切 Cycles[5070Ti OptiX 实测 512²
@@ -123,7 +123,7 @@
 
 ## 五、审查闭环（五步门④——呈裁前必附）
 
-- glm-look 三段流（glm 判读→ds 异见→glm 终裁）报告落
+- 三段流评审（判读→异见→终裁）报告落
   `tools/blender/reviews/<family>-<YYYY-MM-DD>.md`；判据模板=
   `reviews/criteria-template.md`；registry 声明 designReview 日期
   （check_templates.mjs 机器门 designReview≥built）。

@@ -41,7 +41,7 @@ describe("deviation 比例域判定（spec §6）", () => {
     });
   });
 
-  it("出域高于上界（L/W=20——Kimi §6.4 极端矩阵「出域回退」工况）", () => {
+  it("出域高于上界（L/W=20——极端矩阵「出域回退」工况）", () => {
     const result = deviation({ L: 200, W: 10, H: 5 }, L_OVER_W);
     expect(result).toEqual({
       ok: false,

@@ -1,7 +1,7 @@
 /**
  * 产物下载 hook 可测核测试：fetchExportFile（手写 fetch GET——node 环境
  * 零 DOM 红线，断言面=返回值与 fetch 调用形态；saveBlob DOM 薄壳不测
- * 〔总控修正②，Kimi D5① anchor 断言不可行——vitest 全套 node 环境〕）。
+ * 〔anchor 断言不可行——vitest 全套 node 环境〕）。
  *
  * 输入:  useExportDownload 导出面 fetchExportFile（fetch stub）
  * 输出:  六面断言（EXPD 简报 DoD 6：成功/非 2xx/Bearer 注入/空态不注入/

@@ -205,7 +205,7 @@ export function TemplateUnit(props: TemplateUnitProps) {
     return <FallbackBoxes node={dimNode} target={target} clippingPlanes={clippingPlanes} />;
   }
   const capPlane = clippingPlanes?.[0] ?? null;
-  // 分池帽盖（deepseek 讨论稿 A4+ε 主控裁定）：cell 域钳本池足迹+ε
+  // 分池帽盖（A4+ε 方案）：cell 域钳本池足迹+ε
   // （diag×1.1 过幅在分池槽距下被保覆盖下钳顶掉——见 poolCapSize 注释）；
   // unit/无池组=undefined 走 capQuadFor 现行推导（零回归）。
   const poolCap = poolPlan?.templateScope === "cell" ? poolCapSize(poolPlan.cellL, poolPlan.cellW) : undefined;

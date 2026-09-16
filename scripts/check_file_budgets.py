@@ -23,7 +23,7 @@ COMPUTE_LIMIT = 400
 SCAN_SUFFIXES = {".py", ".ts", ".tsx", ".md"}
 CONTRACTS_DOC = REPO / "docs" / "file-contracts.md"
 # 行数注记形态：句中「N 行」——「N 行预算」系预算引用非注记，前置排除
-# （B17 机器断言——deepseek N14-A2 G1-05：手工行数注记脱钩实测 9 处）
+# （B17 机器断言——G1-05：手工行数注记脱钩实测 9 处）
 _ANNOTATION_RE = re.compile(r"(\d+)\s*行(?!预算)")
 EXCLUDED_DIRS = {
     ".git", ".venv", "venv", "node_modules", "__pycache__",

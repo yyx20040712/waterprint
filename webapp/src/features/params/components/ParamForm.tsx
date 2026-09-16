@@ -4,7 +4,7 @@
  * 输入:  projectId+unitId（canvasPane 选中态——D2 props 通道）+useUnitCatalog
  *        声明面+useProjectDesign 覆盖值（组件薄壳唯一数据源 §17.2）
  * 输出:  参数编辑表单（C2-params 工程表单化重制 Q1~Q7——task-C2-params-
- *        plan.md §二+呈裁实录 §四b；glm D④「开发者表单」痛点收口）
+ *        plan.md §二+呈裁实录 §四b；「开发者表单」痛点收口）
  *
  * 规格说明（FE5 D1/D5/D7+FD PD7/PD8 沿袭；C2-params Q1~Q7）：
  *   - Q1 骨架=flex 列三层：head 固定/body 滚动（GR-40 收敛）/foot 固定

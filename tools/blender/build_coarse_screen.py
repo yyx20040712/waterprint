@@ -41,7 +41,7 @@ IX, IY = HX - WALL, HY - WALL
 SCREEN_X = -0.15                # 栅条平面中心线（渠进口段内）
 SCREEN_TILT = math.radians(75.0)
 BAR_R = 0.028                   # 栅条杆半径（s=10mm 档视觉放大表达）
-BAR_N = 9                       # 栅条根数（n_gap 档——glm pass1 加密）
+BAR_N = 9                       # 栅条根数（n_gap 档）
 BAR_PITCH = 2 * IY / (BAR_N - 1) if BAR_N > 1 else 0.0
 WATER_LEVEL = 0.6               # PNG 专用水面（栅前水深 h=0.6 档）
 

@@ -8,7 +8,7 @@
  * 输出:  象形字形串+域色/流色串（CSS 消费面——SVG stroke/fill 与
  *        inline style 同串直用）
  *
- * 规格说明（C2-canvas 批，glm D 项①②痛点处置）：
+ * 规格说明（C2-canvas 批）：
  *   - 字形=Unicode 几何稳定集（视觉稿态三全谱渲染实证——Windows/
  *     Chromium 零缺字；避 emoji 化字符如 ☀）；映射=工艺功能聚类
  *     （32 unit_id 精确键——unitGlyph.test.ts 全库枚举防漏键）；

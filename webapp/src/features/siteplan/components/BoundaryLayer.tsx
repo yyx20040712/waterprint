@@ -20,7 +20,7 @@
  *     snapVertexPoint→onMoveVertex）；双击顶点=删点（拒删 message 归父层，
  *     selection 不变）；双击线段=nearestSegmentIndex+segmentProjection 投
  *     影落点+吸附→onInsertVertex；歧义序=顶点优先（把手 stopPropagation
- *     天然截流——Kimi 不确定项⑥裁定）。
+ *     天然截流）。
  */
 import { useRef } from "react";
 

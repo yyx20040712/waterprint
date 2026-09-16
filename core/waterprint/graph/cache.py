@@ -69,7 +69,7 @@
 #   reports/task-B16-final.md §三】
 #
 # 【参照】重写计划 §17.2/§17.3；briefs/task-B12-brief.md（裁定1~4）；
-#   reports/task-B12-DESIGN-kimi-design.md + task-B12-deepseek-review.md
+#   reports/task-B12 评审档（过程档案，文件名略）
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

@@ -24,7 +24,7 @@
 | D1 | **对象面 v1=三产物**：计算书 xlsx（`render_calcbook`）、DXF 图纸（`write_dxf`）、审计报告 HTML（`render_audit_html`）。scene JSON/IFC 不入 v1：IFC C3 随附物系沿册挂账（不吸收防蔓延）；scene 导出通道定型后另批扩面（D1 口径=增量登记，非封闭清单） |
 | D2 | **快照形态=内容哈希**（沿承 snapshots/README.md M0 预注，不再拆分级）：三产物渲染后统一取 sha256（`__snapshots__/*.ambr` 内快照值为十六进制哈希）。二进制产物（xlsx/dxf）本无文本 diff 可读性；HTML 放弃全文文本快照（AMP 全文体积大且与 `test_audit` 结构断言面重叠）——哈希=唯一诚实且三面同构的形态。限界知情接受：哈希快照漂移时无内嵌诊断力，定位依赖既有单面测试+双跑测试+人工 diff 两产物 |
 | D3 | **落位**：测试文件 `core/tests/snapshots/test_snapshots.py`；快照文件 `core/tests/snapshots/__snapshots__/test_snapshots.ambr`。镜像规则（arch/test_structure `test_mirror_rule`）单向扫描源→测试，新测试文件不违约（实测核过规则实现）；snapshots/ 目录 M0 已建且 README 预注 |
-| D4 | **锁面协议**：测试文件新增加入锁定清单=授权锁窗内 `lock_tests.py` 显式重锁（221→222 键，[HUMAN-LOCK] 流——B15/B16 先例形态：用户呈批授权 AI 代锁+独立锁笔 commit）。快照文件 `__snapshots__/` 已在 M0 预置豁免（`check_readonly.py` IGNORED_DIR_NAMES 第 44 行实测在册）——不入锁、不被拦，更新走 `--snapshot-update`+人审 diff（README 预注「与只读测试的人类解锁流程互补」口径沿承） |
+| D4 | **锁面协议**：测试文件新增加入锁定清单=授权锁窗内 `lock_tests.py` 显式重锁（221→222 键，[HUMAN-LOCK] 流——B15/B16 先例形态：用户呈批授权代锁+独立锁笔 commit）。快照文件 `__snapshots__/` 已在 M0 预置豁免（`check_readonly.py` IGNORED_DIR_NAMES 第 44 行实测在册）——不入锁、不被拦，更新走 `--snapshot-update`+人审 diff（README 预注「与只读测试的人类解锁流程互补」口径沿承） |
 | D5 | **输入源纪律**：渲染输入=版本化数据——项目/迹树来自 `golden_data_dir` fixture（conftest session 级，golden_data 与测试同锁）；计算书模板沿用 `test_calcbook` 现行测试内最小模板同源形态（正式模板归 data/templates 录入批 UF-16 挂账，正式模板录入时随 D7 漂移流重录快照）。禁运行时随机/时钟/字典序不稳定输入（三产物自身确定性纪律 R3/R4 为前提） |
 | D6 | **与既有测试分工**：双跑字节同测试（自证确定性）全数保留；快照=跨版本回归锚（他证回归）。正交不互替、不合并——快照测试文件引用现有 fixture 而不动现有锁定测试 |
 | D7 | **漂移处置流**：快照红≠自动更新。先人审 diff 定性：①预期漂移（依赖升级批/渲染有意改动/模板录入）→ 走 `--snapshot-update` 重录+diff 审查入批注记+AGENTS.md L142 挂账条同步回改；②非预期漂移=回归缺陷→ R 轮修复，禁改快照遮蔽。宪章面：AGENTS.md「快照回归挂账（暂无快照测试）」条随首样批改写为现行口径（同笔律） |

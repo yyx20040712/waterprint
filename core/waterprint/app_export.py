@@ -58,7 +58,7 @@ _EXPORT_OPTIONS: Final[frozenset[str]] = frozenset(
 def _scale_denom_of(raw: str | None, what: str) -> int:
     """比例分母解析（PROFILE3 PD3 core 终闸）：strip 后全数字+域校验
     （1≤值≤SCALE_DENOM_MAX）——判定语义与 server 422 预校验显式同一
-    （双闸同构，防 422/501 边界漂移——deepseek 必改 1）；非法=诚实拒。"""
+    （双闸同构，防 422/501 边界漂移）；非法=诚实拒。"""
     text = (raw or "").strip()
     # R 轮（双审 D1-G1-01/A2-G1-01）：isdecimal 挡 Unicode 数字（"②"等
     # isdigit 真而 int 炸）+长度短路挡超长串（≥3.11 int 4300 位上限
@@ -337,7 +337,7 @@ def _export_profile_dxf(
     默认视图+_REL_DATUM 相对标高基准面——水力口径跨图纸一致）；
     station_lengths=None 整表等距（v1——golden 18 站中 12 站无流程向
     长度字段实测[辐流池 d=直径/污泥线站无长度语义]，逐站取数规则挂账
-    领域专家，零 Mapping 构造=零静默回退面——deepseek 必改 2 红线）；
+    领域专家，零 Mapping 构造=零静默回退面——红线）；
     meta.title=中文具名常量（DrawingMeta 承载图名，单单元图
     meta.title=unit_id 先例同构——终裁必改 3）。
     """

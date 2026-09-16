@@ -7,11 +7,11 @@
  * 输出:  React Flow 自定义节点渲染件（type="unit" 注册键）
  *
  * 规格说明（FE4 D1/D2+FE5 选中面+M6 中文名；C2-canvas 批 P3 重制——
- *   task-C2-canvas-plan.md §二+glm D 项①⑤ 痛点处置）：
+ *   task-C2-canvas-plan.md §二）：
  *   - 重制=视觉稿 A 冻结语言（c2-design/canvas-flow.html 态二）：168 宽
  *     卡片+左 3px 域色 bar（四域色——unitGlyph.domainColorOf）+24×24
  *     象形图标（Unicode 稳定集+域色三色组底/边/前景）+中文名 12.5px
- *     600 主标（#e8eef7——C1 冻结主文字色，glm ⑤对比度痛点收口）
+ *     600 主标（#e8eef7——C1 冻结主文字色）
  *     +选中**鎏金**描边+光晕（C1 变量轴注释「鎏金限品牌点缀（选中
  *     描边/收边线）」既定意图——替换 FE5 蓝描边；--wp-gold 同值字面量
  *     双源）；

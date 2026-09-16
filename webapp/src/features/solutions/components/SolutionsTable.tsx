@@ -20,7 +20,7 @@
  *     字段；空=无副行，th 底对齐保基线）；
  *   - C2 列宽策略（§2a）：tableLayout fixed+按 kind 定宽（grid 120/
  *     数值 128/可行性 96/工况 180/操作 88——antd 无 width 自适应压缩
- *     根治）；scroll.x=列宽和（容器窄出横滚——glm E① 防缝隙）；
+ *     根治）；scroll.x=列宽和（容器窄出横滚——防缝隙）；
  *     **固定首列**（index 0 fixed left——横滚行身份恒在）+**固定尾列**
  *     （操作 fixed right——应用入口恒在）；
  *   - C2 表头吸顶（§2d）：sticky（吸附最近滚动容器=body-holder 滚动域
@@ -59,7 +59,7 @@ import {
 } from "../lib/solutionsView";
 import { ApplySolutionButton } from "./ApplySolutionButton";
 
-/** C2 列宽策略（§2a——px；tableLayout fixed 逐列显式宽，glm E②；
+/** C2 列宽策略（§2a——px；tableLayout fixed 逐列显式宽；
  * R 轮 A2-N-01：首列恒 120（行身份固定列——不问 kind），非首列按
  * kind 分流（grid 非首/dim/margin=数值 128——§2a 表两行口径）。 */
 const FIRST_COL_WIDTH = 120;
@@ -263,7 +263,7 @@ export function SolutionsTable({
       />
     ),
   });
-  // C2 scroll.x=列宽和（glm E①：总宽不溢出则固定列空转/缝隙；width 面
+  // C2 scroll.x=列宽和（总宽不溢出则固定列空转/缝隙；width 面
   // ColumnsType 允许 string——本表恒 number，非 number 不计）
   const scrollX = columns.reduce(
     (sum, column) => sum + (typeof column.width === "number" ? column.width : 0),

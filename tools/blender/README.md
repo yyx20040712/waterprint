@@ -36,7 +36,7 @@
 - **视觉资产批五步门**（宪法 §0.1——2026-09-12 用户 Ruling「执行漂移
   系统性修复」，与代码批「调研先行+多模型双审」同构）：
   ①建模前参考调研（多模态读真实照片/图纸→部件清单入 STYLE-BASE.md
-  细节档位表）→②风格基准提案过 glm-look 三段流→③实现（pipeline 五步）
+  细节档位表）→②风格基准提案过三段流评审→③实现（pipeline 五步）
   →④出图后三段流复审（判据=reviews/criteria-template.md；报告落
   reviews/<family>-<日期>.md）→⑤用户视觉验收必发必答。
   机器门=check_templates.mjs 断言 designReview≥built+报告在场

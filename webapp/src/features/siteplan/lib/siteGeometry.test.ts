@@ -21,7 +21,7 @@ import {
   type ObbShape,
 } from "./siteGeometry";
 
-/** 容差断言（跨语言 IEEE754 镜像口径——相对/绝对取大，Kimi D9.1 记档）。 */
+/** 容差断言（跨语言 IEEE754 镜像口径——相对/绝对取大）。 */
 function expectClose(actual: number, expected: number): void {
   const tol = Math.max(1e-9, Math.abs(expected) * 1e-9);
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tol);

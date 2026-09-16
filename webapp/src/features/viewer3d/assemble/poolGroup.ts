@@ -96,7 +96,7 @@ export function nodeParamOverride(
 export const POOL_CAP_EPS = 0.05;
 
 /**
- * 分池剖切帽盖边长（deepseek 讨论稿 §2.3 A-1 否决+A4+ε 主控裁定）：
+ * 分池剖切帽盖边长（A-1 否决+A4+ε 方案）：
  * max(cellL, cellW)+ε——正方形帽盖 ≥max 边即覆盖本池 L×W 剖面足迹、
  * 且恒 < spacing（spacing=max(L,W)+gap，gap>ε 契约闸）不越邻槽。
  * 现行 capQuadFor 的 diag×1.1 过幅在分池槽距下被保覆盖下钳顶掉

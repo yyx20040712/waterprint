@@ -38,7 +38,7 @@ IX, IY = HX - WALL, HY - WALL
 SCREEN_X = -0.15
 SCREEN_TILT = math.radians(70.0)
 BAR_R = 0.020                   # 栅条杆半径（s=3mm 档视觉放大）
-BAR_N = 13                      # 密排档（n_gap 细栅倍粗栅——glm pass1 加密）
+BAR_N = 13                      # 密排档（n_gap 细栅倍粗栅）
 BAR_PITCH = 2 * IY / (BAR_N - 1) if BAR_N > 1 else 0.0
 WATER_LEVEL = 0.6
 

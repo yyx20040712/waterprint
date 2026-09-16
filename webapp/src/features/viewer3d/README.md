@@ -47,7 +47,7 @@
 | `assemble/templateAssembly.test.ts` | 批3 主体单测：registry 数据面[字段/资产在场/预算]+Φ40 恒等自检[actualFactor 同源]/Φ30 保圆/trim 定值锚定/出域明细/dim_source_mismatch/equipment 缺规格收编（9 例） |
 | `components/TemplateUnit.tsx` | 批3 主体：模板单元实例（装配渲染器——逐 placement[World=T(pos)·Ry(rz)·M_group]+共享材质 effect[剖切面+非封盖件 DoubleSide]+inst 组 P7 布局+加载/失败/出域三降级态[原语保持/盒体+登记]；sceneInstanceCount=场景图计数源） |
 | `components/TemplateCap.tsx` | 批3 主体：S5 逐实例剖切帽盖（shell 未标 __nc 双 writer[对象克隆承载量化重定心 TRS]+逐实例 cap 面[足迹对角×1.1 过幅/邻池距钳制 95%]；奇偶计数 NotEqual 0 多封闭体保持；C2VD 同制 renderOrder 0/1/2） |
-| `lib/thumbnailStage.ts` | C2-thumb 实装（2026-09-11；C2-visual 迭代同日；C2VD V1 帽盖派生同日）：节点 3D 缩略图纯函数层——groupUnitConstructs（node_id 首段分组[scene API 实锚 {unit_id}::{part} 形态/pipe:: 排除]）/groupUnitWaters（{unit}::water_surface 分组——C2-visual T2 waters 入图[呈裁③ 复核推翻]）/unitBounds（placements∪dims 外接 AABB——cylinder 圆外接方保守幅）/thumbCamera（V4 iso 方向 (30,30,30) 分量同值×1.25 取景派生——Scene.tsx 同值双源）/sectionPlane（T1 纵向对角半剖面——面向相机剖近半露横断面，二轮勘正[水平剖观感=浅池 glm/ds 双证]）/thumbCacheKey（场景三组成缓存键）/solidGeometry（C2VD：封闭件几何规格 box/cylinder→args、plane→null 开面片——PoolBox 与 SectionCap 单源消费）/sectionCapQuad（帽盖面片中心=AABB 中心投影至剖切面+过幅边长）/hasCapWriters（封闭件在场判定——全 plane 件不挂帽盖） |
+| `lib/thumbnailStage.ts` | C2-thumb 实装（2026-09-11；C2-visual 迭代同日；C2VD V1 帽盖派生同日）：节点 3D 缩略图纯函数层——groupUnitConstructs（node_id 首段分组[scene API 实锚 {unit_id}::{part} 形态/pipe:: 排除]）/groupUnitWaters（{unit}::water_surface 分组——C2-visual T2 waters 入图[呈裁③ 复核推翻]）/unitBounds（placements∪dims 外接 AABB——cylinder 圆外接方保守幅）/thumbCamera（V4 iso 方向 (30,30,30) 分量同值×1.25 取景派生——Scene.tsx 同值双源）/sectionPlane（T1 纵向对角半剖面——面向相机剖近半露横断面，二轮勘正[水平剖观感=浅池双证]）/thumbCacheKey（场景三组成缓存键）/solidGeometry（C2VD：封闭件几何规格 box/cylinder→args、plane→null 开面片——PoolBox 与 SectionCap 单源消费）/sectionCapQuad（帽盖面片中心=AABB 中心投影至剖切面+过幅边长）/hasCapWriters（封闭件在场判定——全 plane 件不挂帽盖） |
 | `lib/thumbnailStage.test.ts` | C2-thumb 实装；C2-visual/C2VD 扩 | 纯函数族（分组/AABB/取景/缓存键+waters 分组+sectionPlane 对角剖面派生+C2VD：solidGeometry 三分支/sectionCapQuad 中心在面+过幅+微构型钳/hasCapWriters 三态） |
 | `lib/placementSummary.ts` | C2-visual F9 实装（2026-09-11） | 摆放态汇总纯函数：countPlacedUnits（scene 单元组在场数——首段去重/pipe 排除）/designNodesCount（design.nodes 可布置窄化——内置 kind 节点排除）/siteStructuresCount（structures 键数）/placementSummary（横幅判据——structures 非空且 placed<total，兜底满场不挂） |
 | `lib/placementSummary.test.ts` | C2-visual F9 实装 | 纯函数 node 测试（计数/窄化防御/横幅判据三族） |
@@ -71,14 +71,14 @@
 
 ## C2-3d 批注记（2026-09-10——三维空旷议题）
 
-真源=briefs/task-C2-3d-plan.md（§四b glm 四轮实录+§五呈裁实录）。要点：
+真源=briefs/task-C2-3d-plan.md（§四b 四轮实录+§五呈裁实录）。要点：
 scene 版本 5→6（管廊 pipe_water/pipe_sludge 两语义族——core
 geometry/pipes.py 装配段抽离[boundary/internals 同件先例]；projectScene
 门同步+fixtures 版本串）；Scene.tsx=V1 地面/双层工程网格（10m/2m）/
 雾边融/底色深蓝 #0b1526+V2 光影档（环境 0.4/方向 1.4+阴影正交半幅随
 对角线+onUpdate updateProjectionMatrix）+V4 取景 1.25/iso 俯角 30（呈裁④）；
 Annotations 重制=按「unit::」前缀分组+中文名 catalog join+亮色描边
-+三高度带错位+字号随对角线（glm 标签防叠三轮未全收敛——碰撞避让挂账）；
++三高度带错位+字号随对角线（标签防叠三轮未全收敛——碰撞避让挂账）；
 WaterSurface receiveShadow；shared/ui semanticColors +pipe 两键（27 键
 ——画布域色轴同值 R-G3 清单成员）。无头 T 族 8/8（shoot_c2_3d_impl.py：
 版本 6/16 管两色/管端缩进 bbox 判据/架顶净空/渲染面/底色/标签通道/

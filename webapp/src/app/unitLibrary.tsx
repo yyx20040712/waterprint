@@ -238,7 +238,7 @@ export function UnitLibrary({
       const titleText = typeof node.title === "string" ? node.title : "";
       if (key.startsWith(GROUP_KEY_PREFIX)) {
         // 组行：域色短条（内置/其他组=中性灰——domainColorOf 未收录回退）
-        // +基名左置+计数右对齐（glm 实现态 r1 采纳——树数据 title 形态
+        // +基名左置+计数右对齐（树数据 title 形态
         // 「基名 (N)」拆解渲染；filterLibraryTree 重算计数面经此同步）
         const line = key.slice(GROUP_KEY_PREFIX.length);
         const countMatch = titleText.match(/ \((\d+)\)$/);
@@ -322,7 +322,7 @@ export function UnitLibrary({
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {contextHolder}
-      {/* U3 列布局收敛（glm 实现态 r1 采纳）：树区自滚（flex 1+minHeight
+      {/* U3 列布局收敛：树区自滚（flex 1+minHeight
           0+overflow auto——36 行目录不把计数条顶出 Sider 视口）+计数条
           钉底（flex none——App Sider overflow auto 兜底面退役零滚动） */}
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
