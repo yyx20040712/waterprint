@@ -48,7 +48,12 @@ from waterprint_server.services import ServiceContext
 def latest_calc_result(
     ctx: ServiceContext, project_id: str, *, not_found: type[Exception]
 ) -> tuple[str, Mapping[str, Any]]:
-    """最近完成计算结果集（B3-a 六处复制收敛单源——ENG4 D2 二元组口径）。"""
+    """最近完成计算结果集（B3-a 六处复制收敛单源——ENG4 D2 二元组口径）。
+
+    直连消费面=scene/elevation/cost/exports/compare/trust 六处（exports_io
+    为原 def 宿主，本批迁出后不计直连面）。not_found 须为单消息构造
+    约定的异常类——raise not_found(msg) 调用形态，签名不符即 TypeError
+    （fail-loud 非静默）。"""
     task_id: str = ""
     latest: Mapping[str, Any] | None = None
     for candidate in ctx.manager.task_ids_for_project(project_id):
