@@ -73,7 +73,7 @@ def count_openapi(root: Path) -> tuple[int, int]:
 def count_adrs(root: Path) -> int:
     return sum(
         1 for p in (root / "docs" / "adr").iterdir()
-        if re.fullmatch(r"ADR-\d{3}-.+\.md", p.name) and "template" not in p.name.lower()
+        if re.fullmatch(r"ADR-\d{3,}-.+\.md", p.name) and "template" not in p.name.lower()
     )
 
 
