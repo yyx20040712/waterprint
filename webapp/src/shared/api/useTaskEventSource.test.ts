@@ -9,8 +9,8 @@
  *        useTaskFeed.test 同款惯例）
  * 输出:  命令面五断言（三命名事件 data 直递 interpret/畸形丢弃归消费方
  *        /terminal 即 close+onTerminal/onerror 不自动 close/close 幂等）
- *        +hook 两断言（taskId null 零建连/解读协议 drop 不计健康——
- *        drop 后 onerror 计数含此前 drop 期）
+ *        +hook 三断言（taskId null 零建连/drop 不计健康——退避梯计数
+ *        判别性钉住/卸载清理不复活）
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -175,24 +175,32 @@ describe("useTaskEventSource 长订阅 hook（B3-b 内核——useTaskFeed 消�
     expect(FakeEventSource.instances).toHaveLength(0);
   });
 
-  it("drop 不计链路健康（畸形不证恢复——B6 D3 长订阅口径）", () => {
+  it("drop 不计链路健康（畸形不证恢复——B6 D3 长订阅口径；退避梯判别性钉住）", () => {
     vi.useFakeTimers();
     const onConnection = vi.fn();
-    mountSource("task-k", () => ({ kind: "drop" }), onConnection);
-    const source = latestSource();
-    source.emit("progress", "not-json");
-    source.triggerError(); // drop 后计数仍 1——reconnecting（非 ok）
-    expect(onConnection).toHaveBeenCalledTimes(1);
-    expect(onConnection).toHaveBeenCalledWith("reconnecting");
-    vi.advanceTimersByTime(1000); // 退避 1s 重建
-    expect(FakeEventSource.instances).toHaveLength(2);
-    // 重建后健康事件到达→计数归零（下轮 open 降级恢复才发 ok）
-    latestSource().emit("state", "{\"type\":\"state\"}");
+    // 可切换解读桩：drop 期（畸形）/event 期（健康）——闭包现读
+    let reading: TaskEventReading = { kind: "drop" };
+    mountSource("task-k", () => reading, onConnection);
+    // 基线：首错 f=1→reconnecting，退避 1s 重建（实例 1→2）
     latestSource().triggerError();
     expect(onConnection).toHaveBeenLastCalledWith("reconnecting");
-    vi.advanceTimersByTime(2000);
-    latestSource().triggerOpen(); // failures>0 → ok
-    expect(onConnection).toHaveBeenLastCalledWith("ok");
+    vi.advanceTimersByTime(1000);
+    expect(FakeEventSource.instances).toHaveLength(2);
+    // 判别帧：drop 事件到达（f 不归零）→再错 f=2→退避 2s。
+    // 若实现缺陷=drop 也归零（f=0→error 后 f=1）则退避 1s——+1s 处即现
+    // 实例 3；正确实现 +1s 处仍 2、+2s 处才 3（计数差异被实例数钉死）。
+    latestSource().emit("progress", "not-json");
+    latestSource().triggerError();
+    vi.advanceTimersByTime(1000);
+    expect(FakeEventSource.instances).toHaveLength(2); // 退避 2s 未到——drop 未归零
+    vi.advanceTimersByTime(1000);
+    expect(FakeEventSource.instances).toHaveLength(3);
+    // 对照帧：真健康事件（event 态）到达才归零——同错序回 1s 梯
+    reading = { kind: "event" };
+    latestSource().emit("state", "{\"type\":\"state\"}");
+    latestSource().triggerError();
+    vi.advanceTimersByTime(1000);
+    expect(FakeEventSource.instances).toHaveLength(4); // f=1→1s 梯
   });
 
   it("卸载清理：连接+退避定时器双收口（disposed 守卫不复活）", () => {
