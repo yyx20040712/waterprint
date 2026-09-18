@@ -15,16 +15,16 @@
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-19T03:46:01+08:00
-- heartbeat_utc: 2026-09-18T20:13:18Z
+- last_dispatch: 2026-09-19T04:21:50+08:00
+- heartbeat_utc: 2026-09-18T20:52:56Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 10
+- checked_done: 11
 - last_handover: 2026-09-19
 - claimed_by: -
 - claimed_at: -
-- next_batch: B3-a（批 3 第一步：server 七份 _latest_calc_result 复制→services/_shared/ 收敛——准入五条《裁决书》方案二；实现批双门路由，架构级面看板定）
+- next_batch: B3-b（批 3 第二步：webapp SSE EventSource 生命周期双实现+域色双源→shared 收敛——useTaskFeed/useExportBatch→shared/api/useTaskEventSource.ts+semanticColors 增 domain 键；vitest 全绿+视觉零漂移[同值搬家]验收）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -62,9 +62,8 @@
   - **执行指令**（调度员注入新任务用，原文）：「（引用技能 batch-relay）基于
     E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——开工
     首步先加载技能 ai-dev-org，再按接力火协议认领并执行本批（工作区根
-    E:\class\智水蓝图\waterprint，相对路径以此为基）。用户指令（2026-09-18
-    调度员转达）：B2-3 的 R-B2-3-1（D1 释义）用户已追认、R-B2-3-2（D2）用户
-    已知悉——收口时两项 Rulings 销案并在批次日志登记用户裁决回执」
+    E:\class\智水蓝图\waterprint，相对路径以此为基）」（转达条款规则见调度员
+    增补六：仅携带未销案的用户指令，已销案 Rulings 不再随注入重复强调）
   - 禁止创建任何新自动化（成员板禁自布第二条火——hub 全局一条火红线）。
 - 模型路由事实：门一主源周额度达上限（2026-09-18 用户告知）——门一/拟定者
   一律备源承载直至用户另行通知；逐字指令在组织账本 ruling 行。
@@ -100,7 +99,7 @@
 
 ### 第三波·批 3 同层晋升（复制收敛——《裁决书》方案二）
 
-- [ ] B3-a｜server 七份 `_latest_calc_result` 复制→services/_shared/（准入五条）
+- [x] B3-a｜server 七份 `_latest_calc_result` 复制→services/_shared/（准入五条）
 - [ ] B3-b｜webapp SSE 生命周期双实现+域色双源→shared 收敛
 - [ ] B3-c｜core B4 双胞胎+异常表两份→§1c 同层边（架构级三段通道）
 
@@ -242,6 +241,15 @@
 - 板头执行指令中的转达条款（B2-3 两项 Rulings 裁决回执——已由 B2-4 销案）与备源
   承载事实留存原文，重布防时随注入指令照原文携带。
 
+### batch B3-a — 2026-09-19 05:06（hub 火执行者会话：批 3 第一步·server 投影共享件收敛，完成）
+- 交付（commits af73497+8c49498+本板面笔）：services/_shared/ 新子包（包根薄壳 14 行+latest_calc.py 67 行）——latest_calc_result(ctx, project_id, *, not_found) 返回 (task_id, result) 二元组（ENG4 D2 信息超集口径——溯源回显面携 task_id，四单值面解包丢弃）；无结果 raise not_found 注入消费方领域 404 异常类（异常→HTTP 码经 main domain_error_codes 类名义表，类型与消息文本收敛前后逐字恒等）；星型单向唯一依赖=services/__init__ ServiceContext（包根不回指子模块无环——import-linter layers+UF-33 双契约 KEPT 机器确认）。
+- 七消费面改接：scene/elevation/cost/exports_io/compare/trust 六份 def 复制同批删除（禁并存，宪法 §2）+exports 转手 import 改直连共享件；孤儿 import 清理四处（scene Mapping+Any/cost Mapping+Any/elevation Any/exports_io ExportSourceNotFoundError）；六处头部规格 R1 注释改共享件口径（模块 docstring 经查无复制叙述——门一 N3 定谳）。契约同步：file-contracts 增 _shared 两行+exports/exports_io 迁出注记+五行消费面描述更新，gen_contract_lines 刷新注记（37 处全吻合，门一算术复算八处全中）。
+- 等价性证据（行为零变闭环）：异常类型/消息文本/解包形态/循环体四恒等（门一逐面对账+exports 异常对象同一性推演——旧路径 exports→exports_io raise exports_support.ExportSourceNotFoundError 与新路径 not_found 注入为同一 class 对象）；server pytest 313 passed 全绿；门二共享件语义三验 5/5（混合序列恰取唯一合法项+多合法取注册序最末+空/全非法 raise 注入类且消息逐字相等——探针仓外留存）。
+- 门一（ops-gate1-k2 备源承载，审包 550 行仓外快照）**B0/W0/N6 PASS**：N1/N5 批内处置（共享件 docstring 补直连面口径澄清+not_found 单消息构造约定）；N2/N3 包外 grep 定谳零动作（exports_io ctx.manager 零残留/五件 docstring 无陈旧叙述）；N4 残余由门二 5c+pytest 兜底；**N6 记录在案**：site.py 持同类「最近结果」读取但语义故意不同（无结果降级 uncalculated 全量 200 非 404）——正确排除本批收敛，后续批次勿误读为漏收敛。门二（ops-probe 独立重跑）矩阵 **8/8 全 GREEN 零 RED**（pytest/run_gates 19 绿/gen_status 零漂移/import-linter 2 kept/语义三验/星型单向/旧 def 零残留/接线六面）。
+- Rulings 回执核对（执行指令转达条款）：B2-3 两项（R-B2-3-1 追认/R-B2-3-2 知悉）经核对**已由 B2-4 执行者销案**（batch B2-4 日志+调度员增补三/五在案），本批无重复销案动作，板头执行指令原文照存。本批新增 Rulings：**无**（实装与《裁决书》方案二批 2a 字面吻合、准入五条全过、零未规划裁决项）。
+- 账本：gate1（B0/W0/N6）/probe（8/8）/impl 三行；health-scan RED=0/WARN×3（历史欠账回显，非本批引入）。锁面零动作（零新增测试文件——六消费面既有用例经 import 间接覆盖，信任根零触碰）。
+- 勾选 10→11/20；next_batch=B3-b。CI 守望：本批推送首跑绿证随守望补记（收口即推送+守望 CI 至绿——三轮裁决④）。
+
 ### 调度员增补五 — 2026-09-19T03:57+08:00（hub 换防：新调度会话接替，重布全局轮转火）
 - 旧火核查：CronList 空集——增补四删火对象 automation-9d2ab6a4-… 确认已亡，零清场
   动作；新火布防后 CronList 复核全局恰一条，无双火。
@@ -310,3 +318,15 @@
 - 会话终态：B2-6 一批完成（勾选 9→10/20），READY，claim 归位；批 2 registry
   分性质改造（三段通道+三步实装 B2-4/5/6）全数收官；next_batch=B3-a（批 3
   同层晋升第一步：server 七份 _latest_calc_result 复制收敛，准入五条）。
+
+### 调度员增补六 — 2026-09-19T04:23:24+08:00（用户裁决：已销案工单不再随注入重复强调）
+- 用户对 hub 调度会话明示：「已经追认过的工单不用每次都在最后强调」——
+  已销案/已追认的 Rulings 转达条款不再随执行指令逐批携带与核对。
+- 处置：板头执行指令原文摘除 B2-3 两项 Rulings（R-B2-3-1 追认/R-B2-3-2 知悉）
+  转达段——该两项 2026-09-18 23:31 用户裁决、B2-4 执行者已销案在案（批次日志
+  batch B2-4+调度员增补三），此后 B2-5/B2-6/B3-a 连续三批重复核对属冗余，
+  自下一班发布起不再携带。B3-a（04:21 已发布）注入文本含该段——执行者若再
+  次核对销案照常无害，不算违规。
+- 转达条款规则自此定型：执行指令只携带**未销案**的用户指令（销案或用户明示
+  解除即摘除）；历史日志中已发生的携带记录不回改。
+- 本板现存持续有效指令：门一/拟定者备源承载（直至用户另行通知）——继续携带。
