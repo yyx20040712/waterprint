@@ -17,6 +17,12 @@
 #   import 消费——同向无环。
 #   _LoopProbe（P2 次批 2026-09-12，ADR-012 D2）：回路统计包装器——
 #   solve_loop 四参锁零触碰，executor 消费（跨件私有引用同先例）。
+#   B3-c 批 2c 收敛（2026-09-19）：_endpoint/_edges_from_design 校验/
+#   消息逻辑单源化至 contracts.edge_parsing（endpoint_from/edges_from，
+#   error=InvalidExecutionError 绑定件——定案 docs/design/2026-09-19_
+#   b4-twins-convergence-design.md）；私有名与定义位不动=镜像恒等钉
+#   零扰动；executor 侧 _endpoint 消息两处补「得到」分隔词（app 版
+#   对齐，J3 呈案 A——状态码契约面经类型注入恒等）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -24,6 +30,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import Final, final
 
+from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.ports import Edge, PortRef
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trace_api import TraceNodeSpec
@@ -87,34 +94,18 @@ class _LoopProbe:
 
 
 def _endpoint(raw: object, side: str, index: int) -> PortRef:
-    """边端点转换：{"unit_id","port_id"} → PortRef（键缺失/类型错拒）。"""
-    if not isinstance(raw, Mapping):
-        raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须为对象（含 unit_id/port_id）：{type(raw).__name__}")
-    unit_id = raw.get("unit_id")
-    port_id = raw.get("port_id")
-    if not isinstance(unit_id, str) or not isinstance(port_id, str):
-        raise InvalidExecutionError(
-            f"design.edges[{index}].{side} 须含字符串 unit_id/port_id：{unit_id!r}, {port_id!r}")
-    return PortRef(unit_id=unit_id, port_id=port_id)
+    """边端点转换绑定件：内核 endpoint_from + 本域拒绝载体（B3-c 收敛）。
+
+    逻辑/消息单源=contracts.edge_parsing；本定义仅为 InvalidExecutionError
+    类型绑定（批 3a not_found 注入同型），私有名与定义位不动=镜像恒等钉
+    零扰动（tests/graph/test_executor_assembly.py）。
+    """
+    return endpoint_from(raw, side, index, error=InvalidExecutionError)
 
 
 def _edges_from_design(raw_edges: Sequence[object]) -> tuple[Edge, ...]:
-    """design.edges（D3 冻结元素形态）→ contracts.ports.Edge 元组。"""
-    edges: list[Edge] = []
-    for index, element in enumerate(raw_edges):
-        if not isinstance(element, Mapping):
-            raise InvalidExecutionError(
-                f"design.edges[{index}] 须为对象（src/dst/recycle）："
-                f"得到 {type(element).__name__}")
-        recycle = element.get("recycle", False)
-        if not isinstance(recycle, bool):
-            raise InvalidExecutionError(
-                f"design.edges[{index}].recycle 须为布尔：得到 {recycle!r}")
-        edges.append(
-            Edge(src=_endpoint(element.get("src"), "src", index),
-                 dst=_endpoint(element.get("dst"), "dst", index), recycle=recycle))
-    return tuple(edges)
+    """design.edges（D3 冻结元素形态）→ contracts.ports.Edge 元组（绑定件）。"""
+    return edges_from(raw_edges, error=InvalidExecutionError)
 
 
 def _loop_config(env: RunEnv) -> LoopConfig:

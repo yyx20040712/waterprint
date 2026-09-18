@@ -10,7 +10,7 @@
 # 【零依赖铁律】本包内文件禁止 import 任何其他内部层；quantity.py 是全库
 #   唯一允许 import pint 的文件（import-linter 强制）。
 #
-# 【聚合口径】包根聚合 13 个已实现子模块中 12 个的公开面（符号=各子模块
+# 【聚合口径】包根聚合 15 个已实现子模块中 14 个的公开面（符号=各子模块
 #   规格头【公开接口】/file-contracts 输出列；__all__ 显式枚举——
 #   manifest.py 再导出先例，mypy no-implicit-reexport 与 ruff F401 经
 #   __all__ 认可）：
@@ -32,6 +32,10 @@
 #                  serialize, deserialize, InvalidResultError
 #   expr:          ExprSyntaxError, ALLOWED_FUNCS, parse_checked, eval_checked
 #   trace_api:     TraceNodeSpec, TraceSink（协议面）
+#   edge_parsing:  endpoint_from, edges_from（B3-c 批 2c 收敛件——design.edges
+#                  解析内核，拒绝异常类注入）
+#   domain_exceptions: DOMAIN_EXCEPTIONS_CORE（B3-c 批 2c 收敛件——领域
+#                  异常族公共核心单源）
 #   不直接聚合：manifest_validation（内部文件，其公开符号
 #   InvalidUnitConfig/bind_dimension_lookup 经 manifest 再导出已可达）；
 #   run_env（规格骨架，待 T7 装配实现后随其公开面冻结再聚合）。
@@ -52,6 +56,8 @@ from waterprint.contracts.condition import (
     OperatingCondition,
     build_condition_set,
 )
+from waterprint.contracts.domain_exceptions import DOMAIN_EXCEPTIONS_CORE
+from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.expr import (
     ALLOWED_FUNCS,
     ExprSyntaxError,
@@ -122,6 +128,7 @@ from waterprint.contracts.unit_api import (
 
 __all__ = [
     "ALLOWED_FUNCS",
+    "DOMAIN_EXCEPTIONS_CORE",
     "INDICATORS",
     "ConditionMapping",
     "ConditionSet",
@@ -167,6 +174,8 @@ __all__ = [
     "bind_dimension_lookup",
     "build_condition_set",
     "deserialize",
+    "edges_from",
+    "endpoint_from",
     "eval_checked",
     "load_manifest",
     "make_flow",

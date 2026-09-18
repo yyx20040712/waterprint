@@ -32,9 +32,11 @@
 #      只做等价优化——M1/M3 留白）。
 #   R4 计算迹：**与 PlantResult.trace=()/summary={} 占位冲突记档 D10**（sink 经 UnitContext.trace
 #      携带，收集归 M1 collector；厂级后批）。summary 空映射合法（泥线汇点，GOLDEN4b notes §6）。
-#   R5 异常隔离：compute 抛领域异常（_DOMAIN_EXCEPTIONS 在册族，新增族须
-#      同步——记档）→ InvalidExecutionError（消息含 unit_id+condition_key+
-#      摘要，from exc 保链）整工况失败上抛禁吞；不做部分结果聚合。
+#   R5 异常隔离：compute 抛领域异常（_DOMAIN_EXCEPTIONS 在册族——contracts
+#      层公共族单源=contracts.domain_exceptions.DOMAIN_EXCEPTIONS_CORE，graph
+#      层专属族在本组合尾；新增族口径见元组处注记）→ InvalidExecutionError
+#      （消息含 unit_id+condition_key+摘要，from exc 保链）整工况失败上抛禁
+#      吞；不做部分结果聚合。
 #   R6 内置图节点走 unit_api 协议（graph/nodes.py 本包提供，§14.3）。
 # 【回路闭包口径】（D3 冻结）状态变量=组内 recycle 边源端口流股展开量，键
 #   f"{unit_id}.{port_id}.{field}"（GR-09 同款）；WATER 两量 q_avg_daily/kz、
@@ -88,16 +90,16 @@ from types import MappingProxyType
 from typing import Final, Protocol, final
 
 from waterprint.contracts.condition import ConditionSet, OperatingCondition
+from waterprint.contracts.domain_exceptions import DOMAIN_EXCEPTIONS_CORE
 from waterprint.contracts.expr import ExprSyntaxError
-from waterprint.contracts.flow import InvalidFlowError, WaterFlow
-from waterprint.contracts.manifest import InvalidUnitConfig
+from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.ports import Edge, FluidKind, Port, PortRef
 from waterprint.contracts.project_schema import DesignState
-from waterprint.contracts.quality import InvalidQualityError, WaterQuality
+from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.quantity import DimKey, parse
 from waterprint.contracts.result_schema import PlantResult, ReproTriple, UnitResultSnapshot
 from waterprint.contracts.run_env import RunEnv
-from waterprint.contracts.sludge import InvalidSludgeError, SludgeFlow
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.trace_api import TraceSink
 from waterprint.contracts.trust import DiagSink
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
@@ -134,11 +136,14 @@ from waterprint.graph.nodes import InvalidNodeError
 from waterprint.graph.propagate import InvalidPropagationError, propagate
 from waterprint.graph.topo import split_graph
 
-# R5 领域异常族清单（宪法 §3 禁裸/过宽捕获 → 显式元组收口）：
-# 新增领域异常族须同步本元组（漏项将令该族逃逸隔离包装——记档）。
+# R5 领域异常族清单（宪法 §3 禁裸/过宽捕获 → 显式元组收口；B3-c 批 2c
+# 收敛 2026-09-19）：contracts 层四族公共核心单源=DOMAIN_EXCEPTIONS_CORE
+# （新增 contracts 层族改彼处即自动同步行级域拒面）；graph 层语境专属族
+# 在本组合尾追加（无跨面同步义务）。latent 不对称（不含 registry 层
+# InvalidFormulaError）挂账 G1 见定案 §6。
 _DOMAIN_EXCEPTIONS: Final[tuple[type[Exception], ...]] = (
-    InvalidFlowError, InvalidQualityError, InvalidSludgeError,
-    InvalidPropagationError, InvalidUnitConfig, InvalidNodeError, ExprSyntaxError,
+    *DOMAIN_EXCEPTIONS_CORE,
+    InvalidPropagationError, InvalidNodeError, ExprSyntaxError,
 )
 _WATER_FIELDS: Final[tuple[str, ...]] = ("q_avg_daily", "kz")
 _SLUDGE_FIELDS: Final[tuple[str, ...]] = ("q_wet", "ds", "moisture")

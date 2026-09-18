@@ -19,7 +19,9 @@
 #       + 边转换 + D4 受检资格校验 + Ruling ④ grid 档命中校验
 #   AssembledGraph(不可变)：design/units/edges 三字段
 #   InvalidAssemblyError（GR-11 族，域内异常随域同迁）
-# 【私有面】_endpoint/_edges（B4 双胞胎边转换）/ _checked_units_
+# 【私有面】_endpoint/_edges（B3-c 批 2c 收敛绑定件——逻辑/消息单源=
+#   contracts.edge_parsing，本域拒绝载体 InvalidAssemblyError 注入；
+#   原 B4 双胞胎复制已删）/ _checked_units_
 #   eligibility（D4 资格）/ _FACTOR_SHARED_PREFIX + _unit_params（D4
 #   系数投影——factor.*/removal.* + factor.screen.* 共用键并入 params）/
 #   _CoefficientsUnit（投影包装单元）/ _check_grid_hits（grid 档命中）
@@ -39,6 +41,7 @@ from math import isclose
 from types import MappingProxyType
 from typing import final
 
+from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.ports import (
     Edge,
     InvalidConnection,
@@ -58,40 +61,18 @@ class InvalidAssemblyError(Exception):
 
 
 def _endpoint(raw: object, side: str, index: int) -> PortRef:
-    """边端点转换（executor._endpoint 的 B4 双胞胎，拒绝载体=装配异常）。"""
-    if not isinstance(raw, Mapping):
-        raise InvalidAssemblyError(
-            f"design.edges[{index}].{side} 须为对象（含 unit_id/port_id）："
-            f"得到 {type(raw).__name__}"
-        )
-    unit_id = raw.get("unit_id")
-    port_id = raw.get("port_id")
-    if not isinstance(unit_id, str) or not isinstance(port_id, str):
-        raise InvalidAssemblyError(
-            f"design.edges[{index}].{side} 须含字符串 unit_id/port_id："
-            f"得到 {unit_id!r}, {port_id!r}"
-        )
-    return PortRef(unit_id=unit_id, port_id=port_id)
+    """边端点转换绑定件：内核 endpoint_from + 本域拒绝载体（B3-c 收敛）。
+
+    逻辑/消息单源=contracts.edge_parsing；本定义仅为 InvalidAssemblyError
+    类型绑定（批 3a not_found 注入同型），app 侧消息文本零变
+    （validate_design_structure 汇总面零连带——定案 J3/N2）。
+    """
+    return endpoint_from(raw, side, index, error=InvalidAssemblyError)
 
 
 def _edges(raw_edges: Sequence[object]) -> tuple[Edge, ...]:
-    """design.edges → Edge（executor._edges_from_design 同款语义的装配期转换）。"""
-    edges: list[Edge] = []
-    for index, element in enumerate(raw_edges):
-        if not isinstance(element, Mapping):
-            raise InvalidAssemblyError(
-                f"design.edges[{index}] 须为对象（src/dst/recycle）：得到 {type(element).__name__}"
-            )
-        recycle = element.get("recycle", False)
-        if not isinstance(recycle, bool):
-            raise InvalidAssemblyError(
-                f"design.edges[{index}].recycle 须为布尔：得到 {recycle!r}"
-            )
-        edges.append(Edge(
-            src=_endpoint(element.get("src"), "src", index),
-            dst=_endpoint(element.get("dst"), "dst", index),
-            recycle=recycle))
-    return tuple(edges)
+    """design.edges → Edge（绑定件：edges_from + InvalidAssemblyError 载体）。"""
+    return edges_from(raw_edges, error=InvalidAssemblyError)
 
 
 @dataclass(frozen=True)

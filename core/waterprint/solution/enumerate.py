@@ -37,8 +37,9 @@
 #      2026-08-23 UF-36）：GR-02 管量与守恒路径零 NaN/Inf；本结果表
 #      NaN 标注列是终态数据非中间量，不违 GR-02。
 #      【行级域拒口径（M2-SOL 实装注记）】行 compute 抛领域异常
-#      （_ROW_DOMAIN_EXCEPTIONS 在册族，与 executor._DOMAIN_EXCEPTIONS
-#      同源同步义务——B4 双胞胎禁私有 import）= 探索到非法档（如 CASS
+#      （_ROW_DOMAIN_EXCEPTIONS 在册族——B3-c 批 2c 收敛后公共核心单源
+#      =contracts.domain_exceptions，与 executor 整图隔离面自动同步）=
+#      探索到非法档（如 CASS
 #      时段和≠周期档）：该行 dims 全 NaN + nan_flag=True 进表（枚举=
 #      设计空间探索，域拒是正常探索结果，交 constraints/diagnose 管
 #      线；单点路径 executor 仍整工况失败——两路径分歧为语义性设计）。
@@ -54,29 +55,24 @@ from __future__ import annotations
 
 from dataclasses import replace
 from math import isnan, nan
-from typing import Any, final
+from typing import Any, Final, final
 
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
 
 from waterprint.contracts.condition import ConditionSet
-from waterprint.contracts.flow import InvalidFlowError
-from waterprint.contracts.manifest import InvalidUnitConfig
-from waterprint.contracts.quality import InvalidQualityError
+from waterprint.contracts.domain_exceptions import DOMAIN_EXCEPTIONS_CORE
 from waterprint.contracts.run_env import RunEnv
-from waterprint.contracts.sludge import InvalidSludgeError
 from waterprint.contracts.trace_api import TraceNodeSpec
 from waterprint.contracts.unit_api import Unit, UnitContext
 from waterprint.registry.formulas import InvalidFormulaError
 from waterprint.solution.grid import Grid
 
 _MARGIN_PREFIX = "margin_"
-# 行级域拒族（R5 注记）：新增领域异常族须同步本元组（executor 的
-# _DOMAIN_EXCEPTIONS 同源同步义务——双胞胎禁私有 import，记档）。
-_ROW_DOMAIN_EXCEPTIONS = (
-    InvalidUnitConfig,
-    InvalidFlowError,
-    InvalidQualityError,
-    InvalidSludgeError,
+# 行级域拒族（R5 注记；B3-c 批 2c 收敛 2026-09-19）：contracts 层四族公共
+# 核心单源=contracts.domain_exceptions.DOMAIN_EXCEPTIONS_CORE（新增 contracts
+# 层族改彼处即自动同步整图隔离面）；registry 层语境专属族在本组合尾追加。
+_ROW_DOMAIN_EXCEPTIONS: Final[tuple[type[Exception], ...]] = (
+    *DOMAIN_EXCEPTIONS_CORE,
     InvalidFormulaError,
 )
 
