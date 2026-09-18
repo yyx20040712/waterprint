@@ -32,6 +32,24 @@ const REGISTRY_PATH = join(
   WEBAPP, "src/features/viewer3d/assemble/registry.json",
 );
 const ASSET_ROOT = join(WEBAPP, "public/assets/units");
+const REVIEWS_ARCHIVE_PATH = join(
+  WEBAPP, "..", "tools/blender/reviews-archive.json",
+);
+
+/** 归档审档清单（T5 移出仓库后的指针面——命中即在案，实体在仓外档案区）。 */
+const ARCHIVED_REVIEWS = new Set(
+  (() => {
+    try {
+      const manifest = JSON.parse(readFileSync(REVIEWS_ARCHIVE_PATH, "utf-8"));
+      return Array.isArray(manifest.archived) ? manifest.archived : [];
+    } catch (err) {
+      console.error(
+        `[WARN] reviews-archive.json 加载失败（按空清单处理——归档族将按缺位红）: ${err}`,
+      );
+      return [];
+    }
+  })(),
+);
 
 /** §8 容差起点：ε=外接盒最大幅×2⁻¹³（量化步长 2 倍——首族实测标定位）。 */
 const WELD_EPS_FACTOR = 2 ** -13;
@@ -333,12 +351,16 @@ async function checkFamily(unitId, entry) {
   } else if (reviewed < built) {
     fail(`${unitId}: designReview(${reviewed}) 早于 built(${built})——审查过期（五步门④）`);
   } else {
-    const report = join(WEBAPP, "..", "tools/blender/reviews",
-      `${entry.family}-${reviewed}.md`);
-    if (!existsSync(report)) {
-      fail(`${unitId}: designReview=${reviewed} 但三段流报告缺位 ${report}`);
-    } else {
+    const reportName = `${entry.family}-${reviewed}.md`;
+    const report = join(WEBAPP, "..", "tools/blender/reviews", reportName);
+    if (existsSync(report)) {
       notes.push(`${unitId}: 设计审查在案（${reviewed}）`);
+    } else if (ARCHIVED_REVIEWS.has(reportName)) {
+      notes.push(
+        `${unitId}: 设计审查在案（${reviewed}）——审档已归档（reviews-archive.json 指针，实体在仓外档案区）`,
+      );
+    } else {
+      fail(`${unitId}: designReview=${reviewed} 但三段流报告缺位 ${report}（仓内与归档清单均无）`);
     }
   }
 }

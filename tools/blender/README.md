@@ -42,6 +42,14 @@
   机器门=check_templates.mjs 断言 designReview≥built+报告在场
   （缺=CI WARN 记债；过期/谎报=FAIL）。**审查类技能弃用须用户裁定**。
 
+## 审档归档清单（reviews-archive.json）
+
+清洗批 T5（2026-09-16）将 `tools/blender/reviews/` 三段流审档移出仓库（产出面
+纪律——实体在仓外档案区 `waterprint-archive/reviews-blender/`）。五步门机器面
+的指针半边=`reviews-archive.json`（入库数据件）：check_templates.mjs 在仓内
+报告缺位时查此清单，命中=在案（绿），未命中=FAIL。新族三段流报告若随批归档
+（不再入仓），须同批在清单 `archived` 数组登记门禁名 `<family>-<date>.md`。
+
 ## 生成物与再生成
 
 build/ 目录全部为再生成产物（.gitignore 已排除）；入库面=脚本十五件

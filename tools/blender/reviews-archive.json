@@ -1,0 +1,16 @@
+{
+  "_note": "三段流审档归档清单（清洗批 T5 2026-09-16 将 tools/blender/reviews/ 35 件移出仓库后的指针面）。check_templates.mjs 五步门在仓内 reviews/ 报告缺位时查本清单：命中=绿（指针化在案），未命中=FAIL（真缺位）。审档实体=仓外档案区 waterprint-archive/reviews-blender/（含本清单同名门禁档+各段原名档 aao-glm-pass1.md 等——克隆者不可达属预期，审计链以本清单+registry designReview 声明为准）。",
+  "_moved_out": "commit 34e6cf1（清洗批 T5——过程文档移出仓库）",
+  "_gate": "webapp/scripts/check_templates.mjs（宪法 §0.1 视觉资产批五步门·机器面）",
+  "archived": [
+    "aao_corridor-2026-09-13.md",
+    "cass_batch-2026-09-13.md",
+    "clarifier_radial-2026-09-13.md",
+    "coarse_screen-2026-09-13.md",
+    "eq_basin_cell-2026-09-13.md",
+    "fine_screen-2026-09-13.md",
+    "grit_vortex-2026-09-13.md",
+    "parshall_flume-2026-09-13.md",
+    "vfilter_cell-2026-09-13.md"
+  ]
+}
