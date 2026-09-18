@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-18T22:46:58+08:00
-- heartbeat_utc: 2026-09-18T15:04:01Z
-- claim: -
+- last_dispatch: 2026-09-18T23:19:54+08:00
+- heartbeat_utc: 2026-09-18T15:22:47Z
+- claim: hubfire-B2-4-20260918T2322-c84672
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 7
 - last_handover: 2026-09-18
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub 火执行者会话（B2-4 实装步①）
+- claimed_at: 2026-09-18T23:22:47+0800
 - next_batch: B2-4（实装·第一步：assumptions 数值 YAML 化——定案 docs/design/2026-09-18_registry-split-design.md §4.6 步①：白名单三态+四探针；开工先跑键序探针改造前输出留档会话区；golden 红线命中即停批上报）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -279,3 +279,21 @@
   ——届时首跑留意 runner 镜像差异（依赖安装/路径面），暂不挂账。
 - 会话终态：B2-3 一批完成（勾选 6→7/20），READY，claim 归位；B2-4=下批（实装第一步，
   输入=定案 §4.6 步①）。
+
+### batch B2-3 补记二 — 2026-09-18 23:4X（用户令即刻复核——勘正一处+全项确认）
+- 复核范围：终裁全部事实主张重跑实证+交付件一致性+板面/git/账本终态。
+- **勘正一处（定案已修）**：注册表聚合入口原记「flows+discover_units=429」——实测该两段
+  =420 条（416 单元+4 losses），manning 的 9 条（NM-F*）无上游 import 链须显式导入，
+  三段叠加（flows+manning+discover_units）方=429 全量。初版把构造点算术（416+13）误记为
+  两段 dump 实测。**429 总数与 D1/D2 裁决均不受影响**（构造点普查与全量 dump 双向恰合）；
+  受影响的只是 B2-5 dump 探针入口组成——定案 §4.4/§4.6 步②探针 2/§4.8/附录 D 已同步
+  勘正并留勘正记。教训：实测数字与算术数字必须分径记账，不得互证。
+- 全项确认：①429=32 manifest 416+L3 两件 13（manning 9+losses 4）双向闭合，清单外
+  FormulaSpec 构造=0；②22 键七域分组复核（safety1/engine4/geo10/network6/伴生注入1，
+  design_map 键在末位）；③_REGISTRY 外部引用零成立（8 命中=7 处 formulas.py 自身+1 处
+  无关环境变量名，初判 grep 路径分隔符伪影已排除）；④ReproTriple 必填键集含 data_version
+  成立；⑤铁律引用精化（AGENTS 单元包铁律段+manifest 真源区 L142-143；原「ADR-007/
+  AGENTS §11」锚点含糊）；⑥审核 W12/N6 处置逐条对回审计报告原文=全覆盖无漏项；⑦板面
+  READY/claim 归位/7-20 勾选/HEAD 已推；⑧账本 ruling 行在册。
+- Rulings 内容不变：R-B2-3-1（D1 释义追认）/R-B2-3-2（D2 知悉）——等用户裁决，B2-4
+  按不阻塞原则待火班接续。
