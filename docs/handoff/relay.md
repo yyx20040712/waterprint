@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-4a8cb784-c14b-4941-89f3-ffe1b0cec6e5
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-19T05:01:15+08:00
-- heartbeat_utc: 2026-09-18T21:55:00Z
-- claim: -
+- last_dispatch: 2026-09-19T05:49:54+08:00
+- heartbeat_utc: 2026-09-18T21:51:35Z
+- claim: hubfire-B3c-20260919T0551-b4e2
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 12
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: 执行者会话（B3-c hub 火注入）
+- claimed_at: 2026-09-19T05:51:35+08:00
 - next_batch: B3-c（批 3 第三步：core B4 双胞胎+异常表两份→§1c 同层边——架构级三段通道〔社区调研→拟定→对抗审核→主控终裁〕；golden 三案哈希零变+import-linter 绿验收）
 
 ## protocol（角色自识别 + 最小兜底协议）
