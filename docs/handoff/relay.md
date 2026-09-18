@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-19T01:31:13+08:00
-- heartbeat_utc: 2026-09-18T18:25:00Z
-- claim: -
+- last_dispatch: 2026-09-19T03:46:01+08:00
+- heartbeat_utc: 2026-09-18T19:47:43Z
+- claim: hubfire-B2-6-20260919T0347-c31f9
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 9
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub ç«æ§è¡èä¼è¯ï¼B2-6ï¼
+- claimed_at: 2026-09-19T03:47
 - next_batch: B2-6（实装·第三步：量纲步·验证型零动作步——定案 §4.6 步③ D2-A：白名单三态=新建无/修改无/禁改全仓，验收=check_out_dims_consistency 绿+15 门禁全量+pytest core/tests 绿，确认性验收量纲真源单归 FormulaSpec.output_dim[GR-42]；搭车项=ci.yml pytest 步吞日志修法[set +e 恒 cat+退出码保真]本批实施）
 
 ## protocol（角色自识别 + 最小兜底协议）
