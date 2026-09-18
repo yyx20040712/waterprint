@@ -32,6 +32,13 @@
 确认；④碳核算前置探针批准搭车批 1——**碳核算本体须先详细调研再立项
 添加，计算逻辑留用户审查**（同数据批起草-追认制纪律）。
 
+**三轮裁决（2026-09-18 推送后）**：
+①CI 红（五步门审档缺位——清洗批移审档未同步门禁）修法=**档案清单指针**
+（入库 reviews-archive.json+门禁归档分支，方案 A）；②ADR-023 决策记录搭
+修复批补录；③批 2 立即启动——门一/拟定一律**备源承载**（主源周额度达
+上限，直至用户另行通知恢复）；④推送节奏常态化=**每批收口即推送+守望
+CI 至绿**（CI 破损潜伏两日教训）。
+
 ---
 
 ## 方案零：清理批（先行，随本批执行）
@@ -44,7 +51,7 @@
 | `webapp/src/shared/ui/{theme,SemanticColor,NumberCell}.tsx|ts` + `shared/store/{persist,devtools}.ts` | M2「结构预留」骨架零实装零引用：主题实际落 `app/providers.tsx`、语义色真源=`shared/ui/semanticColors.ts`（SC1）、数字格式化在 SolutionsTable 本地实现 | git rm；SolutionsTable 头注「SemanticColor 封装挂账」行改指 semanticColors.ts 真源（灭幽灵引用） | tracked，清理 commit |
 | `docs/plan-structure-wiring.md` | M0.5 接线计划，8-24 起停更，接线早已完成（对象消失——sunset 首例） | git rm + mkdocs.yml nav 行同步删除 | tracked，清理 commit |
 | `.gitignore` 增 `projects/`、`server/projects/` | 用户设计数据不应以 untracked 噪声出现（「不提交运行时产物」既有原则） | 追加两行 | 清理 commit |
-| `webapp/public/assets/units/user_think.png` | 未追踪、用途不明 | **待用户裁决**（见待裁问题①） | —— |
+| `webapp/public/assets/units/user_think.png` | 未追踪、用途不明 | **已裁（二轮①）：过时直接删（已执行）** | 已执行（不入库） |
 
 不做（显式）：`projects/`、`server/projects/` 内容不碰（用户数据）；
 `test-lock.manifest.json` 信任根不碰；b4-window1 其余 ~2MB 过程产物
