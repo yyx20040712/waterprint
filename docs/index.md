@@ -12,7 +12,7 @@
 4. [文件职责契约](file-contracts.md)（逐文件职责表，机器校验）
 5. [结构图谱](structure-graph.md)（模块依赖/调用链/32 单元业务身份，机器校验）
 6. [业务逻辑规格](business-logic.md)（参数链/耦合归属/守恒点/可行解流程）
-7. [ADR](adr/ADR-001-react-flow-canvas.md)（已拍板决策，001~009）
+7. [ADR](adr/ADR-001-react-flow-canvas.md)（已拍板决策——件数以 docs/status.md 为准）
 8. [测试系统](testing.md) / [Golden Cases](golden-cases.md) / [规范摘录](norms/README.md)
 
 ## 附录：五层规约模板（派发任务用，§6.7 / 教训 A1）

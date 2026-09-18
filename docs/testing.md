@@ -13,8 +13,8 @@
   1215→1406）；
 - 只读锁定：`core/tests/`、`server/tests/` 与 **units_lib 包内 tests/**
   全部文件由 `test-lock.manifest.json`（sha256）+ 文件只读属性双重锁定
-  （实测口径 270 键 = core/tests 139 + server/tests 39 + units_lib 包内
-  92——GOV1 勘正：本页原漏 units_lib 面；core/tests 139 内含 core/tests/units_lib/ 2 件跨单元测试），
+  （键数与分面计数以 `docs/status.md` 生成值为准——本页不手写计数；
+  core/tests 前缀内含跨单元测试件，GOV1 勘正在案），
   `scripts/check_readonly.py` 与 `tests/arch/test_lock.py` 本地/CI 双验；
   漂移修复的机器半边=`scripts/draft_lock_manifest.py` 草稿器（差异三类
   清单+全根清单重锁命令，只读投影；CI gates 红面自动输出——ADR-015；
