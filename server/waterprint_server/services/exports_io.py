@@ -1,7 +1,7 @@
-"""exports IO 支撑：模板解析/最近结果集取数/批量校验闸/边车写/DWG 转换挂点。
+"""exports IO 支撑：模板解析/批量校验闸/边车写/DWG 转换挂点。
 
-输入:  ServiceContext（templates_dir/manager/settings/exports_dir）+导出请求面
-输出:  模板路径/最近结果集/边车落盘/DWG 挂点（services/exports.py 消费）
+输入:  ServiceContext（templates_dir/settings/exports_dir）+导出请求面
+输出:  模板路径/边车落盘/DWG 挂点（services/exports.py 消费）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -11,8 +11,9 @@
 #   分工=IO/状态承载 vs 纯函数。）
 #
 # 【公开接口】（services/exports.py 顶部 import 消费——跨件私有引用，
-#   非 __all__ 契约面）
-#   _template_for/_latest_calc_result/_reject_conflicting_batch_pairs/
+#   非 __all__ 契约面；B3-a 2026-09-19：_latest_calc_result 迁出——
+#   六处复制收敛 services/_shared/latest_calc.py 同层共享件）
+#   _template_for/_reject_conflicting_batch_pairs/
 #   _write_meta/_post_export_dwg + 常量 _TEMPLATE_KINDS
 #
 # 【搬迁注记】行为零变更纯搬迁（B7 D1「_write_meta 留守」裁定随 TD1
@@ -36,7 +37,6 @@ from waterprint_server.jobs.dwg import dwg_convert
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.exports_support import (
     ExportMeta,
-    ExportSourceNotFoundError,
     ExportTemplateMissingError,
     InvalidExportRequestError,
     _sidecar_text,
@@ -60,23 +60,6 @@ def _template_for(ctx: ServiceContext, kind: str) -> Path:
             "data/templates 录入批；禁静默空产物）"
         )
     return template
-
-
-def _latest_calc_result(
-    ctx: ServiceContext, project_id: str
-) -> Mapping[str, Any]:
-    """最近完成计算结果集（注册序最末 done calc——消费时实时取，UF-37；
-    ENG4 D2：原二元组收敛单值——scene/elevation/cost 三服务同款签名）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    if latest is None:
-        raise ExportSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return latest
 
 
 def _reject_conflicting_batch_pairs(

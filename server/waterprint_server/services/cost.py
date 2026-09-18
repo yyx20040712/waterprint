@@ -17,10 +17,11 @@
 #   CostSourceNotFoundError（404 面）/InvalidCostRequestError（422 面）
 #
 # 【行为规格】
-#   R1 取数（最近完成结果集）：_latest_calc_result 复制 services/scene
-#      同款取数模式（遍历 task_ids_for_project 取最末 done calc 的
-#      status.result——消费时实时取，UF-37 统一口径；不 import scene
-#      私有名，FE1 简报条款）；无结果集=CostSourceNotFoundError（404，
+#   R1 取数（最近完成结果集）：latest_calc_result 共享件取数（B3-a
+#      同层晋升——原 scene 同款模式复制收敛 services/_shared/
+#      latest_calc.py 单源；遍历 task_ids_for_project 取最末 done
+#      calc 的 status.result——消费时实时取，UF-37 统一口径）；
+#      无结果集=not_found 注入 CostSourceNotFoundError（404，
 #      消息含"先 POST /api/calc/run"）；结果文件缺失/损坏（OSError/
 #      InvalidResultError）同归 404 面（FE1 M4 路径安全族——裸 500 禁）。
 #   R2 工况缺省="design"（D2——cost 规格头 R4 默认基线档，优先于
@@ -64,9 +65,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Final
+from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 from waterprint.contracts.quantity import DimKey, parse
@@ -95,6 +95,7 @@ from waterprint.cost.takeoff import (
 )
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services._shared.latest_calc import latest_calc_result
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -232,20 +233,6 @@ class CostResponse(BaseModel):
     stale: bool
 
 
-def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any]:
-    """最近完成计算结果集（scene._latest_calc_result 同款取数模式复制）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    if latest is None:
-        raise CostSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return latest
-
-
 def _fee_lines(lines: tuple[FeeLine, ...]) -> tuple[FeeLineModel, ...]:
     """费桶行投影（FeeLine 六字段直投影——R3 无推导）。"""
     return tuple(
@@ -344,7 +331,7 @@ def build_cost_for_project(
     # 全部取自结果集快照（design_scale 同源）——AUDIT2 C-1：档本体仅
     # 消费于新鲜度比对（stale 旗标），装配面零消费维持。
     project = read_project(ctx, project_id)
-    latest = _latest_calc_result(ctx, project_id)
+    _, latest = latest_calc_result(ctx, project_id, not_found=CostSourceNotFoundError)
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
     except (OSError, InvalidResultError) as exc:

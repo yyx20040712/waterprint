@@ -17,9 +17,11 @@
 #   CompareSourceNotFoundError（404 面）
 #
 # 【行为规格】
-#   R1 取数（最近完成结果集）：_latest_calc_result 复制 services/trust
-#      同款取数模式（scene R1 同口径——UF-37 统一；不 import trust 私有
-#      名）；无结果集=CompareSourceNotFoundError（404，消息含
+#   R1 取数（最近完成结果集）：latest_calc_result 共享件取数（B3-a
+#      同层晋升——原 trust 同款模式复制收敛 services/_shared/
+#      latest_calc.py 单源；UF-37 统一；携 task_id 返回——溯源回显面，
+#      result bag 不含 task_id 键）；无结果集=not_found 注入
+#      CompareSourceNotFoundError（404，消息含
 #      "先 POST /api/calc/run"）；结果文件缺失/损坏同归 404 面（裸 500 禁）。
 #   R2 指标行（D5 聚合归 server）：行=各单元 manifest.out_dims 声明面
 #      （单元级中文名真源——V2 批制式；其余 31 单元声明随批顺带挂账），
@@ -59,6 +61,7 @@ from waterprint.contracts.result_schema import (
 )
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services._shared.latest_calc import latest_calc_result
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -109,25 +112,6 @@ class CompareReportResponse(BaseModel):
     condition_keys: tuple[str, ...]
     metrics: tuple[CompareMetricModel, ...]
     warnings: tuple[CompareWarningModel, ...]
-
-
-def _latest_calc_result(
-    ctx: ServiceContext, project_id: str
-) -> tuple[str, Mapping[str, Any]]:
-    """最近完成计算结果集（services/trust 同款取数模式复制——R1）。
-
-    携 task_id 返回（溯源回显面——result bag 不含 task_id 键）。"""
-    task_id: str = ""
-    latest: Mapping[str, Any] | None = None
-    for candidate in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(candidate)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            task_id, latest = candidate, status.result
-    if latest is None:
-        raise CompareSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return task_id, latest
 
 
 def _metric_rows(
@@ -186,7 +170,9 @@ def build_compare_for_project(
 ) -> CompareReportResponse:
     """多工况对比报告正门：项目校验 → 结果集取数 → 指标/警告聚合（R1~R5）。"""
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
-    task_id, latest = _latest_calc_result(ctx, project_id)
+    task_id, latest = latest_calc_result(
+        ctx, project_id, not_found=CompareSourceNotFoundError
+    )
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
     except (OSError, InvalidResultError) as exc:

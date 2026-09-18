@@ -16,11 +16,12 @@
 #       calculation.TaskStatus 先例：routers→core 非声明边经服务层转发）
 #
 # 【行为规格】
-#   R1 取数（最近完成结果集）：_latest_calc_result 复制 services/exports
-#      同款取数模式（遍历 task_ids_for_project 取最末 done calc 的
-#      status.result——消费时实时取，UF-37 统一口径；不 import exports
-#      私有名，FE1 简报条款）；无结果集=SceneSourceNotFoundError（404
-#      面，消息含"先 POST /api/calc/run"——ExportSourceNotFoundError
+#   R1 取数（最近完成结果集）：latest_calc_result 共享件取数（B3-a
+#      同层晋升——原 exports 同款模式复制收敛 services/_shared/
+#      latest_calc.py 单源；遍历 task_ids_for_project 取最末 done
+#      calc 的 status.result——消费时实时取，UF-37 统一口径）；
+#      无结果集=not_found 注入 SceneSourceNotFoundError（404 面，
+#      消息含"先 POST /api/calc/run"——ExportSourceNotFoundError
 #      同语义）；结果文件缺失/损坏（OSError/InvalidResultError）同归
 #      SceneSourceNotFoundError 404 面（FE1 M4 路径安全族——裸 500 禁）。
 #   R2 工况缺省：condition_key=None → sorted(plant.conditions)[0]（显式
@@ -47,15 +48,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services._shared.latest_calc import latest_calc_result
 from waterprint_server.services.projects import read_project, result_is_stale
 
 # SceneGraph 再导出（routers 响应模型面——routers→core 非声明边，分层 §13.4；
@@ -90,20 +90,6 @@ class InvalidSceneRequestError(ValueError):
     """scene 请求非法（工况不在结果）——422 面（透传 build_scene KeyError 文本）。"""
 
 
-def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any]:
-    """最近完成计算结果集（exports._latest_calc_result 同款取数模式复制）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    if latest is None:
-        raise SceneSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return latest
-
-
 def build_scene_for_project(
     ctx: ServiceContext, project_id: str, condition_key: str | None = None
 ) -> SceneResponse:
@@ -112,7 +98,9 @@ def build_scene_for_project(
     AUDIT2 C-1：返回 SceneResponse（图四字段+stale——R4 显式提示）。
     """
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
-    latest = _latest_calc_result(ctx, project_id)
+    _, latest = latest_calc_result(
+        ctx, project_id, not_found=SceneSourceNotFoundError
+    )
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
     except (OSError, InvalidResultError) as exc:

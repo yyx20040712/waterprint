@@ -21,10 +21,11 @@
 #       （422 面）
 #
 # 【行为规格】
-#   R1 取数（最近完成结果集）：_latest_calc_result 复制 services/scene
-#      同款取数模式（遍历 task_ids_for_project 取最末 done calc 的
-#      status.result——消费时实时取，UF-37 统一口径；不 import scene
-#      私有名，FE1 简报条款）；无结果集=ElevationSourceNotFoundError
+#   R1 取数（最近完成结果集）：latest_calc_result 共享件取数（B3-a
+#      同层晋升——原 scene 同款模式复制收敛 services/_shared/
+#      latest_calc.py 单源；遍历 task_ids_for_project 取最末 done
+#      calc 的 status.result——消费时实时取，UF-37 统一口径）；
+#      无结果集=not_found 注入 ElevationSourceNotFoundError
 #      （404，消息含"先 POST /api/calc/run"——SceneSourceNotFoundError
 #      同语义）；结果文件缺失/损坏（OSError/InvalidResultError）同归
 #      404 面（FE1 M4 路径安全族——裸 500 禁）。
@@ -64,7 +65,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Final
+from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 from waterprint import app as core
@@ -75,6 +76,7 @@ from waterprint.elevation.profile import InvalidProfileError
 from waterprint.elevation.pumps import PumpingPlan
 
 from waterprint_server.services import ServiceContext
+from waterprint_server.services._shared.latest_calc import latest_calc_result
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -169,20 +171,6 @@ class ElevationResponse(BaseModel):
     stale: bool
 
 
-def _latest_calc_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any]:
-    """最近完成计算结果集（scene._latest_calc_result 同款取数模式复制）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    if latest is None:
-        raise ElevationSourceNotFoundError(
-            f"项目 {project_id!r} 无最近完成结果集（先 POST /api/calc/run）"
-        )
-    return latest
-
-
 def project_pump_stations(plan: PumpingPlan) -> tuple[PumpStationEntry, ...]:
     """D4 提升站位投影（PumpingPlan.stations → 响应五键——R1 单测正门）。
 
@@ -205,7 +193,9 @@ def build_elevation_for_project(
 ) -> ElevationResponse:
     """纵断正门：项目校验 → 结果集取数 → 反序列化 → 假设合成 → core 装配 → 投影。"""
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
-    latest = _latest_calc_result(ctx, project_id)
+    _, latest = latest_calc_result(
+        ctx, project_id, not_found=ElevationSourceNotFoundError
+    )
     try:
         plant = deserialize(Path(str(latest["result_file"])).read_bytes())
     except (OSError, InvalidResultError) as exc:

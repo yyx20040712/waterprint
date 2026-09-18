@@ -145,8 +145,8 @@ from waterprint.contracts.result_schema import InvalidResultError, deserialize
 from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
+from waterprint_server.services._shared.latest_calc import latest_calc_result
 from waterprint_server.services.exports_io import (  # TD1 PD4-bis：IO 支撑域伴生件
-    _latest_calc_result,
     _post_export_dwg,
     _reject_conflicting_batch_pairs,
     _template_for,
@@ -209,7 +209,9 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         {**item, "kind": str(item.get("kind") or kind)}
         for item in (chosen.get("items") or [{"kind": kind, "condition_key": condition_key}])
     ]
-    latest = _latest_calc_result(ctx, project_id)
+    _, latest = latest_calc_result(
+        ctx, project_id, not_found=ExportSourceNotFoundError
+    )
     result_digest = str(latest.get("design_hash", ""))
     project = read_project(ctx, project_id)
     current_digest = design_digest(project.design)
