@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T23:19:54+08:00
-- heartbeat_utc: 2026-09-18T17:02:42Z
+- heartbeat_utc: 2026-09-18T17:08:45Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
@@ -364,3 +364,10 @@
   探针矩阵补 server venv 重装+import 归属条目；审包路径类假设须附实测；ci.yml
   pytest 步吞日志形态挂账下批）。
 - 账本：gate1-R1 行（findings 齐）+incident 行。
+
+### batch B2-4 增补二 — 2026-09-19 01:10（CI 守望定性：绿）
+- 修复笔 1acbefd run 35372021848 **全绿**（10 job：架构门禁/服务层×2[3.13·3.14]/
+  内核×3[3.12·3.13·3.14]/镜像构建/依赖审计/前端构建/性能基准）——绿证随批呈报；
+  事故闭环（红 run 35367488476→根因→修复→复签→绿）。
+- 会话终态：B2-4 一批完成（勾选 7→8/20），READY+claim 归位；B2-5=下批（实装步②
+  formulas 机制件拆子包，输入=定案 §4.6 步②+勘误后三段聚合入口口径）。
