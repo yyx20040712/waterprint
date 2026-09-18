@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T23:19:54+08:00
-- heartbeat_utc: 2026-09-18T16:16:08Z
+- heartbeat_utc: 2026-09-18T17:02:42Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
@@ -343,3 +343,24 @@
   追认；R-B2-3-2（D2 知悉）→用户已知悉**。本批无新增 Rulings。
 - 账本：gate1（含 findings 字段——B2-1 教训兑现）/probe/impl 三行。
 - 勾选 7→8/20；next_batch=B2-5（实装步②，输入=定案 §4.6 步②）。
+
+### batch B2-4 增补一 — 2026-09-19 01:00（CI 红事故+R1 复审+装载器解析器修复）
+- 事故：收口笔 997ef7e CI run 35367488476——server 3.13/3.14 双 job pytest 退出码 4
+  （bash -e 吞 cat 日志、~6s 即死=conftest 导入炸）；core 三版本/其余 job 全绿。
+- 根因：server venv 对 waterprint-core 是**非 editable site-packages 拷贝**（uv path
+  依赖默认 wheel 形态）——装载器 `__file__` 仓内回溯在拷贝面失效（data/assumptions
+  不可达）；本地 server 313 绿系**陈旧 500 行副本假绿**（改源不落 venv）。deploy 容器
+  同构受影响（WORKDIR /app+data 拷贝 /app/data）。
+- 修复：解析器=源树回溯优先+CWD 上溯兜底+残缺包 fail-fast（目录在而 manifest 缺=
+  带路径拒绝）；异常类前移（负例实测抓出 raise 路径 NameError 潜伏缺陷）。三路径
+  负例+正例全验（残缺/未找到/正常）；CI 形态复现=server venv reinstall 后 313 绿+
+  `__file__`=site-packages/`_YAML_DATA_DIR`=仓库根归属核验。行数保持 200（注记机锁），
+  等价 sha256 恒等，core 773+门禁 15+gen_status 零漂移+health-scan RED=0 复验。
+- 门一 R1（同岗复签）：B0/W2/N3 PASS——F-2 残缺包静默跳过批内修复；F-1 CWD 无界
+  上溯+零包身份校验=受控三态不触发，file-contracts 追认句+挂账（开放部署面扩容前
+  补身份校验或上溯限深）；F-3 撤装载器内 type-is-float 断言——**主控追认**（W10
+  载体=探针 3；同义反复断言 -O 即剥），设计书 §4.3-3 该句勘误挂账下批搭车。
+- 三段式复盘档：.workflow/probes/b2-4/ci-incident-retrospective.md（机制化三条：
+  探针矩阵补 server venv 重装+import 归属条目；审包路径类假设须附实测；ci.yml
+  pytest 步吞日志形态挂账下批）。
+- 账本：gate1-R1 行（findings 齐）+incident 行。

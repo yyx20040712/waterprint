@@ -4,11 +4,9 @@
 输出:  AssumptionSet（注入 UnitContext；项目可保存覆盖值）
 """
 
-# ══════════════════════════════════════════════════════════════════
-# 规格说明（批次: b2-s1-assumptions-yaml；镜像测试 tests/registry/test_assumptions.py；
-# 守卫语义/公开签名/R1~R4=改造前 500 行版（git 史）；口径/哨兵/版本=定案 §4.3/§4.6/§4.7；
-# 消息与 docstring 预算精简；四注册表互不 import、禁写 data/**；伴生注入尾挂（防环）。
-# ══════════════════════════════════════════════════════════════════
+# 规格说明（批次: b2-s1-assumptions-yaml；镜像测试 tests/registry/test_assumptions.py）；
+# 守卫语义/签名/R1~R4=改造前 500 行版（git 史）；口径/哨兵/版本=定案 §4.3/§4.6/§4.7；数据包
+# 目录=源树回溯优先+CWD 上溯兜底（非 editable 装载面）；四注册表互不 import、禁写 data/**。
 
 from __future__ import annotations
 
@@ -23,17 +21,27 @@ import yaml
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.assumptions_design_map import design_map_entries
 
-_YAML_DATA_DIR: Final[Path] = Path(__file__).resolve().parents[2].parent / "data" / "assumptions"
+
+class InvalidAssumptionError(Exception):
+    ...
+
+
+def _data_dir() -> Path:
+    for base in (Path(__file__).resolve().parents[2].parent, Path.cwd(), *Path.cwd().parents):
+        probe = base / "data" / "assumptions"
+        if (probe / "manifest.yaml").is_file():
+            return probe
+        if probe.is_dir():
+            raise InvalidAssumptionError(f"假设数据包残缺（目录在而 manifest 缺）：{probe}")
+    raise InvalidAssumptionError("假设数据包未找到（源树回溯与 CWD 上溯均缺）")
+
+
+_YAML_DATA_DIR: Final[Path] = _data_dir()  # 幂等哨兵②（W9）
 _MANIFEST_KEYS: Final[frozenset[str]] = frozenset({"ordered_files", "schema_version"})
 _ENTRY_KEYS: Final[frozenset[str]] = frozenset(
     ["key", "default", "dim", "source", "note", "tuning_impact"]
 )
 _TUNING_KEYS: Final[frozenset[str]] = frozenset({"direction", "constraint_keys"})
-_SCHEMA_VERSION: Final[int] = 1
-
-
-class InvalidAssumptionError(Exception):
-    ...
 
 
 def _nonempty_str(value: object, what: str) -> str:
@@ -132,7 +140,6 @@ class AssumptionSet:
 
 
 def assumption(key: str, overrides: Mapping[str, float]) -> float:
-    """取值正门（R1 根治点）：覆盖值优先，否则默认值；未知键=领域异常。"""
     if not isinstance(overrides, Mapping):
         raise TypeError(f"overrides 须为 Mapping：{type(overrides).__name__}（GR-08）")
     for item in DEFAULT_ASSUMPTIONS:
@@ -151,23 +158,17 @@ def _load_yaml(path: Path, what: str) -> object:
 
 
 def _load_manifest() -> list[str]:
-    path = _YAML_DATA_DIR / "manifest.yaml"
-    if not path.is_file():
-        raise InvalidAssumptionError(f"假设包缺 manifest.yaml：{path}（装载序载体）")
-    data = _load_yaml(path, "清单文件")
+    data = _load_yaml(_YAML_DATA_DIR / "manifest.yaml", "清单文件")
     if not isinstance(data, dict):
         raise InvalidAssumptionError(f"manifest.yaml 顶层须为映射：{type(data).__name__}")
     if extra := sorted(set(data) - _MANIFEST_KEYS):
         raise InvalidAssumptionError(f"manifest.yaml 未知键：{extra}")
-    ordered = data.get("ordered_files")
-    if not isinstance(ordered, list) or not ordered or not all(
-        isinstance(name, str) and name for name in ordered
-    ):
+    files = data.get("ordered_files")
+    if not (isinstance(files, list) and files and all(isinstance(n, str) and n for n in files)):
         raise InvalidAssumptionError("ordered_files 须为非空字符串列表=装载序（GR-14）")
-    version = data.get("schema_version")
-    if isinstance(version, bool) or not isinstance(version, int) or version != _SCHEMA_VERSION:
-        raise InvalidAssumptionError(f"schema_version 须为 int={_SCHEMA_VERSION}：{version!r}")
-    return list(ordered)
+    if isinstance((v := data.get("schema_version")), bool) or not isinstance(v, int) or v != 1:
+        raise InvalidAssumptionError(f"schema_version 须为 int=1（bool/他值拒）：{v!r}")
+    return list(files)
 
 
 def _parse_entry(where: str, raw: object) -> Assumption:
@@ -196,5 +197,4 @@ def _load_items() -> tuple[Assumption, ...]:
 
 
 DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
-    _items=(*_load_items(), *design_map_entries(Assumption, TuningImpact))
-)
+    _items=(*_load_items(), *design_map_entries(Assumption, TuningImpact)))
