@@ -15,7 +15,7 @@
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-19T04:21:50+08:00
+- last_dispatch: 2026-09-19T05:01:15+08:00
 - heartbeat_utc: 2026-09-18T20:52:56Z
 - claim: -
 - no_progress_count: 0
@@ -249,6 +249,18 @@
 - Rulings 回执核对（执行指令转达条款）：B2-3 两项（R-B2-3-1 追认/R-B2-3-2 知悉）经核对**已由 B2-4 执行者销案**（batch B2-4 日志+调度员增补三/五在案），本批无重复销案动作，板头执行指令原文照存。本批新增 Rulings：**无**（实装与《裁决书》方案二批 2a 字面吻合、准入五条全过、零未规划裁决项）。
 - 账本：gate1（B0/W0/N6）/probe（8/8）/impl 三行；health-scan RED=0/WARN×3（历史欠账回显，非本批引入）。锁面零动作（零新增测试文件——六消费面既有用例经 import 间接覆盖，信任根零触碰）。
 - 勾选 10→11/20；next_batch=B3-b。CI 守望：本批推送首跑绿证随守望补记（收口即推送+守望 CI 至绿——三轮裁决④）。
+### batch B3-a 补记 — 2026-09-19 05:1X（CI 守望终态：绿——收口闭环，网络抖动重跑定性）
+- 收口笔 54db2f4 run 35393876653 首跑**红=唯一失败 job「前端构建（类型检查）」**：
+  根因=corepack 下载 pnpm-10.34.5.tgz 时 TLS 断连（registry.npmjs.org 网络抖动，
+  pnpm install 即挂、类型检查未起跑）——**CI 基础设施瞬时故障非代码面**（本批零
+  webapp 改动；前驱 run 35390996897[809435a] 同 job 绿在案）。
+- 处置=gh run rerun --failed 重跑失败 job → 同 run **conclusion=success 全绿**
+  （10 job：架构门禁/内核质量×3/服务层×2/前端构建/镜像构建/依赖审计/性能基准）。
+  「收口即推送+守望 CI 至绿」闭环；本笔为纯板面绿证登记（推送触发的后续 run
+  预期绿，由下批首跑覆盖核对——B2-6 补记三同款口径）。
+- 会话终态：B3-a 一批完成（勾选 10→11/20），READY，claim 归位；next_batch=B3-b
+  （批 3 第二步：webapp SSE 生命周期双实现+域色双源→shared 收敛）。
+
 
 ### 调度员增补五 — 2026-09-19T03:57+08:00（hub 换防：新调度会话接替，重布全局轮转火）
 - 旧火核查：CronList 空集——增补四删火对象 automation-9d2ab6a4-… 确认已亡，零清场
