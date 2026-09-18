@@ -65,6 +65,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
+import { SEMANTIC_COLORS } from "../../../shared/ui/semanticColors";
 import { useProjectQuery } from "../api/useProjectQuery";
 import {
   ProjectFlowError,
@@ -96,9 +97,11 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 /** 图例线型项（视觉稿冻结——水/泥/回流三项；色值=unitGlyph 主源
  * 联动面成员 R-G3——回流灰沿 text-2 轴）。 */
+// 线色单源=semanticColors domain_* 键（B3-b 域色收编——同值搬家零漂移；
+// recycle=文字色 CSS 变量非域色，保持 var 轴）。
 const LEGEND_LINES = [
-  { key: "water", label: "水线流向", color: "#4da3ff" },
-  { key: "sludge", label: "污泥线", color: "#9c6b45" },
+  { key: "water", label: "水线流向", color: SEMANTIC_COLORS.domain_water },
+  { key: "sludge", label: "污泥线", color: SEMANTIC_COLORS.domain_sludge },
   { key: "recycle", label: "回流", color: "var(--wp-text-2)" },
 ] as const;
 

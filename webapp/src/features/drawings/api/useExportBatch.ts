@@ -24,13 +24,14 @@
  *     一次（终态即直取——极快任务不依赖 SSE 建连），非终态再订阅 SSE
  *     （服务端终态任务连接即发快照 state 事件=订阅侧第二兜底）；零轮询
  *     （全库纯 SSE 先例）；
- *   - SSE 订阅本文件自建 EventSource（useTaskFeed 跨 feature import 被
- *     check_webapp 分层门禁禁——features 互不 import；形态同款复制：
- *     state·progress·stale 命名事件/终态即 close 阻断自动重连循环/
- *     卸载即清理）；B6 D3（2026-09-06）：连接层治理=onerror 连续失败
- *     计数达上限 close+reject+总时长超时拒绝（一次性 awaitTerminal 语义
- *     ——完整退避/慢探测归 useTaskFeed 长订阅面，形态裁量记档）；
- *     B6 D8：URL 构造迁 shared/api/sseUrl 单源（本文件原双实现收敛）；
+ *   - SSE 订阅经 shared/api/useTaskEventSource.subscribeTaskEvents 命令面
+ *     （B3-b 生命周期收敛：原自建 EventSource 双实现〔useTaskFeed 同款
+ *     复制——features 互不 import 门禁〕收敛至 shared 单源；本件保留=
+ *     业务守卫+失败计数+超时治理）；B6 D3（2026-09-06）：连接层治理=
+ *     onerror 连续失败计数达上限 close+reject+总时长超时拒绝（一次性
+ *     awaitTerminal 语义——完整退避/慢探测归 useTaskEventSource 长订阅
+ *     面，形态裁量记档）；B6 D8：URL 构造迁 shared/api/sseUrl 单源
+ *     （本文件原双实现收敛，随 B3-b 内聚至共享命令面）；
  *   - 终态 outcome：state/files/failures/error 四面（files=服务端产物
  *     清单——乙案仅计数与终态消息消费；failures 逐项 index/unit_id/
  *     condition_key/error〔截 200 字符服务端已收口〕）；
@@ -57,9 +58,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useCancelTaskApiCalcTasksTaskIdCancelPost } from "../../../shared/api/generated/calc/calc";
 import { customInstance, WaterprintApiError } from "../../../shared/api/http";
-import { getApiToken } from "../../../shared/api/token";
-import { buildTaskStreamUrl } from "../../../shared/api/sseUrl";
 import { SSE_FAILURE_LIMIT } from "../../../shared/api/sseConstants";
+import {
+  subscribeTaskEvents,
+  type TaskStreamSubscription,
+} from "../../../shared/api/useTaskEventSource";
 import { buildBatchExportBody } from "../lib/batchExport";
 import {
   deriveBatchProgress,
@@ -112,11 +115,8 @@ export {
 /** 服务端批量句柄 JSON 松面（ExportHandle asdict——task_id 唯一消费字段）。 */
 type ExportHandleFace = { task_id?: unknown };
 
-/** SSE 订阅 URL：shared/api/sseUrl 单源（B6 D8 迁出本文件——useTaskFeed
- * 双实现收敛；taskId 路径段编码+token 非空 ？token= 查询通道）。 */
-
 /** SSE 等待治理（B6 D3 形态裁量）：一次性 awaitTerminal 的悬挂防线——
- * 连续失败上限（shared/api/sseConstants 单源——B7 D5 收敛：useTaskFeed
+ * 连续失败上限（shared/api/sseConstants 单源——B7 D5 收敛：长订阅面
  * 同源消费，双处同值防线由注释挂账兑付为单源）+总时长上界超时拒绝。 */
 const SSE_AWAIT_TIMEOUT_MS = 10 * 60 * 1000; // 10 分钟（批量导出多产物长任务余量）
 
@@ -165,7 +165,9 @@ export function useExportBatch(
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelPending, setCancelPending] = useState(false);
   const [restoreNotice, setRestoreNotice] = useState<string | null>(null);
-  const sourceRef = useRef<EventSource | null>(null);
+  // B3-b：流句柄形态=共享订阅句柄（EventSource 生命周期归 shared/
+  // useTaskEventSource 单源——本面只持归属与收束）
+  const sourceRef = useRef<TaskStreamSubscription | null>(null);
   // SVRB2 R 轮（D1-G1-03）：在途等待的结清通道——cancel 404 关流后显式
   // settle 悬挂 promise（EventSource.close 不派发事件，防 10min 超时误报）。
   const pendingFailRef = useRef<((error: Error) => void) | null>(null);
@@ -189,11 +191,14 @@ export function useExportBatch(
   /** SSE 订阅至终态（服务端终态任务连接即发快照 state=竞态第二兜底）。
    *
    * B6 D3 形态裁量：awaitTerminal 是一次性等待（promise 形态）非长订阅
-   * ——浏览器 EventSource 内建自动重连保留，治理=onerror 连续失败计数
-   * （401/429/网络抖动同构——onerror 无 status 面）+达上限 close+reject
-   * +总时长超时拒绝（防无限悬挂）；事件到达=计数归零（恢复语义同构
-   * useTaskFeed，重连风暴治理彼侧承担完整退避/慢探测——语义不同不
-   * 强行同构，简报 D3「同构覆盖」按此解读落地）。 */
+   * ——浏览器 EventSource 内建自动重连保留（共享命令面 onError 不自动
+   * close 的设计依据），治理=onerror 连续失败计数（401/429/网络抖动同构
+   * ——onerror 无 status 面）+达上限 close+reject+总时长超时拒绝（防
+   * 无限悬挂）；事件到达=计数归零（恢复语义同构长订阅面，重连风暴治理
+   * 彼侧承担完整退避/慢探测——语义不同不强行同构，简报 D3「同构覆盖」
+   * 按此解读落地）。B3-b：建连/命名事件/终态 close 归 subscribeTaskEvents
+   * 共享面（解读协议注入——本面 interpret 先归零后解析口径保持：任何
+   * 事件到达即计链路健康，畸形不回滚）。 */
   const awaitTerminal = (taskId: string, total: number) =>
     new Promise<ExportBatchOutcome>((resolve, reject) => {
       let failures = 0;
@@ -203,9 +208,10 @@ export function useExportBatch(
       }, SSE_AWAIT_TIMEOUT_MS);
       /** 收束本流（不触 sourceRef——可能已被新订阅覆盖；R 轮 A2-G1-01：
        * stale 收束只关自己的流，误关新流=旧任务污染新提交的通道）。 */
-      const detach = (source: EventSource) => {
-        source.close();
-        if (sourceRef.current === source) {
+      const detach = () => {
+        const sub = subOfThisWait();
+        sub.close();
+        if (sourceRef.current === sub) {
           sourceRef.current = null;
         }
         if (subscribedTaskIdRef.current === taskId) {
@@ -215,13 +221,12 @@ export function useExportBatch(
       };
       const fail = (error: Error) => {
         clearTimeout(guard);
-        detach(sourceOfThisWait());
+        detach();
         reject(error);
       };
       const finish = async () => {
         clearTimeout(guard);
-        const source = sourceOfThisWait();
-        detach(source);
+        detach();
         // SVRB2 R 轮不变量（A2-G1-01）：终态收束仅作用于仍为当前任务的本流
         //——提交快路径/新提交已推进在途面时静默退场（resolve 使 Promise 不
         //悬挂即可，状态行/存储/activeTaskId 归当前任务，禁覆盖）。
@@ -246,51 +251,49 @@ export function useExportBatch(
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       };
-      const source = new EventSource(buildTaskStreamUrl(taskId, getApiToken()));
-      // 本等待的流句柄（fail/finish 闭包经此取——声明序在调用序后恒安全）。
-      const sourceOfThisWait = (): EventSource => source;
       sourceRef.current?.close(); // B5 D4：覆盖前收旧流（二次提交脏写+悬挂双收口）
-      sourceRef.current = source;
+      const sub = subscribeTaskEvents(taskId, {
+        interpret: (data) => {
+          failures = 0; // 事件到达=链路健康（恢复归零——awaitTerminal 口径：先归零后解析）
+          if (activeTaskIdRef.current !== taskId) {
+            fail(new Error("批量任务等待已被新提交取代（本流收束）")); // A2-G1-01 同款守卫
+            return { kind: "event" }; // 流已被 fail 收束——内核零动作
+          }
+          const parsed = parseTaskEventData(data);
+          if (parsed === null) {
+            return { kind: "event" }; // 畸形 data 静默丢弃（不崩流——健康计数已归零）
+          }
+          if (
+            parsed.type === "progress" &&
+            parsed.percent !== null &&
+            parsed.message !== null
+          ) {
+            setProgress(deriveBatchProgress(parsed.percent, total, parsed.message));
+          }
+          if (
+            parsed.type === "state" &&
+            parsed.message !== null &&
+            isTerminalTaskState(parsed.message)
+          ) {
+            void finish();
+            return { kind: "terminal", state: parsed.message };
+          }
+          return { kind: "event" };
+        },
+        onError: () => {
+          // B6 D3：连续失败计数——达上限拒绝（浏览器内建重连期间计数不清零，
+          // 事件到达才归零——见 interpret）。
+          failures += 1;
+          if (failures >= SSE_FAILURE_LIMIT) {
+            fail(new Error(`批量导出 SSE 连接连续失败 ${failures} 次（已停止等待）`));
+          }
+        },
+      });
+      // 本等待的流句柄（fail/finish 闭包经此取——声明序在调用序后恒安全）。
+      const subOfThisWait = (): TaskStreamSubscription => sub;
+      sourceRef.current = sub;
       subscribedTaskIdRef.current = taskId;
       pendingFailRef.current = fail;
-      source.onerror = () => {
-        // B6 D3：连续失败计数——达上限拒绝（浏览器内建重连期间计数不清零，
-        // 事件到达才归零——见 consume）。
-        failures += 1;
-        if (failures >= SSE_FAILURE_LIMIT) {
-          fail(new Error(`批量导出 SSE 连接连续失败 ${failures} 次（已停止等待）`));
-        }
-      };
-      const consume = (event: MessageEvent) => {
-        failures = 0; // 事件到达=链路健康（恢复归零）
-        if (activeTaskIdRef.current !== taskId) {
-          fail(new Error("批量任务等待已被新提交取代（本流收束）")); // A2-G1-01 同款守卫
-          return;
-        }
-        const parsed = parseTaskEventData(
-          typeof event.data === "string" ? event.data : "",
-        );
-        if (parsed === null) {
-          return; // 畸形 data 静默丢弃（不崩流）
-        }
-        if (
-          parsed.type === "progress" &&
-          parsed.percent !== null &&
-          parsed.message !== null
-        ) {
-          setProgress(deriveBatchProgress(parsed.percent, total, parsed.message));
-        }
-        if (
-          parsed.type === "state" &&
-          parsed.message !== null &&
-          isTerminalTaskState(parsed.message)
-        ) {
-          void finish();
-        }
-      };
-      source.addEventListener("state", consume as EventListener);
-      source.addEventListener("progress", consume as EventListener);
-      source.addEventListener("stale", consume as EventListener);
     });
 
   const submitBatch = async (input: ExportBatchInput): Promise<ExportBatchOutcome> => {

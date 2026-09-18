@@ -3,10 +3,11 @@
  *
  * 输入:  semanticColors.ts 三导出（SEMANTIC_COLORS/FALLBACK_COLOR/
  *        semanticColor）
- * 输出:  四断言面（25 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
+ * 输出:  四断言面（34 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
  *        存在性）
  *
- * 键集 25 键（SC1 迁移 24 键全数原值零漂移+SPC2 boundary_error 新键）——
+ * 键集 34 键（SC1 迁移 24 键全数原值零漂移+SPC2 boundary_error+B3-b
+ * domain_* 五键〔同值搬家零漂移——unitGlyph/LEGEND_LINES 收编〕）——
  * 本测试即键集冻结锚：任何增删键/改值必须同步本文件字面清单（键集
  * 反推法同款纪律）。
  */
@@ -19,7 +20,7 @@ import {
 } from "./semanticColors";
 
 describe("semanticColors 语义色真源表", () => {
-  it("键集冻结：恰 29 键（3D 图元 12+2D 场面 7+2D 单点 6+管廊 2[C2-3d]+剖切帽盖 1[C2VD]+检修占位 1[S11]）", () => {
+  it("键集冻结：恰 34 键（3D 图元 12+2D 场面 7+2D 单点 6+管廊 2[C2-3d]+剖切帽盖 1[C2VD]+检修占位 1[S11]+域色 5[B3-b]）", () => {
     expect(Object.keys(SEMANTIC_COLORS).sort()).toEqual(
       [
         // 3D 图元色族（12）
@@ -39,6 +40,9 @@ describe("semanticColors 语义色真源表", () => {
         "boundary_error",
         // S11 检修缺位占位（1——viewer3d 警示面）
         "maintenance",
+        // B3-b 四域色+中性 JS 面（5——unitGlyph/stream 色/图例线色收编）
+        "domain_water", "domain_sludge", "domain_mine", "domain_convey",
+        "domain_neutral",
       ].sort(),
     );
   });
@@ -56,9 +60,20 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.gate).toBe("#5b8db8");
     expect(SEMANTIC_COLORS.pipe).toBe("#5b8db8");
     expect(SEMANTIC_COLORS.decant).toBe("#5b8db8");
-    // C2-3d 管廊：水蓝/泥棕（--wp-water/--wp-sludge 轴同值）
+    // C2-3d 管廊：水蓝/泥棕（--wp-water/--wp-sludge 轴同值——domain_* 单源引用）
     expect(SEMANTIC_COLORS.pipe_water).toBe("#4da3ff");
     expect(SEMANTIC_COLORS.pipe_sludge).toBe("#9c6b45");
+    // B3-b 四域色+中性（JS 面单源——unitGlyph/domainColorOf 与 streamColorOf
+    // 及 CanvasFlow LEGEND_LINES 原字面同值搬家；global.css --wp-* 轴同步
+    // 义务=UF-53）
+    expect(SEMANTIC_COLORS.domain_water).toBe("#4da3ff");
+    expect(SEMANTIC_COLORS.domain_sludge).toBe("#9c6b45");
+    expect(SEMANTIC_COLORS.domain_mine).toBe("#35c9b0");
+    expect(SEMANTIC_COLORS.domain_convey).toBe("#9aa8b8");
+    expect(SEMANTIC_COLORS.domain_neutral).toBe("#595959");
+    // 管廊键与域色键同值单源（DOMAIN_COLORS 引用——漂移即红）
+    expect(SEMANTIC_COLORS.pipe_water).toBe(SEMANTIC_COLORS.domain_water);
+    expect(SEMANTIC_COLORS.pipe_sludge).toBe(SEMANTIC_COLORS.domain_sludge);
     // C2VD V1 剖切帽盖：pool_wall 与 ground 之间档剖面灰
     expect(SEMANTIC_COLORS.section_cap).toBe("#a8b4c2");
     expect(SEMANTIC_COLORS.road).toBe("#6b6f76");

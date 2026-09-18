@@ -13,19 +13,24 @@
  *     Chromium 零缺字；避 emoji 化字符如 ☀）；映射=工艺功能聚类
  *     （32 unit_id 精确键——unitGlyph.test.ts 全库枚举防漏键）；
  *     未收录键回退 ▢（自定义键不炸——显示层降级非错误）；
- *   - 域色四色制+选中鎏金=视觉稿 A 冻结语言；**本文件为四域色主源**
- *     （R-G3 联动清单——GC-02 处置）：同值字面量消费面=global.css 变量
- *     轴（--wp-water/sludge/mine/convey）+CanvasFlow LEGEND_LINES+域色
- *     图标三色组（domainIconStyle 单源——UnitNode/单元库行两消费面
+ *   - 域色四色制+选中鎏金=视觉稿 A 冻结语言；**四域色 JS 面主源=
+ *     shared/ui/semanticColors domain_* 键**（B3-b《裁决书》方案二 2b
+ *     收敛——原本文件字面主源+CanvasFlow LEGEND_LINES 双源同值收编；
+ *     R-G3 联动清单——GC-02 处置）：同值消费面=global.css 变量轴
+ *     （--wp-water/sludge/mine/convey——SVG 不能 var() 的 CSS/JS 双轴
+ *     根因性债=UF-53 挂账）+semanticColors pipe_water/pipe_sludge+
+ *     域色图标三色组（domainIconStyle 单源——UnitNode/单元库行两消费面
  *     import 同构渲染）+UnitNode SELECT 鎏金组——改色红线=N 处联动
- *     （本表为比对基准）；中性灰 #595959=未收录键回退（antd 无槽位灰
- *     ——PortHandle NEUTRAL_BORDER 先例）；
+ *     （比对基准=semanticColors DOMAIN_COLORS）；中性灰 domain_neutral
+ *     =未收录键回退（antd 无槽位灰——PortHandle NEUTRAL_BORDER 先例）；
  *   - 流色两色制（P4）：任一端 sludge→泥棕（污泥去向判定——剩余
  *     污泥/回流混合边归泥）；双端已知非 sludge→水蓝；任一端未知
  *     （未收录）→中性灰（不误导域归属）；recycle 虚线由投影层
  *     叠加（本函数不管线型只管色）；
- *   - 零运行期库 import（projectFlow 同构——node 测试不拖 DOM 面）。
+ *   - 零运行期库 import（projectFlow 同构——node 测试不拖 DOM 面；
+ *     semanticColors 为零依赖纯常量表，import 不破此性质）。
  */
+import { SEMANTIC_COLORS } from "../../../shared/ui/semanticColors";
 
 /** 未收录键回退字形（占位方块——显示层降级）。 */
 export const GLYPH_FALLBACK = "▢";
@@ -86,24 +91,25 @@ export function unitGlyph(unitId: string, kind: string | null): string {
   return UNIT_GLYPHS[unitId] ?? GLYPH_FALLBACK;
 }
 
-/** 业务线 → 节点域色（bar/图标/minimap/图例共用——视觉稿冻结值）。 */
+/** 业务线 → 节点域色（bar/图标/minimap/图例共用——视觉稿冻结值；
+ * B3-b：色值单源=semanticColors domain_* 键〔同值搬家零漂移〕）。 */
 export function domainColorOf(businessLine: string | null | undefined): string {
   switch (businessLine) {
     case "municipal":
-      return "#4da3ff";
+      return SEMANTIC_COLORS.domain_water;
     case "sludge":
-      return "#9c6b45";
+      return SEMANTIC_COLORS.domain_sludge;
     case "mine_water":
-      return "#35c9b0";
+      return SEMANTIC_COLORS.domain_mine;
     case "conveyance":
-      return "#9aa8b8";
+      return SEMANTIC_COLORS.domain_convey;
     default:
       return NEUTRAL_DOMAIN;
   }
 }
 
-/** 未收录/清单未达回退色（灰——不误导域归属）。 */
-export const NEUTRAL_DOMAIN = "#595959";
+/** 未收录/清单未达回退色（灰——不误导域归属；semanticColors 单源引用）。 */
+export const NEUTRAL_DOMAIN = SEMANTIC_COLORS.domain_neutral;
 
 /** 域色图标三色组条目（底/边框/前景——视觉稿态三冻结）。 */
 export interface DomainIconStyle {
@@ -136,16 +142,17 @@ export function domainIconStyle(businessLine: string | null | undefined): Domain
   return DOMAIN_ICON_STYLES[businessLine ?? ""] ?? NEUTRAL_ICON;
 }
 
-/** 边流色（两色制 P4）：任一 sludge→泥；双端已知非 sludge→水；否则中性。 */
+/** 边流色（两色制 P4）：任一 sludge→泥；双端已知非 sludge→水；否则中性。
+ * （色值单源=semanticColors domain_* 键——B3-b 同值搬家。） */
 export function streamColorOf(
   srcLine: string | null | undefined,
   dstLine: string | null | undefined,
 ): string {
   if (srcLine === "sludge" || dstLine === "sludge") {
-    return "#9c6b45";
+    return SEMANTIC_COLORS.domain_sludge;
   }
   if (srcLine !== undefined && srcLine !== null && dstLine !== undefined && dstLine !== null) {
-    return "#4da3ff";
+    return SEMANTIC_COLORS.domain_water;
   }
   return NEUTRAL_DOMAIN;
 }

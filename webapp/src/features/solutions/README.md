@@ -15,7 +15,7 @@
 | `lib/solutionsFields.test.ts` | B2 扩面 R 轮；C2-visual F6 | unitOptionLabel 四分支 node 测试（中文名/英文回退/builtin 后缀/未就绪旧形态防自重复）+enumerateOptions 族（grid 判据/键缺席诚实拒/fail-open/disabled 后缀） |
 | `lib/taskFeed.ts` | FE6 实装；C2-visual F6 | 纯函数层：SSE 线格式解析+事件归约 TaskView+TaskStatus 快照归一+终态判定+errorTypeLabel（F6 error_type 中文用户语映射——七键登记未登记原样透传，core GR-14 语义不动） |
 | `lib/taskFeed.test.ts` | FE6 实装 | 事件序列归约/线格式/快照归一 node 测试（畸形 data 拒负例）；C2-visual F6：errorTypeLabel 映射/透传/快照组合 3 用例 |
-| `api/useTaskFeed.ts` | FE6 实装 | EventSource 自建薄壳（SSE 不走 customInstance——生成 useTaskEvents* 是一次性 JSON 读不可用） |
+| `api/useTaskFeed.ts` | FE6 实装；B3-b 起为归约薄壳 | SSE 任务订阅（SSE 不走 customInstance——生成 useTaskEvents* 是一次性 JSON 读不可用；EventSource 生命周期已迁 shared/api/useTaskEventSource 单源，本壳注入 parseEventData/reduceTaskEvent 归约+taskId 切换视图重置，ConnectionState/重连纯函数族再导出保公开面） |
 | `api/useProjectUnits.ts` | FE6 实装 | useReadProject 薄封装 select 窄化 {unitId,kind}[]（read 键三面共享） |
 | `components/TaskPanel.tsx` | FE6 实装 | 任务态面板：SSE 进度徽标/进度条/阶段文案/failed 三件回显/取消 |
 | `components/SolutionsTable.tsx` | FE6 实装+C2 重制 | 动态列方案表（列宽策略/固定首尾列/表头两行制吸顶/数值格式化+悬浮全精度/语义色 useToken/受控分页+行级应用） |

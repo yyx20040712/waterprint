@@ -296,3 +296,21 @@ grep -n "单元库（待实装）" webapp/src/app/App.tsx
 grep -n '"/units"' server/waterprint_server/routers/units.py
 grep -n "useListUnitsApiUnitsGet" webapp/src/shared/api/generated/units/units.ts | head -1
 ```
+
+## 十四、B3-b 批新增项（2026-09-19，复杂度治理批 3 第二步——webapp 收敛）
+
+> 来源：《裁决书》方案二 2b 域色收敛条文明示「global.css `--wp-*` 轴
+> 保留——SVG 不能 var() 的根因性债另立 UF，不在本批强解」。
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-53 | 域色双轴 | 四域色+中性色 CSS/JS 双轴同值并行：B3-b 后 JS 面单源=semanticColors domain_* 五键（unitGlyph 域色/流色+CanvasFlow 图例线色+pipe 两键全收编），但 SVG 属性面（stroke/fill/Three.js color）不能消费 CSS 变量 var()，global.css `--wp-water/sludge/mine/convey` 轴必须保留——同值双源无机器同步防线，改色漂移风险=R-G3 清单人工联动 | 已定义→挂账（本批收敛 JS 轴字面量；双轴归一须 CSS-in-JS 注入或构建期变量抽取，涉及样式底座 C1 变量轴纪律重议——非本批范围）。改色规程=以 semanticColors DOMAIN_COLORS 为基准四轴同步+semanticColors.test 冻结锚红面 JS 侧漂移；CSS 侧漂移防线留空为已知缺口 | B3-b 2026-09-19 |
+
+### 十四批验证命令摘要（仓库根执行，2026-09-19）
+
+```bash
+# UF-53：双轴同值现状（JS 单源+CSS 轴并行的铁证）
+grep -n "domain_water\|DOMAIN_COLORS" webapp/src/shared/ui/semanticColors.ts | head -3
+grep -n -- "--wp-water\|--wp-sludge\|--wp-mine\|--wp-convey" webapp/src/app/global.css | head -4
+    # 两侧同值 #4da3ff/#9c6b45/#35c9b0/#9aa8b8——同步义务人工承载
+```

@@ -3,9 +3,9 @@
  * 描绘统一消费；features 互不 import 的字面平行拷贝全数收编于此）。
  *
  * 输入:  语义 token 字符串（渲染描述/组件携带的 semantic 键）
- * 输出:  SEMANTIC_COLORS（28 键字面表）+ FALLBACK_COLOR（未登记兜底
- *        灰阶）+ semanticColor()（查表函数——未登记语义回退兜底，
- *        禁抛错打断渲染）
+ * 输出:  SEMANTIC_COLORS（34 键字面表——B3-b 增 domain_* 五键）+
+ *        FALLBACK_COLOR（未登记兜底灰阶）+semanticColor()（查表函数
+ *        ——未登记语义回退兜底，禁抛错打断渲染）
  *
  * 迁移口径（SC1 D1/D2）：3D 图元色族 12 键自 PoolBox 本地表迁移、
  * 2D 场面色族 7 键自 SiteRoutes/SiteBoundary/SiteCanvas 平行拷贝收编、
@@ -14,7 +14,21 @@
  * （像素零漂移）。灰阶族（结构/网格/UI 边框灰）与图表色族
  * （profileChart）不收编（非本批漂移面）。键集冻结锚=
  * semanticColors.test.ts（增删键/改值必须同步字面清单）。
+ * B3-b 增补（《裁决书》方案二 2b）：四域色+中性 JS 面单源收编——
+ * unitGlyph.domainColorOf/streamColorOf 与 CanvasFlow LEGEND_LINES 的
+ * 域色字面量收敛至 domain_* 键（同值搬家零漂移；global.css --wp-* 轴
+ * 保留——SVG 属性面不能 var() 的 CSS/JS 双轴根因性债=UF-53 另立挂账）。
  */
+/** 四域色+中性（B3-b JS 面单源——与 global.css `--wp-water/sludge/
+ * mine/convey` 轴同值；改色以本表为 JS 面基准，CSS 轴同步义务见 UF-53）。 */
+const DOMAIN_COLORS = {
+  water: "#4da3ff", // 市政水线（municipal）
+  sludge: "#9c6b45", // 污泥线
+  mine: "#35c9b0", // 矿井水线
+  convey: "#9aa8b8", // 输配水线
+  neutral: "#595959", // 未收录/清单未达回退灰
+} as const;
+
 /** 语义色表（token→色值唯一映射处——全 webapp 渲染/2D 描绘统一消费）。 */
 export const SEMANTIC_COLORS = {
   // 3D 图元色族（自 PoolBox 迁移，12 键；批3 首族视觉验收迭代[2026-09-12
@@ -39,10 +53,17 @@ export const SEMANTIC_COLORS = {
   corridor_gas: "#3fa34d",
   corridor_comm: "#9a6dd7",
   corridor_fallback: "#8c8c8c",
-  // C2-3d 管廊两键（三维管线两色制——与画布域色轴同值[--wp-water/
-  // --wp-sludge]：R-G3 联动清单成员，改色以 unitGlyph.domainColorOf 为基准）
-  pipe_water: "#4da3ff",
-  pipe_sludge: "#9c6b45",
+  // C2-3d 管廊两键（三维管线两色制——值=域色轴 water/sludge 单源引用，
+  // R-G3 联动清单成员，改色以 DOMAIN_COLORS 为基准）
+  pipe_water: DOMAIN_COLORS.water,
+  pipe_sludge: DOMAIN_COLORS.sludge,
+  // B3-b 四域色 JS 面（unitGlyph 域色/stream 色+CanvasFlow 图例线色收编
+  // ——同值搬家零漂移；CSS 轴 --wp-* 联动义务见 UF-53）
+  domain_water: DOMAIN_COLORS.water,
+  domain_sludge: DOMAIN_COLORS.sludge,
+  domain_mine: DOMAIN_COLORS.mine,
+  domain_convey: DOMAIN_COLORS.convey,
+  domain_neutral: DOMAIN_COLORS.neutral,
   // C2VD V1 剖切帽盖键（缩略图半剖剖面封盖灰——pool_wall #8d99a6 与
   // ground #cfd6dc 之间档；材质区断面封实，水体/空腔区不入[无 writer]）
   section_cap: "#a8b4c2",
