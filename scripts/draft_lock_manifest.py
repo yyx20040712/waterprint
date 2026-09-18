@@ -1,7 +1,7 @@
 """锁面 manifest 草稿重生成器：工作树实测 → 应然 manifest 草稿+差异报告。
 
 输入:  test-lock.manifest.json + check_readonly 同一扫描宇宙
-       （core/tests + server/tests + units_lib 包内 tests）
+       （core/tests + server/tests + agent/tests + units_lib 包内 tests）
 输出:  一致=[OK]（退出码 0）；漂移=新增/删除/哈希变清单+重锁命令
        草稿（退出码 1）。**只读投影——绝不写出 manifest**（AGENTS §7：
        重锁=人类执行 lock_tests.py 的显式事件，本脚本把「拼根清单+
@@ -26,10 +26,50 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from check_readonly import locked_files, load_manifest, sha256_of  # noqa: E402
+from check_readonly import (  # noqa: E402
+    IGNORED_DIR_NAMES,
+    IGNORED_SUFFIXES,
+    locked_files,
+    load_manifest,
+    sha256_of,
+)
 
 REPO = Path(__file__).resolve().parent.parent
-DEFAULT_ROOTS = ("core/tests", "server/tests")
+# 宇宙主体单源=check_readonly.locked_files()（import 复用）；本常量锚
+# scan_roots 根清单反推的显式根序。
+DEFAULT_ROOTS = ("core/tests", "server/tests", "agent/tests")
+# 补扫面（B2-2 补记挂账核销，B2-6 搭车）：check_readonly 实测宇宙外的
+# manifest 在册段——agent/tests 19 键经 lock_tests 追加先例入册，逐条
+# 哈希校验绿，但"未登记即 FAIL"强制面对该段缺失；补根须改信任根
+# （check_readonly.py，AGENTS §7 [HUMAN-LOCK] 人类批准事件，挂账另呈）。
+# 本件非信任根，先以补扫并集闭对账面（详见 draft_universe docstring）。
+# 摘除条件（门一 N3）：check_readonly.LOCKED_ROOTS 补根经 [HUMAN-LOCK]
+# 核销后，本常量须同步摘除回归单源（否则永久双扫——结果幂等但属冗余）。
+EXTRA_SCAN_ROOTS = ("agent/tests",)
+
+
+def draft_universe() -> list[Path]:
+    """实测宇宙 = check_readonly.locked_files() ∪ 补扫面（agent/tests）。
+
+    效果：消除该段 19 键假报"删除"（B2-2 事故形态），并使本草稿器可
+    探测该段新增未登记文件（真门禁不能）。忽略口径 import 复用
+    check_readonly 常量（IGNORED_DIR_NAMES/SUFFIXES），与校验端恒同。
+    """
+    paths = list(locked_files())
+    for rel in EXTRA_SCAN_ROOTS:
+        root = REPO / rel
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")):
+            if not path.is_file():
+                continue
+            relparts = path.relative_to(REPO).parts
+            if IGNORED_DIR_NAMES.intersection(relparts):
+                continue
+            if path.suffix in IGNORED_SUFFIXES:
+                continue
+            paths.append(path)
+    return paths
 
 
 def scan_roots(rels: list[str]) -> list[str]:
@@ -50,7 +90,7 @@ def scan_roots(rels: list[str]) -> list[str]:
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    paths = locked_files()
+    paths = draft_universe()
     draft = {p.relative_to(REPO).as_posix(): sha256_of(p) for p in paths}
     manifest = load_manifest()
     if not manifest:

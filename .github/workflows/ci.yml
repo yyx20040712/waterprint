@@ -79,8 +79,16 @@ jobs:
         run: uv run lint-imports
       - name: Pytest（全量：tests + units_lib——与本地口径/门禁基线一致，WP3·M8）
         run: |
+          # 吞日志修法（B2-6 搭车，根因=B2-4 增补一 CI 事故）：-e 下 pytest
+          # 首行非零即中断、cat 永不执行——先 +e 收 rc 恒 cat 再保真退出。
+          set +e
           uv run pytest tests waterprint/units_lib --cov > /tmp/pytest-core.log 2>&1
+          rc=$?
+          set -e
           cat /tmp/pytest-core.log
+          if [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
           # skip 门禁（GOV1 A3 机器化）：-ra 逐条 SKIPPED 为准；平台守卫白名单
           # （Windows 只读属性在 Linux 由 manifest 哈希覆盖——test_lock:47 合法豁免）
           if grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
@@ -91,8 +99,9 @@ jobs:
       # 覆盖率门禁（R2-B 真门禁化，core 面先行）：fail_under 取值与裁决
       # 注记见 core/pyproject.toml coverage 段（实测基线下取整；本地
       # addopts 不加 --cov——门禁只在 CI 面）。server/webapp 挂沿册。
-      # skip==0 拦截（GOV1 A3）：pytest 退出码先行（-e 中断），其后
-      # 汇总行/短摘要出现非零 skipped 即 FAIL——与覆盖率门禁同为 CI 面。
+      # skip==0 拦截（GOV1 A3）：pytest 退出码先行（+e 收 rc，非零 cat 后
+      # 保真退出），其后汇总行/短摘要出现非零 skipped 即 FAIL——与覆盖率
+      # 门禁同为 CI 面。
 
   server:
     name: 服务层质量（3.14 前瞻覆盖——GOV5 沿 core 矩阵先例）
@@ -117,8 +126,16 @@ jobs:
         run: uv run lint-imports
       - name: Pytest（含 skip==0 拦截——GOV1 A3 同 core 面形态）
         run: |
+          # 吞日志修法（B2-6 搭车）：-e 下 pytest 首行非零即中断、cat 永不
+          # 执行——先 +e 收 rc 恒 cat 再保真退出（core 面同款）。
+          set +e
           uv run pytest --cov > /tmp/pytest-server.log 2>&1
+          rc=$?
+          set -e
           cat /tmp/pytest-server.log
+          if [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
           # 同 core 面口径：平台守卫白名单外的 SKIPPED 即 FAIL（休眠守卫回潮）
           if grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
             echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮）"
