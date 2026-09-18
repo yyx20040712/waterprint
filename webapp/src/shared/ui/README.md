@@ -1,15 +1,18 @@
 # shared/ui —— 基础组件与主题
 
-AntD 5 深色主题（dark algorithm + 设计 token）与项目内基础组件。
+AntD v6 深色主题（dark algorithm + 设计 token，实装于 `app/providers.tsx`）
+与项目内基础组件。
 
-## 文件清单（M0.5 结构接线已创建规格骨架；实装期填充实现）
+## 文件清单
 
 | 文件 | 职责 |
 |------|------|
-| `theme.ts` | 主题 token（深色默认/亮色可切换、语义色定义） |
-| `SemanticColor.tsx` | 语义色纪律封装（绿合格/橙警告/红错误/蓝水线/棕泥线，其余灰阶） |
-| `semanticColors.ts` | 语义色真源表（28 键 token→hex 唯一映射+FALLBACK 兜底+查表函数——全 webapp 渲染/2D 描绘统一消费，SC1 收编字面平行拷贝；C2-3d +pipe_water/pipe_sludge 管廊两键——画布域色轴同值 R-G3 清单；C2VD V1 +section_cap 剖切帽盖键[缩略图半剖剖面封盖灰——冻结测试同步]） |
-| `NumberCell.tsx` | tabular-nums 等宽数字组件（单位灰阶小字） |
+| `semanticColors.ts` | 语义色真源表（token→hex 唯一映射+FALLBACK 兜底+查表函数——全 webapp 渲染/2D 描绘统一消费，SC1 收编字面平行拷贝；C2-3d +pipe_water/pipe_sludge 管廊两键——画布域色轴同值 R-G3 清单；C2VD V1 +section_cap 剖切帽盖键[缩略图半剖剖面封盖灰——冻结测试同步]） |
+
+> M0.5 期的 `theme.ts`/`SemanticColor.tsx`/`NumberCell.tsx` 结构预留骨架
+> 已于复杂度治理清理批（2026-09-18）删除：主题实装面=app/providers.tsx、
+> 语义色真源=semanticColors.ts、数字格式化=SolutionsTable 本地实现
+> ——预留位与实装位漂移，按「死代码即删」收口。
 
 > 错误边界由 `app/ErrorBoundary.tsx` 唯一承担（M0 已创建）——
 > 不在本目录重复规划（无重复资产规则，AGENTS.md §2）。

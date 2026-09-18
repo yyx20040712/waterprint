@@ -1,14 +1,9 @@
 # shared/store —— zustand slices
 
-每 feature 一个 slice 文件（features/*/store/*.ts），本目录只放
-跨 feature 的公共 store 工具（持久化中间件封装、devtools 约定）。
-
-## 文件清单（M0.5 结构接线已创建规格骨架；实装期填充实现）
-
-| 文件 | 职责 |
-|------|------|
-| `persist.ts` | localStorage 持久化封装（view 态持久化——design 态永不经前端存储） |
-| `devtools.ts` | 开发期 devtools 约定 |
+每 feature 一个 slice 文件（features/*/store/*.ts）。本目录当前无共享件
+（M0.5 期 `persist.ts`/`devtools.ts` 结构预留骨架已于复杂度治理清理批
+2026-09-18 删除——预留功能从未实装且零引用）；未来跨 feature 的 store
+公共工具按「同层晋升准入五条」晋升至此（复杂度治理方案二）。
 
 ## 规则
 

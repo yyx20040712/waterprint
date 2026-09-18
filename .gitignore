@@ -48,3 +48,7 @@ webapp/src/shared/api/generated/
 tools/blender/build/
 tools/blender/reviews/
 docs/task-handover-prompt.md
+
+# 用户项目数据（server 工作区运行时产物，不入库；根锚定防全层级吞目录）
+/projects/
+/server/projects/

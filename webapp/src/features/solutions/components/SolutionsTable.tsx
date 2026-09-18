@@ -30,7 +30,7 @@
  *     数字单元格 title=String(value) 悬浮原值（工程师复核通道）；
  *   - margin_min 语义色：正绿负红 null 灰（0 中性默认色——色源=C1
  *     token colorSuccess/colorError/colorTextTertiary[useToken]，GR-39
- *     散写字面量收敛——「SemanticColor 封装挂账」头注收口）；
+ *     散写字面量收敛——语义色真源=shared/ui/semanticColors.ts）；
  *     nan_flag true→「不可行」红/false→「可行」绿/null→「—」灰（C2b
  *     用户验收反馈修订——FE6「false 不标」骨架规格就此收口）；
  *   - 数字列 fontVariantNumeric:'tabular-nums'（§19.3 等宽对齐）+右对齐；
