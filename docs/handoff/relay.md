@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T22:46:58+08:00
-- heartbeat_utc: 2026-09-18T14:48:49Z
-- claim: hubfire-B2-3-20260918T2248
+- heartbeat_utc: 2026-09-18T15:04:01Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 6
+- checked_done: 7
 - last_handover: 2026-09-18
-- claimed_by: hub火执行者会话(B2-3)
-- claimed_at: 2026-09-18T22:48:49+08:00
-- next_batch: B2-3（主控终裁——输入=设计书v1（.workflow/plans/registry-split-design-v1.md）+审核报告v1（.workflow/briefs/b2-2-auditor-output.md，B0/W12/N6/PASS）+仓外镜像 waterprint-archive/b2-registry-design-2026-09/；D1/D2 前提出入涉用户裁决方向实质→呈用户；W 级发现并入终裁处置）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B2-4（实装·第一步：assumptions 数值 YAML 化——定案 docs/design/2026-09-18_registry-split-design.md §4.6 步①：白名单三态+四探针；开工先跑键序探针改造前输出留档会话区；golden 红线命中即停批上报）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -91,10 +91,10 @@
 
 - [x] B2-1｜拟定者任务书起草+派发（备源承载）→设计书（候选≥2+权衡）
 - [x] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
-- [ ] B2-3｜主控终裁（负面清单/规格冲突留用户）
+- [x] B2-3｜主控终裁（负面清单/规格冲突留用户）——D1 释义与 D2 知悉列 Rulings 呈报（定案=docs/design/2026-09-18_registry-split-design.md）
 - [ ] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
-- [ ] B2-5｜实装·第二步：formulas 按线分片（注册表 dump 前后一致硬闸）
-- [ ] B2-6｜实装·第三步：量纲声明随片（out_dims 对账门禁绿）
+- [ ] B2-5｜实装·第二步：formulas 机制件拆子包（条目留 manifest 原位；注册表 dump 序与集双一致硬闸——D1-B 定案）
+- [ ] B2-6｜实装·第三步：量纲步·验证型零动作（out_dims 对账门禁确认性验收——D2-A 定案）
 
 ### 第三波·批 3 同层晋升（复制收敛——《裁决书》方案二）
 
@@ -245,3 +245,28 @@
   （实存 296/296、哈希变 0、check_readonly 真门禁全绿）；修复=补扫描根（该件非
   三信任根，AI 可改），下次任意批搭车，不单开批。
 - 会话终态：B2-1+B2-2 两批完成（勾选 4→6/20），READY，claim 归位，CI 绿。
+
+### batch B2-3 — 2026-09-18 23:04（hub 火执行者会话：批 2 三段通道第 3 段·主控终裁，完成）
+- 交付：终裁书+定案设计入仓 docs/design/2026-09-18_registry-split-design.md（D1~D6 全裁+审核
+  W12/N6 逐条处置表+设计书 8 遗留项处置+修正版三步实施蓝图——B2-4/5/6 实装唯一依据）；
+  《裁决书》方案三追加「批 2 终裁定案」最小指针块（防双源）；设计书 v1 自会话区升格入仓
+  （零代号零指称，check_model_names 门禁实证过）。
+- 终裁要点：D1=意图读法（机制件拆子包+条目留 manifest 原位；字面读法违 manifest 唯一真源+
+  单元包互不 import 两铁律，否决）；D2=步③降验证型零动作步（条件句「若为逐公式输出量纲表」
+  前提实证不成立）；D3=不引入独立 data_version——ReproTriple 必填键集实测确含 data_version 域，
+  B 案由假设否决升格永久否决（W6 闭卷），过期语义补写=数值变更随 engine_version 联动+独立
+  版本化另立批（W5 闭卷）；D4=四件 21 键+design_map 伴生注入尾挂 1 键（W7/W8 闭卷）；D5=急切+
+  单元口径统一 32 包（N1/N4 闭卷）；D6=维持序（N5 闭卷）。
+- 终裁前独立复核（定案附录 D 全实测）：①429=32 manifest 416+L3 两件（manning 9+losses 4）13
+  精确闭合，「30 manifest」勘正 32；②formulas.py 487 行唯一 FormulaSpec=规格头文档串（机制件
+  定性坐实）；③22 键七域实测，design_map 键=伴生注入（「geo 11」勘正 10）；④聚合入口实证=
+  flows+discover_units（仅 import registry/app 得 0~4 条——dump 探针入口缺陷强于审核 W2 表述，
+  探针定稿改聚合入口+插入序 dump）；⑤_REGISTRY 全仓外部引用零（私有名前提成立）；⑥golden
+  基线=仓内快照内嵌 serialize_bytes/sha256 期望值（W11 就势简化闭卷）。
+- Rulings 待用户（终报呈送，不阻塞实施）：R-B2-3-1=D1 释义追认（裁决③「按线分片」字面对象
+  不存在，实取意图读法）；R-B2-3-2=D2 知悉（三步=两实装+一确认）。
+- 账本：ruling 行 1 笔（manual-b23-final-ruling——D1~D6+复核要点+定案指针）。
+- 三查：run_gates 15 绿（含 check_model_names——新入仓件实证过）+gen_status --check 零漂移
+  （2072B）+health-scan RED=0/WARN×3（历史欠账回显：2026-09-13 设计链同源行/15 行缺 usage/
+  1 行 in=0——非本批引入）。
+- 勾选 6→7/20；next_batch=B2-4（实装第一步，输入=定案 §4.6 步①蓝图）。
