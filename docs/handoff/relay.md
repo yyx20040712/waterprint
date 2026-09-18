@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T22:01:29+08:00
-- heartbeat_utc: 2026-09-18T14:23:21Z
-- claim: hubfire-B2-1-20260918T2206
+- heartbeat_utc: 2026-09-18T14:28:33Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 5
+- checked_done: 6
 - last_handover: 2026-09-18
-- claimed_by: zcode-hubfire-executor
-- claimed_at: 2026-09-18T22:06:39+08:00
-- next_batch: B2-2（对抗审核——审核者岗异构挑刺不改写，deepseek 承载）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B2-3（主控终裁——输入=设计书v1（.workflow/plans/registry-split-design-v1.md）+审核报告v1（.workflow/briefs/b2-2-auditor-output.md，B0/W12/N6/PASS）+仓外镜像 waterprint-archive/b2-registry-design-2026-09/；D1/D2 前提出入涉用户裁决方向实质→呈用户；W 级发现并入终裁处置）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -90,7 +90,7 @@
 ### 第二波·批 2 registry 分性质改造（架构级三段通道）
 
 - [x] B2-1｜拟定者任务书起草+派发（备源承载）→设计书（候选≥2+权衡）
-- [ ] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
+- [x] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
 - [ ] B2-3｜主控终裁（负面清单/规格冲突留用户）
 - [ ] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
 - [ ] B2-5｜实装·第二步：formulas 按线分片（注册表 dump 前后一致硬闸）
@@ -192,7 +192,7 @@
 ### batch B2-1 — 2026-09-18 22:35（hub 火执行者会话：批 2 三段通道第 1 段，完成）
 - 交付：拟定者任务书（.workflow/briefs/b2-1-drafter-brief.md——七段+四附录自包含
   零仓库接触，含基线数字与两处「草图前提 vs 现实」出入）→备源派发一次成功
-  （kimi-backup/Node 24.21.0，runId=20260918141243-lvht0ygd，in=6042/out=9705，
+  （第二配额备源承载/Node 24.21.0，runId=20260918141243-lvht0ygd，in=6042/out=9705，
   325s 零换源）→设计书 v1（.workflow/plans/registry-split-design-v1.md，未入仓——
   终裁定案后随 B2-3 升格）。机检：8 章/6 决策组 D1~D6/15 候选行/占位 0/污染 0
   （零模型代号与 AI 指称）/自检行对账。
@@ -212,3 +212,27 @@
 - 门禁：run_gates 15 绿+gen_status --check 零漂移（2072B）+health-scan RED=0。
 - Rulings 待用户：无新增（D1~D6 取舍留 B2-3 终裁汇总；若涉方向实质变更届时升格
   用户裁决）。会话预算内续跑 B2-2（claim 保持，心跳刷新）。
+
+### batch B2-2 — 2026-09-18 22:40（hub 火执行者会话：批 2 三段通道第 2 段，完成）
+- 交付：对抗审核派发一次成功（auditor-readonly/按量审计源，runId=
+  20260918142418-t5679jxq，in=12603/out=31676，137s 零换源；与拟定者承载（第二配额备源）
+  异构成立）→审核报告 v1：**B=0 W=12 N=6 VERDICT=PASS**——FINDINGS 尾栏由派发器
+  自动解析入账本 findings 字段（B2-1 事故教训批内兑现，零人工修正）。
+- 审核要点（真问题清单，终裁须逐条处置）：①注册序只验集不验序（sorted 探针盲区
+  +注册序实际由 30 manifest import 序决定，归因修正）②步①幂等哨兵违规（ordered_files
+  键存在性=产出串哨兵）③golden 基线快照获取步骤缺失（探针不可执行）④私有名探针
+  自相矛盾（探针 2 从正门 import _REGISTRY vs 假设私有名零引用）⑤file-contracts
+  双向校验漏删旧 formulas.py 行⑥D3 过期语义缺失（假设数值变更→旧结果过期联动）
+  ⑦design_map_entries 键归属未列明（YAML/注入来源与顺序）⑧D2 撤销第 3 步须终裁
+  前置防实施批误执行；另 4W+6N（数字口径/行数预算/装载器只读纪律等）。
+- 归档：四件套（任务书/设计书/审核指令包/审出件）落仓外
+  waterprint-archive/b2-registry-design-2026-09/（08 §6 审档归宿）+本机 .workflow/
+  双镜像；盘点件两份（b2-1-drafter/b2-2-auditor）偏差补记齐。
+- 门禁：本批零仓内代码面改动（板面外）；三查随会话终收口复跑呈报。
+- Rulings 待用户：无新增（D1/D2 升格判断留 B2-3 终裁汇总呈报）。
+- 会话终收口：本会话 fire 预算内完成 B2-1+B2-2 两批（勾选 4→6/20），claim 归位
+  READY，last_dispatch 保留；B2-3 主控终裁=下批（输入路径已锚 next_batch 行）。
+- 卫生事故与修正：本会话两条批次日志误带外部模型代号 3 处（08 §6 产出面纪律）
+  ——check_model_names 门禁拦截后新笔中性化（已随 ae5eea4 推送的 B2-1 条一并
+  本笔修正，不重写历史）；同犯 commit message 面（ae5eea4 信息带代号）——已推送
+  不重写，记教训：**板面/日志/commit 三面一律先过代号门禁再落笔**。
