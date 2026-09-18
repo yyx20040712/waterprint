@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
-- automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
+- status: RUNNING
+- automation_id: automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-18T23:19:54+08:00
-- heartbeat_utc: 2026-09-18T17:08:45Z
-- claim: -
+- last_dispatch: 2026-09-19T01:31:13+08:00
+- heartbeat_utc: 2026-09-18T17:33:10Z
+- claim: hubfire-B2-5-20260919T0132-b25f5
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 8
 - last_handover: 2026-09-18
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hubfire-B2-5 执行者会话
+- claimed_at: 2026-09-19T01:33:10+08:00
 - next_batch: B2-5（实装·第二步：formulas 机制件拆子包——定案 §4.6 步②+勘误后三段聚合入口口径：白名单三态+四探针（dump=flows+manning+discover_units 三段叠加插入序）；行数预算 spec≤150/store≤150/apply≤200/__init__≤40；开工先跑私有名前置探针+改造前 dump 留档会话区；structure-graph §1a 再生成 diff 非空=红停批）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -371,3 +371,19 @@
   事故闭环（红 run 35367488476→根因→修复→复签→绿）。
 - 会话终态：B2-4 一批完成（勾选 7→8/20），READY+claim 归位；B2-5=下批（实装步②
   formulas 机制件拆子包，输入=定案 §4.6 步②+勘误后三段聚合入口口径）。
+
+### 调度员增补三 — 2026-09-19T01:19:16+08:00（hub 换防：新调度会话接替，重布全局轮转火）
+- 旧火核查：CronList 空集——增补二删火令对象 automation-bf8fd7d7-… 确认已亡，
+  无双火风险，零清场动作。
+- 深度设计门（换防重走）：过——`.zcode/org-ledger.jsonl` 活跃（末笔=B2-4 CI
+  事故复盘行 @09-19 01:02）、《裁决书》占位符 grep 零命中、执行清单机检 8 勾+12
+  开=20 与板头计数一致。
+- 板面处置：status READY/claim 归「-」/no_progress 0 均为换防期望态零复位；字段
+  对照当前技能模板零缺失；本条尾部纯追加；板头 automation_id 字段行已锚定替换为
+  新火 id（历史日志旧 id 存量不动）。
+- 新全局火=automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85（新 hub 调度会话创建，
+  全局唯一 */10 轮转，服务本板+Synapse 板）；本板 last_dispatch=09-18T23:19:54 晚于
+  姊妹板 22:56:11——首班有效火先轮 Synapse 板，本板次班承接（next_batch=B2-5
+  不变）。
+- B2-3 两项 Rulings 已由 B2-4 执行者销案（批次日志在案）；板头执行指令转达条款
+  留存原文不改，发布时照原文携带；备源承载事实继续有效。
