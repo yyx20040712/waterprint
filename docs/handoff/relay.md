@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: HOLD
 - automation_id: automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T01:31:13+08:00
-- heartbeat_utc: 2026-09-18T17:33:10Z
-- claim: hubfire-B2-5-20260919T0132-b25f5
+- heartbeat_utc: 2026-09-18T18:25:00Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 8
 - last_handover: 2026-09-18
-- claimed_by: hubfire-B2-5 执行者会话
-- claimed_at: 2026-09-19T01:33:10+08:00
-- next_batch: B2-5（实装·第二步：formulas 机制件拆子包——定案 §4.6 步②+勘误后三段聚合入口口径：白名单三态+四探针（dump=flows+manning+discover_units 三段叠加插入序）；行数预算 spec≤150/store≤150/apply≤200/__init__≤40；开工先跑私有名前置探针+改造前 dump 留档会话区；structure-graph §1a 再生成 diff 非空=红停批）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B2-5 锁面笔（[HUMAN-LOCK] 待用户批准 R-B2-5-1：镜像测试三薄壳 test_spec/store/apply.py 入 core/tests/registry/+test-lock.manifest.json 296→299 重锁+只读位——起草件=.workflow/probes/b2-5/mirror-tests-draft/，批准后拷入跑 lock_tests.py 带 [HUMAN-LOCK] commit 推送 d223a6c+锁面笔→CI 复绿→勾选 B2-5→B2-6；搭车项=ci.yml pytest 步吞日志修法[set +e 恒 cat+退出码保真]随该批实施）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -387,3 +387,49 @@
   不变）。
 - B2-3 两项 Rulings 已由 B2-4 执行者销案（批次日志在案）；板头执行指令转达条款
   留存原文不改，发布时照原文携带；备源承载事实继续有效。
+
+### batch B2-5 — 2026-09-19 02:25（hub 火执行者会话：批 2 实装步②，HOLD 呈报——代码面完成+镜像锁面待用户批准）
+- 交付（代码面 commit d223a6c 本地待批后随锁面笔推送）：formulas.py 487 行机制件拆子包四件——
+  spec（规格声明+DSL 解析，143 行）/store（登记真源+静态校验+查询面，145 行）/apply（唯一
+  求值正门，188 行）/\_\_init\_\_（聚合正门九名 re-export，37 行），预算 150/150/200/40 全过；
+  429 条目留 manifest 原位零搬动（D1-B）；file-contracts 删旧 1 行增四件行（精确行数注记
+  机锁）；幂等哨兵=\_\_init\_\_ 批次行 b2-s2-formulas-package+聚合 import 三行（W9）。
+- 等价性证据（全绿面）：改造前后注册表 dump 逐行恒等（三段聚合入口 flows+manning+
+  discover_units+插入序+sha256 指纹，TOTAL=429——门二独立重跑复证零差异）+代码体 19/19
+  成员字节恒等（git show 旧件 vs 新四件逐成员 diff，N2 机器闭合）+golden 4 绿+registry
+  55 绿+run_gates 15 绿+gen_status 零漂移（2158B）+§1a 再生成 27 节点零 diff（探针 4）。
+- 两处主控级校准（门一对抗后成立）：①聚合 import 书写序取 ruff 字母序（定案序 spec→store
+  →apply 为字面；字母序下依赖序经链式 import 隐式保持且模块体执行序逐帧等价——门一审
+  推演加强确认；isort 为 15 门禁硬性面，noqa 豁免留 lint 债否决）；②dump 探针字段路径
+  e.spec（定案模板 s.expression 对 _Entry 包装两侧同错，校准对称适用零损）。
+- 门审：门一（ops-gate1-k2 备源承载，审包 593 行自包含）**B0/W0/N8 PASS**——六项强制
+  审项全过+两独立推演（429 注册序零影响=import 期零注册+注册序归 manifest 导入序+
+  _REGISTRY 单例；apply 遮蔽面存量消费零回归，import…as 形态新陷阱）。N3/N4/N5 批内
+  修复（遮蔽警示注释/溯源口径统一/spec 输出补 _normalize_dim）；N1 公共名跨件边（apply→
+  spec.InvalidFormulaError 直连边，三角非纯链）本笔补记；N6/N7/N8 挂账（镜像交互入设计
+  模板/零符号公式 StopIteration 既往缺陷/assert -O 模式——均非本批引入）。门二（ops-probe
+  独立重跑未读主控结论）矩阵 **10/10 无 RED**（含薄壳实效双向验证：拷入 6 passed/移除
+  复现红/tests 面零残留）。
+- **HOLD 根因（R-B2-5-1 呈报）**：镜像规则（test_mirror_rule，永续激活）对拆分新增三
+  源件机械触发镜像测试义务（test_spec/store/apply.py 按文件名全树匹配）；新增测试=三
+  连锁（manifest 新键+只读位+镜像件）→触碰三信任根→[HUMAN-LOCK] 人类批准墙（AGENTS
+  §7「AI 只能起草不得自行提交」）。CI core job 跑 tests 全量含镜像规则——代码面推送必
+  红，「收口即推送+守望 CI 至绿」不可达。定案 §3.7「零新增测试文件确认」+白名单禁改
+  core/tests/\*\* 漏检此交互（审核 W12 未覆盖）。三替代（noqa/改镜像规则自削门禁/自行
+  提交）均违制度否决。**处置=HOLD 呈报**：三件薄壳（最小义务=导入冒烟+公开面在场；
+  行为主体保留在既有 test_formulas.py——孤儿测试不违规）起草于 .workflow/probes/b2-5/
+  mirror-tests-draft/（apply 件经 importlib 取子模块对象——正门 re-export 函数遮蔽
+  子模块名），实效已双向验证。**请用户批准：镜像测试三连锁 [HUMAN-LOCK] 锁面笔**
+  （批准后拷入三件+lock_tests.py 重锁 296→299+[HUMAN-LOCK] commit+推送 d223a6c 全部
+  本地笔→CI 复绿→勾选 B2-5→B2-6 续跑）。
+- 上批搭车兑现：设计书 §4.3-3 断言句勘误（B2-4 增补一 F-3 挂账——W10 载体=探针 3，
+  本笔随批）；ci.yml pytest 步吞日志修法递延至锁面笔批（HOLD 收口无 CI 验证回路，
+  next_batch 行已锚定修法口径）。
+- 转达条款回执：执行指令携带的 B2-3 两项 Rulings 裁决回执（R-B2-3-1 追认/R-B2-3-2
+  知悉）经核对**已由 B2-4 执行者销案**（批次日志 batch B2-4 在案+调度员增补三确认）——
+  板头执行指令原文保留（换防时发布照原文携带的既定纪律），本批无重复销案动作。
+- 账本：gate1（findings B0/W0/N8）/probe（10/10）/impl-HOLD 三行；health-scan RED=0/
+  WARN×3（历史欠账回显：2026-09-13 设计链同源行/18 行缺 usage/1 行 in=0——非本批引入）。
+- 勾选 8/20 不变（B2-5 主体完成唯镜像锁面待批，批准复绿后勾选）；CI 预告：本批推送
+  （d223a6c+勘误+板面笔）首跑 core job 预期红=镜像规则（唯一红面，根因即 R-B2-5-1），
+  批准后复绿——守望记录随终报。

@@ -195,10 +195,11 @@ apply/apply_batch——设计书 v1「6 符号」勘正；其中 7 名经 regist
    组内键序照抄现代码面（§1 D4 表）。
 3. 条目六字段：key/default/dim/source/note/tuning_impact{direction,
    constraint_keys}。数值口径：default 与 tuning_impact 内数值一律 YAML
-   加引号字符串；装载后**先 bool 拒后** `float()` 收编并断言
-   `type(x) is float`（W10）；科学计数法（1e-10 容差类）同径。未知键拒、
-   缺字段拒、重复键拒（复用 AssumptionSet 既有守卫）；校验失败抛
-   InvalidAssumptionError（禁裸 except 静默）。
+   加引号字符串；装载后**先 bool 拒后** `float()` 收编（W10 校验载体=
+   探针 3 命令行断言——装载器内同义反复断言已撤[{-O} 即剥]，B2-4
+   增补一 F-3 主控追认，2026-09-19 勘误）；科学计数法（1e-10 容差类）
+   同径。未知键拒、缺字段拒、重复键拒（复用 AssumptionSet 既有守卫）；
+   校验失败抛 InvalidAssumptionError（禁裸 except 静默）。
 4. 装配 DEFAULT_ASSUMPTIONS：`_items`=装载序 21 键 +
    `*design_map_entries(Assumption, TuningImpact)` 尾挂注入（伴生件
    64 行不动）＝22 键全序锁定；[0] 断言由既有锁定测试承担，装载器内
