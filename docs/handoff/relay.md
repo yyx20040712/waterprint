@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: HOLD
+- status: READY
 - automation_id: automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,11 +20,11 @@
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 8
-- last_handover: 2026-09-18
+- checked_done: 9
+- last_handover: 2026-09-19
 - claimed_by: -
 - claimed_at: -
-- next_batch: B2-5 锁面笔（[HUMAN-LOCK] 待用户批准 R-B2-5-1：镜像测试三薄壳 test_spec/store/apply.py 入 core/tests/registry/+test-lock.manifest.json 296→299 重锁+只读位——起草件=.workflow/probes/b2-5/mirror-tests-draft/，批准后拷入跑 lock_tests.py 带 [HUMAN-LOCK] commit 推送 d223a6c+锁面笔→CI 复绿→勾选 B2-5→B2-6；搭车项=ci.yml pytest 步吞日志修法[set +e 恒 cat+退出码保真]随该批实施）
+- next_batch: B2-6（实装·第三步：量纲步·验证型零动作步——定案 §4.6 步③ D2-A：白名单三态=新建无/修改无/禁改全仓，验收=check_out_dims_consistency 绿+15 门禁全量+pytest core/tests 绿，确认性验收量纲真源单归 FormulaSpec.output_dim[GR-42]；搭车项=ci.yml pytest 步吞日志修法[set +e 恒 cat+退出码保真]本批实施）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -95,7 +95,7 @@
 - [x] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
 - [x] B2-3｜主控终裁（负面清单/规格冲突留用户）——D1 释义与 D2 知悉列 Rulings 呈报（定案=docs/design/2026-09-18_registry-split-design.md）
 - [x] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
-- [ ] B2-5｜实装·第二步：formulas 机制件拆子包（条目留 manifest 原位；注册表 dump 序与集双一致硬闸——D1-B 定案）
+- [x] B2-5｜实装·第二步：formulas 机制件拆子包（条目留 manifest 原位；注册表 dump 序与集双一致硬闸——D1-B 定案）
 - [ ] B2-6｜实装·第三步：量纲步·验证型零动作（out_dims 对账门禁确认性验收——D2-A 定案）
 
 ### 第三波·批 3 同层晋升（复制收敛——《裁决书》方案二）
@@ -444,3 +444,17 @@
   成员字节恒等已闭环行为面等价。用户批准锁面笔后复绿路径已锚 next_batch 行。
 - HOLD 期间火班纪律：见 HOLD 即不接管不重跑（hub 守卫——删火权归调度员，本板
   只置状态）；用户批准可经调度员转达（同 B2-3 Rulings 回执模式）。
+
+### batch B2-5 补记二 — 2026-09-19 02:50（用户裁决 R-B2-5-1 销案+锁面笔落地——B2-5 全绿收口）
+- 用户裁决回执（对话内 AskUserQuestion 两问）：**R-B2-5-1→批准薄壳三连锁；执行通道→
+  本会话立即执行**。批准即构成 AGENTS §7 人类显式批准事件（AI2 U7 授权链同款模式），
+  [HUMAN-LOCK] commit be086eb 首行带标签+逐文件修改动机（4 文件：三薄壳+manifest）。
+- 三连锁执行细节：三薄壳拷入 core/tests/registry/→lock_tests.py 重锁——裸跑被 COST2
+  只增不减守卫拦截（会挤掉 units_lib 包内 38 条目），按守卫指引携完整根清单显式重跑
+  （agent/core/server 三根+units_lib 32 包内 tests），296→**299 键**新增恰 3 零删除，
+  只读位同步设置。
+- 复绿证据：全量 pytest **776 passed 全绿**（772+镜像规则修复 1+薄壳 3——数序吻合）；
+  run_gates 15 绿（check_trust_root 本地模式=HEAD 触三信任根首行带标签过；check_
+  readonly=299 键全对）；gen_status 零漂移（2158B）。
+- 板面：HOLD→READY、B2-5 勾选（8→9/20）、next_batch=B2-6（步③验证型零动作步——
+  ci.yml 吞日志搭车项随该批实施）。Rulings 待用户：无（本批 R-B2-5-1 已销案）。
