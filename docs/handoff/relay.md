@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T22:01:29+08:00
-- heartbeat_utc: 2026-09-18T14:28:33Z
+- heartbeat_utc: 2026-09-18T14:37:56Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
@@ -236,3 +236,12 @@
   ——check_model_names 门禁拦截后新笔中性化（已随 ae5eea4 推送的 B2-1 条一并
   本笔修正，不重写历史）；同犯 commit message 面（ae5eea4 信息带代号）——已推送
   不重写，记教训：**板面/日志/commit 三面一律先过代号门禁再落笔**。
+
+### batch B2-2 补记 — 2026-09-18 22:50（CI 守望定性+挂账登记）
+- CI 守望：ae5efa4 run 35355924457 红=代号门禁 2 处（本会话卫生事故，9ebc7e1 已修）
+  ；9ebc7e1 run 35356746052 **全绿**（10 job 含架构门禁 9s）——绿证随批呈报。
+- 连带发现（挂账·主控级小批）：红 run 的锁面草稿诊断步（ci.yml `if: failure()`
+  才跑）暴露 draft_lock_manifest.py 扫描根不含 agent/tests——19 键假报「删除」
+  （实存 296/296、哈希变 0、check_readonly 真门禁全绿）；修复=补扫描根（该件非
+  三信任根，AI 可改），下次任意批搭车，不单开批。
+- 会话终态：B2-1+B2-2 两批完成（勾选 4→6/20），READY，claim 归位，CI 绿。
