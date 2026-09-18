@@ -8,14 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
+- automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
+- shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
+- poll_interval_min: 10
+- fire_budget_min: 120
+- last_dispatch: 2026-09-18T22:01:29+08:00
+- heartbeat_utc: 2026-09-18T14:06:39Z
+- claim: hubfire-B2-1-20260918T2206
+- no_progress_count: 0
 - checked_total: 20
 - checked_done: 4
 - last_handover: 2026-09-18
-- claimed_by: -
-- claimed_at: -
+- claimed_by: zcode-hubfire-executor
+- claimed_at: 2026-09-18T22:06:39+08:00
 - next_batch: B2-1（拟定者任务书起草+派发，备源承载——《裁决书》三轮裁决③）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -31,6 +39,31 @@
 - 领批纪律：领批即改板（claimed_by/claimed_at 回填）即推送——领批状态对
   板外可见；收口时 claim 字段归「-」。他席读板见 claimed_by≠- 即避让。
 - 停止事由：破坏性/安全敏感/计划破碎到每条路都是猜 → status: HOLD 后呈报用户。
+- **hub 火式接力（2026-09-18 21:56 用户显式 /batch-relay 布防——首条「手动路径=
+  当前唯一路径」自此由本段接替，手动路径降为火不可用时备径；本段即建板时预留的
+  扩展位兑现）**：
+  - 收到 hub 火 prompt 的会话=**调度员**（薄调度，不自跑批）：轮转规则=在 READY ∧
+    last_dispatch 距今 ≥30min（发布静默窗）的成员板中挑 last_dispatch 最老一块
+    （`-`=从未发布视作最老；并列取火 prompt 清单序），每回合至多开一批 → UI 开批
+    （侧边栏展开 → AXPress「新建任务」→「选择项目」勾选本工作区 → Escape 收菜单 →
+    真实点击 textfield 建立焦点 → app 级 strategy=event 键盘写入下方执行指令 →
+    回读确认文本落框且发送按钮激活 → 点发送）→ 发送成功后原子更新本板
+    last_dispatch（ISO8601 本地时间）。RUNNING 且心跳 <30min → 退出；≥30min →
+    先核对 git 进度再接管。UI 选择器漂移时降级为会话内直跑，批次日志记欠账。
+  - 被注入执行指令的新任务会话=**执行者**：开工首步 Skill 加载 ai-dev-org（组织
+    主干）→ `org-config resolve` → 读板 → 原子 claim（写 RUNNING+claim/claimed_by
+    /claimed_at+心跳后回读确认，保留 last_dispatch）→ 按「执行清单」领批至
+    fire_budget_min → 收口四步照手动路径条款（勾选框+板头计数/next_batch/
+    last_handover 同步刷新+批次日志追加+收口即推送+守望 CI 至绿）；无进展计数
+    （勾选数未增 +1，连续 3 → HOLD+终报）；清单全勾（`grep -c '^- \[ \]'` 计 0）
+    → DONE+终报（含 Rulings 全清单）；否则 → READY（保留 last_dispatch）。
+  - **hub 守卫（shared_fire 板）**：DONE/HOLD/无进展 3 连只置状态+终报，**禁删火**
+    ——删火权归 hub 调度员（须全部成员板终态才收线）。
+  - **执行指令**（调度员注入新任务用，原文）：「（引用技能 batch-relay）基于
+    E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——开工
+    首步先加载技能 ai-dev-org，再按接力火协议认领并执行本批（工作区根
+    E:\class\智水蓝图\waterprint，相对路径以此为基）」
+  - 禁止创建任何新自动化（成员板禁自布第二条火——hub 全局一条火红线）。
 - 模型路由事实：门一主源周额度达上限（2026-09-18 用户告知）——门一/拟定者
   一律备源承载直至用户另行通知；逐字指令在组织账本 ruling 行。
 
@@ -86,6 +119,23 @@
 > 签章页/UF 开放条目/sunset 观察项（触发条件与复核节奏见 sunset 表）。
 
 ## 批次日志（追加，勿改写）
+
+### batch 3 增补二 — 2026-09-18 21:56（hub 布防：用户显式 /batch-relay，挂全局轮转火）
+- 深度设计门（ai-dev-org 路线）：过——`.zcode/org-ledger.jsonl` 活跃（21:43
+  交接面升级批门一 PASS B0W2N4）、《裁决书》20.5KB 占位符零命中（grep TBD|TODO|
+  稍后实现|适当处理|implement later）、执行清单机检 4/20 勾与板头计数一致。
+- 板面补齐（只增行不改既有行语义）：+automation_id（待 hub 火回填）+
+  shared_fire: true +poll_interval_min/fire_budget_min/last_dispatch/heartbeat_utc/
+  claim/no_progress_count（火协议字段对齐当前技能模板）；fire_budget_min=120
+  （架构级三段通道批重，对齐姊妹板 Synapse_remake）；claim 与既有 claimed_by/
+  claimed_at 同义互映，收口时两者同步归「-」。
+- protocol 扩 hub 调度员/执行者双角色段（建板时预留扩展位兑现）+hub 守卫句
+  （收口禁删火——删火权归 hub 调度员）。
+- hub 火=全局唯一 */10 轮转火（hub 调度会话创建，服务本板+Synapse_remake 板）；
+  本板 last_dispatch=`-`（从未发布，轮转视作最老）——首班有效火大概率先开本板
+  B2-1（拟定者任务书起草+派发，备源承载）。
+- 模型路由事实（门一/拟定者备源承载）继续有效，随执行者开工自账本 ruling 行
+  对齐。
 
 ### batch 3 增补 — 2026-09-18（门一审 R1 处置+CI 抖动重跑）
 - 门一审（备源承载）PASS B0/W2/N4——两 W 批内消化：W1=claim 字段落地
