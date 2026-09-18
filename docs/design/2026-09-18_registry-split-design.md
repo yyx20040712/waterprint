@@ -21,8 +21,10 @@
 的**字面对象不存在**。
 
 **裁定理由**：候选 A（429 条目抽到按线分片文件）与两条既有铁律正面
-冲突——「manifest=单元声明式唯一真源」（ADR-007/AGENTS §11）与「单元
-包互不 import」（import-linter independence 契约）；且条目搬迁必然扰动
+冲突——「manifest=单元声明式真源」（AGENTS 单元包铁律段+manifest
+真源区：`units_lib/**/manifest.py` 默认值=带出处的声明式真源；ADR-007
+声明式映射先例）与「单元包互不 import」（AGENTS 工艺单元包互不 import
++import-linter independence 契约）；且条目搬迁必然扰动
 import 序→注册序→golden 风险敞口放大。候选 B 达成裁决③的真实意图
 （formulas.py 487/500 腾槽、公式留 Python、扩容槽位成型——新单元=加
 manifest 条目，本就按线分布），行为零变成本最低。**A 否决**。
@@ -103,12 +105,12 @@ D2-A 后 ③=验证步（零文件动作），序义=「两实装步+一确认�
 | # | 发现（摘要） | 处置 |
 |---|---|---|
 | W1 | 私有名探针覆盖不完备；dump 探针从聚合正门引私有名自相矛盾 | **采纳**。前置探针扩正则（§4.6 步②探针 1：四形态覆盖）；dump 探针拆两版——改造前从 `registry.formulas` 导入、改造后从 `registry.formulas.store` 导入（探针=诊断面允许私有名，导入路径随架构版本各自锁定，对账基准=输出而非路径；生产面私有名零引用前提经附录 D 全仓 grep 实证成立） |
-| W2 | dump 用 sorted 只验集不验序；注册序归因不准确 | **采纳并强化**。归因修正（§4.4：注册序=L3 模块导入序+discover_units 扫描序，聚合正门只定机制件加载序不定条目注册序）；探针改**插入序 dump**（dict 保序，弃 sorted）——序与集双一致。终裁复核另发现更强缺陷：单独 import registry/app 仅得 0~4 条，**探针必须走 discover_units()+flows 聚合入口**（§4.6 步②探针 2 定稿） |
+| W2 | dump 用 sorted 只验集不验序；注册序归因不准确 | **采纳并强化**。归因修正（§4.4：注册序=L3 模块导入序+discover_units 扫描序，聚合正门只定机制件加载序不定条目注册序）；探针改**插入序 dump**（dict 保序，弃 sorted）——序与集双一致。终裁复核另发现更强缺陷：单独 import registry/app 仅得 0~4 条，且 **flows+discover_units 也只有 420 条（manning 9 条须显式导入）**——探针必须叠加三段聚合入口（§4.6 步②探针 2 定稿） |
 | W3 | file-contracts 漏删旧 formulas.py 登记行 | **采纳**。步②白名单明确「删 formulas.py 旧登记行+增子包四件登记行」（§4.6 步②） |
 | W4 | D2-A 须终裁前置防实施批误执行 | **本件即前置**。终裁已下（§1 D2），B2-6 按验证型零动作步执行——闭卷 |
 | W5 | D3 过期语义缺失 | **采纳**。§1 D3 过期语义补写段（engine_version 联动+独立版本化单独立批） |
 | W6 | D3-B 否决依据不完整（依赖未验假设） | **采纳**。终裁前实测 serialize 必填键集含 data_version（附录 D）——假设转事实，双依据否决——闭卷 |
-| W7 | design_map_entries 键归属未列明 | **采纳**。§1 D4 勘正：design_map 键=伴生注入尾挂，不入 YAML；逐键归属表=定案 §4.3 |
+| W7 | design_map_entries 键归属未列明 | **采纳**。§1 D4 勘正：design_map 键=伴生注入尾挂，不入 YAML；逐键归属=§1 D4 四件表+附录 D.5 全键序实测 |
 | W8 | engine.yaml 合并域与「按真实键域」表述不一致 | **采纳**。命名说明定案：「engine=求解引擎行为假设（回路迭代 3+枚举网格 1）」——两子域同属引擎行为面，合并成立 |
 | W9 | 步①幂等哨兵违规（ordered_files 键存在性=产出串哨兵） | **采纳**。哨兵修正（§4.7）：双标记均锚**被改代码件自身**（契约头批次行+数据目录常量行），产出面存在性一律不作哨兵 |
 | W10 | 类型校验只查 default、bool 可能穿透 | **采纳**。装载器校验序=先 bool 拒后 float() 收编，覆盖 default+tuning_impact 内全部数值（§4.3）；探针 3 同步扩展（§4.6 步①） |
@@ -213,14 +215,18 @@ re-export 公开面。**注册序归因（W2 修正）**：条目注册序由
 （a）L3 公式模块导入序（flows 链：EL-F* 在前）与（b）
 `units_lib.discover_units()` 扫描序（32 包，实测 AO→…→PQ）决定；
 聚合正门只定机制件三件的加载序，**不定条目注册序**——子包化对两者
-零触碰。**聚合入口实证（附录 D）**：单独 import registry 或 app 仅得
-0~4 条——任何注册表 dump 探针必须先 `import waterprint.flows` +
-`discover_units()` 聚合装载（§4.6 步②探针 2 定稿口径）。
+零触碰。**聚合入口实证（附录 D，三段组成）**：单独 import registry 或 app 仅得
+0~4 条；`import waterprint.flows` → 4 条（EL-F*，losses 链）；
+`+discover_units()`（32 包）→ 420 条；`+import waterprint.network.manning`
+→ **429 条全量**（NM-F* 9 条，manning 模块无上游 import 链主动装载，
+须显式导入）。任何注册表 dump 探针必须叠加**全部三段**（§4.6 步②探针 2
+定稿口径）——缺 manning 段即采到 420 条残表。
 
 ### 4.5 确定性保障
 
-键序=manifest 有序列表+组内照抄序；注册序=L3 导入序+discover_units
-扫描序（两序现状冻结，子包化不改）；序列化面不动（键排序/round(x,10)
+键序=manifest 有序列表+组内照抄序；注册序=L3 模块导入序（flows→losses
+链+network.manning 显式链）+discover_units 扫描序（现状冻结，子包化
+不改）；序列化面不动（键排序/round(x,10)
 既有纪律）；YAML 全件 UTF-8 显式；GR-18 排序装载/排序返回不受扰。
 
 ### 4.6 分步实施蓝图（每步独立成批、独立 revert）
@@ -264,13 +270,15 @@ re-export 公开面。**注册序归因（W2 修正）**：条目注册序由
   1. 私有名前置探针（W1 扩正则）：
      `grep -rnE "formulas\._REGISTRY|formulas\.eval_checked|from +[^ ]*formulas +import +(_REGISTRY|eval_checked)|import +formulas\._REGISTRY" core/ server/ scripts/ --include="*.py"`
      命中=红（附录 D 实证当前零命中；eval_checked 为防御面正则项）；
-  2. 注册表全量 dump（W2 修正版）——**聚合入口+插入序**：
-     改造前：`python -c "import waterprint.flows; from
-     waterprint.units_lib import discover_units; discover_units();
-     from waterprint.registry.formulas import _REGISTRY as R; import
+  2. 注册表全量 dump（W2 修正版）——**聚合入口三段+插入序**：
+     改造前：`python -c "import waterprint.flows; import
+     waterprint.network.manning; from waterprint.units_lib import
+     discover_units; discover_units(); from
+     waterprint.registry.formulas import _REGISTRY as R; import
      hashlib; [print(k, hashlib.sha256(repr((s.expression,
      tuple(sorted(s.symbols)), s.output_dim, s.norm_ref)).encode()).
-     hexdigest()[:16]) for k,s in R.items()]"`（dict 插入序，弃 sorted）
+     hexdigest()[:16]) for k,s in R.items()]"`（dict 插入序，弃 sorted；
+     三段导入缺一即残表——附录 D 实测 flows=4/+units=420/+manning=429）
      ——改造后同命令仅末行导入路径改
      `from waterprint.registry.formulas.store import _REGISTRY`；
      两版输出**逐行一致**（序与集双一致；条目数断言=改造前 dump 实数
@@ -310,8 +318,8 @@ re-export 公开面。**注册序归因（W2 修正）**：条目注册序由
 | 键序漂移破 [0] 锁定 | manifest 有序列表+组内照抄；探针 2 序级对账 |
 | 子包化断私有名 import | 步②探针 1 前置（当前零命中实证） |
 | 子包化扰动层契约/节点口径 | import-linter 绿+§1a 再生成 diff 为空（探针 3/4，判据唯一） |
-| 注册序扰动 | 两序现状冻结（§4.4）；探针 2 插入序 dump 序集双一致兜底 |
-| dump 探针入口踩空（0~4 条残表） | 聚合入口定稿=flows+discover_units（§4.4 实证）；探针内断言条目数防残表 |
+| 注册序扰动 | 三段导入序现状冻结（§4.4）；探针 2 插入序 dump 序集双一致兜底 |
+| dump 探针入口踩空（0/4/420 条残表） | 聚合入口定稿=flows+manning+discover_units 三段叠加（§4.4 实测逐级 4/420/429）；探针内断言条目数防残表 |
 
 回退总原则：每步独立单批、git revert 可逆、回退后重跑该步探针复核。
 
@@ -334,8 +342,9 @@ re-export 公开面。**注册序归因（W2 修正）**：条目注册序由
    文档串（R-1 机制件定性坐实）。
 3. `grep -rln "FormulaSpec(" units_lib/` → 32 文件，**全部为 manifest.py**
    （municipal 13+mine_water 8+sludge 7+conveyance 4）；构造计数 416。
-4. L3 两件：manning.py 9+losses.py 4=13；416+13=**429**（与设计书 429
-   精确一致）。
+4. L3 两件：manning.py 9+losses.py 4=13；416+13=429（与设计书 429 精确
+   一致）。装载链差异：losses 4 条经 flows 链自动注册；manning 9 条无
+   上游 import 链，须显式导入方注册（见 8）。
 5. `DEFAULT_ASSUMPTIONS` 实测：22 键、[0]=safety.superheight、七域键序
    （safety 1|loop 3|grid 1|elevation 9|geometry 1|network 6|design_map 1，
    design_map 尾挂）。
@@ -348,8 +357,12 @@ re-export 公开面。**注册序归因（W2 修正）**：条目注册序由
    量纲真源单归 FormulaSpec.output_dim——D2 前提不成立坐实。
 8. 注册表填充实测：仅 `import waterprint.registry.formulas` → 0 条；
    `import waterprint.app` → 4 条（EL-F1~F4）；`import waterprint.flows`
-   → 4 条；`discover_units()`（32 包）后 → 416 条。全量聚合口径
-   =flows+discover_units=429。
+   → 4 条；`+discover_units()`（32 包）→ **420 条**；
+   `+import waterprint.network.manning` → **429 条全量**。全量聚合口径
+   =三段叠加。**勘正记**（2026-09-18 收口后复核）：初版 §4.4/本条误记
+   flows+discover_units=429，实测=420（manning 9 条不在该两段装载面）；
+   429 总数本身不变（构造点算术 416+13 与三段全量 dump 恰一致），勘正
+   的是探针聚合入口组成——已同步 §4.4/§4.6 步②探针 2/§4.8。
 9. `_REGISTRY` 全仓引用：除 formulas.py 自身外**零命中**（私有名前提
    成立）；formulas.py 无 `__all__`，无下划线公开名 9 个；
    `registry/__init__.py` 自 formulas 聚合 7 名。
