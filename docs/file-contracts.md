@@ -218,6 +218,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
 | `scripts/draft_lock_manifest.py` | 锁面草稿器：工作树实测→应然 manifest 差异+全根清单重锁命令（只读投影绝不写出；不在 AGENTS §7 禁项（禁项=跑 lock_tests.py/改 manifest），任何会话可作漂移自查；CI gates 红面 if:failure() 附着，ADR-015；扫描口径单源=check_readonly import） |
 | `scripts/run_gates.py` | 门禁聚合入口（一键跑全部） |
+| `scripts/gen_status.py` | docs/status.md 生成器：全项目计数指标单一生成源（文件派生零环境依赖——门禁数/锁面键数/OpenAPI/ADR/UF 登记/数据包 data_version/快照锚点；确定性输出禁手编；`--check`=重生成字节比对退 1，CI status 零漂移步骤消费；生成器纪律同 ADR-016 族，不入 GATES） |
 
 ## 5. webapp（M0.5 起机器检查：scripts/check_webapp.py）
 

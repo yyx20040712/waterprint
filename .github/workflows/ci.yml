@@ -143,6 +143,10 @@ jobs:
               )
           print(f"[OK] OpenAPI 契约零漂移（{len(fresh)} 字节逐字节一致）")
           PY
+      # status.md 零漂移（复杂度治理方案四——纯标准库生成器，不依赖 venv）
+      - name: status.md 零漂移（重生成与入库件比对）
+        run: |
+          python3 ../scripts/gen_status.py --check --root ..
 
   webapp:
     name: 前端构建（类型检查）

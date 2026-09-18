@@ -6,6 +6,8 @@ nav:
   - 用户手册: user-manual.md
   - 工程惯例: engineering-conventions.md
   - 未定义特性登记: undefined-features-register.md
+  - 状态计数（生成物）: status.md
+  - 治理件 sunset 登记表: governance-sunset.md
   - 文件职责契约: file-contracts.md
   - 结构图谱: structure-graph.md
   - 业务逻辑规格: business-logic.md
