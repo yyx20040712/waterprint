@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T22:01:29+08:00
-- heartbeat_utc: 2026-09-18T14:06:39Z
+- heartbeat_utc: 2026-09-18T14:23:21Z
 - claim: hubfire-B2-1-20260918T2206
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 4
+- checked_done: 5
 - last_handover: 2026-09-18
 - claimed_by: zcode-hubfire-executor
 - claimed_at: 2026-09-18T22:06:39+08:00
-- next_batch: B2-1（拟定者任务书起草+派发，备源承载——《裁决书》三轮裁决③）
+- next_batch: B2-2（对抗审核——审核者岗异构挑刺不改写，deepseek 承载）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -89,7 +89,7 @@
 
 ### 第二波·批 2 registry 分性质改造（架构级三段通道）
 
-- [ ] B2-1｜拟定者任务书起草+派发（备源承载）→设计书（候选≥2+权衡）
+- [x] B2-1｜拟定者任务书起草+派发（备源承载）→设计书（候选≥2+权衡）
 - [ ] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
 - [ ] B2-3｜主控终裁（负面清单/规格冲突留用户）
 - [ ] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
@@ -188,3 +188,27 @@
 - 用户问询「交接文档是否更新」发现断点未记遗漏——仓外一次性交接文档补建
   （内容已并入本日志 batch 1~3），随后按用户指示升格为本常驻板。教训：
   交接面必须在每批收口路径上（板协议收口四步自此承载）。
+
+### batch B2-1 — 2026-09-18 22:35（hub 火执行者会话：批 2 三段通道第 1 段，完成）
+- 交付：拟定者任务书（.workflow/briefs/b2-1-drafter-brief.md——七段+四附录自包含
+  零仓库接触，含基线数字与两处「草图前提 vs 现实」出入）→备源派发一次成功
+  （kimi-backup/Node 24.21.0，runId=20260918141243-lvht0ygd，in=6042/out=9705，
+  325s 零换源）→设计书 v1（.workflow/plans/registry-split-design-v1.md，未入仓——
+  终裁定案后随 B2-3 升格）。机检：8 章/6 决策组 D1~D6/15 候选行/占位 0/污染 0
+  （零模型代号与 AI 指称）/自检行对账。
+- 设计书要点：推荐组合=公式机制件拆子包（条目留 manifest 原位）+第 3 步降验证型
+  零动作步+assumptions 不引入独立 data_version+按真实键域四件 YAML+急切聚合注册
+  +维持三步序；每步白名单三态/迁移机械（幂等哨兵=改动点标记）/验收探针/回退齐备。
+- 关键发现三条：①公式条目（429 处）本就按线分布在 30 单元 manifest+2 子系统件，
+  formulas.py 本体=机制件——草图「按线分片」字面对象不存在（D1 两案呈报）；
+  ②dimension_specs.py=结果字段量纲件非公式量纲表，GR-42 已满足（D2 条件句不成立）；
+  ③拟定者新增：coefficients 文件名排序装载先例与 DEFAULT_ASSUMPTIONS[0] 锁定冲突
+  →manifest 有序文件列表处置（留终裁）。
+- 事故与修正：主控任务书报告契约漏 audit_surface 岗 FINDINGS 机读尾栏→health-scan
+  RED×1→三步修正（审出件补代渲染尾栏带出处披露+账本缺陷行补 findings 字段+主控
+  披露行 manual-findings-backfill），复扫 RED=0；教训入 B2-2 起任务书模板补尾栏
+  条款。health-scan WARN×3 回显（历史欠账：2026-09-13 设计链同源行/15 行 ok 缺
+  usage/1 行 in=0——非本批引入）。
+- 门禁：run_gates 15 绿+gen_status --check 零漂移（2072B）+health-scan RED=0。
+- Rulings 待用户：无新增（D1~D6 取舍留 B2-3 终裁汇总；若涉方向实质变更届时升格
+  用户裁决）。会话预算内续跑 B2-2（claim 保持，心跳刷新）。
