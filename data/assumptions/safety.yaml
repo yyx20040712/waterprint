@@ -1,0 +1,11 @@
+# 安全域假设（1 键）——T5 D5 种子条目数值红线：default 与 source 逐字取自
+# data/coefficients/factors.yaml 的 factor.screen.superheight 条目（双真源
+# 同步升版义务见 note）。
+- key: safety.superheight
+  default: "0.3"
+  dim: LENGTH
+  source: "旧系统 mod v5.1.0 交叉基线（栅后总高 H = h + h1 + 0.3）；dimension_formulas 注释引 GB50014 超高≥0.3m，条文号待核对原文"
+  note: "跨单元安全超高默认；与 factor.screen.superheight 同源同值（2026-08-23 签字批次）——单元专属档位仍走系数库键，条文核对完成后随数据批同步升版"
+  tuning_impact:
+    direction: "增大超高→池体总高与造价上升"
+    constraint_keys: []

@@ -1,0 +1,34 @@
+# 求解引擎行为域假设（4 键）：回路迭代 3（UF-08/ADR-003，T7a D2 冻结）
+# +枚举网格护栏 1（M2-SOL D1 裁决）——两子域同属引擎行为面，合件承载（D4/W8）。
+- key: loop.tolerance
+  default: "1e-10"
+  dim: DIMENSIONLESS
+  source: "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
+  note: "回路固定点迭代相对残差收敛判据默认值（与锁定测试基准同量级，工程惯例类——引擎算法参数无规范条文可引）；app 装配（T7b）提取本键投影 EngineParam 入 RunEnv.engine_params"
+  tuning_impact:
+    direction: "收紧容差→迭代更严但步数增多，放宽→早停有假收敛风险"
+    constraint_keys: []
+- key: loop.max_iterations
+  default: "200"
+  dim: DIMENSIONLESS
+  source: "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
+  note: "回路迭代步数上限（2+k 工况性能预算 §18.1 <5s 门禁内安全上界）；超限即 LoopDivergence 走发散诊断，禁静默截断"
+  tuning_impact:
+    direction: "增大上限→更耐慢收敛但耗时上升，减小→发散误报增多"
+    constraint_keys: []
+- key: loop.damping
+  default: "0.8"
+  dim: DIMENSIONLESS
+  source: "UF-08/ADR-003 算法参数（总控 T7a 冻结 2026-08-25，工程惯例类）"
+  note: "回路迭代阻尼系数（ADR-003 R3：阻尼默认开启——x_new = (1-λ)·x_old + λ·f(x_old) 抑制强耦合回路振荡）；0 等效关闭，届时须显式覆盖并在方案文档记录"
+  tuning_impact:
+    direction: "增大阻尼→收敛更稳但步数增多，减小→更快但振荡风险上升"
+    constraint_keys: []
+- key: solution.grid.base_per_dim
+  default: "7.0"
+  dim: DIMENSIONLESS
+  source: "重写计划 §12.4（自由参数网格 ≤4^k）/ADR-005（枚举语义）——M2-SOL D1 裁决；Ruling 2026-09-09 B2 批呈裁·用户裁决 A1+A2：市政 5/7 档单元开箱即拒体验缺陷>组合爆炸面预算收紧——基数 4→7；最大实际网格 15≤7²=49 仍远离爆炸面"
+  note: "枚举网格组合数护栏的每维基数上限（总组合 total > base**k 拒，GridTooLarge 附缩小步长/范围建议）；solution/grid.py 消费，数值真源唯一在此（GR-15）"
+  tuning_impact:
+    direction: "增大基数→允许更大网格但枚举耗时与内存上升，减小→护栏更严"
+    constraint_keys: []

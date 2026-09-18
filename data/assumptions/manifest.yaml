@@ -1,0 +1,12 @@
+# 设计假设数据包清单（B2-4 批建立——数值面自 registry/assumptions.py 等价搬家，
+# 定案 docs/design/2026-09-18_registry-split-design.md §4.3/§4.6 步①）。
+# ordered_files=装载序（非文件名排序——对 coefficients 先例的批准偏离：
+# [0] 须使 safety.superheight 居 DEFAULT_ASSUMPTIONS[0]，键序锁定优先）。
+# schema_version=本包条目 schema 版本（初值 1；装载器只认现值，升版须同步装载器）。
+# 版本语义（D3）：数值等价搬家零升版；后续数值变更随 engine_version 联动。
+ordered_files:
+  - safety.yaml
+  - engine.yaml
+  - geo.yaml
+  - network.yaml
+schema_version: 1

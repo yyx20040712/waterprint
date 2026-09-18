@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-18T23:19:54+08:00
-- heartbeat_utc: 2026-09-18T15:22:47Z
-- claim: hubfire-B2-4-20260918T2322-c84672
+- heartbeat_utc: 2026-09-18T16:16:08Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 7
+- checked_done: 8
 - last_handover: 2026-09-18
-- claimed_by: hub 火执行者会话（B2-4 实装步①）
-- claimed_at: 2026-09-18T23:22:47+0800
-- next_batch: B2-4（实装·第一步：assumptions 数值 YAML 化——定案 docs/design/2026-09-18_registry-split-design.md §4.6 步①：白名单三态+四探针；开工先跑键序探针改造前输出留档会话区；golden 红线命中即停批上报）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B2-5（实装·第二步：formulas 机制件拆子包——定案 §4.6 步②+勘误后三段聚合入口口径：白名单三态+四探针（dump=flows+manning+discover_units 三段叠加插入序）；行数预算 spec≤150/store≤150/apply≤200/__init__≤40；开工先跑私有名前置探针+改造前 dump 留档会话区；structure-graph §1a 再生成 diff 非空=红停批）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -62,7 +62,9 @@
   - **执行指令**（调度员注入新任务用，原文）：「（引用技能 batch-relay）基于
     E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——开工
     首步先加载技能 ai-dev-org，再按接力火协议认领并执行本批（工作区根
-    E:\class\智水蓝图\waterprint，相对路径以此为基）」
+    E:\class\智水蓝图\waterprint，相对路径以此为基）。用户指令（2026-09-18
+    调度员转达）：B2-3 的 R-B2-3-1（D1 释义）用户已追认、R-B2-3-2（D2）用户
+    已知悉——收口时两项 Rulings 销案并在批次日志登记用户裁决回执」
   - 禁止创建任何新自动化（成员板禁自布第二条火——hub 全局一条火红线）。
 - 模型路由事实：门一主源周额度达上限（2026-09-18 用户告知）——门一/拟定者
   一律备源承载直至用户另行通知；逐字指令在组织账本 ruling 行。
@@ -92,7 +94,7 @@
 - [x] B2-1｜拟定者任务书起草+派发（备源承载）→设计书（候选≥2+权衡）
 - [x] B2-2｜对抗审核（审核者岗——异构挑刺不改写）
 - [x] B2-3｜主控终裁（负面清单/规格冲突留用户）——D1 释义与 D2 知悉列 Rulings 呈报（定案=docs/design/2026-09-18_registry-split-design.md）
-- [ ] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
+- [x] B2-4｜实装·第一步：assumptions 数值 YAML 化（golden 三案哈希零变硬闸）
 - [ ] B2-5｜实装·第二步：formulas 机制件拆子包（条目留 manifest 原位；注册表 dump 序与集双一致硬闸——D1-B 定案）
 - [ ] B2-6｜实装·第三步：量纲步·验证型零动作（out_dims 对账门禁确认性验收——D2-A 定案）
 
@@ -297,3 +299,47 @@
   READY/claim 归位/7-20 勾选/HEAD 已推；⑧账本 ruling 行在册。
 - Rulings 内容不变：R-B2-3-1（D1 释义追认）/R-B2-3-2（D2 知悉）——等用户裁决，B2-4
   按不阻塞原则待火班接续。
+
+### 调度员增补 — 2026-09-18 23:33（用户裁决回执转达：B2-3 两项 Rulings 销案依据）
+- 用户在 hub 调度会话下达（2026-09-18 23:31）：**R-B2-3-1（D1 释义）→ 追认；
+  R-B2-3-2（D2）→ 知悉**。
+- 已随板头执行指令字段追加转达条款（Synapse 门一换源指令同款模式）——B2-4
+  收口后的下一班发布即随注入指令收到，该批执行者收口时销案并在批次日志登记
+  用户裁决回执。
+- 板面其余未动（B2-4 在跑，claim 归执行者；本增补纯尾部追加零竞态）。
+
+### 调度员增补二 — 2026-09-18T23:55:50+08:00（hub 停火：用户令删火，新会话接替换防）
+- 用户在 hub 调度会话下达删火令：全局轮转火 automation-bf8fd7d7-fa7b-4194-a850-
+  2c702565068e 已 CronDelete（回执 deleted:true，CronList 空集复核）。本条为
+  调度员尾部纯追加，claim/状态字段未动（B2-4 在跑）。
+- 用户将开新会话接替 hub 调度位，按技能「换防协议」hub 变体重布防：板不重建、
+  新火 id 届时锚定回填本板 automation_id 字段行（本行现值仅历史审计指向）。
+- 板头执行指令中的用户转达条款（B2-3 两项 Rulings 裁决回执）与备源承载事实
+  保持有效，新调度员发布时照板上原文注入即自动携带。
+
+### batch B2-4 — 2026-09-19 00:05（hub 火执行者会话：批 2 实装步①，完成）
+- 交付：assumptions 数值 YAML 化——数据包 data/assumptions/ 5 件（manifest+四域 21 键，
+  default 加引号串，组内键序照抄改造前）+ registry/assumptions.py 500→**200 行**装载器
+  （§4.3 六条全落：白名单/有序装载/恰六键/bool 拒 float 收编+type is float 断言/21+1 伴生
+  尾挂装配/只读纪律；W9 双哨兵=批次行+_YAML_DATA_DIR）+file-contracts 6 行（5 数据件行
+  +1 更新行——「≤200 行」注记入行使 check_file_budgets 注记一致性机锁预算=设计探针④括注
+  的机制化兑现）+status.md 派生重生成（新行「assumptions（未声明）」=D3 无 data_version
+  的正确显示口径）。
+- 等价性证据：全 22 键 repr 串 sha256 改造前后恒等（332eb54c…094a）；键序探针逐字符一致
+  （1|3|1|9|1|6|1 分段闭合）；golden 4 绿；core 773+server 313 绿；门禁 15 绿+gen_status
+  零漂移+health-scan RED=0（WARN×3 历史欠账回显）。
+- 门一（ops-gate1-k2 备源承载，审包 727 行自包含）：B0/W3/N6 PASS——三 W 批内修复复验：
+  F-1 _load_yaml except 增 OSError（条目文件缺失不再裸逃逸）；F-2 constraint_keys 补
+  Sequence 守卫（堵映射键静默收编+非可迭代 TypeError 逃逸）；F-3 覆盖值路径 no_str=True
+  恢复拒 str（签名契约回归）；负例三项实测全拒。门二（ops-probe 独立重跑）：验证矩阵
+  10/10 PASS。审档与三件 YAML 全文存 .workflow/reviews/（F-4 处置）。
+- 预算裁剪披露（200 行达成代价，门一 N 级过）：异常消息文本精简（键+病因保留，测试面
+  match .+ 不锁文本）/类 docstring 撤并模块头/dunder 单行化（ruff E704 未启用实测过）。
+  挂账：F-7 ordered_files 路径形态约束（受控数据场景低险，开放外部输入前补）；F-8 PyYAML
+  同名键静默覆盖（票面批注内数据维护风险知悉）。
+- 批前收编：设计书聚合入口三段勘误（上批会话遗留未提交笔——manning 段补入，涉 B2-5
+  dump 探针口径；独立复测 flows=4/+discover_units=420/+manning=429 一致后单独 commit）。
+- Rulings 销案（调度员增补转达用户裁决 2026-09-18 23:31）：**R-B2-3-1（D1 释义）→用户
+  追认；R-B2-3-2（D2 知悉）→用户已知悉**。本批无新增 Rulings。
+- 账本：gate1（含 findings 字段——B2-1 教训兑现）/probe/impl 三行。
+- 勾选 7→8/20；next_batch=B2-5（实装步②，输入=定案 §4.6 步②）。
