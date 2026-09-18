@@ -8,6 +8,8 @@ nav:
   - 未定义特性登记: undefined-features-register.md
   - 状态计数（生成物）: status.md
   - 治理件 sunset 登记表: governance-sunset.md
+  - 复杂度治理裁决书（2026-09-18）: design/2026-09-18_complexity-governance-ruling.md
+  - 批次接力状态板: handoff/relay.md
   - 文件职责契约: file-contracts.md
   - 结构图谱: structure-graph.md
   - 业务逻辑规格: business-logic.md
