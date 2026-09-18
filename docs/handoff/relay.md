@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-bf8fd7d7-fa7b-4194-a850-2c702565068e
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-18T22:01:29+08:00
-- heartbeat_utc: 2026-09-18T14:37:56Z
-- claim: -
+- last_dispatch: 2026-09-18T22:46:58+08:00
+- heartbeat_utc: 2026-09-18T14:48:49Z
+- claim: hubfire-B2-3-20260918T2248
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 6
 - last_handover: 2026-09-18
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub火执行者会话(B2-3)
+- claimed_at: 2026-09-18T22:48:49+08:00
 - next_batch: B2-3（主控终裁——输入=设计书v1（.workflow/plans/registry-split-design-v1.md）+审核报告v1（.workflow/briefs/b2-2-auditor-output.md，B0/W12/N6/PASS）+仓外镜像 waterprint-archive/b2-registry-design-2026-09/；D1/D2 前提出入涉用户裁决方向实质→呈用户；W 级发现并入终裁处置）
 
 ## protocol（角色自识别 + 最小兜底协议）
