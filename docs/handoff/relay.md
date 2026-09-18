@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T05:01:15+08:00
-- heartbeat_utc: 2026-09-18T20:52:56Z
+- heartbeat_utc: 2026-09-18T21:55:00Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 11
+- checked_done: 12
 - last_handover: 2026-09-19
 - claimed_by: -
 - claimed_at: -
-- next_batch: B3-b（批 3 第二步：webapp SSE EventSource 生命周期双实现+域色双源→shared 收敛——useTaskFeed/useExportBatch→shared/api/useTaskEventSource.ts+semanticColors 增 domain 键；vitest 全绿+视觉零漂移[同值搬家]验收）
+- next_batch: B3-c（批 3 第三步：core B4 双胞胎+异常表两份→§1c 同层边——架构级三段通道〔社区调研→拟定→对抗审核→主控终裁〕；golden 三案哈希零变+import-linter 绿验收）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -100,7 +100,7 @@
 ### 第三波·批 3 同层晋升（复制收敛——《裁决书》方案二）
 
 - [x] B3-a｜server 七份 `_latest_calc_result` 复制→services/_shared/（准入五条）
-- [ ] B3-b｜webapp SSE 生命周期双实现+域色双源→shared 收敛
+- [x] B3-b｜webapp SSE 生命周期双实现+域色双源→shared 收敛
 - [ ] B3-c｜core B4 双胞胎+异常表两份→§1c 同层边（架构级三段通道）
 
 ### 第四波·业务线（《裁决书》方案五排序）
@@ -342,3 +342,41 @@
 - 转达条款规则自此定型：执行指令只携带**未销案**的用户指令（销案或用户明示
   解除即摘除）；历史日志中已发生的携带记录不回改。
 - 本板现存持续有效指令：门一/拟定者备源承载（直至用户另行通知）——继续携带。
+### batch B3-b — 2026-09-19 05:55（hub 火执行者会话：批 3 第二步·webapp SSE+域色收敛，完成）
+- 交付（commits 1279871+4545b74+本板面笔）：shared/api/useTaskEventSource 新建（全库唯一
+  new EventSource 处）——useTaskEventSource 长订阅 hook（退避/慢探测恢复态机+onConnection
+  三态，生命周期自 useTaskFeed 逐行搬家）+subscribeTaskEvents 命令面（一次性等待——onerror
+  不自动 close 保浏览器内建重连）+TaskEventReading 解读协议（drop/event/terminal 三态——
+  解析归约注入归消费方，内核零业务分支）；useTaskFeed 改归约薄壳（ConnectionState/重连
+  纯函数族再导出保公开面——solutionsPane/TaskPanel/测试件 import 零改动）；useExportBatch.
+  awaitTerminal 改接命令面（EventSource 自建删除——失败计数/超时/取代守卫留业务面，interpret
+  先归零后解析口径保持=原双实现畸形面语义各自保真未强行同构）。域色面：semanticColors 增
+  DOMAIN_COLORS 五字面+domain_* 五键（pipe 两键改引用灭文件内双写；29→34 键冻结锚同步）；
+  unitGlyph 域色/流色/NEUTRAL_DOMAIN+CanvasFlow LEGEND_LINES 收编键引用（同值搬家零漂移）；
+  global.css --wp-* 轴保留=UF-53 新立挂账（十四节入册——SVG 不能 var() 根因性债，裁决明示
+  另立不强解）。契约同步：shared/api+shared/ui+solutions/drawings/canvas 五 README+status
+  重入库（UF 53/webapp 测试 66）。
+- 等价性证据（双门+机检）：vitest 66 文件 762 passed（基线 65/754+内核 8；门二双跑复核）+
+  tsc 零错+vite build 绿+check_webapp 236 契约头+run_gates 全绿+gen_status 重入库零漂移
+  （2158B）+残留双扫描（new EventSource 全库唯一=useTaskEventSource.ts；四域色 hex 在
+  单源/CSS 轴/测试件外零命中）。门一（ops-gate1-k2 备源承载，审包 1224 行自包含——双 hook
+  等价性审计最小必要面）**B0/W2/N4 PASS**：A1 SSE 逐路径等价全对账+两独立推演（onError
+  闭包 TDZ+旧流误关新流竞态=WHATWG readyState 阻断派发定谳安全；awaitTerminal 终态四路
+  竞态逐帧等价）；W2=F1（drop 鉴别用例非判别性——门一构造对照世界全断言同果证伪）+F2
+  （taskId 切换路径零直测）→处置笔 4545b74 修 F1（可切换解读桩+退避梯实例计数钉死：drop
+  不归零→2s 梯 vs 归零→1s 梯，+1s 处实例数分叉——两世界判别性成立）+F5（头注计数）；
+  N 挂账三条：F2（React 桩依赖数组失灵系测试面局限，真实语义门一已推演等价）/F4
+  （NEUTRAL_DOMAIN/LEGEND_LINES 字面量类型→string 漂移，运行时零影响）/F6（awaitTerminal
+  detach 无条件结清 pendingFailRef 既往隐患随迁——原件同款非本批引入）。门二（ops-probe
+  独立重跑未读主控结论）矩阵 **9/9 全 GREEN 零 RED**。
+- **F3 更正（门一 N 项——D4 披露时序描述失实）**：审包 §8 D4 曾称「覆盖前收旧流原在 new
+  EventSource 前」——实况原序=先构造后收旧（原件 574/577 行），新序=先收旧后构造；构造
+  函数无同步副作用（事件派发恒异步），两序行为等价结论不受影响（门一裁定：依据失实、
+  结论正当）。
+- Rulings：本批无新增（实装与《裁决书》方案二 2b 字面吻合、准入五条全过、零未规划
+  裁策项；范围外三处——PortHandle 非语义灰阶/图标 rgba 族/CSS 轴——门一 D5 裁定正当）。
+- 账本：gate1（B0/W2/N4）/probe（9/9）/impl 三行；health-scan RED=0/WARN×3（历史欠账
+  回显，非本批引入）。锁面零动作（webapp 测试不在 LOCKED_ROOTS=core/tests+server/tests；
+  新增内核测试件 1+冻结锚更新 1 均无信任根触碰）。
+- 勾选 11→12/20；next_batch=B3-c。CI 守望：本批推送（4545b74+板面笔）首跑绿证随守望
+  补记（收口即推送+守望 CI 至绿——三轮裁决④）。
