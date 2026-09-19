@@ -227,9 +227,11 @@ class _MineTiaojiechi:
                 "wall_coef": _factor(p, "factor.mine_tiaojiechi.wall_thickness_coef", _UNIT_ID),
             },
         )
+        e_stir = _apply(ctx, "KT-F13", {"p_stir": p_stir})
         dims = {
             **basin,
             "p_stir": p_stir,
+            "e_stir": e_stir,
             "d_out_raw": d_out_raw,  # 离散前原值（DN 档审计面）
             "dn_out": dn_out,
             "h_total": h_total,

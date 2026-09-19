@@ -184,6 +184,11 @@ def main() -> int:
     failures: list[str] = []
     for path in sorted(UNITS_LIB.glob("*/*/manifest.py")):
         unit_id, formulas, out_dims = parse_manifest(path)
+        # B4-2a 预算墙拆件（ADR-024 D1）：兄弟声明件 formulas_*.py 的规格
+        # 并组——条目仍在单元包内，基准①（FormulaSpec.output_dim）同源合并
+        for extra in sorted(path.parent.glob("formulas_*.py")):
+            _, extra_formulas, _ = parse_manifest(extra)
+            formulas.update(extra_formulas)
         if not out_dims:
             continue
         declared += len(out_dims)

@@ -240,6 +240,16 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    FormulaSpec(
+        "KN-F16",
+        "e_stir = p_total * 24",
+        {
+            "p_total": (_D, "四区搅拌全厂装机功率 kW（KN-F6 导出量）"),
+        },
+        _D,
+        "四区搅拌日耗电（kW×h=kWh/d——连续运行 24 h/d；B4-2a 能耗面"
+        " 2026-09-19，计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:

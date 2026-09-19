@@ -38,6 +38,7 @@
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.formulas import FormulaSpec, register
+from waterprint.units_lib.municipal.cass.formulas_energy import FORMULAS_ENERGY
 
 UNIT_ID = "municipal_cass"
 
@@ -330,7 +331,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "n_pool": (_D, "池数（参数 n_pool）"),
             "h2": (_L, "有效水深 m（参数 h2）"),
             "f_aerator_service": (_AREA, "微孔曝气器单头服务面积 m2"
-                                         "（factor.cass.aerator.service_area）"),
+                                " （factor.cass.aerator.service_area）"),
         },
         _D,
         "GB 50014-2021 §7.9.6（数量按供气量与服务面积确定——服务面积"
@@ -339,6 +340,9 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "m²/个、带 0.3~0.65[ds 审 W-2]——待领域专家追认）",
     ),
 )
+
+# B4-2a 能耗族并组（ADR-024 D1 预算墙拆件——规格住 formulas_energy.py，单元包原位+单注册口）
+_FORMULAS = (*_FORMULAS, *FORMULAS_ENERGY)
 
 for _spec in _FORMULAS:
     register(_spec)
@@ -358,11 +362,8 @@ manifest = load_manifest(
         # 时段参数与 tn_eff/步长无范围来源不设
         "params": [
             {
-                "field_id": "n_pool",
-                "label_zh": "池数（格）",
-                "dim": "DIMENSIONLESS",
-                "default": 4.0,
-                "grid": [2, 3, 4, 5, 6],
+                "field_id": "n_pool", "label_zh": "池数（格）", "dim": "DIMENSIONLESS",
+                "default": 4.0, "grid": [2, 3, 4, 5, 6],
             },
             {
                 "field_id": "t_cycle",
@@ -372,12 +373,7 @@ manifest = load_manifest(
                 "grid": [4, 6, 8],
             },
             {"field_id": "t_react", "label_zh": "反应时段", "dim": "TIME_H", "default": 2.0},
-            {
-                "field_id": "t_settle",
-                "label_zh": "沉淀时段",
-                "dim": "TIME_H",
-                "default": 1.0,
-            },
+            {"field_id": "t_settle", "label_zh": "沉淀时段", "dim": "TIME_H", "default": 1.0},
             {"field_id": "t_draw", "label_zh": "滗水时段", "dim": "TIME_H", "default": 1.0},
             {
                 "field_id": "ns",
@@ -467,6 +463,11 @@ manifest = load_manifest(
             {"field_id": "n_aerator_raw", "dim": "DIMENSIONLESS", "label_zh": "曝气头个数（计算）"},
             {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
              "label_zh": "曝气头个数（单池主反应区）"},
+            {"field_id": "q_air", "dim": "FLOW", "label_zh": "曝气供气量"},
+            {"field_id": "p_blower", "dim": "DIMENSIONLESS", "label_zh": "风机轴功率（kW）"},
+            {"field_id": "e_aeration", "dim": "DIMENSIONLESS", "label_zh": "曝气日耗电（kWh/d）"},
+            {"field_id": "p_stir", "dim": "DIMENSIONLESS", "label_zh": "选择区搅拌功率（kW）"},
+            {"field_id": "e_stir", "dim": "DIMENSIONLESS", "label_zh": "搅拌日耗电（kWh/d）"},
         ],
         "ports": [
             {"port_id": "in", "fluid": "WATER", "direction": "IN"},

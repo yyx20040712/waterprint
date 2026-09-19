@@ -307,7 +307,7 @@ class _SludgeBengzhan:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """BZ-F1~F18 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """BZ-F1~F20 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         inflow = _inflow_sludge(ctx, "泵站单入单出语义")
@@ -318,6 +318,28 @@ class _SludgeBengzhan:
         pipe = _pipe(ctx, p, pumps)
         head = _head(ctx, p, pipe)
         well = _well(ctx, p, pumps)
+        p_pump = _apply(
+            ctx,
+            "BZ-F19",
+            {
+                "rho_water": _factor(p, "factor.bengzhan.pump.water_density", _UNIT_ID),
+                "g_gravity": _factor(p, "factor.bengzhan.pump.gravity", _UNIT_ID),
+                "q_pump_si": pumps["q_pump_si"],
+                "h_pump": head["h_pump"],
+                "eta_pump": _factor(p, "factor.bengzhan.pump.efficiency", _UNIT_ID),
+            },
+        )
+        e_pump = _apply(
+            ctx,
+            "BZ-F20",
+            {
+                "rho_water": _factor(p, "factor.bengzhan.pump.water_density", _UNIT_ID),
+                "g_gravity": _factor(p, "factor.bengzhan.pump.gravity", _UNIT_ID),
+                "q_wet": q_wet,
+                "h_pump": head["h_pump"],
+                "eta_pump": _factor(p, "factor.bengzhan.pump.efficiency", _UNIT_ID),
+            },
+        )
         ds_out = _apply(ctx, "BZ-F17", {"ds_in": ds_in})
         p_out = _apply(ctx, "BZ-F18", {"p_in": p_in})
         dims = {
@@ -331,6 +353,8 @@ class _SludgeBengzhan:
             "ds_out": ds_out,
             "p_out": p_out,
             "q_out": q_wet,
+            "p_pump": p_pump,
+            "e_pump": e_pump,
         }
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(

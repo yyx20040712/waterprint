@@ -295,7 +295,7 @@ class _WushuiTisheng:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """TS-F1~F14 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """TS-F1~F16 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "泵房单入单出语义")
@@ -304,7 +304,30 @@ class _WushuiTisheng:
         pipe = _pipe(ctx, p, pumps["q_pump"])
         head = _head(ctx, p, pipe["h_loss"])
         well = _well(ctx, p, pipe["q_pump_si"])
-        arrays = {**pumps, **pipe, **head, **well}
+        energy = _apply_batch(
+            ctx,
+            "TS-F15",
+            {
+                "rho_water": _vec(_factor(p, "factor.wushui_tisheng.pump.water_density", _UNIT_ID)),
+                "g_gravity": _vec(p["g_gravity"]),
+                "q_pump_si": pipe["q_pump_si"],
+                "h_pump": head["h_pump"],
+                "eta_pump": _vec(_factor(p, "factor.wushui_tisheng.pump.efficiency", _UNIT_ID)),
+            },
+        )
+        e_pump = _apply_batch(
+            ctx,
+            "TS-F16",
+            {
+                "rho_water": _vec(_factor(p, "factor.wushui_tisheng.pump.water_density", _UNIT_ID)),
+                "g_gravity": _vec(p["g_gravity"]),
+                "q_avg_daily": _vec(flow.q_avg_daily),
+                "h_pump": head["h_pump"],
+                "eta_pump": _vec(_factor(p, "factor.wushui_tisheng.pump.efficiency", _UNIT_ID)),
+            },
+        )
+        arrays = {**pumps, **pipe, **head, **well,
+                  "p_pump": energy, "e_pump": e_pump}
         dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         return UnitResult(

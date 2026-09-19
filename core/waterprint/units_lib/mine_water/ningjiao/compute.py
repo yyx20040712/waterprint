@@ -347,7 +347,11 @@ class _MineNingjiao:
         gt_total = _gt(ctx, p)
         dose = _dose(ctx, p, flow)
         depth = _depth(ctx, p, zones)
-        dims = {**zones, **power, **layout, "gt_total": gt_total, **dose, **depth}
+        e_stir = _apply(ctx, "KN-F16", {"p_total": power["p_total"]})
+        dims = {
+            **zones, **power, **layout, "gt_total": gt_total, **dose, **depth,
+            "e_stir": e_stir,
+        }
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         quality = ctx.inqualities.get(in_ref, WaterQuality({}))
         return UnitResult(

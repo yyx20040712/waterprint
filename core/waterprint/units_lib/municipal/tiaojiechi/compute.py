@@ -210,7 +210,7 @@ class _Tiaojiechi:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """TJ-F1~F13 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """TJ-F1~F14 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "调节池单入单出语义")
@@ -258,9 +258,11 @@ class _Tiaojiechi:
                 "wall_coef": _vec(_factor(p, "factor.tiaojiechi.wall_thickness_coef", _UNIT_ID)),
             },
         )
+        e_stir = _apply_batch(ctx, "TJ-F14", {"p_stir": p_stir})
         arrays = {
             **basin,
             "p_stir": p_stir,
+            "e_stir": e_stir,
             "q_pump1": q_pump1,
             "d_overflow": d_overflow,
             "h_total": h_total,

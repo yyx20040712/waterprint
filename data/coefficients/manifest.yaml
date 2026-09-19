@@ -1,6 +1,19 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.2.0"
+data_version: "1.3.0"
 # 变更记录：
+#   - 1.3.0: B4-2a 能耗药耗计算面（碳核算前置一——ADR-024；计算逻辑
+#       经用户审查 R-B42a-1）：factors.yaml 增 18 键（实测口径 513→531——历史变更记录沿用的累计计数与他文件并计口径不一，本条起改记 factors.yaml 实数：
+#       factor.aao.{blower.sor_factor/o2_per_air/oxygen_transfer_eff/
+#       pressure_kpa/efficiency, stir.power_density} 六键 + factor.cass.
+#       {blower 同族五键 + blower.duty_ratio + stir.power_density} 七键
+#       + factor.wushui_tisheng.pump.{efficiency,water_density} 两键
+#       + factor.bengzhan.pump.{efficiency,water_density,gravity} 三键）。消费面
+#       =AAO AO-F21~F25/CASS CA-F29~F33（曝气供气→风机轴功率→日耗电
+#       +生物池搅拌）/TS-F12~F13/BZ-F12~F13（泵轴功率→日耗电）/
+#       TJ-F14·KT-F16·GM-F21·KN 系（既有搅拌功率×24h 日耗电）。
+#       档位=工程常用带中值 AI 起草待领域专家追认；AOR→SOR 五系数
+#       分列修正/电机装机口径/紫外电耗挂账 B4-2b。1.2.0 既有 579 键
+#       零扰动（bz 重力=物理常数经系数库承载——BZ 表无 g_gravity 参数行）。
 #   - 1.2.0: 曝气头数据面批（批3 段三候选先行——用户已裁）：factors.yaml
 #       增 2 键（577→579：factor.aao.aerator.service_area=0.5 +
 #       factor.cass.aerator.service_area=0.5，单位 m2——微孔曝气器单头

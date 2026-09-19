@@ -238,6 +238,36 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _D,
         "contracts.sludge R1（含水率穿流显式）",
     ),
+    FormulaSpec(
+        "BZ-F19",
+        "p_pump = rho_water * g_gravity * q_pump_si * h_pump / (eta_pump * 1000)",
+        {
+            "rho_water": (_D, "污泥密度按水计 kg/m3（factor.bengzhan.pump.water_density）"),
+            "g_gravity": (_D, "重力加速度 m/s2（factor.bengzhan.pump.gravity）"),
+            "q_pump_si": (_D, "最大一台泵秒流量 m3/s（BZ-F4）"),
+            "h_pump": (_D, "泵扬程 m（BZ-F11）"),
+            "eta_pump": (_D, "污泥泵组效率（factor.bengzhan.pump.efficiency）"),
+        },
+        _D,
+        "《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η"
+        "（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——"
+        "待领域专家追认；/1000=W→kW）",
+    ),
+    FormulaSpec(
+        "BZ-F20",
+        "e_pump = rho_water * g_gravity * q_wet * h_pump / (eta_pump * 3600000)",
+        {
+            "rho_water": (_D, "污泥密度按水计 kg/m3（factor.bengzhan.pump.water_density）"),
+            "g_gravity": (_D, "重力加速度 m/s2（factor.bengzhan.pump.gravity）"),
+            "q_wet": (_D, "日湿泥量 m3/d（入流 q_wet——泵站全天输送量）"),
+            "h_pump": (_D, "泵扬程 m（BZ-F11）"),
+            "eta_pump": (_D, "污泥泵组效率（factor.bengzhan.pump.efficiency）"),
+        },
+        _D,
+        "污泥泵站日耗电能量法（ρg·q_wet·H/η→J/d÷3.6e6→kWh/d——间歇"
+        "运行由能量法自然消化；B4-2a 能耗面起草——计算逻辑经用户审查"
+        "R-B42a-1，待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:

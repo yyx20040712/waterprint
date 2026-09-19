@@ -215,6 +215,36 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    FormulaSpec(
+        "TS-F15",
+        "p_pump = rho_water * g_gravity * q_pump_si * h_pump / (eta_pump * 1000)",
+        {
+            "rho_water": (_D, "水的密度 kg/m3（factor.wushui_tisheng.pump.water_density）"),
+            "g_gravity": (_D, "重力加速度 m/s2（参数 g_gravity）"),
+            "q_pump_si": (_F, "单泵流量 m3/s"),
+            "h_pump": (_L, "泵扬程 m（TS-F9）"),
+            "eta_pump": (_D, "泵组效率（factor.wushui_tisheng.pump.efficiency）"),
+        },
+        _D,
+        "《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η"
+        "（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——"
+        "待领域专家追认；/1000=W→kW；电机效率/装机裕度挂账 B4-2b）",
+    ),
+    FormulaSpec(
+        "TS-F16",
+        "e_pump = rho_water * g_gravity * q_avg_daily * h_pump * 24 / (eta_pump * 1000)",
+        {
+            "rho_water": (_D, "水的密度 kg/m3（factor.wushui_tisheng.pump.water_density）"),
+            "g_gravity": (_D, "重力加速度 m/s2（参数 g_gravity）"),
+            "q_avg_daily": (_F, "平均日流量 m3/s"),
+            "h_pump": (_L, "泵扬程 m（TS-F9——设计点扬程口径）"),
+            "eta_pump": (_D, "泵组效率（factor.wushui_tisheng.pump.efficiency）"),
+        },
+        _D,
+        "泵站日耗电能量法：日提升水量×扬程（ρg·Q_avg·H/η×24h——流量按"
+        "平均日、扬程按设计点双口径注记；间歇启停由能量法自然消化；"
+        "B4-2a 能耗面起草——计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:

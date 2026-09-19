@@ -1,4 +1,4 @@
-"""AAO 生物池计算实现：唯一计算源（AO-F1~F20 全经 registry.apply_batch
+"""AAO 生物池计算实现：唯一计算源（AO-F1~F25 全经 registry.apply_batch
 求值——批 13-A 同源向量路径：公式链以 ndarray 流动，标量=N=1 退化）。
 
 输入:  UnitContext（上游量 + 参数 + 工况 + 假设 + 迹收集器）
@@ -12,7 +12,8 @@
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
-# 【公式组】AO-F1~F20（docs/norms/aao.md 起草表+L7 池体图元批几何族+曝气头数据面批；
+# 【公式组】AO-F1~F25（docs/norms/aao.md 起草表+L7 池体图元批几何族+曝气头数据面批
+#   +B4-2a 能耗族 AO-F21~F25——声明住 formulas_energy.py/计算段住 energy.py；
 #   manifest.py 登记）——
 #   五项公式清单全覆盖义务：污泥负荷/分区容积（AO-F1~F5）、需氧量
 #   （AO-F9~F12）、内外回流比（AO-F13/F14）、剩余污泥量（AO-F6~F8）、
@@ -64,6 +65,7 @@ from waterprint.contracts.unit_api import (
 from waterprint.units_lib._constants import SECS_PER_DAY
 from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _vec
+from waterprint.units_lib.municipal.aao.energy import _energy, _oxygen
 from waterprint.units_lib.municipal.aao.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_aao"
@@ -177,39 +179,6 @@ def _sludge(
         ),
     }
 
-
-def _oxygen(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_o: _Array
-) -> dict[str, _Array]:
-    """AO-F9~F12：碳化/硝化/反硝化需氧量与设计需氧量。"""
-    vss_ratio = _factor(p, "factor.aao.vss_ratio", _UNIT_ID)
-    x_vss = _vec(vss_ratio) * _vec(p["x_mlss"])
-    o2_carbon = _apply_batch(
-        ctx,
-        "AO-F9",
-        {
-            "a_prime": _vec(_factor(p, "factor.aao.o2.a_prime", _UNIT_ID)),
-            "q_avg_daily": _vec(flow.q_avg_daily),
-            "bod5_in": qual["bod5_in"],
-            "bod5_out": qual["bod5_out"],
-            "b_prime": _vec(_factor(p, "factor.aao.o2.b_prime", _UNIT_ID)),
-            "v_o": v_o,
-            "x_vss": x_vss,
-        },
-    )
-    tkn = {"q_avg_daily": _vec(flow.q_avg_daily), "tkn_in": qual["tn_in"],
-           "tn_eff": _vec(p["tn_eff"])}
-    o2_nit = _apply_batch(ctx, "AO-F10", tkn)
-    o2_denit = _apply_batch(ctx, "AO-F11", tkn)
-    return {
-        "x_vss": x_vss,
-        "o2_carbon": o2_carbon,
-        "o2_nit": o2_nit,
-        "o2_denit": o2_denit,
-        "o2_total": _apply_batch(
-            ctx, "AO-F12", {"o2_carbon": o2_carbon, "o2_nit": o2_nit, "o2_denit": o2_denit}
-        ),
-    }
 
 
 def _returns(ctx: UnitContext, p: dict[str, float], flow: WaterFlow) -> dict[str, _Array]:
@@ -351,7 +320,7 @@ class _Aao:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """AO-F1~F20 主算路径（纯函数：同 ctx 必同 UnitResult——向量路径 N=1）。"""
+        """AO-F1~F25 主算路径（纯函数：同 ctx 必同 UnitResult——向量路径 N=1）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "生物池单入单出语义")
@@ -372,7 +341,8 @@ class _Aao:
         oxygen = _oxygen(ctx, p, flow, qual, volumes["v_o"])
         returns = _returns(ctx, p, flow)
         geometry = _geometry(ctx, p, volumes["v_total"], volumes["v_o_series"])
-        arrays = {**volumes, **sludge, **oxygen, **returns, **geometry}
+        energy = _energy(ctx, p, oxygen, volumes)
+        arrays = {**volumes, **sludge, **oxygen, **returns, **geometry, **energy}
         dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")

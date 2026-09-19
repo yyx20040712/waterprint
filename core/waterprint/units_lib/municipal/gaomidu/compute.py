@@ -341,7 +341,10 @@ class _Gaomidu:
         mixfloc = _mix_floc(ctx, p, basin)
         sludge = _sludge_dose(ctx, p, flow, basin, ss_in)
         depth = _depth(ctx, p, basin, mixfloc)
-        arrays = {**basin, **mixfloc, **sludge, **depth}
+        e_stir = _apply_batch(
+            ctx, "GM-F21", {"p_mix": mixfloc["p_mix"], "p_floc": mixfloc["p_floc"]}
+        )
+        arrays = {**basin, **mixfloc, **sludge, **depth, "e_stir": e_stir}
         dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")

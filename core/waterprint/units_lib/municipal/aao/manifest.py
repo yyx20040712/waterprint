@@ -49,6 +49,7 @@
 from waterprint.contracts.manifest import load_manifest
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.formulas import FormulaSpec, register
+from waterprint.units_lib.municipal.aao.formulas_energy import FORMULAS_ENERGY
 
 UNIT_ID = "municipal_aao"
 
@@ -303,6 +304,10 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
     ),
 )
 
+# B4-2a 能耗族并组（ADR-024 D1：预算墙拆件——规格住 formulas_energy.py，
+# 单元包原位声明+manifest 单注册口保持）
+_FORMULAS = (*_FORMULAS, *FORMULAS_ENERGY)
+
 for _spec in _FORMULAS:
     register(_spec)
 
@@ -474,6 +479,11 @@ manifest = load_manifest(
             {"field_id": "n_aerator_raw", "dim": "DIMENSIONLESS", "label_zh": "曝气头个数（计算）"},
             {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
              "label_zh": "曝气头个数（单池好氧区）"},
+            {"field_id": "q_air", "dim": "FLOW", "label_zh": "曝气供气量"},
+            {"field_id": "p_blower", "dim": "DIMENSIONLESS", "label_zh": "风机轴功率（kW）"},
+            {"field_id": "e_aeration", "dim": "DIMENSIONLESS", "label_zh": "曝气日耗电（kWh/d）"},
+            {"field_id": "p_stir", "dim": "DIMENSIONLESS", "label_zh": "缺氧厌氧搅拌功率（kW）"},
+            {"field_id": "e_stir", "dim": "DIMENSIONLESS", "label_zh": "搅拌日耗电（kWh/d）"},
         ],
     }
 )

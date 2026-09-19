@@ -2930,3 +2930,116 @@
   unit: "mg/L"
   source: "GB 3838-2002（地表水环境质量标准）表 1 III 类限值[I1 从严——矿井水案例 v2 出水目标]；GOLDEN3 D3 起草 2026-08-28"
   note: "std 键族·地表水 III 类 TP（总磷）限值 0.2 mg/L（消费面=矿井水案例 v2 出水目标；市政不绑）；表 1 无 SS 项故 std.gb3838_iii.ss 不建（SS 无地表水 III 类限值项——注记）；数据策略 v2"
+
+# ── B4-2a 能耗药耗计算面（2026-09-19；ADR-024；计算逻辑经用户审查）──
+# 曝气风机/泵轴功率/生物池搅拌三族系数（碳核算前置一——档位=工程常用
+# 带中值，AI 起草待领域专家追认；AOR→SOR 五系数分列修正/电机与装机
+# 口径挂账 B4-2b 运行成本面）。
+
+- key: "factor.aao.blower.sor_factor"
+  value: 1.33
+  unit: "dimensionless"
+  source: "AOR→SOR 折算系数（α·β·ρ·DO/Cs 修正积工程综合档；给水排水设计手册微孔曝气修正带）"
+  note: "实际需氧量转标准传氧速率综合折算（带 1.2~1.5 取 1.33；五系数分列修正挂账 B4-2b）；消费面=AAO AO-F21"
+
+- key: "factor.aao.blower.o2_per_air"
+  value: 0.28
+  unit: "kg/m3"
+  source: "标态空气含氧质量浓度（ρ_air=1.293×O2 21%≈0.272，工程常取 0.28）"
+  note: "供气量法 Gs=O2/(0.28·EA) 手册口径；消费面=AAO AO-F21"
+
+- key: "factor.aao.blower.oxygen_transfer_eff"
+  value: 0.20
+  unit: "dimensionless"
+  source: "微孔曝气氧利用率（工程常用带 0.15~0.25 取 0.20）"
+  note: "EA——与曝气器服务面积同族数据策略（草案待追认）；消费面=AAO AO-F21"
+
+- key: "factor.aao.blower.pressure_kpa"
+  value: 70.0
+  unit: "kPa"
+  source: "风机出口压力档（有效水深 6 m 档+管路损失裕量；工程带 60~80）"
+  note: "P=Q·Δp/η 轴功率式的 Δp（kPa×m3/s=kW 直读）；消费面=AAO AO-F22"
+
+- key: "factor.aao.blower.efficiency"
+  value: 0.70
+  unit: "dimensionless"
+  source: "罗茨风机综合效率（绝热+机械；工程带 0.60~0.75 取 0.70）"
+  note: "消费面=AAO AO-F22；离心风机高档位挂账 B4-2b"
+
+- key: "factor.aao.stir.power_density"
+  value: 6.0
+  unit: "W/m3"
+  source: "给水排水设计手册（第 5 册 城镇排水）缺氧/厌氧区潜水搅拌工程常用"
+  note: "带 4~8 W/m3 取 6（与 tiaojiechi 防沉积同带）；P=(V缺+V厌)·w/1000；消费面=AAO AO-F24"
+
+- key: "factor.cass.blower.sor_factor"
+  value: 1.33
+  unit: "dimensionless"
+  source: "AOR→SOR 折算系数（α·β·ρ·DO/Cs 修正积工程综合档；与 factor.aao.blower.sor_factor 同族同值）"
+  note: "同族同值平移（数据策略 v2）；消费面=CASS CA-F29"
+
+- key: "factor.cass.blower.o2_per_air"
+  value: 0.28
+  unit: "kg/m3"
+  source: "标态空气含氧质量浓度（与 factor.aao.blower.o2_per_air 同族同值）"
+  note: "同族同值平移；消费面=CASS CA-F29"
+
+- key: "factor.cass.blower.oxygen_transfer_eff"
+  value: 0.20
+  unit: "dimensionless"
+  source: "微孔曝气氧利用率（与 factor.aao.blower.oxygen_transfer_eff 同族同值）"
+  note: "同族同值平移；消费面=CASS CA-F29"
+
+- key: "factor.cass.blower.pressure_kpa"
+  value: 70.0
+  unit: "kPa"
+  source: "风机出口压力档（与 factor.aao.blower.pressure_kpa 同族同值）"
+  note: "同族同值平移；消费面=CASS CA-F30"
+
+- key: "factor.cass.blower.efficiency"
+  value: 0.70
+  unit: "dimensionless"
+  source: "罗茨风机综合效率（与 factor.aao.blower.efficiency 同族同值）"
+  note: "同族同值平移；消费面=CASS CA-F30"
+
+- key: "factor.cass.blower.duty_ratio"
+  value: 0.5
+  unit: "dimensionless"
+  source: "CASS 周期曝气占空比（4 h 周期 2 h 曝气典型档；工程带 0.4~0.6）"
+  note: "间歇曝气日电耗折算 e=P·24·duty_ratio——连续流 AAO 不适用（×24 满时）；消费面=CASS CA-F31"
+
+- key: "factor.cass.stir.power_density"
+  value: 6.0
+  unit: "W/m3"
+  source: "给水排水设计手册（第 5 册 城镇排水）选择区（预反应区）潜水搅拌工程常用"
+  note: "带 4~8 W/m3 取 6（选择区仅搅拌/微量曝气——CA-F28 注记口径）；P=V选择区·w/1000；消费面=CASS CA-F32"
+
+- key: "factor.wushui_tisheng.pump.efficiency"
+  value: 0.75
+  unit: "dimensionless"
+  source: "潜水排污泵泵组效率（工程带 0.70~0.85 取 0.75）"
+  note: "P=ρgQH/η 轴功率口径（电机效率/装机裕度挂账 B4-2b 运行成本面）；消费面=TS-F12/TS-F13"
+
+- key: "factor.wushui_tisheng.pump.water_density"
+  value: 1000.0
+  unit: "kg/m3"
+  source: "水的密度物理常数（污水按清水计——悬浮物密度修正挂账 B4-2b）"
+  note: "消费面=TS-F12/TS-F13"
+
+- key: "factor.bengzhan.pump.efficiency"
+  value: 0.70
+  unit: "dimensionless"
+  source: "污泥泵泵组效率（介质含固率高异于污水档；工程带 0.60~0.75 取 0.70）"
+  note: "与 factor.wushui_tisheng.pump.efficiency 同族异档；消费面=BZ-F12/BZ-F13"
+
+- key: "factor.bengzhan.pump.water_density"
+  value: 1000.0
+  unit: "kg/m3"
+  source: "污泥密度按水计（低含固率污泥 ρ≈1000~1050 取 1000——保守下限）"
+  note: "消费面=BZ-F12/BZ-F13"
+
+- key: "factor.bengzhan.pump.gravity"
+  value: 9.81
+  unit: "m/s2"
+  source: "重力加速度物理常数（wushui_tisheng g_gravity 参数同值——BZ 表无该参数行，物理常数经系数库承载）"
+  note: "消费面=BZ-F19/BZ-F20"

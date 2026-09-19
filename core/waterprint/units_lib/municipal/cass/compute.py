@@ -11,7 +11,8 @@
 #   =N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
-# 【公式组】CA-F1~F28（docs/norms/cass.md 起草表+曝气头数据面批；manifest.py 登记）——
+# 【公式组】CA-F1~F33（B4-2a 能耗族 CA-F29~F33——声明住 formulas_energy.py/
+#   计算段住 energy.py；docs/norms/cass.md 起草表+曝气头数据面批）——
 #   周期循环主线：周期数/滗水容积（F1~F2）、负荷法主容积+选择区+滗水
 #   1/3 池深双控池面积（F3~F12）、时段和=周期不变性（F13，域拒非警告）、
 #   滗水器选型（F14~F15，整台 ceil）、剩余污泥/泥龄（F16~F18，AAO 同族
@@ -49,6 +50,7 @@ from waterprint.contracts.unit_api import (
 )
 from waterprint.units_lib._unit_compute import Array as _Array
 from waterprint.units_lib._unit_compute import _apply_batch, _factor, _inflow, _make_ceil_step, _vec
+from waterprint.units_lib.municipal.cass.energy import _energy, _oxygen
 from waterprint.units_lib.municipal.cass.manifest import FORMULA_IDS, manifest
 
 _UNIT_ID = "municipal_cass"
@@ -186,39 +188,6 @@ def _sludge(
         ),
     }
 
-
-def _oxygen(
-    ctx: UnitContext, p: dict[str, float], flow: WaterFlow, qual: dict[str, _Array], v_load: _Array
-) -> dict[str, _Array]:
-    """CA-F19~F22：碳化/硝化/反硝化需氧量与设计需氧量（AAO 同族）。"""
-    vss_ratio = _factor(p, "factor.cass.vss_ratio", _UNIT_ID)
-    x_vss = _vec(vss_ratio) * _vec(p["x_mlss"])
-    o2_carbon = _apply_batch(
-        ctx,
-        "CA-F19",
-        {
-            "a_prime": _vec(_factor(p, "factor.cass.o2.a_prime", _UNIT_ID)),
-            "q_avg_daily": _vec(flow.q_avg_daily),
-            "bod5_in": qual["bod5_in"],
-            "bod5_out": qual["bod5_out"],
-            "b_prime": _vec(_factor(p, "factor.cass.o2.b_prime", _UNIT_ID)),
-            "v_load": v_load,
-            "x_vss": x_vss,
-        },
-    )
-    tkn = {"q_avg_daily": _vec(flow.q_avg_daily), "tkn_in": qual["tn_in"],
-           "tn_eff": _vec(p["tn_eff"])}
-    o2_nit = _apply_batch(ctx, "CA-F20", tkn)
-    o2_denit = _apply_batch(ctx, "CA-F21", tkn)
-    return {
-        "x_vss": x_vss,
-        "o2_carbon": o2_carbon,
-        "o2_nit": o2_nit,
-        "o2_denit": o2_denit,
-        "o2_total": _apply_batch(
-            ctx, "CA-F22", {"o2_carbon": o2_carbon, "o2_nit": o2_nit, "o2_denit": o2_denit}
-        ),
-    }
 
 
 def _geometry(
@@ -377,6 +346,7 @@ class _Cass:
             ctx, "CA-F23", {"ns": _vec(p["ns"]), "v_bio": v_bio, "v_plant": areas["v_plant"]}
         )
         geometry = _geometry(ctx, p, areas, v_selector)
+        energy = _energy(ctx, p, oxygen, v_selector)
         arrays = {
             **cycles,
             "v_load": v_load,
@@ -388,6 +358,7 @@ class _Cass:
             **oxygen,
             "ns_act": ns_act,
             **geometry,
+            **energy,
         }
         dims = {key: float(value[0]) for key, value in arrays.items()}
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")

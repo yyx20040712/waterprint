@@ -143,6 +143,7 @@ from waterprint.app_assembly import (
     assemble,
     validate_design_structure,  # P0-3 再导出（server 校验端点——呈裁④甲）
 )
+from waterprint.app_energy import energy_summary_of
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
     Constraint,
@@ -313,6 +314,17 @@ def _summary_of(plant: PlantResult, edges: tuple[Edge, ...]) -> dict[str, dict[s
     return summary
 
 
+def _with_energy(
+    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
+) -> dict[str, dict[str, float]]:
+    """summary 合并注入：六指标族 + 能耗药耗平键（ADR-024 D2——同工况
+    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
+    for condition_key, fields in extra.items():
+        if condition_key in base:
+            base[condition_key].update(fields)
+    return base
+
+
 def run_full_calc(
     project: ProjectFile, conditions: ConditionSet, env: RunEnv,
     standards: tuple[EffluentStandard, ...] = (),
@@ -342,7 +354,7 @@ def run_full_calc(
             engine_version=plant.repro.engine_version,
             data_version=plant.repro.data_version,
         ),
-        summary=_summary_of(plant, assembled.edges),
+        summary=_with_energy(_summary_of(plant, assembled.edges), energy_summary_of(plant)),
     )
     diagnostics = build_diagnostics(
         filled,

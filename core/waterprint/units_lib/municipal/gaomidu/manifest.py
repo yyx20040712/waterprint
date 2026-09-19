@@ -254,6 +254,17 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _VOL,
         _HB,
     ),
+    FormulaSpec(
+        "GM-F21",
+        "e_stir = (p_mix + p_floc) * 24",
+        {
+            "p_mix": (_D, "混合搅拌功率 kW（GM-F8）"),
+            "p_floc": (_D, "絮凝搅拌功率 kW（GM-F9）"),
+        },
+        _D,
+        "混合絮凝搅拌日耗电（kW×h=kWh/d——连续运行 24 h/d；B4-2a 能耗面"
+        " 2026-09-19，计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
+    ),
 )
 
 for _spec in _FORMULAS:
