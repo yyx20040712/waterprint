@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-2988ca0b-9af5-4ae0-a8ed-319602ec2ddf
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T03:16:30Z
-- claim: executor-B4-1-20260919T1116-a7f3
+- heartbeat_utc: 2026-09-19T04:50:00Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 13
+- checked_done: 14
 - last_handover: 2026-09-19
-- claimed_by: executor-B4-1-20260919T1116-a7f3
-- claimed_at: 2026-09-19T11:16:30+08:00
-- next_batch: B4-1（第四波首批：操作链集中 debug 观测面——复用 calc-diag 独立 artifact（ADR-012）+任务事件流+trace 聚合，新增 GET /api/debug/ops-chain 或 events 流扩展+webapp 诊断 pane；前置槽位=批 3a 投影共享件已就绪——实现批双门）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-2a（碳核算前置一：能耗药耗计算面——单元级 power/dose 输出[曝气供气→风机功率/泵扬程→轴功率/搅拌功率密度参数升级]+result_schema 全厂聚合字段[电耗 kWh/d 药耗 kg/d 分项]；**计算逻辑呈用户审查**（裁决书方案五②探针结论三段路线第一段）；调查批+实现批复合，result_schema 变更走 ADR+契约测试+前端重生成三步）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -105,7 +105,7 @@
 
 ### 第四波·业务线（《裁决书》方案五排序）
 
-- [ ] B4-1｜操作链集中 debug 观测面（复用 calc-diag+事件流聚合）
+- [x] B4-1｜操作链集中 debug 观测面（复用 calc-diag+事件流聚合）
 - [ ] B4-2a｜碳核算·前置一：能耗药耗计算面（**计算逻辑呈用户审查**）
 - [ ] B4-2b｜碳核算·前置二：运行成本面（opex）
 - [ ] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④）
@@ -127,141 +127,9 @@
 > 本板自调度员增补三起留活跃链，满 400 行再滚下一档（滚动阈值口径与
 > 归档件头注一致）。
 
-### 调度员增补三 — 2026-09-19T01:19:16+08:00（hub 换防：新调度会话接替，重布全局轮转火）
-- 旧火核查：CronList 空集——增补二删火令对象 automation-bf8fd7d7-… 确认已亡，
-  无双火风险，零清场动作。
-- 深度设计门（换防重走）：过——`.zcode/org-ledger.jsonl` 活跃（末笔=B2-4 CI
-  事故复盘行 @09-19 01:02）、《裁决书》占位符 grep 零命中、执行清单机检 8 勾+12
-  开=20 与板头计数一致。
-- 板面处置：status READY/claim 归「-」/no_progress 0 均为换防期望态零复位；字段
-  对照当前技能模板零缺失；本条尾部纯追加；板头 automation_id 字段行已锚定替换为
-  新火 id（历史日志旧 id 存量不动）。
-- 新全局火=automation-9d2ab6a4-8aa2-4f96-9a44-fa9b23577f85（新 hub 调度会话创建，
-  全局唯一 */10 轮转，服务本板+Synapse 板）；本板 last_dispatch=09-18T23:19:54 晚于
-  姊妹板 22:56:11——首班有效火先轮 Synapse 板，本板次班承接（next_batch=B2-5
-  不变）。
-- B2-3 两项 Rulings 已由 B2-4 执行者销案（批次日志在案）；板头执行指令转达条款
-  留存原文不改，发布时照原文携带；备源承载事实继续有效。
-
-### batch B2-5 — 2026-09-19 02:25（hub 火执行者会话：批 2 实装步②，HOLD 呈报——代码面完成+镜像锁面待用户批准）
-- 交付（代码面 commit d223a6c 本地待批后随锁面笔推送）：formulas.py 487 行机制件拆子包四件——
-  spec（规格声明+DSL 解析，143 行）/store（登记真源+静态校验+查询面，145 行）/apply（唯一
-  求值正门，188 行）/\_\_init\_\_（聚合正门九名 re-export，37 行），预算 150/150/200/40 全过；
-  429 条目留 manifest 原位零搬动（D1-B）；file-contracts 删旧 1 行增四件行（精确行数注记
-  机锁）；幂等哨兵=\_\_init\_\_ 批次行 b2-s2-formulas-package+聚合 import 三行（W9）。
-- 等价性证据（全绿面）：改造前后注册表 dump 逐行恒等（三段聚合入口 flows+manning+
-  discover_units+插入序+sha256 指纹，TOTAL=429——门二独立重跑复证零差异）+代码体 19/19
-  成员字节恒等（git show 旧件 vs 新四件逐成员 diff，N2 机器闭合）+golden 4 绿+registry
-  55 绿+run_gates 15 绿+gen_status 零漂移（2158B）+§1a 再生成 27 节点零 diff（探针 4）。
-- 两处主控级校准（门一对抗后成立）：①聚合 import 书写序取 ruff 字母序（定案序 spec→store
-  →apply 为字面；字母序下依赖序经链式 import 隐式保持且模块体执行序逐帧等价——门一审
-  推演加强确认；isort 为 15 门禁硬性面，noqa 豁免留 lint 债否决）；②dump 探针字段路径
-  e.spec（定案模板 s.expression 对 _Entry 包装两侧同错，校准对称适用零损）。
-- 门审：门一（ops-gate1-k2 备源承载，审包 593 行自包含）**B0/W0/N8 PASS**——六项强制
-  审项全过+两独立推演（429 注册序零影响=import 期零注册+注册序归 manifest 导入序+
-  _REGISTRY 单例；apply 遮蔽面存量消费零回归，import…as 形态新陷阱）。N3/N4/N5 批内
-  修复（遮蔽警示注释/溯源口径统一/spec 输出补 _normalize_dim）；N1 公共名跨件边（apply→
-  spec.InvalidFormulaError 直连边，三角非纯链）本笔补记；N6/N7/N8 挂账（镜像交互入设计
-  模板/零符号公式 StopIteration 既往缺陷/assert -O 模式——均非本批引入）。门二（ops-probe
-  独立重跑未读主控结论）矩阵 **10/10 无 RED**（含薄壳实效双向验证：拷入 6 passed/移除
-  复现红/tests 面零残留）。
-- **HOLD 根因（R-B2-5-1 呈报）**：镜像规则（test_mirror_rule，永续激活）对拆分新增三
-  源件机械触发镜像测试义务（test_spec/store/apply.py 按文件名全树匹配）；新增测试=三
-  连锁（manifest 新键+只读位+镜像件）→触碰三信任根→[HUMAN-LOCK] 人类批准墙（AGENTS
-  §7「AI 只能起草不得自行提交」）。CI core job 跑 tests 全量含镜像规则——代码面推送必
-  红，「收口即推送+守望 CI 至绿」不可达。定案 §3.7「零新增测试文件确认」+白名单禁改
-  core/tests/\*\* 漏检此交互（审核 W12 未覆盖）。三替代（noqa/改镜像规则自削门禁/自行
-  提交）均违制度否决。**处置=HOLD 呈报**：三件薄壳（最小义务=导入冒烟+公开面在场；
-  行为主体保留在既有 test_formulas.py——孤儿测试不违规）起草于 .workflow/probes/b2-5/
-  mirror-tests-draft/（apply 件经 importlib 取子模块对象——正门 re-export 函数遮蔽
-  子模块名），实效已双向验证。**请用户批准：镜像测试三连锁 [HUMAN-LOCK] 锁面笔**
-  （批准后拷入三件+lock_tests.py 重锁 296→299+[HUMAN-LOCK] commit+推送 d223a6c 全部
-  本地笔→CI 复绿→勾选 B2-5→B2-6 续跑）。
-- 上批搭车兑现：设计书 §4.3-3 断言句勘误（B2-4 增补一 F-3 挂账——W10 载体=探针 3，
-  本笔随批）；ci.yml pytest 步吞日志修法递延至锁面笔批（HOLD 收口无 CI 验证回路，
-  next_batch 行已锚定修法口径）。
-- 转达条款回执：执行指令携带的 B2-3 两项 Rulings 裁决回执（R-B2-3-1 追认/R-B2-3-2
-  知悉）经核对**已由 B2-4 执行者销案**（批次日志 batch B2-4 在案+调度员增补三确认）——
-  板头执行指令原文保留（换防时发布照原文携带的既定纪律），本批无重复销案动作。
-- 账本：gate1（findings B0/W0/N8）/probe（10/10）/impl-HOLD 三行；health-scan RED=0/
-  WARN×3（历史欠账回显：2026-09-13 设计链同源行/18 行缺 usage/1 行 in=0——非本批引入）。
-- 勾选 8/20 不变（B2-5 主体完成唯镜像锁面待批，批准复绿后勾选）；CI 预告：本批推送
-  （d223a6c+勘误+板面笔）首跑 core job 预期红=镜像规则（唯一红面，根因即 R-B2-5-1），
-  批准后复绿——守望记录随终报。
-
-### batch B2-5 补记 — 2026-09-19 02:35（CI 守望定性：预告兑现——红面=镜像规则唯一）
-- CI run 35380008265（a186a0a 推送触发）：**红=内核质量 ×3 版本（3.12/3.13/3.14），
-  唯 Pytest 步红**——Ruff/Mypy/import-linter 静态面全绿（与本地 772/773 唯镜像红
-  同构，本地三重验证[本会话+门二独立重跑+薄壳实效双向]置信度充分）；其余 7 job
-  全绿（前端构建/依赖审计/服务层×2/架构门禁/镜像构建/性能基准）。
-- 红面定性=预告兑现（批次日志 batch B2-5 CI 预告段）：根因即 R-B2-5-1（镜像规则
-  对新三源件机械触发义务），**非功能缺陷**——dump 逐行恒等+golden 4 绿+19/19
-  成员字节恒等已闭环行为面等价。用户批准锁面笔后复绿路径已锚 next_batch 行。
-- HOLD 期间火班纪律：见 HOLD 即不接管不重跑（hub 守卫——删火权归调度员，本板
-  只置状态）；用户批准可经调度员转达（同 B2-3 Rulings 回执模式）。
-
-### batch B2-5 补记二 — 2026-09-19 02:50（用户裁决 R-B2-5-1 销案+锁面笔落地——B2-5 全绿收口）
-- 用户裁决回执（对话内 AskUserQuestion 两问）：**R-B2-5-1→批准薄壳三连锁；执行通道→
-  本会话立即执行**。批准即构成 AGENTS §7 人类显式批准事件（AI2 U7 授权链同款模式），
-  [HUMAN-LOCK] commit be086eb 首行带标签+逐文件修改动机（4 文件：三薄壳+manifest）。
-- 三连锁执行细节：三薄壳拷入 core/tests/registry/→lock_tests.py 重锁——裸跑被 COST2
-  只增不减守卫拦截（会挤掉 units_lib 包内 38 条目），按守卫指引携完整根清单显式重跑
-  （agent/core/server 三根+units_lib 32 包内 tests），296→**299 键**新增恰 3 零删除，
-  只读位同步设置。
-- 复绿证据：全量 pytest **776 passed 全绿**（772+镜像规则修复 1+薄壳 3——数序吻合）；
-  run_gates 15 绿（check_trust_root 本地模式=HEAD 触三信任根首行带标签过；check_
-  readonly=299 键全对）；gen_status 零漂移（2158B）。
-- 板面：HOLD→READY、B2-5 勾选（8→9/20）、next_batch=B2-6（步③验证型零动作步——
-  ci.yml 吞日志搭车项随该批实施）。Rulings 待用户：无（本批 R-B2-5-1 已销案）。
-
-### batch B2-5 补记三 — 2026-09-19 03:35（CI 守望终态：绿——收口闭环）
-- 收口笔 f22cdca run **35386353427 全绿**（success，10 job 全过——含内核质量 ×3
-  版本 Pytest 复绿=镜像规则红面消除实证）。红绿链完整：35380008265（预告红，
-  根因 R-B2-5-1）→be086eb 锁面笔（[HUMAN-LOCK]）→35386353427 复绿——「收口即
-  推送+守望 CI 至绿」闭环。本笔为纯板面绿证登记（推送触发的新 run 预期绿，由
-  下批首跑覆盖核对，不再逐笔守望）。
-- 会话终态：B2-5 一批完成（勾选 8→9/20），READY，claim 归位；next_batch=B2-6
-  （步③验证型零动作步——白名单三态=新建无/修改无/禁改全仓；check_out_dims_
-  consistency 绿+15 门禁全量+pytest core/tests 绿=确认性验收；ci.yml 吞日志搭车
-  项随批实施）。
-
-### 调度员增补四 — 2026-09-19T03:51:12+08:00（hub 停火：用户令删火，新会话换防交接）
-- 用户在 hub 调度会话下达删火令：全局轮转火 automation-9d2ab6a4-8aa2-4f96-9a44-
-  fa9b23577f85 已 CronDelete（回执 deleted:true，CronList 空集复核）。本条为调度员
-  尾部纯追加，claim/状态字段未动；板头 automation_id 字段行保留旧值仅为历史审计
-  指向。
-- 本火任内战果：B2-5 一批完成（HOLD→用户对话批准 R-B2-5-1→[HUMAN-LOCK] 锁面笔
-  be086eb→CI 全绿复绿闭环，勾选 8→9），B2-6 已于 03:46:01 发布并认领。
-- **在途 batch（B2-6，claim hubfire-B2-6-20260919T0347-c31f9）不受影响——执行者
-  独立于火，自行完成收口（翻票+提交+板回写 READY）**。收口后本板停于 READY 且
-  无火接续——此为预期态非异常。恢复两径同规：用户显式 /batch-relay 重布防（新
-  automation_id 回填本板，换防协议 hub 变体），或手动会话按本板清单领批。
-- 调度员会话自本增补起不再开批、不再补派（含执行者中途死亡亦不接管——停火令
-  优先）。
-- 板头执行指令中的转达条款（B2-3 两项 Rulings 裁决回执——已由 B2-4 销案）与备源
-  承载事实留存原文，重布防时随注入指令照原文携带。
-
-### batch B3-a — 2026-09-19 05:06（hub 火执行者会话：批 3 第一步·server 投影共享件收敛，完成）
-- 交付（commits af73497+8c49498+本板面笔）：services/_shared/ 新子包（包根薄壳 14 行+latest_calc.py 67 行）——latest_calc_result(ctx, project_id, *, not_found) 返回 (task_id, result) 二元组（ENG4 D2 信息超集口径——溯源回显面携 task_id，四单值面解包丢弃）；无结果 raise not_found 注入消费方领域 404 异常类（异常→HTTP 码经 main domain_error_codes 类名义表，类型与消息文本收敛前后逐字恒等）；星型单向唯一依赖=services/__init__ ServiceContext（包根不回指子模块无环——import-linter layers+UF-33 双契约 KEPT 机器确认）。
-- 七消费面改接：scene/elevation/cost/exports_io/compare/trust 六份 def 复制同批删除（禁并存，宪法 §2）+exports 转手 import 改直连共享件；孤儿 import 清理四处（scene Mapping+Any/cost Mapping+Any/elevation Any/exports_io ExportSourceNotFoundError）；六处头部规格 R1 注释改共享件口径（模块 docstring 经查无复制叙述——门一 N3 定谳）。契约同步：file-contracts 增 _shared 两行+exports/exports_io 迁出注记+五行消费面描述更新，gen_contract_lines 刷新注记（37 处全吻合，门一算术复算八处全中）。
-- 等价性证据（行为零变闭环）：异常类型/消息文本/解包形态/循环体四恒等（门一逐面对账+exports 异常对象同一性推演——旧路径 exports→exports_io raise exports_support.ExportSourceNotFoundError 与新路径 not_found 注入为同一 class 对象）；server pytest 313 passed 全绿；门二共享件语义三验 5/5（混合序列恰取唯一合法项+多合法取注册序最末+空/全非法 raise 注入类且消息逐字相等——探针仓外留存）。
-- 门一（ops-gate1-k2 备源承载，审包 550 行仓外快照）**B0/W0/N6 PASS**：N1/N5 批内处置（共享件 docstring 补直连面口径澄清+not_found 单消息构造约定）；N2/N3 包外 grep 定谳零动作（exports_io ctx.manager 零残留/五件 docstring 无陈旧叙述）；N4 残余由门二 5c+pytest 兜底；**N6 记录在案**：site.py 持同类「最近结果」读取但语义故意不同（无结果降级 uncalculated 全量 200 非 404）——正确排除本批收敛，后续批次勿误读为漏收敛。门二（ops-probe 独立重跑）矩阵 **8/8 全 GREEN 零 RED**（pytest/run_gates 19 绿/gen_status 零漂移/import-linter 2 kept/语义三验/星型单向/旧 def 零残留/接线六面）。
-- Rulings 回执核对（执行指令转达条款）：B2-3 两项（R-B2-3-1 追认/R-B2-3-2 知悉）经核对**已由 B2-4 执行者销案**（batch B2-4 日志+调度员增补三/五在案），本批无重复销案动作，板头执行指令原文照存。本批新增 Rulings：**无**（实装与《裁决书》方案二批 2a 字面吻合、准入五条全过、零未规划裁决项）。
-- 账本：gate1（B0/W0/N6）/probe（8/8）/impl 三行；health-scan RED=0/WARN×3（历史欠账回显，非本批引入）。锁面零动作（零新增测试文件——六消费面既有用例经 import 间接覆盖，信任根零触碰）。
-- 勾选 10→11/20；next_batch=B3-b。CI 守望：本批推送首跑绿证随守望补记（收口即推送+守望 CI 至绿——三轮裁决④）。
-### batch B3-a 补记 — 2026-09-19 05:1X（CI 守望终态：绿——收口闭环，网络抖动重跑定性）
-- 收口笔 54db2f4 run 35393876653 首跑**红=唯一失败 job「前端构建（类型检查）」**：
-  根因=corepack 下载 pnpm-10.34.5.tgz 时 TLS 断连（registry.npmjs.org 网络抖动，
-  pnpm install 即挂、类型检查未起跑）——**CI 基础设施瞬时故障非代码面**（本批零
-  webapp 改动；前驱 run 35390996897[809435a] 同 job 绿在案）。
-- 处置=gh run rerun --failed 重跑失败 job → 同 run **conclusion=success 全绿**
-  （10 job：架构门禁/内核质量×3/服务层×2/前端构建/镜像构建/依赖审计/性能基准）。
-  「收口即推送+守望 CI 至绿」闭环；本笔为纯板面绿证登记（推送触发的后续 run
-  预期绿，由下批首跑覆盖核对——B2-6 补记三同款口径）。
-- 会话终态：B3-a 一批完成（勾选 10→11/20），READY，claim 归位；next_batch=B3-b
-  （批 3 第二步：webapp SSE 生命周期双实现+域色双源→shared 收敛）。
-
-
+> 〔滚动归档〕调度员增补三~batch B3-a 补记段（2026-09-19，135 行）已迁
+> relay-archive-001.md 尾部（原文零改动纯迁移——B2-6 立档同款；本板自
+> 调度员增补五起留活跃链）。
 ### 调度员增补五 — 2026-09-19T03:57+08:00（hub 换防：新调度会话接替，重布全局轮转火）
 - 旧火核查：CronList 空集——增补四删火对象 automation-9d2ab6a4-… 确认已亡，零清场
   动作；新火布防后 CronList 复核全局恰一条，无双火。
@@ -501,3 +369,14 @@
   「文件已改」重读再落笔/主输入框 a11y 写入不生效须前台激活后 app 级
   strategy=event 真实键盘写入，前台被游戏全屏锁定连败 2-3 次即记欠账退出勿硬抢）
   沿用历任实测累积。
+
+### batch B4-1 — 2026-09-19 12:50（hub 火执行者会话：第四波首批·操作链集中 debug 观测面，完成）
+- 交付（commits 9acca6a 实现+eb54362 [HUMAN-LOCK] 锁面+本收口笔）：server services/ops_debug.py 新建（292 行——任务时间线[manager 注册序=操作序+task_status 状态正门复用含 error_code 回填/实时 stale 比对+finished_at 公开投影]+latest done calc 三源深度聚合[latest_calc_result 共享件第七消费面=批 3a 槽位填槽；diag 读取降级同 trust ADR-012 R2 禁伪造；trace 三桶统计 by_condition/by_unit/by_formula 字典序确定性+守恒；无 done calc=内部哨兵异常注入共享件 not_found 槽→latest_calc 空块 200，与 trust 404 消费面语义分立]）+routers/debug.py 新建（61 行——GET /api/debug/ops-chain/{project_id} 端点计数 35→36 裁决书授权破面；asyncio.to_thread 承载大结果件反序列化[门一 W3 修复，FD PD6 先例]）+manager.finished_at 公开投影方法（WP4 内存值，重启恢复=恢复时刻新租约 docstring 注记）+main 装配。webapp 诊断 pane 第七例（trust 同构）：features/opsdebug 三件（lib 窄化门 13 键 13 叶子类型校验[门一 W1 修复]+api hook+components 时间线卡/三源聚合卡/降级蓝条）+opsDebugPane+App「诊断」标签+router 注册+TASK_EVENT 第七处监听+features README；orval 再生成（debug 域+模型 12 件）+openapi 快照再生成（36 端点）。
+- 实证面：仓外探针矩阵 **43/43 全 PASS**（.workflow/probes/b4-1/ 留存）——P1 E2E 三源聚合（条目 13 键全+diag/警告/trace 三桶守恒）/P2 零任务空块/P3 删结果文件降级不炸时间线不丢/P4 404+error_type/P5 同状态双 GET 字节恒等/P6 哨兵路径（enumerate done 后 latest_calc=null）/P7 重启恢复矩阵（registry 档案→新 Manager 恢复→时间线不炸+缺档降级）；vitest 全量 774 passed（基线 762+本批 12）+tsc 零错+vite build 绿；run_gates 15 门禁全绿+gen_status 2158B 零漂移；server 全量 pytest **315 passed**（312+契约复绿+薄壳 2）。
+- 门审：门一（ops-gate1-k2 备源承载，审包 795 行自包含）**B0/W3/N5 PASS**——W1 窄化门 13 键补全+类型校验 5→13 叶子（vitest 同步）；W2 重启缺档炸点=构造性一致论证（task_ids_for_project 与三查询同读 _tasks 单 dict+循环体零 await=无并发删除窗口）入规格头注记+探针 P7 实证；W3 to_thread 卸载。N1 降级 catch=trust 同制定谳（core 守卫族全收编 InvalidResultError）；N2 P6 补证；N4 生成件 queryKey 逐字一致复核；N5 悬浮注记引文闭卷；N3 幂等口径文案挂账。**处置回执经门一岗逐条认可无重审面**（子代理回执在档）。门二（ops-probe 绑定档案模型不可用[model-not-found，log-triage --health 归因非额度面]→general-purpose 会话内岗承载同矩阵，独立性=新会话无主控上下文；欠账行在账本）矩阵 **6/7 GREEN**——唯一 RED=test_openapi_endpoint_set 端点集期望 35 未含新端点（锁面文件预期红面，门二岗自判「属任务书预告已知面」）；自写等价性抽查 4/4（双端点 warning_counts/convergence_lines/task_id 三面对账同一+非空性交叉证据排除同源降级假阳性）。主控裁决：唯一 RED 根因=锁面期望集过期，经 R-B41-1 用户批准同步后复绿（315 passed）——实质全过。
+- **Rulings 回执：R-B41-1 用户裁决销案**（对话内 AskUserQuestion：批准合并锁面笔）——构成 AGENTS §7 人类显式批准事件，[HUMAN-LOCK] commit eb54362 落地：test_api_contract.py 期望集 +1 行 35→36+薄壳 test_ops_debug.py 拷入（公开面+404 两用例）+lock_tests 全根重锁 301→302 键（COST2 经草稿器全根命令显式通过）。
+- 挂账两条：①幂等命中「注册序≠操作序」面板文案提示（门一 N3——后续 UI 批）；②ops-probe 绑定档案模型不可用（GLM-5.3 not found——档案面漂移，技能侧修复位，本批 general-purpose 会话内岗承载记欠账）。
+- 图谱零改动（routers→services/services→jobs 包级边既有覆盖+services 包内互调=同节点伴生边天然豁免 B7 笔①口径）；§2 调用链增 B4-1 行+file-contracts 三登记（routers/debug+services/ops_debug+manager 注记）+webapp README 双登记（features/opsdebug+app）。
+- 归档滚动：主板 503 行超 500 预算（B2-6 同款）——调度员增补三~B3-a 补记段 135 行迁 relay-archive-001.md 尾部（原文零改动纯迁移+指针块），主板 372 行起。
+- 账本：gate1（B0/W3/N5，处置回执全认可）/probe（6/7 GREEN 承载欠账）/impl/Ruling 销案四行；health-scan RED=0/WARN×3（历史欠账回显，非本批引入）。
+- 勾选 13→14/20；next_batch=B4-2a。CI 守望：推送面=9acca6a+eb54362+收口笔，绿证随守望补记（收口即推送+守望 CI 至绿——三轮裁决④）。
