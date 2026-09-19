@@ -88,6 +88,7 @@ import { CanvasPane } from "./canvasPane";
 import { ComparePane } from "./comparePane";
 import { CostPane } from "./costPane";
 import { TrustPane } from "./trustPane";
+import { OpsDebugPane } from "./opsDebugPane";
 import { DrawingsPane } from "./drawingsPane";
 import { ElevationPane } from "./elevationPane";
 import { ProjectManagerModal } from "./projectManagerModal";
@@ -377,6 +378,11 @@ export function App() {
                   key: "trust",
                   label: "可信度",
                   children: <TrustPane />,
+                },
+                {
+                  key: "opsdebug",
+                  label: "诊断",
+                  children: <OpsDebugPane />,
                 },
               ]}
             />

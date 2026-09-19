@@ -31,7 +31,8 @@ export type AppRoute =
   | "drawings"
   | "cost"
   | "compare"
-  | "trust";
+  | "trust"
+  | "opsdebug";
 
 export const ROUTES: readonly AppRoute[] = [
   "canvas",
@@ -43,4 +44,5 @@ export const ROUTES: readonly AppRoute[] = [
   "cost",
   "compare",
   "trust",
+  "opsdebug",
 ] as const;

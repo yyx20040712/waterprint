@@ -195,6 +195,11 @@ class Manager:
         """已绑定快照读取（stale 判定面）。"""
         return self._record(task_id).snapshot_hash
 
+    def finished_at(self, task_id: str) -> float | None:
+        """终态完成时刻读取（B4-1 诊断时间线面——WP4 内存 _TaskRecord 投影；
+        进程重启恢复记录=恢复时刻新租约〔ENG5 D2 语义〕，消费方呈现须注记）。"""
+        return self._record(task_id).finished_at
+
     def mark_stale(self, task_id: str) -> None:
         """编辑后标 stale（UI 提示性标记，UF-37——守门在消费侧实时比对）。"""
         record = self._record(task_id)

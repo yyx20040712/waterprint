@@ -934,6 +934,45 @@
         "title": "DesignWidestSegment",
         "type": "object"
       },
+      "DiagSummaryModel": {
+        "description": "诊断摘要（R3：计数+极值——明细走 trust 端点）。",
+        "properties": {
+          "convergence_lines": {
+            "title": "Convergence Lines",
+            "type": "integer"
+          },
+          "diagnostics_available": {
+            "title": "Diagnostics Available",
+            "type": "boolean"
+          },
+          "effluent_lines": {
+            "title": "Effluent Lines",
+            "type": "integer"
+          },
+          "mass_balance_lines": {
+            "title": "Mass Balance Lines",
+            "type": "integer"
+          },
+          "max_iterations": {
+            "title": "Max Iterations",
+            "type": "integer"
+          },
+          "worst_final_residual": {
+            "title": "Worst Final Residual",
+            "type": "number"
+          }
+        },
+        "required": [
+          "diagnostics_available",
+          "convergence_lines",
+          "max_iterations",
+          "worst_final_residual",
+          "mass_balance_lines",
+          "effluent_lines"
+        ],
+        "title": "DiagSummaryModel",
+        "type": "object"
+      },
       "ElevationResponse": {
         "description": "高程纵断响应（D1~D5 契约面：工况索引+注记+站位+提升+双警告面）。\n\nAUDIT2 C-1：+stale 旗标（结果集 design_hash≠当前 design digest——\n投影含活档假设[I-1]时消费方据此显式提示，禁静默使用）。",
         "properties": {
@@ -1512,6 +1551,56 @@
         "title": "IndicatorReportModel",
         "type": "object"
       },
+      "LatestCalcBlockModel": {
+        "description": "最新 done calc 三源聚合块（R2~R5）。",
+        "properties": {
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "diagnostics": {
+            "$ref": "#/components/schemas/DiagSummaryModel"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "trace": {
+            "$ref": "#/components/schemas/TraceSummaryModel"
+          },
+          "warning_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Warning Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "task_id",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "diagnostics",
+          "warning_counts",
+          "trace"
+        ],
+        "title": "LatestCalcBlockModel",
+        "type": "object"
+      },
       "LoopRunModel": {
         "description": "回路收敛统计条目（contracts.trust.LoopRunStats 直投影）。",
         "properties": {
@@ -1682,6 +1771,162 @@
           "semantic"
         ],
         "title": "Node",
+        "type": "object"
+      },
+      "OpsChainResponse": {
+        "description": "操作链观测面响应（R1/R6：任务时间线+深度聚合块）。",
+        "properties": {
+          "latest_calc": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatestCalcBlockModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/OpsTaskModel"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "tasks",
+          "latest_calc"
+        ],
+        "title": "OpsChainResponse",
+        "type": "object"
+      },
+      "OpsTaskModel": {
+        "description": "时间线条目：任务状态快照+完成时刻+结果句柄（R1）。",
+        "properties": {
+          "condition_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Key"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          },
+          "finished_at_unix": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At Unix"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "snapshot_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Hash"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "kind",
+          "state",
+          "progress",
+          "stage",
+          "condition_key",
+          "stale",
+          "error",
+          "error_type",
+          "error_code",
+          "snapshot_hash",
+          "finished_at_unix"
+        ],
+        "title": "OpsTaskModel",
         "type": "object"
       },
       "ParamEntry": {
@@ -2287,6 +2532,44 @@
           "result"
         ],
         "title": "TaskStatus",
+        "type": "object"
+      },
+      "TraceSummaryModel": {
+        "description": "trace 聚合统计（R5：公式应用计数，键字典序）。",
+        "properties": {
+          "by_condition": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Condition",
+            "type": "object"
+          },
+          "by_formula": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Formula",
+            "type": "object"
+          },
+          "by_unit": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Unit",
+            "type": "object"
+          },
+          "total_nodes": {
+            "title": "Total Nodes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_nodes",
+          "by_condition",
+          "by_unit",
+          "by_formula"
+        ],
+        "title": "TraceSummaryModel",
         "type": "object"
       },
       "TrustReportResponse": {
@@ -3322,6 +3605,64 @@
         "summary": "Get Cost",
         "tags": [
           "cost"
+        ]
+      }
+    },
+    "/api/debug/ops-chain/{project_id}": {
+      "get": {
+        "description": "操作链观测面（项目任务时间线+最新结果诊断/警告/trace 三源聚合——\nB4-1：注册序时间线，无 done calc=latest_calc 空块降级呈现；to_thread\n承载大结果件反序列化[万级 trace 面——FD PD6 先例]防事件循环阻塞）。",
+        "operationId": "get_ops_chain_api_debug_ops_chain__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsChainResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Ops Chain",
+        "tags": [
+          "debug"
         ]
       }
     },

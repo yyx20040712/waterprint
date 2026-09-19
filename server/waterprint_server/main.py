@@ -75,6 +75,7 @@ from waterprint_server.routers import (
     ai_connection,
     calc,
     cost,
+    debug,
     elevation,
     events,
     exports,
@@ -216,8 +217,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # 2026-09-12：多工况对比矩阵，32→33 破面[常设指令推荐序沿册]）
 # +1+1=AI2（GET /api/ai/connection + POST /api/ai/connection/setup——MCP
 # 一键接入面，2026-09-13：33→35 破面[AI2 任务书预裁决授权]）
+# +1=B4-1（GET /api/debug/ops-chain/{project_id}——操作链集中 debug 观测面，
+# 《裁决书》方案五①，2026-09-19：35→36 破面[裁决书批次编排批 4 授权]）
 _EXPECTED_ENDPOINTS: Final[int] = (
-    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -373,6 +376,10 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     app.include_router(cost.router, dependencies=[Depends(verify_token)])
     # L4b：site/spacing 鉴权族挂载（项目数据面——units 静态目录族外同保）
     app.include_router(site.router, dependencies=[Depends(verify_token)])
+
+    app.include_router(
+        debug.router, dependencies=[Depends(verify_token)]
+    )  # B4-1：操作链观测面（GET /api/debug/ops-chain——35→36，《裁决书》方案五①）
     # AI2（2026-09-13）：AI 接入面挂载（状态检查+一键接入——Bearer 沿册同保）
     app.include_router(ai_connection.router, dependencies=[Depends(verify_token)])
     # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，

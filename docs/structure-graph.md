@@ -234,6 +234,7 @@ independence = true
 | 图纸导出（DXF） | `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `core/waterprint/app.py`（export_artifact 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/drafting/plan_view.py` / `core/waterprint/drafting/section_view.py` → `core/waterprint/drafting/dxf_writer.py`（全库唯一 ezdxf 接触点） |
 | 项目保存/加载 | `webapp/src/app` → `server/waterprint_server/routers/projects.py` → `server/waterprint_server/services/projects.py` → `core/waterprint/app.py`（load_project/save_project 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/project/io.py` → `core/waterprint/project/content_hash.py`（dirty 判定）→ `core/waterprint/project/migration.py`（旧版本升级链） |
 | 管网水力子工具 | `core/waterprint/cli.py`（独立命令）→ `core/waterprint/network/excel_io.py` → `core/waterprint/network/solver.py` → `core/waterprint/network/manning.py`（不共享厂区图引擎） |
+| 操作链观测（B4-1） | `webapp/src/features/opsdebug` → `server/waterprint_server/routers/debug.py` → `server/waterprint_server/services/ops_debug.py` → `server/waterprint_server/services/_shared/latest_calc.py`（最近结果集槽位）+`server/waterprint_server/services/calculation.py`（task_status 状态正门）→ `server/waterprint_server/jobs/manager.py`（注册表查询面）→ `core/waterprint/contracts/result_schema.py`（plant 反序列化+trace 聚合）+`core/waterprint/contracts/trust.py`（diag 件读取——《裁决书》方案五①） |
 
 ## 3. 业务单元总表（32 包；与 file-contracts.md §3、units_lib 目录三方互验）
 
