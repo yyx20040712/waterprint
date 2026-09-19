@@ -112,7 +112,7 @@ SLUDGE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         non_drawn=("a_well", "d_raw", "ds_in", "ds_out", "h_friction",
                    "h_local", "h_loss", "h_pump", "n_pump_raw", "n_start",
                    "p_in", "p_out", "q_h", "q_in", "q_out", "q_pump_h",
-                   "q_pump_si", "v_act", "v_concrete", "v_well"),
+                   "q_pump_si", "v_act", "v_concrete", "v_well", "e_pump", "p_pump"),
         dim_of={"a_well": _D, "d_pipe": _L, "d_raw": _D, "ds_in": _D,
                 "ds_out": _D, "h_friction": _D, "h_local": _D,
                 "h_loss": _D, "h_pump": _D, "h_well_total": _D,
@@ -120,7 +120,7 @@ SLUDGE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "n_total": _D, "p_in": _D, "p_out": _D, "q_h": _D,
                 "q_in": _D, "q_out": _D, "q_pump_h": _D,
                 "q_pump_si": _D, "v_act": _D, "v_concrete": _D,
-                "v_well": _D},
+                "v_well": _D, "p_pump": _D, "e_pump": _D,},
     ),
     # 污泥重力浓缩池：d 池径档取整（NS-F5 d_raw 原始径对照）+
     # h_total 有效水深——cylinder(d, h_total) 两槽全触发

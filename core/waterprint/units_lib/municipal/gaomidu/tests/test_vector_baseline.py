@@ -169,6 +169,7 @@ def test_baseline_main_full_surface() -> None:
         'h_total': 5.6000000000000005,
         'h_floc_calc': 2.8065155709342555,
         'v_concrete': 283.21999999999997,
+        'e_stir': 164.24430749999996,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

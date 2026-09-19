@@ -166,16 +166,6 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         _GB,
     ),
     FormulaSpec(
-        "TJ-F14",
-        "e_stir = p_stir * 24",
-        {
-            "p_stir": (_D, "防沉积搅拌功率 kW（TJ-F9）"),
-        },
-        _D,
-        "搅拌日耗电（kW×h=kWh/d——防沉积搅拌连续运行 24 h/d；B4-2a 能耗面"
-        " 2026-09-19，计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
-    ),
-    FormulaSpec(
         "TJ-F13",
         "v_concrete = a_act * h_total * n * wall_coef",
         {
@@ -186,6 +176,16 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         },
         _VOL,
         _HB,
+    ),
+    FormulaSpec(
+        "TJ-F14",
+        "e_stir = p_stir * 24",
+        {
+            "p_stir": (_D, "防沉积搅拌功率 kW（TJ-F9）"),
+        },
+        _D,
+        "搅拌日耗电（kW×h=kWh/d——防沉积搅拌连续运行 24 h/d；B4-2a 能耗面"
+        " 2026-09-19，计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
     ),
 )
 

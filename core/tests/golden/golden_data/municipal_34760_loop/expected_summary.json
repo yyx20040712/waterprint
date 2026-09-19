@@ -12,264 +12,13 @@
     "design_offline_municipal_aao",
     "design_offline_municipal_erchunchi"
   ],
-  "generated": {
-    "data_version": "coefficients@1.2.0+unit_prices@1.0.0",
-    "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 5922449,
-    "serialize_sha256_head": "4d9646b32e0fbdf0",
-    "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
-  },
-  "tolerance": {
-    "abs": 1e-12,
-    "rel": 1e-12
-  },
-  "effluent": {
-    "design": {
-      "BOD5": {
-        "value": 5.529798,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "CODCR": {
-        "value": 19.193007225000002,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "SS": {
-        "value": 0.25252431514010704,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "NH3N": {
-        "value": 2.5999999999999996,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TN": {
-        "value": 10.75,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TP": {
-        "value": 0.4549999999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "avg": {
-      "BOD5": {
-        "value": 5.529798,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "CODCR": {
-        "value": 19.193007225000002,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "SS": {
-        "value": 0.2578843138376108,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "NH3N": {
-        "value": 2.5999999999999996,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TN": {
-        "value": 10.75,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TP": {
-        "value": 0.4549999999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "design_offline_municipal_chuchenchi": {
-      "BOD5": {
-        "value": 5.529798,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "CODCR": {
-        "value": 19.193007225000002,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "SS": {
-        "value": 0.25252431514010704,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "NH3N": {
-        "value": 2.5999999999999996,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TN": {
-        "value": 10.75,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TP": {
-        "value": 0.4549999999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "design_offline_municipal_aao": {
-      "BOD5": {
-        "value": 5.529798,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "CODCR": {
-        "value": 19.193007225000002,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "SS": {
-        "value": 0.25252431514010704,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "NH3N": {
-        "value": 2.5999999999999996,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TN": {
-        "value": 10.75,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TP": {
-        "value": 0.4549999999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "design_offline_municipal_erchunchi": {
-      "BOD5": {
-        "value": 5.529798,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "CODCR": {
-        "value": 19.193007225000002,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "SS": {
-        "value": 0.25252431514010704,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "NH3N": {
-        "value": 2.5999999999999996,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TN": {
-        "value": 10.75,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "TP": {
-        "value": 0.4549999999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    }
-  },
   "design_dims": {
     "municipal_aao": {
-      "t_total": {
-        "value": 12.332699999999997,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "theta_c": {
-        "value": 22.22222222222222,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_anaerobic": {
-        "value": 2198.1672697332256,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_anoxic": {
-        "value": 4923.894684202425,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_o": {
-        "value": 10950.829704356984,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_total": {
-        "value": 18072.891658292632,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "h2": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 5.0
-      },
       "a_pool": {
         "abs": 1e-12,
         "rel": 1e-12,
         "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
         "value": 3614.5783316585266
-      },
-      "l_pool": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 95.5
       },
       "b_pool": {
         "abs": 1e-12,
@@ -277,11 +26,29 @@
         "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
         "value": 38.5
       },
+      "b_pool_raw": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 38.02408884724801
+      },
+      "h2": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 5.0
+      },
       "h_pool": {
         "abs": 1e-12,
         "rel": 1e-12,
         "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
         "value": 5.3
+      },
+      "l_pool": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
+        "value": 95.5
       },
       "l_pool_raw": {
         "abs": 1e-12,
@@ -289,394 +56,807 @@
         "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
         "value": 95.06022211812002
       },
-      "b_pool_raw": {
+      "t_total": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 38.02408884724801
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 12.332699999999997
+      },
+      "theta_c": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 22.22222222222222
+      },
+      "v_anaerobic": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2198.1672697332256
+      },
+      "v_anoxic": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 4923.894684202425
+      },
+      "v_o": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10950.829704356984
       },
       "v_pool": {
         "abs": 1e-12,
         "rel": 1e-12,
         "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
         "value": 18383.75
+      },
+      "v_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 18072.891658292632
       }
     },
     "municipal_bashi_jiliangcao": {
       "b1": {
-        "value": 1.38,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.38
       },
       "b2": {
-        "value": 1.05,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.05
       },
       "ha_design": {
-        "value": 0.4825898954754751,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4825898954754751
       },
       "l_throat": {
-        "value": 0.6,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.6
       }
     },
     "municipal_chenshachi": {
       "d": {
-        "value": 3.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 3.0
       },
       "h_total": {
-        "value": 3.3000000000000003,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 3.3000000000000003
       },
       "v_eff": {
-        "value": 8.835729338221293,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 8.835729338221293
       }
     },
     "municipal_chuchenchi": {
       "d": {
-        "value": 24.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 24.0
       },
       "h_total": {
-        "value": 5.5,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.5
       },
       "q_prime_act": {
-        "value": 2.2675410250426014,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.2675410250426014
       }
     },
     "municipal_cugeshan": {
       "B": {
-        "value": 0.7000000000000001,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.7000000000000001
       },
       "H": {
-        "value": 1.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.0
       },
       "L": {
-        "value": 1.8,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.8
       },
       "n_gap": {
-        "value": 6.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 6.0
       }
     },
     "municipal_erchunchi": {
       "a_act": {
-        "value": 1320.2543126711105,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1320.2543126711105
       },
       "d": {
-        "value": 41.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 41.0
       },
       "h_total": {
-        "value": 4.6000000000000005,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 4.6000000000000005
       },
       "q_act": {
-        "value": 0.7769801489735505,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.7769801489735505
       }
     },
     "municipal_gaomidu": {
       "b": {
-        "value": 8.5,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 8.5
       },
       "h_total": {
-        "value": 5.6000000000000005,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.6000000000000005
       },
       "q_surface_act": {
-        "value": 14.19808155767712,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 14.19808155767712
       }
     },
     "municipal_vxinglvchi": {
       "a_total_act": {
-        "value": 270.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 270.0
       },
       "b": {
-        "value": 4.5,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 4.5
       },
       "l": {
-        "value": 10.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.0
       }
     },
     "municipal_wushui_tisheng": {
       "d_pipe": {
-        "value": 0.6000000000000001,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.6000000000000001
       },
       "h_pump": {
-        "value": 11.97010074340395,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 11.97010074340395
       },
       "n_pump_total": {
-        "value": 3.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 3.0
       }
     },
     "municipal_xigeshan": {
       "B": {
-        "value": 0.8,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.8
       },
       "H": {
-        "value": 1.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.0
       },
       "L": {
-        "value": 1.9000000000000001,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.9000000000000001
       },
       "n_gap": {
-        "value": 48.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 48.0
       }
     },
     "municipal_ziwai": {
       "c_fecal_out": {
-        "value": 10.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.0
       },
       "h_channel": {
-        "value": 1.1,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.1
       },
       "l_channel": {
-        "value": 5.4,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.4
       },
       "n_lamp": {
-        "value": 65.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_bengzhan": {
-      "h_pump": {
-        "value": 16.836842663896945,
+        "rel": 1e-12,
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "n_total": {
-        "value": 3.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_ganhua": {
-      "m_out": {
-        "value": 4653.533467549067,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "w_evap": {
-        "value": 11210.785171822752,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_hebing": {
-      "ds_total": {
-        "value": 5769.677599093755,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "p_merged": {
-        "value": 0.9864992410118895,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "q_total": {
-        "value": 427.3594991344455,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_nongsuo": {
-      "d": {
-        "value": 9.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "q_thick": {
-        "value": 129.81774597960936,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_shusong": {
-      "d_pipe": {
-        "value": 0.07500000000000001,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_act": {
-        "value": 1.1196111401567663,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_tuoshui": {
-      "n_machine_total": {
-        "value": 2.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "q_cake": {
-        "value": 15.86431863937182,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "sludge_xiaohua": {
-      "d": {
-        "value": 12.0,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "v_total": {
-        "value": 2596.354919592187,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      }
-    },
-    "rj_sup": {
-      "q_recycle": {
-        "value": 297.54175314820674,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
-      },
-      "ss_recycle": {
-        "value": 1939.1152796511046,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
-        "abs": 1e-12,
-        "rel": 1e-12
+        "value": 65.0
       }
     },
     "rj_filtrate": {
       "q_recycle": {
-        "value": 112.43455970340806,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 112.43455970340806
       },
       "ss_recycle": {
-        "value": 1633.7691100602976,
-        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "abs": 1e-12,
-        "rel": 1e-12
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1633.7691100602976
+      }
+    },
+    "rj_sup": {
+      "q_recycle": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 297.54175314820674
+      },
+      "ss_recycle": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1939.1152796511046
+      }
+    },
+    "sludge_bengzhan": {
+      "h_pump": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 16.836842663896945
+      },
+      "n_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 3.0
+      }
+    },
+    "sludge_ganhua": {
+      "m_out": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 4653.533467549067
+      },
+      "w_evap": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 11210.785171822752
+      }
+    },
+    "sludge_hebing": {
+      "ds_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5769.677599093755
+      },
+      "p_merged": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.9864992410118895
+      },
+      "q_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 427.3594991344455
+      }
+    },
+    "sludge_nongsuo": {
+      "d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 9.0
+      },
+      "q_thick": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 129.81774597960936
+      }
+    },
+    "sludge_shusong": {
+      "d_pipe": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.07500000000000001
+      },
+      "v_act": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 1.1196111401567663
+      }
+    },
+    "sludge_tuoshui": {
+      "n_machine_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.0
+      },
+      "q_cake": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 15.86431863937182
+      }
+    },
+    "sludge_xiaohua": {
+      "d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 12.0
+      },
+      "v_total": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2596.354919592187
       }
     }
   },
+  "effluent": {
+    "avg": {
+      "BOD5": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.529798
+      },
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 19.193007225000002
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.5999999999999996
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.2578843138376108
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.75
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4549999999999997
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1055.1765962745546
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 50.07407247504562
+      },
+      "power_aeration_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 4578.9608223791865
+      },
+      "power_pump_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1557.9471803242243
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1191.8219654921095
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 7328.72996819552
+      }
+    },
+    "design": {
+      "BOD5": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.529798
+      },
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 19.193007225000002
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.5999999999999996
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.25252431514010704
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.75
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4549999999999997
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1055.1202894719484
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 49.8660451606234
+      },
+      "power_aeration_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 4578.7164778362185
+      },
+      "power_pump_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1557.6313618457316
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1191.7583669585656
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 7328.106206640516
+      }
+    },
+    "design_offline_municipal_aao": {
+      "BOD5": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.529798
+      },
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 19.193007225000002
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.5999999999999996
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.25252431514010704
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.75
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4549999999999997
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1055.1202894719484
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 49.8660451606234
+      },
+      "power_aeration_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 4578.7164778362185
+      },
+      "power_pump_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1557.6313618457316
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1191.7583669585656
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 7328.106206640516
+      }
+    },
+    "design_offline_municipal_chuchenchi": {
+      "BOD5": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.529798
+      },
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 19.193007225000002
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.5999999999999996
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.25252431514010704
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.75
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4549999999999997
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1055.1202894719484
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 49.8660451606234
+      },
+      "power_aeration_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 4578.7164778362185
+      },
+      "power_pump_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1557.6313618457316
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1191.7583669585656
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 7328.106206640516
+      }
+    },
+    "design_offline_municipal_erchunchi": {
+      "BOD5": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 5.529798
+      },
+      "CODCR": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 19.193007225000002
+      },
+      "NH3N": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 2.5999999999999996
+      },
+      "SS": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.25252431514010704
+      },
+      "TN": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 10.75
+      },
+      "TP": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+        "value": 0.4549999999999997
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1055.1202894719484
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 49.8660451606234
+      },
+      "power_aeration_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 4578.7164778362185
+      },
+      "power_pump_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1557.6313618457316
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1191.7583669585656
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 7328.106206640516
+      }
+    }
+  },
+  "generated": {
+    "data_version": "coefficients@1.3.0+unit_prices@1.0.0",
+    "engine_version": "waterprint-server 0.1.0",
+    "serialize_bytes": 6317220,
+    "serialize_sha256_head": "82df0d7c934cf585",
+    "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
+  },
   "m3_deferred": {
     "estimate_total": {
-      "value": 12086496.936647924,
-      "source": "cost 三正门直调 2026-08-28 HEAD=a2c51bb",
       "abs": 1e-12,
-      "rel": 1e-12
+      "rel": 1e-12,
+      "source": "cost 三正门直调 2026-08-28 HEAD=a2c51bb",
+      "value": 12086496.936647924
     },
     "total_sludge": {
-      "value": 5769.677599093755,
-      "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
       "abs": 1e-12,
-      "rel": 1e-12
+      "rel": 1e-12,
+      "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
+      "value": 5769.677599093755
     }
+  },
+  "tolerance": {
+    "abs": 1e-12,
+    "rel": 1e-12
   }
 }

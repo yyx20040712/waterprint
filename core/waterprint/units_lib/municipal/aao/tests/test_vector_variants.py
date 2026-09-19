@@ -87,6 +87,10 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.aao.elevation_loss': 0.5,
     'factor.aao.superheight': 0.3,
     'factor.aao.aerator.service_area': 0.5,
+    # B4-2a 能耗面系数(factors.yaml 1.3.0 逐字——R-B42a-1 用户批准)
+    'factor.aao.blower.sor_factor': 1.33, 'factor.aao.blower.o2_per_air': 0.28,
+    'factor.aao.blower.oxygen_transfer_eff': 0.2, 'factor.aao.blower.pressure_kpa': 70.0,
+    'factor.aao.blower.efficiency': 0.7, 'factor.aao.stir.power_density': 6.0,
     'removal.aao.bod5.mod_default': 0.9,
     'removal.aao.cod.mod_default': 0.85,
     'removal.aao.ss.mod_default': 0.9,
@@ -121,25 +125,15 @@ def _compute(overrides: dict[str, float] | None = None) -> UnitResult:
     return make_unit().compute(ctx)
 
 
-_VAR1_OVERRIDES: dict[str, float] = {
-    'ns': 0.04,
-}
+_VAR1_OVERRIDES: dict[str, float] = {'ns': 0.04}
 
-_VAR2_OVERRIDES: dict[str, float] = {
-    'ns': 0.3,
-}
+_VAR2_OVERRIDES: dict[str, float] = {'ns': 0.3}
 
-_VAR3_OVERRIDES: dict[str, float] = {
-    'x_mlss': 8000.0,
-}
+_VAR3_OVERRIDES: dict[str, float] = {'x_mlss': 8000.0}
 
-_VAR4_OVERRIDES: dict[str, float] = {
-    'h2': 6.0,
-}
+_VAR4_OVERRIDES: dict[str, float] = {'h2': 6.0}
 
-_VAR5_OVERRIDES: dict[str, float] = {
-    'ratio_lb': 3.0,
-}
+_VAR5_OVERRIDES: dict[str, float] = {'ratio_lb': 3.0}
 
 def test_baseline_var1_full_surface() -> None:
     """用例 var1({'ns': 0.04}):dims/warnings/出流出质精确恒等。"""
@@ -174,6 +168,9 @@ def test_baseline_var1_full_surface() -> None:
         'v_pool': 34256.25,
         'n_aerator_raw': 5357.4755071499985,
         'n_aerator': 5358.0,
+        'q_air': 3.1966968811730463, 'p_blower': 319.66968811730464,
+        'e_aeration': 7672.0725148153115, 'p_stir': 42.234250499999995,
+        'e_stir': 1013.6220119999998,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -249,6 +246,8 @@ def test_baseline_var2_full_surface() -> None:
         'v_pool': 10767.5,
         'n_aerator_raw': 714.3300676199999,
         'n_aerator': 715.0,
+        'q_air': 1.282205489005729, 'p_blower': 128.2205489005729, 'e_aeration': 3077.29317361375,
+        'p_stir': 42.234250499999995, 'e_stir': 1013.6220119999998,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -324,6 +323,8 @@ def test_baseline_var3_full_surface() -> None:
         'v_pool': 10117.5,
         'n_aerator_raw': 1071.49510143,
         'n_aerator': 1072.0,
+        'q_air': 1.8712797635187501, 'p_blower': 187.12797635187502, 'e_aeration': 4491.071432445,
+        'p_stir': 27.634756499999995, 'e_stir': 663.2341559999999,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -398,6 +399,8 @@ def test_baseline_var4_full_surface() -> None:
         'v_pool': 17905.5,
         'n_aerator_raw': 1785.8251690499999,
         'n_aerator': 1786.0,
+        'q_air': 1.8712797635187501, 'p_blower': 187.12797635187502, 'e_aeration': 4491.071432445,
+        'p_stir': 42.234250499999995, 'e_stir': 1013.6220119999998,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -459,6 +462,8 @@ def test_baseline_var5_full_surface() -> None:
         'v_pool': 17853.75,
         'n_aerator_raw': 2142.99020286,
         'n_aerator': 2143.0,
+        'q_air': 1.8712797635187501, 'p_blower': 187.12797635187502, 'e_aeration': 4491.071432445,
+        'p_stir': 42.234250499999995, 'e_stir': 1013.6220119999998,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

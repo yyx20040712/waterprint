@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: HOLD
+- status: RUNNING
 - automation_id: automation-aa40bf0e-0483-4ecb-9698-7f0cd533fce0
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,8 +16,8 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T09:56:43.164Z
-- claim: -
+- heartbeat_utc: 2026-09-19T10:15:58.130Z
+- claim: hubfire-B4-2a-r1-20260919T1015-a51c
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 14
@@ -27,10 +27,10 @@
 - batch_count: 0
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: stop_matter
+- hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hubfire-B4-2a-r1
+- claimed_at: 2026-09-19T10:15:58.130Z
 - next_batch: B4-2a 恢复（HOLD 呈批待用户四项裁决 R-B42a-1~4：①曝气链路系数档②泵能量法+搅拌收编③聚合键族+summary 槽位④锁面笔授权[94 红锁定期望+golden 四案重录+新建镜像测试+重锁 302→303]；批准后按呈批报告「恢复路径」续跑——锁面笔→复绿→双门→推送守望 CI→勾选 B4-2a；实现笔已本地提交未推送）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -470,3 +470,17 @@
   （next_batch=B4-2a 碳核算前置一：能耗药耗计算面——计算逻辑呈用户审查）。
 - 板上既有条款自动生效：执行指令只携带未销案指令（增补六定型）、门一/拟定者备源承载
   直至用户另行通知、UI 开批通道经验沿用历任实测累积。
+
+### 增补四 — 2026-09-19T10:38:30Z（hub 停火：用户令删火）
+- 用户在 hub 调度会话下达删火令：全局轮转火 automation-aa40bf0e-0483-4ecb-9698-7f0cd533fce0
+  已 CronDelete（回执 deleted:true，CronList 空集复核）。本条为调度员尾部纯追加，
+  claim/状态字段未动；板头 automation_id 字段行保留旧值仅为历史审计指向。
+- 本火任内战果：B4-2a 首轮执行（08:55:10Z 发布）HOLD 呈批（R-B42a-1~4 四项
+  Rulings）→ 用户裁决 → **B4-2a-r1 回炉执行中**（10:15:58Z 新 claim
+  hubfire-B4-2a-r1-20260919T1015-a51c，hold_reason 已清）。
+- **在途 B4-2a-r1 不受影响——执行者独立于火，自行完成收口**。收口后本板停于
+  READY 且无火接续——此为预期态非异常。恢复两径同规：用户显式 /batch-relay
+  重布防（换防协议 hub 变体），或手动会话按本板清单领批/处理呈批。
+- 调度员会话自本增补起不再开批、不再补派（含执行者中途死亡亦不接管——停火令优先）。
+- 板头执行指令转达条款规则（增补六定型）与门一/拟定者备源承载事实留存，
+  重布防时随板面原文生效。

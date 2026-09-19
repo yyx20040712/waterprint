@@ -84,6 +84,9 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.wushui_tisheng.pump.q_flow_band.min": 400.0,
         "factor.wushui_tisheng.pump.q_flow_band.max": 1500.0,
         "factor.wushui_tisheng.pump.free_head": 1.5,
+        # B4-2a 能耗面系数（factors.yaml 1.3.0 逐字——R-B42a-2 用户批准）
+        "factor.wushui_tisheng.pump.efficiency": 0.75,
+        "factor.wushui_tisheng.pump.water_density": 1000.0,
         "factor.wushui_tisheng.pump.start_band.max": 6.0,
         "factor.wushui_tisheng.pipe.resistance.dn300": 1.025,
         "factor.wushui_tisheng.pipe.resistance.dn350": 0.4529,
@@ -262,10 +265,17 @@ def test_pure_function_double_run() -> None:
     assert first.formula_ids == second.formula_ids
 
 
+def test_main_case_energy() -> None:
+    """主算例泵能耗断言（TS-F15/F16——B4-2a 能量法，R-B42a-2 用户批准）。"""
+    dims = _dims()
+    assert dims["p_pump"] == pytest.approx(44.053748, abs=1e-4)  # TS-F15 单泵轴功率 kW
+    assert dims["e_pump"] == pytest.approx(1510.414214, abs=1e-3)  # TS-F16 泵站日耗电 kWh/d
+
+
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"TS-F{index}" for index in range(1, 15))
+    assert result.formula_ids == tuple(f"TS-F{index}" for index in range(1, 17))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

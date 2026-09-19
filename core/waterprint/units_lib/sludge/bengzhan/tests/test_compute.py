@@ -87,6 +87,10 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.bengzhan.pump.q_flow_band.min": 5.0,
         "factor.bengzhan.pump.q_flow_band.max": 50.0,
         "factor.bengzhan.pump.free_head": 1.5,
+        # B4-2a 能耗面系数（factors.yaml 1.3.0 逐字——R-B42a-2 用户批准）
+        "factor.bengzhan.pump.efficiency": 0.70,
+        "factor.bengzhan.pump.water_density": 1000.0,
+        "factor.bengzhan.pump.gravity": 9.81,
         "factor.bengzhan.pump.start_band.max": 6.0,
         "factor.bengzhan.pipe.velocity_band.min": 1.0,
         "factor.bengzhan.pipe.velocity_band.max": 2.0,
@@ -138,6 +142,10 @@ def _secondary_overrides() -> dict[str, float]:
         "factor.bengzhan.pipe.zeta_total": 8.0,
         "h_static": 15.0,
         "factor.bengzhan.pump.free_head": 2.0,
+        # B4-2a 能耗面系数（同上——变体参数面同步）
+        "factor.bengzhan.pump.efficiency": 0.70,
+        "factor.bengzhan.pump.water_density": 1000.0,
+        "factor.bengzhan.pump.gravity": 9.81,
         "t_well": 15.0,
         "h_well": 1.5,
     }
@@ -272,10 +280,17 @@ def test_param_domain_rejected() -> None:
         make_unit().compute(_ctx(_params(t_well=0.0)))
 
 
+def test_main_case_energy() -> None:
+    """主算例泵能耗断言（BZ-F19/F20——B4-2a 能量法，R-B42a-2 用户批准）。"""
+    dims = _dims()
+    assert dims["p_pump"] == pytest.approx(0.544316, abs=1e-5)  # BZ-F19 单泵轴功率 kW
+    assert dims["e_pump"] == pytest.approx(26.12716, abs=1e-3)  # BZ-F20 泵站日耗电 kWh/d
+
+
 def test_formula_ids_registered_and_condition_key() -> None:
     """⑫formula_ids 恰 18 号（BZ-F1~F18）全部可解析+工况键形态冒烟。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"BZ-F{index}" for index in range(1, 19))
+    assert result.formula_ids == tuple(f"BZ-F{index}" for index in range(1, 21))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
     assert ConditionSet.key(_CONDITION) == "design"

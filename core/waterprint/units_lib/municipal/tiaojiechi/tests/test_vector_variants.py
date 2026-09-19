@@ -136,6 +136,7 @@ def test_baseline_var1_full_surface() -> None:
         'd_overflow': 0.9,
         'h_total': 5.5,
         'v_concrete': 7252.437499999999,
+        'e_stir': 2712.6000000000004,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -187,6 +188,7 @@ def test_baseline_var2_full_surface() -> None:
         'd_overflow': 0.9,
         'h_total': 4.0,
         'v_concrete': 4659.2,
+        'e_stir': 1677.3120000000001,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -237,6 +239,7 @@ def test_baseline_var3_full_surface() -> None:
         'd_overflow': 0.9,
         'h_total': 5.5,
         'v_concrete': 4487.174999999999,
+        'e_stir': 1678.3200000000002,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
@@ -287,6 +290,7 @@ def test_baseline_var4_full_surface() -> None:
         'd_overflow': 0.9,
         'h_total': 5.5,
         'v_concrete': 4461.1667099999995,
+        'e_stir': 1668.5922240000004,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

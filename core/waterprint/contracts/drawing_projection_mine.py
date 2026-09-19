@@ -87,11 +87,11 @@ MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         instance_counts={},
         non_drawn=("a1", "a_act", "b_raw", "d_out_raw", "dn_out", "l_raw",
                    "p_stir", "t_reg_act", "v1", "v_act_total", "v_concrete",
-                   "v_total"),
+                   "v_total", "e_stir"),
         dim_of={"a1": _A, "a_act": _A, "b": _L, "b_raw": _L,
                 "d_out_raw": _L, "dn_out": _L, "h_total": _L, "l": _L,
                 "l_raw": _L, "p_stir": _D, "t_reg_act": _D, "v1": _V,
-                "v_act_total": _V, "v_concrete": _V, "v_total": _V},
+                "v_act_total": _V, "v_concrete": _V, "v_total": _V, "e_stir": _D,},
     ),
     # 矿井平流沉砂池：l_weir 出水堰长（KC-F7）；v_hopper 斗容积（KC-F6
     # 容积量——不上图入 non_drawn，与市政 h4 斗深键义区分）
@@ -123,13 +123,13 @@ MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         instance_counts={},
         non_drawn=("a1", "a2", "a3", "a4", "b_raw", "gt_total", "m_pac",
                    "m_pam", "m_seed", "p1", "p2", "p3", "p4", "p_total",
-                   "t_total", "v1", "v2", "v3", "v4", "v_concrete"),
+                   "t_total", "v1", "v2", "v3", "v4", "v_concrete", "e_stir"),
         dim_of={"a1": _A, "a2": _A, "a3": _A, "a4": _A, "b": _L,
                 "b_raw": _L, "gt_total": _D, "h_total": _L, "l1": _L,
                 "l2": _L, "l3": _L, "l4": _L, "m_pac": _D, "m_pam": _D,
                 "m_seed": _D, "p1": _D, "p2": _D, "p3": _D, "p4": _D,
                 "p_total": _D, "t_total": _D, "v1": _V, "v2": _V,
-                "v3": _V, "v4": _V, "v_concrete": _V},
+                "v3": _V, "v4": _V, "v_concrete": _V, "e_stir": _D,},
     ),
     # 磁分离：n_disks 磁盘盘片数→实例数（disk 语义标签——scene
     # _INSTANCE_KINDS 本批 M3D1 D4 登记）；设备类无池体图元

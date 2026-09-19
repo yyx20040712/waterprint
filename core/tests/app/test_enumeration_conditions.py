@@ -204,4 +204,4 @@ def test_condition_fields_from_out_dims_label_zh(golden_data_dir: Path) -> None:
         _project(), "municipal_aao", build_condition_set([]), _env()  # type: ignore[misc]
     )
     assert outcome.condition_fields[:4] == _AAO_OUT_DIMS_ZH  # 声明序前四条中文名
-    assert len(outcome.condition_fields) == 23  # AAO 21→23 条（V2 批+曝气头数据面批两键）
+    assert len(outcome.condition_fields) == 28  # AAO 21→23→28 条（V2+曝气头+B4-2a 能耗五键）

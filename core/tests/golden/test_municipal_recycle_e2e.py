@@ -80,7 +80,14 @@ def _assert_effluent_and_dims(
     for condition_key, fields in expected["effluent"].items():
         snapshot = plant.conditions[condition_key][_TERMINAL]
         for indicator, item in fields.items():
-            actual = snapshot.outqualities[f"{_TERMINAL}.out.{indicator}"]
+            # B4-2a 能耗药耗聚合键（power_*/dose_*）住 summary——终水水质
+            # 键走 outqualities、聚合键走 summary 双路由（锁面重录
+            # 2026-09-19，R-B42a-1~4 用户批准；判别=终端出水质在场性）
+            quality_key = f"{_TERMINAL}.out.{indicator}"
+            if quality_key in snapshot.outqualities:
+                actual = snapshot.outqualities[quality_key]
+            else:
+                actual = plant.summary[condition_key][indicator]
             assert actual == pytest.approx(
                 item["value"], rel=item["rel"], abs=item["abs"]
             ), f"终水 {condition_key}.{indicator}"

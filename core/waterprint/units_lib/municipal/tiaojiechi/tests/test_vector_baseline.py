@@ -148,6 +148,7 @@ def test_baseline_main_full_surface() -> None:
         'd_overflow': 0.9,
         'h_total': 5.5,
         'v_concrete': 4489.099999999999,
+        'e_stir': 1679.04,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

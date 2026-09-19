@@ -112,6 +112,14 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.cass.wall_thickness_coef': 0.4,
     'factor.cass.elevation_loss': 0.5,
     'factor.cass.aerator.service_area': 0.5,
+    # B4-2a 能耗面系数(factors.yaml 1.3.0 逐字——R-B42a-1 用户批准)
+    'factor.cass.blower.sor_factor': 1.33,
+    'factor.cass.blower.o2_per_air': 0.28,
+    'factor.cass.blower.oxygen_transfer_eff': 0.2,
+    'factor.cass.blower.pressure_kpa': 70.0,
+    'factor.cass.blower.efficiency': 0.7,
+    'factor.cass.blower.duty_ratio': 0.5,
+    'factor.cass.stir.power_density': 6.0,
     'removal.cass.bod5.mod_default': 0.9,
     'removal.cass.cod.mod_default': 0.85,
     'removal.cass.ss.mod_default': 0.9,
@@ -183,6 +191,8 @@ def test_baseline_main_full_surface() -> None:
         'v_concrete': 7647.353999999999,
         'n_aerator_raw': 1629.4078124999999,
         'n_aerator': 1630.0,
+        'q_air': 1.8712797635187501, 'p_blower': 187.12797635187502, 'e_aeration': 2245.5357162225,
+        'p_stir': 6.517631249999999, 'e_stir': 156.42314999999996,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

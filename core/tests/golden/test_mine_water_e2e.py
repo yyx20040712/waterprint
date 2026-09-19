@@ -110,13 +110,23 @@ def _m3_deferred_values(plant: Any, expected: dict[str, Any]) -> None:
 def _effluent_and_summary_anchor(plant: Any, expected: dict[str, Any], keys: list[str]) -> None:
     """②/④ 终水与 summary 真值对照（D10 注入口径——同源互证）。
 
-    键集钳制：每工况恰等五指标面（BOD5 缺席合法——BOD5RM），防删块
-    静默绿；双容差按 expected 内标注——不放宽。"""
+    键集钳制：指标面=五指标族子集（BOD5 缺席合法——BOD5RM）+能耗药耗
+    面（B4-2a 小写键族）恰等 summary 投影，防删块静默绿；双容差按
+    expected 内标注——不放宽。"""
     for condition_key, fields in expected["effluent"].items():
-        assert set(fields) == _INDICATORS, f"五指标面 {condition_key}"
+        quality_keys = {k for k in fields if k.isupper()}
+        assert quality_keys <= _INDICATORS, f"五指标面 {condition_key}"
+        assert set(fields) == set(plant.summary[condition_key]), f"summary 面 {condition_key}"
         snapshot = plant.conditions[condition_key][_TERMINAL]
         for indicator, item in fields.items():
-            actual = snapshot.outqualities[f"{_TERMINAL}.out.{indicator}"]
+            # B4-2a 能耗药耗聚合键（power_*/dose_*）住 summary——终水水质
+            # 键走 outqualities、聚合键走 summary 双路由（锁面重录
+            # 2026-09-19，R-B42a-1~4 用户批准；判别=终端出水质在场性）
+            quality_key = f"{_TERMINAL}.out.{indicator}"
+            if quality_key in snapshot.outqualities:
+                actual = snapshot.outqualities[quality_key]
+            else:
+                actual = plant.summary[condition_key][indicator]
             assert actual == pytest.approx(
                 item["value"], rel=item["rel"], abs=item["abs"]
             ), f"终水 {condition_key}.{indicator}"

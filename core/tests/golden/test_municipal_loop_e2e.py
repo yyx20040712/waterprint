@@ -135,7 +135,14 @@ def _assert_effluent_and_dims(
     for condition_key, fields in expected["effluent"].items():
         snapshot = plant.conditions[condition_key][_TERMINAL]
         for indicator, item in fields.items():
-            actual = snapshot.outqualities[f"{_TERMINAL}.out.{indicator}"]
+            # B4-2a 能耗药耗聚合键（power_*/dose_*）住 summary——终水水质
+            # 键走 outqualities、聚合键走 summary 双路由（锁面重录
+            # 2026-09-19，R-B42a-1~4 用户批准；判别=终端出水质在场性）
+            quality_key = f"{_TERMINAL}.out.{indicator}"
+            if quality_key in snapshot.outqualities:
+                actual = snapshot.outqualities[quality_key]
+            else:
+                actual = plant.summary[condition_key][indicator]
             assert actual == pytest.approx(
                 item["value"], rel=item["rel"], abs=item["abs"]
             ), f"终水 {condition_key}.{indicator}"
@@ -148,11 +155,20 @@ def _assert_effluent_and_dims(
             ), f"主尺寸 {unit_id}.{field}"
     # app 层 summary 真值投影：真环调度下泥线汇点 ganhua（非组成员，层 15）
     # 后于水线 bashi（层 11）完成——terminal（快照序末位无出边单元）=泥线
-    # ganhua，无水质键→空映射合法（_summary_of 契约原文"污泥线终端无水质
-    # 键→空映射合法"；v1 前向回流使 rj 居深层水线被推后、bashi 恰居末——
-    # 真环形态下该启发式取泥线汇点，终水六指标面由 effluent 锚承载）
+    # ganhua，无水质键→指标面空（_summary_of 契约原文"污泥线终端无水质键
+    # →空映射合法"；终水六指标面由 municipal 案 effluent 锚承载）。B4-2a
+    # 能耗药耗聚合注入后本面非空——键集与逐值改由 expected.effluent 承载
+    # （锁面重录 2026-09-19，R-B42a-1~4 用户批准：指标键零在场+能耗药耗
+    # 键逐工况锚定）。
     for condition_key in keys:
-        assert plant.summary[condition_key] == {}, condition_key
+        view = plant.summary[condition_key]
+        energy = {k: v for k, v in expected["effluent"][condition_key].items()
+                  if not k.isupper()}
+        assert set(view) == set(energy), condition_key
+        for field, item in energy.items():
+            assert view[field] == pytest.approx(
+                item["value"], rel=item["rel"], abs=item["abs"]
+            ), f"summary {condition_key}.{field}"
 
 
 def _assert_water_closure(plant: Any, keys: list[str]) -> None:

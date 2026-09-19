@@ -240,6 +240,36 @@
         "rel": 1e-12,
         "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
         "value": 2.0
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1753.4399999999998
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 133.74012912
+      },
+      "dose_seed_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1095.900000000001
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 3420.578745
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 3420.578745
       }
     },
     "design": {
@@ -272,14 +302,44 @@
         "rel": 1e-12,
         "source": "主线实跑 2026-08-28 HEAD=3b6fce2",
         "value": 2.0
+      },
+      "dose_pac_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1753.4399999999998
+      },
+      "dose_pam_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 133.74012912
+      },
+      "dose_seed_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 1095.900000000001
+      },
+      "power_stir_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 3420.578745
+      },
+      "power_total_kwh_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
+        "value": 3420.578745
       }
     }
   },
   "generated": {
-    "data_version": "coefficients@1.1.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.3.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 107044,
-    "serialize_sha256_head": "8b79fbad5f26199e",
+    "serialize_bytes": 108652,
+    "serialize_sha256_head": "111f7973f1b0abfb",
     "source": "主线实跑 2026-09-03 HEAD=8e3c7d7+L4a boundary 批重录"
   },
   "m3_deferred": {

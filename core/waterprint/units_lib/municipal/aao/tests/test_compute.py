@@ -104,6 +104,13 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.aao.elevation_loss": 0.5,
         "factor.aao.superheight": 0.3,
         "factor.aao.aerator.service_area": 0.5,
+        # B4-2a 能耗面系数（factors.yaml 1.3.0 逐字——R-B42a-1 用户批准）
+        "factor.aao.blower.sor_factor": 1.33,
+        "factor.aao.blower.o2_per_air": 0.28,
+        "factor.aao.blower.oxygen_transfer_eff": 0.20,
+        "factor.aao.blower.pressure_kpa": 70.0,
+        "factor.aao.blower.efficiency": 0.70,
+        "factor.aao.stir.power_density": 6.0,
         # removal_rates.yaml mod_default 档逐字（N/P 三键 0.8.0 NP1/RATIFY3）
         "removal.aao.bod5.mod_default": 0.90,
         "removal.aao.cod.mod_default": 0.85,
@@ -312,10 +319,20 @@ def test_pure_function_double_run() -> None:
     assert first.warnings == second.warnings
 
 
+def test_main_case_energy() -> None:
+    """主算例能耗族逐项断言（AO-F21~F25——B4-2a，R-B42a-1 用户批准档）。"""
+    dims = _dims()
+    assert dims["q_air"] == pytest.approx(1.871280, abs=1e-6)  # AO-F21
+    assert dims["p_blower"] == pytest.approx(187.127976, abs=1e-4)  # AO-F22
+    assert dims["e_aeration"] == pytest.approx(4491.071432, abs=1e-3)  # AO-F23
+    assert dims["p_stir"] == pytest.approx(42.234250, abs=1e-5)  # AO-F24
+    assert dims["e_stir"] == pytest.approx(1013.622012, abs=1e-3)  # AO-F25
+
+
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 21))
+    assert result.formula_ids == tuple(f"AO-F{index}" for index in range(1, 26))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

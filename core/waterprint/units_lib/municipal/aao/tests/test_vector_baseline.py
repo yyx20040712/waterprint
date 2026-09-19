@@ -115,6 +115,13 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.aao.elevation_loss': 0.5,
     'factor.aao.superheight': 0.3,
     'factor.aao.aerator.service_area': 0.5,
+    # B4-2a 能耗面系数(factors.yaml 1.3.0 逐字——R-B42a-1 用户批准)
+    'factor.aao.blower.sor_factor': 1.33,
+    'factor.aao.blower.o2_per_air': 0.28,
+    'factor.aao.blower.oxygen_transfer_eff': 0.2,
+    'factor.aao.blower.pressure_kpa': 70.0,
+    'factor.aao.blower.efficiency': 0.7,
+    'factor.aao.stir.power_density': 6.0,
     'removal.aao.bod5.mod_default': 0.9,
     'removal.aao.cod.mod_default': 0.85,
     'removal.aao.ss.mod_default': 0.9,
@@ -182,6 +189,8 @@ def test_baseline_main_full_surface() -> None:
         'v_pool': 17955.0,
         'n_aerator_raw': 2142.99020286,
         'n_aerator': 2143.0,
+        'q_air': 1.8712797635187501, 'p_blower': 187.12797635187502, 'e_aeration': 4491.071432445,
+        'p_stir': 42.234250499999995, 'e_stir': 1013.6220119999998,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)

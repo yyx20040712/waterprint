@@ -163,7 +163,7 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                    "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_internal",
                    "q_return", "q_wet", "s_y", "t_n", "t_o", "t_total", "theta_c",
                    "v_anaerobic", "v_anoxic", "v_o", "v_o_series", "v_pool",
-                   "v_total", "x_vss"),
+                   "v_total", "x_vss", "e_aeration", "e_stir", "p_blower", "p_stir", "q_air"),
         dim_of={"a_pool": _A, "b_pool": _L, "b_pool_raw": _L, "delta_n": _C,
                 "h2": _L, "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
                 "n_aerator": _D, "n_aerator_raw": _D,
@@ -171,7 +171,8 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "q_internal": _D, "q_return": _D, "q_wet": _V, "s_y": _M,
                 "t_n": _TH, "t_o": _TH, "t_total": _TH, "theta_c": _TD,
                 "v_anaerobic": _V, "v_anoxic": _V, "v_o": _V,
-                "v_o_series": _V, "v_pool": _V, "v_total": _V, "x_vss": _C},
+                "v_o_series": _V, "v_pool": _V, "v_total": _V, "x_vss": _C,
+                "q_air": _F, "p_blower": _D, "e_aeration": _D, "p_stir": _D, "e_stir": _D},
     ),
     # CASS 生物池：n_decant 滗水器台数（CA-F 族 ceil 收口）+n_aerator 曝气头
     #   个数（CA-F28 服务面积法，主反应区口径扣选择区——曝气头数据面批）→实例数
@@ -188,7 +189,7 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                    "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_decant",
                    "q_wet", "s_y", "t_phase_sum", "theta_c", "v_bio",
                    "v_concrete", "v_draw", "v_load", "v_plant", "v_pool",
-                   "v_selector", "x_vss"),
+                   "v_selector", "x_vss", "e_aeration", "e_stir", "p_blower", "p_stir", "q_air"),
         dim_of={"a_draw": _A, "a_load": _A, "a_pool": _A, "b_pool": _L,
                 "b_pool_raw": _L, "h_draw": _L, "h_draw_max": _L,
                 "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
@@ -199,7 +200,8 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "s_y": _M, "t_phase_sum": _TH, "theta_c": _TD, "v_bio": _V,
                 "v_concrete": _V, "v_draw": _V, "v_load": _V,
                 "v_plant": _V, "v_pool": _V, "v_selector": _V,
-                "x_vss": _C},
+                "x_vss": _C,
+                "q_air": _F, "p_blower": _D, "e_aeration": _D, "p_stir": _D, "e_stir": _D},
     ),
     # 高密沉淀池：宽度档 b（0.5 m 档）；无池长键（长度由面积/宽推导归 M3）
     "municipal_gaomidu": UnitProjection(
@@ -214,14 +216,14 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         non_drawn=("a_act", "a_incl_req", "b_raw", "gt_floc", "h_total_raw",
                    "m_pac", "m_pam", "p_floc", "p_mix", "q1h", "q_design_h",
                    "q_return", "q_sludge", "q_surface_act", "s_dry",
-                   "ss_out", "v_concrete", "v_floc", "v_mix"),
+                   "ss_out", "v_concrete", "v_floc", "v_mix", "e_stir"),
         dim_of={"a_act": _A, "a_incl_req": _A, "b": _L, "b_raw": _L,
                 "gt_floc": _D, "h_floc_calc": _L, "h_settle": _L,
                 "h_total": _L, "h_total_raw": _L, "h_tube_zone": _L,
                 "m_pac": _M, "m_pam": _M, "p_floc": _D, "p_mix": _D,
                 "q1h": _D, "q_design_h": _D, "q_return": _D,
                 "q_sludge": _V, "q_surface_act": _D, "s_dry": _M,
-                "ss_out": _C, "v_concrete": _V, "v_floc": _V, "v_mix": _V},
+                "ss_out": _C, "v_concrete": _V, "v_floc": _V, "v_mix": _V, "e_stir": _D,},
     ),
     # V 型滤池：h_total 池总高（滤板/砂层/水深构成，剖面池深语义）
     "municipal_vxinglvchi": UnitProjection(
@@ -291,13 +293,13 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         non_drawn=("a_well", "d_pipe_raw", "h_friction", "h_local", "h_loss",
                    "h_pump", "n_pump_raw", "n_start", "q_design_h",
                    "q_pump", "q_pump_si", "v_concrete", "v_pipe_act",
-                   "v_well"),
+                   "v_well", "e_pump", "p_pump"),
         dim_of={"a_well": _A, "d_pipe": _L, "d_pipe_raw": _L,
                 "h_friction": _L, "h_local": _L, "h_loss": _L,
                 "h_pump": _L, "h_well_total": _L, "n_pump_duty": _D,
                 "n_pump_raw": _D, "n_pump_total": _D, "n_start": _D,
                 "q_design_h": _D, "q_pump": _D, "q_pump_si": _F,
-                "v_concrete": _V, "v_pipe_act": _VEL, "v_well": _V},
+                "v_concrete": _V, "v_pipe_act": _VEL, "v_well": _V, "p_pump": _D, "e_pump": _D,},
     ),
     # 调节池：p_stir 搅拌功率 kW（DIMENSIONLESS 裸值——TJ-F9 output_dim
     # 口径，kW 单位语义随 i18n 键；gaomidu p_mix/p_floc 同款）
@@ -310,12 +312,12 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         instance_counts={},
         non_drawn=("a1", "a_act", "b_raw", "l_raw", "p_stir", "q_pump1",
                    "t_reg_act", "v1", "v_act_total", "v_concrete",
-                   "v_total"),
+                   "v_total", "e_stir"),
         dim_of={"a1": _A, "a_act": _A, "b": _L, "b_raw": _L,
                 "d_overflow": _L, "h_total": _L, "l": _L, "l_raw": _L,
                 "p_stir": _D,  # TJ-F9 output_dim=DIMENSIONLESS（kW 裸值口径）
                 "q_pump1": _D, "t_reg_act": _D, "v1": _V,
-                "v_act_total": _V, "v_concrete": _V, "v_total": _V},
+                "v_act_total": _V, "v_concrete": _V, "v_total": _V, "e_stir": _D,},
     ),
     # 辐流二沉池：h2 有效水深是参数（联动 AAO）不在 dims——剖面池深取
     # h_total、池底坡降 h4；v_check 校核容积/t_hrt 校核 HRT（EC 复合导出）

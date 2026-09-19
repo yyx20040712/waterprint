@@ -93,6 +93,9 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.wushui_tisheng.pump.q_flow_band.min': 400.0,
     'factor.wushui_tisheng.pump.q_flow_band.max': 1500.0,
     'factor.wushui_tisheng.pump.free_head': 1.5,
+    # B4-2a 能耗面系数(factors.yaml 1.3.0 逐字——R-B42a-2 用户批准)
+    'factor.wushui_tisheng.pump.efficiency': 0.75,
+    'factor.wushui_tisheng.pump.water_density': 1000.0,
     'factor.wushui_tisheng.pump.start_band.max': 6.0,
     'factor.wushui_tisheng.pipe.resistance.dn300': 1.025,
     'factor.wushui_tisheng.pipe.resistance.dn350': 0.4529,
@@ -165,6 +168,7 @@ def test_baseline_main_full_surface() -> None:
         'n_start': 1.5,
         'h_well_total': 2.5,
         'v_concrete': 73.92683593749997,
+        'p_pump': 44.05374791723807, 'e_pump': 1510.4142143053052,
     }
     assert [
         (w.severity.name, w.source, w.message, w.param_key)
