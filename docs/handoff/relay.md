@@ -8,22 +8,29 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
-- automation_id: automation-2988ca0b-9af5-4ae0-a8ed-319602ec2ddf
+- status: RUNNING
+- automation_id: automation-aa40bf0e-0483-4ecb-9698-7f0cd533fce0
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T04:50:00Z
-- claim: -
+- heartbeat_utc: 2026-09-19T08:56:34.879Z
+- claim: hubfire-B4-2a-20260919T0857-f382
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 14
+- protocol_rev: 1
+- last_dispatch_utc: 2026-09-19T08:55:10Z
+- relay_started_utc: 2026-09-19T08:46:13Z
+- batch_count: 0
+- max_batches: 60
+- max_wall_hours: 90
+- hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hubfire-B4-2a
+- claimed_at: 2026-09-19T08:56:34.879Z
 - next_batch: B4-2a（碳核算前置一：能耗药耗计算面——单元级 power/dose 输出[曝气供气→风机功率/泵扬程→轴功率/搅拌功率密度参数升级]+result_schema 全厂聚合字段[电耗 kWh/d 药耗 kg/d 分项]；**计算逻辑呈用户审查**（裁决书方案五②探针结论三段路线第一段）；调查批+实现批复合，result_schema 变更走 ADR+契约测试+前端重生成三步）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -67,7 +74,21 @@
   - 禁止创建任何新自动化（成员板禁自布第二条火——hub 全局一条火红线）。
 - 模型路由事实：门一主源周额度达上限（2026-09-18 用户告知）——门一/拟定者
   一律备源承载直至用户另行通知；逐字指令在组织账本 ruling 行。
+- ——rev1 增量条款（2026-09-19 生产化批追加；与本段既有条款并行生效，冲突处以增量条款为准）——
+- 时间基准唯一规则：板上一切时间戳为 UTC ISO8601 带 Z 后缀；「距今 N min」=（当前 UTC−字段值）÷60000 向下取整；旧 last_dispatch 行冻结仅读兼容。
+- 行动前预检：字段行完整/时间戳可解析/status 合法/无重复 status 行/protocol_rev∈{0,1}——失败即一行退出 `fire: abort (reason=board_precheck_failed:<规则名>)` 并日志记欠账。
+- 开批判据四条件：READY ∧ 静默窗过（last_dispatch_utc ≥30min）∧ 上批实物静默（≥5min，无 git 仓以板面与 plan 文件 mtime 代之）∧ 熔断未触发（batch_count<max_batches 且距今运行<max_wall_hours 小时）。
+- 熔断触发 → HOLD(hold_reason=circuit_batches|circuit_wall)+终报「熔断裂闸：<原因>，已运行 <batch_count> 批 / <n> 小时」；收口判定次序：全勾→DONE ＞ 停止事由→HOLD(stop_matter) ＞ 熔断→HOLD(circuit_*) ＞ 零进展连续3→HOLD(no_progress) ＞ READY（batch_count 无条件+1，置终态同原子写 claim→-）。
+- 一行退出固定枚举三族：fire: skip (reason=quiet_window|running_fresh|no_ready_board) / fire: terminal (reason=done|hold|board_missing) / fire: abort (reason=board_precheck_failed:<规则名>)——禁引用板面原文。
+- 机检：node C:/Users/Administrator/.zcode/skills/batch-relay/scripts/check-relay.mjs board <本板路径>（收口置位前跑，须 0 fail）。
 
+- ——rev1.1 增量条款（2026-09-19 逻辑修复批追加；与本段既有条款并行生效，冲突处以本条为准——增量条款后出者胜）——
+- shared_fire 板文件缺失：从轮转清单跳过+终报记欠账，不删全局火——删火仅当全部板终态或缺失。
+- last_dispatch_utc 值为 `-` =从未发布：静默窗视为已过（首批发布即此态，非解析失败）。
+- 执行者心跳：任务内每隔 15min 亦必刷（每任务始末照刷）；一切板写（心跳/收口/翻回/修复）落笔前回读 claim——非己=已被接管，立即停笔让位，遗留只终报呈报。
+- 僵死接管前置 UI 活动核查：同宿客户端必核执行者会话已无「正在执行」活动——仍有活动 → skip(candidate_alive)；跨宿降级 git/账本双核对+欠账行。
+- 全勾判定 `grep -cE '^[[:space:]]*- \[ \]'` 计 0（行首允许缩进——误报方向=晚 DONE，安全）；翻回 RUNNING 修复的回炉收口 batch_count 不再 +1。
+- 数值字段须纯非负整数（R10 机检）；值区行内注释用「值 <!-- 备注 -->」语法，机器自动截断。
 ## 执行路由（ai-dev-org 项目——批内引擎）
 
 - 会话内岗优先 ops-* 绑定子代理（主承载）；外部派发器=健康探针+后备
@@ -390,3 +411,31 @@
 - 会话终态：B4-1 一批完成（勾选 13→14/20，含 R-B41-1 对话内裁决→锁面笔→CI 全绿全程），READY，
   claim 归位；第四波业务线首批收官；next_batch=B4-2a（碳核算前置一：能耗药耗计算面——计算逻辑呈
   用户审查）。
+
+### 增补 — 2026-09-19（rev0→rev1 原位升版迁移——batch-relay 生产化批 Task 6，主控会话直跑）
+- 迁移写（只增行+折算+追加，未复位既有状态，批次日志区零改写；板头自定义字段 last_handover/claimed_by/claimed_at/next_batch 原位保留；protocol 段含手动路径/hub 火式条款/模型路由事实等既有内容一字未动）：板头新增 protocol_rev:1、last_dispatch_utc=2026-09-19T03:14:24Z（旧 last_dispatch 行 11:14:24+08:00 折算，旧行冻结保留）、relay_started_utc=2026-09-19T06:33:54Z（熔断自迁移起算，非项目起点）、batch_count:0、max_batches:60（3×20 派生）、max_wall_hours:90（⌈1.5×60⌉）、hold_reason:-；protocol 段末追加「rev1 增量条款」块。
+- 迁移前基线（check-relay.mjs board）：0 fail+2 warn（R0/R3）；迁移后：见机检记录。claim 本为 -，无状态修复项。
+- 执行承载：batch-relay 生产化战役（E:/zcode_md/fix/docs/plans/2026-09-19-batch-relay-production-hardening.md Task 6，D4 裁决会话直跑）；观察门过（last_dispatch 距今 3h19m ≥60min、claim/-claimed_by 空、READY）。
+
+### 增补二 — 2026-09-19（rev1.1 增量条款追加——batch-relay 逻辑修复批 Task 6，主控会话直跑）
+- 追加内容：protocol 段末（执行路由标题行前）插入 7 行 rev1.1 块（A1 缺失豁免/A3 dash 语义/A2 心跳+写前 claim 回读+接管 UI 核查/B2 缩进全勾/A5 回炉豁免/R10 数值与值区注释语法）；既有行一字未动（自定义协议段/板头自定义字段整体保留）。观察门四项核值（2026-09-19T08:11:05Z）：last_dispatch_utc 距今 4h56m ≥60min ✓、claim=- ✓、板面 mtime 距今 1h35m ≥10min ✓、status=READY ✓；仓 git 最近提交距今 3h32m ≥10min ✓（N-4）。
+
+### 增补三 — 2026-09-19T08:46:13Z（hub 换防：新调度会话接替，重布全局轮转火）
+- 旧火核查：CronList 空集——增补八布防对象 automation-2988ca0b-… 确认已亡，零清场
+  动作；新火布防后 CronList 复核全局恰一条。
+- 深度设计门（换防重走；用户布防指令口径同 Synapse 板=以板内 plan 字段指向的《裁决
+  书》/自含清单为准）：过——《裁决书》占位符 grep 零命中、执行清单机检 14 勾+6 开=20
+  与板头计数一致、org-ledger.jsonl 活跃（mtime 09-19 12:38）；check-relay plan 子命令
+  照跑 exit=1：MISSING_SECTION 系自含清单非 writing-plans 模板预期态，无 PLACEHOLDER
+  命中。
+- 换防复位（板不重建）：relay_started_utc 重锚 2026-09-19T08:46:13Z（熔断复位留痕）；
+  status READY/claim -/claimed_by -/no_progress 0/batch_count 0/hold_reason - 均期望
+  态零改写；protocol 段 rev1+rev1.1 增量条款在册（增补/增补二所立），无需补齐；复位
+  后 board 机检 0 fail（1 warn=冻结旧行 R3 预期）；本条尾部纯追加；板头 automation_id
+  字段行已锚定替换为新火 id（锚定计数=1 守卫过；历史日志旧 id 叙述存量不动）。
+- 新全局火=automation-aa40bf0e-0483-4ecb-9698-7f0cd533fce0（新 hub 调度会话创建，
+  全局唯一 */10 轮转，服务本板+Synapse 板；首班 08:56Z 投递）。本板
+  last_dispatch_utc=09-19T03:14:24Z 早于姊妹板 03:19:21Z——首班有效火先轮本板
+  （next_batch=B4-2a 碳核算前置一：能耗药耗计算面——计算逻辑呈用户审查）。
+- 板上既有条款自动生效：执行指令只携带未销案指令（增补六定型）、门一/拟定者备源承载
+  直至用户另行通知、UI 开批通道经验沿用历任实测累积。
