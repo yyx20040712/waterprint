@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T14:40:09.000Z
-- claim: hubfire-G2-20260919T1440-8f2c
+- heartbeat_utc: 2026-09-19T15:16:02.000Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
-- checked_done: 16
+- checked_done: 17
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T14:39:55.866Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 0
+- batch_count: 1
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: hub-fire-executor
-- claimed_at: 2026-09-19T14:40:09.000Z
-- next_batch: G-2 拆件配方回写宪法（ADR-024 D1 预算墙拆件规则入 AGENTS §11——用户直排工单②；B4-2b opex 前置批随后）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-2b 碳核算·前置二：运行成本面（opex）——B4-2a 能耗药耗面已收口（R-B42a-1~4 全批）；调度员增补九顺序 G-1/G-2 后开
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -198,7 +198,7 @@
 ### 治理小批·用户直排（2026-09-19 对话内裁决——B4-2a 收尾批后、B4-2b 前开工）
 
 - [x] G-1｜同族一致性门禁：aao/cass 同族公式族（需氧量/曝气/污泥/能耗）结构恒等机器断言+显式 delta 清单（如 CASS duty_ratio）——静默分叉变响红（可维护性答疑①，用户裁决入下波工单）
-- [ ] G-2｜拆件配方回写宪法：ADR-024 D1 的 formulas_*/energy 预算墙拆件规则写入 AGENTS §11——撞墙拆法从即兴变规则（可维护性答疑②，用户裁决入下波工单）
+- [x] G-2｜拆件配方回写宪法：ADR-024 D1 的 formulas_*/energy 预算墙拆件规则写入 AGENTS §11——撞墙拆法从即兴变规则（可维护性答疑②，用户裁决入下波工单）
 
 > ③ vector 全表面期望外移 JSON 数据件（可维护性答疑③）＝**用户亲改保留项**——AI 批次不自动开工；第三次锁面摩擦事件发生时仅呈报提醒不代做（用户裁决 2026-09-19）。
 
@@ -391,3 +391,13 @@
   板保持全合格态。
 - 处置：让位下一班火重试（缓开一班零成本，G-2 顺延）；若续败按欠账行一预案降级
   （会话内直跑承载）或呈用户处理；本行即欠账登记（欠账行一在册，本行为第二条）。
+
+### batch G-2 — 2026-09-19 14:40Z~15:16Z（hub 火执行者会话：拆件配方回写宪法，用户直排工单②收官）
+- 交付（实现笔 982d47fd 推送守望 CI 绿 run 35450899750；认领笔 df2cd4ea 在先）：AGENTS §11 预算墙拆件配方入宪——声明面拆件（formulas_<族名>.py+manifest 并组注册，单注册口不变量，条目单元包原位〔B2-5 D1-B 读法〕，兄弟声明件自动入同族一致性门禁扫描面〔现辖 aao/cass，新单元接入需登记〕）+计算段拆件（<段名>.py 主题连续整体迁移〔首例 energy.py 持 _oxygen+能耗〕，compute 仍是唯一计算正门〔ADR-011 D1 批量同源不破〕）+拆件义务四条（规格头注记/三名白名单不变/兄弟件单向消费禁互 import/包内测试同步走 §7 锁面）+兜底句（未覆盖撞墙形态=停批呈裁禁即兴——门一 W-1）+§2 拆法定式指针（单元包 §11 配方+门禁脚本 <名>_lib.py 共享库先例——票面外搭车记 Ruling 呈报）。
+- 死锚清偿 31 处（门二 M4 两轮 RED 逼出的完备盘点）：「AGENTS §13.6」显式误标 15（git -S 全史实证节号从未存在于 AGENTS.md——13 单元 compute.py+_template）+scripts 门禁头注 7（check_webapp §13.5×4/check_file_budgets §13.7/check_contract_headers §13.2/.7/check_structure §13.7）+宪法契约 README 面 9（AGENTS.md:121/file-contracts:48/:163/:245/scripts/README 门禁表 4 行/registry×2/plan_view:18/webapp README×3/UF 登记:287——部分按住址语义归并计数）。挂账清单（呈报）：server §13.4 分层族×9+webapp src §13.5×4+dxf_writer §13.3（机械可清建议独立卫生小批，§13.4 预判住址 AGENTS §1）+测试面 6（含门二补遗 test_file_budgets.py:8——锁面工序成本）+「重写计划 §13.x」25 处永久豁免（门二建议：仓外文档合法引用清它反失真）+ADR-011:6 归档。
+- 双门（文档/制度批轻量双审）：门一（ops-gate1-k2 备源承载——用户指令 2026-09-18 未销案）一审 B0/W3/N6 有条件放行（W-1 配方覆盖面缺口/W-2 import 方向未落字/W-3 §13.7 同族死锚半截修复）→处置（兜底句/义务③/家族扩展+N1 复述句指针化+N3 现辖限定+N4 占位符统一）→复审 **PASS B0/W0/N0**；门二（ops-probe 随宿主模型）首轮 6/7 GREEN（M1 首例对齐五子项/M2 扫描面 glob 构面实证/M3 引用保真/M5 门禁复跑/M6 diff 范围/M7 _lib 先例 git 史核）+M4 RED（盘点遗漏）→M4' RED（scripts 头注 7 处再漏）→二轮处置→**M4'' GREEN**（清偿面三口径字面成立+挂账对账吻合）。
+- Rulings 呈报（不阻断）：R-G2-1 §2 门禁脚本 _lib 拆法入宪=票面外搭车（工单字面仅涉 ADR-024 D1 单元包配方）——same_layer_lib/family_parity_lib 双先例支撑，G-1 Rulings 同款范围裁量先例；裁定收缩则机械移除一句。
+- 卫生小记：本批 grep -l 反斜杠路径踩坑（find -exec 替代解决）；门二审出两轮盘点口径遗漏（只扫 .md 漏 scripts/*.py 头注）——全模式 §13\.[0-9] 终核为收边手段记档；geometric-repack 维护权限报错再现（G-1 在册留观同族，提交推送不受阻）。
+- 账本：impl/gate1/gate2 三行在册（runId hubfire-G2-20260919T1440-8f2c）；health-scan 收口前 RED=0/WARN×3（均历史欠账：27 行缺 usage 历史记账/1 行 in=0 out>0 疑缓存——非本批引入）。
+- 勾选 16→17/22（G-2）；next_batch=B4-2b（碳核算·前置二：运行成本面 opex）；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 1/60、墙钟 ~0.6h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；收口终笔推送预期绿下批首跑覆盖核对（B3-c 补记二口径）。
+- 回炉收口注记：首次置 READY 后发现日志段时间戳预估失真（15:47Z→实 15:16Z/墙钟 1.1h→0.6h），按铁律翻回 RUNNING 修字后重新收口（回炉收口 batch_count 不再 +1——修板不是新批；本行即该次回炉留痕）。
