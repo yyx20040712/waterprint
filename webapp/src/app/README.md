@@ -1,6 +1,6 @@
 # app 层 —— 路由与 Provider 组合
 
-**唯一允许组合 features 的层**（§13.5）。规则：features 互相禁止 import，
+**唯一允许组合 features 的层**（file-contracts §5）。规则：features 互相禁止 import，
 一切跨 feature 编排发生在本层。
 
 ## 文件清单（新文件先登记本清单——file-contracts.md §5 已委托逐层 README 维护）

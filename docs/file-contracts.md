@@ -45,7 +45,7 @@
 | `data/assumptions/engine.yaml` | 数据包 | 求解引擎行为域假设条目（4 键：loop×3 UF-08/ADR-003 T7a 冻结+solution.grid×1 M2-SOL D1——两子域同属引擎行为面合件承载） | — | 4 条目 |
 | `data/assumptions/geo.yaml` | 数据包 | 高程/几何域假设条目（10 键：elevation×9+geometry×1——DRAFT 批 D7 起草待领域专家追认，出处三类合法口径） | — | 10 条目 |
 | `data/assumptions/network.yaml` | 数据包 | 管网域假设条目（6 键：NM-F4 追认 4+重写计划 §18 Excel 护栏 2——NET2 段二批） | — | 6 条目 |
-| `core/waterprint/registry/assumptions_design_map.py` | L1 | FD 可行域护栏假设伴生件（PD4：solution.design_map.max_points=2500 单键声明[default 待专家追认]；类注入防环形态 design_map_entries(Assumption,TuningImpact)——零 waterprint import，app_assembly 先例 registry 同构；主件行数硬门禁[无豁免清单 §13.7]下的拆文件收口；0/负覆盖值由 core ensure_budget 域守卫拒） | 类注入参数（Assumption/TuningImpact——主件装配点传入） | design_map_entries → FD 假设条目元组（主件 DEFAULT_ASSUMPTIONS 解包，键 21→22） |
+| `core/waterprint/registry/assumptions_design_map.py` | L1 | FD 可行域护栏假设伴生件（PD4：solution.design_map.max_points=2500 单键声明[default 待专家追认]；类注入防环形态 design_map_entries(Assumption,TuningImpact)——零 waterprint import，app_assembly 先例 registry 同构；主件行数硬门禁[无豁免清单 AGENTS §2]下的拆文件收口；0/负覆盖值由 core ensure_budget 域守卫拒） | 类注入参数（Assumption/TuningImpact——主件装配点传入） | design_map_entries → FD 假设条目元组（主件 DEFAULT_ASSUMPTIONS 解包，键 21→22） |
 | `core/waterprint/registry/coefficients.py` | L1 | 去除率/经验系数库加载 | YAML 数据包 | Coefficients、data_version、CoefficientValue、load_coefficients、InvalidCoefficientError、require_keys |
 | `core/waterprint/registry/effluent.py` | L1 | 出水标准装载器（P2 次批 ADR-012 D6——UF-39 装载面落地：constraint_kb effluent_standard 12 条→EffluentStandard 族；fail-fast 拒默认回退；quality.py 零 I/O 纪律保持） | constraints.json | load_effluent_standards、InvalidEffluentLoadError |
 | `core/waterprint/graph/topo.py` | L3 | 拓扑排序 + SCC 划分（纯函数；T6 实现：环两分法——非 recycle 环拒/全边 Tarjan） | 节点/边列表 | topological_layers、strongly_connected_components、split_graph（复用 ports.InvalidConnection 拒绝） |
@@ -160,9 +160,10 @@
 
 ## 3. units_lib 单元包登记（按包，非逐文件）
 
-单元包内部结构固定（§13.6：manifest/compute/constraints/README/tests×2），
+单元包内部结构固定（AGENTS §11：manifest/compute/constraints/README/tests×2；
+预算墙拆件兄弟件见 §11 拆件配方），
 **每新增一个单元包在此表加一行**（路径写包目录，带斜杠）；包内结构由
-check_structure 按 §13.6 校验，不逐文件登记。
+check_structure 按 AGENTS §11 校验，不逐文件登记。
 
 | 包路径 | 业务线 | 里程碑 |
 |--------|--------|--------|
@@ -241,7 +242,7 @@ check_structure 按 §13.6 校验，不逐文件登记。
 
 - **契约头**：`webapp/src` 下每个 .ts/.tsx 首块 `/** … */` 必含 职责/输入/输出
   （`shared/api/generated/` 生成物与 `vite-env.d.ts` 豁免）；
-- **分层（§13.5）**：features 互不 import、features 不向上 import app、
+- **分层**：features 互不 import、features 不向上 import app、
   shared 不 import features/app、入口 main.tsx 只 import app/**；
 - 逐文件职责见 `webapp/src/app/README.md` 与各 feature/shared README 的
   文件清单（M0.5 已全部落地为规格骨架）；硬规则（≤500 行、类型单源）

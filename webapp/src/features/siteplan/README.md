@@ -74,4 +74,4 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
   overlay——数据计算镜像 core site_plan.py:288-323+Y 翻转内置），**风玫瑰
   值编辑面板挂账续记**（golden 全 wind_rose:null+零 UI 写值现状下渲染先行
   独立验收——简报 R3/DS 新发现②记档）；SVG=原生 JSX（DxfSvg 先例零运行期库），交互=pointer 事件
-  自实现；本 feature 零 import 其他 feature（§13.5 分层门禁）。
+  自实现；本 feature 零 import 其他 feature（file-contracts §5 分层门禁）。

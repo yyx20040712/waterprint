@@ -5,12 +5,12 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明：§13.7"职责漂移"行——新增/改名文件必须同步职责表。
+# 规格说明：AGENTS §2"职责表登记"行——新增/改名文件必须同步职责表。
 # 规则：
 #   a) core/waterprint 与 server/waterprint_server 下每个非 __init__.py
 #      必须出现在表中（已登记单元包目录内文件豁免，§3 按包登记）；
 #      表中 .py 路径必须存在；
-#   b) units_lib 单元包按"包目录（带斜杠）"登记；包内结构按 §13.6 校验
+#   b) units_lib 单元包按"包目录（带斜杠）"登记；包内结构按 AGENTS §11 校验
 #      （manifest.py/compute.py/constraints.py/README.md/tests/ 两测试）；
 #   c) scripts/*.py 必须登记于第 4 节；
 #   d) agent/waterprint_agent 下每个非 __init__.py 必须登记（AI1 集成批
@@ -71,7 +71,7 @@ def check_unit_package(pkg_rel: str) -> list[str]:
     problems = []
     for required in UNIT_REQUIRED:
         if not (pkg / required).is_file():
-            problems.append(f"{pkg_rel}: 缺固定结构文件 {required}（§13.6）")
+            problems.append(f"{pkg_rel}: 缺固定结构文件 {required}（AGENTS §11）")
     return problems
 
 

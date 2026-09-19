@@ -8,7 +8,7 @@
 # 规格说明（FD 批 PD4 落位 2026-09-09 会话 n+28 终裁；U1 亲核闭合）
 #
 # 【定位】assumptions.py 恰 500 行余量 0（E 冻结结论4）——FD 新键落
-#   主件即破行数硬门禁（check_file_budgets 无豁免清单 §13.7：真有
+#   主件即破行数硬门禁（check_file_budgets 无豁免清单 AGENTS §2：真有
 #   理由超标→拆文件）。本件=伴生件（app_assembly 先例第二例的 registry
 #   同构）：持有 FD 键的 Assumption 声明，主件 +import +解包两行装配。
 #

@@ -1,11 +1,11 @@
-"""webapp 结构门禁：TS 契约头 + feature 切片依赖方向（§13.5）。
+"""webapp 结构门禁：TS 契约头 + feature 切片依赖方向（file-contracts §5）。
 
 输入:  webapp/src 下 .ts/.tsx 源文件 + 路径别名约定（@/ → webapp/src）
 输出:  违规清单（退出码 1）或 OK 摘要（退出码 0）
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明：AGENTS.md §2/§13.5——前端结构从口头约定升级为机器检查：
+# 规格说明：AGENTS.md §2/file-contracts §5——前端结构从口头约定升级为机器检查：
 #   a) 契约头：每个源文件首块 /** … */ 注释必含 "输入:" 与 "输出:"
 #      （shared/api/generated 生成物豁免——禁手改区不做要求）；
 #   b) 分层：features 之间禁止互相 import（跨 feature 编排只在 app 层）；
@@ -86,7 +86,7 @@ def resolve(spec: str, from_rel: str) -> str | None:
 
 
 def layer_problem(src_layer: str, src_feature: str, target: str) -> str | None:
-    """分层规则（§13.5）；target 为 src 相对路径（不含扩展名）。"""
+    """分层规则（file-contracts §5）；target 为 src 相对路径（不含扩展名）。"""
     dst_layer, dst_feature = classify(target)
     if src_layer == "entry" and dst_layer != "app":
         return f"入口只允许 import app/**（实际 → {target}）"
@@ -132,7 +132,7 @@ def main() -> int:
         return 1
     print(
         f"[OK] webapp 结构：{len(sources)} 个源文件契约头齐全；"
-        f"import 分层合规（features 互不依赖/shared 不向上的 §13.5 规则）"
+        f"import 分层合规（features 互不依赖/shared 不向上的 file-contracts §5 规则）"
     )
     return 0
 

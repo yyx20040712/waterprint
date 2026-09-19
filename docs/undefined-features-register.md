@@ -284,7 +284,7 @@ grep -c "removal.aao.nh3n.mod_default\|removal.aao.tn.mod_default\|removal.aao.t
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-52 | 单元库浏览 | 前端侧栏单元库自 App 骨架期占位「待实装」：36 条单元目录（GET /api/units 豁免端点——R2-A 批1 D3 认可面）无任何浏览面——单元有哪些/参数面长什么样/端口拓扑，用户只能翻源码或 manifest；canvas D2 中文名映射挂账同悬空 | 已定义→设计件 .workflow/reports/units-browser-design.md（Q5 产出 2026-09-02）：侧栏四线分组树（municipal 13/conveyance 4/mine_water 8/sludge 7+内置 4 排末）+Drawer 参数面五列表/端口面四列表预览；数据零新增（既有端点+orval hook useListUnitsApiUnitsGet）；落位=app 层薄壳防第三处 useUnitCatalog 封装三胞胎；拖拽建图联动只设计不实装（经 app 层组合不违 §13.5）。实现批待设计追认 | IDLE-Q5 2026-09-02 |
+| UF-52 | 单元库浏览 | 前端侧栏单元库自 App 骨架期占位「待实装」：36 条单元目录（GET /api/units 豁免端点——R2-A 批1 D3 认可面）无任何浏览面——单元有哪些/参数面长什么样/端口拓扑，用户只能翻源码或 manifest；canvas D2 中文名映射挂账同悬空 | 已定义→设计件 .workflow/reports/units-browser-design.md（Q5 产出 2026-09-02）：侧栏四线分组树（municipal 13/conveyance 4/mine_water 8/sludge 7+内置 4 排末）+Drawer 参数面五列表/端口面四列表预览；数据零新增（既有端点+orval hook useListUnitsApiUnitsGet）；落位=app 层薄壳防第三处 useUnitCatalog 封装三胞胎；拖拽建图联动只设计不实装（经 app 层组合不违 file-contracts §5）。实现批待设计追认 | IDLE-Q5 2026-09-02 |
 
 ### 十三批验证命令摘要（仓库根执行，2026-09-02）
 

@@ -109,14 +109,16 @@
 
 ## 2. 文件与规模（scripts/check_file_budgets.py 强制）
 
-- 任何文件 ≤500 行；units_lib 的 compute.py ≤400 行（超限拆文件，无豁免清单）。
+- 任何文件 ≤500 行；units_lib 的 compute.py ≤400 行（超限拆文件，无豁免
+  清单；拆法有定式：单元包走 §11 拆件配方，门禁脚本走 `<名>_lib.py`
+  共享库拆解析层——same_layer_lib/family_parity_lib 先例）。
 - 行数/语句数预算以 **HEAD 终态实测**为准（改文件前 `wc -l` 复核），
   禁沿设计书预估值直接累加——PROFILE3 批 app_enumeration 522>500
   计划外拆分实录（REWORK 审查条款⑤，2026-09-09 入册）。
 - 一个文件一个主概念：文件名 = 概念名；出现第二个主概念当天拆分。
 - 每个新文件必须先登记 `docs/file-contracts.md` 职责表（CI 双向校验：表多=失败，表少=失败）。
 - webapp 源文件的契约头（/** 职责/输入/输出 */）与 features 互不 import 分层
-  由 `scripts/check_webapp.py` 强制（§13.5，M0.5 起）。
+  由 `scripts/check_webapp.py` 强制（细则=file-contracts §5，M0.5 起）。
 - 死代码即删：未被引用的文件/组件不提交；方案切换 = 删除旧方案，禁止并存。
 - 不提交运行时产物（.recent_projects、缓存、构建输出、虚拟环境）。
 
@@ -275,6 +277,30 @@ units_lib/<line>/<unit>/
 ├─ README.md          # 一段话职责 + 输入输出
 └─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）
 ```
+
+- **预算墙拆件配方**（撞墙即用，拆法禁即兴；ADR-024 D1 定型，首例
+  aao/cass——2026-09-19 用户直排治理工单②入宪）：单元包文件将顶 §2
+  预算墙时（墙值与实测口径单源 §2）：
+  - 声明面拆件（manifest 顶墙）：新公式族立兄弟声明件
+    `formulas_<族名>.py`，manifest 并组注册
+    `_FORMULAS = (*_FORMULAS, *FORMULAS_<族名>)`——单注册口不变量：
+    条目仍住单元包内（B2-5 D1-B「条目留 manifest 原位」的单元包
+    原位读法），注册表 dump 序与集仍由 manifest 唯一汇出；兄弟声明件
+    自动入同族一致性门禁扫描面（scripts/check_family_parity.py 消费
+    manifest+formulas_* 全表，现辖 aao/cass——新单元接入需登记进
+    该门禁声明面，静默分叉仍响红）。
+  - 计算段拆件（compute 顶墙）：主题连续的计算段整体迁兄弟件
+    `<段名>.py`（首例 energy.py 持 _oxygen+能耗——O2→供气→风机
+    功率链不拦腰切），compute 并组合成 dims；compute.py 仍是唯一
+    计算正门（ADR-011 D1 批量同源路径不破——拆文件≠第二实现）。
+  - 拆件义务四条：①兄弟件规格头注记拆件依据（撞墙实测行数+ADR
+    溯源）；②单元对外三名白名单不变（兄弟件=包内私有不新增导出）；
+    ③兄弟件仅由本包 manifest/compute 单向消费，兄弟件间禁互
+    import（段间数据经 compute 编排传递）；④包内测试 formula_ids
+    计数/键集面随拆件同步——涉 tests/** 照 §7 锁面工序。
+  - 兜底：配方未覆盖的撞墙形态（constraints/README/tests 顶墙、
+    params/out_dims 声明面溢出、单元包外模块）不在本配方内——停批
+    呈裁定拆法，禁即兴。
 
 - 导出面：dxf 图纸形态路由 options `sheet=profile`=厂级纵断图独立 DXF（PROFILE2 2026-09-08——白名单成员，与 unit_id 互斥；实现在 app_enumeration 的 export_artifact/_export_dxf）。
 - 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。

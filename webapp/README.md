@@ -1,6 +1,6 @@
 # webapp —— React 前端
 
-React 19 + TypeScript(strict) + Vite 7；feature 切片结构（§13.5）。
+React 19 + TypeScript(strict) + Vite 7；feature 切片结构（file-contracts §5）。
 
 > 版本面（FE2 升版批 2026-08-28）：react 19.2 + @react-three/fiber 9.7
 > + antd 6.6 + echarts 6.1 + vite 7.3 + vitest 4.1 + @types/three 0.185。
