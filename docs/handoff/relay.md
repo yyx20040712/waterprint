@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: HOLD
+- status: READY
 - automation_id: automation-4a8cb784-c14b-4941-89f3-ffe1b0cec6e5
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,15 +16,15 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T05:49:54+08:00
-- heartbeat_utc: 2026-09-18T23:50:00Z
-- claim: hubfire-B3c-20260919T0551-b4e2
+- heartbeat_utc: 2026-09-19T00:30:00Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 20
-- checked_done: 12
+- checked_done: 13
 - last_handover: 2026-09-19
-- claimed_by: 执行者会话（B3-c hub 火注入）
-- claimed_at: 2026-09-19T05:51:35+08:00
-- next_batch: R-B3c-2 批准后执行（B3-c 锁面收口）：拷入 .workflow/probes/b3c/mirror-tests-draft/ 两薄壳→core/tests/contracts/→python scripts/draft_lock_manifest.py 取全根重锁命令→lock_tests.py 重锁 299→301+只读位→[HUMAN-LOCK] commit（首行带标签+逐文件动机）→推送本地三笔（7c0365a 认领+afd147c 实现+c6082d1 处置）+锁面笔→CI 守望至绿→勾选 B3-c（12→13/20）→READY+next_batch=B4-1（操作链集中 debug 观测面）；R-B3c-1（A-3 §1c 意图读法追认）随终报一并呈用户
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-1（第四波首批：操作链集中 debug 观测面——复用 calc-diag 独立 artifact（ADR-012）+任务事件流+trace 聚合，新增 GET /api/debug/ops-chain 或 events 流扩展+webapp 诊断 pane；前置槽位=批 3a 投影共享件已就绪——实现批双门）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -101,7 +101,7 @@
 
 - [x] B3-a｜server 七份 `_latest_calc_result` 复制→services/_shared/（准入五条）
 - [x] B3-b｜webapp SSE 生命周期双实现+域色双源→shared 收敛
-- [ ] B3-c｜core B4 双胞胎+异常表两份→§1c 同层边（架构级三段通道）
+- [x] B3-c｜core B4 双胞胎+异常表两份→§1c 同层边（架构级三段通道）
 
 ### 第四波·业务线（《裁决书》方案五排序）
 
@@ -448,3 +448,21 @@
 - 调度员会话自本增补起不再开批、不再补派。
 - 板头执行指令转达条款规则（增补六：仅携带未销案指令）与备源承载事实留存，重布防时
   随板面原文生效。
+
+### batch B3-c 补记 — 2026-09-19 08:2X（用户裁决两项全批+锁面笔落地——B3-c 全绿收口）
+- 用户裁决回执（对话内）：**两项全批**——R-B3c-1（A-3 §1c 意图读法）追认、R-B3c-2（镜像测试
+  锁面笔）批准。批准构成 AGENTS §7 人类显式批准事件，[HUMAN-LOCK] commit bd1ff71 首行带标签+
+  逐文件修改动机（3 文件：两薄壳+manifest）。
+- 锁面执行细节：两薄壳拷入 core/tests/contracts/（N818 命名修正 _Carrier→_CarrierError 后
+  ruff 零错）；lock_tests.py 全根清单重锁 299→**301 键**（新增恰 2 零删除，COST2 守卫经草稿器
+  全根命令显式通过），只读位随脚本设置；gen_status 重入库（恰锁键行 299→301，2158B 不变——
+  合法输入变化，B3-b 重入库先例）。
+- 产出面纪律补丁随批：批次日志外部源代号中性化（08 §6——源细节住组织账本，仓内工件零代号；
+  check_model_names 门禁复绿）+未推本地笔 message 同步重写（19538be/e94aa01 替换原两笔）。
+- 复绿证据：全量 pytest **780 passed 全绿**（775+镜像规则修复 1+薄壳 4——数序吻合）+run_gates
+  15 绿（check_trust_root=[HUMAN-LOCK] 首行标签过；check_model_names 复绿）+gen_status 2158B
+  零漂移+锁面草稿器 301 键一致。
+- 板面：HOLD→READY、B3-c 勾选（12→13/20）、claim 归位；Rulings 待用户：无（本批两项已销案）；
+  next_batch=B4-1（第四波首批：操作链集中 debug 观测面）。CI 守望随终报（收口即推送+守望
+  CI 至绿——三轮裁决④；本批推送面=认领笔 7c0365a+实现笔 afd147c+处置笔 19538be+[HUMAN-LOCK]
+  锁面笔 bd1ff71+HOLD 板面笔 e94aa01+本收口笔）。
