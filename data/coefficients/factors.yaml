@@ -3018,25 +3018,25 @@
   value: 0.75
   unit: "dimensionless"
   source: "潜水排污泵泵组效率（工程带 0.70~0.85 取 0.75）"
-  note: "P=ρgQH/η 轴功率口径（电机效率/装机裕度挂账 B4-2b 运行成本面）；消费面=TS-F12/TS-F13"
+  note: "P=ρgQH/η 轴功率口径（电机效率/装机裕度挂账 B4-2b 运行成本面）；消费面=TS-F15/TS-F16"
 
 - key: "factor.wushui_tisheng.pump.water_density"
   value: 1000.0
   unit: "kg/m3"
   source: "水的密度物理常数（污水按清水计——悬浮物密度修正挂账 B4-2b）"
-  note: "消费面=TS-F12/TS-F13"
+  note: "消费面=TS-F15/TS-F16"
 
 - key: "factor.bengzhan.pump.efficiency"
   value: 0.70
   unit: "dimensionless"
   source: "污泥泵泵组效率（介质含固率高异于污水档；工程带 0.60~0.75 取 0.70）"
-  note: "与 factor.wushui_tisheng.pump.efficiency 同族异档；消费面=BZ-F12/BZ-F13"
+  note: "与 factor.wushui_tisheng.pump.efficiency 同族异档；消费面=BZ-F19/BZ-F20"
 
 - key: "factor.bengzhan.pump.water_density"
   value: 1000.0
   unit: "kg/m3"
   source: "污泥密度按水计（低含固率污泥 ρ≈1000~1050 取 1000——保守下限）"
-  note: "消费面=BZ-F12/BZ-F13"
+  note: "消费面=BZ-F19/BZ-F20"
 
 - key: "factor.bengzhan.pump.gravity"
   value: 9.81
