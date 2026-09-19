@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-3776af0e-7217-406a-802c-870cb88b6533
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,21 +16,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T12:40:14.259Z
-- claim: hubfire-B4-2a-final-20260919T1215-16b0
+- heartbeat_utc: 2026-09-19T13:09:13.452Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 15
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T12:14:47Z
 - relay_started_utc: 2026-09-19T11:58:59Z
-- batch_count: 0
+- batch_count: 1
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: hub 火执行者会话（B4-2a 收尾批）
-- claimed_at: 2026-09-19T12:16:02.303Z
+- claimed_by: -
+- claimed_at: -
 - next_batch: G-1 治理小批（aao/cass 同族公式族结构恒等机器断言+显式 delta 清单——调度员增补九用户直排工单①；G-2 拆件配方回写宪法随后）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -299,3 +299,5 @@
 - 推送面（收口即推送+守望 CI 至绿——三轮裁决④）：a1bc269 认领（已推）+f5a8150 实现+72e7e2f HOLD 板面+91e1b3a [HUMAN-LOCK] 锁面+91a663c 回炉收口+59e462e 治理工单+4fce000 本批认领+91bfb92 处置+本板面笔+收口终笔。认领笔未提前单独推送注记（板面超预算态下推送必红——4fce000 消息在档）。
 - Rulings：本批无新增（W-3②=主控级挂账处置；A2 根因 HEAD 既有非本批引入；无触发用户裁决项新事实）。
 - 账本：gate1（B0/W3/N6 有条件放行·备源绑定承载）/probe（7/9 GREEN·绑定自愈）/impl 三行；health-scan 见终报。勾选 14→15/22（B4-2a）；next_batch=G-1（治理小批·用户直排，调度员增补九）。CI 守望绿证随终笔补记。
+- CI 守望链（收口即推送+守望 CI 至绿——三轮裁决④）：首跑 run 35443805720（ed891c7 面，a1bc269 起八笔）10 job 中服务层 3.13/3.14 两红——唯一真红=test_compare AAO metrics 23≠28；根因=本地 server venv 旧 core 站点拷贝遮蔽（门二 M3「315 passed」系假绿，账本 incident 行勘误登记），CI 新装暴露。→R-B42aF-1 用户对话内批准锁面笔（第四次锁面摩擦事件——调度员增补九口径随批呈报提醒）→[HUMAN-LOCK] 11f3cc7：期望 23→28（B4-2a 能耗五键入 aao out_dims，图纸投影取数面；非消红——门二独立复算 28 键全在场在先）+lock_tests 全根清单重锁 303 键（COST2 经草稿器命令显式通过）+server venv 改 uv 编辑安装去假绿根因（真值面全量 server 315 passed+run_gates 15 绿复验）。→二跑 run **35444614717 全绿**（success，11f3cc7 面）——守望闭环。收口终笔推送面=本笔（板面终笔，预期绿，下批首跑覆盖核对——B3-c 补记二口径）。
+- 会话终态：B4-2a 一批完成（含双门+首跑红→用户裁决→锁面笔→二跑绿全程），勾选 14→15/22，READY，claim 归位；next_batch=G-1 治理小批（aao/cass 同族公式族结构恒等机器断言+显式 delta 清单——用户直排，G-2 随后）。
