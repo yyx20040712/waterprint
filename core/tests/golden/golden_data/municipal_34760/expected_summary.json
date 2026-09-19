@@ -507,6 +507,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7239.751144765535
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1188739.182151187
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1849756.4174875943
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3038495.5996387815
       }
     },
     "design": {
@@ -581,6 +599,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7239.751144765535
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1188739.182151187
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1849756.4174875943
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3038495.5996387815
       }
     },
     "design_offline_municipal_aao": {
@@ -655,6 +691,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7239.751144765535
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1188739.182151187
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1849756.4174875943
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3038495.5996387815
       }
     },
     "design_offline_municipal_chuchenchi": {
@@ -729,6 +783,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7239.751144765535
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1188739.182151187
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1849756.4174875943
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3038495.5996387815
       }
     },
     "design_offline_municipal_erchunchi": {
@@ -803,15 +875,33 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7239.751144765535
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1188739.182151187
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1849756.4174875943
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3038495.5996387815
       }
     }
   },
   "generated": {
-    "data_version": "coefficients@1.3.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.4.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 539381,
-    "serialize_sha256_head": "a847f491f5cf7e08",
-    "source": "主线实跑 2026-09-04 HEAD=979f71e+L7 AAO 池体图元批重录（aao design_dims 增 8 几何键，serialize 锚随批重录）"
+    "serialize_bytes": 540006,
+    "serialize_sha256_head": "40e780462662f4ec",
+    "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）"
   },
   "m3_deferred": {
     "estimate_total": {

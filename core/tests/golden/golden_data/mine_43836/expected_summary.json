@@ -270,6 +270,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 3420.578745
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3046431.4560420006
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 873957.8693474998
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3920389.3253895002
       }
     },
     "design": {
@@ -332,15 +350,33 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 3420.578745
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3046431.4560420006
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 873957.8693474998
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3920389.3253895002
       }
     }
   },
   "generated": {
-    "data_version": "coefficients@1.3.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.4.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 108652,
-    "serialize_sha256_head": "111f7973f1b0abfb",
-    "source": "主线实跑 2026-09-03 HEAD=8e3c7d7+L4a boundary 批重录"
+    "serialize_bytes": 108902,
+    "serialize_sha256_head": "2aab0d7209db7d83",
+    "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）"
   },
   "m3_deferred": {
     "estimate_total": {
