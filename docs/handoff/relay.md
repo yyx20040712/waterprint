@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: HOLD
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -27,11 +27,11 @@
 - batch_count: 2
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: stop_matter
+- hold_reason: -
 - last_handover: 2026-09-19
 - claimed_by: -
 - claimed_at: -
-- next_batch: B4-2b（呈批挂起回炉位：用户批准 R-B42b-1~4 四问后按 .workflow/b4-2b/review-report.md 恢复路径实装 S1~S7→门二→锁面→推送守望→勾选）
+- next_batch: B4-2b 回炉实装批：R-B42b-1~4 四问已裁（见增补九+账本 ruling 行）——免再呈，直接按 .workflow/b4-2b/review-report.md 恢复路径 S1~S7→门二→锁面→推送守望→勾选
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -433,3 +433,33 @@
   调度员）；置位前 board 机检 0 fail/1 warn（R3 冻结旧行预期）。
 - 回炉修复行：首次置 HOLD 的 hold_reason 用了自由文本触发 R2_STATUS_ILLEGAL——收敛为枚举值 stop_matter
   （呈批挂起描述文本由批次日志 B4-2b 条目与 next_batch 字段承载；回炉修复不涉 batch_count——修板不是新批）。
+
+
+### 增补八 — 2026-09-19T23:01:19.723Z（hub 调度会话：用户裁决落板+HOLD 解除复位，火班续跑）
+- 用户裁决（对话宣示「我裁完了」+回执确认）：**G-1 呈批三项全按推荐确认**——①范围维持
+  19 对全覆盖（几何/容积平移族纳入正式成立，门一 W-4 呈报项销案）；②delta 豁口挂账维持
+  （公共符号系数漂移不在断言面属知情差异，docstring 注记为准）；③门一/拟定者备源承载
+  指令继续有效未销案。账本 ruling 行 2026-09-19T22:47:35Z 已落（本增补即板面回执补记，
+  原「随 G-2 批次日志首段补记」计划已过时由本条承接）。
+- **B4-2b 四问（R-B42b-1~4：①C 案落位②factor.opex.* 五键③计算口径挂账边界④锁面笔
+  授权）裁决内容未在案**——全仓扫描（板面/账本/.workflow/git 近 30min 唯一改动=上述
+  G-1 ruling 行）+用户回执仅涉 G-1 三项。回炉实装批**开工首步=向用户呈四问补裁**
+  （B4-2a 先例径：AskUserQuestion 四项→回执落账→回炉实装），批准前禁动仓禁锁面。
+- HOLD 解除（用户管理指令·单项目恢复径）：status HOLD→READY、hold_reason→-；
+  claim/-、no_progress_count 0、batch_count 2、last_dispatch_utc 15:26:43.792Z 均不动
+  （HOLD 恢复非换防，熔断不复位）。
+- 火班续跑（用户 Q2 裁决）：全局火 automation-9d069f57-…（用户保留未删）仍在册——
+  下一班有效火按四条件核（本笔后板面 mtime 静默 ≥5min）即注入 B4-2b 回炉实装批。
+- 复位后 board 机检随本笔复核 0 fail。
+
+### 增补九 — 2026-09-19T23:17:06.030Z（用户裁决落板：B4-2b 四问+R-G2-1 全回执，回炉批免再呈）
+- **B4-2b 四问（R-B42b-1~4）裁决在案**（本会话 AskUserQuestion 两轮，授权链与论证全文=账本
+  ruling 行）：①落位 C 案+②factors 五键=用户委托主控按「最规范、最有利于后来者维护代码」判据
+  裁定（裁据：总线稳定红线+同构第五例；unit_prices 备选须同步三处孪生 env 构造+flows 满墙强制
+  拆件+server 触碰面扩——翻案通道开放）；③计算口径（F1~F3+365 天+逐工况 sparse+挂账边界）
+  批准；④锁面笔授权（golden 双锚+data_version 1.4.0 串+键集钳制+test_app_opex.py+manifest
+  303→304+gen_status 重入库——[HUMAN-LOCK] 工序按 B4-2a 先例）。**回炉实装批开工免再呈四问**，
+  直接按 .workflow/b4-2b/review-report.md 恢复路径 S1~S7 开工。
+- R-G2-1（门禁脚本 _lib 拆法入宪指针票面外搭车）维持入宪——G-2 呈报项销案。
+- 本条为用户直排裁决落板（增补八同款：READY 态增补，写前回读 claim=- 无占用；本笔后板面
+  mtime 静默 5min 起火班四条件重新可满足）。
