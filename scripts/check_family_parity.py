@@ -1,7 +1,7 @@
 """aao/cass 同族公式族结构恒等门禁：静默分叉变响红（G-1 治理小批）。
 
-输入:  units_lib/municipal/aao 与 cass 两包（manifest.py+formulas_*.py 兄弟
-       声明件）——AST 静态实读（声明面纯字面量，零依赖门禁不 import core）
+输入:  units_lib/municipal/aao 与 cass 两包声明件（解析层=共享库
+       family_parity_lib，AST 静态实读零依赖不 import core）
 输出:  分叉清单（退出码 1）或 OK 摘要（退出码 0）
 """
 
@@ -22,9 +22,10 @@
 #     cass 表）必须双侧入表且 dim 相等（满额断言——单侧缺键即红，
 #     防镜像层静默退化至零键仍绿）；
 #   ⑤ 声明区自检——族对 ID 无重复、别名表无自环/链式级联/多对一、
-#     族对与独有清单无交集、解析平账（Call 总数=解析成功数=唯一 ID 数
-#     ——非常规构造[关键字参数/属性调用/非字面量]与重复 ID 均红，
-#     防静默跳过成为分叉的「不登记」路径）。
+#     族对与独有清单无交集、解析平账（Call 总数[含属性调用形态]=解析
+#     成功数=唯一 ID 数——非常规构造[关键字参数/非字面量]与重复 ID 均
+#     红，防静默跳过成为分叉的「不登记」路径）、例外表 ID 在族对内
+#     且豁免键实际命中（死条目/已补键的过期例外均红）。
 #   已知豁口（挂账）：delta 对豁免整条 RHS 比对——公共符号上的系数/
 #   结构漂移（如单侧改 ×24 为 ×12）不在断言面；收窄方案（公共骨架
 #   归一比对）结构脆（嵌套位置差异剥符号后语法不完整），挂后续批评估。
@@ -37,10 +38,12 @@
 
 from __future__ import annotations
 
-import ast
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from family_parity_lib import parse_formulas, parse_out_dims  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
 UNITS_LIB = REPO / "core" / "waterprint" / "units_lib"
@@ -149,128 +152,6 @@ _MIRROR_EXEMPT: dict[str, tuple[str, ...]] = {
     "AO-F18": ("b_pool_raw",),
 }
 
-# ── 解析层（AST 静态实读——check_out_dims_consistency 同款手法）────
-
-
-def _dim_name(node: ast.expr, aliases: dict[str, str]) -> str | None:
-    """量纲表达式→DimKey 成员名（模块级别名 _D 或直书 DimKey.X）。"""
-    if isinstance(node, ast.Name):
-        return aliases.get(node.id)
-    if isinstance(node, ast.Attribute):
-        return node.attr
-    return None
-
-
-def _parse_aliases(tree: ast.Module) -> dict[str, str]:
-    """模块级 `_D = DimKey.DIMENSIONLESS` 别名表。"""
-    aliases: dict[str, str] = {}
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target = node.targets[0]
-            if isinstance(target, ast.Name):
-                name = _dim_name(node.value, {})
-                if name is not None:
-                    aliases[target.id] = name
-    return aliases
-
-
-def parse_formulas(pkg: Path) -> tuple[dict[str, dict[str, object]], int, int]:
-    """单元包（manifest.py+formulas_*.py 兄弟件）→ 公式全表+平账计数。
-
-    每条：expression/lhs/rhs/symbols（符号→dim 名）/output_dim。
-    返回 (formulas, call_total, parsed_ok)——main 侧平账：call_total≠
-    parsed_ok=非常规构造被跳过；parsed_ok≠len(formulas)=重复 ID 覆盖。
-    """
-    formulas: dict[str, dict[str, object]] = {}
-    call_total = 0
-    parsed_ok = 0
-    sources = [pkg / "manifest.py", *sorted(pkg.glob("formulas_*.py"))]
-    for path in sources:
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        aliases = _parse_aliases(tree)
-        for node in ast.walk(tree):
-            if not (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Name)
-                and node.func.id == "FormulaSpec"
-            ):
-                continue
-            call_total += 1
-            if not (
-                len(node.args) >= 4
-                and isinstance(node.args[0], ast.Constant)
-                and isinstance(node.args[0].value, str)
-                and isinstance(node.args[1], ast.Constant)
-                and isinstance(node.args[1].value, str)
-            ):
-                continue
-            parsed_ok += 1
-            fid = str(node.args[0].value)
-            expression = str(node.args[1].value)
-            symbols: dict[str, str] = {}
-            if isinstance(node.args[2], ast.Dict):
-                for key, value in zip(node.args[2].keys, node.args[2].values):
-                    if not (isinstance(key, ast.Constant) and isinstance(key.value, str)):
-                        continue
-                    if isinstance(value, ast.Tuple) and len(value.elts) == 2:
-                        dim = _dim_name(value.elts[0], aliases)
-                        if dim is not None:
-                            symbols[str(key.value)] = dim
-            output = _dim_name(node.args[3], aliases)
-            lhs, _, rhs = expression.partition("=")
-            formulas[fid] = {
-                "expression": expression,
-                "lhs": lhs.strip(),
-                "rhs": rhs.strip(),
-                "symbols": symbols,
-                "output_dim": "" if output is None else output,
-            }
-    return formulas, call_total, parsed_ok
-
-
-def _parse_out_dims(pkg: Path) -> tuple[dict[str, str], int]:
-    """manifest.py 的 load_manifest 调用 → out_dims field→dim 表+条目总数。
-
-    返回 (out_dims, entry_total)——main 侧平账：entry_total≠len(out_dims)
-    =非字面量条目被静默丢弃（门禁盲区必须消除）。
-    """
-    tree = ast.parse(
-        (pkg / "manifest.py").read_text(encoding="utf-8"), filename=str(pkg / "manifest.py")
-    )
-    aliases = _parse_aliases(tree)
-    out_dims: dict[str, str] = {}
-    entry_total = 0
-    for node in ast.walk(tree):
-        if not (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "load_manifest"
-            and node.args
-            and isinstance(node.args[0], ast.Dict)
-        ):
-            continue
-        for key, value in zip(node.args[0].keys, node.args[0].values):
-            if not (
-                isinstance(key, ast.Constant)
-                and key.value == "out_dims"
-                and isinstance(value, ast.List)
-            ):
-                continue
-            for entry in value.elts:
-                if not isinstance(entry, ast.Dict):
-                    continue
-                entry_total += 1
-                fields = {
-                    k.value: v.value
-                    for k, v in zip(entry.keys, entry.values)
-                    if isinstance(k, ast.Constant)
-                    and isinstance(v, ast.Constant)
-                }
-                if "field_id" in fields and "dim" in fields:
-                    out_dims[str(fields["field_id"])] = str(fields["dim"])
-    return out_dims, entry_total
-
-
 # ── 比对层 ─────────────────────────────────────────────────────────
 
 
@@ -297,8 +178,8 @@ def main() -> int:
     failures: list[str] = []
     aao, aao_calls, aao_ok = parse_formulas(UNITS_LIB / "municipal" / "aao")
     cass, cass_calls, cass_ok = parse_formulas(UNITS_LIB / "municipal" / "cass")
-    aao_dims, aao_entries = _parse_out_dims(UNITS_LIB / "municipal" / "aao")
-    cass_dims, cass_entries = _parse_out_dims(UNITS_LIB / "municipal" / "cass")
+    aao_dims, aao_entries = parse_out_dims(UNITS_LIB / "municipal" / "aao")
+    cass_dims, cass_entries = parse_out_dims(UNITS_LIB / "municipal" / "cass")
 
     # ⑤ 声明区自检
     pair_ids = [p[0] for p in _PAIRS] + [d[0] for d in _DELTAS]
@@ -429,6 +310,7 @@ def main() -> int:
     # ——W-2 收口：aao 侧原名查 aao 表/cass 侧名查 cass 表，别名输出
     # 键不再落空；单侧缺键即红，防镜像层静默退化至零键仍绿）
     mirror_n = 0
+    exempt_hit: set[tuple[str, str]] = set()
     for aao_id, cass_id, *_ in (*_PAIRS, *_DELTAS):
         fa, fc = aao.get(aao_id), cass.get(cass_id)
         if fa is None or fc is None:
@@ -438,6 +320,12 @@ def main() -> int:
             continue  # 输出符号分叉已在上层报
         da, dc = aao_dims.get(lhs_a), cass_dims.get(lhs_c)
         if lhs_c in _MIRROR_EXEMPT.get(aao_id, ()):
+            exempt_hit.add((aao_id, lhs_c))
+            if da is not None:
+                failures.append(
+                    f"out_dims 镜像：例外过期——{aao_id} 豁免键 {lhs_c} aao "
+                    "侧现已声明，应从 _MIRROR_EXEMPT 退役"
+                )
             continue  # 显式例外（述因在 _MIRROR_EXEMPT——投影面差异）
         if da is None or dc is None:
             failures.append(
@@ -453,6 +341,19 @@ def main() -> int:
                 f"out_dims 镜像：输出键 {lhs_c}（{aao_id}↔{cass_id}）"
                 f"两包 dim 分叉 {da} vs {dc}"
             )
+
+    # 例外表自检（N-b）：声明 ID 须在族对内；豁免键须与该对 cass 侧
+    # LHS 实际匹配（永不命中=死条目——满额分母失真仍绿的结构性根源）
+    for exempt_id, keys in _MIRROR_EXEMPT.items():
+        if exempt_id not in set(pair_ids):
+            failures.append(f"声明区自检：_MIRROR_EXEMPT 的 {exempt_id} 不在族对内（死条目）")
+            continue
+        for key in keys:
+            if (exempt_id, key) not in exempt_hit:
+                failures.append(
+                    f"声明区自检：_MIRROR_EXEMPT 的 {exempt_id}:{key} 未命中"
+                    "族对输出键（死条目——豁免键须=该对 cass 侧 LHS）"
+                )
 
     if failures:
         print(f"[FAIL] aao/cass 同族一致性 {len(failures)} 处分叉：")
