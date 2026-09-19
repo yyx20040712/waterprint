@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-3776af0e-7217-406a-802c-870cb88b6533
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T13:23:20.893Z
-- claim: hubfire-G1-202609191323-082c
+- heartbeat_utc: 2026-09-19T14:01:26.430Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
-- checked_done: 15
+- checked_done: 16
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T13:21:13Z
 - relay_started_utc: 2026-09-19T11:58:59Z
-- batch_count: 1
+- batch_count: 2
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: hubfire-G1-202609191323-082c
-- claimed_at: 2026-09-19T13:23:20.893Z
-- next_batch: G-1 治理小批（aao/cass 同族公式族结构恒等机器断言+显式 delta 清单——调度员增补九用户直排工单①；G-2 拆件配方回写宪法随后）
+- claimed_by: -
+- claimed_at: -
+- next_batch: G-2 拆件配方回写宪法（ADR-024 D1 预算墙拆件规则入 AGENTS §11——用户直排工单②；B4-2b opex 前置批随后）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -197,7 +197,7 @@
 
 ### 治理小批·用户直排（2026-09-19 对话内裁决——B4-2a 收尾批后、B4-2b 前开工）
 
-- [ ] G-1｜同族一致性门禁：aao/cass 同族公式族（需氧量/曝气/污泥/能耗）结构恒等机器断言+显式 delta 清单（如 CASS duty_ratio）——静默分叉变响红（可维护性答疑①，用户裁决入下波工单）
+- [x] G-1｜同族一致性门禁：aao/cass 同族公式族（需氧量/曝气/污泥/能耗）结构恒等机器断言+显式 delta 清单（如 CASS duty_ratio）——静默分叉变响红（可维护性答疑①，用户裁决入下波工单）
 - [ ] G-2｜拆件配方回写宪法：ADR-024 D1 的 formulas_*/energy 预算墙拆件规则写入 AGENTS §11——撞墙拆法从即兴变规则（可维护性答疑②，用户裁决入下波工单）
 
 > ③ vector 全表面期望外移 JSON 数据件（可维护性答疑③）＝**用户亲改保留项**——AI 批次不自动开工；第三次锁面摩擦事件发生时仅呈报提醒不代做（用户裁决 2026-09-19）。
@@ -301,3 +301,36 @@
 - 账本：gate1（B0/W3/N6 有条件放行·备源绑定承载）/probe（7/9 GREEN·绑定自愈）/impl 三行；health-scan 见终报。勾选 14→15/22（B4-2a）；next_batch=G-1（治理小批·用户直排，调度员增补九）。CI 守望绿证随终笔补记。
 - CI 守望链（收口即推送+守望 CI 至绿——三轮裁决④）：首跑 run 35443805720（ed891c7 面，a1bc269 起八笔）10 job 中服务层 3.13/3.14 两红——唯一真红=test_compare AAO metrics 23≠28；根因=本地 server venv 旧 core 站点拷贝遮蔽（门二 M3「315 passed」系假绿，账本 incident 行勘误登记），CI 新装暴露。→R-B42aF-1 用户对话内批准锁面笔（第四次锁面摩擦事件——调度员增补九口径随批呈报提醒）→[HUMAN-LOCK] 11f3cc7：期望 23→28（B4-2a 能耗五键入 aao out_dims，图纸投影取数面；非消红——门二独立复算 28 键全在场在先）+lock_tests 全根清单重锁 303 键（COST2 经草稿器命令显式通过）+server venv 改 uv 编辑安装去假绿根因（真值面全量 server 315 passed+run_gates 15 绿复验）。→二跑 run **35444614717 全绿**（success，11f3cc7 面）——守望闭环。收口终笔推送面=本笔（板面终笔，预期绿，下批首跑覆盖核对——B3-c 补记二口径）。
 - 会话终态：B4-2a 一批完成（含双门+首跑红→用户裁决→锁面笔→二跑绿全程），勾选 14→15/22，READY，claim 归位；next_batch=G-1 治理小批（aao/cass 同族公式族结构恒等机器断言+显式 delta 清单——用户直排，G-2 随后）。
+
+### batch G-1 — 2026-09-19 13:23Z~21:5X（hub 火执行者会话：同族一致性门禁，用户直排工单①收官）
+- 交付（三笔：实现 13e7e84+处置 a38a3e5+处置二 ef511a6，均经推送守望 CI 绿 run 35447156038）：第十六门禁
+  scripts/check_family_parity.py（主件 375 行）+共享库 family_parity_lib.py（137 行，same_layer_lib 先例拆件——
+  处置笔二后 502 行超宪法 §2 预算墙拆解析层）+run_gates GATES 挂载（门禁数基线 15→16）+file-contracts §4 双件登记
+  +status.md 重生成（gen_status --check 2158B 零漂移）。断言五层：①完整性（两包全部公式 ID=族对∪独有清单精确集合
+  相等——分叉无「不登记」路径）②恒等对（RHS 别名归一+空白归一恒等+符号集/逐符号量纲/输出符号/输出量纲四面对齐）
+  ③delta 对（表达式豁免但双向符号集差=声明精确集合+交集量纲全检+过期退役断言）④out_dims 镜像满额断言（17/17，
+  例外 2 键 _MIRROR_EXEMPT 显式登记——l_pool_raw/b_pool_raw AAO 侧不投影 raw 中间键，B4-2a W-3② 消费投影口径）
+  ⑤声明区自检（族对无重复/别名无自环链式多对一/族对∩独有空/解析平账三数对齐——含属性调用形态/例外表死条目过期）。
+  声明面：恒等 15 对（需氧 4/污泥 3/曝气 2/能耗 1/几何平移 3/容积平移 2）+delta 4 对（AO-F23↔CA-F31 duty_ratio
+  周期曝气 R-B42a-1 审查在档/AO-F24↔CA-F32 搅拌容积取面/AO-F20↔CA-F28 曝气头取面/AO-F19↔CA-F11 构造容积口径）
+  +别名 4 对（v_o↔v_load/t_p↔t_selector/v_anaerobic↔v_selector/w_stir_bio↔w_stir）+独有 aao 6/cass 14 逐条注记。
+- 红绿演练四笔留证（.workflow/g1-drills.md 仓外档案）：恒等对系数分叉红（4.57→4.50 精确指向 AO-F10↔CA-F20）/
+  公式改名完整性双红/delta 过期红（CA-F31 删 duty_ratio→「应退役并入 _PAIRS」）/镜像缺键红（删 e_stir 行→精确
+  指向 AO-F25↔CA-F33）——还原后全绿+工作树零残留。开发自证一笔：首版 delta 声明错误被门禁自身抓红（别名在
+  delta 层生效语义一致性顺带实证）。
+- 双门：门一（ops-gate1-k2 备源承载——用户指令 2026-09-18 未销案）三轮收敛 **B0/W0/N2 放行**（一审 B0/W4/N5
+  有条件→处置笔：W-1 解析平账实修/W-2 镜像满额断言实修（顺带抓真差异一处入例外表）/W-3 delta 豁口挂账 docstring
+  注记/W-4 呈报；二审 B0/W1/N4（W-1r 属性调用文案>实现）→处置笔二真覆盖收口+N-b 例外自检超建议加做；三审全闭环
+  放行）；门二（ops-probe 随宿主模型）两轮 **8/8+5/5 GREEN**（声明面 9 恒等+4 delta 亲核/完整性计数 25/33 交叉
+  吻合/aao+cass 包内测试 62 passed/红演练两轮独立复现精确）。
+- **Rulings 呈报（用户裁决位，不阻断）**：门一 W-4——工单括注四族（需氧量/曝气/污泥/能耗），实现把 manifest
+  头注既有「CASS 同族平移」声明面的几何/容积族（AO-F16~F18↔CA-F24~F26+AO-F1↔CA-F3+AO-F3↔CA-F4+AO-F19↔
+  CA-F11）一并机器化（19 对全覆盖+两侧独有显式清单）。依据=工单主词「同族公式族」涵盖既有平移声明面+完整性反向
+  断言使任何一侧新增公式逃不掉登记；如裁定收缩=机械移除（移入 _SOLO_* 一行操作）。N 级记档：行数账目以 CI 实跑
+  为准/豁免期 cass 侧掉键静默（消费投影口径可接受）/工厂封装归静态读不变量明文排除/单向归一 cass 侧碰撞不检。
+- 卫生小记：本批三次 commit 触发 git geometric-repack 维护任务权限失败（multi-pack-index Permission denied）
+  ——提交/推送均成功不阻断，2026-09-13 只读位残留同族现象，留观（若再现按 .git/maintenance 权限排查）。
+- 账本：impl/gate1（三轮终态）/gate2（两轮终态）三行在册；health-scan 收口前 RED=0/WARN×4（均历史欠账：设计链
+  同源历史行/27 行缺 usage 历史记账/cache 字段/cfg 漂移——非本批引入）。盘点件=.workflow/skills-inventory-G1.md。
+- 勾选 15→16/22（G-1）；next_batch=G-2；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 2/60、
+  墙钟 ~2h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）。
