@@ -75,6 +75,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/site/spacing": {"get"},  # L4b——间距校核（scene 同构取数端点族）
     "/api/ai/connection": {"get"},  # AI2——MCP 接入状态四项检查（2026-09-13）
     "/api/ai/connection/setup": {"post"},  # AI2——一键接入配置写入（2026-09-13）
+    "/api/debug/ops-chain/{project_id}": {"get"},  # B4-1——操作链观测面（《裁决书》方案五①，2026-09-19）
 }
 
 
@@ -87,7 +88,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 35  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13）
+    assert sum(len(methods) for methods in observed.values()) == 36  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①）
 
 
 @pytest.mark.anyio
