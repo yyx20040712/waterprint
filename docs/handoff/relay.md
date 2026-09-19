@@ -8,22 +8,22 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
-- automation_id: automation-4a8cb784-c14b-4941-89f3-ffe1b0cec6e5
+- status: RUNNING
+- automation_id: automation-2988ca0b-9af5-4ae0-a8ed-319602ec2ddf
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
-- last_dispatch: 2026-09-19T05:49:54+08:00
-- heartbeat_utc: 2026-09-19T00:30:00Z
-- claim: -
+- last_dispatch: 2026-09-19T11:14:24+08:00
+- heartbeat_utc: 2026-09-19T03:16:30Z
+- claim: executor-B4-1-20260919T1116-a7f3
 - no_progress_count: 0
 - checked_total: 20
 - checked_done: 13
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: executor-B4-1-20260919T1116-a7f3
+- claimed_at: 2026-09-19T11:16:30+08:00
 - next_batch: B4-1（第四波首批：操作链集中 debug 观测面——复用 calc-diag 独立 artifact（ADR-012）+任务事件流+trace 聚合，新增 GET /api/debug/ops-chain 或 events 流扩展+webapp 诊断 pane；前置槽位=批 3a 投影共享件已就绪——实现批双门）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -477,3 +477,27 @@
 - 会话终态：B3-c 一批完成（勾选 12→13/20，含 HOLD→用户两项全批→锁面落地复绿全程），
   READY，claim 归位；**批 3 同层晋升三步全数收官**；next_batch=B4-1（第四波首批：
   操作链集中 debug 观测面——复用 calc-diag artifact+事件流+trace 聚合，实现批双门）。
+
+### 调度员增补八 — 2026-09-19T11:07:19+08:00（hub 换防：新调度会话接替，重布全局轮转火）
+- 旧火核查：CronList 空集——增补七删火对象 automation-4a8cb784-… 确认已亡，
+  无双火风险，零清场动作。
+- 深度设计门（换防重走）：过——`.zcode/org-ledger.jsonl` 活跃（mtime 09-19 08:41，
+  末笔=R-B3c 两项用户裁决销案行）、《裁决书》占位符 grep 零命中、执行清单机检
+  13 勾+7 开=20 与板头计数一致。
+- 板面处置：字段对照当前技能模板零缺失（无增行）；用户换防指令所记停火时态快照
+  「HOLD 待裁（R-B3c-1/R-B3c-2 等裁决）」已过时——两项 Rulings 已于 08:2X 用户
+  对话内裁决全批（R-B3c-1 追认/R-B3c-2 锁面笔批准，账本销案行在档），锁面笔
+  bd1ff71 落地、CI 全绿（run 35410239876）、板已 HOLD→READY 且 B3-c 勾选
+  （12→13/20）、next_batch=B4-1——两项均销案在案，本次换防无转达/复位动作；
+  status/claim/no_progress 均期望态零复位；本条尾部纯追加；板头 automation_id
+  字段行已锚定替换为新火 id（锚定计数=1 守卫过；历史日志旧 id 存量不动）。
+- 新全局火=automation-2988ca0b-9af5-4ae0-a8ed-319602ec2ddf（新 hub 调度会话创建，
+  全局唯一 */10 轮转，服务本板+Synapse 板；首班 11:16 投递）。本板
+  last_dispatch=09-19T05:49:54 早于姊妹板 08:20:24——首班有效火先轮本板
+  （B4-1 操作链集中 debug 观测面——实现批双门）。
+- 板上既有条款自动生效：执行指令只携带未销案的用户指令（增补六定型）；门一/
+  拟定者备源承载直至用户另行通知，继续随注入携带；UI 开批通道经验（Ctrl+N
+  先切回会话视图/「取消选择当前项目」清空再勾选防反致解绑/调度侧 Edit 遇
+  「文件已改」重读再落笔/主输入框 a11y 写入不生效须前台激活后 app 级
+  strategy=event 真实键盘写入，前台被游戏全屏锁定连败 2-3 次即记欠账退出勿硬抢）
+  沿用历任实测累积。
