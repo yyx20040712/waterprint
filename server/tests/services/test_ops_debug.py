@@ -22,7 +22,7 @@ def test_public_surface() -> None:
 
 
 @pytest.mark.anyio
-async def test_unknown_project_404(client, service_ctx) -> None:  # noqa: ANN001
+async def test_unknown_project_404(client, service_ctx) -> None:  # type: ignore[no-untyped-def]
     """正门 404 冒烟（未知项目——ProjectNotFoundError 面）。"""
     from waterprint_server.services.projects import ProjectNotFoundError
 

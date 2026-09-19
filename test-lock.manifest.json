@@ -285,7 +285,7 @@
   "server/tests/services/test_exports.py": "897ada8d7d69115a575246c9a49bf12a2ca29a1ad74182f9e3564b546be12cfd",
   "server/tests/services/test_exports_download.py": "a26e6353cf109a492ca82e9d87553b582c80705b469575f81421e03d8bcbe817",
   "server/tests/services/test_exports_dwg.py": "f4bbe363273c975d95037c9a29de7c279d67ad8462ed2eabeda419bfee353ae7",
-  "server/tests/services/test_ops_debug.py": "547a1a72678d922808f79a1dbbf7299d204966a8ccd58736a554a8ad5999bcec",
+  "server/tests/services/test_ops_debug.py": "7295bdd2bd9252b94660772f1d912afac5e767b996b1d80f97567d4684227466",
   "server/tests/services/test_project_lifecycle.py": "ee4da3dd3149e7f698033f0776563df49b372609f1eeeda16969e166ac33ad2b",
   "server/tests/services/test_projects.py": "924f67744ccb008fdb868a6fd9a0df8ed08ec358712cc45203afb31d8cfd33c0",
   "server/tests/services/test_projects_site.py": "22302680767b8f4e9c577dd6d5167f01f136745638f9cee5782f04b024824f88",
