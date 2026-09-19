@@ -8,29 +8,29 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
-- automation_id: automation-3776af0e-7217-406a-802c-870cb88b6533
+- status: RUNNING
+- automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T14:01:26.430Z
-- claim: -
+- heartbeat_utc: 2026-09-19T14:40:09.000Z
+- claim: hubfire-G2-20260919T1440-8f2c
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 16
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T13:21:13Z
-- relay_started_utc: 2026-09-19T11:58:59Z
-- batch_count: 2
+- last_dispatch_utc: 2026-09-19T14:39:55.866Z
+- relay_started_utc: 2026-09-19T14:24:01.889Z
+- batch_count: 0
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub-fire-executor
+- claimed_at: 2026-09-19T14:40:09.000Z
 - next_batch: G-2 拆件配方回写宪法（ADR-024 D1 预算墙拆件规则入 AGENTS §11——用户直排工单②；B4-2b opex 前置批随后）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -334,3 +334,60 @@
   同源历史行/27 行缺 usage 历史记账/cache 字段/cfg 漂移——非本批引入）。盘点件=.workflow/skills-inventory-G1.md。
 - 勾选 15→16/22（G-1）；next_batch=G-2；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 2/60、
   墙钟 ~2h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）。
+
+### 调度员欠账行 — 2026-09-19T14:1XZ（hub 调度会话：G-2 开批 UI 通道连续两班失败）
+- 事实：WaterPrint 全合格态下（READY ∧ 静默窗过 ∧ 实物静默 ≥5min ∧ 熔断未触发）调度员连续两班（~14:06/~14:10）
+  UI 开批未成——a11y 观察缓存与活树错位致点击校验连续拒绝（action_sent=false 零误触；第三次尝试取消绑定与
+  展开菜单两笔已成功，菜单内容观察再次错位后按「连败 2-3 次勿硬抢」停手）。last_dispatch_utc 未写（仍
+  13:21:13Z），板保持全合格态，G-2 开批顺延至下一班火重试。
+- 处置预案：若续败按协议降级（UI 通道失败欠账 → 会话内直跑承载）或呈用户处理；本行即欠账登记。
+
+### 增补六 — 2026-09-19T14:14:16Z（hub 停火：用户令删火）
+- 用户在 hub 调度会话下达删火令：全局轮转火 automation-3776af0e-7217-406a-802c-870cb88b6533
+  已 CronDelete（回执 deleted:true，CronList 空集复核）。本条为调度员尾部纯追加，
+  claim/状态字段未动；板头 automation_id 字段行保留旧值仅为历史审计指向。
+- 本火任内战果：两批完成——B4-2a 收尾批（12:14:47Z 发布，勾选 14→15）+G-1 治理小批
+  （13:21:13Z 发布，勾选 15→16/22，batch_count 0→2）；G-2 开批因调度员 UI 通道连败
+  两班欠账顺延（欠账行在册）——停火后无火重试，G-2 由用户择径（手动会话按本板清单
+  领批，或日后重布防由火班续）。
+- 本板现 READY（无在途执行者），停火后停于 READY 无火接续——预期态非异常。恢复两径
+  同规：用户显式 /batch-relay 重布防（换防协议 hub 变体），或手动会话按本板清单领批。
+- 调度员会话自本增补起不再开批、不再补派（停火令优先）。
+- 板头执行指令转达条款规则（调度员增补六定型）与门一/拟定者备源承载事实留存，
+  重布防时随板面原文生效。
+
+### 增补七 — 2026-09-19T14:24:01.889Z（hub 换防：新调度会话接替，重布全局轮转火）
+- 旧火核查：CronList 空集——用户点名旧火 automation-3776af0e-…（增补五所布、增补六
+  删火在案）已亡，零清场动作；新火布防后 CronList 复核全局恰一条。
+- 深度设计门（换防重走；口径=板内 plan 字段指向的《裁决书》/自含清单）：过——
+  《裁决书》占位符 grep 零命中、执行清单机检 16 勾+6 开=22 与板头计数一致、
+  org-ledger.jsonl 活跃（mtime 09-19 21:54+08）；check-relay plan 子命令照跑 exit=1：
+  MISSING_SECTION 系自含清单非 writing-plans 模板预期态，无 PLACEHOLDER 命中
+  （增补三/五同款口径）。
+- 换防复位（板不重建）：relay_started_utc 重锚 2026-09-19T14:24:01.889Z（熔断复位留痕）；batch_count
+  2→0；status READY/claim -/claimed_by -/claimed_at -/no_progress_count 0/
+  hold_reason - 均期望态零改写；max_batches 60/max_wall_hours 90 维持（用户布防
+  指令明示 22 项维持 60/90）；protocol 段 rev1+rev1.1 增量条款在册（增补/增补二
+  所立），无需补齐；next_batch=G-2 锚不变；复位后 board 机检 0 fail（1 warn=冻结
+  旧行 R3 预期）；板头 automation_id 字段行已锚定替换为新火 id（锚定计数=1 守卫过；
+  历史日志旧 id 存量不动）。
+- 新全局火=automation-9d069f57-4d51-4327-a9e2-27cad5d0352f（新 hub 调度会话创建，全局唯一 */10 轮转，服务本板+Synapse
+  板，首班 14:34Z）。姊妹板 Synapse RUNNING 在途（b32 B 票心跳新鲜）非轮转候选——
+  **首班有效火先轮本板，G-2 拆件配方回写宪法优先补开**（用户布防指令明示；调度员
+  欠账行处置预案随行：前调度会话 UI 通道 a11y 观察缓存错位连败两班，本调度会话
+  a11y 状态全新，若再现连败按预案降级会话内直跑或呈用户，勿硬抢）。
+- 板上既有条款自动生效：执行指令只携带未销案指令（增补六定型）、门一/拟定者备源
+  承载直至用户另行通知、UI 开批通道经验沿用历任实测累积。
+
+
+### 调度员欠账行二 — 2026-09-19T14:33:49.607Z（hub 调度会话：G-2 开批 UI 两径受阻，让位下一班）
+- 事实：本板全合格态（四条件过：READY ∧ 静默窗 69min≥30 ∧ 实物静默 板面 5.2min/git
+  28.6min≥5 ∧ 熔断 0/60·6min/90h），开批 UI 通道连败三试——①「新建任务」按钮滚出
+  侧栏视口（任务标签堆积），a11y 树 400 元素封顶被裁：AXPress 首试即拒（actions 仅剩
+  AXScrollIntoView）、AXScrollIntoView 后全量树不复现；②Ctrl+N 键盘径被前台守卫拒
+  （action_sent=false 零误触）——前台=Synapse_remake node_modules electron.exe
+  （b32 B 票 Electron 44 实测占用，观察窗内 pid 34332→29572 重启一次=测试循环进行中），
+  按「在途勿动+前台连败勿硬抢」纪律不强抢。last_dispatch_utc 未写（仍 13:21:13Z），
+  板保持全合格态。
+- 处置：让位下一班火重试（缓开一班零成本，G-2 顺延）；若续败按欠账行一预案降级
+  （会话内直跑承载）或呈用户处理；本行即欠账登记（欠账行一在册，本行为第二条）。
