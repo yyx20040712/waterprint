@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-3776af0e-7217-406a-802c-870cb88b6533
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,21 +16,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T13:09:13.452Z
-- claim: -
+- heartbeat_utc: 2026-09-19T13:23:20.893Z
+- claim: hubfire-G1-202609191323-082c
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 15
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T12:14:47Z
+- last_dispatch_utc: 2026-09-19T13:21:13Z
 - relay_started_utc: 2026-09-19T11:58:59Z
 - batch_count: 1
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hubfire-G1-202609191323-082c
+- claimed_at: 2026-09-19T13:23:20.893Z
 - next_batch: G-1 治理小批（aao/cass 同族公式族结构恒等机器断言+显式 delta 清单——调度员增补九用户直排工单①；G-2 拆件配方回写宪法随后）
 
 ## protocol（角色自识别 + 最小兜底协议）
