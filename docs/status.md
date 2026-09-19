@@ -8,7 +8,7 @@
 
 | 指标 | 值 | 事实源 |
 |---|---|---|
-| CI 门禁数 | 15 | `scripts/run_gates.py` GATES 元组 |
+| CI 门禁数 | 16 | `scripts/run_gates.py` GATES 元组 |
 | 测试锁面键数 | 303（core/tests 148 + server/tests 44 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
 | OpenAPI | 33 路径 / 36 操作 | `api-contracts/openapi.json` |
 | ADR 件数 | 24 | `docs/adr/ADR-*.md` |

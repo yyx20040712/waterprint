@@ -27,6 +27,10 @@
 # 第十四门禁 check_dim_labels_mirror.py（同批件 4 缺口②）：FE
 # DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典
 # 即拦）——门禁数基线 13→14。
+# 第十六门禁 check_family_parity.py（G-1 治理小批 2026-09-19 用户直排
+# 工单①）：aao/cass 同族公式族结构恒等机器断言+显式 delta 清单（需氧量
+# /曝气/污泥/能耗+几何/容积平移族——静默分叉变响红；AST 静态实读零依赖）
+# ——门禁数基线 15→16。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -40,6 +44,7 @@ GATES = (
     "check_contract_headers.py",
     "check_deprecation_gate.py",
     "check_dim_labels_mirror.py",
+    "check_family_parity.py",
     "check_file_budgets.py",
     "check_grep_gates.py",
     "check_lint_imports.py",
