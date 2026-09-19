@@ -114,7 +114,7 @@ from waterprint.graph.cache import (
 from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生件
     _LOOP_KEYS,  # noqa: F401  # 引用连续专用（消费面=executor_assembly._loop_config）
     _edges_from_design,
-    _endpoint,  # noqa: F401  # 同上（消费面=executor_assembly._edges_from_design）
+    _endpoint,  # noqa: F401  # 镜像钉兼容壳再导出（生产零消费——恒等钉与引用连续专用，门一 W1 注记）
     _loop_config,
     _LoopProbe,
     _NullSink,

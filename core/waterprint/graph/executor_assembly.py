@@ -97,8 +97,11 @@ def _endpoint(raw: object, side: str, index: int) -> PortRef:
     """边端点转换绑定件：内核 endpoint_from + 本域拒绝载体（B3-c 收敛）。
 
     逻辑/消息单源=contracts.edge_parsing；本定义仅为 InvalidExecutionError
-    类型绑定（批 3a not_found 注入同型），私有名与定义位不动=镜像恒等钉
-    零扰动（tests/graph/test_executor_assembly.py）。
+    类型绑定（批 3a not_found 注入同型）。**镜像钉兼容壳（生产零消费——
+    门一 W1 处置）**：生产路径的端点解析经内核 edges_from→endpoint_from
+    直达，本私有名仅由 tests/graph/test_executor_assembly.py 恒等钉与
+    executor.py 再导出面持有——改本函数 error 类不改变运行时行为，
+    契约载体改动须改 _edges_from_design（热路径绑定）。
     """
     return endpoint_from(raw, side, index, error=InvalidExecutionError)
 
