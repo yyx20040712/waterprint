@@ -18,9 +18,18 @@
 #   ③ delta 对——表达式豁免比对（已知结构差异显式登记），但双向符号
 #     集差必须=声明的精确集合、交集符号 dim/LHS/output_dim 仍须相等，
 #     且表达式若被改成归一恒等 → FAIL（delta 条目过期应退役）；
-#   ④ out_dims 镜像——族对输出符号（别名归一到 cass 名）在两包
-#     manifest out_dims 中 dim 必须相等；
-#   ⑤ 声明区自检——族对 ID 无重复、别名表无自环/双向冲突。
+#   ④ out_dims 镜像——族对输出符号（aao 侧原名查 aao 表/cass 侧名查
+#     cass 表）必须双侧入表且 dim 相等（满额断言——单侧缺键即红，
+#     防镜像层静默退化至零键仍绿）；
+#   ⑤ 声明区自检——族对 ID 无重复、别名表无自环/链式级联/多对一、
+#     族对与独有清单无交集、解析平账（Call 总数=解析成功数=唯一 ID 数
+#     ——非常规构造[关键字参数/属性调用/非字面量]与重复 ID 均红，
+#     防静默跳过成为分叉的「不登记」路径）。
+#   已知豁口（挂账）：delta 对豁免整条 RHS 比对——公共符号上的系数/
+#   结构漂移（如单侧改 ×24 为 ×12）不在断言面；收窄方案（公共骨架
+#   归一比对）结构脆（嵌套位置差异剥符号后语法不完整），挂后续批评估。
+#   静态读不变量：声明面须纯字面量构造（运行时读等价前提）——由⑤
+#   解析平账兜底，平账不等即红。
 #   维护工序：改动任一侧同族公式 → 同步另一侧保持恒等，或在本文件
 #   DELTAS/SOLO_* 登记差异（理由随条目）——delta 与独有清单是「显式
 #   的知情差异」，未登记的差异是分叉。
@@ -130,6 +139,16 @@ _SOLO_CASS: dict[str, str] = {
     "CA-F27": "池体混凝土量概算",
 }
 
+# 镜像层例外（族对 ID→豁免输出键，逐条述因）：out_dims=消费投影非
+# 义务全集（B4-2a W-3② 口径）——两侧投影面差异是知情差异，非公式分叉。
+_MIRROR_EXEMPT: dict[str, tuple[str, ...]] = {
+    # AAO 侧仅投影圆整后 b_pool/l_pool（不暴露 raw 中间键）；CASS 侧
+    # raw+圆整四键全投影——消费投影面差异；AAO 补键将胀 l7 non_drawn
+    # 锁面期望（B4-2a W-3② 挂账：raw 键消费面立项时随批登记）。
+    "AO-F17": ("l_pool_raw",),
+    "AO-F18": ("b_pool_raw",),
+}
+
 # ── 解析层（AST 静态实读——check_out_dims_consistency 同款手法）────
 
 
@@ -155,12 +174,16 @@ def _parse_aliases(tree: ast.Module) -> dict[str, str]:
     return aliases
 
 
-def parse_formulas(pkg: Path) -> dict[str, dict[str, object]]:
-    """单元包（manifest.py+formulas_*.py 兄弟件）→ 公式全表。
+def parse_formulas(pkg: Path) -> tuple[dict[str, dict[str, object]], int, int]:
+    """单元包（manifest.py+formulas_*.py 兄弟件）→ 公式全表+平账计数。
 
     每条：expression/lhs/rhs/symbols（符号→dim 名）/output_dim。
+    返回 (formulas, call_total, parsed_ok)——main 侧平账：call_total≠
+    parsed_ok=非常规构造被跳过；parsed_ok≠len(formulas)=重复 ID 覆盖。
     """
     formulas: dict[str, dict[str, object]] = {}
+    call_total = 0
+    parsed_ok = 0
     sources = [pkg / "manifest.py", *sorted(pkg.glob("formulas_*.py"))]
     for path in sources:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -170,13 +193,18 @@ def parse_formulas(pkg: Path) -> dict[str, dict[str, object]]:
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
                 and node.func.id == "FormulaSpec"
-                and len(node.args) >= 4
+            ):
+                continue
+            call_total += 1
+            if not (
+                len(node.args) >= 4
                 and isinstance(node.args[0], ast.Constant)
                 and isinstance(node.args[0].value, str)
                 and isinstance(node.args[1], ast.Constant)
                 and isinstance(node.args[1].value, str)
             ):
                 continue
+            parsed_ok += 1
             fid = str(node.args[0].value)
             expression = str(node.args[1].value)
             symbols: dict[str, str] = {}
@@ -197,16 +225,21 @@ def parse_formulas(pkg: Path) -> dict[str, dict[str, object]]:
                 "symbols": symbols,
                 "output_dim": "" if output is None else output,
             }
-    return formulas
+    return formulas, call_total, parsed_ok
 
 
-def _parse_out_dims(pkg: Path) -> dict[str, str]:
-    """manifest.py 的 load_manifest 调用 → out_dims field→dim 表。"""
+def _parse_out_dims(pkg: Path) -> tuple[dict[str, str], int]:
+    """manifest.py 的 load_manifest 调用 → out_dims field→dim 表+条目总数。
+
+    返回 (out_dims, entry_total)——main 侧平账：entry_total≠len(out_dims)
+    =非字面量条目被静默丢弃（门禁盲区必须消除）。
+    """
     tree = ast.parse(
         (pkg / "manifest.py").read_text(encoding="utf-8"), filename=str(pkg / "manifest.py")
     )
     aliases = _parse_aliases(tree)
     out_dims: dict[str, str] = {}
+    entry_total = 0
     for node in ast.walk(tree):
         if not (
             isinstance(node, ast.Call)
@@ -226,6 +259,7 @@ def _parse_out_dims(pkg: Path) -> dict[str, str]:
             for entry in value.elts:
                 if not isinstance(entry, ast.Dict):
                     continue
+                entry_total += 1
                 fields = {
                     k.value: v.value
                     for k, v in zip(entry.keys, entry.values)
@@ -234,7 +268,7 @@ def _parse_out_dims(pkg: Path) -> dict[str, str]:
                 }
                 if "field_id" in fields and "dim" in fields:
                     out_dims[str(fields["field_id"])] = str(fields["dim"])
-    return out_dims
+    return out_dims, entry_total
 
 
 # ── 比对层 ─────────────────────────────────────────────────────────
@@ -253,13 +287,18 @@ def _norm_symbols(symbols: dict[str, str]) -> dict[str, str]:
     return {_canonical(sym): dim for sym, dim in symbols.items()}
 
 
+def _collides(symbols: dict[str, str]) -> bool:
+    """别名归一是否使不同符号归并为同一键（语义误合并）。"""
+    return len(_norm_symbols(symbols)) != len(symbols)
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     failures: list[str] = []
-    aao = parse_formulas(UNITS_LIB / "municipal" / "aao")
-    cass = parse_formulas(UNITS_LIB / "municipal" / "cass")
-    aao_dims = _parse_out_dims(UNITS_LIB / "municipal" / "aao")
-    cass_dims = _parse_out_dims(UNITS_LIB / "municipal" / "cass")
+    aao, aao_calls, aao_ok = parse_formulas(UNITS_LIB / "municipal" / "aao")
+    cass, cass_calls, cass_ok = parse_formulas(UNITS_LIB / "municipal" / "cass")
+    aao_dims, aao_entries = _parse_out_dims(UNITS_LIB / "municipal" / "aao")
+    cass_dims, cass_entries = _parse_out_dims(UNITS_LIB / "municipal" / "cass")
 
     # ⑤ 声明区自检
     pair_ids = [p[0] for p in _PAIRS] + [d[0] for d in _DELTAS]
@@ -269,6 +308,47 @@ def main() -> int:
     for aao_name, cass_name in _ALIASES.items():
         if aao_name == cass_name or _ALIASES.get(cass_name) == aao_name:
             failures.append(f"声明区自检：别名表自环/双向冲突 {aao_name}↔{cass_name}")
+    if len(set(_ALIASES.values())) != len(_ALIASES):
+        failures.append("声明区自检：别名多对一（多个 aao 符号映射同一 cass 符号=归一碰撞）")
+    for aao_name, cass_name in _ALIASES.items():
+        if cass_name in _ALIASES:
+            failures.append(
+                f"声明区自检：别名链式级联 {aao_name}→{cass_name}→"
+                f"{_ALIASES[cass_name]}（canonical 循环替换会级联误替换）"
+            )
+    overlap_aao = set(pair_ids) & set(_SOLO_AAO)
+    overlap_cass = set(pair_ids_cass) & set(_SOLO_CASS)
+    if overlap_aao:
+        failures.append(f"声明区自检：同 ID 既入族对又入 _SOLO_AAO：{sorted(overlap_aao)}")
+    if overlap_cass:
+        failures.append(f"声明区自检：同 ID 既入族对又入 _SOLO_CASS：{sorted(overlap_cass)}")
+
+    # ⑤ 解析平账：非常规构造（关键字参数/属性调用/非字面量）与重复 ID
+    # 均不得静默溜过（W-1 收口——跳过形状=完整性①的「不登记」旁路）
+    for side, table, calls, ok in (
+        ("aao", aao, aao_calls, aao_ok),
+        ("cass", cass, cass_calls, cass_ok),
+    ):
+        if calls != ok:
+            failures.append(
+                f"解析平账[{side}]：{calls - ok} 条 FormulaSpec 构造未被解析"
+                "（非常规形状——关键字参数/属性调用/非字面量 ID 等；门禁盲区"
+                "必须消除：改为位置参数+纯字面量构造）"
+            )
+        if ok != len(table):
+            failures.append(
+                f"解析平账[{side}]：{ok - len(table)} 条重复公式 ID（同 ID 二次"
+                "构造静默覆盖——改 ID 或删除重复声明）"
+            )
+    for side, dims, entries in (
+        ("aao", aao_dims, aao_entries),
+        ("cass", cass_dims, cass_entries),
+    ):
+        if entries != len(dims):
+            failures.append(
+                f"解析平账[{side}]：out_dims {entries} 条中 "
+                f"{entries - len(dims)} 条非字面量被静默丢弃（field/dim 须纯字面量）"
+            )
 
     # ① 完整性：全部公式 ID=族对 ∪ 独有清单（精确集合相等）
     for side, table, declared, solo in (
@@ -286,7 +366,6 @@ def main() -> int:
             failures.append(f"完整性[{side}]：声明区登记的 {fid} 在源码中不存在")
 
     # ② 恒等对断言
-    identical_n = 0
     for aao_id, cass_id, family in _PAIRS:
         fa, fc = aao.get(aao_id), cass.get(cass_id)
         if fa is None or fc is None:
@@ -300,6 +379,8 @@ def main() -> int:
         if _canonical(str(fa["lhs"])) != _canonical(str(fc["lhs"])):
             failures.append(f"{tag} 输出符号分叉：{fa['lhs']} vs {fc['lhs']}")
         sa, sc = _norm_symbols(fa["symbols"]), _norm_symbols(fc["symbols"])  # type: ignore[arg-type]
+        if _collides(fa["symbols"]):  # type: ignore[arg-type]
+            failures.append(f"{tag} 符号归一碰撞：别名映射使 aao 侧不同符号归并为同键")
         if set(sa) != set(sc):
             only_a = sorted(set(sa) - set(sc))
             only_c = sorted(set(sc) - set(sa))
@@ -311,7 +392,6 @@ def main() -> int:
             failures.append(
                 f"{tag} 输出量纲分叉：{fa['output_dim']} vs {fc['output_dim']}"
             )
-        identical_n += 1
 
     # ③ delta 对断言（表达式豁免；符号集差精确=声明；量纲面仍全检）
     for aao_id, cass_id, family, reason, aao_only, cass_only in _DELTAS:
@@ -320,6 +400,8 @@ def main() -> int:
             continue
         tag = f"[{family}·delta] {aao_id}↔{cass_id}"
         sa, sc = _norm_symbols(fa["symbols"]), _norm_symbols(fc["symbols"])  # type: ignore[arg-type]
+        if _collides(fa["symbols"]):  # type: ignore[arg-type]
+            failures.append(f"{tag} 符号归一碰撞：别名映射使 aao 侧不同符号归并为同键")
         real_only_a = set(sa) - set(sc)
         real_only_c = set(sc) - set(sa)
         if real_only_a != aao_only or real_only_c != cass_only:
@@ -343,33 +425,47 @@ def main() -> int:
                 "应从 _DELTAS 退役并入 _PAIRS"
             )
 
-    # ④ out_dims 镜像：族对输出符号（归一到 cass 名）两包 dim 相等
+    # ④ out_dims 镜像：族对输出键必须双侧入表且 dim 相等（满额断言
+    # ——W-2 收口：aao 侧原名查 aao 表/cass 侧名查 cass 表，别名输出
+    # 键不再落空；单侧缺键即红，防镜像层静默退化至零键仍绿）
     mirror_n = 0
     for aao_id, cass_id, *_ in (*_PAIRS, *_DELTAS):
         fa, fc = aao.get(aao_id), cass.get(cass_id)
         if fa is None or fc is None:
             continue
-        lhs_c = _canonical(str(fa["lhs"]))
-        if lhs_c != str(fc["lhs"]):
+        lhs_a, lhs_c = str(fa["lhs"]), str(fc["lhs"])
+        if _canonical(lhs_a) != lhs_c:
             continue  # 输出符号分叉已在上层报
-        da, dc = aao_dims.get(lhs_c), cass_dims.get(lhs_c)
-        if da is not None and dc is not None:
-            mirror_n += 1
-            if da != dc:
-                failures.append(
-                    f"out_dims 镜像：输出键 {lhs_c}（{aao_id}↔{cass_id}）"
-                    f"两包 dim 分叉 {da} vs {dc}"
-                )
+        da, dc = aao_dims.get(lhs_a), cass_dims.get(lhs_c)
+        if lhs_c in _MIRROR_EXEMPT.get(aao_id, ()):
+            continue  # 显式例外（述因在 _MIRROR_EXEMPT——投影面差异）
+        if da is None or dc is None:
+            failures.append(
+                f"out_dims 镜像：{aao_id}↔{cass_id} 输出键 {lhs_a}/{lhs_c} "
+                f"单侧未声明（aao 侧{'缺' if da is None else '有'}/"
+                f"cass 侧{'缺' if dc is None else '有'}）——族对输出键必须"
+                "双侧入 out_dims"
+            )
+            continue
+        mirror_n += 1
+        if da != dc:
+            failures.append(
+                f"out_dims 镜像：输出键 {lhs_c}（{aao_id}↔{cass_id}）"
+                f"两包 dim 分叉 {da} vs {dc}"
+            )
 
     if failures:
         print(f"[FAIL] aao/cass 同族一致性 {len(failures)} 处分叉：")
         for line in failures:
             print(f"  - {line}")
         return 1
+    total_pairs = len(_PAIRS) + len(_DELTAS)
+    exempt_n = sum(len(v) for v in _MIRROR_EXEMPT.values())
     print(
-        f"[OK] aao/cass 同族一致性：恒等对 {identical_n}+delta 对 "
+        f"[OK] aao/cass 同族一致性：恒等对 {len(_PAIRS)}+delta 对 "
         f"{len(_DELTAS)}（显式清单）+独有 aao {len(_SOLO_AAO)}/cass "
-        f"{len(_SOLO_CASS)}+out_dims 镜像 {mirror_n} 键——零静默分叉"
+        f"{len(_SOLO_CASS)}+out_dims 镜像 {mirror_n}/{total_pairs - exempt_n} "
+        f"键（满额，例外 {exempt_n} 键显式登记）——零静默分叉"
     )
     return 0
 
