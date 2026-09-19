@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: HOLD
 - automation_id: automation-4a8cb784-c14b-4941-89f3-ffe1b0cec6e5
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T05:49:54+08:00
-- heartbeat_utc: 2026-09-18T21:51:35Z
+- heartbeat_utc: 2026-09-18T23:50:00Z
 - claim: hubfire-B3c-20260919T0551-b4e2
 - no_progress_count: 0
 - checked_total: 20
@@ -24,7 +24,7 @@
 - last_handover: 2026-09-19
 - claimed_by: 执行者会话（B3-c hub 火注入）
 - claimed_at: 2026-09-19T05:51:35+08:00
-- next_batch: B3-c（批 3 第三步：core B4 双胞胎+异常表两份→§1c 同层边——架构级三段通道〔社区调研→拟定→对抗审核→主控终裁〕；golden 三案哈希零变+import-linter 绿验收）
+- next_batch: R-B3c-2 批准后执行（B3-c 锁面收口）：拷入 .workflow/probes/b3c/mirror-tests-draft/ 两薄壳→core/tests/contracts/→python scripts/draft_lock_manifest.py 取全根重锁命令→lock_tests.py 重锁 299→301+只读位→[HUMAN-LOCK] commit（首行带标签+逐文件动机）→推送本地三笔（7c0365a 认领+afd147c 实现+c6082d1 处置）+锁面笔→CI 守望至绿→勾选 B3-c（12→13/20）→READY+next_batch=B4-1（操作链集中 debug 观测面）；R-B3c-1（A-3 §1c 意图读法追认）随终报一并呈用户
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -388,3 +388,63 @@
 - 会话终态：B3-b 一批完成（勾选 11→12/20），READY，claim 归位；批 3 第二步收官；
   next_batch=B3-c（批 3 第三步：core B4 双胞胎+异常表两份→§1c 同层边——架构级
   三段通道：社区调研→拟定→对抗审核→主控终裁）。
+
+### batch B3-c — 2026-09-19 07:50（hub 火执行者会话：批 3 第三步·core B4 双胞胎+异常表收敛，代码面完成 HOLD 呈批）
+- **HOLD 根因（R-B3c-2 呈批）**：镜像规则（test_mirror_rule）对新两源件（contracts/edge_parsing.py+
+  domain_exceptions.py）机械触发镜像测试义务（全树文件名匹配）；新增测试=[HUMAN-LOCK] 三连锁
+  （manifest 新键+只读位+镜像件）须用户批准（AGENTS §7）——与 B2-5 R-B2-5-1 同款交互，定案 §4 验收
+  与 P9「锁面零动作」未预见此面（任务书事实包 §B-5 缺镜像规则条目=主控简报缺口，记教训）。
+  AskUserQuestion 呈批未获应答→按 B2-5 先例 HOLD 不自批/不走 noqa/不改镜像规则。薄壳两件已双向验证
+  （门二独立复跑：拷入=5 passed 全绿/移除=镜像规则复红/锁面 299 键零残留），草稿=.workflow/probes/b3c/
+  mirror-tests-draft/。**批准后执行路径已锚 next_batch 行。**
+- 三段通道全走（架构级纪律）：①社区调研（共享内核 vs 复制取舍+异常集中化两路线，9 源）→②拟定者
+  备源派发（备源承载，154s，330 行设计书三候选全权衡——甲案推荐=全下沉 L0+组合路线+
+  error 异常类注入）→③对抗审核备源（备源承载，B0/W3/N7 PASS——W-1 A-3 字面偏离呈报/W-2 registry
+  落点缺候选/W-3 status 零漂无据断言）→④主控终裁（W/N 逐条处置+独立复核闭卷 J6：check_module_graph
+  L427 同节点忽略实证；定案=docs/design/2026-09-19_b4-twins-convergence-design.md）。
+- 交付（代码面 commits afd147c+c6082d1 本地待批随锁面笔推送）：contracts/edge_parsing.py 新建
+  （endpoint_from/edges_from，error 异常类注入——批 3a not_found 先例同型；消息统一含「得到」版，
+  app 侧文本零变=validate 汇总面零连带）+contracts/domain_exceptions.py 新建（DOMAIN_EXCEPTIONS_CORE
+  四族单源，序=executor 现相对序）；executor_assembly/app_assembly 双胞胎改同名绑定件（私有名与定义位
+  不动=镜像恒等钉零扰动；旧复制逻辑同批删除）——executor_assembly._endpoint 经门一 W1 裁定注记
+  「镜像钉兼容壳（生产零消费）」；executor._DOMAIN_EXCEPTIONS=CORE+graph 三族（7 族恒等）、
+  enumerate._ROW_DOMAIN_EXCEPTIONS=CORE+InvalidFormulaError（5 族恒等）——两份人工同步义务消灭；
+  contracts/__init__ 聚合 3 名（白名单注记 13→15 同步）+file-contracts 两新行。结构面：零新增同层边
+  零 §1c 零图谱改动（全既有向下边；§1a 包级节点/check_module_graph 同节点忽略双实证）。
+- 等价性证据（双门+机检）：golden 4 绿+全量 pytest 775 passed（唯一红=镜像规则 R-B3c-2，两向验证
+  因果闭合）+run_gates 15 绿（lint-imports 双根 core 5+server 2 kept 零破）+gen_status 2158B 零漂移
+  （W-3 按实跑核验闭卷）+mypy/ruff 零错+恒等钉 6/6+元组 7/5 成员集恒等（门一独立复算+九族裸
+  Exception 零交叉继承闭卷次序语义）+golden 快照零触碰（门二项 10）。门一（外部派发器承载：
+  ops-gate1-k2 子代理通道认证失败→备源 403 额度尽→第三源兜底；审包 469 行自包含）
+  **B0/W1/N5 PASS**——W1 批内修复（c6082d1）；门二（ops-probe 独立重跑未读主控结论）矩阵 **9/10
+  GREEN**（唯一 RED=简报预期描述笔误非代码面，主控裁决：kernel 外三形态仅 incremental.py:229 批前
+  既有异载体一处+第四形态 app_assembly.py:246 聚合面批前既有——零新增残留）。
+- **Rulings 待用户（两项，随终报呈批）**：**R-B3c-1**=裁决书 A-3「承载位置=按 ADR-014 §1c 同层边申报」
+  按意图读法执行（定案零新增同层边+共享件下沉 L0；§1c 申报机制在引入同层边时才触发——字面读法
+  强制造同层边与裁决②「分层铁律不动」相悖）——涉裁决书字面释义呈追认（B2-3 D1 先例）；**R-B3c-2**=
+  镜像测试两薄壳 [HUMAN-LOCK] 锁面笔批准（299→301+推送本地三笔+CI 守望至绿+勾选 B3-c）。
+- 挂账：G1 latent 不对称（executor 不含 InvalidFormulaError，行为零变不修）/G2 _NullSink+_dims_of
+  双胞胎（范围外）/G3 消息锚测试（薄壳已含注入语义冒烟，正式锚测试走锁面程序）+新增 G4=validate
+  聚合面自有文案与 incremental.py 异载体文案两处批前既有近似文本（后续批次评估收编）。
+- 账本：gate1（第三源兜底 B0/W1/N5）/probe（9/10）/impl-HOLD 两行+外部派发器自动行（drafter/
+  auditor/gate1 各 attempt/ok）；通道事实：ops-gate1-k2 子代理认证失败（621ms）+备源五小时
+  额度尽（403）——第三源兜底承载记档，源恢复后回备源。
+- 勾选 12/20 不变（B3-c 主体完成唯锁面待批，批准后勾选）；无进展计数 0（非卡死=呈批挂起，B2-5 同款）。
+  本批未推送（推送必红镜像规则——B2-5 实证；本地三笔待批随锁面笔一并推送，收口即推送纪律在批准
+  后恢复）。
+
+
+### 调度员增补七 — 2026-09-19T08:25:54+08:00（hub 停火：用户令删火）
+- 用户在 hub 调度会话下达删火令：全局轮转火 automation-4a8cb784-c14b-4941-89f3-
+  ffe1b0cec6e5 已 CronDelete（回执 deleted:true，CronList 空集复核）。本条为调度员
+  尾部纯追加，claim/状态字段未动；板头 automation_id 字段行保留旧值仅为历史审计指向。
+- 本火任内战果：B3-a（server 七份复制收敛）/B3-b（webapp SSE+域色双源收敛）两批完成
+  （勾选 10→12/20）；B3-c 代码面完成唯镜像锁面待批（R-B3c-1/R-B3c-2 两项 Rulings
+  呈批挂起，HOLD 态）。
+- **B3-c 的 HOLD 呈批不受影响**——两项 Rulings 待用户裁决的终报已随批次日志在案，
+  用户批准后按 B2-5 先例走锁面笔（[HUMAN-LOCK]+推送本地三笔+CI 守望至绿+勾选 B3-c），
+  可由用户指定会话或重布防后的执行者执行。恢复两径同规：用户显式 /batch-relay 重布防
+  （换防协议 hub 变体），或手动会话按本板清单领批/处理呈批。
+- 调度员会话自本增补起不再开批、不再补派。
+- 板头执行指令转达条款规则（增补六：仅携带未销案指令）与备源承载事实留存，重布防时
+  随板面原文生效。
