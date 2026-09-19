@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: HOLD
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T15:16:02.000Z
+- heartbeat_utc: 2026-09-19T16:20:11.814Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 17
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T14:39:55.866Z
+- last_dispatch_utc: 2026-09-19T15:26:43.792Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 1
+- batch_count: 2
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: -
+- hold_reason: stop_matter
 - last_handover: 2026-09-19
 - claimed_by: -
 - claimed_at: -
-- next_batch: B4-2b 碳核算·前置二：运行成本面（opex）——B4-2a 能耗药耗面已收口（R-B42a-1~4 全批）；调度员增补九顺序 G-1/G-2 后开
+- next_batch: B4-2b（呈批挂起回炉位：用户批准 R-B42b-1~4 四问后按 .workflow/b4-2b/review-report.md 恢复路径实装 S1~S7→门二→锁面→推送守望→勾选）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -401,3 +401,35 @@
 - 账本：impl/gate1/gate2 三行在册（runId hubfire-G2-20260919T1440-8f2c）；health-scan 收口前 RED=0/WARN×3（均历史欠账：27 行缺 usage 历史记账/1 行 in=0 out>0 疑缓存——非本批引入）。
 - 勾选 16→17/22（G-2）；next_batch=B4-2b（碳核算·前置二：运行成本面 opex）；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 1/60、墙钟 ~0.6h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；收口终笔推送预期绿下批首跑覆盖核对（B3-c 补记二口径）。
 - 回炉收口注记：首次置 READY 后发现日志段时间戳预估失真（15:47Z→实 15:16Z/墙钟 1.1h→0.6h），按铁律翻回 RUNNING 修字后重新收口（回炉收口 batch_count 不再 +1——修板不是新批；本行即该次回炉留痕）。
+
+### batch B4-2b 设计段 — 2026-09-19 15:28Z~16:20Z（hub 火执行者会话：opex 三段通道设计定案，呈批四问未获应答 HOLD 呈批）
+- 认领 token hubfire-B4-2b-20260919T1530-a7ed（调度员发布 15:26:43Z 在案）。
+- 交付（全部仓外批档——仓库零笔：设计未批准不动仓）：调研摘要（.workflow/briefs/b4-2b-research.md——opex
+  构成行业口径〔电费 40~50%/药剂 10~15%/227 厂均值 1.38 元/吨〕+数据策略+吨水主指标+单价档带六来源）+拟定者
+  任务书（b4-2b-drafter-brief.md 250 行自包含——P1~P7 预裁决+§A~§D 附录）+拟定者设计书（b4-2b-drafter-
+  output.md——C 案 app_opex.py 投影+summary 注入；备源承载——外部派发器备源通道，源档案见组织账本）+主控终裁两轮（master-ruling.md+
+  master-ruling-r2.md）+门一隔离审包（reviews/b4-2b-gate1-package.md 1426 行自包含）+门一两轮（一审
+  B1/W5/N8 返工→处置→复审 **PASS B0/W1/N6 全闭合**）+呈批报告（.workflow/b4-2b/review-report.md）+四案
+  能耗药耗全工况探针实录（probes/b4-2b-energy-dump.py——呈批锚实数底座）。
+- 终裁要旨：C1~C3 仓内核清（build_env_flow 持 data_dir/装载器 glob 排除清单自动收新文件/dims 流量键异构
+  无规范全厂键→F4 吨水键挂账）；门一 B1 处置核查浮出四新事实（server worker._build_env 孪生构造三处平行/
+  flows/__init__.py 499/500 满墙/魔法数字门禁字面量仅 0-1-2-10/golden e2e 已载系数）→**D2 改判 factors
+  路线**（factor.opex.* 五键：电 0.70/PAC 1.85/PAM 27.5/磁种 1.3 元/kg+days_per_year 365——零接线/零拆件/
+  零 server 触碰；unit_prices 81 条零触碰；备选 unit_prices 路线代价如实呈报）；锁面两本账（test-lock
+  manifest 303→304+golden 键集钳制 +3 族）；锚表 node 精算（municipal design 年 opex 3,038,530.83 /
+  mine 3,920,388.35 元/a；档带全域 1,321,254~2,378,258）。
+- **HOLD 根因（R-B42b-1~4 呈批四问未获应答——B4-2a 同款先例不自批不走捷径）**：《裁决书》方案五②「每段
+  计算逻辑均留用户审查」+锁面 AGENTS §7 人类批准事件。四问=①落位 C 案（app_opex.py 投影+summary 注入）
+  ②单价档表+数据落位（factor.opex.* 五键入 factors）③计算口径（F1~F3+365 天+逐工况 sparse+挂账边界：
+  人工/维修/污泥处置/折旧/F4 吨水键/ADR-024 六条处置）④锁面笔授权（golden 四案双锚+data_version 串+
+  键集钳制+serialize 红清单+m3 seed/snapshots+新增 test_app_opex.py+manifest 303→304+gen_status 重入库）。
+  **呈批报告=.workflow/b4-2b/review-report.md**；批准后恢复路径：回炉实装 S1~S7（file-contracts 登记→
+  factors 五键+1.4.0→app_opex.py→app.py 注入链→[HUMAN-LOCK] 锁面工序→收口三验→锚表复核）→门二实证→
+  推送守望 CI 至绿→勾选 B4-2b。
+- 流程改进兑现注记：B4-2a 治理答疑定档「计算逻辑审查前移至设计段（实现前呈批）避免阻塞」——本批按此执行
+  （B4-2a 首轮=实现后呈批致回炉重审；本批设计定案即呈批，批准后实装免重审）。
+- 账本：impl（设计段全链）+gate1（两轮终态·备源承载）两行在册；勾选 17/22 不变（B4-2a 首轮同款呈批挂起态）；
+  无进展计数 0（非卡死=呈批挂起）；batch_count 1→2；shared_fire 板禁删火（HOLD 终报不删——删火权归 hub
+  调度员）；置位前 board 机检 0 fail/1 warn（R3 冻结旧行预期）。
+- 回炉修复行：首次置 HOLD 的 hold_reason 用了自由文本触发 R2_STATUS_ILLEGAL——收敛为枚举值 stop_matter
+  （呈批挂起描述文本由批次日志 B4-2b 条目与 next_batch 字段承载；回炉修复不涉 batch_count——修板不是新批）。
