@@ -154,6 +154,7 @@ from waterprint.app_enumeration import (
     export_artifact,
     upstream_context,
 )
+from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.ports import Edge
@@ -346,6 +347,8 @@ def run_full_calc(
         project.design, assembled.units, conditions, effective,
         diag_sink=diag_collector)
     tree: TraceTree = collector.tree() if collector is not None else _external_tree(env)
+    base_summary = _with_energy(
+        _summary_of(plant, assembled.edges), energy_summary_of(plant))
     filled = replace(
         plant,
         trace=tree,
@@ -354,7 +357,7 @@ def run_full_calc(
             engine_version=plant.repro.engine_version,
             data_version=plant.repro.data_version,
         ),
-        summary=_with_energy(_summary_of(plant, assembled.edges), energy_summary_of(plant)),
+        summary=_with_opex(base_summary, opex_summary_of(base_summary, env.coefficients)),
     )
     diagnostics = build_diagnostics(
         filled,

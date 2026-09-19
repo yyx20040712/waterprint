@@ -1,6 +1,15 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.3.0"
+data_version: "1.4.0"
 # 变更记录：
+#   - 1.4.0: B4-2b 运行成本面（碳核算前置二 2026-09-19；计算逻辑经用户
+#       审查 R-B42b-1~4）：factors.yaml 增 5 键（实测口径 531→536——
+#       1.3.0 起记实数口径）：factor.opex.{electricity 0.70 yuan/kWh、
+#       pac 1.85、pam 27.5、magnetic_seed 1.3 yuan/kg、days_per_year
+#       365 d/a}——单价+年化天数伪域 factor.opex.* 隔离（市场价入系数包
+#       的语义代价经 R-B42b-2 裁定缓解：伪域+档带注记+待追认口径）；
+#       消费面=core/waterprint/app_opex.py F1~F3（summary 年成本平键族
+#       cost_{electricity,chemicals,opex}_yuan_a——逐工况 sparse）。档位=
+#       市场价调研带中值 AI 起草待领域专家追认；1.3.0 既有 531 键零扰动。
 #   - 1.3.0: B4-2a 能耗药耗计算面（碳核算前置一——ADR-024；计算逻辑
 #       经用户审查 R-B42a-1）：factors.yaml 增 18 键（实测口径 513→531——历史变更记录沿用的累计计数与他文件并计口径不一，本条起改记 factors.yaml 实数：
 #       factor.aao.{blower.sor_factor/o2_per_air/oxygen_transfer_eff/
