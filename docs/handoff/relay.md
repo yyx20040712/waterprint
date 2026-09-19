@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,21 +16,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T16:20:11.814Z
-- claim: -
+- heartbeat_utc: 2026-09-19T23:25:42.868Z
+- claim: hubfire-B4-2b-r1-20260919T2331-e3b7
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 17
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T15:26:43.792Z
+- last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
 - batch_count: 2
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub-fire-executor-session
+- claimed_at: 2026-09-19T23:25:42.868Z
 - next_batch: B4-2b 回炉实装批：R-B42b-1~4 四问已裁（见增补九+账本 ruling 行）——免再呈，直接按 .workflow/b4-2b/review-report.md 恢复路径 S1~S7→门二→锁面→推送守望→勾选
 
 ## protocol（角色自识别 + 最小兜底协议）
