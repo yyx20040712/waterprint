@@ -8,29 +8,29 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
-- automation_id: automation-aa40bf0e-0483-4ecb-9698-7f0cd533fce0
+- status: RUNNING
+- automation_id: automation-3776af0e-7217-406a-802c-870cb88b6533
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T11:01:11.207Z
-- claim: -
+- heartbeat_utc: 2026-09-19T12:33:44.104Z
+- claim: hubfire-B4-2a-final-20260919T1215-16b0
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 14
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T08:55:10Z
-- relay_started_utc: 2026-09-19T08:46:13Z
-- batch_count: 1
+- last_dispatch_utc: 2026-09-19T12:14:47Z
+- relay_started_utc: 2026-09-19T11:58:59Z
+- batch_count: 0
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: hub 火执行者会话（B4-2a 收尾批）
+- claimed_at: 2026-09-19T12:16:02.303Z
 - next_batch: B4-2a 收尾批（用户裁决四项 R-B42a-1~4 已全批+锁面笔已落地——本地三笔待推：实现笔 f5a8150+HOLD 板面笔 72e7e2f+[HUMAN-LOCK] 锁面笔；剩余=门一备源承载异构审+门二实证终审→推送全部本地笔+守望 CI 至绿→勾选 B4-2a；用户指令 2026-09-19：当前部分完成后暂停，此为下一批次）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -521,3 +521,29 @@
 - 调度员会话自本增补起不再开批、不再补派（含执行者中途死亡亦不接管——停火令优先）。
 - 板头执行指令转达条款规则（增补六定型）与门一/拟定者备源承载事实留存，
   重布防时随板面原文生效。
+
+### 增补五 — 2026-09-19T12:01:02Z（hub 换防：新调度会话接替，重布全局轮转火）
+- 旧火核查：CronList 空集——用户点名旧火 automation-2988ca0b-…（调度员增补八
+  所布）与板头存量 automation-aa40bf0e-…（增补三所布、增补四删火在案）均已亡，
+  零清场动作；新火布防后 CronList 复核全局恰一条。
+- 深度设计门（换防重走；口径=板内 plan 字段指向的《裁决书》/自含清单）：过——
+  《裁决书》占位符 grep 零命中、执行清单机检 14 勾+8 开=22 与板头计数一致
+  （调度员增补九 G-1/G-2 入板后口径）、org-ledger.jsonl 活跃（mtime 09-19 19:52+08）；
+  check-relay plan 子命令照跑 exit=1：MISSING_SECTION 系自含清单非 writing-plans
+  模板预期态，无 PLACEHOLDER 命中（增补三同款口径）。
+- 换防复位（板不重建）：relay_started_utc 重锚 2026-09-19T11:58:59Z（熔断复位
+  留痕）；batch_count 1→0；status READY/claim -/claimed_by -/claimed_at -
+  /no_progress_count 0/hold_reason - 均期望态零改写；protocol 段 rev1+rev1.1 增量
+  条款在册（增补/增补二所立），无需补齐；next_batch=B4-2a 收尾批锚不变；复位后
+  board 机检 0 fail（1 warn=冻结旧行 R3 预期）；板头 automation_id 字段行已锚定
+  替换为新火 id（锚定计数=1 守卫过；历史日志旧 id 存量不动）。
+- 新全局火=automation-3776af0e-7217-406a-802c-870cb88b6533（新 hub 调度会话创建，
+  全局唯一 */10 轮转，服务本板+Synapse 板）。本板 last_dispatch_utc=09-19T08:55:10Z
+  早于姊妹板 10:02:42Z——首班有效火先轮本板（next_batch=B4-2a 收尾批：门一备源
+  承载异构审+门二实证终审→推送全部本地笔（实现笔 f5a8150+HOLD 板面笔 72e7e2f+
+  [HUMAN-LOCK] 锁面笔）→守望 CI 至绿→勾选 B4-2a）。
+- 板上既有条款自动生效：执行指令只携带未销案指令（调度员增补六定型）、门一/
+  拟定者备源承载直至用户另行通知、UI 开批通道经验沿用历任实测累积（Ctrl+N/
+  「取消选择当前项目」清空再勾选防反致解绑/调度侧 Edit 遇「文件已改」重读再
+  落笔/主输入框 a11y 写入不生效须前台激活后 app 级 strategy=event 真实键盘写入，
+  前台被锁连败 2-3 次即记欠账退出勿硬抢）。
