@@ -275,4 +275,6 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `agent/waterprint_agent/report/render_md.py` | AST→Markdown 渲染器+溯源索引（标准库拼装，确定性输出） | ReportAST+narrative_fills | markdown 字符串 |
 | `agent/waterprint_agent/report/anchors.py` | 叙述章禁数字守卫（数字形态族正则+序号豁免；宁误报不漏报） | 文本 | 违例清单 |
 | `agent/waterprint_agent/report/checks.py` | verify_report 数值锚定断言件（公式 ID 可查/锚定值逐项相等/值域全集/叙述零违例） | markdown+PlantResult | CheckReport |
+| `agent/waterprint_agent/demo.py` | AI 演示版入口（B4-4a）：NL 意图解析[LLM 单步+规则回退双通道]→tools impl 确定性管线编排→终端摘要（零新增计算逻辑——ADR-019） | CLI 话术/环境变量三元组 | 演示结果 dict+双报告路径 |
+| `agent/README.md` | 演示版使用说明（一键命令/三话术/环境要求/意图解析配置/量纲异构表/MCP 接入指引） | — | 知识文档 |
 | `agent/skills/waterprint/SKILL.md` | ZCode 技能文档（21 工具用法+调参回路剧本+沙箱约定） | — | 知识文档 |
