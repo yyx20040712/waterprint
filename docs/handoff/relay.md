@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,21 +16,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T01:23:49Z
-- claim: manual-B4-2c-20260920T0123-m2c8
+- heartbeat_utc: 2026-09-20T02:40:00Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
-- checked_done: 18
+- checked_done: 19
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 3
+- batch_count: 4
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
-- last_handover: 2026-09-19
-- claimed_by: manual-session-b42c
-- claimed_at: 2026-09-20T01:23:49Z
+- last_handover: 2026-09-20
+- claimed_by: -
+- claimed_at: -
 - next_batch: B4-2c 碳核算本体（先详细调研再立项——三轮裁决④；前置一/二已在 summary 落 cost_*/power_*/dose_* 键族）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -190,7 +190,7 @@
 - [x] B4-1｜操作链集中 debug 观测面（复用 calc-diag+事件流聚合）
 - [x] B4-2a｜碳核算·前置一：能耗药耗计算面（**计算逻辑呈用户审查——R-B42a-1~4 四项全批**）
 - [x] B4-2b｜碳核算·前置二：运行成本面（opex）
-- [ ] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④）
+- [x] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④；**R-B42c-1~4 四项全批 2026-09-20**——B 案全口径/2019+AR6/全套口径/锁面笔授权）
 - [ ] B4-3｜联合枚举（ADR-005 解冻须用户裁决）
 - [ ] B4-4｜AI 集成深化
 - [ ] B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）
@@ -436,3 +436,11 @@
 
 > 〔滚动归档〕增补八~batch B4-2b 回炉实装批段（2026-09-20 B4-2c 领批笔，69 行）已迁 relay-archive-002.md 尾部（原文零改动纯迁移——B2-6 立档同款；动因=板面 506 行超 500 文件预算）。本板自本注记起留活跃链。
 
+### batch B4-2c — 2026-09-20T01:23Z~02:4XZ（手动会话主控直跑：碳核算本体全链收官——三段通道+呈批+实装+双门+锁面一体）
+- 认领 token manual-B4-2c-20260920T0123-m2c8（无火态手动路径=当前唯一路径——认领笔 293c74da9 领批即推送；写前回读 claim=- 零占用）。
+- **三段通道设计链**：调研档（.workflow/b4-2c/research.md——十因子六来源+IPCC 版本敏感性+量级锚）→拟定者设计书（drafter-brief.md 自包含任务书+drafter-output.md——kimi-backup 备源承载，推荐 A 案+B 案全文备援）→门一隔离审（ops-gate1-k2 备源绑定——B0/W4/N7 **有条件放行**：W1~W4 全在 B 案锁面计数面，A 案即实装路径无阻断）→主控终裁（master-ruling.md——**C1 闭卷改判**：inlet 进水声明实证在仓[design/nodes/inlet 六指标+q_avg_daily=0.4023229167 m3/s×86400=34760.46 与案名精确吻合]+真值锚重算 0.587 kgCO2e/m3 与全国均值 0.589 偏差 0.3%——裁决书原文点名吨水指标，**推荐改判 B 案**；C2 出水 TN 键名='TN' 闭卷；W1~W4/N1~N7 处置表勘正在案）→**呈批四问 R-B42c-1~4 全批**（用户 2026-09-20：①B 案全口径②2019 Refinement+AR6③全套计算口径[total 双在场律/范围三纳入/磁种不立键注释留位/44/28 与 1e-3 键化]④锁面笔授权——账本 ruling 行在档；B4-2a 流程改进兑现=设计段前移呈批，批准后实装免重审）。
+- **回炉实装 S1~S7**（实现笔 d61a3661f+[HUMAN-LOCK] 锁面笔 6f61728de）：S1 file-contracts 双件登记（app_influent 第七例/app_carbon 第八例）+S2 factors +12 键（factor.carbon 11[grid_co2 0.5366/n2o_ef_plant 0.016/n2o_ef_effluent 0.005/ch4_b0 0.6/ch4_mcf 0.03/gwp 27.2+273/pac 1.764/pam 4.76/molar 1.5714286/conv 0.001]+factor.influent.s_per_d 86400；磁种 YAML 注释留位）+manifest 1.4.0→1.5.0（536→548 实数）+S3 双投影件（app_influent.py IF1~IF4——进水声明节点识别=无入边且 outflows 含 q_avg_daily[municipal inlet/mine_water_input 双案实证]；app_carbon.py C-F1~F9——三范围九式+total 双在场律+intensity Q>0 守卫）+S4 app.py 注入链两处（490 行墙内）+S5 锁面工序（解锁 304→golden 四案 effluent 增 207 键[municipal 5×13/loop 5×11/recycle 5×13/mine 2×11]实测重录+serialize 双锚[542906/6320291/546907/109848B]+data_version 串 1.5.0+m3 seed 七步锚+snapshots 3 哈希+test_app_carbon.py T1~T7+test_app_influent.py 7 用例[14 passed]+lock_tests 全根重锁 **304→306**[草稿器预检新增恰 2+哈希变 5]+gen_status 重入库[coefficients 1.5.0+锁面 306 零漂移]）+S6 收口三验（run_gates 16 门禁全绿[trust_root 随 [HUMAN-LOCK] 归绿]+core 全量 **1476 passed** 零 fail+server **315 passed**）+S7 锚表复核 **10/10 PASS**（相对差 8.6e-6~8.6e-4 全在两位舍入差带；intensity=0.58742138980596）。
+- **门二实证**（ops-probe 随宿主模型——独立复算矩阵）：**8/8 GREEN**——M1 独立算术复算 municipal 13 键逐位全等（rel=0）+mine 11 键最大 3.2e-16（含磁种恒跳数值证：dose_seed 1095.9 在场而 chemicals=pac+pam 精确和）/M2 serialize 四案字节级跨进程全等/M3 sparse 三态（FilterView 真包因子屏蔽+loop/mine 真案 sparse 现场）/M4 total 双在场律四态实证/M5 推送面零越界（18 文件全在认领面，server/webapp/api-contracts/unit_prices 零变更）/M6 data_version 三面一致/M7 键族隔离（207 键 13 名与既有族交集 EMPTY）/M8 磁种三路证（键缺席+门控+数值）。报告=.workflow/b4-2c/gate2-report.md（探针自纠×2 记档——路径口径/edges dict 面勘误，非被测缺陷）。
+- **验收锚**：municipal design carbon_total=20419.18 kgCO2e/d（direct 14465.0[N2O 厂内 10259.7+出水 801.5+CH4 3403.8]+indirect 5954.2[电 3884.9+药 2069.3]）、**carbon_intensity=0.58742 kgCO2e/m3**（全国城镇污水厂均值 0.589 偏差 0.3%——2019+AR6 因子系选型实证）；mine intensity=0.667（矿井高浊药剂线，典型带上沿）。
+- 卫生小记：①server venv 陈旧假红（test_compare 23≠28 系旧 core 站点拷贝遮蔽——uv sync --reinstall-package waterprint-core 后 315 全绿；B4-2a incident 同款，账本 incident 勘误行随本笔补记）；②claimed_by 值 'GLM-5.3-manual-session' 命中模型代号门禁→中性化 'manual-session-b42c'（领批笔值勘误——板面字段值也受门禁扫描面约束，记档避坑）；③relay.md 506 行超预算→滚动归档 69 行（增补八~B4-2b 回炉实装批段迁 archive-002——claimed_by 勘误同笔）；④geometric-repack 权限报错再现（G-1/G-2/B4-2b 在册留观同族，提交推送不受阻）。
+- 账本：ruling（四问全批）+impl+gate1（B0/W4/N7 有条件放行·备源绑定承载）+gate2（8/8 GREEN·随宿主模型）+incident（venv 假红勘误）五行；health-scan 见收口呈报。勾选 18→19/22（B4-2c）；next_batch=B4-3 联合枚举（ADR-005 解冻须用户裁决——呈批面）；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 3→4/60、墙钟 ~1.3h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；shared_fire 板不删火；推送面=认领+实现+[HUMAN-LOCK]+本收口终笔（CI run 35484317167 守望至绿——收口即推送纪律）。
