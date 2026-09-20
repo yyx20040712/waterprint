@@ -55,11 +55,11 @@ async def test_units_endpoint_returns_catalog_wiring(client) -> None:  # type: i
 
 @pytest.mark.anyio
 async def test_assumptions_endpoint_returns_registry_wiring(client) -> None:  # type: ignore[no-untyped-def]
-    """GET /api/assumptions 200：22 条（FD +max_points；六字段取五——tuning_direction 在场）。"""
+    """GET /api/assumptions 200：33 条（FD +max_points +solution.joint.* 11——B4-3 22→33 破面[R-B43-5 默认授权记档]）。"""
     response = await client.get("/api/assumptions")
     assert response.status_code == status.HTTP_200_OK
     assumptions = response.json()["assumptions"]
-    assert len(assumptions) == 22
+    assert len(assumptions) == 33
     assert assumptions[0]["key"] == "safety.superheight"
     assert assumptions[0]["dim"] == "LENGTH"
     assert all(

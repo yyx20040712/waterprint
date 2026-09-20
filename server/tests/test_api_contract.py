@@ -57,6 +57,7 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/calc/design-map": {"post"},  # FD PD6（2026-09-09）：可行域同步求值
     "/api/calc/trust/{project_id}": {"get"},  # P2 次批（2026-09-12）：可信度报告 ADR-012 D8
     "/api/calc/compare/{project_id}": {"get"},  # P2 第三批（2026-09-12）：多工况对比矩阵 ADR-018 D5
+    "/api/solution/joint-enumerate": {"post"},  # B4-3（2026-09-20）：全厂联合枚举新正门（ADR-006）
     "/api/exports": {"get"},
     "/api/exports/calcbook": {"post"},
     "/api/exports/audit": {"post"},
@@ -88,7 +89,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 36  # 5+7+7+2+1+1+2+1+1+1（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①）
+    assert sum(len(methods) for methods in observed.values()) == 37  # 5+7+7+2+1+1+2+1+1+1+1（B4-3 +solution/joint-enumerate 2026-09-20——36→37 破面[R-B43-5 默认授权记档]）（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①）
 
 
 @pytest.mark.anyio
