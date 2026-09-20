@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,8 +16,8 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T04:46:49Z
-- claim: -
+- heartbeat_utc: 2026-09-20T11:14:30Z
+- claim: manual-B44a-revert-20260920T1114-rvt
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 19
@@ -29,8 +29,8 @@
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: -
-- claimed_at: -
+- claimed_by: manual-session-b44a-revert
+- claimed_at: 2026-09-20T11:14:30Z
 - next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段与交付批均完成；ADR-005 解冻仍须用户裁决呈批面）
 
 ## protocol（角色自识别 + 最小兜底协议）
