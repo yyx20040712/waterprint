@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T11:43:53Z
-- claim: manual-B4-3-20260920T1143-jen
+- heartbeat_utc: 2026-09-20T14:22:42Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 19
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 7 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6；B4-4a-revert 回退批 6→7 -->
+- batch_count: 8 <!-- ；B4-3 联合枚举 7→8 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: manual-session-b43
-- claimed_at: 2026-09-20T11:43:53Z
-- next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段与交付批均完成；ADR-005 解冻仍须用户裁决呈批面）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-4b AI 集成深化段（多轮对话/前端聊天 pane/方案比选——B4-4a 演示版产物已随用户裁决回退，深化段全量重建）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -191,7 +191,7 @@
 - [x] B4-2a｜碳核算·前置一：能耗药耗计算面（**计算逻辑呈用户审查——R-B42a-1~4 四项全批**）
 - [x] B4-2b｜碳核算·前置二：运行成本面（opex）
 - [x] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④；**R-B42c-1~4 四项全批 2026-09-20**——B 案全口径/2019+AR6/全套口径/锁面笔授权）
-- [ ] B4-3｜联合枚举（ADR-005 解冻须用户裁决；**2026-09-20 用户裁决顺延**——B4-4 拆段后演示段插队提前，本项回位演示段之后）
+- [x] B4-3｜联合枚举（**2026-09-20 收官**——ADR-025 解冻承接+分层 beam+静态预检双轴预算+新正门 /api/solution/joint-enumerate；三段设计链全档=.workflow/b4-3/）
 - [ ] B4-4｜AI 集成深化（**2026-09-20 用户裁决拆段**：a=AI 集成演示版插队提前[一句话→计算→双报告——CLI 确定性管线]；b=深化段随原排序[B4-3 之后：多轮对话/前端聊天 pane/方案比选——演示版为第一块积木]；两段全成勾本项，总数不变）
 - [ ] B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）
 
@@ -483,3 +483,13 @@
 - **存量债销注**：R-B44a-2 中「demo 三测试件未登记 manifest」欠账子项随本批删除销注（登记对象已不存在）；该 Ruling 其余子项（e2e 四案存量红+manifest 19 死条目清理+锚②守卫=宪法级呈批挂账）仍在册不受影响。
 - 收口三验：run_gates 16 门禁全绿+gen_status 零漂移（生成后工作树净）+health-scan RED=0/WARN×3（均历史欠账）。账本 impl/gate1/gate2 三行在册。批档=.workflow/reviews/b44a-revert-gate1-package.md（门一审包）。
 - 勾选 19/22 不变（回退批无清单项——B4-4 演示段产物随用户裁决移出，深化段仍按原排序 B4-3 之后）；next_batch=B4-3 联合枚举（原排序回位——ADR-005 解冻须用户裁决呈批面）；batch_count 6→7/60。本笔为收口终态置位；推送守望 CI 至绿（收口即推送纪律）。卫生小记：geometric-repack 报错再现（G-1 在册同族——fetch 维护阶段噪音，commit/push 不受阻）。
+
+### batch B4-3 — 2026-09-20T11:43Z~14:0XZ（手动会话主控直跑：全厂联合枚举收官——三段设计链+实装五笔+双门+处置勘误两笔）
+
+- 领批：token manual-B4-3-20260920T1143-jen（认领笔 c90a6189a7 领批即推送；用户本会话轨道裁决=WaterPrint 主仓 B4-3）。**呈批两轮未获应答按常设指令默认推荐项记档追认**：R-B43-1 ADR-005 决策 4 解冻（ADR 承接+单单元语义[决策 1-3/5]不动+UF-33 重估入调研面——维持挂账）/R-B43-2 三段通道全链/R-B43-3~5 实装授权（ADR 定稿确认+权重与失守口径+锁面笔）。
+- **三段设计链**（批档 .workflow/b4-3/）：调研档（Explore 勘察=单单元管线全可复用/缓存整 design 指纹跨组合复用为零/recompute_scope 未接线 B12/ρ=6.2e3 行·s 锚+社区检索=分层分解主流/WWTP 无先例坐实自主设计）→拟定者 kimi-backup（in1978/out8121：两候选[分层 beam A/C 合一 vs 联合网格+剪枝]+R2 绕过缓存采纳+ADR 草案+UF-33 维持挂账）→对抗审核 deepseek（in4949/out12819：**B1/W12/N6 有条件放行**——B1 回路冻结类比方向相反失实+W1 换算表自破预算+W5 all_outer 不闭环+W6 评估器复用未决）→主控终裁 19 项全采纳（design-final.md：B1 类比废除=已知近似标注/W1+W7 静态预检 422+运行截断诚实/W6 直调 execute_graph 禁新写拓扑序/W9 硬门走 summary 出水 compliant/W10 sensitivity 失守=降权标记制/W12 真键映射+design 工况/N2 预算双轴）。
+- **实装五笔+锁面**（ops-executor 随宿主模型六段简报 TDD）：core 笔 da88456661（joint_enumeration 六件[beam 500 顶墙/stage/final_eval/ranking/diagnose/__init__]+assumptions_joint 11 键伴生件+app 正门+§1c 新同层边+测试五件 TDD 先红后绿）+server 笔 f40e729388（services 173+新 router POST /api/solution/joint-enumerate+worker kind 登记+端点和式 36→37+测试两件）+文档笔 375f1810b4（ADR 新立+file-contracts 八行）+锁面笔 697aeccfb3（**[HUMAN-LOCK]** R-B43-5 默认授权+B4-2b/c 会话内先例：manifest 306→313 七新件+3 锁定测试解锁更新[端点 36→37/假设 22→33 破面]+只读位 10 件；哈希口径=check_readonly 归一化 CRLF→LF——首写 raw 字节 4 件漂移勘误在案）+处置笔 b86f05ff4b（门一 B1+W1+W2：unit_ids 收紧 min_length=2 回归定稿[实现者未申报偏离主控复核擒获]+五语义测试落点映射呈门二+openapi canonical +82 纯增量+ranking 头注镜像件名勘正）+勘误笔 f3ec081fb2（门二 A-2：ADR 撞号整改 006→025——joint 面 18 处同步+dxf 语义引用不动+file-contracts 残留 ≥1 勘正；A-1=主控简报转写缺陷非实现缺陷记档）。
+- **双门**：门一（ops-gate1-k2 备源承载；审包 reviews/b43-impl-gate1-package.md）**B1/W2/N6 有条件放行**——B1=unit_ids≥1 未申报偏离定稿（三条件：收紧/契约笔 diff 自证/五语义映射——全兑现）；W1 五语义落点映射齐（预检 422 双面/truncated/降权标记/除零重分配/k=1 边界——test_joint_enumeration:94·107+test_solution:103+test_beam:222·200+test_final_eval:40-56+test_stage:142·117·129·136；ranking/diagnose 覆盖按 TDD 序组织于 test_stage）；W2 openapi +82 零删自证。门二（ops-probe 随宿主）**9/9 GREEN 放行**——M1 门禁/M2 core 837/M3 server 324（uv 实装真值面）/M4 禁区 diff 空/M5 收紧 422 实证/M6 契约+status 四数字/M7 锁面双 [OK] 313/M8 公式 300.0·182000.0 精确命中（A-1 简报转写缺陷）/M9 ADR+file-contracts 八路径（A-2 撞号→勘误笔整改）。
+- **验证**：run_gates 16/16 绿（锁面笔前 15/16 唯红=check_readonly 流程闸——预期）；core 837 passed/server 324 passed；mypy 399 件+ruff+import-linter 双根绿；基准 1.0s<10s+rows 12≤62≤5e5+默认域锚 182000；gen_status 同步（锁面 313/ADR 25/OpenAPI 34 路径 37 操作）；health-scan RED=0/WARN×3 历史欠账。实现裁量七项：六项采信（键族 9→11 分解/final_eval 拆件/app_assembly 协议化防环[import-linter 当场擒获 BROKEN 再修]/包根单点 import/data_version 不 bump/上游快照同构双件挂档）+一项整改（B1 收紧）。
+- **Rulings 呈报（不阻断）**：R-B43-6 golden 枚举锚缓征挂账（首个消费批落地——ranking/final_eval 回归敏感度暂系手写断言）；R-B43-7 实现裁量 3 的协议化改造行为面零变化主张强度上限=既有套件敏感度（golden 缺位制约——与 R-B43-6 同源）；R-B43-8 N=1 语义收紧后旧单单元正门与新正门语义边界清晰（旧门=单单元/新门=2..max_units）。
+- 勾选 19→20/22（B4-3）；next_batch=B4-4b AI 集成深化段（B4-4a 演示版产物已随用户裁决回退——深化段全量重建，多轮对话/前端聊天 pane/方案比选）；batch_count 7→8/60。本笔为收口终态置位；推送面=认领+core+server+文档+[HUMAN-LOCK]+处置+勘误+本收口终笔（守望 CI 至绿——收口即推送纪律）。
