@@ -74,8 +74,8 @@ def test_pipeline_mine_with_known_gaps(sandbox_env: Path) -> None:
     assert result["intent"]["scale_m3_d"] == 10000.0
     assert result["compliant"] is False  # 诚实判定（TN/TP 负裕度——标准适用性）
     by_indicator = {item["indicator"]: item for item in result["effluent_design"]}
-    assert by_indicator["TN"]["compliant"] is False  # 60 vs 15（一级 B 口径）
-    assert by_indicator["TP"]["compliant"] is False  # 2.0 vs 0.5
+    assert by_indicator["TN"]["compliant"] is False  # 60 vs 15（一级 A 限值）
+    assert by_indicator["TP"]["compliant"] is False  # 2.0 vs 0.5（一级 A 限值）
     assert result["flow_m3_d"] == pytest.approx(10000.0, rel=1e-9)
     # 矿井线六指标族 sparse：BOD5 缺席合法（e2e 记档口径）
     assert "CODCR" in result["summary"]
@@ -93,3 +93,40 @@ def test_pipeline_result_is_jsonable(sandbox_env: Path) -> None:
     result = demo.run_demo(UTTERANCE_AAO)
     blob = json.dumps(result, ensure_ascii=False)
     assert "演示" in blob
+
+
+def test_pipeline_hard_failure_create(
+    sandbox_env: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """硬失败路径（门一 W4 处置）：建项步 error→可解释三键+不裸异常。"""
+    from waterprint_agent.tools import projects as projects_tools
+
+    monkeypatch.setattr(
+        projects_tools, "_create_impl", lambda ctx, name, seed: {"error": "种子缺失"}
+    )
+    result = demo.run_demo(UTTERANCE_AAO)
+    assert result["error"] == "管线步骤「建项目」失败"
+    assert result["detail"]["error"] == "种子缺失"
+    assert result["intent"]["seed"] == "municipal_34760"
+
+
+def test_pipeline_scale_patch_rejected(
+    sandbox_env: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """规模 patch 被拒=硬失败（门一 W3 处置——防静默携模板规模继续算）。"""
+    from waterprint_agent.tools import projects as projects_tools
+
+    def fake_update(ctx, project_id, patches):
+        return {
+            "results": [
+                {"unit_id": "inlet", "key": "q_avg_daily", "accepted": False,
+                 "reason": "值越出 grid 档位带"}
+            ],
+            "accepted_count": 0,
+            "design_digest": "0" * 64,
+        }
+
+    monkeypatch.setattr(projects_tools, "_update_params_impl", fake_update)
+    result = demo.run_demo(UTTERANCE_AAO)
+    assert "规模改参被拒" in result["error"]
+    assert result["detail"]["rejected"][0]["reason"] == "值越出 grid 档位带"

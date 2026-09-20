@@ -53,8 +53,8 @@ uv run --directory agent python -m waterprint_agent.demo "矿井水处理厂，�
 
 ## 意图解析配置（可选）
 
-环境变量三元组（任意 OpenAI 兼容对话端点均可；名称/地址/密钥以你所用
-服务商的文档为准）：
+环境变量三元组（任意兼容 chat/completions 协议的对话端点均可；基址/密钥/
+模型名以你所用服务商的文档为准）：
 
 ```bash
 export WATERPRINT_DEMO_LLM_BASE_URL="<服务商文档给出的 API 基址>"

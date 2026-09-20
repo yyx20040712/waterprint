@@ -11,9 +11,11 @@
 #   职责：NL 意图解析（LLM 单步+规则回退双通道）→ tools impl 函数族确定性
 #       编排（建项目→改参→全厂计算→导出双报告）→终端摘要。
 #   禁区：零新增计算逻辑（ADR-019 只编排不算数——计算全部经 core 正门
-#       _run_calc_impl；本文件零数值换算面）；顶层零重依赖（懒加载铁律
-#       ——仅 stdlib）；零外部服务商标识字样（配置键中性命名，端点/密钥/
-#       模型名全由环境变量承载——B4-2c 卫生小记③纪律）。
+#       _run_calc_impl；数值面仅限 R3 入参量纲适配与终端展示派生换算
+#       [吨水电耗=总能耗/流量——core 无现成键，展示层派生并如实注记]）；
+#       顶层零重依赖（懒加载铁律——仅 stdlib）；零外部服务商标识字样
+#       （配置键中性命名，端点/密钥/模型名全由环境变量承载——协议面
+#       仅以「兼容 chat/completions 协议」描述，B4-2c 卫生小记③纪律）。
 #
 # 【公开接口】
 #   DemoIntent（frozen dataclass——utterance/seed/name/scale_m3_d/
@@ -33,17 +35,19 @@
 #   R3 规模改参量纲异构（B4-2b 在册「流量键异构」）：municipal 族
 #      inlet.q_avg_daily 单位 m³/s（值=round(m³/d/86400,10)）；mine 族
 #      mine_water_input.q_avg_daily 单位 m³/d（值直填）。
-#   R4 LLM 调用：OpenAI 兼容 chat/completions 单步 POST（stdlib urllib，
+#   R4 LLM 调用：兼容 chat/completions 协议端点单步 POST（stdlib urllib，
 #      10s 超时）；环境变量三元组 WATERPRINT_DEMO_LLM_BASE_URL/_API_KEY/
 #      _MODEL 缺一即不发起；响应宽容提取首段 JSON 对象；schema 校验
 #      （seed 白名单+scale 正数）违例即回退。
 #   R5 管线步骤：create→(scale 非空)update_params→run_calc→result_summary
 #      →export_calcbook+export_report；计算步失败=硬失败可解释返回；
-#      双导出步互相独立（一侧 core 既有缺口不阻断另一侧——缺口可解释
-#      回显，test_e2e_golden.py:25-28 记档面）。
+#      规模 patch 任一条被 params_guard 拒收（值域外等）=硬失败可解释
+#      返回（防静默携模板规模继续算——门一 W3 处置）；双导出步互相独立
+#      （一侧 core 既有缺口不阻断另一侧——缺口可解释回显，
+#      test_e2e_golden.py:25-28 记档面）。
 #
 # 【错误与边界】话术空串→规则缺省路由；LLM 任何异常（网络/超时/非 JSON/
-#   违例）→规则回退；patch 被拒（值域外）→update 结果逐条回显不中断。
+#   违例）→规则回退；patch 被拒（值域外）→硬失败+逐条 reason 透传。
 #
 # 【测试要求】三话术全链（①③绿/②矿井案既有缺口可解释）+规则表变体
 #   +LLM 四失败态回退+offline 零调用。
@@ -123,7 +127,12 @@ def _route_seed(utterance: str) -> str:
 
 def _demo_name(seed: str, scale_m3_d: float | None) -> str:
     """项目显示名（确定性：种子短名+规模——沙箱内项目可辨识）。"""
-    short = {"mine_43836": "矿井", "municipal_34760": "市政"}.get(seed, seed)
+    short = {
+        "mine_43836": "矿井",
+        "municipal_34760": "市政",
+        "municipal_loop_34760": "市政回路",
+        "municipal_recycle_34760": "市政回用",
+    }.get(seed, seed)
     scale = f"{scale_m3_d / 10000:g}万吨" if scale_m3_d is not None else "模板规模"
     return f"演示-{short}{scale}"
 
@@ -160,7 +169,7 @@ def _llm_settings() -> tuple[str, str, str] | None:
 
 
 def _llm_call(utterance: str) -> str:
-    """单步意图解析（R4：OpenAI 兼容 POST——异常上抛由回退链收编）。"""
+    """单步意图解析（R4：兼容 chat/completions 协议端点 POST——异常上抛由回退链收编）。"""
     import urllib.request
 
     settings = _llm_settings()
@@ -202,7 +211,7 @@ def _intent_from_llm_content(content: str, utterance: str) -> DemoIntent | None:
     scale = parsed.get("scale_m3_d")
     if seed not in _SEEDS:
         return None
-    if scale is not None and (not isinstance(scale, int | float) or scale <= 0):
+    if scale is not None and (type(scale) not in (int, float) or scale <= 0):
         return None
     scale_m3_d = float(scale) if scale is not None else None
     note = str(parsed.get("note") or "").strip() or "LLM 解析"
@@ -220,9 +229,7 @@ def parse_intent(utterance: str, *, offline: bool = False) -> DemoIntent:
     """意图解析正门（R4 回退链：LLM 优先→四失败态规则兜底）。"""
     fallback = parse_with_rules(utterance)
     if offline or _llm_settings() is None:
-        if offline:
-            return fallback
-        return fallback
+        return fallback  # offline=显式断网；缺配置=正常规则通道（非失败回退）
     try:
         intent = _intent_from_llm_content(_llm_call(utterance), utterance)
     except Exception as exc:  # LLM 面兜底：网络/超时/响应异常一律回退（可解释）
@@ -280,6 +287,9 @@ def run_demo(utterance: str, *, offline: bool = False) -> dict[str, Any]:
         )
         if "error" in updated:
             return _hard_failure("改参", updated, intent, project_id)
+        rejected = [r for r in updated.get("results", []) if not r.get("accepted", False)]
+        if rejected:  # W3 处置：规模 patch 被拒=硬失败（防静默携模板规模继续算）
+            return _hard_failure("规模改参被拒", {"rejected": rejected}, intent, project_id)
         design_digest = updated["design_digest"]
     calc = run(
         ctx,
@@ -318,7 +328,9 @@ def run_demo(utterance: str, *, offline: bool = False) -> dict[str, Any]:
     ):
         outcome = run(ctx, tool, arguments, thunk, hint=f"演示导出{label}")
         exports[kind] = (
-            {"path": outcome["path"]} if "path" in outcome else {"error": str(outcome.get("error"))}
+            {"path": outcome["path"]}
+            if "path" in outcome
+            else {"error": str(outcome.get("error") or "未知错误")}
         )
     summary: dict[str, Any] = dict(calc["summary"])
     return {
@@ -367,7 +379,7 @@ _INDICATOR_LABELS: tuple[tuple[str, str], ...] = (
 
 
 def _format_text(result: dict[str, Any]) -> str:
-    """终端人类可读摘要（演示输出面——数值全来自 result，零二次计算）。"""
+    """终端人类可读摘要（展示派生换算仅吨水电耗=总能耗/流量——core 无现成键）。"""
     lines = ["════ WaterPrint 一句话设计演示 ════"]
     if "error" in result:
         lines.append(f"失败：{result['error']}")
