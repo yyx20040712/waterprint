@@ -189,6 +189,8 @@ ignore_imports = [
     "waterprint.ifc_export.* -> waterprint.geometry",
     # waterprint.drafting.profile_drawing → waterprint.elevation.pumps：PROFILE 2026-09-08 纵断图 PumpingPlan 纯类型/数据消费（R3 标注面，文件粒度对——包粒度兄弟互禁不放开）
     "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
+    # waterprint.solution → waterprint.graph：B4-3 2026-09-20 联合枚举末段复验直调 execute_graph（W6 终裁：不新写拓扑序不构成双轨——唯一 import 现场=solution.joint_enumeration 包根 __init__，子件经包根中继；import-linter 单段通配锚定+check_module_graph 节点粒度双面成立）
+    "waterprint.solution.* -> waterprint.graph",
 # SAME-LAYER-EDGES:END
 ]
 
@@ -213,6 +215,8 @@ ignore_imports = [
     "waterprint.ifc_export.* -> waterprint.geometry",
     # waterprint.drafting.profile_drawing → waterprint.elevation.pumps：PROFILE 2026-09-08 纵断图 PumpingPlan 纯类型/数据消费（R3 标注面，文件粒度对——包粒度兄弟互禁不放开）
     "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
+    # waterprint.solution → waterprint.graph：B4-3 2026-09-20 联合枚举末段复验直调 execute_graph（W6 终裁：不新写拓扑序不构成双轨——唯一 import 现场=solution.joint_enumeration 包根 __init__，子件经包根中继；import-linter 单段通配锚定+check_module_graph 节点粒度双面成立）
+    "waterprint.solution.* -> waterprint.graph",
 # SAME-LAYER-EDGES:END
 ]
 # L5c（2026-09-03）：ifc_export 是 geometry 场景图的下游投影（非平行

@@ -20,6 +20,7 @@ import yaml
 
 from waterprint.contracts.quantity import DimKey
 from waterprint.registry.assumptions_design_map import design_map_entries
+from waterprint.registry.assumptions_joint import joint_entries
 
 
 class InvalidAssumptionError(Exception):
@@ -197,4 +198,10 @@ def _load_items() -> tuple[Assumption, ...]:
 
 
 DEFAULT_ASSUMPTIONS: Final[AssumptionSet] = AssumptionSet(
-    _items=(*_load_items(), *design_map_entries(Assumption, TuningImpact)))
+    _items=(
+        *_load_items(),
+        *design_map_entries(Assumption, TuningImpact),
+        # B4-3（2026-09-20）：联合枚举键族尾挂第二伴生件（design_map 先例
+        # 同制——装载序 YAML 四件→design_map→joint，[0] 锚不动）。
+        *joint_entries(Assumption, TuningImpact),
+    ))

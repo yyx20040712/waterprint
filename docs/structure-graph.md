@@ -221,6 +221,13 @@ from = "waterprint.drafting.profile_drawing"
 to = "waterprint.elevation.pumps"
 note = "PROFILE 2026-09-08 纵断图 PumpingPlan 纯类型/数据消费（R3 标注面，文件粒度对——包粒度兄弟互禁不放开）"
 independence = true
+
+[[edge]]
+from = "waterprint.solution"
+to = "waterprint.graph"
+note = "B4-3 2026-09-20 联合枚举末段复验直调 execute_graph（W6 终裁：不新写拓扑序不构成双轨——唯一 import 现场=solution.joint_enumeration 包根 __init__，子件经包根中继；import-linter 单段通配锚定+check_module_graph 节点粒度双面成立）"
+independence = true
+glob = true
 ```
 
 ## 2. 端到端调用链（一次业务动作经过的文件，路径均实际存在）

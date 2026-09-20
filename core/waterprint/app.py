@@ -129,11 +129,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
-from typing import Final, final
+from typing import Final, cast, final
 
 # B3 R1 再导出（装配域伴生件——app_enumeration 先例；显式清单禁 import *）
 from waterprint.app_assembly import (
@@ -159,7 +159,6 @@ from waterprint.app_influent import _with_influent, influent_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
-from waterprint.contracts.ports import Edge
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
@@ -195,6 +194,17 @@ from waterprint.solution.design_map import (
 from waterprint.solution.diagnose import diagnose_infeasibility
 from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import build_grid
+
+# B4-3（2026-09-20）：联合枚举再导出（UF-33 单入口；assemble 注入点=本正门）。
+from waterprint.solution.joint_enumeration import (
+    AssembleFn,
+    InvalidJointEnumerationError,
+    JointEnumerationOptions,
+    JointEnumerationTooLarge,
+    JointOutcome,
+)
+from waterprint.solution.joint_enumeration import run_joint_enumerate as _joint_run
+from waterprint.solution.joint_enumeration import terminal_summary as _summary_of
 from waterprint.solution.ranking import RankingKey, rank
 from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
@@ -209,7 +219,10 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "EnumerationOptions", "EnumerationOutcome",
     "InvalidAssemblyError",
     "InvalidDesignMapError",
+    "InvalidJointEnumerationError",  # B4-3 再导出（server 400 映射面）
     "InvalidProjectError", "InvalidSitePlanError",  # 后者=ENG7 再导出（server 422 面）
+    # B4-3 再导出（server 单入口）
+    "JointEnumerationOptions", "JointEnumerationTooLarge", "JointOutcome",
     "Node", "ResultBundle",  # Node 再导出=AUDIT2 FIX1（server SceneResponse 类型面）
     "RunEnv",
     "SceneGraph",
@@ -223,6 +236,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "run_design_map",
     "run_enumeration",
     "run_full_calc",
+    "run_joint_enumerate",
     "save_project",
     "validate_design_structure",  # P0-3 再导出（server validate 端点扩面——app 单入口语义）
 ]
@@ -293,28 +307,8 @@ def _completed_env(env: RunEnv, design: DesignState) -> RunEnv:
     return replace(env, engine_params=merged)
 
 
-# D10 六指标固定族：声明面常量键名（值零字面量——全部来自 terminal 实跑
-# outqualities 交集，禁造数；result_schema summary 规格 26-27 行）。
-_SUMMARY_INDICATORS: Final[tuple[str, ...]] = ("BOD5", "CODCR", "SS", "NH3N", "TN", "TP")
-
-
-def _summary_of(plant: PlantResult, edges: tuple[Edge, ...]) -> dict[str, dict[str, float]]:
-    """D2 纯投影：逐工况 terminal 终水六指标（Mapping[工况→Mapping[指标→float]]）。
-
-    terminal=该工况快照序（执行序=dict 插入序）最后一个无出边单元（汇点末
-    位——确定性由拓扑执行序保证）；值=terminal.outqualities 键
-    f"{terminal}.out.{指标}" 与六指标族交集（有则录无则略——矿井线 BOD5
-    缺/污泥线终端无水质键→空映射合法）；平键展开=calcbook
-    {{summary.<condition_key>.<指标>}} 值域（UF-42 同款）。"""
-    sources = {edge.src.unit_id for edge in edges}
-    summary: dict[str, dict[str, float]] = {}
-    for condition_key, snapshot in plant.conditions.items():
-        terminal = next((u for u in reversed(list(snapshot)) if u not in sources), "")
-        out = snapshot[terminal].outqualities if terminal else {}
-        summary[condition_key] = {
-            ind: v for ind in _SUMMARY_INDICATORS
-            if (v := out.get(f"{terminal}.out.{ind}")) is not None}
-    return summary
+# D10（B4-3 迁移 2026-09-20）：_summary_of 定义面迁 joint_enumeration.
+# final_eval.terminal_summary（末段复验同源消费——双胞胎禁令单源化）。
 
 
 def _with_energy(
@@ -488,3 +482,17 @@ def run_design_map(
         resolved,
         coverage="full" if chosen.constraints else "degraded",  # R3 降级不拒
     )
+
+
+def run_joint_enumerate(
+    project: ProjectFile,
+    unit_ids: Sequence[str],
+    conditions: ConditionSet,
+    env: RunEnv,
+    options: JointEnumerationOptions | None = None,
+) -> JointOutcome:
+    """联合枚举正门（B4-3/ADR-006）：装配注入+转发（assemble=None 时本正门注入）。"""
+    chosen = options if options is not None else JointEnumerationOptions()
+    if chosen.assemble is None:  # AssembledGraph 结构满足 AssembledView 协议
+        chosen = replace(chosen, assemble=cast("AssembleFn", assemble))
+    return _joint_run(project, unit_ids, conditions, env, chosen)
