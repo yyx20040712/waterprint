@@ -24,7 +24,7 @@
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 8 <!-- ；B4-3 联合枚举 7→8 -->
+- batch_count: 8 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6；B4-4a-revert 回退批 6→7；B4-3 联合枚举 7→8 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
