@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T04:20:56Z
+- heartbeat_utc: 2026-09-20T04:35:00Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 22
@@ -29,9 +29,9 @@
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: -
-- claimed_at: -
-- next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段已完成；ADR-005 解冻仍须用户裁决呈批面）
+- claimed_by: manual-session-b44a-pkg
+- claimed_at: 2026-09-20T04:35:00Z
+- next_batch: B4-4a-pkg Win11 软件包交付批（用户直排 2026-09-20：「打包为适配 win11 的软件包，并附带使用说明，输出至 D:\ai_soft\waterprint」——规划档 §四打包形态用户裁决修订：仓库可复制态→离线软件包；仓外产出为主，收口批对抗位=入仓污染面零命中+health-scan）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -463,3 +463,7 @@
 - 卫生小记：①agent venv waterprint-core 陈旧站点拷贝（B4-2a server venv 同款残留的 agent 面——本会话 MCP 实跑数值全基于旧内核的发现链）uv sync --reinstall-package 修复；②geometric-repack 权限报错再现（G-1 起在册留观同族，提交推送不受阻）；③格式化面 ruff format 26 存量文件未动（非门禁面，防范围蔓延）。
 - 收口三验：run_gates 16 门禁全绿+gen_status 零漂移（2158B）+health-scan RED=0/WARN×3（均历史欠账）。批档=.workflow/b44a/（三话术输出实录 json×3+审包归档）——演示现场断网预案=--offline 规则回退版+批档实录备份（录屏=用户侧动作）。账本 ruling/impl/gate1/gate2 四行在册。
 - 勾选 19/22 不变（**B4-4 两段全成才勾**——演示段完成，深化段[多轮对话/前端 pane/方案比选]随原排序 B4-3 之后）；next_batch=B4-3 联合枚举（原排序回位——ADR-005 解冻须用户裁决）；收口判定⑤READY（勾选数不变但实质交付在案=呈批注记态；no_progress 0；batch_count 4→5/60、墙钟 ~1h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；推送面=认领+实现+处置+本收口终笔（守望 CI 至绿——收口即推送纪律）。
+
+### batch B4-4a-pkg 领批行 — 2026-09-20T04:35Z（手动会话主控直跑：Win11 软件包交付批）
+- 用户直排工单（对话内 2026-09-20）：打包为适配 Win11 的软件包+使用说明→D:\ai_soft\waterprint。性质=规划档 §四打包形态的用户裁决修订（原「不做 Docker/exe——演示物=仓库可复制态」→离线软件包）；批型=交付批（烤验=收口/交付批对抗位：入仓污染面零命中+health-scan RED=0——仓外产出为主、仓内预期零代码变更）。
+- 技术摸底（本行落板供批次日志引）：前端 API base=同源相对 /api（R2 C1 恒空基底）→包内胶水 serve_app.py 经 create_app 工厂 mount 静态（零仓内变更）；便携 Python=uv managed CPython 3.13.15（python-build-standalone 可迁移，与 server venv 同版本）；core 源码剔 __pycache__ 后 3MB（748M 为散落 pycache）；golden 种子真源 app\core\tests\golden\golden_data 必带（sandbox.repo_root 推导=app 伪仓库根）；依赖离线化=uv export 剔本地 path 包+wheels 目录 --no-index 安装。
