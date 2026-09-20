@@ -493,7 +493,7 @@ def run_joint_enumerate(
     env: RunEnv,
     options: JointEnumerationOptions | None = None,
 ) -> JointOutcome:
-    """联合枚举正门（B4-3/ADR-006）：装配注入+转发（assemble=None 时本正门注入）。"""
+    """联合枚举正门（B4-3/ADR-025）：装配注入+转发（assemble=None 时本正门注入）。"""
     chosen = options if options is not None else JointEnumerationOptions()
     if chosen.assemble is None:  # AssembledGraph 结构满足 AssembledView 协议
         chosen = replace(chosen, assemble=cast("AssembleFn", assemble))

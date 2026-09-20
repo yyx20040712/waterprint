@@ -1,4 +1,4 @@
-# ADR-006：全厂联合枚举（分层 beam——supersede ADR-005 决策 4）
+# ADR-025：全厂联合枚举（分层 beam——supersede ADR-005 决策 4）
 
 - 状态：**已接受（B4-3 落地）**（2026-09-20；三段链=调研→拟定→对抗审核
   [B1/W1~W12/N1~N6 全采纳]→主控终裁，定稿件 .workflow/b4-3/design-final.md）

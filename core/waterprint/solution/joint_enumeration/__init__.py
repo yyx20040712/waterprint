@@ -1,4 +1,4 @@
-"""联合枚举子包聚合正门（B4-3）：分层 beam 全厂联合枚举（ADR-006）。
+"""联合枚举子包聚合正门（B4-3）：分层 beam 全厂联合枚举（ADR-025）。
 
 输入:  beam/stage/ranking/diagnose/final_eval 五部件公开面
 输出:  run_joint_enumerate/JointEnumerationOptions/JointOutcome/ComboResult/

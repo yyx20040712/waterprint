@@ -10,7 +10,7 @@
 #
 # 【公开接口】
 #   run_joint_enumerate(project, unit_ids, conditions, env, options)
-#       -> JointOutcome（ADR-006 决策 1~6 落地正门；app 再导出=server
+#       -> JointOutcome（ADR-025 决策 1~6 落地正门；app 再导出=server
 #       单入口 UF-33）
 #   class JointEnumerationOptions(不可变)：grids（unit_id→轴声明覆盖，
 #       缺省=manifest grid 档）/constraints（unit_id→单元级约束，server
@@ -45,7 +45,7 @@
 #   app 正门注入点——assumptions_design_map 类注入先例）。
 #
 # 【测试要求】两单元小网格全链/静态预检 422/k=1 边界/超预算拒/截断语义。
-# 【参照】.workflow/b4-3/design-final.md 全文；ADR-006
+# 【参照】.workflow/b4-3/design-final.md 全文；ADR-025
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -430,7 +430,7 @@ def run_joint_enumerate(
     env: RunEnv,
     options: JointEnumerationOptions | None = None,
 ) -> JointOutcome:
-    """联合枚举正门（ADR-006）：静态预检→基线→分层 beam→末段复验→排序。"""
+    """联合枚举正门（ADR-025）：静态预检→基线→分层 beam→末段复验→排序。"""
     chosen = options if options is not None else JointEnumerationOptions()
     if not conditions.baseline and not conditions.sensitivity:
         raise InvalidJointEnumerationError(

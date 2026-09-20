@@ -236,7 +236,7 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 _EXPECTED_ENDPOINTS: Final[int] = (
     10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
     + 1  # B4-3：POST /api/solution/joint-enumerate（联合枚举正门，36→37 破面
-    # =ADR-006 决策 1——.workflow/b4-3/design-final.md 授权）
+    # =ADR-025 决策 1——.workflow/b4-3/design-final.md 授权）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。

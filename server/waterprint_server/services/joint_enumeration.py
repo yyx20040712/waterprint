@@ -1,4 +1,4 @@
-"""联合枚举服务用例：静态预检护栏 + 异步任务提交（ADR-006 新正门）。
+"""联合枚举服务用例：静态预检护栏 + 异步任务提交（ADR-025 新正门）。
 
 输入:  项目 id + unit_ids + 网格/约束覆盖选项
 输出:  TaskHandle（kind=joint_enumerate——同 worker 制式）/422 预检拒绝
@@ -35,7 +35,7 @@
 # 【测试要求】预检 422 双面（rows/N）、请求覆盖网格计数、无效 unit_ids、
 #   任务句柄 kind。
 #
-# 【参照】.workflow/b4-3/design-final.md §一 W5/W7/N1/N3；ADR-006 决策 1
+# 【参照】.workflow/b4-3/design-final.md §一 W5/W7/N1/N3；ADR-025 决策 1
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

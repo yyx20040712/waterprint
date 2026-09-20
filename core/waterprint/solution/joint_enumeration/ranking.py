@@ -32,7 +32,7 @@
 # 【测试要求】基线归一方向、零基准重分配、sparse 值重分配、全缺=0、
 #   同分降权排后、字典序稳定。
 #
-# 【参照】.workflow/b4-3/design-final.md §一 W10/W12/N6；ADR-006 决策 5
+# 【参照】.workflow/b4-3/design-final.md §一 W10/W12/N6；ADR-025 决策 5
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

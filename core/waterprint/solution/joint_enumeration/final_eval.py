@@ -37,7 +37,7 @@
 #
 # 【测试要求】经 beam 全链测试覆盖（本件拆件非独立规格面）。
 #
-# 【参照】.workflow/b4-3/design-final.md §一 W6/W9/W10/W12/N6；ADR-006
+# 【参照】.workflow/b4-3/design-final.md §一 W6/W9/W10/W12/N6；ADR-025
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

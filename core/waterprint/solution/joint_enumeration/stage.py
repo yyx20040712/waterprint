@@ -41,7 +41,7 @@
 # 【测试要求】裕度/能耗分量方向、无区分度中位、三键和+基线贡献、
 #   前缀冻结。
 #
-# 【参照】.workflow/b4-3/design-final.md §一 B1/§二；ADR-006 决策 3
+# 【参照】.workflow/b4-3/design-final.md §一 B1/§二；ADR-025 决策 3
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
