@@ -500,6 +500,72 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "value": 0.4549999999999997
       },
+      "carbon_direct_ch4_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3403.767744282009
+      },
+      "carbon_direct_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 13663.458058071868
+      },
+      "carbon_direct_n2o_plant_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 10259.690313789859
+      },
+      "carbon_indirect_chemicals_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 2099.6841008095316
+      },
+      "carbon_indirect_electricity_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3932.596500933716
+      },
+      "carbon_indirect_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6032.280601743248
+      },
+      "carbon_intensity_kgco2e_m3": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 0.5666093795056856
+      },
+      "carbon_total_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 19695.738659815117
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1215126.4991026635
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1872490.5068739553
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3087617.0059766187
+      },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -511,6 +577,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 50.07407247504562
+      },
+      "influent_bod5_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6952.140000575999
+      },
+      "influent_flow_m3_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 34760.700002879996
+      },
+      "influent_tn_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 1494.71010012384
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
@@ -535,24 +619,6 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7328.72996819552
-      },
-      "cost_chemicals_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1215126.4991026635
-      },
-      "cost_electricity_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872490.5068739553
-      },
-      "cost_opex_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3087617.0059766187
       }
     },
     "design": {
@@ -592,6 +658,72 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "value": 0.4549999999999997
       },
+      "carbon_direct_ch4_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3403.767744282009
+      },
+      "carbon_direct_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 13663.458058071868
+      },
+      "carbon_direct_n2o_plant_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 10259.690313789859
+      },
+      "carbon_indirect_chemicals_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 2098.5945655930846
+      },
+      "carbon_indirect_electricity_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3932.2617904833005
+      },
+      "carbon_indirect_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6030.856356076385
+      },
+      "carbon_intensity_kgco2e_m3": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 0.5665684066349798
+      },
+      "carbon_total_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 19694.314414148255
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1213000.4037656905
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1872331.1357966517
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3085331.539562342
+      },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -603,6 +735,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 49.8660451606234
+      },
+      "influent_bod5_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6952.140000575999
+      },
+      "influent_flow_m3_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 34760.700002879996
+      },
+      "influent_tn_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 1494.71010012384
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
@@ -627,24 +777,6 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7328.106206640516
-      },
-      "cost_chemicals_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1213000.4037656905
-      },
-      "cost_electricity_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
-      },
-      "cost_opex_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
       }
     },
     "design_offline_municipal_aao": {
@@ -684,6 +816,72 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "value": 0.4549999999999997
       },
+      "carbon_direct_ch4_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3403.767744282009
+      },
+      "carbon_direct_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 13663.458058071868
+      },
+      "carbon_direct_n2o_plant_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 10259.690313789859
+      },
+      "carbon_indirect_chemicals_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 2098.5945655930846
+      },
+      "carbon_indirect_electricity_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3932.2617904833005
+      },
+      "carbon_indirect_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6030.856356076385
+      },
+      "carbon_intensity_kgco2e_m3": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 0.5665684066349798
+      },
+      "carbon_total_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 19694.314414148255
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1213000.4037656905
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1872331.1357966517
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3085331.539562342
+      },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -695,6 +893,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 49.8660451606234
+      },
+      "influent_bod5_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6952.140000575999
+      },
+      "influent_flow_m3_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 34760.700002879996
+      },
+      "influent_tn_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 1494.71010012384
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
@@ -719,24 +935,6 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7328.106206640516
-      },
-      "cost_chemicals_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1213000.4037656905
-      },
-      "cost_electricity_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
-      },
-      "cost_opex_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
       }
     },
     "design_offline_municipal_chuchenchi": {
@@ -776,6 +974,72 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "value": 0.4549999999999997
       },
+      "carbon_direct_ch4_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3403.767744282009
+      },
+      "carbon_direct_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 13663.458058071868
+      },
+      "carbon_direct_n2o_plant_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 10259.690313789859
+      },
+      "carbon_indirect_chemicals_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 2098.5945655930846
+      },
+      "carbon_indirect_electricity_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3932.2617904833005
+      },
+      "carbon_indirect_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6030.856356076385
+      },
+      "carbon_intensity_kgco2e_m3": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 0.5665684066349798
+      },
+      "carbon_total_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 19694.314414148255
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1213000.4037656905
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1872331.1357966517
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3085331.539562342
+      },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -787,6 +1051,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 49.8660451606234
+      },
+      "influent_bod5_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6952.140000575999
+      },
+      "influent_flow_m3_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 34760.700002879996
+      },
+      "influent_tn_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 1494.71010012384
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
@@ -811,24 +1093,6 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7328.106206640516
-      },
-      "cost_chemicals_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1213000.4037656905
-      },
-      "cost_electricity_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
-      },
-      "cost_opex_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
       }
     },
     "design_offline_municipal_erchunchi": {
@@ -868,6 +1132,72 @@
         "source": "主线实跑 2026-08-28 HEAD=a2c51bb",
         "value": 0.4549999999999997
       },
+      "carbon_direct_ch4_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3403.767744282009
+      },
+      "carbon_direct_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 13663.458058071868
+      },
+      "carbon_direct_n2o_plant_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 10259.690313789859
+      },
+      "carbon_indirect_chemicals_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 2098.5945655930846
+      },
+      "carbon_indirect_electricity_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 3932.2617904833005
+      },
+      "carbon_indirect_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6030.856356076385
+      },
+      "carbon_intensity_kgco2e_m3": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 0.5665684066349798
+      },
+      "carbon_total_kgco2e_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 19694.314414148255
+      },
+      "cost_chemicals_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1213000.4037656905
+      },
+      "cost_electricity_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 1872331.1357966517
+      },
+      "cost_opex_yuan_a": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
+        "value": 3085331.539562342
+      },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
@@ -879,6 +1209,24 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 49.8660451606234
+      },
+      "influent_bod5_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 6952.140000575999
+      },
+      "influent_flow_m3_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 34760.700002879996
+      },
+      "influent_tn_load_kg_d": {
+        "abs": 1e-12,
+        "rel": 1e-12,
+        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
+        "value": 1494.71010012384
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
@@ -903,33 +1251,15 @@
         "rel": 1e-12,
         "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
         "value": 7328.106206640516
-      },
-      "cost_chemicals_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1213000.4037656905
-      },
-      "cost_electricity_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
-      },
-      "cost_opex_yuan_a": {
-        "abs": 1e-12,
-        "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
       }
     }
   },
   "generated": {
-    "data_version": "coefficients@1.4.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.5.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 6317846,
-    "serialize_sha256_head": "94ea97371f3b9c0f",
-    "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）"
+    "serialize_bytes": 6320291,
+    "serialize_sha256_head": "25e18cc7fb0e6ace",
+    "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）"
   },
   "m3_deferred": {
     "estimate_total": {

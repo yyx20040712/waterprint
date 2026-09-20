@@ -9,7 +9,7 @@
 | 指标 | 值 | 事实源 |
 |---|---|---|
 | CI 门禁数 | 16 | `scripts/run_gates.py` GATES 元组 |
-| 测试锁面键数 | 304（core/tests 149 + server/tests 44 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
+| 测试锁面键数 | 306（core/tests 151 + server/tests 44 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
 | OpenAPI | 33 路径 / 36 操作 | `api-contracts/openapi.json` |
 | ADR 件数 | 24 | `docs/adr/ADR-*.md` |
 | 未定义特性登记 | 总 53（已定义闭合 31 / 临置 0 / 待定义开放 11 / 待拍板 2 / 其他表述 9） | `docs/undefined-features-register.md` 表行 |
@@ -17,7 +17,7 @@
 | 工艺单元包数 | 32 | `core/waterprint/units_lib/*/*/manifest.py` |
 | webapp 测试文件数 | 67 | `webapp/src/**/*.test.*` |
 | 数据包版本·assumptions | （未声明） | `data/assumptions/manifest.yaml` |
-| 数据包版本·coefficients | 1.4.0 | `data/coefficients/manifest.yaml` |
+| 数据包版本·coefficients | 1.5.0 | `data/coefficients/manifest.yaml` |
 | 数据包版本·constraint_kb | 1.4.0 | `data/constraint_kb/manifest.yaml` |
 | 数据包版本·templates | 1.1.0 | `data/templates/manifest.yaml` |
 | 数据包版本·unit_prices | 1.0.0 | `data/unit_prices/manifest.yaml` |

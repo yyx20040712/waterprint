@@ -318,8 +318,8 @@
         ],
         "full_graph": false,
         "loop_group_count": 1,
-        "serialize_bytes": 2405841,
-        "serialize_sha256_head": "4ee52278da592e4c"
+        "serialize_bytes": 2406819,
+        "serialize_sha256_head": "f086a046c780c1a4"
       },
       "kind": "param",
       "note": "族A-1 规则③参数 diff（同单元字段一）",
@@ -339,8 +339,8 @@
         ],
         "full_graph": false,
         "loop_group_count": 1,
-        "serialize_bytes": 2406004,
-        "serialize_sha256_head": "e03a7855ee4b649c"
+        "serialize_bytes": 2406982,
+        "serialize_sha256_head": "1563a5255216c75a"
       },
       "kind": "param",
       "note": "族A-2 规则③参数 diff（同单元字段二）",
@@ -361,8 +361,8 @@
         "full_graph": false,
         "loop_group_count": 1,
         "results_identical_to_prev": true,
-        "serialize_bytes": 2406004,
-        "serialize_sha256_head": "5af172bd61a8ab95"
+        "serialize_bytes": 2406982,
+        "serialize_sha256_head": "9861a10cb5f6cf1f"
       },
       "kind": "param",
       "negative_control": true,
@@ -402,8 +402,8 @@
         ],
         "full_graph": true,
         "loop_group_count": 0,
-        "serialize_bytes": 2398967,
-        "serialize_sha256_head": "9275a2221e04b1e8"
+        "serialize_bytes": 2400127,
+        "serialize_sha256_head": "145cb577e84b8b49"
       },
       "kind": "remove_unit",
       "note": "族B-1 规则①拓扑短路（删叶单元+其入边——24 边全结构刚需探针实证后唯一可执行删拓扑形态）",
@@ -442,8 +442,8 @@
         ],
         "full_graph": true,
         "loop_group_count": 0,
-        "serialize_bytes": 2406004,
-        "serialize_sha256_head": "9787df61a1bd8488"
+        "serialize_bytes": 2406982,
+        "serialize_sha256_head": "45b0d50945a17dbb"
       },
       "kind": "restore_unit",
       "note": "族B-2 规则①拓扑短路（叶单元+边复原——拓扑再变，增拓扑路径；结果快照与删改前恒等——serialize 差异仅 repro.design_hash 边序面）",
@@ -493,8 +493,8 @@
         ],
         "full_graph": true,
         "loop_group_count": 0,
-        "serialize_bytes": 2955566,
-        "serialize_sha256_head": "a9a0b5671a4db6b2"
+        "serialize_bytes": 2956544,
+        "serialize_sha256_head": "fb3b7eb4330d9f9a"
       },
       "kind": "assumption",
       "note": "族C-1 规则②保守回落（五键面 assumption_overrides；serialize 2237621→2747903B 增量=迹树面迭代迹节点 6898→8498[阻尼 0.7 收敛变慢——每迭代全公式 applyings 进迹树]，结果面单元快照体量恒定）",
@@ -533,8 +533,8 @@
         ],
         "full_graph": true,
         "loop_group_count": 0,
-        "serialize_bytes": 2955566,
-        "serialize_sha256_head": "318f01e264e1fbbf"
+        "serialize_bytes": 2956544,
+        "serialize_sha256_head": "487d94419cc542ef"
       },
       "kind": "site_boundary",
       "note": "族C-2 规则②保守回落（site 面 boundary 红线——SitePoint 三点，闭合由 validator 隐式处理）",
@@ -558,9 +558,9 @@
     }
   ],
   "meta": {
-    "base_serialize_bytes": 2405841,
-    "base_serialize_sha256_head": "49286c74175a5adf",
-    "data_version": "coefficients@1.4.0+unit_prices@1.0.0",
+    "base_serialize_bytes": 2406819,
+    "base_serialize_sha256_head": "2903d317683a172a",
+    "data_version": "coefficients@1.5.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
     "generator": ".workflow/b11-probe/generate_m3_seed.py",
     "note": "Ruling 2026-09-07 ② 方案 B：golden municipal_34760_loop 派生种子草稿——用户/领域专家审定后锁面登记（golden_data 人类维护纪律沿承）；工况集=base_design.checked_units 派生（本案例空表→design/avg 两工况）；full_graph 步无快照重用面（语义本然——重用安全性质咬合住在部分重算步）",
