@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T03:23:44Z
+- heartbeat_utc: 2026-09-20T04:20:56Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 22
@@ -24,14 +24,14 @@
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 4
+- batch_count: 5 <!-- rev1.1：回炉修复不 +1；B4-4a 手动批 4→5 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: manual-session-b44a
-- claimed_at: 2026-09-20T03:23:44Z
-- next_batch: B4-4a AI 集成演示版（2026-09-20 用户裁决插队提前：一句话 NL 解析→全厂计算→双报告落盘——CLI 确定性管线，规划档=仓外 .workflow/plans/ai-demo-plan.md；B4-3 联合枚举顺延）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段已完成；ADR-005 解冻仍须用户裁决呈批面）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -452,3 +452,14 @@
 - 领批：手动路径=当前唯一路径（无火态）；写前回读 claim=-/status READY/板面静默（板 mtime 02:4X+，仓 HEAD 04510d55c=CI 绿面）零占用。认领 token=manual-B4-4a-20260920T0323（claimed_by=manual-session-b44a 中性名——B4-2c 卫生小记②纪律）。附注：用户指令追加一条范围外注记「软件页面要有导入 MCP 至 ZCode 的入口」——摸底实证=AI2 批 2026-09-13 已落地（webapp 顶栏「AI 接入」入口+GET/POST /api/ai/connection 一键写两份 .zcode/config.json），处置随呈批 P5 确认（存量在场确认 vs 演示可见性增强）。
 - 板头勘误：next_batch 字段值 B4-2c 系 B4-2c 收口终笔落笔遗漏（commit message 声称同步 B4-3 而板面未写——board 机检不校验该字段未拦，验证面小缺口记档）；本笔直接落 B4-4a（B4-3 既已顺延，不停留中间态）。
 - 批型=**实现批**（双门全走：门一异构隔离审[备源承载]+门二实证）；agent/tests 不在 §7 锁面（锁面=core/tests+server/tests+units_lib 包内 tests）——demo 测试件零 [HUMAN-LOCK] 拟定（呈批 P4 如实呈报）。开工呈批 P1~P4+P5（AskUserQuestion——规划档 §五）。
+
+### batch B4-4a — 2026-09-20T03:23Z~04:2XZ（手动会话主控直跑：AI 集成演示版全链——插队批收官，B4-4 呈批注记「演示段完成，深化段随原排序」）
+- 认领 token manual-B4-4a-20260920T0323（无火态手动路径；写前回读 claim=- 零占用；认领笔 1a97dfdf7 领批即推送）。
+- **呈批处置（P1~P5 两轮 AskUserQuestion 未获应答→按规划档推荐继续，账本 ruling 行依据在档）**：用户开工指令「确认可以一句话进行计算并输出报告就打包」=预先授权自验打包+四问全非宪法级。取值：P1=三家可切换全环境变量三元组（WATERPRINT_DEMO_LLM_BASE_URL/_API_KEY/_MODEL——check_model_names 扫描面[含 agent+全仓 md]实测约束倒逼零端点硬编码）/P2=规则回退+--offline 显式开关/P3=agent 包内 demo.py/P4=零 [HUMAN-LOCK]（agent/tests 不在执法面——**摸底勘误**：manifest 含 agent/tests 19 条死登记[check_readonly LOCKED_ROOTS 不含 agent=登记在册零执法]，宪法条文 vs manifest 双源漂移记档）/P5=MCP 导入入口=AI2 批存量在场零改动（webapp 顶栏「AI 接入」→一键写两份 .zcode/config.json——用户追加注记的核实结论）。
+- **交付（实现笔 c87d422c4+处置笔 3f3734037）**：agent/waterprint_agent/demo.py（434 行）——NL 意图解析双通道（LLM 单步[stdlib urllib 10s 超时，兼容 chat/completions 协议零供应商标识]+规则回退[种子路由/万吨规模抽取]，四失败态[网络/超时/非 JSON/违例]一律回退+parse_source 诚实标注）→tools impl 经 run_tool 统一编排（建项→改参→计算→摘要→双导出——与 MCP 工具面同语义+会话日志留痕；零新增计算逻辑[ADR-019]）；规模改参量纲异构映射（municipal inlet=m³/s÷86400、mine mine_water_input=m³/d 直填——B4-2b 在册流量键异构，实测倒逼发现）；规模 patch 被拒=硬失败拦截。测试三件 18 passed+agent/README.md（三话术/预期样例/key 配置/MCP 接入指引）+file-contracts §6 登记。
+- **验收（规划档 §三三话术——口径含 R-B44a-1 修正）**：①市政 3 万吨 AAO 全链绿（达标✓/六指标/吨水电耗 0.208/碳强度 0.588/opex 2,638,585 元/双报告落盘）；③市政 5 万吨一级 A 全链绿（达标✓/双落盘/警告 2=沉砂池径深比建议带可解释）；②矿井 1 万吨=计算绿+达标判定诚实 False（TN 60 vs 15/TP 2 vs 0.5 市政标准口径负裕度=标准适用性事实）+双报告 core 既有缺口可解释回显。**digest 2bc352604a 跨 CLI/库面/手动链路逐位一致**（确定性实证）。
+- **双门**：门一（ops-gate1-k2 备源承载——2026-09-18 用户指令未销案；审包 .workflow/reviews/b44a-gate1-package.md 853 行自包含）**B0/W4/N9 有条件放行**——W1 契约头三处自述失实/W2 OpenAI 供应商标识词入仓/W3 patch 被拒静默失败候选面（主控复核坐实 _update_params_impl 返回恰三键无 error 面）/W4 硬失败路径零测试——处置笔 3f3734037 W 全闭环+N1/N2/N4/N5/N6 顺手实施；门二（ops-probe 随宿主模型）**8/8 GREEN 放行**——M1 三话术 CLI 全链/M2 数值一致+三恒等式 rel=0 精确（power_total==三族和/carbon_intensity==total÷flow/opex==电+药）/M3 回退链双态/M4 双跑确定性/M5 门禁+18 passed/M6 处置覆盖/M7 README 命令逐字/M8 500 万吨越界观察（params_guard 无上界值域→12 警告算完+锚定门拒——失败模式收敛无静默，值域上界挂账 core 侧）。
+- **Rulings 呈报（不阻断）**：R-B44a-1 验收口径修正——矿井案达标 False+双报告缺口两处（calcbook 模板 BOD5 硬引[agent e2e 在册记档]+report HB-F10 锚定值 926.899≠trace[原规模即红，B4-4a 新发现]）——core 修复挂账归 B4-5 矿井段或独立小批；R-B44a-2 agent/tests 锁面残留+e2e 四案存量测试债（B4-2a 起 golden effluent 键族扩容 vs AI1 锚②无守卫——agent 全量各批收口三验未覆盖+CI 不含 agent 的潜伏债）——修复涉只读位清除+manifest 19 死条目清理+锚②守卫=宪法级呈批挂账，demo 三测试件未登记 manifest 欠账；R-B44a-3 呈批未获应答处置依据+P4 摸底勘误记档（如上）。
+- 卫生小记：①agent venv waterprint-core 陈旧站点拷贝（B4-2a server venv 同款残留的 agent 面——本会话 MCP 实跑数值全基于旧内核的发现链）uv sync --reinstall-package 修复；②geometric-repack 权限报错再现（G-1 起在册留观同族，提交推送不受阻）；③格式化面 ruff format 26 存量文件未动（非门禁面，防范围蔓延）。
+- 收口三验：run_gates 16 门禁全绿+gen_status 零漂移（2158B）+health-scan RED=0/WARN×3（均历史欠账）。批档=.workflow/b44a/（三话术输出实录 json×3+审包归档）——演示现场断网预案=--offline 规则回退版+批档实录备份（录屏=用户侧动作）。账本 ruling/impl/gate1/gate2 四行在册。
+- 勾选 19/22 不变（**B4-4 两段全成才勾**——演示段完成，深化段[多轮对话/前端 pane/方案比选]随原排序 B4-3 之后）；next_batch=B4-3 联合枚举（原排序回位——ADR-005 解冻须用户裁决）；收口判定⑤READY（勾选数不变但实质交付在案=呈批注记态；no_progress 0；batch_count 4→5/60、墙钟 ~1h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；推送面=认领+实现+处置+本收口终笔（守望 CI 至绿——收口即推送纪律）。
