@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,21 +16,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T11:14:30Z
-- claim: manual-B44a-revert-20260920T1114-rvt
+- heartbeat_utc: 2026-09-20T11:34:47Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 19
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 6 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6 -->
+- batch_count: 7 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6；B4-4a-revert 回退批 6→7 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: manual-session-b44a-revert
-- claimed_at: 2026-09-20T11:14:30Z
+- claimed_by: -
+- claimed_at: -
 - next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段与交付批均完成；ADR-005 解冻仍须用户裁决呈批面）
 
 ## protocol（角色自识别 + 最小兜底协议）
@@ -474,3 +474,12 @@
 - 工艺实录：robocopy 首轮即全量（du 大数=NTFS 簇虚高误判，逐文件统计复核）；bat/板面内嵌 Windows 路径=raw string 纪律（首版 bat 转义控制字符损坏+板面笔脚本两次 parse 炸——SyntaxWarning 即拦截重写）；PYTHONPATH 在 git-bash 传 Windows Python 须 Windows 路径形态（MSYS /d/ 形态不识别）；PEP668 externally-managed 标记=python-build-standalone 拒装根因（包内预删标记优于 --break-system-packages 旗标）。
 - 对抗位（交付批）：入仓污染面零命中（本批仓内仅 relay.md 板面笔——check_model_names 等门禁随 CI 复核）+health-scan RED=0/WARN×3（历史欠账）。账本 impl 行在册。
 - 勾选 19/22 不变（交付批无清单项——挂 B4-4a 呈批注记段内）；next_batch=B4-3 联合枚举（原排序回位）；收口判定⑤READY（batch_count 5→6/60、墙钟 ~0.3h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；推送守望 CI 至绿（收口即推送纪律）。
+
+### batch B4-4a-revert — 2026-09-20T11:14Z~11:5XZ（手动会话主控直跑：仓内演示代码全回退批收官——用户直排工单「清理半成品输出物，按规划继续开发，回归正轨」）
+
+- 领批：token manual-B44a-revert-20260920T1114-rvt（写前回读 claim=-/status READY 零占用；认领笔 a6320dc1c 领批即推送）。**用户裁决三问全答（对话内在档）**：①对象=B4-4a 演示版仓内输出物（「先集成 AI 再演示」半成品——完整版归 B4-4 深化段随原排序）；②范围=**仓内演示代码全回退**（推荐项——仓外批档保留历史、D:i_soft\waterprint 冻结拷贝不动、Synapse 不涉）；③续跑=B4-3 原排序回位。批型=实现批（已审面修改——B4-4a 已审面随批重过：回退 diff+首审上下文审包呈门一）。
+- 实现（实现笔 14577ea112）：6 路径 851 删减——demo.py 446+测试三件 316+README 87 整件删除+file-contracts 两登记行还原至批前（README 系 c87d422c4 **新建件**非修改件——批前 checkout pathspec 不匹配实证）；**路径级恒等父提交 1a97dfdf75（git diff agent/ docs/file-contracts.md 输出空）**；残留零命中（agent/ 全文件 demo 零命中/WATERPRINT_DEMO_ 全仓仅本板历史记述/ADR-019 无 demo 引用）；锁面零触碰（staged 无 locks 路径+demo 测试件未登记 manifest 在册）；run_gates 回退前后双绿；agent 套件 140 passed/4 failed=在册存量债（4 失败全为 test_e2e_golden 四案 KeyError 碳键族——与 R-B44a-2 原文「B4-2a 起 golden effluent 键族扩容 vs 锚②直取无守卫」逐字吻合，现行签名键=B4-2c 碳键族；回退不含 golden/键族文件无因果通道）。
+- 双门：门一（ops-gate1-k2 备源承载——板面条款未销案；审包 .workflow/reviews/b44a-revert-gate1-package.md 自包含）**B0/W1/N6 有条件放行**——W1=主控 grep `--include=*.py,*.toml` 单 glob 逗号字面量空真证据（门一独立指出；路径恒等空 diff 独立兜底不改判，补正后 agent/ 全文件零命中）；N5=ADR-019 悬空疑云闭合（29 行通用决策档零 demo 引用）；放行三条件全兑现（①本日志只追加未改写 B4-4a 既有日志②板头 batch_count 6→7+checked 不动③下行欠账销注）；门二（ops-probe 随宿主模型）**7/7 GREEN 放行**——M1 门禁/M2 路径恒等+851 算术逐路径/M3 残留三面/M4 套件独立重跑（4+140+5=149 全收集零 error=无 import 断裂）/M5 锁面/M6 领批在案/M7 还原方向 hunk 逐字。工具面注记（门二 A1）：本机 grep=ugrep 7.8.4 默认不降隐藏目录（.venv site-packages 内 demo 子串=第三方库非跟踪面不计）。
+- **存量债销注**：R-B44a-2 中「demo 三测试件未登记 manifest」欠账子项随本批删除销注（登记对象已不存在）；该 Ruling 其余子项（e2e 四案存量红+manifest 19 死条目清理+锚②守卫=宪法级呈批挂账）仍在册不受影响。
+- 收口三验：run_gates 16 门禁全绿+gen_status 零漂移（生成后工作树净）+health-scan RED=0/WARN×3（均历史欠账）。账本 impl/gate1/gate2 三行在册。批档=.workflow/reviews/b44a-revert-gate1-package.md（门一审包）。
+- 勾选 19/22 不变（回退批无清单项——B4-4 演示段产物随用户裁决移出，深化段仍按原排序 B4-3 之后）；next_batch=B4-3 联合枚举（原排序回位——ADR-005 解冻须用户裁决呈批面）；batch_count 6→7/60。本笔为收口终态置位；推送守望 CI 至绿（收口即推送纪律）。卫生小记：geometric-repack 报错再现（G-1 在册同族——fetch 维护阶段噪音，commit/push 不受阻）。
