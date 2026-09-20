@@ -5,7 +5,7 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（B4-3 定稿件 §一 W10/W12/N6；镜像测试 tests/solution/test_joint_units.py）
+# 规格说明（B4-3 定稿件 §一 W10/W12/N6；镜像测试 tests/solution/test_stage.py）
 #
 # 【公开接口】
 #   plant_objective(metrics, baseline, weights) -> tuple[float, ...]

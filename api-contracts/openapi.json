@@ -1551,6 +1551,41 @@
         "title": "IndicatorReportModel",
         "type": "object"
       },
+      "JointEnumerateRequest": {
+        "description": "联合枚举请求（unit_ids 2..max_units——单单元走既有 /api/calc/enumerate\n正门，N=1 不属联合语义[设计定稿 §1；门一 B1 收紧 2026-09-20]）。",
+        "properties": {
+          "options": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "unit_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "title": "Unit Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "unit_ids"
+        ],
+        "title": "JointEnumerateRequest",
+        "type": "object"
+      },
       "LatestCalcBlockModel": {
         "description": "最新 done calc 三源聚合块（R2~R5）。",
         "properties": {
@@ -4799,6 +4834,53 @@
         "summary": "Get Spacing",
         "tags": [
           "site"
+        ]
+      }
+    },
+    "/api/solution/joint-enumerate": {
+      "post": {
+        "description": "联合枚举（静态预检 422 在服务面；异步 job 同 worker 制式）。",
+        "operationId": "run_joint_enumeration_api_solution_joint_enumerate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JointEnumerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskIdResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Run Joint Enumeration",
+        "tags": [
+          "solution"
         ]
       }
     },

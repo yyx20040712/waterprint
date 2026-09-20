@@ -9,9 +9,9 @@
 | 指标 | 值 | 事实源 |
 |---|---|---|
 | CI 门禁数 | 16 | `scripts/run_gates.py` GATES 元组 |
-| 测试锁面键数 | 306（core/tests 151 + server/tests 44 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
-| OpenAPI | 33 路径 / 36 操作 | `api-contracts/openapi.json` |
-| ADR 件数 | 24 | `docs/adr/ADR-*.md` |
+| 测试锁面键数 | 313（core/tests 156 + server/tests 46 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
+| OpenAPI | 34 路径 / 37 操作 | `api-contracts/openapi.json` |
+| ADR 件数 | 25 | `docs/adr/ADR-*.md` |
 | 未定义特性登记 | 总 53（已定义闭合 31 / 临置 0 / 待定义开放 11 / 待拍板 2 / 其他表述 9） | `docs/undefined-features-register.md` 表行 |
 | 快照锚点 | 4（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |
 | 工艺单元包数 | 32 | `core/waterprint/units_lib/*/*/manifest.py` |

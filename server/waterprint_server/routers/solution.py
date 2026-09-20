@@ -37,10 +37,11 @@ router = APIRouter(prefix="/api/solution", tags=["solution"])
 
 
 class JointEnumerateRequest(BaseModel):
-    """联合枚举请求（unit_ids≥1——空集 pydantic 422 面）。"""
+    """联合枚举请求（unit_ids 2..max_units——单单元走既有 /api/calc/enumerate
+    正门，N=1 不属联合语义[设计定稿 §1；门一 B1 收紧 2026-09-20]）。"""
 
     project_id: str
-    unit_ids: list[str] = Field(min_length=1)
+    unit_ids: list[str] = Field(min_length=2)
     options: dict[str, Any] | None = None
 
 
