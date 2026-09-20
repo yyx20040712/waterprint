@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: READY
+- status: RUNNING
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,8 +16,8 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T00:09:22.669Z
-- claim: -
+- heartbeat_utc: 2026-09-20T01:23:49Z
+- claim: manual-B4-2c-20260920T0123-m2c8
 - no_progress_count: 0
 - checked_total: 22
 - checked_done: 18
@@ -29,8 +29,8 @@
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: -
-- claimed_at: -
+- claimed_by: GLM-5.3-manual-session
+- claimed_at: 2026-09-20T01:23:49Z
 - next_batch: B4-2c 碳核算本体（先详细调研再立项——三轮裁决④；前置一/二已在 summary 落 cost_*/power_*/dose_* 键族）
 
 ## protocol（角色自识别 + 最小兜底协议）
