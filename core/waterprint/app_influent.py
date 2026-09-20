@@ -55,6 +55,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Final
 
+from waterprint.contracts.ports import Edge
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import CoefficientsView
 
@@ -72,7 +73,7 @@ _EFFLUENT_TN_LOAD: Final[str] = "effluent_tn_load_kg_d"
 
 def influent_summary_of(
     plant: PlantResult,
-    edges: tuple,
+    edges: tuple[Edge, ...],
     coefficients: CoefficientsView,
     effluent_summary: Mapping[str, Mapping[str, float]],
 ) -> dict[str, dict[str, float]]:
