@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T02:40:00Z
+- heartbeat_utc: 2026-09-20T03:23:44Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 22
@@ -29,9 +29,9 @@
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: -
-- claimed_at: -
-- next_batch: B4-2c 碳核算本体（先详细调研再立项——三轮裁决④；前置一/二已在 summary 落 cost_*/power_*/dose_* 键族）
+- claimed_by: manual-session-b44a
+- claimed_at: 2026-09-20T03:23:44Z
+- next_batch: B4-4a AI 集成演示版（2026-09-20 用户裁决插队提前：一句话 NL 解析→全厂计算→双报告落盘——CLI 确定性管线，规划档=仓外 .workflow/plans/ai-demo-plan.md；B4-3 联合枚举顺延）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -191,8 +191,8 @@
 - [x] B4-2a｜碳核算·前置一：能耗药耗计算面（**计算逻辑呈用户审查——R-B42a-1~4 四项全批**）
 - [x] B4-2b｜碳核算·前置二：运行成本面（opex）
 - [x] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④；**R-B42c-1~4 四项全批 2026-09-20**——B 案全口径/2019+AR6/全套口径/锁面笔授权）
-- [ ] B4-3｜联合枚举（ADR-005 解冻须用户裁决）
-- [ ] B4-4｜AI 集成深化
+- [ ] B4-3｜联合枚举（ADR-005 解冻须用户裁决；**2026-09-20 用户裁决顺延**——B4-4 拆段后演示段插队提前，本项回位演示段之后）
+- [ ] B4-4｜AI 集成深化（**2026-09-20 用户裁决拆段**：a=AI 集成演示版插队提前[一句话→计算→双报告——CLI 确定性管线]；b=深化段随原排序[B4-3 之后：多轮对话/前端聊天 pane/方案比选——演示版为第一块积木]；两段全成勾本项，总数不变）
 - [ ] B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）
 
 ### 治理小批·用户直排（2026-09-19 对话内裁决——B4-2a 收尾批后、B4-2b 前开工）
@@ -446,3 +446,9 @@
 - 账本：ruling（四问全批）+impl+gate1（B0/W4/N7 有条件放行·备源绑定承载）+gate2（8/8 GREEN·随宿主模型）+incident（venv 假红勘误）五行；health-scan 见收口呈报。勾选 18→19/22（B4-2c）；next_batch=B4-3 联合枚举（ADR-005 解冻须用户裁决——呈批面）；收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 3→4/60、墙钟 ~1.3h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；shared_fire 板不删火；推送面=认领+实现+[HUMAN-LOCK]+本收口终笔（CI run 35484317167 守望至绿——收口即推送纪律）。
 
 - 回炉修复行 — 2026-09-20T03:0XZ（CI 首跑红 triage——修板不是新批不 +batch_count）：run 35484317167（6f61728de 面）服务层三版本+内核 3.12/3.13 五 job 红——**单一根因=app_influent.py:75 edges: tuple 缺泛型参数（mypy strict [type-arg] 拒收）**。本地收口三验未拦根因=run_gates 16 门禁不含 mypy（mypy 仅 CI 面——验证面缺口记档）。处置笔：类型注解补 tuple[Edge, ...]+Edge import；本地复验 mypy 340 文件零告警+镜像测试 7 passed+门禁全绿；顺带批次日志两处模型代号字样中性化（门禁扫描面=板面全文——B4-2c 卫生小记②同类复发，示警：批次日志引用派发源名须中性化转述）。收口终笔后的回炉修复（B4-2b 回炉收口 batch_count 豁免同款；G-2 回炉注记先例）——板头状态字段零改动（READY 终态保持）。
+
+### 增补八 — 2026-09-20T03:23:44Z（手动会话领批：用户排序裁决落板+B4-4a 原子领批）
+- **用户裁决（2026-09-20 对话内，账本 ruling 行随批）**：B4-3 联合枚举与 B4-4 AI 集成交换——B4-4 拆两段，演示段 **B4-4a 插队提前**（裁决原文：「把 AI 集成提前，因为要演示很急，确认可以一句话进行计算并输出报告就打包，然后我后续会继续其余完整流程」）。性质=排序变更+范围界定（演示版≠深化全量）；规划档=仓外 `.workflow/plans/ai-demo-plan.md`（现状底座/范围/技术路线/验收/风险单源在彼处）。执行清单 B4-3/B4-4 两行已扩注，checked_total 22 不变（B4-4 两段全成勾本项——规划档 §七口径）。
+- 领批：手动路径=当前唯一路径（无火态）；写前回读 claim=-/status READY/板面静默（板 mtime 02:4X+，仓 HEAD 04510d55c=CI 绿面）零占用。认领 token=manual-B4-4a-20260920T0323（claimed_by=manual-session-b44a 中性名——B4-2c 卫生小记②纪律）。附注：用户指令追加一条范围外注记「软件页面要有导入 MCP 至 ZCode 的入口」——摸底实证=AI2 批 2026-09-13 已落地（webapp 顶栏「AI 接入」入口+GET/POST /api/ai/connection 一键写两份 .zcode/config.json），处置随呈批 P5 确认（存量在场确认 vs 演示可见性增强）。
+- 板头勘误：next_batch 字段值 B4-2c 系 B4-2c 收口终笔落笔遗漏（commit message 声称同步 B4-3 而板面未写——board 机检不校验该字段未拦，验证面小缺口记档）；本笔直接落 B4-4a（B4-3 既已顺延，不停留中间态）。
+- 批型=**实现批**（双门全走：门一异构隔离审[备源承载]+门二实证）；agent/tests 不在 §7 锁面（锁面=core/tests+server/tests+units_lib 包内 tests）——demo 测试件零 [HUMAN-LOCK] 拟定（呈批 P4 如实呈报）。开工呈批 P1~P4+P5（AskUserQuestion——规划档 §五）。
