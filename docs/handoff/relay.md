@@ -16,7 +16,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-20T04:35:00Z
+- heartbeat_utc: 2026-09-20T04:46:49Z
 - claim: -
 - no_progress_count: 0
 - checked_total: 22
@@ -24,14 +24,14 @@
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 5 <!-- rev1.1：回炉修复不 +1；B4-4a 手动批 4→5 -->
+- batch_count: 6 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-20
-- claimed_by: manual-session-b44a-pkg
-- claimed_at: 2026-09-20T04:35:00Z
-- next_batch: B4-4a-pkg Win11 软件包交付批（用户直排 2026-09-20：「打包为适配 win11 的软件包，并附带使用说明，输出至 D:\ai_soft\waterprint」——规划档 §四打包形态用户裁决修订：仓库可复制态→离线软件包；仓外产出为主，收口批对抗位=入仓污染面零命中+health-scan）
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-3 联合枚举（原排序回位——B4-4a 演示段与交付批均完成；ADR-005 解冻仍须用户裁决呈批面）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -467,3 +467,10 @@
 ### batch B4-4a-pkg 领批行 — 2026-09-20T04:35Z（手动会话主控直跑：Win11 软件包交付批）
 - 用户直排工单（对话内 2026-09-20）：打包为适配 Win11 的软件包+使用说明→D:\ai_soft\waterprint。性质=规划档 §四打包形态的用户裁决修订（原「不做 Docker/exe——演示物=仓库可复制态」→离线软件包）；批型=交付批（烤验=收口/交付批对抗位：入仓污染面零命中+health-scan RED=0——仓外产出为主、仓内预期零代码变更）。
 - 技术摸底（本行落板供批次日志引）：前端 API base=同源相对 /api（R2 C1 恒空基底）→包内胶水 serve_app.py 经 create_app 工厂 mount 静态（零仓内变更）；便携 Python=uv managed CPython 3.13.15（python-build-standalone 可迁移，与 server venv 同版本）；core 源码剔 __pycache__ 后 3MB（748M 为散落 pycache）；golden 种子真源 app\core\tests\golden\golden_data 必带（sandbox.repo_root 推导=app 伪仓库根）；依赖离线化=uv export 剔本地 path 包+wheels 目录 --no-index 安装。
+
+### batch B4-4a-pkg — 2026-09-20T04:35Z~04:5XZ（手动会话主控直跑：Win11 软件包交付批收官——用户直排工单，D:\ai_soft\waterprint 落包）
+- 交付（**仓外产出，仓内零代码变更**——本批仅板面笔）：D:\ai_soft\waterprint 完整离线软件包（725MB 含已装依赖；wheels/ 101MB 安装后可删省空间）——四脚本（安装.bat=PEP668 标记预删+pip --no-index 离线装/启动.bat=PYTHONPATH 三包注入+WATERPRINT_* 四 env 显式+PATH 注入 tools[uv 探测面]+8s 后开浏览器/停止.bat=netstat 8000 定位 taskkill/一句话演示.bat）+app 伪仓库根（core/server/agent 源码剔 __pycache__ 共 409 py 与源逐数对账+golden 种子 21 文件+data 25 文件+webapp dist 87 文件 36.8MB+serve_app.py 胶水[create_app 工厂+StaticFiles mount "/" 同源零 CORS/SSE——零仓内变更]）+tools（便携 CPython 3.13.15 python-build-standalone+uv.exe）+wheels（86 wheels 离线依赖）+使用说明.md（三步上手/功能导览[AI 接入=MCP 导入入口指引]/目录结构/FAQ/可选在线解析配置/演示三话术——矿井案口径如实注记）。
+- **端到端验证（实测全绿）**：离线安装→import 全家桶 OK；服务起（18s 内就绪）→前端页面 200+assets 200+/api/units 200；API 全链建项目→异步 calc 任务 done（result 落 app\exports\tasks）；AI 接入状态四项（agent_importable=true/uv_path=包内 tools\uv.EXE——PATH 注入生效一键接入可用/写目标=app\.zcode 与 D:\ai_soft\waterprint\.zcode 伪仓库根推导正确）；**demo CLI 包环境实跑话术①与开发环境逐位一致（design digest 2bc352604a 同值——跨形态确定性证据）**；冒烟项目清理+服务停止（8000 归零）。
+- 工艺实录：robocopy 首轮即全量（du 大数=NTFS 簇虚高误判，逐文件统计复核）；bat/板面内嵌 Windows 路径=raw string 纪律（首版 bat 转义控制字符损坏+板面笔脚本两次 parse 炸——SyntaxWarning 即拦截重写）；PYTHONPATH 在 git-bash 传 Windows Python 须 Windows 路径形态（MSYS /d/ 形态不识别）；PEP668 externally-managed 标记=python-build-standalone 拒装根因（包内预删标记优于 --break-system-packages 旗标）。
+- 对抗位（交付批）：入仓污染面零命中（本批仓内仅 relay.md 板面笔——check_model_names 等门禁随 CI 复核）+health-scan RED=0/WARN×3（历史欠账）。账本 impl 行在册。
+- 勾选 19/22 不变（交付批无清单项——挂 B4-4a 呈批注记段内）；next_batch=B4-3 联合枚举（原排序回位）；收口判定⑤READY（batch_count 5→6/60、墙钟 ~0.3h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/仓写入）；推送守望 CI 至绿（收口即推送纪律）。
