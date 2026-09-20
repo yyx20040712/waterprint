@@ -143,6 +143,7 @@ from waterprint.app_assembly import (
     assemble,
     validate_design_structure,  # P0-3 再导出（server 校验端点——呈裁④甲）
 )
+from waterprint.app_carbon import _with_carbon, carbon_summary_of
 from waterprint.app_energy import energy_summary_of
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
@@ -154,6 +155,7 @@ from waterprint.app_enumeration import (
     export_artifact,
     upstream_context,
 )
+from waterprint.app_influent import _with_influent, influent_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
@@ -349,6 +351,10 @@ def run_full_calc(
     tree: TraceTree = collector.tree() if collector is not None else _external_tree(env)
     base_summary = _with_energy(
         _summary_of(plant, assembled.edges), energy_summary_of(plant))
+    base_summary = _with_influent(
+        base_summary,
+        influent_summary_of(
+            plant, assembled.edges, env.coefficients, base_summary))
     filled = replace(
         plant,
         trace=tree,
@@ -357,7 +363,9 @@ def run_full_calc(
             engine_version=plant.repro.engine_version,
             data_version=plant.repro.data_version,
         ),
-        summary=_with_opex(base_summary, opex_summary_of(base_summary, env.coefficients)),
+        summary=_with_carbon(
+            _with_opex(base_summary, opex_summary_of(base_summary, env.coefficients)),
+            carbon_summary_of(base_summary, env.coefficients)),
     )
     diagnostics = build_diagnostics(
         filled,

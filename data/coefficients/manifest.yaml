@@ -1,6 +1,25 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.4.0"
+data_version: "1.5.0"
 # 变更记录：
+#   - 1.5.0: B4-2c 碳核算本体（2026-09-20；计算逻辑经用户审查
+#       R-B42c-1~4 四项全批——B 案全口径/2019+AR6/全套口径/锁面笔授权）：
+#       factors.yaml 增 12 键（实数口径 536→548）：factor.carbon.{
+#       grid_co2 0.5366 kgCO2/kWh[生态环境部 2022 全国电力均值]、
+#       n2o_ef_plant 0.016[IPCC 2019 厂内 1.6%]、n2o_ef_effluent 0.005、
+#       ch4_b0 0.6、ch4_mcf 0.03[2019 Table 6.3 好氧良好管理]、
+#       gwp_ch4 27.2[AR6 生物源]、gwp_n2o 273[AR6]、pac 1.764[Ecoinvent]、
+#       pam 4.76[CarbonFact/ecoinvent v3.1]、molar_n2o_n 1.5714286[44/28
+#       物理常数键化]、conv_mg_l_kg_m3 0.001[单位换算常数键化]} 十一键
+#       +factor.influent.s_per_d 86400[供数域——q_avg_daily m3/s→m3/d]；
+#       磁种 magnetic_seed 无权威源不立键（YAML 注释留位——R-B42c-3⑤）。
+#       消费面=core/waterprint/app_carbon.py C-F1~F9（三范围碳排平键族
+#       carbon_{direct,indirect,total}_kgco2e_d+carbon_intensity_kgco2e_m3
+#       ——逐工况 sparse、total 双在场律防部分口径误读）+app_influent.py
+#       IF1~IF4（进水负荷供数平键族 influent_*_kg_d——进水声明节点识别=
+#       无入边且 outflows 含 q_avg_daily）。档位=IPCC/生态环境部/Ecoinvent
+#       官方缺省 AI 起草待领域专家追认（数据策略 v2）；版本系选型实证=
+#       真值锚 0.587 kgCO2e/m3 与全国城镇污水厂均值 0.589 偏差 0.3%
+#       （2006 系对照 0.27 显著偏低）。1.4.0 既有 536 键零扰动。
 #   - 1.4.0: B4-2b 运行成本面（碳核算前置二 2026-09-19；计算逻辑经用户
 #       审查 R-B42b-1~4）：factors.yaml 增 5 键（实测口径 531→536——
 #       1.3.0 起记实数口径）：factor.opex.{electricity 0.70 yuan/kWh、

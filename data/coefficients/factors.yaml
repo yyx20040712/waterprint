@@ -3073,3 +3073,80 @@
   unit: "d/a"
   source: "工程估算常用带（待追认）"
   note: "连续运行年化天数（与 B4-2a ×24h/d 假设同源口径）；消费面=app_opex.py F1/F2（年化因子电费药剂共用）"
+
+# ── B4-2c 碳核算本体（1.5.0 增域——R-B42c-1~4 用户批准 2026-09-20）──
+
+- key: "factor.carbon.grid_co2"
+  value: 0.5366
+  unit: "kgCO2/kWh"
+  source: "生态环境部+国家统计局《关于发布2022年电力二氧化碳排放因子的公告》（2024-12-27）——全国电力平均（含市场化交易非化石电量；不含口径=0.5856）"
+  note: "范围二外购电力排放因子；CO2 口径按 CO2e 计（电网 CH4/N2O 份额未单列，量级影响可忽略——知情点）；消费面=app_carbon.py C-F1"
+
+- key: "factor.carbon.n2o_ef_plant"
+  value: 0.016
+  unit: "kgN2O-N/kgN"
+  source: "IPCC 2019 Refinement Vol.5 Ch.6（厂内污水处理 N2O 因子 1.6%；2006 旧值 0.0005——版本系 R-B42c-2 用户裁 2019）"
+  note: "范围一 N2O 厂内途径（文献带 0.005~0.028，de Haas）；消费面=app_carbon.py C-F3"
+
+- key: "factor.carbon.n2o_ef_effluent"
+  value: 0.005
+  unit: "kgN2O-N/kgN"
+  source: "IPCC Vol.5 Ch.6（出水下游水体 N2O 因子）"
+  note: "范围一 N2O 出水途径；消费面=app_carbon.py C-F4"
+
+- key: "factor.carbon.ch4_b0"
+  value: 0.6
+  unit: "kgCH4/kgBOD"
+  source: "IPCC Vol.5 Ch.6（生活污水最大产 CH4 能力 B0 缺省）"
+  note: "范围一 CH4；消费面=app_carbon.py C-F5"
+
+- key: "factor.carbon.ch4_mcf"
+  value: 0.03
+  unit: "-"
+  source: "IPCC 2019 Refinement Vol.5 Ch.6 Table 6.3（集中好氧处理厂管理良好 MCF；2006 旧值 0——2019 新增；管理差=0.3）"
+  note: "甲烷修正因子；消费面=app_carbon.py C-F5"
+
+- key: "factor.carbon.gwp_ch4"
+  value: 27.2
+  unit: "kgCO2e/kgCH4"
+  source: "IPCC AR6 100a 非化石/生物源（GHG Protocol 2024-08 推荐 AR6；AR5=28/AR4=21；污水 CH4=生物源适用 27.2）"
+  note: "GWP 版本系 R-B42c-2 用户裁 AR6；消费面=app_carbon.py C-F5"
+
+- key: "factor.carbon.gwp_n2o"
+  value: 273
+  unit: "kgCO2e/kgN2O"
+  source: "IPCC AR6 100a（AR5=265/AR4=298）"
+  note: "同上版本系；消费面=app_carbon.py C-F3/C-F4"
+
+- key: "factor.carbon.pac"
+  value: 1.764
+  unit: "kgCO2e/kg"
+  source: "Ecoinvent [GLO] polyaluminium chloride production（诺贝丽斯镇江 2024 年度温室气体报告引）"
+  note: "范围三药剂生产因子（cradle-to-gate）；消费面=app_carbon.py C-F2"
+
+- key: "factor.carbon.pam"
+  value: 4.76
+  unit: "kgCO2e/kg"
+  source: "CarbonFact 均值/ecoinvent v3.1 polyacrylamide production（丙烯腈原料+聚合能耗高——高于通用塑料带 2.6~3.2）"
+  note: "范围三；消费面=app_carbon.py C-F2"
+
+# factor.carbon.magnetic_seed: 待权威源后立键（R-B42c-3⑤——本批不立，
+#   键缺席→C-F2 磁种分项 sparse 跳过；无排放因子权威源，起草-追认制留位）
+
+- key: "factor.carbon.molar_n2o_n"
+  value: 1.5714286
+  unit: "kgN2O/kgN2O-N"
+  source: "摩尔质量比 44/28——物理常数非可调系数（魔法数字门禁：数值字面量禁入源码，经系数库承载——bz 重力同款先例）"
+  note: "N2O-N→N2O 质量换算；消费面=app_carbon.py C-F3/C-F4"
+
+- key: "factor.carbon.conv_mg_l_kg_m3"
+  value: 0.001
+  unit: "kg/m3 per mg/L"
+  source: "单位换算常数（1 mg/L = 1e-3 kg/m3）非可调系数——同上键化承载"
+  note: "浓度×流量→负荷换算；消费面=app_influent.py IF2/IF3/IF4"
+
+- key: "factor.influent.s_per_d"
+  value: 86400
+  unit: "s/d"
+  source: "单位换算常数（24×3600）非可调系数——供数域 factor.influent.*（与 carbon 域平级：86400 是供数件换算非碳因子）"
+  note: "q_avg_daily（m3/s 口径）→日流量换算；消费面=app_influent.py IF1"
