@@ -82,6 +82,7 @@ from waterprint_server.routers import (
     projects,
     scene,
     site,
+    solution,
     units,
 )
 from waterprint_server.services import ServiceContext
@@ -109,6 +110,12 @@ from waterprint_server.services.exports import (
     ExportTemplateMissingError,
     InvalidExportRequestError,
     StaleExportError,
+)
+
+# B4-3（2026-09-20）：联合枚举服务面异常（422 族——静态预检/请求形态）。
+from waterprint_server.services.joint_enumeration import (
+    InvalidJointUnitsError,
+    JointEnumerationTooLargeError,
 )
 from waterprint_server.services.project_lifecycle import ProjectBusyError
 from waterprint_server.services.projects import (
@@ -162,6 +169,13 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (StaleExportError, status.HTTP_409_CONFLICT),
     (TaskNotCompleteError, status.HTTP_409_CONFLICT),
     (MultiUnitEnumerationError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # B4-3：联合枚举静态预检（rows/N 超限）与请求形态（空/重复/未知
+    # unit_ids）→422（W7 事前拒绝面）。
+    (JointEnumerationTooLargeError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (InvalidJointUnitsError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # B4-3：core 侧联合枚举输入非法（worker 运行面二道闸）→400
+    #（InvalidAssemblyError 同族）。
+    (core.InvalidJointEnumerationError, status.HTTP_400_BAD_REQUEST),
     (InvalidPageParameterError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
@@ -221,6 +235,8 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # 《裁决书》方案五①，2026-09-19：35→36 破面[裁决书批次编排批 4 授权]）
 _EXPECTED_ENDPOINTS: Final[int] = (
     10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+    + 1  # B4-3：POST /api/solution/joint-enumerate（联合枚举正门，36→37 破面
+    # =ADR-006 决策 1——.workflow/b4-3/design-final.md 授权）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -366,6 +382,8 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     # 建连消耗被 429 前置压制；闸零路径参=openapi 零波面。
     app.include_router(projects.router, dependencies=[Depends(verify_token)])
     app.include_router(calc.router, dependencies=[Depends(verify_token)])
+    # B4-3：联合枚举正门（/api/solution/joint-enumerate——Bearer 沿册同保）。
+    app.include_router(solution.router, dependencies=[Depends(verify_token)])
     app.include_router(exports.router, dependencies=[Depends(verify_token)])
     app.include_router(
         events.router,
@@ -386,9 +404,10 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
     # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，
     # 真源在 router.routes）。
-    for units_route in units.router.routes:
-        if isinstance(units_route, APIRoute):
-            units_route.openapi_extra = {"security": []}
+    for units_route in (
+        route for route in units.router.routes if isinstance(route, APIRoute)
+    ):
+        units_route.openapi_extra = {"security": []}
     app.include_router(units.router)
     app.add_middleware(
         CORSMiddleware,

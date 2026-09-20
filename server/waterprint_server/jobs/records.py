@@ -41,7 +41,9 @@ from typing import Any, Final
 
 from waterprint_server.jobs.registry import TERMINAL_STATES
 
-_KINDS: Final[tuple[str, ...]] = ("calc", "enumerate", "export_batch")
+_KINDS: Final[tuple[str, ...]] = (
+    "calc", "enumerate", "export_batch", "joint_enumerate",  # B4-3 联合枚举
+)
 
 
 class UnknownTaskError(KeyError):

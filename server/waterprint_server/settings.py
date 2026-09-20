@@ -112,7 +112,8 @@ class Settings(BaseSettings):
     cache_entries: int = 10**2 * 10  # 1000（§17.2 LRU 条数上限）
     cache_mb: int = 10**2  # 100（§17.2 落盘体积上限 MB）
     task_queue_priorities: dict[str, int] = Field(
-        default_factory=lambda: {"calc": 10, "enumerate": 2, "export_batch": 1}
+        default_factory=lambda: {"calc": 10, "enumerate": 2, "export_batch": 1,
+                                   "joint_enumerate": 2}
     )
     log_level: str = "INFO"
     log_file: str = "waterprint-server.log"

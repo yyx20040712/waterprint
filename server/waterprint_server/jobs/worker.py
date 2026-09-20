@@ -73,7 +73,7 @@ import multiprocessing as mp
 import os
 import uuid
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Final, Protocol, cast
 
@@ -115,6 +115,7 @@ class _StagePoint:
 _STAGES: Final[dict[str, tuple[str, ...]]] = {
     "calc": ("load", "run", "serialize"),
     "enumerate": ("load", "run", "rows"),
+    "joint_enumerate": ("load", "run", "done"),  # B4-3 联合枚举
 }
 
 
@@ -285,6 +286,45 @@ def _run_enumerate(
     return enumeration_payload(outcome, rows_file, payload, project, conditions)
 
 
+def _run_joint_enumerate(
+    payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
+) -> Mapping[str, Any]:
+    """joint_enumerate → app.run_joint_enumerate（B4-3：载荷直返无行文件）。"""
+    task_id = str(payload["task_id"])
+    stages = _STAGES["joint_enumerate"]
+    _report(task_id, _StagePoint("load", 0, len(stages)), progress)
+    project = _load_project(payload)
+    data_dir = Path(str(payload["data_dir"]))
+    env = _build_env(data_dir, project)
+    conditions = build_condition_set([str(u) for u in payload.get("conditions", ())])
+    standards = core.load_effluent_standards(  # ADR-012 D6 装载门（calc 同源）
+        data_dir / "constraint_kb" / "constraints.json")
+    raw = dict(payload.get("options") or {})
+    options = core.JointEnumerationOptions(
+        grids=dict(raw.get("grids") or {}),
+        constraints={
+            unit: tuple(
+                core.Constraint(key=str(i["key"]), expression=str(i["expression"]),
+                                source=str(i["source"])) for i in items)
+            for unit, items in (raw.get("constraints") or {}).items()
+        },
+        standards=standards,
+    )
+    if _cancelled(cancel_token):
+        return {"state": "cancelled"}
+    _report(task_id, _StagePoint("run", 1, len(stages)), progress)
+    outcome = core.run_joint_enumerate(
+        project, [str(u) for u in payload["unit_ids"]], conditions, env, options
+    )
+    _report(task_id, _StagePoint("done", 2, len(stages)), progress)
+    return {"state": "done", "search_semantics": dict(outcome.search_semantics),
+            "combos": [asdict(c) for c in outcome.combos],
+            "diagnosis": dict(outcome.diagnosis) if outcome.diagnosis else None,
+            "budget_usage": dict(outcome.budget_usage),
+            "unit_ids": list(payload["unit_ids"]),
+            "project_id": payload.get("project_id", "")}
+
+
 _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")
 
 # SVRB D4：批量项级失败捕获面（_TRIGGER_FAILURES 现实异常族先例——grep
@@ -438,6 +478,7 @@ _KIND_RUNNERS: Final[dict[str, _TaskRunner]] = {
     "calc": _run_calc,
     "enumerate": _run_enumerate,
     "export_batch": _run_export_batch,
+    "joint_enumerate": _run_joint_enumerate,
 }
 
 

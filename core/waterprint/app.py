@@ -202,6 +202,7 @@ from waterprint.solution.joint_enumeration import (
     JointEnumerationOptions,
     JointEnumerationTooLarge,
     JointOutcome,
+    estimate_rows,
 )
 from waterprint.solution.joint_enumeration import run_joint_enumerate as _joint_run
 from waterprint.solution.joint_enumeration import terminal_summary as _summary_of
@@ -226,9 +227,10 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "Node", "ResultBundle",  # Node 再导出=AUDIT2 FIX1（server SceneResponse 类型面）
     "RunEnv",
     "SceneGraph",
-    "assemble", "build_scene",
+    "assemble", "build_grid", "build_scene",  # build_grid=B4-3 再导出（server 预检网格计数面）
     "design_hash",  # P0-2 再导出（server 枚举 worker 漂移闸③源——app 单入口语义同款）
     "discover_units",
+    "estimate_rows",  # B4-3 再导出（server 静态预检 rows 公式面）
     "export_artifact",
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
     "load_effluent_standards",  # 再导出（P2 次批 ADR-012 D6——worker 装载单入口同款）
