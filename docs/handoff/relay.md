@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-19T23:25:42.868Z
-- claim: hubfire-B4-2b-r1-20260919T2331-e3b7
+- heartbeat_utc: 2026-09-20T00:09:22.669Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
-- checked_done: 17
+- checked_done: 18
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 2
+- batch_count: 3
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-19
-- claimed_by: hub-fire-executor-session
-- claimed_at: 2026-09-19T23:25:42.868Z
-- next_batch: B4-2b 回炉实装批：R-B42b-1~4 四问已裁（见增补九+账本 ruling 行）——免再呈，直接按 .workflow/b4-2b/review-report.md 恢复路径 S1~S7→门二→锁面→推送守望→勾选
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-2c 碳核算本体（先详细调研再立项——三轮裁决④；前置一/二已在 summary 落 cost_*/power_*/dose_* 键族）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -189,7 +189,7 @@
 
 - [x] B4-1｜操作链集中 debug 观测面（复用 calc-diag+事件流聚合）
 - [x] B4-2a｜碳核算·前置一：能耗药耗计算面（**计算逻辑呈用户审查——R-B42a-1~4 四项全批**）
-- [ ] B4-2b｜碳核算·前置二：运行成本面（opex）
+- [x] B4-2b｜碳核算·前置二：运行成本面（opex）
 - [ ] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④）
 - [ ] B4-3｜联合枚举（ADR-005 解冻须用户裁决）
 - [ ] B4-4｜AI 集成深化
@@ -463,3 +463,44 @@
 - R-G2-1（门禁脚本 _lib 拆法入宪指针票面外搭车）维持入宪——G-2 呈报项销案。
 - 本条为用户直排裁决落板（增补八同款：READY 态增补，写前回读 claim=- 无占用；本笔后板面
   mtime 静默 5min 起火班四条件重新可满足）。
+
+
+### 增补十 — 2026-09-19T23:28:22.633Z（hub 停火：用户令删火——发错任务位事故后收线）
+- 用户 2026-09-19T23:2XZ 下删火令（「删火，下次别发错任务」）：全局轮转火
+  automation-9d069f57-…（本板板头字段行指向）已删——CronList 空集复核（调度员
+  CronDelete 补删时已不在册=用户侧 Automations 页先行删除）。板头 automation_id
+  字段行保留旧值仅为历史审计指向。
+- **在途 B4-2b-r1 不受影响——执行者独立于火自行完成收口**（token
+  hubfire-B4-2b-r1-20260919T2331-e3b7，认领笔 23:25:56Z 在本仓）。收口后本板
+  停于 READY/DONE 且无火接续——预期态非异常；恢复两径同规：用户显式
+  /batch-relay 重布防（换防协议 hub 变体），或手动会话按本板清单领批。
+- 事故记档（用户令「下次别发错任务」）：23:24Z 调度员 UI 开批跨 cell 视图漂移
+  致任务落错会话位——所幸注入指令带绝对路径，执行者认领/读写均在正仓（认领笔
+  实证）。**防复发三条**：①开批 UI 压缩至最少 cell 间隙（表单→勾选→发送前
+  重验项目徽标→输入→发送一气呵成）；②发送后验证新任务的项目徽标，错位即弃单
+  重开；③注入指令保持带绝对路径（执行者侧兜底已实证有效）。
+
+### batch B4-2b 回炉实装批 — 2026-09-19T23:25Z~2026-09-20T08:2XZ（hub 火执行者会话：opex 恢复路径 S1~S7 全链收官，B4-2b 勾选）
+- 认领 token hubfire-B4-2b-r1-20260919T2331-e3b7（调度员发布 23:24:19Z 在案；增补九四问已批免再呈）。
+- 交付（四笔全推送守望 CI 绿 run 35477767746〔f9a9d63 面〕：认领 966c234+实现 84c2adfa+[HUMAN-LOCK] 锁面 4f2a328+处置 f9a9d63）：S1 file-contracts 登记
+  app_opex.py（app_energy 同构第六例）+S2 factors.yaml 五键 factor.opex.*（电 0.70 yuan/kWh/PAC 1.85/PAM 27.5/磁种 1.3 yuan/kg/days_per_year 365——manifest
+  1.3.0→1.4.0 实数口径 531→536）+S3 app_opex.py 107 行纯投影（F1~F3+sparse 前缀列举判在场+_with_opex 归属本件〔门一 N4〕）+S4 app.py 注入链 +4 行
+  （482≤500，env.coefficients 在场零新参数）。
+- **F2 年化因子补正（实装发现）**：呈批报告/终裁 S3 的 F2 公式列字面无 ×days_per_year，与锚表算式（(1042.82×1.85+48.28×27.5)×365）矛盾——口径③「F1~F3+365
+  天年化」+键名量纲 yuan/a+锚表三证合一，F2 乘年化因子为正确口径（不乘则值偏 365 倍），实现按锚表落码；app_opex.py 规格头注记笔误出处；门二 M5 独立裁决同判
+  （GREEN 四证合一）。
+- 锁面工序 [HUMAN-LOCK]（R-B42b-4 授权链，B4-2a 91e1b3a 同款）：golden 四案 serialize 双锚重录（540006/6317846/544012/108902B，data_version 串 1.4.0 随行）
+  +effluent 增 cost_* 三族（municipal 系 5 工况×3=15 键/案+mine 2×3=6 键，值=实跑全精度，既有指标条目保源零触碰）+m3 seed 八锚回写+snapshots 3 哈希（audit
+  html 含新键+dxf 两族标注面随动——纯哈希面）+test_app_opex.py 镜像 6 用例（sparse 三态容错/分项合成/合计律/纯函数双跑/合并语义）+manifest 303→304（草稿器预检
+  新增恰 1+哈希变 5，COST2 守卫显式全根命令通过）+gen_status 重入库（coefficients 1.4.0+锁面 304，零漂移 2158B）。
+- 实证面：S6 收口三验全过（run_gates 16 门全绿+gen_status 零漂移+core 全量 1461 passed 零 fail 零 skip+server 315 passed〔uv 编辑安装真值面〕）；S7 锚表复核 8 锚
+  全过（相对差 1.2e-7~3.0e-5 舍入差带内——锚表两位舍入输入 vs 实跑全精度；回流增量电 +1.22%/+1.15% 药 +2.04%/+1.00% 与终裁注记逐位吻合；档=.workflow/
+  b4-2b/anchor-check.md）；门二 ops-probe 8/8 GREEN（独立算术复算四案 51/51 逐位相等+serialize 双锚跨进程对照+sparse 三态+F2 年化裁决+推送面零越界
+  〔server/webapp/unit_prices 零变更〕+data_version 链路+键族隔离；报告=.workflow/b4-2b/gate2-report.md+probe 证据档）。
+- 处置笔：factors.yaml days_per_year note 消费面勘误 F1→F1/F2（门二注记采纳——纯注记面零数值，B4-2a W-1 同款先例）。
+- 账本：impl+gate2 两行在册（runId=认领 token）；health-scan 收口前 RED=0/WARN×3（均历史欠账——缺 usage 历史记账同族，非本批引入）。
+- 勾选 17→18/22（B4-2b）；next_batch=B4-2c（碳核算本体——先详细调研再立项，三轮裁决④；前置一/二已在 summary 落 power_*/dose_*/cost_* 键族待碳核算消费）；
+  收口判定⑤READY（勾选有进展 no_progress 归零；batch_count 2→3/60、墙钟 ~0.9h/90h 熔断远未触发）。本笔为收口终态置位（置 READY=最后一笔，此后本会话零板/
+  仓写入）；shared_fire 板不删火；收口终笔推送预期绿下批首跑覆盖核对（B3-c 补记二口径）。
+- 卫生小记：geometric-repack 维护权限报错再现（G-1/G-2 在册留观同族，提交推送不受阻）；本批 node -e 内联多行脚本在 Git Bash 静默失败一次（claim 脚本改
+  .workflow/claim-b42b-r1.mjs 文件承载留档）。
