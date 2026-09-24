@@ -108,7 +108,7 @@ def test_golden_full_chain_mcp(  # noqa: PLR0913, PLR0915, PLR0917  # 参数化�
     expected = _expected(case_dir)
     default_n = _param_default(unit, "n")
     with _Client(agent_main.get_mcp()) as client:
-        assert len(client.tool_names()) == 21  # 满座计数（每用例常驻断言）
+        assert len(client.tool_names()) == 23  # B4-4b 子批 3：23 工具（#22/#23 增——原 21 满座计数随批更新）  # 满座计数（每用例常驻断言）
 
         created = client.call(
             "wp_create_project", {"name": f"e2e-{seed}", "seed": seed}

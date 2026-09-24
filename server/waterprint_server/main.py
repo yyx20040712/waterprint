@@ -355,6 +355,7 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
         ("WATERPRINT_AI_BASE_URL", settings.ai_base_url),
         ("WATERPRINT_AI_API_KEY", settings.ai_api_key),
         ("WATERPRINT_AI_MODEL", settings.ai_model),
+        ("WATERPRINT_AI_LLM_TIMEOUT_S", str(settings.ai_llm_timeout_s)),
     ):
         if _value:
             os.environ.setdefault(_key, _value)

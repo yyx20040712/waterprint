@@ -18,14 +18,16 @@
 # 【行为规格】
 #   R1 子进程：命令=[uv, run, --directory, <repo>/agent, python, -m,
 #      waterprint_agent.chat, --turn, sid, --message-file, mf]；env=
-#      os.environ ∪ 设置三键（非空覆盖——server settings 为准）；消息
-#      文件落 artifacts_dir（首行=用户输入，UTF-8）。
+#      os.environ 原样（AI 三键+超时经 env 单通道——main 启动 setdefault
+#      归一化，门一 W1-k2：密钥禁经任务载荷）；消息文件落 artifacts_dir
+#      （全文=用户输入，UTF-8——门一 W1-d1 全读对偶）。
 #   R2 进度：JSONL 事件→_report（stage=中文标签，percent=步进幂商）；
 #      turn_summary 行解析为终态结果（state=done 原文透传）。
 #   R3 取消：每行边界查 _cancelled——置位即 terminate+wait，返回
 #      {"state":"cancelled"}（不写半途结果——R4 同构）。
-#   R4 失败：子进程非零退出/uv 缺失→raise InvalidTaskPayloadError 族
-#      （main 422/500 映射既有面）；stdout 非法行跳过不计败（容错解析）。
+#   R4 失败：uv 缺失/载荷缺件→InvalidTaskPayloadError（422 面）；子进程
+#      非零退出→RuntimeError（500 面——门一 W4 分类解耦）；stdout 非法行
+#      跳过不计败（容错解析）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -68,18 +70,10 @@ def _stage_label(event: Mapping[str, Any]) -> str:
     return "对话进行中"
 
 
-def _child_env(base_url: str, api_key: str, model: str, timeout_s: int) -> dict[str, str]:
-    """子进程 env（os.environ ∪ 设置三键非空覆盖——R1）。"""
-    env = dict(os.environ)
-    for key, value in (
-        ("WATERPRINT_AI_BASE_URL", base_url),
-        ("WATERPRINT_AI_API_KEY", api_key),
-        ("WATERPRINT_AI_MODEL", model),
-        ("WATERPRINT_AI_LLM_TIMEOUT_S", str(timeout_s) if timeout_s else ""),
-    ):
-        if value:
-            env[key] = value
-    return env
+def _child_env() -> dict[str, str]:
+    """子进程 env（os.environ 原样——AI 三键+超时经 env 单通道，门一 W1-k2：
+    密钥禁经任务载荷[registry 落盘面]，main 启动 setdefault 归一化 settings→env）。"""
+    return dict(os.environ)
 
 
 def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple[Any, Path]:
@@ -106,12 +100,7 @@ def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        env=_child_env(
-            str(payload.get("ai_base_url", "")),
-            str(payload.get("ai_api_key", "")),
-            str(payload.get("ai_model", "")),
-            int(payload.get("ai_llm_timeout_s", 0) or 0),
-        ),
+        env=_child_env(),
         text=True,
         encoding="utf-8",
         errors="replace",

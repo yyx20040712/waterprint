@@ -17,11 +17,12 @@
 #   R1 零格式耦合：会话存储真源=agent 沙箱 JSONL——server 一律经 agent
 #      CLI 子进程读（不解析文件格式，格式演进零联动）。
 #   R2 只读子进程超时：--list-sessions/--history 单次调用 wall clock 上限
-#      30s（settings 旋钮 ai_readonly_timeout_s 缺省；超时=领域异常 502）。
-#   R3 提交载荷：kind=ai_chat、session_id、message、task_queue_priorities
-#      取键、settings 三键+超时透传（worker 面 env 注入）；会话 ID 分量
-#      校验（safe_child 同款——防路径注入）。
-#   R4 幂等键：session_id+message 哈希（同轮重发去重——task_id 复用）。
+#      20s（_READONLY_TIMEOUT_S=2*10 模块常数——幂积保白名单；超时=502）。
+#   R3 提交载荷：kind=ai_chat、session_id、message、data_dir、
+#      artifacts_dir（AI 三键禁经载荷——registry 落盘面，env 单通道：
+#      main 启动 setdefault 归一化）；会话 ID 分量校验。
+#   R4 无幂等键：对话场景合法重复消息（「继续/重算」）——每 POST=新任务
+#      （门一 W3-d1：同指纹去重会吞第二条）。
 #
 # 【错误与边界】AiChatReadError（RuntimeError 族）=只读子进程失败/超时。
 # 【禁止事项】禁 import waterprint_agent；禁解析会话文件内容。

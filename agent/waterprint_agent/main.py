@@ -22,8 +22,8 @@
 #   R2 入口序：main()=sandbox_root()（env 覆盖）→init_workspace()（幂等
 #      建树）→get_mcp()→mcp.run()（默认 stdio transport——fastmcp 3.0
 #      run() 无参即 stdio）。
-#   R3 工具装配：knowledge/projects/calc/results/exports 五组 register
-#      （权威表 #1~#21——签名冻结，技能文档按此写；全部经 context.
+#   R3 工具装配：knowledge/projects/calc/results/exports/solution/overview
+#      六组 register（权威表 #1~#23——签名冻结，技能文档按此写；全部经 context.
 #      run_tool 包装=会话日志自动记账）。
 # ══════════════════════════════════════════════════════════════════
 

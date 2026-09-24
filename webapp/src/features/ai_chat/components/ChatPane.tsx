@@ -10,30 +10,11 @@ import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useTaskEventSource } from "../../../shared/api/useTaskEventSource";
-import type { TaskEventReading } from "../../../shared/api/useTaskEventSource";
+
+import { interpretChatEvent } from "../lib/chatEvent";
 
 import { useChatHistory, useChatSessions, useSendChatMessage, CHAT_HISTORY_KEY } from "../api/useAiChat";
 import { ChatPanel } from "./ChatPanel";
-
-/** 任务 SSE 解读（TaskEventReading 三态协议——stage 文案经 stageSink 副作用外送）。 */
-type StageSink = (stage: string) => void;
-
-function interpretEvent(data: string, stageSink: StageSink): TaskEventReading {
-  try {
-    const parsed = JSON.parse(data) as { type?: string; state?: string; stage?: string };
-    if (parsed.type === "state" && parsed.state && ["done", "failed", "cancelled"].includes(parsed.state)) {
-      return { kind: "terminal", state: parsed.state };
-    }
-    if (parsed.type === "progress" && typeof parsed.stage === "string") {
-      stageSink(parsed.stage);
-      return { kind: "event" };
-    }
-  } catch {
-    /* 非法行=drop（协议口径：畸形不计链路健康） */
-    return { kind: "drop" };
-  }
-  return { kind: "event" };
-}
 
 /** 首发建档：客户端生成会话 ID（hex32——agent uuid4 同形态对齐）。 */
 const newSessionId = () =>
@@ -73,7 +54,7 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
 
   useTaskEventSource(
     turnTaskId,
-    (data) => interpretEvent(data, setTurnStage),
+    (data) => interpretChatEvent(data, setTurnStage),
     handleTerminal,
   );
 

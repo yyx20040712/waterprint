@@ -90,12 +90,13 @@ def test_stage_labels_neutral() -> None:
     assert _stage_label({"type": "unknown"}) == "对话进行中"
 
 
-def test_child_env_overrides_only_nonempty() -> None:
-    """env 覆盖面：空键不覆盖（os.environ 原样）——三键非空才注入。"""
+def test_child_env_is_os_environ_copy(monkeypatch) -> None:
+    """env 单通道（门一 W1-k2）：子进程 env=os.environ 快照（三键经 main
+    setdefault 归一化注入——载荷禁携密钥的运行面闭合）。"""
     from waterprint_server.jobs.ai_chat import _child_env
 
-    env = _child_env("http://x/v1", "", "m-1", 0)
+    monkeypatch.setenv("WATERPRINT_AI_BASE_URL", "http://x/v1")
+    monkeypatch.setenv("WATERPRINT_AI_MODEL", "m-1")
+    env = _child_env()
     assert env["WATERPRINT_AI_BASE_URL"] == "http://x/v1"
     assert env["WATERPRINT_AI_MODEL"] == "m-1"
-    assert "WATERPRINT_AI_API_KEY" not in env or env["WATERPRINT_AI_API_KEY"] != ""
-    assert "WATERPRINT_AI_LLM_TIMEOUT_S" not in env or env["WATERPRINT_AI_LLM_TIMEOUT_S"] != "0"
