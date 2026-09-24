@@ -40,12 +40,12 @@ async def test_submit_returns_task_handle(service_ctx, monkeypatch) -> None:  # 
     assert status.state in {"queued", "running", "done", "failed"}
 
 
-async def test_submit_idempotent_same_message(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-    """R4 幂等键：同会话同消息重发→task_id 复用（不重复入队）。"""
+async def test_submit_repeat_message_new_task(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """门一 W3-d1：同会话同消息重发=新任务（「继续/重算」不得被同指纹幂等吞没）。"""
     monkeypatch.setattr("waterprint_server.jobs.ai_chat.which", lambda name: None)
     first = await chat_service.submit_ai_chat_turn(service_ctx, "sess-2", "计算一下")
     second = await chat_service.submit_ai_chat_turn(service_ctx, "sess-2", "计算一下")
-    assert first.task_id == second.task_id
+    assert first.task_id != second.task_id
 
 
 async def test_submit_payload_carries_settings(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
@@ -62,14 +62,17 @@ async def test_submit_payload_carries_settings(service_ctx, monkeypatch) -> None
     from waterprint_server.services import ServiceContext
 
     tuned = service_ctx.settings.model_copy(
-        update={"ai_base_url": "http://example/v1", "ai_model": "neutral-name"}
+        update={"ai_base_url": "http://example/v1", "ai_model": "neutral-name",
+                "ai_api_key": "sk-secret-material"}
     )
     tuned_ctx = ServiceContext(settings=tuned, manager=service_ctx.manager)
     await chat_service.submit_ai_chat_turn(tuned_ctx, "sess-3", "话术")
     assert captured["kind"] == "ai_chat"
-    assert captured["ai_base_url"] == "http://example/v1"
-    assert captured["ai_model"] == "neutral-name"
     assert captured["session_id"] == "sess-3"
+    # 门一 W1-k2：三键禁经载荷（registry 落盘面=密钥落盘）——env 单通道
+    assert "ai_api_key" not in captured
+    assert "ai_base_url" not in captured
+    assert "ai_model" not in captured
 
 
 def test_stage_labels_neutral() -> None:

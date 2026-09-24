@@ -31,7 +31,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 from shutil import which
@@ -123,7 +122,6 @@ def read_history(ctx: ServiceContext, session_id: str) -> list[dict[str, Any]]:
 async def submit_ai_chat_turn(ctx: ServiceContext, session_id: str, message: str) -> TaskHandle:
     """对话轮提交（R3/R4——异步 job，进度/取消走任务端点族既有面）。"""
     validate_component(session_id)
-    digest = hashlib.sha256(f"{session_id}:{message}".encode()).hexdigest()
     settings = ctx.settings
     return await ctx.manager.submit(
         TaskRequest(
@@ -135,11 +133,10 @@ async def submit_ai_chat_turn(ctx: ServiceContext, session_id: str, message: str
                 "message": message,
                 "data_dir": str(settings.data_dir),
                 "artifacts_dir": str(ctx.artifacts_dir),
-                "ai_base_url": settings.ai_base_url,
-                "ai_api_key": settings.ai_api_key,
-                "ai_model": settings.ai_model,
-                "ai_llm_timeout_s": settings.ai_llm_timeout_s,
+                # 密钥三键不经载荷（门一 W1-k2：payload 落 registry 档=密钥落盘
+                # ——改 env 单通道，main 启动归一化 settings→os.environ）。
             },
         ),
-        idempotency_key=f"ai-chat:{session_id}:{digest}",
+        # 无幂等键（门一 W3-d1）：对话场景合法重复消息（「继续/重算」）高频，
+        # 同指纹去重会吞掉第二条——每 POST=新轮任务。
     )

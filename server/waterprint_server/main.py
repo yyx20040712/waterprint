@@ -53,6 +53,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import multiprocessing as mp
+import os
 import uuid
 from collections.abc import AsyncIterator, Callable
 from concurrent.futures import Executor, ProcessPoolExecutor
@@ -257,7 +258,8 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 1
     + 1  # B4-3：POST /api/solution/joint-enumerate（联合枚举正门，36→37 破面
     # =ADR-025 决策 1——.workflow/b4-3/design-final.md 授权）
-    + 2 + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
+    + 2
+    + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
     # =.workflow/b4-4b/design-final.md §四授权）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
@@ -347,6 +349,15 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
 ) -> FastAPI:
     """应用工厂（可测试可重复构建——装配束挂 app.state 无全局可变态）。"""
     _configure_logging(settings)
+    # B4-4b 门一 W1-k2 处置：AI 三键 env 单通道归一化（settings 含 .env 文件源
+    # 时进程 env 缺位——worker 子进程桥只读 env；setdefault 不覆写既有值）。
+    for _key, _value in (
+        ("WATERPRINT_AI_BASE_URL", settings.ai_base_url),
+        ("WATERPRINT_AI_API_KEY", settings.ai_api_key),
+        ("WATERPRINT_AI_MODEL", settings.ai_model),
+    ):
+        if _value:
+            os.environ.setdefault(_key, _value)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

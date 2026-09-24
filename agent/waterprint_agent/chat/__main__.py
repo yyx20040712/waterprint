@@ -35,20 +35,55 @@ def _emit_jsonl(event: dict) -> None:
     print(json.dumps(event, ensure_ascii=False, default=str), flush=True)
 
 
+_LOCK_STALE_S = 10 * 60  # 锁过期窃取阈（秒——崩溃残留锁的收口窗）
+
+
+def _acquire_session_lock(ctx, session_id: str):
+    """同会话互斥锁（门一 W7：并发桥写同一 JSONL 交错防线——O_EXCL 独占
+    创建+过期窃取；崩溃残留=下一轮过阈自动回收）。"""
+    import time
+
+    lock = ctx.guard.resolve_in(
+        __import__("pathlib").Path(f"chat/{session_id}.lock"), area="sessions"
+    )
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        return open(
+            lock, encoding="utf-8", mode="x"
+        )
+    except FileExistsError:
+        if time.time() - lock.stat().st_mtime > _LOCK_STALE_S:
+            lock.unlink(missing_ok=True)  # 过期窃取（上轮崩溃残留）
+            return open(lock, encoding="utf-8", mode="x")
+        return None
+
+
 def _run_bridge_turn(ctx, args: argparse.Namespace) -> int:
     """桥模式（R2）：读消息文件跑一轮——事件流 stdout，终态恒 0（截断已事件化）。"""
     if not args.message_file:
         print("桥模式须给 --message-file", file=sys.stderr)
         return 1
     with open(args.message_file, encoding="utf-8") as handle:
-        message = handle.readline().strip()
+        message = handle.read().strip()  # 全文（门一 W1-d1：readline 会截多行消息）
     from waterprint_agent.chat import loop, sessions
 
-    session = sessions.load_session(ctx, args.turn) or sessions.create_session(
-        ctx, session_id=args.turn
-    )
-    result = loop.run_turn(ctx, session, message, emit=_emit_jsonl)
-    _emit_jsonl({"type": "turn_summary", "session_id": session.session_id, **result})
+    lock = _acquire_session_lock(ctx, args.turn)
+    if lock is None:
+        print("会话忙（另一轮进行中——稍后重试）", file=sys.stderr)
+        return 3
+    try:
+        session = sessions.load_session(ctx, args.turn) or sessions.create_session(
+            ctx, session_id=args.turn
+        )
+        result = loop.run_turn(ctx, session, message, emit=_emit_jsonl)
+        _emit_jsonl({"type": "turn_summary", "session_id": session.session_id, **result})
+    finally:
+        lock.close()
+        import pathlib
+
+        ctx.guard.resolve_in(pathlib.Path(f"chat/{args.turn}.lock"), area="sessions").unlink(
+            missing_ok=True
+        )
     return 0
 
 

@@ -100,6 +100,13 @@ def create_session(
     session_id 显式传入时沿用（server 桥首发建档——客户端生成 ID 与
     会话文件同名对齐）；缺省=uuid4 新生成。"""
     session_id = session_id or new_session_id()
+    import re
+
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", session_id):
+        raise ValueError(
+            f"会话 ID 成分非法：{session_id!r}（门一 B1 防御纵深——显式 ID 须过"
+            "分量白名单，与 server validate_component 同规）"
+        )
     path = session_path(ctx, session_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     created = _now()

@@ -36,6 +36,17 @@ def test_create_and_load(sandbox_env: Path) -> None:
     assert loaded.project_id is None
 
 
+def test_create_session_rejects_bad_explicit_id(sandbox_env: Path) -> None:
+    """门一 B1 防御纵深：显式 ID 过分量白名单（../与反斜杠拒——ValueError）。"""
+    import pytest as _pytest
+
+    ctx = context.get_context()
+    with _pytest.raises(ValueError, match="成分非法"):
+        sessions.create_session(ctx, session_id="..\escape")
+    with _pytest.raises(ValueError, match="成分非法"):
+        sessions.create_session(ctx, session_id="bad$id")
+
+
 def test_load_missing_returns_none(sandbox_env: Path) -> None:
     ctx = context.get_context()
     assert sessions.load_session(ctx, "no-such-id") is None

@@ -172,6 +172,14 @@ def _run_ai_chat(
             "ai_chat 载荷缺 session_id/message（IPC 面防线——服务面已校验，"
             "本闸防绕过服务层直构 payload）"
         )
+    from waterprint_server.settings import (  # noqa: PLC0415  # 懒 import（与 worker 破环族同制）
+        validate_component,
+    )
+
+    try:
+        validate_component(session_id)  # 门一 B1 防御纵深：IPC 面成分二道闸
+    except ValueError as exc:
+        raise InvalidTaskPayloadError(f"session_id 成分非法：{exc}") from exc
     uv = which("uv")
     if uv is None:
         raise InvalidTaskPayloadError("未找到 uv 可执行（agent CLI 子进程桥不可用）")
@@ -192,7 +200,7 @@ def _run_ai_chat(
         return {"state": "cancelled"}
     if return_code != 0:  # type: ignore[comparison-overlap]  # narrows below None-guard; mypy literal drift
         tail = process.stderr.read()[-_TAIL_CHARS:] if process.stderr else "（空）"
-        raise InvalidTaskPayloadError(
+        raise RuntimeError(  # 门一 W4：运行期失败≠载荷非法（500 面——分类解耦）
             f"对话子进程退出码 {return_code}（agent CLI 桥失败——stderr 摘要 {tail}）"
         )
     return {"state": "done", "session_id": session_id, **summary}
