@@ -44,7 +44,9 @@ def _run_bridge_turn(ctx, args: argparse.Namespace) -> int:
         message = handle.readline().strip()
     from waterprint_agent.chat import loop, sessions
 
-    session = sessions.load_session(ctx, args.turn) or sessions.create_session(ctx)
+    session = sessions.load_session(ctx, args.turn) or sessions.create_session(
+        ctx, session_id=args.turn
+    )
     result = loop.run_turn(ctx, session, message, emit=_emit_jsonl)
     _emit_jsonl({"type": "turn_summary", "session_id": session.session_id, **result})
     return 0

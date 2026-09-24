@@ -92,9 +92,14 @@ def _records(path: Path) -> list[dict[str, Any]]:
     return out
 
 
-def create_session(ctx: AgentContext, title: str = "") -> ChatSession:
-    """建会话（meta 首行落盘）——返回运行态句柄。"""
-    session_id = new_session_id()
+def create_session(
+    ctx: AgentContext, title: str = "", session_id: str | None = None
+) -> ChatSession:
+    """建会话（meta 首行落盘）——返回运行态句柄。
+
+    session_id 显式传入时沿用（server 桥首发建档——客户端生成 ID 与
+    会话文件同名对齐）；缺省=uuid4 新生成。"""
+    session_id = session_id or new_session_id()
     path = session_path(ctx, session_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     created = _now()

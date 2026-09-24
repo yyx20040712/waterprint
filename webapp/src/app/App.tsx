@@ -80,7 +80,7 @@
  *     StatusBar 挂根 Layout 内（flex 列末项——100vh 内不被推出视口）；
  *     Sider 宽 280→232+去 theme light（token siderBg 承载）。
  */
-import { FolderOpenOutlined, SettingOutlined } from "@ant-design/icons";
+import { FolderOpenOutlined, MessageOutlined, SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { Button, Layout, Tabs, Typography } from "antd";
 
@@ -110,6 +110,7 @@ import { UnitLibrary } from "./unitLibrary";
 import { Viewer3dPane } from "./viewer3dPane";
 import { AiConnectButton } from "../features/aiconnect/components/AiConnectButton";
 import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal";
+import { ChatPane } from "../features/ai_chat/components/ChatPane";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -166,6 +167,8 @@ export function App() {
   // AI2（2026-09-13）：AI 接入 Modal 开态（入口=Header AiConnectButton——
   // 状态四项检查+一键接入 waterprint-mcp）
   const [aiConnectOpen, setAiConnectOpen] = useState(false);
+  // B4-4b 子批 2：设计对话 Drawer 开态（浮层形态零路由破面——aiconnect 先例）
+  const [chatOpen, setChatOpen] = useState(false);
   // P2 生命周期 L4：项目管理 Modal 开态（入口=Header 文件夹钮+空态钮双入口）
   const [managerOpen, setManagerOpen] = useState(false);
   // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
@@ -297,6 +300,15 @@ export function App() {
             />
             {/* AI2：AI 接入入口（设置图标旁——waterprint-mcp 一键连接引导） */}
             <AiConnectButton onClick={() => setAiConnectOpen(true)} />
+            {/* B4-4b 子批 2：设计对话入口（AI 接入旁——对话编排面） */}
+            <Button
+              type="text"
+              icon={<MessageOutlined />}
+              onClick={() => setChatOpen(true)}
+              aria-label="设计对话"
+              title="设计对话（自然语言设计助手）"
+              data-testid="wp-chat-open"
+            />
             {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
             <Button
               type="text"
@@ -394,6 +406,7 @@ export function App() {
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
+      <ChatPane open={chatOpen} onClose={() => setChatOpen(false)} />
       <ProjectManagerModal open={managerOpen} onClose={() => setManagerOpen(false)} />
     </Providers>
   );
