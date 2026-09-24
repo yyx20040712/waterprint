@@ -355,3 +355,5 @@
 - **Rulings 呈报**（不阻断，随收口全清单）：R-B44b-1 范围并集全量（默认推荐已执行——两段全成勾口径）/R-B44b-2 LLM 三键无缺省 fail-fast 降级（终裁勘正：降级即行为非 503）/R-B44b-3 R-B44a-2 存量债维持宪法级挂账（agent 4 failed/5 skipped+CI 无 agent job——修复批另立涉人类工序）/R-B44b-4 **solutions 专用 joint UI 欠账**（solutionsPane 497/500 顶墙须拆壳独立批——本批比选消费面=agent 工具全链+聊天呈现，呈用户追认）。
 - **挂账面**（N 级 18 条入清单不阻塞+#22 三态测试密度/#23 stale 三因分例/桥与 worker 无仓内自动化测试件[多行为人工实证]/agent mypy import-untyped 35 债[CI 无 agent job 实态]/**推送欠账：本机代理断 GitHub 不可达——本批十一笔+板面笔在本地，代理恢复即推送+守望 CI**）。
 - 勾选 20→21/22（B4-4）；next_batch=B4-5；batch_count 8→9/60。本笔为收口终态置位。
+
+- **CI 守望实录**（收口后两轮 triage）：首跑 run 36014673414 双红=①status.md 漂移（锁面 322→323 发生于重生成之后——计数未随）②server 覆盖率 91.38%<92% 门（新件子进程路径未覆盖）→CI 修复笔补仿进程/仿子过程单测九件（jobs/test_ai_chat 四件+services 只读面五件——全量 93% 回门）+status 重生成；次跑 run 36018094435 双红=①修复笔触碰 manifest 未带 [HUMAN-LOCK]（amend 补标）②status 漂移复发（同因）→amend 合并（de0fcdbf9b——单人仓 force-with-lease 即时改写）；三跑 run 36019422755 单红=force-push 令 push range 不可解析=信任根守卫 fail-closed 设计行为→本笔真实板面记录恢复正常 range（守望续至绿——守卫设计=首推/改写面须显式 range 重跑，本笔即最短正路）。
