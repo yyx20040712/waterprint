@@ -205,6 +205,22 @@ _SPEC: tuple[tuple[str, str, str, tuple[str, ...], dict[str, Any], str], ...] = 
         {},
         "生成设计说明书（Markdown，verify 全绿才落盘）",
     ),
+    (
+        "wp_run_joint_enumeration",
+        "solution",
+        "_run_joint_enumeration_impl",
+        ("project_id", "unit_ids", "top_n"),
+        {},
+        "全厂联合枚举（跨单元寻优 top-N——护栏拒绝返回 rejected+reason）",
+    ),
+    (
+        "wp_get_ops_overview",
+        "overview",
+        "_overview_impl",
+        ("limit",),
+        {},
+        "跨项目操作概览（最近结果+stale 计数+诊断摘要）",
+    ),
 )
 
 _TOOL_HINT = "参数以工具 schema 为准；错误返回含 error+hint 两键，按 hint 调整后重试。"
@@ -214,7 +230,7 @@ _PARAMS: dict[str, dict[str, Any]] = {
     "category": {"type": "string", "description": "业务线过滤（可空=全量）"},
     "unit_id": {"type": "string", "description": "单元 ID（wp_list_units 查）"},
     "query": {"type": "string", "description": "检索词"},
-    "source": {"type": "string", "description": "知识源（constraints/coefficients）"},
+    "source": {"type": "string", "description": "知识源（constraints/coefficients/assumptions）"},
     "name": {"type": "string", "description": "项目显示名"},
     "seed": {
         "type": "string",

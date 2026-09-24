@@ -281,6 +281,9 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `agent/waterprint_agent/chat/prompts.py` | 系统提示唯一构造面（中性中文——零模型代号零数字主张） | 绑定态+降级态 | system 文本 |
 | `agent/waterprint_agent/chat/fallback.py` | 关键词直译回退（话术→种子计划——B4-4a 蓝图沿承，非设计域显式拒绝） | 话术 | FallbackPlan/None |
 | `agent/waterprint_agent/chat/__main__.py` | Chat CLI 入口（单发/交互/worker 桥 JSONL 事件流/历史/清单五模式） | argv+env | stdout+退出码 |
+| `agent/waterprint_agent/tools/solution.py` | 方案组 #22（B4-4b 子批 3：wp_run_joint_enumeration 进程内同步联合枚举——core 正门与 worker 同一装配口径[flows 条件/标准+RunEnv]；护栏族捕获转 rejected dict 可解释回显；unit_ids<2 域下界拒） | project_id+unit_ids+top_n | top-N 组合投影 dict |
+| `agent/waterprint_agent/tools/overview.py` | 观测组 #23（B4-4b 子批 3：wp_get_ops_overview 跨项目聚合——results 区 mtime 降序 limit 件+stale 计数[结果 digest vs 项目 content_hash 同源判定]+诊断摘要；results.py 500 顶墙故独立模块；server ops-chain 互补非替代——沙箱任务表恒空事实） | limit | 聚合概览 dict |
+| `agent/waterprint_agent/chat/narrative.py` | 轨道丙扩展（B4-4b 子批 3：决策纪要→process_selection 叙述草稿——纯模板零计算，经 narrative_fills 人工采用；verify 门零动） | 决策四键列表 | 叙述建议文本 |
 | `agent/waterprint_agent/main.py` | MCP server 入口（FastMCP 懒加载单例+五组 21 工具注册+instructions） | env/stdio | MCP 会话 |
 | `agent/waterprint_agent/context.py` | AgentContext 装配束（私有 Manager/绝对路径 Settings/PathGuard/SessionLog/run_tool 统一包装+异常兜底） | 沙箱根+数据包路径 | AgentContext |
 | `agent/waterprint_agent/pathguard.py` | 沙箱唯一 IO 门（realpath+normcase 归一后前缀判定；拒 ../UNC/跨盘符；正式区只读门） | 相对路径+area | 解析后绝对路径/PathGuardError |

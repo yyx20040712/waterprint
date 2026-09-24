@@ -45,8 +45,8 @@ _HINT_MANIFEST = (
     "quality_edit/recycle_junction）亦可查。"
 )
 _HINT_QUERY = (
-    "source 取 constraints（约束知识库）或 coefficients（经验系数库）；"
-    "query 建议用单元名/参数名/指标名片段。"
+    "source 取 constraints（约束知识库）/coefficients（经验系数库）/assumptions"
+    "（护栏假设键——如 solution.joint.*）；query 建议用单元名/参数名/指标名片段。"
 )
 
 
@@ -178,6 +178,24 @@ def _query_knowledge_impl(
             "limit": _KNOWLEDGE_LIMIT,
             "truncated": len(keys) > _KNOWLEDGE_LIMIT,
             "hits": hits,
+        }
+    if source == "assumptions":
+        # B4-4b 子批 3：第三源=护栏假设键（solution.joint.* 等——程序化读
+        # core DEFAULT_ASSUMPTIONS 单源，零第二真源；审 W3 处置）。
+        from waterprint.app import DEFAULT_ASSUMPTIONS
+
+        needle = query.casefold()
+        entries = [
+            {"key": entry.key, "default": entry.default}
+            for entry in DEFAULT_ASSUMPTIONS if needle in entry.key.casefold()
+        ]
+        return {
+            "source": "assumptions",
+            "query": query,
+            "total_hits": len(entries),
+            "limit": _KNOWLEDGE_LIMIT,
+            "truncated": len(entries) > _KNOWLEDGE_LIMIT,
+            "hits": entries[:_KNOWLEDGE_LIMIT],
         }
     return {"error": f"未知 source：{source!r}", "hint": _HINT_QUERY}
 

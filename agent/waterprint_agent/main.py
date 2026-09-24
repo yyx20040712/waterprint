@@ -1,12 +1,13 @@
 """MCP server 入口（D1）：FastMCP 懒加载装配+stdio 运行（console: waterprint-mcp）。
 
 输入:  MCP 客户端（ZCode 等）stdio 挂载；env WATERPRINT_AI_SANDBOX 定沙箱
-输出:  21 工具（知识组 #1~#3+项目编辑组 #4~#7+计算组 #8~#10+结果组
-       #11~#16+导出组 #17~#21）——spawn→tools/list 目标 <1.5s
+输出:  23 工具（知识组 #1~#3+项目编辑组 #4~#7+计算组 #8~#10+结果组
+       #11~#16+导出组 #17~#21+方案组 #22+观测组 #23）——spawn→tools/list 目标 <1.5s
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 契约头（AI1-TRACK-B 2026-09-13；AI1-INTEG-2026-09-13 扩至 21 工具）
+# 契约头（AI1-TRACK-B 2026-09-13；AI1-INTEG-2026-09-13 扩至 21 工具；
+#   B4-4b 子批 3 2026-09-24 扩至 23 工具——方案组 #22+观测组 #23）
 #   路径：agent/waterprint_agent/main.py
 #   职责：FastMCP 实例懒加载装配（get_mcp 单例）+入口 main()（读 env
 #       定沙箱→init_workspace→mcp.run() stdio）。
@@ -29,7 +30,15 @@
 from __future__ import annotations
 
 from waterprint_agent import sandbox
-from waterprint_agent.tools import calc, exports, knowledge, projects, results
+from waterprint_agent.tools import (
+    calc,
+    exports,
+    knowledge,
+    overview,
+    projects,
+    results,
+    solution,
+)
 
 __all__ = ["get_mcp", "main"]
 
@@ -41,14 +50,15 @@ _INSTRUCTIONS = (
     "wp_get_result_summary/wp_get_diagnostics 读结果与诊断迭代，"
     "wp_get_unit_detail/wp_get_trace_excerpt/wp_get_estimate_summary/"
     "wp_get_layout_summary 按需回取，导出走 wp_export_* 五件套"
-    "（calcbook/audit/dxf/ifc/report）。只编排不算数（ADR-019）。"
+    "（calcbook/audit/dxf/ifc/report），跨单元寻优 wp_run_joint_enumeration，"
+    "跨项目概览 wp_get_ops_overview。只编排不算数（ADR-019）。"
 )
 
 _MCP: object | None = None  # FastMCP 实例（类型不顶层导入——懒加载）
 
 
 def get_mcp() -> object:
-    """FastMCP 懒加载单例（首次调用装配 21 工具——仅 import fastmcp）。"""
+    """FastMCP 懒加载单例（首次调用装配 23 工具——仅 import fastmcp）。"""
     global _MCP  # noqa: PLW0603
     if _MCP is None:
         from fastmcp import FastMCP
@@ -59,6 +69,8 @@ def get_mcp() -> object:
         calc.register(mcp)
         results.register(mcp)
         exports.register(mcp)
+        solution.register(mcp)  # B4-4b 子批 3：#22 联合枚举
+        overview.register(mcp)  # B4-4b 子批 3：#23 操作概览
         _MCP = mcp
     return _MCP
 

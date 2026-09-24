@@ -23,12 +23,12 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
     context.reset_context()
 
 
-def test_schema_covers_21_unique() -> None:
-    """清单恰 21 工具（MCP 面同源）；名字唯一；schema 形态齐。"""
+def test_schema_covers_23_unique() -> None:
+    """清单恰 23 工具（MCP 面同源——B4-4b 子批 3 扩 #22/#23）；名字唯一。"""
     schema = toolspec.tools_schema()
     names = [entry["function"]["name"] for entry in schema]
-    assert len(names) == 21
-    assert len(set(names)) == 21
+    assert len(names) == 23
+    assert len(set(names)) == 23
     for entry in schema:
         assert entry["type"] == "function"
         assert entry["function"]["description"]
