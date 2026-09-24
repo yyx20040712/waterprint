@@ -45,9 +45,16 @@ from waterprint.contracts.drawing_projection import (
 from waterprint.contracts.result_schema import UnitResultSnapshot
 from waterprint.registry.assumptions import assumption
 
-__all__ = ["InvalidGeometryError", "NON_POOL_UNIT_KINDS", "Node", "Primitive",
-           "channel_primitives", "geometry_key", "pool_primitives",
-           "water_surface_node"]
+__all__ = [
+    "NON_POOL_UNIT_KINDS",
+    "InvalidGeometryError",
+    "Node",
+    "Primitive",
+    "channel_primitives",
+    "geometry_key",
+    "pool_primitives",
+    "water_surface_node",
+]
 
 _FREEBOARD_KEY = "safety.superheight"
 _SPACING_KEY = "geometry.pool.spacing"

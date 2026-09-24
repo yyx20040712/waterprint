@@ -366,18 +366,20 @@ def inlet_physics_errors(params: Mapping[str, Any]) -> tuple[str, ...]:
     （q/kz 非数）同报——构造期 GR-09 只查键存在性，此处补值域。
     """
     errors: list[str] = []
-    q = params.get("q_avg_daily")
-    if isinstance(q, (int, float)) and not isinstance(q, bool):
-        if q <= 0:
-            errors.append(f"q_avg_daily={q} 须 >0（进水流量物理下限）")
-    else:
-        errors.append(f"q_avg_daily 缺失或非数值：{q!r}")
-    kz = params.get("kz")
-    if isinstance(kz, (int, float)) and not isinstance(kz, bool):
-        if kz < 1:
-            errors.append(f"kz={kz} 须 ≥1（总变化系数物理下限）")
-    else:
-        errors.append(f"kz 缺失或非数值：{kz!r}")
+    for key, minimum, exclusive in (
+        ("q_avg_daily", 0.0, True),
+        ("kz", 1.0, False),
+    ):
+        value = params.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            violated = value <= minimum if exclusive else value < minimum
+            if violated:
+                errors.append(
+                    f"{key}={value} 须 {'>' if exclusive else '≥'} {minimum:g}"
+                    f"（{'进水流量' if key == 'q_avg_daily' else '总变化系数'}物理下限）"
+                )
+        else:
+            errors.append(f"{key} 缺失或非数值：{value!r}")
     values: dict[str, float] = {}
     for key in sorted(INDICATORS):
         value = params.get(key)
@@ -389,16 +391,12 @@ def inlet_physics_errors(params: Mapping[str, Any]) -> tuple[str, ...]:
                 errors.append(f"{key}={value} 须 ≥0（浓度非负）")
         else:
             errors.append(f"{key} 非数值：{value!r}")
-    if "NH3N" in values and "TN" in values and values["NH3N"] > values["TN"]:
-        errors.append(
-            f"NH3N={values['NH3N']} > TN={values['TN']}"
-            "（组分大于总量——物理不可能）"
-        )
-    if "BOD5" in values and "CODCR" in values and values["BOD5"] > values["CODCR"]:
-        errors.append(
-            f"BOD5={values['BOD5']} > CODCR={values['CODCR']}"
-            "（组分大于总量——物理不可能）"
-        )
+    for part, total in (("NH3N", "TN"), ("BOD5", "CODCR")):
+        if part in values and total in values and values[part] > values[total]:
+            errors.append(
+                f"{part}={values[part]} > {total}={values[total]}"
+                "（组分大于总量——物理不可能）"
+            )
     return tuple(errors)
 
 

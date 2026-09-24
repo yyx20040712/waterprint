@@ -291,6 +291,9 @@ export function SolutionsPane() {
         setEnumeratedUnitId(unitId);
         setPage(1); // 新任务重置页码（D9）
         writeEnumParam(response.task_id); // ENG5 D6：枚举轨写 enum 键（task 键不动）
+        // R2-P2-3（round2 批4 扩）：task 键同步回写——深链/刷新后面板
+        // 任务态恢复不再依赖本地存储（旧实现仅 calc 轨回写 task 键）
+        writeTaskParam(response.task_id);
       },
     },
   });

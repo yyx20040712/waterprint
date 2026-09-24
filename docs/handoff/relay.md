@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T23:05:25.878Z <!-- E2E-4 批4 收口 -->
+- heartbeat_utc: 2026-09-24T23:28:44.014Z <!-- E2E-5 批5 收口 -->
 - claim: -
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
-- checked_done: 25 <!-- 2026-09-24 E2E-4 收口 24→25（三项全落+行为级三验证） -->
+- checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26（插队战役收官——回归 B4-5 终批） -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
 - last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- E2E-2 批 2 四发成立 2026-09-25 21:33Z：fetus3 唤醒配方（聚焦+回车发草稿+nudge 补发）引导 sess_e2cd19af 起跑——前两醒会话（b868e5e6/1e7cdf54）短活动后未读板静默，非合格执行者——status 保持 READY 待认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 4 <!-- 2026-09-24 E2E-4 批4（会话内直跑） -->
+- batch_count: 5 <!-- 2026-09-24 E2E-5 批5（会话内直跑——插队战役收官） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: E2E-5 fix-plan 批4【hygiene】卫生批（+round2 批4 扩 R2-P2-2 孤立警告/R2-P2-3 枚举 URL 回写）——插队战役收官批，收口后回归 B4-5 原排序
+- next_batch: B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）——清单最后一项
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -107,7 +107,7 @@
 - [x] E2E-2｜fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（+round2 批2 扩 R2-P1-2 fitView 引导/R2-P1-3 保存语义）
 - [x] E2E-3｜fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死
 - [x] E2E-4｜round2 §4 新立【server-scene】R2-P0-1 场景 kind 映射 500+R2-P1-1 布局避让+R2-P1-4 进水物理域检（编号撞前篇批3，按独立新批解读——排序/并批主控裁量）
-- [ ] E2E-5｜fix-plan 批4【hygiene】卫生批（+round2 批4 扩 R2-P2-2 孤立警告/R2-P2-3 枚举 URL 回写）
+- [x] E2E-5｜fix-plan 批4【hygiene】卫生批（+round2 批4 扩 R2-P2-2 孤立警告/R2-P2-3 枚举 URL 回写）
 
 ### 治理小批·用户直排（2026-09-19 对话内裁决——B4-2a 收尾批后、B4-2b 前开工）
 
@@ -156,3 +156,13 @@
 - **回归面**：core pytest 820 全绿+快照 4 过；webapp tsc 0 红+vitest 792 全绿；check_webapp/check_readonly 双绿（锁面事故后持续监测）。
 - **锁面纪律修正**：本批测试增量（core graph/geometry 若需锚）走 .workflow/e2e-fix/E2E-4/ 草稿面——不触 core/tests、server/tests（批3 事故教训内化）。
 - 改动面：core geometry/pools+scene、graph/nodes、app.py、app_assembly.py、server services/calculation.py、webapp projectFlow+test、canvas README、本板。
+
+### 增补十七 — 2026-09-24T23:28:44.014Z（E2E-5 批5 收口：hygiene 卫生批——插队战役 E2E-1~5 收官）
+
+- **R2-P2-3 枚举 URL 回写** ✓：solutionsPane 枚举 onSuccess 补 writeTaskParam（?task= 与 ?enum= 双键齐写——深链/刷新任务态恢复不再依赖本地存储）。
+- **P1-1 根级 ErrorBoundary** ✓：main.tsx 挂根边界（Header/Sider/StatusBar/ChatPane 面板边界之外区域的白屏最后防线；降级 UI 非吞错）。
+- **R2-P2-2 孤立单元警告**：实现后回退——锁定测试 test_validate_design_structure 精确断言冲突（更新=[HUMAN-LOCK] 工序）+ruff PLR0912 分支超限；完整实现草稿出 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md 待人类批准。
+- **antd 三弃用项实证免修**：live 无头全标签 console 采集（console_audit.py）——antd 族零警告（审计时代 Drawer width/cost duplicate key ×44/Table rowKey 已在前批消亡）；终态 6 条全为豁免面（THREE.Clock×1+ReactFlow attribution×1+GL Driver×4 无头软渲染 GPU 噪音）。antd v5 类名盘点：global.css 零 antd- 前缀类。
+- **行数门欠账补缴**：批2 fitKey 编辑使 CanvasFlow.tsx 504>500（当时收口只跑 webapp 门禁未跑 check_file_budgets——门禁覆盖缺口教训记档：收口必跑全门）；本批压缩回 500。app.py 500 恰满同理压缩。
+- **回归面**：core 837 全绿+ruff 净+行数门 1097 文件合规；webapp tsc 0 红+vitest 792 全绿+check_webapp 绿；check_readonly 323 绿。
+- 改动面：solutionsPane/main.tsx/nodes.py（分支重构+文案统一）/app.py（行数压缩+R2-P1-4 再导出）/pools.py（ruff __all__ 排序）/CanvasFlow.tsx（压缩）/app README、本板。

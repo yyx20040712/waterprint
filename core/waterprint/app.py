@@ -167,7 +167,7 @@ from waterprint.contracts.trust import DiagnosticsReport
 from waterprint.drafting.site_plan import InvalidSitePlanError
 from waterprint.geometry import Node, SceneGraph, build_scene
 from waterprint.graph.executor import execute_graph
-from waterprint.graph.nodes import inlet_physics_errors  # R2-P1-4 再导出（server apply 422 面）
+from waterprint.graph.nodes import inlet_physics_errors  # R2-P1-4 再导出（apply 422 面）
 from waterprint.project.content_hash import design_hash
 from waterprint.project.io import InvalidProjectError
 from waterprint.project.io import load_project as _io_load
@@ -230,10 +230,8 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "SceneGraph",
     "assemble", "build_grid", "build_scene",  # build_grid=B4-3 再导出（server 预检网格计数面）
     "design_hash",  # P0-2 再导出（server 枚举 worker 漂移闸③源——app 单入口语义同款）
-    "discover_units",
-    "estimate_rows",  # B4-3 再导出（server 静态预检 rows 公式面）
-    "export_artifact",
-    "inlet_physics_errors",  # R2-P1-4 再导出（server solutions/apply 前置域检 422 面）
+    "discover_units", "estimate_rows",  # 后者=B4-3 再导出（server 静态预检 rows 公式面）
+    "export_artifact", "inlet_physics_errors",  # 后者=R2-P1-4 再导出（apply 前置域检 422 面）
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
     "load_effluent_standards",  # 再导出（P2 次批 ADR-012 D6——worker 装载单入口同款）
     "load_project",
