@@ -20,13 +20,13 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T18:43:31.000Z
+- heartbeat_utc: 2026-09-24T18:53:48.000Z
 - claim: executor-e2e1-20260924T184331Z
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
 - checked_done: 21 <!-- 2026-09-24 B4-4b 收口 20→21（B4-4 两段全成勾口径） -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
-- last_dispatch_utc: 2026-09-24T18:44:08.240Z <!-- E2E-1 二发成立 2026-09-25：薄调度会话 Ctrl+N 主径+三回读全过（项目 chip=智水蓝图、模型=GLM-5.3、指令逐字落框+echo；执行者=sess_17befe75 18:43Z 活跃）——status 保持 READY 待执行者认领 -->
+- last_dispatch_utc: 2026-09-24T18:44:08.240Z <!-- E2E-1 二发成立 2026-09-25：薄调度会话 Ctrl+N 主径+三回读全过（项目 chip=智水蓝图、模型=当班宿主模型、指令逐字落框+echo；执行者=sess_17befe75 18:43Z 活跃）——status 保持 READY 待执行者认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
 - batch_count: 0 <!-- 2026-09-25 换防复位（原 9；停火数日墙钟 ~123h>90h 触发 circuit_wall，用户显式点名 batch-relay 换防重置留痕） -->
 - max_batches: 60
