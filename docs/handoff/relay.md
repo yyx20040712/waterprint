@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-cbcb3949-7683-41d0-8d15-ba575e2493f0 <!-- 2026-09-25 换防回填；旧火 9d069f57 已亡见换防记录 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,8 +16,8 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T18:04:54.479Z
-- claim: dispatcher-hold-20260924180454 <!-- 保护性占板：首发任务工作区/模型绑定错误作废中——错误执行者读到 RUNNING 非己即让位 -->
+- heartbeat_utc: 2026-09-24T18:07:01.366Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
 - checked_done: 21 <!-- 2026-09-24 B4-4b 收口 20→21（B4-4 两段全成勾口径） -->
@@ -29,8 +29,8 @@
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-25
-- claimed_by: hub-dispatcher（保护性持有——首发作废重发间隙）
-- claimed_at: 2026-09-24T18:04:54.479Z
+- claimed_by: -
+- claimed_at: -
 - next_batch: E2E-1 fix-plan 批1【server-data】（插队战役先于 B4-5；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
 
 ## protocol（角色自识别 + 最小兜底协议）
