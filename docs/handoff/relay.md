@@ -8,7 +8,7 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-9d069f57-4d51-4327-a9e2-27cad5d0352f
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -16,22 +16,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T12:16:29Z
-- claim: manual-B44b-20260924T1216-dep
+- heartbeat_utc: 2026-09-24T14:50:00Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 22
-- checked_done: 20 <!-- 2026-09-24 领批勘误：B4-3 收口终笔勾选框 19→20 已落而板头字段漏更（板头 19 vs grep 实测 20），本笔对齐 -->
+- checked_done: 21 <!-- 2026-09-24 B4-4b 收口 20→21（B4-4 两段全成勾口径） -->
 - protocol_rev: 1
 - last_dispatch_utc: 2026-09-19T23:24:19.203Z
 - relay_started_utc: 2026-09-19T14:24:01.889Z
-- batch_count: 8 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 交付批 5→6；B4-4a-revert 回退批 6→7；B4-3 联合枚举 7→8 -->
+- batch_count: 9 <!-- rev1.1：回炉修复不 +1；B4-4a 4→5；B4-4a-pkg 5→6；B4-4a-revert 6→7；B4-3 7→8；B4-4b AI 集成深化 8→9 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
-- last_handover: 2026-09-20
-- claimed_by: manual-session-b44b
-- claimed_at: 2026-09-24T12:16:29Z
-- next_batch: B4-4b AI 集成深化段（多轮对话/前端聊天 pane/方案比选——B4-4a 演示版产物已随用户裁决回退，深化段全量重建）
+- last_handover: 2026-09-24
+- claimed_by: -
+- claimed_at: -
+- next_batch: B4-5 矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先——挂账池/sunset 观察项触发时呈报）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -192,7 +192,7 @@
 - [x] B4-2b｜碳核算·前置二：运行成本面（opex）
 - [x] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④；**R-B42c-1~4 四项全批 2026-09-20**——B 案全口径/2019+AR6/全套口径/锁面笔授权）
 - [x] B4-3｜联合枚举（**2026-09-20 收官**——ADR-025 解冻承接+分层 beam+静态预检双轴预算+新正门 /api/solution/joint-enumerate；三段设计链全档=.workflow/b4-3/）
-- [ ] B4-4｜AI 集成深化（**2026-09-20 用户裁决拆段**：a=AI 集成演示版插队提前[一句话→计算→双报告——CLI 确定性管线]；b=深化段随原排序[B4-3 之后：多轮对话/前端聊天 pane/方案比选——演示版为第一块积木]；两段全成勾本项，总数不变）
+- [x] B4-4｜AI 集成深化（**2026-09-24 收官**——a 段演示版产物 2026-09-20 随用户裁决回退；b 段深化段全量重建=①NL 入口[CLI 单发三话术口径]+②多轮对话[agent chat/ 编排环——迭代 12/降级直译/会话 JSONL]+③前端聊天 pane[Drawer+SSE 任务流]+④方案比选[agent 工具 #22 全链+聊天呈现——solutions 专用 UI 欠账 R-B44b-4]+⑤工具三面[#23 概观/知识第三源/轨道丙叙述草稿]；三段设计链全档=.workflow/b4-4b/）
 - [ ] B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）
 
 ### 治理小批·用户直排（2026-09-19 对话内裁决——B4-2a 收尾批后、B4-2b 前开工）
@@ -344,3 +344,14 @@
 - **熔断事实如实记档**：relay_started_utc 2026-09-19T14:24Z 距今 >max_wall_hours 90h——该闸=hub 火式执行者开批判据四条件之一（rev1 条款面），本会话=用户直排手动路径非火式派发，用户指令位阶高于火式闸门且火已亡零并行冲突面；不静默跳过，记档如上。
 - 呈批面预告（未获应答按常设指令默认推荐项记档追认——B4-3 先例）：R-B44b-1 范围确认（三面并集全做 vs 分段——默认=并集全量，理由=B4-4 两段全成勾口径+用户「继续其余完整流程」原话）；R-B44b-2 对话编排 LLM 供应商缺省（默认=用户环境变量三选一中性键承载，缺省=用户异构源兼容端点——B4-4a 呈批 P1 同题未决沿承）；细节随设计书终裁面再呈。
 
+### batch B4-4b — 2026-09-24T12:16Z~14:5XZ（手动会话主控直跑：AI 集成深化段收官——三段设计链+实装三子批+双门+回炉一轮）
+
+- 领批：token manual-B44b-20260924T1216-dep（认领笔 53ca483b8d；用户本会话「继续开发」直排；熔断墙钟事实如实记档——火式闸面，用户直排位阶更高且火已亡）。板面治理笔 6a7f28d130（领批笔双红自修：源名中性化第四次复发实录+relay-archive-003 滚动归档 160 行主板回 346）。
+- **三段设计链**（批档 .workflow/b4-4b/）：调研档（Explore 勘察=21 工具 impl 直调面/agent 无 http 依赖/沙箱任务表恒空/碳键已可检索+三轮社区检索=代理环 while 共识/迭代上限 10-15/会话 thread+分层记忆/聊天 UI 折叠卡基线）→拟定者备源承载（in3001/out7533：三候选+3 子批切法+T1-T5）→对抗审核异构源（in6040/out12262：**B3/W6/N4 返工**——B1 候选二工具面漂移违 ADR-019/B2 落位白名单失配/B3 joint 执行链无桥+W1 依赖裁决高估/W2 摘要自相矛盾/W3 静态表第二真源/W6 承接章偏误）→主控终裁换轴心（design-final.md：**环整体落 agent 包直调 impl+stdlib urllib 零新依赖**+server 薄中继 worker 子进程桥+SSE 零新端点[每轮=一任务]+B3 消=joint 进程内同步同构既有工具+滑窗 20 轮无摘要+result_metrics 不立项）。
+- **实装三子批十一笔**：core 笔 b54419ea95（chat/ 八件 TDD 先红后绿 25 测试+CLI 降级全链冒烟+懒加载 sys.modules 零重依赖实证）+server 笔 3539f6051d（三端点 37→40+ai_chat worker 子进程桥+settings 四字段+records _KINDS+worker 顶墙拆件 export_batch_lib 四纯 helper 原文迁驻）+webapp 笔 e266222528（features/ai_chat 四件+App.tsx +13 行 413/500+orval 重生成+SseLimiter 四维零改）+agent 笔 d35771f603（#22 联合枚举进程内同步+#23 概览[results.py 500 顶墙故独立模块]+知识第三源 assumptions 程序化单源+轨道丙 narrative 纯模板+MCP 21→23）+锁面笔 621b3f1a71（**[HUMAN-LOCK]** R-B43-5 默认授权同制：313→322 九新件+契约测试 37→40+smoke 21→23）。
+- **门一常设双审**（审包 .workflow/reviews/b44b-gate1-package.md 自包含）：k2 备源位 **B1/W7/N9 返工**+d1 异构位 **B0/W12/N9 有条件放行**——合并收敛处置笔 f79290f6cb：B1+k2/W2+d1=服务面 validate_component 在场实证（k2 判 B 系**审包漏报**——勘误记档）+防御纵深两道（worker 二道闸+agent 显式 ID 白名单）；W1-k2 密钥经载荷落 registry 档=实锤修复（三键撤出 payload 改 env 单通道+main setdefault 归一化）；W1-d1 桥 readline 截断=read() 全读+多行隔离实证；W3-d1 幂等吞重发=幂等键移除+测试翻转；W4-d1 错误分类=RuntimeError 500 面；W7 同会话并发=桥会话锁 O_EXCL+600s 窃取；W5 降级跨轮=裁量维持记档。
+- **门二双部制**：实证部 **8/9**（M8 红=e2e_golden 满座计数 21 未随 23 更新——在册债签名被掩蔽）+裁决部（异构源位）**有条件放行三条件**——回炉笔全兑现：**P0=裁决部新发现 ChatPane SSE 字段失配**（Event 五键 message 承载 state/stage，原实现读 state/stage 键恒空→terminal 永不触发→pane 卡 busy 多轮不可用；lib/chatEvent.ts 抽件+五用例回归锚含防倒退用例）+**P0 伴生休眠崩溃**（_child_env 无参化而调用点残留四参=真调用即 TypeError——mypy 钳出闭环）；P1=timeout 第四键 main setdefault 补链；M8=计数随批更新（在册 R-B44a-2 KeyError 碳键族签名复原实证）；P2=文档漂移六处勘正；裁决部呈报=file-contracts 行数对账澄清（14 行实测——处置笔 15 行笔误记档）。
+- **收口三验**：run_gates 全绿+core 837/server 336/agent 175 passed+4 failed 在册存量债（R-B44a-2——批前批后同签名）+5 skipped 在册+webapp 785（含 chatEvent 回归锚 5 新）；health-scan RED=0/WARN×4（在册 3+cfg 漂移扫描器声称值账本零命中 quirk 记档——不阻断）。
+- **Rulings 呈报**（不阻断，随收口全清单）：R-B44b-1 范围并集全量（默认推荐已执行——两段全成勾口径）/R-B44b-2 LLM 三键无缺省 fail-fast 降级（终裁勘正：降级即行为非 503）/R-B44b-3 R-B44a-2 存量债维持宪法级挂账（agent 4 failed/5 skipped+CI 无 agent job——修复批另立涉人类工序）/R-B44b-4 **solutions 专用 joint UI 欠账**（solutionsPane 497/500 顶墙须拆壳独立批——本批比选消费面=agent 工具全链+聊天呈现，呈用户追认）。
+- **挂账面**（N 级 18 条入清单不阻塞+#22 三态测试密度/#23 stale 三因分例/桥与 worker 无仓内自动化测试件[多行为人工实证]/agent mypy import-untyped 35 债[CI 无 agent job 实态]/**推送欠账：本机代理断 GitHub 不可达——本批十一笔+板面笔在本地，代理恢复即推送+守望 CI**）。
+- 勾选 20→21/22（B4-4）；next_batch=B4-5；batch_count 8→9/60。本笔为收口终态置位。
