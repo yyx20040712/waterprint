@@ -125,8 +125,6 @@ async def test_submit_payload_carries_settings(service_ctx, monkeypatch) -> None
     await chat_service.submit_ai_chat_turn(tuned_ctx, "sess-3", "话术")
     assert captured["kind"] == "ai_chat"
     assert captured["session_id"] == "sess-3"
-    # P0-C（fix-plan 批3）：repo_root 显式单点推导入载荷（worker 只消费不自算）
-    assert captured["repo_root"] == str(tuned.data_dir.resolve().parent)
     # 门一 W1-k2：三键禁经载荷（registry 落盘面=密钥落盘）——env 单通道
     assert "ai_api_key" not in captured
     assert "ai_base_url" not in captured

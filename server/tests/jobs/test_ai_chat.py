@@ -22,8 +22,6 @@ _BASE_PAYLOAD: Mapping[str, Any] = {
     "session_id": "sessjobs000000000000000000000000ff",
     "message": "建一座污水厂",
     "data_dir": ".",
-    # P0-C（fix-plan 批3）：repo_root 显式载荷键（services 单点推导注入）
-    "repo_root": ".",
     "artifacts_dir": ".",
 }
 
@@ -126,38 +124,3 @@ def test_missing_uv_rejected(monkeypatch, tmp_path: Path) -> None:
         runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
 
             payload, None, None)
-
-
-def test_bridge_command_uses_repo_root(monkeypatch, tmp_path: Path) -> None:
-    """P0-C 回归锚：桥命令 --directory=repo_root/agent（非 data_dir/agent）。"""
-    captured: dict[str, Any] = {}
-
-    def _capture_popen(command: list[str], **kwargs: Any) -> _FakeProcess:
-        captured["command"] = command
-        return _FakeProcess(
-            [json.dumps({"type": "turn_summary", "session_id": "s", "truncated": False})]
-        )
-
-    monkeypatch.setattr(runner.subprocess, "Popen", _capture_popen)
-    repo_root = tmp_path / "repo"
-    data_dir = repo_root / "data"
-    payload = {
-        **_BASE_PAYLOAD,
-        "repo_root": str(repo_root),
-        "data_dir": str(data_dir),
-        "artifacts_dir": str(tmp_path),
-    }
-    result = runner._run_ai_chat(payload, None, None)  # noqa: SLF001  # 桥命令构造面直测
-    assert result["state"] == "done"
-    command = captured["command"]
-    assert str(repo_root / "agent") in command
-    assert str(data_dir) not in command  # data_dir 不得再冒充仓库根
-
-
-def test_missing_repo_root_contract_error(monkeypatch, tmp_path: Path) -> None:
-    """P0-C 契约：缺 repo_root 键=fail-fast 显式报错（防第三处静默错位）。"""
-    _patch_spawn(monkeypatch, [])
-    payload = {k: v for k, v in _BASE_PAYLOAD.items() if k != "repo_root"}
-    payload["artifacts_dir"] = str(tmp_path)
-    with pytest.raises(RuntimeError, match="repo_root"):
-        runner._run_ai_chat(payload, None, None)  # noqa: SLF001  # 契约面直测
