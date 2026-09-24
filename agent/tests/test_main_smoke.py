@@ -36,6 +36,8 @@ _TOOL_NAMES = {
     "wp_export_dxf",
     "wp_export_ifc",
     "wp_export_report",
+    "wp_run_joint_enumeration",  # B4-4b 子批 3：#22 方案组
+    "wp_get_ops_overview",  # B4-4b 子批 3：#23 观测组
 }
 
 _MEASURE_SCRIPT = """
@@ -129,6 +131,6 @@ def test_spawn_to_tools_list_first_response(sandbox_env: Path) -> None:
     line = next(ln for ln in result.stdout.splitlines() if ln.startswith("TTL"))
     _, seconds_s, count_s = line.split()
     seconds = float(seconds_s)
-    assert int(count_s) == 21
+    assert int(count_s) == 23  # B4-4b 子批 3：23 工具（#22/#23 增）
     assert seconds < 15  # 宽松上限（真实预算门=1.5s，超限不阻断但必报告）
     print(f"\n[spawn→tools/list 首响] {seconds:.3f}s（目标 <1.5s，进程内冷启动口径）")
