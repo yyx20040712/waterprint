@@ -269,6 +269,14 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 
 | 路径 | 唯一职责 | 输入 | 输出 |
 |------|----------|------|------|
+| `agent/waterprint_agent/chat/__init__.py` | chat 编排包门面（环入口懒导出——顶层零重依赖） | PEP 562 属性别名 | run_turn/single_shot |
+| `agent/waterprint_agent/chat/loop.py` | 编排环（LLM 步→工具步→回填→终止/上限 12/连续 2 失败降级+事件流+单发入口） | 会话+用户文本+可注入 LLM | TurnResult+事件回调 |
+| `agent/waterprint_agent/chat/sessions.py` | 会话存储（sessions/chat/ 追加式 JSONL+滑动窗口投影+项目绑定+决策纪要） | 会话 ID/消息/决策四键 | ChatSession+窗口投影 |
+| `agent/waterprint_agent/chat/llm.py` | LLM 客户端（OpenAI 兼容 urllib 零新依赖+三中性键 env+不可用族收敛——密钥零泄漏） | ChatConfig+messages+tools | LlmReply/LlmUnavailableError |
+| `agent/waterprint_agent/chat/toolspec.py` | 环工具清单（21 工具 JSON schema+懒加载分发——签名自适应 ctx，经 run_tool 记账） | 工具名+arguments | schema 列表/结果 dict |
+| `agent/waterprint_agent/chat/prompts.py` | 系统提示唯一构造面（中性中文——零模型代号零数字主张） | 绑定态+降级态 | system 文本 |
+| `agent/waterprint_agent/chat/fallback.py` | 关键词直译回退（话术→种子计划——B4-4a 蓝图沿承，非设计域显式拒绝） | 话术 | FallbackPlan/None |
+| `agent/waterprint_agent/chat/__main__.py` | Chat CLI 入口（单发/交互/worker 桥 JSONL 事件流/历史/清单五模式） | argv+env | stdout+退出码 |
 | `agent/waterprint_agent/main.py` | MCP server 入口（FastMCP 懒加载单例+五组 21 工具注册+instructions） | env/stdio | MCP 会话 |
 | `agent/waterprint_agent/context.py` | AgentContext 装配束（私有 Manager/绝对路径 Settings/PathGuard/SessionLog/run_tool 统一包装+异常兜底） | 沙箱根+数据包路径 | AgentContext |
 | `agent/waterprint_agent/pathguard.py` | 沙箱唯一 IO 门（realpath+normcase 归一后前缀判定；拒 ../UNC/跨盘符；正式区只读门） | 相对路径+area | 解析后绝对路径/PathGuardError |
