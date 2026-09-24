@@ -76,9 +76,11 @@ from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.geometry.internals import internal_instances
 from waterprint.geometry.pipes import pipe_nodes
 from waterprint.geometry.pools import (
+    NON_POOL_UNIT_KINDS,
     Node,
     Primitive,
     channel_primitives,
+    geometry_key,
     pool_primitives,
     water_surface_node,
 )
@@ -345,7 +347,10 @@ def build_scene(
     pipe_extents: dict[str, float] = {}
     cursor_x = 0.0
     for unit_id, snapshot in snapshots.items():
-        if unit_id == "inlet":
+        # R2-P0-1：非池体单元跳过（inlet 遗留导入键+四内置结构 kind——
+        # 多实例键按基名判）。旧实现只跳字面 inlet：UI「添加到画布」建的
+        # municipal_input（或 *_2 实例）直撞 UF-32 取数 → 场景 500。
+        if geometry_key(unit_id) in NON_POOL_UNIT_KINDS:
             continue
         placement = placements.get(unit_id)
         if site_mode and placement is None:

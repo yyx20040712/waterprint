@@ -45,6 +45,10 @@ export const LAYOUT_Y_STEP = 120;
  * 节点缩成细带的根治面；导出供测试）。 */
 export const LAYOUT_ROW_GAP = 80;
 
+/** 兜底布局 X 起点（R2-P1-1 round2 批：活动区避开画布左缘覆盖面——
+ * 单元库/侧栏拖出的节点卡不被面板盖住无法选中；导出供测试）。 */
+export const LAYOUT_X_ORIGIN = 80;
+
 /** recycle 虚线样式串（README 回流虚线语义——灰阶中性非语义色）。 */
 const RECYCLE_DASH = "6 4";
 
@@ -162,7 +166,8 @@ export function fallbackLayout(
     chunk.forEach((wave, col) => {
       wave.forEach((id, index) => {
         positions.set(id, {
-          x: col * LAYOUT_X_STEP,
+          // R2-P1-1：X 起点=左缘避让边距（活动区不进面板覆盖带）
+          x: LAYOUT_X_ORIGIN + col * LAYOUT_X_STEP,
           y: yBase + index * LAYOUT_Y_STEP,
         });
       });

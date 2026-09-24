@@ -162,6 +162,14 @@ async def apply_solution(
     _validate_apply_params(old, unit_id, params)
     merged: dict[str, Any] = dict(old.design.nodes[unit_id])
     merged.update(dict(params))
+    # R2-P1-4（round2 批 E2E-4）：进水物理域检前置拒（NH3N≤TN/
+    # BOD5≤CODCR/浓度≥0/q>0/kz≥1——违例 422 不进原子写）
+    if merged.get("kind") == "municipal_input":
+        physics_errors = core.inlet_physics_errors(merged)
+        if physics_errors:
+            raise InvalidSolutionRefError(
+                f"进水物理域检未过：{'; '.join(physics_errors)}"
+            )
     updated = old.model_copy(
         update={
             "design": old.design.model_copy(

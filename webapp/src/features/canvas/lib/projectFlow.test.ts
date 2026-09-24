@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   LAYOUT_ROW_GAP,
+  LAYOUT_X_ORIGIN,
   LAYOUT_X_STEP,
   LAYOUT_Y_STEP,
   ProjectFlowError,
@@ -392,7 +393,7 @@ describe("projectFlow：layout 优先（D3）", () => {
     });
     const out = projectFlow(fixture);
     const a = out.nodes.find((node) => node.id === "unit_a");
-    expect(a?.position).toEqual({ x: 0, y: 0 });
+    expect(a?.position).toEqual({ x: LAYOUT_X_ORIGIN, y: 0 });
   });
 
   it("layout 值形状不符（x 非数字）→ 整段忽略走兜底", () => {
@@ -403,7 +404,7 @@ describe("projectFlow：layout 优先（D3）", () => {
     });
     const out = projectFlow(fixture);
     const a = out.nodes.find((node) => node.id === "unit_a");
-    expect(a?.position).toEqual({ x: 0, y: 0 });
+    expect(a?.position).toEqual({ x: LAYOUT_X_ORIGIN, y: 0 });
   });
 
   it("golden view.layout 全空 {} → 兜底路径必走（19 节点全有坐标）", () => {
@@ -417,21 +418,21 @@ describe("projectFlow：拓扑兜底确定性（D3 波次分层+C2-canvas R-1 �
     const out = projectFlow(goldenFixture());
     const byId = new Map(out.nodes.map((node) => [node.id, node.position]));
     // 行 0（波 0~3）Y 基 0：波 0 两链首/波 1 两链第二节点（字典序定 y 序）
-    expect(byId.get("inlet")).toEqual({ x: 0, y: 0 });
-    expect(byId.get("sludge_hebing")).toEqual({ x: 0, y: LAYOUT_Y_STEP });
-    expect(byId.get("municipal_wushui_tisheng")).toEqual({ x: LAYOUT_X_STEP, y: 0 });
-    expect(byId.get("sludge_shusong")).toEqual({ x: LAYOUT_X_STEP, y: LAYOUT_Y_STEP });
+    expect(byId.get("inlet")).toEqual({ x: LAYOUT_X_ORIGIN, y: 0 });
+    expect(byId.get("sludge_hebing")).toEqual({ x: LAYOUT_X_ORIGIN, y: LAYOUT_Y_STEP });
+    expect(byId.get("municipal_wushui_tisheng")).toEqual({ x: LAYOUT_X_ORIGIN + LAYOUT_X_STEP, y: 0 });
+    expect(byId.get("sludge_shusong")).toEqual({ x: LAYOUT_X_ORIGIN + LAYOUT_X_STEP, y: LAYOUT_Y_STEP });
     // 行 1（波 4~7，行高 2）Y 基=2*Y+GAP：波 6 双节点（aao<ganhua 字典序）
     const row1 = 2 * LAYOUT_Y_STEP + LAYOUT_ROW_GAP;
-    expect(byId.get("municipal_aao")).toEqual({ x: 2 * LAYOUT_X_STEP, y: row1 });
+    expect(byId.get("municipal_aao")).toEqual({ x: LAYOUT_X_ORIGIN + 2 * LAYOUT_X_STEP, y: row1 });
     expect(byId.get("sludge_ganhua")).toEqual({
-      x: 2 * LAYOUT_X_STEP,
+      x: LAYOUT_X_ORIGIN + 2 * LAYOUT_X_STEP,
       y: row1 + LAYOUT_Y_STEP,
     });
     // 行 2（波 8~11 单链各 1）：链尾 bashi 波 11=列 3（x 幅 3 步距）
     const row2 = row1 + 2 * LAYOUT_Y_STEP + LAYOUT_ROW_GAP;
     expect(byId.get("municipal_bashi_jiliangcao")).toEqual({
-      x: 3 * LAYOUT_X_STEP,
+      x: LAYOUT_X_ORIGIN + 3 * LAYOUT_X_STEP,
       y: row2,
     });
   });
@@ -447,9 +448,9 @@ describe("projectFlow：拓扑兜底确定性（D3 波次分层+C2-canvas R-1 �
     const out = projectFlow(fixture);
     const positions = out.nodes.map((node) => node.position);
     expect(positions).toEqual([
-      { x: 0, y: 0 },
-      { x: 0, y: LAYOUT_Y_STEP },
-      { x: 0, y: 2 * LAYOUT_Y_STEP },
+      { x: LAYOUT_X_ORIGIN, y: 0 },
+      { x: LAYOUT_X_ORIGIN, y: LAYOUT_Y_STEP },
+      { x: LAYOUT_X_ORIGIN, y: 2 * LAYOUT_Y_STEP },
     ]);
   });
 
@@ -465,8 +466,8 @@ describe("projectFlow：拓扑兜底确定性（D3 波次分层+C2-canvas R-1 �
     });
     const out = projectFlow(fixture);
     const byId = new Map(out.nodes.map((node) => [node.id, node.position]));
-    expect(byId.get("r_alpha")).toEqual({ x: 0, y: 0 });
-    expect(byId.get("r_beta")).toEqual({ x: LAYOUT_X_STEP, y: 0 });
+    expect(byId.get("r_alpha")).toEqual({ x: LAYOUT_X_ORIGIN, y: 0 });
+    expect(byId.get("r_beta")).toEqual({ x: LAYOUT_X_ORIGIN + LAYOUT_X_STEP, y: 0 });
   });
 });
 

@@ -356,6 +356,52 @@ def builtin_unit(kind: str, params: Mapping[str, Any]) -> Unit:
     )
 
 
+def inlet_physics_errors(params: Mapping[str, Any]) -> tuple[str, ...]:
+    """进水物理域检（R2-P1-4 round2 批）：违例清单（空=通过——纯函数）。
+
+    q_avg_daily>0、kz≥1、各指标浓度≥0、NH3N≤TN、BOD5≤CODCr——
+    组分大于总量等物理不可能值旧实现静默接受（黑盒实录 NH3N=45>TN=42
+    校验通过照算）。消费面：validate_design_structure 红项（⑦甲呈报
+    不阻断）+ server solutions/apply 前置拒（422）。数值性缺失
+    （q/kz 非数）同报——构造期 GR-09 只查键存在性，此处补值域。
+    """
+    errors: list[str] = []
+    q = params.get("q_avg_daily")
+    if isinstance(q, (int, float)) and not isinstance(q, bool):
+        if q <= 0:
+            errors.append(f"q_avg_daily={q} 须 >0（进水流量物理下限）")
+    else:
+        errors.append(f"q_avg_daily 缺失或非数值：{q!r}")
+    kz = params.get("kz")
+    if isinstance(kz, (int, float)) and not isinstance(kz, bool):
+        if kz < 1:
+            errors.append(f"kz={kz} 须 ≥1（总变化系数物理下限）")
+    else:
+        errors.append(f"kz 缺失或非数值：{kz!r}")
+    values: dict[str, float] = {}
+    for key in sorted(INDICATORS):
+        value = params.get(key)
+        if value is None:
+            continue
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            values[key] = float(value)
+            if value < 0:
+                errors.append(f"{key}={value} 须 ≥0（浓度非负）")
+        else:
+            errors.append(f"{key} 非数值：{value!r}")
+    if "NH3N" in values and "TN" in values and values["NH3N"] > values["TN"]:
+        errors.append(
+            f"NH3N={values['NH3N']} > TN={values['TN']}"
+            "（组分大于总量——物理不可能）"
+        )
+    if "BOD5" in values and "CODCR" in values and values["BOD5"] > values["CODCR"]:
+        errors.append(
+            f"BOD5={values['BOD5']} > CODCR={values['CODCR']}"
+            "（组分大于总量——物理不可能）"
+        )
+    return tuple(errors)
+
+
 _BUILTIN_PORT_DECLS: Final[Mapping[str, tuple[Port, ...]]] = MappingProxyType({
     "municipal_input": _MunicipalInput.manifest.ports,
     "junction": _Junction.manifest.ports,

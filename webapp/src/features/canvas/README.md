@@ -29,7 +29,7 @@
 
 | 文件 | 职责 |
 |------|------|
-| `lib/projectFlow.ts` | 投影层纯函数（design JSON→React Flow nodes/edges：D6 窄化门/D3 布局[波次分层+R-1 S 形折行]/D1 端口方向聚合+recycle 虚线——零运行期库 import） |
+| `lib/projectFlow.ts` | 投影层纯函数（design JSON→React Flow nodes/edges：D6 窄化门/D3 布局[波次分层+R-1 S 形折行]/D1 端口方向聚合+recycle 虚线——零运行期库 import）；R2-P1-1（E2E-4 批 2026-09-25）：fallbackLayout X 起点=LAYOUT_X_ORIGIN 80（活动区避开画布左缘覆盖面——节点卡被侧栏盖住无法选中；右下小地图覆盖面由批2 编辑态自动 fitView 缓解） |
 | `lib/projectFlow.test.ts` | 投影层 vitest（node 环境 32 用例：版本轻门/形状逐类拒/悬空边/kind 徽标/端口聚合/虚线/布局优先与兜底折行确定性） |
 | `lib/unitGlyph.ts` | 象形图标+域色纯函数（32 unit_id+4 内置 kind → Unicode 字形；business_line → 节点域色/边流色两色制——C2-canvas P3/P4；B3-b：四域色+中性色值单源=shared/ui/semanticColors domain_* 键〔本件持 business_line→键映射+图标三色组+流色规则〕） |
 | `lib/unitGlyph.test.ts` | 字形/域色 vitest（9 用例：32 键全枚举防漏+聚类抽样+回退 ▢+域色五值+流色三态） |

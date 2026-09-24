@@ -33,9 +33,10 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import final
+from typing import Final, final
 
 from waterprint.contracts.drawing_projection import (
     PROJECTION_TABLE,
@@ -44,8 +45,9 @@ from waterprint.contracts.drawing_projection import (
 from waterprint.contracts.result_schema import UnitResultSnapshot
 from waterprint.registry.assumptions import assumption
 
-__all__ = ["InvalidGeometryError", "Node", "Primitive", "channel_primitives",
-           "pool_primitives", "water_surface_node"]
+__all__ = ["InvalidGeometryError", "NON_POOL_UNIT_KINDS", "Node", "Primitive",
+           "channel_primitives", "geometry_key", "pool_primitives",
+           "water_surface_node"]
 
 _FREEBOARD_KEY = "safety.superheight"
 _SPACING_KEY = "geometry.pool.spacing"
@@ -53,6 +55,44 @@ _SPACING_KEY = "geometry.pool.spacing"
 
 class InvalidGeometryError(Exception):
     """池体图元生成非法（对照表缺行/槽位键缺）——GR-11 族。"""
+
+
+# R2-P0-1（round2 批 E2E-4 2026-09-25）：非池体单元集合——内置结构节点
+# （进水/汇接/水质编辑/回流转换）与遗留导入键 inlet 无池体图元，场景
+# 装配跳过而非取数。四 kind 与 graph.nodes._BUILTIN_KINDS 同步冻结
+# （分层禁止 geometry→graph import——跨包常量复制，漂移由单元发现批
+# 对账；'inlet'=golden 导入键遗留面）。
+NON_POOL_UNIT_KINDS: Final[frozenset[str]] = frozenset({
+    "inlet",
+    "municipal_input",
+    "junction",
+    "quality_edit",
+    "recycle_junction",
+})
+
+# 多实例键后缀（designWriter `_2` 实例面）：投影取数按基名——
+# municipal_aao_2 与 municipal_aao 同一行（实例区分归节点 id 层）。
+_INSTANCE_SUFFIX: Final = re.compile(r"_\d+$")
+
+
+def geometry_key(unit_id: str) -> str:
+    """投影取数键：剥多实例 `_<N>` 后缀（R2-P0-1——表键=基名口径）。"""
+    return _INSTANCE_SUFFIX.sub("", unit_id)
+
+
+def _projection(unit_id: str) -> UnitProjection:
+    """对照表行取数（表外=领域异常——32 单元表覆盖与单元发现同步冻结）。
+
+    R2-P0-1：多实例键按基名取行（municipal_aao_2→municipal_aao——
+    旧实现整键直查致 UI 多实例项目三维 500）。
+    """
+    projection = PROJECTION_TABLE.get(geometry_key(unit_id))
+    if projection is None:
+        raise InvalidGeometryError(
+            f"单元 {unit_id!r} 不在 UF-32 对照表（三维取数前提——"
+            "表行覆盖随单元发现批次同步冻结）"
+        )
+    return projection
 
 
 @dataclass(frozen=True)
@@ -87,17 +127,6 @@ class Node:
     children: tuple[Node, ...] = ()
     instance_count: int = 1
     source_assumption_keys: tuple[str, ...] = ()
-
-
-def _projection(unit_id: str) -> UnitProjection:
-    """对照表行取数（表外=领域异常——32 单元表覆盖与单元发现同步冻结）。"""
-    projection = PROJECTION_TABLE.get(unit_id)
-    if projection is None:
-        raise InvalidGeometryError(
-            f"单元 {unit_id!r} 不在 UF-32 对照表（三维取数前提——"
-            "表行覆盖随单元发现批次同步冻结）"
-        )
-    return projection
 
 
 def pool_primitives(

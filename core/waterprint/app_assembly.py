@@ -52,7 +52,12 @@ from waterprint.contracts.ports import (
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.run_env import CoefficientsView, RunEnv
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
-from waterprint.graph.nodes import InvalidNodeError, builtin_ports, builtin_unit
+from waterprint.graph.nodes import (
+    InvalidNodeError,
+    builtin_ports,
+    builtin_unit,
+    inlet_physics_errors,
+)
 from waterprint.units_lib import discover_units
 
 
@@ -230,6 +235,13 @@ def validate_design_structure(design: DesignState) -> tuple[str, ...]:
             except InvalidNodeError as exc:
                 errors.append(f"design.nodes[{node_id!r}]：{exc}")
                 continue
+            # R2-P1-4（round2 批）：进水物理域检红项（⑦甲呈报不阻断——
+            # NH3N>TN 等物理不可能值旧实现静默放行）
+            if kind == "municipal_input":
+                errors.extend(
+                    f"design.nodes[{node_id!r}]：{item}"
+                    for item in inlet_physics_errors(node_value)
+                )
         elif node_id in discovered:
             decls = discovered[node_id][0].ports
         else:
