@@ -13,7 +13,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限）：「（引用技能 batch-relay）接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（rev2）→ 按技能换防协议布火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（Ctrl+N+三回读）发布执行者并原子写 last_dispatch_utc → 此后每班火只调度禁执行禁重活」
 
 - status: READY
-- automation_id: - <!-- 迁火中 2026-09-25：旧火 cbcb3949 随肥调度会话退役已删；新任薄调度会话布火后回填本行 -->
+- automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
