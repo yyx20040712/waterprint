@@ -27,7 +27,7 @@
  *   - 行为通道零变：D5 apply 原子提交+invalidate+?task= 回写+wp:task
  *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持。
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Input, InputNumber, Modal, Select, Space, Tag, Typography } from "antd";
 
@@ -50,6 +50,7 @@ import { FeasibilityBar } from "../feasibility/components/FeasibilityBar";
 import { FeasibilityHeatmap } from "../feasibility/components/FeasibilityHeatmap";
 import { formatBackfill } from "../feasibility/lib/feasibility";
 import type { DesignMapResponse } from "../../../shared/api/generated/model";
+import { useParamsStore } from "../store/paramsStore";
 
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
 const SELECT_BLUE = "#1668dc";
@@ -168,6 +169,15 @@ export function ParamForm({
   const changeCount = Object.keys(changes).length;
   const submitDisabled =
     invalidFields.length > 0 || changeCount === 0 || apply.isPending;
+
+  // R2-P1-3（round2 批2 扩）：草稿计数上提提示面——画布工具条「保存」
+  // 徽标与 toast 诚实化消费；草稿本体仍本地（D7 边界不变）。卸载/换项目
+  // 清零（组件态随卸载消亡，提示面不得悬空报数）。
+  const setDraftHint = useParamsStore((s) => s.setDraftHint);
+  useEffect(() => {
+    setDraftHint(projectId, changeCount);
+  }, [projectId, changeCount, setDraftHint]);
+  useEffect(() => () => setDraftHint(projectId, 0), [projectId, setDraftHint]);
 
   const loadError = catalogQuery.error ?? designQuery.error;
   const errorText =

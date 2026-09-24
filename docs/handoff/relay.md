@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T19:19:22.000Z
+- heartbeat_utc: 2026-09-24T21:58:07.492Z <!-- E2E-2 批2 收口 -->
 - claim: -
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
-- checked_done: 22 <!-- 2026-09-24 E2E-1 收口 21→22 -->
+- checked_done: 23 <!-- 2026-09-24 E2E-2 收口 22→23（批2 三修全落+DoD 链绿） -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
 - last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- E2E-2 批 2 四发成立 2026-09-25 21:33Z：fetus3 唤醒配方（聚焦+回车发草稿+nudge 补发）引导 sess_e2cd19af 起跑——前两醒会话（b868e5e6/1e7cdf54）短活动后未读板静默，非合格执行者——status 保持 READY 待认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 1 <!-- 2026-09-24 E2E-1 首批（换防复位后） -->
+- batch_count: 2 <!-- 2026-09-24 E2E-2 批2（会话内直跑——UI 通道欠账见增补十四） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: E2E-2 fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（插队战役；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
+- next_batch: E2E-3 fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死（插队战役；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -104,7 +104,7 @@
 明细以工单为准，本区只放指针防双源漂移）
 
 - [x] E2E-1｜fix-plan 批1【server-data】P0-A 数据包路径自愈+启动 fail-fast（+round2 批1 扩 R2-P2-1 no-store）
-- [ ] E2E-2｜fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（+round2 批2 扩 R2-P1-2 fitView 引导/R2-P1-3 保存语义）
+- [x] E2E-2｜fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（+round2 批2 扩 R2-P1-2 fitView 引导/R2-P1-3 保存语义）
 - [ ] E2E-3｜fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死
 - [ ] E2E-4｜round2 §4 新立【server-scene】R2-P0-1 场景 kind 映射 500+R2-P1-1 布局避让+R2-P1-4 进水物理域检（编号撞前篇批3，按独立新批解读——排序/并批主控裁量）
 - [ ] E2E-5｜fix-plan 批4【hygiene】卫生批（+round2 批4 扩 R2-P2-2 孤立警告/R2-P2-3 枚举 URL 回写）

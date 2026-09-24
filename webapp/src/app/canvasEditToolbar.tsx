@@ -21,7 +21,7 @@
  *      复归+失效项目键（缩略图/参数面随 refetch 刷新）。
  */
 import { useEffect, useState } from "react";
-import { Alert, Button, Popconfirm, Typography, message } from "antd";
+import { Alert, Badge, Button, Popconfirm, Typography, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectQuery } from "../features/canvas/api/useProjectQuery";
@@ -32,6 +32,7 @@ import {
   useDraft,
   useEditing,
 } from "../features/canvas/store/canvasStore";
+import { useParamsStore } from "../features/params/store/paramsStore";
 import { useRunCalculationApiCalcRunPost } from "../shared/api/generated/calc/calc";
 import {
   useSaveProjectApiProjectsProjectIdPut,
@@ -56,6 +57,18 @@ function rawCheckedUnits(raw: unknown): string[] {
   return Array.isArray(checked) ? checked.filter((id): id is string => typeof id === "string") : [];
 }
 
+/** P0-B 决策面（fix-plan 批2 纯函数——vitest 直测）：提交计算动作分派。
+ *  dirty 编辑态：body 未就绪=阻断并提示（保存需要体）；就绪=先存后算。
+ *  只读态：draft===null ⇒ body 恒 null 属正常态，直接算（呈裁⑥ 常驻
+ *  提交计算语义——旧实现把 body 守卫放在最前，只读态被静默吞掉）。 */
+export type RunCalcDecision = "save-run" | "run" | "block-unready";
+export function decideRunCalc(dirty: boolean, body: unknown): RunCalcDecision {
+  if (dirty) {
+    return body === null ? "block-unready" : "save-run";
+  }
+  return "run";
+}
+
 export function CanvasEditToolbar({ projectId }: { projectId: string }) {
   const editing = useEditing(projectId);
   const dirty = useDirty(projectId);
@@ -65,6 +78,18 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
   const [messageApi, contextHolder] = message.useMessage();
   const [report, setReport] = useState<ValidateReport>(null);
   const store = useCanvasStore;
+  // R2-P1-3（round2 批2 扩）：参数面板未提交草稿计数（保存语义诚实化）
+  const paramDraftCount = useParamsStore((s) => s.draftHint[projectId] ?? 0);
+  /** 保存 toast 诚实口径：参数草稿不随图面保存走（正门=参数面板提交重算） */
+  const notifySaved = () => {
+    if (paramDraftCount > 0) {
+      messageApi.warning(
+        `图面已保存——参数草稿 ${paramDraftCount} 项未随存，请在参数面板「提交重算」`,
+      );
+      return;
+    }
+    messageApi.success("已保存");
+  };
 
   // 草稿变更即清陈旧校验报告（报告只对当次草稿版本有效）
   useEffect(() => {
@@ -96,17 +121,22 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
       : null;
 
   const runCalc = async () => {
-    if (body === null) {
+    const decision = decideRunCalc(dirty, body);
+    if (decision === "block-unready") {
+      messageApi.error("项目数据未就绪——稍候重试");
       return;
     }
     try {
-      if (dirty) {
+      if (decision === "save-run") {
+        if (body === null) {
+          return; // 类型收窄守卫（决策与载荷同帧求值，理论不可达）
+        }
         await save.mutateAsync({ projectId, data: body });
         store.getState().markSaved();
         void queryClient.invalidateQueries({
           queryKey: [`/api/projects/${projectId}`],
         });
-        messageApi.success("已保存");
+        notifySaved();
       }
       run.mutate(
         {
@@ -186,35 +216,44 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
           >
             校验
           </Button>
-          <Button
-            type="primary"
-            disabled={!dirty || body === null}
-            loading={save.isPending}
-            onClick={() => {
-              if (body === null) {
-                return;
-              }
-              save.mutate(
-                { projectId, data: body },
-                {
-                  onSuccess: () => {
-                    store.getState().markSaved();
-                    void queryClient.invalidateQueries({
-                      queryKey: [`/api/projects/${projectId}`],
-                    });
-                    messageApi.success("已保存");
-                  },
-                  onError: (error) => {
-                    messageApi.error(
-                      error instanceof Error ? error.message : "保存失败",
-                    );
-                  },
-                },
-              );
-            }}
+          {/* R2-P1-3：参数草稿未提交时保存钮挂徽标——「已保存」语义陷阱
+              根治面（草稿正门=参数面板「提交重算」，保存只走图面） */}
+          <Badge
+            count={paramDraftCount}
+            size="small"
+            offset={[-4, 0]}
+            title="参数草稿不随保存提交——请在参数面板「提交重算」"
           >
-            保存{dirty ? "（有修改）" : ""}
-          </Button>
+            <Button
+              type="primary"
+              disabled={!dirty || body === null}
+              loading={save.isPending}
+              onClick={() => {
+                if (body === null) {
+                  return;
+                }
+                save.mutate(
+                  { projectId, data: body },
+                  {
+                    onSuccess: () => {
+                      store.getState().markSaved();
+                      void queryClient.invalidateQueries({
+                        queryKey: [`/api/projects/${projectId}`],
+                      });
+                      notifySaved();
+                    },
+                    onError: (error) => {
+                      messageApi.error(
+                        error instanceof Error ? error.message : "保存失败",
+                      );
+                    },
+                  },
+                );
+              }}
+            >
+              保存{dirty ? "（有修改）" : ""}
+            </Button>
+          </Badge>
         </>
       ) : (
         <Button
@@ -229,8 +268,12 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
           编辑
         </Button>
       )}
-      {/* 呈裁⑥ 常驻提交计算（不依赖选中/dirty——dirty 时先存后算） */}
-      <Button loading={run.isPending} onClick={() => void runCalc()}>
+      {/* 呈裁⑥ 常驻提交计算（不依赖选中/dirty——dirty 时先存后算）；
+          rawQuery 加载期 loading（P0-B：堵「未就绪点击」窗口） */}
+      <Button
+        loading={run.isPending || rawQuery.isLoading}
+        onClick={() => void runCalc()}
+      >
         提交计算
       </Button>
       {editing && dirty && (

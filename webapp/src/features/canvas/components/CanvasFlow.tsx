@@ -282,9 +282,14 @@ export function CanvasFlow({
     const seen = new Set(lineByNodeId.values());
     return Object.keys(DOMAIN_LABELS).filter((line) => seen.has(line));
   }, [lineByNodeId]);
-  // 视口收敛键：节点集签名（选中态变化不触发重拟合——只有数据面变化才收敛）
-  const fitKey =
-    nodes.length > 0 ? `${nodes.length}:${nodes[0]?.id ?? ""}` : "";
+  // 视口收敛键：节点集签名（选中态变化不触发重拟合——只有数据面变化才收敛）。
+  // R2-P1-2②（round2 批2 扩）：编辑态前缀——进入编辑即重拟合全图（连线
+  // 句柄在视口外时拖拽静默落空的暗坑；①加节点自动拟合已由节点数签名覆盖）
+  const fitKey = editing
+    ? `edit:${nodes.length > 0 ? `${nodes.length}:${nodes[0]?.id ?? ""}` : ""}`
+    : nodes.length > 0
+      ? `${nodes.length}:${nodes[0]?.id ?? ""}`
+      : "";
 
   if (query.isError) {
     return (
