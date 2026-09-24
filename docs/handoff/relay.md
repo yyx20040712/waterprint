@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「（引用技能 batch-relay）基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——开工首步先加载技能 ai-dev-org，再按接力火协议认领并执行本批（工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基）」
 > - 调度员窗口（迁火/接任用，工作区不限）：「（引用技能 batch-relay）接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（rev2）→ 按技能换防协议布火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（Ctrl+N+三回读）发布执行者并原子写 last_dispatch_utc → 此后每班火只调度禁执行禁重活」
 
-- status: READY
+- status: HOLD
 - automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T23:28:44.014Z <!-- E2E-5 批5 收口 -->
+- heartbeat_utc: 2026-09-24T23:44:02.069Z <!-- B4-5 终批收口（stop_matter） -->
 - claim: -
-- no_progress_count: 0
+- no_progress_count: 1 <!-- B4-5 批勾选未增（用户门控非系统性卡死——stop_matter 优先） -->
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
 - checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26（插队战役收官——回归 B4-5 终批） -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
 - last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- E2E-2 批 2 四发成立 2026-09-25 21:33Z：fetus3 唤醒配方（聚焦+回车发草稿+nudge 补发）引导 sess_e2cd19af 起跑——前两醒会话（b868e5e6/1e7cdf54）短活动后未读板静默，非合格执行者——status 保持 READY 待认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 5 <!-- 2026-09-24 E2E-5 批5（会话内直跑——插队战役收官） -->
+- batch_count: 6 <!-- 2026-09-24 B4-5 终批（判定②stop_matter——26/27 完成，余项用户门控） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: -
+- hold_reason: stop_matter <!-- B4-5 双子项用户门控：⑤a norms mine_water_sludge_line 手算表追认（用户域——data/norms 零追认档）+⑤b 软著用户亲查时间窗（AI 仅辅助位——裁决书 B4-5 行明示）。非猜测可解，留用户晨间裁决 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）——清单最后一项
+- next_batch: 待用户：①追认 mine_water_sludge_line 手算表（data/norms）→开 ⑤a wp new-unit 脚手架；②软著亲查窗口（round2 §2 计算内核正确性实证供参考）→⑤b 实现批。重启=/batch-relay 换防（火已随 HOLD 收线删除）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -166,3 +166,10 @@
 - **行数门欠账补缴**：批2 fitKey 编辑使 CanvasFlow.tsx 504>500（当时收口只跑 webapp 门禁未跑 check_file_budgets——门禁覆盖缺口教训记档：收口必跑全门）；本批压缩回 500。app.py 500 恰满同理压缩。
 - **回归面**：core 837 全绿+ruff 净+行数门 1097 文件合规；webapp tsc 0 红+vitest 792 全绿+check_webapp 绿；check_readonly 323 绿。
 - 改动面：solutionsPane/main.tsx/nodes.py（分支重构+文案统一）/app.py（行数压缩+R2-P1-4 再导出）/pools.py（ruff __all__ 排序）/CanvasFlow.tsx（压缩）/app README、本板。
+
+### 增补十八 — 2026-09-24T23:44:02.069Z（B4-5 终批收口：stop_matter HOLD——整夜接力收官呈报）
+
+- **判定**：B4-5 两子项均用户门控（裁决书 B4-5 行：⑤a 手算表追认明示「用户域」且 data/norms 零追认档；⑤b 软著「用户亲查核心码」用户时间窗——AI 仅辅助位不动计算语义）。常设「未应答默认推荐项」纪律不适用于明示用户域动作。按收口判定②HOLD(stop_matter)。
+- **整夜战果（18:31Z 接任起，批 1~6）**：E2E-1（上会话）+E2E-2 P0-B 只读态提交计算复活+E2E-3 聊天双 P0（repo_root 桥+输入解锁）+E2E-4 场景 kind 映射/布局避让/进水物理域检+E2E-5 卫生批（枚举回写+根级 ErrorBoundary+antd 实证免修+行数门欠账补缴）——**26/27 勾选**，插队战役 E2E-1~5 全灭，唯余 B4-5 用户门控项。六笔提交全部推送（568865d…dafece8）。
+- **晨间用户待办**：①审阅本增补+增补十四~十七批次日志；②两笔锁面事项：794bc69 锁面越权事故（已补救+草稿 .workflow/e2e-fix/E2E-3/）与 R2-P2-2 孤立警告草稿（.workflow/e2e-fix/E2E-5/）——均待 [HUMAN-LOCK] 工序；③UI 客户端会话引导挂起复现路径（Ctrl+N 新任务注入→「思考中」零请求——五发五灭全记录增补十四/十五）；④B4-5 双门：norms 追认→⑤a；软著亲查→⑤b。
+- **收线**：HOLD 终态+全局唯一火 automation-b3938334 已 CronDelete（shared_fire 板删火权归 hub=本会话；重启走 /batch-relay 换防协议）。
