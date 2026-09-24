@@ -79,7 +79,15 @@ def _child_env() -> dict[str, str]:
 def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple[Any, Path]:
     """R1：消息文件落盘+子进程 spawn（返回 (Popen, 消息文件)——清理归调用方）。"""
     artifacts_dir = Path(str(payload.get("artifacts_dir", ".")))
-    repo_root = Path(str(payload.get("data_dir", ".")))
+    # P0-C（fix-plan 批3）：repo_root 只消费不自算——services 侧
+    # submit_ai_chat_turn 单点推导（data_dir.resolve().parent）后显式入载荷。
+    # 旧代码把 data_dir 当仓库根（uv --directory <data>/agent 必然 os
+    # error 2）；缺键=载荷契约破坏，fail-fast 显式报错胜过静默错位。
+    if "repo_root" not in payload:
+        raise RuntimeError(
+            "ai_chat 载荷缺 repo_root（P0-C 契约——services 侧必须显式单点推导注入）"
+        )
+    repo_root = Path(str(payload["repo_root"]))
     message_file = artifacts_dir / f"ai-chat-{uuid.uuid4().hex}.msg"
     message_file.parent.mkdir(parents=True, exist_ok=True)
     message_file.write_text(str(payload.get("message", "")) + "\n", encoding="utf-8")

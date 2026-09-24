@@ -57,6 +57,7 @@ describe("ChatPanel 对话面板（B4-4b 子批 2）", () => {
         onSessionChange={() => undefined}
         newSessionId={() => "fresh-id"}
         turnStage={null}
+        turnError={null}
       />,
     );
     expect(html).toContain("wp-chat-msg-user");
@@ -75,6 +76,7 @@ describe("ChatPanel 对话面板（B4-4b 子批 2）", () => {
         onSessionChange={() => undefined}
         newSessionId={() => "fresh-id"}
         turnStage="调用工具 wp_run_calc"
+        turnError={null}
       />,
     );
     expect(html).toContain("wp-chat-turn-stage");
@@ -91,8 +93,61 @@ describe("ChatPanel 对话面板（B4-4b 子批 2）", () => {
         onSessionChange={() => undefined}
         newSessionId={() => "fresh-id"}
         turnStage={null}
+        turnError={null}
       />,
     );
     expect(html).toContain("会话读取失败");
+  });
+});
+
+describe("ChatPanel P0-D（fix-plan 批3——失败轮解锁/横幅/空会话引导）", () => {
+  it("失败终态横幅：turnError 在场渲染 wp-chat-turn-error", () => {
+    const html = renderToString(
+      <ChatPanel
+        sessions={sessionStub([])}
+        history={historyStub([])}
+        send={sendStub}
+        sessionId="s1"
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-id"}
+        turnStage={null}
+        turnError="本轮失败（failed）——输入已解锁，可重发"
+      />,
+    );
+    expect(html).toContain("wp-chat-turn-error");
+    expect(html).toContain("输入已解锁");
+  });
+
+  it("终态解锁回归锚：turnStage=null 时输入不因残留 stage 锁死（busy 面恒假）", () => {
+    const html = renderToString(
+      <ChatPanel
+        sessions={sessionStub([])}
+        history={historyStub([])}
+        send={sendStub}
+        sessionId="s1"
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-id"}
+        turnStage={null}
+        turnError={null}
+      />,
+    );
+    expect(html).not.toContain("wp-chat-turn-stage");
+    expect(html).toContain('placeholder="输入设计需求…"');
+  });
+
+  it("空会话清单引导：无会话时 Select 占位「暂无会话——直接发言即建档」", () => {
+    const html = renderToString(
+      <ChatPanel
+        sessions={{ data: [], isError: false, isLoading: false } as unknown as Parameters<typeof ChatPanel>[0]["sessions"]}
+        history={historyStub([])}
+        send={sendStub}
+        sessionId={null}
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-id"}
+        turnStage={null}
+        turnError={null}
+      />,
+    );
+    expect(html).toContain("暂无会话——直接发言即建档");
   });
 });

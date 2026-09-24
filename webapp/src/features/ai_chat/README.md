@@ -9,8 +9,8 @@
 | 文件 | 职责 | 状态 |
 |------|------|------|
 | `api/useAiChat.ts` | orval 生成 hook 薄封装：useChatSessions（Drawer 开态门控）/useChatHistory（会话选中态门控）/useSendChatMessage（发言 mutation——sessionId 显式入参防态竞态） | B4-4b 实装 |
-| `components/ChatPane.tsx` | Drawer 壳：hook 装配+任务 SSE 轮进度（TaskEventReading 三态协议——stage 文案经 sink 副作用外送）+终态历史失效刷新+首发客户端建档 ID（hex32 与 agent uuid4 同形态） | B4-4b 实装 |
-| `components/ChatPanel.tsx` | 纯展示面板：会话切换 Select+消息流气泡（工具步卡行+截断标记）+轮进度行+输入框（busy 态禁发） | B4-4b 实装（6 测试绿） |
+| `components/ChatPane.tsx` | Drawer 壳：hook 装配+任务 SSE 轮进度（TaskEventReading 三态协议——stage 文案经 sink 副作用外送）+终态历史失效刷新+首发客户端建档 ID（hex32 与 agent uuid4 同形态） | B4-4b 实装；E2E-3 批3 P0-D（2026-09-25）：终态一律清 turnStage（done/failed/cancelled——旧残留「轮结束」文案使 busy 恒真锁死输入）+turnError 横幅面+发送回调透传（草稿保留归 ChatPanel） |
+| `components/ChatPanel.tsx` | 纯展示面板：会话切换 Select+消息流气泡（工具步卡行+截断标记）+轮进度行+输入框（busy 态禁发） | B4-4b 实装；E2E-3 批3 P0-D（2026-09-25）：发送失败保留草稿+toast（旧乐观清空）+失败横幅渲染+空会话 Select 引导+SendMutation.mutate 收窄契约（9 测试绿） |
 | `components/ToolCallCard.tsx` | 工具步折叠卡（✓/✗/进行中三态——社区基线「工具调用可见」） | B4-4b 实装（3 测试绿） |
 
 ## 规格要点

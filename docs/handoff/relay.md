@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T21:58:07.492Z <!-- E2E-2 批2 收口 -->
+- heartbeat_utc: 2026-09-24T22:28:43.533Z <!-- E2E-3 批3 收口 -->
 - claim: -
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
-- checked_done: 23 <!-- 2026-09-24 E2E-2 收口 22→23（批2 三修全落+DoD 链绿） -->
+- checked_done: 24 <!-- 2026-09-24 E2E-3 收口 23→24（双 P0 全落+无头全链 PASS） -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
 - last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- E2E-2 批 2 四发成立 2026-09-25 21:33Z：fetus3 唤醒配方（聚焦+回车发草稿+nudge 补发）引导 sess_e2cd19af 起跑——前两醒会话（b868e5e6/1e7cdf54）短活动后未读板静默，非合格执行者——status 保持 READY 待认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 2 <!-- 2026-09-24 E2E-2 批2（会话内直跑——UI 通道欠账见增补十四） -->
+- batch_count: 3 <!-- 2026-09-24 E2E-3 批3（会话内直跑——UI 五发全灭欠账见增补十四/十五） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: E2E-3 fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死（插队战役；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
+- next_batch: E2E-4 round2 §4 新立【server-scene】R2-P0-1 场景 kind 映射 500+R2-P1-1 布局避让+R2-P1-4 进水物理域检（插队战役；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -105,7 +105,7 @@
 
 - [x] E2E-1｜fix-plan 批1【server-data】P0-A 数据包路径自愈+启动 fail-fast（+round2 批1 扩 R2-P2-1 no-store）
 - [x] E2E-2｜fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（+round2 批2 扩 R2-P1-2 fitView 引导/R2-P1-3 保存语义）
-- [ ] E2E-3｜fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死
+- [x] E2E-3｜fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死
 - [ ] E2E-4｜round2 §4 新立【server-scene】R2-P0-1 场景 kind 映射 500+R2-P1-1 布局避让+R2-P1-4 进水物理域检（编号撞前篇批3，按独立新批解读——排序/并批主控裁量）
 - [ ] E2E-5｜fix-plan 批4【hygiene】卫生批（+round2 批4 扩 R2-P2-2 孤立警告/R2-P2-3 枚举 URL 回写）
 
@@ -139,3 +139,11 @@
 - **实证**（主控亲跑+门二 probe 7/7 独立复跑双证）：裸启（口径①零 env）constraints 200（旧 500）+calc run done（旧 DataPackError）+ai/connection 200（旧 400）——P0-A 三症状全证；缺包 env 启动=RuntimeError 可执行文案拒绝；no-store 头在场；CWD 无关双点位 MATCH；server pytest 344 passed 零新增失败；run_gates 全绿+gen_status 零漂移+health-scan RED=0（WARN×4 存量回显）。
 - **烤验**：门一双审 k1 B0/W2/N4 PASS+d1 B0/W3/N5 PASS（N 级实修 4 项：docstring 措辞/文案顿号化去内部代号/草稿补 env 用例/deployment 注记）；门二 probe 7/7+裁决通过（必改清单空，六处置逐条采纳）。
 - **Rulings/欠账**：①【待人类批准】锁面测试草稿=.workflow/e2e-fix/E2E-1/test_settings_data_dir.py.draft.md（4 显式用例+1 散注——DoD「单测断言解析函数」批内未闭环，呈批 [HUMAN-LOCK] 工序）；②uvicorn 直启面（Docker CMD/运维直启）不经启动校验——欠账登记（deployment.md 已注记；收敛方案建议入 E2E-5）；③E2E-5 建议扩面：no-store 全 GET 面普查+manifest 内容校验（非仅存在性）；④工具缺陷呈报：scripts/check_model_names.py scan_file 相对路径 CWD 依赖+OSError 静默吞——非根 CWD 单跑 md 面漏扫失真（run_gates cwd=REPO 不受影响，修属门禁脚本变更=用户裁决项）；⑤main.py 494/500 余量 6 行观察项。
+
+### 增补十五 — 2026-09-24T22:28:43.533Z（E2E-3 批3 收口：P0-C 聊天桥 repo_root+P0-D 输入框锁死——双 P0 修复+无头全链 PASS）
+
+- **P0-C（server）**：jobs/ai_chat.py 桥命令把 data_dir 当仓库根（uv --directory <data>/agent 必然 os error 2——任何部署形态聊天轮必败）。修复=载荷显式 repo_root（services/ai_chat.py 单点推导 data_dir.resolve().parent 注入；worker 只消费不自算，缺键 fail-fast）。回归锚：jobs 桥命令构造单测（--directory=repo_root/agent 且 data_dir 不在命令中）+services 载荷 spy 断言（17/17 绿）。
+- **P0-D（webapp）**：ChatPane 终态一律清 turnStage（旧实现残留「轮结束（failed）」文案→busy 恒真→一次失败输入永久锁死）+turnError 横幅面；ChatPanel 发送失败保留草稿+toast（旧乐观清空——502/422 草稿蒸发零提示）+空会话 Select 引导「暂无会话——直接发言即建档」+SendMutation.mutate 收窄契约（Omit+交叉）。vitest ai_chat 14/14（新增 6）。
+- **无头全链 PASS（DoD）**：t30 聊天发消息→**终态 done**+助手气泡可见（修复前每轮必 failed——P0-C 行为级实证；降级路径无 LLM 键）+stage 零残留+二次发送成功（P0-D 解锁实证）。挂账：失败横幅含任务 error 明细（终态回调仅携带 state——明细需任务状态查询面，下批裁量）。
+- **回归面**：webapp tsc 0 红+vitest 792 全绿+check_webapp 门禁绿；server pytest ai_chat 双文件 17/17。
+- 执行通道同批2：会话内直跑（22:18Z claim，UI 五发全灭——本批一发即 fetus4 死胎后不再浪费）。改动面：services/jobs ai_chat.py+tests×2、ChatPane/ChatPanel+test、ai_chat README、本板。

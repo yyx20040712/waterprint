@@ -133,6 +133,11 @@ async def submit_ai_chat_turn(ctx: ServiceContext, session_id: str, message: str
                 "session_id": session_id,
                 "message": message,
                 "data_dir": str(settings.data_dir),
+                # P0-C（fix-plan 批3）：repo_root 显式单点推导（与
+                # _agent_cli_command 同式 data_dir.resolve().parent）——
+                # worker 只消费不自算（jobs 侧旧代码把 data_dir 当仓库根，
+                # uv --directory <data>/agent 必然 os error 2）。
+                "repo_root": str(settings.data_dir.resolve().parent),
                 "artifacts_dir": str(ctx.artifacts_dir),
                 # 密钥三键不经载荷（门一 W1-k2：payload 落 registry 档=密钥落盘
                 # ——改 env 单通道，main 启动归一化 settings→os.environ）。

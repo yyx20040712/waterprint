@@ -2,11 +2,15 @@
  * 对话面板（B4-4b 子批 2——纯展示层：props 注入查询/mutation 句柄）。
  *
  * 输入:  会话清单/历史查询句柄+发言 mutation+活跃轮状态（turnStage/
- *        turnTaskId）
+ *        turnTaskId）+终态失败横幅文案（turnError——P0-D）
  * 输出:  会话切换 Select+消息流（用户/助手气泡+工具步折叠卡）+输入框+
  *        轮进度行（stage 文案——任务 SSE 面外聚）
+ *
+ * P0-D（fix-plan 批3）：发送失败保留草稿+toast（旧实现乐观清空——502/
+ *        422 时草稿蒸发零提示）；失败终态横幅（turnError）；空会话清单
+ *        Select 引导文案。
  */
-import { Input, Progress, Select, Typography } from "antd";
+import { Alert, Input, Progress, Select, Typography, message } from "antd";
 import { useEffect, useRef, useState } from "react";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 
@@ -16,12 +20,24 @@ import { ToolCallCard } from "./ToolCallCard";
 
 export type SessionsQuery = UseQueryResult<ChatSessionSummary[], unknown>;
 export type HistoryQuery = UseQueryResult<ChatHistoryMessage[], unknown>;
-export type SendMutation = UseMutationResult<
-  TaskIdResponse,
-  unknown,
-  { sessionId: string; message: string },
-  unknown
->;
+/** P0-D：mutate 面收窄——options 只透传 onSuccess/onError（ChatPane 包装面契约）。 */
+export type SendMutation = Omit<
+  UseMutationResult<
+    TaskIdResponse,
+    unknown,
+    { sessionId: string; message: string },
+    unknown
+  >,
+  "mutate"
+> & {
+  mutate: (
+    variables: { sessionId: string; message: string },
+    options?: {
+      onSuccess?: (data: TaskIdResponse) => void;
+      onError?: (error: unknown) => void;
+    },
+  ) => void;
+};
 
 /** 消息气泡（助手消息带工具步轨迹行+截断标记）。 */
 function MessageBubble({ message }: { message: ChatHistoryMessage }) {
@@ -76,6 +92,8 @@ export interface ChatPanelProps {
   onSessionChange: (sessionId: string) => void;
   newSessionId: () => string;
   turnStage: string | null;
+  /** P0-D：终态失败横幅文案（null=无失败——done 轮/新发送清空）。 */
+  turnError: string | null;
 }
 
 export function ChatPanel({
@@ -86,24 +104,32 @@ export function ChatPanel({
   onSessionChange,
   newSessionId,
   turnStage,
+  turnError,
 }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
+  const [messageApi, contextHolder] = message.useMessage();
   const bottomRef = useRef<HTMLDivElement>(null);
   const messages = history.data ?? [];
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, turnStage]);
+  }, [messages.length, turnStage, turnError]);
 
   const busy = turnStage !== null;
+  const noSessions = !sessions.isLoading && (sessions.data ?? []).length === 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 8 }}>
+      {contextHolder}
       <Select
         aria-label="会话选择"
         data-testid="wp-chat-session-select"
         value={sessionId}
         onChange={onSessionChange}
-        placeholder="选择会话（发言即自动建档）"
+        placeholder={
+          noSessions
+            ? "（暂无会话——直接发言即建档）"
+            : "选择会话（发言即自动建档）"
+        }
         options={(sessions.data ?? []).map((item) => ({
           value: item.session_id,
           label: item.title || `会话 ${item.session_id.slice(0, 8)}`,
@@ -123,6 +149,11 @@ export function ChatPanel({
             <Typography.Text type="secondary">{turnStage}</Typography.Text>
           </div>
         )}
+        {turnError !== null && (
+          <div data-testid="wp-chat-turn-error" style={{ padding: 4 }}>
+            <Alert type="error" showIcon message={turnError} />
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
       <Input.Search
@@ -137,8 +168,20 @@ export function ChatPanel({
           if (!sessionId) {
             onSessionChange(sid);
           }
-          send.mutate({ sessionId: sid, message });
-          setDraft("");
+          send.mutate(
+            { sessionId: sid, message },
+            {
+              // P0-D：发送成功才清草稿——失败保留+toast（旧实现乐观清空）
+              onSuccess: () => setDraft(""),
+              onError: (error) => {
+                messageApi.error(
+                  error instanceof Error
+                    ? `发送失败（${error.message}）——草稿已保留`
+                    : "发送失败——草稿已保留，请稍后重试",
+                );
+              },
+            },
+          );
         }}
         enterButton="发送"
         placeholder={sessionId ? "输入设计需求…" : "先选择或新建会话"}
