@@ -11,7 +11,8 @@
 #   class Settings(BaseSettings)：模型字段——
 #       projects_dir（项目文件根，路径安全基点）
 #       exports_dir（导出产物根，路径安全基点）
-#       data_dir（数据包根：单价/系数/模板）
+#       data_dir（数据包根：单价/系数/模板——E2E-1 起缺省=包定位
+#          default_data_dir()，CWD 无关；env WATERPRINT_DATA_DIR 可覆盖）
 #       calc_workers（进程池大小，默认 CPU−1）
 #       max_upload_mb / max_excel_rows（§18 上传面）
 #       cache_entries / cache_mb（LRU 与落盘上限 §17.2）
@@ -20,6 +21,10 @@
 #   get_settings() -> Settings（lru_cache，测试可覆盖）
 #   safe_child(base, name) -> Path：R1 路径基点分量校验工具
 #   ensure_directories(settings)：基点目录存在或可创建（fail fast）
+#   default_data_dir() -> Path：数据包根缺省解析（E2E-1 P0-A 自愈——
+#      包定位上溯仓库根，与 CWD 解耦）
+#   validate_data_packages(settings)：四数据包 manifest.yaml 在场校验
+#      （E2E-1 P0-A fail fast——缺包 raise RuntimeError 可执行文案）
 #
 # 【行为规格】
 #   R1 一切路径类配置只作基点：业务路径 = 基点内拼接 + 分量校验
@@ -88,6 +93,17 @@ API_TOKEN_MIN_LENGTH: Final[int] = 2 ** (2 * 2)  # 16
 _LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
+def default_data_dir() -> Path:
+    """数据包根缺省解析（E2E-1 P0-A 自愈）：包定位上溯，CWD 无关。
+
+    server/waterprint_server/settings.py 上溯两级=仓库根（仓库开发态，
+    data/ 随仓内置）；Docker/打包部署态由显式 env WATERPRINT_DATA_DIR
+    覆盖，不经本缺省（Dockerfile.server ENV 行）。定义于 Settings 之前——
+    data_dir 字段 default_factory 直引函数对象（类体即时解析）。
+    """
+    return Path(__file__).resolve().parents[2] / "data"
+
+
 class Settings(BaseSettings):
     """一切可调参数的唯一住所（不可变；启动注入，禁代码内联数值）。"""
 
@@ -104,7 +120,11 @@ class Settings(BaseSettings):
     # AU-1）与真服务相对默认不兼容（M5 TCP 探针实录 500 收口：单产物/worker
     # 批量 tmp 派生全经此基点）。
     exports_dir: Path = Path("exports").resolve()
-    data_dir: Path = Path("data")
+    # E2E-1（e2e-audit 2026-09-24 P0-A）：缺省改包定位自愈——旧缺省
+    # Path("data") 按 CWD 相对解析，README「cd server && uv run …」口径落到
+    # server/data（不存在）⇒ 约束库 500/计算 DataPackError/AI 接入 400 全线
+    # 断。部署面（Docker/打包）显式 env WATERPRINT_DATA_DIR 覆盖，不经缺省。
+    data_dir: Path = Field(default_factory=default_data_dir)
     calc_workers: int = Field(default_factory=lambda: max(1, (os.cpu_count() or 2) - 1))
     # R1-4⑤（AU-8 已接线 ENG2 2026-08-27）：上传体积闸已接线（413，routers 依赖层）。
     max_upload_mb: int = 10
@@ -269,3 +289,38 @@ def ensure_directories(settings: Settings) -> None:
                 }
             ],
         ) from exc
+
+
+# E2E-1（e2e-audit 2026-09-24 P0-A）：数据包四目录清单——启动在场校验面
+# （coefficients 系数/constraint_kb 约束库/templates 模板/unit_prices 单价，
+# 各以 manifest.yaml 为完整性判据；与 data/ 目录现状一一对应）。
+_DATA_PACKAGES: Final[tuple[str, ...]] = (
+    "coefficients",
+    "constraint_kb",
+    "templates",
+    "unit_prices",
+)
+
+
+def validate_data_packages(settings: Settings) -> None:
+    """启动期数据包在场校验（E2E-1 P0-A fail fast）：缺任何 manifest.yaml
+    以可执行文案拒绝启动（晚拒+拒在用户脸上的 500 时代终结——对齐
+    ADR-012 D6 fail-fast 理念）。
+
+    消费点=main 启动块（README「python -m waterprint_server.main」口径），
+    uvicorn 直启（Docker CMD）面数据包随镜像走+显式 env，不经本校验。
+    """
+    missing = [
+        name
+        for name in _DATA_PACKAGES
+        if not (settings.data_dir / name / "manifest.yaml").is_file()
+    ]
+    if missing:
+        raise RuntimeError(
+            f"数据包不完整：{settings.data_dir} 缺 "
+            + "、".join(f"{name}/manifest.yaml" for name in missing)
+            + "——启动拒绝（fail fast）。请设置 WATERPRINT_DATA_DIR 指向含 "
+            + "、".join(_DATA_PACKAGES)
+            + " 四个子目录的数据根；缺省按包文件位置解析（仓库开发态="
+            "仓库根 data/，非仓库布局——如安装态——请显式设 env）"
+        )

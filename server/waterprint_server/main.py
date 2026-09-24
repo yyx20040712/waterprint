@@ -133,7 +133,12 @@ from waterprint_server.services.scene import (
 )
 from waterprint_server.services.site import InvalidSpacingRequestError
 from waterprint_server.services.trust import TrustSourceNotFoundError
-from waterprint_server.settings import Settings, ensure_directories, get_settings
+from waterprint_server.settings import (
+    Settings,
+    ensure_directories,
+    get_settings,
+    validate_data_packages,
+)
 from waterprint_server.sse_limits import RateLimitedError, SseLimiter
 
 # ── R2 统一异常映射表（集中一处；core/server 领域异常→HTTP 码）──
@@ -481,6 +486,9 @@ if __name__ == "__main__":
     import uvicorn  # 启动块正门（模块级 if 块不在 PLC0415 函数体口径内）
 
     _settings = get_settings()
+    # E2E-1（e2e-audit 2026-09-24 P0-A）：启动 fail-fast——四数据包 manifest
+    # 在场校验先于 uvicorn（缺包=可执行文案拒绝启动，非 500 晚拒在用户脸上）。
+    validate_data_packages(_settings)
     # R-1（G1-01）：传已建 app 对象非字符串路径——python -m 启动时模块以 __main__
     # 身份已执行，字符串路径会再 import 实名模块一遍=双 app 实例（无 reload 收益）。
     uvicorn.run(app, host=_settings.host, port=_settings.port)

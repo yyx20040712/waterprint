@@ -29,6 +29,8 @@ uv run python ../scripts/run_gates.py        # 门禁全跑（计数见 docs/sta
 pnpm install && pnpm -C webapp dev
 
 # 服务（默认只听 127.0.0.1:8000——对外绑定=WATERPRINT_HOST 显式覆盖）
+# 数据包缺省自动定位 <仓库根>/data（包定位解析，CWD 无关）；自定义数据根用
+# WATERPRINT_DATA_DIR 覆盖，缺包时启动即拒绝并给出指引（fail fast）。
 cd server && uv sync && uv run python -m waterprint_server.main
 ```
 

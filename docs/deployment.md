@@ -69,7 +69,10 @@ docker compose -f deploy/compose.yml up -d --build
 | `waterprint_wp-exports` | /app/exports | 导出产物+任务注册表 | 同上 |
 
 数据包（coefficients/unit_prices/templates，9.5M）**打入镜像**不占卷——
-版本化资产随镜像版本走，用户数据走卷，两者不混。
+版本化资产随镜像版本走，用户数据走卷，两者不混。缺包启动校验
+（`validate_data_packages`）只挂在裸机 `python -m waterprint_server.main`
+入口；容器 uvicorn 直启不经该校验，缺包防护依赖镜像构建期 COPY 与
+显式 `WATERPRINT_DATA_DIR`（E2E-1 注记）。
 
 ## 环境变量（WATERPRINT_ 前缀，均可覆盖）
 
