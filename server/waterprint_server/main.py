@@ -72,6 +72,7 @@ from waterprint_server.auth import AuthError, verify_token, verify_token_sse
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
 from waterprint_server.routers import (
+    ai_chat,
     ai_connection,
     calc,
     cost,
@@ -174,7 +175,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (JointEnumerationTooLargeError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidJointUnitsError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     # B4-3：core 侧联合枚举输入非法（worker 运行面二道闸）→400
-    #（InvalidAssemblyError 同族）。
+    # （InvalidAssemblyError 同族）。
     (core.InvalidJointEnumerationError, status.HTTP_400_BAD_REQUEST),
     (InvalidPageParameterError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
@@ -234,9 +235,30 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
 # +1=B4-1（GET /api/debug/ops-chain/{project_id}——操作链集中 debug 观测面，
 # 《裁决书》方案五①，2026-09-19：35→36 破面[裁决书批次编排批 4 授权]）
 _EXPECTED_ENDPOINTS: Final[int] = (
-    10 + 10 - 2 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+    10
+    + 10
+    - 2
+    + 1
+    + 1
+    + 2
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
+    + 1
     + 1  # B4-3：POST /api/solution/joint-enumerate（联合枚举正门，36→37 破面
     # =ADR-025 决策 1——.workflow/b4-3/design-final.md 授权）
+    + 2 + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
+    # =.workflow/b4-4b/design-final.md §四授权）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -281,9 +303,7 @@ async def _sweep_periodically(manager: Manager, interval_s: int) -> None:
         try:
             manager.sweep_expired()
         except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
-            structlog.get_logger(__name__).warning(
-                "task_sweep_round_failed", reason=repr(exc)
-            )
+            structlog.get_logger(__name__).warning("task_sweep_round_failed", reason=repr(exc))
 
 
 def _register_exception_handlers(app: FastAPI) -> None:
@@ -322,7 +342,9 @@ def _contract_self_check(app: FastAPI) -> None:
         )
 
 
-def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
+def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式展开（B4-4b 子批 2 +ai_chat 后 40→41，结构非逻辑面）
+    settings: Settings, executor: Executor | None = None
+) -> FastAPI:
     """应用工厂（可测试可重复构建——装配束挂 app.state 无全局可变态）。"""
     _configure_logging(settings)
 
@@ -330,10 +352,14 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         ensure_directories(settings)
         queue: mp.Queue[Any] = mp.Queue()
-        pool = executor if executor is not None else ProcessPoolExecutor(
-            max_workers=settings.calc_workers,
-            initializer=worker._init_progress_queue,  # noqa: SLF001  # 池 initializer 正门（R3 进度通路）
-            initargs=(queue,),
+        pool = (
+            executor
+            if executor is not None
+            else ProcessPoolExecutor(
+                max_workers=settings.calc_workers,
+                initializer=worker._init_progress_queue,  # noqa: SLF001  # 池 initializer 正门（R3 进度通路）
+                initargs=(queue,),
+            )
         )
         manager = Manager(
             pool,
@@ -372,13 +398,13 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
 
     app = FastAPI(title="WaterPrint 服务层", version="0.1.0", lifespan=lifespan)
     # R2A 批1（终裁 R-1/D3）：include 级鉴权依赖挂载——七业务路由器受保
-    #（20 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
+    # （20 非事件操作仅认 Bearer），events 两 SSE 端点用双通道依赖（header
     # 或 ？token=）；units 三静态只读端点豁免（不挂）。端点集/路径/方法
     # 变化仅 SC1/EXPD 增量（_EXPECTED_ENDPOINTS=27 现值——契约自检常驻；
     # 旧注记「=24 恒」系 R2A 时点快照，SC1 顺带销注释漂移）。
     # B6 D3 必改1（依赖序）：events 挂载序=[sse_connect_gate,
     # verify_token_sse]——FastAPI include 级 dependencies 列表序执行
-    #（0.141 实证），建连闸（速率令牌+全局阈探测）先于认证：401 风暴的
+    # （0.141 实证），建连闸（速率令牌+全局阈探测）先于认证：401 风暴的
     # 建连消耗被 429 前置压制；闸零路径参=openapi 零波面。
     app.include_router(projects.router, dependencies=[Depends(verify_token)])
     app.include_router(calc.router, dependencies=[Depends(verify_token)])
@@ -400,13 +426,14 @@ def create_app(settings: Settings, executor: Executor | None = None) -> FastAPI:
     )  # B4-1：操作链观测面（GET /api/debug/ops-chain——35→36，《裁决书》方案五①）
     # AI2（2026-09-13）：AI 接入面挂载（状态检查+一键接入——Bearer 沿册同保）
     app.include_router(ai_connection.router, dependencies=[Depends(verify_token)])
+    # B4-4b 子批 2（2026-09-24）：对话 pane 中继面挂载（会话清单/历史/发言
+    # ——37→40 破面=.workflow/b4-4b/design-final.md §四授权）。
+    app.include_router(ai_chat.router, dependencies=[Depends(verify_token)])
     # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，
     # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
     # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，
     # 真源在 router.routes）。
-    for units_route in (
-        route for route in units.router.routes if isinstance(route, APIRoute)
-    ):
+    for units_route in (route for route in units.router.routes if isinstance(route, APIRoute)):
         units_route.openapi_extra = {"security": []}
     app.include_router(units.router)
     app.add_middleware(

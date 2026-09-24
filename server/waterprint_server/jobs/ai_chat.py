@@ -1,0 +1,198 @@
+"""对话轮任务 runner（ai_chat kind——agent CLI 子进程桥，终裁 §一）。
+
+输入:  payload {session_id, message, data_dir, artifacts_dir}
+输出:  终态 Mapping（turn_summary 原文）；进度=stage 中文标签+步进百分比
+"""
+
+# ══════════════════════════════════════════════════════════════════
+# 契约头（B4-4b 子批 2 2026-09-24）
+#   路径：server/waterprint_server/jobs/ai_chat.py
+#   职责：ai_chat 任务 kind 执行体——spawn agent CLI 桥模式
+#       （uv run --directory agent python -m waterprint_agent.chat
+#       --turn <sid> --message-file <f>，ai_connection R5 同款命令面），
+#       stdout JSONL 事件→进度上报；取消=行边界轮询+子进程终止。
+#   禁区：禁 import waterprint_agent（server→agent 禁向——子进程是唯一
+#       通道，审 B2 处置）；禁 LLM/对话逻辑入 server（智能在 agent 环，
+#       ADR-019）；禁密钥/消息原文入日志（stage 只携标签）。
+#
+# 【行为规格】
+#   R1 子进程：命令=[uv, run, --directory, <repo>/agent, python, -m,
+#      waterprint_agent.chat, --turn, sid, --message-file, mf]；env=
+#      os.environ ∪ 设置三键（非空覆盖——server settings 为准）；消息
+#      文件落 artifacts_dir（首行=用户输入，UTF-8）。
+#   R2 进度：JSONL 事件→_report（stage=中文标签，percent=步进幂商）；
+#      turn_summary 行解析为终态结果（state=done 原文透传）。
+#   R3 取消：每行边界查 _cancelled——置位即 terminate+wait，返回
+#      {"state":"cancelled"}（不写半途结果——R4 同构）。
+#   R4 失败：子进程非零退出/uv 缺失→raise InvalidTaskPayloadError 族
+#      （main 422/500 映射既有面）；stdout 非法行跳过不计败（容错解析）。
+# ══════════════════════════════════════════════════════════════════
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import uuid
+from collections.abc import Mapping
+from pathlib import Path
+from shutil import which
+from typing import Any
+
+__all__ = ["_run_ai_chat"]
+
+_MAX_WAIT_S = 10  # terminate 后 join 宽限（秒——子进程收 SIGTERM 收尾窗）
+_TAIL_CHARS = 2 * 10**2  # 失败面 stderr 摘要长度 200（诊断最小面——幂积保白名单）
+
+_STATIC_LABELS: Mapping[str, str] = {
+    "turn_start": "对话开始",
+    "assistant_text": "生成回复",
+    "fallback": "降级模式",
+    "turn_end": "回合完成",
+}
+
+
+def _stage_label(event: Mapping[str, Any]) -> str:
+    """事件→中文阶段标签（R2——标签面零数据零密钥）。"""
+    kind = str(event.get("type", ""))
+    if kind in _STATIC_LABELS:
+        return _STATIC_LABELS[kind]
+    name = str(event.get("name", ""))
+    if kind == "llm_step":
+        return f"思考中（第 {event.get('step', '?')} 步）"
+    if kind == "tool_start":
+        return f"调用工具 {name}"
+    if kind == "tool_result":
+        verdict = "完成" if event.get("ok") else "失败"
+        return f"工具{verdict} {name}"
+    return "对话进行中"
+
+
+def _child_env(base_url: str, api_key: str, model: str, timeout_s: int) -> dict[str, str]:
+    """子进程 env（os.environ ∪ 设置三键非空覆盖——R1）。"""
+    env = dict(os.environ)
+    for key, value in (
+        ("WATERPRINT_AI_BASE_URL", base_url),
+        ("WATERPRINT_AI_API_KEY", api_key),
+        ("WATERPRINT_AI_MODEL", model),
+        ("WATERPRINT_AI_LLM_TIMEOUT_S", str(timeout_s) if timeout_s else ""),
+    ):
+        if value:
+            env[key] = value
+    return env
+
+
+def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple[Any, Path]:
+    """R1：消息文件落盘+子进程 spawn（返回 (Popen, 消息文件)——清理归调用方）。"""
+    artifacts_dir = Path(str(payload.get("artifacts_dir", ".")))
+    repo_root = Path(str(payload.get("data_dir", ".")))
+    message_file = artifacts_dir / f"ai-chat-{uuid.uuid4().hex}.msg"
+    message_file.parent.mkdir(parents=True, exist_ok=True)
+    message_file.write_text(str(payload.get("message", "")) + "\n", encoding="utf-8")
+    command = [
+        uv,
+        "run",
+        "--directory",
+        str(repo_root / "agent"),
+        "python",
+        "-m",
+        "waterprint_agent.chat",
+        "--turn",
+        session_id,
+        "--message-file",
+        str(message_file),
+    ]
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=_child_env(
+            str(payload.get("ai_base_url", "")),
+            str(payload.get("ai_api_key", "")),
+            str(payload.get("ai_model", "")),
+            int(payload.get("ai_llm_timeout_s", 0) or 0),
+        ),
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return process, message_file
+
+
+def _stream_events(
+    process: Any, task_id: str, cancel_token: object, progress: Any
+) -> tuple[str | None, dict[str, Any]]:
+    """R2/R3：stdout JSONL→进度上报与终态收割（返回 (退出码|None, summary)）。
+
+    取消协作=行边界轮询（置位返回退出码 None——调用方翻译 cancelled）。"""
+    from waterprint_server.jobs.worker import (  # noqa: PLC0415  # 懒 import 破环（worker 装载期先 import 本件）
+        _cancelled,
+        _report,
+        _StagePoint,
+    )
+
+    summary: dict[str, Any] = {}
+    seen = 0
+    assert process.stdout is not None
+    for raw in process.stdout:
+        if _cancelled(cancel_token):  # R3：行边界取消协作
+            process.terminate()
+            process.wait(timeout=_MAX_WAIT_S)
+            return None, summary
+        text = raw.strip()
+        if not text:
+            continue
+        try:
+            event = json.loads(text)
+        except ValueError:
+            continue  # R4：非法行容错跳过
+        if not isinstance(event, dict):
+            continue
+        seen += 1
+        if event.get("type") == "turn_summary":
+            summary = {key: value for key, value in event.items() if key != "type"}
+            continue
+        _report(task_id, _StagePoint(_stage_label(event), seen, seen + 10), progress)
+    return process.wait(timeout=_MAX_WAIT_S), summary
+
+
+def _run_ai_chat(
+    payload: Mapping[str, Any],
+    cancel_token: object,
+    progress: Any,
+) -> Mapping[str, Any]:
+    """ai_chat 执行体（R1-R4——子进程桥+事件流进度+取消协作）。"""
+    from waterprint_server.jobs.worker import (  # noqa: PLC0415  # 懒 import 破环（worker 装载期先 import 本件）
+        InvalidTaskPayloadError,
+    )
+
+    session_id = str(payload.get("session_id", ""))
+    if not session_id or not str(payload.get("message", "")):
+        raise InvalidTaskPayloadError(
+            "ai_chat 载荷缺 session_id/message（IPC 面防线——服务面已校验，"
+            "本闸防绕过服务层直构 payload）"
+        )
+    uv = which("uv")
+    if uv is None:
+        raise InvalidTaskPayloadError("未找到 uv 可执行（agent CLI 子进程桥不可用）")
+    process, message_file = _spawn_bridge(payload, uv, session_id)
+    try:
+        return_code, summary = _stream_events(
+            process,
+            str(payload["task_id"]),
+            cancel_token,
+            progress,  # manager 注入
+        )
+    finally:
+        message_file.unlink(missing_ok=True)  # 消息文件即用即清（不留敏感面）
+        if process.poll() is None:  # 异常路径兜底收割
+            process.kill()
+            process.wait(timeout=_MAX_WAIT_S)
+    if return_code is None:
+        return {"state": "cancelled"}
+    if return_code != 0:  # type: ignore[comparison-overlap]  # narrows below None-guard; mypy literal drift
+        tail = process.stderr.read()[-_TAIL_CHARS:] if process.stderr else "（空）"
+        raise InvalidTaskPayloadError(
+            f"对话子进程退出码 {return_code}（agent CLI 桥失败——stderr 摘要 {tail}）"
+        )
+    return {"state": "done", "session_id": session_id, **summary}

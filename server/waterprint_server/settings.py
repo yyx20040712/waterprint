@@ -113,8 +113,16 @@ class Settings(BaseSettings):
     cache_mb: int = 10**2  # 100（§17.2 落盘体积上限 MB）
     task_queue_priorities: dict[str, int] = Field(
         default_factory=lambda: {"calc": 10, "enumerate": 2, "export_batch": 1,
-                                   "joint_enumerate": 2}
+                                   "joint_enumerate": 2, "ai_chat": 10}
     )
+    # B4-4b 子批 2（2026-09-24）：对话编排三中性键+子进程透传面——env 名即
+    # WATERPRINT_AI_*（env_prefix 天然对齐 agent CLI 读取面）；空=未配置
+    #（agent 环降级模式承载，非 503——design-final §三勘正：降级即行为）。
+    # api_key 禁入任何日志（ai_chat 子进程 env 注入后即弃）。
+    ai_base_url: str = ""
+    ai_api_key: str = ""
+    ai_model: str = ""
+    ai_llm_timeout_s: int = 10**2 + 2 * 10  # 120s（幂积保白名单——agent 环 §七推导值）
     log_level: str = "INFO"
     log_file: str = "waterprint-server.log"
     max_json_depth: int = 10**2  # 100（HTTP 上传面深度闸，与 core io._MAX_DEPTH 同源）

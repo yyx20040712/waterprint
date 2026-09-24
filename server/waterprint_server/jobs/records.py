@@ -43,6 +43,7 @@ from waterprint_server.jobs.registry import TERMINAL_STATES
 
 _KINDS: Final[tuple[str, ...]] = (
     "calc", "enumerate", "export_batch", "joint_enumerate",  # B4-3 联合枚举
+    "ai_chat",  # B4-4b 子批 2 对话轮子进程桥
 )
 
 

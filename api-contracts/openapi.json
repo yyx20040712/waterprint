@@ -238,6 +238,98 @@
         "title": "CancelResponse",
         "type": "object"
       },
+      "ChatHistoryMessage": {
+        "description": "历史消息项（role/text/turn/truncated/tool_steps 五键投影）。",
+        "properties": {
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tool_steps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Tool Steps",
+            "type": "array"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "turn": {
+            "default": 0,
+            "title": "Turn",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "ChatHistoryMessage",
+        "type": "object"
+      },
+      "ChatMessageIn": {
+        "description": "发言请求（消息非空——空白话术无语义）。",
+        "properties": {
+          "message": {
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "ChatMessageIn",
+        "type": "object"
+      },
+      "ChatSessionSummary": {
+        "description": "会话清单项（agent CLI 投影原样——字段面跟随上游演进）。",
+        "properties": {
+          "created_at": {
+            "default": "",
+            "title": "Created At",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          },
+          "turns": {
+            "default": 0,
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "title": "ChatSessionSummary",
+        "type": "object"
+      },
       "ClosureLineModel": {
         "description": "单流体线厂级闭合（contracts.trust.ClosureLine 直投影）。",
         "properties": {
@@ -3044,6 +3136,145 @@
         "summary": "Setup Connection",
         "tags": [
           "ai-connection"
+        ]
+      }
+    },
+    "/api/ai/sessions": {
+      "get": {
+        "description": "会话清单（同步 def——线程池承载子进程阻塞）。",
+        "operationId": "list_sessions_api_ai_sessions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChatSessionSummary"
+                  },
+                  "title": "Response List Sessions Api Ai Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "List Sessions",
+        "tags": [
+          "ai-chat"
+        ]
+      }
+    },
+    "/api/ai/sessions/{session_id}/messages": {
+      "get": {
+        "description": "会话历史（R2——ID 分量校验 422 面）。",
+        "operationId": "read_messages_api_ai_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChatHistoryMessage"
+                  },
+                  "title": "Response Read Messages Api Ai Sessions  Session Id  Messages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Read Messages",
+        "tags": [
+          "ai-chat"
+        ]
+      },
+      "post": {
+        "description": "发言（异步对话轮——task_id 走既有任务端点族+SSE）。",
+        "operationId": "send_message_api_ai_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskIdResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Send Message",
+        "tags": [
+          "ai-chat"
         ]
       }
     },

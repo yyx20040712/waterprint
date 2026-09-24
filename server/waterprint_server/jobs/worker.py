@@ -86,6 +86,8 @@ from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import serialize_diag
 
+from waterprint_server.jobs.ai_chat import _run_ai_chat
+
 # B3 R5 再导出（消费面零改动；冗余别名形态被 PLC0414 拦——平名+定向 F401 豁免）
 from waterprint_server.jobs.datapack import (
     DataPackError,  # noqa: F401  # 再导出专用（from worker import 零改动）
@@ -94,6 +96,12 @@ from waterprint_server.jobs.datapack import (
 )
 from waterprint_server.jobs.dwg import batch_dwg_artifact
 from waterprint_server.jobs.enum_payload import enumeration_payload
+from waterprint_server.jobs.export_batch_lib import (
+    _item_route_options,
+    _safe_out_name,
+    _stage_label,
+    _write_sidecar_text,
+)
 from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
 from waterprint_server.settings import ENGINE_VERSION
 
@@ -335,60 +343,6 @@ _ITEM_FAILURES: Final[tuple[type[BaseException], ...]] = (
 _FAILURE_TEXT_LIMIT: Final[int] = 2 * 10**2  # failures error 截断长度（幂底式 200——SVRB D4）
 
 
-def _safe_out_name(name: str, kind: str) -> str:
-    """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注
-    IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。
-    D-02（R-1）：kind=dxf 强制 .dxf 后缀——防 out_name="foo.dwg" 时转换
-    产物 with_suffix 同路径覆盖已交付 DXF；SVRB D3：ifc 同款单特判。"""
-    if (
-        not name
-        or "/" in name
-        or "\\" in name
-        or ".." in name
-        or name in {".", ".."}
-        or (kind == "dxf" and not name.endswith(".dxf"))
-        or (kind == "ifc" and not name.endswith(".ifc"))
-    ):
-        raise InvalidTaskPayloadError(
-            f"导出产物名非法：{name!r}（R1-1 二道闸——无路径分隔符/无父段"
-            "引用；dxf/ifc 项产物名须对应后缀〔D-02 防转换同路径覆盖〕；"
-            "exports_dir 内落盘是唯一合法位置）"
-        )
-    return name
-
-
-def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
-    """R2-C：批量产物边车落盘（GR-38 原子写；文本=services 预构建）。"""
-    sidecar = exports_dir / f"{file_name}.meta.json"
-    tmp = sidecar.with_name(f"{sidecar.name}.{uuid.uuid4().hex}.tmp")
-    try:
-        tmp.write_text(text, encoding="utf-8", newline="\n")
-        os.replace(tmp, sidecar)
-    except OSError as exc:  # WP0 R-1/G1-01 同族：登记失败不回滚已交付产物
-        _LOGGER.warning(
-            "export_sidecar_skipped", source=file_name, reason=f"write failed: {exc!r}"
-        )
-
-
-def _item_route_options(item: Mapping[str, Any]) -> dict[str, str]:
-    """PROFILE3（PD1）：sheet/h/v 归一提取（空串剔除=仅非 None 键——
-    未传不传，kwargs 精确集恒定沿既有断言面）。"""
-    options: dict[str, str] = {}
-    for key in ("sheet", "h_scale", "v_scale"):
-        value = str(item.get(key) or "") or None
-        if value is not None:
-            options[key] = value
-    return options
-
-
-def _stage_label(kind: str, unit_id: str | None, sheet: str | None) -> str:
-    """stage 点段序（SVRB D4+PROFILE3 PD1）：unit 项现形态零改；纵断项
-    （无 unit）带 sheet 段（export:dxf:profile）；余项省略段（既有语义）。"""
-    if unit_id:
-        return f"export:{kind}:{unit_id}"
-    return f"export:{kind}:{sheet}" if sheet else f"export:{kind}"
-
-
 def _run_export_batch(
     payload: Mapping[str, Any], cancel_token: object, progress: _ProgressSink | None
 ) -> Mapping[str, Any]:
@@ -479,6 +433,7 @@ _KIND_RUNNERS: Final[dict[str, _TaskRunner]] = {
     "enumerate": _run_enumerate,
     "export_batch": _run_export_batch,
     "joint_enumerate": _run_joint_enumerate,
+    "ai_chat": _run_ai_chat,  # B4-4b 子批 2：对话轮子进程桥（终裁 §一）
 }
 
 
