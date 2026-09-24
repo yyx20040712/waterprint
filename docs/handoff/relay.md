@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「（引用技能 batch-relay）基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——开工首步先加载技能 ai-dev-org，再按接力火协议认领并执行本批（工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基）」
 > - 调度员窗口（迁火/接任用，工作区不限）：「（引用技能 batch-relay）接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（rev2）→ 按技能换防协议布火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（Ctrl+N+三回读）发布执行者并原子写 last_dispatch_utc → 此后每班火只调度禁执行禁重活」
 
-- status: RUNNING
+- status: READY
 - automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T18:53:48.000Z
-- claim: executor-e2e1-20260924T184331Z
+- heartbeat_utc: 2026-09-24T19:19:22.000Z
+- claim: -
 - no_progress_count: 0
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
-- checked_done: 21 <!-- 2026-09-24 B4-4b 收口 20→21（B4-4 两段全成勾口径） -->
+- checked_done: 22 <!-- 2026-09-24 E2E-1 收口 21→22 -->
 - protocol_rev: 2 <!-- 2026-09-25 调度健壮化批升版：Ctrl+N 主径+三回读+模型跟随；薄调度员铁律；读板卫生 -->
 - last_dispatch_utc: 2026-09-24T18:44:08.240Z <!-- E2E-1 二发成立 2026-09-25：薄调度会话 Ctrl+N 主径+三回读全过（项目 chip=智水蓝图、模型=当班宿主模型、指令逐字落框+echo；执行者=sess_17befe75 18:43Z 活跃）——status 保持 READY 待执行者认领 -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 0 <!-- 2026-09-25 换防复位（原 9；停火数日墙钟 ~123h>90h 触发 circuit_wall，用户显式点名 batch-relay 换防重置留痕） -->
+- batch_count: 1 <!-- 2026-09-24 E2E-1 首批（换防复位后） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: -
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: E2E-1 fix-plan 批1【server-data】（插队战役先于 B4-5；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
+- next_batch: E2E-2 fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（插队战役；campaign 收口按 fix-plan §7.4 回归 B4-5 原排序）
 
 ## protocol（角色自识别 + 最小兜底协议）
 
@@ -103,7 +103,7 @@
 工单源=docs/handoff/e2e-audit-fix-plan-2026-09-24.md §4 批次+§7 开工指引 与 e2e-audit-round2-2026-09-24.md §4 增量——
 明细以工单为准，本区只放指针防双源漂移）
 
-- [ ] E2E-1｜fix-plan 批1【server-data】P0-A 数据包路径自愈+启动 fail-fast（+round2 批1 扩 R2-P2-1 no-store）
+- [x] E2E-1｜fix-plan 批1【server-data】P0-A 数据包路径自愈+启动 fail-fast（+round2 批1 扩 R2-P2-1 no-store）
 - [ ] E2E-2｜fix-plan 批2【webapp-calc】P0-B 只读态提交计算复活（+round2 批2 扩 R2-P1-2 fitView 引导/R2-P1-3 保存语义）
 - [ ] E2E-3｜fix-plan 批3【chat】P0-C 聊天桥 repo_root+P0-D 输入框锁死
 - [ ] E2E-4｜round2 §4 新立【server-scene】R2-P0-1 场景 kind 映射 500+R2-P1-1 布局避让+R2-P1-4 进水物理域检（编号撞前篇批3，按独立新批解读——排序/并批主控裁量）
@@ -131,3 +131,11 @@
 - **滚动归档**：主板批次日志全量（B4-2a 时代~欠账二+归档件）迁 relay-archive-004.md 原文零改动；主板回瘦（板头+protocol+路由+清单+本纪要）。
 - **今夜自主运行（用户 2026-09-25 02:3X 指令：「做完这个之后你在本工作目录分发一个交接对话，使其成为总调度员接替你的工作，在智水蓝图中分发任务，我已睡觉，早上检查」）**：新调度会话接管后按板推进 E2E-1→E2E-5→B4-5，直至清单终态或停止事由；推送欠账（代理断，本地笔若干）代理恢复即推。
 - 首发事故与处置全记录见 relay-archive-004 末尾（增补十一/欠账一/二）。
+
+### 增补十三 — 2026-09-24T19:34:00.000Z（E2E-1 收口：P0-A 数据包路径自愈+启动 fail-fast+R2-P2-1 no-store）
+
+- **claim**：executor-e2e1-20260924T184331Z（18:43Z 认领）；**commits**：f26c14296a（工单入库）+b7f1d11c2e（板面/归档件模型代号中性化×3——批前存量清偿，独立笔）+2773224532（实现）+本收口笔。板面事故一笔留痕：首次收口原子写 sed 断链后 heredoc 外独立 mv 无守卫照跑、空 tmp 覆盖主板——git checkout b7f1d11c2e 态恢复后带非空守卫重做（教训：mv 前必须 test -s+字节数校验，heredoc 后续行独立性）。
+- **改动面**：settings.py（default_data_dir 包定位+validate_data_packages 四包校验+data_dir 字段 default_factory 化，326 行）／main.py（__main__ 块 uvicorn 前挂校验）／routers/projects.py（read_project no-store）／README+deployment+file-contracts 口径与职责行。
+- **实证**（主控亲跑+门二 probe 7/7 独立复跑双证）：裸启（口径①零 env）constraints 200（旧 500）+calc run done（旧 DataPackError）+ai/connection 200（旧 400）——P0-A 三症状全证；缺包 env 启动=RuntimeError 可执行文案拒绝；no-store 头在场；CWD 无关双点位 MATCH；server pytest 344 passed 零新增失败；run_gates 全绿+gen_status 零漂移+health-scan RED=0（WARN×4 存量回显）。
+- **烤验**：门一双审 k1 B0/W2/N4 PASS+d1 B0/W3/N5 PASS（N 级实修 4 项：docstring 措辞/文案顿号化去内部代号/草稿补 env 用例/deployment 注记）；门二 probe 7/7+裁决通过（必改清单空，六处置逐条采纳）。
+- **Rulings/欠账**：①【待人类批准】锁面测试草稿=.workflow/e2e-fix/E2E-1/test_settings_data_dir.py.draft.md（4 显式用例+1 散注——DoD「单测断言解析函数」批内未闭环，呈批 [HUMAN-LOCK] 工序）；②uvicorn 直启面（Docker CMD/运维直启）不经启动校验——欠账登记（deployment.md 已注记；收敛方案建议入 E2E-5）；③E2E-5 建议扩面：no-store 全 GET 面普查+manifest 内容校验（非仅存在性）；④工具缺陷呈报：scripts/check_model_names.py scan_file 相对路径 CWD 依赖+OSError 静默吞——非根 CWD 单跑 md 面漏扫失真（run_gates cwd=REPO 不受影响，修属门禁脚本变更=用户裁决项）；⑤main.py 494/500 余量 6 行观察项。
