@@ -30,6 +30,62 @@ async def test_readonly_bad_session_id_rejected(service_ctx) -> None:  # type: i
         chat_service.read_history(service_ctx, "../escape")
 
 
+
+def test_list_sessions_parses_agent_output(monkeypatch) -> None:
+    """只读面解析：agent CLI stdout JSON 数组→清单投影（仿子过程）。"""
+    monkeypatch.setattr(
+        chat_service, "_run_readonly",
+        lambda ctx, *args: '[{"session_id": "s1", "title": "演示", "turns": 2}]' + chr(10),
+    )
+    items = chat_service.list_sessions(service_ctx_stub())  # type: ignore[no-untyped-call]
+    assert items == [{"session_id": "s1", "title": "演示", "turns": 2}]
+
+
+def test_list_sessions_malformed_rejected(monkeypatch) -> None:
+    """只读面防御：非 JSON 输出→AiChatReadError（不编造清单）。"""
+    monkeypatch.setattr(chat_service, "_run_readonly", lambda ctx, *args: "oops")
+    with pytest.raises(AiChatReadError, match="解析失败"):
+        chat_service.list_sessions(service_ctx_stub())  # type: ignore[no-untyped-call]
+
+
+def test_read_history_tolerates_bad_lines(monkeypatch) -> None:
+    """历史面容错：JSONL 非法行跳过+空行跳过（append-only 半行窗口）。"""
+    monkeypatch.setattr(
+        chat_service, "_run_readonly",
+        lambda ctx, *args: (
+            '{"role": "user", "text": "hi", "turn": 1}' + chr(10) + chr(10) + "bad" + chr(10)
+        ),
+    )
+    items = chat_service.read_history(service_ctx_stub(), "sess-ok")  # type: ignore[no-untyped-call]
+    assert items == [{"role": "user", "text": "hi", "turn": 1}]
+
+
+def test_readonly_subprocess_timeout(monkeypatch) -> None:
+    """R2：子过程超时→AiChatReadError（20s wall 上限族）。"""
+    import subprocess as _sp
+
+    def _slow(command, **kwargs):
+        raise _sp.TimeoutExpired(cmd="x", timeout=1)
+
+    monkeypatch.setattr(
+        chat_service, "_agent_cli_command", lambda ctx, *args: ["uv", "--version"]
+    )
+    monkeypatch.setattr(chat_service.subprocess, "run", _slow)
+    with pytest.raises(AiChatReadError, match="超时"):
+        chat_service._run_readonly(  # noqa: SLF001  # 只读面私有直测（仿子过程）
+            service_ctx_stub(), "--list-sessions"
+        )  # type: ignore[no-untyped-call]
+
+
+def service_ctx_stub():
+    """最小 ctx 桩（只读面测试不触 Manager——settings 面足够）。"""
+    from waterprint_server.services import ServiceContext
+    from waterprint_server.settings import Settings
+
+    return ServiceContext.__new__(ServiceContext)  # 测试桩：只读面仅用 settings 属性
+
+
+
 async def test_submit_returns_task_handle(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """提交正门：kind=ai_chat 任务句柄（runner 假 uv 缺失=快速失败，不 spawn）。"""
     monkeypatch.setattr("waterprint_server.jobs.ai_chat.which", lambda name: None)
