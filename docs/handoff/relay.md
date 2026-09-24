@@ -22,7 +22,7 @@
 - checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
 - checked_done: 21 <!-- 2026-09-24 B4-4b 收口 20→21（B4-4 两段全成勾口径） -->
 - protocol_rev: 1
-- last_dispatch_utc: 2026-09-19T23:24:19.203Z
+- last_dispatch_utc: 2026-09-24T17:59:13Z <!-- 2026-09-25 E2E-1 首发（UI 开批成立——上欠账行争用解除后第一班火成） -->
 - relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
 - batch_count: 0 <!-- 2026-09-25 换防复位（原 9；停火数日墙钟 ~123h>90h 触发 circuit_wall，用户显式点名 batch-relay 换防重置留痕） -->
 - max_batches: 60
