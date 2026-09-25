@@ -6,6 +6,10 @@ scripts/
 api-contracts/
 .github/
 deploy/
+# R4 C-1（e2e-fix-round3 2026-09-25）：deploy/ 整体排除的唯一例外=启动
+# 校验 entrypoint（Dockerfile COPY 消费——Docker 实测抓漏：整目录排除使
+# COPY 源不进上下文，镜像构建 FAIL；BuildKit ! 例外语法回纳入）。
+!deploy/server-entrypoint.sh
 mkdocs.yml
 test-lock.manifest.json
 README.md
