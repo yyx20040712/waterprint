@@ -15,15 +15,15 @@
 #   class JointEnumerationOptions(不可变)：grids（unit_id→轴声明覆盖，
 #       缺省=manifest grid 档）/constraints（unit_id→单元级约束，server
 #       装配 constraint_kb 同单单元源）/standards（出水标准族，worker 注入）
-#       /assemble（类注入防环面——app 正门装配注入）
+#       /assemble（类注入防环面——app 正门装配注入）/capex_data_dir
+#       （批2b capex 装配数据目录——worker 注入 data_dir 同源单价包）
 #   class JointOutcome(不可变)：search_semantics 四键（W3/W4/B1）+combos
 #       +diagnosis+budget_usage{rows_evaluated,full_plant_evals,elapsed_ms,
 #       truncated}（W1 截断：先到闸即停+部分结果诚实返回不报错）
 #   class JointEnumerationTooLarge(Exception)：静态预检超限（rows>
 #       max_total_rows 或 N>max_units）——422 面（W7 事前拒绝优于事后
 #       截断；双闸定序：rows 静态预检为主，timeout 运行兜底）
-#   estimate_rows(grid_sizes, beam_width, multiplier) -> float：
-#       g·(k^N−1)/(k−1)·W_s（k=1→g·N——N1 边界式补）
+#   estimate_rows(grid_sizes, beam_width, multiplier) -> float：g·(k^N−1)/(k−1)·W_s（k=1→g·N）
 #
 # 【行为规格】
 #   R1 交付结构=分层序列化 beam（决策 2）：拓扑序逐单元枚举（基线上下文
@@ -52,6 +52,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from time import monotonic
 from typing import Any, Final, final
 
@@ -68,6 +69,7 @@ from waterprint.solution.joint_enumeration.final_eval import (
     ComboResult,
     EvalContext,
     JointGuards,
+    capex_kit_of,
     completed_env,
     design_baseline_metrics,
     design_condition,
@@ -91,8 +93,7 @@ _SEARCH_SEMANTICS: Final[dict[str, str]] = {
     "loop_semantics": "frozen",
     "pruning_bias": "baseline_context",
 }
-# 前缀载荷：(unit_id, 行参数) 序列；beam 传播原子
-_PrefixParams = tuple[tuple[str, dict[str, float]], ...]
+_PrefixParams = tuple[tuple[str, dict[str, float]], ...]  # (unit_id, 行参数) 序列；beam 传播原子
 _Prefix = tuple[_PrefixParams, float]
 
 
@@ -109,6 +110,7 @@ class JointEnumerationOptions:
     constraints: Mapping[str, tuple[Constraint, ...]] = field(default_factory=dict)
     standards: tuple[EffluentStandard, ...] = ()
     assemble: AssembleFn | None = None  # 类注入防环（app 正门装配面注入）
+    capex_data_dir: Path | None = None  # 批2b：capex 装配数据目录（worker 注入）
 
     def __post_init__(self) -> None:
         """映射归一（裸 str 拒——I-2 同款防线）。"""
@@ -136,8 +138,7 @@ def estimate_rows(
     grid_sizes: Sequence[int], beam_width: float, multiplier: int
 ) -> float:
     """分级枚举行估计：g·(k^N−1)/(k−1)·W_s（k=1→g·N——N1 边界式补）。"""
-    width, units = int(beam_width), len(grid_sizes)
-    largest = max(grid_sizes)
+    width, units, largest = int(beam_width), len(grid_sizes), max(grid_sizes)
     if width == 1:
         return float(largest * units * multiplier)
     return float(largest * (width**units - 1) / (width - 1) * multiplier)
@@ -214,9 +215,9 @@ class _JointSearch:
                 "经 waterprint.app 正门调用，直调须显式传装配函数）"
             )
         self.assembled = options.assemble(project, self.env)
+        self.capex_kit = capex_kit_of(options.capex_data_dir)  # 批2b 装载一次
         self.targets = _ordered_targets(unit_ids, self.assembled, project.design)
-        self.rows_evaluated = 0
-        self.full_evals = 0
+        self.rows_evaluated = self.full_evals = 0  # 双轴预算计数器（int 链式同值）
         self.truncated = False
         self._started = monotonic()
 
@@ -258,13 +259,16 @@ class _JointSearch:
         return 1
 
     def baseline(self) -> tuple[joint_stage.BaselineSource, dict[str, float]]:
-        """基线执行（全工况一次）+design 工况三真键基线（归一化基准）。"""
+        """基线执行（全工况一次）+design 工况真键基线（归一化基准+capex 并键）。"""
         source = joint_stage.baseline_run(
             self.project.design, self.assembled, self.conditions, self.env,
             execute_graph,
         )
         summary = merged_summary(source.plant, self.assembled.edges, self.env)
-        return source, design_baseline_metrics(summary, self.conditions)
+        return source, design_baseline_metrics(
+            summary, self.conditions,
+            plant=source.plant, capex_kit=self.capex_kit,
+        )
 
     def _timeout_hit(self) -> bool:
         """看门狗（timeout_s 运行兜底——W1 双闸第二闸）。"""
@@ -371,7 +375,7 @@ class _JointSearch:
             project=self.project, assembled=self.assembled, execute=execute_graph,
             conditions=self.conditions, env=self.env,
             standards=self.options.standards, baseline=baseline,
-            weights=self.guards.weights,
+            weights=self.guards.weights, capex_kit=self.capex_kit,
         )
 
     def final_eval(
@@ -404,8 +408,7 @@ class _JointSearch:
             combos=tuple(feasible[index] for index in order),
             diagnosis=diagnosis,
             budget_usage={
-                "rows_evaluated": self.rows_evaluated,
-                "full_plant_evals": self.full_evals,
+                "rows_evaluated": self.rows_evaluated, "full_plant_evals": self.full_evals,
                 "elapsed_ms": round((monotonic() - self._started) * 10**2 * 10),
                 "truncated": self.truncated,
             },
@@ -424,11 +427,8 @@ def _relaxed_grids(
 
 
 def run_joint_enumerate(
-    project: ProjectFile,
-    unit_ids: Sequence[str],
-    conditions: ConditionSet,
-    env: RunEnv,
-    options: JointEnumerationOptions | None = None,
+    project: ProjectFile, unit_ids: Sequence[str], conditions: ConditionSet,
+    env: RunEnv, options: JointEnumerationOptions | None = None,
 ) -> JointOutcome:
     """联合枚举正门（ADR-025）：静态预检→基线→分层 beam→末段复验→排序。"""
     chosen = options if options is not None else JointEnumerationOptions()

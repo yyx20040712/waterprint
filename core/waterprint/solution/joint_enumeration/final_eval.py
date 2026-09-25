@@ -25,6 +25,10 @@
 #       design/avg 越限=不可行；sensitivity 失守=降权标记 W10；opex
 #       design 工况缺席=sparse 判不在场→不可行 N6/W12）→R6 真键指标
 #       （design 主+avg 附带+出水六指标 FE 达标面）→排序分
+#   capex_kit_of(data_dir)/capex_grand_total(kit, plant, condition)
+#       （批2b 第四真键：cost_capex_yuan=概算 grand_total——AUD-W11
+#       断层修复，装配链 services/cost.py R3 同款；kit 缺席=capex 键
+#       恒缺 N6 重分配承接，core 直调向后兼容）
 #   class ComboResult(不可变)：params/feasible/sensitivity_degraded/
 #       failed_conditions/metrics/score（W11 schema 面）
 #
@@ -44,6 +48,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Final, final
 
 from waterprint.app_carbon import carbon_summary_of
@@ -56,6 +61,16 @@ from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import EngineParam, RunEnv
+from waterprint.cost import (  # 包根再导出面（批2b 同层边 import 收敛——§1c 声明承载）
+    FeeRule,
+    FieldMapping,
+    PriceBook,
+    build_estimate,
+    load_fee_rules,
+    load_field_mapping,
+    load_prices,
+    takeoff_quantities,
+)
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS, assumption
 from waterprint.solution.joint_enumeration.ranking import plant_objective
 from waterprint.solution.joint_enumeration.stage import (
@@ -75,16 +90,21 @@ _KEY_SHARE: Final[str] = "solution.joint.stage_proxy_weights"
 _KEY_W_OPEX: Final[str] = "solution.joint.objective_weight_opex"
 _KEY_W_ENERGY: Final[str] = "solution.joint.objective_weight_energy"
 _KEY_W_CARBON: Final[str] = "solution.joint.objective_weight_carbon"
+_KEY_W_CAPEX: Final[str] = "solution.joint.objective_weight_capex"
 _KEY_VALIDATION: Final[str] = "solution.joint.validation_conditions"
 _ALL_OUTER: Final[float] = 1.0  # validation_conditions 选择阈值（0=all/1=all_outer）
 _LOOP_KEYS: Final[tuple[str, ...]] = (
     "loop.tolerance", "loop.max_iterations", "loop.damping",
 )
-# W12 真键映射（排序别名→summary 真键；avg 工况附带面用平键前缀）
+_UNIT_PRICES_DIR: Final[str] = "unit_prices"  # 单价包目录名（services/cost.py R3 同款）
+_FIELD_MAPPING_NAME: Final[str] = "field_mapping.yaml"  # 装配 DSL 文件名（同款）
+# W12+批2b 真键映射（排序别名→指标键；avg 工况附带面用平键前缀；capex 键
+# 非 summary 平键——evaluate_combo 装配后并入，avg 附带面不产出）
 _METRIC_KEYS: Final[dict[str, str]] = {
     "opex": "cost_opex_yuan_a",
     "energy": "power_total_kwh_d",
     "carbon": "carbon_intensity_kgco2e_m3",
+    "capex": "cost_capex_yuan",
 }
 _AVG_PREFIX: Final[str] = "avg."
 _SUMMARY_INDICATORS: Final[tuple[str, ...]] = (
@@ -135,6 +155,7 @@ def joint_guards(assumptions: Mapping[str, float]) -> JointGuards:
             "opex": assumption(_KEY_W_OPEX, assumptions),
             "energy": assumption(_KEY_W_ENERGY, assumptions),
             "carbon": assumption(_KEY_W_CARBON, assumptions),
+            "capex": assumption(_KEY_W_CAPEX, assumptions),
         },
         all_outer=assumption(_KEY_VALIDATION, assumptions) >= _ALL_OUTER,
     )
@@ -202,21 +223,73 @@ def design_condition(conditions: ConditionSet) -> OperatingCondition:
     return conditions.baseline[0]
 
 
+@dataclass(frozen=True)
+@final
+class _CapexKit:
+    """capex 装配束（不可变）：单价包+费率+字段映射——装载一次逐组合复用。"""
+
+    book: PriceBook
+    fees: tuple[FeeRule, ...]
+    mapping: FieldMapping
+
+
+def capex_kit_of(data_dir: Path | None) -> _CapexKit | None:
+    """capex 装配束装载（批2b 第四真键）。
+
+    None→None（缺席语义：capex 键恒缺，N6 权重重分配承接——core 直调
+    向后兼容）；data_dir 在场经 services/cost.py R3 同款链装载（beam 入口
+    一次，逐组合纯内存复用）。装载失败（数据包缺/键失联/单位不一致）=
+    领域异常直上（GR-08 程序缺陷口径——入口早爆优于逐组合静默）。
+    """
+    if data_dir is None:
+        return None
+    unit_prices = data_dir / _UNIT_PRICES_DIR
+    book = load_prices(unit_prices)
+    fees = load_fee_rules(unit_prices / _FIELD_MAPPING_NAME, book)
+    mapping = load_field_mapping(unit_prices / _FIELD_MAPPING_NAME)
+    return _CapexKit(book=book, fees=fees, mapping=mapping)
+
+
+def capex_grand_total(
+    kit: _CapexKit | None, plant: PlantResult, condition_key: str
+) -> float:
+    """概算总造价（design 口径真值）：takeoff→build_estimate→grand_total。"""
+    if kit is None:
+        raise InvalidJointEnumerationError(
+            "capex_grand_total 无装配束（kit 缺席——调用面前置 capex_kit 判在场）"
+        )
+    items = takeoff_quantities(
+        plant, condition_key, price_book=kit.book, field_mapping=kit.mapping
+    )
+    sheet = build_estimate(
+        items, kit.book, kit.fees, repro=plant.repro, condition_key=condition_key
+    )
+    return float(sheet.grand_total)
+
+
 def design_baseline_metrics(
-    summary: Mapping[str, Mapping[str, float]], conditions: ConditionSet
+    summary: Mapping[str, Mapping[str, float]], conditions: ConditionSet,
+    plant: PlantResult | None = None, capex_kit: _CapexKit | None = None,
 ) -> dict[str, float]:
-    """design 工况三真键基线（归一化基准——缺键 0.0 由 N6 重分配承接）。"""
+    """design 工况真键基线（归一化基准——缺键 0.0 由 N6 重分配承接）。
+
+    批2b：plant+capex_kit 双在场→并 capex 基线（AUD-W11 断层根因——
+    概算不在 summary 平键链，基线经基线 plant 装配取数）；缺席→三键照旧。
+    """
     design_key = ConditionSet.key(design_condition(conditions))
-    return {
+    baseline = {
         name: summary.get(design_key, {}).get(key, 0.0)
-        for name, key in _METRIC_KEYS.items()
+        for name, key in _METRIC_KEYS.items() if name != "capex"
     }
+    if plant is not None and capex_kit is not None:
+        baseline["capex"] = capex_grand_total(capex_kit, plant, design_key)
+    return baseline
 
 
 @dataclass(frozen=True)
 @final
 class EvalContext:
-    """末段复验上下文（不可变）：装配+工况+环境+标准+基线+权重束。"""
+    """末段复验上下文（不可变）：装配+工况+环境+标准+基线+权重+capex 束。"""
 
     project: ProjectFile
     assembled: AssembledView
@@ -226,6 +299,7 @@ class EvalContext:
     standards: tuple[EffluentStandard, ...]
     baseline: Mapping[str, float]
     weights: Mapping[str, float]
+    capex_kit: _CapexKit | None = None  # 批2b：None=capex 键缺席（向后兼容）
 
 
 def merged_design(
@@ -294,6 +368,10 @@ def evaluate_combo(
     )
     feasible, failed = compliance_of(summary, context.standards, baseline_keys)
     metrics = metrics_of(summary, context.conditions)
+    if context.capex_kit is not None:  # 批2b 第四真键（design 口径）
+        metrics[_METRIC_KEYS["capex"]] = capex_grand_total(
+            context.capex_kit, plant, ConditionSet.key(design_condition(context.conditions))
+        )
     if feasible and _METRIC_KEYS["opex"] not in metrics:
         feasible = False  # N6/W12：opex design 工况缺席=sparse 判不在场→不可行
         failed = (*failed, f"{ConditionSet.key(design_condition(context.conditions))}"
@@ -318,6 +396,8 @@ __all__ = [
     "ComboResult",
     "EvalContext",
     "JointGuards",
+    "capex_grand_total",
+    "capex_kit_of",
     "completed_env",
     "compliance_of",
     "design_condition",

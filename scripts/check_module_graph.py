@@ -406,7 +406,13 @@ def check_real_imports(
 ) -> list[str]:
     """g) 跨节点真实 import ⊆ §1b 声明边 ∪ §1c 同层边声明块。"""
     declared = {(src, dst) for src, dst in edges if src in nodes and dst in nodes}
-    declared.update((src, dst) for src, dst, _, _, _ in same_layer)
+    # §1c 边同款节点归一（与 check_same_layer_block 口径一致——批2b 2026-09-25
+    # 一致化：文件粒度声明（先例 drafting.profile_drawing）resolve 后按节点
+    # 对豁免；此前原样入集合使运行时子模块 import 的文件粒度声明永失配）
+    declared.update(
+        (resolve_node(src, nodes) or src, resolve_node(dst, nodes) or dst)
+        for src, dst, _, _, _ in same_layer
+    )
     violations: dict[tuple[str, str], list[str]] = {}
     for root in SCAN_PY_ROOTS:
         for path in sorted(root.rglob("*.py")):

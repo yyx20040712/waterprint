@@ -317,6 +317,7 @@ def _run_joint_enumerate(
             for unit, items in (raw.get("constraints") or {}).items()
         },
         standards=standards,
+        capex_data_dir=data_dir,  # 批2b：capex 第四真键装配（与查询端点同源单价包）
     )
     if _cancelled(cancel_token):
         return {"state": "cancelled"}

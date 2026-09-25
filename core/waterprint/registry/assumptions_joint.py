@@ -16,10 +16,11 @@
 #
 # 【键族与 float 单值约束】定稿键族九名中 stage_proxy_weights/
 #   objective_weights 为配比概念——Assumption 契约仅收 float 默认
-#   （assumptions.py R1 六守卫），故分解落地：objective_weights 三分
-#   （opex/energy/carbon 各一键）、stage_proxy_weights 单键承载裕度
-#   份额（能耗代理份额=1−值，两分量配比单键化）——九概念族 → 11 float
-#   键（实现裁量：B4-3 commit 注记）。
+#   （assumptions.py R1 六守卫），故分解落地：objective_weights 四分
+#   （opex/energy/carbon/capex 各一键——批2b capex 扩键）、
+#   stage_proxy_weights 单键承载裕度份额（能耗代理份额=1−值，两分量
+#   配比单键化）——九概念族 → 12 float 键（实现裁量：B4-3 commit 注记
+#   +批2b）。
 #
 # 【键语义（消费面 solution/joint_enumeration/*+server 门面）】
 #   max_units：请求单元数上限（名义护栏 N 默认 6；硬上限 8 不另立常数——
@@ -30,12 +31,15 @@
 #   max_full_plant_evals：末段全厂真值复验次数预算（N2 双轴第二轴）。
 #   relax_factor：末空级网格放宽倍数（diagnose 面一次放宽，W8）。
 #   stage_proxy_weights：阶段代理分裕度份额（0~1；能耗份额=1−值）。
-#   objective_weight_{opex,energy,carbon}：排序目标权重（R-B43-4 呈批
-#   追认口径 opex.5/energy.3/carbon.2，W12）。
+#   objective_weight_{opex,energy,carbon,capex}：排序目标四键权重（批2b
+#       2026-09-25 audit-norms 裁决②重排：成本面 opex+capex 合计 0.5 守恒
+#       内部对半 .25/.25、energy .30/carbon .20 维持——初值专家追认制；
+#       capex 真键=cost_capex_yuan 概算 grand_total，AUD-W11 纯几何参数
+#       零区分度修复）。
 #   validation_conditions：0=「all」（基线工况搜索+末段全 ConditionSet
-#   复验——默认）；1=all_outer（搜索亦全工况——静态预检乘 W_s，W5）。
+#       复验——默认）；1=all_outer（搜索亦全工况——静态预检乘 W_s，W5）。
 #
-# 【测试要求】主件 DEFAULT_ASSUMPTIONS 含全 11 键；覆盖值经 assumption()
+# 【测试要求】主件 DEFAULT_ASSUMPTIONS 含全 12 键；覆盖值经 assumption()
 #   正门生效；装载序零扰动（[0] safety.superheight 锚不动）。
 # ══════════════════════════════════════════════════════════════════
 
@@ -47,6 +51,10 @@ from typing import Final
 _SOURCE: Final[str] = (
     "B4-3 联合枚举终裁（2026-09-20 .workflow/b4-3/design-final.md §二——"
     "默认域锚 N≤6/g≤500/k≤3 ≈1.8e5 行≈29s）；待专家追认（R-B43-4 呈批）"
+)
+_SOURCE_B2B: Final[str] = (
+    "B4-3 键族批2b 重排（backend-calc-complete——2026-09-25 .workflow/"
+    "audit-norms-20260925/report.md §三裁决②用户裁决立项；初值专家追认制）"
 )
 _NOTE_HEAD: Final[str] = (
     "联合枚举（solution.joint_enumeration+server 门面）护栏键——数值真源"
@@ -121,10 +129,11 @@ def joint_entries[T](
         ),
         assumption(
             "solution.joint.objective_weight_opex",
-            0.5,
+            0.25,
             "DIMENSIONLESS",
-            _SOURCE,
-            _NOTE_HEAD + "排序目标 opex 权重（cost_opex_yuan_a，design 工况——R-B43-4 呈批）",
+            _SOURCE_B2B,
+            _NOTE_HEAD + "排序目标 opex 权重（cost_opex_yuan_a，design 工况——批2b 重排"
+            "成本面与 capex 对半 .25/.25）",
             tuning_impact("增大→排序偏运行成本优先", ()),
         ),
         assumption(
@@ -142,6 +151,15 @@ def joint_entries[T](
             _SOURCE,
             _NOTE_HEAD + "排序目标 carbon 权重（carbon_intensity_kgco2e_m3，design 工况）",
             tuning_impact("增大→排序偏碳强度优先", ()),
+        ),
+        assumption(
+            "solution.joint.objective_weight_capex",
+            0.25,
+            "DIMENSIONLESS",
+            _SOURCE_B2B,
+            _NOTE_HEAD + "排序目标 capex 权重（cost_capex_yuan 概算 grand_total，design"
+            "工况——批2b 第四真键；kit 缺席时 N6 重分配承接）",
+            tuning_impact("增大→排序偏建设投资优先", ()),
         ),
         assumption(
             "solution.joint.validation_conditions",
