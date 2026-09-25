@@ -6,10 +6,16 @@
  * 输入:  taskId（URL ?task= 消费——null 不建连）+事件解读纯回调
  *        interpret(data)（畸形丢弃/归约/终态判定归消费方）+onTerminal/
  *        onConnection 可选回调（经 ref 透传——引用变更不重建连接）
- * 输出:  useTaskEventSource 长订阅 hook（退避/慢探测恢复态机）+
- *        subscribeTaskEvents 命令面（一次性等待——浏览器内建自动重连
- *        保留，治理归消费方）+TaskEventReading 解读协议+重连纯函数族
- *        （nextReconnectDelayMs/planRecovery——vitest 直测面）
+ * 输入:  taskId（URL ?task= 消费——null 不建连）+事件解读纯回调
+ *        interpret(data)（畸形丢弃/归约/终态判定归消费方）+onTerminal/
+ *        onConnection 可选回调（经 ref 透传——引用变更不重建连接）
+ *        +probeTaskStatus 可选探测注入（F2 B-2 轮询兜底——默认
+ *        probeTaskStatusTerminal 走既有任务状态端点）
+ * 输出:  useTaskEventSource 长订阅 hook（退避/慢探测恢复态机+probing
+ *        轮询兜底）+subscribeTaskEvents 命令面（一次性等待——浏览器内建
+ *        自动重连保留，治理归消费方）+TaskEventReading 解读协议+重连纯
+ *        函数族（nextReconnectDelayMs/planRecovery）+probeTaskStatusTerminal
+ *        默认探测（vitest 经注入桩直测）
  *
  * 规格说明（生命周期语义自 useTaskFeed 原件逐行搬家——B6 D3/B7 D3/
  * B7 D5 治理决策全部随迁；消费方差异经解读协议注入不内聚）：
@@ -26,15 +32,26 @@
  *   - 长订阅 hook（useTaskFeed 形态）：onerror 即 close（夺回浏览器内建
  *     无限重连控制权）→连续失败 n 次指数退避重建（1s/2s/4s…封顶 30s）
  *     →达上限 SSE_FAILURE_LIMIT 置错误态停连→60s 慢速周期探测自动恢复
- *     （planRecovery——零手动干预）；onConnection 三态通知（'reconnecting'
+ *     （planRecovery——零手动干预）；onConnection 四态通知（'reconnecting'
  *     =退避重建期/'probing'=达限慢探测期/'ok'=降级后重建连接成功——
  *     onopen 且 failures>0，transport 级真信号口径：服务端事件不重放
  *     历史+心跳为 EventSource 忽略的 comment 行，稀疏流下首事件不可靠；
  *     首连接 failures=0 不发=零噪音；failures 归零仍仅由事件到达承载——
- *     ok 不复位计数，恢复后再断连按余计数续走）；taskId 变更重建；
+ *     ok 不复位计数，恢复后再断连按余计数续走；'polling'=F2 B-2 降级
+ *     标记：慢探测连续 SSE_PROBE_FALLBACK_ROUNDS 轮无终态——实时通道
+ *     不可达已切轮询兜底〔消费方 stage 行文案面〕）；taskId 变更重建；
  *     卸载即 close+清退避定时器（disposed 守卫——卸载后定时器不复活
  *     连接）；服务端心跳 comment 行被 EventSource 忽略——长静默不断流，
  *     退避计数不受其扰动；
+ *   - F2 B-2 probing 轮询兜底：每个 probing 周期（达限转 60s 慢探测时）
+ *     叠加一次任务状态轮询（probeTaskStatus 注入——默认实现走既有
+ *     GET /api/calc/tasks/{task_id}，终态集 done/failed/cancelled 与解读
+ *     协议 terminal 同集）；轮询得终态即按 SSE 终态同款收口（close 本流
+ *     +清重连定时器+转 onTerminal——消费方 invalidate 同现有终态路径）
+ *     且 finished 守卫停后续重连；无终态计轮，连续
+ *     SSE_PROBE_FALLBACK_ROUNDS 轮 → onConnection('polling') 降级标记
+ *     （恰一次/轮询续走不静默——健康事件到达归零重计）；探测失败=无
+ *     答复（同无终态计轮，轮询通道持续可观测）；
  *   - 命令面（awaitTerminal 形态）：不治理 onerror（浏览器内建自动重连
  *     保留——一次性等待语义，连续失败计数/总时长超时归消费方）；
  *     onOpen/onError 透传（治理策略归消费方——退避重建 vs 达限拒绝是
@@ -48,15 +65,20 @@ import { useEffect, useRef } from "react";
 import { buildTaskStreamUrl } from "./sseUrl";
 import { getApiToken } from "./token";
 import { SSE_FAILURE_LIMIT } from "./sseConstants";
+import { getTaskStatusApiCalcTasksTaskIdGet } from "./generated";
 
 /** 退避梯（B6 D3）：1s 基数指数增长，封顶 30s（失败序数 1 起步）。 */
 export const SSE_RECONNECT_BASE_MS = 1000;
 export const SSE_RECONNECT_CAP_MS = 30 * 1000;
 /** 停连后慢速周期探测间隔（60s——自动恢复通道，B6 D3 必改4）。 */
 export const SSE_PROBE_INTERVAL_MS = 60 * 1000;
+/** B-2：慢探测连续无终态轮次达限——onConnection('polling') 降级标记
+ * （「实时通道不可达——已切换轮询」消费方文案面；工单 round3 §1 B-2）。 */
+export const SSE_PROBE_FALLBACK_ROUNDS = 5;
 
-/** SSE 连接态三态（B7 D3/G1-04：onConnection 通道与消费面 prop 的单源类型）。 */
-export type ConnectionState = "reconnecting" | "probing" | "ok";
+/** SSE 连接态四态（B7 D3/G1-04 三态+F2 B-2 降级标记：onConnection 通道
+ * 与消费面 prop 的单源类型）。 */
+export type ConnectionState = "reconnecting" | "probing" | "ok" | "polling";
 
 /** 指数退避延迟（纯函数——1s/2s/4s/8s/16s…封顶 30s）。 */
 export function nextReconnectDelayMs(failures: number): number {
@@ -73,6 +95,24 @@ export function planRecovery(failures: number): { mode: "backoff" | "probe"; del
     return { mode: "backoff", delayMs: nextReconnectDelayMs(failures) };
   }
   return { mode: "probe", delayMs: SSE_PROBE_INTERVAL_MS };
+}
+
+/** 任务状态探测面（F2 B-2 轮询兜底注入）：返回终态名（done/failed/
+ * cancelled）或 null（非终态/探测失败——下一周期续问）。 */
+export type TaskStatusProbe = (taskId: string) => Promise<string | null>;
+
+/** 终态名集（任务状态快照 state 字段域——与解读协议 terminal 同集）。 */
+const TERMINAL_TASK_STATES = ["done", "failed", "cancelled"];
+
+/** 默认探测实现（F2 B-2）：既有任务状态端点 GET /api/calc/tasks/{task_id}
+ * （orval 生成物——零协议破面；探测失败=无答复 null，轮询续走）。 */
+export async function probeTaskStatusTerminal(taskId: string): Promise<string | null> {
+  try {
+    const status = await getTaskStatusApiCalcTasksTaskIdGet(taskId);
+    return TERMINAL_TASK_STATES.includes(status.state) ? status.state : null;
+  } catch {
+    return null; // 探测失败=无答复（同无终态计轮——轮询通道持续可观测）
+  }
 }
 
 /** 事件解读结果（消费方纯回调面——解析/归约/业务守卫全归消费方）：
@@ -133,40 +173,76 @@ export function subscribeTaskEvents(
   };
 }
 
-/** 任务事件流长订阅（退避/慢探测恢复态机——useTaskFeed 生命周期搬家处；
- * 事件归约归消费方 interpret 闭包）。 */
+/** 任务事件流长订阅（退避/慢探测恢复态机+probing 轮询兜底——useTaskFeed
+ * 生命周期搬家处；事件归约归消费方 interpret 闭包）。 */
 export function useTaskEventSource(
   taskId: string | null,
   interpret: TaskEventInterpreter,
   onTerminal?: (state: string) => void,
   onConnection?: (state: ConnectionState) => void,
+  probeTaskStatus: TaskStatusProbe = probeTaskStatusTerminal,
 ): void {
-  // 解读/终态回调经 ref 透传（taskId 单依赖——回调引用变更不重建连接）
+  // 解读/终态/连接态/探测回调经 ref 透传（taskId 单依赖——回调引用变更
+  // 不重建连接）
   const interpretRef = useRef(interpret);
   interpretRef.current = interpret;
   const onTerminalRef = useRef(onTerminal);
   onTerminalRef.current = onTerminal;
   const onConnectionRef = useRef(onConnection);
   onConnectionRef.current = onConnection;
+  const probeRef = useRef(probeTaskStatus);
+  probeRef.current = probeTaskStatus;
 
   useEffect(() => {
     if (taskId === null) {
       return;
     }
     let failures = 0; // 连续失败计数（健康事件到达即归零——链路恢复）
+    let probeRounds = 0; // B-2：慢探测连续无终态轮次（健康事件归零重计）
     let open: TaskStreamSubscription | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
+    let finished = false; // B-2：轮询兜底终态收口后停面（连接/定时器双停）
+
+    const wrapUp = () => {
+      finished = true;
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+      open?.close();
+    };
+
+    // B-2：本 probing 周期的任务状态轮询（终态即收口；无终态计轮达限
+    // 发降级标记——轮询续走不静默）
+    const probeCycle = async () => {
+      const state = await probeRef.current(taskId);
+      if (disposed || finished) {
+        return;
+      }
+      if (state !== null) {
+        // 终态收口（同 SSE 终态路径：close 本流+清重连定时器+转 onTerminal
+        // ——消费方 invalidate 同现有终态路径）
+        wrapUp();
+        onTerminalRef.current?.(state);
+        return;
+      }
+      probeRounds += 1;
+      if (probeRounds === SSE_PROBE_FALLBACK_ROUNDS) {
+        // 降级标记恰一次（连续口径——健康事件到达归零重计）
+        onConnectionRef.current?.("polling");
+      }
+    };
 
     const connect = () => {
-      if (disposed) {
-        return; // 卸载后定时器不复活连接
+      if (disposed || finished) {
+        return; // 卸载/轮询终态收口后定时器不复活连接
       }
       const sub = subscribeTaskEvents(taskId, {
         interpret: (data) => {
           const reading = interpretRef.current(data);
           if (reading.kind !== "drop") {
             failures = 0; // 健康事件到达=链路健康（B6 D3 恢复语义）
+            probeRounds = 0; // B-2：通道恢复——降级轮次重计
           }
           return reading;
         },
@@ -186,6 +262,9 @@ export function useTaskEventSource(
           const plan = planRecovery(failures);
           // B7 D3：连接态通知（backoff 期=reconnecting/达限慢探测=probing）
           onConnectionRef.current?.(plan.mode === "probe" ? "probing" : "reconnecting");
+          if (plan.mode === "probe") {
+            void probeCycle(); // B-2：每个 probing 周期叠加一次状态轮询兜底
+          }
           timer = setTimeout(connect, plan.delayMs);
         },
       });

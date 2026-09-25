@@ -2,13 +2,18 @@
  * 对话面板（B4-4b 子批 2——纯展示层：props 注入查询/mutation 句柄）。
  *
  * 输入:  会话清单/历史查询句柄+发言 mutation+活跃轮状态（turnStage/
- *        turnTaskId）+终态失败横幅文案（turnError——P0-D）
+ *        turnTaskId）+终态失败横幅文案（turnError——P0-D）+freshSessionId
+ *        （F2 B-1：本轮新建会话 ID——history 失败两态文案判据）
  * 输出:  会话切换 Select+消息流（用户/助手气泡+工具步折叠卡）+输入框+
- *        轮进度行（stage 文案——任务 SSE 面外聚）
+ *        轮进度行（stage 文案——任务 SSE 面外聚）+history 失败两态文案
+ *        （B-1：刚建会话退避重试期/耗尽=「尚未落盘」，其余=「中继不可达」）
  *
  * P0-D（fix-plan 批3）：发送失败保留草稿+toast（旧实现乐观清空——502/
  *        422 时草稿蒸发零提示）；失败终态横幅（turnError）；空会话清单
  *        Select 引导文案。
+ * F2 B-1（e2e-fix-round3 批 R2）：首轮竞态 502——POST 200 后会话未落盘
+ *        即读的固定「中继不可达」误导文案收口为两态；刚建会话读取失败
+ *        经 useHistoryRetry 退避重试（500ms 起指数 ×3——lib/historyRetry）。
  */
 import { Alert, Input, Progress, Select, Typography, message } from "antd";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +22,7 @@ import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import type { ChatHistoryMessage, ChatSessionSummary, TaskIdResponse } from "../../../shared/api/generated/model";
 
 import { ToolCallCard } from "./ToolCallCard";
+import { useHistoryRetry } from "../lib/historyRetry";
 
 export type SessionsQuery = UseQueryResult<ChatSessionSummary[], unknown>;
 export type HistoryQuery = UseQueryResult<ChatHistoryMessage[], unknown>;
@@ -94,6 +100,9 @@ export interface ChatPanelProps {
   turnStage: string | null;
   /** P0-D：终态失败横幅文案（null=无失败——done 轮/新发送清空）。 */
   turnError: string | null;
+  /** F2 B-1：本轮新建会话 ID（POST 已返回——与查询目标一致判「刚建」
+   * 态：history 失败走退避重试+「尚未落盘」文案；null/不命中=其余态）。 */
+  freshSessionId?: string | null;
 }
 
 export function ChatPanel({
@@ -105,11 +114,15 @@ export function ChatPanel({
   newSessionId,
   turnStage,
   turnError,
+  freshSessionId = null,
 }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
   const bottomRef = useRef<HTMLDivElement>(null);
   const messages = history.data ?? [];
+  // B-1 刚建会话读取失败（重试期间与耗尽同文案——「尚未落盘」态）
+  const historyLanding = history.isError && freshSessionId !== null && freshSessionId === sessionId;
+  useHistoryRetry(historyLanding, history.refetch);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -138,7 +151,11 @@ export function ChatPanel({
       />
       <div style={{ flex: 1, overflowY: "auto", minHeight: 200, padding: 4 }}>
         {history.isError && (
-          <Typography.Text type="danger">会话读取失败（中继不可达）</Typography.Text>
+          <Typography.Text type="danger" data-testid="wp-chat-history-error">
+            {historyLanding
+              ? "会话尚未落盘（稍候自动刷新）"
+              : "会话读取失败（中继不可达）"}
+          </Typography.Text>
         )}
         {messages.map((message, index) => (
           <MessageBubble key={index} message={message} />

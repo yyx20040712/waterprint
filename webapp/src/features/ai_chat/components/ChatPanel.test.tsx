@@ -151,3 +151,67 @@ describe("ChatPanel P0-D（fix-plan 批3——失败轮解锁/横幅/空会话�
     expect(html).toContain("暂无会话——直接发言即建档");
   });
 });
+
+describe("ChatPanel F2 B-1（首轮竞态 502 两态文案）", () => {
+  const historyFailed = { data: undefined, isError: true } as unknown as Parameters<
+    typeof ChatPanel
+  >[0]["history"];
+
+  it("刚建会话读取失败（freshSessionId 命中）→「会话尚未落盘（稍候自动刷新）」", () => {
+    const html = renderToString(
+      <ChatPanel
+        sessions={sessionStub([])}
+        history={historyFailed}
+        send={sendStub}
+        sessionId="fresh-1"
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-1"}
+        turnStage={null}
+        turnError={null}
+        freshSessionId="fresh-1"
+      />,
+    );
+    expect(html).toContain("会话尚未落盘");
+    expect(html).toContain("稍候自动刷新");
+    expect(html).not.toContain("中继不可达");
+  });
+
+  it("非刚建会话读取失败（freshSessionId 不命中）→「会话读取失败（中继不可达）」", () => {
+    const html = renderToString(
+      <ChatPanel
+        sessions={sessionStub([])}
+        history={historyFailed}
+        send={sendStub}
+        sessionId="old-1"
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-1"}
+        turnStage={null}
+        turnError={null}
+        freshSessionId="fresh-1"
+      />,
+    );
+    expect(html).toContain("会话读取失败（中继不可达）");
+    expect(html).not.toContain("会话尚未落盘");
+  });
+});
+
+describe("ChatPanel F2 C-5（failed 横幅 error 明细）", () => {
+  it("failed 横幅：任务状态 error 摘要经 turnError 入横幅（文本含摘要）", () => {
+    const summary = "InvalidNodeError: municipal_input 缺必需参数 ['kz','q_avg_daily']";
+    const html = renderToString(
+      <ChatPanel
+        sessions={sessionStub([])}
+        history={historyStub([])}
+        send={sendStub}
+        sessionId="s1"
+        onSessionChange={() => undefined}
+        newSessionId={() => "fresh-id"}
+        turnStage={null}
+        turnError={`本轮失败（failed）：${summary}`}
+      />,
+    );
+    expect(html).toContain("wp-chat-turn-error");
+    expect(html).toContain("本轮失败（failed）：InvalidNodeError");
+    expect(html).toContain("kz");
+  });
+});

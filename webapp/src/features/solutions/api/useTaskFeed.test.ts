@@ -77,7 +77,8 @@ function latestSource(): FakeEventSource {
 /** 直驱 hook：单次渲染态调用（hooks 桩）→立即执行收集到的 effect（挂载
  * 语义模拟）→返回 effect 清理器（卸载语义备用）。 */
 function mountTaskFeed(
-  onConnection?: (state: "reconnecting" | "probing" | "ok") => void,
+  // F2 B-2：ConnectionState 增 'polling' 降级态——本桩签名同步扩（类型面零行为变化）
+  onConnection?: (state: "reconnecting" | "probing" | "ok" | "polling") => void,
 ): () => void {
   useTaskFeed("task-b7", undefined, onConnection);
   const effect = reactStub.effects[reactStub.effects.length - 1];

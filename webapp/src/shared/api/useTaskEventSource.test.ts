@@ -16,6 +16,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   type TaskEventReading,
+  SSE_PROBE_FALLBACK_ROUNDS,
+  SSE_PROBE_INTERVAL_MS,
   subscribeTaskEvents,
   useTaskEventSource,
 } from "./useTaskEventSource";
@@ -81,9 +83,11 @@ vi.mock("react", async (importOriginal) => {
 function mountSource(
   taskId: string | null,
   interpret: (data: string) => TaskEventReading,
-  onConnection?: (state: "reconnecting" | "probing" | "ok") => void,
+  onConnection?: (state: "reconnecting" | "probing" | "ok" | "polling") => void,
+  probeTaskStatus?: (taskId: string) => Promise<string | null>,
+  onTerminal?: (state: string) => void,
 ): () => void {
-  useTaskEventSource(taskId, interpret, undefined, onConnection);
+  useTaskEventSource(taskId, interpret, onTerminal, onConnection, probeTaskStatus);
   const effect = reactStub.effects[reactStub.effects.length - 1];
   if (effect === undefined) {
     throw new Error("未收集到 useTaskEventSource effect（hooks 桩失效）");
@@ -212,5 +216,77 @@ describe("useTaskEventSource 长订阅 hook（B3-b 内核——useTaskFeed 消�
     expect(source.closed).toBe(true);
     vi.advanceTimersByTime(60000); // 任意推进——不复活
     expect(FakeEventSource.instances).toHaveLength(1);
+  });
+});
+
+describe("useTaskEventSource probing 轮询兜底（F2 B-2——SSE 永不成流）", () => {
+  beforeEach(() => {
+    vi.stubGlobal("EventSource", FakeEventSource);
+    FakeEventSource.instances = [];
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  /** 爬退避梯至第 5 错（达限转 probing——1/2/4/8s 四梯后第五错入 60s 慢探测）。 */
+  const climbToProbing = async () => {
+    for (const delay of [1000, 2000, 4000, 8000]) {
+      latestSource().triggerError();
+      await vi.advanceTimersByTimeAsync(delay);
+    }
+    latestSource().triggerError(); // f=5 → probing 周期+状态轮询兜底触发
+  };
+
+  /** 微任务冲刷（probe 承诺落定——probeCycle 续走）。 */
+  const flush = async () => {
+    for (let i = 0; i < 3; i += 1) {
+      await Promise.resolve();
+    }
+  };
+
+  it("SSE 永远 error：probing 周期任务状态轮询返 done → 终态收口（onTerminal=消费方 invalidate 路径）+停连", async () => {
+    vi.useFakeTimers();
+    const onTerminal = vi.fn();
+    const probe = vi.fn(() => Promise.resolve("done"));
+    const cleanup = mountSource(
+      "task-k",
+      () => ({ kind: "event" }),
+      undefined,
+      probe,
+      onTerminal,
+    );
+    await climbToProbing();
+    await flush();
+    expect(probe).toHaveBeenCalledTimes(1); // 本 probing 周期已问一次任务状态
+    expect(onTerminal).toHaveBeenCalledTimes(1); // 终态收口（ChatPane 在此 invalidate）
+    expect(onTerminal).toHaveBeenCalledWith("done");
+    expect(latestSource().closed).toBe(true); // 本流已 close
+    await vi.advanceTimersByTimeAsync(SSE_PROBE_INTERVAL_MS + 1000);
+    expect(FakeEventSource.instances).toHaveLength(5); // 收口后不再重连
+    expect(onTerminal).toHaveBeenCalledTimes(1); // 不重复收口
+    cleanup();
+  });
+
+  it(`连续 ${SSE_PROBE_FALLBACK_ROUNDS} 轮 probing 无终态 → polling 降级标记（onConnection）+轮询续走不静默`, async () => {
+    vi.useFakeTimers();
+    const onConnection = vi.fn();
+    const probe = vi.fn(() => Promise.resolve(null));
+    mountSource("task-k", () => ({ kind: "event" }), onConnection, probe);
+    await climbToProbing(); // probe 周期 1（无终态）
+    await flush();
+    for (let round = 2; round <= SSE_PROBE_FALLBACK_ROUNDS; round += 1) {
+      await vi.advanceTimersByTimeAsync(SSE_PROBE_INTERVAL_MS);
+      latestSource().triggerError(); // 慢探测重连即错——probe 周期 round
+      await flush();
+    }
+    expect(probe).toHaveBeenCalledTimes(SSE_PROBE_FALLBACK_ROUNDS);
+    expect(onConnection).toHaveBeenCalledWith("probing");
+    const pollingCalls = onConnection.mock.calls.filter(([state]) => state === "polling");
+    expect(pollingCalls).toHaveLength(1); // 达限标记恰一次
+    await vi.advanceTimersByTimeAsync(SSE_PROBE_INTERVAL_MS);
+    latestSource().triggerError(); // 标记后继续轮询（不静默停面）
+    await flush();
+    expect(probe).toHaveBeenCalledTimes(SSE_PROBE_FALLBACK_ROUNDS + 1);
   });
 });
