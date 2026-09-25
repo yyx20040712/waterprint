@@ -22,9 +22,10 @@
 #       近似[终裁 B1]，输出标注 loop_semantics:'frozen'；L3 层序禁
 #       solution→app_enumeration 上行，重建逻辑本件内实现）
 #   evaluate_stage(unit, stage, context, env) -> StageOutcome：逐级枚举
-#       （enumerate_solutions 同管线 R2 逐行 compute 绕过缓存）+单元级
-#       约束过滤+双源可行（行非 NaN ∧ 约束通过——PD2 同源口径）+逐行
-#       阶段代理分
+#       （enumerate_solutions 同管线 R2 逐行 compute 绕过缓存）+kb 带裕度
+#       列附着（批2a 裁决①——constraints.band_margin_column，与单元级
+#       约束同源）+单元级约束过滤+双源可行（行非 NaN ∧ 约束通过——PD2
+#       同源口径）+逐行阶段代理分
 #   stage_proxies(frame, feasible, share, baseline_energy) -> Mapping：
 #       代理分=share×裕度归一+(1−share)×能耗归一（min-max 逐阶段归一；
 #       无区分度分量=1/2 中位——禁编造区分度）
@@ -62,7 +63,12 @@ from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Unit, UnitContext
-from waterprint.solution.constraints import Constraint, apply_constraints
+from waterprint.solution.constraints import (
+    MARGIN_COLUMN,
+    Constraint,
+    apply_constraints,
+    band_margin_column,
+)
 from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import Grid, build_grid
 
@@ -96,7 +102,6 @@ class GraphExecutor(Protocol):
 
 # B4-2a 能耗 dims 三键（app_energy._POWER_FIELDS 键集同源——单元自报口径）
 _ENERGY_KEYS: tuple[str, ...] = ("e_aeration", "e_pump", "e_stir")
-_MARGIN_COLUMN: str = "margin_min"
 _NAN_COLUMN: str = "nan_flag"
 _MIDPOINT: float = 1 / 2  # 无区分度分量中位（幂底式 1/2——魔法数白名单形态）
 
@@ -174,7 +179,7 @@ def stage_proxies(
     """
     if not feasible:
         return {}
-    margins = [float(frame.iloc[index][_MARGIN_COLUMN]) for index in feasible]
+    margins = [float(frame.iloc[index][MARGIN_COLUMN]) for index in feasible]
     energies = [
         energy_estimate(frame.iloc[index].to_dict(), baseline_energy) for index in feasible
     ]
@@ -296,6 +301,7 @@ def evaluate_stage(
             "StageContext.grid 缺失（阶段求值前提——beam 装配面程序缺陷，GR-11）"
         )
     frame = enumerate_solutions(stage.grid, context, unit, env)
+    frame[MARGIN_COLUMN] = band_margin_column(frame, stage.constraints)  # 批2a：kb 带裕度列
     matrix = (
         apply_constraints(frame, stage.constraints).pass_matrix
         if stage.constraints

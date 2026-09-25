@@ -28,8 +28,10 @@
 #   R3 上游上下文冻结：枚举期间上游量不变（快照传入）；工况取当前
 #      选定档（枚举结果标注 condition_key 列）。
 #   R4 输出形态：DataFrame 列 = grid 参数列（fields 序）+ dims 结果列
-#      （首见序）+ margin_min 预备列（margin_* 达标裕度字段行最小值，
-#      无裕度字段=NaN）+ nan_flag 标注列 + condition_key 列；行序=grid
+#      （首见序）+ nan_flag 标注列 + condition_key 列（margin_min 裕度列
+#      批2a 起改由 constraints.band_margin_column 在调用面附着——单元 dims
+#      无 margin_ 键产出形，裕度真源=kb 已追认约束带，裁决① 2026-09-25）；
+#      行序=grid
 #      序，排序/分页在 ranking/服务层做，本文件不做截断（§12.2 分页
 #      默认 200 条在服务层）。
 #   R5 NaN 政策：约束外推导致的 NaN 不允许静默通过——nan_flag 显式
@@ -67,7 +69,6 @@ from waterprint.contracts.unit_api import Unit, UnitContext
 from waterprint.registry.formulas import InvalidFormulaError
 from waterprint.solution.grid import Grid
 
-_MARGIN_PREFIX = "margin_"
 # 行级域拒族（R5 注记；B3-c 批 2c 收敛 2026-09-19）：contracts 层四族公共
 # 核心单源=contracts.domain_exceptions.DOMAIN_EXCEPTIONS_CORE（新增 contracts
 # 层族改彼处即自动同步整图隔离面）；registry 层语境专属族在本组合尾追加。
@@ -98,12 +99,6 @@ def _dims_of(dims: object) -> dict[str, float]:
     return {str(key): float(value) for key, value in dims.items()}
 
 
-def _margin_min(dims: dict[str, float], margin_fields: tuple[str, ...]) -> float:
-    """R2 预备列：全部达标裕度字段的最小值（最紧指标优先；无裕度字段=NaN）。"""
-    values = [dims[key] for key in margin_fields if not isnan(dims.get(key, nan))]
-    return min(values) if values else nan
-
-
 def enumerate_solutions(
     grid: Grid, upstream: UnitContext, unit: Unit, env: RunEnv
 ) -> pandas.DataFrame:
@@ -128,13 +123,11 @@ def enumerate_solutions(
             if key not in seen:
                 seen.add(key)
                 dim_fields.append(key)
-    margin_fields = tuple(k for k in dim_fields if k.startswith(_MARGIN_PREFIX))
     data: dict[str, list[Any]] = {
         field: [float(row[field]) for row in grid.array] for field in grid.fields
     }
     for key in dim_fields:
         data[key] = [dims.get(key, nan) for dims in dims_rows]
-    data["margin_min"] = [_margin_min(dims, margin_fields) for dims in dims_rows]
     data["nan_flag"] = [
         not dims or any(isnan(value) for value in dims.values())
         for dims in dims_rows  # 空 dims=行级域拒（R5 注记）——一并标注

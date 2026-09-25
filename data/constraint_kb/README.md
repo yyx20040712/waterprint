@@ -78,3 +78,9 @@ options.constraints 通道）落地为：
   unit_kinds 恒空=全构筑物；无数值阈值。severity=ERROR 系工程惯例
   「总图构筑物不得越用地红线」**类比起草态待专家确认**（数据策略 v2
   ——pending-domain-expert.md 新节登记）。
+- 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
+  margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
+  的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core
+  constraints.band_margin_column；与 UI 勾选/过滤同一约束集同源）。
+  单侧/∈ 档形态无带宽概念不产出裕度——覆盖面随本库扩条渐进；
+  数值零新增（带值即已追认约束值）。

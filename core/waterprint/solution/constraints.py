@@ -1,7 +1,7 @@
-"""布尔约束过滤（含 UI 覆盖）：可行方案子集与逐约束通过矩阵。
+"""约束求值族：布尔约束过滤（含 UI 覆盖）+ 约束带裕度列（批2a）。
 
 输入:  枚举 DataFrame + 约束集（constraint_kb 迁移 21 条 + UI 临时覆盖）
-输出:  可行子集 + 每行×每约束的通过矩阵（供 diagnose）
+输出:  可行子集 + 每行×每约束的通过矩阵（供 diagnose）+ margin_min 裕度列
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -17,6 +17,15 @@
 #       pass_matrix（DataFrame 布尔矩阵，行=方案 列=约束）
 #   class InvalidConstraintError(Exception)：DSL 非法（未知字段/
 #       非法算符/非法常数/空表达式）——GR-11 族，本文件定义
+#   band_of(expression) -> tuple[str, float, float] | None：同字段
+#       双侧带界解析（批2a 裁决①——裕度真源=kb 已追认约束带；
+#       非带形/退化带 low>=high=None——不产出裕度，与过滤面行为对称）
+#   MARGIN_COLUMN: Final[str]（="margin_min"）：裕度列名单源常量（三接线
+#       面 app/stage/本件统一引用——门一 N1 处置）
+#   band_margin_column(frame, constraints) -> pandas.Series：margin_min
+#       裕度列（批2a——枚举行对带形约束的归一距离 min(v−a,b−v)/(b−a)，
+#       行级取最紧；无适用带=NaN；调用面=app.run_enumeration/
+#       stage.evaluate_stage，与 apply_constraints 同一约束集同源）
 #
 # 【行为规格】
 #   R1 约束是数据：知识库 21 条（旧 constraint_hints 迁移；kb 1.4.0
@@ -51,7 +60,7 @@ from ast import literal_eval
 from collections.abc import Sequence
 from dataclasses import dataclass
 from math import isfinite
-from typing import final
+from typing import Final, final
 
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
 
@@ -63,6 +72,7 @@ _CLAUSE: re.Pattern[str] = re.compile(
 )
 _NUMBER: re.Pattern[str] = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$")
 _LIST: re.Pattern[str] = re.compile(r"^\[(?P<items>.+)\]$")
+_BAND_CLAUSE_COUNT: Final[int] = 2  # 带形=恰两子句（一侧下界一侧上界——批2a）
 
 
 class InvalidConstraintError(Exception):
@@ -177,6 +187,34 @@ def _evaluate(
     return combined
 
 
+def band_of(expression: str) -> tuple[str, float, float] | None:
+    """表达式 → 同字段双侧带界（field, low, high）；非带形=None。
+
+    带形判据（批2a 裁决①——「x >= a and x <= b 结构化解析带界」）：恰两
+    子句、同一 field、一侧下界（>=/>）一侧上界（<=/<）、右值为数值（∈ 档
+    列表无带宽概念非带）。单侧/跨字段/同向双子句/单子句=None（裕度覆盖面
+    随 kb 扩条渐进）。退化带 low>=high 亦=None（门一 W1 处置：该带无带宽
+    概念不产出裕度——与 apply_constraints 行为对称，恒不可行带由过滤面
+    自然产出空集、low==high 单点带可行域不受误杀；裕度面不引入任务级
+    行为回归）。
+    """
+    clauses = _clauses(expression)
+    if len(clauses) != _BAND_CLAUSE_COUNT:
+        return None
+    (field_a, op_a, value_a), (field_b, op_b, value_b) = clauses
+    if field_a != field_b or isinstance(value_a, tuple) or isinstance(value_b, tuple):
+        return None
+    if op_a in (">=", ">") and op_b in ("<=", "<"):
+        low, high = float(value_a), float(value_b)
+    elif op_a in ("<=", "<") and op_b in (">=", ">"):
+        low, high = float(value_b), float(value_a)
+    else:
+        return None
+    if low >= high:
+        return None  # 退化带不产出裕度（docstring 口径——过滤面行为对称）
+    return field_a, low, high
+
+
 @dataclass(frozen=True)
 @final
 class FilterResult:
@@ -205,3 +243,38 @@ def apply_constraints(
     else:
         feasible = tuple(range(len(df)))  # 空约束集=全可行（GR-14 显式语义）
     return FilterResult(feasible=feasible, pass_matrix=matrix)
+
+
+_MARGIN_COLUMN: str = "margin_min"  # 公开别名 MARGIN_COLUMN（三接线面单源——门一 N1 处置）
+MARGIN_COLUMN: Final[str] = _MARGIN_COLUMN
+
+
+def band_margin_column(
+    frame: pandas.DataFrame, constraints: Sequence[Constraint]
+) -> pandas.Series:
+    """裕度列正门（批2a 裁决①）：逐带向量化归一距离 → 行级最紧。
+
+    R1 裕度语义=归一距离 min(v−a, b−v)/(b−a)：可行行 ∈[0, 0.5]（带缘 0、
+    带中心 0.5）；越带行为负（随后被约束过滤剔除，负值不留消费面）。
+    R2 行级取最紧：多带适用取 min（最紧指标优先——与旧 margin_* 字段
+    语义同口径）；无适用带=NaN（「无裕度信息」诚实语义，stage 侧 NaN
+    防护兜底）。
+    R3 数值零新增：带界全部来自 kb 已追认表达式（band_of 解析）；非带形
+    （单侧/∈/跨字段）不产出裕度——覆盖面随 kb 扩条渐进；带字段不在枚举
+    行列=不适用（字段合法性由 apply_constraints 统一执法本函数不重复判）。
+    R4 向量化：逐带 Series 运算+横向 min（万级行 <1s——apply 同预算口径）；
+    域拒行（字段 NaN）距离 NaN，skipna 语义下仅全部适用带 NaN 才 NaN
+    （行可行性仍由 nan_flag 双源口径承载）。
+    """
+    margins: list[pandas.Series] = []
+    for constraint in constraints:
+        band = band_of(constraint.expression)
+        if band is None or band[0] not in frame.columns:
+            continue  # 非带形/字段不适用=无裕度贡献（R3 覆盖面渐进）
+        field, low, high = band
+        series = frame[field]
+        distance = pandas.concat([series - low, high - series], axis=1).min(axis=1)
+        margins.append(distance / (high - low))
+    if not margins:
+        return pandas.Series(float("nan"), index=frame.index, name=_MARGIN_COLUMN)
+    return pandas.concat(margins, axis=1).min(axis=1).rename(_MARGIN_COLUMN)

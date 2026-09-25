@@ -180,7 +180,7 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
 from waterprint.registry.effluent import load_effluent_standards
-from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.constraints import MARGIN_COLUMN, apply_constraints, band_margin_column
 from waterprint.solution.design_map import (
     DesignMap,
     DesignMapOptions,
@@ -401,8 +401,7 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
         [spec for spec in unit.manifest.params if spec.grid is not None],
         overrides=env.assumptions,
     )
-    # ADR-018 D2 枚举全工况化：空集守卫语义从「取首档」转为「迭代前提」——
-    # 正门 build_condition_set 恒非空，空集=直构程序缺陷（GR-11 收口，M-5）。
+    # ADR-018 D2：空集=直构程序缺陷（正门 build_condition_set 恒非空——GR-11，M-5）。
     if not conditions.baseline and not conditions.sensitivity:
         raise InvalidAssemblyError(
             "conditions 为空集（枚举逐工况迭代前提失败——正门 build_condition_set "
@@ -411,12 +410,13 @@ def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet
     plant = execute_graph(
         project.design, assembled.units, conditions, _completed_env(env, project.design)
     )
-    # 逐工况上游快照重建→枚举→concat（行序=工况序×网格序，condition_key
-    # 列逐帧自标）——app_enumeration 伴生件承载（app.py 行数预算正解）。
+    # 逐工况快照重建→枚举→concat（行序=工况序×网格序）——app_enumeration 承载。
     df = enumerate_across_conditions(
         UpstreamSource(assembled.units, assembled.edges, project.design, plant),
         unit_id, conditions, grid, env)
     chosen = options if options is not None else EnumerationOptions()
+    # 批2a：kb 带裕度列（与过滤同源）
+    df[MARGIN_COLUMN] = band_margin_column(df, chosen.constraints)
     filtered = apply_constraints(df, chosen.constraints)
     ranked = rank(filtered, df, RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
                   chosen.limit if chosen.limit is not None else max(len(filtered.feasible), 1))
