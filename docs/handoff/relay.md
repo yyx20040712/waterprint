@@ -20,7 +20,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T14:35:36.000Z <!-- 批2d claim 刷新 -->
+- heartbeat_utc: 2026-09-25T14:39:34.000Z <!-- 批2d 执行中刷新 -->
 - claim: executor-b2d-20260925T143536Z <!-- 2026-09-25 批2d 认领；勾选快照 checked 29/38 -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
@@ -332,7 +332,7 @@
 
 - **开批四条件**：READY（R4 收口=增补三十二）/静默窗 138min/实物静默（板面+git 594e17d2dd ~11min）/熔断 9<60、墙钟 4.65h<90h。
 - **前台门两幕**（14:25Z 班与 14:35Z 班）：用户全屏游戏中（DeltaForce pid 39424）——AppActivate 拉起后游戏即时夺回，紧环三连守卫安全拒绝（action_sent=false），按协议让位一班不打扰用户；次班游戏暂停间隙 Ctrl+N 一次过。
-- **通道**：Ctrl+N/回读② 模型=GLM-5.3/回读① 绑定用宽度启发式（154px）误判「已继承智水蓝图」/typeText 242 字回读③/回车主径/composer 清空。**回读④ env 核验抓获绑定偏差：sess_b606debd Primary working directory=E:\class\handover**（活动标签=火 prompt 投递聚焦的调度员自身标签，新任务继承其绑定）。
+- **通道**：Ctrl+N/回读② 模型=当班会话模型/回读① 绑定用宽度启发式（154px）误判「已继承智水蓝图」/typeText 242 字回读③/回车主径/composer 清空。**回读④ env 核验抓获绑定偏差：sess_b606debd Primary working directory=E:\class\handover**（活动标签=火 prompt 投递聚焦的调度员自身标签，新任务继承其绑定）。
 - **放行裁量（不掐重发）**：handover 绑定与智水蓝图-父目录绑定在仓级 AGENTS.md 注入上等价（两者均非 waterprint 仓根）；执行指令全程绝对路径（R3 先例：game 目录绑定照样完美收口）；掐掉重发=双执行者并发窗+双倍前台占用。偏差照录，用户知情。
 - **通道教训（下班起强制）**：绑定宽度启发式作废——每班一律「选择项目」菜单显式绑定+env 块核验双闸；游戏前台占用=让位不硬抢（AGENTS 前台焦点保护）。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_b606debd claim 执行批2d（可视化三图+picker 修复——webapp 批走 vitest+check_webapp+无头验证）。
