@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 批2d 收口置位（增补三十六——烤验三轮+门二可收口）；下一批=R5 -->
+- status: READY <!-- 2026-09-25 R5 收口置位（增补三十七——降级直跑+k1 增量 PASS）；下一批=批3.5 -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T17:00:04.000Z <!-- 批2d 收口刷新 -->
+- heartbeat_utc: 2026-09-25T18:55:14.249Z <!-- R5 收口刷新 -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 30 <!-- 2026-09-25 批2d 收口 29→30（第五波 3/12） -->
+- checked_done: 31 <!-- 2026-09-25 R5 收口 30→31 -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-25T14:35:39.984Z <!-- 2026-09-25 第四班发布成立（回读④：sess_b606debd ~50s 落盘；env 块工作区=E:\class\handover——绑定偏差见增补三十三）；旧值 2026-09-25T12:07:25.336Z（第三班 R4） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 10 <!-- 批2d 收口 +1（上限 60） -->
+- batch_count: 10 <!-- R5 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: R5 门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手）
+- next_batch: 批3.5 范围一补全·调研先行（第五波第 6 项——ganhua 燃料因子权威源检索/xiaohua 消化 MCF 分档 IPCC 2019 Table 6.3）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -129,7 +129,7 @@
 - [x] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
 - [x] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户——**2026-09-25 收官**：Docker 实测抓漏 dockerignore 真缺陷+双容器态实证；烤验三轮双审全 PASS+裁决部有条件可收口〔M1/M2/C1/C2 全落实〕）
 - [x] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
-- [ ] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
+- [x] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
 - [ ] 批3.5｜范围一补全·调研先行（backend-calc-complete——ganhua 燃料因子权威源检索：有源则起草立键标注待追认/无源登记挂账；xiaohua 消化 MCF 分档〔IPCC 2019 Refinement Table 6.3 消化档〕）
 - [ ] 批5｜低优先堆（backend-calc-complete——NaN 可行口径统一/timeout 诊断维度/severity 执法统一/裁决档勘误两处〔W2:549→548 与 34760.46→34760.70〕/beam.py 拆件结构债/app.py 500 贴墙欠账/main.py 余量观察项）
 - [ ] ⑤a｜矿井水污泥线新单元（B4-5 拆项——wp new-unit 脚手架+四件套实现批；前置勘误已确认 2026-09-25〔增补二十五〕）
@@ -357,6 +357,16 @@
 - **烤验三轮**：门一首轮 k1 返工（B1W5N10——B-1 联合无解诊断形状错位+测试锁错形状）+d1 有条件（B0W4N8；W-1 import 矛盾经取证消解=主控审包摘录转录失真，实为值导入）→回炉 R1~R6 全实施（9ec23761a1）→delta 二过 k1 有条件（B0W3N7：stage_empty 域拒支 note 吞没）+d1 有条件（B0W1N8：final_infeasible relaxed 截断）→条件落实笔 21388bc9c9（stage.note 提取+rawSummary 兜底+诊断说明中性前缀+README 双清单 12 件补登记）。V7 无头断言升级曾抓出真缺陷：旧条件渲染下龙卷风 canvas 从未创建（旧 count 断言假绿）——常驻容器+懒 init+ResizeObserver 重放修后 15 断言全 PASS。
 - **门二**：probe 实证矩阵 10/10（独立重跑 vitest 892/892+tsc 0+16 门禁逐名+gen_status 零漂移 2158 字节+V7 15 断言 vite 自起自杀端口净+帕累托手算独立复算前沿={rank1,rank3}+picker 真目录逐条对拍）；裁决部终裁**可收口**（must_fix 空）——独立复核含：四键镜像逐键/21 条 4 类分布/git 六笔 reflog/供选面 6 条复算；裁决部勘正=solutionsPane 实测 495 非 489（R4 补笔所致，墙未破余量 5 行——后续加行必先外移）。
 - **Rulings 呈报**：①R-B44b-4 并案裁量（联合枚举 UI 最小面并入——回滚面=JointSolutionsSection 挂载行删除）；②龙卷风第一版=数据自足裁定（avg vs design 漂移+失守标签；检修工况幅度=挂账投影端点分阶段兑现增补二十三编排）；③三图生命周期两口径并存记档（Tornado 懒 init vs Pareto/Parallel 急切——功能闭环非缺陷）。
-- **登记欠账**：①calc 全工况投影端点（独立批——落地同步升龙卷风幅度轴）②joint failed/cancelled 幽灵文案「进行中」（k1-W2——下一文案批）③DiagnosisPanel 头注行号漂移+裁决 PS 项（二过评审原文未落盘/reviews-archive.json glm 字面在 .json 非扫描面/stage_empty rawSummary 冗余降噪可选/Pareto xKey==yKey 退化投影可选守卫）④调度员 stall 误判流程欠账（同步子代理>15min 心跳盲区——增补三十五预防登记：拆段或异步+等待期刷心跳）⑤git geometric repack Permission denied 两笔（commit 成功——git 维护面异常未触碰控制面）⑥行数账：solutionsPane 495（余 5）+jointCharts 410+jointView 308。
+- **登记欠账**：①calc 全工况投影端点（独立批——落地同步升龙卷风幅度轴）②joint failed/cancelled 幽灵文案「进行中」（k1-W2——下一文案批）③DiagnosisPanel 头注行号漂移+裁决 PS 项（二过评审原文未落盘/reviews-archive.json 模型代号字面在 .json 非扫描面/stage_empty rawSummary 冗余降噪可选/Pareto xKey==yKey 退化投影可选守卫）④调度员 stall 误判流程欠账（同步子代理>15min 心跳盲区——增补三十五预防登记：拆段或异步+等待期刷心跳）⑤git geometric repack Permission denied 两笔（commit 成功——git 维护面异常未触碰控制面）⑥行数账：solutionsPane 495（余 5）+jointCharts 410+jointView 308。
 - **移交人类**：本批无新增 [HUMAN-LOCK]（webapp vitest 自由面直接落地）；存量六笔呈批件+批2c golden 重录+批3a 数值追认单待办不变（增补二十五集中索引）。
 - **下一批**：R5 门禁绊线+定版脚本（第五波序——C-4 check_model_names 两处+D-1 15 万吨定版脚本沉淀+React 重复 key 警告定位顺手）。
+
+### 增补三十七 — 2026-09-25T18:55:14.249Z（R5 收口：门禁绊线+定版脚本——降级会话内直跑首例，k1 增量 PASS）
+
+- **降级缘起**：前台门连续 10 班被桌面态占用（explorer 焦点锁，用户凌晨离开）——按板开批通道「拉起失败→或直降级会话内直跑」条款，hub 调度会话化身执行者（claim=executor-hub-r5-20260925T183736Z，勾选快照 30/38）。
+- **C-4 两处**：①scan_file OSError→None 计数进 WARN 汇总行（附未读相对路径清单 ≤20 截断+OK 行「N 个未读」文案降级——k1-W3 回炉增补）；②SCAN_DIRS 目录漂移 FAIL 绊线（扫描前快照）。机检矩阵 Q1-Q5 全绿：根/非根 CWD×正探针×目录改名探针+**双面不可读探针**（目录伪装文件法确定性触发 OSError）——WARN 全链（两循环接线/清单输出/OK 降级）端到端点燃 rc=0。
+- **顺手三件**：板面日志一行中性化（门禁自证清出——批2d 收口笔自写代号字面量）；uv.lock 失配漂移还原（批2d 时代残留：锁多 pyyaml 行 vs agent 零 yaml 导用——不入本批笔）；React 重复 key 挂账**销账**（无头两轮审计〔空态+带项目数据态〕零命中，余 warn/error 全为既有豁免面 antd Drawer width/THREE.Clock/GL 噪音=E2E-5 同款——结论=已随批2b/2d 列表组件重写消亡；证据=.workflow/e2e-150k-2026-09-25/console-key-audit.json+双截图）。
+- **D-1 定版**：p150k_final.py 495 行（v2 基座 6 处计数守卫替换：定版头/项目名 F/枚举载荷 unit_id→unit_ids 数组/wp-chat-open 精选入口带回退/聊天输入框容器→内 input×2/终态 testid 断言族）compile 过——首跑留证挂账（k1-N4）。
+- **烤验（小批裁量=工单 §5：门一单审+主控亲验矩阵）**：k1 首轮有条件放行（B0/W3/N6——W1/W2 WARN 产出路径零端到端实证+W2 md 循环本体缺口+W3 观测护栏）→回炉实修（未读路径清单+OK 降级+双面探针点燃）→**增量 PASS（B0/W0/N3 无条件）**。结转挂账（下一小批同锅）：全量未读升 FAIL/missing fail-slow/count 下限阈值/命中×未读组合探针/过滤链 is_file 护栏。
+- **收口三检**：run_gates 16 门禁全绿+gen_status --check 零漂移（2158 字节）+health-scan RED=0（WARN×3 存量回显）。
+- **降级直跑纪律账**：本会话（hub 调度）因直跑变肥——按薄调度员铁律，前台恢复后应迁火新薄会话（增补三十三通道教训同向：a11y 索引漂移已实测两轮）。

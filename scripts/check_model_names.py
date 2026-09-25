@@ -21,7 +21,7 @@ MD_WHITELIST = {"AGENTS.md"}  # N3 保留件（相对仓根）
 def scan_file(path, shown):
     hits=[]
     try: text=path.read_text(encoding="utf-8",errors="replace")
-    except OSError: return hits
+    except OSError: return None  # 读取失败：计数进汇总 WARN（C-4①，不 FAIL）
     for ln,line in enumerate(text.splitlines(),1):
         if any(p.search(line) for p in EXEMPT_PATTERNS): continue
         for tok,pat in TOKEN_RES:
@@ -29,10 +29,11 @@ def scan_file(path, shown):
                 hits.append(f"{shown}:{ln}: {tok}"); break
     return hits
 def main():
-    v=[];count=0;md_count=0
+    v=[];count=0;md_count=0;unread=0;unread_paths=[]
     # 全部路径锚定 REPO（E2E-1 修复 2026-09-25：旧实现源码面按 CWD 解析、
     # md 面传相对路径给 read_text——非根 CWD 单跑源码面空扫+md 面 OSError
     # 静默漏扫，假绿失真；锚定后任意 CWD 结果恒同）
+    missing=[rd for rd in SCAN_DIRS if not (REPO/rd).is_dir()]  # C-4② 目录漂移绊线
     for rd in SCAN_DIRS:
         base=REPO/rd
         if not base.is_dir(): continue
@@ -40,17 +41,29 @@ def main():
             if path.suffix not in SCAN_SUFFIXES: continue
             if "/tests/" in path.as_posix(): continue
             if any(s in path.parts for s in ("__pycache__","node_modules")): continue
-            count+=1; v.extend(scan_file(path, path.relative_to(REPO).as_posix()))
+            count+=1
+            r=scan_file(path, path.relative_to(REPO).as_posix())
+            if r is None: unread+=1; unread_paths.append(path.relative_to(REPO).as_posix())
+            else: v.extend(r)
     for path in sorted(REPO.rglob("*.md")):
         rel=path.relative_to(REPO)
         if rel.as_posix() in MD_WHITELIST: continue
         if MD_EXCLUDE_DIRS.intersection(rel.parts): continue
         md_count+=1
-        v.extend(scan_file(path, rel.as_posix()))
+        r=scan_file(path, rel.as_posix())
+        if r is None: unread+=1; unread_paths.append(rel.as_posix())
+        else: v.extend(r)
+    if missing:
+        print(f"[FAIL] 模型代号门禁：SCAN_DIRS 目录漂移——缺失 {missing}（整面空扫防线，C-4②）"); return 1
     if v:
-        print(f"[FAIL] 模型代号门禁：命中 {len(v)} 处（源码 {count} 文件 + md {md_count} 文件扫描面）：")
+        print(f"[FAIL] 模型代号门禁：命中 {len(v)} 处（源码 {count} 文件 + md {md_count} 文件扫描面{'' if not unread else f'，{unread} 个文件读取失败'}）：")
         for h in v[:50]: print(f"  {h}")
         if len(v)>50: print(f"  ... 其余 {len(v)-50} 处省略")
         return 1
-    print(f"[OK] 模型代号门禁：源码 {count} + md {md_count} 文件零命中"); return 0
+    if unread:
+        print(f"[WARN] {unread} 个文件读取失败（OSError 计数，不 FAIL——C-4①）：")
+        for u in unread_paths[:20]: print(f"  {u}")
+        if len(unread_paths)>20: print(f"  ... 其余 {len(unread_paths)-20} 个省略")
+    tail = "零命中" if not unread else f"零命中（{unread} 个未读——k1-W3 文案降级）"
+    print(f"[OK] 模型代号门禁：源码 {count} + md {md_count} 文件{tail}"); return 0
 sys.exit(main())
