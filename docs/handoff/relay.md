@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: RUNNING <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
+- status: READY <!-- 2026-09-25 R4 收口置位（增补三十二）；下一批=批2d -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T12:25:32.000Z <!-- R4 执行中刷新 -->
-- claim: executor-r4-20260925T120735Z
+- heartbeat_utc: 2026-09-25T14:14:48.000Z <!-- R4 收口刷新 -->
+- claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 28 <!-- 2026-09-25 R3 收口 26→27（第五波 1/12） -->
+- checked_done: 29 <!-- 2026-09-25 R4 收口 28→29（第五波 2/12） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-25T12:07:25.336Z <!-- 2026-09-25 第三班发布成立（回读④+绑定核验：sess_2e71829d env 块 Primary working directory=E:\class\智水蓝图；~20s 落盘）；旧值 2026-09-25T10:40:08.845Z（第二班批2b） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 8 <!-- R3 收口 +1（上限 60） -->
+- batch_count: 9 <!-- R4 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: R4 server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
+- next_batch: 批2d 方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；含 webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -127,7 +127,7 @@
 
 - [x] R3｜孤立警告组装+锁面呈批（e2e-fix-round3 批3——B-3；草稿 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md；实现侧 helper 抽取过 PLR0912+core 全量仅预期红+锁定测试期望 diff 走 .workflow 呈批）
 - [x] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
-- [ ] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
+- [x] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户——**2026-09-25 收官**：Docker 实测抓漏 dockerignore 真缺陷+双容器态实证；烤验三轮双审全 PASS+裁决部有条件可收口〔M1/M2/C1/C2 全落实〕）
 - [ ] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
 - [ ] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
 - [ ] 批3.5｜范围一补全·调研先行（backend-calc-complete——ganhua 燃料因子权威源检索：有源则起草立键标注待追认/无源登记挂账；xiaohua 消化 MCF 分档〔IPCC 2019 Refinement Table 6.3 消化档〕）
@@ -314,3 +314,16 @@
 - **开批四条件**：READY（批2b 收口=增补三十）/静默窗 85.6min/实物静默（板面 mtime 与 git 7cc318a3bc 距均 ~11min ≥5min）/熔断未触发（8<60、墙钟 2.3h<90h）。
 - **通道**：前台门（ZCode 在前台免拉起）/Ctrl+N/回读② 模型=当班会话模型（继承）/回读① **绑定预核新工序**：选择项目按钮宽 145px 提示已继承智水蓝图（活动标签=上批绑定任务）→截图经视觉模型读出按钮文字「智水蓝图 ∨」（同形误读「智→暂」人工判读排除）**免重绑**→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_2e71829d-277b-4bd6-978e-b565ae932c89.jsonl ~20s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**。model=当班会话模型。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_2e71829d 按板执行者条款 claim 执行 R4（server 卫生：C-1 uvicorn 直启校验收敛/C-2 no-store 全 GET 面/C-3 manifest 内容校验——C-1/C-2 方案呈门抄送用户）。
+
+### 增补三十二 — 2026-09-25T14:14:48.000Z（R4 收口：server 卫生 C-1/C-2/C-3——Docker 实测抓漏+双容器态实证；烤验三轮双审全 PASS）
+
+- **claim**：executor-r4-20260925T120735Z（12:07Z 认领，三班 UI 发布 sess_2e71829d=本会话）；**commits**：6cf3d01af7（实现 7 文件 80+/31-）+e22f9dfe29（增补三十一代号中性化 2 处独立笔）+8c86272366（.gitattributes *.sh eol=lf）+3ad6f9c079（门一回炉五项）+aa94526866（dockerignore 实修——Docker 抓漏）+本收口笔。
+- **C-1（entrypoint 收敛）**：deploy/server-entrypoint.sh（set -e→python -c 同源校验→exec "$@"=PID 1 语义保持）+Dockerfile COPY --chmod=755/ENTRYPOINT+.gitattributes sh 行钉。**Docker 实测（29.7.2/BuildKit v0.32.2）首跑抓真缺陷**——dockerignore 整目录排除 deploy/ 致 COPY not found 构建必败（部署面炸点，非测试环境特有）→!deploy/server-entrypoint.sh 例外修复（BuildKit 再包含语义实证——k1 B1 疑点证伪）→重建绿。容器双态：正常态 PID1=uvicorn+GET /api/projects 200+no-store（C-2 真实容器面实证）；空数据根态 exit=1+两态文案+uvicorn 未起；容器级空损态（坏 manifest）exit=1+两态并存文案（裁决 N3 补测）。
+- **C-2（no-store 全 GET 面）**：main.py request_id 中间件更名 _edge_headers，判据 method in ("GET","HEAD") and /api/ 前缀→no-store（R2-P2-1 单点收编——read_project 端点内单点摘除防双源）。HEAD=防御纵深——**实测证伪门一「GET 路由自动容许 HEAD」框架论断：APIRoute 对 HEAD 405**（405 响应过中间件带头）；行数中性手术（debug 挂载+CORS 注释并行对冲）main.py 终态恰 500。
+- **C-3（manifest 内容校验）**：_read_manifest_mapping=yaml.safe_load 非空 dict 判据（OSError/UnicodeDecodeError/YAMLError 归空损）；两态文案分号分隔同报+len(_DATA_PACKAGES) 计数去硬编码（容器内实装面显现「4 个子目录」）；三分支+三异常确定性覆盖（草稿路径锁定前置断言——d1 W1 实证：'::::[broken'→str 走 isinstance 分支，换 'a: [1,'=ParserError 锁 YAMLError 分支）。
+- **烤验全链**：门一三轮——k1 首审 B0/W4/N9（W1=主控审包 diff 占位符派发失误）→内联补发复核 B1 返工（dockerignore 修复笔在包外+! 语法疑点）→单点复核三项闭环→**PASS B0/W0/N2**；d1 首审 B0/W2/N8→终态报告新 W2（YAMLError 分支盲区+终态全量回归缺位）→二轮回炉（scalar 三输入/non-utf8/POST 负向+全量重跑）→**PASS B0/W0/N7**。门二：实证部矩阵 **10/10 全过**（独立重跑草稿 13/13+全量 338P+6F 逐项同名+ruff+行数注记双证+run_gates 全绿+status 零漂移+C-2 三断言独立实测+镜像内 cat 同源+Docker 态2 复跑）；裁决部**有条件可收口**→MUST_FIX 两项（M1 呈批件落库计数勘正/M2 C-1 陈述勘正——均落实）+承运条件 C1（Rulings 四件本笔落齐）/C2（欠账登记本笔落齐）——无代码返工项。
+- **验证面**：server 全量 338P+6F 与批2b 基线逐项同名零新增（终态 commit 重跑报数 208s——d1 W2 闭环；6F 全存量呈批件队列）；草稿 13/13 绿（.workflow/e2e-fix/R4/）；ruff 全绿；run_gates 16 门禁全绿（model_names 随中性化笔回绿）；gen_status 零漂移（2158 字节）；health-scan RED=0/WARN×3 存量；三文件 500/358/259 与 file-contracts 注记一致（check_file_budgets 机检）。
+- **Rulings 呈报（用户/专家追认位——C-1/C-2 方案抄送，工单 §5.6）**：①**HEAD 超工单字面裁量**（GET→GET+HEAD）=防御纵深（实测 HEAD 405 面「回退」论证失效+显式 HEAD 路由未来接入即覆盖+全树无测试/契约依赖 HEAD 响应头集——裁决 B1 成立）；回滚面=判据改回 ("GET",) 即回滚，但须同步处置草稿 test_c2_head_no_store（用例协同非单行删改）。②**pyyaml 显式声明**（server/pyproject+uv.lock 同步 +2 行——防 core 依赖收敛断供）。③**dockerignore 例外**（!deploy/server-entrypoint.sh——BuildKit 再包含语义，classic builder 未测挂账；Dockerfile 首行 syntax 已钉）。④**C-2 方案交底**：中间件统一加盖使 SSE 两端点既有 Cache-Control: no-cache（events.py）被改写为 no-store（更严，无测试依赖，行为可接受）；全 /api/ GET 数据读面含 units 静态目录面全禁（工单「本批全禁最简」口径）；SSE 流响应同经中间件（405/404/422 异常映射面带头实证）。
+- **登记欠账**：①main.py 恰 500 零余量（第 4 顶格件——与 beam.py/app.py 合账批5 堆；触发=下次触碰 main.py 前先腾位抽取）②HEAD 405 断言×fastapi 版本耦合观察（>=0.115 无上界，升级须复核）③ENTRYPOINT 绝对路径化（下一部署批顺手——现相对名经 PATH 生效实证）④classic builder 面未测 ⑤裁决 P2 建议：门一/实证报告落盘制度（组织面欠账——本批四份原文未落盘致门二逐字复核受限）⑥test_c2_static_units 命名注记（P3，实为 JSON 目录端点）。
+- **移交人类**：[HUMAN-LOCK] 呈批件第⑥笔（.workflow/e2e-fix/R4/——README 五步工序：C-3 八件→test_settings.py〔REPO_ROOT 改 parents[2〕+C-2 五件→test_app_factory.py〔conftest client〕；落库后预期 351P+6F）；Rulings 四件如上（含回滚面）。
+- **下一批**：批2d 方案比选可视化三图+picker 修复（第五波序——含 constraintPicker 2-kind 修复〔批2a 裁决部 C4〕+联合枚举 UI R-B44b-4 并案裁量）。
