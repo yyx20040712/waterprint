@@ -158,6 +158,9 @@ export function LlmConfigSection({ enabled }: { enabled: boolean }) {
             value={values.apiKey}
             onChange={(event) => setDraft({ ...draft, apiKey: event.target.value })}
             placeholder={config?.has_api_key ? "已配置（不回显）" : "未配置"}
+            // 回炉 W6：禁密码管理器静默填充——掩码下无感填充值会随
+            // 「保存」被当新 api_key 发送覆盖服务端密钥
+            autoComplete="new-password"
           />,
         )}
         {fieldRow(

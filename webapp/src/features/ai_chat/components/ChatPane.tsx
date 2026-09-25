@@ -41,6 +41,9 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
   const [freshSessionId, setFreshSessionId] = useState<string | null>(null);
   /** B-1：最近生成的建档 ID（POST 返回比对——仅客户端建档会话入标记）。 */
   const generatedSessionRef = useRef<string | null>(null);
+  /** 回炉 W4：最新轮任务 ID 镜像（补查落定校验轮次归属防陈旧横幅复活）。 */
+  const turnTaskIdRef = useRef<string | null>(null);
+  turnTaskIdRef.current = turnTaskId;
   const sessions = useChatSessions(open);
   const history = useChatHistory(open ? sessionId : null);
   const send = useSendChatMessage();
@@ -95,8 +98,16 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
         // 先落通用横幅即时反馈，补查落定升级明细（失败/无值回落保持通用）
         setTurnError(failedTurnBannerText(null));
         if (taskId !== null) {
+          // 回炉 W4：补查落定校验轮次归属——用户已重发（新一轮 task 在场）
+          // 时陈旧摘要不得复活覆盖新一轮的干净横幅；本轮已终态（ref=null
+          // 且无新轮）照常升级明细
           void fetchTaskErrorSummary(taskId).then((summary) => {
-            setTurnError(failedTurnBannerText(summary));
+            if (
+              turnTaskIdRef.current === null ||
+              turnTaskIdRef.current === taskId
+            ) {
+              setTurnError(failedTurnBannerText(summary));
+            }
           });
         }
       } else {

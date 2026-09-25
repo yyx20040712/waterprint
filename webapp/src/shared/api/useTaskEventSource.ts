@@ -203,6 +203,7 @@ export function useTaskEventSource(
     let timer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
     let finished = false; // B-2：轮询兜底终态收口后停面（连接/定时器双停）
+    let probing = false; // 回炉 W3：单探测在飞守卫（悬置 fetch 不叠轮计）
 
     const wrapUp = () => {
       finished = true;
@@ -212,24 +213,36 @@ export function useTaskEventSource(
       open?.close();
     };
 
+    // 回炉 W2：终态单口收口——SSE 与轮询两通道先到者 wrapUp（幂等），
+    // 后到者被 finished 守卫拦截（原 SSE 路径不置位=onTerminal 可双调）
+    const finishOnce = (state: string) => {
+      if (finished || disposed) {
+        return;
+      }
+      wrapUp();
+      onTerminalRef.current?.(state);
+    };
+
     // B-2：本 probing 周期的任务状态轮询（终态即收口；无终态计轮达限
     // 发降级标记——轮询续走不静默）
     const probeCycle = async () => {
-      const state = await probeRef.current(taskId);
-      if (disposed || finished) {
-        return;
-      }
-      if (state !== null) {
-        // 终态收口（同 SSE 终态路径：close 本流+清重连定时器+转 onTerminal
-        // ——消费方 invalidate 同现有终态路径）
-        wrapUp();
-        onTerminalRef.current?.(state);
-        return;
-      }
-      probeRounds += 1;
-      if (probeRounds === SSE_PROBE_FALLBACK_ROUNDS) {
-        // 降级标记恰一次（连续口径——健康事件到达归零重计）
-        onConnectionRef.current?.("polling");
+      probing = true;
+      try {
+        const state = await probeRef.current(taskId);
+        if (disposed || finished) {
+          return;
+        }
+        if (state !== null) {
+          finishOnce(state);
+          return;
+        }
+        probeRounds += 1;
+        if (probeRounds === SSE_PROBE_FALLBACK_ROUNDS) {
+          // 降级标记恰一次（连续口径——健康事件到达归零重计）
+          onConnectionRef.current?.("polling");
+        }
+      } finally {
+        probing = false;
       }
     };
 
@@ -246,7 +259,7 @@ export function useTaskEventSource(
           }
           return reading;
         },
-        onTerminal: (state) => onTerminalRef.current?.(state),
+        onTerminal: (state) => finishOnce(state),
         // ok=重建连接且此前降级（failures>0）——首连接 open 零噪音
         // （onopen 是 transport 级真信号；failures 归零仍仅由事件到达承载）。
         onOpen: () => {
@@ -262,8 +275,8 @@ export function useTaskEventSource(
           const plan = planRecovery(failures);
           // B7 D3：连接态通知（backoff 期=reconnecting/达限慢探测=probing）
           onConnectionRef.current?.(plan.mode === "probe" ? "probing" : "reconnecting");
-          if (plan.mode === "probe") {
-            void probeCycle(); // B-2：每个 probing 周期叠加一次状态轮询兜底
+          if (plan.mode === "probe" && !probing) {
+            void probeCycle(); // B-2/W3：每 probing 周期一次轮询（在飞不叠加计轮）
           }
           timer = setTimeout(connect, plan.delayMs);
         },
