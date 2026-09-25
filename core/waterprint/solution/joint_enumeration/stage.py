@@ -168,7 +168,12 @@ def _normalized(values: Sequence[float]) -> list[float]:
 def stage_proxies(
     frame: pandas.DataFrame, feasible: Sequence[int], share: float, baseline_energy: float
 ) -> dict[int, float]:
-    """逐可行行阶段代理分：share×裕度归一+(1−share)×能耗归一（确定性）。"""
+    """逐可行行阶段代理分：share×裕度归一+(1−share)×能耗归一（确定性）。
+
+    空可行集=空代理分早退（无可行行即无候选——beam 首空级诊断面承接）。
+    """
+    if not feasible:
+        return {}
     margins = [float(frame.iloc[index][_MARGIN_COLUMN]) for index in feasible]
     energies = [
         energy_estimate(frame.iloc[index].to_dict(), baseline_energy) for index in feasible
