@@ -22,12 +22,21 @@
  *     vite manualChunks three 已配——§12.6 独立 chunk 与画布互不干扰；
  *   - conditionKey 不暴露（服务端排序首键回显 R1/R2 语义）；取数/错误/
  *     加载态 Scene 自渲染（薄壳不重复做错误态）；
+ *   - F5 D5：catalog（/api/units）error/成功而空态渲染 warning Alert
+ *     （「单元目录未就绪——池组/分池暂按单池显示」+重试钮=invalidate
+ *     units 查询键——poolGroup.ts 静默空表的用户可感解释面；加载中
+ *     不挂横幅——正常瞬态非缺陷）；
  *   - ErrorBoundary 逐面板隔离（label=三维视图——渲染崩溃不清空应用）。
  */
 import { lazy, Suspense, useState } from "react";
-import { Button, Select, Typography } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
+import { Alert, Button, Select, Typography } from "antd";
 
 import { useListProjectsApiProjectsGet } from "../shared/api/generated/projects/projects";
+import {
+  getListUnitsApiUnitsGetQueryKey,
+  useListUnitsApiUnitsGet,
+} from "../shared/api/generated/units/units";
 import { CreateProjectModal } from "./createProjectModal";
 import { projectOptionLabel } from "./projectCreate";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -57,17 +66,47 @@ export function Viewer3dPane() {
   const projectsQuery = useListProjectsApiProjectsGet({
     query: { enabled: projectId === null },
   });
+  // F5 D5：catalog 未就绪显式提示（Scene usePoolGroups 同键缓存——零
+  // 额外请求；error/成功而空=settled 病态挂 Alert，加载中不挂）
+  const queryClient = useQueryClient();
+  const catalogQuery = useListUnitsApiUnitsGet();
+  const catalogMissing =
+    catalogQuery.isError ||
+    (catalogQuery.isSuccess && catalogQuery.data?.units === undefined);
 
   if (projectId !== null) {
     return (
-      <ErrorBoundary
-        label="三维视图"
-        onRetry={() => setScene(lazy(sceneLoader))}
-      >
-        <Suspense fallback={<div>三维视图加载中…</div>}>
-          <Scene projectId={projectId} />
-        </Suspense>
-      </ErrorBoundary>
+      <>
+        {catalogMissing ? (
+          <Alert
+            type="warning"
+            showIcon
+            title="单元目录未就绪"
+            description="池组/分池暂按单池显示（/api/units 目录查询失败或为空）。"
+            action={
+              <Button
+                size="small"
+                onClick={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: getListUnitsApiUnitsGetQueryKey(),
+                  })
+                }
+              >
+                重试
+              </Button>
+            }
+            style={{ marginBottom: 8 }}
+          />
+        ) : null}
+        <ErrorBoundary
+          label="三维视图"
+          onRetry={() => setScene(lazy(sceneLoader))}
+        >
+          <Suspense fallback={<div>三维视图加载中…</div>}>
+            <Scene projectId={projectId} />
+          </Suspense>
+        </ErrorBoundary>
+      </>
     );
   }
 

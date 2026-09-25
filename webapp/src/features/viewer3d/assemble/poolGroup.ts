@@ -8,7 +8,9 @@
  *        placementSummary）+场景 conditionKey（工况真源）
  * 输出:  PoolGroupPlan（nPools/nActive/单池平面/方阵间距/在用池槽位/
  *        缺位槽=missingSlotPlaceholders 产物）或 null（无声明/数据病
- *        ——调用方维持现状单份渲染+logFallback 登记）
+ *        ——调用方维持现状单份渲染+logFallback 登记）；F5 D1 增
+ *        groupExtents（plans×claims → 池组足迹世界 AABB|null——取景
+ *        effective bounds 并盒源，见函数注）
  *
  * 规格说明（spec §11 S11；三呈裁 2026-09-13）：
  *   - 池数唯一真源=params 面（override 优先、catalog default 回退）；
@@ -29,6 +31,7 @@ import { logFallback } from "./fallbackLog";
 import { missingSlotPlaceholders, type MissingSlot } from "./missingSlots";
 import type { FamilyEntry, PoolGroupEntry } from "./registry";
 import type { Vec3 } from "./types";
+import type { SceneBounds } from "../lib/projectScene";
 
 /** 池组排布计划（渲染层只消费不推导——组装产物全数值就绪）。 */
 export type PoolGroupPlan = {
@@ -161,7 +164,14 @@ export function poolGroupPlan(inputs: PoolGroupInputs): PoolGroupPlan | null {
  *  结构化零跨层依赖；数据 hooks 产物以值传入保持纯函数）。 */
 export type PoolClaim = {
   readonly entry: FamilyEntry;
-  readonly dimNode: { readonly dims: Record<string, number> };
+  readonly dimNode: {
+    readonly dims: Record<string, number>;
+    /** F5 D1：多实例锚点（世界位——RenderNode.placements 同构；
+     *  缺省=单元 origin 落世界原点）。 */
+    readonly placements?: readonly Vec3[];
+    /** F5 D1：平面旋转（0, rz, 0)——RenderNode.rotation 同构（缺省零旋）。 */
+    readonly rotation?: Vec3;
+  };
 };
 
 /** catalog 单元条目结构（UnitMetaEntry 兼容面——params 池数默认源）。 */
@@ -238,6 +248,92 @@ export type PoolBadge = {
   readonly active: number;
   readonly offline: boolean;
 };
+
+/**
+ * 池组足迹 AABB（F5 D1——core bounds 不知情的前端分池/缺位槽并盒）：
+ * cell 域 plan 的在用槽∪缺位槽按 dimNode 锚点（placements）与平面旋转
+ * （TemplateUnit 外层 group 同变换：世界槽心=anchor+Ry(rz)·offset）落到
+ * 世界系，每槽按 cell 半尺寸扩盒（projectScene.footprintOfNode 半尺寸
+ * 口径同构；旋转保守并盒=|cos|·h1+|sin|·h2）。unit 域零贡献（模板单份
+ * 足迹已被 dimNode 盒覆盖——不虚增取景）；空 plans/全零贡献=null
+ * （调用方回退 scene.bounds 原值——零行为漂移）。y=槽位标高单平面
+ * （足迹面零高度贡献——高度维归 scene.bounds）。
+ */
+export function groupExtents(
+  plans: ReadonlyMap<string, PoolGroupPlan>,
+  claims: ReadonlyMap<string, PoolClaim>,
+): SceneBounds | null {
+  let minX = Number.NaN;
+  let minY = Number.NaN;
+  let minZ = Number.NaN;
+  let maxX = Number.NaN;
+  let maxY = Number.NaN;
+  let maxZ = Number.NaN;
+  for (const [unitId, plan] of plans) {
+    if (plan.templateScope !== "cell") {
+      continue; // unit 域：单份模板足迹在 dimNode 盒内（scene.bounds 已覆）
+    }
+    const claim = claims.get(unitId);
+    if (claim === undefined) {
+      continue; // plans 键恒 ⊆ claims 键（builder 契约）——防御跳过
+    }
+    const anchors = claim.dimNode.placements ?? ([[0, 0, 0]] as const);
+    const rz = claim.dimNode.rotation?.[1] ?? 0;
+    const cos = Math.cos(rz);
+    const sin = Math.sin(rz);
+    // 旋转保守半幅：Ry 下轴对齐投影（取景宁大勿缺）
+    const halfX =
+      Math.abs(cos) * (plan.cellL / 2) + Math.abs(sin) * (plan.cellW / 2);
+    const halfZ =
+      Math.abs(sin) * (plan.cellL / 2) + Math.abs(cos) * (plan.cellW / 2);
+    const slots = [
+      ...plan.activeSlots,
+      ...plan.missing.map((slot) => slot.position),
+    ];
+    for (const anchor of anchors) {
+      for (const [offsetX, , offsetZ] of slots) {
+        // TemplateUnit 外层 group 旋转同变换：世界槽心=anchor+Ry(rz)·offset
+        const worldX = anchor[0] + offsetX * cos + offsetZ * sin;
+        const worldZ = anchor[2] - offsetX * sin + offsetZ * cos;
+        const x0 = worldX - halfX;
+        const x1 = worldX + halfX;
+        const z0 = worldZ - halfZ;
+        const z1 = worldZ + halfZ;
+        if (Number.isNaN(minX)) {
+          minX = x0;
+          minY = anchor[1];
+          minZ = z0;
+          maxX = x1;
+          maxY = anchor[1];
+          maxZ = z1;
+          continue;
+        }
+        if (x0 < minX) {
+          minX = x0;
+        }
+        if (anchor[1] < minY) {
+          minY = anchor[1];
+        }
+        if (z0 < minZ) {
+          minZ = z0;
+        }
+        if (x1 > maxX) {
+          maxX = x1;
+        }
+        if (anchor[1] > maxY) {
+          maxY = anchor[1];
+        }
+        if (z1 > maxZ) {
+          maxZ = z1;
+        }
+      }
+    }
+  }
+  if (Number.isNaN(minX)) {
+    return null;
+  }
+  return { min: [minX, minY, minZ], max: [maxX, maxY, maxZ] };
+}
 
 export function buildPoolBadges(
   claims: ReadonlyMap<string, PoolClaim>,

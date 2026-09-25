@@ -24,8 +24,11 @@
  *   - 七 kind 完备：box/cylinder/plane/extrusion/water_surface/polyline/
  *     strip 全映射，未知 kind 显式拒（原因含 kind 与 node_id）；
  *   - instance_count>1 摆置：近方阵（cols=ceil(sqrt(n))、rows=ceil(n/cols)）、
- *     步距=原型图元自身 dims（length→X、width→Z）——类型化摆放
+ *     步距=原型自身 dims（length→X、width→Z）——类型化摆放
  *     （摆放不计数：计数唯一真源=结果字段，README 硬规则 4）；
+ *     F5 D2：设备阵列居中（起点=origin−半幅，方阵中心=origin）；
+ *     池体足迹族（pool_wall/water_surface 语义）保留 S5 角起点——
+ *     模板取数位相邻排布契约+2D 总图 placementsOf 同构口径；
  *   - 语义 token 透传（色值归组件层——渲染描述禁出现 color/material）；
  *   - root 序与 nodes 索引一致性：悬空 id 拒；
  *   - 零业务计算/零业务几何推导：只消费 dims/position/rotation/
@@ -59,6 +62,9 @@ const KNOWN_KINDS = new Set([
 const WATER_KIND = "water_surface";
 const BOUNDARY_KIND = "polyline";
 const STRIP_KIND = "strip";
+/** 池体足迹语义族（多实例=模板取数位——S5 相邻排布角起点契约面；
+ *  池面随池壁同口径防分叉。F5 D2 居中仅设备阵列路径启用）。 */
+const POOL_FOOTPRINT_SEMANTICS = new Set(["pool_wall", "water_surface"]);
 
 export type Vec3 = [number, number, number];
 
@@ -147,21 +153,38 @@ function footprintOfNode(node: RenderNode): Vec3[] {
   return points;
 }
 
-function placementsOf(origin: Vec3, count: number, dims: Record<string, number>): Vec3[] {  if (count <= 1) {
+function placementsOf(
+  origin: Vec3,
+  count: number,
+  dims: Record<string, number>,
+  centered: boolean,
+): Vec3[] {
+  if (count <= 1) {
     return [origin];
   }
   const cols = Math.ceil(Math.sqrt(count));
+  const rows = Math.ceil(count / cols);
   // 步距=原型自身占位（缺键=0 重叠——数据面负责）；cylinder 族自身
   // 占位=diameter（L5R-A01 真圆足迹同口径——批3 主体：模板多实例
-  // [S5] 相邻双池排布前提；box/plane 沿 length/width 键）
+  // [S5] 相邻双池排布前提）；box/plane 沿 length/width 键
   const diameter = dims["diameter"] ?? 0;
   const stepX = dims["length"] ?? diameter;
   const stepZ = dims["width"] ?? diameter;
+  // F5 D2：设备阵列居中——起点=origin−半幅（方阵中心=origin，泵/灯等
+  // 重复构件不再偏聚 +X/+Z 一象限溢出池外）；池体足迹族（pool_wall/
+  // water_surface）保留 S5 角起点（相邻排布自 origin 起——模板取数位
+  // 契约+2D 总图 projectSite.placementsOf 同构口径不漂移）
+  const offsetX = centered ? -((cols - 1) / 2) * stepX : 0;
+  const offsetZ = centered ? -((rows - 1) / 2) * stepZ : 0;
   const placed: Vec3[] = [];
   for (let index = 0; index < count; index += 1) {
     const column = index % cols;
     const row = Math.floor(index / cols);
-    placed.push([origin[0] + column * stepX, origin[1], origin[2] + row * stepZ]);
+    placed.push([
+      origin[0] + offsetX + column * stepX,
+      origin[1],
+      origin[2] + offsetZ + row * stepZ,
+    ]);
   }
   return placed;
 }
@@ -338,7 +361,12 @@ export function projectScene(scene: SceneResponse): RenderScene {
       rotation,
       dims: node.primitive.dims,
       instanceCount,
-      placements: placementsOf(position, instanceCount, node.primitive.dims),
+      placements: placementsOf(
+        position,
+        instanceCount,
+        node.primitive.dims,
+        !POOL_FOOTPRINT_SEMANTICS.has(node.semantic),
+      ),
     };
     if (kind === WATER_KIND) {
       waters.push(rendered);

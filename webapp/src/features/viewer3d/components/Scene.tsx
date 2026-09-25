@@ -15,9 +15,12 @@
  *     唯一围栏）；
  *   - 剖切：store（clippingEnabled/Height）→ THREE.Plane → 材质
  *     clippingPlanes（Y-up 高度面，§12.3 view 态）；
- *   - UX2 D5 取景自适应：机位=preset 方向归一×（对角线×1.5）+bounds
+ *   - UX2 D5 取景自适应：机位=preset 方向归一×（对角线×1.25）+bounds
  *     中心（投影层 bounds 全 placements∪红线顶点 AABB——机位薄壳不测，
- *     app 层惯例；空场景回退原绝对坐标；fov 50 不变）；
+ *     app 层惯例；空场景回退原绝对坐标；fov 50 不变）；F5 D1：取景
+ *     锚升为 effective bounds=union(scene.bounds, groupExtents(池组
+ *     足迹))——机位/地面/网格/灯位/雾/阴影幅全消费 effective（core
+ *     bounds 不知情的前端分池入镜；空池组零漂移回退 scene.bounds）；
  *   - 漫游（L5b 预裁 6）：OrbitControls 挂载（three 包内 examples/jsm——
  *     零新 npm 依赖）+三 preset 并存：preset 点击=设相机 position+target
  *     一次（CameraRig effect），用户随后可自由拖拽/缩放/平移（controls
@@ -33,7 +36,15 @@
  *     （环境 0.4/方向 1.4+阴影正交半幅随对角线+灯位 target=bounds
  *     中心）；V4 取景系数 1.5→1.25+iso 俯角 30（呈裁④「更近更俯」）；
  *     地面/网格/灯位全 bounds 派生（零场景零地面——零尺度基准沿
- *     sceneCenter 先例）；
+ *     sceneCenter 先例）；F5 批：地面/灯光 JSX 下拆 GroundStage
+ *     （Scene 行数预算墙 500——沿 groundPlan.ts 抽离先例）；
+ *   - F5 D8：Canvas 显式 shadows="percentage"（布尔缺省→R3F 回退
+ *     PCFSoftShadowMap——three 0.185 每帧刷「PCFSoftShadowMap has been
+ *     deprecated. Using PCFShadowMap instead」；弃用文本自证运行时已
+ *     自动降级 PCF，故显式 percentage=消警+零视觉漂移双收——简报字面
+ *     "basic" 会把现行 PCF 软影硬化成硬影，偏离依据见 F5 报告自裁申报；
+ *     THREE.Clock 弃用告警=R3F 库内实例化（three r183 起模块弃用），
+ *     本批不动——F5 报告注明）；
  *   - 性能预算 1080p ≥60fps（InstancedMesh 前提，§18.1）；
  *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）；UX1 D5：
  *     404 领域码门控附引导——仅 code==="SceneSourceNotFoundError"（无
@@ -48,22 +59,23 @@ import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber"
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
-import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { WaterprintApiError } from "../../../shared/api/http";
 import { semanticColor } from "../../../shared/ui/semanticColors";
 import { claimTemplateUnits } from "../assemble/templateAssembly";
-import { buildPoolBadges, buildPoolPlans } from "../assemble/poolGroup";
+import { groupExtents } from "../assemble/poolGroup";
 import { attachGlInfo, registerProbe } from "../assemble/probe";
 import {
   SceneProjectionError,
   projectScene,
   type RenderNode,
   type RenderScene,
+  type SceneBounds,
 } from "../lib/projectScene";
 import { groundPlan } from "../lib/groundPlan";
 import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
+import { GroundStage } from "./GroundStage";
 import { Internals } from "./Internals";
 import { PoolBox } from "./PoolBox";
 import { SiteBoundary } from "./SiteBoundary";
@@ -100,23 +112,20 @@ const CAMERA_PRESETS = {
 };
 
 /** C2-3d V1 地面/雾色——批3 迭代二（用户批注 b-①）：绿草地可隐藏图层，
- * 关=回深蓝工程底（页面 --wp-bg-page 同值 #0b1526）；网格恒蓝系
- * （绿草地+蓝工程网格——GPS-X 厂区参考系）；
- * 网格两色=主格/次格分层。缩略图台（ThumbnailStage）恒绿世界底
- * ——与 PNG 资产同源，不随本图层开关。 */
+ * 关=回深蓝工程底（页面 --wp-bg-page 同值 #0b1526）；网格两色=主格/
+ * 次格分层（常量随地面/网格 JSX 迁 GroundStage——F5 D1 拆件）。
+ * 缩略图台（ThumbnailStage）恒绿世界底——与 PNG 资产同源，不随本图层开关。 */
 const SCENE_BG_GRASS = "#0e2415";
 const SCENE_BG_DARK = "#0b1526";
-const GRID_MAJOR = "#3d619c";
-const GRID_MINOR = "#1b2c49";
 
 /** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
  *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
 const CANVAS_HEIGHT = "calc(100vh - 220px)";
 const CANVAS_MIN_HEIGHT = 420;
 
-/** 取景中心（bounds AABB 中心；空场景=原点——零场景零尺度基准）。 */
-function sceneCenter(scene: RenderScene): [number, number, number] {
-  const bounds = scene.bounds;
+/** 取景中心（bounds AABB 中心；空场景=原点——零场景零尺度基准；
+ *  F5 D1：入参升为 effective bounds（池组足迹并盒）。 */
+function sceneCenter(bounds: SceneBounds | null): [number, number, number] {
   if (bounds === null) {
     return [0, 0, 0];
   }
@@ -127,22 +136,44 @@ function sceneCenter(scene: RenderScene): [number, number, number] {
   ];
 }
 
+/** 两盒并集（任一 null=取另一侧——F5 D1 effective bounds 组合核）。 */
+function unionBounds(a: SceneBounds | null, b: SceneBounds | null): SceneBounds | null {
+  if (a === null) {
+    return b;
+  }
+  if (b === null) {
+    return a;
+  }
+  return {
+    min: [
+      Math.min(a.min[0], b.min[0]),
+      Math.min(a.min[1], b.min[1]),
+      Math.min(a.min[2], b.min[2]),
+    ],
+    max: [
+      Math.max(a.max[0], b.max[0]),
+      Math.max(a.max[1], b.max[1]),
+      Math.max(a.max[2], b.max[2]),
+    ],
+  };
+}
+
 /**
- * UX2 D5 取景自适应机位：preset 方向向量归一化×（对角线长×1.5）+
+ * UX2 D5 取景自适应机位：preset 方向向量归一化×（对角线长×1.25）+
  * bounds 中心（三 preset 方向语义保持——iso 斜视/top 近俯视微倾防正射
  * 退化/side 侧视；fov 50 不变；固定机位不随场景尺度的 FE3 质量观察①
  * 收口）。空场景（bounds=null）回退原绝对坐标——零场景零尺度基准。
+ * F5 D1：入参升为 effective bounds（池组足迹并盒——取景不缺池组）。
  */
 function cameraPosition(
   preset: keyof typeof CAMERA_PRESETS,
-  scene: RenderScene,
+  bounds: SceneBounds | null,
 ): [number, number, number] {
   const direction = CAMERA_PRESETS[preset];
-  const bounds = scene.bounds;
   if (bounds === null) {
     return direction;
   }
-  const center = sceneCenter(scene);
+  const center = sceneCenter(bounds);
   const length = Math.hypot(direction[0], direction[1], direction[2]);
   const unit: [number, number, number] =
     length > 0
@@ -165,15 +196,16 @@ function cameraPosition(
 /**
  * 相机漫游座（L5b）：OrbitControls 常驻挂载（makeDefault——state.controls
  * 可达）+preset 点击=设相机 position+target 一次（effect 依赖仅
- * preset/scene/controls 引用——用户随后拖拽/缩放/平移不重置机位）。
+ * preset/bounds/controls 引用——用户随后拖拽/缩放/平移不重置机位；
+ * F5 D1：bounds=effective（池组并盒））。
  */
-function CameraRig({ preset, scene }: { preset: CameraPreset; scene: RenderScene }) {
+function CameraRig({ preset, bounds }: { preset: CameraPreset; bounds: SceneBounds | null }) {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
   const controls = useThree((state) => state.controls) as OrbitControls | null;
   useEffect(() => {
-    const position = cameraPosition(preset, scene);
-    const center = sceneCenter(scene);
+    const position = cameraPosition(preset, bounds);
+    const center = sceneCenter(bounds);
     camera.position.set(position[0], position[1], position[2]);
     if (controls !== null) {
       controls.target.set(center[0], center[1], center[2]);
@@ -181,7 +213,7 @@ function CameraRig({ preset, scene }: { preset: CameraPreset; scene: RenderScene
     } else {
       camera.lookAt(center[0], center[1], center[2]);
     }
-  }, [preset, scene, camera, controls]);
+  }, [preset, bounds, camera, controls]);
   // 观测面（段二 r3 补正诊断——零生产消费）：camera/controls 引用入 probe
   useEffect(() => {
     const w = window as Window & {
@@ -254,22 +286,9 @@ export function Scene({
     return [plane];
   }, [clippingEnabled, clippingHeight]);
 
-  // C2-3d V1/V2 地面/网格/灯位数据面（bounds 派生——空场景 bounds=null
-  // 零地面：零场景零尺度基准沿 sceneCenter 先例；lib/groundPlan 抽离件）
-  const ground = useMemo(
-    () => groundPlan(projection.scene?.bounds ?? null),
-    [projection.scene],
-  );
-  // V2 方向光 target（bounds 中心——阴影相机随场景中心覆盖；primitive
-  // 挂载进场景使 target 变换生效）
-  const lightTarget = useMemo(() => new THREE.Object3D(), []);
-  useEffect(() => {
-    if (ground !== null) {
-      lightTarget.position.set(ground.centerX, 0, ground.centerZ);
-      lightTarget.updateMatrixWorld();
-    }
-  }, [lightTarget, ground]);
-
+  // C2-3d V1/V2 地面/网格/灯位数据面（F5 D1：effective bounds 派生——
+  // 池组足迹并盒后取景；空场景 bounds=null 零地面：零场景零尺度基准沿
+  // sceneCenter 先例；lib/groundPlan 抽离件；地面/灯光 JSX 归 GroundStage）
   // 批3 主体：模板族声明（assemble/claimTemplateUnits——取数节点=kind
   // 匹配 dimSource；多实例池节点在 internals——S5 相邻双池前提）
   const templateClaims = useMemo(
@@ -283,6 +302,22 @@ export function Scene({
     templateClaims,
     projectQuery.data,
     sceneConditionKey,
+  );
+
+  // F5 D1：effective bounds=scene.bounds ∪ 池组足迹（cell 域分池/缺位槽
+  // 世界 AABB）——机位/地面/网格/灯位/雾/阴影幅/剖切上限全消费本值；
+  // 空池组（plans 空/全 unit 域）groupExtents=null → 零行为漂移回退
+  const effectiveBounds = useMemo(
+    () =>
+      unionBounds(
+        projection.scene?.bounds ?? null,
+        groupExtents(poolPlans, templateClaims),
+      ),
+    [projection.scene, poolPlans, templateClaims],
+  );
+  const ground = useMemo(
+    () => groundPlan(effectiveBounds),
+    [effectiveBounds],
   );
 
   if (query.isError) {
@@ -324,13 +359,14 @@ export function Scene({
       {/* F9（C2-visual 批）：摆放态解释横幅（抽件 PlacementBanner——
           placementSummary 判据收口见该件头注） */}
       <PlacementBanner scene={scene} projectDetail={projectQuery.data ?? null} />
-      {/* ENG6 工具条（preset 按钮组+图层开关面——批3 迭代二抽件
-          ViewerToolbar[行数预算门 500]；图层开关=用户批注 b-① 草地
-          可隐藏+水面/内部/标注 store 三键同制补 UI 调用方） */}
-      <ViewerToolbar />
+      {/* ENG6 工具条（preset 按钮组+图层开关面+剖切入口——批3 迭代二
+          抽件 ViewerToolbar[行数预算门 500]；图层开关=用户批注 b-① 草地
+          可隐藏+水面/内部/标注 store 三键同制补 UI 调用方；F5 D3 剖切
+          Switch+Slider 接 store 两动作——高度上限=取景 bounds 高度） */}
+      <ViewerToolbar clippingMaxHeight={effectiveBounds?.max[1] ?? 0} />
       <Canvas
-        camera={{ position: cameraPosition(cameraPreset, scene), fov: 50 }}
-        shadows
+        camera={{ position: cameraPosition(cameraPreset, effectiveBounds), fov: 50 }}
+        shadows="percentage"
         gl={{ localClippingEnabled: clippingEnabled }}
         onCreated={({ gl }) => {
           // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）；
@@ -343,70 +379,10 @@ export function Scene({
           background: sceneBg,
         }}
       >
-        {/* C2-3d V1 雾边融：远缘网格/地面淡出至场景底色（近/远=对角线
-            档距——bounds 空零地面时雾不挂；批3 迭代二：雾色随草地开关） */}
-        {ground !== null && (
-          <>
-            <fog attach="fog" args={[sceneBg, ground.diagonal * 1.2, ground.diagonal * 3.2]} />
-            <primitive object={lightTarget} />
-          </>
-        )}
-        {/* C2-3d V2 光影：环境光降档+方向光提档（阴影对比度）；灯位/阴影
-            正交半幅按对角线适配+target=bounds 中心（覆盖随场景） */}
-        <ambientLight intensity={0.4} />
-        {ground !== null ? (
-          <directionalLight
-            position={[
-              ground.centerX + ground.diagonal * 0.5,
-              ground.diagonal * 0.8,
-              ground.centerZ + ground.diagonal * 0.35,
-            ]}
-            intensity={1.4}
-            castShadow
-            target={lightTarget}
-            shadow-mapSize-width={4096}
-            shadow-mapSize-height={4096}
-            shadow-camera-left={-ground.diagonal * 0.75}
-            shadow-camera-right={ground.diagonal * 0.75}
-            shadow-camera-top={ground.diagonal * 0.75}
-            shadow-camera-bottom={-ground.diagonal * 0.75}
-            shadow-camera-far={ground.diagonal * 2.5}
-            onUpdate={(light) => light.shadow.camera.updateProjectionMatrix()}
-          />
-        ) : (
-          // 空场景回退档（bounds=null 零尺度基准——对角线派生面[灯位/
-          // 阴影幅]不可得，v1 常量灯保持；非 V2 调档对象——A 二审
-          // GD-N-04 口径记档）
-          <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
-        )}
-        <CameraRig preset={cameraPreset} scene={scene} />
-        {/* C2-3d V1 地面（V2 阴影承接面——批3 迭代二：草地=可隐藏图层，
-            关=深蓝工程底+蓝网格恒在；y 分层避 z-fight：地面 -0.02<
-            次格 -0.012<主格 -0.008） */}
-        {ground !== null && showGrass && (
-          <>
-            <mesh
-              position={[ground.centerX, -0.02, ground.centerZ]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              receiveShadow
-            >
-              <planeGeometry args={[ground.size, ground.size]} />
-              <meshStandardMaterial color="#2e5239" />
-            </mesh>
-          </>
-        )}
-        {ground !== null && (
-          <>
-            <gridHelper
-              args={[ground.size, ground.majorDivisions, GRID_MAJOR, GRID_MAJOR]}
-              position={[ground.centerX, -0.008, ground.centerZ]}
-            />
-            <gridHelper
-              args={[ground.size, ground.minorDivisions, GRID_MINOR, GRID_MINOR]}
-              position={[ground.centerX, -0.012, ground.centerZ]}
-            />
-          </>
-        )}
+        {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件 GroundStage——effective
+            bounds 派生面：雾档距/灯位/阴影正交半幅/网格中心全随池组并盒） */}
+        <GroundStage ground={ground} sceneBg={sceneBg} showGrass={showGrass} />
+        <CameraRig preset={cameraPreset} bounds={effectiveBounds} />
         {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
             （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
             [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/

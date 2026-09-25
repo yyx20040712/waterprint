@@ -6,7 +6,8 @@
  * 输入:  projectScene 纯函数+projectSceneFixtures 夹具（fixture/VERSION）
  * 输出:  核心面契约断言（SCENE_VERSION 门/五 kind 完备映射/instance_count
  *        摆置确定性/语义 token 色值隔离/root 序一致性——用例逐字随迁
- *        零增减；夹具三分共用见 projectSceneFixtures.ts）
+ *        零增减（F5 D2 批例外：摆置 describe 增居中/模板不漂移三例+
+ *        aerator 锚改居中值）；夹具三分共用见 projectSceneFixtures.ts）
  */
 import { describe, expect, it } from "vitest";
 
@@ -72,22 +73,69 @@ describe("projectScene：五 kind 完备映射", () => {
 });
 
 describe("projectScene：instance_count>1 摆置确定性", () => {
-  it("摆置数=instance_count；步距=原型自身 dims；近方阵列布局", () => {
+  it("摆置数=instance_count；步距=原型自身 dims；近方阵居中布局（F5 D2）", () => {
     const out = projectScene(fixture() as never);
     const aerator = out.internals.find((n) => n.id === "unit-1::aerator");
     expect(aerator).toBeDefined();
     expect(aerator?.placements).toHaveLength(12);
     expect(aerator?.instanceCount).toBe(12);
     // 步距=原型占位（length=0.5→X 向、width=0.5→世界 Z 向——类型化摆放
-    // 非业务推导；origin 已换轴 [2, 1, −0.5]=core (2, 北 0.5, 标高 1)）
+    // 非业务推导；origin 已换轴 [2, 1, −0.5]=core (2, 北 0.5, 标高 1)）；
+    // F5 D2 居中：n=12→cols=4/rows=3，起点=origin−(cols−1)/2·stepX 与
+    // origin_z−(rows−1)/2·stepZ（方阵中心=origin——构件不偏聚一象限）
     const first = aerator?.placements[0];
     const second = aerator?.placements[1];
-    expect(first).toEqual([2, 1, -0.5]);
+    expect(first).toEqual([1.25, 1, -1]);
     expect((second?.[0] ?? 0) - (first?.[0] ?? 0)).toBeCloseTo(0.5, 10);
-    // 12 实例 → cols=ceil(sqrt(12))=4：第二行起点=第 5 个实例（X 回原点）
+    // 12 实例 → cols=ceil(sqrt(12))=4：第二行起点=第 5 个实例（X 回首列）
     const fifth = aerator?.placements[4];
-    expect(fifth?.[0]).toBeCloseTo(2, 10);
+    expect(fifth?.[0]).toBeCloseTo(1.25, 10);
     expect((fifth?.[2] ?? 0) - (first?.[2] ?? 0)).toBeCloseTo(0.5, 10);
+    // 末实例=col 3/row 2：方阵对角中点=origin（居中锚）
+    const last = aerator?.placements[11];
+    expect(last).toEqual([2.75, 1, 0]);
+  });
+
+  it("n=9 泵阵居中：首列 x=origin−step、方阵中心=origin（F5 D2 主证）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "municipal_wushui_tisheng::pump",
+        semantic: "pump",
+        primitive: { kind: "box", dims: { length: 3, width: 3, depth: 3 }, semantic: "pump" },
+        position: [10, 0, 2],
+        instance_count: 9,
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: nodes.map((n) => n.node_id) }) as never);
+    const pump = out.internals.find((n) => n.id === "municipal_wushui_tisheng::pump");
+    expect(pump?.placements).toHaveLength(9);
+    // n=9→cols=rows=3、step=3：首列 x=10−3=7（DoD 断言形态）、首行 z=−3
+    expect(pump?.placements[0]).toEqual([7, 2, -3]);
+    // 首行右邻=origin 列（x=10）——方阵中心恰落 origin
+    expect(pump?.placements[1]).toEqual([10, 2, -3]);
+    expect(pump?.placements[8]).toEqual([13, 2, 3]);
+  });
+
+  it("池体足迹多实例不居中漂移：box pool_wall 角起点保留（F5 D2 模板路径）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "municipal_cass::pool_wall",
+        semantic: "pool_wall",
+        primitive: {
+          kind: "box",
+          dims: { length: 20, width: 10, depth: 5 },
+          semantic: "pool_wall",
+        },
+        position: [0, 0, 0],
+        instance_count: 2,
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: nodes.map((n) => n.node_id) }) as never);
+    const pool = out.internals.find((n) => n.id === "municipal_cass::pool_wall");
+    // 池体足迹（pool_wall）=模板取数位：S5 相邻排布角起点契约不动
+    // （D2 居中仅设备阵列路径——泵/灯/曝气头族）
+    expect(pool?.placements[0]).toEqual([0, 0, 0]);
+    expect(pool?.placements[1]).toEqual([20, 0, 0]);
   });
 
   it("同输入双跑摆置逐点相同（确定性）", () => {

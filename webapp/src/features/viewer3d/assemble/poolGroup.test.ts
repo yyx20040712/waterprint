@@ -13,12 +13,14 @@ import { missingSlotPlaceholders } from "./missingSlots";
 import {
   buildPoolBadges,
   buildPoolPlans,
+  groupExtents,
   nodeParamOverride,
   poolCapSize,
   poolGroupPlan,
   POOL_CAP_EPS,
   type PoolClaim,
   type PoolGroupInputs,
+  type PoolGroupPlan,
 } from "./poolGroup";
 import { registryEntries } from "./registry";
 
@@ -279,5 +281,108 @@ describe("poolGroupPlan 池组计划（S11 接线——三呈裁口径）", () =
     expect(offline["municipal_aao"]?.offline).toBe(false);
     // 数据病（plans 空）+offline 工况=零徽标（不伪造「×1（1/1 检修中）」）
     expect(buildPoolBadges(claims, new Map(), "design_offline_municipal_cass")).toEqual({});
+  });
+});
+
+describe("groupExtents 池组足迹 AABB（F5 D1——取景并池组）", () => {
+  /** cell 域 claim：锚 placements（世界位）+平面旋转。 */
+  function cellClaims(
+    placements: ReadonlyArray<readonly [number, number, number]> = [[100, 0, 50]],
+    rotation: readonly [number, number, number] = [0, 0, 0],
+  ): Map<string, PoolClaim> {
+    const cass = registryEntries()["municipal_cass"];
+    const claims = new Map<string, PoolClaim>();
+    if (cass !== undefined) {
+      claims.set("municipal_cass", {
+        entry: cass,
+        dimNode: {
+          dims: { length: 48.5, width: 19.5, depth: 5.5 },
+          placements,
+          rotation,
+        },
+      });
+    }
+    return claims;
+  }
+
+  function cellPlans(
+    nPools: number,
+    conditionKey = "design",
+  ): Map<string, PoolGroupPlan> {
+    const plans = new Map<string, PoolGroupPlan>();
+    plans.set(
+      "municipal_cass",
+      poolGroupPlan(cassInputs({ countOverride: nPools, conditionKey }))!,
+    );
+    return plans;
+  }
+
+  it("双池 plan → AABB 覆盖两池（半尺寸口径同构 footprintOfNode）", () => {
+    // n=2→cols=2/rows=1：槽 [−24.75,0,0]/[+24.75,0,0]；cellL=48.5/cellW=19.5
+    const extents = groupExtents(cellPlans(2), cellClaims());
+    expect(extents).not.toBeNull();
+    // x=100±(24.75+24.25)；z=50±9.75；y=槽位标高 0（足迹面零高度贡献）
+    expect(extents).toEqual({ min: [51, 0, 40.25], max: [149, 0, 59.75] });
+  });
+
+  it("空 plans → null（零池组零漂移——回退 scene.bounds 原值的调用方契约）", () => {
+    expect(groupExtents(new Map(), cellClaims())).toBeNull();
+  });
+
+  it("unit 域 plan 零贡献：单份模板足迹已被 dimNode 盒覆盖（不虚增取景）", () => {
+    const aao = registryEntries()["municipal_aao"];
+    const claims = new Map<string, PoolClaim>();
+    const plans = new Map<string, PoolGroupPlan>();
+    if (aao !== undefined) {
+      claims.set("municipal_aao", {
+        entry: aao,
+        dimNode: {
+          dims: { length: 192, width: 77, depth: 5.3 },
+          placements: [[0, 0, 0]],
+          rotation: [0, 0, 0],
+        },
+      });
+      plans.set(
+        "municipal_aao",
+        poolGroupPlan({
+          poolGroup: AAO_GROUP,
+          unitId: "municipal_aao",
+          dims: { length: 192, width: 77, depth: 5.3 },
+          countDefault: 2,
+          countOverride: undefined,
+          conditionKey: "design",
+        })!,
+      );
+    }
+    // unit 域 activeSlots 虽为 ±96，模板单份渲染不落位——AABB=null
+    expect(groupExtents(plans, claims)).toBeNull();
+  });
+
+  it("检修缺位槽计入（占位框可见——取景不缺尾槽）", () => {
+    // nActive=3/4：缺位=slot 3=(+24.75,0,+24.75)——AABB 必须覆盖
+    const extents = groupExtents(
+      cellPlans(4, "design_offline_municipal_cass"),
+      cellClaims(),
+    );
+    expect(extents).not.toBeNull();
+    expect(extents?.max[0]).toBeCloseTo(149, 10);
+    expect(extents?.max[2]).toBeCloseTo(84.5, 10); // 50+24.75+cellW/2
+  });
+
+  it("锚旋转 rz=π/2：槽偏移随旋（X 槽→世界 Z 向——TemplateUnit 外层 group 同变换）", () => {
+    const extents = groupExtents(
+      cellPlans(2),
+      cellClaims([[0, 0, 0]], [0, Math.PI / 2, 0]),
+    );
+    expect(extents).not.toBeNull();
+    // 槽 (±24.75,0,0) 绕 Y 转 90°→(0,0,∓24.75)；世界半幅 X=|cos|·cellL/2+
+    // |sin|·cellW/2=9.75、Z=|sin|·cellL/2+|cos|·cellW/2=24.25（保守并盒；
+    // 逐分量 closeTo——cos(π/2) 机器 ε 容差）
+    expect(extents?.min[0]).toBeCloseTo(-9.75, 10);
+    expect(extents?.max[0]).toBeCloseTo(9.75, 10);
+    expect(extents?.min[1]).toBe(0);
+    expect(extents?.max[1]).toBe(0);
+    expect(extents?.min[2]).toBeCloseTo(-49, 10);
+    expect(extents?.max[2]).toBeCloseTo(49, 10);
   });
 });
