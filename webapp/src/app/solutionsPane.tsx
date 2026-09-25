@@ -9,7 +9,9 @@
  *        恢复/持久数据源）
  * 输出:  方案浏览标签页（单元下拉+「提交枚举」+TaskPanel+RankingControls
  *        +SolutionsTable/DiagnosisPanel；?task= 回写 replaceState；勾选
- *        即 PUT /api/projects/{id} 持久进 design.constraint_choices）
+ *        即 PUT /api/projects/{id} 持久进 design.constraint_choices）；
+ *        批2d 增联合枚举面（app/jointSolutions 挂载——提交条+combos 表
+ *        +三图 Tabs，任务态复用面板轨）与三提示抽取（app/solutionsNotices）
  *
  * 规格说明（FE6 批 6b 段四 D1/D3/D8/D9；R 轮修复 2026-08-29 R1/R2/R3/R7；
  *   canvasPane/viewer3dPane 同构；CP2 约束勾选持久化 2026-09-01 D2~D5）：
@@ -101,7 +103,6 @@ import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useTaskFeed, type ConnectionState } from "../features/solutions/api/useTaskFeed";
 import { applyDriftWarn, applyGateReason, narrowEnumSource } from "../features/solutions/lib/applyGates";
 import { narrowDimFields, narrowGridFields, resultField } from "../features/solutions/lib/solutionsFields";
-import { DiagnosisPanel } from "../features/solutions/components/DiagnosisPanel";
 import { RankingControls } from "../features/solutions/components/RankingControls";
 import { SolutionsTable } from "../features/solutions/components/SolutionsTable";
 import { TaskPanel } from "../features/solutions/components/TaskPanel";
@@ -109,6 +110,8 @@ import {
   narrowSolutionPage,
   type SolutionPageView,
 } from "../features/solutions/lib/solutionsView";
+import { JointSolutionsSection } from "./jointSolutions";
+import { SolutionsFetchError, SolutionsNotices } from "./solutionsNotices";
 import { EnumerateBar } from "./enumerateBar";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { parseEnumParam, parseTaskParam } from "./projectParam";
@@ -433,24 +436,23 @@ export function SolutionsPane() {
           )}
         </div>
 
-        {noSolutions ? <DiagnosisPanel diagnosis={diagnosis} /> : null}
-        {/* P0-2 闸③漂移横幅：枚举结果基于旧版设计（应用钮另有二次确认）。 */}
-        {applyDriftWarnValue ? (
-          <Typography.Paragraph
-            type="warning"
-            style={{ marginBottom: 0, marginTop: 8 }}
-          >
-            设计已变更——方案表来自旧版本设计的枚举结果，应用前将再次提示确认。
-          </Typography.Paragraph>
-        ) : null}
-        {payloadMissing ? (
-          <Typography.Paragraph
-            type="warning"
-            style={{ marginBottom: 0, marginTop: 8 }}
-          >
-            枚举已完成但结果载荷缺失（feasible_count）——请重新提交枚举。
-          </Typography.Paragraph>
-        ) : null}
+        {/* 批2d：联合枚举提交条+结果面（app/jointSolutions——R-B44b-4
+            兑现；任务态复用上方面板轨 ?task=，提交条共享本 pane 单元清单） */}
+        <JointSolutionsSection
+          projectId={projectId}
+          units={units}
+          unitsLoading={unitsQuery.isLoading}
+          unitsError={errorText(unitsQuery.error, unitsQuery.isError)}
+        />
+
+        {/* 批2d：三提示抽取 app/solutionsNotices（无解诊断/漂移横幅/载荷
+            缺失——行数预算修，逻辑零变更纯搬迁） */}
+        <SolutionsNotices
+          noSolutions={noSolutions}
+          diagnosis={diagnosis}
+          driftWarn={applyDriftWarnValue}
+          payloadMissing={payloadMissing}
+        />
         {tableEnabled && solutionsQuery.data ? (
           <div style={{ marginTop: 12 }}>
             <div style={{ marginBottom: 8 }}>
@@ -479,20 +481,7 @@ export function SolutionsPane() {
           </div>
         ) : null}
         {solutionsQuery.isError ? (
-          <Typography.Paragraph type="danger">
-            方案取数失败：
-            {solutionsQuery.error instanceof Error
-              ? solutionsQuery.error.message
-              : "未知错误"}
-            {/* AUDIT2 FIX2 I-3（zM-2 纪律回灌）：409/422 说明仅挂对应
-                领域码（TaskNotComplete/InvalidPageParameter）——网络错/
-                其他错误码不挂误导注记。 */}
-            {solutionsQuery.error instanceof WaterprintApiError &&
-            (solutionsQuery.error.code === "TaskNotCompleteError" ||
-              solutionsQuery.error.code === "InvalidPageParameterError")
-              ? "（未完成任务取方案=409/排序键白名单外=422——详见任务状态）"
-              : null}
-          </Typography.Paragraph>
+          <SolutionsFetchError error={solutionsQuery.error} isError={solutionsQuery.isError} />
         ) : null}
       </section>
     </ErrorBoundary>

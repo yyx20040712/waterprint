@@ -1,0 +1,99 @@
+/**
+ * 平行坐标图组件壳（批2d 三图之二——沿 ProfileChart 薄壳先例：echarts/core
+ * 按需注册+init/dispose/setOption 生命周期；数据面归 lib/jointCharts
+ * parallelAxesData/buildParallelOption 纯函数，组件零形状判断）。
+ *
+ * 输入:  combos（jointView 窄化产物——四真键+score 五轴数据源）
+ * 输出:  五轴平行坐标图（线色=score 三分位分档优/中/差+失守方案虚线）
+ *        +全轴反向开关（全目标低优——反向后上端=优全局一致）+注记文案
+ *
+ * 规格说明（批2d 简报③ DoD 4）：
+ *   - 按需注册恰五件（ParallelChart/ParallelComponent/TooltipComponent/
+ *     LegendComponent/CanvasRenderer）；
+ *   - 轴反向开关默认开（能耗成本类低优——低值端对齐）；开关只影响显示
+ *     不影响数据面（parallelAxesData 与 invert 解耦）；
+ *   - score 缺席组合不入图（五轴需全值——诚实排除注记）；
+ *   - 组件壳不测（薄壳先例——投影层纯函数承载全部契约）。
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Switch, Typography } from "antd";
+import * as echarts from "echarts/core";
+import { ParallelChart } from "echarts/charts";
+import {
+  LegendComponent,
+  ParallelComponent,
+  TooltipComponent,
+} from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+
+import type { JointComboView } from "../lib/jointView";
+import {
+  buildParallelOption,
+  parallelAxesData,
+} from "../lib/jointCharts";
+
+echarts.use([
+  ParallelChart,
+  ParallelComponent,
+  TooltipComponent,
+  LegendComponent,
+  CanvasRenderer,
+]);
+
+/** 图高（px——五轴横排+图例）。 */
+const CHART_HEIGHT = 380;
+
+export function ParallelCoordsChart({
+  combos,
+}: {
+  combos: readonly JointComboView[];
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+  const [invert, setInvert] = useState(true);
+  const axesData = useMemo(() => parallelAxesData(combos), [combos]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container === null) {
+      return;
+    }
+    const chart = echarts.init(container);
+    chartRef.current = chart;
+    const observer = new ResizeObserver(() => {
+      chart.resize();
+    });
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      chart.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    chartRef.current?.setOption(buildParallelOption(axesData, invert));
+  }, [axesData, invert]);
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <Typography.Text type="secondary">全轴反向（低优量反向——上端为优）</Typography.Text>
+        <Switch
+          checked={invert}
+          checkedChildren="反向"
+          unCheckedChildren="正向"
+          onChange={(checked) => {
+            setInvert(checked);
+          }}
+        />
+      </div>
+      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 4 }}>
+        五轴=运行成本/能耗/碳强度/建设投资/综合得分（全低优）；线色=综合得分
+        三分位分档（优/中/差档）；虚线=敏感工况失守方案（sensitivity_degraded）；
+        综合得分缺席的方案不入图（五轴需全值）。
+      </Typography.Paragraph>
+      <div ref={containerRef} style={{ width: "100%", height: CHART_HEIGHT }} />
+    </div>
+  );
+}
