@@ -82,6 +82,26 @@ describe("withProjectParam（replaceState 同步面）", () => {
       "project=%E6%B1%A0+a%2F%E4%B8%AD-1",
     );
   });
+
+  it("HC25-F4：切项目剔除 enum/task 两键（任务 id 无项目分区——旧项目深链不残留）", () => {
+    const search = withProjectParam(
+      "?project=old&enum=e-1&task=t-1&tab=canvas",
+      "new",
+    );
+    expect(search).toBe("project=new&tab=canvas");
+    expect(parseEnumParam(`?${search}`)).toBeNull();
+    expect(parseTaskParam(`?${search}`)).toBeNull();
+  });
+
+  it("HC25-F4：剔除面恰两键——其余键（tab 等）保留；无两键时语义不动", () => {
+    expect(withProjectParam("?project=p1&tab=canvas&cond=design", "p2")).toBe(
+      "project=p2&tab=canvas&cond=design",
+    );
+    expect(withProjectParam("?enum=e-1&task=t-1", "p1")).toBe("project=p1");
+    expect(withProjectParam("?project=p1&enum=e-1&task=t-1&tab=x", null)).toBe(
+      "tab=x",
+    );
+  });
 });
 
 describe("taskParam 三函数（FE6 D3——?task= 与 ?project= 双参共存）", () => {

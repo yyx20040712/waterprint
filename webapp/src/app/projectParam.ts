@@ -14,7 +14,8 @@
  *   taskParam 三函数；UX1 批 D2 补 tabParam 两函数）：
  *   - projectId 唯一真相=URL ?project= 参数：初值经 parseProjectParam 直读
  *     location.search；用户经空态下拉选择后 history.replaceState 同步回
- *     URL（不清其余参数——withProjectParam 只动 project 键，他键原序保留）；
+ *     URL（withProjectParam 动 project 键+HC25-F4 剔除 enum/task 两键——
+ *     任务 id 无项目分区；tab/token 等他键原序保留）；
  *   - normalizeProjectId（R2/一审 M-2）：列表 id 带 ".wp" 尾缀（服务端
  *     path.stem 现状）而场景/读取端点按裸 id 解析——deep-link 初值与
  *     Select 选项共用本函数归一（对称面；服务端根治挂账 C1，根治后
@@ -68,6 +69,11 @@ export function withProjectParam(
   } else {
     params.set("project", projectId);
   }
+  // HC25-F4（P2-A）：项目切换同步剔除 enum/task 两键——其值（任务 id）
+  // 无项目分区，旧项目任务深链对新项目无意义且可诱发跨项目残留面；
+  // 其余键（tab/token 等）语义不动（写方=useProjectId setter，恒切换面）。
+  params.delete("enum");
+  params.delete("task");
   return params.toString();
 }
 

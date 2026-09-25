@@ -25,7 +25,18 @@ describe("narrowEnumSource（三源窄化——缺键 null 诚实降级）", () 
       resultUnitId: "municipal_aao",
       resultDesignHash: "abc",
       currentDesignHash: "abc",
+      resultProjectId: null,
     });
+  });
+
+  it("HC25-F4：result.project_id 收窄（空串/缺键=null 旧载荷兼容）", () => {
+    const source = narrowEnumSource(
+      { unit_id: "u", project_id: "proj-a" },
+      { metadata: {} },
+    );
+    expect(source.resultProjectId).toBe("proj-a");
+    expect(narrowEnumSource({ project_id: "" }, undefined).resultProjectId).toBeNull();
+    expect(narrowEnumSource({}, undefined).resultProjectId).toBeNull();
   });
 
   it("历史任务载荷缺键/空串=null（P0-2 扩源前任务面）", () => {
@@ -119,6 +130,75 @@ describe("applyGateReason（闸①②禁用因）", () => {
   it("齐态放行=null", () => {
     expect(
       applyGateReason({
+        enumeratedUnitId: "municipal_aao",
+        unitId: "municipal_aao",
+        units: UNITS,
+        unitsReady: true,
+        tableEnabled: true,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("HC25-F4 跨项目闸（P2-A——result.project_id≠当前项目=拦截）", () => {
+  it("跨项目结果=禁用述因（切项目残留旧枚举表不可应用到新项目）", () => {
+    const reason = applyGateReason({
+      projectId: "proj-b",
+      resultProjectId: "proj-a",
+      enumeratedUnitId: "municipal_aao",
+      unitId: "municipal_aao",
+      units: UNITS,
+      unitsReady: true,
+      tableEnabled: true,
+    });
+    expect(reason).toContain("来自另一个项目");
+    expect(reason).toContain("跨项目应用已禁用");
+  });
+
+  it("同项目=放行（null——项目维度闭合不误伤本项目管理面）", () => {
+    expect(
+      applyGateReason({
+        projectId: "proj-a",
+        resultProjectId: "proj-a",
+        enumeratedUnitId: "municipal_aao",
+        unitId: "municipal_aao",
+        units: UNITS,
+        unitsReady: true,
+        tableEnabled: true,
+      }),
+    ).toBeNull();
+  });
+
+  it("旧载荷缺 project_id=不拦截（向后兼容）+表未挂载恒 null", () => {
+    expect(
+      applyGateReason({
+        projectId: "proj-a",
+        resultProjectId: null,
+        enumeratedUnitId: "municipal_aao",
+        unitId: "municipal_aao",
+        units: UNITS,
+        unitsReady: true,
+        tableEnabled: true,
+      }),
+    ).toBeNull();
+    expect(
+      applyGateReason({
+        projectId: "proj-b",
+        resultProjectId: "proj-a",
+        enumeratedUnitId: null,
+        unitId: null,
+        units: [],
+        unitsReady: false,
+        tableEnabled: false,
+      }),
+    ).toBeNull();
+  });
+
+  it("当前项目未知（null）=不拦截（不可证跨项目不猜测——挂载面恒有项目）", () => {
+    expect(
+      applyGateReason({
+        projectId: null,
+        resultProjectId: "proj-a",
         enumeratedUnitId: "municipal_aao",
         unitId: "municipal_aao",
         units: UNITS,

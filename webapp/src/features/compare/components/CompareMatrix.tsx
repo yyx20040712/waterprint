@@ -10,7 +10,8 @@
  *
  * 规格说明（P2 第三批 ADR-018 D1/D3；工况面 UX 反馈批件 1）：
  *   - 行=单元 out_dims 声明面（服务端聚合——本组件纯呈现）；列=
- *     condition_keys sorted 序；单元格缺值键="—"（NaN 无值键不出载荷）；
+ *     condition_keys sorted 序 ∪ pinned 失效键（HC25-F4 P3-A——失效列
+ *     追加于存活列后，单元格缺值键="—"（NaN 无值键不出载荷））；
  *   - 差异高亮（D1）：行内跨工况 max=加粗、min=下划线（全等行零标注
  *     ——正绿负红语义不适用于容积/时长等无上限指标，极值标注即差异面）；
  *   - 锁定基准列头：pinned 键集打 ★ 标；失效键（受检集变更后不在
@@ -94,6 +95,12 @@ export function CompareMatrix({
     values: metric.values,
   }));
 
+  // HC25-F4（P3-A）：失效键=pinned 不在当前 condition_keys——列集=
+  // condition_keys ∪ 失效键（原实现列遍历 condition_keys 而失效判定按
+  // 「不在 condition_keys」恒 false——D3 灰显+「已移除」标注不可达死码）。
+  const expiredKeys =
+    pinned?.filter((key) => !report.condition_keys.includes(key)) ?? [];
+
   const columns: ColumnsType<MatrixRow> = [
     {
       title: "单元",
@@ -119,11 +126,11 @@ export function CompareMatrix({
       width: 80,
       render: (unit: string) => (unit === "" ? "—" : unit),
     },
-    ...report.condition_keys.map<ColumnsType<MatrixRow>[number]>((key) => ({
+    ...[...report.condition_keys, ...expiredKeys].map<ColumnsType<MatrixRow>[number]>((key) => ({
       title: conditionTitle(
         key,
         pinned?.includes(key) ?? false,
-        pinned !== null && !report.condition_keys.includes(key) && pinned.includes(key),
+        expiredKeys.includes(key),
         unitNames,
       ),
       key,

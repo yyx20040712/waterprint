@@ -24,8 +24,8 @@
  *     快照（表源任务的单元）——ApplySolutionButton 消费固化值（实时
  *     下拉仅驱动新枚举提交，改选不影响已展示行的应用目标）；P0-2
  *     （2026-09-11 F5 修复）：深链 ?enum= 经 result.unit_id 回填固化值
- *     +应用三闸/漂移横幅（闸语义与文案真源=features/solutions/lib/
- *     applyGates.ts 头注——op-chain-fix-plan §二 r2）；
+ *     +应用四闸/漂移横幅（HC25-F4 增闸⓪跨项目禁用——闸语义与文案真源
+ *     =features/solutions/lib/applyGates.ts 头注——op-chain-fix-plan §二 r2）；
  *   - projectId 单一真相=URL（useProjectId 共享 hook——S3 读方订阅面：
  *     写方 canvas/viewer3d 切项目后本 pane 响应刷新）；面板只读不回写
  *     （项目选择器归 canvas 面）；
@@ -73,7 +73,7 @@
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目——项目
  *     选择器不重复建，挂账 UX 批）；ErrorBoundary label=方案浏览。
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Typography, message } from "antd";
 
@@ -127,9 +127,7 @@ const PAGE_SIZE = 50;
 
 /** 错误文案（两处同构收口——Error.message 优先，未知错误兜底）。 */
 function errorText(error: unknown, isError: boolean): string | null {
-  if (!isError) {
-    return null;
-  }
+  if (!isError) return null;
   return error instanceof Error ? error.message : "未知错误";
 }
 
@@ -155,10 +153,9 @@ export function SolutionsPane() {
   const [sort, setSort] = useState("margin_min");
   // B7 D3/D4：SSE 连接态（useTaskFeed onConnection 消费源→TaskPanel
   // connection prop——reconnecting/probing 显中断提示行；ok/任务切换置 null）
-  const [connection, setConnection] = useState<ConnectionState | null>(
-    null,
-  );
+  const [connection, setConnection] = useState<ConnectionState | null>(null);
   const queryClient = useQueryClient();
+  const prevProject = useRef(projectId); // HC25-F4：切项目守卫（初挂载早退保深链初值）
   const unitsQuery = useProjectUnits(projectId);
   // CP1 D6：约束目录（静态 kb——窄化门 select；失败=error 态不阻断枚举）
   const constraintsQuery = useConstraints();
@@ -195,10 +192,12 @@ export function SolutionsPane() {
     setConstraintKeys(restoreConstraintKeys(raw));
   }, [rawQuery.data]);
 
-  // CP2 R-2（DS-04）：projectId 变化重置单元选择与表源固化单元（Tabs 保活不重挂载——旧项目单元无意义）。
+  // CP2 R-2+HC25-F4（P2-A）：切项目重置单元/固化单元/双任务轨/分页排序（初挂载 prev 同值早退保深链初值）。
   useEffect(() => {
-    setUnitId(null);
-    setEnumeratedUnitId(null);
+    if (prevProject.current === projectId) return;
+    prevProject.current = projectId;
+    setUnitId(null); setEnumeratedUnitId(null); setEnumerateTaskId(null); setPanelTaskId(null);
+    setPage(1); setSort("margin_min");
   }, [projectId]);
 
   // B7 D3：面板任务切换重置连接态（沿视图重置语义——旧任务中断提示不
@@ -244,7 +243,7 @@ export function SolutionsPane() {
   const feasibleRaw = resultField(result, "feasible_count");
   const feasibleCount = typeof feasibleRaw === "number" && Number.isFinite(feasibleRaw) ? feasibleRaw : null;
   const diagnosis = resultField(result, "diagnosis");
-  const enumSource = narrowEnumSource(result, rawQuery.data); // P0-2 三源窄化
+  const enumSource = narrowEnumSource(result, rawQuery.data); // P0-2+HC25-F4 四源窄化
   const enumerateDone = enumerateTaskId !== null && tableStatus?.kind === "enumerate" && tableStatus?.state === "done";
   const noSolutions = enumerateDone && feasibleCount === 0;
   // R7：done 而 feasible_count 缺失（result 载荷异形）——防御提示面
@@ -334,9 +333,10 @@ export function SolutionsPane() {
   }
 
   const units = unitsQuery.data ?? [];
-  // P0-2 应用三闸（r2）：闸①②禁用因+闸③漂移警示——applyGates 纯函数
-  // （呈裁⑧ 甲案：警示后放行——unitsReady 面 GD-N-01）。
+  // P0-2 应用闸+HC25-F4 跨项目闸（闸⓪①②禁用因+闸③漂移警示）——
+  // applyGates 纯函数（呈裁⑧ 甲案：警示后放行——unitsReady 面 GD-N-01）。
   const applyGateReasonValue = applyGateReason({
+    projectId, resultProjectId: enumSource.resultProjectId,
     enumeratedUnitId,
     unitId,
     units,

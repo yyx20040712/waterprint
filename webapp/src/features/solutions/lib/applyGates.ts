@@ -1,17 +1,23 @@
 /**
- * 方案应用闸纯函数层（P0-2——F5 深链死锁修复 r2 三守卫；2026-09-11）。
+ * 方案应用闸纯函数层（P0-2——F5 深链死锁修复 r2 三守卫；2026-09-11；
+ * HC25-F4 P2-A 增跨项目闸 2026-09-25）。
  *
- * 输入:  表源任务 result 载荷（unit_id/design_hash 扩源键）+当前项目 raw
- *        GET 体（metadata.content_hash）+下拉/固化单元态+design 投影单元表
- * 输出:  EnumSource 窄化（三源值）/applyGateReason（闸①②禁用因——null=
- *        放行）/applyDriftWarn（闸③漂移警示）
+ * 输入:  表源任务 result 载荷（unit_id/design_hash/project_id 扩源键）
+ *        +当前项目 raw GET 体（metadata.content_hash）+当前项目 id
+ *        +下拉/固化单元态+design 投影单元表
+ * 输出:  EnumSource 窄化（四源值）/applyGateReason（闸⓪①②禁用因——
+ *        null=放行）/applyDriftWarn（闸③漂移警示）
  *
  * 规格说明（op-chain-fix-plan §二 r2——solutionsPane 行数预算越界修沿
- *   solutionsFields.ts B7 先例抽取）：
+ *   solutionsFields.ts B7 先例抽取；HC25-F4 P2-A 补充）：
  *   - 回填源：result.unit_id（worker 扩源——服务面 submit 已守 len==1
  *     ADR-005 单单元语义）；漂移源：result.design_hash（枚举时点 design
  *     摘要——calc result 同键先例）对当前 metadata.content_hash（B4 双
  *     胖子镜像锁与 core 真源逐字节一致——比对口径成立）；
+ *   - 闸⓪（HC25-F4 P2-A 项目维度闭合，列首）：result.project_id（server
+ *     jobs/enum_payload 载荷键）≠当前 projectId→禁用（切项目后残留旧
+ *     枚举表不可应用到新项目）；project_id 缺失（旧载荷/空串）或当前
+ *     项目未知=null→不拦截（向后兼容+不可证不猜——表挂载面恒有项目）；
  *   - 闸①：下拉选定≠表源单元→禁用+述因（应用目标恒为表源单元 R2 固化
  *     ——差异态禁用防误配；下拉空=null 视为未选定不触发——回填 effect
  *     已同步恢复下拉显示）；
@@ -22,10 +28,11 @@
  */
 export type UnitOption = { unitId: string };
 
-/** 表源扩源窄化结果（三源——null=载荷缺键/未就绪诚实降级）。 */
+/** 表源扩源窄化结果（四源——null=载荷缺键/未就绪诚实降级）。 */
 export type EnumSource = {
   resultUnitId: string | null;
   resultDesignHash: string | null;
+  resultProjectId: string | null;
   currentDesignHash: string | null;
 };
 
@@ -34,7 +41,7 @@ function narrowString(value: unknown): string | null {
   return typeof value === "string" && value !== "" ? value : null;
 }
 
-/** result 载荷+当前项目体→三源窄化（pane 单行消费面）。 */
+/** result 载荷+当前项目体→四源窄化（pane 单行消费面）。 */
 export function narrowEnumSource(
   result: unknown,
   rawProject: unknown,
@@ -49,23 +56,44 @@ export function narrowEnumSource(
     resultDesignHash: narrowString(
       (result as Record<string, unknown> | null)?.design_hash,
     ),
+    resultProjectId: narrowString(
+      (result as Record<string, unknown> | null)?.project_id,
+    ),
     currentDesignHash: narrowString(metadata?.content_hash),
   };
 }
 
-/** 闸①②：应用禁用因（null=放行；表未挂载恒 null——无应用面）。
+/** 闸⓪①②：应用禁用因（null=放行；表未挂载恒 null——无应用面）。
  * GD-N-01（A 二审）：units 未就绪（清单加载中）跳闸②——空表≠单元
  * 已删除，禁用面只对「清单已就绪且缺席」成立（防误禁+误导述因窗口）。 */
 export function applyGateReason(options: {
+  projectId?: string | null;
+  resultProjectId?: string | null;
   enumeratedUnitId: string | null;
   unitId: string | null;
   units: readonly UnitOption[];
   unitsReady: boolean;
   tableEnabled: boolean;
 }): string | null {
-  const { enumeratedUnitId, unitId, units, unitsReady, tableEnabled } = options;
+  const {
+    projectId = null,
+    resultProjectId = null,
+    enumeratedUnitId,
+    unitId,
+    units,
+    unitsReady,
+    tableEnabled,
+  } = options;
   if (!tableEnabled) {
     return null;
+  }
+  if (
+    projectId !== null &&
+    resultProjectId !== null &&
+    resultProjectId !== projectId
+  ) {
+    // 闸⓪（HC25-F4 P2-A）：切项目后旧枚举表残留——跨项目应用禁用
+    return "该方案来自另一个项目——请在该项目中应用（跨项目应用已禁用）";
   }
   if (enumeratedUnitId === null) {
     // 历史任务载荷缺 unit_id（P0-2 server 扩源前建的任务）——重提交可恢复
