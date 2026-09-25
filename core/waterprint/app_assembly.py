@@ -24,7 +24,8 @@
 #   原 B4 双胞胎复制已删）/ _checked_units_
 #   eligibility（D4 资格）/ _FACTOR_SHARED_PREFIX + _unit_params（D4
 #   系数投影——factor.*/removal.* + factor.screen.* 共用键并入 params）/
-#   _CoefficientsUnit（投影包装单元）/ _check_grid_hits（grid 档命中）
+#   _CoefficientsUnit（投影包装单元）/ _check_grid_hits（grid 档命中）/
+#   _isolated_unit_warnings（R2-P2-2 孤立单元警告——⑦甲呈报不阻断）
 #
 # 【行为规格】与 app.py 原文逐字同构（R1 装配/执行分离等——见 app.py
 #   规格说明）；测试经 app 再导出面由既有镜像测试覆盖（test_app/
@@ -215,7 +216,9 @@ def validate_design_structure(design: DesignState) -> tuple[str, ...]:
     三查（任务书 §三.2）：①边端点存在性（unit_id 在 design.nodes）；
     ②端口在册（端口声明真源=manifest——包单元 discover_units/内置
     builtin_ports 只读面）；③方向+流体匹配（contracts.validate_edge
-    唯一裁判复用——R1/R2 语义零复制）。单元解析口径同 assemble：值含
+    唯一裁判复用——R1/R2 语义零复制）+④孤立单元警告（R2-P2-2——
+    无可解析边相连节点呈报，内置 kind 节点豁免，helper 后置追加）。
+    单元解析口径同 assemble：值含
     kind 字符串=内置节点，否则 node_id=注册表键；未知单元/未知内置
     kind 亦汇总为错误（assemble 期拒的先呈报面）。边形状非法（缺
     src/dst、端点非双 string）在 _endpoint 同款窄化下汇总。
@@ -279,4 +282,33 @@ def validate_design_structure(design: DesignState) -> tuple[str, ...]:
             validate_edge(Edge(src=src, dst=dst), ports_index)
         except InvalidConnection as exc:
             errors.append(f"design.edges[{index}]：{exc}")
+    errors.extend(_isolated_unit_warnings(design))
     return tuple(errors)
+
+
+def _isolated_unit_warnings(design: DesignState) -> list[str]:
+    """孤立单元警告（R2-P2-2——⑦甲呈报不阻断）：无可解析边相连的非内置节点。
+
+    内置 kind 节点豁免（源/汇物理端点常无完整双边——municipal_input
+    仅 OUT 口）；连通面=design.edges 逐侧独立收集（任一侧端点为对象且
+    unit_id 为字符串即计该节点连通——非整体连通性判定，形状非法边由
+    主查先行呈报）。
+    """
+    connected: set[str] = set()
+    for element in design.edges:
+        if isinstance(element, Mapping):
+            for side in ("src", "dst"):
+                endpoint = element.get(side)
+                if (isinstance(endpoint, Mapping)
+                        and isinstance(endpoint.get("unit_id"), str)):
+                    connected.add(endpoint["unit_id"])
+    isolated = sorted(
+        node_id
+        for node_id, node_value in design.nodes.items()
+        if node_id not in connected
+        and not (isinstance(node_value, Mapping)
+                 and isinstance(node_value.get("kind"), str))
+    )
+    if isolated:
+        return [f"警告（孤立单元——未与任何可解析边相连）：{isolated}"]
+    return []
