@@ -458,19 +458,19 @@ def run_joint_enumerate(
 def _relaxed_retry(
     search: _JointSearch, options: JointEnumerationOptions, baseline: Mapping[str, float]
 ) -> JointOutcome | None:
-    """末空级放宽一次（W8/R7）：range 覆盖域放宽→重搜索→重复验。"""
+    """末空级放宽一次（W8/R7）：range 域放宽并合原覆盖→全量目标重搜索。"""
     relaxed = _relaxed_grids(options, search.guards.relax_factor)
     if not relaxed:
         return None
     retry_options = JointEnumerationOptions(
-        grids=relaxed, constraints=options.constraints, standards=options.standards
+        grids={**options.grids, **relaxed},
+        constraints=options.constraints, standards=options.standards
     )
     grids = {
         unit_id: joint_stage.grid_of(
-            _grid_specs_of(unit_id, search.assembled, retry_options),
-            search.env.assumptions,
+            _grid_specs_of(unit_id, search.assembled, retry_options), search.env.assumptions
         )
-        for unit_id in search.targets if unit_id in relaxed
+        for unit_id in search.targets
     }
     if estimate_rows(
         [grid.total for grid in grids.values()], search.guards.beam_width,
