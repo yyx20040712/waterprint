@@ -124,6 +124,16 @@ describe("ViewerToolbar 剖切入口（F5 D3）", () => {
     expect(storeMock.actions.setClippingHeight).toHaveBeenCalledWith(3);
   });
 
+  it("回炉 W7：高度高于取景上界（陈旧大值）开→也滑移半高归位", () => {
+    // 切矮场景后 store 残留 9>max 6：旧实现不滑移=滑条显示钳 6 而画面
+    // 不剖的控件/渲染失联；修复后同样归位 glideHeight(6)=3
+    storeMock.state.clippingHeight = 9;
+    renderToString(<ViewerToolbar clippingMaxHeight={6} />);
+    captured.switchOnChange?.();
+    expect(storeMock.actions.toggleClipping).toHaveBeenCalledTimes(1);
+    expect(storeMock.actions.setClippingHeight).toHaveBeenCalledWith(3);
+  });
+
   it("Switch 交互两动作：已开启再拨=仅 toggle（不重复滑移高度）", () => {
     storeMock.state.clippingEnabled = true;
     storeMock.state.clippingHeight = 3;

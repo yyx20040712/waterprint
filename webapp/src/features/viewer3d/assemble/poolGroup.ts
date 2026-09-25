@@ -277,7 +277,16 @@ export function groupExtents(
     if (claim === undefined) {
       continue; // plans 键恒 ⊆ claims 键（builder 契约）——防御跳过
     }
-    const anchors = claim.dimNode.placements ?? ([[0, 0, 0]] as const);
+    // 回炉 W2（门一 d1）：空数组/非有限锚点防御——空 placements 曾静默
+    // 零贡献（表挂载而取景漏池组），NaN 锚点曾破坏保守并盒承诺
+    const finiteAnchors = (claim.dimNode.placements ?? []).filter(
+      (point) =>
+        Number.isFinite(point[0]) &&
+        Number.isFinite(point[1]) &&
+        Number.isFinite(point[2]),
+    );
+    const anchors =
+      finiteAnchors.length > 0 ? finiteAnchors : ([[0, 0, 0]] as const);
     const rz = claim.dimNode.rotation?.[1] ?? 0;
     const cos = Math.cos(rz);
     const sin = Math.sin(rz);

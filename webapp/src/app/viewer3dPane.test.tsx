@@ -77,4 +77,20 @@ describe("viewer3dPane 目录失败 Alert（F5 D5）", () => {
     const html = renderPane();
     expect(html).not.toContain("单元目录未就绪");
   });
+
+  it("回炉 W6：后台重取失败但缓存 data 在场（池组照常渲染）→ 零误报", () => {
+    mock.catalog = {
+      isError: true,
+      isSuccess: false,
+      data: { units: [{ unit_id: "municipal_cass" }] },
+    };
+    const html = renderPane();
+    expect(html).not.toContain("单元目录未就绪");
+  });
+
+  it("回炉 W6：成功而目录空表（units=[]）→ 挂 Alert（真实病态）", () => {
+    mock.catalog = { isError: false, isSuccess: true, data: { units: [] } };
+    const html = renderPane();
+    expect(html).toContain("单元目录未就绪");
+  });
 });

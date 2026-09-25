@@ -87,7 +87,13 @@ export function ViewerToolbar({
         aria-label="剖切开关"
         onChange={() => {
           toggleClipping();
-          if (!clippingEnabled && clippingHeight <= 0 && clippingMaxHeight > 0) {
+          // 回炉 W7（门一 d1）：开启时统一归位有效域——高度≤0（全剖黑幕）
+          // 或高于取景上界（陈旧大值假显示）均滑移半高，消费端 Scene 另有 clamp 双保险
+          if (
+            !clippingEnabled &&
+            clippingMaxHeight > 0 &&
+            (clippingHeight <= 0 || clippingHeight > clippingMaxHeight)
+          ) {
             setClippingHeight(glideHeight(clippingMaxHeight));
           }
         }}

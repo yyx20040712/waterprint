@@ -329,6 +329,27 @@ describe("groupExtents 池组足迹 AABB（F5 D1——取景并池组）", () =>
     expect(groupExtents(new Map(), cellClaims())).toBeNull();
   });
 
+  it("回炉 W2：claim placements 空数组 → 回退原点锚（非静默零贡献）", () => {
+    // 空 placements 旧实现内层循环零执行=该池组对取景静默失踪（D1 病态
+    // 复发面）；修复后回退 [[0,0,0]] 锚——n=2 槽 ±24.75+半幅 24.25 → x=±49
+    const extents = groupExtents(cellPlans(2), cellClaims([]));
+    expect(extents).not.toBeNull();
+    expect(extents).toEqual({ min: [-49, 0, -9.75], max: [49, 0, 9.75] });
+  });
+
+  it("回炉 W2：claim placements 含非有限锚点 → 过滤后按有限锚并盒", () => {
+    // NaN 锚旧实现对非首轮比较静默吞槽（破坏「取景宁大勿缺」）；修复后
+    // 非有限锚剔除、有限锚 [100,0,50] 正常并盒（同双池基准例数值）
+    const extents = groupExtents(
+      cellPlans(2),
+      cellClaims([
+        [Number.NaN, 0, Number.NaN],
+        [100, 0, 50],
+      ]),
+    );
+    expect(extents).toEqual({ min: [51, 0, 40.25], max: [149, 0, 59.75] });
+  });
+
   it("unit 域 plan 零贡献：单份模板足迹已被 dimNode 盒覆盖（不虚增取景）", () => {
     const aao = registryEntries()["municipal_aao"];
     const claims = new Map<string, PoolClaim>();

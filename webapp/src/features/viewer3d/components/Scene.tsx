@@ -277,15 +277,6 @@ export function Scene({
   const showAnnotations = useViewer3dStore((state) => state.showAnnotations);
   const sceneBg = showGrass ? SCENE_BG_GRASS : SCENE_BG_DARK;
 
-  const clippingPlanes = useMemo(() => {
-    if (!clippingEnabled) {
-      return undefined;
-    }
-    // Y-up 高度面：保留 height 以下（法向 -Y——剖掉上方，§12.3）
-    const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), clippingHeight);
-    return [plane];
-  }, [clippingEnabled, clippingHeight]);
-
   // C2-3d V1/V2 地面/网格/灯位数据面（F5 D1：effective bounds 派生——
   // 池组足迹并盒后取景；空场景 bounds=null 零地面：零场景零尺度基准沿
   // sceneCenter 先例；lib/groundPlan 抽离件；地面/灯光 JSX 归 GroundStage）
@@ -315,6 +306,21 @@ export function Scene({
       ),
     [projection.scene, poolPlans, templateClaims],
   );
+
+  // 回炉 W7（门一 d1）：剖切面高度与控件读数统一 clamp 到取景上界——
+  // 防陈旧大值「滑条显示半高而画面不剖」的控件/渲染失联（须在
+  // effectiveBounds 声明后求值，故自 clippingPlanes 原位后移）
+  const clippingPlanes = useMemo(() => {
+    if (!clippingEnabled) {
+      return undefined;
+    }
+    // Y-up 高度面：保留 height 以下（法向 -Y——剖掉上方，§12.3）
+    const maxHeight = effectiveBounds?.max[1] ?? Number.POSITIVE_INFINITY;
+    const height = Math.min(Math.max(clippingHeight, 0), maxHeight);
+    const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), height);
+    return [plane];
+  }, [clippingEnabled, clippingHeight, effectiveBounds]);
+
   const ground = useMemo(
     () => groundPlan(effectiveBounds),
     [effectiveBounds],

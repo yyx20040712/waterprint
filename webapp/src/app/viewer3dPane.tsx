@@ -68,11 +68,14 @@ export function Viewer3dPane() {
   });
   // F5 D5：catalog 未就绪显式提示（Scene usePoolGroups 同键缓存——零
   // 额外请求；error/成功而空=settled 病态挂 Alert，加载中不挂）
+  // 回炉 W6（门一 d1）收紧：后台重取失败但缓存 data 仍在（池组照常
+  // 渲染）不误报；成功而目录空表=真实病态挂报
   const queryClient = useQueryClient();
   const catalogQuery = useListUnitsApiUnitsGet();
   const catalogMissing =
-    catalogQuery.isError ||
-    (catalogQuery.isSuccess && catalogQuery.data?.units === undefined);
+    (catalogQuery.isError && catalogQuery.data === undefined) ||
+    (catalogQuery.isSuccess &&
+      (catalogQuery.data?.units?.length ?? 0) === 0);
 
   if (projectId !== null) {
     return (
