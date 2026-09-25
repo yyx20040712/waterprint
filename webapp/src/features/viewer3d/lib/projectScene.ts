@@ -66,6 +66,14 @@ const STRIP_KIND = "strip";
  *  池面随池壁同口径防分叉。F5 D2 居中仅设备阵列路径启用）。 */
 const POOL_FOOTPRINT_SEMANTICS = new Set(["pool_wall", "water_surface"]);
 
+/**
+ * 渲染面实例数封顶（热修 2026-09-25）：退化设计（未填参数即算）可产出
+ * 天文 instance_count——十亿元素数组构建即 OOM 崩渲染进程。真值计数
+ * 不受影响（仅 placements 渲染面封顶）；上限=既有最大合法量级（15 万吨
+ * AAO 曝气器 8850）约 2 倍余量。
+ */
+export const MAX_RENDER_INSTANCES = 2 * 10 * 10 * 10 * 10; // 20000
+
 export type Vec3 = [number, number, number];
 
 /** 渲染描述节点（摆置=InstancedMesh 数据前提；dims 逐键透传；rotation=three Y 轴弧度）。 */
@@ -352,7 +360,16 @@ export function projectScene(scene: SceneResponse): RenderScene {
       });
       continue;
     }
-    const instanceCount = node.instance_count ?? 1;
+    // 热修（2026-09-25 用户实录）：未填参数即算的退化设计产出天文实例数
+    // （CASS 曝气器 1.07e9）—— placementsOf 建十亿元素数组=渲染进程 OOM
+    // 崩溃（页面打不开）。渲染面封顶（InstancedMesh/足迹/bounds 全经由
+    // placements 单点，此处一闸全收）；instanceCount 保真值不动（UI 计数
+    // 面仍示真值）。上限取既有最大合法量级（15 万吨 AAO 曝气器 8850）的
+    // ~2 倍余量。非有限数（NaN/Infinity）按 1 退化为单件。
+    const rawCount = node.instance_count ?? 1;
+    const instanceCount = Number.isFinite(rawCount)
+      ? Math.min(Math.max(Math.round(rawCount), 1), MAX_RENDER_INSTANCES)
+      : 1;
     const rendered: RenderNode = {
       id: node.node_id,
       kind,

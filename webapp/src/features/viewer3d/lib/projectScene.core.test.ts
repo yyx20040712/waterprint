@@ -116,6 +116,32 @@ describe("projectScene：instance_count>1 摆置确定性", () => {
     expect(pump?.placements[8]).toEqual([13, 2, 3]);
   });
 
+  it("热修：天文实例数封顶不炸（1.07e9 曝气器=用户实录 OOM 崩溃面）", () => {
+    const nodes: FixtureNode[] = [
+      {
+        node_id: "municipal_cass::aerator",
+        semantic: "aerator",
+        primitive: { kind: "box", dims: { length: 3, width: 3, depth: 3 }, semantic: "aerator" },
+        position: [0, 0, 0],
+        instance_count: 1_076_068_800,
+      },
+      {
+        node_id: "municipal_cass::bogus",
+        semantic: "pump",
+        primitive: { kind: "box", dims: { length: 1, width: 1, depth: 1 }, semantic: "pump" },
+        position: [0, 0, 0],
+        instance_count: Number.NaN,
+      },
+    ];
+    const out = projectScene(fixture({ nodes, root: nodes.map((n) => n.node_id) }) as never);
+    const aer = out.internals.find((n) => n.id === "municipal_cass::aerator");
+    // 渲染面封顶 20000；数组构建/投影瞬时返回（此断言能跑完=不 OOM）
+    expect(aer?.placements).toHaveLength(20000);
+    // NaN 实例数退化单件（防御非有限数）
+    const bogus = out.solids.find((n) => n.id === "municipal_cass::bogus");
+    expect(bogus?.placements).toHaveLength(1);
+  });
+
   it("池体足迹多实例不居中漂移：box pool_wall 角起点保留（F5 D2 模板路径）", () => {
     const nodes: FixtureNode[] = [
       {
