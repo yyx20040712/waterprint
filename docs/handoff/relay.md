@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 R4 收口置位（增补三十二）；下一批=批2d -->
+- status: RUNNING <!-- 2026-09-25 批2d claim（executor-b2d-20260925T143536Z）；前值 READY（R4 收口置位）-->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,13 +20,13 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T14:14:48.000Z <!-- R4 收口刷新 -->
-- claim: -
+- heartbeat_utc: 2026-09-25T14:35:36.000Z <!-- 批2d claim 刷新 -->
+- claim: executor-b2d-20260925T143536Z <!-- 2026-09-25 批2d 认领；勾选快照 checked 29/38 -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 29 <!-- 2026-09-25 R4 收口 28→29（第五波 2/12） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
-- last_dispatch_utc: 2026-09-25T12:07:25.336Z <!-- 2026-09-25 第三班发布成立（回读④+绑定核验：sess_2e71829d env 块 Primary working directory=E:\class\智水蓝图；~20s 落盘）；旧值 2026-09-25T10:40:08.845Z（第二班批2b） -->
+- last_dispatch_utc: 2026-09-25T14:35:39.984Z <!-- 2026-09-25 第四班发布成立（回读④：sess_b606debd ~50s 落盘；env 块工作区=E:\class\handover——绑定偏差见增补三十三）；旧值 2026-09-25T12:07:25.336Z（第三班 R4） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
 - batch_count: 9 <!-- R4 收口 +1（上限 60） -->
 - max_batches: 60
@@ -327,3 +327,12 @@
 - **登记欠账**：①main.py 恰 500 零余量（第 4 顶格件——与 beam.py/app.py 合账批5 堆；触发=下次触碰 main.py 前先腾位抽取）②HEAD 405 断言×fastapi 版本耦合观察（>=0.115 无上界，升级须复核）③ENTRYPOINT 绝对路径化（下一部署批顺手——现相对名经 PATH 生效实证）④classic builder 面未测 ⑤裁决 P2 建议：门一/实证报告落盘制度（组织面欠账——本批四份原文未落盘致门二逐字复核受限）⑥test_c2_static_units 命名注记（P3，实为 JSON 目录端点）。
 - **移交人类**：[HUMAN-LOCK] 呈批件第⑥笔（.workflow/e2e-fix/R4/——README 五步工序：C-3 八件→test_settings.py〔REPO_ROOT 改 parents[2〕+C-2 五件→test_app_factory.py〔conftest client〕；落库后预期 351P+6F）；Rulings 四件如上（含回滚面）。
 - **下一批**：批2d 方案比选可视化三图+picker 修复（第五波序——含 constraintPicker 2-kind 修复〔批2a 裁决部 C4〕+联合枚举 UI R-B44b-4 并案裁量）。
+
+### 增补三十三 — 2026-09-25T14:35:39.984Z（第四班发布成立：批2d 执行令已发——前台门让位一班+绑定偏差 env 核验抓获）
+
+- **开批四条件**：READY（R4 收口=增补三十二）/静默窗 138min/实物静默（板面+git 594e17d2dd ~11min）/熔断 9<60、墙钟 4.65h<90h。
+- **前台门两幕**（14:25Z 班与 14:35Z 班）：用户全屏游戏中（DeltaForce pid 39424）——AppActivate 拉起后游戏即时夺回，紧环三连守卫安全拒绝（action_sent=false），按协议让位一班不打扰用户；次班游戏暂停间隙 Ctrl+N 一次过。
+- **通道**：Ctrl+N/回读② 模型=GLM-5.3/回读① 绑定用宽度启发式（154px）误判「已继承智水蓝图」/typeText 242 字回读③/回车主径/composer 清空。**回读④ env 核验抓获绑定偏差：sess_b606debd Primary working directory=E:\class\handover**（活动标签=火 prompt 投递聚焦的调度员自身标签，新任务继承其绑定）。
+- **放行裁量（不掐重发）**：handover 绑定与智水蓝图-父目录绑定在仓级 AGENTS.md 注入上等价（两者均非 waterprint 仓根）；执行指令全程绝对路径（R3 先例：game 目录绑定照样完美收口）；掐掉重发=双执行者并发窗+双倍前台占用。偏差照录，用户知情。
+- **通道教训（下班起强制）**：绑定宽度启发式作废——每班一律「选择项目」菜单显式绑定+env 块核验双闸；游戏前台占用=让位不硬抢（AGENTS 前台焦点保护）。
+- **last_dispatch_utc 原子重写=本笔**；executor=sess_b606debd claim 执行批2d（可视化三图+picker 修复——webapp 批走 vitest+check_webapp+无头验证）。
