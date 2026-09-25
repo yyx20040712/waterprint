@@ -26,6 +26,10 @@ webapp/node_modules/
 exports/
 output/
 
+# LLM 配置面运行时落盘（F1 批 2026-09-25——含密钥禁入库；根锚定防全层级吞目录）
+/.env
+/server/.env
+
 # IDE / 系统
 .idea/
 .vscode/

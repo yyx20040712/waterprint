@@ -74,6 +74,7 @@ from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import Manager, UnknownTaskError
 from waterprint_server.routers import (
     ai_chat,
+    ai_config,
     ai_connection,
     calc,
     cost,
@@ -265,7 +266,8 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     # =ADR-025 决策 1——.workflow/b4-3/design-final.md 授权）
     + 2
     + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
-    # =.workflow/b4-4b/design-final.md §四授权）
+         # =.workflow/b4-4b/design-final.md §四授权）
+    + 2  # F1：GET/PUT /api/ai/config（LLM 配置面，40→42 破面=brief-F1 §二授权）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -446,6 +448,9 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     # B4-4b 子批 2（2026-09-24）：对话 pane 中继面挂载（会话清单/历史/发言
     # ——37→40 破面=.workflow/b4-4b/design-final.md §四授权）。
     app.include_router(ai_chat.router, dependencies=[Depends(verify_token)])
+    # F1（healthcheck-20260925 2026-09-25）：LLM 配置面挂载（GET/PUT
+    # /api/ai/config——40→42 破面=brief-F1-ai-config.md §二授权；Bearer 同保）。
+    app.include_router(ai_config.router, dependencies=[Depends(verify_token)])
     # units 豁免面契约明示（R-3）：三操作显式 security=[]（公开面明示，
     # 区别于未声明）——FastAPI include 面无 security 参数，经路由对象
     # openapi_extra 直挂（0.141 实证：include 后 app.routes 为包装件，

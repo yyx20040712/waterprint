@@ -122,6 +122,7 @@ function alertTexts(html: string): string {
 describe("AiConnectPanel 状态渲染（AI2）", () => {
   it("四项列表：全假状态渲染 ✗（配置/模块/uv 三行未就绪）+沙箱路径信息行", () => {
     const html = renderPanel(statusQueryOf(statusAllFalse()), mutationOf());
+    expect(html).toContain("Zcode 工具接入（MCP）"); // F1：区块标题明示 MCP 域（与聊天 LLM 面相互独立）
     expect(html).toContain("工作区配置");
     expect(html).toContain("agent 模块");
     expect(html).toContain("uv 可执行");

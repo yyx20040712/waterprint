@@ -3,17 +3,21 @@
  *
  * 输入:  open/onClose（App.tsx 顶栏 AiConnectButton 入口受控）
  * 输出:  Modal 壳（AiConnectPanel 承载——useAiConnection open 门控取数：
- *        四项 ✓/✗ 列表+ready 横幅+一键接入按钮+成功引导/失败展示）
+ *        四项 ✓/✗ 列表+ready 横幅+一键接入按钮+成功引导/失败展示；F1 批
+ *        起下挂 LlmConfigSection——聊天模型（LLM）三键配置区）
  *
- * 规格说明（AI2 批 2026-09-13）：
+ * 规格说明（AI2 批 2026-09-13；F1 批 2026-09-25 增挂）：
  *   - 壳/面板分离：Modal 门户层（title/open/onClose+关闭重置）+纯展示
  *     AiConnectPanel（props 注入查询/mutation 句柄——面板测试零 mock 直
  *     构结果对象；antd Modal SSR 门户零内容，渲染面测试在面板层）；
  *   - 状态四项=服务端 GET /api/ai/connection 直投；沙箱行=路径信息行
  *     （推导恒在场——✓ 语义，非存在性检查）；
  *   - 一键接入=POST /api/ai/connection/setup（mutate 零参——写目标服务端
- *     推导）；成功态引导文案冻结（重启 ZCode 会话即连+21 个 wp_* 工具）；
- *     失败面=WaterprintApiError.message 透出（uv 缺失 400 detail 面向用户）。
+ *     推导）；成功态引导文案冻结（重启 Zcode 会话即连+21 个 wp_* 工具）；
+ *     失败面=WaterprintApiError.message 透出（uv 缺失 400 detail 面向用户）；
+ *   - F1（语义误导 R2 修复）：四项区块标题改「Zcode 工具接入（MCP）——
+ *     与下方聊天模型相互独立」——四项绿=MCP 接入态与聊天 LLM 零交集的
+ *     显式声明；下方挂 LlmConfigSection（enabled=open 同门控）。
  */
 import { Alert, Button, Modal, Typography } from "antd";
 import { useEffect } from "react";
@@ -22,6 +26,8 @@ import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import type { AiConnectionSetupResult, AiConnectionStatus } from "../../../shared/api/generated/model";
 
 import { useAiConnection } from "../api/useAiConnection";
+
+import { LlmConfigSection } from "./LlmConfigSection";
 
 export type AiStatusQuery = UseQueryResult<AiConnectionStatus, unknown>;
 export type AiSetupMutation = UseMutationResult<AiConnectionSetupResult, unknown, void, unknown>;
@@ -83,6 +89,9 @@ export function AiConnectPanel({
   const status = statusQuery.data ?? null;
   return (
     <>
+      <Typography.Title level={5} style={{ marginTop: 0 }}>
+        Zcode 工具接入（MCP）——与下方聊天模型相互独立
+      </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
         检查本机 waterprint-mcp（MCP server）接入条件；一键接入会把 waterprint
         server 条目写入两份工作区配置（.zcode/config.json，merge 保留既有条目）。
@@ -171,6 +180,7 @@ export function AiConnectModal({
   return (
     <Modal title="AI 接入" open={open} onCancel={onClose} footer={null}>
       <AiConnectPanel statusQuery={statusQuery} setupMutation={setupMutation} onClose={onClose} />
+      <LlmConfigSection enabled={open} />
     </Modal>
   );
 }

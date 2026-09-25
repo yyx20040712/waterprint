@@ -1,6 +1,92 @@
 {
   "components": {
     "schemas": {
+      "AiConfigResponse": {
+        "description": "配置面五键投影（api_key 只投影存在性——值零回传零日志）。",
+        "properties": {
+          "base_url": {
+            "title": "Base Url",
+            "type": "string"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "has_api_key": {
+            "title": "Has Api Key",
+            "type": "boolean"
+          },
+          "llm_timeout_s": {
+            "title": "Llm Timeout S",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base_url",
+          "model",
+          "has_api_key",
+          "llm_timeout_s",
+          "configured"
+        ],
+        "title": "AiConfigResponse",
+        "type": "object"
+      },
+      "AiConfigUpdate": {
+        "additionalProperties": false,
+        "description": "PUT 载荷（四键全可选——缺省=不改动；空串=清除该键）。",
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "llm_timeout_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Timeout S"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "title": "AiConfigUpdate",
+        "type": "object"
+      },
       "AiConnectionSetupResult": {
         "description": "一键接入结果响应体（写入路径清单+server 条目摘要——R3/R5）。",
         "properties": {
@@ -3085,6 +3171,78 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/ai/config": {
+      "get": {
+        "description": "读配置面（env 四键投影——api_key 仅存在性布尔）。",
+        "operationId": "get_config_api_ai_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Config",
+        "tags": [
+          "ai-config"
+        ]
+      },
+      "put": {
+        "description": "写配置面（校验→.env 读改写→os.environ 同步——不重启即生效，同步 def）。",
+        "operationId": "update_config_api_ai_config_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiConfigUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Update Config",
+        "tags": [
+          "ai-config"
+        ]
+      }
+    },
     "/api/ai/connection": {
       "get": {
         "description": "接入状态四项检查（配置/agent 模块/uv/沙箱——ready 聚合直投）。",
@@ -4622,7 +4780,7 @@
         ]
       },
       "get": {
-        "description": "读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。",
+        "description": "读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。\n\nR2-P2-1（e2e-audit round2 2026-09-24）：本端点禁缓存——apply/保存后\n浏览器对同 URL 的缓存旧读造成假阴性（d20 实录）。",
         "operationId": "read_project_api_projects__project_id__get",
         "parameters": [
           {
