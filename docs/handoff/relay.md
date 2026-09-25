@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 R5 收口置位（增补三十七——降级直跑+k1 增量 PASS）；下一批=批3.5 -->
+- status: READY <!-- 2026-09-25 批3.5 收口置位（增补三十八——调研卷宗待用户追认）；下一批=批5 -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T18:55:14.249Z <!-- R5 收口刷新 -->
+- heartbeat_utc: 2026-09-25T19:01:56.788Z <!-- 批3.5 收口刷新 -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 31 <!-- 2026-09-25 R5 收口 30→31 -->
+- checked_done: 32 <!-- 2026-09-25 批3.5 收口 31→32 -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-25T14:35:39.984Z <!-- 2026-09-25 第四班发布成立（回读④：sess_b606debd ~50s 落盘；env 块工作区=E:\class\handover——绑定偏差见增补三十三）；旧值 2026-09-25T12:07:25.336Z（第三班 R4） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 10 <!-- R5 收口 +1（上限 60） -->
+- batch_count: 11 <!-- 批3.5 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: 批3.5 范围一补全·调研先行（第五波第 6 项——ganhua 燃料因子权威源检索/xiaohua 消化 MCF 分档 IPCC 2019 Table 6.3）
+- next_batch: 批5 低优先堆（backend-calc-complete——NaN 口径统一/timeout 诊断/severity 执法/裁决档勘误两处/beam.py 结构债/app.py 贴墙欠账）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -130,7 +130,7 @@
 - [x] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户——**2026-09-25 收官**：Docker 实测抓漏 dockerignore 真缺陷+双容器态实证；烤验三轮双审全 PASS+裁决部有条件可收口〔M1/M2/C1/C2 全落实〕）
 - [x] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
 - [x] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
-- [ ] 批3.5｜范围一补全·调研先行（backend-calc-complete——ganhua 燃料因子权威源检索：有源则起草立键标注待追认/无源登记挂账；xiaohua 消化 MCF 分档〔IPCC 2019 Refinement Table 6.3 消化档〕）
+- [x] 批3.5｜范围一补全·调研先行（backend-calc-complete——ganhua 燃料因子权威源检索：有源则起草立键标注待追认/无源登记挂账；xiaohua 消化 MCF 分档〔IPCC 2019 Refinement Table 6.3 消化档〕）
 - [ ] 批5｜低优先堆（backend-calc-complete——NaN 可行口径统一/timeout 诊断维度/severity 执法统一/裁决档勘误两处〔W2:549→548 与 34760.46→34760.70〕/beam.py 拆件结构债/app.py 500 贴墙欠账/main.py 余量观察项）
 - [ ] ⑤a｜矿井水污泥线新单元（B4-5 拆项——wp new-unit 脚手架+四件套实现批；前置勘误已确认 2026-09-25〔增补二十五〕）
 - [ ] 批2c｜gwp_ch4 27.0 呈批件制备（backend-calc-complete——factors.yaml 改值 diff+golden 五工况期望值重算草案+锁面工序 README；**制备批不实装不提交**——golden 重录涉 core/tests 锁面须人类随批落地，呈批件齐即收口转用户）
@@ -370,3 +370,12 @@
 - **烤验（小批裁量=工单 §5：门一单审+主控亲验矩阵）**：k1 首轮有条件放行（B0/W3/N6——W1/W2 WARN 产出路径零端到端实证+W2 md 循环本体缺口+W3 观测护栏）→回炉实修（未读路径清单+OK 降级+双面探针点燃）→**增量 PASS（B0/W0/N3 无条件）**。结转挂账（下一小批同锅）：全量未读升 FAIL/missing fail-slow/count 下限阈值/命中×未读组合探针/过滤链 is_file 护栏。
 - **收口三检**：run_gates 16 门禁全绿+gen_status --check 零漂移（2158 字节）+health-scan RED=0（WARN×3 存量回显）。
 - **降级直跑纪律账**：本会话（hub 调度）因直跑变肥——按薄调度员铁律，前台恢复后应迁火新薄会话（增补三十三通道教训同向：a11y 索引漂移已实测两轮）。
+
+### 增补三十八 — 2026-09-25T19:01:56.788Z（批3.5 收口：范围一补全调研——两因子均有权威源，卷宗待用户追认）
+
+- **执行形态**：降级直跑第 2 例（前台锁第 11 班续；claim=executor-hub-b35-20260925T185745Z，快照 31/38）。数据批·数值全专家追认制（制备批不实装不提交——批2c 同款收口形态）。
+- **ganhua 天然气 CO₂ 因子（有源✓）**：《省级温室气体排放清单编制指南（试行）2011》附录推荐参数链（低位发热量 389.31 GJ/万Nm³×含碳量 15.32 tC/TJ×氧化率 99%×44/12）→ **21.622 tCO₂/万Nm³（=2.1622 kgCO₂/Nm³）**；复算吻合（±0.2% 舍入）；IPCC 2006 Vol.2 交叉源 2.184 kg/Nm³ 偏差 ~1%。提议键 assumptions.carbon.ganhua_ef_co2；CH₄/N₂O 次要面（IPCC 1 kg/TJ 档）一并呈批。
+- **xiaohua 消化 MCF 分档（有源✓）**：IPCC 2019 Refinement Table 6.3 消化档 **MCF=0.8**（厌氧消化器；US EPA 2024 清单应用同值）；既有好氧毯式 0.03 同表再确证（原文 MCF 0.03/sd 0.024/Table 6A.2）。分派设计两案呈批：**案 A 推荐**（污泥线独立项：w_vs_deg×B0×0.8−气回收 R，废水线维持 0.03；XH-F5 v_biogas 天然衔接减量项）vs 案 B 全厂切档（不推荐仅对照）。待追认参数集：MCF 0.8/气回收率（呈批定值，工程典型 90%）/沼气 CH₄ 比（典型 60~65%）。
+- **卷宗**：.workflow/backend-calc-complete/b35-research.md（含一手源五条+换算链+键名草案+两案对照）。
+- **移交人类**：批3.5 追认单签字（两因子+案 A/B 择一+两个待定值）→ 实装并入后续碳核算实现批（非本批范围）。
+- **收口三检**：run_gates 未触码面免（零仓内代码改动——仅 .workflow 卷宗+板面）；gen_status --check 零漂移；health-scan RED=0。
