@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: RUNNING <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
+- status: READY <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T10:40:03.000Z
-- claim: executor-b2b-20260925T104003Z <!-- 快照 checked_done=27，批2b 认领 -->
+- heartbeat_utc: 2026-09-25T11:52:43.000Z <!-- 批2b 收口刷新 -->
+- claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 27 <!-- 2026-09-25 R3 收口 26→27（第五波 1/12） -->
+- checked_done: 28 <!-- 2026-09-25 R3 收口 26→27（第五波 1/12） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-25T10:40:08.845Z <!-- 2026-09-25 第二班发布成立（回读④+绑定核验：sess_01aebe70 env 块 Primary working directory=E:\class\智水蓝图；~30s 落盘）；旧值 2026-09-25T09:49:41.529Z（换防首班） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 7 <!-- R3 收口 +1（上限 60） -->
+- batch_count: 8 <!-- R3 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
-- claimed_by: executor-b2b-20260925T104003Z
-- claimed_at: 2026-09-25T10:40:03.000Z
-- next_batch: 批2b capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重专家追认）
+- claimed_by: -
+- claimed_at: -
+- next_batch: R4 server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -126,7 +126,7 @@
 自动化连续开工；单批明细以各工单/战役档案为准本区持指针防双源）
 
 - [x] R3｜孤立警告组装+锁面呈批（e2e-fix-round3 批3——B-3；草稿 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md；实现侧 helper 抽取过 PLR0912+core 全量仅预期红+锁定测试期望 diff 走 .workflow 呈批）
-- [ ] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
+- [x] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
 - [ ] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
 - [ ] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
 - [ ] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
@@ -296,3 +296,15 @@
 - **通道含绑定修正（用户 2026-09-25「game 误绑」批评整改）**：前台门（ZCode 本就在前台）/Ctrl+N/回读② 模型=当班会话模型（继承上次切换）/「选择项目」菜单搜索「智水蓝图」checkbox 显式绑定→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_01aebe70-4aa3-46f6-847f-8639ab0ab739.jsonl ~30s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**（工作区根=父目录，waterprint 依绝对路径开工——增补二十先例；waterprint 仓级 AGENTS.md 不自动注入由板执行路由承接）。model=当班会话模型。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_01aebe70 按板执行者条款 claim 执行批2b（capex 第四真键）。
 - **通道工训（肥调度会话病理实测）**：本会话转录渐长后 a11y 树持续重编号，「选择项目」索引点击三连败（action_sent=false 安全）→降级视觉坐标路径（bounds×0.5 raster 换算）成功；项目菜单搜索框须输工作区名（搜「waterprint」无匹配——工作区名=智水蓝图）。按薄调度员铁律：本会话再变重应迁火新薄会话（待用户示下）。
+### 增补三十 — 2026-09-25T11:52:43.000Z（批2b 收口：capex 第四真键——终评目标函数并入建设投资）
+
+- **claim**：executor-b2b-20260925T104003Z（10:40Z 认领，二班 UI 发布 sess_01aebe70=本会话）；**commits**：d77304b271（实现 8 文件 177+/39-）+d26acc41ab（板面清偿独立笔：增补二十九模型代号中性化 2 处——check_model_names 门禁回绿必要前置，R3 先例）+本收口笔。
+- **实现面**：final_eval.py（330→410 行）增 _CapexKit 装配束（capex_kit_of：None→None 缺席语义/data_dir→load_prices+load_fee_rules+load_field_mapping 装载一次逐组合复用——与 services/cost.py:343-346 R3 装配链逐字符同构，门二裁决复算确认）+capex_grand_total（takeoff→build_estimate→grand_total）+EvalContext.capex_kit 字段+evaluate_combo 并键（design 口径）+design_baseline_metrics 可选参并基线（AUD-W11 断层根因=概算不在 summary 平键链）；registry 四键 .25/.30/.20/.25（opex 0.5→0.25 成本面与 capex 对半守恒 0.5，capex 新键 0.25——11→12 float 键）；beam.py 500 行满格行数中性手术（+6 新面以签名合并/注释并行/计数器链式对冲，终态恰 500）；worker capex_data_dir=data_dir 注入（standards 同款先例，与查询端点同源单价包）；cost/__init__ 包根再导出扩白名单（五函数+三类型——同层边 import 收敛面）；§1c 同层边登记（solution.joint_enumeration→cost，solution→graph 先例同构）+check_module_graph g) §1c 边节点归一一致化（与 check_same_layer_block 口径一致——原样入集合使文件粒度声明对运行时子模块 import 永失配）。
+- **回炉 delta（门一）**：k1 返工 B1（DoD「kit 缺席零行为变化」与权重重排数学矛盾）+d1 有条件放行（W1~W8）→处置=B1 呈报口径修正（结构面零变化+score 数值漂移=裁决本意——N6 三键归一 .333/.40/.267 纯函数用例手算钉死 (.25·1+.30·2+.20·3)/.75=1.9333，probe 复算吻合）+草稿用例更名 test_kit_absent_keeps_legacy_structure；W 系=费用链同源实证/g) 负向实验（beam.py:65 注入未声明同层 import→FAIL 1 处→还原 [OK]——执法未弱化）/逐组合失败语义登记（GR-08 与 execute_graph 失败对称裁量：dims 全数值面动态抛现实不可达，不设静默降级）/基线正值三面断言/行数手术等价记档（链式赋值=常量初值无读旧值语义）。
+- **呈批件**（.workflow/backend-calc-complete/b2b-test-drafts/，gitignore 仓外面）：b2b-design.md（含回炉修订）+三草稿（keys 7+beam 4+server 影子 1=12 用例）+b2b-expected.diff（五文件锁定期望：core/tests/registry/test_assumptions_joint.py 4 处+test_final_eval.py weights 四键+server/tests/conftest.py 补拷 unit_prices 一行+services/routers test_units 33→34 计数×2——git apply --check 对 HEAD 原态 PASS，probe 复验）+README（含门一回炉记+裁决 M1/M2/M4 落实）。
+- **烤验全链**：门一异构双审 k1 返工（B1/W5/N6）+d1 有条件放行（B0/W8/N5）→回炉全处置→B1 实修闭环（呈报口径+用例同步）；门二 probe 七项矩阵（5 PASS+2 发现：①832≠843=草稿并入口径差 832+11=843 恰合②AAO n 轴 capex 两档逐位相同 11,773,006.17——取证=n 仅消费 v_o_series 分配、field_mapping 首版冻结行集不含 aao n 派生量，CASS n_pool 轴分化 11,773,062.02/034.09 差 27.93 元=n_decant 台数行）；裁决部终裁=有条件可收口→M1 口径统一（树单跑 832P+5F 为基准+草稿 11P 独立计数+转正投影 847P+1F，禁裸 843）/M2 三脚注（AAO 轴映射外=段三预留扩行挂账；幅度 27.93/1177 万≈2.4e-6；设备单价「万元/台」面值消费 10^4 欠尺度=COST2 既有口径挂账）/M3 呈报清单/M4 草稿轴注记——全数落实（本轮零代码返工）。
+- **验证面**（裁决 M1 分层口径）：core tests 树 832P+5F（失败清单恰=R3 存量 1+本批锁定面 4）+草稿 core 11/11 绿+units_lib 66 绿+server 338P+6F（存量 3=ai_chat×2+api_contract〔F1/E2E-3 呈批件队列〕+本批 3=joint 全链夹具缺 unit_prices+assumptions 计数 33→34×2〔B4-3 22→33 同款默认授权破面〕）+server 影子端到端 1/1 绿（worker 注入→done→combos[0].metrics 含 cost_capex_yuan 正值；uv sync --reinstall-package waterprint-core 刷新 core 拷贝后）；16 门禁全绿（run_gates 末行 [OK] 全部门禁通过——含 module_graph/lint_imports/model_names 三门禁本批修复回绿）；gen_status [OK] status.md 零漂移（2158 字节逐字节一致）；health-scan RED×0/WARN×3 存量回显；ruff 全绿；beam.py 恰 500 行。四键 0.25/0.30/0.20/0.25+34 条（21 YAML+1 design_map+12 joint）probe 直读吻合。
+- **Rulings 呈报（用户/专家追认位）**：①check_module_graph g) §1c 边节点归一化一致化（负向实验证执法未弱化——记档呈报，如认定属防线变更须追认回滚面=一行还原）②server 联合枚举数据面硬契约=unit_prices 在场（worker 无条件注入不设软降级，与 E2E-1 fail-fast 哲学对齐；caveat=E2E-1 校验覆盖 python -m 路径，uvicorn 直启〔Docker〕不经——R4 C-1 收敛项承接）③四键权重初值 .25/.30/.20/.25 专家追认（audit 裁决②初值+追认制）④AUD-W11 LCC 折旧面维持挂账（opex 无折旧——本批只补 capex 侧，audit 呈批件原文「与 opex 折旧/LCC 口径一并裁量」不得静默闭环）。
+- **登记欠账**：①field_mapping 段三扩行（aao v_o_series×池数/几何量→AAO 轴 capex 区分度=数据面扩条目后续批）②设备单价万元尺度（COST2 既有）③beam.py/app.py 双 500 恰满零余量（批5 堆）④beam 全链 server 测试红待 conftest 呈批落地（本批第⑤笔 [HUMAN-LOCK]——落地后 server 3 红归零、core 4 翻绿）。
+- **移交人类**：[HUMAN-LOCK] 呈批件第⑤笔（.workflow/backend-calc-complete/b2b-test-drafts/——README 四步工序：解锁→git apply b2b-expected.diff→草稿转正并入→lock_tests 重锁）；Rulings 四件如上。
+- **下一批**：R4 server 卫生（e2e-fix-round3 批4——C-1/C-2/C-3；战役进度：批1✓批2a✓批2b✓）。
