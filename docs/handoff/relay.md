@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: RUNNING <!-- 2026-09-25 用户四裁决解锁（增补二十五）：B4-5 勘误确认拆 ⑤a/⑤b+批3 授权检索起草+总排序采纳——HOLD 收线，待换防布火 -->
+- status: READY <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T09:49:20.000Z
-- claim: executor-r3-20260925T094920Z
+- heartbeat_utc: 2026-09-25T10:29:18.000Z
+- claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26；批2a 收口不占本清单项（战役批，日志增补二十四记账） -->
+- checked_done: 27 <!-- 2026-09-25 R3 收口 26→27（第五波 1/12） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-25T09:49:41.529Z <!-- 2026-09-25 rev4 换防首班发布成立（回读④后端事实=model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘）；旧值 2026-09-24T21:36:38.025Z -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 6 <!-- 换防后继续累加（上限 60 足容 12 新项） -->
+- batch_count: 7 <!-- R3 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
-- claimed_by: executor-r3-20260925T094920Z
-- claimed_at: 2026-09-25T09:49:20.000Z
-- next_batch: R3 孤立警告组装+锁面呈批（第五波首项——交错序全 12 项见执行清单第五波；换防布火后按序连续开工）
+- claimed_by: -
+- claimed_at: -
+- next_batch: 批2b capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重专家追认）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -125,7 +125,7 @@
 ### 第五波·总排程（2026-09-25 用户四裁决——交错序全 12 项；波内序=接力顺序，
 自动化连续开工；单批明细以各工单/战役档案为准本区持指针防双源）
 
-- [ ] R3｜孤立警告组装+锁面呈批（e2e-fix-round3 批3——B-3；草稿 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md；实现侧 helper 抽取过 PLR0912+core 全量仅预期红+锁定测试期望 diff 走 .workflow 呈批）
+- [x] R3｜孤立警告组装+锁面呈批（e2e-fix-round3 批3——B-3；草稿 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md；实现侧 helper 抽取过 PLR0912+core 全量仅预期红+锁定测试期望 diff 走 .workflow 呈批）
 - [ ] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
 - [ ] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
 - [ ] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
@@ -273,6 +273,19 @@
 
 ### 增补二十七 — 2026-09-25T09:49:41.529Z（rev4 换防首班发布成立：R3 执行令已发——回读④后端事实判定）
 
-- **开批通道全链 PASS**：前台门（原前台本=ZCode，免拉起免还原）→ Ctrl+N 新任务 → 回读①过（占位符「向 ZCode 提问…」/focused/发送 disabled=空框态/「取消选择当前项目」在场=项目已绑定——**注记：新任务默认绑定=当前活动标签工作区，与板头工作区不一致，按 protocol 非阻断（执行指令自带绝对路径，增补二十实证可开工）**）→ 回读②纠偏（默认 GLM-5.3-Flash ≠ 当班模型 → 模型菜单 performSecondaryAction(AXExpand) 展开+钉主窗 getApp({pid,window_id}) 后选中 radio GLM-5.3=当班会话模型；弹窗致观察面漂移两次安全失败 action_sent=false 无害）→ typeText 242 字全文落框（回读③：242/242+发送 enabled+focused）→ **回车主径**发送（composer 清空/发送回 disabled）→ **回读④成立：rollout 新档 model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘**（铁则：UI echo 不算数，后端事实判）。会话身份锚定：档内 relay.md×6+ai-dev-org×6+"model":"GLM-5.3"——执行者已开工并自载 ai-dev-org。
+- **开批通道全链 PASS**：前台门（原前台本=ZCode，免拉起免还原）→ Ctrl+N 新任务 → 回读①过（占位符「向 ZCode 提问…」/focused/发送 disabled=空框态/「取消选择当前项目」在场=项目已绑定——**注记：新任务默认绑定=当前活动标签工作区，与板头工作区不一致，按 protocol 非阻断（执行指令自带绝对路径，增补二十实证可开工）**）→ 回读②纠偏（默认模型 Flash 档 ≠ 当班模型 → 模型菜单 performSecondaryAction(AXExpand) 展开+钉主窗 getApp({pid,window_id}) 后选中 radio 当班会话模型；弹窗致观察面漂移两次安全失败 action_sent=false 无害）→ typeText 242 字全文落框（回读③：242/242+发送 enabled+focused）→ **回车主径**发送（composer 清空/发送回 disabled）→ **回读④成立：rollout 新档 model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘**（铁则：UI echo 不算数，后端事实判）。会话身份锚定：档内 relay.md×6+ai-dev-org×6+model 字段=当班会话模型——执行者已开工并自载 ai-dev-org。
 - **本笔原子重写 last_dispatch_utc=2026-09-25T09:49:41.529Z**（status 保持 READY）；静默窗自此 +30min；executor=sess_7c631d85 按板执行者条款 claim（保留本行）执行第五波首项 R3。
 - 通道经验沉淀（dispatcher 侧操作经验，不改 protocol 段）：模型菜单需 AXExpand 展开后钉主窗再点 radio——裸 click 菜单不开/弹窗漂观察面致索引越界。
+
+### 增补二十八 — 2026-09-25T10:28:52.000Z（R3 收口：孤立单元警告组装+锁面呈批——第五波首项完成）
+
+- **claim**：executor-r3-20260925T094920Z（09:49:20Z 认领）；**commits**：fa4876dc04（实现）+本收口笔。执行通道=换防首班 UI 发布（增补二十七 sess_7c631d85=本会话）。
+- **实现面**（core/waterprint/app_assembly.py，314 行）：新增私有 helper `_isolated_unit_warnings`——连通面=design.edges 逐侧独立收集（任一侧端点为对象且 unit_id 为字符串即计该节点连通，非整体连通性判定）；孤立面=不在连通集且非「含 kind 字符串」节点 sorted 列表；单条警告文案「警告（孤立单元——未与任何可解析边相连）：[...]」；validate_design_structure 尾部 errors.extend 接线+docstring 含④+文件头【私有面】登记。PLR0912 合规（分支 12≤12——裁决部静态复算）。
+- **回炉 delta**（门一回炉）：文案「未与任何边相连，图未连通」→「未与任何可解析边相连」（「图未连通」删——非连通性判定误导）+docstring 逐侧口径收紧+主函数 docstring ④ 措辞对齐（二过 N-1）。
+- **呈批件**（.workflow/e2e-fix/E2E-5/，gitignore 仓外面）：isolated_warn.draft.md（完整呈批：逐文件动机+门一回炉处置记+人类四步工序）+isolated_warn_test.diff（唯一 apply 载体——锁定测试期望更新：len 2→3+精确列表断言+新增五节点四口径整串等值用例；对锁定文件原态 git apply --check PASS+影子副本 9/9 两轮实证）。
+- **烤验全链**：门一异构双审两轮——首审 k1 有条件放行（B0/W2/N6）+d1 返工（B1/W3/N4，B-1=呈批断言不可证伪）→回炉实修→二过 k1 PASS（B0/W0/N1，N-1 顺手修）+d1 有条件放行（B0/W1/N4——W-5=覆盖归属记档错误：整串断言对豁免零证伪力（inlet 有边相连），落实补测即终态）→W-5 落实=新用例增孤立内置节点 junction（豁免自足证伪）+双元素逆序（sorted 锁），d1 自定终态条件达成免三过。门二：实证部独立重跑矩阵 7/7 全符（含影子副本 git apply 干净+行为抽查豁免实证）+裁决部有条件可收口（MUST_FIX 三项全落实：①md 内嵌 diff 收敛单源指针防双源 ②影子残留 .pyc 清零 ③数字更正=314 行+口径注记）。
+- **验证面**（主控+probe 双证）：ruff 全绿；锁定测试唯一预期红（test_unknown_unit_and_kind_accumulate len 3!=2）；core 全量 1510 passed+1 failed（唯一预期红）+快照 4 过——**口径注记**：1511 收集数=core/tests+units_lib 两树全量口径，历史日志 837/853 系 tests 树单跑口径，口径差异非自然增长（裁决部复算）；16 门禁全绿+gen_status 零漂移+health-scan RED=0（WARN×3 存量）。
+- **顺带清偿（独立记档——沿增补十三先例）**：调度员增补二十七（fc7fbac5bc）板面日志 3 处模型代号（默认模型名×2+model 字段字面量）中性化替换——check_model_names 门禁回绿必要前置（该笔提交时未跑门禁致存量红）；改动仅涉该行措辞零语义损失。
+- **Rulings/欠账**：①警告与错误同 tuple 无分级标记——server valid/CLI 退出码对孤立图翻转（三调用方核查无「非空即拒计算」面=提示性），「警告不翻 valid」分级语义+报告层渲染样式=后续独立批产品口径；②全 builtin 图零提示=产品确认项（豁免口径边界，k1 N-6）；③文案「可解析边」边级表述 vs 实现端点级判定——docstring 已锚定，留档（d1 N-6）；④[扔账] E2E-1 欠账④（check_model_names OSError 静默吞+目录漂移）仍待 R5 批 C-4。
+- **移交人类**：[HUMAN-LOCK] 呈批件+E2E-5 孤立警告测试期望 diff（并入 U-1 锁面笔清单第四笔——①audit-norms 批1 ②批2a ③E2E-1/E2E-3 ④本件；落地后 core 预期红归零）。工序=isolated_warn.draft.md 四步（解锁→git apply 同目录 .diff→lock_tests.py→commit [HUMAN-LOCK]）。
+- **下一批**：批2b capex 第四真键（backend-calc-complete——依赖 2a 指标语义冻结已达成）。
