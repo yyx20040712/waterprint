@@ -158,9 +158,9 @@ def energy_estimate(dims: Mapping[str, float], baseline_energy: float) -> float:
 
 
 def _normalized(values: Sequence[float]) -> list[float]:
-    """min-max 归一到 0~1（无区分度=中位 1/2——R3 禁编造区分度）。"""
+    """min-max 归一到 0~1（无区分度或含 NaN=中位 1/2——R3 禁编造区分度）。"""
     low, high = min(values), max(values)
-    if high <= low:
+    if high <= low or any(isnan(value) for value in values):
         return [_MIDPOINT] * len(values)
     return [(value - low) / (high - low) for value in values]
 
