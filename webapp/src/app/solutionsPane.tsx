@@ -296,6 +296,12 @@ export function SolutionsPane() {
         // R2-P2-3（round2 批4 扩）：task 键同步回写——深链/刷新后面板
         // 任务态恢复不再依赖本地存储（旧实现仅 calc 轨回写 task 键）
         writeTaskParam(response.task_id);
+        // R4（批2d 回炉）：枚举提交对称派发 TASK_EVENT（与联合提交先例
+        // 同款——URL 回写驱动已挂载面；本 pane 自监听经 URL 重读同值
+        // 早退幂等，jointSolutions 自监听由此接管任务态）
+        window.dispatchEvent(
+          new CustomEvent(TASK_EVENT, { detail: response.task_id }),
+        );
       },
     },
   });

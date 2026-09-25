@@ -6,7 +6,9 @@
  * 输入:  GET /api/calc/tasks/{id} result 载荷（kind=joint_enumerate 且
  *        state=done——worker _run_joint_enumerate 直返体）
  * 输出:  narrowJointResult → JointResultView（combos 类型化+diagnosis
- *        透传[DiagnosisPanel 自窄化]+unit_ids）；三键族常量（四真键/avg
+ *        透传+unit_ids）；projectJointDiagnosis → JointDiagnosisView
+ *        （无解诊断真形投影——stage_empty 载荷嵌套 stage 键展开/final_
+ *        infeasible 仅 note/未知 kind JSON 摘要）；三键族常量（四真键/avg
  *        三键/六出水指标——core final_eval.py _METRIC_KEYS/_AVG_PREFIX/
  *        _SUMMARY_INDICATORS 镜像）+metricLabel 中文标签
  *
@@ -222,5 +224,80 @@ export function narrowJointResult(raw: unknown): JointResultView {
     combos: combosRaw.map((item, position) => narrowCombo(item, position)),
     diagnosis: raw["diagnosis"] ?? null,
     unit_ids: unitIdsRaw as string[],
+  };
+}
+
+/** 联合无解诊断投影视图（beam.py 无解两态真形→UI 消费面窄化产物）。 */
+export type JointDiagnosisView = {
+  /** kind 标签（分段无解/终判不可行/未知原样——呈现头行）。 */
+  kindLabel: string;
+  /** final_infeasible 的 note 文案（终判不可行显著呈现源；无则 null）。 */
+  note: string | null;
+  /** DiagnosisPanel 消费面载荷（stage_empty=stage 层展开；其余=宽容面）。 */
+  panelPayload: unknown;
+  /** 未知形状 JSON 摘要（fail-visible 不吞；已知两态=null）。 */
+  rawSummary: string | null;
+};
+
+/** JSON 摘要（载荷源自 JSON.parse 无环——循环引用等异形兜底 String 不炸）。 */
+function safeJsonSummary(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
+}
+
+/**
+ * 联合无解诊断投影（R1 回炉）：beam.py:444-454 无解两态真形——
+ * stage_empty 载荷嵌套 stage 键（diagnose.py stage_conflicts 产物：
+ * minimal_conflicts/fail_counts/suggestions/frozen_prefix）；final_infeasible
+ * 无冲突键仅 note；worker.py 浅透传原样到达。未知 kind/形状原样呈现
+ * kind+JSON 摘要（fail-visible 不吞）。
+ */
+export function projectJointDiagnosis(diagnosis: unknown): JointDiagnosisView {
+  if (!isRecord(diagnosis)) {
+    return {
+      kindLabel: "诊断载荷非对象（联合无解两态外形状）",
+      note: null,
+      panelPayload: {},
+      rawSummary: safeJsonSummary(diagnosis),
+    };
+  }
+  const kind = diagnosis["kind"];
+  if (kind === "stage_empty") {
+    const stage = diagnosis["stage"];
+    if (isRecord(stage)) {
+      return {
+        kindLabel: "分段无解（stage_empty）",
+        note: null,
+        panelPayload: stage, // stage 层展开给 DiagnosisPanel 消费
+        rawSummary: null,
+      };
+    }
+    return {
+      kindLabel: "分段无解（stage_empty）",
+      note: null,
+      panelPayload: {},
+      rawSummary: safeJsonSummary(stage), // stage 载荷异形——摘要不吞
+    };
+  }
+  if (kind === "final_infeasible") {
+    const note = diagnosis["note"];
+    return {
+      kindLabel: "终判不可行（final_infeasible）",
+      note: typeof note === "string" ? note : null,
+      panelPayload: {}, // 冲突键空——DiagnosisPanel 缺失呈现（诚实面）
+      rawSummary: typeof note === "string" ? null : safeJsonSummary(diagnosis),
+    };
+  }
+  return {
+    kindLabel:
+      typeof kind === "string"
+        ? `未知诊断类型（${kind}）`
+        : "未知诊断类型（kind 缺失）",
+    note: null,
+    panelPayload: diagnosis, // 原样给宽容窄化面板（顶层冲突键若在仍消费）
+    rawSummary: safeJsonSummary(diagnosis),
   };
 }

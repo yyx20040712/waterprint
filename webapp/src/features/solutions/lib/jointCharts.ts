@@ -16,10 +16,12 @@
  *     至少一维 <（相等向量互不支配=同前沿）；前沿是四维性质——换轴投影
  *     不重算（投影只影响显示，轴键只进 buildParetoOption 显示面）；
  *     feasible=false 或四真键缺席的组合不参与排序（sparse/不可行防御）；
- *   - 平行坐标：四真键+score 五轴；线色=score 三分位分档（优/中/差——
- *     score 升序位次）；失守方案（sensitivity_degraded）虚线区分；score
- *     null 组合不入线（五轴需全值——诚实排除）；轴反向开关作用全轴
- *     （全目标低优——反向后「上端=优」全局一致）；
+ *   - 平行坐标：四真键+score 五轴；入线资格=四真键+score 全 finite
+ *     （Number.isFinite 门，与 frontEligible 口径统一——无 score 兜底
+ *     不造假值）；轴域只按入线组合取值；全组合资格门外→空 axes/lines
+ *     （组件空态文案）；线色=score 三分位分档（优/中/差——score 升序
+ *     位次）；失守方案（sensitivity_degraded）虚线区分；轴反向开关作用
+ *     全轴（全目标低优——反向后「上端=优」全局一致）；
  *   - 龙卷风：三键 avg 对（cost_opex/energy/carbon——capex 无 avg 对）的
  *     avg vs design 相对变化率 (avg-design)/design（水平双向条）；design=0
  *     或 avg 对缺席=诚实跳过（skipped 记键不造假）；六出水指标无 avg 对
@@ -29,7 +31,7 @@
  *   - 零运行期库 import（node 测试零增重——jointView 同款纪律）。
  */
 import type { JointComboView } from "./jointView";
-import { TRUE_METRIC_KEYS, metricLabel } from "./jointView";
+import { AVG_METRIC_KEYS, TRUE_METRIC_KEYS, metricLabel } from "./jointView";
 
 /** 帕累托轴键（四真键——投影显示面可换轴）。 */
 export type ParetoAxisKey = (typeof TRUE_METRIC_KEYS)[number];
@@ -173,7 +175,10 @@ export function paretoTooltipLines(combo: JointComboView): string[] {
 
 /**
  * 帕累托投影 option（前沿/被支配双系列）：front=paretoFront 产物（四维
- * 性质——换轴不重算）；缺选中轴键的组合不入系列（无值点不画）。
+ * 性质——换轴不重算）；缺选中轴键的组合不入系列（无值点不画）；非资格
+ * 组合（frontEligible 失败=feasible=false/四真键缺席）不参与排序呈现
+ * ——不入前沿也不入被支配系列不画（生产 beam 只发 feasible+全键，此为
+ * 防御面口径统一）。
  */
 export function buildParetoOption(
   combos: readonly JointComboView[],
@@ -191,6 +196,9 @@ export function buildParetoOption(
   const frontPoints: ParetoPoint[] = [];
   const dominatedPoints: ParetoPoint[] = [];
   combos.forEach((combo, index) => {
+    if (!frontEligible(combo)) {
+      return; // 非资格组合不画（与 paretoFront 排序门同口径）
+    }
     const point = pointOf(combo);
     if (point === null) {
       return;
@@ -238,9 +246,11 @@ function bandOf(rank: number, total: number): ParallelBand {
 }
 
 /**
- * 平行坐标数据面：五轴（四真键+score——min/max 取数据域，单值轴邻域
- * 扩展 min<max）；线=score 非空组合（值序随轴序；band=score 升序三分位；
- * degraded 透传——虚线归 option 面）。
+ * 平行坐标数据面：五轴（四真键+score）——入线资格=四真键+score 全 finite
+ * （Number.isFinite 门，与 frontEligible 口径统一；无 score 兜底——缺项
+ * 组合诚实排除不造假值）；轴域只按入线组合取值（min/max 数据域，单值轴
+ * 邻域扩展 min<max）；全组合资格门外→空 axes/lines（组件空态文案承载）；
+ * band=score 升序三分位；degraded 透传（虚线归 option 面）。
  */
 export function parallelAxesData(
   combos: readonly JointComboView[],
@@ -248,9 +258,19 @@ export function parallelAxesData(
   const axisKeys: readonly string[] = [...TRUE_METRIC_KEYS, "score"];
   const plotted = combos
     .map((combo, index) => ({ combo, index }))
-    .filter((item) => item.combo.score !== null);
+    .filter(
+      (item) =>
+        TRUE_METRIC_KEYS.every((key) =>
+          Number.isFinite(item.combo.metrics[key]),
+        ) && Number.isFinite(item.combo.score),
+    );
+  if (plotted.length === 0) {
+    return { axes: [], lines: [] };
+  }
+  const valueOf = (combo: JointComboView, key: string): number =>
+    key === "score" ? combo.score! : combo.metrics[key]!;
   const axes: ParallelAxis[] = axisKeys.map((key) => {
-    const values = plotted.map((item) => item.combo.metrics[key] ?? item.combo.score!);
+    const values = plotted.map((item) => valueOf(item.combo, key));
     const min = Math.min(...values);
     const max = Math.max(...values);
     if (min === max) {
@@ -266,7 +286,7 @@ export function parallelAxesData(
   ranked.forEach((item, rank) => rankOf.set(item.index, rank));
   const lines: ParallelLine[] = plotted.map(({ combo, index }) => ({
     comboIndex: index,
-    values: axisKeys.map((key) => combo.metrics[key] ?? combo.score!),
+    values: axisKeys.map((key) => valueOf(combo, key)),
     degraded: combo.sensitivity_degraded,
     band: bandOf(rankOf.get(index)!, plotted.length),
   }));
@@ -309,18 +329,37 @@ export function buildParallelOption(
   };
 }
 
-/** avg 对声明（avg 键→design 键——capex 无 avg 对，六出水指标无 avg 对）。 */
+/** avg 对声明（avg 键→design 键——单源派生 jointView AVG_METRIC_KEYS；
+ *  capex 无 avg 对，六出水指标无 avg 对）。 */
 const AVG_PAIRS: readonly { avgKey: string; designKey: string }[] =
-  TRUE_METRIC_KEYS.slice(0, 3).map((key) => ({
-    avgKey: `avg.${key}`,
-    designKey: key,
+  AVG_METRIC_KEYS.map((avgKey) => ({
+    avgKey,
+    designKey: avgKey.slice("avg.".length),
   }));
+
+/** 失守工况原文→呈现标签（"cond:std:IND+IND"→"cond（std）：IND+IND"；
+ *  两段式"cond:tail"→"cond：tail"；空尾三段式同两段式；非注记格式原样）。 */
+function parseFailedLabel(item: string): string {
+  const firstColon = item.indexOf(":");
+  if (firstColon === -1) {
+    return item; // 非注记格式原样（诚实呈现不猜语义）
+  }
+  const conditionKey = item.slice(0, firstColon);
+  const secondColon = item.indexOf(":", firstColon + 1);
+  if (secondColon === -1) {
+    return `${conditionKey}：${item.slice(firstColon + 1)}`;
+  }
+  const middle = item.slice(firstColon + 1, secondColon);
+  const tail = item.slice(secondColon + 1);
+  return tail === ""
+    ? `${conditionKey}：${middle}`
+    : `${conditionKey}（${middle}）：${tail}`;
+}
 
 /**
  * 龙卷风数据面（选定方案单 combo）：三键 avg 对相对变化率
  * (avg-design)/design（design=0 或对缺席=诚实跳过记键）+failed_conditions
- * 标签解析去重（"cond:std:IND+IND"→"cond（std）：IND+IND"、
- * "cond:opex_absent"→"cond：opex_absent"）。
+ * 标签解析去重（解析后按标签去重——不同原文同标签只呈现一次）。
  */
 export function tornadoBars(combo: JointComboView): TornadoData {
   const bars: TornadoBar[] = [];
@@ -339,31 +378,15 @@ export function tornadoBars(combo: JointComboView): TornadoData {
       ratio: (avg - design) / design,
     });
   }
-  const seen = new Set<string>();
+  const seenLabels = new Set<string>();
   const failedLabels: string[] = [];
   for (const item of combo.failed_conditions) {
-    if (seen.has(item)) {
-      continue;
+    const label = parseFailedLabel(item);
+    if (seenLabels.has(label)) {
+      continue; // 解析后按标签去重（原文异形同标签只呈现一次）
     }
-    seen.add(item);
-    const firstColon = item.indexOf(":");
-    const secondColon = item.indexOf(":", firstColon + 1);
-    if (firstColon === -1) {
-      failedLabels.push(item); // 非注记格式原样（诚实呈现不猜语义）
-      continue;
-    }
-    const conditionKey = item.slice(0, firstColon);
-    if (secondColon === -1) {
-      failedLabels.push(`${conditionKey}：${item.slice(firstColon + 1)}`);
-      continue;
-    }
-    const middle = item.slice(firstColon + 1, secondColon);
-    const tail = item.slice(secondColon + 1);
-    failedLabels.push(
-      tail === ""
-        ? `${conditionKey}：${middle}`
-        : `${conditionKey}（${middle}）：${tail}`,
-    );
+    seenLabels.add(label);
+    failedLabels.push(label);
   }
   return { bars, skipped, failedLabels };
 }

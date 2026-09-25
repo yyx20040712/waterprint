@@ -5,8 +5,10 @@
  *
  * 输入:  JointSolutionsPanel（窄化产物 JointResultView——组件零形状判断）
  * 输出:  断言：combos 表行数（排名/四键/score/降权标记）+三图 Tabs 页签
- *        文案（forceRender 全页签 SSR 在场）+无解诊断面（combos 空=
- *        done 合法终态沿枚举同款语义）+龙卷风空态文案（无 avg 对不造假）
+ *        文案（forceRender 全页签 SSR 在场）+无解诊断投影（combos 空=
+ *        done 合法终态——beam.py 真形两态：stage_empty 载荷嵌套 stage 键
+ *        /final_infeasible 仅 note；未知 kind 原样 JSON 摘要不吞）+龙卷风
+ *        空态文案（无 avg 对不造假）+平行坐标空态（资格门外无可绘文案）
  */
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -50,7 +52,11 @@ const RESULT: JointResultView = {
 };
 
 function render(result: JointResultView): string {
-  return renderToString(<JointSolutionsPanel result={result} />);
+  // 剥离 React SSR 相邻文本节点间的 <!-- --> 分隔标记（DOM 文本内容等价断言）
+  return renderToString(<JointSolutionsPanel result={result} />).replace(
+    /<!-- -->/g,
+    "",
+  );
 }
 
 describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
@@ -79,15 +85,62 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("方案 1"); // 龙卷风默认首位=排名最高
   });
 
-  it("combos 空 → 无解诊断面（done 合法终态沿枚举同款语义）", () => {
+  it("combos 空+stage_empty → 分段无解标签+stage 层冲突内容展开（beam.py:444 真形——载荷嵌套 stage 键）", () => {
     const html = render({
       unit_ids: ["unitA", "unitB"],
-      diagnosis: { minimal_conflicts: [["k1", "k2"]], fail_counts: {}, suggestions: [] },
+      diagnosis: {
+        kind: "stage_empty",
+        stage: {
+          minimal_conflicts: [["aao_1.n_pool", "cass_1.n_pool"]],
+          fail_counts: { "aao_1.n_pool": 12 },
+          suggestions: [
+            {
+              param_key: "aao_1.n_pool",
+              direction: "下调",
+              magnitude: 1,
+              basis: "最小冲突集消解",
+              affected_conflicts: ["aao_1.n_pool"],
+              expected_effect: "缓解分段无解",
+            },
+          ],
+          frozen_prefix: {},
+        },
+      },
       combos: [],
     });
     expect(html).toContain("无解诊断");
-    expect(html).toContain("k1、k2");
+    expect(html).toContain("分段无解（stage_empty）"); // kind 标签在场
+    expect(html).toContain("aao_1.n_pool、cass_1.n_pool"); // stage 层冲突内容展开
+    expect(html).toContain("aao_1.n_pool：12 行不可行"); // 失败计数展开
+    expect(html).toContain("缓解分段无解"); // 建议内容展开
     expect(html).not.toContain("帕累托前沿图"); // 无方案不进三图面
+  });
+
+  it("combos 空+final_infeasible → 终判不可行 note 显著呈现（冲突键空=缺失呈现不造假）", () => {
+    const html = render({
+      unit_ids: ["unitA", "unitB"],
+      diagnosis: {
+        kind: "final_infeasible",
+        relaxed: false,
+        note: "末段组合全不可行且无可放宽 range 域（离散档网格无连续域）",
+      },
+      combos: [],
+    });
+    expect(html).toContain("终判不可行（final_infeasible）"); // kind 标签在场
+    expect(html).toContain(
+      "终判不可行：末段组合全不可行且无可放宽 range 域（离散档网格无连续域）",
+    ); // note 文案显著呈现
+    expect(html).toContain("（载荷缺失）"); // 冲突消费面空——DiagnosisPanel 缺失呈现
+  });
+
+  it("combos 空+未知 kind → 原样呈现 kind+JSON 摘要（fail-visible 不吞）", () => {
+    const html = render({
+      unit_ids: ["unitA", "unitB"],
+      diagnosis: { kind: "novel_kind", detail: "异常负载文本" },
+      combos: [],
+    });
+    expect(html).toContain("未知诊断类型（novel_kind）");
+    expect(html).toContain("异常负载文本"); // JSON 摘要在场
   });
 
   it("龙卷风空态：无 avg 对组合不造假数据（诚实文案在场）", () => {
@@ -100,5 +153,17 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     delete (noAvg.combos[0]!.metrics as Record<string, number>)["avg.carbon_intensity_kgco2e_m3"];
     const html = render(noAvg);
     expect(html).toContain("无 avg/design 成对指标");
+  });
+
+  it("平行坐标空态：全组合资格门外 → 无可绘方案文案（不造假轴）", () => {
+    const allOut: JointResultView = {
+      unit_ids: ["unitA", "unitB"],
+      diagnosis: null,
+      combos: [
+        comboOf([100, 50, 0.5, 1000], { score: null }), // score 缺席——资格门外
+      ],
+    };
+    const html = render(allOut);
+    expect(html).toContain("无可绘方案（指标/得分不全场）");
   });
 });

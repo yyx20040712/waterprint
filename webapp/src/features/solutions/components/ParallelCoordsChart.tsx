@@ -12,7 +12,8 @@
  *     LegendComponent/CanvasRenderer）；
  *   - 轴反向开关默认开（能耗成本类低优——低值端对齐）；开关只影响显示
  *     不影响数据面（parallelAxesData 与 invert 解耦）；
- *   - score 缺席组合不入图（五轴需全值——诚实排除注记）；
+ *   - 入线资格（四真键+score 全 finite）门外组合不入图；全组合门外=
+ *     空态文案（无可绘方案——不造假轴；容器常驻高度塌陷，R3 回炉）；
  *   - 组件壳不测（薄壳先例——投影层纯函数承载全部契约）。
  */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -52,6 +53,7 @@ export function ParallelCoordsChart({
   const chartRef = useRef<echarts.ECharts | null>(null);
   const [invert, setInvert] = useState(true);
   const axesData = useMemo(() => parallelAxesData(combos), [combos]);
+  const empty = axesData.axes.length === 0;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -72,6 +74,9 @@ export function ParallelCoordsChart({
   }, []);
 
   useEffect(() => {
+    if (axesData.axes.length === 0) {
+      return; // 空数据面不 setOption（容器常驻——空态文案承载）
+    }
     chartRef.current?.setOption(buildParallelOption(axesData, invert));
   }, [axesData, invert]);
 
@@ -88,12 +93,19 @@ export function ParallelCoordsChart({
           }}
         />
       </div>
-      <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 4 }}>
-        五轴=运行成本/能耗/碳强度/建设投资/综合得分（全低优）；线色=综合得分
-        三分位分档（优/中/差档）；虚线=敏感工况失守方案（sensitivity_degraded）；
-        综合得分缺席的方案不入图（五轴需全值）。
-      </Typography.Paragraph>
-      <div ref={containerRef} style={{ width: "100%", height: CHART_HEIGHT }} />
+      {empty ? (
+        <Typography.Paragraph type="secondary" style={{ marginTop: 8 }}>
+          无可绘方案（指标/得分不全场）——入线需四项指标与综合得分全在场，
+          缺项组合诚实排除不造假轴。
+        </Typography.Paragraph>
+      ) : (
+        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 4 }}>
+          五轴=运行成本/能耗/碳强度/建设投资/综合得分（全低优）；线色=综合得分
+          三分位分档（优/中/差档）；虚线=敏感工况失守方案（sensitivity_degraded）；
+          指标或综合得分不全场（sparse）的方案不入图（五轴需全值）。
+        </Typography.Paragraph>
+      )}
+      <div ref={containerRef} style={{ width: "100%", height: empty ? 0 : CHART_HEIGHT }} />
     </div>
   );
 }

@@ -9,8 +9,8 @@
  *        默认 运行成本×建设投资）+四维注记文案
  *
  * 规格说明（批2d 简报③ DoD 3）：
- *   - 按需注册恰六件（ScatterChart/GridComponent/TooltipComponent/
- *     LegendComponent/CanvasRenderer+本图消费面）；
+ *   - 按需注册恰五件（ScatterChart/GridComponent/TooltipComponent/
+ *     LegendComponent/CanvasRenderer）；
  *   - 轴选择器换轴只换显示投影——前沿不重算（四维性质注记在案）；
  *   - 悬停 tooltip=四键值+score+参数摘要（paretoTooltipLines 纯函数）；
  *   - 组件壳不测（薄壳先例——投影层 jointCharts 纯函数承载全部契约）；

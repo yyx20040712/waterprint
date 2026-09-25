@@ -8,9 +8,11 @@
  *        （帕累托前沿图/平行坐标图/敏感性龙卷风图——forceRender 全页签
  *        挂载）或无解诊断面（combos 空=done 合法终态沿枚举同款语义）
  *
- * 规格说明（批2d 简报③ DoD 2~5）：
- *   - combos 空 → DiagnosisPanel（diagnosis 透传自窄化——宽容窄化面归
- *     该组件）；无方案不进三图面；
+ * 规格说明（批2d 简报③ DoD 2~5；R1 回炉——无解诊断投影）：
+ *   - combos 空 → 无解诊断投影面（projectJointDiagnosis 真形投影：
+ *     stage_empty=stage 层展开给 DiagnosisPanel+kind 标签；final_
+ *     infeasible=冲突面缺失呈现+note 显著文案；未知 kind=JSON 摘要
+ *     fail-visible 不吞）；无方案不进三图面；
  *   - 表列：排名（combos 序=score 升序——首位=排名最高[全目标最小化优，
  *     score 越小越好]）；四键列头=metricLabel 中文+formatSolutionValue
  *     千分位；score null=「（缺失）」诚实呈现；降权=「敏感工况失守」；
@@ -22,7 +24,7 @@ import { Card, Table, Tabs, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 import type { JointComboView, JointResultView } from "../lib/jointView";
-import { TRUE_METRIC_KEYS, metricLabel } from "../lib/jointView";
+import { TRUE_METRIC_KEYS, metricLabel, projectJointDiagnosis } from "../lib/jointView";
 import { comboSummaryText, paretoFront } from "../lib/jointCharts";
 import { formatSolutionValue } from "../lib/solutionsView";
 import { DiagnosisPanel } from "./DiagnosisPanel";
@@ -40,9 +42,24 @@ function scoreText(score: number | null): string {
 
 export function JointSolutionsPanel({ result }: { result: JointResultView }) {
   if (result.combos.length === 0) {
+    const diag = projectJointDiagnosis(result.diagnosis);
     return (
       <Card size="small" title="联合枚举（方案比选）" style={{ marginTop: 12 }}>
-        <DiagnosisPanel diagnosis={result.diagnosis} />
+        <Typography.Paragraph type="warning" style={{ fontSize: 12, marginBottom: 8 }}>
+          无可行组合——{diag.kindLabel}
+          （分段无解=某单元组合层先空；终判不可行=末段全组合不可行）。
+        </Typography.Paragraph>
+        {diag.note !== null ? (
+          <Typography.Paragraph type="danger" strong>
+            终判不可行：{diag.note}
+          </Typography.Paragraph>
+        ) : null}
+        {diag.rawSummary !== null ? (
+          <Typography.Paragraph type="warning" style={{ wordBreak: "break-all" }}>
+            诊断载荷原样：{diag.rawSummary}
+          </Typography.Paragraph>
+        ) : null}
+        <DiagnosisPanel diagnosis={diag.panelPayload} />
       </Card>
     );
   }
