@@ -18,7 +18,10 @@
  *      Alert warning 非阻断；保存钮不看校验结果）；
  *   - 红线⑤：保存体=时点最新 raw 的非 design 面+草稿 design 面
  *      （快照隔离不回流+不回写陈旧面双守）；保存成功 markSaved 基座
- *      复归+失效项目键（缩略图/参数面随 refetch 刷新）。
+ *      复归+失效项目键（缩略图/参数面随 refetch 刷新）；
+ *   - F3/A-1（round3 批 R1）：提交计算入口参数草稿闸——paramsStore
+ *      draftHint[projectId] 非零=拦截（不 save 不 mutate，禁自动 apply），
+ *      提示指路参数面板「提交重算」正门（E2E-2 保存徽标同计数源）。
  */
 import { useEffect, useState } from "react";
 import { Alert, Badge, Button, Popconfirm, Typography, message } from "antd";
@@ -60,13 +63,28 @@ function rawCheckedUnits(raw: unknown): string[] {
 /** P0-B 决策面（fix-plan 批2 纯函数——vitest 直测）：提交计算动作分派。
  *  dirty 编辑态：body 未就绪=阻断并提示（保存需要体）；就绪=先存后算。
  *  只读态：draft===null ⇒ body 恒 null 属正常态，直接算（呈裁⑥ 常驻
- *  提交计算语义——旧实现把 body 守卫放在最前，只读态被静默吞掉）。 */
-export type RunCalcDecision = "save-run" | "run" | "block-unready";
-export function decideRunCalc(dirty: boolean, body: unknown): RunCalcDecision {
+ *  提交计算语义——旧实现把 body 守卫放在最前，只读态被静默吞掉）。
+ *  F3/A-1 扩：参数草稿计数非零=block-param-draft（先于存/算——工具条
+ *  保存不携带参数草稿，直算=陈旧参数裸失败；禁自动 apply 红线）。 */
+export type RunCalcDecision = "block-param-draft" | "save-run" | "run" | "block-unready";
+export function decideRunCalc(
+  dirty: boolean,
+  body: unknown,
+  paramDraftCount = 0,
+): RunCalcDecision {
+  if (paramDraftCount > 0) {
+    return "block-param-draft";
+  }
   if (dirty) {
     return body === null ? "block-unready" : "save-run";
   }
   return "run";
+}
+
+/** F3/A-1 拦截文案（纯函数——vitest 锁三要素：计数/『提交重算』正门/
+ *  「保存不携带」因果；禁含糊指路）。 */
+export function paramDraftBlockMessage(count: number): string {
+  return `参数面板有 ${count} 项未提交——请先在参数面板点『提交重算』（工具条保存不携带参数草稿）`;
 }
 
 export function CanvasEditToolbar({ projectId }: { projectId: string }) {
@@ -121,7 +139,13 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
       : null;
 
   const runCalc = async () => {
-    const decision = decideRunCalc(dirty, body);
+    const decision = decideRunCalc(dirty, body, paramDraftCount);
+    if (decision === "block-param-draft") {
+      // F3/A-1：参数草稿闸——不 save 不 mutate（禁自动 apply：参数语义
+      // 决策属用户），只指路参数面板「提交重算」正门
+      messageApi.warning(paramDraftBlockMessage(paramDraftCount));
+      return;
+    }
     if (decision === "block-unready") {
       messageApi.error("项目数据未就绪——稍候重试");
       return;
