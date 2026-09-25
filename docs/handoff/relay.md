@@ -225,3 +225,12 @@
 - **用户裁决（2026-09-25）**：方案比选增工业级可视化三件——帕累托前沿图（多目标 trade-off 面）、平行坐标图（高维方案空间全景）、敏感性/龙卷风图（sensitivity 失守幅度对比），保证比选直观性。
 - **编排归属**：backend-calc-complete 战役批2d（webapp 前端批）。echarts 6.1 已在依赖（FeasibilityHeatmap 先例）；数据面依赖——帕累托=枚举/联合枚举指标序列（三键版可先行，批2b capex 落地后升四目标）；平行坐标=fetch_solutions 分页列集白名单（现成）；龙卷风=sensitivity 工况 vs baseline 指标差投影（result conditions 已有数据，需投影端点）。
 - **工序约束**：webapp 批走 vitest+check_webapp 门禁+无头浏览器验证（前台焦点保护纪律）；涉 server 新投影端点时按实现批全烤验。
+
+### 增补二十四 — 2026-09-25T20:55:00+08:00（backend-calc-complete 批2a 收口：约束带裕度——margin_min 产出根因修复；板保持 HOLD）
+
+- **批2a（裁决①）**：margin_min=枚举行对 kb enumeration_filter 已追认双侧带的归一距离 min(v−a,b−v)/(b−a) 行级取最紧（commit f711f1d258）。constraints.py 扩 band_of/band_margin_column+公开常量 MARGIN_COLUMN（并入不新立文件——新文件触发镜像锁面红，批3 事故教训）；enumerate.py 摘除 dims margin_* 死面；app.run_enumeration/stage.evaluate_stage 双接线（与 apply_constraints 同一约束集=UI 勾选同源）；beam 代理分裕度分量恢复信息量。退化带（low>=high）=None 不产出裕度（门一 W1 回炉——与过滤面行为对称，单点带不误杀）。
+- **烤验全链**：门一 k1 PASS（B0/W2/N4）+d1 PASS（B0/W4/N5）→回炉实修三项（退化带 None/MARGIN_COLUMN 三面单源/草案同步）→证据处置五项（rank 缺列既有响亮/_atom isfinite 解析链守卫/rank 第二参仅 iloc/design_map 不消费裕度列/skipna 口径入规格）→门二实证 6/6（含真实项目联合枚举 worker 探针 done/combos=5）→裁决部有条件放行（must_fix 三项=呈批件文字同步，已清偿；探针终值由项目 JSON+系数+XL-F1~F8 独立逐位重推吻合）。
+- **验证面**：草案 16/16（红先证）+core 853 零回归+16 门禁绿+status 零漂移+health-scan RED=0（WARN×3 存量）。status.md 两行漂移系前批 healthcheck 欠账顺手清偿（OpenAPI 37/webapp 77——本批零 server/webapp 改动）。
+- **移交人类**：[HUMAN-LOCK] 测试草案转正（.workflow/backend-calc-complete/b2a-test-drafts/——16 用例+README 四步工序，目标 test_constraints.py/test_stage.py 域）。
+- **登记欠账**：app.py=500 恰满零余量（批5 堆）；webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类（裁决部 C4 批外既有——UI 勾选通道实践可达性依赖，并入批2d 修复+补真目录形状用例）。
+- **战役进度**：批1✓批2a✓→下一批=批2b capex 第四真键（依赖 2a 指标语义冻结已达成）→批2c gwp_ch4 27.0→批2d 可视化三图（含 picker 修复）→批3/3.5/5。板保持 HOLD（B4-5 用户门控未决——战役批次位阶独立照常推进）。
