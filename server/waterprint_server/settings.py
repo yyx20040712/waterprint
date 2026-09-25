@@ -344,7 +344,7 @@ def validate_data_packages(settings: Settings) -> None:
             problems.append("缺 " + "、".join(f"{name}/manifest.yaml" for name in missing))
         if broken:
             problems.append(
-                "manifest 空损（空文件/空映射/不可解析）："
+                "manifest 空损（空文件/空映射/不可解析或不可读）："
                 + "、".join(f"{name}/manifest.yaml" for name in broken)
             )
         raise RuntimeError(
@@ -352,7 +352,7 @@ def validate_data_packages(settings: Settings) -> None:
             + "；".join(problems)
             + "——启动拒绝（fail fast）。请设置 WATERPRINT_DATA_DIR 指向含 "
             + "、".join(_DATA_PACKAGES)
-            + " 四个子目录（各含非空 manifest.yaml）的数据根；缺省按包文件"
-            "位置解析（仓库开发态=仓库根 data/，非仓库布局——如安装态——"
-            "请显式设 env）"
+            + f" {len(_DATA_PACKAGES)} 个子目录（各含非空 manifest.yaml）的数据根；"
+            "缺省按包文件位置解析（仓库开发态=仓库根 data/，非仓库布局——"
+            "如安装态——请显式设 env）"
         )

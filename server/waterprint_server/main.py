@@ -467,13 +467,13 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
 
     @app.middleware("http")
     async def _edge_headers(request: Request, call_next: Callable[..., Any]) -> Any:
-        """R5 请求 ID（响应头回写+structlog 绑定）；C-2：/api/ GET 读面 no-store。"""
+        """R5 请求 ID（响应头回写+structlog 绑定）；C-2：/api/ GET/HEAD 读面 no-store。"""
         identifier = request.headers.get("X-Request-ID") or uuid.uuid4().hex
         structlog.contextvars.bind_contextvars(request_id=identifier)
         response = await call_next(request)
         response.headers["X-Request-ID"] = identifier
-        # C-2（e2e-fix-round3 R4）：GET+/api/ 前缀统一禁缓存（收编 R2-P2-1 单点；豁免面后续按需）。
-        if request.method == "GET" and request.url.path.startswith("/api/"):
+        # C-2：GET/HEAD+/api/ 禁缓存（收编单点；HEAD 防御纵深——APIRoute 实测 405）。
+        if request.method in ("GET", "HEAD") and request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
         return response
 

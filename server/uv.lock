@@ -1403,6 +1403,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "pydantic-settings" },
+    { name = "pyyaml" },
     { name = "structlog" },
     { name = "uvicorn" },
     { name = "waterprint-core" },
@@ -1424,6 +1425,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "pydantic-settings", specifier = ">=2.4" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "structlog", specifier = ">=24.1" },
     { name = "uvicorn", specifier = ">=0.30" },
     { name = "waterprint-core", directory = "../core" },

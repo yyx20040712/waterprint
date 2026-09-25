@@ -75,6 +75,11 @@ docker compose -f deploy/compose.yml up -d --build
 uvicorn 直启面 entrypoint 前置（`deploy/server-entrypoint.sh`——exec
 uvicorn 前先校验，缺包或 manifest 空损=容器启动即以可执行文案退出、
 healthcheck 永不转绿，非请求期 500 晚拒；卷遮蔽数据目录场景同受防护）。
+残余边界：裸机 venv 内直接 `uvicorn waterprint_server.main:app`（不经
+python -m 也不经 entrypoint）仍绕过校验——裸机部署请一律走
+`python -m` 口径（根 README「一键命令」）；数据未就绪的空卷首启会因
+校验拒绝而起不来（编排面 `depends_on: service_healthy` 将等待数据
+就绪），请先备数据再起容器。
 
 ## 环境变量（WATERPRINT_ 前缀，均可覆盖）
 

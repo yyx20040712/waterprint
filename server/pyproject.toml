@@ -8,6 +8,9 @@ dependencies = [
     "uvicorn>=0.30",
     "structlog>=24.1",
     "pydantic-settings>=2.4",
+    # R4 C-3（e2e-fix-round3 2026-09-25）：settings 启动校验直接 import yaml
+    #（此前经 waterprint-core 传递可用——显式声明防上游收敛即断，门一 N9/N-4）
+    "pyyaml>=6.0",
     "waterprint-core",
 ]
 
