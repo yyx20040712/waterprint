@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
+- status: RUNNING <!-- 2026-09-25 R3 收口置位（增补二十八）；下一批=批2b -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,21 +20,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T10:29:18.000Z
-- claim: -
+- heartbeat_utc: 2026-09-25T10:40:03.000Z
+- claim: executor-b2b-20260925T104003Z <!-- 快照 checked_done=27，批2b 认领 -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 27 <!-- 2026-09-25 R3 收口 26→27（第五波 1/12） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
-- last_dispatch_utc: 2026-09-25T09:49:41.529Z <!-- 2026-09-25 rev4 换防首班发布成立（回读④后端事实=model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘）；旧值 2026-09-24T21:36:38.025Z -->
+- last_dispatch_utc: 2026-09-25T10:40:08.845Z <!-- 2026-09-25 第二班发布成立（回读④+绑定核验：sess_01aebe70 env 块 Primary working directory=E:\class\智水蓝图；~30s 落盘）；旧值 2026-09-25T09:49:41.529Z（换防首班） -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
 - batch_count: 7 <!-- R3 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
-- claimed_by: -
-- claimed_at: -
+- claimed_by: executor-b2b-20260925T104003Z
+- claimed_at: 2026-09-25T10:40:03.000Z
 - next_batch: 批2b capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重专家追认）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
@@ -289,3 +289,10 @@
 - **Rulings/欠账**：①警告与错误同 tuple 无分级标记——server valid/CLI 退出码对孤立图翻转（三调用方核查无「非空即拒计算」面=提示性），「警告不翻 valid」分级语义+报告层渲染样式=后续独立批产品口径；②全 builtin 图零提示=产品确认项（豁免口径边界，k1 N-6）；③文案「可解析边」边级表述 vs 实现端点级判定——docstring 已锚定，留档（d1 N-6）；④[扔账] E2E-1 欠账④（check_model_names OSError 静默吞+目录漂移）仍待 R5 批 C-4。
 - **移交人类**：[HUMAN-LOCK] 呈批件+E2E-5 孤立警告测试期望 diff（并入 U-1 锁面笔清单第四笔——①audit-norms 批1 ②批2a ③E2E-1/E2E-3 ④本件；落地后 core 预期红归零）。工序=isolated_warn.draft.md 四步（解锁→git apply 同目录 .diff→lock_tests.py→commit [HUMAN-LOCK]）。
 - **下一批**：批2b capex 第四真键（backend-calc-complete——依赖 2a 指标语义冻结已达成）。
+
+### 增补二十九 — 2026-09-25T10:40:08.845Z（第二班发布成立：批2b 执行令已发——智水蓝图工作区显式绑定）
+
+- **开批四条件**：READY（R3 收口=增补二十八）/静默窗 46min/实物静默（git b5c98e978a 距 6.3min ≥5min）/熔断未触发（7<60、墙钟 49min<90h）。
+- **通道含绑定修正（用户 2026-09-25「game 误绑」批评整改）**：前台门（ZCode 本就在前台）/Ctrl+N/回读② 模型=GLM-5.3（继承上次切换）/「选择项目」菜单搜索「智水蓝图」checkbox 显式绑定→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_01aebe70-4aa3-46f6-847f-8639ab0ab739.jsonl ~30s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**（工作区根=父目录，waterprint 依绝对路径开工——增补二十先例；waterprint 仓级 AGENTS.md 不自动注入由板执行路由承接）。model=GLM-5.3。
+- **last_dispatch_utc 原子重写=本笔**；executor=sess_01aebe70 按板执行者条款 claim 执行批2b（capex 第四真键）。
+- **通道工训（肥调度会话病理实测）**：本会话转录渐长后 a11y 树持续重编号，「选择项目」索引点击三连败（action_sent=false 安全）→降级视觉坐标路径（bounds×0.5 raster 换算）成功；项目菜单搜索框须输工作区名（搜「waterprint」无匹配——工作区名=智水蓝图）。按薄调度员铁律：本会话再变重应迁火新薄会话（待用户示下）。
