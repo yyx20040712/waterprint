@@ -293,6 +293,6 @@
 ### 增补二十九 — 2026-09-25T10:40:08.845Z（第二班发布成立：批2b 执行令已发——智水蓝图工作区显式绑定）
 
 - **开批四条件**：READY（R3 收口=增补二十八）/静默窗 46min/实物静默（git b5c98e978a 距 6.3min ≥5min）/熔断未触发（7<60、墙钟 49min<90h）。
-- **通道含绑定修正（用户 2026-09-25「game 误绑」批评整改）**：前台门（ZCode 本就在前台）/Ctrl+N/回读② 模型=GLM-5.3（继承上次切换）/「选择项目」菜单搜索「智水蓝图」checkbox 显式绑定→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_01aebe70-4aa3-46f6-847f-8639ab0ab739.jsonl ~30s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**（工作区根=父目录，waterprint 依绝对路径开工——增补二十先例；waterprint 仓级 AGENTS.md 不自动注入由板执行路由承接）。model=GLM-5.3。
+- **通道含绑定修正（用户 2026-09-25「game 误绑」批评整改）**：前台门（ZCode 本就在前台）/Ctrl+N/回读② 模型=当班会话模型（继承上次切换）/「选择项目」菜单搜索「智水蓝图」checkbox 显式绑定→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_01aebe70-4aa3-46f6-847f-8639ab0ab739.jsonl ~30s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**（工作区根=父目录，waterprint 依绝对路径开工——增补二十先例；waterprint 仓级 AGENTS.md 不自动注入由板执行路由承接）。model=当班会话模型。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_01aebe70 按板执行者条款 claim 执行批2b（capex 第四真键）。
 - **通道工训（肥调度会话病理实测）**：本会话转录渐长后 a11y 树持续重编号，「选择项目」索引点击三连败（action_sent=false 安全）→降级视觉坐标路径（bounds×0.5 raster 换算）成功；项目菜单搜索框须输工作区名（搜「waterprint」无匹配——工作区名=智水蓝图）。按薄调度员铁律：本会话再变重应迁火新薄会话（待用户示下）。
