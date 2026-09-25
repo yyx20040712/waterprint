@@ -122,6 +122,96 @@ describe("toPayloadItems（枚举 payload 三键投影）", () => {
   });
 });
 
+// ═══ 批2d（板增补二十三 C4 兑现）：真目录形状用例——kb 1.4.0
+// data/constraint_kb/constraints.json 实形（21 条 4 类：12 effluent+6
+// enumeration_filter+2 spacing_check+1 boundary_check；key/kind/unit_kinds
+// 逐条实形替入，label 等文本面以非空串实形占位）。修复面：narrowConstraintCatalog
+// 接受 4 类（键面单源=generated ConstraintEntryKind）；filterSelectable
+// 供选面零变化（仍仅 enumeration_filter×unit_kinds——spacing/boundary 是
+// site 校核面不进枚举过滤，语义零变化）；第 5 类字面量防御用例仍拒。 ═══
+describe("真目录形状窄化（kb 1.4.0——21 条 4 类全过）", () => {
+  /** 条目构造（文本面非空串实形占位——key/kind/unit_kinds 逐条实形）。 */
+  const mk = (key: string, kind: string, unit_kinds: string[]) => ({
+    key,
+    kind,
+    unit_kinds,
+    label: `${key} 标签（kb 1.4.0 实形占位）`,
+    expression: `${key} >= 1.0 and ${key} <= 2.0`,
+    source: "kb 1.4.0 实形占位",
+    severity: "WARN",
+    value_basis: "kb 1.4.0 实形占位",
+  });
+
+  /** kb 1.4.0 constraints.json 21 条实形（kind×unit_kinds 逐条同源替入）。 */
+  const REAL_CATALOG = {
+    entries: [
+      mk("vxinglvchi.v_filter_band", "enumeration_filter", ["municipal_vxinglvchi"]),
+      mk("vxinglvchi.v_forced_band", "enumeration_filter", ["municipal_vxinglvchi"]),
+      mk("ganhua.moisture_out_band", "enumeration_filter", ["sludge_ganhua"]),
+      mk("nongsuo.solid_load_band", "enumeration_filter", ["sludge_nongsuo"]),
+      mk("nongsuo.moisture_out_band", "enumeration_filter", ["sludge_nongsuo"]),
+      mk("xiaohua.vs_load_band", "enumeration_filter", ["sludge_xiaohua"]),
+      mk("gb18918.level_a.bod5", "effluent_standard", []),
+      mk("gb18918.level_a.cod", "effluent_standard", []),
+      mk("gb18918.level_a.ss", "effluent_standard", []),
+      mk("gb18918.level_a.nh3n", "effluent_standard", []),
+      mk("gb18918.level_a.tn", "effluent_standard", []),
+      mk("gb18918.level_a.tp", "effluent_standard", []),
+      mk("gb18918.level_b.bod5", "effluent_standard", []),
+      mk("gb18918.level_b.cod", "effluent_standard", []),
+      mk("gb18918.level_b.ss", "effluent_standard", []),
+      mk("gb18918.level_b.nh3n", "effluent_standard", []),
+      mk("gb18918.level_b.tn", "effluent_standard", []),
+      mk("gb18918.level_b.tp", "effluent_standard", []),
+      mk("site.clearance_general", "spacing_check", []),
+      mk("site.clearance_nongsuo_xiaohua", "spacing_check", ["sludge_nongsuo", "sludge_xiaohua"]),
+      mk("site.boundary_containment", "boundary_check", []),
+    ],
+  };
+
+  it("21 条 4 类目录窄化全过（spacing/boundary 到达不再抛——修复面）", () => {
+    const view = narrowConstraintCatalog(REAL_CATALOG);
+    expect(view).toHaveLength(21);
+    expect(new Set(view.map((e) => e.kind))).toEqual(
+      new Set(["enumeration_filter", "effluent_standard", "spacing_check", "boundary_check"]),
+    );
+  });
+
+  it("filterSelectable 供选面不变：全目录枚举过滤仍 6 条（4 单元归属）", () => {
+    const view = narrowConstraintCatalog(REAL_CATALOG);
+    expect(filterSelectable(view, "municipal_vxinglvchi").map((e) => e.key)).toEqual([
+      "vxinglvchi.v_filter_band",
+      "vxinglvchi.v_forced_band",
+    ]);
+    expect(filterSelectable(view, "sludge_nongsuo").map((e) => e.key)).toEqual([
+      "nongsuo.solid_load_band",
+      "nongsuo.moisture_out_band",
+    ]);
+    expect(filterSelectable(view, "sludge_ganhua").map((e) => e.key)).toEqual([
+      "ganhua.moisture_out_band",
+    ]);
+    expect(filterSelectable(view, "sludge_xiaohua").map((e) => e.key)).toEqual([
+      "xiaohua.vs_load_band",
+    ]);
+  });
+
+  it("spacing/boundary 是 site 校核面不进枚举过滤（unit_kinds 归属也不供选——语义零变化）", () => {
+    const view = narrowConstraintCatalog(REAL_CATALOG);
+    // site.clearance_nongsuo_xiaohua 的 unit_kinds 含两污泥单元——kind 门仍拦
+    expect(filterSelectable(view, "sludge_nongsuo").some((e) => e.kind !== "enumeration_filter")).toBe(false);
+    const siteEntries = view.filter((e) => e.kind === "spacing_check" || e.kind === "boundary_check");
+    expect(siteEntries).toHaveLength(3);
+    for (const unit of ["sludge_nongsuo", "sludge_xiaohua", "municipal_vxinglvchi", "sludge_ganhua"]) {
+      expect(filterSelectable(view, unit).filter((e) => siteEntries.includes(e))).toEqual([]);
+    }
+  });
+
+  it("第 5 类字面量仍拒（4 类外 kind 越界防御——窄化门不因扩面放宽）", () => {
+    const bad = { entries: [mk("custom.key", "custom_check", [])] };
+    expect(() => narrowConstraintCatalog(bad)).toThrow(/kind 越界/);
+  });
+});
+
 // ═══ CP2（约束勾选持久化 2026-09-01 D3/D7）：恢复投影纯函数 TDD 红先——
 // 动态 import 隔离红面（实现前新导出不存在，单测红不殃及全文件——UX2
 // designParams.test.ts Internals 先例） ═══

@@ -32,11 +32,20 @@
  *   - CP2 R-1 合成全集：antd Checkbox.Group onChange 只报本组注册值
  *     （当前供选面 options），跨单元已勾键须由挂载方显式保留——
  *     持久载荷=合成全集非本组值（D4「切回再现」的变更面契约载体）；
- *     次序确定（保留键原序+nextKeys 追加序）+去重（防御面）。
+ *   - 次序确定（保留键原序+nextKeys 追加序）+去重（防御面）；
+ *   - 批2d（板增补二十三 C4 兑现）：kind 键面 4 类全收（kb 1.4.0 实发
+ *     enumeration_filter/effluent_standard/spacing_check/boundary_check——
+ *     生产目录经 /api/constraints 到达前端即抛 ConstraintCatalogError 的
+ *     勾选通道锁死修复）；键面单源=generated ConstraintEntryKind
+ *     （Object.values 派生——禁手写字面量第二份）；供选双门语义零变化
+ *     （filterSelectable 仍仅 enumeration_filter×unit_kinds——spacing/
+ *     boundary 是 site 校核面不进枚举过滤）。
  */
+import { ConstraintEntryKind } from "../../../shared/api/generated/model/constraintEntryKind";
+
 export type ConstraintEntryView = {
   key: string;
-  kind: "enumeration_filter" | "effluent_standard";
+  kind: ConstraintEntryKind;
   unit_kinds: string[];
   label: string;
   expression: string;
@@ -52,7 +61,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-const KINDS = ["enumeration_filter", "effluent_standard"] as const;
+/** kind 合法键集（批2d：单源派生自 generated ConstraintEntryKind——扩类只改 spec 再生成，本面零改动）。 */
+const KINDS: readonly ConstraintEntryKind[] = Object.values(ConstraintEntryKind);
 
 function narrowEntry(raw: unknown, position: number): ConstraintEntryView {
   if (!isRecord(raw)) {
