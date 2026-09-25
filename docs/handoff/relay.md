@@ -13,21 +13,21 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
 - status: READY <!-- 2026-09-25 用户四裁决解锁（增补二十五）：B4-5 勘误确认拆 ⑤a/⑤b+批3 授权检索起草+总排序采纳——HOLD 收线，待换防布火 -->
-- automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 ——2026-09-25 HOLD 收线时该火已删，本行值过期：换防时由新任 hub 重布火并回填 -->
+- automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T23:44:02.069Z <!-- B4-5 终批收口（stop_matter）——换防重置 -->
+- heartbeat_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置；旧值 2026-09-24T23:44:02.069Z（B4-5 终批收口） -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26；批2a 收口不占本清单项（战役批，日志增补二十四记账） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
 - last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- 换防布火发布首班时原子重写 -->
-- relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 换防时重置（熔断墙钟基准） -->
+- relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
 - batch_count: 6 <!-- 换防后继续累加（上限 60 足容 12 新项） -->
 - max_batches: 60
 - max_wall_hours: 90
@@ -261,3 +261,12 @@
 - **板面手术**：status HOLD→READY（hold_reason 清空）；no_progress_count 重置 0；checked_total 27→38（−1 B4-5 拆分+12 第五波）；next_batch=R3；automation_id 行注记过期待换防回填；heartbeat/relay_started/batch_count 注记换防重置口径。执行清单新增第五波（12 项交错序，单批明细持指针防双源）。
 - **文档群维护记**：增补二十一「挂账六项与 P3 顺手清单见战役档 gate2 终裁报告」引用悬空（.workflow/healthcheck-20260925/ 无该落盘件）——已知两项折入排程（React 重复 key 警告定位→R5 顺手；联合枚举无 UI R-B44b-4→批2d 并案裁量），未知余项以 gate2-adjudication-package.md 存档为准不再追认引用；两锁面呈批件（F1/E2E-3）仍待人类 [HUMAN-LOCK]（与批2a 呈批件并见移交清单）。
 - **移交人类清单（集中索引）**：[HUMAN-LOCK] 四笔呈批件（①audit-norms 批1 测试 2 文件 6 用例 ②批2a 测试 2 文件 16 用例 ③E2E-1 四用例+E2E-3 桥单测 ④F1 增补三用例——落地后 server 红归零）+批2c golden 重录（制备批呈批件到位后）+批3a 数值追认单签字。重启自动化=/batch-relay 换防（调度员提示词=板头标准注入词调度员窗口 rev4 口径）。
+
+### 增补二十六 — 2026-09-25T09:46:25.615Z（rev4 换防迁火：新火回填+熔断基准重置——handover 薄调度会话接任 hub）
+
+- **迁火**：CronList 空（旧火 automation-b3938334 已随 HOLD 收线删除实证）→ 新火 CronCreate=automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2（`*/10` hub 轮转火，prompt=hub 模板 §2 原文单板清单）→ 板头 automation_id 字段行回填（锚定+计数守卫=1；历史日志旧 id 存量不动）。全局单火不变式保持。
+- **复位口径**：relay_started_utc/heartbeat_utc 重置=换防时刻；batch_count=6 不清零（增补二十五板面口径「换防后继续累加，上限 60 足容 12 新项」——板面注记优先于 ops-manual 通用复位默认）；status=READY/claim=-/no_progress_count=0 增补二十五手术已就位无需再动；last_dispatch_utc 待本会话首班发布成立后原子重写。
+- **机检**：board 绿（1 warn=R3_LEGACY_FIELD 旧 last_dispatch 行冻结预期）+ drift 绿（protocol 段=golden rev4 字节一致——增补二十原位升版成果，本次换防无需刷新）。
+- **深度设计门**：ai-dev-org 路径成立（.zcode/org-ledger.jsonl 在场+裁决书/round3 工单/战役档齐备）。
+- **接任词执行序**：迁火回填→提交推送→随即开批通道（前台门+回车+回读④）发布 R3 首班。条件③口径注记：上一批实物=增补二十五手术笔 d91a1a3e39（09:40:42Z），开批时点距今 ≥5min 成立；本会话换防笔非批产物不计入（用户接任词明示「提交推送→随即开批」）。
+- 此后每班火=纯调度员（rev4）：只读板头+protocol 段调度，禁执行禁重活禁载技能。
