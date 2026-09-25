@@ -62,6 +62,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Final
 
+import yaml
 from pydantic import Field, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -302,25 +303,56 @@ _DATA_PACKAGES: Final[tuple[str, ...]] = (
 )
 
 
+def _read_manifest_mapping(manifest: Path) -> dict | None:
+    """C-3（e2e-fix-round3 R4）：manifest 内容判据——yaml.safe_load 解析出
+    非空 dict 才算在场（空文件/空映射/损坏 yaml/读失败=None=空损态）。
+
+    读失败（OSError/编码错）与解析失败（yaml.YAMLError）同归空损——启动期
+    判据只问"可否解析出至少一条映射"，细粒度病因不改变"该包不可用"结论。
+    """
+    try:
+        loaded = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, yaml.YAMLError):
+        return None
+    return loaded if isinstance(loaded, dict) and loaded else None
+
+
 def validate_data_packages(settings: Settings) -> None:
-    """启动期数据包在场校验（E2E-1 P0-A fail fast）：缺任何 manifest.yaml
-    以可执行文案拒绝启动（晚拒+拒在用户脸上的 500 时代终结——对齐
+    """启动期数据包在场校验（E2E-1 P0-A fail fast；R4 C-3 判据升级）：
+    缺任何 manifest.yaml、或 manifest 空损（空文件/空映射/不可解析）均以
+    可执行文案拒绝启动（晚拒+拒在用户脸上的 500 时代终结——对齐
     ADR-012 D6 fail-fast 理念）。
 
-    消费点=main 启动块（README「python -m waterprint_server.main」口径），
-    uvicorn 直启（Docker CMD）面数据包随镜像走+显式 env，不经本校验。
+    消费点=main 启动块（README「python -m waterprint_server.main」口径）
+    与 deploy/server-entrypoint.sh（R4 C-1：Docker/运维 uvicorn 直启面前置
+    校验再 exec——部署面与裸机面同源）。
     """
     missing = [
         name
         for name in _DATA_PACKAGES
         if not (settings.data_dir / name / "manifest.yaml").is_file()
     ]
-    if missing:
+    broken = [
+        name
+        for name in _DATA_PACKAGES
+        if name not in missing
+        and _read_manifest_mapping(settings.data_dir / name / "manifest.yaml") is None
+    ]
+    if missing or broken:
+        problems = []
+        if missing:
+            problems.append("缺 " + "、".join(f"{name}/manifest.yaml" for name in missing))
+        if broken:
+            problems.append(
+                "manifest 空损（空文件/空映射/不可解析）："
+                + "、".join(f"{name}/manifest.yaml" for name in broken)
+            )
         raise RuntimeError(
-            f"数据包不完整：{settings.data_dir} 缺 "
-            + "、".join(f"{name}/manifest.yaml" for name in missing)
+            f"数据包不完整：{settings.data_dir} "
+            + "；".join(problems)
             + "——启动拒绝（fail fast）。请设置 WATERPRINT_DATA_DIR 指向含 "
             + "、".join(_DATA_PACKAGES)
-            + " 四个子目录的数据根；缺省按包文件位置解析（仓库开发态="
-            "仓库根 data/，非仓库布局——如安装态——请显式设 env）"
+            + " 四个子目录（各含非空 manifest.yaml）的数据根；缺省按包文件"
+            "位置解析（仓库开发态=仓库根 data/，非仓库布局——如安装态——"
+            "请显式设 env）"
         )

@@ -68,11 +68,13 @@ docker compose -f deploy/compose.yml up -d --build
 | `waterprint_wp-projects` | /app/projects | 项目文件（*.wp.json） | `down` 保留；`down -v` 删除 |
 | `waterprint_wp-exports` | /app/exports | 导出产物+任务注册表 | 同上 |
 
-数据包（coefficients/unit_prices/templates，9.5M）**打入镜像**不占卷——
-版本化资产随镜像版本走，用户数据走卷，两者不混。缺包启动校验
-（`validate_data_packages`）只挂在裸机 `python -m waterprint_server.main`
-入口；容器 uvicorn 直启不经该校验，缺包防护依赖镜像构建期 COPY 与
-显式 `WATERPRINT_DATA_DIR`（E2E-1 注记）。
+数据包（coefficients/unit_prices/templates/constraint_kb，9.5M）**打入镜像**
+不占卷——版本化资产随镜像版本走，用户数据走卷，两者不混。缺包启动校验
+（`validate_data_packages`）覆盖双入口（R4 C-1 起，e2e-fix-round3
+2026-09-25）：裸机 `python -m waterprint_server.main` 启动块+容器/运维
+uvicorn 直启面 entrypoint 前置（`deploy/server-entrypoint.sh`——exec
+uvicorn 前先校验，缺包或 manifest 空损=容器启动即以可执行文案退出、
+healthcheck 永不转绿，非请求期 500 晚拒；卷遮蔽数据目录场景同受防护）。
 
 ## 环境变量（WATERPRINT_ 前缀，均可覆盖）
 

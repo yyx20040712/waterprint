@@ -43,7 +43,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from waterprint.contracts.project_schema import parse_project
 
@@ -165,15 +165,13 @@ async def list_projects(request: Request) -> list[ProjectSummaryResponse]:
 
 
 @router.get("/{project_id}")
-async def read_project(
-    project_id: str, request: Request, response: Response
-) -> dict[str, Any]:
+async def read_project(project_id: str, request: Request) -> dict[str, Any]:
     """读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。
 
-    R2-P2-1（e2e-audit round2 2026-09-24）：本端点禁缓存——apply/保存后
-    浏览器对同 URL 的缓存旧读造成假阴性（d20 实录）。
+    R2-P2-1（e2-audit round2 2026-09-24）：本端点禁缓存（d20 实录）——
+    C-2（e2e-fix-round3 R4）起收编入 main._edge_headers 中间件（全 /api/
+    GET 读面统一 no-store），端点内不再单点设置（防双源漂移）。
     """
-    response.headers["Cache-Control"] = "no-store"
     return service.read_project(_ctx(request), project_id).model_dump(mode="json")
 
 

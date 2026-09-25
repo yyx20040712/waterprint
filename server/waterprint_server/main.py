@@ -440,9 +440,8 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     # L4b：site/spacing 鉴权族挂载（项目数据面——units 静态目录族外同保）
     app.include_router(site.router, dependencies=[Depends(verify_token)])
 
-    app.include_router(
-        debug.router, dependencies=[Depends(verify_token)]
-    )  # B4-1：操作链观测面（GET /api/debug/ops-chain——35→36，《裁决书》方案五①）
+    # B4-1：操作链观测面（GET /api/debug/ops-chain——35→36，《裁决书》方案五①）
+    app.include_router(debug.router, dependencies=[Depends(verify_token)])
     # AI2（2026-09-13）：AI 接入面挂载（状态检查+一键接入——Bearer 沿册同保）
     app.include_router(ai_connection.router, dependencies=[Depends(verify_token)])
     # B4-4b 子批 2（2026-09-24）：对话 pane 中继面挂载（会话清单/历史/发言
@@ -462,18 +461,20 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
         CORSMiddleware,
         allow_origins=list(_DEV_ORIGINS),  # R5 开发期白名单
         allow_methods=["*"],
-        # N-2（R2A 批1 查补）：Authorization 已覆盖——["*"] 通配下预检响应
-        # 回显请求的 Access-Control-Request-Headers（dev 5173 面不断）。
+        # N-2（R2A 批1）：Authorization 已覆盖——["*"] 通配回显预检 Headers（dev 5173 不断）。
         allow_headers=["*"],
     )
 
     @app.middleware("http")
-    async def request_id(request: Request, call_next: Callable[..., Any]) -> Any:
-        """R5 请求 ID（响应头回写 + structlog 上下文绑定）。"""
+    async def _edge_headers(request: Request, call_next: Callable[..., Any]) -> Any:
+        """R5 请求 ID（响应头回写+structlog 绑定）；C-2：/api/ GET 读面 no-store。"""
         identifier = request.headers.get("X-Request-ID") or uuid.uuid4().hex
         structlog.contextvars.bind_contextvars(request_id=identifier)
         response = await call_next(request)
         response.headers["X-Request-ID"] = identifier
+        # C-2（e2e-fix-round3 R4）：GET+/api/ 前缀统一禁缓存（收编 R2-P2-1 单点；豁免面后续按需）。
+        if request.method == "GET" and request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     _register_exception_handlers(app)
