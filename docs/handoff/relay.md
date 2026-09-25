@@ -219,3 +219,9 @@
 - **四项用户裁决（2026-09-25，全按主控推荐）**：①margin_min 产出根因=约束带裕度（kb 已追认过滤带的归一化距离，数值零新增）；②CAPEX=终评第四真键（objective_weight_capex 假设键+四键权重重排，权重专家追认）；③gwp_ch4 27.2→27.0（AR6 官方非化石值，golden 重录随批 [HUMAN-LOCK]）；④后续批次全部立项。
 - **backend-calc-complete 战役编排**（目标：彻底解决后端计算）：批2a 约束带裕度→批2b capex 真键（依赖 2a 的指标语义冻结）→批2c gwp_ch4 27.0→批3 几何域拒数据包（数值全专家追认制：入口流量上界/几何上限条目/AAO·CASS 尺度告警/params_guard range 执法）→批3.5 范围一补全（ganhua 燃料因子待权威源+xiaohua 消化 MCF 分档）→批5 低优先堆（NaN 口径统一/timeout 诊断维度/severity 执法/裁决档勘误/beam.py 拆件结构债）。批1 测试草案转正（.workflow/audit-norms-20260925/test-drafts/）为人类动作，随时可插。
 - **移交人类**：[HUMAN-LOCK] 测试转正两文件六用例（批1 回归锁）+批2c golden 重录+批3 数值追认单。
+
+### 增补二十三 — 2026-09-25（用户追加裁决：方案比选可视化批立项——批2d 三图入战役编排；本轮仅登记不实施）
+
+- **用户裁决（2026-09-25）**：方案比选增工业级可视化三件——帕累托前沿图（多目标 trade-off 面）、平行坐标图（高维方案空间全景）、敏感性/龙卷风图（sensitivity 失守幅度对比），保证比选直观性。
+- **编排归属**：backend-calc-complete 战役批2d（webapp 前端批）。echarts 6.1 已在依赖（FeasibilityHeatmap 先例）；数据面依赖——帕累托=枚举/联合枚举指标序列（三键版可先行，批2b capex 落地后升四目标）；平行坐标=fetch_solutions 分页列集白名单（现成）；龙卷风=sensitivity 工况 vs baseline 指标差投影（result conditions 已有数据，需投影端点）。
+- **工序约束**：webapp 批走 vitest+check_webapp 门禁+无头浏览器验证（前台焦点保护纪律）；涉 server 新投影端点时按实现批全烤验。
