@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 用户四裁决解锁（增补二十五）：B4-5 勘误确认拆 ⑤a/⑤b+批3 授权检索起草+总排序采纳——HOLD 收线，待换防布火 -->
+- status: RUNNING <!-- 2026-09-25 用户四裁决解锁（增补二十五）：B4-5 勘误确认拆 ⑤a/⑤b+批3 授权检索起草+总排序采纳——HOLD 收线，待换防布火 -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,21 +20,21 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置；旧值 2026-09-24T23:44:02.069Z（B4-5 终批收口） -->
-- claim: -
+- heartbeat_utc: 2026-09-25T09:49:20.000Z
+- claim: executor-r3-20260925T094920Z
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26；批2a 收口不占本清单项（战役批，日志增补二十四记账） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
-- last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- 换防布火发布首班时原子重写 -->
+- last_dispatch_utc: 2026-09-25T09:49:41.529Z <!-- 2026-09-25 rev4 换防首班发布成立（回读④后端事实=model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘）；旧值 2026-09-24T21:36:38.025Z -->
 - relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
 - batch_count: 6 <!-- 换防后继续累加（上限 60 足容 12 新项） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
-- claimed_by: -
-- claimed_at: -
+- claimed_by: executor-r3-20260925T094920Z
+- claimed_at: 2026-09-25T09:49:20.000Z
 - next_batch: R3 孤立警告组装+锁面呈批（第五波首项——交错序全 12 项见执行清单第五波；换防布火后按序连续开工）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
@@ -270,3 +270,9 @@
 - **深度设计门**：ai-dev-org 路径成立（.zcode/org-ledger.jsonl 在场+裁决书/round3 工单/战役档齐备）。
 - **接任词执行序**：迁火回填→提交推送→随即开批通道（前台门+回车+回读④）发布 R3 首班。条件③口径注记：上一批实物=增补二十五手术笔 d91a1a3e39（09:40:42Z），开批时点距今 ≥5min 成立；本会话换防笔非批产物不计入（用户接任词明示「提交推送→随即开批」）。
 - 此后每班火=纯调度员（rev4）：只读板头+protocol 段调度，禁执行禁重活禁载技能。
+
+### 增补二十七 — 2026-09-25T09:49:41.529Z（rev4 换防首班发布成立：R3 执行令已发——回读④后端事实判定）
+
+- **开批通道全链 PASS**：前台门（原前台本=ZCode，免拉起免还原）→ Ctrl+N 新任务 → 回读①过（占位符「向 ZCode 提问…」/focused/发送 disabled=空框态/「取消选择当前项目」在场=项目已绑定——**注记：新任务默认绑定=当前活动标签工作区，与板头工作区不一致，按 protocol 非阻断（执行指令自带绝对路径，增补二十实证可开工）**）→ 回读②纠偏（默认 GLM-5.3-Flash ≠ 当班模型 → 模型菜单 performSecondaryAction(AXExpand) 展开+钉主窗 getApp({pid,window_id}) 后选中 radio GLM-5.3=当班会话模型；弹窗致观察面漂移两次安全失败 action_sent=false 无害）→ typeText 242 字全文落框（回读③：242/242+发送 enabled+focused）→ **回车主径**发送（composer 清空/发送回 disabled）→ **回读④成立：rollout 新档 model-io-sess_7c631d85-6144-4cf3-8b66-7de22bfae845.jsonl 回车后 ~20s 落盘**（铁则：UI echo 不算数，后端事实判）。会话身份锚定：档内 relay.md×6+ai-dev-org×6+"model":"GLM-5.3"——执行者已开工并自载 ai-dev-org。
+- **本笔原子重写 last_dispatch_utc=2026-09-25T09:49:41.529Z**（status 保持 READY）；静默窗自此 +30min；executor=sess_7c631d85 按板执行者条款 claim（保留本行）执行第五波首项 R3。
+- 通道经验沉淀（dispatcher 侧操作经验，不改 protocol 段）：模型菜单需 AXExpand 展开后钉主窗再点 radio——裸 click 菜单不开/弹窗漂观察面致索引越界。
