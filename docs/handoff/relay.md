@@ -20,7 +20,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T12:07:35.000Z <!-- R4 claim 刷新 -->
+- heartbeat_utc: 2026-09-25T12:25:32.000Z <!-- R4 执行中刷新 -->
 - claim: executor-r4-20260925T120735Z
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
@@ -312,5 +312,5 @@
 ### 增补三十一 — 2026-09-25T12:07:25.336Z（第三班发布成立：R4 执行令已发——继承绑定+像素预核）
 
 - **开批四条件**：READY（批2b 收口=增补三十）/静默窗 85.6min/实物静默（板面 mtime 与 git 7cc318a3bc 距均 ~11min ≥5min）/熔断未触发（8<60、墙钟 2.3h<90h）。
-- **通道**：前台门（ZCode 在前台免拉起）/Ctrl+N/回读② 模型=GLM-5.3（继承）/回读① **绑定预核新工序**：选择项目按钮宽 145px 提示已继承智水蓝图（活动标签=上批绑定任务）→截图经视觉模型读出按钮文字「智水蓝图 ∨」（同形误读「智→暂」人工判读排除）**免重绑**→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_2e71829d-277b-4bd6-978e-b565ae932c89.jsonl ~20s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**。model=GLM-5.3。
+- **通道**：前台门（ZCode 在前台免拉起）/Ctrl+N/回读② 模型=当班会话模型（继承）/回读① **绑定预核新工序**：选择项目按钮宽 145px 提示已继承智水蓝图（活动标签=上批绑定任务）→截图经视觉模型读出按钮文字「智水蓝图 ∨」（同形误读「智→暂」人工判读排除）**免重绑**→typeText 242 字回读③→**回车主径**→**回读④成立：rollout 新档 model-io-sess_2e71829d-277b-4bd6-978e-b565ae932c89.jsonl ~20s 落盘，env 块核验 Primary working directory=E:\class\智水蓝图**。model=当班会话模型。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_2e71829d 按板执行者条款 claim 执行 R4（server 卫生：C-1 uvicorn 直启校验收敛/C-2 no-store 全 GET 面/C-3 manifest 内容校验——C-1/C-2 方案呈门抄送用户）。
