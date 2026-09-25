@@ -19,3 +19,4 @@
 *.jpg binary
 *.xlsx binary
 *.dwg binary
+*.sh text eol=lf
