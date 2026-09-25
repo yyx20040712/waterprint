@@ -12,7 +12,7 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: RUNNING <!-- 2026-09-25 批2d claim（executor-b2d-20260925T143536Z）；前值 READY（R4 收口置位）-->
+- status: READY <!-- 2026-09-25 调度员接管重置（增补三十四：executor-b2d 疑权限挂起/turn 断流）；前值 RUNNING（批2d claim） -->
 - automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,8 +20,8 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T14:39:34.000Z <!-- 批2d 执行中刷新 -->
-- claim: executor-b2d-20260925T143536Z <!-- 2026-09-25 批2d 认领；勾选快照 checked 29/38 -->
+- heartbeat_utc: 2026-09-25T16:08:16.176Z <!-- 2026-09-25 接管时刻（增补三十四）；旧值 2026-09-25T15:33:09.000Z（批2d 门一阶段） -->
+- claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 29 <!-- 2026-09-25 R4 收口 28→29（第五波 2/12） -->
@@ -336,3 +336,10 @@
 - **放行裁量（不掐重发）**：handover 绑定与智水蓝图-父目录绑定在仓级 AGENTS.md 注入上等价（两者均非 waterprint 仓根）；执行指令全程绝对路径（R3 先例：game 目录绑定照样完美收口）；掐掉重发=双执行者并发窗+双倍前台占用。偏差照录，用户知情。
 - **通道教训（下班起强制）**：绑定宽度启发式作废——每班一律「选择项目」菜单显式绑定+env 块核验双闸；游戏前台占用=让位不硬抢（AGENTS 前台焦点保护）。
 - **last_dispatch_utc 原子重写=本笔**；executor=sess_b606debd claim 执行批2d（可视化三图+picker 修复——webapp 批走 vitest+check_webapp+无头验证）。
+
+### 增补三十四 — 2026-09-25T16:08:16.176Z（调度员接管：批2d 执行者 stall 判定——claim 重置 READY，新执行者续跑）
+
+- **stall 证据链**（16:05Z 班核查）：模型 IO 零增长 20s 探针×1+档 mtime 停更 15min（15:50:35Z 起）；**全系统无存活子进程**（node/python/vitest/playwright/chrome 全无——排除长测试运行假说）；心跳 33min 陈旧（末次 15:33:09）；最后产物=15:50 写 .workflow/backend-calc-complete/b2d-rework.md+b2d-headless.py 后断流——疑权限弹窗挂起（等待用户点击致 turn 暂停）或 turn 异常终止。
+- **核账（防重复执行）**：已提交 3f548e90eb（三图+联合枚举 UI+窄化门+测试）+1b28be7242（门禁回绿中性化笔）；**未提交在途**=门一回炉实修（rework 笔记 R1~R4 清单完整：R1 无解诊断投影/R2 Tornado 容器生命周期/R3 平行坐标口径/R4 任务轨事件桥——webapp solutions 组件族 M 态）。
+- **处置**：claim→-、status→READY（本笔原子写）；新执行者按板认领批2d 从工作树+rework 笔记续跑；旧会话若复活（权限被点）一切板写前回读 claim 非己即让位（协议内建）。旧会话 tab 留用户随手关。
+- 接管后发布=本班随即重发（四条件：静默 92min/批产物实物 15:50 起 ≥5min 静默/熔断 9<60——接管笔非批产物不计，增补二十七先例口径）。
