@@ -12,30 +12,30 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: HOLD
-- automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 -->
+- status: READY <!-- 2026-09-25 用户四裁决解锁（增补二十五）：B4-5 勘误确认拆 ⑤a/⑤b+批3 授权检索起草+总排序采纳——HOLD 收线，待换防布火 -->
+- automation_id: automation-b3938334-9394-4c50-99ac-2ff4332c3f40 <!-- 2026-09-25 迁火完成：旧火 cbcb3949 随肥调度会话退役已删；新火由新任薄调度会话（handover 工作区）布火回填 ——2026-09-25 HOLD 收线时该火已删，本行值过期：换防时由新任 hub 重布火并回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-24T23:44:02.069Z <!-- B4-5 终批收口（stop_matter） -->
+- heartbeat_utc: 2026-09-24T23:44:02.069Z <!-- B4-5 终批收口（stop_matter）——换防重置 -->
 - claim: -
-- no_progress_count: 1 <!-- B4-5 批勾选未增（用户门控非系统性卡死——stop_matter 优先） -->
-- checked_total: 27 <!-- 2026-09-25 增补十：+E2E-1~5 插队战役五项 -->
-- checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26（插队战役收官——回归 B4-5 终批） -->
+- no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
+- checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
+- checked_done: 26 <!-- 2026-09-24 E2E-5 收口 25→26；批2a 收口不占本清单项（战役批，日志增补二十四记账） -->
 - protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
-- last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- E2E-2 批 2 四发成立 2026-09-25 21:33Z：fetus3 唤醒配方（聚焦+回车发草稿+nudge 补发）引导 sess_e2cd19af 起跑——前两醒会话（b868e5e6/1e7cdf54）短活动后未读板静默，非合格执行者——status 保持 READY 待认领 -->
-- relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 2026-09-25 换防时刻 -->
-- batch_count: 6 <!-- 2026-09-24 B4-5 终批（判定②stop_matter——26/27 完成，余项用户门控） -->
+- last_dispatch_utc: 2026-09-24T21:36:38.025Z <!-- 换防布火发布首班时原子重写 -->
+- relay_started_utc: 2026-09-24T17:44:23.011Z <!-- 换防时重置（熔断墙钟基准） -->
+- batch_count: 6 <!-- 换防后继续累加（上限 60 足容 12 新项） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: stop_matter <!-- B4-5 双子项用户门控：⑤a norms mine_water_sludge_line 手算表追认（用户域——data/norms 零追认档）+⑤b 软著用户亲查时间窗（AI 仅辅助位——裁决书 B4-5 行明示）。非猜测可解，留用户晨间裁决 -->
+- hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: 待用户：①追认 mine_water_sludge_line 手算表（data/norms）→开 ⑤a wp new-unit 脚手架；②软著亲查窗口（round2 §2 计算内核正确性实证供参考）→⑤b 实现批。重启=/batch-relay 换防（火已随 HOLD 收线删除）
+- next_batch: R3 孤立警告组装+锁面呈批（第五波首项——交错序全 12 项见执行清单第五波；换防布火后按序连续开工）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -105,7 +105,7 @@
 - [x] B4-2c｜碳核算本体（先详细调研再立项——三轮裁决④；**R-B42c-1~4 四项全批 2026-09-20**——B 案全口径/2019+AR6/全套口径/锁面笔授权）
 - [x] B4-3｜联合枚举（**2026-09-20 收官**——ADR-025 解冻承接+分层 beam+静态预检双轴预算+新正门 /api/solution/joint-enumerate；三段设计链全档=.workflow/b4-3/）
 - [x] B4-4｜AI 集成深化（**2026-09-24 收官**——a 段演示版产物 2026-09-20 随用户裁决回退；b 段深化段全量重建=①NL 入口[CLI 单发三话术口径]+②多轮对话[agent chat/ 编排环——迭代 12/降级直译/会话 JSONL]+③前端聊天 pane[Drawer+SSE 任务流]+④方案比选[agent 工具 #22 全链+聊天呈现——solutions 专用 UI 欠账 R-B44b-4]+⑤工具三面[#23 概观/知识第三源/轨道丙叙述草稿]；三段设计链全档=.workflow/b4-4b/）
-- [ ] B4-5｜矿井水段二（norms 追认前置）+软著（用户亲查计算核心优先）
+<!-- B4-5 原行已拆分（2026-09-25 用户裁决①——勘误确认，见第五波 ⑤a/⑤b 与增补二十五勘误记） -->
 
 ### 插队战役·e2e-audit 修复（2026-09-25 增补十纳入——用户直排工单位阶高于波次排序，先于 B4-5 开工；
 工单源=docs/handoff/e2e-audit-fix-plan-2026-09-24.md §4 批次+§7 开工指引 与 e2e-audit-round2-2026-09-24.md §4 增量——
@@ -121,6 +121,22 @@
 
 - [x] G-1｜同族一致性门禁：aao/cass 同族公式族（需氧量/曝气/污泥/能耗）结构恒等机器断言+显式 delta 清单（如 CASS duty_ratio）——静默分叉变响红（可维护性答疑①，用户裁决入下波工单）
 - [x] G-2｜拆件配方回写宪法：ADR-024 D1 的 formulas_*/energy 预算墙拆件规则写入 AGENTS §11——撞墙拆法从即兴变规则（可维护性答疑②，用户裁决入下波工单）
+
+### 第五波·总排程（2026-09-25 用户四裁决——交错序全 12 项；波内序=接力顺序，
+自动化连续开工；单批明细以各工单/战役档案为准本区持指针防双源）
+
+- [ ] R3｜孤立警告组装+锁面呈批（e2e-fix-round3 批3——B-3；草稿 .workflow/e2e-fix/E2E-5/isolated_warn.draft.md；实现侧 helper 抽取过 PLR0912+core 全量仅预期红+锁定测试期望 diff 走 .workflow 呈批）
+- [ ] 批2b｜capex 第四真键（backend-calc-complete——evaluate_combo 全厂计算后按 services/cost.py 同款装配 takeoff→build_estimate 总造价进 metrics；registry 增 objective_weight_capex 假设键+四键权重 .25/.30/.20/.25 专家追认；纯几何参数恢复区分度）
+- [ ] R4｜server 卫生（e2e-fix-round3 批4——C-1 uvicorn 直启校验收敛〔方案1 entrypoint〕/C-2 no-store 全 GET 面中间件/C-3 manifest 内容校验；C-1/C-2 方案呈门一并抄送用户）
+- [ ] 批2d｜方案比选可视化三图+picker 修复（backend-calc-complete 批2d——帕累托前沿/平行坐标/龙卷风 echarts 6.1；**含** webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类修复+真目录形状用例〔批2a 裁决部 C4〕；联合枚举 UI R-B44b-4 并案裁量）
+- [ ] R5｜门禁绊线+定版脚本（e2e-fix-round3 批5——C-4 check_model_names 两处〔OSError 计数+目录漂移绊线〕+D-1 15 万吨定版脚本沉淀 p150k_final.py+React 重复 key 警告定位顺手〔healthcheck 挂账〕）
+- [ ] 批3.5｜范围一补全·调研先行（backend-calc-complete——ganhua 燃料因子权威源检索：有源则起草立键标注待追认/无源登记挂账；xiaohua 消化 MCF 分档〔IPCC 2019 Refinement Table 6.3 消化档〕）
+- [ ] 批5｜低优先堆（backend-calc-complete——NaN 可行口径统一/timeout 诊断维度/severity 执法统一/裁决档勘误两处〔W2:549→548 与 34760.46→34760.70〕/beam.py 拆件结构债/app.py 500 贴墙欠账/main.py 余量观察项）
+- [ ] ⑤a｜矿井水污泥线新单元（B4-5 拆项——wp new-unit 脚手架+四件套实现批；前置勘误已确认 2026-09-25〔增补二十五〕）
+- [ ] 批2c｜gwp_ch4 27.0 呈批件制备（backend-calc-complete——factors.yaml 改值 diff+golden 五工况期望值重算草案+锁面工序 README；**制备批不实装不提交**——golden 重录涉 core/tests 锁面须人类随批落地，呈批件齐即收口转用户）
+- [ ] 批3a｜几何域数值检索起草（backend-calc-complete 批3 前半——**用户授权 2026-09-25 推翻审计「禁 AI 起草」限制**：按《给水排水设计手册》工程常用范围检索起草数值单〔入口流量上界/池长上限/曝气器密度/AAO·CASS 尺度告警〕逐条带出处呈追认）
+- [ ] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**待追认批**：批3a 数值单用户签字后开工；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
+- [ ] ⑤b｜软著（B4-5 拆项——用户亲查窗，**用户域终态项**：自动化到此处按 stop_matter 停板待用户；亲查参考=round2 §2 手算对照表 26 项全吻合+15 万吨核对表）
 
 > ③ vector 全表面期望外移 JSON 数据件（可维护性答疑③）＝**用户亲改保留项**——AI 批次不自动开工；第三次锁面摩擦事件发生时仅呈报提醒不代做（用户裁决 2026-09-19）。
 
@@ -234,3 +250,14 @@
 - **移交人类**：[HUMAN-LOCK] 测试草案转正（.workflow/backend-calc-complete/b2a-test-drafts/——16 用例+README 四步工序，目标 test_constraints.py/test_stage.py 域）。
 - **登记欠账**：app.py=500 恰满零余量（批5 堆）；webapp constraintPicker 2-kind 锁死 vs kb 实发 4 类（裁决部 C4 批外既有——UI 勾选通道实践可达性依赖，并入批2d 修复+补真目录形状用例）。
 - **战役进度**：批1✓批2a✓→下一批=批2b capex 第四真键（依赖 2a 指标语义冻结已达成）→批2c gwp_ch4 27.0→批2d 可视化三图（含 picker 修复）→批3/3.5/5。板保持 HOLD（B4-5 用户门控未决——战役批次位阶独立照常推进）。
+
+### 增补二十五 — 2026-09-25T21:30:00+08:00（用户四裁决+总排程上板：HOLD 解锁 READY+第五波 12 项——批2a 收口后同日主控手术）
+
+- **四项裁决（用户 2026-09-25 晚，全按主控推荐除批3 外）**：
+  ①**⑤a 前置勘误确认**——`docs/norms/mine_water_sludge_line.md` 已有用户 2026-08-28 追认签字+golden 已含污泥链，裁决书所记「norms 待追认」前置过时（即 e2e-fix-round3 U-2 销账）：板面登记勘误，B4-5 原行拆分为 ⑤a（矿井水污泥线新单元——wp new-unit+四件套实现批）与 ⑤b（软著用户域）两清单项；裁决书历史件不回改（08 历史件红线——勘误以本行与执行清单为准）。
+  ②**总排序采纳推荐交错序**——R3→批2b→R4→批2d→R5→批3.5→批5→⑤a→批2c→批3a→批3b→⑤b（依赖考量：批2d 需批2b 先行升四目标；制备/待值/用户域殿后保连续）。
+  ③**批3 授权检索起草**——推翻审计「禁 AI 起草数值」限制（audit-norms §二.4 原口径）：主控按《给水排水设计手册》工程常用范围检索起草数值单（入口流量上界/池长上限/曝气器密度/AAO·CASS 尺度告警）逐条带出处**呈用户签字追认后**实装——批3 拆为批3a（起草批·自动）与批3b（实装批·待追认）。
+  ④**⑤b 软著挂起等窗口**——清单终态项（用户域）：自动化到该处按 stop_matter 停板待用户，不阻塞前序。
+- **板面手术**：status HOLD→READY（hold_reason 清空）；no_progress_count 重置 0；checked_total 27→38（−1 B4-5 拆分+12 第五波）；next_batch=R3；automation_id 行注记过期待换防回填；heartbeat/relay_started/batch_count 注记换防重置口径。执行清单新增第五波（12 项交错序，单批明细持指针防双源）。
+- **文档群维护记**：增补二十一「挂账六项与 P3 顺手清单见战役档 gate2 终裁报告」引用悬空（.workflow/healthcheck-20260925/ 无该落盘件）——已知两项折入排程（React 重复 key 警告定位→R5 顺手；联合枚举无 UI R-B44b-4→批2d 并案裁量），未知余项以 gate2-adjudication-package.md 存档为准不再追认引用；两锁面呈批件（F1/E2E-3）仍待人类 [HUMAN-LOCK]（与批2a 呈批件并见移交清单）。
+- **移交人类清单（集中索引）**：[HUMAN-LOCK] 四笔呈批件（①audit-norms 批1 测试 2 文件 6 用例 ②批2a 测试 2 文件 16 用例 ③E2E-1 四用例+E2E-3 桥单测 ④F1 增补三用例——落地后 server 红归零）+批2c golden 重录（制备批呈批件到位后）+批3a 数值追认单签字。重启自动化=/batch-relay 换防（调度员提示词=板头标准注入词调度员窗口 rev4 口径）。
