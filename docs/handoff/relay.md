@@ -210,3 +210,12 @@
 - **七笔提交**：F1 3d82323056（LLM 配置面 GET/PUT /api/ai/config+ai_config_store+面板配置区）/F2 77e32f3c80（=工单 R2 三项）/F3 eba161b327（=工单 R1）/F4 586893930c（跨项目闸+失效列头）/F5 4bb61371f8（三维五修）+回炉两笔 0b3e466c81/23b8e15cf8（门一 k1 B-1 .env 行注入封死等+d1 条件闭合）。
 - **验证**：webapp 848/848（主控终验@23b8e15cf8 单源；probe 时点 843@4bb61371f8+回炉+5 自洽）+16 门禁+tsc 0+server 恰 3 红（全锁面待批：F1 呈批件+E2E-3 既有）+live 探针注入 422/A-1 拦截/三维+剖切/对比/聊天全过；门一 k1 返工→处置后+门二裁决部有条件放行（三文档级条件已兑现）+health-scan RED=0。
 - **移交**：[HUMAN-LOCK] 两笔锁面呈批件（F1 增补三用例含 W-5 披露/E2-3 repo_root）——落地后 server 红归零；挂账六项与 P3 顺手清单见战役档 gate2 终裁报告；工单 R3/R4/R5 未动待排。
+
+### 增补二十二 — 2026-09-25（规范对照审计战役 audit-norms-20260925 收口：碳核算零缺陷+比选三 B 级修复+四项用户裁决——backend-calc-complete 战役立项）
+
+- **战役**：后端计算逻辑规范对照审计（用户直排：碳核算+方案比选两大专项+默认值域边界；GB/CJJ/给水排水设计手册/IPCC/生态环境部公告多源对拍）。组织管道：SRE 诊断岗三路并行→主控 MCP 动态复算（全厂跑=golden 逐位一致/枚举 margin_min 全 null 实锤/畸形输入 l_pool=27779m+n_aerator=1.87 亿+AAO 零警告复现）→外部检索对拍。审计档 `.workflow/audit-norms-20260925/`（report.md 含 B3/W11/N10 分级清单+存疑 8 条+外部核验台账）。
+- **碳核算结论**：C-F1~F9 零实现缺陷；grid_co2 0.5366/0.5856、N2O EF 0.016/0.005、B0 0.6、MCF 0.03、GWP_n2o 273 全部外部确证；GB/T 51406 无温室气体类国标（用户提示偏差，如实登记）。
+- **批1 三笔已收口**（git：6aa4eac07e/ce383bf88d/53762b3cdd）：relax 重试部分覆盖 KeyError、代理分 NaN 污染（{0:nan,1:nan}→{0:0.75,1:0.25}）、空可行集 min([]) ValueError。烤验全链：TDD 红绿→门一 k1+d1 双 PASS（W 点主控包外核销）→门二实证六项复算（837 passed/16 门禁绿）→裁决部终裁可收口。
+- **四项用户裁决（2026-09-25，全按主控推荐）**：①margin_min 产出根因=约束带裕度（kb 已追认过滤带的归一化距离，数值零新增）；②CAPEX=终评第四真键（objective_weight_capex 假设键+四键权重重排，权重专家追认）；③gwp_ch4 27.2→27.0（AR6 官方非化石值，golden 重录随批 [HUMAN-LOCK]）；④后续批次全部立项。
+- **backend-calc-complete 战役编排**（目标：彻底解决后端计算）：批2a 约束带裕度→批2b capex 真键（依赖 2a 的指标语义冻结）→批2c gwp_ch4 27.0→批3 几何域拒数据包（数值全专家追认制：入口流量上界/几何上限条目/AAO·CASS 尺度告警/params_guard range 执法）→批3.5 范围一补全（ganhua 燃料因子待权威源+xiaohua 消化 MCF 分档）→批5 低优先堆（NaN 口径统一/timeout 诊断维度/severity 执法/裁决档勘误/beam.py 拆件结构债）。批1 测试草案转正（.workflow/audit-norms-20260925/test-drafts/）为人类动作，随时可插。
+- **移交人类**：[HUMAN-LOCK] 测试转正两文件六用例（批1 回归锁）+批2c golden 重录+批3 数值追认单。
