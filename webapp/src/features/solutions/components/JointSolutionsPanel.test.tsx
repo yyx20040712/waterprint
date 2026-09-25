@@ -116,7 +116,7 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).not.toContain("帕累托前沿图"); // 无方案不进三图面
   });
 
-  it("combos 空+final_infeasible → 终判不可行 note 显著呈现（冲突键空=缺失呈现不造假）", () => {
+  it("combos 空+final_infeasible → 终判不可行 note 显著呈现+rawSummary 兜底（k1/d1 二过 W——relaxed 可见不截断）", () => {
     const html = render({
       unit_ids: ["unitA", "unitB"],
       diagnosis: {
@@ -128,9 +128,33 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     });
     expect(html).toContain("终判不可行（final_infeasible）"); // kind 标签在场
     expect(html).toContain(
-      "终判不可行：末段组合全不可行且无可放宽 range 域（离散档网格无连续域）",
-    ); // note 文案显著呈现
+      "诊断说明：末段组合全不可行且无可放宽 range 域（离散档网格无连续域）",
+    ); // note 文案显著呈现（中性前缀——语境归 kindLabel）
     expect(html).toContain("（载荷缺失）"); // 冲突消费面空——DiagnosisPanel 缺失呈现
+    expect(html).toContain("relaxed"); // rawSummary 兜底——同载荷字段可见（d1-W1）
+  });
+
+  it("combos 空+stage_empty 域拒支 → stage.note 提取呈现+rawSummary 兜底（k1-W1——beam.py:316 第二支真形）", () => {
+    const html = render({
+      unit_ids: ["unitA", "unitB"],
+      diagnosis: {
+        kind: "stage_empty",
+        stage: {
+          minimal_conflicts: [],
+          fail_counts: { domain_nan_rows: 3 },
+          suggestions: [],
+          frozen_prefix: [],
+          note: "阶段全行域拒（NaN）且无单元级约束面——无冲突集可求",
+        },
+      },
+      combos: [],
+    });
+    expect(html).toContain("分段无解（stage_empty）");
+    expect(html).toContain(
+      "诊断说明：阶段全行域拒（NaN）且无单元级约束面——无冲突集可求",
+    ); // stage.note 提取呈现（k1-W1 修复面）
+    expect(html).toContain("domain_nan_rows"); // fail_counts 合成键经面板呈现
+    expect(html).toContain("诊断载荷原样："); // rawSummary 兜底在场（引号经 HTML 转义——以通道文案锚定）
   });
 
   it("combos 空+未知 kind → 原样呈现 kind+JSON 摘要（fail-visible 不吞）", () => {

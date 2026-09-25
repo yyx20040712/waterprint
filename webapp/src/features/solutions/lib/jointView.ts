@@ -268,11 +268,14 @@ export function projectJointDiagnosis(diagnosis: unknown): JointDiagnosisView {
   if (kind === "stage_empty") {
     const stage = diagnosis["stage"];
     if (isRecord(stage)) {
+      // 门一二过 W-1：beam.py:316-322 域拒无约束支的 stage.note（后端唯一
+      // 解释文案）提取呈现——禁吞；relaxed 旗标经 rawSummary 兜底可见。
+      const stageNote = stage["note"];
       return {
         kindLabel: "分段无解（stage_empty）",
-        note: null,
+        note: typeof stageNote === "string" ? stageNote : null,
         panelPayload: stage, // stage 层展开给 DiagnosisPanel 消费
-        rawSummary: null,
+        rawSummary: safeJsonSummary(diagnosis),
       };
     }
     return {
@@ -288,7 +291,9 @@ export function projectJointDiagnosis(diagnosis: unknown): JointDiagnosisView {
       kindLabel: "终判不可行（final_infeasible）",
       note: typeof note === "string" ? note : null,
       panelPayload: {}, // 冲突键空——DiagnosisPanel 缺失呈现（诚实面）
-      rawSummary: typeof note === "string" ? null : safeJsonSummary(diagnosis),
+      // 门一二过 d1-W1：note 为串（含空串）时 rawSummary 仍兜底——
+      // relaxed 等同载荷字段有呈现通道（合法形状不截断信息）。
+      rawSummary: safeJsonSummary(diagnosis),
     };
   }
   return {

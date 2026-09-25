@@ -51,7 +51,7 @@ export function JointSolutionsPanel({ result }: { result: JointResultView }) {
         </Typography.Paragraph>
         {diag.note !== null ? (
           <Typography.Paragraph type="danger" strong>
-            终判不可行：{diag.note}
+            诊断说明：{diag.note}
           </Typography.Paragraph>
         ) : null}
         {diag.rawSummary !== null ? (

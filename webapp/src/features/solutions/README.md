@@ -50,3 +50,12 @@
 - cost 列（概算未注入枚举行——现状无此列不加）；万级行虚拟滚动
   （行数=网格组合数，golden 案例个位数~几十行常规渲染足够）；
 - 建议条目点击跳转参数面板（DiagnosisPanel 只读——UX 批）。
+| `lib/jointView.ts` | 批2d 实装（2026-09-25） | 联合枚举结果窄化门（combos 载荷 unknown→JointComboView 逐字段门+metrics 数值键白名单 fail-visible）+键面常量（四真键/avg 三键/六出水指标——core final_eval 镜像）+metricLabel 中文标签+projectJointDiagnosis 无解两态投影（stage_empty stage 层展开+stage.note 提取/final_infeasible note+rawSummary 兜底/未知 kind fail-visible——门一二过 W 修面） |
+| `lib/jointView.test.ts` | 批2d 实装 | 窄化门+标签+投影 node 测试 |
+| `lib/jointCharts.ts` | 批2d 实装（2026-09-25） | 方案比选三图纯函数：paretoFront（四键非支配排序——换轴不重算）+parallelAxesData（入线资格=四键+score 全 finite——sparse 排除；plotted 空空面）+tornadoBars（三键 avg 对相对变化率+失守标签解析去重）+三 buildOption+tooltip 文本 |
+| `lib/jointCharts.test.ts` | 批2d 实装 | 三图纯函数 node 测试（支配/互不支配/资格门/空面/标签去重） |
+| `components/JointSolutionsPanel.tsx` | 批2d 实装 | 联合枚举结果装配：combos 表（排名/参数/四键/score/降权标记）+三图 Tabs forceRender；combos 空→无解诊断投影呈现（kindLabel+note+rawSummary+DiagnosisPanel） |
+| `components/JointSolutionsPanel.test.tsx` | 批2d 实装 | 装配组件 SSR 测试（表列/页签/无解两态真形+未知 kind/两空态） |
+| `components/ParetoChart.tsx` | 批2d 实装 | 帕累托前沿图 echarts 薄壳（前沿高亮/被支配灰+轴选择器——投影显示面） |
+| `components/ParallelCoordsChart.tsx` | 批2d 实装 | 平行坐标图 echarts 薄壳（五轴+score 三分档线色+降权虚线+反向开关+空态文案） |
+| `components/TornadoChart.tsx` | 批2d 实装 | 敏感性龙卷风图 echarts 薄壳（方案选择器+水平双向条+失守清单+诚实空态；容器常驻+懒 init+ResizeObserver 重放——生命周期闭环） |
