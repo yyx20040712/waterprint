@@ -133,7 +133,8 @@ def test_t5_n2o_conversion_anchor() -> None:
 def test_t6_magnitude_band_anchor() -> None:
     """T6 量级带断言：golden municipal design 实数桩（power 7239.75/dose
     1042.82+48.28/Q 34760.7/负荷 1494.71+373.68+6952.14）→电 3885 落
-    [1e3,1e4]、药 2069 落 [1e3,1e4]、total 20419 落 [1e4,1e5] 量级带。"""
+    [1e3,1e4]、药 2069 落 [1e3,1e4]、total 20419 落 [1e4,1e5] 量级带。
+    gwp_ch4 桩值=factors.yaml 数据面镜像——带断言不敏感，数据面值变须同步本桩（批2c 注记）。"""
     lib = _StubCoefficients({
         "factor.carbon.grid_co2": 0.5366, "factor.carbon.pac": 1.764,
         "factor.carbon.pam": 4.76,
@@ -141,7 +142,7 @@ def test_t6_magnitude_band_anchor() -> None:
         "factor.carbon.n2o_ef_effluent": 0.005,
         "factor.carbon.molar_n2o_n": 1.5714286,
         "factor.carbon.ch4_b0": 0.6, "factor.carbon.ch4_mcf": 0.03,
-        "factor.carbon.gwp_ch4": 27.2, "factor.carbon.gwp_n2o": 273.0,
+        "factor.carbon.gwp_ch4": 27.0, "factor.carbon.gwp_n2o": 273.0,
     })
     base = {"design": {
         "power_total_kwh_d": 7239.75,

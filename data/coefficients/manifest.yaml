@@ -1,6 +1,14 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.5.0"
+data_version: "1.5.1"
 # 变更记录：
+#   - 1.5.1: 批2c gwp_ch4 勘误（2026-09-26 呈批件〔HUMAN-LOCK〕随批落地——
+#       audit-norms 用户裁决③ 2026-09-25）：factor.carbon.gwp_ch4
+#       27.2→27.0 kgCO2e/kgCH4（AR6 100a 官方非化石/生物源值——27.2 系
+#       GHG Protocol 过渡推荐档；污水 CH4=生物源适用非化石档）。键数
+#       零变化（548）；golden 重录=municipal 三案 15 工况块 ch4/direct/
+#       total/intensity 四键+四案 serialize 双锚+m3 种子 8 锚（呈批件=
+#       .workflow/backend-calc-complete/b2c-lock-drafts/）；1.5.0 既有
+#       548 键零扰动（除本键值）。
 #   - 1.5.0: B4-2c 碳核算本体（2026-09-20；计算逻辑经用户审查
 #       R-B42c-1~4 四项全批——B 案全口径/2019+AR6/全套口径/锁面笔授权）：
 #       factors.yaml 增 12 键（实数口径 536→548）：factor.carbon.{

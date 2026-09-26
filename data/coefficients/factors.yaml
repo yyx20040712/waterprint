@@ -3107,10 +3107,10 @@
   note: "甲烷修正因子；消费面=app_carbon.py C-F5"
 
 - key: "factor.carbon.gwp_ch4"
-  value: 27.2
+  value: 27.0
   unit: "kgCO2e/kgCH4"
-  source: "IPCC AR6 100a 非化石/生物源（GHG Protocol 2024-08 推荐 AR6；AR5=28/AR4=21；污水 CH4=生物源适用 27.2）"
-  note: "GWP 版本系 R-B42c-2 用户裁 AR6；消费面=app_carbon.py C-F5"
+  source: "IPCC AR6 100a 非化石/生物源官方值（Table 7.15；27.2 系 GHG Protocol 过渡推荐档——audit 裁决③ 勘误回官方值 2026-09-25 用户裁决；AR5=28/AR4=21；污水 CH4=生物源适用非化石档）"
+  note: "GWP 版本系 R-B42c-2 用户裁 AR6；消费面=app_carbon.py C-F5；27.2→27.0=backend-calc-complete 批2c 呈批件〔HUMAN-LOCK〕"
 
 - key: "factor.carbon.gwp_n2o"
   value: 273

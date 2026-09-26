@@ -504,11 +504,11 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.5.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.5.1+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 109848,
-    "serialize_sha256_head": "dc5b82844ec0ea59",
-    "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）"
+    "serialize_sha256_head": "4e5a009353634e75",
+    "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）"
   },
   "m3_deferred": {
     "estimate_total": {
