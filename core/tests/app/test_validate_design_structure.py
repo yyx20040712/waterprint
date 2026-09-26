@@ -84,9 +84,31 @@ def test_unknown_unit_and_kind_accumulate() -> None:
     """未知单元/未知内置 kind 汇总为错误（非拒式——⑦甲中间态呈报）。"""
     design = _design({"nope_unit": {}, "x": {"kind": "bad_kind"}}, [])
     errors = validate_design_structure(design)
-    assert len(errors) == 2
+    assert len(errors) == 3
     assert "nope_unit" in errors[0]
     assert "未知内置节点 kind" in errors[1]
+    assert "孤立单元" in errors[2]
+    assert "：['nope_unit']" in errors[2]
+
+
+def test_isolated_unit_warns_builtin_exempt() -> None:
+    """孤立单元警告（R2-P2-2）：非内置孤立呈报；内置 kind 豁免+相连不警+排序确定。"""
+    design = _design(
+        {
+            "inlet": {"kind": "municipal_input", "q_avg_daily": 0.4, "kz": 1.4},
+            "junction": {"kind": "junction"},
+            "sludge_ganhua": {},
+            "municipal_aao": {},
+            "municipal_cass": {},
+        },
+        [{"src": {"unit_id": "inlet", "port_id": "out"},
+          "dst": {"unit_id": "municipal_aao", "port_id": "in"}}],
+    )
+    errors = validate_design_structure(design)
+    assert errors == (
+        "警告（孤立单元——未与任何可解析边相连）："
+        "['municipal_cass', 'sludge_ganhua']",
+    )
 
 
 def test_malformed_edge_shape_accumulates() -> None:
