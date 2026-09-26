@@ -3198,7 +3198,7 @@
         ]
       },
       "put": {
-        "description": "写配置面（校验→.env 读改写→os.environ 同步——不重启即生效，同步 def）。",
+        "description": "写配置面（校验→.env 原子读改写→os.environ 同步——不重启即生效，同步 def）。",
         "operationId": "update_config_api_ai_config_put",
         "requestBody": {
           "content": {
@@ -4780,7 +4780,7 @@
         ]
       },
       "get": {
-        "description": "读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。\n\nR2-P2-1（e2e-audit round2 2026-09-24）：本端点禁缓存——apply/保存后\n浏览器对同 URL 的缓存旧读造成假阴性（d20 实录）。",
+        "description": "读取完整 ProjectFile（JSON 化；M-3 版本门+D2 双闸在 service/core）。\n\nR2-P2-1（e2-audit round2 2026-09-24）：本端点禁缓存（d20 实录）——\nC-2（e2e-fix-round3 R4）起收编入 main._edge_headers 中间件（全 /api/\nGET 读面统一 no-store），端点内不再单点设置（防双源漂移）。",
         "operationId": "read_project_api_projects__project_id__get",
         "parameters": [
           {
