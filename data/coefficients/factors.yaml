@@ -964,6 +964,18 @@
   source: "给水排水设计手册（第 5 册）反冲洗历时常用档"
   note: "单独水冲历时（带 3~6 min，工程常用取 4）"
 
+- key: "factor.vxinglvchi.wash.air_specific_energy"
+  value: 0.02
+  unit: "kWh/m3"
+  source: "反冲洗风机比能折算：风压 40~50 kPa·综合效率 0.65~0.75（风机轴功率 P=Q·Δp/η 口径——给水排水设计手册；40/3600/0.75=0.0148~50/3600/0.65=0.0214 常用带取 0.020）"
+  note: "AUD-W4 反冲洗气耗折电（批6b 起草——数据策略 v2 事后追认制，数值单随批 Rulings）；消费面=vxinglvchi XL-F22"
+
+- key: "factor.vxinglvchi.wash.water_specific_energy"
+  value: 0.044
+  unit: "kWh/m3"
+  source: "反冲洗泵比能折算：扬程 12 m·泵效率 0.75（泵轴功率 P=ρgQH/η——9.81×12/3600/0.75=0.0436 取 0.044；给水排水设计手册泵口径）"
+  note: "AUD-W4 反冲洗水耗（含表面扫洗份额——XL-F15 全量水）折电（批6b 起草——事后追认制同上）；消费面=vxinglvchi XL-F22"
+
 - key: "factor.vxinglvchi.cycle_band.min"
   value: 24.0
   unit: "h"
@@ -1942,6 +1954,11 @@
   unit: "m"
   source: "给水排水设计手册（第 3 册 城镇给水）磁分离机室水头损失常用值"
   note: "磁分离水头损失经验值（带 0.1~0.3 m 取 0.2；高程链输入）；数据策略 v2"
+- key: "factor.mine_cifenli.drive.power_per_unit"
+  value: 3.0
+  unit: "kW/台"
+  source: "磁盘分离机单机驱动功率厂商样本常用带 2.2~4.0 kW 取 3.0（低速盘转齿轮箱驱动——混合/投药能耗归 tiaojiechi/gaomidu/ningjiao 单元计，不重复计）"
+  note: "AUD-W4 磁分离机驱动未建模补键（批6b 起草——数据策略 v2 事后追认制，数值单随批 Rulings）；消费面=cifenli KS-F9"
 # ── 矿井水高密沉淀池（mine_gaomidu，0.5.0；无回流斜管低负荷主线[异于
 #    市政 Densadeg 回流型——无 r_sludge 键族]；逐字对应 docs/norms/mine_water_gaomidu.md） ──
 - key: "factor.mine_gaomidu.surface_load_band.min"
@@ -3162,6 +3179,52 @@
   unit: "kgN2O/kgN2O-N"
   source: "摩尔质量比 44/28——物理常数非可调系数（魔法数字门禁：数值字面量禁入源码，经系数库承载——bz 重力同款先例）"
   note: "N2O-N→N2O 质量换算；消费面=app_carbon.py C-F3/C-F4"
+
+# ── 批6b 碳范围一补全（1.7.0 增键——批3.5 追认已签 2026-09-26 全案：
+#    案 A+21.622/0.60/0.90 定值+CH4/N2O 次要键一并立键；卷宗
+#    .workflow/backend-calc-complete/b35-research.md §五）──
+
+- key: "factor.carbon.ganhua_ef_co2"
+  value: 2.1622
+  unit: "kgCO2/Nm3"
+  source: "《省级温室气体排放清单编制指南（试行）》（发改办气候〔2011〕1041 号）附录天然气 CO₂ 因子 21.622 tCO₂/万Nm³（低位热值 389.31 GJ/万Nm³×单位热值含碳量 15.32 tC/TJ×碳氧化率 99% 推导复算 21.66±0.2% 吻合）——单位换算 21.622 t/万Nm³=2.1622 kg/Nm³"
+  note: "范围一污泥干化天然气燃烧 CO₂（批3.5 追认定值 21.622——换算见 source）；消费面=app_carbon.py C-F10（w_fuel=GH-F7 Nm³/d）"
+
+- key: "factor.carbon.ganhua_ef_ch4"
+  value: 3.8931e-05
+  unit: "kgCH4/Nm3"
+  source: "IPCC 2006 Vol.2 Ch.2 固定燃烧天然气 CH₄ 缺省 1 kg/TJ（卷宗 b35-research.md §一 原文——表号级核对随 §14 追认；门一 N1 处置注记）× 389.31 GJ/万Nm³（省指南热值同链）=3.8931e-5 kg/Nm³"
+  note: "燃烧次要面（GWP 影响占比 <0.5%——批3.5 追认一并立键）；消费面=app_carbon.py C-F11"
+
+- key: "factor.carbon.ganhua_ef_n2o"
+  value: 3.8931e-05
+  unit: "kgN2O/Nm3"
+  source: "IPCC 2006 Vol.2 Ch.2 固定燃烧天然气 N₂O 缺省 1 kg/TJ（卷宗 b35 §一 原文同上——表号级核对随 §14 追认）× 389.31 GJ/万Nm³（同上链）=3.8931e-5 kg/Nm³"
+  note: "燃烧次要面（同上——批3.5 追认一并立键）；消费面=app_carbon.py C-F11"
+
+- key: "factor.carbon.dig_mcf"
+  value: 0.8
+  unit: "-"
+  source: "IPCC 2019 Refinement Vol.5 Ch.6 Table 6.3 厌氧消化器档 MCF=0.8（无气回收口径；US EPA 2024 国家清单 Ch.7 应用同值）"
+  note: "污泥消化线 CH₄ 独立核算 MCF（案 A——批3.5 追认 2026-09-26；废水线毯式 factor.carbon.ch4_mcf=0.03 维持不动）；消费面=app_carbon.py C-F12"
+
+- key: "factor.carbon.dig_ch4_frac"
+  value: 0.6
+  unit: "m3CH4/m3biogas"
+  source: "IPCC 2006 缺省口径（沼气 CH₄ 体积比典型带 60%~65% 取下沿保守——批3.5 追认定值）"
+  note: "沼气 CH₄ 体积比（XH-F5 v_biogas 折 CH₄ 体积）；消费面=app_carbon.py C-F12"
+
+- key: "factor.carbon.dig_gas_recovery"
+  value: 0.9
+  unit: "-"
+  source: "工程默认提议值（沼气回收捕集率——批3.5 追认定值 2026-09-26）"
+  note: "消化沼气回收率（回收即减排项 R 的捕集系数）；消费面=app_carbon.py C-F12"
+
+- key: "factor.carbon.ch4_density_std"
+  value: 0.716
+  unit: "kg/m3"
+  source: "CH₄ 标准状态密度（摩尔质量 16.043 g/mol ÷ 22.414 L/mol=0.7158 取 0.716）——物理常数非可调系数（factor.carbon.molar_n2o_n 键化承载先例）"
+  note: "沼气 CH₄ 体积→质量换算（C-F12 回收项 R）；带内恒正性：净边际 ≥0.48−1.1×0.54×0.716=0.0553 kgCH4/kgVS（r_biogas 上沿）"
 
 - key: "factor.carbon.conv_mg_l_kg_m3"
   value: 0.001

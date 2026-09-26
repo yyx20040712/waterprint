@@ -2,11 +2,12 @@
 
 输入:  手算表真源（docs/norms/mine_water_cifenli.md，2026-08-27，数据策略 v2 待追认）+
        data/coefficients 0.5.0 键名
-输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ KS-F1~F8 公式登记
+输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ KS-F1~F9 公式登记
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M3a3 实装：M3a1 数据先行批的代码落地/M3 正式验收）
+# 规格说明（M3a3 实装：M3a1 数据先行批的代码落地/M3 正式验收；批6b
+#   2026-09-26 增 AUD-W4 磁分离机驱动电耗 KS-F9）
 #
 # 【固定形态】UNIT_ID = "mine_water_cifenli"；manifest = load_manifest({...})。
 # 【数值真源】参数默认值=表主算例逐字（n_units=4 台/omega=3 rpm/
@@ -170,6 +171,20 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         },
         _D,
         _GB,
+    ),
+    # 批6b AUD-W4（2026-09-26）：磁分离机驱动电耗——单机驱动功率键
+    # factor.mine_cifenli.drive.power_per_unit §14 起草事后追认（e_aeration
+    # 连续运行 ×24 先例同构；混合/投药能耗归上游单元不重复计）。
+    FormulaSpec(
+        "KS-F9",
+        "e_magnetic = n_units * p_drive * 24",
+        {
+            "n_units": (_D, "分离机台数（参数 n_units）"),
+            "p_drive": (_D, "单机驱动功率 kW（factor.mine_cifenli.drive.power_per_unit）"),
+        },
+        _D,
+        "磁盘分离机厂商样本驱动功率常用带"
+        "（docs/norms/mine_water_cifenli.md 起草表口径——批6b 增补待追认）",
     ),
     # GOLDEN4b R1（总控裁决 2026-08-28）：矿井泥线链级衔接式 MS-F1~F3 之
     # 磁泥股——登记落点=各产泥包 manifest（不进 hebing，审计口径

@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补五十二：批6a 收口 READY（gwp_ch4 27.0 八步工序+B-6/D-8 factors 笔——2 commit 4b550e6/0c31196〔HUMAN-LOCK〕/数据批双路径复算/三检全绿）；next=批6b -->
+- status: RUNNING <!-- 2026-09-26 批6b 认领（碳范围一+能耗上游补全——批3.5 实装面+AUD-W4 反冲洗三键/磁分离能耗；run dwfrun-0cd27217 workflow 通道；认领前 claim=- 无冲突） -->
 - automation_id: automation-143e250a-5e96-4e6b-9016-7ac16fa7fb21 <!-- 2026-09-26 换防迁火回填（增补五十一）；旧值 automation-cf38af42…（已熄——CronList 空实核，增补五十火情观察证实） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,22 +20,22 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T12:41:30Z <!-- 增补五十二收口刷（笔2 段心跳 13:06 系未来时戳笔误——本笔以真实钟改正记档） -->
-- claim: - <!-- 批6a 收口释放（executor-b6a-20260926T121422Z，勾选 37→38） -->
+- heartbeat_utc: 2026-09-26T13:42:00Z <!-- 2026-09-26 批6b 任务内刷新（实装+重录+重锁毕，进烤验） -->
+- claim: executor-b6b-20260926T125402Z <!-- 2026-09-26 批6b 认领（勾选快照 38/52） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 52 <!-- 2026-09-26 增补四十九：38+14（第六波全局收尾 批6a~6n——单源工单 wave6-master-plan.md；旧值 38=增补二十五口径） -->
 - checked_done: 38 <!-- 2026-09-26 批6a 收口 37→38（增补五十二） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-26T12:12:01.958Z <!-- 2026-09-26 批6a 首班发布成立（回读=run dwfrun-f764559b-9237-499f-b299-a48bf7942b05 running+执行者子代理 executing）；旧值 2026-09-26T06:11:50.897Z（批3b 首班） -->
-- workflow_run_id: dwfrun-f764559b-9237-499f-b299-a48bf7942b05 <!-- 批6a 首班执行工作流（gwp_ch4 27.2→27.0 数据勘误八步工序——呈批件四件已批 2026-09-26 可执行） -->
+- last_dispatch_utc: 2026-09-26T12:52:46.923Z <!-- 2026-09-26 批6b 首班发布成立（回读=run dwfrun-0cd27217-2a9d-43f7-9a44-9d0b6d231e02 running+执行者子代理 executing）；旧值 2026-09-26T12:12:01.958Z（批6a 首班） -->
+- workflow_run_id: dwfrun-0cd27217-2a9d-43f7-9a44-9d0b6d231e02 <!-- 批6b 首班执行工作流（碳范围一+能耗上游补全——批3.5 实装面+AUD-W4 反冲洗三键/磁分离能耗） -->
 - relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
 - batch_count: 1 <!-- 2026-09-26 批6a 收口 0→1（增补五十二）；换防复位后第 1 批 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-26
-- claimed_by: executor-b6a-20260926T121422Z
-- claimed_at: 2026-09-26T12:14:22Z
+- claimed_by: executor-b6b-20260926T125402Z
+- claimed_at: 2026-09-26T12:54:02Z
 - next_batch: 批6b 碳范围一+能耗上游补全（批3.5 实装面〔ganhua EF 21.622+xiaohua MCF 0.8 案 A+碳三键已追认〕+AUD-W4 反冲洗三键/磁分离能耗——新数值 §14 起草带出处事后追认制；依赖 6a 基线稳定已满足） -->
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）

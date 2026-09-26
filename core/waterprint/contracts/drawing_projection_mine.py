@@ -140,10 +140,13 @@ MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
         primitive_dims={},
         instance_counts={"disk": "n_disks"},
         non_drawn=("a_disk", "a_total_req", "m_seed_net", "n_disks_raw",
-                   "q_1h", "q_sludge", "v_line", "w_ss"),
+                   "q_1h", "q_sludge", "v_line", "w_ss",
+                   # 批6b AUD-W4 磁分离机驱动日电耗（非制图量）
+                   "e_magnetic"),
         dim_of={"a_disk": _A, "a_total_req": _A, "m_seed_net": _D,
                 "n_disks": _D, "n_disks_raw": _D, "q_1h": _D,
-                "q_sludge": _V, "v_line": _VEL, "w_ss": _D},
+                "q_sludge": _V, "v_line": _VEL, "w_ss": _D,
+                "e_magnetic": _D},
     ),
     # 矿井高密度澄清池：l/b 档取整后池长/池宽（KG-F5/F6 raw 键对照）
     "mine_water_gaomidu": UnitProjection(

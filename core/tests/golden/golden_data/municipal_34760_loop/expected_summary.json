@@ -509,8 +509,8 @@
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 13638.430354069795
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 21495.357207406654
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
@@ -527,26 +527,26 @@
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 3932.596500933716
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3966.603203973716
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6032.280601743248
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 6066.287304783247
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 0.5658893795056855
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 0.7928967054721672
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 19670.710955813043
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 27561.6445121899
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
@@ -557,14 +557,14 @@
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872490.5068739553
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 1888682.6660739556
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3087617.0059766187
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3103809.165176619
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
@@ -617,8 +617,50 @@
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 7328.72996819552
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 7392.104368195521
+      },
+      "vs_degraded_kg_d": {
+        "value": 1540.1746944430865,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "biogas_m3_d": {
+        "value": 1386.157224998778,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "power_backwash_kwh_d": {
+        "value": 63.37440000000001,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "fuel_gas_nm3_d": {
+        "value": 1088.720155318512,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_co2_kgco2e_d": {
+        "value": 2354.030719829687,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_minor_kgco2e_d": {
+        "value": 12.715489310011499,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_ch4_digest_kgco2e_d": {
+        "value": 5490.180644197162,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
       }
     },
     "design": {
@@ -667,8 +709,8 @@
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 13638.430354069795
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 21386.663003165042
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
@@ -685,26 +727,26 @@
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 3932.2617904833005
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3966.2684935233
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6030.856356076385
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 6064.863059116385
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 0.5658484066349797
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 0.7897288046560343
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 19669.28671014618
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 27451.526062281428
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
@@ -715,14 +757,14 @@
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 1888523.2949966516
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3101523.6987623423
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
@@ -775,8 +817,50 @@
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 7328.106206640516
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 7391.480606640515
+      },
+      "vs_degraded_kg_d": {
+        "value": 1518.8676279614306,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "biogas_m3_d": {
+        "value": 1366.9808651652875,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "power_backwash_kwh_d": {
+        "value": 63.37440000000001,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "fuel_gas_nm3_d": {
+        "value": 1073.6585958649084,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_co2_kgco2e_d": {
+        "value": 2321.464615979105,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_minor_kgco2e_d": {
+        "value": 12.539580838685024,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_ch4_digest_kgco2e_d": {
+        "value": 5414.228452277458,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
       }
     },
     "design_offline_municipal_aao": {
@@ -825,8 +909,8 @@
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 13638.430354069795
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 21386.663003165042
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
@@ -843,26 +927,26 @@
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 3932.2617904833005
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3966.2684935233
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6030.856356076385
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 6064.863059116385
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 0.5658484066349797
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 0.7897288046560343
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 19669.28671014618
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 27451.526062281428
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
@@ -873,14 +957,14 @@
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 1888523.2949966516
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3101523.6987623423
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
@@ -933,8 +1017,50 @@
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 7328.106206640516
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 7391.480606640515
+      },
+      "vs_degraded_kg_d": {
+        "value": 1518.8676279614306,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "biogas_m3_d": {
+        "value": 1366.9808651652875,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "power_backwash_kwh_d": {
+        "value": 63.37440000000001,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "fuel_gas_nm3_d": {
+        "value": 1073.6585958649084,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_co2_kgco2e_d": {
+        "value": 2321.464615979105,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_minor_kgco2e_d": {
+        "value": 12.539580838685024,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_ch4_digest_kgco2e_d": {
+        "value": 5414.228452277458,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
       }
     },
     "design_offline_municipal_chuchenchi": {
@@ -983,8 +1109,8 @@
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 13638.430354069795
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 21386.663003165042
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
@@ -1001,26 +1127,26 @@
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 3932.2617904833005
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3966.2684935233
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6030.856356076385
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 6064.863059116385
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 0.5658484066349797
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 0.7897288046560343
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 19669.28671014618
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 27451.526062281428
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
@@ -1031,14 +1157,14 @@
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 1888523.2949966516
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3101523.6987623423
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
@@ -1091,8 +1217,50 @@
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 7328.106206640516
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 7391.480606640515
+      },
+      "vs_degraded_kg_d": {
+        "value": 1518.8676279614306,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "biogas_m3_d": {
+        "value": 1366.9808651652875,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "power_backwash_kwh_d": {
+        "value": 63.37440000000001,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "fuel_gas_nm3_d": {
+        "value": 1073.6585958649084,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_co2_kgco2e_d": {
+        "value": 2321.464615979105,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_minor_kgco2e_d": {
+        "value": 12.539580838685024,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_ch4_digest_kgco2e_d": {
+        "value": 5414.228452277458,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
       }
     },
     "design_offline_municipal_erchunchi": {
@@ -1141,8 +1309,8 @@
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 13638.430354069795
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 21386.663003165042
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
@@ -1159,26 +1327,26 @@
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 3932.2617904833005
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3966.2684935233
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6030.856356076385
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 6064.863059116385
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 0.5658484066349797
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 0.7897288046560343
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 19669.28671014618
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 27451.526062281428
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
@@ -1189,14 +1357,14 @@
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1872331.1357966517
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 1888523.2949966516
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 3085331.539562342
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 3101523.6987623423
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
@@ -1249,17 +1417,59 @@
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 7328.106206640516
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
+        "value": 7391.480606640515
+      },
+      "vs_degraded_kg_d": {
+        "value": 1518.8676279614306,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "biogas_m3_d": {
+        "value": 1366.9808651652875,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "power_backwash_kwh_d": {
+        "value": 63.37440000000001,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "fuel_gas_nm3_d": {
+        "value": 1073.6585958649084,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_co2_kgco2e_d": {
+        "value": 2321.464615979105,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_fuel_minor_kgco2e_d": {
+        "value": 12.539580838685024,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+      },
+      "carbon_direct_ch4_digest_kgco2e_d": {
+        "value": 5414.228452277458,
+        "rel": 1e-12,
+        "abs": 1e-12,
+        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
       }
     }
   },
   "generated": {
-    "data_version": "coefficients@1.6.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.7.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 6320295,
-    "serialize_sha256_head": "8084290314ff5b92",
-    "source": "批6a B-6/D-8 factors 笔锚重录 2026-09-26 HEAD=4b550e6（增补五十欠账路由——带键零消费面值恒等，仅 DV 串效应）"
+    "serialize_bytes": 6327426,
+    "serialize_sha256_head": "752729ab03ef01dd",
+    "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
   },
   "m3_deferred": {
     "estimate_total": {

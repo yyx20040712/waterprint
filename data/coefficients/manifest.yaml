@@ -1,6 +1,25 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.6.0"
+data_version: "1.7.0"
 # 变更记录：
+#   - 1.7.0: 批6b 碳范围一补全+能耗上游扩键（AUD-W3/W4 修复；2026-09-26）：
+#       factors.yaml 增 10 键（实数口径 552→562）：碳七键
+#       factor.carbon.{ganhua_ef_co2 2.1622 kgCO2/Nm3[省指南 21.622
+#       tCO₂/万Nm³ 换算——批3.5 追认定值]、ganhua_ef_ch4/ganhua_ef_n2o
+#       3.8931e-5[IPCC 2006 1 kg/TJ×389.31 GJ/万Nm³——次要面一并立键]、
+#       dig_mcf 0.8[2019RF Table 6.3 厌氧消化器档——案 A 择案]、dig_ch4_frac
+#       0.6[IPCC 2006 缺省]、dig_gas_recovery 0.9[工程默认追认]、
+#       ch4_density_std 0.716[标态密度物理常数键化]}+能耗三键
+#       factor.vxinglvchi.wash.{air_specific_energy 0.02、
+#       water_specific_energy 0.044 kWh/m3[AUD-W4 反冲洗折电——P=Q·Δp/η
+#       与 P=ρgQH/η 口径起草]}+factor.mine_cifenli.drive.power_per_unit
+#       3.0 kW/台[AUD-W4 磁分离机驱动补键]。碳七键全部已追认（批3.5
+#       §五 2026-09-26）；能耗三键=§14 工程常用范围起草带出处事后追认制
+#       （数值单随批 Rulings）。消费面=app_carbon.py C-F10~F12（燃料
+#       CO₂/燃烧次要/消化净 CH₄ 三新平键入 direct 合计）+vxinglvchi
+#       XL-F20~F22（w_air/w_sweep 日耗 dims+e_backwash）+cifenli KS-F9
+#       （e_magnetic）+app_energy.py（e_backwash/e_magnetic 入 power_*
+#       族+w_fuel/w_vs_deg/v_biogas 碳上游供数平键）。golden 四案重录
+#       随批〔HUMAN-LOCK〕（预授权①依据=用户 2026-09-26 全局规划指令）。
 #   - 1.6.0: 批6a B-6/D-8 factors 笔（2026-09-26 增补五十欠账路由——批3b
 #       裁决部 C2 落档；键增批走 minor 位先例 1.4.0→1.5.0）：factors.yaml
 #       增 4 键（实数口径 548→552）：

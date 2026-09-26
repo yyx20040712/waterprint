@@ -97,6 +97,9 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.vxinglvchi.wash.t_air": 2.0,
         "factor.vxinglvchi.wash.t_sim": 4.0,
         "factor.vxinglvchi.wash.t_water": 4.0,
+        # 批6b AUD-W4 反冲洗折电比能双键（factors.yaml 1.7.0 逐字）
+        "factor.vxinglvchi.wash.air_specific_energy": 0.02,
+        "factor.vxinglvchi.wash.water_specific_energy": 0.044,
         "factor.vxinglvchi.cycle_band.min": 24.0,
         "factor.vxinglvchi.cycle_band.max": 48.0,
         "factor.vxinglvchi.wall_thickness_coef": 0.35,
@@ -171,6 +174,10 @@ def test_main_case_wash() -> None:
     assert dims["v_wash_per"] == pytest.approx(129.6, abs=1e-6)  # XL-F15：单格次
     assert dims["v_wash_daily"] == pytest.approx(777.6, abs=1e-6)  # XL-F16
     assert dims["ratio_wash"] == pytest.approx(0.02237009, abs=1e-7)  # XL-F17：2.24%
+    # 批6b AUD-W4 反冲洗能耗面（XL-F20~F22）
+    assert dims["w_air"] == pytest.approx(1458.0, abs=1e-6)  # XL-F20：243×6×24/24
+    assert dims["w_sweep"] == pytest.approx(291.6, abs=1e-6)  # XL-F21：0.081×10×60×6
+    assert dims["e_backwash"] == pytest.approx(63.3744, abs=1e-6)  # XL-F22：1458×0.02+777.6×0.044
 
 
 def test_main_case_depth() -> None:
@@ -278,7 +285,8 @@ def test_pure_function_double_run() -> None:
 def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
-    assert result.formula_ids == tuple(f"XL-F{index}" for index in range(1, 20))
+    # 批6b（2026-09-26）：XL-F20~F22 反冲洗能耗三式入列（AUD-W4）
+    assert result.formula_ids == tuple(f"XL-F{index}" for index in range(1, 23))
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

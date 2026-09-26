@@ -81,6 +81,8 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.vxinglvchi.wash.t_air': 2.0,
     'factor.vxinglvchi.wash.t_sim': 4.0,
     'factor.vxinglvchi.wash.t_water': 4.0,
+    'factor.vxinglvchi.wash.air_specific_energy': 0.02,
+    'factor.vxinglvchi.wash.water_specific_energy': 0.044,
     'factor.vxinglvchi.cycle_band.min': 24.0,
     'factor.vxinglvchi.cycle_band.max': 48.0,
     'factor.vxinglvchi.wall_thickness_coef': 0.35,
@@ -96,6 +98,10 @@ class _Sink:
 
     def record(self, node: Any) -> None:
         """丢弃记录。"""
+
+
+def _wash_keys(w_air: float, w_sweep: float, e_backwash: float) -> dict[str, float]:
+    return {'w_air': w_air, 'w_sweep': w_sweep, 'e_backwash': e_backwash}
 
 
 def _compute(overrides: dict[str, float] | None = None) -> UnitResult:
@@ -165,6 +171,7 @@ def test_baseline_var1_full_surface() -> None:
         'v_wash_per': 85.67999999999999,
         'v_wash_daily': 514.0799999999999,
         'ratio_wash': 0.014789115293995805,
+        **_wash_keys(963.9, 192.78000000000006, 41.89751999999999),
         'h_total': 3.9000000000000004,
         'v_concrete': 243.6525,
     }
@@ -229,6 +236,7 @@ def test_baseline_var2_full_surface() -> None:
         'v_wash_per': 155.52,
         'v_wash_daily': 622.08,
         'ratio_wash': 0.017896072288532742,
+        **_wash_keys(1166.4, 233.28000000000006, 50.69952000000001),
         'h_total': 3.9000000000000004,
         'v_concrete': 294.84000000000003,
     }
@@ -285,6 +293,7 @@ def test_baseline_var3_full_surface() -> None:
         'v_wash_per': 132.48000000000002,
         'v_wash_daily': 794.8800000000001,
         'ratio_wash': 0.022867203479791837,
+        **_wash_keys(1490.3999999999999, 298.08, 64.78272),
         'h_total': 3.9000000000000004,
         'v_concrete': 376.74,
     }
@@ -341,6 +350,7 @@ def test_baseline_var4_full_surface() -> None:
         'v_wash_per': 129.60000000000002,
         'v_wash_daily': 777.6,
         'ratio_wash': 0.022370090360665926,
+        **_wash_keys(1458.0000000000007, 291.6, 63.37440000000001),
         'h_total': 4.2,
         'v_concrete': 396.9,
     }
@@ -398,6 +408,7 @@ def test_baseline_var5_full_surface() -> None:
         'v_wash_per': 129.60000000000002,
         'v_wash_daily': 777.6,
         'ratio_wash': 0.022370090360665926,
+        **_wash_keys(1458.0000000000007, 291.6, 63.37440000000001),
         'h_total': 4.2,
         'v_concrete': 396.9,
     }
@@ -454,6 +465,7 @@ def test_baseline_var6_full_surface() -> None:
         'v_wash_per': 129.60000000000002,
         'v_wash_daily': 933.1200000000001,
         'ratio_wash': 0.026844108432799114,
+        **_wash_keys(1749.6000000000008, 349.92, 76.04928000000002),
         'h_total': 3.9000000000000004,
         'v_concrete': 368.54999999999995,
     }

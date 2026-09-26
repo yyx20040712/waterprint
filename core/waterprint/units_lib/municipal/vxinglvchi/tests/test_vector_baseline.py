@@ -109,6 +109,9 @@ _MAIN_PARAMS: dict[str, float] = {
     'factor.vxinglvchi.wash.t_air': 2.0,
     'factor.vxinglvchi.wash.t_sim': 4.0,
     'factor.vxinglvchi.wash.t_water': 4.0,
+    # 批6b AUD-W4 反冲洗折电比能双键（factors.yaml 1.7.0 逐字）
+    'factor.vxinglvchi.wash.air_specific_energy': 0.02,
+    'factor.vxinglvchi.wash.water_specific_energy': 0.044,
     'factor.vxinglvchi.cycle_band.min': 24.0,
     'factor.vxinglvchi.cycle_band.max': 48.0,
     'factor.vxinglvchi.wall_thickness_coef': 0.35,
@@ -167,6 +170,10 @@ def test_baseline_main_full_surface() -> None:
         'v_wash_per': 129.60000000000002,
         'v_wash_daily': 777.6,
         'ratio_wash': 0.022370090360665926,
+        # 批6b AUD-W4 反冲洗能耗面三键（XL-F20~F22——冻结值随批重录）
+        'w_air': 1458.0000000000007,
+        'w_sweep': 291.6,
+        'e_backwash': 63.37440000000001,
         'h_total': 3.9000000000000004,
         'v_concrete': 368.54999999999995,
     }

@@ -10,7 +10,9 @@
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门]）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
-# 【公式组】XL-F1~F19（docs/norms/vxinglvchi.md 起草表；manifest.py 登记）。
+# 【公式组】XL-F1~F19（docs/norms/vxinglvchi.md 起草表；manifest.py 登记）
+#   +批6b XL-F20~F22（AUD-W4 反冲洗日耗气/日扫洗水/折电——比能双键
+#   §14 起草事后追认；dims 增 w_air/w_sweep/e_backwash 三键）。
 # 【DSL 收口】ceil 与构造步长离散在本文件收口（DSL 无 ceil）：单格宽 B/
 #   长 L=ceil(b_raw·l_raw, side_disc_step 0.5 m 档)。零数值字面量。
 # 【流量口径】过滤面积与冲洗强度按最高时 flow.q_design（含自用水系数
@@ -81,6 +83,9 @@ _W_SWEEP = "factor.vxinglvchi.wash.sweep"
 _T_AIR = "factor.vxinglvchi.wash.t_air"
 _T_SIM = "factor.vxinglvchi.wash.t_sim"
 _T_WATER = "factor.vxinglvchi.wash.t_water"
+# 批6b AUD-W4 反冲洗折电比能双键（§14 起草事后追认——XL-F22 消费）
+_E_AIR_SE = "factor.vxinglvchi.wash.air_specific_energy"
+_E_WATER_SE = "factor.vxinglvchi.wash.water_specific_energy"
 # 强制滤速最小分格数（一格冲洗时其余格过全部流量——XL-F9 分母
 # a_total_act−a_cell_act = a_cell_act×(n−1) 需 n≥2；宪法 §3 允许集内字面量）
 _MIN_CELLS: Final[int] = 2
@@ -94,7 +99,10 @@ _PARAMS_POSITIVE = (
     "t_cycle",
     "side_disc_step",
 )
-_FACTORS_POSITIVE = (_SELFUSE, _W_AIR, _W_WATER_SIM, _W_WATER, _W_SWEEP, _T_AIR, _T_SIM, _T_WATER)
+_FACTORS_POSITIVE = (
+    _SELFUSE, _W_AIR, _W_WATER_SIM, _W_WATER, _W_SWEEP,
+    _T_AIR, _T_SIM, _T_WATER, _E_AIR_SE, _E_WATER_SE,
+)
 
 
 _ceil_step = _make_ceil_step(_UNIT_ID, "取整步长", spaced=False)
@@ -192,8 +200,35 @@ def _wash(
             "t_water": _vec(_factor(p, _T_WATER, _UNIT_ID)),
         },
     )
+    n_vec, tc_vec = _vec(p["n"]), _vec(p["t_cycle"])
     v_wash_daily = _apply_batch(
-        ctx, "XL-F16", {"v_wash_per": v_wash_per, "n": _vec(p["n"]), "t_cycle": _vec(p["t_cycle"])}
+        ctx, "XL-F16", {"v_wash_per": v_wash_per, "n": n_vec, "t_cycle": tc_vec}
+    )
+    # 批6b AUD-W4：反冲洗日耗三键面（w_air 全厂日耗气/w_sweep 日扫洗水分量
+    # ——w_water 日耗水=v_wash_daily 既有键承载含扫洗全量）+折电 e_backwash
+    w_air = _apply_batch(
+        ctx, "XL-F20", {"v_air_per": v_air_per, "n": n_vec, "t_cycle": tc_vec})
+    w_sweep = _apply_batch(
+        ctx,
+        "XL-F21",
+        {
+            "q_sweep": q_sweep,
+            "t_air": times["t_air"],
+            "t_sim": times["t_sim"],
+            "t_water": _vec(_factor(p, _T_WATER, _UNIT_ID)),
+            "n": n_vec,
+            "t_cycle": tc_vec,
+        },
+    )
+    e_backwash = _apply_batch(
+        ctx,
+        "XL-F22",
+        {
+            "w_air": w_air,
+            "air_specific_energy": _vec(_factor(p, _E_AIR_SE, _UNIT_ID)),
+            "v_wash_daily": v_wash_daily,
+            "water_specific_energy": _vec(_factor(p, _E_WATER_SE, _UNIT_ID)),
+        },
     )
     return {
         "q_air": q_air,
@@ -206,6 +241,9 @@ def _wash(
         "ratio_wash": _apply_batch(
             ctx, "XL-F17", {"v_wash_daily": v_wash_daily, "q_avg_daily": _vec(flow.q_avg_daily)}
         ),
+        "w_air": w_air,
+        "w_sweep": w_sweep,
+        "e_backwash": e_backwash,
     }
 
 

@@ -8,7 +8,9 @@
 # 规格说明（M3a3 实装：M3a1 数据先行批的代码落地/M3 正式验收）
 #
 # 【公式组】KS-F1~KS-F8（docs/norms/mine_water_cifenli.md 起草表；
-#   manifest.py 登记）——磁盘表面负荷主线+磁种回收衡算。
+#   manifest.py 登记）——磁盘表面负荷主线+磁种回收衡算；批6b 增 KS-F9
+#   磁分离机驱动日电耗（AUD-W4 补面——drive.power_per_unit §14 起草
+#   事后追认；dims 增 e_magnetic 键）。
 # 【DSL 收口】ceil 在本文件收口（DSL 无 ceil）：盘片数整台向上取整
 #   （n_disks_raw 取整前审计面——chenshachi b_raw 先例）。零数值字面量。
 # 【流量口径】盘面水力按最高时 flow.q_design（KS-F1~F5，×3600 已内联
@@ -128,6 +130,18 @@ def _line_speed(ctx: UnitContext, p: dict[str, float]) -> float:
     )
 
 
+def _drive_energy(ctx: UnitContext, p: dict[str, float]) -> float:
+    """KS-F9：磁分离机驱动日电耗 kWh/d（批6b AUD-W4——台数×单机驱动×24h）。"""
+    return _apply(
+        ctx,
+        "KS-F9",
+        {
+            "n_units": p["n_units"],
+            "p_drive": _factor(p, "factor.mine_cifenli.drive.power_per_unit", _UNIT_ID),
+        },
+    )
+
+
 def _balance(
     ctx: UnitContext, p: dict[str, float], flow: WaterFlow, ss_in: float
 ) -> dict[str, float]:
@@ -221,7 +235,7 @@ class _MineCifenli:
     manifest = manifest
 
     def compute(self, ctx: UnitContext) -> UnitResult:
-        """KS-F1~F8 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
+        """KS-F1~F9 主算路径（纯函数：同 ctx 必同 UnitResult）。"""
         p = dict(ctx.params)
         _validate(p)
         in_ref, flow = _inflow(ctx, "磁分离机单入单出语义")
@@ -231,6 +245,7 @@ class _MineCifenli:
             **face,
             "v_line": _line_speed(ctx, p),
             **_balance(ctx, p, flow, _ss_in(quality)),
+            "e_magnetic": _drive_energy(ctx, p),
         }
         out_ref = PortRef(unit_id=ctx.unit_id, port_id="out")
         sludge_ref = PortRef(unit_id=ctx.unit_id, port_id="sludge_out")

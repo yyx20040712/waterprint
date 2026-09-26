@@ -88,6 +88,8 @@ def _params(**overrides: float) -> dict[str, float]:
         "factor.mine_cifenli.superheight": 0.3,
         "factor.mine_cifenli.wall_thickness_coef": 0.35,
         "factor.mine_cifenli.elevation_loss": 0.2,
+        # 批6b AUD-W4 磁分离机驱动功率键（factors.yaml 1.7.0 逐字）
+        "factor.mine_cifenli.drive.power_per_unit": 3.0,
         # removal_rates.yaml mod_default 档逐字（KS-F6 截留率=SS 去除键）
         "removal.mine_cifenli.ss.mod_default": 0.9,
         "removal.mine_cifenli.cod.mod_default": 0.6,
@@ -156,6 +158,8 @@ def test_main_case_mass_balance() -> None:
     # KS-F8：DSL 逐字输出 kg/d=1095.9（表期望列 1.0959 t/d 显示口径，同量）
     assert dims["m_seed_net"] == pytest.approx(1095.9, abs=1e-8)
     assert dims["m_seed_net"] == pytest.approx(1.0959 * 1000, abs=1e-6)
+    # 批6b AUD-W4：KS-F9 磁分离机驱动日电耗（4 台×3 kW×24h）
+    assert dims["e_magnetic"] == pytest.approx(288.0, abs=1e-9)
 
 
 def test_secondary_case_few_units() -> None:
@@ -228,7 +232,8 @@ def test_formula_ids_registered() -> None:
     """formula_ids 非空且全部可在公式注册表解析（§16 A1 漂移防线）。"""
     result = make_unit().compute(_ctx(_params()))
     # GOLDEN4b R1（2026-08-28）：MS-F1 磁泥股衔接式收编（sludge_out 产股消费）
-    assert result.formula_ids == (*tuple(f"KS-F{index}" for index in range(1, 9)), "MS-F1")
+    # 批6b（2026-09-26）：KS-F9 磁分离机驱动日电耗入列（AUD-W4）
+    assert result.formula_ids == (*tuple(f"KS-F{index}" for index in range(1, 10)), "MS-F1")
     for formula_id in result.formula_ids:
         assert formulas.by_id(formula_id).formula_id == formula_id
 

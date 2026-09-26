@@ -2,11 +2,12 @@
 
 输入:  四表起草真源（docs/norms/vxinglvchi.md，2026-08-25，数据策略 v2 待追认）+
        data/coefficients 0.3.0 键名
-输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ XL-F1~F19 公式登记
+输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ XL-F1~F22 公式登记
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收）
+# 规格说明（M2b2 实装：M2b1 数据先行批的代码落地/M2 正式验收；批6b
+#   2026-09-26 增 AUD-W4 反冲洗能耗面 XL-F20~F22）
 #
 # 【固定形态】UNIT_ID = "municipal_vxinglvchi"；manifest = load_manifest({...})。
 # 【数值真源】参数默认值=四表算例 1 逐字（n=6 分格/v_filter=8.0 m/h/
@@ -16,7 +17,9 @@
 #   壁厚系数+高程水损全部经 factor.vxinglvchi.* 键消费（app._unit_params
 #   投影）；去除率经 removal.vxinglvchi.*.mod_default 键（NH3N/TN/TP
 #   不建条目）。
-# 【公式注册（D1）】XL-F1~F19 逐条 FormulaSpec+register；expression=四表
+# 【公式注册（D1）】XL-F1~F19 逐条 FormulaSpec+register（批6b 增 XL-F20~F22
+#   反冲洗日耗气/日扫洗水/反冲洗折电——AUD-W4 上游补面，比能双键
+#   factor.vxinglvchi.wash.{air,water}_specific_energy §14 起草事后追认）；expression=四表
 #   公式串转受限 DSL——data 包系数一律符号绑定（零系数字面量）；结构
 #   常数（1000/24/60/3600/86400）内联（本文件=units_lib manifest 白名单区）；
 #   ×3600=时换算条文常量（XL-F1 q_design m3/s→m3/h 口径，四表 q_design_h
@@ -243,6 +246,47 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "wall_coef": (_D, "壁厚系数（factor.vxinglvchi.wall_thickness_coef，概算口径）"),
         },
         _VOL,
+        _HB,
+    ),
+    # ── 批6b AUD-W4 反冲洗能耗面（2026-09-26；比能键 §14 起草事后追认）──
+    FormulaSpec(
+        "XL-F20",
+        "w_air = v_air_per * n * 24 / t_cycle",
+        {
+            "v_air_per": (_VOL, "单格次耗气 m3（XL-F14）"),
+            "n": (_D, "分格数"),
+            "t_cycle": (_TH, "过滤周期 h（参数 t_cycle）"),
+        },
+        _VOL,
+        _HB,
+    ),
+    FormulaSpec(
+        "XL-F21",
+        "w_sweep = q_sweep * (t_air + t_sim + t_water) * 60 * n * 24 / t_cycle",
+        {
+            "q_sweep": (_F, "表面扫洗流量 m3/s"),
+            "t_air": (_D, "气冲历时 min（factor.vxinglvchi.wash.t_air）"),
+            "t_sim": (_D, "气水同时历时 min（factor.vxinglvchi.wash.t_sim）"),
+            "t_water": (_D, "水冲历时 min（factor.vxinglvchi.wash.t_water）"),
+            "n": (_D, "分格数"),
+            "t_cycle": (_TH, "过滤周期 h（参数 t_cycle）"),
+        },
+        _VOL,
+        _HB,
+    ),
+    FormulaSpec(
+        "XL-F22",
+        "e_backwash = w_air * air_specific_energy"
+        " + v_wash_daily * water_specific_energy",
+        {
+            "w_air": (_VOL, "全厂日耗气 m3/d（XL-F20）"),
+            "air_specific_energy": (
+                _D, "反冲洗风机比能 kWh/m3（factor.vxinglvchi.wash.air_specific_energy）"),
+            "v_wash_daily": (_VOL, "全厂日耗水 m3/d（XL-F16——含扫洗份额全量）"),
+            "water_specific_energy": (
+                _D, "反冲洗泵比能 kWh/m3（factor.vxinglvchi.wash.water_specific_energy）"),
+        },
+        _D,
         _HB,
     ),
 )

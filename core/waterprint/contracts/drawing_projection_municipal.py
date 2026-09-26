@@ -236,14 +236,17 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                    "b_raw", "l_raw", "q_air", "q_filter", "q_sweep",
                    "q_wash", "q_wash_sim", "ratio_wash", "v_air_per",
                    "v_concrete", "v_filter_act", "v_forced_act",
-                   "v_wash_daily", "v_wash_per"),
+                   "v_wash_daily", "v_wash_per",
+                   # 批6b AUD-W4 反冲洗能耗面三键（非制图量——日耗/折电）
+                   "w_air", "w_sweep", "e_backwash"),
         dim_of={"a_cell": _A, "a_cell_act": _A, "a_total_act": _A,
                 "a_total_req": _A, "b": _L, "b_raw": _L, "h_total": _L,
                 "l": _L, "l_raw": _L, "q_air": _F, "q_filter": _D,
                 "q_sweep": _F, "q_wash": _F, "q_wash_sim": _F,
                 "ratio_wash": _D, "v_air_per": _V, "v_concrete": _V,
                 "v_filter_act": _D, "v_forced_act": _D,
-                "v_wash_daily": _V, "v_wash_per": _V},
+                "v_wash_daily": _V, "v_wash_per": _V,
+                "w_air": _V, "w_sweep": _V, "e_backwash": _D},
     ),
     # 紫外消毒：n_lamp 灯管支数/n_module 模块数/n_module_series 系列模块数
     "municipal_ziwai": UnitProjection(
