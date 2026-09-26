@@ -319,3 +319,85 @@ def test_capex_deterministic_double_run() -> None:
         assert dict(left.params) == dict(right.params)
         assert left.score == right.score
         assert left.metrics[_CAPEX_KEY] == right.metrics[_CAPEX_KEY]
+
+
+# ══ 批6c LCC 折旧面 beam 域（展示维度集成——AUD-W11 后半；
+#     [HUMAN-LOCK] 2026-09-26 预授权①随批落地）══
+
+_ANN_KEY = "cost_capex_annualized_yuan_a"
+
+
+class _StripLcc:
+    """CoefficientsView 代位：factor.lcc.* 视为不在册（其余全透传）。"""
+
+    def __init__(self, inner: Any) -> None:
+        self._inner = inner
+
+    @property
+    def data_version(self) -> str:
+        return self._inner.data_version
+
+    def get(self, key: str) -> Any:
+        if key.startswith("factor.lcc."):
+            raise KeyError(key)
+        return self._inner.get(key)
+
+    def keys(self, prefix: str = "") -> tuple[str, ...]:
+        return tuple(
+            k for k in self._inner.keys(prefix)
+            if not k.startswith("factor.lcc.")
+        )
+
+
+def _env_no_lcc() -> Any:
+    """真实数据包 env 减 LCC 族（score 不变性对照跑——批6c 展示维度行为证）。"""
+    from waterprint.contracts.run_env import RunEnv
+    from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+    from waterprint.registry.coefficients import load_coefficients
+
+    assumptions = {item.key: item.default for item in DEFAULT_ASSUMPTIONS}
+    return RunEnv(
+        engine_version="b43", data_version="b43", assumptions=assumptions,
+        coefficients=_StripLcc(load_coefficients(_DATA)), price_book={},
+        trace_sink=None, engine_params={},
+    )
+
+
+def test_kit_injection_carries_lcc_annualized() -> None:
+    """批6c：kit 注入+lcc 双键在册→全组合年折旧正值+直线包络+确定性+kit 缺席随缺。
+
+    包络（k1 W-1 收紧口径）：E∈[0,G] ⇒ ann=E/10+(G−E)/30=G/30+E/15 ∈
+    [G/30, G/10]——上界 G/10 为真包络（原 <G 过松）。金样链设备基数退化
+    （E≈54 元——设备行近零映射=批6d field_mapping 扩行范围注记），键配对
+    语义由纯函数用例 test_capex_annualized_straight_line_formula 手算钉死
+    （互换 lives → 866.67≠466.67 必红）。"""
+    outcome = _capex_outcome(capex=True)
+    assert outcome.combos
+    for combo in outcome.combos:
+        assert _ANN_KEY in combo.metrics  # 批6c 前缺=红先证锚（kit 缺席同键族随缺）
+        annualized, capex = combo.metrics[_ANN_KEY], combo.metrics[_CAPEX_KEY]
+        assert annualized > 0.0
+        assert capex / 30.0 <= annualized <= capex / 10.0  # 直线包络 [G/30, G/10]
+    absent = _capex_outcome(capex=False)
+    assert all(_ANN_KEY not in combo.metrics for combo in absent.combos)
+    again = _capex_outcome(capex=True)  # 确定性：年折旧逐组合双跑全等
+    for left, right in zip(outcome.combos, again.combos, strict=True):
+        assert left.metrics[_ANN_KEY] == right.metrics[_ANN_KEY]
+
+
+def test_lcc_display_key_score_invariance() -> None:
+    """批6c 展示维度不进 objective：lcc 键在场/缺席两跑 score 逐位同（结构性排除行为证）。"""
+    with_lcc = run_joint_enumerate(  # type: ignore[misc]
+        _project(), [_CASS, _AAO], _conditions(), _env(),
+        _options(grids=_GRIDS, capex_data_dir=_REPO_DATA),
+    )
+    without = run_joint_enumerate(  # type: ignore[misc]
+        _project(), [_CASS, _AAO], _conditions(), _env_no_lcc(),
+        _options(grids=_GRIDS, capex_data_dir=_REPO_DATA),
+    )
+    assert len(with_lcc.combos) == len(without.combos) and with_lcc.combos
+    for left, right in zip(with_lcc.combos, without.combos, strict=True):
+        assert dict(left.params) == dict(right.params)
+        assert left.score == right.score  # score 对 lcc 键零依赖（白名单投影）
+        assert _ANN_KEY in left.metrics and _ANN_KEY not in right.metrics
+        assert left.metrics[_CAPEX_KEY] == right.metrics[_CAPEX_KEY]

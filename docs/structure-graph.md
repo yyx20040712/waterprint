@@ -247,7 +247,7 @@ glob = true
 [[edge]]
 from = "waterprint.solution.joint_enumeration"
 to = "waterprint.cost"
-note = "backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）"
+note = "backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单；批6c 2026-09-26 增 EstimateSheet 四类型——capex_annualized 消费分级小计，边不变）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）"
 independence = true
 glob = true
 ```

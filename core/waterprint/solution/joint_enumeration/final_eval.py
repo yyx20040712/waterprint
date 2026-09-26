@@ -29,6 +29,11 @@
 #       （批2b 第四真键：cost_capex_yuan=概算 grand_total——AUD-W11
 #       断层修复，装配链 services/cost.py R3 同款；kit 缺席=capex 键
 #       恒缺 N6 重分配承接，core 直调向后兼容）
+#   capex_estimate(kit, plant, condition_key)/capex_annualized(sheet,
+#       coefficients)（批6c LCC 折旧面 2026-09-26——AUD-W11 后半：直线法
+#       双键展示维度 cost_capex_annualized_yuan_a=equip/L_e+other/L_c；
+#       不进 objective〔_METRIC_KEYS/权重/baseline 零变更——结构性排除〕；
+#       factor.lcc.* sparse（opex 前缀列举先例）+kit 缺席随 capex 双缺）
 #   class ComboResult(不可变)：params/feasible/sensitivity_degraded/
 #       failed_conditions/metrics/score（W11 schema 面）
 #
@@ -60,8 +65,9 @@ from waterprint.contracts.ports import Edge
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult
-from waterprint.contracts.run_env import EngineParam, RunEnv
+from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
 from waterprint.cost import (  # 包根再导出面（批2b 同层边 import 收敛——§1c 声明承载）
+    EstimateSheet,
     FeeRule,
     FieldMapping,
     PriceBook,
@@ -106,6 +112,12 @@ _METRIC_KEYS: Final[dict[str, str]] = {
     "carbon": "carbon_intensity_kgco2e_m3",
     "capex": "cost_capex_yuan",
 }
+# 批6c LCC 展示维度（设计件 b6c-design.md §三——不入 _METRIC_KEYS=不进
+# objective/基线/排序，score 结构性排除；消费系数 factor.lcc.* 双键）
+_LCC_PREFIX: Final[str] = "factor.lcc."
+_KEY_LIFE_CIVIL: Final[str] = "factor.lcc.life_civil_structure_a"
+_KEY_LIFE_EQUIP: Final[str] = "factor.lcc.life_equipment_a"
+_COST_CAPEX_ANNUALIZED: Final[str] = "cost_capex_annualized_yuan_a"
 _AVG_PREFIX: Final[str] = "avg."
 _SUMMARY_INDICATORS: Final[tuple[str, ...]] = (
     "BOD5", "CODCR", "SS", "NH3N", "TN", "TP",
@@ -279,21 +291,52 @@ def capex_kit_of(data_dir: Path | None) -> _CapexKit | None:
     return _CapexKit(book=book, fees=fees, mapping=mapping)
 
 
-def capex_grand_total(
+def capex_estimate(
     kit: _CapexKit | None, plant: PlantResult, condition_key: str
-) -> float:
-    """概算总造价（design 口径真值）：takeoff→build_estimate→grand_total。"""
+) -> EstimateSheet:
+    """概算表装配（design 口径真值）：takeoff→build_estimate（批6c 单次化）。
+
+    批2b capex_grand_total 的装配体——grand_total 与 LCC 年折旧（批6c）同源
+    单次装配复用（逐组合双取数免重复装配）。
+    """
     if kit is None:
         raise InvalidJointEnumerationError(
-            "capex_grand_total 无装配束（kit 缺席——调用面前置 capex_kit 判在场）"
+            "capex_estimate 无装配束（kit 缺席——调用面前置 capex_kit 判在场）"
         )
     items = takeoff_quantities(
         plant, condition_key, price_book=kit.book, field_mapping=kit.mapping
     )
-    sheet = build_estimate(
+    return build_estimate(
         items, kit.book, kit.fees, repro=plant.repro, condition_key=condition_key
     )
-    return float(sheet.grand_total)
+
+
+def capex_grand_total(
+    kit: _CapexKit | None, plant: PlantResult, condition_key: str
+) -> float:
+    """概算总造价（design 口径真值）：capex_estimate 薄壳（批2b 公开面零变）。"""
+    return float(capex_estimate(kit, plant, condition_key).grand_total)
+
+
+def capex_annualized(
+    sheet: EstimateSheet, coefficients: CoefficientsView
+) -> float | None:
+    """批6c LCC 展示维度：直线折旧年额（factor.lcc.* 双键 sparse——任一缺=None）。
+
+    equip_base=equipment_subtotal（设备购置费小计）/other_base=grand_total−
+    equipment_subtotal（其余资本化全量：建安非设备+间接+预备+税——递延并入，
+    资本摊销同径；安装费归并注记 b6c-rulings ③⑥）；残值率 0 简化（各方案
+    同口径可比）；判在场=前缀列举（app_opex R1 先例——系数包无 LCC 族合法）。
+    """
+    lives = set(coefficients.keys(_LCC_PREFIX))
+    if not {_KEY_LIFE_CIVIL, _KEY_LIFE_EQUIP} <= lives:
+        return None
+    equipment_base = sheet.equipment_subtotal
+    other_base = sheet.grand_total - sheet.equipment_subtotal
+    return (
+        equipment_base / coefficients.get(_KEY_LIFE_EQUIP).value
+        + other_base / coefficients.get(_KEY_LIFE_CIVIL).value
+    )
 
 
 def design_baseline_metrics(
@@ -397,10 +440,15 @@ def evaluate_combo(
     )
     feasible, failed = compliance_of(summary, context.standards, baseline_keys)
     metrics = metrics_of(summary, context.conditions)
-    if context.capex_kit is not None:  # 批2b 第四真键（design 口径）
-        metrics[_METRIC_KEYS["capex"]] = capex_grand_total(
-            context.capex_kit, plant, ConditionSet.key(design_condition(context.conditions))
+    if context.capex_kit is not None:  # 批2b 第四真键+批6c LCC 展示维度（design 口径）
+        sheet = capex_estimate(
+            context.capex_kit, plant,
+            ConditionSet.key(design_condition(context.conditions)),
         )
+        metrics[_METRIC_KEYS["capex"]] = float(sheet.grand_total)
+        annualized = capex_annualized(sheet, context.env.coefficients)
+        if annualized is not None:  # factor.lcc.* sparse（批6c）
+            metrics[_COST_CAPEX_ANNUALIZED] = annualized
     if feasible and _METRIC_KEYS["opex"] not in metrics:
         feasible = False  # N6/W12：opex design 工况缺席=sparse 判不在场→不可行
         failed = (*failed, f"{ConditionSet.key(design_condition(context.conditions))}"
@@ -425,6 +473,8 @@ __all__ = [
     "ComboResult",
     "EvalContext",
     "JointGuards",
+    "capex_annualized",
+    "capex_estimate",
     "capex_grand_total",
     "capex_kit_of",
     "completed_env",

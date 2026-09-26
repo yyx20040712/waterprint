@@ -3237,3 +3237,16 @@
   unit: "s/d"
   source: "单位换算常数（24×3600）非可调系数——供数域 factor.influent.*（与 carbon 域平级：86400 是供数件换算非碳因子）"
   note: "q_avg_daily（m3/s 口径）→日流量换算；消费面=app_influent.py IF1"
+# ── 批6c LCC 折旧面（AUD-W11 后半——直线法双键；1.8.0 增域 2026-09-26）──
+
+- key: "factor.lcc.life_civil_structure_a"
+  value: 30
+  unit: "a"
+  source: "《企业所得税法实施条例》第六十条（房屋、建筑物折旧最低年限 20 年——法定下界）+污水处理可研经济评价实践带 20~30 年（直线法/平均年限法，建筑物 30 年实例常见；工单草带 30~50 与实践带恰相切于 30——两带关系注记 b6c-rulings §四）"
+  note: "构筑物及其余资本化全量直线折旧年限（D 级 AI 建议值待追认——b3a 证据分级先例）；消费面=joint_enumeration/final_eval.py capex_annualized（cost_capex_annualized_yuan_a）"
+
+- key: "factor.lcc.life_equipment_a"
+  value: 10
+  unit: "a"
+  source: "《企业所得税法实施条例》第六十条（机器、机械和其他生产设备折旧最低年限 10 年）+可研实践设备 10 年常态（工单草带 10~15 取下界=法定下界即实践众数）"
+  note: "设备购置费小计直线折旧年限（D 级 AI 建议值待追认）；消费面=joint_enumeration/final_eval.py capex_annualized（cost_capex_annualized_yuan_a）"

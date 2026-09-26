@@ -15,11 +15,18 @@
 #   批2b 2026-09-25 增：solution.joint_enumeration.final_eval capex 装配束
 #   经包根消费（五函数+PriceBook/FeeRule/FieldMapping 三类型——同层边
 #   import 收敛面，structure-graph §1c 声明承载）
+#   批6c 2026-09-26 增：EstimateSheet 类型再导出（四类型——final_eval
+#   capex_annualized 消费 equipment_subtotal/grand_total 分级，§1c 既定边内）
 # 病灶背景：旧概算 4 级中文模糊匹配、80+ 关键词表、361 条影子标签——
 # 本子系统的一切取数按字段 ID（§3 保证 4），中文匹配代码出现 = 评审拒绝。
 # ══════════════════════════════════════════════════════════════════
 
-from waterprint.cost.estimate import FeeRule, build_estimate, load_fee_rules
+from waterprint.cost.estimate import (
+    EstimateSheet,
+    FeeRule,
+    build_estimate,
+    load_fee_rules,
+)
 from waterprint.cost.prices import PriceBook, load_prices
 from waterprint.cost.takeoff import (
     FieldMapping,
@@ -28,6 +35,7 @@ from waterprint.cost.takeoff import (
 )
 
 __all__ = [
+    "EstimateSheet",
     "FeeRule",
     "FieldMapping",
     "PriceBook",

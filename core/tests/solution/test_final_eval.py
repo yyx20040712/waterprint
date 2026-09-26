@@ -253,3 +253,59 @@ def test_score_redistribution_when_capex_absent() -> None:
     (score,) = plant_objective(values, baseline, weights)
     expected = (0.25 * 1.0 + 0.30 * 2.0 + 0.20 * 3.0) / 0.75
     assert score == pytest.approx(expected)  # 权重重排裁决本意（非回归）
+
+
+# ══ 批6c LCC 折旧面 final_eval 域（AUD-W11 后半——直线法双键展示维度；
+#     b6c-design.md §三——[HUMAN-LOCK] 2026-09-26 预授权①随批落地）══
+
+capex_annualized_of = getattr(_mod, "capex_annualized", None)
+_skip_b6c = pytest.mark.skipif(
+    capex_annualized_of is None, reason="实现未就绪：批6c capex_annualized"
+)
+
+
+class _SheetStub:
+    """EstimateSheet 代位（纯函数面——真实装配由 beam 域承载）。"""
+
+    def __init__(self, equipment_subtotal: float, grand_total: float) -> None:
+        self.equipment_subtotal = equipment_subtotal
+        self.grand_total = grand_total
+
+
+class _CoeffsStub:
+    """CoefficientsView 代位：keys 前缀列举 + get→.value（协议面）。"""
+
+    def __init__(self, lives: dict[str, float]) -> None:
+        self._lives = lives
+
+    def keys(self, prefix: str = "") -> tuple[str, ...]:
+        return tuple(k for k in self._lives if k.startswith(prefix))
+
+    def get(self, key: str) -> Any:
+        from types import SimpleNamespace
+
+        return SimpleNamespace(value=self._lives[key])
+
+
+@_skip_b6c
+def test_capex_annualized_straight_line_formula() -> None:
+    """批6c 直线法手算钉死：equip/L_e+other/L_c（30/10 年——b6c-design §三.2）。"""
+    sheet = _SheetStub(equipment_subtotal=2000.0, grand_total=10000.0)
+    lives = {
+        "factor.lcc.life_equipment_a": 10.0,
+        "factor.lcc.life_civil_structure_a": 30.0,
+    }
+    # 手算：2000/10 + 8000/30 = 200 + 266.666… = 466.666…（元/a）
+    assert capex_annualized_of(sheet, _CoeffsStub(lives)) == (  # type: ignore[misc]
+        2000.0 / 10.0 + 8000.0 / 30.0
+    )
+
+
+@_skip_b6c
+def test_capex_annualized_sparse_any_life_absent() -> None:
+    """批6c sparse：factor.lcc.* 任一缺/全缺→None（系数包无 LCC 族合法——opex R1 先例）。"""
+    sheet = _SheetStub(equipment_subtotal=1.0, grand_total=2.0)
+    half = _CoeffsStub({"factor.lcc.life_equipment_a": 10.0})
+    empty = _CoeffsStub({})
+    assert capex_annualized_of(sheet, half) is None  # type: ignore[misc]
+    assert capex_annualized_of(sheet, empty) is None  # type: ignore[misc]
