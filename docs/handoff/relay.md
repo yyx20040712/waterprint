@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补五十七：批6e 收口 READY（全工况投影端点——1 commit 145fbf4〔HUMAN-LOCK〕/门一双席 B0 PASS+回炉一轮/probe 16/16/三检全绿）；next=批6f -->
+- status: READY <!-- 2026-09-26 增补五十八：批6f 收口 READY（任务系统补完——1 commit e490aa9/门一双席 B0 PASS+回炉一轮/probe 8+8/三检全绿）；next=批6g -->
 - automation_id: automation-143e250a-5e96-4e6b-9016-7ac16fa7fb21 <!-- 2026-09-26 换防迁火回填（增补五十一）；旧值 automation-cf38af42…（已熄——CronList 空实核，增补五十火情观察证实） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T17:40:51Z <!-- 增补五十七收口刷 -->
-- claim: - <!-- 批6e 收口释放（executor-b6e-20260926T164735Z，勾选 41→42） -->
+- heartbeat_utc: 2026-09-26T18:16:46Z <!-- 增补五十八收口刷 -->
+- claim: - <!-- 批6f 收口释放（executor-b6f-20260926T174522Z，勾选 42→43） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
-- checked_done: 42 <!-- 2026-09-26 批6e 收口 41→42（增补五十七） -->
+- checked_done: 43 <!-- 2026-09-26 批6f 收口 42→43（增补五十八） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-26T16:46:07.930Z <!-- 2026-09-26 批6e 首班发布成立（回读=run dwfrun-5f21105e-3218-4919-b8d8-6924ca015aa3 running+执行者子代理 executing；增补五十六裁决代录后首班）；旧值 2026-09-26T15:12:43.008Z（批6d 首班） -->
-- workflow_run_id: dwfrun-5f21105e-3218-4919-b8d8-6924ca015aa3 <!-- 批6e 首班执行工作流（全工况投影端点——calc sensitivity 投影 API+龙卷风幅度轴升级+快照 stale 语义） -->
+- last_dispatch_utc: 2026-09-26T17:44:23.405Z <!-- 2026-09-26 批6f 首班发布成立（回读=run dwfrun-27922914-19f1-4928-a9cd-4e22495ac0b2 running+执行者子代理 executing）；旧值 2026-09-26T16:46:07.930Z（批6e 首班） -->
+- workflow_run_id: dwfrun-27922914-19f1-4928-a9cd-4e22495ac0b2 <!-- 批6f 首班执行工作流（任务系统补完——chat 失败横幅 error 明细+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项） -->
 - relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
-- batch_count: 5 <!-- 2026-09-26 批6e 收口 4→5（增补五十七） -->
+- batch_count: 6 <!-- 2026-09-26 批6f 收口 5→6（增补五十八） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-26
-- claimed_by: executor-b6e-20260926T164735Z <!-- 批6e 认领 -->
-- claimed_at: 2026-09-26T16:47:35Z <!-- 批6e 认领时戳 -->
-- next_batch: 批6f 任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
+- claimed_by: executor-b6f-20260926T174522Z <!-- 批6f 认领 -->
+- claimed_at: 2026-09-26T17:45:22Z <!-- 批6f 认领时戳 -->
+- next_batch: 批6g 结构债拆件批（beam.py/app.py/main.py 三顶格件按 ADR-024 配方腾位——双跑 diff=0 行为等价烤验）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -148,7 +148,7 @@
 - [x] 批6c｜LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道设计先行；推荐 v1=展示维度不进 objective）<!-- 2026-09-26 收官〔增补五十四〕：直线法双键 cost_capex_annualized_yuan_a 展示维度+factor.lcc 两键 30/10 a（D 级待追认）+coefficients 1.8.0——1 commit be23fb3〔HUMAN-LOCK〕+门一三席 PASS+门二双路径 diff=0.0+golden/快照零重录 -->
 - [x] 批6d｜AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言；含批6c 欠账②设备基数退化 E=54 元同批修复锚）<!-- 2026-09-26 收官〔增补五十五〕：万元×10⁴ 折元契约+按组计价扩行+dims n 回显——门一 k1 B0/W3/N4+d1 B0/W5/N6 双 PASS+门二双路径复算 PASS+1 commit c878b8d〔HUMAN-LOCK〕 -->
 - [x] 批6e｜全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义）<!-- 2026-09-26 收官〔增补五十七〕：GET /api/calc/sensitivity 42→43+summary 指标差全量零重算+stale §12 实证+龙卷风全工况幅度轴+无头四态；门一双席 B0 PASS 回炉一轮+probe 16/16；1 commit 145fbf4〔HUMAN-LOCK〕 -->
-- [ ] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
+- [x] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）<!-- 2026-09-26 收官〔增补五十八〕：查证=F2 C-5 明细通道在位（77e32f3）零改动+terminalTurnText 三终态分派+jointTaskNotice 幽灵退役+taskStatusToView 空串收严+UF-26 显式 v1 语义（文档追 ENG5 实装）；门一 k1 B0/W3/N3+d1 B0/W3/N4 回炉一轮+门二 probe 无头 8/8；1 commit e490aa9 -->
 - [ ] 批6g｜结构债拆件批（beam.py/app.py/main.py 三顶格件按 ADR-024 配方腾位——双跑 diff=0 行为等价烤验）
 - [ ] 批6h｜门禁硬化+部署卫生+杂项闭项（R5 结转观测护栏四项+p150k 首跑留证+ENTRYPOINT 绝对路径+classic builder 实测+AUD-W9 对拍门禁+AUD-W10 维持硬滤注记闭项+UF-25 中文单语定版闭项+HEAD 版本耦合注记）
 - [ ] 批6i｜纵断真实站距（README 在册剩余面——三段通道设计先行〔站距源两案呈裁：布置连线长度 vs 手动输入〕+profile 桩号轴实装）
@@ -291,3 +291,14 @@
 - **欠账登记**：①检修降级声明零单元=幅度面全零现状（单元侧 condition_mappings 声明=数值语义批另行——引擎 DSL 就绪非本批范围）；②d1-N1 values 双下维持（数据面完整）/N2 幅度序归 FE 呈现面裁量（UX 批）；③engine/data_version 漂移提示面挂账（compare 同口径未呈）；④main.py 恰 500 贴墙（批6g 拆件既定项——本批净增归零压实）；⑤tornadoCharts.ts 新件 file-contracts 面以 solutions README 登记（webapp 惯例——非 md 职责表域）；⑥审档 k1/d1 判文在卷宗（gitignore 本地面——增补五十同口径）。
 - **预算记档**：fire_budget 120min 实耗≈62min（16:47:35Z~17:49Z）在限内。
 - **收口判定=⑤READY**：勾选 41→42（批6e ☑，余 10=批6f~6o+⑤b）；batch_count 4→5（<60）；墙钟≈5.6h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补五十八 — 2026-09-26T2026-09-26T18:16:46Z（批6f 收口：任务系统补完——chat 失败横幅明细查证+joint 终态文案分派+UF-26 显式 v1 语义——READY）
+
+- **claim/commit**：executor-b6f-20260926T174522Z（17:45:22Z 认领——批6f 首班=workflow 通道 run dwfrun-27922914〔17:44:23Z 发布成立〕；调度员发布笔与本班认领相隔 19s 并发实录——认领前重读板头 claim=- 无冲突；组织主干=ai-dev-org v2.1.0 Skill 载入）。实现单笔：e490aa9（12 文件 +260/−15；零锁面笔——webapp/docs 面，test-lock 330 根不动〔批6e 基线〕）。
+- **交付三件**：①chat 失败横幅 error 明细〔任务状态查询面〕——查证=server TaskStatus 已含 error/error_type/error_code（jobs/records.py dataclass+manager._finish 灌 f"{type}: {msg}"）→「补字段」不成立端点零改动；前端补查通道=F2 C-5 既有在位（77e32f3，e2e-fix-round3 批 R2）——本批增量为三终态横幅分派单源 terminalTurnText（cancelled=「已取消」不称失败+failed 误入护栏回落通用横幅+未知终态带态名禁吞）+failedTurnBannerText 解锁后缀一致面（D3：fallback/cancelled/带明细三文案统一「——输入已解锁，可重发」）。②joint failed/cancelled 幽灵文案退役（批2d 欠账②）——jointTaskNotice 纯函数新件：failed 明细=taskStatusToView 快照单源组合（R6 同款——组件零第二套组装）/cancelled 独立取消文案/queued·running·未知态进度口径维持。③UF-26 重启即丢 v1 明示闭项——UF 表四条显式语义（终态 registry_dir 四时机原子写重启恢复供读/非终态转 failed[InterruptedByRestart] 可查不丢痕/幂等表不恢复重提交即新任务/前端重提交指引在案）+deployment.md 单进程契约节重启语义注记；文档追 ENG5 实装（行内勘误记：旧前提「注册表只在内存」系 sweep 时点陈述）。
+- **回炉一轮**：taskStatusToView 空串收严（error/error_type 空串视同缺席——悬空「：」组合残骸源面；非空内容原样透传 fail-visible）。
+- **烤验（实现批全对抗位）**：门一 k1（kimi-main 主源席）首轮 PASS **B0/W3/N3**+门一 d1（deepseek 异构源席）首轮 PASS **B0/W3/N4**——零 B 级；回炉实修三件（空串源面收严〔d1-W1+k1-N1 共指〕/jointTaskNotice belt 空白检/terminalTurnText failed 护栏〔k1-W1〕）+两处域差注记+证据链归档六项（双源终态过滤引证/FALLBACK 字面/形状契约/措辞域差/done 双判定同源/审包路径口径）；处置全表 b6f-rulings.md。门二实证部双路径复现 PASS（无头 playwright 8/8：joint failed 文案+明细在场且幽灵零命中/cancelled 独立文案/running 进度维持/chat failed 横幅=「本轮失败（failed）：InvalidNodeError: …——输入已解锁，可重发」经任务状态查询面补查/chat cancelled 精确文案；报告 b6f-probe-report.md+账本行 20260926-b6f-probe 在案）。
+- **收口三检**：run_gates 16 门禁全绿（回炉后复跑〔OK〕全部门禁通过——首轮 check_webapp 契约头缺段即补后全绿）；gen_status --check 零漂移（webapp 测试件 81→82 机械计数再生成，2159 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：webapp 82 件 **916P 零失败**+tsc --noEmit 清；core **1582P**+server **384P** 与批6e 基线逐位一致（零 core/server 改动零扰动实证）。
+- **欠账登记**：①jointSolutions 组件层无 SSR 桩测（app 层惯例纯逻辑外移 lib 测——组件接线面靠无头直验覆盖，d1-W2 承认盲区如实记）；②TaskPanel kind 标签对 joint_enumerate 显泛称「任务」（相邻 UX 面——后续前端批裁量）；③git 后台维护任务 geometric-repack Permission denied（提交易主完整在案 e490aa9——环境面观察非本批引入，下班火如复现可呈报）。
+- **预算记档**：fire_budget 120min 实耗≈37min（17:45:22Z~18:22Z）在限内。
+- **收口判定=⑤READY**：勾选 42→43（批6f ☑，余 10=批6g~6o+⑤b）；batch_count 5→6（<60）；墙钟≈6.1h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
