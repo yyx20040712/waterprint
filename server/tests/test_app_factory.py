@@ -70,3 +70,52 @@ def test_domain_exception_mapping_complete_wiring() -> None:
     # 附诊断体：错误响应结构 {detail, error_type}
     body = table[InvalidUnitConfig.__name__](None, InvalidUnitConfig("x"))  # type: ignore[arg-type]
     assert b"error_type" in body.body and b"detail" in body.body
+
+
+# ══ R4 C-2：no-store 全 GET 读面中间件（[HUMAN-LOCK] 2026-09-26 落地；
+#     test_r4_draft.py C-2 节转正——夹具沿本文件既有 conftest client）══
+
+
+@pytest.mark.anyio
+async def test_c2_api_get_list_no_store(client) -> None:  # type: ignore[no-untyped-def]
+    """C-2：/api/ GET 列表读面统一 no-store（R2-P2-1 单点外其余读面同病根除）。"""
+    resp = await client.get("/api/projects")
+    assert resp.status_code == 200
+    assert resp.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.anyio
+async def test_c2_static_units_no_store(client) -> None:  # type: ignore[no-untyped-def]
+    """C-2：units 静态目录面同禁（本批全禁口径——豁免留后续按需开）。"""
+    resp = await client.get("/api/units")
+    assert resp.status_code == 200
+    assert resp.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.anyio
+async def test_c2_head_no_store(client) -> None:  # type: ignore[no-untyped-def]
+    """C-2 回炉（d1 N-5）：HEAD 防御覆盖——FastAPI APIRoute 实测 405 不自动容许 HEAD
+    （门一框架论断证伪记录）；405 响应仍过中间件，头在场即证判据面覆盖。"""
+    resp = await client.head("/api/projects")
+    assert resp.status_code == 405
+    assert resp.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.anyio
+async def test_c2_post_not_stamped(client) -> None:  # type: ignore[no-untyped-def]
+    """C-2 回炉（d1 N2b）：POST 面不加盖（仅读面判据的负向边界锚）。
+
+    空 body=合法空白新建（CreateProjectRequest.project 可选）→200——POST
+    成功面同样不加盖，边界语义一致。
+    """
+    resp = await client.post("/api/projects", json={})
+    assert resp.status_code == 200
+    assert "cache-control" not in resp.headers
+
+
+@pytest.mark.anyio
+async def test_c2_non_api_get_exempt(client) -> None:  # type: ignore[no-untyped-def]
+    """C-2：非 /api/ 前缀 GET 不加盖（openapi 文档面——豁免边界锚）。"""
+    resp = await client.get("/openapi.json")
+    assert resp.status_code == 200
+    assert "cache-control" not in resp.headers

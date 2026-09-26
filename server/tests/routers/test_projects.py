@@ -113,3 +113,19 @@ async def test_lifecycle_delete_missing_returns_404_wiring(client) -> None:  # t
     response = await client.delete("/api/projects/absent-project")
     assert response.status_code == 404
     assert response.json()["error_type"] == "ProjectNotFoundError"
+
+
+# ══ E2E-1 扩 R2-P2-1：项目读面禁缓存（[HUMAN-LOCK] 2026-09-26 落地）══
+
+
+@pytest.mark.anyio
+async def test_read_project_response_no_store(client, cass_payload) -> None:  # type: ignore[no-untyped-def]
+    """E2E-1 扩（R2-P2-1）：项目读面禁缓存——apply/保存后同 URL 缓存旧读
+    假阴性（round2 d20 实录）。"""
+    created = await client.post(
+        "/api/projects", json={"project": cass_payload}
+    )
+    project_id = created.json()["project_id"]
+    resp = await client.get(f"/api/projects/{project_id}")
+    assert resp.status_code == 200
+    assert resp.headers["cache-control"] == "no-store"
