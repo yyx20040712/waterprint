@@ -8,59 +8,56 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-> **标准注入词（rev4 口径 2026-09-25——上下文分工：调度员零技能加载，执行者读板+自载开工依赖）**：
-> - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
-> - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
+> **标准注入词（rev5 口径 2026-09-26——workflow 通道）**：
+> - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
+> - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: HOLD <!-- 2026-09-26 用户指令删火停轮（automation-a9cfbf66 已 CronDelete）；重启=/batch-relay 换防（调度员提示词=板头标准注入词） -->
-- automation_id: - <!-- 2026-09-26 用户删火停轮；换防时新会话重布火回填 -->
+- status: READY <!-- 2026-09-26 rev5 换防（用户裁决开批通道切 dynamic workflow）；旧值 HOLD(fire_deleted_by_user) -->
+- automation_id: automation-af58af60-05b1-41f3-bae9-404ab4214819 <!-- 2026-09-26 rev5 换防布火（事故会话代布：本会话曾临时被一次性测试自动化占用创建权，删测试件后释放）；旧值 -（2026-09-26 用户删火停轮） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T01:19:17.527Z <!-- 停轮登记时刻 -->
+- heartbeat_utc: 2026-09-26T01:48:14.457Z <!-- rev5 换防时刻 -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 32 <!-- 2026-09-25 批3.5 收口 31→32 -->
-- protocol_rev: 4 <!-- 2026-09-25 上下文分工批原位升版 rev2→4（用户裁决：调度员纯调度零技能加载/执行者读板+自载 ai-dev-org）；旧值 2 -->
+- protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
 - last_dispatch_utc: 2026-09-25T14:35:39.984Z <!-- 2026-09-25 第四班发布成立（回读④：sess_b606debd ~50s 落盘；env 块工作区=E:\class\handover——绑定偏差见增补三十三）；旧值 2026-09-25T12:07:25.336Z（第三班 R4） -->
-- relay_started_utc: 2026-09-25T09:46:25.615Z <!-- 2026-09-25 rev4 换防重置（熔断墙钟基准）；旧值 2026-09-24T17:44:23.011Z -->
-- batch_count: 11 <!-- 批3.5 收口 +1（上限 60） -->
+- workflow_run_id: - <!-- rev5 新增：当前批执行工作流 run id（dwfrun-…），空闲为 - -->
+- relay_started_utc: 2026-09-26T01:48:14.457Z <!-- 2026-09-26 rev5 换防时刻；旧值 2026-09-25T09:46:25.615Z -->
+- batch_count: 0 <!-- 2026-09-26 rev5 换防复位（原 11；增补三十九停轮非熔断，用户显式续跑=换防重置留痕） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: fire_deleted_by_user <!-- 2026-09-26 用户指令删火——非熔断/非停止事由，板面进度完好可续 -->
+- hold_reason: -
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
 - next_batch: 批5 低优先堆（backend-calc-complete——NaN 口径统一/timeout 诊断/severity 执法/裁决档勘误两处/beam.py 结构债/app.py 贴墙欠账）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
-- 本板 protocol_rev=4；rev3/rev2/rev1/rev0 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
+
+- 本板 protocol_rev=5；rev4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
 - 时间一律 UTC（ISO8601 带 Z 后缀）；「距今 N min」=（当前 UTC−字段值）÷60000 向下取整；解析失败=预检失败。写板一律写 Z 后缀新字段名；旧字段行冻结不删。
-- 预检（任何行动前，rev 感知）：字段行完整（rev1 全集；rev0 旧集）/ 时间戳可解析（rev0 旧格式仅警告）/ 数值字段纯非负整数（R10）/ status∈{READY,RUNNING,DONE,HOLD} / 无重复 status 行 / protocol_rev∈{0,1,2,3,4}——任一失败：输出 `fire: abort (reason=board_precheck_failed:<规则名>)` 后退出，并在批次日志追加欠账行。
-- 收到火 prompt 的会话=调度员。**调度员=纯调度（用户裁决 2026-09-25 rev4）**：只读本板板头字段区+本 protocol 段——不加载技能文件、不读批次日志/计划全文/ai-dev-org 等一切开工依赖（全部下传一线执行者子会话自载）；调度所需一切以本段为准，技能 batch-relay 仅布防/换防/事故会话加载（本段缺失/预检失败时才兜底加载）。一切一行退出只用固定枚举三族，禁引用板面原文：`fire: skip (reason=quiet_window|running_fresh|candidate_alive|no_ready_board)`；`fire: terminal (reason=done|hold|board_missing)`；`fire: abort (reason=board_precheck_failed:<规则名>)`。
+- 预检（任何行动前，rev 感知）：字段行完整（rev5 全集=rev1 全集+workflow_run_id；rev1-4 旧集；rev0 旧集）/ 时间戳可解析（rev0 旧格式仅警告）/ 数值字段纯非负整数（R10）/ status∈{READY,RUNNING,DONE,HOLD} / 无重复 status 行 / protocol_rev∈{0,1,2,3,4,5}——任一失败：输出 `fire: abort (reason=board_precheck_failed:<规则名>)` 后退出，并在批次日志追加欠账行。
+- 收到火 prompt 的会话=调度员。**调度员=纯调度（用户裁决 2026-09-25 rev4）**：只读本板板头字段区+本 protocol 段——不加载技能文件、不读批次日志/计划全文/ai-dev-org 等一切开工依赖（全部下传一线执行者自载）；调度所需一切以本段为准，技能 batch-relay 仅布防/换防/事故会话加载（本段缺失/预检失败时才兜底加载）。一切一行退出只用固定枚举三族，禁引用板面原文：`fire: skip (reason=quiet_window|running_fresh|candidate_alive|no_ready_board)`；`fire: terminal (reason=done|hold|board_missing)`；`fire: abort (reason=board_precheck_failed:<规则名>)`。
   - 板不存在 → 单项目：CronDelete(automation_id) 后 `fire: terminal (reason=board_missing)`；shared_fire=true 板缺失=从轮转清单跳过+本轮终报记欠账，不删全局火——删火仅当全部板终态或缺失。
   - DONE/HOLD → 单项目：CronDelete(automation_id) 后 terminal(done|hold)；shared_fire=true 板只终报不删火（删火权归 hub 调度员，须全部板终态）。
   - last_dispatch_utc 距今 < quiet_window_min=30 → `fire: skip (reason=quiet_window)`（READY 未认领/RUNNING 均适用；仅约束调度员，刚被发布的执行者照常认领；值为 `-`=从未发布——窗口视为已过，非解析失败）。
   - RUNNING 且 heartbeat_utc 距今 < heartbeat_stale_min=30 → `fire: skip (reason=running_fresh)`。
-  - RUNNING 且心跳距今 ≥ heartbeat_stale_min=30 → 先过 UI 活动核查：同宿必核执行者会话已无「正在执行」活动——仍有活动 → `fire: skip (reason=candidate_alive)`；跨宿降级 git/账本双核对+日志欠账行「跨宿接管未经 UI 核查」。核查过才接管：核对实际进度防重复执行再重置 claim → READY（接管后重新发布则更新 last_dispatch_utc）。
-  - READY → 开批四条件：①status=READY ②静默窗已过（last_dispatch_utc 距今 ≥ quiet_window_min=30；值 `-`=从未发布视为已过）③上一批实物已静默（板面 mtime 与 git 最近提交距今 ≥ physical_quiet_min=5；无 git 仓以板面与 plan 文件 mtime 代之）④熔断未触发（batch_count<max_batches 且距今运行 <max_wall_hours 小时）。④触发 → 置 HOLD(hold_reason=circuit_batches|circuit_wall)+终报首行「熔断裂闸…」；①-③任一不满足 → 让位下一班火。四条件齐 → 走下方开批通道（rev3）。
-- 开批通道 rev3（2026-09-25 五发五灭根因批重写。通道实测铁则：**app 级键盘/键入=前台原始事件**——ZCode 非前台时被前台守卫安全拒绝〔action_sent=false〕，夜间可用纯因 ZCode 恰在前台；a11y 观察〔get_app_state/elements 按 title 过滤定位〕后台可用且 value 读数准确；Electron 输入框无视 a11y setValue——键入只能键盘通道）：
-  - 步骤 0 前台门：先一行告知用户「接下来约 20 秒需要占用前台完成开批操作」→ 记录当前前台进程（listApps）→ PowerShell AppActivate 拉起 ZCode → 全部输入动作完成后 AppActivate 还原原前台。拉起失败/守卫拒绝 → 本班放弃 UI 开批（一行记欠账让位下一班，或直降级会话内直跑）。
-  - 步骤 1 开新任务：Ctrl+N → 回读：composer 占位符=「向 ZCode 提问…」且 focused、发送按钮 disabled（空框态）。**回读①项目**：项目已绑定（「取消选择当前项目」钮在场=有绑定）；新任务默认绑=当前活动标签的工作区，与板头工作区不一致非阻断（执行指令自带绝对路径兜底——2026-09-25 实证执行者落父目录仍可凭绝对路径开工），板面记注即可。
-  - 步骤 2 **回读②模型**：模型选择器按钮标题字面=当班会话模型名。
-  - 步骤 3 键入：composer 已自动聚焦 → 键盘键入执行指令 → **回读③**：composer value 含指令全文 且 发送按钮 enabled=true（空框=disabled 是准确状态位）。
-  - 步骤 4 发送=**回车**（主径，2026-09-25 实测；「点发送按钮」降为备选——肥调度会话下按钮点击从未成功）→ 回读：composer 清空、发送按钮回 disabled、echo 在屏。
-  - 步骤 5 **回读④（发布成立的唯一判据=后端事实）**：发送后 ≤dispatch_verify_min=3 内，rollout 目录（~/.zcode/cli/rollout/）出现新 `model-io-sess_*.jsonl` 或客户端日志（~/.zcode/v2/logs/当日.log）该会话 turn-started/provider 请求。**UI echo 与「思考中」表象一律不算数**——2026-09-25 实证：表象可与后端零提交并存（五发五灭全灭于此）。成立 → 原子写 last_dispatch_utc（status 保持 READY）→ 收线退出。
-  - 步骤 6 死胎处置（回读④超时零后端事件）：草稿通常仍躺该任务 composer → 真实点击 composer 建立焦点 → 回车发草稿 → 重走回读④。**唤醒前必核目标标签身份**（当前 composer value 开头=本批指令 或 侧边栏新任务行=本批占位——2026-09-25 实证：此前全部「唤醒成功」实为误戳无关旧标签，日志事件属于别的会话）。同批 UI 发送连败 dispatch_fail_max=2 → 降级会话内直跑+板面记「UI 通道欠账」，禁第三发。
-  - 步骤 7 每回合至多开一批；hub 轮转在合格板中挑 last_dispatch_utc 最老者（并列取 prompt 清单序），成员板缺 shared_fire: true 行 → 跳过该板+日志欠账行。
-- 调度员会话卫生（2026-09-25 实证铁律）：当班调度会话禁做换防/板面手术/长事故响应等重活——会话转录膨胀使共享窗口无障碍树持续重编号，观察→点击窗口内索引恒漂移、UI 动作系统性失效；重活另开会话。换防后的布火会话若已变重 → 按换防纪律迁火至新薄会话（删旧火+新薄会话 CronCreate+回填 automation_id，全局单火不变式保持）。调度会话不调 computer-use stop()（badge 常驻无害）；已 stop 的会话守卫粘滞不得复用 computer-use——降级 PowerShell SendKeys（AppActivate+按键）或让位新会话。
-- 被注入执行指令的新任务会话=执行者：开工首步 Skill 加载 ai-dev-org（不可加载则按计划头部执行通道行：subagent-driven-development，无子代理则 executing-plans）→ 读板预检（只取板头字段区+执行路由+执行清单+批次日志末 3 条——防上下文膨胀，日志全量仅按需追溯）→ READY 时原子 claim（tmp 写 status:RUNNING+claim token+heartbeat_utc+勾选数快照，保留 last_dispatch_utc → mv -f 覆盖 → 回读确认，非己让位退出；此后执行者一切板写（心跳/收口/翻回/修复）落笔前同样回读，非己=已被接管停笔让位，遗留只终报呈报）→ 执行 plan 未勾任务至 fire_budget_min=60（板字段可调；每任务始末刷心跳，任务内每隔 heartbeat_refresh_min=15 亦必刷——活执行者心跳永不陈旧到接管阈值）→ 收口按固定次序判定（首中即断）：①`grep -cE '^[[:space:]]*- \[ \]'` 计 0（行首允许缩进，误报方向=晚 DONE 安全）→ DONE+终报（无 shared_fire 标记才 CronDelete；工具不可用时终报请用户在 Automations 页按 title 删）②停止事由（不可逆/破坏性、安全敏感、仓外副作用、计划破碎）→ HOLD(stop_matter)+终报 ③熔断（batch_count+1 后 ≥max_batches 或墙钟 ≥max_wall_hours）→ HOLD(circuit_batches|circuit_wall)+终报 ④勾选数未增 → no_progress_count+1，达 no_progress_max=3 → HOLD(no_progress)+终报 ⑤否则 READY。收口必做（同一原子写）：勾选框更新（有 git 提交；无 git 仓记 `commit: n/a (no-git)`）+批次日志追加+heartbeat_utc 刷新+batch_count+1（无条件；唯一例外=翻回 RUNNING 修复的回炉收口不再 +1，③按现值重判④⑤照常，日志记「回炉收口」）+claim → -。置 READY/DONE/HOLD 必须是最后一笔，置位后禁写板/仓；要修先回读（被新 claim 占据则不写，遗留只在终报呈报）→ 原子翻回 RUNNING 修毕重新收口。
-- 执行指令（调度员注入新任务用，rev4 口径——执行者读板为主径、不预载技能）：「基于 <工作区绝对路径>\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 <绝对路径>，相对路径以此为基。禁止创建任何新自动化。」
-- 停止只许 CronDelete；禁止创建任何新自动化。
+  - RUNNING 且心跳距今 ≥ heartbeat_stale_min=30 → 先核执行工作流：GetWorkflowRun(板头 workflow_run_id)——running/pending → `fire: skip (reason=candidate_alive)`（工作流活=执行者活，覆盖批内长同步子任务的心跳盲区）；completed/errored/stopped 或无 run 可查 → 核对实际进度防重复执行再重置 claim → READY（接管后重新发布则更新 last_dispatch_utc 与 workflow_run_id）。
+  - READY → 开批四条件：①status=READY ②静默窗已过（last_dispatch_utc 距今 ≥ quiet_window_min=30；值 `-`=从未发布视为已过）③上一批执行工作流已收口（workflow_run_id=`-` 或 GetWorkflowRun 非 running；查询失败退回板面 mtime 与 git 最近提交距今 ≥ physical_quiet_min=5，无 git 仓以板面与 plan 文件 mtime 代之）④熔断未触发（batch_count<max_batches 且距今运行 <max_wall_hours 小时）。④触发 → 置 HOLD(hold_reason=circuit_batches|circuit_wall)+终报首行「熔断裂闸…」；①-③任一不满足 → 让位下一班火。四条件齐 → 走下方开批通道（rev5）。
+- 开批通道 rev5（2026-09-26 用户裁决弃 UI 通道改 dynamic workflow——零前台依赖；rev3 UI 通道及其前台门/回读①-④/死胎处置整段废止，史证见技能 ops-manual「开批通道演进史」）：
+  - 步骤 1 发布：CreateWorkflow 运行已存全局工作流 batch-relay-executor（`saved: { name: "batch-relay-executor", args: { board: <本板绝对路径>, mode: "execute" } }`——运行已存工作流无需加载任何技能）。失败（未部署/参数拒/确认不可得）→ 批次日志记欠账行让位下一班；连续 dispatch_fail_max=2 班失败 → 置 HOLD(hold_reason=dispatch_channel)+终报请用户重新部署工作流（恢复走换防）。
+  - 步骤 2 回读（发布成立唯一判据=后端事实）：取得 run_id 且 GetWorkflowRun 状态 running/pending → 成立（run_id 即后端事实——本通道无 UI 表象可误读）→ 原子写 last_dispatch_utc+workflow_run_id（status 保持 READY）→ 收线退出。
+  - 步骤 3 每回合至多开一批；hub 轮转在合格板中挑 last_dispatch_utc 最老者（并列取 prompt 清单序），成员板缺 shared_fire: true 行 → 跳过该板+日志欠账行。
+- 调度员会话卫生：当班调度会话只做调度（读板+至多一次 CreateWorkflow+至多一笔板写）——禁执行批次、禁换防/板面手术/长事故响应等重活，重活另开会话（肥会话每班纯耗上下文：2026-09-26 实证整夜 ~300K token/班空转于 skip 判定）；布火会话变重 → 按换防纪律迁火新薄会话（全局单火不变式保持）。
+- 被发布的执行工作流子代理（或被注入执行指令的新任务会话）=执行者：开工首步按执行指令行取组织主干（优先 Skill 加载 ai-dev-org；无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代）→ 读板预检（只取板头字段区+执行路由+执行清单+批次日志末 3 条——防上下文膨胀，日志全量仅按需追溯）→ READY 时原子 claim（tmp 写 status:RUNNING+claim token+heartbeat_utc+勾选数快照，保留 last_dispatch_utc 与 workflow_run_id → mv -f 覆盖 → 回读确认，非己让位退出；此后执行者一切板写（心跳/收口/翻回/修复）落笔前同样回读，非己=已被接管停笔让位，遗留只终报呈报）→ 执行 plan 未勾任务至 fire_budget_min=60（板字段可调；每任务始末刷心跳，任务内每隔 heartbeat_refresh_min=15 亦必刷——活执行者心跳永不陈旧到接管阈值）→ 收口按固定次序判定（首中即断）：①`grep -cE '^[[:space:]]*- \[ \]'` 计 0（行首允许缩进，误报方向=晚 DONE 安全）→ DONE+终报（收线删火由下一班调度员按 DONE 状态机行完成——执行者无 CronDelete 工具）②停止事由（不可逆/破坏性、安全敏感、仓外副作用、计划破碎）→ HOLD(stop_matter)+终报 ③熔断（batch_count+1 后 ≥max_batches 或墙钟 ≥max_wall_hours）→ HOLD(circuit_batches|circuit_wall)+终报 ④勾选数未增 → no_progress_count+1，达 no_progress_max=3 → HOLD(no_progress)+终报 ⑤否则 READY。收口必做（同一原子写）：勾选框更新（有 git 提交；无 git 仓记 `commit: n/a (no-git)`）+批次日志追加+heartbeat_utc 刷新+batch_count+1（无条件；唯一例外=翻回 RUNNING 修复的回炉收口不再 +1，③按现值重判④⑤照常，日志记「回炉收口」）+claim → -。置 READY/DONE/HOLD 必须是最后一笔，置位后禁写板/仓；要修先回读（被新 claim 占据则不写，遗留只在终报呈报）→ 原子翻回 RUNNING 修毕重新收口。
+- 执行指令（调度员发布工作流 ask 词/手动注入通用，rev5 口径——执行者读板为主径、不预载技能；改本口径=改本源并重新部署已存工作流保持同文）：「基于 <工作区绝对路径>\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读 <工作区根>/AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。时间戳一律 Bash 取 UTC（date -u +%Y-%m-%dT%H:%M:%SZ）。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口并终报。工作区根 <绝对路径>，相对路径以此为基。禁止创建任何新自动化。」
+- 停止只许 CronDelete；禁止创建任何新自动化（CronCreate/CronUpdate）。运行已存工作流（CreateWorkflow saved）=开批通道，不属创建自动化。
 
 ## 执行路由（ai-dev-org 项目——批内引擎）
 
@@ -386,3 +383,12 @@
 - **停轮时点进度快照**：checked 32/38｜batch_count=11｜第五波已毕：R3/批2b/R4/批2d/R5/批3.5 六项｜在队待发：批5→⑤a→批2c→批3a→批3b（待批3a 追认）→⑤b（用户域终态项）。
 - **移交人类（停轮期待办）**：①批3.5 追认单（ganhua 天然气 CO₂ 因子 21.622 tCO₂/万Nm³+xiaohua 消化 MCF 0.8 两案——卷宗 .workflow/backend-calc-complete/b35-research.md）②存量 [HUMAN-LOCK] 呈批件六笔+批2c golden 重录+批3a 数值追认单（增补二十五集中索引）③调度通道演进裁决（增补三十三/晨间调研呈报：dynamic workflow 替代 UI 开批通道等四案）。
 - **重启**：/batch-relay 换防（板头标准注入词=调度员窗口 rev4 口径）；断电清创+gc 已根治 repack 残件（晨间排查记录）。
+
+
+### 增补四十 — 2026-09-26T01:48:14.457Z（rev5 换防：开批通道切换 dynamic workflow——UI 通道整段废止）
+
+- **用户裁决（2026-09-26）**：①删技能中已失效/自相矛盾规则，开批通道改 dynamic workflow；②「我允许抢前台，因为总共用不了几秒」——通道已无 UI 面，授权留档备用（若回归 UI 场景即适用）。
+- **通道切换**：开批=CreateWorkflow 运行已存全局工作流 batch-relay-executor（~/.zcode/workflows/），发布成立判据=run_id+GetWorkflowRun（后端事实），零前台依赖；RUNNING 看护=GetWorkflowRun（覆盖批内长同步子任务心跳盲区——增补三十五欠账清偿）。废止：rev3 UI 开批通道全段（前台门/Ctrl+N/回读①-④/死胎处置/dispatch_verify_min）、降级会话内直跑（昨夜 R5/批3.5 直跑养肥 hub 会话与薄调度员纪律自相矛盾——~300K token/班空转实证）、UI 活动核查、stop 守卫等 UI 面规则。板头新增 workflow_run_id 字段（rev5 必备）。
+- **技能侧**：batch-relay 1.5.0/rev5——golden/SKILL/机检/两模板/ops-manual/RESIDUALS 同批改版，self-test/drift/consistency 三绿；残留 R2（UI 选择器漂移）清偿。通道实弹：探针1=saved 工作流 probe 模式读板 389 行逐行核对全对零写入；自动化投递实证=一次性测试 automation-64311118（结果随首班观察呈报）。
+- **换防复位**：status HOLD(fire_deleted_by_user)→READY、batch_count 11→0、relay_started_utc/heartbeat_utc 重置、hold_reason→-、workflow_run_id=-（新行）、protocol_rev 4→5。protocol 段刷新为 rev5 golden 字节副本（旧段经 git 比对=纯 rev4 模板副本零批注，免归档）。新火 id 见板头 automation_id 字段行。
+- **晨间欠账承接（增补三十九待办）**：①批3.5 追认单②[HUMAN-LOCK] 呈批件六笔+批2c golden 重录+批3a 数值追认单——照旧待用户不动；③调度通道演进裁决=本笔落地（dynamic workflow 案采纳，昨夜整夜 ~48 班 foreground_occupied 根因链见技能 ops-manual 演进史）。
