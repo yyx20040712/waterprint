@@ -56,6 +56,7 @@ from waterprint import app as core
 from waterprint.contracts.condition import build_condition_set
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.run_env import RunEnv
+from waterprint.contracts.unit_api import Severity
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import constraints as constraints_service
@@ -184,7 +185,14 @@ def _constraints(
     """R2 约束装配：kb unit_kinds ∩ 项目勾选（"on"——CP2 档位语义）。"""
     chosen = project.design.constraint_choices
     return tuple(
-        core.Constraint(key=entry.key, expression=entry.expression, source=entry.source)
+        core.Constraint(
+            key=entry.key,
+            expression=entry.expression,
+            source=entry.source,
+            # 批5 AUD-W10 执法统一：kb severity 不再装配期丢弃（随行元数据
+            # ——core 批5 口径=勾选即硬滤全级别，分级执法差异属裁决位呈报）
+            severity=Severity(entry.severity),
+        )
         for entry in constraints_service.list_constraints(ctx.settings.data_dir).entries
         if unit_id in entry.unit_kinds and chosen.get(entry.key) == _CHOICE_ON
     )

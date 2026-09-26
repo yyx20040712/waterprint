@@ -36,7 +36,7 @@
 #      默认 200 条在服务层）。
 #   R5 NaN 政策：约束外推导致的 NaN 不允许静默通过——nan_flag 显式
 #      标注列，下游过滤时计数报告。口径分界（GR-37，SENS-B
-#      2026-08-23 UF-36）：GR-02 管量与守恒路径零 NaN/Inf；本结果表
+#      2026-08-23 UF-36）：GR-02 管量与守卫路径零 NaN/Inf；本结果表
 #      NaN 标注列是终态数据非中间量，不违 GR-02。
 #      【行级域拒口径（M2-SOL 实装注记）】行 compute 抛领域异常
 #      （_ROW_DOMAIN_EXCEPTIONS 在册族——B3-c 批 2c 收敛后公共核心单源
@@ -46,6 +46,11 @@
 #      设计空间探索，域拒是正常探索结果，交 constraints/diagnose 管
 #      线；单点路径 executor 仍整工况失败——两路径分歧为语义性设计）。
 #      行级拒绝原因消息不进表（列面挂账 server 批：reject_reason 列）。
+#   R6 双源可行单源（批5 AUD-W5 口径统一）：feasible_indices(frame,
+#      matrix)=行非 NaN ∧ 约束通过——单单元枚举/联合枚举阶段/可行域
+#      图三消费面共用（stage._feasible_of 与 design_map.feasible_mask
+#      批5 起委托本件；matrix=None 或零列=空约束全通过，apply GR-14
+#      空集语义）。
 #
 # 【测试要求】N=1 网格结果 == 单点 compute（防双轨）、结果行数 == total、
 #   非负性/单调性性质、condition_key 标注。
@@ -76,6 +81,7 @@ _ROW_DOMAIN_EXCEPTIONS: Final[tuple[type[Exception], ...]] = (
     *DOMAIN_EXCEPTIONS_CORE,
     InvalidFormulaError,
 )
+_NAN_FLAG: Final[str] = "nan_flag"  # 域拒标注列名（R5——本件产出，三消费面单源）
 
 
 @final
@@ -128,9 +134,33 @@ def enumerate_solutions(
     }
     for key in dim_fields:
         data[key] = [dims.get(key, nan) for dims in dims_rows]
-    data["nan_flag"] = [
+    data[_NAN_FLAG] = [
         not dims or any(isnan(value) for value in dims.values())
         for dims in dims_rows  # 空 dims=行级域拒（R5 注记）——一并标注
     ]
     data["condition_key"] = [ConditionSet.key(upstream.condition)] * grid.total
     return pandas.DataFrame(data)
+
+
+def feasible_indices(
+    frame: pandas.DataFrame, matrix: pandas.DataFrame | None
+) -> tuple[int, ...]:
+    """双源可行索引（批5 AUD-W5 口径统一单源）：行非 NaN ∧ 约束通过。
+
+    判据单一权威=合取（域分量 ∧ 约束分量——无先后覆盖关系，d1 W-5
+    口径：域拒计数=域分量单列统计，与该行约束分量取值无关）。
+    matrix=None 与零列矩阵两入口归一为纯域判分支（等价——apply_
+    constraints GR-14 空集语义；k1 N-1 注记）；matrix 行数与 frame
+    行数不等=zip strict ValueError 响亮拒（静默截断禁）。域拒行
+    （nan_flag=True，R5）
+    不进可行集——单单元枚举/联合枚举阶段/可行域图三面同口径（此前
+    单单元在约束空/仅参数列时 NaN 行进可行集=audit AUD-W5 口径分叉）。
+    """
+    domain_ok = (~frame[_NAN_FLAG].astype(bool)).tolist()
+    if matrix is not None and len(matrix.columns):
+        constraint_ok = matrix.all(axis=1).tolist()
+        domain_ok = [
+            domain and passed
+            for domain, passed in zip(domain_ok, constraint_ok, strict=True)
+        ]
+    return tuple(index for index, ok in enumerate(domain_ok) if ok)

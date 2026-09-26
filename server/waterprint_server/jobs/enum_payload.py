@@ -48,7 +48,11 @@ __all__ = ["enumeration_payload"]
 
 
 def _diagnosis_of(outcome: core.EnumerationOutcome) -> dict[str, Any] | None:
-    """诊断序列化（R-1）：None 透传（有解面）；无解=三键直转。"""
+    """诊断序列化（R-1）：None 透传（有解面）；无解=四键直转。
+
+    domain_rejected（批5 AUD-W5 拒因维度）：域拒行数（NaN 行——约束
+    失败计数外的独立维度；全域拒场景 fail_counts 仅 domain_nan_rows）。
+    """
     if outcome.diagnosis is None:
         return None
     return {
@@ -57,6 +61,7 @@ def _diagnosis_of(outcome: core.EnumerationOutcome) -> dict[str, Any] | None:
         ],
         "fail_counts": dict(outcome.diagnosis.fail_counts),
         "suggestions": [dataclasses.asdict(s) for s in outcome.diagnosis.suggestions],
+        "domain_rejected": int(outcome.diagnosis.domain_rejected),
     }
 
 
@@ -81,6 +86,7 @@ def enumeration_payload(
         "total_feasible": int(outcome.total_feasible),
         "feasible_count": int(outcome.total_feasible),
         "truncated": bool(outcome.truncated),
+        "domain_rejected": int(outcome.domain_rejected),  # 批5 AUD-W5：常规透传（有解路径亦可见）
         "diagnosis": _diagnosis_of(outcome),
         "columns": [str(column) for column in outcome.rows.columns],
         "grid_fields": [

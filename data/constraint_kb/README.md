@@ -18,7 +18,11 @@ options.constraints 通道）落地为：
 - 单文件 `constraints.json`（18 条规模不分线；分线留扩容裁量）；
 - severity 沿 **core 冻结面 Severity=ERROR/WARN/INFO**（contracts/
   unit_api.py D3——非 hard|warn 构想词）；本库条目全 WARN（沿 units_lib
-  CONSTRAINTS 同级——建议带越出非强条）；
+  CONSTRAINTS 同级——建议带越出非强条）。〔执法口径注记 2026-09-26 批5
+  AUD-W10：**勾选即硬滤全级别**（CP1 用户裁决 2026-08-31「勾选=过滤」
+  ——用户显式勾选=自愿升级为强制）；severity=呈现分类元数据，不构成
+  执法分级——WARN 软语义（未勾选默认态的越带注记不滤）属产品裁决位
+  呈报待裁，见接力板批次日志 Rulings〕；
 - 勾选面=**枚举请求 options.constraints[{key,expression,source}]
   通道**（worker→core apply_constraints，按次无状态）；「进 design 态
   存 key 不存表达式」=design 持久面构想**保留挂账**（产品裁决面）；

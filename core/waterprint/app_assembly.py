@@ -51,7 +51,7 @@ from waterprint.contracts.ports import (
     validate_edge,
 )
 from waterprint.contracts.project_schema import DesignState, ProjectFile
-from waterprint.contracts.run_env import CoefficientsView, RunEnv
+from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 from waterprint.graph.nodes import (
     InvalidNodeError,
@@ -59,7 +59,10 @@ from waterprint.graph.nodes import (
     builtin_unit,
     inlet_physics_errors,
 )
+from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.units_lib import discover_units
+
+_LOOP_KEYS: tuple[str, ...] = ("loop.tolerance", "loop.max_iterations", "loop.damping")
 
 
 class InvalidAssemblyError(Exception):
@@ -312,3 +315,42 @@ def _isolated_unit_warnings(design: DesignState) -> list[str]:
     if isolated:
         return [f"警告（孤立单元——未与任何可解析边相连）：{isolated}"]
     return []
+
+
+# ── 批5 2026-09-26 迁入：env 补齐装配链（自 app.py——app_enumeration_
+#    gates 伴生件消费面单源防环；语义零变，app.py 顶部再导出同名）──────
+
+def _engine_params(assumptions: Mapping[str, float]) -> Mapping[str, EngineParam]:
+    """UF-08 投影：合成视图的 loop.* 三键 → EngineParam（source/note=registry 原文）。"""
+    projected: dict[str, EngineParam] = {}
+    defaults = {item.key: item for item in DEFAULT_ASSUMPTIONS}
+    for key in _LOOP_KEYS:
+        entry = defaults.get(key)
+        if entry is None or key not in assumptions:
+            raise InvalidAssemblyError(
+                f"假设缺 {key!r}（合成视图=DEFAULT_ASSUMPTIONS + "
+                "design.assumption_overrides——投影前提失败，UF-08）"
+            )
+        projected[key] = EngineParam(
+            value=assumptions[key], source=entry.source, note=entry.note
+        )
+    return MappingProxyType(projected)
+
+
+def _assumption_view(overrides: Mapping[str, float]) -> dict[str, float]:
+    """合成视图：DEFAULT_ASSUMPTIONS 全量默认 + design 覆盖优先。"""
+    view = {item.key: item.default for item in DEFAULT_ASSUMPTIONS}
+    view.update(overrides)
+    return view
+
+
+def completed_env(env: RunEnv, design: DesignState) -> RunEnv:
+    """engine_params 补齐（纯函数）：缺 loop.* 任一键经 _engine_params 投影补齐。
+
+    原 app._completed_env 同名同义（批5 迁入装配域——三用例正门共享）。
+    """
+    if all(key in env.engine_params for key in _LOOP_KEYS):
+        return env
+    merged = dict(env.engine_params)
+    merged.update(_engine_params(_assumption_view(design.assumption_overrides)))
+    return replace(env, engine_params=merged)

@@ -37,6 +37,11 @@
 #   R5~R6 末段硬门/真键映射/降权标记=final_eval 件规格（W9/W10/W12/N6）。
 #   R7 诊断分层：首空级=stage_conflicts（既有 diagnose 委托+前缀注记）；
 #      末空级=relax_grid_specs 一次放宽（range 域面，离散档诚实原样）。
+#      【批5 事由分叉（AUD-W7/P2）】末空级诊断三支：timeout 截断
+#      （timeout_truncated=True——截断态不启动重试）/预算拒（放宽后
+#      行估计超限 skip）/无域可放（名义放宽=离散档原样不重试）；放宽
+#      重试回路迁 relax.py 伴生件（本件 500 行贴墙拆件——真实/名义
+#      放宽区分与 RetryOutcome 事由面见该件规格头）。
 #   R8 回路冻结=基线快照已知近似（决策 6/B1）；B12 后升级不动点迭代。
 #
 # 【层序注记】solution→waterprint.graph 唯一 import 现场=包根
@@ -51,7 +56,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from time import monotonic
 from typing import Any, Final, final
@@ -64,6 +69,7 @@ from waterprint.solution.constraints import Constraint
 from waterprint.solution.grid import Grid
 from waterprint.solution.joint_enumeration import diagnose as joint_diagnose
 from waterprint.solution.joint_enumeration import execute_graph
+from waterprint.solution.joint_enumeration import relax as joint_relax
 from waterprint.solution.joint_enumeration import stage as joint_stage
 from waterprint.solution.joint_enumeration.final_eval import (
     ComboResult,
@@ -180,22 +186,6 @@ def _ordered_targets(
     return tuple(ordered)
 
 
-def _grid_specs_of(
-    unit_id: str, assembled: AssembledView, options: JointEnumerationOptions
-) -> Sequence[Any]:
-    """单元网格声明：请求覆盖优先，缺省=manifest grid 档（R3 零代码注入）。"""
-    override = options.grids.get(unit_id)
-    specs: Sequence[Any] = override if override else [
-        spec for spec in assembled.units[unit_id].manifest.params if spec.grid is not None
-    ]
-    if not specs:
-        raise InvalidJointEnumerationError(
-            f"单元 {unit_id!r} 无网格声明（manifest grid 档缺席且无请求覆盖——"
-            "联合枚举前提失败，GR-14 显式拒绝）"
-        )
-    return specs
-
-
 @final
 class _JointSearch:
     """编排器（进程内一次性实例——计数器承载双轴预算与看门狗）。"""
@@ -222,10 +212,12 @@ class _JointSearch:
         self._started = monotonic()
 
     def grids(self) -> dict[str, Grid]:
-        """逐目标网格（请求覆盖∪manifest 档）。"""
+        """逐目标网格（请求覆盖∪manifest 档——resolve_grid_specs 批5 迁 stage）。"""
         return {
             unit_id: joint_stage.grid_of(
-                _grid_specs_of(unit_id, self.assembled, self.options),
+                joint_stage.resolve_grid_specs(
+                    unit_id, self.assembled, self.options.grids.get(unit_id)
+                ),
                 self.env.assumptions,
             )
             for unit_id in self.targets
@@ -239,10 +231,7 @@ class _JointSearch:
                 f"{self.guards.max_units:g}（solution.joint.max_units——N3 硬域"
                 "由 rows 公式天然守域）"
             )
-        rows = estimate_rows(
-            [grid.total for grid in grids.values()], self.guards.beam_width,
-            self.multiplier(),
-        )
+        rows = self._estimated_rows(grids)
         if rows > self.guards.max_rows:
             raise JointEnumerationTooLarge(
                 f"分级枚举行估计 {rows:g} 超预算 max_total_rows="
@@ -251,6 +240,17 @@ class _JointSearch:
                 f"W_s={self.multiplier()}——W7 静态预检；建议缩小网格/降低 "
                 "beam_width/减少单元）"
             )
+
+    def _estimated_rows(self, grids: Mapping[str, Grid]) -> float:
+        """静态行估计（静态预检与放宽重试预算共用——批5 单源）。"""
+        return estimate_rows(
+            [grid.total for grid in grids.values()], self.guards.beam_width,
+            self.multiplier(),
+        )
+
+    def within_budget(self, grids: Mapping[str, Grid]) -> bool:
+        """放宽重试预算预检（不抛——批5 AUD-W7 skip 事由分叉）。"""
+        return self._estimated_rows(grids) <= self.guards.max_rows
 
     def multiplier(self) -> int:
         """W_s：all_outer=全工况数；默认「all」搜索=基线 design 单工况。"""
@@ -415,17 +415,6 @@ class _JointSearch:
         )
 
 
-def _relaxed_grids(
-    options: JointEnumerationOptions, factor: float
-) -> dict[str, tuple[Mapping[str, Any], ...]]:
-    """末空级一次放宽的网格覆盖（range 域面——离散档原样诚实注记）。"""
-    return {
-        unit_id: joint_diagnose.relax_grid_specs(specs, factor)
-        for unit_id, specs in options.grids.items()
-        if specs
-    }
-
-
 def run_joint_enumerate(
     project: ProjectFile, unit_ids: Sequence[str], conditions: ConditionSet,
     env: RunEnv, options: JointEnumerationOptions | None = None,
@@ -444,51 +433,43 @@ def run_joint_enumerate(
     if isinstance(staged, Mapping):  # 首空级：分层诊断交付（空组合=合法终态）
         return search.outcome((), {"kind": "stage_empty", "stage": staged})
     combos = search.final_eval([params for params, _ in staged], baseline)
-    if not any(combo.feasible for combo in combos) and not search.truncated:
-        retry = _relaxed_retry(search, chosen, baseline)
-        if retry is not None:
-            return retry
-    diagnosis = None if any(combo.feasible for combo in combos) else {
-        "kind": "final_infeasible", "relaxed": False,
-        "note": "末段组合全不可行且无可放宽 range 域（离散档网格无连续域）",
-    }
-    return search.outcome(combos, diagnosis)
-
-
-def _relaxed_retry(
-    search: _JointSearch, options: JointEnumerationOptions, baseline: Mapping[str, float]
-) -> JointOutcome | None:
-    """末空级放宽一次（W8/R7）：range 域放宽并合原覆盖→全量目标重搜索。"""
-    relaxed = _relaxed_grids(options, search.guards.relax_factor)
-    if not relaxed:
-        return None
-    retry_options = JointEnumerationOptions(
-        grids={**options.grids, **relaxed},
-        constraints=options.constraints, standards=options.standards
-    )
-    grids = {
-        unit_id: joint_stage.grid_of(
-            _grid_specs_of(unit_id, search.assembled, retry_options), search.env.assumptions
-        )
-        for unit_id in search.targets
-    }
-    if estimate_rows(
-        [grid.total for grid in grids.values()], search.guards.beam_width,
-        search.multiplier(),
-    ) > search.guards.max_rows:
-        return None  # 放宽后超预算：不重试（静态预检口径统一执法）
-    source, _ = search.baseline()
-    staged = search.staged(source, grids)
-    if isinstance(staged, Mapping):
+    if not any(combo.feasible for combo in combos):
+        skip_reason: str | None = None
+        if not search.truncated:  # 截断态不启动放宽重试（复验未完成非域拒结论）
+            widened = joint_relax.relaxed_grids(chosen.grids, search.guards.relax_factor)
+            if widened:  # 真实域扩才重试（名义放宽=离散档原样诚实跳过）
+                retry = joint_relax.retry_joint(
+                    search, replace(chosen, grids={**chosen.grids, **widened}), baseline
+                )
+                if retry.outcome is not None:
+                    return retry.outcome
+                skip_reason = retry.skip_reason
         return search.outcome(
-            (), {"kind": "stage_empty", "stage": staged, "relaxed": True}
+            combos, _final_infeasible_diagnosis(search.truncated, skip_reason)
         )
-    combos = search.final_eval([params for params, _ in staged], baseline)
-    diagnosis = None if any(combo.feasible for combo in combos) else {
-        "kind": "final_infeasible", "relaxed": True,
-        "note": "末空级已按 relax_factor 放宽一次后复验仍无可行组合",
+    return search.outcome(combos, None)
+
+
+def _final_infeasible_diagnosis(truncated: bool, skip_reason: str | None) -> dict[str, Any]:
+    """末空级诊断载荷（批5 事由分叉：timeout 维度/预算拒/无域可放——AUD-W7）。"""
+    payload: dict[str, Any] = {
+        "kind": "final_infeasible", "relaxed": False, "timeout_truncated": truncated,
     }
-    return search.outcome(combos, diagnosis)
+    if truncated:
+        payload["note"] = (
+            "末段因 timeout 截断——复验未完成即返（非域拒结论；截断态不启动放宽重试）"
+        )
+    elif skip_reason == "budget":
+        payload["note"] = (
+            "末段组合全不可行且存在可放宽 range 域，但放宽后行估计超 "
+            "max_total_rows——静态预检口径统一执法不重试"
+        )
+    else:
+        payload["note"] = (
+            "末段组合全不可行且无可放宽 range 域（离散档网格无连续域——"
+            "名义放宽不重试）"
+        )
+    return payload
 
 
 __all__ = [

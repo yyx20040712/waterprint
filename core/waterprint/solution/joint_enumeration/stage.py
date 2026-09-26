@@ -25,7 +25,10 @@
 #       （enumerate_solutions 同管线 R2 逐行 compute 绕过缓存）+kb 带裕度
 #       列附着（批2a 裁决①——constraints.band_margin_column，与单元级
 #       约束同源）+单元级约束过滤+双源可行（行非 NaN ∧ 约束通过——PD2
-#       同源口径）+逐行阶段代理分
+#       同源口径；批5 上收 enumerate.feasible_indices 单源）+逐行阶段代理分
+#   resolve_grid_specs(unit_id, assembled, override) -> Sequence：单元网格
+#       声明解析（请求覆盖优先，缺省=manifest grid 档；批5 自 beam 迁入
+#       ——beam 贴墙拆件，beam.grids 与 relax.py 放宽重试双消费单源）
 #   stage_proxies(frame, feasible, share, baseline_energy) -> Mapping：
 #       代理分=share×裕度归一+(1−share)×能耗归一（min-max 逐阶段归一；
 #       无区分度分量=1/2 中位——禁编造区分度）
@@ -69,7 +72,7 @@ from waterprint.solution.constraints import (
     apply_constraints,
     band_margin_column,
 )
-from waterprint.solution.enumerate import enumerate_solutions
+from waterprint.solution.enumerate import enumerate_solutions, feasible_indices
 from waterprint.solution.grid import Grid, build_grid
 
 
@@ -102,7 +105,6 @@ class GraphExecutor(Protocol):
 
 # B4-2a 能耗 dims 三键（app_energy._POWER_FIELDS 键集同源——单元自报口径）
 _ENERGY_KEYS: tuple[str, ...] = ("e_aeration", "e_pump", "e_stir")
-_NAN_COLUMN: str = "nan_flag"
 _MIDPOINT: float = 1 / 2  # 无区分度分量中位（幂底式 1/2——魔法数白名单形态）
 
 
@@ -282,14 +284,23 @@ def baseline_run(
     )
 
 
-def _feasible_of(frame: pandas.DataFrame, matrix: pandas.DataFrame | None) -> tuple[int, ...]:
-    """双源可行：行非 NaN ∧ 约束通过（PD2 同源口径；无约束=NaN 单源）。"""
-    passed = range(len(frame)) if matrix is None else (
-        index for index in range(len(frame)) if bool(matrix.iloc[index].all())
-    )
-    return tuple(
-        index for index in passed if not bool(frame.iloc[index][_NAN_COLUMN])
-    )
+def resolve_grid_specs(
+    unit_id: str, assembled: AssembledView, override: Sequence[Any] | None
+) -> Sequence[Any]:
+    """单元网格声明解析：请求覆盖优先，缺省=manifest grid 档（R3 零代码注入）。
+
+    批5 自 beam._grid_specs_of 迁入（beam 500 行贴墙拆件——beam 与放宽
+    重试件 relax.py 双消费面单源；语义零变）。
+    """
+    specs: Sequence[Any] = override if override else [
+        spec for spec in assembled.units[unit_id].manifest.params if spec.grid is not None
+    ]
+    if not specs:
+        raise InvalidJointEnumerationError(
+            f"单元 {unit_id!r} 无网格声明（manifest grid 档缺席且无请求覆盖——"
+            "联合枚举前提失败，GR-14 显式拒绝）"
+        )
+    return specs
 
 
 def evaluate_stage(
@@ -307,7 +318,8 @@ def evaluate_stage(
         if stage.constraints
         else None
     )
-    feasible = _feasible_of(frame, matrix)
+    # 双源可行（PD2 同源口径）——批5 上收 enumerate.feasible_indices 单源
+    feasible = feasible_indices(frame, matrix)
     return StageOutcome(
         unit_id=stage.unit_id,
         frame=frame,
@@ -331,6 +343,7 @@ __all__ = [
     "energy_estimate",
     "evaluate_stage",
     "grid_of",
+    "resolve_grid_specs",
     "search_conditions",
     "stage_proxies",
 ]

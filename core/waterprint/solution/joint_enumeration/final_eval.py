@@ -142,8 +142,8 @@ class JointGuards:
 
 
 def joint_guards(assumptions: Mapping[str, float]) -> JointGuards:
-    """R4：全量经 assumption() 取值（覆盖优先——项目假设管道）。"""
-    return JointGuards(
+    """R4：全量经 assumption() 取值（覆盖优先——项目假设管道）+守卫域断言。"""
+    guards = JointGuards(
         beam_width=assumption(_KEY_BEAM, assumptions),
         max_units=assumption(_KEY_MAX_UNITS, assumptions),
         max_rows=assumption(_KEY_MAX_ROWS, assumptions),
@@ -159,6 +159,35 @@ def joint_guards(assumptions: Mapping[str, float]) -> JointGuards:
         },
         all_outer=assumption(_KEY_VALIDATION, assumptions) >= _ALL_OUTER,
     )
+    _assert_guard_domain(guards)
+    return guards
+
+
+def _assert_guard_domain(guards: JointGuards) -> None:
+    """守卫域断言（批5 N10/P2：beam_width<1 等下界缺失曾无校验——构造期拒）。"""
+    problems: list[str] = []
+    if guards.beam_width < 1:
+        problems.append(f"beam_width>=1（得到 {guards.beam_width:g}）")
+    if guards.max_units < 1:
+        problems.append(f"max_units>=1（得到 {guards.max_units:g}）")
+    if guards.max_rows <= 0:
+        problems.append(f"max_rows>0（得到 {guards.max_rows:g}）")
+    if guards.timeout_s < 0:
+        problems.append(f"timeout_s>=0（得到 {guards.timeout_s:g}——0=即截断合法）")
+    if guards.max_evals < 1:
+        problems.append(f"max_evals>=1（得到 {guards.max_evals:g}）")
+    if guards.relax_factor <= 1:
+        problems.append(f"relax_factor>1（得到 {guards.relax_factor:g}——放宽语义）")
+    if not 0 <= guards.share <= 1:
+        problems.append(f"share∈[0,1]（得到 {guards.share:g}——阶段代理份额）")
+    negative = sorted(k for k, v in guards.weights.items() if v < 0)
+    if negative or sum(guards.weights.values()) <= 0:
+        problems.append(f"weights 各键>=0 且和>0（得到 {guards.weights}）")
+    if problems:
+        raise InvalidJointEnumerationError(
+            "solution.joint.* 守卫域违例（项目假设覆盖越域——GR-11 构造期拒）："
+            + "；".join(problems)
+        )
 
 
 def terminal_summary(

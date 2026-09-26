@@ -159,6 +159,8 @@ class EnumerationOutcome:
     diagnosis: DiagnosisReport | None
     grid: Grid
     condition_fields: tuple[str, ...] = ()  # ADR-018 D2 工况键标签族（缺省=空兼容旧构造面）
+    domain_rejected: int = 0  # 批5 AUD-W5：域拒行计数常规透传（有解路径亦可见——隐去档诚实注记）
+
 
 def upstream_context(
     source: UpstreamSource,

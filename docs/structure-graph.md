@@ -32,6 +32,7 @@
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
 | `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
 | `waterprint.app_export` | L4.app | `core/waterprint/app_export.py` |
+| `waterprint.app_enumeration_gates` | L4.app | `core/waterprint/app_enumeration_gates.py` |
 | `waterprint.project` | L4.project-trace | `core/waterprint/project` |
 | `waterprint.trace` | L4.project-trace | `core/waterprint/trace` |
 | `waterprint.graph` | L3 | `core/waterprint/graph` |
@@ -111,6 +112,9 @@
 | `waterprint.app` | `waterprint.graph` | 图执行编排 |
 | `waterprint.app` | `waterprint.solution` | 方案枚举用例 |
 | `waterprint.app` | `waterprint.elevation` | 高程用例 |
+| `waterprint.app_enumeration_gates` | `waterprint.solution` | 枚举用例正门族：过滤/排序/诊断/联合枚举消费（批5 拆件自 app——语义随迁） |
+| `waterprint.app_enumeration_gates` | `waterprint.graph` | 枚举正门全厂基线执行（execute_graph——批5 随 run_enumeration 迁入） |
+| `waterprint.app_enumeration_gates` | `waterprint.contracts` | ProjectFile/ConditionSet/RunEnv 类型面（批5 随迁） |
 | `waterprint.app` | `waterprint.cost` | 概算用例 |
 | `waterprint.app` | `waterprint.drafting` | 出图用例 |
 | `waterprint.app` | `waterprint.geometry` | 三维场景用例 |
@@ -207,6 +211,17 @@ independence = false
 from = "waterprint.app_enumeration"
 to = "waterprint.app_export"
 note = "PROFILE3 2026-09-08 export 族拆分再导出伴生边；方向单一防环=app_export 零 app 系依赖"
+independence = false
+
+[[edge]]
+from = "waterprint.app"
+to = "waterprint.app_enumeration_gates"
+note = "批5 2026-09-26 枚举用例正门族伴生边：app.py 预算墙恰满拆件（app_assembly 先例第三例）——两枚举正门迁出再导出保 server/cli/测试单入口；方向单一防环=gates 零 app 依赖（env 补齐经 app_assembly.completed_env 单源）"
+independence = false
+[[edge]]
+from = "waterprint.app_enumeration_gates"
+to = "waterprint.app_enumeration"
+note = "批5 2026-09-26 枚举伴生件类型面消费：gates 消费 EnumerationOptions/EnumerationOutcome/UpstreamSource/enumerate_across_conditions（app→gates→enumeration 链式面经两边声明承载）"
 independence = false
 
 [[edge]]

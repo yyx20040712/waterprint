@@ -162,7 +162,7 @@ type = "layers"
 layers = [
     "waterprint.cli",
     "waterprint.flows",
-    "waterprint.app | waterprint.app_enumeration | waterprint.app_export",
+    "waterprint.app | waterprint.app_enumeration | waterprint.app_export | waterprint.app_enumeration_gates",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.ifc_export | waterprint.network",
     "waterprint.units_lib",
@@ -185,6 +185,10 @@ ignore_imports = [
     "waterprint.app -> waterprint.app_enumeration",
     # waterprint.app_enumeration → waterprint.app_export：PROFILE3 2026-09-08 export 族拆分再导出伴生边；方向单一防环=app_export 零 app 系依赖
     "waterprint.app_enumeration -> waterprint.app_export",
+    # waterprint.app → waterprint.app_enumeration_gates：批5 2026-09-26 枚举用例正门族伴生边：app.py 预算墙恰满拆件（app_assembly 先例第三例）——两枚举正门迁出再导出保 server/cli/测试单入口；方向单一防环=gates 零 app 依赖（env 补齐经 app_assembly.completed_env 单源）
+    "waterprint.app -> waterprint.app_enumeration_gates",
+    # waterprint.app_enumeration_gates → waterprint.app_enumeration：批5 2026-09-26 枚举伴生件类型面消费：gates 消费 EnumerationOptions/EnumerationOutcome/UpstreamSource/enumerate_across_conditions（app→gates→enumeration 链式面经两边声明承载）
+    "waterprint.app_enumeration_gates -> waterprint.app_enumeration",
     # waterprint.ifc_export → waterprint.geometry：L5c 2026-09-03 BIM 互操作纯投影消费场景图（§10.2 路线 C）；importer 侧通配=grimp 精确模块匹配语义（builder 为实际 import 现场）
     "waterprint.ifc_export.* -> waterprint.geometry",
     # waterprint.drafting.profile_drawing → waterprint.elevation.pumps：PROFILE 2026-09-08 纵断图 PumpingPlan 纯类型/数据消费（R3 标注面，文件粒度对——包粒度兄弟互禁不放开）

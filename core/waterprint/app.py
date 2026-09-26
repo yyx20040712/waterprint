@@ -124,16 +124,26 @@
 #   各节语义注记为装配域历史全文——定义面见 app_assembly.py；消费面
 #   （cli/server/15 测试件含 _unit_params 直 import）零改动。
 #
+# 【批5 拆分注记】（2026-09-26，backend-calc-complete 低优先堆——
+#   app.py 500 行恰满欠账兑现）：①run_enumeration/run_joint_enumerate
+#   两枚举正门迁 app_enumeration_gates.py 伴生件（第三例）再导出，
+#   run_enumeration 随迁批5 AUD-W5 双源可行口径统一（行为变更——
+#   域拒行剔出可行集/排序/分页，锁面期望翻转走 .workflow 呈批件）；
+#   ②env 补齐装配链（_LOOP_KEYS/_engine_params/_assumption_view/
+#   _completed_env）迁 app_assembly.completed_env 单源（本文件再导出
+#   _completed_env 别名——run_full_calc/run_design_map 消费面零改动）；
+#   ③run_design_map 留守本文件=锁定测试 monkeypatch 耦合 app 模块
+#   命名空间（test_design_map.py setattr(app_mod, "enumerate_solutions"
+#   , …)）——迁移须随锁面工序呈批，非本批范围。
+#
 # 【参照】重写计划 §13.1 装配点/§14.3/§18.1；简报 T7a D7 / T7b D4/D5
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
-from types import MappingProxyType
-from typing import Final, cast, final
+from typing import final
 
 # B3 R1 再导出（装配域伴生件——app_enumeration 先例；显式清单禁 import *）
 from waterprint.app_assembly import (
@@ -143,6 +153,9 @@ from waterprint.app_assembly import (
     assemble,
     validate_design_structure,  # P0-3 再导出（server 校验端点——呈裁④甲）
 )
+from waterprint.app_assembly import (
+    completed_env as _completed_env,  # 批5 迁装配域单源（本模块 run_full_calc/run_design_map 消费）
+)
 from waterprint.app_carbon import _with_carbon, carbon_summary_of
 from waterprint.app_energy import energy_summary_of
 from waterprint.app_enumeration import (
@@ -151,18 +164,22 @@ from waterprint.app_enumeration import (
     EnumerationOptions,
     EnumerationOutcome,
     UpstreamSource,
-    enumerate_across_conditions,
     export_artifact,
     upstream_context,
 )
+
+# 批5 拆件（app.py 500 行恰满——AUD 欠账堆）：两枚举正门迁 app_enumeration_gates
+# 伴生件再导出（消费面 from waterprint.app import 零改动；run_design_map 留守
+# =锁定测试 monkeypatch 耦合 app 模块命名空间——迁移须随锁面工序呈批）。
+from waterprint.app_enumeration_gates import run_enumeration, run_joint_enumerate
 from waterprint.app_influent import _with_influent, influent_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
-from waterprint.contracts.project_schema import DesignState, ProjectFile
+from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
-from waterprint.contracts.run_env import EngineParam, RunEnv
+from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import DiagnosticsReport
 from waterprint.drafting.site_plan import InvalidSitePlanError
 from waterprint.geometry import Node, SceneGraph, build_scene
@@ -180,7 +197,7 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
 from waterprint.registry.effluent import load_effluent_standards
-from waterprint.solution.constraints import MARGIN_COLUMN, apply_constraints, band_margin_column
+from waterprint.solution.constraints import apply_constraints
 from waterprint.solution.design_map import (
     DesignMap,
     DesignMapOptions,
@@ -192,22 +209,18 @@ from waterprint.solution.design_map import (
     feasible_mask,
     resolve_axes,
 )
-from waterprint.solution.diagnose import diagnose_infeasibility
 from waterprint.solution.enumerate import enumerate_solutions
 from waterprint.solution.grid import build_grid
 
 # B4-3（2026-09-20）：联合枚举再导出（UF-33 单入口；assemble 注入点=本正门）。
 from waterprint.solution.joint_enumeration import (
-    AssembleFn,
     InvalidJointEnumerationError,
     JointEnumerationOptions,
     JointEnumerationTooLarge,
     JointOutcome,
     estimate_rows,
 )
-from waterprint.solution.joint_enumeration import run_joint_enumerate as _joint_run
 from waterprint.solution.joint_enumeration import terminal_summary as _summary_of
-from waterprint.solution.ranking import RankingKey, rank
 from waterprint.trace import TraceCollector, TraceTree
 from waterprint.units_lib import discover_units
 
@@ -243,9 +256,6 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "validate_design_structure",  # P0-3 再导出（server validate 端点扩面——app 单入口语义）
 ]
 
-_LOOP_KEYS: Final[tuple[str, ...]] = ("loop.tolerance", "loop.max_iterations", "loop.damping")
-
-
 def load_project(path: Path) -> ProjectFile:
     """项目装载（M-3 版本门 + SERVER D2 双闸收口）：委托 project.io 正门。
 
@@ -264,30 +274,6 @@ def save_project(project: ProjectFile, path: Path) -> None:
     _project_save(project, path)
 
 
-def _engine_params(assumptions: Mapping[str, float]) -> Mapping[str, EngineParam]:
-    """UF-08 投影：合成视图的 loop.* 三键 → EngineParam（source/note=registry 原文）。"""
-    projected: dict[str, EngineParam] = {}
-    defaults = {item.key: item for item in DEFAULT_ASSUMPTIONS}
-    for key in _LOOP_KEYS:
-        entry = defaults.get(key)
-        if entry is None or key not in assumptions:
-            raise InvalidAssemblyError(
-                f"假设缺 {key!r}（合成视图=DEFAULT_ASSUMPTIONS + "
-                "design.assumption_overrides——投影前提失败，UF-08）"
-            )
-        projected[key] = EngineParam(
-            value=assumptions[key], source=entry.source, note=entry.note
-        )
-    return MappingProxyType(projected)
-
-
-def _assumption_view(overrides: Mapping[str, float]) -> dict[str, float]:
-    """合成视图：DEFAULT_ASSUMPTIONS 全量默认 + design 覆盖优先。"""
-    view = {item.key: item.default for item in DEFAULT_ASSUMPTIONS}
-    view.update(overrides)
-    return view
-
-
 @dataclass(frozen=True)
 @final
 class ResultBundle:
@@ -298,15 +284,6 @@ class ResultBundle:
     plant: PlantResult
     repro: ReproTriple
     diagnostics: DiagnosticsReport
-
-
-def _completed_env(env: RunEnv, design: DesignState) -> RunEnv:
-    """engine_params 补齐（纯函数）：缺 loop.* 任一键经 _engine_params 投影补齐。"""
-    if all(key in env.engine_params for key in _LOOP_KEYS):
-        return env
-    merged = dict(env.engine_params)
-    merged.update(_engine_params(_assumption_view(design.assumption_overrides)))
-    return replace(env, engine_params=merged)
 
 
 # D10（B4-3 迁移 2026-09-20）：_summary_of 定义面迁 joint_enumeration.
@@ -386,49 +363,6 @@ def _external_tree(env: RunEnv) -> TraceTree:
 #    app_enumeration.py 伴生件，上方 import 再导出）──────────────────
 
 
-def run_enumeration(project: ProjectFile, unit_id: str, conditions: ConditionSet,
-                    env: RunEnv, options: EnumerationOptions | None = None
-                    ) -> EnumerationOutcome:
-    """单单元枚举正门（ADR-005/UF-33）：装配→网格→上游快照→枚举→过滤→排序→诊断。"""
-    assembled = assemble(project, env)
-    unit = assembled.units.get(unit_id)
-    if unit is None:
-        raise InvalidAssemblyError(
-            f"枚举目标单元 {unit_id!r} 不在装配图（单单元语义 ADR-005——多单元拒绝在"
-            " server 层；core 侧未命中=InvalidAssemblyError）"
-        )
-    grid = build_grid(
-        [spec for spec in unit.manifest.params if spec.grid is not None],
-        overrides=env.assumptions,
-    )
-    # ADR-018 D2：空集=直构程序缺陷（正门 build_condition_set 恒非空——GR-11，M-5）。
-    if not conditions.baseline and not conditions.sensitivity:
-        raise InvalidAssemblyError(
-            "conditions 为空集（枚举逐工况迭代前提失败——正门 build_condition_set "
-            "恒非空，空集=直构程序缺陷；GR-11 收口，M-5）"
-        )
-    plant = execute_graph(
-        project.design, assembled.units, conditions, _completed_env(env, project.design)
-    )
-    # 逐工况快照重建→枚举→concat（行序=工况序×网格序）——app_enumeration 承载。
-    df = enumerate_across_conditions(
-        UpstreamSource(assembled.units, assembled.edges, project.design, plant),
-        unit_id, conditions, grid, env)
-    chosen = options if options is not None else EnumerationOptions()
-    # 批2a：kb 带裕度列（与过滤同源）
-    df[MARGIN_COLUMN] = band_margin_column(df, chosen.constraints)
-    filtered = apply_constraints(df, chosen.constraints)
-    ranked = rank(filtered, df, RankingKey(chosen.sort_by, chosen.ascending, grid.fields),
-                  chosen.limit if chosen.limit is not None else max(len(filtered.feasible), 1))
-    return EnumerationOutcome(
-        rows=ranked.rows, total_feasible=ranked.total_feasible, truncated=ranked.truncated,
-        grid=grid,
-        diagnosis=None if filtered.feasible else diagnose_infeasibility(
-            filtered.pass_matrix, {c.expression: c for c in chosen.constraints}, grid=grid),
-        condition_fields=tuple(
-            spec.label_zh or spec.field_id for spec in unit.manifest.out_dims))
-
-
 def run_design_map(
     project: ProjectFile,
     unit_id: str,
@@ -484,17 +418,3 @@ def run_design_map(
         resolved,
         coverage="full" if chosen.constraints else "degraded",  # R3 降级不拒
     )
-
-
-def run_joint_enumerate(
-    project: ProjectFile,
-    unit_ids: Sequence[str],
-    conditions: ConditionSet,
-    env: RunEnv,
-    options: JointEnumerationOptions | None = None,
-) -> JointOutcome:
-    """联合枚举正门（B4-3/ADR-025）：装配注入+转发（assemble=None 时本正门注入）。"""
-    chosen = options if options is not None else JointEnumerationOptions()
-    if chosen.assemble is None:  # AssembledGraph 结构满足 AssembledView 协议
-        chosen = replace(chosen, assemble=cast("AssembleFn", assemble))
-    return _joint_run(project, unit_ids, conditions, env, chosen)

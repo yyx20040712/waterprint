@@ -17,6 +17,9 @@
 #       minimal_conflicts: tuple[frozenset[str], ...]   最小冲突集（去重）
 #       fail_counts: Mapping[约束键→失败行数]
 #       suggestions: tuple[Suggestion, ...]    工业级调节建议（§4）
+#       domain_rejected: int（缺省 0——域拒行数维度，批5 AUD-W5 拒因
+#       分叉：NaN 域拒行参与约束失败计数外单列；无解诊断由调用面
+#       （app.run_enumeration）回填，本件矩阵面不判 NaN）
 #   class Suggestion(可序列化，dataclass 原生字段）：param_key（调哪个
 #       参数）/ direction（方向）/ magnitude（建议幅度，None=无据不编造）/
 #       basis（依据：constraint_kb 键或条文）/ affected_conflicts
@@ -96,11 +99,12 @@ class Suggestion:
 @dataclass(frozen=True)
 @final
 class DiagnosisReport:
-    """诊断报告（不可变）：最小冲突集 + 失败计数 + 建议（R1/R2）。"""
+    """诊断报告（不可变）：最小冲突集 + 失败计数 + 建议 + 域拒计数（R1/R2）。"""
 
     minimal_conflicts: tuple[frozenset[str], ...]
     fail_counts: Mapping[str, int]
     suggestions: tuple[Suggestion, ...]
+    domain_rejected: int = 0  # 域拒行数（批5 AUD-W5 拒因维度——调用面回填）
 
 
 def _failure_edges(matrix: pandas.DataFrame) -> list[frozenset[str]]:

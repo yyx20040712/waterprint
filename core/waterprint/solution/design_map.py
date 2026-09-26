@@ -82,6 +82,7 @@ import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（
 from waterprint.contracts.manifest import ParamSpec
 from waterprint.registry.assumptions import assumption
 from waterprint.solution.constraints import Constraint
+from waterprint.solution.enumerate import feasible_indices
 from waterprint.solution.grid import Grid
 
 _MAX_POINTS_KEY: Final[str] = "solution.design_map.max_points"
@@ -327,11 +328,13 @@ def feasible_mask(
     空约束集=pass_matrix 零列全真（apply_constraints GR-14 空集语义）
     ——NaN 域拒行（负数开方/除零域等）仍构成不可行面：「全绿」≠
     「无信息」（P0-2 终裁；与 degraded 标注互补——降级单元的绿区=
-    计算有效域）。
+    计算有效域）。批5 起判据上收 enumerate.feasible_indices 单源
+    （AUD-W5 三消费面口径统一），本函数=其数组化投影（零列矩阵经
+    单源空析取分支恒真，与旧内联实现逐位等价）。
     """
-    constraint_ok = pass_matrix.all(axis=1).to_numpy(dtype=bool)
-    domain_ok = ~frame["nan_flag"].to_numpy(dtype=bool)
-    return numpy.asarray(constraint_ok & domain_ok, dtype=bool)
+    mask = numpy.zeros(len(frame), dtype=bool)
+    mask[list(feasible_indices(frame, pass_matrix))] = True
+    return mask
 
 
 def _segments_of(values: Sequence[float], mask: numpy.ndarray) -> list[dict[str, float]]:
