@@ -87,9 +87,12 @@ options.constraints 通道）落地为：
   ——pending-domain-expert.md 新节登记）。
 - geometry_guard（批3b 1.5.0 增 8 条——几何域拒面）：四量（l_pool/
   b_pool/v_pool/n_aerator）各提示/拒收双门，expression=单侧
-  `field > <float>`（**真=越门**——与 enumeration_filter 可行带「真=在带」
-  极性相反；消费走 solution apply_constraints 行字段布尔过滤同通道，
-  severity=WARN 超工程常用提示/ERROR 荒诞域拒收=分层防御元数据）；unit_kinds
+  `field <= <float>`（**真=门内合规**、越门=假被滤——与
+  enumeration_filter 可行带「真=在带」极性统一，勾选=过滤越门行；
+  门一回炉轮2 B1 勘正：初版 `>` 越门极性致 feasible 集合语义倒置，
+  阈值数值零变；恰等值=门内保留=严格越门语义）；消费走 solution
+  apply_constraints 行字段布尔过滤同通道，severity=WARN 超工程常用
+  提示/ERROR 荒诞域拒收=分层防御元数据；unit_kinds
   一律 `["municipal_aao","municipal_cass"]`（两包 out_dims 均含四量同名
   行字段，量级同域可用——AAO v_pool=池体构造容积/CASS=单池有效容积）。
   **数值权威=b3a-research.md §二 B 组+§七追认 2026-09-26**（用户「全部

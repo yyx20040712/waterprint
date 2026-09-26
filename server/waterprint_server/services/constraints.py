@@ -10,7 +10,8 @@
 #
 # 【公开接口】
 #   list_constraints(data_dir: Path) -> ConstraintCatalog（29 条=过滤 6+
-#      出水参考 12+间距校核 2+红线 1+几何域 8——kb 1.5.0 声明序；D6 不分页整发）
+#      出水参考 12+间距校核 2+红线 1+几何域 8——kb 1.5.0 声明序；D6 不分页
+#      整发。勘误记档：本行旧值 20 系 1.4.0 期漏更实 21——批3b 勘正）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
 #
@@ -74,7 +75,8 @@ _KINDS: frozenset[str] = frozenset(
     }
 )  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）；SPC2：
 # +boundary_check（用地红线越界校核面——services/site 唯一 severity 解析面）；
-# 批3b：+geometry_guard（几何域拒面——真=越门单侧式，消费走 solution
+# 批3b：+geometry_guard（几何域拒面——expression 单侧 field <= float 真=门内
+# 合规与 enumeration_filter 极性统一（门一 B1 勘正），消费走 solution
 # apply_constraints 布尔过滤同通道，kb README 收录边界节）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})

@@ -208,9 +208,9 @@ _REPO_DATA = Path(__file__).resolve().parents[3] / "data"
 def _geometry_constraints() -> list:
     """kb 1.5.0 geometry_guard 8 条 → Constraint 集（真源投影——severity 随行）。
 
-    极性注记：geometry_guard 表达式=越门条件（真=越门），与 enumeration_filter
-    可行带（真=在带）极性相反——apply_constraints 为极性无关布尔通道，
-    WARN/ERROR 分层防御语义由 severity 元数据承载（kb README 收录边界同口径）。
+    极性注记（门一 B1 勘正后）：geometry_guard 表达式=门内合规条件（单侧
+    `field <= <float>`，真=在门内），与 enumeration_filter 可行带极性统一
+    ——勾选即过滤越门行（feasible=合规保留集）。
     """
     raw = json.loads((_REPO_DATA / "constraint_kb" / "constraints.json").read_bytes())
     return [
@@ -225,9 +225,10 @@ def _geometry_constraints() -> list:
     ]
 
 
-def test_geometry_gates_flag_absurd_pool_dimensions() -> None:
-    """批3b：audit AUD-B3 病例几何（l=27779/b=11111.5/v=15.43 亿/n_aerator=
-    1.87 亿）——8 门表达式全真=荒诞组合全拦（b3a §三复算逐位口径）。"""
+def test_geometry_gates_reject_absurd_pool_dimensions() -> None:
+    """批3b（B1 勘正）：audit AUD-B3 病例几何（l=27779/b=11111.5/v=15.43 亿/
+    n_aerator=1.87 亿）——8 门全假=荒诞组合全拒（越门行被滤除——批次目的
+    「防荒诞几何静默通过」的过滤面实证）。"""
     gates = _geometry_constraints()
     assert len(gates) == 8  # kb 1.5.0 geometry_guard 全量（真源投影前提）
     frame = _frame([{
@@ -235,16 +236,30 @@ def test_geometry_gates_flag_absurd_pool_dimensions() -> None:
         "v_pool": 1.543e9, "n_aerator": 1.87e8,
     }])
     result = apply_constraints(frame, gates)
-    assert list(result.feasible) == [0]  # 全门真（越门极性——见 _geometry_constraints 注记）
-    assert result.pass_matrix.to_numpy().all()
+    assert list(result.feasible) == []  # 荒诞行全门假→被滤
+    assert not result.pass_matrix.to_numpy().any()
 
 
 def test_geometry_gates_pass_golden_like_dimensions() -> None:
-    """批3b：golden 量级单池（l=95/b=38/v=18050/n_aerator≈2165）——8 门全假=
-    工程常用域零误杀（b3a §三复算「全绿」行口径）。"""
+    """批3b（B1 勘正）：golden 量级单池（l=95/b=38/v=18050/n_aerator≈2165）
+    ——8 门全真=合规行保留（工程常用域零误杀——b3a §三复算「全绿」行）。"""
     frame = _frame([{
         "l_pool": 95.0, "b_pool": 38.0, "v_pool": 18050.0, "n_aerator": 2165.0,
     }])
     result = apply_constraints(frame, _geometry_constraints())
-    assert list(result.feasible) == []
-    assert not result.pass_matrix.to_numpy().any()
+    assert list(result.feasible) == [0]
+    assert result.pass_matrix.to_numpy().all()
+
+
+def test_geometry_gate_edge_value_kept_strict_semantics() -> None:
+    """批3b（门一 N2）：恰等值不触发——l_pool=300.0 对 `l_pool <= 300.0`
+    为真=恰值行保留（严格越门语义：仅 >300 被滤，闭门内含端点）。"""
+    frame = _frame([
+        {"l_pool": 300.0},   # 恰等=门内（保留）
+        {"l_pool": 300.001},  # 严格越门（滤除）
+    ])
+    gate = next(
+        c for c in _geometry_constraints() if c.key == "geometry.l_pool_hint"
+    )
+    result = apply_constraints(frame, [gate])
+    assert list(result.feasible) == [0]

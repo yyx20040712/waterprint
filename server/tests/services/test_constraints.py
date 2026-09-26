@@ -128,9 +128,10 @@ def test_boundary_entry_carry_containment_contract() -> None:
 
 def test_geometry_entries_carry_domain_gates() -> None:
     """批3b：geometry_guard 面契约——四量（l_pool/b_pool/v_pool/n_aerator）
-    各提示/拒收双门（expression 单侧 `field > <float>`）+unit_kinds 恒
-    AAO/CASS 双键+severity WARN/ERROR 分层+数值权威=追认单直录
-    （b3a-research.md §二 B 组+§七 2026-09-26——无 coefficients 源键）。
+    各提示/拒收双门（expression 单侧 `field <= <float>`——真=门内合规，
+    B1 勘正后与 enumeration_filter 极性统一）+unit_kinds 恒 AAO/CASS 双键
+    +severity WARN/ERROR 分层+数值权威=追认单直录（b3a-research.md §二 B 组
+    +§七 2026-09-26——无 coefficients 源键）。
     """
     catalog = list_constraints(_REPO)
     geometry = [e for e in catalog.entries if e.kind == "geometry_guard"]
@@ -142,9 +143,9 @@ def test_geometry_entries_carry_domain_gates() -> None:
         "geometry.v_pool_hint", "geometry.v_pool_reject",
         "geometry.n_aerator_hint", "geometry.n_aerator_reject",
     }
-    for entry in geometry:  # 单侧越门式：真=越门（消费面=solution 布尔过滤通道）
+    for entry in geometry:  # 门内合规单侧式（越门=假被滤——勾选即过滤越门行）
         field = entry.key.split(".")[1].rsplit("_", 1)[0]
-        assert entry.expression.startswith(f"{field} > ")
+        assert entry.expression.startswith(f"{field} <= ")
         assert set(entry.unit_kinds) == {"municipal_aao", "municipal_cass"}
     for suffix, severity in (("hint", "WARN"), ("reject", "ERROR")):
         matches = [e for e in geometry if e.key.endswith(f"_{suffix}")]
@@ -153,14 +154,14 @@ def test_geometry_entries_carry_domain_gates() -> None:
     # 门位=b3a 追认单直录（kb 首次无 coefficients 源键形态——数值权威=追认单）
     assert all("b3a-research.md" in e.value_basis for e in geometry)
     assert all("追认 2026-09-26" in e.value_basis for e in geometry)
-    assert by_key["geometry.l_pool_hint"].expression == "l_pool > 300.0"
-    assert by_key["geometry.l_pool_reject"].expression == "l_pool > 1000.0"
-    assert by_key["geometry.b_pool_hint"].expression == "b_pool > 100.0"
-    assert by_key["geometry.b_pool_reject"].expression == "b_pool > 400.0"
-    assert by_key["geometry.v_pool_hint"].expression == "v_pool > 150000.0"
-    assert by_key["geometry.v_pool_reject"].expression == "v_pool > 1500000.0"
-    assert by_key["geometry.n_aerator_hint"].expression == "n_aerator > 50000.0"
-    assert by_key["geometry.n_aerator_reject"].expression == "n_aerator > 1000000.0"
+    assert by_key["geometry.l_pool_hint"].expression == "l_pool <= 300.0"
+    assert by_key["geometry.l_pool_reject"].expression == "l_pool <= 1000.0"
+    assert by_key["geometry.b_pool_hint"].expression == "b_pool <= 100.0"
+    assert by_key["geometry.b_pool_reject"].expression == "b_pool <= 400.0"
+    assert by_key["geometry.v_pool_hint"].expression == "v_pool <= 150000.0"
+    assert by_key["geometry.v_pool_reject"].expression == "v_pool <= 1500000.0"
+    assert by_key["geometry.n_aerator_hint"].expression == "n_aerator <= 50000.0"
+    assert by_key["geometry.n_aerator_reject"].expression == "n_aerator <= 1000000.0"
 
 
 def test_filter_values_match_factors_truth() -> None:
