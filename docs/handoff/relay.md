@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: HOLD <!-- 2026-09-26 批3b 收口判定②停止事由置位（增补四十七）——清单余 2 项全用户门控停板待用户 -->
+- status: READY <!-- 2026-09-26 增补四十八：批3a 追认单已签（用户「全部追认」——D-2 案乙/B-6 宽带）+CI 修复批收口三检全绿——HOLD(stop_matter) 事由解除，批3b 开工前置满足 -->
 - automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,7 +20,7 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T06:17:28Z <!-- 批3b stop_matter 收口刷（executor-b3b-20260926T061611Z） -->
+- heartbeat_utc: 2026-09-26T07:37:00Z <!-- 增补四十八主控手术刷（用户直派会话——追认+CI 修复批） -->
 - claim: - <!-- 批3b stop_matter 收口释放（executor-b3b-20260926T061611Z，勾选 36/38 未增） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
@@ -32,11 +32,11 @@
 - batch_count: 4 <!-- 2026-09-26 批3b stop_matter 收口 3→4（增补四十七） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: stop_matter <!-- 2026-09-26 批3b 收口置位（增补四十七）：批3a 追认单未签+⑤b 用户域终态项——增补十八同款双门控判定 -->
+- hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: 批3b 几何域拒数据包实装（backend-calc-complete 批3 后半——**待追认批**：批3a 数值单〔.workflow/backend-calc-complete/b3a-research.md §七 15 条〕用户签字后开工；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
+- next_batch: 批3b 几何域拒数据包实装（backend-calc-complete 批3 后半——**追认已签 2026-09-26「全部追认」**：批3a 数值单 15 条全 ☑〔.workflow/backend-calc-complete/b3a-research.md §七 追认记录——D-2 案乙/B-6 宽带 [0.30,0.75]〕；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 
@@ -132,7 +132,7 @@
 - [x] ⑤a｜矿井水污泥线新单元（B4-5 拆项——**2026-09-26 勘误收口〔增补四十四〕**：实质=链级复用 hebing→nongsuo→tuoshui 已落图 golden（用户 2026-08-28 追认 D1「非新单元包」+MSLUDGE2；「wp new-unit 新建包」字面与已追认设计冲突不执行，判定链+验证矩阵见增补四十四）；三维模板族缺位=三维战役 P6 参数化族队列指针）
 - [x] 批2c｜gwp_ch4 27.0 呈批件制备（backend-calc-complete——factors.yaml 改值 diff+golden 五工况期望值重算草案+锁面工序 README；**制备批不实装不提交**——golden 重录涉 core/tests 锁面须人类随批落地，呈批件齐即收口转用户）
 - [x] 批3a｜几何域数值检索起草（backend-calc-complete 批3 前半——**2026-09-26 起草收口〔增补四十六〕**：数值单 15 条+追认单呈用户〔入口流量上界/池长上限/曝气密度/AAO·CASS 尺度告警/池数档〕逐条带出处+证据分级，卷宗 b3a-research.md §七 追认单签字后批3b 开工）
-- [ ] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**待追认批**：批3a 数值单用户签字后开工；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
+- [ ] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**追认已签 2026-09-26（全部追认——D-2 案乙维持现值+口径注记/B-6 宽带并集）**：constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
 - [ ] ⑤b｜软著（B4-5 拆项——用户亲查窗，**用户域终态项**：自动化到此处按 stop_matter 停板待用户；亲查参考=round2 §2 手算对照表 26 项全吻合+15 万吨核对表）
 
 > ③ vector 全表面期望外移 JSON 数据件（可维护性答疑③）＝**用户亲改保留项**——AI 批次不自动开工；第三次锁面摩擦事件发生时仅呈报提醒不代做（用户裁决 2026-09-19）。
@@ -462,3 +462,18 @@
 - **移交人类（停板待办——重启前置）**：①批3a 追认单签字（.workflow/backend-calc-complete/b3a-research.md §七 15 条逐条可改可否——B 组全 D 级 AI 建议值尤须专家复核；§四冲突呈报必读：CASS 长宽比案甲/乙择一〔主控推荐案乙〕+曝气服务面积双带 0.3~0.75 vs 0.3~0.65 择一）→签字后批3b 开工；②⑤b 软著亲查窗（用户域终态项——亲查参考=round2 §2 手算对照表 26 项+15 万吨核对表）；③存量八笔 [HUMAN-LOCK] 呈批件+批3.5 追认单+批2c golden 重录（增补二十五集中索引不变）。
 - **重启**：/batch-relay 换防（板头标准注入词调度员窗口 rev5 口径）；班火见 HOLD 按 protocol 固定枚举 terminal (reason=hold) 终报（shared_fire=true 不删火，删火权归 hub）。
 - **收口判定=②HOLD(stop_matter)**：勾选 36/38 未增（no_progress_count 保持 0=②先于④）；batch_count 3→4（无条件）；claim 释放；置 HOLD 最后一笔。
+
+### 增补四十八 — 2026-09-26T07:37:00Z（用户直派主控手术：全部追认+CI 修复批——HOLD 解锁 READY+存量呈批件九笔清账+CI 红根因根治）
+
+- **会话性质**：用户直派主控会话（板 HOLD 中非执行者通道——增补二十五同款手术先例）；用户指令两件：①「全部追认」②「修复CI错误」。盘点件=.workflow/skills-inventory-ratify-cifix-2026-09-26.md。
+- **追认登记（用户指令代录——非逐条亲笔，如实记档）**：
+  - **批3a 数值单 15 条全 ☑**（b3a-research.md §七 追认记录节）：D-2 CASS 长宽比=**案乙**（维持 2.0~3.0+口径注记——主控推荐案）；B-6 曝气服务面积带=**宽带并集 [0.30, 0.75]**；手册原册复核与 GB 转载件抽核建议保留开放（后续发现出入按 §14 另批勘误不追改本签字）。
+  - **批3.5 两项全批**（b35-research.md §五 追认记录节）：xiaohua MCF 分档=**案 A**（污泥线独立核算 0.8 档，废水线 0.03 毯式维持）；ganhua EF=21.622 tCO₂/万Nm³；沼气 CH₄ 体积比=0.60（IPCC 2006 缺省）；气回收率=0.90；CH₄/N₂O 天然气次要面一并立键——实装面并入后续碳核算实现批。
+  - **批2c 呈批件 Rulings 三条全批**（gwp_ch4 27.2→27.0 勘误）：①data_version 升 1.5.1（patch 位=纯值勘误）②快照 ambr 豁免锁定清单+git 跟踪随笔提交③镜像桩值 27.0 一致性维护——**八步工序实装待排**（b2c-lock-drafts/ 呈批件四件已批可执行；排程=批3b 后或用户直排，本手术不代行数据勘误重工序）。
+  - **批2b Rulings 四件**（增补三十呈报）：①§1c 边节点归一化 ②unit_prices 硬契约 ③四键权重 .25/.30/.20/.25 初值 ④AUD-W11 LCC 折旧面挂账维持——全数追认。
+- **CI 红根因与修复（CI 连红 2026-09-24T17:49Z 起）**：①mypy 两错=relax.py RetryOutcome.outcome Any 面批5 拆件遗留+settings.py:306 dict 泛型（c47b476 修复笔：TYPE_CHECKING 导入 JointOutcome 真类型化+dict[str,Any]|None——core 349 文件+server 58 文件 mypy 双绿）；②pytest 15F 预期红=九笔 [HUMAN-LOCK] 呈批件未落地（core 8F+server 7F——本轮九笔全部落地红归零）。
+- **九笔锁面笔落地（commit 4e4ce4c/a6f96c9/785673f/f7d140f/60df3ff/a6e2aaf/846e5d2/4fb3027+agent/uv.lock 同步笔）**：E2E-5 孤立警告期望翻转；批2b capex 五文件 diff+12 草稿用例转正；批5 双源口径双 diff+两镜像新件（mirror_rule 门禁转绿）；audit-norms 两新件（**两用例断言按批5 现行语义校正**——原草稿批5 前旧语义 relaxed=True，改 relaxed=False+事由注记，原意=诊断不断链保留）；批2a 裕度 16 用例；F1 ai_config 新件 233 行+端点集 42；E2E-3 聊天桥 repo_root 锚；E2E-1+R4 数据包自愈/C-3 八用例/C-2 五用例（E2E-1 草稿漏 @pytest.mark.anyio 落地补齐）。manifest 323→328 键+status.md 再生成（4fb3027 锁面勘误笔）。
+- **验证（三检+双全量）**：core 全量 1554P+2F（=ruff/file_budgets 镜像测试启动时旧态——修复后复跑 8P 绿）；server 全量 **372P 零失败**（7F 预期红全清）；core mypy 349+server mypy 58 双绿；run_gates 16 门禁全绿；gen_status --check 零漂移（2158 字节）；health-scan RED=0/WARN×3 存量回显——**可收口**。
+- **板面手术**：status HOLD→READY（hold_reason 清空）；heartbeat 刷新；next_batch/清单批3b 行措辞=追认已签可开工；checked_done 36/38 不变（批3b+⑤b 未完成）；batch_count 4 不变（主控手术非批次）。
+- **重启路径**：班火（automation-cf38af42 每 10min）见 READY 按开批四条件核验——last_dispatch_utc=06:11:50Z 距今 >30min 静默窗已过+workflow_run_id 对应 run 已 completed+熔断未触发——下一班应开批通道 rev5 发布批3b 执行者。
+- **移交人类**：①⑤b 软著亲查窗（清单末项用户域终态项——批3b 收口后停板待用户）②批2c 八步工序实装排程裁量（呈批件已批可执行——建议批3b 后主控直排或并入下一实现批）。
