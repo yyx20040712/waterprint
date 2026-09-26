@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 批3a 起草收口置位（增补四十六）；下一批=批3b（待追认签字） -->
+- status: HOLD <!-- 2026-09-26 批3b 收口判定②停止事由置位（增补四十七）——清单余 2 项全用户门控停板待用户 -->
 - automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,19 +20,19 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T05:48:47Z <!-- 批3a 收口刷（executor-b3a-20260926T053321Z） -->
-- claim: - <!-- 批3a 收口释放（executor-b3a-20260926T053321Z，快照 35→36） -->
+- heartbeat_utc: 2026-09-26T06:17:28Z <!-- 批3b stop_matter 收口刷（executor-b3b-20260926T061611Z） -->
+- claim: - <!-- 批3b stop_matter 收口释放（executor-b3b-20260926T061611Z，勾选 36/38 未增） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 36 <!-- 2026-09-26 批3a 收口 35→36（增补四十六） -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
-- last_dispatch_utc: 2026-09-26T05:31:28.384Z <!-- 2026-09-26 批3a 首班发布成立（回读=run dwfrun-94749a91-3925-41ca-a087-fc8b3d7451de running+执行者子代理 executing）；旧值 2026-09-26T04:51:38.612Z（批2c 首班） -->
-- workflow_run_id: dwfrun-94749a91-3925-41ca-a087-fc8b3d7451de <!-- 批3a 首班执行工作流（几何域数值检索起草） -->
+- last_dispatch_utc: 2026-09-26T06:11:50.897Z <!-- 2026-09-26 批3b 首班发布成立（回读=run dwfrun-fb81b03e-6c11-4d5b-807b-6c6eaac9f45a running+执行者子代理 executing）；旧值 2026-09-26T05:31:28.384Z（批3a 首班） -->
+- workflow_run_id: dwfrun-fb81b03e-6c11-4d5b-807b-6c6eaac9f45a <!-- 批3b 首班执行工作流（几何域拒数据包——待追认批，可否开工由执行者按清单条款判定） -->
 - relay_started_utc: 2026-09-26T04:00:36.124Z <!-- 2026-09-26 rev5 二次换防时刻（本会话）；旧值 2026-09-26T01:48:14.457Z -->
-- batch_count: 3 <!-- 2026-09-26 批3a 收口 2→3（增补四十六） -->
+- batch_count: 4 <!-- 2026-09-26 批3b stop_matter 收口 3→4（增补四十七） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: - <!-- 2026-09-26 换防复位清空；旧值 stop_matter（测试收线停轮） -->
+- hold_reason: stop_matter <!-- 2026-09-26 批3b 收口置位（增补四十七）：批3a 追认单未签+⑤b 用户域终态项——增补十八同款双门控判定 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
@@ -453,3 +453,12 @@
 - **收口三检**：run_gates 16 门禁全绿（[OK] 全部门禁通过）；gen_status --check 零漂移（2158 字节逐字节一致）；health-scan RED=0/WARN×3 存量回显（可收口）。
 - **移交人类**：批3a 追认单签字（卷宗 §七 15 条逐条可改可否——B 组全 D 级建议值尤须专家复核）→批3b 开工；存量八笔 [HUMAN-LOCK] 呈批件+批3.5 追认单+批2c golden 重录待办不变（增补二十五集中索引）。
 - **下一批**：批3b 几何域拒数据包实装（**待追认批**——批3a 数值单签字后开工）。
+
+### 增补四十七 — 2026-09-26T06:17:28Z（批3b 收口：HOLD(stop_matter)——待追认批开工前置未满足，清单余 2 项全用户门控停板待用户）
+
+- **claim/commits**：executor-b3b-20260926T061611Z（06:16:11Z 认领，rev5 四班=run dwfrun-fb81b03e 执行者子代理——板头 workflow_run_id 在案，调度员发布注记「待追认批，可否开工由执行者按清单条款判定」）；本收口笔（零代码批——仅板面；组织主干=ai-dev-org v2.1.0 Skill 载入）。
+- **判定链（收口判定②停止事由首中即断；①不成立=未勾 grep 计 2≠0：批3b+⑤b）**：批3b 开工前置=批3a 数值单 §七 15 条用户签字（执行清单条款+增补二十五③用户裁决「逐条带出处呈用户签字追认后实装」）——核验四证全否：§七 15 条签字框全 ☐（☑×1 仅签字方式说明行自指）／卷宗 mtime=05:46:40Z 早于批3a 收口 05:48:47Z 零后续编辑／git 末笔 b0c4945（05:49:07Z 批3a 收口笔）后零新提交／docs/norms 2026-09-16 后无新追认档——**未签字实锤不可开工**（越权实装=直接违反用户明示裁决+B 组全 D 级 AI 建议值零追认源，§14 数据策略）。⑤b 软著=清单明示「用户域终态项：自动化到此处按 stop_matter 停板待用户」。清单余 2/38 项全用户门控=增补十八 B4-5 双门控 HOLD(stop_matter) 同款判定。
+- **收口三检**（零代码纯判定批免烤验对抗位=增补十八先例；三检照跑）：run_gates 16 门禁全绿（[OK] 全部门禁通过）；gen_status --check 零漂移（2158 字节逐字节一致）；health-scan RED=0／WARN×3 存量回显（可收口）。
+- **移交人类（停板待办——重启前置）**：①批3a 追认单签字（.workflow/backend-calc-complete/b3a-research.md §七 15 条逐条可改可否——B 组全 D 级 AI 建议值尤须专家复核；§四冲突呈报必读：CASS 长宽比案甲/乙择一〔主控推荐案乙〕+曝气服务面积双带 0.3~0.75 vs 0.3~0.65 择一）→签字后批3b 开工；②⑤b 软著亲查窗（用户域终态项——亲查参考=round2 §2 手算对照表 26 项+15 万吨核对表）；③存量八笔 [HUMAN-LOCK] 呈批件+批3.5 追认单+批2c golden 重录（增补二十五集中索引不变）。
+- **重启**：/batch-relay 换防（板头标准注入词调度员窗口 rev5 口径）；班火见 HOLD 按 protocol 固定枚举 terminal (reason=hold) 终报（shared_fire=true 不删火，删火权归 hub）。
+- **收口判定=②HOLD(stop_matter)**：勾选 36/38 未增（no_progress_count 保持 0=②先于④）；batch_count 3→4（无条件）；claim 释放；置 HOLD 最后一笔。
