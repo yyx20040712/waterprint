@@ -60,7 +60,7 @@ import os
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 import yaml
 from pydantic import Field, ValidationError, field_validator, model_validator
@@ -303,7 +303,7 @@ _DATA_PACKAGES: Final[tuple[str, ...]] = (
 )
 
 
-def _read_manifest_mapping(manifest: Path) -> dict | None:
+def _read_manifest_mapping(manifest: Path) -> dict[str, Any] | None:
     """C-3（e2e-fix-round3 R4）：manifest 内容判据——yaml.safe_load 解析出
     非空 dict 才算在场（空文件/空映射/损坏 yaml/读失败=None=空损态）。
 

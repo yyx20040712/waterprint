@@ -48,6 +48,7 @@ from waterprint.solution.joint_enumeration import stage as joint_stage
 if TYPE_CHECKING:  # 编排器与选项类型面（beam 定义——运行期零导入防环）
     from waterprint.solution.joint_enumeration.beam import (
         JointEnumerationOptions,
+        JointOutcome,
         _JointSearch,
     )
 
@@ -57,7 +58,7 @@ if TYPE_CHECKING:  # 编排器与选项类型面（beam 定义——运行期零
 class RetryOutcome:
     """放宽重试产出（不可变）：outcome=None 时 skip_reason 必非空（事由分叉）。"""
 
-    outcome: Any | None  # JointOutcome（TYPE_CHECKING 面注记——见上）
+    outcome: JointOutcome | None  # beam 正门产物（TYPE_CHECKING 导入防环——mypy no-any-return 根治）
     skip_reason: str | None
 
 
