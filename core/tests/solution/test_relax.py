@@ -7,6 +7,8 @@ diagnosis 纯函数直证）。
 """
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 _relax = pytest.importorskip(
@@ -56,7 +58,7 @@ class _BudgetSkipSearch:
     assembled = None
 
     class env:  # noqa: N801  # stub 形状注记（grid_of overrides 面）
-        assumptions = {}
+        assumptions: ClassVar[dict[str, float]] = {}
 
     def within_budget(self, grids: object) -> bool:
         """预算拒分支（不抛——事由分叉）。"""
@@ -75,7 +77,7 @@ def test_retry_budget_skip_returns_reason_not_raise() -> None:
 
 def test_final_infeasible_diagnosis_three_branches() -> None:
     """AUD-W7 后半：timeout 维度/预算拒注记/无域可放三支分叉。"""
-    from waterprint.solution.joint_enumeration.beam import (  # noqa: SLF001  # 私面直证（镜像件义务）
+    from waterprint.solution.joint_enumeration.beam import (  # 私面直证（镜像件义务）
         _final_infeasible_diagnosis,
     )
 

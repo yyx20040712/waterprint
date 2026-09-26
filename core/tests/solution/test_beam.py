@@ -265,7 +265,7 @@ _REPO_DATA = Path(__file__).resolve().parents[3] / "data"
 _CAPEX_KEY = "cost_capex_yuan"
 
 
-def _capex_outcome(capex: bool):  # noqa: FBT001 （布尔位置参=草稿原签名）
+def _capex_outcome(capex: bool):
     options = _options(grids=_GRIDS)
     if capex:
         options = _options(grids=_GRIDS, capex_data_dir=_REPO_DATA)

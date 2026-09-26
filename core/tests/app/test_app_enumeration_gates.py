@@ -117,9 +117,11 @@ def test_infeasible_diagnosis_carries_domain_dimension() -> None:
 
 def test_all_domain_rejected_without_constraints_is_domain_report() -> None:
     """全域拒+空约束=域拒报告（fail_counts 仅 domain_nan_rows——批5）。"""
-    from waterprint.app_enumeration_gates import _enumeration_diagnosis  # noqa: SLF001  # 私面直证（镜像件义务）
-
     import pandas
+
+    from waterprint.app_enumeration_gates import (
+        _enumeration_diagnosis,  # 私面直证（镜像件义务）
+    )
 
     frame = pandas.DataFrame(
         {"v": [float("nan")] * 3, "nan_flag": [True] * 3}
@@ -132,7 +134,7 @@ def test_all_domain_rejected_without_constraints_is_domain_report() -> None:
 
 def test_joint_gate_injects_assemble_when_absent() -> None:
     """联合枚举正门：assemble=None 时经 app_assembly 注入（转发语义零变）。"""
-    from tests.solution.test_beam import (  # noqa: PLC0415  # 既有夹具单点复用
+    from tests.solution.test_beam import (  # 既有夹具单点复用
         _AAO,
         _CASS,
         _conditions,

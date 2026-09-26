@@ -204,10 +204,9 @@ def test_capex_kit_loads_from_data_dir() -> None:
 
 def test_capex_grand_total_deterministic_positive() -> None:
     """确定性+正值：基线全厂结果集双跑同值（可复算——R3 确定性口径）。"""
+    from tests.solution.test_beam import _conditions, _env, _project
     from waterprint.app_assembly import assemble
     from waterprint.solution.joint_enumeration import execute_graph
-
-    from tests.solution.test_beam import _conditions, _env, _project
 
     env = completed_env(_env())  # type: ignore[misc]  loop.* 引擎参数补齐（beam 内部同款口径）
     project = _project()
@@ -223,11 +222,10 @@ def test_capex_grand_total_deterministic_positive() -> None:
 
 def test_design_baseline_metrics_merges_capex_when_kit_present() -> None:
     """基线并键：plant+kit 在场→cost_capex_yuan 入基线；缺席→三键照旧。"""
+    from tests.solution.test_beam import _conditions, _env, _project
     from waterprint.app_assembly import assemble
     from waterprint.solution.joint_enumeration import execute_graph
     from waterprint.solution.joint_enumeration.final_eval import merged_summary
-
-    from tests.solution.test_beam import _conditions, _env, _project
 
     env = completed_env(_env())  # type: ignore[misc]  loop.* 引擎参数补齐（beam 内部同款口径）
     project = _project()
