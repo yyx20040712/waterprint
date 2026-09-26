@@ -289,13 +289,41 @@ def test_kit_injection_carries_capex_metric() -> None:
 
 def test_geometry_grid_restores_capex_discrimination() -> None:
     """AUD-W11 修复锚：纯几何分档→capex 分化——CASS n_pool 轴承载（n_decant
-    台数行两档差 27.93 元）；AAO n 轴本批零贡献=映射外（field_mapping 首版
-    冻结取量行集不含 aao n 派生量，扩行=挂账——门二裁决 M4 轴注记）。"""
+    台数行两档差 27.93 元——批6d 万元×10⁴ 折元后同轴差 279,300 元）；AAO n
+    轴贡献=批6d 扩行恢复（曝气系统按组行——test_aao_axis_capex_discrimination；
+    首版冻结行集不含 aao n 的历史见门二裁决 M4 轴注记）。"""
     outcome = _capex_outcome(capex=True)
     capex_values = {round(combo.metrics[_CAPEX_KEY], 6) for combo in outcome.combos}
     assert len(capex_values) > 1, (
         f"纯几何分档 capex 未分化（AUD-W11 复发）：{capex_values}"
     )
+
+
+# ══ 批6d AAO 轴分化对拍（wave6 批6d 验收钉死——AAO n 两档 capex 差>0；
+#     [HUMAN-LOCK] 2026-09-26 预授权①随批落地）══
+
+
+def test_aao_axis_capex_discrimination() -> None:
+    """批6d 验收：CASS 档固定时 AAO n=2 vs 3 两档 capex 差>0——曝气系统
+    按组行（台=每系列一套，量=池数 n）承载；档差=22 万×10⁴×费率级联
+    （对 CASS 档无关的加性区分度）。"""
+    outcome = _capex_outcome(capex=True)
+    by_cass: dict[float, dict[float, float]] = {}
+    for combo in outcome.combos:
+        by_cass.setdefault(combo.params[_CASS]["n_pool"], {})[
+            combo.params[_AAO]["n"]
+        ] = combo.metrics[_CAPEX_KEY]
+    assert set(by_cass) == {2.0, 3.0}, by_cass  # 两 CASS 档各含 AAO 两档
+    diffs = []
+    for cass_pool, aao_axis in sorted(by_cass.items()):
+        assert set(aao_axis) == {2.0, 3.0}, (cass_pool, aao_axis)
+        diff = aao_axis[3.0] - aao_axis[2.0]
+        assert diff > 0.0, (cass_pool, aao_axis)  # AAO 轴分化非零（验收）
+        diffs.append(diff)
+    # 加性区分度：两 CASS 档差值恒等（容差显式 rel=1e-6——d1 W-4：渲染尾差
+    # 341265.38 vs .37 系打印舍入，fp 差值同窗即证）
+    assert diffs[0] == pytest.approx(diffs[1], rel=1e-6), diffs
+    assert diffs[0] == pytest.approx(341265.38, rel=1e-6), diffs  # 22 万×10⁴ 级联手算锚
 
 
 def test_kit_absent_keeps_legacy_structure() -> None:
@@ -367,10 +395,10 @@ def test_kit_injection_carries_lcc_annualized() -> None:
     """批6c：kit 注入+lcc 双键在册→全组合年折旧正值+直线包络+确定性+kit 缺席随缺。
 
     包络（k1 W-1 收紧口径）：E∈[0,G] ⇒ ann=E/10+(G−E)/30=G/30+E/15 ∈
-    [G/30, G/10]——上界 G/10 为真包络（原 <G 过松）。金样链设备基数退化
-    （E≈54 元——设备行近零映射=批6d field_mapping 扩行范围注记），键配对
-    语义由纯函数用例 test_capex_annualized_straight_line_formula 手算钉死
-    （互换 lives → 866.67≠466.67 必红）。"""
+    [G/30, G/10]——上界 G/10 为真包络（原 <G 过松）。金样链设备基数已随
+    批6d 扩行恢复（E=万元面值×10⁴+曝气系统按组行——E≈54 元退化注记结清），
+    键配对语义由纯函数用例 test_capex_annualized_straight_line_formula
+    手算钉死（互换 lives → 866.67≠466.67 必红）。"""
     outcome = _capex_outcome(capex=True)
     assert outcome.combos
     for combo in outcome.combos:

@@ -1525,18 +1525,18 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.7.0+unit_prices@1.0.0",
+    "data_version": "coefficients@1.8.0+unit_prices@1.1.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 553995,
-    "serialize_sha256_head": "296e87c9036587fd",
-    "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）"
+    "serialize_bytes": 554035,
+    "serialize_sha256_head": "da6dfb3257e1cf32",
+    "source": "批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显）"
   },
   "m3_deferred": {
     "estimate_total": {
       "abs": 1e-12,
       "rel": 1e-12,
-      "source": "cost 三正门直调 2026-08-28 HEAD=74c30e4",
-      "value": 11966361.336578732
+      "source": "批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显）",
+      "value": 20326595.176984984
     },
     "total_sludge": {
       "abs": 1e-12,

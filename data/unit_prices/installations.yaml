@@ -1,7 +1,8 @@
 # 安装工程单价（管道+设备）——COST1 概算段一迁移自旧系统
 # Graduation_design/ddesign_tool/src/models/cost/unit_prices.py
 # "一、管道单价"节（PIPE dict 12 档）+"四、设备购置参考价"节
-# （EQUIPMENT 13 单元组 41 条 = 市政 9 组 30 条 + 矿井 kw_ 4 组 11 条；
+# （EQUIPMENT 14 单元组 42 条 = 市政 10 组 31 条〔批6d 增 aao 组 1 条〕
+#   + 矿井 kw_ 4 组 11 条；
 #   COMMON_EQUIP 8 项）。
 # 管道族头注（照旧实标）：DN300~1500 钢筋混凝土管（GB/T 11836-2023 II 级），
 #   元/m，2024 年；DN<600 含辅材，DN≥600 仅主管。
@@ -86,7 +87,14 @@
   note: "AI 迁移（COST1 2026-08-28 起草；同日整体批准放行）；GB/T 11836-2023 II 级；DN≥600 仅主管口径"
 
 # ── 设备购置参考价（万元/台，EQUIPMENT）──────────────────────────
-# 市政 9 组：
+# 市政 10 组（批6d 增 aao 组）：
+- key: "aao.microporous_aerator_piping"
+  name: "微孔曝气器+管路"
+  unit: "万元/台"
+  price: 22.0
+  quantity: 2
+  source: "2024 市场询价"
+  note: "批6d 新增（2026-09-26）；同物同价——cass 组微孔曝气器+管路 22.0 沿用；台=按组（每系列一套系统，cass 组 quantity=池数同款口径），量=池数 n；§14 事后追认（b6d-numeric-sheet.md）"
 - key: "cugeshan.screen_rotary"
   name: "回转式格栅除污机"
   unit: "万元/台"

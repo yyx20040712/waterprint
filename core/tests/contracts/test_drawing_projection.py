@@ -228,9 +228,9 @@ def test_aao_pool_slots_declared_l7() -> None:
     # plan_keys 不声明（unit_plan 走 primitive_dims 回退自动画外框——预裁 6）
     assert projection.plan_keys == {}
     # non_drawn：19 旧键 + a_pool/l_pool_raw/b_pool_raw/v_pool/n_aerator_raw
-    # + B4-2a 能耗五键（=29）
+    # + B4-2a 能耗五键 + n 回显（批6d——=30）
     assert frozenset(projection.non_drawn) == frozenset({
-        "a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "n_aerator_raw",
+        "a_pool", "b_pool_raw", "delta_n", "l_pool_raw", "n", "n_aerator_raw",
         "o2_carbon", "o2_denit", "o2_nit", "o2_total", "q_internal", "q_return",
         "q_wet", "s_y", "t_n", "t_o", "t_total", "theta_c", "v_anaerobic",
         "v_anoxic", "v_o", "v_o_series", "v_pool", "v_total", "x_vss",

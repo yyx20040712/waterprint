@@ -48,6 +48,9 @@
 #   - 分级自洽（测试要求落点）：grand_total = subtotal +
 #     reserve_subtotal + Σtax；subtotal = construction_subtotal +
 #     Σindirect；construction = detail_subtotal + Σmeasure。
+#   - 批6d 金额折元：明细 amount=量×面值×PriceItem.scale（manifest
+#     unit_scales 契约——万元族面值×1e4 折元；行字段结构零变，面值留在
+#     单价包侧 RATIFY3 口径不动；b6d-design §二案甲）。
 #
 # 【测试要求】分级汇总数字自洽（明细求和=小计、小计+费用=总价）、
 #   费率缺出处拒绝、双跑确定性、三元组记录。
@@ -278,7 +281,7 @@ def _detail_rows(
                 f"{item.unit!r}，单价条目为 {price.unit!r}"
                 "（R2 量纲门槛——禁静默换算）"
             )
-        amount = item.quantity * price.price
+        amount = item.quantity * price.price * price.scale  # 批6d：面值×折元倍率
         rows.append(
             EstimateRow(
                 price_key=item.price_key,

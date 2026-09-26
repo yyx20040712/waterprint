@@ -28,6 +28,11 @@
 #     工艺互斥不重复计价。
 #   - 设备台数：cass n_decant（滗水器整取 ceil）/ziwai n_module（整模块数）
 #     ——台数实测自结果字段，单价包 quantity 列仅为参考值不参与计算。
+#   - 批6d 段三扩行：aao 微孔曝气器+管路按组计价（台=每系列一套——
+#     cass 组 quantity=池数同款口径），量=池数 n（dims 回显）；金额折元=
+#     单价包 manifest unit_scales 契约（万元面值×10⁴，estimate 消费面归一
+#     ——b6d-design §二）。count_times_value 通道维持预留（服务面积法
+#     全厂台数=池数×单池对 n 近恒定——总量代理无区分度，不启用）。
 
 mappings:
   - price_key: "concrete_c30_floor"
@@ -71,6 +76,13 @@ mappings:
     unit_id: "municipal_ziwai"
     cost_class: "equipment"
     source: "COST2 D3：ziwai n_module（ZW-F5 整模块数）；2024 市场询价"
+  - price_key: "aao.microporous_aerator_piping"
+    unit: "万元/台"
+    mode: "direct"
+    source_field_ids: ["n"]
+    unit_id: "municipal_aao"
+    cost_class: "equipment"
+    source: "批6d 段三扩行：微孔曝气器+管路按组计价（台=每系列一套系统——cass 组 quantity=池数同款口径；格=系列，n 一义两称），量=池数 n（dims 回显）；AAO 轴 capex 区分度数据面（wave6 批6d）；2024 市场询价"
 
 # ── fee_rules 行结构（estimate.load_fee_rules 消费，费率值经
 #    PriceBook.get(fee_key).price 从 auxiliary.yaml rate.* 读出）────

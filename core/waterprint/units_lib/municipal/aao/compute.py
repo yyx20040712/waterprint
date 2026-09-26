@@ -225,8 +225,11 @@ def _geometry(
     binds20 = {"v_o_series": v_o_series, "h2": h2, "f_aerator_service": _vec(
         _factor(p, "factor.aao.aerator.service_area", _UNIT_ID))}
     n_aerator_raw = _apply_batch(ctx, "AO-F20", binds20)
+    # n 回显入 dims（批6d）：全厂台数=池数×单池台数的计数字段——cass
+    # n_pool 回显同款先例（field_mapping count_times_value 消费面）。
     return {
         "h2": h2,
+        "n": _vec(p["n"]),
         "a_pool": a_pool,
         "h_pool": h_pool,
         "l_pool_raw": l_raw,

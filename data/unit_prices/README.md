@@ -35,3 +35,13 @@ unit_prices/
 - 费率条目（费率类）带 `base` 取费基数表达式（受限 DSL，
   与 solution/constraints 同风格）；
 - 版本升级（定额换版）→ 新 data_version → 全部概算结果过期。
+
+## 金额倍率契约（批6d 2026-09-26——price_data_version 1.1.0 起）
+
+- manifest.yaml `unit_scales` 节=单位→折元倍率全契约：**全条目单位须全覆盖，
+  缺列=装载拒绝**（prices 硬契约）；万元族（万元/台、万元）=10000，元族与
+  裸量纲族=1。条目面值保持 RATIFY3 批准口径零变更——消费侧 estimate
+  明细 amount=量×面值×scale 折元（b6d-design §二案甲）。
+- installations.yaml 增 `aao.microporous_aerator_piping`（22.0 万元/台，
+  台=按组/每系列一套——cass 组 quantity=池数同款口径；同物同价沿用 2024
+  市场询价；§14 事后追认）。

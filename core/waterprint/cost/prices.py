@@ -57,8 +57,8 @@ class InvalidPriceError(Exception):
 
 
 _MANIFEST_NAME = "manifest.yaml"
-# manifest 顶层键集（真实包其余内容全为注释行，解析后恰此一键）。
-_MANIFEST_KEYS = frozenset({"price_data_version"})
+# manifest 顶层键集（真实包其余内容全为注释行，解析后恰此两键）。
+_MANIFEST_KEYS = frozenset({"price_data_version", "unit_scales"})
 # 数据包伴生清单文件（非单价条目）：版本清单 + COST2 字段映射/费率 DSL。
 _NON_ENTRY_NAMES = frozenset({"manifest.yaml", "field_mapping.yaml"})
 _ENTRY_REQUIRED = frozenset({"key", "name", "unit", "price", "source"})
@@ -114,6 +114,9 @@ class PriceItem:
     source: str
     note: str = ""
     quantity: float | None = None
+    # 金额倍率（批6d）：面值单位→元 基倍率（万元族=1e4）——manifest
+    # unit_scales 契约装载；默认 1.0（手构造面兼容，真包装载必经校验）。
+    scale: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -193,8 +196,12 @@ def _parse_entry(where: str, raw: object) -> tuple[str, PriceItem]:
     )
 
 
-def _load_manifest(directory: Path) -> str:
-    """manifest 三守卫：必在 / 顶层 dict / 键集恰 {price_data_version} 且非空。"""
+def _load_manifest(directory: Path) -> tuple[str, dict[str, float]]:
+    """manifest 四守卫：必在 / 顶层 dict / 键集恰两键 / 倍率全数值正。
+
+    unit_scales（批6d）：单位→折元倍率契约（万元族=1e4）——键非空 str、
+    值有限正数；条目装载侧全单位覆盖校验（缺列=拒，硬契约无遗留分叉）。
+    """
     manifest_file = directory / _MANIFEST_NAME
     if not manifest_file.is_file():
         raise InvalidPriceError(
@@ -212,12 +219,34 @@ def _load_manifest(directory: Path) -> str:
             f"{_MANIFEST_NAME} 含未知键：{unknown}"
             f"（只允许 {sorted(_MANIFEST_KEYS)}——真实包注释行不受扰）"
         )
-    if "price_data_version" not in data:
+    for required in _MANIFEST_KEYS:
+        if required not in data:
+            raise InvalidPriceError(
+                f"{_MANIFEST_NAME} 缺 {required} 键（"
+                + (
+                    "D1 字段名归一：规格头 R2 口径，三元组成员 §16 A8"
+                    if required == "price_data_version"
+                    else "批6d 金额倍率契约：单位→折元倍率全声明（万元族 1e4）"
+                )
+                + "）"
+            )
+    version = _nonempty_str(data["price_data_version"], "price_data_version")
+    scales_raw = data["unit_scales"]
+    if not isinstance(scales_raw, dict) or not scales_raw:
         raise InvalidPriceError(
-            f"{_MANIFEST_NAME} 缺 price_data_version 键（D1 字段名归一："
-            "规格头 R2 口径，三元组成员 §16 A8）"
+            f"{_MANIFEST_NAME} unit_scales 须为非空映射：得到 {scales_raw!r}"
+            "（批6d 硬契约——单位→折元倍率全声明）"
         )
-    return _nonempty_str(data["price_data_version"], "price_data_version")
+    scales: dict[str, float] = {}
+    for scale_unit, scale_factor in scales_raw.items():
+        unit = _nonempty_str(scale_unit, "unit_scales 单位键")
+        factor = _finite_number(scale_factor, f"unit_scales[{unit!r}] 倍率")
+        if factor <= 0:
+            raise InvalidPriceError(
+                f"unit_scales[{unit!r}] 倍率须为正数：得到 {factor!r}"
+            )
+        scales[unit] = factor
+    return version, scales
 
 
 def load_prices(path: str | Path) -> PriceBook:
@@ -225,7 +254,7 @@ def load_prices(path: str | Path) -> PriceBook:
     directory = Path(path)
     if not directory.is_dir():
         raise InvalidPriceError(f"单价包目录不存在：{directory}")
-    data_version = _load_manifest(directory)
+    data_version, scales = _load_manifest(directory)
     entry_files = sorted(
         path_
         for path_ in directory.glob("*.yaml")
@@ -252,5 +281,15 @@ def load_prices(path: str | Path) -> PriceBook:
                     f"单价键重复：{key!r}（{path_.name} 与既有条目冲突——"
                     "键全包唯一，R3 失联/重复双向门槛）"
                 )
-            entries[key] = item
+            if item.unit not in scales:
+                raise InvalidPriceError(
+                    f"条目单位未入 unit_scales 契约：{key!r} 单位 "
+                    f"{item.unit!r}（price_data_version={data_version}——"
+                    "批6d 硬契约：全条目单位须声明折元倍率，缺列即拒）"
+                )
+            entries[key] = PriceItem(
+                key=item.key, name=item.name, unit=item.unit, price=item.price,
+                source=item.source, note=item.note, quantity=item.quantity,
+                scale=scales[item.unit],
+            )
     return PriceBook(entries, data_version)

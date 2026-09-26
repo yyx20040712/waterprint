@@ -481,6 +481,8 @@ manifest = load_manifest(
             {"field_id": "o2_nit", "dim": "MASS", "label_zh": "硝化需氧量"},
             {"field_id": "o2_denit", "dim": "MASS", "label_zh": "反硝化供氧量"},
             {"field_id": "n_aerator_raw", "dim": "DIMENSIONLESS", "label_zh": "曝气头个数（计算）"},
+            {"field_id": "n", "dim": "DIMENSIONLESS",
+             "label_zh": "池数（格）——参数回显（批6d，cass n_pool 先例）"},
             {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
              "label_zh": "曝气头个数（单池好氧区）"},
             {"field_id": "q_air", "dim": "FLOW", "label_zh": "曝气供气量"},

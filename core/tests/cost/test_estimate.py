@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import dataclasses
 import importlib
+from pathlib import Path
 
 import pytest
 
@@ -47,7 +48,9 @@ def test_summation_self_consistency_wiring() -> None:
         pkg = Path(tmp) / "unit_prices"
         pkg.mkdir()
         (pkg / "manifest.yaml").write_text(
-            "price_data_version: '1.0.0-test'\n", encoding="utf-8"
+            "price_data_version: '1.0.0-test'\nunit_scales:\n  m3: 1\n"
+            "  万元/台: 10000\n",
+            encoding="utf-8",
         )
         (pkg / "buildings.yaml").write_text("\n".join([
             "- key: C30-TEST",
@@ -103,3 +106,45 @@ def test_summation_self_consistency_wiring() -> None:
     assert sheet.subtotal + sheet.reserve_subtotal + sum(
         line.amount for line in sheet.tax
     ) == pytest.approx(sheet.grand_total)
+
+
+# ══ 批6d 金额折元消费面（amount=量×面值×scale——万元族 10⁴ 归一；
+#     b6d-design §二案甲；[HUMAN-LOCK] 2026-09-26 预授权①随批落地）══
+
+
+def test_detail_amount_scales_wan_units_to_yuan(tmp_path: Path) -> None:
+    """批6d 手算钉死：万元/台 面值×1e4 折元——3 台×10.0 万元=300,000 元；
+    明细行面值/单位/量三字段保持 RATIFY3 包口径零变（仅 amount 折元）。"""
+    from waterprint.cost.estimate import build_estimate
+    from waterprint.cost.prices import load_prices
+    from waterprint.cost.takeoff import TakeoffItem
+
+    target = tmp_path / "unit_prices"
+    target.mkdir()
+    (target / "manifest.yaml").write_text(
+        "price_data_version: '1.1.0-test'\nunit_scales:\n  万元/台: 10000\n",
+        encoding="utf-8",
+    )
+    (target / "buildings.yaml").write_text(
+        "- key: EQ-TEST\n  name: 测试设备\n  unit: 万元/台\n  price: 10.0\n"
+        "  source: 测试询价\n",
+        encoding="utf-8",
+    )
+    book = load_prices(target)
+    quantities = (
+        TakeoffItem(
+            price_key="EQ-TEST",
+            quantity=3.0,
+            unit="万元/台",
+            source_field_ids=("municipal_cass.n_decant",),
+            cost_class="equipment",
+            condition_key="design",
+        ),
+    )
+    sheet = build_estimate(quantities, book, ())
+    (row,) = sheet.detail_rows
+    assert row.unit_price == pytest.approx(10.0)  # 面值留在包口径
+    assert row.quantity == pytest.approx(3.0)
+    assert row.amount == pytest.approx(300000.0)  # 3×10.0×1e4（手算）
+    assert sheet.equipment_subtotal == pytest.approx(300000.0)
+    assert sheet.grand_total == pytest.approx(300000.0)  # 零费率直通

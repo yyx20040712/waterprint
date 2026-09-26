@@ -57,7 +57,8 @@ def test_unit_mismatch_wiring_assertion() -> None:
         pkg = Path(tmp) / "unit_prices"
         pkg.mkdir()
         (pkg / "manifest.yaml").write_text(
-            "price_data_version: '1.0.0-test'\n", encoding="utf-8"
+            "price_data_version: '1.0.0-test'\nunit_scales:\n  m3: 1\n",
+            encoding="utf-8",
         )
         (pkg / "buildings.yaml").write_text("\n".join([
             "- key: C30-TEST",
@@ -96,3 +97,43 @@ def test_unit_mismatch_wiring_assertion() -> None:
         takeoff_quantities(
             plant, "design", price_book=book, field_mapping=mapping
         )
+
+
+# ══ 批6d AAO capex 区分度数据面（takeoff 对拍——b6d-design §四；
+#     [HUMAN-LOCK] 2026-09-26 预授权①随批落地）══
+
+
+def test_aao_aerator_row_resolves_per_series_count() -> None:
+    """批6d 对拍：真包+真链 municipal_aao 明细含曝气系统行——量=池数 n
+    （台=组口径：cass 组 quantity=池数同款；dims 回显字段直取）。n=3 档
+    取数（d1 W-1：默认 n=2 与包内参考 quantity=2 同值——无判别力）。"""
+    from pathlib import Path
+
+    from waterprint.cost.prices import load_prices
+    from waterprint.cost.takeoff import load_field_mapping, takeoff_quantities
+
+    data_dir = Path(__file__).resolve().parents[3] / "data" / "unit_prices"
+    book = load_prices(data_dir)
+    mapping = load_field_mapping(data_dir / "field_mapping.yaml")
+
+    from tests.solution.test_beam import _AAO, _conditions, _env, _project
+    from waterprint.app_assembly import assemble
+    from waterprint.solution.joint_enumeration import execute_graph
+    from waterprint.solution.joint_enumeration.final_eval import completed_env
+
+    env = completed_env(_env())
+    project = _project().model_copy(deep=True)
+    project.design.nodes[_AAO]["n"] = 3.0  # 异于包内参考 quantity=2 的档
+    plant = execute_graph(
+        project.design, assemble(project, env).units, _conditions(), env
+    )
+    items = takeoff_quantities(
+        plant, "design", price_book=book, field_mapping=mapping
+    )
+    rows = [it for it in items if it.price_key == "aao.microporous_aerator_piping"]
+    assert len(rows) == 1, "aao 曝气系统行恰一行（unit_id 限定）"
+    row = rows[0]
+    assert row.unit == "万元/台"
+    assert row.quantity == pytest.approx(3.0)  # 池数 n=3（≠参考 quantity=2——direct 生效判别）
+    assert row.source_field_ids == ("municipal_aao.n",)  # 溯源=dims 回显字段
+    assert row.cost_class == "equipment"

@@ -45,7 +45,8 @@ def test_status_is_warn_not_error_semantics() -> None:
         pkg = Path(tmp) / "unit_prices"
         pkg.mkdir()
         (pkg / "manifest.yaml").write_text(
-            "price_data_version: '1.0.0-test'\n", encoding="utf-8"
+            "price_data_version: '1.0.0-test'\nunit_scales:\n  m3: 1\n",
+            encoding="utf-8",
         )
         (pkg / "buildings.yaml").write_text("\n".join([
             "- key: C30-TEST",

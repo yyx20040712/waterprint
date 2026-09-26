@@ -121,7 +121,7 @@ async def test_compare_matrix_shape_and_metrics(client) -> None:  # type: ignore
     assert v_o["label_zh"] == "好氧区容积"  # 中文名真源投影
     assert set(v_o["values"]) == {"avg", "design"}  # 双工况有限值齐
     assert all(isinstance(value, float) for value in v_o["values"].values())
-    assert len(body["metrics"]) == 28  # AAO 全声明面在场（21→23 曝气头批两键→28：B4-2a 能耗五键 q_air/p_blower/e_aeration/p_stir/e_stir）
+    assert len(body["metrics"]) == 29  # AAO 全声明面在场（21→23 曝气头→28 B4-2a 能耗五键→29 n 回显批6d）
     # 警告计数形状：unit_id 域 ⊆ 结果集单元域（零计数单元不出——稀疏面）
     for row in body["warnings"]:
         assert row["unit_id"] in {"municipal_aao"}
