@@ -114,13 +114,15 @@ def test_enumerate_condition_keys_payload(test_settings, tmp_path) -> None:  # t
 
 def test_enumerate_rows_scale_and_column_families(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
     """ADR-018 D2：行数=grid.total×(2+k)；condition_key 列在 rows_file；
-    grid_fields/dim_fields 载荷面零回归（拆件 enum_payload 后同形）。"""
+    grid_fields/dim_fields 载荷面零回归（拆件 enum_payload 后同形）。
+    批5 AUD-W5（2026-09-26）：可行集双源化——行数=实算档×(2+k)
+    （t_cycle=4 五档；域拒行不入 rows，15 档中 10 域拒）。"""
     baseline = _run_enumerate(test_settings, tmp_path, [], "scale-baseline")
     checked = _run_enumerate(test_settings, tmp_path, ["municipal_cass"], "scale-checked")
     frame = pd.read_feather(str(checked["rows_file"]))
     baseline_frame = pd.read_feather(str(baseline["rows_file"]))
-    assert len(baseline_frame) == 15 * 2  # CASS 15 档 × 双工况（ADR-018 D2）
-    assert len(frame) == len(baseline_frame) + 15  # +1 受检=+1 工况块（2+k 线性）
+    assert len(baseline_frame) == 5 * 2  # 5 实算档 × 双工况（批5 AUD-W5 双源可行）
+    assert len(frame) == len(baseline_frame) + 5  # +1 受检=+1 工况块（5 实算档/块——批5 AUD-W5）
     assert len(frame) == checked["feasible_count"]
     assert set(frame["condition_key"].unique()) == {
         "design", "avg", "design_offline_municipal_cass",

@@ -103,6 +103,9 @@ def test_run_enumeration_cass_fifteen_rows() -> None:
 
     行数/列名/condition_key 双档/无截断（探针⑤同源）。原「15 行单工况」
     语义 2026-09-12 ADR-018 D2 翻案：枚举逐工况产出，行数=grid×(2+k)。
+    批5 AUD-W5 口径统一（2026-09-26）：可行集双源化（行非 NaN∧约束
+    通过——联合枚举/可行域图 PD2 同源），域拒行剔出可行集/排序/分页
+    ——行数=实算档×双工况（t_cycle=4 五档×2=10；原 30 含 20 域拒行）。
     """
     from waterprint.contracts.condition import build_condition_set
 
@@ -111,8 +114,8 @@ def test_run_enumeration_cass_fifteen_rows() -> None:
     )
     assert outcome.grid.total == 15
     assert outcome.grid.fields == ("n_pool", "t_cycle")  # field_id 字典序
-    assert len(outcome.rows) == 30  # 15 档 × baseline 双工况（ADR-018 D2）
-    assert outcome.total_feasible == 30  # 无约束=全可行
+    assert len(outcome.rows) == 10  # 5 实算档 × baseline 双工况（批5 AUD-W5 双源可行）
+    assert outcome.total_feasible == 10  # 无约束=双源可行（域拒行剔出——批5 AUD-W5）
     assert outcome.truncated is False
     assert outcome.diagnosis is None
     columns = list(outcome.rows.columns)
@@ -121,12 +124,14 @@ def test_run_enumeration_cass_fifteen_rows() -> None:
         assert extra in columns  # 预备/标注/工况列 + dims 结果列
     # R3 工况标注双档各 15 行（ADR-018 D2——行序=工况序×网格序）
     assert outcome.rows["condition_key"].value_counts().to_dict() == {
-        "design": 15,
-        "avg": 15,
-    }
+        "design": 5,
+        "avg": 5,
+    }  # 批5 AUD-W5：可行行=5 实算档/工况（原 15 含域拒行）
     # R5 行级域拒：t_cycle∈{6,8} 与默认时段 2/1/1 破坏 CA-F13 不变性
     # → 每工况 10 行域拒（dims 全 NaN）、5 行实算（t_cycle=4）×双工况
-    assert int(outcome.rows["nan_flag"].sum()) == 20
+    # ——批5 AUD-W5：域拒行不入 rows（nan_flag 恒 False），域拒面移
+    # 诊断承载（无解时 domain_rejected 维度）
+    assert int(outcome.rows["nan_flag"].sum()) == 0
     assert int(outcome.rows["v_plant"].notna().sum()) == 10
     # 行序=工况序×网格序（margin_min 全 NaN → 稳定排序保持原序；design
     # 工况块先于 avg 块，块内 n_pool 慢变）
@@ -140,7 +145,8 @@ def test_run_enumeration_sort_and_truncation() -> None:
     """D2 排序/截断：sort_by=v_plant 升序 + limit=5 → 截断显式标注（跨工况全局序）。
 
     ADR-018 D5：margin_min/字段键跨工况全局排序（页内混工况）——
-    total_feasible=15 档×双工况=30（2026-09-12 ADR-018 D2 翻案）。
+    total_feasible=5 实算档×双工况=10（批5 AUD-W5 双源可行口径，
+    2026-09-26；原 30 含 20 域拒行）。
     """
     from waterprint.contracts.condition import build_condition_set
 
@@ -149,7 +155,7 @@ def test_run_enumeration_sort_and_truncation() -> None:
         _project({}), "municipal_cass", build_condition_set([]), _env(), options  # type: ignore[misc]
     )
     assert outcome.truncated is True
-    assert outcome.total_feasible == 30  # 15 档 × baseline 双工况（ADR-018 D2）
+    assert outcome.total_feasible == 10  # 5 实算档 × baseline 双工况（批5 AUD-W5）
     assert len(outcome.rows) == 5
     volumes = outcome.rows["v_plant"].dropna().tolist()
     assert volumes == sorted(volumes)  # 升序生效（NaN 行殿后不入前 5）
