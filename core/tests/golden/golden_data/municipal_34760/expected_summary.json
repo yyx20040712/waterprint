@@ -1287,11 +1287,11 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.5.1+unit_prices@1.0.0",
+    "data_version": "coefficients@1.6.0+unit_prices@1.0.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 542911,
-    "serialize_sha256_head": "94dea3be4a869da8",
-    "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）"
+    "serialize_sha256_head": "3e75aabb760dc1f4",
+    "source": "批6a B-6/D-8 factors 笔锚重录 2026-09-26 HEAD=4b550e6（增补五十欠账路由——带键零消费面值恒等，仅 DV 串效应）"
   },
   "m3_deferred": {
     "estimate_total": {

@@ -1,6 +1,16 @@
 # 系数库清单（版本槽位——真实条目见本目录 README.md）
-data_version: "1.5.1"
+data_version: "1.6.0"
 # 变更记录：
+#   - 1.6.0: 批6a B-6/D-8 factors 笔（2026-09-26 增补五十欠账路由——批3b
+#       裁决部 C2 落档；键增批走 minor 位先例 1.4.0→1.5.0）：factors.yaml
+#       增 4 键（实数口径 548→552）：
+#       factor.{aao,cass}.aerator.service_area_band.{min,max}=0.3/0.75
+#       m²/个（曝气器有效服务面积带——b3a B-6 宽带并集用户追认
+#       2026-09-26〔增补四十八〕；WARN 级前瞻校核位，无消费方——
+#       供气量法校核落地后接线）；aao/cass aerator.service_area note
+#       升格（b3a D-8 GB §7.9.6 条文级方法学确证+带宽注记 0.3~0.65
+#       →0.30~0.75 宽带并集）。带键零消费面=golden 数值逐位不变，
+#       仅 serialize 锚随 DV 串重录（generated 锚+m3 种子锚）。
 #   - 1.5.1: 批2c gwp_ch4 勘误（2026-09-26 呈批件〔HUMAN-LOCK〕随批落地——
 #       audit-norms 用户裁决③ 2026-09-25）：factor.carbon.gwp_ch4
 #       27.2→27.0 kgCO2e/kgCH4（AR6 100a 官方非化石/生物源值——27.2 系
