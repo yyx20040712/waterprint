@@ -12,8 +12,8 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 批5 收口（未勾 6>0/无停止事由/熔断未触/勾选数增→READY；commit a5ee617+本收口笔） -->
-- automation_id: automation-af58af60-05b1-41f3-bae9-404ab4214819 <!-- 2026-09-26 rev5 换防布火（事故会话代布：本会话曾临时被一次性测试自动化占用创建权，删测试件后释放）；旧值 -（2026-09-26 用户删火停轮） -->
+- status: HOLD <!-- 2026-09-26 测试收线（用户指令「技能测试完毕后删火，新会话正式开启任务」）——板留干净态待换防；旧值 READY（批5 收口笔） -->
+- automation_id: - <!-- 2026-09-26 测试收线删火（af58af60 已 CronDelete，CronList 空）；新会话换防重布回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
@@ -32,7 +32,7 @@
 - batch_count: 1 <!-- 2026-09-26 批5 收口 0→1（rev5 workflow 通道首班） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: -
+- hold_reason: stop_matter <!-- 2026-09-26 测试收线：用户指令停轮待新会话换防——非熔断/非故障；防孤儿火班件越权发布 ⑤a -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
@@ -403,3 +403,10 @@
 - **登记欠账**：①run_design_map 留守 app.py 的 monkeypatch 耦合（迁移须锁面工序呈批——k1 N-5 建议显式排期防固化）②前端结果载荷契约兜底（上条 Rulings②）③bench AAO 负载敏感（阈值面 perf 抖动——全量跑偶发，非锁定期望）④main.py=500 恰满（R4 欠账延续）⑤轮2 证据形态教训入册：呈证包=逐字工件（命令输出/文件行原文），禁结论式自述。
 - **移交人类**：[HUMAN-LOCK] 呈批件第⑦笔=.workflow/backend-calc-complete/b5-lock-drafts/（README 八步工序+四步回滚：①core test_enumeration_usecase 期望 diff ②server test_worker_enumerate_conditions 期望 diff ③test_app_enumeration_gates+test_relax 两镜像草案〔影子 11/11+19/19 实证〕——落地后本批 3 处预期红+mirror-rule 红归零）；存量六笔呈批件+批3.5 追认单+批2c golden 重录+批3a 数值追认单待办不变（增补二十五集中索引）；Rulings 两件如上。
 - **下一批**：⑤a 矿井水污泥线新单元（B4-5 拆项——wp new-unit 脚手架+四件套实现批；norms 追认前置已勘误确认〔增补二十五〕）。
+
+### 增补四十二 — 2026-09-26T03:3X UTC（测试收线：rev5 通道实弹全链验证完毕——删火停轮，板留干净态待新会话换防）
+
+- **用户指令**：「技能测试完毕后删火，我会在新会话正式开启任务」——火 af58af60 已于批5 收口前删除（CronList 空核实；提前删因：批5 收口置 READY 后静默窗一过，存活火将自动发布 ⑤a 越出测试授权范围；执行者工作流独立于火，收口不受影响）。
+- **rev5 通道全链实弹判定：全绿**。发布（CreateWorkflow saved→run dwfrun-dc02b246 回读 running）→认领（01:56:30Z 原子 claim，发布后 90 秒）→执行（批5 全量落地 89min<fire_budget 120：a5ee617 实现+dbb0a51 收口笔已推 origin/main，门一 k1 五轮 PASS+d1 代位闭合、16 门禁/gen_status 零漂移/health-scan RED=0、[HUMAN-LOCK] 第⑦笔+Rulings 两件移交）→收口判定⑤（32→33 勾、batch_count 0→1、claim→-、置 READY 最后一笔）——零前台依赖，夜间无人值守语境由探针2（自动化投递回合内 CreateWorkflow 直接成功，无确认卡壳）佐证。
+- **本笔（调度侧收线手术，非执行者笔）**：status READY→HOLD(stop_matter)+hold_reason 登记+automation_id 置 -——防已删火可能残存的排队孤儿班件到达时按 READY 语义越权发布 ⑤a（HOLD 即 terminal 收线）；孤儿件若到达由事故会话一行 terminal(hold) 消化。
+- **新会话开工（用户已示下）**：贴板头标准注入词「调度员窗口」——换防协议走起（fields 复位+重布火+回填 automation_id+提交推送+首班发布 ⑤a）。板上进度快照：33/38、batch_count=1、未勾 5 项（⑤a/批2c/批3a/批3b/⑤b）。
