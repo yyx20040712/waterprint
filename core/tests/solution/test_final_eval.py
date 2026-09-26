@@ -104,7 +104,7 @@ def test_joint_guards_defaults_and_overrides() -> None:
     guards = joint_guards(assumptions)  # type: ignore[misc]
     assert guards.beam_width == 5.0 and guards.max_units == 6.0
     assert guards.max_rows == 500000.0 and guards.max_evals == 25.0
-    assert guards.weights == {"opex": 0.5, "energy": 0.3, "carbon": 0.2}
+    assert guards.weights == {"opex": 0.25, "energy": 0.3, "carbon": 0.2, "capex": 0.25}
     assert guards.all_outer is False  # validation_conditions=0=「all」
     assumptions["solution.joint.validation_conditions"] = 1.0
     assumptions["solution.joint.beam_width"] = 3.0
@@ -142,3 +142,116 @@ class _Lib:
 
     def require_keys(self, keys: Any) -> None:
         return None
+
+
+# ══ 批2b capex 第四真键域（test_capex_keys_draft 转正——[HUMAN-LOCK]
+#     2026-09-26 用户「全部追认」授权落地 b2b 呈批件）══
+
+from pathlib import Path  # noqa: E402 （域内追加——parents 路径解析用）
+
+_registry_mod = importlib.import_module("waterprint.registry.assumptions")
+DEFAULT_ASSUMPTIONS = getattr(_registry_mod, "DEFAULT_ASSUMPTIONS", None)
+capex_kit_of = getattr(_mod, "capex_kit_of", None)
+capex_grand_total = getattr(_mod, "capex_grand_total", None)
+design_baseline_metrics = metrics_of  # 头部已取符号（草稿名对齐——b2b 域用例直名引用）
+
+# 转正路径 core/tests/solution → parents[3]=仓库根（草稿期 .workflow 同深度口径）
+_REPO_DATA = Path(__file__).resolve().parents[3] / "data"
+_K_OPEX = "solution.joint.objective_weight_opex"
+_K_ENERGY = "solution.joint.objective_weight_energy"
+_K_CARBON = "solution.joint.objective_weight_carbon"
+_K_CAPEX = "solution.joint.objective_weight_capex"
+
+
+def _defaults() -> dict[str, float]:
+    return {item.key: item.default for item in DEFAULT_ASSUMPTIONS}  # type: ignore[misc]
+
+
+def test_registry_four_objective_keys() -> None:
+    """四键全在场+初值 .25/.30/.20/.25（成本面 opex+capex=0.5 守恒）。"""
+    defaults = _defaults()
+    assert defaults[_K_CAPEX] == pytest.approx(0.25)  # 新键在场（批2b 前缺=红）
+    assert defaults[_K_OPEX] == pytest.approx(0.25)  # 旧值 0.5 → 0.25（红先证锚）
+    assert defaults[_K_ENERGY] == pytest.approx(0.30)
+    assert defaults[_K_CARBON] == pytest.approx(0.20)
+    assert sum(defaults[key] for key in (_K_OPEX, _K_ENERGY, _K_CARBON, _K_CAPEX)) == (
+        pytest.approx(1.0)
+    )
+
+
+def test_joint_guards_weights_four_keys() -> None:
+    """guards.weights 四键（三键断言面扩四——锁定件 test_final_eval:107 同步呈批）。"""
+    guards = joint_guards(_defaults())  # type: ignore[misc]
+    assert guards.weights == {
+        "opex": pytest.approx(0.25), "energy": pytest.approx(0.30),
+        "carbon": pytest.approx(0.20), "capex": pytest.approx(0.25),
+    }
+
+
+def test_capex_kit_none_semantics() -> None:
+    """缺席语义：capex_kit_of(None)→None（core 直调向后兼容——kit 缺席键恒缺）。"""
+    assert capex_kit_of(None) is None  # type: ignore[misc]
+
+
+def test_capex_kit_loads_from_data_dir() -> None:
+    """装载面：真数据包装配束三件（book 版本+费率+映射规则非空）。"""
+    kit = capex_kit_of(_REPO_DATA)  # type: ignore[misc]
+    assert kit is not None
+    assert kit.book.data_version  # 单价包版本非空
+    assert kit.fees  # 费率规则非空（field_mapping fee_rules=7 条）
+    assert kit.mapping.rules  # 映射规则非空
+
+
+def test_capex_grand_total_deterministic_positive() -> None:
+    """确定性+正值：基线全厂结果集双跑同值（可复算——R3 确定性口径）。"""
+    from waterprint.app_assembly import assemble
+    from waterprint.solution.joint_enumeration import execute_graph
+
+    from tests.solution.test_beam import _conditions, _env, _project
+
+    env = completed_env(_env())  # type: ignore[misc]  loop.* 引擎参数补齐（beam 内部同款口径）
+    project = _project()
+    conditions = _conditions()
+    plant = execute_graph(
+        project.design, assemble(project, env).units, conditions, env,
+    )
+    kit = capex_kit_of(_REPO_DATA)  # type: ignore[misc]
+    first = capex_grand_total(kit, plant, "design")  # type: ignore[misc]
+    second = capex_grand_total(kit, plant, "design")  # type: ignore[misc]
+    assert first == second and first > 0.0
+
+
+def test_design_baseline_metrics_merges_capex_when_kit_present() -> None:
+    """基线并键：plant+kit 在场→cost_capex_yuan 入基线；缺席→三键照旧。"""
+    from waterprint.app_assembly import assemble
+    from waterprint.solution.joint_enumeration import execute_graph
+    from waterprint.solution.joint_enumeration.final_eval import merged_summary
+
+    from tests.solution.test_beam import _conditions, _env, _project
+
+    env = completed_env(_env())  # type: ignore[misc]  loop.* 引擎参数补齐（beam 内部同款口径）
+    project = _project()
+    conditions = _conditions()
+    assembled = assemble(project, env)
+    plant = execute_graph(project.design, assembled.units, conditions, env)
+    summary = merged_summary(plant, assembled.edges, env)
+
+    plain = design_baseline_metrics(summary, conditions)  # type: ignore[misc]
+    assert set(plain) == {"opex", "energy", "carbon"}  # 向后兼容：缺席三键
+    merged = design_baseline_metrics(  # type: ignore[misc]
+        summary, conditions, plant=plant, capex_kit=capex_kit_of(_REPO_DATA),  # type: ignore[misc]
+    )
+    assert set(merged) == {"opex", "energy", "carbon", "capex"}
+    assert merged["capex"] > 0.0  # 基线概算正值（金样链全单元映射在册）
+
+
+def test_score_redistribution_when_capex_absent() -> None:
+    """N6 重分配：capex 缺席→三键权重归一 .25/.30/.20→(.25,.30,.20)/.75。"""
+    from waterprint.solution.joint_enumeration.ranking import plant_objective
+
+    weights = {"opex": 0.25, "energy": 0.30, "carbon": 0.20, "capex": 0.25}
+    values = [{"opex": 1.0, "energy": 2.0, "carbon": 3.0}]  # capex 缺席
+    baseline = {"opex": 1.0, "energy": 1.0, "carbon": 1.0, "capex": 1.0}
+    (score,) = plant_objective(values, baseline, weights)
+    expected = (0.25 * 1.0 + 0.30 * 2.0 + 0.20 * 3.0) / 0.75
+    assert score == pytest.approx(expected)  # 权重重排裁决本意（非回归）

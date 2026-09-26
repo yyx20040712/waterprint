@@ -255,3 +255,67 @@ def test_app_face_injects_assemble() -> None:
         app_module.JointEnumerationOptions(grids=_GRIDS),
     )
     assert outcome.combos
+
+
+# ══ 批2b capex 第四真键 beam 域（test_capex_beam_draft 转正——[HUMAN-LOCK]
+#     2026-09-26 用户「全部追认」授权落地 b2b 呈批件；草稿期对本文件的
+#     `from tests.solution.test_beam import ...` 自引用并入后消解 ══
+
+_REPO_DATA = Path(__file__).resolve().parents[3] / "data"
+_CAPEX_KEY = "cost_capex_yuan"
+
+
+def _capex_outcome(capex: bool):  # noqa: FBT001 （布尔位置参=草稿原签名）
+    options = _options(grids=_GRIDS)
+    if capex:
+        options = _options(grids=_GRIDS, capex_data_dir=_REPO_DATA)
+    return run_joint_enumerate(  # type: ignore[misc]
+        _project(), [_CASS, _AAO], _conditions(), _env(), options,
+    )
+
+
+def test_kit_injection_carries_capex_metric() -> None:
+    """kit 注入：可行组合全带 cost_capex_yuan 正值+排序/预算面不破。"""
+    outcome = _capex_outcome(capex=True)
+    assert outcome.combos, "宽松无标准面：可行组合非空（kit 注入不改可行性）"
+    for combo in outcome.combos:
+        assert _CAPEX_KEY in combo.metrics  # 批2b 前缺=红先证锚
+        assert combo.metrics[_CAPEX_KEY] > 0.0
+        assert combo.score is not None
+    scores = [combo.score for combo in outcome.combos]
+    assert scores == sorted(scores)  # 排序面保持（分数升序）
+    assert outcome.budget_usage["full_plant_evals"] == len(outcome.combos)
+
+
+def test_geometry_grid_restores_capex_discrimination() -> None:
+    """AUD-W11 修复锚：纯几何分档→capex 分化——CASS n_pool 轴承载（n_decant
+    台数行两档差 27.93 元）；AAO n 轴本批零贡献=映射外（field_mapping 首版
+    冻结取量行集不含 aao n 派生量，扩行=挂账——门二裁决 M4 轴注记）。"""
+    outcome = _capex_outcome(capex=True)
+    capex_values = {round(combo.metrics[_CAPEX_KEY], 6) for combo in outcome.combos}
+    assert len(capex_values) > 1, (
+        f"纯几何分档 capex 未分化（AUD-W11 复发）：{capex_values}"
+    )
+
+
+def test_kit_absent_keeps_legacy_structure() -> None:
+    """向后兼容（结构面）：不注入→combos 无 capex 键+可行性/预算/排序结构不变。
+
+    score 数值随权重重排漂移（三键归一 .333/.40/.267=裁决本意非回归）——
+    数值口径由纯函数用例 test_score_redistribution_when_capex_absent 手算
+    钉死，本用例不断言分数=旧值（门一 k1 B1 回炉口径）。"""
+    outcome = _capex_outcome(capex=False)
+    assert outcome.combos
+    for combo in outcome.combos:
+        assert _CAPEX_KEY not in combo.metrics
+        assert combo.score is not None  # 三键归一重分配出分（非 None/0 降级）
+
+
+def test_capex_deterministic_double_run() -> None:
+    """确定性：同输入双跑逐组合 params/score/capex 全等（R3 可复算口径）。"""
+    first, second = _capex_outcome(capex=True), _capex_outcome(capex=True)
+    assert len(first.combos) == len(second.combos)
+    for left, right in zip(first.combos, second.combos, strict=True):
+        assert dict(left.params) == dict(right.params)
+        assert left.score == right.score
+        assert left.metrics[_CAPEX_KEY] == right.metrics[_CAPEX_KEY]

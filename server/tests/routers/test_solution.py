@@ -139,3 +139,27 @@ async def test_old_enumerate_multi_unit_still_422(client) -> None:  # type: igno
     assert "单单元" in str(rejected.json()["detail"]) or "ADR-005" in str(
         rejected.json()["detail"]
     )
+
+
+async def test_joint_enumerate_worker_carries_capex(client) -> None:  # type: ignore[no-untyped-def]
+    """批2b 端到端第四真键（test_capex_server_draft 转正——[HUMAN-LOCK]
+    2026-09-26 用户「全部追认」授权落地）：worker 注入 capex_data_dir→
+    全链 done→top 组合 metrics 含 cost_capex_yuan 正值（三真键照旧）。"""
+    project_id = await _create_project(client, _joint_payload())
+    submitted = await client.post(
+        "/api/solution/joint-enumerate",
+        json={
+            "project_id": project_id,
+            "unit_ids": ["municipal_cass", "municipal_aao"],
+            "options": {"grids": _GRIDS},
+        },
+    )
+    assert submitted.status_code == 200, submitted.text
+    final = await _wait_terminal(client, str(submitted.json()["task_id"]))
+    assert final["state"] == "done", final
+    result = final["result"]
+    assert result["combos"], "真实数据包下可行组合非空"
+    top = result["combos"][0]
+    assert "cost_opex_yuan_a" in top["metrics"]  # 三真键照旧
+    assert "cost_capex_yuan" in top["metrics"]  # 批2b 第四真键（worker 注入面）
+    assert top["metrics"]["cost_capex_yuan"] > 0.0

@@ -120,10 +120,10 @@ def test_builtin_projection_params_and_ports() -> None:
 
 
 def test_assumptions_projection_thirty_three_entries() -> None:
-    """R3：33 条六字段取五（FD +max_points +solution.joint.* 11；tuning_direction 在场；首条 safety.superheight——B4-3 22→33 破面[R-B43-5 默认授权记档]）。"""
+    """R3：34 条六字段取五（FD +max_points +solution.joint.* 12——批2b +capex；tuning_direction 在场；首条 safety.superheight——B4-3 22→33 破面[R-B43-5 默认授权记档]）。"""
     catalog = list_assumptions()
     entries = catalog.assumptions
-    assert len(entries) == 33
+    assert len(entries) == 34
     assert entries[0].key == "safety.superheight"  # registry 声明序（[0] 锚）
     assert (entries[0].dim, entries[0].default) == ("LENGTH", 0.3)
     assert all(entry.source and entry.note and entry.tuning_direction for entry in entries)

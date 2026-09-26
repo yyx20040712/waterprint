@@ -17,7 +17,7 @@ def test_entries_pass_assumption_guards() -> None:
     from waterprint.registry.assumptions import Assumption, TuningImpact
 
     entries = joint_entries(Assumption, TuningImpact)  # type: ignore[misc]
-    assert len(entries) == 11
+    assert len(entries) == 12  # 批2b +capex 键（11→12）
     for entry in entries:
         assert isinstance(entry, Assumption)
 
@@ -35,9 +35,10 @@ def test_joint_keys_registered_in_default_assumptions() -> None:
         "solution.joint.max_full_plant_evals": 25.0,
         "solution.joint.relax_factor": 2.0,
         "solution.joint.stage_proxy_weights": 0.5,
-        "solution.joint.objective_weight_opex": 0.5,
+        "solution.joint.objective_weight_opex": 0.25,
         "solution.joint.objective_weight_energy": 0.3,
         "solution.joint.objective_weight_carbon": 0.2,
+        "solution.joint.objective_weight_capex": 0.25,
         "solution.joint.validation_conditions": 0.0,
     }
     for key, default in expected.items():
@@ -65,7 +66,7 @@ def test_manifest_load_order_unchanged() -> None:
     assert DEFAULT_ASSUMPTIONS[0].key == "safety.superheight"
     yaml_keys = [item.key for item in DEFAULT_ASSUMPTIONS]
     joint_keys = [k for k in yaml_keys if k.startswith("solution.joint.")]
-    assert len(joint_keys) == 11
+    assert len(joint_keys) == 12  # 批2b +capex 键
     # 伴生件尾挂：joint 键全在 YAML 键之后（design_map 伴生先例同制）
     assert yaml_keys.index("solution.design_map.max_points") < yaml_keys.index(
         "solution.joint.max_units"

@@ -95,6 +95,7 @@ def test_settings(tmp_path: Path) -> Settings:
     (data_dir / "templates").mkdir(parents=True)
     shutil.copytree(REPO_DATA / "coefficients", data_dir / "coefficients")
     shutil.copytree(REPO_DATA / "constraint_kb", data_dir / "constraint_kb")  # CP1 D4：kb 装载面（router 测试）
+    shutil.copytree(REPO_DATA / "unit_prices", data_dir / "unit_prices")  # 批2b：capex 装配面（生产四包恒在场）
     workbook = Workbook()
     sheet = workbook.active
     sheet["A1"] = "{{trace[0].unit_id}}"
