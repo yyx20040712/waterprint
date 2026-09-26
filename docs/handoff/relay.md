@@ -12,27 +12,27 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: HOLD <!-- 2026-09-26 测试收线（用户指令「技能测试完毕后删火，新会话正式开启任务」）——板留干净态待换防；旧值 READY（批5 收口笔） -->
-- automation_id: - <!-- 2026-09-26 测试收线删火（af58af60 已 CronDelete，CronList 空）；新会话换防重布回填 -->
+- status: READY <!-- 2026-09-26 换防复位（新会话接任迁火，增补四十二换防待办兑现）；旧值 HOLD(stop_matter)（测试收线） -->
+- automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T03:24:15Z <!-- 批5 收口置 READY -->
+- heartbeat_utc: 2026-09-26T04:00:36Z <!-- 换防复位（增补二十六/四十先例：随 relay_started 同刻重置）；旧值 2026-09-26T03:24:15Z -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 33 <!-- 2026-09-26 批5 收口 32→33 -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
 - last_dispatch_utc: 2026-09-26T01:55:07.533Z <!-- 2026-09-26 rev5 首班发布成立（回读=run dwfrun-dc02b246 running+执行者子代理 executing——布防会话代发，增补二十七先例）；旧值 2026-09-25T14:35:39.984Z（第四班批2d·UI 通道末班） -->
-- workflow_run_id: dwfrun-dc02b246-5394-4a28-ac0d-d0aa6e3292d2 <!-- rev5 首班 批5 执行工作流 -->
-- relay_started_utc: 2026-09-26T01:48:14.457Z <!-- 2026-09-26 rev5 换防时刻；旧值 2026-09-25T09:46:25.615Z -->
-- batch_count: 1 <!-- 2026-09-26 批5 收口 0→1（rev5 workflow 通道首班） -->
+- workflow_run_id: - <!-- 2026-09-26 换防复位（旧 run dwfrun-dc02b246 批5 已收口：查询 not_found+实物静默 31min+增补四十二自证收口笔 40310421 已推）；新值待首班发布回填 -->
+- relay_started_utc: 2026-09-26T04:00:36.124Z <!-- 2026-09-26 rev5 二次换防时刻（本会话）；旧值 2026-09-26T01:48:14.457Z -->
+- batch_count: 0 <!-- 2026-09-26 换防复位熔断基准（增补二十六先例）；旧值 1（批5 收口 0→1） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: stop_matter <!-- 2026-09-26 测试收线：用户指令停轮待新会话换防——非熔断/非故障；防孤儿火班件越权发布 ⑤a -->
+- hold_reason: - <!-- 2026-09-26 换防复位清空；旧值 stop_matter（测试收线停轮） -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
@@ -410,3 +410,12 @@
 - **rev5 通道全链实弹判定：全绿**。发布（CreateWorkflow saved→run dwfrun-dc02b246 回读 running）→认领（01:56:30Z 原子 claim，发布后 90 秒）→执行（批5 全量落地 89min<fire_budget 120：a5ee617 实现+dbb0a51 收口笔已推 origin/main，门一 k1 五轮 PASS+d1 代位闭合、16 门禁/gen_status 零漂移/health-scan RED=0、[HUMAN-LOCK] 第⑦笔+Rulings 两件移交）→收口判定⑤（32→33 勾、batch_count 0→1、claim→-、置 READY 最后一笔）——零前台依赖，夜间无人值守语境由探针2（自动化投递回合内 CreateWorkflow 直接成功，无确认卡壳）佐证。
 - **本笔（调度侧收线手术，非执行者笔）**：status READY→HOLD(stop_matter)+hold_reason 登记+automation_id 置 -——防已删火可能残存的排队孤儿班件到达时按 READY 语义越权发布 ⑤a（HOLD 即 terminal 收线）；孤儿件若到达由事故会话一行 terminal(hold) 消化。
 - **新会话开工（用户已示下）**：贴板头标准注入词「调度员窗口」——换防协议走起（fields 复位+重布火+回填 automation_id+提交推送+首班发布 ⑤a）。板上进度快照：33/38、batch_count=1、未勾 5 项（⑤a/批2c/批3a/批3b/⑤b）。
+
+### 增补四十三 — 2026-09-26T04:00:36Z（rev5 二次换防迁火：新火回填+复位——handover 新会话接任 hub）
+
+- **前置门全过**：工作流部署门（ListSavedWorkflows 全局区含 batch-relay-executor）/深度设计门（.zcode/org-ledger.jsonl 在场）/旧火清场（CronList 空=与板头 automation_id - 一致，增补四十二删火核实）；board 机检绿（1 warn=R3_LEGACY_FIELD 旧 last_dispatch 行冻结预期）+drift 绿（protocol 段=rev5 golden 字节一致——增补四十成果，无需刷新）。
+- **开批条件③实物判据**：旧 run dwfrun-dc02b246 本工作区 GetWorkflowRun not_found（run journal 按项目隔离，建于智水蓝图工作区会话）→ 退回实物：git 末笔 40310421（03:27:32Z）+板面 mtime（03:27:34Z）距今 31min ≥5min——批5 收口成立（增补四十二自证收口笔已推 origin/main）。
+- **复位口径（本笔原子写）**：status HOLD→READY、batch_count 1→0、hold_reason→-、relay_started_utc/heartbeat_utc=换防时刻、workflow_run_id→-；claim=- 与 no_progress_count=0 增补四十二已就位无需再动；next_batch=⑤a 维持。
+- **迁火**：CronCreate */10 轮转火（prompt=hub 模板 §2 单板清单原文）→ CronList 取回 id 回填板头 automation_id 字段行（锚定+计数守卫=1）→ 提交推送。全局单火不变式保持。
+- **接任词执行序**：迁火回填→提交推送→随即开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布 ⑤a 首班并原子写 last_dispatch_utc+workflow_run_id。
+- 此后每班火=纯调度员（rev5）：只读板头+protocol 段调度，禁执行禁重活禁载技能。
