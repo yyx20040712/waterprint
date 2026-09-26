@@ -1,6 +1,6 @@
 """约束求值族：布尔约束过滤（含 UI 覆盖）+ 约束带裕度列（批2a）。
 
-输入:  枚举 DataFrame + 约束集（constraint_kb 迁移 21 条 + UI 临时覆盖）
+输入:  枚举 DataFrame + 约束集（constraint_kb 迁移 29 条 + UI 临时覆盖）
 输出:  可行子集 + 每行×每约束的通过矩阵（供 diagnose）+ margin_min 裕度列
 """
 
@@ -28,8 +28,9 @@
 #       stage.evaluate_stage，与 apply_constraints 同一约束集同源）
 #
 # 【行为规格】
-#   R1 约束是数据：知识库 21 条（旧 constraint_hints 迁移；kb 1.4.0
-#      实数——FD 批勘正历史构想字样 51→21）+ UI 覆盖，
+#   R1 约束是数据：知识库 29 条（旧 constraint_hints 迁移；kb 1.5.0 实数
+#      =6+12+2+1+8——FD 批勘正历史构想字样 51→21、批3b 2026-09-26 增
+#      geometry_guard 8 条）+ UI 覆盖，
 #      表达式走受限 DSL（白名单字段 ID 与运算符），禁止任意 Python
 #      lambda 注入（安全与可序列化）。
 #   R2 pass_matrix 必须完整产出（哪怕全 False）——diagnose 的输入，

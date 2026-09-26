@@ -29,7 +29,7 @@
 #   grid 层承载）；周期 t_cycle grid=[4,6,8]（business-logic §7 周期档）
 #   ——compute 只保 n>0 数学有效性，不硬编码 ≥2。
 # 【声明五件】params（range 仅表内有出处带者：Ns/X/t_selector/h2/
-#   ratio_lb 五参数）/ports 两口 WATER/removal_refs（AAO 同族键同引用
+#   ratio_lb/t_draw 六参数）/ports 两口 WATER/removal_refs（AAO 同族键同引用
 #   形态）/norm_refs 双源标记（GB 50014-2021+给水排水设计手册）/
 #   condition_mappings=()/constraint_refs 五键（时段和=周期不变性为
 #   compute 域拒非警告带——不在此声明）。
@@ -357,9 +357,8 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/cass.md 参数档/算例输入行）；
-        # grid=池数/周期离散档（Ruling ④：档位下限经 grid 声明，compute 只保
-        # n>0）；range 仅五条有出处带参数（ns/mlss/t_selector/h2/ratio_lb），
-        # 时段参数与 tn_eff/步长无范围来源不设
+        # grid=池数/周期离散档（Ruling ④：下限经 grid 声明，compute 只保 n>0）；
+        # range 仅六条有出处带参数（ns/mlss/t_selector/h2/ratio_lb/t_draw），余不设
         "params": [
             {
                 "field_id": "n_pool", "label_zh": "池数（格）", "dim": "DIMENSIONLESS",
@@ -374,7 +373,8 @@ manifest = load_manifest(
             },
             {"field_id": "t_react", "label_zh": "反应时段", "dim": "TIME_H", "default": 2.0},
             {"field_id": "t_settle", "label_zh": "沉淀时段", "dim": "TIME_H", "default": 1.0},
-            {"field_id": "t_draw", "label_zh": "滗水时段", "dim": "TIME_H", "default": 1.0},
+            {"field_id": "t_draw", "label_zh": "滗水时段", "dim": "TIME_H", "default": 1.0,
+             "range": {"min": 1.0, "max": 1.5}},  # GB §7.6.36 排水 1.0~1.5h（批3a D-5 增声明）
             {
                 "field_id": "ns",
                 "label_zh": "BOD5 污泥负荷",
@@ -401,14 +401,14 @@ manifest = load_manifest(
                 "label_zh": "有效水深",
                 "dim": "LENGTH",
                 "default": 5.0,
-                "range": {"min": 4.0, "max": 6.0},
+                "range": {"min": 4.0, "max": 6.0},  # GB §7.6.5+§7.6.39 条文确证（批3a D-1）
             },
             {
                 "field_id": "ratio_lb",
                 "label_zh": "长宽比",
                 "dim": "DIMENSIONLESS",
                 "default": 2.5,
-                "range": {"min": 2.0, "max": 3.0},
+                "range": {"min": 2.0, "max": 3.0},  # D-2 案乙：包络口径≠GB §7.6.39 单廊道（追认）
             },
             {"field_id": "tn_eff", "label_zh": "出水总氮", "dim": "CONCENTRATION", "default": 15.0},
             {

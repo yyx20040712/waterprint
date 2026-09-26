@@ -86,7 +86,11 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
             "t_selector >= factor.cass.selector_band.min"
             " and t_selector <= factor.cass.selector_band.max"
         ),
-        source=f"{_HB}；CA-F4 参数带（factor.cass.selector_band.*，生物选择区）",
+        source=(
+            "GB 50014-2021 §7.6.12（生物反应池始端选择区水力停留时间宜采用"
+            " 0.5h~1.0h——批3a D-4 条文级确证，批3b 2026-09-26）；"
+            f"{_HB}；CA-F4 参数带（factor.cass.selector_band.*，生物选择区）"
+        ),
         severity="WARN",
     ),
 )

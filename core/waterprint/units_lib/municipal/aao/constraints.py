@@ -54,8 +54,9 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
             "t_p >= factor.aao.hrt_anaerobic_band.min"
             " and t_p <= factor.aao.hrt_anaerobic_band.max"
         ),
-        source="GB 50014-2021 §7.6.39（厌氧区 HRT 1~2h）；AO-F3 参数带宽"
-        "（factor.aao.hrt_anaerobic_band.*）",
+        source="GB 50014-2021 §7.6.18-2（厌氧区停留时间宜采用 1h~2h——批3a D-3"
+        " 条文级确证；原引 §7.6.39 系条号误植，批3b 2026-09-26 勘正）；AO-F3"
+        " 参数带宽（factor.aao.hrt_anaerobic_band.*）",
         severity="WARN",
     ),
     ConstraintDecl(
@@ -64,7 +65,9 @@ CONSTRAINTS: tuple[ConstraintDecl, ...] = (
             "t_n >= factor.aao.hrt_anoxic_band.min"
             " and t_n <= factor.aao.hrt_anoxic_band.max"
         ),
-        source=f"{_HB}；AO-F5 带宽（factor.aao.hrt_anoxic_band.*）",
+        source="GB 50014-2021 §7.6.17-1（ANO 法缺氧区 HRT 全带宜 2h~10h——仓内"
+        "取工程常用子带 2~4（手册口径）；批3a D-6 全带注记，批3b 2026-09-26）；"
+        f"{_HB}；AO-F5 带宽（factor.aao.hrt_anoxic_band.*）",
         severity="WARN",
     ),
     ConstraintDecl(

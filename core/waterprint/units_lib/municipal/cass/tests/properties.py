@@ -21,10 +21,13 @@
 #   - test_draw_volume_monotone_in_pools：v_draw 随池数档位单调不增（单调）；
 #   - test_boundary_stability：参数域两端点不崩溃、不产 NaN/inf（边界）；
 #   - test_purity：同 ctx 双跑同果（R1 纯函数）。
-# 【策略纪律】参数从 manifest range/grid 合法域生成；t_cycle 不入随机面
-#   （相位和联锁参数——值域合法性由 compute 守卫定义，非法组合归
-#   test_compute 拒绝用例）；系数经 load_coefficients 数据包真源+D4
-#   前缀投影（units_lib 层禁上行导入 app，包内镜像六行过滤）。
+# 【策略纪律】参数从 manifest range/grid 合法域生成；t_cycle/t_draw 不入
+#   随机面（相位和联锁参数——t_draw 批3b D-5 增 range 1.0~1.5 后入联锁面：
+#   t_react/t_settle 不入随机面恒为默认，独立采样 t_draw≠1.0 必破
+#   t_react+t_settle+t_draw=t_cycle 恒等——值域合法性由 compute 守卫定义，
+#   非法组合归 test_compute 拒绝用例；t_draw 端点覆盖归
+#   test_boundary_stability 的 t_cycle 联动项）；系数经 load_coefficients
+#   数据包真源+D4 前缀投影（units_lib 层禁上行导入 app，包内镜像六行过滤）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -87,10 +90,11 @@ def _run(params: dict[str, float]) -> UnitResult:
 
 
 def _draws() -> st.SearchStrategy[dict[str, float]]:
-    """range 连续 + grid 采样；t_cycle 排除（相位和联锁——见规格头）。"""
+    """range 连续 + grid 采样；t_cycle/t_draw 排除（相位和联锁——见规格头
+    批3b D-5 注记：t_draw 独立采样必破时段和恒等）。"""
     strategy: dict[str, st.SearchStrategy[float]] = {}
     for spec in manifest.params:
-        if spec.field_id == "t_cycle":
+        if spec.field_id in ("t_cycle", "t_draw"):
             continue
         if spec.range is not None:
             lo, hi = spec.range
@@ -152,12 +156,20 @@ def test_draw_volume_monotone_in_pools() -> None:
 
 
 def test_boundary_stability() -> None:
-    """边界：range 参数两端点实跑不崩溃、不产 NaN/inf。"""
+    """边界：range 参数两端点实跑不崩溃、不产 NaN/inf（t_draw 端点=相位和
+    联锁参数——t_cycle 随端点联动取值保恒等，批3b D-5；非法组合仍归
+    test_compute 拒绝用例）。"""
+    defaults = {spec.field_id: spec.default for spec in manifest.params}
     for spec in manifest.params:
         if spec.range is None:
             continue
         for edge in spec.range:
-            dims = _run(_params(**{spec.field_id: edge})).dims
+            overrides: dict[str, float] = {spec.field_id: edge}
+            if spec.field_id == "t_draw":
+                overrides["t_cycle"] = (
+                    defaults["t_react"] + defaults["t_settle"] + edge
+                )
+            dims = _run(_params(**overrides)).dims
             assert isinstance(dims, dict)
             for value in dims.values():
                 assert math.isfinite(value), (
