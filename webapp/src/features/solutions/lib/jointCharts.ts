@@ -26,12 +26,18 @@
  *     avg vs design 相对变化率 (avg-design)/design（水平双向条）；design=0
  *     或 avg 对缺席=诚实跳过（skipped 记键不造假）；六出水指标无 avg 对
  *     不入图；failed_conditions 解析去重（三段式出水失守+两段式
- *     opex_absent）；sensitivity 检修工况数值幅度=挂账端点后升（空态文案
- *     归组件面）；
+ *     opex_absent）；批6e 升级=全工况幅度轴：sensitivitySeries 逐
+ *     design_offline_<unit> 检修系列（sensitivity 报告快照投影——相对率
+ *     =deltas/design_value，design=0/行缺席=null 诚实跳过）与 avg 系列
+ *     同图多系列呈现（buildTornadoOption 可选第二参）；
  *   - 零运行期库 import（node 测试零增重——jointView 同款纪律）。
  */
 import type { JointComboView } from "./jointView";
 import { AVG_METRIC_KEYS, TRUE_METRIC_KEYS, metricLabel } from "./jointView";
+import {
+  OFFLINE_PREFIX,
+  type SensitivityReportView,
+} from "./sensitivityView";
 
 /** 帕累托轴键（四真键——投影显示面可换轴）。 */
 export type ParetoAxisKey = (typeof TRUE_METRIC_KEYS)[number];
@@ -86,30 +92,6 @@ export type ParallelChartOption = {
   }[];
 };
 
-/** 龙卷风条（avg 对相对变化率）。 */
-export type TornadoBar = {
-  avgKey: string;
-  designKey: string;
-  label: string;
-  ratio: number;
-};
-
-/** 龙卷风数据面（bars+诚实跳过键+失守工况标签去重清单）。 */
-export type TornadoData = {
-  bars: TornadoBar[];
-  skipped: string[];
-  failedLabels: string[];
-};
-
-/** 龙卷风 option（水平双向条——正负值自然双向）。 */
-export type TornadoChartOption = {
-  tooltip: Record<string, unknown>;
-  grid: { left: number; right: number; top: number; bottom: number };
-  xAxis: { type: "value"; name: string };
-  yAxis: { type: "category"; data: string[] };
-  series: { name: string; type: "bar"; data: number[]; itemStyle: { color: string } }[];
-};
-
 /** 前沿/被支配双色（前沿高亮蓝/被支配灰阶）。 */
 const PARETO_FRONT_COLOR = "#2f54eb";
 const PARETO_DOMINATED_COLOR = "#bfbfbf";
@@ -120,9 +102,6 @@ const BAND_COLORS: Record<ParallelBand, string> = {
   mid: "#1677ff",
   worst: "#8c8c8c",
 };
-
-/** 龙卷风条色（中性蓝——正=变差/负=变好双向同色，方向由条向呈现）。 */
-const TORNADO_COLOR = "#1677ff";
 
 /** combo 排序资格：feasible 且四真键齐（sparse/不可行防御——不参与支配判定）。 */
 function frontEligible(combo: JointComboView): boolean {
@@ -326,85 +305,5 @@ export function buildParallelOption(
       lineStyle: { width: 1.5, color: BAND_COLORS[band] },
       smooth: false as const,
     })),
-  };
-}
-
-/** avg 对声明（avg 键→design 键——单源派生 jointView AVG_METRIC_KEYS；
- *  capex 无 avg 对，六出水指标无 avg 对）。 */
-const AVG_PAIRS: readonly { avgKey: string; designKey: string }[] =
-  AVG_METRIC_KEYS.map((avgKey) => ({
-    avgKey,
-    designKey: avgKey.slice("avg.".length),
-  }));
-
-/** 失守工况原文→呈现标签（"cond:std:IND+IND"→"cond（std）：IND+IND"；
- *  两段式"cond:tail"→"cond：tail"；空尾三段式同两段式；非注记格式原样）。 */
-function parseFailedLabel(item: string): string {
-  const firstColon = item.indexOf(":");
-  if (firstColon === -1) {
-    return item; // 非注记格式原样（诚实呈现不猜语义）
-  }
-  const conditionKey = item.slice(0, firstColon);
-  const secondColon = item.indexOf(":", firstColon + 1);
-  if (secondColon === -1) {
-    return `${conditionKey}：${item.slice(firstColon + 1)}`;
-  }
-  const middle = item.slice(firstColon + 1, secondColon);
-  const tail = item.slice(secondColon + 1);
-  return tail === ""
-    ? `${conditionKey}：${middle}`
-    : `${conditionKey}（${middle}）：${tail}`;
-}
-
-/**
- * 龙卷风数据面（选定方案单 combo）：三键 avg 对相对变化率
- * (avg-design)/design（design=0 或对缺席=诚实跳过记键）+failed_conditions
- * 标签解析去重（解析后按标签去重——不同原文同标签只呈现一次）。
- */
-export function tornadoBars(combo: JointComboView): TornadoData {
-  const bars: TornadoBar[] = [];
-  const skipped: string[] = [];
-  for (const { avgKey, designKey } of AVG_PAIRS) {
-    const avg = combo.metrics[avgKey];
-    const design = combo.metrics[designKey];
-    if (avg === undefined || design === undefined || design === 0) {
-      skipped.push(designKey);
-      continue;
-    }
-    bars.push({
-      avgKey,
-      designKey,
-      label: metricLabel(designKey),
-      ratio: (avg - design) / design,
-    });
-  }
-  const seenLabels = new Set<string>();
-  const failedLabels: string[] = [];
-  for (const item of combo.failed_conditions) {
-    const label = parseFailedLabel(item);
-    if (seenLabels.has(label)) {
-      continue; // 解析后按标签去重（原文异形同标签只呈现一次）
-    }
-    seenLabels.add(label);
-    failedLabels.push(label);
-  }
-  return { bars, skipped, failedLabels };
-}
-
-/** 龙卷风 option：水平双向条（类目=指标标签+值=相对变化率）。 */
-export function buildTornadoOption(data: TornadoData): TornadoChartOption {
-  return {
-    tooltip: { trigger: "item" },
-    grid: { left: 140, right: 48, top: 24, bottom: 40 },
-    xAxis: { type: "value", name: "相对变化率（avg 相对 design）" },
-    yAxis: { type: "category", data: data.bars.map((bar) => bar.label) },
-    series: [
-      {
-        name: "avg 相对 design 变化率",
-        type: "bar",
-        data: data.bars.map((bar) => bar.ratio),
-        itemStyle: { color: TORNADO_COLOR },
-      },
-    ],
   };
 }

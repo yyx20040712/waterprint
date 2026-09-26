@@ -17,13 +17,17 @@ import { TRUE_METRIC_KEYS, metricLabel } from "./jointView";
 import {
   buildParallelOption,
   buildParetoOption,
-  buildTornadoOption,
   comboSummaryText,
   paretoFront,
   paretoTooltipLines,
   parallelAxesData,
-  tornadoBars,
 } from "./jointCharts";
+import {
+  buildTornadoOption,
+  sensitivitySeries,
+  tornadoBars,
+} from "./tornadoCharts";
+import type { SensitivityReportView } from "./sensitivityView";
 
 /** combo 构造（四真键覆盖——dominance 断言载体）。 */
 const comboOf = (
@@ -269,6 +273,137 @@ describe("三图 option 纯对象（投影层承载全部契约）", () => {
     expect(option.yAxis.data).toEqual(data.bars.map((bar) => bar.label));
     expect(option.series[0]?.data).toEqual(data.bars.map((bar) => bar.ratio));
     expect(option.xAxis.name).toContain("相对变化率");
+    expect(option.series).toHaveLength(1); // sensitivity 缺席=avg 单系列旧观
+    expect(option.legend).toBeUndefined();
+  });
+});
+
+/** sensitivity 报告视图构造（批6e——窄化产物形状）。 */
+const reportOf = (
+  rows: Array<{
+    field_id: string;
+    design_value: number;
+    values?: Record<string, number>;
+    deltas?: Record<string, number>;
+  }>,
+  conditionKeys: string[] = ["design_offline_unitA", "design_offline_unitB"],
+): SensitivityReportView => ({
+  stale: false,
+  design_hash: "hash0",
+  condition_keys: conditionKeys,
+  rows: rows.map((row) => ({
+    field_id: row.field_id,
+    design_value: row.design_value,
+    values: row.values ?? {},
+    deltas: row.deltas ?? {},
+  })),
+});
+
+describe("sensitivitySeries（批6e——检修工况幅度系列）", () => {
+  const designKeys = ["cost_opex_yuan_a", "power_total_kwh_d", "carbon_intensity_kgco2e_m3"];
+
+  it("相对率=deltas/design_value；系列序=condition_keys 序；标签前缀剥离", () => {
+    const report = reportOf([
+      { field_id: "cost_opex_yuan_a", design_value: 100,
+        values: { design_offline_unitA: 110 }, deltas: { design_offline_unitA: 10 } },
+      { field_id: "power_total_kwh_d", design_value: 50,
+        values: { design_offline_unitA: 45 }, deltas: { design_offline_unitA: -5 } },
+      { field_id: "carbon_intensity_kgco2e_m3", design_value: 0.5,
+        values: { design_offline_unitA: 0.5 }, deltas: { design_offline_unitA: 0 } },
+    ]);
+    const { series, skipped } = sensitivitySeries(report, designKeys);
+    expect(series).toHaveLength(1); // unitB 全键缺席→系列不呈现（全空面）
+    expect(series[0]?.conditionKey).toBe("design_offline_unitA");
+    expect(series[0]?.label).toBe("检修 unitA");
+    expect(series[0]?.ratios).toEqual([0.1, -0.1, 0]);
+    expect(skipped.join("；")).toContain("检修 unitB：全键缺席（系列不呈现）");
+  });
+
+  it("design=0/行缺席/工况值缺席 → null+skipped 注记（诚实跳过不造假）", () => {
+    const report = reportOf(
+      [
+        { field_id: "cost_opex_yuan_a", design_value: 0,
+          values: { design_offline_unitA: 5 }, deltas: { design_offline_unitA: 5 } },
+        { field_id: "power_total_kwh_d", design_value: 50 },
+      ],
+      ["design_offline_unitA"],
+    );
+    const { series, skipped } = sensitivitySeries(report, [
+      ...designKeys.slice(0, 2), "carbon_intensity_kgco2e_m3",
+    ]);
+    expect(series).toEqual([]); // 全键缺席工况→系列不呈现（全空面）
+    expect(skipped).toEqual([
+      "检修 unitA：运行成本（元/年） design 近零",
+      "检修 unitA：能耗（kWh/d） 工况值缺席",
+      "检修 unitA：碳强度（kgCO₂e/m³） 行缺席",
+      "检修 unitA：全键缺席（系列不呈现）",
+    ]);
+  });
+
+  it("近零基线守卫（|design|<1e-9 → null+skipped——放大爆炸防御）", () => {
+    const tiny = 5e-10; // 低于 eps 的正基线（非零但相对率无意义）
+    const report = reportOf(
+      [
+        { field_id: "cost_opex_yuan_a", design_value: tiny,
+          values: { design_offline_unitA: tiny * 2 },
+          deltas: { design_offline_unitA: tiny } },
+      ],
+      ["design_offline_unitA"],
+    );
+    const { series, skipped } = sensitivitySeries(report, ["cost_opex_yuan_a"]);
+    expect(series).toEqual([]);
+    expect(skipped).toEqual([
+      "检修 unitA：运行成本（元/年） design 近零",
+      "检修 unitA：全键缺席（系列不呈现）",
+    ]);
+  });
+
+  it("多检修工况系列序=报告序（服务端字典序——确定性）", () => {
+    const report = reportOf([
+      { field_id: "cost_opex_yuan_a", design_value: 100,
+        values: { design_offline_unitA: 120, design_offline_unitB: 90 },
+        deltas: { design_offline_unitA: 20, design_offline_unitB: -10 } },
+    ]);
+    const { series } = sensitivitySeries(report, ["cost_opex_yuan_a"]);
+    expect(series.map((item) => item.conditionKey)).toEqual([
+      "design_offline_unitA",
+      "design_offline_unitB",
+    ]);
+    expect(series[0]?.ratios).toEqual([0.2]);
+    expect(series[1]?.ratios).toEqual([-0.1]);
+  });
+});
+
+describe("buildTornadoOption 全工况幅度（批6e——多系列升级）", () => {
+  it("sensitivity 在场→avg+检修系列+legend；条色区分（avg 主色+灰阶循环）", () => {
+    const combo = comboOf([100, 50, 0.5, 1000]);
+    const data = tornadoBars(combo);
+    const report = reportOf([
+      { field_id: "cost_opex_yuan_a", design_value: 100,
+        values: { design_offline_unitA: 110 }, deltas: { design_offline_unitA: 10 } },
+      { field_id: "power_total_kwh_d", design_value: 50,
+        values: { design_offline_unitA: 55 }, deltas: { design_offline_unitA: 5 } },
+      { field_id: "carbon_intensity_kgco2e_m3", design_value: 0.5,
+        values: { design_offline_unitA: 0.5 }, deltas: { design_offline_unitA: 0 } },
+    ]);
+    const option = buildTornadoOption(data, report);
+    expect(option.series).toHaveLength(2);
+    expect(option.series[0]?.name).toBe("avg 相对 design 变化率");
+    expect(option.series[1]?.name).toBe("检修 unitA");
+    expect(option.series[1]?.data).toEqual([0.1, 0.1, 0]);
+    expect(option.legend?.data).toEqual([
+      "avg 相对 design 变化率",
+      "检修 unitA",
+    ]);
+    expect(option.series[1]?.itemStyle.color).not.toBe(option.series[0]?.itemStyle.color);
+  });
+
+  it("sensitivity 无检修工况（condition_keys 空）→单系列旧观（向后兼容）", () => {
+    const combo = comboOf([100, 50, 0.5, 1000]);
+    const data = tornadoBars(combo);
+    const option = buildTornadoOption(data, reportOf([], []));
+    expect(option.series).toHaveLength(1);
+    expect(option.legend).toBeUndefined();
   });
 });
 

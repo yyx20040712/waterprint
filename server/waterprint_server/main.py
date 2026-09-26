@@ -132,6 +132,7 @@ from waterprint_server.services.scene import (
     InvalidSceneRequestError,
     SceneSourceNotFoundError,
 )
+from waterprint_server.services.sensitivity import SensitivitySourceNotFoundError
 from waterprint_server.services.site import InvalidSpacingRequestError
 from waterprint_server.services.trust import TrustSourceNotFoundError
 from waterprint_server.settings import (
@@ -167,10 +168,9 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (SceneSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ElevationSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (CostSourceNotFoundError, status.HTTP_404_NOT_FOUND),
-    # P2 次批（2026-09-12）：可信度报告源不可得→404（ADR-012 D8）。
-    (TrustSourceNotFoundError, status.HTTP_404_NOT_FOUND),
-    # P2 第三批（2026-09-12）：多工况对比源不可得→404（ADR-018 D5）。
-    (CompareSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    (TrustSourceNotFoundError, status.HTTP_404_NOT_FOUND),  # P2 次批 ADR-012 D8
+    (CompareSourceNotFoundError, status.HTTP_404_NOT_FOUND),  # P2 第三批 ADR-018 D5
+    (SensitivitySourceNotFoundError, status.HTTP_404_NOT_FOUND),  # 批6e wave6 授权
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),
@@ -267,7 +267,7 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 2
     + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
          # =.workflow/b4-4b/design-final.md §四授权）
-    + 2  # F1：GET/PUT /api/ai/config（LLM 配置面，40→42 破面=brief-F1 §二授权）
+    + 2 + 1  # F1 /api/ai/config 40→42〔brief-F1 §二授权〕；批6e sensitivity 42→43〔wave6 授权〕
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。

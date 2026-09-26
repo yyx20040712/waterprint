@@ -2492,6 +2492,101 @@
         "title": "SceneResponse",
         "type": "object"
       },
+      "SensitivityMetricModel": {
+        "description": "幅度行：summary 平键 → design 基线值+逐检修工况值与差（R2）。",
+        "properties": {
+          "deltas": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Deltas",
+            "type": "object"
+          },
+          "design_value": {
+            "title": "Design Value",
+            "type": "number"
+          },
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "field_id",
+          "design_value",
+          "values",
+          "deltas"
+        ],
+        "title": "SensitivityMetricModel",
+        "type": "object"
+      },
+      "SensitivityReportResponse": {
+        "description": "全工况投影报告（design_offline_* 指标差全量——R2/R3/R4）。",
+        "properties": {
+          "baseline_key": {
+            "title": "Baseline Key",
+            "type": "string"
+          },
+          "condition_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Condition Keys",
+            "type": "array"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SensitivityMetricModel"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "baseline_key",
+          "condition_keys",
+          "rows"
+        ],
+        "title": "SensitivityReportResponse",
+        "type": "object"
+      },
       "Severity": {
         "description": "警告级别（business-logic §8 分级表，D3 字面量冻结）。",
         "enum": [
@@ -3654,6 +3749,64 @@
           }
         ],
         "summary": "Run Calculation",
+        "tags": [
+          "calc"
+        ]
+      }
+    },
+    "/api/calc/sensitivity/{project_id}": {
+      "get": {
+        "description": "全工况投影（最近完成结果集纯投影——批6e：design_offline_* 指标差\n全量返回[summary 平键族]，复用结果缓存快照零重算；stale 显式回显\n§12 快照绑定——输入变更标 stale 禁静默覆盖）。",
+        "operationId": "get_sensitivity_report_api_calc_sensitivity__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SensitivityReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在或无全工况投影结果集（先重算）"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Sensitivity Report",
         "tags": [
           "calc"
         ]

@@ -25,6 +25,7 @@ import type { ColumnsType } from "antd/es/table";
 
 import type { JointComboView, JointResultView } from "../lib/jointView";
 import { TRUE_METRIC_KEYS, metricLabel, projectJointDiagnosis } from "../lib/jointView";
+import type { SensitivityReportView } from "../lib/sensitivityView";
 import { comboSummaryText, paretoFront } from "../lib/jointCharts";
 import { formatSolutionValue } from "../lib/solutionsView";
 import { DiagnosisPanel } from "./DiagnosisPanel";
@@ -40,7 +41,17 @@ function scoreText(score: number | null): string {
   return score === null ? "（缺失）" : formatSolutionValue(score);
 }
 
-export function JointSolutionsPanel({ result }: { result: JointResultView }) {
+export function JointSolutionsPanel({
+  result,
+  sensitivity = null,
+  sensitivityIssue = null,
+}: {
+  result: JointResultView;
+  /** 批6e：全工况投影报告（app 层取数窄化下传——null=降级 avg-only）。 */
+  sensitivity?: SensitivityReportView | null;
+  /** 批6e 回炉 k1-W2：取数失败面透传（404 detail——fail-loud 原因呈现）。 */
+  sensitivityIssue?: string | null;
+}) {
   if (result.combos.length === 0) {
     const diag = projectJointDiagnosis(result.diagnosis);
     return (
@@ -131,7 +142,13 @@ export function JointSolutionsPanel({ result }: { result: JointResultView }) {
             key: "tornado",
             label: "敏感性龙卷风图",
             forceRender: true,
-            children: <TornadoChart combos={result.combos} />,
+            children: (
+              <TornadoChart
+                combos={result.combos}
+                sensitivity={sensitivity}
+                sensitivityIssue={sensitivityIssue}
+              />
+            ),
           },
         ]}
       />

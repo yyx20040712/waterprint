@@ -24,6 +24,11 @@
 #   GET  /api/calc/compare/{project_id} 多工况对比矩阵（ADR-018 D5
 #                                      2026-09-12——指标×工况聚合+stale+
 #                                      design_hash 回显；端点集 32→33）
+#   GET  /api/calc/sensitivity/{project_id} 全工况投影（批6e 2026-09-26
+#                                      ——design_offline_* 指标差全量返回，
+#                                      复用结果缓存快照零重算+stale 显式
+#                                      回显 §12；端点集 42→43——wave6
+#                                      批次编排授权破面）
 #
 # 【行为规格】
 #   R1 幂等（§15 工程细节 3）：提交键 = (design_hash, condition/
@@ -69,6 +74,10 @@ from waterprint_server.services.calculation import ApplyOutcome, TaskStatus
 from waterprint_server.services.compare import CompareReportResponse, build_compare_for_project
 from waterprint_server.services.design_map import DesignMapResponse
 from waterprint_server.services.enumeration import SolutionPage
+from waterprint_server.services.sensitivity import (
+    SensitivityReportResponse,
+    build_sensitivity_for_project,
+)
 from waterprint_server.services.trust import TrustReportResponse, build_trust_for_project
 
 router = APIRouter(prefix="/api/calc", tags=["calc"])
@@ -201,6 +210,31 @@ async def get_compare_report(project_id: str, request: Request) -> CompareReport
     """多工况对比矩阵（最近完成结果集纯投影——ADR-018 D5：指标×工况聚合
     +警告计数+stale+design_hash 回显[FE 锁定基准比对真源 D3]）。"""
     return build_compare_for_project(_ctx(request), project_id)
+
+
+# PL-03 契约枚举（批6e 2026-09-26）：sensitivity 端点实际 404（未知项目/
+# 无结果集/基线工况缺席——行为面 test_sensitivity.py 404 家族）——responses
+# 声明使 openapi 与行为一致（trust/compare 同制）。
+_SENSITIVITY_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorResponse,
+        "description": "项目不存在或无全工况投影结果集（先重算）",
+    },
+}
+
+
+@router.get(
+    "/sensitivity/{project_id}",
+    response_model=SensitivityReportResponse,
+    responses=_SENSITIVITY_RESPONSES,
+)
+async def get_sensitivity_report(
+    project_id: str, request: Request
+) -> SensitivityReportResponse:
+    """全工况投影（最近完成结果集纯投影——批6e：design_offline_* 指标差
+    全量返回[summary 平键族]，复用结果缓存快照零重算；stale 显式回显
+    §12 快照绑定——输入变更标 stale 禁静默覆盖）。"""
+    return build_sensitivity_for_project(_ctx(request), project_id)
 
 
 @router.post("/tasks/{task_id}/cancel", response_model=CancelResponse)

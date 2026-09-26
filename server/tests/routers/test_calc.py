@@ -32,6 +32,7 @@ _EXPECTED = {
     ("post", "/api/calc/design-map"),  # FD PD6（2026-09-09）：可行域同步求值
     ("get", "/api/calc/trust/{project_id}"),  # P2 次批（2026-09-12）：可信度报告（ADR-012 D8）
     ("get", "/api/calc/compare/{project_id}"),  # P2 第三批（2026-09-12）：多工况对比矩阵（ADR-018 D5）
+    ("get", "/api/calc/sensitivity/{project_id}"),  # 批6e（2026-09-26）：全工况投影端点（wave6 批次编排授权）
 }
 
 
@@ -45,11 +46,11 @@ async def _wait_terminal(client, task_id: str) -> dict[str, object]:  # type: ig
 
 
 def test_router_exposes_eight_endpoints_wiring() -> None:
-    """端点集 == 规格九件（run/enumerate/tasks/cancel/solutions/apply/design-map/trust/compare）。"""
+    """端点集 == 规格十件（run/enumerate/tasks/cancel/solutions/apply/design-map/trust/compare/sensitivity）。"""
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰九件无漂移（G1-07 勘正——FD design-map 入集；P2 次批 trust 入集 2026-09-12；P2 第三批 compare 入集 2026-09-12——ADR-018 D5）
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰十件无漂移（G1-07 勘正——FD design-map 入集；P2 次批 trust 入集 2026-09-12；P2 第三批 compare 入集 2026-09-12——ADR-018 D5；批6e sensitivity 入集 2026-09-26）
     solutions = next(route for route in router.routes
                      if getattr(route, "path", "") == "/api/calc/tasks/{task_id}/solutions")
     signature = inspect.signature(solutions.endpoint)

@@ -59,3 +59,7 @@
 | `components/ParetoChart.tsx` | 批2d 实装 | 帕累托前沿图 echarts 薄壳（前沿高亮/被支配灰+轴选择器——投影显示面） |
 | `components/ParallelCoordsChart.tsx` | 批2d 实装 | 平行坐标图 echarts 薄壳（五轴+score 三分档线色+降权虚线+反向开关+空态文案） |
 | `components/TornadoChart.tsx` | 批2d 实装 | 敏感性龙卷风图 echarts 薄壳（方案选择器+水平双向条+失守清单+诚实空态；容器常驻+懒 init+ResizeObserver 重放——生命周期闭环） |
+| `lib/sensitivityView.ts` | 批6e 实装（2026-09-26） | 全工况投影窄化门（/api/calc/sensitivity 响应 unknown→SensitivityReportView 逐键门——顶层 9 键+行条目四键域+工况键 design_offline_ 前缀 GR-20 镜像执法；非法形状 SensitivityViewError 带定位 fail-visible；消费面裁剪四键 stale/design_hash/condition_keys/rows）+OFFLINE_PREFIX 常量（jointCharts 检修系列标签剥离同源） |
+| `lib/sensitivityView.test.ts` | 批6e 实装 | 窄化门 node 测试（合法四键面/顶层缺键逐门拒/前缀执法/行键域与数值域/顶层非对象） |
+| `api/useSensitivityQuery.ts` | 批6e 实装（2026-09-26） | sensitivity 查询封装（orval 生成 hook 薄封装+select 窄化收口——useCompareQuery 同构；queryKey 恒 /api/calc/sensitivity/${projectId}；404 无结果集=消费面 data null 降级提示非错误轰炸） |
+| `lib/tornadoCharts.ts` | 批6e 拆件（2026-09-26） | 龙卷风图数据面纯函数（jointCharts 510>500 预算墙拆件迁入：tornadoBars avg 对三键相对变化率+失守标签解析去重+sensitivitySeries 检修系列〔近零基线/除后非有限双守卫+全键缺席不成系列〕+buildTornadoOption 多系列〔avg+检修灰阶循环 6 档+legend〕） |

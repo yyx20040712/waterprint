@@ -27,6 +27,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Button, Card, Select, Typography } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetTaskStatusApiCalcTasksTaskIdGet } from "../shared/api/generated/calc/calc";
 import { useRunJointEnumerationApiSolutionJointEnumeratePost } from "../shared/api/generated/solution/solution";
@@ -38,6 +39,7 @@ import {
   type UnitOptionRef,
 } from "../features/solutions/lib/solutionsFields";
 import { narrowJointResult } from "../features/solutions/lib/jointView";
+import { useSensitivityQuery } from "../features/solutions/api/useSensitivityQuery";
 import { JointSolutionsPanel } from "../features/solutions/components/JointSolutionsPanel";
 import { parseTaskParam } from "./projectParam";
 import { writeTaskParam } from "./solutionsUrlState";
@@ -63,6 +65,7 @@ export function JointSolutionsSection({
   unitsError: string | null;
 }) {
   const [unitIds, setUnitIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
   // 联合任务轨（?task= 面板轨复用——初值 task 键；enum 键不读不写）
   const [jointTaskId, setJointTaskId] = useState<string | null>(() =>
     parseTaskParam(window.location.search),
@@ -81,15 +84,20 @@ export function JointSolutionsSection({
     [units, catalogQuery.data, nameById],
   );
 
-  // TASK_EVENT 自监听（pane 同款——URL 回写驱动已挂载面；同值早退）
+  // TASK_EVENT 自监听（pane 同款——URL 回写驱动已挂载面；同值早退；
+  // 批6e 回炉 W5：终态事件同时失效 sensitivity 键——calc 重算后 stale
+  // 报告即时重取，消除「输入已变/缓存未刷」静默窗口=comparePane 同款）
   useEffect(() => {
     const onTaskParam = () => {
       const next = parseTaskParam(window.location.search);
       setJointTaskId((prev) => (prev === next ? prev : next));
+      void queryClient.invalidateQueries({
+        queryKey: [`/api/calc/sensitivity/${projectId}`],
+      });
     };
     window.addEventListener(TASK_EVENT, onTaskParam);
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
-  }, []);
+  }, [projectId, queryClient]);
 
   // 切项目重置（pane R-2 同款——初挂载 prev 同值早退保深链初值）
   useEffect(() => {
@@ -107,11 +115,28 @@ export function JointSolutionsSection({
   const jointDone =
     status?.kind === "joint_enumerate" && status?.state === "done";
 
+  // 批6e：全工况投影（最近完成计算快照——龙卷风幅度轴；404 无结果集=
+  // data null 降级提示，窄化非法=查询 error 态呈现于组件注记面）
+  const sensitivityQuery = useSensitivityQuery(projectId);
+  const sensitivity = sensitivityQuery.data ?? null;
+  // 回炉 k1-W2：404/损坏面详情透传（服务端 fail-loud 原因——非「尚未计算」折叠）
+  const sensitivityIssue = sensitivityQuery.isError
+    ? sensitivityQuery.error instanceof Error
+      ? sensitivityQuery.error.message
+      : "未知错误"
+    : null;
+
   // 窄化门（error 呈现非静默——JointViewError message 带定位）
   let panel: ReactElement | null = null;
   if (jointDone) {
     try {
-      panel = <JointSolutionsPanel result={narrowJointResult(status?.result)} />;
+      panel = (
+        <JointSolutionsPanel
+          result={narrowJointResult(status?.result)}
+          sensitivity={sensitivity}
+          sensitivityIssue={sensitivityIssue}
+        />
+      );
     } catch (error) {
       panel = (
         <Typography.Paragraph type="danger">
