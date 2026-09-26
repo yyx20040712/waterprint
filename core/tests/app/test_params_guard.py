@@ -14,6 +14,15 @@ import pytest
 _mod = importlib.import_module("waterprint.flows")
 
 
+def test_flows_reexport_contract() -> None:
+    """门一 N8：再导出契约——flows 包正门可导入 params_guard 且可调用
+    （拆件后模块名/函数名占用钉死——镜像测试导入面零变的事实锚）。"""
+    from waterprint.flows import params_guard as reexported
+
+    assert callable(reexported)
+    assert reexported is _mod.params_guard  # 同一函数对象（真再导出非复制）
+
+
 def _load_municipal(golden_data_dir: Path):
     """golden municipal 项目装载（load_project 正门——test_flows 同款）。"""
     from waterprint.app import load_project
@@ -145,7 +154,8 @@ def test_params_guard_face4_closed_band_edges_accepted(golden_data_dir: Path) ->
 
 def test_params_guard_face4_cass_t_draw_band(golden_data_dir: Path) -> None:
     """批3b D-5 执法验证：cass t_draw range [1.0,1.5]——2.0 越带拒、1.2 带内
-    收（GB §7.6.36 排水时间——唯一 range 新声明的 face④ 接线实证）。"""
+    收、双端点 1.0/1.5 闭区间接受（GB §7.6.36 排水时间——唯一 range 新声明
+    的 face④ 接线实证）。"""
     project = _load_municipal(golden_data_dir)
     cass = project.model_copy(
         update={
@@ -157,14 +167,20 @@ def test_params_guard_face4_cass_t_draw_band(golden_data_dir: Path) -> None:
     bad = _mod.params_guard(cass, "municipal_cass", {"t_draw": 2.0})
     assert bad[0].accepted is False
     assert "1.5" in (bad[0].reason or "")  # 带上界进拒因文案
-    good = _mod.params_guard(cass, "municipal_cass", {"t_draw": 1.2})
-    assert good[0].accepted is True and good[0].warn is None
+    for edge in (1.0, 1.5):  # 闭区间双端点接受（门一 N4——含端点语义独立证）
+        good = _mod.params_guard(cass, "municipal_cass", {"t_draw": edge})
+        assert good[0].accepted is True, edge
+    interior = _mod.params_guard(cass, "municipal_cass", {"t_draw": 1.2})
+    assert interior[0].accepted is True and interior[0].warn is None
 
 
 def test_params_guard_builtin_q_band_rejects(golden_data_dir: Path) -> None:
     """批3b A-1/A-3：q_avg_daily 硬界——≤0 或 >60 m³/s（=518.4 万 m³/d 顶格
     类上界）拒收；60.0 恰界放行（闭上界——518.4e4×parse 因子二进制精确）。"""
     project = _load_municipal(golden_data_dir)
+    from waterprint.flows.params_guard import _Q_REJECT_MAX_M3S
+
+    assert _Q_REJECT_MAX_M3S == 60.0  # 门一 N1：换算链精确钉（防 parse 多步 1ulp 漂移）
     for bad_value in (0.0, -3.0, 61.0, 34760.7):  # 末项=audit AUD-B3 病例
         verdict = _mod.params_guard(project, "inlet", {"q_avg_daily": bad_value})
         assert verdict[0].accepted is False, bad_value

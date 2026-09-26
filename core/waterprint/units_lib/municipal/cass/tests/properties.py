@@ -177,6 +177,17 @@ def test_boundary_stability() -> None:
                 )
 
 
+def test_t_draw_interior_point_on_phase_manifold() -> None:
+    """批3b 回炉轮2（门一 W4/双审五问3）：t_draw 内点确定性用例——
+    1.25 ∈ (1.0,1.5) 联动 t_cycle=t_react+t_settle+t_draw=4.25 实跑：
+    dims 全有限+时段和恒等成立（恒等流形内点——_draws 排除面的内点补覆盖）。"""
+    dims = _run(_params(t_draw=1.25, t_cycle=2.0 + 1.0 + 1.25)).dims
+    assert isinstance(dims, dict)
+    for value in dims.values():
+        assert math.isfinite(value)
+    assert dims["t_phase_sum"] == pytest.approx(4.25, rel=1e-12)
+
+
 @given(draw=_draws())
 @settings(max_examples=20, deadline=None, derandomize=True)
 def test_purity(draw: dict[str, float]) -> None:
