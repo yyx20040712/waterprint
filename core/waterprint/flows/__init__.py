@@ -45,18 +45,24 @@
 #       （design_scale=快照 outflows 输入节点流量×pint 因子——server 同源）。
 #   enumeration_flow / design_map_flow（同形）→ app 正门直通。
 #   params_guard(project, unit_id, params) -> tuple[ParamVerdict, ...]
-#       清单式逐条三面守护（server calculation._validate_apply_params
+#       清单式逐条四面守护（server calculation._validate_apply_params
 #       移植语义）：①值=有限数值（bool/str/NaN 拒）②键=单元目录已知参数
-#       （kind 通道同款）③grid 声明时须命中档位。与 server 版差异：
-#       server 版整批拒（raise），本版逐条判定不拒整批——CLI/MCP 共用。
+#       （kind 通道同款）③grid 声明时须命中档位④range 声明时须落闭区间
+#       （批3b face④——audit §一收口）+builtin 面 q_avg_daily 带 A-1~A-3
+#       （拒收/提示——warn 不阻塞）。与 server 版差异：server 版整批拒
+#       （raise），本版逐条判定不拒整批——CLI/MCP 共用。**批3b 拆件**：
+#       实现迁驻兄弟件 flows/params_guard.py（主控裁定 B-3b-1 案甲——
+#       499/500 预算墙；本件再导出签名零变，镜像测试导入面不动）。
 #
 # 【行为规格】
 #   R1 异常族：InvalidFlowError=校验失败面（CLI 3）；计算失败沿用 core
 #      既有领域异常（LoopDivergence 等——CLI 4）。
 #   R2 路径安全：out 相对路径以 cwd 为基准、'..' 分量拒（audit 同口径）。
-#   R3 数值纪律：零工程数值字面量（m3/d 换算经 quantity parse 因子）。
+#   R3 数值纪律：零工程数值字面量（m3/d 换算经 quantity parse 因子；
+#      builtin 带锚值住 params_guard.py 真源区声明面——批3b 案甲）。
 #   R4 builtin kind 参数键面=graph.nodes 各 __init__ 校验语义镜像声明
-#      （core 无声明面——server units.py 同款声明面先例；收敛挂账数据批）。
+#      （core 无声明面——server units.py 同款声明面先例；收敛挂账数据批；
+#      批3b 起键面+带声明均住 params_guard.py）。
 #
 # 【测试要求】tests/app/test_flows.py（golden 实跑全流+守护拒绝路径）。
 # 【参照】AI1 路线设计书 v2 D6/E4；任务书 §3 预裁决；ADR-022（flows
@@ -71,9 +77,7 @@ import uuid
 import warnings
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from math import isfinite
 from pathlib import Path
-from types import MappingProxyType
 from typing import Final, final
 
 import yaml
@@ -95,9 +99,8 @@ from waterprint.app import (  # app 门面（许可面①——UF-33 单入口�
     validate_design_structure,
 )
 from waterprint.contracts.condition import ConditionSet, build_condition_set
-from waterprint.contracts.manifest import ParamSpec
 from waterprint.contracts.project_schema import ProjectFile, SiteDesign
-from waterprint.contracts.quality import INDICATORS, EffluentStandard
+from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.quantity import DimKey, parse
 from waterprint.contracts.result_schema import PlantResult, serialize
 from waterprint.contracts.run_env import RunEnv
@@ -105,6 +108,7 @@ from waterprint.cost.estimate import EstimateSheet, build_estimate, load_fee_rul
 from waterprint.cost.indicators import IndicatorReport, check_indicators, load_indicator_bands
 from waterprint.cost.prices import load_prices
 from waterprint.cost.takeoff import load_field_mapping, takeoff_quantities
+from waterprint.flows.params_guard import ParamVerdict, params_guard
 from waterprint.trace.audit import render_audit_html  # 许可面③（audit 渲染包装）
 
 __all__ = [
@@ -397,103 +401,7 @@ def design_map_flow(
     return run_design_map(project, unit_id, conditions, env, options)
 
 
-# ── params_guard（三面守护纯函数——server AUDIT2 C-4 移植） ───────────────
+# ── params_guard（四面守护纯函数——批3b 拆件迁驻 flows/params_guard.py，
+#    主控裁定 B-3b-1 案甲；本件顶部再导出 ParamVerdict/params_guard 签名
+#    零变，镜像测试导入面不动） ─────────────────────────────────────────
 
-
-@dataclass(frozen=True)
-@final
-class ParamVerdict:
-    """单参数守护判定：键/原值/接受位/拒因（清单式不拒整批）。"""
-    key: str
-    value: object
-    accepted: bool
-    reason: str | None
-
-
-# builtin kind 参数键面（R4）：graph.nodes 各 __init__ 校验语义镜像声明
-# （junction/recycle_junction 零参数；grid 档位面 builtin 恒无——
-# server units.py _BUILTIN_PARAM_DIMS 同款声明面先例）。
-_BUILTIN_PARAM_KEYS: Final[Mapping[str, frozenset[str]]] = MappingProxyType({
-    "municipal_input": frozenset(("q_avg_daily", "kz")) | frozenset(INDICATORS),
-    "quality_edit": frozenset(INDICATORS),
-    "junction": frozenset(),
-    "recycle_junction": frozenset(),
-})
-
-
-def _guard_reason(
-    key: object,
-    value: object,
-    unit_id: str,
-    specs: Mapping[str, ParamSpec],
-    known: frozenset[str],
-) -> str | None:
-    """三面判定单条拒因：①值有限数值 ②键已知 ③grid 档位（首命中即返）。"""
-    if not isinstance(key, str) or not key:
-        return f"方案参数 {key!r} 非法（字段 ID: str）"
-    if key not in known:
-        return (
-            f"方案参数 {key!r} 不在单元 {unit_id!r} 目录参数面"
-            f"（合法 {sorted(known)}——ADR-005 grid 字段投影语义）"
-        )
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, int | float)
-        or not isfinite(value)
-    ):
-        return (
-            f"方案参数 {key!r}={value!r} 非法（数值: int/float 有限值"
-            "——bool/字符串/NaN 拒，ADR-005「值全 number」服务端口径）"
-        )
-    spec = specs.get(key)
-    if (
-        spec is not None
-        and spec.grid is not None
-        and float(value) not in {float(g) for g in spec.grid}
-    ):
-        return (
-            f"方案参数 {key!r} 值 {value!r} 未命中 grid 档位 {list(spec.grid)}"
-            "（枚举维——§12.4，与 core 装配期同口径前置）"
-        )
-    return None
-
-
-def params_guard(
-    project: ProjectFile, unit_id: str, params: Mapping[str, float]
-) -> tuple[ParamVerdict, ...]:
-    """guard 流：三面清单式逐条判定（server 版整批拒——本版不拒整批）。
-
-    kind 通道：design.nodes[unit_id] 覆写含 kind 用 kind 查目录，否则
-    unit_id 直查（32 包 manifest）；目录外=前置结构错误 InvalidFlowError
-    （server 转调面同消息映射 422）。"""
-    node = project.design.nodes.get(unit_id)
-    if node is None:
-        raise InvalidFlowError(
-            f"方案目标单元 {unit_id!r} 不在项目 design.nodes（不可应用）"
-        )
-    kind = node.get("kind") if isinstance(node.get("kind"), str) else None
-    catalog_key = kind if kind is not None else unit_id
-    discovered = discover_units()
-    if catalog_key in discovered:
-        specs: Mapping[str, ParamSpec] = {
-            spec.field_id: spec for spec in discovered[catalog_key][0].params}
-        known = frozenset(specs)
-    elif catalog_key in _BUILTIN_PARAM_KEYS:
-        specs = {}
-        known = _BUILTIN_PARAM_KEYS[catalog_key]
-    else:
-        raise InvalidFlowError(
-            f"方案目标单元 {unit_id!r} 无单元目录声明（kind={catalog_key!r}"
-            "——META1 目录外不可应用）"
-        )
-    verdicts = tuple(
-        ParamVerdict(
-            key=key if isinstance(key, str) else str(key),
-            value=value,
-            accepted=(reason := _guard_reason(key, value, unit_id, specs, known))
-            is None,
-            reason=reason,
-        )
-        for key, value in params.items()
-    )
-    return verdicts

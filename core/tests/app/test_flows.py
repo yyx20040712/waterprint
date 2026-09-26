@@ -2,7 +2,8 @@
 
 输入:  waterprint.flows 公开符号（任务书 §3 预裁决冻结签名）+ golden 数据
 输出:  编排契约断言（env/conditions/standards/calc/persist/validate/
-       export/audit/estimate/guard 各流——先红后绿 TDD 承载件）
+       export/audit/estimate/enumeration 各流——先红后绿 TDD 承载件；
+       params_guard 镜像随批3b 拆件迁 test_params_guard.py）
 """
 
 from __future__ import annotations
@@ -259,105 +260,14 @@ def test_estimate_summary_flow_builds_sheet_and_report(
     assert report.checked  # 指标带在（单价包 indicator.*）
 
 
-# ── params_guard ──────────────────────────────────────────────────────────
+# ── enumeration_flow / design_map_flow（直通冒烟） ────────────────────────
 
 
 def _catalog_params(unit_id: str):
-    """目录参数面（discover_units——32 包 manifest）。"""
+    """目录参数面（discover_units——32 包 manifest；guard 镜像同款）。"""
     from waterprint.app import discover_units
 
     return discover_units()[unit_id][0].params
-
-
-def _first_grid_entry(specs: dict) -> tuple[str, float]:
-    """首个 grid 声明参数（档位首档值——cass n_pool 等枚举维）。"""
-    for field_id, spec in specs.items():
-        if spec.grid:
-            return field_id, float(spec.grid[0])
-    raise AssertionError("municipal_aao 无 grid 参数（目录面漂移——查 manifest）")
-
-
-def test_params_guard_accepts_known_finite_on_grid(golden_data_dir: Path) -> None:
-    """guard 面①②③全过：已知键+有限值+命中档位=accepted 全绿。"""
-    project = _load_municipal(golden_data_dir)
-    specs = {p.field_id: p for p in _catalog_params("municipal_aao")}
-    grid_key, grid_value = _first_grid_entry(specs)
-    verdicts = _mod.params_guard(project, "municipal_aao", {grid_key: grid_value})
-    assert len(verdicts) == 1
-    assert verdicts[0].accepted is True
-    assert verdicts[0].reason is None
-    assert verdicts[0].key == grid_key
-
-
-def test_params_guard_rejects_each_face(golden_data_dir: Path) -> None:
-    """guard 三面逐条拒（清单式不拒整批——CLI/MCP 共用口径）。"""
-    project = _load_municipal(golden_data_dir)
-    specs = {p.field_id: p for p in _catalog_params("municipal_aao")}
-    grid_key, grid_value = _first_grid_entry(specs)
-    off = grid_value + 1.0  # 档位外（相邻整数必不在档——枚举维离散）
-    while off in {float(g) for g in specs[grid_key].grid}:
-        off += 1.0
-    verdicts = _mod.params_guard(
-        project,
-        "municipal_aao",
-        {
-            "ghost_key_never": 3,  # ②键未知
-            grid_key: off,  # ③档位外
-            "ns": True,  # ①bool 冒充 int（已知键——值面独立命中）
-        },
-    )
-    table = {v.key: v for v in verdicts}
-    assert table["ghost_key_never"].accepted is False
-    assert "不在" in (table["ghost_key_never"].reason or "")
-    assert table[grid_key].accepted is False
-    assert "档位" in (table[grid_key].reason or "")
-    assert table["ns"].accepted is False
-    assert "数值" in (table["ns"].reason or "")
-
-
-def test_params_guard_string_value_rejected(golden_data_dir: Path) -> None:
-    """guard ①面独立证：str 值逐条拒（AUDIT2 C-4 探针场景）。"""
-    project = _load_municipal(golden_data_dir)
-    specs = {p.field_id: p for p in _catalog_params("municipal_aao")}
-    grid_key, grid_value = _first_grid_entry(specs)
-    verdicts = _mod.params_guard(
-        project, "municipal_aao", {grid_key: "垃圾字符串值"}
-    )
-    assert verdicts[0].accepted is False
-    assert "数值" in (verdicts[0].reason or "")
-
-
-def test_params_guard_builtin_kind_channel(golden_data_dir: Path) -> None:
-    """guard kind 通道：node 含 kind→builtin 参数面（inlet.kz 与 server 版同径）。"""
-    project = _load_municipal(golden_data_dir)
-    verdicts = _mod.params_guard(project, "inlet", {"kz": 1.5})
-    assert len(verdicts) == 1 and verdicts[0].accepted is True
-    unknown = _mod.params_guard(project, "inlet", {"ghost_builtin_key": 1.5})
-    assert unknown[0].accepted is False
-
-
-def test_params_guard_unknown_unit_and_node(golden_data_dir: Path) -> None:
-    """guard 守护前置：unit_id 不在 nodes / catalog 目录外→InvalidFlowError。"""
-    project = _load_municipal(golden_data_dir)
-    with pytest.raises(_mod.InvalidFlowError, match="design.nodes"):
-        _mod.params_guard(project, "ghost_unit", {"any": 1.0})
-    stranger = project.model_copy(
-        update={
-            "design": project.design.model_copy(
-                update={
-                    "nodes": {
-                        **project.design.nodes,
-                        "not_in_catalog": {},  # 无 kind 且不在注册表
-                    }
-                }
-            )
-        }
-    )
-    with pytest.raises(_mod.InvalidFlowError, match="目录"):
-        _mod.params_guard(stranger, "not_in_catalog", {"any": 1.0})
-
-
-# ── enumeration_flow / design_map_flow（直通冒烟） ────────────────────────
 
 
 def test_enumeration_flow_direct(golden_data_dir: Path) -> None:

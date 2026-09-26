@@ -55,6 +55,12 @@ WHITELIST_DECLARATION = (
     # 0.25——briefs/task-C2-3d-plan.md §二 V5 出处；
     # 渲染几何常量非业务假设——registry 面外声明式真源，cache.py 同款）。
     "core/waterprint/geometry/pipes.py",
+    # 批3b 主控裁定 B-3b-2 案甲（b3b-blockers.md）：flows params_guard
+    # 拆件 builtin 带声明面——q_avg_daily 硬界/提示带锚值（m³/d 声明
+    # 5184000.0/1000000.0/10.0 经 quantity parse 因子换算 R3，零 m³/s
+    # 裸字面量；数值权威=b3a-research.md §二 A 组+§七追认 2026-09-26
+    # 用户「全部追认」，每常量带出处注记；cache.py/pipes.py 声明面先例）。
+    "core/waterprint/flows/params_guard.py",
 )
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
 # 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。
