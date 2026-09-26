@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 批2c 呈批件制备收口置位（增补四十五）；下一批=批3a -->
+- status: READY <!-- 2026-09-26 批3a 起草收口置位（增补四十六）；下一批=批3b（待追认签字） -->
 - automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T05:21:59Z <!-- 批2c 收口刷（executor-b2c-20260926T045217Z） -->
-- claim: - <!-- 批2c 收口释放（executor-b2c-20260926T045217Z，快照 34→35） -->
+- heartbeat_utc: 2026-09-26T05:48:47Z <!-- 批3a 收口刷（executor-b3a-20260926T053321Z） -->
+- claim: - <!-- 批3a 收口释放（executor-b3a-20260926T053321Z，快照 35→36） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
-- checked_done: 35 <!-- 2026-09-26 批2c 收口 34→35（增补四十五） -->
+- checked_done: 36 <!-- 2026-09-26 批3a 收口 35→36（增补四十六） -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
-- last_dispatch_utc: 2026-09-26T04:51:38.612Z <!-- 2026-09-26 批2c 首班发布成立（回读=run dwfrun-e569fe69-8de5-4e33-8bba-9a9f7b95a7be running+执行者子代理 executing）；旧值 2026-09-26T04:11:05.238Z（⑤a 首班） -->
-- workflow_run_id: dwfrun-e569fe69-8de5-4e33-8bba-9a9f7b95a7be <!-- 批2c 首班执行工作流（gwp_ch4 27.0 呈批件制备） -->
+- last_dispatch_utc: 2026-09-26T05:31:28.384Z <!-- 2026-09-26 批3a 首班发布成立（回读=run dwfrun-94749a91-3925-41ca-a087-fc8b3d7451de running+执行者子代理 executing）；旧值 2026-09-26T04:51:38.612Z（批2c 首班） -->
+- workflow_run_id: dwfrun-94749a91-3925-41ca-a087-fc8b3d7451de <!-- 批3a 首班执行工作流（几何域数值检索起草） -->
 - relay_started_utc: 2026-09-26T04:00:36.124Z <!-- 2026-09-26 rev5 二次换防时刻（本会话）；旧值 2026-09-26T01:48:14.457Z -->
-- batch_count: 2 <!-- 2026-09-26 批2c 收口 1→2（增补四十五） -->
+- batch_count: 3 <!-- 2026-09-26 批3a 收口 2→3（增补四十六） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 换防复位清空；旧值 stop_matter（测试收线停轮） -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
-- next_batch: 批3a 几何域数值检索起草（backend-calc-complete 批3 前半——用户授权 2026-09-25 检索起草：《给水排水设计手册》工程常用范围数值单〔入口流量上界/池长上限/曝气器密度/AAO·CASS 尺度告警〕逐条带出处呈追认）
+- next_batch: 批3b 几何域拒数据包实装（backend-calc-complete 批3 后半——**待追认批**：批3a 数值单〔.workflow/backend-calc-complete/b3a-research.md §七 15 条〕用户签字后开工；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 
@@ -131,7 +131,7 @@
 - [x] 批5｜低优先堆（backend-calc-complete——NaN 可行口径统一/timeout 诊断维度/severity 执法统一/裁决档勘误两处〔W2:549→548 与 34760.46→34760.70〕/beam.py 拆件结构债/app.py 500 贴墙欠账/main.py 余量观察项）
 - [x] ⑤a｜矿井水污泥线新单元（B4-5 拆项——**2026-09-26 勘误收口〔增补四十四〕**：实质=链级复用 hebing→nongsuo→tuoshui 已落图 golden（用户 2026-08-28 追认 D1「非新单元包」+MSLUDGE2；「wp new-unit 新建包」字面与已追认设计冲突不执行，判定链+验证矩阵见增补四十四）；三维模板族缺位=三维战役 P6 参数化族队列指针）
 - [x] 批2c｜gwp_ch4 27.0 呈批件制备（backend-calc-complete——factors.yaml 改值 diff+golden 五工况期望值重算草案+锁面工序 README；**制备批不实装不提交**——golden 重录涉 core/tests 锁面须人类随批落地，呈批件齐即收口转用户）
-- [ ] 批3a｜几何域数值检索起草（backend-calc-complete 批3 前半——**用户授权 2026-09-25 推翻审计「禁 AI 起草」限制**：按《给水排水设计手册》工程常用范围检索起草数值单〔入口流量上界/池长上限/曝气器密度/AAO·CASS 尺度告警〕逐条带出处呈追认）
+- [x] 批3a｜几何域数值检索起草（backend-calc-complete 批3 前半——**2026-09-26 起草收口〔增补四十六〕**：数值单 15 条+追认单呈用户〔入口流量上界/池长上限/曝气密度/AAO·CASS 尺度告警/池数档〕逐条带出处+证据分级，卷宗 b3a-research.md §七 追认单签字后批3b 开工）
 - [ ] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**待追认批**：批3a 数值单用户签字后开工；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
 - [ ] ⑤b｜软著（B4-5 拆项——用户亲查窗，**用户域终态项**：自动化到此处按 stop_matter 停板待用户；亲查参考=round2 §2 手算对照表 26 项全吻合+15 万吨核对表）
 
@@ -442,3 +442,14 @@
 - **登记欠账**：①批内中涂心跳未写（长命令窗+工作流活体看护覆盖——rev5 GetWorkflowRun 机制消化，如实记档）②loop 案 serialize bytes +4 逐字段手工归因不完整（blob 内多副本序列化面——README §六.7 记档，以 --check 实算对照为准）。
 - **移交人类**：[HUMAN-LOCK] 呈批件第⑧笔=.workflow/backend-calc-complete/b2c-lock-drafts/（README 八步工序+四步回滚：apply diff→relock --check→--write→快照重冻结→验收〔golden 4/4+全量红集=基线 8F 同名〕→lock_tests 重锁→三检→单笔提交）；存量七笔呈批件+批3.5 追认单+批3a 数值追认单待办不变（增补二十五集中索引）。
 - **下一批**：批3a 几何域数值检索起草（第五波序——用户授权检索起草，逐条带出处呈追认）。
+
+### 增补四十六 — 2026-09-26T05:48:47Z（批3a 收口：几何域数值检索起草——数值单 15 条+追认单呈用户；制备批不实装不提交）
+
+- **claim/commits**：executor-b3a-20260926T053321Z（05:33:21Z 认领，rev5 三班=run dwfrun-94749a91 执行者子代理）；本收口笔（零代码批——仅 .workflow 卷宗+板面，批3.5/批2c 同款收口形态）。
+- **卷宗**：.workflow/backend-calc-complete/b3a-research.md——数值单主表 A~E 五组 15 追认条目（入口流量上界 A1~A3/几何域 kb 条目 B1~B6/池数档与单池能力 C1~C3/既有带升格与冲突 D1~D8/params_guard 第四面清单 E）+证据分级 A/B/C/D+检索台账 S1~S6+GB 50014-2021 十条逐字摘录（§五）+独立复算（§三）+批3b 实装映射五点（§六）+追认单（§七）。
+- **检索与分级**：A 级=GB 50014-2021 全文转载件核到条文级（7.6.5 水深 4.0~6.0m/7.6.39 SBR 矩形池+长宽比连续进水 2.5:1~4:1/7.6.33 与 7.1.7 池数≥2 并联/7.6.12 选择区 0.5~1.0h/7.6.18-2 厌氧 1~2h/7.6.36 沉淀 1.0h·排水 1.0~1.5h/7.9.6 曝气器数量=供气量+服务面积/7.5.10-1 平流沉淀池池长≤60m 类比锚）；B 级=建标 198-2022 Ⅰ类>50 万 m³/d（分级表未逐字核到注记）+上海白龙港 280 万 m³/d（三期扩 350 万；生物池 6 座 12 组）；C 级=微孔曝气器服务面积 0.5 m²/个实例+汇总带 0.3~0.75；**D 级=B 组几何域拒门全部 AI 推导建议值**（锚+推导链全呈报——l_pool 300/1000m、b_pool 100/400m、v_pool 15/150 万 m³、n_aerator 5/100 万、单池能力 25 万 m³/d）。
+- **独立复算（数据批烤验）**：换算链 7 点（60 m³/s=518.4 万 m³/d、34760 m³/d=0.402315 m³/s=golden 口径吻合）+几何包络 8 角点+**audit AUD-B3 病例逐位复现**（l_pool 推导 27778.8≈实录 27779/b_pool 11111.5 逐位/n_aerator 好氧份额 0.303 折算 1.866 亿≈实录 187,024,524）——分层门语义校验：界上合法角点（518 万/n=6）提示不拒、界上荒诞组合（518 万/n=2）几何面正确拒、白龙港实践包络（单组长≈245m）落提示门 300m 内零误杀。
+- **冲突呈报（追认单必读）**：①CASS ratio_lb 带 2.0~3.0 vs GB 7.6.39 连续进水 2.5~4:1——两案呈裁（案甲改带/案乙维持+口径注记，**主控推荐案乙**：现值 golden 已锁定+repo 矩形包络口径≠GB 廊道口径）；②曝气服务面积双带 0.3~0.75（检索）vs 0.3~0.65（仓内注记）择一；③《给水排水设计手册》原册本会话不可得——全部手册条目 C 级顶格，追认时原册优先复核 B 组；④kz 变化系数无可靠源不设带（如实登记）。
+- **收口三检**：run_gates 16 门禁全绿（[OK] 全部门禁通过）；gen_status --check 零漂移（2158 字节逐字节一致）；health-scan RED=0/WARN×3 存量回显（可收口）。
+- **移交人类**：批3a 追认单签字（卷宗 §七 15 条逐条可改可否——B 组全 D 级建议值尤须专家复核）→批3b 开工；存量八笔 [HUMAN-LOCK] 呈批件+批3.5 追认单+批2c golden 重录待办不变（增补二十五集中索引）。
+- **下一批**：批3b 几何域拒数据包实装（**待追认批**——批3a 数值单签字后开工）。
