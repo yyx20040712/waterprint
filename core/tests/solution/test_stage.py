@@ -196,3 +196,143 @@ def _simple_grid() -> Any:
     from waterprint.solution.grid import build_grid
 
     return build_grid([{"field_id": "n", "values": [2.0, 3.0]}], guard_base=False)
+
+
+# ══ 批2a 裕度接线域（test_stage_margin_draft 转正——[HUMAN-LOCK]
+#     2026-09-26 用户「全部追认」授权落地 b2a 呈批件）══
+
+from math import isfinite, isnan  # noqa: E402 （域内追加——NaN/有限断言用）
+
+_enumerate_mod = importlib.import_module("waterprint.solution.enumerate")
+enumerate_solutions = getattr(_enumerate_mod, "enumerate_solutions", None)
+evaluate_stage = getattr(_stage, "evaluate_stage", None)
+
+_BAND = "v_act >= 7.0 and v_act <= 10.0"
+
+
+class _MarginUnit:
+    """假单元（枚举契约最小面：compute(ctx)→dims 映射——v_act 直通行）。"""
+
+    def compute(self, context: Any) -> Any:
+        """v_act=行参数直通+e_pump 常量（代理分能耗分量恒无区分度）。"""
+        value = context.params["v_act"]
+        return type("Result", (), {"dims": {"v_act": value, "e_pump": 1.0}})()
+
+
+def _margin_context(condition: Any) -> Any:
+    """最小 UnitContext（空入流——假单元不消费上游量）。"""
+    from waterprint.contracts.unit_api import UnitContext
+
+    return UnitContext(
+        unit_id="u1",
+        inflows={},
+        inqualities={},
+        params={},
+        condition=condition,
+        assumptions={},
+        trace=None,
+    )
+
+
+def _margin_env() -> Any:
+    from waterprint.contracts.run_env import RunEnv
+
+    return RunEnv(
+        engine_version="t",
+        data_version="t",
+        assumptions={},
+        coefficients={},
+        price_book={},
+        trace_sink=None,
+        engine_params={},
+    )
+
+
+def _margin_grid() -> Any:
+    from waterprint.solution.grid import build_grid
+
+    return build_grid(
+        [{"field_id": "v_act", "values": [7.0, 8.5, 9.25, 11.0]}], guard_base=False
+    )
+
+
+def _margin_condition() -> Any:
+    from waterprint.contracts.condition import FlowCase, OperatingCondition
+
+    return OperatingCondition(flow_case=FlowCase.DESIGN, offline_unit=None)
+
+
+def test_enumerate_frame_no_longer_carries_margin_min() -> None:
+    """规格锁定：margin_min 列批2a 起由调用面附着（enumerate 产出=参数列+
+    dims 列+nan_flag+condition_key——单元 dims 无 margin_ 键产出形死面摘除）。"""
+    frame = enumerate_solutions(  # type: ignore[misc]
+        _margin_grid(), _margin_context(_margin_condition()), _MarginUnit(), _margin_env(),
+    )
+    assert "margin_min" not in frame.columns
+    assert {"v_act", "e_pump", "nan_flag", "condition_key"} <= set(frame.columns)
+
+
+def test_evaluate_stage_attaches_band_margin() -> None:
+    """集成：带约束（kb 已追认带）→ frame 附着实值裕度列（带缘 0/中心 0.5/
+    越带负）+可行集=带内行（双源口径）+代理分恢复裕度区分度（share=1——
+    AUD-B1 修复主断言：旧裕度分量恒 NaN 中位，无区分度）。"""
+    from waterprint.solution.constraints import Constraint
+
+    outcome = evaluate_stage(  # type: ignore[misc]
+        _MarginUnit(),
+        _stage.StageContext(
+            unit_id="u1",
+            prefix={},
+            condition=_margin_condition(),
+            grid=_margin_grid(),
+            constraints=(Constraint(key="kb.band", expression=_BAND, source="kb:t"),),
+            share=1.0,
+        ),
+        _margin_context(_margin_condition()),
+        _margin_env(),
+    )
+    margins = outcome.frame["margin_min"].tolist()
+    assert margins[0] == pytest.approx(0.0)
+    assert margins[1] == pytest.approx(0.5)
+    assert margins[2] == pytest.approx(0.25)
+    assert margins[3] < 0.0  # 越带行（随后被约束过滤剔除）
+    assert outcome.feasible == (0, 1, 2)
+    # 代理分随裕度恢复区分度：行1（中心）> 行2（偏侧）> 行0（带缘）
+    assert outcome.proxies[1] > outcome.proxies[2] > outcome.proxies[0]
+
+
+def test_evaluate_stage_without_constraints_nan_margin() -> None:
+    """无约束 → 裕度列恒 NaN（列仍在——stage_proxies 消费前提；批1 NaN
+    防护兜底为常态降级恢复为兼容面）。"""
+    outcome = evaluate_stage(  # type: ignore[misc]
+        _MarginUnit(),
+        _stage.StageContext(
+            unit_id="u1", prefix={}, condition=_margin_condition(),
+            grid=_margin_grid(), share=1.0,
+        ),
+        _margin_context(_margin_condition()),
+        _margin_env(),
+    )
+    assert "margin_min" in outcome.frame.columns
+    assert all(isnan(value) for value in outcome.frame["margin_min"])
+
+
+def test_evaluate_stage_proxies_all_finite() -> None:
+    """代理分恒有限（批1 NaN 防护不因裕度实值化回退——回归面）。"""
+    from waterprint.solution.constraints import Constraint
+
+    outcome = evaluate_stage(  # type: ignore[misc]
+        _MarginUnit(),
+        _stage.StageContext(
+            unit_id="u1",
+            prefix={},
+            condition=_margin_condition(),
+            grid=_margin_grid(),
+            constraints=(Constraint(key="kb.band", expression=_BAND, source="kb:t"),),
+            share=0.5,
+        ),
+        _margin_context(_margin_condition()),
+        _margin_env(),
+    )
+    assert outcome.proxies
+    assert all(isfinite(value) for value in outcome.proxies.values())
