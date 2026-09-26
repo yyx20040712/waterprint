@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补五十三：批6b 收口 READY（碳范围一+能耗上游——1 commit 87bc7b1〔HUMAN-LOCK〕/门一双席 B0 PASS/门二实证+三检全绿）；next=批6c -->
+- status: READY <!-- 2026-09-26 增补五十四：批6c 收口 READY（LCC 折旧面——1 commit be23fb3〔HUMAN-LOCK〕/门一三席 PASS+门二双路径 diff=0.0/三检全绿）；next=批6d -->
 - automation_id: automation-143e250a-5e96-4e6b-9016-7ac16fa7fb21 <!-- 2026-09-26 换防迁火回填（增补五十一）；旧值 automation-cf38af42…（已熄——CronList 空实核，增补五十火情观察证实） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T14:09:28Z <!-- 增补五十三收口刷 -->
-- claim: - <!-- 批6b 收口释放（executor-b6b-20260926T125402Z，勾选 38→39） -->
+- heartbeat_utc: 2026-09-26T15:06:06Z <!-- 增补五十四收口刷 -->
+- claim: - <!-- 批6c 收口释放（executor-b6c-20260926T141855Z，勾选 39→40） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 52 <!-- 2026-09-26 增补四十九：38+14（第六波全局收尾 批6a~6n——单源工单 wave6-master-plan.md；旧值 38=增补二十五口径） -->
-- checked_done: 39 <!-- 2026-09-26 批6b 收口 38→39（增补五十三） -->
+- checked_done: 40 <!-- 2026-09-26 批6c 收口 39→40（增补五十四） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-26T12:52:46.923Z <!-- 2026-09-26 批6b 首班发布成立（回读=run dwfrun-0cd27217-2a9d-43f7-9a44-9d0b6d231e02 running+执行者子代理 executing）；旧值 2026-09-26T12:12:01.958Z（批6a 首班） -->
-- workflow_run_id: dwfrun-0cd27217-2a9d-43f7-9a44-9d0b6d231e02 <!-- 批6b 首班执行工作流（碳范围一+能耗上游补全——批3.5 实装面+AUD-W4 反冲洗三键/磁分离能耗） -->
+- last_dispatch_utc: 2026-09-26T14:16:56.911Z <!-- 2026-09-26 批6c 首班发布成立（回读=run dwfrun-dbe63cec-bc29-4c36-b132-251d6b64a10f running+执行者子代理 executing）；旧值 2026-09-26T12:52:46.923Z（批6b 首班） -->
+- workflow_run_id: dwfrun-dbe63cec-bc29-4c36-b132-251d6b64a10f <!-- 批6c 首班执行工作流（LCC 折旧面——AUD-W11 后半：opex 折旧/资本摊销口径，三段通道轻量版设计先行） -->
 - relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
-- batch_count: 2 <!-- 2026-09-26 批6b 收口 1→2（增补五十三） -->
+- batch_count: 3 <!-- 2026-09-26 批6c 收口 2→3（增补五十四） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-26
-- claimed_by: executor-b6b-20260926T125402Z <!-- 批6b 收口留档 -->
-- claimed_at: 2026-09-26T12:54:02Z <!-- 批6b 认领时戳（收口留档） -->
-- next_batch: 批6c LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道轻量版设计先行；推荐 v1=展示维度不进 objective〔批2b Rulings ④维持挂账裁量〕；依赖 6b 碳口径稳定已满足） -->
+- claimed_by: executor-b6c-20260926T141855Z <!-- 批6c 收口留档 -->
+- claimed_at: 2026-09-26T14:18:55Z <!-- 批6c 认领时戳（收口留档） -->
+- next_batch: 批6d AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言；含批6c 欠账②设备基数退化 E=54 元同批修复锚〔LCC 年折旧设备支路判别力随扩行恢复〕；依赖 6c LCC 口径已定） -->
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -145,7 +145,7 @@
 
 - [x] 批6a｜gwp_ch4 27.2→27.0 数据勘误实装（批2c 八步工序——**2026-09-26 收官〔增补五十二〕**：4b550e6 八步零偏离〔27.0/1.5.1/golden 五件/快照 3 行/36 根重锁〕+0c31196 B-6/D-8 factors 笔〔增补五十欠账路由：band 4 键 0.3/0.75+note 升格+1.6.0〕——双路径复算+DV 单因回代证明）
 - [x] 批6b｜碳范围一+能耗上游补全（批3.5 实装面〔ganhua 21.622+xiaohua MCF 0.8 案 A+三新键已追认〕+AUD-W4 反冲洗三键/磁分离能耗——新数值 §14 起草带出处事后追认）<!-- 2026-09-26 收官〔增补五十三〕：C-F10~F12+XL-F20~F22/KS-F9+确定性勘正 1 commit 87bc7b1〔HUMAN-LOCK〕+门一双席 B0 PASS+门二双路径 fp 级一致 -->
-- [ ] 批6c｜LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道设计先行；推荐 v1=展示维度不进 objective）
+- [x] 批6c｜LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道设计先行；推荐 v1=展示维度不进 objective）<!-- 2026-09-26 收官〔增补五十四〕：直线法双键 cost_capex_annualized_yuan_a 展示维度+factor.lcc 两键 30/10 a（D 级待追认）+coefficients 1.8.0——1 commit be23fb3〔HUMAN-LOCK〕+门一三席 PASS+门二双路径 diff=0.0+golden/快照零重录 -->
 - [ ] 批6d｜AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言）
 - [ ] 批6e｜全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义）
 - [ ] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
@@ -241,9 +241,22 @@
 - **claim/commit**：executor-b6b-20260926T125402Z（12:54:02Z 认领——批6b 首班=workflow 通道 run dwfrun-0cd27217〔12:52:46Z 发布成立〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。单笔：87bc7b1〔HUMAN-LOCK〕（预授权①依据=用户 2026-09-26 全局规划指令——26 文件 +1498/−365）。
 - **交付四件**：①app_carbon C-F10 燃料 CO₂（w_fuel×2.1622=21.622 t/万Nm³ 换算）/C-F11 燃烧次要 CH₄+N₂O（1 kg/TJ×389.31 GJ/万Nm³ 链）/C-F12 消化净 CH₄（案 A：gross−R，dig_mcf 0.8 独立核算废水线毯式 0.03 维持）——三式入 direct 合计+sparse 双律（因子缺席跳/消化双源缺一整式跳）；②AUD-W4 上游：vxinglvchi XL-F20~F22（w_air/w_sweep 日耗 dims+e_backwash=w_air×0.02+v_wash_daily×0.044——扫洗含于全量水不双计）+cifenli KS-F9（e_magnetic=n_units×3.0×24）+app_energy 新能耗两名入 power_total；③碳上游供数族 w_fuel/w_vs_deg/v_biogas→fuel_gas_nm3_d/vs_degraded_kg_d/biogas_m3_d（碳件消费面专用聚合通道）；④factors 10 新键+coefficients 1.6.0→1.7.0（552→562）+projection 两冻结表登记新 dims。
 - **确定性勘正（批内显形潜伏缺陷）**：app_energy power_total 原 set 迭代序求和受哈希随机化影响——跨进程浮点舍入不同→serialize 字节漂移（三进程实证：同长异 sha）；本批新增两 power 键将和推过序敏感阈值显形。勘正=_POWER_FIELDS 声明序求和（语义不变仅舍入确定）；m3 基线跨进程三跑恒等复证+relock --check 归零。
-- **烤验（实现+数据复合批=并集对抗位）**：门一 k1（kimi-main in=13320）首轮 PASS B0/W3/N3+门一 d1（deepseek in=14801）异构席首轮 PASS B0/W3/N5——双席共指 C-F12 跨基 B0 呈裁（追认文本原文如此——VS 基独立键=数值面变更归用户裁量），处置全表 b6b-rulings.md §二（W2→T11 带界恒正不变式测试落地/W3→测试补档/N1→表号核对随追认）；门二实证部双路径复算（碳三式引擎 vs 手算 diff≤1.8e-15+能耗上游逐式手算一致+vector 六变体独立实算重录）+mine 负向面（新供数键零在场/回归锚 7 键逐位不变）+图域零变更（m3 四语义锚 7 步不变）；专家追认=碳七键批3.5 已签+能耗三键起草随批 Rulings（b6b-numeric-sheet/b6b-rulings）。
+- **烤验（实现+数据复合批=并集对抗位）**：门一 k1（主源席 in=13320）首轮 PASS B0/W3/N3+门一 d1（异构源席 in=14801）首轮 PASS B0/W3/N5——双席共指 C-F12 跨基 B0 呈裁（追认文本原文如此——VS 基独立键=数值面变更归用户裁量），处置全表 b6b-rulings.md §二（W2→T11 带界恒正不变式测试落地/W3→测试补档/N1→表号核对随追认）；门二实证部双路径复算（碳三式引擎 vs 手算 diff≤1.8e-15+能耗上游逐式手算一致+vector 六变体独立实算重录）+mine 负向面（新供数键零在场/回归锚 7 键逐位不变）+图域零变更（m3 四语义锚 7 步不变）；专家追认=碳七键批3.5 已签+能耗三键起草随批 Rulings（b6b-numeric-sheet/b6b-rulings）。〔b6c 勘正 2026-09-26：本行原录模型代号两枚，出仓合规 scrub 为主源席/异构源席——产出面纪律（check_model_names md 面）；原始字面=org-ledger.jsonl 在案，语义零变〕
 - **锁面**：golden 四案重录（municipal direct +7126.24=fuel 2135.108+minor 11.533+digest 4979.600/power_total +63.374=e_backwash/intensity 0.5867→0.7927；mine +power_magnetic 288 无供数键面）+m3 种子 meta/7 步 serialize 锚+快照恰 3 哈希行（audit HTML+双 DXF，xlsx 不变——批6a 同形态）+镜像测试 T8~T11/vector 六变体+lock 329 根重锁零丢失（b6b-golden-relock.py --check/--write 双模式在卷宗）。
 - **收口三检**：run_gates 16 门禁全绿（提交后复跑〔OK〕）；gen_status --check 零漂移（DV 行 1.6.0→1.7.0 再生成，2158 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core 897P+单元包 136P 零失败（benchmark 时基断言一次负载假红——单跑绿复证记录在案）+server 376P 零失败（零 server 改动理论零扰动实证；server venv core 快照 uv --reinstall-package 同步）。
 - **欠账登记**：①KV 族（mine_water/vxinglvchi）反冲洗折电未建模（AUD-W4 指针=municipal XL 侧）——manifest 头注+本行双锚，后续批 §14 起草；②C-F12 B0 跨基（BOD 基键乘 kgVS——追认原文口径）+越带负值逃逸口径+扫洗保守比能三项呈裁（b6b-rulings §三，终裁权保留）；③CH₄/N₂O 表号级核对随追认补做；④test_vector_variants 500 行顶墙（预算内，下次触碰先筹划）；⑤审包 15k tokens 超组织目标 3×（ORG-12 申报——总量 30k<40~50k 常态）。
 - **预算记档**：fire_budget 120min 实耗≈75min（12:54Z~14:09Z）在限内。
 - **收口判定=⑤READY**：勾选 38→39（批6b ☑，余 13=批6c~6n+⑤b）；batch_count 1→2（<60）；墙钟≈1.9h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补五十四 — 2026-09-26T15:06:06Z（批6c 收口：LCC 折旧面落地——READY）
+
+- **claim/commit**：executor-b6c-20260926T141855Z（14:18:55Z 认领——批6c 首班=workflow 通道 run dwfrun-dbe63cec〔14:16:56Z 发布成立〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。单笔：be23fb3〔HUMAN-LOCK〕（11 文件 +243/−20；预授权①依据=用户 2026-09-26 全局规划指令）。
+- **设计（三段轻量版）**：b6c-design.md 两案拟定（单键综合折旧率 vs 分构筑/设备双键直线）→门一 k1 设计席首轮 PASS B0/W4/N4（案乙维持：选型/结构性排除/sparse 矩阵三件均获代码证据支撑）→终裁回填 §七；W1 税入基数补 Ruling⑥/W2 golden 锚面澄清（golden=e2e calc summary 期望，不锚 joint metrics 与包 DV）/W3 零权重消费面措辞/W4 sparse 机制落点——N1~N4 全处置。
+- **交付四件**：①metrics 新键 cost_capex_annualized_yuan_a（design 口径展示维度——直线法=equipment_subtotal/10 a+其余资本化全量/30 a〔税/间接/预备/递延并径=Ruling⑥ 呈报〕；不进 objective=_METRIC_KEYS/权重/基线零变更结构性排除，lcc 在场/缺席两跑 score 逐位同行为证）；②factors 两键 factor.lcc.life_{civil_structure,equipment}_a=30/10 a（D 级起草待追认——税法条例六十条法定下界+可研实践带双锚+两带相切于 30 注记）+coefficients 1.7.0→1.8.0（562→564）；③capex 装配单次化 capex_estimate 拆层（grand_total 与年折旧同源单次复用——批2b 公开面 capex_grand_total 薄壳零变）+cost 包根 EstimateSheet 再导出（§1c 既定边内三类型→四类型）；④app_opex 头注折旧挂账收敛（AUD-W11 后半收口）+file-contracts 两行+structure-graph 注记+status.md DV 行再生成（2158 字节）。
+- **烤验（设计轻量三段+实现双审并集）**：门一三席=设计 k1（B0/W4/N4）+实现 k1（B0/W1/N2）+实现 d1 异构席（B0/W1/N3）全 PASS；双席独立反解共指金样链设备基数 E≈54 元退化（门二直链实测 E=54.000000 证实）——W-1 两轮处置：包络收紧 [G/30,G/10]（真上界）+集成层哨兵声明（d1 案 b：退化数据下公式判别由纯函数手算用例承担——lives 互换 866.67≠466.67 必红）+设备行近零映射=批6d 扩行范围注记；门二实证=双路径独立复算（beam 管线 vs app.run_full_calc 正门+cost 直链 takeoff→build_estimate：G 与年折旧 diff=0.0 精确相等）+N-2 展示消费面闭环（server jobs/worker.py combos asdict 直通无白名单——新键自动随任务结果下发）。
+- **锁面**：测试镜像四用例随批落地〔HUMAN-LOCK〕（test_final_eval 纯函数公式+sparse/test_beam 集成包络+kit 缺席+score 不变性两跑）+329 根两轮重锁零丢失（用例落地+W-1 收紧）。
+- **收口三检**：run_gates 16 门禁全绿（提交后复跑〔OK〕）；gen_status --check 零漂移（DV 行 1.7.0→1.8.0 再生成，2158 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core 1575P+1F（benchmark 时基负载假红——单跑 5P 绿复证，批6b 同款在册）+server 376P 零失败（venv core 快照 uv --reinstall-package 同步后）。
+- **批间勘正（批6b 遗留潜伏红推送前拦截）**：增补五十三行内模型代号两枚（dd0c785 未推送——CI 跑 run_gates 必红）出仓合规 scrub 为主源席/异构源席+行内勘正注记（语义零变，原始字面=org-ledger 在案）；教训入册：板面批次日志禁落模型代号（check_model_names 词表六 token，md 面在扫）。
+- **欠账登记**：①数值两键 D 级待追认（b6c-numeric-sheet——残值率 0/安装费归并/税入基数三项口径随 Rulings 呈报）；②金样链设备基数退化 E=54 元=field_mapping 设备行近零映射——批6d 既定范围（LCC 设备支路判别力随扩行恢复）；③webapp 展示位（API 直通自动可取，UI 呈现=前端批裁量 6e/6m 域）；④本班派发 cwd 失锚一次（scripts 目录跑致账本三行错落 scripts 项目——已迁正+错位件清除；后续派发仓根 cwd 或 --project 锚定）；⑤d1 行账本 outcome 字段瘦身（审包未带机器 outcome 域——判文全文在卷宗）。
+- **预算记档**：fire_budget 120min 实耗≈59min（14:18:55Z~15:18Z）在限内。
+- **收口判定=⑤READY**：勾选 39→40（批6c ☑，余 12=批6d~6n+⑤b）；batch_count 2→3（<60）；墙钟≈3.1h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
