@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补五十四：批6c 收口 READY（LCC 折旧面——1 commit be23fb3〔HUMAN-LOCK〕/门一三席 PASS+门二双路径 diff=0.0/三检全绿）；next=批6d -->
+- status: READY <!-- 2026-09-26 增补五十五：批6d 收口 READY（AAO capex 区分度数据面——1 commit c878b8d〔HUMAN-LOCK〕/门一双席 B0 PASS+门二双路径复算/三检全绿）；next=批6e -->
 - automation_id: automation-143e250a-5e96-4e6b-9016-7ac16fa7fb21 <!-- 2026-09-26 换防迁火回填（增补五十一）；旧值 automation-cf38af42…（已熄——CronList 空实核，增补五十火情观察证实） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T15:06:06Z <!-- 增补五十四收口刷 -->
-- claim: - <!-- 批6c 收口释放（executor-b6c-20260926T141855Z，勾选 39→40） -->
+- heartbeat_utc: 2026-09-26T16:26:13Z <!-- 增补五十五收口刷 -->
+- claim: - <!-- 批6d 收口释放（executor-b6d-20260926T151400Z，勾选 40→41） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 52 <!-- 2026-09-26 增补四十九：38+14（第六波全局收尾 批6a~6n——单源工单 wave6-master-plan.md；旧值 38=增补二十五口径） -->
-- checked_done: 40 <!-- 2026-09-26 批6c 收口 39→40（增补五十四） -->
+- checked_done: 41 <!-- 2026-09-26 批6d 收口 40→41（增补五十五） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-26T14:16:56.911Z <!-- 2026-09-26 批6c 首班发布成立（回读=run dwfrun-dbe63cec-bc29-4c36-b132-251d6b64a10f running+执行者子代理 executing）；旧值 2026-09-26T12:52:46.923Z（批6b 首班） -->
-- workflow_run_id: dwfrun-dbe63cec-bc29-4c36-b132-251d6b64a10f <!-- 批6c 首班执行工作流（LCC 折旧面——AUD-W11 后半：opex 折旧/资本摊销口径，三段通道轻量版设计先行） -->
+- last_dispatch_utc: 2026-09-26T15:12:43.008Z <!-- 2026-09-26 批6d 首班发布成立（回读=run dwfrun-a8431da0-a14b-42ce-868c-01d20fec3333 running+执行者子代理 executing）；旧值 2026-09-26T14:16:56.911Z（批6c 首班） -->
+- workflow_run_id: dwfrun-a8431da0-a14b-42ce-868c-01d20fec3333 <!-- 批6d 首班执行工作流（AAO capex 区分度数据面——field_mapping 三扩行+设备单价万元尺度+AAO 轴分化对拍断言+设备基数退化修复锚） -->
 - relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
-- batch_count: 3 <!-- 2026-09-26 批6c 收口 2→3（增补五十四） -->
+- batch_count: 4 <!-- 2026-09-26 批6d 收口 3→4（增补五十五） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-26
-- claimed_by: executor-b6c-20260926T141855Z <!-- 批6c 收口留档 -->
-- claimed_at: 2026-09-26T14:18:55Z <!-- 批6c 认领时戳（收口留档） -->
-- next_batch: 批6d AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言；含批6c 欠账②设备基数退化 E=54 元同批修复锚〔LCC 年折旧设备支路判别力随扩行恢复〕；依赖 6c LCC 口径已定） -->
+- claimed_by: executor-b6d-20260926T151400Z <!-- 批6d 收口留档 -->
+- claimed_at: 2026-09-26T15:14:00Z <!-- 批6d 认领时戳（收口留档） -->
+- next_batch: 批6e 全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义） -->
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -146,7 +146,7 @@
 - [x] 批6a｜gwp_ch4 27.2→27.0 数据勘误实装（批2c 八步工序——**2026-09-26 收官〔增补五十二〕**：4b550e6 八步零偏离〔27.0/1.5.1/golden 五件/快照 3 行/36 根重锁〕+0c31196 B-6/D-8 factors 笔〔增补五十欠账路由：band 4 键 0.3/0.75+note 升格+1.6.0〕——双路径复算+DV 单因回代证明）
 - [x] 批6b｜碳范围一+能耗上游补全（批3.5 实装面〔ganhua 21.622+xiaohua MCF 0.8 案 A+三新键已追认〕+AUD-W4 反冲洗三键/磁分离能耗——新数值 §14 起草带出处事后追认）<!-- 2026-09-26 收官〔增补五十三〕：C-F10~F12+XL-F20~F22/KS-F9+确定性勘正 1 commit 87bc7b1〔HUMAN-LOCK〕+门一双席 B0 PASS+门二双路径 fp 级一致 -->
 - [x] 批6c｜LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道设计先行；推荐 v1=展示维度不进 objective）<!-- 2026-09-26 收官〔增补五十四〕：直线法双键 cost_capex_annualized_yuan_a 展示维度+factor.lcc 两键 30/10 a（D 级待追认）+coefficients 1.8.0——1 commit be23fb3〔HUMAN-LOCK〕+门一三席 PASS+门二双路径 diff=0.0+golden/快照零重录 -->
-- [ ] 批6d｜AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言）
+- [x] 批6d｜AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言；含批6c 欠账②设备基数退化 E=54 元同批修复锚）<!-- 2026-09-26 收官〔增补五十五〕：万元×10⁴ 折元契约+按组计价扩行+dims n 回显——门一 k1 B0/W3/N4+d1 B0/W5/N6 双 PASS+门二双路径复算 PASS+1 commit c878b8d〔HUMAN-LOCK〕 -->
 - [ ] 批6e｜全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义）
 - [ ] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
 - [ ] 批6g｜结构债拆件批（beam.py/app.py/main.py 三顶格件按 ADR-024 配方腾位——双跑 diff=0 行为等价烤验）
@@ -260,3 +260,15 @@
 - **欠账登记**：①数值两键 D 级待追认（b6c-numeric-sheet——残值率 0/安装费归并/税入基数三项口径随 Rulings 呈报）；②金样链设备基数退化 E=54 元=field_mapping 设备行近零映射——批6d 既定范围（LCC 设备支路判别力随扩行恢复）；③webapp 展示位（API 直通自动可取，UI 呈现=前端批裁量 6e/6m 域）；④本班派发 cwd 失锚一次（scripts 目录跑致账本三行错落 scripts 项目——已迁正+错位件清除；后续派发仓根 cwd 或 --project 锚定）；⑤d1 行账本 outcome 字段瘦身（审包未带机器 outcome 域——判文全文在卷宗）。
 - **预算记档**：fire_budget 120min 实耗≈59min（14:18:55Z~15:18Z）在限内。
 - **收口判定=⑤READY**：勾选 39→40（批6c ☑，余 12=批6d~6n+⑤b）；batch_count 2→3（<60）；墙钟≈3.1h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补五十五 — 2026-09-26T16:26:13Z（批6d 收口：AAO capex 区分度数据面落地——READY）
+
+- **claim/commit**：executor-b6d-20260926T151400Z（15:14:00Z 认领——批6d 首班=workflow 通道 run dwfrun-a8431da0〔15:12:43Z 发布成立〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。实现单笔：c878b8d〔HUMAN-LOCK〕（28 文件 +365/−96；预授权①依据=用户 2026-09-26 全局规划指令）。
+- **设计（轻量档+实装中勘正）**：b6d-design.md 两案（万元尺度=消费面 10⁴ 归一案甲落——面值零变；扩行最小集）。**计价语义勘正（实装中显形）**：初拟 count_times_value 全厂台数=池数×单池——实测两档同为 6954 台（AO-F20 服务面积法=总量代理，ceil 级差抵消=零区分度）且 6954×22 万=15.3 亿设备费失真（22 万≠单头价）→正解=按组计价：cass 组同款条目 quantity=4=池数实证「台=每池一套系统」→量=池数 n（direct），档差恰 22 万×10⁴×费率级联。
+- **交付四件**：①manifest unit_scales 金额倍率契约（单位→折元倍率全条目全覆盖缺列即拒——九单位集实测；万元族 1e4；price_data_version 1.0.0→1.1.0；PriceItem.scale 装载+estimate amount=量×面值×scale——批6c E=54 元退化结清〔LCC 设备支路判别力恢复：金样 E=800,000/1,020,000 元两档〕）；②field_mapping 段三扩行 aao.microporous_aerator_piping（万元/台 direct ["n"] @municipal_aao equipment——AAO 轴 capex 区分度：beam 金样 n=2/3 档差 341,265.38=220,000×费率级联 1.5512）；③aao dims 回显 n（cass n_pool 先例平移：compute._geometry+out_dims+projection dim_of/non_drawn 三面登记——condition_fields 28→29 面自然扩）；④installations aao 组一条 22.0 万元/台（同物同价沿用 cass 组 2024 询价；82 条）+README/manifest-status 同步。
+- **烤验（实现+数据复合批=并集对抗位）**：门一 k1（kimi-main）首轮 PASS **B0/W3/N4**+门一 d1（deepseek）首轮 PASS **B0/W5/N6**——零 B 级；回炉一轮四项实修（takeoff 对拍 n=3 判别力〔双席共指 d1-W1/k1-N1〕/万元族 common.* 点名对拍/beam 容差显式 rel=1e-6+fee_rules 耦合注记/「格=系列」术语注）+构造点审计闭项（PriceItem 全仓恰 prices.py:179/290 两处——k1-W1/d1-W3）+复引包口径（quantity=参考值不参与计算——k1-W3）+「万元/套」词表标准化呈裁（k1-N2 用户域）；处置全表 b6d-rulings.md。门二实证部=双路径复算 PASS（正门 build_estimate vs 手写费率级联+万元前缀独立倍率：三案 G/E/detail/subtotal 逐位相等+AAO 轴差 341,265.38 在窗+E 手算 800,000.00 精确+golden 重录锚 19,415,730.31428396 三方对表+分案对拍表〔municipal 三案 Δ+750.7/836.0/836.0 万、mine 零漂〕）；报告 b6d-probe-report.md（会话内实证位 E3 口径申报+账本行在案）。
+- **锁面**：golden 四案+m3 种子重录（b6d-golden-relock.py --check/--write 双模式：effluent 平键零漂=碳/能耗面未触碰实证；estimate_total 三 municipal 案重录；generated DV 锚 coefficients@1.8.0+unit_prices@1.1.0+serialize 随 dims n 键漂移——种子锚 DV 串耦合二过收敛）+快照恰 3 哈希行（audit HTML+双 DXF，xlsx 不变——ambr diff 人审）+vector 六处 'n': 2.0 行内零增行（variants 493 行贴墙）+三镜像 30/29/29+329 根两轮重锁零丢失。
+- **收口三检**：run_gates 16 门禁全绿（〔OK〕全部门禁通过——c878b8d 提交后 trust_root 绿）；gen_status --check 零漂移（DV 行 unit_prices 1.0.0→1.1.0 再生成，2158 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **1582P 零失败**（早轮 1581P+1=benchmark 满载时基假红——单跑绿复证，批6b/6c 同款在册；末轮复跑零失败）+server 376P 零失败（venv core 快照 uv --reinstall-package 同步后）+mypy 350/58 双绿+ruff 零违规。
+- **欠账登记**：①数值单 aao.microporous_aerator_piping=22.0 万元/台 追认请求（b6d-numeric-sheet §四——预授权②事后追认制，用户域非阻断）；②「万元/套」单位词表标准化呈裁（k1-N2——42 条设备条目旧源词表一致性 vs 单条语义精度，独立数据批裁量）；③direct 条目 quantity 一致性装载告警=后续批池位（k1-W3）；④PriceItem 手构造防线缺口（k1-W1——后续 cost 域新增构造点须走 load_prices 或显式 scale）；⑤count_times_value 通道维持预留（其语义对 n 恒定量无承载——field_mapping 头注在册）；⑥aao manifest 495 行/variants 499 行双贴墙（下次触碰先筹划拆件/外移）；⑦厌氧/缺氧搅拌器计数字段挂账维持（AO-F20 头注口径——无诚实字段禁臆造）。
+- **预算记档**：fire_budget 120min 实耗≈72min（15:14:00Z~16:26:13Z）在限内。
+- **收口判定=⑤READY**：勾选 40→41（批6d ☑，余 11=批6e~6n+⑤b）；batch_count 3→4（<60）；墙钟≈4.3h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
