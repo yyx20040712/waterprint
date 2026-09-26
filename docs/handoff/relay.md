@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 ⑤a 勘误收口置位（增补四十四）；下一批=批2c -->
+- status: RUNNING <!-- 2026-09-26 批2c 认领（executor-b2c-20260926T045217Z，快照 34/38） -->
 - automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,14 +20,14 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T04:36:58Z <!-- ⑤a 收口刷（executor-w5a-20260926T041254Z） -->
-- claim: - <!-- ⑤a 收口释放（executor-w5a-20260926T041254Z，快照 33→34） -->
+- heartbeat_utc: 2026-09-26T04:52:17Z <!-- 批2c 认领先笔（executor-b2c-20260926T045217Z） -->
+- claim: executor-b2c-20260926T045217Z <!-- 2026-09-26 批2c 认领（板保持 last_dispatch_utc/workflow_run_id 原值） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 34 <!-- 2026-09-26 ⑤a 勘误收口 33→34（增补四十四） -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
-- last_dispatch_utc: 2026-09-26T04:11:05.238Z <!-- 2026-09-26 ⑤a 首班发布成立（回读=run dwfrun-a428e217-8159-4182-8b39-ea75f7080884 running+执行者子代理 executing——换防会话代发，增补二十七先例）；旧值 2026-09-26T01:55:07.533Z（rev5 首班批5） -->
-- workflow_run_id: dwfrun-a428e217-8159-4182-8b39-ea75f7080884 <!-- ⑤a 首班执行工作流（增补四十三换防后首班） -->
+- last_dispatch_utc: 2026-09-26T04:51:38.612Z <!-- 2026-09-26 批2c 首班发布成立（回读=run dwfrun-e569fe69-8de5-4e33-8bba-9a9f7b95a7be running+执行者子代理 executing）；旧值 2026-09-26T04:11:05.238Z（⑤a 首班） -->
+- workflow_run_id: dwfrun-e569fe69-8de5-4e33-8bba-9a9f7b95a7be <!-- 批2c 首班执行工作流（gwp_ch4 27.0 呈批件制备） -->
 - relay_started_utc: 2026-09-26T04:00:36.124Z <!-- 2026-09-26 rev5 二次换防时刻（本会话）；旧值 2026-09-26T01:48:14.457Z -->
 - batch_count: 1 <!-- 2026-09-26 ⑤a 收口 0→1（增补四十四） -->
 - max_batches: 60
@@ -425,8 +425,8 @@
 - **claim**：executor-w5a-20260926T041254Z（04:12:54Z 认领，rev5 二次换防首班=run dwfrun-a428e217 执行者子代理）；**commit**：本收口笔（零代码批——板面+仓外卷宗）。执行通道=CreateWorkflow saved 发布（换防会话代发，last_dispatch_utc/workflow_run_id 板头在案）。
 - **收口判定=⑤（勾选 33→34，置 READY）**：⑤a 清单项按勘误机制勾销——「wp new-unit 新建单元包」字面**不执行**，判定链四证：①追认档 docs/norms/mine_water_sludge_line.md 表头预裁决 D1 原文「非新单元包（复用 sludge_* 7 单元包…hebing→nongsuo→tuoshui 最小链）」（用户 2026-08-28 批复「2.批准」四组追认点全批）；②同档「v2 已于 MSLUDGE2 批落盘：主算例 35 项对照 0 项超 1e-9」——实装已落图 golden；③**用户确认回引（W-1 闭环）**：e2e-fix-round3 U-2 自设前置「待用户确认后板面登记勘误」的确认事件=增补二十五「用户四裁决（2026-09-25，全按主控推荐除批3 外）」裁决①「⑤a 前置勘误确认」（板载在案——本笔即该确认的兑现动作）；④U-2 同款结论「golden 已含污泥链——裁决书前置过时；B4-5 余⑤b 软著单独跟踪」。字面执行将违反已追认设计+构成第二实现（ADR-011 D1）+无追认数值源（§14 数据策略），不可执行；勘误以板行为准=增补二十五①既定机制。
 - **验证矩阵（本会话实跑）**：golden mine e2e 1 passed（DS 守恒链+含水率+m3 双锚）；污泥链三包+产泥三包单测 113 passed；units_lib 全量 674 passed 零失败；core tests 树 829 passed+8 failed（**逐条隔离论证 W-3**：enum×2〔sort/truncation+cass_fifteen，市政枚举域〕+mirror-rule〔app_enumeration_gates 镜像，批5 呈批件〕+assumptions_joint×3〔b2b 联合枚举键计数，registry joint 域〕+final_eval×1〔joint guards，solution 域〕+validate_design_structure×1〔R3 孤立警告锁定期望 len 2→3，呈批件队列〕——八条无一断言污泥/矿井链数值，污泥链正面测试全绿+module_graph 门禁 32 包三方一致绿=结构面正交实证）；server 全量 337 passed+7 failed（与增补四十一基线同名同数：ai_chat×2 环境+worker 行数面批5 呈批件+joint 夹具+assumptions×2+api_contract F1——零新增）；结构对账=单元包 32（EXPECTED_UNIT_COUNT 门禁）+出图取数 32/32（13+8+7+4）+场景几何同表+palette/目录全覆盖。
-- **门一 k1 单审（分级烤验：小批=纯文档 ≤3 文件零逻辑行——k1 单审+主控亲验矩阵）**：外部派发器 ds-call-v2 承载（本会话=workflow 执行者无子代理工具，环境限制欠账同批5），kimi 主审链——**PASS（B0/W4/N2）**，审档=.workflow/b4-5a-gate1-verdict.md（账本 runId 20260926042948）。四 W 全处置：W-1=用户确认回引（见判定链③）；W-2=词表口径澄清——「有条件放行」系 auditor-readonly DoD 中文词表（放行|有条件放行|返工——技能 v2.0.2 修复批定型 parseFindings 字符集字母∪CJK 之所本）合法取值，审包输出要求「PASS|FAIL」仅辖 k1 自身尾栏（审包口径混写致误判，主控勘正）；⑥ 执法面仅校验存在性不校验取值合法=真盲区，登记技能侧欠账（非项目批可修面）；W-3=逐条隔离论证（见验证矩阵）；W-4=R1 逐字对照入本笔（下）。N-1=server 基线对跑（见验证矩阵）+覆盖面声明（server 行为面同走 core run_full_calc 正门=golden 直跑同一正门；UI 实操面=E2E 战役无头全链既覆盖）；N-2=WARN×3 逐名（设计链同源 W-8〔2026-09-13 deepseek 双岗存量〕+27 行缺 usage 记账欠账+1 行 in=0 P2-5——全存量）+⑤b 落板在案（执行清单末项「用户域终态项：自动化到此处按 stop_matter 停板待用户」）+勘误行与勾销行同线互链。
-- **两笔披露性修复（独立记档——沿 R3/批2b 先例）**：**R1 板面模型代号中性化**（存量红清偿：增补四十一收口日志行两处外部模型代号致 check_model_names 红——该笔提交时门禁后置写入致红，R3 先例同型）：逐字对照「kimi 链 k1×5 轮+deepseek 链 d1 异构代位」→「k1 主审链×5 轮+d1 异构代位链（外部源已中性化）」（零语义损失：轮数/岗别/代位结构全保）。**R2 账本 findings 回填**（health-scan ⑥ RED 清偿：该执法面扫全量账本，一笔 2026-09-26T02:59 auditor-readonly 行缺 findings 字段=派发器解析失配，不清偿则永久阻断收口）：审出实物 .workflow/backend-calc-complete/b5-gate1-d1.md 末栏完备（逐字「FINDINGS: B=2 W=8 N=3 VERDICT=有条件放行」，与增补四十一日志记载同值），按实物真值回填该行字段（备份 .zcode/org-ledger.jsonl.bak-b4-5a 先行）——修复后 RED=0。
+- **门一 k1 单审（分级烤验：小批=纯文档 ≤3 文件零逻辑行——k1 单审+主控亲验矩阵）**：外部派发器 ds-call-v2 承载（本会话=workflow 执行者无子代理工具，环境限制欠账同批5），k1 主审链（外部源已中性化）——**PASS（B0/W4/N2）**，审档=.workflow/b4-5a-gate1-verdict.md（账本 runId 20260926042948）。四 W 全处置：W-1=用户确认回引（见判定链③）；W-2=词表口径澄清——「有条件放行」系 auditor-readonly DoD 中文词表（放行|有条件放行|返工——技能 v2.0.2 修复批定型 parseFindings 字符集字母∪CJK 之所本）合法取值，审包输出要求「PASS|FAIL」仅辖 k1 自身尾栏（审包口径混写致误判，主控勘正）；⑥ 执法面仅校验存在性不校验取值合法=真盲区，登记技能侧欠账（非项目批可修面）；W-3=逐条隔离论证（见验证矩阵）；W-4=R1 逐字对照入本笔（下）。N-1=server 基线对跑（见验证矩阵）+覆盖面声明（server 行为面同走 core run_full_calc 正门=golden 直跑同一正门；UI 实操面=E2E 战役无头全链既覆盖）；N-2=WARN×3 逐名（设计链同源 W-8〔2026-09-13 外部源双岗存量〕+27 行缺 usage 记账欠账+1 行 in=0 P2-5——全存量）+⑤b 落板在案（执行清单末项「用户域终态项：自动化到此处按 stop_matter 停板待用户」）+勘误行与勾销行同线互链。
+- **两笔披露性修复（独立记档——沿 R3/批2b 先例）**：**R1 板面模型代号中性化**（存量红清偿：增补四十一收口日志行两处外部模型代号致 check_model_names 红——该笔提交时门禁后置写入致红，R3 先例同型）：逐字对照「k1 主审链×5 轮+d1 异构代位链（两处外部模型代号原文）」→「k1 主审链×5 轮+d1 异构代位链（外部源已中性化）」（零语义损失：轮数/岗别/代位结构全保）。**R2 账本 findings 回填**（health-scan ⑥ RED 清偿：该执法面扫全量账本，一笔 2026-09-26T02:59 auditor-readonly 行缺 findings 字段=派发器解析失配，不清偿则永久阻断收口）：审出实物 .workflow/backend-calc-complete/b5-gate1-d1.md 末栏完备（逐字「FINDINGS: B=2 W=8 N=3 VERDICT=有条件放行」，与增补四十一日志记载同值），按实物真值回填该行字段（备份 .zcode/org-ledger.jsonl.bak-b4-5a 先行）——修复后 RED=0。
 - **收口三检**：run_gates 16 门禁全绿（R1 后复跑「[OK] 全部门禁通过」）；gen_status --check 零漂移（2158 字节）；health-scan RED=0/WARN×3 存量（R2 后「可收口」）。
 - **挂账登记**：①污泥/矿井三维模板族缺位=三维战役队列（批3 启动会 P6「污泥族 6 单元合并 1 参数化族」已设计未建；registry pending=合法降级原语渲染非缺陷）——指针登记不扩权；②health-scan ⑥ findings 取值合法性执法盲区=技能侧欠账（存在性执法可放行语法合规语义非法值——本轮回填值与实物同值无实质影响）；③三维族建设涉视觉资产五步门（用户视觉验收必发必答）——用户域呈报位。
 - **下一批**：批2c gwp_ch4 27.0 呈批件制备（第五波序——制备批不实装不提交，呈批件齐即收口转用户）。
