@@ -12,15 +12,15 @@
 > - 执行者窗口（项目=智水蓝图）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；开工首步先加载技能 ai-dev-org（组织主干）；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道（前台门+回车+回读④）发布执行者并原子写 last_dispatch_utc → 此后每班火只读板调度，禁执行禁重活禁载技能」
 
-- status: READY <!-- 2026-09-25 批3.5 收口置位（增补三十八——调研卷宗待用户追认）；下一批=批5 -->
-- automation_id: automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 <!-- 2026-09-25 rev4 换防迁火：CronList 证实旧火 b3938334 已删（HOLD 收线笔），新火由 handover 薄调度会话布；字段行锚定+计数守卫=1 回填 -->
+- status: HOLD <!-- 2026-09-26 用户指令删火停轮（automation-a9cfbf66 已 CronDelete）；重启=/batch-relay 换防（调度员提示词=板头标准注入词） -->
+- automation_id: - <!-- 2026-09-26 用户删火停轮；换防时新会话重布火回填 -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-25T19:01:56.788Z <!-- 批3.5 收口刷新 -->
+- heartbeat_utc: 2026-09-26T01:19:17.527Z <!-- 停轮登记时刻 -->
 - claim: -
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
@@ -31,7 +31,7 @@
 - batch_count: 11 <!-- 批3.5 收口 +1（上限 60） -->
 - max_batches: 60
 - max_wall_hours: 90
-- hold_reason: - <!-- 2026-09-25 解锁：原 stop_matter（B4-5 双子项用户门控）——⑤a 勘误排程+⑤b 转清单终态项 -->
+- hold_reason: fire_deleted_by_user <!-- 2026-09-26 用户指令删火——非熔断/非停止事由，板面进度完好可续 -->
 - last_handover: 2026-09-25
 - claimed_by: -
 - claimed_at: -
@@ -379,3 +379,10 @@
 - **卷宗**：.workflow/backend-calc-complete/b35-research.md（含一手源五条+换算链+键名草案+两案对照）。
 - **移交人类**：批3.5 追认单签字（两因子+案 A/B 择一+两个待定值）→ 实装并入后续碳核算实现批（非本批范围）。
 - **收口三检**：run_gates 未触码面免（零仓内代码改动——仅 .workflow 卷宗+板面）；gen_status --check 零漂移；health-scan RED=0。
+
+### 增补三十九 — 2026-09-26T01:19:17.527Z（用户指令删火停轮——接力暂停登记）
+
+- **指令**：用户 2026-09-26「删火」——automation-a9cfbf66-f084-4d7d-afd9-207ce6877db2 已 CronDelete（CronList 空核实），全局单火不变式收线。板面 HOLD(fire_deleted_by_user)。
+- **停轮时点进度快照**：checked 32/38｜batch_count=11｜第五波已毕：R3/批2b/R4/批2d/R5/批3.5 六项｜在队待发：批5→⑤a→批2c→批3a→批3b（待批3a 追认）→⑤b（用户域终态项）。
+- **移交人类（停轮期待办）**：①批3.5 追认单（ganhua 天然气 CO₂ 因子 21.622 tCO₂/万Nm³+xiaohua 消化 MCF 0.8 两案——卷宗 .workflow/backend-calc-complete/b35-research.md）②存量 [HUMAN-LOCK] 呈批件六笔+批2c golden 重录+批3a 数值追认单（增补二十五集中索引）③调度通道演进裁决（增补三十三/晨间调研呈报：dynamic workflow 替代 UI 开批通道等四案）。
+- **重启**：/batch-relay 换防（板头标准注入词=调度员窗口 rev4 口径）；断电清创+gc 已根治 repack 残件（晨间排查记录）。
