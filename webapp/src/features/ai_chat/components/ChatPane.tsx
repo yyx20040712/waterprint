@@ -15,6 +15,9 @@
  *        B-2 SSE 慢探测降级（onConnection 'polling'）→ stage 行「实时
  *        通道不可达——已切换轮询」；C-5 failed 终态补查任务状态 error
  *        摘要（前 120 字——lib/taskError 单源）。
+ * 批6f（wave6 §批6f）：非 failed 终态横幅分派单源 terminalTurnText
+ *        （cancelled=取消文案——旧实现一律误称「失败」；未知终态「未完成」
+ *        兜底带原始态名禁吞）。
  */
 import { Drawer } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -23,7 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTaskEventSource } from "../../../shared/api/useTaskEventSource";
 
 import { interpretChatEvent } from "../lib/chatEvent";
-import { failedTurnBannerText, fetchTaskErrorSummary } from "../lib/taskError";
+import { failedTurnBannerText, fetchTaskErrorSummary, terminalTurnText } from "../lib/taskError";
 
 import { useChatHistory, useChatSessions, useSendChatMessage, CHAT_HISTORY_KEY } from "../api/useAiChat";
 import { ChatPanel, type SendMutation } from "./ChatPanel";
@@ -111,7 +114,9 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
           });
         }
       } else {
-        setTurnError(state === "done" ? null : `本轮失败（${state}）——输入已解锁，可重发`);
+        // 批6f：三终态文案分派单源（done=null/cancelled=取消文案/未知终态
+        // =「未完成」兜底——旧实现把 cancelled 一律称「失败」）
+        setTurnError(terminalTurnText(state));
       }
       if (sessionId) {
         void client.invalidateQueries({ queryKey: CHAT_HISTORY_KEY(sessionId) });

@@ -14,10 +14,12 @@ vi.mock("../../../shared/api/generated", () => ({
 }));
 
 import {
+  CANCELLED_TURN_TEXT,
   FAILED_TURN_FALLBACK_TEXT,
   TASK_ERROR_SUMMARY_MAX,
   failedTurnBannerText,
   fetchTaskErrorSummary,
+  terminalTurnText,
   truncateTaskErrorSummary,
 } from "./taskError";
 
@@ -41,13 +43,13 @@ describe("failed 横幅错误摘要（C-5——mock 任务状态含 error）", (
     statusStub.fetchTask.mockReset();
   });
 
-  it("任务状态含 error 摘要 → 横幅文案含摘要（前 120 字截断）", async () => {
+  it("任务状态含 error 摘要 → 横幅文案含摘要（前 120 字截断）+解锁提示一致面", async () => {
     const long = "E".repeat(TASK_ERROR_SUMMARY_MAX + 30);
     statusStub.fetchTask.mockResolvedValue(statusStubPayload(long));
     const summary = await fetchTaskErrorSummary("task-k");
     expect(summary).toBe("E".repeat(TASK_ERROR_SUMMARY_MAX)); // 截断=前 120 字
     expect(failedTurnBannerText(summary)).toBe(
-      `本轮失败（failed）：${"E".repeat(TASK_ERROR_SUMMARY_MAX)}`,
+      `本轮失败（failed）：${"E".repeat(TASK_ERROR_SUMMARY_MAX)}——输入已解锁，可重发`,
     );
   });
 
@@ -75,6 +77,29 @@ describe("failed 横幅错误摘要（C-5——mock 任务状态含 error）", (
   it("截断边界：恰 120 字不截", () => {
     expect(truncateTaskErrorSummary("x".repeat(TASK_ERROR_SUMMARY_MAX))).toHaveLength(
       TASK_ERROR_SUMMARY_MAX,
+    );
+  });
+});
+
+describe("非 failed 终态横幅分派（批6f terminalTurnText——三终态各就位）", () => {
+  it("done → null（无横幅）", () => {
+    expect(terminalTurnText("done")).toBeNull();
+  });
+
+  it("cancelled → 取消文案（不称「失败」）", () => {
+    expect(terminalTurnText("cancelled")).toBe(CANCELLED_TURN_TEXT);
+    expect(terminalTurnText("cancelled")).not.toContain("失败");
+    expect(terminalTurnText("cancelled")).toContain("输入已解锁");
+  });
+
+  it("failed 误入 → 回落通用失败横幅（k1-W1 护栏——不称「未完成」不带空明细）", () => {
+    expect(terminalTurnText("failed")).toBe(FAILED_TURN_FALLBACK_TEXT);
+    expect(terminalTurnText("failed")).not.toContain("未完成");
+  });
+
+  it("未知终态 → 「未完成」兜底带原始态名（禁吞态名）", () => {
+    expect(terminalTurnText("interrupted")).toBe(
+      "本轮未完成（interrupted）——输入已解锁，可重发",
     );
   });
 });

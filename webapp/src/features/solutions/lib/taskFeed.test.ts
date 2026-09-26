@@ -287,4 +287,11 @@ describe("errorTypeLabel（F6 error_type 显示层映射）", () => {
       "装配失败（InvalidAssemblyError）：nodes 缺 municipal_aao 参数（HTTP 422）",
     );
   });
+
+  it("failed 空串 error/error_type 视同缺席（批6f d1-W1/k1-N1 回炉——悬空「：」残骸源面收严）", () => {
+    const view = taskStatusToView({ state: "failed", error_type: "", error: "" });
+    expect(view.error).toBe("失败详情缺失（error/error_type 均空）");
+    const half = taskStatusToView({ state: "failed", error_type: "", error: "半值" });
+    expect(half.error).toBe("未知异常：半值");
+  });
 });

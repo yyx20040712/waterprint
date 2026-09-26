@@ -203,10 +203,14 @@ export function taskStatusToView(status: unknown): TaskView {
   const stageRaw = raw["stage"];
   let error: string | null = null;
   if (state === "failed") {
+    // 批6f（d1-W1/k1-N1 回炉）：空串视同缺席（强制转换面收严——空串
+    // error_type 会产出悬空「：」组合残骸；非空内容原样透传 fail-visible）
     const errorType =
-      typeof raw["error_type"] === "string" ? raw["error_type"] : null;
+      typeof raw["error_type"] === "string" && raw["error_type"] !== ""
+        ? raw["error_type"]
+        : null;
     const errorMessage =
-      typeof raw["error"] === "string" ? raw["error"] : null;
+      typeof raw["error"] === "string" && raw["error"] !== "" ? raw["error"] : null;
     const parts: string[] = [];
     if (errorType !== null || errorMessage !== null) {
       parts.push(errorType !== null ? errorTypeLabel(errorType) : "未知异常");

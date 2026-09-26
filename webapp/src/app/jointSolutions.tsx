@@ -38,6 +38,7 @@ import {
   enumerateOptions,
   type UnitOptionRef,
 } from "../features/solutions/lib/solutionsFields";
+import { jointTaskNotice } from "../features/solutions/lib/jointTaskNotice";
 import { narrowJointResult } from "../features/solutions/lib/jointView";
 import { useSensitivityQuery } from "../features/solutions/api/useSensitivityQuery";
 import { JointSolutionsPanel } from "../features/solutions/components/JointSolutionsPanel";
@@ -164,6 +165,13 @@ export function JointSolutionsSection({
   );
   const submitError = errorText(submit.error, submit.isError);
 
+  // 批6f（批2d 欠账②）：非 done 态文案分派——failed/cancelled 终态各就位
+  // （明细=taskStatusToView 快照单源），「进行中」幽灵退役；done 态 null
+  const jointNotice =
+    status !== null && status.kind === "joint_enumerate" && !jointDone
+      ? jointTaskNotice(status)
+      : null;
+
   return (
     <Card size="small" title="联合枚举（方案比选——多单元组合）" style={{ marginTop: 12 }}>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -206,9 +214,18 @@ export function JointSolutionsSection({
       {unitsError !== null ? (
         <Typography.Paragraph type="danger">单元清单加载失败：{unitsError}</Typography.Paragraph>
       ) : null}
-      {status !== null && status.kind === "joint_enumerate" && !jointDone ? (
-        <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          联合枚举任务进行中——结果将在完成后呈现（进度见上方任务面板）。
+      {jointNotice !== null ? (
+        <Typography.Paragraph
+          type={
+            jointNotice.kind === "failed"
+              ? "danger"
+              : jointNotice.kind === "cancelled"
+                ? "warning"
+                : "secondary"
+          }
+          style={{ marginBottom: 0 }}
+        >
+          {jointNotice.text}
         </Typography.Paragraph>
       ) : null}
       {panel}
