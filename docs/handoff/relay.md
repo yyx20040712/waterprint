@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补四十八：批3a 追认单已签（用户「全部追认」——D-2 案乙/B-6 宽带）+CI 修复批收口三检全绿——HOLD(stop_matter) 事由解除，批3b 开工前置满足 -->
+- status: READY <!-- 2026-09-26 增补五十：批3b 收口 READY（几何域拒数据包四件全落地——9 commit/门一 k1+d1 双 PASS/门二 probe 零偏离+裁决部准予）；next=批6a -->
 - automation_id: automation-cf38af42-d8c1-480c-b868-c6b0162bc872 <!-- 2026-09-26 换防重布回填（增补四十三迁火）；旧值 -（测试收线删火） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T07:37:00Z <!-- 增补四十八主控手术刷（用户直派会话——追认+CI 修复批） -->
-- claim: - <!-- 批3b stop_matter 收口释放（executor-b3b-20260926T061611Z，勾选 36/38 未增） -->
+- heartbeat_utc: 2026-09-26T11:43:25Z <!-- 增补五十收口刷 -->
+- claim: - <!-- 批3b 收口释放（executor-b3b-20260926T092235Z，勾选 36→37） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 52 <!-- 2026-09-26 增补四十九：38+14（第六波全局收尾 批6a~6n——单源工单 wave6-master-plan.md；旧值 38=增补二十五口径） -->
-- checked_done: 36 <!-- 2026-09-26 批3a 收口 35→36（增补四十六） -->
+- checked_done: 37 <!-- 2026-09-26 批3b 收口 36→37（增补五十） -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
 - last_dispatch_utc: 2026-09-26T06:11:50.897Z <!-- 2026-09-26 批3b 首班发布成立（回读=run dwfrun-fb81b03e-6c11-4d5b-807b-6c6eaac9f45a running+执行者子代理 executing）；旧值 2026-09-26T05:31:28.384Z（批3a 首班） -->
 - workflow_run_id: dwfrun-fb81b03e-6c11-4d5b-807b-6c6eaac9f45a <!-- 批3b 首班执行工作流（几何域拒数据包——待追认批，可否开工由执行者按清单条款判定） -->
 - relay_started_utc: 2026-09-26T04:00:36.124Z <!-- 2026-09-26 rev5 二次换防时刻（本会话）；旧值 2026-09-26T01:48:14.457Z -->
-- batch_count: 4 <!-- 2026-09-26 批3b stop_matter 收口 3→4（增补四十七） -->
+- batch_count: 5 <!-- 2026-09-26 批3b 收口 4→5（增补五十） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-25
-- claimed_by: -
-- claimed_at: -
-- next_batch: 批3b 几何域拒数据包实装（backend-calc-complete 批3 后半——**追认已签 2026-09-26「全部追认」**：批3a 数值单 15 条全 ☑〔.workflow/backend-calc-complete/b3a-research.md §七 追认记录——D-2 案乙/B-6 宽带 [0.30,0.75]〕；constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
+- claimed_by: executor-b3b-20260926T092235Z
+- claimed_at: 2026-09-26T09:22:35Z
+- next_batch: 批6a gwp_ch4 27.2→27.0 数据勘误实装（b2c 八步工序——呈批件四件已批 2026-09-26 可执行：apply 三 diff→relock→golden 重录→快照重冻结→lock_tests→三检→单笔提交） -->
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 
@@ -139,7 +139,7 @@
 - [x] ⑤a｜矿井水污泥线新单元（B4-5 拆项——**2026-09-26 勘误收口〔增补四十四〕**：实质=链级复用 hebing→nongsuo→tuoshui 已落图 golden（用户 2026-08-28 追认 D1「非新单元包」+MSLUDGE2；「wp new-unit 新建包」字面与已追认设计冲突不执行，判定链+验证矩阵见增补四十四）；三维模板族缺位=三维战役 P6 参数化族队列指针）
 - [x] 批2c｜gwp_ch4 27.0 呈批件制备（backend-calc-complete——factors.yaml 改值 diff+golden 五工况期望值重算草案+锁面工序 README；**制备批不实装不提交**——golden 重录涉 core/tests 锁面须人类随批落地，呈批件齐即收口转用户）
 - [x] 批3a｜几何域数值检索起草（backend-calc-complete 批3 前半——**2026-09-26 起草收口〔增补四十六〕**：数值单 15 条+追认单呈用户〔入口流量上界/池长上限/曝气密度/AAO·CASS 尺度告警/池数档〕逐条带出处+证据分级，卷宗 b3a-research.md §七 追认单签字后批3b 开工）
-- [ ] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**追认已签 2026-09-26（全部追认——D-2 案乙维持现值+口径注记/B-6 宽带并集）**：constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
+- [x] 批3b｜几何域拒数据包实装（backend-calc-complete 批3 后半——**追认已签 2026-09-26（全部追认——D-2 案乙维持现值+口径注记/B-6 宽带并集）**：constraint_kb 几何条目+入口流量上界+params_guard range 执法面）
 - [ ] ⑤b｜软著（B4-5 拆项——用户亲查窗，**用户域终态项**：自动化到此处按 stop_matter 停板待用户；亲查参考=round2 §2 手算对照表 26 项全吻合+15 万吨核对表）
 
 ### 第六波·全局收尾（2026-09-26 全局规划上板——增补四十九；单源工单=.workflow/backend-calc-complete/wave6-master-plan.md；用户指令「全部安排上+新会话 batch 技能连续开工」——预授权口径见执行路由新增段）
@@ -203,3 +203,15 @@
 - **板面手术**：清单+第六波 14 项；checked_total 38→52（done 36 不变）；执行路由+预授权段；本增补笔。
 - **熔断预算**：batch_count 4/60+墙钟 90h（rev5 换防 2026-09-26T04:00Z 起）——14 批估 28~40h 在限内；触发则按 protocol HOLD 收口，恢复=换防重置（用户在场）。
 - **开工方式**：用户新会话调用 batch 技能（rev5 开批通道 CreateWorkflow saved batch-relay-executor）或班火自然轮转——next_batch=批3b（第五波）→6a→…→6n→⑤b 依序。
+
+### 增补五十 — 2026-09-26T11:43:25Z（批3b 收口：几何域拒数据包实装完成——READY）
+
+- **claim/commits**：executor-b3b-20260926T092235Z（09:22:35Z 认领——用户直派执行者窗口手动兜底发布；组织主干=ai-dev-org v2.1.0 Skill 载入，主控+实现者/门一 k1·d1/门二 probe·裁决部全管道）。九笔：52837a7（kb 1.5.0 geometry_guard+server kind 面+openapi 级联）/bc7fc8b（D 组出处升格+t_draw range+properties 收编）/a7de2d1+3275e59+d831a6c（三笔 [HUMAN-LOCK] 锁面——预授权①依据=用户 2026-09-26 全局规划指令）/39a702f（params_guard 拆件+face④+builtin 带+warn 字段+魔法数字白名单——B-3b-1/2 案甲主控裁定）/1515d24（server 尾半 422/warn 日志）/1e6a7e9（门一 B1 极性勘正）/6e9a52b（断言补强）。卷宗：b3b-brief/b3b-blockers/b3b-gate1-package/b3b-gate1-round2/probe-b3b-report（.workflow/backend-calc-complete/）。
+- **交付四件**：①params_guard 第四面 range 闭区间执法（**30 包 94 条既有声明全量激活**——键分布 conveyance10/mine_water24/municipal44/sludge16=94、包 4+8+12+6=30〔裁决部逐包实勘；执行者回执分项 8/24/49/13 系笔误以本行为准〕）+builtin q_avg_daily 带 A-1~A-3（≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示 accepted+warn 不阻塞；60.0 恰界=accepted+warn 双态〔两带算术重叠=追认值事实〕；60.0 换算二进制精确断言钉死；kz 无带如实登记）；拆件=flows/params_guard.py 兄弟件（499/500 预算墙 AGENTS §11 停批呈裁定→案甲）再导出签名零变。②constraint_kb 1.5.0 geometry_guard 8 条（l_pool/b_pool/v_pool/n_aerator 四量 WARN/ERROR 双门；expression=`field <= 阈值` 真=门内合规——**门一 B1 勘正**：初版 `>` 真=越门致 feasible 倒置〔勾选保留荒诞行滤掉合规行〕，阈值零变=追认值原样；恰等值闭门语义用例钉死）。③server 消费面（_KINDS/Literal+计数勘误〔旧 20 系 1.4.0 漏更实 21〕+422 整批拒+warn 不阻塞仅日志——E2E-1 fail-fast 软提示面）。④D 组升格（D-1 h2 §7.6.5/§7.6.39 确证/D-2 案乙 ratio_lb 维持 2.0~3.0+包络口径注记/D-3 条号勘正 §7.6.39→§7.6.18-2〔厌氧 HRT 误植〕/D-4 §7.6.12/D-6 §7.6.17-1 全带注记/D-5 t_draw range 1.0~1.5 落地即被 face④ 执法）。
+- **追认→实装映射（15 条——裁决部 C2 落档）**：A-1/A-2/A-3 实装（builtin 带）；B-1~B-5 实装（kb 8 条四量双门）；B-6 [0.30,0.75] **挂账→批6a factors 笔落键+供气量法批接线**（无行字段可接——死条目勾选即 InvalidConstraintError 炸枚举，主控裁量不实装）；C-1 n≥2 维持（grid 既有零改动）；C-2 grid 2~6 维持（扩档=产品裁决位）；C-3 单组 >25 万 m³/d 提示**挂账→联合枚举/结果校核批**（跨单元派生量无单一执法面）；D-1/D-3/D-4/D-6 出处升格实装；D-2 案乙实装；D-5 t_draw range 实装+执法；D-7 维持待追认（GB 表 7.6.19 未文字化——零改动）；D-8 方法学=既存锚（manifest FormulaSpec §7.9.6 注记增补前已在）+factors note 升格**挂账→批6a 同笔**；E 组 range 执法面实装（94 条全量+builtin 新增面）。
+- **烤验（实现批全对抗位）**：门一 k1 首轮 PASS B0/W5/N11、d1 首轮 **FAIL B1**（几何极性倒置——与 k1-W1 同指；主控亲验 apply_constraints feasible=matrix.all 实锤）→回炉轮2 `>`→`<=` 勘正+断言互翻+恰等值用例→复核 k1 PASS B0/W1/N6（W1 包数口径主控 grep 勘正销）/d1 PASS B0/W0/N6（首轮 W 九销二降N；W2 severity 双语义=批5 AUD-W10 定版口径复引——勾选=过滤 CP1 用户裁决 2026-08-31，severity=元数据，非新缺陷）；d1 首轮拒审事件=审包未内联违其岗卡输入契约→内联重派合规（流程教训：d1 位审包必须随简报内联）。门二 probe=MATRIX PASS **偏离 0**（独立复算：8 阈值对 b3a §二 B 组集合恰等/60.0 二进制精确/audit 病例 8 门全假/golden 全真/core 1566P+server 376P+16 门禁+gen_status 零漂移+329 键五项全对表）；裁决部=**收口准予**（附条件 C1~C6 登记/文档面，本笔全落）。
+- **收口三检**：run_gates 16 门禁全绿（probe 复跑）；gen_status --check 零漂移（2158 字节，probe 复跑）；health-scan **RED=0**/WARN×3 存量回显（设计链同源 W-8 降级+账本 usage 缺 27 行+in=0 一行——批前存量非本批引入）——可收口。
+- **欠账登记（裁决部 C1~C6+烤验欠账）**：C1 aao/manifest.py:104/435 两处「§7.6.39 厌氧 HRT」误植残留（注释面零逻辑影响）→下一出处笔勘正；C4 本机 webapp orval 生成物缺 geometry_guard（CI 强制先行仓库面不受影响——本机开发前 pnpm orval）；C5 cass/manifest.py 恰 500 行顶墙（后续触碰先筹划拆件）；C6 评审档补存 k1/d1 终判原文+projects.py:179「三面」注释下次顺手更新；**warn 用户可达性**（CLI 零消费/MCP 投影契约冻结恰三键——webapp 横幅/MCP 加键两候选面）→批6f 任务系统补完邻域裁量；**webapp constraintPicker filterSelectable 不含 geometry_guard**（geometry 门现仅 API 显式 options.constraints/design 态 constraint_choices=on 两路可达）→批6 picker kind 面扩裁量；环境实录：server venv core 快照滞后需 --reinstall-package waterprint-core（CI 全新装不受影响）。
+- **预算记档**：fire_budget 120min 实耗≈2.4h（09:22Z~11:43Z）——超支=门一 B1 烤验回炉两轮+门二全实证，判定⑤照常（超支非停止事由，如实记档）。
+- **火情观察**：增补四十九 08:15Z 置 READY 后 66min 班火零派发（workflow_run_id 恒旧值+claim 恒 -）+执行者会话工作区 CronList 空——automation-cf38af42 **疑似已熄**（执行者角色禁建自动化未核实他工作区火态）。续跑路径：用户直派执行者窗口（板头标准注入词）或 /batch-relay 换防重布火。
+- **收口判定=⑤READY**：勾选 36→37（批3b ☑，余 15=批6a~6n+⑤b）；batch_count 4→5（<60）；墙钟≈7.7h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
