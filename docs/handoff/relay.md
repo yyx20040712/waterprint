@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-26 增补五十五：批6d 收口 READY（AAO capex 区分度数据面——1 commit c878b8d〔HUMAN-LOCK〕/门一双席 B0 PASS+门二双路径复算/三检全绿）；next=批6e -->
+- status: READY <!-- 2026-09-26 增补五十七：批6e 收口 READY（全工况投影端点——1 commit 145fbf4〔HUMAN-LOCK〕/门一双席 B0 PASS+回炉一轮/probe 16/16/三检全绿）；next=批6f -->
 - automation_id: automation-143e250a-5e96-4e6b-9016-7ac16fa7fb21 <!-- 2026-09-26 换防迁火回填（增补五十一）；旧值 automation-cf38af42…（已熄——CronList 空实核，增补五十火情观察证实） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 10
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-26T16:26:13Z <!-- 增补五十五收口刷 -->
-- claim: - <!-- 批6d 收口释放（executor-b6d-20260926T151400Z，勾选 40→41） -->
+- heartbeat_utc: 2026-09-26T17:40:51Z <!-- 增补五十七收口刷 -->
+- claim: - <!-- 批6e 收口释放（executor-b6e-20260926T164735Z，勾选 41→42） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
-- checked_done: 41 <!-- 2026-09-26 批6d 收口 40→41（增补五十五） -->
+- checked_done: 42 <!-- 2026-09-26 批6e 收口 41→42（增补五十七） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-26T15:12:43.008Z <!-- 2026-09-26 批6d 首班发布成立（回读=run dwfrun-a8431da0-a14b-42ce-868c-01d20fec3333 running+执行者子代理 executing）；旧值 2026-09-26T14:16:56.911Z（批6c 首班） -->
-- workflow_run_id: dwfrun-a8431da0-a14b-42ce-868c-01d20fec3333 <!-- 批6d 首班执行工作流（AAO capex 区分度数据面——field_mapping 三扩行+设备单价万元尺度+AAO 轴分化对拍断言+设备基数退化修复锚） -->
+- last_dispatch_utc: 2026-09-26T16:46:07.930Z <!-- 2026-09-26 批6e 首班发布成立（回读=run dwfrun-5f21105e-3218-4919-b8d8-6924ca015aa3 running+执行者子代理 executing；增补五十六裁决代录后首班）；旧值 2026-09-26T15:12:43.008Z（批6d 首班） -->
+- workflow_run_id: dwfrun-5f21105e-3218-4919-b8d8-6924ca015aa3 <!-- 批6e 首班执行工作流（全工况投影端点——calc sensitivity 投影 API+龙卷风幅度轴升级+快照 stale 语义） -->
 - relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
-- batch_count: 4 <!-- 2026-09-26 批6d 收口 3→4（增补五十五） -->
+- batch_count: 5 <!-- 2026-09-26 批6e 收口 4→5（增补五十七） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-26
-- claimed_by: executor-b6d-20260926T151400Z <!-- 批6d 收口留档 -->
-- claimed_at: 2026-09-26T15:14:00Z <!-- 批6d 认领时戳（收口留档） -->
-- next_batch: 批6e 全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义） -->
+- claimed_by: executor-b6e-20260926T164735Z <!-- 批6e 认领 -->
+- claimed_at: 2026-09-26T16:47:35Z <!-- 批6e 认领时戳 -->
+- next_batch: 批6f 任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -147,7 +147,7 @@
 - [x] 批6b｜碳范围一+能耗上游补全（批3.5 实装面〔ganhua 21.622+xiaohua MCF 0.8 案 A+三新键已追认〕+AUD-W4 反冲洗三键/磁分离能耗——新数值 §14 起草带出处事后追认）<!-- 2026-09-26 收官〔增补五十三〕：C-F10~F12+XL-F20~F22/KS-F9+确定性勘正 1 commit 87bc7b1〔HUMAN-LOCK〕+门一双席 B0 PASS+门二双路径 fp 级一致 -->
 - [x] 批6c｜LCC 折旧面（AUD-W11 后半：opex 折旧/资本摊销口径——三段通道设计先行；推荐 v1=展示维度不进 objective）<!-- 2026-09-26 收官〔增补五十四〕：直线法双键 cost_capex_annualized_yuan_a 展示维度+factor.lcc 两键 30/10 a（D 级待追认）+coefficients 1.8.0——1 commit be23fb3〔HUMAN-LOCK〕+门一三席 PASS+门二双路径 diff=0.0+golden/快照零重录 -->
 - [x] 批6d｜AAO capex 区分度数据面（field_mapping 段三扩行+设备单价万元尺度——批2b 欠账①②；AAO 轴分化对拍断言；含批6c 欠账②设备基数退化 E=54 元同批修复锚）<!-- 2026-09-26 收官〔增补五十五〕：万元×10⁴ 折元契约+按组计价扩行+dims n 回显——门一 k1 B0/W3/N4+d1 B0/W5/N6 双 PASS+门二双路径复算 PASS+1 commit c878b8d〔HUMAN-LOCK〕 -->
-- [ ] 批6e｜全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义）
+- [x] 批6e｜全工况投影端点（calc sensitivity 投影 API+龙卷风幅度轴升级——批2d 欠账①；快照 stale 语义）<!-- 2026-09-26 收官〔增补五十七〕：GET /api/calc/sensitivity 42→43+summary 指标差全量零重算+stale §12 实证+龙卷风全工况幅度轴+无头四态；门一双席 B0 PASS 回炉一轮+probe 16/16；1 commit 145fbf4〔HUMAN-LOCK〕 -->
 - [ ] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）
 - [ ] 批6g｜结构债拆件批（beam.py/app.py/main.py 三顶格件按 ADR-024 配方腾位——双跑 diff=0 行为等价烤验）
 - [ ] 批6h｜门禁硬化+部署卫生+杂项闭项（R5 结转观测护栏四项+p150k 首跑留证+ENTRYPOINT 绝对路径+classic builder 实测+AUD-W9 对拍门禁+AUD-W10 维持硬滤注记闭项+UF-25 中文单语定版闭项+HEAD 版本耦合注记）
@@ -267,7 +267,7 @@
 - **claim/commit**：executor-b6d-20260926T151400Z（15:14:00Z 认领——批6d 首班=workflow 通道 run dwfrun-a8431da0〔15:12:43Z 发布成立〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。实现单笔：c878b8d〔HUMAN-LOCK〕（28 文件 +365/−96；预授权①依据=用户 2026-09-26 全局规划指令）。
 - **设计（轻量档+实装中勘正）**：b6d-design.md 两案（万元尺度=消费面 10⁴ 归一案甲落——面值零变；扩行最小集）。**计价语义勘正（实装中显形）**：初拟 count_times_value 全厂台数=池数×单池——实测两档同为 6954 台（AO-F20 服务面积法=总量代理，ceil 级差抵消=零区分度）且 6954×22 万=15.3 亿设备费失真（22 万≠单头价）→正解=按组计价：cass 组同款条目 quantity=4=池数实证「台=每池一套系统」→量=池数 n（direct），档差恰 22 万×10⁴×费率级联。
 - **交付四件**：①manifest unit_scales 金额倍率契约（单位→折元倍率全条目全覆盖缺列即拒——九单位集实测；万元族 1e4；price_data_version 1.0.0→1.1.0；PriceItem.scale 装载+estimate amount=量×面值×scale——批6c E=54 元退化结清〔LCC 设备支路判别力恢复：金样 E=800,000/1,020,000 元两档〕）；②field_mapping 段三扩行 aao.microporous_aerator_piping（万元/台 direct ["n"] @municipal_aao equipment——AAO 轴 capex 区分度：beam 金样 n=2/3 档差 341,265.38=220,000×费率级联 1.5512）；③aao dims 回显 n（cass n_pool 先例平移：compute._geometry+out_dims+projection dim_of/non_drawn 三面登记——condition_fields 28→29 面自然扩）；④installations aao 组一条 22.0 万元/台（同物同价沿用 cass 组 2024 询价；82 条）+README/manifest-status 同步。
-- **烤验（实现+数据复合批=并集对抗位）**：门一 k1（kimi-main）首轮 PASS **B0/W3/N4**+门一 d1（deepseek）首轮 PASS **B0/W5/N6**——零 B 级；回炉一轮四项实修（takeoff 对拍 n=3 判别力〔双席共指 d1-W1/k1-N1〕/万元族 common.* 点名对拍/beam 容差显式 rel=1e-6+fee_rules 耦合注记/「格=系列」术语注）+构造点审计闭项（PriceItem 全仓恰 prices.py:179/290 两处——k1-W1/d1-W3）+复引包口径（quantity=参考值不参与计算——k1-W3）+「万元/套」词表标准化呈裁（k1-N2 用户域）；处置全表 b6d-rulings.md。门二实证部=双路径复算 PASS（正门 build_estimate vs 手写费率级联+万元前缀独立倍率：三案 G/E/detail/subtotal 逐位相等+AAO 轴差 341,265.38 在窗+E 手算 800,000.00 精确+golden 重录锚 19,415,730.31428396 三方对表+分案对拍表〔municipal 三案 Δ+750.7/836.0/836.0 万、mine 零漂〕）；报告 b6d-probe-report.md（会话内实证位 E3 口径申报+账本行在案）。
+- **烤验（实现+数据复合批=并集对抗位）**：门一 k1（主源席〔批6e 勘正 2026-09-26 同下——原字面为模型代号，语义零变〕）首轮 PASS **B0/W3/N4**+门一 d1（异构源席〔批6e 勘正 2026-09-26：原字面为模型代号——板面日志禁落词表 token（check_model_names md 面），语义零变〕）首轮 PASS **B0/W5/N6**——零 B 级；回炉一轮四项实修（takeoff 对拍 n=3 判别力〔双席共指 d1-W1/k1-N1〕/万元族 common.* 点名对拍/beam 容差显式 rel=1e-6+fee_rules 耦合注记/「格=系列」术语注）+构造点审计闭项（PriceItem 全仓恰 prices.py:179/290 两处——k1-W1/d1-W3）+复引包口径（quantity=参考值不参与计算——k1-W3）+「万元/套」词表标准化呈裁（k1-N2 用户域）；处置全表 b6d-rulings.md。门二实证部=双路径复算 PASS（正门 build_estimate vs 手写费率级联+万元前缀独立倍率：三案 G/E/detail/subtotal 逐位相等+AAO 轴差 341,265.38 在窗+E 手算 800,000.00 精确+golden 重录锚 19,415,730.31428396 三方对表+分案对拍表〔municipal 三案 Δ+750.7/836.0/836.0 万、mine 零漂〕）；报告 b6d-probe-report.md（会话内实证位 E3 口径申报+账本行在案）。
 - **锁面**：golden 四案+m3 种子重录（b6d-golden-relock.py --check/--write 双模式：effluent 平键零漂=碳/能耗面未触碰实证；estimate_total 三 municipal 案重录；generated DV 锚 coefficients@1.8.0+unit_prices@1.1.0+serialize 随 dims n 键漂移——种子锚 DV 串耦合二过收敛）+快照恰 3 哈希行（audit HTML+双 DXF，xlsx 不变——ambr diff 人审）+vector 六处 'n': 2.0 行内零增行（variants 493 行贴墙）+三镜像 30/29/29+329 根两轮重锁零丢失。
 - **收口三检**：run_gates 16 门禁全绿（〔OK〕全部门禁通过——c878b8d 提交后 trust_root 绿）；gen_status --check 零漂移（DV 行 unit_prices 1.0.0→1.1.0 再生成，2158 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **1582P 零失败**（早轮 1581P+1=benchmark 满载时基假红——单跑绿复证，批6b/6c 同款在册；末轮复跑零失败）+server 376P 零失败（venv core 快照 uv --reinstall-package 同步后）+mypy 350/58 双绿+ruff 零违规。
 - **欠账登记**：①数值单 aao.microporous_aerator_piping=22.0 万元/台 追认请求（b6d-numeric-sheet §四——预授权②事后追认制，用户域非阻断）；②「万元/套」单位词表标准化呈裁（k1-N2——42 条设备条目旧源词表一致性 vs 单条语义精度，独立数据批裁量）；③direct 条目 quantity 一致性装载告警=后续批池位（k1-W3）；④PriceItem 手构造防线缺口（k1-W1——后续 cost 域新增构造点须走 load_prices 或显式 scale）；⑤count_times_value 通道维持预留（其语义对 n 恒定量无承载——field_mapping 头注在册）；⑥aao manifest 495 行/variants 499 行双贴墙（下次触碰先筹划拆件/外移）；⑦厌氧/缺氧搅拌器计数字段挂账维持（AO-F20 头注口径——无诚实字段禁臆造）。
@@ -280,3 +280,14 @@
 - **裁决八项**：A B0 跨基=维持现状／B 越带负值=维持不 clamp／C 扫洗比能=维持保守+注记／D 批6b 四键 D 级=全部追认（IPCC 表号级核对义务随追认激活=欠账③ 执行侧）／E LCC 年限=追认 30/10／F LCC 简化口径三件=全部追认（不进 objective 维持结构性排除）／G AAO 曝气器 22.0 万元/台=同意／H 单位词表=**标准化「万元/套」（翻案）**→立项批6o 独立数据批（逐条语义审计 42 条+RATIFY3 批准面重签；执行设计经门一烤验；裁决原文如实记，若本意为全量统改待用户澄清）。
 - **登记动作**：六卷宗追认框/终裁节代录 ☑+时戳（b6b-numeric-sheet/b6b-rulings/b6c-numeric-sheet/b6c-rulings/b6d-numeric-sheet/b6d-rulings）；本增补笔；批6o 清单行+checked_total 52→53。
 - **接力照常**：status READY/next=批6e 不变；批6o 排批6n 后。
+
+### 增补五十七 — 2026-09-26T2026-09-26T17:40:51ZZ（批6e 收口：全工况投影端点落地——READY）
+
+- **claim/commit**：executor-b6e-20260926T164735Z（16:47:35Z 认领——批6e 首班=workflow 通道 run dwfrun-5f21105e〔16:46:07Z 发布成立〕；调度员发布笔 16:46 与认领并发实录——认领前重读板头 claim=- 无冲突；组织主干=ai-dev-org v2.1.0 Skill 载入，盘点件 .workflow/skills-inventory-b6e.md）。实现单笔：145fbf4〔HUMAN-LOCK〕（20 文件 +1394/−146；预授权①依据=用户 2026-09-26 全局规划指令）。
+- **交付四件**：①server GET /api/calc/sensitivity/{{project_id}}（端点集 42→43 破面=wave6 §批6e 授权——main._EXPECTED_ENDPOINTS 净增归零压实恰 500+api_contract 42→43+calc 路由九→十）：design_offline_* 指标差全量返回（rows=summary design 基线键域 23 平键族×逐检修工况 values+deltas 绝对差——相对率归 FE 呈现面）+复用结果缓存快照零重算（latest_calc_result 共享件第八消费面）+stale=result_is_stale 四端点同口径+repro/task_id 回显（§12 快照绑定：输入变更标 stale 禁静默覆盖——rows 不改写实证）+design 基线缺席 404 fail-loud+capex 不在 summary 平键链无行（与 capex 无 avg 对同口径）；②webapp 龙卷风幅度轴升级全工况：app 层 useSensitivityQuery 取数下传+sensitivityView 窄化门（GR-20 前缀执法 fail-visible）+tornadoCharts.ts 拆件（jointCharts 510>500 预算墙触发——龙卷风域迁兄弟件 309+232）+sensitivitySeries 检修系列+buildTornadoOption 多系列+四态显式文案（快照绑定/stale 警示/404 详情透传/无条件指引/全零差语义说明）；③契约链：dump_openapi 再生成（38 路径/43 操作）+orval 重跑（生成物不入库）；④事实面实证（b6e-probe-summary.py）：run_full_calc summary 覆盖全工况已含 design_offline_*——零重算成立；当前零单元声明检修降级（pool.all_pools DSL 就绪无消费）→全差 0.0=诚实现状（端点如实返回+FE 全零差文案，单元侧声明映射后自然分化）。
+- **烤验（实现批全对抗位）**：门一 k1（主源席）首轮 PASS **B0/W5/N1**+门一 d1（异构源席）首轮 PASS **B0/W6/N6**——零 B 级；回炉一轮实修六项（eps 近零基线+除后非有限双守卫〔双席共指〕/键域漂移双分支测试〔双席共指〕/404 详情透传/全零差文案/色板 3→6 档/TASK_EVENT 失效联动）+抗辩维持两项（前缀执法=jointView 白名单先例 fail-visible 禁静默吞新键/values+deltas 双下=数据面完整）；处置全表 b6e-rulings.md。门二实证部=双路径复算 16/16 PASS（HTTP 正门 vs 结果件直读独立手算投影：23 行逐键 fp 级相等+零差现状 23/23+确定性双 GET 字节同+stale rows 不静默改写+404 面）；报告 b6e-probe-report.md（会话内实证位 E3 口径申报+账本行在案——未来时戳笔误一笔即改，批6a 同款教训）。无头抽查 6/6 PASS（playwright headless 四态 mock+canvas 尺寸非零+截图目检双系列渲染；拆件后复跑同绿）。
+- **收口三检**：run_gates 16 门禁全绿（145fbf4 提交后 trust_root 绿）；gen_status --check 零漂移（330 键/43 操作/81 webapp 测试件三处合法增量再生成，2158 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **1582P 零失败**（与批6d 基线逐位一致——零 core 改动实证）+server **384P 零失败**（376+8 新用例）+webapp solutions 151P+tsc 清+mypy 59 文件零错（server cwd 配置口径——仓根跑假红 65 错系 mypy_path 未装载，envs 同步 uv sync --reinstall-package waterprint-core）+ruff 零违规。
+- **锁面**：test_sensitivity.py 新 8 用例（端点集增量/形状与零差现状/无条件空集/确定性双跑/stale 不静默改写/404 两面+AU-1/键域漂移双分支/损坏件三路径 404）+test_calc 端点集九→十+test_api_contract 42→43+jointCharts.test 扩 6 用例（webapp 不入锁面）+sensitivityView.test 新 5 用例；329→330 根两轮重锁零丢失（ruff 导入序返工一笔）。
+- **欠账登记**：①检修降级声明零单元=幅度面全零现状（单元侧 condition_mappings 声明=数值语义批另行——引擎 DSL 就绪非本批范围）；②d1-N1 values 双下维持（数据面完整）/N2 幅度序归 FE 呈现面裁量（UX 批）；③engine/data_version 漂移提示面挂账（compare 同口径未呈）；④main.py 恰 500 贴墙（批6g 拆件既定项——本批净增归零压实）；⑤tornadoCharts.ts 新件 file-contracts 面以 solutions README 登记（webapp 惯例——非 md 职责表域）；⑥审档 k1/d1 判文在卷宗（gitignore 本地面——增补五十同口径）。
+- **预算记档**：fire_budget 120min 实耗≈62min（16:47:35Z~17:49Z）在限内。
+- **收口判定=⑤READY**：勾选 41→42（批6e ☑，余 10=批6f~6o+⑤b）；batch_count 4→5（<60）；墙钟≈5.6h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
