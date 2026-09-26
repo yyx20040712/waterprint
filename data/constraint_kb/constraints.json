@@ -5,7 +5,8 @@
     "数值投影口径：enumeration_filter 条目值=coefficients 1.1.0 factors.yaml 同值投影（value_basis 逐条注明源键——真源在系数库，本库不另立数值权威）；expression 字段与值禁跨命名空间映射（tuoshui dose_pam↔w_pam 等映射留追认裁定）。",
     "出处纪律（数据策略 v2）：source 只标国标+给水排水手册两类；起草期沿 units_lib CONSTRAINTS 原文携带「待追认」注记，追认后回写为已追认标记（Ruling 2026-08-31）。",
     "1.2.0（L4b 间距校核批）：增 kind=spacing_check 2 条（通用全对 WARN 6.0 m+浓缩—消化限定对 ERROR 10.0 m——expression 存 `min_clearance_m >= <float>`，server services.site 对该 kind 解析阈值；unit_kinds 空=全对通用/两键=限定对）。数值为 GB 50016 防火间距族类比起草态（八键 schema 零变更）——1.3.0 已追认定稿（Ruling 2026-09-03 用户批复「追认并继续开工」——两条数值 6.0/10.0 m 生效；L4b 笔 §23 引用系悬空，追认节实登 §24）。",
-    "1.4.0（SPC2 间距校核二期批）：增 kind=boundary_check 1 条（site.boundary_containment 用地红线越界校核——expression 契约 `containment == inside`，server services.site 对该 kind 解析 severity；core geometry/boundary 判定 OBB 四角内含；unit_kinds 空=全构筑物；无数值阈值=布尔内含判定，条目缺席=不校核）。severity=ERROR 系工程惯例「总图构筑物不得越用地红线」类比起草态待专家确认（数据策略 v2——pending-domain-expert.md 新节登记；旧 20 键零扰动）。"
+    "1.4.0（SPC2 间距校核二期批）：增 kind=boundary_check 1 条（site.boundary_containment 用地红线越界校核——expression 契约 `containment == inside`，server services.site 对该 kind 解析 severity；core geometry/boundary 判定 OBB 四角内含；unit_kinds 空=全构筑物；无数值阈值=布尔内含判定，条目缺席=不校核）。severity=ERROR 系工程惯例「总图构筑物不得越用地红线」类比起草态待专家确认（数据策略 v2——pending-domain-expert.md 新节登记；旧 20 键零扰动）。",
+    "1.5.0（backend-calc-complete 批3b 几何域拒批）：增 kind=geometry_guard 8 条（l_pool/b_pool/v_pool/n_aerator 四量各提示/拒收双门——expression 单侧 `field > <float>`（真=越门，与 enumeration_filter 可行带极性相反——消费面 solution apply_constraints 行字段布尔过滤同通道，severity=WARN 超工程常用提示/ERROR 荒诞域拒收=分层防御元数据）；unit_kinds 一律 [\"municipal_aao\", \"municipal_cass\"]——两包 out_dims 均含四量同名行字段，量级同域可用）。数值权威=b3a-research.md §二 B 组+§七追认记录 2026-09-26（用户「全部追认」Ruling——D 级 AI 推导值经追认生效；无 coefficients 源键，本库首次数值权威=追认单直录形态，value_basis 逐条溯源）；旧 21 键零扰动，计数 6+12+2+1→6+12+2+1+8（server test_constraints 同步）。"
   ],
   "entries": [
     {
@@ -232,6 +233,110 @@
       "source": "工程惯例（总图构筑物不得越用地红线——类比起草）；待专家确认（SPC2 批 2026-09-05）",
       "severity": "ERROR",
       "value_basis": "无数值阈值——布尔内含判定（containment == inside）；工程惯例类比起草待专家确认"
+    },
+    {
+      "key": "geometry.l_pool_hint",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池长超工程常用提示（l_pool）",
+      "expression": "l_pool > 300.0",
+      "source": "GB 50014-2021 §7.5.10-1 类比锚（平流沉淀池「池长不宜大于 60m」——同标准矩形池长上限先例，生物池无直接条文）+白龙港实践包络（280 万 m³/d 级 12 组折算单组长约 245 m=现行实践上沿）；b3a-research.md §二 B-1+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "WARN",
+      "value_basis": "b3a-research.md §二 B-1+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.l_pool_reject",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池长荒诞域拒收（l_pool）",
+      "expression": "l_pool > 1000.0",
+      "source": "GB 50014-2021 §7.5.10-1 类比锚（池长上限先例）+白龙港实践包络（实践上沿约 245 m 的 4 倍以上无任何工程实例）；b3a-research.md §二 B-2+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "ERROR",
+      "value_basis": "b3a-research.md §二 B-2+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.b_pool_hint",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池宽超工程常用提示（b_pool）",
+      "expression": "b_pool > 100.0",
+      "source": "GB 50014-2021 §7.5.10-1 类比锚（池长上限先例——单池包络宽较廊道宽大一个量级，廊道宽常用 5~10 m）+白龙港实践包络（折算单组宽约 98 m=实践上沿）；b3a-research.md §二 B-3+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "WARN",
+      "value_basis": "b3a-research.md §二 B-3+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.b_pool_reject",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池宽荒诞域拒收（b_pool）",
+      "expression": "b_pool > 400.0",
+      "source": "GB 50014-2021 §7.5.10-1 类比锚（池长上限先例）+白龙港实践包络（>400 m 无任何工程实例）；b3a-research.md §二 B-3+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "ERROR",
+      "value_basis": "b3a-research.md §二 B-3+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.v_pool_hint",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池容超工程常用提示（v_pool）",
+      "expression": "v_pool > 150000.0",
+      "source": "白龙港实践包络（200 万 m³/d 改扩建 6 座 12 组，按 HRT 8~12 h 折算单组池容约 5.6~8.3 万 m³，实践上沿约 10 万 m³ 级——15 万 m³ 提示门留裕量）；b3a-research.md §二 B-4+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "WARN",
+      "value_basis": "b3a-research.md §二 B-4+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.v_pool_reject",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池池容荒诞域拒收（v_pool）",
+      "expression": "v_pool > 1500000.0",
+      "source": "白龙港实践包络推导（>150 万 m³ 单池无任何工程实例）；b3a-research.md §二 B-4+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "ERROR",
+      "value_basis": "b3a-research.md §二 B-4+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.n_aerator_hint",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池曝气器数超工程常用提示（n_aerator）",
+      "expression": "n_aerator > 50000.0",
+      "source": "GB 50014-2021 §7.9.6 方法学确证（曝气器数量按供气量与服务面积计算确定——service_area=0.5 m²/个 面积法推导，白龙港级单组约 0.73 万个、518 万 m³/d+n=6 角点约 10.8 万个=提示门包络）；b3a-research.md §二 B-5+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "WARN",
+      "value_basis": "b3a-research.md §二 B-5+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
+    },
+    {
+      "key": "geometry.n_aerator_reject",
+      "kind": "geometry_guard",
+      "unit_kinds": [
+        "municipal_aao",
+        "municipal_cass"
+      ],
+      "label": "AAO/CASS 单池曝气器数荒诞域拒收（n_aerator）",
+      "expression": "n_aerator > 1000000.0",
+      "source": "GB 50014-2021 §7.9.6 方法学+实践包络推导（>100 万个单池无任何工程实例）；b3a-research.md §二 B-5+§七追认（Ruling 2026-09-26「全部追认」——D 级 AI 推导值经用户追认生效）",
+      "severity": "ERROR",
+      "value_basis": "b3a-research.md §二 B-5+§七追认 2026-09-26（无 coefficients 源键——数值权威=追认单）"
     }
   ]
 }

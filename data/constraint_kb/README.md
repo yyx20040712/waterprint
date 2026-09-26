@@ -1,9 +1,12 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.4.0（全量 21 条——存量 20 条已追认：18 条=Ruling 2026-08-31、
+> **状态：1.5.0（全量 29 条——存量 20 条已追认：18 条=Ruling 2026-08-31、
 > spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
-> 2026-09-05 工程惯例起草待专家确认）**；批复记录=.workflow/ledger.md
-> 两日 Ruling 条目+pending-domain-expert.md §22/§24 销账注。
+> 2026-09-05 工程惯例起草待专家确认；geometry_guard 8 条=批3b 2026-09-26
+> b3a-research.md §二 B 组+§七追认单直录——D 级 AI 推导值经用户「全部
+> 追认」生效）**；批复记录=.workflow/ledger.md 两日 Ruling 条目+
+> pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
+> b3a-research.md §七。
 > 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
@@ -38,8 +41,8 @@ options.constraints 通道）落地为：
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -82,6 +85,17 @@ options.constraints 通道）落地为：
   unit_kinds 恒空=全构筑物；无数值阈值。severity=ERROR 系工程惯例
   「总图构筑物不得越用地红线」**类比起草态待专家确认**（数据策略 v2
   ——pending-domain-expert.md 新节登记）。
+- geometry_guard（批3b 1.5.0 增 8 条——几何域拒面）：四量（l_pool/
+  b_pool/v_pool/n_aerator）各提示/拒收双门，expression=单侧
+  `field > <float>`（**真=越门**——与 enumeration_filter 可行带「真=在带」
+  极性相反；消费走 solution apply_constraints 行字段布尔过滤同通道，
+  severity=WARN 超工程常用提示/ERROR 荒诞域拒收=分层防御元数据）；unit_kinds
+  一律 `["municipal_aao","municipal_cass"]`（两包 out_dims 均含四量同名
+  行字段，量级同域可用——AAO v_pool=池体构造容积/CASS=单池有效容积）。
+  **数值权威=b3a-research.md §二 B 组+§七追认 2026-09-26**（用户「全部
+  追认」——D 级 AI 推导值经追认生效；无 coefficients 源键=本库首次
+  追认单直录形态，value_basis 逐条溯源——锚=GB 50014-2021 §7.5.10-1
+  类比+§7.9.6 方法学+白龙港实践包络推导链，见 b3a §三独立复算）。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
   的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core

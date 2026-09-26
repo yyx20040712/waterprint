@@ -193,3 +193,58 @@ def test_band_margin_index_follows_frame() -> None:
     column = band_margin_column(frame, [Constraint(key="kb.test",  # type: ignore[misc]
         expression="v >= 7.0 and v <= 10.0", source="kb:test")])
     assert list(column.index) == [10, 20, 30]
+
+
+# ══ 批3b geometry_guard 几何过滤域（kb 1.5.0 truth 投影——b3b）══
+
+import json  # noqa: E402 （域内追加——kb truth 读取用，isnan 先例同位）
+from pathlib import Path  # noqa: E402
+
+from waterprint.contracts.unit_api import Severity  # noqa: E402
+
+_REPO_DATA = Path(__file__).resolve().parents[3] / "data"
+
+
+def _geometry_constraints() -> list:
+    """kb 1.5.0 geometry_guard 8 条 → Constraint 集（真源投影——severity 随行）。
+
+    极性注记：geometry_guard 表达式=越门条件（真=越门），与 enumeration_filter
+    可行带（真=在带）极性相反——apply_constraints 为极性无关布尔通道，
+    WARN/ERROR 分层防御语义由 severity 元数据承载（kb README 收录边界同口径）。
+    """
+    raw = json.loads((_REPO_DATA / "constraint_kb" / "constraints.json").read_bytes())
+    return [
+        Constraint(  # type: ignore[misc]
+            key=str(item["key"]),
+            expression=str(item["expression"]),
+            source=str(item["source"]),
+            severity=Severity(str(item["severity"])),
+        )
+        for item in raw["entries"]
+        if item["kind"] == "geometry_guard"
+    ]
+
+
+def test_geometry_gates_flag_absurd_pool_dimensions() -> None:
+    """批3b：audit AUD-B3 病例几何（l=27779/b=11111.5/v=15.43 亿/n_aerator=
+    1.87 亿）——8 门表达式全真=荒诞组合全拦（b3a §三复算逐位口径）。"""
+    gates = _geometry_constraints()
+    assert len(gates) == 8  # kb 1.5.0 geometry_guard 全量（真源投影前提）
+    frame = _frame([{
+        "l_pool": 27779.0, "b_pool": 11111.5,
+        "v_pool": 1.543e9, "n_aerator": 1.87e8,
+    }])
+    result = apply_constraints(frame, gates)
+    assert list(result.feasible) == [0]  # 全门真（越门极性——见 _geometry_constraints 注记）
+    assert result.pass_matrix.to_numpy().all()
+
+
+def test_geometry_gates_pass_golden_like_dimensions() -> None:
+    """批3b：golden 量级单池（l=95/b=38/v=18050/n_aerator≈2165）——8 门全假=
+    工程常用域零误杀（b3a §三复算「全绿」行口径）。"""
+    frame = _frame([{
+        "l_pool": 95.0, "b_pool": 38.0, "v_pool": 18050.0, "n_aerator": 2165.0,
+    }])
+    result = apply_constraints(frame, _geometry_constraints())
+    assert list(result.feasible) == []
+    assert not result.pass_matrix.to_numpy().any()

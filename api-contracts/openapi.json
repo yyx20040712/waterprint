@@ -607,7 +607,8 @@
               "enumeration_filter",
               "effluent_standard",
               "spacing_check",
-              "boundary_check"
+              "boundary_check",
+              "geometry_guard"
             ],
             "title": "Kind",
             "type": "string"

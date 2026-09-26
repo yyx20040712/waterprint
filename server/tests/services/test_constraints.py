@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（21 条四类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（29 条五类/装载守卫四路/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -27,25 +27,32 @@ pytestmark = [
 _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/→仓库根
 
 # kb 计数分 kind 形态（RATIFY-L4 1.3.0：spacing_check 2 已追认；SPC2 1.4.0：
-# boundary_check 1 工程惯例起草待专家确认——增删同步）
+# boundary_check 1；批3b 1.5.0：geometry_guard 8——b3a-research.md §二 B 组+
+# §七追认 2026-09-26 追认单直录——增删同步）
 _FILTER_COUNT = 6
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
 _BOUNDARY_COUNT = 1
+_GEOMETRY_COUNT = 8
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：21 条四类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：29 条五类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
     assert len(entries) == (
-        _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT + _BOUNDARY_COUNT
+        _FILTER_COUNT
+        + _EFFLUENT_COUNT
+        + _SPACING_COUNT
+        + _BOUNDARY_COUNT
+        + _GEOMETRY_COUNT
     )
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
     assert kinds.count("effluent_standard") == _EFFLUENT_COUNT
     assert kinds.count("spacing_check") == _SPACING_COUNT
     assert kinds.count("boundary_check") == _BOUNDARY_COUNT
+    assert kinds.count("geometry_guard") == _GEOMETRY_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     raw = json.loads((_REPO / "constraint_kb" / "constraints.json").read_bytes())
@@ -117,6 +124,43 @@ def test_boundary_entry_carry_containment_contract() -> None:
     # 起草态口径：工程惯例类比+待专家确认（未追认——pending-domain-expert 登记）
     assert "待专家确认" in entry.source
     assert "待专家确认" in entry.value_basis
+
+
+def test_geometry_entries_carry_domain_gates() -> None:
+    """批3b：geometry_guard 面契约——四量（l_pool/b_pool/v_pool/n_aerator）
+    各提示/拒收双门（expression 单侧 `field > <float>`）+unit_kinds 恒
+    AAO/CASS 双键+severity WARN/ERROR 分层+数值权威=追认单直录
+    （b3a-research.md §二 B 组+§七 2026-09-26——无 coefficients 源键）。
+    """
+    catalog = list_constraints(_REPO)
+    geometry = [e for e in catalog.entries if e.kind == "geometry_guard"]
+    assert len(geometry) == _GEOMETRY_COUNT
+    by_key = {e.key: e for e in geometry}
+    assert set(by_key) == {
+        "geometry.l_pool_hint", "geometry.l_pool_reject",
+        "geometry.b_pool_hint", "geometry.b_pool_reject",
+        "geometry.v_pool_hint", "geometry.v_pool_reject",
+        "geometry.n_aerator_hint", "geometry.n_aerator_reject",
+    }
+    for entry in geometry:  # 单侧越门式：真=越门（消费面=solution 布尔过滤通道）
+        field = entry.key.split(".")[1].rsplit("_", 1)[0]
+        assert entry.expression.startswith(f"{field} > ")
+        assert set(entry.unit_kinds) == {"municipal_aao", "municipal_cass"}
+    for suffix, severity in (("hint", "WARN"), ("reject", "ERROR")):
+        matches = [e for e in geometry if e.key.endswith(f"_{suffix}")]
+        assert len(matches) == 4  # 四量各一提示门一拒收门
+        assert all(e.severity == severity for e in matches)
+    # 门位=b3a 追认单直录（kb 首次无 coefficients 源键形态——数值权威=追认单）
+    assert all("b3a-research.md" in e.value_basis for e in geometry)
+    assert all("追认 2026-09-26" in e.value_basis for e in geometry)
+    assert by_key["geometry.l_pool_hint"].expression == "l_pool > 300.0"
+    assert by_key["geometry.l_pool_reject"].expression == "l_pool > 1000.0"
+    assert by_key["geometry.b_pool_hint"].expression == "b_pool > 100.0"
+    assert by_key["geometry.b_pool_reject"].expression == "b_pool > 400.0"
+    assert by_key["geometry.v_pool_hint"].expression == "v_pool > 150000.0"
+    assert by_key["geometry.v_pool_reject"].expression == "v_pool > 1500000.0"
+    assert by_key["geometry.n_aerator_hint"].expression == "n_aerator > 50000.0"
+    assert by_key["geometry.n_aerator_reject"].expression == "n_aerator > 1000000.0"
 
 
 def test_filter_values_match_factors_truth() -> None:
@@ -230,16 +274,21 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——21 条四类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——29 条五类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
     entries = payload["entries"]
     assert len(entries) == (
-        _FILTER_COUNT + _EFFLUENT_COUNT + _SPACING_COUNT + _BOUNDARY_COUNT
+        _FILTER_COUNT
+        + _EFFLUENT_COUNT
+        + _SPACING_COUNT
+        + _BOUNDARY_COUNT
+        + _GEOMETRY_COUNT
     )
     assert {e["kind"] for e in entries} == {
-        "enumeration_filter", "effluent_standard", "spacing_check", "boundary_check",
+        "enumeration_filter", "effluent_standard", "spacing_check",
+        "boundary_check", "geometry_guard",
     }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
