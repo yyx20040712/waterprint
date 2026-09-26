@@ -26,8 +26,8 @@
 - checked_total: 38 <!-- 2026-09-25 增补二十五：27−1（B4-5 拆分）+12（第五波 R3/批2b/R4/批2d/R5/批3.5/批5/⑤a/批2c/批3a/批3b/⑤b） -->
 - checked_done: 32 <!-- 2026-09-25 批3.5 收口 31→32 -->
 - protocol_rev: 5 <!-- 2026-09-26 workflow 通道批原位升版 rev4→5：开批=CreateWorkflow 已存工作流/RUNNING 看护=GetWorkflowRun/UI 通道整段废止；旧值 4 -->
-- last_dispatch_utc: 2026-09-25T14:35:39.984Z <!-- 2026-09-25 第四班发布成立（回读④：sess_b606debd ~50s 落盘；env 块工作区=E:\class\handover——绑定偏差见增补三十三）；旧值 2026-09-25T12:07:25.336Z（第三班 R4） -->
-- workflow_run_id: - <!-- rev5 新增：当前批执行工作流 run id（dwfrun-…），空闲为 - -->
+- last_dispatch_utc: 2026-09-26T01:55:07.533Z <!-- 2026-09-26 rev5 首班发布成立（回读=run dwfrun-dc02b246 running+执行者子代理 executing——布防会话代发，增补二十七先例）；旧值 2026-09-25T14:35:39.984Z（第四班批2d·UI 通道末班） -->
+- workflow_run_id: dwfrun-dc02b246-5394-4a28-ac0d-d0aa6e3292d2 <!-- rev5 首班 批5 执行工作流 -->
 - relay_started_utc: 2026-09-26T01:48:14.457Z <!-- 2026-09-26 rev5 换防时刻；旧值 2026-09-25T09:46:25.615Z -->
 - batch_count: 0 <!-- 2026-09-26 rev5 换防复位（原 11；增补三十九停轮非熔断，用户显式续跑=换防重置留痕） -->
 - max_batches: 60
