@@ -53,6 +53,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+import structlog
 from waterprint import app as core
 from waterprint.flows import InvalidFlowError, params_guard
 
@@ -70,6 +71,8 @@ from waterprint_server.services.projects import (
 
 # 回滚捕获面：重算触发的现实异常族（grep 门禁禁过宽 except——领域面枚举）。
 _TRIGGER_FAILURES = (OSError, RuntimeError, ValueError, KeyError)
+
+_LOGGER = structlog.get_logger(__name__)  # 批3b：guard WARN 提示带日志面（exports.py 先例）
 
 
 class InvalidSolutionRefError(ValueError):
@@ -198,14 +201,18 @@ def _validate_apply_params(
 ) -> None:
     """AUDIT2 C-4：apply 参数域服务端守护（提交面 422 先于异步失败）。
 
-    AI1 轨道甲（2026-09-13）提取：三面守护逻辑迁 core.waterprint.flows.
-    params_guard（纯函数——CLI/MCP 共用），本函数转调并保持 server 版
-    整批拒语义=任一 verdict.accepted 为 False 即 raise InvalidSolutionRef
-    Error（消息含全部拒绝项）；目录外单元的 InvalidFlowError 同消息映射
-    422。守护三面（探针实录 2026-08-30）：值=有限数值（bool/str/NaN 拒）；
-    键=单元目录已知参数（META1 目录真源——kind 通道：节点覆写含 kind 用
-    kind，否则 unit_id）；grid 声明时值须命中档位（与 core 装配期同口径
-    前置）。range 面不在本守护（core 语义未锚——policy 后续批裁量）。
+    AI1 轨道甲（2026-09-13）提取：守护逻辑迁 core.waterprint.flows.
+    params_guard（纯函数——CLI/MCP 共用；批3b 拆件迁 flows/params_guard.py
+    再导出签名零变），本函数转调并保持 server 版整批拒语义=任一
+    verdict.accepted 为 False 即 raise InvalidSolutionRefError（消息含全部
+    拒绝项）；目录外单元的 InvalidFlowError 同消息映射 422。守护四面
+    （探针实录 2026-08-30 三面+批3b face④）：值=有限数值（bool/str/NaN
+    拒）；键=单元目录已知参数（META1 目录真源——kind 通道：节点覆写含
+    kind 用 kind，否则 unit_id）；grid 声明时值须命中档位（与 core 装配期
+    同口径前置）；range 声明时值须落闭区间+builtin 面 q_avg_daily 带
+    A-1~A-3（range 面已锚=core face④，b3a 批3b——specs=discover_units
+    全量覆盖）。WARN 提示带不进 422 面：verdict.warn 不阻塞仅日志记一条
+    （E2E-1 fail-fast 哲学：硬错早拒、软提示不拦）。
     """
     try:
         verdicts = params_guard(project, unit_id, params)
@@ -217,3 +224,9 @@ def _validate_apply_params(
             f"方案参数守护拒绝 {len(rejected)} 项（整批拒——AUDIT2 C-4）："
             + "；".join(v.reason or "" for v in rejected)
         )
+    for verdict in verdicts:
+        if verdict.warn is not None:
+            _LOGGER.warning(
+                "方案参数提示带不阻塞（E2E-1 软提示面）",
+                key=verdict.key, unit_id=unit_id, warn=verdict.warn,
+            )

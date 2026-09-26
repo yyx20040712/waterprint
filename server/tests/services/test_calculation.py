@@ -159,3 +159,59 @@ async def test_apply_solution_rolls_back_on_failure_wiring(service_ctx, monkeypa
     assert _file_digest(path) == before  # 项目文件字节未变（无半写）
     outcome = projects_mod.validate_project(service_ctx, project_id)
     assert outcome.valid  # 回滚后装载面完好
+
+
+# ── 批3b face④/builtin 带 422 与软提示面（b3a §二 A/E 组+§七追认）───────
+
+
+async def test_apply_rejects_out_of_range_param_422(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """批3b face④ E2E：cass t_draw=2.0 越带 [1.0,1.5]→InvalidSolutionRefError
+    （=路由 422 源——AUD2 C-4 整批拒语义；D-5 执法接线实证）。"""
+    project_id = await _created(service_ctx)
+    with pytest.raises(_mod.InvalidSolutionRefError, match="越带"):
+        await apply_solution(
+            service_ctx,
+            project_id,
+            {"unit_id": "municipal_cass", "params": {"t_draw": 2.0}},
+        )
+
+
+async def test_apply_rejects_absurd_inlet_flow_422(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """批3b A-1 E2E：q_avg_daily=34760.7（万 m³/d 量级误填 m³/s——audit
+    AUD-B3 病例）超 60 m³/s 硬界→422 拒（进水物理域检之前提交面早拒）。"""
+    project_id = await _created(service_ctx)
+    with pytest.raises(_mod.InvalidSolutionRefError, match="硬界"):
+        await apply_solution(
+            service_ctx,
+            project_id,
+            {"unit_id": "inlet", "params": {"q_avg_daily": 34760.7}},
+        )
+
+
+async def test_apply_warn_band_not_blocking_only_logged(  # type: ignore[no-untyped-def]
+    service_ctx, monkeypatch
+) -> None:
+    """批3b A-2：提示带不阻塞（E2E-1 fail-fast——硬错早拒、软提示不拦）
+    +服务侧日志记一条（verdict.warn→_LOGGER.warning，exports.py 先例面）。"""
+    from types import SimpleNamespace
+
+    recorded: list[dict] = []
+
+    class _SpyLogger:
+        def warning(self, event: str, **kw: object) -> None:
+            recorded.append({"event": event, **kw})
+
+    async def quiet_trigger(*args, **kwargs):  # type: ignore[no-untyped-def]
+        return SimpleNamespace(task_id="t-warn-face")
+
+    monkeypatch.setattr(_mod, "_LOGGER", _SpyLogger())
+    monkeypatch.setattr(_mod, "submit_calculation", quiet_trigger)
+    project_id = await _created(service_ctx)
+    outcome = await apply_solution(
+        service_ctx,
+        project_id,
+        {"unit_id": "inlet", "params": {"q_avg_daily": 12.0}},  # ≈103.7 万 m³/d 提示带
+    )
+    assert outcome.project_id == project_id  # 不阻塞：应用成功
+    assert outcome.recalc_task_id == "t-warn-face"
+    assert any("超大型厂" in str(r.get("warn", "")) for r in recorded)  # 日志恰记
