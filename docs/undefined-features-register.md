@@ -55,7 +55,7 @@
 | UF-22 | 参数 | ParamSpec 范围端点语义：manifest.py 只写"范围（可选，约束层消费）"，闭/开区间未写——实现者可自创开区间误拒端点合法方案 | 已定义→GR-06（默认闭区间，开区间显式声明） | 本批 sweep |
 | UF-23 | 汇流 | 汇流 ΣQi=0 的除零：propagate.py 负荷加权 ΣCi·Qi/ΣQi，权重全零时 0/0 处置未写 | 已定义→GR-02（运算产生 NaN=compute 内转领域异常上抛） | 本批 sweep |
 | UF-24 | 参数 | 输入物理合理性带归属：flow.py R3 只对 Kz 言明"行业上下限属 constraint_kb 数据"；其余量（q_avg_daily 无上限、浓度上限等）的合理性带归属与数据载体未写 | 待定义→constraint_kb 数据录入工作包（A8 类；契约只守数学不变量的 Kz 模式推广） | 本批 sweep |
-| UF-25 | 错误处理 | 用户可见文本语言策略：异常/警告消息中文单语已成事实（expr.py 等既有实现），但"中文单语 vs 走 i18n 键"未拍板；一旦多语言化与 GR-09 冻结规则的相容方式需定 | **疑似**——领域专家/总控待拍板（先按中文单语现状执行，GR-09/GR-20 冻结规则先行） | 本批 sweep |
+| UF-25 | 错误处理 | 用户可见文本语言策略：异常/警告消息中文单语已成事实（expr.py 等既有实现），但"中文单语 vs 走 i18n 键"未拍板；一旦多语言化与 GR-09 冻结规则的相容方式需定 | **显式不做 i18n**：中文单语定版（批6h 2026-09-27 闭项——预授权③主控推荐案〔用户 2026-09-26「全部安排上」全局规划指令〕；异常/警告/界面文案全仓中文单语不引入 i18n 键层，GR-09 消息稳定性/GR-20 冻结规则继续先行；用户翻案=独立勘误批） | 本批 sweep → 批6h 闭项 |
 | UF-26 | 任务系统 | server 重启任务恢复：manager.py R4 只写"注册表在内存、replicas=1"，重启后 queued/running 任务与任务历史的恢复语义（丢失是否接受、是否持久化）未写 | **已定义→显式 v1 语义（批6f 2026-09-26 闭项——实装面回写；本行旧前提「只在内存」系 sweep 时点陈述，S2/ENG5 落盘化后失真）**：单实例（api replicas=1）四条明示：①终态任务记录落盘（registry_dir 四时机原子写：submit 初档 queued/_pump running 迁移/_finish 终态/cancel·shutdown 的 queued 终态）重启恢复供读；②queued/running 非终态重启**不续跑**——恢复记录经 iter_restorable 变换为 failed（error_type=InterruptedByRestart，error_code=None 诚实——生命周期事件不入领域码表）可查不丢痕；③幂等表不恢复（ENG5 D5——重提交=新任务）；④前端对失效任务 id 重提交即新任务（TaskPanel statusError 指引文案在案）。deployment.md「单进程契约」节重启语义注记同口径；多副本=未来 Redis 化（ADR 不做）。 | 本批 sweep；批6f 闭项 |
 | UF-27 | 序列化 | view 态时间戳格式：project_schema.py 只写 ViewState 含时间戳，格式（UTC？ISO？本地字符串）未写——本地时间字符串跨机排序错序 | 已定义→GR-19（UTC ISO 8601，禁本地时间字符串） | 本批 sweep |
 | UF-28 | 可观测 | 进度事件 percent 口径：worker.py R3 只写"阶段百分比+逐工况粒度"，跨阶段/跨工况的总 percent 加权口径（工况数均分？单元数加权？）未写，实现者随手定 | **已冻结·SERVER（2026-08-26）**：percent=(index+1)/(total+1) 阶段幂商式（阶段表 _STAGES 为分母基；ADR-009 白名单字面量）——工况级加权口径挂起（core run 单调用无逐工况回调钩子，与 UF-49 协作钩子缺位同批）；events 背压丢旧保新语义已对账（manager._emit：进度满即弃最旧，state/stale 不丢） | 本批 sweep |
@@ -314,3 +314,9 @@ grep -n "domain_water\|DOMAIN_COLORS" webapp/src/shared/ui/semanticColors.ts | h
 grep -n -- "--wp-water\|--wp-sludge\|--wp-mine\|--wp-convey" webapp/src/app/global.css | head -4
     # 两侧同值 #4da3ff/#9c6b45/#35c9b0/#9aa8b8——同步义务人工承载
 ```
+
+## 十五、批6h 新增项（2026-09-27，wave6 卫生批——AUD-W10 闭项锚）
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-54 | 比选·约束语义 | constraint severity 软语义：未勾选默认态是否提供「WARN 越带注记不滤」呈现（现=未勾选即不参与过滤、勾选即硬滤全级别=CP1 用户裁决 2026-08-31「勾选=过滤」；severity 仅随行元数据）——软档呈现属产品裁决位 | 待拍板→AUD-W10 闭项锚（批6h 2026-09-27：维持勾选即硬滤+kb README/solution·constraints 规格头注记双锚在案；软语义实现时两注记同步） | audit AUD-W10 / 批5 Rulings |

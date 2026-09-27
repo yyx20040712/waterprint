@@ -31,6 +31,11 @@
 # 工单①）：aao/cass 同族公式族结构恒等机器断言+显式 delta 清单（需氧量
 # /曝气/污泥/能耗+几何/容积平移族——静默分叉变响红；AST 静态实读零依赖）
 # ——门禁数基线 15→16。
+# 第十七门禁 check_constraint_sync.py（批6h 2026-09-27 AUD-W9 闭项）：
+# 约束同源三向对拍——units_lib 各包 ConstraintDecl 声明↔manifest
+# constraint_refs↔factors.yaml 数值真源+kb value_basis 数值投影（死
+# 声明静默分叉变响红；受限静态求值零依赖——bashi 动态构造面在内）
+# ——门禁数基线 16→17。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -41,6 +46,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 GATES = (
+    "check_constraint_sync.py",
     "check_contract_headers.py",
     "check_deprecation_gate.py",
     "check_dim_labels_mirror.py",

@@ -48,8 +48,16 @@ EXPOSE 8000
 # C-1（e2e-fix-round3 R4 2026-09-25）：uvicorn 直启面启动校验收敛——entrypoint
 # 前置 validate_data_packages（与 python -m 入口同源；缺包/manifest 空损=
 # 可执行文案拒绝启动，E2E-1 欠账②闭环）。exec 语义=uvicorn 仍为 PID 1。
-COPY --chmod=755 deploy/server-entrypoint.sh /usr/local/bin/server-entrypoint
-ENTRYPOINT ["server-entrypoint"]
+# 批6h（wave6 §批6h③④ 2026-09-27）：①ENTRYPOINT 绝对路径化 /app/… 钉死
+# （原 PATH 解析名 server-entrypoint 改显式绝对路径——不依赖容器 PATH 面）；
+# ②COPY --chmod 弃用改 COPY+RUN chmod——--chmod 系 BuildKit-only 语法，
+# 本机 Docker 29.7.2 实测 classic builder 已不可达（buildx CLI 无 --no-buildkit
+# 旗标=exit 125「unknown flag」；DOCKER_BUILDKIT=0 仍走 BuildKit 前端解析
+# syntax 行），改保守写法后 Dockerfile 全语法 classic 兼容（旧守护进程可解析），
+# 运行时行为零变（同一文件同一权限位，多一个 4KB chmod 层）。
+COPY deploy/server-entrypoint.sh /app/server-entrypoint.sh
+RUN chmod 755 /app/server-entrypoint.sh
+ENTRYPOINT ["/app/server-entrypoint.sh"]
 # WP1 安全收口：--host 0.0.0.0 不可改 127.0.0.1——nginx（webapp 容器）经服务名
 # waterprint-server 跨容器反代，须绑容器内全部网卡；宿主侧 compose 已无 ports 直映
 # =8000 不出容器网桥（对外唯一入口=webapp 8080，见 docs/deployment.md「安全红线」）。

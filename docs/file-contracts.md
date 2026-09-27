@@ -239,6 +239,7 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `scripts/gate_patterns.py` | 占位（英文四词+中文硬封族六词，GOV1/ADR-013）/裸异常/乱码特征串集中定义（拼接构造避免自匹配） |
 | `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁+90% 提前告警（[WARN] 档零退出码变化——ENG8）+file-contracts 行数注记一致性面（GOV4 起兼作 gen_contract_lines 忘跑检测器——注记漂移即红，ADR-016） |
 | `scripts/gen_contract_lines.py` | 行数注记生成器：表内「N 行」数字刷新为实体实数（幂等；在场/缺席仍人审——ADR-016；解析口径单源=check_file_budgets） |
+| `scripts/check_constraint_sync.py` | 约束同源三向对拍门禁（批6h AUD-W9 闭项）：units_lib 各包 CONSTRAINTS 声明↔manifest constraint_refs↔factors.yaml 键在场+kb value_basis 数值投影恒等——死声明静默分叉变响红（受限静态求值零依赖，bashi 动态构造面在内；红探针 P1~P3 实录批6h） |
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0 |
 | `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |

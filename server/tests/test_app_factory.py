@@ -95,7 +95,15 @@ async def test_c2_static_units_no_store(client) -> None:  # type: ignore[no-unty
 @pytest.mark.anyio
 async def test_c2_head_no_store(client) -> None:  # type: ignore[no-untyped-def]
     """C-2 回炉（d1 N-5）：HEAD 防御覆盖——FastAPI APIRoute 实测 405 不自动容许 HEAD
-    （门一框架论断证伪记录）；405 响应仍过中间件，头在场即证判据面覆盖。"""
+    （门一框架论断证伪记录）；405 响应仍过中间件，头在场即证判据面覆盖。
+
+    版本耦合注记（批6h 2026-09-27——wave6 §批6h⑧）：本断言与 fastapi
+    （传递 starlette）版本行为耦合——现行 fastapi>=0.115 下 APIRoute
+    不自动容许 HEAD 故 405；若上游未来改为自动 HEAD 容许，本用例转红
+    =有意识绊线（fail-visible），届时人工确认中间件头判据在新语义下
+    仍覆盖（200 响应同过中间件）后再更新期望——禁随手改绿。pyproject
+    不设 upper bound（依赖钉扎=用户裁决位，批6h Rulings 呈报）。
+    """
     resp = await client.head("/api/projects")
     assert resp.status_code == 405
     assert resp.headers["cache-control"] == "no-store"

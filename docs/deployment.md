@@ -44,7 +44,7 @@
 
 | 项 | 要求 | 说明 |
 |----|------|------|
-| Docker Engine | 24+（含 BuildKit；本仓实测 29.7.2/WSL2） | `docker --version` 自查 |
+| Docker Engine | 24+（含 BuildKit；本仓实测 29.7.2/WSL2） | `docker --version` 自查。批6h 实测注记（2026-09-27）：Docker 29 的 build CLI 已委派 buildx——`--no-buildkit` 旗标不存在（exit 125「unknown flag」）、`DOCKER_BUILDKIT=0` 亦仍走 BuildKit 前端=**classic builder 在现行工具链不可达**；Dockerfile.server 已全语法 classic 兼容化（COPY --chmod→COPY+RUN chmod，ENTRYPOINT 绝对路径 /app/ 钉死——旧守护进程可解析），部署按 BuildKit 内建引擎走即正常路径 |
 | Docker Compose | v2+（`docker compose` 子命令；本仓实测 v5.5.0） | 旧版 `docker-compose` 独立二进制不在支持面 |
 | 端口 | 8080（Web 入口，唯一对外端口）空闲 | 占用改法见 FAQ-1；server 8000 不发布宿主 |
 | 网络 | 构建期需可达 PyPI 镜像（aliyun，pyproject 已配）与 npm 镜像（npmmirror，.npmrc 已配）；运行期零外部请求 | 产品约束：无出站依赖 |
