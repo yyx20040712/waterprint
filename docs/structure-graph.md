@@ -79,8 +79,8 @@
 | `waterprint_server.main` | `waterprint_server.jobs` | 生命周期内创建/销毁进程池 |
 | `waterprint_server.main` | `waterprint_server.settings` | 读取配置装配应用 |
 | `waterprint_server.main` | `api-contracts` | 启动契约自检并导出 OpenAPI（M2 起） |
-| `waterprint_server.main` | `waterprint.app` | 模块级内核引用（core 再导出面/领域异常）——ENG2 B3 补登 |
-| `waterprint_server.main` | `waterprint.contracts` | InvalidUnitConfig 异常映射（R2 唯一翻译处）——ENG2 B3 补登 |
+| `waterprint_server.main` | `waterprint.app` | 模块级内核引用（core 再导出面/领域异常）——ENG2 B3 补登；批6g 2026-09-26 import 现场迁 main_lib 伴生件（R2 异常映射域拆件——边属 main 节点伴生面不变） |
+| `waterprint_server.main` | `waterprint.contracts` | InvalidUnitConfig 异常映射（R2 唯一翻译处）——ENG2 B3 补登；批6g 2026-09-26 import 现场迁 main_lib 伴生件（R2 异常映射域拆件——边属 main 节点伴生面不变） |
 | `waterprint_server.routers` | `waterprint_server.services` | 薄协议转换，只调服务（禁业务逻辑） |
 | `waterprint_server.routers` | `waterprint.contracts` | projects 导入面 parse_project 校验——ENG2 B3 补登 |
 | `waterprint_server.routers` | `waterprint_server.settings` | events 开流分量校验 validate_component——AUDIT2 FIX1 I-2 补登 2026-08-30 |

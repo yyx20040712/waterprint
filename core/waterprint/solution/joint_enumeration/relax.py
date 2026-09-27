@@ -45,9 +45,11 @@ from typing import TYPE_CHECKING, Any, final
 from waterprint.solution.joint_enumeration import diagnose as joint_diagnose
 from waterprint.solution.joint_enumeration import stage as joint_stage
 
-if TYPE_CHECKING:  # 编排器与选项类型面（beam 定义——运行期零导入防环）
+if TYPE_CHECKING:  # 编排器与选项类型面（beam/search 定义——运行期零导入防环；批6g 迁 search）
     from waterprint.solution.joint_enumeration.beam import (
         JointEnumerationOptions,
+    )
+    from waterprint.solution.joint_enumeration.search import (
         JointOutcome,
         _JointSearch,
     )

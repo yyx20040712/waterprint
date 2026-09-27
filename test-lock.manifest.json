@@ -178,6 +178,7 @@
   "core/tests/solution/test_pipeline_units.py": "c08b82814427c16b47acbbd35dbc9fa1a39a1ceca2f4007fe77246c71c3dacb2",
   "core/tests/solution/test_ranking.py": "59b19bc927439972db16b298c5d330d0591a41a9a2260fc14f6c69f31a795fe0",
   "core/tests/solution/test_relax.py": "acc1140961618c7961bb6cd1e90593ea2a4c46d8fa93e51197202670662959c6",
+  "core/tests/solution/test_search.py": "6e607dcf40b55aaed56ed7b6cdc5b2d884719effc6209f7fd10630d38c8233e5",
   "core/tests/solution/test_stage.py": "6cb86f912fb63abff665945f0a71133d5560f7d7135505d2896295a17caab947",
   "core/tests/solution/test_stage_proxies_nan.py": "a25ed765af4a158e240745614d08840cad9abc5848d6edffa6df0460488869f0",
   "core/tests/trace/test_audit.py": "cbb1ea74394e1e0876b23b3a6ca2bb91fb240879affdf3090a78ed63c0dcf5c2",

@@ -1,6 +1,6 @@
 """联合枚举子包聚合正门（B4-3）：分层 beam 全厂联合枚举（ADR-025）。
 
-输入:  beam/stage/ranking/diagnose/final_eval 五部件公开面
+输入:  beam/search/stage/ranking/diagnose/final_eval/relax 七部件公开面
 输出:  run_joint_enumerate/JointEnumerationOptions/JointOutcome/ComboResult/
        JointEnumerationTooLarge/estimate_rows/terminal_summary（app 再导出=
        server 单入口）
@@ -16,10 +16,13 @@
 #   DesignState→execute_graph 全厂一次含全工况→summary 出水六指标
 #   compliant 硬门+W12 三真键排序）。
 #
-# 【部件分工】beam=主编排/静态预检/双轴预算；stage=冻结前缀+基线上下文
+# 【部件分工】beam=正门/选项 schema/末空级诊断；search=编排器主题段
+#   （_JointSearch+拓扑序+双轴预算——批6g 自 beam 拆件，beam 再导出
+#   公开三名）；stage=冻结前缀+基线上下文
 #   +逐级枚举+阶段代理分；ranking=全厂目标函数+降权标记制排序；diagnose
 #   =分层最小冲突集（首空级既有 diagnose 委托+末空级一次放宽）；
-#   final_eval=末段全厂真值评估面（beam 500 行预算拆件——宪法 §2）。
+#   relax=末空级放宽重试（批5 自 beam 拆件）；
+#   final_eval=末段全厂真值评估面（beam 预算拆件——宪法 §2）。
 #
 # 【同层边注记】包根=waterprint.solution → waterprint.graph 唯一 import
 #   现场（execute_graph 直调——W6 终裁「不新写拓扑序不构成双轨」；子件
