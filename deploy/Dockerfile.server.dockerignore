@@ -3,6 +3,10 @@
 webapp/
 docs/
 scripts/
+# 批6h B1（auditor-readonly 异源审 2026-09-27）：治理面/会话工件不入构建上下文
+.workflow/
+.zcode/
+.mimosa/
 api-contracts/
 .github/
 deploy/

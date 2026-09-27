@@ -51,6 +51,9 @@ _WHITELIST: frozenset[str] = frozenset({
 })
 
 _LATERAL_PREFIXES = ("waterprint_server.services", "waterprint_server.jobs", "waterprint_server.auth")
+# 命名空间导入白名单（W7 收死 2026-09-27——auditor-readonly 审：防「是模块即过」退化；
+# 在册唯一形态=jobs.worker〔表内点访问 worker.InvalidTaskPayloadError〕）
+_NAMESPACE_ALLOWED: frozenset[tuple[str, str]] = frozenset({("waterprint_server.jobs", "worker")})
 
 
 def _lateral_imports() -> dict[str, set[str]]:
@@ -96,9 +99,13 @@ def test_a3_lateral_names_are_exceptions() -> None:
             obj = getattr(loaded, name, None)
             if obj is None:
                 offenders.append(f"{module}.{name}=不可解析")
-            elif inspect.isclass(obj) and not issubclass(obj, Exception):
-                offenders.append(f"{module}.{name}=非异常类")
-            elif not (inspect.isclass(obj) or inspect.ismodule(obj)):
+            elif inspect.isclass(obj):
+                if not issubclass(obj, Exception):
+                    offenders.append(f"{module}.{name}=非异常类")
+            elif inspect.ismodule(obj):
+                if (module, name) not in _NAMESPACE_ALLOWED:
+                    offenders.append(f"{module}.{name}=命名空间导入不在显式白名单")
+            else:
                 offenders.append(f"{module}.{name}={type(obj).__name__} 非异常类/命名空间")
     assert not offenders, (
         f"main_lib 横向口导入非异常名字（正当性=异常映射表类基）：{offenders}"

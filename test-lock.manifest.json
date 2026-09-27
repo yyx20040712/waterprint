@@ -326,7 +326,7 @@
   "server/tests/test_auth.py": "6262639de0af536fcacc8494e4bd6cc666219df838716d66e9b6203adaa0e55d",
   "server/tests/test_cost.py": "7a98f0ba59142372025bc297c8219fa6193f95dbe7e6fcd65ed4853e7d743a53",
   "server/tests/test_elevation.py": "d68fd9c1bf6ed85852f93b976eb383d7060c4008cd58c41b9efb9c03dcf46fe6",
-  "server/tests/test_main_lib_contract.py": "5c25383f74a055c6888d87cb224487e6be0c0a08de49106e217a8c33c2d913cf",
+  "server/tests/test_main_lib_contract.py": "621ab1e235644459e200aead1818b50bd666fd44c83e30df75ef1dc2326932c9",
   "server/tests/test_server_maintenance.py": "38f460a59a72e7cad1822942adec98774244ce5289e6be26f4ff352b8ba7ee13",
   "server/tests/test_settings.py": "f43b01d9d13178ebd5ae891b5a412b06b7c9b3c5601d5a75c1e1d968f3c8d480",
   "server/tests/test_trust.py": "f49492e177d0f9f0ae1e31dd8db5942983a83afa3594d174fa55b660d1b8269b",
