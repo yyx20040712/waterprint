@@ -13,7 +13,7 @@
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
 - status: READY <!-- 2026-09-27 增补六十：批6h 收口 READY（卫生合集九小项——2 commits 60b48e36+925d5f1〔HUMAN-LOCK〕/auditor-readonly 异源审返工回炉三项实修/17 门禁全绿/三检零漂移）；next=批6i -->
-- automation_id: automation-886fb903-bc00-4d51-9043-61c60ccf6c9a <!-- 2026-09-26 用户直令重布回填（*/20 节律——automation-143e250a 二次熄火后恢复）；旧值 automation-143e250a…（已熄） -->
+- automation_id: automation-a23ac2a7-7698-4283-8ce0-e1020aaa70a4 <!-- 2026-09-29 换防迁火回填（*/20 节律维持——接任会话）；旧值 automation-886fb903…（随前会话熄火，CronList 零残留） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
@@ -27,15 +27,15 @@
 - checked_done: 45 <!-- 2026-09-27 批6h 收口 44→45（增补六十） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
 - last_dispatch_utc: 2026-09-27T00:53:15.214Z <!-- 2026-09-27 批6h 首班发布成立（回读=run dwfrun-6dd18ac4-a432-434b-80ec-8ff031a471da running+执行者子代理 executing）；旧值 2026-09-26T23:51:05.993Z（批6g 首班） -->
-- workflow_run_id: dwfrun-6dd18ac4-a432-434b-80ec-8ff031a471da <!-- 批6h 首班执行工作流（门禁硬化+部署卫生+杂项闭项——R5 结转护栏/p150k 留证/ENTRYPOINT/builder 实测/AUD-W9·W10/UF-25/main_lib 横向口负例契约结转） -->
-- relay_started_utc: 2026-09-26T12:10:48.865Z <!-- 2026-09-26 rev6 换防时刻（本会话）；旧值 2026-09-26T04:00:36.124Z（rev5 二次换防） -->
-- batch_count: 8 <!-- 2026-09-27 批6h 收口 7→8（增补六十） -->
+- workflow_run_id: - <!-- 2026-09-29 换防复位；旧值 dwfrun-6dd18ac4…（批6h 首班 run——GetWorkflowRun 实核 completed 2026-09-27T01:50:59Z） -->
+- relay_started_utc: 2026-09-28T23:42:01.859Z <!-- 2026-09-29 换防时刻（接任会话——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-26T12:10:48.865Z（rev6 首换防） -->
+- batch_count: 0 <!-- 2026-09-29 换防复位（熔断预算 0/60 重计）；旧值 8 -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
-- last_handover: 2026-09-26
-- claimed_by: executor-b6h-20260927T005440Z <!-- 批6h 认领 -->
-- claimed_at: 2026-09-27T00:54:40Z <!-- 批6h 认领时戳 -->
+- last_handover: 2026-09-29
+- claimed_by: - <!-- 2026-09-29 换防复位（批6h 收口遗留残值清理） -->
+- claimed_at: - <!-- 2026-09-29 换防复位 -->
 - next_batch: 批6i 纵断真实站距（站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度默认+逐边手动覆盖例外——设计按此轴心三段通道展开+profile 桩号轴实装；+批6h 结转欠账：p150k enum 行数=0 二分归因+check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项——见增补六十欠账登记）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
