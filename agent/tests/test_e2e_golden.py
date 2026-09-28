@@ -154,14 +154,20 @@ def test_golden_full_chain_mcp(  # noqa: PLR0913, PLR0915, PLR0917  # 参数化�
                     anchor["value"], rel=anchor["rel"], abs=anchor["abs"]
                 ), f"{seed} design.{indicator}"
         # 六指标锚②（快照真值面）：终水单元 outqualities（golden 四用例
-        # 同口径；容差=serialize round10 契约上界）。
+        # 同口径；容差=serialize round10 契约上界）。成员守卫=锚①同款：
+        # golden effluent.design 自 B4-2a 起混入全厂级平键（碳/能耗/成本/
+        # 负荷族——只驻 summary 不驻单元端口），该面已由锚① summary 锚定；
+        # 此处只锚单元端口真实在场的键（R-B44a-2 在册债修复——守卫落地）。
         terminal_detail = client.call(
             "wp_get_unit_detail",
             {"project_id": pid, "unit_id": terminal, "condition_key": "design"},
         )
         assert "error" not in terminal_detail, terminal_detail
         for indicator, anchor in expected["effluent"]["design"].items():
-            actual = terminal_detail["outqualities"][f"{terminal}.out.{indicator}"]
+            oq_key = f"{terminal}.out.{indicator}"
+            if oq_key not in terminal_detail["outqualities"]:
+                continue
+            actual = terminal_detail["outqualities"][oq_key]
             assert actual == pytest.approx(
                 anchor["value"], rel=anchor["rel"], abs=_SNAPSHOT_ABS
             ), f"{seed} design.{indicator}（快照 round10 面）"

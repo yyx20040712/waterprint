@@ -288,14 +288,14 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `agent/waterprint_agent/chat/loop.py` | 编排环（LLM 步→工具步→回填→终止/上限 12/连续 2 失败降级+事件流+单发入口） | 会话+用户文本+可注入 LLM | TurnResult+事件回调 |
 | `agent/waterprint_agent/chat/sessions.py` | 会话存储（sessions/chat/ 追加式 JSONL+滑动窗口投影+项目绑定+决策纪要） | 会话 ID/消息/决策四键 | ChatSession+窗口投影 |
 | `agent/waterprint_agent/chat/llm.py` | LLM 客户端（OpenAI 兼容 urllib 零新依赖+三中性键 env+不可用族收敛——密钥零泄漏） | ChatConfig+messages+tools | LlmReply/LlmUnavailableError |
-| `agent/waterprint_agent/chat/toolspec.py` | 环工具清单（21 工具 JSON schema+懒加载分发——签名自适应 ctx，经 run_tool 记账） | 工具名+arguments | schema 列表/结果 dict |
+| `agent/waterprint_agent/chat/toolspec.py` | 环工具清单（23 工具 JSON schema+懒加载分发——签名自适应 ctx，经 run_tool 记账） | 工具名+arguments | schema 列表/结果 dict |
 | `agent/waterprint_agent/chat/prompts.py` | 系统提示唯一构造面（中性中文——零模型代号零数字主张） | 绑定态+降级态 | system 文本 |
 | `agent/waterprint_agent/chat/fallback.py` | 关键词直译回退（话术→种子计划——B4-4a 蓝图沿承，非设计域显式拒绝） | 话术 | FallbackPlan/None |
 | `agent/waterprint_agent/chat/__main__.py` | Chat CLI 入口（单发/交互/worker 桥 JSONL 事件流/历史/清单五模式） | argv+env | stdout+退出码 |
 | `agent/waterprint_agent/tools/solution.py` | 方案组 #22（B4-4b 子批 3：wp_run_joint_enumeration 进程内同步联合枚举——core 正门与 worker 同一装配口径[flows 条件/标准+RunEnv]；护栏族捕获转 rejected dict 可解释回显；unit_ids<2 域下界拒） | project_id+unit_ids+top_n | top-N 组合投影 dict |
 | `agent/waterprint_agent/tools/overview.py` | 观测组 #23（B4-4b 子批 3：wp_get_ops_overview 跨项目聚合——results 区 mtime 降序 limit 件+stale 计数[结果 digest vs 项目 content_hash 同源判定]+诊断摘要；results.py 500 顶墙故独立模块；server ops-chain 互补非替代——沙箱任务表恒空事实） | limit | 聚合概览 dict |
 | `agent/waterprint_agent/chat/narrative.py` | 轨道丙扩展（B4-4b 子批 3：决策纪要→process_selection 叙述草稿——纯模板零计算，经 narrative_fills 人工采用；verify 门零动） | 决策四键列表 | 叙述建议文本 |
-| `agent/waterprint_agent/main.py` | MCP server 入口（FastMCP 懒加载单例+五组 21 工具注册+instructions） | env/stdio | MCP 会话 |
+| `agent/waterprint_agent/main.py` | MCP server 入口（FastMCP 懒加载单例+七组 23 工具注册+instructions） | env/stdio | MCP 会话 |
 | `agent/waterprint_agent/context.py` | AgentContext 装配束（私有 Manager/绝对路径 Settings/PathGuard/SessionLog/run_tool 统一包装+异常兜底） | 沙箱根+数据包路径 | AgentContext |
 | `agent/waterprint_agent/pathguard.py` | 沙箱唯一 IO 门（realpath+normcase 归一后前缀判定；拒 ../UNC/跨盘符；正式区只读门） | 相对路径+area | 解析后绝对路径/PathGuardError |
 | `agent/waterprint_agent/sandbox.py` | 沙箱根解析（env 覆盖）+五区目录树幂等初始化+workspace.toml | 沙箱根 | 初始化目录树 |
@@ -310,4 +310,4 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `agent/waterprint_agent/report/render_md.py` | AST→Markdown 渲染器+溯源索引（标准库拼装，确定性输出） | ReportAST+narrative_fills | markdown 字符串 |
 | `agent/waterprint_agent/report/anchors.py` | 叙述章禁数字守卫（数字形态族正则+序号豁免；宁误报不漏报） | 文本 | 违例清单 |
 | `agent/waterprint_agent/report/checks.py` | verify_report 数值锚定断言件（公式 ID 可查/锚定值逐项相等/值域全集/叙述零违例） | markdown+PlantResult | CheckReport |
-| `agent/skills/waterprint/SKILL.md` | ZCode 技能文档（21 工具用法+调参回路剧本+沙箱约定） | — | 知识文档 |
+| `agent/skills/waterprint/SKILL.md` | ZCode 技能文档（23 工具用法+调参回路剧本+沙箱约定） | — | 知识文档 |

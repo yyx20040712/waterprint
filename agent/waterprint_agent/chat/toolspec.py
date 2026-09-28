@@ -1,4 +1,4 @@
-"""工具清单（LLM function-calling schema 表——21 工具与 MCP 面同源）。
+"""工具清单（LLM function-calling schema 表——23 工具与 MCP 面同源）。
 
 输入:  AgentContext+工具调用（name+arguments dict）
 输出:  OpenAI tools schema 列表+dispatch（经 context.run_tool 记账+错误兜底）
@@ -11,7 +11,7 @@
 #       声明+懒加载分发（impl 直调——ADR-019 工具面唯一，审 B1 处置）。
 #   禁区：禁顶层 import tools 各模块（懒加载铁律——dispatch 时经
 #       importlib 触达）；禁在本层新增计算逻辑（只编排）；禁改各 impl
-#       签名（工具面=MCP 既有 21 件原样复用，导出组经 extra 固定 kwargs
+#       签名（工具面=MCP 既有 23 件原样复用，导出组经 extra 固定 kwargs
 #       适配通用 _export_impl 的 kind 面）。
 #
 # 【行为规格】

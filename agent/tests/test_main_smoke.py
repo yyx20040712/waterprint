@@ -1,7 +1,7 @@
-"""test_main_smoke——FastMCP 进程内 smoke：tools/list 满座 21 工具+懒加载首响实测。
+"""test_main_smoke——FastMCP 进程内 smoke：tools/list 满座 23 工具+懒加载首响实测。
 
 输入:  tmp_path 沙箱（env 覆盖；禁写真实默认沙箱根）
-输出:  工具清单/首响时间断言（AI1-TRACK-B §3+AI1-INTEG 21 工具口径）
+输出:  工具清单/首响时间断言（AI1-TRACK-B §3；AI1-INTEG 21→B4-4b 子批 3 扩至 23 工具口径）
 """
 
 from __future__ import annotations
@@ -84,8 +84,8 @@ def test_main_module_top_level_lazy() -> None:
     importlib.import_module("waterprint_agent.main")  # 本进程亦可用
 
 
-def test_client_lists_six_tools(sandbox_env: Path) -> None:
-    """fastmcp.Client 进程内连 server：tools/list 恰 21 工具在场。"""
+def test_client_lists_all_tools(sandbox_env: Path) -> None:
+    """fastmcp.Client 进程内连 server：tools/list 恰 23 工具在场。"""
     import asyncio
 
     from fastmcp import Client

@@ -326,3 +326,13 @@
 - **Rulings（防线变更呈报）**：R1 check_model_names 裁决序改结构缺陷优先 fail-slow；R2 check_constraint_sync 入 GATES（防线扩面 16→17）；R3 Dockerfile 构建语法面变更（--chmod 弃用+绝对 ENTRYPOINT）；R4 pyproject 不设 fastapi upper bound（依赖钉扎=用户位）；R5 UF-54 新登记行；R6 relay.md 两枚代号 scrub（批6e 先例）。
 - **预算记档**：fire_budget 120min 实耗≈141min（00:54:40Z~2026-09-27T01:50:11Z）——超支=异源审返工回炉一轮+三重锁面循环，如实记档（超支非停止事由，批3b 先例）。
 - **收口判定=⑤READY**：勾选 44→45（批6h ☑，余 8=批6i~6o+⑤b）；batch_count 7→8（<60）；墙钟≈14.9h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补六十一 — 2026-09-28T13:32:03Z（用户直派主控手术：R-B44a-2 存量债清偿+agent 计数漂移修复——agent 套件 184P 首全绿；零批次笔）
+
+- **会话性质**：用户直派调查会话（非执行者通道——增补四十八手术先例同款）。指令链=①全面调查软件现状→②「把比较明显的问题解决掉之后我打算连续开工了」+推送随会话执行。前置动作=9 笔本地提交（批6a 后半~批6h）已推送 GitHub（83383b15..3516ad4b——CI 首跑该区间）。
+- **R-B44a-2 在册债清偿（agent 10F+5S 存量红）**：①agent venv 内核快照滞后（waterprint-core 快照拷贝不随源刷新——server venv 同款在册问题）→uv sync --reinstall-package waterprint-core+waterprint-server 刷新，10F 消 6；②锚②守卫落地（test_e2e_golden 四案 KeyError 碳键族根因=golden effluent.design 自 B4-2a 起混入全厂级平键[碳/能耗/成本族只驻 summary 不驻单元端口]而锚②直取无守卫——B4-4a 期已知在册，agent 测试不入 CI+各批三检未覆盖故潜伏）→成员守卫=锚①同款 if 模式，水质六键双面锚定保持、全厂平键锚①承载零覆盖损失，4F 转 0；③report 一次性产物重制（系统临时目录 result.json/diag.json——core app 正门直跑 golden municipal_34760，双跑字节级确定）→5S 中 4 转绿；④committed 样例 municipal_34760.sample.md 预期漂移重录（0.1.2/coefficients@1.2.0 时代录制 vs 现行 waterprint-server 0.1.0/coefficients@1.8.0+unit_prices@1.1.0——157 行=版本串 4+数值 73+依据表增删；数值源=core golden 1589P 同源 bundle；快照规程「预期漂移重录+diff 定性注记」）。agent 套件 **184P 零失败零跳过首全绿**（修复前 169P+10F+5S）。
+- **21→23 工具计数漂移修复**：toolspec.py 首行 docstring+禁区注释/SKILL.md description+契约头+速查表补 #22 wp_run_joint_enumeration+#23 wp_get_ops_overview 两行（impl docstring 权威字面）/file-contracts.md 三行+main.py 行「五组」→「七组」/test_main_smoke+test_chat_toolspec docstring（断言本为 ==23——纯注释滞后）+测试函数名 six_tools 残留更名 all_tools（全仓仅定义处引用）。main.py 契约头「扩至 21 工具」=编年史记载非漂移，零触碰。
+- **验证**：run_gates 16/17 绿（trust_root=提交前工作树预期红，[HUMAN-LOCK] 笔后复跑 17/17）；gen_status --check 零漂移（332 键恒定）；check_readonly 332 全绿；agent 184P；core 1589P/server 387P 零改动零扰动（本会话实跑复核）。
+- **锁面**：三锁定件哈希重锁（test_e2e_golden/test_main_smoke/test_chat_toolspec——332 键数恒定零增删，36 根显式完整清单，键集守卫 dropped=0）；municipal_34760.sample.md 按 check_readonly 忽略清单（__snapshots__）在锁面外自由快照资产。〔HUMAN-LOCK〕预授权依据=用户 2026-09-26 全局规划指令（板执行路由预授权①）+用户 2026-09-28 会话指令。
+- **Rulings 呈报（不阻断）**：R1 CI 无 agent job 维持在册（R-B44b-3）——agent 全量绿后接线门槛已备，但 5 skip 已消的 skip 拦截面（CI 白名单仅「Windows 本地写屏障」）需 agent job 自带口径，防线变更=用户位；R2 report 一次性产物在系统临时目录（会话环境易失）——产物重制脚本化/入库候选呈批6k~6m 邻域裁量；R3 agent venv 快照滞后面（--reinstall 非自动）=环境档在册，CI 不受影响（全新装）。
+- **板面字段零触碰**：status READY/next=批6i/勾选 45/53/batch_count 8 不变（零批次手术笔——heartbeat 本笔不刷）。

@@ -1,4 +1,4 @@
-"""test_chat_toolspec——工具清单：21 工具 schema+dispatch（经 run_tool 记账）。
+"""test_chat_toolspec——工具清单：23 工具 schema+dispatch（经 run_tool 记账）。
 
 输入:  tmp_path 沙箱+清单表
 输出:  覆盖计数/唯一性/schema 形态/分发冒烟/未知工具拒绝
