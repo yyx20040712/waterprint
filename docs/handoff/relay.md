@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: RUNNING <!-- 2026-09-29 批6i 认领（纵断真实站距〔增补六十二① 站距源定案：布置连线长度默认+逐边手动覆盖例外〕+批6h 结转欠账 p150k enum 归因；注入会话通道——workflow_run_id=- 维持；认领前 claim=- 无冲突） -->
+- status: READY <!-- 2026-09-29 增补六十四：批6i 收口 READY（桩号轴实装+p150k 归因——1 commit c0071d84〔HUMAN-LOCK〕/门一设计双席+实现双席+探针 4/4/17 门禁全绿）；next=批6j -->
 - automation_id: automation-a23ac2a7-7698-4283-8ce0-e1020aaa70a4 <!-- 2026-09-29 换防迁火回填（*/20 节律维持——接任会话）；旧值 automation-886fb903…（随前会话熄火，CronList 零残留） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-29T00:45:37Z <!-- 2026-09-29 批6i 任务内刷新（实装+测试毕：core 209P/server 面绿；进 p150k 归因） -->
-- claim: executor-b6i-20260929T000458Z <!-- 2026-09-29 批6i 认领（勾选快照 45/53） -->
+- heartbeat_utc: 2026-09-29T01:28:31Z <!-- 2026-09-29 增补六十四收口刷 -->
+- claim: - <!-- 2026-09-29 批6i 收口释放（executor-b6i-20260929T000458Z，勾选 45→46） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
-- checked_done: 45 <!-- 2026-09-27 批6h 收口 44→45（增补六十） -->
+- checked_done: 46 <!-- 2026-09-29 批6i 收口 45→46（增补六十四） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
 - last_dispatch_utc: 2026-09-29T00:03:34.385Z <!-- 2026-09-29 批6i 首班发布成立（回读=run dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a running+执行者子代理 executing）；旧值 2026-09-27T00:53:15.214Z（批6h 首班） -->
 - workflow_run_id: dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a <!-- 批6i 首班执行工作流（纵断真实站距——站距源已裁增补六十二①：布置连线长度默认+逐边手动覆盖例外；三段通道设计先行+profile 桩号轴实装） -->
 - relay_started_utc: 2026-09-28T23:42:01.859Z <!-- 2026-09-29 换防时刻（接任会话——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-26T12:10:48.865Z（rev6 首换防） -->
-- batch_count: 0 <!-- 2026-09-29 换防复位（熔断预算 0/60 重计）；旧值 8 -->
+- batch_count: 1 <!-- 2026-09-29 批6i 收口 0→1（增补六十四） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-29
-- claimed_by: executor-b6i-20260929T000458Z
-- claimed_at: 2026-09-29T00:04:58Z
-- next_batch: 批6i 纵断真实站距（站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度默认+逐边手动覆盖例外——设计按此轴心三段通道展开+profile 桩号轴实装；+批6h 结转欠账：p150k enum 行数=0 二分归因+check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项——见增补六十欠账登记）
+- claimed_by: - <!-- 2026-09-29 批6i 收口复位 -->
+- claimed_at: - <!-- 2026-09-29 批6i 收口复位 -->
+- next_batch: 批6j DXF 绝对标高+ODA 验证工具（UF-50 通道收口 _REL_DATUM 退役路径+ODA 本地手动冒烟脚本〔不入 CI〕）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -151,7 +151,7 @@
 - [x] 批6f｜任务系统补完（chat 失败横幅 error 明细〔任务状态查询面〕+joint failed/cancelled 幽灵文案+UF-26 重启即丢 v1 明示闭项）<!-- 2026-09-26 收官〔增补五十八〕：查证=F2 C-5 明细通道在位（77e32f3）零改动+terminalTurnText 三终态分派+jointTaskNotice 幽灵退役+taskStatusToView 空串收严+UF-26 显式 v1 语义（文档追 ENG5 实装）；门一 k1 B0/W3/N3+d1 B0/W3/N4 回炉一轮+门二 probe 无头 8/8；1 commit e490aa9 -->
 - [x] 批6g｜结构债拆件批（beam.py/app.py/main.py 三顶格件按 ADR-024 配方腾位——双跑 diff=0 行为等价烤验）<!-- 2026-09-27 收官〔增补五十九〕：beam 481→179+search.py 388 新伴生件/main 500→362+main_lib.py 204/app 420 免拆；双跑 diff=0 五路恒等+AST 18 段+120 装序×六同一性；门一三轮双席 PASS+门二有条件放行三条件闭合；1 commit 34f0bd3〔HUMAN-LOCK〕+镜像件锁面 331 -->
 - [x] 批6h｜门禁硬化+部署卫生+杂项闭项（R5 结转观测护栏四项+p150k 首跑留证+ENTRYPOINT 绝对路径+classic builder 实测+AUD-W9 对拍门禁+AUD-W10 维持硬滤注记闭项+UF-25 中文单语定版闭项+HEAD 版本耦合注记）<!-- 2026-09-27 收官〔增补六十〕：九小项全落+批6g R1 结转负例契约；门禁 16→17/锁面 331→332/UF 53→54；auditor-readonly 异源审 B1+W5+W7 回炉实修；2 commits〔HUMAN-LOCK〕 -->
-- [ ] 批6i｜纵断真实站距（README 在册剩余面——三段通道设计先行+profile 桩号轴实装；站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度为默认〔siteplan 坐标系欧氏距离逐段累计〕+手动输入=逐边覆盖例外通道）
+- [x] 批6i｜纵断真实站距（README 在册剩余面——三段通道设计先行+profile 桩号轴实装；站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度为默认〔siteplan 坐标系欧氏距离逐段累计〕+手动输入=逐边覆盖例外通道）<!-- 2026-09-29 收官〔增补六十四〕：三段通道双席 FAIL 回炉终裁案丙（覆盖=导出选项 DSL——SiteDesign 零变更免 design_hash 级联）+ChainageAxis/ProfileEdge L0 新型+build_chainage_axis 三态装配+profile_drawing v2 中心锚 K 图式+server 三面含批量 IPC 路由键勘误+p150k 归因闭；1 commit c0071d84〔HUMAN-LOCK〕+门一四席+探针 4/4+17 门禁全绿 -->
 - [ ] 批6j｜DXF 绝对标高+ODA 验证工具（UF-50 通道收口 _REL_DATUM 退役路径+ODA 本地手动冒烟脚本〔不入 CI〕）
 - [ ] 批6k｜UF 规格冻结批（UF-06 汇流派生定版+UF-09 温度字段位置+UF-11 Ri 归属勘误+UF-12 图谱缺边+UF-19 缺项下游+UF-24 带归属——六行闭合）；+CI agent job 接线+report 产物生成脚本化入库（6k~6m 邻域裁量——2026-09-28 用户裁决②·增补六十二）
 - [ ] 批6l｜UF-46/47 收口（core app 面 load_run_env/design_hash 用例→server 适配器/双胞胎退役——D7 边界经 app 再导出面保持）
@@ -366,3 +366,16 @@
 - **开批（批6i 首班，workflow 通道）**：开批四条件核验——①READY ✓②静默窗过（last_dispatch_utc=2026-09-27T00:53:15.214Z 距今 ≈47h ≥30min）✓③上一批 run 已收口（GetWorkflowRun=dwfrun-6dd18ac4 completed，复位前实核）+git 末笔 34d6ad2c 距今 >5min 实物静默 ✓④熔断复位未触发（0<60/墙钟 0h<90h）✓——四条件齐 → CreateWorkflow saved batch-relay-executor（board=本板，mode=execute）→ run_id=dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a（GetWorkflowRun 回读=running+执行者子代理 executing=发布成立）→ 板头原子写 last_dispatch_utc=2026-09-29T00:03:34.385Z+workflow_run_id（status 保持 READY）。
 - **移交**：next=批6i 纵断真实站距（站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度默认〔siteplan 坐标系欧氏距离逐段累计〕+手动输入=逐边覆盖例外通道——设计按此轴心三段通道展开+profile 桩号轴实装；批6h 结转欠账=p150k enum 行数=0 二分归因+check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项——见增补六十欠账登记）；批6i→6j…6o 依序连续开工（预授权口径=执行路由段）；⑤b 软著=用户域终态项停板待用户亲查（增补六十二⑤复认）。
 - **调度纪律**：本会话自此转薄调度员——此后每班火只读板调度（禁执行禁重活禁载技能）；重活（换防/板面手术/事故响应）另开会话迁火。
+
+### 增补六十四 — 2026-09-29T01:28:31Z（批6i 收口：纵断真实站距桩号轴实装+p150k 归因——READY）
+
+- **claim/commit**：executor-b6i-20260929T000458Z（00:04:58Z 认领——批6i 首班=workflow 通道 run dwfrun-659ae6ae〔00:03:34Z 发布成立——调度员发布笔与本班认领并发实录，认领前重读板头 claim=- 无冲突〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。实现单笔：c0071d84〔HUMAN-LOCK〕（18 文件 +1201/−167；预授权①依据=用户 2026-09-26 全局规划指令——amend 一笔系首版 message 误含未做项「批6h R5 红探针」诚实勘正为挂账表述）。
+- **三段通道（大项设计先行）**：b6i-design.md rev2——拟定（站距源轴心=增补六十二① 已裁不重开；覆盖键位/横轴锚定/校验/对拍四义务位）→门一双席（k1 FAIL B1/W5/N3+d1 FAIL B1/W6/N4——首站覆盖键洞穿/负间隙无闸/双 fallback 缝/插入站漂移/content_hash 级联/同位堵死等实质发现）→终裁**案丙**：覆盖通道=导出选项 DSL（site_design 增键案甲弃——dumps_design 八字段全量 model_dump 实核：增键=全量 design_hash 漂移〔stale 全红+golden 四案/m3/audit HTML/双 DXF 级联重录〕越出工单授权面；digest carve-out=动 dirty 判定核心不成比例）；中心锚平台〔c±w/2〕；axis 必填单源（fallback 轴同经 build_chainage_axis 构造，profile_sheet 零自建）；K 图式桩号标注；三态边图面化。处置表 19 行全落档（§七）。
+- **交付**：①L0 新型 ProfileEdge/ChainageAxis（contracts/drawing_projection_types.py——Mapping 快照/tuple 容器）；②build_chainage_axis（elevation/profile.py 增补件，build_profile 签名零变）：三态边 manual>layout>fallback、首站键/未知键/重复站/非正四闸、同位≤1mm 契约派生容差降级、负间隙严格<0 WARN（贴接 gap==0 合法——占位边恒 0 误警消除实施收窄）；③profile_drawing v2：中心锚+K 进位归中（"K0+1000.000" 缺陷修）+图脚三态计数+manual/fallback 逐边明细+WARN 行（INFO 不入——d1-r2 W1）+手构轴 fail-closed 守卫（占宽缺键/边长非正——d1-r2 W2）；④app_export DSL 终闸（十进制白名单 regex 拒 1e3/1_000/全角——k1-W2；非正本层拒错误族一致——d1-r2 W3；station_lengths 通道退役〔全仓零消费勘察+agent grep 实证钉〕）；⑤server 三面：_reject_bad_station_form 预校验 422/命名段 -s<sha256[:10]>/items 归一——**存量缺陷勘误**：_batch_items_payload 构造遗漏路由键 IPC 透传（worker 注记称「server 归一进 payload」而 entry 键集无 sheet/h/v——批量 profile 项产总图内容挂纵断名，既有 e2e 只验名不验内容故潜伏；批6i 站距对拍显形）→entry 增 dxf 路由键+内容级 e2e（产物字节含 K0+）回归钉。
+- **批6h 结转欠账①（p150k 归因）**：二分落定=**接口面产数正常**（注册档 6e300ff69 实录 feasible_count=10/total_feasible=10/rows feather 在场）——行数 0 根因=脚本 fetch 旁路提交不置前端 enumerateTaskId 状态轨（solutionsPane.tsx:64/238-250 表源键）=**观测面缺陷非产品缺陷**；定版脚本 e10 修=终态后深链 ?project&enum 重载（App.initialRoute 深链面）再数表。**全流程未重跑**（归因证据=注册档+代码锚；余 check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项仍挂账）。
+- **烤验（实现批全对抗位）**：门一四席——设计双席 FAIL 回炉+实现 k1 首轮 PASS B0/W5/N4（K 进位/DSL 白名单/同位容差三实修回炉）+d1 首轮 FAIL B1（审包形态——批6f 流程教训同款：d1 位审包必须内联）→二轮内联 diff PASS B0/W6/N3（W1 INFO 呈现/W2 轴守卫/W3 错误族/W4 容差消息四实修；W5 三态词表跨模块耦合挂账；N1 单产物承接面=core.export_artifact **options 事实可证；N2 坐标系=SitePoint 契约 docstring 米制 X 东 Y 北在案）。门二探针 4/4 PASS（b6i-probe.py：ezdxf 正门读回 vs 手算 hypot 累计对拍 K0+000/K0+050+manual 覆盖 K0+044+双跑字节恒等+无 site fallback 面——账本行 20260929-b6i-probe 在案）。快照锚④重录 1690e9a9→f514cf64（diff 人审恰一行：桩号轴几何位移+K 标注+图脚注记+W1 合并漂移）+impl 内容锚二录 4da978d2（漂移链在档）。
+- **收口三检**：run_gates **17 门禁全绿**（提交后复跑〔OK〕全部门禁通过+信任根守卫绿——c0071d84 [HUMAN-LOCK] 双面执法过）；gen_status --check 零漂移（2159 字节）；health-scan RED=0/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **923P 零失败**（含 arch 18P——首轮 2F=file-contracts 注记两处行数滞后实校准后绿）+server **391P**（387 基线+4 新）+mypy core 351+server 60 双绿+ruff 双侧+魔法数字绿。锁面 332 键三轮重锁 dropped=0（预授权①；server venv core 快照 uv --reinstall 同步后）。
+- **欠账登记**：①三态 source 词表跨模块字面量耦合（elevation 值域/drafting 标签映射——d1-r2 W5 挂账，单源化=结构性小改后续批裁量）；②webapp 覆盖输入 UI 挂账 6m/UX 批（DSL 手输通道在——schema 零变更故 project JSON/API options 直改可用）；③ElevationProfile.warnings DXF 渲染存量缺口（埋深越界 Warning 不进图面——批前既有非本批引入，裁决部呈报）；④platform_widths 结构实长扩键挂账领域专家维持（12/18 站无键在案——占位 10 m 单源）；⑤agent venv core 快照滞后（--reinstall 同步面=R3 在册环境事实）；⑥批量 worker 面深链/枚举 UI 全流程 e2e 未重跑（p150k 归因证据=注册档+代码锚，脚本修毕待下次定版跑留证）；⑦账本失锚一次（技能目录派发致五行错落 skill-local 项目——已迁正+教训复认：派发须仓根 cwd 或 --project 锚定，批6c 欠账④同款）。
+- **Rulings（防线变更呈报）**：R1 ProfileOptions 公开面收缩（station_lengths 退役+axis 必填——全仓零消费实证+镜像退役断言钉）；R2 批量 IPC items 键集扩（路由键透传——勘误非防线变更面）；R3 design_hash 参与面零触碰（案丙主张——golden 四案 serialize 零重录实跑复核在案）。
+- **预算记档**：fire_budget 120min 实耗≈84min（00:04:58Z~01:28:31Z）在限内。
+- **收口判定=⑤READY**：勾选 45→46（批6i ☑，余 7=批6j~6o+⑤b——grep 计 8 含增补六十四注记行内嵌 checkbox 无、系 7 清单项+⑤b 注记行核对：批6j/6k/6l/6m/6n/6o/⑤b 恰 7 项）；batch_count 0→1（<60）；墙钟≈1.8h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
