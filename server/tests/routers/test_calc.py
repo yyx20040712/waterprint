@@ -111,6 +111,64 @@ async def test_solutions_default_page_size_wiring(client, cass_payload) -> None:
 
 
 @pytest.mark.anyio
+async def test_solutions_on_done_calc_task_kind_mismatch_wiring(
+    client, cass_payload
+) -> None:  # type: ignore[no-untyped-def]
+    """API-1（2026-09-30）：kind=calc 已完成任务取 solutions → 409
+    TaskKindMismatchError（detail 含 kind 事实）。
+
+    探针实录（2026-09-29 挂账 API-1）：真实拒因=任务类型非枚举
+    （kind≠enumerate），旧面三因并作 TaskNotCompleteError——类型名与
+    「只在 done 终态可取」文案均指向未完成，与消息内自述「状态 done」
+    自相矛盾。拆分口径：kind 面独立成类，detail 含合法面
+    （kind=enumerate）与该任务事实（calc）。
+    """
+    created = await client.post("/api/projects", json={"project": cass_payload})
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )).json()["task_id"]
+    final = await _wait_terminal(client, task_id)
+    assert final["state"] == "done"
+    bad = await client.get(f"/api/calc/tasks/{task_id}/solutions")
+    assert bad.status_code == 409
+    assert bad.json()["error_type"] == "TaskKindMismatchError"  # 拆分前 TaskNotCompleteError
+    detail = str(bad.json()["detail"])
+    assert "kind=enumerate" in detail  # 合法面（仅枚举任务产出方案集）
+    assert "calc" in detail  # 拒因事实（该任务 kind）
+
+
+@pytest.mark.anyio
+async def test_solutions_unfinished_enumeration_still_not_complete_wiring(
+    client, cass_payload, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    """API-1 拆分防误伤：未完成（running）枚举任务取 solutions → 仍 409
+    TaskNotCompleteError（真·未完成路径语义零变——§六禁改面）。
+    """
+    import time
+
+    import waterprint_server.jobs.manager as manager_mod
+
+    def slow_enumerate(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        time.sleep(1)  # 保持 running 非终态窗口（取数落窗内）
+        return {"state": "done", "project_id": payload.get("project_id", "")}
+
+    monkeypatch.setattr(manager_mod, "run_task", slow_enumerate)
+    created = await client.post("/api/projects", json={"project": cass_payload})
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/enumerate", json={"project_id": project_id, "unit_ids": ["municipal_cass"]}
+    )).json()["task_id"]
+    assert (await client.get(f"/api/calc/tasks/{task_id}")).json()["state"] in {
+        "queued", "running",
+    }
+    bad = await client.get(f"/api/calc/tasks/{task_id}/solutions")
+    assert bad.status_code == 409
+    assert bad.json()["error_type"] == "TaskNotCompleteError"  # 拆分后仍归未完成面
+    await _wait_terminal(client, task_id)  # 收尾（替身终态迁移）
+
+
+@pytest.mark.anyio
 async def test_solutions_sort_cost_rejected_not_crash_wiring(
     client, cass_payload
 ) -> None:  # type: ignore[no-untyped-def]

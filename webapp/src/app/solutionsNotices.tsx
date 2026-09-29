@@ -43,7 +43,8 @@ export function SolutionsNotices({
   );
 }
 
-/** 方案取数错误回显（409/422 领域码注记仅挂对应码——AUDIT2 FIX2 I-3）。 */
+/** 方案取数错误回显（409/422 领域码注记仅挂对应码——AUDIT2 FIX2 I-3；
+ * API-1 2026-09-30：kind≠enumerate 独立码注记——用户语言零 HTTP 面词）。 */
 export function SolutionsFetchError({
   error,
   isError,
@@ -58,6 +59,10 @@ export function SolutionsFetchError({
     <Typography.Paragraph type="danger">
       方案取数失败：
       {error instanceof Error ? error.message : "未知错误"}
+      {error instanceof WaterprintApiError &&
+      error.code === "TaskKindMismatchError"
+        ? "（该任务不是枚举任务——仅枚举任务产出方案集，请前往任务面板核对该任务类型）"
+        : null}
       {error instanceof WaterprintApiError &&
       (error.code === "TaskNotCompleteError" ||
         error.code === "InvalidPageParameterError")

@@ -292,7 +292,7 @@
   "server/tests/routers/test_ai_chat.py": "bc3bb46a13c6f67d9f9070391d896bff65d196495565b9c78b2be3d46721d0ae",
   "server/tests/routers/test_ai_config.py": "ba71bc6e768176b7a977d26ac5a69d09ebcec8820d284001594b45fe0edd33b2",
   "server/tests/routers/test_ai_connection.py": "2a72670dd263a42015327bda21aaf96bf3b6acc12ecba83372abc528a4fdd6c2",
-  "server/tests/routers/test_calc.py": "20a62d7e3d164d6902b49521741bf7e507b224a8357f58c838134d7d0ec6cc71",
+  "server/tests/routers/test_calc.py": "1a4610dc99a9cf47db581e261f50898bb7a5aeaaa8c8c79c852b9611278a50c5",
   "server/tests/routers/test_calc_design_map.py": "4cefd4c3dcff94af9b5254185850ff0a191f0f776b3015bd3625ed5394fad9a5",
   "server/tests/routers/test_events.py": "f7a6a832176c202110f3684b3a347f3abf570a13ae02d50fd51a038102e5c9e4",
   "server/tests/routers/test_exports.py": "58dd15b23b91a1ddb8c252ba65fcb0298f43cc1829e3ea478b4cca293c8b7591",

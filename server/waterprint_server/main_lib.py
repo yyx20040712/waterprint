@@ -67,6 +67,7 @@ from waterprint_server.services.enumeration import (
     DiagnosisNotAvailableError,
     InvalidPageParameterError,
     MultiUnitEnumerationError,
+    TaskKindMismatchError,
     TaskNotCompleteError,
 )
 from waterprint_server.services.exports import (
@@ -132,6 +133,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (ProjectBusyError, status.HTTP_409_CONFLICT),
     (StaleExportError, status.HTTP_409_CONFLICT),
     (TaskNotCompleteError, status.HTTP_409_CONFLICT),
+    (TaskKindMismatchError, status.HTTP_409_CONFLICT),  # API-1：kind≠enumerate
     (MultiUnitEnumerationError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     # B4-3：联合枚举静态预检（rows/N 超限）与请求形态（空/重复/未知
     # unit_ids）→422（W7 事前拒绝面）。

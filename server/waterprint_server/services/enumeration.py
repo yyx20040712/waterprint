@@ -63,7 +63,11 @@ class InvalidPageParameterError(ValueError):
 
 
 class TaskNotCompleteError(RuntimeError):
-    """任务未完成（或非枚举任务）即取结果——409 面。"""
+    """枚举任务未完成（或结果未落地）即取结果——409 面。"""
+
+
+class TaskKindMismatchError(RuntimeError):
+    """方案集取数目标任务非枚举类型（kind≠enumerate）——409 面（API-1）。"""
 
 
 class DiagnosisNotAvailableError(RuntimeError):
@@ -128,11 +132,20 @@ async def submit_enumeration(
 
 
 def _require_done_enumeration(ctx: ServiceContext, task_id: str) -> TaskStatus:
-    """结果可取前提：done 且结果含行文件句柄（§16 A6 路径句柄）。"""
+    """结果可取前提：done 且结果含行文件句柄（§16 A6 路径句柄）。
+
+    API-1（2026-09-30）：三因拆二——kind≠enumerate 独立成类
+    （TaskKindMismatchError），NotComplete 面专司真·未完成。
+    """
     status = ctx.manager.status(task_id)
-    if status.kind != "enumerate" or status.state != "done" or status.result is None:
+    if status.kind != "enumerate":
+        raise TaskKindMismatchError(
+            f"任务 {task_id!r} 类型 {status.kind} 不产出方案集——仅枚举任务"
+            f"（kind=enumerate）可取 solutions（该任务当前状态 {status.state}）"
+        )
+    if status.state != "done" or status.result is None:
         raise TaskNotCompleteError(
-            f"任务 {task_id!r} 状态 {status.state}（kind={status.kind}）——"
+            f"任务 {task_id!r} 状态 {status.state}——"
             "枚举结果只在 done 终态可取（§16 A6 分页重载前提）"
         )
     return status
