@@ -284,17 +284,22 @@ grep -c "removal.aao.nh3n.mod_default\|removal.aao.tn.mod_default\|removal.aao.t
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-52 | 单元库浏览 | 前端侧栏单元库自 App 骨架期占位「待实装」：36 条单元目录（GET /api/units 豁免端点——R2-A 批1 D3 认可面）无任何浏览面——单元有哪些/参数面长什么样/端口拓扑，用户只能翻源码或 manifest；canvas D2 中文名映射挂账同悬空 | 已定义→设计件 .workflow/reports/units-browser-design.md（Q5 产出 2026-09-02）：侧栏四线分组树（municipal 13/conveyance 4/mine_water 8/sludge 7+内置 4 排末）+Drawer 参数面五列表/端口面四列表预览；数据零新增（既有端点+orval hook useListUnitsApiUnitsGet）；落位=app 层薄壳防第三处 useUnitCatalog 封装三胞胎；拖拽建图联动只设计不实装（经 app 层组合不违 file-contracts §5）。实现批待设计追认 | IDLE-Q5 2026-09-02 |
+| UF-52 | 单元库浏览 | 前端侧栏单元库自 App 骨架期占位「待实装」：36 条单元目录（GET /api/units 豁免端点——R2-A 批1 D3 认可面）无任何浏览面——单元有哪些/参数面长什么样/端口拓扑，用户只能翻源码或 manifest；canvas D2 中文名映射挂账同悬空 | 已定义→**已实装收口**（M2 批 2026-09-03 e9a96e964 替换侧栏占位实装→C2-lib 批 2026-09-10 重制[图标行/联动光环/foot 计数条/Drawer 标题图标]→P0-3 批 2026-09-11 编辑态双入口[叶行「＋」+Drawer 主钮「添加到画布」]→C2-ALIGN/GOV5 演进——批6m 2026-09-29 验收追认闭合：**计数口径**〔36 条目=32 unit+4 builtin；四线+内置〔5 组〕分组=13/4/8/7+4；foot 计数条左=kind=unit 条数 32/右=组数 5 含内置组——C2-lib GL-01 用户裁决 2026-09-10「视觉稿形态保留」在册口径〕；**验收证据（入库持久化+判据独立 oracle）**=tools/units_browser_probe.py〔18 断言族全绿——期望值 GET /api/units 实读推导零自证常数；前置/断言摘要=同目录 units_browser_probe.md；vitest 全量/check_webapp/tsc 同批全绿，数字不内嵌本表（易失值防失真——门一处置）〕；设计件 .workflow/reports/units-browser-design.md 会话件散佚〔.workflow 不入库——增补六十九先例〕，实现真源=.workflow/briefs/task-C2-lib-plan.md+webapp/src/app/README.md 行内引文；数据零新增兑现〔useListUnitsApiUnitsGet 生成 hook 直用——防 useUnitCatalog 三胞胎〕；拖拽建图=设计明示只设计不实装，添加通道=按钮双入口〔P0-3 已落〕；canvas D2 中文名映射挂账另悬〔批6m 未触——独立挂账面〕） | IDLE-Q5 2026-09-02 → M2/C2-lib 实装 → 批6m 验收闭项 |
 
-### 十三批验证命令摘要（仓库根执行，2026-09-02）
+### 十三批验证命令摘要（仓库根执行；2026-09-29 批6m 更新——占位面退役换实装面）
 
 ```bash
-# UF-52：侧栏占位现状铁证（App.tsx Sider 占位 Menu——实现批替换面）
-grep -n "单元库（待实装）" webapp/src/app/App.tsx
-    # App.tsx:172（占位 Menu items——替换面）
-# 数据面既有铁证（豁免端点+orval hook 双就位）
+# UF-52：侧栏实装在位铁证（App.tsx Sider 装配 UnitLibrary——M2 批替换占位后）
+grep -n "UnitLibrary" webapp/src/app/App.tsx | head -2
+    # import 装配 + <UnitLibrary focusId=… /> Sider 装配两点
+# 数据面既有铁证（豁免端点+orval hook 双就位——生成 hook 直用防三胞胎）
 grep -n '"/units"' server/waterprint_server/routers/units.py
 grep -n "useListUnitsApiUnitsGet" webapp/src/shared/api/generated/units/units.ts | head -1
+# 树组装纯函数（四线分组+过滤+叶反查——18 用例）
+cd webapp && pnpm vitest run src/app/unitLibraryTree.test.ts
+# 批6m 验收探针（入库版——oracle 推导+18 断言族：分组/叶行/foot/码隐藏/Drawer
+# 参数端口预览/中英文搜索/内置空态/console 零错/Drawer 宽度等价）
+python tools/units_browser_probe.py   # 前置=uvicorn 8000+vite dev 5173（清单 units_browser_probe.md §一）
 ```
 
 ## 十四、B3-b 批新增项（2026-09-19，复杂度治理批 3 第二步——webapp 收敛）

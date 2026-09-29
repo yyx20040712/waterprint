@@ -35,6 +35,9 @@ import { ChatPanel, type SendMutation } from "./ChatPanel";
 const generateSessionId = () =>
   (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}new`).replace(/-/g, "");
 
+/** Drawer 宽度（显示层单一出处——B4-4b 原值 420 恒等保持）。 */
+const CHAT_DRAWER_WIDTH = 420;
+
 export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turnTaskId, setTurnTaskId] = useState<string | null>(null);
@@ -142,10 +145,15 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
     <Drawer
       title="设计对话"
       placement="right"
-      width={420}
       open={open}
       onClose={onClose}
-      styles={{ body: { padding: 12 } }}
+      styles={{
+        body: { padding: 12 },
+        // 批6m 邻域裁量：rc Drawer width prop 已弃用（antd v6「Use size
+        // instead」但 size 无 420 档）——styles.wrapper 现行合法键
+        // （unitLibrary.tsx 9b1dc6455 同款迁移，本件漏网面收口）。
+        wrapper: { width: CHAT_DRAWER_WIDTH },
+      }}
     >
       <ChatPanel
         sessions={sessions}
