@@ -424,3 +424,17 @@ async def test_export_batch_profile_sheet_stage_and_passthrough_wiring(
     assert seen[1].get("sheet") == "profile"  # sheet item 级透传锚
     assert seen[2].get("sheet") == "profile"
     assert seen[2].get("h_scale") == "2000" and seen[2].get("v_scale") == "200"
+
+
+def test_item_route_options_station_overrides_passthrough() -> None:
+    """批6i：station_overrides 经 _item_route_options 归一透传（worker 面
+    直读归一值进 core **options 白名单——单源钉，空串剔除沿 h/v 先例）。"""
+    from waterprint_server.jobs.export_batch_lib import _item_route_options
+
+    assert _item_route_options(
+        {"sheet": "profile", "station_overrides": "unit_b=30.5"}
+    ) == {"sheet": "profile", "station_overrides": "unit_b=30.5"}
+    assert "station_overrides" not in _item_route_options(
+        {"sheet": "profile", "station_overrides": ""}
+    )
+    assert "station_overrides" not in _item_route_options({"sheet": "profile"})

@@ -147,6 +147,7 @@ def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h
     sheet: str | None = None,
     h_scale: int | None = None,
     v_scale: int | None = None,
+    station: str | None = None,
 ) -> str:
     """R4 确定性命名：项目 id+kind+(unit)+condition+三元组摘要（禁时钟）。
 
@@ -179,9 +180,13 @@ def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h
         + (f"v{v_scale}" if v_scale is not None else "")
     )
     scale_seg = f"-{scale_part}" if scale_part else ""
+    # 批6i：station_overrides 确定性命名段（异覆盖同名 os.replace 静默
+    # 覆盖=FE9 R1 同族缺陷防再发——段值=DSL 串 sha256 前 6 位，调用方
+    # 预算；默认零段保现名与快照锚恒——h/v 段同构）。
+    station_seg = f"-s{station}" if station else ""
     return (
-        f"{safe_project}-{kind}{sheet_part}{scale_seg}{unit_part}-{safe_condition}"
-        f"-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
+        f"{safe_project}-{kind}{sheet_part}{scale_seg}{station_seg}{unit_part}"
+        f"-{safe_condition}-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
     )
 
 
@@ -208,6 +213,44 @@ def _scale_text_of(chosen: Mapping[str, Any], key: str) -> str | None:
     """
     raw = chosen.get(key)
     return raw if isinstance(raw, str) and raw else None
+
+
+def _station_text_of(chosen: Mapping[str, Any]) -> str | None:
+    """批6i：station_overrides 选项归一提取（仅非空字符串；形态/域校验
+    在 reject_bad_route_options 预校验面与 core 终闸——提取面零校验防
+    双处漂移，_scale_text_of 同族）。"""
+    raw = chosen.get("station_overrides")
+    return raw if isinstance(raw, str) and raw else None
+
+
+def _reject_bad_station_form(
+    source: Mapping[str, Any], label: str
+) -> None:
+    """批6i：station_overrides 形态预校验（reject_bad_route_options 子闸
+    ——非字符串类型显式拒[h/v 同族]+逐项含 '=' 且键值非空；数值域/键位
+    [首站/未知站]留 core 终闸——双闸分工零重叠先例）。"""
+    raw_station = source.get("station_overrides")
+    if raw_station is None:
+        return
+    if not isinstance(raw_station, str):  # 非字符串类型=显式拒（h/v 同族）
+        raise InvalidExportRequestError(
+            f"导出 {label}.station_overrides 须为字符串"
+            f"（如 'unit_b=30.5,unit_c=44'）：收到 "
+            f"{type(raw_station).__name__}（批6i 整批原子拒绝）"
+        )
+    for part in raw_station.split(","):
+        entry = part.strip()
+        if not entry or "=" not in entry:
+            raise InvalidExportRequestError(
+                f"导出 {label}.station_overrides 项 {entry!r} 非法"
+                "（形态 'unit=米值' 逗号分隔——批6i 整批原子拒绝）"
+            )
+        key, _, value = entry.partition("=")
+        if not key.strip() or not value.strip():
+            raise InvalidExportRequestError(
+                f"导出 {label}.station_overrides 项 {entry!r} 键或值空"
+                "（批6i 整批原子拒绝）"
+            )
 
 
 def reject_bad_route_options(
@@ -251,6 +294,7 @@ def reject_bad_route_options(
                     f"导出 {label}.{key} 须为正整数比例分母字符串"
                     f"（如 '2000'）：收到 {raw!r}（PROFILE3 整批原子拒绝）"
                 )
+        _reject_bad_station_form(source, label)
         has_unit = bool(_unit_id_of(source))
         has_sheet = _sheet_of(source) is not None
         if has_unit and has_sheet:
@@ -293,6 +337,19 @@ def _batch_items_payload(
             "unit_id": str(item.get("unit_id") or ""),
             "condition_key": condition_key,
         }
+        # 批6i 勘误（存量缺陷修复）：路由键 IPC 透传——worker 注记称
+        # 「sheet/h/v item 级提取（server 归一进 payload）」而本构造
+        # 遗漏该键族，批量 profile 项 worker 侧 _item_route_options 恒
+        # 空读=产出总图内容挂纵断名的错配（单产物路径无此缺陷；既有
+        # e2e 只验名不验内容故潜伏——本批站距覆盖对拍显形）。键集=
+        # create_export 归一恒串面；仅 dxf 项承载（core 白名单非 dxf
+        # 零消费，收单闸已拒错配意图）。
+        if item_kind == "dxf":
+            for route_key in ("sheet", "h_scale", "v_scale",
+                              "station_overrides"):
+                route_value = str(item.get(route_key) or "")
+                if route_value:
+                    entry[route_key] = route_value
         if item_kind in {"dxf", "ifc"}:
             meta = ExportMeta(
                 project_id=str(common["project_id"]),

@@ -26,6 +26,9 @@
 #       ground_elev/bury_depth/freeboard/water_depth/loss_in/design_flow
 #   class ElevationProfile(不可变)：stations（沿流程拓扑序）/condition_key/
 #       trace（公式迹）/warnings（埋深越界等）+ station_of(unit_id) 查询
+#   class ProfileEdge/ChainageAxis（批6i 桩号轴）：纵断链边（from_unit/
+#       to_unit/station_len/source 三态）+桩号映射/平台占宽/warnings——
+#       elevation.build_chainage_axis 产出、drafting.profile_drawing 消费
 #
 # 【行为规格】
 #   R4 ElevationProfile 是标高唯一真源（L0）：elevation 产出、drafting
@@ -55,7 +58,9 @@ from waterprint.contracts.result_schema import TraceNode
 from waterprint.contracts.unit_api import Warning
 
 __all__ = [
+    "ChainageAxis",
     "ElevationProfile",
+    "ProfileEdge",
     "ProfileStation",
     "UnitProjection",
 ]
@@ -123,3 +128,42 @@ class ElevationProfile:
             if station.unit_id == unit_id:
                 return station
         return None
+
+
+@dataclass(frozen=True)
+@final
+class ProfileEdge:
+    """纵断链边（不可变）：相邻两站的站距承载（批6i 桩号轴）。
+
+    边定址键=to_unit（下游站 unit_id）——纵断链线性（executor 序）使
+    下游站唯一确定一条入边；覆盖通道（station_overrides 选项）同键定址。
+    """
+
+    from_unit: str
+    to_unit: str
+    station_len: float  # 站距 m（>0 恒成立——build_chainage_axis 入口闸保证）
+    source: str  # "layout"=布置连线默认 | "manual"=逐边覆盖 | "fallback"=缺布置占位
+
+
+@dataclass(frozen=True)
+@final
+class ChainageAxis:
+    """纵断桩号轴（不可变，批6i）：站位链的里程投影（真实站距）。
+
+    桩号定义：chainage(s_0)=0；chainage(s_i)=chainage(s_{i-1})+len(edge_i)
+    ——对拍面唯一公式。平台占宽与边长两维分离（占宽=站内画幅，边长=
+    里程推进）；warnings=fallback/同位/重叠边显式记档（消费面：profile_
+    drawing 图脚注记——零 dead field）。
+    """
+
+    chainages: Mapping[str, float]
+    edges: tuple[ProfileEdge, ...]  # len == len(stations)-1
+    platform_widths: Mapping[str, float]
+    warnings: tuple[Warning, ...]
+
+    def __post_init__(self) -> None:
+        """Mapping 只读快照（UnitProjection.__post_init__ 同款防线）。"""
+        for name in ("chainages", "platform_widths"):
+            object.__setattr__(
+                self, name, MappingProxyType(dict(getattr(self, name)))
+            )

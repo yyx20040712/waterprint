@@ -14,8 +14,10 @@
 
 from __future__ import annotations
 
+import re
 import warnings
 from collections.abc import Mapping
+from math import isfinite
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final
@@ -38,7 +40,7 @@ from waterprint.drafting.sheets import PROFILE_H_SCALE, PROFILE_V_SCALE, SCALE_D
 from waterprint.drafting.site_plan import SiteOptions, site_layout
 from waterprint.drafting.styles import EntityGroup, base_styles
 from waterprint.elevation.losses import head_losses
-from waterprint.elevation.profile import build_profile
+from waterprint.elevation.profile import build_chainage_axis, build_profile
 from waterprint.elevation.pumps import evaluate_pumping
 from waterprint.geometry.scene import build_scene
 from waterprint.ifc_export import build_ifc, write_ifc
@@ -50,9 +52,78 @@ class ArtifactKindNotReady(Exception):  # noqa: N818  # 名载归属批次（D2 
     """产物 kind 未就绪（audit=M4/dxf=M2 出图批/estimate=M3）——GR-11 族。"""
 
 
-_EXPORT_OPTIONS: Final[frozenset[str]] = frozenset(
-    {"unit_id", "condition_key", "sheet", "h_scale", "v_scale"}
+# 站距覆盖值十进制白名单（批6i k1-W2：整数位必在、小数位可选——
+# `30`/`30.5` 合法；前导符/科学记数/分组符/非 ASCII 全拒）。
+_STATION_VALUE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^[0-9]+(?:\.[0-9]+)?$"
 )
+
+_EXPORT_OPTIONS: Final[frozenset[str]] = frozenset(
+    {"unit_id", "condition_key", "sheet", "h_scale", "v_scale",
+     "station_overrides"}
+)
+
+
+def _station_overrides_of(
+    raw: str | None,
+) -> dict[str, float] | None:
+    """站距覆盖 DSL 解析（批6i core 终闸）：None/空串→None（未传）；
+    形态 "unit=30.5,unit2=44"（逗号分隔、键=下游站 unit_id、值=米）。
+    逐项校验：非空键/数值域（float+ValueError 收编+有限性——isdecimal
+    判域不适用小数形态，try/except 收编面=AGENTS §魔法数字段同款 sanctioned
+    路径）/重复键拒（同键双值静默取后者=吞意图）；键位合法性（首站/
+    未知站）归 build_chainage_axis 闸（合法集=首站外站位——站集在装配
+    期才可知，双层闸与 h/v 域闸+路由闸同构）。"""
+    text = (raw or "").strip()
+    if not text:
+        return None
+    overrides: dict[str, float] = {}
+    for part in text.split(","):
+        entry = part.strip()
+        if "=" not in entry:
+            raise ArtifactKindNotReady(
+                f"station_overrides 项 {entry!r} 缺 '='（形态 "
+                "'unit=米值' 逗号分隔——批6i 手动逐边覆盖例外通道）："
+                f"收到 {raw!r}"
+            )
+        key, _, value_text = entry.partition("=")
+        key = key.strip()
+        value_text = value_text.strip()
+        if not key or not value_text:
+            raise ArtifactKindNotReady(
+                f"station_overrides 项 {entry!r} 键或值空（形态 "
+                f"'unit=米值'）：收到 {raw!r}"
+            )
+        # 数值白名单（k1-W2 实修）：十进制小数形态 ASCII 位数——拒科学
+        # 记数法（1e3）/下划线分组（1_000）/全角数字（１２３）等 float
+        # 静默收编面（h/v isdecimal 判域同族纪律，消息含合法形态示例）。
+        if not _STATION_VALUE_RE.match(value_text):
+            raise ArtifactKindNotReady(
+                f"station_overrides[{key!r}] 值非十进制小数形态："
+                f"{value_text!r}（合法如 '30.5'——科学记数法/下划线/非"
+                f"ASCII 数字拒）：收到 {raw!r}"
+            )
+        try:
+            value = float(value_text)
+        except ValueError as exc:
+            raise ArtifactKindNotReady(
+                f"station_overrides[{key!r}] 值非数值：{value_text!r}"
+                f"（站距米值，如 'unit_b=30.5'）：收到 {raw!r}"
+            ) from exc
+        if not isfinite(value) or value <= 0.0:
+            # d1-r2 W3 实修：非正/非有限在 DSL 终闸层拒（错误族与 h/v
+            # 同序——非正本层拦、键位归轴构造层；NaN/Inf 无里程语义）
+            raise ArtifactKindNotReady(
+                f"station_overrides[{key!r}] 须为正有限站距米值："
+                f"得到 {value_text!r}（如 '30.5'）"
+            )
+        if key in overrides:
+            raise ArtifactKindNotReady(
+                f"station_overrides 键 {key!r} 重复（后值静默覆盖前值"
+                "=吞意图，禁）：收到 {raw!r}"
+            )
+        overrides[key] = value
+    return overrides
 
 
 def _scale_denom_of(raw: str | None, what: str) -> int:
@@ -91,6 +162,11 @@ def _check_export_options(
         raise ArtifactKindNotReady(
             "options 'h_scale'/'v_scale' 仅 kind='dxf'（纵断双比例）可传——"
             f"kind={kind!r} 零消费选项面（PROFILE3 R 轮，禁静默吞意图）"
+        )
+    if kind != "dxf" and options.get("station_overrides") is not None:
+        raise ArtifactKindNotReady(
+            "options 'station_overrides' 仅 kind='dxf'（纵断站距覆盖）可传——"
+            f"kind={kind!r} 零消费选项面（批6i，禁静默吞意图）"
         )
 
 
@@ -144,8 +220,16 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
                 "比例）时可传——其他图纸形态为单比例体系（PROFILE3 组合"
                 "真值表，禁静默忽略）"
             )
+        overrides_raw = options.get("station_overrides")
+        if sheet != "profile" and overrides_raw is not None:
+            raise ArtifactKindNotReady(
+                "options 'station_overrides' 仅在 sheet='profile'（纵断站距"
+                "覆盖）时可传——其他图纸形态无站距语义（批6i 组合真值表，"
+                "禁静默忽略）"
+            )
         h_scale = _scale_denom_of(h_raw, "h_scale") if h_raw is not None else None
         v_scale = _scale_denom_of(v_raw, "v_scale") if v_raw is not None else None
+        station_overrides = _station_overrides_of(overrides_raw)
         if options.get("condition_key") is None and plant.conditions:
             warnings.warn(
                 "未指定工况，取 design 档出图——多工况请显式传 condition_key",
@@ -155,6 +239,7 @@ def export_artifact(  # noqa: PLR0913  # SC1 D6 钦定 keyword-only 两参（ass
             plant, options.get("unit_id"), out, options.get("condition_key"),
             site_design=site_design, sheet=sheet,
             h_scale=h_scale, v_scale=v_scale,
+            station_overrides=station_overrides,
         )
     if kind == "ifc":
         if options.get("condition_key") is None and plant.conditions:
@@ -215,6 +300,7 @@ def _export_dxf(  # noqa: PLR0913, PLR0917  # 八参=既有五参+sheet 路由+h
     sheet: str | None = None,
     h_scale: int | None = None,
     v_scale: int | None = None,
+    station_overrides: dict[str, float] | None = None,
 ) -> bytes:
     """dxf 内部编排（D5）：elevation→plan+section（经 UF-32 对照表）→write_dxf。
 
@@ -231,6 +317,9 @@ def _export_dxf(  # noqa: PLR0913, PLR0917  # 八参=既有五参+sheet 路由+h
     形态）——site_layout 后接 catalog_sheet（sheet_origin_below 自
     包围盒下方派生放置），entities 拼接沿单元图 plan+section 先例；
     目录图号=会话内派生零持久化（catalog R4 语义）。
+    批6i（2026-09-29）：sheet=profile 分支开始消费 site_design（桩号轴
+    布置连线默认源——v1「site_design 零消费」终裁 §一.8 口径按用户
+    2026-09-28 裁决〔relay 增补六十二①〕推翻为消费面）。
     """
     if condition_key is None:
         condition_key = next(iter(plant.conditions), "")  # Warning 已在上层发出
@@ -241,12 +330,15 @@ def _export_dxf(  # noqa: PLR0913, PLR0917  # 八参=既有五参+sheet 路由+h
         )
     if sheet == "profile":
         # PROFILE2（2026-09-08）：厂级纵断图独立编排——工况校验共享本层
-        # 入口（纵断与单元图/总图同 R1-1 口径）；site_design 零消费
-        # （纵断=流程拓扑序站位，与总平面摆放无关——终裁 §一.8 更正）。
+        # 入口（纵断与单元图/总图同 R1-1 口径）。
+        # 批6i（2026-09-29）：site_design 消费面开启——布置连线长度=
+        # 桩号轴默认站距源（增补六十二①）；station_overrides=手动逐边
+        # 覆盖例外通道（DSL 已在上层终闸解析为 Mapping）。
         # PROFILE3：h/v 透传覆盖（None=声明面常量——默认比例产物字节
-        # 恒等锚 9b9ea8e1 的结构性路径）。
+        # 恒等锚 9b9ea8e1 的结构性路径——批6i 桩号轴随批重录新基线）。
         return _export_profile_dxf(
-            plant, out, condition_key, h_scale=h_scale, v_scale=v_scale
+            plant, out, condition_key, h_scale=h_scale, v_scale=v_scale,
+            site_design=site_design, station_overrides=station_overrides,
         )
     if unit_id is None:
         if site_design is None:
@@ -324,32 +416,40 @@ def _export_dxf(  # noqa: PLR0913, PLR0917  # 八参=既有五参+sheet 路由+h
     return out.read_bytes()
 
 
-def _export_profile_dxf(
+def _export_profile_dxf(  # noqa: PLR0913  # 六参=既有三参+h/v 比例+site_design+覆盖 Mapping（批6i）；keyword-only 沿 export_artifact 豁免先例
     plant: PlantResult,
     out: Path,
     condition_key: str,
     h_scale: int | None = None,
     v_scale: int | None = None,
+    *,
+    site_design: SiteDesign | None = None,
+    station_overrides: Mapping[str, float] | None = None,
 ) -> bytes:
-    """厂级纵断图编排（PROFILE2）：build_profile→evaluate_pumping→profile_sheet。
+    """厂级纵断图编排（PROFILE2）：build_profile→evaluate_pumping→
+    build_chainage_axis（批6i）→profile_sheet。
 
-    装配口径（终裁 PD5）：假设视图与单元分支同源（DEFAULT_ASSUMPTIONS
-    默认视图+_REL_DATUM 相对标高基准面——水力口径跨图纸一致）；
-    station_lengths=None 整表等距（v1——golden 18 站中 12 站无流程向
-    长度字段实测[辐流池 d=直径/污泥线站无长度语义]，逐站取数规则挂账
-    领域专家，零 Mapping 构造=零静默回退面——红线）；
-    meta.title=中文具名常量（DrawingMeta 承载图名，单单元图
-    meta.title=unit_id 先例同构——终裁必改 3）。
+    装配口径（终裁 PD5 沿承+批6i 桩号轴）：假设视图与单元分支同源
+    （DEFAULT_ASSUMPTIONS 默认视图+_REL_DATUM 相对标高基准面——水力
+    口径跨图纸一致）；桩号轴=build_chainage_axis(profile, site_design,
+    station_overrides) 单源构造（批6i 终裁：站距三态装配唯一路径——
+    site_design None/覆盖缺省同样经此构造 fallback 轴，profile_sheet
+    零自建零双行为）；平台占宽=10 m 占位沿轴承载（golden 18 站中 12
+    站无流程向长度字段实测[辐流池 d=直径/污泥线站无长度语义]，逐站
+    取数规则挂账领域专家——v1 station_lengths 通道退役〔全仓零消费
+    勘察在案〕，占位宽单源化）；meta.title=中文具名常量（DrawingMeta
+    承载图名，单单元图 meta.title=unit_id 先例同构——终裁必改 3）。
     """
     view = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
     losses = head_losses((), ctx=("", condition_key), assumptions=view)
     profile = build_profile(plant, losses, _REL_DATUM, view, condition_key)
     pumping = evaluate_pumping(profile, view)
+    axis = build_chainage_axis(profile, site_design, station_overrides)
     styles = base_styles()
     options = ProfileOptions(
         h_scale=PROFILE_H_SCALE if h_scale is None else h_scale,
         v_scale=PROFILE_V_SCALE if v_scale is None else v_scale,
-        station_lengths=None,
+        axis=axis,
         pumping=pumping,
     )
     entities = profile_sheet(profile, styles, options)

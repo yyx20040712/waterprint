@@ -64,14 +64,18 @@ from waterprint.contracts.drawing_projection_sludge import (
     SLUDGE_PROJECTIONS,
 )
 from waterprint.contracts.drawing_projection_types import (
+    ChainageAxis,
     ElevationProfile,
+    ProfileEdge,
     ProfileStation,
     UnitProjection,
 )
 
 __all__ = [
     "PROJECTION_TABLE",
+    "ChainageAxis",
     "ElevationProfile",
+    "ProfileEdge",
     "ProfileStation",
     "UnitProjection",
 ]

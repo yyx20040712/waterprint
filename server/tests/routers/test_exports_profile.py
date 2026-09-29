@@ -206,3 +206,114 @@ async def test_batch_mixed_unit_item_not_inherit_sheet_e2e_wiring(client, test_s
     assert len(files) == 2  # 纵断（-profile-）+单单元（municipal_cass）各一
     assert sum("-dxf-profile-" in f for f in files) == 1
     assert sum("municipal_cass" in f for f in files) == 1
+
+
+@pytest.mark.anyio
+async def test_station_overrides_form_422_atomic_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """批6i：station_overrides 形态预校验=整批原子 422（项缺 '='/键值空/
+    数值承载三形态；数值域与键位留 core 终闸——双闸分工零重叠）。"""
+    project_id, _task_id = await _project_with_result(client)
+    for case, expect_detail in (
+        ("no_equals_sign", "station_overrides"),
+        ("unit=", "键或值空"),
+        (12345, "须为字符串"),
+    ):
+        resp = await client.post(
+            "/api/exports/dxf",
+            json={
+                "project_id": project_id,
+                "condition_key": "design",
+                "options": {
+                    "sheet": "profile",
+                    "items": [
+                        {"kind": "dxf", "condition_key": "design"},
+                        {"kind": "dxf", "condition_key": "design",
+                         "station_overrides": case},
+                    ],
+                },
+            },
+        )
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, case
+        assert expect_detail in resp.json()["detail"], case
+
+
+@pytest.mark.anyio
+async def test_station_overrides_batch_payload_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """批6i（W5-k1 批量路对拍落位）：DSL 项经归一进 worker payload
+    （items[i].station_overrides 在场）+命名段 -s<sha256 前 10 位> 在场
+    （异覆盖同名覆盖缺陷防再发——FE9 R1 同族）；worker 直读归一值经
+    _item_route_options 透传 core（jobs 面单源钉）。"""
+    from tests.services.test_exports import (
+        _project_with_result as _project_services,
+    )
+    from tests.services.test_exports import (
+        _spy_captured_submit,
+    )
+    from waterprint_server.services.exports import create_export
+
+    project_id = await _project_services(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    await create_export(
+        service_ctx, project_id, "dxf", "ok",
+        {
+            "sheet": "profile",
+            "items": [
+                {"kind": "dxf", "condition_key": "design",
+                 "station_overrides": "municipal_cass=30.5"},
+                {"kind": "dxf", "condition_key": "design",
+                 "station_overrides": "municipal_cass=44"},
+            ],
+        },
+    )
+    assert captured, "批量转任务路径未命中（items=2 超 immediate limit 应转任务）"
+    items = captured[0].payload["items"]
+    assert [item["station_overrides"] for item in items] == [
+        "municipal_cass=30.5", "municipal_cass=44",
+    ]
+    from hashlib import sha256
+
+    def seg(dsl: str) -> str:
+        return f"-s{sha256(dsl.encode('utf-8')).hexdigest()[:10]}"
+
+    assert seg("municipal_cass=30.5") in items[0]["out_name"]
+    assert seg("municipal_cass=44") in items[1]["out_name"]
+    assert items[0]["out_name"] != items[1]["out_name"]  # 异覆盖互异名
+
+
+@pytest.mark.anyio
+async def test_batch_profile_item_content_matches_name_e2e_wiring(
+    client, test_settings  # type: ignore[no-untyped-def]
+) -> None:
+    """批6i 勘误回归钉：批量 profile 项产物内容与命名匹配——文件字节含
+    桩号 K 标注（纵断内容真源标记）。修复前：路由键 IPC 丢失 → worker
+    产总图内容挂 -profile- 名（既有 e2e 只验名不验内容故潜伏）。"""
+    import asyncio
+
+    project_id, _task_id = await _project_with_result(client)
+    resp = await client.post(
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "condition_key": "design",
+            "options": {
+                "sheet": "profile",
+                "items": [  # 双项=超即时阈值转任务路径（worker 消费面）
+                    {"kind": "dxf", "condition_key": "design"},
+                    {"kind": "dxf", "condition_key": "design"},
+                ],
+            },
+        },
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    task_id = resp.json()["task_id"]
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done" and not body.get("failures"), body
+    saved = list(test_settings.exports_dir.glob("*profile*.dxf"))
+    assert len(saved) == 1  # 同名两项幂等落一同名文件
+    assert b"K0+" in saved[0].read_bytes()  # 纵断桩号标注在内容

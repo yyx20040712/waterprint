@@ -154,6 +154,7 @@ from waterprint_server.services.exports_io import (  # TD1 PD4-bis：IO 支撑�
 )
 from waterprint_server.services.exports_registry import list_exports, resolve_export_file
 from waterprint_server.services.exports_support import (
+    _DIGEST_PREFIX,
     _KINDS,
     ExportFileNotFoundError,
     ExportHandle,
@@ -166,6 +167,7 @@ from waterprint_server.services.exports_support import (
     _deterministic_name,
     _scale_text_of,
     _sheet_of,
+    _station_text_of,
     _unit_id_of,
     reject_bad_route_options,
 )
@@ -246,6 +248,11 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             )) or "",
             "h_scale": _scale_text_of(item, "h_scale") or _scale_text_of(chosen, "h_scale") or "",
             "v_scale": _scale_text_of(item, "v_scale") or _scale_text_of(chosen, "v_scale") or "",
+            # 批6i：站距覆盖 DSL 逐项归一（item 覆盖批级沿 h/v 同语义——
+            # 提取面零校验防双处漂移，域校验=预校验+core 终闸双闸）。
+            "station_overrides": (
+                _station_text_of(item) or _station_text_of(chosen) or ""
+            ),
         }
         for item in items
     ]
@@ -264,6 +271,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             sheet=str(item.get("sheet") or "") or None,
             h_scale=int(item["h_scale"]) if item.get("h_scale") else None,
             v_scale=int(item["v_scale"]) if item.get("v_scale") else None,
+            # 批6i：覆盖 DSL 命名段（sha256 前 6 位——_deterministic_name
+            # station 形参；空 DSL 零段保现名恒）。
+            station=(
+                sha256(str(item["station_overrides"]).encode("utf-8")).hexdigest()[:_DIGEST_PREFIX]
+                if item.get("station_overrides") else None
+            ),
         )
         for item in items
     ]
@@ -349,6 +362,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         sheet=sheet_option,
         h_scale=str(items[0].get("h_scale") or "") or None,
         v_scale=str(items[0].get("v_scale") or "") or None,
+        station_overrides=str(items[0].get("station_overrides") or "") or None,
         **extra,
     )
     os.replace(tmp, out)

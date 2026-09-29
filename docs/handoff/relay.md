@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-27 增补六十：批6h 收口 READY（卫生合集九小项——2 commits 60b48e36+925d5f1〔HUMAN-LOCK〕/auditor-readonly 异源审返工回炉三项实修/17 门禁全绿/三检零漂移）；next=批6i -->
+- status: RUNNING <!-- 2026-09-29 批6i 认领（纵断真实站距〔增补六十二① 站距源定案：布置连线长度默认+逐边手动覆盖例外〕+批6h 结转欠账 p150k enum 归因；注入会话通道——workflow_run_id=- 维持；认领前 claim=- 无冲突） -->
 - automation_id: automation-a23ac2a7-7698-4283-8ce0-e1020aaa70a4 <!-- 2026-09-29 换防迁火回填（*/20 节律维持——接任会话）；旧值 automation-886fb903…（随前会话熄火，CronList 零残留） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,8 +20,8 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-27T01:50:11Z <!-- 增补六十收口刷 -->
-- claim: - <!-- 批6h 收口释放（executor-b6h-20260927T005440Z，勾选 44→45） -->
+- heartbeat_utc: 2026-09-29T00:45:37Z <!-- 2026-09-29 批6i 任务内刷新（实装+测试毕：core 209P/server 面绿；进 p150k 归因） -->
+- claim: executor-b6i-20260929T000458Z <!-- 2026-09-29 批6i 认领（勾选快照 45/53） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
 - checked_done: 45 <!-- 2026-09-27 批6h 收口 44→45（增补六十） -->
@@ -34,8 +34,8 @@
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-29
-- claimed_by: - <!-- 2026-09-29 换防复位（批6h 收口遗留残值清理） -->
-- claimed_at: - <!-- 2026-09-29 换防复位 -->
+- claimed_by: executor-b6i-20260929T000458Z
+- claimed_at: 2026-09-29T00:04:58Z
 - next_batch: 批6i 纵断真实站距（站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度默认+逐边手动覆盖例外——设计按此轴心三段通道展开+profile 桩号轴实装；+批6h 结转欠账：p150k enum 行数=0 二分归因+check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项——见增补六十欠账登记）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
