@@ -319,7 +319,7 @@
         "full_graph": false,
         "loop_group_count": 1,
         "serialize_bytes": 2409587,
-        "serialize_sha256_head": "b7d11df880b12ec8"
+        "serialize_sha256_head": "0dfee55d22b4b2f8"
       },
       "kind": "param",
       "note": "族A-1 规则③参数 diff（同单元字段一）",
@@ -340,7 +340,7 @@
         "full_graph": false,
         "loop_group_count": 1,
         "serialize_bytes": 2409750,
-        "serialize_sha256_head": "e2b86ad23331f35c"
+        "serialize_sha256_head": "8a90a3bc01245624"
       },
       "kind": "param",
       "note": "族A-2 规则③参数 diff（同单元字段二）",
@@ -362,7 +362,7 @@
         "loop_group_count": 1,
         "results_identical_to_prev": true,
         "serialize_bytes": 2409750,
-        "serialize_sha256_head": "72dbb29719e4590d"
+        "serialize_sha256_head": "52e31b2ce1b494b1"
       },
       "kind": "param",
       "negative_control": true,
@@ -403,7 +403,7 @@
         "full_graph": true,
         "loop_group_count": 0,
         "serialize_bytes": 2402631,
-        "serialize_sha256_head": "bb09ac1d7b573497"
+        "serialize_sha256_head": "f602c9dd430c1a9b"
       },
       "kind": "remove_unit",
       "note": "族B-1 规则①拓扑短路（删叶单元+其入边——24 边全结构刚需探针实证后唯一可执行删拓扑形态）",
@@ -443,7 +443,7 @@
         "full_graph": true,
         "loop_group_count": 0,
         "serialize_bytes": 2409750,
-        "serialize_sha256_head": "99aab1a2e042592e"
+        "serialize_sha256_head": "93d33fd7162dc487"
       },
       "kind": "restore_unit",
       "note": "族B-2 规则①拓扑短路（叶单元+边复原——拓扑再变，增拓扑路径；结果快照与删改前恒等——serialize 差异仅 repro.design_hash 边序面）",
@@ -494,7 +494,7 @@
         "full_graph": true,
         "loop_group_count": 0,
         "serialize_bytes": 2959314,
-        "serialize_sha256_head": "0a1a4be2491351cb"
+        "serialize_sha256_head": "623fcf981c8a35fd"
       },
       "kind": "assumption",
       "note": "族C-1 规则②保守回落（五键面 assumption_overrides；serialize 2237621→2747903B 增量=迹树面迭代迹节点 6898→8498[阻尼 0.7 收敛变慢——每迭代全公式 applyings 进迹树]，结果面单元快照体量恒定）",
@@ -534,7 +534,7 @@
         "full_graph": true,
         "loop_group_count": 0,
         "serialize_bytes": 2959314,
-        "serialize_sha256_head": "d6c97e2c600b11e7"
+        "serialize_sha256_head": "fa6dd53ed175c778"
       },
       "kind": "site_boundary",
       "note": "族C-2 规则②保守回落（site 面 boundary 红线——SitePoint 三点，闭合由 validator 隐式处理）",
@@ -559,11 +559,11 @@
   ],
   "meta": {
     "base_serialize_bytes": 2409587,
-    "base_serialize_sha256_head": "6bf6d582864237ed",
-    "data_version": "coefficients@1.8.0+unit_prices@1.1.0",
+    "base_serialize_sha256_head": "fa9ac0af04e47092",
+    "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
     "generator": ".workflow/b11-probe/generate_m3_seed.py",
-    "note": "Ruling 2026-09-07 ② 方案 B：golden municipal_34760_loop 派生种子草稿——用户/领域专家审定后锁面登记（golden_data 人类维护纪律沿承）；工况集=base_design.checked_units 派生（本案例空表→design/avg 两工况）；full_graph 步无快照重用面（语义本然——重用安全性质咬合住在部分重算步）；批6b 锚重录 2026-09-26（批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面））；批6b 锚重录 2026-09-26（批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面））；批6d 锚重录 2026-09-26（批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显））；批6d 锚重录 2026-09-26（批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显））",
+    "note": "Ruling 2026-09-07 ② 方案 B：golden municipal_34760_loop 派生种子草稿——用户/领域专家审定后锁面登记（golden_data 人类维护纪律沿承）；工况集=base_design.checked_units 派生（本案例空表→design/avg 两工况）；full_graph 步无快照重用面（语义本然——重用安全性质咬合住在部分重算步）；批6b 锚重录 2026-09-26（批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面））；批6b 锚重录 2026-09-26（批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面））；批6d 锚重录 2026-09-26（批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显））；批6d 锚重录 2026-09-26（批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显））；批6d 锚重录 2026-09-26（批6o 锁面重录 2026-09-29（claim=executor-b6o-20260929T1246Z；预授权①依据=用户 2026-09-26 全局规划指令+2026-09-28 增补五十六 H/增补六十二③ 词表裁决；设备单价词表标准化——12 条万元/台→套，值零变））；批6d 锚重录 2026-09-26（批6o 锁面重录 2026-09-29（claim=executor-b6o-20260929T1246Z；预授权①依据=用户 2026-09-26 全局规划指令+2026-09-28 增补五十六 H/增补六十二③ 词表裁决；设备单价词表标准化——12 条万元/台→套，值零变））",
     "source": "core/tests/golden/golden_data/municipal_34760_loop/input_project.json"
   }
 }

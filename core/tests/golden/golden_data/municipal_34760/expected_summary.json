@@ -1497,11 +1497,11 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.8.0+unit_prices@1.1.0",
+    "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 550034,
-    "serialize_sha256_head": "c39ae6e6f1c1a8f8",
-    "source": "批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显）"
+    "serialize_sha256_head": "f1e58dd3747a5186",
+    "source": "批6o 锁面重录 2026-09-29（claim=executor-b6o-20260929T1246Z；预授权①依据=用户 2026-09-26 全局规划指令+2026-09-28 增补五十六 H/增补六十二③ 词表裁决；设备单价词表标准化——12 条万元/台→套，值零变）"
   },
   "m3_deferred": {
     "estimate_total": {

@@ -105,8 +105,9 @@ def test_unit_mismatch_wiring_assertion() -> None:
 
 def test_aao_aerator_row_resolves_per_series_count() -> None:
     """批6d 对拍：真包+真链 municipal_aao 明细含曝气系统行——量=池数 n
-    （台=组口径：cass 组 quantity=池数同款；dims 回显字段直取）。n=3 档
-    取数（d1 W-1：默认 n=2 与包内参考 quantity=2 同值——无判别力）。"""
+    （套=组口径：cass 组 quantity=池数同款；dims 回显字段直取；批6o 词表
+    台→套）。n=3 档取数（d1 W-1：默认 n=2 与包内参考 quantity=2 同值——
+    无判别力）。"""
     from pathlib import Path
 
     from waterprint.cost.prices import load_prices
@@ -133,7 +134,7 @@ def test_aao_aerator_row_resolves_per_series_count() -> None:
     rows = [it for it in items if it.price_key == "aao.microporous_aerator_piping"]
     assert len(rows) == 1, "aao 曝气系统行恰一行（unit_id 限定）"
     row = rows[0]
-    assert row.unit == "万元/台"
+    assert row.unit == "万元/套"  # 批6o 词表标准化（台→套·散件布设类——镜像随真源）
     assert row.quantity == pytest.approx(3.0)  # 池数 n=3（≠参考 quantity=2——direct 生效判别）
     assert row.source_field_ids == ("municipal_aao.n",)  # 溯源=dims 回显字段
     assert row.cost_class == "equipment"

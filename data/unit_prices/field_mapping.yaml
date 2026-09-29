@@ -7,7 +7,8 @@
 # ── mappings 行结构（takeoff_quantities 消费）─────────────────────
 #   price_key：定额单价键（须在单价包可解析——失联键=领域异常，R3）
 #   unit：计量单位（须与单价条目 unit 完全一致——不一致=领域异常，
-#         R2 量纲门槛；设备台数类的计价单位即 万元/台 口径）
+#         R2 量纲门槛；设备计数类的计价单位即 万元/台·万元/套 口径
+#         ——批6o 词表：单体设备类=台、散件布设类=套）
 #   mode：direct（量=字段值直取）| count_times_value（量=计数字段×单值
 #         字段，source_field_ids=[计数字段, 单值字段]——首版行集未用，
 #         通道为段三 aao v_o_series×池数类字段预留）
@@ -28,11 +29,11 @@
 #     工艺互斥不重复计价。
 #   - 设备台数：cass n_decant（滗水器整取 ceil）/ziwai n_module（整模块数）
 #     ——台数实测自结果字段，单价包 quantity 列仅为参考值不参与计算。
-#   - 批6d 段三扩行：aao 微孔曝气器+管路按组计价（台=每系列一套——
-#     cass 组 quantity=池数同款口径），量=池数 n（dims 回显）；金额折元=
-#     单价包 manifest unit_scales 契约（万元面值×10⁴，estimate 消费面归一
-#     ——b6d-design §二）。count_times_value 通道维持预留（服务面积法
-#     全厂台数=池数×单池对 n 近恒定——总量代理无区分度，不启用）。
+#   - 批6d 段三扩行：aao 微孔曝气器+管路按组计价（套=每系列一套——批6o
+#     词表台→套；cass 组 quantity=池数同款口径），量=池数 n（dims 回显）；
+#     金额折元=单价包 manifest unit_scales 契约（万元面值×10⁴，estimate
+#     消费面归一——b6d-design §二）。count_times_value 通道维持预留
+#     （服务面积法全厂台数=池数×单池对 n 近恒定——总量代理无区分度，不启用）。
 
 mappings:
   - price_key: "concrete_c30_floor"
@@ -77,12 +78,12 @@ mappings:
     cost_class: "equipment"
     source: "COST2 D3：ziwai n_module（ZW-F5 整模块数）；2024 市场询价"
   - price_key: "aao.microporous_aerator_piping"
-    unit: "万元/台"
+    unit: "万元/套"
     mode: "direct"
     source_field_ids: ["n"]
     unit_id: "municipal_aao"
     cost_class: "equipment"
-    source: "批6d 段三扩行：微孔曝气器+管路按组计价（台=每系列一套系统——cass 组 quantity=池数同款口径；格=系列，n 一义两称），量=池数 n（dims 回显）；AAO 轴 capex 区分度数据面（wave6 批6d）；2024 市场询价"
+    source: "批6d 段三扩行：微孔曝气器+管路按组计价（套=每系列一套系统——批6o 词表标准化 2026-09-29 台→套；cass 组 quantity=池数同款口径；格=系列，n 一义两称），量=池数 n（dims 回显）；AAO 轴 capex 区分度数据面（wave6 批6d）；2024 市场询价"
 
 # ── fee_rules 行结构（estimate.load_fee_rules 消费，费率值经
 #    PriceBook.get(fee_key).price 从 auxiliary.yaml rate.* 读出）────
