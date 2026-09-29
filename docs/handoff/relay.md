@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-29T09:09:20Z 增补七十：批6m 收口 READY（UF-52 验收追认+登记册闭合+探针入库——1 commit 021118bff）；next=批6n -->
+- status: READY <!-- 2026-09-29T10:56:25Z 增补七十一：批6n 收口 READY（UF-53 域色双轴归一——1 commit 6bb0d9aa0）；next=批6o -->
 - automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-29T09:09:20Z <!-- 2026-09-29T09:09:20Z 增补七十收口刷 -->
-- claim: - <!-- 2026-09-29T09:09:20Z 批6m 收口释放（executor-b6m-20260929T0822Z） -->
+- heartbeat_utc: 2026-09-29T10:56:25Z <!-- 2026-09-29T10:56:25Z 增补七十一收口刷 -->
+- claim: - <!-- 2026-09-29T10:56:25Z 批6n 收口释放（executor-b6n-20260929T1004Z） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
-- checked_done: 50 <!-- 2026-09-29T09:09:20Z 批6m 收口 49→50（增补七十） -->
+- checked_done: 51 <!-- 2026-09-29T10:56:25Z 批6n 收口 50→51（增补七十一） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-29T08:21:52.820Z <!-- 2026-09-29 批6m 首班发布成立（回读=run dwfrun-3f3c8718-59e9-4d8f-9083-27992a5ce6d8 running+执行者子代理 executing）；旧值 2026-09-29T06:46:17.334Z（批6l 首班） -->
-- workflow_run_id: dwfrun-3f3c8718-59e9-4d8f-9083-27992a5ce6d8 <!-- 批6m 首班执行工作流（单元库浏览前端实现 UF-52——设计件 units-browser-design.md 已备=实现批追认成立） -->
+- last_dispatch_utc: 2026-09-29T10:02:21.624Z <!-- 2026-09-29 批6n 首班发布成立（回读=run dwfrun-ab418a60-80fa-4efe-a017-6c4d6e555f59 running+执行者子代理 executing）；旧值 2026-09-29T08:21:52.820Z（批6m 首班） -->
+- workflow_run_id: dwfrun-ab418a60-80fa-4efe-a017-6c4d6e555f59 <!-- 批6n 首班执行工作流（UF-53 域色双轴归一——CSS/JS 同值双源单源化+双轴同值机器断言；semanticColors.test 冻结锚扩 CSS 侧） -->
 - relay_started_utc: 2026-09-29T03:20:52.723Z <!-- 2026-09-29 二次换防时刻（用户显式再启接任交接——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-28T23:42:01.859Z（首换防） -->
-- batch_count: 3 <!-- 2026-09-29T09:09:20Z 批6m 收口 2→3；旧值 2（批6l） -->
+- batch_count: 4 <!-- 2026-09-29T10:56:25Z 批6n 收口 3→4；旧值 3（批6m） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-29
 - claimed_by: -
 - claimed_at: -
-- next_batch: 批6n UF-53 域色双轴归一（CSS/JS 同值双源单源化+双轴同值机器断言——C1 纪律设计裁量二案；semanticColors.test 冻结锚扩 CSS 侧）
+- next_batch: 批6o 设备单价词表标准化数据批（用户裁决 2026-09-28 增补六十二③细化：单体设备类用「台」、散件布设类〔管路/分布式系统〕用「套」逐条裁量+RATIFY3 批准面重签+词表面/镜像测试随录；独立数据批不并批）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -156,7 +156,7 @@
 - [x] 批6k｜UF 规格冻结批（UF-06 汇流派生定版+UF-09 温度字段位置+UF-11 Ri 归属勘误+UF-12 图谱缺边+UF-19 缺项下游+UF-24 带归属——六行闭合）；+CI agent job 接线+report 产物生成脚本化入库（6k~6m 邻域裁量——2026-09-28 用户裁决②·增补六十二）<!-- 2026-09-29 收官〔增补六十七〕：六 UF 规格面+agent job 八步+产物三件套入库——1 commit b1164692c〔HUMAN-LOCK〕/门一双席 PASS（W 全处置）/探针 11/11/门禁 17 门全绿；CI Linux 首跑=欠账待推送后回帖 -->
 - [x] 批6l｜UF-46/47 收口（core app 面 load_run_env/design_hash 用例→server 适配器/双胞胎退役——D7 边界经 app 再导出面保持）<!-- 2026-09-29 收官〔增补六十九〕：app 面 load_run_env 正门〔engine_version 覆写位=server 串口径保持 golden 字节恒等〕+datapack.py 整域退役+design_digest 双胞胎退役+design_map 末例收敛+CI dwg standin 修复；探针 serialize 字节级==golden 锚；1 commit 96ec0cb8a〔HUMAN-LOCK〕 -->
 - [x] 批6m｜单元库浏览前端实现（UF-52——设计件 units-browser-design.md 已备，上板=实现批追认成立）<!-- 2026-09-29T09:09:20Z 收口〔增补七十〕：勘察=实现已在案（M2 批 2026-09-03 实装+C2-lib/P0-3 演进）——本批=验收追认+登记册闭合非重复实装；验收三条件全实证+探针入库 oracle 化 18/18；1 commit 021118bff -->
-- [ ] 批6n｜UF-53 域色双轴归一（CSS/JS 同值双源单源化+双轴同值机器断言——C1 纪律设计裁量）
+- [x] 批6n｜UF-53 域色双轴归一（CSS/JS 同值双源单源化+双轴同值机器断言——C1 纪律设计裁量二案）<!-- 2026-09-29T10:56:25Z 收口〔增补七十一〕：CSS-in-JS 注入案——真源=DOMAIN_COLORS+global.css :root 域色字面量退役+providers 装载期注入四轴+机器断言三面（值面/声明面/接线面）；门一代位双席回炉九件；探针 9/9；1 commit 6bb0d9aa0 -->
 - [ ] 批6o｜设备单价词表标准化数据批（用户裁决 2026-09-28 细化增补五十六 H·增补六十二③：不搞全量统一、具体问题具体分析——单体设备类用「台」、散件布设类〔管路/分布式系统〕用「套」，逐条按此裁量〔执行者自行把握〕+RATIFY3 批准面重签+词表面/镜像测试随录；独立数据批不并批）
 
 > ③ vector 全表面期望外移 JSON 数据件（可维护性答疑③）＝**用户亲改保留项**——AI 批次不自动开工；第三次锁面摩擦事件发生时仅呈报提醒不代做（用户裁决 2026-09-19）。
@@ -452,3 +452,17 @@
 - **欠账登记**：①CI 首跑回帖守望（本机 Windows 推送后归下班核对——批6l 欠账⑤接力；本次推送含 relay scrub+登记册+webapp/tools 面，CI 应回绿，红则批6n 回炉〔批6k 闭环口径〕）；②canvas D2 中文名映射挂账另悬（UF-52 行内提及——独立挂账面本批未触）；③探针非 hermetic（uvicorn+vite 活链路前置——手动工具形态在案非 CI 面）；④环境实录：webapp node_modules 本班空盘重建（pnpm 10.34 经 npm -g 装+npmmirror 源——环境面非仓面）；core 1612 vs 在册 1610 的 +2 收集差未逐案对账。
 - **预算记档**：fire_budget 120min 实耗≈47min（08:22:58Z~09:09:20Z）在限内。
 - **收口判定=⑤READY**：勾选 49→50（批6m ☑，余 3=批6n/批6o/⑤b——grep 计 4 含本批行勾选前形态，收口后=3≠0 故非 DONE；无停止事由；熔断未触发）；batch_count 2→3（<60）；墙钟≈5.8h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+
+### 增补七十一 — 2026-09-29T10:56:25Z（批6n 收口：UF-53 域色双轴归一——CSS 轴字面量退役+注入案单源化+机器断言三面——READY）
+
+- **claim/commit**：executor-b6n-20260929T1004Z（10:04:11Z 认领——批6n 首班=workflow 通道 run dwfrun-ab418a60〔10:02:21Z 发布成立——调度员板头笔与本班认领相隔约 2min 并发实录，认领前重读板头 claim=- 无冲突〕；组织主干=ai-dev-org v2.1.0 Skill 载入，门一双席代位=ds-call-v2 外部派发 Node 24.21.0 volta 承载〔批6g/6j/6k/6l/6m 先例〕）。实现单笔：6bb0d9aa0（10 文件 +208/−30——零锁面笔：webapp/docs 面，core/server tests/** 零触碰〔批6f/6m 先例〕）。
+- **设计（轻量二案——b6n-design.md 会话件）**：CSS-in-JS 注入案 vs 构建期变量抽取案——选**注入案**（否决依据=构建期案磁盘双源未消〔transform 只救运行期仓面仍两处改色〕+vite 8 插件构建链风险+vitest 不经 CSS transform 不改善测试面）。回炉实录：注入点初设 main.tsx 被 check_webapp 实抓入口分层红（入口只允许 import app/**）→迁 providers.tsx 组合根模块装载期（app→shared 合法）。
+- **交付四件**：①semanticColors.ts +DOMAIN_CSS_VARS（四键 as const satisfies——值=DOMAIN_COLORS 单源引用；neutral 零 var() 消费方不入轴）+installDomainColorAxis()（document 缺席守卫 no-op——纯 CSR 缺席面仅测试环境）；②providers.tsx 组合根装载期注入接线（import 期先于 createRoot 首帧）+注释分族勘正；③global.css :root 域色四行字面量退役+变量轴节契约注分族修订（gold=轴字面量真源；域色四轴=注入面真源 semanticColors）+R-G3①注+wp-lib-hit 派生注修订；④机器断言三面=semanticColors.test 扩 UF-53 值面组（四键键集冻结+逐键===domain_* 键+注入契约 stub document+缺席守卫）+app 层新件 domainColorAxis.test（四形态退役守卫〔#hex/rgb(/hsl(/color-mix( 全文件口径+注入指针在场〕+providers 装载期接线 vi.hoisted stub 行为守卫）。
+- **烤验（实现批全对抗位——代位双席）**：门一 k1 席（主源席，run 20260929103233）**PASS B0/W3/N3**+门一 d1 席（异构源席，run 20260929103604）**有条件放行 B0/W5/N6**——回炉九件全处置：砍 --wp-neutral 键（双席共指零消费扩面违 A2-N-06——#595959 同值面 PortHandle NEUTRAL_BORDER=B3-b D5 独立灰阶先例维持，R-G3 人工联动 2 处不扩）/CSS 侧文件守卫迁 app 层（d1-W5：shared 层测试不得反向读 app 层文件）/守卫正则扩四形态（k1-W3/d1-W2）/providers 接线行为级守卫（k1-W1/d1-W4——运行时动态 import 满载死锁两轮实证弃用〔单跑 2.4s 过/全量 30s 超时×2〕，vi.hoisted 前置 stub+静态导入终案 922P tests 相 1.3s 无挂起）/类型 as const satisfies（d1-N2）/stub afterEach 清理（k1-N1）/登记册措辞降级+防线边界如实记（d1-W3：像素级比对=无视觉快照基建已知限制）/验证命令与测试正则同构化（d1-N3）/五轴→四轴措辞全仓收口；处置全表 b6n-gate1-k1-out.md/b6n-gate1-d1-out.md+设计件 §七回炉记录（.workflow 会话件）。
+- **验证**：vitest 全量 **922P 零失败**（916 基线+6 净增）+tsc --noEmit 清+check_webapp **279 文件**契约头+分层绿（首跑实抓 main.tsx 分层红=回炉触发面）；红探针四路验红（#hex 字面量复入/rgb( 形态复入/DOMAIN_COLORS 改值/providers 删调用——复原后全绿）；门二浏览器探针 **9/9 PASS**（uvicorn+vite 真实链路零 mock：四轴 getComputedStyle 逐键==期望+样式表 :root 零域色声明+品牌渐变 var() 链解析 rgb(77,163,255)+html inline 四键足迹+reload 逐键恒等+console/pageerror 零——b6n-probe.py 会话件+账本行 20260929-b6n-probe 在案）。
+- **收口三检**：run_gates **17 门禁全绿**（6bb0d9aa0 提交后复跑〔OK〕全部门禁通过）；gen_status --check 零漂移（2157 字节——webapp 测试件 82→83 合法增量再生成）；health-scan **RED=0**/WARN×3 存量回显（同增补五十口径）——可收口。
+- **欠账登记**：①CI 首跑回帖守望（本机 Windows 推送后归下班核对——批6m 欠账①接力；本批 webapp+docs 面 CI 应回绿，红则批6o 回炉〔批6k 闭环口径〕）；②全仓任意文件任意形态域色字面量复现扫描=欠账（rgb 数值字面量无键名锚点防误伤不扩——守卫辖 global.css 声明面）；③像素级快照比对无基建（「快照不变」验收以同 hex→同计算值推定+探针 computed style 实证——已知限制记档）；④rgba 派生面 color-mix(var()) 自动联动化=候选欠账（视觉决策面呈报不擅动——wp-lib-hit 光环/DOMAIN_ICON_STYLES/PortHandle NEUTRAL_BORDER 维持 R-G3/B3-b D5 范围外）。
+- **Rulings（呈报不阻断）**：R1 C1 变量轴纪律修订（域色轴自 :root 字面量改启动期注入——「antd 无槽位色」分两族记载：gold=轴字面量真源/域色四轴=注入面真源 semanticColors）；R2 global.css :root 域色四行退役（第二真源消除——防线=domainColorAxis.test 四形态退役守卫）；R3 --wp-neutral 不入轴（A2-N-06 死变量纪律——门一双席共指裁量）。
+- **预算记档**：fire_budget 120min 实耗≈68min（10:04:11Z~10:56:25Z）在限内。
+- **收口判定=⑤READY**：勾选 50→51（批6n ☑，余 2=批6o+⑤b——grep 计 3 含本批行勾选前形态，收口后=2≠0 故非 DONE；无停止事由〔预授权④批间不停板，批6o 可续；⑤b 用户域终态项维持停板待用户〕）；batch_count 3→4（<60）；墙钟≈7.8h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
