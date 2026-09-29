@@ -13,7 +13,7 @@
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
 - status: READY <!-- 2026-09-29 增补六十五：批6j 收口 READY（UF-50 绝对标高通道+ODA 冒烟工具——1 commit a71fbdae〔HUMAN-LOCK〕/门一 k1 PASS+d1 异源代位有条件放行回炉全修/探针 14/14/17 门禁全绿）；next=批6k -->
-- automation_id: automation-a23ac2a7-7698-4283-8ce0-e1020aaa70a4 <!-- 2026-09-29 换防迁火回填（*/20 节律维持——接任会话）；旧值 automation-886fb903…（随前会话熄火，CronList 零残留） -->
+- automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
 - spec: docs/design/2026-09-18_complexity-governance-ruling.md
@@ -27,9 +27,9 @@
 - checked_done: 47 <!-- 2026-09-29 批6j 收口 46→47（增补六十五） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
 - last_dispatch_utc: 2026-09-29T01:59:10.543Z <!-- 2026-09-29 批6j 首班发布成立（回读=run dwfrun-f24cf589-0e9d-4859-9a45-ddd44247dd02 running+执行者子代理 executing）；旧值 2026-09-29T00:03:34.385Z（批6i 首班） -->
-- workflow_run_id: dwfrun-f24cf589-0e9d-4859-9a45-ddd44247dd02 <!-- 批6j 首班执行工作流（DXF 绝对标高+ODA 验证工具——UF-50 通道收口 _REL_DATUM 退役路径+ODA 本地手动冒烟脚本〔不入 CI〕） -->
-- relay_started_utc: 2026-09-28T23:42:01.859Z <!-- 2026-09-29 换防时刻（接任会话——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-26T12:10:48.865Z（rev6 首换防） -->
-- batch_count: 2 <!-- 2026-09-29 批6j 收口 1→2（增补六十五） -->
+- workflow_run_id: - <!-- 2026-09-29 二次换防复位；旧值 dwfrun-f24cf589…（批6j 首班 run——GetWorkflowRun 实核 completed 2026-09-29T03:18:41Z） -->
+- relay_started_utc: 2026-09-29T03:20:52.723Z <!-- 2026-09-29 二次换防时刻（用户显式再启接任交接——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-28T23:42:01.859Z（首换防） -->
+- batch_count: 0 <!-- 2026-09-29 二次换防复位（熔断预算 0/60 重计）；旧值 2（批6i+6j） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
