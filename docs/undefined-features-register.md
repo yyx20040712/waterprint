@@ -51,7 +51,7 @@
 | UF-18 | 警告 | 警告跨工况×单元去重聚合：同一警告在 2+k 工况重复出现，UI 汇总/去重规则无规格（grep "去重" 仅 diagnose 冲突集一处） | 待定义→T3/前端展示层 | 本批 sweep |
 | UF-19 | 水质 | 缺项指标进入下游 compute：quality.py 只定义"缺项不参与混合并记警告"；下游单元公式**需要**该指标时（如 AAO 需 BOD5 而进水缺项）异常还是跳过，无规格 | 已定义→缺项三层语义定版（批6k 2026-09-29——推荐案=已有实现确认）：①mix 汇流层：部分股缺项→在场股加权（全股缺项→结果缺项；在场权合计==0→缺项 GR-14）；②零依赖面（removal 修饰类）：缺项键不经修饰、出流保持缺项透传；③公式依赖面（计算前提指标）：进水缺项→InvalidUnitConfig 领域异常 fail-loud（GR-09，AAO AO-F1/F4 BOD5/TN 前提断言实现事实）——不跳过不默认 0。manifest 声明必需指标集=未来扩面另立（v1=compute 内断言）。规格正文=business-logic §6a | 本批 sweep → 批6k 闭项 |
 | UF-20 | 单位 | pint 单位别名集：quantity.py 未定义接受写法（`m3/d` vs `m³/d` 上标、大小写）；pint 默认接受面 vs 项目白名单未拍板，边界实现者自定 | 已定义→T1 冻结白名单（ACCEPTED_INPUT_UNITS 十量类显式写法集，白名单外一律拒、pint 永不接触未审字符串；规格头新增【单位别名白名单】节；已锁定（SENS 批 S2 落盘，用户总授权），当期证据=实现报告负例命令） | 本批 sweep |
-| UF-21 | 前端 | i18n 键命名：dimensions.py 只写 `i18n_key: str`，键格式（前缀/分隔符/命名空间）无约定；webapp 尚无 i18n 体系（grep 无 i18n_key 消费点） | 待定义→前端 i18n 层落地任务 | 本批 sweep |
+| UF-21 | 前端 | i18n 键命名：dimensions.py 只写 `i18n_key: str`，键格式（前缀/分隔符/命名空间）无约定；webapp 尚无 i18n 体系（grep 无 i18n_key 消费点） | 已定义→显式不做（滞后闭项·文档维护批 2026-09-30）：UF-25 批6h 已定版全仓中文单语、不引入 i18n 键层——本行"待定义"面被其整体覆盖（i18n 体系不建=键命名约定无消费场景）；dimensions.py `i18n_key` 字段维持声明、仓内无语义消费点（2026-09-30 全仓 grep 复证：命中=声明面〔registry/dimensions+32 包 manifest+graph builtin 造值〕、contracts 非空校验与测试镜像；agent knowledge 工具输出面显式剔除该键——无查找/显示消费；历史字段面，多语言翻案=独立勘误批，UF-25 同款条款） | 本批 sweep → UF-25 覆盖闭项 |
 | UF-22 | 参数 | ParamSpec 范围端点语义：manifest.py 只写"范围（可选，约束层消费）"，闭/开区间未写——实现者可自创开区间误拒端点合法方案 | 已定义→GR-06（默认闭区间，开区间显式声明） | 本批 sweep |
 | UF-23 | 汇流 | 汇流 ΣQi=0 的除零：propagate.py 负荷加权 ΣCi·Qi/ΣQi，权重全零时 0/0 处置未写 | 已定义→GR-02（运算产生 NaN=compute 内转领域异常上抛） | 本批 sweep |
 | UF-24 | 参数 | 输入物理合理性带归属：flow.py R3 只对 Kz 言明"行业上下限属 constraint_kb 数据"；其余量（q_avg_daily 无上限、浓度上限等）的合理性带归属与数据载体未写 | 已定义→带归属声明表定版（批6k 2026-09-29——Kz 模式推广全量化）：契约只守数学不变量（正性/有限性/派生一致性）；行业合理性带=数据面（constraint_kb 条目或 manifest range，出处纪律+追认制）。闭项范围=**归属模式与载体定版**（每量唯一归属+执法面声明——挂账两处〔Kz 未录/水质上限带未录〕=数据值录入工作包承接非闭项阻断，闭项判据=归属声明表可判定新量落点）；六量声明表落 data/constraint_kb/README.md「输入合理性带归属声明」节：Kz（kb 规划位无来源未录挂账）/q_avg_daily 厂界带（params_guard builtin A-1~A-3 已落地）/单元参数 94 条（manifest range 已落地）/几何四量（kb geometry_guard 已落地）/枚举可行带（kb 存量已追认）/水质浓度（契约数学不变量在册+行业上限带数据面挂账） | 本批 sweep → 批6k 闭项 |
@@ -59,7 +59,7 @@
 | UF-26 | 任务系统 | server 重启任务恢复：manager.py R4 只写"注册表在内存、replicas=1"，重启后 queued/running 任务与任务历史的恢复语义（丢失是否接受、是否持久化）未写 | 已定义→显式 v1 语义（批6f 2026-09-26 闭项——实装面回写；本行旧前提「只在内存」系 sweep 时点陈述，S2/ENG5 落盘化后失真）：单实例（api replicas=1）四条明示：①终态任务记录落盘（registry_dir 四时机原子写：submit 初档 queued/_pump running 迁移/_finish 终态/cancel·shutdown 的 queued 终态）重启恢复供读；②queued/running 非终态重启**不续跑**——恢复记录经 iter_restorable 变换为 failed（error_type=InterruptedByRestart，error_code=None 诚实——生命周期事件不入领域码表）可查不丢痕；③幂等表不恢复（ENG5 D5——重提交=新任务）；④前端对失效任务 id 重提交即新任务（TaskPanel statusError 指引文案在案）。deployment.md「单进程契约」节重启语义注记同口径；多副本=未来 Redis 化（ADR 不做）。 | 本批 sweep；批6f 闭项 |
 | UF-27 | 序列化 | view 态时间戳格式：project_schema.py 只写 ViewState 含时间戳，格式（UTC？ISO？本地字符串）未写——本地时间字符串跨机排序错序 | 已定义→GR-19（UTC ISO 8601，禁本地时间字符串） | 本批 sweep |
 | UF-28 | 可观测 | 进度事件 percent 口径：worker.py R3 只写"阶段百分比+逐工况粒度"，跨阶段/跨工况的总 percent 加权口径（工况数均分？单元数加权？）未写，实现者随手定 | **已冻结·SERVER（2026-08-26）**：percent=(index+1)/(total+1) 阶段幂商式（阶段表 _STAGES 为分母基；ADR-009 白名单字面量）——工况级加权口径挂起（core run 单调用无逐工况回调钩子，与 UF-49 协作钩子缺位同批）；events 背压丢旧保新语义已对账（manager._emit：进度满即弃最旧，state/stale 不丢） | 本批 sweep |
-| UF-29 | 单元包 | 单元包导出契约：AGENTS §11 说"只暴露 manifest 与 compute 两个名字"，_template/compute.py 固定形态却要 `make_unit` 工厂由包 `__init__` 导出——白名单到底几名未冻结 | 待定义→M1 期间（首个单元包实现前拍板） | unified B6（本批 sweep 复核确认仍开放） |
+| UF-29 | 单元包 | 单元包导出契约：AGENTS §11 说"只暴露 manifest 与 compute 两个名字"，_template/compute.py 固定形态却要 `make_unit` 工厂由包 `__init__` 导出——白名单到底几名未冻结 | 已定义→双层口径定版（滞后闭项·文档维护批 2026-09-30）：①包 `__init__` 对外导出**三名** `UNIT_ID`/`make_unit`/`manifest`（AGENTS §11 现行文——M3a2 终裁 yI-1 2026-08-28 已收口；本行问题域引文「manifest 与 compute」系 sweep 时点更早旧文，宪法无残留待勘误）；②注册发现消费面白名单 `{manifest, make_unit}` **两名**（units_lib/__init__.py `discover_units`——`_register` 启动守卫四查：部分导出（消费面缺名）/manifest 非 UnitManifest/make_unit 不可调用/重复 unit_id 均 RuntimeError fail-loud），32 包全量按此实施（T7b D6 同源铁律） | unified B6 → 实现已冻结；2026-09-30 滞后闭项 |
 | UF-30 | 工具链 | mypy strict 覆盖单元包内测试无豁免：首个包内测试（tests/ 目录）即触发（core pyproject 的 strict 范围未区分 src/tests） | 待定义→M1 期间（首个单元包落地时定豁免或全严格） | unified B7（本批 sweep 复核确认仍开放） |
 
 ## 三、预期方向中未收录的验证结论（防重复登记）
@@ -91,7 +91,7 @@ grep -n "Σ\|除零\|sum.*==.*0\|权重为零" core/waterprint/graph/propagate.p
 > 新增登记项同样须走上述验证；处置变更（待定义→已定义）在冻结任务的 commit
 > 中回写本表并引用任务号。
 
-## 五、ARCHDEBT 架构审查新增项（2026-08-23；UF-31/33/34 已裁决落盘 SENS-B 2026-08-23，UF-32 待定义）
+## 五、ARCHDEBT 架构审查新增项（2026-08-23；UF-31/33/34 已裁决落盘 SENS-B 2026-08-23，UF-32 已定义闭项——头注滞后勘误 2026-09-30）
 
 > 来源：`.workflow/reports/task-ARCHDEBT-impl-report.md`（架构布局本征复杂度
 > 审查）。四项均为"实现开始后必然撞墙"的结构性沉默，已 grep 验证（见文末）。

@@ -102,6 +102,13 @@ python -m 也不经 entrypoint）仍绕过校验——裸机部署请一律走
 > `python -m waterprint_server.main` 消费，默认 `127.0.0.1:8000`——只听
 > 本地回环）容器内**不生效**：容器绑定由 Dockerfile CMD 旗标钉
 > `0.0.0.0:8000`（nginx 跨容器反代所需），改绑=改信任面，见「安全红线」节。
+>
+> 裸机开发态语义注记（2026-09-30 补）：`WATERPRINT_DATA_DIR` 在裸机运行
+> 时**只重定向数据包根**（coefficients/constraint_kb/templates/unit_prices
+> 四包校验基点）；项目/导出产物根缺省仍按**工作目录相对路径**（projects/、
+> exports/——与 `WATERPRINT_PROJECTS_DIR`/`WATERPRINT_EXPORTS_DIR` 显式
+> 覆盖并存）。裸机隔离试验请同时设三个变量，勿只设 DATA_DIR 而误以为产物
+> 也已隔离（实测踩坑记录：探针项目落进 server 运行目录）。
 
 覆盖例（compose 自定 env 或 `docker compose run -e`）：
 

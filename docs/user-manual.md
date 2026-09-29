@@ -159,9 +159,8 @@ uv run python -m waterprint.cli export audit <project.json> <result.json> [--out
 - **degraded 标注**：单元没有适用可行性约束时，区间条整条绿色并标注
   「本单元暂无适用可行性约束——绿色区=计算有效域」——诚实呈现降级
   态，绿色不代表约束结论。
-- **步长派生口径**：连续参数输入框为数字组件，上下箭头增量恒=
-  (max−min)/10（缺省 11 档指引粒度）；键盘可输入任意值不受步长限制
-  ——步长只是调参效率指引，不是校验规则（语义校验仍在计算侧）。
+- **步长派生口径**：连续参数上下箭头增量恒=(max−min)/10（缺省 11 档
+  指引粒度）；键盘可输入任意值——步长是调参指引非校验（校验在计算侧）。
 
 接口面：`POST /api/calc/design-map`（同步直返，轴 1~2 个；扫描总点数
 上限 2500，超限显式拒绝——项目假设面板可按项目覆盖键
@@ -180,10 +179,8 @@ BioWin 工程软件专业风×原神质感分寸）：
   徽章+连接设置齿轮）+左侧单元库（232px，四线分组树+搜索）+中央
   七标签工作区+**底部状态栏**（当前项目 id+就绪态；引擎/数据版本
   字段待服务端端点，暂不显示）；
-- **滚动行为**：整页（document 级）滚动已根除——内容超高时滚动发生
-  在**标签内容区内部**（每标签独立滚动域），顶栏/单元库/状态栏恒在
-  视口内；此前「滚轮一滚就跑出窗口、看到窗口外白色背景」的问题已
-  根治（C1 批无头断言实证）；
+- **滚动行为**：整页滚动已根除——内容超高时滚动发生在**标签内容区
+  内部**（每标签独立滚动域），顶栏/单元库/状态栏恒在视口内；
 - **数值显示**：参数与数据数值采用等宽字体（Cascadia Code 系）——
   工程数据列对齐易读；
 - **页签行与留白**（C2-visual 批 2026-09-11）：顶部页签行为浅蓝面板
@@ -235,14 +232,11 @@ BioWin 工程软件专业风×原神质感分寸）：
   横断面，剖口实体断面以灰蓝平涂封盖[工程半剖图剖面惯例]，水体剖面
   保持半透明蓝，192px 高清渲染）；**鼠标悬浮图标槽上方浮出 160px
   放大预览**（不遮挡操作）；未计算/无构型单元回退象形图标；
-- **画布细节微调**（C2VD 批 2026-09-11）：节点英文键（unit_id）长名
-  在分隔符处整词换行（不再出现单字孤行）；左下小地图改为面板蓝实底
-  （不再透出底面点阵）；**参数面板底色=面板蓝**（方案 A 同构——与
-  左侧单元库/顶部页签行同色系，画布区深底明确分层）；
-- **设计对齐细节**（C2-ALIGN 批 2026-09-12）：单元库与工作区之间
-  浅色分割线（方案 A 同构）；页签选中态=白字半粗+**鎏金渐变下划线**
-  （内缩于页签文字两侧），未选中=灰蓝常规体（方案 A 同构）；单元库
-  图标 22×22/行文字 13px（较此前增大）。
+- **画布细节**：节点英文键长名在分隔符处整词换行；小地图面板蓝实底；
+  **参数面板底色=面板蓝**（与单元库/页签行同色系，画布区深底分层）；
+- **对齐细节**：单元库与工作区间浅色分割线；页签选中态=白字半粗+
+  鎏金渐变下划线（内缩于文字两侧），未选中=灰蓝常规体；单元库
+  图标 22×22/行文字 13px。
 
 ### 3.10 参数面板（webapp，C2-params 批 2026-09-10）
 
@@ -315,9 +309,8 @@ C2-ALIGN A5r 批 2026-09-12 双分页升位）：
   构筑物）时，顶部显示提示横幅「三维仅显示已摆放构筑物与相关管廊
   （N/M）」——未摆放单元不参与三维场景属正常语义，完成摆放并重算
   后全部可见；未开始摆放（布置为空）时三维自动按兜底布局全量呈现；
-- **构筑物棱边描边**（C2VD 批 2026-09-11）：池体/管道等构筑物
-  棱边以亮色细线勾勒——灰阶构筑物在深蓝底/网格上的轮廓对比度收口
-  （远观不再「近乎不可辨」）；
+- **构筑物棱边描边**：池体/管道等构筑物棱边以亮色细线勾勒——灰阶
+  构筑物在深蓝底/网格上远观轮廓可辨；
 - 剖切/图层开关（水面/内部构件/标注）不变。
 
 ### 3.13 项目管理（webapp，P2 生命周期批 2026-09-12）
@@ -341,8 +334,7 @@ C2-ALIGN A5r 批 2026-09-12 双分页升位）：
 API 面：`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`、
 `DELETE /api/projects/{id}`（openapi 28→31 操作，2026-09-12）。
 
-同批随裁：工艺画布节点卡片的 unit_id 等宽副标行隐藏（该编码对用户
-无信息量——鼠标悬浮单元名可查看完整键用于追溯）。
+同批随裁：画布节点卡片的 unit_id 副标行隐藏（悬浮单元名可查完整键）。
 
 ### 3.14 结果可信度（webapp，P2 次批 2026-09-12）
 
@@ -366,8 +358,8 @@ openapi 31→32 操作）：
   调节方向参数），按级别计数徽标；零警告显示「全工况零警告」空态。
 
 兼容语义：旧版本计算的结果没有诊断数据（收敛/水量平衡/裕度区显示
-「诊断数据不可用（旧版本结果）」蓝条，重新提交计算后即获取）——
-警告汇总不受影响（自结果总线常在）。
+「诊断数据不可用（旧版本结果）」蓝条，重算后即获取）——警告汇总
+不受影响（自结果总线常在）。
 
 部署前提：计算管线装载出水标准依赖 `data/constraint_kb/constraints.json`
 （固定资产；缺失时计算任务直接失败——fail-fast 设计，ADR-012 D6）。
@@ -398,6 +390,12 @@ openapi 31→32 操作）：
   高程与概算下拉、方案表与可信度各表），悬浮显示原始键可追溯；
 - **方案表多工况行**：枚举结果按全部所选工况产出（同参数档各工况一行，
   「工况条件」列区分；行序=网格行主序、同档相邻——跨工况比一目了然）。
+
+### 3.16 诊断标签（webapp，B4-1 批 2026-09-19）
+
+「诊断」标签（第十标签）为操作链集中观测面（`GET /api/debug/ops-chain/{project_id}`，
+只读聚合零任务副作用）：任务时间线与最新结果三源汇总，用于排查"我提交了什么、
+算到了哪、结果是否过期"。无已完成计算时为 200 空块（诊断面语义，非 404）。
 
 ## 4. 核心概念
 
@@ -436,10 +434,13 @@ FAQ 第 2 问）。
 | 分组 | 端点 |
 |------|------|
 | projects（8） | `GET/POST /api/projects`、`GET/PUT/DELETE /api/projects/{id}`、`POST /api/projects/{id}/validate`、`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`（P2 生命周期批 2026-09-12） |
-| calc（9） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12）、`GET /api/calc/compare/{project_id}`（多工况对比矩阵——P2 第三批 ADR-018） |
+| calc（10） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12）、`GET /api/calc/compare/{project_id}`（多工况对比矩阵——P2 第三批 ADR-018）、`GET /api/calc/sensitivity/{project_id}`（参数敏感性全工况投影——批6e 2026-09-26，复用结果缓存零重算） |
+| solution（1） | `POST /api/solution/joint-enumerate`（跨单元联合枚举——多单元关联参数联动寻优） |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
 | 图纸与数据（7） | `GET /api/scene/{project_id}`（三维场景）、`GET /api/elevation/{project_id}`（高程纵断数据）、`GET /api/cost/{project_id}`（概算）、`GET /api/site/spacing`（布置间距校核）、`GET /api/units`、`GET /api/assumptions`、`GET /api/constraints` |
+| ai（7） | `GET/PUT /api/ai/config`（AI 连接配置读写——base_url/model/api_key 等四键，.env 持久化）、`GET /api/ai/connection`、`POST /api/ai/connection/setup`（连接状态查询/建立）、`GET /api/ai/sessions`、`GET/POST /api/ai/sessions/{session_id}/messages`（AI 对话：会话清单/历史/发言转异步任务，经既有任务端点族+SSE 消费） |
+| debug（1） | `GET /api/debug/ops-chain/{project_id}`（操作链观测面——任务时间线+最新结果三源只读聚合，B4-1 2026-09-19） |
 
 > 批量导出（M5 起）：`POST /api/exports/{kind}` 载荷 `items` 数组 >1 项
 > 即转低优先级批量任务（服务端幂等键防重复提交；进度走 SSE 订阅；
@@ -468,9 +469,8 @@ FAQ 第 2 问）。
    或订阅 SSE `GET /api/events/tasks/{id}`（进度百分比+阶段消息）。
    完成态载荷含 `result_file` 与三元组。
 2. **导出报 409 stale 是什么？** 最近结果集基于旧 design，当前项目已
-   改动。先重新计算；或确实要旧结果时加 `?force=1`（产物会带旧三元组
-   标注）。CLI 侧不拒——`wp export audit` 只在 stderr 打警告（审计
-   对象就是那份历史计算，报告头部三元组自证版本）。
+   改动。先重算；或确实要旧结果时加 `?force=1`（产物带旧三元组标注）。
+   CLI 侧不拒——`wp export audit` 仅 stderr 警告（报告头部三元组自证）。
 3. **CLI 退出码什么含义？中文输出乱码？** 0 成功 / 2 用法错误 /
    3 读入或校验失败 / 4 计算失败（诊断信息在 stderr）。乱码请设
    `PYTHONUTF8=1`（Windows GBK 控制台）。
@@ -483,10 +483,9 @@ FAQ 第 2 问）。
 6. **CLI 警告"项目 design hash 与结果三元组不一致"？** 传入的项目
    文件不是产出该结果的版本。报告仍会生成（头部三元组标明实际版本）；
    要对齐当前项目请先重算。
-7. **项目文件旁出现 `.lock` 文件？** 并发编辑防护（单用户最低成本
-   方案）：该文件存在时，服务层拒绝读取/保存该项目（409，消息带锁
-   文件路径即持有者信息）。锁的创建与清理由编辑会话负责；确认没有
-   会话占用后可删除。
+7. **项目文件旁出现 `.lock` 文件？** 并发编辑防护：该文件存在时服务层
+   拒绝读取/保存该项目（409，消息带锁文件路径即持有者）。锁由编辑
+   会话创建/清理；确认无会话占用后可删除。
 8. **引擎或数据包升级后，旧项目文件还能用吗？** 项目带 `format_version`
    （当前 3.0——v1→v2 增厂区总平面、v2→v3 增边界红线，历史文件经
    迁移链自动升级）。同版直通；未来版本拒绝（不降级打开，防静默丢
