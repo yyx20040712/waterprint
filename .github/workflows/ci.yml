@@ -227,9 +227,12 @@ jobs:
           if [ "$rc" -ne 0 ]; then
             exit "$rc"
           fi
-          if grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
+          # 平台守卫白名单（增补六十一 R1「agent job 自带口径」）：core/server
+          # 共有短语+agent 自有短语（junction 面 _winapi 守卫=Linux 恒 skip 的
+          # 平台事实，批6k 回炉落地——CI Linux 首跑显形）。
+          if grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'Windows 平台守卫' | grep -q .; then
             echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮；report 产物缺失亦经此面红显）"
-            grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障'
+            grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'Windows 平台守卫'
             exit 1
           fi
       - name: report golden 产物零漂移（重生成与入库件字节比对——批6k）

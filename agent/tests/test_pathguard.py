@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -42,11 +43,18 @@ def test_resolve_in_rejects_dotdot(tmp_path: Path) -> None:
 
 
 def test_resolve_in_rejects_absolute_and_unc(tmp_path: Path) -> None:
-    """拒绝对路径/UNC/盘符相对形态（跨盘符重定向面）。"""
+    """拒绝对路径（跨平台契约）+UNC/盘符相对形态（Windows 路径语义面）。
+
+    盘符相对/UNC=Windows 路径形态——Linux PosixPath 无 drive 概念，两
+    断言平台条件化非 skip（批6k CI 接线 Linux 首跑显形回炉：绝对路径
+    拒绝与 ../ 逃逸拒绝=跨平台契约恒测）。
+    """
     guard = PathGuard(_make_root(tmp_path))
     outside = tmp_path / "outside.txt"
     with pytest.raises(PathGuardError):
         guard.resolve_in(outside, area="projects")  # 绝对路径
+    if sys.platform != "win32":
+        return
     with pytest.raises(PathGuardError):
         # 盘符相对形态（非绝对但带 drive）
         guard.resolve_in(Path(r"C:windows/system32"), area="projects")
@@ -68,7 +76,10 @@ def test_resolve_in_drive_letter_case_insensitive(tmp_path: Path) -> None:
 
 def test_resolve_in_rejects_junction_escape(tmp_path: Path) -> None:
     """junction 前缀逃逸：area 内 junction 指向沙箱外 → realpath 解析后越前缀即拒。"""
-    pytest.importorskip("_winapi")
+    pytest.importorskip(
+        "_winapi",
+        reason="Windows 平台守卫：junction 面仅 Windows（_winapi 私有通道）",
+    )
     root = _make_root(tmp_path)
     outside = tmp_path / "outside-target"
     outside.mkdir()

@@ -15,7 +15,7 @@
   "agent/tests/test_chat_toolspec.py": "02ed839e39462c174fbfbd93086579bf7f7a82b6dd91cb0894d19191014f57ac",
   "agent/tests/test_e2e_golden.py": "6a1082efd80c01a7fe90998c493389e8f2d89ef1d08b3d8b17dbdcae791206ad",
   "agent/tests/test_main_smoke.py": "ba3c2b866b42f96f818e5c931640999667ced9414761342ce8b9d9f948dab710",
-  "agent/tests/test_pathguard.py": "72fd8d573cf4d1d227aef75ca28dd74b9bcae7a3b774eb455760b2e410cfa463",
+  "agent/tests/test_pathguard.py": "4fe996b4ead03059763810336f2d6fb6fa560855e412c49a87768fc4cbe4086d",
   "agent/tests/test_sandbox.py": "213da0fb009656b37afca44d8993155823686c0c12969e9dcb03b61b1a52483b",
   "agent/tests/test_sessionlog.py": "a00a0b38313edef88024eacf51ece90ec6e198fa448005df278367c73236a6aa",
   "agent/tests/test_tools_calc.py": "da30ca8692f2f3ac79ba4e70c61032c28a73631dc8eb6a668874194c0b3e07c6",

@@ -53,8 +53,15 @@ EventType = Literal["instruction", "tool_call", "tool_result", "param_patch"]
 
 # 会话 id 分量白名单（同 server settings 分量纪律——拒 ../ 分隔符注入）。
 _SESSION_ID_PATTERN: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}\Z")
-# Windows 绝对路径（盘符或 UNC 起头，不含空白/引号——R4 已知限）。
-_ABS_PATH_SOURCE: Final[str] = r"[A-Za-z]:[\\/][^\s\"'<>|]*|\\\\[^\s\"'<>|]+"
+# 绝对路径三形态（不含空白/引号——R4 已知限）：Windows 盘符/Windows UNC/
+# POSIX 根起头。POSIX 分支带负向后瞻（防 URL `https://…` 与单词内斜杠
+# 误吃——批6k CI 接线 Linux 首跑显形：旧源仅 Windows 形态致 POSIX 沙箱
+# 绝对路径不脱敏直落盘，产品缺陷非测试面）。
+_ABS_PATH_SOURCE: Final[str] = (
+    r"[A-Za-z]:[\\/][^\s\"'<>|]*"
+    r"|\\\\[^\s\"'<>|]+"
+    r"|(?<![A-Za-z0-9:/])/[^\s\"'<>|]*"
+)
 _ABS_PATH_PATTERN: Final[re.Pattern[str]] = re.compile(_ABS_PATH_SOURCE)
 # 环境变量值脱敏门槛：过短值（如 "1"/"0"）会大面积误伤正常文本。
 _ENV_VALUE_MIN_LEN: Final[int] = 8
