@@ -16,7 +16,8 @@
 #   removal_refs 全空（VS 降解走泥量减量链不走水质去除键）。
 # 【符号统一（M3b1 移交顺改）】DSL/参数面 t_digest=消化时间（d，
 #   XH-F2 入参）；温度经参数 t_digest_temp 承载（默认 35 ℃ 中温档
-#   ——UF-09 未裁前的参数面口径，表内注记三处在册；v1 温度不进
+#   ——UF-09 定版=参数承载〔契约链不设温度字段，批6k 闭项〕，表内注记
+#   同批勘误；v1 温度不进
 #   DSL 公式[恒 35 档]，factor.xiaohua.temp 键登记不消费——高温
 #   55 档归追认/设备批）。
 # 【公式注册（D1）】XH-F1~XH-F11 逐条 FormulaSpec+register；expression=

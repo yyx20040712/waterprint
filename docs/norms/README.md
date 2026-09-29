@@ -50,7 +50,7 @@ norms/
 | sludge_shusong（污泥输送） | 污泥处理 | `sludge_shusong.md` | M3b2 已实装（ST-F1~F9 注册+包内 golden 13 例；DN25 档收口+DS 穿流守恒显式）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，压力流管径+重力自流曼宁最小坡度两式主线[DS 穿流守恒显式]） |
 | sludge_bengzhan（污泥泵站） | 污泥处理 | `sludge_bengzhan.md` | M3b2 已实装（BZ-F1~F18 注册+包内 golden 12 例；泵族先例形态+污泥粘度修正）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，泵组选型+扬程三分量[污泥粘度修正]+集泥井主线[wushui_tisheng 泵族先例形态]） |
 | sludge_nongsuo（污泥浓缩池） | 污泥处理 | `sludge_nongsuo.md` | M3b2 已实装（NS-F1~F12 注册+包内 golden 12 例；双主线取大+上清液回流口声明先行）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，固体通量/浓缩时间双主线取大[上清液回流口默认关——Q1 待裁注记]） |
-| sludge_xiaohua（污泥消化池） | 污泥处理 | `sludge_xiaohua.md` | M3b2 已实装（XH-F1~F11 注册+包内 golden 12 例；t_digest_temp 参数承载[UF-09 口径]）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，中温消化 35℃主线[UF-09 温度参数承载注记]+消化减量 DS 守恒链+产气量衡算） |
+| sludge_xiaohua（污泥消化池） | 污泥处理 | `sludge_xiaohua.md` | M3b2 已实装（XH-F1~F11 注册+包内 golden 12 例；t_digest_temp 参数承载[UF-09 定版=参数承载，批6k 闭项]）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，中温消化 35℃主线[UF-09 温度参数承载注记]+消化减量 DS 守恒链+产气量衡算） |
 | sludge_tuoshui（污泥脱水间） | 污泥处理 | `sludge_tuoshui.md` | M3b2 已实装（TU-F1~F8 注册+包内 golden 12 例；带式/离心双机档 grid+滤液回流口声明先行）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，带式/离心双机档[PAM 投加/泥饼 75~80%]+滤液回流口默认关注记[Q1 待裁]） |
 | sludge_ganhua（污泥干化） | 污泥处理 | `sludge_ganhua.md` | M3b2 已实装（GH-F1~F8 注册+包内 golden 12 例；热量衡算+质量守恒校核显式）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，热干化热量衡算+蒸发水量干基差式[质量守恒校核显式；沼气联动潜力注记]） |
 | conveyance_jishuijing（集水井） | 集配水 | `conveyance_jishuijing.md` | M3c 已实装（JS-F1~F7 注册+包内 golden 10 例；汇流单口穿流+井径 0.5 m 档收口）；表已追认（2026-08-28 RATIFY2 扩批）（起草 2026-08-27，数据策略 v2，汇流集水容积法+停留校核+圆形井构造主线[零水质去除穿流——removal 零键照污泥批口径]） |

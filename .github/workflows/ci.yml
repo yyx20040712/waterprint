@@ -193,6 +193,48 @@ jobs:
       - run: pnpm check:templates
       - run: pnpm test
 
+  # 批6k（2026-09-29 增补六十二②——增补六十一 R1 呈报项闭项）：agent
+  # 套件接线（R-B44b-3）。形态沿 core/server 面：frozen 安装+质量面+pytest
+  # 含 skip==0 拦截（GOV1 A3——产物入库后 report 组零 skip，白名单沿用
+  # 平台守卫唯一豁免）+report golden 产物零漂移（tools/report_golden.py
+  # 重生成与入库件逐字节比对——result/diag/sample 三件套 CI 钉死）。
+  # mypy 暂不入（35 错存量+waterprint-core 轮内缺 py.typed 面——欠账登记
+  # 归后续硬化批，非本批静默降级面）。
+  agent:
+    name: 智能体套件（MCP+说明书管线）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+      - name: 安装依赖（agent/uv.lock 入库——frozen；core/server path 依赖同场构建）
+        run: uv sync --frozen
+      - run: uv run ruff check .
+      - name: import-linter 架构契约（ADR-020/022 两契约）
+        run: uv run lint-imports
+      - name: Pytest（含 skip==0 拦截——GOV1 A3 同 core/server 面形态）
+        run: |
+          # 吞日志修法（B2-6 搭车）：+e 收 rc 恒 cat 再保真退出（core 面同款）。
+          set +e
+          uv run pytest > /tmp/pytest-agent.log 2>&1
+          rc=$?
+          set -e
+          cat /tmp/pytest-agent.log
+          if [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
+          if grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
+            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮；report 产物缺失亦经此面红显）"
+            grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障'
+            exit 1
+          fi
+      - name: report golden 产物零漂移（重生成与入库件字节比对——批6k）
+        run: uv run python ../tools/report_golden.py --check
+
   benchmarks:
     name: 性能基准（§18.1 预算 5s 不放宽）
     needs: [gates, core]

@@ -169,6 +169,18 @@
 > 第 15 组 waterprint.app → waterprint.app_enumeration 为同层边，按 §1c
 > 同层边声明块承载（不入边表——"严格向下"规则不为同层边放开）。
 
+> **UF-12 定版注记（批6k 2026-09-29 闭项）**：①图谱缺边两族已先后补登
+> 上表（elevation→registry=ENG2 B3；network→registry=NET2——「先改图谱
+> 再动代码」纪律的历史履行事实核验在案）；②constraint_kb **装载路径
+> 定版=恰两面**——core 面：`registry/effluent.py`（kb effluent_standard
+> 12 条 → EffluentStandard 族，UF-39 装载面）；server 面：`services/
+> constraints.py`（全量 29 条八键投影 ConstraintCatalog）与 `jobs/
+> worker.py`（枚举约束装配，路径键 `data_dir/constraint_kb/constraints.
+> json`）。core `solution/constraints.py`=纯消费面（约束集由调用方传入，
+> 不装载不 I/O）。kb **不进 data_version 聚合**（UF-10 ARCH1 D4 维持）：
+> 约束面不进复算三元组——勾选过滤影响枚举结果集，不影响单元计算与
+> serialize 产物。
+
 > **同层边机制说明（ADR-014，GOV2 2026-09-12 一等公民化）**：同层边=
 > 跨节点、同层 token 的合法依赖边，历史上以本节后散置注记承载（SERVER
 > D1 app→app_enumeration / L5c ifc_export→geometry / PROFILE3

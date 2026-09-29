@@ -83,12 +83,48 @@ F5 计算 → 约束过滤（solution/constraints，pass_matrix）
 | 环 | 边语义 | 迭代归属 |
 |----|--------|----------|
 | 污泥外回流 R：二沉池 → 生物池 | `recycle: true` | SCC 回路组，固定点迭代 |
-| 内回流 Ri：好氧末端 → 缺氧区 | `recycle: true`（AAO 包内部端口） | 同上 |
+| 内回流 Ri：好氧末端 → 缺氧区 | AAO/CASS 包内部参数（`r_internal`，manifest range 1.0~3.0 手册带） | 包内部参数，不走图迭代（UF-11 勘误定版：泵流量 AO-F14 包内平均时口径计算，全仓无 recycle 自边） |
 | 高密池污泥回流 | 单元内部变量（不出包边界） | manifest 声明，不走图迭代 |
 | 浓缩上清液/脱水滤液 → 厂首端 | `recycle: true`，**默认关闭** | 打开后进 SCC；泥量与水量双向守恒 |
 
 > 滤液/上清液回流是真实厂常态，但两个 golden 案例是否包含需领域专家
 > 确认（见 §10 待确认项 Q1）——确认前默认关、UI 显式开关。
+>
+> **内回流 Ri 归属勘误（UF-11 定版，批6k）**：本表 Ri 行旧版迭代归属列
+> 作「SCC 回路组，固定点迭代」系与实现矛盾的记载——Ri 从不进图迭代
+> （图级 recycle 边仅污泥外回流 R 与滤液/上清液回流两族），值归属=
+> AAO/CASS manifest 可枚举自由参数（§2 归属表），下游二沉池经
+> UnitContext 只读接收。contracts/ports.py R3 注释同批勘误。
+
+### 6a. 汇流与缺项传播规格（UF-06/UF-19 冻结——批6k 定版，实现基线=graph/propagate.py T6 冻结面）
+
+**汇流派生式（UF-06，WATER 股多股汇入同一 dst 端口）**：
+
+- `q_avg_total = Σᵢ q_avg_daily,i`（求和序按 PortRef (unit_id, port_id)
+  排序——GR-18，乱序输入同输出）；
+- `Kz_total = maxᵢ Kzᵢ`（保守语义，§14.2）；
+- `q_design` 不独立汇流——派生属性与单股同构：`q_design_total =
+  q_avg_total × Kz_total`（contracts/flow.py R1 双轨根除口径，汇流股上
+  双轨同样不可能存在）；
+- 水质加权口径（两档一致性）：DESIGN 工况权=`q_design,i`、AVG 工况权=
+  `q_avg_daily,i`，逐指标负荷加权 `ΣCᵢ·Qᵢ / ΣQᵢ`（非浓度简单平均）；
+- 汇流 WaterFlow **直构造不经 make_flow**（make_flow 的 q>0 是厂界口径，
+  图内传播 Q=0 合法 GR-04）；构造前有限性检查（GR-02）；
+- SLUDGE 股独立通道走 `sludge.mix`（湿量/DS 双守恒，R4）——同一 dst
+  端口 WATER/SLUDGE 混流=领域异常；单股 dst=透传再键化（不经混合公式，
+  同一分组路径）。
+
+**缺项指标三层语义（UF-19，逐层定版——实现确认面）**：
+
+1. **mix 汇流层**：部分股缺项→该指标按在场股加权（缺项警告的记录归
+   executor/单元层）；全股缺项→结果缺项（键不存在）；在场权合计==0→
+   该指标缺项（GR-14，UF-23 除零面）。
+2. **零依赖面**（下游公式不消费该指标的修饰类路径，如 removal 修饰）：
+   缺项键不经修饰、出流保持缺项透传——下游继续缺项不伪值。
+3. **公式依赖面**（下游单元公式以该指标为计算前提，如 AAO AO-F1/F4
+   需 BOD5/TN）：进水缺项→`InvalidUnitConfig` 领域异常 fail-loud
+   （GR-09 消息含单元与前提公式）——不跳过、不默认 0。
+   必需指标集的 manifest 声明=未来扩面另立（v1=compute 内断言）。
 
 ## 7. 离散枚举对象清单（solution/grid 的自由参数域）
 

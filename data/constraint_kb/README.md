@@ -105,3 +105,23 @@ options.constraints 通道）落地为：
   constraints.band_margin_column；与 UI 勾选/过滤同一约束集同源）。
   单侧/∈ 档形态无带宽概念不产出裕度——覆盖面随本库扩条渐进；
   数值零新增（带值即已追认约束值）。
+
+## 输入合理性带归属声明（UF-24 定版——批6k 2026-09-29）
+
+> 模式定版（flow.py R3 的 Kz 口径推广全量化）：**契约只守数学不变量**
+> （正性/有限性/派生一致性——拒 NaN/负值/越界构造）；**行业合理性带=
+> 数据面**（constraint_kb 条目或 units_lib manifest range，出处纪律+
+> 追认制——数据策略 v2，禁无出处数值）。各量归属逐行声明：
+
+| 量 | 带内容 | 载体（唯一归属） | 执法面 | 状态 |
+|----|--------|------------------|--------|------|
+| Kz（总变化系数） | 行业上下限 | constraint_kb（规划位——本库未录） | 待录入后随勾选过滤 | 无来源未录（b3a E 组尾如实登记——手册原册复核后录入） |
+| q_avg_daily（厂界流量） | A-1~A-3：≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示不阻塞 | `flows/params_guard.py` builtin 常量（builtin kind 无 manifest——锚=b3a-research §二 A 组+§七追认 2026-09-26） | server 422 整批拒+core ParamVerdict | 已落地（批3b） |
+| 单元参数（30 包 94 条） | 手册表出处 range（闭区间 GR-06） | units_lib manifest `params.range` | `params_guard` face④ 闭区间执法 | 已落地（批3b） |
+| 几何四量（l_pool/b_pool/v_pool/n_aerator） | 提示/拒收双门 | constraint_kb `geometry_guard` 8 条（1.5.0） | `apply_constraints` 勾选过滤 | 已落地（批3b） |
+| 枚举可行带 | vxinglvchi/ganhua 等 6 条 | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 存量已追认 |
+| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=数据面待录 | 契约在册；kb 上限条目未录 | 契约面已定义；行业上限带挂账（数据录入工作包） |
+
+> 新增量的归属判断规则：数学不变量（符号/有限性/量纲）一律契约面；
+> 行业带（上下限/常用档）一律数据面（本库或 manifest range）——两不
+> 混载（契约带=硬编译、数据带=可追认可演进）。

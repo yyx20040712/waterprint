@@ -1,6 +1,6 @@
 # sludge_xiaohua —— 污泥消化池（污泥线，M3b2 已实装）
 
-中温厌氧消化（35 ℃——参数 t_digest_temp 承载，UF-09 未裁口径）：
+中温厌氧消化（35 ℃——参数 t_digest_temp 承载，UF-09 定版=参数承载〔批6k 闭项，契约链不设温度字段〕）：
 消化时间容积式 + 挥发分降解 + 产气量三面，消化减量 DS 守恒链
 （VS 降解→沼气离开+出泥三量链）显式。
 
@@ -15,7 +15,7 @@
   带走 VS）、产气量≥0
 - 数值真源：docs/norms/sludge_xiaohua.md（M3b1 表，待追认）+
   data/coefficients 0.6.0（factor.xiaohua.* 裸短名 13 键——temp 键
-  登记不消费[UF-09 注记]；removal 零键）
+  登记不消费[UF-09 定版注记——参数承载，批6k]；removal 零键）
 - 语义注记：CJJ 131-2009 已纳出处白名单（I3 改标 2026-08-28 九裁②）
   ——本包 4 键 source 规程级标注；沼气联动潜力见 ganhua 表注记
 

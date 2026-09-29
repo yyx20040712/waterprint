@@ -42,7 +42,7 @@ def test_create_session_rejects_bad_explicit_id(sandbox_env: Path) -> None:
 
     ctx = context.get_context()
     with _pytest.raises(ValueError, match="成分非法"):
-        sessions.create_session(ctx, session_id="..\escape")
+        sessions.create_session(ctx, session_id=r"..\escape")
     with _pytest.raises(ValueError, match="成分非法"):
         sessions.create_session(ctx, session_id="bad$id")
 

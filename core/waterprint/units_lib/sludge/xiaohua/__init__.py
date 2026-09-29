@@ -16,8 +16,8 @@
 #   - 公式 XH-F1~XH-F11 与参数数值真源=docs/norms/sludge_xiaohua.md
 #     起草表（2026-08-27，数据策略 v2，待追认）+ data/coefficients
 #     0.6.0 数据包（factor.xiaohua.* 裸短名 13 键；removal 零键）；
-#   - 温度承载：参数 t_digest_temp（默认 35 ℃，UF-09 未裁前的参数
-#     面口径——v1 不进 DSL 公式）；
+#   - 温度承载：参数 t_digest_temp（默认 35 ℃，UF-09 定版=参数承载
+#     〔契约链不设温度字段，批6k 闭项〕——v1 不进 DSL 公式）；
 #   - 导出面=manifest + make_unit（AGENTS §11 两名铁律的工厂形态读法，
 #     units_lib/__init__ D6 注记）。
 # ══════════════════════════════════════════════════════════════════

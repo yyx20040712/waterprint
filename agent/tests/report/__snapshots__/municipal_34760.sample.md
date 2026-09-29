@@ -9,7 +9,7 @@
 | 项目 | 值 |
 | --- | --- |
 | 设计内容哈希（content_hash） | c8043a5cdef57d6a374dc23f8001f8847f75e84cca9acf84659ad5e2773bf591 |
-| 引擎版本（engine_version） | waterprint-server 0.1.0 |
+| 引擎版本（engine_version） | 0.1.2 |
 | 数据版本（data_version） | coefficients@1.8.0+unit_prices@1.1.0 |
 | 项目文件格式版本（format_version） | 3.0 |
 | 工艺单元数 | 19 |
@@ -145,7 +145,22 @@
 | design_offline_municipal_chuchenchi | 单元 辐流初沉池（municipal_chuchenchi）检修敏感性工况（n-1 池） |
 | design_offline_municipal_erchunchi | 单元 辐流二沉池（municipal_erchunchi）检修敏感性工况（n-1 池） |
 
-出水达标校核：诊断未含 design 工况裕度（标准未绑定）。
+**出水达标校核（design 工况，mg/L）**
+
+| 指标 | 结果值 | 限值 | 裕度 |
+| --- | --- | --- | --- |
+| BOD5 | 5.529798 | 10.0 | 0.4470202 |
+| CODCR | 19.193007225 | 50.0 | 0.6161398555 |
+| NH3N | 2.6 | 5.0 | 0.48 |
+| SS | 0.2396671875 | 10.0 | 0.9760332812 |
+| TN | 10.75 | 15.0 | 0.2833333333 |
+| TP | 0.455 | 0.5 | 0.09 |
+| BOD5 | 5.529798 | 20.0 | 0.7235101 |
+| CODCR | 19.193007225 | 60.0 | 0.6801165462 |
+| NH3N | 2.6 | 8.0 | 0.675 |
+| SS | 0.2396671875 | 20.0 | 0.9880166406 |
+| TN | 10.75 | 20.0 | 0.4625 |
+| TP | 0.455 | 1.0 | 0.545 |
 
 
 ## 第 3 章 工艺流程比选
