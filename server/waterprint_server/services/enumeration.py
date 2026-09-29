@@ -135,15 +135,24 @@ def _require_done_enumeration(ctx: ServiceContext, task_id: str) -> TaskStatus:
     """结果可取前提：done 且结果含行文件句柄（§16 A6 路径句柄）。
 
     API-1（2026-09-30）：三因拆二——kind≠enumerate 独立成类
-    （TaskKindMismatchError），NotComplete 面专司真·未完成。
+    （TaskKindMismatchError），NotComplete 面专司真·未完成；R2 回炉
+    （k1-W1/d1-W1）：done 而 result 未落地（句柄缺失）文案分流。
     """
     status = ctx.manager.status(task_id)
     if status.kind != "enumerate":
+        # R2 回炉 d1-W2：kind 裁决不混 state（挂账病根形态）——尾括注删。
         raise TaskKindMismatchError(
             f"任务 {task_id!r} 类型 {status.kind} 不产出方案集——仅枚举任务"
-            f"（kind=enumerate）可取 solutions（该任务当前状态 {status.state}）"
+            "（kind=enumerate）可取 solutions"
         )
-    if status.state != "done" or status.result is None:
+    if status.state == "done" and status.result is None:
+        # R2 回炉 k1-W1/d1-W1：done 而结果未落地=句柄缺失面（与真·未完成
+        # 分流——挂账病根的「与自述状态 done 自相矛盾」形态收口）。
+        raise TaskNotCompleteError(
+            f"任务 {task_id!r} 状态 done 但结果尚未落地——"
+            "结果文件句柄缺失（§16 A6 分页重载前提）"
+        )
+    if status.state != "done":
         raise TaskNotCompleteError(
             f"任务 {task_id!r} 状态 {status.state}——"
             "枚举结果只在 done 终态可取（§16 A6 分页重载前提）"

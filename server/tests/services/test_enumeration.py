@@ -119,6 +119,77 @@ async def test_infeasible_enumeration_is_done_not_failed_wiring(service_ctx) -> 
 # ═══ P0-2（深链死锁修复 2026-09-11）：result unit_id/design_hash 扩源 ═══
 
 
+# ═══ API-1 R2 回炉（2026-09-30）：拆分语义锁面 ═══
+
+
+async def test_fetch_diagnosis_on_calc_task_kind_mismatch_wiring(
+    service_ctx, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    """R2 回炉（k1-N2/d1-W5）：共享前提 helper 两调用面——fetch_diagnosis
+    对 kind=calc done 任务同样 TaskKindMismatchError（单源拆分双面覆盖）。
+
+    主控指令面书「apply 路径」；实查调用图勘误：apply 端点走
+    calc_service.apply_solution（请求体无 task_id，不查任务注册表），
+    _require_done_enumeration 第二调用面=fetch_diagnosis（诊断负载
+    随任务状态载荷交付——本函数为该 helper 在 fetch_solutions 外
+    唯一调用点，实报已呈主控）。
+    """
+    import waterprint_server.jobs.manager as manager_mod
+    from waterprint_server.jobs.manager import TaskRequest
+
+    def fake_calc(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        return {"state": "done", "project_id": payload.get("project_id", "")}
+
+    monkeypatch.setattr(manager_mod, "run_task", fake_calc)
+    handle = await service_ctx.manager.submit(
+        TaskRequest(kind="calc", payload={"kind": "calc", "project_id": "api1"})
+    )
+    await _await_terminal(service_ctx, handle.task_id)
+    status = service_ctx.manager.status(handle.task_id)
+    assert status.kind == "calc" and status.state == "done"  # 场景实证
+    with pytest.raises(_mod.TaskKindMismatchError, match="kind=enumerate"):
+        fetch_diagnosis(service_ctx, handle.task_id)
+
+
+async def test_result_none_done_message_split_from_unfinished_wiring(
+    service_ctx, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    """R2 回炉（k1-W1/d1-W1）：NotComplete 面文案分流——done 但 result
+    未落地（§16 A6 句柄缺失）与真·未完成（state≠done）两消息可辨
+    （分流前同为「只在 done 终态可取」，与自述状态 done 自相矛盾）。
+    """
+    import time
+
+    import waterprint_server.jobs.manager as manager_mod
+    from waterprint_server.jobs.manager import TaskRequest
+
+    def bare_done(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        return None  # 终态 done 而 result 未落地（§16 A6 句柄缺面）
+
+    monkeypatch.setattr(manager_mod, "run_task", bare_done)
+    handle = await service_ctx.manager.submit(
+        TaskRequest(kind="enumerate", payload={"kind": "enumerate"})
+    )
+    await _await_terminal(service_ctx, handle.task_id)
+    status = service_ctx.manager.status(handle.task_id)
+    assert status.state == "done" and status.result is None  # 场景实证
+    with pytest.raises(_mod.TaskNotCompleteError, match="结果尚未落地"):
+        fetch_solutions(service_ctx, handle.task_id, 1, 2, "margin_min")
+
+    def slow_enum(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        time.sleep(1)  # 保持非终态窗口
+        return {"state": "done"}
+
+    monkeypatch.setattr(manager_mod, "run_task", slow_enum)
+    running = await service_ctx.manager.submit(
+        TaskRequest(kind="enumerate", payload={"kind": "enumerate"})
+    )
+    assert service_ctx.manager.status(running.task_id).state in {"queued", "running"}
+    with pytest.raises(_mod.TaskNotCompleteError, match="只在 done 终态可取"):
+        fetch_solutions(service_ctx, running.task_id, 1, 2, "margin_min")
+    await _await_terminal(service_ctx, running.task_id)  # 收尾
+
+
 async def test_result_carries_unit_id_and_design_hash_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
     """P0-2：枚举 result 载荷带 unit_id（FE 深链回填源）+design_hash（漂移
     闸③比对源——与当前项目 design digest 一致锚：core/服务双胞胎镜像面）。"""

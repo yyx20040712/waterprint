@@ -136,6 +136,39 @@ async def test_solutions_on_done_calc_task_kind_mismatch_wiring(
     detail = str(bad.json()["detail"])
     assert "kind=enumerate" in detail  # 合法面（仅枚举任务产出方案集）
     assert "calc" in detail  # 拒因事实（该任务 kind）
+    assert "状态" not in detail  # R2 回炉 d1-W2：kind 裁决不混 state（挂账病根形态）
+
+
+@pytest.mark.anyio
+async def test_solutions_on_running_calc_task_kind_first_wiring(
+    client, cass_payload, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    """R2 回炉（k1-N2/d1-W3）：kind 裁决前置序——kind=calc 且非终态
+    （running）时仍 TaskKindMismatchError（非 NotComplete）。
+
+    防回退面：若三因再并作一类或 state 检查前置，本用例翻红
+    （running+calc 两因并存时 kind 面优先）。
+    """
+    import time
+
+    import waterprint_server.jobs.manager as manager_mod
+
+    def slow_calc(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        time.sleep(1)  # 保持非终态窗口（取数落窗内）
+        return {"state": "done", "project_id": payload.get("project_id", "")}
+
+    monkeypatch.setattr(manager_mod, "run_task", slow_calc)
+    created = await client.post("/api/projects", json={"project": cass_payload})
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run", json={"project_id": project_id, "conditions": []}
+    )).json()["task_id"]
+    snapshot = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+    assert snapshot["state"] in {"queued", "running"}  # 非终态窗口实证
+    bad = await client.get(f"/api/calc/tasks/{task_id}/solutions")
+    assert bad.status_code == 409
+    assert bad.json()["error_type"] == "TaskKindMismatchError"  # kind 前置序
+    await _wait_terminal(client, task_id)  # 收尾（替身终态迁移）
 
 
 @pytest.mark.anyio
