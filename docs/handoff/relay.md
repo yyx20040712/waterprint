@@ -26,8 +26,8 @@
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
 - checked_done: 47 <!-- 2026-09-29 批6j 收口 46→47（增补六十五） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-29T01:59:10.543Z <!-- 2026-09-29 批6j 首班发布成立（回读=run dwfrun-f24cf589-0e9d-4859-9a45-ddd44247dd02 running+执行者子代理 executing）；旧值 2026-09-29T00:03:34.385Z（批6i 首班） -->
-- workflow_run_id: - <!-- 2026-09-29 二次换防复位；旧值 dwfrun-f24cf589…（批6j 首班 run——GetWorkflowRun 实核 completed 2026-09-29T03:18:41Z） -->
+- last_dispatch_utc: 2026-09-29T03:21:57.051Z <!-- 2026-09-29 批6k 首班发布成立（回读=run dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841 running+执行者子代理 executing）；旧值 2026-09-29T01:59:10.543Z（批6j 首班） -->
+- workflow_run_id: dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841 <!-- 批6k 首班执行工作流（UF 规格冻结批——UF-06 汇流派生定版/UF-09 温度字段位置/UF-11 Ri 归属勘误/UF-12 图谱缺边/UF-19 缺项下游/UF-24 带归属六行闭合+CI agent job 接线+report 产物生成脚本化入库〔增补六十二②〕） -->
 - relay_started_utc: 2026-09-29T03:20:52.723Z <!-- 2026-09-29 二次换防时刻（用户显式再启接任交接——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-28T23:42:01.859Z（首换防） -->
 - batch_count: 0 <!-- 2026-09-29 二次换防复位（熔断预算 0/60 重计）；旧值 2（批6i+6j） -->
 - max_batches: 60
@@ -392,3 +392,14 @@
 - **Rulings（防线变更呈报）**：R1 ProfileOptions 公开面扩两默认字段（默认字节恒等实证）；R2 _REL_DATUM core 退役+app_export 拆件（ADR-024 配方——公开面再导出恒等钉）；R3 dwg_convert output_type 参数面（默认零变+同后缀守卫+语义分界）；R4 elevation _DATUM_NOTE 措辞分界（响应面文案变更——测试同步）。
 - **预算记档**：fire_budget 120min 实耗≈78min（02:00:21Z~03:18:30Z）在限内。
 - **收口判定=⑤READY**：勾选 46→47（批6j ☑，余 6=批6k~6o+⑤b——grep 计 7 含本批行勾选前形态，收口后=6）；batch_count 1→2（<60）；墙钟≈3.6h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补六十六 — 2026-09-29T03:21:57Z（二次换防迁火：用户再启接任交接+熔断复位+批6k 首班发布）
+
+- **会话性质**：用户显式再启接任交接（/batch-relay 板头标准注入词调度员窗口——rev6 口径）。时点=批6j 收口（03:18:30Z）后 3min、批6k 尚未发布——干净断点换防零批次损耗。
+- **换防两门+清场**：工作流部署门过（batch-relay-executor 全局在册；check-relay channel=0 fail 0 warn）；深度设计门过（.zcode/org-ledger.jsonl+《裁决书》+wave6-master-plan.md 三件在案）；旧火清场=automation-a23ac2a7 在册呈 paused 态（runCount=10——本火经手批6i/6j 两批发布与 8 班火判定）→ CronDelete 删除（防新旧双火并跑）。
+- **板面复位**：batch_count 2→0、relay_started_utc→2026-09-29T03:20:52.723Z（熔断复位 0/60 批+90h 墙钟重计）、workflow_run_id→-（复位前实核旧值 dwfrun-f24cf589=批6j 首班 run，GetWorkflowRun=completed 03:18:41Z）；status READY/claim -/no_progress 0/hold_reason -/claimed_by·claimed_at - 零位维持；protocol_rev 6=现行零升版（复位后 check-relay board=0 fail+R3 legacy 冻结行警告=正常过渡痕迹）。
+- **迁火**：CronCreate 新火 */20（automation-51612b27-4593-49de-bcbb-2cecf1a03e0a，prompt=现行火 prompt 模板）→ 板头 automation_id 字段行锚定回填（替换计数=1 守卫过）；CronList 复核恰一条=全局单火不变式成立。节律照旧：发布后静默 30min，有效班=40/60/80…min。
+- **提交推送**：换防笔=e8d533c2f（已推送 f04374b97..e8d533c2f——本机代理恢复，批6j 期间补清的推送通道延续绿；geometric-repack 后台维护报错=在册环境噪音不影响提交）。
+- **开批（批6k 首班，workflow 通道）**：开批四条件核验——①READY ✓②静默窗过（last_dispatch_utc=2026-09-29T01:59:10.543Z 距今 ≈82min ≥30min）✓③上一批 run 已收口（GetWorkflowRun=dwfrun-f24cf589 completed，复位前实核）✓④熔断复位未触发（0<60/墙钟 0h<90h）✓——四条件齐 → CreateWorkflow saved batch-relay-executor（board=本板，mode=execute）→ run_id=dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841（GetWorkflowRun 回读=running+执行者子代理 executing=发布成立）→ 板头原子写 last_dispatch_utc=2026-09-29T03:21:57.051Z+workflow_run_id（status 保持 READY）。
+- **移交**：next=批6k UF 规格冻结批（UF-06 汇流派生定版/UF-09 温度字段位置/UF-11 Ri 归属勘误/UF-12 图谱缺边/UF-19 缺项下游/UF-24 带归属六行闭合+CI agent job 接线+report 产物生成脚本化入库——6k~6m 邻域裁量〔增补六十二②〕）；批6k→6l…6o 依序连续开工（预授权口径=执行路由段）；⑤b 软著=用户域终态项停板待用户亲查（增补六十二⑤复认）。
+- **调度纪律**：本会话继续薄调度员——此后每班火只读板调度（禁执行禁重活禁载技能）；重活（换防/板面手术/事故响应）另开会话迁火。
