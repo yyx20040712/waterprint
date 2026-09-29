@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-29 增补六十五：批6j 收口 READY（UF-50 绝对标高通道+ODA 冒烟工具——1 commit a71fbdae〔HUMAN-LOCK〕/门一 k1 PASS+d1 异源代位有条件放行回炉全修/探针 14/14/17 门禁全绿）；next=批6k -->
+- status: READY <!-- 2026-09-29T04:18:30Z 增补六十七：批6k 收口 READY（UF 规格冻结六行闭合+CI agent job+report 产物三件套——1 commit b1164692c〔HUMAN-LOCK〕/门一双席 PASS·W 全处置/探针 11/11/门禁 17 全绿）；next=批6l -->
 - automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,23 +20,23 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-29T03:18:30Z <!-- 2026-09-29 增补六十五收口刷 -->
-- claim: - <!-- 2026-09-29 批6j 收口释放（executor-b6j-20260929T020021Z，勾选 46→47） -->
+- heartbeat_utc: 2026-09-29T04:18:30Z <!-- 2026-09-29T04:18:30Z 增补六十七收口刷 -->
+- claim: - <!-- 2026-09-29T04:18:30Z 批6k 收口释放（executor-b6k-20260929T032400Z，勾选 47→48） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
-- checked_done: 47 <!-- 2026-09-29 批6j 收口 46→47（增补六十五） -->
+- checked_done: 48 <!-- 2026-09-29T04:18:30Z 批6k 收口 47→48（增补六十七） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
 - last_dispatch_utc: 2026-09-29T03:21:57.051Z <!-- 2026-09-29 批6k 首班发布成立（回读=run dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841 running+执行者子代理 executing）；旧值 2026-09-29T01:59:10.543Z（批6j 首班） -->
 - workflow_run_id: dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841 <!-- 批6k 首班执行工作流（UF 规格冻结批——UF-06 汇流派生定版/UF-09 温度字段位置/UF-11 Ri 归属勘误/UF-12 图谱缺边/UF-19 缺项下游/UF-24 带归属六行闭合+CI agent job 接线+report 产物生成脚本化入库〔增补六十二②〕） -->
 - relay_started_utc: 2026-09-29T03:20:52.723Z <!-- 2026-09-29 二次换防时刻（用户显式再启接任交接——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-28T23:42:01.859Z（首换防） -->
-- batch_count: 0 <!-- 2026-09-29 二次换防复位（熔断预算 0/60 重计）；旧值 2（批6i+6j） -->
+- batch_count: 1 <!-- 2026-09-29T04:18:30Z 批6k 收口 0→1；旧值 0（二次换防复位） -->
 - max_batches: 60
 - max_wall_hours: 90
 - hold_reason: - <!-- 2026-09-26 增补四十八清空：批3a 追认已签+CI 已修——⑤b 软著仍为用户域终态项（批3b 后停板待用户不变） -->
 - last_handover: 2026-09-29
-- claimed_by: - <!-- 2026-09-29 批6j 收口复位 -->
-- claimed_at: - <!-- 2026-09-29 批6j 收口复位 -->
-- next_batch: 批6k UF 规格冻结批（UF-06/09/11/12/19/24 六行闭合+CI agent job 接线+report 产物脚本化入库——6k~6m 邻域裁量〔增补六十二②〕）
+- claimed_by: - <!-- 2026-09-29T04:18:30Z 批6k 收口复位 -->
+- claimed_at: - <!-- 2026-09-29T04:18:30Z 批6k 收口复位 -->
+- next_batch: 批6l UF-46/47 收口（core app 面 load_run_env/design_hash 用例→server 适配器/双胞胎退役——D7 边界经 app 再导出面保持）
 
 ## protocol（角色自识别+两角色行动细则唯一源——调度员/执行者按此执行；技能文件仅兜底）
 - 本板 protocol_rev=6；rev5/4/3/2/1 存量板读法向下兼容（rev0 无此行读旧字段名 last_dispatch，仅警告不阻断），换防时迁移至现行 rev。
@@ -153,7 +153,7 @@
 - [x] 批6h｜门禁硬化+部署卫生+杂项闭项（R5 结转观测护栏四项+p150k 首跑留证+ENTRYPOINT 绝对路径+classic builder 实测+AUD-W9 对拍门禁+AUD-W10 维持硬滤注记闭项+UF-25 中文单语定版闭项+HEAD 版本耦合注记）<!-- 2026-09-27 收官〔增补六十〕：九小项全落+批6g R1 结转负例契约；门禁 16→17/锁面 331→332/UF 53→54；auditor-readonly 异源审 B1+W5+W7 回炉实修；2 commits〔HUMAN-LOCK〕 -->
 - [x] 批6i｜纵断真实站距（README 在册剩余面——三段通道设计先行+profile 桩号轴实装；站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度为默认〔siteplan 坐标系欧氏距离逐段累计〕+手动输入=逐边覆盖例外通道）<!-- 2026-09-29 收官〔增补六十四〕：三段通道双席 FAIL 回炉终裁案丙（覆盖=导出选项 DSL——SiteDesign 零变更免 design_hash 级联）+ChainageAxis/ProfileEdge L0 新型+build_chainage_axis 三态装配+profile_drawing v2 中心锚 K 图式+server 三面含批量 IPC 路由键勘误+p150k 归因闭；1 commit c0071d84〔HUMAN-LOCK〕+门一四席+探针 4/4+17 门禁全绿 -->
 - [x] 批6j｜DXF 绝对标高+ODA 验证工具（UF-50 通道收口 _REL_DATUM 退役路径+ODA 本地手动冒烟脚本〔不入 CI〕）<!-- 2026-09-29 收官〔增补六十五〕：options 成对通道+案甲基准平移（默认字节恒等）+app_export_options 拆件+探针 14/14；ODA 真机未装=欠账（mock 编排 2/2） -->
-- [ ] 批6k｜UF 规格冻结批（UF-06 汇流派生定版+UF-09 温度字段位置+UF-11 Ri 归属勘误+UF-12 图谱缺边+UF-19 缺项下游+UF-24 带归属——六行闭合）；+CI agent job 接线+report 产物生成脚本化入库（6k~6m 邻域裁量——2026-09-28 用户裁决②·增补六十二）
+- [x] 批6k｜UF 规格冻结批（UF-06 汇流派生定版+UF-09 温度字段位置+UF-11 Ri 归属勘误+UF-12 图谱缺边+UF-19 缺项下游+UF-24 带归属——六行闭合）；+CI agent job 接线+report 产物生成脚本化入库（6k~6m 邻域裁量——2026-09-28 用户裁决②·增补六十二）<!-- 2026-09-29 收官〔增补六十七〕：六 UF 规格面+agent job 八步+产物三件套入库——1 commit b1164692c〔HUMAN-LOCK〕/门一双席 PASS（W 全处置）/探针 11/11/门禁 17 门全绿；CI Linux 首跑=欠账待推送后回帖 -->
 - [ ] 批6l｜UF-46/47 收口（core app 面 load_run_env/design_hash 用例→server 适配器/双胞胎退役——D7 边界经 app 再导出面保持）
 - [ ] 批6m｜单元库浏览前端实现（UF-52——设计件 units-browser-design.md 已备，上板=实现批追认成立）
 - [ ] 批6n｜UF-53 域色双轴归一（CSS/JS 同值双源单源化+双轴同值机器断言——C1 纪律设计裁量）
@@ -385,7 +385,7 @@
 - **claim/commit**：executor-b6j-20260929T020021Z（02:00:21Z 认领——批6j 首班=workflow 通道 run dwfrun-f24cf589〔01:59:10Z 发布成立——调度员发布笔与本班认领相隔 71s 并发实录，认领前重读板头 claim=- 无冲突〕；组织主干=ai-dev-org v2.1.0 Skill 载入）。实现单笔：a71fbdae〔HUMAN-LOCK〕（24 文件——6 源改+2 源新+9 测试+1 ambr+manifest+4 docs+2 tools+pyproject；预授权①依据=用户 2026-09-26 全局规划指令）。
 - **三段轻量（设计义务并入实现审包）**：b6j-design.md 两案（案甲基准平移 vs 案乙全绝对 Y 直投影）——选案甲：信息载体=标注文本（工程纵断图惯例）+默认字节稳定（IEEE e−0.0≡e 位级恒等）+构图完整（图脚锚不脱节）；**实装勘正**：「绝对与默认几何平移恒等」断言证伪（默认 ±0.00 惯例水面/地面重合 0，绝对模式显形真实水面−地面高差 1051−1053.2=−2.2 m→地面线 y=−220）——不变量改水位锚 0+池底跨模式恒等+地面手算+近原点带（fp 容差 1e-6=大数相消）。
 - **交付**：①options 键 water_level/ground_elev 成对通道（仅 kind=dxf 且 sheet=profile——单单元图 section_view 直投影脱节风险+总图无标高语义如实收窄；带符号十进制白名单+成对闸〔单键=半相对半绝对错配基准吞意图禁〕+有限域；server 预校验 422 整批原子+core 终闸双闸）；②_REL_DATUM core 侧退役（N-3 勘察回执：core/waterprint 零代码引用，仅 server elevation 双胞胎维持〔API 输入面挂账〕）——**拆件**：app_export 566>500 预算墙→app_export_options 兄弟件 214（解析器族+ArtifactKindNotReady 随迁+再导出恒等钉；§1c 机器声明块+生成器展开+layers 组扩+file-contracts/structure-graph 登记）；③图面案甲：ProfileOptions elev_baseline/datum_note 两默认字段（默认模式字节恒等=快照存量 4 锚零重录实证）+标注携绝对值+图脚高程基准注记行（原文回显免 :g 失真——W-3；独立溯源键 profile.datum_note——W-2）；④server 三面：_datum_text_of 逐键归一+命名段 -e<sha256 前 10 位>（W-4 注释勘正）+IPC 路由键三处透传+批级半对 422（N-5）+正则双源镜像（N-2）；⑤dwg_convert output_type 往返向（默认 DWG 零变+同后缀自覆盖守卫 N-1+域外 ValueError 语义分界文档化 W-5）；⑥tools/oda_smoke.py+oda_smoke.md（不入 CI——testpaths 外；转换器定位四级+缺席诚实失败+--mock 编排替身）。
-- **烤验（实现批全对抗位）**：门一双席=**代位申报**（宿主无会话内子代理工具——ds-call-v2 外部派发 Node 24.21.0 承载；异源判据=chain 源 k1+deepseek 源 d1 两族）：k1 席 **PASS B0/W3/N4**（W1={:g} 漂移/W2=标注零真值断言/W3=API 注记漂移）+d1 席（auditor-readonly）**有条件放行 B0/W7/N7**——双席三主指同源收敛；回炉一轮 W-1~W-5/W-7+N-1/N-2/N-5/N-7 全实修落档（b6j-rulings.md 处置表；W-6 ODA 真机=欠账）。门二探针 **14/14 PASS**（b6j-probe.py：标注逐场平移律〔水面/池底随 water 场+地面随 ground 场——独立于装配链〕+几何手算〔水位锚 0/地面 −220/近原点带〕+池底跨模式恒等+负值域+双跑字节恒等+守卫三形态；账本行 20260929-b6j-probe 在案）。
+- **烤验（实现批全对抗位）**：门一双席=**代位申报**（宿主无会话内子代理工具——ds-call-v2 外部派发 Node 24.21.0 承载；异源判据=主源席 k1+异构源席 d1 两族〔批6k 勘正 2026-09-29：原字面为模型代号——板面日志禁落词表 token（增补五十五禁令/批6e scrub 先例），语义零变，原始字面=org-ledger 在案〕）：k1 席 **PASS B0/W3/N4**（W1={:g} 漂移/W2=标注零真值断言/W3=API 注记漂移）+d1 席（auditor-readonly）**有条件放行 B0/W7/N7**——双席三主指同源收敛；回炉一轮 W-1~W-5/W-7+N-1/N-2/N-5/N-7 全实修落档（b6j-rulings.md 处置表；W-6 ODA 真机=欠账）。门二探针 **14/14 PASS**（b6j-probe.py：标注逐场平移律〔水面/池底随 water 场+地面随 ground 场——独立于装配链〕+几何手算〔水位锚 0/地面 −220/近原点带〕+池底跨模式恒等+负值域+双跑字节恒等+守卫三形态；账本行 20260929-b6j-probe 在案）。
 - **快照/锁面**：锚⑤ 绝对模式内容哈希增量录（ambr 恰 3 行——存量 4 锚零重录）+锁面 332→333 恰 +1（test_app_export_options 镜像件；36 根完整清单重锁守卫实录——裸跑 118 条目挤出被拦后按 manifest 键集导出根清单，批6g 同款）+check_readonly 333 全绿。
 - **收口三检**：run_gates **17 门禁全绿**（提交后复跑〔OK〕）；gen_status --check 零漂移（2159 字节——锁面计数 333 再生成）；health-scan **RED=0**/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **1610P**（benchmark 时基假红 1——单跑全文件 6P 复证，批6b 起在册口径；arch 锁面红=重锁前置预期）+server **398P 零失败**（391 基线+7 新）+mypy 352/60 双绿+ruff 双绿+魔法数字绿。ODA 冒烟 **mock 2/2**（绝对模式 12 实体=+1 注记行）。
 - **欠账登记**：①ODA 真机未装（验收条件分支「在场时可跑通」——本机探针 Program Files×2/PATH/env 四路零命中；工具在场+缺席诚实降级+清单文档就绪，装机后按 tools/oda_smoke.md §三人工补跑——用户域）；②server elevation API datum 输入面（_REL_DATUM 双胞胎维持——W-7 注记已分界「本端点无输入面」，接线=M5/API 批邻域，批6l 邻域裁量）；③单单元图剖面绝对化（section_view 直投影脱节——图面批）；④test_export_profile.py 467 行贴墙 WARN（≥450——下次触碰先筹划外移）；⑤server venv core 快照滞后两次复位（拆件新模块 501/NameError——--reinstall 同步，R3 在册）；⑥app_export_options 与 elevation 双胞胎 _REL_DATUM 语义分界已注记但 server elevation _DATUM_NOTE 措辞=W-7 形态收敛非终态（API 输入面接线时再收敛）；⑦mock 冒烟真值面=编排逻辑（产物真实性须真机——清单 §二已明示）。
@@ -403,3 +403,19 @@
 - **开批（批6k 首班，workflow 通道）**：开批四条件核验——①READY ✓②静默窗过（last_dispatch_utc=2026-09-29T01:59:10.543Z 距今 ≈82min ≥30min）✓③上一批 run 已收口（GetWorkflowRun=dwfrun-f24cf589 completed，复位前实核）✓④熔断复位未触发（0<60/墙钟 0h<90h）✓——四条件齐 → CreateWorkflow saved batch-relay-executor（board=本板，mode=execute）→ run_id=dwfrun-2f5f3a87-1bb3-4eac-bbc6-2959cfd3f841（GetWorkflowRun 回读=running+执行者子代理 executing=发布成立）→ 板头原子写 last_dispatch_utc=2026-09-29T03:21:57.051Z+workflow_run_id（status 保持 READY）。
 - **移交**：next=批6k UF 规格冻结批（UF-06 汇流派生定版/UF-09 温度字段位置/UF-11 Ri 归属勘误/UF-12 图谱缺边/UF-19 缺项下游/UF-24 带归属六行闭合+CI agent job 接线+report 产物生成脚本化入库——6k~6m 邻域裁量〔增补六十二②〕）；批6k→6l…6o 依序连续开工（预授权口径=执行路由段）；⑤b 软著=用户域终态项停板待用户亲查（增补六十二⑤复认）。
 - **调度纪律**：本会话继续薄调度员——此后每班火只读板调度（禁执行禁重活禁载技能）；重活（换防/板面手术/事故响应）另开会话迁火。
+
+### 增补六十七 — 2026-09-29T04:18:30Z（批6k 收口：UF 规格冻结批六行闭合+CI agent job 接线+report 产物脚本化入库——READY）
+
+- **claim/commit**：executor-b6k-20260929T032400Z（03:24:00Z 认领——批6k 首班=workflow 通道 run dwfrun-2f5f3a87〔03:21:57Z 发布成立——调度员板头笔与本班认领时序差实录：初读板面 workflow_run_id=-，dispatch 笔 c40268b82 落盘后重读确认；认领前重读 claim=- 无冲突〕；组织主干=ai-dev-org v2.1.0 Skill 载入，代位申报=ds-call-v2 外部派发承载门一双席）。实现单笔：b1164692c〔HUMAN-LOCK〕（23 文件——19 改+4 新；预授权①依据=用户 2026-09-26 全局规划指令）。
+- **六 UF 规格面（批6k 主工单）**：①UF-06 汇流派生式定版（business-logic §6a 新节：q_avg_total=Σ〔求和序 GR-18〕/Kz_total=max/q_design_total=q_avg_total×Kz_total 派生属性/两档工况加权〔DESIGN→q_design·AVG→q_avg_daily〕/直构造不经 make_flow/SLUDGE 股 DS 守恒独立通道——规格文字追认 propagate.py T6 实现基线，零代码改动）；②UF-09 温度承载定版（设计裁量案②=契约链不设温度字段：工艺分段量错误归一/浓度族加权语义破坏/引擎参数语义不符三否+现行单元参数承载追认〔xiaohua t_digest_temp 33~37 档+hebing Kd₂₀/θ 带〕——xiaohua manifest/__init__/compute/README+norms 表+norms/README 七处「未裁前」注记同批勘误）；③UF-11 Ri 归属勘误（三处矛盾以包内实现为正基准归一：business-logic §6 表 Ri 行迭代归属「SCC 回路组」→「包内部参数不走图迭代」+ports.py R3 图边例证勘误——Ri=r_internal manifest 参数，全仓无 recycle 自边）；④UF-12 缺边确证+kb 装载路径定版（两缺边 ENG2 B3/NET2 已补登在册确证+装载恰两面〔core registry/effluent.py·server services/constraints.py+jobs/worker.py〕+solution/constraints=纯消费面+kb 不进聚合真由=约束面不进复算三元组——UF-10 括号注记同批勘误）；⑤UF-19 缺项三层语义定版（mix 在场股加权→零依赖键透传→公式依赖键 InvalidUnitConfig fail-loud——推荐案=已有实现确认）；⑥UF-24 带归属声明表（kb README 六量声明+模式定版：契约守数学不变量/行业带=数据面〔出处+追认制〕；闭项范围=归属模式定版，Kz 未录/水质上限带=数据录入挂账归工作包承接）。
+- **CI agent job 接线（增补六十二②——R-B44b-3+增补六十一 R1/R2 两呈报项闭项）**：ci.yml 新 agent job（py3.14+uv sync --frozen+ruff+import-linter 两契约+pytest 含 skip==0 拦截〔白名单沿用「Windows 本地写屏障」——-ra 实证 SKIPPED 行落盘+env 缺件负例五行可见〕+report_golden --check 漂移步）。mypy 不入=35 错存量+waterprint-core 轮内缺 py.typed 面（欠账③申报非静默降级）；coverage 不入=dev 组无 pytest-cov。
+- **report 产物脚本化入库**：tools/report_golden.py（--check/--write 双模式+双跑字节恒等断言+跨进程复算恒等+写屏障解-写-复原；装配=agent #8 正门同径：工况键源=expected_summary.json checked_units〔5 工况〕+standards 必装+serialize→deserialize 回读渲染〔diag round(x,10) 精度同径——首版内存态渲染 test_snapshot 红一次回炉实录〕）+三件套入库 agent/tests/report/__snapshots__/（result 550016B/diag 20687B/sample md 50839B——锁面外快照资产）+conftest 默认路径改仓内（env 覆盖通道保留，skip 通道退役为仓库损坏 belt）+tools/report_golden.md 重录时机清单。**装配径修正实录**：2026-09-28 一次性产物未装 standards（diag effluent 面 0 条）+engine_version 用 server 串——本批正门口径（effluent 60 条=12 标准×5 工况+core __version__ 0.1.2）；summary 逐键+trace 1330 节点与旧产物全等（差仅两面）。
+- **存量锈蚀两修**：agent 面首次入 CI 扫显形——test_chat_sessions W605（raw string 单反斜杠恒等——cat -A 实核）+test_tools_solution_overview F401（未用 asyncio 导入删）。
+- **UF 计数迁移（如实记）**：闭合 32→42（+6 本批闭项+4 粗体前缀归一〔UF-26/32/40/43——git show HEAD 实核，处置列粗体坠「其他表述」桶的标记不一致勘正，文本语义零变+孤立 ** 已清〕）/待定义开放 11→5/其他表述 11→7，Σ=54 恒定；status.md 再生成 2158→2157 字节。
+- **烤验（复合批=文档轻量双审∪脚本/CI 全对抗位并集）**：门一代位双席（宿主无会话内子代理工具——批6g/6j 先例；异源判据=主源席 k1+异构源席 d1 两族〔收口笔勘正 2026-09-29：原字面为源别名——板面日志禁落词表 token（增补五十五禁令/批6e scrub 先例），语义零变，原始字面=org-ledger 在案〕，Node 24.21.0 volta 承载，账本行在案）：k1 席 PASS **B0/W4/N3**+d1 席 PASS **B0/W3/N6**——回炉实修四件（UF-24 闭项范围收锐/审包 diff 内联重制/换行纪律承托注记+effluent 双计数口径/精确迁移行集）+d1-W1 撤销条件命中（文件实态 r".." 单反斜杠恒等——审包 markdown 双转义笔误非文件缺陷）+d1-W2 实证驳回（-ra 负例五行落盘）+d1-W3 三键清单（conftest+两测试件，快照确不在 manifest 两口径不冲突）；处置全表 b6k-rulings.md。门二探针 **11/11 PASS**（b6k-probe-report：双跑+跨进程恒等/篡改红探针 rc=1〔漂移门非虚设证明〕/装配径逐面对拍/工况键源集合恒等/skip 门负例/core·server 零扰动）。
+- **收口三检**：run_gates **17 门禁全绿**（b1164692c 提交后复跑〔OK〕全部门禁通过——首轮三红全清：check_model_names=relay.md:388 批6j 日志遗留代号〔收口三检先于日志落笔的时序缝隙——批6g 同款在册教训，scrub 勘正注记语义零变随板面笔〕/check_ruff=xiaohua compute.py 注记行长〔已折行〕/check_trust_root=提交前 M manifest 预期态〔本笔闭合〕）；gen_status --check 零漂移（2157 字节）；health-scan **RED=0**/WARN×3 存量回显（同增补五十口径）——可收口。全量：core **1610P**（=批6j 基线零扰动）+mypy 352 绿+ruff 绿+import-linter 5 kept；server **398P**（=批6j 基线）+mypy 60 绿；agent **184P 零失败零跳过**（=增补六十一基线）+ruff 绿+lint-imports 2 kept（agent venv uv sync --reinstall 双包同步后）。
+- **锁面**：333 键恒定恰 3 哈希变（agent/tests/report/conftest.py+test_chat_sessions.py+test_tools_solution_overview.py——64 根完整清单重锁〔守卫拦裸跑 118 条目挤出后按 manifest 键集导出，批6g/6j 同款〕；三快照产物在 __snapshots__ 双忽略目录锁面外）；check_readonly 333 全绿。
+- **欠账登记**：①CI agent job Linux/py3.14 首跑未实证（本机 Windows——字节跨平台有 .gitattributes eol=lf 承托+批6g 跨种子探针先例佐证；k1-W4 完全闭合=推送后 CI 首跑绿回帖）；②推送欠账风险（本机代理 127.0.0.1:7890 前科——批6i 换防四试不过实录；本次推送结果终报呈报）；③agent mypy 35 错+waterprint-core 轮内缺 py.typed（后续硬化批——接线门槛已就绪）；④report 装配双份（脚本 vs agent #8 工具同径声明，漂移暴露面=--check 步——单源化=结构性改后续裁量）；⑤test_main_smoke spawn 计时断言负载抖动 flaky（单跑绿复证——在册类）；⑥550KB 产物重录膨胀面（git 文本压缩在量级内，LFS/哈希校验替代=入库策略变更用户位，触发条件=重录频度显形）。
+- **Rulings（呈报不阻断）**：R1 CI agent job 接线=防线扩面（jobs 7→8——依据=增补六十二②用户裁决）；R2 report 产物入库+conftest 默认改仓内（skip 语义退役为 belt——测试夹具形态变更）；R3 UF 登记册粗体前缀归一 4 行（计数桶勘正非语义变更）；R4 relay.md:388 批6j 遗留代号 scrub（批6e 先例）。
+- **预算记档**：fire_budget 120min 实耗≈114min（03:24:00Z~04:18:30Z）在限内。
+- **收口判定=⑤READY**：勾选 47→48（批6k ☑，余 5=批6l~6o+⑤b）；batch_count 0→1（<60）；墙钟≈0.95h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
