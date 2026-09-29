@@ -334,3 +334,152 @@ def test_profile_scale_rejected_on_other_kinds(tmp_path: Path) -> None:
             export_artifact(  # type: ignore[misc]
                 kind, plant, Path("unused"), tmp_path / "x.out", h_scale="2000",
             )
+
+
+def test_profile_datum_route_guards(tmp_path: Path) -> None:
+    """批6j 真值表：绝对标高选项守卫——仅 kind=dxf 且 sheet='profile'
+    （单单元/总图/他 kind 拒）+成对必传（单键=半相对半绝对错配基准吞
+    意图禁）+带符号十进制形态（科学记数/下划线/全角拒）。"""
+    plant = _plant()
+    guards = [
+        # (kwargs, match)——datum 组合闸先于 site_design 缺位闸（纵断
+        # 语义守卫在路由层，_export_dxf 装配层不重复判）。
+        ({"unit_id": "municipal_cass",
+          "water_level": "1053.2", "ground_elev": "1051.0"},
+         "仅在 sheet='profile'"),
+        ({"water_level": "1053.2", "ground_elev": "1051.0"},
+         "仅在 sheet='profile'"),
+        ({"sheet": "profile", "water_level": "1053.2"}, "成对必传"),
+        ({"sheet": "profile", "ground_elev": "1051.0"}, "成对必传"),
+        ({"sheet": "profile", "water_level": "1e3", "ground_elev": "10"},
+         "非带符号十进制形态"),
+        ({"sheet": "profile", "water_level": "1_000", "ground_elev": "10"},
+         "非带符号十进制形态"),
+        ({"sheet": "profile", "water_level": "１０", "ground_elev": "10"},
+         "非带符号十进制形态"),
+    ]
+    for kwargs, expect in guards:
+        with pytest.raises(ArtifactKindNotReady, match=expect):
+            export_artifact(  # type: ignore[misc]
+                "dxf", plant, Path("unused"), tmp_path / "x.dxf",
+                **kwargs,
+            )
+    # kind 守卫（_check_export_options 面）：calcbook 零消费选项拒。
+    with pytest.raises(ArtifactKindNotReady, match="仅 kind='dxf'"):
+        export_artifact(  # type: ignore[misc]
+            "calcbook", plant, tmp_path / "t.xlsx", tmp_path / "x.xlsx",
+            water_level="1053.2", ground_elev="1051.0",
+        )
+
+
+def test_profile_dxf_absolute_datum(tmp_path: Path) -> None:
+    """批6j 正向：绝对标高模式出图——标注携绝对值（f"{value:.3f}"
+    station 值经 build_profile 已随基准平移）+图脚高程基准注记行
+    （首行序）+几何锚基准近原点（案甲：y=(标高−进厂水面)×因子÷纵比例
+    ——与默认模式四线几何逐点恒等）。"""
+    import ezdxf
+
+    plant = _plant()
+    out_abs = tmp_path / "profile_abs.dxf"
+    out_rel = tmp_path / "profile_rel.dxf"
+    payload = export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), out_abs,
+        condition_key="design", sheet="profile",
+        water_level="1053.2", ground_elev="1051.0",
+    )
+    assert out_abs.read_bytes() == payload
+    export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), out_rel,
+        condition_key="design", sheet="profile",
+    )
+    doc_abs = ezdxf.readfile(out_abs)
+    doc_rel = ezdxf.readfile(out_rel)
+
+    def _polys(doc) -> list:  # type: ignore[no-untyped-def]
+        return sorted(
+            tuple(tuple(point) for point in e.get_points("xy"))
+            for e in doc.modelspace().query("LWPOLYLINE")
+        )
+
+    # 案甲核心不变量（勘正：默认 ±0.00 惯例下水面/地面重合于 0，绝对
+    # 模式显形真实水面−地面高差 1051.0−1053.2=-2.2 m——非平移伪差）：
+    # ①水位线锚基准 y=0；②池底/管底线跨模式恒等（water−floor 差值
+    # 平移不变——fp 容差=大数相消舍入 1e-9 级）；③地面线=手算对拍
+    # (1051.0−1053.2)×1000/100=-220；④全线 |y|<1e3 图面 mm（近原点，
+    # 非绝对直投影 1e4 级）。
+    def _lines_by_layer(doc) -> dict:  # type: ignore[no-untyped-def]
+        out: dict[str, list[list[tuple]]] = {}
+        for e in doc.modelspace().query("LWPOLYLINE"):
+            out.setdefault(e.dxf.layer, []).append(
+                [tuple(p) for p in e.get_points("xy")]
+            )
+        return out
+
+    lines_abs, lines_rel = _lines_by_layer(doc_abs), _lines_by_layer(doc_rel)
+    water_abs = next(  # ① 水位线=锚基准 y=0 的标高层线
+        line for line in lines_abs["WP-anno-elev"]
+        if all(abs(point[1]) < 1e-9 for point in line)
+    )
+    assert water_abs
+    for layer in ("WP-process-pool", "WP-process-pipe"):  # ② 平移不变差值
+        assert all(
+            abs(pa[1] - pr[1]) < 1e-6
+            for line_abs, line_rel in zip(
+                lines_abs[layer], lines_rel[layer], strict=True)
+            for pa, pr in zip(line_abs, line_rel, strict=True)
+        ), layer
+    ground_abs = next(  # ③ 地面线=手算对拍 (1051.0-1053.2)*1000/100
+        line for line in lines_abs["WP-anno-elev"] if line != water_abs
+    )
+    assert all(abs(point[1] - (-220.0)) < 1e-6 for point in ground_abs)
+    assert max(  # ④ 近原点带（非绝对直投影 1e4 级）
+        abs(point[1])
+        for lines in lines_abs.values() for line in lines for point in line
+    ) < 1000.0
+    texts = {e.dxf.text for e in doc_abs.modelspace().query("TEXT")}
+    texts_rel = {e.dxf.text for e in doc_rel.modelspace().query("TEXT")}
+    # 标注携绝对值：首站水面=进厂水面 1053.200/地面 1051.000（默认模式
+    # 相应标注为 ±0.000 族——绝对值零在场互证）。
+    assert "1053.200" in texts and "1051.000" in texts
+    assert not any(t.startswith("1053.") for t in texts_rel)
+    # 图脚高程基准注记行（仅绝对模式——默认模式零行；W-3：输入原文
+    # 回显「1053.2/1051.0」——:g 会将 1051.0 缩写为 1051）。
+    assert any(
+        t == "高程基准：绝对标高（进厂水面 1053.2 m / 地面 1051.0 m）"
+        for t in texts
+    )
+    assert not any(t.startswith("高程基准") for t in texts_rel)
+    # W-1（d1/k1 共指）真值锚定：标注文本==手算绝对值——独立于 _to_sheet
+    # 与装配链（水深取自 plant 快照 dims〔UF-32 water_depth 键〕，
+    # floor=进厂水面−0 损失−水深；水面=输入原值）。
+    from waterprint.contracts.drawing_projection import PROJECTION_TABLE
+
+    snapshot = plant.conditions["design"]["municipal_cass"]
+    depth_key = PROJECTION_TABLE["municipal_cass"].section_keys.get(
+        "water_depth")
+    depth = float(snapshot.dims.get(depth_key, 0.0)) if depth_key else 0.0
+    assert f"{1053.2 - 0.0 - depth:.3f}" in texts  # 池底绝对值
+    assert "1053.200" in texts  # 水面=输入原值（非相对 0.000）
+    # 桩号/工况/站名标注维持（绝对模式非旁路出图）。
+    assert "K0+000.000" in texts
+    assert "condition=design" in texts
+    assert "municipal_cass" in texts
+
+
+def test_profile_dxf_absolute_datum_negative(tmp_path: Path) -> None:
+    """批6j 值域：负绝对标高（海平面下场景——带符号白名单）合法出图。"""
+    import ezdxf
+
+    plant = _plant()
+    out = tmp_path / "profile_neg.dxf"
+    export_artifact(  # type: ignore[misc]
+        "dxf", plant, Path("unused"), out,
+        condition_key="design", sheet="profile",
+        water_level="-3.5", ground_elev="-5.0",
+    )
+    texts = {e.dxf.text for e in ezdxf.readfile(out).modelspace().query("TEXT")}
+    assert "-3.500" in texts and "-5.000" in texts
+    assert any(
+        t == "高程基准：绝对标高（进厂水面 -3.5 m / 地面 -5.0 m）"
+        for t in texts
+    )

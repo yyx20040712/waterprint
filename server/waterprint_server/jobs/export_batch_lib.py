@@ -78,11 +78,15 @@ def _write_sidecar_text(exports_dir: Path, file_name: str, text: str) -> None:
 def _item_route_options(item: Mapping[str, Any]) -> dict[str, str]:
     """PROFILE3（PD1）：sheet/h/v 归一提取（空串剔除=仅非 None 键——
     未传不传，kwargs 精确集恒定沿既有断言面）；批6i 增
-    station_overrides（纵断站距覆盖 DSL——同面透传）。"""
+    station_overrides（纵断站距覆盖 DSL——同面透传）；批6j 增
+    water_level/ground_elev（纵断绝对标高基准——同面透传）。"""
     options: dict[str, str] = {}
     # 批6i：station_overrides 同面透传（sheet=profile 项站距覆盖 DSL——
     # str 值域与 h/v 同族；域/键位校验归 core 终闸）。
-    for key in ("sheet", "h_scale", "v_scale", "station_overrides"):
+    # 批6j：进厂标高两键同面透传（成对性已由 server 预校验在归一前
+    # 原始 source 级把守——空串剔除后恒成对或恒双空）。
+    for key in ("sheet", "h_scale", "v_scale", "station_overrides",
+                "water_level", "ground_elev"):
         value = str(item.get(key) or "") or None
         if value is not None:
             options[key] = value

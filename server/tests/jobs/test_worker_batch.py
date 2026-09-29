@@ -438,3 +438,19 @@ def test_item_route_options_station_overrides_passthrough() -> None:
         {"sheet": "profile", "station_overrides": ""}
     )
     assert "station_overrides" not in _item_route_options({"sheet": "profile"})
+
+
+def test_item_route_options_datum_passthrough() -> None:
+    """批6j：进厂标高成对键经 _item_route_options 归一透传（worker 面
+    直读归一值进 core **options 白名单——单源钉，空串剔除沿 h/v 先例；
+    成对性由 server 预校验在归一前原始 source 级把守）。"""
+    from waterprint_server.jobs.export_batch_lib import _item_route_options
+
+    assert _item_route_options(
+        {"sheet": "profile", "water_level": "1053.2", "ground_elev": "1051.0"}
+    ) == {"sheet": "profile", "water_level": "1053.2",
+          "ground_elev": "1051.0"}
+    assert "water_level" not in _item_route_options(
+        {"sheet": "profile", "water_level": "", "ground_elev": ""}
+    )
+    assert "ground_elev" not in _item_route_options({"sheet": "profile"})

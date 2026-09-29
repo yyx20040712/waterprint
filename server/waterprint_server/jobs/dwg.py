@@ -65,24 +65,51 @@ def _hidden_gui_options() -> dict[str, Any]:
     return {"startupinfo": info}
 
 
-def dwg_convert(converter: str, dxf_file: Path, timeout_s: int) -> Path | None:
+def dwg_convert(
+    converter: str,
+    dxf_file: Path,
+    timeout_s: int,
+    *,
+    output_type: str = "DWG",
+) -> Path | None:
     """DXF→DWG 子进程转换（ODA CLI 契约 <in_dir> <out_dir> <version> <DWG|DXF>
     <recurse> <audit> [filter]）。任何失败（OSError/SubprocessError/退出码≠0/
-    空产物）=warning+None——DXF 交付承诺不可破。"""
+    空产物）=warning+None——DXF 交付承诺不可破。
+    批6j：output_type ∈ {"DWG","DXF"}（默认 "DWG" 现行为零变——"DXF" 向
+    =ODA 往返冒烟工具面 tools/oda_smoke.py 消费；产物后缀随输出类型
+    派生，DWG→DXF 反向调用时输入为 .dwg 件）。
+    W-5（d1 回炉）失败语义分界：IO/子进程/产物面=warning+None（DXF 交付
+    承诺不可破——运行失败族）；output_type 域外=ValueError 显式拒（调用
+    方程序员错误非运行失败——静默 None 吞配置缺陷禁）。
+    N-1（d1 建议）同后缀自覆盖守卫：输入后缀==输出后缀（如 dxf→dxf）时
+    landed=输入本体，os.replace 覆盖源件——拒绝并归 warning 族。"""
+    if output_type not in ("DWG", "DXF"):
+        raise ValueError(
+            f"output_type 须为 'DWG'|'DXF'：收到 {output_type!r}"
+            "（ODA CLI 契约第四参值域，批6j）"
+        )
+    suffix = f".{output_type.lower()}"
     dwg: Path | None = None  # 成功旗标（D-01：落位成功后才置——with 外返回）
     reason = ""
+    if dxf_file.suffix.lower() == suffix:
+        _LOGGER.warning(
+            "dwg_convert_skipped", source=dxf_file.name,
+            reason=f"same-suffix self-overwrite rejected (N-1): {suffix}",
+        )
+        return None
     try:
         in_dir = str(dxf_file.parent.resolve())  # resolve 失败归入失败面
         with tempfile.TemporaryDirectory(dir=in_dir) as tmp_name:  # exports 同分区（GR-38）
-            argv = [converter, in_dir, tmp_name, _DWG_CLI_VERSION, "DWG", "0", "1", dxf_file.name]
+            argv = [converter, in_dir, tmp_name, _DWG_CLI_VERSION, output_type,
+                    "0", "1", dxf_file.name]
             proc = subprocess.run(  # recurse=0 单文件；audit=1 同 ezdxf 默认；退出码下方统一判
                 argv, capture_output=True, timeout=timeout_s, check=False,
                 **_hidden_gui_options(),
             )
-            produced = Path(tmp_name) / dxf_file.with_suffix(".dwg").name
+            produced = Path(tmp_name) / dxf_file.with_suffix(suffix).name
             # R-1/G1-02：三重判（退出码+存在+非零字节——空产物不登记）
             if proc.returncode == 0 and produced.is_file() and produced.stat().st_size > 0:
-                landed = dxf_file.with_suffix(".dwg")
+                landed = dxf_file.with_suffix(suffix)
                 os.replace(produced, landed)  # D-01：失败抛 OSError→外层失败族
                 dwg = landed  # 落位成功后才置旗标（修复前=假成功路径）
             else:

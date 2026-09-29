@@ -121,12 +121,18 @@ class ProfileOptions:
     build_chainage_axis(profile, None) 单源构造 fallback 轴，本图零
     自建）；pumping=None 时泵/跌水注记整体跳过（PumpingPlan 双空
     合法语义沿承）。
+    批6j 绝对标高（UF-50 收口）：elev_baseline=图面 Y 基准平移米值
+    （默认 0.0=相对基准——位级恒等零默认漂移；绝对模式=进厂水面标高，
+    图面几何锚基准近原点、标注文本携绝对值）；datum_note=高程基准
+    注记行（仅绝对模式非 None——注记行序首位，默认模式零行字节恒）。
     """
 
     h_scale: int
     v_scale: int
     axis: ChainageAxis
     pumping: PumpingPlan | None = None
+    elev_baseline: float = 0.0
+    datum_note: str | None = None
 
 
 def _mm_per_meter() -> float:
@@ -138,11 +144,13 @@ def _mm_per_meter() -> float:
 def _to_sheet(x_m: float, elev_m: float, factor: float,
               options: ProfileOptions) -> tuple[float, float]:
     """模型坐标（m）→ 图面坐标（mm）：x=桩距×因子÷横比例分母，
-    y=标高×因子÷纵比例分母（R4 换算集中唯一入口——y=实际高程直投影
-    零基准平移，PD5）。"""
+    y=(标高−基准)×因子÷纵比例分母（R4 换算集中唯一入口——批6j 基准
+    平移修订〔PD5 案甲〕：绝对模式下 y=实际高程−进厂水面标高的基准
+    相对值，标注文本携绝对值；基准默认 0.0 → e−0.0 IEEE 位级恒等=
+    相对模式产物字节零变）。"""
     return (
         x_m * factor / options.h_scale,
-        elev_m * factor / options.v_scale,
+        (elev_m - options.elev_baseline) * factor / options.v_scale,
     )
 
 
@@ -344,15 +352,26 @@ def profile_sheet(
                        source_key="pumping.drop_warnings")
             )
     # 图脚站距源注记（R5）：自 (0,0) 向下逐行（工况标注行尾随——注记
-    # 锚序确定性：站距源在前工况在后）。
-    note_lines = _source_note(options.axis)
+    # 锚序确定性：批6j 高程基准〔仅绝对模式〕→站距源→工况）。
+    # W-2（d1 回炉）：高程基准行独立溯源键 profile.datum_note（内容真源
+    # =app_export 装配层单点构造——非站距源族，防 trace 归组错标）；条件
+    # 表达式构造=零分支语句（PLR0912 预算——行内三元不计分支）。
+    datum_line = options.datum_note
+    footer_lines = (
+        [] if datum_line is None else [datum_line]
+    ) + _source_note(options.axis)
     entities.extend(
         Entity("text", LAYER_ELEV, ((0.0, -float(index)),),
-               text=line, source_key="chainage.source_note")
-        for index, line in enumerate(note_lines)
+               text=line,
+               source_key=(
+                   "profile.datum_note"
+                   if datum_line is not None and line is datum_line
+                   else "chainage.source_note"
+               ))
+        for index, line in enumerate(footer_lines)
     )
     entities.append(
-        Entity("text", LAYER_ELEV, ((0.0, -float(len(note_lines))),),
+        Entity("text", LAYER_ELEV, ((0.0, -float(len(footer_lines))),),
                text=f"condition={profile.condition_key}",
                source_key="condition_key")
     )

@@ -130,3 +130,74 @@ def test_chainage_axis_wiring() -> None:
     assert notes, "图脚站距源注记缺席（R5 三态图面化）"
     assert any("站距源" in e.text for e in notes)
     assert any("u1->u2" in e.text for e in notes), "fallback 边明细缺席"
+
+
+def test_elev_baseline_default_and_shift() -> None:
+    """批6j 镜像：elev_baseline 缺省 0.0 恒等（既有构造面零改——快照
+    锚④字节恒等的结构面）+基准平移数学区（y=(e−baseline)×因子÷v）：
+    同构整体平移、x 零变。"""
+    import dataclasses
+
+    from waterprint.drafting.profile_drawing import profile_sheet
+    from waterprint.drafting.styles import base_styles
+
+    profile = _profile()
+    styles = base_styles()
+    base_group = profile_sheet(profile, styles, _options())
+    shifted_group = profile_sheet(
+        profile, styles, dataclasses.replace(_options(), elev_baseline=50.0)
+    )
+    factor = 1000.0  # _mm_per_meter（1 mm=m 契约换算）
+    delta = 50.0 * factor / 100  # v_scale=100（_options 夹具）
+
+    def _lines(group) -> dict:  # type: ignore[no-untyped-def]
+        return {
+            (e.kind, e.layer, e.text): e.points
+            for e in group.entities if e.kind == "line"
+        }
+
+    base_lines, shifted_lines = _lines(base_group), _lines(shifted_group)
+    assert base_lines.keys() == shifted_lines.keys()
+    for key, points in base_lines.items():
+        moved = shifted_lines[key]
+        assert all(
+            abs(bx - ax) < 1e-9
+            for (ax, _), (bx, _) in zip(points, moved, strict=True)
+        ), key
+        assert all(
+            abs((by + delta) - ay) < 1e-9
+            for (_, ay), (_, by) in zip(points, moved, strict=True)
+        ), key
+
+
+def test_datum_note_line_order_and_default_absent() -> None:
+    """批6j 镜像：datum_note 注记行序=首位（高程基准→站距源→工况——y
+    递减锚定序）+默认模式零行（None 不产实体——默认产物字节恒）。"""
+    import dataclasses
+
+    from waterprint.drafting.profile_drawing import profile_sheet
+    from waterprint.drafting.styles import base_styles
+
+    profile = _profile()
+    styles = base_styles()
+    note = "高程基准：绝对标高（进厂水面 1053.2 m / 地面 1051 m）"
+    with_note = profile_sheet(
+        profile, styles, dataclasses.replace(_options(), datum_note=note)
+    ).entities
+    default = profile_sheet(profile, styles, _options()).entities
+
+    def _note_texts(entities) -> list:  # type: ignore[no-untyped-def]
+        return [
+            (e.points[0][1], e.text) for e in entities
+            if e.kind == "text" and e.text.startswith(
+                ("高程基准", "站距源", "condition="))
+        ]
+
+    # 行序=自 (0,0) 向下：y 递减——高程基准（-0）→站距源（-1）→工况（-2）。
+    anchored = sorted(_note_texts(with_note), reverse=True)
+    assert next(text for _, text in anchored).startswith("高程基准")
+    assert anchored[1][1].startswith("站距源")
+    assert [text for _, text in anchored][-1].startswith("condition=")
+    assert all(
+        not e.text.startswith("高程基准") for e in default if e.kind == "text"
+    )

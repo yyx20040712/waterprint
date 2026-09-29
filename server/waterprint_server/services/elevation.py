@@ -42,9 +42,10 @@
 #   R4 装配口径（FE7 D2/D3/D4/D5）：
 #      - losses=head_losses((), ...) 空段=沿程损失恒 0（管线几何归 M5
 #        管线批——loss_in 如实呈现 0，前端注记）；
-#      - inlet_config=_REL_DATUM ±0.00 相对标高常量（绝对标高设计输入
-#        通道未接线——app_enumeration._REL_DATUM 同款先例；datum_note
-#        下发注记，口径单一真源在服务面）；
+#      - inlet_config=_REL_DATUM ±0.00 相对标高常量（本端点 GET 无绝对
+#        标高输入面——DXF 导出 options 通道批6j 已接线〔UF-50〕，此处
+#        维持双胞胎至 API 输入面接线批；datum_note 下发注记，口径单一
+#        真源在服务面）；
 #      - pumping=evaluate_pumping(profile, view) 一次装配（空站位列表
 #        =全程自流合法终态，core pumps R4）；
 #      - crest_elev=water_level+freeboard 服务端投影（响应 DTO 派生
@@ -98,7 +99,10 @@ _REL_DATUM: Final[Mapping[str, float]] = MappingProxyType(
 )
 
 # D2 口径注记（服务面单一真源下发——前端不硬编码）。
-_DATUM_NOTE: Final[str] = "相对标高：进厂水面=±0.00——绝对标高输入通道未接线"
+_DATUM_NOTE: Final[str] = (
+    "相对标高：进厂水面=±0.00——本端点无绝对标高输入面"
+    "（DXF 导出 options 已接线 water_level/ground_elev——批6j UF-50）"
+)
 
 
 class ElevationSourceNotFoundError(RuntimeError):

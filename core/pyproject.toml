@@ -162,7 +162,7 @@ type = "layers"
 layers = [
     "waterprint.cli",
     "waterprint.flows",
-    "waterprint.app | waterprint.app_enumeration | waterprint.app_export | waterprint.app_enumeration_gates",
+    "waterprint.app | waterprint.app_enumeration | waterprint.app_export | waterprint.app_export_options | waterprint.app_enumeration_gates",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.ifc_export | waterprint.network",
     "waterprint.units_lib",
@@ -185,6 +185,8 @@ ignore_imports = [
     "waterprint.app -> waterprint.app_enumeration",
     # waterprint.app_enumeration → waterprint.app_export：PROFILE3 2026-09-08 export 族拆分再导出伴生边；方向单一防环=app_export 零 app 系依赖
     "waterprint.app_enumeration -> waterprint.app_export",
+    # waterprint.app_export → waterprint.app_export_options：批6j 2026-09-29 路由选项解析器族拆件伴生边（ADR-024 预算墙配方——app_export 566>500）；ArtifactKindNotReady 基类随段迁+app_export 再导出保公开面；方向单一防环=app_export_options 零 app 系依赖
+    "waterprint.app_export -> waterprint.app_export_options",
     # waterprint.app → waterprint.app_enumeration_gates：批5 2026-09-26 枚举用例正门族伴生边：app.py 预算墙恰满拆件（app_assembly 先例第三例）——两枚举正门迁出再导出保 server/cli/测试单入口；方向单一防环=gates 零 app 依赖（env 补齐经 app_assembly.completed_env 单源）
     "waterprint.app -> waterprint.app_enumeration_gates",
     # waterprint.app_enumeration_gates → waterprint.app_enumeration：批5 2026-09-26 枚举伴生件类型面消费：gates 消费 EnumerationOptions/EnumerationOutcome/UpstreamSource/enumerate_across_conditions（app→gates→enumeration 链式面经两边声明承载）
@@ -195,7 +197,7 @@ ignore_imports = [
     "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
     # waterprint.solution → waterprint.graph：B4-3 2026-09-20 联合枚举末段复验直调 execute_graph（W6 终裁：不新写拓扑序不构成双轨——唯一 import 现场=solution.joint_enumeration 包根 __init__，子件经包根中继；import-linter 单段通配锚定+check_module_graph 节点粒度双面成立）
     "waterprint.solution.* -> waterprint.graph",
-    # waterprint.solution.joint_enumeration → waterprint.cost：backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）
+    # waterprint.solution.joint_enumeration → waterprint.cost：backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单；批6c 2026-09-26 增 EstimateSheet 四类型——capex_annualized 消费分级小计，边不变）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）
     "waterprint.solution.joint_enumeration.* -> waterprint.cost",
 # SAME-LAYER-EDGES:END
 ]
@@ -223,7 +225,7 @@ ignore_imports = [
     "waterprint.drafting.profile_drawing -> waterprint.elevation.pumps",
     # waterprint.solution → waterprint.graph：B4-3 2026-09-20 联合枚举末段复验直调 execute_graph（W6 终裁：不新写拓扑序不构成双轨——唯一 import 现场=solution.joint_enumeration 包根 __init__，子件经包根中继；import-linter 单段通配锚定+check_module_graph 节点粒度双面成立）
     "waterprint.solution.* -> waterprint.graph",
-    # waterprint.solution.joint_enumeration → waterprint.cost：backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）
+    # waterprint.solution.joint_enumeration → waterprint.cost：backend-calc-complete 批2b 2026-09-25 capex 第四真键：final_eval 装配束消费 cost 四模块链（takeoff→build_estimate——services/cost.py R3 同款链 core 侧单点）；import 收敛经 cost 包根再导出面（五函数+三类型批2b 扩白名单；批6c 2026-09-26 增 EstimateSheet 四类型——capex_annualized 消费分级小计，边不变）；from=一层子包粒度（import-linter 单段通配锚定——子件 final_eval 直接 import 现场；check_module_graph 节点归一后按 solution→cost 节点对豁免，solution→graph 先例同构）
     "waterprint.solution.joint_enumeration.* -> waterprint.cost",
 # SAME-LAYER-EDGES:END
 ]

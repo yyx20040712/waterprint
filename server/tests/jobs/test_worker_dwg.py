@@ -454,3 +454,41 @@ async def test_batch_cancel_before_conversion_skips_dwg_wiring(  # type: ignore[
     assert (out_dir / "batch.dxf").is_file()
     assert not (out_dir / "batch.dwg").exists()  # 修复前红：转换照跑=幽灵 DWG
     assert list(out_dir.glob("*.meta.json")) == []  # 取消后零新边车（K-02 检查在登记前）
+
+
+def _type_honoring_standin(directory: Path) -> Path:
+    """批6j：输出类型感知替身（ODA CLI 第四参 <%~4/$4> 承接——复制输入
+    为输出同名+按输出类型后缀；_standin_converter ok 形态的往返向扩展）。"""
+    directory.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        standin = directory / "oda-standin-type.cmd"
+        # 注：产物后缀=输出类型原样（DXF 大写）——NTFS 大小写不敏感，
+        # dwg_convert 侧 produced.is_file()/os.replace 均命中。
+        standin.write_bytes(
+            b'@echo off\r\ncopy /Y "%~1\\%~7" "%~2\\%~n7.%~4" >nul\r\nexit /b 0\r\n'
+        )
+        return standin
+    standin = directory / "oda-standin-type.sh"
+    standin.write_text(
+        '#!/bin/sh\ncp "$1/$7" "$2/$(basename "$7" .*).$(echo "$4" | tr A-Z a-z)"\nexit 0\n',
+        encoding="utf-8",
+    )
+    standin.chmod(0o755)
+    return standin
+
+
+def test_dwg_convert_dxf_direction_and_domain_reject(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """批6j：dwg_convert output_type 往返向——DXF 向产物后缀随输出类型
+    派生+域外值诚实拒（ValueError——ODA CLI 第四参值域）；默认 DWG 面
+    零变由既有四形态用例守卫。"""
+    from waterprint_server.jobs.dwg import dwg_convert
+
+    src = tmp_path / "round.dwg"
+    src.write_bytes(b"MOCK-DWG-PAYLOAD" * 4)
+    standin = _type_honoring_standin(tmp_path)
+    out = dwg_convert(str(standin), src, 10, output_type="DXF")
+    assert out is not None
+    assert out.suffix == ".dxf" and out.stat().st_size > 0
+    assert out.read_bytes() == src.read_bytes()
+    with pytest.raises(ValueError, match="output_type"):
+        dwg_convert(str(standin), src, 10, output_type="pdf")

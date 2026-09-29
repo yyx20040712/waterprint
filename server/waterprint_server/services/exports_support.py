@@ -137,7 +137,7 @@ def _name_component(value: str, fallback: str, what: str) -> str:
         ) from exc
 
 
-def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h/v 四 keyword 分量（PROFILE2/3）；keyword-only 沿 export_artifact 豁免先例
+def _deterministic_name(  # noqa: PLR0913  # 九参=命名四真源+unit/sheet/h/v/station/elev 五 keyword 分量（PROFILE2/3+批6i/6j）；keyword-only 沿 export_artifact 豁免先例
     project_id: str,
     kind: str,
     condition_key: str,
@@ -148,6 +148,7 @@ def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h
     h_scale: int | None = None,
     v_scale: int | None = None,
     station: str | None = None,
+    elev: str | None = None,
 ) -> str:
     """R4 确定性命名：项目 id+kind+(unit)+condition+三元组摘要（禁时钟）。
 
@@ -184,8 +185,11 @@ def _deterministic_name(  # noqa: PLR0913  # 八参=命名四真源+unit/sheet/h
     # 覆盖=FE9 R1 同族缺陷防再发——段值=DSL 串 sha256 前 6 位，调用方
     # 预算；默认零段保现名与快照锚恒——h/v 段同构）。
     station_seg = f"-s{station}" if station else ""
+    # 批6j：绝对标高基准命名段（异基准同名 os.replace 静默覆盖=FE9 R1
+    # 同族——段值=成对基准串 sha256 前 _DIGEST_PREFIX 位；默认零段保现名恒）。
+    elev_seg = f"-e{elev}" if elev else ""
     return (
-        f"{safe_project}-{kind}{sheet_part}{scale_seg}{station_seg}{unit_part}"
+        f"{safe_project}-{kind}{sheet_part}{scale_seg}{station_seg}{elev_seg}{unit_part}"
         f"-{safe_condition}-{digest[:_DIGEST_PREFIX]}{_KIND_SUFFIXES[kind]}"
     )
 
@@ -221,6 +225,48 @@ def _station_text_of(chosen: Mapping[str, Any]) -> str | None:
     双处漂移，_scale_text_of 同族）。"""
     raw = chosen.get("station_overrides")
     return raw if isinstance(raw, str) and raw else None
+
+
+def _datum_text_of(chosen: Mapping[str, Any], key: str) -> str | None:
+    """批6j：进厂标高选项归一提取（water_level/ground_elev 逐键——仅
+    非空字符串；成对/形态/数值域校验在预校验面与 core 终闸，提取面
+    零校验防双处漂移，_scale_text_of 同族）。"""
+    raw = chosen.get(key)
+    return raw if isinstance(raw, str) and raw else None
+
+
+_DATUM_FORM_RE = re.compile(r"^-?[0-9]+(?:\.[0-9]+)?$")
+
+
+def _reject_bad_datum_form(source: Mapping[str, Any], label: str) -> None:
+    """批6j：进厂标高形态预校验（reject_bad_route_options 子闸——非字符
+    串类型显式拒[h/v 同族]+带符号十进制形态+成对必传[单键=半相对半绝
+    对错配基准吞意图禁]；数值域[有限性]留 core 终闸——双闸分工零重叠
+    先例）。"""
+    water = source.get("water_level")
+    ground = source.get("ground_elev")
+    if water is None and ground is None:
+        return
+    for key, raw in (("water_level", water), ("ground_elev", ground)):
+        if raw is None:
+            continue
+        if not isinstance(raw, str):  # 非字符串类型=显式拒（h/v 同族）
+            raise InvalidExportRequestError(
+                f"导出 {label}.{key} 须为字符串（如 '1053.2'）："
+                f"收到 {type(raw).__name__}（批6j 整批原子拒绝）"
+            )
+        if not _DATUM_FORM_RE.match(raw.strip()):
+            raise InvalidExportRequestError(
+                f"导出 {label}.{key} 值非带符号十进制形态：{raw!r}"
+                "（合法如 '1053.2'/'-3.5'——科学记数法/下划线/非 ASCII"
+                " 拒；批6j 整批原子拒绝）"
+            )
+    if (water is None) != (ground is None):
+        raise InvalidExportRequestError(
+            f"导出 {label} 的 'water_level'/'ground_elev' 成对必传"
+            "（单键=半相对半绝对的错配基准——吞意图禁；批6j 整批原子拒绝）："
+            f"仅收到 water_level={water!r} ground_elev={ground!r}"
+        )
 
 
 def _reject_bad_station_form(
@@ -295,6 +341,7 @@ def reject_bad_route_options(
                     f"（如 '2000'）：收到 {raw!r}（PROFILE3 整批原子拒绝）"
                 )
         _reject_bad_station_form(source, label)
+        _reject_bad_datum_form(source, label)
         has_unit = bool(_unit_id_of(source))
         has_sheet = _sheet_of(source) is not None
         if has_unit and has_sheet:
@@ -343,10 +390,11 @@ def _batch_items_payload(
         # 空读=产出总图内容挂纵断名的错配（单产物路径无此缺陷；既有
         # e2e 只验名不验内容故潜伏——本批站距覆盖对拍显形）。键集=
         # create_export 归一恒串面；仅 dxf 项承载（core 白名单非 dxf
-        # 零消费，收单闸已拒错配意图）。
+        # 零消费，收单闸已拒错配意图）。批6j：进厂标高两键随族扩入。
         if item_kind == "dxf":
             for route_key in ("sheet", "h_scale", "v_scale",
-                              "station_overrides"):
+                              "station_overrides",
+                              "water_level", "ground_elev"):
                 route_value = str(item.get(route_key) or "")
                 if route_value:
                     entry[route_key] = route_value

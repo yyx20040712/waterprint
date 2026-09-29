@@ -8,6 +8,9 @@
 # name: test_dxf_content_hash
   '5b755936dc68c5c5d923d2423ecba2d5ac85f321d7b8aadc1eb57159faaf3ae6'
 # ---
+# name: test_profile_dxf_absolute_datum_content_hash
+  '013328bee326e64a00f2c6e6bda5bcac0456167d2c8f05ef71ff47a5e412b625'
+# ---
 # name: test_profile_dxf_content_hash
   'f514cf647991560dd16e15300ba0d086da5d0f916ea61462118c87db37fe1c9d'
 # ---

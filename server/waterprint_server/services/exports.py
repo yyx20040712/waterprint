@@ -164,6 +164,7 @@ from waterprint_server.services.exports_support import (
     InvalidExportRequestError,
     StaleExportError,
     _batch_items_payload,
+    _datum_text_of,
     _deterministic_name,
     _scale_text_of,
     _sheet_of,
@@ -253,6 +254,17 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             "station_overrides": (
                 _station_text_of(item) or _station_text_of(chosen) or ""
             ),
+            # 批6j：进厂标高逐键归一（item 覆盖批级沿 h/v 同语义——成对
+            # 完整性由预校验在原始 source 级把守[批级/item 级各自成对或
+            # 双空]，归一层逐键 OR 合并后恒保持成对性）。
+            "water_level": (
+                _datum_text_of(item, "water_level")
+                or _datum_text_of(chosen, "water_level") or ""
+            ),
+            "ground_elev": (
+                _datum_text_of(item, "ground_elev")
+                or _datum_text_of(chosen, "ground_elev") or ""
+            ),
         }
         for item in items
     ]
@@ -271,11 +283,20 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             sheet=str(item.get("sheet") or "") or None,
             h_scale=int(item["h_scale"]) if item.get("h_scale") else None,
             v_scale=int(item["v_scale"]) if item.get("v_scale") else None,
-            # 批6i：覆盖 DSL 命名段（sha256 前 6 位——_deterministic_name
-            # station 形参；空 DSL 零段保现名恒）。
+            # 批6i：覆盖 DSL 命名段（sha256 前 _DIGEST_PREFIX〔=10〕位——
+            # _deterministic_name station 形参；W-4 勘正：旧注「前 6 位」系
+            # 笔误与实值漂移；空 DSL 零段保现名恒）。
             station=(
                 sha256(str(item["station_overrides"]).encode("utf-8")).hexdigest()[:_DIGEST_PREFIX]
                 if item.get("station_overrides") else None
+            ),
+            # 批6j：绝对标高基准命名段（成对串 sha256 前 _DIGEST_PREFIX
+            # 位——异基准同名覆盖防再发；默认零段保现名恒）。
+            elev=(
+                sha256(
+                    f"{item['water_level']}|{item['ground_elev']}".encode()
+                ).hexdigest()[:_DIGEST_PREFIX]
+                if item.get("water_level") else None
             ),
         )
         for item in items
@@ -363,6 +384,9 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         h_scale=str(items[0].get("h_scale") or "") or None,
         v_scale=str(items[0].get("v_scale") or "") or None,
         station_overrides=str(items[0].get("station_overrides") or "") or None,
+        # 批6j：进厂标高单产物面透传（归一空串→None；成对性预校验已把守）。
+        water_level=str(items[0].get("water_level") or "") or None,
+        ground_elev=str(items[0].get("ground_elev") or "") or None,
         **extra,
     )
     os.replace(tmp, out)

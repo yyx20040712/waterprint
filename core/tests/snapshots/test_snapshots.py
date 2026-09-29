@@ -269,3 +269,22 @@ def test_profile_dxf_content_hash(
         condition_key="design", sheet="profile",
     )
     assert _canonical_dxf_sha(out) == snapshot
+
+
+def test_profile_dxf_absolute_datum_content_hash(
+    v1_plant: PlantResult, tmp_path: Path, snapshot: SnapshotAssertion
+) -> None:
+    """快照锚⑤（批6j）：绝对标高模式纵断 DXF 内容哈希——UF-50 通道收口
+    出图正确性独立基线（water_level=1053.2/ground_elev=1051.0——标注携
+    绝对值+图脚高程基准注记；默认模式锚④字节恒等另证=案甲基准平移
+    结构面）。ambr 第五哈希走 D7 人审流程入册（--snapshot-update 显式
+    重录+diff 人审——仅增案，存量锚零重录）。"""
+    from waterprint.app_enumeration import export_artifact
+
+    out = tmp_path / "profile_abs.dxf"
+    export_artifact(  # type: ignore[misc]
+        "dxf", v1_plant, Path("unused"), out,
+        condition_key="design", sheet="profile",
+        water_level="1053.2", ground_elev="1051.0",
+    )
+    assert _canonical_dxf_sha(out) == snapshot

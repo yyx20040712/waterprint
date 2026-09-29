@@ -32,6 +32,7 @@
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
 | `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
 | `waterprint.app_export` | L4.app | `core/waterprint/app_export.py` |
+| `waterprint.app_export_options` | L4.app | `core/waterprint/app_export_options.py` |
 | `waterprint.app_enumeration_gates` | L4.app | `core/waterprint/app_enumeration_gates.py` |
 | `waterprint.project` | L4.project-trace | `core/waterprint/project` |
 | `waterprint.trace` | L4.project-trace | `core/waterprint/trace` |
@@ -123,6 +124,7 @@
 | `waterprint.app` | `waterprint.registry` | 假设/公式/系数装载 |
 | `waterprint.app` | `waterprint.contracts` | 契约类型 |
 | `waterprint.app_enumeration` | `waterprint.contracts` | 枚举用例契约类型——ENG2 B3 补登；PROFILE3 export 族拆出后剩枚举面（出图契约边随迁 app_export） |
+| `waterprint.app_export_options` | `waterprint.drafting` | SCALE_DENOM_MAX 比例域上限常量（批6j 拆件随迁——解析器域值上限） |
 | `waterprint.app_export` | `waterprint.contracts` | 产物导出契约类型（PROFILE3 拆分自 app_enumeration——行为零变更纯搬迁） |
 | `waterprint.app_export` | `waterprint.drafting` | 单元三视图+总图+纵断 DXF/目录装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
 | `waterprint.app_export` | `waterprint.elevation` | build_profile/evaluate_pumping/head_losses 纵断装配——PROFILE3 拆分（PROFILE2 接线面随迁） |
@@ -211,6 +213,12 @@ independence = false
 from = "waterprint.app_enumeration"
 to = "waterprint.app_export"
 note = "PROFILE3 2026-09-08 export 族拆分再导出伴生边；方向单一防环=app_export 零 app 系依赖"
+independence = false
+
+[[edge]]
+from = "waterprint.app_export"
+to = "waterprint.app_export_options"
+note = "批6j 2026-09-29 路由选项解析器族拆件伴生边（ADR-024 预算墙配方——app_export 566>500）；ArtifactKindNotReady 基类随段迁+app_export 再导出保公开面；方向单一防环=app_export_options 零 app 系依赖"
 independence = false
 
 [[edge]]
