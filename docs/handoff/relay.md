@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-29T04:18:30Z 增补六十七：批6k 收口 READY（UF 规格冻结六行闭合+CI agent job+report 产物三件套——1 commit b1164692c〔HUMAN-LOCK〕/门一双席 PASS·W 全处置/探针 11/11/门禁 17 全绿）；next=批6l -->
+- status: READY <!-- 2026-09-29T04:40:00Z 增补六十八：批6k 回炉收口 READY（CI agent job Linux 首跑红三面实修——POSIX 脱敏真缺陷/平台条件断言/skip 白名单自有短语；复跑绿 43s——1 commit 7817b6551〔HUMAN-LOCK〕）；next=批6l -->
 - automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,8 +20,8 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-29T04:18:30Z <!-- 2026-09-29T04:18:30Z 增补六十七收口刷 -->
-- claim: - <!-- 2026-09-29T04:18:30Z 批6k 收口释放（executor-b6k-20260929T032400Z，勾选 47→48） -->
+- heartbeat_utc: 2026-09-29T04:40:00Z <!-- 2026-09-29T04:40:00Z 增补六十八回炉收口刷 -->
+- claim: - <!-- 2026-09-29T04:40:00Z 批6k 回炉收口释放（executor-b6k-20260929T032400Z） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
 - checked_done: 48 <!-- 2026-09-29T04:18:30Z 批6k 收口 47→48（增补六十七） -->
@@ -419,3 +419,11 @@
 - **Rulings（呈报不阻断）**：R1 CI agent job 接线=防线扩面（jobs 7→8——依据=增补六十二②用户裁决）；R2 report 产物入库+conftest 默认改仓内（skip 语义退役为 belt——测试夹具形态变更）；R3 UF 登记册粗体前缀归一 4 行（计数桶勘正非语义变更）；R4 relay.md:388 批6j 遗留代号 scrub（批6e 先例）。
 - **预算记档**：fire_budget 120min 实耗≈114min（03:24:00Z~04:18:30Z）在限内。
 - **收口判定=⑤READY**：勾选 47→48（批6k ☑，余 5=批6l~6o+⑤b）；batch_count 0→1（<60）；墙钟≈0.95h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+
+### 增补六十八 — 2026-09-29T04:40:00Z（批6k 回炉收口：CI agent job Linux 首跑红三面实修——复跑绿；READY）
+
+- **回炉缘起（protocol 翻回 RUNNING 条款）**：增补六十七收口推送后 CI 首跑（run 36521136887）agent job 红（36s 早夭）——三面：①sessionlog 绝对路径正则仅 Windows 形态（POSIX 沙箱绝对路径不脱敏直落盘=**产品缺陷**非测试面）；②test_pathguard UNC/盘符断言=Windows 路径语义（Linux PosixPath 无 drive——DID NOT RAISE）；③junction importorskip 无 reason（Linux 恒 skip 触发 skip 门禁）。增补六十二②交付面（CI agent job 接线含「skip 白名单口径一并解决」）未竟——04:25:37Z 回读 claim=- 后原子翻回 RUNNING（同 token 重占）。
+- **回炉实修（1 commit 7817b6551〔HUMAN-LOCK〕——预授权①依据不变）**：①正则扩 POSIX 三形态（负向后瞻防 URL/词内斜杠误吃；旧模式经盘符分支吃 s://… 属存量行为——新旧对照恒等实证零新增面；行为矩阵 11 例全过〔5 绝对命中/3 相对零命中/3 URL 对照恒等〕）；②UNC/盘符断言平台条件化（绝对路径拒绝=跨平台契约恒测——条件断言非 skip）+junction importorskip 补 reason；③ci.yml agent job skip 白名单补 agent 自有短语「Windows 平台守卫」（增补六十一 R1「agent job 自带口径」落地）。
+- **回炉验证**：agent 184P+ruff 绿+lint-imports 2 kept（Windows 面）+锁面 333 键恰 1 哈希变（test_pathguard——64 根完整清单重锁）+check_readonly 333 全绿+run_gates 唯 trust_root 提交前预期红（7817b6551 落地后闭合）；**CI 复跑（run 36522205634）agent job ✓ 43s 绿**——k1-W4 闭合条件达成（首跑红→回炉实修→复跑绿回帖）。
+- **批6j 前欠显形（非本批范围，如实记）**：CI server 双版（3.13/3.14）红=tests/jobs/test_worker_dwg.py:490 `assert out is not None`（dwg_convert Linux 返回 None）——批6j 代码面 Linux 首曝（增补六十四~六十六推送后 CI 首跑显形；本机 Windows 398P 绿潜伏）。**本批两次推送（9471d4fa3/7817b6551）均携带此红**——批6l 邻域裁量修复（或用户直排）；本批门禁/check_model_names 修复使 gates/core/前端/审计/镜像/基准全绿，唯此一面。
+- **回炉收口判定=⑤READY（回炉条款：batch_count 不再 +1 按现值 1 重判 <60；勾选对认领快照 47→48 增→no_progress 保持 0）**：claim 释放；置 READY 最后一笔。推送态：三笔全部已推 GitHub（b1164692c/9471d4fa3/7817b6551——代理通道恢复）。
