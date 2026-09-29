@@ -26,8 +26,8 @@
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
 - checked_done: 45 <!-- 2026-09-27 批6h 收口 44→45（增补六十） -->
 - protocol_rev: 6 <!-- 2026-09-26 换防升版 rev5→6（执行指令锚根批=现行：仓根锚定纪律+执行指令行参数化+开批通道标签去 rev 化）；旧值 5 -->
-- last_dispatch_utc: 2026-09-27T00:53:15.214Z <!-- 2026-09-27 批6h 首班发布成立（回读=run dwfrun-6dd18ac4-a432-434b-80ec-8ff031a471da running+执行者子代理 executing）；旧值 2026-09-26T23:51:05.993Z（批6g 首班） -->
-- workflow_run_id: - <!-- 2026-09-29 换防复位；旧值 dwfrun-6dd18ac4…（批6h 首班 run——GetWorkflowRun 实核 completed 2026-09-27T01:50:59Z） -->
+- last_dispatch_utc: 2026-09-29T00:03:34.385Z <!-- 2026-09-29 批6i 首班发布成立（回读=run dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a running+执行者子代理 executing）；旧值 2026-09-27T00:53:15.214Z（批6h 首班） -->
+- workflow_run_id: dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a <!-- 批6i 首班执行工作流（纵断真实站距——站距源已裁增补六十二①：布置连线长度默认+逐边手动覆盖例外；三段通道设计先行+profile 桩号轴实装） -->
 - relay_started_utc: 2026-09-28T23:42:01.859Z <!-- 2026-09-29 换防时刻（接任会话——熔断复位 0/60 批+90h 墙钟重计）；旧值 2026-09-26T12:10:48.865Z（rev6 首换防） -->
 - batch_count: 0 <!-- 2026-09-29 换防复位（熔断预算 0/60 重计）；旧值 8 -->
 - max_batches: 60
@@ -355,3 +355,14 @@
 - **裁决原文**：「显然应该过滤掉，因为完全可以多建几个池子，而不是把一个池子做的特别大」——语义解读（如实记档）：拒绝「WARN 越带注记不滤」的未勾选软呈现——越带几何量（如超大单池）属**应滤除设计**，工程正解=上调池数而非单池做大，注记保留无价值；CP1「勾选=过滤」（2026-08-31）勾选即硬滤全级别维持定版。
 - **落位四处**：①UF 登记册 UF-54 行处置列→「已定义·显式不做软语义」（待拍板桶清零——status.md 再生成：已定义闭合 31→32/待拍板 1→0/其他表述 11 持平；行首粗体致分桶漂移已勘正=纯文本「已定义」起头）；②kb README 执法口径注记随裁（原「仅候选议案未拍板」失效条件兑现）；③solution/constraints.py 规格头 WARN 软语义段随裁（纯注记零行为变更）；④本增补笔。批6h AUD-W10 双锚两注记同步义务（「软语义实现时两注记同步」）以「随裁同步」形态履行。
 - **收口核查**：gen_status --check 零漂移（2159 字节——两桶计数同宽互换）；run_gates 17 门禁复跑绿；core solution 镜像测试抽跑绿（注记面零行为变更实证）。status/勾选/batch_count 零触碰。
+
+### 增补六十四 — 2026-09-29T00:03:34Z（换防迁火：接任会话+熔断复位+批6i 首班发布）
+
+- **会话性质**：用户显式接任交接（板头标准注入词调度员窗口——rev6 口径）。契机：前火 automation-886fb903（*/20）自批6h 收口（2026-09-27T01:50Z）后零派发——批6i 未开（09-28 三笔=用户直派手术/裁决笔〔增补六十一~六十三〕非执行者批），用户明示接任续跑。
+- **换防两门+清场**：工作流部署门过（batch-relay-executor 全局在册；check-relay channel=0 fail 0 warn）；深度设计门过（ai-dev-org 项目=.zcode/org-ledger.jsonl 在案+《裁决书》/wave6-master-plan.md 齐备）；旧火清场=本会话 CronList 零残留免 CronDelete（automation-886fb903 不在册=随前会话熄火）。
+- **板面复位**：batch_count 8→0、relay_started_utc→2026-09-28T23:42:01.859Z（熔断复位 0/60 批+90h 墙钟重计）、workflow_run_id→-（复位前实核旧值 dwfrun-6dd18ac4=批6h 首班 run，GetWorkflowRun=completed）、claimed_by/claimed_at→-（批6h 收口遗留残值清理）、last_handover→2026-09-29；status READY/claim -/no_progress 0/hold_reason - 零位维持；protocol_rev 6=现行零升版（复位前后 check-relay board 均 0 fail+R3 legacy 冻结行警告=正常过渡痕迹）。
+- **迁火**：CronCreate 新火 */20（automation-a23ac2a7-7698-4283-8ce0-e1020aaa70a4，prompt=现行火 prompt 模板）→ 板头 automation_id 字段行锚定回填（替换计数=1 守卫过）；CronList 复核恰一条=全局单火不变式成立。节律照旧：发布后静默 30min，有效班=40/60/80…min（*/20 用户直令节律维持）。
+- **提交推送**：换防笔=2982fba6（7 行字段复位+迁火回填）。**推送欠账**：本机代理 127.0.0.1:7890 未运行（.gitconfig 按域键 http.https://github.com.proxy）——经代理不可达+剥代理直连 reset，四试不过如实记档；本地提交安全在案，待代理恢复随下一笔推送补齐（批6a~6h 九笔积压后补推先例=增补六十一）。
+- **开批（批6i 首班，workflow 通道）**：开批四条件核验——①READY ✓②静默窗过（last_dispatch_utc=2026-09-27T00:53:15.214Z 距今 ≈47h ≥30min）✓③上一批 run 已收口（GetWorkflowRun=dwfrun-6dd18ac4 completed，复位前实核）+git 末笔 34d6ad2c 距今 >5min 实物静默 ✓④熔断复位未触发（0<60/墙钟 0h<90h）✓——四条件齐 → CreateWorkflow saved batch-relay-executor（board=本板，mode=execute）→ run_id=dwfrun-659ae6ae-e6c2-4ad9-a96a-7d58272f2c3a（GetWorkflowRun 回读=running+执行者子代理 executing=发布成立）→ 板头原子写 last_dispatch_utc=2026-09-29T00:03:34.385Z+workflow_run_id（status 保持 READY）。
+- **移交**：next=批6i 纵断真实站距（站距源已裁 2026-09-28〔增补六十二①〕：布置连线长度默认〔siteplan 坐标系欧氏距离逐段累计〕+手动输入=逐边覆盖例外通道——设计按此轴心三段通道展开+profile 桩号轴实装；批6h 结转欠账=p150k enum 行数=0 二分归因+check_model_names 阈值粒度/红探针矩阵扩面等审计 W 项——见增补六十欠账登记）；批6i→6j…6o 依序连续开工（预授权口径=执行路由段）；⑤b 软著=用户域终态项停板待用户亲查（增补六十二⑤复认）。
+- **调度纪律**：本会话自此转薄调度员——此后每班火只读板调度（禁执行禁重活禁载技能）；重活（换防/板面手术/事故响应）另开会话迁火。
