@@ -208,8 +208,8 @@ def _range_band_warnings(
         if spec.range is None or spec.grid is not None or spec.field_id in reported:
             continue
         value = actual.get(spec.field_id)
-        if value is None or not isfinite(value):
-            continue
+        if isinstance(value, bool) or not isinstance(value, int | float) or not isfinite(value):
+            continue  # 数值防护=params_guard 同契约边界（R2 d1-W1 对齐）
         low, high = spec.range
         if not low <= value <= high:
             extra.append(

@@ -90,10 +90,10 @@ _ceil_vec = _make_ceil_vec(_ceil_step)  # ceil 离散 N=1 边界件（批 MINOR 
 
 
 def _validate(params: dict[str, float]) -> None:
-    """参数域守卫：池数/负荷/时间/泥斗几何/步长非正一律拒。"""
+    """参数域守卫：池数/负荷/时间/泥斗几何/步长非正或 NaN 一律拒（R2 d1-W2）。"""
     for key in _PARAMS_POSITIVE:
         value = params.get(key)
-        if value is None or value <= 0:
+        if value is None or not value > 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 

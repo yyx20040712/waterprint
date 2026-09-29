@@ -146,7 +146,7 @@ uv run python -m waterprint.cli export audit <project.json> <result.json> [--out
 ### 3.6 参数面板「可行域」引导（webapp，FD 批 2026-09-10）
 
 选中单元后，参数面板对**连续区间参数**（声明 min/max 范围且无档位
-网格——当前目录 97 个）在参数行提供「可行域」链接入口：
+网格——当前目录 98 个）在参数行提供「可行域」链接入口：
 
 - **1D 区间条**：点击后在该参数行下方展开——绿色段=当前工况与约束
   下计算可行的取值区间，灰色段=不可行；点击区间任意位置把该值回填
@@ -161,10 +161,11 @@ uv run python -m waterprint.cli export audit <project.json> <result.json> [--out
   态，绿色不代表约束结论。
 - **步长派生口径**：连续参数上下箭头增量恒=(max−min)/10（缺省 11 档
   指引粒度）；键盘可输入任意值——步长是调参指引非校验（校验在计算侧）。
+- **范围声明双层防线**：参数 range 声明=应用通道越带拒收（方案应用 422）
+  +计算期越带告警（WARN）——工程常用范围起草，数据策略 v2 追认制。
 
-接口面：`POST /api/calc/design-map`（同步直返，轴 1~2 个；扫描总点数
-上限 2500，超限显式拒绝——项目假设面板可按项目覆盖键
-`solution.design_map.max_points`）。
+接口面：`POST /api/calc/design-map`（同步直返，轴 1~2 个；扫描总点数上限
+2500，超限显式拒绝——假设面板可覆盖键 `solution.design_map.max_points`）。
 
 ### 3.7 界面主题与滚动行为（webapp，C1 批 2026-09-10）
 

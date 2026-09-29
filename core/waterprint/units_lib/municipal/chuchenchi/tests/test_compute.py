@@ -263,6 +263,17 @@ def test_param_domain_rejected() -> None:
         make_unit().compute(ctx)
 
 
+def test_param_domain_rejects_nan() -> None:
+    """R2 d1-W2 回炉：NaN 入参不得穿透正性检查（not value > 0 口径——
+    NaN 与任何数比较恒 False，旧句 value <= 0 恒不命中即漏）。
+
+    取 t_sludge=NaN：旧实现漏判后 NaN 流入公式引擎，由 GR-02 批量绑定
+    校验以 InvalidFormulaError 拒（无参数归因、registry 层异常族）——
+    本用例红面；收紧后单元 _validate 即以 InvalidUnitConfig 带参数名拒。"""
+    with pytest.raises(InvalidUnitConfig, match="t_sludge"):
+        make_unit().compute(_ctx(_params(t_sludge=float("nan"))))
+
+
 def test_weir_construction_guard_rejects_small_diameter() -> None:
     """FZ-1 堰构造前提守卫：q_prime 极大把池径压到 ≤1 → InvalidUnitConfig。
 

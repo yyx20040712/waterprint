@@ -32,8 +32,8 @@
 # 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。
-# 【声明五件】params（range：q_nom/h2/r_external 三条出处带+
-#   length_disc_step 工程常用范围起草待追认——FZ-2 批 2026-09-30）/
+# 【声明五件】params（range：q_nom/h2/r_external 三条出处带+两圆整步长
+#   工程常用范围起草待追认——FZ-2 批 2026-09-30/R2 k1-N3）/
 #   ports 两口 WATER/removal_refs/norm_refs 双源标记（GB 50014-2021+
 #   给水排水设计手册）/condition_mappings=()/constraint_refs 六键
 #   （含 0.2.1 两带键）。
@@ -212,11 +212,12 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/erchunchi.md 参数档/算例输入行；
-        # x_mlss/r_external 与 AAO 表联动同值——各包独立声明）；range 四条=
+        # x_mlss/r_external 与 AAO 表联动同值——各包独立声明）；range 五条=
         # 三条出处带（surface_load_band 0.6~1.5/depth_band 2.5~3.5/
-        # r_external_band 0.5~1.0[联动 AAO 带出处]）+length_disc_step 工程
-        # 常用范围起草待追认（FZ-2 批 2026-09-30——对称防御挂账例 S2-21，
-        # 数据策略 v2 §14），其余构造参数与直径取整档不设
+        # r_external_band 0.5~1.0[联动 AAO 带出处]）+两圆整步长工程常用范围
+        # 起草待追认（FZ-2 批 2026-09-30——length_disc_step 对称防御挂账例
+        # S2-21；dia_disc_step=R2 k1-N3 对称补全，数据策略 v2 §14），
+        # 其余构造参数（r_pit）无范围来源不设
         "params": [
             {
                 "field_id": "n",
@@ -253,11 +254,14 @@ manifest = load_manifest(
                 "range": {"min": 2.5, "max": 3.5},
             },
             {"field_id": "r_pit", "label_zh": "中心配水井半径", "dim": "LENGTH", "default": 1.0},
+            # 圆整粒度带=工程常用档起草待追认（默认档即常用档；FZ-2 批/
+            # R2 k1-N3——与 chuchenchi 同名同值对称）
             {
                 "field_id": "dia_disc_step",
                 "label_zh": "直径圆整步长",
                 "dim": "LENGTH",
                 "default": 0.5,
+                "range": {"min": 0.1, "max": 2.0},
             },
             # 长度圆整粒度带=工程常用档起草待追认（默认档即常用档；对称
             # 防御挂账例 S2-21——FZ-2 批 2026-09-30，§14）
