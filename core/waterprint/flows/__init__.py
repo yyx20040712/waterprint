@@ -18,9 +18,9 @@
 #
 # 【公开接口】（签名冻结原文——改动即规格漂移；参数语义注记见各函数
 #   docstring，此处总纲）
-#   build_env_flow(data_dir, project) -> RunEnv   假设合成+系数正门+
-#       UF-10 版本聚合（engine 真源=core 包根 __version__——server settings
-#       串不可 import，记档偏离）。
+#   build_env_flow(data_dir, project) -> RunEnv   app.load_run_env 用例
+#       薄壳（UF-46 收口批6l——装配单源迁 app 面；engine_version 缺省=
+#       core 包根 __version__，server settings 串不可 import，记档偏离）。
 #   build_condition_flow(project, keys) -> ConditionSet
 #       keys=None 基线（design+avg）；否则受检单元清单（2+k，ADR-007）。
 #   build_standards_flow(data_dir) -> tuple[EffluentStandard, ...]
@@ -80,19 +80,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, final
 
-import yaml
-
-from waterprint import __version__ as _engine_version
 from waterprint.app import (  # app 门面（许可面①——UF-33 单入口）
-    DEFAULT_ASSUMPTIONS,
     DesignMap,
     DesignMapOptions,
     EnumerationOptions,
     EnumerationOutcome,
     discover_units,
     export_artifact,
-    load_coefficients,
     load_effluent_standards,
+    load_run_env,  # UF-46 收口（批6l）：env 装配单源在 app 面
     run_design_map,
     run_enumeration,
     run_full_calc,
@@ -125,10 +121,7 @@ class InvalidFlowError(Exception):
 
 
 # ── 数据包相对件名（声明面字符串常量——零数值字面量） ────────────────────
-_COEFFICIENTS_DIR: Final[str] = "coefficients"
 _UNIT_PRICES_DIR: Final[str] = "unit_prices"
-_PRICE_MANIFEST: Final[str] = "manifest.yaml"
-_PRICE_VERSION_KEY: Final[str] = "price_data_version"
 _CONSTRAINT_KB: Final[str] = "constraint_kb"
 _CONSTRAINTS_FILE: Final[str] = "constraints.json"
 _FIELD_MAPPING: Final[str] = "field_mapping.yaml"
@@ -137,31 +130,11 @@ _FLOW_KEY: Final[str] = "q_avg_daily"
 
 
 def build_env_flow(data_dir: Path, project: ProjectFile) -> RunEnv:
-    """env 装配流：假设合成视图+系数正门装载+UF-10 版本聚合（worker 口径）。
-
-    data_version 包集={coefficients, unit_prices}（后者 manifest 缺席时省略
-    ——包名排序后 name@version 以 + 拼接）；engine_version 真源=core 包根
-    __version__（server 串不可 import——记档见规格头）。"""
-    coefficients = load_coefficients(data_dir / _COEFFICIENTS_DIR)
-    versions: dict[str, str] = {"coefficients": coefficients.data_version}
-    price_manifest = data_dir / _UNIT_PRICES_DIR / _PRICE_MANIFEST
-    if price_manifest.is_file():
-        raw = yaml.safe_load(price_manifest.read_text(encoding="utf-8"))
-        if isinstance(raw, Mapping) and isinstance(raw.get(_PRICE_VERSION_KEY), str):
-            versions[_UNIT_PRICES_DIR] = raw[_PRICE_VERSION_KEY]
-    assumptions = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
-    assumptions.update(project.design.assumption_overrides)
-    return RunEnv(
-        engine_version=_engine_version,
-        data_version="+".join(
-            f"{name}@{versions[name]}" for name in sorted(versions)
-        ),
-        assumptions=assumptions,
-        coefficients=coefficients,
-        price_book={},  # M3 单价包装载后收紧（GR-21 注记，RunEnv 规格）
-        trace_sink=None,
-        engine_params={},  # app._completed_env 按缺 loop.* 补齐（UF-08 投影）
-    )
+    """env 装配流：app.load_run_env 用例薄壳（UF-46 收口批6l——装配
+    单源迁 app 面，本层零装配逻辑；engine_version 缺省=core 包根
+    __version__，AI1 轨道甲口径零行为变化；coefficients/unit_prices
+    版本聚合细节见 app.load_run_env 规格）。"""
+    return load_run_env(data_dir, project)
 
 
 def build_condition_flow(project: ProjectFile, keys: Sequence[str] | None

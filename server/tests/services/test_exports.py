@@ -18,6 +18,7 @@ list_exports = getattr(_mod, "list_exports")
 
 calculation_mod = importlib.import_module("waterprint_server.services.calculation")
 projects_mod = importlib.import_module("waterprint_server.services.projects")
+core_app = importlib.import_module("waterprint.app")  # UF-47 收口（批6l）：digest 真源经 app 再导出面
 
 pytestmark = [
     pytest.mark.skipif(
@@ -110,7 +111,7 @@ async def test_forced_export_of_stale_result_is_labeled_wiring(service_ctx) -> N
     metas = list_exports(service_ctx, project_id)
     assert metas and metas[-1].stale_labeled is True
     assert metas[-1].design_digest == result_digest  # 标注的是旧三元组
-    assert metas[-1].design_digest != projects_mod.design_digest(
+    assert metas[-1].design_digest != core_app.design_hash(
         projects_mod.read_project(service_ctx, project_id).design
     )  # 与当前 design 不同（冒充防线）
 

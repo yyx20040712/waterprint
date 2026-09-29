@@ -47,7 +47,7 @@ from waterprint import app as core
 
 from waterprint_server.jobs.manager import TaskHandle, TaskRequest
 from waterprint_server.services import ServiceContext
-from waterprint_server.services.projects import design_digest, read_project
+from waterprint_server.services.projects import read_project
 
 _KEY_MAX_UNITS = "solution.joint.max_units"
 _KEY_BEAM = "solution.joint.beam_width"
@@ -149,7 +149,7 @@ async def submit_joint_enumeration(
     _precheck(
         unit_ids, grid_sizes, _assumption_view(project), len(checked) + 2
     )
-    digest = design_digest(project.design)
+    digest = core.design_hash(project.design)
     key = (
         f"joint-enumerate:{project_id}:{digest}:{list(unit_ids)}:"
         f"{sorted((str(k), str(v)) for k, v in chosen.items())}"

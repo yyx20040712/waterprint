@@ -47,10 +47,11 @@ from dataclasses import dataclass
 from typing import Any
 
 import pandas as pd  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（app_enumeration 同款）
+from waterprint import app as core  # UF-47 收口（批6l）：design 摘要经 app 再导出面
 
 from waterprint_server.jobs.manager import TaskHandle, TaskRequest, TaskStatus
 from waterprint_server.services import ServiceContext
-from waterprint_server.services.projects import design_digest, read_project
+from waterprint_server.services.projects import read_project
 
 
 class MultiUnitEnumerationError(ValueError):
@@ -101,7 +102,7 @@ async def submit_enumeration(
         )
     unit_id = unit_ids[0]
     project = read_project(ctx, project_id)
-    digest = design_digest(project.design)
+    digest = core.design_hash(project.design)
     chosen = dict(options or {})
     key = (
         f"enumerate:{project_id}:{digest}:{unit_id}:"

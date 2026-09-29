@@ -64,7 +64,6 @@ __all__ = ["ApplyOutcome", "TaskStatus"]
 from waterprint_server.services import ServiceContext
 from waterprint_server.services.projects import (
     ProjectNotFoundError,
-    design_digest,
     read_project,
     save_project,
 )
@@ -91,7 +90,7 @@ class ApplyOutcome:
 
 def bind_snapshot(ctx: ServiceContext, task_id: str, project_id: str) -> str:
     """快照绑定（公开接口第三件）：任务启动即绑定输入 design 哈希。"""
-    digest = design_digest(read_project(ctx, project_id).design)
+    digest = core.design_hash(read_project(ctx, project_id).design)
     ctx.manager.bind_snapshot(task_id, digest)
     return digest
 
@@ -101,7 +100,7 @@ async def submit_calculation(
 ) -> TaskHandle:
     """提交全流程计算（幂等键=(design_hash, conditions)，R1）。"""
     project = read_project(ctx, project_id)
-    digest = design_digest(project.design)
+    digest = core.design_hash(project.design)
     key = f"calc:{project_id}:{digest}:{'|'.join(sorted(conditions))}"
     handle = await ctx.manager.submit(
         TaskRequest(
@@ -136,7 +135,7 @@ def task_status(ctx: ServiceContext, task_id: str) -> TaskStatus:
     if snapshot is None or not patched.project_id:
         return patched
     try:
-        current = design_digest(read_project(ctx, patched.project_id).design)
+        current = core.design_hash(read_project(ctx, patched.project_id).design)
     except ProjectNotFoundError:
         return patched
     return dataclasses.replace(patched, stale=patched.stale or snapshot != current)

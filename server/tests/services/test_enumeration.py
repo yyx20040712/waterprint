@@ -17,6 +17,7 @@ fetch_solutions = getattr(_mod, "fetch_solutions")
 fetch_diagnosis = getattr(_mod, "fetch_diagnosis")
 
 projects_mod = importlib.import_module("waterprint_server.services.projects")
+core_app = importlib.import_module("waterprint.app")  # UF-47 收口（批6l）：digest 真源经 app 再导出面
 
 pytestmark = [
     pytest.mark.skipif(
@@ -129,8 +130,8 @@ async def test_result_carries_unit_id_and_design_hash_wiring(service_ctx) -> Non
     assert status.result is not None
     assert status.result["unit_id"] == "municipal_cass"
     # design_hash=枚举时点 design 摘要（calc result 同键先例）；未改设计时
-    # 与当前项目 digest 一致（B4 双胞胎与 core 真源逐字节一致——镜像锁面）
-    assert status.result["design_hash"] == projects_mod.design_digest(
+    # 与当前项目 digest 一致（UF-47 收口批6l：core.design_hash 单源）
+    assert status.result["design_hash"] == core_app.design_hash(
         projects_mod.read_project(service_ctx, project_id).design
     )
     # SolutionPage 透传（分页消费方零额外查询可知表源单元）

@@ -32,13 +32,11 @@
 #      InvalidDesignMapError 422；护栏超限=DesignMapTooLarge 400——
 #      全部经 main 异常映射表（router 零 if 零业务）。
 #
-# 【实现注记】env 装配为 services 面首例直算（scene/elevation 消费
-#   存量结果集无 env）：engine_version=ENGINE_VERSION（worker._build_env
-#   同源）；系数经 app 再导出面 core.load_coefficients（CI 补笔：直连
-#   registry 违 UF-33 server 单入口契约——server 面 import-linter 拦；
-#   jobs/datapack._YamlCoefficients 为 worker 进程池镜像装载，
-#   B4 双胞胎在册——同步面不经 spawn，直取 L1 唯一真源）；版本聚合
-#   取 coefficients 单源（price_book 空——run_design_map 零消费）。
+# 【实现注记】env 装配（UF-46 收口批6l 2026-09-29）：_env 经 app.
+#   load_run_env 正门（services 面手工装配末例收敛——worker 适配器/
+#   双胞胎同批退役）；engine_version 覆写=server 部署串口径（worker
+#   同源）；版本聚合随正门含在场 unit_prices（UF-10 补全——DesignMap
+#   产物面零可见，payload 无 repro 三元组）。
 #
 # 【测试要求】装配口径（fixed_params/constraints）、404/422/400 面、
 #   端到端形态（axes/stats/segments）、双跑字节同。
@@ -199,19 +197,10 @@ def _constraints(
 
 
 def _env(data_dir: Path, project: ProjectFile) -> RunEnv:
-    """RunEnv 装配（services 直算首例注记见规格头）。"""
-    lib = core.load_coefficients(data_dir / "coefficients")
-    assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
-    assumptions.update(project.design.assumption_overrides)
-    return RunEnv(
-        engine_version=ENGINE_VERSION,
-        data_version=f"coefficients@{lib.data_version}",
-        assumptions=assumptions,
-        coefficients=lib,
-        price_book={},
-        trace_sink=None,
-        engine_params={},
-    )
+    """RunEnv 装配（UF-46 收口批6l：app.load_run_env 正门——services 面
+    手工装配末例收敛；data_version 随正门含 unit_prices=UF-10 聚合补全，
+    DesignMap 产物面零可见〔payload 无 repro 三元组——实测锚〕）。"""
+    return core.load_run_env(data_dir, project, engine_version=ENGINE_VERSION)
 
 
 def compute_design_map(

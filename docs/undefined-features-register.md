@@ -234,8 +234,8 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-46 | 环境装配 | RunEnv 装配用例缺位：app 面无 load_run_env/build_env 用例（RunEnv 七字段装配归调用方），而 D7 forbidden 禁 server 直连 waterprint.registry（真源 Coefficients 装载在 L1）——两规相抵，server 侧装配无正门可走 | 已定义（临置）→SERVER 批：worker._build_env 以 CoefficientsView **协议适配器**（L0 契约协议面，registry 数据包格式镜像装载——B4 双胞胎先例）读 data_dir 数据包；DEFAULT_ASSUMPTIONS 经 app 模块面再导出（__all__ 扩面 16 名，app 为 _engine_params 已装载属性）。**追认点**：app 面 load_run_env(data_dir) 用例收口建议（pending-domain-expert §9-1）——收口后适配器退役 | SERVER 2026-08-26 |
-| UF-47 | 哈希取用 | design_hash server 侧取用：calc/exports 的幂等键、快照绑定、stale 守门均需 submit 时 design 哈希，而 design_hash/dumps_design 在 waterprint.project（D7 forbidden）且 app 未再导出 | 已定义（临置）→SERVER 批：services/projects.design_digest=content_hash.design_hash **B4 双胞胎**（sha256(dumps_design 等价确定性序列化+尾换行）——镜像测试与 core 真源逐字节对照（双胞胎漂移即测试红）。**追认点**：app 面 design_hash 用例收口建议（pending-domain-expert §9-2）——收口后双胞胎退役 | SERVER 2026-08-26 |
+| UF-46 | 环境装配 | RunEnv 装配用例缺位：app 面无 load_run_env/build_env 用例（RunEnv 七字段装配归调用方），而 D7 forbidden 禁 server 直连 waterprint.registry（真源 Coefficients 装载在 L1）——两规相抵，server 侧装配无正门可走 | 已定义（闭合）→批6l 2026-09-29（UF-46 收口）：app 面 load_run_env(data_dir, project, *, engine_version=None) 用例正门就位（系数 registry.load_coefficients 真源+UF-10 聚合+假设覆盖合成+engine_version 覆写位〔缺省=core __version__ ADR-004，server 部署串经参传入=现行口径保持 golden 字节恒等〕）；worker._build_env CoefficientsView 协议适配器+jobs/datapack.py 整域退役删除（三符号全仓零消费 grep 实证）；flows.build_env_flow 薄壳委托=CLI/agent 零行为变化；design_map._env services 面手工装配末例同批收敛（邻域裁量——data_version 随正门含在场 unit_prices=UF-10 补全，DesignMap 产物面零可见） | SERVER 2026-08-26 |
+| UF-47 | 哈希取用 | design_hash server 侧取用：calc/exports 的幂等键、快照绑定、stale 守门均需 submit 时 design 哈希，而 design_hash/dumps_design 在 waterprint.project（D7 forbidden）且 app 未再导出 | 已定义（闭合）→批6l 2026-09-29（UF-47 收口）：services/projects.design_digest B4 双胞胎退役删除（design_digest/_normalize/_ROUND_DIGITS 三符号随迁）——server 全域改经 core.design_hash（app 再导出面，P0-2 在册；D7 forbidden 由再导出面承接保持）；镜像测试 test_design_digest_mirror.py 同步删除（test_projects_site site 面改单源真值断言不缩水）；消费面五件（enumeration/joint_enumeration/calculation/project_lifecycle/exports）同批改道 | SERVER 2026-08-26 |
 | UF-48 | 诊断交付 | 无解诊断交付面相抵：enumeration.py R4 写"diagnosis 端点可用"，而 calc 端点集 v1 冻结六件（A1 锁定 18 总数）无 /diagnosis 端点 | 已定义→SERVER 批：端点集冻结优先——诊断负载随 GET /api/calc/tasks/{id} 结果载荷交付（feasible_count=0 时 diagnosis 非空）；fetch_diagnosis 服务面保留（路由组装用）；专用端点归端点集变更批（升 v2 时评审） | SERVER 2026-08-26 |
 | UF-49 | 取消/进度通路 | Windows spawn 下共享值通路受限（实测）：mp.Queue/Event 不能经 ProcessPoolExecutor.submit 参数传递（标准 pickle 拒）；core run 内长计算无协作取消钩子（spec R5"worker 每批迭代检查"在 run 单调用面无落点） | 已定义→SERVER 批：进度队列经池 initializer/initargs 注入 worker 模块全局（ForkingPickler 正门，实测通）；取消令牌=标记文件（cancel_dir/<task_id>.cancel，跨进程共享值的文件形态）；worker 在阶段边界与批迭代间轮询（run 内不可中断——结果落地前双检）。**挂账**：core 协作取消钩子（yield 式/回调式）归 core 后续批 | SERVER 2026-08-26 |
 | UF-50 | 出图输入 | DXF 导出 v1 输入面裁量：进厂水面/地面标高是 design 态输入（profile R2 非假设），而 export_artifact('dxf') 签名无该通道——v1 以 ±0.00 相对标高基准出图（工程相对标高惯例，0/0 字面量零数值面）；管段损失同因无几何通道而空段（head_losses(())——水位恒平）；绝对标高/管段几何接线归 server 批（API 通道）与 M5 管线/布置批 | 已定义（闭合）→批6j 2026-09-29（UF-50 收口）：options 键 water_level/ground_elev 成对通道（仅 sheet=profile——批6i 案丙 DSL 先例免 design_hash 级联；带符号十进制白名单+成对闸+有限域，server 预校验+core 终闸双闸）；图面=基准平移（elev_baseline=进厂水面）+标注携绝对值+图脚高程基准注记（默认模式字节恒等——快照锚零重录实证）；_REL_DATUM core 侧退役（缺省=解析器文档化相对 ±0.00 默认）；ODA 本地手动冒烟工具落 tools/oda_smoke.py+清单（不入 CI）；挂账=server elevation API datum 输入面（M5/批6l 邻域）+单单元图剖面绝对化（图面批）+管段几何（M5） | 批6j 2026-09-29 |
@@ -243,11 +243,11 @@ grep -n "dtype_of" core/waterprint/registry/dimensions.py       # 仅规格头�
 ### 十一批验证命令摘要（仓库根执行，2026-08-26）
 
 ```bash
-# UF-46：适配器只实现 L0 协议面；DEFAULT_ASSUMPTIONS 经 app 再导出
-grep -n "class _YamlCoefficients" server/waterprint_server/jobs/worker.py
-grep -n "DEFAULT_ASSUMPTIONS" core/waterprint/app.py            # __all__ 与 import 各一
-# UF-47：双胞胎与真源逐字节对照（镜像测试）
-grep -n "design_hash" server/tests/services/test_projects.py    # 0 命中（对照在 test_calculation/test_exports 内经 digest 断言）
+# UF-46（批6l 闭合）：装配正门在 app 面，适配器/datapack.py 已退役
+grep -n "def load_run_env" core/waterprint/app.py               # 1 命中（用例正门）
+grep -rn "_YamlCoefficients" server/waterprint_server/          # 仅 worker.py 编年史注记（产品码 0 命中）
+# UF-47（批6l 闭合）：server 全域经 core.design_hash 单源，双胞胎已退役
+grep -n "def design_digest" server/waterprint_server/services/projects.py    # 0 命中
 # UF-48：诊断随状态载荷交付
 grep -n "diagnosis" server/waterprint_server/services/enumeration.py
 # UF-49：initializer 注入+文件取消令牌

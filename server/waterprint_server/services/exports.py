@@ -172,7 +172,7 @@ from waterprint_server.services.exports_support import (
     _unit_id_of,
     reject_bad_route_options,
 )
-from waterprint_server.services.projects import _JSON_KWARGS, design_digest, read_project
+from waterprint_server.services.projects import _JSON_KWARGS, read_project
 
 # ENG7：拆分后公开面显式声明（jobs/records.py __all__ 再导出先例——mypy
 # no-implicit-reexport 下透传名 ExportMeta/InvalidExportRequestError 需入册；
@@ -217,7 +217,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     )
     result_digest = str(latest.get("design_hash", ""))
     project = read_project(ctx, project_id)
-    current_digest = design_digest(project.design)
+    current_digest = core.design_hash(project.design)
     stale = result_digest != current_digest
     if stale and not force:
         raise StaleExportError(result_digest, current_digest)

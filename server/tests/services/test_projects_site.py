@@ -16,7 +16,6 @@ _mod = importlib.import_module("waterprint_server.services.projects")
 create_project = getattr(_mod, "create_project")
 read_project = getattr(_mod, "read_project")
 save_project = getattr(_mod, "save_project")
-design_digest = getattr(_mod, "design_digest")
 InvalidProjectPayloadError = getattr(_mod, "InvalidProjectPayloadError")
 
 _schema = importlib.import_module("waterprint.contracts.project_schema")
@@ -126,15 +125,14 @@ async def test_put_dangling_site_key_rejected_4xx(client) -> None:  # type: igno
     assert "悬空" in response.json()["detail"]
 
 
-def test_design_digest_mirror_v3_with_site() -> None:
-    """镜像：v3 形 design（含 site 全子键+boundary）server digest == core design_hash 逐字节。
-
-    沿用 test_design_digest_mirror 形态（值不断言字面——两侧双胞胎随
-    site 扩键自动一致即断言面）。
+def test_design_hash_site_face_single_source() -> None:
+    """UF-47 收口（批6l）：双胞胎退役后单源真值面——site 全子键+boundary
+    参与 core design_hash（变必变）+深拷贝同值（确定性序列化面；镜像
+    断言随双胞胎退役，本件保 site 扩键哈希覆盖不缩水）。
     """
     design = DesignState(
         nodes={"u1": {"pool_length": 10.5}},  # structures 键的 nodes 面
         site=SiteDesign.model_validate(_SITE_FULL),
     )
-    assert design_digest(design) == design_hash(design)
-    assert design_digest(DesignState()) == design_hash(DesignState())  # 默认空 site 面
+    assert design_hash(design) != design_hash(DesignState())  # site 参与哈希（变必变）
+    assert design_hash(design) == design_hash(design.model_copy(deep=True))  # 确定性

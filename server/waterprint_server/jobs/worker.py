@@ -29,9 +29,11 @@
 #     不能过 submit 参数——Windows spawn 实测拒；直接调用面显式传第三参）。
 #   - 取消令牌=标记文件路径（cancel_token 参数）：阶段边界轮询
 #     _cancelled()（core run 内长计算无协作取消钩子——UF 记档）。
-#   - RunEnv 装配：core app 面无 env 装配用例且 D7 禁直连 registry，
-#     本文件以 CoefficientsView 协议适配器读 data_dir 数据包（registry
-#     格式镜像装载，B4 双胞胎先例；追认点登记 undefined-features-register）。
+#   - RunEnv 装配（UF-46 收口批6l 2026-09-29）：app 面 load_run_env 用例
+#     就位，_build_env 委托正门（engine_version 覆写=server 部署串口径
+#     保持）；CoefficientsView 协议适配器与 jobs/datapack.py 整域退役
+#     （系数装载换 registry 真源——错误载体 DataPackError→
+#     InvalidCoefficientError 属装载面错误族迁移，无映射消费差）。
 #   - R1-1 二道闸（2026-08-26）：export_batch 的 kind 白名单+out_name
 #     防逃逸（无分隔符/无 ..）——payload 直注 IPC 面防线。
 #   - S2 D6（2026-08-30）：export_batch items 级透传——逐项
@@ -56,11 +58,13 @@
 #     cancelled outcome 补全键对称（project_id/design_digest）+ifc 边车写前
 #     K-02 同款取消检查（取消后零新边车口径对齐）。
 #   - B3 R5（2026-09-05 结构减压批）：数据包适配域三符号（DataPackError/
-#     _CoefficientEntry/_YamlCoefficients）迁 jobs/datapack.py（yaml/
-#     isfinite/Path/Mapping 四依赖零 worker 依赖自足），本模块顶部 import
-#     同名再导出（消费面 from worker import 零改动；_build_env 消费
-#     _YamlCoefficients）。export_batch 域/run_task/_KIND_RUNNERS/进度基建/
-#     _PROGRESS_QUEUE 全留守（pickle 边界+manager 直读两约束）。
+#     _CoefficientEntry/_YamlCoefficients）迁 jobs/datapack.py，本模块顶部
+#     import 同名再导出。〔批6l 勘正 2026-09-29：**该域已随 UF-46 收口
+#     整域退役删除**——datapack.py 不复存在，"消费面零改动/_build_env
+#     消费 _YamlCoefficients"等现役陈述随之失效（历史时点陈述，非现行）；
+#     再导出消费面经全仓 grep 实证为零；export_batch 域/run_task/
+#     _KIND_RUNNERS/进度基建/_PROGRESS_QUEUE 全留守（pickle 边界+manager
+#     直读两约束）——本注记留作编年史〕。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -78,7 +82,6 @@ from pathlib import Path
 from typing import Any, Final, Protocol, cast
 
 import structlog
-import yaml
 from waterprint import app as core
 from waterprint.contracts.condition import ConditionSet, build_condition_set
 from waterprint.contracts.project_schema import ProjectFile
@@ -87,13 +90,6 @@ from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import serialize_diag
 
 from waterprint_server.jobs.ai_chat import _run_ai_chat
-
-# B3 R5 再导出（消费面零改动；冗余别名形态被 PLC0414 拦——平名+定向 F401 豁免）
-from waterprint_server.jobs.datapack import (
-    DataPackError,  # noqa: F401  # 再导出专用（from worker import 零改动）
-    _CoefficientEntry,  # noqa: F401  # 同上（族三符号整迁整再导出）
-    _YamlCoefficients,
-)
 from waterprint_server.jobs.dwg import batch_dwg_artifact
 from waterprint_server.jobs.enum_payload import enumeration_payload
 from waterprint_server.jobs.export_batch_lib import (
@@ -184,27 +180,12 @@ def _load_project(payload: Mapping[str, Any]) -> ProjectFile:
 
 
 def _build_env(data_dir: Path, project: ProjectFile) -> RunEnv:
-    """RunEnv 装配（系数适配器 + 假设合成视图 + UF-10 版本聚合）。"""
-    coefficients = _YamlCoefficients(data_dir / "coefficients")
-    versions = {"coefficients": coefficients.data_version}
-    price_manifest = data_dir / "unit_prices" / "manifest.yaml"
-    if price_manifest.is_file():
-        raw = yaml.safe_load(price_manifest.read_text(encoding="utf-8"))
-        if isinstance(raw, Mapping) and isinstance(raw.get("price_data_version"), str):
-            versions["unit_prices"] = raw["price_data_version"]
-    assumptions = {entry.key: entry.default for entry in core.DEFAULT_ASSUMPTIONS}
-    assumptions.update(project.design.assumption_overrides)
-    return RunEnv(
-        engine_version=ENGINE_VERSION,
-        data_version="+".join(
-            f"{name}@{versions[name]}" for name in sorted(versions)
-        ),
-        assumptions=assumptions,
-        coefficients=coefficients,
-        price_book={},  # M3 单价包装载后收紧（GR-21 注记，RunEnv 规格）
-        trace_sink=None,
-        engine_params={},  # app._completed_env 按缺 loop.* 补齐（UF-08 投影）
-    )
+    """RunEnv 装配（app.load_run_env 正门——UF-46 收口批6l：协议适配器
+    退役后单源；engine_version 覆写=server 部署串口径保持〔golden 字节
+    恒等退役前提〕；系数装载换 registry 真源=装载校验从严〔条目五键
+    齐全+source 非空——仓库真包本过此门，错误载体 DataPackError→
+    InvalidCoefficientError 属装载面错误族迁移，无错误码映射消费差〕）。"""
+    return core.load_run_env(data_dir, project, engine_version=ENGINE_VERSION)
 
 
 def _run_calc(

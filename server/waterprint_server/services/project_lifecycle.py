@@ -56,7 +56,6 @@ from waterprint_server.services.projects import (
     ProjectNotFoundError,
     SaveOutcome,
     clear_stale_lock,
-    design_digest,
     list_projects,
     normalize_name,
     project_path,
@@ -125,7 +124,7 @@ def copy_project(ctx: ServiceContext, project_id: str) -> SaveOutcome:
         update={"view": source.view.model_copy(update={"name": name})}
     )
     new_id = uuid.uuid4().hex
-    digest = design_digest(copied.design)
+    digest = core.design_hash(copied.design)
     core.save_project(with_hash(copied, digest), project_path(ctx, new_id))
     return SaveOutcome(content_hash=digest, design_changed=True, project_id=new_id)
 

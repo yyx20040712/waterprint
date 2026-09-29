@@ -469,8 +469,12 @@ def _type_honoring_standin(directory: Path) -> Path:
         )
         return standin
     standin = directory / "oda-standin-type.sh"
+    # 批6l（CI Linux 首跑红修复）：原 `$(basename "$7" .*)` 的 `.*` 系通配符，两态
+    # 均坏（glob 展开=basename 多重后缀参；字面态=后缀不匹配）——产物均落
+    # "round.dwg.dxf"≠"round.dxf"→红（Windows .cmd 替身无此缺陷故绿潜伏）；
+    # 修法=${7%.*} 纯参数展开（bash/dash 一致，详证=b6l-rulings §二 N-1）。
     standin.write_text(
-        '#!/bin/sh\ncp "$1/$7" "$2/$(basename "$7" .*).$(echo "$4" | tr A-Z a-z)"\nexit 0\n',
+        '#!/bin/sh\ncp "$1/$7" "$2/${7%.*}.$(echo "$4" | tr A-Z a-z)"\nexit 0\n',
         encoding="utf-8",
     )
     standin.chmod(0o755)
@@ -478,17 +482,19 @@ def _type_honoring_standin(directory: Path) -> Path:
 
 
 def test_dwg_convert_dxf_direction_and_domain_reject(tmp_path) -> None:  # type: ignore[no-untyped-def]
-    """批6j：dwg_convert output_type 往返向——DXF 向产物后缀随输出类型
-    派生+域外值诚实拒（ValueError——ODA CLI 第四参值域）；默认 DWG 面
-    零变由既有四形态用例守卫。"""
+    """批6j：dwg_convert output_type 往返向——DXF 向产物后缀随输出类型派生+
+    域外值诚实拒（ValueError）；默认 DWG 面零变由既有四形态用例守卫。"""
     from waterprint_server.jobs.dwg import dwg_convert
 
     src = tmp_path / "round.dwg"
     src.write_bytes(b"MOCK-DWG-PAYLOAD" * 4)
     standin = _type_honoring_standin(tmp_path)
     out = dwg_convert(str(standin), src, 10, output_type="DXF")
-    assert out is not None
-    assert out.suffix == ".dxf" and out.stat().st_size > 0
-    assert out.read_bytes() == src.read_bytes()
+    assert out is not None and out.suffix == ".dxf" and out.stat().st_size > 0 and out.read_bytes() == src.read_bytes()
+    # N4（批6l 回炉）：多后缀边界钉——${7%.*} 剥最短后缀与 with_suffix 派生恰等。
+    multi = tmp_path / "a.b.dwg"
+    multi.write_bytes(b"MULTI-DOT")
+    out2 = dwg_convert(str(standin), multi, 10, output_type="DXF")
+    assert out2 is not None and out2.name == "a.b.dxf" and out2.read_bytes() == b"MULTI-DOT"
     with pytest.raises(ValueError, match="output_type"):
         dwg_convert(str(standin), src, 10, output_type="pdf")

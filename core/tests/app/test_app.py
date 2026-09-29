@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 from types import SimpleNamespace
 from typing import ClassVar
 
@@ -15,9 +16,11 @@ import pytest
 _mod = importlib.import_module("waterprint.app")
 run_full_calc = getattr(_mod, "run_full_calc", None)
 assemble = getattr(_mod, "assemble", None)
+load_project = getattr(_mod, "load_project", None)
+load_run_env = getattr(_mod, "load_run_env", None)  # UF-46 收口（批6l）
 
 pytestmark = pytest.mark.skipif(
-    None in (run_full_calc, assemble),
+    None in (run_full_calc, assemble, load_run_env, load_project),  # N1（批6l 回炉）：新用例消费面全列
     reason="实现未就绪：waterprint.app（M1 三单元切片）",
 )
 
@@ -210,3 +213,49 @@ def test_scene_reexports_on_facade() -> None:
         assert hasattr(_mod, symbol), f"waterprint.app 缺 scene 再导出 {symbol!r}"
     for symbol in ("build_scene", "SceneGraph", "Node", "Primitive", "SCENE_VERSION"):
         assert hasattr(geometry, symbol), f"waterprint.geometry 缺正门导出 {symbol!r}"
+
+
+# ── load_run_env（UF-46 收口批6l：RunEnv 装配用例正门）─────────────────
+
+_REPO_DATA = Path(__file__).resolve().parents[3] / "data"
+
+
+def test_load_run_env_composes_and_overrides(golden_data_dir: Path) -> None:
+    """装配用例：真源装载+UF-10 聚合+覆盖合成+engine_version 覆写位。
+
+    覆写位语义=server 部署串口径保持（golden 字节恒等退役前提）；
+    缺省=core 包根 __version__（ADR-004 三元组语义正身）。
+    """
+    from waterprint import __version__ as core_version
+    from waterprint.registry.coefficients import Coefficients
+
+    project = load_project(golden_data_dir / "municipal_34760" / "input_project.json")
+    patched = project.model_copy(
+        update={
+            "design": project.design.model_copy(
+                update={"assumption_overrides": {"loop.damping": 0.5}}
+            )
+        }
+    )
+    env = load_run_env(_REPO_DATA, patched)
+    assert isinstance(env.coefficients, Coefficients)  # registry 真源（适配器退役面）
+    assert env.engine_version == core_version  # 缺省=core 包根 __version__
+    assert env.data_version.startswith("coefficients@") and "unit_prices@" in env.data_version
+    assert env.assumptions["loop.damping"] == pytest.approx(0.5)  # design 覆盖合成
+    assert env.price_book == {} and env.trace_sink is None and env.engine_params == {}
+    overridden = load_run_env(_REPO_DATA, patched, engine_version="waterprint-server 0.1.0")
+    assert overridden.engine_version == "waterprint-server 0.1.0"
+    assert overridden.data_version == env.data_version  # 覆写位只动 engine 串
+
+
+def test_load_run_env_equivalent_to_flows_shell(golden_data_dir: Path) -> None:
+    """flows.build_env_flow 薄壳恒等：委托正门后两路装配逐字段同值。
+
+    值相等语义依赖（N5 批6l 回炉注记）：RunEnv/Coefficients 均 frozen
+    dataclass（结构 eq）——coefficients 两独立装载实例按 entries
+    MappingProxy 内容比较，非恒等比较。"""
+    flows = importlib.import_module("waterprint.flows")
+    project = load_project(golden_data_dir / "municipal_34760" / "input_project.json")
+    direct = load_run_env(_REPO_DATA, project)
+    via_flow = flows.build_env_flow(_REPO_DATA, project)
+    assert direct == via_flow  # RunEnv 不可变值语义（dataclass eq）

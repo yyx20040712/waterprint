@@ -21,6 +21,16 @@
 #       parse_constant 拒 NaN/±Inf+RecursionError 收编全部随之生效），
 #       非当前版经 migrate 原语义复核拒/迁——"完整大小/深度闸留
 #       M2/server 批"注记就此收口）
+#   load_run_env(data_dir, project, *, engine_version=None) -> RunEnv
+#       （UF-46 收口批6l 2026-09-29：RunEnv 装配用例正门——server 侧
+#       装配归一单源；系数经 registry.load_coefficients 真源装载
+#       〔worker CoefficientsView 协议适配器退役〕，data_version=
+#       UF-10 聚合（coefficients 恒在+unit_prices manifest 在场时并入），
+#       assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_
+#       overrides 覆盖合成；engine_version 缺省=core 包根 __version__
+#       〔ADR-004 三元组语义正身〕，server 部署串经覆写位传入=现行
+#       server 正门口径保持〔golden 字节恒等退役前提〕；
+#       flows.build_env_flow 薄壳同签名委托本用例=CLI/agent 零行为变化）
 #   assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph
 #       装配：units_lib.discover_units ∪ 内置节点（design.nodes 值含 "kind"
 #       键者经 graph.nodes.builtin_unit 构造；无 kind=注册表查，缺失=
@@ -141,9 +151,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import final
+
+import yaml
+
+from waterprint import __version__ as _engine_version
 
 # B3 R1 再导出（装配域伴生件——app_enumeration 先例；显式清单禁 import *）
 from waterprint.app_assembly import (
@@ -248,6 +263,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
     "load_effluent_standards",  # 再导出（P2 次批 ADR-012 D6——worker 装载单入口同款）
     "load_project",
+    "load_run_env",  # UF-46 收口（批6l）：RunEnv 装配用例正门——server/flows 共用单源
     "run_design_map",
     "run_enumeration",
     "run_full_calc",
@@ -272,6 +288,48 @@ def load_project(path: Path) -> ProjectFile:
 def save_project(project: ProjectFile, path: Path) -> None:
     """项目保存薄封装：转发 project.io 正门（原子写+确定性序列化）。"""
     _project_save(project, path)
+
+
+def load_run_env(
+    data_dir: Path,
+    project: ProjectFile,
+    *,
+    engine_version: str | None = None,
+) -> RunEnv:
+    """RunEnv 装配用例正门（UF-46 收口批6l）：调用方装配归一单源。
+
+    装配口径：coefficients 经 registry.load_coefficients 真源（数据包
+    目录 manifest.yaml 版本头+条目装载，全量严格校验）；data_version=
+    UF-10 版本聚合（coefficients 恒在+unit_prices manifest 在场时并入，
+    包名排序后 name@version 以 + 拼接）；assumptions=DEFAULT_ASSUMPTIONS
+    全量默认+design.assumption_overrides 覆盖（合成视图优先序）；
+    price_book 空（M3 单价包装载后收紧——GR-21 注记）；engine_params 空
+    （completed_env 按缺 loop.* 补齐——UF-08 投影）。
+
+    engine_version 覆写位：缺省=core 包根 __version__（可复算三元组
+    语义正身，ADR-004）；server 部署串经参传入（现行 server 正门口径
+    保持——golden 字节恒等的退役前提，批6l Ruling 呈报）。
+    """
+    coefficients = load_coefficients(data_dir / "coefficients")
+    versions: dict[str, str] = {"coefficients": coefficients.data_version}
+    price_manifest = data_dir / "unit_prices" / "manifest.yaml"
+    if price_manifest.is_file():
+        raw = yaml.safe_load(price_manifest.read_text(encoding="utf-8"))
+        if isinstance(raw, Mapping) and isinstance(raw.get("price_data_version"), str):
+            versions["unit_prices"] = raw["price_data_version"]
+    assumptions = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
+    assumptions.update(project.design.assumption_overrides)
+    return RunEnv(
+        engine_version=_engine_version if engine_version is None else engine_version,
+        data_version="+".join(
+            f"{name}@{versions[name]}" for name in sorted(versions)
+        ),
+        assumptions=assumptions,
+        coefficients=coefficients,
+        price_book={},
+        trace_sink=None,
+        engine_params={},
+    )
 
 
 @dataclass(frozen=True)

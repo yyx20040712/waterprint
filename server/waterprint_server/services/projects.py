@@ -31,11 +31,10 @@
 #   R4 禁 pickle（§18）；项目列表元数据来自文件读取（无独立索引库）。
 #
 # 【实现注记（SERVER 2026-08-26）】
-#   - design_digest：project.content_hash.design_hash 的 B4 双胞胎
-#     （sha256(io.dumps_design 等价确定性序列化)——server 禁直连
-#     waterprint.project，D7 forbidden；镜像测试与 core 真源逐字节
-#     对照断言锁死不漂移）。app 面 design_hash 用例收口=追认点
-#     （undefined-features-register 登记）。
+#   - design 摘要（UF-47 收口批6l 2026-09-29）：design_digest B4 双胞胎
+#     退役——一律经 core.design_hash（app 再导出面，P0-2 在册；server
+#     禁直连 waterprint.project 的 D7 forbidden 由再导出面承接保持，
+#     镜像测试随双胞胎删除）。
 #   - 上传面深度闸：_check_depth 迭代计数（Settings.max_json_depth，
 #     与 core io._MAX_DEPTH 同源口径）——pydantic 前置防栈炸弹。
 #   - 锁冲突（R4 router 规格 409）：save 前置探测 {id}.wp.lock
@@ -64,14 +63,11 @@
 from __future__ import annotations
 
 import contextlib
-import json
 import os
 import time
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from hashlib import sha256
-from math import isfinite
 from pathlib import Path
 from typing import Any, Final
 
@@ -89,7 +85,6 @@ from waterprint_server.services import ServiceContext
 from waterprint_server.settings import ENGINE_VERSION, safe_child
 
 _PROJECT_SUFFIX: Final[str] = ".wp.json"
-_ROUND_DIGITS: Final[int] = 10  # 与 core io._ROUND_DIGITS 同源（B4 双胞胎）
 # 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68；
 # P2 生命周期批提升公开：project_lifecycle 副本名截断共用单源）
 PROJECT_NAME_MAX: Final[int] = 10**2
@@ -158,55 +153,23 @@ class ValidationReport:
     errors: tuple[str, ...]
 
 
-# ── design_digest：content_hash.design_hash 的 B4 双胞胎 ──────────
-
-
-def _normalize(value: Any, path: str, depth: int) -> Any:
-    """确定性归一（io._normalize 同款纪律：str 键/round(x,10)/有限性）。"""
-    if depth >= 10**2:  # 与 core io._MAX_DEPTH 同源（B4 双胞胎注记）
-        raise InvalidProjectPayloadError(f"项目数据嵌套过深：{path}（>100 层）")
-    if value is None or isinstance(value, bool | str):
-        return value
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float):
-        if not isfinite(value):
-            raise InvalidProjectPayloadError(f"项目数据含非有限值：{path} 处（GR-02）")
-        return round(value, _ROUND_DIGITS)
-    if isinstance(value, Mapping):
-        return {
-            str(key): _normalize(item, f"{path}.{key}", depth + 1)
-            for key, item in value.items()
-        }
-    if isinstance(value, Sequence):
-        return [_normalize(item, f"{path}[{index}]", depth + 1) for index, item in enumerate(value)]
-    raise InvalidProjectPayloadError(f"项目数据含不可序列化类型 {type(value).__name__}：{path}")
-
-
-def design_digest(design: DesignState) -> str:
-    """design 态内容哈希（core project.content_hash.design_hash 双胞胎）。
-
-    = sha256({"format_version": 头, "design": 归一树} 的确定性 JSON+尾换行)；
-    镜像测试与 core 真源逐字节对照（防双胞胎漂移）。
-    """
-    tree = {
-        "format_version": _DESIGN_FORMAT_VERSION,
-        "design": _normalize(design.model_dump(mode="json"), "design", 0),
-    }
-    return sha256((json.dumps(tree, **_JSON_KWARGS) + "\n").encode("utf-8")).hexdigest()
+# ── design 摘要（UF-47 收口批6l 2026-09-29：design_digest 双胞胎退役，
+#    一律经 core.design_hash〔app 再导出面——P0-2 在册〕；_normalize/
+#    _ROUND_DIGITS 随双胞胎删除，_JSON_KWARGS/_DESIGN_FORMAT_VERSION
+#    留驻〔exports 序列化 kwargs 外部 import+新建项目 format_version 面〕）──
 
 
 def result_is_stale(latest: Mapping[str, Any], project: ProjectFile) -> bool:
     """结果集相对当前项目 design 是否过期（AUDIT2 C-1——三读端点共用）。
 
     口径：latest.design_hash（任务完成时锚定的 design 摘要）≠ 当前
-    design_digest → True（改 design/假设覆盖不重算即过期——契约
+    core.design_hash → True（改 design/假设覆盖不重算即过期——契约
     result_schema R4「结果过期消费方必须显式提示，禁止静默使用」的
     服务面实现）；latest 缺 design_hash 键=无法证新鲜 → True
     （fail-visible，兼防 D5 族 KeyError 裸 500）。exports 守门
     （StaleExportError 409）与 TaskStatus.stale 同源比对。
     """
-    return bool(latest.get("design_hash") != design_digest(project.design))
+    return bool(latest.get("design_hash") != core.design_hash(project.design))
 
 
 def with_hash(project: ProjectFile, digest: str) -> ProjectFile:
@@ -366,7 +329,7 @@ def create_project(ctx: ServiceContext, payload: Mapping[str, Any]) -> SaveOutco
                 update={"view": project.view.model_copy(update={"name": name})}
             )
     project_id = uuid.uuid4().hex
-    digest = design_digest(project.design)
+    digest = core.design_hash(project.design)
     core.save_project(with_hash(project, digest), project_path(ctx, project_id))
     return SaveOutcome(content_hash=digest, design_changed=True, project_id=project_id)
 
@@ -425,7 +388,7 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
     if lock.exists():
         clear_stale_lock(lock, ctx.settings.lock_expiry_s)  # K-5：新鲜/活性 409，陈旧清除放行
     old = core.load_project(path)
-    digest = design_digest(project.design)
+    digest = core.design_hash(project.design)
     core.save_project(with_hash(project, digest), path)
     if old.design != project.design:
         for task_id in ctx.manager.task_ids_for_project(project_id):

@@ -271,3 +271,20 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
         "b.xlsx",
         "c.xlsx",
     ]  # 原子替换落位（.tmp 已清）
+
+
+def test_server_env_assembly_stamps_engine_version(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """W-5（批6l 回炉）：server 侧 RunEnv 装配恒盖 ENGINE_VERSION 章——
+    防未来 app.load_run_env 新调用点漏传覆写位静默产 core 串致 golden 漂移
+    （worker._build_env 与 services.design_map._env 两装配面同钉）。"""
+    from waterprint_server.jobs import worker as worker_mod
+    from waterprint_server.services import design_map as dm_mod
+    from waterprint_server.settings import ENGINE_VERSION
+
+    project = worker_mod.core.load_project(_cass_project_file(tmp_path))
+    for env in (
+        worker_mod._build_env(test_settings.data_dir, project),  # noqa: SLF001  # 装配面私有直测（test_site 先例）
+        dm_mod._env(test_settings.data_dir, project),  # noqa: SLF001  # 同上
+    ):
+        assert env.engine_version == ENGINE_VERSION
+        assert "coefficients@" in env.data_version  # UF-10 聚合面在场（design_map 收敛后补全）

@@ -165,3 +165,13 @@ async def test_design_map_not_found_404(client, cass_payload) -> None:  # type: 
     })
     assert response.status_code == 404
     assert response.json()["error_type"] == "DesignMapSourceNotFoundError"
+
+
+def test_design_map_response_schema_free_of_repro_triple() -> None:
+    """W-6（批6l 回炉）：design_map data_version 收敛「零可见」锚——响应
+    模型字段集不含 repro 三元组成员（engine_version/data_version）；
+    未来 payload 增版本字段即红（静默漂移防哨）。"""
+    from waterprint_server.services.design_map import DesignMapResponse
+
+    fields = set(DesignMapResponse.model_fields)
+    assert not ({"engine_version", "data_version"} & fields)
