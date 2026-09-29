@@ -19,8 +19,13 @@
  *     浮层——纵深层级感）+文字三档（#e8eef7/#9db0c9/#5d7290——对比度
  *     达标）+语义三色（成功/警告/错误——语义色纪律 §19：绿合格/橙警告/
  *     红错误）；鎏金/水线/泥线三色无 antd token 槽位→global.css 变量轴
- *     （--wp-gold/--wp-water/--wp-sludge——单一真相源，inline 消费点经
- *     var() 引用）；
+ *     （--wp-gold/--wp-water/--wp-sludge——inline 消费点经 var() 引用；
+ *     批6n UF-53 后域色轴真源=semanticColors.ts 启动期注入，gold 仍
+ *     global.css 轴字面量）；
+ *   - 批6n（UF-53 双轴归一 2026-09-29）：域色四轴（--wp-water/sludge/
+ *     mine/convey）注入接线在本模块装载期（installDomainColorAxis
+ *     模块顶层调用——import 期先于 createRoot 首帧，CSS var() 消费面零
+ *     闪烁；入口分层规则禁 main 直引 shared，故样式底座接线随组合根）；
  *   - 度量：fontSize 13（工程密度）/controlHeight 28/borderRadius 6/
  *     fontFamily UI 栈+fontFamilyCode 等宽（工程数值对齐——Cascadia
  *     Code 系）；
@@ -39,7 +44,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider, theme } from "antd";
 import type { ThemeConfig } from "antd";
 
+import { installDomainColorAxis } from "../shared/ui/semanticColors";
 import { createQueryClient } from "./queryClient";
+
+// 批6n UF-53：域色 CSS 变量轴启动期注入（模块装载期执行——先于首帧；
+// 真源=semanticColors DOMAIN_COLORS，global.css :root 域色字面量已退役）
+installDomainColorAxis();
 
 // 模块级唯一实例（D2「组件外创建」——StrictMode 双挂载共享同一 client）
 const queryClient = createQueryClient();

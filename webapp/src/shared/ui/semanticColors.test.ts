@@ -2,20 +2,29 @@
  * semanticColors 真源表测试：键集冻结+逐键值+兜底+三导出（SC1 D3）。
  *
  * 输入:  semanticColors.ts 三导出（SEMANTIC_COLORS/FALLBACK_COLOR/
- *        semanticColor）
- * 输出:  四断言面（34 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
- *        存在性）
+ *        semanticColor）+批6n 两新导出（DOMAIN_CSS_VARS/
+ *        installDomainColorAxis）
+ * 输出:  五断言面（34 键字面清单 toEqual+逐键值 toBe+兜底回退+导出
+ *        存在性+UF-53 双轴归一值面组〔CSS 轴四键键集/双轴同值逐键===
+ *        domain_* 键/注入契约 stub document/缺席守卫〕——CSS 侧文件面
+ *        守卫〔退役+接线〕在 app 层 domainColorAxis.test〔同层读
+ *        global.css/providers.tsx——门一回炉 d1-W5 反向耦合处置〕）
  *
  * 键集 34 键（SC1 迁移 24 键全数原值零漂移+SPC2 boundary_error+B3-b
  * domain_* 五键〔同值搬家零漂移——unitGlyph/LEGEND_LINES 收编〕）——
  * 本测试即键集冻结锚：任何增删键/改值必须同步本文件字面清单（键集
- * 反推法同款纪律）。
+ * 反推法同款纪律）。批6n（UF-53 双轴归一）：值面冻结锚扩 CSS 轴——
+ * DOMAIN_CSS_VARS 四键与 domain_* 键机器断言同值（CSS 侧漂移防线=
+ * 值面+global.css 声明面守卫〔app 层 domainColorAxis.test〕；全仓任意
+ * 形态域色复现扫描=欠账，见登记册 UF-53 行）。
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  DOMAIN_CSS_VARS,
   FALLBACK_COLOR,
   SEMANTIC_COLORS,
+  installDomainColorAxis,
   semanticColor,
 } from "./semanticColors";
 
@@ -101,5 +110,51 @@ describe("semanticColors 语义色真源表", () => {
     expect(typeof SEMANTIC_COLORS).toBe("object");
     expect(semanticColor).toBeTypeOf("function");
     expect(FALLBACK_COLOR).toBeTypeOf("string");
+  });
+});
+
+describe("UF-53 域色双轴归一（批6n：CSS 轴注入契约——值面机器断言）", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("CSS 轴键集冻结：恰 --wp- 四键（water/sludge/mine/convey——实际 CSS 消费面；neutral 零 var() 消费方不入轴〔A2-N-06——门一回炉处置〕）", () => {
+    expect(Object.keys(DOMAIN_CSS_VARS).sort()).toEqual(
+      ["--wp-convey", "--wp-mine", "--wp-sludge", "--wp-water"].sort(),
+    );
+  });
+
+  it("双轴同值机器断言：CSS 轴逐键===domain_* 键（真源单点派生——漂移即红）", () => {
+    // 期望值不引 DOMAIN_COLORS 字面（防自证）——对冻结的 34 键表逐键横断
+    expect(DOMAIN_CSS_VARS["--wp-water"]).toBe(SEMANTIC_COLORS.domain_water);
+    expect(DOMAIN_CSS_VARS["--wp-water"]).toBe("#4da3ff");
+    expect(DOMAIN_CSS_VARS["--wp-sludge"]).toBe(SEMANTIC_COLORS.domain_sludge);
+    expect(DOMAIN_CSS_VARS["--wp-sludge"]).toBe("#9c6b45");
+    expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe(SEMANTIC_COLORS.domain_mine);
+    expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe("#35c9b0");
+    expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe(SEMANTIC_COLORS.domain_convey);
+    expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe("#9aa8b8");
+  });
+
+  it("注入契约：documentElement.style 逐键 setProperty（stub document）", () => {
+    const setProperty = vi.fn();
+    vi.stubGlobal("document", {
+      documentElement: { style: { setProperty } },
+    });
+    installDomainColorAxis();
+    const calls = setProperty.mock.calls
+      .map(([name, value]) => `${String(name)}=${String(value)}`)
+      .sort();
+    expect(calls).toEqual(
+      [
+        "--wp-water=#4da3ff",
+        "--wp-sludge=#9c6b45",
+        "--wp-mine=#35c9b0",
+        "--wp-convey=#9aa8b8",
+      ].sort(),
+    );
+  });
+
+  it("document 缺席守卫：no-op 不抛错（SSR/纯 node 测试环境）", () => {
+    vi.stubGlobal("document", undefined);
+    expect(() => installDomainColorAxis()).not.toThrow();
   });
 });

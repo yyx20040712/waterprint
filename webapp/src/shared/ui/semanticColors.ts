@@ -5,7 +5,9 @@
  * 输入:  语义 token 字符串（渲染描述/组件携带的 semantic 键）
  * 输出:  SEMANTIC_COLORS（34 键字面表——B3-b 增 domain_* 五键）+
  *        FALLBACK_COLOR（未登记兜底灰阶）+semanticColor()（查表函数
- *        ——未登记语义回退兜底，禁抛错打断渲染）
+ *        ——未登记语义回退兜底，禁抛错打断渲染）+DOMAIN_CSS_VARS/
+ *        installDomainColorAxis()（批6n UF-53 双轴归一——域色 CSS 变量
+ *        轴注入面，providers.tsx 组合根模块装载期调用一次）
  *
  * 迁移口径（SC1 D1/D2）：3D 图元色族 12 键自 PoolBox 本地表迁移、
  * 2D 场面色族 7 键自 SiteRoutes/SiteBoundary/SiteCanvas 平行拷贝收编、
@@ -18,9 +20,17 @@
  * unitGlyph.domainColorOf/streamColorOf 与 CanvasFlow LEGEND_LINES 的
  * 域色字面量收敛至 domain_* 键（同值搬家零漂移；global.css --wp-* 轴
  * 保留——SVG 属性面不能 var() 的 CSS/JS 双轴根因性债=UF-53 另立挂账）。
+ * 批6n 增补（UF-53 双轴归一收口——2026-09-29，设计裁量二案取
+ * CSS-in-JS 注入案，卷宗=.workflow/backend-calc-complete/b6n-design.md）：
+ * 域色 CSS 变量轴改为本表启动期注入（global.css :root 域色字面量退役）
+ * ——改色单源=DOMAIN_COLORS 一处，JS 面（domain_* 与 pipe_* 派生键）与
+ * CSS 面（注入轴 var() 消费）两轴同步；SVG/Canvas/Three 不能 var() 的
+ * 根因面零改动（本就消费 JS 键）；双轴同值机器断言=semanticColors.test
+ * 冻结锚扩 CSS 侧。
  */
-/** 四域色+中性（B3-b JS 面单源——与 global.css `--wp-water/sludge/
- * mine/convey` 轴同值；改色以本表为 JS 面基准，CSS 轴同步义务见 UF-53）。 */
+/** 四域色+中性（域色唯一真源——批6n 双轴归一后 CSS 轴四键经
+ * installDomainColorAxis() 自本表注入〔neutral=JS 面键不入轴——零
+ * var() 消费方〕；改色=改本表一处两轴同步）。 */
 const DOMAIN_COLORS = {
   water: "#4da3ff", // 市政水线（municipal）
   sludge: "#9c6b45", // 污泥线
@@ -28,6 +38,29 @@ const DOMAIN_COLORS = {
   convey: "#9aa8b8", // 输配水线
   neutral: "#595959", // 未收录/清单未达回退灰
 } as const;
+
+/** 域色 CSS 变量轴注入映射（批6n UF-53——`--wp-<域>` 键自 DOMAIN_COLORS
+ * 单源派生；global.css :root 域色字面量已退役，CSS 消费面 var(--wp-*)
+ * 经启动期注入取值。键集=实际 CSS 消费面四键〔水/泥/矿/输配〕——
+ * neutral 零 var() 消费方不入轴〔A2-N-06 死变量纪律——门一回炉双席
+ * W 共指处置〕；键集冻结锚=semanticColors.test；as const satisfies=
+ * 键名字面量类型校验〔d1-N2〕）。 */
+export const DOMAIN_CSS_VARS = {
+  "--wp-water": DOMAIN_COLORS.water,
+  "--wp-sludge": DOMAIN_COLORS.sludge,
+  "--wp-mine": DOMAIN_COLORS.mine,
+  "--wp-convey": DOMAIN_COLORS.convey,
+} as const satisfies Readonly<Record<string, string>>;
+
+/** 启动期注入域色 CSS 变量轴（providers.tsx 组合根模块装载期调用一次
+ * ——import 期先于 createRoot 首帧无 FOUC；document 缺席〔SSR/纯
+ * node 测试〕=守卫 no-op——本项目纯 CSR，缺席面仅测试环境；接线行为
+ * 级守卫=src/app/domainColorAxis.test〔装载即注入〕）。 */
+export const installDomainColorAxis = (): void => {
+  if (typeof document === "undefined") return;
+  for (const [name, value] of Object.entries(DOMAIN_CSS_VARS))
+    document.documentElement.style.setProperty(name, value);
+};
 
 /** 语义色表（token→色值唯一映射处——全 webapp 渲染/2D 描绘统一消费）。 */
 export const SEMANTIC_COLORS = {

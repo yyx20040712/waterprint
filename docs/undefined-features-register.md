@@ -309,15 +309,18 @@ python tools/units_browser_probe.py   # 前置=uvicorn 8000+vite dev 5173（清�
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-53 | 域色双轴 | 四域色+中性色 CSS/JS 双轴同值并行：B3-b 后 JS 面单源=semanticColors domain_* 五键（unitGlyph 域色/流色+CanvasFlow 图例线色+pipe 两键全收编），但 SVG 属性面（stroke/fill/Three.js color）不能消费 CSS 变量 var()，global.css `--wp-water/sludge/mine/convey` 轴必须保留——同值双源无机器同步防线，改色漂移风险=R-G3 清单人工联动 | 已定义→挂账（本批收敛 JS 轴字面量；双轴归一须 CSS-in-JS 注入或构建期变量抽取，涉及样式底座 C1 变量轴纪律重议——非本批范围）。改色规程=以 semanticColors DOMAIN_COLORS 为基准四轴同步+semanticColors.test 冻结锚红面 JS 侧漂移；CSS 侧漂移防线留空为已知缺口 | B3-b 2026-09-19 |
+| UF-53 | 域色双轴 | 四域色+中性色 CSS/JS 双轴同值并行：B3-b 后 JS 面单源=semanticColors domain_* 五键（unitGlyph 域色/流色+CanvasFlow 图例线色+pipe 两键全收编），但 SVG 属性面（stroke/fill/Three.js color）不能消费 CSS 变量 var()，global.css `--wp-water/sludge/mine/convey` 轴必须保留——同值双源无机器同步防线，改色漂移风险=R-G3 清单人工联动 | 已定义→**双轴归一收口**（批6n 2026-09-29 CSS-in-JS 注入案——二案裁量〔构建期变量抽取案因磁盘双源未消+构建链风险否决，卷宗=.workflow 会话件〕：①真源=semanticColors.ts DOMAIN_COLORS〔改色规程基准面平移〕；②global.css :root 域色四行字面量退役+providers.tsx 模块装载期 installDomainColorAxis() 注入 documentElement 四轴〔app 组合根——入口分层规则禁 main 直引 shared；--wp-water/sludge/mine/convey=实际 CSS 消费面四键——neutral 零 var() 消费方不入轴（A2-N-06 死变量纪律，门一回炉双席 W 共指处置；#595959 同值面 PortHandle NEUTRAL_BORDER=B3-b D5 独立灰阶先例维持，R-G3 人工联动 2 处不扩）〕；③CSS var() 消费面〔App 品牌渐变〕零改动经注入轴取值——注入先于首帧无闪烁；SVG/Canvas/Three 不能 var() 根因面零改动〔本就消费 JS 键〕；④机器断言三面〔门一回炉后终态——原「CSS 侧漂移防线留空」销项口径=值面+声明面+接线面〕：值面=semanticColors.test（CSS 轴四键键集冻结+逐键===domain_* 键+注入契约 stub document+缺席守卫）；CSS 声明面+接线面=app 层新件 domainColorAxis.test（global.css 全文件零域色声明复入守卫〔#hex/rgb(/hsl(/color-mix( 四形态——门一正则扩形态处置〕+注入指针在场+providers 装载期注入行为级 smoke〔stub document+动态 import——删调用/条件化即红〕）。**防线边界如实记**：全仓任意文件任意形态域色字面量复现扫描=欠账（rgb 数值字面量无键名锚点防误伤不扩）；像素级快照比对=无视觉快照基建——验收「快照不变」以同 hex→同计算值推定+浏览器探针 computed style 实证（已知限制记档）；⑤rgba 派生面〔wp-lib-hit 光环/DOMAIN_ICON_STYLES/PortHandle NEUTRAL_BORDER〕=B3-b D5/R-G3 范围外维持〔派生非同值〕，color-mix(var()) 自动联动化=候选欠账呈报不擅动） | B3-b 2026-09-19 → 批6n 双轴归一收口 2026-09-29 |
 
 ### 十四批验证命令摘要（仓库根执行，2026-09-19）
 
 ```bash
-# UF-53：双轴同值现状（JS 单源+CSS 轴并行的铁证）
-grep -n "domain_water\|DOMAIN_COLORS" webapp/src/shared/ui/semanticColors.ts | head -3
-grep -n -- "--wp-water\|--wp-sludge\|--wp-mine\|--wp-convey" webapp/src/app/global.css | head -4
-    # 两侧同值 #4da3ff/#9c6b45/#35c9b0/#9aa8b8——同步义务人工承载
+# UF-53：双轴归一后单源铁证（批6n 2026-09-29 刷新——真源=semanticColors，CSS 轴启动期注入）
+grep -n "DOMAIN_CSS_VARS\|installDomainColorAxis" webapp/src/shared/ui/semanticColors.ts | head -4
+grep -n "installDomainColorAxis" webapp/src/app/providers.tsx
+grep -cE -- "--wp-(water|sludge|mine|convey)[[:space:]]*:[[:space:]]*(#|rgb\(|hsl\()" webapp/src/app/global.css
+    # 末条=0（global.css 域色声明退役——与 domainColorAxis.test 守卫正则同构〔[[:space:]]
+    # 形态+四色形态〕，再引入即守卫红）；改色单源=DOMAIN_COLORS 一处（JS 派生键+
+    # CSS 注入轴两轴同步，机器断言三面钉死）
 ```
 
 ## 十五、批6h 新增项（2026-09-27，wave6 卫生批——AUD-W10 闭项锚）
