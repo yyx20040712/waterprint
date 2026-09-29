@@ -12,7 +12,7 @@
 > - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
 > - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
 
-- status: READY <!-- 2026-09-29T10:56:25Z 增补七十一：批6n 收口 READY（UF-53 域色双轴归一——1 commit 6bb0d9aa0）；next=批6o -->
+- status: READY <!-- 2026-09-29T10:58:48Z 批6n 回炉收口 READY（增补七十一预算行勘正两笔数字归真——实现 1 commit 6bb0d9aa0+板面勘正笔）；next=批6o -->
 - automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->
 - shared_fire: true
 - plan: docs/handoff/relay.md#执行清单（自含清单，收口 grep 本文件 `- [ ]` 计余量）
@@ -20,8 +20,8 @@
 - poll_interval_min: 20 <!-- 2026-09-26 用户直令节律调整 10→20（有效班=发布后 40/60/80…min）；旧值 10 -->
 - fire_budget_min: 120
 - last_dispatch: 2026-09-19T11:14:24+08:00
-- heartbeat_utc: 2026-09-29T10:56:25Z <!-- 2026-09-29T10:56:25Z 增补七十一收口刷 -->
-- claim: - <!-- 2026-09-29T10:56:25Z 批6n 收口释放（executor-b6n-20260929T1004Z） -->
+- heartbeat_utc: 2026-09-29T10:58:48Z <!-- 2026-09-29T10:58:48Z 批6n 回炉收口终刷 -->
+- claim: - <!-- 2026-09-29T10:58:48Z 批6n 回炉收口释放（executor-b6n-20260929T1004Z） -->
 - no_progress_count: 0 <!-- 2026-09-25 新排程重置（原 1=B4-5 用户门控非系统性卡死） -->
 - checked_total: 53 <!-- 2026-09-26 增补五十六：+1=批6o 词表标准化立项（用户 H 裁决）；旧值 52 -->
 - checked_done: 51 <!-- 2026-09-29T10:56:25Z 批6n 收口 50→51（增补七十一） -->
@@ -464,5 +464,6 @@
 - **收口三检**：run_gates **17 门禁全绿**（6bb0d9aa0 提交后复跑〔OK〕全部门禁通过）；gen_status --check 零漂移（2157 字节——webapp 测试件 82→83 合法增量再生成）；health-scan **RED=0**/WARN×3 存量回显（同增补五十口径）——可收口。
 - **欠账登记**：①CI 首跑回帖守望（本机 Windows 推送后归下班核对——批6m 欠账①接力；本批 webapp+docs 面 CI 应回绿，红则批6o 回炉〔批6k 闭环口径〕）；②全仓任意文件任意形态域色字面量复现扫描=欠账（rgb 数值字面量无键名锚点防误伤不扩——守卫辖 global.css 声明面）；③像素级快照比对无基建（「快照不变」验收以同 hex→同计算值推定+探针 computed style 实证——已知限制记档）；④rgba 派生面 color-mix(var()) 自动联动化=候选欠账（视觉决策面呈报不擅动——wp-lib-hit 光环/DOMAIN_ICON_STYLES/PortHandle NEUTRAL_BORDER 维持 R-G3/B3-b D5 范围外）。
 - **Rulings（呈报不阻断）**：R1 C1 变量轴纪律修订（域色轴自 :root 字面量改启动期注入——「antd 无槽位色」分两族记载：gold=轴字面量真源/域色四轴=注入面真源 semanticColors）；R2 global.css :root 域色四行退役（第二真源消除——防线=domainColorAxis.test 四形态退役守卫）；R3 --wp-neutral 不入轴（A2-N-06 死变量纪律——门一双席共指裁量）。
-- **预算记档**：fire_budget 120min 实耗≈68min（10:04:11Z~10:56:25Z）在限内。
+- **预算记档**：fire_budget 120min 实耗≈52min（10:04:11Z~10:56:25Z 收口笔）+回炉勘正笔≈3min（10:56:25Z~10:58:09Z+本笔）合计≈55min 在限内（原记 68min 系算术笔误——收口后翻回勘正先例=批6a 时戳笔误同款；回炉收口条款 batch_count 不再 +1）。〔2026-09-29T10:57:52Z 勘正笔〕
 - **收口判定=⑤READY**：勾选 50→51（批6n ☑，余 2=批6o+⑤b——grep 计 3 含本批行勾选前形态，收口后=2≠0 故非 DONE；无停止事由〔预授权④批间不停板，批6o 可续；⑤b 用户域终态项维持停板待用户〕）；batch_count 3→4（<60）；墙钟≈7.8h<90h；no_progress 0；claim 释放；置 READY 最后一笔。
+- **回炉收口判定=⑤READY（回炉条款：batch_count 不再 +1 按现值 4 重判 <60；勾选对认领快照 50→51 增→no_progress 保持 0）**：2026-09-29T10:58:09Z 翻回勘正预算行后重新收口——claim 释放；置 READY 最后一笔。
