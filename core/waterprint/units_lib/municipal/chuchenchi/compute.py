@@ -31,6 +31,7 @@
 #   堰负荷越界归堰构造口径注记）；formula_ids=实际求值公式号全量。
 # 【编写规则】同 _template/compute.py：R1 公式经注册表；R2 零字面量；
 #   R3 工况只经参数；R4 纯函数；R5 禁 import 其他单元与 L3；R6 ≤400 行。
+# 【堰构造守卫】FZ-1 批 2026-09-30：_center_weir 前置查 d≤1 → InvalidUnitConfig（D−1 须 D>1）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -79,15 +80,8 @@ _CYCLE_BAND = (
     "factor.chuchenchi.sludge_cycle_band.max",
 )
 _PARAMS_POSITIVE = (
-    "n",
-    "q_prime",
-    "t_settle",
-    "t_sludge",
-    "r1",
-    "r2",
-    "h5",
-    "dia_disc_step",
-    "length_disc_step",
+    "n", "q_prime", "t_settle", "t_sludge", "r1", "r2", "h5",
+    "dia_disc_step", "length_disc_step",
 )
 
 
@@ -129,6 +123,13 @@ def _center_weir(
     ctx: UnitContext, p: dict[str, float], basin: dict[str, _Array]
 ) -> dict[str, _Array]:
     """CC-F8/F9：中心配水筒径（0.1 m 档）与周边双侧出水堰负荷。"""
+    surf = _band(p, _SURFACE_BAND)  # 守卫调节方向带值真源（零字面量）
+    if float(basin["d"].min()) <= 1:  # 向量化任一元素口径（N=1 退化同覆盖）
+        raise InvalidUnitConfig(
+            f"堰构造不成立：池径 D={float(basin['d'].min())} m——周边双侧出水堰堰圈中心线径=D−1"
+            f" 须 D>1（CC-F9 前提）；调节方向：q_prime（表面水力负荷带 {surf[0]}~{surf[1]}"
+            " m³/(m²·h)）或 n（池数）"
+        )
     d_center = _ceil_vec(
         _apply_batch(
             ctx,
@@ -382,8 +383,7 @@ class _Chuchenchi:
         return UnitResult(
             outflows={
                 out_ref: WaterFlow(q_avg_daily=flow.q_avg_daily, kz=flow.kz),
-                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——
-                # 全厂口径注记见 manifest ports 注。
+                # GOLDEN4a D3 产股：无条件产股（nongsuo sup 先例同构）——注记见 manifest ports 注。
                 sludge_ref: SludgeFlow(
                     q_wet=float(sludge["s_wet_1"][0]) * p["n"] / SECS_PER_DAY,
                     ds=float(sludge["s_dry_1"][0]) * p["n"] / SECS_PER_DAY,

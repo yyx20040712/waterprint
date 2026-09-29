@@ -14,7 +14,8 @@
 #   d_center/q_weir/s_dry_1/s_wet_1/v_need/v1_hopper/h4/v2_cone/
 #   v_storage/h_total/v_concrete）+ 校核带越界产 Warning（表面负荷带/
 #   有效水深带/径深比带/堰负荷/排泥周期带[0.2.1 键]/贮泥容积）+
-#   参数域拒绝（n<1、q_prime≤0）+ 纯函数双跑一致 + formula_ids
+#   参数域拒绝（n<1、q_prime≤0）+ 堰构造前提拒（q_prime=1e9→D≤1，
+#   FZ-1 批 2026-09-30）+ 纯函数双跑一致 + formula_ids
 #   全部可在公式注册表解析。
 # 【口径注记】入流水质=三表衔接式值（SS 186.4242/BOD5 164.3994/
 #   COD 285.6232，上游三单元去除链）；出流=衔接下游 AAO 表值。
@@ -260,6 +261,23 @@ def test_param_domain_rejected() -> None:
     )
     with pytest.raises(InvalidUnitConfig):
         make_unit().compute(ctx)
+
+
+def test_weir_construction_guard_rejects_small_diameter() -> None:
+    """FZ-1 堰构造前提守卫：q_prime 极大把池径压到 ≤1 → InvalidUnitConfig。
+
+    复现形态=随机数值测试 S2-53（q_prime=1e9 → D=0.5 m 档）：修复前
+    CC-F9 分母 2π(D−1) 为负 → q_weir<0 静默入 dims 结果面（weir_load
+    校核带只查上限，负值反不告警）；守卫后=堰构造不成立领域拒绝。
+    消息必含：池径实际值+堰构造口径（堰圈中心线径=D−1 须 D>1）+
+    调节方向（q_prime 表面水力负荷带/n 池数）。"""
+    with pytest.raises(InvalidUnitConfig, match="堰构造") as excinfo:
+        make_unit().compute(_ctx(_params(q_prime=1e9)))
+    message = str(excinfo.value)
+    assert "D=0.5" in message, message
+    assert "D−1" in message and "D>1" in message, message
+    assert "q_prime" in message and "n" in message, message
+    assert "1.5" in message and "4.5" in message, message  # 带值入消息（真源投影）
 
 
 def test_pure_function_double_run() -> None:
