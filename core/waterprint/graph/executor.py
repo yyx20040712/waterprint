@@ -53,6 +53,11 @@
 #   params[target]（bool→float 归一）。
 # 【参数面】ctx.params=manifest 默认值 ∪ design 节点值覆盖（bool 拒/float 归一，
 #   GR-02）；节点值 "kind"=内置节点结构元数据（D5）不进参数面。
+#   FZ-2 批 2026-09-30：_compute 返回前对 manifest 声明 range 且无 grid 的
+#   参数按 GR-06 闭区间判带，越带值追加声明带 WARN（_range_band_warnings；
+#   值缺失/非有限跳过；缓存/直算两路径经 _compute 漏斗共穿，缓存键含
+#   condition_key 语义自洽）。R1 去重（主控裁决 B 2026-09-30）：单元已自报
+#   同 param_key 带告警→中央不追加（单元级优先，中央=兜底不抢主场）。
 # 【UF-42 投影表】（缺口 6 裁决，私有 _snapshot）outflows：WaterFlow → 三
 #   键槽 f"{unit_id}.{port_id}.q_avg_daily"/.kz/.q_design；SludgeFlow →
 #   .q_wet/.ds/.moisture；outqualities：f"{unit_id}.{port_id}.{指标}" 全
@@ -85,7 +90,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from math import isfinite
 from types import MappingProxyType
 from typing import Final, Protocol, final
 
@@ -93,6 +99,7 @@ from waterprint.contracts.condition import ConditionSet, OperatingCondition
 from waterprint.contracts.domain_exceptions import DOMAIN_EXCEPTIONS_CORE
 from waterprint.contracts.expr import ExprSyntaxError
 from waterprint.contracts.flow import WaterFlow
+from waterprint.contracts.manifest import ParamSpec
 from waterprint.contracts.ports import Edge, FluidKind, Port, PortRef
 from waterprint.contracts.project_schema import DesignState
 from waterprint.contracts.quality import WaterQuality
@@ -102,7 +109,7 @@ from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.trace_api import TraceSink
 from waterprint.contracts.trust import DiagSink
-from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
+from waterprint.contracts.unit_api import Severity, Unit, UnitContext, UnitResult, Warning
 
 # B3 R2 再导出（修正③——显式清单；冗余别名形态被 ruff PLC0414 拦）
 from waterprint.graph.cache import (
@@ -181,6 +188,44 @@ def _estimate(
                       moisture=flat[f"{prefix}.moisture"])
 
 
+# FZ-2 声明带告警来源（§8 警告必带来源：manifest 声明面+起草表指针，
+# 追认制出处——数据策略 v2 §14）。
+_RANGE_WARN_SOURCE: Final = (
+    "单元清单声明带（manifest range；数值出处=单元起草表 docs/norms 口径，"
+    "追认制——数据策略 v2 §14）"
+)
+
+
+def _range_band_warnings(
+    specs: tuple[ParamSpec, ...], actual: Mapping[str, float], reported: set[str]
+) -> tuple[Warning, ...]:
+    """FZ-2（2026-09-30）中央声明带告警：range 声明且无 grid 的参数越
+    闭区间（GR-06）→ WARN 元组（值缺失/非有限跳过——与单元级守卫不抢
+    语义；grid 参数跳过=档位面归 params_guard 档位执法）。R1 去重
+    （主控裁决 B）：reported=单元已自报告警的 param_key 集，在集者跳过。"""
+    extra: list[Warning] = []
+    for spec in specs:
+        if spec.range is None or spec.grid is not None or spec.field_id in reported:
+            continue
+        value = actual.get(spec.field_id)
+        if value is None or not isfinite(value):
+            continue
+        low, high = spec.range
+        if not low <= value <= high:
+            extra.append(
+                Warning(
+                    severity=Severity.WARN,
+                    source=_RANGE_WARN_SOURCE,
+                    message=(
+                        f"参数 {spec.field_id}={value} 越出声明带 [{low}, {high}]"
+                        f"——调节方向：{spec.field_id} 回带内"
+                    ),
+                    param_key=spec.field_id,
+                )
+            )
+    return tuple(extra)
+
+
 @dataclass(frozen=True)
 @final
 class _ConditionContext:
@@ -246,13 +291,19 @@ class _RunState:
         return merged, qualities
 
     def _compute(self, unit_id: str, ctx: UnitContext) -> UnitResult:
-        """单元 compute + R5 异常隔离（领域异常族 → InvalidExecutionError）。"""
+        """单元 compute + R5 异常隔离 + FZ-2 声明带告警合并（漏斗唯一）。"""
+        unit = self.ctx.units[unit_id]
         try:
-            return self.ctx.units[unit_id].compute(ctx)
+            result = unit.compute(ctx)
         except _DOMAIN_EXCEPTIONS as exc:
             key = ConditionSet.key(self.ctx.condition)
             raise InvalidExecutionError(
                 f"单元 {unit_id!r} 在工况 {key!r} 计算失败：{type(exc).__name__}: {exc}") from exc
+        reported = {w.param_key for w in result.warnings if w.param_key is not None}
+        extra = _range_band_warnings(unit.manifest.params, ctx.params, reported)
+        if extra:
+            return replace(result, warnings=result.warnings + extra)
+        return result
 
     def _cache_key(self, unit_id: str) -> CacheKey:
         """缓存键（B12 裁定3：指纹+工况键+env 版本——五字段一次装配）。"""

@@ -40,36 +40,28 @@ def test_executor_does_not_import_units_lib() -> None:
 
 
 # ── GOLDEN4b R1（总控裁决 2026-08-28）：真环机制两修复的行为锁定。
-#    ①跨层消费回归：SCC 组占最浅成员层（max→min）——修复前非组成员在
-#    组求解层之前消费组输出=读空池裸 KeyError（真环图水线尾消费产泥组
-#    成员的结构性墙），修复后组尽早整组联立、组外消费者恒在更晚层就绪；
-#    ②SLUDGE 回路首迭代合法：回路初值 q_wet=1e-6 微流量（修复前 0.0 触
-#    dst 侧域守卫族[q_wet>0，recycle_junction GR-14 先例]首迭代即拒）。
-#    图单元全用本地 stub+内置节点（tests/graph 不引 units_lib——本文件
-#    铁律同源）；数值容差宽（机制行为锁定非数值 golden）。
+#    ①跨层消费回归：SCC 组占最浅成员层（max→min）——修复前非组成员在组求解层之前
+#    消费组输出=读空池裸 KeyError（真环图水线尾消费产泥组成员的结构性墙），修复后
+#    组尽早整组联立、组外消费者恒在更晚层就绪；②SLUDGE 回路首迭代合法：回路初值
+#    q_wet=1e-6 微流量（修复前 0.0 触 dst 侧域守卫族[q_wet>0，recycle_junction
+#    GR-14 先例]首迭代即拒）。图单元全用本地 stub+内置节点（tests/graph 不引
+#    units_lib——本文件铁律同源）；数值容差宽（机制行为锁定非数值 golden）。
 
 
 def _stub_manifest(
-    unit_id: str, ports: tuple[tuple[str, str, str], ...]
+    unit_id: str, ports: tuple[tuple[str, str, str], ...],
+    params: list[dict[str, object]] | None = None,
 ) -> object:
-    """最小清单（ports 三元组）——tests 层本地图单元声明面。"""
+    """最小清单（ports 三元组；params 可选——FZ-2 声明带 stub 用）。"""
     from waterprint.contracts.manifest import load_manifest
 
     return load_manifest(
         {
-            "unit_id": unit_id,
-            "i18n_key": f"stub.{unit_id}",
-            "version": "1.0",
-            "business_line": "municipal",
-            "params": [],
-            "ports": [
-                {"port_id": port, "fluid": fluid, "direction": direction}
-                for port, fluid, direction in ports
-            ],
-            "removal_refs": {},
-            "norm_refs": ["GOLDEN4b R1 stub（tests/graph 本地图单元）"],
-            "condition_mappings": [],
-            "constraint_refs": [],
+            "unit_id": unit_id, "i18n_key": f"stub.{unit_id}", "version": "1.0",
+            "business_line": "municipal", "params": params if params is not None else [],
+            "ports": [{"port_id": p, "fluid": f, "direction": d} for p, f, d in ports],
+            "removal_refs": {}, "norm_refs": ["GOLDEN4b R1 stub（tests/graph 本地图单元）"],
+            "condition_mappings": [], "constraint_refs": [],
         }
     )
 
@@ -78,13 +70,8 @@ class _ProducerStub:
     """产泥 stub：WATER in+in_r → out(WATER)+sludge_out(SLUDGE)。"""
 
     manifest = _stub_manifest(
-        "stub_producer",
-        (
-            ("in", "WATER", "IN"),
-            ("in_r", "WATER", "IN"),
-            ("out", "WATER", "OUT"),
-            ("sludge_out", "SLUDGE", "OUT"),
-        ),
+        "stub_producer", (("in", "WATER", "IN"), ("in_r", "WATER", "IN"),
+                          ("out", "WATER", "OUT"), ("sludge_out", "SLUDGE", "OUT")),
     )
 
     def compute(self, ctx: object) -> object:
@@ -119,11 +106,7 @@ class _PassStub:
 
     manifest = _stub_manifest(
         "stub_pass",
-        (
-            ("in", "SLUDGE", "IN"),
-            ("out", "SLUDGE", "OUT"),
-            ("sup", "SLUDGE", "OUT"),
-        ),
+        (("in", "SLUDGE", "IN"), ("out", "SLUDGE", "OUT"), ("sup", "SLUDGE", "OUT")),
     )
 
     def compute(self, ctx: object) -> object:
@@ -138,12 +121,8 @@ class _PassStub:
         sup = PortRef(ctx.unit_id, "sup")
         return UnitResult(
             outflows={
-                out: SludgeFlow(
-                    q_wet=stock.q_wet * 0.5, ds=stock.ds * 0.95, moisture=0.95
-                ),
-                sup: SludgeFlow(
-                    q_wet=stock.q_wet * 0.4, ds=stock.ds * 0.04, moisture=0.99
-                ),
+                out: SludgeFlow(q_wet=stock.q_wet * 0.5, ds=stock.ds * 0.95, moisture=0.95),
+                sup: SludgeFlow(q_wet=stock.q_wet * 0.4, ds=stock.ds * 0.04, moisture=0.99),
             },
             outqualities={out: WaterQuality({}), sup: WaterQuality({})},
             dims={"q_sup": stock.q_wet * 0.4 * 86400.0},
@@ -156,8 +135,7 @@ class _ConsumerStub:
     """水线尾 stub：WATER in→out 透传（跨层消费见证者）。"""
 
     manifest = _stub_manifest(
-        "stub_consumer", (("in", "WATER", "IN"), ("out", "WATER", "OUT"))
-    )
+        "stub_consumer", (("in", "WATER", "IN"), ("out", "WATER", "OUT")))
 
     def compute(self, ctx: object) -> object:
         """透传（dims 回显 q_in——跨层读组输出的断言面）。"""
@@ -180,8 +158,7 @@ class _DecayStub:
     """衰减水线 stub：WATER in→out（q×0.5——组内回流增益<1 的收敛载体）。"""
 
     manifest = _stub_manifest(
-        "stub_decay", (("in", "WATER", "IN"), ("out", "WATER", "OUT"))
-    )
+        "stub_decay", (("in", "WATER", "IN"), ("out", "WATER", "OUT")))
 
     def compute(self, ctx: object) -> object:
         """半衰减透传（I-2 合法形态用例的组内环收敛前提）。"""
@@ -201,6 +178,36 @@ class _DecayStub:
         )
 
 
+def _banded_snapshot(node_params: dict[str, object], self_report: bool = False,
+                     node_id: str = "banded") -> object:
+    """FZ-2（2026-09-30）共用装配：src→banded 线性图整跑返 banded 快照（banded=透传
+    stub+manifest 声明 q_prime range；R1a 维度绑定经 import ...registry.dimensions 先导；
+    node_id 逐用例异值——进程内结果缓存按节点名+指纹命中，防跨用例串味）。"""
+    import waterprint.registry.dimensions  # R1a 绑定先导（副作用导入）
+    from waterprint.graph.nodes import builtin_unit
+    class _Banded(_ConsumerStub):
+        manifest = _stub_manifest(
+            "stub_banded", (("in", "WATER", "IN"), ("out", "WATER", "OUT")),
+            params=[{"field_id": "q_prime", "label_zh": "表面水力负荷", "dim": "DIMENSIONLESS",
+                     "default": 2.3, "range": {"min": 1.5, "max": 4.5}}],
+        )
+    class _BandedSelf(_Banded):
+        """自报版（R1 去重载体）：compute 已带 param_key=q_prime 单元级告警。"""
+        def compute(self, ctx: object) -> object:
+            from dataclasses import replace
+
+            from waterprint.contracts.unit_api import Severity, Warning
+            warn = Warning(severity=Severity.WARN, source="stub 单元级带告警（factor 键口径）",
+                           message="q_prime 越单元校核带", param_key="q_prime")
+            return replace(super().compute(ctx), warnings=(warn,))
+    design = _design(
+        nodes={"src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+               node_id: dict(node_params)}, edges=[_edge("src", "out", node_id, "in")])
+    units = {"src": builtin_unit("municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}),
+             node_id: _BandedSelf() if self_report else _Banded()}
+    return _run(design, units).conditions["design"][node_id]  # type: ignore[index]
+
+
 def _env() -> object:
     """RunEnv（loop.* 三键经 EngineParam 直投——tests 层无 app 装配）。"""
     from waterprint.contracts.run_env import EngineParam, RunEnv
@@ -208,24 +215,17 @@ def _env() -> object:
 
     entries = {item.key: item for item in DEFAULT_ASSUMPTIONS}
     return RunEnv(
-        engine_version="graph-test",
-        data_version="graph-test",
+        engine_version="graph-test", data_version="graph-test",
         assumptions={key: item.default for key, item in entries.items()},
-        coefficients={},
-        price_book={},
-        trace_sink=None,
-        engine_params={
-            key: EngineParam(value=item.default, source=item.source, note=item.note)
-            for key, item in entries.items()
-            if key.startswith("loop.")
-        },
+        coefficients={}, price_book={}, trace_sink=None,
+        engine_params={key: EngineParam(value=item.default, source=item.source, note=item.note)
+                       for key, item in entries.items() if key.startswith("loop.")},
     )
 
 
 def _conditions() -> object:
     """单元工况集（design 档——机制行为锁定非工况面）。"""
     from waterprint.contracts.condition import build_condition_set
-
     return build_condition_set([])
 
 
@@ -234,13 +234,10 @@ def _design(
 ) -> object:
     """DesignState 直构（edges 元素=D3 冻结形态）。"""
     from waterprint.contracts.project_schema import DesignState
-
     return DesignState(nodes=nodes, edges=edges)  # type: ignore[arg-type]
 
 
-def _edge(
-    src: str, sp: str, dst: str, dp: str, recycle: bool = False
-) -> dict[str, object]:
+def _edge(src: str, sp: str, dst: str, dp: str, recycle: bool = False) -> dict[str, object]:
     """边构造（recycle 键恒显式——可读性）。"""
     return {
         "src": {"unit_id": src, "port_id": sp},
@@ -337,11 +334,11 @@ def test_sludge_loop_first_iteration_legal() -> None:
 def test_scheduling_gap_rejected_fail_closed() -> None:
     """③C-1 前置守卫：组外提供者层>组执行层=凝聚图调度缺口 fail-closed 拒。
 
-    一审反例形态（R2 裁决 2026-08-28）：src(0)→x1(1)→x2(2)→producer(3)
-    外链入组 {producer(3), rj(0)}（sludge_out 回边闭合）——组执行层=最浅
-    成员层 0 < 组外 forward 提供者 x2 层 2：组求解时 x2 未就绪。修复前=
-    组内 compute 读 x2 空池裸 KeyError（一审 C-1）；守卫后=执行前
-    InvalidExecutionError 显式拒（凝聚图完整调度挂账机制批——此形态暂拒）。"""
+    一审反例形态（R2 裁决 2026-08-28）：src(0)→x1(1)→x2(2)→producer(3) 外链入组
+    {producer(3), rj(0)}（sludge_out 回边闭合）——组执行层=最浅成员层 0 < 组外
+    forward 提供者 x2 层 2：组求解时 x2 未就绪。修复前=组内 compute 读 x2 空池裸
+    KeyError（一审 C-1）；守卫后=执行前 InvalidExecutionError 显式拒（凝聚图完整
+    调度挂账机制批——此形态暂拒）。"""
     from waterprint.graph.executor import InvalidExecutionError
     from waterprint.graph.nodes import builtin_unit
 
@@ -381,13 +378,12 @@ def test_scheduling_gap_rejected_fail_closed() -> None:
 def test_inter_group_dependency_gap_rejected() -> None:
     """④I-2 组间依赖缺口（R3 裁决）：组外提供者属尚未求解的组（任意层）拒。
 
-    二审 I-2 探针图（同层双组+组间 forward）：G1={a(1),rj1(0)}（a 环经
-    rj1）、G2={c(1),rj2(0)}（c 环经 rj2）——两组 min 成员层同为 0（同层）；
-    组间 forward rj1.out→c.in（G2 消费 G1 输出）。split_graph 实证 Tarjan
-    组序 {c,rj2} 先于 {a,rj1}——G2 求解时 rj1 属未求解的 G1（层 0≤组执行
-    层 0，第一支不命中——纯第二支形态）。修复前=组内 compute 读 rj1 空池
-    裸 KeyError；守卫后=组求解前 InvalidExecutionError 显式拒（同层组间
-    依赖——凝聚图调度挂账，GR-09 族）。"""
+    二审 I-2 探针图（同层双组+组间 forward）：G1={a(1),rj1(0)}（a 环经 rj1）、
+    G2={c(1),rj2(0)}（c 环经 rj2）——两组 min 成员层同为 0（同层）；组间 forward
+    rj1.out→c.in（G2 消费 G1 输出）。split_graph 实证 Tarjan 组序 {c,rj2} 先于
+    {a,rj1}——G2 求解时 rj1 属未求解的 G1（层 0≤组执行层 0，第一支不命中——纯
+    第二支形态）。修复前=组内 compute 读 rj1 空池裸 KeyError；守卫后=组求解前
+    InvalidExecutionError 显式拒（同层组间依赖——凝聚图调度挂账，GR-09 族）。"""
     from waterprint.graph.executor import InvalidExecutionError
     from waterprint.graph.nodes import builtin_unit
 
@@ -426,16 +422,42 @@ def test_inter_group_dependency_gap_rejected() -> None:
     assert "rj1" in message, "消息含组外提供者（GR-09）"
 
 
+def test_manifest_range_band_warning_appended() -> None:
+    """FZ-2：range 声明且无 grid 参数越闭区间 → executor 追加声明带 WARN
+    （图级 _compute 漏斗两路径共穿——挂账 S2-21/S2-44 形态；GR-06 闭区间）。"""
+    from waterprint.contracts.unit_api import Severity
+
+    snapshot = _banded_snapshot({"q_prime": 9.9})  # 越出 [1.5, 4.5] 声明带
+    found = [w for w in snapshot.warnings if w.param_key == "q_prime"]
+    assert found and found[0].severity is Severity.WARN, "越带值须追加声明带告警"
+    assert "manifest range" in found[0].source and "起草表" in found[0].source
+    assert "越出声明带" in found[0].message and "[1.5, 4.5]" in found[0].message
+    assert "9.9" in found[0].message and "回带内" in found[0].message
+
+
+def test_manifest_range_band_in_band_no_extra_warning() -> None:
+    """FZ-2 回归：带内值（默认）零声明带告警——存量 warnings 面零污染。"""
+    assert _banded_snapshot({}).warnings == ()
+
+
+def test_manifest_range_band_dedup_when_unit_self_reports() -> None:
+    """R1 去重（主控裁决 B 2026-09-30）：单元已自报同 param_key 带告警 →
+    中央声明带告警不追加（单元级优先，中央=兜底不抢主场）。"""
+    snapshot = _banded_snapshot({"q_prime": 9.9}, self_report=True, node_id="banded_self")
+    keys = [w.param_key for w in snapshot.warnings]
+    assert keys == ["q_prime"], "单元级自报保留、中央声明带不重复追加"
+    assert "manifest range" not in snapshot.warnings[0].source
+
+
 def test_inter_group_solved_order_allowed() -> None:
     """⑤I-2 合法形态放行：提供组先解（已求解序）——组间 forward 正常消费。
 
-    跨层正序构图（探针实证定构）：G1={p(1),d(2)}（p↔d 环经衰减 stub——组
-    内回流增益 0.5 收敛）、G2={m(3),x(4)}（同构衰减环）——组间 forward
-    d.out→m.in 使 G2 消费 G1 输出；G1 执行层 1<G2 执行层 3 → G1 先求解，
-    G2 求解时提供者 d 属**已求解**的 G1 → 守卫放行（不误拒合法已求解序
-    ——指令预见的"组间已求解序"形态）。解析解自证：p.q=q_src+0.5·p.q
-    ⇒ p.q=2×q_src；m 入流=d.out=0.5·p.q（衰减后），m.q=0.5·p.q+0.5·m.q
-    ⇒ **m.q=p.q**（两级衰减环链）。"""
+    跨层正序构图（探针实证定构）：G1={p(1),d(2)}（p↔d 环经衰减 stub——组内
+    回流增益 0.5 收敛）、G2={m(3),x(4)}（同构衰减环）——组间 forward d.out→
+    m.in 使 G2 消费 G1 输出；G1 执行层 1<G2 执行层 3 → G1 先求解，G2 求解时
+    提供者 d 属**已求解**的 G1 → 守卫放行（不误拒合法已求解序——指令预见的
+    "组间已求解序"形态）。解析解自证：p.q=q_src+0.5·p.q ⇒ p.q=2×q_src；
+    m 入流=d.out=0.5·p.q（衰减后），m.q=0.5·p.q+0.5·m.q ⇒ **m.q=p.q**（两级衰减环链）。"""
     from waterprint.graph.nodes import builtin_unit
 
     design = _design(

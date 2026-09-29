@@ -28,7 +28,8 @@
 # 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。
-# 【声明五件】params（range 仅表内有出处带者：q'/T/排泥周期三参数）/
+# 【声明五件】params（range：q'/T/排泥周期三条出处带+h5/两圆整步长三条
+#   工程常用范围起草待追认——FZ-2 批 2026-09-30）/
 #   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，
 #   无边也产；nongsuo sup 先例同构）/removal_refs/norm_refs 双源标记
 #   （GB 50014-2021+给水排水设计手册）/condition_mappings=()/
@@ -248,9 +249,10 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/chuchenchi.md 参数档）；
-        # range 仅三条有出处带参数（surface_load_band 1.5~4.5/
-        # retention_band 1.0~2.5/sludge_cycle_band 1~2[data 0.2.1]），
-        # 构造参数（r1/r2/h5/取整档）无范围来源不设
+        # range 六条=三条出处带（surface_load_band 1.5~4.5/retention_band
+        # 1.0~2.5/sludge_cycle_band 1~2[data 0.2.1]）+三条工程常用范围
+        # 起草待追认（h5/dia_disc_step/length_disc_step——FZ-2 批
+        # 2026-09-30，数据策略 v2 §14），其余构造参数（r1/r2）无范围来源不设
         "params": [
             {
                 "field_id": "n",
@@ -282,18 +284,29 @@ manifest = load_manifest(
             },
             {"field_id": "r1", "label_zh": "泥斗上口半径", "dim": "LENGTH", "default": 1.8},
             {"field_id": "r2", "label_zh": "泥斗下口半径", "dim": "LENGTH", "default": 0.8},
-            {"field_id": "h5", "label_zh": "泥斗高", "dim": "LENGTH", "default": 1.5},
+            # h5 带=手册初沉池泥斗构造（壁坡 55°~60°、r1/r2 常用档推得斗高
+            # 量级）——工程常用范围起草待追认（FZ-2 批 2026-09-30，§14）
+            {
+                "field_id": "h5",
+                "label_zh": "泥斗高",
+                "dim": "LENGTH",
+                "default": 1.5,
+                "range": {"min": 0.5, "max": 4.0},
+            },
+            # 圆整粒度带=工程常用档起草待追认（默认档即常用档；FZ-2 批）
             {
                 "field_id": "dia_disc_step",
                 "label_zh": "直径圆整步长",
                 "dim": "LENGTH",
                 "default": 0.5,
+                "range": {"min": 0.1, "max": 2.0},
             },
             {
                 "field_id": "length_disc_step",
                 "label_zh": "长度圆整步长",
                 "dim": "LENGTH",
                 "default": 0.1,
+                "range": {"min": 0.05, "max": 1.0},
             },
         ],
         "ports": [

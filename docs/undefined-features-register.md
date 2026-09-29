@@ -37,7 +37,7 @@
 | UF-14 | 测试 | 覆盖率口径：零语句骨架不进分母已澄清；分阶段阈值与否未决策 | 待定义→T12 决策（写入 pyproject/CI 注释） | unified B2 |
 | UF-15 | 文档 | 规格头修订流程：曾为"记录备查"，修订无强制步骤（实现者顺手改规格迁就实现） | 已定义→GR-35（DS-18 升格） | unified D / DS-18 |
 
-## 二、系统清查新增项（sweep，UF-16~UF-30）
+## 二、系统清查新增项（sweep，UF-16~UF-30、UF-55）
 
 > 清查方法：按 conventions 十章逐章问"本项目哪个文件/场景会踩这条但规格没写"，
 > 对每个候选 grep 既有规格头与 docs 验证"确实沉默"（命令摘要见文末）；
@@ -61,6 +61,7 @@
 | UF-28 | 可观测 | 进度事件 percent 口径：worker.py R3 只写"阶段百分比+逐工况粒度"，跨阶段/跨工况的总 percent 加权口径（工况数均分？单元数加权？）未写，实现者随手定 | **已冻结·SERVER（2026-08-26）**：percent=(index+1)/(total+1) 阶段幂商式（阶段表 _STAGES 为分母基；ADR-009 白名单字面量）——工况级加权口径挂起（core run 单调用无逐工况回调钩子，与 UF-49 协作钩子缺位同批）；events 背压丢旧保新语义已对账（manager._emit：进度满即弃最旧，state/stale 不丢） | 本批 sweep |
 | UF-29 | 单元包 | 单元包导出契约：AGENTS §11 说"只暴露 manifest 与 compute 两个名字"，_template/compute.py 固定形态却要 `make_unit` 工厂由包 `__init__` 导出——白名单到底几名未冻结 | 已定义→双层口径定版（滞后闭项·文档维护批 2026-09-30）：①包 `__init__` 对外导出**三名** `UNIT_ID`/`make_unit`/`manifest`（AGENTS §11 现行文——M3a2 终裁 yI-1 2026-08-28 已收口；本行问题域引文「manifest 与 compute」系 sweep 时点更早旧文，宪法无残留待勘误）；②注册发现消费面白名单 `{manifest, make_unit}` **两名**（units_lib/__init__.py `discover_units`——`_register` 启动守卫四查：部分导出（消费面缺名）/manifest 非 UnitManifest/make_unit 不可调用/重复 unit_id 均 RuntimeError fail-loud），32 包全量按此实施（T7b D6 同源铁律） | unified B6 → 实现已冻结；2026-09-30 滞后闭项 |
 | UF-30 | 工具链 | mypy strict 覆盖单元包内测试无豁免：首个包内测试（tests/ 目录）即触发（core pyproject 的 strict 范围未区分 src/tests） | 待定义→M1 期间（首个单元包落地时定豁免或全严格） | unified B7（本批 sweep 复核确认仍开放） |
+| UF-55 | 参数 | 泥量输入参数量级合理性无规模相对校核面：绝对带不可辩护（超大型厂初沉干泥可达 2×10⁵ kg/d 量级——绝对上限会误伤），量级合理性=规模相对（ds_primary vs 全厂 SS 负荷互校），hebing 单元内无水量上下文（随机数值测试 S2-40：sludge_hebing.ds_primary≈1.96e5 荒谬量级静默通过、零警告） | 待定义→plant 级互校设计工作包（ds_primary vs 全厂 SS 负荷互校的 plant 级诊断面设计）；FZ 批 2026-09-30 显式挂账——同批 FZ-2 修 S2-21/S2-44 两例（manifest range 声明带+executor._range_band_warnings 中央告警），S2-40 本行挂账不修 | fuzz-findings-2026-09-29 FZ-2 / FZ-1FZ-2 批 2026-09-30 |
 
 ## 三、预期方向中未收录的验证结论（防重复登记）
 
