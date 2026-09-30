@@ -285,9 +285,9 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # PROFILE2：图纸形态路由（纵断）——顶层批级+item 级并入（item 覆盖批级
     # 沿 unit_id 同语义；item 级静默忽略=A2 二审 P2A2-1 缺陷修复）。
     # PROFILE3（PD2）：批量面解锁（422 拒删）——items 逐项归一（下方）。
-    sheet_option = _sheet_of(chosen) or next(
-        (sheet for sheet in map(_sheet_of, items) if sheet), None
-    )
+    # H7（exp-hygiene-20260930）：批级 sheet 提取局部量删除——单产物渲染
+    # kwargs 改读 items[0] 归一值（「1 项/2 项不分叉」；曾读批级/首个 item
+    # sheet=与命名两源分叉）。
     reject_bad_route_options(  # PROFILE3（PD6+R 轮）：路由选项整批原子 422
         chosen, items, condition_key=condition_key
     )  # exp-audit-20260930：端点级 condition_key 入闸（audit 纯批意图拒）
@@ -418,8 +418,12 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         tmp,
         # SVRB D1：unit 归一后逐项真源（items 恒 1 项——item 覆盖批级同语义）。
         unit_id=str(items[0].get("unit_id") or "") or None,
-        condition_key=condition_key or None,
-        sheet=sheet_option,
+        # H7（exp-hygiene-20260930）：condition_key/sheet 改读 items[0] 归一值
+        # （显式 items 面 item 自有优先=与批量/命名同源；默认单 item 已种子
+        # 端点值=零回归；sheet 归一=item 优先批级且 unit 项不继承——与命名
+        # 单源，曾读端点 condition_key/批级 sheet_option=两源分叉）。
+        condition_key=str(items[0].get("condition_key") or "") or None,
+        sheet=str(items[0].get("sheet") or "") or None,
         h_scale=str(items[0].get("h_scale") or "") or None,
         v_scale=str(items[0].get("v_scale") or "") or None,
         station_overrides=str(items[0].get("station_overrides") or "") or None,
@@ -434,7 +438,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     meta = ExportMeta(
         project_id=project_id,
         kind=item_kind,
-        condition_key=condition_key,
+        # H7：ExportMeta.condition_key 同读 items[0] 值（与渲染/命名三面同源）。
+        condition_key=str(items[0].get("condition_key") or ""),
         file_name=names[0],
         design_digest=result_digest,
         engine_version=str(latest.get("engine_version", "")),

@@ -265,8 +265,12 @@ def _batch_items_payload(
     dxf 项附 sidecars={dxf,dwg} 文本（ExportMeta 八键单源，worker 仅落盘；
     DWG 乐观预构建真成功才落盘=无幽灵边车）；SVRB D3：ifc 项附 sidecars=
     {ifc}（无 dwg 边车——模型级；诚实元数据+将来下载白名单统一铺路）；
-    其余 kind 存量零边车。unit_id 逐项归一已由 create_export 完成（D1
-    item 覆盖批级——空串形态落 IPC 面，worker 侧归一 None 对偶口径）。
+    H1（exp-hygiene-20260930）：余 kind（audit/calcbook/estimate）同构
+    附 sidecars={kind 名本名}——批量产物入注册表（list_exports 边车扫描）
+    可下载（resolve 存在性双闸放行）；estimate 渲染器未就绪项级失败时
+    边车零落盘（预构建零害——P8 诚实失败面）。unit_id 逐项归一已由
+    create_export 完成（D1 item 覆盖批级——空串形态落 IPC 面，worker
+    侧归一 None 对偶口径）。
     """
     batch: list[dict[str, Any]] = []
     for item, name in zip(items, names, strict=True):
@@ -296,25 +300,28 @@ def _batch_items_payload(
                 route_value = str(item.get(route_key) or "")
                 if route_value:
                     entry[route_key] = route_value
-        if item_kind in {"dxf", "ifc"}:
-            meta = ExportMeta(
-                project_id=str(common["project_id"]),
-                kind=item_kind,
-                condition_key=condition_key,
-                file_name=name,
-                design_digest=str(common["design_digest"]),
-                engine_version=str(common["engine_version"]),
-                data_version=str(common["data_version"]),
-                stale_labeled=bool(common["stale_labeled"]),
-            )
-            if item_kind == "dxf":
-                entry["sidecars"] = {
-                    "dxf": _sidecar_text(meta),
-                    "dwg": _sidecar_text(
-                        replace(meta, file_name=Path(name).with_suffix(".dwg").name)
-                    ),
-                }
-            else:  # SVRB D3：ifc 项边车补齐（仅产物 meta——无 dwg 面）
-                entry["sidecars"] = {"ifc": _sidecar_text(meta)}
+        # H1（exp-hygiene-20260930）：边车构造扩全 kind（ExportMeta 八键
+        # 单源不变；键形=dxf 双键/ifc 单键零漂，余 kind=kind 名本名单键）。
+        meta = ExportMeta(
+            project_id=str(common["project_id"]),
+            kind=item_kind,
+            condition_key=condition_key,
+            file_name=name,
+            design_digest=str(common["design_digest"]),
+            engine_version=str(common["engine_version"]),
+            data_version=str(common["data_version"]),
+            stale_labeled=bool(common["stale_labeled"]),
+        )
+        if item_kind == "dxf":
+            entry["sidecars"] = {
+                "dxf": _sidecar_text(meta),
+                "dwg": _sidecar_text(
+                    replace(meta, file_name=Path(name).with_suffix(".dwg").name)
+                ),
+            }
+        elif item_kind == "ifc":  # SVRB D3：ifc 项边车补齐（仅产物 meta——无 dwg 面）
+            entry["sidecars"] = {"ifc": _sidecar_text(meta)}
+        else:  # H1：通用单键边车（audit/calcbook/estimate 同构）
+            entry["sidecars"] = {item_kind: _sidecar_text(meta)}
         batch.append(entry)
     return batch

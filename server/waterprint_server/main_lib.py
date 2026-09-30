@@ -46,6 +46,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from waterprint import app as core
+from waterprint import flows
 from waterprint.contracts.manifest import InvalidUnitConfig
 
 from waterprint_server.auth import AuthError
@@ -145,6 +146,13 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidPageParameterError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSolutionRefError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidExportRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    # H2（exp-hygiene-20260930）：flows 校验/审计异常族→422（GR-11 参数族
+    # ——结果数据/意图面不可渲染，用户输入域非服务端 500；单产物 audit 渲染
+    # 期 flows.InvalidFlowError/InvalidAuditError/InvalidAuditPathError 三件
+    # 未映射=rare 500 缺陷收口；server 面 trace forbidden，经 flows 再导出取用）。
+    (flows.InvalidFlowError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (flows.InvalidAuditError, status.HTTP_422_UNPROCESSABLE_CONTENT),
+    (flows.InvalidAuditPathError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSceneRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (InvalidSpacingRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),  # L4b 工况面
     (InvalidElevationRequestError, status.HTTP_422_UNPROCESSABLE_CONTENT),

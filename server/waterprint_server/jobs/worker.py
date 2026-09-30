@@ -70,6 +70,11 @@
 #     flow——plant 复用同源 deserialize、project 复用批首 load_project
 #     通道[calc 先例]；余 kind→app.export_artifact+_build_drawing_kwargs
 #     组装调用面随新件并入——单产物路径共享真源防双源）。
+#   - EXP-HYGIENE（2026-09-30 exports 卫生批）：_ITEM_FAILURES 扩 flows
+#     异常族三件（H2——audit 项渲染期校验失败=项级 failures 收集不炸批；
+#     server 面经 flows 再导出取用）；边车 else 分支改 dxf/ifc/通用三分支
+#     链（H1——audit/calcbook/estimate 项边车经通用尾分支落盘入注册表，
+#     写盘前 K-02 同款取消检查：取消后零新边车）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -88,6 +93,7 @@ from typing import Any, Final, Protocol, cast
 
 import structlog
 from waterprint import app as core
+from waterprint import flows
 from waterprint.contracts.condition import ConditionSet, build_condition_set
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
@@ -324,10 +330,66 @@ _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate",
 
 # SVRB D4：批量项级失败捕获面（_TRIGGER_FAILURES 现实异常族先例——grep
 # 门禁禁 Exception 基类捕获字面）。批共因族有意不在项内捕获（上抛保 error_type 诊断映射）。
+# H2（exp-hygiene-20260930）：flows 异常族三件追加（InvalidFlowError/
+# InvalidAuditError/InvalidAuditPathError——audit 项渲染期校验失败→项级
+# failures 收集不炸批；server 面经 flows 再导出取用，trace 禁直连）。
 _ITEM_FAILURES: Final[tuple[type[BaseException], ...]] = (
     OSError, RuntimeError, ValueError, KeyError, TypeError, core.ArtifactKindNotReady,
+    flows.InvalidFlowError, flows.InvalidAuditError, flows.InvalidAuditPathError,
 )
 _FAILURE_TEXT_LIMIT: Final[int] = 2 * 10**2  # failures error 截断长度（幂底式 200——SVRB D4）
+
+
+def _cancelled_outcome(
+    payload: Mapping[str, Any], files: list[str], failures: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """取消 outcome（SVRB D4+R 轮 R6：files/failures/project_id/design_digest
+    键对称——manager 灌入 result 的载荷源；EXP-HYGIENE 抽 helper 去四点内联
+    重复=语句预算减压）。"""
+    return {
+        "state": "cancelled", "files": tuple(files), "failures": tuple(failures),
+        "project_id": str(payload.get("project_id", "")),
+        "design_digest": str(payload.get("design_digest", "")),
+    }
+
+
+def _register_item_sidecars(  # noqa: PLR0913, PLR0917  # 六参=IPC 面+产物+取消令牌（五参墙——exports_support._deterministic_name 豁免先例；EXP-HYGIENE 语句/分支预算减压抽件）
+    payload: Mapping[str, Any],
+    item: Mapping[str, Any],
+    kind: str,
+    out: Path,
+    exports_dir: Path,
+    cancel_token: object,
+) -> bool:
+    """成功项边车/DWG 登记面（R2-C/R-1+H1；返回 True=取消中止——调用方
+    返 cancelled outcome；K-03 非映射拒 raise 语义随迁零变）。
+
+    dxf 特判（双键+DWG 转换挂点）/ifc 特判（单键）/通用尾分支（H1
+    exp-hygiene-20260930——audit/calcbook/estimate 同构 kind 名本名
+    单键；写盘前 K-02 同款取消检查：取消后零新边车）。
+    """
+    raw_sidecars = item.get("sidecars")
+    if raw_sidecars is not None and not isinstance(raw_sidecars, Mapping):
+        raise InvalidTaskPayloadError(  # K-03：非映射拒（IPC 面不可信）
+            f"sidecars 须为映射：{type(raw_sidecars).__name__}（与产物名闸同防线，K-03）"
+        )
+    sidecars = dict(raw_sidecars or {})
+    if kind == "dxf" and sidecars.get("dxf"):
+        if _cancelled(cancel_token):  # K-02：转换前取消（零新边车零转换）
+            return True
+        _write_sidecar_text(exports_dir, out.name, str(sidecars["dxf"]))
+        dwg = batch_dwg_artifact(payload, sidecars, out)
+        if dwg is not None:
+            _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
+    elif kind == "ifc" and sidecars.get("ifc"):  # SVRB D3：ifc 项边车（无 dwg 面）
+        if _cancelled(cancel_token):  # R4：取消后零新边车（K-02 口径对齐）
+            return True
+        _write_sidecar_text(exports_dir, out.name, str(sidecars["ifc"]))
+    elif sidecars.get(kind):  # H1（exp-hygiene-20260930）：通用边车分支
+        if _cancelled(cancel_token):  # K-02 同款：写盘前取消（零新边车）
+            return True
+        _write_sidecar_text(exports_dir, out.name, str(sidecars[kind]))
+    return False
 
 
 def _run_export_batch(
@@ -342,9 +404,7 @@ def _run_export_batch(
     failures: list[dict[str, Any]] = []
     for index, item in enumerate(items):
         if _cancelled(cancel_token):  # 每批迭代检查（R4：取消后无新产物落地）
-            return {"state": "cancelled", "files": tuple(files), "failures": tuple(failures),
-                    "project_id": str(payload.get("project_id", "")),
-                    "design_digest": str(payload.get("design_digest", ""))}
+            return _cancelled_outcome(payload, files, failures)
         kind = str(item.get("kind", ""))
         if kind not in _EXPORT_KINDS:  # R1-1 二道闸：kind 白名单（IPC 面）
             raise InvalidTaskPayloadError(
@@ -382,30 +442,11 @@ def _run_export_batch(
                 "index": index, "unit_id": unit_id, "condition_key": condition_key,
                 "error": f"{type(exc).__name__}: {exc}"[:_FAILURE_TEXT_LIMIT]})
         # 〔边车奇态显式接受·ENG-L 归一 2026-09-09：失败收集=跳过续跑〕
-        else:  # R2-C/R-1：成功项边车/DWG 登记面（失败项 continue 面已改 else 隔离）
-            raw_sidecars = item.get("sidecars")
-            if raw_sidecars is not None and not isinstance(raw_sidecars, Mapping):
-                raise InvalidTaskPayloadError(  # K-03：非映射拒（IPC 面不可信）
-                    f"sidecars 须为映射：{type(raw_sidecars).__name__}（与产物名闸同防线，K-03）"
-                )
-            sidecars = dict(raw_sidecars or {})
-            if kind == "dxf" and sidecars.get("dxf"):
-                if _cancelled(cancel_token):  # K-02：转换前取消（零新边车零转换）
-                    return {"state": "cancelled", "files": tuple(files),
-                            "failures": tuple(failures),
-                            "project_id": str(payload.get("project_id", "")),
-                            "design_digest": str(payload.get("design_digest", ""))}
-                _write_sidecar_text(exports_dir, out.name, str(sidecars["dxf"]))
-                dwg = batch_dwg_artifact(payload, sidecars, out)
-                if dwg is not None:
-                    _write_sidecar_text(exports_dir, dwg.name, str(sidecars["dwg"]))
-            if kind == "ifc" and sidecars.get("ifc"):  # SVRB D3：ifc 项边车（无 dwg 面）
-                if _cancelled(cancel_token):  # R4：取消后零新边车（K-02 口径对齐）
-                    return {"state": "cancelled", "files": tuple(files),
-                            "failures": tuple(failures),
-                            "project_id": str(payload.get("project_id", "")),
-                            "design_digest": str(payload.get("design_digest", ""))}
-                _write_sidecar_text(exports_dir, out.name, str(sidecars["ifc"]))
+        else:  # R2-C/R-1+H1：成功项边车/DWG 登记面（失败项 else 隔离）
+            if _register_item_sidecars(  # True=取消中止（K-02 零新边车口径）
+                payload, item, kind, out, exports_dir, cancel_token
+            ):
+                return _cancelled_outcome(payload, files, failures)
     if failures and not files:  # SVRB D4：全失败=failed（诚实性——零产物不报 done）
         raise RuntimeError(
             f"export_batch 全部 {len(failures)} 项失败——首错：{failures[0]['error']}"

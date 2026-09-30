@@ -124,8 +124,11 @@ layers = [
 # waterprint.app 与 waterprint.contracts（SENS-B 2026-08-23；SERVER D7）。
 # allow_indirect_imports=true=直查口径：经 waterprint.app 的合法转发链
 # （app→solution/trace/graph/…）不构成违规——pint 契约同款意图条款。
+# H4（exp-hygiene-20260930 措辞勘正）：waterprint.flows（L4 用例流层）
+# =在册例外——jobs 面 export_render 渲染分流先例+main 面 flows 异常族
+# 映射（main_lib，H2）；flows 不在下方 forbidden 面=合法消费面。
 [[tool.importlinter.contracts]]
-name = "core 调用只经 waterprint.app 与 waterprint.contracts（UF-33 单入口）"
+name = "core 调用只经 waterprint.app 与 waterprint.contracts（UF-33 单入口；flows 用例流层在册例外）"
 type = "forbidden"
 allow_indirect_imports = true
 source_modules = ["waterprint_server"]
