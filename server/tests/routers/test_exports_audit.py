@@ -403,3 +403,82 @@ async def test_audit_route_keys_and_typed_unit_rejected_422_wiring(  # type: ign
     dxf_name = next(n for n in listing if n.endswith(".dxf"))
     assert "-dxf-profile-" in dxf_name  # dxf 项真继承批级 sheet（合法消费面）
     assert b"AC1032" in (exports_dir / dxf_name).read_bytes()[:512]
+
+
+@pytest.mark.anyio
+async def test_mixed_batch_all_kinds_sidecars_registered_downloadable_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """H1（exp-hygiene-20260930）：批量混装批（calcbook+audit+dxf+estimate）
+    通用 meta 边车——成功三 kind 各自 {产物}.meta.json 落盘（audit 入注册表
+    =list_exports 可见+resolve 存在性双闸放行可下载）；estimate=core 渲染器
+    未就绪项级失败（failures 收集+零产物零边车——P8 诚实失败面）。"""
+    project_id, _task_id = await _project_with_result(client)
+    batch = await client.post(
+        "/api/exports/calcbook",
+        json={
+            "project_id": project_id,
+            "options": {"items": [
+                {"kind": "calcbook", "condition_key": "design"},
+                {"kind": "audit"},
+                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "estimate", "condition_key": "design"},
+            ]},
+        },
+    )
+    assert batch.status_code == status.HTTP_200_OK  # 批量转任务句柄 JSON
+    done = await _wait_task_terminal(client, str(batch.json()["task_id"]))
+    assert done["state"] == "done" and len(done["result"]["files"]) == 3
+    failures = list(done["result"]["failures"])
+    assert len(failures) == 1 and failures[0]["index"] == 3  # estimate 项级失败
+    assert "ArtifactKindNotReady" in str(failures[0]["error"])  # 诚实拒绝面（非 500）
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    kinds = {row["kind"] for row in metas.json()}
+    assert {"calcbook", "audit", "dxf"} <= kinds  # 三 kind 边车扫描入注册表
+    assert "estimate" not in kinds  # 失败项不入册（零边车）
+    audit_row = next(row for row in metas.json() if row["kind"] == "audit")
+    assert audit_row["file_name"].endswith(".html")
+    downloaded = await client.get(f"/api/exports/{audit_row['file_name']}")
+    assert downloaded.status_code == status.HTTP_200_OK  # 存在性双闸放行=可下载
+    assert downloaded.headers["content-type"].startswith("text/html")
+    assert downloaded.content == (  # 字节==落盘产物（边车在场解锁下载面）
+        test_settings.exports_dir / audit_row["file_name"]
+    ).read_bytes()
+    products = sorted(os.listdir(test_settings.exports_dir))
+    assert len([n for n in products if n.endswith(".meta.json")]) == 3  # 三边车各一
+    assert not any("estimate" in n for n in products)  # estimate 零产物零边车
+
+
+@pytest.mark.anyio
+async def test_audit_render_exception_family_maps_422_wiring(  # type: ignore[no-untyped-def]
+    client, monkeypatch
+) -> None:
+    """H2（exp-hygiene-20260930）main_lib 映射面：单产物 audit 渲染期
+    flows 异常族三件（InvalidFlowError/InvalidAuditError/InvalidAuditPath
+    Error）→422 Unprocessable Content（GR-11 参数族——用户输入域非 500；
+    未映射前=裸 500 炸穿）。"""
+    from waterprint import flows
+
+    project_id, _task_id = await _project_with_result(client)
+    raised: dict[str, type[Exception]] = {
+        "flow": flows.InvalidFlowError,
+        "audit": flows.InvalidAuditError,
+        "path": flows.InvalidAuditPathError,
+    }
+    current: dict[str, object] = {"name": "flow"}
+
+    def _raise(project, plant, out):  # type: ignore[no-untyped-def]
+        raise raised[str(current["name"])]("injected render failure (H2 mapping)")
+
+    monkeypatch.setattr(flows, "audit_render_flow", _raise)
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    before = len(metas.json())
+    for key in ("flow", "audit", "path"):
+        current["name"] = key
+        response = await client.post(
+            "/api/exports/audit", json={"project_id": project_id}
+        )
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+        assert response.json()["error_type"] == raised[key].__name__  # 类名保真
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    assert len(metas.json()) == before  # 异常即零新产物入册
