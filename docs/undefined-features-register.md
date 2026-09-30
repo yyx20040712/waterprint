@@ -329,3 +329,13 @@ grep -cE -- "--wp-(water|sludge|mine|convey)[[:space:]]*:[[:space:]]*(#|rgb\(|hs
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
 | UF-54 | 比选·约束语义 | constraint severity 软语义：未勾选默认态是否提供「WARN 越带注记不滤」呈现（现=未勾选即不参与过滤、勾选即硬滤全级别=CP1 用户裁决 2026-08-31「勾选=过滤」；severity 仅随行元数据）——软档呈现属产品裁决位 | 已定义·**显式不做软语义**（2026-09-28 用户裁决·relay 增补六十三：拒绝「WARN 越带注记不滤」未勾选呈现——越带几何量〔如超大单池〕属应滤除设计，工程正解=上调池数而非单池做大，注记保留无价值；CP1「勾选=过滤」勾选即硬滤全级别维持定版；kb README/solution·constraints 规格头两注记随裁同步） | audit AUD-W10 / 批5 Rulings / 增补六十三 |
+
+## 十六、FE-2/FE-4 批新增项（2026-09-30，webapp 主包代码分割+三维首帧反馈批——门一 R0~R3b 四轮+门二实证/重证/裁决部终裁 PASS 面外挂账）
+
+| 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
+|------|------|----------------------------------------------|------|------|
+| UF-56 | 前端·首帧门 | 三维首帧 overlay（FirstFrameGate）无超时/失败退出路径：WebGL 上下文创建失败或渲染循环未启动时 useFrame 永不触发→「正在构建三维场景…」永久遮罩且拦截点击（实现者可自选静默等待或超时降级，规格沉默） | 已定义·**挂账独立批裁量**（FE-20260930 门一 k2-W6/d1-N3 共指：极端边缘面，正常路径门二探针实证 overlay 寿命 363~439ms 消失；候选修法=超时降级出错误提示或挂外层 ErrorBoundary 兜底——超本批白名单不即兴） | FE-20260930 批 |
+| UF-57 | 前端·测试债 | FirstFrameGate hook 活链路（signal→订阅→重渲染→overlay 卸载）与五结果页签领域码门控分支零自动化测试锚：仓内 vitest 无 jsdom/testing-library 环境（禁新增依赖红线），测试面=纯核闭包+SSR 等价+源文断言，行为级覆盖全靠门二无头探针 DOM 断言（探针脚本是会话件不入库——回归防线非常驻 CI 面） | 已定义·**挂账环境升级批**（FE-20260930 门一 k2-W1/d1-N1/W1 共指；门二 G2b 10/10 兜底在案；候选出路=jsdom 环境引入裁决位或探针脚本纳入 CI 可选作业——与 fuzz_kernel.py CI 化建议同族） | FE-20260930 批 |
+| UF-58 | 前端·构建 | vite manualChunks "three" 子串规则组面效应：共享 chunk（http/ErrorBoundary/empty 等）react jsx 运行时并入 three chunk→index.html modulepreload 19 项含 three（1095.72 kB）/tooltip（360.94 kB）且 three 首屏实拉——「三维懒加载」语义与首屏实际传输量貌合神离（首包减半口径以主 index chunk 1769.10→777.11 计，three 首拉基线同构非本批恶化） | 已定义·**挂账 manualChunks 精化批**（FE-20260930 门二实证观察①：候选修法=匹配规则收窄至 node_modules/three 路径或 canvas 懒化独立批——vite.config 触碰需独立简报+门禁面核查） | FE-20260930 批 |
+| UF-59 | 前端·文案 | raw 服务端消息残留面三处：①Scene.tsx 404 错误分支「场景加载失败：{raw message}」（SceneSourceNotFoundError 面透「项目 X 最近无完成结果集（先 POST /api/calc/run）」——R3/R3b 门控收口覆盖五结果页签未含三维视图同型面）；②drawingsPane exportsQuery/unitQuery 分支（ExportSourceNotFoundError 服务端文案「先 POST /api/exports/* 生成」）；③CheckedUnitsPanel:81 工况校核保存失败面——前端领域码门控（Scene UX1 D5/R3 同款）与服务端消息用户语言化两路线均规格沉默 | 已定义·**挂账同款收口独立批**（FE-20260930 裁决部 W1 附加裁决 B：R3 §9.2 已呈报知悉未入收口——三面同款门控移植或服务端文案批裁量；本批 G2b 实证五页签面已零 raw 透出） | FE-20260930 批 |
+| UF-60 | 前端·显示层 | 空态视觉语义与工况标识符本地化：结果页签「项目暂无完成的计算结果」空态沿用 Typography danger 红色（语义偏"故障"而非"暂无数据"——ds 视觉复判备注）；comparePane 说明行工况键 design/avg/design_offline_* 英文标识符直出（中文名只存在于 i18n 显示层的宪法 §4 原则在工况键显示面未落） | 已定义·**挂账 UX 打磨批**（FE-20260930 ds 复判备注+裁决部 #6：候选=中性空态样式+操作引导常规色；工况键中文映射沿 condition 显示层先例——独立批裁量） | FE-20260930 批 |

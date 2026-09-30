@@ -10,14 +10,16 @@
  *
  * 规格说明（P2 次批 2026-09-12；costPane 同构第五例）：
  *   - projectId 单一真相=URL（useProjectId 共享 hook）；面板只读不回写；
- *   - 非 lazy（无 echarts 大件——普通导入）；
+ *   - App 级 LazyPane 懒边界（本批 FE-2；pane 内无 echarts 大件普通导入）；
  *   - TASK_EVENT 事件桥监听（第五处监听——常量已收口 shared/events[S12]；
  *     ParamForm/solutionsPane/elevationPane/costPane 四处先例）→invalidate
  *     ['/api/calc/trust/'+projectId] 键；
  *   - 空态：?project= 缺失=指引文案；查询 error 分级（costPane R3 同款）：
  *     仅 WaterprintApiError.code==="TrustSourceNotFoundError"（404 无 done
  *     calc）才附「先提交计算」引导——网络错/窄化 TrustViewError 不挂
- *     误导 hint；ErrorBoundary label=可信度。
+ *     误导 hint；R3 F1''（2026-09-30 门二 CONFIRMED）：领域码面不透 raw
+ *     message——固定摘要「项目暂无完成的计算结果。」+NO_CALC_HINT；
+ *     ErrorBoundary label=可信度。
  */
 import { useEffect } from "react";
 import { Typography } from "antd";
@@ -36,7 +38,7 @@ const NO_PROJECT_HINT =
 
 /** 404 引导（无 done calc——先提交计算）。 */
 const NO_CALC_HINT =
-  "——请先提交计算（POST /api/calc/run）完成后再回本标签查看可信度报告。";
+  "——请先在工艺画布工具条提交计算，完成后再回本标签查看可信度报告。";
 
 export function TrustPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
@@ -74,12 +76,15 @@ export function TrustPane() {
         {query.isError ? (
           <Typography.Paragraph type="danger">
             可信度报告取数失败：
-            {query.error instanceof Error ? query.error.message : "未知错误"}
-            {/* 仅 404 无 done calc 面附引导——网络错/窄化错不挂（costPane R3 同款） */}
+            {/* R3 F1''（门二 CONFIRMED）：领域码 404 面不透 raw message
+                （含 API 句式/项目 hash）——固定摘要+引导；网络错/窄化错
+                保持 raw 透出（I-3 分级口径） */}
             {query.error instanceof WaterprintApiError &&
             query.error.code === "TrustSourceNotFoundError"
-              ? NO_CALC_HINT
-              : null}
+              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
+              : query.error instanceof Error
+                ? query.error.message
+                : "未知错误"}
           </Typography.Paragraph>
         ) : report === null ? (
           <Typography.Paragraph type="secondary">

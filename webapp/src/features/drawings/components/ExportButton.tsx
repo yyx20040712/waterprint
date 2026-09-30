@@ -65,8 +65,8 @@ import { BatchStatusLine } from "./BatchStatusLine";
 
 /** 404 引导（无 done calc——先提交计算；R1-4：按按钮面 kind 化尾词）。 */
 const NO_CALC_HINTS = {
-  dxf: "——请先提交计算（POST /api/calc/run）完成后再导出图纸。",
-  ifc: "——请先提交计算（POST /api/calc/run）完成后再导出模型。",
+  dxf: "——请先在工艺画布工具条提交计算，完成后再导出图纸。",
+  ifc: "——请先在工艺画布工具条提交计算，完成后再导出模型。",
 } as const;
 
 /** 批量进度 message 键（同键重开=原位更新——antd message 合同）。 */

@@ -1,7 +1,7 @@
 /**
  * 联合枚举结果装配组件测试（批2d——沿 TaskPanel.test.tsx SSR 先例：
- * renderToString 零 jsdom 真渲染 antd 树；echarts 壳 useEffect 零执行
- * ——init 不触发，仅断言容器/表行/页签文案）。
+ * 零 jsdom 真渲染 antd 树；echarts 壳 useEffect 零执行——init 不触发，
+ * 仅断言容器/表行/页签文案）。
  *
  * 输入:  JointSolutionsPanel（窄化产物 JointResultView——组件零形状判断）
  * 输出:  断言：combos 表行数（排名/四键/score/降权标记）+三图 Tabs 页签
@@ -9,9 +9,21 @@
  *        done 合法终态——beam.py 真形两态：stage_empty 载荷嵌套 stage 键
  *        /final_infeasible 仅 note；未知 kind 原样 JSON 摘要不吞）+龙卷风
  *        空态文案（无 avg 对不造假）+平行坐标空态（资格门外无可绘文案）
+ *
+ * 形态说明（FE-2 批 2026-09-30 适配——三图 React.lazy 化）：renderToString
+ *   遇 lazy 边界只出 fallback，改 renderToPipeableStream+onAllReady 流式
+ *   等全部 Suspense 边界收束后取全量 HTML（动态 import 在 node 侧即时
+ *   resolve，零真网络面；brief P9 预裁的 findBy 系与 waitFor 依赖
+ *   testing-library/jsdom——本仓零 jsdom 红线+禁新增依赖下的等价适配）。
  */
-import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { renderToPipeableStream } from "react-dom/server";
+import { Writable } from "node:stream";
+import type { ReactElement } from "react";
+import { describe, expect, it, vi } from "vitest";
+
+// FE-2 适配：流式渲染首用例承担三图模块+echarts 动态 import 冷启动
+// （全量并发下 >5s 默认超时——文件级放宽；单文件直跑实测 <4s）。
+vi.setConfig({ testTimeout: 20000 });
 
 import type { JointComboView, JointResultView } from "../lib/jointView";
 import { JointSolutionsPanel } from "./JointSolutionsPanel";
@@ -51,17 +63,52 @@ const RESULT: JointResultView = {
   ],
 };
 
-function render(result: JointResultView): string {
-  // 剥离 React SSR 相邻文本节点间的 <!-- --> 分隔标记（DOM 文本内容等价断言）
-  return renderToString(<JointSolutionsPanel result={result} />).replace(
-    /<!-- -->/g,
-    "",
-  );
+/** 异步整树渲染（FE-2 适配）：流式 SSR 等全部 Suspense 边界收束——lazy
+ *  图表内容入 HTML；剥离相邻文本节点间的 <!-- --> 分隔标记（DOM 文本
+ *  内容等价断言）。 */
+function renderTree(element: ReactElement): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let html = "";
+    let settled = false;
+    const sink = new Writable({
+      write(chunk, _encoding, callback) {
+        html += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+        callback();
+      },
+    });
+    sink.on("finish", () => {
+      if (!settled) {
+        settled = true;
+        resolve(html.replace(/<!-- -->/g, ""));
+      }
+    });
+    sink.on("error", (error) => {
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
+    });
+    const pipeable = renderToPipeableStream(element, {
+      onAllReady() {
+        pipeable.pipe(sink);
+      },
+      onError(error) {
+        if (!settled) {
+          settled = true;
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      },
+    });
+  });
+}
+
+async function render(result: JointResultView): Promise<string> {
+  return renderTree(<JointSolutionsPanel result={result} />);
 }
 
 describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
-  it("combos 表：三行排名+四键列+score 列+降权标记（千分位格式）", () => {
-    const html = render(RESULT);
+  it("combos 表：三行排名+四键列+score 列+降权标记（千分位格式）", async () => {
+    const html = await render(RESULT);
     expect(html).toContain("排名"); // 列头
     expect(html).toContain("综合得分");
     expect(html).toContain("1,234,567"); // formatSolutionValue 整数千分位
@@ -71,22 +118,22 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("unitA: p1=1, p2=2"); // 参数摘要列
   });
 
-  it("三图 Tabs 页签文案在场（forceRender——SSR 全页签渲染）", () => {
-    const html = render(RESULT);
+  it("三图 Tabs 页签文案在场（forceRender——SSR 全页签渲染）", async () => {
+    const html = await render(RESULT);
     expect(html).toContain("帕累托前沿图");
     expect(html).toContain("平行坐标图");
     expect(html).toContain("敏感性龙卷风图");
   });
 
-  it("帕累托轴选择器与龙卷风方案选择器在场（四键可换轴）", () => {
-    const html = render(RESULT);
+  it("帕累托轴选择器与龙卷风方案选择器在场（四键可换轴）", async () => {
+    const html = await render(RESULT);
     expect(html).toContain("运行成本（元/年）"); // 轴选项 label
     expect(html).toContain("建设投资（元）");
     expect(html).toContain("方案 1"); // 龙卷风默认首位=排名最高
   });
 
-  it("combos 空+stage_empty → 分段无解标签+stage 层冲突内容展开（beam.py:444 真形——载荷嵌套 stage 键）", () => {
-    const html = render({
+  it("combos 空+stage_empty → 分段无解标签+stage 层冲突内容展开（beam.py:444 真形——载荷嵌套 stage 键）", async () => {
+    const html = await render({
       unit_ids: ["unitA", "unitB"],
       diagnosis: {
         kind: "stage_empty",
@@ -116,8 +163,8 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).not.toContain("帕累托前沿图"); // 无方案不进三图面
   });
 
-  it("combos 空+final_infeasible → 终判不可行 note 显著呈现+rawSummary 兜底（k1/d1 二过 W——relaxed 可见不截断）", () => {
-    const html = render({
+  it("combos 空+final_infeasible → 终判不可行 note 显著呈现+rawSummary 兜底（k1/d1 二过 W——relaxed 可见不截断）", async () => {
+    const html = await render({
       unit_ids: ["unitA", "unitB"],
       diagnosis: {
         kind: "final_infeasible",
@@ -134,8 +181,8 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("relaxed"); // rawSummary 兜底——同载荷字段可见（d1-W1）
   });
 
-  it("combos 空+stage_empty 域拒支 → stage.note 提取呈现+rawSummary 兜底（k1-W1——beam.py:316 第二支真形）", () => {
-    const html = render({
+  it("combos 空+stage_empty 域拒支 → stage.note 提取呈现+rawSummary 兜底（k1-W1——beam.py:316 第二支真形）", async () => {
+    const html = await render({
       unit_ids: ["unitA", "unitB"],
       diagnosis: {
         kind: "stage_empty",
@@ -157,8 +204,8 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("诊断载荷原样："); // rawSummary 兜底在场（引号经 HTML 转义——以通道文案锚定）
   });
 
-  it("combos 空+未知 kind → 原样呈现 kind+JSON 摘要（fail-visible 不吞）", () => {
-    const html = render({
+  it("combos 空+未知 kind → 原样呈现 kind+JSON 摘要（fail-visible 不吞）", async () => {
+    const html = await render({
       unit_ids: ["unitA", "unitB"],
       diagnosis: { kind: "novel_kind", detail: "异常负载文本" },
       combos: [],
@@ -167,7 +214,7 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("异常负载文本"); // JSON 摘要在场
   });
 
-  it("龙卷风空态：无 avg 对组合不造假数据（诚实文案在场）", () => {
+  it("龙卷风空态：无 avg 对组合不造假数据（诚实文案在场）", async () => {
     const noAvg: JointResultView = {
       ...RESULT,
       combos: [comboOf([100, 50, 0.5, 1000])],
@@ -175,11 +222,11 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     delete (noAvg.combos[0]!.metrics as Record<string, number>)["avg.cost_opex_yuan_a"];
     delete (noAvg.combos[0]!.metrics as Record<string, number>)["avg.power_total_kwh_d"];
     delete (noAvg.combos[0]!.metrics as Record<string, number>)["avg.carbon_intensity_kgco2e_m3"];
-    const html = render(noAvg);
+    const html = await render(noAvg);
     expect(html).toContain("无 avg/design 成对指标");
   });
 
-  it("平行坐标空态：全组合资格门外 → 无可绘方案文案（不造假轴）", () => {
+  it("平行坐标空态：全组合资格门外 → 无可绘方案文案（不造假轴）", async () => {
     const allOut: JointResultView = {
       unit_ids: ["unitA", "unitB"],
       diagnosis: null,
@@ -187,7 +234,7 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
         comboOf([100, 50, 0.5, 1000], { score: null }), // score 缺席——资格门外
       ],
     };
-    const html = render(allOut);
+    const html = await render(allOut);
     expect(html).toContain("无可绘方案（指标/得分不全场）");
   });
 });

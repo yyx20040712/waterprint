@@ -16,7 +16,7 @@
  *   - B 批 D6：preview 态=最近一次导出结果（ExportButton onExported
  *     回调 setPreview——scene/sceneError 喂 DrawingPreview 渲染区）；
  *     useEffect([projectId]) 切项目清空（他项目残影=误导面禁）；
- *   - 非 lazy（无 echarts 大件——普通导入）；
+ *   - App 级 LazyPane 懒边界（本批 FE-2；pane 内无 echarts 大件普通导入）；
  *   - TASK_EVENT 事件桥监听（第五处监听——常量已收口 shared/events[S12]
  *     ——D7 勘误措辞；ParamForm dispatch/solutionsPane/elevationPane/
  *     costPane 四处先例）→invalidate ["/api/exports"] 前缀键=导出列表键
@@ -24,7 +24,13 @@
  *     由 costPane 第四处事件桥 invalidate 同键缓存联动——注记如实）；
  *   - 工况/单元源查询错误分级呈现（costPane R3 同款口径）：工况源 404
  *     （CostSourceNotFoundError——无 done calc，与导出能力同根）附
- *     「先提交计算」引导；网络错/窄化错不挂误导 hint；
+ *     「先提交计算」引导；网络错/窄化错不挂误导 hint；R3 F1''（2026-09-30
+ *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
+ *     完成的计算结果。」+NO_CALC_HINT（exports/unit 分支不在本笔——
+ *     ExportSourceNotFoundError 面=服务端文案独立批裁量）；
+ *   - FE-2（批 2026-09-30）：DrawingPreview 懒加载（import 链
+ *     DrawingPreview→dxfScene→dxf-parser 随动切异步 chunk——主包减半；
+ *     fallback=「图纸预览加载中…」薄 div）；
  *   - UX1 D3 单元 Select 可投影面过滤：ExportButton units=node.kind ∈
  *     目录 builtin 集（useUnitCatalog——同键 ['/api/units'] 缓存共享）
  *     之外的可投影单元（inlet 等内置节点不再混入——FE9 挂账[默认首选
@@ -36,12 +42,11 @@
  *     data 未到时 rows=[] 非空态语义，不误显引导）；ErrorBoundary
  *     label=图纸预览。
  */
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Alert, Spin, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ExportButton } from "../features/drawings/components/ExportButton";
-import { DrawingPreview } from "../features/drawings/components/DrawingPreview";
 import { SheetList } from "../features/drawings/components/SheetList";
 import {
   useConditionOptions,
@@ -62,7 +67,14 @@ const NO_PROJECT_HINT =
 
 /** 工况源 404 引导（无 done calc——先提交计算；与导出 404 面同根语义）。 */
 const NO_CALC_HINT =
-  "——请先提交计算（POST /api/calc/run）完成后再回本标签导出图纸。";
+  "——请先在工艺画布工具条提交计算，完成后再回本标签导出图纸。";
+
+/** DrawingPreview 懒装载器（FE-2——dxf-parser 链随动异步 chunk）。 */
+const DrawingPreview = lazy(() =>
+  import("../features/drawings/components/DrawingPreview").then((m) => ({
+    default: m.DrawingPreview,
+  })),
+);
 
 export function DrawingsPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
@@ -124,14 +136,15 @@ export function DrawingsPane() {
         {conditionQuery.isError ? (
           <Typography.Paragraph type="danger">
             工况清单取数失败：
-            {conditionQuery.error instanceof Error
-              ? conditionQuery.error.message
-              : "未知错误"}
-            {/* 工况源 404=无 done calc（与导出能力同根）才附引导——网络错不挂 */}
+            {/* R3 F1''（门二 CONFIRMED）：领域码 404 面不透 raw message
+                （含 API 句式/项目 hash）——固定摘要+引导；网络错保持 raw
+                透出（I-3 分级口径） */}
             {conditionQuery.error instanceof WaterprintApiError &&
             conditionQuery.error.code === "CostSourceNotFoundError"
-              ? NO_CALC_HINT
-              : null}
+              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
+              : conditionQuery.error instanceof Error
+                ? conditionQuery.error.message
+                : "未知错误"}
           </Typography.Paragraph>
         ) : null}
         {unitQuery.isError ? (
@@ -177,11 +190,13 @@ export function DrawingsPane() {
               onSelect={setSelectedKey}
             />
             <div style={{ marginTop: 16 }}>
-              <DrawingPreview
-                row={selected}
-                scene={preview?.scene ?? null}
-                sceneError={preview?.sceneError ?? null}
-              />
+              <Suspense fallback={<div>图纸预览加载中…</div>}>
+                <DrawingPreview
+                  row={selected}
+                  scene={preview?.scene ?? null}
+                  sceneError={preview?.sceneError ?? null}
+                />
+              </Suspense>
             </div>
           </>
         )}

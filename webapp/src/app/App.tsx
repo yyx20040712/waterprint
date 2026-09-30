@@ -35,7 +35,7 @@
  *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4：默认标签首屏
  *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
  *     siteplan 标签=SiteplanPane（M3：design.site 厂区布置编辑器——原生
- *     SVG 自绘零新依赖，?project= 只读订阅+空态引导，不 lazy 无大件）；
+ *     SVG 自绘零新依赖，?project= 只读订阅+空态引导）；
  *     solutions 标签=SolutionsPane（FE6：单单元枚举提交→SSE 任务进度→
  *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
  *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
@@ -44,7 +44,7 @@
  *   2026-09-12：结果可信度报告——ADR-012 D8 第八标签，全工况聚合
  *   无工况切换）；cost 标签=CostPane（FE8：
  *     latest done calc 四模块概算装配——分级汇总表+可折叠溯源+指标
- *     对照卡+工况切换，非 lazy 无大件，"wp:task" 事件桥第四处）；
+ *     对照卡+工况切换，"wp:task" 事件桥第四处）；
  *     drawings 标签=DrawingsPane（FE9：dxf 单元图导出+产物目录+元数据
  *     预览卡——工况/单元源 cost/projects 同键缓存共享，"wp:task" 事件
  *     桥第五处）；占位屏组件随 FE9 退役删除（宪法 §2 死代码即删——
@@ -78,19 +78,19 @@
  *     品牌区=水滴标（radial-gradient+鎏金描边阴影）+「智水蓝图
  *     WaterPrint」双语名；顶栏底=wp-gold-edge 鎏金收边线（global.css）；
  *     StatusBar 挂根 Layout 内（flex 列末项——100vh 内不被推出视口）；
- *     Sider 宽 280→232+去 theme light（token siderBg 承载）。
+ *     Sider 宽 280→232+去 theme light（token siderBg 承载）；
+ *   - FE-2（批 2026-09-30）：九非 canvas 页签 React.lazy+Suspense 逐 pane
+ *     包裹（首激活才拉 chunk——主包减半；canvas 默认标签首屏直渲染
+ *     不懒[既有规格 D4]；fallback=PaneLoading 薄组件，禁 Tabs 外层单包
+ *     ——fallback 会吞掉页签头）；R1/R2：逐 pane ErrorBoundary 隔离可
+ *     重试+首帧门随项目复位。
  */
 import { FolderOpenOutlined, MessageOutlined, SettingOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
-import { Button, Layout, Tabs, Typography } from "antd";
+import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
+import { Button, Layout, Spin, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
-import { ComparePane } from "./comparePane";
-import { CostPane } from "./costPane";
-import { TrustPane } from "./trustPane";
-import { OpsDebugPane } from "./opsDebugPane";
-import { DrawingsPane } from "./drawingsPane";
-import { ElevationPane } from "./elevationPane";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
 import type { AppRoute } from "./router";
@@ -102,18 +102,62 @@ import {
   parseTokenParam,
   withTabParam,
 } from "./projectParam";
-import { SiteplanPane } from "./siteplanPane";
-import { SolutionsPane } from "./solutionsPane";
 import { StatusBar } from "./statusBar";
 import { TokenSettingsModal } from "./tokenSettingsModal";
 import { UnitLibrary } from "./unitLibrary";
-import { Viewer3dPane } from "./viewer3dPane";
 import { AiConnectButton } from "../features/aiconnect/components/AiConnectButton";
 import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal";
 import { ChatPane } from "../features/ai_chat/components/ChatPane";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
+
+/** FE-2（brief P1）：九 pane 懒装载器（模块级具名常量——then 包装取
+ *  named export；canvas 不懒=D4 既有规格）。R1 F2：loader 形态供 LazyPane
+ *  以新 lazy 实例重建（chunk 失败重试），懒常量退役。 */
+const siteplanLoader = () => import("./siteplanPane").then((m) => ({ default: m.SiteplanPane as ComponentType }));
+const solutionsLoader = () => import("./solutionsPane").then((m) => ({ default: m.SolutionsPane as ComponentType }));
+const viewer3dLoader = () => import("./viewer3dPane").then((m) => ({ default: m.Viewer3dPane as ComponentType }));
+const elevationLoader = () => import("./elevationPane").then((m) => ({ default: m.ElevationPane as ComponentType }));
+const drawingsLoader = () => import("./drawingsPane").then((m) => ({ default: m.DrawingsPane as ComponentType }));
+const costLoader = () => import("./costPane").then((m) => ({ default: m.CostPane as ComponentType }));
+const compareLoader = () => import("./comparePane").then((m) => ({ default: m.ComparePane as ComponentType }));
+const trustLoader = () => import("./trustPane").then((m) => ({ default: m.TrustPane as ComponentType }));
+const opsDebugLoader = () => import("./opsDebugPane").then((m) => ({ default: m.OpsDebugPane as ComponentType }));
+
+/** 页签装载占位（FE-2——Spin 居中+统一文案，薄组件）。 */
+function PaneLoading() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        minHeight: 240,
+      }}
+    >
+      <Spin />
+      <span>页面加载中…</span>
+    </div>
+  );
+}
+
+/** 懒页签隔离壳（R1 F2=viewer3dPane R1 先例泛化）：lazy 实例持入 state
+ *  ——React.lazy 的 thenable 跨挂载持久，chunk 拉取失败后复位边界不重执
+ *  行 import，重试经 ErrorBoundary onRetry 以新 lazy(load) 实例重建；
+ *  单 pane chunk 失败只打掉该页签可重试，不冒泡根边界（main.tsx 根
+ *  边界=P1-1 既有最后防线不变）。 */
+function LazyPane({ label, load }: { label: string; load: () => Promise<{ default: ComponentType }> }) {
+  const [Pane, setPane] = useState(() => lazy(load));
+  return (
+    <ErrorBoundary label={label} onRetry={() => setPane(lazy(load))}>
+      <Suspense fallback={<PaneLoading />}>
+        <Pane />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 const { Sider, Content, Header } = Layout;
 
@@ -354,47 +398,47 @@ export function App() {
                 {
                   key: "siteplan",
                   label: "厂区布置",
-                  children: <SiteplanPane />,
+                  children: <LazyPane label="厂区布置" load={siteplanLoader} />,
                 },
                 {
                   key: "solutions",
                   label: "方案浏览",
-                  children: <SolutionsPane />,
+                  children: <LazyPane label="方案浏览" load={solutionsLoader} />,
                 },
                 {
                   key: "viewer3d",
                   label: "三维视图",
-                  children: <Viewer3dPane />,
+                  children: <LazyPane label="三维视图" load={viewer3dLoader} />,
                 },
                 {
                   key: "elevation",
                   label: "高程纵断",
-                  children: <ElevationPane />,
+                  children: <LazyPane label="高程纵断" load={elevationLoader} />,
                 },
                 {
                   key: "drawings",
                   label: "图纸预览",
-                  children: <DrawingsPane />,
+                  children: <LazyPane label="图纸预览" load={drawingsLoader} />,
                 },
                 {
                   key: "cost",
                   label: "概算",
-                  children: <CostPane />,
+                  children: <LazyPane label="概算" load={costLoader} />,
                 },
                 {
                   key: "compare",
                   label: "工况对比",
-                  children: <ComparePane />,
+                  children: <LazyPane label="工况对比" load={compareLoader} />,
                 },
                 {
                   key: "trust",
                   label: "可信度",
-                  children: <TrustPane />,
+                  children: <LazyPane label="可信度" load={trustLoader} />,
                 },
                 {
                   key: "opsdebug",
                   label: "诊断",
-                  children: <OpsDebugPane />,
+                  children: <LazyPane label="诊断" load={opsDebugLoader} />,
                 },
               ]}
             />

@@ -18,8 +18,12 @@
  *     千分位；score null=「（缺失）」诚实呈现；降权=「敏感工况失守」；
  *   - 三图：帕累托前沿图（前沿集挂载方算一次——换轴不重算）/平行坐标图
  *     （分档+虚线）/龙卷风（方案选择器默认首位）；
- *   - Tabs forceRender（SSR 全页签渲染+页签切换零重挂）。
+ *   - Tabs forceRender（SSR 全页签渲染+页签切换零重挂）；
+ *   - FE-2（批 2026-09-30）：三图表组件各自 React.lazy+Suspense（echarts
+ *     随动切异步 chunk——主包减半；fallback=「图表加载中…」薄 div；
+ *     forceRender 语义保持——首挂全取，chunk 单次拉取）。
  */
+import { lazy, Suspense } from "react";
 import { Card, Table, Tabs, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
@@ -29,9 +33,22 @@ import type { SensitivityReportView } from "../lib/sensitivityView";
 import { comboSummaryText, paretoFront } from "../lib/jointCharts";
 import { formatSolutionValue } from "../lib/solutionsView";
 import { DiagnosisPanel } from "./DiagnosisPanel";
-import { ParetoChart } from "./ParetoChart";
-import { ParallelCoordsChart } from "./ParallelCoordsChart";
-import { TornadoChart } from "./TornadoChart";
+
+/** 三图表懒装载器（FE-2——echarts 异步 chunk 边界，逐组件独立 lazy）。 */
+const ParetoChart = lazy(() =>
+  import("./ParetoChart").then((m) => ({ default: m.ParetoChart })),
+);
+const ParallelCoordsChart = lazy(() =>
+  import("./ParallelCoordsChart").then((m) => ({ default: m.ParallelCoordsChart })),
+);
+const TornadoChart = lazy(() =>
+  import("./TornadoChart").then((m) => ({ default: m.TornadoChart })),
+);
+
+/** 图表装载占位（FE-2——薄 div 统一文案）。 */
+function ChartLoading() {
+  return <div>图表加载中…</div>;
+}
 
 /** 表行模型（combo 随行——渲染函数消费）。 */
 type ComboRow = { key: number; rank: number; combo: JointComboView };
@@ -130,24 +147,34 @@ export function JointSolutionsPanel({
             key: "pareto",
             label: "帕累托前沿图",
             forceRender: true,
-            children: <ParetoChart combos={result.combos} front={paretoFront(result.combos)} />,
+            children: (
+              <Suspense fallback={<ChartLoading />}>
+                <ParetoChart combos={result.combos} front={paretoFront(result.combos)} />
+              </Suspense>
+            ),
           },
           {
             key: "parallel",
             label: "平行坐标图",
             forceRender: true,
-            children: <ParallelCoordsChart combos={result.combos} />,
+            children: (
+              <Suspense fallback={<ChartLoading />}>
+                <ParallelCoordsChart combos={result.combos} />
+              </Suspense>
+            ),
           },
           {
             key: "tornado",
             label: "敏感性龙卷风图",
             forceRender: true,
             children: (
-              <TornadoChart
-                combos={result.combos}
-                sensitivity={sensitivity}
-                sensitivityIssue={sensitivityIssue}
-              />
+              <Suspense fallback={<ChartLoading />}>
+                <TornadoChart
+                  combos={result.combos}
+                  sensitivity={sensitivity}
+                  sensitivityIssue={sensitivityIssue}
+                />
+              </Suspense>
             ),
           },
         ]}

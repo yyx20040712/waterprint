@@ -57,7 +57,9 @@
 | `lib/projectSceneFixtures.ts` | 投影层测试夹具工厂（B3 R6 三分拆出：fixture() 基准场景+FixtureNode 类型+VERSION 锚串——纯工厂零断言零 import 自足，core/layers 两测试件共用） |
 | `lib/projectScene.core.test.ts` | 投影层 vitest·核心面（B3 R6 三分：SCENE_VERSION 门/五 kind 完备映射/摆置确定性/语义 token 色值隔离/root 序一致性五 describe——用例随迁零增减） |
 | `lib/projectScene.layers.test.ts` | 投影层 vitest·图层扩展面（B3 R6 三分：L5R 非默认变换门/L5b 红线分组/L6 条带 strip/Internals 图元选择〔动态 import 随块整迁〕/UX2 bounds 聚合/L5R 换轴锚六 describe——用例随迁零增减） |
-| `components/Scene.tsx` | R3F Canvas（灯光/相机预设/剖切平面挂载+五组渲染器+图层消费+OrbitControls 漫游座）；C2-visual F9：摆放态横幅；C2VD V3：solids 挂 edges 描边（L2 对比度收口）；批3 迭代二：草地=可隐藏图层（地面条件挂载+底/雾色随开关切深蓝工程底——用户批注 b-①）+网格回蓝 #3d619c/#1b2c49 |
+| `components/Scene.tsx` | R3F Canvas（灯光/相机预设/剖切平面挂载+五组渲染器+图层消费+OrbitControls 漫游座）；C2-visual F9：摆放态横幅；C2VD V3：solids 挂 edges 描边（L2 对比度收口）；批3 迭代二：草地=可隐藏图层（地面条件挂载+底/雾色随开关切深蓝工程底——用户批注 b-①）+网格回蓝 #3d619c/#1b2c49；FE-4 批（2026-09-30）：首帧门消费（relative 容器+overlay+Canvas 内 FirstFrameSignal——数据就绪→首帧空窗反馈，净增 10 行贴预算） |
+| `components/FirstFrameGate.tsx` | FE-4 批新件（2026-09-30）：三维首帧门——createFirstFrameGate 纯核（闭包状态单元，signal 幂等：重复调用零再通知）+useFirstFrameGate 薄适配（useSyncExternalStore 返回 [done, signal]）+FirstFrameOverlay 薄壳（role="status" Spin+「正在构建三维场景…」absolute 覆盖 Canvas 区，首帧即卸载）+FirstFrameSignal 薄壳（Canvas 内 useFrame 首帧回调一次触发——ref 守卫+幂等双保险） |
+| `components/FirstFrameGate.test.tsx` | FE-4 批新件（2026-09-30）：首帧门测试——纯核三断言（初值 false/signal 翻 true/幂等通知恰一次）+hook SSR 初值探针+overlay role/文案契约（5 用例——以 vitest 实跑为准；TDD 红→绿→变异红实录见 .workflow/report-FE-20260930.md） |
 | `components/ViewerToolbar.tsx` | 批3 迭代二抽件（Scene 行数预算门 500）：preset 按钮组+图层开关面（草地/水面/内部构件/标注 Checkbox——store 三键补 UI 调用方+草地新增层；ENG6 四字标签坑纪律沿用） |
 | `components/PoolBox.tsx` | 池体/渠道/地面渲染器（box/cylinder/plane/extrusion 四 kind；semanticColor 语义色查表；rotation 直消费；C2VD：几何=solidGeometry 单源规格+imperative useMemo+卸载 dispose+**材质级 clippingPlanes 勘正**[旧 mesh 级摊派 R3F 静默无效——半剖/§12.3 剖切此前对本组件从未生效；四 kind 全接]+可选 edges 描边[EdgesGeometry 阈值 30°+语义色 multiplyScalar 派生亮化+polygonOffset 共面深度竞争修复——主视图挂缺省 false 缩略图零回归]） |
 | `components/WaterSurface.tsx` | 水面（半透明+透明度脉动；蓝水线语义色；rotation 直消费；C2-visual T2：材质 DoubleSide——剖切语境内面可见[预设机位零观感变化；漫游至水下时水面转可见——改进向]） |

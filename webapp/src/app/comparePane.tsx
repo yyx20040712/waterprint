@@ -27,7 +27,11 @@
  *     嵌套 antd Tabs 属禁用面 GC-08）+双页体 display 切换恒挂载；
  *     CheckedUnitsPanel 勾选→PUT→invalidate→矩阵列联动同面板闭环；
  *   - 件 1 中文化：锁定条 Checkbox/失效工况提示=conditionLabel 词典
- *     （工程全称+悬浮原始键——用户裁定）。
+ *     （工程全称+悬浮原始键——用户裁定）；
+ *   - R3b（2026-09-30 门二 CONFIRMED 补笔）：领域码面不透 raw message
+ *     ——CompareSourceNotFoundError 命中显固定摘要「项目暂无完成的计算
+ *     结果。」+NO_CALC_HINT（R3 F1'' 四 pane 同款——服务端 message 含
+ *     API 句式/项目 hash 不入用户面）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Checkbox, Segmented, Typography, message } from "antd";
@@ -197,12 +201,15 @@ export function ComparePane() {
           {query.isError ? (
             <Typography.Paragraph type="danger">
               多工况对比报告取数失败：
-              {query.error instanceof Error ? query.error.message : "未知错误"}
-              {/* 仅 404 无 done calc 面附引导——网络错/窄化错不挂（trustPane 同款） */}
+              {/* R3b（门二 CONFIRMED）：领域码 404 面不透 raw message（含
+                  API 句式/项目 hash）——固定摘要+引导；网络错/窄化错保持
+                  raw 透出（I-3 分级口径，R3 F1'' 四 pane 同款） */}
               {query.error instanceof WaterprintApiError &&
               query.error.code === "CompareSourceNotFoundError"
-                ? NO_CALC_HINT
-                : null}
+                ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
+                : query.error instanceof Error
+                  ? query.error.message
+                  : "未知错误"}
             </Typography.Paragraph>
           ) : report === null ? (
             <Typography.Paragraph type="secondary">正在加载多工况对比报告…</Typography.Paragraph>

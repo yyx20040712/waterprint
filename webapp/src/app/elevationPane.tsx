@@ -30,8 +30,10 @@
  *     查询 error 分级（R3/zM-2 修复 2026-08-29）：仅当
  *     WaterprintApiError.code==="ElevationSourceNotFoundError"（404 无
  *     done calc）才附「先提交计算」引导——网络错/窄化 ElevationViewError
- *     不挂误导 hint（简报 D1 引导语口径针对 404 面）；ErrorBoundary
- *     label=高程纵断。
+ *     不挂误导 hint（简报 D1 引导语口径针对 404 面）；R3 F1''（2026-09-30
+ *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
+ *     完成的计算结果。」+NO_CALC_HINT（服务端 message 含 API 句式/项目
+ *     hash 不入用户面）；ErrorBoundary label=高程纵断。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Alert, Typography } from "antd";
@@ -57,7 +59,7 @@ const NO_PROJECT_HINT =
 
 /** 404 引导（无 done calc——先提交计算）。 */
 const NO_CALC_HINT =
-  "——请先提交计算（POST /api/calc/run）完成后再回本标签查看纵断。";
+  "——请先在工艺画布工具条提交计算，完成后再回本标签查看纵断。";
 
 export function ElevationPane() {
   // S3 读方：hook 订阅——写方切项目后 ?project= 响应（查询键随态变 refetch）
@@ -104,14 +106,15 @@ export function ElevationPane() {
         {query.isError ? (
           <Typography.Paragraph type="danger">
             纵断取数失败：
-            {query.error instanceof Error
-              ? query.error.message
-              : "未知错误"}
-            {/* R3（zM-2）：仅 404 无 done calc 面附引导——网络错/窄化错不挂 */}
+            {/* R3（zM-2）+F1''（门二 CONFIRMED）：领域码 404 面不透 raw
+                message（含 API 句式/项目 hash）——固定摘要+引导；网络错/
+                窄化错保持 raw 透出（I-3 分级口径） */}
             {query.error instanceof WaterprintApiError &&
             query.error.code === "ElevationSourceNotFoundError"
-              ? NO_CALC_HINT
-              : null}
+              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
+              : query.error instanceof Error
+                ? query.error.message
+                : "未知错误"}
           </Typography.Paragraph>
         ) : view === null ? (
           <Typography.Paragraph type="secondary">
