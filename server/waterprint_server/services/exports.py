@@ -155,6 +155,9 @@ from waterprint_server.jobs.export_render import _render_artifact
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
 from waterprint_server.services._shared.latest_calc import latest_calc_result
+from waterprint_server.services.exports_gates import (  # R2 回炉拆件：预校验闸域
+    reject_bad_route_options,
+)
 from waterprint_server.services.exports_io import (  # TD1 PD4-bis：IO 支撑域伴生件
     _post_export_dwg,
     _reject_conflicting_batch_pairs,
@@ -179,7 +182,6 @@ from waterprint_server.services.exports_support import (
     _sheet_of,
     _station_text_of,
     _unit_id_of,
-    reject_bad_route_options,
 )
 from waterprint_server.services.projects import _JSON_KWARGS, read_project
 
@@ -395,6 +397,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         ) from exc
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
+    # R1 回炉（门一双审 d1-W1+k2-W2）：单项（≤即时上限）跨 kind——渲染/
+    # 模板/DWG 挂点/句柄/注册表 kind 全部对齐 items[0] 归一后 kind（端点
+    # kind 仅 _KINDS 白名单校验；与批量路径逐项按 item kind 渲染的既有
+    # 语义统一——渲染按端点 kind 而命名按 item kind=跨 kind 静默错产物
+    # 缺陷收口；calcbook item 模板存在性闸随 kind 对齐在此面触发）。
+    item_kind = str(items[0].get("kind", ""))
+    item_template = str(_template_for(ctx, item_kind))
     # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
     # SC1 D7/M5+SVRB：ifc·dxf 族 kwargs 组装（assumptions/site_design——
     # 迁 jobs/export_kwargs.py，worker 批量面共享真源）。exp-audit-20260930：
@@ -402,10 +411,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # ——server→flows 合法，jobs 同款]；余 kind→app.export_artifact+kwargs
     # 组装单源——单产物/批量两路径防双源）。
     _render_artifact(
-        kind,
+        item_kind,
         project,
         plant,
-        Path(template),
+        Path(item_template),
         tmp,
         # SVRB D1：unit 归一后逐项真源（items 恒 1 项——item 覆盖批级同语义）。
         unit_id=str(items[0].get("unit_id") or "") or None,
@@ -421,10 +430,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     os.replace(tmp, out)
     # WP0 挂点（落盘后/边车前）：dxf 可选转 DWG，失败=跳过（DXF 不可破）。
     # 〔边车奇态显式接受·ENG-L 归一 2026-09-09〕
-    dwg_name = _post_export_dwg(ctx, kind, out)
+    dwg_name = _post_export_dwg(ctx, item_kind, out)
     meta = ExportMeta(
         project_id=project_id,
-        kind=kind,
+        kind=item_kind,
         condition_key=condition_key,
         file_name=names[0],
         design_digest=result_digest,
@@ -443,7 +452,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             )
     return ExportHandle(
         project_id=project_id,
-        kind=kind,
+        kind=item_kind,
         condition_key=condition_key,
         path=str(out),
         design_digest=result_digest,

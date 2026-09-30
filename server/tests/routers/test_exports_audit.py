@@ -287,3 +287,119 @@ async def test_audit_mixed_batch_no_inherit_and_worker_branch_wiring(  # type: i
         test_settings.exports_dir / html_names[0]
     ).read_text(encoding="utf-8")
     assert b"AC1032" in (test_settings.exports_dir / dxf_names[0]).read_bytes()[:512]
+
+
+@pytest.mark.anyio
+async def test_audit_artifact_download_html_suffix_flow_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """R4 回炉（门二 k2-N4①/d1-N5①）：audit 产物下载闸——DOWNLOAD_SUFFIXES
+    派生含 .html 的新路径实证：GET /api/exports/{file_name} → 200 text/html
+    +响应字节==落盘产物（下载流=落盘件读取）。"""
+    project_id, _task_id = await _project_with_result(client)
+    fresh = await client.post("/api/exports/audit", json={"project_id": project_id})
+    assert fresh.status_code == status.HTTP_200_OK
+    file_name = _disposition_name(fresh)
+    downloaded = await client.get(f"/api/exports/{file_name}")
+    assert downloaded.status_code == status.HTTP_200_OK
+    assert downloaded.headers["content-type"].startswith("text/html")  # 后缀闸放行+媒体型
+    assert downloaded.content == (  # 字节==落盘产物（非重渲染/非占位）
+        test_settings.exports_dir / file_name
+    ).read_bytes()
+
+
+@pytest.mark.anyio
+async def test_single_item_kind_drives_render_and_registry_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """R1 回炉（门一双审 d1-W1+k2-W2）：单项（≤即时上限）跨 kind——渲染/
+    模板/句柄/注册表 kind 全对齐 items[0] 归一后 kind（端点 kind 仅白名单
+    校验；渲染按端点 kind 而命名按 item kind=跨 kind 静默错产物收口）。"""
+    project_id, _task_id = await _project_with_result(client)
+    cross_html = await client.post(  # /dxf 端点+单项 audit：DXF 字节曾写入 -audit-*.html 名
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "options": {"items": [{"kind": "audit"}]},
+        },
+    )
+    assert cross_html.status_code == status.HTTP_200_OK
+    assert cross_html.headers["content-type"].startswith("text/html")  # 渲染=item kind
+    assert "公式溯源审计报告" in cross_html.content.decode("utf-8")
+    assert _disposition_name(cross_html).endswith(".html")  # 命名=item kind（同源）
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "audit"]
+    assert len(rows) == 1 and rows[0]["file_name"] == _disposition_name(cross_html)
+    cross_book = await client.post(  # /audit 端点+单项 calcbook（模板=conftest 夹具在场）
+        "/api/exports/audit",
+        json={
+            "project_id": project_id,
+            "options": {"items": [{"kind": "calcbook", "condition_key": "design"}]},
+        },
+    )
+    assert cross_book.status_code == status.HTTP_200_OK
+    assert cross_book.headers["content-type"].startswith("application/vnd")  # xlsx 媒体型
+    assert _disposition_name(cross_book).endswith(".xlsx")
+    assert (test_settings.exports_dir / _disposition_name(cross_book)).is_file()
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    book_rows = [meta for meta in metas.json() if meta["kind"] == "calcbook"]
+    assert len(book_rows) == 1  # 注册表 kind= item kind（曾记端点 kind=audit）
+
+
+@pytest.mark.anyio
+async def test_audit_route_keys_and_typed_unit_rejected_422_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """R2 回炉（k2-W1+d1-N1）：audit 闸扩六路由键+unit_id 类型收死。
+    ①item 级 audit 携 sheet 等六键任一非空 → 422；②纯 audit 批批级六键
+    任一非空 → 422；③unit_id 判据收死（键在场非 None 非空串即拒——
+    unit_id=123 非字符串同样拒，批级同款）；④混装批批级路由键不拒
+    （dxf 项合法消费、audit 项归一层置空——既有混装语义零回归）。"""
+    project_id, _task_id = await _project_with_result(client)
+    exports_dir = test_settings.exports_dir
+    before = sorted(os.listdir(exports_dir))
+    item_sheet = await client.post(
+        "/api/exports/audit",
+        json={"project_id": project_id,
+              "options": {"items": [{"kind": "audit", "sheet": "profile"}]}},
+    )
+    assert item_sheet.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert "sheet" in str(item_sheet.json()["detail"])  # 中文指路（键名定位）
+    batch_scale = await client.post(  # 纯 audit 批批级 h_scale → 422
+        "/api/exports/audit",
+        json={"project_id": project_id,
+              "options": {"h_scale": "100", "items": [{"kind": "audit"}]}},
+    )
+    assert batch_scale.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    typed_unit = await client.post(  # item 级 unit_id=123（非字符串）→ 422（曾静默过）
+        "/api/exports/audit",
+        json={"project_id": project_id,
+              "options": {"items": [{"kind": "audit", "unit_id": 123}]}},
+    )
+    assert typed_unit.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert "unit_id" in str(typed_unit.json()["detail"])
+    batch_typed_unit = await client.post(  # 纯 audit 批批级 unit_id=123 → 422（批级同款）
+        "/api/exports/audit",
+        json={"project_id": project_id,
+              "options": {"unit_id": 123, "items": [{"kind": "audit"}]}},
+    )
+    assert batch_typed_unit.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert sorted(os.listdir(exports_dir)) == before  # 拒绝即零落盘
+    mixed = await client.post(  # ④混装批批级 sheet 不拒：dxf 项继承出纵断、audit 项置空
+        "/api/exports/dxf",
+        json={
+            "project_id": project_id,
+            "options": {"sheet": "profile", "items": [
+                {"kind": "dxf", "condition_key": "design"},
+                {"kind": "audit"},
+            ]},
+        },
+    )
+    assert mixed.status_code == status.HTTP_200_OK
+    done = await _wait_task_terminal(client, str(mixed.json()["task_id"]))
+    assert done["state"] == "done" and len(done["result"]["files"]) == 2
+    listing = sorted(os.listdir(exports_dir))
+    assert len([n for n in listing if n.endswith(".html")]) == 1
+    dxf_name = next(n for n in listing if n.endswith(".dxf"))
+    assert "-dxf-profile-" in dxf_name  # dxf 项真继承批级 sheet（合法消费面）
+    assert b"AC1032" in (exports_dir / dxf_name).read_bytes()[:512]

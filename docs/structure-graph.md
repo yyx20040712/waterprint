@@ -203,7 +203,12 @@
 > （下载两闸常量 DOWNLOAD_SUFFIXES/_DOWNLOAD_STEM_PATTERN+ExportMeta+
 > raise 面两异常消费）。两边均在 `waterprint_server.services` 包节点
 > 内部（文件粒度），故不入上方边表而以本注记登记（ENG7 的 exports→
-> exports_support 既有同面边同此口径）。
+> exports_support 既有同面边同此口径）。R2 回炉拆件（2026-09-30）同款
+> 两边随注登记：`waterprint_server.services.exports` → `waterprint_server.
+> services.exports_gates`（预校验闸域拆件——reject_bad_route_options
+> import 随迁，消费面=create_export 唯一）与 `waterprint_server.services.
+> exports_gates` → `waterprint_server.services.exports_support`（提取件
+> _unit_id_of/_sheet_of+InvalidExportRequestError 消费）。
 
 ### 1c. 同层边声明块（唯一声明面——ADR-014；改此处后跑 scripts/gen_same_layer_edges.py 展开 pyproject）
 
@@ -280,8 +285,8 @@ glob = true
 | 全流程计算（F5） | `webapp/src/features/canvas` → `server/waterprint_server/routers/calc.py` → `server/waterprint_server/services/calculation.py` → `server/waterprint_server/jobs/manager.py` → `server/waterprint_server/jobs/worker.py` → `core/waterprint/app.py` → `core/waterprint/graph/executor.py` → `core/waterprint/units_lib`（各单元 compute）→ `core/waterprint/contracts/result_schema.py` → `core/waterprint/trace/collector.py`；进度经 `server/waterprint_server/routers/events.py`（SSE）推送 |
 | 方案枚举 | `webapp/src/features/solutions` → `server/waterprint_server/routers/calc.py` → `server/waterprint_server/services/enumeration.py` → `core/waterprint/app.py`（run_enumeration 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/solution/grid.py` → `core/waterprint/solution/enumerate.py` → `core/waterprint/solution/constraints.py` → `core/waterprint/solution/ranking.py`（无可行解走 `core/waterprint/solution/diagnose.py`） |
 | 可行域引导（FD） | `webapp/src/features/params/feasibility` → `server/waterprint_server/routers/calc.py`（asyncio.to_thread）→ `server/waterprint_server/services/design_map.py` → `core/waterprint/app.py`（run_design_map 用例，FD PD1~PD5 2026-09-10）→ `core/waterprint/solution/design_map.py`（轴解析+点数预算+双源掩码）→ `core/waterprint/solution/grid.py`（guard_base=False）→ `core/waterprint/solution/enumerate.py`（R1 单实现双用稠密求值）→ `core/waterprint/solution/constraints.py`（约束通过面） |
-| 导出计算书 | `webapp/src/features/drawings` → `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `core/waterprint/app.py`（export_artifact 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/trace/calcbook.py` → `data/templates`（模板驱动，禁 Excel 公式） |
-| 图纸导出（DXF） | `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `core/waterprint/app.py`（export_artifact 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/drafting/plan_view.py` / `core/waterprint/drafting/section_view.py` → `core/waterprint/drafting/dxf_writer.py`（全库唯一 ezdxf 接触点） |
+| 导出计算书 | `webapp/src/features/drawings` → `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `server/waterprint_server/jobs/export_render.py`（渲染分流件——单产物/批量统一经此，exp-audit-20260930）→ `core/waterprint/app.py`（export_artifact 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/trace/calcbook.py` → `data/templates`（模板驱动，禁 Excel 公式） |
+| 图纸导出（DXF） | `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `server/waterprint_server/jobs/export_render.py`（渲染分流件——单产物/批量统一经此，exp-audit-20260930）→ `core/waterprint/app.py`（export_artifact 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/drafting/plan_view.py` / `core/waterprint/drafting/section_view.py` → `core/waterprint/drafting/dxf_writer.py`（全库唯一 ezdxf 接触点） |
 | 审计报告导出（HTML，exp-audit-20260930） | `server/waterprint_server/routers/exports.py` → `server/waterprint_server/services/exports.py` → `server/waterprint_server/jobs/export_render.py`（渲染分流件——audit→flows/余 kind→app）→ `core/waterprint/flows/__init__.py`（audit_render_flow：discover_units 前置+render_audit_html+原子落盘）；批量面经 `server/waterprint_server/jobs/worker.py`（export_batch 逐项同分流）→ `core/waterprint/trace/audit.py`（自包含 HTML 渲染） |
 | 项目保存/加载 | `webapp/src/app` → `server/waterprint_server/routers/projects.py` → `server/waterprint_server/services/projects.py` → `core/waterprint/app.py`（load_project/save_project 用例，SENS-B 2026-08-23 UF-33）→ `core/waterprint/project/io.py` → `core/waterprint/project/content_hash.py`（dirty 判定）→ `core/waterprint/project/migration.py`（旧版本升级链） |
 | 管网水力子工具 | `core/waterprint/cli.py`（独立命令）→ `core/waterprint/network/excel_io.py` → `core/waterprint/network/solver.py` → `core/waterprint/network/manning.py`（不共享厂区图引擎） |

@@ -382,7 +382,8 @@ async def test_datum_form_regex_dual_source_mirror_wiring(client) -> None:  # ty
 
     from waterprint.app_export_options import _DATUM_VALUE_RE
 
-    from waterprint_server.services.exports_support import _DATUM_FORM_RE
+    # R2 回炉拆件（2026-09-30）：_DATUM_FORM_RE 随预校验闸族迁 exports_gates
+    from waterprint_server.services.exports_gates import _DATUM_FORM_RE
 
     samples = ("1053.2", "-3.5", "0", "1e3", "1_000", "１０", "abc", "-.5", "3.")
     for sample in samples:
