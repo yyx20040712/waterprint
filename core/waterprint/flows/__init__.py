@@ -213,8 +213,9 @@ def result_persist_flow(plant: PlantResult, out: Path) -> Path:
         tmp.write_bytes(serialize(plant))
         os.replace(tmp, out)
     # H5（exp-hygiene-20260930）：全异常清理——非 OSError 落盘期异常半写
-    # .tmp 曾残留（清理后 re-raise；BaseException 选形=避开宪法 §3 过宽
-    # 捕获字面禁令）。
+    # .tmp 曾残留（清理后 re-raise；BaseException 选形=任务书 P5 预裁决
+    # 授权〔回炉轮1 d1-N3 补注：re-raise 保传播，避开宪法 §3 过宽捕获
+    # 字面禁令〕）。
     except BaseException:
         with contextlib.suppress(OSError):
             os.remove(tmp)  # 半写 .tmp 不留（清理失败不遮蔽原异常）
@@ -303,7 +304,8 @@ def audit_render_flow(project: ProjectFile, plant: PlantResult, out: Path) -> Pa
         render_audit_html(plant.trace, plant, tmp)
         os.replace(tmp, target)
     # H5（exp-hygiene-20260930）：全异常清理——渲染期非 OSError 异常半写
-    # .tmp 曾残留（清理后 re-raise；与 result_persist_flow 同族两处一致）。
+    # .tmp 曾残留（清理后 re-raise；与 result_persist_flow 同族两处一致；
+    # BaseException 选形=任务书 P5 预裁决授权〔回炉轮1 d1-N3 补注〕）。
     except BaseException:
         with contextlib.suppress(OSError):
             os.remove(tmp)

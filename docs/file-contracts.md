@@ -187,7 +187,8 @@
 | `server/waterprint_server/jobs/enum_payload.py` | 枚举结果载荷组装件（ADR-018 D5 拆分 2026-09-12：diagnosis 序列化+grid_fields/dim_fields 列族投影+result dict 装配[+condition_keys 多工况键清单——calc 面同制]自 worker.py _run_enumerate 尾段整迁——worker 500 行预算减压[datapack/dwg 先例同制]；搬运零行为变化消费面=worker 唯一） | EnumerationOutcome+行文件句柄+payload+项目+工况集 | done 态 result 载荷 |
 | `server/tests/services/test_flows_hygiene.py` | flows 卫生面镜像测试（exp-hygiene-20260930 新增件：H5 audit_render_flow/result_persist_flow 半写 tmp 全异常清理断言+H2 trace.audit 异常族再导出恒等——render/serialize/discover_units 替身注入异常面） | waterprint.flows 公开符号 | 行为契约断言 |
 | `server/tests/jobs/test_worker_hygiene.py` | export_batch worker 卫生面镜像测试（exp-hygiene-20260930 新增件：H2 _ITEM_FAILURES 扩 flows 族三件项级收集不炸批+H1 通用边车分支落盘/K-02 取消守卫——前置束经命名空间导入共享自 test_worker_batch[pythonpath=. 先例]） | worker export_batch 面 | 行为契约断言 |
-| `server/tests/services/test_exports_hygiene.py` | exports 单产物两源收口镜像测试（exp-hygiene-20260930 新增件 H7：显式 items 渲染 kwargs condition_key/sheet 与命名/注册表三面同源对拍——_render_artifact 侦听替身；前置束共享自 test_exports） | services.exports 单产物段 | 行为契约断言 |
+| `server/tests/services/test_exports_hygiene.py` | exports 单产物两源收口镜像测试（exp-hygiene-20260930 新增件 H7：显式 items 渲染 kwargs condition_key/sheet 与命名/注册表三面同源对拍——_render_artifact 侦听替身；前置束共享自 test_exports；回炉轮1 R3 增 .meta.json 边车直读对拍+端点级种子归一回归锁两用例） | services.exports 单产物段 | 行为契约断言 |
+| `server/tests/routers/test_exports_exception_family.py` | exports 异常族端点面镜像测试（exp-hygiene-20260930 回炉轮1 新增件：R1 flows 三件 3/3 参数化真实链路 422 映射对拍〔TestClient POST /api/exports/audit+monkeypatch 逐族注入——替换 test_exports_audit.py 原 dict 轮询版〕+R2 estimate 诚实面〔未就绪项级失败收集+零产物零边车+余项照常〕；前置束共享自 test_exports_audit） | exports 端点异常族 | 行为契约断言 |
 
 ## 3. units_lib 单元包登记（按包，非逐文件）
 

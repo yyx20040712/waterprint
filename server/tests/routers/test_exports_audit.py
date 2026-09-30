@@ -447,38 +447,3 @@ async def test_mixed_batch_all_kinds_sidecars_registered_downloadable_wiring(  #
     products = sorted(os.listdir(test_settings.exports_dir))
     assert len([n for n in products if n.endswith(".meta.json")]) == 3  # 三边车各一
     assert not any("estimate" in n for n in products)  # estimate 零产物零边车
-
-
-@pytest.mark.anyio
-async def test_audit_render_exception_family_maps_422_wiring(  # type: ignore[no-untyped-def]
-    client, monkeypatch
-) -> None:
-    """H2（exp-hygiene-20260930）main_lib 映射面：单产物 audit 渲染期
-    flows 异常族三件（InvalidFlowError/InvalidAuditError/InvalidAuditPath
-    Error）→422 Unprocessable Content（GR-11 参数族——用户输入域非 500；
-    未映射前=裸 500 炸穿）。"""
-    from waterprint import flows
-
-    project_id, _task_id = await _project_with_result(client)
-    raised: dict[str, type[Exception]] = {
-        "flow": flows.InvalidFlowError,
-        "audit": flows.InvalidAuditError,
-        "path": flows.InvalidAuditPathError,
-    }
-    current: dict[str, object] = {"name": "flow"}
-
-    def _raise(project, plant, out):  # type: ignore[no-untyped-def]
-        raise raised[str(current["name"])]("injected render failure (H2 mapping)")
-
-    monkeypatch.setattr(flows, "audit_render_flow", _raise)
-    metas = await client.get("/api/exports", params={"project_id": project_id})
-    before = len(metas.json())
-    for key in ("flow", "audit", "path"):
-        current["name"] = key
-        response = await client.post(
-            "/api/exports/audit", json={"project_id": project_id}
-        )
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-        assert response.json()["error_type"] == raised[key].__name__  # 类名保真
-    metas = await client.get("/api/exports", params={"project_id": project_id})
-    assert len(metas.json()) == before  # 异常即零新产物入册

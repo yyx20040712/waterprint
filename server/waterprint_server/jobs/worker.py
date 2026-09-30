@@ -333,6 +333,9 @@ _EXPORT_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate",
 # H2（exp-hygiene-20260930）：flows 异常族三件追加（InvalidFlowError/
 # InvalidAuditError/InvalidAuditPathError——audit 项渲染期校验失败→项级
 # failures 收集不炸批；server 面经 flows 再导出取用，trace 禁直连）。
+# 〔回炉轮1 k2-N1 补注：flows 族=项级语义面（unit/condition/路径均项级
+# 意图域——单项校验失败不株连批内他项），故入项级收集；上方「批共因族
+# 不项捕」口径对本族不适用（H2 预裁决 P2 裁定言明）。〕
 _ITEM_FAILURES: Final[tuple[type[BaseException], ...]] = (
     OSError, RuntimeError, ValueError, KeyError, TypeError, core.ArtifactKindNotReady,
     flows.InvalidFlowError, flows.InvalidAuditError, flows.InvalidAuditPathError,
@@ -344,8 +347,9 @@ def _cancelled_outcome(
     payload: Mapping[str, Any], files: list[str], failures: list[dict[str, Any]]
 ) -> dict[str, Any]:
     """取消 outcome（SVRB D4+R 轮 R6：files/failures/project_id/design_digest
-    键对称——manager 灌入 result 的载荷源；EXP-HYGIENE 抽 helper 去四点内联
-    重复=语句预算减压）。"""
+    键对称——manager 灌入 result 的载荷源；EXP-HYGIENE 抽 helper 归一三点
+    存量内联〔循环首/dxf 分支/ifc 分支〕+通用分支新增位=四形一源，语句
+    预算减压——回炉轮1 k2-N1 勘正：非「存量四点」）。"""
     return {
         "state": "cancelled", "files": tuple(files), "failures": tuple(failures),
         "project_id": str(payload.get("project_id", "")),

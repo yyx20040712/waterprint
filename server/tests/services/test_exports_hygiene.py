@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -90,3 +91,43 @@ async def test_single_item_sheet_render_and_naming_same_source_wiring(
     name = Path(handle.path).name
     assert "-dxf-municipal_cass-design-" in name  # 命名=unit 项形态
     assert "profile" not in name  # 命名/渲染两源同拍（无 -profile- 段）
+
+
+async def test_single_item_meta_sidecar_condition_key_same_source_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """R3①（回炉轮1 d1-W5）：H7 ExportMeta 面——显式 items[{kind:dxf,
+    condition_key:X}] 单产物，落盘 .meta.json 的 condition_key==X
+    （与渲染 kwargs/命名三面同源对拍——边车直读非 list_exports 间接）。"""
+    project_id = await _project_with_result(service_ctx)
+    captured: list[dict[str, object]] = []
+    monkeypatch.setattr(_exports_mod, "_render_artifact", _capture_render(captured))
+    handle = await create_export(
+        service_ctx, project_id, "dxf", "design",
+        {"items": [{"kind": "dxf", "condition_key": "avg"}]},
+    )
+    assert captured[0]["condition_key"] == "avg"  # 渲染面=item 自有 X
+    assert "-dxf-avg-" in Path(handle.path).name  # 命名面=X
+    sidecar = json.loads(
+        Path(f"{handle.path}.meta.json").read_text(encoding="utf-8")
+    )
+    assert sidecar["condition_key"] == "avg"  # 边车/注册表面=X（三面同源）
+    assert sidecar["kind"] == "dxf"  # kind 面=items[0] kind（R1 回炉先例同源）
+
+
+async def test_endpoint_only_condition_key_seed_regression_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """R3②（回炉轮1 d1-W5）：批级-only 回归锁——无显式 items（端点
+    condition_key=Y）→渲染 kwargs 与落盘 .meta.json 均==Y（默认单 item
+    种子端点值=归一零回归；P4 改读 items[0] 的存量兼容面钉死）。"""
+    project_id = await _project_with_result(service_ctx)
+    captured: list[dict[str, object]] = []
+    monkeypatch.setattr(_exports_mod, "_render_artifact", _capture_render(captured))
+    handle = await create_export(service_ctx, project_id, "dxf", "design")  # 端点级 only
+    assert captured[0]["condition_key"] == "design"  # 渲染=端点种子值 Y
+    assert "-dxf-design-" in Path(handle.path).name  # 命名=Y
+    sidecar = json.loads(
+        Path(f"{handle.path}.meta.json").read_text(encoding="utf-8")
+    )
+    assert sidecar["condition_key"] == "design"  # 边车/注册表面=Y（零回归）
