@@ -126,7 +126,7 @@ curl "http://127.0.0.1:8000/api/scene/<project_id>?condition_key=design"
 控制）已实装为工作区「三维视图」标签（FE3 批：只读浏览+机位切换+
 URL `?project=` 联动）。
 
-### 3.5 出审计报告（CLI）
+### 3.5 出审计报告（CLI 与 API）
 
 审计报告经内核命令行生成（自包含 HTML，可离线打开、可直接打印）：
 
@@ -140,8 +140,8 @@ uv run python -m waterprint.cli export audit <project.json> <result.json> [--out
 结果文件同目录生成 `<名>.audit.html`。报告含工况分章的公式逐条表
 （表达式/输入值/输出值/条文出处）、汇总指标表与可复算三元组。
 
-> 说明：`POST /api/exports/audit` 端点当前返回 501（服务层导出通道
-> 归 M4 后续批），CLI 是审计报告的现行正门。
+> 说明：`POST /api/exports/audit` 自 2026-09-30 起返回真产物（`text/html`——渲染真源
+> 同 CLI，批量混装同款分流）；报告为全厂单份：`unit_id`/非空 `condition_key` 即 422 拒。
 
 ### 3.6 参数面板「可行域」引导（webapp，FD 批 2026-09-10）
 
@@ -455,7 +455,7 @@ FAQ 第 2 问）。
 | kind | 状态 | 说明 |
 |------|------|------|
 | calcbook | API 可用 | Excel 计算书（模板已录入 `data/templates`） |
-| audit | CLI 可用；API 501 | HTML 审计报告——`wp export audit` 正门（内联样式自包含）；API 通道未接线（诚实 501） |
+| audit | API 可用 | HTML 审计报告——`wp export audit` 与 `POST /api/exports/audit` 双正门（内联样式自包含；2026-09-30 起服务层接线 200）。全厂单份：`unit_id`/非空 `condition_key` 422 拒 |
 | dxf | API 可用 | CAD 图纸：全厂总图（`site_design` 载荷）或单单元图（`unit_id`）或**高程纵断面图**（`sheet: "profile"`——横纵比例可定制 `h_scale`/`v_scale`，如 `"h_scale":"2000"`；批量面 items 逐项 sheet/unit 混装支持）；DXF 落盘后可选子进程转 DWG（`dwg_converter_path` 开关，转换器不随产品分发） |
 | estimate | 501 | 概算书（概算核心已实现——`GET /api/cost/{id}` 数据面可用；导出渲染分支未接线，诚实 501） |
 | ifc | API 可用 | 全厂 IFC 模型（BIM 交换格式；单产物端点语义，批量项 unit 须一致） |

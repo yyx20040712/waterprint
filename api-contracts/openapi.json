@@ -4461,7 +4461,7 @@
     },
     "/api/exports/audit": {
       "post": {
-        "description": "HTML 审计报告（M4 归属——ArtifactKindNotReady→501 透传）。",
+        "description": "HTML 审计报告（全厂单份——unit_id/非空 condition_key 422 拒；stale 409/force 同族）。",
         "operationId": "export_audit_api_exports_audit_post",
         "parameters": [
           {

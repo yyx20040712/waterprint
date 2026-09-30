@@ -121,6 +121,15 @@
 #     IO/ctx 面；B7 D1「_write_meta 留守」内聚裁定随预算减压改裁，搬迁
 #     非删除调用面零变）；dwg_convert import 随 _post_export_dwg 迁（唯一
 #     services 消费方）；449 行→预算注记刷新。
+#   - EXP-AUDIT（2026-09-30 audit 501 收口批）：audit 渲染分流经 jobs/
+#     export_render._render_artifact（audit→flows.audit_render_flow[签名
+#     冻结——project 占位]；余 kind→app.export_artifact+_build_drawing_
+#     kwargs 组装单源——kwargs 调用面并入新件，单产物/批量两路径防双源
+#     ）；audit 后缀勘正 .html（exports_support._KIND_SUFFIXES——501 占位
+#     期名义 .xlsx 收口）；audit 选项闸（unit_id/非空 condition_key 整批
+#     422——端点级 condition_key 经 keyword 参入闸）+归一层 audit 项路由
+#     键置空（批级不继承）；item 级路由键归一抽 _route_keys_of 子函数
+#     （ENG7 P3b 预算减压先例同款——非 audit 归一行为零变）。
 #
 # 【测试要求】stale 拒绝与 force 标注、确定性命名、批量转任务。
 #
@@ -142,7 +151,7 @@ import structlog
 from waterprint import app as core
 from waterprint.contracts.result_schema import InvalidResultError, deserialize
 
-from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
+from waterprint_server.jobs.export_render import _render_artifact
 from waterprint_server.jobs.manager import TaskRequest
 from waterprint_server.services import ServiceContext
 from waterprint_server.services._shared.latest_calc import latest_calc_result
@@ -191,7 +200,53 @@ __all__ = [
 ]
 
 _IMMEDIATE_LIMIT: Final[int] = 1  # 单产物即时上限（R3 v1：超过即转任务）
+# exp-audit-20260930：item 级路由键全集（归一面键集单源——_route_keys_of）。
+_ROUTE_KEYS: Final[tuple[str, ...]] = (
+    "unit_id", "sheet", "h_scale", "v_scale",
+    "station_overrides", "water_level", "ground_elev",
+)
 _LOGGER = structlog.get_logger(__name__)
+
+
+def _route_keys_of(
+    item: Mapping[str, Any], chosen: Mapping[str, Any], unit_option: str | None
+) -> dict[str, str]:
+    """item 级路由键归一（SVRB D1/PROFILE3 PD2/批6i/批6j——item 覆盖批级）。
+
+    exp-audit-20260930：audit 项全键置空——全厂单份不继承批级路由键
+    （sheet 不继承先例同款；显式 unit/condition 意图已由预校验整批拒，
+    置空面=混装批批级继承屏蔽，非静默忽略）。
+    """
+    if str(item.get("kind", "")) == "audit":
+        return dict.fromkeys(_ROUTE_KEYS, "")
+    unit = _unit_id_of(item) or unit_option
+    return {
+        # SVRB D1：item 非空串优先（_unit_id_of 逐项校验），空串/缺省/
+        # None 回落批级（「item 覆盖批级」唯一语义——worker 面逐项读
+        # item.unit_id 天然兼容）。
+        "unit_id": unit or "",
+        # R 轮（D1-G1-03/A2-G1-02）：unit 项（item 级或批级 unit_id）不继承
+        # 批级 sheet——互斥语义在归一层贯彻（继承=制造必败项；显式 item
+        # 级共存已被 reject_bad_route_options 收单拒）。
+        "sheet": (_sheet_of(item) or (_sheet_of(chosen) if not unit else None)) or "",
+        # PROFILE3（PD2）：sheet/h/v 逐项归一（item 覆盖批级沿 unit_id
+        # 同语义）——批量混装命名/透传自洽的归一位（worker 面逐项读同键）。
+        "h_scale": _scale_text_of(item, "h_scale") or _scale_text_of(chosen, "h_scale") or "",
+        "v_scale": _scale_text_of(item, "v_scale") or _scale_text_of(chosen, "v_scale") or "",
+        # 批6i：站距覆盖 DSL 逐项归一（提取面零校验防双处漂移，域校验=
+        # 预校验+core 终闸双闸）。
+        "station_overrides": _station_text_of(item) or _station_text_of(chosen) or "",
+        # 批6j：进厂标高逐键归一（成对完整性由预校验在原始 source 级把守
+        # [批级/item 级各自成对或双空]，归一层逐键 OR 合并后恒保持成对性）。
+        "water_level": (
+            _datum_text_of(item, "water_level")
+            or _datum_text_of(chosen, "water_level") or ""
+        ),
+        "ground_elev": (
+            _datum_text_of(item, "ground_elev")
+            or _datum_text_of(chosen, "ground_elev") or ""
+        ),
+    }
 
 
 async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参惯例（PLR0915 已消——ENG7 P3b 抽批量对偶拒绝闸与 dxf kwargs 组装两子函数）
@@ -231,43 +286,13 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     sheet_option = _sheet_of(chosen) or next(
         (sheet for sheet in map(_sheet_of, items) if sheet), None
     )
-    reject_bad_route_options(chosen, items)  # PROFILE3（PD6+R 轮）：路由选项整批原子 422
-    # SVRB D1：items 逐项 unit_id 归一——item 非空串优先（_unit_id_of 逐项
-    # 校验），空串/缺省/None 回落批级（「item 覆盖批级」唯一语义；归一位
-    # 在本载荷构造处——worker 面逐项读 item.unit_id 天然兼容）。
-    # PROFILE3（PD2）：sheet/h/v 逐项归一（item 覆盖批级沿 unit_id SVRD
-    # 同语义）——批量混装命名/透传自洽的归一位（worker 面逐项读同键）。
-    items = [
-        {
-            **item,
-            "unit_id": _unit_id_of(item) or unit_option or "",
-            # R 轮（D1-G1-03/A2-G1-02）：unit 项（item 级或批级 unit_id）
-            # 不继承批级 sheet——互斥语义在归一层贯彻（继承=制造必败项；
-            # 显式 item 级共存已被 reject_bad_route_options 收单拒）。
-            "sheet": (_sheet_of(item) or (
-                _sheet_of(chosen) if not (_unit_id_of(item) or unit_option) else None
-            )) or "",
-            "h_scale": _scale_text_of(item, "h_scale") or _scale_text_of(chosen, "h_scale") or "",
-            "v_scale": _scale_text_of(item, "v_scale") or _scale_text_of(chosen, "v_scale") or "",
-            # 批6i：站距覆盖 DSL 逐项归一（item 覆盖批级沿 h/v 同语义——
-            # 提取面零校验防双处漂移，域校验=预校验+core 终闸双闸）。
-            "station_overrides": (
-                _station_text_of(item) or _station_text_of(chosen) or ""
-            ),
-            # 批6j：进厂标高逐键归一（item 覆盖批级沿 h/v 同语义——成对
-            # 完整性由预校验在原始 source 级把守[批级/item 级各自成对或
-            # 双空]，归一层逐键 OR 合并后恒保持成对性）。
-            "water_level": (
-                _datum_text_of(item, "water_level")
-                or _datum_text_of(chosen, "water_level") or ""
-            ),
-            "ground_elev": (
-                _datum_text_of(item, "ground_elev")
-                or _datum_text_of(chosen, "ground_elev") or ""
-            ),
-        }
-        for item in items
-    ]
+    reject_bad_route_options(  # PROFILE3（PD6+R 轮）：路由选项整批原子 422
+        chosen, items, condition_key=condition_key
+    )  # exp-audit-20260930：端点级 condition_key 入闸（audit 纯批意图拒）
+    # SVRB D1/PROFILE3（PD2）/批6i/批6j/exp-audit-20260930：item 级路由键
+    # 归一真源=_route_keys_of（item 覆盖批级；audit 项全键置空——全厂
+    # 单份不继承批级路由键；worker 面逐项读同键）。
+    items = [{**item, **_route_keys_of(item, chosen, unit_option)} for item in items]
     names = [
         _deterministic_name(
             project_id,
@@ -277,6 +302,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             # R1-3（G1-04）：ifc=全厂模型——unit 分量置 None（core 不消费
             # unit_id；同工况同结果字节相同文件名应相同）；SVRB：余 kind
             # 逐项 unit（D1 归一——批内 unit 一致小闸保 ifc 命名唯一）。
+            # exp-audit-20260930：audit 同族（预校验拒显式 unit 后归一层
+            # 置空→自然 None，零特判——_deterministic_name 现逻辑无需改）。
             unit_id=None if item_kind == "ifc" else (str(item.get("unit_id") or "") or None),
             # PROFILE3（PD2）：命名逐项化（批级 sheet_option 曾致混装批量
             # 非 sheet 项错带 -profile 段——解锁前置修复）。
@@ -369,11 +396,14 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     out = ctx.exports_dir / names[0]
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")  # M8-A/W3 唯一化
     # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
-    # SC1 D7/M5：ifc·dxf 族 kwargs 组装（assumptions/site_design——SVRB
-    # 迁 jobs/export_kwargs.py，worker 批量面共享真源）。
-    extra = _build_drawing_kwargs(kind, project)
-    core.export_artifact(
+    # SC1 D7/M5+SVRB：ifc·dxf 族 kwargs 组装（assumptions/site_design——
+    # 迁 jobs/export_kwargs.py，worker 批量面共享真源）。exp-audit-20260930：
+    # 渲染分流经 jobs/export_render（audit→flows.audit_render_flow[CLI 先例
+    # ——server→flows 合法，jobs 同款]；余 kind→app.export_artifact+kwargs
+    # 组装单源——单产物/批量两路径防双源）。
+    _render_artifact(
         kind,
+        project,
         plant,
         Path(template),
         tmp,
@@ -387,7 +417,6 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         # 批6j：进厂标高单产物面透传（归一空串→None；成对性预校验已把守）。
         water_level=str(items[0].get("water_level") or "") or None,
         ground_elev=str(items[0].get("ground_elev") or "") or None,
-        **extra,
     )
     os.replace(tmp, out)
     # WP0 挂点（落盘后/边车前）：dxf 可选转 DWG，失败=跳过（DXF 不可破）。

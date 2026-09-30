@@ -65,6 +65,11 @@
 #     再导出消费面经全仓 grep 实证为零；export_batch 域/run_task/
 #     _KIND_RUNNERS/进度基建/_PROGRESS_QUEUE 全留守（pickle 边界+manager
 #     直读两约束）——本注记留作编年史〕。
+#   - EXP-AUDIT（2026-09-30 audit 501 收口批）：export_batch 逐项渲染分流
+#     经 jobs/export_render._render_artifact（audit 项→flows.audit_render_
+#     flow——plant 复用同源 deserialize、project 复用批首 load_project
+#     通道[calc 先例]；余 kind→app.export_artifact+_build_drawing_kwargs
+#     组装调用面随新件并入——单产物路径共享真源防双源）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -98,7 +103,7 @@ from waterprint_server.jobs.export_batch_lib import (
     _stage_label,
     _write_sidecar_text,
 )
-from waterprint_server.jobs.export_kwargs import _build_drawing_kwargs
+from waterprint_server.jobs.export_render import _render_artifact
 from waterprint_server.settings import ENGINE_VERSION
 
 # 进度队列模块全局（R5：仅 initializer 赋值，导入期为 None——零副作用）。
@@ -356,14 +361,18 @@ def _run_export_batch(
         ), progress, condition_key)
         tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
         try:  # SVRB D4：单项异常→failures 收集继续（部分失败=done+failures）
-            core.export_artifact(  # SVRB D2：kwargs 经 jobs/export_kwargs（单产物等价）
-                kind, deserialize(Path(str(item["result_file"])).read_bytes()),
+            # SVRB D2+exp-audit-20260930：渲染分流经 jobs/export_render
+            # （audit→flows.audit_render_flow[project=批首 load_project 通道
+            # ——calc 先例；plant 同源 deserialize]；余 kind→app.export_
+            # artifact+kwargs 组装，单产物路径共享真源）。
+            _render_artifact(
+                kind, project,
+                deserialize(Path(str(item["result_file"])).read_bytes()),
                 Path(str(item["template"])), tmp,
                 unit_id=unit_id, condition_key=condition_key,
                 # route_options 键集恒 ⊆ core **options 白名单（str 值）——
                 # dict[str,str] 展开 mypy 撞 keyword-only 形参位，cast 收窄。
                 **cast(dict[str, Any], route_options),
-                **_build_drawing_kwargs(kind, project),
             )
             os.replace(tmp, out)  # GR-38：渲染落临时文件后原子替换
             files.append(str(out))

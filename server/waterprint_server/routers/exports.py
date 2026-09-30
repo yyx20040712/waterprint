@@ -32,6 +32,9 @@
 #   - audit/dxf/estimate 端点透传 core ArtifactKindNotReady→501
 #     （诚实未就绪——audit 归 M4/dxf 归 M2 出图批/estimate 归 M3，
 #     core export_artifact 同款语义）；模板缺位（UF-16）同 501 面。
+#     〔exp-audit-20260930 勘正：audit 已接线——service 分流 flows.
+#     audit_render_flow，bare POST 即 200（dxf M5 同款移出）；estimate
+#     仍 501 透传。〕
 #   - 批量（options.items>1）转 export_batch 任务：本端点返回句柄
 #     JSON（task_id 非 None）而非文件流；单产物即时生成返回文件流。
 #   - 响应模型=服务层冻结 dataclass（ExportMeta——禁协议层重复声明）。
@@ -105,7 +108,7 @@ async def export_calcbook(
 async def export_audit(
     body: ExportRequest, request: Request, force: bool = False
 ) -> Response:
-    """HTML 审计报告（M4 归属——ArtifactKindNotReady→501 透传）。"""
+    """HTML 审计报告（全厂单份——unit_id/非空 condition_key 422 拒；stale 409/force 同族）。"""
     return await _export(body, request, "audit", force)
 
 

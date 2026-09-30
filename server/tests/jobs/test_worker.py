@@ -248,10 +248,14 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
                     "condition_key": "",
                 },
                 {
-                    "kind": "audit",
+                    # exp-audit-20260930：显式 None 归一载体 audit→ifc 换载
+                    # （audit 项改分流 flows.audit_render_flow 零 kwargs 面——
+                    # 归一断言须在仍经 core.export_artifact 的 kind 上成立；
+                    # audit 分流面归 routers/test_exports_audit.py E2E）。
+                    "kind": "ifc",
                     "result_file": calc["result_file"],
                     "template": "unused",
-                    "out_name": "c.xlsx",
+                    "out_name": "c.ifc",
                     "unit_id": None,  # R2 R3（DS-06）：显式 None 防 str(None)="None" 透传
                     "condition_key": None,
                 },
@@ -264,12 +268,12 @@ def test_export_batch_items_pass_unit_and_condition_to_core(
     assert captured == [
         ("dxf", "municipal_cass", "design"),  # items 级透传（S2 D6）
         ("calcbook", None, None),  # 空串归一 None（单产物同款口径）
-        ("audit", None, None),  # 显式 None 归一 None（IPC 面不可信——DS-06）
+        ("ifc", None, None),  # 显式 None 归一 None（IPC 面不可信——DS-06；exp-audit 载体换载）
     ]
     assert sorted(str(path.name) for path in (tmp_path / "out").iterdir()) == [
         "a.dxf",
         "b.xlsx",
-        "c.xlsx",
+        "c.ifc",
     ]  # 原子替换落位（.tmp 已清）
 
 

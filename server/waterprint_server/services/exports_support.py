@@ -47,8 +47,10 @@ from waterprint_server.settings import validate_component
 _KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")
 _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；注记区）
 # FE9 D4：kind→产物后缀映射（dxf→.dxf、ifc→.ifc；其余 Excel 族恒 .xlsx 零漂移）。
+# exp-audit-20260930：audit 后缀勘正 .xlsx→.html（501 占位期的名义后缀收口
+# ——真产物为自包含 HTML；下载白名单 DOWNLOAD_SUFFIXES 派生面自动含 .html）。
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
-    {"calcbook": ".xlsx", "audit": ".xlsx", "dxf": ".dxf", "estimate": ".xlsx", "ifc": ".ifc"}
+    {"calcbook": ".xlsx", "audit": ".html", "dxf": ".dxf", "estimate": ".xlsx", "ifc": ".ifc"}
 )
 # EXPD D1：下载面合法后缀集（_KIND_SUFFIXES 值域派生——不新造字面量集，
 # kind 增删时下载白名单零漂移；大小写敏感=.DXF 天然拒）。
@@ -299,15 +301,65 @@ def _reject_bad_station_form(
             )
 
 
+def _reject_bad_audit_options(
+    chosen: Mapping[str, Any],
+    items: Sequence[Mapping[str, Any]],
+    condition_key: str,
+) -> None:
+    """exp-audit-20260930：audit 选项闸（整批原子 422——禁静默忽略任一意图）。
+
+    audit=全厂单份 HTML（flows.audit_render_flow 零路由选项消费面）：
+    ①item 级显式 unit_id/非空 condition_key 即拒（单产物缺省 item 携端点
+    condition_key 即此面）；②纯 audit 批（全部 items 为 audit）批级
+    options.unit_id/端点 condition_key 同拒（批级将逐项继承/代表批意图）；
+    混装批 audit 项不继承批级路由键（归一层置空），故不拒。"""
+    for index, item in enumerate(items):
+        if str(item.get("kind", "")) != "audit":
+            continue
+        label = f"options.items[{index}]"
+        if _unit_id_of(item) is not None:
+            raise InvalidExportRequestError(
+                f"导出 {label} 的 kind 'audit' 不接受 'unit_id'（审计报告为"
+                "全厂单份不分单元——请移除 unit_id，或改用分单元 kind 如"
+                " dxf；exp-audit 整批原子拒绝）"
+            )
+        if str(item.get("condition_key") or ""):
+            raise InvalidExportRequestError(
+                f"导出 {label} 的 kind 'audit' 不接受非空 'condition_key'"
+                "（审计报告为全厂单份跨工况文档——condition_key 请留空；"
+                "exp-audit 整批原子拒绝）"
+            )
+    if not items or not all(
+        str(item.get("kind", "")) == "audit" for item in items
+    ):
+        return  # 非纯 audit 批：批级路由键对 audit 项归一层置空（不拒）
+    if _unit_id_of(chosen) is not None:
+        raise InvalidExportRequestError(
+            "导出 options 的 kind 'audit' 不接受 'unit_id'（审计报告为全厂"
+            "单份不分单元——请移除 unit_id，或改用分单元 kind 如 dxf；"
+            "exp-audit 整批原子拒绝）"
+        )
+    if condition_key:
+        raise InvalidExportRequestError(
+            "导出 kind 'audit' 不接受非空 'condition_key'（审计报告为全厂"
+            "单份跨工况文档——condition_key 请留空；exp-audit 整批原子拒绝）"
+        )
+
+
 def reject_bad_route_options(
-    chosen: Mapping[str, Any], items: Sequence[Mapping[str, Any]]
+    chosen: Mapping[str, Any],
+    items: Sequence[Mapping[str, Any]],
+    *,
+    condition_key: str = "",
 ) -> None:
     """PROFILE3（PD6+R 轮）：路由选项预校验=整批原子拒绝（任一项畸形=
     422 含 item 索引定位）。覆盖面：h/v 形态（isdecimal+长度短路——与
     core 终闸同式，Unicode/超长串双逃逸面闭合 D1-G1-01/A2-G1-01）+非
     字符串类型显式拒（数值承载静默归 None=吞意图 D1-G1-05/A2-G1-03）
     +sheet×unit 互斥（批级或项级共存=收单即拒，不放行到 worker 必败
-    项 D1-G1-03/A2-G1-02）；域上限留 core 终闸（双闸分工零重叠）。"""
+    项 D1-G1-03/A2-G1-02）；exp-audit-20260930 增 audit 选项闸（kind=
+    audit 携 unit_id/非空 condition_key 拒——端点级 condition_key 经
+    keyword 参入闸）；域上限留 core 终闸（双闸分工零重叠）。"""
     for label, source in [("options", chosen), *[
         (f"options.items[{i}]", item) for i, item in enumerate(items)
     ]]:
@@ -350,6 +402,7 @@ def reject_bad_route_options(
                 "单单元图不可叠加——收单即拒，不放行到执行必败项；"
                 "PROFILE3 R 轮整批原子拒绝）"
             )
+    _reject_bad_audit_options(chosen, items, condition_key)
 
 
 def _sidecar_text(meta: ExportMeta) -> str:
