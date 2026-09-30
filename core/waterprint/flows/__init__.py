@@ -13,7 +13,9 @@
 #
 # 【定位】layers 链 cli → flows → app|app_enumeration|app_export → …；
 #   禁 import server/cli/fastapi（零 server 概念）；许可面=app 门面+
-#   contracts+trace.audit（audit 渲染包装）+cost 四模块链（estimate_
+#   contracts+trace.audit（audit 渲染包装；H2 exp-hygiene-20260930 起
+#   含其异常族再导出 InvalidAuditError/InvalidAuditPathError——server
+#   forbidden 面单一取用面）+cost 四模块链（estimate_
 #   summary_flow 签名冻结正文专项授权的既有公开函数）。
 #
 # 【公开接口】（签名冻结原文——改动即规格漂移；参数语义注记见各函数
@@ -105,10 +107,18 @@ from waterprint.cost.indicators import IndicatorReport, check_indicators, load_i
 from waterprint.cost.prices import load_prices
 from waterprint.cost.takeoff import load_field_mapping, takeoff_quantities
 from waterprint.flows.params_guard import ParamVerdict, params_guard
-from waterprint.trace.audit import render_audit_html  # 许可面③（audit 渲染包装）
+from waterprint.trace.audit import (  # 许可面③（audit 渲染包装）
+    InvalidAuditError,
+    InvalidAuditPathError,
+    render_audit_html,
+)
+
+# 上行扩名=H2（exp-hygiene-20260930）：trace.audit 异常族再导出——server
+# forbidden 面禁直连 trace，经本层取用（零新 import 边，扩名先例）。
 
 __all__ = [
-    "CalcFlowResult", "EstimateFlowResult", "InvalidFlowError", "ParamVerdict",
+    "CalcFlowResult", "EstimateFlowResult", "InvalidAuditError",
+    "InvalidAuditPathError", "InvalidFlowError", "ParamVerdict",
     "audit_render_flow", "build_condition_flow", "build_env_flow",
     "build_standards_flow", "design_map_flow", "enumeration_flow",
     "estimate_summary_flow", "export_flow", "params_guard",
@@ -202,9 +212,12 @@ def result_persist_flow(plant: PlantResult, out: Path) -> Path:
     try:
         tmp.write_bytes(serialize(plant))
         os.replace(tmp, out)
-    except OSError:
+    # H5（exp-hygiene-20260930）：全异常清理——非 OSError 落盘期异常半写
+    # .tmp 曾残留（清理后 re-raise；BaseException 选形=避开宪法 §3 过宽
+    # 捕获字面禁令）。
+    except BaseException:
         with contextlib.suppress(OSError):
-            os.remove(tmp)  # 半写 .tmp 不留
+            os.remove(tmp)  # 半写 .tmp 不留（清理失败不遮蔽原异常）
         raise
     return out
 
@@ -289,7 +302,9 @@ def audit_render_flow(project: ProjectFile, plant: PlantResult, out: Path) -> Pa
     try:
         render_audit_html(plant.trace, plant, tmp)
         os.replace(tmp, target)
-    except OSError:
+    # H5（exp-hygiene-20260930）：全异常清理——渲染期非 OSError 异常半写
+    # .tmp 曾残留（清理后 re-raise；与 result_persist_flow 同族两处一致）。
+    except BaseException:
         with contextlib.suppress(OSError):
             os.remove(tmp)
         raise
