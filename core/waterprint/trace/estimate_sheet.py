@@ -13,6 +13,7 @@
 #
 # 【公开接口】
 #   render_estimate_xlsx(outcome, out: Path) -> Path
+#   class InvalidEstimateRenderError(Exception)（回炉轮1 R7——GR-11 族）
 #       outcome=flows.EstimateFlowResult 值（D2 签名；静态注解=结构化
 #       Protocol _EstimateOutcome——trace→flows 上行边禁 import，含
 #       TYPE_CHECKING 面；audit.py 代码直写同域先例，渲染件零业务计算
@@ -33,13 +34,17 @@
 #       ——版式自裁）/状态（OK|WARN）/原因；checked=False 时显式
 #       「未校核」行（indicators R4 禁静默通过）。
 #   R2 零公式：全部单元格 Python 值投递（计算单一事实源在 cost——
-#       本件零业务计算零 Excel 公式）。
+#       本件零业务计算零 Excel 公式）；回炉轮1 R5 起落盘前经共享
+#       check_no_formulas 防御（'=' 前缀透传串拒——InvalidEstimateRenderError）。
+#   R2b 渲染域异常族（回炉轮1 R7）：失联单价键/不可达报告态显式
+#       InvalidEstimateRenderError（GR-11 族——flow 面包装 InvalidFlowError）。
 #   R3 字节确定性：保存经 xlsx_save 共享件（modified 归一+ZipInfo 纪元）
 #       +新工作簿 created 锚定固定纪元（fixed_created——模板属性面
 #       无传递源，渲染时钟不入产物）；同 outcome 双渲染字节相同。
 #
-# 【数值纪律】本文件不在魔法数字白名单——零数值字面量（序号经
-#   enumerate(start=1)；固定纪元经 xlsx_save 单源解析）。
+# 【数值纪律】零魔法数字（仅序号种子 enumerate start=1 白名单值；
+#   固定纪元经 xlsx_save 单源解析——无其余数值字面量）。〔回炉轮1 R9
+#   改述：原「零数值字面量」与 enumerate(start=1) 自相矛盾。〕
 #
 # 【禁止事项】禁 import flows（L4 层序上行边——import-linter 对
 #   TYPE_CHECKING 导入同样计边，注解走结构化 Protocol）；禁业务计算
@@ -61,10 +66,19 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from waterprint.cost.estimate import EstimateSheet, FeeLine
 from waterprint.cost.indicators import IndicatorReport
-from waterprint.cost.prices import PriceBook
-from waterprint.trace.xlsx_save import deterministic_save, fixed_created
+from waterprint.cost.prices import InvalidPriceError, PriceBook
+from waterprint.trace.xlsx_save import (
+    check_no_formulas,
+    deterministic_save,
+    fixed_created,
+)
 
-__all__ = ["render_estimate_xlsx"]
+__all__ = ["InvalidEstimateRenderError", "render_estimate_xlsx"]
+
+
+class InvalidEstimateRenderError(Exception):
+    """概算渲染非法（失联单价键/公式注入/不可达报告态）——GR-11 族
+    （回炉轮1 R7；flow 面包装 InvalidFlowError，server 禁直连本件）。"""
 
 # 行值域（Worksheet.append 消费面：int 序号/str 文本/float 数值）
 type _Row = tuple[int | float | str, ...]
@@ -105,20 +119,24 @@ def _subtotal_row(label: str, value: float) -> _Row:
 
 
 def _detail_rows(outcome: _EstimateOutcome) -> list[_Row]:
-    """分部分项逐行：名称列=book.get(price_key).name（单一真源直投）。"""
-    book: PriceBook = outcome.book
-    return [
-        (
-            index,
-            book.get(row.price_key).name,
-            row.unit,
-            row.quantity,
-            row.unit_price,
-            row.amount,
-            row.source,
+    """分部分项逐行：名称列=book.get(price_key).name（单一真源直投）。
+
+    回炉轮1 R7：失联键显式拒（InvalidEstimateRenderError from
+    InvalidPriceError——零静默跳行/零裸族逃逸）。"""
+    rows: list[_Row] = []
+    for index, row in enumerate(outcome.sheet.detail_rows, start=1):
+        try:
+            name = outcome.book.get(row.price_key).name
+        except InvalidPriceError as exc:
+            raise InvalidEstimateRenderError(
+                f"概算明细行失联单价键：{row.price_key!r}（渲染名称列单一"
+                "真源=book.get(price_key).name——book 无此键，禁静默跳行）"
+            ) from exc
+        rows.append(
+            (index, name, row.unit, row.quantity, row.unit_price, row.amount,
+             row.source)
         )
-        for index, row in enumerate(outcome.sheet.detail_rows, start=1)
-    ]
+    return rows
 
 
 def _fee_rows(lines: tuple[FeeLine, ...]) -> list[_Row]:
@@ -179,6 +197,13 @@ def _indicator_sheet(workbook: Workbook, report: IndicatorReport) -> None:
     worksheet = workbook.create_sheet(_SHEET_INDICATORS)
     worksheet.append((_SHEET_INDICATORS,))
     worksheet.append(("指标键", "值", "带下限", "带上限", "状态", "原因"))
+    if report.checked and not report.readings:
+        # 回炉轮1 R7（d1-F6）：checked=True 空 readings=装载面守卫应排除的
+        # 不可达态——显式拒（禁静默空校核表冒充已校核）。
+        raise InvalidEstimateRenderError(
+            "指标报告不可达态：checked=True 而 readings 为空"
+            "（check_indicators 装载面应保证 checked⇒逐带一行）"
+        )
     if not report.checked:
         worksheet.append((
             "未校核", "", "", "", "",
@@ -199,6 +224,8 @@ def render_estimate_xlsx(outcome: _EstimateOutcome, out: Path) -> Path:
     workbook.properties.created = fixed_created()  # R3：created 锚定固定纪元
     _summary_sheet(workbook, outcome)
     _indicator_sheet(workbook, outcome.report)
+    # 回炉轮1 R5：落盘前禁公式扫描（共享机制——'=' 前缀透传串是真实注入面）。
+    check_no_formulas(workbook, InvalidEstimateRenderError)
     out.parent.mkdir(parents=True, exist_ok=True)
     deterministic_save(workbook, out)
     return out

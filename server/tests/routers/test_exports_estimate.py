@@ -23,6 +23,12 @@
 #   - 混装批零继承：dxf+estimate items（批级 unit_id）→ dxf 项继承 unit
 #     分量、estimate 项全路由键置空（命名无 unit 段）+任务终态 done
 #     双产物（worker 分流实证）。
+#   - 回炉轮1（rework-est-20261001-r1）：R1 非 estimate 项显式 null 行为锚
+#     （dxf condition_key:null 命名段维持既有形态+注册表 condition 空串
+#     ——零物化零行为变）+estimate 显式空串归一 design 同名；R2 端点工况
+#     缺省序（item 自有→端点值→design——items-present 不静默吞端点值）；
+#     R4 双处缺省常量等价锁（jobs/services 层序隔离——漂移即红）；R6
+#     批量句柄 condition_key 回显四面同源（=items[0] 归一值）。
 # 【替身口径】零替身——estimate 渲染走真 flows.estimate_render_flow
 #   （本批被测接线面即分流正门；audit 批同款）。
 # ══════════════════════════════════════════════════════════════════
@@ -112,7 +118,14 @@ async def test_estimate_condition_default_design_idempotent_wiring(client) -> No
         json={"project_id": project_id, "condition_key": "design"},
     )
     assert explicit.status_code == status.HTTP_200_OK  # condition_key 合法（不 422）
+    empty_string = await client.post(  # 回炉 R1②：items 显式空串归一 design 同名
+        "/api/exports/estimate",
+        json={"project_id": project_id,
+              "options": {"items": [{"kind": "estimate", "condition_key": ""}]}},
+    )
+    assert empty_string.status_code == status.HTTP_200_OK
     assert _disposition_name(bare) == _disposition_name(explicit)  # 同名（归一单点）
+    assert _disposition_name(bare) == _disposition_name(empty_string)  # 空串==design
     metas = await client.get("/api/exports", params={"project_id": project_id})
     rows = [meta for meta in metas.json() if meta["kind"] == "estimate"]
     assert len(rows) == 1  # 幂等覆盖（注册表不重复登记）
@@ -201,6 +214,7 @@ async def test_estimate_mixed_batch_no_inherit_and_worker_branch_wiring(  # type
         },
     )
     assert batch.status_code == status.HTTP_200_OK  # 批量转任务句柄 JSON
+    assert str(batch.json()["condition_key"]) == "design"  # R6：句柄回显=items[0] 归一值
     done = await _wait_task_terminal(client, str(batch.json()["task_id"]))
     assert done["state"] == "done" and len(done["result"]["files"]) == 2
     assert list(done["result"]["failures"]) == []  # 零 failures（含 estimate 项）
@@ -214,3 +228,72 @@ async def test_estimate_mixed_batch_no_inherit_and_worker_branch_wiring(  # type
     workbook = load_workbook(test_settings.exports_dir / xlsx_names[0])
     assert workbook.sheetnames == ["概算汇总表", "指标校核表"]  # 真 flows 渲染
     assert b"AC1032" in (test_settings.exports_dir / dxf_names[0]).read_bytes()[:512]
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    estimate_row = next(  # R6：注册表 condition=归一值（四面同源）
+        row for row in metas.json() if row["kind"] == "estimate"
+    )
+    assert estimate_row["condition_key"] == "design"
+
+
+@pytest.mark.anyio
+async def test_non_estimate_null_condition_prebatch_behavior_anchor_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """R1①（回炉轮1——双席共指）：非 estimate 项显式 null 零物化零行为变
+    ——dxf item condition_key:null → 批前行为锁死：渲染静默首档（200）
+    +命名段维持既有形态（null→str 物化段"None"为命名读取处历史形态）
+    +注册表 condition 空串（meta 读取处 or-归一）。曾反转面：归一层
+    str(null)="None" 串致渲染入参/边车携带非空工况（回炉修复锚）。"""
+    project_id, _task_id = await _project_with_result(client)
+    response = await client.post(
+        "/api/exports/dxf",
+        json={"project_id": project_id,
+              "options": {"items": [{"kind": "dxf", "condition_key": None}]}},
+    )
+    assert response.status_code == status.HTTP_200_OK  # 批前行为：不 422/500
+    file_name = _disposition_name(response)
+    assert file_name.endswith(".dxf")
+    assert "-None-" in file_name  # 命名段既有形态（命名读取处 str(null) 历史行为）
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    dxf_rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
+    assert len(dxf_rows) == 1 and dxf_rows[0]["file_name"] == file_name
+    assert dxf_rows[0]["condition_key"] == ""  # 注册表空串（meta or-归一）
+
+
+@pytest.mark.anyio
+async def test_estimate_endpoint_condition_fallback_chain_wiring(  # type: ignore[no-untyped-def]
+    client, test_settings
+) -> None:
+    """R2（回炉轮1 d1-F2）：estimate 项缺省序=item 自有→端点值→"design"
+    （端点参数本质=批级意图——SVRB D1 options.unit_id 同族；items-present
+    不静默吞端点工况）：端点 condition_key="avg"+项无自有 → 渲染 avg+命名
+    含 avg+注册表回显 avg。"""
+    project_id, _task_id = await _project_with_result(client)
+    response = await client.post(
+        "/api/exports/estimate",
+        json={
+            "project_id": project_id,
+            "condition_key": "avg",
+            "options": {"items": [{"kind": "estimate"}]},
+        },
+    )
+    assert response.status_code == status.HTTP_200_OK
+    file_name = _disposition_name(response)
+    assert "-estimate-avg-" in file_name  # 端点值入命名（不被 items-present 吞）
+    assert (test_settings.exports_dir / file_name).is_file()
+    metas = await client.get("/api/exports", params={"project_id": project_id})
+    rows = [meta for meta in metas.json() if meta["kind"] == "estimate"]
+    assert len(rows) == 1 and rows[0]["condition_key"] == "avg"  # 回显四面同源
+
+
+def test_estimate_default_condition_constants_equivalence_lock() -> None:
+    """R4（回炉轮1 k2-N2）：双处缺省常量等价锁——jobs 不可 import services
+    （层序），字面量双处声明的漂移由本断言即时红。"""
+    from waterprint_server.jobs.export_render import (
+        _ESTIMATE_DEFAULT_CONDITION as _JOBS_DEFAULT,
+    )
+    from waterprint_server.services.exports import (
+        _ESTIMATE_DEFAULT_CONDITION as _SERVICES_DEFAULT,
+    )
+
+    assert _JOBS_DEFAULT == _SERVICES_DEFAULT == "design"

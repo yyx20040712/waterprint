@@ -19,7 +19,9 @@
 # 【行为规格】
 #   R1 模板与数据分离：模板是版本化 .xlsx；本文件只做"占位符 → 值"
 #       注入，写盘代码出现业务拼接 = 评审拒绝（占位符机制本身即分离）。
-#   R2 模板禁公式（§11 R12）：加载模板后遍历全部工作表全部单元格，
+#   R2 模板禁公式（§11 R12；回炉轮1 R5 起扫描机制迁驻 xlsx_save
+#       共享件 check_no_formulas——域异常注入保 InvalidTemplateError 公开面）：
+#       加载模板后遍历全部工作表全部单元格，
 #       data_type=="f"（含公式）→ InvalidTemplateError（消息含工作表
 #       名与单元格坐标，GR-09）——计算单一事实源在 Python。
 #   R3 数值按字段 ID 注入，占位符语法本简报冻结（v1 最小取值域）：
@@ -58,11 +60,11 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final
 
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.trace.collector import TraceTree
-from waterprint.trace.xlsx_save import deterministic_save
+from waterprint.trace.xlsx_save import check_no_formulas, deterministic_save
 
 __all__ = ["TEMPLATE_REGISTRY", "InvalidTemplateError", "render_calcbook"]
 
@@ -163,24 +165,12 @@ def _render_cell(value: object, where: str, trace: TraceTree,
     return rendered
 
 
-def _check_no_formulas(workbook: Workbook) -> None:
-    """R2 模板禁公式：遍历全部工作表单元格，data_type=='f' 即拒。"""
-    for sheet in workbook.worksheets:
-        for row in sheet.iter_rows():
-            for cell in row:
-                if cell.data_type == "f":
-                    raise InvalidTemplateError(
-                        f"模板含公式单元格：{sheet.title}!{cell.coordinate}"
-                        "（§11 R12——计算单一事实源在 Python，模板只做展示）"
-                    )
-
-
 def render_calcbook(
     trace: TraceTree, result: PlantResult, template: Path, out: Path
 ) -> Path:
     """计算书渲染正门：模板禁公式检查 → 占位符注入 → 确定性保存（返回 out）。"""
     workbook = load_workbook(template)
-    _check_no_formulas(workbook)
+    check_no_formulas(workbook, InvalidTemplateError)  # R2+回炉 R5 共享机制
     summary = _summary_index(result)
     for sheet in workbook.worksheets:
         for row in sheet.iter_rows():

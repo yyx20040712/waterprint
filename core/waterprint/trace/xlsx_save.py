@@ -14,6 +14,10 @@
 #   deterministic_save(workbook: Workbook, out: Path) -> None
 #   fixed_created() -> datetime（新工作簿 created 锚定固定纪元——直写
 #       渲染件时钟面归一；模板渲染件 created 保留=模板属性传递仍锚）
+#   check_no_formulas(workbook: Workbook, reject: type[Exception]) -> None
+#       （回炉轮1 R5：禁公式扫描机制自 calcbook 抽出共享——调用方注入
+#       自有域异常类[calcbook=InvalidTemplateError/estimate_sheet=
+#       InvalidEstimateRenderError]，消息含工作表名!坐标 GR-09）
 #
 # 【行为规格】
 #   R4 字节确定性（机制原文自 calcbook.py 迁驻——语义逐字保真）：
@@ -45,7 +49,24 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from openpyxl import Workbook
 
-__all__ = ["deterministic_save", "fixed_created"]
+__all__ = ["check_no_formulas", "deterministic_save", "fixed_created"]
+
+
+def check_no_formulas(workbook: Workbook, reject: type[Exception]) -> None:
+    """禁公式扫描（回炉轮1 R5——calcbook._check_no_formulas 机制迁驻共享）：
+    遍历全部工作表单元格，data_type=='f' 即以调用方域异常拒。
+
+    openpyxl 对 '=' 开头字符串按公式存储是真实注入面（直写渲染件的
+    book name/source/fee_key/base DSL 透传串同守——§11 R12 计算单一
+    事实源在 Python，输出只做渲染）。"""
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows():
+            for cell in row:
+                if cell.data_type == "f":
+                    raise reject(
+                        f"含公式单元格：{sheet.title}!{cell.coordinate}"
+                        "（§11 R12——计算单一事实源在 Python，输出只做渲染）"
+                    )
 
 # R4 modified 归一面（批 14-FIX 原文迁驻）：正则与快照测试层规范化器同式
 # （tests/snapshots/test_snapshots.py _MODIFIED_RE——双保险两层同源）。

@@ -24,6 +24,11 @@
 #     test_flows.py 不在本批白名单）：原子落盘零 .tmp 残留；cost 四域
 #     异常包装 InvalidFlowError from exc（消息透传含可用工况集）；'..'
 #     路径拒；EstimateFlowResult.book 字段=PriceBook 单一真源。
+#   - 回炉轮1（rework-est-20261001-r1）：R5 禁公式注入拒（恶意 '=' 前缀
+#     name→域异常——check_no_formulas 共享面）；R7 渲染域异常族
+#     （InvalidEstimateRenderError：book 失联键/checked=True 空 readings
+#     不可达态——flow 面 InvalidFlowError from exc 链保真）；R8 费用行
+#     与指标数值锚扩面（rate/base_amount/amount+value/带上下限）。
 # 【替身口径】零替身（golden 计算链+真数据包 _REPO_DATA——test_flows.py
 #   estimate 用例同源口径）；dataclasses.replace 仅构造 checked=False 面。
 # ══════════════════════════════════════════════════════════════════
@@ -132,6 +137,17 @@ def test_render_estimate_xlsx_content_contract(
         outcome.sheet.reserve_subtotal,
     ):
         _assert_number_in(numbers, value)
+    for line in (*outcome.sheet.measure, *outcome.sheet.indirect,  # R8：费用行三数值
+                 *outcome.sheet.reserve, *outcome.sheet.tax):
+        _assert_number_in(numbers, line.rate)
+        _assert_number_in(numbers, line.base_amount)
+        _assert_number_in(numbers, line.amount)
+    indicator_numbers = _numeric_cells(out, _SHEET_INDICATORS)
+    for reading in outcome.report.readings:  # R8：指标值/带上下限数值锚
+        lower, upper = reading.band
+        _assert_number_in(indicator_numbers, reading.value)
+        _assert_number_in(indicator_numbers, lower)
+        _assert_number_in(indicator_numbers, upper)
 
 
 def test_render_estimate_xlsx_deterministic_across_seconds(
@@ -217,3 +233,77 @@ def test_estimate_flow_result_carries_price_book(
     # repro.data_version=UF-10 聚合串（coefficients@…+unit_prices@…）；
     # book.data_version=price_data_version（聚合串成员——estimate.py 注记口径）
     assert outcome.book.data_version in outcome.sheet.repro.data_version
+
+
+def _book_with_first_name(outcome, malicious_name: str):
+    """构造首明细行 name 恶意注入的 book（其余条目原样——R5 注入载体）。"""
+    from waterprint.cost.prices import PriceBook
+
+    real = outcome.book
+    first = outcome.sheet.detail_rows[0].price_key
+    entries = {  # 渲染消费面=分部分项 price_key（名称列真源）——逐行重建
+        row.price_key: (
+            replace(real.get(row.price_key), name=malicious_name)
+            if row.price_key == first else real.get(row.price_key)
+        )
+        for row in outcome.sheet.detail_rows
+    }
+    return PriceBook(entries, real.data_version)
+
+
+def test_render_estimate_xlsx_rejects_formula_injection(
+    golden_data_dir: Path, tmp_path: Path
+) -> None:
+    """R5（回炉轮1）：'=' 前缀 name（openpyxl 按公式存储——真实注入面，
+    book name/source/fee_key/base DSL 透传串同守）→ 域异常拒（禁公式
+    扫描共享面 check_no_formulas，落盘前调用）。"""
+    from waterprint.trace.estimate_sheet import InvalidEstimateRenderError
+
+    _, outcome = _outcome(golden_data_dir)
+    bad = replace(outcome, book=_book_with_first_name(outcome, "=SUM(A1:A2)"))
+    with pytest.raises(InvalidEstimateRenderError, match="公式"):
+        _mod.render_estimate_xlsx(bad, tmp_path / "evil.xlsx")
+    assert not (tmp_path / "evil.xlsx").exists()  # 拒于落盘之前
+
+
+def test_render_estimate_xlsx_rejects_unreachable_empty_readings(
+    golden_data_dir: Path, tmp_path: Path
+) -> None:
+    """R7（回炉轮1 d1-F6）：checked=True 而 readings=() 不可达态显式拒
+    （装载面守卫应保证 checked⇒逐带一行——禁静默空校核表通过）。"""
+    from waterprint.cost.indicators import IndicatorReport
+    from waterprint.trace.estimate_sheet import InvalidEstimateRenderError
+
+    _, outcome = _outcome(golden_data_dir)
+    inverted = replace(
+        outcome, report=IndicatorReport(readings=(), checked=True)
+    )
+    with pytest.raises(InvalidEstimateRenderError, match="不可达"):
+        _mod.render_estimate_xlsx(inverted, tmp_path / "y.xlsx")
+
+
+def test_estimate_render_flow_wraps_render_domain_errors(
+    golden_data_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R7（回炉轮1）：渲染域异常（book 失联键）→ flow 面 InvalidFlowError
+    from exc 链保真（渲染调用并入包装 try 范围——worker 项级收集面同族）。"""
+    from waterprint.cost.prices import PriceBook
+    from waterprint.trace.estimate_sheet import InvalidEstimateRenderError
+
+    project, outcome = _outcome(golden_data_dir)
+    plant = _flows.run_calc_flow(
+        project, _flows.build_condition_flow(project, None),
+        _flows.build_env_flow(_REPO_DATA, project), (),
+    ).plant
+    bad = replace(outcome, book=PriceBook({}, outcome.book.data_version))
+    monkeypatch.setattr(
+        _flows, "estimate_summary_flow",
+        lambda _plant, *, condition_key, data_dir: bad,
+    )
+    with pytest.raises(_flows.InvalidFlowError, match="失联") as wrapped:
+        _flows.estimate_render_flow(
+            project, plant, tmp_path / "x.xlsx",
+            condition_key="design", data_dir=_REPO_DATA,
+        )
+    assert isinstance(wrapped.value.__cause__, InvalidEstimateRenderError)
+    assert not list(tmp_path.glob("*.tmp"))  # 包装路径 tmp 同样清理（H5）

@@ -52,7 +52,9 @@
 #       单源复用→render_estimate_xlsx→tmp+os.replace 原子落盘（audit_
 #       render_flow 定式含 H5 全异常清理）；cost 四域异常（InvalidTakeoff/
 #       Price/Estimate/Indicator）包装上抛 InvalidFlowError from exc（消息
-#       透传——工况不在结果集=takeoff 消息含可用工况集，禁静默取首档）；
+#       透传——工况不在结果集=takeoff 消息含可用工况集，禁静默取首档；
+#       回炉轮1 R7：渲染域族 InvalidEstimateRenderError 并入包装
+#       （渲染调用同入 try 范围）；
 #       project 形参=冻结签名占位（audit 先例）。
 #   enumeration_flow / design_map_flow（同形）→ app 正门直通。
 #   params_guard(project, unit_id, params) -> tuple[ParamVerdict, ...]
@@ -135,7 +137,10 @@ from waterprint.trace.audit import (  # 许可面③（audit 渲染包装）
     InvalidAuditPathError,
     render_audit_html,
 )
-from waterprint.trace.estimate_sheet import render_estimate_xlsx
+from waterprint.trace.estimate_sheet import (
+    InvalidEstimateRenderError,
+    render_estimate_xlsx,
+)
 
 # 上行扩名=H2（exp-hygiene-20260930）：trace.audit 异常族再导出——server
 # forbidden 面禁直连 trace，经本层取用（零新 import 边，扩名先例）。
@@ -395,10 +400,14 @@ def estimate_summary_flow(
 
 
 # est-20261001：cost 四域异常族（渲染流包装面——H2 flows 族映射单一真源，
-# 裸 Exception 逃逸=500 禁；InvalidFlowError=server 422 面）。
+# 裸 Exception 逃逸=500 禁；InvalidFlowError=server 422 面）。回炉轮1 R7：
+# 渲染域族并入（InvalidEstimateRenderError——渲染调用同入包装 try 范围）。
 _COST_ERRORS: Final[tuple[type[Exception], ...]] = (
     InvalidTakeoffError, InvalidPriceError, InvalidEstimateError,
     InvalidIndicatorError,
+)
+_RENDER_ERRORS: Final[tuple[type[Exception], ...]] = (
+    *_COST_ERRORS, InvalidEstimateRenderError,
 )
 
 
@@ -432,13 +441,18 @@ def estimate_render_flow(
     target = _flow_out(out)
     tmp = target.with_name(target.name + ".tmp")
     try:
-        render_estimate_xlsx(
-            _estimate_outcome(
-                plant, condition_key=condition_key, data_dir=data_dir
-            ),
-            tmp,
-        )
-        os.replace(tmp, target)
+        try:
+            # 回炉轮1 R7：渲染调用并入包装 try 范围（cost 四域经
+            # _estimate_outcome 先包装；渲染域族在此收口——单一真源）。
+            render_estimate_xlsx(
+                _estimate_outcome(
+                    plant, condition_key=condition_key, data_dir=data_dir
+                ),
+                tmp,
+            )
+            os.replace(tmp, target)
+        except _RENDER_ERRORS as exc:
+            raise InvalidFlowError(f"概算流失败：{exc}") from exc
     # H5（同 result_persist_flow/audit_render_flow 两处一致族）：
     # 全异常清理——渲染期异常半写 .tmp 不留（清理后 re-raise）。
     except BaseException:

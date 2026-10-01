@@ -274,15 +274,21 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         {**item, "kind": str(item.get("kind") or kind)}
         for item in (chosen.get("items") or [{"kind": kind, "condition_key": condition_key}])
     ]
-    # est-20261001 D4：estimate 项 condition_key 缺省/空串归一 "design"
-    # （归一层单点——命名/边车/渲染/回显四面同源；bare POST 与显式
-    # design 同名同字节=幂等；工况不在结果集由渲染流包装 422 指路）。
+    # est-20261001 D4+回炉 R1/R2：estimate 项 condition 归一（缺省序=item
+    # 自有→端点值→"design"——端点参数=批级意图[SVRB D1 同族]，items 不吞
+    # 端点工况；工况不在结果集由渲染流包装 422 指路）。R1：非 estimate 项
+    # 直返原映射（显式 null 零物化零行为变——下游读取处自带 or-归一层；
+    # 曾 str(null)="None" 物化致 audit null 批前 200 反转 422，共指缺陷收口）。
     items = [
-        {**item, "condition_key": (
-            str(item.get("condition_key") or "") or _ESTIMATE_DEFAULT_CONDITION
-            if str(item.get("kind", "")) == "estimate"
-            else str(item.get("condition_key", ""))
-        )}
+        (
+            item
+            if str(item.get("kind", "")) != "estimate"
+            else {**item, "condition_key": (
+                str(item.get("condition_key") or "")
+                or str(condition_key or "")
+                or _ESTIMATE_DEFAULT_CONDITION
+            )}
+        )
         for item in items
     ]
     _, latest = latest_calc_result(
@@ -372,10 +378,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
                     "project_path": str(
                         (ctx.projects_dir / f"{project_id}.wp.json").resolve()
                     ),
-                    # est-20261001 D4：data_dir 提交时绝对路径（estimate 渲染流
-                    # 单价包/费率装载面——worker spawn 环境 cwd 无关；SVRB D2
-                    # project_path 同款通道形态）。
-                    "data_dir": str(ctx.settings.data_dir),
+                    # est-20261001 D4+回炉轮1 R3：data_dir 提交时绝对路径
+                    # （estimate 渲染流装载面——worker spawn 环境 cwd 无关；
+                    # .resolve() 对照同函数 project_path 先例）。
+                    "data_dir": str(ctx.settings.data_dir.resolve()),
                     "design_digest": result_digest,
                     # R2-C：DWG 开关+超时（worker dwg_convert 消费；默认空=关）
                     "dwg_converter_path": ctx.settings.dwg_converter_path.strip(),
@@ -399,7 +405,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         return ExportHandle(
             project_id=project_id,
             kind=kind,
-            condition_key=condition_key,
+            # 回炉 R6：句柄回显=items[0] 归一值（四面同源——H7 同族收口）。
+            condition_key=str(items[0].get("condition_key") or ""),
             path=str(ctx.exports_dir / names[0]),
             design_digest=result_digest,
             stale_labeled=stale and force,
@@ -481,7 +488,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     return ExportHandle(
         project_id=project_id,
         kind=item_kind,
-        condition_key=condition_key,
+        # 回炉 R6：同批量面——items[0] 归一值（四面同源）。
+        condition_key=str(items[0].get("condition_key") or ""),
         path=str(out),
         design_digest=result_digest,
         stale_labeled=stale and force,
