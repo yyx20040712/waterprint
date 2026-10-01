@@ -1,10 +1,13 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.5.0（全量 29 条——存量 20 条已追认：18 条=Ruling 2026-08-31、
-> spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
+> **状态：1.6.0（全量 34 条——存量 29 条中 28 条已追认：18 条=Ruling
+> 2026-08-31、spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
 > 2026-09-05 工程惯例起草待专家确认；geometry_guard 8 条=批3b 2026-09-26
 > b3a-research.md §二 B 组+§七追认单直录——D 级 AI 推导值经用户「全部
-> 追认」生效）**；批复记录=.workflow/ledger.md 两日 Ruling 条目+
+> 追认」生效；**enumeration_filter 新增 5 条双侧带=margin-kb-20261001 批
+> 2026-10-01 AI 起草待追认——数值=factors.yaml 已追认键同值投影〔C3 门禁
+> 恒等〕，追认清单=pending-domain-expert.md §32，追认后升定稿回写标记**）**；
+> 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
 > 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
@@ -105,6 +108,24 @@ options.constraints 通道）落地为：
   constraints.band_margin_column；与 UI 勾选/过滤同一约束集同源）。
   单侧/∈ 档形态无带宽概念不产出裕度——覆盖面随本库扩条渐进；
   数值零新增（带值即已追认约束值）。
+  **覆盖扩展（margin-kb-20261001 批 1.6.0）**：本批前双侧带仅 5 条
+  且集中于 4 个辅助单元（vxinglvchi/ganhua/nongsuo/xiaohua）——AAO/
+  CASS 两族零带条目→主单元枚举行 margin_min 恒 NaN=「最小裕量」列
+  全空根因（est 批档下棒指针；基线实锤=.workflow/margin-kb-20261001/
+  baseline_probe.py 面 1）。本批增 5 条双侧带（aao.hrt_anoxic_band/
+  aao.sludge_age_band/cass.sludge_age_band/cass.draw_band/
+  cass.ns_act_band——字段=两包 out_dims 行字段 t_n/theta_c/h_draw/
+  ns_act；数值=units_lib 校核面同键带 factors.yaml 已追认值同值投影，
+  「校核面与本库过滤面互补不替代」口径下的过滤面首批接入）——扩条后
+  两族 margin_min 全行产出（探针面 2 实录+归一距离逐位对拍 0 失败）。
+  起草态待追认（§32）；tuoshui 零收录维持（跨命名映射禁自创挂账不动）。
+  **口径三注（margin-kb-20261001 门一双审回炉笔）**：①追认粒度=数值级
+  ——margin 消费判据是双侧带形态非条目追认标记（「已追认双侧带」的
+  批2a 措辞指带值数值溯源，起草态条目勾选后同样产出裕度；追认锁定
+  的是收录面定稿标记）；②NaN 行字段——行级域拒行不入枚举 rows
+  （批5 AUD-W5 前置），过滤面无「NaN 行静默滤除」通路；③负裕度——
+  band_margin_column 对全行计算可负，但呈现面=feasible 行（带外行
+  勾选即滤不呈现），呈现口径恒带内非负（恰等下界=0）。
 
 ## 输入合理性带归属声明（UF-24 定版——批6k 2026-09-29）
 
@@ -119,7 +140,7 @@ options.constraints 通道）落地为：
 | q_avg_daily（厂界流量） | A-1~A-3：≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示不阻塞 | `flows/params_guard.py` builtin 常量（builtin kind 无 manifest——锚=b3a-research §二 A 组+§七追认 2026-09-26） | server 422 整批拒+core ParamVerdict | 已落地（批3b） |
 | 单元参数（30 包 94 条） | 手册表出处 range（闭区间 GR-06） | units_lib manifest `params.range` | `params_guard` face④ 闭区间执法 | 已落地（批3b） |
 | 几何四量（l_pool/b_pool/v_pool/n_aerator） | 提示/拒收双门 | constraint_kb `geometry_guard` 8 条（1.5.0） | `apply_constraints` 勾选过滤 | 已落地（批3b） |
-| 枚举可行带 | vxinglvchi/ganhua 等 6 条 | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 存量已追认 |
+| 枚举可行带 | 存量 6 条+1.6.0 扩 5 条（AAO/CASS 双侧带） | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 存量已追认；扩 5 条起草待认（§32） |
 | 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=数据面待录 | 契约在册；kb 上限条目未录 | 契约面已定义；行业上限带挂账（数据录入工作包） |
 
 > 新增量的归属判断规则：数学不变量（符号/有限性/量纲）一律契约面；

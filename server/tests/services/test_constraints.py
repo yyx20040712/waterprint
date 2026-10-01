@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（29 条五类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（34 条五类/装载守卫四路/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -28,16 +28,23 @@ _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/�
 
 # kb 计数分 kind 形态（RATIFY-L4 1.3.0：spacing_check 2 已追认；SPC2 1.4.0：
 # boundary_check 1；批3b 1.5.0：geometry_guard 8——b3a-research.md §二 B 组+
-# §七追认 2026-09-26 追认单直录——增删同步）
-_FILTER_COUNT = 6
+# §七追认 2026-09-26 追认单直录——增删同步；margin-kb-20261001 1.6.0：
+# 双侧带 5 条起草待认〔pending §32〕——追认后 _DRAFT16_KEYS 键集撤空）
+_FILTER_COUNT = 11
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
 _BOUNDARY_COUNT = 1
 _GEOMETRY_COUNT = 8
+# 1.6.0 起草态五键（margin-kb-20261001——pending §32 待追认；数值=factors
+# 同值投影已过 C3 门禁，收录面/语义迁移待专家裁定；追认后随标记回写撤集）
+_DRAFT16_KEYS = {
+    "aao.hrt_anoxic_band", "aao.sludge_age_band",
+    "cass.sludge_age_band", "cass.draw_band", "cass.ns_act_band",
+}
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：29 条五类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：34 条五类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
     assert len(entries) == (
@@ -67,15 +74,26 @@ def test_filter_entries_carry_unit_kinds_and_values() -> None:
     # Ruling 2026-08-31 全部追认——过滤/出水两类标记已回写（RATIFY-L4 后
     # spacing 亦已追认——分 kind 断言形态维持，禁全库一刀切）
     ratified = [
-        e for e in catalog.entries if e.kind in {"enumeration_filter", "effluent_standard"}
+        e for e in catalog.entries
+        if e.kind in {"enumeration_filter", "effluent_standard"}
+        and e.key not in _DRAFT16_KEYS
     ]
     assert all("已追认" in e.value_basis for e in ratified)
+    # 1.6.0 起草五键状态锁（起草面禁冒充已追认——追认后回写撤本断言）
+    drafted = [e for e in catalog.entries if e.key in _DRAFT16_KEYS]
+    assert len(drafted) == len(_DRAFT16_KEYS)
+    assert all("起草待追认" in e.value_basis for e in drafted)
     by_key = {e.key: e for e in filters}
     assert by_key["vxinglvchi.v_filter_band"].expression == (
         "v_filter_act >= 7.0 and v_filter_act <= 10.0"
     )
     assert by_key["vxinglvchi.v_forced_band"].expression == "v_forced_act <= 13.0"
     assert by_key["nongsuo.solid_load_band"].unit_kinds == ("sludge_nongsuo",)
+    # 1.6.0 双侧带锁面（margin 产出面——bilateral band_of 形态）
+    assert by_key["aao.hrt_anoxic_band"].expression == (
+        "t_n >= 2.0 and t_n <= 4.0"
+    )
+    assert by_key["cass.ns_act_band"].unit_kinds == ("municipal_cass",)
 
 
 def test_effluent_entries_not_offered_for_filtering() -> None:
@@ -275,7 +293,7 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——29 条五类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——34 条五类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
