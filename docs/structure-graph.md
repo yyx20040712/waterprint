@@ -99,7 +99,7 @@
 | `waterprint.cli` | `waterprint.flows` | CLI 壳经 flows 用例流编排（ADR-022 两壳分工——AI1 集成批） |
 | `waterprint.flows` | `waterprint.app` | 用例流只经内核正门（ADR-022 D1） |
 | `waterprint.flows` | `waterprint.contracts` | RunEnv/条件集/结果序列化类型面（ADR-022） |
-| `waterprint.flows` | `waterprint.trace` | audit 渲染包装例外通道（trace.audit 直调——ADR-020 D2 正门） |
+| `waterprint.flows` | `waterprint.trace` | audit 渲染包装例外通道（trace.audit 直调——ADR-020 D2 正门）；est-20261001 起 estimate 渲染流同通道消费 trace.estimate_sheet（xlsx 直写渲染件）与经其间接消费 xlsx_save 共享件 |
 | `waterprint.flows` | `waterprint.cost` | 概算流直取 cost 四模块链（estimate_summary_flow——ADR-022 D2） |
 | `waterprint.cli` | `waterprint.graph` | 退出码映射的执行期领域异常族（LoopDivergence 等——AI1 T5 回填补登） |
 | `waterprint_server.services` | `waterprint.flows` | apply 参数守护转调 params_guard（守护真源收敛 flows——ADR-022 D2） |
@@ -138,6 +138,7 @@
 | `waterprint.app_enumeration` | `waterprint.trace` | TraceCollector 注入与计算书渲染——ENG2 B3 补登 |
 | `waterprint.project` | `waterprint.contracts` | 项目 schema 校验 |
 | `waterprint.trace` | `waterprint.contracts` | 结果与迹节点 schema |
+| `waterprint.trace` | `waterprint.cost` | 概算 xlsx 直写渲染件消费 cost 类型面（trace.estimate_sheet→EstimateSheet/FeeLine/IndicatorReport/PriceBook——L4.project-trace→L3 向下合法；est-20261001 estimate 501 收口批 D2） |
 | `waterprint.trace` | `waterprint.registry` | 公式溯源查询（条文号） |
 | `waterprint.trace` | `data` | Excel 计算书模板（templates 数据包） |
 | `waterprint.graph` | `waterprint.contracts` | unit_api 协议与量/水质契约 |

@@ -31,7 +31,9 @@
 #       （消息含原占位符与单元格坐标，GR-09）。
 #   R4 字节确定性：保存经 ZipInfo 缺省时间戳重写 zip 条目（openpyxl
 #       save 默认携带落盘时刻，双渲染字节不同——重写后双渲染字节相同）
-#       +core.xml dcterms:modified 值归一定值（批 14-FIX 修复：openpyxl
+#       +core.xml dcterms:modified 值归一定值（est-20261001 起机制迁驻
+#       共享件 xlsx_save.py——本件消费面零逻辑；历史机制注记如下）
+#       （批 14-FIX 修复：openpyxl
 #       save 链路无条件把 modified 刷新为落盘时刻——构造后/加载后显式
 #       赋定值均被覆盖[探针 b14-probe/probe_fixface.py 场景 A/C 实证]，
 #       赋值归一路不通，落盘后在 zip 条目链内改写该载荷行；modified
@@ -52,16 +54,15 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from io import BytesIO
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final
-from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from openpyxl import Workbook, load_workbook
 
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.trace.collector import TraceTree
+from waterprint.trace.xlsx_save import deterministic_save
 
 __all__ = ["TEMPLATE_REGISTRY", "InvalidTemplateError", "render_calcbook"]
 
@@ -84,14 +85,10 @@ _TRACE_FIELDS: Final[frozenset[str]] = frozenset(
 )
 # summary 平键展开（R3）：{f"{condition_key}.{字段ID}": value}
 _Summary = dict[str, float]
-# R4 modified 归一面（批 14-FIX）：正则与批 14 快照测试层规范化器同式
-# （tests/snapshots/test_snapshots.py _MODIFIED_RE——双保险两层同源）。
-_MODIFIED_RE: re.Pattern[bytes] = re.compile(
-    rb"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)"
-)
-# 归一定值=W3CDTF 固定纪元（与快照测试 _FIXED_EPOCH 同源纪元；字符串
-# 非数值字面量——AST 魔法数字门禁面外，dxf_writer _DEFAULT_SCALE 同款口径）。
-_FIXED_MODIFIED: Final[str] = "2000-01-01T00:00:00Z"
+# R4 确定性保存机制（批 14-FIX）已迁驻共享件 xlsx_save.py（est-20261001
+# D2 机制单源——estimate 直写渲染件同源消费防双源漂移）：_MODIFIED_RE/
+# _FIXED_MODIFIED/_deterministic_save 三符号迁出，本件经
+# deterministic_save 消费（行为零变——隔秒双渲染字节恒等测试在锁）。
 
 
 class InvalidTemplateError(Exception):
@@ -178,29 +175,6 @@ def _check_no_formulas(workbook: Workbook) -> None:
                     )
 
 
-def _deterministic_save(workbook: Workbook, out: Path) -> None:
-    """R4 字节确定性保存：入内存→modified 载荷归一→ZipInfo 纪元重写条目。
-
-    归一在条目循环内完成（openpyxl save 无条件刷新 modified——批 14-FIX
-    机制注记见规格头 R4；未来 openpyxl 标签形态变致正则不匹配=no-op，
-    由隔秒双渲染字节恒等断言兜底响红）。
-    """
-    buffer = BytesIO()
-    workbook.save(buffer)
-    buffer.seek(0)
-    with ZipFile(buffer) as source, ZipFile(out, "w", ZIP_DEFLATED) as target:
-        for name in source.namelist():
-            payload = source.read(name)
-            if name == "docProps/core.xml":
-                payload = _MODIFIED_RE.sub(
-                    rb"\g<1>" + _FIXED_MODIFIED.encode("utf-8") + rb"\g<2>",
-                    payload,
-                )
-            entry = ZipInfo(name)  # 缺省 date_time=zip 纪元——确定性锚点
-            entry.compress_type = source.getinfo(name).compress_type
-            target.writestr(entry, payload)
-
-
 def render_calcbook(
     trace: TraceTree, result: PlantResult, template: Path, out: Path
 ) -> Path:
@@ -214,5 +188,5 @@ def render_calcbook(
                 cell.value = _render_cell(  # type: ignore[assignment]
                     cell.value, f"{sheet.title}!{cell.coordinate}", trace, summary
                 )
-    _deterministic_save(workbook, out)
+    deterministic_save(workbook, out)  # R4 共享件（xlsx_save——机制单源）
     return out

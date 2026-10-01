@@ -42,9 +42,18 @@
 #   audit_render_flow(project, plant, out) -> Path   discover_units 装载
 #       前置→render_audit_html→原子落盘（cli export audit 同款语义）。
 #   estimate_summary_flow(plant, *, condition_key, data_dir)
-#       -> EstimateFlowResult(sheet, report)   cost 四模块链：load_prices
-#       →fee_rules/field_mapping(unit_prices)→takeoff→build→check_indicators
-#       （design_scale=快照 outflows 输入节点流量×pint 因子——server 同源）。
+#       -> EstimateFlowResult(sheet, report, book)   cost 四模块链：load_
+#       prices→fee_rules/field_mapping(unit_prices)→takeoff→build→check_
+#       indicators（design_scale=快照 outflows 输入节点流量×pint 因子
+#       ——server 同源）；book=PriceBook 直投（est-20261001：渲染名称列
+#       单一真源=单价包 name——additive 字段，.sheet/.report 消费面不受扰）。
+#   estimate_render_flow(project, plant, out, *, condition_key, data_dir)
+#       -> Path   概算 xlsx 渲染流（est-20261001）：estimate_summary_flow
+#       单源复用→render_estimate_xlsx→tmp+os.replace 原子落盘（audit_
+#       render_flow 定式含 H5 全异常清理）；cost 四域异常（InvalidTakeoff/
+#       Price/Estimate/Indicator）包装上抛 InvalidFlowError from exc（消息
+#       透传——工况不在结果集=takeoff 消息含可用工况集，禁静默取首档）；
+#       project 形参=冻结签名占位（audit 先例）。
 #   enumeration_flow / design_map_flow（同形）→ app 正门直通。
 #   params_guard(project, unit_id, params) -> tuple[ParamVerdict, ...]
 #       清单式逐条四面守护（server calculation._validate_apply_params
@@ -102,16 +111,31 @@ from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.quantity import DimKey, parse
 from waterprint.contracts.result_schema import PlantResult, serialize
 from waterprint.contracts.run_env import RunEnv
-from waterprint.cost.estimate import EstimateSheet, build_estimate, load_fee_rules
-from waterprint.cost.indicators import IndicatorReport, check_indicators, load_indicator_bands
-from waterprint.cost.prices import load_prices
-from waterprint.cost.takeoff import load_field_mapping, takeoff_quantities
+from waterprint.cost.estimate import (
+    EstimateSheet,
+    InvalidEstimateError,
+    build_estimate,
+    load_fee_rules,
+)
+from waterprint.cost.indicators import (
+    IndicatorReport,
+    InvalidIndicatorError,
+    check_indicators,
+    load_indicator_bands,
+)
+from waterprint.cost.prices import InvalidPriceError, PriceBook, load_prices
+from waterprint.cost.takeoff import (
+    InvalidTakeoffError,
+    load_field_mapping,
+    takeoff_quantities,
+)
 from waterprint.flows.params_guard import ParamVerdict, params_guard
 from waterprint.trace.audit import (  # 许可面③（audit 渲染包装）
     InvalidAuditError,
     InvalidAuditPathError,
     render_audit_html,
 )
+from waterprint.trace.estimate_sheet import render_estimate_xlsx
 
 # 上行扩名=H2（exp-hygiene-20260930）：trace.audit 异常族再导出——server
 # forbidden 面禁直连 trace，经本层取用（零新 import 边，扩名先例）。
@@ -121,8 +145,8 @@ __all__ = [
     "InvalidAuditPathError", "InvalidFlowError", "ParamVerdict",
     "audit_render_flow", "build_condition_flow", "build_env_flow",
     "build_standards_flow", "design_map_flow", "enumeration_flow",
-    "estimate_summary_flow", "export_flow", "params_guard",
-    "result_persist_flow", "run_calc_flow", "validate_flow",
+    "estimate_render_flow", "estimate_summary_flow", "export_flow",
+    "params_guard", "result_persist_flow", "run_calc_flow", "validate_flow",
 ]
 
 
@@ -319,9 +343,15 @@ def audit_render_flow(project: ProjectFile, plant: PlantResult, out: Path) -> Pa
 @dataclass(frozen=True)
 @final
 class EstimateFlowResult:
-    """estimate 流产物：概算表+指标校核报告（内存投影——T4 无文件面）。"""
+    """estimate 流产物：概算表+指标校核报告+单价包（内存投影——T4 无文件面）。
+
+    book=PriceBook 直投（est-20261001）：渲染名称列单一真源=单价包 name
+    （services/cost.py R5 同源口径）——additive 字段，.sheet/.report 消费面
+    不受扰。"""
+
     sheet: EstimateSheet
     report: IndicatorReport
+    book: PriceBook
 
 
 def _design_scale_of(plant: PlantResult, condition_key: str) -> float:
@@ -361,7 +391,61 @@ def estimate_summary_flow(
         load_indicator_bands(book),
         design_scale=_design_scale_of(plant, condition_key),
     )
-    return EstimateFlowResult(sheet=sheet, report=report)
+    return EstimateFlowResult(sheet=sheet, report=report, book=book)
+
+
+# est-20261001：cost 四域异常族（渲染流包装面——H2 flows 族映射单一真源，
+# 裸 Exception 逃逸=500 禁；InvalidFlowError=server 422 面）。
+_COST_ERRORS: Final[tuple[type[Exception], ...]] = (
+    InvalidTakeoffError, InvalidPriceError, InvalidEstimateError,
+    InvalidIndicatorError,
+)
+
+
+def _estimate_outcome(
+    plant: PlantResult, *, condition_key: str, data_dir: Path
+) -> EstimateFlowResult:
+    """estimate 计算链复用+包装：cost 四域异常 → InvalidFlowError from exc
+    （消息透传——工况不在结果集时 takeoff 消息自带可用工况集，禁静默
+    取首档）。"""
+    try:
+        return estimate_summary_flow(
+            plant, condition_key=condition_key, data_dir=data_dir
+        )
+    except _COST_ERRORS as exc:
+        raise InvalidFlowError(f"概算流失败：{exc}") from exc
+
+
+def estimate_render_flow(
+    project: ProjectFile,
+    plant: PlantResult,
+    out: Path,
+    *,
+    condition_key: str,
+    data_dir: Path,
+) -> Path:
+    """estimate 渲染流：计算链单源复用 → xlsx 直写渲染 → 原子落盘。
+
+    tmp+os.replace 定式=audit_render_flow（H5 全异常清理 BaseException
+    授权同款）；project 形参=冻结签名占位（audit 先例——抬头三元组经
+    sheet.repro 自证）。"""
+    target = _flow_out(out)
+    tmp = target.with_name(target.name + ".tmp")
+    try:
+        render_estimate_xlsx(
+            _estimate_outcome(
+                plant, condition_key=condition_key, data_dir=data_dir
+            ),
+            tmp,
+        )
+        os.replace(tmp, target)
+    # H5（同 result_persist_flow/audit_render_flow 两处一致族）：
+    # 全异常清理——渲染期异常半写 .tmp 不留（清理后 re-raise）。
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.remove(tmp)
+        raise
+    return target
 
 
 # ── enumeration / design_map（app 正门直通） ─────────────────────────────
