@@ -37,7 +37,7 @@
 #   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件
 #   产股，无边也产；nongsuo sup 先例同构）/removal_refs 双指标键/
 #   norm_refs 双源标记（GB/T 41019-2021+给水排水设计手册）/
-#   condition_mappings=()/constraint_refs 五键。
+#   condition_mappings=n 池数降级三元式（ADR-007，cond3 批 2026-10-01）/constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
 
 from typing import Final
@@ -274,7 +274,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 3 册 城镇给水）》斜管沉淀池轴向流速/构造常用带",
             "docs/norms/mine_water_gaomidu.md（2026-08-27 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "mine_water_gaomidu.surface_load_band",
             "mine_water_gaomidu.surface_load_act",

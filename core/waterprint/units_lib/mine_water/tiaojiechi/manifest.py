@@ -32,7 +32,8 @@
 # 【声明五件】params（range 仅表内有出处带者：t_reg/h2/ratio_lb 三
 #   参数；分格数 n=16 构造参数无档位来源不设 grid）/ports 两口 WATER/
 #   removal_refs 双指标键/norm_refs 双源标记（GB/T 41019-2021+给水
-#   排水设计手册）/condition_mappings=()/constraint_refs 三键。
+#   排水设计手册）/condition_mappings=n 格数降级三元式（ADR-007，cond3 批 2026-10-01）/
+#   constraint_refs 三键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -248,7 +249,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 5 册 城镇排水）》调节池停留时间法/防沉积搅拌功率密度常用带",
             "docs/norms/mine_water_tiaojiechi.md（2026-08-27 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单格承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "mine_water_tiaojiechi.hrt_band",
             "mine_water_tiaojiechi.depth_band",

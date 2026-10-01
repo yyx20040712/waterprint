@@ -24,7 +24,9 @@
 # 【声明五件】params（t_well/h_well 两参数带=factor 带键逐字；
 #   dia_disc_step 构造档）/ports 两口 WATER/removal_refs 空映射/
 #   norm_refs 双源标记（GB 50014-2021 §6.1 参照+§6 超高+手册第 5 册）/
-#   condition_mappings=()/constraint_refs 三键（t_band/depth_band/d_band）。
+#   condition_mappings=()（单井，集水井单井容蓄无并联系列数——cond3 批
+#   2026-10-01 明示不映射，D4 拒检=诚实行为）/constraint_refs
+#   三键（t_band/depth_band/d_band）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest

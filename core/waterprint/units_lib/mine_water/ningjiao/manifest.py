@@ -35,7 +35,8 @@
 # 【声明五件】params（range 仅表内有出处带者：四区停留/h2/ratio_lb
 #   六参数；池数 n=2 构造参数无档位来源不设 grid）/ports 两口 WATER/
 #   removal_refs 双指标键/norm_refs 双源标记（GB/T 41019-2021+给水
-#   排水设计手册）/condition_mappings=()/constraint_refs 七键。
+#   排水设计手册）/condition_mappings=n 池数降级三元式（ADR-007，cond3 批 2026-10-01）/
+#   constraint_refs 七键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -332,7 +333,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 3 册 城镇给水）》混合/絮凝 G 值法（P=μG²V）与 GT 校核常用带",
             "docs/norms/mine_water_ningjiao.md（2026-08-27 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "mine_water_ningjiao.gt_band",
             "mine_water_ningjiao.t_mix_band",

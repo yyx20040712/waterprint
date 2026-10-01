@@ -28,7 +28,9 @@
 #   SludgeFlow 契约口径——SECS_PER_DAY 模块常量由 compute 消费。
 # 【声明五件】params（t_well/h_well 双带与 v_pipe 流速带有出处带设
 #   range；n_standby/h_static/l_pipe 无带不设）/ports 两口 SLUDGE/
-#   removal_refs 空/norm_refs 双源标记/condition_mappings=()/
+#   removal_refs 空/norm_refs 双源标记/condition_mappings=()（泵台数 ceil
+#   计算值非池数参数，同市政 wushui_tisheng 先例——cond3 批 2026-10-01
+#   明示不映射，D4 拒检=诚实行为）/
 #   constraint_refs 五键（单泵流量带/出泥管流速带/启停上限/集泥井
 #   时间带/水深带）。
 # ══════════════════════════════════════════════════════════════════

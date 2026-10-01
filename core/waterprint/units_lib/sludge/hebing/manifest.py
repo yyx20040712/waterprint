@@ -34,7 +34,9 @@
 #   不设 range）/ports 三 IN+一 OUT 全 SLUDGE（GOLDEN4a D1）/removal_refs
 #   空映射/norm_refs
 #   双源标记（GB 50014-2021 §8.1+给水排水设计手册第 5 册；CJJ
-#   131-2009 仅叙述列）/condition_mappings=()/constraint_refs 一键
+#   131-2009 仅叙述列）/condition_mappings=()（合建构无并联数，三股汇合
+#   一池——cond3 批 2026-10-01 明示不映射，D4 拒检=诚实行为）/
+#   constraint_refs 一键
 #   （互校偏差上限——表唯一显式校核带）。
 # ══════════════════════════════════════════════════════════════════
 

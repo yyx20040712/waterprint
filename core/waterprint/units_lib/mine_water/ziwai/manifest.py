@@ -39,7 +39,8 @@
 #   渠数/渠宽/水深/灯功率/每排灯数/排间距/损失系数和/透光指数构造
 #   参数无范围来源不设）/ports 两口 WATER/removal_refs 双指标零去除
 #   键/norm_refs 三源标记（GB/T 31392-2022+GB/T 41019-2021+给水排水
-#   设计手册）/condition_mappings=()/constraint_refs 三键。
+#   设计手册）/condition_mappings=n 渠数降级三元式（ADR-007，
+#   cond3 批 2026-10-01）/constraint_refs 三键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -254,7 +255,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 3 册 城镇给水）》紫外消毒灯管布置/渠内流速常用带",
             "docs/norms/mine_water_ziwai.md（2026-08-27 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单渠承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "mine_water_ziwai.velocity_band",
             "mine_water_ziwai.t254_band",

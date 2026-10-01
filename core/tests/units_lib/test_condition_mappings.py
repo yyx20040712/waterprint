@@ -1,35 +1,43 @@
 """市政线检修降级映射声明面与引擎行为测试（cond 批 2026-10-01；
-cond2 批 2026-10-01 补强——cass 整图换图/边界档位执法/位串鉴别）。
+cond2 批 2026-10-01 补强——cass 整图换图/边界档位执法/位串鉴别；
+cond3 批 2026-10-01 拆分——正典表迁 condition_mapping_facts 单一
+事实源+⑤⑥边界段独立件+k2-N7 ceil 巧合行改双档锚）。
 
-输入:  units_lib 声明面（discover_units 注册表 13 市政包 manifest）+
-       golden municipal_34760 案例（19 节点全厂——引擎行为面载体）
+输入:  units_lib 声明面（discover_units 注册表 13 市政包 manifest；
+       正典表自 condition_mapping_facts 装载）+golden municipal_34760
+       案例（19 节点全厂——引擎行为面载体）
 输出:  四组断言——①声明面清点（11 有并行槽数参数单元恰 1 条正典三元式
        且 target/rule 字面恒等；bashi_jiliangcao/wushui_tisheng 两单元
        空映射锁定=不合格面明示）②mapped 单元（aao）design.checked_units
        承载路径 → 3 工况+offline dims 逐键分化（n 降一/单系列量翻倍
-       ——含 n_aerator_raw 第 4 分化键全锚）③unmapped 单元（bashi）
-       D4 拒检=InvalidAssemblyError（消息含「须声明检修降级映射」
-       ——诚实行为）④基线零漂移（同一项目无 checked 与有 checked 两跑
-       design/avg 两档 summary 逐键相等+全单元 dims IEEE 位串恒等与
-       float 类型鉴别——基线档 pool.all_pools=True 真支原值透传，
-       ADR-007 冻结语义）。
-       cond2 增补两组——⑤cass 整图换图亲验（aao→cass 节点替换+边重接：
-       3 工况在场+缩放比 4/3 精确三键+n_aerator=ceil(raw)+其余全池
-       dims 全等+分化键数 ≥4）⑥边界执法面（registry 档位声明推导分类
-       ——grid 下限≥2 单元 target=1 装配期拒「档位」；grid=None 自由
-       参数单元 offline 归零响亮炸「必须 > 0」，禁静默通过）。
+       ——v_o_series/n_aerator_raw 精确锚+n_aerator=ceil(raw) 双档
+       取整锚〔k2-N7 cond3：approx(2×) 在 ceil(2x)=2·ceil(x) 巧合
+       成立时过、一般不成立〕）③unmapped 单元（bashi）D4 拒检=
+       InvalidAssemblyError（消息含「须声明检修降级映射」——诚实行为）
+       ④基线零漂移（同一项目无 checked 与有 checked 两跑 design/avg
+       两档 summary 逐键相等+全单元 dims IEEE 位串恒等与 float 类型
+       鉴别——基线档 pool.all_pools=True 真支原值透传，ADR-007 冻结
+       语义）。
 
-【范围界】mine_water/sludge/conveyance 线不在断言面（cond 批范围=
-市政线，他线后续批）；tiaojiechi 仅 n（格数）映射——n_pump_duty 泵
-台数非池数语义不映射（映射表出处=cond 批简报 §4.1，ADR-007）。
-l_pool 模数步进、b_pool 取档与 n_aerator ceil 取整非纯缩放——不锚
-4/3 精确比（cond2 批简报 §3 记档；l_pool 锚方向不锚比值）。
+【范围界】⑤cass 整图换图亲验与⑥边界执法面（cond2 增补段）随 cond3
+批迁出：换图亲验留本件②段（cass 整图行为面）；边界执法面（分类
+守卫+档位装配拒+自由参数归零炸——22 单元全口径）=test_condition_
+mappings_boundary.py；三线（mine_water/sludge/conveyance）声明面
+与引擎行为=test_condition_mappings_lines.py；正典表单一事实源=
+condition_mapping_facts.py（本件与两新件共用，importlib 路径装载）。
+tiaojiechi 仅 n（格数）映射——n_pump_duty 泵台数非池数语义不映射
+（映射表出处=cond 批简报 §4.1，ADR-007）。l_pool 模数步进、b_pool
+取档与 n_aerator ceil 取整非纯缩放——不锚 4/3 精确比（cond2 批简报
+§3 记档；l_pool 锚方向不锚比值）。
 """
 
 from __future__ import annotations
 
+import importlib.util
+import json
 import math
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 import pytest
@@ -37,31 +45,22 @@ import pytest
 _REPO_DATA = Path(__file__).resolve().parents[3] / "data" / "coefficients"
 _GOLDEN_CASE = Path("municipal_34760")
 
-# 11 单元正典三元式表（unit_id → (target, rule)；简报 §4.1 逐字——
-# target 键名与各包 manifest params 声明面逐一核对）。
-_CANONICAL: dict[str, tuple[str, str]] = {
-    "municipal_cugeshan": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_xigeshan": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_chenshachi": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_chuchenchi": ("n", "n if pool.all_pools else n - 1"),
-    # 格数映射；n_pump_duty（泵台数）不映射——非池数降级语义。
-    "municipal_tiaojiechi": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_aao": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_cass": ("n_pool", "n_pool if pool.all_pools else n_pool - 1"),
-    "municipal_gaomidu": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_vxinglvchi": ("n", "n if pool.all_pools else n - 1"),
-    "municipal_ziwai": (
-        "n_channel",
-        "n_channel if pool.all_pools else n_channel - 1",
-    ),
-    "municipal_erchunchi": ("n", "n if pool.all_pools else n - 1"),
-}
 
-# 两单元不合格明示不映射（D4 拒检=诚实行为——测试锁定空声明面）。
-_UNMAPPED: tuple[str, ...] = (
-    "municipal_bashi_jiliangcao",  # 单槽构筑物，无并行槽数参数
-    "municipal_wushui_tisheng",  # n_pump_duty=ceil 计算值非参数；n_standby 纯计数回显
-)
+def _load_facts() -> ModuleType:
+    """facts 单一事实源装载（importlib 路径加载——n1 电池零跨测试件 import 同款）。"""
+    path = Path(__file__).resolve().parent / "condition_mapping_facts.py"
+    spec = importlib.util.spec_from_file_location("condition_mapping_facts", path)
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# 11 单元正典三元式表+两单元不合格面（cond3 批迁 condition_mapping_facts
+# 单一事实源——本件与 lines/boundary 件三处共用；内容逐字零变更）。
+_FACTS = _load_facts()
+CANONICAL: dict[str, tuple[str, str]] = _FACTS.CANONICAL
+UNMAPPED: tuple[str, ...] = _FACTS.UNMAPPED
 
 
 def _registry() -> Any:
@@ -71,37 +70,12 @@ def _registry() -> Any:
     return discover_units()
 
 
-def _boundary_classification() -> tuple[
-    tuple[tuple[str, str], ...], tuple[tuple[str, str], ...]
-]:
-    """正典键集 × manifest target spec 档位声明分类（cond2 T3 oracle）。
-
-    grid=None → 自由参数（target=1 装配过；offline 归零走 compute 守卫
-    响亮炸）；grid 非 None 且不含 1.0 → 档位下限≥2（target=1 装配期
-    _check_grid_hits 拒）。档位声明即行为分类真源——禁硬编码名单；
-    声明面翻转（如 grid 增 1.0 档）时分类自动随动（自适应非脆性）。
-    """
-    registry = _registry()
-    grid_bound: list[tuple[str, str]] = []
-    free: list[tuple[str, str]] = []
-    for unit_id, (target, _rule) in sorted(_CANONICAL.items()):
-        spec = {s.field_id: s for s in registry[unit_id][0].params}[target]
-        if spec.grid is None:
-            free.append((unit_id, target))
-        elif not any(math.isclose(1.0, step) for step in spec.grid):
-            grid_bound.append((unit_id, target))
-    return tuple(grid_bound), tuple(free)
-
-
-_GRID_BOUNDARY_UNITS, _FREE_PARAM_UNITS = _boundary_classification()
-
-
 # ══ ① 声明面清点 ══════════════════════════════════════════════════
 
 
 @pytest.mark.parametrize(
     ("unit_id", "expected"),
-    sorted(_CANONICAL.items()),
+    sorted(CANONICAL.items()),
 )
 def test_mapped_units_declare_canonical_triple(
     unit_id: str, expected: tuple[str, str]
@@ -130,16 +104,16 @@ def test_mapped_unit_count_is_eleven() -> None:
         for unit_id in municipal
         if registry[unit_id][0].condition_mappings
     }
-    assert mapped == set(_CANONICAL)
+    assert mapped == set(CANONICAL)
 
 
-@pytest.mark.parametrize("unit_id", _UNMAPPED)
+@pytest.mark.parametrize("unit_id", UNMAPPED)
 def test_unmapped_units_declare_no_mappings(unit_id: str) -> None:
     """两单元 condition_mappings 为空（不合格面锁定——D4 拒检语义承载）。"""
     assert _registry()[unit_id][0].condition_mappings == ()
 
 
-# ══ ②③④ 引擎行为面（golden municipal_34760 实跑）═════════════════
+# ══ ②③④⑤ 引擎行为面（golden municipal_34760 实跑）═════════════════
 
 _golden_ready = (
     Path(__file__).resolve().parents[1] / "golden" / "golden_data" / _GOLDEN_CASE
@@ -156,8 +130,6 @@ def _golden_project(golden_data_dir: Path) -> Any:
 
 def _run_env(golden_data_dir: Path) -> Any:
     """RunEnv（口径=golden expected.generated 实录：server 版本串+数据版本）。"""
-    import json
-
     from waterprint.contracts.run_env import RunEnv
     from waterprint.registry import load_coefficients
     from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
@@ -211,21 +183,7 @@ def _cass_swapped_project(golden_data_dir: Path) -> Any:
         edges.append(rewritten)
     return project.model_copy(
         update={
-            "design": project.design.model_copy(
-                update={"nodes": nodes, "edges": edges}
-            )
-        }
-    )
-
-
-def _with_node_param(project: Any, unit_id: str, key: str, value: float) -> Any:
-    """节点参数覆盖注入（节点不在 golden 图=增浮节点——tiaojiechi 面对齐
-    cass 换图同款处理：装配期 grid 执法先于任何拓扑面，浮节点仍受检）。"""
-    nodes = dict(project.design.nodes)
-    nodes[unit_id] = {**nodes.get(unit_id, {}), key: value}
-    return project.model_copy(
-        update={
-            "design": project.design.model_copy(update={"nodes": nodes})
+            "design": project.design.model_copy(update={"nodes": nodes, "edges": edges})
         }
     )
 
@@ -238,9 +196,11 @@ def test_mapped_checked_unit_offline_dims_differentiate(
     """mapped 单元（aao）checked 路径：3 工况+offline dims 逐键分化。
 
     aao n=2（golden 默认档）：offline 档 n 2→1（n−1 冻结语义）；
-    v_o_series/n_aerator/n_aerator_raw 随单系列承载全流量翻倍
+    v_o_series/n_aerator_raw 随单系列承载全流量翻倍
     （n_aerator_raw=v_o_series/(h2·f_aerator_service)，AO-F20——
-    分化键 3→4 全锚，d1-N3）。
+    分化键 3→4 全锚，d1-N3）；n_aerator=ceil(n_aerator_raw) 双档
+    取整锚（k2-N7 cond3——approx(2×) 在 ceil(2x)=2·ceil(x) 巧合
+    成立时过、一般不成立；cass 段 319-320 行同式镜像）。
     """
     from waterprint.app import run_full_calc
     from waterprint.contracts.condition import ConditionSet, build_condition_set
@@ -259,8 +219,11 @@ def test_mapped_checked_unit_offline_dims_differentiate(
     assert design["n"] == 2.0  # golden 案例默认池数档（anchors 非手造）
     assert offline["n"] == design["n"] - 1 == 1.0  # n−1 降级
     assert offline["v_o_series"] == pytest.approx(2 * design["v_o_series"])
-    assert offline["n_aerator"] == pytest.approx(2 * design["n_aerator"])
     assert offline["n_aerator_raw"] == pytest.approx(2 * design["n_aerator_raw"])
+    # k2-N7（cond3 批）：ceil 双档锚——n_aerator=ceil(raw)（compute
+    # AO-F20 收口面）逐档各自成立，替代 approx(2×) 巧合过面。
+    assert design["n_aerator"] == math.ceil(design["n_aerator_raw"])
+    assert offline["n_aerator"] == math.ceil(offline["n_aerator_raw"])
 
 
 @pytest.mark.golden
@@ -400,86 +363,3 @@ def test_baseline_summary_zero_drift_with_checked(golden_data_dir: Path) -> None
                 assert struct.pack("<d", value) == struct.pack("<d", other), (
                     f"{key}/{unit_id}.{dim_key} dims IEEE 位串漂移"
                 )
-
-
-# ══ ⑤⑥ 边界执法面（cond2 批——registry 档位声明推导）═══════════════
-
-
-def test_boundary_classification_covers_canonical() -> None:
-    """分类自洽守卫：档位/自由两表恰覆盖正典键集+计数锚（防静默漏测）。
-
-    grid 声明含 1.0 的单元落两表之外（n=1 合法档——边界语义不存在）；
-    该单元出现时本测试红=分类须人工重审，而非静默退出断言面。
-    计数锚 8/3=声明面回归探测器：档位声明任何翻转（grid 增删档/
-    grid↔None 迁移/新单元入正典表）须红面人工重审参数化覆盖面
-    ——意图非脆性名单，而是「翻转须走人」的响红闸；两表
-    非空同锚（空表=整类边界执法面静默失守）。
-    """
-    assert _GRID_BOUNDARY_UNITS, "档位边界表空=整类装配执法面失守"
-    assert _FREE_PARAM_UNITS, "自由参数表空=整类响亮炸面失守"
-    assert len(_GRID_BOUNDARY_UNITS) == 8  # 计数锚：当前声明面实测（回炉 N4）
-    assert len(_FREE_PARAM_UNITS) == 3  # 同上
-    covered = {unit for unit, _ in _GRID_BOUNDARY_UNITS + _FREE_PARAM_UNITS}
-    missing = set(_CANONICAL) - covered
-    assert not missing, f"分类外单元（grid 含 1.0 档？须重审分类）：{sorted(missing)}"
-
-
-@pytest.mark.golden
-@pytest.mark.skipif(not _golden_ready, reason="golden 数据未整理（市政案例在册才跑）")
-@pytest.mark.parametrize(("unit_id", "target"), _GRID_BOUNDARY_UNITS)
-def test_boundary_grid_unit_rejects_single(
-    golden_data_dir: Path, unit_id: str, target: str
-) -> None:
-    """档位下限≥2 单元 target=1 装配期拒：InvalidAssemblyError 含「档位」。
-
-    grid 声明不含 1（下限≥2）→ _check_grid_hits 装配执法（Ruling ④
-    档位归 grid 层）。本测试锚定**静态参数面**装配执法（声明面 grid
-    拒 n=1 设计输入）；运行期映射写值面（offline n−1 写出后不再经
-    装配复检、直接进 compute——T1 aao offline n=1 正常算出为实证）
-    由 T1/T2 锚定；归零面由 grid=None 单元经 compute 守卫承接。
-    cass 用换图项目（golden 无 cass 节点）；tiaojiechi 同不在
-    golden 图=增浮节点（grid 执法先于拓扑面）。
-    """
-    from waterprint.app import InvalidAssemblyError, assemble
-
-    base = (
-        _cass_swapped_project(golden_data_dir)
-        if unit_id == "municipal_cass"
-        else _golden_project(golden_data_dir)
-    )
-    with pytest.raises(InvalidAssemblyError, match="档位"):
-        assemble(
-            _with_node_param(base, unit_id, target, 1), _run_env(golden_data_dir)
-        )
-
-
-@pytest.mark.golden
-@pytest.mark.skipif(not _golden_ready, reason="golden 数据未整理（市政案例在册才跑）")
-@pytest.mark.parametrize(("unit_id", "target"), _FREE_PARAM_UNITS)
-def test_boundary_free_unit_offline_zero_fail_loud(
-    golden_data_dir: Path, unit_id: str, target: str
-) -> None:
-    """grid=None 自由参数单元 offline 归零响亮炸：InvalidExecutionError。
-
-    参数 target=1（grid=None 装配过）+checked=[unit] → offline 工况
-    映射写 n−1=0 → compute 守卫 InvalidUnitConfig「必须 > 0」经 R5
-    异常隔离层上抛 InvalidExecutionError（cugeshan/xigeshan/ziwai
-    三守卫在册）——pytest.raises 即断言无静默通过（零池静默算出
-    假结果=最劣分支）。match=「单元 '<id>'」前缀+「必须 > 0」合并
-    正则——锁定致错单元（工况键亦含 unit_id，前缀锚防他单元同
-    文案消息顶替通过）。
-    """
-    from waterprint.app import run_full_calc
-    from waterprint.contracts.condition import build_condition_set
-    from waterprint.graph.executor import InvalidExecutionError
-
-    project = _with_checked(
-        _with_node_param(_golden_project(golden_data_dir), unit_id, target, 1),
-        unit_id,
-    )
-    with pytest.raises(InvalidExecutionError, match=f"单元 '{unit_id}'.*必须 > 0"):
-        run_full_calc(
-            project, build_condition_set([unit_id]), _run_env(golden_data_dir)
-        )
-
-

@@ -34,7 +34,7 @@
 #   b_channel/v_channel/b 带=range 面逐字；g_gravity 构造承载）/
 #   ports 两口 WATER/removal_refs 空映射/norm_refs 双源标记
 #   （GB 50014-2021 §4 渠道流速/超高+§7.1+手册第 3 册）/
-#   condition_mappings=()/constraint_refs 三键。
+#   condition_mappings=n 并联系列数降级三元式（ADR-007，cond3 批 2026-10-01）/constraint_refs 三键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -211,7 +211,11 @@ manifest = load_manifest(
             "docs/norms/conveyance_peishuiqu.md（2026-08-27 起草手算对照表，"
             "数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单系列承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "conveyance_peishuiqu.v_channel_band",
             "conveyance_peishuiqu.h_weir_band",

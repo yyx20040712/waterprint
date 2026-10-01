@@ -31,7 +31,7 @@
 #   factor 带键逐字；n 池数 grid [2,3,4]——旧 1~4 下限抬 2 构造冗余
 #   口径[表交叉对照行]；h_cone 构造默认无带不设）/ports 三口 SLUDGE
 #   （sup 带 recycle 标记）/removal_refs 空/norm_refs 双源标记/
-#   condition_mappings=()/constraint_refs 四键。
+#   condition_mappings=n 池数降级三元式（ADR-007，cond3 批 2026-10-01）/constraint_refs 四键。
 # ══════════════════════════════════════════════════════════════════
 
 from typing import Final
@@ -264,7 +264,11 @@ manifest = load_manifest(
             "数据策略 v2，待追认；CJJ 131-2009 仅叙述性依据——"
             "数值 source 不标，I3 挂账）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "sludge_nongsuo.solid_load_band",
             "sludge_nongsuo.time_band",

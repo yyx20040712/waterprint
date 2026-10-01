@@ -32,7 +32,8 @@
 # 【声明五件】params（t_digest/eta_vs/r_biogas 三参数带=同名 factor
 #   带键逐字；n 池数 grid [2,3,4]——nongsuo 同口径；t_digest_temp
 #   range 33~37=中温档表参数档逐字[UF-09 承载注记]）/ports 两口
-#   SLUDGE/removal_refs 空/norm_refs 双源标记/condition_mappings=()/
+#   SLUDGE/removal_refs 空/norm_refs 双源标记/condition_mappings=n
+#   池数降级三元式（ADR-007，cond3 批 2026-10-01）/
 #   constraint_refs 四键。
 # ══════════════════════════════════════════════════════════════════
 
@@ -246,7 +247,11 @@ manifest = load_manifest(
             "数据策略 v2，待追认；CJJ 131-2009 仅叙述性依据——"
             "数值 source 不标，I3 挂账）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond3 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "sludge_xiaohua.time_band",
             "sludge_xiaohua.eta_vs_band",

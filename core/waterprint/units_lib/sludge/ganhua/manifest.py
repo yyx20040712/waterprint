@@ -28,7 +28,9 @@
 # 【声明五件】params（p_out 带=moisture_out_band 键逐字；t_op grid
 #   [8,16,24]=表"8/16 h 间歇档归 grid 枚举面"逐字；r_evap 带=
 #   evap_rate_band 键逐字）/ports 两口 SLUDGE/removal_refs 空/
-#   norm_refs 双源标记/condition_mappings=()/constraint_refs 两键。
+#   norm_refs 双源标记/condition_mappings=()（干化单机设备，蒸发面单
+#   构造/t_op 间歇运行档均非并联数参数——cond3 批 2026-10-01 明示不
+#   映射，D4 拒检=诚实行为）/constraint_refs 两键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest

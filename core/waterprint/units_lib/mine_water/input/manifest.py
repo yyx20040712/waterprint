@@ -26,7 +26,8 @@
 # 【声明五件】params（range 仅表内有出处带者：kz/dn_inlet/h_pool 三
 #   参数）/ports 两口 WATER/removal_refs 空映射/norm_refs 双源标记
 #   （GB/T 19223-2015+GB/T 41019-2021+给水排水设计手册）/
-#   condition_mappings=()/constraint_refs 一键。
+#   condition_mappings=()（进水绑定非计算单元，流量/水质入口无并联数参数——
+#   cond3 批 2026-10-01 明示不映射，D4 拒检=诚实行为）/constraint_refs 一键。
 # 【BOD5RM 记档】bod5_in 撤键——Ruling BOD5-不建 2026-08-28，§11.15
 #   全线不建口径（矿井水 B/C=0.025 无生化性，出流水质五指标）。
 # ══════════════════════════════════════════════════════════════════

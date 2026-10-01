@@ -33,7 +33,9 @@
 # 【声明五件】params（dose_pam/p_cake 两参数带=同名 factor 带键逐字；
 #   machine_type grid [1,2] 机档枚举；n_standby 无带不设）/ports 三
 #   口 SLUDGE（filtrate 带 recycle 标记）/removal_refs 空/norm_refs
-#   双源标记/condition_mappings=()/constraint_refs 两键。
+#   双源标记/condition_mappings=()（脱水单机设备，machine_type 机档/
+#   n_standby 备用计数均非池数降级语义——cond3 批 2026-10-01 明示不
+#   映射，D4 拒检=诚实行为）/constraint_refs 两键。
 # ══════════════════════════════════════════════════════════════════
 
 from typing import Final

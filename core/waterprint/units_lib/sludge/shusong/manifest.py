@@ -28,7 +28,9 @@
 #   消费（入流读量 ×换算、出流写量 /换算）。
 # 【声明五件】params（v_press 有 velocity_band 出处带设 range；d_grav
 #   无带不设）/ports 两口 SLUDGE/removal_refs 空/norm_refs 双源标记/
-#   condition_mappings=()/constraint_refs 两键（压力流速带+重力最小
+#   condition_mappings=()（压力管道输送，单管水力面无并联池数语义——
+#   cond3 批 2026-10-01 明示不映射，D4 拒检=诚实行为）/constraint_refs
+#   两键（压力流速带+重力最小
 #   流速）。
 # ══════════════════════════════════════════════════════════════════
 

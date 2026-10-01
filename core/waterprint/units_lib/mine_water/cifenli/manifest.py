@@ -36,7 +36,9 @@
 #   20~40；台数/转速/磁种投加量无档位来源不设）/ports 两口 WATER+
 #   sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，无边也产；
 #   nongsuo sup 先例同构）/removal_refs 双指标键/norm_refs 双源标记
-#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()/
+#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()（设备流道
+#   单机语义，流道几何归厂商样本——cond3 批 2026-10-01 明示不映射，
+#   D4 拒检=诚实行为）/
 #   constraint_refs 两键。
 # 【选型面边界】流道停留/流道流速两键为设备选型校核键（流道几何
 #   归厂商样本），本包不落几何公式不消费——表"其他数据键"原文。
