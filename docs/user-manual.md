@@ -457,7 +457,7 @@ FAQ 第 2 问）。
 | calcbook | API 可用 | Excel 计算书（模板已录入 `data/templates`） |
 | audit | API 可用 | HTML 审计报告——`wp export audit` 与 `POST /api/exports/audit` 双正门（内联样式自包含；2026-09-30 起服务层接线 200）。全厂单份：`unit_id`/非空 `condition_key` 422 拒 |
 | dxf | API 可用 | CAD 图纸：全厂总图（`site_design` 载荷）或单单元图（`unit_id`）或**高程纵断面图**（`sheet: "profile"`——横纵比例可定制 `h_scale`/`v_scale`，如 `"h_scale":"2000"`；批量面 items 逐项 sheet/unit 混装支持）；DXF 落盘后可选子进程转 DWG（`dwg_converter_path` 开关，转换器不随产品分发） |
-| estimate | 501 | 概算书（概算核心已实现——`GET /api/cost/{id}` 数据面可用；导出渲染分支未接线，诚实 501） |
+| estimate | API 可用 | 概算表（Excel xlsx——2026-10-01 起服务层接线 `flows.estimate_render_flow`，两工作表=概算汇总表[抬头工况+可复算三元组+分部分项/措施/间接/预备/税四桶+各级小计与工程概算总计，金额单位元]+指标校核表[单位造价指标带对照，无带时显式未校核行]）。全厂整厂产物：`unit_id`/图纸路由选项（sheet/比例/站距/标高）422 拒；工况 `condition_key` 选档缺省 `design`（不在结果集 422 附可用工况集）；同输入幂等重导出字节恒定 |
 | ifc | API 可用 | 全厂 IFC 模型（BIM 交换格式；单产物端点语义，批量项 unit 须一致） |
 
 导出统一守门：结果集三元组与当前项目不一致且未 `?force=1` 时返回
