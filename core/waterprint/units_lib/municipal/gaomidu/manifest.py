@@ -39,7 +39,8 @@
 #   t_floc 四参数）/ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a
 #   D3——无条件产股，无边也产；nongsuo sup 先例同构）/removal_refs/
 #   norm_refs 双源标记（GB/T 50335-2016+GB 50013-2018+给水排水设计手册）/
-#   condition_mappings=()/constraint_refs 五键。
+#   condition_mappings=n 池数降级三元式（ADR-007，cond 批 2026-10-01）/
+#   constraint_refs 五键。
 # ══════════════════════════════════════════════════════════════════
 
 from typing import Final
@@ -356,7 +357,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 5 册 城镇排水）》混合/絮凝 G 值法与斜管沉淀常用值",
             "docs/norms/gaomidu.md（2026-08-25 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "gaomidu.surface_load_band",
             "gaomidu.r_sludge_band",

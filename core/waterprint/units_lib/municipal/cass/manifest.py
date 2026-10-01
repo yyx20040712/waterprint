@@ -28,11 +28,10 @@
 # 【档位声明（Ruling ④）】池数 n_pool grid=[2,3,4,5,6]（档位下限 ≥2 由
 #   grid 层承载）；周期 t_cycle grid=[4,6,8]（business-logic §7 周期档）
 #   ——compute 只保 n>0 数学有效性，不硬编码 ≥2。
-# 【声明五件】params（range 仅表内有出处带者：Ns/X/t_selector/h2/
-#   ratio_lb/t_draw 六参数）/ports 两口 WATER/removal_refs（AAO 同族键同引用
-#   形态）/norm_refs 双源标记（GB 50014-2021+给水排水设计手册）/
-#   condition_mappings=()/constraint_refs 五键（时段和=周期不变性为
-#   compute 域拒非警告带——不在此声明）。
+# 【声明五件】params（range 仅表内有出处带者：Ns/X/t_selector/h2/ratio_lb/t_draw
+#   六参数）/ports 两口 WATER/removal_refs（AAO 同族键同引用形态）/norm_refs
+#   双源标记（GB 50014-2021+给水排水设计手册）/condition_mappings=n_pool 池数降级
+#   三元式（ADR-007，cond 批 2026-10-01）/constraint_refs 五键（时段和=compute 域拒非警告带）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -350,6 +349,7 @@ for _spec in _FORMULAS:
 # 公式号全量（compute 的 formula_ids 声明面——避免在 compute 侧重复列号）
 FORMULA_IDS: tuple[str, ...] = tuple(spec.formula_id for spec in _FORMULAS)
 
+_CONDITION_N_POOL = {"target": "n_pool", "rule": "n_pool if pool.all_pools else n_pool - 1"}
 manifest = load_manifest(
     {
         "unit_id": UNIT_ID,
@@ -488,7 +488,7 @@ manifest = load_manifest(
             "滗水器选型/生物选择区常用值）",
             "docs/norms/cass.md（2026-08-26 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        "condition_mappings": [_CONDITION_N_POOL],
         "constraint_refs": [
             "cass.ns_band",
             "cass.mlss_band",

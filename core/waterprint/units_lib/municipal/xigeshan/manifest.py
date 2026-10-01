@@ -27,7 +27,8 @@
 #   条文级核对挂账（三表条文摘录表在册）；XG-F10 固定段 1.0/0.5/(0.2+h)
 #   三表标注"旧系统无出处注释"——挂账同三表。
 # 【声明五件】params/ports/removal_refs/norm_refs/condition_mappings
-#   （v1 三单元无受检降级需求=()，D3 裁决）。
+#   （n 格栅台数降级三元式——ADR-007，cond 批 2026-10-01；v1 三单元
+#   无受检降级需求=() 的 D3 裁决由本批解除）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -277,7 +278,11 @@ manifest = load_manifest(
             "GB 50014-2021 §6.3（条文号待核对原文）",
             "docs/norms/xigeshan.md（2026-08-23 领域专家签字手算对照表）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单台承载全流量；cond 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": ["xigeshan.velocity_band.v", "xigeshan.velocity_band.v1"],
     }
 )

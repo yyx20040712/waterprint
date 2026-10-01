@@ -31,8 +31,9 @@
 # 【声明五件】params（b_throat 单参数无 range=grid 承载选档面）/
 #   ports 两口 WATER/removal_refs（零去除键同引用）/norm_refs 双源
 #   标记（GB 50014-2021+给水排水设计手册+CJ/T 核对追认注记）/
-#   condition_mappings=()/constraint_refs 14 键（七档 ha 适用带+七档
-#   淹没度，逐档生成——选档切换时各档表达式独立成立）。
+#   condition_mappings=()（单槽构筑物无并行槽数参数——cond 批 2026-10-01
+#   明示不映射，D4 拒检=诚实行为）/constraint_refs 14 键（七档 ha 适用带+
+#   七档淹没度，逐档生成——选档切换时各档表达式独立成立）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest

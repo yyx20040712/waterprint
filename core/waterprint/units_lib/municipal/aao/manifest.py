@@ -42,8 +42,8 @@
 # 【声明五件】params（range 仅表内有出处带者：Ns/X/t_p/R/Ri 五参数）/
 #   ports 两口 WATER+sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，
 #   无边也产；nongsuo sup 先例同构）/removal_refs/norm_refs 双源标记
-#   （GB 50014-2021+给水排水设计手册）/condition_mappings=()/
-#   constraint_refs 七键。
+#   （GB 50014-2021+给水排水设计手册）/condition_mappings=n 池数降级
+#   三元式（ADR-007，cond 批 2026-10-01）/constraint_refs 七键。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -437,7 +437,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 5 册 城镇排水）》AAO 工艺分区/需氧量/回流比常用值",
             "docs/norms/aao.md（2026-08-25 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单系列承载全流量；cond 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "aao.ns_band",
             "aao.mlss_band",

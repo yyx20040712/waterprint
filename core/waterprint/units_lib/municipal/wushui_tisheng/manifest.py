@@ -32,8 +32,9 @@
 # 【声明五件】params（range 仅表内有出处带者：h_static/v_pipe/l_pipe/
 #   h_well/t_well 五参数）/ports 两口 WATER/removal_refs（零去除键同
 #   引用）/norm_refs 双源标记（GB 50014-2021 §6.1+给水排水设计手册）/
-#   condition_mappings=()/constraint_refs 三键（流速带/启停上限/调节
-#   时间带——单泵流量带为选泵面校核仅 compute warnings 承载）。
+#   condition_mappings=()（n_pump_duty=ceil 计算值非参数、n_standby 纯
+#   计数回显——cond 批 2026-10-01 明示不映射）/constraint_refs 三键（流速
+#   带/启停上限/调节时间带——单泵流量带为选泵面校核仅 compute warnings 承载）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest

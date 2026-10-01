@@ -1467,9 +1467,9 @@
   "generated": {
     "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 6327466,
-    "serialize_sha256_head": "ed1364dc94f02f67",
-    "source": "批6o 锁面重录 2026-09-29（claim=executor-b6o-20260929T1246Z；预授权①依据=用户 2026-09-26 全局规划指令+2026-09-28 增补五十六 H/增补六十二③ 词表裁决；设备单价词表标准化——12 条万元/台→套，值零变）"
+    "serialize_bytes": 6327880,
+    "serialize_sha256_head": "e8c7caa723ed7900",
+    "source": "cond 批锁面重录 2026-10-01（claim=executor-cond-20261001；预授权①依据=用户 2026-09-26 全局规划指令+2026-10-01「按照文档指引继续完善」批指令；市政 11 单元检修降级映射激活——offline 工况 dims 分化入 serialize；effluent/design_dims/condition_keys 零变（常数去除率模型 n-不变性质））"
   },
   "m3_deferred": {
     "estimate_total": {

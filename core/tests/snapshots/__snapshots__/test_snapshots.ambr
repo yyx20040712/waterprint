@@ -1,6 +1,6 @@
 # serializer version: 1
 # name: test_audit_html_content_hash
-  'ca3b51ce1331cd5cf25b3b147cbf3364bdc401d242e99874a1bb195b863f6119'
+  '8c5a0ab662ad938b8b1567482307f0254a57153a8d1d6bef67bd2cdb819521bb'
 # ---
 # name: test_calcbook_xlsx_content_hash
   '7e1979eb8980b1d065942a92151d75bbec9cdbe87bf2dfd6374b9d9dec48cedb'

@@ -32,7 +32,8 @@
 # 【档位声明（Ruling ④）】池数 n grid=[2,3,4,5,6]（GB 50014 池数≥2 精神+
 #   CASS n_pool 先例档，M2-SOL §7 档位补齐，待追认）；档位下限归 grid
 #   层承载，compute 只保 n>0 数学有效性。
-# 【声明五件】params/ports/removal_refs/norm_refs/condition_mappings=()。
+# 【声明五件】params/ports/removal_refs/norm_refs/condition_mappings=n 池
+#   数降级三元式（ADR-007，cond 批 2026-10-01）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -317,7 +318,11 @@ manifest = load_manifest(
             "中期报告 §3.3（毕业设计内部资料，待核对映射条文）",
             "docs/norms/chenshachi.md（2026-08-23 领域专家签字手算对照表）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "chenshachi.surface_load_band",
             "chenshachi.h2_band",

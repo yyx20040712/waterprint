@@ -35,8 +35,8 @@
 # 【声明五件】params（range：q_nom/h2/r_external 三条出处带+两圆整步长
 #   工程常用范围起草待追认——FZ-2 批 2026-09-30/R2 k1-N3）/
 #   ports 两口 WATER/removal_refs/norm_refs 双源标记（GB 50014-2021+
-#   给水排水设计手册）/condition_mappings=()/constraint_refs 六键
-#   （含 0.2.1 两带键）。
+#   给水排水设计手册）/condition_mappings=n 池数降级三元式（ADR-007，
+#   cond 批 2026-10-01）/constraint_refs 六键（含 0.2.1 两带键）。
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.contracts.manifest import load_manifest
@@ -287,7 +287,11 @@ manifest = load_manifest(
             "《给水排水设计手册（第 5 册 城镇排水）》二沉池几何/堰负荷/回流污泥浓度常用值",
             "docs/norms/erchunchi.md（2026-08-25 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n−1、其余全池——offline
+        # 档单池承载全流量；cond 批 2026-10-01 正典三元式声明）。
+        "condition_mappings": [
+            {"target": "n", "rule": "n if pool.all_pools else n - 1"},
+        ],
         "constraint_refs": [
             "erchunchi.surface_load_band",
             "erchunchi.solid_load",
