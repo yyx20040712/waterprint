@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.6.0"
+data_version: "1.6.1"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -66,3 +66,12 @@ data_version: "1.6.0"
 #     expert.md §32 清单；追认后升 1.6.1 定稿回写标记）。旧 29 键
 #     零扰动，计数 6+12+2+1+8→11+12+2+1+8（server test_constraints
 #     同步：_FILTER_COUNT=11+起草键集断言）。
+#   - 1.6.1: **已追认定稿（Ruling 2026-10-01——用户批复「追认并推送」）**
+#     ——§32 四裁量全数生效（R1 ns_act 参数带→实际负荷带语义迁移成立
+#     含 MLSS 基准子项/R2 aao 缺氧 HRT 维持手册常用子带 2~4h/R3 起草态
+#     即可用口径确认/R4 过滤面首批接入校核面同键带披露确认）；五条
+#     value_basis/source 追认标记回写（RATIFY-CP1 先例形态）。数值零
+#     变更（C3 门禁 11 条恒等不扰）；server test _DRAFT16_KEYS 起草键集
+#     撤除+五键 expression 全锁面补齐（门一 d1 复审 N-2 挂账兑现）。
+#     批复记录=.workflow/ledger.md（2026-10-01 Ruling）+
+#     pending-domain-expert.md §32 销账注。
