@@ -207,6 +207,9 @@ _ROUTE_KEYS: Final[tuple[str, ...]] = (
     "unit_id", "sheet", "h_scale", "v_scale",
     "station_overrides", "water_level", "ground_elev",
 )
+# est-20261001 D4：estimate 项 condition_key 缺省/空串边界归一（工况=概算
+# 语义维度——estimate.py R4；services/cost.py R2 缺省 design 显式回显先例）。
+_ESTIMATE_DEFAULT_CONDITION: Final[str] = "design"
 _LOGGER = structlog.get_logger(__name__)
 
 
@@ -217,9 +220,11 @@ def _route_keys_of(
 
     exp-audit-20260930：audit 项全键置空——全厂单份不继承批级路由键
     （sheet 不继承先例同款；显式 unit/condition 意图已由预校验整批拒，
-    置空面=混装批批级继承屏蔽，非静默忽略）。
+    置空面=混装批批级继承屏蔽，非静默忽略）。est-20261001：estimate 项
+    同族置空（概算=全厂整厂产物不继承批级路由键；unit 分量自然 None，
+    命名零特判——audit 同）。
     """
-    if str(item.get("kind", "")) == "audit":
+    if str(item.get("kind", "")) in ("audit", "estimate"):
         return dict.fromkeys(_ROUTE_KEYS, "")
     unit = _unit_id_of(item) or unit_option
     return {
@@ -268,6 +273,17 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     items: Sequence[Mapping[str, Any]] = [
         {**item, "kind": str(item.get("kind") or kind)}
         for item in (chosen.get("items") or [{"kind": kind, "condition_key": condition_key}])
+    ]
+    # est-20261001 D4：estimate 项 condition_key 缺省/空串归一 "design"
+    # （归一层单点——命名/边车/渲染/回显四面同源；bare POST 与显式
+    # design 同名同字节=幂等；工况不在结果集由渲染流包装 422 指路）。
+    items = [
+        {**item, "condition_key": (
+            str(item.get("condition_key") or "") or _ESTIMATE_DEFAULT_CONDITION
+            if str(item.get("kind", "")) == "estimate"
+            else str(item.get("condition_key", ""))
+        )}
+        for item in items
     ]
     _, latest = latest_calc_result(
         ctx, project_id, not_found=ExportSourceNotFoundError
@@ -356,6 +372,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
                     "project_path": str(
                         (ctx.projects_dir / f"{project_id}.wp.json").resolve()
                     ),
+                    # est-20261001 D4：data_dir 提交时绝对路径（estimate 渲染流
+                    # 单价包/费率装载面——worker spawn 环境 cwd 无关；SVRB D2
+                    # project_path 同款通道形态）。
+                    "data_dir": str(ctx.settings.data_dir),
                     "design_digest": result_digest,
                     # R2-C：DWG 开关+超时（worker dwg_convert 消费；默认空=关）
                     "dwg_converter_path": ctx.settings.dwg_converter_path.strip(),
@@ -416,6 +436,9 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         plant,
         Path(item_template),
         tmp,
+        # est-20261001 D4：data_dir 单产物调用面透传（estimate 渲染流装载面
+        # ——audit/余 kind 零消费；批量面对称键=data_dir 载荷）。
+        data_dir=ctx.settings.data_dir,
         # SVRB D1：unit 归一后逐项真源（items 恒 1 项——item 覆盖批级同语义）。
         unit_id=str(items[0].get("unit_id") or "") or None,
         # H7（exp-hygiene-20260930）：condition_key/sheet 改读 items[0] 归一值

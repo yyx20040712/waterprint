@@ -75,6 +75,9 @@
 #     server 面经 flows 再导出取用）；边车 else 分支改 dxf/ifc/通用三分支
 #     链（H1——audit/calcbook/estimate 项边车经通用尾分支落盘入注册表，
 #     写盘前 K-02 同款取消检查：取消后零新边车）。
+#   - EST-20261001（estimate 501 收口批）：export_batch payload 增 data_dir
+#     读取透传（estimate 项→flows.estimate_render_flow 单价包装载面；
+#     services 提交时绝对路径——SVRB D2 project_path 同通道）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -433,6 +436,10 @@ def _run_export_batch(
                 kind, project,
                 deserialize(Path(str(item["result_file"])).read_bytes()),
                 Path(str(item["template"])), tmp,
+                # est-20261001：data_dir 透传（estimate 渲染流装载面——SVRB D2 同通道）。
+                data_dir=(
+                    Path(str(payload["data_dir"])) if payload.get("data_dir") else None
+                ),
                 unit_id=unit_id, condition_key=condition_key,
                 # route_options 键集恒 ⊆ core **options 白名单（str 值）——
                 # dict[str,str] 展开 mypy 撞 keyword-only 形参位，cast 收窄。

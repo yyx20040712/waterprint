@@ -25,7 +25,7 @@ from __future__ import annotations
 import importlib
 import re
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 _mod = importlib.import_module("waterprint.trace.xlsx_save")
@@ -64,4 +64,4 @@ def test_deterministic_save_normalises_clock_and_entry_epochs(
 
 def test_fixed_created_is_frozen_epoch() -> None:
     """fixed_created：固定纪元 datetime（UTC 带时区——W3CDTF Z 尾等价形）。"""
-    assert _mod.fixed_created() == datetime(2000, 1, 1, tzinfo=timezone.utc)
+    assert _mod.fixed_created() == datetime(2000, 1, 1, tzinfo=UTC)

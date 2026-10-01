@@ -410,9 +410,11 @@ async def test_mixed_batch_all_kinds_sidecars_registered_downloadable_wiring(  #
     client, test_settings
 ) -> None:
     """H1（exp-hygiene-20260930）：批量混装批（calcbook+audit+dxf+estimate）
-    通用 meta 边车——成功三 kind 各自 {产物}.meta.json 落盘（audit 入注册表
-    =list_exports 可见+resolve 存在性双闸放行可下载）；estimate=core 渲染器
-    未就绪项级失败（failures 收集+零产物零边车——P8 诚实失败面）。"""
+    通用 meta 边车——各成功 kind {产物}.meta.json 落盘（audit 入注册表
+    =list_exports 可见+resolve 存在性双闸放行可下载）。〔est-20261001 翻面：
+    estimate 项 501→真产物 xlsx（边车点亮+零 failures）——原「渲染器未就绪
+    项级失败/零产物零边车」断言随收口反转，estimate 正向细节面归
+    tests/routers/test_exports_estimate.py 用例族。〕"""
     project_id, _task_id = await _project_with_result(client)
     batch = await client.post(
         "/api/exports/calcbook",
@@ -428,14 +430,11 @@ async def test_mixed_batch_all_kinds_sidecars_registered_downloadable_wiring(  #
     )
     assert batch.status_code == status.HTTP_200_OK  # 批量转任务句柄 JSON
     done = await _wait_task_terminal(client, str(batch.json()["task_id"]))
-    assert done["state"] == "done" and len(done["result"]["files"]) == 3
-    failures = list(done["result"]["failures"])
-    assert len(failures) == 1 and failures[0]["index"] == 3  # estimate 项级失败
-    assert "ArtifactKindNotReady" in str(failures[0]["error"])  # 诚实拒绝面（非 500）
+    assert done["state"] == "done" and len(done["result"]["files"]) == 4
+    assert list(done["result"]["failures"]) == []  # estimate 翻面：零项级失败
     metas = await client.get("/api/exports", params={"project_id": project_id})
     kinds = {row["kind"] for row in metas.json()}
-    assert {"calcbook", "audit", "dxf"} <= kinds  # 三 kind 边车扫描入注册表
-    assert "estimate" not in kinds  # 失败项不入册（零边车）
+    assert {"calcbook", "audit", "dxf", "estimate"} <= kinds  # 四 kind 入注册表
     audit_row = next(row for row in metas.json() if row["kind"] == "audit")
     assert audit_row["file_name"].endswith(".html")
     downloaded = await client.get(f"/api/exports/{audit_row['file_name']}")
@@ -445,5 +444,7 @@ async def test_mixed_batch_all_kinds_sidecars_registered_downloadable_wiring(  #
         test_settings.exports_dir / audit_row["file_name"]
     ).read_bytes()
     products = sorted(os.listdir(test_settings.exports_dir))
-    assert len([n for n in products if n.endswith(".meta.json")]) == 3  # 三边车各一
-    assert not any("estimate" in n for n in products)  # estimate 零产物零边车
+    assert len([n for n in products if n.endswith(".meta.json")]) == 4  # 四边车各一
+    assert any(  # estimate 真产物在场（翻面锚——501 期零产物断言反转）
+        "-estimate-" in n and n.endswith(".xlsx") for n in products
+    )

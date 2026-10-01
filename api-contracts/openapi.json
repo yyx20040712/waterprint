@@ -4632,7 +4632,7 @@
     },
     "/api/exports/estimate": {
       "post": {
-        "description": "概算表（M3 归属——ArtifactKindNotReady→501 透传）。",
+        "description": "概算表（Excel xlsx——全厂整厂产物；工况 condition_key 选档缺省 design；\nunit_id/路由选项 422 拒；stale 409/force 同族）。",
         "operationId": "export_estimate_api_exports_estimate_post",
         "parameters": [
           {

@@ -175,36 +175,11 @@ async def test_error_model_complete(client) -> None:  # type: ignore[no-untyped-
     assert r.status_code == status.HTTP_404_NOT_FOUND  # R1-3：无结果集=恰 404（先重算）
 
 
-@pytest.mark.anyio
-async def test_not_ready_kinds_return_501_wiring(client, cass_payload) -> None:  # type: ignore[no-untyped-def]
-    """R1-3（AU-3）：有结果集时 estimate=恰 501（未就绪族确定性）。
-
-    dxf 移出=M5 全厂总图接线后 bare POST 即 200（R0.5 总控裁定 2026-09-04
-    ——SC1 端点集断言 26 同类行为变更连带同步先例；dxf 正向/总图面归
-    tests/routers/test_exports.py M5 用例族）；audit 移出=exp-audit-
-    20260930 收口批（flows.audit_render_flow 接线后 bare POST 即 200
-    ——dxf 同款行为变更连带同步先例；audit 正向/选项闸面归
-    tests/routers/test_exports_audit.py 用例族）。
-    """
-    created = await client.post("/api/projects", json={"project": cass_payload})
-    project_id = created.json()["project_id"]
-    task_id = (await client.post(
-        "/api/calc/run", json={"project_id": project_id, "conditions": []}
-    )).json()["task_id"]
-    for _ in range(300):
-        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
-        if body.get("state") in {"done", "failed", "cancelled"}:
-            break
-        await asyncio.sleep(0.1)
-    assert body["state"] == "done"  # 结果集就绪（501 前提）
-    for kind in ("estimate",):
-        response = await client.post(f"/api/exports/{kind}", json={"project_id": project_id})
-        assert response.status_code == status.HTTP_501_NOT_IMPLEMENTED, (
-            f"{kind} 期望恰 501（ArtifactKindNotReady/模板缺位透传），"
-            f"得到 {response.status_code}"
-        )
-        assert "error_type" in response.json()
-
+# est-20261001（estimate 501 收口批）：未就绪 501 族末位成员 estimate 移出
+# ——flows.estimate_render_flow 接线后 bare POST 即 200（audit/dxf 移出同款
+# 行为变更连带同步先例）；原 test_not_ready_kinds_return_501_wiring 用例随
+# 族清空退役（正向/选项闸/工况归一面归 tests/routers/test_exports_estimate.py
+# 用例族），501 面仅存模板缺位（ExportTemplateMissingError——UF-16 录入批）。
 
 @pytest.mark.anyio
 async def test_project_id_path_traversal_rejected(client) -> None:  # type: ignore[no-untyped-def]

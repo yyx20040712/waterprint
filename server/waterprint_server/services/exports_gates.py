@@ -15,7 +15,7 @@
 #   reject_bad_route_options(chosen, items, *, condition_key="") -> None
 #       （services/exports.py create_export 唯一调用方——import 随迁；
 #        含 PROFILE3 h/v 形态闸+sheet×unit 互斥+批6i 站距/批6j 标高
-#        形态闸+exp-audit audit 选项闸）
+#        形态闸+exp-audit audit 选项闸+est-20261001 estimate 选项闸）
 #
 # 【行为规格】
 #   R-1 纯度：零 IO/零全局态/不 import main·routers 面；import 仅
@@ -27,6 +27,10 @@
 #      item 级 unit_id/非空 condition_key/六路由键任一携带即拒；纯
 #      audit 批批级同款+端点 condition_key；携带判据类型收死（键在场
 #      非 None 非空串即拒——非字符串形态不静默归 None）。
+#   R-4 estimate 闸（est-20261001 D4）：estimate 项 item 级 unit_id/
+#      六路由键任一携带即拒（判据=_carries_route_intent 共享谓词）；
+#      纯 estimate 批批级同款拒；condition_key 合法（工况=概算语义
+#      维度——estimate.py R4，audit 语义反向）。
 #
 # 【测试要求】routers/test_exports_audit.py（audit 族）+services/
 #   routers 既有 PROFILE2/3/批6i/6j 用例经 create_export 间接覆盖。
@@ -112,14 +116,16 @@ def _reject_bad_station_form(
 # R2 回炉（k2-W1+d1-N1）：audit 禁携路由键族（sheet/比例/站距/标高=图纸
 # 路由语义——audit 全厂单份零消费；键集与 exports._route_keys_of 归一层
 # face 同族但件间独立声明——support/gates 件不可 import services 主件
-# [防环]，双处漂移由预校验用例族锁定）。
+# [防环]，双处漂移由预校验用例族锁定）。est-20261001：estimate 闸同族
+# 复用（概算=全厂整厂产物零图纸路由消费——工况语义走 condition_key）。
 _AUDIT_BANNED_ROUTE_KEYS: Final[tuple[str, ...]] = (
     "sheet", "h_scale", "v_scale", "station_overrides", "water_level", "ground_elev",
 )
 
 
-def _audit_carries(source: Mapping[str, Any], key: str) -> bool:
-    """R2 回炉③：携带判据类型收死——键在场且非 None 且非空串即拒。
+def _carries_route_intent(source: Mapping[str, Any], key: str) -> bool:
+    """R2 回炉③（原 _audit_carries 更名共享——audit/estimate 两闸同判据）：
+    携带判据类型收死——键在场且非 None 且非空串即拒。
 
     任意非空值（含非字符串形态如 unit_id=123——_unit_id_of 仅透传非空
     str 会将其静默归 None）都算显式携带意图，禁静默吞（批6j 非字符串
@@ -145,20 +151,20 @@ def _reject_bad_audit_options(
         if str(item.get("kind", "")) != "audit":
             continue
         label = f"options.items[{index}]"
-        if _audit_carries(item, "unit_id"):
+        if _carries_route_intent(item, "unit_id"):
             raise InvalidExportRequestError(
                 f"导出 {label} 的 kind 'audit' 不接受 'unit_id'（审计报告为"
                 "全厂单份不分单元——请移除 unit_id，或改用分单元 kind 如"
                 " dxf；exp-audit 整批原子拒绝）"
             )
-        if _audit_carries(item, "condition_key"):
+        if _carries_route_intent(item, "condition_key"):
             raise InvalidExportRequestError(
                 f"导出 {label} 的 kind 'audit' 不接受非空 'condition_key'"
                 "（审计报告为全厂单份跨工况文档——condition_key 请留空；"
                 "exp-audit 整批原子拒绝）"
             )
         for key in _AUDIT_BANNED_ROUTE_KEYS:
-            if _audit_carries(item, key):
+            if _carries_route_intent(item, key):
                 raise InvalidExportRequestError(
                     f"导出 {label} 的 kind 'audit' 不接受路由选项 {key!r}"
                     "（审计报告为全厂单份 HTML——sheet/比例/站距/标高均为"
@@ -169,7 +175,7 @@ def _reject_bad_audit_options(
         str(item.get("kind", "")) == "audit" for item in items
     ):
         return  # 非纯 audit 批：批级路由键对 audit 项归一层置空（不拒）
-    if _audit_carries(chosen, "unit_id"):
+    if _carries_route_intent(chosen, "unit_id"):
         raise InvalidExportRequestError(
             "导出 options 的 kind 'audit' 不接受 'unit_id'（审计报告为全厂"
             "单份不分单元——请移除 unit_id，或改用分单元 kind 如 dxf；"
@@ -181,11 +187,61 @@ def _reject_bad_audit_options(
             "单份跨工况文档——condition_key 请留空；exp-audit 整批原子拒绝）"
         )
     for key in _AUDIT_BANNED_ROUTE_KEYS:
-        if _audit_carries(chosen, key):
+        if _carries_route_intent(chosen, key):
             raise InvalidExportRequestError(
                 f"导出 options 的 kind 'audit' 不接受路由选项 {key!r}"
                 "（审计报告为全厂单份 HTML——sheet/比例/站距/标高均为图纸"
                 "路由语义，请移除该选项或改用 dxf；R2 回炉整批原子拒绝）"
+            )
+
+
+def _reject_bad_estimate_options(
+    chosen: Mapping[str, Any],
+    items: Sequence[Mapping[str, Any]],
+) -> None:
+    """est-20261001 D4：estimate 选项闸（audit 闸结构镜像，condition 语义
+    相反——工况=概算语义维度[estimate.py R4]，condition_key 合法不拒）。
+
+    estimate=全厂整厂概算产物（flows.estimate_render_flow 零图纸路由消费
+    面）：①item 级显式 unit_id/六路由键任一携带即拒；②纯 estimate 批
+    （全部 items 为 estimate）批级 options.unit_id/六路由键同拒（批级将
+    逐项继承/代表批意图）；混装批 estimate 项不继承批级路由键（归一层
+    置空）且批级键为非 estimate 项合法消费面，故不拒。"""
+    for index, item in enumerate(items):
+        if str(item.get("kind", "")) != "estimate":
+            continue
+        label = f"options.items[{index}]"
+        if _carries_route_intent(item, "unit_id"):
+            raise InvalidExportRequestError(
+                f"导出 {label} 的 kind 'estimate' 不接受 'unit_id'（概算为"
+                "全厂整厂产物不分单元——请移除 unit_id，或改用分单元 kind"
+                " 如 dxf；工况选择请用 condition_key；est-20261001 整批"
+                "原子拒绝）"
+            )
+        for key in _AUDIT_BANNED_ROUTE_KEYS:
+            if _carries_route_intent(item, key):
+                raise InvalidExportRequestError(
+                    f"导出 {label} 的 kind 'estimate' 不接受路由选项 {key!r}"
+                    "（概算为全厂整厂 xlsx——sheet/比例/站距/标高均为图纸"
+                    "路由语义，请移除该选项或改用 dxf；est-20261001 整批"
+                    "原子拒绝）"
+                )
+    if not items or not all(
+        str(item.get("kind", "")) == "estimate" for item in items
+    ):
+        return  # 非纯 estimate 批：批级路由键对 estimate 项归一层置空（不拒）
+    if _carries_route_intent(chosen, "unit_id"):
+        raise InvalidExportRequestError(
+            "导出 options 的 kind 'estimate' 不接受 'unit_id'（概算为全厂"
+            "整厂产物不分单元——请移除 unit_id，或改用分单元 kind 如 dxf；"
+            "工况选择请用 condition_key；est-20261001 整批原子拒绝）"
+        )
+    for key in _AUDIT_BANNED_ROUTE_KEYS:
+        if _carries_route_intent(chosen, key):
+            raise InvalidExportRequestError(
+                f"导出 options 的 kind 'estimate' 不接受路由选项 {key!r}"
+                "（概算为全厂整厂 xlsx——sheet/比例/站距/标高均为图纸路由"
+                "语义，请移除该选项或改用 dxf；est-20261001 整批原子拒绝）"
             )
 
 
@@ -205,7 +261,9 @@ def reject_bad_route_options(
     keyword 参入闸）；R2 回炉（k2-W1+d1-N1）扩：audit 六路由键（sheet/
     h/v/station/标高）item 级与纯 audit 批批级任一携带即拒+unit_id 判据
     类型收死（键在场非 None 非空串即拒——非字符串形态不再静默归 None）；
-    域上限留 core 终闸（双闸分工零重叠）。"""
+    est-20261001 增 estimate 选项闸（kind=estimate 携 unit_id/六路由键
+    拒——condition_key 合法语义项[audit 反向]；判据=_carries_route_intent
+    共享谓词）；域上限留 core 终闸（双闸分工零重叠）。"""
     for label, source in [("options", chosen), *[
         (f"options.items[{i}]", item) for i, item in enumerate(items)
     ]]:
@@ -249,3 +307,4 @@ def reject_bad_route_options(
                 "PROFILE3 R 轮整批原子拒绝）"
             )
     _reject_bad_audit_options(chosen, items, condition_key)
+    _reject_bad_estimate_options(chosen, items)
