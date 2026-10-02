@@ -68,7 +68,7 @@ def test_upstream_context_rebuilds_inflow() -> None:
             nodes={
                 "inlet": {
                     "kind": "municipal_input",
-                    "q_avg_daily": 34760.7 / 86400,
+                    "q_avg_daily": 34760.7,
                     "kz": 1.4,
                     "CODCR": 400.0,
                     "BOD5": 200.0,
@@ -183,7 +183,7 @@ def test_export_artifact_ifc_builds_model(tmp_path: Path) -> None:
         format_version="1.0",
         design=DesignState(
             nodes={
-                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7 / 86400,
+                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7,
                           "kz": 1.4, "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
                           "TN": 43.0},
                 "municipal_cass": {},
@@ -270,7 +270,7 @@ def test_export_artifact_dxf_site_plan_writes_drawing(tmp_path: Path) -> None:
         format_version="1.0",
         design=DesignState(
             nodes={
-                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7 / 86400,
+                "inlet": {"kind": "municipal_input", "q_avg_daily": 34760.7,
                           "kz": 1.4, "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
                           "TN": 43.0},
                 "municipal_cass": {},

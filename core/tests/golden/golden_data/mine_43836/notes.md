@@ -153,6 +153,7 @@
 |------|-------------|--------|------------|
 | 2026-08-28 | MSLUDGE2（v2 升版） | serialize 78313→106134 bytes/三元组与 data_version 1.0.0→1.1.0/content_hash 重算 | 只增面：三单元×2 工况快照+警告入 serialize；生成日库实拍（R2 真值化先例）；旧 30 锚数值位级零扰动（程序化实证） |
 | 2026-08-28 | GOLDEN4a（产泥口实体化） | serialize 106134→106996 bytes/sha 头 e5a528a7→3125bebe | 只增面：cifenli/chenshachi/gaomidu 六单元产泥口 sludge_out 无条件产股（三键×2 工况入 serialize——nongsuo sup 先例同构）；42 数值锚位级零扰动（程序化实证 removed=0，变更恰 generated 三元组）；e2e 断言零改动（三元组读 expected） |
+| 2026-10-02 | inlet-m3d（进水参数面 m³/d 统一·升版戳随行） | format_version 3.0→4.0+content_hash 重算 2e803c4f→66b0e2e6；serialize sha 58045991→4d5e399e（bytes 110509 恒等） | 值面零触碰（mine input/hebing 均已 m³/d 面——L4a 先例：升版批 golden 四案统一盖版本戳+哈希重算；serialize sha 漂=v4 版本头 design_hash 随行 |
 | （待续） | | | |
 
 ---

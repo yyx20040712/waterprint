@@ -17,8 +17,8 @@
       "a_pool": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 3612.8694844536394
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3612.8694841576535
       },
       "b_pool": {
         "abs": 1e-12,
@@ -29,8 +29,8 @@
       "b_pool_raw": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 38.01509954980331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 38.015099548246106
       },
       "h2": {
         "abs": 1e-12,
@@ -53,38 +53,38 @@
       "l_pool_raw": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "L7 池体图元批几何族主线实跑 2026-09-04 HEAD=979f71e（AO-F15~F19 CASS 族平移）",
-        "value": 95.03774887450828
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 95.03774887061527
       },
       "t_total": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 12.332700000000003
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 12.332699999999999
       },
       "theta_c": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 22.222222222222225
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 22.22222222222222
       },
       "v_anaerobic": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 2197.1280525272077
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2197.1280523472074
       },
       "v_anoxic": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 4921.566837660945
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4921.566837257745
       },
       "v_o": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 10945.652532080045
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10945.652531183317
       },
       "v_pool": {
         "abs": 1e-12,
@@ -95,8 +95,8 @@
       "v_total": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 18064.347422268198
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 18064.34742078827
       }
     },
     "municipal_bashi_jiliangcao": {
@@ -115,8 +115,8 @@
       "ha_design": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.48244335016171597
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.48244335013633105
       },
       "l_throat": {
         "abs": 1e-12,
@@ -161,8 +161,8 @@
       "q_prime_act": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 2.266469010332427
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2.266469010146747
       }
     },
     "municipal_cugeshan": {
@@ -213,8 +213,8 @@
       "q_act": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.7766128197212838
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7766128196576598
       }
     },
     "municipal_gaomidu": {
@@ -233,8 +233,8 @@
       "q_surface_act": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 14.191369197407566
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 14.191369196244938
       }
     },
     "municipal_vxinglvchi": {
@@ -267,8 +267,8 @@
       "h_pump": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 11.969656353837957
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 11.969656353761003
       },
       "n_pump_total": {
         "abs": 1e-12,
@@ -485,8 +485,8 @@
       "SS": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.256063865392584
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.2560638653939273
       },
       "TN": {
         "abs": 1e-12,
@@ -503,134 +503,134 @@
       "carbon_direct_ch4_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 3378.740040279936
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3378.7400399999988
       },
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 21566.209609999987
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 21566.209608803598
       },
       "carbon_direct_n2o_effluent_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 801.5383057648326
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 801.5383056984233
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 10259.690313789859
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10259.690312939818
       },
       "carbon_indirect_chemicals_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 2092.0202391521093
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2092.0202389859905
       },
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3963.3754461462217
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3963.3754458201806
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 6055.395685298331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6055.395684806172
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 0.7946216644949559
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7946216645122157
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 27621.60529529832
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 27621.60529360977
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1200655.6851849258
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1200655.6850976758
       },
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 1887145.781756168
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1887145.7816009244
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3087801.466941094
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3087801.4666986
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1054.6214652130598
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1054.6214651266596
       },
       "dose_pam_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 48.66974254543532
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 48.66974254255531
       },
       "effluent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 373.67752503096
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 373.6775249999999
       },
       "influent_bod5_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6952.140000575999
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6952.1399999999985
       },
       "influent_flow_m3_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 34760.700002879996
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 34760.69999999999
       },
       "influent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 1494.71010012384
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1494.7100999999996
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 4576.5518195726
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4576.551819197663
       },
       "power_pump_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1554.9680008554253
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1554.9680007203453
       },
       "power_stir_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1191.1949449581507
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1191.1949448605621
       },
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 7386.089165386176
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 7386.08916477857
       },
       "vs_degraded_kg_d": {
         "value": 1396.9400737499998,
@@ -697,8 +697,8 @@
       "SS": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.25141666264657614
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.2514166626475417
       },
       "TN": {
         "abs": 1e-12,
@@ -715,134 +715,134 @@
       "carbon_direct_ch4_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 3378.740040279936
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3378.7400399999988
       },
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 21566.209609999987
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 21566.209608803598
       },
       "carbon_direct_n2o_effluent_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 801.5383057648326
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 801.5383056984233
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 10259.690313789859
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10259.690312939818
       },
       "carbon_indirect_chemicals_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 2092.0202391521093
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2092.0202389859905
       },
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3963.3754461462217
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3963.3754458201806
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 6055.395685298331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6055.395684806172
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 0.7946216644949559
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7946216645122157
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 27621.60529529832
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 27621.60529360977
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1200655.6851849258
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1200655.6850976758
       },
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 1887145.781756168
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1887145.7816009244
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3087801.466941094
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3087801.4666986
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1054.6214652130598
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1054.6214651266596
       },
       "dose_pam_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 48.66974254543532
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 48.66974254255531
       },
       "effluent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 373.67752503096
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 373.6775249999999
       },
       "influent_bod5_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6952.140000575999
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6952.1399999999985
       },
       "influent_flow_m3_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 34760.700002879996
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 34760.69999999999
       },
       "influent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 1494.71010012384
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1494.7100999999996
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 4576.5518195726
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4576.551819197663
       },
       "power_pump_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1554.9680008554253
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1554.9680007203453
       },
       "power_stir_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1191.1949449581507
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1191.1949448605621
       },
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 7386.089165386176
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 7386.08916477857
       },
       "vs_degraded_kg_d": {
         "value": 1396.9400737499998,
@@ -909,8 +909,8 @@
       "SS": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.25141666264657614
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.2514166626475417
       },
       "TN": {
         "abs": 1e-12,
@@ -927,134 +927,134 @@
       "carbon_direct_ch4_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 3378.740040279936
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3378.7400399999988
       },
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 21566.209609999987
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 21566.209608803598
       },
       "carbon_direct_n2o_effluent_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 801.5383057648326
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 801.5383056984233
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 10259.690313789859
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10259.690312939818
       },
       "carbon_indirect_chemicals_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 2092.0202391521093
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2092.0202389859905
       },
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3963.3754461462217
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3963.3754458201806
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 6055.395685298331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6055.395684806172
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 0.7946216644949559
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7946216645122157
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 27621.60529529832
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 27621.60529360977
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1200655.6851849258
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1200655.6850976758
       },
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 1887145.781756168
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1887145.7816009244
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3087801.466941094
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3087801.4666986
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1054.6214652130598
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1054.6214651266596
       },
       "dose_pam_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 48.66974254543532
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 48.66974254255531
       },
       "effluent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 373.67752503096
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 373.6775249999999
       },
       "influent_bod5_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6952.140000575999
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6952.1399999999985
       },
       "influent_flow_m3_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 34760.700002879996
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 34760.69999999999
       },
       "influent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 1494.71010012384
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1494.7100999999996
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 4576.5518195726
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4576.551819197663
       },
       "power_pump_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1554.9680008554253
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1554.9680007203453
       },
       "power_stir_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1191.1949449581507
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1191.1949448605621
       },
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 7386.089165386176
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 7386.08916477857
       },
       "vs_degraded_kg_d": {
         "value": 1396.9400737499998,
@@ -1121,8 +1121,8 @@
       "SS": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.25141666264657614
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.2514166626475417
       },
       "TN": {
         "abs": 1e-12,
@@ -1139,134 +1139,134 @@
       "carbon_direct_ch4_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 3378.740040279936
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3378.7400399999988
       },
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 21566.209609999987
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 21566.209608803598
       },
       "carbon_direct_n2o_effluent_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 801.5383057648326
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 801.5383056984233
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 10259.690313789859
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10259.690312939818
       },
       "carbon_indirect_chemicals_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 2092.0202391521093
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2092.0202389859905
       },
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3963.3754461462217
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3963.3754458201806
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 6055.395685298331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6055.395684806172
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 0.7946216644949559
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7946216645122157
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 27621.60529529832
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 27621.60529360977
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1200655.6851849258
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1200655.6850976758
       },
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 1887145.781756168
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1887145.7816009244
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3087801.466941094
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3087801.4666986
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1054.6214652130598
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1054.6214651266596
       },
       "dose_pam_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 48.66974254543532
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 48.66974254255531
       },
       "effluent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 373.67752503096
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 373.6775249999999
       },
       "influent_bod5_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6952.140000575999
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6952.1399999999985
       },
       "influent_flow_m3_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 34760.700002879996
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 34760.69999999999
       },
       "influent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 1494.71010012384
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1494.7100999999996
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 4576.5518195726
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4576.551819197663
       },
       "power_pump_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1554.9680008554253
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1554.9680007203453
       },
       "power_stir_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1191.1949449581507
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1191.1949448605621
       },
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 7386.089165386176
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 7386.08916477857
       },
       "vs_degraded_kg_d": {
         "value": 1396.9400737499998,
@@ -1333,8 +1333,8 @@
       "SS": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "主线实跑 2026-08-28 HEAD=74c30e4",
-        "value": 0.25141666264657614
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.2514166626475417
       },
       "TN": {
         "abs": 1e-12,
@@ -1351,134 +1351,134 @@
       "carbon_direct_ch4_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批2c gwp_ch4 27.0 锁面重录 2026-09-26 HEAD=4dcdf89（audit 裁决③ 用户裁决 2026-09-25）",
-        "value": 3378.740040279936
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3378.7400399999988
       },
       "carbon_direct_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 21566.209609999987
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 21566.209608803598
       },
       "carbon_direct_n2o_effluent_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 801.5383057648326
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 801.5383056984233
       },
       "carbon_direct_n2o_plant_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 10259.690313789859
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 10259.690312939818
       },
       "carbon_indirect_chemicals_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 2092.0202391521093
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 2092.0202389859905
       },
       "carbon_indirect_electricity_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3963.3754461462217
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3963.3754458201806
       },
       "carbon_indirect_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 6055.395685298331
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6055.395684806172
       },
       "carbon_intensity_kgco2e_m3": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 0.7946216644949559
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 0.7946216645122157
       },
       "carbon_total_kgco2e_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 27621.60529529832
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 27621.60529360977
       },
       "cost_chemicals_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2b 锁面重录 2026-09-20 HEAD=84c2adfa3（R-B42b-1~4 用户批准）",
-        "value": 1200655.6851849258
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1200655.6850976758
       },
       "cost_electricity_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 1887145.781756168
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1887145.7816009244
       },
       "cost_opex_yuan_a": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 3087801.466941094
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 3087801.4666986
       },
       "dose_pac_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1054.6214652130598
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1054.6214651266596
       },
       "dose_pam_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 48.66974254543532
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 48.66974254255531
       },
       "effluent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 373.67752503096
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 373.6775249999999
       },
       "influent_bod5_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 6952.140000575999
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 6952.1399999999985
       },
       "influent_flow_m3_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 34760.700002879996
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 34760.69999999999
       },
       "influent_tn_load_kg_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2c 锁面重录 2026-09-20 HEAD=d61a3661f（R-B42c-1~4 用户批准）",
-        "value": 1494.71010012384
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1494.7100999999996
       },
       "power_aeration_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 4576.5518195726
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 4576.551819197663
       },
       "power_pump_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1554.9680008554253
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1554.9680007203453
       },
       "power_stir_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "B4-2a 锁面重录 2026-09-19 HEAD=f5a8150（R-B42a-1~4 用户批准）",
-        "value": 1191.1949449581507
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 1191.1949448605621
       },
       "power_total_kwh_d": {
         "abs": 1e-12,
         "rel": 1e-12,
-        "source": "批6b 锁面重录 2026-09-26（claim=executor-b6b-20260926T125402Z；预授权①依据=用户 2026-09-26 全局规划指令；碳范围一 C-F10~F12+AUD-W4 反冲洗/磁分离能耗面）",
-        "value": 7386.089165386176
+        "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+        "value": 7386.08916477857
       },
       "vs_degraded_kg_d": {
         "value": 1396.9400737499998,
@@ -1527,16 +1527,16 @@
   "generated": {
     "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 554379,
-    "serialize_sha256_head": "bd76e88f2f01afca",
-    "source": "cond 批锁面重录 2026-10-01（claim=executor-cond-20261001；预授权①依据=用户 2026-09-26 全局规划指令+2026-10-01「按照文档指引继续完善」批指令；市政 11 单元检修降级映射激活——offline 工况 dims 分化入 serialize；effluent/design_dims/condition_keys 零变（常数去除率模型 n-不变性质））"
+    "serialize_bytes": 554360,
+    "serialize_sha256_head": "6b0f7ceedbb78d02",
+    "source": "inlet-m3d 批锁面重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政三案 inlet 0.4023229167 m³/s→34760.7 m³/d+format_version 4.0——serialize 含 v4 版本头 design_hash 与流量比例数值面；effluent 六指标浓度/键集零变；mine_43836 输入零触碰，serialize sha 漂=v3→v4 读时迁移版本头（数值面零漂，字节长度恒等））"
   },
   "m3_deferred": {
     "estimate_total": {
       "abs": 1e-12,
       "rel": 1e-12,
-      "source": "批6d 锁面重录 2026-09-26（claim=executor-b6d-20260926T151400Z；预授权①依据=用户 2026-09-26 全局规划指令；AAO capex 区分度数据面——万元×10⁴ 折元+aao 曝气系统按组行+dims n 回显）",
-      "value": 20326595.176984984
+      "source": "inlet-m3d 批重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政进水参数面 m³/s→m³/d 统一：golden inlet=34760.7 m³/d 工程值（勘察冻结），绑定点重算 ulp 漂 ~8.3e-11 rel——本锚为流量比例面随批重录；六指标浓度面零漂（常数去除率模型 n-不变）不触碰）",
+      "value": 20326595.176907264
     },
     "total_sludge": {
       "abs": 1e-12,

@@ -172,6 +172,11 @@ def test_export_report_name_digest(sandbox: Path, pid: str) -> None:
     """#21 落盘名：reports/{pid}-report-{digest10}.md（digest 与结果一致）。"""
     data = asyncio.run(exports.wp_export_report(pid))
     assert "error" not in data, data
-    results = sorted((sandbox / "results").glob(f"{pid}-*.result.json"))
+    # mtime 序取最新（calc.latest_result 同口径——字典序在多 digest 并存时
+    # 与最新错位，inlet-m3d 批 digest 轮换揭穿的既有缺陷修正）
+    results = sorted(
+        (sandbox / "results").glob(f"{pid}-*.result.json"),
+        key=lambda path: path.stat().st_mtime,
+    )
     digest10 = results[-1].name.split("-")[-1].removesuffix(".result.json")
     assert Path(data["path"]).name == f"{pid}-report-{digest10}.md"

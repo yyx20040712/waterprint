@@ -201,9 +201,9 @@ def _banded_snapshot(node_params: dict[str, object], self_report: bool = False,
                            message="q_prime 越单元校核带", param_key="q_prime")
             return replace(super().compute(ctx), warnings=(warn,))
     design = _design(
-        nodes={"src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+        nodes={"src": {"kind": "municipal_input", "q_avg_daily": 34760.7, "kz": 1.4},
                node_id: dict(node_params)}, edges=[_edge("src", "out", node_id, "in")])
-    units = {"src": builtin_unit("municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}),
+    units = {"src": builtin_unit("municipal_input", {"q_avg_daily": 34760.7, "kz": 1.4}),
              node_id: _BandedSelf() if self_report else _Banded()}
     return _run(design, units).conditions["design"][node_id]  # type: ignore[index]
 
@@ -260,7 +260,7 @@ def test_loop_group_scheduled_at_earliest_member_layer() -> None:
         nodes={
             "src": {
                 "kind": "municipal_input",
-                "q_avg_daily": 0.4023229167,
+                "q_avg_daily": 34760.7,
                 "kz": 1.4,
             },
             "producer": {},
@@ -281,7 +281,7 @@ def test_loop_group_scheduled_at_earliest_member_layer() -> None:
     units = {
         "src": builtin_unit(
             "municipal_input",
-            {"q_avg_daily": 0.4023229167, "kz": 1.4},
+            {"q_avg_daily": 34760.7, "kz": 1.4},
         ),
         "producer": _ProducerStub(),
         "pass1": _PassStub(),
@@ -344,7 +344,7 @@ def test_scheduling_gap_rejected_fail_closed() -> None:
 
     design = _design(
         nodes={
-            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "src": {"kind": "municipal_input", "q_avg_daily": 34760.7, "kz": 1.4},
             "x1": {},
             "x2": {},
             "producer": {},
@@ -360,7 +360,7 @@ def test_scheduling_gap_rejected_fail_closed() -> None:
     )
     units = {
         "src": builtin_unit(
-            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+            "municipal_input", {"q_avg_daily": 34760.7, "kz": 1.4}
         ),
         "x1": _ConsumerStub(),
         "x2": _ConsumerStub(),
@@ -389,7 +389,7 @@ def test_inter_group_dependency_gap_rejected() -> None:
 
     design = _design(
         nodes={
-            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "src": {"kind": "municipal_input", "q_avg_daily": 34760.7, "kz": 1.4},
             "a": {},
             "rj1": {"kind": "recycle_junction"},
             "c": {},
@@ -406,7 +406,7 @@ def test_inter_group_dependency_gap_rejected() -> None:
     )
     units = {
         "src": builtin_unit(
-            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+            "municipal_input", {"q_avg_daily": 34760.7, "kz": 1.4}
         ),
         "a": _ProducerStub(),
         "rj1": builtin_unit("recycle_junction", {}),
@@ -462,7 +462,7 @@ def test_inter_group_solved_order_allowed() -> None:
 
     design = _design(
         nodes={
-            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "src": {"kind": "municipal_input", "q_avg_daily": 34760.7, "kz": 1.4},
             "p": {},
             "d": {},
             "m": {},
@@ -479,7 +479,7 @@ def test_inter_group_solved_order_allowed() -> None:
     )
     units = {
         "src": builtin_unit(
-            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+            "municipal_input", {"q_avg_daily": 34760.7, "kz": 1.4}
         ),
         "p": _ProducerStub(),
         "d": _DecayStub(),

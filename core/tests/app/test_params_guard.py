@@ -175,36 +175,58 @@ def test_params_guard_face4_cass_t_draw_band(golden_data_dir: Path) -> None:
 
 
 def test_params_guard_builtin_q_band_rejects(golden_data_dir: Path) -> None:
-    """批3b A-1/A-3：q_avg_daily 硬界——≤0 或 >60 m³/s（=518.4 万 m³/d 顶格
-    类上界）拒收；60.0 恰界放行（闭上界——518.4e4×parse 因子二进制精确）。"""
-    project = _load_municipal(golden_data_dir)
-    from waterprint.flows.params_guard import _Q_REJECT_MAX_M3S
+    """批3b A-1/A-3（inlet-m3d 批 2026-10-02 换轴 m³/d 面）：q_avg_daily 硬界
+    ——≤0 或 >5184000.0 m³/d（518.4 万顶格类上界）拒收；恰界放行（闭上界）。
 
-    assert _Q_REJECT_MAX_M3S == 60.0  # 门一 N1：换算链精确钉（防 parse 多步 1ulp 漂移）
-    for bad_value in (0.0, -3.0, 61.0, 34760.7):  # 末项=audit AUD-B3 病例
+    换轴前哨=旧 60 m³/s 面常量 `_Q_REJECT_MAX_M3S == 60.0` 精确钉；换轴后
+    三常量直用 m³/d 声明面（5184000.0/1000000.0/10.0——数值面不变只是口径
+    换轴）。34760.7=audit AUD-B3 病例值，统一后=常规量级改走接受面。"""
+    project = _load_municipal(golden_data_dir)
+    from waterprint.flows.params_guard import (
+        _Q_REJECT_MAX,
+        _Q_WARN_LARGE,
+        _Q_WARN_SMALL,
+    )
+
+    # 门一 N1 同款精确钉（换轴后=直用 m³/d 声明面零换算链）
+    assert (_Q_REJECT_MAX, _Q_WARN_LARGE, _Q_WARN_SMALL) == (
+        5184000.0,
+        1000000.0,
+        10.0,
+    )
+    # 末两项越上界面：5184001.0=恰越 5184000.0 一位；6000000.0≈69.4 m³/s
+    # 等值（超界拒收面）——60 m³/s 等值=5184000.0 为恰界放行面（下方
+    # on_edge 独立锚；门一回炉 k2-W6/d1-W4 勘正「6000000.0=60 m³/s 旧哨
+    # 位等值面」失实句：6000000.0/86400≈69.4 非 60）。
+    for bad_value in (0.0, -3.0, 5184001.0, 6000000.0):
         verdict = _mod.params_guard(project, "inlet", {"q_avg_daily": bad_value})
         assert verdict[0].accepted is False, bad_value
         assert "硬界" in (verdict[0].reason or "")
+        # 门一回炉 k2-N4/d1-W5：硬界文案整数可读面「(0, 5184000]」（:g
+        # 渲染「5.184e+06」科学计数失可读性——拒因文案锚防回退）。
+        assert "(0, 5184000]" in (verdict[0].reason or "")
         assert verdict[0].warn is None  # 拒收不带提示
-    on_edge = _mod.params_guard(project, "inlet", {"q_avg_daily": 60.0})
-    assert on_edge[0].accepted is True  # 闭上界：恰 60 不拒（严格 > 才拒）
-    assert "超大型厂" in (on_edge[0].warn or "")  # 同时落 A-2 提示带（=518.4 万 m³/d）
-    golden_scale = _mod.params_guard(project, "inlet", {"q_avg_daily": 0.402315})
-    assert golden_scale[0].accepted is True  # 3.476 万 m³/d=常规量级零提示
+    on_edge = _mod.params_guard(project, "inlet", {"q_avg_daily": 5184000.0})
+    assert on_edge[0].accepted is True  # 闭上界：恰 518.4 万不拒（严格 > 才拒）
+    assert "超大型厂" in (on_edge[0].warn or "")  # 同时落 A-2 提示带
+    golden_scale = _mod.params_guard(project, "inlet", {"q_avg_daily": 34760.7})
+    assert golden_scale[0].accepted is True  # AUD-B3 病例统一后=常规量级零提示
+    assert golden_scale[0].warn is None
 
 
 def test_params_guard_builtin_q_band_warns_without_blocking(golden_data_dir: Path) -> None:
-    """批3b A-2/A-3：提示带不阻塞——(0,10 m³/d) 小流量与 >100 万 m³/d 超大型
-    厂 accepted=True+warn 文案（E2E-1 软提示面：硬错早拒、软提示不拦）。"""
+    """批3b A-2/A-3（inlet-m3d 批换轴 m³/d 面）：提示带不阻塞——(0,10 m³/d)
+    小流量与 >100 万 m³/d 超大型厂 accepted=True+warn 文案（E2E-1 软提示面：
+    硬错早拒、软提示不拦）。"""
     project = _load_municipal(golden_data_dir)
-    small = _mod.params_guard(project, "inlet", {"q_avg_daily": 1e-5})  # =0.864 m³/d
+    small = _mod.params_guard(project, "inlet", {"q_avg_daily": 9.0})  # <10 m³/d 提示带
     assert small[0].accepted is True
     assert small[0].reason is None
     assert "下限" in (small[0].warn or "")
-    large = _mod.params_guard(project, "inlet", {"q_avg_daily": 12.0})  # ≈103.7 万 m³/d
+    large = _mod.params_guard(project, "inlet", {"q_avg_daily": 1200000.0})  # >100 万 m³/d
     assert large[0].accepted is True
     assert large[0].reason is None
-    assert "超大型厂——请复核规模口径（万 m³/d vs m³/s）与池数分格" in (
+    assert "超大型厂——请复核规模口径（m³/d 输入面）与池数分格" in (
         large[0].warn or ""
     )
     # kz 不设带（b3a E 组尾——现行无来源留待手册原册，如实登记）

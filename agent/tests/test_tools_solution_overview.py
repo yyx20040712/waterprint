@@ -27,12 +27,15 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
 def _two_unit_payload() -> dict[str, object]:
     """两单元项目（inlet→aao→cass——联合枚举最小载体）。"""
     return {
-        "format_version": "1.0",
+        # inlet-m3d 批 2026-10-02 随行 v4（当前版新建态——q_avg_daily=m³/d
+        # 参数面直用；v1 历史版经读时迁移换轴后 stored hash 与结果 digest
+        # 异源=agent stale 门保守面，UF-62 记档）
+        "format_version": "4.0",
         "design": {
             "nodes": {
                 "inlet": {
                     "kind": "municipal_input",
-                    "q_avg_daily": 34760.7 / 86400,
+                    "q_avg_daily": 34760.7,
                     "kz": 1.4,
                     "CODCR": 400.0,
                     "BOD5": 200.0,
@@ -53,7 +56,7 @@ def _two_unit_payload() -> dict[str, object]:
         },
         "view": {},
         "metadata": {
-            "format_version": "1.0", "content_hash": "0",
+            "format_version": "4.0", "content_hash": "0",
             "engine_version": "0", "data_version": "0",
         },
     }

@@ -87,7 +87,10 @@ _MAX_DEPTH: Final[int] = 10**2
 # 当前版 format_version（R6：dumps_design 头；与 migration.
 # SUPPORTED_VERSIONS[-1] 同源同步——双源一致性由门禁+migrate 拒路径守）。
 # L4a：boundary 红线键入 schema（GR-21 只增）→ "2.0"→"3.0"（旧哈希自然失效）。
-_FORMAT_VERSION: Final[str] = "3.0"
+# inlet-m3d 批 2026-10-02：进水参数面 m³/s→m³/d 换轴（v3→v4 迁移器
+# municipal_input q_avg_daily ×86400）→ "3.0"→"4.0"（双源同笔——
+# migration.SUPPORTED_VERSIONS 追加 "4.0"；旧哈希自然失效语义同 L4a）。
+_FORMAT_VERSION: Final[str] = "4.0"
 _JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
     "ensure_ascii": False,

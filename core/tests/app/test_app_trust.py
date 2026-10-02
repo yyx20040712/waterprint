@@ -39,7 +39,7 @@ def _loop_design() -> object:
     """回路图（SCC 环：producer+pass1+pass2+rj）——test_executor 同款形状。"""
     return _design(
         nodes={
-            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167, "kz": 1.4},
+            "src": {"kind": "municipal_input", "q_avg_daily": 34760.7, "kz": 1.4},
             "producer": {},
             "pass1": {},
             "pass2": {},
@@ -59,7 +59,7 @@ def _loop_units() -> dict[str, object]:
     """回路图单元表（src/rj=builtin + 三 stub——每用例新实例防可变串扰）。"""
     return {
         "src": builtin_unit(
-            "municipal_input", {"q_avg_daily": 0.4023229167, "kz": 1.4}
+            "municipal_input", {"q_avg_daily": 34760.7, "kz": 1.4}
         ),
         "producer": _ProducerStub(),
         "pass1": _PassStub(),

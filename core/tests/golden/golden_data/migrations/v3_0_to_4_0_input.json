@@ -1,0 +1,42 @@
+{
+  "format_version": "3.0",
+  "design": {
+    "nodes": {
+      "inlet": {
+        "kind": "municipal_input",
+        "q_avg_daily": 0.4023229167,
+        "kz": 1.4,
+        "CODCR": 400.0,
+        "BOD5": 200.0
+      },
+      "sludge_hebing": {
+        "q_avg_daily": 34760.7,
+        "ds_primary": 3240.12,
+        "p_primary": 0.96
+      },
+      "hub": {"kind": "junction"},
+      "rj": {"kind": "recycle_junction"}
+    },
+    "edges": [{"src": "inlet:out", "dst": "hub:in_1"}],
+    "constraint_choices": {},
+    "checked_units": [],
+    "assumption_overrides": {},
+    "influent": {},
+    "standard_binding": {},
+    "site": {
+      "structures": {},
+      "roads": [],
+      "corridors": [],
+      "options": {"coord_grid": 10.0, "wind_rose": null},
+      "boundary": []
+    }
+  },
+  "view": {"layout": {}, "camera": {}, "windows": {}, "timestamp": "", "name": "", "compare": {}},
+  "metadata": {
+    "format_version": "3.0",
+    "content_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "engine_version": "0.1.0",
+    "data_version": "coefficients@0.1.0",
+    "migrated_from": null
+  }
+}

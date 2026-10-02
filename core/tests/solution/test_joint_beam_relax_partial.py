@@ -41,7 +41,7 @@ def _project() -> Any:
             nodes={
                 "inlet": {
                     "kind": "municipal_input",
-                    "q_avg_daily": 34760.7 / 86400,
+                    "q_avg_daily": 34760.7,
                     "kz": 1.4,
                     "CODCR": 400.0,
                     "BOD5": 200.0,

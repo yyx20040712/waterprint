@@ -39,14 +39,15 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
         ctx,
         {
             "project": {
-                # L4a 随行 v3（M1 先例同形态）：载荷=当前版新建态——回滚重写面
-                # 版本头零漂移（v2 字面经 _DESIGN_FORMAT_VERSION 3.0 回写=字节变）。
-                "format_version": "3.0",
+                # inlet-m3d 批 2026-10-02 随行 v4（L4a v3 先例同形态）：载荷=
+                # 当前版新建态——回滚重写面版本头零漂移（v3 字面经读时迁移
+                # 回写=字节变）。q_avg_daily=m³/d 参数面直用。
+                "format_version": "4.0",
                 "design": {
                     "nodes": {
                         "inlet": {
                             "kind": "municipal_input",
-                            "q_avg_daily": 34760.7 / 86400,
+                            "q_avg_daily": 34760.7,
                             "kz": 1.4,
                             "CODCR": 400.0,
                             "BOD5": 200.0,
@@ -63,7 +64,7 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
                 },
                 "view": {},
                 "metadata": {
-                    "format_version": "3.0",
+                    "format_version": "4.0",
                     "content_hash": "0",
                     "engine_version": "0",
                     "data_version": "0",
@@ -177,14 +178,16 @@ async def test_apply_rejects_out_of_range_param_422(service_ctx) -> None:  # typ
 
 
 async def test_apply_rejects_absurd_inlet_flow_422(service_ctx) -> None:  # type: ignore[no-untyped-def]
-    """批3b A-1 E2E：q_avg_daily=34760.7（万 m³/d 量级误填 m³/s——audit
-    AUD-B3 病例）超 60 m³/s 硬界→422 拒（进水物理域检之前提交面早拒）。"""
+    """批3b A-1 E2E（inlet-m3d 批 2026-10-02 换轴 m³/d 面）：q_avg_daily=
+    6000000.0（600 万 m³/d）超 518.4 万 m³/d 顶格类硬界→422 拒（进水
+    物理域检之前提交面早拒）。audit AUD-B3 病例值 34760.7 统一后=常规
+    量级改走接受面（core test_params_guard 同款换轴锚）。"""
     project_id = await _created(service_ctx)
     with pytest.raises(_mod.InvalidSolutionRefError, match="硬界"):
         await apply_solution(
             service_ctx,
             project_id,
-            {"unit_id": "inlet", "params": {"q_avg_daily": 34760.7}},
+            {"unit_id": "inlet", "params": {"q_avg_daily": 6000000.0}},
         )
 
 
@@ -210,7 +213,8 @@ async def test_apply_warn_band_not_blocking_only_logged(  # type: ignore[no-unty
     outcome = await apply_solution(
         service_ctx,
         project_id,
-        {"unit_id": "inlet", "params": {"q_avg_daily": 12.0}},  # ≈103.7 万 m³/d 提示带
+        # 120 万 m³/d 提示带（inlet-m3d 批换轴——m³/d 输入面直用）
+        {"unit_id": "inlet", "params": {"q_avg_daily": 1200000.0}},
     )
     assert outcome.project_id == project_id  # 不阻塞：应用成功
     assert outcome.recalc_task_id == "t-warn-face"

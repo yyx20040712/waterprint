@@ -109,7 +109,7 @@ def _project() -> object:
             nodes={
                 "inlet": {
                     "kind": "municipal_input",
-                    "q_avg_daily": 34760.7 / 86400,  # 三表：34760.7 m³/d
+                    "q_avg_daily": 34760.7,  # 三表：34760.7 m³/d（inlet-m3d 批参数面统一）
                     "kz": 1.4,
                     "CODCR": 400.0,
                     "BOD5": 200.0,

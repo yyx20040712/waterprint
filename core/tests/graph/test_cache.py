@@ -370,7 +370,7 @@ def test_loop_group_members_bypass_cache() -> None:
     default_cache().clear()
     design = _design(
         nodes={
-            "src": {"kind": "municipal_input", "q_avg_daily": 0.4023229167,
+            "src": {"kind": "municipal_input", "q_avg_daily": 34760.7,
                     "kz": 1.4},
             "producer": {},
             "consumer": {},
@@ -389,7 +389,7 @@ def test_loop_group_members_bypass_cache() -> None:
     wrapped_rj = _CountingWrap(builtin_unit("recycle_junction", {}))
     units = {
         "src": builtin_unit("municipal_input",
-                            {"q_avg_daily": 0.4023229167, "kz": 1.4}),
+                            {"q_avg_daily": 34760.7, "kz": 1.4}),
         "producer": producer,
         "consumer": consumer,
         "rj": wrapped_rj,

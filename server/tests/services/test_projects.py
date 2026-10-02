@@ -217,3 +217,87 @@ async def test_validate_project_saved_structure_wiring(service_ctx) -> None:  # 
     report = getattr(_mod, "validate_project")(service_ctx, project_id)
     assert report.valid is False
     assert any("悬空" in item for item in report.errors)
+
+
+# ── inlet-m3d 批 2026-10-02：注册表旧 v3 项目读时迁移 e2e（简报 §4.5/DoD④）──
+
+
+def _legacy_v3_registry_project() -> dict[str, object]:
+    """注册表存量 v3 形态（市政 inlet m³/s 旧口径——0.4023229167=历史
+    round(34760.7/86400,10) 定点；145 件实测同值面普查在批档）。"""
+    return {
+        "format_version": "3.0",
+        "design": {
+            "nodes": {
+                "inlet": {
+                    "kind": "municipal_input",
+                    "q_avg_daily": 0.4023229167,
+                    "kz": 1.4,
+                    "CODCR": 400.0,
+                    "BOD5": 200.0,
+                    "SS": 250.0,
+                    "NH3N": 26.0,
+                    "TN": 43.0,
+                    "TP": 6.5,
+                },
+                "municipal_cass": {},
+            },
+            "edges": [
+                {
+                    "src": {"unit_id": "inlet", "port_id": "out"},
+                    "dst": {"unit_id": "municipal_cass", "port_id": "in"},
+                }
+            ],
+        },
+        "view": {},
+        "metadata": {
+            "format_version": "3.0",
+            "content_hash": "0" * 64,
+            "engine_version": "registry-legacy",
+            "data_version": "coefficients@0.0.0",
+        },
+    }
+
+
+async def test_registry_v3_project_loads_migrated_read_time(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """注册表旧 v3 项目装载迁移 e2e（DoD④）：盘上 v3 → 读时迁移 v4——
+
+    ①municipal_input q_avg_daily ×86400 round6=34760.700003（机械迁移
+    舍入口径定版锚）；②migrated_from="3.0"+版本头 4.0；③存量文件零
+    改写（读时迁移不动盘面——幂等键：metadata.content_hash 旧值随读
+    保留，哈希失效语义=io R6 版本头设计行为）；④与 v4 直存等值（同
+    design 双跑 serialize 字节同——计算面等价闭证）。"""
+    import json as _json
+
+    legacy = _legacy_v3_registry_project()
+    pid = "f" * 32
+    path = service_ctx.settings.projects_dir / f"{pid}.wp.json"
+    path.write_text(_json.dumps(legacy, ensure_ascii=False), encoding="utf-8")
+    on_disk_before = path.read_bytes()
+
+    project = read_project(service_ctx, pid)
+    assert project.format_version == "4.0"
+    assert project.metadata.migrated_from == "3.0"
+    assert project.design.nodes["inlet"]["q_avg_daily"] == 34760.700003
+    assert path.read_bytes() == on_disk_before  # 存量文件零改写（读时迁移）
+
+    # ④ v4 直存等值：迁移产物落盘 v4 副本 → 双装载双算 serialize 恒等
+    from waterprint.app import load_project, load_run_env, run_full_calc
+    from waterprint.contracts.condition import build_condition_set
+    from waterprint.contracts.result_schema import serialize
+
+    migrated_dump = project.model_dump(mode="json")
+    v4_path = service_ctx.settings.projects_dir / f"{'e' * 32}.wp.json"
+    v4_path.write_text(_json.dumps(migrated_dump, ensure_ascii=False), encoding="utf-8")
+    blob_a = blob_b = None
+    for source in (path, v4_path):
+        loaded = load_project(source)
+        env = load_run_env(service_ctx.settings.data_dir, loaded, engine_version="e2e-m3d")
+        plant = run_full_calc(loaded, build_condition_set([]), env).plant
+        blob = serialize(plant)
+        if blob_a is None:
+            blob_a = blob
+        else:
+            blob_b = blob
+    assert blob_a is not None and blob_b is not None
+    assert blob_a == blob_b  # v3 迁移装载计算 == v4 直存装载计算（DoD④ 等值）

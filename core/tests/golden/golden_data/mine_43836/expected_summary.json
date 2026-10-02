@@ -519,8 +519,8 @@
     "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
     "serialize_bytes": 110509,
-    "serialize_sha256_head": "58045991b4c26c83",
-    "source": "批6o 锁面重录 2026-09-29（claim=executor-b6o-20260929T1246Z；预授权①依据=用户 2026-09-26 全局规划指令+2026-09-28 增补五十六 H/增补六十二③ 词表裁决；设备单价词表标准化——12 条万元/台→套，值零变）"
+    "serialize_sha256_head": "4d5e399e3a2bd312",
+    "source": "inlet-m3d 批锁面重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政三案 inlet 0.4023229167 m³/s→34760.7 m³/d+format_version 4.0——serialize 含 v4 版本头 design_hash 与流量比例数值面；effluent 六指标浓度/键集零变；mine_43836 输入零触碰，serialize sha 漂=v3→v4 读时迁移版本头（数值面零漂，字节长度恒等））"
   },
   "m3_deferred": {
     "estimate_total": {

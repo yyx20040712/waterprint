@@ -71,7 +71,7 @@ def _v2_project() -> dict:
 
 
 def test_v1_migrates_to_current_adding_default_site() -> None:
-    """v1→当前版（链式复合 v1→v2→v3）：format_version=="3.0"+migrated_from=="1.0"
+    """v1→当前版（链式复合 v1→v2→v3→v4）：format_version=="4.0"+migrated_from=="1.0"
     +site 全默认（含 boundary）+七键逐键相等。
 
     逐键比对探针（数据策略 v2 口径，断言写死在本件）：v1 原七键值递归
@@ -79,8 +79,8 @@ def test_v1_migrates_to_current_adding_default_site() -> None:
     """
     v1 = _v1_project()
     migrated = migrate(v1)
-    assert SUPPORTED_VERSIONS[-1] == "3.0"  # 链尾=当前版（迁移前提）
-    assert migrated.format_version == "3.0"
+    assert SUPPORTED_VERSIONS[-1] == "4.0"  # 链尾=当前版（inlet-m3d 批 2026-10-02 起为 4.0）
+    assert migrated.format_version == "4.0"
     assert migrated.metadata.migrated_from == "1.0"
     assert migrated.design.site == SiteDesign()  # 补默认空 site（含 L4a boundary=[]）
     expected = DesignState(**deepcopy(_V1_DESIGN))
@@ -94,7 +94,7 @@ def test_v1_with_existing_site_key_preserved() -> None:
     data = _v1_project()
     data["design"]["site"] = {"structures": {"u1": {"x": 1.0, "y": 2.0}}}
     migrated = migrate(data)
-    assert migrated.format_version == "3.0"
+    assert migrated.format_version == "4.0"
     assert migrated.design.site.structures["u1"].x == 1.0  # 既有值未被默认空覆盖
     assert migrated.design.site.roads == []  # 其余子键补默认
     assert migrated.design.site.boundary == []  # L4a：v2→v3 步补默认空 boundary
@@ -108,7 +108,7 @@ def test_v2_migrates_to_v3_adding_default_boundary() -> None:
     """
     v2 = _v2_project()
     migrated = migrate(v2)
-    assert migrated.format_version == "3.0"
+    assert migrated.format_version == "4.0"
     assert migrated.metadata.migrated_from == "2.0"
     assert migrated.design.site.boundary == []  # 补默认空（未划界合法态）
     expected_site = SiteDesign.model_validate(deepcopy(_V2_SITE))
@@ -127,20 +127,25 @@ def test_v2_with_existing_boundary_preserved() -> None:
         {"x": 0.0, "y": 0.0}, {"x": 30.0, "y": 0.0}, {"x": 0.0, "y": 20.0}
     ]
     migrated = migrate(data)
-    assert migrated.format_version == "3.0"
+    assert migrated.format_version == "4.0"
     assert [(p.x, p.y) for p in migrated.design.site.boundary] == [
         (0.0, 0.0), (30.0, 0.0), (0.0, 20.0),
     ]  # 既有红线未被默认空覆盖
 
 
-def test_v3_current_version_passes_through_untouched() -> None:
-    """v3 当前版直通：migrated_from 不动（None）——直通分支语义随升版保持。"""
+def test_v3_historical_version_steps_to_v4_untouched_site() -> None:
+    """v3 历史版经 v4 步（inlet-m3d 批 2026-10-02）：site 面零触碰——
+
+    v3 无 municipal_input 节点样本 → v4 换轴步为纯版本推进（nodes 零
+    改动）；migrated_from="3.0"。直通分支（migrated_from 不动）改由
+    test_migration.py test_v4_current_passes_through_without_migration 承载。"""
     data = _v2_project()
     data["format_version"] = "3.0"
     data["design"]["site"]["boundary"] = []
     direct = migrate(data)
-    assert direct.format_version == "3.0"
-    assert direct.metadata.migrated_from is None  # 直通零迁移写入
+    assert direct.format_version == "4.0"
+    assert direct.metadata.migrated_from == "3.0"  # 历史版经链写来源
+    assert direct.design.site.boundary == []  # v4 步零触碰 site 面
 
 
 def test_metadata_format_version_conflict_rejected() -> None:
@@ -168,7 +173,7 @@ def test_app_load_project_routes_v1_file_through_chain(tmp_path: Path) -> None:
     path = tmp_path / "legacy_v1.wp.json"
     path.write_text(json.dumps(_v1_project(), ensure_ascii=False), encoding="utf-8")
     loaded = load_project(path)
-    assert loaded.format_version == "3.0"  # 版本门路由进迁移链（非直通）
+    assert loaded.format_version == "4.0"  # 版本门路由进迁移链（非直通）
     assert loaded.design.site == SiteDesign()
     assert loaded.metadata.migrated_from == "1.0"
 
@@ -178,7 +183,7 @@ def test_app_load_project_routes_v2_file_through_chain(tmp_path: Path) -> None:
     path = tmp_path / "legacy_v2.wp.json"
     path.write_text(json.dumps(_v2_project(), ensure_ascii=False), encoding="utf-8")
     loaded = load_project(path)
-    assert loaded.format_version == "3.0"
+    assert loaded.format_version == "4.0"
     assert loaded.design.site.boundary == []  # v2→v3 补默认空红线
     assert loaded.design.site.structures["u1"].x == 1.0  # 既有摆放保留
     assert loaded.metadata.migrated_from == "2.0"

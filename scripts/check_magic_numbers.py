@@ -61,6 +61,13 @@ WHITELIST_DECLARATION = (
     # 裸字面量；数值权威=b3a-research.md §二 A 组+§七追认 2026-09-26
     # 用户「全部追认」，每常量带出处注记；cache.py/pipes.py 声明面先例）。
     "core/waterprint/flows/params_guard.py",
+    # 门一回炉 k2-W3/d1-N1（2026-10-02）：project/migration.py 声明面——
+    # _ROUND_DIGITS_M3D=6（v3→v4 迁移舍入定点 round(x,6) 位数）直写
+    # 真源值（撤「2*2+2」伪装加法式——审查裁定伪装比字面量更害）；
+    # 本文件唯一非白名单数值字面量即该常量，86400 换算经 quantity
+    # parse 派生（_SECONDS_PER_DAY）保持严管口径（cache.py/pipes.py
+    # 声明面先例）。
+    "core/waterprint/project/migration.py",
 )
 # units_lib 真源区只放行 manifest.py：前缀 + 文件名双条件，
 # 直接加前缀会连带放行同目录 compute.py（B-3 裁决方案①明令禁止）。

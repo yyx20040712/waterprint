@@ -73,7 +73,7 @@ async def test_put_full_site_persists_and_rereads(service_ctx) -> None:  # type:
     assert persisted.design.site.structures["u1"].x == 1.0
     assert persisted.design.site.options.wind_rose == {"N": 12.5}
     assert len(persisted.design.site.boundary) == 4  # L4a 红线键随 PUT 全量落盘
-    assert persisted.format_version == "3.0"  # 当前版直通（服务常量与 core 同源）
+    assert persisted.format_version == "4.0"  # 当前版直通（服务常量与 core 同源——inlet-m3d 批随行）
 
 
 @pytest.mark.anyio

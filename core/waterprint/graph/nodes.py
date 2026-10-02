@@ -1,6 +1,7 @@
 """内置图节点：市政输入 / 汇流 / 水质编辑三 kind 工厂（非单元包，§14.3）。
 
-输入:  kind 字符串 + design 节点 params（Mapping，规范单位裸值）
+输入:  kind 字符串 + design 节点 params（Mapping——municipal_input
+       q_avg_daily 为 m³/d 工程口径，inlet-m3d 批 2026-10-02 统一）
 输出:  Unit 协议实例（executor R6"本包内提供"）；构造非法 = InvalidNodeError
 """
 
@@ -14,9 +15,12 @@
 #       condition_mappings=()；params 声明面最小=()，design 值自由面
 #       GR-21 注记）。四 kind：
 #       - municipal_input（市政输入，图源）：无入边；params 含
-#         q_avg_daily（m3/s 规范单位裸值）/kz/水质指标（⊆ INDICATORS）
-#         → outflows=WaterFlow（经 make_flow 正门域校验）+
-#         outqualities=WaterQuality（指标构造正门）；多余参数拒/
+#         q_avg_daily（m³/d 工程口径——inlet-m3d 批 2026-10-02 统一，
+#         与矿井水线 KI-F1 /86400 先例+hebing q_avg_daily 默认 34760.7
+#         同口径；绑定点经 Quantity(unit="m3/d")→make_flow→pint 单源
+#         换算 m³/d→m³/s，内部 WaterFlow 契约 m³/s 不变）/kz/水质指标
+#         （⊆ INDICATORS）→ outflows=WaterFlow（经 make_flow 正门域
+#         校验）+outqualities=WaterQuality（指标构造正门）；多余参数拒/
 #         缺必需参数拒（消息含缺失与多余键清单，GR-09）。
 #       - junction（汇流）：多入单出——v1 冻结两口 in_1/in_2（三股
 #         以上=串接 junction 或 GR-21 扩展）；入边数 < 2 时构造期不
@@ -45,9 +49,10 @@
 #      dims={}、warnings=()、formula_ids 含 kind 标识（如
 #      "builtin.municipal_input"——进计算迹索引用，非数值无出处问题）。
 #   R2 compute 纯函数（unit_api R1）；工况感知禁止（ADR-007 compute
-#      禁工况分支——junction 固定 q_avg_daily 权重由此，与 propagate
-#      层工况加权[ADR-005，语义归属 propagate.py 同端口多股合并]分立，
-#      记档 T7b 报告）。
+#      禁工况分支——junction 固定 q_avg_daily 权重由此（权重=入边
+#      WaterFlow 的内部 m³/s 值——非参数面，inlet-m3d 批注记勘正），
+#      与 propagate 层工况加权[ADR-005，语义归属 propagate.py 同端口
+#      多股合并]分立，记档 T7b 报告）。
 #   R3 值域校验走正门：make_flow/WaterQuality 原生领域异常不包装
 #      （GR-08）；非数值类型值 = 原生 TypeError（GR-08 程序/数据缺陷
 #      口径，propagate KeyError 先例）。
@@ -152,8 +157,11 @@ class _MunicipalInput:
                 f"municipal_input 多余参数：{extras}"
                 f"（合法键 = 必需 {sorted(required)} ∪ 指标 {sorted(INDICATORS)}）"
             )
+        # inlet-m3d 批 2026-10-02：参数面 m³/d 工程口径 → 单源换算点
+        # （Quantity(unit="m3/d")→make_flow→quantity.parse 经 pint 换算
+        # m³/d→m³/s——R2 禁手写 86400 系数；内部 WaterFlow 契约 m³/s 不变）。
         self._flow = make_flow(
-            Quantity(magnitude=params["q_avg_daily"], unit="m3/s"), params["kz"]
+            Quantity(magnitude=params["q_avg_daily"], unit="m3/d"), params["kz"]
         )
         self._quality = WaterQuality(
             {key: value for key, value in params.items() if key in INDICATORS}

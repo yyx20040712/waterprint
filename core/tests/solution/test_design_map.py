@@ -307,7 +307,7 @@ def _fd_project(unit_id: str) -> Any:
             nodes={
                 "inlet": {
                     "kind": "municipal_input",
-                    "q_avg_daily": 34760.7 / 86400,
+                    "q_avg_daily": 34760.7,
                     "kz": 1.4,
                     "CODCR": 400.0, "BOD5": 200.0, "SS": 250.0,
                     "NH3N": 26.0, "TN": 43.0, "TP": 6.5,

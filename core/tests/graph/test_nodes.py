@@ -38,12 +38,16 @@ def _ctx(unit_id, inflows, inqualities):
 
 
 def test_municipal_input_constructs_flow_and_quality() -> None:
-    """市政输入：q_design 派生 + 指标正门构造 + formula_ids 含 kind 标识。"""
+    """市政输入：q_design 派生 + 指标正门构造 + formula_ids 含 kind 标识。
+
+    inlet-m3d 批 2026-10-02：q_avg_daily 参数面=m³/d 工程口径（34560.0
+    m³/d=0.4 m³/s 同值锚——绑定点经 pint 单源换算，内部 WaterFlow 契约
+    m³/s 不变）。"""
     from waterprint.contracts.ports import PortRef
 
     unit = builtin_unit(
         "municipal_input",
-        {"q_avg_daily": 0.4, "kz": 1.3, "CODCR": 260.0, "BOD5": 130.0},
+        {"q_avg_daily": 34560.0, "kz": 1.3, "CODCR": 260.0, "BOD5": 130.0},
     )
     result = unit.compute(_ctx("inlet", {}, {}))
     out = PortRef("inlet", "out")

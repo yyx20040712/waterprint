@@ -29,8 +29,10 @@
 #   现行无来源留待手册原册，如实登记）。目录外=前置结构错误
 #   InvalidFlowError（server 转调面同消息映射 422）。
 #
-# 【数值纪律】builtin 带锚值以 m³/d 声明（5184000.0/1000000.0/10.0）
-#   经 parse(1.0,"m3/d",DimKey.FLOW) 因子换算（R3 零 m³/s 裸字面量；
+# 【数值纪律】builtin 带锚值以 m³/d 声明（5184000.0/1000000.0/10.0）——
+#   inlet-m3d 批 2026-10-02 换轴：q_avg_daily 参数面统一 m³/d（绑定
+#   点 graph/nodes.py m³/d 构造），三常量直用声明面零换算链（换轴前
+#   经 parse(1.0,"m3/d",DimKey.FLOW) 因子换算到 m³/s 面——批3b 形态；
 #   真源区资格=check_magic_numbers WHITELIST_DECLARATION——主控裁定
 #   B-3b-2 案甲；数值权威=b3a-research.md §二 A 组+§七追认 2026-09-26
 #   用户「全部追认」，禁自创/改任何数值）。
@@ -53,7 +55,6 @@ from waterprint.app import discover_units
 from waterprint.contracts.manifest import ParamSpec
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.quality import INDICATORS
-from waterprint.contracts.quantity import DimKey, parse
 
 __all__ = ["ParamVerdict", "params_guard"]
 
@@ -83,16 +84,18 @@ _BUILTIN_PARAM_KEYS: Final[Mapping[str, frozenset[str]]] = MappingProxyType({
 # builtin q_avg_daily 带声明（批3b A-1~A-3——真源区声明面，每常量带出处；
 # kz 不设带：b3a-research.md §二 E 组尾——变化系数带现行无来源，留待手册
 # 原册复核批，如实登记不静默自定）。
-# m³/d→m³/s 因子（R3：经 quantity parse 换算——零 m³/s 裸字面量）：
-_FLOW_TO_M3D: Final[float] = parse(1.0, "m3/d", DimKey.FLOW)
+# inlet-m3d 批 2026-10-02 换轴：q_avg_daily 参数面统一 m³/d 工程口径
+# （builtin municipal_input 绑定点 m³/d 构造——graph/nodes.py），三常量
+# 去 _FLOW_TO_M3D 换算直用 m³/d 声明面（数值面不变——旧哨位 60 m³/s=
+# 5184000.0×因子；guard 判定值=参数原值零换算）。
 # A-1 拒收上界=518.4 万 m³/d（建标 198-2022 Ⅰ类顶格类锚×全国最大白龙港
-# 350 万×1.48 裕量圆整）→60 m³/s（乘因子二进制精确）：
-_Q_REJECT_MAX_M3S: Final[float] = 5184000.0 * _FLOW_TO_M3D
+# 350 万×1.48 裕量圆整）：
+_Q_REJECT_MAX: Final[float] = 5184000.0
 # A-2 提示上沿=100 万 m³/d（超大型厂量级——白龙港级才进入）：
-_Q_WARN_LARGE_M3S: Final[float] = 1000000.0 * _FLOW_TO_M3D
+_Q_WARN_LARGE: Final[float] = 1000000.0
 # A-3 提示下沿=10 m³/d（市政单体口径下限量级——建标 Ⅴ类下限 0.5 万
 # m³/d 量级锚）：
-_Q_WARN_SMALL_M3S: Final[float] = 10.0 * _FLOW_TO_M3D
+_Q_WARN_SMALL: Final[float] = 10.0
 
 
 def _guard_reason(
@@ -151,18 +154,22 @@ def _builtin_band_reason(
     None=提示带（accepted=True 不阻塞仅提示——E2E-1 软提示面）。"""
     if catalog_key != "municipal_input" or key != "q_avg_daily":
         return None, None
-    if value <= 0.0 or value > _Q_REJECT_MAX_M3S:
+    if value <= 0.0 or value > _Q_REJECT_MAX:
+        # 门一回炉 k2-N4/d1-W5（2026-10-02）：硬界整数可读面渲染
+        # （:g 对 5184000.0 出「5.184e+06」科学计数失可读性——
+        # int() 面恒「5184000」，测试锚 tests/app/test_params_guard.py）。
         return (
-            f"进水流量 {value!r} m³/s 越市政厂硬界（(0, {_Q_REJECT_MAX_M3S}]——"
+            f"进水流量 {value!r} m³/d 越市政厂硬界"
+            f"（(0, {int(_Q_REJECT_MAX)}]——"
             "A-1/A-3：≤0 非法或超 518.4 万 m³/d 顶格类上界"
             "（b3a-research.md §二 A 组+§七追认 2026-09-26）",
             None,
         )
-    if value < _Q_WARN_SMALL_M3S:
+    if value < _Q_WARN_SMALL:
         return None, "流量过小——市政单体口径下限复核（<10 m³/d 量级，A-3 提示带）"
-    if value > _Q_WARN_LARGE_M3S:
+    if value > _Q_WARN_LARGE:
         return None, (
-            "超大型厂——请复核规模口径（万 m³/d vs m³/s）与池数分格"
+            "超大型厂——请复核规模口径（m³/d 输入面）与池数分格"
             "（>100 万 m³/d 量级，A-2 提示带）"
         )
     return None, None

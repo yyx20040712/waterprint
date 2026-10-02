@@ -148,6 +148,7 @@
 | 2026-08-26 | GOLDEN（起草基线） | 终水/主尺寸与 M2c、M2-SOL 探针数字微差 | 输入定点化（save_project round 10）+独立构造输入，非回归；本批起以本三件套为唯一锚 |
 | 2026-08-28 | GOLDEN3（产股+std 键族） | serialize 497060→498330 bytes、sha 头 8bbbf8a6770e6fa7→b59df95fa1f9376e；expected.generated.data_version 1.0.0→1.1.0 | nongsuo sup/tuoshui filtrate 无条件产股（Q1 已裁）使两口进 UF-42 快照（每工况 +q_wet/ds/moisture 三键×两口）；data_version 印记随 std.gb3838_iii 五键批（coefficients 1.0.0→1.1.0）生成日实拍；86 数值锚+m3 双锚逐值 diff=0（非回归——产股不加 dims 不改水质） |
 | 2026-08-28 | GOLDEN2（扩污泥链） | estimate_total=11908574.59503396 ≠ COST2 记档 10536911.04824766（12 节点图） | 概算基数 12→19 节点：污泥 bengzhan/nongsuo/xiaohua 三单元 v_concrete（0.6218+234.0173+835.7761 m³）经 field_mapping field-wide 行自动计入，差 +1371663.55 元；COST2 金数语义=12 节点图，两者各自成立 |
+| 2026-10-02 | inlet-m3d（进水参数面 m³/d 统一） | inlet q_avg_daily 0.4023229167（m³/s）→34760.7（m³/d，勘察冻结工程值）+format_version 3.0→4.0+content_hash 重算 c8043a5c→95a3313a；effluent 流量比例聚合键（carbon/cost/dose/power/loads）与 design_dims/m3_deferred 漂 ~8.3e-11 rel 随批重录（124 值锚）；serialize 550385→547520 bytes/sha aa46223a→2b8a6366 | 绑定点重算=parse(34760.7,"m3/d") 全精度 vs 旧 10 位定点舍入的 ulp 尾差（新值更精确）；六指标浓度面 0 键漂移（常数去除率模型 n-不变——位串级实证 test_inlet_m3d_drift） |
 | （待续） | | | |
 
 ## 5. GOLDEN2 升版记档（2026-08-28，污泥链扩面+m3 真值）

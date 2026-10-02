@@ -1,16 +1,16 @@
 # serializer version: 1
 # name: test_audit_html_content_hash
-  '8c5a0ab662ad938b8b1567482307f0254a57153a8d1d6bef67bd2cdb819521bb'
+  '048780bba29b511604fb74f16891f279bfa60062d6320140132cb03d4f3b4458'
 # ---
 # name: test_calcbook_xlsx_content_hash
   '7e1979eb8980b1d065942a92151d75bbec9cdbe87bf2dfd6374b9d9dec48cedb'
 # ---
 # name: test_dxf_content_hash
-  '12ee0ec6a44f582cbda72b94c691321b95092e10ad7c4a328cf3e7a80d7255aa'
+  '5a0225a3ab5594c52d246a4fbd8cca469d679b099198e9e00d9d80b5fbc8a8f3'
 # ---
 # name: test_profile_dxf_absolute_datum_content_hash
-  'c3f280969a1ce772f5503e080bd999acbca3036fce52c4add718586d9a46871a'
+  'b66e8aa7a71c6700ef373f6f7f94dc9763e68df3aa23acc4fc619c4cc672d340'
 # ---
 # name: test_profile_dxf_content_hash
-  '957050e2da220daf1f10cc911d67d7dab3717412e04c81051679fb3a38bda5eb'
+  'd65532b7ed44614d4f9728c5001211f95ecb45ad9932892d03ee7a06ba2d7f98'
 # ---

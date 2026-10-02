@@ -1,5 +1,5 @@
 {
-  "format_version": "3.0",
+  "format_version": "4.0",
   "design": {
     "nodes": {
       "u1": {
@@ -85,7 +85,7 @@
     "compare": {}
   },
   "metadata": {
-    "format_version": "3.0",
+    "format_version": "4.0",
     "content_hash": "0000000000000000000000000000000000000000000000000000000000000000",
     "engine_version": "0.1.0",
     "data_version": "coefficients@0.1.0",
