@@ -9,7 +9,8 @@
 #
 # 【公开接口】
 #   UnitRegistry(Protocol)：unit_id → Unit 实例（app.py 构建；executor
-#       不 import units_lib——装配点唯一）
+#       不 import units_lib——装配点唯一；定义面=executor_assembly
+#       CI-fix 批缝 C 2026-10-02 下移单源，本文件同名再导出）
 #   execute_graph(design, units, conditions, env) -> PlantResult 唯一执行正门（UF-31）
 #       ——第五可选参 diag_sink: DiagSink | None = None（P2 次批
 #       ADR-012 D3：None 行为不变；在场时成功收敛回路统计经协议上报，
@@ -93,7 +94,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from math import isfinite
 from types import MappingProxyType
-from typing import Final, Protocol, final
+from typing import Final, final
 
 from waterprint.contracts.condition import ConditionSet, OperatingCondition
 from waterprint.contracts.domain_exceptions import DOMAIN_EXCEPTIONS_CORE
@@ -120,6 +121,7 @@ from waterprint.graph.cache import (
 )
 from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生件
     _LOOP_KEYS,  # noqa: F401  # 引用连续专用（消费面=executor_assembly._loop_config）
+    UnitRegistry,  # CI-fix 批缝 C 2026-10-02：定义面下移伴生件（引用连续+恒等钉第七符号）
     _edges_from_design,
     _endpoint,  # noqa: F401  # 镜像钉兼容壳再导出（生产零消费——恒等钉与引用连续专用，门一 W1 注记）
     _loop_config,
@@ -159,12 +161,6 @@ _WATER_INIT: Final[dict[str, float]] = {"q_avg_daily": 0.0, "kz": 1.0}
 # SLUDGE 初值 q_wet=1e-6（R1 墙 B——语义见【回路闭包口径】；mm×mm 借用派生）。
 _SLUDGE_INIT: Final[dict[str, float]] = {
     "q_wet": parse(1.0, "mm", DimKey.LENGTH) ** 2, "ds": 0.0, "moisture": 0.0}
-
-
-class UnitRegistry(Protocol):
-    """单元注册表协议：unit_id → Unit 实例（app.py 装配，R2 装配边界）。"""
-
-    def __getitem__(self, unit_id: str) -> Unit: ...
 
 
 def _fields(fluid: FluidKind) -> tuple[str, ...]:

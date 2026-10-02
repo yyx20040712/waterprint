@@ -19,6 +19,11 @@
 #   forward_stocks（conv-golden 批缝 B 2026-10-02）：前向边源股装配
 #   （在场股直取+offline 检修饥饿边零股承接——口径全文见该函数
 #   docstring；executor._inflows 唯一消费方）。
+#   UnitRegistry 协议（CI-fix 批缝 C 2026-10-02）：自 executor.py 下移
+#   ——forward_stocks 第 4 参实参=该协议实例（原签名 Mapping[str, Unit]
+#   与 UnitRegistry 结构不兼容，mypy strict arg-type 红；定义面下移
+#   单源化+executor.py 同名再导入保引用连续——TD1/B3 同构第四例，
+#   行为零变更纯搬迁，恒等钉第七符号）。
 #   solve_loop 四参锁零触碰，executor 消费（跨件私有引用同先例）。
 #   B3-c 批 2c 收敛（2026-09-19）：_endpoint/_edges_from_design 校验/
 #   消息逻辑单源化至 contracts.edge_parsing（endpoint_from/edges_from，
@@ -31,7 +36,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Final, final
+from typing import Final, Protocol, final
 
 from waterprint.contracts.condition import OperatingCondition
 from waterprint.contracts.edge_parsing import edges_from, endpoint_from
@@ -147,7 +152,7 @@ def _unit_params(unit: Unit, node_value: Mapping[str, object]) -> dict[str, floa
     return params
 
 
-def _starved_stock(edge: Edge, units: Mapping[str, Unit]) -> tuple[
+def _starved_stock(edge: Edge, units: UnitRegistry) -> tuple[
     WaterFlow | SludgeFlow, WaterQuality | None]:
     """检修饥饿边零股（流体取 dst 端口 manifest 声明——_recycle_port 同判据）。
 
@@ -166,11 +171,20 @@ def _starved_stock(edge: Edge, units: Mapping[str, Unit]) -> tuple[
         "（manifest ports 无此 port_id——零股流体判据无源，GR-09）")
 
 
+class UnitRegistry(Protocol):
+    """单元注册表协议：unit_id → Unit 实例（app.py 装配，R2 装配边界）。
+
+    CI-fix 批缝 C（2026-10-02）自 executor.py 下移单源化（行为零变更
+    纯搬迁）；executor.py 同名再导入保引用连续——恒等钉第七符号。"""
+
+    def __getitem__(self, unit_id: str) -> Unit: ...
+
+
 def forward_stocks(
     flows: Mapping[PortRef, WaterFlow | SludgeFlow],
     qualities: Mapping[PortRef, WaterQuality],
     forward: Sequence[Edge],
-    units: Mapping[str, Unit],
+    units: UnitRegistry,
     condition: OperatingCondition,
 ) -> tuple[
     dict[PortRef, WaterFlow | SludgeFlow], dict[PortRef, WaterQuality]]:
