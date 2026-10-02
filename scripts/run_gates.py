@@ -6,9 +6,11 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：门禁清单与 AGENTS.md §2/§3、docs/file-contracts.md §4 一致；
-# ruff 经 check_ruff.py（core venv 依赖）聚合入列——与 CI core-quality
-# 对齐（T7a C416 教训）；mypy/pytest 仍属 CI/venv 单独跑；
-# 其余为零依赖门禁（系统 Python 直接可跑）。
+# ruff 经 check_ruff.py、mypy 经 check_mypy.py（均逐根各自 venv 依赖、
+# 互不代偿）聚合入列——与 CI core/server quality job 对齐（T7a C416
+# 教训；mypy=conv-golden 批 2026-10-02 executor.py:280 arg-type 逃逸
+# 教训同族第三例）；pytest 仍属 CI/venv 单独跑；其余为零依赖门禁
+# （系统 Python 直接可跑）。
 # 第十门禁 check_trust_root.py（外审整改#3 H1）：三信任根变更须带
 # [HUMAN-LOCK]（AGENTS §7）——门禁数基线 9→10（WP2 台账）。
 # 第十一门禁 check_deprecation_gate.py（TD1 2026-09-09）：GR-21
@@ -36,6 +38,11 @@
 # constraint_refs↔factors.yaml 数值真源+kb value_basis 数值投影（死
 # 声明静默分叉变响红；受限静态求值零依赖——bashi 动态构造面在内）
 # ——门禁数基线 16→17。
+# 第十八门禁 check_mypy.py（conv-golden 推送批 2026-10-02 用户裁决
+# 「授权根治」）：双根（core+server）各自 venv 解释器跑 CI 同款
+# mypy strict（conv-golden 批类型面逃逸至 CI 三处红的防线闭口——
+# check_ruff/check_lint_imports 同制第三例，三态 SKIP/OSError 兜底
+# 逐条同款）——门禁数基线 17→18。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -57,6 +64,7 @@ GATES = (
     "check_magic_numbers.py",
     "check_module_graph.py",
     "check_model_names.py",
+    "check_mypy.py",
     "check_out_dims_consistency.py",
     "check_readonly.py",
     "check_ruff.py",

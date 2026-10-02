@@ -263,6 +263,7 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `scripts/check_deprecation_gate.py` | GR-21 弃用到期门禁：file-contracts 弃用登记（弃用: 旧 -> 新, 移除: YYYY-MM-DD）逾期/格式错即 FAIL（TD1 2026-09-09 机制就绪件——零登记首检绿） |
 | `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1） |
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
+| `scripts/check_mypy.py` | mypy 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 mypy strict（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1——conv-golden 批 2026-10-02 executor.py:280 arg-type 逃逸至 CI 三处红的防线闭口，check_ruff/check_lint_imports 同制第三例，门禁数基线 17→18；表内 venv 门禁族三行[check_ruff/check_lint_imports/check_mypy]相邻成组编排——非门禁序数序，mypy-gate 批门一 k2-W2 明示） |
 | `scripts/check_out_dims_consistency.py` | out_dims.dim 三写面对账门禁：manifest 声明必须=①公式表 output_dim/②projection dim_of 镜像（AST 静态实读零依赖；真源单归——工况面 UX 反馈批件 4，门禁 12→13） |
 | `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
 | `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）+ 仓库级 md 面不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配；md 面排除治理目录（.workflow/.zcode/.mimosa）+白名单 AGENTS.md（终裁 N3 保留件）（清洗批 2026-09-16 门禁 14→15；T4 扩 .md 面同批） |
