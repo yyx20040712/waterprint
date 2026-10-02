@@ -14,6 +14,12 @@
        （municipal_34760_conveyance 案例）；修复前红面实录=批档
        .workflow/conv-golden-20261002/red-first-run.txt（裸 KeyError
        逃逸 run_full_calc）。
+       uf61-axes 批 2026-10-02 增⑤⑥⑦：⑤SLUDGE 分支单位元+_starved_stock
+       直调（C2 镜像）⑥dst 端口未声明拒分支直调（C2 镜像）⑦口级合规 e2e
+       （offline 目标单元未声明 src 口 out_9x → InvalidExecutionError——
+       forward_stocks 承接分支前置 _src_port_compliant；实现前=静默零股
+       〔红面实录〕）；回炉轮 1 增⑧：_src_port_compliant 直测矩阵
+       （R8——八形态名形校验口径）。
 """
 
 from __future__ import annotations
@@ -150,12 +156,13 @@ def _env() -> object:
 
 
 def _split_graph(
-    node_params: dict[str, object], *, ghost: bool = False
+    node_params: dict[str, object], *, ghost: bool = False, typo_port: bool = False
 ) -> tuple[object, dict[str, object]]:
     """共用装配：src→split（双口布线 out_1/out_2 同入一口）→cons 线性图。
 
     ghost=True 增哑源注入边 ghost.out→cons.in（_SilentStub 产零出流
-    ——非目标单元缺股缺陷载体，对偶封边用例专用）。"""
+    ——非目标单元缺股缺陷载体，对偶封边用例专用）；typo_port=True 增
+    布线笔误边 split.out_9x→cons.in（未声明口——口级合规⑦用例载体）。"""
     from waterprint.contracts.project_schema import DesignState
     from waterprint.graph.nodes import builtin_unit
 
@@ -187,6 +194,11 @@ def _split_graph(
              "dst": {"unit_id": "cons", "port_id": "in"}, "recycle": False}
         )
         units["ghost"] = _SilentStub()
+    if typo_port:
+        edges.append(
+            {"src": {"unit_id": "split", "port_id": "out_9x"},
+             "dst": {"unit_id": "cons", "port_id": "in"}, "recycle": False}
+        )
     design = DesignState(nodes=nodes, edges=edges)  # type: ignore[arg-type]
     return design, units
 
@@ -270,3 +282,84 @@ def test_offline_nontarget_missing_stock_still_native_keyerror() -> None:
         execute_graph(  # type: ignore[misc]
             design, units, build_condition_set(["split"]), _env()
         )
+
+
+def test_starved_stock_sludge_branch_unit_element() -> None:
+    """饥饿边镜像锚⑤（C2 镜像——SLUDGE 分支直调）：dst 口声明 SLUDGE →
+    (SludgeFlow(0,0,0), None) 单位元+无水质键（全零股单位元——零权泥股
+    不改下游 DS 守恒，规格 docstring 承载面）。"""
+    from waterprint.contracts.ports import Edge, PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+    from waterprint.graph.executor_assembly import _starved_stock
+
+    unit = type("SludgeStub", (), {
+        "manifest": _stub_manifest(
+            "stub_sludge", (("in", "WATER", "IN"), ("out", "SLUDGE", "OUT")))})()
+    stock, quality = _starved_stock(
+        Edge(PortRef("up", "out"), PortRef("stub_sludge", "out")),
+        {"stub_sludge": unit},
+    )
+    assert stock == SludgeFlow(q_wet=0.0, ds=0.0, moisture=0.0)  # P4 全零股单位元
+    assert quality is None  # 泥股无水质（WATER 才有成对空水质）
+
+
+def test_starved_stock_dst_port_undeclared_rejected() -> None:
+    """饥饿边镜像锚⑥（C2 镜像——dst 端口未声明拒分支直调）：manifest ports
+    无此 port_id → InvalidExecutionError（消息含 unit.port——零股流体判据
+    无源，GR-09）。"""
+    from waterprint.contracts.ports import Edge, PortRef
+    from waterprint.graph.executor_assembly import _starved_stock
+    from waterprint.graph.executor_dsl import InvalidExecutionError
+
+    unit = _SplitStub()  # ports 声明 in/out——布线 nope 口未声明
+    with pytest.raises(InvalidExecutionError, match=r"split\.nope"):
+        _starved_stock(
+            Edge(PortRef("up", "out"), PortRef("split", "nope")),
+            {"split": unit, "up": unit},
+        )
+
+
+def test_offline_undeclared_src_port_rejected_not_silent_zero() -> None:
+    """饥饿边镜像锚⑦（口级合规 e2e——uf61-axes 批）：offline 目标单元布线
+    未声明口（out_9x 布线笔误形态）→ InvalidExecutionError 响亮拒（GR-09
+    同族——零股承接禁吞布线缺陷）；实现前=静默零股吞错（红面实录）。
+
+    单工况 ConditionSet（offline 直构）隔离 offline 分支：split n=1 只产
+    out_1，out_2=已声明 OUT 口动态实例（k≥2 合规——零股承接），
+    out_9x=未声明口（既非已声明 OUT 口亦非动态实例口）→ 拒。"""
+    from waterprint.contracts.condition import (
+        ConditionSet,
+        FlowCase,
+        OperatingCondition,
+    )
+    from waterprint.graph.executor_dsl import InvalidExecutionError
+
+    design, units = _split_graph({}, typo_port=True)
+    offline_only = ConditionSet(
+        baseline=(),
+        sensitivity=(OperatingCondition(
+            flow_case=FlowCase.DESIGN, offline_unit="split"),),
+    )
+    with pytest.raises(InvalidExecutionError, match=r"split\.out_9x.*GR-09"):
+        execute_graph(design, units, offline_only, _env())  # type: ignore[misc]
+
+
+def test_src_port_compliance_matrix() -> None:
+    """饥饿边镜像锚⑧（口级合规直测矩阵——回炉轮 1 R8）：declared OUT 口
+    "out"（split 桩）下七形态——out_2_3 拒判在 base∉declared（regex 实际
+    命中，R6 注记）；out_007 真=名形校验口径（k 纯整数即可，无规范形
+    归一）；in=已声明 IN 口非 OUT 亦拒。"""
+    from waterprint.graph.executor_assembly import _src_port_compliant
+
+    ports = _SplitStub.manifest.ports  # declared：in(IN)/out(OUT)
+    for port_id, expected in (
+        ("out", True),        # 已声明 OUT 口本体
+        ("out_2", True),      # 动态实例（k≥2）
+        ("out_10", True),     # 多位数 k
+        ("out_2_3", False),   # regex 命中（base="out_2"）但 base 未声明——拒
+        ("out_2.5", False),   # regex 命中（base="out_2."）base 未声明——拒
+        ("out_007", True),    # 前导零 k——名形校验口径（int("007")≥2 即真）
+        ("out_x", False),     # 尾非纯数字——regex 不命中
+        ("in", False),        # 已声明 IN 口——非 OUT 拒
+    ):
+        assert _src_port_compliant(ports, port_id) is expected, port_id

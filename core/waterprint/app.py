@@ -151,7 +151,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import final
@@ -188,6 +188,7 @@ from waterprint.app_enumeration import (
 # =锁定测试 monkeypatch 耦合 app 模块命名空间——迁移须随锁面工序呈批）。
 from waterprint.app_enumeration_gates import run_enumeration, run_joint_enumerate
 from waterprint.app_influent import _with_influent, influent_summary_of
+from waterprint.app_maintenance import _with_maintenance, maintenance_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.contracts.condition import ConditionSet
@@ -212,7 +213,7 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
 from waterprint.registry.effluent import load_effluent_standards
-from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.constraints import KbConstraint, apply_constraints
 from waterprint.solution.design_map import (
     DesignMap,
     DesignMapOptions,
@@ -362,12 +363,16 @@ def _with_energy(
 def run_full_calc(
     project: ProjectFile, conditions: ConditionSet, env: RunEnv,
     standards: tuple[EffluentStandard, ...] = (),
+    constraints: Sequence[KbConstraint] = (),
 ) -> ResultBundle:
     """全厂计算唯一大门：装配 → env 补齐 → trace 装配 → 执行 → 回填（D3/D5/D10）。
 
     standards（P2 次批 ADR-012 D4 可选注入）：出水标准族（server 数据装配
     调用方装载；空=诊断 effluent 面空元组合法）。诊断通道（回路统计/水量
     闭合/裕度）随本门产出 bundle.diagnostics——独立并列 artifact 数据源。
+    constraints（UF-61 余轴批 2026-10-02 可选注入）：kb 约束族（server/CLI
+    装载调用方注入 load_kb_constraints 产物；core 不自查数据——空=summary
+    maint.* 仅 ratio 面，kb/fixgeom 面不入场）。
     """
     assembled = assemble(project, env)
     effective = _completed_env(env, project.design)
@@ -394,9 +399,12 @@ def run_full_calc(
             engine_version=plant.repro.engine_version,
             data_version=plant.repro.data_version,
         ),
-        summary=_with_carbon(
-            _with_opex(base_summary, opex_summary_of(base_summary, env.coefficients)),
-            carbon_summary_of(base_summary, env.coefficients)),
+        # UF-61 检修观测面链末端接线（face 只读 conditions/units——plant/filled 等价，取 plant）
+        summary=_with_maintenance(
+            _with_carbon(
+                _with_opex(base_summary, opex_summary_of(base_summary, env.coefficients)),
+                carbon_summary_of(base_summary, env.coefficients)),
+            maintenance_summary_of(plant, conditions, assembled.units, constraints)),
     )
     diagnostics = build_diagnostics(
         filled,

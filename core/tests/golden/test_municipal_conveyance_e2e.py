@@ -189,7 +189,14 @@ def _assert_offline_frame(plant: Any, target: str) -> None:
             assert _bits(other[key]) == _bits(value), f"{off_key}/{unit_id}.{key} 位串漂移"
     offline_summary = plant.summary[off_key]
     design_summary = plant.summary["design"]
-    assert set(offline_summary) == set(design_summary), f"{off_key} summary 键集漂移"
+    # uf61-axes 批 2026-10-02：offline 帧 summary 增量承载 maint.* 检修观测
+    # 键（开放映射槽位——恰 ratio 面增键），键集/位串断言剔除该命名域
+    core_offline = {k for k in offline_summary if not k.startswith("maint.")}
+    assert core_offline == set(design_summary), f"{off_key} summary 键集漂移"
+    added = set(offline_summary) - set(design_summary)
+    assert added, f"{off_key} maint 面缺席（offline 分化目标单元应有 ratio 键）"
+    assert all(key.startswith("maint.") and ".ratio." in key for key in added), (
+        off_key, added)
     for key, value in design_summary.items():
         other = offline_summary[key]
         assert isinstance(value, float) and isinstance(other, float), (

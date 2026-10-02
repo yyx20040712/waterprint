@@ -19,6 +19,9 @@
 #   forward_stocks（conv-golden 批缝 B 2026-10-02）：前向边源股装配
 #   （在场股直取+offline 检修饥饿边零股承接——口径全文见该函数
 #   docstring；executor._inflows 唯一消费方）。
+#   _src_port_compliant（uf61-axes 批 2026-10-02）：src 口级合规判据
+#   （已声明 OUT 口 ∨ 动态实例口 <declared_out>_<k> k≥2 纯整数；承接分支
+#   前置——未声明口=InvalidExecutionError 响亮拒 GR-09，注记=R6 勘正）。
 #   UnitRegistry 协议（CI-fix 批缝 C 2026-10-02）：自 executor.py 下移
 #   ——forward_stocks 第 4 参实参=该协议实例（原签名 Mapping[str, Unit]
 #   与 UnitRegistry 结构不兼容，mypy strict arg-type 红；定义面下移
@@ -35,13 +38,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+import re
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Final, Protocol, final
 
 from waterprint.contracts.condition import OperatingCondition
 from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.flow import WaterFlow
-from waterprint.contracts.ports import Edge, FluidKind, PortRef
+from waterprint.contracts.ports import Direction, Edge, FluidKind, Port, PortRef
 from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.sludge import SludgeFlow
@@ -53,6 +57,14 @@ from waterprint.graph.loop import LoopConfig
 _LOOP_KEYS: Final[tuple[str, ...]] = (
     "loop.tolerance", "loop.max_iterations", "loop.damping"
 )
+# 动态实例口后缀解析（口级合规——uf61-axes 批；注记勘正回炉 R6）：
+# declared OUT 口 p 的 f"{p}_{k}" 形态，k≥2 纯整数。**"out_2_3"/"out_2.5"
+# 实际命中本 regex**（base="out_2"/"out_2."）——拒判落在 base∉declared_out
+# （"out_x" 尾非纯数字不命中）。前提：已声明 OUT 口命名不含 _<纯数字> 后缀
+# （否则 out_2_3 放行）。可达性（d1-N5）：完整工况集下基线帧 KeyError
+# 先触发——本拒分支对无基线直构载体生效=防御纵深。
+_DYNAMIC_SUFFIX: Final[re.Pattern[str]] = re.compile(r"^(?P<base>.+)_(?P<index>\d+)$")
+_DYNAMIC_MIN_INDEX: Final[int] = 2  # grid 下限 2 下 n−1≥1 → 饥饿动态口恒 k≥2
 
 
 @final
@@ -180,6 +192,20 @@ class UnitRegistry(Protocol):
     def __getitem__(self, unit_id: str) -> Unit: ...
 
 
+def _src_port_compliant(ports: Iterable[Port], port_id: str) -> bool:
+    """src 口级合规（uf61-axes 批——GR-09 承接前置）：已声明 OUT 口直取 ∨
+    动态实例口（已声明 OUT 口 p 的 f"{p}_{k}"，k≥2 纯整数）；布线笔误=False。"""
+    declared_out = tuple(
+        port.port_id for port in ports if port.direction is Direction.OUT
+    )
+    if port_id in declared_out:
+        return True
+    match = _DYNAMIC_SUFFIX.fullmatch(port_id)
+    if match is None or int(match.group("index")) < _DYNAMIC_MIN_INDEX:
+        return False
+    return match.group("base") in declared_out
+
+
 def forward_stocks(
     flows: Mapping[PortRef, WaterFlow | SludgeFlow],
     qualities: Mapping[PortRef, WaterQuality],
@@ -194,23 +220,26 @@ def forward_stocks(
     动态多口单元（conveyance peishuijing/peishuiqu/jipeishuijing 形态
     ——manifest ports 声明单 out 口、compute 按参数 n 动态产 out_1~
     out_n）在 offline 帧参数 n 降为 n−1 后只产 out_1~out_{n−1}，设计期
-    布线的 out_n 边失去源股=「检修饥饿边」。承接语义：offline 帧
-    （condition.offline_unit 非 None）内前向边源端口不在 flows 池**且
-    缺股源单元==offline 目标单元**（edge.src.unit_id==offline_unit——
-    承接仅限目标单元检修降级所产生的饥饿边）→ 该边承载零股
-    （_starved_stock）——物理口径：检修停运口零出流，在运口承载
-    全流量（compute 按 n−1 均分）→ Σ边股==入流守恒成立。基线帧
-    （design/avg）与 offline 帧内**非目标单元**缺股均不适用：源端口
-    缺股=装配/单元缺陷，维持原生 KeyError 裸逃逸（GR-08 禁静默默认
-    ——本口径仅「offline 帧×目标单元源」生效，基线与非目标缺股行为
-    位串级零变）。行为锚=tests/graph/test_executor_starved_edge.py
-    镜像四用例+golden municipal_34760_conveyance e2e。"""
+    布线的 out_n 边失去源股=「检修饥饿边」。承接语义：offline 帧内前向
+    边源端口不在 flows 池**且缺股源单元==offline 目标单元**且 src 口合规
+    （**已声明 OUT 口或动态实例口**——_src_port_compliant；未声明
+    口=布线笔误响亮拒 GR-09）→ 该边承载零股（_starved_stock）——检修停运
+    口零出流、在运口承载全流量 → Σ边股==入流守恒。基线帧与
+    offline 帧内**非目标单元**缺股=装配/单元缺陷，维持原生 KeyError
+    裸逃逸（GR-08——仅「offline 帧×目标单元×合规口」生效，位串级零变）。
+    行为锚=starved_edge 镜像八用例+golden conveyance e2e。"""
     upstream: dict[PortRef, WaterFlow | SludgeFlow] = {}
     upstream_qualities: dict[PortRef, WaterQuality] = {}
     for edge in forward:
         stock = flows.get(edge.src)
         if (stock is None and condition.offline_unit is not None
                 and edge.src.unit_id == condition.offline_unit):
+            if not _src_port_compliant(
+                units[edge.src.unit_id].manifest.ports, edge.src.port_id
+            ):
+                raise InvalidExecutionError(
+                    f"饥饿边 src 端口未声明/非 OUT 口：{edge.src.unit_id}."
+                    f"{edge.src.port_id}（布线缺陷——零股承接禁吞，GR-09）")
             stock, quality = _starved_stock(edge, units)
             upstream[edge.src] = stock
             if quality is not None:

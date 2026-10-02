@@ -1527,9 +1527,9 @@
   "generated": {
     "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 554360,
-    "serialize_sha256_head": "6b0f7ceedbb78d02",
-    "source": "inlet-m3d 批锁面重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政三案 inlet 0.4023229167 m³/s→34760.7 m³/d+format_version 4.0——serialize 含 v4 版本头 design_hash 与流量比例数值面；effluent 六指标浓度/键集零变；mine_43836 输入零触碰，serialize sha 漂=v3→v4 读时迁移版本头（数值面零漂，字节长度恒等））"
+    "serialize_bytes": 556460,
+    "serialize_sha256_head": "0cb6faa47e202695",
+    "source": "uf61-axes 批实跑录制 2026-10-02（claim=ops-executor-uf61-axes-20261002；summary offline 帧增量 maint.<node>.ratio.<field> 检修观测键42 个——app_maintenance 纯投影经 run_full_calc 开放映射槽位注入；数值面零变+恰 ratio 增键经 .workflow/uf61-axes-20261002/drift-diff-report.txt 旧新 serialize 树 diff 核查〔旧树=HEAD 26dfab9 worktree 实跑，与重录前 generated 双锚逐字节恒等对拍〕；effluent/design_dims/m3_deferred 数值期望面零触碰；mine_43836 零漂移断言在册）"
   },
   "m3_deferred": {
     "estimate_total": {

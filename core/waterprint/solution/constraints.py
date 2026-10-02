@@ -26,9 +26,20 @@
 #       裕度列（批2a——枚举行对带形约束的归一距离 min(v−a,b−v)/(b−a)，
 #       行级取最紧；无适用带=NaN；调用面=app.run_enumeration/
 #       stage.evaluate_stage，与 apply_constraints 同一约束集同源）
+#   class KbConstraint(不可变)：constraint: Constraint + unit_kinds:
+#       tuple[str, ...]（kb 条目装载形态——app_maintenance kb 执法面消费，
+#       uf61-axes 批 2026-10-02）
+#   load_kb_constraints(path) -> tuple[KbConstraint, ...]：constraint_kb
+#       constraints.json 装载正门（fail-fast 三态显式拒：缺文件/坏 JSON/
+#       entries 空表=InvalidConstraintError；装载期逐条 _clauses DSL 校验
+#       坏档 fail-visible；source=kb 键、severity=Severity(entry) 随行；
+#       宽容面归 CLI/未来调用方——本装载器 fail-fast，standards 装载器
+#       区分记档）
+#   expression_fields(expression) -> tuple[str, ...]：DSL 子句字段去重
+#       现序列举（kb 适用判据单源——_clauses 单源解析的公开投影）
 #
 # 【行为规格】
-#   R1 约束是数据：知识库 34 条（旧 constraint_hints 迁移；kb 1.6.0 实数
+#   R1 约束是数据：知识库 34 条（旧 constraint_hints 迁移；kb 1.6.1 实数
 #      =11+12+2+1+8——FD 批勘正历史构想字样 51→21、批3b 2026-09-26 增
 #      geometry_guard 8 条、margin-kb-20261001 增双侧带 5 条〔起草待认〕）
 #      + UI 覆盖，
@@ -64,11 +75,13 @@
 
 from __future__ import annotations
 
+import json
 import re
 from ast import literal_eval
 from collections.abc import Sequence
 from dataclasses import dataclass
 from math import isfinite
+from pathlib import Path
 from typing import Final, final
 
 import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（M2-SOL 记档）
@@ -287,3 +300,89 @@ def band_margin_column(
     if not margins:
         return pandas.Series(float("nan"), index=frame.index, name=_MARGIN_COLUMN)
     return pandas.concat(margins, axis=1).min(axis=1).rename(_MARGIN_COLUMN)
+
+
+# ── kb 装载器域（uf61-axes 批 2026-10-02——app_maintenance kb 执法面）──────
+
+# boundary_check=SPC2 §2.3 符号契约（containment == inside 固定式——非比较
+# DSL 域，severity 解析面=server services/site.py）
+_BOUNDARY_CHECK_KIND: Final[str] = "boundary_check"
+
+
+@dataclass(frozen=True)
+@final
+class KbConstraint:
+    """kb 条目装载形态（不可变）：Constraint + 适用 unit_kinds 白名单 + kind
+    （回炉 R2——boundary_check 豁免镜像的消费面判据；source/severity 不变）。"""
+
+    constraint: Constraint
+    unit_kinds: tuple[str, ...]
+    kind: str
+
+
+def expression_fields(expression: str) -> tuple[str, ...]:
+    """DSL 子句字段去重现序列举（kb 适用判据单源——_clauses 单源投影）。"""
+    seen: list[str] = []
+    for field_id, _, _ in _clauses(expression):
+        if field_id not in seen:
+            seen.append(field_id)
+    return tuple(seen)
+
+
+def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
+    """constraint_kb constraints.json 装载正门（fail-fast——uf61-axes 批）。
+
+    三态显式拒（InvalidConstraintError 族，禁静默空表）：文件缺失/损坏
+    JSON/entries 空表；装载期逐条 DSL 校验（_clauses parse——坏档
+    fail-visible，消费面零延迟爆；boundary_check 例外=SPC2 §2.3 契约
+    固定符号式 containment == inside，非比较 DSL 域——其 severity 解析
+    面=server services/site.py，本装载器不重复执法）。source=kb 键、
+    severity 随行；unit_kinds=[] 合法（boundary_check 全构筑物语义），
+    其余 kind 空表的数据面门禁归 kb 数据批——本装载器不裁（回炉 R10）；
+    宽容面（缺字段的个别条目跳过等）归 CLI/未来调用方——本装载器
+    fail-fast，standards 装载器区分记档。
+    """
+    target = Path(path)
+    if not target.is_file():
+        raise InvalidConstraintError(
+            f"constraint_kb 文件缺失：{target}（装载 fail-fast——禁静默空表）"
+        )
+    try:
+        raw = json.loads(target.read_bytes())
+    except ValueError as exc:
+        raise InvalidConstraintError(
+            f"constraint_kb JSON 解析失败：{target}（{exc}）"
+        ) from exc
+    entries = raw.get("entries") if isinstance(raw, dict) else None
+    if not isinstance(entries, list) or not entries:
+        raise InvalidConstraintError(
+            f"constraint_kb entries 须为非空列表：{target}（GR-14 空集显式语义）"
+        )
+    loaded: list[KbConstraint] = []
+    for position, item in enumerate(entries):
+        if not isinstance(item, dict):
+            raise InvalidConstraintError(
+                f"constraint_kb entries[{position}] 须为对象：{item!r}（GR-02）"
+            )
+        try:
+            constraint = Constraint(
+                key=str(item["key"]),
+                expression=str(item["expression"]),
+                source=str(item["key"]),
+                severity=Severity(str(item["severity"])),
+            )
+            kinds = item["unit_kinds"]
+            if not isinstance(kinds, list):
+                raise TypeError("unit_kinds 须为列表")
+            unit_kinds = tuple(str(kind) for kind in kinds)
+            kind = str(item["kind"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise InvalidConstraintError(
+                f"constraint_kb entries[{position}] 字段缺失/非法"
+                f"（key/expression/unit_kinds/severity/kind 必备）：{exc}"
+            ) from exc
+        if kind != _BOUNDARY_CHECK_KIND:
+            _clauses(constraint.expression)  # 装载期 DSL 校验（fail-visible）
+        loaded.append(KbConstraint(
+            constraint=constraint, unit_kinds=unit_kinds, kind=kind))
+    return tuple(loaded)

@@ -164,7 +164,11 @@ def _assert_effluent_and_dims(
         view = plant.summary[condition_key]
         energy = {k: v for k, v in expected["effluent"][condition_key].items()
                   if not k.isupper()}
-        assert set(view) == set(energy), condition_key
+        # uf61-axes 批 2026-10-02：offline 帧 summary 增量承载 maint.* 检修
+        # 观测键（开放映射槽位——expected 数值面不随之变），键集钳制剔除
+        # maint.* 命名域
+        core_view = {k: v for k, v in view.items() if not k.startswith("maint.")}
+        assert set(core_view) == set(energy), condition_key
         for field, item in energy.items():
             assert view[field] == pytest.approx(
                 item["value"], rel=item["rel"], abs=item["abs"]

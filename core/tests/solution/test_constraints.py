@@ -263,3 +263,71 @@ def test_geometry_gate_edge_value_kept_strict_semantics() -> None:
     )
     result = apply_constraints(frame, [gate])
     assert list(result.feasible) == [0]
+
+
+# ══ uf61-axes 批 2026-10-02：kb 装载器域（fail-fast 三态拒+DSL 单源列举）══
+# 回炉轮 1 R3：实现已落地——直 import 撤 getattr 脚手架；三态拒+坏 DSL 四处
+# 钉 InvalidConstraintError（假绿通道封堵——泛 Exception 会被任意意外异常染绿）
+
+from waterprint.solution.constraints import (  # noqa: E402 （域内追加直 import）
+    InvalidConstraintError,
+    KbConstraint,
+    expression_fields,
+    load_kb_constraints,
+)
+
+
+def test_kb_loader_loads_all_entries_with_unit_kinds() -> None:
+    """装载正门：34 条计数+首末键锚+unit_kinds/kind 透传+source=kb 键/severity 随行。"""
+    loaded = load_kb_constraints(_REPO_DATA / "constraint_kb" / "constraints.json")
+    assert len(loaded) == 34  # kb 1.6.1 全量（真源计数锚）
+    assert loaded[0].constraint.key == "vxinglvchi.v_filter_band"  # 首键
+    assert loaded[-1].constraint.key == "geometry.n_aerator_reject"  # 末键
+    assert isinstance(loaded[0].unit_kinds, tuple)
+    assert "municipal_aao" in loaded[-1].unit_kinds  # unit_kinds 透传
+    assert loaded[0].kind == "enumeration_filter"  # kind 透传（回炉 R2）
+    assert loaded[-1].constraint.source == loaded[-1].constraint.key  # source=kb 键
+    assert loaded[-1].constraint.severity == Severity("ERROR")  # severity 随行
+
+
+def test_kb_loader_missing_file_rejected() -> None:
+    """fail-fast①：文件缺失显式拒（InvalidConstraintError 钉型——禁静默空表）。"""
+    with pytest.raises(InvalidConstraintError, match="constraint_kb"):
+        load_kb_constraints(_REPO_DATA / "constraint_kb" / "absent.json")
+
+
+def test_kb_loader_corrupt_json_rejected(tmp_path: Path) -> None:
+    """fail-fast②：损坏 JSON 显式拒（宽容面归 CLI/未来调用方——装载器拒）。"""
+    broken = tmp_path / "broken_constraints.json"
+    broken.write_text("{not json", encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="JSON"):
+        load_kb_constraints(broken)
+
+
+def test_kb_loader_empty_entries_rejected(tmp_path: Path) -> None:
+    """fail-fast③：entries 空表显式拒（GR-14 空集显式语义）。"""
+    empty = tmp_path / "empty_constraints.json"
+    empty.write_text(json.dumps({"comment": "x", "entries": []}), encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="entries"):
+        load_kb_constraints(empty)
+
+
+def test_kb_loader_bad_dsl_rejected(tmp_path: Path) -> None:
+    """装载期 DSL 校验：坏档（未知算符）fail-visible 拒（装载即验零延迟爆）。"""
+    bad = tmp_path / "bad_dsl.json"
+    bad.write_text(json.dumps({"entries": [{
+        "key": "kb.bad.dsl", "kind": "geometry_guard", "unit_kinds": ["x"],
+        "expression": "v_pool ~= 100.0", "source": "stub", "severity": "ERROR",
+    }]}), encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="约束子句语法非法"):
+        load_kb_constraints(bad)
+
+
+def test_expression_fields_dedup_ordered() -> None:
+    """DSL 单源字段列举（kb 适用判据消费）：去重保持现序+band/∈ 档两形态
+    （回炉 R8 补测——kb 真源两种表达式形态的列举面）。"""
+    assert expression_fields("v >= 7.0 and v <= 10.0 and v > 3") == ("v",)
+    assert expression_fields("l_pool <= 300.0 and b_pool >= 4") == (
+        "l_pool", "b_pool")
+    assert expression_fields("x >= 2.0 and x <= 4.0") == ("x",)  # band 形态
+    assert expression_fields("n ∈ [2.0, 4.0]") == ("n",)  # ∈ 档列表形态

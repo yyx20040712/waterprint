@@ -13,7 +13,9 @@
 #                增 keyword-only overrides——护栏基数接入假设覆盖管道，
 #                公开导出签名变更注记）
 #   enumerate:   enumerate_solutions
-#   constraints: apply_constraints
+#   constraints: apply_constraints + KbConstraint/load_kb_constraints/
+#                expression_fields（uf61-axes 批 2026-10-02——kb 装载器
+#                域与 DSL 字段列举单源导出）
 #   ranking:     rank
 #   diagnose:    diagnose_infeasibility
 #   design_map:  resolve_axes, ensure_budget, axis_mappings,
@@ -26,7 +28,12 @@
 # 上下文）；全厂联合枚举为远期研究项，禁止伪装成本轮功能。
 # ══════════════════════════════════════════════════════════════════
 
-from waterprint.solution.constraints import apply_constraints
+from waterprint.solution.constraints import (
+    KbConstraint,
+    apply_constraints,
+    expression_fields,
+    load_kb_constraints,
+)
 from waterprint.solution.design_map import (
     DesignMap,
     DesignMapTooLarge,
@@ -50,6 +57,7 @@ __all__ = [
     "DesignMapTooLarge",
     "GridTooLarge",
     "InvalidDesignMapError",
+    "KbConstraint",
     "ResolvedAxis",
     "apply_constraints",
     "axis_mappings",
@@ -60,6 +68,8 @@ __all__ = [
     "diagnose_infeasibility",
     "ensure_budget",
     "enumerate_solutions",
+    "expression_fields",
+    "load_kb_constraints",
     "rank",
     "resolve_axes",
     "widest_segment",

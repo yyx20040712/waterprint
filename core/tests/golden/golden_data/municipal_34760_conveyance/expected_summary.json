@@ -1741,9 +1741,9 @@
   "generated": {
     "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 643273,
-    "serialize_sha256_head": "16b18ff38b8bd9d1",
-    "source": "conv-golden 批实跑录制 2026-10-02（claim=ops-executor-conv-golden-20261002；首个 conveyance golden 图=23 节点/24 边（水线 18+污泥 6），inlet=34760.7 m³/d 面零触碰；serialize 双跑字节同（确定性 R3）；引擎面含检修饥饿边零股承接修复（executor_assembly.forward_stocks——offline 帧目标单元饥饿边零股，非目标缺股维持原生 KeyError；基线帧行为零变））"
+    "serialize_bytes": 643974,
+    "serialize_sha256_head": "71439419a216de95",
+    "source": "uf61-axes 批实跑录制 2026-10-02（claim=ops-executor-uf61-axes-20261002；summary offline 帧增量 maint.<node>.ratio.<field> 检修观测键14 个——app_maintenance 纯投影经 run_full_calc 开放映射槽位注入；数值面零变+恰 ratio 增键经 .workflow/uf61-axes-20261002/drift-diff-report.txt 旧新 serialize 树 diff 核查〔旧树=HEAD 26dfab9 worktree 实跑，与重录前 generated 双锚逐字节恒等对拍〕；effluent/design_dims/m3_deferred 数值期望面零触碰；mine_43836 零漂移断言在册）"
   },
   "m3_deferred": {
     "estimate_total": {
