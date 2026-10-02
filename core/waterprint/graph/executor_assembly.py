@@ -16,6 +16,9 @@
 #   InvalidExecutionError 定义面在 executor_dsl（B3 R2 修正①），本件经
 #   import 消费——同向无环。
 #   _LoopProbe（P2 次批 2026-09-12，ADR-012 D2）：回路统计包装器——
+#   forward_stocks（conv-golden 批缝 B 2026-10-02）：前向边源股装配
+#   （在场股直取+offline 检修饥饿边零股承接——口径全文见该函数
+#   docstring；executor._inflows 唯一消费方）。
 #   solve_loop 四参锁零触碰，executor 消费（跨件私有引用同先例）。
 #   B3-c 批 2c 收敛（2026-09-19）：_endpoint/_edges_from_design 校验/
 #   消息逻辑单源化至 contracts.edge_parsing（endpoint_from/edges_from，
@@ -30,9 +33,13 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import Final, final
 
+from waterprint.contracts.condition import OperatingCondition
 from waterprint.contracts.edge_parsing import edges_from, endpoint_from
-from waterprint.contracts.ports import Edge, PortRef
+from waterprint.contracts.flow import WaterFlow
+from waterprint.contracts.ports import Edge, FluidKind, PortRef
+from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.run_env import RunEnv
+from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.trace_api import TraceNodeSpec
 from waterprint.contracts.unit_api import Unit
 from waterprint.graph.executor_dsl import InvalidExecutionError
@@ -138,3 +145,63 @@ def _unit_params(unit: Unit, node_value: Mapping[str, object]) -> dict[str, floa
                 f"design 节点参数 {key!r} 须为数值（bool 拒，GR-02）：得到 {value!r}")
         params[key] = float(value)
     return params
+
+
+def _starved_stock(edge: Edge, units: Mapping[str, Unit]) -> tuple[
+    WaterFlow | SludgeFlow, WaterQuality | None]:
+    """检修饥饿边零股（流体取 dst 端口 manifest 声明——_recycle_port 同判据）。
+
+    WATER=WaterFlow(0, kz=1) 直接构造+空水质 WaterQuality({})（GR-04
+    图内 Q=0 合法——make_flow 的 q>0 是厂界口径，propagate 同款 idiom；
+    propagate WATER 股恒需成对〔_merge_water 取 upstream_qualities[src]〕，
+    空水质零指标=零权股不稀释下游浓度）；SLUDGE=SludgeFlow(0,0,0)
+    单位元（contracts/sludge P4 全零股单位元同款），无水质。"""
+    for port in units[edge.dst.unit_id].manifest.ports:
+        if port.port_id == edge.dst.port_id:
+            if port.fluid is FluidKind.SLUDGE:
+                return SludgeFlow(q_wet=0.0, ds=0.0, moisture=0.0), None
+            return WaterFlow(q_avg_daily=0.0, kz=1.0), WaterQuality({})
+    raise InvalidExecutionError(
+        f"饥饿边 dst 端口未声明：{edge.dst.unit_id}.{edge.dst.port_id}"
+        "（manifest ports 无此 port_id——零股流体判据无源，GR-09）")
+
+
+def forward_stocks(
+    flows: Mapping[PortRef, WaterFlow | SludgeFlow],
+    qualities: Mapping[PortRef, WaterQuality],
+    forward: Sequence[Edge],
+    units: Mapping[str, Unit],
+    condition: OperatingCondition,
+) -> tuple[
+    dict[PortRef, WaterFlow | SludgeFlow], dict[PortRef, WaterQuality]]:
+    """前向边源股装配（conv-golden 批 2026-10-02 缝 B，executor._inflows 迁入）。
+
+    【检修饥饿边口径】ADR-007 offline 语义=「该单元 n−1、其余全池」；
+    动态多口单元（conveyance peishuijing/peishuiqu/jipeishuijing 形态
+    ——manifest ports 声明单 out 口、compute 按参数 n 动态产 out_1~
+    out_n）在 offline 帧参数 n 降为 n−1 后只产 out_1~out_{n−1}，设计期
+    布线的 out_n 边失去源股=「检修饥饿边」。承接语义：offline 帧
+    （condition.offline_unit 非 None）内前向边源端口不在 flows 池**且
+    缺股源单元==offline 目标单元**（edge.src.unit_id==offline_unit——
+    承接仅限目标单元检修降级所产生的饥饿边）→ 该边承载零股
+    （_starved_stock）——物理口径：检修停运口零出流，在运口承载
+    全流量（compute 按 n−1 均分）→ Σ边股==入流守恒成立。基线帧
+    （design/avg）与 offline 帧内**非目标单元**缺股均不适用：源端口
+    缺股=装配/单元缺陷，维持原生 KeyError 裸逃逸（GR-08 禁静默默认
+    ——本口径仅「offline 帧×目标单元源」生效，基线与非目标缺股行为
+    位串级零变）。行为锚=tests/graph/test_executor_starved_edge.py
+    镜像四用例+golden municipal_34760_conveyance e2e。"""
+    upstream: dict[PortRef, WaterFlow | SludgeFlow] = {}
+    upstream_qualities: dict[PortRef, WaterQuality] = {}
+    for edge in forward:
+        stock = flows.get(edge.src)
+        if (stock is None and condition.offline_unit is not None
+                and edge.src.unit_id == condition.offline_unit):
+            stock, quality = _starved_stock(edge, units)
+            upstream[edge.src] = stock
+            if quality is not None:
+                upstream_qualities[edge.src] = quality
+            continue
+        upstream[edge.src] = flows[edge.src]  # 缺股=原生 KeyError（GR-08）
+        upstream_qualities[edge.src] = qualities[edge.src]
+    return upstream, upstream_qualities

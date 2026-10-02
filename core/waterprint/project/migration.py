@@ -34,7 +34,10 @@
 #      core/tests/golden/golden_data/migrations/，由人类维护）。
 #      【M1 注记】v1→v2 回归证据由 tests/project/test_site_migration.py
 #      内置合成 fixture 承担（简报 §二.4——golden_data/migrations 不动）。
-#      【L4a 注记】v2→v3 起样本对入链（v2_0_to_3_0_input/expected.json），
+#      【L4a 注记】v2→v3 起样本对入链（v2_0_to_4_0_input/expected.json，
+#      conv-golden 批 2026-10-02 更名——expected 实为 4.0 到达态：读路径
+#      链式迁移 v2→v3→v4，命名随到达版；原 v2_0_to_3_0_* 名系 L4a 批
+#      落地时链尾=3.0 的历史印记，inlet-m3d 批升链后失准——UF-62⑧），
 #      由 tests/project/test_migration.py 接线（README 纪律兑现）。
 #      【inlet-m3d 注记 2026-10-02】v3→v4 样本对入链（v3_0_to_4_0_*.json
 #      +舍入口径锚用例）：迁移面=design.nodes 中 kind=="municipal_input"
@@ -98,6 +101,11 @@ _SECONDS_PER_DAY: Final[float] = 1.0 / parse(1.0, "m3/d", DimKey.FLOW)
 # 声明常量；门一回炉 k2-W3/d1-N1 2026-10-02 裁「2*2+2 伪装」撤加法式
 # 直写真源值——经 check_magic_numbers WHITELIST_DECLARATION 登记本文件
 # 声明面放行，cache.py/pipes.py 先例）。
+# 【绝对口径注 UF-62⑦ conv-golden 批 2026-10-02】round(x,6)=十进制定点
+# **绝对**位数口径（小数点后第 6 位起舍入——非相对容差）：绝对误差界
+# 5e-7 m³/d=0.5 mL/d，与流量数值大小无关；旧 10 位定点尾差例在册：
+# 0.4023229167×86400=34760.700003 与手定 34760.7 差 3e-6 m³/d=3 mL/d
+# （两数各自成立非缺陷——test_v3_to_v4_rounding_policy_anchored 注记）。
 _ROUND_DIGITS_M3D: Final[int] = 6
 
 

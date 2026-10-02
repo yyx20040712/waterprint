@@ -219,3 +219,61 @@ async def test_apply_warn_band_not_blocking_only_logged(  # type: ignore[no-unty
     assert outcome.project_id == project_id  # 不阻塞：应用成功
     assert outcome.recalc_task_id == "t-warn-face"
     assert any("超大型厂" in str(r.get("warn", "")) for r in recorded)  # 日志恰记
+
+
+async def test_idempotency_key_derived_from_migrated_design_hash(  # type: ignore[no-untyped-def]
+    service_ctx, monkeypatch
+) -> None:
+    """UF-62⑥ 幂等键派生面锚（conv-golden 批 2026-10-02）：键 digest=
+    read_project **迁移态** design_hash——v3 存量档读时迁移 v4 后取哈希，
+    与档内 stored content_hash（旧版占位）异源恒不受扰。
+
+    既有覆盖（routers/test_calc duplicate submit→同 task_id+派发恰 1）
+    只锚幂等行为面，不锚键派生面——本用例补缺面（禁重复锚）：golden
+    migrations v3_0_to_4_0_input.json 造 projects 存量档（v3.0 字节原样
+    落盘），submit_calculation 两次同 task_id（同键命中）+键全文==
+    calc:{project_id}:{design_hash(read_project.design)}:{sorted conditions
+    join}（manager._idem 内部面观测——test_server_maintenance noqa SLF001
+    先例）。sorted 面：conditions 乱序传入（municipal_aao 在前），键内
+    'conveyance_peishuiqu|municipal_aao' 字典序归一（回炉轮 1 R5：虚构
+    id conveyance_aao 改档内真实单元 id——两 id 取自单元注册表在册名）。
+    """
+    import json as _json
+    from pathlib import Path
+
+    from waterprint import app as core_app
+
+    import waterprint_server.jobs.manager as manager_mod
+
+    def quick_done(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        return {"state": "done", "project_id": payload.get("project_id", "")}
+
+    monkeypatch.setattr(manager_mod, "run_task", quick_done)
+    sample = (
+        Path(__file__).resolve().parents[3]
+        / "core" / "tests" / "golden" / "golden_data" / "migrations"
+        / "v3_0_to_4_0_input.json"
+    )  # 仓库根定位（server/tests/services→根=parents[3]）
+    project_id = "legacy-v3-idempotency-probe"
+    (service_ctx.projects_dir / f"{project_id}.wp.json").write_text(
+        sample.read_text(encoding="utf-8"), encoding="utf-8"
+    )  # v3 存量档字节原样（读时迁移面承接）
+    conditions = ["municipal_aao", "conveyance_peishuiqu"]  # 乱序传入（字典序归一在键内）
+    first = await submit_calculation(service_ctx, project_id, conditions)
+    second = await submit_calculation(service_ctx, project_id, conditions)
+    assert first.task_id == second.task_id  # 同键命中（不重复入队）
+    migrated = projects_mod.read_project(service_ctx, project_id)
+    assert migrated.format_version == "4.0"  # 读路径迁移到达态（键哈希基）
+    digest = core_app.design_hash(migrated.design)
+    stored = _json.loads(sample.read_text(encoding="utf-8"))["metadata"][
+        "content_hash"
+    ]
+    assert digest != stored  # 异源恒等面：键取迁移态哈希非档内旧版占位
+    expected_key = (
+        f"calc:{project_id}:{digest}:{'|'.join(sorted(conditions))}"
+    )
+    assert service_ctx.manager._idem[expected_key] == first.task_id  # noqa: SLF001  # 内部面观测（先例注记在 docstring）
+    for _ in range(100):  # 收尾（替身终态迁移）
+        if task_status(service_ctx, first.task_id).state in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.05)

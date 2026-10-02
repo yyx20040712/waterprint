@@ -126,6 +126,7 @@ from waterprint.graph.executor_assembly import (  # TD1 缝 A：装配域伴生�
     _LoopProbe,
     _NullSink,
     _unit_params,
+    forward_stocks,  # conv-golden 批 2026-10-02：前向边源股装配（饥饿边零股）
 )
 from waterprint.graph.executor_dsl import (
     InvalidExecutionError,
@@ -273,9 +274,12 @@ class _RunState:
         """入流装配：非 recycle 边经 propagate（同 dst 多股=ADR-005 工况加权
         合并）；recycle 边取当前估计（键化到各自 dst ref）。"""
         forward = [e for e in self.ctx.edges if e.dst.unit_id == unit_id and not e.recycle]
-        inflows, inqualities = propagate(
-            {e.src: self.flows[e.src] for e in forward},
-            {e.src: self.qualities[e.src] for e in forward}, forward, self.ctx.condition)
+        # 前向边源股装配=executor_assembly.forward_stocks（conv-golden 批迁出——
+        # offline 检修饥饿边零股承接口径全文=该件规格注记）
+        upstream, upstream_qualities = forward_stocks(
+            self.flows, self.qualities, forward, self.ctx.units, self.ctx.condition)
+        inflows, inqualities = propagate(upstream, upstream_qualities,
+                                         forward, self.ctx.condition)
         merged: dict[PortRef, WaterFlow | SludgeFlow] = dict(inflows)
         qualities: dict[PortRef, WaterQuality] = dict(inqualities)
         for edge in (e for e in self.ctx.edges if e.dst.unit_id == unit_id and e.recycle):

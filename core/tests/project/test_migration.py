@@ -71,8 +71,8 @@ _MIGRATION_SAMPLES = (
 )
 
 
-def test_golden_migration_sample_v2_to_v3() -> None:
-    """R4 golden 样本对（L4a 起接线）：v2→v3 input 经链后逐键 == expected。
+def test_golden_migration_sample_v2_to_v4() -> None:
+    """R4 golden 样本对（L4a 起接线）：v2 input 经链后逐键 == expected。
 
     样本=人类维护件（golden_data/migrations/README 纪律——实现不自编）；
     比对面=model_dump(mode="json") 与 expected JSON 逐键相等（含
@@ -80,12 +80,15 @@ def test_golden_migration_sample_v2_to_v3() -> None:
     【inlet-m3d 注记 2026-10-02】期望面=链尾到达态：v4 起当前版=4.0，
     v2 样本无 municipal_input 节点（v4 步零触碰）→ expected 版本头随批
     推进至 4.0（migrated_from 仍="2.0"——多级跳步保留最早来源）。
+    【conv-golden 注记 2026-10-02】样本对更名 v2_0_to_3_0_*→v2_0_to_4_0_*
+    （UF-62⑧）：expected 实为 4.0 到达态——读路径链式迁移 v2→v3→v4，
+    命名随到达版；迁移面与期望值零变更（纯更名）。
     """
     source = json.loads(
-        (_MIGRATION_SAMPLES / "v2_0_to_3_0_input.json").read_text(encoding="utf-8")
+        (_MIGRATION_SAMPLES / "v2_0_to_4_0_input.json").read_text(encoding="utf-8")
     )
     expected = json.loads(
-        (_MIGRATION_SAMPLES / "v2_0_to_3_0_expected.json").read_text(encoding="utf-8")
+        (_MIGRATION_SAMPLES / "v2_0_to_4_0_expected.json").read_text(encoding="utf-8")
     )
     migrated = migrate(source)
     assert migrated.model_dump(mode="json") == expected

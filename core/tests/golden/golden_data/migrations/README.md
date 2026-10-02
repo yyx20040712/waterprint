@@ -6,9 +6,11 @@
 ```
 migrations/
 ├─ README.md            # 本文件
-├─ v2_0_to_3_0_input.json     # v2 样本（site 全子键、零 boundary——L4a 前盘实态形）
-├─ v2_0_to_3_0_expected.json  # 迁移后期望（boundary 补默认空+版本头随链尾推进
-│                              #   ——inlet-m3d 批 2026-10-02 起为 4.0 到达态）
+├─ v2_0_to_4_0_input.json     # v2 样本（site 全子键、零 boundary——L4a 前盘实态形；
+│                              #   conv-golden 批 2026-10-02 更名自 v2_0_to_3_0_*——UF-62⑧）
+├─ v2_0_to_4_0_expected.json  # 迁移后期望（boundary 补默认空+版本头随链尾推进
+│                              #   ——inlet-m3d 批 2026-10-02 起为 4.0 到达态；命名随
+│                              #   到达版：读路径链式迁移 v2→v3→v4，expected 恒=当前版态）
 ├─ v3_0_to_4_0_input.json     # v3 样本（municipal_input inlet m³/s 旧口径+
 │                              #   hebing 形单元节点 m³/d 面负锚——inlet-m3d 前盘实态形）
 └─ v3_0_to_4_0_expected.json  # 迁移后期望（inlet q ×86400 round6+版本头 4.0+

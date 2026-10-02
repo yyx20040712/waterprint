@@ -15,6 +15,9 @@ golden_data/
 ├─ mine_43836/                        # 矿井水案例（M3 验收），结构同上
 ├─ municipal_34760_recycle/           # 市政回流案例（GOLDEN3——前向叠加口径），结构同上
 ├─ municipal_34760_loop/              # 市政真环案例（GOLDEN4b——产泥真边+真回流 SCC/solve_loop 收敛）
+├─ municipal_34760_conveyance/        # 市政集配水案例（conv-golden 2026-10-02——首个 conveyance
+│                                    #   golden 图：水线插配水井/集水井/配水渠/集配水井四节点，
+│                                    #   offline 行为锚+检修饥饿边零股承接），结构同上
 ├─ migrations/                        # 项目文件迁移链 golden 样本（M1 起逐版累积）
 └─ m3_incremental_seed.json           # 增量==全量 性质测试种子（M1/M3）
 ```
