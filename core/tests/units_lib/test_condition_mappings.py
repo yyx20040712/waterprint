@@ -21,7 +21,7 @@ cond3 批 2026-10-01 拆分——正典表迁 condition_mapping_facts 单一
 
 【范围界】⑤cass 整图换图亲验与⑥边界执法面（cond2 增补段）随 cond3
 批迁出：换图亲验留本件②段（cass 整图行为面）；边界执法面（分类
-守卫+档位装配拒+自由参数归零炸——22 单元全口径）=test_condition_
+守卫+档位装配拒+自由参数归零炸——23 单元全口径）=test_condition_
 mappings_boundary.py；三线（mine_water/sludge/conveyance）声明面
 与引擎行为=test_condition_mappings_lines.py；正典表单一事实源=
 condition_mapping_facts.py（本件与两新件共用，importlib 路径装载）。

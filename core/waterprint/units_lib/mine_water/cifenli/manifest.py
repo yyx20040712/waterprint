@@ -36,9 +36,11 @@
 #   20~40；台数/转速/磁种投加量无档位来源不设）/ports 两口 WATER+
 #   sludge_out SLUDGE 产股口（GOLDEN4a D3——无条件产股，无边也产；
 #   nongsuo sup 先例同构）/removal_refs 双指标键/norm_refs 双源标记
-#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=()（设备流道
-#   单机语义，流道几何归厂商样本——cond3 批 2026-10-01 明示不映射，
-#   D4 拒检=诚实行为）/
+#   （GB/T 41019-2021+给水排水设计手册）/condition_mappings=n_units
+#   台数降级三元式（并联机队语义——KS-F1 按台均分/KS-F9 ×台数；键名
+#   非 n=cass n_pool/ziwai n_channel 先例；cifenli-20261002 批评估
+#   落地，裁决部 W1 记档清偿；流道停留/流速选型键不消费=厂商样本
+#   口径维持——非整机降级语义）/
 #   constraint_refs 两键。
 # 【选型面边界】流道停留/流道流速两键为设备选型校核键（流道几何
 #   归厂商样本），本包不落几何公式不消费——表"其他数据键"原文。
@@ -260,7 +262,15 @@ manifest = load_manifest(
             "《给水排水设计手册（第 3 册 城镇给水）》高浊度水混凝分离/泥量衡算常用带",
             "docs/norms/mine_water_cifenli.md（2026-08-27 起草手算对照表，数据策略 v2，待追认）",
         ],
-        "condition_mappings": [],
+        # 检修降级映射（ADR-007 冻结语义：该单元 n_units−1、其余全池——
+        # offline 档单台停机、其余台承载全流量；并联机队键=键名非 n，
+        # cass n_pool/ziwai n_channel 先例；cifenli-20261002 批声明）。
+        "condition_mappings": [
+            {
+                "target": "n_units",
+                "rule": "n_units if pool.all_pools else n_units - 1",
+            },
+        ],
         "constraint_refs": [
             "mine_water_cifenli.surface_load_band",
             "mine_water_cifenli.disk_speed",

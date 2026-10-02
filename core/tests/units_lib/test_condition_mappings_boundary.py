@@ -1,20 +1,22 @@
 """检修降级映射边界执法面测试（cond3 批 2026-10-01 C4 拆分件）。
 
-输入:  condition_mapping_facts（22 单元正典表+classify_boundary 档位
+输入:  condition_mapping_facts（23 单元正典表+classify_boundary 档位
        推导）+golden 双案例（municipal_34760 市政图 19 节点=市政 12+
-       全部 7 污泥+inlet；mine_43836 矿井水图 11 节点=6 映射 mine
-       单元+input/cifenli+hebing/nongsuo/tuoshui）
-输出:  三组断言——①分类自洽守卫（档位/自由两表恰覆盖 22 单元正典键集
-       +计数锚 13/9=grid_bound 8+5 / free 3+6——计数翻转须红面人工
+       全部 7 污泥+inlet；mine_43836 矿井水图 11 节点=7 映射 mine
+       单元+input+hebing/nongsuo/tuoshui——cifenli 于 cifenli-20261002
+       批移入映射面）
+输出:  三组断言——①分类自洽守卫（档位/自由两表恰覆盖 23 单元正典键集
+       +计数锚 13/10=grid_bound 8+5 / free 3+7——计数翻转须红面人工
        重审）②grid_bound ×13 静态参数面：target=1 装配期拒
        InvalidAssemblyError「档位」（市政 8 沿 cond2 载体——cass 换图/
        tiaojiechi 浮节点；sludge 2=municipal golden 图直改节点参数；
        conveyance 3=浮节点承载——三线不在任何 golden 图，grid 执法
-       先于拓扑面）③free ×9 offline 守卫响亮炸=归零 ×8+守卫下限 ×1：
+       先于拓扑面）③free ×10 offline 守卫响亮炸=归零 ×9+守卫下限 ×1：
        设计档 target=1（grid=None 装配过）+checked=[unit] → offline
        映射写 n−1=0 → compute 守卫 InvalidUnitConfig「必须 > 0」经 R5
-       隔离层上抛 InvalidExecutionError（市政 3 载体沿旧+mine 6 载体=
-       mine_43836 golden 图——假设②mine 守卫键集含 n 的参数化实证）；
+       隔离层上抛 InvalidExecutionError（市政 3 载体沿旧+mine 7 载体=
+       mine_43836 golden 图——假设②mine 守卫键集含 n 的参数化实证；
+       cifenli n_units 双段类同入=cifenli-20261002 批新增）；
        守卫下限 ×1=mine vxinglvchi 降档至 1 落「必须 ≥ 2」守卫
        （KV-F5 强制滤速 n/(n−1) 除零守卫——一格冲洗余格承载；a
        fortiori 记档非实证：归零面 0 亦被同守卫覆盖但未直证）。
@@ -55,7 +57,7 @@ _ALL_CANONICAL: dict[str, tuple[str, str]] = {
 _GRID_BOUNDARY_UNITS, _FREE_PARAM_UNITS = _FACTS.classify_boundary(_ALL_CANONICAL)
 
 # 自由参数单元例外档（mine_water_vxinglvchi=KV-F5 除零守卫必须 ≥2——
-# 设计档 n=2 → offline n−1=1 落同守卫族；其余 8 单元设计档 n=1 →
+# 设计档 n=2 → offline n−1=1 落同守卫族；其余 9 单元设计档 n=1 →
 # offline 归零 0 落「必须 > 0」守卫族）。
 _DEGENERATE_DESIGN_N: dict[str, float] = {"mine_water_vxinglvchi": 2.0}
 
@@ -150,12 +152,13 @@ def _cass_swapped_project(golden_data_dir: Path) -> object:
 
 
 def test_boundary_classification_covers_all_canonical() -> None:
-    """分类自洽守卫：档位/自由两表恰覆盖 22 单元正典键集+计数锚（防静默漏测）。
+    """分类自洽守卫：档位/自由两表恰覆盖 23 单元正典键集+计数锚（防静默漏测）。
 
     grid 声明含 1.0 的单元落两表之外（n=1 合法档——边界语义不存在）；
     该单元出现时本测试红=分类须人工重审，而非静默退出断言面。计数锚
-    13/9（grid_bound=市政 8+sludge 2+conveyance 3；free=市政 3+
-    mine 6）=声明面回归探测器：档位声明任何翻转（grid 增删档/
+    13/10（grid_bound=市政 8+sludge 2+conveyance 3；free=市政 3+
+    mine 7——cifenli n_units 台数键 cifenli-20261002 批入 free）
+    =声明面回归探测器：档位声明任何翻转（grid 增删档/
     grid↔None 迁移/新单元入正典表）须红面人工重审参数化覆盖面——
     意图非脆性名单，而是「翻转须走人」的响红闸；两表非空同锚
     （空表=整类边界执法面静默失守）。
@@ -163,7 +166,7 @@ def test_boundary_classification_covers_all_canonical() -> None:
     assert _GRID_BOUNDARY_UNITS, "档位边界表空=整类装配执法面失守"
     assert _FREE_PARAM_UNITS, "自由参数表空=整类响亮炸面失守"
     assert len(_GRID_BOUNDARY_UNITS) == 13  # 市政 8+他线 5（cond3 实测声明面）
-    assert len(_FREE_PARAM_UNITS) == 9  # 市政 3+他线 6（同上）
+    assert len(_FREE_PARAM_UNITS) == 10  # 市政 3+他线 7（cifenli 入 free=cifenli-20261002）
     covered = {unit for unit, _ in _GRID_BOUNDARY_UNITS + _FREE_PARAM_UNITS}
     missing = set(_ALL_CANONICAL) - covered
     assert not missing, f"分类外单元（grid 含 1.0 档？须重审分类）：{sorted(missing)}"
@@ -208,7 +211,7 @@ def test_boundary_grid_unit_rejects_single(
 
 
 def _free_carrier(unit_id: str) -> str:
-    """自由参数单元的 golden 载体（市政 3=市政图；mine 6=mine 图——两图均含该单元节点）。"""
+    """自由参数单元的 golden 载体（市政 3=市政图；mine 7=mine 图——两图均含该单元节点；cifenli 同图新增=cifenli-20261002 批）。"""
     return "municipal_34760" if unit_id.startswith("municipal_") else "mine_43836"
 
 
@@ -222,9 +225,11 @@ def _free_guard_text(unit_id: str) -> str:
 def _free_match(unit_id: str, target: str) -> str:
     """三段锚正则（d1-W3 回炉轮1）：单元 id+参数 'n'+守卫文案。
 
-    8/9 单元消息实证含「参数 'n'」（guard-messages.txt 在档）；municipal_
-    ziwai target=n_channel，其实名消息含「参数 'n_channel'」非「参数
-    'n'」——按回炉裁定保持双段 match 记档差异，勿造假锚。
+    8/10 单元消息实证含「参数 'n'」（guard-messages.txt 在档）；非 n
+    双段类两单元——municipal_ziwai target=n_channel/mine_water_cifenli
+    target=n_units，其实名消息含「参数 'n_channel'」/「参数 'n_units'」
+    非「参数 'n'」（cifenli=probe 实录 §2 ⑤）——按回炉裁定保持双段
+    match 记档差异，勿造假锚（参数段参数化挂账）。
     """
     guard = _free_guard_text(unit_id)
     if target == "n":
@@ -238,7 +243,7 @@ def _free_match(unit_id: str, target: str) -> str:
 def test_boundary_free_unit_offline_zero_fail_loud(
     golden_data_dir: Path, unit_id: str, target: str
 ) -> None:
-    """grid=None 自由参数单元 offline 守卫响亮炸（归零 ×8+守卫下限 ×1）。
+    """grid=None 自由参数单元 offline 守卫响亮炸（归零 ×9+守卫下限 ×1）。
 
     参数 target=设计档（grid=None 装配过；vxinglvchi 例外取 2——n=1
     设计档本身即拒，降档至 1 落 ≥2 守卫=归零面 a fortiori 记档非实证）
@@ -248,8 +253,9 @@ def test_boundary_free_unit_offline_zero_fail_loud(
     match=三段锚（d1-W3 回炉轮1）：「单元 '<id>'」前缀（工况键亦含
     unit_id，前缀锚防他单元同文案消息顶替通过）+「参数 'n'」（锁定
     致错参数=映射 target 本尊——municipal_ziwai target=n_channel 实名
-    差异记档保持双段）+守卫族文案。mine 6 单元=假设②（compute 守卫
-    键集含 n）的参数化实证面。
+    差异记档保持双段）+守卫族文案。mine 7 单元=假设②（compute 守卫
+    键集含 n）的参数化实证面（cifenli n_units 双段类同入——
+    cifenli-20261002 批，mine_43836 图载体）。
     """
     from waterprint.app import run_full_calc
     from waterprint.contracts.condition import build_condition_set

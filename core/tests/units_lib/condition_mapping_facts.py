@@ -3,6 +3,8 @@
 输入:  cond 批简报 §4.1（市政 11 单元正典三元式逐字）+cond3 批简报
        §4.1（三线 11 单元——mine_water 6/sludge 2/conveyance 3，三线
        全同 target="n"/rule="n if pool.all_pools else n - 1"）+
+       cifenli-20261002 批 §4.2（cifenli 表移动——CANONICAL_LINES 增
+       n_units 台数键/UNMAPPED_LINES 删：mine_water 6→7、不合格 8→7）+
        registry discover_units 档位声明（classify_boundary 推导真源）
 输出:  CANONICAL/UNMAPPED（市政面）+CANONICAL_LINES/UNMAPPED_LINES
        （三线面）+classify_boundary（grid 档位声明→边界行为分类）。
@@ -55,16 +57,23 @@ UNMAPPED: tuple[str, ...] = (
     "municipal_wushui_tisheng",  # n_pump_duty=ceil 计算值非参数；n_standby 纯计数回显
 )
 
-# 三线 11 单元正典三元式表（cond3 批 §4.1——mine_water 6/sludge 2/
-# conveyance 3；三线全同 target/rule：target="n" 皆并联数参数键名）。
+# 三线 12 单元正典三元式表（cond3 批 §4.1+cifenli-20261002 批——
+# mine_water 7/sludge 2/conveyance 3；target="n" 皆并联数参数键名，
+# cifenli n_units 台数=并联机队键例外）。
 CANONICAL_LINES: dict[str, tuple[str, str]] = {
-    # mine_water 6：全 grid=None 自由参数（分格数/池数/渠数构造参数）。
+    # mine_water 7：全 grid=None 自由参数（分格数/池数/渠数构造参数；
+    # cifenli n_units 台数=并联机队键——非 n 键先例 cass n_pool/ziwai
+    # n_channel，cifenli-20261002 批评估落地）。
     "mine_water_tiaojiechi": ("n", "n if pool.all_pools else n - 1"),
     "mine_water_chenshachi": ("n", "n if pool.all_pools else n - 1"),
     "mine_water_ningjiao": ("n", "n if pool.all_pools else n - 1"),
     "mine_water_gaomidu": ("n", "n if pool.all_pools else n - 1"),
     "mine_water_vxinglvchi": ("n", "n if pool.all_pools else n - 1"),
     "mine_water_ziwai": ("n", "n if pool.all_pools else n - 1"),
+    "mine_water_cifenli": (
+        "n_units",
+        "n_units if pool.all_pools else n_units - 1",
+    ),
     # sludge 2：n 池数 grid [2,3,4]（nongsuo 表交叉对照「≥2 grid」口径）。
     "sludge_nongsuo": ("n", "n if pool.all_pools else n - 1"),
     "sludge_xiaohua": ("n", "n if pool.all_pools else n - 1"),
@@ -74,11 +83,11 @@ CANONICAL_LINES: dict[str, tuple[str, str]] = {
     "conveyance_peishuiqu": ("n", "n if pool.all_pools else n - 1"),
 }
 
-# 三线 8 单元不合格明示不映射（cond3 批 §4.2——逐单元实义理由注记
-# 在各 manifest 头注；此处仅锁空声明面）。
+# 三线 7 单元不合格明示不映射（cond3 批 §4.2；cifenli 于
+# cifenli-20261002 批移出——n_units 台数并联机队语义评估落地；逐单元
+# 实义理由注记在各 manifest 头注；此处仅锁空声明面）。
 UNMAPPED_LINES: tuple[str, ...] = (
     "mine_water_input",  # 进水绑定非计算单元
-    "mine_water_cifenli",  # 设备流道单机语义（流道几何归厂商样本）
     "sludge_hebing",  # 合建构无并联数
     "sludge_shusong",  # 压力管道输送
     "sludge_bengzhan",  # 泵台数 ceil 计算值非池数参数（wushui_tisheng 先例）
