@@ -1,7 +1,10 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（41 条六类九键/装载守卫多路/定级分布/缓存单例/双跑字节同）
+输出:  服务契约断言（41 条六类九键/装载守卫八路/定级分布/缓存单例/双跑字节同
+       ——守卫八路=缺键×2〔source/enforcement〕+值域越界×3〔enforcement/
+       kind/severity〕+key 重复+空串 key+unit_kinds 型异；另缺失/损坏
+       两路分立同文件）
 """
 
 from __future__ import annotations

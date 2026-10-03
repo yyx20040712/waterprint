@@ -1,6 +1,6 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.8.0 起草态（全量 41 条九键=第八键 enforcement 逐条定级
+> **状态：1.8.0 起草态（全量 41 条九键=第九键 enforcement 逐条定级
 > AI 起草待追认〔§1a6 清单——.workflow/1a6-20261003/draft-table.md
 > 起草表=呈用户追认的唯一材料；与 1A1 七条数值合并呈报，追认批统一
 > 升 1.8.1 回写标记〕：flag 23+block 18——P1 裁决选项 3「kb 逐条
@@ -72,10 +72,13 @@ options.constraints 通道）落地为：
 | severity | 呈现多醒目（黄/红标示分层） | ERROR / WARN / INFO（core contracts Severity 冻结面） | 呈现分类元数据——勾选即硬滤全级别（UF-54 定版口径不因第九键改变） |
 | enforcement | 违规算不算失败（1.8.0） | flag / block | 执法定性元数据——flag=仪表灯（违规呈现不阻断）/block=断路器（违规即失败终态）；**本批零执法**（纯声明，运行时阻断消费归 P1 后续批） |
 
-- 两维独立取值：severity=WARN+enforcement=block（出水标准：呈现黄标/
-  违规定性失败）与 severity=ERROR+enforcement=flag（几何荒诞域拒收门：
-  呈现红标/勾选过滤面已执法故仪表灯）均合法组合——由条目 kind 语义
-  逐条定级（定级分布与逐条理由=§1a6 起草清单）。
+- 两维独立取值——41 条在库实际组合矩阵（§1a6 起草清单机器清点）：
+  severity=WARN+enforcement=flag 23 条（可行带过滤 11+通用间距 1+
+  几何提示门 4+进水合理性带 7——提示带仪表灯）；severity=WARN+
+  enforcement=block 12 条（出水标准：呈现黄标/违规定性失败）；severity=
+  ERROR+enforcement=block 6 条（沼气间距 1+用地红线 1+几何拒收门 4：
+  呈现红标/违规定性失败）——组合由条目 kind 语义逐条定级。ERROR+flag
+  属声明性合法组合（值域正交两维的自然格）但本库暂无实例。
 - 值域守卫：server 装载校验 enforcement 越界=fail-visible 拒（同
   kind/severity 面值域守卫族）；core solution 装载器宽容面忽略本键。
 
