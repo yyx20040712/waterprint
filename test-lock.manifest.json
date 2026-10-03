@@ -341,6 +341,7 @@
   "server/tests/services/test_exports_hygiene.py": "f1c741ba5539a57e0f664b94b830c2804fc355455bfae1e1bc2b894b6fdfee2c",
   "server/tests/services/test_flows_hygiene.py": "b5046bca3a1fc179c3b8b375e4a9c4b6b3cde6ef05e923dc695ea1a6dbe157c3",
   "server/tests/services/test_joint_enumeration.py": "3aa29ff808271c5f16fba5c547ca5ab36906d6bed4f916c5ea54e6000e5eab05",
+  "server/tests/services/test_openapi_fidelity.py": "5bd3fb4cdc89eef22c537e683933961f32158fce18b44e61f41dc2d7d658d88a",
   "server/tests/services/test_ops_debug.py": "fd6c2fd6458b396c0168c690dfb4150d19834a2bda9cce69439bc5bddc8c6214",
   "server/tests/services/test_project_lifecycle.py": "ee4da3dd3149e7f698033f0776563df49b372609f1eeeda16969e166ac33ad2b",
   "server/tests/services/test_projects.py": "61f9e360838675e45b2e34d394dcaafae065c773ad85e7b85cfe9e2ce67568ab",
