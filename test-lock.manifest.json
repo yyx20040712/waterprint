@@ -168,7 +168,7 @@
   "core/tests/project/test_site_migration.py": "5c2fe02823ea3f1e0e322c596a5069af7cf370eee2957e5a36ee5725df43650d",
   "core/tests/registry/test_apply.py": "8988878584ea46baa058acfe4d1aeb826ebd10f3e59ce7ff92ee1ab1ee2f3714",
   "core/tests/registry/test_apply_face_baseline.py": "eaabf3f04a9f89f2d6255f8a54402c5d6d28b0ffa46364bf60ceb2896a352a82",
-  "core/tests/registry/test_assumptions.py": "f6d2c71dfa3707b19244fccd1ba4a12f2bca44ab11f35dbc98aae7150d28baa9",
+  "core/tests/registry/test_assumptions.py": "9678eb732b4291615ae4cc09a3cfb40b4fa0f201f9850d5cac1ec6bb4d265e28",
   "core/tests/registry/test_assumptions_design_map.py": "410fd5cbeb7298105a837ae07715e2e7e04c07f59e72925d7f7f91ffa91a598e",
   "core/tests/registry/test_assumptions_joint.py": "c5f713e6d08876f310e96d71e72c3f28408af50c5675ce04453dc83824517e1f",
   "core/tests/registry/test_coefficients.py": "887a7f640c93287ee18ce7c57ff439bf8900e330dd358fccb930d28d72f80339",

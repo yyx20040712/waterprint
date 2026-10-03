@@ -1,12 +1,15 @@
 """设计假设清单唯一真源：数值面 YAML 外置（B2-4），本件=守卫面+装载器+取值正门。
 
-输入:  data/assumptions/ 数据包（manifest 有序清单+四件条目）+伴生件类注入
-输出:  AssumptionSet（注入 UnitContext；项目可保存覆盖值）
+输入:  data/assumptions/ 数据包（manifest 有序清单+版本槽+四件条目）+伴生件类注入
+输出:  AssumptionSet（注入 UnitContext；项目可保存覆盖值）+DATA_VERSION 版本只读暴露
 """
 
 # 规格说明（批次: b2-s1-assumptions-yaml；镜像测试 tests/registry/test_assumptions.py）；
 # 守卫语义/签名/R1~R4=改造前 500 行版（git 史）；口径/哨兵/版本=定案 §4.3/§4.6/§4.7；数据包
 # 目录=源树回溯优先+CWD 上溯兜底（非 editable 装载面）；四注册表互不 import、禁写 data/**。
+# 1A1 批（2026-10-03）：manifest 增 data_version 版本槽（非空 str——coefficients
+# 同款三守卫）+模块级 DATA_VERSION 只读暴露；不入 UF-10 聚合串（assumptions 数值
+# 变更随 engine_version 联动——manifest D3 版本语义，预裁决④）。
 
 from __future__ import annotations
 
@@ -38,7 +41,9 @@ def _data_dir() -> Path:
 
 
 _YAML_DATA_DIR: Final[Path] = _data_dir()  # 幂等哨兵②（W9）
-_MANIFEST_KEYS: Final[frozenset[str]] = frozenset({"ordered_files", "schema_version"})
+_MANIFEST_KEYS: Final[frozenset[str]] = frozenset(
+    {"ordered_files", "schema_version", "data_version"}
+)  # 1A1 批：+data_version（版本槽声明——B2-4 数值等价搬家零升版的槽位补声明）
 _ENTRY_KEYS: Final[frozenset[str]] = frozenset(
     ["key", "default", "dim", "source", "note", "tuning_impact"]
 )
@@ -158,18 +163,35 @@ def _load_yaml(path: Path, what: str) -> object:
         raise InvalidAssumptionError(f"{what} {path.name} 装载失败：{exc}") from exc
 
 
-def _load_manifest() -> list[str]:
+def _load_manifest() -> tuple[str, list[str]]:
+    """manifest 四守卫：顶层映射/键集恰三员/data_version 非空 str/装载序合法。
+
+    返回 (data_version, ordered_files)——版本槽自 manifest 直读（1A1 批：
+    coefficients 同款非空 str 校验；B2-4 数值等价搬家的版本槽补声明）。
+    """
     data = _load_yaml(_YAML_DATA_DIR / "manifest.yaml", "清单文件")
     if not isinstance(data, dict):
         raise InvalidAssumptionError(f"manifest.yaml 顶层须为映射：{type(data).__name__}")
     if extra := sorted(set(data) - _MANIFEST_KEYS):
         raise InvalidAssumptionError(f"manifest.yaml 未知键：{extra}")
+    version = _nonempty_str(
+        data.get("data_version"),
+        "manifest.yaml data_version（数据包版本槽——coefficients 同款非空 str）",
+    )
     files = data.get("ordered_files")
     if not (isinstance(files, list) and files and all(isinstance(n, str) and n for n in files)):
         raise InvalidAssumptionError("ordered_files 须为非空字符串列表=装载序（GR-14）")
     if isinstance((v := data.get("schema_version")), bool) or not isinstance(v, int) or v != 1:
         raise InvalidAssumptionError(f"schema_version 须为 int=1（bool/他值拒）：{v!r}")
-    return list(files)
+    return version, list(files)
+
+
+# manifest 单次装载快照（版本+装载序——DEFAULT_ASSUMPTIONS 装配与版本暴露同源）
+_MANIFEST_LOADED: Final[tuple[str, list[str]]] = _load_manifest()
+# 数据包版本只读暴露（1A1 批 2026-10-03）：coefficients.Coefficients.data_version
+# 形态的模块级读法（本包单例装载无对象面）；不入 UF-10 data_version 聚合串
+# （assumptions 数值变更随 engine_version 联动——manifest D3 版本语义）。
+DATA_VERSION: Final[str] = _MANIFEST_LOADED[0]
 
 
 def _parse_entry(where: str, raw: object) -> Assumption:
@@ -189,7 +211,7 @@ def _parse_entry(where: str, raw: object) -> Assumption:
 
 def _load_items() -> tuple[Assumption, ...]:
     items: list[Assumption] = []
-    for name in _load_manifest():
+    for name in _MANIFEST_LOADED[1]:
         data = _load_yaml(_YAML_DATA_DIR / name, "条目文件")
         if not isinstance(data, list) or not data:
             raise InvalidAssumptionError(f"条目文件 {name} 顶层须为非空列表（GR-14）")

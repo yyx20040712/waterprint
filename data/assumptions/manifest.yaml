@@ -4,6 +4,11 @@
 # [0] 须使 safety.superheight 居 DEFAULT_ASSUMPTIONS[0]，键序锁定优先）。
 # schema_version=本包条目 schema 版本（初值 1；装载器只认现值，升版须同步装载器）。
 # 版本语义（D3）：数值等价搬家零升版；后续数值变更随 engine_version 联动。
+# data_version=版本槽补声明（1A1 批 2026-10-03）："1.0.0"=B2-4 批数值等价
+# 搬家零升版的初版槽位声明（条目数值零变更——非数值升版，呈报用户知情）；
+# 装载器非空 str 校验+模块级 DATA_VERSION 只读暴露（coefficients 同款形态）；
+# 不入 UF-10 data_version 聚合串（assumptions 数值变更随 engine_version 联动）。
+data_version: "1.0.0"
 ordered_files:
   - safety.yaml
   - engine.yaml
