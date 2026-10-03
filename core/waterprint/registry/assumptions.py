@@ -164,7 +164,8 @@ def _load_yaml(path: Path, what: str) -> object:
 
 
 def _load_manifest() -> tuple[str, list[str]]:
-    """manifest 四守卫：顶层映射/键集恰三员/data_version 非空 str/装载序合法。
+    """manifest 五路守卫：顶层映射/键集恰三员/ordered_files 装载序合法/
+    schema_version=1/data_version 非空 str。
 
     返回 (data_version, ordered_files)——版本槽自 manifest 直读（1A1 批：
     coefficients 同款非空 str 校验；B2-4 数值等价搬家的版本槽补声明）。

@@ -10,7 +10,7 @@
 > 追认」生效；**enumeration_filter 新增 5 条双侧带=margin-kb-20261001 批
 > 2026-10-01 起草→已追认定稿 1.6.1（Ruling 2026-10-01——§32 四裁量
 > 全数生效，含 ns_act 语义迁移 R1 成立/缺氧 HRT 子带 R2 维持）**〔数值=
-> factors.yaml 已追认键同值投影，C3 门禁恒等〕）；
+> factors.yaml 已追认键同值投影，C3 门禁恒等〕**）；
 > 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
@@ -107,9 +107,10 @@ options.constraints 通道）落地为：
   追认单直录形态，value_basis 逐条溯源——锚=GB 50014-2021 §7.5.10-1
   类比+§7.9.6 方法学+白龙港实践包络推导链，见 b3a §三独立复算）。
 - input_band（1A1 批 1.7.0 增 7 条——进水输入合理性带）：横切**全厂进水
-  输入面**的合理性带（非单元包、非枚举行字段——unit_kinds 恒空=全适用
-  语义，boundary_check 空表先例；README 归属声明表 Kz/水质两行的数据面
-  载体）。两形态：`inlet.kz_band` 同字段双侧带 `kz >= 1.3 and
+  输入面**的合理性带（非单元包、非枚举行字段——unit_kinds 恒空=通用勾选
+  判据恒不命中（执法面接线归 1A2——接线红线：禁按 boundary_check 空表=
+  全构筑物的 kind 专属语义实现 input_band 空表为全适用）；README 归属
+  声明表 Kz/水质两行的数据面载体）。两形态：`inlet.kz_band` 同字段双侧带 `kz >= 1.3 and
   kz <= 2.7`（Kz 静态包络——GB 50014-2021 总变化系数表端点；流量相关
   精确内插表显式挂账不录=设计计算辅助非输入合理性校核）；六指标上限带
   `inlet.quality_upper.<sym>` 单侧 `field <= max`（字段=契约既有进水面
@@ -170,7 +171,7 @@ options.constraints 通道）落地为：
 
 ## 起草清单（1.7.0 input_band 七条——AI 起草待追认）
 
-> 起草表全文（八键逐字+数值起草依据+挂账注记）=
+> 起草表全文（七条·每条八键逐字+数值起草依据+挂账注记）=
 > `.workflow/1a1-20261003/draft-table.md`（仓外批档——呈用户追认的
 > 唯一材料）；本节为库内索引面。追认后升 1.7.1 回写标记（RATIFY-CP1
 > 先例形态）。
