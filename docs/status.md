@@ -18,7 +18,7 @@
 | webapp 测试文件数 | 85 | `webapp/src/**/*.test.*` |
 | 数据包版本·assumptions | 1.0.0 | `data/assumptions/manifest.yaml` |
 | 数据包版本·coefficients | 1.8.0 | `data/coefficients/manifest.yaml` |
-| 数据包版本·constraint_kb | 1.7.0 | `data/constraint_kb/manifest.yaml` |
+| 数据包版本·constraint_kb | 1.8.0 | `data/constraint_kb/manifest.yaml` |
 | 数据包版本·templates | 1.1.0 | `data/templates/manifest.yaml` |
 | 数据包版本·unit_prices | 1.2.0 | `data/unit_prices/manifest.yaml` |
 
