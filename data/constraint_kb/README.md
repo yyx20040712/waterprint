@@ -1,13 +1,16 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.6.1（全量 34 条——存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
+> **状态：1.7.0 起草态（全量 41 条=34 追认存量+input_band 7 条 AI 起草
+> 待追认〔§1a1 清单——.workflow/1a1-20261003/draft-table.md 起草表〕：
+> Kz 总变化系数静态包络带+进水六指标浓度上限带，追认单直录形态）——
+> 存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
 > 2026-08-31、spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
 > 2026-09-05 工程惯例起草待专家确认；geometry_guard 8 条=批3b 2026-09-26
 > b3a-research.md §二 B 组+§七追认单直录——D 级 AI 推导值经用户「全部
 > 追认」生效；**enumeration_filter 新增 5 条双侧带=margin-kb-20261001 批
-> 2026-10-01 起草→**已追认定稿 1.6.1（Ruling 2026-10-01——§32 四裁量
+> 2026-10-01 起草→已追认定稿 1.6.1（Ruling 2026-10-01——§32 四裁量
 > 全数生效，含 ns_act 语义迁移 R1 成立/缺氧 HRT 子带 R2 维持）**〔数值=
-> factors.yaml 已追认键同值投影，C3 门禁恒等〕**）**；
+> factors.yaml 已追认键同值投影，C3 门禁恒等〕）；
 > 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
@@ -103,6 +106,20 @@ options.constraints 通道）落地为：
   追认」——D 级 AI 推导值经追认生效；无 coefficients 源键=本库首次
   追认单直录形态，value_basis 逐条溯源——锚=GB 50014-2021 §7.5.10-1
   类比+§7.9.6 方法学+白龙港实践包络推导链，见 b3a §三独立复算）。
+- input_band（1A1 批 1.7.0 增 7 条——进水输入合理性带）：横切**全厂进水
+  输入面**的合理性带（非单元包、非枚举行字段——unit_kinds 恒空=全适用
+  语义，boundary_check 空表先例；README 归属声明表 Kz/水质两行的数据面
+  载体）。两形态：`inlet.kz_band` 同字段双侧带 `kz >= 1.3 and
+  kz <= 2.7`（Kz 静态包络——GB 50014-2021 总变化系数表端点；流量相关
+  精确内插表显式挂账不录=设计计算辅助非输入合理性校核）；六指标上限带
+  `inlet.quality_upper.<sym>` 单侧 `field <= max`（字段=契约既有进水面
+  命名 BOD5/CODCR/SS/NH3N/TN/TP——contracts 冻结面直用，非新建命名）。
+  severity 全 WARN（逐条定级归 1A6 批）；数值=追认单直录起草（无
+  coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批，
+  起草表=§1a1 清单）。**消费面=零**（core solution 装载器不拒不裁——
+  kind 空表数据面门禁归 kb 数据批 R10 口径；kb 执法面 `_maint_face`
+  适用判据 `unit_kind in unit_kinds` 对空表恒不选中；枚举面仅消费调用
+  方显式勾选——执法面接线归 1A2 校验骨架批）。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
   的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core
@@ -140,13 +157,34 @@ options.constraints 通道）落地为：
 
 | 量 | 带内容 | 载体（唯一归属） | 执法面 | 状态 |
 |----|--------|------------------|--------|------|
-| Kz（总变化系数） | 行业上下限 | constraint_kb（规划位——本库未录） | 待录入后随勾选过滤 | 无来源未录（b3a E 组尾如实登记——手册原册复核后录入） |
+| Kz（总变化系数） | 行业上下限 | constraint_kb `input_band`（inlet.kz_band——1A1 批 1.7.0 录入，静态包络带；流量相关精确内插表挂账不录） | 待执法面接线（1A2 校验骨架——kb 执法面按 unit_kinds 选中，空表恒不选中） | 已录入起草态待追认（§1a1 清单——手册原册页级复核归追认批） |
 | q_avg_daily（厂界流量） | A-1~A-3：≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示不阻塞 | `flows/params_guard.py` builtin 常量（builtin kind 无 manifest——锚=b3a-research §二 A 组+§七追认 2026-09-26） | server 422 整批拒+core ParamVerdict | 已落地（批3b） |
 | 单元参数（30 包 94 条） | 手册表出处 range（闭区间 GR-06） | units_lib manifest `params.range` | `params_guard` face④ 闭区间执法 | 已落地（批3b） |
 | 几何四量（l_pool/b_pool/v_pool/n_aerator） | 提示/拒收双门 | constraint_kb `geometry_guard` 8 条（1.5.0） | `apply_constraints` 勾选过滤 | 已落地（批3b） |
 | 枚举可行带 | 存量 6 条+1.6.0 扩 5 条（AAO/CASS 双侧带） | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 已追认（存量 Ruling 2026-08-31；扩 5 条 Ruling 2026-10-01） |
-| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=数据面待录 | 契约在册；kb 上限条目未录 | 契约面已定义；行业上限带挂账（数据录入工作包） |
+| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=constraint_kb `input_band`（inlet.quality_upper.* 6 条——1A1 批 1.7.0 录入） | 契约在册；kb 上限带待执法面接线（1A2——同 Kz 行口径） | 契约面已定义；上限带已录入起草态待追认（§1a1 清单——手册原册页级复核归追认批） |
 
 > 新增量的归属判断规则：数学不变量（符号/有限性/量纲）一律契约面；
 > 行业带（上下限/常用档）一律数据面（本库或 manifest range）——两不
 > 混载（契约带=硬编译、数据带=可追认可演进）。
+
+## 起草清单（1.7.0 input_band 七条——AI 起草待追认）
+
+> 起草表全文（八键逐字+数值起草依据+挂账注记）=
+> `.workflow/1a1-20261003/draft-table.md`（仓外批档——呈用户追认的
+> 唯一材料）；本节为库内索引面。追认后升 1.7.1 回写标记（RATIFY-CP1
+> 先例形态）。
+
+| key | expression | severity | 数值权威 |
+|---|---|---|---|
+| `inlet.kz_band` | `kz >= 1.3 and kz <= 2.7` | WARN | GB 50014-2021 §3.1 总变化系数表端点（大流量厂下限 1.3/小流量端上限 2.7）——追认单直录起草，手册原册页级复核归追认批 |
+| `inlet.quality_upper.cod` | `CODCR <= 1000.0` | WARN | 手册第 5 册设计水质节城镇污水浓度分档高档上沿——同上 |
+| `inlet.quality_upper.bod5` | `BOD5 <= 400.0` | WARN | 同上 |
+| `inlet.quality_upper.ss` | `SS <= 400.0` | WARN | 同上 |
+| `inlet.quality_upper.nh3n` | `NH3N <= 50.0` | WARN | 同上 |
+| `inlet.quality_upper.tn` | `TN <= 60.0` | WARN | 同上 |
+| `inlet.quality_upper.tp` | `TP <= 10.0` | WARN | 同上 |
+
+- 挂账：①流量相关 Kz 精确内插表不录（设计计算辅助）；②手册原册页级
+  复核与逐条定级（severity 细化）归追认批/1A6 批；③执法面（进水输入
+  校验接线）归 1A2 校验骨架批。

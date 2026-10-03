@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.6.1"
+data_version: "1.7.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -75,3 +75,18 @@ data_version: "1.6.1"
 #     撤除+五键 expression 全锁面补齐（门一 d1 复审 N-2 挂账兑现）。
 #     批复记录=.workflow/ledger.md（2026-10-01 Ruling）+
 #     pending-domain-expert.md §32 销账注。
+#   - 1.7.0: 1A1 数据带补录批（2026-10-03）——增 kind=input_band 7 条
+#     （进水输入合理性带——横切进水面非单元包非枚举行字段：inlet.kz_band
+#     Kz 总变化系数静态包络带 `kz >= 1.3 and kz <= 2.7`〔GB 50014-2021
+#     §3.1 总变化系数表端点——min=大流量厂下限 1.3/max=小流量端上限 2.7；
+#     流量相关精确内插表显式挂账不录=设计计算辅助非输入合理性校核〕+
+#     inlet.quality_upper.{cod,bod5,ss,nh3n,tn,tp} 进水六指标浓度上限带
+#     `field <= max` 单侧式〔字段=契约既有进水面命名 kz/BOD5/CODCR/SS/
+#     NH3N/TN/TP——contracts 冻结面直用非新建〕）。unit_kinds 恒空=全适用
+#     （boundary_check 空表先例语义）；severity 全 WARN（逐条定级归 1A6 批）。
+#     数值=追认单直录起草（无 coefficients 源键——geometry_guard 1.5.0
+#     先例形态；手册原册页级复核归追认批）。**AI 起草待追认（§1a1 清单
+#     ——.workflow/1a1-20261003/draft-table.md 起草表=呈用户追认的唯一
+#     材料）**；旧 34 键零扰动，计数 11+12+2+1+8→11+12+2+1+8+7（server
+#     test_constraints 同步 _DRAFT17_KEYS 起草键集+core solution 装载器
+#     零消费〔unit_kinds 空表恒不选中——执法面接线归 1A2 校验骨架〕）。
