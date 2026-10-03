@@ -191,12 +191,14 @@ from waterprint.app_influent import _with_influent, influent_summary_of
 from waterprint.app_maintenance import _with_maintenance, maintenance_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
+from waterprint.app_validation import validation_summary_of
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult, ReproTriple
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import DiagnosticsReport
+from waterprint.contracts.validation import ValidationReport
 from waterprint.drafting.site_plan import InvalidSitePlanError
 from waterprint.geometry import Node, SceneGraph, build_scene
 from waterprint.graph.executor import execute_graph
@@ -340,11 +342,15 @@ def load_run_env(
 class ResultBundle:
     """全厂结果包（T7b 两字段+P2 次批第三字段 diagnostics——ADR-012：
     诊断独立并列 artifact 数据源（PlantResult 总线零触碰）；愿景余字段
-    归 M1/M3 批）。"""
+    归 M1/M3 批）。
+
+    validation（1A2 校验骨架批 2026-10-04 第四字段——plant 级警告码面；
+    server 消费面=挂账后续批）。"""
 
     plant: PlantResult
     repro: ReproTriple
     diagnostics: DiagnosticsReport
+    validation: ValidationReport
 
 
 # D10（B4-3 迁移 2026-09-20）：_summary_of 定义面迁 joint_enumeration.
@@ -415,7 +421,8 @@ def run_full_calc(
         diag_collector,
     )
     return ResultBundle(
-        plant=filled, repro=filled.repro, diagnostics=diagnostics)
+        plant=filled, repro=filled.repro, diagnostics=diagnostics,
+        validation=validation_summary_of(project, constraints))
 
 
 def _external_tree(env: RunEnv) -> TraceTree:
