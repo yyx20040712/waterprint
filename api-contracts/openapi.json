@@ -1128,6 +1128,17 @@
             "title": "Effluent Lines",
             "type": "integer"
           },
+          "kb_injected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Injected"
+          },
           "mass_balance_lines": {
             "title": "Mass Balance Lines",
             "type": "integer"
@@ -1143,6 +1154,7 @@
         },
         "required": [
           "diagnostics_available",
+          "kb_injected",
           "convergence_lines",
           "max_iterations",
           "worst_final_residual",
@@ -2914,6 +2926,17 @@
             "title": "Engine Version",
             "type": "string"
           },
+          "kb_injected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Injected"
+          },
           "loop_params": {
             "additionalProperties": {
               "type": "number"
@@ -2963,6 +2986,7 @@
           "engine_version",
           "data_version",
           "diagnostics_available",
+          "kb_injected",
           "loop_params",
           "convergence",
           "mass_balance",

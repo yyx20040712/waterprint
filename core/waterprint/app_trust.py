@@ -13,7 +13,9 @@
 #   class DiagCollector：DiagSink 协议实现——record_loop 收集回路统计，
 #       loops 属性清单（工况序=上报序）
 #   class TrustContext：诊断装配上下文（graph/conditions/standards/env
-#       参数打包件——run_full_calc 一次装配）
+#       参数打包件——run_full_calc 一次装配）+kb_injected: bool 第五参
+#       （kbflag 批 2026-10-03：=bool(constraints) 于 run_full_calc 装配
+#       ——注入≠适用：粒度=数据接线面，适用面由 maint 键缺席自然表达）
 #   _mass_balance_of(plant, graph, conditions) -> tuple[FlowClosure, ...]
 #       纯投影：拓扑重建单元入流（PlantResult.outflows+edges）——
 #       executor 零触碰（ADR-012 D5）
@@ -76,16 +78,18 @@ _LOOP_KEYS: Final[tuple[str, ...]] = (
 class TrustContext:
     """诊断装配上下文（run_full_calc 一次装配、投影只读——参数打包件）。"""
 
-    __slots__ = ("conditions", "env", "graph", "standards")
+    __slots__ = ("conditions", "env", "graph", "kb_injected", "standards")
 
     def __init__(
         self, graph: AssembledGraph, conditions: ConditionSet,
         standards: tuple[EffluentStandard, ...], env: RunEnv,
+        kb_injected: bool,
     ) -> None:
         self.graph = graph
         self.conditions = conditions
         self.standards = standards
         self.env = env
+        self.kb_injected = kb_injected
 
 
 def _flow_field(fluid: FluidKind, condition: OperatingCondition) -> str:
@@ -289,4 +293,5 @@ def build_diagnostics(
         mass_balance=_mass_balance_of(plant, ctx.graph, ctx.conditions),
         effluent=_effluent_of(plant, ctx.standards),
         repro=plant.repro,
+        kb_injected=ctx.kb_injected,
     )

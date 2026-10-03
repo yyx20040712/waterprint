@@ -44,6 +44,7 @@ def _report() -> DiagnosticsReport:
             IndicatorMargin("baseline:design", "gb18918.level_a", "BOD5", 7.0, 10.0, 0.3),
         ),
         repro=ReproTriple("hash-1", "eng-1", "data-1"),
+        kb_injected=True,
     )
 
 
@@ -60,7 +61,8 @@ def test_serialize_deterministic() -> None:
 
 def test_empty_report_legal() -> None:
     """空诊断合法（无回路图 convergence 空；standards 空-effluent 空）。"""
-    empty = DiagnosticsReport((), {}, (), (), ReproTriple("h", "e", "d"))
+    empty = DiagnosticsReport(
+        (), {}, (), (), ReproTriple("h", "e", "d"), False)
     back = deserialize_diag(serialize_diag(empty))
     assert back.convergence == () and back.effluent == () and back.mass_balance == ()
     assert back.loop_params == {}
@@ -89,7 +91,7 @@ def test_nonfinite_rejected() -> None:
     bad = DiagnosticsReport(
         (), {}, (),
         (IndicatorMargin("ck", "s", "BOD5", float("nan"), 10.0, 0.3),),
-        ReproTriple("h", "e", "d"),
+        ReproTriple("h", "e", "d"), True,
     )
     with pytest.raises(InvalidDiagnosticsError, match="非有限值"):
         serialize_diag(bad)
@@ -119,3 +121,27 @@ def test_fluid_domain_guard() -> None:
     data["mass_balance"][0]["unit_imbalances"][0]["fluid"] = "GAS"
     with pytest.raises(InvalidDiagnosticsError, match="fluid 非法"):
         deserialize_diag(json.dumps(data).encode("utf-8"))
+
+
+def test_kb_injected_compat_and_guard() -> None:
+    """kb_injected 增档四断言族（R4a：旧档容认/非 bool 拒/恒发/往返等价）。"""
+    report = _report()
+    payload = json.loads(serialize_diag(report))
+    assert payload["kb_injected"] is True  # 两态恒发（True 态在场）
+    # ① 旧档容认：增档前产物缺键 → False（事实语义：增档前一律 kb 未注入）
+    del payload["kb_injected"]
+    legacy = deserialize_diag(json.dumps(payload).encode("utf-8"))
+    assert legacy.kb_injected is False
+    # ② 非 bool 拒：字符串/整数/None 三态均拒（消息含键名）
+    for bad in ("true", 1, None):
+        payload["kb_injected"] = bad
+        with pytest.raises(InvalidDiagnosticsError, match="kb_injected"):
+            deserialize_diag(json.dumps(payload).encode("utf-8"))
+    # ③ False 态恒发+④ False 态往返等价
+    false_report = DiagnosticsReport(
+        convergence=(), loop_params={}, mass_balance=(), effluent=(),
+        repro=ReproTriple("h", "e", "d"), kb_injected=False,
+    )
+    false_payload = json.loads(serialize_diag(false_report))
+    assert false_payload["kb_injected"] is False
+    assert deserialize_diag(serialize_diag(false_report)) == false_report

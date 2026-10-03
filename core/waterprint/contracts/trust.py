@@ -36,7 +36,10 @@
 #   class DiagnosticsReport(不可变)：convergence: tuple[LoopRunStats,...]、
 #       loop_params: Mapping[str→float]（loop.* 终值口径）、
 #       mass_balance: tuple[FlowClosure,...]、effluent:
-#       tuple[IndicatorMargin,...]、repro: ReproTriple
+#       tuple[IndicatorMargin,...]、repro: ReproTriple、kb_injected: bool
+#       （kbflag 批 2026-10-03 增档——True=run_full_calc 注入 constraints
+#       非空/False=缺省 ()：kb 面未运行标记；必填无默认强制显式构造，
+#       序列化容认条款 R4a 归 trust_serde.py）
 #   serialize_diag(report) -> bytes     确定性序列化正门（trust_serde
 #       定义，本件同名再导出）
 #   deserialize_diag(data: bytes) -> DiagnosticsReport  严格反序列化
@@ -189,6 +192,7 @@ class DiagnosticsReport:
     mass_balance: tuple[FlowClosure, ...]
     effluent: tuple[IndicatorMargin, ...]
     repro: ReproTriple
+    kb_injected: bool
 
     def __post_init__(self) -> None:
         """tuple 归一 + loop_params 只读快照冻结。"""

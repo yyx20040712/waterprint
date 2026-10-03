@@ -35,7 +35,8 @@
 #   R3 诊断摘要：diag 件读取降级面同 trust（缺文件/损坏→
 #      diagnostics_available=False 空摘要，禁伪造——ADR-012 R2 精神）；
 #      摘要=计数+极值（明细面走 GET /api/calc/trust 端点，本件不复制
-#      LoopRunModel 全量投影）。
+#      LoopRunModel 全量投影）。kb_injected（kbflag 批 2026-10-03）：
+#      降级=None 不可知——禁伪造 False（trust R2 同口径）。
 #   R4 警告计数：plant.conditions 全工况×全单元 warnings 按级计数（
 #      severity→count；与 trust._warnings_of 同数据不同投影粒度——明细
 #      聚合归 trust 正门，本件三行计数不构成复制收敛面）。
@@ -115,6 +116,7 @@ class DiagSummaryModel(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     diagnostics_available: bool
+    kb_injected: bool | None
     convergence_lines: int
     max_iterations: int
     worst_final_residual: float
@@ -187,6 +189,7 @@ def _empty_diag_summary() -> DiagSummaryModel:
     """降级摘要（R3：diagnostics_available=False 显式空——禁伪造）。"""
     return DiagSummaryModel(
         diagnostics_available=False,
+        kb_injected=None,
         convergence_lines=0,
         max_iterations=0,
         worst_final_residual=0.0,
@@ -204,6 +207,7 @@ def _diag_summary(
     convergence = diagnostics.convergence
     return DiagSummaryModel(
         diagnostics_available=True,
+        kb_injected=diagnostics.kb_injected,
         convergence_lines=len(convergence),
         max_iterations=max((run.iterations for run in convergence), default=0),
         worst_final_residual=max(

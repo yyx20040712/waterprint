@@ -2,7 +2,8 @@
 
 夹具复用先例=tests.app.test_app_export（from tests.app.test_app import）；
 回路图夹具复用 tests.graph.test_executor（_ProducerStub/_PassStub/_env——
-机制行为锁定夹具跨件消费，tests 层私有共享先例同款）。
+机制行为锁定夹具跨件消费，tests 层私有共享先例同款）；kb 真源装载夹具
+复用 tests.app.test_app_maintenance（_loaded_kb——kbflag 批 2026-10-03）。
 """
 
 from __future__ import annotations
@@ -116,6 +117,21 @@ def test_effluent_margins_with_standards() -> None:
         assert entry.margin == (limit - value) / limit
     # inlet 仅三指标（NH3N/TN/TP 缺）→有则录无则略（R5）
     assert ("design", "gb18918.level_a", "TP") not in entries
+
+
+def test_kb_injected_two_states_wiring() -> None:
+    """kb 注入标记两态（kbflag 批）：缺省 constraints=() → kb_injected
+    False；装载 kb 真源注入 → True（bool(constraints) 装配口径——注入≠
+    适用：粒度=数据接线面，适用面由 maint 键缺席自然表达）。"""
+    from tests.app.test_app_maintenance import _loaded_kb
+
+    default_bundle = run_full_calc(_project(), _conditions(), _linear_env())  # type: ignore[misc]
+    assert default_bundle.diagnostics.kb_injected is False
+    injected = run_full_calc(
+        _project(), _conditions(), _linear_env(),  # type: ignore[misc]
+        constraints=_loaded_kb(),
+    )
+    assert injected.diagnostics.kb_injected is True
 
 
 def test_loop_stats_collected_via_execute_graph() -> None:

@@ -205,6 +205,7 @@ class TestGoldenBuild:
             mass_balance=(),
             effluent=(),
             repro=golden_plant.repro,
+            kb_injected=False,  # kbflag 批增档必填——空诊断用例取 False 态
         )
         ast = build_report_ast(project, golden_plant, diagnostics=diag)
         assert len(ast) == _CHAPTER_COUNT  # 空诊断也合法

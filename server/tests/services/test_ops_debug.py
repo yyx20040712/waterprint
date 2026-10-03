@@ -8,8 +8,18 @@
 from __future__ import annotations
 
 import pytest
+from waterprint.contracts.result_schema import ReproTriple
+from waterprint.contracts.trust import DiagnosticsReport
 
 from waterprint_server.services import ops_debug
+
+
+def test_diag_summary_kb_injected_two_states() -> None:
+    """诊断摘要 kb_injected 两态镜像（kbflag 批 2026-10-03）：full 投影
+    True；降级 None（诊断件缺席=不可知，禁伪造 False——trust R2 同口径）。"""
+    report = DiagnosticsReport((), {}, (), (), ReproTriple("h", "e", "d"), True)
+    assert ops_debug._diag_summary(report).kb_injected is True  # noqa: SLF001  # 摘要私核直钉（薄壳件最小载体——行为矩阵仍归仓外探针）
+    assert ops_debug._diag_summary(None).kb_injected is None  # noqa: SLF001
 
 
 def test_public_surface() -> None:

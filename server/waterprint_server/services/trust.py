@@ -27,7 +27,9 @@
 #      diag_file 键或文件不可读/损坏）→ diagnostics_available=False +
 #      convergence/mass_balance/effluent 空面（禁止伪造空诊断冒充——
 #      布尔显式区分"已算但无数据"与"未算"）；warnings 面恒给
-#      （PlantResult 总线自有——旧结果也有）。
+#      （PlantResult 总线自有——旧结果也有）。kb_injected（kbflag 批
+#      2026-10-03）同口径：降级=None 不可知——禁伪造 False（旧档容认
+#      False 归 deserialize R4a 事实语义，两态判据有源）。
 #   R3 警告聚合（D7）：plant.conditions 全工况×全单元 warnings 六键
 #      1:1 透传+unit_id 定位（WarningEntry 复用 elevation 冻结形状——
 #      UF-17 同源，本件加 unit_id 维度）；warning_counts 按级计数
@@ -168,6 +170,7 @@ class TrustReportResponse(BaseModel):
     engine_version: str
     data_version: str
     diagnostics_available: bool
+    kb_injected: bool | None
     loop_params: dict[str, float]
     convergence: tuple[LoopRunModel, ...]
     mass_balance: tuple[FlowClosureModel, ...]
@@ -238,6 +241,7 @@ def build_trust_for_project(ctx: ServiceContext, project_id: str) -> TrustReport
         engine_version=plant.repro.engine_version,
         data_version=plant.repro.data_version,
         diagnostics_available=diagnostics is not None,
+        kb_injected=diagnostics.kb_injected if diagnostics else None,
         loop_params=dict(diagnostics.loop_params) if diagnostics else {},
         convergence=(
             tuple(

@@ -374,7 +374,8 @@ def run_full_calc(
     闭合/裕度）随本门产出 bundle.diagnostics——独立并列 artifact 数据源。
     constraints（UF-61 余轴批 2026-10-02 可选注入）：kb 约束族（server/CLI
     装载调用方注入 load_kb_constraints 产物；core 不自查数据——空=summary
-    maint.* 仅 ratio 面，kb/fixgeom 面不入场）。
+    maint.* 仅 ratio 面，kb/fixgeom 面不入场）。空=diagnostics.kb_injected=
+    False（kb 未注入标记——kbflag 批 2026-10-03）。
     """
     assembled = assemble(project, env)
     effective = _completed_env(env, project.design)
@@ -410,7 +411,7 @@ def run_full_calc(
     )
     diagnostics = build_diagnostics(
         filled,
-        TrustContext(assembled, conditions, standards, effective),
+        TrustContext(assembled, conditions, standards, effective, bool(constraints)),
         diag_collector,
     )
     return ResultBundle(

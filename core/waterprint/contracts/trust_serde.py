@@ -22,8 +22,12 @@
 #      路统一守卫（NaN/±Inf 拒，消息含位置）；巨 int 溢出同收编。
 #   R4 严格键集（T3A-03/T3G-01 同精神）：deserialize 各节点缺键拒/
 #      未知键拒（消息含键名）；序列化嵌套节点经 dataclasses.fields
-#      恒发全键（根树手工五键字面与 _ROOT_KEYS 两处同步——扩字段
+#      恒发全键（根树手工六键字面与 _ROOT_KEYS 两处同步——扩字段
 #      漂移面由 R4 未知键拒兜底）。
+#   R4a 增档容认条款（kbflag 批 2026-10-03）：kb_injected 为增档字段
+#      ——deserialize 缺该键容认=False（旧档语义：增档前产物一律 kb
+#      未注入，事实成立非伪造）；在场须为布尔（非 bool 拒）；其余键
+#      缺一拒维持——单点条款禁扩。
 #
 # 【装载序契约】本件与 trust.py 互引（contracts 包内互引——trust→
 #   result_schema 先例同构）：两侧 import 均置文件尾段（定义先行），
@@ -34,7 +38,8 @@
 #
 # 【测试要求】往返无损、确定性（双跑字节同）、未知/缺失键拒、
 #   非有限值拒、iterations 域守卫、空容器恒发（空 tuple 合法序列化
-#   为 []——无回路图 convergence 空合法）。
+#   为 []——无回路图 convergence 空合法）；kb_injected 四断言族
+#   （旧档缺键容认 False/非 bool 三态拒/两态恒发/False 态往返等价）。
 #
 # 【参照】contracts/trust.py（数据面+R1/R5/R6 条款归属）；result_
 #   schema.py（确定性纪律母本）；conventions §11 GR-02
@@ -58,7 +63,8 @@ _JSON_KWARGS: dict[str, Any] = {
 }
 # 各节点合法键集（deserialize 严格键集判据——与 dataclass 字段一一对应）
 _ROOT_KEYS: frozenset[str] = frozenset(
-    {"convergence", "loop_params", "mass_balance", "effluent", "repro"}
+    {"convergence", "loop_params", "mass_balance", "effluent", "repro",
+     "kb_injected"}
 )
 _LOOP_RUN_KEYS: frozenset[str] = frozenset(
     {"condition_key", "loop_nodes", "iterations", "final_residual"}
@@ -139,6 +145,7 @@ def serialize_diag(report: DiagnosticsReport) -> bytes:
         "mass_balance": _to_json(report.mass_balance, "mass_balance"),
         "effluent": _to_json(report.effluent, "effluent"),
         "repro": _to_json(report.repro, "repro"),
+        "kb_injected": report.kb_injected,
     }
     return json.dumps(tree, **_JSON_KWARGS).encode("utf-8")
 
@@ -321,6 +328,15 @@ def _repro_of(value: Any, path: str) -> ReproTriple:
     )
 
 
+def _kb_injected_of(raw: Mapping[str, Any]) -> bool:
+    """R4a 增档容认：缺键=旧档 False；在场须 bool（非 bool 拒——消息含键名）。"""
+    value = raw.get("kb_injected", False)
+    if not isinstance(value, bool):
+        raise InvalidDiagnosticsError(
+            f"诊断数据结构非法：$.kb_injected 应为布尔，得到 {value!r}")
+    return value
+
+
 def deserialize_diag(data: bytes) -> DiagnosticsReport:
     """严格反序列化正门：UTF-8+JSON+结构/有限性全量守卫（R3/R4）。"""
     try:
@@ -332,6 +348,10 @@ def deserialize_diag(data: bytes) -> DiagnosticsReport:
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise InvalidDiagnosticsError(f"诊断数据非法 JSON（UTF-8/NaN 面）：{exc}") from exc
     root = _require_mapping(tree, "$")
+    # R4a 增档容认：kb_injected 缺键容认=False（旧档语义）——补键快照后仍
+    # 走 _ROOT_KEYS 全集判据（未知键面不豁免、其余键缺一拒维持；单点禁扩；
+    # 合并式补键免突变入参树，非 bool 值原样透传由 _kb_injected_of 拒）。
+    root = {**root, "kb_injected": root.get("kb_injected", False)}
     _reject_keys(root, _ROOT_KEYS, "$")
     loop_params_raw = _require_mapping(root["loop_params"], "$.loop_params")
     return DiagnosticsReport(
@@ -358,6 +378,7 @@ def deserialize_diag(data: bytes) -> DiagnosticsReport:
             )
         ),
         repro=_repro_of(root["repro"], "$.repro"),
+        kb_injected=_kb_injected_of(root),
     )
 
 

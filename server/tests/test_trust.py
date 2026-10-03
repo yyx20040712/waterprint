@@ -104,6 +104,7 @@ async def test_trust_report_full_diagnostics(client) -> None:  # type: ignore[no
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["diagnostics_available"] is True
+    assert body["kb_injected"] is True  # kbflag 批：server fail-fast 注入路径
     assert body["task_id"] == task_id
     assert body["stale"] is False
     assert body["design_hash"] and body["engine_version"] and body["data_version"]
@@ -157,6 +158,7 @@ async def test_trust_degrades_without_diag_file(client) -> None:  # type: ignore
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["diagnostics_available"] is False
+    assert body["kb_injected"] is None  # kbflag 批：降级不可知——禁伪造 False
     assert body["loop_params"] == {} and body["convergence"] == []
     assert body["mass_balance"] == [] and body["effluent"] == []
     assert isinstance(body["warnings"], list)  # 总线自有面不受降级影响（R2）
