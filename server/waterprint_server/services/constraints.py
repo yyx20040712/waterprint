@@ -1,7 +1,7 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.5.0 全量 29 条——存量 20 追认
-       +boundary 1 待确认+geometry 8 追认单直录）
+输入:  data/constraint_kb/constraints.json（kb 1.7.0 全量 41 条——存量 34
+       追认/待确认+input_band 7 条 AI 起草待追认〔1A1 批〕）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -9,9 +9,10 @@
 # 规格说明（CP1 D1~D5 2026-08-31；镜像测试 server/tests/services/test_constraints.py）
 #
 # 【公开接口】
-#   list_constraints(data_dir: Path) -> ConstraintCatalog（29 条=过滤 6+
-#      出水参考 12+间距校核 2+红线 1+几何域 8——kb 1.5.0 声明序；D6 不分页
-#      整发。勘误记档：本行旧值 20 系 1.4.0 期漏更实 21——批3b 勘正）
+#   list_constraints(data_dir: Path) -> ConstraintCatalog（41 条=过滤 11+
+#      出水参考 12+间距校核 2+红线 1+几何域 8+输入合理性带 7——kb 1.7.0
+#      声明序〔1A1 批起草态〕；D6 不分页整发。勘误记档：本行旧值 20 系
+#      1.4.0 期漏更实 21——批3b 勘正）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
 #
@@ -72,12 +73,16 @@ _KINDS: frozenset[str] = frozenset(
         "spacing_check",
         "boundary_check",
         "geometry_guard",
+        "input_band",
     }
 )  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）；SPC2：
 # +boundary_check（用地红线越界校核面——services/site 唯一 severity 解析面）；
 # 批3b：+geometry_guard（几何域拒面——expression 单侧 field <= float 真=门内
 # 合规与 enumeration_filter 极性统一（门一 B1 勘正），消费走 solution
-# apply_constraints 布尔过滤同通道，kb README 收录边界节）
+# apply_constraints 布尔过滤同通道，kb README 收录边界节）；
+# 1A1：+input_band（进水输入合理性带——横切进水面非单元包非枚举行字段，
+# unit_kinds 空表=全适用〔boundary_check 先例〕；severity 全 WARN 起草待
+# 追认；消费面零接线〔执法面归 1A2 校验骨架〕，本投影=R7 观测面）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
 
@@ -94,6 +99,7 @@ class ConstraintEntry(BaseModel):
         "spacing_check",
         "boundary_check",
         "geometry_guard",
+        "input_band",
     ]
     unit_kinds: tuple[str, ...]
     label: str

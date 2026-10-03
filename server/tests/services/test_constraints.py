@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（34 条五类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（41 条六类/装载守卫四路/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -30,16 +30,26 @@ _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/�
 # boundary_check 1；批3b 1.5.0：geometry_guard 8——b3a-research.md §二 B 组+
 # §七追认 2026-09-26 追认单直录——增删同步；margin-kb-20261001 1.6.0
 # 双侧带 5 条→1.6.1 已追认定稿〔Ruling 2026-10-01 pending §32 销账〕
-# ——_DRAFT16_KEYS 起草键集随批撤除+五键 expression 全锁面补齐）
+# ——_DRAFT16_KEYS 起草键集随批撤除+五键 expression 全锁面补齐；
+# 1A1 批 1.7.0：input_band 7 条〔Kz 带+进水六指标上限带——§1a1 起草表〕）
 _FILTER_COUNT = 11
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
 _BOUNDARY_COUNT = 1
 _GEOMETRY_COUNT = 8
+_INPUT_BAND_COUNT = 7
+# 1.7.0 起草态七键（1A1 批——§1a1 清单待追认；追认单直录无 factor 源键，
+# 手册原册页级复核归追认批；追认后随标记回写撤集——_DRAFT16 先例形态）
+_DRAFT17_KEYS = {
+    "inlet.kz_band",
+    "inlet.quality_upper.cod", "inlet.quality_upper.bod5",
+    "inlet.quality_upper.ss", "inlet.quality_upper.nh3n",
+    "inlet.quality_upper.tn", "inlet.quality_upper.tp",
+}
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：34 条五类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：41 条六类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
     assert len(entries) == (
@@ -48,6 +58,7 @@ def test_catalog_projects_kb_truth() -> None:
         + _SPACING_COUNT
         + _BOUNDARY_COUNT
         + _GEOMETRY_COUNT
+        + _INPUT_BAND_COUNT
     )
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
@@ -55,6 +66,7 @@ def test_catalog_projects_kb_truth() -> None:
     assert kinds.count("spacing_check") == _SPACING_COUNT
     assert kinds.count("boundary_check") == _BOUNDARY_COUNT
     assert kinds.count("geometry_guard") == _GEOMETRY_COUNT
+    assert kinds.count("input_band") == _INPUT_BAND_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     raw = json.loads((_REPO / "constraint_kb" / "constraints.json").read_bytes())
@@ -189,6 +201,36 @@ def test_geometry_entries_carry_domain_gates() -> None:
     assert by_key["geometry.n_aerator_reject"].expression == "n_aerator <= 1000000.0"
 
 
+def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
+    """1A1：input_band 面契约——Kz 静态合理性带（全表包络，流量分档精确表
+    挂账）+进水六指标浓度上限带（expression `field <= <float>` 单侧上界式，
+    字段=契约既有进水面命名 kz/BOD5/CODCR/SS/NH3N/TN/TP 非新建）；横切
+    进水面非单元包（unit_kinds 恒空=全适用——boundary_check 空表先例）；
+    severity 全 WARN（逐条定级归 1A6）；起草态=追认单直录（无 coefficients
+    源键——geometry_guard 先例；手册原册页级复核归追认批）。
+    """
+    catalog = list_constraints(_REPO)
+    bands = [e for e in catalog.entries if e.kind == "input_band"]
+    assert len(bands) == _INPUT_BAND_COUNT
+    by_key = {e.key: e for e in bands}
+    assert set(by_key) == _DRAFT17_KEYS
+    # 表达式锁面（起草表七条逐字——数值漂移即红）
+    assert by_key["inlet.kz_band"].expression == "kz >= 1.3 and kz <= 2.7"
+    assert by_key["inlet.quality_upper.cod"].expression == "CODCR <= 1000.0"
+    assert by_key["inlet.quality_upper.bod5"].expression == "BOD5 <= 400.0"
+    assert by_key["inlet.quality_upper.ss"].expression == "SS <= 400.0"
+    assert by_key["inlet.quality_upper.nh3n"].expression == "NH3N <= 50.0"
+    assert by_key["inlet.quality_upper.tn"].expression == "TN <= 60.0"
+    assert by_key["inlet.quality_upper.tp"].expression == "TP <= 10.0"
+    for entry in bands:  # 横切进水面：空表=全适用+WARN+起草态标记在册
+        assert entry.unit_kinds == ()
+        assert entry.severity == "WARN"
+        assert "起草待追认" in entry.value_basis
+        assert "追认单直录" in entry.value_basis
+    # Kz 带挂账注记在册（流量相关精确内插表显式挂账不录——预裁决③）
+    assert "挂账" in by_key["inlet.kz_band"].value_basis
+
+
 def test_filter_values_match_factors_truth() -> None:
     """R2（DS-03）：过滤条目数值=coefficients factors.yaml 同值自动对照。
 
@@ -300,7 +342,7 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——34 条五类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——41 条六类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
@@ -311,10 +353,11 @@ async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-un
         + _SPACING_COUNT
         + _BOUNDARY_COUNT
         + _GEOMETRY_COUNT
+        + _INPUT_BAND_COUNT
     )
     assert {e["kind"] for e in entries} == {
         "enumeration_filter", "effluent_standard", "spacing_check",
-        "boundary_check", "geometry_guard",
+        "boundary_check", "geometry_guard", "input_band",
     }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
