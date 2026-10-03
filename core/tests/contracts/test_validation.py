@@ -2,8 +2,9 @@
 
 输入:  waterprint.contracts.validation（KB_CODE_PREFIX/kb_warning_code/
        is_kb_code/PlantWarning/ValidationReport）+kb 真源（仓库 data 面）
-输出:  契约断言——码规则单源（前缀+键可逆还原）+键族存在断言（kb 装载
-       input_band 恰 7 条→7 码稳定集，单源=kb 数据禁手写码字面量表）
+输出:  契约断言——码规则单源（前缀+键可逆还原+空键段拒）+键族存在断言
+       （kb 装载 41 条总数锚+input_band 恰 7 条→7 码稳定集，单源=kb
+       数据禁手写码字面量表）
        +PlantWarning 五字段冻结面（severity 复用 unit_api 枚举——不复用
        UF-17 冻结 Warning）+ValidationReport codes() 去重保序/__bool__ 语义
 """
@@ -35,6 +36,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _KB_FILE = _REPO_ROOT / "data" / "constraint_kb" / "constraints.json"
 _INPUT_BAND_KIND = "input_band"  # 断言主语（kb 数据面 kind 字面量）
 _FAMILY_COUNT = 7  # 基线数字（任务书 §5：input_band 7 条全 WARN 起草态）
+_TOTAL_COUNT = 41  # 总数锚（k1-N1：kb 1.8.0 起草态 41 条——不再仅由 app 件间接锚）
 
 
 def _warn(code: str) -> PlantWarning:
@@ -75,6 +77,7 @@ def test_kb_code_rule_single_source_roundtrip() -> None:
     assert KB_CODE_PREFIX == "kb."
     assert kb_warning_code("inlet.kz_band") == KB_CODE_PREFIX + "inlet.kz_band"
     assert is_kb_code(kb_warning_code("inlet.kz_band"))
+    assert not is_kb_code(KB_CODE_PREFIX)  # 空键段拒（d1-N2："kb." 非码——键↔码可逆）
     assert not is_kb_code("maint.x.kb.any_fail")  # 码位在尾非前缀——非 kb 派生码
     code = kb_warning_code("inlet.quality_upper.cod")
     assert code[len(KB_CODE_PREFIX):] == "inlet.quality_upper.cod"  # 剥离可逆
@@ -101,6 +104,7 @@ def test_kb_input_band_family_exists_seven_codes() -> None:
     ——route-design-final §2.1 L46 警告码键族锚）。
     """
     loaded = load_kb_constraints(_KB_FILE)
+    assert len(loaded) == _TOTAL_COUNT  # 总数锚（41——装载面全集漂移即红）
     family = tuple(kb for kb in loaded if kb.kind == _INPUT_BAND_KIND)
     assert len(family) == _FAMILY_COUNT  # 恰 7 条（基线数字——数据面冻结）
     codes = tuple(sorted(kb_warning_code(kb.constraint.key) for kb in family))

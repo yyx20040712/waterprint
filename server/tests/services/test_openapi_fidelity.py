@@ -59,6 +59,7 @@ def test_openapi_enums_cover_server_whitelists(
     """主守卫：openapi 枚举 ⊇ server 白名单（双枚举面——契约面允许领先）。"""
     contract = _openapi_enum(field)
     assert contract  # 契约面在场非空（形态崩坏=KeyError/空集双路红）
+    assert server_face  # 白名单非空（d1-N5：_KINDS/_ENFORCEMENTS 退化空集→主守卫失效防线）
     _assert_covered(contract, frozenset(server_face), field)
 
 

@@ -3,10 +3,12 @@
 输入:  waterprint.app_validation（validation_summary_of/INPUT_BAND_FIELDS/
        INPUT_BAND_KIND）+kb 真源（仓库 data 面 41 条）+golden 双案
        （municipal_34760 市政进水声明/mine_43836 矿井线无市政声明节点）
-输出:  行为断言——合法进水零警告/非法进水码命中（kz/CODCR/混合越带）/
-       缺项跳检不警/选条判据=kind 直判/memo①冻结字段集机器对账/
-       memo③映射表对账/memo②负向锚（A41 vs B34 serialize 恒等+B vs C
-       差异面恰 maint.kb/fixgeom）/run_full_calc 第四字段接线/双跑确定性
+输出:  行为断言——合法进水零警告/非法进水码命中（kz 双界参数化/CODCR/
+       五指标越带参数化/混合越带+混合缺项不掩蔽）/缺项跳检不警（指标两
+       态+kz 键缺席态）/真实节点键集外部锚/选条判据=kind 直判/memo①冻结
+       字段集机器对账/memo③映射表对账/memo②负向锚（A41 vs B34 serialize
+       恒等+B vs C 差异面恰 12 键 maint.* 前缀锚定）/首节点插入序取首/
+       run_full_calc 第四字段接线（显式+缺省 constraints 路径）/双跑确定性
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -50,6 +52,15 @@ _REPO_DATA = Path(__file__).resolve().parents[3] / "data"
 _KB_FILE = _REPO_DATA / "constraint_kb" / "constraints.json"
 _KZ_CODE = "inlet.kz_band"
 _COD_CODE = "inlet.quality_upper.cod"
+# 五指标越带参数（d1-W2b：值=各带上界外一点；cod 有专例不入此表——
+# 满覆盖锚 test_indicator_cases_cover_non_cod_quality_family 对账 kb 族）
+_INDICATOR_CASES: tuple[tuple[str, float, str], ...] = (
+    ("BOD5", 500.0, "inlet.quality_upper.bod5"),
+    ("SS", 500.0, "inlet.quality_upper.ss"),
+    ("NH3N", 60.0, "inlet.quality_upper.nh3n"),
+    ("TN", 80.0, "inlet.quality_upper.tn"),
+    ("TP", 15.0, "inlet.quality_upper.tp"),
+)
 
 
 def _municipal_raw() -> dict[str, Any]:
@@ -89,16 +100,20 @@ def test_legal_influent_zero_warnings(
     assert report.codes() == ()
 
 
-def test_illegal_kz_hits_band_code(loaded_kb: tuple[KbConstraint, ...]) -> None:
-    """非法 kz=3.0（带 1.3~2.7 上界外）→码命中 kb.inlet.kz_band+五字段值锚
-    （param_key=kz/severity=WARN/message 含实际值+带域数值+条目键——禁空话）。"""
-    report = validation_summary_of(_municipal_project(kz=3.0), loaded_kb)
+@pytest.mark.parametrize("kz_value", [3.0, 1.0])
+def test_illegal_kz_hits_band_code(
+    loaded_kb: tuple[KbConstraint, ...], kz_value: float
+) -> None:
+    """非法 kz 越带（上界 3.0/下界 1.0 参数化对称——k1-W3：双子句「任一
+    假即违规」双向覆盖）→码命中 kb.inlet.kz_band+五字段值锚（param_key
+    =kz/severity=WARN/message 含实际值+带域数值+条目键——禁空话）。"""
+    report = validation_summary_of(_municipal_project(kz=kz_value), loaded_kb)
     assert report.codes() == (kb_warning_code(_KZ_CODE),)
     (warning,) = report.warnings
     assert warning.param_key == "kz"
     assert warning.condition_key == "plant"
     assert warning.severity.value == "WARN"
-    assert "3.0" in warning.message  # 实际值
+    assert f"{kz_value!r}" in warning.message  # 实际值
     assert "1.3" in warning.message and "2.7" in warning.message  # 带域数值
     assert _KZ_CODE in warning.message  # 条目键（label 面——kb label 不在装载形态）
 
@@ -111,6 +126,32 @@ def test_illegal_cod_hits_quality_code(loaded_kb: tuple[KbConstraint, ...]) -> N
     (warning,) = report.warnings
     assert warning.param_key == "CODCR"
     assert "1200.0" in warning.message
+
+
+@pytest.mark.parametrize(("field", "value", "code_key"), _INDICATOR_CASES)
+def test_illegal_indicator_hits_quality_code(
+    loaded_kb: tuple[KbConstraint, ...], field: str, value: float, code_key: str
+) -> None:
+    """五指标越带参数化（d1-W2b——与 kz/CODCR 用例同构）：各上界外值→
+    各自码恰单命中（param_key=冻结字段名——key 后缀与字段异名对照）。"""
+    report = validation_summary_of(
+        _municipal_project(**{field: value}), loaded_kb)
+    assert report.codes() == (kb_warning_code(code_key),)
+    (warning,) = report.warnings
+    assert warning.param_key == field
+    assert f"{value!r}" in warning.message  # 实际值入话
+
+
+def test_indicator_cases_cover_non_cod_quality_family(
+    input_band_family: tuple[KbConstraint, ...],
+) -> None:
+    """五指标参数表满覆盖锚：_INDICATOR_CASES 键集恰=inlet.quality_upper.*
+    族−cod（cod 有专例）——参数表删一员/漂一键即红（kb 族真源对账）。"""
+    expected = {
+        kb.constraint.key for kb in input_band_family
+        if kb.constraint.key.startswith("inlet.quality_upper.")
+        and kb.constraint.key != _COD_CODE}
+    assert {code_key for _, _, code_key in _INDICATOR_CASES} == expected
 
 
 def test_mixed_violations_hit_both_codes(loaded_kb: tuple[KbConstraint, ...]) -> None:
@@ -137,6 +178,34 @@ def test_missing_indicator_skips_check_silently(
     absent = ProjectFile.model_validate(raw)
     for project in (with_none, absent):
         assert not validation_summary_of(project, input_band_family)
+
+
+def test_missing_fields_do_not_mask_present_violation(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """混合缺项+在场越带（k1-W2）：BOD5/SS 缺席+CODCR=1200 越带→恰单码
+    kb.inlet.quality_upper.cod 命中（在场指标照常检、缺项不掩蔽）。"""
+    raw = _municipal_raw()
+    inlet = raw["design"]["nodes"]["inlet"]
+    inlet.pop("BOD5")
+    inlet.pop("SS")
+    inlet["CODCR"] = 1200.0
+    report = validation_summary_of(ProjectFile.model_validate(raw), loaded_kb)
+    assert report.codes() == (kb_warning_code(_COD_CODE),)
+
+
+def test_kz_absent_with_node_present_skips_silently(
+    input_band_family: tuple[KbConstraint, ...],
+) -> None:
+    """kz 缺席态（k1-N4）：声明节点在场+kz 键缺席→跳检不警钉死（「kz
+    恒在」背书域=run_full_calc 装配路径 make_flow 守卫〔kz>=1 拒非法〕；
+    路径外直调无背书——缺席即跳检语义，模块头注 R2 对照）。"""
+    raw = _municipal_raw()
+    raw["design"]["nodes"]["inlet"].pop("kz")
+    report = validation_summary_of(
+        ProjectFile.model_validate(raw), input_band_family)
+    assert not report
+    assert report.codes() == ()
 
 
 def test_mine_line_without_municipal_declaration_zero_warnings(
@@ -169,7 +238,33 @@ def test_double_run_deterministic(loaded_kb: tuple[KbConstraint, ...]) -> None:
         project, loaded_kb)
 
 
+def test_multiple_declarations_take_first_in_insertion_order(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """首节点语义（d1-N3）：双 municipal_input 声明节点→仅取插入序首个
+    （非法在前→码命中；合法在前+非法在后→零警告——双向钉死取首口径，
+    模块头注 R2 勘正注记对照）。"""
+    extra = {**_municipal_raw()["design"]["nodes"]["inlet"], "kz": 3.0}
+    raw = _municipal_raw()
+    raw["design"]["nodes"] = {"inlet_ahead": extra, **raw["design"]["nodes"]}
+    ahead = ProjectFile.model_validate(raw)
+    raw = _municipal_raw()
+    raw["design"]["nodes"] = {**raw["design"]["nodes"], "inlet_behind": extra}
+    behind = ProjectFile.model_validate(raw)
+    assert validation_summary_of(ahead, loaded_kb).codes() == (
+        kb_warning_code(_KZ_CODE),)
+    assert not validation_summary_of(behind, loaded_kb)
+
+
 # ── memo①冻结字段集机器对账+memo③映射表对账────────────────────────
+
+
+def test_real_inlet_node_keyset_covers_input_band_fields() -> None:
+    """真实 schema 外部锚（d1-W2c）：golden 市政案 inlet 节点 params 键集
+    ⊇ set(INPUT_BAND_FIELDS.values())——真实节点面外部真源对照（防注入式
+    用例自带键名掩蔽真实节点键名假设）。"""
+    inlet_keys = set(_municipal_raw()["design"]["nodes"]["inlet"])
+    assert set(INPUT_BAND_FIELDS.values()) <= inlet_keys
 
 
 def test_input_band_fields_match_frozen_truth(
@@ -228,8 +323,11 @@ def golden_run() -> Any:
     def run(active: tuple[KbConstraint, ...], inflow: ProjectFile | None = None) -> Any:
         return run_full_calc(inflow or project, conditions, env, constraints=active)
 
+    def run_default(inflow: ProjectFile | None = None) -> Any:
+        return run_full_calc(inflow or project, conditions, env)  # 不传 constraints——签名缺省 ()
+
     return {"all": run(loaded), "without": run(without), "zero": run(()),
-            "run": run, "loaded": loaded}
+            "run": run, "run_default": run_default, "loaded": loaded}
 
 
 def test_negative_anchor_input_band_zero_consumption(golden_run: Any) -> None:
@@ -239,12 +337,15 @@ def test_negative_anchor_input_band_zero_consumption(golden_run: Any) -> None:
 
 
 def test_negative_anchor_b_vs_c_diff_face_is_maintenance_only(golden_run: Any) -> None:
-    """memo②差异面：B(34) vs C(0) 差异恰 maint.kb/fixgeom 面（其余零漂
-    ——防「B 恰好等价零注入」假阳：差异面非空且全部落在检修执法键族）。"""
+    """memo②差异面：B(34) vs C(0) 差异恰 maint.* 键族（前缀锚定——k1-W1）
+    且基线恰 12 键（12=10 kb+any_fail+fixgeom——B 场实测基线，漂移即红）；
+    其余零漂——防「B 恰好等价零注入」假阳：差异面非空且全部落在检修
+    执法键族（两族各非空保留）。"""
     face = _summary_diff_face(
         golden_run["without"].plant.summary, golden_run["zero"].plant.summary)
     assert face  # 差异面非空（B≠C 假阳防线）
-    assert all(".kb." in key or ".fixgeom." in key for key in face), sorted(face)
+    assert len(face) == 12  # 基线锚（漂移即红——键数增减均报警）
+    assert all(key.startswith("maint.") for key in face), sorted(face)  # 前缀锚定
     assert any(".kb." in key for key in face)
     assert any(".fixgeom." in key for key in face)
 
@@ -257,6 +358,16 @@ def test_run_full_calc_wiring_fourth_field(golden_run: Any) -> None:
         assert isinstance(bundle.validation, ValidationReport), key
         assert not bundle.validation
         assert bundle.validation.codes() == ()
+
+
+def test_run_full_calc_default_constraints_zero_validation(golden_run: Any) -> None:
+    """缺省路径接线（k1-N2）：run_full_calc 不传 constraints 实参（走签名
+    缺省 ()）→validation 恒产出零警告（falsy/codes()=()——第四字段不因
+    调用形态丢档）。"""
+    bundle = golden_run["run_default"]()
+    assert isinstance(bundle.validation, ValidationReport)
+    assert not bundle.validation
+    assert bundle.validation.codes() == ()
 
 
 def test_run_full_calc_illegal_influent_reported(golden_run: Any) -> None:

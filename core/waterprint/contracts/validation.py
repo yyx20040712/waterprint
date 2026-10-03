@@ -23,7 +23,7 @@
 #       =False）
 #   KB_CODE_PREFIX: Final[str]（="kb."：kb 派生检查码冻结前缀）
 #   kb_warning_code(key) -> str：kb 派生码构造（前缀+constraint_key 单源）
-#   is_kb_code(code) -> bool：kb 派生码判别（前缀判定）
+#   is_kb_code(code) -> bool：kb 派生码判别（前缀+非空键段——空键段 False）
 #
 # 【行为规格】
 #   R1 码规则单源：kb 派生检查码恒为 KB_CODE_PREFIX+constraint_key——
@@ -88,5 +88,5 @@ def kb_warning_code(key: str) -> str:
 
 
 def is_kb_code(code: str) -> bool:
-    """kb 派生码判别：前缀 KB_CODE_PREFIX（键↔码可逆性的判别面）。"""
-    return code.startswith(KB_CODE_PREFIX)
+    """kb 派生码判别：前缀 KB_CODE_PREFIX+非空键段（键↔码可逆判别面）。"""
+    return code.startswith(KB_CODE_PREFIX) and len(code) > len(KB_CODE_PREFIX)

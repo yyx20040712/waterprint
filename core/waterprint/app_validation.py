@@ -32,11 +32,11 @@
 # 【行为口径】
 #   R1 选条判据=kind=="input_band" 直判（接线红线——见下方逐字引用）。
 #   R2 进水单值表=project 进水原始数据直取（design.nodes 中
-#      kind=municipal_input 声明节点——非计算值；多声明取插入序首个，
-#      app_influent 进水声明识别同款行为注记；矿井线无该节点=空表全
-#      跳检）。kz 恒在（municipal_input 必需参+make_flow 守卫）+六指标
-#      （WaterQuality 缺项 None 合法→缺项跳检不警：键缺席与值 None 均
-#      不入单值表，该指标条目跳检零警告）。
+#      kind=municipal_input 声明节点——非计算值；多声明仅取插入序首个
+#      同款；识别判据不同（本件=kind 字面判据 vs app_influent=无入边+
+#      outflows 结构判据）——矿井线排除=1A2 裁决语义（无该节点=空表全
+#      跳检）。kz 恒在=装配路径 make_flow 守卫背书（路径外直调无背书
+#      ——kz 键缺席即跳检）+六指标（None/键缺席均不入表=跳检零警告）。
 #   R3 求值=solution.apply_constraints 单行 DataFrame 逐条求值
 #      （app_maintenance L127 先例形态——DSL 单源禁手写求值；kz_band
 #      双子句 and 语义=任一子句假即违规）。
