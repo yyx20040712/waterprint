@@ -9,7 +9,7 @@
 | 指标 | 值 | 事实源 |
 |---|---|---|
 | CI 门禁数 | 18 | `scripts/run_gates.py` GATES 元组 |
-| 测试锁面键数 | 357（core/tests 181 + server/tests 58 + units_lib 包内 92 + agent 26） | `test-lock.manifest.json` |
+| 测试锁面键数 | 358（core/tests 182 + server/tests 58 + units_lib 包内 92 + agent 26） | `test-lock.manifest.json` |
 | OpenAPI | 38 路径 / 43 操作 | `api-contracts/openapi.json` |
 | ADR 件数 | 25 | `docs/adr/ADR-*.md` |
 | 未定义特性登记 | 总 62（已定义闭合 51 / 临置 0 / 待定义开放 4 / 待拍板 0 / 其他表述 7） | `docs/undefined-features-register.md` 表行 |

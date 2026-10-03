@@ -86,6 +86,7 @@
   "core/tests/contracts/test_sludge.py": "9ec5dfc6aab4dd6a1b703c9cb4099a1374b1aabfd912adb69417fa7cd164aeb3",
   "core/tests/contracts/test_trace_api.py": "9aef3808b7aebacbc44287e4ec2186879d1a89518830d8e9a030b94c70116b4a",
   "core/tests/contracts/test_trust.py": "6d467c25daa6e795eff060bc75479cc63ab1fa05feb6a47a46de2425b2cc83cc",
+  "core/tests/contracts/test_trust_serde.py": "bba7cea0dbcac7d522a552ccd520210897fda6b5fb7afde839fbba08d81efab6",
   "core/tests/contracts/test_unit_api.py": "f6fdacab54b0d13506f39aced83d031b0ee1af841d96b5a9efbbbf1d2a3b343e",
   "core/tests/cost/test_estimate.py": "6b80a3d62c0a9c887c221458bcbdbbee0278ed4ab793745ce6b1efcf82cbecb7",
   "core/tests/cost/test_indicators.py": "e8eb81244b4e05246c4b7cf6b99382f8994802c66d2e817d80833acad635e7bd",
