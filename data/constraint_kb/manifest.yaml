@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.7.0"
+data_version: "1.8.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -90,3 +90,28 @@ data_version: "1.7.0"
 #     材料）**；旧 34 键零扰动，计数 11+12+2+1+8→11+12+2+1+8+7（server
 #     test_constraints 同步 _DRAFT17_KEYS 起草键集+core solution 装载器
 #     零消费〔unit_kinds 空表恒不选中——执法面接线归 1A2 校验骨架〕）。
+#   - 1.8.0: 1A6 批逐条定级批（2026-10-03，P1 裁决选项 3 落地）——41 条
+#     全量增第九键 **enforcement**（值域恰两值：flag=仪表灯〔违规呈现
+#     不阻断〕| block=断路器〔违规即失败终态〕——与既有 severity
+#     〔WARN/ERROR=呈现黄红分层〕**正交两维**：severity 答「呈现多醒目」
+#     /enforcement 答「违规算不算失败」，README schema 节两维关系表定版）。
+#     定级分布=flag 23+block 18（条目计数与 kind 面零变更——纯加键）：
+#     enumeration_filter 11 全 flag〔可行带过滤——P1 件 §六选项 3「filter
+#     带类=仪表灯」原文，带外行已可勾选过滤双保险无必要〕；effluent_
+#     standard 12 全 block〔出流超标=工艺交付失败——P1 件 §七「计算器+
+#     门禁」哲学+出水标准数据性地位；**工况分级豁免（design 严/offline
+#     宽——P1 件 §五第 3 层检修冲突）显式挂账**不在本批 schema 表达〕；
+#     spacing_check 按双门分〔通用 WARN=flag/沼气防火间距 ERROR=block〕；
+#     boundary_check 1 条 block〔用地红线越界=硬失败〕；geometry_guard
+#     按双门分〔hint 4 WARN=flag/reject 4 ERROR=block——与 severity
+#     分层一一对应〕；input_band 7 全 flag〔WARN 提示不拒收——1A1 起草
+#     语义承接〕。enforcement=**纯声明元数据零运行时消费**（core
+#     KbConstraint 不装载/apply_constraints 不读/run_full_calc 零感知
+#     ——golden serialize 批前后恒等探针实录 .workflow/1a6-20261003/）；
+#     server 装载校验九键+值域越界拒（ConstraintEntry 投影加字段——
+#     openapi 重导出+orval 重跑契约三步）。**AI 起草待追认（§1a6 清单
+#     ——.workflow/1a6-20261003/draft-table.md 起草表=呈用户追认的唯一
+#     材料；与 1A1 七条数值合并呈报，追认批统一升 1.8.1 回写标记——
+#     RATIFY-CP1 先例形态）**；旧 41 键八面零扰动（仅加第九键）。
+#     schema 结构变更=大变更位 1.7.0→1.8.0（起草态叠加——1.7.0 不单独
+#     定稿）。

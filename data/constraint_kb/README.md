@@ -1,9 +1,13 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.7.0 起草态（全量 41 条=34 追认存量+input_band 7 条 AI 起草
-> 待追认〔§1a1 清单——.workflow/1a1-20261003/draft-table.md 起草表〕：
-> Kz 总变化系数静态包络带+进水六指标浓度上限带，追认单直录形态）——
-> 存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
+> **状态：1.8.0 起草态（全量 41 条九键=第八键 enforcement 逐条定级
+> AI 起草待追认〔§1a6 清单——.workflow/1a6-20261003/draft-table.md
+> 起草表=呈用户追认的唯一材料；与 1A1 七条数值合并呈报，追认批统一
+> 升 1.8.1 回写标记〕：flag 23+block 18——P1 裁决选项 3「kb 逐条
+> severity 声明式定级」落地，两维正交见 schema 节；1.7.0 起草态叠加
+> input_band 7 条〔§1a1 清单——.workflow/1a1-20261003/draft-table.md
+> 起草表〕：Kz 总变化系数静态包络带+进水六指标浓度上限带，追认单直录
+> 形态——存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
 > 2026-08-31、spacing_check 2 条=Ruling 2026-09-03；boundary_check 1 条=SPC2 批
 > 2026-09-05 工程惯例起草待专家确认；geometry_guard 8 条=批3b 2026-09-26
 > b3a-research.md §二 B 组+§七追认单直录——D 级 AI 推导值经用户「全部
@@ -17,7 +21,9 @@
 > 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
-> severity 数据面同端点）。
+> severity 数据面同端点）。enforcement（1.8.0）=纯声明元数据**零运行时
+> 消费**（core KbConstraint 不装载/apply_constraints 不读/run_full_calc
+> 零感知——运行时阻断消费接线与工况分级豁免=显式挂账归 P1 后续批）。
 
 ## 与规划期构想（本文件前版）的差异记档
 
@@ -43,20 +49,35 @@ options.constraints 通道）落地为：
 **沿用的前版硬规则**：条目 key 全库唯一且稳定（只增不改语义——key
 进 API/UI 引用面）；表达式字段与常数禁无出处。
 
-## 条目 schema（每条八键齐全）
+## 条目 schema（每条九键齐全——1.8.0 起增第九键 enforcement）
 
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band 恒 []=全适用）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
   "severity": "WARN",
+  "enforcement": "flag",                 // flag=仪表灯（违规呈现不阻断）| block=断路器（违规即失败终态）——1.8.0 第九键（P1 选项 3）
   "value_basis": "factor.… @ coefficients 1.1.0——AI 起草待追认"  // 数值溯源
 }
 ```
+
+### 两维关系（severity × enforcement——正交，互不替代）
+
+| 维度 | 回答的问题 | 值域 | 语义 |
+|---|---|---|---|
+| severity | 呈现多醒目（黄/红标示分层） | ERROR / WARN / INFO（core contracts Severity 冻结面） | 呈现分类元数据——勾选即硬滤全级别（UF-54 定版口径不因第九键改变） |
+| enforcement | 违规算不算失败（1.8.0） | flag / block | 执法定性元数据——flag=仪表灯（违规呈现不阻断）/block=断路器（违规即失败终态）；**本批零执法**（纯声明，运行时阻断消费归 P1 后续批） |
+
+- 两维独立取值：severity=WARN+enforcement=block（出水标准：呈现黄标/
+  违规定性失败）与 severity=ERROR+enforcement=flag（几何荒诞域拒收门：
+  呈现红标/勾选过滤面已执法故仪表灯）均合法组合——由条目 kind 语义
+  逐条定级（定级分布与逐条理由=§1a6 起草清单）。
+- 值域守卫：server 装载校验 enforcement 越界=fail-visible 拒（同
+  kind/severity 面值域守卫族）；core solution 装载器宽容面忽略本键。
 
 ## 数值与出处纪律（数据策略 v2）
 
@@ -115,7 +136,8 @@ options.constraints 通道）落地为：
   精确内插表显式挂账不录=设计计算辅助非输入合理性校核）；六指标上限带
   `inlet.quality_upper.<sym>` 单侧 `field <= max`（字段=契约既有进水面
   命名 BOD5/CODCR/SS/NH3N/TN/TP——contracts 冻结面直用，非新建命名）。
-  severity 全 WARN（逐条定级归 1A6 批）；数值=追认单直录起草（无
+  severity 全 WARN（1A6 批定级=enforcement 全 flag——WARN 提示不拒收
+  语义承接）；数值=追认单直录起草（无
   coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批，
   起草表=§1a1 清单）。**消费面=零**（core solution 装载器不拒不裁——
   kind 空表数据面门禁归 kb 数据批 R10 口径；kb 执法面 `_maint_face`
@@ -187,5 +209,21 @@ options.constraints 通道）落地为：
 | `inlet.quality_upper.tp` | `TP <= 10.0` | WARN | 同上 |
 
 - 挂账：①流量相关 Kz 精确内插表不录（设计计算辅助）；②手册原册页级
-  复核与逐条定级（severity 细化）归追认批/1A6 批；③执法面（进水输入
-  校验接线）归 1A2 校验骨架批。
+  复核归追认批（severity 逐条定级已由 1A6 批 enforcement 起草承载）；
+  ③执法面（进水输入校验接线）归 1A2 校验骨架批。
+
+## 定级起草清单（1.8.0 enforcement 41 条——AI 起草待追认）
+
+> 起草表全文（41 条逐条 key/enforcement/一句理由引 kind 语义或 P1 件
+> 层级+挂账清单）=`.workflow/1a6-20261003/draft-table.md`（仓外批档
+> ——呈用户追认的唯一材料）；本节为库内索引面。与 1A1 七条数值合并
+> 呈报，追认批统一升 1.8.1 回写标记（RATIFY-CP1 先例形态）。
+
+| kind（条数） | enforcement | 定级依据（一句话——逐条理由见起草表） |
+|---|---|---|
+| enumeration_filter（11） | 全 flag | 可行带过滤——带外行已可勾选过滤，P1 件 §六选项 3「filter 带类=仪表灯」原文 |
+| effluent_standard（12） | 全 block | 出流超标=工艺交付失败——P1 件 §七「计算器+门禁」哲学+出水标准数据性地位；工况分级豁免显式挂账 |
+| spacing_check（2） | WARN 通用=flag/ERROR 沼气间距=block | 与既有 severity 双门语义一一对应（提示门/安全红线） |
+| boundary_check（1） | block | 用地红线越界=硬失败（P1 件 §六 red_line 类原型） |
+| geometry_guard（8） | hint 4=flag/reject 4=block | 提示门（超工程常用）/拒收门（荒诞域）与 severity 双门一一对应 |
+| input_band（7） | 全 flag | WARN 提示不拒收——1A1 起草表语义承接（越上界=疑工业废水/单位错录提示复核） |
