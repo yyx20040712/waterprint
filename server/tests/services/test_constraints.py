@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（41 条六类/装载守卫四路/缓存单例/双跑字节同）
+输出:  服务契约断言（41 条六类九键/装载守卫多路/定级分布/缓存单例/双跑字节同）
 """
 
 from __future__ import annotations
@@ -31,7 +31,9 @@ _REPO = Path(__file__).resolve().parents[3] / "data"  # server/tests/services/�
 # §七追认 2026-09-26 追认单直录——增删同步；margin-kb-20261001 1.6.0
 # 双侧带 5 条→1.6.1 已追认定稿〔Ruling 2026-10-01 pending §32 销账〕
 # ——_DRAFT16_KEYS 起草键集随批撤除+五键 expression 全锁面补齐；
-# 1A1 批 1.7.0：input_band 7 条〔Kz 带+进水六指标上限带——§1a1 起草表〕）
+# 1A1 批 1.7.0：input_band 7 条〔Kz 带+进水六指标上限带——§1a1 起草表〕；
+# 1A6 批 1.8.0：41 条增第九键 enforcement〔flag|block 逐条定级起草态——
+# §1a6 清单=.workflow/1a6-20261003/draft-table.md 呈用户追认〕）
 _FILTER_COUNT = 11
 _EFFLUENT_COUNT = 12
 _SPACING_COUNT = 2
@@ -45,6 +47,18 @@ _DRAFT17_KEYS = {
     "inlet.quality_upper.cod", "inlet.quality_upper.bod5",
     "inlet.quality_upper.ss", "inlet.quality_upper.nh3n",
     "inlet.quality_upper.tn", "inlet.quality_upper.tp",
+}
+# 1A6 批 1.8.0 enforcement 定级分布锚（41 条=flag 23+block 18——分 kind
+# 形态；两维正交：severity 答呈现分层/enforcement 答违规算不算失败；
+# 起草表=draft-table.md 呈用户追认——追认批统一升 1.8.1 回写标记）
+_ENFORCEMENT_VALID = {"flag", "block"}
+_ENFORCEMENT_BY_KIND = {
+    "enumeration_filter": {"flag": 11, "block": 0},
+    "effluent_standard": {"flag": 0, "block": 12},
+    "spacing_check": {"flag": 1, "block": 1},
+    "boundary_check": {"flag": 0, "block": 1},
+    "geometry_guard": {"flag": 4, "block": 4},
+    "input_band": {"flag": 7, "block": 0},
 }
 
 
@@ -69,6 +83,7 @@ def test_catalog_projects_kb_truth() -> None:
     assert kinds.count("input_band") == _INPUT_BAND_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
+    assert all(e.enforcement in _ENFORCEMENT_VALID for e in entries)  # 第九键
     raw = json.loads((_REPO / "constraint_kb" / "constraints.json").read_bytes())
     assert keys == [str(item["key"]) for item in raw["entries"]]  # 声明序逐字
 
@@ -231,6 +246,38 @@ def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
     assert "挂账" in by_key["inlet.kz_band"].value_basis
 
 
+def test_entries_carry_enforcement_grading() -> None:
+    """1A6：第九键 enforcement 逐条定级投影——值域恰两值 flag|block+
+    分 kind 分布=起草表锚（§1a6 清单）：filter 带类/进水合理性带/
+    几何提示门/通用间距=flag（仪表灯——违规呈现不阻断，带外行已可
+    勾选过滤双保险无必要）；出水标准/用地红线/几何拒收门/沼气间距
+    =block（断路器——违规即失败终态，P1 选项 3 red_line 类）。
+    """
+    catalog = list_constraints(_REPO)
+    entries = catalog.entries
+    assert all(e.enforcement in _ENFORCEMENT_VALID for e in entries)
+    dist: dict[str, dict[str, int]] = {}
+    for entry in entries:
+        slot = dist.setdefault(entry.kind, {"flag": 0, "block": 0})
+        slot[entry.enforcement] += 1
+    assert dist == _ENFORCEMENT_BY_KIND  # 分 kind 分布锚（起草表机器钳制）
+    assert len([e for e in entries if e.enforcement == "flag"]) == 23
+    assert len([e for e in entries if e.enforcement == "block"]) == 18
+    by_key = {e.key: e for e in entries}
+    # geometry 双门：hint（severity=WARN）=flag/reject（ERROR）=block 一一对应
+    for suffix, enforcement in (("hint", "flag"), ("reject", "block")):
+        gates = [e for e in entries if e.key.startswith("geometry.") and e.key.endswith(f"_{suffix}")]
+        assert len(gates) == 4
+        assert all(e.enforcement == enforcement for e in gates)
+    # spacing 双门：通用 WARN=flag/沼气防火间距 ERROR=block
+    assert by_key["site.clearance_general"].enforcement == "flag"
+    assert by_key["site.clearance_nongsuo_xiaohua"].enforcement == "block"
+    # 红线越界=硬失败（P1 件 §六 red_line 类原型）
+    assert by_key["site.boundary_containment"].enforcement == "block"
+    # 出水标准 12 条全 block（出流超标=工艺交付失败——工况分级豁免挂账）
+    assert all(e.enforcement == "block" for e in entries if e.kind == "effluent_standard")
+
+
 def test_filter_values_match_factors_truth() -> None:
     """R2（DS-03）：过滤条目数值=coefficients factors.yaml 同值自动对照。
 
@@ -305,9 +352,16 @@ def test_bad_entry_fails_visible(tmp_path: Path) -> None:
         "key": "t.a", "kind": "enumeration_filter", "unit_kinds": ["x"],
         "label": "t", "expression": "f >= 1.0", "source": "GB t；待追认",
         "severity": "WARN", "value_basis": "t——AI 起草待追认",
+        "enforcement": "flag",
     }
     _write([{k: v for k, v in good.items() if k != "source"}])
     with pytest.raises(RuntimeError, match="缺键"):
+        list_constraints(tmp_path)
+    _write([{k: v for k, v in good.items() if k != "enforcement"}])
+    with pytest.raises(RuntimeError, match="缺键"):
+        list_constraints(tmp_path)
+    _write([dict(good, key="t.e", enforcement="halt")])
+    with pytest.raises(RuntimeError, match="enforcement 越界"):
         list_constraints(tmp_path)
     _write([dict(good), dict(good)])
     with pytest.raises(RuntimeError, match="重复"):
@@ -362,5 +416,6 @@ async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-un
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
         "key", "kind", "unit_kinds", "label", "expression",
-        "source", "severity", "value_basis",
+        "source", "severity", "value_basis", "enforcement",
     }
+    assert all(e["enforcement"] in {"flag", "block"} for e in entries)

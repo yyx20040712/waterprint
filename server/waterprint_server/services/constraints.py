@@ -1,7 +1,8 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.7.0 全量 41 条——存量 34
-       追认/待确认+input_band 7 条 AI 起草待追认〔1A1 批〕）
+输入:  data/constraint_kb/constraints.json（kb 1.8.0 全量 41 条九键——存量
+       34 追认/待确认+input_band 7 条 AI 起草待追认〔1A1 批〕+41 条
+       enforcement 逐条定级 AI 起草待追认〔1A6 批——flag 23+block 18〕）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -9,10 +10,10 @@
 # 规格说明（CP1 D1~D5 2026-08-31；镜像测试 server/tests/services/test_constraints.py）
 #
 # 【公开接口】
-#   list_constraints(data_dir: Path) -> ConstraintCatalog（41 条=过滤 11+
-#      出水参考 12+间距校核 2+红线 1+几何域 8+输入合理性带 7——kb 1.7.0
-#      声明序〔1A1 批起草态〕；D6 不分页整发。勘误记档：本行旧值 20 系
-#      1.4.0 期漏更实 21——批3b 勘正）
+#   list_constraints(data_dir: Path) -> ConstraintCatalog（41 条九键=过滤 11+
+#      出水参考 12+间距校核 2+红线 1+几何域 8+输入合理性带 7——kb 1.8.0
+#      声明序〔1A1 批起草态+1A6 批第九键 enforcement〕；D6 不分页整发。
+#      勘误记档：本行旧值 20 系 1.4.0 期漏更实 21——批3b 勘正）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
 #
@@ -53,7 +54,8 @@ __all__ = [
     "list_constraints",
 ]
 
-# kb 条目键面（八键齐全——README schema；缺一即库级拒）。
+# kb 条目键面（九键齐全——README schema；缺一即库级拒。1A6 批 1.8.0
+# 起扩第九键 enforcement——P1 裁决选项 3 逐条定级）。
 _REQUIRED_KEYS: frozenset[str] = frozenset(
     {
         "key",
@@ -64,6 +66,7 @@ _REQUIRED_KEYS: frozenset[str] = frozenset(
         "source",
         "severity",
         "value_basis",
+        "enforcement",
     }
 )
 _KINDS: frozenset[str] = frozenset(
@@ -85,10 +88,15 @@ _KINDS: frozenset[str] = frozenset(
 # 追认；消费面零接线〔执法面归 1A2 校验骨架〕，本投影=R7 观测面）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
+# enforcement 值域（1A6 批 1.8.0 第九键——P1 选项 3 值域恰两值：flag=
+# 仪表灯〔违规呈现不阻断〕|block=断路器〔违规即失败终态〕；与 severity
+# 正交两维——README schema 两维关系表；纯声明元数据零运行时消费）
+_ENFORCEMENTS: frozenset[str] = frozenset({"flag", "block"})
 
 
 class ConstraintEntry(BaseModel):
-    """约束条目：八键齐全投影（value_basis=数值溯源——UI tooltip 面）。"""
+    """约束条目：九键齐全投影（value_basis=数值溯源——UI tooltip 面；
+    enforcement=执法定性元数据——1A6 批第九键，纯声明零运行时消费）。"""
 
     model_config = ConfigDict(frozen=True)
 
@@ -107,6 +115,7 @@ class ConstraintEntry(BaseModel):
     source: str
     severity: str
     value_basis: str
+    enforcement: Literal["flag", "block"]
 
 
 class ConstraintCatalog(BaseModel):
@@ -152,6 +161,11 @@ def _load(data_dir_str: str) -> ConstraintCatalog:
                 f"约束知识库{where} severity 越界：{item['severity']!r}"
                 f"（合法面 {sorted(_SEVERITIES)}）"
             )
+        if item["enforcement"] not in _ENFORCEMENTS:
+            raise RuntimeError(
+                f"约束知识库{where} enforcement 越界：{item['enforcement']!r}"
+                f"（合法面 {sorted(_ENFORCEMENTS)}——1A6 批第九键，P1 选项 3）"
+            )
         if key in seen:
             raise RuntimeError(f"约束知识库 key 重复：{key!r}（README 硬规则——key 稳定唯一）")
         seen.add(key)
@@ -175,6 +189,7 @@ def _load(data_dir_str: str) -> ConstraintCatalog:
                 source=str(item["source"]),
                 severity=str(item["severity"]),
                 value_basis=str(item["value_basis"]),
+                enforcement=item["enforcement"],
             )
         )
     return ConstraintCatalog(entries=tuple(entries))

@@ -592,8 +592,16 @@
         "type": "object"
       },
       "ConstraintEntry": {
-        "description": "约束条目：八键齐全投影（value_basis=数值溯源——UI tooltip 面）。",
+        "description": "约束条目：九键齐全投影（value_basis=数值溯源——UI tooltip 面；\nenforcement=执法定性元数据——1A6 批第九键，纯声明零运行时消费）。",
         "properties": {
+          "enforcement": {
+            "enum": [
+              "flag",
+              "block"
+            ],
+            "title": "Enforcement",
+            "type": "string"
+          },
           "expression": {
             "title": "Expression",
             "type": "string"
@@ -608,7 +616,8 @@
               "effluent_standard",
               "spacing_check",
               "boundary_check",
-              "geometry_guard"
+              "geometry_guard",
+              "input_band"
             ],
             "title": "Kind",
             "type": "string"
@@ -645,7 +654,8 @@
           "expression",
           "source",
           "severity",
-          "value_basis"
+          "value_basis",
+          "enforcement"
         ],
         "title": "ConstraintEntry",
         "type": "object"
