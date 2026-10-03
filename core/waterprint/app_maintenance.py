@@ -26,7 +26,7 @@
 # 【三面口径】
 #   观测面（轴③）maint.<node>.ratio.<field> = offline/design——分化键集：
 #       两帧同键交集内 design 值有限且≠0、offline 值有限、exact != 才
-#       发键（全等字段不发——对比面=差异面；主控探针实证 aao 30 dims
+#       发键（全等字段不发——对比面=差异面；主控探针实证 aao 35 dims
 #       键中恰 4 键漂移、几何四键全等）。不发键四态（全等/design 零或
 #       非有限/offline 非有限/单帧缺席）消费者不区分——观测面=差异面
 #       语义（缺键即「该工况下此字段无检修效应/不可算」，无四态分型）。
@@ -38,7 +38,8 @@
 #       apply_constraints 单行 DataFrame（列=offline dims）求值，
 #       pass=pass_matrix 全真（标注不阻断——全厂计算无行可滤；与枚举面
 #       「勾选=硬滤」执法分级差异属两面语义）。禁绕开 apply_constraints
-#       手写求值（DSL 单源）。
+#       手写求值（DSL 单源）；汇总键 maint.<node>.kb.any_fail=1.0（任一
+#       适用条目越门）/0.0（全过）——applicable 非空才发（kbwire 批）。
 #   固定几何校核（轴①）maint.<node>.fixgeom.min = min(1−offline/design)：
 #       min over kb 覆盖字段集 F（去重）∩ ratio 可算域——固定设计几何在
 #       检修负荷下的归一裕度（<0=超载深度；aao 检修风机台数 ×2 → −1.0）；
@@ -80,6 +81,7 @@ from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.graph.executor_assembly import UnitRegistry
 from waterprint.solution.constraints import (
+    BOUNDARY_CHECK_KIND,
     KbConstraint,
     apply_constraints,
     expression_fields,
@@ -92,9 +94,6 @@ _FIXGEOM_SUFFIX: str = ".fixgeom.min"
 _PASS: float = 1.0  # kb 门内（语义常量）
 _FAIL: float = 0.0  # kb 越门（标注不阻断——语义常量）
 _FULL: Final[float] = 1.0  # fixgeom 归一满额裕度基准（语义常量——回炉 R5）
-# 装载器 _BOUNDARY_CHECK_KIND 同款豁免镜像（constraints.py 私有名跨包禁
-# 取——宪 §1 正门约束，本地常量+注释指针双源对齐）
-_BOUNDARY_KIND: Final[str] = "boundary_check"
 
 
 def _maint_face(
@@ -117,17 +116,26 @@ def _maint_face(
         slack[field] = _FULL - ratio
     applicable = tuple(
         kb for kb in constraints
-        if kb.kind != _BOUNDARY_KIND  # 装载器 _BOUNDARY_CHECK_KIND 同款豁免镜像（回炉 R2）
+        if kb.kind != BOUNDARY_CHECK_KIND  # 装载器豁免镜像（C5 单源化——公开常量直取）
         and unit_kind in kb.unit_kinds
         and set(expression_fields(kb.constraint.expression)) <= offline_dims.keys()
     )
     if applicable:  # 单行 DataFrame=offline dims（apply_constraints 单源求值）
         frame = pandas.DataFrame([dict(offline_dims)])
+        outcomes: list[float] = []
         for kb in applicable:
             outcome = apply_constraints(frame, [kb.constraint])
+            passed = bool(outcome.pass_matrix.to_numpy().all())
             face[f"{_KEY_PREFIX}{node}{_KB_INFIX}{kb.constraint.key}"] = (
-                _PASS if bool(outcome.pass_matrix.to_numpy().all()) else _FAIL
+                _PASS if passed else _FAIL
             )
+            outcomes.append(_PASS if passed else _FAIL)
+        # any_fail 汇总键（kbwire）：极性=1.0 任一适用越门/0.0 全过（与
+        # 单键 1.0 通过极性相反——汇总键自带极性语义，值经 _PASS/_FAIL
+        # 语义常量承载 1.0/0.0）。
+        face[f"{_KEY_PREFIX}{node}{_KB_INFIX}any_fail"] = (
+            _PASS if _FAIL in outcomes else _FAIL
+        )
         margins = [
             slack[field]
             for kb in applicable

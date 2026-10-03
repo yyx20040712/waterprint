@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -147,6 +148,51 @@ def test_enumerate_grid_fields_object_payload(test_settings, tmp_path) -> None: 
         # 参数面单位批（2026-09-12 用户裁定）：t_cycle 翻 TIME_H（h 档）
         ("TIME_H", "运行周期"),
     ]  # manifest 真源投影（dim=DimKey 枚举名；label_zh=C1 填充值）
+
+
+def test_calc_job_injects_kb_constraints(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """kbwire：calc job 数据装配注入 constraint_kb——offline 工况 summary 含
+    kb 键（fail-fast 全量 34 条注入，face 自筛；baseline 帧零 maint 键）。"""
+    from waterprint.contracts.result_schema import deserialize
+
+    artifacts = test_settings.exports_dir / "tasks"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    outcome = run_task(
+        {
+            "kind": "calc",
+            "task_id": "kb-inject-probe",
+            "project_id": "p",
+            "project_path": str(_cass_project_file(tmp_path)),
+            "conditions": ["municipal_cass"],
+            "data_dir": str(test_settings.data_dir),
+            "artifacts_dir": str(artifacts),
+        },
+        None,
+        None,
+    )
+    assert outcome["state"] == "done"
+    plant = deserialize(Path(str(outcome["result_file"])).read_bytes())
+    offline = plant.summary["design_offline_municipal_cass"]
+    assert any(key.startswith("maint.municipal_cass.kb.") for key in offline)
+    assert "maint.municipal_cass.kb.any_fail" in offline  # 汇总键同域
+    assert not any(key.startswith("maint.") for key in plant.summary["design"])
+
+
+def test_calc_job_missing_kb_fails_as_data_defect(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """R3（回炉 d1-W1）：calc 失败路径锚——缺 constraint_kb → InvalidConstraintError
+    自 run_task 传播（manager failed 收编面=future.exception()→error_type=类名）。"""
+    from waterprint.solution.constraints import InvalidConstraintError
+
+    data_dir = tmp_path / "kb-less-data"
+    shutil.copytree(test_settings.data_dir, data_dir, ignore=shutil.ignore_patterns("constraint_kb"))
+    artifacts = test_settings.exports_dir / "tasks"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "kind": "calc", "task_id": "kb-missing-probe", "project_id": "p",
+        "project_path": str(_cass_project_file(tmp_path)), "conditions": [],
+        "data_dir": str(data_dir), "artifacts_dir": str(artifacts)}
+    with pytest.raises(InvalidConstraintError, match="constraint_kb 文件缺失"):
+        run_task(payload, None, None)
 
 
 def test_unknown_kind_rejected_at_serialization_boundary(tmp_path) -> None:  # type: ignore[no-untyped-def]

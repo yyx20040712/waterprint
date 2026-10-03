@@ -356,8 +356,8 @@ def test_src_port_compliance_matrix() -> None:
         ("out", True),        # 已声明 OUT 口本体
         ("out_2", True),      # 动态实例（k≥2）
         ("out_10", True),     # 多位数 k
-        ("out_2_3", False),   # regex 命中（base="out_2"）但 base 未声明——拒
-        ("out_2.5", False),   # regex 命中（base="out_2."）base 未声明——拒
+        ("out_2_3", False),   # regex 命中（base="out_2"）——拒在 base∉declared
+        ("out_2.5", False),   # 尾段非 _<纯数字> 不命中 regex（非 base 判拒）
         ("out_007", True),    # 前导零 k——名形校验口径（int("007")≥2 即真）
         ("out_x", False),     # 尾非纯数字——regex 不命中
         ("in", False),        # 已声明 IN 口——非 OUT 拒

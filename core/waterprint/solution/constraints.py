@@ -30,13 +30,16 @@
 #       tuple[str, ...]（kb 条目装载形态——app_maintenance kb 执法面消费，
 #       uf61-axes 批 2026-10-02）
 #   load_kb_constraints(path) -> tuple[KbConstraint, ...]：constraint_kb
-#       constraints.json 装载正门（fail-fast 三态显式拒：缺文件/坏 JSON/
-#       entries 空表=InvalidConstraintError；装载期逐条 _clauses DSL 校验
+#       constraints.json 装载正门（fail-fast 显式拒：缺文件/坏 JSON/entries
+#       空表/any_fail 保留字〔回炉 R2——kb 汇总键命名域防护〕；逐条 DSL 校验
 #       坏档 fail-visible；source=kb 键、severity=Severity(entry) 随行；
 #       宽容面归 CLI/未来调用方——本装载器 fail-fast，standards 装载器
 #       区分记档）
 #   expression_fields(expression) -> tuple[str, ...]：DSL 子句字段去重
 #       现序列举（kb 适用判据单源——_clauses 单源解析的公开投影）
+#   BOUNDARY_CHECK_KIND: Final[str]（="boundary_check"）：kind 符号契约
+#       单源常量（kbwire C5 单源化——app_maintenance 豁免镜像消费公开名，
+#       禁本地双源对齐）
 #
 # 【行为规格】
 #   R1 约束是数据：知识库 34 条（旧 constraint_hints 迁移；kb 1.6.1 实数
@@ -305,8 +308,10 @@ def band_margin_column(
 # ── kb 装载器域（uf61-axes 批 2026-10-02——app_maintenance kb 执法面）──────
 
 # boundary_check=SPC2 §2.3 符号契约（containment == inside 固定式——非比较
-# DSL 域，severity 解析面=server services/site.py）
-_BOUNDARY_CHECK_KIND: Final[str] = "boundary_check"
+# DSL 域，severity 解析面=server services/site.py）；kbwire C5 起公开单源
+# （app_maintenance 豁免镜像消费公开名——本地双源对齐退役）
+BOUNDARY_CHECK_KIND: Final[str] = "boundary_check"
+_ANY_FAIL_KEY: Final[str] = "any_fail"  # kb 保留字（回炉 R2——face 汇总键命名域防护）
 
 
 @dataclass(frozen=True)
@@ -332,8 +337,8 @@ def expression_fields(expression: str) -> tuple[str, ...]:
 def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
     """constraint_kb constraints.json 装载正门（fail-fast——uf61-axes 批）。
 
-    三态显式拒（InvalidConstraintError 族，禁静默空表）：文件缺失/损坏
-    JSON/entries 空表；装载期逐条 DSL 校验（_clauses parse——坏档
+    三态显式拒+保留字拒（InvalidConstraintError 族，禁静默空表）：文件
+    缺失/损坏 JSON/entries 空表/key=any_fail（回炉 R2）；装载期逐条 DSL 校验（_clauses parse——坏档
     fail-visible，消费面零延迟爆；boundary_check 例外=SPC2 §2.3 契约
     固定符号式 containment == inside，非比较 DSL 域——其 severity 解析
     面=server services/site.py，本装载器不重复执法）。source=kb 键、
@@ -341,6 +346,9 @@ def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
     其余 kind 空表的数据面门禁归 kb 数据批——本装载器不裁（回炉 R10）；
     宽容面（缺字段的个别条目跳过等）归 CLI/未来调用方——本装载器
     fail-fast，standards 装载器区分记档。
+
+    装载宽容面记档（kbwire C5）：key/expression/source/kind 经 str() 强转
+    =装载宽容非拒判；非缺文件 OSError（权限等）原生传播=环境面错误。
     """
     target = Path(path)
     if not target.is_file():
@@ -381,7 +389,11 @@ def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
                 f"constraint_kb entries[{position}] 字段缺失/非法"
                 f"（key/expression/unit_kinds/severity/kind 必备）：{exc}"
             ) from exc
-        if kind != _BOUNDARY_CHECK_KIND:
+        if constraint.key == _ANY_FAIL_KEY:  # kb 保留字（回炉 R2）——命名域防护
+            raise InvalidConstraintError(
+                f"constraint_kb entries[{position}] key={_ANY_FAIL_KEY!r} 保留字"
+                "（maint.<node>.kb.any_fail face 汇总键命名域防护——门禁前置装载面）")
+        if kind != BOUNDARY_CHECK_KIND:
             _clauses(constraint.expression)  # 装载期 DSL 校验（fail-visible）
         loaded.append(KbConstraint(
             constraint=constraint, unit_kinds=unit_kinds, kind=kind))

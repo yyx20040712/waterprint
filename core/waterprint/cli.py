@@ -21,6 +21,9 @@ selfcheck=discover_units 装载报告+manifest 计数（core 无现成函数—�
 任务书预案口径）；export scene 保持未注册（2）。退出码 0/2/3/4 语义
 不变（T5 读码回填：3=读入/守护/装配校验族，4=执行期领域异常族——
 calc 面 _CALC_* 声明面）。
+kbwire-20261003 拆件记档：calc 命令域（_run_calc/_CALC_*）迁 cli_calc.py，
+CLI 共享底座（_EXIT_*/_DATA_DIR_DEFAULT/_user_out/_data_dir）迁 cli_common.py
+——本件经 import 保引用连续，分发表零改动（cli.py 500/500 贴墙拆件）。
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -55,9 +58,11 @@ calc 面 _CALC_* 声明面）。
 #      （读入/模板/路径/审计链族）；design_hash 与结果三元组不一致=
 #      stderr 警告不拒；渲染前 discover_units 装载注册表（迹公式反查
 #      前置——app.assemble 同款，2026-08-28 实证）。
-#   R6 calc 装配链（AI1）：flows.build_env_flow（--data-dir 缺省=仓库根
-#      data）→build_condition_flow→build_standards_flow（缺失宽容警告）→
-#      run_calc_flow；异常族 _CALC_VALIDATIONS→3 / _CALC_FAILURES→4。
+#   R6 calc 装配链（AI1；kbwire 起实现住 cli_calc.run_calc_command）：
+#      flows.build_env_flow（--data-dir 缺省=仓库根 data）→build_condition_
+#      flow→build_standards_flow（缺失宽容警告）→kb 宽容装载（缺档警告
+#      +()，在场注入 constraints）→run_calc_flow；异常族 _CALC_
+#      VALIDATIONS→3 / _CALC_FAILURES→4（含 kb 坏档 InvalidConstraintError）。
 #
 # 【测试要求】退出码语义、new-unit 拒重名、calc/validate/calcbook/dxf/
 #   selfcheck 端到端（golden municipal 实跑）、乱码防线（GBK 不崩溃）。
@@ -77,17 +82,21 @@ from typing import Final
 from waterprint import flows
 from waterprint.app import (  # app 门面（UF-33 单入口）
     ArtifactKindNotReady,
-    InvalidAssemblyError,
     InvalidProjectError,
     load_project,
 )
-from waterprint.contracts.manifest import InvalidUnitConfig
-from waterprint.contracts.ports import InvalidConnection
+from waterprint.cli_calc import run_calc_command as _run_calc
+from waterprint.cli_common import (  # CLI 域共享底座（same_layer_lib 先例）
+    _DATA_DIR_DEFAULT,
+    _EXIT_CALCULATION,
+    _EXIT_OK,
+    _EXIT_USAGE,
+    _EXIT_VALIDATION,
+    _data_dir,
+    _user_out,
+)
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import InvalidResultError, PlantResult, deserialize
-from waterprint.graph import LoopDivergence
-from waterprint.graph.executor_dsl import InvalidExecutionError
-from waterprint.graph.nodes import InvalidNodeError
 from waterprint.network.excel_io import NetworkExcelError, read_network_excel, write_result_sheet
 from waterprint.network.manning import NetworkHydraulicsError
 from waterprint.network.solver import build_design_options, design_pipes, load_network_coefficients
@@ -98,26 +107,10 @@ from waterprint.units_lib import discover_units
 
 __all__ = ["main"]
 
-# 退出码语义（R1）：0=成功 2=用法错误 3=校验失败 4=计算失败。
-_EXIT_OK: Final[int] = 0
-_EXIT_USAGE: Final[int] = 2
-_EXIT_VALIDATION: Final[int] = _EXIT_USAGE + 1
-_EXIT_CALCULATION: Final[int] = _EXIT_USAGE + 2
 # 管材键名口径（coefficients network.roughness.*——choices 同源）。
 _PIPE_TYPES: Final[tuple[str, ...]] = ("concrete", "plastic")
 # 四业务线（units_lib 目录名——结构图谱 §1a 同口径）。
 _UNIT_LINES: Final[tuple[str, ...]] = ("municipal", "mine_water", "sludge", "conveyance")
-# 数据包根缺省（仓库根 data——golden 测试同款 parents 解析）。
-_DATA_DIR_DEFAULT: Final[Path] = Path(__file__).resolve().parents[2] / "data"
-# calc 面 3 族（读入/守护/装配校验）与 4 族（执行期领域异常）——R6。
-_CALC_VALIDATIONS: Final[tuple[type[BaseException], ...]] = (
-    InvalidProjectError, InvalidAssemblyError, InvalidCoefficientError,
-    flows.InvalidFlowError, OSError,
-)
-_CALC_FAILURES: Final[tuple[type[BaseException], ...]] = (
-    LoopDivergence, InvalidNodeError, InvalidConnection,
-    InvalidUnitConfig, InvalidExecutionError,
-)
 # export 面失败收编族（无计算——R5 全收 3）。
 _EXPORT_FAILURES: Final[tuple[type[BaseException], ...]] = (
     ArtifactKindNotReady, InvalidTemplateError, InvalidAuditError,
@@ -265,24 +258,6 @@ def _run_new_unit(line: str, name: str, root: str | None) -> int:
     return _EXIT_OK
 
 
-def _user_out(out: str | None, default: Path) -> Path | None:
-    """用户面输出路径裁定（R5 共用）：'..' 分量拒；相对路径以 cwd 为基准。"""
-    if out is None:
-        return default
-    raw = Path(out)
-    for part in raw.parts:
-        if part == "..":
-            print(f"[校验失败] 输出路径含越界分量 '..'：{raw}"
-                  "（R5 同款口径——audit._validate_out）", file=sys.stderr)
-            return None
-    return (raw if raw.is_absolute() else Path.cwd() / raw).resolve()
-
-
-def _data_dir(raw: str | None) -> Path:
-    """数据包根裁定：--data-dir 给定用之；缺省=仓库根 data（golden 同款）。"""
-    return Path(raw).resolve() if raw is not None else _DATA_DIR_DEFAULT
-
-
 def _load_pair(project: str, result_path: Path) -> tuple[ProjectFile, PlantResult] | None:
     """export 面读入半（三 kind 共用）：项目→结果→注册表装载→hash 警告。
 
@@ -332,44 +307,6 @@ def _run_export_audit(project: str, result: str, out: str | None) -> int:
     print(f"审计报告已生成：{path}")
     print(f"  迹 {len(plant.trace)} 条 / 工况 {len(plant.conditions)} 档 / "
           f"design_hash {plant.repro.design_hash}（GR-38 原子落盘）")
-    return _EXIT_OK
-
-
-def _run_calc(project_path: str, conditions: str | None,
-              data_dir: str | None, out: str | None) -> int:
-    """calc：flows 全链 → stdout 六指标摘要+warnings 计数+digest（0/3/4）。"""
-    source = Path(project_path).resolve()
-    target = _user_out(out, source.with_suffix(".result.json"))
-    if target is None:
-        return _EXIT_VALIDATION
-    keys = None if conditions is None else [k for k in conditions.split(",") if k]
-    pack = _data_dir(data_dir)
-    try:
-        project = load_project(source)
-        env = flows.build_env_flow(pack, project)
-        cond = flows.build_condition_flow(project, keys)
-        standards = flows.build_standards_flow(pack)
-        result = flows.run_calc_flow(project, cond, env, standards, result_out=target)
-    except _CALC_VALIDATIONS as exc:
-        print(f"[校验失败] 读入/装配/守护：{exc}", file=sys.stderr)
-        return _EXIT_VALIDATION
-    except _CALC_FAILURES as exc:
-        print(f"[计算失败] 执行期：{exc}", file=sys.stderr)
-        return _EXIT_CALCULATION
-    warns = sum(
-        len(unit.warnings)
-        for snapshot in result.plant.conditions.values()
-        for unit in snapshot.values()
-    )
-    print(
-        f"计算完成：{len(result.plant.conditions)} 工况 / warnings {warns} 条 / "
-        f"design_digest {result.design_digest}"
-    )
-    for condition_key in result.plant.conditions:
-        summary = result.plant.summary.get(condition_key, {})
-        line = "  ".join(f"{k}={v:.6g}" for k, v in summary.items())
-        print(f"  [{condition_key}] {line or '（无水质键——非市政终水口径）'}")
-    print(f"  结果已写入 {result.result_path}（serialize 确定性——GR-38 原子落盘）")
     return _EXIT_OK
 
 

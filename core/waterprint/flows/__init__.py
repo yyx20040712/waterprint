@@ -28,8 +28,9 @@
 #   build_standards_flow(data_dir) -> tuple[EffluentStandard, ...]
 #       constraint_kb 装载；缺失 → () 并警告（ADR-012 宽容面）。
 #   run_calc_flow(project, conditions, env, standards, *,
-#                 result_out=None) -> CalcFlowResult（plant/result_path/
-#       design_digest）= run_full_calc 直通；result_out 给定→persist。
+#                 constraints=(), result_out=None) -> CalcFlowResult（plant/
+#       result_path/design_digest）= run_full_calc 直通（constraints kb
+#       注入透传——kbwire 批）；result_out 给定→persist。
 #   result_persist_flow(plant, out) -> Path   serialize 原子落盘（GR-38
 #       同目录唯一 tmp→os.replace——worker K-01 并发双写收口同款）。
 #   validate_flow(project) -> tuple[str, ...] validate_design_structure
@@ -98,6 +99,7 @@ from waterprint.app import (  # app 门面（许可面①——UF-33 单入口�
     DesignMapOptions,
     EnumerationOptions,
     EnumerationOutcome,
+    KbConstraint,
     discover_units,
     export_artifact,
     load_effluent_standards,
@@ -210,16 +212,17 @@ class CalcFlowResult:
     design_digest: str
 
 
-def run_calc_flow(
+def run_calc_flow(  # noqa: PLR0913  # 签名冻结面+kbwire constraints 注入位（export_flow 豁免先例）
     project: ProjectFile,
     conditions: ConditionSet,
     env: RunEnv,
     standards: tuple[EffluentStandard, ...],
     *,
+    constraints: Sequence[KbConstraint] = (),
     result_out: Path | None = None,
 ) -> CalcFlowResult:
-    """calc 流：run_full_calc 直通；result_out 给定→确定性序列化原子落盘。"""
-    bundle = run_full_calc(project, conditions, env, standards=standards)
+    """calc 流：run_full_calc 直通（kbwire constraints 透传）；result_out 给定→确定性原子落盘。"""
+    bundle = run_full_calc(project, conditions, env, standards=standards, constraints=constraints)
     path = (
         result_persist_flow(bundle.plant, result_out)
         if result_out is not None

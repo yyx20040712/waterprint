@@ -21,7 +21,7 @@
 #   docstring；executor._inflows 唯一消费方）。
 #   _src_port_compliant（uf61-axes 批 2026-10-02）：src 口级合规判据
 #   （已声明 OUT 口 ∨ 动态实例口 <declared_out>_<k> k≥2 纯整数；承接分支
-#   前置——未声明口=InvalidExecutionError 响亮拒 GR-09，注记=R6 勘正）。
+#   前置——未声明口=InvalidExecutionError 响亮拒 GR-09，注记=R6/C1 勘正）。
 #   UnitRegistry 协议（CI-fix 批缝 C 2026-10-02）：自 executor.py 下移
 #   ——forward_stocks 第 4 参实参=该协议实例（原签名 Mapping[str, Unit]
 #   与 UnitRegistry 结构不兼容，mypy strict arg-type 红；定义面下移
@@ -57,12 +57,12 @@ from waterprint.graph.loop import LoopConfig
 _LOOP_KEYS: Final[tuple[str, ...]] = (
     "loop.tolerance", "loop.max_iterations", "loop.damping"
 )
-# 动态实例口后缀解析（口级合规——uf61-axes 批；注记勘正回炉 R6）：
-# declared OUT 口 p 的 f"{p}_{k}" 形态，k≥2 纯整数。**"out_2_3"/"out_2.5"
-# 实际命中本 regex**（base="out_2"/"out_2."）——拒判落在 base∉declared_out
-# （"out_x" 尾非纯数字不命中）。前提：已声明 OUT 口命名不含 _<纯数字> 后缀
-# （否则 out_2_3 放行）。可达性（d1-N5）：完整工况集下基线帧 KeyError
-# 先触发——本拒分支对无基线直构载体生效=防御纵深。
+# 动态实例口后缀解析（口级合规——uf61-axes 批；注记勘正 kbwire C1）：
+# declared OUT 口 p 的 f"{p}_{k}" 形态，k≥2 纯整数。"out_2_3" 命中本
+# regex（base="out_2"）——拒判落在 base∉declared_out；"out_2.5"/"out_x"
+# 尾段非 _<纯数字> 不命中 regex。前提：已声明 OUT 口命名不含 _<纯数字>
+# 后缀（否则 out_2_3 放行）。可达性（d1-N5）：完整工况集下基线帧
+# KeyError 先触发——本拒分支对无基线直构载体生效=防御纵深。
 _DYNAMIC_SUFFIX: Final[re.Pattern[str]] = re.compile(r"^(?P<base>.+)_(?P<index>\d+)$")
 _DYNAMIC_MIN_INDEX: Final[int] = 2  # grid 下限 2 下 n−1≥1 → 饥饿动态口恒 k≥2
 

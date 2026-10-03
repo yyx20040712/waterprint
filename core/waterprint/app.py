@@ -213,7 +213,7 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
 from waterprint.registry.effluent import load_effluent_standards
-from waterprint.solution.constraints import KbConstraint, apply_constraints
+from waterprint.solution.constraints import KbConstraint, apply_constraints, load_kb_constraints
 from waterprint.solution.design_map import (
     DesignMap,
     DesignMapOptions,
@@ -254,6 +254,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "InvalidProjectError", "InvalidSitePlanError",  # 后者=ENG7 再导出（server 422 面）
     # B4-3 再导出（server 单入口）
     "JointEnumerationOptions", "JointEnumerationTooLarge", "JointOutcome",
+    "KbConstraint",  # kbwire 再导出（server jobs calc_inputs 类型面——UF-33 单入口）
     "Node", "ResultBundle",  # Node 再导出=AUDIT2 FIX1（server SceneResponse 类型面）
     "RunEnv",
     "SceneGraph",
@@ -263,6 +264,7 @@ __all__ = [  # META1 再导出 discover_units（server /api/units——UF-33 单
     "export_artifact", "inlet_physics_errors",  # 后者=R2-P1-4 再导出（apply 前置域检 422 面）
     "load_coefficients",  # 再导出（CI 补笔 2026-09-10：FD services env 直算——UF-33 单入口）
     "load_effluent_standards",  # 再导出（P2 次批 ADR-012 D6——worker 装载单入口同款）
+    "load_kb_constraints",  # kbwire 再导出（server jobs kb 装载单入口——D6 同款）
     "load_project",
     "load_run_env",  # UF-46 收口（批6l）：RunEnv 装配用例正门——server/flows 共用单源
     "run_design_map",

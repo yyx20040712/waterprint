@@ -323,6 +323,18 @@ def test_kb_loader_bad_dsl_rejected(tmp_path: Path) -> None:
         load_kb_constraints(bad)
 
 
+def test_kb_loader_reserved_key_rejected(tmp_path: Path) -> None:
+    """回炉轮 1 R2：key=any_fail 保留字拒（face 汇总键
+    maint.<node>.kb.any_fail 命名域冲突防护——数据面门禁前置到装载面）。"""
+    clash = tmp_path / "reserved_key.json"
+    clash.write_text(json.dumps({"entries": [{
+        "key": "any_fail", "kind": "geometry_guard", "unit_kinds": ["x"],
+        "expression": "v_pool <= 100.0", "source": "stub", "severity": "ERROR",
+    }]}), encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="保留字"):
+        load_kb_constraints(clash)
+
+
 def test_expression_fields_dedup_ordered() -> None:
     """DSL 单源字段列举（kb 适用判据消费）：去重保持现序+band/∈ 档两形态
     （回炉 R8 补测——kb 真源两种表达式形态的列举面）。"""

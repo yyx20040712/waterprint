@@ -15,7 +15,8 @@
 #   enumerate:   enumerate_solutions
 #   constraints: apply_constraints + KbConstraint/load_kb_constraints/
 #                expression_fields（uf61-axes 批 2026-10-02——kb 装载器
-#                域与 DSL 字段列举单源导出）
+#                域与 DSL 字段列举单源导出）+BOUNDARY_CHECK_KIND（kbwire
+#                C5 单源化——kind 符号契约公开常量）
 #   ranking:     rank
 #   diagnose:    diagnose_infeasibility
 #   design_map:  resolve_axes, ensure_budget, axis_mappings,
@@ -29,6 +30,7 @@
 # ══════════════════════════════════════════════════════════════════
 
 from waterprint.solution.constraints import (
+    BOUNDARY_CHECK_KIND,
     KbConstraint,
     apply_constraints,
     expression_fields,
@@ -53,6 +55,7 @@ from waterprint.solution.grid import GridTooLarge, build_grid
 from waterprint.solution.ranking import rank
 
 __all__ = [
+    "BOUNDARY_CHECK_KIND",
     "DesignMap",
     "DesignMapTooLarge",
     "GridTooLarge",

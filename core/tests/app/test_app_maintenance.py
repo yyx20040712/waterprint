@@ -14,7 +14,8 @@
 #   design 有限非零、offline 有限、exact != 才发）；kb 面=solution.
 #   apply_constraints 单行 DataFrame 求值（禁手写求值——DSL 单源）；
 #   fixgeom 面=kb 覆盖字段 ∩ ratio 可算域上 min(1−off/des)；对比基线=
-#   conditions.baseline[0]（禁字符串字面量 "design"）。
+#   conditions.baseline[0]（禁字符串字面量 "design"）；kb.any_fail 汇总键
+#   =1.0（任一适用越门）/0.0（全过）——applicable 非空才发（kbwire 批）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -119,8 +120,10 @@ def test_kb_face_applicability_three_modes() -> None:
     face = view["design_offline_stub_unit"]
     assert set(face) == {  # 恰 kind 命中且字段在场一条（ratio 无分化零键）
         "maint.stub_unit.kb.kb.stub.hit",
+        "maint.stub_unit.kb.any_fail",  # kbwire 汇总键（applicable 非空同域）
         "maint.stub_unit.fixgeom.min",  # v 全等→裕度 0.0（可算域含全等字段）
     }
+    assert face["maint.stub_unit.kb.any_fail"] == 0.0  # 单条适用且过→0.0
     assert face["maint.stub_unit.fixgeom.min"] == 0.0
     empty = maintenance_summary_of(plant, conditions, units, ())
     assert empty["design_offline_stub_unit"] == {}  # kb 空集=零键（ratio 面无分化同零）
@@ -137,6 +140,28 @@ def test_kb_face_pass_both_levels() -> None:
     face = view["design_offline_stub_unit"]
     assert face["maint.stub_unit.kb.kb.stub.pass"] == 1.0  # 门内
     assert face["maint.stub_unit.kb.kb.stub.fail"] == 0.0  # 越门（标注不阻断）
+
+
+def test_kb_any_fail_three_modes() -> None:
+    """any_fail 汇总键三态（kbwire）：任一适用越门=1.0/全过=0.0/
+    无适用条目=不发键（与 kb 键同域——applicable 非空才发）。"""
+    plant = _double_frame({"v": 80.0, "w": 40.0}, {"v": 120.0, "w": 40.0})
+    conditions = build_condition_set(["stub_unit"])
+    units = _units("stub_kind")
+    failing = maintenance_summary_of(plant, conditions, units, (
+        _kb("kb.stub.pass", "w <= 50", ("stub_kind",)),
+        _kb("kb.stub.fail", "v <= 100", ("stub_kind",)),
+    ))["design_offline_stub_unit"]
+    assert failing["maint.stub_unit.kb.kb.stub.fail"] == 0.0  # 越门单键
+    assert failing["maint.stub_unit.kb.any_fail"] == 1.0  # 任一越门→1.0
+    passing = maintenance_summary_of(plant, conditions, units, (
+        _kb("kb.stub.pass", "w <= 50", ("stub_kind",)),
+    ))["design_offline_stub_unit"]
+    assert passing["maint.stub_unit.kb.any_fail"] == 0.0  # 全过→0.0
+    for constraints in ((), (_kb("kb.stub.other", "v <= 100", ("other_kind",)),)):
+        nonapplicable = maintenance_summary_of(
+            plant, conditions, units, constraints)["design_offline_stub_unit"]
+        assert "maint.stub_unit.kb.any_fail" not in nonapplicable  # 无适用不发键
 
 
 def test_fixgeom_min_negative_overload_semantics() -> None:
@@ -160,7 +185,10 @@ def test_fixgeom_absent_when_kb_field_outside_ratio_domain() -> None:
             _kb("kb.stub.zero_base", "b <= 1", ("stub_kind",)),
         ))
     face = view["design_offline_stub_unit"]
-    assert face == {"maint.stub_unit.kb.kb.stub.zero_base": 1.0}  # kb 面在场、fixgeom 不发
+    assert face == {  # kb 面在场、fixgeom 不发（any_fail 同 kb 域随发）
+        "maint.stub_unit.kb.kb.stub.zero_base": 1.0,
+        "maint.stub_unit.kb.any_fail": 0.0,
+    }
 
 
 def test_target_snapshot_sparse_skip_and_empty_sensitivity() -> None:
@@ -255,6 +283,7 @@ def test_boundary_check_kind_excluded_from_kb_face() -> None:
     face = view["design_offline_stub_unit"]
     assert set(face) == {  # boundary_check 排除（符号式未触达 DSL 求值）
         "maint.stub_unit.kb.kb.stub.normal",
+        "maint.stub_unit.kb.any_fail",  # kbwire 汇总键（normal 过→0.0）
         "maint.stub_unit.fixgeom.min",
     }
     assert face["maint.stub_unit.fixgeom.min"] == 0.0  # 全等字段裕度基准 _FULL
@@ -292,7 +321,7 @@ def test_golden_aao_three_faces() -> None:
     口径）：geometry_guard 8 条+aao 带 2 条（t_n/theta_c 字段在场）=10。"""
     offline = _golden_bundle(_loaded_kb()).plant.summary["design_offline_municipal_aao"]
     ratio = {k: v for k, v in offline.items() if ".ratio." in k}
-    assert set(ratio) == {  # 探针锚：30 dims 键中恰 4 键漂移（几何四键全等不发）
+    assert set(ratio) == {  # 探针锚：35 dims 键中恰 4 键漂移（几何四键全等不发）
         "maint.municipal_aao.ratio.n",
         "maint.municipal_aao.ratio.n_aerator",
         "maint.municipal_aao.ratio.n_aerator_raw",
@@ -300,7 +329,8 @@ def test_golden_aao_three_faces() -> None:
     }
     assert ratio["maint.municipal_aao.ratio.n"] == pytest.approx(0.5)  # n 2→1
     assert ratio["maint.municipal_aao.ratio.n_aerator"] == pytest.approx(2.0)  # ×2 升负荷
-    kb = {k: v for k, v in offline.items() if ".kb." in k}
+    kb = {k: v for k, v in offline.items()
+          if ".kb." in k and k != "maint.municipal_aao.kb.any_fail"}
     assert set(kb.values()) == {1.0}  # kb 全 1.0（越门 0.0 缺席=门内全通过）
     assert len(kb) == 10  # geometry 8+aao 带 2（实跑清点——简报「实现期逐条核」口径）
     assert {k.removeprefix("maint.municipal_aao.kb.") for k in kb} == {
@@ -308,6 +338,7 @@ def test_golden_aao_three_faces() -> None:
         c.constraint.key for c in _loaded_kb()
         if "municipal_aao" in c.unit_kinds
     }
+    assert offline["maint.municipal_aao.kb.any_fail"] == 0.0  # 全过→汇总键 0.0（kbwire 锚）
     assert offline["maint.municipal_aao.fixgeom.min"] == pytest.approx(-1.0)  # 风机台数 ×2 超载
 
 

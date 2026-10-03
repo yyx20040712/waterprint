@@ -112,6 +112,25 @@ def test_run_calc_flow_persists(golden_data_dir: Path, tmp_path: Path) -> None:
     assert deserialize(out.read_bytes()).repro.design_hash == result.design_digest
 
 
+def test_run_calc_flow_constraints_passthrough(golden_data_dir: Path) -> None:
+    """calc 流 constraints 透传（kbwire）：注入→offline 工况 summary 含 kb
+    键；缺省 ()→不含（run_full_calc 直调面零行为变更主张的编排侧锚）。"""
+    from waterprint.solution.constraints import load_kb_constraints
+
+    project = _load_municipal(golden_data_dir)
+    env = _mod.build_env_flow(_REPO_DATA, project)
+    conditions = _mod.build_condition_flow(project, ("municipal_aao",))
+    kb = load_kb_constraints(_REPO_DATA / "constraint_kb" / "constraints.json")
+    injected = _mod.run_calc_flow(project, conditions, env, (), constraints=kb)
+    offline = injected.plant.summary["design_offline_municipal_aao"]
+    assert any(".kb." in key for key in offline)
+    default = _mod.run_calc_flow(project, conditions, env, ())
+    assert not any(
+        ".kb." in key
+        for key in default.plant.summary["design_offline_municipal_aao"]
+    )
+
+
 def test_result_persist_flow_atomic_roundtrip(
     golden_data_dir: Path, tmp_path: Path
 ) -> None:

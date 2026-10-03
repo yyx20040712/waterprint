@@ -78,6 +78,8 @@
 #   - EST-20261001（estimate 501 收口批）：export_batch payload 增 data_dir
 #     读取透传（estimate 项→flows.estimate_render_flow 单价包装载面；
 #     services 提交时绝对路径——SVRB D2 project_path 同通道）。
+#   - KBWIRE（2026-10-03 kb 接线拆件批）：calc 数据装配段拆件 jobs/calc_inputs.py
+#     （standards+kb fail-fast 双装载注入 constraints 参——kb 执法面生产接线）。
 #
 # 【测试要求】各 kind 映射、取消清理、大结果走文件、异常序列化。
 #
@@ -104,6 +106,7 @@ from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import serialize_diag
 
 from waterprint_server.jobs.ai_chat import _run_ai_chat
+from waterprint_server.jobs.calc_inputs import calc_inputs
 from waterprint_server.jobs.dwg import batch_dwg_artifact
 from waterprint_server.jobs.enum_payload import enumeration_payload
 from waterprint_server.jobs.export_batch_lib import (
@@ -215,12 +218,8 @@ def _run_calc(
     if _cancelled(cancel_token):
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("run", 1, len(stages)), progress)
-    # P2 次批 ADR-012 D4/D6：出水标准经 server 数据装配注入（裕度投影
-    # 数据源——constraint_kb 固定资产 fail-fast：缺文件=数据装配缺陷）。
-    standards = core.load_effluent_standards(
-        Path(str(payload["data_dir"])) / "constraint_kb" / "constraints.json"
-    )
-    bundle = core.run_full_calc(project, conditions, env, standards=standards)
+    standards, kb = calc_inputs(Path(str(payload["data_dir"])))
+    bundle = core.run_full_calc(project, conditions, env, standards=standards, constraints=kb)
     if _cancelled(cancel_token):  # 结果落地前检查（R4：不写半途结果）
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("serialize", 2, len(stages)), progress)
