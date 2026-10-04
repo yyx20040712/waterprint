@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib
+import multiprocessing as mp
 import shutil
 from pathlib import Path
 
@@ -22,6 +23,23 @@ pytestmark = [
         reason="实现未就绪：waterprint_server.jobs.worker（服务层 M2）",
     ),
 ]
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _hh1_stale_closed_queue_residue():
+    """HH1（1A7 批）防御锚：模块级残留=前序测试 manager.shutdown 后的
+    worker._PROGRESS_QUEUE 全局形态（Manager.start 注入全局、shutdown 关
+    队列不清全局——跨测试残留；jobs conftest per-test 前清隔离前，本模块
+    直调 run_task(payload, None, None) 三件稳定踩「mp.Queue is closed」，
+    即 exp-hygiene P7 在册组合子集 3 红实录的复现机制）。
+
+    植入一个已关闭队列=持续施加历史故障条件：隔离（conftest 每测试前清
+    None）在则本模块全绿；隔离被移除则直调件复红——防御断言钉死该序。"""
+    stale = mp.Queue()
+    stale.close()
+    _mod._PROGRESS_QUEUE = stale  # noqa: SLF001  # 残留植入（隔离面红证载体）
+    yield
+    _mod._PROGRESS_QUEUE = None  # noqa: SLF001  # 模块收尾清位（不外泄）
 
 
 def test_worker_entry_imports_without_side_effects() -> None:
