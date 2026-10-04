@@ -78,7 +78,7 @@ def _validate(params: dict[str, float], unit_id: str) -> None:
     """参数域守卫：台数/几何/步长非正一律拒（GR-02 输入即拒精神）。"""
     for key in ("n", "b", "h", "s", "alpha"):
         value = params.get(key)
-        if value is None or value <= 0:
+        if value is None or not value > 0:
             raise InvalidUnitConfig(f"单元 {unit_id!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
 
 

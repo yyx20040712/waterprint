@@ -208,6 +208,7 @@
   "core/tests/units_lib/test_condition_mappings_boundary.py": "710c39b51f9cf37b0c12f700d1f37a1b5df050299194e4da76b1193b2871d014",
   "core/tests/units_lib/test_condition_mappings_lines.py": "59abf63e83da23cb387fadf533c7cbee60411449981e320a5d32d1896a38e00b",
   "core/tests/units_lib/test_n1_degenerate_battery.py": "b2ed06dd8cdf2817c269a66dad11947c318003672b13d0249129cf359addb9ac",
+  "core/tests/units_lib/test_positive_guard_nan.py": "67264655d414d3f21d628397e39d3d567000dde97fe47e120db166a1d0be0d62",
   "core/tests/units_lib/test_removal_semantics.py": "fa0e72b0a42a6eee812993216a3b37e0fb0c9b3c55f1baa20dae6b706ca519c1",
   "core/tests/units_lib/test_unit_compute.py": "0d3614426f60a664c5ef0fc9c70610020e16f6ea9a7a7583f5a2ed500347d1a9",
   "core/waterprint/units_lib/_template/tests/properties.py": "e744ec12a92f7d53596aa0f30a76e13974896e9b051c1e116e79ee70097c1ce7",

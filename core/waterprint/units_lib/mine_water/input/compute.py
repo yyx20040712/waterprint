@@ -70,7 +70,7 @@ def _validate(params: dict[str, float]) -> None:
     """参数域守卫：流量/管径/标高/水深/浓度非正一律拒；kz≥1 厂界口径拒。"""
     for key in _PARAMS_POSITIVE:
         value = params.get(key)
-        if value is None or value <= 0:
+        if value is None or not value > 0:
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}"
             )
