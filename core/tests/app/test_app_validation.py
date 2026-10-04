@@ -1,15 +1,18 @@
 """app_validation 镜像测试：厂级进水输入合理性校验骨架（1A2 批）。
 
 输入:  waterprint.app_validation（validation_summary_of/INPUT_BAND_FIELDS/
-       INPUT_BAND_KIND）+kb 真源（仓库 data 面 42 条——1A3 批增 mass_balance
-       1 条）+golden 双案
+       INPUT_BAND_KIND/MASS_BALANCE_KIND）+kb 真源（仓库 data 面 42 条——
+       1A3 批增 mass_balance 1 条）+golden 双案
        （municipal_34760 市政进水声明/mine_43836 矿井线无市政声明节点）
 输出:  行为断言——合法进水零警告/非法进水码命中（kz 双界参数化/CODCR/
-       五指标越带参数化/混合越带+混合缺项不掩蔽）/缺项跳检不警（指标两
-       态+kz 键缺席态）/真实节点键集外部锚/选条判据=kind 直判/memo①冻结
-       字段集机器对账/memo③映射表对账/memo②负向锚（A41 vs B34 serialize
-       恒等+B vs C 差异面恰 12 键 maint.* 前缀锚定）/首节点插入序取首/
-       run_full_calc 第四字段接线（显式+缺省 constraints 路径）/双跑确定性
+       五指标越带参数化〔SS 用例含 mass_balance 交互面在档〕/混合越带+
+       混合缺项不掩蔽）/缺项跳检不警（指标两态+kz 键缺席态）/真实节点
+       键集外部锚/选条判据=kind 直判（input_band∪mass_balance 双剔除）/
+       memo①冻结字段集机器对账/memo③映射表对账/memo②负向锚（A42 vs
+       B34 serialize 恒等+B vs C 差异面恰 12 键 maint.* 前缀锚定）/首节点
+       插入序取首/run_full_calc 第四字段接线（显式+缺省 constraints 路径）
+       /双跑确定性；1A3 泥量互校族行为面=伴生件
+       test_app_validation_mass_balance.py（行数预算墙拆分）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -34,6 +37,7 @@ import pytest
 from waterprint.app_validation import (
     INPUT_BAND_FIELDS,
     INPUT_BAND_KIND,
+    MASS_BALANCE_KIND,
     validation_summary_of,
 )
 from waterprint.contracts.condition import build_condition_set
@@ -62,6 +66,8 @@ _INDICATOR_CASES: tuple[tuple[str, float, str], ...] = (
     ("TN", 80.0, "inlet.quality_upper.tn"),
     ("TP", 15.0, "inlet.quality_upper.tp"),
 )
+# mass_balance 键（SS 越带交互断言用——行为面归伴生件）
+_MB_CODE = "sludge.primary_load_band"
 
 
 def _municipal_raw() -> dict[str, Any]:
@@ -134,11 +140,17 @@ def test_illegal_indicator_hits_quality_code(
     loaded_kb: tuple[KbConstraint, ...], field: str, value: float, code_key: str
 ) -> None:
     """五指标越带参数化（d1-W2b——与 kz/CODCR 用例同构）：各上界外值→
-    各自码恰单命中（param_key=冻结字段名——key 后缀与字段异名对照）。"""
+    各自码恰单命中（param_key=冻结字段名——key 后缀与字段异名对照）。
+    SS 用例交互面在档（1A3）：越带 SS=500 同时压低互校 ratio≈0.186＜
+    下界 0.2（golden 声明 ds_primary=3240.12 对越带 SS 不一致）→
+    mass_balance 码齐发（warn 序=kb 声明序：input_band 在前）。"""
     report = validation_summary_of(
         _municipal_project(**{field: value}), loaded_kb)
-    assert report.codes() == (kb_warning_code(code_key),)
-    (warning,) = report.warnings
+    expected = [kb_warning_code(code_key)]
+    if field == "SS":
+        expected.append(kb_warning_code(_MB_CODE))
+    assert report.codes() == tuple(expected)
+    warning = next(w for w in report.warnings if w.param_key == field)
     assert warning.param_key == field
     assert f"{value!r}" in warning.message  # 实际值入话
 
@@ -229,8 +241,7 @@ def test_selection_criterion_is_kind_not_unit_kinds(
     接线红线；两 kind 同款）。"""
     others = tuple(
         kb for kb in loaded_kb
-        if kb.kind not in {INPUT_BAND_KIND, "mass_balance"})  # 过渡字面量
-    # （C3 core 笔换 MASS_BALANCE_KIND 常量单源——数据笔先行计数锚勘正）
+        if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND})
     assert len(others) == 34  # 42−8（负向锚 B 面同款剔除口径——勘正注记）
     assert not validation_summary_of(
         _municipal_project(kz=3.0), others)
@@ -326,8 +337,8 @@ def golden_run() -> Any:
     loaded = load_kb_constraints(_KB_FILE)
     without = tuple(
         kb for kb in loaded
-        if kb.kind not in {INPUT_BAND_KIND, "mass_balance"})  # 过渡字面量
-    # （B 面=42−8=34——input_band∪mass_balance 双剔除口径，C3 core 笔换常量）
+        if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND})
+    # （B 面=42−8=34——input_band∪mass_balance 双剔除口径）
 
     def run(active: tuple[KbConstraint, ...], inflow: ProjectFile | None = None) -> Any:
         return run_full_calc(inflow or project, conditions, env, constraints=active)
