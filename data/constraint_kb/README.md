@@ -218,9 +218,16 @@ options.constraints 通道）落地为：
   /水质/标高/其余物理量——正性域=物理必然非阈值条文，不逐键造精确条文；
   与 1A3 带域出处的差异在 value_basis 注明）。**消费面（2.0.0 时点）**：
   core app_validation param_band 分支（1A4 批接线——选条=节点 ID∈
-  unit_kinds，越带产警告码不阻断=flag 语义）；`_maint_face` 字段准入
+  unit_kinds，越带产警告码不阻断=flag 语义；遍历独立于进水声明面——
+  矿井线整族可达〔回炉 W1 拆门勘正〕）；`_maint_face` 字段准入
   （expression_fields⊆offline_dims）对 params 声明键自然不选中——maint
-  标注面零新键；枚举面仅消费显式勾选（param_band 不在勾选清单）。
+  标注面零新键（**D1 勘正注记〔回炉 W2——门一双审证伪陈述修正**〕：
+  上句论断对与离线 dims 同名的参数键不成立——aao 离线 dims 含 n/h2
+  →param.n/h2.positive 经字段准入**合法选中**，golden 案 param_band
+  注入的 maint 标注面增量恰 4 键全 PASS（kb.param.n/h2.positive=1.0+
+  any_fail=0.0+fixgeom.min=0.0），零值变零删减=纯标注增量非行为破坏；
+  详见批档 impl-report 实现裁量 D1+app_validation 头注等义记载）；
+  枚举面仅消费显式勾选（param_band 不在勾选清单）。
   **AI 起草待追认（1A4 批——P10 追认流程后续批消化）**。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）

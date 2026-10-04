@@ -168,13 +168,38 @@ def test_golden_five_cases_zero_param_band_warnings(
     loaded_kb: tuple[KbConstraint, ...],
 ) -> None:
     """golden 五案例（三系+loop+矿井）param_band 面零警告——快照对照前置
-    实证的运行期复证（24 参数次全带内，扫描单源=批档 scan_output.txt）。"""
+    实证的运行期复证（24 参数次全带内〔矿井案 12 处——回炉 W1 拆门后
+    真跑非空转〕，扫描单源=批档 scan_output.txt）。"""
     for case in ("municipal_34760", "municipal_34760_conveyance",
                  "municipal_34760_recycle", "municipal_34760_loop",
                  "mine_43836"):
         report = validation_summary_of(
             ProjectFile.model_validate(_raw(case)), loaded_kb)
         assert not report, case
+
+
+def test_mine_line_param_band_positive_control(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """回炉 W1 真证（防空转变真证）：矿井线（无 municipal_input 声明节点
+    ——进水单值表空）param_band 照常执法——nongsuo 注 n=-1 →恰单码
+    kb.param.n.positive 命中（condition_key=sludge_nongsuo 单元级影响面
+    /param_key=n/message 含节点.字段与表达式）；对照未注入态零警告
+    （同案原值 n=2.0 带内）。原批早退门 `if not values: return` 下本
+    用例空转红面（进水面缺席截断整族——双审 k1+d1 同中）。"""
+    report = validation_summary_of(
+        _project_with(case="mine_43836", node="sludge_nongsuo", n=-1.0),
+        loaded_kb)
+    assert report.codes() == (kb_warning_code("param.n.positive"),)
+    (warning,) = report.warnings
+    assert warning.condition_key == "sludge_nongsuo"
+    assert warning.param_key == "n"
+    assert warning.severity.value == "WARN"
+    assert "sludge_nongsuo.n=-1.0" in warning.message
+    assert "n > 0" in warning.message  # 表达式原文
+    # 对照：未注入态零警告（修复后矿井腿真跑——12 参数次全带内）
+    assert not validation_summary_of(
+        ProjectFile.model_validate(_raw("mine_43836")), loaded_kb)
 
 
 def test_golden_plant_face_increment_is_four_pass_keys() -> None:
@@ -203,7 +228,6 @@ def test_golden_plant_face_increment_is_four_pass_keys() -> None:
         changed += [
             f"{condition_key}:{k}" for k in set(face_a) & set(face_z)
             if face_a[k] != face_z[k]]
-    assert added == sorted(added) or True  # 顺序不设锚（值锚为准）
     assert set(added) == {
         "design_offline_municipal_aao:maint.municipal_aao.fixgeom.min",
         "design_offline_municipal_aao:maint.municipal_aao.kb.any_fail",

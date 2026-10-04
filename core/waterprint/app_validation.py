@@ -49,8 +49,10 @@ project 原始声明 × kb 求值。
 #   R2 进水单值表=project 进水原始数据直取（design.nodes 中
 #      kind=municipal_input 声明节点——非计算值；多声明仅取插入序首个
 #      同款；识别判据不同（本件=kind 字面判据 vs app_influent=无入边+
-#      outflows 结构判据）——矿井线排除=1A2 裁决语义（无该节点=空表全
-#      跳检）。kz 恒在=装配路径 make_flow 守卫背书（路径外直调无背书
+#      outflows 结构判据）——矿井线排除=1A2 裁决语义（无该节点=空表
+#      →进水面/泥量面两族全跳检〔族内门承载——回炉 W1 勘正：空表语义
+#      仅辖进水声明依赖族，param_band 不受此门〕）。kz 恒在=装配路径
+#      make_flow 守卫背书（路径外直调无背书
 #      ——kz 键缺席即跳检）+q_avg_daily（1A3 增准——WaterFlow 契约字段
 #      同源）+六指标（None/键缺席均不入表=跳检零警告）。
 #   R3 求值=solution.apply_constraints 单行 DataFrame 逐条求值
@@ -96,7 +98,11 @@ project 原始声明 × kb 求值。
 #      param_key=field（单字段表达式——数据驱动单源）、severity=条目
 #      severity、message=「单元参数域越带：{key}——{节点}.{field}={值!r}
 #      违反 {表达式}」三要素（实际值+表达式原文+条目键）。warn 序=kb
-#      传入序×节点插入序（确定性）。
+#      传入序×节点插入序（确定性）。**遍历独立于进水声明面**（回炉 W1
+#      勘正：单元级校验与进水声明无依赖——原批早退门 `if not values:
+#      return` 截断矿井线整族系预裁决缺陷，任务书 §3.2「扫 design.nodes」
+#      宣告语义本无进水前提；拆门后进水面/泥量面两族跳检语义由族内门
+#      R2 字段门/R6 基准面门原样承载，行为零变化）。
 #   零破坏注记（1A4 批档 impl-report 实现裁量 D1 勘正）：param_band 条目
 #      经 app_maintenance _maint_face 字段准入（expression_fields⊆offline
 #      dims）对与离线 dims 同名的参数键（如 aao 的 n/h2）合法选中——
@@ -247,18 +253,23 @@ def validation_summary_of(
     """厂级进水输入合理性校验+泥量量级互校+单元参数正性域校验
     （1A2/1A3/1A4）：kind/节点 ID 选条→单行表逐条求值→报告。
 
-    纯投影不阻断（R5——仪表灯语义）；kb 迭代=传入序（warn 序确定性）。"""
+    纯投影不阻断（R5——仪表灯语义）；kb 迭代=传入序（warn 序确定性）。
+
+    进水声明面缺席（矿井线无 municipal_input 节点）=进水面/泥量面两族
+    各自跳检（R2/R6 族内门自然承载——字段门/基准面门），param_band 遍历
+    独立不受此面约束（R8——回炉 W1 拆门：原批早退门 `if not values:
+    return` 截断单元级校验整族，矿井线 12 参数次带内面死转——双审 k1+d1
+    同中勘正）。"""
     values = _inlet_values(project)
-    if not values:
-        return ValidationReport(warnings=())  # 无进水声明面=全跳检（R2）
-    frame = pandas.DataFrame([values])
+    frame = pandas.DataFrame([values])  # 空表仅进水面族可能消费（族内门先跳）
     ds_primary = _sludge_ds_primary(project)
     warnings: list[PlantWarning] = []
     for kb in constraints:
         if kb.kind == INPUT_BAND_KIND:
             fields = expression_fields(kb.constraint.expression)
             if not set(fields) <= values.keys():
-                continue  # 缺项跳检不警（R2——条目字段不全在场）
+                continue  # 缺项跳检不警（R2——条目字段不全在场；进水
+                # 声明面缺席=空表同态全跳检——W1 拆门后族内门承载）
             passed = bool(
                 apply_constraints(frame, [kb.constraint]).pass_matrix.to_numpy().all())
             if passed:

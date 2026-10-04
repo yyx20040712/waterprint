@@ -40,7 +40,7 @@
   "core/tests/app/test_app_trust.py": "d4fd90d72f76d2bc4e8b221e51471fa9af677de410ed06f11a9f894a8054efed",
   "core/tests/app/test_app_validation.py": "39f2dbe2f2271c1ea66e3137cf81e57559d447f670af270c9e4fc26b6603a828",
   "core/tests/app/test_app_validation_mass_balance.py": "c62f57325c25b2f9c7d2ebe3ae9d48945a564c8431c047a66ba0e237e5109c17",
-  "core/tests/app/test_app_validation_param_band.py": "70791424dddddb7690f4a8580c0517061560a1181f98a21ac88b3692194a63b2",
+  "core/tests/app/test_app_validation_param_band.py": "3c688c70ce3bfd01b39098455771ef11258db9bcd66a7292e27831dbf4de9166",
   "core/tests/app/test_cli.py": "bb915ba49c311afd07082fe9a1e2c18474d0464d54f5a78cf4611391035b7101",
   "core/tests/app/test_cli_calc.py": "6e4a7b75fa6b750184dfb1401b1db109c51b17a942bde72299c8fe6170d1f0af",
   "core/tests/app/test_cli_common.py": "72e7b37504a2db46e8d905132681a38863fd5e58cb6e19bd37b984907d43daa0",
