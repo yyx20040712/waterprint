@@ -1,10 +1,12 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.8.0 起草态（全量 41 条九键=第九键 enforcement 逐条定级
-> AI 起草待追认〔§1a6 清单——.workflow/1a6-20261003/draft-table.md
-> 起草表=呈用户追认的唯一材料；与 1A1 七条数值合并呈报，追认批统一
-> 升 1.8.1 回写标记〕：flag 23+block 18——P1 裁决选项 3「kb 逐条
-> severity 声明式定级」落地，两维正交见 schema 节；1.7.0 起草态叠加
+> **状态：1.8.1（全量 41 条九键——1A1 七条数值+1A6 第九键 enforcement
+> 逐条定级**已追认（用户裁决 2026-10-04 R2 全量追认，1.8.1 回写标记
+> ——含 effluent 四行取严格档裁量一并追认）**〔§1a6 清单——.workflow/
+> 1a6-20261003/draft-table.md 起草表=呈用户追认的唯一材料；与 1A1
+> 七条数值合并呈报〕；裁决记录=.workflow/adjudication-batch-20261004.md
+> 裁决记录节。定级分布：flag 23+block 18——P1 裁决选项 3「kb 逐条
+> severity 声明式定级」落地，两维正交见 schema 节；1.7.0 叠加
 > input_band 7 条〔§1a1 清单——.workflow/1a1-20261003/draft-table.md
 > 起草表〕：Kz 总变化系数静态包络带+进水六指标浓度上限带，追认单直录
 > 形态——存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
@@ -140,7 +142,8 @@ options.constraints 通道）落地为：
   `inlet.quality_upper.<sym>` 单侧 `field <= max`（字段=契约既有进水面
   命名 BOD5/CODCR/SS/NH3N/TN/TP——contracts 冻结面直用，非新建命名）。
   severity 全 WARN（1A6 批定级=enforcement 全 flag——WARN 提示不拒收
-  语义承接）；数值=追认单直录起草（无
+  语义承接）；数值=追认单直录——已追认（用户裁决 2026-10-04，1.8.1
+  回写）（无
   coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批，
   起草表=§1a1 清单）。**消费面=零**（core solution 装载器不拒不裁——
   kind 空表数据面门禁归 kb 数据批 R10 口径；kb 执法面 `_maint_face`
@@ -183,23 +186,24 @@ options.constraints 通道）落地为：
 
 | 量 | 带内容 | 载体（唯一归属） | 执法面 | 状态 |
 |----|--------|------------------|--------|------|
-| Kz（总变化系数） | 行业上下限 | constraint_kb `input_band`（inlet.kz_band——1A1 批 1.7.0 录入，静态包络带；流量相关精确内插表挂账不录） | 待执法面接线（1A2 校验骨架——kb 执法面按 unit_kinds 选中，空表恒不选中） | 已录入起草态待追认（§1a1 清单——手册原册页级复核归追认批） |
+| Kz（总变化系数） | 行业上下限 | constraint_kb `input_band`（inlet.kz_band——1A1 批 1.7.0 录入，静态包络带；流量相关精确内插表挂账不录） | 待执法面接线（1A2 校验骨架——kb 执法面按 unit_kinds 选中，空表恒不选中） | 已录入；已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
 | q_avg_daily（厂界流量） | A-1~A-3：≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示不阻塞 | `flows/params_guard.py` builtin 常量（builtin kind 无 manifest——锚=b3a-research §二 A 组+§七追认 2026-09-26） | server 422 整批拒+core ParamVerdict | 已落地（批3b） |
 | 单元参数（30 包 94 条） | 手册表出处 range（闭区间 GR-06） | units_lib manifest `params.range` | `params_guard` face④ 闭区间执法 | 已落地（批3b） |
 | 几何四量（l_pool/b_pool/v_pool/n_aerator） | 提示/拒收双门 | constraint_kb `geometry_guard` 8 条（1.5.0） | `apply_constraints` 勾选过滤 | 已落地（批3b） |
 | 枚举可行带 | 存量 6 条+1.6.0 扩 5 条（AAO/CASS 双侧带） | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 已追认（存量 Ruling 2026-08-31；扩 5 条 Ruling 2026-10-01） |
-| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=constraint_kb `input_band`（inlet.quality_upper.* 6 条——1A1 批 1.7.0 录入） | 契约在册；kb 上限带待执法面接线（1A2——同 Kz 行口径） | 契约面已定义；上限带已录入起草态待追认（§1a1 清单——手册原册页级复核归追认批） |
+| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=constraint_kb `input_band`（inlet.quality_upper.* 6 条——1A1 批 1.7.0 录入） | 契约在册；kb 上限带待执法面接线（1A2——同 Kz 行口径） | 契约面已定义；上限带已录入，已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
 
 > 新增量的归属判断规则：数学不变量（符号/有限性/量纲）一律契约面；
 > 行业带（上下限/常用档）一律数据面（本库或 manifest range）——两不
 > 混载（契约带=硬编译、数据带=可追认可演进）。
 
-## 起草清单（1.7.0 input_band 七条——AI 起草待追认）
+## 起草清单（1.7.0 input_band 七条——已追认）
 
 > 起草表全文（七条·每条八键逐字+数值起草依据+挂账注记）=
 > `.workflow/1a1-20261003/draft-table.md`（仓外批档——呈用户追认的
-> 唯一材料）；本节为库内索引面。追认后升 1.7.1 回写标记（RATIFY-CP1
-> 先例形态）。
+> 唯一材料）；本节为库内索引面。已追认（用户裁决 2026-10-04，
+> 1.8.1 回写——RATIFY-CP1 先例形态；1.7.0 起草态叠加由 1.8.0 承载
+> 不单独定稿，追认随 1.8.1 统一回写，无 1.7.1 槽位）。
 
 | key | expression | severity | 数值权威 |
 |---|---|---|---|
@@ -215,12 +219,13 @@ options.constraints 通道）落地为：
   复核归追认批（severity 逐条定级已由 1A6 批 enforcement 起草承载）；
   ③执法面（进水输入校验接线）归 1A2 校验骨架批。
 
-## 定级起草清单（1.8.0 enforcement 41 条——AI 起草待追认）
+## 定级起草清单（1.8.0 enforcement 41 条——已追认）
 
 > 起草表全文（41 条逐条 key/enforcement/一句理由引 kind 语义或 P1 件
 > 层级+挂账清单）=`.workflow/1a6-20261003/draft-table.md`（仓外批档
 > ——呈用户追认的唯一材料）；本节为库内索引面。与 1A1 七条数值合并
-> 呈报，追认批统一升 1.8.1 回写标记（RATIFY-CP1 先例形态）。
+> 呈报，已追认（用户裁决 2026-10-04，1.8.1 回写——RATIFY-CP1 先例
+> 形态；含 effluent 四行取严格档裁量一并追认）。
 
 | kind（条数） | enforcement | 定级依据（一句话——逐条理由见起草表） |
 |---|---|---|
