@@ -43,14 +43,11 @@ _SPACING_COUNT = 2
 _BOUNDARY_COUNT = 1
 _GEOMETRY_COUNT = 8
 _INPUT_BAND_COUNT = 7
-# 1.7.0 起草态七键（1A1 批——§1a1 清单待追认；追认单直录无 factor 源键，
-# 手册原册页级复核归追认批；追认后随标记回写撤集——_DRAFT16 先例形态）
-_DRAFT17_KEYS = {
-    "inlet.kz_band",
-    "inlet.quality_upper.cod", "inlet.quality_upper.bod5",
-    "inlet.quality_upper.ss", "inlet.quality_upper.nh3n",
-    "inlet.quality_upper.tn", "inlet.quality_upper.tp",
-}
+# 起草键集撤集记档（1A3 批挂账清偿③——1.6.1 批 _DRAFT16_KEYS 撤集先例
+# 形态）：1A1 七键已随 Ruling 2026-10-04 用户裁决 R2 全量追认生效
+# （1.8.1 批 entry 级标记回写由 1A3 批兑现——constraints.json 17 处
+# 「AI 起草待追认」字样回写已追认），_DRAFT17_KEYS 起草键集撤除，
+# 恢复无过滤键集断言形态（七键锁面内联于 input_band 契约测试）。
 # 1A6 批 1.8.0 enforcement 定级分布锚（41 条=flag 23+block 18——分 kind
 # 形态；两维正交：severity 答呈现分层/enforcement 答违规算不算失败；
 # 起草表=draft-table.md 呈用户追认——追认批统一升 1.8.1 回写标记）
@@ -224,14 +221,22 @@ def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
     挂账）+进水六指标浓度上限带（expression `field <= <float>` 单侧上界式，
     字段=契约既有进水面命名 kz/BOD5/CODCR/SS/NH3N/TN/TP 非新建）；横切
     进水面非单元包（unit_kinds 恒空=全适用——boundary_check 空表先例）；
-    severity 全 WARN（逐条定级归 1A6）；起草态=追认单直录（无 coefficients
-    源键——geometry_guard 先例；手册原册页级复核归追认批）。
+    severity 全 WARN（逐条定级归 1A6）；追认单直录（无 coefficients
+    源键——geometry_guard 先例）——已追认（Ruling 2026-10-04 用户裁决
+    R2 全量追认，1A3 批回写 entry 级标记）。
     """
     catalog = list_constraints(_REPO)
     bands = [e for e in catalog.entries if e.kind == "input_band"]
     assert len(bands) == _INPUT_BAND_COUNT
     by_key = {e.key: e for e in bands}
-    assert set(by_key) == _DRAFT17_KEYS
+    # 七键锁面（无过滤形态——_DRAFT17_KEYS 起草键集已随追认生效撤集，
+    # 1.6.1 批 _DRAFT16_KEYS 撤集先例形态；1A3 批挂账清偿③）
+    assert set(by_key) == {
+        "inlet.kz_band",
+        "inlet.quality_upper.cod", "inlet.quality_upper.bod5",
+        "inlet.quality_upper.ss", "inlet.quality_upper.nh3n",
+        "inlet.quality_upper.tn", "inlet.quality_upper.tp",
+    }
     # 表达式锁面（起草表七条逐字——数值漂移即红）
     assert by_key["inlet.kz_band"].expression == "kz >= 1.3 and kz <= 2.7"
     assert by_key["inlet.quality_upper.cod"].expression == "CODCR <= 1000.0"
@@ -240,10 +245,10 @@ def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
     assert by_key["inlet.quality_upper.nh3n"].expression == "NH3N <= 50.0"
     assert by_key["inlet.quality_upper.tn"].expression == "TN <= 60.0"
     assert by_key["inlet.quality_upper.tp"].expression == "TP <= 10.0"
-    for entry in bands:  # 横切进水面：空表=全适用+WARN+起草态标记在册
+    for entry in bands:  # 横切进水面：空表=全适用+WARN+追认标记在册
         assert entry.unit_kinds == ()
         assert entry.severity == "WARN"
-        assert "起草待追认" in entry.value_basis
+        assert "已追认" in entry.value_basis  # R2 全量追认回写（1A3 批挂账清偿②）
         assert "追认单直录" in entry.value_basis
     # Kz 带挂账注记在册（流量相关精确内插表显式挂账不录——预裁决③）
     assert "挂账" in by_key["inlet.kz_band"].value_basis
