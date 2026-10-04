@@ -145,10 +145,13 @@ options.constraints 通道）落地为：
   语义承接）；数值=追认单直录——已追认（用户裁决 2026-10-04，1.8.1
   回写）（无
   coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批，
-  起草表=§1a1 清单）。**消费面=零**（core solution 装载器不拒不裁——
-  kind 空表数据面门禁归 kb 数据批 R10 口径；kb 执法面 `_maint_face`
-  适用判据 `unit_kind in unit_kinds` 对空表恒不选中；枚举面仅消费调用
-  方显式勾选——执法面接线归 1A2 校验骨架批）。
+  起草表=§1a1 清单）。**消费面（1.8.1 时点）**：core solution 装载器
+  不拒不裁——kind 空表数据面门禁归 kb 数据批 R10 口径；`_maint_face`
+  适用判据 `unit_kind in unit_kinds` 对空表恒不选中（其余 kind 的
+  观测键面）；枚举面仅消费调用方显式勾选；**input_band 七条已由 1A2
+  批接线消费**（2026-10-04——plant 级进水面 kind 直判选条
+  `app_validation`，unit_kinds 不参与〔接线红线〕；违规产警告码
+  不阻断=enforcement flag 语义）。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
   的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core
@@ -186,12 +189,12 @@ options.constraints 通道）落地为：
 
 | 量 | 带内容 | 载体（唯一归属） | 执法面 | 状态 |
 |----|--------|------------------|--------|------|
-| Kz（总变化系数） | 行业上下限 | constraint_kb `input_band`（inlet.kz_band——1A1 批 1.7.0 录入，静态包络带；流量相关精确内插表挂账不录） | 待执法面接线（1A2 校验骨架——kb 执法面按 unit_kinds 选中，空表恒不选中） | 已录入；已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
+| Kz（总变化系数） | 行业上下限 | constraint_kb `input_band`（inlet.kz_band——1A1 批 1.7.0 录入，静态包络带；流量相关精确内插表挂账不录） | 已接线（1A2 批 2026-10-04——plant 级进水面 kind 直判选条，unit_kinds 不参与；违规=警告码不阻断〔flag 语义〕） | 已录入；已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
 | q_avg_daily（厂界流量） | A-1~A-3：≤0 或 >60 m³/s 拒收；(0,10 m³/d) 与 >100 万 m³/d 提示不阻塞 | `flows/params_guard.py` builtin 常量（builtin kind 无 manifest——锚=b3a-research §二 A 组+§七追认 2026-09-26） | server 422 整批拒+core ParamVerdict | 已落地（批3b） |
 | 单元参数（30 包 94 条） | 手册表出处 range（闭区间 GR-06） | units_lib manifest `params.range` | `params_guard` face④ 闭区间执法 | 已落地（批3b） |
 | 几何四量（l_pool/b_pool/v_pool/n_aerator） | 提示/拒收双门 | constraint_kb `geometry_guard` 8 条（1.5.0） | `apply_constraints` 勾选过滤 | 已落地（批3b） |
 | 枚举可行带 | 存量 6 条+1.6.0 扩 5 条（AAO/CASS 双侧带） | constraint_kb `enumeration_filter` | `apply_constraints` 勾选过滤 | 已追认（存量 Ruling 2026-08-31；扩 5 条 Ruling 2026-10-01） |
-| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=constraint_kb `input_band`（inlet.quality_upper.* 6 条——1A1 批 1.7.0 录入） | 契约在册；kb 上限带待执法面接线（1A2——同 Kz 行口径） | 契约面已定义；上限带已录入，已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
+| 水质浓度（六指标） | 负浓度/非有限=数学不变量；行业上限带 | 契约面=`contracts/quality.py`（构造拒绝）；上限带=constraint_kb `input_band`（inlet.quality_upper.* 6 条——1A1 批 1.7.0 录入） | 契约在册；kb 上限带已接线（1A2 批 2026-10-04——同 Kz 行口径） | 契约面已定义；上限带已录入，已追认（用户裁决 2026-10-04，1.8.1 回写——§1a1 清单） |
 
 > 新增量的归属判断规则：数学不变量（符号/有限性/量纲）一律契约面；
 > 行业带（上下限/常用档）一律数据面（本库或 manifest range）——两不
@@ -217,7 +220,8 @@ options.constraints 通道）落地为：
 
 - 挂账：①流量相关 Kz 精确内插表不录（设计计算辅助）；②手册原册页级
   复核归追认批（severity 逐条定级已由 1A6 批 enforcement 起草承载）；
-  ③执法面（进水输入校验接线）归 1A2 校验骨架批。
+  ③执法面（进水输入校验接线）已由 1A2 批落地（2026-10-04：plant 级
+  kind 直判选条+警告码面——block 断路器接线仍挂账 P1 后续批）。
 
 ## 定级起草清单（1.8.0 enforcement 41 条——已追认）
 
