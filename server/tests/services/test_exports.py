@@ -270,6 +270,45 @@ async def test_batch_items_unit_id_empty_falls_back_to_batch_wiring(
     assert [item["unit_id"] for item in items] == ["municipal_cass", "municipal_cass"]
 
 
+async def test_batch_items_condition_key_null_states_symmetry_wiring(
+    service_ctx, monkeypatch  # type: ignore[no-untyped-def]
+) -> None:
+    """HH7（1A7 批）：items condition_key 显式 null == 缺省 == 空串三态同口径。
+
+    旧句 str(item.get("condition_key", "")) 对显式 null 物化 "None"
+    （payload/meta 边车/确定性命名三分量一致携带——worker 侧 ""→None
+    对偶口径失配，项级错配失败）；or-归一与单产物口径逐字同构后三态
+    皆归一 ""（命名分量走 fallback、meta condition_key 空、worker 收 None）。"""
+    import json as _json
+
+    project_id = await _project_with_result(service_ctx)
+    captured = await _spy_captured_submit(service_ctx, monkeypatch)
+    handle = await create_export(
+        service_ctx,
+        project_id,
+        "dxf",
+        "ok",
+        {
+            "unit_id": "municipal_cass",
+            "items": [
+                {"kind": "dxf", "condition_key": None},  # 显式 null
+                {"kind": "dxf"},  # 键缺席
+                {"kind": "dxf", "condition_key": ""},  # 空串
+            ],
+        },
+    )
+    assert handle.task_id is not None  # 批量转任务（items>1）
+    items = captured[0].payload["items"]  # type: ignore[attr-defined]
+    assert [item["condition_key"] for item in items] == ["", "", ""]
+    # 命名三态一致（null 物化 "None" 曾致分量分叉——同名回归锚）
+    out_names = [item["out_name"] for item in items]
+    assert out_names[0] == out_names[1] == out_names[2], out_names
+    # meta 边车三态同形（dxf 边车 JSON condition_key 归一空串）
+    for item in items:
+        meta = _json.loads(item["sidecars"]["dxf"])
+        assert meta["condition_key"] == ""
+
+
 async def test_batch_payload_carries_project_path_and_digest_wiring(
     service_ctx, monkeypatch  # type: ignore[no-untyped-def]
 ) -> None:

@@ -321,7 +321,9 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         _deterministic_name(
             project_id,
             (item_kind := str(item.get("kind", ""))),  # G1-02：kind 已归一——白名单外仍 422
-            str(item.get("condition_key", "")),
+            # HH7（1A7 批）：or-归一——显式 null 不物化 "None" 入命名分量
+            # （三态 null/缺省/空串同口径，_batch_items_payload 同步收口）。
+            str(item.get("condition_key") or ""),
             result_digest,
             # R1-3（G1-04）：ifc=全厂模型——unit 分量置 None（core 不消费
             # unit_id；同工况同结果字节相同文件名应相同）；SVRB：余 kind

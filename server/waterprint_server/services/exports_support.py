@@ -274,7 +274,10 @@ def _batch_items_payload(
     """
     batch: list[dict[str, Any]] = []
     for item, name in zip(items, names, strict=True):
-        condition_key = str(item.get("condition_key", ""))
+        # HH7（1A7 批）：or-归一——显式 null/键缺席/空串同归 ""（与单产物
+        # 口径逐字同构；旧句 str(item.get("condition_key", "")) 对显式 null
+        # 物化 "None"，worker 侧 ""→None 对偶口径失配=项级错配失败）。
+        condition_key = str(item.get("condition_key") or "")
         item_kind = str(item.get("kind", ""))
         entry: dict[str, Any] = {
             "kind": item["kind"],

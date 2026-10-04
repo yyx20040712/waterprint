@@ -239,9 +239,10 @@ async def test_estimate_mixed_batch_no_inherit_and_worker_branch_wiring(  # type
 async def test_non_estimate_null_condition_prebatch_behavior_anchor_wiring(  # type: ignore[no-untyped-def]
     client, test_settings
 ) -> None:
-    """R1①（回炉轮1——双席共指）：非 estimate 项显式 null 零物化零行为变
-    ——dxf item condition_key:null → 批前行为锁死：渲染静默首档（200）
-    +命名段维持既有形态（null→str 物化段"None"为命名读取处历史形态）
+    """R1①（回炉轮1——双席共指；HH7/1A7 批 2026-10-04 锚更新）：非 estimate
+    项显式 null 零物化——dxf item condition_key:null → 渲染静默首档（200）
+    +命名段归一 fallback「all」（回炉轮1 曾锁批前历史形态 "-None-"；1A7 批
+    HH7 归一承载后撤销——or-归一与单产物口径同构，null/缺省/空串三态同口径）
     +注册表 condition 空串（meta 读取处 or-归一）。曾反转面：归一层
     str(null)="None" 串致渲染入参/边车携带非空工况（回炉修复锚）。"""
     project_id, _task_id = await _project_with_result(client)
@@ -250,10 +251,11 @@ async def test_non_estimate_null_condition_prebatch_behavior_anchor_wiring(  # t
         json={"project_id": project_id,
               "options": {"items": [{"kind": "dxf", "condition_key": None}]}},
     )
-    assert response.status_code == status.HTTP_200_OK  # 批前行为：不 422/500
+    assert response.status_code == status.HTTP_200_OK  # 归一后行为：不 422/500
     file_name = _disposition_name(response)
     assert file_name.endswith(".dxf")
-    assert "-None-" in file_name  # 命名段既有形态（命名读取处 str(null) 历史行为）
+    assert "-None-" not in file_name  # HH7（1A7）：物化段退役
+    assert "-all-" in file_name  # 归一 fallback 段（与缺省/空串三态同名）
     metas = await client.get("/api/exports", params={"project_id": project_id})
     dxf_rows = [meta for meta in metas.json() if meta["kind"] == "dxf"]
     assert len(dxf_rows) == 1 and dxf_rows[0]["file_name"] == file_name
