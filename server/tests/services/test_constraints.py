@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（42 条七类九键/装载守卫八路/定级分布/缓存单例/双跑字节同
+输出:  服务契约断言（151 条八类九键/装载守卫八路/定级分布/缓存单例/双跑字节同
        ——守卫八路=缺键×2〔source/enforcement〕+值域越界×3〔enforcement/
        kind/severity〕+key 重复+空串 key+unit_kinds 型异；另缺失/损坏
        两路分立同文件）
@@ -46,6 +46,12 @@ _INPUT_BAND_COUNT = 7
 # 1A3 批 1.9.0：mass_balance 1 条（sludge.primary_load_band 泥量量级
 # 互校带——plant 级跨节点质量规模互校族，起草待追认；计数 41→42）
 _MASS_BALANCE_COUNT = 1
+# 1A4 批 2.0.0：param_band 109 条（param.<field>.positive 单元参数正性域
+# 带族——28 单元 _PARAMS_POSITIVE 机扫聚合逐字段一条，起草待追认
+# 〔P10 追认流程后续批消化〕；计数 42→151；实扫单源=.workflow/
+# 1a4-20261004/scan_params_positive.py——189 参数次/109 唯一键与主控
+# 预扫三方一致）
+_PARAM_BAND_COUNT = 109
 # 起草键集撤集记档（1A3 批挂账清偿③——1.6.1 批 _DRAFT16_KEYS 撤集先例
 # 形态）：1A1 七键已随 Ruling 2026-10-04 用户裁决 R2 全量追认生效
 # （1.8.1 批 entry 级标记回写由 1A3 批兑现——constraints.json 17 处
@@ -63,11 +69,12 @@ _ENFORCEMENT_BY_KIND = {
     "geometry_guard": {"flag": 4, "block": 4},
     "input_band": {"flag": 7, "block": 0},
     "mass_balance": {"flag": 1, "block": 0},
+    "param_band": {"flag": 109, "block": 0},
 }
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：42 条七类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：151 条八类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
     assert len(entries) == (
@@ -78,6 +85,7 @@ def test_catalog_projects_kb_truth() -> None:
         + _GEOMETRY_COUNT
         + _INPUT_BAND_COUNT
         + _MASS_BALANCE_COUNT
+        + _PARAM_BAND_COUNT
     )
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
@@ -87,6 +95,7 @@ def test_catalog_projects_kb_truth() -> None:
     assert kinds.count("geometry_guard") == _GEOMETRY_COUNT
     assert kinds.count("input_band") == _INPUT_BAND_COUNT
     assert kinds.count("mass_balance") == _MASS_BALANCE_COUNT
+    assert kinds.count("param_band") == _PARAM_BAND_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     assert all(e.enforcement in _ENFORCEMENT_VALID for e in entries)  # 第九键
@@ -276,7 +285,7 @@ def test_entries_carry_enforcement_grading() -> None:
         slot = dist.setdefault(entry.kind, {"flag": 0, "block": 0})
         slot[entry.enforcement] += 1
     assert dist == _ENFORCEMENT_BY_KIND  # 分 kind 分布锚（起草表机器钳制）
-    assert len([e for e in entries if e.enforcement == "flag"]) == 24
+    assert len([e for e in entries if e.enforcement == "flag"]) == 133  # 24+109
     assert len([e for e in entries if e.enforcement == "block"]) == 18
     by_key = {e.key: e for e in entries}
     # geometry 双门：hint（severity=WARN）=flag/reject（ERROR）=block 一一对应
@@ -411,7 +420,7 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——42 条七类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——151 条八类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
@@ -424,10 +433,12 @@ async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-un
         + _GEOMETRY_COUNT
         + _INPUT_BAND_COUNT
         + _MASS_BALANCE_COUNT
+        + _PARAM_BAND_COUNT
     )
     assert {e["kind"] for e in entries} == {
         "enumeration_filter", "effluent_standard", "spacing_check",
         "boundary_check", "geometry_guard", "input_band", "mass_balance",
+        "param_band",
     }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {

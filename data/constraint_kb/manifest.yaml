@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "1.9.0"
+data_version: "2.0.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -151,3 +151,26 @@ data_version: "1.9.0"
 #     11+12+2+1+8+7→11+12+2+1+8+7+1=42（server test_constraints 同步；
 #     core app_validation 消费接线+server _KINDS/Literal/openapi 重导出
 #     随本批 core/server 笔落地）。
+#   - 2.0.0: 1A4 单元级参数域校验批（2026-10-04）——增 kind=param_band
+#     109 条（param.<field>.positive 单元参数正性域带族：28 单元
+#     _PARAMS_POSITIVE 机扫单源投影——189 参数次/109 唯一键逐字段一条、
+#     同字段跨单元聚合；实扫单源=.workflow/1a4-20261004/
+#     scan_params_positive.py，与主控预扫三方一致。高频：n=13 单元/
+#     side_disc_step=10/length_disc_step=8/h2=7）。expression 单子句单侧
+#     正性 `<field> > 0`（DSL 右值常量合规——NaN>0=False→越带→警告，
+#     声明期 NaN 检出=FZ-4 计算期 InvalidUnitConfig 守卫的前置报告面）；
+#     unit_kinds=该字段出现单元 ID 升序——节点 ID=unit_id 全仓约定，选条
+#     判据=节点 ID∈unit_kinds（geometry_guard 非空先例形态，与
+#     input_band/mass_balance 恒空 kind 直判族接线红线分立）；缺项跳检
+#     不警=声明面稀疏语义（default 面域由 manifest 起草表保证不校）。
+#     severity=WARN/enforcement=flag（仪表灯——block 断路器归 P1 后续批
+#     挂账）。source=族级出处+归类（几何/时间/流量负荷/数量/步长/水质/
+#     标高/其余物理量——正性域=物理必然非阈值条文，不逐键造精确条文，
+#     与 1A3 带域出处的差异在 value_basis 注明）；单侧正性域声明载体与
+#     manifest range 双侧闭区间（GR-06/FZ-3「无上界真值不声明」）互补
+#     不双源（T3 口径成文——README 收录边界 param_band 段）。消费面：
+#     core app_validation param_band 分支（1A4 批接线）+server
+#     _KINDS/Literal 双处同步+openapi 重导出。**AI 起草待追认（1A4 批
+#     ——P10 追认流程后续批消化）**；旧 42 键零扰动，计数
+#     11+12+2+1+8+7+1→11+12+2+1+8+7+1+109=151（server test_constraints
+#     同步）。

@@ -618,7 +618,8 @@
               "boundary_check",
               "geometry_guard",
               "input_band",
-              "mass_balance"
+              "mass_balance",
+              "param_band"
             ],
             "title": "Kind",
             "type": "string"

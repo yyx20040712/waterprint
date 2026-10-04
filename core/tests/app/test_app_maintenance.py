@@ -315,11 +315,16 @@ def _loaded_kb() -> tuple[KbConstraint, ...]:
 
 
 def test_golden_aao_three_faces() -> None:
-    """golden aao 实跑锚：ratio 恰分化四键+kb 10 条全 1.0+fixgeom.min=−1.0。
+    """golden aao 实跑锚：ratio 恰分化四键+kb 12 条全 1.0+fixgeom.min=−1.0。
 
     kb 适用=unit_kinds∋aao 且表达式字段在场（在场即适用——零硬编码名单
-    口径）：geometry_guard 8 条+aao 带 2 条（t_n/theta_c 字段在场）=10。"""
-    offline = _golden_bundle(_loaded_kb()).plant.summary["design_offline_municipal_aao"]
+    口径）：geometry_guard 8 条+aao 带 2 条（t_n/theta_c 字段在场）+1A4 批
+    param_band 2 条（param.n/h2——参数名与离线 dims 同名经字段准入合法
+    选中；其余 param_band 条目字段不在 dims 面不选中）=12。"""
+    from waterprint.solution.constraints import expression_fields
+
+    bundle = _golden_bundle(_loaded_kb())
+    offline = bundle.plant.summary["design_offline_municipal_aao"]
     ratio = {k: v for k, v in offline.items() if ".ratio." in k}
     assert set(ratio) == {  # 探针锚：35 dims 键中恰 4 键漂移（几何四键全等不发）
         "maint.municipal_aao.ratio.n",
@@ -332,11 +337,19 @@ def test_golden_aao_three_faces() -> None:
     kb = {k: v for k, v in offline.items()
           if ".kb." in k and k != "maint.municipal_aao.kb.any_fail"}
     assert set(kb.values()) == {1.0}  # kb 全 1.0（越门 0.0 缺席=门内全通过）
-    assert len(kb) == 10  # geometry 8+aao 带 2（实跑清点——简报「实现期逐条核」口径）
+    assert len(kb) == 12  # geometry 8+aao 带 2+param_band 2（param.n/h2——
+    # 1A4 批：aao 离线 dims 含同名参数键经 _maint_face 字段准入合法选中，
+    # 全 PASS；实跑清点——简报「实现期逐条核」口径）
+    aao_dims = dict(
+        dict(bundle.plant.conditions["design_offline_municipal_aao"])
+        ["municipal_aao"].dims)
     assert {k.removeprefix("maint.municipal_aao.kb.") for k in kb} == {
-        # 键集=unit_kinds∋aao 全量（防静默缺席——kb 键自带点分前缀）
+        # 键集=unit_kinds∋aao 且字段⊆离线 dims 全量（防静默缺席——kb 键
+        # 自带点分前缀；_maint_face L121 字段准入门同款镜像——1A4 批
+        # param_band 面 param.n/h2 在场、sec_per_hour 等不在 dims 不选中）
         c.constraint.key for c in _loaded_kb()
         if "municipal_aao" in c.unit_kinds
+        and set(expression_fields(c.constraint.expression)) <= aao_dims.keys()
     }
     assert offline["maint.municipal_aao.kb.any_fail"] == 0.0  # 全过→汇总键 0.0（kbwire 锚）
     assert offline["maint.municipal_aao.fixgeom.min"] == pytest.approx(-1.0)  # 风机台数 ×2 超载

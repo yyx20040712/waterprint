@@ -1,6 +1,8 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.9.0（全量 42 条九键——mass_balance 1 条〔sludge.
+> **状态：2.0.0（全量 151 条九键——param_band 109 条〔param.<field>.
+> positive 单元参数正性域带族——28 单元 _PARAMS_POSITIVE 机扫单源投影，
+> 1A4 批起草待追认〕+mass_balance 1 条〔sludge.
 > primary_load_band 泥量量级互校带〕1A3 批起草待追认+前 41 条：1A1 七条
 > 数值+1A6 第九键 enforcement
 > 逐条定级**已追认（用户裁决 2026-10-04 R2 全量追认，1.8.1 回写标记
@@ -9,8 +11,9 @@
 > 挂账清偿②闭口）**〔§1a6 清单——.workflow/
 > 1a6-20261003/draft-table.md 起草表=呈用户追认的唯一材料；与 1A1
 > 七条数值合并呈报〕；裁决记录=.workflow/adjudication-batch-20261004.md
-> 裁决记录节。定级分布：flag 23+block 18——P1 裁决选项 3「kb 逐条
-> severity 声明式定级」落地，两维正交见 schema 节；1.7.0 叠加
+> 裁决记录节。定级分布：flag 133+block 18——P1 裁决选项 3「kb 逐条
+> severity 声明式定级」落地（1A4 批 +param_band 109 全 flag——仪表灯），
+> 两维正交见 schema 节；1.7.0 叠加
 > input_band 7 条〔§1a1 清单——.workflow/1a1-20261003/draft-table.md
 > 起草表〕：Kz 总变化系数静态包络带+进水六指标浓度上限带，追认单直录
 > 形态——存量 29 条中 28 条+1.6.0 扩 5 条已追认：18 条=Ruling
@@ -24,9 +27,11 @@
 > 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
-> 未追认未来项（回炉 N7 勘正——并列两项非「唯一」）：干化全干化档另立
+> 未追认未来项（回炉 N7 勘正——并列非「唯一」）：干化全干化档另立
 > 待起草追认；mass_balance 1 条（1A3 批 sludge.primary_load_band）起草
-> 待追认（P10 追认流程后续批消化）。消费方=server `GET /api/constraints`（META1 静态目录端点
+> 待追认（P10 追认流程后续批消化）；param_band 109 条（1A4 批——同 P10
+> 追认流程后续批消化；收录面=代码面 _PARAMS_POSITIVE 机扫单源投影，
+> 追认后随 RATIFY-CP1 先例回写标记）。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
 > severity 数据面同端点）。enforcement（1.8.0）=纯声明元数据**零运行时
@@ -62,8 +67,8 @@ options.constraints 通道）落地为：
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band | mass_balance
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band/mass_balance 恒 []=kind 直判选条〔非全适用——1A2/1A3 接线红线同款口径，回炉 W4 统一〕）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band | mass_balance | param_band
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band/mass_balance 恒 []=kind 直判选条〔非全适用——1A2/1A3 接线红线同款口径，回炉 W4 统一〕；param_band 非空=节点 ID∈unit_kinds 选条〔单元 ID 升序——1A4 批，geometry_guard 非空先例形态〕）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -80,10 +85,11 @@ options.constraints 通道）落地为：
 | severity | 呈现多醒目（黄/红标示分层） | ERROR / WARN / INFO（core contracts Severity 冻结面） | 呈现分类元数据——勾选即硬滤全级别（UF-54 定版口径不因第九键改变） |
 | enforcement | 违规算不算失败（1.8.0） | flag / block | 执法定性元数据——flag=仪表灯（违规呈现不阻断）/block=断路器（违规即失败终态）；**本批零执法**（纯声明，运行时阻断消费归 P1 后续批） |
 
-- 两维独立取值——42 条在库实际组合矩阵（§1a6 起草清单机器清点+1A3 批
-  增 mass_balance 1 条）：
-  severity=WARN+enforcement=flag 24 条（可行带过滤 11+通用间距 1+
-  几何提示门 4+进水合理性带 7+泥量互校带 1——提示带仪表灯）；severity=WARN+
+- 两维独立取值——151 条在库实际组合矩阵（§1a6 起草清单机器清点+1A3 批
+  增 mass_balance 1 条+1A4 批增 param_band 109 条）：
+  severity=WARN+enforcement=flag 133 条（可行带过滤 11+通用间距 1+
+  几何提示门 4+进水合理性带 7+泥量互校带 1+单元参数正性域带 109
+  ——提示带仪表灯）；severity=WARN+
   enforcement=block 12 条（出水标准：呈现黄标/违规定性失败）；severity=
   ERROR+enforcement=block 6 条（沼气间距 1+用地红线 1+几何拒收门 4：
   呈现红标/违规定性失败）——组合由条目 kind 语义逐条定级。ERROR+flag
@@ -190,6 +196,32 @@ options.constraints 通道）落地为：
   去除率 η<1 守恒包络/下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数
   宽放 0.5——34760 案例实测削减系数 0.746）。**AI 起草待追认（1A3 批
   ——P10 追认流程后续批消化）**。
+- param_band（1A4 批 2.0.0 增 109 条——单元参数正性域带族）：四要点——
+  ①**收录面=_PARAMS_POSITIVE 机扫单源投影**：28 单元正性守卫参数面全量
+  （189 参数次/109 唯一键——逐字段一条、同字段跨单元聚合；实扫单源=
+  .workflow/1a4-20261004/scan_params_positive.py；含 machine_type 枚举
+  参数/z_ground 标高类——kb 为 FZ-4 计算期守卫的报告面镜像，域语义
+  一致性优先于逐键域强度甄别）；expression 单子句单侧正性 `<field> > 0`
+  （NaN>0=False→越带→警告——声明期 NaN 检出=FZ-4 计算期 InvalidUnitConfig
+  守卫的前置报告面；数值域零新造）。②**单侧正性域声明载体=T3 口径成文**：
+  manifest range 只收双侧闭区间（GR-06 闭区间口径+FZ-3「无上界真值不
+  声明」）——kb param_band 收单侧正性域，两载体互补不双源（manifest
+  range 面=手册表出处带域起草表，本族=代码面守卫镜像，收录面不相涉）。
+  ③**unit_kinds 非空=节点 ID 选条判据**（geometry_guard 非空先例形态
+  ——kb 字段名义为 unit_kinds、实配值=单元 ID〔节点 ID=unit_id 全仓约定，
+  server services/calculation.py L160 直证〕；与 input_band/mass_balance
+  恒空 kind 直判族的接线红线分立——两判据族并行不混载）。④**缺项跳检=
+  声明面稀疏语义**：用户只声明改过的参数，default 面域由 manifest 起草表
+  保证不校（params_guard face④ 在册执法面）；非数值（str/bool）不入表
+  同态跳检。severity 全 WARN/enforcement 全 flag（仪表灯——block 断路器
+  归 P1 后续批挂账）；source=族级出处+归类（几何/时间/流量负荷/数量/步长
+  /水质/标高/其余物理量——正性域=物理必然非阈值条文，不逐键造精确条文；
+  与 1A3 带域出处的差异在 value_basis 注明）。**消费面（2.0.0 时点）**：
+  core app_validation param_band 分支（1A4 批接线——选条=节点 ID∈
+  unit_kinds，越带产警告码不阻断=flag 语义）；`_maint_face` 字段准入
+  （expression_fields⊆offline_dims）对 params 声明键自然不选中——maint
+  标注面零新键；枚举面仅消费显式勾选（param_band 不在勾选清单）。
+  **AI 起草待追认（1A4 批——P10 追认流程后续批消化）**。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
   的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core
@@ -297,3 +329,25 @@ options.constraints 通道）落地为：
   不推翻预裁决（value_basis 已如实披露裁量链）。
 - 挂账：block 断路器接线（enforcement 消费）仍挂账 P1 后续批（flag
   仪表灯先行——1A6 定级面 input_band 同款）。
+
+## 起草清单（2.0.0 param_band 109 条——起草待追认）
+
+> 1A4 批（单元级参数域校验）增条；呈用户追认材料=任务书 §3.1 预裁决
+> +扫描矩阵（.workflow/1a4-20261004/scan_output.txt——逐字段×单元全集，
+> 189 参数次/109 唯一键）。追认后随标记回写（RATIFY-CP1 先例形态）。
+> 全量 109 条逐条九键入 constraints.json（族级 source/value_basis 同文，
+> 逐条差异面=key/unit_kinds/label〔归类名〕/expression 四键）——库内
+> 不重复罗列，抽样高频三键：
+
+| key | expression | unit_kinds（升序） | severity |
+|---|---|---|---|
+| `param.n.positive` | `n > 0` | 13 单元（conveyance 3+mine_water 5+municipal 5——扫描矩阵单源） | WARN |
+| `param.side_disc_step.positive` | `side_disc_step > 0` | 10 单元（扫描矩阵单源） | WARN |
+| `param.z_water_inlet.positive` | `z_water_inlet > 0` | 1 单元（mine_water_input） | WARN |
+
+- 注记：enforcement 全 flag（仪表灯——1A6 定级面 input_band/mass_balance
+  同款）；出处=族级（GB 50014-2021 相关构筑物节+手册第 5 册——正性域=
+  物理必然非阈值条文，逐条 label 括注归类名，不逐键造精确条文）；
+  **AI 起草待追认（1A4 批，P10 追认流程后续批消化）**。
+- 挂账：block 断路器接线（enforcement 消费）仍挂账 P1 后续批（flag
+  仪表灯先行——1A6 定级面同款）。

@@ -1,10 +1,11 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.9.0 全量 42 条九键——定级
-       分布 flag 24+block 18〔全量口径〕：存量 41 条已追认〔Ruling
+输入:  data/constraint_kb/constraints.json（kb 2.0.0 全量 151 条九键——定级
+       分布 flag 133+block 18〔全量口径〕：存量 41 条已追认〔Ruling
        2026-08-31/09-03/09-26/10-01/10-04 R2——含 input_band 7 条数值与
        41 条 enforcement 定级 flag 23+block 18〕+mass_balance 1 条
-       起草待追认〔1A3 批——WARN/flag〕）
+       起草待追认〔1A3 批——WARN/flag〕+param_band 109 条起草待追认
+       〔1A4 批——全 WARN/flag〕）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -12,10 +13,10 @@
 # 规格说明（CP1 D1~D5 2026-08-31；镜像测试 server/tests/services/test_constraints.py）
 #
 # 【公开接口】
-#   list_constraints(data_dir: Path) -> ConstraintCatalog（42 条九键=过滤 11+
-#      出水参考 12+间距校核 2+红线 1+几何域 8+输入合理性带 7+泥量互校带 1
-#      ——kb 1.9.0 声明序〔1A1/1A6 批已追认+1A3 批 mass_balance 起草态〕；
-#      D6 不分页整发。
+#   list_constraints(data_dir: Path) -> ConstraintCatalog（151 条九键=过滤 11+
+#      出水参考 12+间距校核 2+红线 1+几何域 8+输入合理性带 7+泥量互校带 1+
+#      单元参数正性域带 109——kb 2.0.0 声明序〔1A1/1A6 批已追认+1A3 批
+#      mass_balance 起草态+1A4 批 param_band 起草态〕；D6 不分页整发。
 #      勘误记档：本行旧值 20 系 1.4.0 期漏更实 21——批3b 勘正）
 #   ConstraintCatalog/ConstraintEntry（响应模型面——routers response_model
 #      直用，units 服务先例：禁协议层重复声明漂移面）
@@ -81,6 +82,7 @@ _KINDS: frozenset[str] = frozenset(
         "geometry_guard",
         "input_band",
         "mass_balance",
+        "param_band",
     }
 )  # L4b：+spacing_check（间距校核面——services/site 唯一阈值解析面）；SPC2：
 # +boundary_check（用地红线越界校核面——services/site 唯一 severity 解析面）；
@@ -95,7 +97,12 @@ _KINDS: frozenset[str] = frozenset(
 # 1A3：+mass_balance（plant 级质量规模互校面——跨节点质量规模一致性
 # 校核〔对子=ds_primary vs 全厂进水 SS 负荷〕，unit_kinds 恒空=kind
 # 直判选条非全适用〔1A2 接线红线同款〕；消费面=core app_validation
-# mass_balance 分支〔1A3 批接线〕，本投影=观测面）
+# mass_balance 分支〔1A3 批接线〕，本投影=观测面）；
+# 1A4：+param_band（单元参数正性域带族——28 单元 _PARAMS_POSITIVE 机扫
+# 单源投影 109 条逐字段一条；unit_kinds 非空=节点 ID∈unit_kinds 选条
+# 〔geometry_guard 非空先例形态——与恒空 kind 直判族接线红线分立〕；
+# 消费面=core app_validation param_band 分支〔1A4 批接线〕，本投影=
+# 观测面；AI 起草待追认〔1A4 批——P10 追认流程后续批消化〕）
 # severity 值域（core contracts/unit_api Severity 冻结面——R2/DS-04 值域守卫）
 _SEVERITIES: frozenset[str] = frozenset({"ERROR", "WARN", "INFO"})
 # enforcement 值域（1A6 批 1.8.0 第九键——P1 选项 3 值域恰两值：flag=
@@ -119,7 +126,9 @@ class ConstraintEntry(BaseModel):
         "geometry_guard",
         "input_band",
         "mass_balance",
-    ]  # 1A3：+mass_balance（_KINDS 双源同步——openapi 随 dump_openapi 重导出）
+        "param_band",
+    ]  # 1A3：+mass_balance（_KINDS 双源同步——openapi 随 dump_openapi 重导出）；
+    # 1A4：+param_band（_KINDS 双源同步——openapi 随 dump_openapi 重导出）
     unit_kinds: tuple[str, ...]
     label: str
     expression: str

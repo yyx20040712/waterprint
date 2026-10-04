@@ -1,8 +1,8 @@
 """app_validation 镜像测试：厂级进水输入合理性校验骨架（1A2 批）。
 
 输入:  waterprint.app_validation（validation_summary_of/INPUT_BAND_FIELDS/
-       INPUT_BAND_KIND/MASS_BALANCE_KIND）+kb 真源（仓库 data 面 42 条——
-       1A3 批增 mass_balance 1 条）+golden 双案
+       INPUT_BAND_KIND/MASS_BALANCE_KIND）+kb 真源（仓库 data 面 151 条——
+       1A3 批增 mass_balance 1 条+1A4 批增 param_band 109 条）+golden 双案
        （municipal_34760 市政进水声明/mine_43836 矿井线无市政声明节点）
 输出:  行为断言——合法进水零警告/非法进水码命中（kz 双界参数化/CODCR/
        五指标越带参数化〔SS 用例含 mass_balance 交互面在档〕/混合越带+
@@ -85,7 +85,8 @@ def _municipal_project(**inlet_overrides: Any) -> ProjectFile:
 
 @pytest.fixture(scope="module")
 def loaded_kb() -> tuple[KbConstraint, ...]:
-    """kb 真源装载（42 条全量——单源=data 面；1A3 批 +mass_balance 1）。"""
+    """kb 真源装载（151 条全量——单源=data 面；1A3 批 +mass_balance 1
+    +1A4 批 +param_band 109〔行为面归伴生件 test_app_validation_param_band.py〕）。"""
     return load_kb_constraints(_KB_FILE)
 
 
@@ -236,13 +237,15 @@ def test_mine_line_without_municipal_declaration_zero_warnings(
 def test_selection_criterion_is_kind_not_unit_kinds(
     loaded_kb: tuple[KbConstraint, ...],
 ) -> None:
-    """选条判据=kind 直判：剔除 input_band∪mass_balance 后的 34 条注入+
-    非法 kz=零警告（unit_kinds 恒空既非「全单元适用」亦不参与选条——
-    接线红线；两 kind 同款）。"""
+    """选条判据=kind 直判：剔除 input_band∪mass_balance∪param_band 后的
+    34 条注入+非法 kz=零警告（unit_kinds 恒空既非「全单元适用」亦不参与
+    选条——接线红线；param_band 三族剔除=1A4 勘正〔非 kind 直判族——节点
+    ID∈unit_kinds 分立判据，行为面归伴生件〕）。"""
     others = tuple(
         kb for kb in loaded_kb
-        if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND})
-    assert len(others) == 34  # 42−8（负向锚 B 面同款剔除口径——勘正注记）
+        if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND, "param_band"})
+    assert len(others) == 34  # 151−117（input_band 7+mass_balance 1+param_band
+    # 109 三族剔除——负向锚 B 面同款口径，1A4 勘正注记）
     assert not validation_summary_of(
         _municipal_project(kz=3.0), others)
 
@@ -327,8 +330,15 @@ def _summary_diff_face(
 
 @pytest.fixture(scope="module")
 def golden_run() -> Any:
-    """golden 全链跑批载体（A=42 全量/B=34 剔 input_band∪mass_balance/
-    C=零注入+闭包）。"""
+    """golden 全链跑批载体（A=151 全量/B=143 剔 input_band∪mass_balance/
+    C=零注入+闭包）。
+
+    1A4 裁量注记：B 面维持两族剔除（param_band 不剔）——param_band 条目
+    经 _maint_face 字段准入（expression_fields⊆offline_dims——n/h2 等
+    参数名与 aao 离线 dims 同名）合法选中，A/B 两面同步消费→serialize
+    恒等锚保活；param_band 的 plant 面新增标注键恰 4 处全 PASS 的实证
+    归伴生件 test_app_validation_param_band.py（任务书 §3.2 实证①「零新
+    键」论断勘正——详见批档 impl-report 实现裁量）。"""
     from waterprint.app import load_run_env, run_full_calc
 
     project = _municipal_project()
@@ -338,7 +348,8 @@ def golden_run() -> Any:
     without = tuple(
         kb for kb in loaded
         if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND})
-    # （B 面=42−8=34——input_band∪mass_balance 双剔除口径）
+    # （B 面=151−8=143——input_band∪mass_balance 双剔除口径；param_band
+    # 两面同在=plant 消费面同步，差异锚归 B vs C 面）
 
     def run(active: tuple[KbConstraint, ...], inflow: ProjectFile | None = None) -> Any:
         return run_full_calc(inflow or project, conditions, env, constraints=active)
@@ -351,24 +362,29 @@ def golden_run() -> Any:
 
 
 def test_negative_anchor_input_band_zero_consumption(golden_run: Any) -> None:
-    """memo②负向锚：A(42) vs B(34) plant serialize 逐字节恒等——input_band
-    ∪mass_balance 零消费构造性运行期实证（validation=独立第四字段不回流
-    plant）。"""
+    """memo②负向锚：A(151) vs B(143) plant serialize 逐字节恒等——input_band
+    ∪mass_balance 零 plant 消费构造性运行期实证（validation=独立第四字段
+    不回流 plant；param_band 两面同在不在此锚差异面——其 plant 面增量实证
+    归伴生件）。"""
     assert serialize(golden_run["all"].plant) == serialize(golden_run["without"].plant)
 
 
 def test_negative_anchor_b_vs_c_diff_face_is_maintenance_only(golden_run: Any) -> None:
-    """memo②差异面：B(34) vs C(0) 差异恰 maint.* 键族（前缀锚定——k1-W1）
-    且基线恰 12 键（12=10 kb+any_fail+fixgeom——B 场实测基线，漂移即红）；
-    其余零漂——防「B 恰好等价零注入」假阳：差异面非空且全部落在检修
-    执法键族（两族各非空保留）。"""
+    """memo②差异面：B(143) vs C(0) 差异恰 maint.* 键族（前缀锚定——k1-W1）
+    且基线恰 14 键（14=12 基线〔10 kb+any_fail+fixgeom〕+1A4 批 param_band
+    增 2 键〔kb.param.n/h2.positive——_maint_face 字段准入对 dims 同名参数
+    键的合法选中，全 PASS〕——B 场实测基线，漂移即红）；其余零漂——防
+    「B 恰好等价零注入」假阳：差异面非空且全部落在检修执法键族（两族各
+    非空保留）。"""
     face = _summary_diff_face(
         golden_run["without"].plant.summary, golden_run["zero"].plant.summary)
     assert face  # 差异面非空（B≠C 假阳防线）
-    assert len(face) == 12  # 基线锚（漂移即红——键数增减均报警）
+    assert len(face) == 14  # 基线锚（漂移即红——键数增减均报警）
     assert all(key.startswith("maint.") for key in face), sorted(face)  # 前缀锚定
     assert any(".kb." in key for key in face)
     assert any(".fixgeom." in key for key in face)
+    assert {"maint.municipal_aao.kb.param.n.positive",
+            "maint.municipal_aao.kb.param.h2.positive"} <= face  # 1A4 增键锚
 
 
 def test_run_full_calc_wiring_fourth_field(golden_run: Any) -> None:

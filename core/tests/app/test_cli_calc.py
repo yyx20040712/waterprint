@@ -57,7 +57,8 @@ def test_cli_injects_kb_into_result(
         if key.startswith("maint.municipal_aao.kb.")
         and key != "maint.municipal_aao.kb.any_fail"
     }
-    assert len(kb) == 10  # geometry 8+aao 带 2（test_app_maintenance golden 同源）
+    assert len(kb) == 12  # geometry 8+aao 带 2+param_band 2（param.n/h2——
+    # 1A4 批 dims 同名参数键合法选中全 PASS；test_app_maintenance golden 同源）
     assert set(kb.values()) == {1.0}
     assert offline["maint.municipal_aao.kb.any_fail"] == 0.0  # 全过→0.0
     assert offline["maint.municipal_aao.fixgeom.min"] == pytest.approx(-1.0)

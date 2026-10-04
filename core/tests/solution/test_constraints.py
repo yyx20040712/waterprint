@@ -278,18 +278,22 @@ from waterprint.solution.constraints import (  # noqa: E402 （域内追加直 i
 
 
 def test_kb_loader_loads_all_entries_with_unit_kinds() -> None:
-    """装载正门：42 条计数+首末键锚+unit_kinds/kind 透传+source=kb 键/severity 随行。"""
+    """装载正门：151 条计数+首末键锚+unit_kinds/kind 透传+source=kb 键/severity 随行。"""
     loaded = load_kb_constraints(_REPO_DATA / "constraint_kb" / "constraints.json")
-    assert len(loaded) == 42  # kb 1.9.0 全量（真源计数锚——1A1 +7/1A3 +mass_balance 1）
+    assert len(loaded) == 151  # kb 2.0.0 全量（真源计数锚——1A3 批 42+1A4 批 param_band 109）
     assert loaded[0].constraint.key == "vxinglvchi.v_filter_band"  # 首键
-    assert loaded[-1].constraint.key == "sludge.primary_load_band"  # 末键（1A3 批尾挂 mass_balance）
+    assert loaded[-1].constraint.key == "param.z_water_inlet.positive"  # 末键（1A4
+    # 批尾挂 param_band 109 条按字段名字典序——末位 z_water_inlet）
     assert isinstance(loaded[0].unit_kinds, tuple)
     assert "municipal_aao" in loaded[33].unit_kinds  # unit_kinds 透传（旧末键位）
     assert loaded[0].kind == "enumeration_filter"  # kind 透传（回炉 R2）
     assert loaded[34].kind == "input_band"  # 1A1 kind 透传（装载器零拒零裁）
-    assert loaded[-1].kind == "mass_balance"  # 1A3 新 kind 透传（宽容面不动）
+    assert loaded[41].kind == "mass_balance"  # 1A3 新 kind 透传（宽容面不动）
+    assert loaded[-1].kind == "param_band"  # 1A4 新 kind 透传（宽容面不动）
+    assert loaded[-1].unit_kinds == ("mine_water_input",)  # 1A4 unit_kinds 非空
+    # 透传（节点 ID 选条判据面——geometry_guard 非空先例同族）
     assert loaded[-1].constraint.source == loaded[-1].constraint.key  # source=kb 键
-    assert loaded[-1].constraint.severity == Severity("WARN")  # severity 随行（mass_balance WARN）
+    assert loaded[-1].constraint.severity == Severity("WARN")  # severity 随行（param_band WARN）
 
 
 def test_kb_loader_missing_file_rejected() -> None:
