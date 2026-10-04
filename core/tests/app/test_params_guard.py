@@ -152,6 +152,24 @@ def test_params_guard_face4_closed_band_edges_accepted(golden_data_dir: Path) ->
     assert all(v.warn is None for v in verdicts)  # warn 默认 None（向后兼容面）
 
 
+def test_params_guard_face4_hebing_moisture_physical_domain(golden_data_dir: Path) -> None:
+    """FZ-3 批（1A7）face④ 接线实证：hebing 含水率三键 range [0,1]=计算期
+    开区间守卫 (0,1) 的闭区间近似投影（同值抄录）——域外明显值（-0.5/2.0）
+    应用通道拒收（原计算期拒提前为 422，终态同拒）；端点 0.0/1.0 闭区间
+    放行（GR-06 闭区间判带语义）→ 计算期 InvalidUnitConfig 拒保持
+    （第二道防线不迁移——双态在 test_manifest_range_domains 端点件）。"""
+    project = _load_municipal(golden_data_dir)
+    for key, bad_value in (("p_primary", -0.5), ("p_bio", 2.0)):
+        verdicts = _mod.params_guard(project, "sludge_hebing", {key: bad_value})
+        assert verdicts[0].accepted is False, (key, bad_value)
+        assert "越带" in (verdicts[0].reason or ""), (key, bad_value)
+    for key, edge in (("p_primary", 0.0), ("p_chem", 1.0)):  # 闭区间双端点放行
+        verdicts = _mod.params_guard(project, "sludge_hebing", {key: edge})
+        assert verdicts[0].accepted is True, (key, edge)
+    good = _mod.params_guard(project, "sludge_hebing", {"p_primary": 0.96})
+    assert good[0].accepted is True and good[0].warn is None
+
+
 def test_params_guard_face4_cass_t_draw_band(golden_data_dir: Path) -> None:
     """批3b D-5 执法验证：cass t_draw range [1.0,1.5]——2.0 越带拒、1.2 带内
     收、双端点 1.0/1.5 闭区间接受（GB §7.6.36 排水时间——唯一 range 新声明

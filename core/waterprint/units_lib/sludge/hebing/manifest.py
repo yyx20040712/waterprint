@@ -240,8 +240,10 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "sludge",
         # 默认值=表主算例逐字（出处 docs/norms/sludge_hebing.md"衔接参数"节）；
-        # 含水率三参数 (0,1) 开域、ds 三股/流量/水质/BOD 对均无出处带——
-        # 不设 range/grid（域守卫在 compute，缺出处不编造档位）
+        # 含水率三参数 range [0,1]=计算期开区间守卫 (0,1) 的闭区间近似投影
+        # （FZ-3 批 2026-10-04——物理域守卫同值抄录非新数值；开区间精确语义
+        # 须新字段另行 ADR，端点 0/1 应用通道放行→计算期拒，第二道防线保持）；
+        # ds 三股/流量/水质/BOD 对单侧或无出处带——不设 range/grid（缺出处不编造）
         "params": [
             {
                 "field_id": "ds_primary",
@@ -254,6 +256,7 @@ manifest = load_manifest(
                 "label_zh": "初沉污泥含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.96,
+                "range": {"min": 0, "max": 1},
             },
             {
                 "field_id": "ds_bio",
@@ -266,6 +269,7 @@ manifest = load_manifest(
                 "label_zh": "剩余污泥含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.994,
+                "range": {"min": 0, "max": 1},
             },
             {
                 "field_id": "ds_chem",
@@ -278,6 +282,7 @@ manifest = load_manifest(
                 "label_zh": "化学污泥含水率",
                 "dim": "DIMENSIONLESS",
                 "default": 0.98,
+                "range": {"min": 0, "max": 1},
             },
             {
                 "field_id": "q_avg_daily",
