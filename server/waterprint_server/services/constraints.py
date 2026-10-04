@@ -1,9 +1,10 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.9.0 全量 42 条九键——存量
-       41 条已追认〔Ruling 2026-08-31/09-03/09-26/10-01/10-04 R2——含
-       input_band 7 条数值与 41 条 enforcement 定级〕+mass_balance 1 条
-       起草待追认〔1A3 批——flag 24+block 18〕）
+输入:  data/constraint_kb/constraints.json（kb 1.9.0 全量 42 条九键——定级
+       分布 flag 24+block 18〔全量口径〕：存量 41 条已追认〔Ruling
+       2026-08-31/09-03/09-26/10-01/10-04 R2——含 input_band 7 条数值与
+       41 条 enforcement 定级 flag 23+block 18〕+mass_balance 1 条
+       起草待追认〔1A3 批——WARN/flag〕）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
