@@ -55,12 +55,19 @@
 #      器行为归 P1 后续批挂账）；kb 迭代=传入序（warn 序确定性）。
 #   R6 泥量互校（1A3——UF-55）：泥量声明面=扫 design.nodes 找 params 含
 #      数值 ds_primary 键的节点（非节点 ID 字面量判据——入流直值模式
-#      无此键自然不中；插入序取首=_inlet_values 同款口径）；互校基准=
-#      全厂进水 SS 负荷（SS×q_avg_daily 换算 kg/d）；kb 表达式落
-#      primary_ss_ratio 派生比值列（DSL 右值不支持字段算术——起草
-#      算术式的最小面落地形态，比值列=ds_primary÷ss_load 本分支注入）；
-#      跳检=缺任一面不警（①无进水声明节点〔R2 早退〕②SS 或 q_avg_daily
-#      缺席③无 ds_primary 数值键）。
+#      无此键自然不中；插入序取首=_inlet_values 同款口径，多 hebing 图
+#      逐节点互校归后续批挂账）；互校基准=全厂进水 SS 负荷（SS×
+#      q_avg_daily 换算 kg/d）；kb 表达式落 primary_ss_ratio 派生比值列
+#      （DSL 右值不支持字段算术——起草算术式的最小面落地形态，比值列
+#      =ds_primary÷ss_load 本分支注入）；跳检=缺任一面或零基准不警
+#      （①无进水声明节点〔R2 早退〕②SS 或 q_avg_daily 缺席③无
+#      ds_primary 数值键④ss_load≤0 零基准——比值无定义=量级判断失效
+#      面归跳检族语义〔回炉 B1；SS=0 进水荒谬声明归未来 input_band
+#      下带扩展挂账，q_avg_daily≤0 拒收面 flows/params_guard 在册〕）。
+#      单位语境注（回炉 W1-d1）：本分支读 design.nodes params 声明面
+#      q_avg_daily（m³/d——进水声明原始面）；app_influent 的 outflows
+#      q_avg_daily[m3/s]（file-contracts 行）系装配计算值另一面——两面
+#      单位不同源不相涉。
 #   R7 泥量互校 message=「泥量量级互校越带：{key}——ds_primary={值!r}
 #      （{ratio:.4f}×全厂 SS 负荷 {ss_load:.1f} kg/d）违反 {表达式}」
 #      ——三要素（实际值+带域数值+条目键）+ratio/ss_load 消息面展示
@@ -172,8 +179,9 @@ def _sludge_ds_primary(project: ProjectFile) -> float | None:
 
 def _plant_ss_load(values: Mapping[str, float]) -> float | None:
     """全厂进水 SS 负荷 kg/d（R6 互校基准面）：SS×q_avg_daily×换算当量
-    （pint 因子单源）。SS 或 q_avg_daily 缺席（未入单值表=缺项/非数值）
-    =None——跳检。"""
+    （pint 因子单源；声明面 q_avg_daily 单位=m³/d——见规格头单位语境注）。
+    SS 或 q_avg_daily 缺席（未入单值表=缺项/非数值）=None——跳检；
+    零基准（≤0）由调用面跳检门拦（回炉 B1——比值无定义）。"""
     ss = values.get(_SS_FIELD)
     q_avg_daily = values.get(_Q_AVG_DAILY_FIELD)
     if ss is None or q_avg_daily is None:
@@ -216,8 +224,10 @@ def validation_summary_of(
             ))
         elif kb.kind == MASS_BALANCE_KIND:
             ss_load = _plant_ss_load(values)
-            if ds_primary is None or ss_load is None:
-                continue  # 缺面跳检不警（R6——③无声明/②基准面缺）
+            if ds_primary is None or ss_load is None or ss_load <= 0:
+                continue  # 缺面/零基准跳检不警（R6——③无声明/②基准面缺
+                # /零基准比值无定义——回炉 B1：SS=0 或 q=0 不崩，量级
+                # 判断失效面归跳检族语义）
             ratio = ds_primary / ss_load
             row = {**values, _DS_PRIMARY_FIELD: ds_primary,
                    _SS_LOAD_RATIO_FIELD: ratio}

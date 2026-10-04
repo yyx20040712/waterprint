@@ -226,7 +226,8 @@ def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
     """1A1：input_band 面契约——Kz 静态合理性带（全表包络，流量分档精确表
     挂账）+进水六指标浓度上限带（expression `field <= <float>` 单侧上界式，
     字段=契约既有进水面命名 kz/BOD5/CODCR/SS/NH3N/TN/TP 非新建）；横切
-    进水面非单元包（unit_kinds 恒空=全适用——boundary_check 空表先例）；
+    进水面非单元包（unit_kinds 恒空=kind 直判选条非全适用——1A2 接线
+    红线，回炉 W4 勘正旧「全适用/boundary_check 空表先例」口径）；
     severity 全 WARN（逐条定级归 1A6）；追认单直录（无 coefficients
     源键——geometry_guard 先例）——已追认（Ruling 2026-10-04 用户裁决
     R2 全量追认，1A3 批回写 entry 级标记）。
@@ -251,7 +252,7 @@ def test_input_band_entries_carry_inlet_reasonableness_contract() -> None:
     assert by_key["inlet.quality_upper.nh3n"].expression == "NH3N <= 50.0"
     assert by_key["inlet.quality_upper.tn"].expression == "TN <= 60.0"
     assert by_key["inlet.quality_upper.tp"].expression == "TP <= 10.0"
-    for entry in bands:  # 横切进水面：空表=全适用+WARN+追认标记在册
+    for entry in bands:  # 横切进水面：恒空=kind 直判选条+WARN+追认标记在册
         assert entry.unit_kinds == ()
         assert entry.severity == "WARN"
         assert "已追认" in entry.value_basis  # R2 全量追认回写（1A3 批挂账清偿②）

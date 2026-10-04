@@ -104,12 +104,26 @@ def test_two_magnitude_violations_hit_mb_code(
     loaded_kb: tuple[KbConstraint, ...], ds_primary: float, lower: bool,
 ) -> None:
     """2 量级失衡验收（route 1A3 锚）：×300→ratio≈111.85（≥100）与
-    ÷1000→ratio≈3.73e-4（≤0.01）均落带外→码命中（双子句双向覆盖）。"""
+    ÷1000→ratio≈3.7285e-4（≤0.01）均落带外→码命中（双子句双向覆盖——
+    回炉 W3：验收口径双向钉死，低界例自证 ratio≤0.01）。"""
     report = validation_summary_of(_municipal_project_mb(ds_primary), loaded_kb)
     assert report.codes() == (kb_warning_code(_MB_CODE),)
     ratio = ds_primary / _SS_LOAD
-    assert (ratio >= 100.0) or lower  # 验收口径自证（2 量级）
+    assert (ratio >= 100.0) or (lower and ratio <= 0.01)  # 回炉 W3 实修
     assert f"{ratio:.4f}" in report.warnings[0].message
+
+
+@pytest.mark.parametrize("factor", [0.2, 1.0])
+def test_mb_boundary_exact_values_zero_warnings(
+    loaded_kb: tuple[KbConstraint, ...], factor: float,
+) -> None:
+    """边界恰值零警告（回炉 N2）：ds_primary 恰=下界 0.2×ss_load 与恰=
+    上界 1.0×ss_load——`>=`/`<=` 含端点语义锁（恰等值=带内保留，
+    越界判定严格不含端点外值）。"""
+    report = validation_summary_of(
+        _municipal_project_mb(factor * _SS_LOAD), loaded_kb)
+    assert not report
+    assert report.codes() == ()
 
 
 @pytest.mark.parametrize(
@@ -127,10 +141,14 @@ def test_mb_in_band_and_boundary_faces(
 
 
 def test_mb_skip_faces_silently(loaded_kb: tuple[KbConstraint, ...]) -> None:
-    """三态跳检不警：①loop 案入流直值模式（SS/q_avg_daily 在场而全库无
-    ds_primary 数值键——泥量系上游计算派生）；②进水缺 SS 或 q_avg_daily
-    （互校基准面缺——荒谬 ds 在场不误报）；③ds_primary 非数值 None
-    （键在场值缺席态——数值键判据）。"""
+    """四态跳检不警（回炉 B1 扩零基准两态）：①loop 案入流直值模式
+    （SS/q_avg_daily 在场而全库无 ds_primary 数值键——泥量系上游计算
+    派生）；②进水缺 SS 或 q_avg_daily（互校基准面缺——荒谬 ds 在场
+    不误报）；③ds_primary 非数值 None（键在场值缺席态——数值键判据）；
+    ④零基准（SS=0.0 或 q_avg_daily=0.0→ss_load=0——比值无定义=量级
+    判断失效面，归跳检族语义不崩：荒谬 ds 在场零警告；SS=0 进水
+    荒谬声明归未来 input_band 下带扩展挂账，q_avg_daily≤0 拒收面
+    在 flows/params_guard 在册）。"""
     loop = json.loads(
         (_GOLDEN / "municipal_34760_loop" / "input_project.json").read_text(
             encoding="utf-8"))
@@ -146,6 +164,12 @@ def test_mb_skip_faces_silently(loaded_kb: tuple[KbConstraint, ...]) -> None:
     raw["design"]["nodes"]["sludge_hebing"]["ds_primary"] = None
     assert not validation_summary_of(
         ProjectFile.model_validate(raw), loaded_kb)
+    for zero_field in ("SS", "q_avg_daily"):  # ④ 回炉 B1：零基准跳检不崩
+        raw = _municipal_raw()
+        raw["design"]["nodes"]["inlet"][zero_field] = 0.0
+        raw["design"]["nodes"]["sludge_hebing"]["ds_primary"] = 324012.0
+        assert not validation_summary_of(
+            ProjectFile.model_validate(raw), loaded_kb)
 
 
 def test_mb_selection_criterion_is_kind_direct(

@@ -24,8 +24,9 @@
 > 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
-> 唯一未来项：干化全干化档另立待起草追认；mass_balance 1 条（1A3 批
-> sludge.primary_load_band）起草待追认（P10 追认流程后续批消化）。消费方=server `GET /api/constraints`（META1 静态目录端点
+> 未追认未来项（回炉 N7 勘正——并列两项非「唯一」）：干化全干化档另立
+> 待起草追认；mass_balance 1 条（1A3 批 sludge.primary_load_band）起草
+> 待追认（P10 追认流程后续批消化）。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
 > severity 数据面同端点）。enforcement（1.8.0）=纯声明元数据**零运行时
@@ -62,7 +63,7 @@ options.constraints 通道）落地为：
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
   "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band | mass_balance
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band 恒 []=全适用；mass_balance 恒 []=kind 直判选条〔非全适用〕）
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band/mass_balance 恒 []=kind 直判选条〔非全适用——1A2/1A3 接线红线同款口径，回炉 W4 统一〕）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -172,10 +173,19 @@ options.constraints 通道）落地为：
   =ds_primary÷全厂 SS 负荷〔mg/L·m³/d→kg/d 换算因子经 pint 单源——
   contracts.quantity R2 禁手写换算系数，core/server 源码零数值字面量〕；
   阈值 0.2/1.0=预裁决带原文）；severity=WARN/enforcement=flag（仪表灯
-  ——block 断路器归 P1 后续批挂账）；跳检语义=缺任一面不警（①无
-  municipal_input 声明节点〔矿井线〕②进水缺 SS 或 q_avg_daily〔或非
-  数值〕③无 ds_primary 数值键〔入流直值模式=D2 双模另一态，泥量系上游
-  计算派生非手输声明〕）。数值=追认单直录起草（无 coefficients 源键
+  ——block 断路器归 P1 后续批挂账）；跳检语义=缺任一面或零基准不警
+  （①无 municipal_input 声明节点〔矿井线〕②进水缺 SS 或 q_avg_daily
+  〔或非数值〕③无 ds_primary 数值键〔入流直值模式=D2 双模另一态，
+  泥量系上游计算派生非手输声明〕④零基准 ss_load≤0——比值无定义=
+  量级判断失效面归跳检族语义〔回炉 B1；SS=0 进水荒谬声明归未来
+  input_band 下带扩展挂账，q_avg_daily≤0 拒收面 flows/params_guard
+  在册〕）。**本族表达式字段仅准引用 {ds_primary, primary_ss_ratio}**
+  ——消费面字段门为泛化 DSL 门，族语义边界以此注记为准（代码面收窄
+  归族扩张批——回炉 W2）。多泥量声明节点图形态仅校插入序首个
+  （_inlet_values 同款口径）——多 hebing 图逐节点互校归后续批挂账
+  （回炉 W1 登记）。「输入合理性带归属声明」表是否增 mass_balance 行
+  归后续追认批裁定（表语义=零消费族归置 vs 全 kind 需裁决——本批不
+  扩面，回炉 N6 登记）。数值=追认单直录起草（无 coefficients 源键
   ——geometry_guard/input_band 先例形态；上界 1.0=GB 50014-2021 §6.5
   去除率 η<1 守恒包络/下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数
   宽放 0.5——34760 案例实测削减系数 0.746）。**AI 起草待追认（1A3 批
@@ -282,5 +292,8 @@ options.constraints 通道）落地为：
   算术——起草算术式 `ds_primary >= SS * q_avg_daily / 1000 * 0.2 and …`
   的最小面落地形态；换算因子经 pint 单源，代码零数值——收录边界
   mass_balance 段详注）。
+- 宽放因子登记（回炉 W2-d1）：下界宽放因子 0.5 系仓内裁量（佐证=34760
+  案例削减系数 0.746 的约双倍宽放防误伤），专家背书归 P10 追认批——
+  不推翻预裁决（value_basis 已如实披露裁量链）。
 - 挂账：block 断路器接线（enforcement 消费）仍挂账 P1 后续批（flag
   仪表灯先行——1A6 定级面 input_band 同款）。

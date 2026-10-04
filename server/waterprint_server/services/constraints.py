@@ -1,8 +1,9 @@
 """constraints 服务用例：约束知识库装载投影（CP1——ConstraintPicker 数据面前置）。
 
-输入:  data/constraint_kb/constraints.json（kb 1.8.0 全量 41 条九键——存量
-       34 追认/待确认+input_band 7 条 AI 起草待追认〔1A1 批〕+41 条
-       enforcement 逐条定级 AI 起草待追认〔1A6 批——flag 23+block 18〕）
+输入:  data/constraint_kb/constraints.json（kb 1.9.0 全量 42 条九键——存量
+       41 条已追认〔Ruling 2026-08-31/09-03/09-26/10-01/10-04 R2——含
+       input_band 7 条数值与 41 条 enforcement 定级〕+mass_balance 1 条
+       起草待追认〔1A3 批——flag 24+block 18〕）
 输出:  ConstraintCatalog（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -86,8 +87,10 @@ _KINDS: frozenset[str] = frozenset(
 # 合规与 enumeration_filter 极性统一（门一 B1 勘正），消费走 solution
 # apply_constraints 布尔过滤同通道，kb README 收录边界节）；
 # 1A1：+input_band（进水输入合理性带——横切进水面非单元包非枚举行字段，
-# unit_kinds 空表=全适用〔boundary_check 先例〕；severity 全 WARN 起草待
-# 追认；消费面零接线〔执法面归 1A2 校验骨架〕，本投影=R7 观测面）；
+# unit_kinds 空表=kind 直判选条非全适用〔1A2 接线红线——执法面=core
+# app_validation，回炉 W4 勘正旧「全适用〔boundary_check 先例〕」口径〕；
+# severity 全 WARN 已追认〔Ruling 2026-10-04 R2 全量追认——回炉 W4 勘正
+# 旧「起草待追认」表述〕，本投影=R7 观测面）；
 # 1A3：+mass_balance（plant 级质量规模互校面——跨节点质量规模一致性
 # 校核〔对子=ds_primary vs 全厂进水 SS 负荷〕，unit_kinds 恒空=kind
 # 直判选条非全适用〔1A2 接线红线同款〕；消费面=core app_validation
