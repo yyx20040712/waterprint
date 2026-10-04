@@ -36,7 +36,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _KB_FILE = _REPO_ROOT / "data" / "constraint_kb" / "constraints.json"
 _INPUT_BAND_KIND = "input_band"  # 断言主语（kb 数据面 kind 字面量）
 _FAMILY_COUNT = 7  # 基线数字（任务书 §5：input_band 7 条全 WARN 起草态）
-_TOTAL_COUNT = 41  # 总数锚（k1-N1：kb 1.8.0 起草态 41 条——不再仅由 app 件间接锚）
+_TOTAL_COUNT = 42  # 总数锚（k1-N1：kb 1.9.0 全量 42 条——1A3 批 +mass_balance 1）
 
 
 def _warn(code: str) -> PlantWarning:

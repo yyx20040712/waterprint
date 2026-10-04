@@ -1,8 +1,12 @@
 # constraint_kb —— 约束知识库
 
-> **状态：1.8.1（全量 41 条九键——1A1 七条数值+1A6 第九键 enforcement
+> **状态：1.9.0（全量 42 条九键——mass_balance 1 条〔sludge.
+> primary_load_band 泥量量级互校带〕1A3 批起草待追认+前 41 条：1A1 七条
+> 数值+1A6 第九键 enforcement
 > 逐条定级**已追认（用户裁决 2026-10-04 R2 全量追认，1.8.1 回写标记
-> ——含 effluent 四行取严格档裁量一并追认）**〔§1a6 清单——.workflow/
+> ——含 effluent 四行取严格档裁量一并追认；1A3 批兑现 entry 级标记
+> 回写：constraints.json 全库 17 处「AI 起草待追认」回写已追认——
+> 挂账清偿②闭口）**〔§1a6 清单——.workflow/
 > 1a6-20261003/draft-table.md 起草表=呈用户追认的唯一材料；与 1A1
 > 七条数值合并呈报〕；裁决记录=.workflow/adjudication-batch-20261004.md
 > 裁决记录节。定级分布：flag 23+block 18——P1 裁决选项 3「kb 逐条
@@ -20,7 +24,8 @@
 > 批复记录=.workflow/ledger.md 两日 Ruling 条目+
 > pending-domain-expert.md §22/§24 销账注+backend-calc-complete/
 > b3a-research.md §七。
-> 唯一未来项：干化全干化档另立待起草追认。消费方=server `GET /api/constraints`（META1 静态目录端点
+> 唯一未来项：干化全干化档另立待起草追认；mass_balance 1 条（1A3 批
+> sludge.primary_load_band）起草待追认（P10 追认流程后续批消化）。消费方=server `GET /api/constraints`（META1 静态目录端点
 > 同构）+webapp ConstraintPicker（方案浏览枚举提交面）+`GET /api/site/spacing`
 > （L4b 间距校核——spacing_check 阈值数据面；SPC2 起 boundary_check
 > severity 数据面同端点）。enforcement（1.8.0）=纯声明元数据**零运行时
@@ -56,8 +61,8 @@ options.constraints 通道）落地为：
 ```json
 {
   "key": "vxinglvchi.v_filter_band",     // 全库唯一（UI/追认清单引用）
-  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band
-  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band 恒 []=全适用）
+  "kind": "enumeration_filter",          // enumeration_filter | effluent_standard | spacing_check | boundary_check | geometry_guard | input_band | mass_balance
+  "unit_kinds": ["municipal_vxinglvchi"],// 适用单元（effluent 参考面恒 []；spacing_check []=全对通用/两键=限定对；boundary_check 恒 []=全构筑物；geometry_guard 恒 AAO/CASS 双键；input_band 恒 []=全适用；mass_balance 恒 []=kind 直判选条〔非全适用〕）
   "label": "…（含字段名）",              // UI 显示（限值出处另列）
   "expression": "v_filter_act >= 7.0 and v_filter_act <= 10.0",  // core DSL
   "source": "GB 50013-2018 §9.5；给水排水设计手册（第 5 册 城镇排水）；起草表待追认",
@@ -74,9 +79,10 @@ options.constraints 通道）落地为：
 | severity | 呈现多醒目（黄/红标示分层） | ERROR / WARN / INFO（core contracts Severity 冻结面） | 呈现分类元数据——勾选即硬滤全级别（UF-54 定版口径不因第九键改变） |
 | enforcement | 违规算不算失败（1.8.0） | flag / block | 执法定性元数据——flag=仪表灯（违规呈现不阻断）/block=断路器（违规即失败终态）；**本批零执法**（纯声明，运行时阻断消费归 P1 后续批） |
 
-- 两维独立取值——41 条在库实际组合矩阵（§1a6 起草清单机器清点）：
-  severity=WARN+enforcement=flag 23 条（可行带过滤 11+通用间距 1+
-  几何提示门 4+进水合理性带 7——提示带仪表灯）；severity=WARN+
+- 两维独立取值——42 条在库实际组合矩阵（§1a6 起草清单机器清点+1A3 批
+  增 mass_balance 1 条）：
+  severity=WARN+enforcement=flag 24 条（可行带过滤 11+通用间距 1+
+  几何提示门 4+进水合理性带 7+泥量互校带 1——提示带仪表灯）；severity=WARN+
   enforcement=block 12 条（出水标准：呈现黄标/违规定性失败）；severity=
   ERROR+enforcement=block 6 条（沼气间距 1+用地红线 1+几何拒收门 4：
   呈现红标/违规定性失败）——组合由条目 kind 语义逐条定级。ERROR+flag
@@ -152,6 +158,28 @@ options.constraints 通道）落地为：
   批接线消费**（2026-10-04——plant 级进水面 kind 直判选条
   `app_validation`，unit_kinds 不参与〔接线红线〕；违规产警告码
   不阻断=enforcement flag 语义）。
+- mass_balance（1A3 批 1.9.0 增 1 条——plant 级质量规模互校面）：跨节点
+  **质量规模一致性校核**（「进出泥量失衡」诊断面——route 1A3 锚）：对子
+  =sludge_hebing 参数注入模式声明的 `ds_primary`（初沉股干泥 kg/d）vs
+  全厂进水 SS 负荷（进水声明 SS mg/L×q_avg_daily m³/d 换算 kg/d）——
+  **仅此一对**（ds_bio/ds_chem 不入互校：高溶解性 BOD5 废水场景 ds_bio
+  可合法远超 SS 负荷，无守恒上界必误伤）；unit_kinds 恒空=**选条判据
+  kind 直判**（接线红线同款：禁按空表=全适用实现——执法面=core
+  app_validation mass_balance 分支〔1A3 批接线〕）；表达式落
+  `primary_ss_ratio` 派生比值列双侧带 `primary_ss_ratio >= 0.2 and
+  primary_ss_ratio <= 1.0`（**DSL 右值不支持字段算术**——字段×字段算式
+  不可解析，起草算术式的最小面落地形态；比值列由消费面注入
+  =ds_primary÷全厂 SS 负荷〔mg/L·m³/d→kg/d 换算因子经 pint 单源——
+  contracts.quantity R2 禁手写换算系数，core/server 源码零数值字面量〕；
+  阈值 0.2/1.0=预裁决带原文）；severity=WARN/enforcement=flag（仪表灯
+  ——block 断路器归 P1 后续批挂账）；跳检语义=缺任一面不警（①无
+  municipal_input 声明节点〔矿井线〕②进水缺 SS 或 q_avg_daily〔或非
+  数值〕③无 ds_primary 数值键〔入流直值模式=D2 双模另一态，泥量系上游
+  计算派生非手输声明〕）。数值=追认单直录起草（无 coefficients 源键
+  ——geometry_guard/input_band 先例形态；上界 1.0=GB 50014-2021 §6.5
+  去除率 η<1 守恒包络/下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数
+  宽放 0.5——34760 案例实测削减系数 0.746）。**AI 起草待追认（1A3 批
+  ——P10 追认流程后续批消化）**。
 - 裕度语义（backend-calc-complete 批2a 2026-09-25——裁决①）：枚举
   margin_min 裕度列=行对**已追认双侧带条目**（`x >= a and x <= b` 形）
   的归一距离 min(v−a, b−v)/(b−a) 行级取最紧（core
@@ -239,3 +267,20 @@ options.constraints 通道）落地为：
 | boundary_check（1） | block | 用地红线越界=硬失败（P1 件 §六 red_line 类原型） |
 | geometry_guard（8） | hint 4=flag/reject 4=block | 提示门（超工程常用）/拒收门（荒诞域）与 severity 双门一一对应 |
 | input_band（7） | 全 flag | WARN 提示不拒收——1A1 起草表语义承接（越上界=疑工业废水/单位错录提示复核） |
+| mass_balance（1） | flag | 量级互校仪表灯——失衡提示复核（1A3 批起草：1.0 上界守恒包络/0.2 下界宽放；见下方 1.9.0 起草清单） |
+
+## 起草清单（1.9.0 mass_balance 一条——起草待追认）
+
+> 1A3 批（UF-55 泥量量级互校）增条；呈用户追认材料=本表+任务书 §3 预裁决
+> （.workflow/1a3-20261004/）。追认后随标记回写（RATIFY-CP1 先例形态）。
+
+| key | expression | severity | 数值权威 |
+|---|---|---|---|
+| `sludge.primary_load_band` | `primary_ss_ratio >= 0.2 and primary_ss_ratio <= 1.0` | WARN | GB 50014-2021 §6.5（初沉池 SS 去除率 40%~60%——上界 1.0=η<1 守恒包络）+给水排水设计手册（第 5 册 城镇排水）初沉污泥量计算式（=SS 负荷×去除率——CC-F10 同源口径）——追认单直录起草：下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数宽放 0.5（仓内佐证：34760 案例初沉入流 SS 186.4242/进水声明 250=削减系数 0.746；golden 三案例 ratio=0.372850 带内零漂移；2 量级失衡验收 ratio≥100 与 ≤0.01 均落带外）——AI 起草待追认（1A3 批，P10 追认流程后续批消化） |
+
+- 注记：expression 落 `primary_ss_ratio` 派生比值列（DSL 右值不支持字段
+  算术——起草算术式 `ds_primary >= SS * q_avg_daily / 1000 * 0.2 and …`
+  的最小面落地形态；换算因子经 pint 单源，代码零数值——收录边界
+  mass_balance 段详注）。
+- 挂账：block 断路器接线（enforcement 消费）仍挂账 P1 后续批（flag
+  仪表灯先行——1A6 定级面 input_band 同款）。

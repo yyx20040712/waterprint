@@ -11,7 +11,8 @@
     "1.6.1（margin-kb-20261001 追认定稿批）：**已追认定稿（Ruling 2026-10-01——用户批复「追认并推送」）**——§32 四裁量全数生效：R1 cass.ns_act_band 参数带→实际负荷带语义迁移经裁定成立（含 MLSS 基准子项）；R2 aao 缺氧 HRT 维持手册常用子带 2~4h（GB 全带注记保留）；R3 起草态即可用口径确认（本批起为已追认定稿）；R4 过滤面首批接入校核面同键带披露确认。五条 value_basis/source 追认标记回写（RATIFY-CP1 先例形态）；数值零变更（C3 门禁 11 条恒等不扰）；server test _DRAFT16_KEYS 起草键集撤除+五键 expression 全锁面补齐（门一 d1 复审 N-2 挂账兑现）；批复记录=.workflow/ledger.md（2026-10-01 Ruling）+pending-domain-expert.md §32 销账注。",
     "1.7.0（1A1 数据带补录批）：增 kind=input_band 7 条（进水输入合理性带——横切进水面非单元包、非枚举行字段：inlet.kz_band Kz 总变化系数静态包络带`kz >= 1.3 and kz <= 2.7`〔GB 50014-2021 总变化系数表端点——流量相关精确内插表显式挂账不录〕+inlet.quality_upper.{cod,bod5,ss,nh3n,tn,tp} 进水六指标浓度上限带 `field <= max` 单侧式〔字段=契约既有进水面命名 kz/BOD5/CODCR/SS/NH3N/TN/TP——contracts 冻结面直用非新建〕）；unit_kinds 恒空=通用勾选判据恒不命中（执法面已由 1A2 接线——kind 直判选条）；severity 全 WARN（逐条定级归 1A6 批）；数值=追认单直录起草（无 coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批）。**已追认（Ruling 2026-10-04——用户裁决 R2 全量追认；原起草清单=§1a1——.workflow/1a1-20261003/draft-table.md 起草表）**；旧 34 键零扰动，计数 11+12+2+1+8→11+12+2+1+8+7（server test_constraints 同步+core 装载器零消费——执法面接线归 1A2）。",
     "1.8.0（1A6 批逐条定级批）：41 条全量增第九键 enforcement（P1 裁决选项 3 落地——kb 逐条 severity 声明式定级：值域恰两值 flag=仪表灯〔违规呈现不阻断〕|block=断路器〔违规即失败终态〕，与既有 severity〔WARN/ERROR=呈现黄红分层〕正交两维）。分布=flag 23+block 18：enumeration_filter 11 条全 flag〔可行带过滤——P1 件 §六选项 3 filter 带类原文，带外行已可勾选过滤双保险无必要〕；effluent_standard 12 条全 block〔出流超标=工艺交付失败——P1 件 §七「计算器+门禁」哲学+出水标准数据性地位；工况分级豁免〔design 严/offline 宽——P1 件 §五第 3 层〕显式挂账不在本批 schema 表达〕；spacing_check 按 WARN/ERROR 双门分〔通用 6 m 提示=flag/浓缩—消化沼气防火间距 10 m=block〕；boundary_check 1 条 block〔用地红线越界=硬失败〕；geometry_guard 按双门分〔hint 4 条 WARN=flag/reject 4 条 ERROR=block——与 severity 分层一一对应〕；input_band 7 条全 flag〔WARN 提示不拒收——1A1 起草表语义承接〕。enforcement=纯声明元数据零运行时消费（core KbConstraint 不装载/apply_constraints 不读/run_full_calc 零感知——golden serialize 批前后恒等探针实录）；运行时阻断消费接线与工况分级豁免=显式挂账归 P1 后续批。**已追认（Ruling 2026-10-04——用户裁决 R2 全量追认；原起草清单=§1a6——.workflow/1a6-20261003/draft-table.md 起草表=呈用户追认的唯一材料；与 1A1 七条数值合并呈报，追认批统一升 1.8.1 回写标记）**；旧 41 键八面零扰动（仅加第九键）。欠账闭口记档（回炉轮1 补记）：本批契约三步 openapi 重导出时 kind 枚举出现 +input_band——系 1A1 批扩 ConstraintEntry.kind Literal 时未同步重导出 openapi.json 的存量漂移，本次随生成物重导出自然收口（顺带收口非本批新裁量；43 端点操作数不变，schema 面变——判别依据=生成物单一事实源随 app 真值）。",
-    "1.8.1（ratify-kb-20261004 追认批）：**已追认（用户裁决 2026-10-04 R2 全量追认——.workflow/adjudication-batch-20261004.md 裁决记录节）**——1A1 七条数值+1A6 41 条 enforcement 定级全量生效（含 effluent 四行取严格档裁量）。纯回写标记（RATIFY-CP1 先例形态）：41 条 entry 九键值零触碰；追认标记回写于 README 状态面+manifest 变更记录+本注释行（entry 级标记回写与 server _DRAFT17_KEYS 撤集归后续锁面批）。门二三挂账随记：工况分级豁免+运行时断路器接线=仍挂账归 P1 后续批；追认合并呈报=本批闭口。"
+    "1.8.1（ratify-kb-20261004 追认批）：**已追认（用户裁决 2026-10-04 R2 全量追认——.workflow/adjudication-batch-20261004.md 裁决记录节）**——1A1 七条数值+1A6 41 条 enforcement 定级全量生效（含 effluent 四行取严格档裁量）。纯回写标记（RATIFY-CP1 先例形态）：41 条 entry 九键值零触碰；追认标记回写于 README 状态面+manifest 变更记录+本注释行（entry 级标记回写与 server _DRAFT17_KEYS 撤集归后续锁面批）。门二三挂账随记：工况分级豁免+运行时断路器接线=仍挂账归 P1 后续批；追认合并呈报=本批闭口。",
+    "1.9.0（1A3 泥量量级互校批——UF-55 闭合）：增 kind=mass_balance 1 条（sludge.primary_load_band 初沉干泥量级互校带——plant 级跨节点质量规模互校族：对子=sludge_hebing 参数注入模式声明的 ds_primary〔初沉股干泥 kg/d〕vs 全厂进水 SS 负荷〔进水声明 SS mg/L×q_avg_daily m³/d 换算 kg/d〕，仅此一对——ds_bio/ds_chem 不入互校〔高溶解性 BOD5 废水可合法远超 SS 负荷，无守恒上界必误伤〕；跳检语义=缺任一面不警〔无 municipal_input 声明节点/进水缺 SS 或 q_avg_daily/无 ds_primary 数值键——入流直值模式=D2 双模另一态天然跳检〕）。表达式落 primary_ss_ratio 派生比值列双侧带 0.2~1.0（DSL 右值不支持字段算术——字段×字段算式不可解析，最小面改形；比值列=core app_validation 注入，mg/L·m³/d→kg/d 换算因子经 pint 单源〔contracts.quantity R2 禁手写换算系数〕——core/server 源码零新增数值字面量）。severity=WARN/enforcement=flag（仪表灯——1A6 定级面 input_band 同款；block 断路器归 P1 后续批挂账）。消费面：core app_validation 增 mass_balance 分支（kind 直判选条——unit_kinds 恒空不参与，1A2 接线红线同款）；server _KINDS/Literal 双处同步+openapi 重导出。本批附带挂账清偿：全库 17 处「AI 起草待追认」标记回写已追认（14 entry 字段=Ruling 2026-10-04 R2；comment 三历史行同义措辞——1.6.0 行历史归属 Ruling 2026-10-01）+server _DRAFT17_KEYS 撤集。**AI 起草待追认（1A3 批——P10 追认流程后续批消化）**；旧 41 键零扰动，计数 11+12+2+1+8+7→11+12+2+1+8+7+1（server test_constraints 同步）。"
   ],
   "entries": [
     {
@@ -513,6 +514,17 @@
       "severity": "WARN",
       "enforcement": "flag",
       "value_basis": "追认单直录起草（无 coefficients 源键）：城镇污水（以生活污水为主）输入包络上界，越上界=疑工业废水主体或单位错录（WARN 提示不拒收）；契约面数学不变量（负浓度/非有限）由 contracts/quality.py 在册执法——两不混载（UF-24 归属声明）；手册原册页级复核归追认批——已追认（Ruling 2026-10-04——用户裁决 R2 全量追认）"
+    },
+    {
+      "key": "sludge.primary_load_band",
+      "kind": "mass_balance",
+      "unit_kinds": [],
+      "label": "初沉干泥量级互校带（ds_primary vs 全厂进水 SS 负荷）",
+      "expression": "primary_ss_ratio >= 0.2 and primary_ss_ratio <= 1.0",
+      "source": "GB 50014-2021 §6.5（初沉池 SS 去除率 40%~60%——上界 1.0=η<1 守恒包络：初沉干泥恒小于进水 SS 负荷）；给水排水设计手册（第 5 册 城镇排水）初沉污泥量计算式（=SS 负荷×去除率——CC-F10 同源口径）；AI 起草待追认（1A3 批）",
+      "severity": "WARN",
+      "enforcement": "flag",
+      "value_basis": "追认单直录起草（无 coefficients 源键——geometry_guard/input_band 先例形态）：上界 1.0=GB §6.5 去除率 η<1 守恒包络；下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数宽放 0.5（仓内佐证：34760 案例初沉入流 SS 186.4242/进水声明 250=削减系数 0.746；golden 三案例 ratio=0.372850 带内零漂移）；2 量级失衡验收（route 1A3 锚）ratio≥100 与 ≤0.01 均落带外；AI 起草待追认（1A3 批）"
     }
   ]
 }

@@ -1,7 +1,7 @@
 """constraints 服务镜像测试：kb 装载投影/fail-visible/确定性（CP1 D4~D7）。
 
 输入:  waterprint_server.services.constraints 公开符号+真源 kb（仓库 data 面）
-输出:  服务契约断言（41 条六类九键/装载守卫八路/定级分布/缓存单例/双跑字节同
+输出:  服务契约断言（42 条七类九键/装载守卫八路/定级分布/缓存单例/双跑字节同
        ——守卫八路=缺键×2〔source/enforcement〕+值域越界×3〔enforcement/
        kind/severity〕+key 重复+空串 key+unit_kinds 型异；另缺失/损坏
        两路分立同文件）
@@ -43,6 +43,9 @@ _SPACING_COUNT = 2
 _BOUNDARY_COUNT = 1
 _GEOMETRY_COUNT = 8
 _INPUT_BAND_COUNT = 7
+# 1A3 批 1.9.0：mass_balance 1 条（sludge.primary_load_band 泥量量级
+# 互校带——plant 级跨节点质量规模互校族，起草待追认；计数 41→42）
+_MASS_BALANCE_COUNT = 1
 # 起草键集撤集记档（1A3 批挂账清偿③——1.6.1 批 _DRAFT16_KEYS 撤集先例
 # 形态）：1A1 七键已随 Ruling 2026-10-04 用户裁决 R2 全量追认生效
 # （1.8.1 批 entry 级标记回写由 1A3 批兑现——constraints.json 17 处
@@ -59,11 +62,12 @@ _ENFORCEMENT_BY_KIND = {
     "boundary_check": {"flag": 0, "block": 1},
     "geometry_guard": {"flag": 4, "block": 4},
     "input_band": {"flag": 7, "block": 0},
+    "mass_balance": {"flag": 1, "block": 0},
 }
 
 
 def test_catalog_projects_kb_truth() -> None:
-    """R1 真源投影：41 条六类+key 唯一+声明序（kb 声明面恰等钳制）。"""
+    """R1 真源投影：42 条七类+key 唯一+声明序（kb 声明面恰等钳制）。"""
     catalog = list_constraints(_REPO)
     entries = catalog.entries
     assert len(entries) == (
@@ -73,6 +77,7 @@ def test_catalog_projects_kb_truth() -> None:
         + _BOUNDARY_COUNT
         + _GEOMETRY_COUNT
         + _INPUT_BAND_COUNT
+        + _MASS_BALANCE_COUNT
     )
     kinds = [e.kind for e in entries]
     assert kinds.count("enumeration_filter") == _FILTER_COUNT
@@ -81,6 +86,7 @@ def test_catalog_projects_kb_truth() -> None:
     assert kinds.count("boundary_check") == _BOUNDARY_COUNT
     assert kinds.count("geometry_guard") == _GEOMETRY_COUNT
     assert kinds.count("input_band") == _INPUT_BAND_COUNT
+    assert kinds.count("mass_balance") == _MASS_BALANCE_COUNT
     keys = [e.key for e in entries]
     assert len(set(keys)) == len(keys)  # key 唯一（README 硬规则）
     assert all(e.enforcement in _ENFORCEMENT_VALID for e in entries)  # 第九键
@@ -269,7 +275,7 @@ def test_entries_carry_enforcement_grading() -> None:
         slot = dist.setdefault(entry.kind, {"flag": 0, "block": 0})
         slot[entry.enforcement] += 1
     assert dist == _ENFORCEMENT_BY_KIND  # 分 kind 分布锚（起草表机器钳制）
-    assert len([e for e in entries if e.enforcement == "flag"]) == 23
+    assert len([e for e in entries if e.enforcement == "flag"]) == 24
     assert len([e for e in entries if e.enforcement == "block"]) == 18
     by_key = {e.key: e for e in entries}
     # geometry 双门：hint（severity=WARN）=flag/reject（ERROR）=block 一一对应
@@ -404,7 +410,7 @@ def test_cache_singleton_and_determinism() -> None:
 
 @pytest.mark.anyio
 async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """D4：GET /api/constraints 200——41 条六类（client 面=路由+装配全链）。"""
+    """D4：GET /api/constraints 200——42 条七类（client 面=路由+装配全链）。"""
     response = await client.get("/api/constraints")
     assert response.status_code == 200
     payload = response.json()
@@ -416,10 +422,11 @@ async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-un
         + _BOUNDARY_COUNT
         + _GEOMETRY_COUNT
         + _INPUT_BAND_COUNT
+        + _MASS_BALANCE_COUNT
     )
     assert {e["kind"] for e in entries} == {
         "enumeration_filter", "effluent_standard", "spacing_check",
-        "boundary_check", "geometry_guard", "input_band",
+        "boundary_check", "geometry_guard", "input_band", "mass_balance",
     }
     first_filter = next(e for e in entries if e["kind"] == "enumeration_filter")
     assert set(first_filter.keys()) == {
@@ -427,3 +434,26 @@ async def test_constraints_endpoint_shape(client) -> None:  # type: ignore[no-un
         "source", "severity", "value_basis", "enforcement",
     }
     assert all(e["enforcement"] in {"flag", "block"} for e in entries)
+
+
+def test_mass_balance_entry_carry_plant_scale_contract() -> None:
+    """1A3：mass_balance 面契约——plant 级跨节点质量规模互校带（对子
+    =ds_primary vs 全厂进水 SS 负荷——仅此一对）；unit_kinds 恒空=kind
+    直判选条非全适用（1A2 接线红线同款）；表达式落 primary_ss_ratio
+    派生比值列双侧带 0.2~1.0（DSL 右值不支持字段算术——最小面改形，
+    比值列由 core app_validation 注入消费）；WARN/flag 仪表灯；起草态
+    =追认单直录（AI 起草待追认 1A3 批——P10 追认流程后续批消化）。
+    """
+    catalog = list_constraints(_REPO)
+    family = [e for e in catalog.entries if e.kind == "mass_balance"]
+    assert len(family) == _MASS_BALANCE_COUNT
+    entry = family[0]
+    assert entry.key == "sludge.primary_load_band"
+    assert entry.expression == (
+        "primary_ss_ratio >= 0.2 and primary_ss_ratio <= 1.0"
+    )  # 表达式锁面（阈值 0.2/1.0=预裁决带原文——数值漂移即红）
+    assert entry.unit_kinds == ()  # 恒空=kind 直判（接线红线——非全适用）
+    assert entry.severity == "WARN" and entry.enforcement == "flag"
+    assert "AI 起草待追认" in entry.source  # 起草态标记在册（1A3 批）
+    assert "追认单直录" in entry.value_basis
+    assert "GB 50014-2021" in entry.source  # 出处链（CC-F10 同源口径）

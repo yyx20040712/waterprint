@@ -1,7 +1,8 @@
 """app_validation 镜像测试：厂级进水输入合理性校验骨架（1A2 批）。
 
 输入:  waterprint.app_validation（validation_summary_of/INPUT_BAND_FIELDS/
-       INPUT_BAND_KIND）+kb 真源（仓库 data 面 41 条）+golden 双案
+       INPUT_BAND_KIND）+kb 真源（仓库 data 面 42 条——1A3 批增 mass_balance
+       1 条）+golden 双案
        （municipal_34760 市政进水声明/mine_43836 矿井线无市政声明节点）
 输出:  行为断言——合法进水零警告/非法进水码命中（kz 双界参数化/CODCR/
        五指标越带参数化/混合越带+混合缺项不掩蔽）/缺项跳检不警（指标两
@@ -78,7 +79,7 @@ def _municipal_project(**inlet_overrides: Any) -> ProjectFile:
 
 @pytest.fixture(scope="module")
 def loaded_kb() -> tuple[KbConstraint, ...]:
-    """kb 真源装载（41 条全量——单源=data 面）。"""
+    """kb 真源装载（42 条全量——单源=data 面；1A3 批 +mass_balance 1）。"""
     return load_kb_constraints(_KB_FILE)
 
 
@@ -223,10 +224,14 @@ def test_mine_line_without_municipal_declaration_zero_warnings(
 def test_selection_criterion_is_kind_not_unit_kinds(
     loaded_kb: tuple[KbConstraint, ...],
 ) -> None:
-    """选条判据=kind 直判：剔除 input_band 后的 34 条注入+非法 kz=零警告
-    （unit_kinds 恒空既非「全单元适用」亦不参与选条——接线红线）。"""
-    others = tuple(kb for kb in loaded_kb if kb.kind != INPUT_BAND_KIND)
-    assert len(others) == 34  # 41−7（负向锚 B 面同款剔除口径）
+    """选条判据=kind 直判：剔除 input_band∪mass_balance 后的 34 条注入+
+    非法 kz=零警告（unit_kinds 恒空既非「全单元适用」亦不参与选条——
+    接线红线；两 kind 同款）。"""
+    others = tuple(
+        kb for kb in loaded_kb
+        if kb.kind not in {INPUT_BAND_KIND, "mass_balance"})  # 过渡字面量
+    # （C3 core 笔换 MASS_BALANCE_KIND 常量单源——数据笔先行计数锚勘正）
+    assert len(others) == 34  # 42−8（负向锚 B 面同款剔除口径——勘正注记）
     assert not validation_summary_of(
         _municipal_project(kz=3.0), others)
 
@@ -311,14 +316,18 @@ def _summary_diff_face(
 
 @pytest.fixture(scope="module")
 def golden_run() -> Any:
-    """golden 全链跑批载体（A=41 全量/B=34 剔 input_band/C=零注入+闭包）。"""
+    """golden 全链跑批载体（A=42 全量/B=34 剔 input_band∪mass_balance/
+    C=零注入+闭包）。"""
     from waterprint.app import load_run_env, run_full_calc
 
     project = _municipal_project()
     env = load_run_env(_REPO_DATA, project)
     conditions = build_condition_set(["municipal_aao"])
     loaded = load_kb_constraints(_KB_FILE)
-    without = tuple(kb for kb in loaded if kb.kind != INPUT_BAND_KIND)
+    without = tuple(
+        kb for kb in loaded
+        if kb.kind not in {INPUT_BAND_KIND, "mass_balance"})  # 过渡字面量
+    # （B 面=42−8=34——input_band∪mass_balance 双剔除口径，C3 core 笔换常量）
 
     def run(active: tuple[KbConstraint, ...], inflow: ProjectFile | None = None) -> Any:
         return run_full_calc(inflow or project, conditions, env, constraints=active)
@@ -331,8 +340,9 @@ def golden_run() -> Any:
 
 
 def test_negative_anchor_input_band_zero_consumption(golden_run: Any) -> None:
-    """memo②负向锚：A(41) vs B(34) plant serialize 逐字节恒等——input_band
-    零消费构造性运行期实证（validation=独立第四字段不回流 plant）。"""
+    """memo②负向锚：A(42) vs B(34) plant serialize 逐字节恒等——input_band
+    ∪mass_balance 零消费构造性运行期实证（validation=独立第四字段不回流
+    plant）。"""
     assert serialize(golden_run["all"].plant) == serialize(golden_run["without"].plant)
 
 
