@@ -145,7 +145,7 @@ def _inflow_stocks(
             )
         q_eng = flow.q_wet * SECS_PER_DAY
         ds_eng = flow.ds * SECS_PER_DAY
-        if q_eng <= 0 or ds_eng <= 0:
+        if not q_eng > 0 or not ds_eng > 0:  # 1A4 T2：NaN 穿透收紧（FZ-4 同款）
             raise InvalidUnitConfig(
                 f"单元 {ctx.unit_id!r} 入流口 {port_id!r} 的 q_wet/ds 必须"
                 f" > 0（工程口径）：得到 q={q_eng!r}, ds={ds_eng!r}"

@@ -119,7 +119,7 @@ def _volumes(
         },
     )
     v_anaerobic = _apply_batch(ctx, "AO-F3", {"q_avg_daily": q_avg, "t_p": _vec(p["t_p"])})
-    if tn_in - p["tn_eff"] <= 0:
+    if not (tn_in - p["tn_eff"]) > 0:  # 1A4 T2：NaN 穿透收紧（FZ-4 同款）
         raise InvalidUnitConfig(
             f"单元 {_UNIT_ID!r} 反硝化脱氮量 delta_n 必须 > 0：TN_in={tn_in!r}，"
             f"tn_eff={p['tn_eff']!r}（进水 TN 须高于设计出水 TN——AO-F4 前提）"

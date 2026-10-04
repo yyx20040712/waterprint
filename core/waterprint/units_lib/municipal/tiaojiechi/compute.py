@@ -103,7 +103,7 @@ def _validate(params: dict[str, float]) -> None:
         if value is None or not value > 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
     for key in _FACTORS_POSITIVE:
-        if _factor(params, key, _UNIT_ID) <= 0:
+        if not _factor(params, key, _UNIT_ID) > 0:  # 1A4 T2：NaN 穿透收紧（FZ-4 同款）
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 系数键 {key!r} 必须 > 0（搅拌功率密度/溢流管流速物理域）"
             )

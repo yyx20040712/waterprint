@@ -121,7 +121,7 @@ def _validate(params: dict[str, float]) -> None:
             f"强制滤速 XL-F9 分母 a_total_act−a_cell_act 需 n≥2）：得到 {params['n']!r}"
         )
     for key in _FACTORS_POSITIVE:
-        if _factor(params, key, _UNIT_ID) <= 0:
+        if not _factor(params, key, _UNIT_ID) > 0:  # 1A4 T2：NaN 穿透收紧（FZ-4 同款）
             raise InvalidUnitConfig(
                 f"单元 {_UNIT_ID!r} 系数键 {key!r} 必须 > 0（自用水/冲洗强度/历时物理域）"
             )

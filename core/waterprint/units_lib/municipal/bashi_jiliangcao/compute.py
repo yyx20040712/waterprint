@@ -78,7 +78,7 @@ _KEY_SCRIT = "factor.bashi_jiliangcao.flume.{grade}.scrit"
 def _grade_of(params: dict[str, float]) -> tuple[str, dict[str, float]]:
     """选档：b_throat>0 守卫 + round(b,2) 档位命中 → (档名, 档系数面)。"""
     b_throat = params.get("b_throat")
-    if b_throat is None or b_throat <= 0:
+    if b_throat is None or not b_throat > 0:  # 1A4 T2：NaN 穿透收紧（FZ-4 同款）
         raise InvalidUnitConfig(
             f"单元 {_UNIT_ID!r} 参数 'b_throat' 必须 > 0：得到 {b_throat!r}"
         )

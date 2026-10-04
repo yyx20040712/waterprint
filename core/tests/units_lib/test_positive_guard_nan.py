@@ -101,3 +101,141 @@ def test_positive_guard_rejects_nan_with_param_name(package: str, key: str) -> N
 def test_positive_guard_nan_case_count_is_thirty() -> None:
     """面锚：扫描全集 30 单元（30 文件 `value <= 0` 句式实录数）。"""
     assert len(_NAN_CASES) == 30
+
+
+# ── 1A4 批 T2 顺手清偿：相邻同病 NaN 面八处（1a7 g1-dispositions §二
+#    W1 表挂账扩列四类——aao 差值比较/hebing 入流工程量/bashi 变量名不
+#    匹配/五单元 _factor 内联；句式收紧=FZ-4 `not x > 0` 同款机械面）────
+
+
+def _params_of(package: str) -> dict[str, float]:
+    """manifest 默认参数基底+系数正键投影 1.0（上方 30 例同款）。"""
+    import importlib
+
+    pkg = importlib.import_module(package)
+    compute = importlib.import_module(f"{package}.compute")
+    params = {spec.field_id: spec.default for spec in pkg.manifest.params}
+    for factor_key in getattr(compute, "_FACTORS_POSITIVE", ()):
+        params.setdefault(factor_key, 1.0)
+    return params
+
+
+# 五单元 _factor 内联守卫（#4~#8——NaN 系数经 _factor 路径：float(nan)
+# 直返→`<=0` 恒 False 穿透旧句式/`not >0` 拒；消息含系数键名）。
+_NAN_FACTOR_CASES: tuple[tuple[str, str], ...] = (
+    ("waterprint.units_lib.mine_water.tiaojiechi",
+     "factor.mine_tiaojiechi.stir.power_density"),
+    ("waterprint.units_lib.municipal.gaomidu", "factor.gaomidu.g_mix"),
+    ("waterprint.units_lib.municipal.tiaojiechi",
+     "factor.tiaojiechi.stir.power_density"),
+    ("waterprint.units_lib.municipal.vxinglvchi",
+     "factor.vxinglvchi.selfuse_coef"),
+    ("waterprint.units_lib.municipal.ziwai", "factor.ziwai.q_per_lamp"),
+)
+
+
+@pytest.mark.parametrize(
+    ("package", "factor_key"),
+    _NAN_FACTOR_CASES,
+    ids=[f"{p.rsplit('.', 1)[-1]}-{k.rsplit('.', 1)[-1]}"
+         for p, k in _NAN_FACTOR_CASES],
+)
+def test_factor_guard_rejects_nan_with_key_name(
+    package: str, factor_key: str
+) -> None:
+    """NaN 系数键入 _FACTORS_POSITIVE 守卫 → InvalidUnitConfig 消息含键名
+    （归因一致率 8/8——旧句式 `_factor(...) <= 0` 下 NaN 比较恒 False
+    穿透＝本用例红面；`not _factor(...) > 0` 收紧后即拒）。"""
+    import importlib
+    import inspect
+
+    pkg = importlib.import_module(package)
+    compute = importlib.import_module(f"{package}.compute")
+    assert factor_key in getattr(compute, "_FACTORS_POSITIVE", ())  # 键在册锚
+    params = _params_of(package)
+    params[factor_key] = float("nan")
+    validate = compute._validate  # noqa: SLF001  # 守卫面直调（纯函数）
+    takes_unit_id = "unit_id" in inspect.signature(validate).parameters
+    with pytest.raises(
+        InvalidUnitConfig, match=rf"系数键 {factor_key!r}"
+    ) as excinfo:
+        if takes_unit_id:
+            validate(params, pkg.manifest.unit_id)
+        else:
+            validate(params)
+    assert str(pkg.manifest.unit_id) in str(excinfo.value)
+
+
+def test_aao_delta_n_guard_rejects_nan_upstream() -> None:
+    """#1 aao 差值比较：NaN tn_in 入流上游值 →`not (tn_in - tn_eff) > 0`
+    拒（消息含 delta_n/TN_in/tn_eff 归因；旧句式 NaN 穿透=红面——参数面
+    tn_eff 已由 _PARAMS_POSITIVE 先拒，NaN 可达面=入流上游裸参直调）。"""
+    import inspect
+    from typing import Any
+
+    from waterprint.contracts.condition import build_condition_set
+    from waterprint.contracts.flow import make_flow
+    from waterprint.contracts.quantity import Quantity
+    from waterprint.contracts.unit_api import UnitContext
+    from waterprint.units_lib.municipal import aao as aao_pkg
+    from waterprint.units_lib.municipal.aao import compute as aao_compute
+
+    params = _params_of("waterprint.units_lib.municipal.aao")
+    ctx = UnitContext(
+        unit_id=aao_pkg.manifest.unit_id, inflows={}, inqualities={},
+        params=params, condition=build_condition_set([]).iter_all().__next__(),
+        assumptions={}, trace=None)
+    flow = make_flow(Quantity(100.0, "m3/d"), 1.5)
+    volumes = aao_compute._volumes  # noqa: SLF001  # 守卫面直调（AO-F1~F5 段）
+    assert "tn_in" in inspect.signature(volumes).parameters  # 裸参注入面锚
+    with pytest.raises(InvalidUnitConfig, match="delta_n") as excinfo:
+        volumes(ctx, dict(params), flow, 200.0, float("nan"))
+    message = str(excinfo.value)
+    assert "tn_eff" in message and "nan" in message  # 归因键+实际值
+    assert str(aao_pkg.manifest.unit_id) in message
+
+
+def test_hebing_inflow_guard_rejects_nan_computed_value() -> None:
+    """#2 hebing 入流工程量：NaN q_wet 入流计算值 →`not q_eng > 0` 拒
+    （q_eng=flow.q_wet×SECS_PER_DAY——NaN 上游传播早拒；消息含端口与
+    q/ds 实际值。SludgeFlow 直构=最小构造面——make_sludge P5 isfinite
+    先拒 NaN 使契约面不可达，直构 dataclass 为唯一注入通道〔执行者裁量
+    申报〕）。"""
+    from waterprint.contracts.condition import build_condition_set
+    from waterprint.contracts.ports import PortRef
+    from waterprint.contracts.sludge import SludgeFlow
+    from waterprint.contracts.unit_api import UnitContext
+    from waterprint.units_lib.sludge.hebing import compute as hebing_compute
+
+    def _stock(q_wet: float) -> SludgeFlow:
+        return SludgeFlow(q_wet=q_wet, ds=1.0, moisture=0.98)
+
+    inflows = {
+        PortRef(unit_id="up_primary", port_id="in_primary"):
+            _stock(float("nan")),
+        PortRef(unit_id="up_bio", port_id="in_bio"): _stock(1.0),
+        PortRef(unit_id="up_chem", port_id="in_chem"): _stock(1.0),
+    }
+    ctx = UnitContext(
+        unit_id="sludge_hebing", inflows=inflows, inqualities={}, params={},
+        condition=build_condition_set([]).iter_all().__next__(),
+        assumptions={}, trace=None)
+    with pytest.raises(InvalidUnitConfig, match="q_wet/ds") as excinfo:
+        hebing_compute._inflow_stocks(ctx)  # noqa: SLF001  # 入流装配面直调
+    message = str(excinfo.value)
+    assert "in_primary" in message and "nan" in message  # 端口+实际值归因
+    assert "sludge_hebing" in message
+
+
+def test_bashi_throat_guard_rejects_nan() -> None:
+    """#3 bashi 喉宽：NaN b_throat →`not b_throat > 0` 拒（is None 检查
+    前置不拦 NaN——`b_throat <= 0` 恒 False 穿透旧句式；消息含参数名）。"""
+    from waterprint.units_lib.municipal.bashi_jiliangcao import compute as bashi
+
+    with pytest.raises(InvalidUnitConfig, match=rf"参数 'b_throat'"):
+        bashi._grade_of({"b_throat": float("nan")})  # noqa: SLF001  # 选档面直调
+
+
+def test_adjacent_nan_face_case_count_is_eight() -> None:
+    """面锚：T2 相邻同病八处（五 _factor+#1 aao+#2 hebing+#3 bashi）。"""
+    assert len(_NAN_FACTOR_CASES) + 3 == 8

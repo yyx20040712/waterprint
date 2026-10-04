@@ -1,14 +1,18 @@
-"""厂级进水输入合理性校验骨架+泥量量级互校：project 原始声明 × kb 求值。
+"""厂级进水输入合理性校验骨架+泥量量级互校+单元参数正性域校验：
+project 原始声明 × kb 求值。
 
-输入:  ProjectFile（design.nodes 进水声明+泥量声明节点原始数据——非计算值）+
-       Sequence[KbConstraint]（kb 装载产物——run_full_calc constraints 注入同源）
+输入:  ProjectFile（design.nodes 进水声明+泥量声明+单元参数声明原始数据
+       ——非计算值）+Sequence[KbConstraint]（kb 装载产物——run_full_calc
+       constraints 注入同源）
 输出:  validation_summary_of → ValidationReport（PlantWarning 元组——
        app.run_full_calc 第四字段 validation 挂载面）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格（1A2 校验骨架批 1a2-20261004 §3.2 预裁决+1A3 泥量量级互校批
-#   1a3-20261004 §3.3 预裁决；镜像测试 tests/app/test_app_validation.py；
+#   1a3-20261004 §3.3 预裁决+1A4 单元级参数域校验批 1a4-20261004 §3.2
+#   预裁决；镜像测试 tests/app/test_app_validation.py+伴生件
+#   test_app_validation_mass_balance.py+test_app_validation_param_band.py；
 #   app_maintenance.py 家族先例同构第十例——根模块聚合投影件，不进
 #   import-linter layers 契约（app_trust/app_carbon 同款 unconstrained）。）
 #
@@ -17,6 +21,11 @@
 #   MASS_BALANCE_KIND: Final[str]（="mass_balance"）：1A3 泥量互校族选条
 #       kind 符号单源（plant 级跨节点质量规模互校——对子=ds_primary vs
 #       全厂进水 SS 负荷，仅此一对）。
+#   PARAM_BAND_KIND: Final[str]（="param_band"）：1A4 单元参数正性域族
+#       选条 kind 符号单源（单元级——选条判据=节点 ID∈unit_kinds，分立
+#       于 input_band/mass_balance 两恒空 kind 直判族；kb 实配
+#       unit_kinds=单元 ID〔节点 ID=unit_id 全仓约定——geometry_guard
+#       非空先例形态〕）。
 #   INPUT_BAND_FIELDS: Final[Mapping[str, str]]：key→字段映射表（memo③
 #       ——input_band 七条 key 与冻结字段异名对照：kz_band→kz /
 #       cod→CODCR / bod5→BOD5 / ss→SS / nh3n→NH3N / tn→TN / tp→TP；
@@ -30,11 +39,13 @@
 #         inlet.quality_upper.tp    → TP
 #   validation_summary_of(project, constraints) -> ValidationReport
 #       （命名对齐 maintenance_summary_of）：厂级进水面检查——与单元族
-#       无关、与工况无关（进水声明为静态原始面）；1A3 起含泥量互校面。
+#       无关、与工况无关（进水声明为静态原始面）；1A3 起含泥量互校面；
+#       1A4 起含单元参数正性域面。
 #
 # 【行为口径】
 #   R1 选条判据=kind 直判（input_band/mass_balance 两族同款——接线红线
-#     见下方逐字引用；unit_kinds 恒空不参与选条）。
+#     见下方逐字引用；unit_kinds 恒空不参与选条）；param_band 分立判据
+#     =节点 ID∈unit_kinds（R8——非 kind 直判族）。
 #   R2 进水单值表=project 进水原始数据直取（design.nodes 中
 #      kind=municipal_input 声明节点——非计算值；多声明仅取插入序首个
 #      同款；识别判据不同（本件=kind 字面判据 vs app_influent=无入边+
@@ -72,6 +83,24 @@
 #      （{ratio:.4f}×全厂 SS 负荷 {ss_load:.1f} kg/d）违反 {表达式}」
 #      ——三要素（实际值+带域数值+条目键）+ratio/ss_load 消息面展示
 #      计算（非校验面——不引入代码阈值，仅格式化呈现）。
+#   R8 单元参数正性域（1A4——param_band）：选条判据=节点 ID∈kb.unit_kinds
+#      （分立判据——kb 实配值=单元 ID〔节点 ID=unit_id 全仓约定〕；
+#      municipal_input 声明节点不在任何条目 unit_kinds→自然跳过）；选中
+#      条目对节点 params 求值：字段在场且为数值（int/float 非 bool——
+#      _inlet_values 同款口径）→注入单行 DataFrame（apply_constraints
+#      单源求值）；缺项跳检不警（声明面稀疏——用户只声明改过的参数，
+#      default 面域由 manifest 起草表保证不校）；NaN 越带（NaN>0=False
+#      →警告——声明期 NaN 检出=FZ-4 计算期 InvalidUnitConfig 守卫的前置
+#      报告面）；违规→PlantWarning：code=kb_warning_code(key)、
+#      condition_key=节点 ID（单元级影响面——与 plant 级常量段分立）、
+#      param_key=field（单字段表达式——数据驱动单源）、severity=条目
+#      severity、message=「单元参数域越带：{key}——{节点}.{field}={值!r}
+#      违反 {表达式}」三要素（实际值+表达式原文+条目键）。warn 序=kb
+#      传入序×节点插入序（确定性）。
+#   零破坏注记（1A4 批档 impl-report 实现裁量 D1 勘正）：param_band 条目
+#      经 app_maintenance _maint_face 字段准入（expression_fields⊆offline
+#      dims）对与离线 dims 同名的参数键（如 aao 的 n/h2）合法选中——
+#      plant 标注面增量恰 4 键全 PASS（伴生件实证锚）；本模块纯投影不涉。
 #
 # 【接线红线（memo④——README「输入合理性带归属声明」节逐字引用）】
 #   「unit_kinds 恒空=通用勾选判据恒不命中（执法面接线归 1A2——接线
@@ -89,7 +118,9 @@
 #   选条判据 kind 直判/memo①冻结字段集对账/memo③映射表对账/memo②
 #   负向锚（A/B/C 三跑）/run_full_calc 接线/双跑确定性/1A3 泥量族
 #   （荒谬上界+2 量级双向+带内+边界邻接+三种跳检+kind 直判+三案例
-#   带内零警告）。
+#   带内零警告）/1A4 参数正性域族（越带三态负值/零值/NaN+带内+缺项
+#   跳检+非数值跳检+节点 ID 选条判据双向+golden 五案零警告+plant 面
+#   增量恰 4 键全 PASS+双跑——伴生件 test_app_validation_param_band.py）。
 #
 # 【参照】1a2-20261004 任务书 §3.2/§3.4+1a3-20261004 §3.1/§3.3；
 #   contracts.validation（码键族）；solution.constraints（DSL 单源）；
@@ -98,7 +129,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from types import MappingProxyType
 from typing import Final
 
@@ -120,6 +151,7 @@ from waterprint.solution.constraints import (
 
 INPUT_BAND_KIND: Final[str] = "input_band"
 MASS_BALANCE_KIND: Final[str] = "mass_balance"  # 1A3 泥量互校族（plant 级）
+PARAM_BAND_KIND: Final[str] = "param_band"  # 1A4 单元参数正性域族（单元级）
 INLET_DECLARATION_KIND: Final[str] = "municipal_input"  # 内置图源市政进水声明
 _KZ_FIELD: Final[str] = "kz"
 _Q_AVG_DAILY_FIELD: Final[str] = "q_avg_daily"
@@ -189,11 +221,31 @@ def _plant_ss_load(values: Mapping[str, float]) -> float | None:
     return ss * q_avg_daily * _SS_LOAD_UNIT_KG_D
 
 
+def _param_band_rows(
+    project: ProjectFile, kb: KbConstraint, fields: Sequence[str]
+) -> Iterator[tuple[str, dict[str, float]]]:
+    """param_band 选中节点×数值准入行（R8）：选条判据=节点 ID∈kb.unit_kinds
+    （kb 实配值=单元 ID——节点 ID=unit_id 全仓约定；municipal_input 声明
+    节点不在任何条目→自然跳过）；字段在场且为数值（int/float 非 bool
+    ——_inlet_values 同款口径）才入表——缺项/非数值节点跳检不警（声明面
+    稀疏——default 面域由 manifest 起草表保证不校）。"""
+    for node_id, params in project.design.nodes.items():
+        if node_id not in kb.unit_kinds:
+            continue
+        row: dict[str, float] = {}
+        for field in fields:
+            value = params.get(field)
+            if isinstance(value, int | float) and not isinstance(value, bool):
+                row[field] = float(value)
+        if set(fields) <= row.keys():
+            yield node_id, row
+
+
 def validation_summary_of(
     project: ProjectFile, constraints: Sequence[KbConstraint]
 ) -> ValidationReport:
-    """厂级进水输入合理性校验+泥量量级互校（1A2/1A3）：kind 选条→单行表
-    逐条求值→报告。
+    """厂级进水输入合理性校验+泥量量级互校+单元参数正性域校验
+    （1A2/1A3/1A4）：kind/节点 ID 选条→单行表逐条求值→报告。
 
     纯投影不阻断（R5——仪表灯语义）；kb 迭代=传入序（warn 序确定性）。"""
     values = _inlet_values(project)
@@ -250,4 +302,24 @@ def validation_summary_of(
                 ),
                 severity=kb.constraint.severity,
             ))
+        elif kb.kind == PARAM_BAND_KIND:
+            fields = expression_fields(kb.constraint.expression)
+            for node_id, row in _param_band_rows(project, kb, fields):
+                passed = bool(apply_constraints(
+                    pandas.DataFrame([row]), [kb.constraint],
+                ).pass_matrix.to_numpy().all())
+                if passed:
+                    continue
+                field = fields[0]  # 单字段表达式——数据驱动单源（R8）
+                warnings.append(PlantWarning(
+                    code=kb_warning_code(kb.constraint.key),
+                    condition_key=node_id,  # 单元级影响面（非 plant 常量段）
+                    param_key=field,
+                    message=(
+                        f"单元参数域越带：{kb.constraint.key}——"
+                        f"{node_id}.{field}={row[field]!r}"
+                        f" 违反 {kb.constraint.expression}"
+                    ),
+                    severity=kb.constraint.severity,
+                ))
     return ValidationReport(warnings=tuple(warnings))
