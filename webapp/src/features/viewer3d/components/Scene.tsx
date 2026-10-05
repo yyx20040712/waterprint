@@ -52,7 +52,7 @@
  *     hint（elevation/cost/drawings 族同模式同源）；网络错/其他错不挂
  *     （I-3 分级口径——禁误导引导）。
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber";
@@ -75,7 +75,7 @@ import { groundPlan } from "../lib/groundPlan";
 import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
-import { FirstFrameOverlay, FirstFrameSignal, useFirstFrameGate } from "./FirstFrameGate";
+import { FirstFrameOverlay, FirstFrameSignal, FirstFrameTimeoutPanel, useFirstFrameGate } from "./FirstFrameGate";
 import { GroundStage } from "./GroundStage";
 import { Internals } from "./Internals";
 import { PoolBox } from "./PoolBox";
@@ -327,9 +327,12 @@ export function Scene({
     [effectiveBounds],
   );
 
-  // FE-4 首帧门（brief P4）：scene 就绪→Canvas 首帧渲染空窗的用户反馈；
-  // R1 F1：projectId 作 resetKey——切项目 cell 重建、done 归 false 复位
-  const [firstFrameDone, firstFrameSignal] = useFirstFrameGate(projectId);
+  // FE-4 首帧门：scene 就绪→Canvas 首帧空窗反馈；R1 F1：切项目 cell 复位；
+  // UF-56（2A4）：复合 resetKey=projectId 首段+attempt 尾段——超时面板重试
+  // 钮 +1→cell 重建→timedOut 归 false→Canvas 子树重挂=新 GL 上下文重建
+  const [attempt, setAttempt] = useState(0);
+  const [firstFrameDone, firstFrameTimedOut, firstFrameSignal] =
+    useFirstFrameGate(`${projectId}#${attempt}`);
 
   if (query.isError) {
     return (
@@ -375,80 +378,42 @@ export function Scene({
           可隐藏+水面/内部/标注 store 三键同制补 UI 调用方；F5 D3 剖切
           Switch+Slider 接 store 两动作——高度上限=取景 bounds 高度） */}
       <ViewerToolbar clippingMaxHeight={effectiveBounds?.max[1] ?? 0} />
-      {/* FE-4 首帧门（brief P4）：relative 容器+overlay——首帧即卸载 */}
-      <div style={{ position: "relative" }}>
-        {!firstFrameDone ? <FirstFrameOverlay /> : null}
-        <Canvas
-          camera={{ position: cameraPosition(cameraPreset, effectiveBounds), fov: 50 }}
-          shadows="percentage"
-          gl={{ localClippingEnabled: clippingEnabled }}
-          onCreated={({ gl }) => {
-            // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）；
-            // 相机/controls 观测位归 CameraRig（段二 r3 补正诊断）
-            attachGlInfo(gl);
-          }}
-          style={{
-            height: CANVAS_HEIGHT,
-            minHeight: CANVAS_MIN_HEIGHT,
-            background: sceneBg,
-          }}
-        >
-          {/* FE-4 首帧信号：useFrame 首帧回调一次触发（R2 F1'/B1：key=
-              projectId——缓存命中 Canvas 不重挂时 fired ref 随重挂归零，
-              新 cell 在新场景首帧被 signal；signal 幂等兜底） */}
-          <FirstFrameSignal onFirstFrame={firstFrameSignal} key={projectId} />
-          {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件 GroundStage——effective
-              bounds 派生面：雾档距/灯位/阴影正交半幅/网格中心全随池组并盒） */}
-          <GroundStage ground={ground} sceneBg={sceneBg} showGrass={showGrass} />
-          <CameraRig preset={cameraPreset} bounds={effectiveBounds} />
-          {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
-              （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
-              [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/
-              出域降级链归 TemplateUnit 内部——原语/盒体保持不白屏） */}
-          {scene.solids.map((node) => {
-            const unitId = unitIdOf(node.id);
-            const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
-            if (claim !== undefined && node === claim.dimNode) {
-              return (
-                <TemplateUnit
-                  key={node.id}
-                  entry={claim.entry}
-                  unitId={unitId ?? node.id}
-                  dimNode={node}
-                  scene={scene}
-                  clippingPlanes={clippingPlanes}
-                  poolPlan={poolPlans.get(unitId ?? node.id) ?? null}
-                />
-              );
-            }
-            if (claim !== undefined) {
-              return null; // 单元整族承载——构型件由模板呈现
-            }
-            return (
-              // C2VD V3（终裁 L2）：主视图描边——灰阶构筑物对蓝底/蓝网格
-              // 对比度收口（EdgesGeometry 棱线=语义色派生亮化；缩略图不挂）
-              <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
-            );
-          })}
-          {/* S11 分池水面（PoolWaterSurfaces——cell 域在用槽各一份；
-              unit 域/无池组=现状单份） */}
-          {showWater &&
-            scene.waters.map((node) => {
-              const unitId = unitIdOf(node.id);
-              const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
-              const plan =
-                claim !== undefined ? poolPlans.get(unitId ?? node.id) : undefined;
-              return (
-                <PoolWaterSurfaces
-                  key={node.id}
-                  node={node}
-                  plan={plan ?? null}
-                  clippingPlanes={clippingPlanes}
-                />
-              );
-            })}
-          {showInternals &&
-            scene.internals.map((node) => {
+      {/* UF-56（2A4）超时降级：timedOut 先判——面板替代 Canvas 块（卸载=
+          释放坏 GL 上下文；attempt+1 复位重试=子树重挂天然重建 GL）；
+          非超时=现行 relative+overlay+Canvas 块零改 */}
+      {firstFrameTimedOut ? (
+        <FirstFrameTimeoutPanel onRetry={() => setAttempt((a) => a + 1)} />
+      ) : (
+        <div style={{ position: "relative" }}>
+          {!firstFrameDone ? <FirstFrameOverlay /> : null}
+          <Canvas
+            camera={{ position: cameraPosition(cameraPreset, effectiveBounds), fov: 50 }}
+            shadows="percentage"
+            gl={{ localClippingEnabled: clippingEnabled }}
+            onCreated={({ gl }) => {
+              // 批3 主体：drawcalls/三角面探针读数位（验收 ≤120 消费）；
+              // 相机/controls 观测位归 CameraRig（段二 r3 补正诊断）
+              attachGlInfo(gl);
+            }}
+            style={{
+              height: CANVAS_HEIGHT,
+              minHeight: CANVAS_MIN_HEIGHT,
+              background: sceneBg,
+            }}
+          >
+            {/* FE-4 首帧信号：useFrame 首帧回调一次触发（R2 F1'/B1：key=
+                projectId——缓存命中 Canvas 不重挂时 fired ref 随重挂归零，
+                新 cell 在新场景首帧被 signal；signal 幂等兜底） */}
+            <FirstFrameSignal onFirstFrame={firstFrameSignal} key={projectId} />
+            {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件 GroundStage——effective
+                bounds 派生面：雾档距/灯位/阴影正交半幅/网格中心全随池组并盒） */}
+            <GroundStage ground={ground} sceneBg={sceneBg} showGrass={showGrass} />
+            <CameraRig preset={cameraPreset} bounds={effectiveBounds} />
+            {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
+                （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
+                [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/
+                出域降级链归 TemplateUnit 内部——原语/盒体保持不白屏） */}
+            {scene.solids.map((node) => {
               const unitId = unitIdOf(node.id);
               const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
               if (claim !== undefined && node === claim.dimNode) {
@@ -465,25 +430,69 @@ export function Scene({
                 );
               }
               if (claim !== undefined) {
-                return null; // 整族承载（含未来 inst 计数承载节点——数据源不重复渲染）
+                return null; // 单元整族承载——构型件由模板呈现
               }
-              return <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />;
+              return (
+                // C2VD V3（终裁 L2）：主视图描边——灰阶构筑物对蓝底/蓝网格
+                // 对比度收口（EdgesGeometry 棱线=语义色派生亮化；缩略图不挂）
+                <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
+              );
             })}
-          <SiteRoutes routes={scene.routes} />
-          {scene.boundaries.map((node) => (
-            <SiteBoundary key={node.id} node={node} />
-          ))}
-          {/* C2-3d V3：对角线传参（字号自适应——bounds 空=下钳）；
-              S11 徽标=poolBadges（×n/检修 nActive/nPools） */}
-          {showAnnotations && (
-            <Annotations
-              nodes={scene.solids}
-              diagonal={ground?.diagonal ?? 0}
-              poolBadges={poolBadges}
-            />
-          )}
-        </Canvas>
-      </div>
+            {/* S11 分池水面（PoolWaterSurfaces——cell 域在用槽各一份；
+                unit 域/无池组=现状单份） */}
+            {showWater &&
+              scene.waters.map((node) => {
+                const unitId = unitIdOf(node.id);
+                const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
+                const plan =
+                  claim !== undefined ? poolPlans.get(unitId ?? node.id) : undefined;
+                return (
+                  <PoolWaterSurfaces
+                    key={node.id}
+                    node={node}
+                    plan={plan ?? null}
+                    clippingPlanes={clippingPlanes}
+                  />
+                );
+              })}
+            {showInternals &&
+              scene.internals.map((node) => {
+                const unitId = unitIdOf(node.id);
+                const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
+                if (claim !== undefined && node === claim.dimNode) {
+                  return (
+                    <TemplateUnit
+                      key={node.id}
+                      entry={claim.entry}
+                      unitId={unitId ?? node.id}
+                      dimNode={node}
+                      scene={scene}
+                      clippingPlanes={clippingPlanes}
+                      poolPlan={poolPlans.get(unitId ?? node.id) ?? null}
+                    />
+                  );
+                }
+                if (claim !== undefined) {
+                  return null; // 整族承载（含未来 inst 计数承载节点——数据源不重复渲染）
+                }
+                return <Internals key={node.id} node={node} clippingPlanes={clippingPlanes} />;
+              })}
+            <SiteRoutes routes={scene.routes} />
+            {scene.boundaries.map((node) => (
+              <SiteBoundary key={node.id} node={node} />
+            ))}
+            {/* C2-3d V3：对角线传参（字号自适应——bounds 空=下钳）；
+                S11 徽标=poolBadges（×n/检修 nActive/nPools） */}
+            {showAnnotations && (
+              <Annotations
+                nodes={scene.solids}
+                diagonal={ground?.diagonal ?? 0}
+                poolBadges={poolBadges}
+              />
+            )}
+          </Canvas>
+        </div>
+      )}
     </>
   );
 }
