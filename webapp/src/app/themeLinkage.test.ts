@@ -70,6 +70,8 @@ describe("GR-39 双源联动清单机检化（2A5）", () => {
     ];
     for (const key of pairedKeys) {
       expect(cssVars.has(key), `轴键缺失：${key}`).toBe(true);
+      // d1 复审 N1 补强：值非空——空白值+对侧同缺的 ""=="" 窄子案收口
+      expect(norm(cssVars.get(key)), `轴键空白值：${key}`).not.toBe("");
     }
   });
 
