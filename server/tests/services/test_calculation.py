@@ -148,14 +148,29 @@ async def test_kb_block_failed_task_three_fields_wiring(service_ctx, monkeypatch
 
     error_type=KbBlockError/error_code=422（名义表回填）/error=逐条 violated
     key 可读消息（webapp 任务面板与 agent {error,hint} 通道既有消费面零改透出）。
+    回炉轮 1（d1-W1）：替身机制测试之外追加 core 真类绑定断言——core 改名/
+    名义表脱钩任一漂移→本用例红（替身同名局部类改名静默绿的通道封堵）。
     """
     from fastapi import status as http_status
+
+    # 真类绑定（d1-W1）：server tests 直 import core 先例=test_calc_inputs/
+    # test_worker 的 InvalidConstraintError 同款；实例化经真实构造签名
+    # （violations 必选位置参）——core 类改名→ImportError 红，类在而表键
+    # 漂移→下标 KeyError 红，双通道均「改名必红」。
+    from waterprint.solution.constraints import KbBlockError as CoreKbBlockError
 
     import waterprint_server.jobs.manager as manager_mod
     from waterprint_server.main import DOMAIN_ERROR_CODES
 
     class KbBlockError(Exception):  # 与 core 同名异常（名义表按名映射的前提；Error 结尾不触 N818）
         """测试替身：worker 侧 kb 阻断门诊断名（violations 消息面照抄生产形态）。"""
+
+    core_instance = CoreKbBlockError(
+        (("municipal_aao", "kb.stub.block", "geometry_guard"),))
+    assert DOMAIN_ERROR_CODES[type(core_instance).__name__] == (
+        http_status.HTTP_422_UNPROCESSABLE_CONTENT
+    )  # 真类实名↔表键绑定（替身测名映射机制，此行锁名实一致）
+    assert "kb.stub.block" in str(core_instance)
 
     def blocked_task(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
         raise KbBlockError(

@@ -421,7 +421,8 @@ def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
         except (KeyError, TypeError, ValueError) as exc:
             raise InvalidConstraintError(
                 f"constraint_kb entries[{position}] 字段缺失/非法"
-                f"（key/expression/unit_kinds/severity/kind/enforcement 必备）：{exc}"
+                f"（key/expression/source/unit_kinds/severity/kind/enforcement"
+                f" 必备）：{exc}"
             ) from exc
         if enforcement not in (_ENFORCEMENT_FLAG, _ENFORCEMENT_BLOCK):
             raise InvalidConstraintError(  # kbblock D5：定级面拼写错误禁静默降级

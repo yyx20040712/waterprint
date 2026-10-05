@@ -337,7 +337,7 @@
   "server/tests/routers/test_units.py": "fd48590af06e43fc667342c718d7d9d54039a324a8630d1d33e1c58398ff24b3",
   "server/tests/services/test_ai_chat.py": "db0cb06caf0bf6b2f6a1017af2b4213b3a0780dc0aae9e39db195648f620e7d1",
   "server/tests/services/test_ai_connection.py": "16d22875936eb611638081d4fea36fb562422ba5c6af56ffef1dd1e983a8e797",
-  "server/tests/services/test_calculation.py": "96e5bce2231e9d1e40bc4484dd49e0c81a15924bf8755b4a296b082222becc09",
+  "server/tests/services/test_calculation.py": "c6456a0152d52615a0a3e18de625987228223910b771b0f191e7a4c15e527bf6",
   "server/tests/services/test_compare.py": "2b4c6b990b120f04dc808d147153a588c2ab2b777c4dd20c9c2fa75e93fbb106",
   "server/tests/services/test_constraints.py": "687c22a2817f7e940686d9fc009e58e1684851f5e30008f46a75c310cf7e1886",
   "server/tests/services/test_constraints_param_band.py": "945538711bcbb5f2516168973d06d7987b4eef14f8ff140e49a44655abc9f126",
