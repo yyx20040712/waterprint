@@ -170,11 +170,13 @@ describe("首帧门超时降级（UF-56——2A4 批 2026-10-05）", () => {
     expect(cell.isTimedOut()).toBe(false);
   });
 
-  it("超时面板：role=alert 与「三维渲染初始化未在 10 秒内完成」文案+重试钮在场（SSR 面——用户可见契约）", () => {
+  it("超时面板：role=alert 与「三维渲染初始化未在 N 秒内完成」文案（N=FIRST_FRAME_TIMEOUT_MS/1000 派生——回炉 R3 禁字面双写）+重试钮在场（SSR 面——用户可见契约）", () => {
     const html = renderToString(
       createElement(FirstFrameTimeoutPanel, { onRetry: () => {} }),
     );
-    expect(html).toContain("三维渲染初始化未在 10 秒内完成");
+    expect(html).toContain("三维渲染初始化未在");
+    expect(html).toContain(`${FIRST_FRAME_TIMEOUT_MS / 1000}`);
+    expect(html).toContain("秒内完成");
     expect(html).toContain("设备可能不支持 WebGL 或资源紧张");
     expect(html).toContain('role="alert"');
     expect(html).toContain("重试");
@@ -185,5 +187,21 @@ describe("首帧门超时降级（UF-56——2A4 批 2026-10-05）", () => {
     expect(scene).toContain("firstFrameTimedOut");
     expect(scene).toContain("<FirstFrameTimeoutPanel onRetry={() => setAttempt((a) => a + 1)} />");
     expect(scene).toContain("`${projectId}#${attempt}`");
+  });
+
+  it("源文断言（回炉 R1/W1）：Scene sceneReady 接线+hook enabled 守卫——超时窗起点=scene 就绪（取数期/错误态零计时器，取数>10s 误报收口）", () => {
+    const scene = readFileSync(new URL("./Scene.tsx", import.meta.url), "utf-8");
+    expect(scene).toContain(
+      "const sceneReady = query.data !== undefined && projection.error === null",
+    );
+    expect(scene).toContain("useFirstFrameGate(`${projectId}#${attempt}`, sceneReady)");
+    const gate = readFileSync(new URL("./FirstFrameGate.tsx", import.meta.url), "utf-8");
+    expect(gate).toContain("if (!enabled)");
+    expect(gate).toContain("}, [cell, enabled]);");
+  });
+
+  it("装配锚（回炉 R7）：hook effect 含 cell.armTimeout(FIRST_FRAME_TIMEOUT_MS) 接线行（误删即红）", () => {
+    const gate = readFileSync(new URL("./FirstFrameGate.tsx", import.meta.url), "utf-8");
+    expect(gate).toContain("cell.armTimeout(FIRST_FRAME_TIMEOUT_MS)");
   });
 });

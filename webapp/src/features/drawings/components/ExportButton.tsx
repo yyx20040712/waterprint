@@ -14,7 +14,9 @@
  *   D3/D5 多选批量+第三按钮 2026-09-04）：
  *   - 错误分级（I-3 分级口径——网络错不挂误导引导）：仅
  *     WaterprintApiError.code==="ExportSourceNotFoundError"（404 无 done
- *     calc）附「先提交计算」引导；code==="StaleExportError"（409）→
+ *     calc）附「先提交计算」引导（回炉 R2 2A4 批：经 domainGate 收口=
+ *     固定摘要「项目暂无完成的计算结果。」——raw 服务端消息不入用户面）；
+ *     code==="StaleExportError"（409）→
  *     antd Modal.confirm 二选一（okText=仍导出旧结果[force=true 重发，
  *     产物与元数据将标注旧三元组]；cancelText=先重算[用户自行回
  *     params/solutions 面板重算——面板间导航挂账 UX 批]）；501 未就绪
@@ -55,6 +57,7 @@ import { useEffect, useState } from "react";
 import { Button, Modal, Progress, Select, Space, Typography, message } from "antd";
 
 import { WaterprintApiError } from "../../../shared/api/http";
+import { domainGate } from "../../../shared/api/sourceGate";
 import {
   useExportArtifact,
   type ExportArtifactInput,
@@ -132,7 +135,10 @@ export function ExportButton({
           return;
         }
         if (error.code === "ExportSourceNotFoundError") {
-          messageApi.error(`${error.message}${NO_CALC_HINTS[kind]}`);
+          // 回炉 R2（2A4 UF-59 真面）：404 无 done calc=固定摘要（raw 服务
+          // 端消息含 API 句式不入用户面——domainGate 收口）；kind 化尾词保持
+          const gate = domainGate(error, "ExportSourceNotFoundError", "项目暂无完成的计算结果。");
+          messageApi.error(`${gate.text}${NO_CALC_HINTS[kind]}`);
           return;
         }
         messageApi.error(error.message); // 501 未就绪等——原文诚实透传

@@ -26,10 +26,11 @@
  *     （CostSourceNotFoundError——无 done calc，与导出能力同根）附
  *     「先提交计算」引导；网络错/窄化错不挂误导 hint；R3 F1''（2026-09-30
  *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
- *     完成的计算结果。」+NO_CALC_HINT（UF-59 2A4 批：exports 分支经
- *     domainGate 收口同款门控；unit 分支=projects GET 无 no-calc 码面）；
- *     UF-60①（2A4 批）：domain 分支 secondary 无「取数失败：」前缀
- *     （无数据非故障）；
+ *     完成的计算结果。」+NO_CALC_HINT（回炉 R2 2A4 批：exports 分支撤
+ *     domainGate——GET /api/exports 无 no-calc 领域码面死接线，恢复 raw
+ *     单态，真面门控归 ExportButton 404 动作面；unit 分支=projects GET
+ *     无 no-calc 码面）；UF-60①（2A4 批）：domain 分支 secondary 无
+ *     「取数失败：」前缀（无数据非故障）；
  *   - FE-2（批 2026-09-30）：DrawingPreview 懒加载（import 链
  *     DrawingPreview→dxfScene→dxf-parser 随动切异步 chunk——主包减半；
  *     fallback=「图纸预览加载中…」薄 div）；
@@ -128,11 +129,6 @@ export function DrawingsPane() {
 
   const rows = buildSheetRows(exportsQuery.data ?? []);
   const selected = rows.find((row) => row.key === selectedKey) ?? null;
-  // UF-59（2A4 domainGate 收口）：导出源 404=固定摘要 secondary+引导（无
-  // 数据非故障——R3 F1'' 同款）；网络错/其他错保 raw+前缀（I-3 口径）
-  const exportsGate = exportsQuery.isError
-    ? domainGate(exportsQuery.error, "ExportSourceNotFoundError", "项目暂无完成的计算结果。")
-    : null;
   // UF-60①（2A4 批 domainGate 两态化）：工况源 404 同款两态（domain=
   // secondary 无前缀/网络错=danger+前缀+raw）
   const conditionGate = conditionQuery.isError
@@ -176,18 +172,18 @@ export function DrawingsPane() {
             onExported={setPreview}
           />
         </div>
+        {/* 回炉 R2（2A4）：exports 分支撤 domainGate——GET /api/exports 扫描
+            *.meta.json 边车恒不抛 404，ExportSourceNotFoundError 在本分支=
+            死接线（真面=ExportButton 导出动作 404）；恢复 danger+前缀+raw
+            单态（诚实呈现），unit 分支维持不改 */}
         {rows.length === 0 ? (
-          exportsGate !== null ? (
-            exportsGate.domain ? (
-              <Typography.Paragraph type="secondary">
-                {exportsGate.text}
-                {NO_CALC_HINT}
-              </Typography.Paragraph>
-            ) : (
-              <Typography.Paragraph type="danger">
-                产物目录取数失败：{exportsGate.text}
-              </Typography.Paragraph>
-            )
+          exportsQuery.isError ? (
+            <Typography.Paragraph type="danger">
+              产物目录取数失败：
+              {exportsQuery.error instanceof Error
+                ? exportsQuery.error.message
+                : "未知错误"}
+            </Typography.Paragraph>
           ) : exportsQuery.isPending ? (
             // R6（DS-03）：加载期不误显空目录引导（costPane「正在加载」专门
             // 分支同款——data 未到时 rows=[] 非「无产物」）

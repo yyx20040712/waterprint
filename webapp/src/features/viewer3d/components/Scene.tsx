@@ -328,18 +328,19 @@ export function Scene({
   );
 
   // FE-4 首帧门：scene 就绪→Canvas 首帧空窗反馈；R1 F1：切项目 cell 复位；
-  // UF-56（2A4）：复合 resetKey=projectId 首段+attempt 尾段——超时面板重试
-  // 钮 +1→cell 重建→timedOut 归 false→Canvas 子树重挂=新 GL 上下文重建
+  // UF-56（2A4）：复合 resetKey=projectId 首段+attempt 尾段——重试复位链；
+  // W1 回炉：窗起点=scene 就绪（sceneReady 门控——取数期/错误态零计时器）
   const [attempt, setAttempt] = useState(0);
+  const sceneReady = query.data !== undefined && projection.error === null;
   const [firstFrameDone, firstFrameTimedOut, firstFrameSignal] =
-    useFirstFrameGate(`${projectId}#${attempt}`);
+    useFirstFrameGate(`${projectId}#${attempt}`, sceneReady);
 
   if (query.isError) {
     // UX1 D5→UF-59（2A4 domainGate 收口）：404 无结果集面=固定摘要+引导
     // （零 antd 新 import——viewer3d chunk 零扩面）；网络错/其他错保 raw
     const gate = domainGate(query.error, "SceneSourceNotFoundError", "项目暂无完成的计算结果。");
     return gate.domain ? (
-      <div role="status" style={{ color: "var(--wp-text-secondary)" }}>
+      <div role="status" style={{ color: "var(--wp-text-2)" }}>
         {gate.text}
         {NO_CALC_HINT}
       </div>

@@ -24,9 +24,14 @@
  *     降级面板（Scene 卸载 Canvas 子树释放坏 GL 上下文；重试=attempt 复位
  *     →cell 重建→子树重挂天然重建）；超时后 signal 到达=done 仍翻 true
  *     （cell 状态诚实独立，消费面 Scene timedOut 先判属优先级分工）；
+ *   - W1 回炉（2A4 R1）：窗起点=scene 就绪——hook 增 enabled 参（Scene 喂
+ *     sceneReady），effect 守卫 !enabled 零计时器（取数期/错误态零副作用；
+ *     取数>10s 数据到达即误报「不支持 WebGL」病根收口）；enabled 翻真=
+ *     arm 新窗（就绪→首帧窗语义成立）；
  *   - FIRST_FRAME_TIMEOUT_MS=10_000：FE-20260930 门二探针基线 overlay 寿命
  *     363~439ms（SwiftShader 无头）——20×+ 余量；慢设备假阳性防线（值单点
- *     可调，重试钮=假阳性自愈路径）；
+ *     可调，重试钮=假阳性自愈路径）；面板文案秒数由常量派生（R3——禁
+ *     字面双写）；面板 minHeight=240（R4——Canvas 塌缩过渡缓和）；
  *   - 状态单源=纯核闭包（非 React state 直持——useFrame 回调在 R3F 渲染
  *     循环内触发，经 cell.signal→订阅通知→useSyncExternalStore 收口为
  *     Scene 重渲染，跨 Canvas 内外两 React 根安全）；
@@ -114,8 +119,10 @@ export type FirstFrameGate = readonly [boolean, boolean, () => void];
  *  渲染；effect 挂/卸计时器（SSR 面 server 不跑 effect=零计时器）。
  *  R1 F1（d1-W3/k2-W2 升格 B 面）：resetKey 变更→useMemo 重建 cell——
  *  done/timedOut 归 false、新首帧窗口重新有 overlay（Scene 不随 projectId
- *  重挂是门一已核事实，复位经本参数承载；undefined=永不复位=原行为）。 */
-export function useFirstFrameGate(resetKey?: unknown): FirstFrameGate {
+ *  重挂是门一已核事实，复位经本参数承载；undefined=永不复位=原行为）。
+ *  W1 回炉：enabled=false 零计时器（窗=就绪→首帧——Scene 喂 sceneReady；
+ *  翻真=arm 新窗，取数期/错误态零副作用）。 */
+export function useFirstFrameGate(resetKey?: unknown, enabled = true): FirstFrameGate {
   const cell = useMemo(createFirstFrameGate, [resetKey]);
   const done = useSyncExternalStore(cell.subscribe, cell.isDone, cell.isDone);
   const timedOut = useSyncExternalStore(
@@ -124,9 +131,12 @@ export function useFirstFrameGate(resetKey?: unknown): FirstFrameGate {
     cell.isTimedOut,
   );
   useEffect(() => {
+    if (!enabled) {
+      return; // 未就绪零计时器——窗起点=scene 就绪（W1 回炉）
+    }
     cell.armTimeout(FIRST_FRAME_TIMEOUT_MS);
     return () => cell.disarmTimeout();
-  }, [cell]);
+  }, [cell, enabled]);
   return [done, timedOut, cell.signal];
 }
 
@@ -157,13 +167,15 @@ export function FirstFrameOverlay() {
 }
 
 /** 超时降级面板（UF-56 薄壳：role="alert"+重试钮——onRetry 驱动 Scene
- *  attempt+1 复位=cell 重建+Canvas 子树重挂天然重建 GL 上下文）。 */
+ *  attempt+1 复位=cell 重建+Canvas 子树重挂天然重建 GL 上下文；文案秒数
+ *  由常量派生〔R3〕；minHeight 缓和 Canvas 塌缩视觉跳变〔R4〕）。 */
 export function FirstFrameTimeoutPanel({ onRetry }: { onRetry: () => void }) {
   return (
     <div
       role="alert"
       style={{
         padding: 16,
+        minHeight: 240,
         display: "flex",
         flexDirection: "column",
         gap: 8,
@@ -171,8 +183,8 @@ export function FirstFrameTimeoutPanel({ onRetry }: { onRetry: () => void }) {
       }}
     >
       <span>
-        三维渲染初始化未在 10 秒内完成——设备可能不支持 WebGL 或资源紧张。
-        可重试；若持续失败，请检查浏览器硬件加速设置。
+        三维渲染初始化未在 {FIRST_FRAME_TIMEOUT_MS / 1000} 秒内完成——设备可能不支持
+        WebGL 或资源紧张。可重试；若持续失败，请检查浏览器硬件加速设置。
       </span>
       <Button onClick={onRetry}>重试</Button>
     </div>

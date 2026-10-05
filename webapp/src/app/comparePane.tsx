@@ -184,13 +184,14 @@ export function ComparePane() {
         </Typography.Title>
         {/* 术语说明（验收问询实录 2026-09-12「这个工况是干什么的」——工况=
             同一设计在不同运行条件下的计算口径；UF-60② 2A4 批：中文工程
-            全称先行+键名括注——conditionLabel 命名口径同源，语义零损） */}
+            全称先行+键名括注——conditionLabel 命名口径同源，语义零损；
+            回炉 R5：断行置于括注组后——中文名与（key）不拆行零多余空格） */}
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0 }}>
-          「工况」= 同一套设计在不同运行条件下的计算口径：最高日最高时
-          （design）=设计峰值流量、平均日（avg）=日常运行流量、单元检修
-          （design_offline_×××）=某单元单池检修时的校核（该单元 n−1 池
-          运行）。对比同一指标在各工况下的取值，可检验设计在峰值/日常/
-          检修三种场景下是否都满足要求。
+          「工况」= 同一套设计在不同运行条件下的计算口径：
+          最高日最高时（design）=设计峰值流量、平均日（avg）=日常运行流量、
+          单元检修（design_offline_×××）=某单元单池检修时的校核（该单元
+          n−1 池运行）。对比同一指标在各工况下的取值，可检验设计在峰值/
+          日常/检修三种场景下是否都满足要求。
         </Typography.Paragraph>
         {contextHolder}
         {/* 件 2 双页（Segmented——嵌套 Tabs 禁用面 GC-08；ParamTabs A5r
