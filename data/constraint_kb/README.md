@@ -1,6 +1,8 @@
 # constraint_kb —— 约束知识库
 
-> **状态：2.1.0（全量 155 条九键已追认——param_band 113 条〔param.<field>.
+> **状态：2.1.0（155 条九键——154 条已追认+boundary_check 1 条=SPC2 批
+> 工程惯例起草待专家确认〔批前既有 carve-out，正文分项口径在列〕；
+> param_band 113 条〔param.<field>.
 > positive 单元参数正性域带族——31 单元 _PARAMS_POSITIVE 机扫单源投影，
 > 1A4 批起草 109+P10 批补录 4（收录面缺角三单元——Ruling 2026-10-05
 > 随批追认）〕+mass_balance 1 条〔sludge.
