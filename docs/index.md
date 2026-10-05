@@ -14,6 +14,7 @@
 6. [业务逻辑规格](business-logic.md)（参数链/耦合归属/守恒点/可行解流程）
 7. [ADR](adr/ADR-001-react-flow-canvas.md)（已拍板决策——件数以 docs/status.md 为准）
 8. [测试系统](testing.md) / [Golden Cases](golden-cases.md) / [规范摘录](norms/README.md)
+9. [警告聚合规格](warning-aggregation.md)（UF-18 闭项件：PlantWarning 去重键三元组/跨工况聚合/两源对齐——server API 2A1+前端 T3 消费）
 
 ## 附录：五层规约模板（派发任务用，§6.7 / 教训 A1）
 

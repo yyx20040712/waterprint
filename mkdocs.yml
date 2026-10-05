@@ -13,6 +13,7 @@ nav:
   - 文件职责契约: file-contracts.md
   - 结构图谱: structure-graph.md
   - 业务逻辑规格: business-logic.md
+  - 警告聚合规格: warning-aggregation.md
   - 测试系统: testing.md
   - Golden Cases: golden-cases.md
   - 规范摘录与手算对照: norms/README.md
