@@ -64,6 +64,11 @@ _BETA_KEYS: tuple[str, str, str] = (
 _V_BAND = ("factor.screen.velocity_band.v.min", "factor.screen.velocity_band.v.max")
 _V1_BAND = ("factor.screen.velocity_band.v1.min", "factor.screen.velocity_band.v1.max")
 _NORM = "GB 50014-2021 §6.3（条文号待核对原文）"
+# 正性守卫参数面单源声明（P10-1 补录——kb param_band 机扫消费面，字段集
+# 与判据逐字恒等于原内联字面量元组，行为零变化；chuchenchi/aao 先例形态）。
+_PARAMS_POSITIVE = (
+    "n", "b", "h", "s", "alpha",
+)
 
 
 def _ceil_step(value: float, step: float, unit_id: str) -> float:
@@ -76,7 +81,7 @@ _ceil_vec = _make_ceil_vec(_ceil_step)  # ceil 离散 N=1 边界件（批 MINOR 
 
 def _validate(params: dict[str, float], unit_id: str) -> None:
     """参数域守卫：台数/几何/步长非正一律拒（GR-02 输入即拒精神）。"""
-    for key in ("n", "b", "h", "s", "alpha"):
+    for key in _PARAMS_POSITIVE:
         value = params.get(key)
         if value is None or not value > 0:
             raise InvalidUnitConfig(f"单元 {unit_id!r} 参数 {key!r} 必须 > 0：得到 {value!r}")

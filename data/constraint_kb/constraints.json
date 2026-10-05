@@ -528,10 +528,26 @@
       "value_basis": "追认单直录起草（无 coefficients 源键——geometry_guard/input_band 先例形态）：上界 1.0=GB §6.5 去除率 η<1 守恒包络；下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数宽放 0.5（仓内佐证：34760 案例初沉入流 SS 186.4242/进水声明 250=削减系数 0.746；golden 三案例 ratio=0.372850 带内零漂移）；2 量级失衡验收（route 1A3 锚）ratio≥100 与 ≤0.01 均落带外；AI 起草待追认（1A3 批）"
     },
     {
+      "key": "param.alpha.positive",
+      "kind": "param_band",
+      "unit_kinds": [
+        "municipal_cugeshan",
+        "municipal_xigeshan"
+      ],
+      "label": "单元参数正性域（alpha——其余物理量类）",
+      "expression": "alpha > 0",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
+      "severity": "WARN",
+      "enforcement": "flag",
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；P10 批补录（Ruling 2026-10-05 随批追认——1A4 裁决 P10-1 缺角闭合）"
+    },
+    {
       "key": "param.b.positive",
       "kind": "param_band",
       "unit_kinds": [
-        "conveyance_peishuiqu"
+        "conveyance_peishuiqu",
+        "municipal_cugeshan",
+        "municipal_xigeshan"
       ],
       "label": "单元参数正性域（b——其余物理量类）",
       "expression": "b > 0",
@@ -566,6 +582,19 @@
       "severity": "WARN",
       "enforcement": "flag",
       "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+    },
+    {
+      "key": "param.b_throat.positive",
+      "kind": "param_band",
+      "unit_kinds": [
+        "municipal_bashi_jiliangcao"
+      ],
+      "label": "单元参数正性域（b_throat——几何尺寸类）",
+      "expression": "b_throat > 0",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
+      "severity": "WARN",
+      "enforcement": "flag",
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；P10 批补录（Ruling 2026-10-05 随批追认——1A4 裁决 P10-1 缺角闭合）"
     },
     {
       "key": "param.cod_in.positive",
@@ -716,6 +745,20 @@
       "severity": "WARN",
       "enforcement": "flag",
       "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+    },
+    {
+      "key": "param.h.positive",
+      "kind": "param_band",
+      "unit_kinds": [
+        "municipal_cugeshan",
+        "municipal_xigeshan"
+      ],
+      "label": "单元参数正性域（h——其余物理量类）",
+      "expression": "h > 0",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
+      "severity": "WARN",
+      "enforcement": "flag",
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；P10 批补录（Ruling 2026-10-05 随批追认——1A4 裁决 P10-1 缺角闭合）"
     },
     {
       "key": "param.h2.positive",
@@ -1114,10 +1157,12 @@
         "mine_water_ziwai",
         "municipal_aao",
         "municipal_chuchenchi",
+        "municipal_cugeshan",
         "municipal_erchunchi",
         "municipal_gaomidu",
         "municipal_tiaojiechi",
         "municipal_vxinglvchi",
+        "municipal_xigeshan",
         "sludge_nongsuo",
         "sludge_xiaohua"
       ],
@@ -1489,6 +1534,20 @@
       "severity": "WARN",
       "enforcement": "flag",
       "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+    },
+    {
+      "key": "param.s.positive",
+      "kind": "param_band",
+      "unit_kinds": [
+        "municipal_cugeshan",
+        "municipal_xigeshan"
+      ],
+      "label": "单元参数正性域（s——其余物理量类）",
+      "expression": "s > 0",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
+      "severity": "WARN",
+      "enforcement": "flag",
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；P10 批补录（Ruling 2026-10-05 随批追认——1A4 裁决 P10-1 缺角闭合）"
     },
     {
       "key": "param.sec_per_hour.positive",

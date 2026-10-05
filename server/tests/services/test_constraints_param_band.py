@@ -1,8 +1,9 @@
 """constraints 服务 param_band 伴生件：1A4 批单元参数正性域面契约（拆分件）。
 
 输入:  waterprint_server.services.constraints（list_constraints）+真源 kb（仓库 data 面）
-输出:  param_band 109 条面契约断言（键面/表达式/unit_kinds 非空升序选条/
-       WARN+flag/族级出处+起草标记随行）
+输出:  param_band 113 条面契约断言（键面/表达式/unit_kinds 非空升序选条/
+       WARN+flag/族级出处+追认标记随行——109 存量〔P10 追认笔回写〕+4 补录
+       新键生而已追认）
 背景:  1A4 批（2026-10-04）自 test_constraints.py 拆分——主件 517 行破 §2
        500 行预算墙（W3 前向规范：测试新增预估触墙首笔即落独立伴生件
        ——test_app_validation_mass_balance 拆分先例同款）。
@@ -21,8 +22,17 @@ _REPO = Path(__file__).resolve().parents[3] / "data"
 # 1A4 批 2.0.0：param_band 109 条（param.<field>.positive——28 单元
 # _PARAMS_POSITIVE 机扫单源投影逐字段一条；实扫单源=.workflow/
 # 1a4-20261004/scan_params_positive.py：189 参数次/109 唯一键与主控预扫
-# 三方一致）
-_PARAM_BAND_COUNT = 109
+# 三方一致）；P10 批 2.1.0：109→113（+4 补录新键 h/s/alpha/b_throat
+# 生而已追认+n/b 两键 unit_kinds 扩容 municipal_cugeshan/xigeshan——
+# 31 单元 200 参数次，实扫单源=.workflow/p10-20261005/
+# scan_params_positive_p10.py）
+_PARAM_BAND_COUNT = 113
+# P10 批补录四键（生而已追认——source/value_basis 随批追认标记；109 存量
+# 起草标记归 P10 追认笔统一回写后收紧为全族已追认）
+_P10_SUPPLEMENT_KEYS = {
+    "param.h.positive", "param.s.positive", "param.alpha.positive",
+    "param.b_throat.positive",
+}
 
 
 def test_param_band_entries_carry_positive_domain_contract() -> None:
@@ -61,11 +71,18 @@ def test_param_band_entries_carry_positive_domain_contract() -> None:
     )  # 升序（确定性）
     assert "municipal_aao" in by_key["param.n.positive"].unit_kinds
     assert by_key["param.z_water_inlet.positive"].unit_kinds == ("mine_water_input",)
-    for entry in family:  # 非空选条面+WARN+flag+起草标记随行
+    # P10 补录四键（h/s/alpha/b_throat——生而已追认：source/value_basis 随批
+    # 追认标记；109 存量起草标记归 P10 追认笔统一回写后收紧为全族已追认）
+    assert set(by_key) >= _P10_SUPPLEMENT_KEYS
+    for entry in family:  # 非空选条面+WARN+flag+追认标记随行
         assert entry.unit_kinds  # 非空=节点 ID 选条（缺项跳检=稀疏语义）
         assert entry.unit_kinds == tuple(sorted(entry.unit_kinds))
         assert entry.severity == "WARN" and entry.enforcement == "flag"
-        assert "AI 起草待追认（1A4 批）" in entry.source
+        if entry.key in _P10_SUPPLEMENT_KEYS:
+            assert "已追认（Ruling 2026-10-05" in entry.source
+            assert "P10 批补录" in entry.value_basis
+        else:
+            assert "AI 起草待追认（1A4 批）" in entry.source
         assert "追认单直录起草" in entry.value_basis
         assert "_PARAMS_POSITIVE 机扫单源投影" in entry.value_basis
     assert "GB 50014-2021" in by_key["param.n.positive"].source  # 族级出处

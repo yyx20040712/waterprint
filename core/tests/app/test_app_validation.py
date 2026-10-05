@@ -1,15 +1,16 @@
 """app_validation 镜像测试：厂级进水输入合理性校验骨架（1A2 批）。
 
 输入:  waterprint.app_validation（validation_summary_of/INPUT_BAND_FIELDS/
-       INPUT_BAND_KIND/MASS_BALANCE_KIND）+kb 真源（仓库 data 面 151 条——
-       1A3 批增 mass_balance 1 条+1A4 批增 param_band 109 条）+golden 双案
+       INPUT_BAND_KIND/MASS_BALANCE_KIND）+kb 真源（仓库 data 面 155 条——
+       1A3 批增 mass_balance 1 条+1A4 批增 param_band 109 条+P10 批补录 4 条）
+       +golden 双案
        （municipal_34760 市政进水声明/mine_43836 矿井线无市政声明节点）
 输出:  行为断言——合法进水零警告/非法进水码命中（kz 双界参数化/CODCR/
        五指标越带参数化〔SS 用例含 mass_balance 交互面在档〕/混合越带+
        混合缺项不掩蔽）/缺项跳检不警（指标两态+kz 键缺席态）/真实节点
        键集外部锚/选条判据=kind 直判（input_band∪mass_balance 双剔除）/
-       memo①冻结字段集机器对账/memo③映射表对账/memo②负向锚（A42 vs
-       B34 serialize 恒等+B vs C 差异面恰 12 键 maint.* 前缀锚定）/首节点
+       memo①冻结字段集机器对账/memo③映射表对账/memo②负向锚（A155 vs
+       B147 serialize 恒等+B vs C 差异面恰 14 键 maint.* 前缀锚定）/首节点
        插入序取首/run_full_calc 第四字段接线（显式+缺省 constraints 路径）
        /双跑确定性；1A3 泥量互校族行为面=伴生件
        test_app_validation_mass_balance.py（行数预算墙拆分）
@@ -85,8 +86,9 @@ def _municipal_project(**inlet_overrides: Any) -> ProjectFile:
 
 @pytest.fixture(scope="module")
 def loaded_kb() -> tuple[KbConstraint, ...]:
-    """kb 真源装载（151 条全量——单源=data 面；1A3 批 +mass_balance 1
-    +1A4 批 +param_band 109〔行为面归伴生件 test_app_validation_param_band.py〕）。"""
+    """kb 真源装载（155 条全量——单源=data 面；1A3 批 +mass_balance 1
+    +1A4 批 +param_band 109+P10 批补录 4〔行为面归伴生件
+    test_app_validation_param_band.py〕）。"""
     return load_kb_constraints(_KB_FILE)
 
 
@@ -244,8 +246,8 @@ def test_selection_criterion_is_kind_not_unit_kinds(
     others = tuple(
         kb for kb in loaded_kb
         if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND, "param_band"})
-    assert len(others) == 34  # 151−117（input_band 7+mass_balance 1+param_band
-    # 109 三族剔除——负向锚 B 面同款口径，1A4 勘正注记）
+    assert len(others) == 34  # 155−121（input_band 7+mass_balance 1+param_band
+    # 113 三族剔除——负向锚 B 面同款口径，1A4 勘正注记+P10 批补录注记）
     assert not validation_summary_of(
         _municipal_project(kz=3.0), others)
 
@@ -330,7 +332,7 @@ def _summary_diff_face(
 
 @pytest.fixture(scope="module")
 def golden_run() -> Any:
-    """golden 全链跑批载体（A=151 全量/B=143 剔 input_band∪mass_balance/
+    """golden 全链跑批载体（A=155 全量/B=147 剔 input_band∪mass_balance/
     C=零注入+闭包）。
 
     1A4 裁量注记：B 面维持两族剔除（param_band 不剔）——param_band 条目
@@ -348,7 +350,7 @@ def golden_run() -> Any:
     without = tuple(
         kb for kb in loaded
         if kb.kind not in {INPUT_BAND_KIND, MASS_BALANCE_KIND})
-    # （B 面=151−8=143——input_band∪mass_balance 双剔除口径；param_band
+    # （B 面=155−8=147——input_band∪mass_balance 双剔除口径；param_band
     # 两面同在=plant 消费面同步，差异锚归 B vs C 面）
 
     def run(active: tuple[KbConstraint, ...], inflow: ProjectFile | None = None) -> Any:
@@ -362,7 +364,7 @@ def golden_run() -> Any:
 
 
 def test_negative_anchor_input_band_zero_consumption(golden_run: Any) -> None:
-    """memo②负向锚：A(151) vs B(143) plant serialize 逐字节恒等——input_band
+    """memo②负向锚：A(155) vs B(147) plant serialize 逐字节恒等——input_band
     ∪mass_balance 零 plant 消费构造性运行期实证（validation=独立第四字段
     不回流 plant；param_band 两面同在不在此锚差异面——其 plant 面增量实证
     归伴生件）。"""

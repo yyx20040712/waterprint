@@ -278,12 +278,14 @@ from waterprint.solution.constraints import (  # noqa: E402 （域内追加直 i
 
 
 def test_kb_loader_loads_all_entries_with_unit_kinds() -> None:
-    """装载正门：151 条计数+首末键锚+unit_kinds/kind 透传+source=kb 键/severity 随行。"""
+    """装载正门：155 条计数+首末键锚+unit_kinds/kind 透传+source=kb 键/severity 随行。"""
     loaded = load_kb_constraints(_REPO_DATA / "constraint_kb" / "constraints.json")
-    assert len(loaded) == 151  # kb 2.0.0 全量（真源计数锚——1A3 批 42+1A4 批 param_band 109）
+    assert len(loaded) == 155  # kb 2.1.0 全量（真源计数锚——1A3 批 42+1A4 批
+    # param_band 109+P10 批补录 4）
     assert loaded[0].constraint.key == "vxinglvchi.v_filter_band"  # 首键
     assert loaded[-1].constraint.key == "param.z_water_inlet.positive"  # 末键（1A4
-    # 批尾挂 param_band 109 条按字段名字典序——末位 z_water_inlet）
+    # 批尾挂 param_band 按字段名字典序——末位 z_water_inlet〔P10 补录 h/s/
+    # alpha/b_throat 四键均序于 z_water_inlet 前，末键恒等〕）
     assert isinstance(loaded[0].unit_kinds, tuple)
     assert "municipal_aao" in loaded[33].unit_kinds  # unit_kinds 透传（旧末键位）
     assert loaded[0].kind == "enumeration_filter"  # kind 透传（回炉 R2）

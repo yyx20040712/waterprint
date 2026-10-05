@@ -1,7 +1,8 @@
 """app_validation param_band 伴生件镜像测试：单元级参数域校验（1A4 批）。
 
 输入:  waterprint.app_validation（validation_summary_of/PARAM_BAND_KIND）+
-       kb 真源（仓库 data 面 151 条——1A4 批 +param_band 109）+golden 五案
+       kb 真源（仓库 data 面 155 条——1A4 批 +param_band 109+P10 批补录 4）
+       +golden 五案
 输出:  行为断言——正性越带（负值/零值/NaN 三态）/带内正值零警告/缺项跳检
        （声明面稀疏）/非数值跳检（str/bool 不入表）/选条判据（节点 ID∈
        unit_kinds——非条目 unit_kinds 单元零警告）/golden 五案 param_band
@@ -51,7 +52,8 @@ def _project_with(
 
 @pytest.fixture(scope="module")
 def loaded_kb() -> tuple[KbConstraint, ...]:
-    """kb 真源装载（151 条全量——单源=data 面；1A4 批 +param_band 109）。"""
+    """kb 真源装载（155 条全量——单源=data 面；1A4 批 +param_band 109
+    +P10 批补录 4〔h/s/alpha/b_throat——109→113〕）。"""
     return load_kb_constraints(_KB_FILE)
 
 
@@ -59,7 +61,7 @@ def loaded_kb() -> tuple[KbConstraint, ...]:
 def param_band_family(
     loaded_kb: tuple[KbConstraint, ...],
 ) -> tuple[KbConstraint, ...]:
-    """param_band 109 条族（选条判据=节点 ID∈unit_kinds——分立判据）。"""
+    """param_band 113 条族（选条判据=节点 ID∈unit_kinds——分立判据）。"""
     return tuple(kb for kb in loaded_kb if kb.kind == PARAM_BAND_KIND)
 
 
@@ -246,3 +248,99 @@ def test_double_run_deterministic(loaded_kb: tuple[KbConstraint, ...]) -> None:
     project = _project_with(ds_primary=-1.0)
     assert validation_summary_of(project, loaded_kb) == validation_summary_of(
         project, loaded_kb)
+
+
+# ── P10 批补录三单元真证（cugeshan/xigeshan/bashi——1A4 裁决 P10-1）──
+
+
+def test_cugeshan_negative_param_hits_supplemented_code(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """P10-1 真证（1A4 矿井腿真证同款）：cugeshan 声明 n=-1 →恰单码
+    kb.param.n.positive 命中（三要素：condition_key=municipal_cugeshan
+    单元级影响面/param_key=n/message 含实际值+表达式原文+条目键）——
+    补录扩容后选条判据对新单元生效的运行期实证。"""
+    report = validation_summary_of(
+        _project_with(node="municipal_cugeshan", n=-1.0), loaded_kb)
+    assert report.codes() == (kb_warning_code("param.n.positive"),)
+    (warning,) = report.warnings
+    assert warning.condition_key == "municipal_cugeshan"
+    assert warning.param_key == "n"
+    assert warning.severity.value == "WARN"
+    assert "municipal_cugeshan.n" in warning.message  # 节点.字段
+    assert "n > 0" in warning.message  # 表达式原文
+    assert "param.n.positive" in warning.message  # 条目键
+
+
+def test_bashi_nan_throat_hits_supplemented_code(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """P10-1 真证：bashi 声明 b_throat=NaN →恰单码 kb.param.b_throat.
+    positive 命中（NaN>0=False→越带——声明期 NaN 检出=选档计算期守卫的
+    前置报告面；两域互补不双源）。"""
+    report = validation_summary_of(
+        _project_with(node="municipal_bashi_jiliangcao",
+                      b_throat=float("nan")), loaded_kb)
+    assert report.codes() == (kb_warning_code("param.b_throat.positive"),)
+    (warning,) = report.warnings
+    assert warning.condition_key == "municipal_bashi_jiliangcao"
+    assert warning.param_key == "b_throat"
+    assert "nan" in warning.message
+
+
+def test_bashi_grade_guard_passes_legal_grades() -> None:
+    """选档计算期守卫不误伤档位合法值（另证）：B7 七档 THROAT_GRID 全档
+    （正性合法值+档系数面齐备）经 _grade_of 守卫面全数放行且选档命中
+    （b_throat 真域=档位枚举〔选档计算期执法〕，kb 单子句正性=声明期
+    NaN/≤0 前置报告面——两域互补不双源实证）。"""
+    from waterprint.units_lib.municipal.bashi_jiliangcao.compute import (
+        _GRADE_BY_THROAT,
+        _KEY_C,
+        _KEY_HMAX,
+        _KEY_HMIN,
+        _KEY_N,
+        _KEY_SCRIT,
+        _grade_of,
+    )
+    from waterprint.units_lib.municipal.bashi_jiliangcao.manifest import (
+        THROAT_GRID,
+    )
+
+    for b_throat in THROAT_GRID:
+        grade_name = _GRADE_BY_THROAT[round(float(b_throat), 2)]
+        params: dict[str, float] = {"b_throat": float(b_throat)}
+        for key_tpl in (_KEY_C, _KEY_N, _KEY_HMIN, _KEY_HMAX, _KEY_SCRIT):
+            params[key_tpl.format(grade=grade_name)] = 1.0
+        grade, coef = _grade_of(params)  # 守卫放行+档位命中（合法值零误伤）
+        assert grade == grade_name
+        assert set(coef) == {"c_coef", "n_exp", "hmin", "hmax", "scrit"}
+
+
+def test_p10_supplement_units_mirror_kb_collection_face(
+    loaded_kb: tuple[KbConstraint, ...],
+) -> None:
+    """P10-1 补录镜像锚（收录面单源不破）：三单元 compute._PARAMS_POSITIVE
+    ↔kb param_band 收录面双向恒等——正向（常量字段必在 kb 且该单元入
+    unit_kinds）/反向（该单元入 unit_kinds 的键必在常量）。删常量任一
+    字段→反向红；kb 漏收新键→正向红（变异自证消费面）。"""
+    from importlib import import_module
+
+    family = tuple(kb for kb in loaded_kb if kb.kind == PARAM_BAND_KIND)
+    by_key = {kb.constraint.key: kb for kb in family}
+    for unit_id, module_path in (
+        ("municipal_cugeshan",
+         "waterprint.units_lib.municipal.cugeshan.compute"),
+        ("municipal_xigeshan",
+         "waterprint.units_lib.municipal.xigeshan.compute"),
+        ("municipal_bashi_jiliangcao",
+         "waterprint.units_lib.municipal.bashi_jiliangcao.compute"),
+    ):
+        fields = tuple(getattr(import_module(module_path), "_PARAMS_POSITIVE"))
+        assert fields, unit_id  # 常量在场（补录面非空）
+        for field in fields:  # 正向：常量字段必在 kb 且该单元入 unit_kinds
+            entry = by_key[f"param.{field}.positive"]
+            assert unit_id in entry.unit_kinds, (unit_id, field)
+        for key, entry in by_key.items():  # 反向：单元入 unit_kinds 必在常量
+            if unit_id in entry.unit_kinds:
+                field = key[len("param."):-len(".positive")]
+                assert field in fields, (unit_id, field)
