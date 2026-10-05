@@ -356,7 +356,7 @@ options.constraints 通道）落地为：
 
 | key | expression | unit_kinds（升序） | severity |
 |---|---|---|---|
-| `param.n.positive` | `n > 0` | 15 单元（conveyance 3+mine_water 5+municipal 7——扫描矩阵单源〔P10 批 +cugeshan/xigeshan〕） | WARN |
+| `param.n.positive` | `n > 0` | 15 单元（mine_water 5+municipal 8+sludge 2——扫描矩阵单源〔P10 批 municipal +cugeshan/xigeshan〕） | WARN |
 | `param.side_disc_step.positive` | `side_disc_step > 0` | 10 单元（扫描矩阵单源） | WARN |
 | `param.z_water_inlet.positive` | `z_water_inlet > 0` | 1 单元（mine_water_input） | WARN |
 
