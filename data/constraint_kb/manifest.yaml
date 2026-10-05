@@ -1,5 +1,5 @@
 # 约束知识库清单（版本槽位）
-data_version: "2.0.0"
+data_version: "2.1.0"
 # 变更记录：
 #   - 0.0.0: M0 骨架槽位（无条目）
 #   - 1.0.0: CP1 批（2026-08-31）AI 起草 18 条——enumeration_filter 6
@@ -174,3 +174,18 @@ data_version: "2.0.0"
 #     ——P10 追认流程后续批消化）**；旧 42 键零扰动，计数
 #     11+12+2+1+8+7+1→11+12+2+1+8+7+1+109=151（server test_constraints
 #     同步）。
+#   - 2.1.0: P10 追认批（2026-10-05，Ruling 2026-10-05 用户授权「授权P10」）
+#     ——**已追认（全量追认定稿）**：111 存量起草条（param_band 109
+#     +mass_balance 1）+4 补录条（生而已追认）全量生效（含 AC-1 宽放因子
+#     0.5 专家背书消化——1A3 g1-verdicts §六附条件闭口）。补录面=收录面
+#     缺角三单元（1A4 裁决 P10-1：cugeshan/xigeshan compute
+#     _PARAMS_POSITIVE 常量化〔字段集与判据逐字恒等——行为零变化〕+bashi
+#     b_throat 机扫消费面常量〔选档守卫不触——真域=B7 七档枚举与 kb 声明期
+#     正性互补不双源〕）：param_band 109→113（31 单元 200 参数次机扫单源
+#     =.workflow/p10-20261005/scan_params_positive_p10.py；n/b 两键
+#     unit_kinds 各+municipal_cugeshan/+municipal_xigeshan）+AC-2 ratio
+#     佐证值 0.372850→0.372849 末位勘正（golden 真数据实算重核在档）。
+#     旧 151 键六键零扰动（key/kind/label/expression/severity/
+#     enforcement+unit_kinds 恒等——仅 source/value_basis 追认标记回写），
+#     计数 11+12+2+1+8+7+1+109→11+12+2+1+8+7+1+113=155（server
+#     test_constraints+core test_validation 计数锚同步）。
