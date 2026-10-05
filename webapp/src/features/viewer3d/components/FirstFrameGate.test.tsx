@@ -189,10 +189,10 @@ describe("首帧门超时降级（UF-56——2A4 批 2026-10-05）", () => {
     expect(scene).toContain("`${projectId}#${attempt}`");
   });
 
-  it("源文断言（回炉 R1/W1）：Scene sceneReady 接线+hook enabled 守卫——超时窗起点=scene 就绪（取数期/错误态零计时器，取数>10s 误报收口）", () => {
+  it("源文断言（回炉 R1/W1+轮 2 d1-新N1）：Scene sceneReady 接线（含 !query.isError——refetch 失败保留旧 data 并存态窗病收口）+hook enabled 守卫——超时窗起点=scene 就绪（取数期/错误态零计时器，取数>10s 误报收口）", () => {
     const scene = readFileSync(new URL("./Scene.tsx", import.meta.url), "utf-8");
     expect(scene).toContain(
-      "const sceneReady = query.data !== undefined && projection.error === null",
+      "query.data !== undefined && !query.isError && projection.error === null",
     );
     expect(scene).toContain("useFirstFrameGate(`${projectId}#${attempt}`, sceneReady)");
     const gate = readFileSync(new URL("./FirstFrameGate.tsx", import.meta.url), "utf-8");

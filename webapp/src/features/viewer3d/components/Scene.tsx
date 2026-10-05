@@ -329,9 +329,12 @@ export function Scene({
 
   // FE-4 首帧门：scene 就绪→Canvas 首帧空窗反馈；R1 F1：切项目 cell 复位；
   // UF-56（2A4）：复合 resetKey=projectId 首段+attempt 尾段——重试复位链；
-  // W1 回炉：窗起点=scene 就绪（sceneReady 门控——取数期/错误态零计时器）
+  // W1 回炉：窗起点=scene 就绪（sceneReady 门控——取数期/错误态零计时器）；
+  // 回炉轮 2（d1-新N1）：补 !query.isError——后台 refetch 失败保留旧 data 时
+  // （react-query isError+data 并存态）错误 UI 期窗病复发面同款收口
   const [attempt, setAttempt] = useState(0);
-  const sceneReady = query.data !== undefined && projection.error === null;
+  const sceneReady =
+    query.data !== undefined && !query.isError && projection.error === null;
   const [firstFrameDone, firstFrameTimedOut, firstFrameSignal] =
     useFirstFrameGate(`${projectId}#${attempt}`, sceneReady);
 
