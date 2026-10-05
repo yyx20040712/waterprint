@@ -381,4 +381,5 @@ grep -n "FLOW:" webapp/src/shared/dimLabels.ts
 
 | 编号 | 领域 | 未定义特性（场景：规格沉默处 + 自由发挥风险） | 处置 | 归属 |
 |------|------|----------------------------------------------|------|------|
-| UF-64 | 前端·显示层 | CompareMatrix 三处 `var(--wp-text-secondary)` 未定义（global.css L71-73 仅定义 `--wp-text/-2/-3`）——失效工况列头灰显/矩阵缺值「—」/警告表零计数灰显静默失效（继承色呈现，2026-09-12 件 1 引入至今未察；2A4 批 Scene 404 新接线同病已随回炉 R6 勘正为 `--wp-text-2`） | 待定义→后续 FE 批裁量（候选：改用 `--wp-text-2` 令牌或 global.css 增定义该别名） | 2A4 批发现登记 |
+| UF-64 | 前端·显示层 | CompareMatrix 三处 `var(--wp-text-secondary)` 未定义（global.css L71-73 仅定义 `--wp-text/-2/-3`）——失效工况列头灰显/矩阵缺值「—」/警告表零计数灰显静默失效（继承色呈现，2026-09-12 件 1 引入至今未察；2A4 批 Scene 404 新接线同病已随回炉 R6 勘正为 `--wp-text-2`） | 待定义→后续 FE 批裁量（候选：改用 `--wp-text-2` 令牌或 global.css 增定义该别名；门二裁决注记：CompareMatrix.test.tsx L71 源文断言锚定该失效令牌——承接批修复时须同步该断言） | 2A4 批发现登记 |
+| UF-65 | 前端·文案族 | ErrorBoundary 降级面透出 raw 客户端库消息：fallback「面板异常（{label}）：{error.message}」error.message 直插用户面（英文库言+技术栈名——如「THREE.WebGLRenderer: Error creating WebGL context.」，全 pane 崩溃路径共用通用面，FE-2 批既有；2A4 门二实证 M2 诊出） | 待定义→后续 FE 批裁量（与 UF-59 raw 服务端消息族同族异源——客户端库言用户语言化候选：错误分级/库言词典/摘要+诊断详情折叠） | 2A4 批发现、门二裁决裁定登记 |

@@ -20,9 +20,12 @@
  *     中…」既有文案不动，本门只覆盖 scene 就绪分支到 Canvas 首帧渲染的
  *     视觉空窗（WebGL 上下文创建+首帧绘制耗时用户可感）；
  *   - UF-56 超时降级（渲染循环死锁无 React 可捕错误——ErrorBoundary 路弃）：
- *     WebGL 上下文创建失败或 useFrame 永不触发时，10s 超时翻 timedOut 出
- *     降级面板（Scene 卸载 Canvas 子树释放坏 GL 上下文；重试=attempt 复位
- *     →cell 重建→子树重挂天然重建）；超时后 signal 到达=done 仍翻 true
+ *     渲染循环静默死锁（useFrame 永不触发且零 throw——门二 M2b 实证 10106ms
+ *     面板触发）时 10s 超时翻 timedOut 出降级面板；WebGL 上下文创建失败的
+ *     throw 形态由 app 级 LazyPane ErrorBoundary 既有兜底抢先（门二 M2 实证
+ *     ~1s 面板异常面——Scene 卸载随 disarm 计时器，本面板不可达该形态）。
+ *     超时面板 Scene 卸载 Canvas 子树释放坏 GL 上下文；重试=attempt 复位
+ *     →cell 重建→子树重挂天然重建；超时后 signal 到达=done 仍翻 true
  *     （cell 状态诚实独立，消费面 Scene timedOut 先判属优先级分工）；
  *   - W1 回炉（2A4 R1）：窗起点=scene 就绪——hook 增 enabled 参（Scene 喂
  *     sceneReady），effect 守卫 !enabled 零计时器（取数期/错误态零副作用；
