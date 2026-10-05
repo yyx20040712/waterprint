@@ -1,19 +1,23 @@
-"""contracts/validation 镜像测试：警告码键族契约+PlantWarning/ValidationReport 结构。
+"""contracts/validation 镜像测试：警告码键族契约+PlantWarning/ValidationReport 结构+serde。
 
 输入:  waterprint.contracts.validation（KB_CODE_PREFIX/kb_warning_code/
-       is_kb_code/PlantWarning/ValidationReport）+kb 真源（仓库 data 面）
+       is_kb_code/PlantWarning/ValidationReport/serialize_validation/
+       deserialize_validation）+kb 真源（仓库 data 面）
 输出:  契约断言——码规则单源（前缀+键可逆还原+空键段拒）+键族存在断言
        （kb 装载 155 条总数锚+input_band 恰 7 条→7 码稳定集+mass_balance
        恰 1 条→1 码稳定集+param_band 恰 113 条→113 码稳定集，单源=kb
        数据禁手写码字面量表）
        +PlantWarning 五字段冻结面（severity 复用 unit_api 枚举——不复用
        UF-17 冻结 Warning）+ValidationReport codes() 去重保序/__bool__ 语义
+       +serde 六面（2A1 批 D1：往返无损/双跑字节同/未知键拒/缺键拒/
+       空报告合法/序保序恒等——数组序=报告序不参与 sort）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：1A2 校验骨架批（1a2-20261004）§3.1 预裁决——码键族落 contracts
 #   新模块；后续批（1A3 泥量/1A4 参数域）在同模块登记各自族。键族存在
-#   断言锚=route-design-final §2.1 L46（warning_codes 键族存在）。
+#   断言锚=route-design-final §2.1 L46（warning_codes 键族存在）；serde 面
+#   =2A1 消费批（2a1-20261005）D1 预裁决——server val artifact 数据源契约。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -26,10 +30,13 @@ import pytest
 from waterprint.contracts.unit_api import Severity
 from waterprint.contracts.validation import (
     KB_CODE_PREFIX,
+    InvalidValidationError,
     PlantWarning,
     ValidationReport,
+    deserialize_validation,
     is_kb_code,
     kb_warning_code,
+    serialize_validation,
 )
 from waterprint.solution.constraints import load_kb_constraints
 
@@ -175,3 +182,106 @@ def test_kb_param_band_family_exists_113_codes() -> None:
         code[len(KB_CODE_PREFIX):] == kb.constraint.key
         for code, kb in zip(codes, sorted_family, strict=True)
     )  # 码=前缀+键 单源还原（键↔码双向可逆）
+
+
+# ── serde 面（2A1 批 D1：serialize_validation/deserialize_validation）──
+
+
+def _report_two_warnings() -> ValidationReport:
+    """双警告报告桩（序=传入序——两码非字典序，序保序断言载体）。"""
+    return ValidationReport(warnings=(
+        PlantWarning(
+            code="kb.param.n.positive",
+            condition_key="municipal_aao",  # 单元级影响面（节点 ID 段）
+            param_key="n",
+            message="单元参数域越带：param.n.positive——municipal_aao.n=0.0 违反 n > 0",
+            severity=Severity.ERROR,
+        ),
+        PlantWarning(
+            code="kb.inlet.kz_band",
+            condition_key="plant",  # 厂级影响面常量段
+            param_key="kz",
+            message="进水输入合理性越带：inlet.kz_band——kz=3.0 违反 kz <= 2",
+            severity=Severity.WARN,
+        ),
+    ))
+
+
+def test_validation_serde_roundtrip_lossless() -> None:
+    """往返无损：serialize→deserialize 等值还原（frozen dataclass 深等——
+    五字段逐字段含 severity 枚举）。"""
+    report = _report_two_warnings()
+    restored = deserialize_validation(serialize_validation(report))
+    assert restored == report
+    assert restored.warnings[1].severity is Severity.WARN  # 枚举身份还原
+    assert restored.codes() == report.codes()  # 码面去重保序同锚
+
+
+def test_validation_serde_double_run_byte_identical() -> None:
+    """双跑字节同：同报告两次 serialize 逐字节恒等（确定性纪律——sort_keys+
+    紧凑分隔符+UTF-8+ensure_ascii=False 同源）。"""
+    report = _report_two_warnings()
+    assert serialize_validation(report) == serialize_validation(report)
+
+
+def test_validation_serde_unknown_keys_rejected() -> None:
+    """未知键拒（R4 同精神——消息含键名）：根未知键+条目未知键双面。"""
+    with pytest.raises(InvalidValidationError, match="未知键.*extra"):
+        deserialize_validation(b'{"warnings": [], "extra": 1}')
+    with pytest.raises(InvalidValidationError, match=r"warnings\[0\].*未知键.*extra"):
+        deserialize_validation(
+            b'{"warnings": [{"code": "kb.x", "condition_key": "plant",'
+            b' "param_key": "kz", "message": "m", "severity": "WARN",'
+            b" \"extra\": 1}]}"
+        )
+
+
+def test_validation_serde_missing_keys_rejected() -> None:
+    """缺键拒（消息含键名）：根缺 warnings+条目缺 severity 双面。"""
+    with pytest.raises(InvalidValidationError, match=r"\$ 缺失必需键.*warnings"):
+        deserialize_validation(b"{}")
+    with pytest.raises(InvalidValidationError, match=r"warnings\[0\].*severity"):
+        deserialize_validation(
+            b'{"warnings": [{"code": "kb.x", "condition_key": "plant",'
+            b' "param_key": "kz", "message": "m"}]}'
+        )
+
+
+def test_validation_serde_empty_report_legal() -> None:
+    """空报告合法：空 warnings 可序列化为 {"warnings":[]} 且可还原（零警告
+    falsy 语义保持——空报告=「无违规」合法态非病态）。"""
+    empty = ValidationReport(warnings=())
+    data = serialize_validation(empty)
+    assert data == b'{"warnings":[]}'  # 根单键对象（紧凑分隔符）
+    restored = deserialize_validation(data)
+    assert restored == empty
+    assert not restored  # R3 零警告 falsy 经 serde 往返保持
+
+
+def test_validation_serde_warnings_order_preserved() -> None:
+    """序保序恒等：warnings 数组序=报告序（kb 传入序=message 首例语义的
+    载体——json.dumps sort_keys 只排对象键不动数组序；桩序刻意非字典序）。"""
+    report = _report_two_warnings()
+    data = serialize_validation(report)
+    first = data.index(b"param.n.positive")  # 首例=kb.param.n.positive（序轴首）
+    second = data.index(b"inlet.kz_band")
+    assert first < second  # 数组序未按码字典序重排（"p">"i"——桩序刻意逆字典序）
+    assert deserialize_validation(data).warnings == report.warnings
+
+
+def test_validation_serde_malformed_payloads_rejected() -> None:
+    """严格面三拒：非法 JSON/根非对象/severity 越界与非串叶（消息含位置）。"""
+    with pytest.raises(InvalidValidationError, match="非法 JSON"):
+        deserialize_validation(b"{not-json")
+    with pytest.raises(InvalidValidationError, match=r"\$ 应为对象"):
+        deserialize_validation(b"[]")
+    with pytest.raises(InvalidValidationError, match=r"severity"):
+        deserialize_validation(
+            b'{"warnings": [{"code": "kb.x", "condition_key": "plant",'
+            b' "param_key": "kz", "message": "m", "severity": "FATAL"}]}'
+        )
+    with pytest.raises(InvalidValidationError, match=r"warnings\[0\]\.code"):
+        deserialize_validation(
+            b'{"warnings": [{"code": 7, "condition_key": "plant",'
+            b' "param_key": "kz", "message": "m", "severity": "WARN"}]}'
+        )
