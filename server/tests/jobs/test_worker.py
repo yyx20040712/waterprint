@@ -356,3 +356,38 @@ def test_server_env_assembly_stamps_engine_version(test_settings, tmp_path) -> N
     ):
         assert env.engine_version == ENGINE_VERSION
         assert "coefficients@" in env.data_version  # UF-10 聚合面在场（design_map 收敛后补全）
+
+
+def test_calc_job_writes_validation_artifact(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """2A1 D2：calc 落第三并列 artifact calc-val-{task_id}.json+record 增
+    val_file 键（ADR-012 D1 诊断并列件同款——同 task_id 命名绑定+原子写；
+    源 A 声明级报告经 serialize_validation 正门，消费面 deserialize 往返）。"""
+    from waterprint.contracts.validation import (
+        ValidationReport,
+        deserialize_validation,
+    )
+
+    artifacts = test_settings.exports_dir / "tasks"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    outcome = run_task(
+        {
+            "kind": "calc",
+            "task_id": "val-artifact-probe",
+            "project_id": "p",
+            "project_path": str(_cass_project_file(tmp_path)),
+            "conditions": ["municipal_cass"],
+            "data_dir": str(test_settings.data_dir),
+            "artifacts_dir": str(artifacts),
+        },
+        None,
+        None,
+    )
+    assert outcome["state"] == "done"
+    assert "val_file" in outcome  # record 增键（manager 灌入 status.result 面）
+    val_file = Path(str(outcome["val_file"]))
+    assert val_file.name == "calc-val-val-artifact-probe.json"  # 同 task_id 命名绑定
+    assert val_file.is_file()
+    assert val_file != Path(str(outcome["result_file"]))
+    assert val_file != Path(str(outcome["diag_file"]))  # 三并列件互异
+    report = deserialize_validation(val_file.read_bytes())  # 正门往返
+    assert isinstance(report, ValidationReport)  # 源 A 报告面（声明级一次）

@@ -104,6 +104,7 @@ from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import deserialize, serialize
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import serialize_diag
+from waterprint.contracts.validation import serialize_validation
 
 from waterprint_server.jobs.ai_chat import _run_ai_chat
 from waterprint_server.jobs.calc_inputs import calc_inputs
@@ -233,10 +234,17 @@ def _run_calc(
         Path(str(payload["artifacts_dir"])) / f"calc-diag-{task_id}.json",
         serialize_diag(bundle.diagnostics),
     )
+    # 2A1 D2：校验报告第三并列 artifact（calc-val-{task_id}.json——源 A
+    # 声明级 ValidationReport；诊断并列件同款：同 task_id 命名绑定+原子写）。
+    val_file = _atomic_write_bytes(
+        Path(str(payload["artifacts_dir"])) / f"calc-val-{task_id}.json",
+        serialize_validation(bundle.validation),
+    )
     return {
         "state": "done",
         "result_file": str(result_file),
         "diag_file": str(diag_file),
+        "val_file": str(val_file),
         "design_hash": bundle.repro.design_hash,
         "engine_version": bundle.repro.engine_version,
         "data_version": bundle.repro.data_version,
