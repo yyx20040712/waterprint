@@ -39,6 +39,9 @@
  *     随 C2 方案表重制落 SolutionsTable 组件）；
  *   - QueryClient 默认项在 ./queryClient（D3 领域错误 retry 口径）；
  *     StrictMode 双挂载安全：模块级单例（组件外创建）。
+ *   - 2A5：themeConfig 导出=联动机检测试消费面〔GR-39 锚〕
+ *     （消费面=app/themeLinkage.test.ts 同值断言——GR-39 联动清单机检化；
+ *     导出零行为变更：模块级 const 导出不改求值时序与引用）。
  */
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider, theme } from "antd";
@@ -55,7 +58,7 @@ installDomainColorAxis();
 const queryClient = createQueryClient();
 
 /** C1 主题骨架配置（方向 A「深海工程台」冻结值——视觉稿 c1-design）。 */
-const themeConfig: ThemeConfig = {
+export const themeConfig: ThemeConfig = {
   algorithm: theme.darkAlgorithm,
   token: {
     colorPrimary: "#3d8bfd",
