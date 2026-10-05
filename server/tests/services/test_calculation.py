@@ -143,6 +143,44 @@ async def test_failed_task_error_code_wired_wiring(service_ctx, monkeypatch) -> 
     assert final.error_code == DOMAIN_ERROR_CODES["LoopDivergence"]  # 与映射表一致
 
 
+async def test_kb_block_failed_task_three_fields_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """kbblock 批 D6/§7：failed 任务携 KbBlockError 名→三字段透出。
+
+    error_type=KbBlockError/error_code=422（名义表回填）/error=逐条 violated
+    key 可读消息（webapp 任务面板与 agent {error,hint} 通道既有消费面零改透出）。
+    """
+    from fastapi import status as http_status
+
+    import waterprint_server.jobs.manager as manager_mod
+    from waterprint_server.main import DOMAIN_ERROR_CODES
+
+    class KbBlockError(Exception):  # 与 core 同名异常（名义表按名映射的前提；Error 结尾不触 N818）
+        """测试替身：worker 侧 kb 阻断门诊断名（violations 消息面照抄生产形态）。"""
+
+    def blocked_task(payload, cancel_token=None, progress_queue=None):  # type: ignore[no-untyped-def]
+        raise KbBlockError(
+            "kb 阻断判据越门（enforcement=block，design 帧全败丢弃）："
+            "municipal_aao×kb.stub.block（kind=geometry_guard）"
+        )
+
+    monkeypatch.setattr(manager_mod, "run_task", blocked_task)
+    object.__setattr__(
+        service_ctx, "domain_error_codes", dict(DOMAIN_ERROR_CODES)
+    )
+    project_id = await _created(service_ctx)
+    handle = await submit_calculation(service_ctx, project_id, [])
+    for _ in range(100):
+        final = task_status(service_ctx, handle.task_id)
+        if final.state in {"done", "failed", "cancelled"}:
+            break
+        await asyncio.sleep(0.05)
+    assert final.state == "failed"
+    assert final.error_type == "KbBlockError"  # 类名回传（worker→manager 面）
+    assert final.error_code == http_status.HTTP_422_UNPROCESSABLE_CONTENT  # 名义表接线
+    assert final.error_code == DOMAIN_ERROR_CODES["KbBlockError"]
+    assert "kb.stub.block" in (final.error or "")  # 逐条 violated key 消息透出
+
+
 async def test_apply_solution_rolls_back_on_failure_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """R2 接线断言：应用方案中途失败 → design/hash 回滚（无半写）。"""
     project_id = await _created(service_ctx)

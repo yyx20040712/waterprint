@@ -189,6 +189,8 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "LoopDivergence": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "InvalidUnitConfig": status.HTTP_400_BAD_REQUEST,
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    # kbblock 批 D6（2026-10-06）：kb 阻断门违规→422（契约零改论证见 ADR-026）
+    "KbBlockError": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 

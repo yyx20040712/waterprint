@@ -67,6 +67,10 @@ def test_domain_exception_mapping_complete_wiring() -> None:
     assert response.status_code == status.HTTP_404_NOT_FOUND  # 任务 NotFound→404
     # LoopDivergence→422 附诊断（名义表——类基映射不可达的 worker 侧领域异常）
     assert DOMAIN_ERROR_CODES["LoopDivergence"] == status.HTTP_422_UNPROCESSABLE_CONTENT
+    # KbBlockError→422（kbblock 批 D6——kb 阻断门 worker 侧领域异常同款名义表
+    # 承载；openapi 契约零改：TaskStatus error_code=anyOf integer|null 值域
+    # 已含 422，ADR-026 论证）
+    assert DOMAIN_ERROR_CODES["KbBlockError"] == status.HTTP_422_UNPROCESSABLE_CONTENT
     # 附诊断体：错误响应结构 {detail, error_type}
     body = table[InvalidUnitConfig.__name__](None, InvalidUnitConfig("x"))  # type: ignore[arg-type]
     assert b"error_type" in body.body and b"detail" in body.body
