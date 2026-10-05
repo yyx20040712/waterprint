@@ -40,9 +40,10 @@
 #      （message/severity 不入键〔§2〕）；同键双源现→message 取源 A
 #      实例（序轴前置）+清单=源 B 工况清单（源 A ∅ 并入不产项〔§2/§3〕）；
 #      severity=max over 命中实例（源 A 实例与源 B kb 条目之上取最严重
-#      ——ERROR>WARN>INFO）；命中工况清单序=record condition_keys 迭代
-#      序过滤（序轴唯一源=ConditionSet 迭代序；存量旧记录缺键=字典序
-#      兜底——A5 测试锁定）；any_fail 汇总键不入去重键族（§4）；kb 条目
+#      ——ERROR>WARN>INFO）；命中工况清单序=序轴迭代序过滤（序轴唯一源
+#      =ConditionSet 迭代序；键域=record 与 summary 并集——record 序在前
+#      +summary-only 键字典序尾 append；缺键/空列表=字典序兜底——A5
+#      /回炉 d1-W3 测试锁定）；any_fail 汇总键不入去重键族（§4）；kb 条目
 #      缺席（版本漂移）不入聚合行、观测面保留原值（fail-visible——A2）；
 #      B-only 行 message 合成（A1：三要素=条目键+表达式原文+首命中工况
 #      offline dims 实际值；字段缺席无值形态）；unit_api.Warning 第三
@@ -201,7 +202,7 @@ class ValidationObservationResponse(BaseModel):
     data_version: str
     kb_injected: bool | None  # diag 缺席=None（禁伪造 False——trust 先例）
     validation_available: bool  # val 件缺席（存量旧结果）=False
-    conditions: tuple[str, ...]  # record condition_keys 投影（迭代序）
+    conditions: tuple[str, ...]  # 序轴投影（record 迭代序+summary-only 尾 append）
     nodes: tuple[NodeObservation, ...]
     warnings: tuple[AggregatedWarning, ...]
 

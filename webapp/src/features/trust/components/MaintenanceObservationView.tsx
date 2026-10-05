@@ -178,7 +178,7 @@ export function MaintenanceObservationView({
           type="info"
           showIcon
           data-testid="wp-maintenance-kb-unknown"
-          title="kb 注入状态不可知（无诊断件）。"
+          title="kb 注入状态不可知（诊断件缺失或损坏）。"
           style={{ marginBottom: 12 }}
         />
       )}
