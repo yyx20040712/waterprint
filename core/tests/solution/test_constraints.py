@@ -326,6 +326,7 @@ def test_kb_loader_bad_dsl_rejected(tmp_path: Path) -> None:
     bad.write_text(json.dumps({"entries": [{
         "key": "kb.bad.dsl", "kind": "geometry_guard", "unit_kinds": ["x"],
         "expression": "v_pool ~= 100.0", "source": "stub", "severity": "ERROR",
+        "enforcement": "flag",  # kbblock 批 D5 补键（六键→七键装载面）
     }]}), encoding="utf-8")
     with pytest.raises(InvalidConstraintError, match="约束子句语法非法"):
         load_kb_constraints(bad)
@@ -338,6 +339,7 @@ def test_kb_loader_reserved_key_rejected(tmp_path: Path) -> None:
     clash.write_text(json.dumps({"entries": [{
         "key": "any_fail", "kind": "geometry_guard", "unit_kinds": ["x"],
         "expression": "v_pool <= 100.0", "source": "stub", "severity": "ERROR",
+        "enforcement": "flag",  # kbblock 批 D5 补键（六键→七键装载面）
     }]}), encoding="utf-8")
     with pytest.raises(InvalidConstraintError, match="保留字"):
         load_kb_constraints(clash)
@@ -351,3 +353,52 @@ def test_expression_fields_dedup_ordered() -> None:
         "l_pool", "b_pool")
     assert expression_fields("x >= 2.0 and x <= 4.0") == ("x",)  # band 形态
     assert expression_fields("n ∈ [2.0, 4.0]") == ("n",)  # ∈ 档列表形态
+
+
+# ══ kbblock-20261006 批：enforcement 装载面（D5——逐条声明式定级消费键）══
+
+
+def test_kb_loader_enforcement_passthrough_and_distribution() -> None:
+    """装载正门：enforcement 逐条透传（计数锚 flag 137/block 18——kb 2.1.0
+    全量实测；P1 选项 3 追认态〔R2 用户裁决 2026-10-04〕的数据面投影）。"""
+    loaded = load_kb_constraints(_REPO_DATA / "constraint_kb" / "constraints.json")
+    assert loaded[0].enforcement == "flag"  # enumeration_filter 首条（flag 先例锚）
+    assert loaded[11].enforcement == "block"  # gb18918.level_a.bod5（effluent 首条 block）
+    assert loaded[33].enforcement == "block"  # geometry 拒收门（geometry_guard block 面）
+    assert sum(1 for kb in loaded if kb.enforcement == "flag") == 137
+    assert sum(1 for kb in loaded if kb.enforcement == "block") == 18
+
+
+def test_kb_constraint_enforcement_defaults_flag() -> None:
+    """D5 默认值：直接构造面（测试/枚举先例）不传 enforcement="flag"——保守
+    零阻断（block 语义=数据面声明专属，代码面构造缺省永不阻断）。"""
+    kb = KbConstraint(
+        constraint=Constraint(
+            key="kb.stub.default", expression="v <= 1", source="kb.stub"),
+        unit_kinds=("x",), kind="geometry_guard")
+    assert kb.enforcement == "flag"
+
+
+def test_kb_loader_missing_enforcement_rejected(tmp_path: Path) -> None:
+    """D5 fail-fast①：enforcement 键缺失=InvalidConstraintError（装载宽容面
+    零扩大——六键时代 fixture 不再合法装载）。"""
+    missing = tmp_path / "missing_enforcement.json"
+    missing.write_text(json.dumps({"entries": [{
+        "key": "kb.stub.missing", "kind": "geometry_guard", "unit_kinds": ["x"],
+        "expression": "v_pool <= 100.0", "source": "stub", "severity": "ERROR",
+    }]}), encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="enforcement"):
+        load_kb_constraints(missing)
+
+
+def test_kb_loader_invalid_enforcement_rejected(tmp_path: Path) -> None:
+    """D5 fail-fast②：值∉{flag,block} 拒（fail-visible——禁静默降级 flag：
+    声明式定级面拼写错误必须装载期爆，不得静默落入仪表灯档）。"""
+    invalid = tmp_path / "invalid_enforcement.json"
+    invalid.write_text(json.dumps({"entries": [{
+        "key": "kb.stub.invalid", "kind": "geometry_guard", "unit_kinds": ["x"],
+        "expression": "v_pool <= 100.0", "source": "stub", "severity": "ERROR",
+        "enforcement": "halt",
+    }]}), encoding="utf-8")
+    with pytest.raises(InvalidConstraintError, match="enforcement"):
+        load_kb_constraints(invalid)

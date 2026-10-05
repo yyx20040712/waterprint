@@ -28,13 +28,21 @@
 #       stage.evaluate_stage，与 apply_constraints 同一约束集同源）
 #   class KbConstraint(不可变)：constraint: Constraint + unit_kinds:
 #       tuple[str, ...]（kb 条目装载形态——app_maintenance kb 执法面消费，
-#       uf61-axes 批 2026-10-02）
+#       uf61-axes 批 2026-10-02）+ enforcement: str =_ENFORCEMENT_FLAG
+#       （kbblock 批 2026-10-06 D5——P1 选项 3 逐条声明式定级：flag=仪表灯/
+#       block=断路器；缺省 flag=直接构造面保守零阻断）
 #   load_kb_constraints(path) -> tuple[KbConstraint, ...]：constraint_kb
 #       constraints.json 装载正门（fail-fast 显式拒：缺文件/坏 JSON/entries
 #       空表/any_fail 保留字〔回炉 R2——kb 汇总键命名域防护〕；逐条 DSL 校验
-#       坏档 fail-visible；source=kb 键、severity=Severity(entry) 随行；
+#       坏档 fail-visible；enforcement 键缺失/值∉{flag,block}=拒（kbblock
+#       D5——装载宽容面零扩大）；source=kb 键、severity=Severity(entry) 随行；
 #       宽容面归 CLI/未来调用方——本装载器 fail-fast，standards 装载器
 #       区分记档）
+#   class KbBlockError(Exception)：kb 阻断门违规（kbblock 批 D1——
+#       enforcement=block 条目越 design 帧门；结构化属性 violations:
+#       tuple[(node, constraint_key, kind), ...] 传入序确定性；str 消息含
+#       逐条 violated key 可读清单〔server error 字段消费面〕；定义本件=
+#       InvalidConstraintError 邻位同族，消费面 app_kbgate）
 #   expression_fields(expression) -> tuple[str, ...]：DSL 子句字段去重
 #       现序列举（kb 适用判据单源——_clauses 单源解析的公开投影）
 #   BOUNDARY_CHECK_KIND: Final[str]（="boundary_check"）：kind 符号契约
@@ -102,6 +110,24 @@ _BAND_CLAUSE_COUNT: Final[int] = 2  # 带形=恰两子句（一侧下界一侧�
 
 class InvalidConstraintError(Exception):
     """约束 DSL 非法（未知字段/非法算符/非法常数/空表达式）——GR-11 族。"""
+
+
+class KbBlockError(Exception):
+    """kb 阻断门违规（enforcement=block 条目越 design 帧门——异常全败丢弃）。
+
+    violations=逐条三联 (node, constraint_key, kind)，迭代序=传入序（kbblock
+    批 D1 确定性纪律——R2 同款）；str 消息含逐条 violated key 可读清单
+    （server task error 字段消费面）。半成品不进 summary/diagnostics/result。
+    """
+
+    def __init__(self, violations: tuple[tuple[str, str, str], ...]) -> None:
+        self.violations: tuple[tuple[str, str, str], ...] = tuple(violations)
+        listed = "；".join(
+            f"{node}×{key}（kind={kind}）" for node, key, kind in self.violations
+        )
+        super().__init__(
+            f"kb 阻断判据越门（enforcement=block，design 帧全败丢弃）：{listed}"
+        )
 
 
 @dataclass(frozen=True)
@@ -312,17 +338,24 @@ def band_margin_column(
 # （app_maintenance 豁免镜像消费公开名——本地双源对齐退役）
 BOUNDARY_CHECK_KIND: Final[str] = "boundary_check"
 _ANY_FAIL_KEY: Final[str] = "any_fail"  # kb 保留字（回炉 R2——face 汇总键命名域防护）
+# enforcement 两档字面单源（kbblock 批 D5——P1 选项 3 逐条声明式定级；
+# app_kbgate 阻断门经跨件私有引用消费 _ENFORCEMENT_BLOCK，禁字面双源）
+_ENFORCEMENT_FLAG: Final[str] = "flag"  # 仪表灯档（默认——标注不阻断）
+_ENFORCEMENT_BLOCK: Final[str] = "block"  # 断路器档（design 帧阻断门专属）
 
 
 @dataclass(frozen=True)
 @final
 class KbConstraint:
     """kb 条目装载形态（不可变）：Constraint + 适用 unit_kinds 白名单 + kind
-    （回炉 R2——boundary_check 豁免镜像的消费面判据；source/severity 不变）。"""
+    （回炉 R2——boundary_check 豁免镜像的消费面判据；source/severity 不变）
+    + enforcement（kbblock 批 D5——flag 仪表灯/block 断路器；缺省 flag=
+    直接构造面〔测试/枚举先例〕保守零阻断）。"""
 
     constraint: Constraint
     unit_kinds: tuple[str, ...]
     kind: str
+    enforcement: str = _ENFORCEMENT_FLAG
 
 
 def expression_fields(expression: str) -> tuple[str, ...]:
@@ -384,11 +417,18 @@ def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
                 raise TypeError("unit_kinds 须为列表")
             unit_kinds = tuple(str(kind) for kind in kinds)
             kind = str(item["kind"])
+            enforcement = str(item["enforcement"])  # kbblock D5：七键必备
         except (KeyError, TypeError, ValueError) as exc:
             raise InvalidConstraintError(
                 f"constraint_kb entries[{position}] 字段缺失/非法"
-                f"（key/expression/unit_kinds/severity/kind 必备）：{exc}"
+                f"（key/expression/unit_kinds/severity/kind/enforcement 必备）：{exc}"
             ) from exc
+        if enforcement not in (_ENFORCEMENT_FLAG, _ENFORCEMENT_BLOCK):
+            raise InvalidConstraintError(  # kbblock D5：定级面拼写错误禁静默降级
+                f"constraint_kb entries[{position}] enforcement 须为 "
+                f"{_ENFORCEMENT_FLAG}/{_ENFORCEMENT_BLOCK}：{enforcement!r}"
+                "（装载 fail-fast——宽容面零扩大）"
+            )
         if constraint.key == _ANY_FAIL_KEY:  # kb 保留字（回炉 R2）——命名域防护
             raise InvalidConstraintError(
                 f"constraint_kb entries[{position}] key={_ANY_FAIL_KEY!r} 保留字"
@@ -396,5 +436,6 @@ def load_kb_constraints(path: str | Path) -> tuple[KbConstraint, ...]:
         if kind != BOUNDARY_CHECK_KIND:
             _clauses(constraint.expression)  # 装载期 DSL 校验（fail-visible）
         loaded.append(KbConstraint(
-            constraint=constraint, unit_kinds=unit_kinds, kind=kind))
+            constraint=constraint, unit_kinds=unit_kinds, kind=kind,
+            enforcement=enforcement))
     return tuple(loaded)
