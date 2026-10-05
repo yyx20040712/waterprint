@@ -28,6 +28,8 @@
  *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
  *     完成的计算结果。」+NO_CALC_HINT（UF-59 2A4 批：exports 分支经
  *     domainGate 收口同款门控；unit 分支=projects GET 无 no-calc 码面）；
+ *     UF-60①（2A4 批）：domain 分支 secondary 无「取数失败：」前缀
+ *     （无数据非故障）；
  *   - FE-2（批 2026-09-30）：DrawingPreview 懒加载（import 链
  *     DrawingPreview→dxfScene→dxf-parser 随动切异步 chunk——主包减半；
  *     fallback=「图纸预览加载中…」薄 div）；
@@ -56,7 +58,6 @@ import {
 import { useUnitCatalog } from "../features/drawings/api/useUnitCatalog";
 import type { ExportArtifactResult } from "../features/drawings/api/useExportArtifact";
 import { buildSheetRows } from "../features/drawings/lib/drawingsView";
-import { WaterprintApiError } from "../shared/api/http";
 import { domainGate } from "../shared/api/sourceGate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
@@ -132,6 +133,11 @@ export function DrawingsPane() {
   const exportsGate = exportsQuery.isError
     ? domainGate(exportsQuery.error, "ExportSourceNotFoundError", "项目暂无完成的计算结果。")
     : null;
+  // UF-60①（2A4 批 domainGate 两态化）：工况源 404 同款两态（domain=
+  // secondary 无前缀/网络错=danger+前缀+raw）
+  const conditionGate = conditionQuery.isError
+    ? domainGate(conditionQuery.error, "CostSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
 
   return (
     <ErrorBoundary label="图纸预览">
@@ -139,19 +145,20 @@ export function DrawingsPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           图纸目录与导出（DXF 单元图+全厂总图+批量导出）
         </Typography.Title>
-        {conditionQuery.isError ? (
-          <Typography.Paragraph type="danger">
-            工况清单取数失败：
-            {/* R3 F1''（门二 CONFIRMED）：领域码 404 面不透 raw message
-                （含 API 句式/项目 hash）——固定摘要+引导；网络错保持 raw
-                透出（I-3 分级口径） */}
-            {conditionQuery.error instanceof WaterprintApiError &&
-            conditionQuery.error.code === "CostSourceNotFoundError"
-              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-              : conditionQuery.error instanceof Error
-                ? conditionQuery.error.message
-                : "未知错误"}
-          </Typography.Paragraph>
+        {/* R3 F1''→UF-60①（2A4 domainGate 两态化）：领域码 404 面=固定
+            摘要 secondary 无前缀（无数据非故障——「正在加载」同形态）；
+            网络错/窄化错=danger+前缀+raw 透出（I-3 分级口径） */}
+        {conditionGate !== null ? (
+          conditionGate.domain ? (
+            <Typography.Paragraph type="secondary">
+              {conditionGate.text}
+              {NO_CALC_HINT}
+            </Typography.Paragraph>
+          ) : (
+            <Typography.Paragraph type="danger">
+              工况清单取数失败：{conditionGate.text}
+            </Typography.Paragraph>
+          )
         ) : null}
         {unitQuery.isError ? (
           <Typography.Paragraph type="danger">

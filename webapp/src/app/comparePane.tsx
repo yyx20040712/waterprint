@@ -31,7 +31,9 @@
  *   - R3b（2026-09-30 门二 CONFIRMED 补笔）：领域码面不透 raw message
  *     ——CompareSourceNotFoundError 命中显固定摘要「项目暂无完成的计算
  *     结果。」+NO_CALC_HINT（R3 F1'' 四 pane 同款——服务端 message 含
- *     API 句式/项目 hash 不入用户面）。
+ *     API 句式/项目 hash 不入用户面）；UF-60（2A4 批）：①domain 分支
+ *     secondary 无「取数失败：」前缀（无数据非故障）；②说明行中文工程
+ *     全称先行+键名括注（conditionLabel 命名口径同源）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Checkbox, Segmented, Typography, message } from "antd";
@@ -48,6 +50,7 @@ import {
   type CompareReport,
 } from "../features/compare/lib/compareView";
 import { WaterprintApiError } from "../shared/api/http";
+import { domainGate } from "../shared/api/sourceGate";
 import {
   useSaveProjectApiProjectsProjectIdPut,
 } from "../shared/api/generated/projects/projects";
@@ -117,6 +120,11 @@ export function ComparePane() {
   const rawQuery = useProjectQuery(projectId ?? "");
   const report: CompareReport | null = query.data ?? null;
   const pin = rawQuery.data !== undefined ? pinOf(viewCompareOf(rawQuery.data)) : null;
+  // UF-59/UF-60①（2A4 批 domainGate 收口+两态化）：领域码 404 面=固定
+  // 摘要+引导；网络错/窄化错=raw 兜底（I-3 分级口径单源件）
+  const compareGate = query.isError
+    ? domainGate(query.error, "CompareSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
 
   // 勾选面缺省=全部工况键（首锁体验：全选一键锁）
   const checkKeys =
@@ -174,14 +182,15 @@ export function ComparePane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           多工况对比（基准 design/avg × 检修敏感性——行=指标，列=工况）
         </Typography.Title>
-        {/* 术语说明（验收问询实录 2026-09-12「这个工况是干什么的」——
-            工况=同一设计在不同运行条件下的计算口径，三族注释通俗化） */}
+        {/* 术语说明（验收问询实录 2026-09-12「这个工况是干什么的」——工况=
+            同一设计在不同运行条件下的计算口径；UF-60② 2A4 批：中文工程
+            全称先行+键名括注——conditionLabel 命名口径同源，语义零损） */}
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 0 }}>
-          「工况」= 同一套设计在不同运行条件下的计算口径：design=最高日
-          最高时流量（设计峰值）、avg=平均日流量（日常运行）、
-          design_offline_×××=某单元单池检修时的校核（该单元 n−1 池运行）。
-          对比同一指标在各工况下的取值，可检验设计在峰值/日常/检修三种
-          场景下是否都满足要求。
+          「工况」= 同一套设计在不同运行条件下的计算口径：最高日最高时
+          （design）=设计峰值流量、平均日（avg）=日常运行流量、单元检修
+          （design_offline_×××）=某单元单池检修时的校核（该单元 n−1 池
+          运行）。对比同一指标在各工况下的取值，可检验设计在峰值/日常/
+          检修三种场景下是否都满足要求。
         </Typography.Paragraph>
         {contextHolder}
         {/* 件 2 双页（Segmented——嵌套 Tabs 禁用面 GC-08；ParamTabs A5r
@@ -198,19 +207,20 @@ export function ComparePane() {
         />
         {/* 对比矩阵页（display 切换恒挂载——锁定勾选态跨页保留） */}
         <div style={{ display: page === "matrix" ? "block" : "none" }}>
-          {query.isError ? (
-            <Typography.Paragraph type="danger">
-              多工况对比报告取数失败：
-              {/* R3b（门二 CONFIRMED）：领域码 404 面不透 raw message（含
-                  API 句式/项目 hash）——固定摘要+引导；网络错/窄化错保持
-                  raw 透出（I-3 分级口径，R3 F1'' 四 pane 同款） */}
-              {query.error instanceof WaterprintApiError &&
-              query.error.code === "CompareSourceNotFoundError"
-                ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-                : query.error instanceof Error
-                  ? query.error.message
-                  : "未知错误"}
-            </Typography.Paragraph>
+          {/* R3b→UF-60①（2A4 domainGate 两态化）：领域码 404 面=固定摘要
+              secondary 无前缀（无数据非故障——「正在加载」同形态）；网络
+              错/窄化错=danger+前缀+raw 透出（I-3 分级口径，R3 F1'' 同款） */}
+          {compareGate !== null ? (
+            compareGate.domain ? (
+              <Typography.Paragraph type="secondary">
+                {compareGate.text}
+                {NO_CALC_HINT}
+              </Typography.Paragraph>
+            ) : (
+              <Typography.Paragraph type="danger">
+                多工况对比报告取数失败：{compareGate.text}
+              </Typography.Paragraph>
+            )
           ) : report === null ? (
             <Typography.Paragraph type="secondary">正在加载多工况对比报告…</Typography.Paragraph>
           ) : (

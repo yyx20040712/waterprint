@@ -21,11 +21,12 @@
  *     （D2——缺省=design 非排序首键；Select 受控值=conditionKey??响应
  *     回显键）；Select 不写占位文案属性（grep 门禁规避）；
  *   - 空态：?project= 缺失=指引文案；查询 error 分级（elevationPane R3
- *     同款）：仅 WaterprintApiError.code==="CostSourceNotFoundError"
- *     （404 无 done calc）才附「先提交计算」引导——网络错/窄化
- *     CostViewError 不挂误导 hint；R3 F1''（2026-09-30 门二 CONFIRMED）：
- *     领域码面不透 raw message——固定摘要「项目暂无完成的计算结果。」
- *     +NO_CALC_HINT；ErrorBoundary label=概算。
+ *     同款）：仅 CostSourceNotFoundError（404 无 done calc）才附「先提交
+ *     计算」引导——网络错/窄化 CostViewError 不挂误导 hint；R3 F1''
+ *     （2026-09-30 门二 CONFIRMED）：领域码面不透 raw message——固定摘要
+ *     「项目暂无完成的计算结果。」+NO_CALC_HINT；UF-60①（2A4 批）：
+ *     domain 分支 secondary 无「取数失败：」前缀（无数据非故障）；
+ *     ErrorBoundary label=概算。
  */
 import { useEffect, useState } from "react";
 import { Select, Alert, Typography } from "antd";
@@ -34,7 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCostQuery } from "../features/cost/api/useCostQuery";
 import { EstimateTable } from "../features/cost/components/EstimateTable";
 import { IndicatorsCard } from "../features/cost/components/IndicatorsCard";
-import { WaterprintApiError } from "../shared/api/http";
+import { domainGate } from "../shared/api/sourceGate";
 import { useListUnitsApiUnitsGet } from "../shared/api/generated/units/units";
 import { conditionLabel, unitNameIndex } from "../shared/conditionLabels";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -73,6 +74,11 @@ export function CostPane() {
 
   const query = useCostQuery(projectId, conditionKey);
   const view = query.data ?? null;
+  // UF-59/UF-60①（2A4 批 domainGate 收口+两态化）：领域码 404 面=固定
+  // 摘要+引导；网络错/窄化错=raw 兜底（I-3 分级口径单源件）
+  const costGate = query.isError
+    ? domainGate(query.error, "CostSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
   // 工况面 UX 反馈批件 1：工况下拉中文名（catalog name_zh 真源）
   const unitNames =
     useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
@@ -89,19 +95,20 @@ export function CostPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           概算（分部分项+措施+间接+预备+税分级汇总）
         </Typography.Title>
-        {query.isError ? (
-          <Typography.Paragraph type="danger">
-            概算取数失败：
-            {/* R3 F1''（门二 CONFIRMED）：领域码 404 面不透 raw message
-                （含 API 句式/项目 hash）——固定摘要+引导；网络错/窄化错
-                保持 raw 透出（I-3 分级口径） */}
-            {query.error instanceof WaterprintApiError &&
-            query.error.code === "CostSourceNotFoundError"
-              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-              : query.error instanceof Error
-                ? query.error.message
-                : "未知错误"}
-          </Typography.Paragraph>
+        {/* R3 F1''→UF-60①（2A4 domainGate 两态化）：领域码 404 面=固定
+            摘要 secondary 无前缀（无数据非故障——「正在加载」同形态）；
+            网络错/窄化错=danger+前缀+raw 透出（I-3 分级口径） */}
+        {costGate !== null ? (
+          costGate.domain ? (
+            <Typography.Paragraph type="secondary">
+              {costGate.text}
+              {NO_CALC_HINT}
+            </Typography.Paragraph>
+          ) : (
+            <Typography.Paragraph type="danger">
+              概算取数失败：{costGate.text}
+            </Typography.Paragraph>
+          )
         ) : view === null ? (
           <Typography.Paragraph type="secondary">
             正在加载概算…

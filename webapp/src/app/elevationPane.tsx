@@ -28,12 +28,13 @@
  *     queryKey 全量进按需触发（§17.1）；
  *   - 空态：?project= 缺失=指引文案（先在工艺画布标签选择项目）；
  *     查询 error 分级（R3/zM-2 修复 2026-08-29）：仅当
- *     WaterprintApiError.code==="ElevationSourceNotFoundError"（404 无
- *     done calc）才附「先提交计算」引导——网络错/窄化 ElevationViewError
- *     不挂误导 hint（简报 D1 引导语口径针对 404 面）；R3 F1''（2026-09-30
- *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
- *     完成的计算结果。」+NO_CALC_HINT（服务端 message 含 API 句式/项目
- *     hash 不入用户面）；ErrorBoundary label=高程纵断。
+ *     ElevationSourceNotFoundError（404 无 done calc）才附「先提交计算」
+ *     引导——网络错/窄化 ElevationViewError 不挂误导 hint（简报 D1 引导
+ *     语口径针对 404 面）；R3 F1''（2026-09-30 门二 CONFIRMED）：领域码
+ *     面不透 raw message——固定摘要「项目暂无完成的计算结果。」+
+ *     NO_CALC_HINT（服务端 message 含 API 句式/项目 hash 不入用户面）；
+ *     UF-60①（2A4 批）：domain 分支 secondary 无「取数失败：」前缀
+ *     （无数据非故障）；ErrorBoundary label=高程纵断。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Alert, Typography } from "antd";
@@ -42,7 +43,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ConditionSwitcher } from "../features/elevation/components/ConditionSwitcher";
 import { PumpStationsPanel } from "../features/elevation/components/PumpStationsPanel";
 import { useElevationQuery } from "../features/elevation/api/useElevationQuery";
-import { WaterprintApiError } from "../shared/api/http";
+import { domainGate } from "../shared/api/sourceGate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -87,6 +88,11 @@ export function ElevationPane() {
 
   const query = useElevationQuery(projectId, conditionKey);
   const view = query.data ?? null;
+  // UF-59/UF-60①（2A4 批 domainGate 收口+两态化）：领域码 404 面=固定
+  // 摘要+引导；网络错/窄化错=raw 兜底（I-3 分级口径单源件）
+  const elevationGate = query.isError
+    ? domainGate(query.error, "ElevationSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
 
   if (projectId === null) {
     return (
@@ -103,19 +109,20 @@ export function ElevationPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           高程纵断（四线：地面/水面/池底/池顶）
         </Typography.Title>
-        {query.isError ? (
-          <Typography.Paragraph type="danger">
-            纵断取数失败：
-            {/* R3（zM-2）+F1''（门二 CONFIRMED）：领域码 404 面不透 raw
-                message（含 API 句式/项目 hash）——固定摘要+引导；网络错/
-                窄化错保持 raw 透出（I-3 分级口径） */}
-            {query.error instanceof WaterprintApiError &&
-            query.error.code === "ElevationSourceNotFoundError"
-              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-              : query.error instanceof Error
-                ? query.error.message
-                : "未知错误"}
-          </Typography.Paragraph>
+        {/* R3（zM-2）+F1''→UF-60①（2A4 domainGate 两态化）：领域码 404
+            面=固定摘要 secondary 无前缀（无数据非故障——「正在加载」同
+            形态）；网络错/窄化错=danger+前缀+raw 透出（I-3 分级口径） */}
+        {elevationGate !== null ? (
+          elevationGate.domain ? (
+            <Typography.Paragraph type="secondary">
+              {elevationGate.text}
+              {NO_CALC_HINT}
+            </Typography.Paragraph>
+          ) : (
+            <Typography.Paragraph type="danger">
+              纵断取数失败：{elevationGate.text}
+            </Typography.Paragraph>
+          )
         ) : view === null ? (
           <Typography.Paragraph type="secondary">
             正在加载高程纵断…

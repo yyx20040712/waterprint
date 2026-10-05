@@ -15,11 +15,12 @@
  *     ParamForm/solutionsPane/elevationPane/costPane 四处先例）→invalidate
  *     ['/api/calc/trust/'+projectId] 键；
  *   - 空态：?project= 缺失=指引文案；查询 error 分级（costPane R3 同款）：
- *     仅 WaterprintApiError.code==="TrustSourceNotFoundError"（404 无 done
+ *     仅 TrustSourceNotFoundError/ValidationSourceNotFoundError（404 无 done
  *     calc）才附「先提交计算」引导——网络错/窄化 TrustViewError 不挂
  *     误导 hint；R3 F1''（2026-09-30 门二 CONFIRMED）：领域码面不透 raw
  *     message——固定摘要「项目暂无完成的计算结果。」+NO_CALC_HINT；
- *     ErrorBoundary label=可信度。
+ *     UF-60①（2A4 批）：domain 分支 secondary 无「取数失败：」前缀
+ *     （无数据非故障）；ErrorBoundary label=可信度。
  */
 import { useEffect } from "react";
 import { Typography } from "antd";
@@ -29,7 +30,7 @@ import { TrustReportView } from "../features/trust/components/TrustReportView";
 import { MaintenanceObservationView } from "../features/trust/components/MaintenanceObservationView";
 import { useTrustQuery } from "../features/trust/api/useTrustQuery";
 import { useValidationQuery } from "../features/trust/api/useValidationQuery";
-import { WaterprintApiError } from "../shared/api/http";
+import { domainGate } from "../shared/api/sourceGate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -68,6 +69,18 @@ export function TrustPane() {
   const report = query.data ?? null;
   const validationQuery = useValidationQuery(projectId);
   const observation = validationQuery.data ?? null;
+  // UF-59/UF-60①（2A4 批 domainGate 收口+两态化）：领域码 404 面=固定
+  // 摘要+引导；网络错/窄化错=raw 兜底（I-3 分级口径单源件）
+  const trustGate = query.isError
+    ? domainGate(query.error, "TrustSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
+  const observationGate = validationQuery.isError
+    ? domainGate(
+        validationQuery.error,
+        "ValidationSourceNotFoundError",
+        "项目暂无完成的计算结果。",
+      )
+    : null;
 
   if (projectId === null) {
     return (
@@ -81,19 +94,20 @@ export function TrustPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           结果可信度（收敛 / 水量平衡 / 出水裕度 / 校核警告）
         </Typography.Title>
-        {query.isError ? (
-          <Typography.Paragraph type="danger">
-            可信度报告取数失败：
-            {/* R3 F1''（门二 CONFIRMED）：领域码 404 面不透 raw message
-                （含 API 句式/项目 hash）——固定摘要+引导；网络错/窄化错
-                保持 raw 透出（I-3 分级口径） */}
-            {query.error instanceof WaterprintApiError &&
-            query.error.code === "TrustSourceNotFoundError"
-              ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-              : query.error instanceof Error
-                ? query.error.message
-                : "未知错误"}
-          </Typography.Paragraph>
+        {/* R3 F1''→UF-60①（2A4 domainGate 两态化）：领域码 404 面=固定
+            摘要 secondary 无前缀（无数据非故障——「正在加载」同形态）；
+            网络错/窄化错=danger+前缀+raw 透出（I-3 分级口径） */}
+        {trustGate !== null ? (
+          trustGate.domain ? (
+            <Typography.Paragraph type="secondary">
+              {trustGate.text}
+              {NO_CALC_HINT}
+            </Typography.Paragraph>
+          ) : (
+            <Typography.Paragraph type="danger">
+              可信度报告取数失败：{trustGate.text}
+            </Typography.Paragraph>
+          )
         ) : report === null ? (
           <Typography.Paragraph type="secondary">
             正在加载可信度报告…
@@ -104,16 +118,17 @@ export function TrustPane() {
           // 观测卡自降级态自呈现，warnings 聚合行渲染=T3 面不在本批）
           <>
             <TrustReportView report={report} />
-            {validationQuery.isError ? (
-              <Typography.Paragraph type="danger">
-                检修观测取数失败：
-                {validationQuery.error instanceof WaterprintApiError &&
-                validationQuery.error.code === "ValidationSourceNotFoundError"
-                  ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
-                  : validationQuery.error instanceof Error
-                    ? validationQuery.error.message
-                    : "未知错误"}
-              </Typography.Paragraph>
+            {observationGate !== null ? (
+              observationGate.domain ? (
+                <Typography.Paragraph type="secondary">
+                  {observationGate.text}
+                  {NO_CALC_HINT}
+                </Typography.Paragraph>
+              ) : (
+                <Typography.Paragraph type="danger">
+                  检修观测取数失败：{observationGate.text}
+                </Typography.Paragraph>
+              )
             ) : observation !== null ? (
               <MaintenanceObservationView observation={observation} />
             ) : null}
