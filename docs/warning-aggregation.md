@@ -1,9 +1,10 @@
 # 警告聚合规格（UF-18——PlantWarning 跨工况×影响面去重聚合）
 
 > 本件=**规格先行**（1A8 收官批 2026-10-05 落盘）：1A2~1A4 警告码全集
-> 已稳定（input_band/mass_balance/param_band 三族 kind——条目实数以
-> `GET /api/constraints` 现库为准，数据包版本以
-> `data/constraint_kb/manifest.yaml` 为准），route 1A8 行前置条件达成；
+> 已稳定（源 A 选条族三 kind：input_band/mass_balance/param_band——
+> 条目实数以 `GET /api/constraints` 现库为准，数据包版本以
+> `data/constraint_kb/manifest.yaml` 为准；源 B 键面见 §4/§6），route
+> 1A8 行前置条件达成；
 > **实现批接线前本件零行为面**（消费方与接线批见 §5，现状锚见 §6）。
 > 契约单源：`core/waterprint/contracts/validation.py`（PlantWarning
 > 五字段/ValidationReport/kb 码规则）——本件零第二口径。
@@ -28,9 +29,9 @@
 禁裸用「条件键」一词承载两义。
 
 **API 硬约束**：server API 扩展面（2A1 批）落地聚合字段时，命名必须
-消歧——建议形态 `scope`（影响面）+`condition_keys[]`（命中工况键
-清单，§3）；**禁 `condition_key` 双义入 API**。本节对 2A1 批有
-约束力。
+消歧——字段形态**硬约束**为 `scope`（影响面）+`condition_keys[]`
+（命中工况键清单，§3）；**禁 `condition_key` 双义入 API**（「建议
+形态」措辞不设——本节即 2A1 批的实现契约，偏离=契约违规）。
 
 ## 2. 去重键（聚合粒度）
 
@@ -45,17 +46,31 @@
 
 - `message` 不入键：同键实例共享同一消息模板（三要素=**实际值+
   表达式原文+条目键**——validation 契约消息纪律，禁空话禁无出处），
-  聚合行按**首例**展示（首现序——`ValidationReport.codes()` 去重
-  保序首现序的码面单源先例，聚合键为其三元推广）。
-- `severity` 不入键：聚合行分级见 §3。
+  聚合行按**首例**展示。**序轴唯一源=ConditionSet 迭代序**（§3）：
+  首例=序轴上首个命中实例（`ValidationReport.codes()` 去重保序
+  首现序的码面单源先例，聚合键为其三元推广）；两源合并（§4）同键
+  双现时，源 A 实例视为**序轴前置**（声明级先于工况面）——即同键
+  双源现则 message 取源 A 实例。
+- `severity` 不入键：聚合行分级见 §3（同级并列取序首实例——分级值
+  相同无展示差，规则仅为确定性冻结）。
 
 ## 3. 跨工况聚合语义
 
 聚合行形态=**去重键（§2）+命中工况键清单+severity 分级**：
 
-- **命中工况键清单**：该去重键命中的工况键序列，按 ConditionSet
-  迭代序（确定性——工况间零共享可变状态 executor R1 同源，序不随
-  执行方式变）。
+- **命中语义（判据绑定——聚合视图=违规聚合非全键投影）**：「命中」
+  =**越门实例**。源 A（PlantWarning 流）本征仅产越门实例（越带才有
+  警告）；源 B（maint 标注键族）每适用条目恒发键（1.0 通过/0.0 越门
+  ——§4 差异表），**仅 0.0 越门实例计入命中**，1.0 通过实例不入
+  聚合（入聚合则全通过键泛滥视图且 severity 无实例可归——d1 轻量
+  审 B1 二义就此冻结）。
+- **命中工况键清单**：该去重键命中（越门）实例的工况键序列，按
+  ConditionSet 迭代序（确定性——工况间零共享可变状态 executor R1
+  同源，序不随执行方式变）。**源 A 的工况轴口径**：源 A=声明级
+  一次、与工况无关（§4）→其命中清单=**空序列 ∅（声明级哨兵——
+  无工况轴可数）**，不参与「≥2 工况」计数、不与工况聚合区混排
+  （展示分区=声明级区）；同键双源现时清单=源 B 工况清单（源 A
+  空清单并入不产生额外工况项——声明级证据随行展示）。
 - **severity 分级取最严重**：聚合行 severity=max over 命中实例
   （ERROR>WARN>INFO）。现状警告码族 severity 全为 WARN、
   enforcement=flag（实数以 `GET /api/constraints` 现库为准）。
@@ -63,8 +78,11 @@
   block 即聚合行 block——分级函数语义本件先行冻结，行为面归 P1 批。
 - **单工况实例=明细展开态**：聚合视图不吞明细——明细面=PlantWarning
   实例流原样，聚合行可展开回实例。
-- **入聚合视图判据**：≥2 工况命中才入「聚合视图」；单工况命中直通
-  行（UF-18 原文「2+k 工况重复」语义——去重价值面恰在重复）。
+- **入聚合视图判据**：**源 B 命中（越门）工况数 ≥2** 才入「工况
+  聚合视图」；单工况命中与源 A（∅ 哨兵）=**直通行**——与聚合行
+  **同 schema**（去重键+清单+severity），仅清单长度与来源分区决定
+  视图位次（UF-18 原文「2+k 工况重复」语义——去重价值面恰在重复；
+  单工况项目〔ConditionSet 仅 1 档〕天然全直通行）。
 
 ## 4. 两源对齐（覆盖面差异如实记，不造第二口径）
 
@@ -81,6 +99,16 @@
 对齐单源：`kb.<constraint_key>`（源 B 标注键中段）↔`kb_warning_code(
 constraint_key)`（源 A 警告码）——键↔码双向可逆（contracts.validation
 R1），聚合消费方按去重键合并两源即得全景，**禁第二键口径**。
+**源 B 实例的三元组推导链**：code=键中段逆映射（R1 同一双向可逆）；
+param_key/scope=自该 constraint_key 对应 kb 条目的 expression 与
+unit_kinds 单源推导——与源 A 同一推导链（§2 键元单源列），单条目
+单子句单字段=一键一值唯一，推导无二义。
+
+**第三警告面显式排除（v1 边界冻结）**：`contracts/unit_api.py` 的
+`Warning`（UF-17 T3 冻结六字段——单元级计算期警告，工况轴存在）
+**不入本规格 v1 聚合面**（本件消费面=源 A+源 B 两源）；其跨工况
+重复面若 2A1/T3 需要消费，=本规格版本升级另批扩源，禁实现批静默
+扩面。
 
 **两源覆盖面差异表**（差异系各源求值面本征，如实记非缺陷）：
 
@@ -111,9 +139,12 @@ R1），聚合消费方按去重键合并两源即得全景，**禁第二键口�
 
 ## 6. 现状锚
 
-- 1A2~1A4 警告码全集已稳定：input_band/mass_balance/param_band 三族
-  kind（条目实数与 severity/enforcement 分布以 `GET /api/constraints`
-  现库为准——本件全文零写死计数，08 §6 易失数字纪律）。
+- 1A2~1A4 警告码全集已稳定。**「三族」口径限定=源 A 选条族**
+  （input_band/mass_balance/param_band——`validation_summary_of`
+  三 kind 直判选条单源）；源 B 键面=kb 全 kind 受 §4 适用判据收敛
+  （geometry_guard/enumeration_filter/param_band 子集等——实数与
+  severity/enforcement 分布以 `GET /api/constraints` 现库为准，本件
+  全文零写死计数，08 §6 易失数字纪律）。
 - 接线批=2A1（server API 消费扩展面）+T3（前端展示层）；§1 命名
   硬约束（scope+condition_keys[] 形，禁 condition_key 双义入 API）
   对 2A1 批生效。
