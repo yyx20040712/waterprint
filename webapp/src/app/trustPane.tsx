@@ -26,7 +26,9 @@ import { Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { TrustReportView } from "../features/trust/components/TrustReportView";
+import { MaintenanceObservationView } from "../features/trust/components/MaintenanceObservationView";
 import { useTrustQuery } from "../features/trust/api/useTrustQuery";
+import { useValidationQuery } from "../features/trust/api/useValidationQuery";
 import { WaterprintApiError } from "../shared/api/http";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
@@ -45,12 +47,16 @@ export function TrustPane() {
   const [projectId] = useProjectId();
   const queryClient = useQueryClient();
 
-  // TASK_EVENT 事件桥监听（第五处——apply 重算后失效键，面板刷新）
+  // TASK_EVENT 事件桥监听（第五处——apply 重算后失效键，面板刷新；2A1：
+  // 同监听内追加 validation 失效键——勿新增第二监听）
   useEffect(() => {
     const onTaskParam = () => {
       if (projectId !== null) {
         void queryClient.invalidateQueries({
           queryKey: [`/api/calc/trust/${projectId}`],
+        });
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/calc/validation/${projectId}`],
         });
       }
     };
@@ -60,6 +66,8 @@ export function TrustPane() {
 
   const query = useTrustQuery(projectId);
   const report = query.data ?? null;
+  const validationQuery = useValidationQuery(projectId);
+  const observation = validationQuery.data ?? null;
 
   if (projectId === null) {
     return (
@@ -91,8 +99,25 @@ export function TrustPane() {
             正在加载可信度报告…
           </Typography.Paragraph>
         ) : (
-          // stale/降级状态条由 TrustReportView.StatusStrip 统一呈现（单点）
-          <TrustReportView report={report} />
+          // stale/降级状态条由 TrustReportView.StatusStrip 统一呈现（单点）；
+          // 2A1：检修观测卡下挂（同 pane 新增卡——App.tsx 页签结构零改；
+          // 观测卡自降级态自呈现，warnings 聚合行渲染=T3 面不在本批）
+          <>
+            <TrustReportView report={report} />
+            {validationQuery.isError ? (
+              <Typography.Paragraph type="danger">
+                检修观测取数失败：
+                {validationQuery.error instanceof WaterprintApiError &&
+                validationQuery.error.code === "ValidationSourceNotFoundError"
+                  ? `项目暂无完成的计算结果。${NO_CALC_HINT}`
+                  : validationQuery.error instanceof Error
+                    ? validationQuery.error.message
+                    : "未知错误"}
+              </Typography.Paragraph>
+            ) : observation !== null ? (
+              <MaintenanceObservationView observation={observation} />
+            ) : null}
+          </>
         )}
       </section>
     </ErrorBoundary>
