@@ -26,8 +26,8 @@
  *     （CostSourceNotFoundError——无 done calc，与导出能力同根）附
  *     「先提交计算」引导；网络错/窄化错不挂误导 hint；R3 F1''（2026-09-30
  *     门二 CONFIRMED）：领域码面不透 raw message——固定摘要「项目暂无
- *     完成的计算结果。」+NO_CALC_HINT（exports/unit 分支不在本笔——
- *     ExportSourceNotFoundError 面=服务端文案独立批裁量）；
+ *     完成的计算结果。」+NO_CALC_HINT（UF-59 2A4 批：exports 分支经
+ *     domainGate 收口同款门控；unit 分支=projects GET 无 no-calc 码面）；
  *   - FE-2（批 2026-09-30）：DrawingPreview 懒加载（import 链
  *     DrawingPreview→dxfScene→dxf-parser 随动切异步 chunk——主包减半；
  *     fallback=「图纸预览加载中…」薄 div）；
@@ -57,6 +57,7 @@ import { useUnitCatalog } from "../features/drawings/api/useUnitCatalog";
 import type { ExportArtifactResult } from "../features/drawings/api/useExportArtifact";
 import { buildSheetRows } from "../features/drawings/lib/drawingsView";
 import { WaterprintApiError } from "../shared/api/http";
+import { domainGate } from "../shared/api/sourceGate";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { TASK_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -126,6 +127,11 @@ export function DrawingsPane() {
 
   const rows = buildSheetRows(exportsQuery.data ?? []);
   const selected = rows.find((row) => row.key === selectedKey) ?? null;
+  // UF-59（2A4 domainGate 收口）：导出源 404=固定摘要 secondary+引导（无
+  // 数据非故障——R3 F1'' 同款）；网络错/其他错保 raw+前缀（I-3 口径）
+  const exportsGate = exportsQuery.isError
+    ? domainGate(exportsQuery.error, "ExportSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
 
   return (
     <ErrorBoundary label="图纸预览">
@@ -164,13 +170,17 @@ export function DrawingsPane() {
           />
         </div>
         {rows.length === 0 ? (
-          exportsQuery.isError ? (
-            <Typography.Paragraph type="danger">
-              产物目录取数失败：
-              {exportsQuery.error instanceof Error
-                ? exportsQuery.error.message
-                : "未知错误"}
-            </Typography.Paragraph>
+          exportsGate !== null ? (
+            exportsGate.domain ? (
+              <Typography.Paragraph type="secondary">
+                {exportsGate.text}
+                {NO_CALC_HINT}
+              </Typography.Paragraph>
+            ) : (
+              <Typography.Paragraph type="danger">
+                产物目录取数失败：{exportsGate.text}
+              </Typography.Paragraph>
+            )
           ) : exportsQuery.isPending ? (
             // R6（DS-03）：加载期不误显空目录引导（costPane「正在加载」专门
             // 分支同款——data 未到时 rows=[] 非「无产物」）

@@ -46,10 +46,10 @@
  *     THREE.Clock 弃用告警=R3F 库内实例化（three r183 起模块弃用），
  *     本批不动——F5 报告注明）；
  *   - 性能预算 1080p ≥60fps（InstancedMesh 前提，§18.1）；
- *   - 加载/错误态薄壳呈现（WaterprintApiError.message 透出）；UX1 D5：
- *     404 领域码门控附引导——仅 code==="SceneSourceNotFoundError"（无
- *     最近完成结果集——server scene.py 404 面实锚）附「先提交计算」
- *     hint（elevation/cost/drawings 族同模式同源）；网络错/其他错不挂
+ *   - 加载/错误态薄壳呈现（raw message 透出）；UX1 D5→UF-59（2A4 批）：
+ *     404 领域码面经 domainGate 收口=固定摘要「项目暂无完成的计算结果。」
+ *     +「先提交计算」引导（SceneSourceNotFoundError——server scene.py 404
+ *     面实锚，R3 F1'' 五 pane 同模式同源）；网络错/其他错保 raw 透出
  *     （I-3 分级口径——禁误导引导）。
  */
 import { useEffect, useMemo, useState } from "react";
@@ -59,7 +59,7 @@ import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber"
 
 import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
-import { WaterprintApiError } from "../../../shared/api/http";
+import { domainGate } from "../../../shared/api/sourceGate";
 import { semanticColor } from "../../../shared/ui/semanticColors";
 import { claimTemplateUnits } from "../assemble/templateAssembly";
 import { groupExtents } from "../assemble/poolGroup";
@@ -335,16 +335,16 @@ export function Scene({
     useFirstFrameGate(`${projectId}#${attempt}`);
 
   if (query.isError) {
-    return (
-      <div role="alert">
-        场景加载失败：{query.error instanceof Error ? query.error.message : "未知错误"}
-        {/* UX1 D5：仅 404 无最近完成结果集面附引导（code 门控）——网络错/
-            其他错不挂误导 hint（I-3 分级口径） */}
-        {query.error instanceof WaterprintApiError &&
-        query.error.code === "SceneSourceNotFoundError"
-          ? NO_CALC_HINT
-          : null}
+    // UX1 D5→UF-59（2A4 domainGate 收口）：404 无结果集面=固定摘要+引导
+    // （零 antd 新 import——viewer3d chunk 零扩面）；网络错/其他错保 raw
+    const gate = domainGate(query.error, "SceneSourceNotFoundError", "项目暂无完成的计算结果。");
+    return gate.domain ? (
+      <div role="status" style={{ color: "var(--wp-text-secondary)" }}>
+        {gate.text}
+        {NO_CALC_HINT}
       </div>
+    ) : (
+      <div role="alert">场景加载失败：{gate.text}</div>
     );
   }
   if (projection.error) {

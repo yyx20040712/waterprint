@@ -18,7 +18,9 @@
  *      title 悬浮显原 unit_id（追溯面对照接口文档——用户裁定口径）；
  *   - 保存链路=CP2 样板复刻：乐观 set+整项目 PUT（withCheckedUnits
  *      结构化替换）→onSuccess invalidate read 键（digest 变→既有 stale
- *      机制自动激活：横幅/导出 409 零新增）→onError 回滚+锁冲突提示；
+ *      机制自动激活：横幅/导出 409 零新增）→onError 回滚+分级 toast
+ *      （锁冲突 LOCK_HINT/ProjectNotFound·InvalidPayload 固定摘要/其余
+ *      raw 透出——UF-59 2A4 批 domainGate 码表门控）；
  *   - 恢复投影∩可勾全集（幽灵勾选过滤——designWriter 级联清理为服务端
  *      第一道，本面第二道呈现防线）。
  */
@@ -38,6 +40,7 @@ import {
 import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { unitNameIndex } from "../../../shared/conditionLabels";
 import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
+import { domainGate } from "../../../shared/api/sourceGate";
 
 export function CheckedUnitsPanel({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
@@ -75,10 +78,28 @@ export function CheckedUnitsPanel({ projectId }: { projectId: string }) {
         },
         onError: (error) => {
           setChecked(prevKeys);
+          // UF-59（2A4 domainGate 码表门控）：锁冲突既有 LOCK_HINT 零改→
+          // ProjectNotFound/InvalidPayload 两码固定摘要（码表依据=server
+          // projects.py PUT 链路领域码族——toast 闪现面禁 API 句式）；
+          // 网络错/其他错保 raw 透出（I-3 分级口径）
+          const notFound = domainGate(
+            error,
+            "ProjectNotFoundError",
+            "保存失败：项目不存在或已被删除——请刷新页面核对",
+          );
+          const invalidPayload = domainGate(
+            error,
+            "InvalidProjectPayloadError",
+            "保存失败：项目数据校验未通过——项目可能已被他处修改，请刷新后重试",
+          );
           messageApi.error(
             isLockConflict(error)
               ? LOCK_HINT
-              : `工况校核保存失败：${error instanceof Error ? error.message : "未知错误"}`,
+              : notFound.domain
+                ? notFound.text
+                : invalidPayload.domain
+                  ? invalidPayload.text
+                  : `工况校核保存失败：${error instanceof Error ? error.message : "未知错误"}`,
           );
         },
       },
