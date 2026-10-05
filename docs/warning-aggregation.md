@@ -134,6 +134,11 @@ unit_kinds 单源推导——与源 A 同一推导链（§2 键元单源列）�
   （服务端聚合先例——UF-18 sweep 时点全库唯一「去重」在案处）。
 - **本规格消费方**：server API 消费批（2A1 扩展面——1A2 欠账
   「server API 响应面消费 validation」在案）+前端展示层（T3）。
+  **2A1 落地注记（2026-10-05）**：server 消费面已接——GET
+  /api/calc/validation/{project_id}（services/validation.py 两源聚合，
+  本件 §1~§4 条款为实现契约逐条绑定；worker calc-val-{task_id}.json
+  第三并列 artifact=源 A 数据源）；FE 观测卡同批落地（观测面投影），
+  聚合行 FE 渲染仍归 T3。
 - core 面不新增聚合 API：PlantWarning 流/maint 键族两源现状交付，
   聚合=消费面投影（app 家族「纯投影不重算」口径同构）。
 
@@ -147,7 +152,8 @@ unit_kinds 单源推导——与源 A 同一推导链（§2 键元单源列）�
   全文零写死计数，08 §6 易失数字纪律）。
 - 接线批=2A1（server API 消费扩展面）+T3（前端展示层）；§1 命名
   硬约束（scope+condition_keys[] 形，禁 condition_key 双义入 API）
-  对 2A1 批生效。
+  对 2A1 批生效。**2A1 现状锚（2026-10-05）**：server 消费面已落地
+  （§5 落地注记同笔）；FE 面本批仅观测投影，聚合行展示=T3 待。
 - 断路器分级行为面归 P1 后续批（§3 前向兼容条款预留）。
 - UF 登记：`undefined-features-register.md` UF-18 行随本件落盘闭合
   （本件=其规格载体）。

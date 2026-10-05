@@ -435,7 +435,7 @@ FAQ 第 2 问）。
 | 分组 | 端点 |
 |------|------|
 | projects（8） | `GET/POST /api/projects`、`GET/PUT/DELETE /api/projects/{id}`、`POST /api/projects/{id}/validate`、`POST /api/projects/{id}/copy`、`POST /api/projects/{id}/rename`（P2 生命周期批 2026-09-12） |
-| calc（10） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12）、`GET /api/calc/compare/{project_id}`（多工况对比矩阵——P2 第三批 ADR-018）、`GET /api/calc/sensitivity/{project_id}`（参数敏感性全工况投影——批6e 2026-09-26，复用结果缓存零重算） |
+| calc（11） | `POST /api/calc/run`、`POST /api/calc/enumerate`、`POST /api/calc/design-map`（可行域引导，同步直返——FD 批）、`GET /api/calc/tasks/{id}`、`POST /api/calc/tasks/{id}/cancel`、`GET /api/calc/tasks/{id}/solutions`、`POST /api/calc/solutions/apply`、`GET /api/calc/trust/{project_id}`（结果可信度报告——P2 次批 2026-09-12）、`GET /api/calc/compare/{project_id}`（多工况对比矩阵——P2 第三批 ADR-018）、`GET /api/calc/sensitivity/{project_id}`（参数敏感性全工况投影——批6e 2026-09-26，复用结果缓存零重算）、`GET /api/calc/validation/{project_id}`（校验观测+警告聚合——2A1 批 2026-10-05，维护观测三面投影+两源聚合，val 件缺席降级回显） |
 | solution（1） | `POST /api/solution/joint-enumerate`（跨单元联合枚举——多单元关联参数联动寻优） |
 | exports（7） | `GET /api/exports`、`GET /api/exports/{file_name}`（下载）、`POST /api/exports/calcbook`、`POST /api/exports/audit`、`POST /api/exports/dxf`、`POST /api/exports/estimate`、`POST /api/exports/ifc` |
 | events（2） | `GET /api/events/tasks/{id}`、`GET /api/events/projects/{id}`（SSE） |
