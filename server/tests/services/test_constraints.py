@@ -456,8 +456,9 @@ def test_mass_balance_entry_carry_plant_scale_contract() -> None:
     =ds_primary vs 全厂进水 SS 负荷——仅此一对）；unit_kinds 恒空=kind
     直判选条非全适用（1A2 接线红线同款）；表达式落 primary_ss_ratio
     派生比值列双侧带 0.2~1.0（DSL 右值不支持字段算术——最小面改形，
-    比值列由 core app_validation 注入消费）；WARN/flag 仪表灯；起草态
-    =追认单直录（AI 起草待追认 1A3 批——P10 追认流程后续批消化）。
+    比值列由 core app_validation 注入消费）；WARN/flag 仪表灯；已追认
+    （Ruling 2026-10-05 P10 批——宽放 0.5 专家背书随批消化+ratio 佐证值
+    0.372850→0.372849 末位勘正在档）。
     """
     catalog = list_constraints(_REPO)
     family = [e for e in catalog.entries if e.kind == "mass_balance"]
@@ -469,6 +470,8 @@ def test_mass_balance_entry_carry_plant_scale_contract() -> None:
     )  # 表达式锁面（阈值 0.2/1.0=预裁决带原文——数值漂移即红）
     assert entry.unit_kinds == ()  # 恒空=kind 直判（接线红线——非全适用）
     assert entry.severity == "WARN" and entry.enforcement == "flag"
-    assert "AI 起草待追认" in entry.source  # 起草态标记在册（1A3 批）
+    assert "已追认（Ruling 2026-10-05" in entry.source  # 追认标记在册（P10 批）
     assert "追认单直录" in entry.value_basis
+    assert "专家背书=Ruling 2026-10-05 P10 批" in entry.value_basis  # AC-1
+    assert "ratio=0.372849" in entry.value_basis  # AC-2 勘正（golden 实算六位舍入）
     assert "GB 50014-2021" in entry.source  # 出处链（CC-F10 同源口径）

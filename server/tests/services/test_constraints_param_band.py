@@ -43,8 +43,8 @@ def test_param_band_entries_carry_positive_domain_contract() -> None:
     =FZ-4 计算期守卫的前置报告面）；unit_kinds 非空=节点 ID 选条判据
     （geometry_guard 非空先例形态——与 input_band/mass_balance 恒空
     kind 直判族接线红线分立）且升序；WARN/flag 仪表灯（block 断路器
-    归 P1 后续批挂账）；起草态=追认单直录（AI 起草待追认 1A4 批——
-    P10 追认流程后续批消化）；消费面=core app_validation param_band
+    归 P1 后续批挂账）；已追认（Ruling 2026-10-05 P10 批——109 存量随批
+    回写+4 补录键生而已追认）；消费面=core app_validation param_band
     分支（1A4 批接线），本投影=观测面。
     """
     catalog = list_constraints(_REPO)
@@ -71,18 +71,16 @@ def test_param_band_entries_carry_positive_domain_contract() -> None:
     )  # 升序（确定性）
     assert "municipal_aao" in by_key["param.n.positive"].unit_kinds
     assert by_key["param.z_water_inlet.positive"].unit_kinds == ("mine_water_input",)
-    # P10 补录四键（h/s/alpha/b_throat——生而已追认：source/value_basis 随批
-    # 追认标记；109 存量起草标记归 P10 追认笔统一回写后收紧为全族已追认）
+    # P10 追认笔回写后收紧：全族 113 条已追认（109 存量随批回写+4 补录
+    # 键生而已追认——P10 批补录注记随行）
     assert set(by_key) >= _P10_SUPPLEMENT_KEYS
     for entry in family:  # 非空选条面+WARN+flag+追认标记随行
         assert entry.unit_kinds  # 非空=节点 ID 选条（缺项跳检=稀疏语义）
         assert entry.unit_kinds == tuple(sorted(entry.unit_kinds))
         assert entry.severity == "WARN" and entry.enforcement == "flag"
+        assert "已追认（Ruling 2026-10-05" in entry.source  # 追认标记在册（P10 批）
         if entry.key in _P10_SUPPLEMENT_KEYS:
-            assert "已追认（Ruling 2026-10-05" in entry.source
-            assert "P10 批补录" in entry.value_basis
-        else:
-            assert "AI 起草待追认（1A4 批）" in entry.source
+            assert "P10 批补录" in entry.value_basis  # 补录键溯源注记
         assert "追认单直录起草" in entry.value_basis
         assert "_PARAMS_POSITIVE 机扫单源投影" in entry.value_basis
     assert "GB 50014-2021" in by_key["param.n.positive"].source  # 族级出处

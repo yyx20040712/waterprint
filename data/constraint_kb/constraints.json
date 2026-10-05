@@ -12,8 +12,8 @@
     "1.7.0（1A1 数据带补录批）：增 kind=input_band 7 条（进水输入合理性带——横切进水面非单元包、非枚举行字段：inlet.kz_band Kz 总变化系数静态包络带`kz >= 1.3 and kz <= 2.7`〔GB 50014-2021 总变化系数表端点——流量相关精确内插表显式挂账不录〕+inlet.quality_upper.{cod,bod5,ss,nh3n,tn,tp} 进水六指标浓度上限带 `field <= max` 单侧式〔字段=契约既有进水面命名 kz/BOD5/CODCR/SS/NH3N/TN/TP——contracts 冻结面直用非新建〕）；unit_kinds 恒空=通用勾选判据恒不命中（执法面已由 1A2 接线——kind 直判选条）；severity 全 WARN（逐条定级归 1A6 批）；数值=追认单直录起草（无 coefficients 源键——geometry_guard 先例；手册原册页级复核归追认批）。**已追认（Ruling 2026-10-04——用户裁决 R2 全量追认；原起草清单=§1a1——.workflow/1a1-20261003/draft-table.md 起草表）**；旧 34 键零扰动，计数 11+12+2+1+8→11+12+2+1+8+7（server test_constraints 同步+core 装载器零消费——执法面接线归 1A2）。",
     "1.8.0（1A6 批逐条定级批）：41 条全量增第九键 enforcement（P1 裁决选项 3 落地——kb 逐条 severity 声明式定级：值域恰两值 flag=仪表灯〔违规呈现不阻断〕|block=断路器〔违规即失败终态〕，与既有 severity〔WARN/ERROR=呈现黄红分层〕正交两维）。分布=flag 23+block 18：enumeration_filter 11 条全 flag〔可行带过滤——P1 件 §六选项 3 filter 带类原文，带外行已可勾选过滤双保险无必要〕；effluent_standard 12 条全 block〔出流超标=工艺交付失败——P1 件 §七「计算器+门禁」哲学+出水标准数据性地位；工况分级豁免〔design 严/offline 宽——P1 件 §五第 3 层〕显式挂账不在本批 schema 表达〕；spacing_check 按 WARN/ERROR 双门分〔通用 6 m 提示=flag/浓缩—消化沼气防火间距 10 m=block〕；boundary_check 1 条 block〔用地红线越界=硬失败〕；geometry_guard 按双门分〔hint 4 条 WARN=flag/reject 4 条 ERROR=block——与 severity 分层一一对应〕；input_band 7 条全 flag〔WARN 提示不拒收——1A1 起草表语义承接〕。enforcement=纯声明元数据零运行时消费（core KbConstraint 不装载/apply_constraints 不读/run_full_calc 零感知——golden serialize 批前后恒等探针实录）；运行时阻断消费接线与工况分级豁免=显式挂账归 P1 后续批。**已追认（Ruling 2026-10-04——用户裁决 R2 全量追认；原起草清单=§1a6——.workflow/1a6-20261003/draft-table.md 起草表=呈用户追认的唯一材料；与 1A1 七条数值合并呈报，追认批统一升 1.8.1 回写标记）**；旧 41 键八面零扰动（仅加第九键）。欠账闭口记档（回炉轮1 补记）：本批契约三步 openapi 重导出时 kind 枚举出现 +input_band——系 1A1 批扩 ConstraintEntry.kind Literal 时未同步重导出 openapi.json 的存量漂移，本次随生成物重导出自然收口（顺带收口非本批新裁量；43 端点操作数不变，schema 面变——判别依据=生成物单一事实源随 app 真值）。",
     "1.8.1（ratify-kb-20261004 追认批）：**已追认（用户裁决 2026-10-04 R2 全量追认——.workflow/adjudication-batch-20261004.md 裁决记录节）**——1A1 七条数值+1A6 41 条 enforcement 定级全量生效（含 effluent 四行取严格档裁量）。纯回写标记（RATIFY-CP1 先例形态）：41 条 entry 九键值零触碰；追认标记回写于 README 状态面+manifest 变更记录+本注释行（entry 级标记回写与 server _DRAFT17_KEYS 撤集归后续锁面批）。门二三挂账随记：工况分级豁免+运行时断路器接线=仍挂账归 P1 后续批；追认合并呈报=本批闭口。",
-    "1.9.0（1A3 泥量量级互校批——UF-55 闭合）：增 kind=mass_balance 1 条（sludge.primary_load_band 初沉干泥量级互校带——plant 级跨节点质量规模互校族：对子=sludge_hebing 参数注入模式声明的 ds_primary〔初沉股干泥 kg/d〕vs 全厂进水 SS 负荷〔进水声明 SS mg/L×q_avg_daily m³/d 换算 kg/d〕，仅此一对——ds_bio/ds_chem 不入互校〔高溶解性 BOD5 废水可合法远超 SS 负荷，无守恒上界必误伤〕；跳检语义=缺任一面不警〔无 municipal_input 声明节点/进水缺 SS 或 q_avg_daily/无 ds_primary 数值键——入流直值模式=D2 双模另一态天然跳检〕）。表达式落 primary_ss_ratio 派生比值列双侧带 0.2~1.0（DSL 右值不支持字段算术——字段×字段算式不可解析，最小面改形；比值列=core app_validation 注入，mg/L·m³/d→kg/d 换算因子经 pint 单源〔contracts.quantity R2 禁手写换算系数〕——core/server 源码零新增数值字面量）。severity=WARN/enforcement=flag（仪表灯——1A6 定级面 input_band 同款；block 断路器归 P1 后续批挂账）。消费面：core app_validation 增 mass_balance 分支（kind 直判选条——unit_kinds 恒空不参与，1A2 接线红线同款）；server _KINDS/Literal 双处同步+openapi 重导出。本批附带挂账清偿：全库 17 处「AI 起草待追认」标记回写已追认（14 entry 字段=Ruling 2026-10-04 R2；comment 三历史行同义措辞——1.6.0 行历史归属 Ruling 2026-10-01）+server _DRAFT17_KEYS 撤集。**AI 起草待追认（1A3 批——P10 追认流程后续批消化）**；旧 41 键零扰动，计数 11+12+2+1+8+7→11+12+2+1+8+7+1（server test_constraints 同步）。",
-    "2.0.0（1A4 单元级参数域校验批）：增 kind=param_band 109 条（param.<field>.positive 单元参数正性域带族——28 单元 _PARAMS_POSITIVE 机扫单源投影逐字段一条同字段跨单元聚合：189 参数次/109 唯一键，高频 n=13 单元/side_disc_step=10/length_disc_step=8/h2=7；unit_kinds=该字段出现单元 ID 升序——节点 ID=unit_id 全仓约定，选条判据=节点 ID∈unit_kinds〔geometry_guard 非空先例形态——与 input_band/mass_balance 恒空 kind 直判族接线红线分立〕；expression 单子句单侧正性 `<field> > 0`〔DSL 右值常量合规；NaN>0=False→越带→警告——声明期 NaN 检出=FZ-4 计算期守卫前置报告面〕；缺项跳检不警=声明面稀疏语义〔default 面域由 manifest 起草表保证不校〕；severity=WARN/enforcement=flag〔仪表灯——block 断路器归 P1 后续批挂账〕；族级出处归类〔几何/时间/流量负荷/数量/步长/水质/标高/其余物理量——正性域=物理必然非阈值条文，与 1A3 带域出处的差异在 value_basis注明，不逐键造精确条文〕。消费面：core app_validation 增 param_band 分支〔1A4 批接线〕；server _KINDS/Literal 双处同步+openapi 重导出。**AI 起草待追认（1A4 批——P10 追认流程后续批消化）**；旧 42 键零扰动，计数 11+12+2+1+8+7+1→11+12+2+1+8+7+1+109=151（server test_constraints 同步）。"
+    "1.9.0（1A3 泥量量级互校批——UF-55 闭合）：增 kind=mass_balance 1 条（sludge.primary_load_band 初沉干泥量级互校带——plant 级跨节点质量规模互校族：对子=sludge_hebing 参数注入模式声明的 ds_primary〔初沉股干泥 kg/d〕vs 全厂进水 SS 负荷〔进水声明 SS mg/L×q_avg_daily m³/d 换算 kg/d〕，仅此一对——ds_bio/ds_chem 不入互校〔高溶解性 BOD5 废水可合法远超 SS 负荷，无守恒上界必误伤〕；跳检语义=缺任一面不警〔无 municipal_input 声明节点/进水缺 SS 或 q_avg_daily/无 ds_primary 数值键——入流直值模式=D2 双模另一态天然跳检〕）。表达式落 primary_ss_ratio 派生比值列双侧带 0.2~1.0（DSL 右值不支持字段算术——字段×字段算式不可解析，最小面改形；比值列=core app_validation 注入，mg/L·m³/d→kg/d 换算因子经 pint 单源〔contracts.quantity R2 禁手写换算系数〕——core/server 源码零新增数值字面量）。severity=WARN/enforcement=flag（仪表灯——1A6 定级面 input_band 同款；block 断路器归 P1 后续批挂账）。消费面：core app_validation 增 mass_balance 分支（kind 直判选条——unit_kinds 恒空不参与，1A2 接线红线同款）；server _KINDS/Literal 双处同步+openapi 重导出。本批附带挂账清偿：全库 17 处「AI 起草待追认」标记回写已追认（14 entry 字段=Ruling 2026-10-04 R2；comment 三历史行同义措辞——1.6.0 行历史归属 Ruling 2026-10-01）+server _DRAFT17_KEYS 撤集。**已追认（Ruling 2026-10-05 P10 批）**；旧 41 键零扰动，计数 11+12+2+1+8+7→11+12+2+1+8+7+1（server test_constraints 同步）。",
+    "2.0.0（1A4 单元级参数域校验批）：增 kind=param_band 109 条（param.<field>.positive 单元参数正性域带族——28 单元 _PARAMS_POSITIVE 机扫单源投影逐字段一条同字段跨单元聚合：189 参数次/109 唯一键，高频 n=13 单元/side_disc_step=10/length_disc_step=8/h2=7；unit_kinds=该字段出现单元 ID 升序——节点 ID=unit_id 全仓约定，选条判据=节点 ID∈unit_kinds〔geometry_guard 非空先例形态——与 input_band/mass_balance 恒空 kind 直判族接线红线分立〕；expression 单子句单侧正性 `<field> > 0`〔DSL 右值常量合规；NaN>0=False→越带→警告——声明期 NaN 检出=FZ-4 计算期守卫前置报告面〕；缺项跳检不警=声明面稀疏语义〔default 面域由 manifest 起草表保证不校〕；severity=WARN/enforcement=flag〔仪表灯——block 断路器归 P1 后续批挂账〕；族级出处归类〔几何/时间/流量负荷/数量/步长/水质/标高/其余物理量——正性域=物理必然非阈值条文，与 1A3 带域出处的差异在 value_basis注明，不逐键造精确条文〕。消费面：core app_validation 增 param_band 分支〔1A4 批接线〕；server _KINDS/Literal 双处同步+openapi 重导出。**已追认（Ruling 2026-10-05 P10 批）**；旧 42 键零扰动，计数 11+12+2+1+8+7+1→11+12+2+1+8+7+1+109=151（server test_constraints 同步）。"
   ],
   "entries": [
     {
@@ -522,10 +522,10 @@
       "unit_kinds": [],
       "label": "初沉干泥量级互校带（ds_primary vs 全厂进水 SS 负荷）",
       "expression": "primary_ss_ratio >= 0.2 and primary_ss_ratio <= 1.0",
-      "source": "GB 50014-2021 §6.5（初沉池 SS 去除率 40%~60%——上界 1.0=η<1 守恒包络：初沉干泥恒小于进水 SS 负荷）；给水排水设计手册（第 5 册 城镇排水）初沉污泥量计算式（=SS 负荷×去除率——CC-F10 同源口径）；AI 起草待追认（1A3 批）",
+      "source": "GB 50014-2021 §6.5（初沉池 SS 去除率 40%~60%——上界 1.0=η<1 守恒包络：初沉干泥恒小于进水 SS 负荷）；给水排水设计手册（第 5 册 城镇排水）初沉污泥量计算式（=SS 负荷×去除率——CC-F10 同源口径）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——geometry_guard/input_band 先例形态）：上界 1.0=GB §6.5 去除率 η<1 守恒包络；下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数宽放 0.5（仓内佐证：34760 案例初沉入流 SS 186.4242/进水声明 250=削减系数 0.746；golden 三案例 ratio=0.372850 带内零漂移）；2 量级失衡验收（route 1A3 锚）ratio≥100 与 ≤0.01 均落带外；AI 起草待追认（1A3 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——geometry_guard/input_band 先例形态）：上界 1.0=GB §6.5 去除率 η<1 守恒包络；下界 0.2=η 下端 0.4×上游格栅/沉砂 SS 削减系数宽放 0.5（专家背书=Ruling 2026-10-05 P10 批）（仓内佐证：34760 案例初沉入流 SS 186.4242/进水声明 250=削减系数 0.746；golden 三案例 ratio=0.372849 带内零漂移）；2 量级失衡验收（route 1A3 锚）ratio≥100 与 ≤0.01 均落带外；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.alpha.positive",
@@ -551,10 +551,10 @@
       ],
       "label": "单元参数正性域（b——其余物理量类）",
       "expression": "b > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.b_c.positive",
@@ -564,10 +564,10 @@
       ],
       "label": "单元参数正性域（b_c——几何尺寸类）",
       "expression": "b_c > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.b_channel.positive",
@@ -578,10 +578,10 @@
       ],
       "label": "单元参数正性域（b_channel——几何尺寸类）",
       "expression": "b_channel > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.b_throat.positive",
@@ -604,10 +604,10 @@
       ],
       "label": "单元参数正性域（cod_in——水质浓度类）",
       "expression": "cod_in > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.d_grav.positive",
@@ -617,10 +617,10 @@
       ],
       "label": "单元参数正性域（d_grav——几何尺寸类）",
       "expression": "d_grav > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.d_long.positive",
@@ -630,10 +630,10 @@
       ],
       "label": "单元参数正性域（d_long——几何尺寸类）",
       "expression": "d_long > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.dia_disc_step.positive",
@@ -648,10 +648,10 @@
       ],
       "label": "单元参数正性域（dia_disc_step——离散步长类）",
       "expression": "dia_disc_step > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.dn_inlet.positive",
@@ -661,10 +661,10 @@
       ],
       "label": "单元参数正性域（dn_inlet——其余物理量类）",
       "expression": "dn_inlet > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.dose_pam.positive",
@@ -674,10 +674,10 @@
       ],
       "label": "单元参数正性域（dose_pam——其余物理量类）",
       "expression": "dose_pam > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ds_bio.positive",
@@ -687,10 +687,10 @@
       ],
       "label": "单元参数正性域（ds_bio——其余物理量类）",
       "expression": "ds_bio > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ds_chem.positive",
@@ -700,10 +700,10 @@
       ],
       "label": "单元参数正性域（ds_chem——其余物理量类）",
       "expression": "ds_chem > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ds_primary.positive",
@@ -713,10 +713,10 @@
       ],
       "label": "单元参数正性域（ds_primary——其余物理量类）",
       "expression": "ds_primary > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.eta_vs.positive",
@@ -726,10 +726,10 @@
       ],
       "label": "单元参数正性域（eta_vs——其余物理量类）",
       "expression": "eta_vs > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.g_gravity.positive",
@@ -741,10 +741,10 @@
       ],
       "label": "单元参数正性域（g_gravity——其余物理量类）",
       "expression": "g_gravity > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h.positive",
@@ -774,10 +774,10 @@
       ],
       "label": "单元参数正性域（h2——几何尺寸类）",
       "expression": "h2 > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h5.positive",
@@ -787,10 +787,10 @@
       ],
       "label": "单元参数正性域（h5——几何尺寸类）",
       "expression": "h5 > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_bottom.positive",
@@ -800,10 +800,10 @@
       ],
       "label": "单元参数正性域（h_bottom——其余物理量类）",
       "expression": "h_bottom > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_buffer.positive",
@@ -813,10 +813,10 @@
       ],
       "label": "单元参数正性域（h_buffer——其余物理量类）",
       "expression": "h_buffer > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_channel.positive",
@@ -826,10 +826,10 @@
       ],
       "label": "单元参数正性域（h_channel——其余物理量类）",
       "expression": "h_channel > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_clear.positive",
@@ -840,10 +840,10 @@
       ],
       "label": "单元参数正性域（h_clear——其余物理量类）",
       "expression": "h_clear > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_cone.positive",
@@ -853,10 +853,10 @@
       ],
       "label": "单元参数正性域（h_cone——其余物理量类）",
       "expression": "h_cone > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_dist.positive",
@@ -866,10 +866,10 @@
       ],
       "label": "单元参数正性域（h_dist——其余物理量类）",
       "expression": "h_dist > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_eff.positive",
@@ -879,10 +879,10 @@
       ],
       "label": "单元参数正性域（h_eff——其余物理量类）",
       "expression": "h_eff > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_media.positive",
@@ -892,10 +892,10 @@
       ],
       "label": "单元参数正性域（h_media——其余物理量类）",
       "expression": "h_media > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_module.positive",
@@ -905,10 +905,10 @@
       ],
       "label": "单元参数正性域（h_module——其余物理量类）",
       "expression": "h_module > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_plate.positive",
@@ -918,10 +918,10 @@
       ],
       "label": "单元参数正性域（h_plate——其余物理量类）",
       "expression": "h_plate > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_pool.positive",
@@ -931,10 +931,10 @@
       ],
       "label": "单元参数正性域（h_pool——其余物理量类）",
       "expression": "h_pool > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_sand.positive",
@@ -944,10 +944,10 @@
       ],
       "label": "单元参数正性域（h_sand——其余物理量类）",
       "expression": "h_sand > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_static.positive",
@@ -958,10 +958,10 @@
       ],
       "label": "单元参数正性域（h_static——其余物理量类）",
       "expression": "h_static > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_thick.positive",
@@ -972,10 +972,10 @@
       ],
       "label": "单元参数正性域（h_thick——其余物理量类）",
       "expression": "h_thick > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_under.positive",
@@ -985,10 +985,10 @@
       ],
       "label": "单元参数正性域（h_under——其余物理量类）",
       "expression": "h_under > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_water.positive",
@@ -998,10 +998,10 @@
       ],
       "label": "单元参数正性域（h_water——其余物理量类）",
       "expression": "h_water > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_water_above.positive",
@@ -1011,10 +1011,10 @@
       ],
       "label": "单元参数正性域（h_water_above——其余物理量类）",
       "expression": "h_water_above > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.h_well.positive",
@@ -1028,10 +1028,10 @@
       ],
       "label": "单元参数正性域（h_well——其余物理量类）",
       "expression": "h_well > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.kz.positive",
@@ -1041,10 +1041,10 @@
       ],
       "label": "单元参数正性域（kz——其余物理量类）",
       "expression": "kz > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.l_module.positive",
@@ -1054,10 +1054,10 @@
       ],
       "label": "单元参数正性域（l_module——几何尺寸类）",
       "expression": "l_module > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.l_pipe.positive",
@@ -1068,10 +1068,10 @@
       ],
       "label": "单元参数正性域（l_pipe——几何尺寸类）",
       "expression": "l_pipe > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.l_stab.positive",
@@ -1081,10 +1081,10 @@
       ],
       "label": "单元参数正性域（l_stab——几何尺寸类）",
       "expression": "l_stab > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.l_tube.positive",
@@ -1095,10 +1095,10 @@
       ],
       "label": "单元参数正性域（l_tube——几何尺寸类）",
       "expression": "l_tube > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.length_disc_step.positive",
@@ -1115,10 +1115,10 @@
       ],
       "label": "单元参数正性域（length_disc_step——离散步长类）",
       "expression": "length_disc_step > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.m_seed.positive",
@@ -1128,10 +1128,10 @@
       ],
       "label": "单元参数正性域（m_seed——其余物理量类）",
       "expression": "m_seed > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.machine_type.positive",
@@ -1141,10 +1141,10 @@
       ],
       "label": "单元参数正性域（machine_type——其余物理量类（枚举档参数））",
       "expression": "machine_type > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n.positive",
@@ -1168,10 +1168,10 @@
       ],
       "label": "单元参数正性域（n——数量类）",
       "expression": "n > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_channel.positive",
@@ -1181,10 +1181,10 @@
       ],
       "label": "单元参数正性域（n_channel——数量类）",
       "expression": "n_channel > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_lamp_module.positive",
@@ -1194,10 +1194,10 @@
       ],
       "label": "单元参数正性域（n_lamp_module——数量类）",
       "expression": "n_lamp_module > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_layer.positive",
@@ -1207,10 +1207,10 @@
       ],
       "label": "单元参数正性域（n_layer——数量类）",
       "expression": "n_layer > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_pool.positive",
@@ -1220,10 +1220,10 @@
       ],
       "label": "单元参数正性域（n_pool——数量类）",
       "expression": "n_pool > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_pump_duty.positive",
@@ -1233,10 +1233,10 @@
       ],
       "label": "单元参数正性域（n_pump_duty——数量类）",
       "expression": "n_pump_duty > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_standby.positive",
@@ -1248,10 +1248,10 @@
       ],
       "label": "单元参数正性域（n_standby——数量类）",
       "expression": "n_standby > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_t.positive",
@@ -1261,10 +1261,10 @@
       ],
       "label": "单元参数正性域（n_t——数量类）",
       "expression": "n_t > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.n_units.positive",
@@ -1274,10 +1274,10 @@
       ],
       "label": "单元参数正性域（n_units——数量类）",
       "expression": "n_units > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.nh3n_in.positive",
@@ -1287,10 +1287,10 @@
       ],
       "label": "单元参数正性域（nh3n_in——水质浓度类）",
       "expression": "nh3n_in > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ns.positive",
@@ -1301,10 +1301,10 @@
       ],
       "label": "单元参数正性域（ns——其余物理量类）",
       "expression": "ns > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.omega.positive",
@@ -1314,10 +1314,10 @@
       ],
       "label": "单元参数正性域（omega——其余物理量类）",
       "expression": "omega > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.p_lamp.positive",
@@ -1327,10 +1327,10 @@
       ],
       "label": "单元参数正性域（p_lamp——其余物理量类）",
       "expression": "p_lamp > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_avg_daily.positive",
@@ -1341,10 +1341,10 @@
       ],
       "label": "单元参数正性域（q_avg_daily——流量负荷类）",
       "expression": "q_avg_daily > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_nom.positive",
@@ -1354,10 +1354,10 @@
       ],
       "label": "单元参数正性域（q_nom——流量负荷类）",
       "expression": "q_nom > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_prime.positive",
@@ -1367,10 +1367,10 @@
       ],
       "label": "单元参数正性域（q_prime——流量负荷类）",
       "expression": "q_prime > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_solid.positive",
@@ -1380,10 +1380,10 @@
       ],
       "label": "单元参数正性域（q_solid——流量负荷类）",
       "expression": "q_solid > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_surf.positive",
@@ -1394,10 +1394,10 @@
       ],
       "label": "单元参数正性域（q_surf——流量负荷类）",
       "expression": "q_surf > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.q_surface.positive",
@@ -1407,10 +1407,10 @@
       ],
       "label": "单元参数正性域（q_surface——流量负荷类）",
       "expression": "q_surface > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r1.positive",
@@ -1420,10 +1420,10 @@
       ],
       "label": "单元参数正性域（r1——其余物理量类）",
       "expression": "r1 > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r2.positive",
@@ -1433,10 +1433,10 @@
       ],
       "label": "单元参数正性域（r2——其余物理量类）",
       "expression": "r2 > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_biogas.positive",
@@ -1446,10 +1446,10 @@
       ],
       "label": "单元参数正性域（r_biogas——其余物理量类）",
       "expression": "r_biogas > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_evap.positive",
@@ -1459,10 +1459,10 @@
       ],
       "label": "单元参数正性域（r_evap——其余物理量类）",
       "expression": "r_evap > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_external.positive",
@@ -1473,10 +1473,10 @@
       ],
       "label": "单元参数正性域（r_external——其余物理量类）",
       "expression": "r_external > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_internal.positive",
@@ -1486,10 +1486,10 @@
       ],
       "label": "单元参数正性域（r_internal——其余物理量类）",
       "expression": "r_internal > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_pit.positive",
@@ -1499,10 +1499,10 @@
       ],
       "label": "单元参数正性域（r_pit——其余物理量类）",
       "expression": "r_pit > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.r_sludge.positive",
@@ -1512,10 +1512,10 @@
       ],
       "label": "单元参数正性域（r_sludge——其余物理量类）",
       "expression": "r_sludge > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ratio_lb.positive",
@@ -1530,10 +1530,10 @@
       ],
       "label": "单元参数正性域（ratio_lb——其余物理量类）",
       "expression": "ratio_lb > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.s.positive",
@@ -1558,10 +1558,10 @@
       ],
       "label": "单元参数正性域（sec_per_hour——时间类）",
       "expression": "sec_per_hour > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.side_disc_step.positive",
@@ -1580,10 +1580,10 @@
       ],
       "label": "单元参数正性域（side_disc_step——离散步长类）",
       "expression": "side_disc_step > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.ss_in.positive",
@@ -1593,10 +1593,10 @@
       ],
       "label": "单元参数正性域（ss_in——水质浓度类）",
       "expression": "ss_in > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t254.positive",
@@ -1606,10 +1606,10 @@
       ],
       "label": "单元参数正性域（t254——其余物理量类）",
       "expression": "t254 > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_clean.positive",
@@ -1619,10 +1619,10 @@
       ],
       "label": "单元参数正性域（t_clean——时间类）",
       "expression": "t_clean > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_cycle.positive",
@@ -1633,10 +1633,10 @@
       ],
       "label": "单元参数正性域（t_cycle——时间类）",
       "expression": "t_cycle > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_digest.positive",
@@ -1646,10 +1646,10 @@
       ],
       "label": "单元参数正性域（t_digest——时间类）",
       "expression": "t_digest > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_digest_temp.positive",
@@ -1659,10 +1659,10 @@
       ],
       "label": "单元参数正性域（t_digest_temp——时间类）",
       "expression": "t_digest_temp > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_draw.positive",
@@ -1672,10 +1672,10 @@
       ],
       "label": "单元参数正性域（t_draw——时间类）",
       "expression": "t_draw > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_filter.positive",
@@ -1685,10 +1685,10 @@
       ],
       "label": "单元参数正性域（t_filter——时间类）",
       "expression": "t_filter > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_floc.positive",
@@ -1700,10 +1700,10 @@
       ],
       "label": "单元参数正性域（t_floc——时间类）",
       "expression": "t_floc > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_mix.positive",
@@ -1715,10 +1715,10 @@
       ],
       "label": "单元参数正性域（t_mix——时间类）",
       "expression": "t_mix > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_op.positive",
@@ -1728,10 +1728,10 @@
       ],
       "label": "单元参数正性域（t_op——时间类）",
       "expression": "t_op > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_p.positive",
@@ -1741,10 +1741,10 @@
       ],
       "label": "单元参数正性域（t_p——时间类）",
       "expression": "t_p > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_react.positive",
@@ -1754,10 +1754,10 @@
       ],
       "label": "单元参数正性域（t_react——时间类）",
       "expression": "t_react > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_reg.positive",
@@ -1768,10 +1768,10 @@
       ],
       "label": "单元参数正性域（t_reg——时间类）",
       "expression": "t_reg > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_ripen.positive",
@@ -1781,10 +1781,10 @@
       ],
       "label": "单元参数正性域（t_ripen——时间类）",
       "expression": "t_ripen > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_seed.positive",
@@ -1794,10 +1794,10 @@
       ],
       "label": "单元参数正性域（t_seed——时间类）",
       "expression": "t_seed > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_selector.positive",
@@ -1807,10 +1807,10 @@
       ],
       "label": "单元参数正性域（t_selector——时间类）",
       "expression": "t_selector > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_settle.positive",
@@ -1821,10 +1821,10 @@
       ],
       "label": "单元参数正性域（t_settle——时间类）",
       "expression": "t_settle > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_sludge.positive",
@@ -1834,10 +1834,10 @@
       ],
       "label": "单元参数正性域（t_sludge——时间类）",
       "expression": "t_sludge > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_stay.positive",
@@ -1847,10 +1847,10 @@
       ],
       "label": "单元参数正性域（t_stay——时间类）",
       "expression": "t_stay > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_thicken.positive",
@@ -1860,10 +1860,10 @@
       ],
       "label": "单元参数正性域（t_thicken——时间类）",
       "expression": "t_thicken > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.t_well.positive",
@@ -1876,10 +1876,10 @@
       ],
       "label": "单元参数正性域（t_well——时间类）",
       "expression": "t_well > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.tn_eff.positive",
@@ -1890,10 +1890,10 @@
       ],
       "label": "单元参数正性域（tn_eff——其余物理量类）",
       "expression": "tn_eff > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.tn_in.positive",
@@ -1903,10 +1903,10 @@
       ],
       "label": "单元参数正性域（tn_in——水质浓度类）",
       "expression": "tn_in > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.tp_in.positive",
@@ -1916,10 +1916,10 @@
       ],
       "label": "单元参数正性域（tp_in——水质浓度类）",
       "expression": "tp_in > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v.positive",
@@ -1929,10 +1929,10 @@
       ],
       "label": "单元参数正性域（v——几何尺寸类）",
       "expression": "v > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_bio.positive",
@@ -1942,10 +1942,10 @@
       ],
       "label": "单元参数正性域（v_bio——几何尺寸类）",
       "expression": "v_bio > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_channel.positive",
@@ -1957,10 +1957,10 @@
       ],
       "label": "单元参数正性域（v_channel——几何尺寸类）",
       "expression": "v_channel > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_filter.positive",
@@ -1971,10 +1971,10 @@
       ],
       "label": "单元参数正性域（v_filter——几何尺寸类）",
       "expression": "v_filter > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_h.positive",
@@ -1984,10 +1984,10 @@
       ],
       "label": "单元参数正性域（v_h——几何尺寸类）",
       "expression": "v_h > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_pipe.positive",
@@ -1998,10 +1998,10 @@
       ],
       "label": "单元参数正性域（v_pipe——几何尺寸类）",
       "expression": "v_pipe > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.v_press.positive",
@@ -2011,10 +2011,10 @@
       ],
       "label": "单元参数正性域（v_press——几何尺寸类）",
       "expression": "v_press > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.x_mlss.positive",
@@ -2026,10 +2026,10 @@
       ],
       "label": "单元参数正性域（x_mlss——其余物理量类）",
       "expression": "x_mlss > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.x_vss.positive",
@@ -2039,10 +2039,10 @@
       ],
       "label": "单元参数正性域（x_vss——其余物理量类）",
       "expression": "x_vss > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.xi_total.positive",
@@ -2052,10 +2052,10 @@
       ],
       "label": "单元参数正性域（xi_total——其余物理量类）",
       "expression": "xi_total > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.z_ground.positive",
@@ -2065,10 +2065,10 @@
       ],
       "label": "单元参数正性域（z_ground——标高类）",
       "expression": "z_ground > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     },
     {
       "key": "param.z_water_inlet.positive",
@@ -2078,10 +2078,10 @@
       ],
       "label": "单元参数正性域（z_water_inlet——标高类）",
       "expression": "z_water_inlet > 0",
-      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；AI 起草待追认（1A4 批）",
+      "source": "GB 50014-2021（相关构筑物节——几何量/时间量/流量负荷量物理正性必然）；给水排水设计手册（第 5 册 城镇排水）；已追认（Ruling 2026-10-05——用户授权「授权P10」）",
       "severity": "WARN",
       "enforcement": "flag",
-      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；AI 起草待追认（1A4 批）"
+      "value_basis": "追认单直录起草（无 coefficients 源键——input_band 先例形态）：单侧正性域声明=代码面 _PARAMS_POSITIVE 机扫单源投影（FZ-4 计算期 InvalidUnitConfig 守卫同源——kb 为其声明期报告面镜像，数值域零新造）；域语义=物理正性（>0 数学下界非工程阈值）；已追认（Ruling 2026-10-05——用户授权「授权P10」）"
     }
   ]
 }
