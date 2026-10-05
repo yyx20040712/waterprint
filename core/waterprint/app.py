@@ -188,6 +188,7 @@ from waterprint.app_enumeration import (
 # =锁定测试 monkeypatch 耦合 app 模块命名空间——迁移须随锁面工序呈批）。
 from waterprint.app_enumeration_gates import run_enumeration, run_joint_enumerate
 from waterprint.app_influent import _with_influent, influent_summary_of
+from waterprint.app_kbgate import assert_kb_gate
 from waterprint.app_maintenance import _with_maintenance, maintenance_summary_of
 from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
@@ -393,6 +394,7 @@ def run_full_calc(
     plant = execute_graph(
         project.design, assembled.units, conditions, effective,
         diag_sink=diag_collector)
+    assert_kb_gate(plant, conditions, assembled.units, constraints)  # design 帧阻断门（kbblock）
     tree: TraceTree = collector.tree() if collector is not None else _external_tree(env)
     base_summary = _with_energy(
         _summary_of(plant, assembled.edges), energy_summary_of(plant))

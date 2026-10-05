@@ -52,6 +52,7 @@ from waterprint.graph.nodes import InvalidNodeError
 from waterprint.registry.coefficients import InvalidCoefficientError
 from waterprint.solution.constraints import (
     InvalidConstraintError,
+    KbBlockError,
     KbConstraint,
     load_kb_constraints,
 )
@@ -63,7 +64,7 @@ _CALC_VALIDATIONS: Final[tuple[type[BaseException], ...]] = (
 )
 _CALC_FAILURES: Final[tuple[type[BaseException], ...]] = (
     LoopDivergence, InvalidNodeError, InvalidConnection,
-    InvalidUnitConfig, InvalidExecutionError,
+    InvalidUnitConfig, InvalidExecutionError, KbBlockError,
 )
 
 
