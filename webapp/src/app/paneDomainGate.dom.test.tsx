@@ -13,8 +13,10 @@
  *        门控分支）+QueryClientProvider 每用例新 client（retry:false）
  * 输出:  六分支×两态=12 用例（下限）：domain 态（真实 WaterprintApiError
  *        code+「raw 服务端句式」注入）断言固定摘要「项目暂无完成的计算
- *        结果。」在场+本行前缀不在场；raw 态（真实 new Error「网络中断
- *        探针」注入）断言前缀+raw message 在场（I-3 分级口径）
+ *        结果。」在场+本行前缀不在场+「raw 服务端句式」不透出（k1-N5
+ *        补记：第三断言=自裁 3 增强项，与头同步）；raw 态（真实
+ *        new Error「网络中断探针」注入）断言前缀+raw message 在场
+ *        （I-3 分级口径）
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render } from "@testing-library/react";
