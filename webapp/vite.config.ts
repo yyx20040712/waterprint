@@ -21,7 +21,8 @@ export default defineConfig({
   },
   // three 依赖独立分块（§12.6 独立路由语义——Scene 懒加载；2A8/UF-58
   // 实证勘正：three 经 canvasPane→ThumbnailStage 静态链首屏实拉，本配置
-  // 实际收益=主包减半 1769→778kB+依赖分块缓存粒度，非「首屏免拉」）
+  // 实际收益=主包减半（FE-20260930 口径 1769→777，现 778kB）+依赖
+  // 分块缓存粒度，非「首屏免拉」）
   build: {
     rollupOptions: {
       output: {
