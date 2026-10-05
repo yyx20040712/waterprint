@@ -224,22 +224,15 @@ def _run_calc(
     if _cancelled(cancel_token):  # 结果落地前检查（R4：不写半途结果）
         return {"state": "cancelled"}
     _report(task_id, _StagePoint("serialize", 2, len(stages)), progress)
+    artifacts = Path(str(payload["artifacts_dir"]))
     result_file = _atomic_write_bytes(
-        Path(str(payload["artifacts_dir"])) / f"calc-{task_id}.json",
-        serialize(bundle.plant),
-    )
-    # ADR-012 D1：诊断独立并列 artifact（calc-diag-{task_id}.json——同
-    # task_id 命名绑定+各自原子写；worker 串行保证一致性）。
+        artifacts / f"calc-{task_id}.json", serialize(bundle.plant))
+    # ADR-012 D1：诊断独立并列 artifact（同 task_id 命名绑定+各自原子写）。
     diag_file = _atomic_write_bytes(
-        Path(str(payload["artifacts_dir"])) / f"calc-diag-{task_id}.json",
-        serialize_diag(bundle.diagnostics),
-    )
-    # 2A1 D2：校验报告第三并列 artifact（calc-val-{task_id}.json——源 A
-    # 声明级 ValidationReport；诊断并列件同款：同 task_id 命名绑定+原子写）。
+        artifacts / f"calc-diag-{task_id}.json", serialize_diag(bundle.diagnostics))
+    # 2A1 D2：校验报告第三并列 artifact（源 A 声明级 ValidationReport）。
     val_file = _atomic_write_bytes(
-        Path(str(payload["artifacts_dir"])) / f"calc-val-{task_id}.json",
-        serialize_validation(bundle.validation),
-    )
+        artifacts / f"calc-val-{task_id}.json", serialize_validation(bundle.validation))
     return {
         "state": "done",
         "result_file": str(result_file),

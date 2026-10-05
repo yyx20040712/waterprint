@@ -31,8 +31,9 @@
 #      repro data_version 供版本漂移对照，不伪造 calc 时点）。
 #   R3 源 B 三元组推导链（§4）：code=kb_warning_code(键中段)（键↔码
 #      双向可逆单源——contracts.validation R1）；param_key=kb 条目
-#      expression 首子句字段（expression_fields[0]——源 A input_band
-#      同链）；scope=maint 键节点段；severity=kb 条目 severity。
+#      expression 首子句字段（expression_fields[0] 语义——源 A input_band
+#      同链；实现=服务面 DSL 镜像解析〔site.py 先例，server 禁 import
+#      solution 层序〕）；scope=maint 键节点段；severity=kb 条目 severity。
 #   R4 聚合（§3 全条款）：命中=越门实例（源 B 仅 0.0 计入、1.0 通过
 #      不入聚合入观测面〔§3-B1〕）；源 A 命中清单=∅ 空序列哨兵（声明级
 #      一次不参与 ≥2 计数不混排）；去重键=(code,param_key,scope) 三元
@@ -76,6 +77,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -99,7 +101,6 @@ from waterprint.contracts.validation import (
     deserialize_validation,
     kb_warning_code,
 )
-from waterprint.solution.constraints import expression_fields
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services._shared.latest_calc import latest_calc_result
@@ -126,6 +127,13 @@ _PASS_VALUE: float = 1.0  # kb 门内极性（core _PASS 语义常量镜像）
 _FAIL_VALUE: float = 0.0  # kb 越门极性（core _FAIL 语义常量镜像）
 # severity max 分级序（§3——ERROR>WARN>INFO；元组 index 承载零数值字面量）
 _SEVERITY_ASC: tuple[Severity, ...] = (Severity.INFO, Severity.WARN, Severity.ERROR)
+# DSL 首子句字段头镜像（core solution.constraints._CLAUSE 的 field+op 段
+# ——server 禁 import solution〔lint_imports 层序〕，解析面镜像注记：site.py
+# kb expression 服务面解析先例同制；镜像面=首子句 field_id，形态越界
+# fail-visible 拒〔constraints R2 同精神〕）
+_CLAUSE_FIELD: re.Pattern[str] = re.compile(
+    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:<=|>=|<|>|∈)"
+)
 
 
 class ValidationSourceNotFoundError(Exception):
@@ -242,13 +250,25 @@ def _split_maint_key(
     return None
 
 
+def _expression_first_field(entry: ConstraintEntry) -> str:
+    """expression 首子句字段（R3 推导链单源——源 A input_band 同链；
+    镜像解析 fail-visible：形态越界=数据缺陷显式拒非静默跳过）。"""
+    match = _CLAUSE_FIELD.match(entry.expression)
+    if match is None:
+        raise RuntimeError(
+            f"kb 条目 {entry.key!r} expression 首子句形态非法："
+            f"{entry.expression!r}（形如 field_id (</<=/>/>=/∈) 常数——"
+            "受限 DSL 镜像解析，fail-visible）"
+        )
+    return match.group(1)
+
+
 def _kb_context(
     entry: ConstraintEntry,
 ) -> tuple[str, Severity]:
     """源 B 三元组推导链参数面（R3）：param_key=expression 首子句字段；
     severity=kb 条目 severity（单条目单子句单字段=一键一值唯一〔§4〕）。"""
-    fields = expression_fields(entry.expression)
-    return fields[0], Severity(entry.severity)
+    return _expression_first_field(entry), Severity(entry.severity)
 
 
 def _max_severity(left: Severity, right: Severity) -> Severity:
@@ -357,15 +377,16 @@ def _aggregated_warnings(
         record = grouped[dedup]
         source_a: PlantWarning | None = record["source_a"]
         hits: list[str] = record["hits"]
-        entry: ConstraintEntry | None = record["entry"]
+        hit_entry: ConstraintEntry | None = record["entry"]
         if source_a is not None:
             message = source_a.message  # ⑦同键双源现取源 A 实例（序轴前置）
             severity = source_a.severity
         else:
-            message = _synthesized_message(plant, record["node"], entry, hits[0])
+            assert hit_entry is not None  # B-only 行必有 kb 条目（A2 缺席不入行）
+            message = _synthesized_message(plant, record["node"], hit_entry, hits[0])
             severity = record["severity"]
-        if entry is not None and source_a is not None:
-            severity = _max_severity(severity, Severity(entry.severity))
+        if hit_entry is not None and source_a is not None:
+            severity = _max_severity(severity, Severity(hit_entry.severity))
         warnings.append(
             AggregatedWarning(
                 code=code,

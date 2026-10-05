@@ -1,19 +1,18 @@
-"""validation 路由/服务镜像测试：GET /api/calc/validation/{project_id}（观测面+聚合+降级）。
+"""validation 服务镜像测试：两源聚合+观测投影+三态降级（合成件定点）。
 
-输入:  waterprint_server.routers.calc validation 端点 + services.validation 公开符号
-输出:  路由契约断言（2A1 消费批——聚合规格 warning-aggregation.md §1~§4 十一条款
-       逐条绑定+观测投影+三态降级+404 家族+确定性）
+输入:  waterprint_server.services.validation 公开符号（build_validation_
+       observation+模型面）+合成 PlantResult/val/diag/catalog 桩
+输出:  服务契约断言（2A1 消费批——聚合规格 warning-aggregation.md §1~§4
+       十一条款逐条绑定+观测投影+降级三态；端点面=E2E 归伴生件
+       test_validation_endpoint.py——500 行预算墙拆分，1A4 契约伴生件先例）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：2A1 消费批（2a1-20261005）§3 D3——聚合实现契约=docs/
-#   warning-aggregation.md 冻结规格（§1 命名消歧硬约束/§2 去重键三元组/
-#   §3 命中=越门+∅ 哨兵+severity max+序轴=迭代序/§4 两源对齐+any_fail
-#   排除）；test_sensitivity 同款路由面模式（合成件 monkeypatch 定点+
-#   E2E client 真跑）。
+#   warning-aggregation.md 冻结规格；本件=服务语义面（monkeypatch 定点
+#   合成件——test_sensitivity 服务面同款模式）。
 #
-# 覆盖用例（§3 十语义逐条+路由面）：
-#   - 端点集新增恰一件（GET /api/calc/validation/{project_id}）；
+# 覆盖用例（§3 十语义逐条）：
 #   - ①字段名硬约束：聚合行 scope+condition_keys[]（禁 condition_key 双义）；
 #   - ②源 B 仅 0.0 越门计入、1.0 通过不入聚合（入观测面）；
 #   - ③源 A 命中清单=∅ 空序列哨兵、不参与 ≥2 计数；
@@ -27,24 +26,17 @@
 #   - ⑪kb 条目缺席（版本漂移）不入聚合行、观测面保留原值；
 #   - B-only 行 message 合成（A1：三要素=条目键+表达式原文+首命中工况实际值；
 #     字段缺席无值形态）；
-#   - 响应行排序=(scope,code,param_key)（A3）；
-#   - 观测投影：nodes 逐节点×逐工况三面（kb bool 语义升级 A6/any_fail/
-#     ratio/fixgeom_min）；
+#   - 响应行排序=(scope,code,param_key)（A3）；观测三面投影（A6）；
 #   - 三态降级：val 件缺键/缺文件/损坏→validation_available=False；
-#     diag 缺席→kb_injected=None（禁伪造 False）；
-#   - E2E 200 形态+确定性双跑+404 家族（未知项目/无结果集/损坏件）+
-#     AU-1 路径安全。
+#     diag 缺席→kb_injected=None（禁伪造 False）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
 
-import asyncio
-import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from fastapi import status
 from waterprint.contracts.result_schema import (
     PlantResult,
     ReproTriple,
@@ -58,15 +50,12 @@ from waterprint.contracts.validation import (
     serialize_validation,
 )
 
-from waterprint_server.routers import calc as calc_router
 from waterprint_server.services import validation as validation_module
 from waterprint_server.services.constraints import ConstraintCatalog, ConstraintEntry
 from waterprint_server.services.validation import (
     ValidationObservationResponse,
     build_validation_observation,
 )
-
-_EXPECTED_VALIDATION = {("get", "/api/calc/validation/{project_id}")}
 
 
 def _entry(key: str, expression: str, severity: str = "WARN") -> ConstraintEntry:
@@ -103,7 +92,7 @@ def _snapshot(dims: dict[str, float]) -> UnitResultSnapshot:
 def _plant_two_hits() -> PlantResult:
     """双越门合成结果件：param.n.positive 两工况越门（≥2 聚合载体）+
     param.h2.positive 单工况通过+any_fail 汇总键+ratio/fixgeom 观测面+
-    ghost 键（kb 条目缺席——A2 载体）+第三警告面 warnings（快照级）。"""
+    ghost 键（kb 条目缺席——A2 载体）。"""
     return PlantResult(
         conditions={
             "design": {},
@@ -170,7 +159,7 @@ _RECORD_CONDITION_KEYS = [
 ]
 
 
-def _build(  # noqa: PLR0913  # 合成件装配（七参=固定桩面——sensitivity 同款 monkeypatch 定点）
+def _build(  # noqa: PLR0913, PLR0917  # 合成件装配（七参=固定桩面——sensitivity 同款 monkeypatch 定点）
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     plant: PlantResult,
@@ -204,16 +193,6 @@ def _build(  # noqa: PLR0913  # 合成件装配（七参=固定桩面——sensi
     monkeypatch.setattr(validation_module, "list_constraints", lambda data_dir: catalog)
     monkeypatch.setattr(validation_module, "result_is_stale", lambda latest, project: False)
     return build_validation_observation(ctx, "p1")
-
-
-def test_router_exposes_validation_endpoint_wiring() -> None:
-    """calc 路由端点集含 validation 恰一件（38→39 路径增量无漂移）。"""
-    observed = {
-        (method.lower(), route.path)
-        for route in calc_router.router.routes
-        for method in route.methods  # type: ignore[union-attr]
-    }
-    assert observed >= _EXPECTED_VALIDATION
 
 
 def test_validation_two_source_merge_semantics(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
@@ -297,7 +276,7 @@ def test_validation_b_only_message_synthesis(monkeypatch, tmp_path) -> None:  # 
     assert report2.warnings[0].message == "kb 越门：param.h2.positive——违反 h2 > 0"
 
 
-def test_validation_pass_any_fail_and_ghost_faces(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_validation_observation_faces_projection(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
     """②⑨⑪观测面：通过键/any_fail/ratio/fixgeom 入观测不入聚合；ghost
     （kb 条目缺席）观测面保留原值（fail-visible 非静默）。"""
     report = _build(
@@ -329,7 +308,7 @@ def test_validation_rows_sorted_by_scope_code_param(monkeypatch, tmp_path) -> No
         _val_source_a(), None, _RECORD_CONDITION_KEYS,
     )
     keys = [(row.scope, row.code, row.param_key) for row in report.warnings]
-    assert keys == sorted(keys)  # plant 行前置（scope 字典序）+节点行随
+    assert keys == sorted(keys)  # 节点行（scope 字典序）前置+plant 行随
 
 
 def test_validation_val_artifact_three_state_degrade(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
@@ -418,111 +397,6 @@ def test_validation_third_warning_face_excluded(monkeypatch, tmp_path) -> None: 
     )
     assert report.warnings == ()  # 快照 warnings 不入（全通过 kb 面亦零行）
     assert report.nodes[0].faces[0].kb == {"param.n.positive": True}
-
-
-def _aao_project_payload() -> dict[str, object]:
-    """inlet→AAO 项目载荷（test_sensitivity 同款——E2E 载体）。"""
-    return {
-        "project": {
-            "format_version": "1.0",
-            "design": {
-                "nodes": {
-                    "inlet": {
-                        "kind": "municipal_input",
-                        "q_avg_daily": 34760.7 / 86400,
-                        "kz": 1.4,
-                        "CODCR": 400.0,
-                        "BOD5": 200.0,
-                        "SS": 250.0,
-                        "NH3N": 26.0,
-                        "TN": 43.0,
-                        "TP": 6.5,
-                    },
-                    "municipal_aao": {},
-                },
-                "edges": [
-                    {
-                        "src": {"unit_id": "inlet", "port_id": "out"},
-                        "dst": {"unit_id": "municipal_aao", "port_id": "in"},
-                    }
-                ],
-            },
-            "view": {},
-            "metadata": {
-                "format_version": "1.0",
-                "content_hash": "0",
-                "engine_version": "0",
-                "data_version": "0",
-            },
-        }
-    }
-
-
-async def _project_with_result(client) -> tuple[str, str]:  # type: ignore[no-untyped-def]
-    """创建 AAO 项目并跑一次计算（三并列 artifact 就绪——val/diag 同批落盘）。"""
-    created = await client.post("/api/projects", json=_aao_project_payload())
-    assert created.status_code == status.HTTP_200_OK
-    project_id = created.json()["project_id"]
-    task_id = (await client.post(
-        "/api/calc/run", json={"project_id": project_id, "conditions": ["municipal_aao"]}
-    )).json()["task_id"]
-    body: dict[str, object] = {}
-    for _ in range(300):
-        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
-        if body.get("state") in {"done", "failed"}:
-            break
-        await asyncio.sleep(0.1)
-    assert body["state"] == "done"
-    return project_id, task_id
-
-
-@pytest.mark.anyio
-async def test_validation_endpoint_shape(client) -> None:  # type: ignore[no-untyped-def]
-    """E2E GET 200：新批三件就绪（validation_available/kb_injected 双 True）+
-    conditions=record 投影（baseline 两档+offline）+观测节点在场+行 schema 六键。"""
-    project_id, task_id = await _project_with_result(client)
-    response = await client.get(f"/api/calc/validation/{project_id}")
-    assert response.status_code == status.HTTP_200_OK
-    body = response.json()
-    assert body["task_id"] == task_id
-    assert body["stale"] is False
-    assert body["validation_available"] is True  # 新批 worker val 件在场
-    assert body["kb_injected"] is True  # kbwire 起生产注入
-    assert body["conditions"] == ["design", "avg", "design_offline_municipal_aao"]
-    assert [node["node_id"] for node in body["nodes"]] == ["municipal_aao"]
-    face = body["nodes"][0]["faces"][0]
-    assert set(face) == {
-        "condition_key", "kb", "any_fail", "ratio", "fixgeom_min"}
-    assert face["condition_key"] == "design_offline_municipal_aao"
-    assert face["kb"] and all(isinstance(v, bool) for v in face["kb"].values())
-    assert face["any_fail"] is False  # golden aao kb 面 8 条全过
-    for row in body["warnings"]:
-        assert set(row) == {
-            "code", "param_key", "scope", "message", "condition_keys", "severity"}
-
-
-@pytest.mark.anyio
-async def test_validation_determinism_double_get(client) -> None:  # type: ignore[no-untyped-def]
-    """确定性：同结果集双 GET 响应 JSON（sort_keys）字节同。"""
-    project_id, _ = await _project_with_result(client)
-    first = (await client.get(f"/api/calc/validation/{project_id}")).json()
-    second = (await client.get(f"/api/calc/validation/{project_id}")).json()
-    assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
-
-
-@pytest.mark.anyio
-async def test_validation_error_faces(client) -> None:  # type: ignore[no-untyped-def]
-    """错误面：未知项目 404/无结果集 404（引导语含 /api/calc/run）+AU-1 路径安全。"""
-    response = await client.get("/api/calc/validation/nosuchproject0000")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    created = await client.post("/api/projects", json=_aao_project_payload())
-    project_id = created.json()["project_id"]
-    response = await client.get(f"/api/calc/validation/{project_id}")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert "/api/calc/run" in response.json()["detail"]
-    for probe in ("../escape", "..%2fescape", "x/../../escape"):
-        response = await client.get(f"/api/calc/validation/{probe}")
-        assert response.status_code < 500  # AU-1：浅深构造全 4xx 非 500
 
 
 def test_validation_corrupt_result_404_face(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
