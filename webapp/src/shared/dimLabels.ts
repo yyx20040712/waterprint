@@ -13,7 +13,7 @@
  * 15 成员中 14 成员单位符号与 core 规范串一致（仅 m2→m²/m3→m³/
  * degC→℃ 显示美化）；**FLOW 为刻意分歧**——标签 m³/d 锚定进水参数面
  * 绑定点（municipal_input q_avg_daily m³/d，inlet-m3d 契约批 2026-10-02
- * 用户裁决「统一为 m³/d」；params_guard A-1~A-3 同面），内核规范单位
+ * 用户裁决「统一为 m³/d（推荐）」；params_guard A-1~A-3 同面），内核规范单位
  * 仍 m3/s（ADR-002——换算只在 core parse 边界，白名单 FLOW 两写法
  * {"m3/s","m3/d"} 均合法输入）；FLOW 维度**输出面**（方案表 dim 列/
  * 对比矩阵 aao·cass q_air 行）值=规范 m3/s 而标签随本表 m³/d=已知
@@ -27,8 +27,8 @@ export type DimLabel = { name: string; unit: string };
 
 /** DimKey → 显示条目（15 成员全量——与 core quantity.py CANONICAL_UNITS
  * 逐键对齐复核，FLOW 单键刻意分歧〔标签 m³/d=进水参数面口径，内核规范
- * m3/s——见上规格说明 UF-62①/UF-63 注记〕；2A2 批 2026-10-05 勘正：
- * 原「CANONICAL_UNITS 镜像」短语失实）；
+ * m3/s——见上规格说明 UF-62①/UF-63 注记；2A2 批 2026-10-05 勘正：原
+ * 「CANONICAL_UNITS 镜像」短语失实〕；
  * DimKey 扩成员批 2026-09-12：+TIME_H/TIME_D/FLOW_H 刻度档；参数面单位批
  * 同制补齐：+TIME_MIN/TEMPERATURE——degC→℃ 纯显示层美化，零换算）。 */
 const DIM_LABELS: Record<string, DimLabel> = {
