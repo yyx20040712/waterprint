@@ -361,10 +361,12 @@ def test_server_env_assembly_stamps_engine_version(test_settings, tmp_path) -> N
 def test_calc_job_writes_validation_artifact(test_settings, tmp_path) -> None:  # type: ignore[no-untyped-def]
     """2A1 D2：calc 落第三并列 artifact calc-val-{task_id}.json+record 增
     val_file 键（ADR-012 D1 诊断并列件同款——同 task_id 命名绑定+原子写；
-    源 A 声明级报告经 serialize_validation 正门，消费面 deserialize 往返）。"""
+    源 A 报告内容锚=deserialize 往返+serialize 字节恒等〔回炉 d1-N6a：
+    内容级断言非裸类型〕）。"""
     from waterprint.contracts.validation import (
         ValidationReport,
         deserialize_validation,
+        serialize_validation,
     )
 
     artifacts = test_settings.exports_dir / "tasks"
@@ -389,5 +391,7 @@ def test_calc_job_writes_validation_artifact(test_settings, tmp_path) -> None:  
     assert val_file.is_file()
     assert val_file != Path(str(outcome["result_file"]))
     assert val_file != Path(str(outcome["diag_file"]))  # 三并列件互异
-    report = deserialize_validation(val_file.read_bytes())  # 正门往返
+    payload = val_file.read_bytes()
+    report = deserialize_validation(payload)  # 正门往返
     assert isinstance(report, ValidationReport)  # 源 A 报告面（声明级一次）
+    assert serialize_validation(report) == payload  # 往返 serialize 字节恒等（内容锚）

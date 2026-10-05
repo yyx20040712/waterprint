@@ -122,6 +122,7 @@ async def test_validation_endpoint_shape(client) -> None:  # type: ignore[no-unt
     assert face["condition_key"] == "design_offline_municipal_aao"
     assert face["kb"] and all(isinstance(v, bool) for v in face["kb"].values())
     assert face["any_fail"] is False  # golden aao kb 面全过
+    assert body["warnings"] == []  # k1-N2：空集显式锚（全通过+声明态零违规）
     for row in body["warnings"]:
         assert set(row) == {
             "code", "param_key", "scope", "message", "condition_keys", "severity"}

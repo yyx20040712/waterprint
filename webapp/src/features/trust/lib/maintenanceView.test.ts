@@ -128,25 +128,53 @@ describe("narrowValidationObservation", () => {
   it("顶层非对象拒", () => {
     expect(() => narrowValidationObservation([])).toThrow("顶层非对象");
   });
+
+  it("条目 null 收编为 MaintenanceViewError（回炉 d1-N5——非原生 TypeError）", () => {
+    const nodeNull = healthy();
+    (nodeNull.nodes as unknown[])[0] = null;
+    expect(() => narrowValidationObservation(nodeNull)).toThrow(
+      MaintenanceViewError,
+    );
+    expect(() => narrowValidationObservation(nodeNull)).toThrow(
+      "nodes[0] 非对象",
+    );
+    const warnNull = healthy();
+    (warnNull.warnings as unknown[])[0] = null;
+    expect(() => narrowValidationObservation(warnNull)).toThrow(
+      "warnings[0] 非对象",
+    );
+    const faceNull = healthy();
+    ((faceNull.nodes as { faces: unknown[] }[])[0]!.faces as unknown[])[0] =
+      null;
+    expect(() => narrowValidationObservation(faceNull)).toThrow(
+      "faces[0] 非对象",
+    );
+  });
 });
 
 describe("observationDegradation", () => {
-  it("健康态三降级全 false", () => {
+  it("健康态四降级全 false", () => {
     const state = observationDegradation(
       narrowValidationObservation(healthy()) as ValidationObservation,
     );
     expect(state).toEqual({
       kbMissing: false,
+      kbUnknown: false,
       valMissing: false,
       noObservableFaces: false,
     });
   });
 
-  it("kb 未注入/val 缺席/空观测三态各自成立", () => {
+  it("kb 未注入/kb 不可知/val 缺席/空观测四态各自成立", () => {
     const kbMissingSample = healthy();
     kbMissingSample.kb_injected = false;
     expect(
       observationDegradation(narrowValidationObservation(kbMissingSample)).kbMissing,
+    ).toBe(true);
+    const kbUnknownSample = healthy();
+    kbUnknownSample.kb_injected = null;
+    expect(
+      observationDegradation(narrowValidationObservation(kbUnknownSample)).kbUnknown,
     ).toBe(true);
     const valMissingSample = healthy();
     valMissingSample.validation_available = false;

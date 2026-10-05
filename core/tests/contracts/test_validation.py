@@ -9,8 +9,8 @@
        数据禁手写码字面量表）
        +PlantWarning 五字段冻结面（severity 复用 unit_api 枚举——不复用
        UF-17 冻结 Warning）+ValidationReport codes() 去重保序/__bool__ 语义
-       +serde 六面（2A1 批 D1：往返无损/双跑字节同/未知键拒/缺键拒/
-       空报告合法/序保序恒等——数组序=报告序不参与 sort）
+       +serde 七面（2A1 批 D1：往返无损/双跑字节同/未知键拒/缺键拒/
+       空报告合法/序保序恒等/严格面三拒——数组序=报告序不参与 sort）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -279,6 +279,13 @@ def test_validation_serde_malformed_payloads_rejected() -> None:
         deserialize_validation(
             b'{"warnings": [{"code": "kb.x", "condition_key": "plant",'
             b' "param_key": "kz", "message": "m", "severity": "FATAL"}]}'
+        )
+    # 回炉 d1-N1：severity 非串值前置守卫（isinstance 拒——非串
+    # 走「应为字符串」面而非枚举域面）
+    with pytest.raises(InvalidValidationError, match=r"severity 应为字符串"):
+        deserialize_validation(
+            b'{"warnings": [{"code": "kb.x", "condition_key": "plant",'
+            b' "param_key": "kz", "message": "m", "severity": 5}]}'
         )
     with pytest.raises(InvalidValidationError, match=r"warnings\[0\]\.code"):
         deserialize_validation(

@@ -301,7 +301,10 @@ def test_validation_observation_faces_projection(monkeypatch, tmp_path) -> None:
 
 
 def test_validation_rows_sorted_by_scope_code_param(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
-    """A3 响应行排序=(scope,code,param_key) 确定性冻结（视图分区/重排归 FE）。"""
+    """A3 响应行排序=(scope,code,param_key) 确定性冻结（视图分区/重排归 FE）。
+
+    对抗面归伴生件 test_validation_aggregation.py（回炉 d1-W4：入桶序≠
+    终序 fixture+显式期望元组序——本件保留基础锚）。"""
     report = _build(
         monkeypatch, tmp_path, _plant_two_hits(),
         _catalog(_entry("param.n.positive", "n > 0"), _entry("param.h2.positive", "h2 > 0")),
@@ -309,6 +312,44 @@ def test_validation_rows_sorted_by_scope_code_param(monkeypatch, tmp_path) -> No
     )
     keys = [(row.scope, row.code, row.param_key) for row in report.warnings]
     assert keys == sorted(keys)  # 节点行（scope 字典序）前置+plant 行随
+
+
+def test_validation_condition_order_union_and_empty_list(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """回炉 d1-W3/k1-N5：序轴并集口径——record 子集不静默丢 summary-only
+    工况（字典序尾 append；观测/聚合两面共此轴）；空列表=视同缺键走兜底。"""
+    plant = PlantResult(
+        conditions={
+            "design": {},
+            "design_offline_aao": {"municipal_aao": _snapshot({"n": 0.0})},
+            "design_offline_extra": {"municipal_aao": _snapshot({"h2": -1.0})},
+        },
+        summary={
+            "design": {},
+            "design_offline_aao": {
+                "maint.municipal_aao.kb.param.n.positive": 0.0},
+            "design_offline_extra": {  # record 无此键（子集形态）
+                "maint.municipal_aao.kb.param.h2.positive": 0.0},
+        },
+        trace=(), repro=ReproTriple("h1", "e1", "d1"),
+    )
+    catalog = _catalog(
+        _entry("param.n.positive", "n > 0"), _entry("param.h2.positive", "h2 > 0"))
+    report = _build(
+        monkeypatch, tmp_path, plant, catalog, None, None,
+        ["design", "design_offline_aao"],  # record 子集（缺 extra）
+    )
+    # 并集：record 序在前+summary-only 键字典序尾 append
+    assert report.conditions == (
+        "design", "design_offline_aao", "design_offline_extra")
+    faces = {face.condition_key for face in report.nodes[0].faces}
+    assert faces == {"design_offline_aao", "design_offline_extra"}  # 观测面不丢
+    by_code = {row.code: row for row in report.warnings}
+    assert by_code["kb.param.h2.positive"].condition_keys == (
+        "design_offline_extra",)  # 聚合面不丢（尾位工况仍命中）
+    # 空列表（all() 空真旧口径漏洞）=视同缺键走字典序兜底
+    empty = _build(
+        monkeypatch, tmp_path, plant, catalog, None, None, [])
+    assert empty.conditions == tuple(sorted(plant.summary))
 
 
 def test_validation_val_artifact_three_state_degrade(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
@@ -348,7 +389,7 @@ def test_validation_val_artifact_three_state_degrade(monkeypatch, tmp_path) -> N
 
 def test_validation_kb_injected_none_when_diag_missing(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
     """kb_injected 三态：diag 缺席=None（禁伪造 False——trust 先例）；
-    在场=bool 透传。"""
+    在场=bool 透传；损坏 diag（回炉 d1-N6b）=同 None 降级分支锚。"""
     no_diag = _build(
         monkeypatch, tmp_path, _plant_two_hits(),
         _catalog(_entry("param.n.positive", "n > 0")),
@@ -359,6 +400,11 @@ def test_validation_kb_injected_none_when_diag_missing(monkeypatch, tmp_path) ->
         _catalog(_entry("param.n.positive", "n > 0")),
         None, _diag(True), _RECORD_CONDITION_KEYS)
     assert with_diag.kb_injected is True
+    corrupt_diag = _build(
+        monkeypatch, tmp_path, _plant_two_hits(),
+        _catalog(_entry("param.n.positive", "n > 0")),
+        None, b"{not-json", _RECORD_CONDITION_KEYS)
+    assert corrupt_diag.kb_injected is None  # d1-N6b：损坏件降级=缺件同态
 
 
 def test_validation_legacy_record_dict_order_fallback(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]

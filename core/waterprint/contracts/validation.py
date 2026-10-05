@@ -177,7 +177,12 @@ def _require_str(value: Any, path: str) -> str:
 
 
 def _require_severity(value: Any, path: str) -> Severity:
-    """结构守卫：severity 枚举域（serialize 恒发 .value 串——越界拒）。"""
+    """结构守卫：severity 枚举域（serialize 恒发 .value 串——非串前置拒
+    〔回炉 d1-N1：Severity(7) 等非串值 ValueError 收编面显式化〕+越界拒）。"""
+    if not isinstance(value, str):
+        raise InvalidValidationError(
+            f"校验报告结构非法：{path} 应为字符串，得到 {value!r}"
+        )
     try:
         return Severity(value)
     except ValueError as exc:

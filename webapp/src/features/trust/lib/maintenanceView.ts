@@ -4,9 +4,10 @@
  *
  * 输入:  orval 生成 ValidationObservationResponse（server services.validation
  *        观测投影+两源聚合）
- * 输出:  narrowValidationObservation 窄化门（非法形状抛 MaintenanceViewError）
- *        +observationDegradation 降级态判定（kb 未注入/val 件缺席/空态）+
- *        nodeFailed 节点故障灯+formatRatio/formatFixgeom 数值格式化
+ * 输出:  narrowValidationObservation 窄化门（非法形状抛 MaintenanceViewError
+ *        ——条目 null 收编）
+ *        +observationDegradation 降级态判定（kb 未注入/kb 不可知/val 件
+ *        缺席/空态）+nodeFailed 节点故障灯+formatRatio/formatFixgeom 数值格式化
  *
  * 规格说明（2A1 消费批；trustView 窄化门同构先例）：
  *   - 窄化门逐字段校验（顶层 11 键+nodes/faces/warnings 条目键域）——
@@ -85,7 +86,9 @@ function isStringRecord(
   );
 }
 
-/** 窄化门：顶层 11 键+nodes/faces/warnings 条目键域逐项校验（非法抛错）。 */
+/** 窄化门：顶层 11 键+nodes/faces/warnings 条目键域逐项校验（非法抛错——
+ * 条目 null/非对象收编为 MaintenanceViewError〔回炉 d1-N5：原生 TypeError
+ * 不入查询 error 语义面〕）。 */
 export function narrowValidationObservation(raw: unknown): ValidationObservation {
   if (!isRecord(raw)) throw new MaintenanceViewError("顶层非对象");
   for (const key of TOP_KEYS) {
@@ -114,10 +117,18 @@ export function narrowValidationObservation(raw: unknown): ValidationObservation
     throw new MaintenanceViewError("nodes 非数组");
   }
   observation.nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node)) {
+      throw new MaintenanceViewError(`nodes[${nodeIndex}] 非对象（null 收编）`);
+    }
     if (typeof node.node_id !== "string" || !Array.isArray(node.faces)) {
       throw new MaintenanceViewError(`nodes[${nodeIndex}] 键域非法`);
     }
     node.faces.forEach((face, faceIndex) => {
+      if (!isRecord(face)) {
+        throw new MaintenanceViewError(
+          `nodes[${nodeIndex}].faces[${faceIndex}] 非对象（null 收编）`,
+        );
+      }
       if (
         typeof face.condition_key !== "string" ||
         !isStringRecord(face.kb, "boolean") ||
@@ -135,6 +146,9 @@ export function narrowValidationObservation(raw: unknown): ValidationObservation
     throw new MaintenanceViewError("warnings 非数组");
   }
   observation.warnings.forEach((row, index) => {
+    if (!isRecord(row)) {
+      throw new MaintenanceViewError(`warnings[${index}] 非对象（null 收编）`);
+    }
     if (
       typeof row.code !== "string" || typeof row.param_key !== "string" ||
       typeof row.scope !== "string" || typeof row.message !== "string" ||
@@ -148,14 +162,17 @@ export function narrowValidationObservation(raw: unknown): ValidationObservation
   return observation;
 }
 
-/** 观测面降级三态（kb 未注入注记/val 件缺席降级/无可观测工况空态）。 */
+/** 观测面降级四态（kb 未注入注记/kb 不可知注记〔回炉 d1-N7：null=无诊断
+ * 件〕/val 件缺席降级/无可观测工况空态）。 */
 export function observationDegradation(observation: ValidationObservation): {
   kbMissing: boolean;
+  kbUnknown: boolean;
   valMissing: boolean;
   noObservableFaces: boolean;
 } {
   return {
     kbMissing: observation.kb_injected === false,
+    kbUnknown: observation.kb_injected === null,
     valMissing: !observation.validation_available,
     noObservableFaces:
       observation.nodes.every((node) => node.faces.length === 0),

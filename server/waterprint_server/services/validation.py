@@ -54,6 +54,10 @@
 #      原 float 面=core 契约不动）/any_fail: bool/ratio: dict[field,float]
 #      （分化键原值）/fixgeom_min: float|None；any_fail/ratio/fixgeom
 #      不入 warnings 聚合面（§4——仪表灯与观测面，非违规聚合）。
+#      命名注记（回炉 d1-W5 主控裁定）：NodeMaintenanceFace.condition_key
+#      =工况轴单义（所属工况键）——与聚合面 condition_keys[] 同轴不同形、
+#      非影响面 scope；保留名依据=unit_api.Warning UF-17 冻结先例（工况键
+#      单义同形同义非双义；spec §1 禁双义入 API 非禁单义）。
 #   R6 新鲜度：stale=result_is_stale（trust/sensitivity 同口径）；repro
 #      三元组+task_id 回显（结果溯源面）。
 #   R7 确定性：同结果集同响应（节点序字典序/face kb·ratio 键字典序/
@@ -125,6 +129,10 @@ _FIXGEOM_SUFFIX: str = ".fixgeom.min"
 _ANY_FAIL_KEY: str = "any_fail"  # 汇总键保留字（core 装载器保留字镜像）
 _PASS_VALUE: float = 1.0  # kb 门内极性（core _PASS 语义常量镜像）
 _FAIL_VALUE: float = 0.0  # kb 越门极性（core _FAIL 语义常量镜像）
+# kb 判据口径注记（回炉 k1-N3b）：passed⟺值==_PASS_VALUE、hit⟺值==
+# _FAIL_VALUE——域外值（0.5 等）core 不产（app_maintenance _PASS/_FAIL
+# 常量单源两值域）；node_id 无点约定（全仓 unit_id 命名域——GR-26 字符
+# 集）为 _split_maint_key 三段解析的前提绑定，core 键构造面同约定。
 # severity max 分级序（§3——ERROR>WARN>INFO；元组 index 承载零数值字面量）
 _SEVERITY_ASC: tuple[Severity, ...] = (Severity.INFO, Severity.WARN, Severity.ERROR)
 # DSL 首子句字段头镜像（core solution.constraints._CLAUSE 的 field+op 段
@@ -141,7 +149,12 @@ class ValidationSourceNotFoundError(Exception):
 
 
 class NodeMaintenanceFace(BaseModel):
-    """单节点×单工况检修观测三面（R5——kb bool 语义升级 A6）。"""
+    """单节点×单工况检修观测三面（R5——kb bool 语义升级 A6）。
+
+    condition_key=**工况轴单义**（所属工况键——与聚合面 condition_keys[]
+    同轴不同形，非影响面 scope；保留名依据=unit_api.Warning UF-17 冻结
+    先例：工况键单义同形同义非双义，spec §1 禁双义入 API 非禁单义
+    〔回炉 d1-W5〕）。"""
 
     model_config = ConfigDict(frozen=True)
 
@@ -222,13 +235,19 @@ def _load_validation(latest: Mapping[str, Any]) -> ValidationReport | None:
 def _condition_order(
     latest: Mapping[str, Any], plant: PlantResult
 ) -> tuple[str, ...]:
-    """序轴唯一源（§3）：record condition_keys 投影（现役 worker 写入=
-    ConditionSet 迭代序）；存量旧记录缺键=plant.summary 键域字典序兜底
-    （A5——测试锁定）。"""
+    """序轴唯一源（§3）+并集口径（回炉 d1-W3/k1-N5）：record condition_keys
+    迭代序在前（现役 worker 写入=ConditionSet 迭代序）+summary-only 键字典
+    序尾 append（record 子集/异形不静默丢键——两面共此轴不丢工况）；缺键
+    或空列表=plant.summary 键域字典序兜底（A5——测试锁定）。"""
     raw = latest.get("condition_keys")
-    if isinstance(raw, list) and all(isinstance(item, str) for item in raw):
-        return tuple(raw)
-    return tuple(sorted(plant.summary))
+    if (
+        not isinstance(raw, list)
+        or not raw
+        or not all(isinstance(item, str) for item in raw)
+    ):
+        return tuple(sorted(plant.summary))  # 缺键/空列表=视同缺键走兜底
+    record_order = tuple(raw)
+    return record_order + tuple(sorted(set(plant.summary) - set(record_order)))
 
 
 def _split_maint_key(
@@ -236,7 +255,10 @@ def _split_maint_key(
 ) -> tuple[str, str, str] | None:
     """maint 键族分面解析：返回 (node, 面, 尾段)——kb 键→(node,"kb",
     constraint_key)、ratio 键→(node,"ratio",field)、fixgeom 键→(node,
-    "fixgeom",尾段)；非 maint 键=None（core app_maintenance 键构造镜像）。"""
+    "fixgeom",尾段)；非 maint 键=None（core app_maintenance 键构造镜像）。
+    未识别形态（maint. 前缀而三面中缀皆不中）=core 键族契约外——静默跳过
+    （观测/聚合零消费；升格可见化〔计数/诊断标记〕归 T3/P1 后续批裁量
+    ——回炉 d1-N2 注记）。"""
     if not key.startswith(_KEY_PREFIX):
         return None
     rest = key[len(_KEY_PREFIX):]
@@ -301,7 +323,11 @@ def _observations(
                 if tail != _ANY_FAIL_KEY:
                     face["kb"][tail] = value == _PASS_VALUE  # 1.0→passed（A6）
                 else:
-                    face["any_fail"] = value == _PASS_VALUE  # 汇总键独立面
+                    # 汇总键独立面；core 不变量（回炉 k1-N3a 绑定注记）：
+                    # applicable 非空才发 any_fail 且随行发条目键
+                    # （app_maintenance L137-147）——「仅 any_fail 无条目键」
+                    # 面不存在，face 非空判据无需含 any_fail。
+                    face["any_fail"] = value == _PASS_VALUE
             elif face_kind == "ratio":
                 face["ratio"][tail] = value  # 分化键原值
             else:
@@ -328,22 +354,16 @@ def _observations(
     )
 
 
-def _aggregated_warnings(
+def _merge_source_b(
     plant: PlantResult,
     condition_order: tuple[str, ...],
-    val_report: ValidationReport | None,
     catalog: Mapping[str, ConstraintEntry],
-) -> tuple[AggregatedWarning, ...]:
-    """两源聚合（R4——§3 全条款）：源 A 行（∅ 哨兵）+源 B 越门行（kb 条目
-    在场才入）按 (code,param_key,scope) 分组合并——message 源 A 优先/
-    B-only 合成（A1）；清单=源 B 工况清单（序轴迭代序）；severity=max。"""
-    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
-    for warning in val_report.warnings if val_report else ():  # 源 A：报告序（首例语义载体）
-        grouped[(warning.code, warning.param_key, warning.condition_key)] = {
-            "source_a": warning, "entry": None, "node": warning.condition_key,
-            "hits": [],
-        }
-    for condition_key in condition_order:  # 源 B：序轴迭代序（命中清单序=此序过滤）
+    grouped: dict[tuple[str, str, str], dict[str, Any]],
+) -> None:
+    """源 B 并入（§3/§4——分支预算拆段〔回炉轮 PLR0912〕）：序轴迭代序
+    （命中清单序=此序过滤）×越门判据（仅 0.0 计入）×kb 条目在场门
+    （A2 缺席不入行）；同键并入既有桶（清单=源 B 工况清单）。"""
+    for condition_key in condition_order:
         for key, raw in plant.summary.get(condition_key, {}).items():
             parsed = _split_maint_key(key)
             if parsed is None:
@@ -369,6 +389,29 @@ def _aggregated_warnings(
                 record["hits"].append(condition_key)  # 同键双源现：清单=源 B 工况清单
                 if record["entry"] is None:
                     record["entry"] = entry
+
+
+def _aggregated_warnings(
+    plant: PlantResult,
+    condition_order: tuple[str, ...],
+    val_report: ValidationReport | None,
+    catalog: Mapping[str, ConstraintEntry],
+) -> tuple[AggregatedWarning, ...]:
+    """两源聚合（R4——§3 全条款）：源 A 行（∅ 哨兵）+源 B 越门行（kb 条目
+    在场才入）按 (code,param_key,scope) 分组合并——message 源 A 优先/
+    B-only 合成（A1）；清单=源 B 工况清单（序轴迭代序）；severity=max。"""
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for warning in val_report.warnings if val_report else ():  # 源 A：报告序（首例语义载体）
+        dedup = (warning.code, warning.param_key, warning.condition_key)
+        record = grouped.get(dedup)
+        if record is None:
+            grouped[dedup] = {
+                "source_a": warning, "entry": None, "node": warning.condition_key,
+                "hits": [], "a_severity": warning.severity,
+            }
+        else:  # 回炉 d1-W2：同键多实例=首例保序（§2 message 按首例）+severity 累积 max
+            record["a_severity"] = _max_severity(record["a_severity"], warning.severity)
+    _merge_source_b(plant, condition_order, catalog, grouped)
     warnings: list[AggregatedWarning] = []
     # A3 响应行排序=(scope,code,param_key) 确定性冻结（≠去重键序——视图
     # 分区/重排归 FE；scope=元组第 3 位，显式 key 重排）
@@ -380,7 +423,7 @@ def _aggregated_warnings(
         hit_entry: ConstraintEntry | None = record["entry"]
         if source_a is not None:
             message = source_a.message  # ⑦同键双源现取源 A 实例（序轴前置）
-            severity = source_a.severity
+            severity = record["a_severity"]  # 回炉 d1-W2：源 A 实例累积 max（非末例覆盖）
         else:
             assert hit_entry is not None  # B-only 行必有 kb 条目（A2 缺席不入行）
             message = _synthesized_message(plant, record["node"], hit_entry, hits[0])

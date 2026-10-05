@@ -160,7 +160,7 @@ export function MaintenanceObservationView({
           type="info"
           showIcon
           data-testid="wp-maintenance-val-missing"
-          title="本结果由旧版本计算（无校验件）：重新提交计算后可获取校验观测明细。"
+          title="本结果无校验件（旧版本计算或校验件缺失/损坏）——重新提交计算后可获取。"
           style={{ marginBottom: 12 }}
         />
       )}
@@ -170,6 +170,15 @@ export function MaintenanceObservationView({
           showIcon
           data-testid="wp-maintenance-kb-missing"
           title="kb 未注入：本结果计算时约束知识库未参与（kb 执法面为空）——重算后可获取。"
+          style={{ marginBottom: 12 }}
+        />
+      )}
+      {degradation.kbUnknown && (
+        <Alert
+          type="info"
+          showIcon
+          data-testid="wp-maintenance-kb-unknown"
+          title="kb 注入状态不可知（无诊断件）。"
           style={{ marginBottom: 12 }}
         />
       )}
