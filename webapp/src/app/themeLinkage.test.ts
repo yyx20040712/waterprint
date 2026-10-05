@@ -144,5 +144,9 @@ describe("GR-39 双源联动清单机检化（2A5）", () => {
     expect(globalCss).toContain(
       "A2-N-01 联动清单扩行：--wp-error ↔ providers colorError",
     );
+    // D3 机检化注记锚（global.css 联动清单节尾注记行——删注记即红）
+    expect(globalCss).toContain(
+      "2A5 机检化：本清单同值对经 app/themeLinkage.test.ts 断言",
+    );
   });
 });

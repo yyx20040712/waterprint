@@ -14,13 +14,16 @@
   联动清单**（global.css 头注契约：`--wp-bg-page ↔ colorBgLayout` 等）
   ——改任一色须双处联动改。antd v6 cssVar 变量挂组件作用域非
   `:root`（C1 无头实测零命中），跨组件消费不走 `--ant-*`，故变量轴
-  是必要副源而非冗余。
+  是必要副源而非冗余。2026-10-05 2A5 起，联动清单经
+  `webapp/src/app/themeLinkage.test.ts` 机器强制（改任一侧不同步=
+  测试红）。
 - 为什么：C1 前 22 个 tsx 散写 inline 色值无单一真相源；antd token
   为 JS 字面量面无法被 CSS `var()` 引用，而变量轴又管不到 antd 组件
   内部——两源各守一面，缺联动契约则改色漏改一半（A2-N-01 双审
   Important 发现的收口形态）。
 - 绑定：providers.tsx/global.css 头注契约、task-C1-plan.md §3a/§3b
-  （含 R 轮勘误）；C1 批 2026-09-10 立。
+  （含 R 轮勘误）、themeLinkage.test.ts 同值断言（2A5 联动机检化——
+  清单漏改=红）；C1 批 2026-09-10 立。
 
 ### GR-40 新组件滚动域收敛：应用壳恒在视口，溢出走最近滚动容器
 - 规则：webapp 新增/重制组件的高度行为遵守滚动骨架（C1 落地）：
