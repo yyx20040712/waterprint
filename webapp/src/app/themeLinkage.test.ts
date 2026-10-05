@@ -27,9 +27,12 @@ function norm(value: string | undefined): string {
   return (value ?? "").trim().toLowerCase();
 }
 
-/** :root 块内 --wp-* 声明抽取 → Map（值侧已归一——供同值对断言消费）。 */
+/** :root 块内 --wp-* 声明抽取 → Map（值侧已归一——供同值对断言消费）。
+ *  回炉 R1（d1-W1）：抽取前剥 /* *\/ 注释——防头注注释含「:root {」伪块
+ *  劫持首匹配/注释内伪声明覆盖真值（方向=解析面加固，漏抽=假红非假绿）。 */
 function parseRootVars(css: string): Map<string, string> {
-  const block = css.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
+  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const block = noComments.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
   const vars = new Map<string, string>();
   for (const m of block.matchAll(/(--wp-[\w-]+)\s*:\s*([^;]+);/g)) {
     const [, name, value] = m;
@@ -48,6 +51,26 @@ describe("GR-39 双源联动清单机检化（2A5）", () => {
     expect(cssVars.get("--wp-bg-page")).toBe("#0b1526");
     expect(cssVars.get("--wp-gold")).toBe("#d9a94a");
     expect(cssVars.get("--wp-error")).toBe("#ff6b6b");
+    // 回炉 R2（d1-W2）：成对键在场断言——双侧同步缺失（""=="" 静默绿）
+    // 通道收口：CSS 侧键在场先立，则 token 侧缺配置必在值断言面红
+    const pairedKeys = [
+      "--wp-bg-page",
+      "--wp-bg-container",
+      "--wp-bg-elevated",
+      "--wp-bg-deep",
+      "--wp-border",
+      "--wp-border-2",
+      "--wp-text",
+      "--wp-text-2",
+      "--wp-text-3",
+      "--wp-success",
+      "--wp-error",
+      "--wp-font-mono",
+      "--wp-gold",
+    ];
+    for (const key of pairedKeys) {
+      expect(cssVars.has(key), `轴键缺失：${key}`).toBe(true);
+    }
   });
 
   it("同值对·头注清单全集：--wp-* 轴 ↔ antd token（改任一侧不同步即红）", () => {
