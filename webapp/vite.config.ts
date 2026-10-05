@@ -19,12 +19,15 @@ export default defineConfig({
       },
     },
   },
-  // 3D 视图懒加载 chunk（§12.6：独立路由，与画布互不干扰）
+  // three 依赖独立分块（§12.6 独立路由语义——Scene 懒加载；2A8/UF-58
+  // 实证勘正：three 经 canvasPane→ThumbnailStage 静态链首屏实拉，本配置
+  // 实际收益=主包减半 1769→778kB+依赖分块缓存粒度，非「首屏免拉」）
   build: {
     rollupOptions: {
       output: {
         // vite 8 类型面收窄：manualChunks 仅函数形（对象形 TS2769）——
-        // "three" 子串同时命中 three 与 @react-three/fiber 及其依赖树
+        // "three" 子串命中 three/@react-three/troika-three-text 依赖树；收窄
+        // 至 node_modules/three 路径实证无效（构建逐字节同——2A8/UF-58）
         manualChunks: (id: string) => (id.includes("three") ? "three" : undefined),
       },
     },
