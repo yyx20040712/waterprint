@@ -47,6 +47,7 @@ _WHITELIST: frozenset[str] = frozenset({
     "waterprint_server.services.sensitivity",
     "waterprint_server.services.site",
     "waterprint_server.services.trust",
+    "waterprint_server.services.validation",
     "waterprint_server.sse_limits",
 })
 

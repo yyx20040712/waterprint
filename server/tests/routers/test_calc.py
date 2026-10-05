@@ -33,6 +33,7 @@ _EXPECTED = {
     ("get", "/api/calc/trust/{project_id}"),  # P2 次批（2026-09-12）：可信度报告（ADR-012 D8）
     ("get", "/api/calc/compare/{project_id}"),  # P2 第三批（2026-09-12）：多工况对比矩阵（ADR-018 D5）
     ("get", "/api/calc/sensitivity/{project_id}"),  # 批6e（2026-09-26）：全工况投影端点（wave6 批次编排授权）
+    ("get", "/api/calc/validation/{project_id}"),  # 2A1 消费批（2026-10-05）：校验观测+聚合端点（warning-aggregation.md 实现接线）
 }
 
 
@@ -50,7 +51,7 @@ def test_router_exposes_eight_endpoints_wiring() -> None:
     observed = {
         (method.lower(), route.path) for route in router.routes for method in route.methods
     }  # type: ignore[union-attr]
-    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰十件无漂移（G1-07 勘正——FD design-map 入集；P2 次批 trust 入集 2026-09-12；P2 第三批 compare 入集 2026-09-12——ADR-018 D5；批6e sensitivity 入集 2026-09-26）
+    assert observed >= _EXPECTED and len(observed) == len(_EXPECTED)  # 恰十一件无漂移（G1-07 勘正——FD design-map 入集；P2 次批 trust 入集 2026-09-12；P2 第三批 compare 入集 2026-09-12——ADR-018 D5；批6e sensitivity 入集 2026-09-26；2A1 validation 入集 2026-10-05）
     solutions = next(route for route in router.routes
                      if getattr(route, "path", "") == "/api/calc/tasks/{task_id}/solutions")
     signature = inspect.signature(solutions.endpoint)

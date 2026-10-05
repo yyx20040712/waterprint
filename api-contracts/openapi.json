@@ -1,6 +1,47 @@
 {
   "components": {
     "schemas": {
+      "AggregatedWarning": {
+        "description": "聚合警告行（§3 行 schema——去重键三元组+命中清单+severity 分级；\nAPI 字段名硬约束 scope+condition_keys[]，禁 condition_key 双义〔§1〕）。",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "condition_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Condition Keys",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "param_key": {
+            "title": "Param Key",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          }
+        },
+        "required": [
+          "code",
+          "param_key",
+          "scope",
+          "message",
+          "condition_keys",
+          "severity"
+        ],
+        "title": "AggregatedWarning",
+        "type": "object"
+      },
       "AiConfigResponse": {
         "description": "配置面五键投影（api_key 只投影存在性——值零回传零日志）。",
         "properties": {
@@ -2011,6 +2052,75 @@
         "title": "Node",
         "type": "object"
       },
+      "NodeMaintenanceFace": {
+        "description": "单节点×单工况检修观测三面（R5——kb bool 语义升级 A6）。",
+        "properties": {
+          "any_fail": {
+            "title": "Any Fail",
+            "type": "boolean"
+          },
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "fixgeom_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fixgeom Min"
+          },
+          "kb": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Kb",
+            "type": "object"
+          },
+          "ratio": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Ratio",
+            "type": "object"
+          }
+        },
+        "required": [
+          "condition_key",
+          "kb",
+          "any_fail",
+          "ratio",
+          "fixgeom_min"
+        ],
+        "title": "NodeMaintenanceFace",
+        "type": "object"
+      },
+      "NodeObservation": {
+        "description": "单节点观测（faces=该节点有 maint 键的工况——序轴迭代序）。",
+        "properties": {
+          "faces": {
+            "items": {
+              "$ref": "#/components/schemas/NodeMaintenanceFace"
+            },
+            "title": "Faces",
+            "type": "array"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "faces"
+        ],
+        "title": "NodeObservation",
+        "type": "object"
+      },
       "OpsChainResponse": {
         "description": "操作链观测面响应（R1/R6：任务时间线+深度聚合块）。",
         "properties": {
@@ -3207,6 +3317,86 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "ValidationObservationResponse": {
+        "description": "校验观测报告（观测面+聚合两面——R1~R7）。",
+        "properties": {
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "kb_injected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Injected"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/NodeObservation"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "validation_available": {
+            "title": "Validation Available",
+            "type": "boolean"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/AggregatedWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "kb_injected",
+          "validation_available",
+          "conditions",
+          "nodes",
+          "warnings"
+        ],
+        "title": "ValidationObservationResponse",
+        "type": "object"
+      },
       "ValidationResponse": {
         "description": "校验报告（零计算；错误清单带字段路径）。",
         "properties": {
@@ -4130,6 +4320,64 @@
           }
         ],
         "summary": "Get Trust Report",
+        "tags": [
+          "calc"
+        ]
+      }
+    },
+    "/api/calc/validation/{project_id}": {
+      "get": {
+        "description": "校验观测报告（最近完成结果集纯投影——2A1：maint.* 三面观测\n[UF-61① FE 面数据源]+PlantWarning×maint 键族两源警告聚合〔warning-\naggregation.md 冻结规格——去重键三元组/scope+condition_keys[] 命名\n硬约束〕；val 件缺席=validation_available=False 降级〔ADR-012 R1\n「已算但无数据」显式区分〕）。",
+        "operationId": "get_validation_observation_api_calc_validation__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationObservationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在或无校验观测结果集（先重算）"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Validation Observation",
         "tags": [
           "calc"
         ]

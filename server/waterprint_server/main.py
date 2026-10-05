@@ -154,6 +154,8 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 1  # B4-4b 子批 2：/api/ai/sessions 三端点（清单/历史/发言，37→40 破面
          # =.workflow/b4-4b/design-final.md §四授权）
     + 2 + 1  # F1 /api/ai/config 40→42〔brief-F1 §二授权〕；批6e sensitivity 42→43〔wave6 授权〕
+    + 1  # 2A1：GET /api/calc/validation/{project_id}（校验观测+聚合消费面，43→44
+         # 〔2a1-20261005 任务书 §3 D3/D4 预期 39 路径 44 操作授权〕）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。

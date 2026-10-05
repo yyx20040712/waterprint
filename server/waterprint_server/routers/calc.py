@@ -79,6 +79,10 @@ from waterprint_server.services.sensitivity import (
     build_sensitivity_for_project,
 )
 from waterprint_server.services.trust import TrustReportResponse, build_trust_for_project
+from waterprint_server.services.validation import (
+    ValidationObservationResponse,
+    build_validation_observation,
+)
 
 router = APIRouter(prefix="/api/calc", tags=["calc"])
 
@@ -235,6 +239,33 @@ async def get_sensitivity_report(
     全量返回[summary 平键族]，复用结果缓存快照零重算；stale 显式回显
     §12 快照绑定——输入变更标 stale 禁静默覆盖）。"""
     return build_sensitivity_for_project(_ctx(request), project_id)
+
+
+# PL-03 契约枚举（2A1 消费批 2026-10-05）：validation 端点实际 404（未知
+# 项目/无结果集/结果件损坏——行为面 test_validation.py 404 家族）——
+# responses 声明使 openapi 与行为一致（trust/compare/sensitivity 同制）。
+_VALIDATION_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorResponse,
+        "description": "项目不存在或无校验观测结果集（先重算）",
+    },
+}
+
+
+@router.get(
+    "/validation/{project_id}",
+    response_model=ValidationObservationResponse,
+    responses=_VALIDATION_RESPONSES,
+)
+async def get_validation_observation(
+    project_id: str, request: Request
+) -> ValidationObservationResponse:
+    """校验观测报告（最近完成结果集纯投影——2A1：maint.* 三面观测
+    [UF-61① FE 面数据源]+PlantWarning×maint 键族两源警告聚合〔warning-
+    aggregation.md 冻结规格——去重键三元组/scope+condition_keys[] 命名
+    硬约束〕；val 件缺席=validation_available=False 降级〔ADR-012 R1
+    「已算但无数据」显式区分〕）。"""
+    return build_validation_observation(_ctx(request), project_id)
 
 
 @router.post("/tasks/{task_id}/cancel", response_model=CancelResponse)
