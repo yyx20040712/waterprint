@@ -2,7 +2,9 @@
  * dimLabels 纯函数测试（FIX-ACC1③）：DimKey→中文量名+单位符号映射+
  * 未知枚举原样诚实呈现。
  *
- * 输入:  dimLabel(dim)（shared/dimLabels——CANONICAL_UNITS 真源镜像）
+ * 输入:  dimLabel(dim)（shared/dimLabels——手写显示层表，与 CANONICAL_
+ *        UNITS 逐键对齐、FLOW 单键刻意分歧〔2A2 批 2026-10-05 勘正，
+ *        UF-62①：原「真源镜像」短语失实〕）
  * 输出:  已知枚举→「量名 单位」（DIMENSIONLESS→仅量名）；未知→原样串
  */
 import { describe, expect, it } from "vitest";
@@ -10,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { dimLabel, dimUnit } from "./dimLabels";
 
 describe("dimLabel 量纲显示映射（FIX-ACC1③）", () => {
-  it("FLOW → 流量 m³/d（上标美化——真源 m3/d 纯展示层）", () => {
+  it("FLOW → 流量 m³/d（进水参数面口径——内核规范 m3/s，UF-62①/UF-63 注记见 dimLabels.ts 规格说明）", () => {
     expect(dimLabel("FLOW")).toBe("流量 m³/d");
   });
 
