@@ -148,6 +148,23 @@ function rawState() {
   };
 }
 
+/** success 态注数（A2A7C 回炉=k1-W1/d1-N1 处置：success 路径同补 v5
+ *  字段族——防漂移目标在 success 态闭环+TS2739 类型形状分歧实修
+ *  〔idle() 返回型扩字段后窄字面量赋值缺属性，tsc --noEmit 实证红〕；
+ *  status "success"/三旗 false——data 在场已定局。 */
+function successState(data: unknown) {
+  return {
+    data,
+    isError: false,
+    error: null,
+    isPending: false,
+    isLoading: false,
+    isFetching: false,
+    status: "success",
+    refetch: () => Promise.resolve({}),
+  };
+}
+
 /** TrustReport 最小形（validation 门控分支可达前提——TrustReportView 纯
  *  展示消费面空数组/伪哈希即可渲染）。 */
 const TRUST_REPORT = {
@@ -269,14 +286,14 @@ describe("五结果页签 domainGate 分支两态（UF-57 2A7 批——JSX 接�
   });
 
   it("⑪trustPane/useValidationQuery domain：ValidationSourceNotFoundError→固定摘要在场+「检修观测取数失败：」不在场", () => {
-    gate.trust = { data: TRUST_REPORT, isError: false, error: null };
+    gate.trust = successState(TRUST_REPORT);
     gate.validation = domainState("ValidationSourceNotFoundError");
     renderPane(<TrustPane />);
     expectDomainGate("检修观测取数失败：");
   });
 
   it("⑫trustPane/useValidationQuery raw：网络错→「检修观测取数失败：」+raw message 在场", () => {
-    gate.trust = { data: TRUST_REPORT, isError: false, error: null };
+    gate.trust = successState(TRUST_REPORT);
     gate.validation = rawState();
     renderPane(<TrustPane />);
     expectRawGate("检修观测取数失败：");

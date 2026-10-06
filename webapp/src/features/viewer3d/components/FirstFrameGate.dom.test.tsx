@@ -177,7 +177,7 @@ describe("FirstFrameGate 超时窗活链路（fake timers 限定 setTimeout/clea
     act(() => {
       vi.advanceTimersByTime(FIRST_FRAME_TIMEOUT_MS / 2);
     });
-    expect(screen.getByRole("status")).toBeTruthy(); // 窗已挂侧证（飞行中）
+    expect(screen.getByRole("status")).toBeTruthy(); // 相位检查（超时前探针在场=done=false；「窗已挂」证明力由 μ2 红域承担——A2A7C 回炉 d1-W2 措辞订正）
     view.rerender(<GateProbe enabled={false} />);
     act(() => {
       vi.advanceTimersByTime(FIRST_FRAME_TIMEOUT_MS);
