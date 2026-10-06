@@ -30,12 +30,23 @@ import { ElevationPane } from "./elevationPane";
 import { TrustPane } from "./trustPane";
 import { WaterprintApiError } from "../shared/api/http";
 
-/** 受控态位（vi.hoisted——各 mock 工厂闭包同源读写）。 */
+/** 受控态位（vi.hoisted——各 mock 工厂闭包同源读写）。A2A7C D4：三工厂
+ *  补齐 react-query v5 常读字段族（isPending/isLoading/isFetching/status/
+ *  refetch——防未来 pane 读缺省字段静默漂移；idle 态按 v5 pending 语义
+ *  定形=data undefined+无 error → status "pending"/isPending true/
+ *  isLoading true/isFetching true；error 态=status "error"/isPending
+ *  false/isLoading false/isFetching false——error 已定局不再取；refetch
+ *  一律 no-op resolve，pane 现面零读）。 */
 const gate = vi.hoisted(() => {
   const idle = () => ({
     data: undefined as unknown,
     isError: false,
     error: null as unknown,
+    isPending: true,
+    isLoading: true,
+    isFetching: true,
+    status: "pending",
+    refetch: () => Promise.resolve({}),
   });
   return {
     cost: idle(),
@@ -74,12 +85,29 @@ vi.mock("../features/trust/api/useValidationQuery", () => ({
   useValidationQuery: () => gate.validation,
 }));
 // generated 面无害空数据（pane 其余取数 hook——渲染可达门控分支；
-// trust 视图工况列中文名同源消费）
+// trust 视图工况列中文名同源消费；A2A7C D4 同形补 v5 常读字段族=
+// 三工厂 idle 形 pending 语义）
 vi.mock("../shared/api/generated/units/units", () => ({
-  useListUnitsApiUnitsGet: () => ({ data: undefined, isError: false }),
+  useListUnitsApiUnitsGet: () => ({
+    data: undefined,
+    isError: false,
+    isPending: true,
+    isLoading: true,
+    isFetching: true,
+    status: "pending",
+    refetch: () => Promise.resolve({}),
+  }),
 }));
 vi.mock("../shared/api/generated/projects/projects", () => ({
-  useReadProjectApiProjectsProjectIdGet: () => ({ data: undefined, isError: false }),
+  useReadProjectApiProjectsProjectIdGet: () => ({
+    data: undefined,
+    isError: false,
+    isPending: true,
+    isLoading: true,
+    isFetching: true,
+    status: "pending",
+    refetch: () => Promise.resolve({}),
+  }),
   useSaveProjectApiProjectsProjectIdPut: () => ({
     mutate: () => {},
     isPending: false,
@@ -89,18 +117,35 @@ vi.mock("../shared/api/generated/projects/projects", () => ({
 /** 固定摘要锚（domain 态——六分支共用串）。 */
 const NO_CALC_SUMMARY = "项目暂无完成的计算结果。";
 
-/** 领域态注错（真实 WaterprintApiError——raw 服务端句式不透出面）。 */
+/** 领域态注错（真实 WaterprintApiError——raw 服务端句式不透出面；A2A7C
+ *  D4 补 v5 常读字段族：error 态=status "error"/isPending false/isLoading
+ *  false/isFetching false/refetch no-op——与 isError=true 生产自洽）。 */
 function domainState(code: string) {
   return {
     data: undefined,
     isError: true,
     error: new WaterprintApiError(code, "raw 服务端句式"),
+    isPending: false,
+    isLoading: false,
+    isFetching: false,
+    status: "error",
+    refetch: () => Promise.resolve({}),
   };
 }
 
-/** raw 态注错（真实普通 Error——网络中断探针，I-3 口径 raw 透出）。 */
+/** raw 态注错（真实普通 Error——网络中断探针，I-3 口径 raw 透出；A2A7C
+ *  D4 补字段族同 domainState 的 error 态定形）。 */
 function rawState() {
-  return { data: undefined, isError: true, error: new Error("网络中断探针") };
+  return {
+    data: undefined,
+    isError: true,
+    error: new Error("网络中断探针"),
+    isPending: false,
+    isLoading: false,
+    isFetching: false,
+    status: "error",
+    refetch: () => Promise.resolve({}),
+  };
 }
 
 /** TrustReport 最小形（validation 门控分支可达前提——TrustReportView 纯
@@ -144,12 +189,19 @@ function expectRawGate(prefix: string) {
 }
 
 beforeEach(() => {
-  // 真 useProjectId（不 mock）——location.search 摆参直读
+  // 真 useProjectId（不 mock）——location.search 摆参直读；
+  // A2A7C D4 硬性要件：重置面同步覆盖全字段集（否则跨用例状态残留
+  // 泄漏路径——⑪⑫ trust 槽整体替换赋值后新字段必经此处复位）
   window.history.replaceState(null, "", "/?project=proj-gate");
   for (const slot of Object.values(gate)) {
     slot.data = undefined;
     slot.isError = false;
     slot.error = null;
+    slot.isPending = true;
+    slot.isLoading = true;
+    slot.isFetching = true;
+    slot.status = "pending";
+    slot.refetch = () => Promise.resolve({});
   }
 });
 
