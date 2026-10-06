@@ -1,30 +1,28 @@
 /**
- * 画布编辑工具条（P0-3——task-c2-edit-plan §一.4/一.5 落位件）。
+ * 画布编辑工具条（P0-3——task-c2-edit-plan §一.4/一.5 落位件；M1 批
+ * 2026-10-06 解构：提交计算/校验迁顶栏 Ribbon〔app/ribbon〕——本件=槽内
+ * 工具条两态闭环维持：只读=[编辑]；编辑=[退出编辑][保存]+未保存提示）。
  *
- * 输入:  projectId+useProjectQuery raw（保存/校验体非 design 面基座——
- *        时点最新）+canvasStore 编辑会话 selector（editing/dirty/draft）
- * 输出:  工具条两态：只读=[编辑][提交计算]；编辑=[退出编辑][校验]
- *        [保存][提交计算]+未保存徽标+校验结果 Alert（⑦甲：警告放行
- *        ——validate 仅提示不阻断保存）
+ * 输入:  projectId+useProjectQuery raw（保存体非 design 面基座——时点
+ *        最新）+canvasStore 编辑会话 selector（editing/dirty/draft）
+ * 输出:  工具条两态：只读=[编辑]；编辑=[退出编辑（Popconfirm 误退护）]
+ *        [保存（paramDraftCount 徽标+notifySaved 诚实口径）]+未保存提示
+ *        两文案行
  *
- * 规格说明（task-c2-edit-plan 呈裁⑤⑥⑦+红线③⑤）：
+ * 规格说明（task-c2-edit-plan 呈裁⑤+红线⑤；R2-P1-3；M1 批沿革
+ *   P0-3→M1 解构——Ribbon 四命令定版后两裁量位〔编辑开关/保存〕留槽内，
+ *   提交计算钮+runCalc 全链+validate 链+report Alert 迁 app/ribbon.tsx；
+ *   decideRunCalc/paramDraftBlockMessage 纯函数同迁〔测试随迁 import〕）：
  *   - 呈裁⑤ 显式「编辑」钮=编辑会话开关挂点（beginEdit 快照摄入/
  *      退出带 dirty Popconfirm 二次确认——误退护）；
- *   - 呈裁⑥ 常驻「提交计算」（不依赖选中+dirty——F4 残余根治）：
- *      dirty 时先保存再提交（mutateAsync 链——保存失败即止不计算）；
- *      成功镜像 AssumptionsPanel：?task= 回写+TASK_EVENT 派发（六标签
- *      联动）；conditions=受检单元清单（编辑态草稿面/只读态 raw 面）；
- *   - 呈裁⑦ 校验失败=警告放行（校验钮独立呈报 core 结构发现——
- *      Alert warning 非阻断；保存钮不看校验结果）；
  *   - 红线⑤：保存体=时点最新 raw 的非 design 面+草稿 design 面
  *      （快照隔离不回流+不回写陈旧面双守）；保存成功 markSaved 基座
  *      复归+失效项目键（缩略图/参数面随 refetch 刷新）；
- *   - F3/A-1（round3 批 R1）：提交计算入口参数草稿闸——paramsStore
- *      draftHint[projectId] 非零=拦截（不 save 不 mutate，禁自动 apply），
- *      提示指路参数面板「提交重算」正门（E2E-2 保存徽标同计数源）。
+ *   - R2-P1-3：保存钮挂参数草稿徽标——「已保存」语义陷阱根治面（草稿
+ *      正门=参数面板「提交重算」，保存只走图面；提交流程归 Ribbon 唯一
+ *      入口〔dirty 先存后算链在 ribbon.runCalc〕）。
  */
-import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Popconfirm, Typography, message } from "antd";
+import { Badge, Button, Popconfirm, Typography, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectQuery } from "../features/canvas/api/useProjectQuery";
@@ -36,56 +34,10 @@ import {
   useEditing,
 } from "../features/canvas/store/canvasStore";
 import { useParamsStore } from "../features/params/store/paramsStore";
-import { useRunCalculationApiCalcRunPost } from "../shared/api/generated/calc/calc";
 import {
   useSaveProjectApiProjectsProjectIdPut,
-  useValidateProjectApiProjectsProjectIdValidatePost,
 } from "../shared/api/generated/projects/projects";
 import type { WaterprintApiError } from "../shared/api/http";
-import { TASK_EVENT } from "../shared/events";
-
-/** 校验结果态（⑦甲——null=未校验；valid=true 成功态文案行）。 */
-type ValidateReport = { valid: boolean; errors: string[] } | null;
-
-/** raw design.checked_units 宽容读取（constraintPicker.rawCheckedUnits 同口径）。 */
-function rawCheckedUnits(raw: unknown): string[] {
-  if (typeof raw !== "object" || raw === null) {
-    return [];
-  }
-  const design = (raw as Record<string, unknown>)["design"];
-  if (typeof design !== "object" || design === null) {
-    return [];
-  }
-  const checked = (design as Record<string, unknown>)["checked_units"];
-  return Array.isArray(checked) ? checked.filter((id): id is string => typeof id === "string") : [];
-}
-
-/** P0-B 决策面（fix-plan 批2 纯函数——vitest 直测）：提交计算动作分派。
- *  dirty 编辑态：body 未就绪=阻断并提示（保存需要体）；就绪=先存后算。
- *  只读态：draft===null ⇒ body 恒 null 属正常态，直接算（呈裁⑥ 常驻
- *  提交计算语义——旧实现把 body 守卫放在最前，只读态被静默吞掉）。
- *  F3/A-1 扩：参数草稿计数非零=block-param-draft（先于存/算——工具条
- *  保存不携带参数草稿，直算=陈旧参数裸失败；禁自动 apply 红线）。 */
-export type RunCalcDecision = "block-param-draft" | "save-run" | "run" | "block-unready";
-export function decideRunCalc(
-  dirty: boolean,
-  body: unknown,
-  paramDraftCount = 0,
-): RunCalcDecision {
-  if (paramDraftCount > 0) {
-    return "block-param-draft";
-  }
-  if (dirty) {
-    return body === null ? "block-unready" : "save-run";
-  }
-  return "run";
-}
-
-/** F3/A-1 拦截文案（纯函数——vitest 锁三要素：计数/『提交重算』正门/
- *  「保存不携带」因果；禁含糊指路）。 */
-export function paramDraftBlockMessage(count: number): string {
-  return `参数面板有 ${count} 项未提交——请先在参数面板点『提交重算』（工具条保存不携带参数草稿）`;
-}
 
 export function CanvasEditToolbar({ projectId }: { projectId: string }) {
   const editing = useEditing(projectId);
@@ -94,7 +46,6 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
   const rawQuery = useProjectQuery(projectId);
   const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
-  const [report, setReport] = useState<ValidateReport>(null);
   const store = useCanvasStore;
   // R2-P1-3（round2 批2 扩）：参数面板未提交草稿计数（保存语义诚实化）
   const paramDraftCount = useParamsStore((s) => s.draftHint[projectId] ?? 0);
@@ -109,86 +60,13 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
     messageApi.success("已保存");
   };
 
-  // 草稿变更即清陈旧校验报告（报告只对当次草稿版本有效）
-  useEffect(() => {
-    setReport(null);
-  }, [draft]);
-
-  const validate = useValidateProjectApiProjectsProjectIdValidatePost();
   const save = useSaveProjectApiProjectsProjectIdPut<WaterprintApiError>();
-  const run = useRunCalculationApiCalcRunPost<WaterprintApiError>({
-    mutation: {
-      onSuccess: (outcome) => {
-        // AssumptionsPanel D4 同构：?task= 回写+TASK_EVENT（六标签联动）
-        const search = new URLSearchParams(window.location.search);
-        search.set("task", outcome.task_id);
-        window.history.replaceState(
-          null,
-          "",
-          `${window.location.pathname}?${search.toString()}`,
-        );
-        window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: outcome.task_id }));
-      },
-    },
-  });
 
-  /** 保存/校验体：时点最新 raw+草稿四面（红线⑤ 双守口径）。 */
+  /** 保存体：时点最新 raw+草稿四面（红线⑤ 双守口径）。 */
   const body =
     draft !== null && rawQuery.data !== undefined
       ? draftProjectRaw(rawQuery.data, draft)
       : null;
-
-  const runCalc = async () => {
-    const decision = decideRunCalc(dirty, body, paramDraftCount);
-    if (decision === "block-param-draft") {
-      // F3/A-1：参数草稿闸——不 save 不 mutate（禁自动 apply：参数语义
-      // 决策属用户），只指路参数面板「提交重算」正门
-      messageApi.warning(paramDraftBlockMessage(paramDraftCount));
-      return;
-    }
-    if (decision === "block-unready") {
-      messageApi.error("项目数据未就绪——稍候重试");
-      return;
-    }
-    try {
-      if (decision === "save-run") {
-        if (body === null) {
-          return; // 类型收窄守卫（决策与载荷同帧求值，理论不可达）
-        }
-        await save.mutateAsync({ projectId, data: body });
-        store.getState().markSaved();
-        void queryClient.invalidateQueries({
-          queryKey: [`/api/projects/${projectId}`],
-        });
-        notifySaved();
-      }
-      run.mutate(
-        {
-          data: {
-            project_id: projectId,
-            // GD-N-01（A 二审）：编辑态恒用草稿受检面——删除受检单元致
-            // 空清单时**不回退** raw（旧清单会算入已删单元）；只读态才读 raw
-            ...(draft !== null
-              ? draft.checkedUnits.length > 0
-                ? { conditions: draft.checkedUnits }
-                : {}
-              : rawQuery.data !== undefined && rawCheckedUnits(rawQuery.data).length > 0
-                ? { conditions: rawCheckedUnits(rawQuery.data) }
-                : {}),
-          },
-        },
-        {
-          onError: (error: WaterprintApiError) => {
-            messageApi.error(error instanceof Error ? error.message : "提交计算失败");
-          },
-        },
-      );
-    } catch {
-      // GD-N-02（A 二审）：保存失败显式呈报（mutateAsync 无 per-call
-      // onError——静默即用户不知未计算）
-      messageApi.error("保存失败——未提交计算（请检查网络/锁冲突后重试）");
-    }
-  };
 
   return (
     <div
@@ -218,28 +96,6 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
               退出编辑
             </Button>
           </Popconfirm>
-          <Button
-            disabled={body === null}
-            loading={validate.isPending}
-            onClick={() => {
-              if (body === null) {
-                return;
-              }
-              validate.mutate(
-                { projectId, data: body },
-                {
-                  onSuccess: (response) => {
-                    setReport({ valid: response.valid, errors: response.errors });
-                  },
-                  onError: () => {
-                    setReport({ valid: false, errors: ["校验请求失败（服务不可达或载荷非法）"] });
-                  },
-                },
-              );
-            }}
-          >
-            校验
-          </Button>
           {/* R2-P1-3：参数草稿未提交时保存钮挂徽标——「已保存」语义陷阱
               根治面（草稿正门=参数面板「提交重算」，保存只走图面） */}
           <Badge
@@ -292,14 +148,6 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
           编辑
         </Button>
       )}
-      {/* 呈裁⑥ 常驻提交计算（不依赖选中/dirty——dirty 时先存后算）；
-          rawQuery 加载期 loading（P0-B：堵「未就绪点击」窗口） */}
-      <Button
-        loading={run.isPending || rawQuery.isLoading}
-        onClick={() => void runCalc()}
-      >
-        提交计算
-      </Button>
       {editing && dirty && (
         <Typography.Text type="warning" style={{ fontSize: 12 }}>
           未保存修改
@@ -309,23 +157,6 @@ export function CanvasEditToolbar({ projectId }: { projectId: string }) {
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           编辑中：左侧单元库可添加单元；拖拽端口连线；✕/Delete 删除
         </Typography.Text>
-      )}
-      {report !== null && (
-        <Alert
-          style={{ marginTop: 4, width: "100%" }}
-          type={report.valid ? "success" : "warning"}
-          showIcon
-          title={report.valid ? "结构校验通过" : "结构校验发现以下问题（不阻断保存——中间态合法）"}
-          description={
-            report.errors.length > 0 ? (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {report.errors.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            ) : undefined
-          }
-        />
       )}
     </div>
   );

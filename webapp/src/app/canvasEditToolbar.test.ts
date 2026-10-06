@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { decideRunCalc, paramDraftBlockMessage } from "./canvasEditToolbar";
+import { decideRunCalc, paramDraftBlockMessage } from "./ribbon";
 
 describe("decideRunCalc（P0-B 只读态提交计算复活）", () => {
   it("只读态（dirty=false）body=null 恒放行——draft===null 属正常态", () => {
