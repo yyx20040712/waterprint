@@ -164,3 +164,45 @@ async def test_c2_non_api_get_exempt(client) -> None:  # type: ignore[no-untyped
     resp = await client.get("/openapi.json")
     assert resp.status_code == 200
     assert "cache-control" not in resp.headers
+
+
+# ══ ctxasm-20261006：真 lifespan 装配面 ctx.domain_error_codes 注入断言 ══
+
+
+@pytest.mark.anyio
+async def test_lifespan_assembles_ctx_domain_error_codes(test_settings) -> None:  # type: ignore[no-untyped-def]
+    """ctxasm：真 lifespan 生产装配路径上断言 ctx.domain_error_codes 注入结果。
+
+    目标=errmap W1 观察项①清偿：lifespan→ServiceContext domain_error_codes
+    注入**结果断言**（非执行面——conftest client 已显式跑 lifespan，缺的是
+    装配结果断言；errmap E5 用例 object.__setattr__ 手工注入绕过生产装配=
+    唯一残余失真通道，本用例以真装配路径闭合）。双断言语义分工：A=单源
+    纪律（注入对象与 DOMAIN_ERROR_CODES 同一——禁隐性拷贝）/B=消费形状
+    （表键集合全量化锚）——互不为对方冗余（μ2/μ3 独立红域实证）。注：
+    InvalidUnitConfig 在 DOMAIN_ERROR_CODES 侧=400（勿照类基表 422 抄——
+    E1 教训沿用，本用例断键名不断码值）。
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    # 测试件直 import core=errmap E1 已立先例（四真类经定义模块）
+    from waterprint.contracts.manifest_validation import InvalidUnitConfig
+    from waterprint.graph.executor_dsl import InvalidExecutionError
+    from waterprint.graph.loop import LoopDivergence
+    from waterprint.solution.constraints import KbBlockError
+
+    from waterprint_server.main import DOMAIN_ERROR_CODES
+
+    executor = ThreadPoolExecutor(max_workers=test_settings.calc_workers)
+    application = create_app(test_settings, executor=executor)
+    async with application.router.lifespan_context(application):
+        # 断言 A（同一性——生产装配单源）：隐性拷贝/残表注入均红
+        assert application.state.ctx.domain_error_codes is DOMAIN_ERROR_CODES
+        # 断言 B（set 全量化锚——消费形状独立锚）：表键漂移经 ctx 通道红
+        # +真类改名 ImportError 红（E1 同款双通道，本用例锚在装配后消费面）
+        assert set(application.state.ctx.domain_error_codes) == {
+            LoopDivergence.__name__,
+            InvalidUnitConfig.__name__,
+            InvalidExecutionError.__name__,
+            KbBlockError.__name__,
+        }
+    executor.shutdown(wait=True)
