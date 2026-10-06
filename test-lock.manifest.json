@@ -362,7 +362,7 @@
   "server/tests/services/test_validation_aggregation.py": "69383f9c94689f0629dd61c29df1f4cf88597aa1a8e076a87dbdfab56823d4ee",
   "server/tests/services/test_validation_endpoint.py": "c0363cf7399d6c151ab4bd6fd1d6aa1cf98e2be8878760f1df8d73e0eb678e40",
   "server/tests/test_api_contract.py": "fbc43a25d796be25d52790dbace58c24d1aedfb324d7ebf90f881e2698f280cb",
-  "server/tests/test_app_factory.py": "95c885b5788ec37a25ad13e240193c18b67f3c52d3279a6504a3b91dbb5ba7e6",
+  "server/tests/test_app_factory.py": "ddbd875634212d697eeb029a052389e64c6b4f1e2480dbf08bcf1bdfb33135c4",
   "server/tests/test_auth.py": "6262639de0af536fcacc8494e4bd6cc666219df838716d66e9b6203adaa0e55d",
   "server/tests/test_cost.py": "7a98f0ba59142372025bc297c8219fa6193f95dbe7e6fcd65ed4853e7d743a53",
   "server/tests/test_elevation.py": "d68fd9c1bf6ed85852f93b976eb383d7060c4008cd58c41b9efb9c03dcf46fe6",
