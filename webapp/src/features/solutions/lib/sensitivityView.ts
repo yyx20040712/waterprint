@@ -9,7 +9,7 @@
  *        （组件面单点 import；stale/design_hash=§12 快照绑定呈现面）
  *
  * 规格说明（批6e 设计档 §四；compareView 同构纪律）：
- *   - 顶层 10 键逐项校验（缺一拒——server/services/sensitivity 契约
+ *   - 顶层 9 键逐项校验（缺一拒——server/services/sensitivity 契约
  *     漂移面 fail-visible）；rows 条目四键域校验；
  *   - condition_keys 条目前缀=design_offline_（GR-20 冻结字面量镜像
  *     ——jointView 键族镜像同款纪律；非此前缀=契约漂移拒）；
@@ -69,7 +69,7 @@ function requireNumberRecord(
   return value as Record<string, number>;
 }
 
-/** 窄化门：顶层 10 键+行条目四键域+工况键前缀逐项校验（非法抛错）。 */
+/** 窄化门：顶层 9 键+行条目四键域+工况键前缀逐项校验（非法抛错）。 */
 export function narrowSensitivityResponse(raw: unknown): SensitivityReportView {
   if (!isRecord(raw)) throw new SensitivityViewError("顶层非对象");
   const topKeys = [

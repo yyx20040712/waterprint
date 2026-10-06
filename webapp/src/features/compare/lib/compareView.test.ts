@@ -47,7 +47,7 @@ function fixtureReport(overrides: Partial<CompareReport> = {}): CompareReport {
 }
 
 describe("narrowCompareResponse 窄化门", () => {
-  it("合法形状透传（顶层 10 键全在场）", () => {
+  it("合法形状透传（顶层 9 键全在场）", () => {
     const report = narrowCompareResponse(fixtureReport());
     expect(report.condition_keys).toEqual(["avg", "design"]);
     expect(report.metrics[0]?.values.design).toBe(100.5);

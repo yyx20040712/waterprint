@@ -9,7 +9,7 @@
  *        metricRowKey/metricLabel/rowExtremes 矩阵行模型（D1 呈现面）
  *
  * 规格说明（P2 第三批 ADR-018；trustView 窄化门同构先例）：
- *   - 窄化门逐字段校验（顶层 10 键+指标/警告条目键域）——非法形状→
+ *   - 窄化门逐字段校验（顶层 9 键+指标/警告条目键域）——非法形状→
  *     查询 error 态呈现（禁带病渲染半张矩阵）；
  *   - 锁定基准（D3）：pinned=工况键集+pinned_hash=锁定时刻结果件
  *     design_hash；过期判定=比对当前报告 design_hash（改设计→重算→
@@ -65,7 +65,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** 窄化门：顶层 10 键+指标/警告条目键域逐项校验（非法抛 CompareViewError）。 */
+/** 窄化门：顶层 9 键+指标/警告条目键域逐项校验（非法抛 CompareViewError）。 */
 export function narrowCompareResponse(raw: unknown): CompareReport {
   if (!isRecord(raw)) throw new CompareViewError("顶层非对象");
   for (const key of TOP_KEYS) {
