@@ -214,7 +214,12 @@ export function ModelTree({ onNavigate }: { onNavigate: (target: TabTarget) => v
             treeData={treeData}
             expandedKeys={filtering ? allKeys(visibleNodes) : expandedKeys}
             selectedKeys={selectedKeys}
-            onExpand={(keys) => setExpandedKeys(keys.map(String))}
+            onExpand={(keys) => {
+              // 过滤态展开=allKeys 派生不写记忆（清词不污染折叠记忆）
+              if (!filtering) {
+                setExpandedKeys(keys.map(String));
+              }
+            }}
             onSelect={(keys, info) => {
               const next = keys.map(String);
               setSelectedKeys(next);

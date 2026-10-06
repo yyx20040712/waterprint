@@ -265,12 +265,16 @@ describe("兼容映射全表十行（M1——旧十值→两级值域，解析�
 
   it("新值域优先于兼容表（同形值先查 SLOTS/子面面再查兼容表）", () => {
     // 十旧值与五槽值域重叠恰四值（canvas/siteplan/viewer3d/elevation）
-    // ——直通同形不歧义；本用例锁定解析次序防未来扩值翻案
+    // ——新旧重叠值同形直通（次序锁=LEGACY_TAB_COMPAT 在 SLOTS 之后
+    // 单点——projectParam.ts 实现序）
     expect(parseTabParam("?tab=studio.study")).toEqual({
       slot: "studio",
       subface: "study",
     });
-    expect(parseTabParam("?tab=solutions")).not.toBe("solutions");
+    expect(parseTabParam("?tab=solutions")).toEqual({
+      slot: "studio",
+      subface: "study",
+    });
   });
 });
 

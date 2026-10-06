@@ -219,11 +219,19 @@ function EnumerateModalBody({
           });
         }}
         enumerateError={
-          enumerate.error instanceof Error ? enumerate.error.message : null
+          enumerate.isError
+            ? enumerate.error instanceof Error
+              ? enumerate.error.message
+              : "未知错误"
+            : null
         }
         unitsLoading={unitsQuery.isLoading}
         unitsError={
-          unitsQuery.error instanceof Error ? unitsQuery.error.message : null
+          unitsQuery.isError
+            ? unitsQuery.error instanceof Error
+              ? unitsQuery.error.message
+              : "未知错误"
+            : null
         }
       />
     </div>
@@ -247,8 +255,7 @@ export function Ribbon({
   const [messageApi, contextHolder] = message.useMessage();
   const [report, setReport] = useState<ValidateReport>(null);
   const [enumOpen, setEnumOpen] = useState(false);
-  const [enumDone, setEnumDone] = useState(false);
-  const [jointDone, setJointDone] = useState(false);
+  const [jointOpen, setJointOpen] = useState(false);
   const store = useCanvasStore;
   const paramDraftCount = useParamsStore((s) =>
     projectId !== null ? s.draftHint[projectId] ?? 0 : 0,
@@ -345,7 +352,7 @@ export function Ribbon({
             if (key === "unit-enum") {
               setEnumOpen(true);
             } else if (key === "joint-enum") {
-              setJointDone(true);
+              setJointOpen(true);
             }
           },
         }}
@@ -389,11 +396,11 @@ export function Ribbon({
         <Button
           data-testid="wp-ribbon-validate"
           icon={<AuditOutlined />}
-          disabled={!editing || rawQuery.data === undefined}
+          disabled={!editing || rawQuery.data === undefined || draft === null}
           title={
             !editing
               ? "校验=编辑态草稿体结构检查——先在画布槽进入编辑"
-              : rawQuery.data === undefined
+              : rawQuery.data === undefined || draft === null
                 ? "项目数据未就绪"
                 : "校验当前草稿体（警告不阻断保存）"
           }
@@ -452,14 +459,14 @@ export function Ribbon({
         )}
       </Modal>
       <Modal
-        open={jointDone}
+        open={jointOpen}
         title="联合枚举"
         footer={null}
         width={760}
-        onCancel={() => setJointDone(false)}
+        onCancel={() => setJointOpen(false)}
       >
-        {jointDone && projectId !== null ? (
-          <JointSubmitForm projectId={projectId} onSubmitted={() => setJointDone(false)} />
+        {jointOpen && projectId !== null ? (
+          <JointSubmitForm key={projectId} projectId={projectId} onSubmitted={() => setJointOpen(false)} />
         ) : (
           <Typography.Paragraph type="secondary">
             尚未选择项目——请先在画布槽选择项目

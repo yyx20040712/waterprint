@@ -140,8 +140,9 @@ if (typeof window !== "undefined") {
 }
 
 /** D2 初值三级解析：?tab= 合法（含兼容归一）→用之；无 ?tab= 但有 ?task=
- *  或 ?enum=→studio.study（深链意图——边缘语义 c+enum 对称处理）；缺省
- *  canvas；mount 不改写地址栏（边缘语义 a 统一规则）。 */
+ *  或 ?enum=→studio.study（深链意图——边缘语义 c+enum 对称；并席位聚焦
+ *  〔席位聚焦=M7 席位实装批落位——M1 席位无分页〕）；缺省 canvas；
+ *  mount 不改写地址栏（边缘语义 a 统一规则）。 */
 function initialTarget(): TabTarget {
   const target = parseTabParam(window.location.search);
   if (target !== null) {
@@ -173,7 +174,17 @@ export function App() {
   }, [projectId]);
   // D3 右列纵向分隔拖拽（canvasPane Q8 先例：主键判定+pointercancel+
   // 卸载清理；位置会话内不进 URL）
-  const [settingsHeight, setSettingsHeight] = useState(SETTINGS_DEFAULT_HEIGHT);
+  // 挂载期 clamp（d1-N3-lite）：小视口默认即钳界（jsdom innerHeight=768
+  // 默认态不变——768−48−24−140=556>480 钳位零扰动）
+  const [settingsHeight, setSettingsHeight] = useState(() =>
+    Math.min(
+      SETTINGS_DEFAULT_HEIGHT,
+      Math.max(
+        SETTINGS_MIN_HEIGHT,
+        window.innerHeight - HEADER_HEIGHT - STATUSBAR_HEIGHT - SEAT_MIN_HEIGHT,
+      ),
+    ),
+  );
   const dragging = useRef<{ startY: number; startHeight: number } | null>(null);
   const onDividerPointerMove = useCallback((event: PointerEvent) => {
     const drag = dragging.current;
@@ -181,7 +192,7 @@ export function App() {
       return;
     }
     const max = window.innerHeight - HEADER_HEIGHT - STATUSBAR_HEIGHT - SEAT_MIN_HEIGHT;
-    const height = drag.startHeight - (event.clientY - drag.startY);
+    const height = drag.startHeight + (event.clientY - drag.startY);
     setSettingsHeight(Math.max(SETTINGS_MIN_HEIGHT, Math.min(max, height)));
   }, []);
   const onDividerPointerUp = useCallback(() => {
@@ -359,7 +370,7 @@ export function App() {
               borderRight: "1px solid var(--wp-border-2)",
             }}
           >
-            <div style={{ height: "38%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ height: "38%", minHeight: 0, overflow: "auto" }}>
               <ModelTree onNavigate={setTab} />
             </div>
             <div style={{ height: 1, background: "var(--wp-border-2)", flex: "none" }} />

@@ -7,7 +7,8 @@
  *        --wp-pane-right: 420px（tokens-2b3 §A 冻结值逐字）；②消费面——
  *        App.tsx 源面 var(--wp-pane-left)/var(--wp-pane-right) 消费在场
  *        （定义与消费同步机检——A2-N-06 零消费死变量防线）；③预算代数
- *        自检——左 232+右 420=652 恒等（tokens-2b3 §A 总预算规则）。
+ *        自检（值自 CSS 抽取）——左+右 ≤/＝652（tokens-2b3 §A 总预算
+ *        规则；任一侧改值即红）。
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,7 +37,9 @@ describe("列宽令牌物理落地（tokens-2b3 §A——定义与消费同步�
     expect(appSource).toContain("var(--wp-pane-right)");
   });
 
-  it("预算代数自检：左 232+右 420=652（总预算恒等式——加宽置换域校验留后续批）", () => {
-    expect(232 + 420).toBe(652);
+  it("预算代数自检（值自 CSS 抽取）：左+右=652（总预算恒等——任一侧改值即红）", () => {
+    expect(
+      parseInt(rootVar("--wp-pane-left")) + parseInt(rootVar("--wp-pane-right")),
+    ).toBe(652);
   });
 });

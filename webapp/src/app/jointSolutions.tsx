@@ -117,15 +117,16 @@ export function JointSubmitForm({
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           至少选 {MIN_UNITS} 个可枚举单元（无档位参数项不可选）。
         </Typography.Text>
-        {submit.error instanceof Error ? (
+        {submit.error != null ? (
           <Typography.Text type="danger">
-            提交失败：{submit.error.message}
+            提交失败：{submit.error instanceof Error ? submit.error.message : "未知错误"}
           </Typography.Text>
         ) : null}
       </div>
-      {unitsQuery.error instanceof Error ? (
+      {unitsQuery.error != null ? (
         <Typography.Paragraph type="danger">
-          单元清单加载失败：{unitsQuery.error.message}
+          单元清单加载失败：
+          {unitsQuery.error instanceof Error ? unitsQuery.error.message : "未知错误"}
         </Typography.Paragraph>
       ) : null}
     </div>

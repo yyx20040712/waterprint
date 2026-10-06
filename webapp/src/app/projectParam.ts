@@ -141,7 +141,7 @@ const LEGACY_TAB_COMPAT: Readonly<Record<string, TabTarget>> = {
   cost: { slot: "studio", subface: "cost" },
   compare: { slot: "studio", subface: "compare" },
   trust: { slot: "studio", subface: "trust" },
-  opsdebug: { slot: "canvas" },
+  opsdebug: { slot: "canvas" }, // 视图不变；「一次性切席位任务分页」侧效应=M7 席位实装批落位（M1 席位无分页=自然 no-op——mapping §B 边缘 a）
 };
 
 /** M1 两级解析（UX1 D2 承袭+mapping-2b4 §B 终核）：?tab=<槽> 或

@@ -42,6 +42,7 @@ describe("ModelTree 静态骨架（M1——六节点+根区标题）", () => {
     for (const title of ["项目", "工艺流", "厂区布置", "管网定线", "研究", "结果"]) {
       expect(screen.getByText(title)).toBeTruthy();
     }
+    expect(screen.getByText("全局假设")).toBeTruthy();
     expect(screen.getByText("模型")).toBeTruthy();
     expect(screen.getByText("6 节点")).toBeTruthy();
   });
@@ -83,13 +84,15 @@ describe("管网定线挂起位（判据 4 锚①——默认折叠+徽标+挂�
 describe("onNavigate 目标映射（导航节点→TabTarget）", () => {
   afterEach(cleanup);
 
-  it("工艺流→canvas；研究→studio.study（父节点导航）", () => {
+  it("工艺流→canvas；研究→studio.study；厂区布置→siteplan（父节点导航）", () => {
     const onNavigate = vi.fn();
     render(<ModelTree onNavigate={onNavigate} />);
     fireEvent.click(screen.getByText("工艺流"));
     expect(onNavigate).toHaveBeenLastCalledWith({ slot: "canvas" });
     fireEvent.click(screen.getByText("研究"));
     expect(onNavigate).toHaveBeenLastCalledWith({ slot: "studio", subface: "study" });
+    fireEvent.click(screen.getByText("厂区布置"));
+    expect(onNavigate).toHaveBeenLastCalledWith({ slot: "siteplan" });
   });
 
   it("结果.图纸→studio.drawings；结果.纵断→elevation（默认展开子节点）", () => {
