@@ -6,9 +6,10 @@
  * 输出:  parseProjectParam → 项目 id 或 null；withProjectParam → 新查询串；
  *        normalizeProjectId → 剥 ".wp" 尾缀的归一 id；parseTaskParam →
  *        任务 id 或 null；withTaskParam → 新查询串；clearTaskParam →
- *        移除 task 键的新查询串；parseTabParam → 合法路由值或 null；
- *        withTabParam → 写入 tab 键的新查询串；parseTokenParam → 令牌
- *        串或 null；clearTokenParam → 移除 token 键的新查询串
+ *        移除 task 键的新查询串；parseTabParam → TabTarget（两级值域+
+ *        兼容归一）或 null；withTabParam → 写入 tab 键的新查询串；
+ *        parseTokenParam → 令牌串或 null；clearTokenParam → 移除 token
+ *        键的新查询串
  *
  * 规格说明（FE3 批 6b 段一，D5；R2 补 2026-08-29；FE6 批 6b 段四 D3 补
  *   taskParam 三函数；UX1 批 D2 补 tabParam 两函数）：
@@ -34,9 +35,16 @@
  *     （enumerateTaskId）读 enum 键；面板轨初值 task 优先（apply 流
  *     后写时间序）；三函数与 taskParam 同构（FE6 D3 模式复用）；
  *   - UX1 D2 tab 通道：?tab= 路由态进 URL（S4——Tabs activeKey 初值与
- *     持久化）；parseTabParam=ROUTES 成员校验（非法值 null——冻结面外
- *     不造路由，App 缺省 canvas 兜底）；withTabParam 只动 tab 键（project/
- *     task 等他键原序保留——tab 键透传语义既有测试自 FE3 起已锁）；
+ *     持久化）；M1 批（2026-10-06 mapping-2b4 §B 终核）升两级值域：语法=
+ *     ?tab=<槽> 或 ?tab=studio.<子面>（点分复合——R-D2 命名空间原则）；
+ *     parseTabParam 两级解析（split(".")+两级成员校验：单段→SLOTS 成员
+ *     〔studio 单值归一 {slot:"studio",subface:"study"}——边缘语义 b〕；
+ *     双段→首段须 studio+次段 STUDIO_SUBFACES 成员；三段以上/任一不合法
+ *     →null）；兼容归一=解析期单点收口（旧十值：solutions→studio.study、
+ *     drawings/cost/compare/trust→studio.同名、opsdebug→canvas——
+ *     新值域优先于兼容表，防未来扩值歧义）；withTabParam 只动 tab 键
+ *     （project/task 等他键原序保留——tab 键透传语义既有测试自 FE3 起
+ *     已锁；target 带 subface→studio.<子面>，否则裸槽值）；
  *   - R2-A 批2 D2 token 通道：?token= 首参引导（deep-link 令牌注入——
  *     分享链带凭证形态）；parseTokenParam 与 project/task/enum 同构
  *     （D5 单一真相族；空串视同 null）；clearTokenParam 只动 token 键
@@ -47,7 +55,7 @@
  *     路由面——设置页写 localStorage 非 URL）；
  *     本文件 app 层 import router.tsx 同层合法（AppRoute 冻结面消费）。
  */
-import { ROUTES, type AppRoute } from "./router";
+import { SLOTS, STUDIO_SUBFACES, type SlotId, type StudioSubface, type TabTarget } from "./router";
 
 export function parseProjectParam(search: string): string | null {
   const value = new URLSearchParams(search).get("project");
@@ -125,21 +133,54 @@ export function clearEnumParam(search: string): string {
   return params.toString();
 }
 
-/** UX1 D2（S4）：?tab= 直读（ROUTES 成员校验——非法值 null，缺省 canvas 兜底）。 */
-export function parseTabParam(search: string): AppRoute | null {
+/** 兼容归一表（M1 单点收口——旧十值中非直通六值；直通四值经 SLOTS
+ *  同名命中，不入表）。新值域优先：parse 先查两级值域再查本表。 */
+const LEGACY_TAB_COMPAT: Readonly<Record<string, TabTarget>> = {
+  solutions: { slot: "studio", subface: "study" },
+  drawings: { slot: "studio", subface: "drawings" },
+  cost: { slot: "studio", subface: "cost" },
+  compare: { slot: "studio", subface: "compare" },
+  trust: { slot: "studio", subface: "trust" },
+  opsdebug: { slot: "canvas" },
+};
+
+/** M1 两级解析（UX1 D2 承袭+mapping-2b4 §B 终核）：?tab=<槽> 或
+ *  studio.<子面>——单段：SLOTS 成员（studio 归一 study——边缘语义 b；
+ *  其余四槽裸槽值）；双段：首段须 studio+次段子面成员；任一不合法/
+ *  三段以上 → null。兼容归一在新值域之后（新值优先）。 */
+export function parseTabParam(search: string): TabTarget | null {
   const value = new URLSearchParams(search).get("tab");
   if (value === null || value === "") {
     return null;
   }
-  return (ROUTES as readonly string[]).includes(value)
-    ? (value as AppRoute)
-    : null;
+  const parts = value.split(".");
+  if (parts.length === 1) {
+    if (value === "studio") {
+      return { slot: "studio", subface: "study" };
+    }
+    if ((SLOTS as readonly string[]).includes(value)) {
+      return { slot: value as SlotId };
+    }
+    return LEGACY_TAB_COMPAT[value] ?? null;
+  }
+  if (
+    parts.length === 2 &&
+    parts[0] === "studio" &&
+    (STUDIO_SUBFACES as readonly string[]).includes(parts[1] ?? "")
+  ) {
+    return { slot: "studio", subface: parts[1] as StudioSubface };
+  }
+  return null;
 }
 
-/** UX1 D2（S4）：回写 tab 键（只动 tab——project/task 等他键原序保留）。 */
-export function withTabParam(search: string, tab: AppRoute): string {
+/** UX1 D2（S4）承袭：回写 tab 键（只动 tab——project/task 等他键原序
+ *  保留；target 带 subface → studio.<子面>，否则裸槽值）。 */
+export function withTabParam(search: string, target: TabTarget): string {
   const params = new URLSearchParams(search);
-  params.set("tab", tab);
+  params.set(
+    "tab",
+    target.subface === undefined ? target.slot : `studio.${target.subface}`,
+  );
   return params.toString();
 }
 

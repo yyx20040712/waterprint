@@ -93,7 +93,7 @@ import { CanvasPane } from "./canvasPane";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
-import type { AppRoute } from "./router";
+import type { TabTarget } from "./router";
 import {
   clearTokenParam,
   parseEnumParam,
@@ -190,13 +190,23 @@ if (typeof window !== "undefined") {
   }
 }
 
-/** UX1 D2/S4 初值三级解析：?tab= 合法值→用之；无 ?tab= 有 ?task= 或
- * ?enum=→solutions（深链意图——两任务轨皆落方案浏览[ENG5 D6]；仅初值
- * 落点不跳转）；缺省 canvas（FE3 D1 面）。 */
-function initialRoute(): AppRoute {
-  const tab = parseTabParam(window.location.search);
-  if (tab !== null) {
-    return tab;
+/** M1 ①笔过渡 shim：两级 TabTarget→旧十键面映射（⑤笔四区重写退役——
+ * 旧 Tabs 仍在场期间保持编译/行为往返一致：studio.study→solutions、
+ * studio.四子面→同名旧键；反向同构见 handleTabChange）。 */
+function targetToLegacyKey(target: TabTarget): string {
+  if (target.slot !== "studio") {
+    return target.slot;
+  }
+  return target.subface === "study" ? "solutions" : (target.subface ?? "study");
+}
+
+/** UX1 D2/S4 初值三级解析（M1 两级承袭）：?tab= 合法值（含兼容归一）→
+ * 用之；无 ?tab= 有 ?task= 或 ?enum=→studio.study（深链意图——旧 solutions
+ * 键位；仅初值落点不跳转）；缺省 canvas（FE3 D1 面）。 */
+function initialRoute(): string {
+  const target = parseTabParam(window.location.search);
+  if (target !== null) {
+    return targetToLegacyKey(target);
   }
   const hasTaskDeepLink =
     parseTaskParam(window.location.search) !== null ||
@@ -205,7 +215,7 @@ function initialRoute(): AppRoute {
 }
 
 export function App() {
-  const [activeKey, setActiveKey] = useState<AppRoute>(initialRoute);
+  const [activeKey, setActiveKey] = useState<string>(initialRoute);
   // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
   const [settingsOpen, setSettingsOpen] = useState(false);
   // AI2（2026-09-13）：AI 接入 Modal 开态（入口=Header AiConnectButton——
@@ -230,13 +240,22 @@ export function App() {
     return () => window.removeEventListener(AUTH_EVENT, openSettings);
   }, []);
 
-  /** UX1 D2/S4：切标签经 withTabParam replaceState 写 ?tab=（他键原序
-   * 保留——project/task 不动；刷新/分享后落点保持）。 */
+  /** UX1 D2/S4（M1 ①笔过渡 shim）：旧十键→两级 target 映射（solutions→
+   * studio.study/四结果键→studio.同名/opsdebug→canvas——兼容映射逆表；
+   * ⑤笔四区重写后槽条直产 target，shim 退役）。 */
   const handleTabChange = (key: string) => {
-    // items key 全集=AppRoute 冻结面（string 回调值收窄安全）
-    const next = key as AppRoute;
-    setActiveKey(next);
-    const search = withTabParam(window.location.search, next);
+    setActiveKey(key);
+    let target: TabTarget;
+    if (key === "solutions") {
+      target = { slot: "studio", subface: "study" };
+    } else if (key === "drawings" || key === "cost" || key === "compare" || key === "trust") {
+      target = { slot: "studio", subface: key };
+    } else if (key === "opsdebug") {
+      target = { slot: "canvas" };
+    } else {
+      target = { slot: key as TabTarget["slot"] };
+    }
+    const search = withTabParam(window.location.search, target);
     window.history.replaceState(
       null,
       "",

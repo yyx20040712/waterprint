@@ -1,48 +1,28 @@
 /**
- * 路由表：标签页式工作区（画布/厂区布置/方案/三维/高程/图纸/概算/可信度）。
+ * 路由面：主视图五槽+studio 二级子面值域（B 线四区骨架——两级值域冻结面）。
  *
- * 输入:  各 feature 切片的路由组件
- * 输出:  路由配置（AntD Tabs 标签页状态机——App.tsx activeKey 消费）
+ * 输入:  无（纯类型与常量——消费面=projectParam〔parseTabParam/withTabParam〕
+ *        +App〔槽条 activeKey/切槽状态机〕+测试）
+ * 输出:  SlotId/StudioSubface/TabTarget 类型+SLOTS/STUDIO_SUBFACES 常量
+ *        （?tab= 语法=<槽> 或 studio.<子面>——点分复合）
  *
- * 规格说明（FE6 批 6b 段四 D1 扩六值；R9 路由序勘误 2026-08-29；M3 批
- *   2026-09-03 D2 扩七值）：
- *   - 路由名与次序=冻结面七值 canvas/siteplan/solutions/viewer3d/elevation/
- *     drawings/cost（solutions 插 canvas 后=用户流程：设计→看方案；
- *     M3 siteplan 插 canvas 之后第二位=设计→布置就近；elevation/drawings/
- *     cost 三标签次序沿 FE3 五值面相对序保持——R9 勘误：①笔曾按简报 D1
- *     字面枚举将 cost/drawings 互换，总控裁定「次序沿旧」本意=drawings/
- *     cost 相对序不动，本笔回旧）；
- *   - 三维视图独立路由 + 懒加载 chunk（§12.6，vite manualChunks 已配）；
- *   - 画布是默认标签且常驻（切换不卸载，防画布状态丢失）；
- *   - 路由状态进 view 态持久化（§12.3：不参与 content-hash）——UX1 D2
- *     落地=?tab= URL 参数（App.tsx 初值三级解析+onChange replaceState
- *     写入；本文件类型面零消费——AppRoute/ROUTES 冻结面不变；原
- *     「挂账 UX 批」行收口）；
- *   - P2 第三批（ADR-018 2026-09-12）扩九值：compare 插 cost 后=
- *     结果域三标签就近（概算→工况对比→可信度——同读最近 done calc）；
- *   - 本文件只做路由组合，禁止业务逻辑。
+ * 规格说明（沿革链：FE3 批 6b 段一 D1 十值面→M3 批 2026-09-03 扩七值→
+ *   P2 批 2026-09-12 ADR-018 扩九/十值→P2 用户裁决 2026-10-03 解冻十页签→
+ *   2B4 mapping-2b4 §B 终核〔R-D2 命名空间原则+新-06 边缘语义〕——M1 批
+ *   2026-10-06 重写为两级值域；旧 AppRoute/ROUTES 十值面删除，兼容归一
+ *   在 projectParam.parseTabParam 解析期单点收口）：
+ *   - 五槽次序=canvas(默认)/siteplan/viewer3d/elevation/studio
+ *     （draft-ia-v3 §3 B-1 L43 逐字——槽条页签次序单源）；
+ *   - 子面五值仅 studio 槽可带（study/drawings/cost/compare/trust）——
+ *     双段首段须 "studio"，其余槽带子面=非法（parse → null）；
+ *   - 画布槽=默认且常驻（切换挂载隐藏不卸载，防画布状态丢失——R1）；
+ *   - 路由态持久化=?tab= URL 参数（replaceState 模式——UX1 D2 承袭；
+ *     不引入 react-router〔P-B1 用户实裁维持不豁免〕）；
+ *   - 本文件只做类型与常量，禁止业务逻辑。
  */
-export type AppRoute =
-  | "canvas"
-  | "siteplan"
-  | "solutions"
-  | "viewer3d"
-  | "elevation"
-  | "drawings"
-  | "cost"
-  | "compare"
-  | "trust"
-  | "opsdebug";
-
-export const ROUTES: readonly AppRoute[] = [
-  "canvas",
-  "siteplan",
-  "solutions",
-  "viewer3d",
-  "elevation",
-  "drawings",
-  "cost",
-  "compare",
-  "trust",
-  "opsdebug",
-] as const;
+export type SlotId = "canvas" | "siteplan" | "viewer3d" | "elevation" | "studio";
+export type StudioSubface = "study" | "drawings" | "cost" | "compare" | "trust";
+/** ?tab= 解析终态：subface 仅 studio 槽可带（parse 已归一——studio 恒带 subface）。 */
+export type TabTarget = { slot: SlotId; subface?: StudioSubface };
+export const SLOTS: readonly SlotId[] = ["canvas","siteplan","viewer3d","elevation","studio"];
+export const STUDIO_SUBFACES: readonly StudioSubface[] = ["study","drawings","cost","compare","trust"];
