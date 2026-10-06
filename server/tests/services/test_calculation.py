@@ -75,6 +75,54 @@ async def _created(ctx) -> str:  # type: ignore[no-untyped-def]
     return outcome.project_id
 
 
+async def _created_calcable(ctx) -> str:  # type: ignore[no-untyped-def]
+    """errmap E5 装配件：_created 载荷基础上 inlet 补 TN/NH3N/TP（不动既有
+    `_created`——其载荷=v4 新建态锚被多测试共享）。主控探针实测：无 TN 则
+    cass 计算前置失败 InvalidUnitConfig；补后真实计算成功，design 帧
+    municipal_cass dims 含 n_cycle=6.0（真路径违规注入的求值锚）。"""
+    outcome = projects_mod.create_project(
+        ctx,
+        {
+            "project": {
+                "format_version": "4.0",
+                "design": {
+                    "nodes": {
+                        "inlet": {
+                            "kind": "municipal_input",
+                            "q_avg_daily": 34760.7,
+                            "kz": 1.4,
+                            "CODCR": 400.0,
+                            "BOD5": 200.0,
+                            "SS": 250.0,
+                            "TN": 45.0,
+                            "NH3N": 35.0,
+                            "TP": 5.0,
+                        },
+                        "municipal_cass": {},
+                    },
+                    "edges": [
+                        {
+                            "src": {"unit_id": "inlet", "port_id": "out"},
+                            "dst": {
+                                "unit_id": "municipal_cass",
+                                "port_id": "in",
+                            },
+                        }
+                    ],
+                },
+                "view": {},
+                "metadata": {
+                    "format_version": "4.0",
+                    "content_hash": "0",
+                    "engine_version": "0",
+                    "data_version": "0",
+                },
+            }
+        },
+    )
+    return outcome.project_id
+
+
 async def test_running_task_result_marked_stale_on_edit_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """R2 接线断言：任务运行期间编辑 → 完成结果 stale=True（禁止静默覆盖）。"""
     import waterprint_server.jobs.manager as manager_mod
@@ -194,6 +242,55 @@ async def test_kb_block_failed_task_three_fields_wiring(service_ctx, monkeypatch
     assert final.error_code == http_status.HTTP_422_UNPROCESSABLE_CONTENT  # 名义表接线
     assert final.error_code == DOMAIN_ERROR_CODES["KbBlockError"]
     assert "kb.stub.block" in (final.error or "")  # 逐条 violated key 消息透出
+
+
+async def test_real_kb_block_end_to_end_failure_flow(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """errmap E5：core 真类（KbBlockError）端到端入 server 失败事件流。
+
+    零替身（不 patch run_task——与既有两替身用例互补）：真 _run_calc→
+    真 run_full_calc→真 assert_kb_gate raise 真类；monkeypatch 仅
+    worker.calc_inputs 注入一条违规 KbConstraint（kb.stub.e2e-block，
+    n_cycle<=0 对 municipal_cass design 帧 n_cycle=6.0——真 standards
+    保留）。终态四断言：state==failed+error_type==KbBlockError+
+    error_code==422（==DOMAIN_ERROR_CODES["KbBlockError"]）+error 消息
+    含违规键（真实失败形态非 KbBlockError=真问题面，禁改断言迁就）。
+    """
+    from fastapi import status as http_status
+    from waterprint.solution.constraints import Constraint, KbConstraint
+
+    import waterprint_server.jobs.worker as worker_mod
+    from waterprint_server.jobs.calc_inputs import calc_inputs
+    from waterprint_server.main import DOMAIN_ERROR_CODES
+
+    # 真类构造（test_app_kbgate._kb 同款形态——真 KbConstraint/Constraint）
+    violating = KbConstraint(
+        constraint=Constraint(
+            key="kb.stub.e2e-block", expression="n_cycle <= 0",
+            source="kb.stub.e2e-block",
+        ),
+        unit_kinds=("municipal_cass",),
+        kind="geometry_guard", enforcement="block",
+    )
+    # 真 standards 保留+kb 面替换为单条违规（worker 模块全局——monkeypatch 已核可达）
+    monkeypatch.setattr(
+        worker_mod, "calc_inputs",
+        lambda data_dir: (calc_inputs(data_dir)[0], (violating,)),
+    )
+    object.__setattr__(
+        service_ctx, "domain_error_codes", dict(DOMAIN_ERROR_CODES)
+    )
+    project_id = await _created_calcable(service_ctx)
+    handle = await submit_calculation(service_ctx, project_id, [])
+    for _ in range(100):
+        final = task_status(service_ctx, handle.task_id)
+        if final.state in {"done", "failed", "cancelled"}:
+            break
+        await asyncio.sleep(0.05)
+    assert final.state == "failed"  # 真路径失败终态（非 cancelled/done）
+    assert final.error_type == "KbBlockError"  # 真类实名经 worker→manager 透传
+    assert final.error_code == http_status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert final.error_code == DOMAIN_ERROR_CODES["KbBlockError"]  # 名义表回填
+    assert "kb.stub.e2e-block" in (final.error or "")  # violated key 消息透出
 
 
 async def test_apply_solution_rolls_back_on_failure_wiring(service_ctx, monkeypatch) -> None:  # type: ignore[no-untyped-def]

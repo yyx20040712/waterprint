@@ -76,6 +76,39 @@ def test_domain_exception_mapping_complete_wiring() -> None:
     assert b"error_type" in body.body and b"detail" in body.body
 
 
+def test_domain_error_codes_real_class_binding_quantified() -> None:
+    """errmap E1：名义表四键真类绑定**全量化**（逐键码值+set 全量化锚）。
+
+    双通道：core 类改名→import ImportError 红；表键漂移→下标 KeyError/
+    集合不等红（回炉轮 1 d1-W1 断言形态的表级全量化扩展——第五键无真类
+    锚/删键均红）。注：InvalidUnitConfig 在 DOMAIN_ERROR_CODES 侧=400
+    （HTTP 入参校验面），勿照类基映射 422 抄。
+    """
+    from fastapi import status as http_status
+
+    # 测试件直 import core=回炉轮 1 已立先例（test_calculation.py L156-160）
+    from waterprint.contracts.manifest_validation import InvalidUnitConfig
+    from waterprint.graph.executor_dsl import InvalidExecutionError
+    from waterprint.graph.loop import LoopDivergence
+    from waterprint.solution.constraints import KbBlockError
+
+    from waterprint_server.main import DOMAIN_ERROR_CODES
+
+    real_classes = (
+        LoopDivergence, InvalidUnitConfig, InvalidExecutionError, KbBlockError,
+    )
+    expected_codes = {
+        "LoopDivergence": http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+        "InvalidUnitConfig": http_status.HTTP_400_BAD_REQUEST,
+        "InvalidExecutionError": http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+        "KbBlockError": http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+    }
+    for cls in real_classes:  # 逐键：表[真类实名]==预期码（键漂移→KeyError 红）
+        assert DOMAIN_ERROR_CODES[cls.__name__] == expected_codes[cls.__name__]
+    # 全量化锚：表键集合==四真类名集合（第五键无真类锚/删键均集合不等红）
+    assert set(DOMAIN_ERROR_CODES) == {cls.__name__ for cls in real_classes}
+
+
 # ══ R4 C-2：no-store 全 GET 读面中间件（[HUMAN-LOCK] 2026-09-26 落地；
 #     test_r4_draft.py C-2 节转正——夹具沿本文件既有 conftest client）══
 
