@@ -10,7 +10,7 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格（kbblock-20261006 批；镜像测试 tests/app/test_app_kbgate.py；
-#   app_maintenance.py 家族先例同构第十例——根模块聚合执法件，不进
+#   app_maintenance.py 家族先例同构第十一例——根模块聚合执法件，不进
 #   import-linter layers 契约（app_trust/app_maintenance 同款
 #   unconstrained）。
 #
