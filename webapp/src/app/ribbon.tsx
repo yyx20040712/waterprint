@@ -336,7 +336,12 @@ export function Ribbon({
   return (
     <div
       data-region="ribbon"
-      style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+      // R13（裁决 F-7）：容器行内换行样式删除——换行模式下 Dropdown.Button
+      // 内部 ant-space-compact 独占整行（实测 411px 全宽）把校验/导出/
+      // 三维快访挤到第二行（顶栏 28+8+28=64px 超窗 16px）；命令带恒单行
+      // （nowrap 语义——48px 顶栏不变式优先于窄视口换行；窄视口压缩面=
+      // 可接受边缘，2B6 视觉验收复核）
+      style={{ display: "flex", alignItems: "center", gap: 8 }}
     >
       {contextHolder}
       <Dropdown.Button
