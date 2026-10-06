@@ -75,16 +75,19 @@ const UNKNOWN_SUMMARY =
 
 /** chunk 级消息族（动态模块加载失败——浏览器/打包器原生日志形态集；
  *  独立于词典常量：分级序 chunk→词典→未知（D2 ①②③），固定摘要由
- *  D2 逐字给定不走词条面）。 */
+ *  D2 逐字给定不走词条面。Firefox 方言小写起头（回炉 R2）——/i 容错）。 */
 const CHUNK_MESSAGE_PATTERNS: readonly RegExp[] = [
   /Loading chunk/,
   /Failed to fetch dynamically imported module/,
   /Importing a module script failed/,
+  /error loading dynamically imported module/i,
 ];
 
 /** 库言词典（2B5 D3——[pattern, 摘要][] 序匹配先命中先用；词条可扩=
- *  后续批加词条零机制改。种子三族：Minified React error/THREE.
- *  WebGLRenderer〔M5 前置种子〕）。 */
+ *  后续批加词条零机制改。种子两族：Minified React error/THREE.
+ *  WebGLRenderer〔M5 前置种子〕——chunk 族归 CHUNK_MESSAGE_PATTERNS，
+ *  词典实码两词条与 D3 基准一致（回炉 R3 勘误：原注「三族」系把
+ *  chunk 族并入误计）。 */
 const LIBRARY_ERROR_DICTIONARY: readonly (readonly [RegExp, string])[] = [
   [/Minified React error/, "界面组件内部错误，请重试"],
   [/THREE\.WebGLRenderer/, "三维渲染环境不可用（显卡/浏览器支持不足）"],
@@ -138,6 +141,7 @@ export class ErrorBoundary extends React.Component<
   }
 
   render() {
+    // graded 与 hasError 恒同置（GDSFE 单点写入）——窄化防御（回炉 R6）
     if (this.state.hasError && this.state.graded !== null) {
       return (
         <div role="alert">

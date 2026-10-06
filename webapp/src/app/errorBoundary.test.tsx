@@ -10,7 +10,10 @@
  *        Error 归一）；②词典模式匹配（正则族子串命中+分级序 chunk 先
  *        于词典）；③折叠结构（raw 不在主面文本+details 在场默认收起）；
  *        ④重试语义（onRetry 转调恰一次+hasError 复位子树重挂载；无
- *        onRetry 同复位）；⑤label 透出+role=alert 保持。
+ *        onRetry 同复位）；⑤label 透出+role=alert 保持；⑥componentStack
+ *        进折叠区不进主面+重试复位不残留（回炉 R1）；⑦纯函数边界组：
+ *        空 message Error/null/undefined/非 Error 字符串命中 chunk 族
+ *        （回炉 R4）+Firefox 方言小写起头 chunk 命中（回炉 R2）。
  *
  * 规格说明（2B5 brief D2/D3/D4/D7）：
  *   - 纯函数组（queryClient.test.ts errorReportPayload 既有组零弱化——
@@ -100,12 +103,46 @@ describe("gradeClientError 纯函数（D2 三分级+D3 词典）", () => {
     );
     expect(graded.grade).toBe("chunk");
   });
+
+  it("chunk 级 Firefox 方言：小写起头 error loading dynamically imported module 命中（回炉 R2——/i 容错）", () => {
+    const graded = gradeClientError(
+      new Error("error loading dynamically imported module: http://x/siteplanPane.js"),
+    );
+    expect(graded.grade).toBe("chunk");
+    expect(graded.summary).toBe(
+      "页面模块加载失败——多为网络中断或系统刚更新所致，请重试",
+    );
+  });
+
+  it("边界（回炉 R4）：new Error() 空 message→unknown 级+detail 空串", () => {
+    const graded = gradeClientError(new Error());
+    expect(graded.grade).toBe("unknown");
+    expect(graded.summary).toBe(
+      "面板发生未预期错误，请重试；若持续出现请展开诊断详情反馈",
+    );
+    expect(graded.detail).toBe("");
+  });
+
+  it("边界（回炉 R4）：null/undefined 输入→String 归一同管道（unknown 级）", () => {
+    const nulled = gradeClientError(null);
+    expect(nulled.grade).toBe("unknown");
+    expect(nulled.detail).toBe("null");
+    const undef = gradeClientError(undefined);
+    expect(undef.grade).toBe("unknown");
+    expect(undef.detail).toBe("undefined");
+  });
+
+  it("边界（回炉 R4）：非 Error 字符串命中 chunk 族→chunk 级（归一 String 后同管道全验证）", () => {
+    const graded = gradeClientError("Loading chunk 3 failed");
+    expect(graded.grade).toBe("chunk");
+    expect(graded.detail).toBe("Loading chunk 3 failed");
+  });
 });
 
 describe("ErrorBoundary 降级面（jsdom——D4 主面+折叠）", () => {
   afterEach(cleanup);
 
-  it("chunk 级崩溃：主面=面板异常（label）+固定摘要；role=alert 保持", () => {
+  it("chunk 级崩溃：主面=面板异常（label）+固定摘要；role=alert 保持；raw 不在主面（回炉 R5）", () => {
     render(
       <ErrorBoundary label="高程纵断">
         <Boom error={new Error("Loading chunk 7 failed.")} />
@@ -116,6 +153,7 @@ describe("ErrorBoundary 降级面（jsdom——D4 主面+折叠）", () => {
     expect(
       screen.getByText("页面模块加载失败——多为网络中断或系统刚更新所致，请重试"),
     ).toBeTruthy();
+    expect(faceWithoutDetails()).not.toContain("Loading chunk 7 failed.");
   });
 
   it("词典级崩溃：Minified React error 摘要在场", () => {
@@ -173,6 +211,17 @@ describe("ErrorBoundary 降级面（jsdom——D4 主面+折叠）", () => {
     ).toBeTruthy();
     expect(container.querySelector("details")?.textContent).toContain("裸字符串异常");
   });
+
+  it("componentStack 进诊断折叠区（栈帧「at Boom」在场）且不在主面（回炉 R1①②）", () => {
+    const { container } = render(
+      <ErrorBoundary label="高程纵断">
+        <Boom error={new Error("Loading chunk 4 failed.")} />
+      </ErrorBoundary>,
+    );
+    const details = container.querySelector("details");
+    expect(details?.textContent).toContain("at Boom");
+    expect(faceWithoutDetails()).not.toContain("at Boom");
+  });
 });
 
 describe("ErrorBoundary 重试语义（R1 口径——onRetry 转调+复位）", () => {
@@ -217,5 +266,28 @@ describe("ErrorBoundary 重试语义（R1 口径——onRetry 转调+复位）",
     fireEvent.click(screen.getByRole("button", { name: "重试" }));
     expect(screen.getByRole("status").textContent).toBe("已恢复");
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("重试复位后诊断栈不残留（alert 退场+details 退场即证复位——回炉 R1③）", () => {
+    let detonate = true;
+    function Fickle() {
+      if (detonate) {
+        throw new Error(
+          "Failed to fetch dynamically imported module: http://x/a.js",
+        );
+      }
+      return <div role="status">已恢复</div>;
+    }
+    const { container } = render(
+      <ErrorBoundary label="研究">
+        <Fickle />
+      </ErrorBoundary>,
+    );
+    expect(container.querySelector("details")?.textContent).toContain("at Fickle");
+    detonate = false;
+    fireEvent.click(screen.getByRole("button", { name: "重试" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(container.querySelector("details")).toBeNull();
+    expect(container.textContent ?? "").not.toContain("at Fickle");
   });
 });
