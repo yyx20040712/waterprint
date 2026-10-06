@@ -262,3 +262,42 @@ def test_run_full_calc_default_constraints_unchanged() -> None:
     first = serialize(_golden_bundle(()).plant)
     second = serialize(_golden_bundle(()).plant)
     assert first == second
+
+
+# ── sparse 部分帧+混合定级（errmap E4——flag/block 同集语义锚）──────────
+
+
+def test_gate_sparse_partial_frame_flag_violation_passes() -> None:
+    """errmap E4 ①：design 帧**部分在场**（node_a 在且 v=120 越门；node_b
+    在 units map 同 kind 但帧内缺席）+flag 越门条目（v<=100）+block 通过
+    条目（v<=1000）→None——部分帧只评在场节点；flag 永不阻断。"""
+    plant = _plant({
+        "design": {"node_a": {"v": 120.0}},  # node_b 缺席（sparse 部分帧）
+        "avg": {"node_a": {"v": 10.0}, "node_b": {"v": 10.0}},
+    })
+    units = _units_map({"node_a": "kind_x", "node_b": "kind_x"})
+    constraints = (
+        _kb("kb.stub.sparse-flag", "v <= 100", ("kind_x",), enforcement="flag"),
+        _kb("kb.stub.sparse-block", "v <= 1000", ("kind_x",)),  # block 但通过
+    )
+    assert _gate(plant, constraints, units=units) is None
+
+
+def test_gate_sparse_mixed_block_only_in_violations() -> None:
+    """errmap E4 ②（混合定级）：同部分帧；约束集=flag 越门+block 越门（同
+    v<=100）→raise KbBlockError 且 violations 恰一联=在场节点×block 键
+    ——**缺席节点不合成、flag 条目不入 violations**（定级语义锚）。"""
+    plant = _plant({
+        "design": {"node_a": {"v": 120.0}},  # node_b 缺席（不合成违规）
+        "avg": {"node_a": {"v": 10.0}, "node_b": {"v": 10.0}},
+    })
+    units = _units_map({"node_a": "kind_x", "node_b": "kind_x"})
+    constraints = (
+        _kb("kb.stub.sparse-flag", "v <= 100", ("kind_x",), enforcement="flag"),
+        _kb("kb.stub.sparse-block", "v <= 100", ("kind_x",)),
+    )
+    with pytest.raises(KbBlockError) as excinfo:
+        _gate(plant, constraints, units=units)
+    assert excinfo.value.violations == (
+        ("node_a", "kb.stub.sparse-block", "geometry_guard"),
+    )

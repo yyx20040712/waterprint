@@ -117,3 +117,65 @@ def test_cli_bad_kb_exits_validation(
         "--out", str(tmp_path / "r.json"),
     ]) == 3
     assert "校验失败" in capsys.readouterr().err
+
+
+def test_cli_kb_block_exits_calculation(
+    golden_data_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """④kb 阻断→退出码 4（errmap E2 持久测试）：真源 155 条拷贝+追加一条
+    违规 block 条目（aao design 帧 n=2 违反 n<=0——core test_run_full_calc_
+    constructed_violation_raises 同源锚）→KbBlockError 入 _CALC_FAILURES
+    执行期族收编→main==4+stderr 含「计算失败」与 violated key。"""
+    copied = _copy_project(golden_data_dir, tmp_path)
+    data_dir = _data_dir_without_kb(tmp_path)
+    kb_dir = data_dir / "constraint_kb"
+    kb_dir.mkdir()
+    raw = json.loads(
+        (_REPO_DATA / "constraint_kb" / "constraints.json").read_text(encoding="utf-8")
+    )
+    raw["entries"].append({
+        "key": "kb.stub.cli-block",
+        "kind": "geometry_guard",
+        "unit_kinds": ["municipal_aao"],
+        "label": "CLI 阻断退出码探针（构造越门 n<=0）",
+        "expression": "n <= 0",
+        "source": "测试构造（errmap E2）",
+        "severity": "ERROR",
+        "enforcement": "block",
+        "value_basis": "测试构造",
+    })
+    (kb_dir / "constraints.json").write_text(
+        json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+    assert main([
+        "calc", str(copied), "--conditions", "municipal_aao",
+        "--data-dir", str(data_dir), "--out", str(tmp_path / "r.json"),
+    ]) == 4
+    stderr = capsys.readouterr().err
+    assert "计算失败" in stderr  # _CALC_FAILURES 族消息前缀（退出码 4 面）
+    assert "kb.stub.cli-block" in stderr  # violated key 透出（消息含逐条 key）
+
+
+def test_calc_failures_family_real_classes_quantified() -> None:
+    """errmap E2 族锚：_CALC_FAILURES 六真类绑定全量化。
+
+    ①六真类逐一 in _CALC_FAILURES（对象同一性——类经定义模块 import，
+    core 类改名→ImportError 红；改名后新类对象≠表内旧引用→同一性红）；
+    ②len==6+名称集合恒等（移除/换名/加项均红——表级全量化锚）。"""
+    from waterprint.cli_calc import _CALC_FAILURES
+    from waterprint.contracts.manifest_validation import InvalidUnitConfig
+    from waterprint.contracts.ports import InvalidConnection
+    from waterprint.graph.executor_dsl import InvalidExecutionError
+    from waterprint.graph.loop import LoopDivergence
+    from waterprint.graph.nodes import InvalidNodeError
+    from waterprint.solution.constraints import KbBlockError
+
+    real_classes = (
+        LoopDivergence, InvalidNodeError, InvalidConnection,
+        InvalidUnitConfig, InvalidExecutionError, KbBlockError,
+    )
+    for cls in real_classes:  # tuple 成员判定=逐元素 ==（类默认==即对象同一性）
+        assert cls in _CALC_FAILURES
+    assert len(_CALC_FAILURES) == 6
+    assert {cls.__name__ for cls in _CALC_FAILURES} == {
+        cls.__name__ for cls in real_classes
+    }
