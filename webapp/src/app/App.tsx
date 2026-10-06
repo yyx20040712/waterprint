@@ -1,99 +1,51 @@
 /**
- * 应用壳：布局骨架+标签路由状态机+Providers 组合（app 层组合面）。
+ * 应用壳：B-1 四区骨架布局+槽路由状态机+Providers 组合（app 层组合面；
+ * M1 批 2026-10-06 四区重写——draft-ia-v3 §3 B-1 形态单源+mapping-2b4
+ * 落位；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1 四区）。
  *
- * 输入: 各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
- *        层）+URL ?tab=/（UX1 D2 初值三级解析）?task=（深链意图判据）
- * 输出: 应用布局（§19.2 骨架：顶栏/左侧单元库（M2 实装=UnitLibrary）/
- *       中央标签工作区）——
- *       Providers 包裹（ConfigProvider 深色+QueryClient）+Tabs activeKey
- *       状态机（onChange 经 replaceState 写 ?tab=——路由态 URL 持久化）
+ * 输入:  各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
+ *        层）+URL ?project=/（useProjectId）?tab=（两级值域+兼容归一）
+ *        ?task=/?enum=（深链意图）?token=（首参引导）
+ * 输出:  四区骨架：Header（48px——品牌区+项目徽章｜Ribbon 命令带｜项目
+ *        管理/AI 连接/设计对话〔维持至 M7〕/设置）+中部三列（左列
+ *        var(--wp-pane-left) 双区+中央五槽 Tabs〔wp-scroll-tabs 承袭〕+
+ *        右列 var(--wp-pane-right) 上下二分〔纵向分隔可拖〕）+StatusBar
+ *        （24px）——画布常驻挂载隐藏（destroyInactiveTabPane=false）
  *
- * 规格说明（FE3 批 6b 段一，D1/D8 实装；FE6 批 6b 段四 D1 扩六值标签；
- *   FE8 批 6b 段六 cost 标签实装替换占位屏；FE9 批 6b 段七 drawings
- *   标签实装替换占位屏——六标签全实装，占位屏组件退役删除；UX1 批
- *   6b 段八 D2 增 ?tab= 路由态进 URL；R2-A 批 2 增 token 运行期面；
- *   M3 批 2026-09-03 D2 扩七值：siteplan=厂区布置，插 canvas 后第二位；
- *   C1 批 2026-09-10 主题骨架批：滚动容器重构+顶栏品牌区+状态栏）：
- *   - 路由机制定 D1=AntD Tabs 状态机：activeKey 用 useState（默认 canvas；
- *     路由名与次序=router.tsx AppRoute 冻结面七值 canvas/siteplan/
- *     solutions/viewer3d/elevation/drawings/cost——solutions 插 canvas 后=
- *     设计→看方案用户流程，siteplan 插第二位=设计→布置就近（M3 D2）；
- *     elevation/drawings/cost 次序沿 FE3 五值面——R9 勘误
- *     回旧），Tabs activeKey/onChange 驱动——不引入 react-router
- *     （零新依赖纪律；FE3 D1 已定夺机制=状态机——勘误：原注引「router.tsx
- *     头『M2 定型』」该字样现不存在，router 头注实况见其文件）；
- *   - UX1 D2/S4 路由态进 URL：activeKey 初值三级解析——?tab= 合法值
- *     （parseTabParam ROUTES 成员校验）→用之；无 ?tab= 但有 ?task=→
- *     "solutions"（深链意图——?task= 面板在 solutions 标签，直开可见；
- *     I-4 保守预裁维持单参不受扰，仅初值落点不跳转）；缺省 canvas；
- *     onChange 经 withTabParam replaceState 写 ?tab=（他键原序保留）
- *     ——刷新/分享后落点保持；非法 ?tab= 值归 null 走兜底；
- *   - 画布常驻不卸载（D8）：antd Tabs 默认 destroyInactiveTabPane=false
- *     （非激活隐藏不销毁，防画布状态丢失）；路由 view 态持久化=UX1
- *     D2 ?tab= URL 面（原挂账行收口——view 态不参与 content-hash 维持）；
- *   - viewer3d 标签=Viewer3dPane（懒加载 Scene 独立 chunk §12.6；面板级
- *     ErrorBoundary 在其内）；canvas 标签=CanvasPane（FE4：默认标签首屏
- *     直渲染只读工艺画布——D4 不 lazy，URL ?project= 与 viewer3d 共用）；
- *     siteplan 标签=SiteplanPane（M3：design.site 厂区布置编辑器——原生
- *     SVG 自绘零新依赖，?project= 只读订阅+空态引导）；
- *     solutions 标签=SolutionsPane（FE6：单单元枚举提交→SSE 任务进度→
- *     分页方案表→行级应用——URL ?task= 联动，与 ?project= 双参共存）；
- *     elevation 标签=ElevationPane（FE7：latest done calc 纵断投影——
- *     懒加载 ProfileChart（echarts 独立 chunk）+工况切换+提升面板，
- *     "wp:task" 事件桥 invalidate 刷新）；trust 标签=TrustPane（P2 次批
- *   2026-09-12：结果可信度报告——ADR-012 D8 第八标签，全工况聚合
- *   无工况切换）；cost 标签=CostPane（FE8：
- *     latest done calc 四模块概算装配——分级汇总表+可折叠溯源+指标
- *     对照卡+工况切换，"wp:task" 事件桥第四处）；
- *     drawings 标签=DrawingsPane（FE9：dxf 单元图导出+产物目录+元数据
- *     预览卡——工况/单元源 cost/projects 同键缓存共享，"wp:task" 事件
- *     桥第五处）；占位屏组件随 FE9 退役删除（宪法 §2 死代码即删——
- *     六标签零消费面）；
- *   - 本文件只做布局与路由组合；业务交互一律在 features 内（§13.5）；
- *   - R2-A 批 2 D2 ?token= 首参引导：编排=模块加载期最早时点（先于任何
- *     React Query 请求；StrictMode 双挂载安全——幂等写+剥离）；分层预裁
- *     本编排只能在 app 层（shared/api 的 token.ts 不得 import 本层
- *     projectParam——分层禁令），main.tsx 零触碰；读 parseTokenParam
- *     →非 null 则 setApiToken+replaceState 剥离（他键原序保留）；
- *     R 轮 G1-02/07 复核（2026-09-02）：node 无 window 守卫跳过；trim
- *     非空才写（纯空白仅剥离不落库——写入面口径两分记于顶层块注）；
- *   - R2-A 批 2 D5 连接设置入口：Header 设置按钮（齿轮，静默常驻——
- *     token 空默认不自动弹零请求扰动）+TokenSettingsModal（保存/清除/
- *     关闭——零即时校验）；D4 自愈回路=useEffect 监听 AUTH_EVENT（401
- *     派发方 shared/api/http.ts）自动开 Modal，卸载移除监听；
- *   - M2 左侧 Sider=UnitLibrary 单元库浏览（app 层薄壳：四线分组树+
- *     搜索+Drawer 详情——组装面在 ./unitLibraryTree 纯函数；onNavigateTab
- *     复用 handleTabChange 切 canvas——AppRoute 七键冻结面零扩，单元库=
- *     Sider UI 态不进 URL）；C2-lib 图标行重制+libraryFocusId 受控
- *     （App 持态→Sider[Drawer 开闭]与 CanvasPane[画布定位光环]双穿线
- *     ——briefs/task-C2-lib-plan.md §二 U3）；
- *   - C1 滚动容器骨架（需求①根治——task-C1-plan.md §3c）：根 Layout
- *     100vh+overflow hidden，document 级整页滚动根除；滚动域下放=Tabs
- *     内容层（className wp-scroll-tabs——global.css 结构微调：content-
- *     holder overflow auto 每标签统一滚动域）+Sider 自滚（overflow auto
- *     ）+内层 Layout/Content minHeight 0 收敛——原 Content/Tabs 零约束
- *     致滚出窗口暴露 body 底色（c-analysis S3 实证）；画布标签内部
- *     CanvasFlow 560 固定高自含（React Flow fitView 自管，二期重制面）；
- *   - C1 顶栏品牌区+状态栏（方向 A「深海工程台」呈裁通过 2026-09-10）：
- *     品牌区=水滴标（radial-gradient+鎏金描边阴影）+「智水蓝图
- *     WaterPrint」双语名；顶栏底=wp-gold-edge 鎏金收边线（global.css）；
- *     StatusBar 挂根 Layout 内（flex 列末项——100vh 内不被推出视口）；
- *     Sider 宽 280→232+去 theme light（token siderBg 承载）；
- *   - FE-2（批 2026-09-30）：九非 canvas 页签 React.lazy+Suspense 逐 pane
- *     包裹（首激活才拉 chunk——主包减半；canvas 默认标签首屏直渲染
- *     不懒[既有规格 D4]；fallback=PaneLoading 薄组件，禁 Tabs 外层单包
- *     ——fallback 会吞掉页签头）；R1/R2：逐 pane ErrorBoundary 隔离可
- *     重试+首帧门随项目复位。
+ * 规格说明（brief D3 逐条）：
+ *   - 切槽唯一通道 setTab(target)：槽条/模型树/子面条/Ribbon 全经此；写
+ *     URL=withTabParam replaceState（他键原序保留——UX1 D2 承袭）；mount
+ *     不改写地址栏（兼容值留 URL 至下次切槽——边缘语义 a：opsdebug 不
+ *     改写+全族刷新幂等）；初值=?tab= 合法〔含兼容归一〕→用之，无 ?tab=
+ *     但有 ?task=/?enum=→studio.study（边缘 c 对称），缺省 canvas；
+ *   - 左列=模型树+单元库（原件移入 props 面零改；两区各自 overflow:auto
+ *     +1px 分隔线）；右列二分=Settings 窗（projectId null=提示；否则挂
+ *     ParamTabs〔feasibility 四件 M2〕）+AI 席位容器（M7 占位空态）；
+ *     纵向分隔可拖（Q8 先例：主键判定+pointercancel+卸载清理；位置会话
+ *     内不进 URL；下限 360=tokens-2b3 判据/上限=视口净高−席位最小高）；
+ *   - selectedUnitId 提升 App（切项目清陈旧 effect——现状 pane 本地态未
+ *     清为存量瑕疵根治；树选中联动 M2）；下穿 canvasPane+Settings 窗；
+ *   - 中央五槽（次序=router.SLOTS 单源）：canvas 槽=CanvasPane 直渲染
+ *     （D4 不 lazy）；其余四槽=LazyPane 懒装载（childProps 扩展——studio
+ *     槽受控下穿）；solutionsPane/opsDebugPane 退役删除（提交面迁
+ *     Ribbon/诊断面 M7；兼容映射承载旧深链）；
+ *   - 列宽令牌物理落地（tokens-2b3 §A=定义与消费同步）：global.css :root
+ *     增 --wp-pane-left/right，本文件 width 经 var() 消费（M1 不拖拽）；
+ *   - R2-A 批 2 沿现状：?token= 首参引导/401 自愈回路/四浮层（ChatPane
+ *     入口钮维持至 M7——席位常驻后退役）。
  */
 import { FolderOpenOutlined, MessageOutlined, SettingOutlined } from "@ant-design/icons";
-import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Button, Layout, Spin, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { ModelTree } from "./modelTree";
+import { ParamTabs } from "../features/params/components/ParamTabs";
 import { ProjectManagerModal } from "./projectManagerModal";
 import { Providers } from "./providers";
-import type { TabTarget } from "./router";
+import { Ribbon } from "./ribbon";
+import type { SlotId, StudioSubface, TabTarget } from "./router";
 import {
   clearTokenParam,
   parseEnumParam,
@@ -112,30 +64,18 @@ import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
 
-/** FE-2（brief P1）：九 pane 懒装载器（模块级具名常量——then 包装取
- *  named export；canvas 不懒=D4 既有规格）。R1 F2：loader 形态供 LazyPane
- *  以新 lazy 实例重建（chunk 失败重试），懒常量退役。 */
+/** 四非 canvas 槽懒装载器（FE-2——then 包装取 named export；studio 槽
+ *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载）。 */
 const siteplanLoader = () => import("./siteplanPane").then((m) => ({ default: m.SiteplanPane as ComponentType }));
-const solutionsLoader = () => import("./solutionsPane").then((m) => ({ default: m.SolutionsPane as ComponentType }));
 const viewer3dLoader = () => import("./viewer3dPane").then((m) => ({ default: m.Viewer3dPane as ComponentType }));
 const elevationLoader = () => import("./elevationPane").then((m) => ({ default: m.ElevationPane as ComponentType }));
-const drawingsLoader = () => import("./drawingsPane").then((m) => ({ default: m.DrawingsPane as ComponentType }));
-const costLoader = () => import("./costPane").then((m) => ({ default: m.CostPane as ComponentType }));
-const compareLoader = () => import("./comparePane").then((m) => ({ default: m.ComparePane as ComponentType }));
-const trustLoader = () => import("./trustPane").then((m) => ({ default: m.TrustPane as ComponentType }));
-const opsDebugLoader = () => import("./opsDebugPane").then((m) => ({ default: m.OpsDebugPane as ComponentType }));
+const studioLoader = () => import("./studioPane").then((m) => ({ default: m.StudioPane as ComponentType }));
 
 /** 页签装载占位（FE-2——Spin 居中+统一文案，薄组件）。 */
 function PaneLoading() {
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        minHeight: 240,
-      }}
+      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 240 }}
     >
       <Spin />
       <span>页面加载中…</span>
@@ -143,36 +83,45 @@ function PaneLoading() {
   );
 }
 
-/** 懒页签隔离壳（R1 F2=viewer3dPane R1 先例泛化）：lazy 实例持入 state
- *  ——React.lazy 的 thenable 跨挂载持久，chunk 拉取失败后复位边界不重执
- *  行 import，重试经 ErrorBoundary onRetry 以新 lazy(load) 实例重建；
- *  单 pane chunk 失败只打掉该页签可重试，不冒泡根边界（main.tsx 根
- *  边界=P1-1 既有最后防线不变）。 */
-function LazyPane({ label, load }: { label: string; load: () => Promise<{ default: ComponentType }> }) {
+/** 懒页签隔离壳（R1 F2=viewer3dPane R1 先例泛化；M1 childProps 扩展：
+ *  懒件按 props 透传重渲——studio 槽受控面经此下穿）。 */
+function LazyPane({
+  label,
+  load,
+  childProps,
+}: {
+  label: string;
+  load: () => Promise<{ default: ComponentType }>;
+  childProps?: Record<string, unknown>;
+}) {
   const [Pane, setPane] = useState(() => lazy(load));
   return (
     <ErrorBoundary label={label} onRetry={() => setPane(lazy(load))}>
       <Suspense fallback={<PaneLoading />}>
-        <Pane />
+        <Pane {...(childProps ?? {})} />
       </Suspense>
     </ErrorBoundary>
   );
 }
 
-const { Sider, Content, Header } = Layout;
+/** studio 子面懒装载注入（App 单源 LazyPane——studioPane 零反向 import）。 */
+function renderLazyPane(label: string, load: () => Promise<{ default: ComponentType }>): ReactNode {
+  return <LazyPane label={label} load={load} />;
+}
 
-// R2-A 批 2 D2：?token= 首参引导（模块加载期最早时点——先于任何 React
-// Query 请求；StrictMode 双挂载安全：幂等写+剥离）。分享链带凭证形态：
-// 读 ?token= →trim 非空写 localStorage+replaceState 剥离 token 键
-// （防令牌驻留地址栏/进入分享截图——他键 project/task 原序保留）。
-// R 轮 G1-02：node 面（无 window）守卫跳过——浏览器语义与时序不变
-// （顶层块仍在任何 React 渲染/fetch 之前）。
-// R 轮 G1-07 两条写入面口径：首参引导 trim 空=不写仅剥离（URL 引导
-// 不覆盖既有 localStorage 配置）；Modal 保存 trim 空=清除（tokenSettings-
-// Modal 用户显式动作剥令牌）——共通面=纯空白 token 永不落库。
-// IDLE-Q4 G1-03（2026-09-02）：replaceState 重拼 URL 拼接 location.hash
-// ——当前全库零 hash 消费面（二审实证在册），纯防御性收口：未来引入
-// hash 路由时首参引导不再静默丢 hash。
+/** 右列纵向拖拽限位（D3：下限=tokens-2b3 判据 Settings 高 360；上限=
+ *  视口净高〔−顶栏 48−状态栏 24〕−席位最小高 140——会话内 state 不进 URL）。 */
+const SETTINGS_MIN_HEIGHT = 360;
+const SETTINGS_DEFAULT_HEIGHT = 480;
+const SEAT_MIN_HEIGHT = 140;
+const HEADER_HEIGHT = 48;
+const STATUSBAR_HEIGHT = 24;
+
+const { Content, Header } = Layout;
+
+// R2-A 批 2 D2：?token= 首参引导（模块加载期最早时点，先于任何 React
+// Query 请求；StrictMode 双挂载安全=幂等写+剥离；他键原序保留；G1-03
+// node 面守卫跳过；G1-07 trim 空=不写仅剥离；G1-03 重拼 URL 含 hash）。
 if (typeof window !== "undefined") {
   const bootstrapToken = parseTokenParam(window.location.search);
   if (bootstrapToken !== null) {
@@ -190,99 +139,123 @@ if (typeof window !== "undefined") {
   }
 }
 
-/** M1 ①笔过渡 shim：两级 TabTarget→旧十键面映射（⑤笔四区重写退役——
- * 旧 Tabs 仍在场期间保持编译/行为往返一致：studio.study→solutions、
- * studio.四子面→同名旧键；反向同构见 handleTabChange）。 */
-function targetToLegacyKey(target: TabTarget): string {
-  if (target.slot !== "studio") {
-    return target.slot;
-  }
-  return target.subface === "study" ? "solutions" : (target.subface ?? "study");
-}
-
-/** UX1 D2/S4 初值三级解析（M1 两级承袭）：?tab= 合法值（含兼容归一）→
- * 用之；无 ?tab= 有 ?task= 或 ?enum=→studio.study（深链意图——旧 solutions
- * 键位；仅初值落点不跳转）；缺省 canvas（FE3 D1 面）。 */
-function initialRoute(): string {
+/** D2 初值三级解析：?tab= 合法（含兼容归一）→用之；无 ?tab= 但有 ?task=
+ *  或 ?enum=→studio.study（深链意图——边缘语义 c+enum 对称处理）；缺省
+ *  canvas；mount 不改写地址栏（边缘语义 a 统一规则）。 */
+function initialTarget(): TabTarget {
   const target = parseTabParam(window.location.search);
   if (target !== null) {
-    return targetToLegacyKey(target);
+    return target;
   }
-  const hasTaskDeepLink =
+  const hasDeepLink =
     parseTaskParam(window.location.search) !== null ||
     parseEnumParam(window.location.search) !== null;
-  return hasTaskDeepLink ? "solutions" : "canvas";
+  return hasDeepLink ? { slot: "studio", subface: "study" } : { slot: "canvas" };
 }
 
 export function App() {
-  const [activeKey, setActiveKey] = useState<string>(initialRoute);
-  // R2-A 批 2 D5：连接设置 Modal 开态（入口=Header 齿轮按钮+401 自愈回路）
+  const [activeTarget, setActiveTarget] = useState<TabTarget>(initialTarget);
+  // studio 会话子面记忆（槽条回切 studio 恒带 subface——parse 归一同构）
+  const lastStudioSubface = useRef<StudioSubface>(
+    activeTarget.slot === "studio" ? activeTarget.subface ?? "study" : "study",
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
-  // AI2（2026-09-13）：AI 接入 Modal 开态（入口=Header AiConnectButton——
-  // 状态四项检查+一键接入 waterprint-mcp）
   const [aiConnectOpen, setAiConnectOpen] = useState(false);
-  // B4-4b 子批 2：设计对话 Drawer 开态（浮层形态零路由破面——aiconnect 先例）
   const [chatOpen, setChatOpen] = useState(false);
-  // P2 生命周期 L4：项目管理 Modal 开态（入口=Header 文件夹钮+空态钮双入口）
   const [managerOpen, setManagerOpen] = useState(false);
-  // C1 顶栏项目徽章（视觉稿件）：当前项目上下文指示（截断 id——全量在状态栏）
   const [projectId] = useProjectId();
-  // C2-lib 联动态（U3）：单元库叶选中=Drawer 开闭+画布定位光环同源
-  // （App 持态受控穿线——FE5 D2 selectedUnitId 同制；生命周期=Drawer
-  // 开闭，关抽屉=解除）
   const [libraryFocusId, setLibraryFocusId] = useState<string | null>(null);
+  // D7：画布选中提升 App（联动源=画布选中；树选中联动 M2）——切项目清
+  // 陈旧（现状 pane 本地态未清为存量瑕疵，提升时一并根治）
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  useEffect(() => {
+    setSelectedUnitId(null);
+  }, [projectId]);
+  // D3 右列纵向分隔拖拽（canvasPane Q8 先例：主键判定+pointercancel+
+  // 卸载清理；位置会话内不进 URL）
+  const [settingsHeight, setSettingsHeight] = useState(SETTINGS_DEFAULT_HEIGHT);
+  const dragging = useRef<{ startY: number; startHeight: number } | null>(null);
+  const onDividerPointerMove = useCallback((event: PointerEvent) => {
+    const drag = dragging.current;
+    if (drag === null) {
+      return;
+    }
+    const max = window.innerHeight - HEADER_HEIGHT - STATUSBAR_HEIGHT - SEAT_MIN_HEIGHT;
+    const height = drag.startHeight - (event.clientY - drag.startY);
+    setSettingsHeight(Math.max(SETTINGS_MIN_HEIGHT, Math.min(max, height)));
+  }, []);
+  const onDividerPointerUp = useCallback(() => {
+    dragging.current = null;
+    document.body.style.cursor = "";
+    document.removeEventListener("pointermove", onDividerPointerMove);
+    document.removeEventListener("pointerup", onDividerPointerUp);
+    document.removeEventListener("pointercancel", onDividerPointerUp);
+  }, [onDividerPointerMove]);
+  const onDividerPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) {
+        return; // GP-N-02：仅主键启动拖拽
+      }
+      dragging.current = { startY: event.clientY, startHeight: settingsHeight };
+      document.body.style.cursor = "row-resize";
+      document.addEventListener("pointermove", onDividerPointerMove);
+      document.addEventListener("pointerup", onDividerPointerUp);
+      document.addEventListener("pointercancel", onDividerPointerUp); // GP-N-01
+    },
+    [settingsHeight, onDividerPointerMove, onDividerPointerUp],
+  );
+  // GP-02：拖拽途中卸载→document 监听与 body.cursor 兜底清理
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("pointermove", onDividerPointerMove);
+      document.removeEventListener("pointerup", onDividerPointerUp);
+      document.removeEventListener("pointercancel", onDividerPointerUp);
+      document.body.style.cursor = "";
+    };
+  }, [onDividerPointerMove, onDividerPointerUp]);
 
   // R2-A 批 2 D4/D5 自愈回路：customInstance 401 → AUTH_EVENT → 自动开
-  // 连接设置（错 token 用户改对的引导面）；卸载移除监听。
+  // 连接设置；卸载移除监听。
   useEffect(() => {
     const openSettings = () => setSettingsOpen(true);
     window.addEventListener(AUTH_EVENT, openSettings);
     return () => window.removeEventListener(AUTH_EVENT, openSettings);
   }, []);
 
-  /** UX1 D2/S4（M1 ①笔过渡 shim）：旧十键→两级 target 映射（solutions→
-   * studio.study/四结果键→studio.同名/opsdebug→canvas——兼容映射逆表；
-   * ⑤笔四区重写后槽条直产 target，shim 退役）。 */
-  const handleTabChange = (key: string) => {
-    setActiveKey(key);
-    let target: TabTarget;
-    if (key === "solutions") {
-      target = { slot: "studio", subface: "study" };
-    } else if (key === "drawings" || key === "cost" || key === "compare" || key === "trust") {
-      target = { slot: "studio", subface: key };
-    } else if (key === "opsdebug") {
-      target = { slot: "canvas" };
-    } else {
-      target = { slot: key as TabTarget["slot"] };
+  /** D3 切槽唯一通道：槽条/模型树/子面条/Ribbon 全部经此——replaceState
+   *  写 ?tab=（他键原序保留；studio 恒归一带 subface）。 */
+  const setTab = (target: TabTarget) => {
+    const next: TabTarget =
+      target.slot === "studio" && target.subface === undefined
+        ? { slot: "studio", subface: "study" }
+        : target;
+    if (next.slot === "studio") {
+      lastStudioSubface.current = next.subface ?? "study";
     }
-    const search = withTabParam(window.location.search, target);
-    window.history.replaceState(
-      null,
-      "",
-      search ? `${window.location.pathname}?${search}` : window.location.pathname,
-    );
+    setActiveTarget(next);
+    const search = withTabParam(window.location.search, next);
+    window.history.replaceState(null, "", search ? `${window.location.pathname}?${search}` : window.location.pathname);
   };
+  const handleSlotChange = (key: string) => {
+    setTab(key === "studio" ? { slot: "studio", subface: lastStudioSubface.current } : { slot: key as SlotId });
+  };
+  const handleSubfaceChange = useCallback((subface: StudioSubface) => {
+    setTab({ slot: "studio", subface });
+  }, []);
+  const studioSubface =
+    activeTarget.slot === "studio"
+      ? activeTarget.subface ?? "study"
+      : lastStudioSubface.current;
+
   return (
     <Providers>
-      {/* C1 滚动容器骨架（需求①根治）：100vh 布局+overflow 每层收敛——
-          document 级整页滚动根除（原 Content/Tabs 零约束→滚出窗口暴露
-          body 底色）；滚动域=Tabs 内容层（wp-scroll-tabs）+Sider 自滚 */}
       <Layout style={{ height: "100vh", overflow: "hidden" }}>
         <Header
           className="wp-gold-edge"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 16px",
-            flex: "none",
-          }}
+          style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 16px", flex: "none" }}
         >
-          {/* C1 品牌区：水滴标+双语名（G1-03 R 轮：--wp-water/--wp-gold
-              经 var()/color-mix 消费；#1d5fd0/#0e3a8f/#cfe6ff 与投影
-              rgba(29,95,208,.35)=品牌装饰色，不入语义轴——渐变造型
-              专用值，登记于本注记） */}
-          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* C1 品牌区（现状原件零改）：水滴标+双语名 */}
+          <span style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
             <span
               aria-hidden
               style={{
@@ -313,15 +286,10 @@ export function App() {
             <Typography.Text strong style={{ fontSize: 15, letterSpacing: 0.5 }}>
               智水蓝图
             </Typography.Text>
-            <Typography.Text
-              type="secondary"
-              style={{ fontSize: 12, marginLeft: -2 }}
-            >
+            <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: -2 }}>
               WaterPrint
             </Typography.Text>
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {/* C1 项目徽章（视觉稿件）：绿点=已选项目上下文+截断 id */}
+            {/* C1 项目徽章：绿点=已选项目上下文+截断 id */}
             {projectId === null ? null : (
               <span
                 style={{
@@ -336,23 +304,21 @@ export function App() {
                   color: "var(--wp-text-2)",
                   fontSize: 12,
                   userSelect: "none",
+                  marginLeft: 6,
                 }}
               >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "var(--wp-success)",
-                  }}
-                />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--wp-success)" }} />
                 <span style={{ fontFamily: "var(--wp-font-mono)" }}>
                   {projectId.slice(0, 8)}
                 </span>
               </span>
             )}
-            {/* P2 生命周期 L4：项目管理入口（治理面常驻——文件夹钮开
-                ProjectManagerModal：重命名/复制/删除/打开） */}
+          </span>
+          {/* M1 Ribbon 命令带（Header 中段——四命令定版） */}
+          <span style={{ display: "flex", alignItems: "center", minWidth: 0, flex: 1 }}>
+            <Ribbon projectId={projectId} onNavigate={setTab} />
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 12, flex: "none" }}>
             <Button
               type="text"
               icon={<FolderOpenOutlined />}
@@ -361,9 +327,8 @@ export function App() {
               title="项目管理（重命名/复制/删除）"
               data-testid="wp-open-manager-header"
             />
-            {/* AI2：AI 接入入口（设置图标旁——waterprint-mcp 一键连接引导） */}
             <AiConnectButton onClick={() => setAiConnectOpen(true)} />
-            {/* B4-4b 子批 2：设计对话入口（AI 接入旁——对话编排面） */}
+            {/* B4-4b：设计对话入口（维持至 M7——席位常驻后退役） */}
             <Button
               type="text"
               icon={<MessageOutlined />}
@@ -372,7 +337,6 @@ export function App() {
               title="设计对话（自然语言设计助手）"
               data-testid="wp-chat-open"
             />
-            {/* R2-A 批 2 D5：设置按钮静默常驻（token 空默认不弹不扰动） */}
             <Button
               type="text"
               icon={<SettingOutlined />}
@@ -382,47 +346,52 @@ export function App() {
             />
           </span>
         </Header>
-        <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-          {/* M2：单元库浏览实装替换占位——C1 宽 280→232（工程密度）+自滚；
-              C2-lib：图标行重制+focusId 受控（联动穿线）。
-              C2-ALIGN A1：右缘浅色分割线（direction-a .sider border-right
-              同构——--wp-border-2=#1b2c49=--colorBorderSecondary 同值轴）。 */}
-          <Sider
-            width={232}
+        <Layout style={{ flex: 1, minHeight: 0, overflow: "hidden", flexDirection: "row" }}>
+          {/* M1 左列双区：模型树+单元库（列宽=--wp-pane-left 令牌消费） */}
+          <aside
             style={{
-              overflow: "auto",
+              width: "var(--wp-pane-left)",
               flex: "none",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              background: "var(--wp-bg-container)",
               borderRight: "1px solid var(--wp-border-2)",
             }}
           >
-            <UnitLibrary
-              focusId={libraryFocusId}
-              onFocusChange={setLibraryFocusId}
-              onNavigateTab={() => handleTabChange("canvas")}
-            />
-            {/* 工况面 UX 反馈批件 2：CheckedUnitsPanel 自 Sider 拆除归位
-                comparePane 双页（ADR-018 D4 附勘正——Sider 减负为副产物） */}
-          </Sider>
-          <Content style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+            <div style={{ height: "38%", minHeight: 0, overflow: "hidden" }}>
+              <ModelTree onNavigate={setTab} />
+            </div>
+            <div style={{ height: 1, background: "var(--wp-border-2)", flex: "none" }} />
+            <div data-region="unit-library" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+              <UnitLibrary
+                focusId={libraryFocusId}
+                onFocusChange={setLibraryFocusId}
+                onNavigateTab={() => setTab({ slot: "canvas" })}
+              />
+            </div>
+          </aside>
+          {/* 中央主视图槽条五槽（wp-scroll-tabs 承袭——nav 样式/滚动域/满高链） */}
+          <Content
+            data-region="main-view"
+            style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}
+          >
             <Tabs
               className="wp-scroll-tabs"
-              activeKey={activeKey}
-              onChange={handleTabChange}
+              activeKey={activeTarget.slot}
+              onChange={handleSlotChange}
               items={[
                 {
                   key: "canvas",
                   label: "工艺画布",
-                  children: <CanvasPane libraryFocusId={libraryFocusId} />,
+                  children: (
+                    <CanvasPane libraryFocusId={libraryFocusId} selectedUnitId={selectedUnitId} onSelectedUnitChange={setSelectedUnitId} />
+                  ),
                 },
                 {
                   key: "siteplan",
                   label: "厂区布置",
                   children: <LazyPane label="厂区布置" load={siteplanLoader} />,
-                },
-                {
-                  key: "solutions",
-                  label: "方案浏览",
-                  children: <LazyPane label="方案浏览" load={solutionsLoader} />,
                 },
                 {
                   key: "viewer3d",
@@ -435,36 +404,76 @@ export function App() {
                   children: <LazyPane label="高程纵断" load={elevationLoader} />,
                 },
                 {
-                  key: "drawings",
-                  label: "图纸预览",
-                  children: <LazyPane label="图纸预览" load={drawingsLoader} />,
-                },
-                {
-                  key: "cost",
-                  label: "概算",
-                  children: <LazyPane label="概算" load={costLoader} />,
-                },
-                {
-                  key: "compare",
-                  label: "工况对比",
-                  children: <LazyPane label="工况对比" load={compareLoader} />,
-                },
-                {
-                  key: "trust",
-                  label: "可信度",
-                  children: <LazyPane label="可信度" load={trustLoader} />,
-                },
-                {
-                  key: "opsdebug",
-                  label: "诊断",
-                  children: <LazyPane label="诊断" load={opsDebugLoader} />,
+                  key: "studio",
+                  label: "研究",
+                  children: (
+                    <LazyPane
+                      label="研究"
+                      load={studioLoader}
+                      childProps={{ subface: studioSubface, onSubfaceChange: handleSubfaceChange, renderLazyPane }}
+                    />
+                  ),
                 },
               ]}
             />
           </Content>
+          {/* M1 右列二分（列宽=--wp-pane-right 令牌消费）：上 Settings 属性窗
+              +下 AI 席位容器（M7 占位）；纵向分隔可拖（Q8 先例） */}
+          <aside
+            style={{
+              width: "var(--wp-pane-right)",
+              flex: "none",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              background: "var(--wp-bg-container)",
+              borderLeft: "1px solid var(--wp-border-2)",
+            }}
+          >
+            <section
+              data-region="settings"
+              style={{ height: settingsHeight, flex: "none", display: "flex", flexDirection: "column", minHeight: 0 }}
+            >
+              <div
+                style={{ flex: "none", padding: "6px 10px", borderBottom: "1px solid var(--wp-border-2)", display: "flex", alignItems: "center" }}
+              >
+                <Typography.Text strong>Settings</Typography.Text>
+              </div>
+              <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "8px 10px" }}>
+                {projectId === null ? (
+                  <Typography.Paragraph type="secondary">尚未选择项目——请先在画布槽选择项目</Typography.Paragraph>
+                ) : (
+                  <ParamTabs key={projectId} projectId={projectId} unitId={selectedUnitId} />
+                )}
+              </div>
+            </section>
+            {/* 纵向拖拽把手（8px 命中区+3px 可视条——Q8 视觉稿形态） */}
+            <div
+              onPointerDown={onDividerPointerDown}
+              title="拖拽调整 Settings 窗高度"
+              style={{ height: 8, flex: "none", cursor: "row-resize", position: "relative" }}
+            >
+              <div
+                style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 36, height: 3, borderRadius: 2, background: "var(--wp-border)" }}
+              />
+            </div>
+            <section
+              data-region="ai-seat"
+              style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
+            >
+              <div
+                style={{ flex: "none", padding: "6px 10px", borderBottom: "1px solid var(--wp-border-2)", display: "flex", alignItems: "center" }}
+              >
+                <Typography.Text strong>AI 席位</Typography.Text>
+              </div>
+              <div style={{ padding: "8px 10px" }}>
+                <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                  AI 席位（对话/任务/操作回执）随 M7 批实装——当前对话入口在顶栏按钮。
+                </Typography.Paragraph>
+              </div>
+            </section>
+          </aside>
         </Layout>
-        {/* C1 状态栏：底部全局信息条（项目 id+就绪态——工程软件标配；
-            在根 Layout 内=flex 列末项，不被 100vh 推出视口 */}
         <StatusBar />
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />

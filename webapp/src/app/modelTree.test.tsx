@@ -19,7 +19,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ModelTree } from "./modelTree";
 
 // jsdom 环境缺口补丁（浏览器 API 级——非组件/react-query/antd mock 面：
-// mock 边界纪律沿 paneDomainGate 头注，本处仅补 jsdom 未实现的宿主 API）：
+// mock 边界纪律沿 paneDomainGate 头注，本处仅补 jsdom 未提供的宿主 API）：
 // antd Tree 挂载期消费 ResizeObserver（虚拟列表高度测量），jsdom 无实现。
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {

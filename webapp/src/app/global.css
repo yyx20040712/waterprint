@@ -82,6 +82,12 @@
   --wp-dot-color: #1e3153;
   --wp-dot-size: 24px;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  /* M1 列宽令牌（tokens-2b3 §A 冻结名/默认值——B 线四区骨架左右列物理
+   * 落地；预算总规则 left+right ≤ 652px〔=232+420 恒等〕；消费面=App.tsx
+   * 左右列 width var()〔定义与消费同步纪律——A2-N-06 防死变量，机检面=
+   * app/paneTokens.test〕；左列拖宽+右列随动=后续批裁量，M1 不拖拽）。 */
+  --wp-pane-left: 232px;
+  --wp-pane-right: 420px;
 }
 
 /* ── 高度链与 document 滚动根除（需求①骨架面）── */

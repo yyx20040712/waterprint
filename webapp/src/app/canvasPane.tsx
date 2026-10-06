@@ -1,51 +1,46 @@
 /**
- * canvas 标签页装配：projectId 空态选择+参数侧栏+画布选中态+ErrorBoundary 隔离。
+ * canvas 槽装配：projectId 空态选择+画布选中态（App 受控）+ErrorBoundary
+ * 隔离（M1 批 2026-10-06 析出：参数侧栏段退役——params 承载升右列 Settings
+ * 窗〔App 装配〕；C2-params Q8 侧栏拖拽三 callback+两 effect+SIDEBAR 三
+ * 常量随段全删——D7 析出面）。
  *
  * 输入:  URL ?project= 参数（useProjectId 共享 hook——S3 订阅面/写方）
  *        +useListProjectsApiProjectsGet 项目列表（shared 生成 hook）
- *        +画布节点点击（CanvasFlow onNodeClick→selectedUnitId）
- * 输出:  工艺画布标签页（空态项目选择器 / flex 侧栏组合：参数面板+设计
- *        假设只读清单+CanvasFlow 只读渲染隔离边界）
+ *        +画布节点点击（CanvasFlow onNodeClick→onSelectedUnitChange——
+ *        App 单源受控穿线〔selectedUnitId 提升面：选中鎏金消费+Settings
+ *        窗 ParamTabs unitId 消费；切项目清陈旧归 App effect〕）
+ * 输出:  画布槽（空态项目选择器 / CanvasEditToolbar+CanvasFlow 只读渲染
+ *        隔离边界——wp-full-bleed 满铺）
  *
- * 规格说明（FE4 批 6b 段一 D4/D5+FE5 批 6b 段三 D2/D4；app/viewer3dPane
- *   同构；UX1 批 6b 段八 S3 写方换 useProjectId hook）：
+ * 规格说明（FE4 D4/D5+FE5 D2/D4+UX1 S3+P0-3；M1 批 D7 析出）：
  *   - projectId 单一真相=URL：本 pane=写方（空态 Select onChange 经
  *     useProjectId setter——回写 replaceState+PROJECT_EVENT 写后派发
- *     一步收敛，S3 六 pane 订阅联动；.wp 尾缀归一对称面与服务端 C1
- *     挂账同 FE3）；两标签共用 ?project= 参数（同一项目跨画布/三维
- *     联动语义——各标签独立选择面挂账 UX 批）；
- *   - FE5 选中态（D2 props 提升）：selectedUnitId 本组件 useState 持有
- *     ——CanvasFlow onNodeClick 写入+ParamForm 消费；不建全局 store
- *     （最小面；§17.2 UI 态走 store 红线不阻但单面板无必要——简报 D2）；
- *   - FE5 挂载（D4 左侧固定宽侧栏）：flex 行=params 侧栏 280px+画布余宽
- *     （视觉近似 §19.2 左面板且 selectedUnitId 不跨层）；C2-ALIGN A5r
- *     起 params 侧栏=ParamTabs 双分页容器（约束参数=ParamForm 体/
- *     经验取值=AssumptionsPanel 体——升位自底部假设区，2026-09-12）；
- *     App 层 Sider=UnitLibrary 单元库树（M2 实装替换占位——单元库≠
- *     params，参数编辑面恒在本标签 ParamTabs）；
- *   - D4 不 lazy 不 Suspense：canvas=默认标签首屏必渲染（App activeKey
- *     默认 canvas）——零动态 import，xyflow 进首屏入口 bundle 为预期；
- *   - ErrorBoundary label=工艺画布（渲染崩溃不清空应用 §15 细节 4；
- *     params 两件同界隔离）；不传 onRetry（无 lazy thenable 重建需求——
- *     复位复位态即重挂载，取数经 react-query 有自身重试）；
+ *     一步收敛，S3 各槽订阅联动；.wp 尾缀归一对称面与服务端 C1 挂账
+ *     同 FE3）；各槽共用 ?project= 参数（同一项目跨槽联动语义）；
+ *   - FE5 选中态（D2）：M1 提升 App 受控（原本组件 useState——联动源=
+ *     画布选中；树选中联动=M2）；CanvasFlow onNodeClick 写入经
+ *     onSelectedUnitChange 上抛，选中鎏金消费沿现状；
+ *   - D4 不 lazy 不 Suspense：canvas=默认槽首屏必渲染——零动态 import，
+ *     xyflow 进首屏入口 bundle 为预期；
+ *   - ErrorBoundary label=工艺画布（渲染崩溃不清空应用 §15 细节 4）；
+ *     不传 onRetry（无 lazy thenable 重建需求——复位复位态即重挂载，
+ *     取数经 react-query 有自身重试）；
  *   - 空态=AntD Select：选项来自 GET /api/projects（P0-1/F3：label=
  *     「名称 (id 前 8)」——projectOptionLabel，无名回退全 id）+「新建项目」
  *     CTA（P0-1/F1/F4-文案面：CreateProjectModal 两态——空白新建/导入
- *     JSON；成功经 useProjectId setter 切入）；列表空=指引文案（不再教
- *     API——docs/user-manual.md §3 五步链降级为参考文档）；查询失败=
- *     错误文案（AUDIT2 I-3 纪律维持：不挂建项目引导）；
+ *     JSON；成功经 useProjectId setter 切入）；列表空=指引文案；查询
+ *     失败=错误文案（AUDIT2 I-3 纪律维持：不挂建项目引导）；
  *   - Select 不用占位文案属性（grep 门禁英文占位特征词命中该 prop
  *     名——FE3 C3 同款规避；指引由段落承担）；
- *   - P0-3（task-c2-edit-plan）：画布区顶部挂 CanvasEditToolbar（编辑
- *     会话开关⑤/校验⑦/保存 dirty/常驻提交计算⑥——app 层组合件）；画布
- *     区改 flex 列（工具条+画布满高链不破）。
+ *   - P0-3+M1 解构：画布区顶部挂 CanvasEditToolbar（编辑会话开关⑤/
+ *     保存 dirty/参数草稿徽标——提交计算/校验已迁顶栏 Ribbon）；画布区
+ *     flex 列（工具条+画布满高链不破）。
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Select, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { CanvasFlow } from "../features/canvas/components/CanvasFlow";
-import { ParamTabs } from "../features/params/components/ParamTabs";
 import { useSceneQuery } from "../features/viewer3d/api/useSceneQuery";
 import { ThumbnailStage } from "../features/viewer3d/components/ThumbnailStage";
 import { resolvePngThumbs } from "../features/viewer3d/assemble/thumbSource";
@@ -73,19 +68,18 @@ import { useProjectId } from "./useProjectId";
 const EMPTY_GUIDE =
   "暂无项目：点击「新建项目」创建空白项目或导入已有项目 JSON 文件。";
 
-/** 侧栏宽度：默认 280（C2-params 呈裁④——视觉稿 A 值）+拖拽可调
- * （用户裁选「边界可拉伸」Q8：240~480px clamp——下限=标签列+控件最小
- * 容宽，上限=画布区 min 宽保障）。 */
-const SIDEBAR_DEFAULT = 280;
-const SIDEBAR_MIN = 240;
-const SIDEBAR_MAX = 480;
-
 export function CanvasPane({
   libraryFocusId = null,
+  selectedUnitId = null,
+  onSelectedUnitChange,
 }: {
   /** 单元库定位单元（App 持态穿线——C2-lib U3：命中画布节点水蓝光环
    * wp-lib-hit；null=无定位。生命周期=单元库 Drawer 开闭[关抽屉解除]）。 */
   libraryFocusId?: string | null;
+  /** 画布选中单元（App 受控——M1 提升：选中鎏金消费+Settings 窗联动）。 */
+  selectedUnitId?: string | null;
+  /** 选中写入回调（CanvasFlow onNodeClick 上抛——App 单源）。 */
+  onSelectedUnitChange: (unitId: string | null) => void;
 }) {
   // S3 写方：hook setter 收敛回写 URL+派发（原三行 replaceState 内联退役）
   const [projectId, setProjectId] = useProjectId();
@@ -124,7 +118,7 @@ export function CanvasPane({
   }, [projectId]);
   // C2-thumb V5+GD-01（AUDIT2 R3 DS-03 先例族第六处监听）：apply/ParamForm
   // 重算终态派发 TASK_EVENT→失效 scene 键→同键原地 refetch（GD-01 复位
-  // effect 的真实触发路径——缩略图随重算刷新；viewer3d 标签同键受益）
+  // effect 的真实触发路径——缩略图随重算刷新；viewer3d 槽同键受益）
   useEffect(() => {
     const onTaskParam = () => {
       if (projectId !== null) {
@@ -173,51 +167,6 @@ export function CanvasPane({
       alive = false;
     };
   }, [thumbScene]);
-  // D2 选中态：本组件持有（CanvasFlow 写入/ParamForm 消费——不建 store）
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-  // Q8 侧栏拖拽宽度（会话内 state——纯 UI 偏好不进 URL；view 态写侧挂账）
-  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
-  const dragging = useRef<{ startX: number; startWidth: number } | null>(null);
-  const onHandlePointerMove = useCallback((event: PointerEvent) => {
-    const drag = dragging.current;
-    if (drag === null) {
-      return;
-    }
-    const width = drag.startWidth + (event.clientX - drag.startX);
-    setSidebarWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, width)));
-  }, []);
-  const onHandlePointerUp = useCallback(() => {
-    dragging.current = null;
-    document.body.style.cursor = "";
-    document.removeEventListener("pointermove", onHandlePointerMove);
-    document.removeEventListener("pointerup", onHandlePointerUp);
-  }, [onHandlePointerMove]);
-  const onHandlePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      // GP-N-02（A 二审 R2）：仅主键启动拖拽（右/中键不触发）
-      if (event.button !== 0) {
-        return;
-      }
-      dragging.current = { startX: event.clientX, startWidth: sidebarWidth };
-      document.body.style.cursor = "col-resize";
-      document.addEventListener("pointermove", onHandlePointerMove);
-      document.addEventListener("pointerup", onHandlePointerUp);
-      // GP-N-01（A 二审 R2）：pointercancel（触摸/浏览器手势取消）路径
-      // ——与 pointerup 同收口
-      document.addEventListener("pointercancel", onHandlePointerUp);
-    },
-    [sidebarWidth, onHandlePointerMove, onHandlePointerUp],
-  );
-  // GP-02（D 一审 R 轮）：拖拽途中组件卸载（切项目/标签）→ document
-  // 监听与 body.cursor 兜底清理（pointerup 不触达的泄漏面）
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("pointermove", onHandlePointerMove);
-      document.removeEventListener("pointerup", onHandlePointerUp);
-      document.removeEventListener("pointercancel", onHandlePointerUp);
-      document.body.style.cursor = "";
-    };
-  }, [onHandlePointerMove, onHandlePointerUp]);
   // 空态才拉列表（projectId 已定=deep-link 直进画布，省一次列表请求）
   const projectsQuery = useListProjectsApiProjectsGet({
     query: { enabled: projectId === null },
@@ -226,66 +175,22 @@ export function CanvasPane({
   if (projectId !== null) {
     return (
       <ErrorBoundary label="工艺画布">
-        {/* C2-canvas P2 满高链：flex 行 height 100%（Tabs content/tabpane
-            满高链配套在 global.css）；C2-params Q1：aside 改 flex 列
-            （滚动下放 ParamForm body/假设清单限高面——GR-40 收敛）；
-            Q8 拖拽把手（col-resize——右缘 8px 命中区）；
-            C2-visual D2：wp-full-bleed 满铺回收（tabpane gutter 分策
-            ——画布编辑器面满铺，类内含 height 补偿，内联 height 退役）；
-            C2VD 补笔：底色=var(--wp-bg-container) 面板蓝（direction-a
-            .params background 同构——n+37「左侧面板应用浅蓝」反馈漏网
-            面，D1/Sider 同 token 三源轴[A2-N-01 联动清单]） */}
-        <div className="wp-full-bleed" style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
-          <aside
-            style={{
-              width: sidebarWidth,
-              flexShrink: 0,
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0,
-              background: "var(--wp-bg-container)",
-              borderRight: "1px solid var(--wp-border-2)",
-            }}
-          >
-            {/* C2-ALIGN A5r：参数侧栏=ParamTabs 双分页容器（单元标题+
-                [约束参数|经验取值] Segmented——假设区自底部升位进页，
-                用户澄清 2026-09-12；约束页=ParamForm 体格式零变[选中
-                单元]/提示文案[未选中]，经验页=假设清单恒可达）。
-                原 UNSELECTED_HINT 提示与底部 42% 假设容器退役迁入。 */}
-            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-              <ParamTabs key={projectId} projectId={projectId} unitId={selectedUnitId} />
-            </div>
-            {/* Q8 拖拽把手（视觉稿冻结形态：8px 命中区+3px 可视条 hover 蓝） */}
-            <div
-              onPointerDown={onHandlePointerDown}
-              title="拖拽调整面板宽度"
-              style={{
-                position: "absolute",
-                right: -4,
-                top: 0,
-                bottom: 0,
-                width: 8,
-                cursor: "col-resize",
-                zIndex: 6,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  right: 3,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 3,
-                  height: 36,
-                  borderRadius: 2,
-                  background: "var(--wp-border)",
-                }}
-              />
-            </div>
-          </aside>
+        {/* C2-canvas P2 满高链+M1 D7 析出：参数侧栏段退役（params 承载升
+            App 右列 Settings 窗）——画布区独占满铺；C2-visual D2：wp-full-
+            bleed 满铺回收（tabpane gutter 分策——画布编辑器面满铺，类内含
+            height 补偿）；C2VD 补笔：底色=var(--wp-bg-container) 面板蓝 */}
+        <div
+          className="wp-full-bleed"
+          style={{
+            display: "flex",
+            gap: 12,
+            alignItems: "stretch",
+            background: "var(--wp-bg-container)",
+          }}
+        >
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-            {/* P0-3 编辑工具条（编辑/校验/保存/提交计算——常驻首算钮⑥甲） */}
+            {/* 槽内工具条（M1 解构两态：编辑/退出/保存——提交计算与校验
+                在顶栏 Ribbon 唯一入口） */}
             <CanvasEditToolbar projectId={projectId} />
             <div style={{ flex: 1, minHeight: 0 }}>
               {/* C2-thumb V5：缩略图舞台挂载（离屏——场景数据就绪且投影
@@ -311,7 +216,7 @@ export function CanvasPane({
                 selectedUnitId={selectedUnitId}
                 libraryFocusId={libraryFocusId}
                 unitThumbnails={mergedThumbnails}
-                onNodeClick={setSelectedUnitId}
+                onNodeClick={onSelectedUnitChange}
               />
             </div>
           </div>
