@@ -332,6 +332,7 @@ export function SiteCanvas({
         {/* 道路（实线）/走廊（虚线）：strokeWidth=宽度米——随 zoom 缩放 */}
         {draft.roads.map((road, index) => (
           <polyline key={`road-${index}`} points={pointsAttr(road.centerline)} fill="none"
+            data-testid={`wp-site-road-${index}`}
             stroke={semanticColor("road")} strokeWidth={road.width_m} strokeLinejoin="round"
             strokeLinecap="round" opacity={isSelectedLine(selection, "road", index) ? 1 : 0.75}
             onPointerDown={(event) => {
@@ -343,6 +344,7 @@ export function SiteCanvas({
         ))}
         {draft.corridors.map((corridor, index) => (
           <polyline key={`corridor-${index}`} points={pointsAttr(corridor.centerline)} fill="none"
+            data-testid={`wp-site-corridor-${index}`}
             stroke={corridorColor(corridor.kind)} strokeWidth={corridor.width_m}
             strokeDasharray={isSelectedLine(selection, "corridor", index) ? undefined : "3 1.5"}
             strokeLinejoin="round" strokeLinecap="round"

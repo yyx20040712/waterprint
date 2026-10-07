@@ -101,7 +101,8 @@ export function BoundaryLayer({
 
   return (
     <>
-      <polygon points={pointsAttr(points)} fill="none" stroke={semanticColor("boundary")}
+      <polygon points={pointsAttr(points)} fill="none" data-testid="wp-site-boundary"
+        stroke={semanticColor("boundary")}
         strokeWidth={selected ? BOUNDARY_STROKE_SELECTED : BOUNDARY_STROKE}
         strokeDasharray={BOUNDARY_DASH} strokeLinejoin="round"
         pointerEvents={interactive ? "visibleStroke" : "none"} onPointerDown={handleStrokeDown} />

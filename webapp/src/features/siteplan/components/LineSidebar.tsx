@@ -1,7 +1,9 @@
 /**
  * 选中折线/红线删除侧栏纯展示子件（B4 笔② R2——ENG6 SiteplanToolbar/
  * StructureSidebar 拆出先例第三例；行预算门禁 500 硬顶拆文件出路；B4 笔③
- * 泛化 boundary 面——红线删除=清空通路[简报 R2 必改②收口语义]）。
+ * 泛化 boundary 面——红线删除=清空通路[简报 R2 必改②收口语义]；M3 批 D1
+ * 增管网定线挂起位载体注记[mapping-2b4 §A M3 行「红线/走廊折线=管网挂起
+ * 位载体」]）。
  *
  * 输入:  selection（RemovableSelection——road/corridor 索引身份/boundary
  *        单例无索引）+removeOpen（确认门开态=父层 removeRequest 挂起）+
@@ -15,8 +17,12 @@
  *   - 确认=onConfirmRemove（父层 immutable splice/清空+setSelection(null)
  *     收口）；取消/外部点击/Esc=onCancelRemove 零动作（简报取消路径条款）；
  *   - 仓内无 undo——删除必经本门（双击移除先例仅限结构 rect 不泛化）。
+ *   - M3 批 D1（载体注记——挂起展示不实现[v3 B-3 逐字口径]）：选中
+ *      corridor/boundary=载体块在场（「管网定线预留」Tag[style 沿树徽标
+ *      同形]+共用一份说明行——mapping「红线/走廊折线」并列表述不分案）；
+ *      road 非管线载体不渲染；纯展示零业务推导。
  */
-import { Button, Popconfirm, Typography } from "antd";
+import { Button, Popconfirm, Tag, Typography } from "antd";
 
 import type { RemovableSelection } from "../store/siteplanStore";
 
@@ -44,6 +50,14 @@ export function LineSidebar({
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         {boundary ? "选中边界红线（单例）" : `选中${label} #${selection.index + 1}`}
       </Typography.Text>
+      {selection.kind === "road" ? null : (
+        <div data-testid="wp-pending-network-carrier" style={{ marginTop: 8 }}>
+          <Tag style={{ fontSize: 11, lineHeight: "16px" }}>管网定线预留</Tag>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            管网定线将挂起于红线/管线走廊折线——定线·水力计算·平纵图纸随后续管网批（挂起展示，不实现）
+          </Typography.Text>
+        </div>
+      )}
       <div style={{ marginTop: 8 }}>
         <Popconfirm
           title={boundary ? "清空红线" : `删除${label}`}

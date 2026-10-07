@@ -78,7 +78,7 @@ const MODEL_NODES: ModelNode[] = [
   {
     key: "network",
     title: "管网定线",
-    note: "预留——定线/水力计算/平纵图纸随后续管网批",
+    note: "预留——定线挂起于厂区布置红线/管线走廊折线；水力计算/平纵图纸随后续管网批",
     pending: true,
     children: [
       { key: "network:route", title: "定线（挂起）", note: "管网批落位" },

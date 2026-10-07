@@ -10,8 +10,11 @@
  *     空态 Select 为写方；本 pane 只读订阅：空态=提示文案引导至画布标签
  *     选择项目，不设第二选择面——简报 §一.8 字面：先在顶栏选择项目）；
  *   - ErrorBoundary label=厂区布置（渲染崩溃不清空应用 §15 细节 4）；
- *     不传 onRetry（无 lazy thenable——零动态 import，纯 SVG 无大件）；
- *   - 不 lazy 不 Suspense（siteplan=原生 SVG 轻面——首屏直挂载可接受）。
+ *     不传 onRetry（chunk 装载重试归 App 侧 LazyPane/lazyPaneLoader——
+ *     本件 ErrorBoundary 仅隔离渲染崩溃，纯 SVG 无大件）；
+ *   - 经 App 槽条 LazyPane+siteplanLoader 懒装载（M1 壳层；原生 SVG 轻面
+ *     chunk 小——M3 批 D5 勘正：旧「不 lazy 不 Suspense」表述系 M1 壳层
+ *     化之前的旧态）。
  */
 import { Typography } from "antd";
 

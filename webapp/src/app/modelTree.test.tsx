@@ -8,7 +8,8 @@
  *        无 mock 边界面）
  * 输出:  断言组：①六顶层节点在场（v3 B-1 逐字）+根区标题「模型」+
  *        静态计数；②管网定线默认折叠（挂起子节点不在场）+展开后挂起
- *        说明文案在场；③「管网预留」徽标锚（wp-pending-network）在场；
+ *        说明文案在场+落位说明含红线/管线走廊指向（M3 D2——span[title]）；
+ *        ③「管网预留」徽标锚（wp-pending-network）在场；
  *        ④onNavigate 目标映射（工艺流→canvas/研究→studio.study/结果.
  *        图纸→studio.drawings/结果.纵断→elevation）+静态节点零分派
  *        （项目.原始数据）；⑤过滤框本地过滤（命中链保留/无命中空态）。
@@ -68,6 +69,13 @@ describe("管网定线挂起位（判据 4 锚①——默认折叠+徽标+挂�
     render(<ModelTree onNavigate={() => {}} />);
     expect(screen.getByTestId("wp-pending-network")).toBeTruthy();
     expect(screen.getByText("管网预留")).toBeTruthy();
+  });
+
+  it("network 节点落位说明含红线/管线走廊指向（M3 D2——span[title] 锚）", () => {
+    render(<ModelTree onNavigate={() => {}} />);
+    const span = screen.getByText("管网定线").closest("span[title]");
+    expect(span).toBeTruthy();
+    expect(span?.getAttribute("title")).toContain("红线/管线走廊");
   });
 
   it("展开后挂起说明文案在场（rc-tree switcher 点击——受控 expandedKeys）", () => {
