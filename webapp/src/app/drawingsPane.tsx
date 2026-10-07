@@ -1,7 +1,7 @@
 /**
  * drawings 标签页装配：?project= 消费+ErrorBoundary+空态引导+导出发起+
  * 图纸目录+元数据预览卡+线稿预览态接线（FE9 D7+B 批 D6）+"wp:task"
- * 事件桥。
+ * 事件桥（M4 批 D4 增挂起位③载体挂载——标题行下恒在场）。
  *
  * 输入:  URL ?project=（useProjectId 共享 hook——与 canvas/viewer3d/
  *        solutions/elevation/cost 共用，S3 订阅面）+useExportsQuery
@@ -44,12 +44,18 @@
  *     上方导出发起产出图纸；R6[DS-03] 加载期 isPending 渲染 Spin——
  *     data 未到时 rows=[] 非空态语义，不误显引导）；ErrorBoundary
  *     label=图纸预览。
+ *   - M4 D4（2026-10-07）：挂起位③载体挂载（v3 B-3 管网线第三处——
+ *     studio.drawings 管网图纸模板位〔平面布置图+纵断面图〕展示「演示
+ *     至此止，不实现」）——PendingDrawingTemplates 纯展示子件恒在场
+ *     （零业务逻辑零条件渲染，非选中态函数；M3 载体块位置同构=标题行
+ *     下第一元素、conditionGate 段上）。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Alert, Spin, Typography } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ExportButton } from "../features/drawings/components/ExportButton";
+import { PendingDrawingTemplates } from "../features/drawings/components/PendingDrawingTemplates";
 import { SheetList } from "../features/drawings/components/SheetList";
 import {
   useConditionOptions,
@@ -141,6 +147,9 @@ export function DrawingsPane() {
         <Typography.Title level={5} style={{ marginTop: 0 }}>
           图纸目录与导出（DXF 单元图+全厂总图+批量导出）
         </Typography.Title>
+        {/* M4 D4：挂起位③载体（管网图纸模板位——恒在场纯展示，v3 B-3
+            「演示至此止，不实现」；标题行下第一元素） */}
+        <PendingDrawingTemplates />
         {/* R3 F1''→UF-60①（2A4 domainGate 两态化）：领域码 404 面=固定
             摘要 secondary 无前缀（无数据非故障——「正在加载」同形态）；
             网络错/窄化错=danger+前缀+raw 透出（I-3 分级口径） */}
