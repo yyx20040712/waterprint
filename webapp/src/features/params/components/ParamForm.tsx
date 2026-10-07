@@ -6,7 +6,11 @@
  * 输出:  参数编辑表单（C2-params 工程表单化重制 Q1~Q7——task-C2-params-
  *        plan.md §二+呈裁实录 §四b；「开发者表单」痛点收口）
  *
- * 规格说明（FE5 D1/D5/D7+FD PD7/PD8 沿袭；C2-params Q1~Q7）：
+ * 规格说明（FE5 D1/D5/D7+FD PD7/PD8 沿袭；C2-params Q1~Q7；M2 批
+ *   2026-10-08 fd 段抽出——fd 状态/请求令牌/1D 条/2D 缩略+模态全量迁
+ *   feasibility/components/FdInlinePanel〔预裁决 7——本件距 500 行墙仅
+ *   5 行，行内增量必超墙，抽出为唯一解〕；本件保留 fdField 态〔哪个参数
+ *   行展开〕+fd-entry 蓝链+FdInlinePanel 条件渲染）：
  *   - Q1 骨架=flex 列三层：head 固定/body 滚动（GR-40 收敛）/foot 固定
  *     （提交+重置常驻）；Q2 头部=眉标+单元名（secondary）+域 badge
  *     +unitId 隐藏（用户裁选——收进 title 悬浮，B2 PD8 追溯链保持）；
@@ -22,14 +26,15 @@
  *     换行/超 12 横滚；档位外自由值仍可手输（grid 纯展示冻结 §三沿袭）；
  *   - Q6 foot：提交重算（变更计数+disabled 保持）+重置 ghost（清 drafts
  *     ——apply 态不清）；apply 提示收敛 foot 上缘；
- *   - Q7 FD 可行域入口：◈+「可行域」蓝链保持——FeasibilityBar/
- *     Heatmap/回填/请求令牌零触碰（FD 已验收）；
+ *   - Q7 FD 可行域入口：◈+「可行域」蓝链保持——面板体=FdInlinePanel
+ *     （1D 条行内常驻+2D 缩略+模态精读——§F.2 ①+②组合；回填经
+ *     onBackfill→backfill 草稿同通道）；
  *   - 行为通道零变：D5 apply 原子提交+invalidate+?task= 回写+wp:task
  *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持。
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Input, InputNumber, Modal, Select, Space, Tag, Typography } from "antd";
+import { Button, Input, InputNumber, Space, Tag, Typography } from "antd";
 
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
 import type { ParamEntry } from "../../../shared/api/generated/model";
@@ -45,11 +50,8 @@ import {
   trimFloatNoise,
 } from "../lib/designParams";
 import { deriveStep, isContinuousParam } from "../lib/deriveStep";
-import { useDesignMap } from "../feasibility/api/useDesignMap";
-import { FeasibilityBar } from "../feasibility/components/FeasibilityBar";
-import { FeasibilityHeatmap } from "../feasibility/components/FeasibilityHeatmap";
 import { formatBackfill } from "../feasibility/lib/feasibility";
-import type { DesignMapResponse } from "../../../shared/api/generated/model";
+import { FdInlinePanel } from "../feasibility/components/FdInlinePanel";
 import { useParamsStore } from "../store/paramsStore";
 
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
@@ -185,57 +187,20 @@ export function ParamForm({
       ? `参数面加载失败：${loadError instanceof Error ? loadError.message : "未知错误"}`
       : null;
 
-  // ── FD 可行域引导（PD7 2026-09-09）：行内 1D+模态 2D（Q7 零触碰） ──
+  // ── FD 可行域引导（PD7 2026-09-09；M2 批 2026-10-08 fd 段抽出）──
+  // fdField=展开行（本件保留）；面板体=FdInlinePanel（切参数行=卸载/新
+  // 实例挂载全复位重取——openFeasibility 语义经组件边界承载；同行早退
+  // 「已展开不重复请求〔继续微调面〕」保留在展开分支）
   const [fdField, setFdField] = useState<string | null>(null);
-  const [fdSecond, setFdSecond] = useState<string | null>(null);
-  const [fdProduct, setFdProduct] = useState<DesignMapResponse | null>(null);
-  const designMap = useDesignMap(projectId, unitId);
-  const fdLoading = designMap.isPending;
-  // R-1（A2-N-04，R 轮）：请求令牌——快速切换轴/第二轴时旧请求晚到
-  // 不得覆盖新轴产物（useMutation 无请求身份校验，onSuccess 比对拦截）
-  const fdReqId = useRef(0);
-  const runFeasibility = (axes: { field_id: string }[]) => {
-    const requestId = ++fdReqId.current;
-    designMap.mutate(
-      { axes },
-      {
-        onSuccess: (product) => {
-          if (requestId === fdReqId.current) {
-            setFdProduct(product);
-          }
-        },
-      },
-    );
-  };
   const openFeasibility = (fieldId: string) => {
     if (fdField === fieldId) {
       return; // 已展开——不重复请求（继续微调面）
     }
     setFdField(fieldId);
-    setFdSecond(null);
-    setFdProduct(null);
-    runFeasibility([{ field_id: fieldId }]);
-  };
-  const pickSecondAxis = (fieldId: string) => {
-    if (fdField === null) {
-      return;
-    }
-    setFdSecond(fieldId);
-    setFdProduct(null);
-    runFeasibility([{ field_id: fdField }, { field_id: fieldId }]);
   };
   const backfill = (key: string, value: number) => {
     setDrafts((prev) => ({ ...prev, [key]: formatBackfill(value) }));
   };
-  const fdSecondOptions = params
-    .filter(
-      (entry) =>
-        isContinuousParam(entry) && entry.field_id !== fdField,
-    )
-    .map((entry) => ({
-      value: entry.field_id,
-      label: `${entry.label_zh ?? entry.field_id}（${entry.field_id}）`,
-    }));
 
   const loading = !catalogQuery.data || !design;
 
@@ -294,7 +259,6 @@ export function ParamForm({
                       <Button size="small" type="link"
                         style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 11.5 }}
                         data-testid={`fd-entry-${fieldId}`}
-                        loading={fdLoading && fdField === fieldId}
                         onClick={() => openFeasibility(fieldId)}
                       >
                         ◈ 可行域
@@ -380,33 +344,13 @@ export function ParamForm({
                   </Typography.Text>
                 ) : null}
                 {fdField === fieldId ? (
-                  <div data-testid={`fd-panel-${fieldId}`}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                      <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                        第二轴（2D 热力图）
-                      </Typography.Text>
-                      <Select size="small" style={{ minWidth: 180 }} value={fdSecond ?? undefined}
-                        options={fdSecondOptions} onChange={pickSecondAxis} data-testid="fd-second-axis"
-                      />
-                    </div>
-                    {designMap.isError ? (
-                      <Typography.Text type="danger" style={{ fontSize: 11 }}>
-                        可行域求值失败：
-                        {designMap.error instanceof Error
-                          ? designMap.error.message
-                          : "未知错误"}
-                      </Typography.Text>
-                    ) : fdProduct !== null && fdProduct.stats.total > 0 && fdSecond === null ? (
-                      <FeasibilityBar
-                        product={fdProduct}
-                        onPick={(value) => backfill(fieldId, value)}
-                      />
-                    ) : fdLoading ? (
-                      <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                        可行域求值中…
-                      </Typography.Text>
-                    ) : null}
-                  </div>
+                  <FdInlinePanel
+                    projectId={projectId}
+                    unitId={unitId}
+                    fieldId={fieldId}
+                    params={params}
+                    onBackfill={backfill}
+                  />
                 ) : null}
               </label>
             );
@@ -450,46 +394,6 @@ export function ParamForm({
           </Button>
         </div>
       </footer>
-
-      {/* PD7 呈裁④：2D 模态热力图（手动关；回填后不自动关闭可微调）。
-          R-1（G1-02）：关闭清产物并重取 1D——残留 2D 产物会使行内条死灰 */}
-      <Modal
-        open={fdSecond !== null}
-        title={`可行域热力图——${fdProduct?.axes[0]?.label_zh ?? fdField ?? ""} × ${fdProduct?.axes[1]?.label_zh ?? fdSecond ?? ""}`}
-        footer={null}
-        onCancel={() => {
-          setFdSecond(null);
-          setFdProduct(null);
-          if (fdField !== null) {
-            runFeasibility([{ field_id: fdField }]);
-          }
-        }}
-        width={720}
-      >
-        {designMap.isError ? (
-          <Typography.Text type="danger">
-            可行域求值失败：
-            {designMap.error instanceof Error ? designMap.error.message : "未知错误"}
-          </Typography.Text>
-        ) : fdProduct !== null && fdProduct.mask !== null && fdField !== null && fdSecond !== null ? (
-          <>
-            <FeasibilityHeatmap
-              product={fdProduct}
-              onPick={(valueA, valueB) => {
-                backfill(fdField, valueA);
-                backfill(fdSecond, valueB);
-              }}
-            />
-            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-              点击可行格（绿）回填两参数；点击不可行格（灰）吸附最近可行格。
-              可行 {fdProduct.stats.feasible}/{fdProduct.stats.total}（
-              {(fdProduct.stats.feasible_ratio * 100).toFixed(1)}%）。
-            </Typography.Text>
-          </>
-        ) : (
-          <Typography.Text type="secondary">可行域求值中…</Typography.Text>
-        )}
-      </Modal>
     </section>
   );
 }

@@ -1,0 +1,266 @@
+/**
+ * @vitest-environment jsdom
+ *
+ * fd 行内面板测试（M2 批 2026-10-08——fd 可行域段自 ParamForm 抽出+
+ * §F.2 ①+②组合实装：1D 条行内常驻/2D 热力缩略行内+点击模态放大精读/
+ * 模态关闭不清产物不重取〔预裁决 9 新语义〕/请求令牌迁移锚/错误两态）。
+ *
+ * 输入:  FdInlinePanel（vi.mock 边界=useDesignMap 模块面〔mutate 调用实录+
+ *        onSuccess 队列受控——请求令牌与不重取断言源〕；禁 mock react-query
+ *        内部/antd——FeasibilityBar/FeasibilityHeatmap/Modal/Select 原件
+ *        真渲染〔fd-bar/fd-heatmap/fd-cell 探针锚直测〕）
+ * 输出:  断言组：①未选第二轴→fd-bar 在场（1D 常驻锚）+挂载即取 1D；
+ *        ②第二轴选定→fd-thumb 在场+内层 wrapper pointerEvents=none（格
+ *        点击阻断面）+缩略容器 click→模态开；③模态开=fd-heatmap 双实例
+ *        （getAllByTestId 长度 2——缩略+模态 DOM 并存）+模态内可行格点击
+ *        →onBackfill 两键成对；④模态关→fd-thumb 仍在+mutate 计数不增
+ *        （不重取——预裁决 9）；⑤请求令牌=快速切轴旧 onSuccess 晚到不
+ *        覆盖（R-1 A2-N-04 语义迁移锚）；⑥designMap.isError→行内+模态
+ *        两态错误文案在场。
+ */
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { FdInlinePanel } from "./FdInlinePanel";
+import type { DesignMapResponse } from "../../../../shared/api/generated/model";
+
+// jsdom 环境缺口补丁（浏览器 API 级——非组件/react-query/antd mock 面）
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  } as unknown as typeof ResizeObserver;
+}
+if (typeof window.matchMedia !== "function") {
+  window.matchMedia = (query: string) => ({
+    matches: false, media: query, onchange: null,
+    addListener: () => {}, removeListener: () => {},
+    addEventListener: () => {}, removeEventListener: () => {},
+    dispatchEvent: () => false,
+  });
+}
+
+/** 受控态位（vi.hoisted——useDesignMap mock 工厂闭包同源读写）。 */
+const gate = vi.hoisted(() => ({
+  isPending: false,
+  isError: false,
+  error: null as unknown,
+  mutateCalls: [] as { axes: { field_id: string }[] }[],
+  onSuccessQueue: [] as ((product: unknown) => void)[],
+}));
+
+vi.mock("../api/useDesignMap", () => ({
+  useDesignMap: () => ({
+    mutate: (
+      variables: { axes: { field_id: string }[] },
+      options?: { onSuccess?: (product: unknown) => void },
+    ) => {
+      gate.mutateCalls.push(variables);
+      if (options?.onSuccess) {
+        gate.onSuccessQueue.push(options.onSuccess);
+      }
+    },
+    isPending: gate.isPending,
+    isError: gate.isError,
+    error: gate.error,
+  }),
+}));
+
+/** 连续参数夹具（range 在场 grid 缺席——isContinuousParam 判据面）。 */
+const PARAMS = [
+  { field_id: "volume", label_zh: "池容", dim: "VOLUME", default: null, range: { min: 100, max: 5000 }, grid: null },
+  { field_id: "depth", label_zh: "水深", dim: "LENGTH", default: null, range: { min: 2, max: 6 }, grid: null },
+  { field_id: "width", label_zh: "池宽", dim: "LENGTH", default: null, range: { min: 3, max: 9 }, grid: null },
+];
+
+/** 1D 产物（可行段 5~15——FeasibilityBar 渲染面）。 */
+function map1D(fieldId: string): DesignMapResponse {
+  return {
+    unit_id: "u1",
+    axes: [{ dim: "VOLUME", field_id: fieldId, label_zh: "池容", points: 21, range: { min: 0, max: 20 }, step: 1 }],
+    axis_values: [[0, 5, 10, 15, 20]],
+    constraint_coverage: "full",
+    diagnosis: { axes: [], feasible_ratio: 0.6 },
+    mask: null,
+    segments: [{ start: 5, end: 15 }],
+    stats: { feasible: 3, infeasible: 2, feasible_ratio: 0.6, total: 5 },
+  };
+}
+
+/** 2D 产物（mask[0][0]=1 可行格——模态格点击回填断言源）。 */
+function map2D(fieldA: string, fieldB: string): DesignMapResponse {
+  return {
+    unit_id: "u1",
+    axes: [
+      { dim: "VOLUME", field_id: fieldA, label_zh: "池容", points: 3, range: { min: 10, max: 30 }, step: 10 },
+      { dim: "LENGTH", field_id: fieldB, label_zh: "水深", points: 3, range: { min: 1, max: 3 }, step: 1 },
+    ],
+    axis_values: [[10, 20, 30], [1, 2, 3]],
+    constraint_coverage: "full",
+    diagnosis: { axes: [], feasible_ratio: 0.5 },
+    mask: [
+      [1, 0, 1],
+      [0, 1, 0],
+      [1, 0, 1],
+    ],
+    segments: null,
+    stats: { feasible: 5, infeasible: 4, feasible_ratio: 0.555, total: 9 },
+  };
+}
+
+/** 渲染面（onBackfill spy——回填两键断言源）。 */
+function renderPanel() {
+  const onBackfill = vi.fn();
+  const view = render(
+    <FdInlinePanel
+      projectId="p1"
+      unitId="u1"
+      fieldId="volume"
+      params={PARAMS}
+      onBackfill={onBackfill}
+    />,
+  );
+  return { onBackfill, view };
+}
+
+/** 手动 flush onSuccess（act 内同步落 state——模拟请求晚到受控面）。 */
+function flushOnSuccess(index: number, product: DesignMapResponse) {
+  const onSuccess = gate.onSuccessQueue[index];
+  if (onSuccess === undefined) {
+    throw new Error(`onSuccess #${index} 未捕获（mutate 未发起）`);
+  }
+  act(() => {
+    onSuccess(product);
+  });
+}
+
+/** 选第二轴（antd v6 Select jsdom 交互：根 div〔data-testid 落点即
+ *  .ant-select〕mouseDown 开下拉+点 option 文本——onChange 触发链实测）。 */
+async function pickSecondAxis(optionText: string) {
+  fireEvent.mouseDown(screen.getByTestId("fd-second-axis"));
+  fireEvent.click(await screen.findByText(optionText));
+}
+
+beforeEach(() => {
+  gate.isPending = false;
+  gate.isError = false;
+  gate.error = null;
+  gate.mutateCalls.length = 0;
+  gate.onSuccessQueue.length = 0;
+});
+afterEach(cleanup);
+
+describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
+  it("①未选第二轴→fd-bar 在场（1D 常驻锚）+挂载即取 1D", () => {
+    renderPanel();
+    expect(gate.mutateCalls).toEqual([{ axes: [{ field_id: "volume" }] }]);
+    flushOnSuccess(0, map1D("volume"));
+    expect(screen.getByTestId("fd-bar")).toBeTruthy();
+  });
+
+  it("②第二轴选定→fd-thumb 在场+wrapper pointerEvents=none+缩略 click→模态开", async () => {
+    renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    await pickSecondAxis("水深（depth）");
+    expect(gate.mutateCalls[1]).toEqual({
+      axes: [{ field_id: "volume" }, { field_id: "depth" }],
+    });
+    flushOnSuccess(1, map2D("volume", "depth"));
+    const thumb = screen.getByTestId("fd-thumb");
+    expect(thumb).toBeTruthy();
+    // 格点击阻断面：内层 wrapper pointerEvents=none（jsdom 不模拟该 CSS——
+    // DOM style 属性直断言，动线断言=缩略容器 click 开模态非格交互）
+    expect(thumb.querySelector('[data-testid="fd-heatmap"]')?.parentElement?.style.pointerEvents).toBe("none");
+    fireEvent.click(thumb);
+    // 模态开=fd-heatmap 双实例（缩略+模态 DOM 并存）
+    await waitFor(() => {
+      expect(screen.getAllByTestId("fd-heatmap").length).toBe(2);
+    });
+  });
+
+  it("③模态内可行格点击→onBackfill 两键成对（volume=10+depth=1）", async () => {
+    const { onBackfill } = renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    await pickSecondAxis("水深（depth）");
+    flushOnSuccess(1, map2D("volume", "depth"));
+    fireEvent.click(screen.getByTestId("fd-thumb"));
+    await waitFor(() => {
+      expect(screen.getAllByTestId("fd-heatmap").length).toBe(2);
+    });
+    // 模态实例=索引 1（Modal portal 挂 body 末尾——缩略实例在前）；
+    // mask[0][0]=1 可行格→onPick(10, 1)→onBackfill 两键成对
+    const modalCell = screen.getAllByTestId("fd-cell-0-0")[1];
+    expect(modalCell).toBeDefined();
+    fireEvent.click(modalCell!);
+    expect(onBackfill).toHaveBeenCalledTimes(2);
+    expect(onBackfill).toHaveBeenNthCalledWith(1, "volume", 10);
+    expect(onBackfill).toHaveBeenNthCalledWith(2, "depth", 1);
+  });
+
+  it("④模态关→fd-thumb 仍在+不重取（mutate 计数不增——预裁决 9 新语义）", async () => {
+    renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    await pickSecondAxis("水深（depth）");
+    flushOnSuccess(1, map2D("volume", "depth"));
+    fireEvent.click(screen.getByTestId("fd-thumb"));
+    await waitFor(() => {
+      expect(screen.getAllByTestId("fd-heatmap").length).toBe(2);
+    });
+    const callsBefore = gate.mutateCalls.length;
+    const closeBtn = document.querySelector(".ant-modal-close");
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    // 关闭动线断言=ant-zoom-leave 类（antd Modal motion 在 jsdom 不触发
+    // transition 完成回调——模态 DOM 退场不可达〔在册申报：真浏览器关闭
+    // 保持语义由门二探针「模态→关闭保持」承载〕）；关闭后核心语义=缩略
+    // 仍在（产物不清——R-1 病灶随行内 2D 面存在而消失）+零重取（旧语义
+    // 「关闭清产物重取 1D」退役——预裁决 9）
+    await waitFor(() => {
+      expect(document.querySelector(".ant-modal")?.classList.contains("ant-zoom-leave")).toBe(true);
+    });
+    expect(screen.getByTestId("fd-thumb")).toBeTruthy();
+    expect(gate.mutateCalls.length).toBe(callsBefore);
+  });
+
+  it("⑤请求令牌=快速切轴旧 onSuccess 晚到不覆盖（R-1 A2-N-04 迁移锚）", async () => {
+    renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    // 第一轴 depth 请求发出（reqId=2）→未及回，改选 width（reqId=3）
+    await pickSecondAxis("水深（depth）");
+    await pickSecondAxis("池宽（width）");
+    expect(gate.mutateCalls.length).toBe(3);
+    // 旧 onSuccess（depth 产物）晚到→令牌不匹配被拦截（fd-thumb 不在场）
+    flushOnSuccess(1, map2D("volume", "depth"));
+    expect(screen.queryByTestId("fd-thumb")).toBeNull();
+    // 新 onSuccess（width 产物）到达→产物落地
+    flushOnSuccess(2, map2D("volume", "width"));
+    expect(screen.getByTestId("fd-thumb")).toBeTruthy();
+  });
+
+  it("⑥designMap.isError→行内+模态两态错误文案在场", async () => {
+    const { view } = renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    await pickSecondAxis("水深（depth）");
+    flushOnSuccess(1, map2D("volume", "depth"));
+    fireEvent.click(screen.getByTestId("fd-thumb"));
+    await waitFor(() => {
+      expect(screen.getAllByTestId("fd-heatmap").length).toBe(2);
+    });
+    gate.isError = true;
+    gate.error = new Error("boom-502");
+    view.rerender(
+      <FdInlinePanel
+        projectId="p1"
+        unitId="u1"
+        fieldId="volume"
+        params={PARAMS}
+        onBackfill={vi.fn()}
+      />,
+    );
+    // 行内（fd-panel 内）+模态内两处错误文案俱在
+    await waitFor(() => {
+      expect(screen.getAllByText(/可行域求值失败：boom-502/).length).toBe(2);
+    });
+  });
+});
