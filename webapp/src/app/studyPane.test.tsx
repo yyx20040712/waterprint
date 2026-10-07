@@ -221,7 +221,7 @@ describe("StudyPane 段A 方案浏览（单单元枚举——四挂载门）", (
     expect(screen.getByText("排序（降序）：")).toBeTruthy();
     // 列头文案在表头与排序下拉选项两处复用（gridFields 单源）——多重匹配合规
     expect(screen.getAllByText("池数（格）").length).toBeGreaterThan(0);
-    expect(await screen.findByText("共 5 行")).toBeTruthy();
+    expect(await screen.findByText("共 5 行", {}, { timeout: 3000 })).toBeTruthy(); // P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值同论证
     expect(screen.queryByText(/无解诊断/)).toBeNull();
   });
 
@@ -261,7 +261,7 @@ describe("StudyPane 段B 联合枚举（方案比选）", () => {
     renderStudyPane("project=p1&task=t1");
     expect(screen.getByText(/共 2 个可行组合/)).toBeTruthy();
     // 三图 lazy+Suspense（Tabs forceRender）——异步装载后 stub 透传 issue 断言
-    expect(await screen.findByText(/tornado-stub:敏感性报告损坏/)).toBeTruthy();
+    expect(await screen.findByText(/tornado-stub:敏感性报告损坏/, {}, { timeout: 3000 })).toBeTruthy(); // P5 R1（2B6）：findBy 族显式超时——lazy 装载链（waitFor 族同制同值）
     // 表源轨 task 兜底初值=t1：kind 门滤（非 enumerate）→方案表静默
     expect(screen.queryByText("排序（降序）：")).toBeNull();
   });
@@ -324,7 +324,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     try {
       // sticky Table 体行异步落位——findBy 等待；antd Button 两中文字符自动
       // 插空格（「应用」→「应 用」）——空白容忍正则
-      fireEvent.click(await screen.findByText(/应\s*用/));
+      fireEvent.click(await screen.findByText(/应\s*用/, {}, { timeout: 3000 })); // P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值同论证
     } finally {
       window.removeEventListener(TASK_EVENT, onDispatch);
     }
@@ -393,7 +393,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     gate.statusById.set("e1", enumDone("e1"));
     gate.solutions = successState(SOLUTIONS_PAGE);
     renderStudyPane("project=p1&task=e1");
-    expect(await screen.findByText("共 5 行")).toBeTruthy(); // task 键兜底初值=e1
+    expect(await screen.findByText("共 5 行", {}, { timeout: 3000 })).toBeTruthy(); // task 键兜底初值=e1；P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值
     // 模拟 apply 后 writeTaskParam(recalc)：URL 仅 task 键（enum 键缺席——
     // 不经真按钮，直接验证 TASK_EVENT handler 面）
     window.history.replaceState(null, "", "/?project=p1&task=t-recalc");
@@ -423,13 +423,13 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
       },
     });
     renderStudyPane("project=p1&enum=e1");
-    expect(await screen.findByText("共 5 行")).toBeTruthy(); // 深链回填 u1
+    expect(await screen.findByText("共 5 行", {}, { timeout: 3000 })).toBeTruthy(); // 深链回填 u1；P5 R1（2B6）：findBy 族显式超时——已知假红成员⑮所在族闭合
     // 模拟二次枚举提交写双键（enum+task）；分页换 total=6 供新表在场区分
     gate.solutions = successState({ ...SOLUTIONS_PAGE, total: 6 });
     window.history.replaceState(null, "", "/?project=p1&enum=e2&task=e2");
     window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "e2" }));
-    expect(await screen.findByText("共 6 行")).toBeTruthy(); // 新表在场
-    fireEvent.click(await screen.findByText(/应\s*用/));
+    expect(await screen.findByText("共 6 行", {}, { timeout: 3000 })).toBeTruthy(); // 新表在场；P5 R1（2B6）：findBy 族显式超时——已知假红成员⑮所在族闭合
+    fireEvent.click(await screen.findByText(/应\s*用/, {}, { timeout: 3000 })); // P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值
     // 应用载荷 unitId=enumeratedUnitId 透传（R1-b 前：跨任务钉死 u1）
     const last = gate.applyVariables[gate.applyVariables.length - 1] as {
       data: { unit_id: string };
