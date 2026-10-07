@@ -12,7 +12,10 @@
  * 保持的接线面锚〕；回炉 R4 轮〔门二探针 5/6——G6 态②红项处置〕：
  * 取数失败用例 error mock 改非 domain 网络错形〔维持锚非 domain 态〕
  * +新增 domain 态用例〔404 CostSourceNotFoundError→title 恢复「先提交
- * 计算」正确引导——R2 全 isError 合流取数失败使该引导不可达=G6 红项〕）。
+ * 计算」正确引导——R2 全 isError 合流取数失败使该引导不可达=G6 红项〕；
+ * 回炉 R5 轮〔delta 二轮 d1 条件转化项〕：新增异构领域码负例用例
+ * 〔WaterprintApiError 非 CostSourceNotFoundError→「取数失败」——防
+ * domainGate 未来退化为按类判域的回归锚 d1-W1：类+code 全等双条件〕）。
  *
  * 输入:  Ribbon（QueryClientProvider 每用例新 client〔retry:false〕）+
  *        vi.mock 边界沿 paneDomainGate 纪律=feature api/store 模块面+
@@ -325,6 +328,23 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
     const li = screen.getByTestId("wp-ribbon-export-total-dxf").closest("li") as HTMLLIElement;
     expect(li.getAttribute("aria-disabled")).toBe("true");
     expect(li.title).toBe("先提交计算——工况源为最近完成计算的结果集");
+  });
+
+  it("总图直发项异构领域码负例（WaterprintApiError 非 CostSourceNotFoundError）→取数失败口径（R5——防 domainGate 退化为按类判域的回归锚 d1-W1：类+code 全等双条件）", () => {
+    gate.conditions = {
+      ...gate.conditions,
+      data: [],
+      isError: true,
+      error: new WaterprintApiError("StaleExportError", "类同码异——异构领域码负例"),
+    };
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    const li = screen.getByTestId("wp-ribbon-export-total-dxf").closest("li") as HTMLLIElement;
+    expect(li.getAttribute("aria-disabled")).toBe("true");
+    expect(li.title).toBe("工况源取数失败——请稍后重试或检查服务");
+    expect(li.title).not.toContain("先提交计算"); // 类同码异=domain:false（fail-closed）
   });
 
   it("有工况时总图直发项点击=真发起（unitId 空串 bare POST 总图语义+缺省首工况——DoD1 直发链锚）", () => {
