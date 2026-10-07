@@ -33,10 +33,12 @@
  *     回落 task 键——旧深链兼容，kind 门自然滤 calc 任务）；联合轨
  *     jointTaskId=parseTaskParam（enum 键不读——旧 JointSolutionsSection
  *     制「双轨语义不混」）；
- *   - TASK_EVENT 监听×1（旧 L173-186+批6e W5 合流）：双轨重读（表源
- *     enum??task/联合 task）同值早退（函数式 set 零扰动）+invalidate 三键
- *     ——旧表源任务键/旧联合任务键（存在时）+sensitivity 键（终态后敏感
- *     性重取——comparePane 同款）；卸载移除监听；
+ *   - TASK_EVENT 监听×1（旧 L173-186+批6e W5 合流）：双轨重读同值早退
+ *     （函数式 set 零扰动）+invalidate 三键——旧表源任务键/旧联合任务键
+ *     （存在时）+sensitivity 键（终态后敏感性重取——comparePane 同款）；
+ *     卸载移除监听；R1-a（d1-W1）沿革：表源轨重读=enum 键跟随、缺席保持
+ *     ——旧 pane「表源轨仅随枚举提交变更」语义的 URL 交付等价形；task 键
+ *     回落仅限初始化器（legacy 深链兼容——挂载时一次）；
  *   - useTaskFeed×2 终态自刷（表源/联合各一实例——不依赖席位挂载；仅消费
  *     终态回调 invalidate 本轨 status 键；联合实例追加 sensitivity 键失效
  *     〔批6e W5 复刻〕；视图/连接态零消费〔进度呈现归席位 M7 分工〕；
@@ -54,7 +56,9 @@
  *     PAGE_SIZE=50/sort 初值 margin_min）；应用闸=applyGates 纯函数（闸⓪①②
  *     禁用因+闸③漂移——unitsReady 面 GD-N-01）；深链回填 effect（旧
  *     L251-266 复刻裁剪：enumSource.resultUnitId 就绪且未固化且 task_id
- *     比对当前表源时回填 enumeratedUnitId——应用目标固化快照，R2 语义）；
+ *     比对当前表源时回填 enumeratedUnitId——应用目标固化快照，R2 语义；
+ *     R1-b（d1-W2）沿革：表源任务变更先经重置 effect 清 enumeratedUnitId
+ *     （跨任务固化防线——旧枚举提交 onSuccess 原子成对更新等价形）；
  *   - handleApplied（旧 L318-326 裁剪）：writeTaskParam(recalc_task_id)+
  *     派发 TASK_EVENT——表源轨/enum 键/页码全不动（R1 已提交任务快照语义：
  *     方案表与旧行保留不卸载）；
@@ -135,11 +139,15 @@ export function StudyPane() {
   // 同值早退零扰动；invalidate 三键=旧表源/联合任务键+sensitivity 键）
   useEffect(() => {
     const onTaskParam = () => {
-      const nextEnum =
-        parseEnumParam(window.location.search) ??
-        parseTaskParam(window.location.search);
+      // R1-a（d1-W1）：表源轨重读=enum 键跟随、缺席保持——旧 pane「表源轨
+      // 仅随枚举提交变更」语义的 URL 交付等价形（task-only URL apply 后表
+      // 源不漂移、方案表不静默消失）；task 键回落仅限初始化器（legacy 深链
+      // 兼容——挂载时一次，见头注双轨非对称初值段）
+      const nextEnum = parseEnumParam(window.location.search);
       const nextJoint = parseTaskParam(window.location.search);
-      setEnumerateTaskId((prev) => (prev === nextEnum ? prev : nextEnum));
+      setEnumerateTaskId((prev) =>
+        nextEnum === null || nextEnum === prev ? prev : nextEnum,
+      );
       setJointTaskId((prev) => (prev === nextJoint ? prev : nextJoint));
       if (enumerateTaskId !== null) {
         void queryClient.invalidateQueries({
@@ -227,6 +235,19 @@ export function StudyPane() {
   const payloadMissing = enumerateDone && feasibleCount === null;
   const tableEnabled =
     enumerateDone && feasibleCount !== null && feasibleCount > 0;
+
+  // R1-b（d1-W2）：表源任务变更→enumeratedUnitId 重置（旧 pane 枚举提交
+  // onSuccess 原子更新 enumerateTaskId+setEnumeratedUnitId 成对语义的等价
+  // 形——提交面迁 Ribbon 后经 enum 键交付；重置后深链回填 effect 从新任务
+  // result.unit_id 重新固化；prevEnumTask 初值=挂载时 enumerateTaskId——
+  // 初挂载零重置保深链回填；表源任务任意变更路径（enum 键跟随/切项目置
+  // null）统一经此重置——切项目段 setEnumeratedUnitId(null) 保留无害幂等）
+  const prevEnumTask = useRef(enumerateTaskId);
+  useEffect(() => {
+    if (prevEnumTask.current === enumerateTaskId) return;
+    prevEnumTask.current = enumerateTaskId;
+    setEnumeratedUnitId(null);
+  }, [enumerateTaskId]);
 
   // 深链回填 effect（旧 L251-266 复刻裁剪）：result.unit_id 就绪且未固化
   // 且 task_id 比对当前表源时回填 enumeratedUnitId（应用目标固化快照；

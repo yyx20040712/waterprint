@@ -17,7 +17,8 @@
  *        ⑥取数错误⑦联合面板+sensitivityIssue 透传⑧failed 文案⑨窄化非法
  *        ⑩TASK_EVENT 双轨重读⑪handleApplied=writeTaskParam+派发+表源
  *        不卸载⑫切项目双轨重置⑬useTaskFeed×2 终态=本轨键+联合追加
- *        sensitivity 键+不派发。
+ *        sensitivity 键+不派发；⑭task-only apply 后表源保持+⑮二次枚举
+ *        单元重置（R1 回炉批 W1/W2 锚——applyVariables mock 小扩在案）。
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -66,6 +67,8 @@ const gate = vi.hoisted(() => {
     projectRaw: idle(),
     units: idle(),
     sensitivity: idle(),
+    // R1-c ⑮ 断言面：apply mutate 收到的 variables 实录（mock 小扩）
+    applyVariables: [] as unknown[],
     feedCalls: [] as { taskId: string | null; onTerminal: ((state: string) => void) | undefined }[],
   };
 });
@@ -91,6 +94,7 @@ vi.mock("../shared/api/generated/calc/calc", () => ({
     mutation?: { onSuccess?: (outcome: unknown, variables: unknown, context: unknown) => void };
   }) => ({
     mutate: (variables: unknown) => {
+      gate.applyVariables.push(variables);
       options?.mutation?.onSuccess?.(
         { recalc_task_id: "t-recalc", new_hash: "hash1234567890", design_changed: true },
         variables,
@@ -191,6 +195,7 @@ beforeEach(() => {
   gate.units = gate.idle();
   gate.sensitivity = gate.idle();
   gate.feedCalls.length = 0;
+  gate.applyVariables.length = 0;
   window.history.replaceState(null, "", "/");
 });
 afterEach(cleanup);
@@ -380,5 +385,53 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
       queryKey: ["/api/calc/sensitivity/p1"], // 批6e W5 复刻（联合实例追加）
     });
     expect(reDispatched).toBe(0); // study 不派发 TASK_EVENT（席位职责单一）
+  });
+
+  it("⑭task-only URL apply 后 TASK_EVENT→表源保持（enum 键缺席不回落——W1 锚）", async () => {
+    gate.statusById.set("e1", enumDone("e1"));
+    gate.solutions = successState(SOLUTIONS_PAGE);
+    renderStudyPane("project=p1&task=e1");
+    expect(await screen.findByText("共 5 行")).toBeTruthy(); // task 键兜底初值=e1
+    // 模拟 apply 后 writeTaskParam(recalc)：URL 仅 task 键（enum 键缺席——
+    // 不经真按钮，直接验证 TASK_EVENT handler 面）
+    window.history.replaceState(null, "", "/?project=p1&task=t-recalc");
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-recalc" }));
+    await waitFor(() => {
+      // 表源保持 e1 不漂移（R1-a 前：handler 回落 task 键→表源=t-recalc
+      // →kind 门滤→表静默消失且 NO_ENUM_HINT 因任务键非 null 不显）
+      expect(screen.getByText("共 5 行")).toBeTruthy();
+    });
+    expect(screen.getByText("排序（降序）：")).toBeTruthy();
+  });
+
+  it("⑮二次枚举换单元→应用目标重置新任务单元（u1→u2——W2 锚）", async () => {
+    gate.statusById.set("e1", enumDone("e1")); // result.unit_id="u1"（回填源）
+    // enumDone 夹具覆写对象展开在 result 内层→unit_id:"u2" 达成
+    gate.statusById.set("e2", enumDone("e2", { unit_id: "u2" }));
+    gate.solutions = successState(SOLUTIONS_PAGE);
+    // 双单元均就绪（红先态 u1 钉死也要可点——红=实收 u1）
+    gate.units = successState([
+      { unitId: "u1", kind: null },
+      { unitId: "u2", kind: null },
+    ]);
+    gate.projectRaw = successState({
+      metadata: { content_hash: "dh-1" },
+      design: {
+        nodes: { u1: { kind: "municipal_aao" }, u2: { kind: "municipal_aao" } },
+      },
+    });
+    renderStudyPane("project=p1&enum=e1");
+    expect(await screen.findByText("共 5 行")).toBeTruthy(); // 深链回填 u1
+    // 模拟二次枚举提交写双键（enum+task）；分页换 total=6 供新表在场区分
+    gate.solutions = successState({ ...SOLUTIONS_PAGE, total: 6 });
+    window.history.replaceState(null, "", "/?project=p1&enum=e2&task=e2");
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "e2" }));
+    expect(await screen.findByText("共 6 行")).toBeTruthy(); // 新表在场
+    fireEvent.click(await screen.findByText(/应\s*用/));
+    // 应用载荷 unitId=enumeratedUnitId 透传（R1-b 前：跨任务钉死 u1）
+    const last = gate.applyVariables[gate.applyVariables.length - 1] as {
+      data: { unit_id: string };
+    };
+    expect(last.data.unit_id).toBe("u2");
   });
 });
