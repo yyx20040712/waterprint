@@ -2,7 +2,10 @@
  * viewer3dPane 目录失败 Alert 测试（F5 D5——catalog 未就绪显式提示）；
  * M5 批增补表征锚（m5-20261007 viewer3d 入槽核验批——装配面既有行为
  * 锚定：空态指引/空态 CTA/ErrorBoundary 接线/Scene 挂载通路四用例对
- * HEAD 绿，红先=N/A〔表征面——M3 D6 先例〕）。
+ * HEAD 绿，红先=N/A〔表征面——M3 D6 先例〕）；
+ * M5 R1 回炉（门一双审 k1 B0/W1/N4+d1 B0/W2/N7——R1-a：④ lazy
+ * import 目标=Scene 模块锚〔vi.mock 工厂位标记〕；R1-c：② 新建项目
+ * 文案锚收紧按钮上下文；R1-d：③ html 断言保留加注释面）。
  *
  * 输入:  Viewer3dPane（catalog 查询 error/成功态注入——generated units
  *        hook 模块替身）+useProjectId/Scene 模块替身（projectId 直进分支）
@@ -22,7 +25,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Viewer3dPane } from "./viewer3dPane";
 
 /** 受控态位（vi.hoisted——工厂闭包同源读写；M5 扩 projectId/projects/
- *  boundary 三位——既有 catalog 位零改）。 */
+ *  boundary 三位——既有 catalog 位零改；R1-a 扩 sceneModuleLoaded 位）。 */
 const mock = vi.hoisted(() => ({
   projectId: "proj-f5-d5" as string | null,
   catalog: {
@@ -36,14 +39,21 @@ const mock = vi.hoisted(() => ({
     isError: false,
   } as { data: unknown; isLoading: boolean; isError: boolean },
   boundary: null as { label: unknown; onRetry?: unknown } | null,
+  sceneModuleLoaded: false,
 }));
 
 vi.mock("./useProjectId", () => ({
   useProjectId: () => [mock.projectId, vi.fn()],
 }));
-vi.mock("../features/viewer3d/components/Scene", () => ({
-  Scene: () => createElement("div", null, "scene-stub"),
-}));
+vi.mock("../features/viewer3d/components/Scene", () => {
+  // R1-a：工厂内置位标记——React.lazy 首渲染即调 import()，mock 工厂
+  // 必执行（lazy import 目标=Scene 模块的真源锚——装配面 Suspense 包
+  // 任意他件则本工厂零执行，④断言红）
+  mock.sceneModuleLoaded = true;
+  return {
+    Scene: () => createElement("div", null, "scene-stub"),
+  };
+});
 // M5 表征锚③：props 捕获薄壳——委托真实 ErrorBoundary 渲染（零行为面）
 vi.mock("./ErrorBoundary", async (importOriginal) => {
   const actual = await importOriginal<{
@@ -105,6 +115,9 @@ afterEach(() => {
   mock.projectId = "proj-f5-d5";
   mock.projects = { data: [], isLoading: false, isError: false };
   mock.boundary = null;
+  // sceneModuleLoaded 不重置：mock 工厂=每模块恰一次（③已触发则模块
+  // 缓存，④不重跑）——位标记是模块级真源锚非逐用例态（探针实证工厂
+  // 执行延迟至 renderToString 返回后 ≤200ms）
 });
 
 describe("viewer3dPane 目录失败 Alert（F5 D5）", () => {
@@ -152,25 +165,34 @@ describe("viewer3dPane 表征锚（M5 批——入槽装配面既有行为锚定
   it("M5②空态 CTA：「新建项目」主钮在场（antd Button 四字无插空）", () => {
     mock.projectId = null;
     const html = renderPane();
-    expect(html).toContain("新建项目");
+    // R1-c：文案锚收紧按钮上下文（>新建项目<=标签包裹面——EMPTY_GUIDE
+    // 指引句内同字串为裸文本不满足；四字无插空=antd 仅两字插空规则）
+    expect(html).toContain(">新建项目<");
     expect(html).toContain("ant-btn-primary");
   });
 
   it("M5③ErrorBoundary 接线捕获：label=三维视图+onRetry 为函数（R1 同 URL 重建接线在场——只锚接线不断言语义有效性）", () => {
     const html = renderPane();
-    // 直进分支渲染至 ErrorBoundary 子树深处（lazy 挂起→Suspense 装载中
-    // fallback 在场=边界渲染通路锚；scene-stub 不可达见④注）
+    // R1-d：接线证据=下方 props 捕获为准；本条 html 断言仅证装载分支
+    // 共享面（lazy 挂起→Suspense fallback 在场），与④共用非独立接线证
     expect(html).toContain("三维视图加载中…");
     expect(mock.boundary?.label).toBe("三维视图");
     expect(typeof mock.boundary?.onRetry).toBe("function");
   });
 
-  it("M5④Scene 挂载通路：projectId 非空→lazy Scene 装载分支在场+空态面缺席", () => {
+  it("M5④Scene 挂载通路：projectId 非空→lazy Scene 装载分支在场+空态面缺席", async () => {
     const html = renderPane();
     // React.lazy 在 renderToString 必挂起（SSR 不支持 Suspense 懒装载
     // 子树中止——探针实证），锚=Suspense fallback「三维视图加载中…」
     // 在场+空态指引缺席=分支选择锚（既有隐式面显式化）
     expect(html).toContain("三维视图加载中…");
     expect(html).not.toContain("请选择要加载三维场景的项目：");
+    // R1-a：lazy import 目标=Scene 模块真源锚（mock 工厂位标记——
+    // 探针实证工厂执行延迟至 renderToString 返回后 ≤200ms，vi.waitFor
+    // 轮询保稳健；工厂=每模块恰一次，本用例直进分支自触发〔隔离跑
+    // 亦成立——模块级锚非用例间依赖〕）
+    await vi.waitFor(() => expect(mock.sceneModuleLoaded).toBe(true), {
+      timeout: 3000,
+    });
   });
 });

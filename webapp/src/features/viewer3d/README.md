@@ -27,7 +27,8 @@
 > 核验一致**零改**（不动四项维持）；探针预跑两项实测落档
 > （`.workflow/m5-20261007/probe-pre/`）——UF-66 P4② 两层分工实测
 > **成立**（App 装载器层 cache-bust 重试生效：`?wpRetry=2` 真请求
-> 恢复 canvas 在场；pane 内层保持同 URL 旧机制——UF-66 修复未渗入，
+> （阻断期仍降级）→放开 abort 后 `?wpRetry=3` 恢复 canvas 在场；
+> pane 内层保持同 URL 旧机制——UF-66 修复未渗入，
 > pane 内层重试在真实 Chromium 无效=已知限制实测确认，M5「超时重试
 > 不动」裁决保持）；UF-67 联动核验**风暴不复现**（viewer3dPane
 > chunk 持续 abort 5s 窗计数=0 请求〔界 ≤2；studio 子面前置基线
