@@ -22,6 +22,17 @@
 > position/target 一次，用户随后自由拖拽/缩放/平移）；**挂账**：UV
 > 流纹动画与 CJK 字体子集（R9）、internals 方阵网格随单元 rotation
 > 的旋转矩阵化（core 加法摆放同口径）。
+> **M5 viewer3d 批入槽核验（2026-10-07）**：39 源件在 M1 壳层
+> （槽条「三维视图」/Ribbon 三维快访/深链 `?tab=viewer3d`）下逐件
+> 核验一致**零改**（不动四项维持）；探针预跑两项实测落档
+> （`.workflow/m5-20261007/probe-pre/`）——UF-66 P4② 两层分工实测
+> **成立**（App 装载器层 cache-bust 重试生效：`?wpRetry=2` 真请求
+> 恢复 canvas 在场；pane 内层保持同 URL 旧机制——UF-66 修复未渗入，
+> pane 内层重试在真实 Chromium 无效=已知限制实测确认，M5「超时重试
+> 不动」裁决保持）；UF-67 联动核验**风暴不复现**（viewer3dPane
+> chunk 持续 abort 5s 窗计数=0 请求〔界 ≤2；studio 子面前置基线
+> 142~187〕+Scene chunk 同窗 0 请求——App 级槽不自旋+pane 内层无
+> 自动重试零放大）。
 
 ## 文件清单（FE1 实装；规格见各文件头契约块）
 
