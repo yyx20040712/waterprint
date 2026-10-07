@@ -21,12 +21,18 @@
  *        单元重置（R1 回炉批 W1/W2 锚——applyVariables mock 小扩在案）。
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StudyPane } from "./studyPane";
 import { PROJECT_EVENT, TASK_EVENT } from "../shared/events";
+
+// P5 R3（2B6 门一复审 W-1 处置）：用例级超时预算——多等待点用例在负载态
+// 各点慢成功（单点不超 3000）串行叠加可越 vitest 用例级默认 5000（最劣 ⑮
+// 三 findBy 3×3000=9000+渲染/事件开销≈1000）→用例级超时红（非单点超时）；
+// 15000=覆盖上限 1.4x+默认值 3x（JointSolutionsPanel 文件级 testTimeout 先例同制）。
+vi.setConfig({ testTimeout: 15000 });
 
 // jsdom 缺口补丁（浏览器 API 级——非组件/react-query/antd mock 面）
 if (typeof globalThis.ResizeObserver === "undefined") {
@@ -324,6 +330,12 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     try {
       // sticky Table 体行异步落位——findBy 等待；antd Button 两中文字符自动
       // 插空格（「应用」→「应 用」）——空白容忍正则
+      // P5 R4（2B6 ⑪ click-race 同窗收口——d1 裁定授权）：瞬态 disabled 窗口
+      // 前置等待（⑮ 根因同窗：R1-b 表源切换两 commit 间 enumeratedUnitId=null
+      // →应用钮恒渲染瞬态禁用，窗内点击被吞——新增 enabled 前置断言=收紧非弱化）
+      await waitFor(() => {
+        expect(screen.getAllByText(/应\s*用/)[0]?.closest("button")?.disabled).toBe(false);
+      }, { timeout: 3000 });
       fireEvent.click(await screen.findByText(/应\s*用/, {}, { timeout: 3000 })); // P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值同论证
     } finally {
       window.removeEventListener(TASK_EVENT, onDispatch);
@@ -429,7 +441,16 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     window.history.replaceState(null, "", "/?project=p1&enum=e2&task=e2");
     window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "e2" }));
     expect(await screen.findByText("共 6 行", {}, { timeout: 3000 })).toBeTruthy(); // 新表在场；P5 R1（2B6）：findBy 族显式超时——已知假红成员⑮所在族闭合
-    fireEvent.click(await screen.findByText(/应\s*用/, {}, { timeout: 3000 })); // P5 R1（2B6）：findBy 族显式超时——waitFor 族同制同值
+    // P5 R4（2B6 ⑮ click-race 根因收口——d1 裁定授权+DIAG 实证补强）：瞬态
+    // disabled 为「双窗」形态（DIAG 捕获：enabled-wait 可在 u1 旧窗即过，
+    // 点击落在 R1-b reset 置 null 窗被吞〔antd onClick guard〕→零 mutate→
+    // TypeError）——act 静默让渡=效应链（reset null→commit→refix u2→commit）
+    // 确定性终态化（u2 终态无再翻转），再 enabled 前置断言（收紧非弱化）+点击。
+    await act(async () => {});
+    await waitFor(() => {
+      expect(screen.getAllByText(/应\s*用/)[0]?.closest("button")?.disabled).toBe(false);
+    }, { timeout: 3000 });
+    fireEvent.click(await screen.findByText(/应\s*用/, {}, { timeout: 3000 }));
     // 应用载荷 unitId=enumeratedUnitId 透传（R1-b 前：跨任务钉死 u1）
     const last = gate.applyVariables[gate.applyVariables.length - 1] as {
       data: { unit_id: string };
