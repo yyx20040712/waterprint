@@ -88,11 +88,11 @@ describe("surfaceExportError 三分支调度（M4 D1——两消费面共享错�
   it("其余 code（501 未就绪等）→ notifyError(error.message) 原文诚实透传", () => {
     const deps = makeDeps();
     surfaceExportError(
-      new WaterprintApiError("ArtifactKindNotReady", "ifc 模板尚未实现"),
+      new WaterprintApiError("ArtifactKindNotReady", "ifc 导出面未就绪"),
       "ifc",
       deps,
     );
-    expect(deps.notifyError).toHaveBeenCalledWith("ifc 模板尚未实现");
+    expect(deps.notifyError).toHaveBeenCalledWith("ifc 导出面未就绪");
     expect(deps.confirm).not.toHaveBeenCalled();
   });
 });

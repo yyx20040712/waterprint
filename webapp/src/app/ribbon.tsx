@@ -6,20 +6,18 @@
  * 输入:  projectId（string|null——null=主钮禁用+title 指引）+onNavigate
  *        （导航回调——App setTab：导出→studio.drawings/三维快访→viewer3d）
  *        +canvasStore 编辑会话 selector+useReadProject raw（保存/校验体
- *        基座）+paramsStore 草稿计数（F3-A1 闸）+useConditionOptions 工况
- *        源（drawings API——M4 D1 总图直发缺省首工况）+useExportArtifact
- *        （"dxf"——ribbon 挂实例，与子面实例互不共享状态）
+ *        基座）+paramsStore 草稿计数（F3-A1 闸）
  * 输出:  命令带容器（data-region="ribbon"）：①提交计算=Dropdown.Button
  *        主钮「全项目计算」（runCalc 链自 canvasEditToolbar 整体迁入：
  *        decideRunCalc 分派/dirty 先存后算 mutateAsync 链〔保存失败即止〕/
  *        参数草稿闸文案/GD-N-01 受检单元面/rawQuery loading 堵未就绪窗）
  *        +菜单「单元枚举…/联合枚举…」两 Modal（三入口收编一——mapping §A）；
  *        ②校验=编辑态草稿体校验（⑦甲警告放行；报告=Popover 自持）；
- *        ③导出=Dropdown.Button（M4 D1——主钮〔wp-ribbon-export 沿用〕
- *        点击=切槽 studio.drawings〔现状行为+title 逐字保持〕+菜单两项：
- *        「导出全厂总图（DXF）」=真发起〔unit_id 置空串 bare POST 总图
- *        语义；无工况禁用+title 引导；错误链经 lib/exportErrorSurface
- *        共享〕/「单元图·模型·批量——在图纸子面」=导航项；projectId
+ *        ③导出=RibbonExportMenu 拆件（M4 D1——Dropdown 形：主钮〔wp-
+ *        ribbon-export 沿用〕点击=切槽 studio.drawings〔现状行为+title
+ *        逐字保持〕+菜单两项：总图 DXF 真发起/子面导航项；工况源与直发
+ *        mutation/错误链归拆件自持——ribbon.tsx 行预算 500 硬顶拆出，
+ *        详见 ribbonExportMenu.tsx 头注）；projectId
  *        null=主钮+下拉整体禁用）；④三维快访=切槽 viewer3d
  *
  * 规格说明（mapping-2b4 §D 终核+brief D5+M4 brief D1；两裁量位〔编辑开关/
@@ -40,17 +38,16 @@
  *   - 纯函数 decideRunCalc/paramDraftBlockMessage 自 canvasEditToolbar 迁
  *     本文件导出（canvasEditToolbar.test 随迁 import——断言零改零弱化）；
  *   - M4 D1 导出快访接内容（inventory §C「Ribbon『导出』=快访；目录/
- *     预览/批量留 studio.drawings」终裁句）：总图直发=三钮中唯一无单元
- *     选择依赖者（对偶 ifc 的 conditionOnlyReady 口径），工况源=
- *     useConditionOptions(projectId)（ribbon→feature 依赖方向沿 canvasStore
- *     先例）缺省首项，无工况（空数组/取数失败）=该项禁用+title「先提交
- *     计算——工况源为最近完成计算的结果集」；409 二选一经 surfaceExportError
- *     共享链保持（不降级为纯 message——静默弱化禁）；演示动线③单元图/
- *     批量态留子面（菜单项导航不复制多选面）。
+ *     预览/批量留 studio.drawings」终裁句）：实装面拆件 ribbonExportMenu
+ *     （check_file_budgets 500 行硬顶——本文件 D1 段整体迁出零语义变化；
+ *     总图直发=三钮中唯一无单元选择依赖者〔对偶 ifc 的 conditionOnlyReady
+ *     口径〕，工况源=useConditionOptions 缺省首项，无工况=该项禁用+title
+ *     引导；409 二选一经 surfaceExportError 共享链保持不降级；演示动线③
+ *     单元图/批量态留子面——菜单项导航不复制多选面）。
  */
 import { cloneElement, useEffect, useState, type ReactElement } from "react";
 import { Alert, Button, Dropdown, Modal, Popover, Typography, message } from "antd";
-import { AuditOutlined, ExportOutlined, EyeOutlined } from "@ant-design/icons";
+import { AuditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { EnumerateBar } from "./enumerateBar";
@@ -72,9 +69,7 @@ import {
 } from "../features/params/lib/constraintPicker";
 import { withConstraintChoices } from "../features/params/lib/designParams";
 import { useProjectUnits } from "../features/solutions/api/useProjectUnits";
-import { useConditionOptions } from "../features/drawings/api/useExportsQuery";
-import { useExportArtifact } from "../features/drawings/api/useExportArtifact";
-import { surfaceExportError } from "../features/drawings/lib/exportErrorSurface";
+import { RibbonExportMenu } from "./ribbonExportMenu";
 import {
   useRunCalculationApiCalcRunPost,
   useRunEnumerationApiCalcEnumeratePost,
@@ -280,12 +275,6 @@ export function Ribbon({
   const paramDraftCount = useParamsStore((s) =>
     projectId !== null ? s.draftHint[projectId] ?? 0 : 0,
   );
-  // M4 D1：导出快访工况源（cost 同端点同键缓存共享——useConditionOptions
-  // 薄封装；projectId=null 禁用取数）+总图直发 mutation 独立实例（与子面
-  // ExportButton 实例互不共享状态——各挂各的 useMutation）
-  const conditionsQuery = useConditionOptions(projectId);
-  const exportConditions = conditionsQuery.data ?? [];
-  const exportDxf = useExportArtifact("dxf");
 
   // 草稿变更即清陈旧校验报告（报告只对当次草稿版本有效——沿现状）
   useEffect(() => {
@@ -357,28 +346,6 @@ export function Ribbon({
       // GD-N-02：保存失败显式呈报（mutateAsync 无 per-call onError）
       messageApi.error("保存失败——未提交计算（请检查网络/锁冲突后重试）");
     }
-  };
-
-  /** M4 D1 快访直发：全厂总图 DXF（三钮中唯一无单元选择依赖者——unit_id
-   *  置空串=server bare POST 总图语义〔ExportButton 第三钮现成口径〕；
-   *  工况源缺省首项；错误链经 surfaceExportError 共享〔409 二选一保持
-   *  不降级〕）。 */
-  const submitTotalDxf = (force: boolean) => {
-    if (projectId === null || exportConditions.length === 0) {
-      return; // 禁用态守卫（菜单项 disabled 面——不可达防御，不静默裸发）
-    }
-    exportDxf.mutate(
-      { projectId, unitId: "", conditionKey: exportConditions[0] ?? "", force },
-      {
-        onError: (error) => {
-          surfaceExportError(error, "dxf", {
-            confirm: Modal.confirm,
-            notifyError: messageApi.error,
-            retry: () => submitTotalDxf(true),
-          });
-        },
-      },
-    );
   };
 
   return (
@@ -478,55 +445,9 @@ export function Ribbon({
           校验
         </Button>
       </Popover>
-      <Dropdown.Button
-        trigger={["click"]}
-        icon={<ExportOutlined />}
-        disabled={projectId === null}
-        onClick={() => onNavigate({ slot: "studio", subface: "drawings" })}
-        popupRender={(menu) => <div data-testid="wp-ribbon-export-menu">{menu}</div>}
-        menu={{
-          items: [
-            {
-              key: "total-dxf",
-              disabled: projectId === null || exportConditions.length === 0,
-              title:
-                projectId !== null && exportConditions.length === 0
-                  ? "先提交计算——工况源为最近完成计算的结果集"
-                  : undefined,
-              label: (
-                <span data-testid="wp-ribbon-export-total-dxf">导出全厂总图（DXF）</span>
-              ),
-            },
-            {
-              key: "open-pane",
-              label: (
-                <span data-testid="wp-ribbon-export-open-pane">单元图·模型·批量——在图纸子面</span>
-              ),
-            },
-          ],
-          onClick: ({ key }) => {
-            if (key === "total-dxf") {
-              submitTotalDxf(false); // 快访真发起（缺省首工况+空 unit_id 总图语义）
-            } else if (key === "open-pane") {
-              onNavigate({ slot: "studio", subface: "drawings" }); // 导航项=同主钮切槽
-            }
-          },
-        }}
-        buttonsRender={([left, right]) => [
-          // 主钮 wp-ribbon-export 沿用不动（M1 探针 P6 锚零漂移）——title
-          // 在有项目态逐字保持现状；null 态=禁用+指引（run 族口径对齐）
-          cloneElement(left as ReactElement<Record<string, unknown>>, {
-            "data-testid": "wp-ribbon-export",
-            title:
-              projectId === null
-                ? "先在画布槽选择项目——图纸导出针对最近完成计算的结果集"
-                : "图纸导出（目录/预览/批量在图纸子面）",
-          }),
-          right,
-        ]}
-      >
-        导出
-      </Dropdown.Button>
+      {/* M4 D1：导出快访下拉（拆件 ribbonExportMenu——行预算 500 硬顶，
+          行为面=主钮切槽保持+总图直发+子面导航项，详见该件头注） */}
+      <RibbonExportMenu projectId={projectId} onNavigate={onNavigate} />
       <Button
         data-testid="wp-ribbon-viewer3d"
         icon={<EyeOutlined />}
