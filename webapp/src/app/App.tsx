@@ -2,8 +2,10 @@
  * 应用壳：B-1 四区骨架布局+槽路由状态机+Providers 组合（app 层组合面；
  * M1 批 2026-10-06 四区重写——draft-ia-v3 §3 B-1 形态单源+mapping-2b4
  * 落位；M7 批 2026-10-07 AI 席位实装（顶栏对话钮/ChatPane 浮层退役——
- * 对话经右列席位常驻）；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1 四区
- * →M7 席位实装）。
+ * 对话经右列席位常驻）；M2 批 2026-10-08 Settings 增强收编（单元详情
+ * Drawer 退役→focusId 非空右列显 unitDetailPanel——§6 动线③，ParamTabs
+ * 双态换显恒挂载零卸载）；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1
+ * 四区→M7 席位实装→M2 Settings 收编）。
  *
  * 输入:  各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
  *        层）+URL ?project=/（useProjectId）?tab=（两级值域+兼容归一）
@@ -64,6 +66,7 @@ import {
 } from "./projectParam";
 import { StatusBar } from "./statusBar";
 import { TokenSettingsModal } from "./tokenSettingsModal";
+import { UnitDetailPanel } from "./unitDetailPanel";
 import { UnitLibrary } from "./unitLibrary";
 import { AiConnectButton } from "../features/aiconnect/components/AiConnectButton";
 import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal";
@@ -379,7 +382,6 @@ export function App() {
               <UnitLibrary
                 focusId={libraryFocusId}
                 onFocusChange={setLibraryFocusId}
-                onNavigateTab={() => setTab({ slot: "canvas" })}
               />
             </div>
           </aside>
@@ -452,11 +454,29 @@ export function App() {
                 <Typography.Text strong>Settings</Typography.Text>
               </div>
               <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "8px 10px" }}>
-                {projectId === null ? (
-                  <Typography.Paragraph type="secondary">尚未选择项目——请先在画布槽选择项目</Typography.Paragraph>
-                ) : (
-                  <ParamTabs key={projectId} projectId={projectId} unitId={selectedUnitId} />
-                )}
+                {/* M2 批双态换显（D1 收编面）：libraryFocusId 非空=单元详情
+                    面板（unitDetailPanel——Drawer 收编右窗，不受 projectId 门：
+                    目录数据全局，库浏览无项目语境成立）；null=ParamTabs（现状）。
+                    ParamTabs 双态 display 切换恒挂载零卸载——A5r「双页体恒
+                    挂载+草稿跨页保留」同精神，切详情再回来草稿零丢失（禁
+                    条件卸载）；projectId===null 且 focusId===null=现状「尚未
+                    选择项目」提示不变 */}
+                <div
+                  style={{ display: libraryFocusId !== null ? "none" : "block", height: "100%" }}
+                >
+                  {projectId === null ? (
+                    <Typography.Paragraph type="secondary">尚未选择项目——请先在画布槽选择项目</Typography.Paragraph>
+                  ) : (
+                    <ParamTabs key={projectId} projectId={projectId} unitId={selectedUnitId} />
+                  )}
+                </div>
+                {libraryFocusId !== null ? (
+                  <UnitDetailPanel
+                    unitId={libraryFocusId}
+                    onClose={() => setLibraryFocusId(null)}
+                    onNavigateTab={() => setTab({ slot: "canvas" })}
+                  />
+                ) : null}
               </div>
             </section>
             {/* 纵向拖拽把手（8px 命中区+3px 可视条——Q8 视觉稿形态） */}
