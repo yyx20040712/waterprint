@@ -9,7 +9,10 @@
  * 原仅读属性恒真〕+新增 R2 取数失败态 title 分流用例〔k1-W3+d1-W2：
  * isError≠无工况，I-3 分级禁「先提交计算」误导〕+新增 d1-N2 直发
  * onError→confirm 接线断言〔Modal.confirm spy——409 二选一在快访面
- * 保持的接线面锚〕）。
+ * 保持的接线面锚〕；回炉 R4 轮〔门二探针 5/6——G6 态②红项处置〕：
+ * 取数失败用例 error mock 改非 domain 网络错形〔维持锚非 domain 态〕
+ * +新增 domain 态用例〔404 CostSourceNotFoundError→title 恢复「先提交
+ * 计算」正确引导——R2 全 isError 合流取数失败使该引导不可达=G6 红项〕）。
  *
  * 输入:  Ribbon（QueryClientProvider 每用例新 client〔retry:false〕）+
  *        vi.mock 边界沿 paneDomainGate 纪律=feature api/store 模块面+
@@ -291,8 +294,13 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
     expect(gate.exportMutate).not.toHaveBeenCalled();
   });
 
-  it("总图直发项取数失败态禁用+title 取数失败口径（R2——isError≠无工况，I-3 分级禁「先提交计算」误导）", () => {
-    gate.conditions = { ...gate.conditions, data: [], isError: true };
+  it("总图直发项取数失败态（非 domain：网络错/5xx/select 拒）禁用+title 取数失败口径（R2+R4——I-3 分级禁「先提交计算」误导）", () => {
+    gate.conditions = {
+      ...gate.conditions,
+      data: [],
+      isError: true,
+      error: new Error("工况端点网络错"),
+    };
     const view = renderRibbon("p1", () => {});
     fireEvent.click(
       view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
@@ -300,7 +308,23 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
     const li = screen.getByTestId("wp-ribbon-export-total-dxf").closest("li") as HTMLLIElement;
     expect(li.getAttribute("aria-disabled")).toBe("true");
     expect(li.title).toBe("工况源取数失败——请稍后重试或检查服务");
-    expect(li.title).not.toContain("先提交计算"); // 误导字样禁入 error 态
+    expect(li.title).not.toContain("先提交计算"); // 误导字样禁入非 domain error 态（R4：domain 态合法含）
+  });
+
+  it("总图直发项 domain 态（404 无 done calc）title 恢复先提交计算引导（R4——G6 红项：真无完成计算的用户该提交计算非重试）", () => {
+    gate.conditions = {
+      ...gate.conditions,
+      data: [],
+      isError: true,
+      error: new WaterprintApiError("CostSourceNotFoundError", "raw 服务端句式不入用户面"),
+    };
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    const li = screen.getByTestId("wp-ribbon-export-total-dxf").closest("li") as HTMLLIElement;
+    expect(li.getAttribute("aria-disabled")).toBe("true");
+    expect(li.title).toBe("先提交计算——工况源为最近完成计算的结果集");
   });
 
   it("有工况时总图直发项点击=真发起（unitId 空串 bare POST 总图语义+缺省首工况——DoD1 直发链锚）", () => {

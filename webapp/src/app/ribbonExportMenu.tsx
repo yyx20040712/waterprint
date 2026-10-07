@@ -35,7 +35,17 @@
  *     无工况：用户或有完成计算仅取数失败，I-3 分级口径禁「先提交计算」
  *     误导引导）；isPending/empty 维持「先提交计算——工况源为最近完成
  *     计算的结果集」（空数组=真无工况语义成立；pending 瞬态并入——
- *     申报）；禁用面三态同（data undefined→[] 恒禁用）。
+ *     申报）；禁用面三态同（data undefined→[] 恒禁用）；
+ *   - M4 回炉 R4（门二探针 5/6——G6 态②红项处置 2026-10-07）：isError
+ *     面 domain 细分（domainGate〔shared/api/sourceGate〕——drawingsPane
+ *     conditionGate UF-60① 两态化先例同款）：404 CostSourceNotFound
+ *     Error=真无 done calc（domain 态）→恢复「先提交计算」正确引导
+ *     （生产无完成计算的用户该提交计算非重试——R2 全 isError 合流
+ *     「取数失败」使该引导不可达=G6 红项）；非 domain（网络错/5xx/
+ *     select 拒〔200 空工况 narrowConditionOptions 窄化拒→isError——
+ *     wire 空工况实际呈现路径，门二 G6 实证成因链〕）→维持「取数失败」
+ *     如实呈现；empty/pending 面先提交计算 title 分支保留（防御完备
+ *     ——wire 不可达但组件守卫面不动）。
  */
 import { cloneElement, type ReactElement } from "react";
 import { Dropdown, Modal, message } from "antd";
@@ -44,6 +54,7 @@ import { ExportOutlined } from "@ant-design/icons";
 import { useConditionOptions } from "../features/drawings/api/useExportsQuery";
 import { useExportArtifact } from "../features/drawings/api/useExportArtifact";
 import { surfaceExportError } from "../features/drawings/lib/exportErrorSurface";
+import { domainGate } from "../shared/api/sourceGate";
 import type { TabTarget } from "./router";
 
 /** 导出快访下拉（M4 D1——拆件自持工况源/直发 mutation/错误链呈现）。 */
@@ -58,18 +69,27 @@ export function RibbonExportMenu({
   const conditionsQuery = useConditionOptions(projectId);
   const exportConditions = conditionsQuery.data ?? [];
   const exportDxf = useExportArtifact("dxf");
-  // R2：直发项 title 三态分流——null=菜单整体禁用（组件级 disabled，
-  // title 归主钮指引不重复）；error=取数失败口径（I-3 分级禁误导——
-  // isError≠无工况）；pending/empty=先提交计算引导（data undefined 与
-  // [] 同归空数组面，pending 瞬态并入申报）；有数据=undefined。
+  // R4（G6 红项处置）：isError 面 domain 细分——domainGate 判别 404
+  // CostSourceNotFoundError（真无 done calc）与网络错/5xx/select 拒
+  // （narrowConditionOptions 空工况窄化拒——wire 实际呈现路径）
+  const conditionGate = conditionsQuery.isError
+    ? domainGate(conditionsQuery.error, "CostSourceNotFoundError", "项目暂无完成的计算结果。")
+    : null;
+  // R2+R4：直发项 title 分流——null=菜单整体禁用（title 归主钮指引）；
+  // isError domain 态=恢复「先提交计算」正确引导（真无完成计算该提交
+  // 非重试）；isError 非 domain=取数失败口径（I-3 分级禁误导）；pending/
+  // empty=先提交计算引导（空数组=真无工况；pending 瞬态并入申报）；
+  // 有数据=undefined。
   const totalDxfTitle =
     projectId === null
       ? undefined
-      : conditionsQuery.isError
-        ? "工况源取数失败——请稍后重试或检查服务"
-        : exportConditions.length === 0
-          ? "先提交计算——工况源为最近完成计算的结果集"
-          : undefined;
+      : conditionGate?.domain
+        ? "先提交计算——工况源为最近完成计算的结果集"
+        : conditionsQuery.isError
+          ? "工况源取数失败——请稍后重试或检查服务"
+          : exportConditions.length === 0
+            ? "先提交计算——工况源为最近完成计算的结果集"
+            : undefined;
 
   /** 快访直发：全厂总图 DXF（unit_id 置空串=server bare POST 总图语义；
    *  工况源缺省首项；错误链经 surfaceExportError 共享〔409 二选一保持
