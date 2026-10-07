@@ -23,7 +23,11 @@ import { describe, expect, it, vi } from "vitest";
 
 // FE-2 适配：流式渲染首用例承担三图模块+echarts 动态 import 冷启动
 // （全量并发下 >5s 默认超时——文件级放宽；单文件直跑实测 <4s）。
-vi.setConfig({ testTimeout: 20000 });
+// P5 稳态化（2B6 满载假红族）：20s 仍两现满载假红（2026-10-06-7 实录
+// 实证部 13447ms 近阈值+2026-10-07-5 满载复现）——放宽至 30000（实测最劣
+// 13.4s 的 2.2x 余量；本件 SSR 流式形态无 findBy/waitFor 等待点，文件级
+// testTimeout 为唯一超时面——数值论证见 2B6 impl-report）。
+vi.setConfig({ testTimeout: 30000 });
 
 import type { JointComboView, JointResultView } from "../lib/jointView";
 import { JointSolutionsPanel } from "./JointSolutionsPanel";

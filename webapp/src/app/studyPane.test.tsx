@@ -299,9 +299,11 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     expect(screen.getByText(/共 2 个可行组合/)).toBeTruthy();
     window.history.replaceState(null, "", "/?project=p1&task=t2&enum=e1");
     window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t2" }));
+    // P5 稳态化（2B6）：满载 CPU 争用下默认 1s 超时假红——显式 timeout 3000
+    // （viewer3dPane.test L195 仓内先例；全 mock 同步面隔离实录 <100ms，3s=30x 余量）
     await waitFor(() => {
       expect(screen.getByText(/联合枚举任务失败：/)).toBeTruthy();
-    });
+    }, { timeout: 3000 });
     expect(screen.getByText("共 5 行")).toBeTruthy(); // 表源轨 enum 键优先不卸载
   });
 
@@ -328,7 +330,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     }
     await waitFor(() => {
       expect(window.location.search).toContain("task=t-recalc");
-    });
+    }, { timeout: 3000 }); // P5 稳态化（2B6）：同上——满载假红族显式超时
     expect(window.location.search).toContain("enum=e1"); // enum 键不动
     expect(dispatched).toBe(1); // TASK_EVENT 恰一派发
     expect(screen.getByText("共 5 行")).toBeTruthy(); // 表源不卸载
@@ -350,7 +352,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     window.dispatchEvent(new CustomEvent(PROJECT_EVENT, { detail: "p2" }));
     await waitFor(() => {
       expect(screen.getByText(NO_ENUM_HINT)).toBeTruthy();
-    });
+    }, { timeout: 3000 }); // P5 稳态化（2B6）：同上——满载假红族显式超时
     expect(screen.getByText(NO_JOINT_HINT)).toBeTruthy();
   });
 
@@ -379,7 +381,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     }
     await waitFor(() => {
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["/api/calc/tasks/e1"] });
-    });
+    }, { timeout: 3000 }); // P5 稳态化（2B6）：同上——满载假红族显式超时
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["/api/calc/tasks/t1"] });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["/api/calc/sensitivity/p1"], // 批6e W5 复刻（联合实例追加）
@@ -400,7 +402,7 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
       // 表源保持 e1 不漂移（R1-a 前：handler 回落 task 键→表源=t-recalc
       // →kind 门滤→表静默消失且 NO_ENUM_HINT 因任务键非 null 不显）
       expect(screen.getByText("共 5 行")).toBeTruthy();
-    });
+    }, { timeout: 3000 }); // P5 稳态化（2B6）：同上——满载假红族显式超时
     expect(screen.getByText("排序（降序）：")).toBeTruthy();
   });
 
