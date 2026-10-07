@@ -136,7 +136,21 @@ export function FdInlinePanel({
           onClick={() => setModalOpen(true)}
           style={{ height: THUMB_HEIGHT, marginTop: 4, cursor: "pointer" }}
         >
-          <div style={{ pointerEvents: "none", width: "100%", height: "100%" }}>
+          {/* R1-a 高度链：fd-heatmap 根 div 无高度样式，内层 svg
+              height:100% 对 auto 父按宽高比自适应（方形 mask 真浏览器
+              ~360px 溢出 120px 容器且无裁剪）；wrapper 置 flex（alignItems
+              默认 stretch→根 div 拉伸得 120px 确定高→svg height:100% 解析
+              为确定值+preserveAspectRatio meet 居中缩略）+overflow hidden
+              兜底——FeasibilityHeatmap 原件零改（4 件零改红线不动） */}
+          <div
+            style={{
+              pointerEvents: "none",
+              display: "flex",
+              overflow: "hidden",
+              width: "100%",
+              height: "100%",
+            }}
+          >
             <FeasibilityHeatmap
               product={fdProduct}
               onPick={(valueA, valueB) => {

@@ -130,33 +130,8 @@ export function UnitDetailPanel({
 }) {
   const { addToCanvas, editing, contextHolder } = useAddUnitToCanvas();
   const catalog = useListUnitsApiUnitsGet();
-
-  if (catalog.isPending) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
-        <Spin />
-      </div>
-    );
-  }
-  if (catalog.isError) {
-    return (
-      <Alert
-        type="error"
-        showIcon
-        title="单元目录加载失败"
-        description="GET /api/units 不可达——请确认服务已启动后重试。"
-        action={
-          <Button size="small" onClick={() => catalog.refetch()}>
-            重试
-          </Button>
-        }
-      />
-    );
-  }
-
-  const unit =
-    catalog.data?.units.find((entry) => entry.unit_id === unitId) ?? null;
-  // ✕ 解除钮（恒在场——目录无此键 Empty 态仍可解除，预裁决 3 条款）
+  // ✕ 解除钮（恒在场——pending/error 早退分支与目录无此键 Empty 态均保留
+  // 解除通道：左列同键 error 时组反选不可用，✕ 为唯一出口——R1-c）
   const closeBtn = (
     <Button
       type="text"
@@ -168,6 +143,44 @@ export function UnitDetailPanel({
       style={{ marginLeft: "auto", flex: "none" }}
     />
   );
+
+  if (catalog.isPending) {
+    return (
+      <div data-testid="wp-unit-detail" style={{ minHeight: 0 }}>
+        {contextHolder}
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 8px 0" }}>
+          {closeBtn}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Spin />
+        </div>
+      </div>
+    );
+  }
+  if (catalog.isError) {
+    return (
+      <div data-testid="wp-unit-detail" style={{ minHeight: 0 }}>
+        {contextHolder}
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 8px 0" }}>
+          {closeBtn}
+        </div>
+        <Alert
+          type="error"
+          showIcon
+          title="单元目录加载失败"
+          description="GET /api/units 不可达——请确认服务已启动后重试。"
+          action={
+            <Button size="small" onClick={() => catalog.refetch()}>
+              重试
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const unit =
+    catalog.data?.units.find((entry) => entry.unit_id === unitId) ?? null;
 
   return (
     <div

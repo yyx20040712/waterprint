@@ -11,10 +11,16 @@
  *        禁 mock react-query 内部/antd——Table/Empty/Button/message 原件
  *        真渲染）
  * 输出:  断言组：①头部四要素（name_zh/unit_id/KindTag/所属线）+
- *        wp-unit-detail 探针锚；②参数面五列头+空 params kind 两分文案；
- *        ③端口面四列头+回流 Tag；④✕→onClose；⑤「到工艺画布」→
+ *        wp-unit-detail 探针锚；②参数面五列头+列值面（default/range/
+ *        grid 三渲染形）+空 params kind 两分文案；③端口面四列头+回流
+ *        Tag+recycle=false「—」；④✕→onClose；⑤「到工艺画布」→
  *        onNavigateTab+onClose 成对；⑥编辑态「添加到画布」显/只读态
- *        不显+点击 addUnit 实录；⑦目录无此键→Empty+✕ 仍在。
+ *        不显+点击 addUnit 实录；⑦目录无此键→Empty+✕ 仍在；⑧取数
+ *        error 态→✕ 在场+点击→onClose（R1-c——error 早退分支解除通道：
+ *        左列同键 error 时组反选不可用，✕ 为唯一出口）。
+ *        R1 回炉批（2026-10-08 门一双审 d1-W4）：②③补列值断言（「—」
+ *        「1000」「100~5000」渲染形——既有行为面用例对 HEAD 绿如实记
+ *        非红面）。
  */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -134,12 +140,18 @@ describe("UnitDetailPanel 头部与详情面（M2 D1 收编面）", () => {
     expect(screen.getByText("市政污水")).toBeTruthy(); // 所属线（BUSINESS_LINE_ZH）
   });
 
-  it("②参数面五列头在场+空 params kind 两分文案（builtin/非 builtin）", () => {
+  it("②参数面五列头+列值面在场+空 params kind 两分文案（builtin/非 builtin）", () => {
     const { unmount } = renderPanel();
     for (const head of ["参数", "量纲", "默认值", "范围", "网格"]) {
       expect(screen.getByText(head)).toBeTruthy();
     }
     expect(screen.getByText("池容")).toBeTruthy(); // 参数行 label_zh 主列
+    // R1-d 列值面（夹具 volume 行：default=1000/range 100~5000/grid=null）：
+    // default 直出「1000」+range「min~max」形+grid 空值「—」（参数端口两
+    // 表同渲——「—」=grid+recycle=false 两处，多重匹配合规）
+    expect(screen.getByText("1000")).toBeTruthy();
+    expect(screen.getByText("100~5000")).toBeTruthy();
+    expect(screen.getAllByText("—").length).toBe(2);
     unmount();
     cleanup();
     // kind 两分空态：builtin 空 params=「内置节点无参数面」
@@ -154,7 +166,7 @@ describe("UnitDetailPanel 头部与详情面（M2 D1 收编面）", () => {
     expect(screen.getByText("该单元无参数面")).toBeTruthy();
   });
 
-  it("③端口面四列头在场+回流 Tag（recycle=true）", () => {
+  it("③端口面四列头在场+回流 Tag（recycle=true）+recycle=false「—」", () => {
     renderPanel();
     for (const head of ["端口", "流体", "方向"]) {
       expect(screen.getByText(head)).toBeTruthy();
@@ -163,6 +175,8 @@ describe("UnitDetailPanel 头部与详情面（M2 D1 收编面）", () => {
     // 「回流」在列头 th 与 recycle=true 行 Tag 两处复用——多重匹配合规
     // （studyPane 列头先例同口径），断言两处俱在
     expect(screen.getAllByText("回流").length).toBe(2);
+    // R1-d：recycle=false 行渲染「—」（与参数表 grid=null 的「—」两处）
+    expect(screen.getAllByText("—").length).toBe(2);
   });
 
   it("④✕ 解除钮→onClose 调用（title=解除选中——关闭详情）", () => {
@@ -194,6 +208,14 @@ describe("UnitDetailPanel 头部与详情面（M2 D1 收编面）", () => {
   it("⑦目录无此键→Empty「单元目录中无此单元」+✕ 仍在场", () => {
     const { onClose } = renderPanel("ghost_unit");
     expect(screen.getByText("单元目录中无此单元")).toBeTruthy();
+    fireEvent.click(screen.getByTitle("解除选中——关闭详情"));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("⑧取数 error 态→✕ 解除钮在场+点击→onClose（R1-c——error 早退分支解除通道）", () => {
+    gate.isError = true;
+    const { onClose } = renderPanel();
+    expect(screen.getByText("单元目录加载失败")).toBeTruthy();
     fireEvent.click(screen.getByTitle("解除选中——关闭详情"));
     expect(onClose).toHaveBeenCalledTimes(1);
   });

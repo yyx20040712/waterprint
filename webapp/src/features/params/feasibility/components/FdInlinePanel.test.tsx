@@ -16,7 +16,13 @@
  *        →onBackfill 两键成对；④模态关→fd-thumb 仍在+mutate 计数不增
  *        （不重取——预裁决 9）；⑤请求令牌=快速切轴旧 onSuccess 晚到不
  *        覆盖（R-1 A2-N-04 语义迁移锚）；⑥designMap.isError→行内+模态
- *        两态错误文案在场。
+ *        两态错误文案在场。R1 回炉批（2026-10-08 门一双审 k1-W1/d1-W2）：
+ *        ②追加 wrapper display=flex 断言（R1-a 高度链锚——fd-heatmap 根
+ *        div 无高度样式，内层 svg height:100% 对 auto 父按宽高比自适应
+ *        溢出 120px 容器；flex 容器 stretch 拉伸根 div 得确定高）；⑦⑧
+ *        补 isPending 两分支加载文案锚（R1-b——1D 直渲/2D 第二轴选定产
+ *        物未达，既有行为面用例对 HEAD 绿如实记非红面）；⑤注释勘正
+ *        （R1-e/k1-N2：「第一轴 depth」→「第二轴 depth」）。
  */
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -171,7 +177,13 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     expect(thumb).toBeTruthy();
     // 格点击阻断面：内层 wrapper pointerEvents=none（jsdom 不模拟该 CSS——
     // DOM style 属性直断言，动线断言=缩略容器 click 开模态非格交互）
-    expect(thumb.querySelector('[data-testid="fd-heatmap"]')?.parentElement?.style.pointerEvents).toBe("none");
+    const shield = thumb.querySelector('[data-testid="fd-heatmap"]')?.parentElement;
+    expect(shield?.style.pointerEvents).toBe("none");
+    // R1-a 高度链锚：wrapper display=flex（flex 容器 alignItems 默认
+    // stretch→fd-heatmap 根 div〔无高度样式〕拉伸得 120px 确定高→内层
+    // svg height:100% 解析为确定值+preserveAspectRatio meet 居中缩略；
+    // jsdom 不能证伪渲染高——真浏览器高度实测归门二探针）
+    expect(shield?.style.display).toBe("flex");
     fireEvent.click(thumb);
     // 模态开=fd-heatmap 双实例（缩略+模态 DOM 并存）
     await waitFor(() => {
@@ -226,7 +238,7 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
   it("⑤请求令牌=快速切轴旧 onSuccess 晚到不覆盖（R-1 A2-N-04 迁移锚）", async () => {
     renderPanel();
     flushOnSuccess(0, map1D("volume"));
-    // 第一轴 depth 请求发出（reqId=2）→未及回，改选 width（reqId=3）
+    // 第二轴 depth 请求发出（reqId=2）→未及回，改选 width（reqId=3）
     await pickSecondAxis("水深（depth）");
     await pickSecondAxis("池宽（width）");
     expect(gate.mutateCalls.length).toBe(3);
@@ -262,5 +274,23 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     await waitFor(() => {
       expect(screen.getAllByText(/可行域求值失败：boom-502/).length).toBe(2);
     });
+  });
+
+  it("⑦isPending 直渲→「可行域求值中…」在场（1D 分支加载锚——R1-b）", () => {
+    gate.isPending = true;
+    renderPanel();
+    expect(screen.getByText("可行域求值中…")).toBeTruthy();
+    expect(screen.queryByTestId("fd-bar")).toBeNull();
+  });
+
+  it("⑧第二轴选定+产物未达+isPending→「可行域求值中…」在场（2D 分支加载锚——R1-b）", async () => {
+    renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    gate.isPending = true; // mutate#2 发出后持续 pending（产物未达）
+    await pickSecondAxis("水深（depth）");
+    // pickSecondAxis onChange→setState 重渲→mock 新读数 isPending 生效：
+    // 2D 分支（fdSecond 非空）fdProduct 已清→加载文案在场+缩略缺席
+    expect(screen.getByText("可行域求值中…")).toBeTruthy();
+    expect(screen.queryByTestId("fd-thumb")).toBeNull();
   });
 });
