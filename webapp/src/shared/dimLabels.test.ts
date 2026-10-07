@@ -4,8 +4,10 @@
  *
  * 输入:  dimLabel(dim)（shared/dimLabels——手写显示层表，与 CANONICAL_
  *        UNITS 逐键对齐、FLOW 单键刻意分歧〔2A2 批 2026-10-05 勘正，
- *        UF-62①：原「真源镜像」短语失实〕）
- * 输出:  已知枚举→「量名 单位」（DIMENSIONLESS→仅量名）；未知→原样串
+ *        UF-62①：原「真源镜像」短语失实〕）+dimUnit(dim, surface)
+ *        （M4 D3 扩输出面语境参——UF-63 候选①：输出面 FLOW→m³/s）
+ * 输出:  已知枚举→「量名 单位」（DIMENSIONLESS→仅量名）；未知→原样串；
+ *        dimUnit 两语境组（输出面 FLOW 分流，其余键同值）
  */
 import { describe, expect, it } from "vitest";
 
@@ -83,5 +85,29 @@ describe("dimUnit：单位符号直取（C2-params Q4）", () => {
 
   it("未知枚举 → 空串（诚实降级无单位）", () => {
     expect(dimUnit("SOMETHING_NEW")).toBe("");
+  });
+});
+
+describe("dimUnit 输出面语境参数（M4 D3——UF-63 候选①清偿：输出面 FLOW 标签 m³/s）", () => {
+  it("FLOW 缺省（输入面）→ m³/d（既有行为回归锁——进水参数面绑定点口径）", () => {
+    expect(dimUnit("FLOW")).toBe("m³/d");
+  });
+
+  it("FLOW output 面 → m³/s（值恒内核规范 m3/s，标签面美化 m3→m³——FE 零值面换算纪律）", () => {
+    expect(dimUnit("FLOW", "output")).toBe("m³/s");
+  });
+
+  it("FLOW 显式 input 面 → m³/d（两语境显式面各自锁）", () => {
+    expect(dimUnit("FLOW", "input")).toBe("m³/d");
+  });
+
+  it("其余键 output 面同值（VOLUME——两语境同表同源，仅 FLOW 分流）", () => {
+    expect(dimUnit("VOLUME", "output")).toBe("m³");
+    expect(dimUnit("VOLUME")).toBe("m³");
+  });
+
+  it("未知枚举两语境同空串（诚实降级无单位）", () => {
+    expect(dimUnit("SOMETHING_NEW", "output")).toBe("");
+    expect(dimUnit("SOMETHING_NEW", "input")).toBe("");
   });
 });

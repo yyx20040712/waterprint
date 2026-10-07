@@ -1,10 +1,12 @@
 /**
  * CompareMatrix SSR 测试（HC25-F4 P3-A——失效列头「已移除」标注可达面）。
  *
- * 输入: 构造 CompareReport（condition_keys=[design]）+pinned=[design, avg]
- *        +catalog 查询缓存种子（单元中文名索引）
+ * 输入: 构造 CompareReport（condition_keys=[design]；指标行含 VOLUME+
+ *        FLOW〔q_air——M4 D3 UF-63 锚〕）+pinned=[design, avg]+catalog
+ *        查询缓存种子（单元中文名索引）
  * 输出: vitest 断言组（失效键 avg 列头灰显+「（已移除）」在场/存活列
- *       无标注/pinned=null 未锁定零失效面）
+ *       无标注/pinned=null 未锁定零失效面/FLOW 行单位列 m³/s〔M4 D3〕；
+ *       灰显令牌断言=--wp-text-2〔M4 D2 UF-64 销账同步〕）
  *
  * 形态说明（沿 AssumptionsPanel.test.tsx SSR 先例——renderToString 零
  *   jsdom 红线；数据通道=orval 生成 hook queryKey 种子 setQueryData
@@ -34,6 +36,15 @@ const REPORT: CompareReport = {
       label_zh: null,
       dim: "VOLUME",
       values: { design: 1200 },
+    },
+    // M4 D3：FLOW 指标行（UF-63 错配清偿锚——q_air 值面=内核规范 m3/s，
+    // 断言仅单位列标签 m³/s，值面断言不在场即标签面纯改）
+    {
+      unit_id: "municipal_aao",
+      field_id: "q_air",
+      label_zh: null,
+      dim: "FLOW",
+      values: { design: 0.42 },
     },
   ],
   warnings: [{ unit_id: "municipal_aao", counts: { design: 0 } }],
@@ -68,7 +79,8 @@ describe("CompareMatrix 失效列头（HC25-F4 P3-A——ADR-018 D3 规格可达
 
   it("失效列头灰显（secondary 色）+悬浮述因 title 在场", () => {
     const html = renderMatrix(["design", "avg"]);
-    expect(html).toContain("var(--wp-text-secondary)"); // 灰显样式
+    // M4 D2（UF-64 销账）：断言随源迁移 --wp-text-2（global.css L73 实定义）
+    expect(html).toContain("var(--wp-text-2)"); // 灰显样式
     expect(html).toContain("avg（该工况已随受检集变更移除——重新锁定可清理）");
   });
 
@@ -82,5 +94,10 @@ describe("CompareMatrix 失效列头（HC25-F4 P3-A——ADR-018 D3 规格可达
     const text = textOf(renderMatrix(null));
     expect(text).not.toContain("已移除");
     expect(text).not.toContain("★");
+  });
+
+  it("FLOW 指标行单位列=m³/s（M4 D3——UF-63 输出面语境清偿：值面零改，断言不在场即标签面纯改）", () => {
+    const text = textOf(renderMatrix(null));
+    expect(text).toContain("m³/s"); // q_air 行单位列（输出面语境——值恒内核规范 m3/s）
   });
 });

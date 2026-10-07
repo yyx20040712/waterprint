@@ -1,6 +1,7 @@
 /**
  * CompareMatrix（多工况对比矩阵——P2 第三批 ADR-018 D1 呈现件；工况面
- * UX 反馈批件 1 工况键/单元名中文化接线）。
+ * UX 反馈批件 1 工况键/单元名中文化接线；M4 批 2026-10-07 UF-64 令牌
+ * 迁移 --wp-text-2+UF-63 输出面单位语境 dimUnit(dim,"output")）。
  *
  * 输入:  CompareReport（窄化产物：condition_keys 列头+metrics/warnings
  *        行族）+pinned 锁定基准键集（失效键灰显列头标注）+unitNames
@@ -16,8 +17,9 @@
  *     ——正绿负红语义不适用于容积/时长等无上限指标，极值标注即差异面）；
  *   - 锁定基准列头：pinned 键集打 ★ 标；失效键（受检集变更后不在
  *     当前工况）灰显+「已移除」标注（D3——不自动删，清理经重新锁定）；
- *   - 单位列=dimUnit(dim)（shared/dimLabels 单位真源——空串=无量纲
- *     不出列段）；
+ *   - 单位列=dimUnit(dim, "output")（shared/dimLabels 单位真源——M4 批
+ *     UF-63 清偿：输出面语境 FLOW→m³/s〔值恒内核规范 m3/s 零换算〕，
+ *     空串=无量纲不出列段）；
  *   - 件 1 中文化（2026-09-12 用户裁定）：工况列头=conditionLabel
  *     工程全称（悬浮原始键）；单元列/警告表=unit_id→name_zh（catalog
  *     真源，悬浮原 unit_id）。
@@ -61,7 +63,7 @@ function conditionTitle(
 ) {
   return (
     <span
-      style={expired ? { color: "var(--wp-text-secondary)" } : undefined}
+      style={expired ? { color: "var(--wp-text-2)" } : undefined}
       title={
         expired
           ? `${key}（该工况已随受检集变更移除——重新锁定可清理）`
@@ -91,7 +93,7 @@ export function CompareMatrix({
     key: metricRowKey(metric.unit_id, metric.field_id),
     unit_id: metric.unit_id,
     field: metricLabel(metric),
-    unit: dimUnit(metric.dim),
+    unit: dimUnit(metric.dim, "output"),
     values: metric.values,
   }));
 
@@ -138,7 +140,7 @@ export function CompareMatrix({
       render: (_, row) => {
         const value = row.values[key];
         if (typeof value !== "number") {
-          return <span style={{ color: "var(--wp-text-secondary)" }}>—</span>;
+          return <span style={{ color: "var(--wp-text-2)" }}>—</span>;
         }
         const { maxKey, minKey } = rowExtremes(row.values, report.condition_keys);
         return (
@@ -196,7 +198,7 @@ export function CompareMatrix({
                     return typeof count === "number" && count > 0 ? (
                       <Typography.Text type="warning">{count}</Typography.Text>
                     ) : (
-                      <span style={{ color: "var(--wp-text-secondary)" }}>0</span>
+                      <span style={{ color: "var(--wp-text-2)" }}>0</span>
                     );
                   },
                 }),

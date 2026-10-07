@@ -33,7 +33,11 @@
 - 领域码面不透 raw message（R3b→2A4 批 UF-59 domainGate 两态化：
   CompareSourceNotFoundError 固定摘要+引导，网络错/窄化错 raw 兜底）；
 - 挂账注记（docs/undefined-features-register.md）：
-  - UF-63（开放）：FLOW 维度输出面单位标签错配——CompareMatrix 指标行
-    `dimUnit(metric.dim)` 为两消费面之一（q_air 值 m3/s×标签 m³/d）；
-  - UF-64（开放）：CompareMatrix 三处 `var(--wp-text-secondary)` 未定义
-    失效——承接批修复须同步 CompareMatrix.test.tsx L71 令牌断言。
+  - UF-63（消费点之一 M4 批 2026-10-07 清偿）：CompareMatrix 指标行改
+    `dimUnit(metric.dim, "output")`——FLOW 输出面标签 m³/s（值恒内核
+    规范 m3/s，FE 零值面换算）；余消费点 solutionsView L271 归 M6 批
+    同口径接；
+  - UF-64（已清偿 M4 批 2026-10-07）：CompareMatrix 三处旧令牌（`--wp-text-`
+    缀 `secondary` 的变体名——未定义失效）迁移 `var(--wp-text-2)`
+    +CompareMatrix.test.tsx 令牌断言同步（候选 B 承袭 tokens-2b3 §D 冻结
+    ——不增别名定义）；全库该变体名零残留。

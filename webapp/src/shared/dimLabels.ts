@@ -16,8 +16,12 @@
  * 用户裁决「统一为 m³/d（推荐）」；params_guard A-1~A-3 同面），内核规范单位
  * 仍 m3/s（ADR-002——换算只在 core parse 边界，白名单 FLOW 两写法
  * {"m3/s","m3/d"} 均合法输入）；FLOW 维度**输出面**（方案表 dim 列/
- * 对比矩阵 aao·cass q_air 行）值=规范 m3/s 而标签随本表 m³/d=已知
- * 错配（UF-63 登记，后续批裁量）。**不做任何数值换算**（FE 零换算
+ * 对比矩阵 aao·cass q_air 行）值=规范 m3/s——**M4 批 2026-10-07 输出面
+ * 语境分流（UF-63 用户裁决候选①）**：dimUnit 增 surface 参，output 面
+ * FLOW→"m³/s"（标签面美化 m3→m³ 同族，值恒内核规范 m3/s 零换算），
+ * 两消费点之一 CompareMatrix 本批清偿、余 solutionsView L271 归 M6
+ * 批同口径接；input 面（缺省）仍 m³/d=参数面绑定点口径不变。
+ * **不做任何数值换算**（FE 零换算
  * 纪律）；白名单外写法不出现（枚举名是内核类型面非自由文本）。
  * POWER 规范单位=W（真源口径，不换 kW）。
  */
@@ -59,8 +63,15 @@ export function dimLabel(dim: string): string {
 }
 
 /** 单位符号直取（C2-params Q4：输入控件单位后缀消费[原 addonAfter——
- * C2VD V6 迁移 Space.Compact+后缀 span]——与 dimLabel 同表同源零换算；
- * 无量纲/未知→空串=无后缀，量名经声明面悬浮通道）。 */
-export function dimUnit(dim: string): string {
+ *  C2VD V6 迁移 Space.Compact+后缀 span]——与 dimLabel 同表同源零换算；
+ *  无量纲/未知→空串=无后缀，量名经声明面悬浮通道）。
+ *  M4 D3（UF-63 候选①清偿 2026-10-07）：surface 参分流输出面语境——
+ *  output 面 FLOW→"m³/s"（值恒内核规范 m3/s，标签面美化 m3→m³ 同族
+ *  ——FE 零值面换算纪律）；其余键两语境同值；缺省 input=参数面绑定点
+ *  m³/d 口径不变。 */
+export function dimUnit(dim: string, surface: "input" | "output" = "input"): string {
+  if (surface === "output" && dim === "FLOW") {
+    return "m³/s";
+  }
   return DIM_LABELS[dim]?.unit ?? "";
 }
