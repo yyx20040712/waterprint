@@ -8,8 +8,9 @@
  * 输出:  studio 槽内容：Segmented 子面条五项（study|drawings|cost|compare|
  *        trust——嵌套 antd Tabs 属禁用面 global.css GC-08，ParamTabs
  *        Segmented 先例）+子面体（mount-on-first-activation+display 切换
- *        保持——切走不卸载防丢状态；四内容子面=注入 LazyPane 懒装载
- *        drawings/cost/compare/trust 四 pane 原件；study=占位空态容器）
+ *        保持——切走不卸载防丢状态；五内容子面=注入 LazyPane 懒装载
+ *        study/drawings/cost/compare/trust 五 pane 原件——study=M6 批
+ *        2026-10-07 实装接入〔占位空态容器退役〕）
  *
  * 规格说明（draft-ia-v3 B-1 L44-45+mapping-2b4 M1 行；D3 装配纪律）：
  *   - 子面条仅 studio 槽渲染（本组件只挂 studio 槽 children——其余槽
@@ -17,20 +18,21 @@
  *   - mount-on-first-activation：activated 集合随 subface 到访增长，
  *     未到访子面零挂载（懒装载语义）；已挂载子面 display 切换保持
  *     （antd Tabs 行为等价——R1 状态保持泛化）；
- *   - study 占位空态容器：M6 批实装方案研究面（方案表/敏感性/联合
- *     结果）；?project= 空态前置提示沿各 pane 现状惯例；
- *   - 本件零业务逻辑（纯装配——四 pane 内容/取数/门控全在各自 pane 内）。
+ *   - study=studyPane 懒装载（M6 批 2026-10-07 实装——方案表段+联合
+ *     结果段内容面；沿革：M1 立占位空态容器，M6 占位退役五子面全懒
+ *     装载统一；?project= 空态前置提示归 studyPane 自持——D1）；
+ *   - 本件零业务逻辑（纯装配——五 pane 内容/取数/门控全在各自 pane 内）。
  */
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { Segmented, Typography } from "antd";
+import { Segmented } from "antd";
 
 import { lazyPaneLoader } from "./lazyPaneLoader";
 import type { StudioSubface } from "./router";
-import { useProjectId } from "./useProjectId";
 
-/** 四内容子面懒装载器（FE-2 形态——named export 选件；UF-66 批起=
+/** 五内容子面懒装载器（FE-2 形态——named export 选件；UF-66 批起=
  *  lazyPaneLoader 工厂形——chunk 失败重试经 cache-bust 恢复；回炉
  *  R1/R2：冷却窗限速+chunkHint=specifier 基名归因）。 */
+const studyLoader = lazyPaneLoader(() => import("./studyPane"), "studyPane", (m) => m.StudyPane as ComponentType);
 const drawingsLoader = lazyPaneLoader(() => import("./drawingsPane"), "drawingsPane", (m) => m.DrawingsPane as ComponentType);
 const costLoader = lazyPaneLoader(() => import("./costPane"), "costPane", (m) => m.CostPane as ComponentType);
 const compareLoader = lazyPaneLoader(() => import("./comparePane"), "comparePane", (m) => m.ComparePane as ComponentType);
@@ -45,20 +47,15 @@ const SUBFACE_OPTIONS: { label: string; value: StudioSubface }[] = [
   { label: "可信度", value: "trust" },
 ];
 
-/** 内容子面装载面（label 承 App 旧槽条页签名——pane 标题单源）。 */
+/** 内容子面装载面（label 承 App 旧槽条页签名——pane 标题单源；M6 起
+ *  study 头插=五子面全懒装载统一，首位与 SUBFACE_OPTIONS「研究」对齐）。 */
 const CONTENT_FACES: { face: StudioSubface; label: string; load: () => Promise<{ default: ComponentType }> }[] = [
+  { face: "study", label: "方案研究", load: studyLoader },
   { face: "drawings", label: "图纸预览", load: drawingsLoader },
   { face: "cost", label: "概算", load: costLoader },
   { face: "compare", label: "工况对比", load: compareLoader },
   { face: "trust", label: "可信度", load: trustLoader },
 ];
-
-/** study 占位文案（M6 批实装——brief D3 逐字）。 */
-const STUDY_PLACEHOLDER =
-  "方案研究（方案表/敏感性/联合结果）随 M6 批实装——枚举提交入口已在顶部「提交计算」命令带。";
-
-/** ?project= 空态前置提示（各 pane 现状惯例同款——D7 措辞单源）。 */
-const NO_PROJECT_HINT = "尚未选择项目——请先在画布槽选择项目";
 
 export function StudioPane({
   subface,
@@ -79,7 +76,6 @@ export function StudioPane({
   useEffect(() => {
     setActivated((prev) => (prev.has(subface) ? prev : new Set(prev).add(subface)));
   }, [subface]);
-  const [projectId] = useProjectId();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: 0, height: "100%" }}>
@@ -102,18 +98,6 @@ export function StudioPane({
         />
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        {activated.has("study") ? (
-          <div style={subface === "study" ? undefined : { display: "none" }}>
-            {projectId === null ? (
-              <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-                {NO_PROJECT_HINT}
-              </Typography.Paragraph>
-            ) : null}
-            <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-              {STUDY_PLACEHOLDER}
-            </Typography.Paragraph>
-          </div>
-        ) : null}
         {CONTENT_FACES.map(({ face, label, load }) =>
           activated.has(face) ? (
             <div key={face} style={subface === face ? undefined : { display: "none" }}>

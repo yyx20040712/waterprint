@@ -43,7 +43,9 @@
  *     总图直发=三钮中唯一无单元选择依赖者〔对偶 ifc 的 conditionOnlyReady
  *     口径〕，工况源=useConditionOptions 缺省首项，无工况=该项禁用+title
  *     引导；409 二选一经 surfaceExportError 共享链保持不降级；演示动线③
- *     单元图/批量态留子面——菜单项导航不复制多选面）。
+ *     单元图/批量态留子面——菜单项导航不复制多选面）；
+ *   - M6 批 2026-10-07 文案清偿：枚举提交成功 message「结果呈现随 M6 批」
+ *     →「结果呈现见「研究」子面」（子面称谓=子面条「研究」label 单源）。
  */
 import { cloneElement, useEffect, useState, type ReactElement } from "react";
 import { Alert, Button, Dropdown, Modal, Popover, Typography, message } from "antd";
@@ -174,7 +176,7 @@ function EnumerateModalBody({
           new CustomEvent(TASK_EVENT, { detail: response.task_id }),
         );
         messageApi.success(
-          `枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批）`,
+          `枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现见「研究」子面）`,
         );
         onDone();
       },

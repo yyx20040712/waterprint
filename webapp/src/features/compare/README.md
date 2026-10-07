@@ -35,8 +35,8 @@
 - 挂账注记（docs/undefined-features-register.md）：
   - UF-63（消费点之一 M4 批 2026-10-07 清偿）：CompareMatrix 指标行改
     `dimUnit(metric.dim, "output")`——FLOW 输出面标签 m³/s（值恒内核
-    规范 m3/s，FE 零值面换算）；余消费点 solutionsView L271 归 M6 批
-    同口径接；
+    规范 m3/s，FE 零值面换算）；余消费点 solutionsView L271 已于 M6 批
+    2026-10-07 同口径接——两消费点全清，UF-63 销账；
   - UF-64（已清偿 M4 批 2026-10-07）：CompareMatrix 三处旧令牌（`--wp-text-`
     缀 `secondary` 的变体名——未定义失效）迁移 `var(--wp-text-2)`
     +CompareMatrix.test.tsx 令牌断言同步（候选 B 承袭 tokens-2b3 §D 冻结

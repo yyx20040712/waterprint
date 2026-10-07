@@ -199,7 +199,7 @@ describe("枚举两轨 Modal（三入口收编一——菜单两项）", () => {
     expect(screen.getByRole("button", { name: "提交联合枚举" })).toBeTruthy();
   });
 
-  it("枚举提交 onSuccess 文案：进度指引指向右侧 AI 席位「任务」分页（结果呈现随 M6 批）", () => {
+  it("枚举提交 onSuccess 文案：进度指引指向右侧 AI 席位「任务」分页（结果呈现见「研究」子面——M6 批文案清偿随迁）", () => {
     const view = renderRibbon("p1", () => {});
     fireEvent.click(
       view.container.querySelector("button.ant-dropdown-trigger") as HTMLElement,
@@ -212,7 +212,7 @@ describe("枚举两轨 Modal（三入口收编一——菜单两项）", () => {
       });
     });
     expect(
-      screen.getByText(/进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批/),
+      screen.getByText(/进度见右侧 AI 席位「任务」分页——结果呈现见「研究」子面/),
     ).toBeTruthy();
   });
 

@@ -1,17 +1,19 @@
 /**
  * @vitest-environment jsdom
  *
- * studio 槽装配件测试（M1 批——D9 轻量面：子面条五项+study 占位+
- * mount-on-first-activation+display 保持）。
+ * studio 槽装配件测试（M1 批——D9 轻量面：子面条五项+五子面懒装载统一+
+ * mount-on-first-activation+display 保持；M6 批 2026-10-07 随迁改写：
+ * study 占位断言退役→studyPane 懒装载面断言〔CONTENT_FACES 头插 study
+ * ——五子面全懒装载；jsdom 不真装载 chunk 面，断言装载容器/标签面〕）。
  *
- * 输入:  StudioPane（renderLazyPane 注入 stub——零真 chunk 拉取；jsdom
- *        默认无 ?project= → study 空态提示分支自然覆盖）
- * 输出:  断言组：①子面条五项在场（研究/图纸/概算/对比/可信度）；
- *        ②study 占位文案+?project= 空态提示在场；③懒装载面未到访零
- *        挂载（lazy:图纸预览 不在场）；④onChange 目标序列化（点击
+ * 输入:  StudioPane（renderLazyPane 注入 stub——零真 chunk 拉取）
+ * 输出:  断言组：①子面条五项在场（研究/图纸/概算/对比/可信度）；②study
+ *        懒装载壳在场（lazy:方案研究——装载容器/标签面）；③懒装载面未
+ *        到访零挂载（lazy:图纸预览 不在场）；④onChange 目标序列化（点击
  *        图纸 → onSubfaceChange("drawings")——与 projectParam 断言互补）；
  *        ⑤mount-on-first-activation（subface=drawings 后 lazy:图纸预览
- *        在场）+display 切换保持（切回 study 后已挂载面仍在场）。
+ *        在场）+display 切换保持（切回 study 后已挂载面仍在场+study 装载
+ *        壳回归可见）。
  */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,24 +46,20 @@ describe("StudioPane 子面条（M1——Segmented 五项受控）", () => {
     expect(screen.getByTestId("wp-studio-subface")).toBeTruthy();
   });
 
-  it("study 占位文案在场+?project= 空态前置提示在场（jsdom 默认无项目）", () => {
+  it("study 懒装载壳在场（M6 随迁——lazy:方案研究 装载容器/标签面）", () => {
     renderPane("study");
-    expect(
-      screen.getByText(
-        "方案研究（方案表/敏感性/联合结果）随 M6 批实装——枚举提交入口已在顶部「提交计算」命令带。",
-      ),
-    ).toBeTruthy();
-    expect(screen.getByText("尚未选择项目——请先在画布槽选择项目")).toBeTruthy();
+    expect(screen.getByText("lazy:方案研究")).toBeTruthy();
   });
 });
 
 describe("子面内容装配（mount-on-first-activation+display 保持）", () => {
   afterEach(cleanup);
 
-  it("未到访子面零挂载：初始 study——lazy:图纸预览 不在场", () => {
+  it("未到访子面零挂载：初始 study——lazy:图纸预览 不在场（study 自面已装载）", () => {
     renderPane("study");
     expect(screen.queryByText("lazy:图纸预览")).toBeNull();
     expect(screen.queryByText("lazy:概算")).toBeNull();
+    expect(screen.getByText("lazy:方案研究")).toBeTruthy();
   });
 
   it("onChange 目标序列化：点击「图纸」→ onSubfaceChange(\"drawings\")", () => {
@@ -77,7 +75,7 @@ describe("子面内容装配（mount-on-first-activation+display 保持）", () 
     expect(onSubfaceChange).toHaveBeenCalledWith("drawings");
   });
 
-  it("到访后挂载（lazy:图纸预览 在场）+切回 study 保持已挂载面（display 不卸载）", () => {
+  it("到访后挂载（lazy:图纸预览 在场）+切回 study 保持已挂载面（display 不卸载+study 壳回归）", () => {
     const onSubfaceChange = vi.fn();
     const view = render(
       <StudioPane
@@ -96,7 +94,7 @@ describe("子面内容装配（mount-on-first-activation+display 保持）", () 
       />,
     );
     expect(screen.getByText("lazy:图纸预览")).toBeTruthy();
-    // 切回 study：已挂载面 display:none 保持在场（状态不丢）
+    // 切回 study：已挂载面 display:none 保持在场（状态不丢）+study 装载壳回归
     view.rerender(
       <StudioPane
         subface="study"
@@ -105,10 +103,6 @@ describe("子面内容装配（mount-on-first-activation+display 保持）", () 
       />,
     );
     expect(screen.getByText("lazy:图纸预览")).toBeTruthy();
-    expect(
-      screen.getByText(
-        "方案研究（方案表/敏感性/联合结果）随 M6 批实装——枚举提交入口已在顶部「提交计算」命令带。",
-      ),
-    ).toBeTruthy();
+    expect(screen.getByText("lazy:方案研究")).toBeTruthy();
   });
 });

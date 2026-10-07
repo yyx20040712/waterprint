@@ -3,6 +3,11 @@
 枚举结果浏览：单单元枚举提交 → SSE 任务进度 → 分页方案表 → 行级应用
 + 无解诊断（ADR-005 语义的 UI 半；FE6 批 6b 段四实装 2026-08-29）。
 
+> M6 批 2026-10-07 收编注记：全族挂载点=studio.study 子面（app/studyPane
+> 组合件——方案表段〔?enum= 表源轨〕+联合结果段〔?task= 联合轨〕双段；
+> 提交面=Ribbon 两 Modal、进度面=席位任务分页——本族组件/纯函数零改纯
+> 挂载）。
+
 ## 文件清单（M0.5 骨架；FE6 批 6b 段四实装数据通道与组件）
 
 | 文件 | 状态 | 职责 |
@@ -30,9 +35,11 @@
   提交载荷 unit_ids 恰 1（多值服务层 422 MultiUnitEnumerationError）；
 - 任务 id 双轨（ENG5 D6/I-4 收口）：`?enum=`=枚举轨（表源
   enumerateTaskId——枚举提交写）与 `?task=`=计算轨（面板轨——方案应用
-  recalc_task_id/params 表单 apply 写）并存互不覆盖（apply 后深链不丢
-  方案表）；全走 history.replaceState；消费面=app/solutionsPane
-  （TaskPanel+表挂载依据）；
+  recalc_task_id/params 表单 apply 写）并存互不覆盖（apply 后深链不丢方案
+  表）；全走 history.replaceState；消费面=app/studyPane（M6 批
+  2026-10-07 收编——表源轨/联合轨双段挂载+四挂载门/分页排序/深链回填/
+  applyGates 接线；沿革消费面=旧 app/solutionsPane〔M1 退役〕；TaskPanel
+  进度呈现=席位任务分页 M7 分工）；
 - 弱类型行窄化门在 `lib/solutionsView.ts` 收口（顶层七字段逐类校验+
   行值域 number|string|boolean|null——nan_flag 布尔列服务端原样下发；
   NaN 服务端已转 null）；非法形状 SolutionsViewError 带键定位；

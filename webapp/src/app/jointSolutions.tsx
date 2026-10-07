@@ -19,7 +19,9 @@
  *   - URL 轨：?task= 面板轨复用（写 task 键+派发 TASK_EVENT——枚举/计算
  *     轨经 TASK_EVENT 事件桥驱动已挂载面）；不写 enum 键（表源轨仍属
  *     单单元枚举——双轨语义不混）；
- *   - Select 不用占位文案属性（FE3 C3 grep 门禁规避沿册）。
+ *   - Select 不用占位文案属性（FE3 C3 grep 门禁规避沿册）；
+ *   - M6 批 2026-10-07 文案清偿：提交成功 message「结果呈现随 M6 批」
+ *     →「结果呈现见「研究」子面」（子面称谓=子面条「研究」label 单源）。
  */
 import { useMemo, useState } from "react";
 import { Button, Select, Typography, message } from "antd";
@@ -74,7 +76,7 @@ export function JointSubmitForm({
             new CustomEvent(TASK_EVENT, { detail: response.task_id }),
           );
           messageApi.success(
-            `联合枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批）`,
+            `联合枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现见「研究」子面）`,
           );
           onSubmitted();
         },
