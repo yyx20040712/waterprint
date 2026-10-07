@@ -32,6 +32,9 @@ import { PROJECT_EVENT, TASK_EVENT } from "../shared/events";
 // 各点慢成功（单点不超 3000）串行叠加可越 vitest 用例级默认 5000（最劣 ⑮
 // 三 findBy 3×3000=9000+渲染/事件开销≈1000）→用例级超时红（非单点超时）；
 // 15000=覆盖上限 1.4x+默认值 3x（JointSolutionsPanel 文件级 testTimeout 先例同制）。
+// P5 R5（d1-R2-W4a）：⑮ 终裁=click-race（非超时类）——本行=多等待点通用容量
+// 预算（R4 后分母重算见 impl-report：⑮ 终态链 enabled waitFor+3 findBy=
+// 4×3000=12000+开销≈1000——15000 仍覆盖）。
 vi.setConfig({ testTimeout: 15000 });
 
 // jsdom 缺口补丁（浏览器 API 级——非组件/react-query/antd mock 面）
@@ -446,6 +449,8 @@ describe("StudyPane 双轨运行期（TASK_EVENT 重读+终态自刷+切项目�
     // 点击落在 R1-b reset 置 null 窗被吞〔antd onClick guard〕→零 mutate→
     // TypeError）——act 静默让渡=效应链（reset null→commit→refix u2→commit）
     // 确定性终态化（u2 终态无再翻转），再 enabled 前置断言（收紧非弱化）+点击。
+    // P5 R5（k1-N2 分义补记）：终态面=收紧（确定性观测）；瞬态窗面=转确定性
+    // 终态观测（原偶发红暴露路径退役——DIAG 链在案）。
     await act(async () => {});
     await waitFor(() => {
       expect(screen.getAllByText(/应\s*用/)[0]?.closest("button")?.disabled).toBe(false);
