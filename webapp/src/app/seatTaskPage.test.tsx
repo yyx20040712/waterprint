@@ -246,6 +246,7 @@ describe("opsdebug 三件入席折叠段（装配复刻旧 opsDebugPane）", () 
     expect(screen.getByTestId("wp-seat-ops")).toBeTruthy();
     expect(screen.getByText("操作链诊断")).toBeTruthy();
     expect(screen.queryByTestId("wp-ops-chain-view")).toBeNull();
+    expect(screen.queryByText("正在加载操作链观测面…")).toBeNull();
   });
 
   it("展开后 projectId null→空态提示（诊断面针对项目装配）", () => {

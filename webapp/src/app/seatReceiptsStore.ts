@@ -53,9 +53,12 @@ const WRITABLE_KINDS: ReadonlySet<SeatReceiptTargetKind> = new Set([
 /** 撤销栈深度（M7 裁量=50——enqueue 满员丢最旧）。 */
 const RECEIPTS_MAX = 50;
 
-/** 回执 id 生成（crypto.randomUUID——缺位环境 Date.now 兜底）。 */
+/** 兜底路径自增序号（同毫秒两次入列防碰撞——模块级）。 */
+let seq = 0;
+
+/** 回执 id 生成（crypto.randomUUID——缺位环境 Date.now+序号兜底）。 */
 function newReceiptId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `receipt-${Date.now()}`;
+  return globalThis.crypto?.randomUUID?.() ?? `receipt-${Date.now()}-${++seq}`;
 }
 
 /** 入列载荷（状态机起点恒 pending；id/createdAt 归 store 生成）。 */

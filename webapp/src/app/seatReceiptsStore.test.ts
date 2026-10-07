@@ -11,7 +11,7 @@
  *        迁移（pending→executed/rejected；executed→revoked）；⑤非法迁移
  *        no-op（终态/越序/未知 id）；⑥深度 cap 50（满员丢最旧）。
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   useSeatReceiptsStore,
@@ -91,6 +91,23 @@ describe("enqueueReceipt：白名单入列+禁区前置拒止", () => {
       throw new Error("白名单 enqueue 应 ok:true");
     }
     expect(first.id).not.toBe(second.id);
+  });
+
+  it("crypto 缺位兜底防碰撞：Date.now 路径两次 enqueue id 不同且互不为前缀", () => {
+    // stub 面仅本用例（finally 恢复——不渗后续用例）
+    vi.stubGlobal("crypto", undefined);
+    try {
+      const first = enqueueOf("settings-param", 0);
+      const second = enqueueOf("settings-param", 1);
+      if (!first.ok || !second.ok) {
+        throw new Error("白名单 enqueue 应 ok:true");
+      }
+      expect(first.id).not.toBe(second.id);
+      expect(first.id.startsWith(second.id)).toBe(false);
+      expect(second.id.startsWith(first.id)).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("最新置顶：第二条在前位（页面倒序呈现的数据面）", () => {

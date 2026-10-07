@@ -16,7 +16,7 @@
  *        表单；⑤导出/三维快访=onNavigate 目标（studio.drawings/viewer3d）。
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,7 +52,14 @@ const gate = vi.hoisted(() => {
     isPending: false,
     isLoading: false,
   });
-  return { raw: idle(), units: idle(), constraints: idle(), catalog: idle(), mutation };
+  return {
+    raw: idle(),
+    units: idle(),
+    constraints: idle(),
+    catalog: idle(),
+    mutation,
+    enumOnSuccess: null as ((response: { task_id: string }) => void) | null,
+  };
 });
 
 vi.mock("../features/canvas/store/canvasStore", () => ({
@@ -81,7 +88,12 @@ vi.mock("../shared/api/generated/projects/projects", () => ({
 }));
 vi.mock("../shared/api/generated/calc/calc", () => ({
   useRunCalculationApiCalcRunPost: () => gate.mutation(),
-  useRunEnumerationApiCalcEnumeratePost: () => gate.mutation(),
+  useRunEnumerationApiCalcEnumeratePost: (
+    options?: { mutation?: { onSuccess?: (response: { task_id: string }) => void } },
+  ) => {
+    gate.enumOnSuccess = options?.mutation?.onSuccess ?? null;
+    return gate.mutation();
+  },
 }));
 vi.mock("../shared/api/generated/solution/solution", () => ({
   useRunJointEnumerationApiSolutionJointEnumeratePost: () => gate.mutation(),
@@ -149,6 +161,23 @@ describe("枚举两轨 Modal（三入口收编一——菜单两项）", () => {
     fireEvent.click(screen.getByText("联合枚举…"));
     expect(screen.getByText("联合枚举")).toBeTruthy();
     expect(screen.getByRole("button", { name: "提交联合枚举" })).toBeTruthy();
+  });
+
+  it("枚举提交 onSuccess 文案：进度指引指向右侧 AI 席位「任务」分页（结果呈现随 M6 批）", () => {
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelector("button.ant-dropdown-trigger") as HTMLElement,
+    );
+    fireEvent.click(screen.getByText("单元枚举…"));
+    expect(gate.enumOnSuccess).not.toBeNull();
+    act(() => {
+      (gate.enumOnSuccess as (response: { task_id: string }) => void)({
+        task_id: "enum-t1",
+      });
+    });
+    expect(
+      screen.getByText(/进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批/),
+    ).toBeTruthy();
   });
 
   it("projectId null=Modal 内提示不渲染表单（单元枚举轨）", () => {

@@ -55,8 +55,12 @@ const gate = vi.hoisted(() => {
     refetch: () => Promise.resolve({}),
   });
   return {
-    conn: { data: undefined as { ready: boolean } | undefined },
-    sessions: idle(),
+    conn: {
+      data: undefined as { ready: boolean } | undefined,
+      isError: false,
+      enabledCalls: [] as boolean[],
+    },
+    sessions: { ...idle(), enabledCalls: [] as boolean[] },
     history: idle(),
     send: { mutate: vi.fn(), isPending: false, isLoading: false },
     taskFeedTaskIds: [] as (string | null)[],
@@ -65,13 +69,19 @@ const gate = vi.hoisted(() => {
 });
 
 vi.mock("../features/aiconnect/api/useAiConnection", () => ({
-  useAiConnection: (_enabled: boolean) => ({
-    statusQuery: { data: gate.conn.data, isError: false, error: null },
-  }),
+  useAiConnection: (enabled: boolean) => {
+    gate.conn.enabledCalls.push(enabled);
+    return {
+      statusQuery: { data: gate.conn.data, isError: gate.conn.isError, error: null },
+    };
+  },
 }));
 vi.mock("../features/ai_chat/api/useAiChat", () => ({
   CHAT_HISTORY_KEY: (id: string) => ["/api/ai/sessions", id, "messages"],
-  useChatSessions: () => gate.sessions,
+  useChatSessions: (enabled: boolean) => {
+    gate.sessions.enabledCalls.push(enabled);
+    return gate.sessions;
+  },
   useChatHistory: () => gate.history,
   useSendChatMessage: () => gate.send,
 }));
@@ -126,6 +136,9 @@ function renderSeat(search: string, onOpenAiConnect: () => void = () => {}) {
 
 beforeEach(() => {
   gate.conn.data = undefined;
+  gate.conn.isError = false;
+  gate.conn.enabledCalls.length = 0;
+  gate.sessions.enabledCalls.length = 0;
   gate.taskFeedTaskIds.length = 0;
   window.history.replaceState(null, "", "/");
 });
@@ -139,6 +152,11 @@ describe("席位三分页结构（D1——受控 Segmented+mount-on-first-activa
     for (const label of ["对话", "任务", "回执"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
+  });
+
+  it("席位常驻门控：renderSeat 后 useAiConnection enabled 末次调用===true", () => {
+    renderSeat("");
+    expect(gate.conn.enabledCalls[gate.conn.enabledCalls.length - 1]).toBe(true);
   });
 
   it("缺省初始页=chat：ChatPanel 承载在场+任务页未挂载", () => {
@@ -225,6 +243,13 @@ describe("连接徽标（D1 判据：ready 聚合布尔——诚实降级）", (
     renderSeat("");
     expect(screen.getByTestId("wp-seat-conn").textContent).toContain("未接入");
   });
+
+  it("查询失败但缓存留旧 ready:true→「未接入」（失败=未接入字面口径）", () => {
+    gate.conn.data = { ready: true };
+    gate.conn.isError = true;
+    renderSeat("");
+    expect(screen.getByTestId("wp-seat-conn").textContent).toContain("未接入");
+  });
 });
 
 describe("ChatSeat 承袭烟囱（ChatPanel 零改挂载——Drawer 壳退役后 props 注入成立）", () => {
@@ -240,5 +265,6 @@ describe("ChatSeat 承袭烟囱（ChatPanel 零改挂载——Drawer 壳退役�
     });
     expect(screen.getByTestId("wp-chat-session-select")).toBeTruthy();
     expect(screen.getByTestId("wp-chat-input")).toBeTruthy();
+    expect(gate.sessions.enabledCalls[gate.sessions.enabledCalls.length - 1]).toBe(true);
   });
 });

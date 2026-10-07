@@ -141,7 +141,8 @@ export function ChatSeat() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    // 原 Drawer body padding:12 承袭（席位形态不依赖 Drawer 留白）
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 12 }}>
       <ChatPanel
         sessions={sessions}
         history={history}

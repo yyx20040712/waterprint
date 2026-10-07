@@ -74,7 +74,8 @@ export function AiSeat({ onOpenAiConnect }: { onOpenAiConnect: () => void }) {
 
   // 席位常驻语义：连接状态查询恒启用（与 AiConnectModal 同键缓存共享）
   const { statusQuery } = useAiConnection(true);
-  const ready = statusQuery.data?.ready === true;
+  // 查询失败但缓存留旧 ready:true=未接入（失败=未接入字面口径——诚实降级）
+  const ready = statusQuery.data?.ready === true && !statusQuery.isError;
 
   return (
     <div
