@@ -20,7 +20,9 @@
  *   - M3 批 D1（载体注记——挂起展示不实现[v3 B-3 逐字口径]）：选中
  *      corridor/boundary=载体块在场（「管网定线预留」Tag[style 沿树徽标
  *      同形]+共用一份说明行——mapping「红线/走廊折线」并列表述不分案）；
- *      road 非管线载体不渲染；纯展示零业务推导。
+ *      road 非管线载体不渲染——条件=正向白名单 corridor|boundary
+ *      [M3 回炉 R1 fail-closed：RemovableSelection 扩值不静默渲染载体]；
+ *      纯展示零业务推导。
  */
 import { Button, Popconfirm, Tag, Typography } from "antd";
 
@@ -50,14 +52,14 @@ export function LineSidebar({
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         {boundary ? "选中边界红线（单例）" : `选中${label} #${selection.index + 1}`}
       </Typography.Text>
-      {selection.kind === "road" ? null : (
+      {selection.kind === "corridor" || selection.kind === "boundary" ? (
         <div data-testid="wp-pending-network-carrier" style={{ marginTop: 8 }}>
           <Tag style={{ fontSize: 11, lineHeight: "16px" }}>管网定线预留</Tag>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             管网定线将挂起于红线/管线走廊折线——定线·水力计算·平纵图纸随后续管网批（挂起展示，不实现）
           </Typography.Text>
         </div>
-      )}
+      ) : null}
       <div style={{ marginTop: 8 }}>
         <Popconfirm
           title={boundary ? "清空红线" : `删除${label}`}

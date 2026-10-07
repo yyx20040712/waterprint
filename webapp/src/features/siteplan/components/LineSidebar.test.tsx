@@ -11,9 +11,10 @@
  *        空插不变文案]）
  * 输出:  断言组：①corridor 选中=载体块在场（wp-pending-network-carrier
  *        锚+「管网定线预留」Tag+共用说明行全文）；②boundary 选中=载体块
- *        在场（共用一份文案——不分案）；③road 选中=载体块不在场（道路
- *        非管线载体——mapping「红线/走廊折线」字面）；④选中标题行身份
- *        （「选中管线走廊 #1」序数=索引+1/「选中边界红线（单例）」）；
+ *        在场（共用一份文案——不分案，全文常量 CARRIER_NOTE 单源同锚）；
+ *        ③road 选中=载体块不在场（道路非管线载体——mapping「红线/走廊
+ *        折线」字面）；④选中标题行身份（「选中管线走廊 #1」序数=索引+1/
+ *        「选中边界红线（单例）」/「选中道路 #3」三态全覆盖）；
  *        ⑤删除钮 onRequest 上行携 selection+Popconfirm 受控开态确认/
  *        取消回调透传（onConfirmRemove/onCancelRemove——props 直测形态）。
  */
@@ -39,6 +40,11 @@ const corridor: RemovableSelection = { kind: "corridor", index: 0 };
 const boundary: RemovableSelection = { kind: "boundary" };
 const road: RemovableSelection = { kind: "road", index: 2 };
 
+/** 载体说明行全文（corridor/boundary 共用一份——M3 回炉 R2 单源常量，
+ *  corridor/boundary 两用例同锚全文）。 */
+const CARRIER_NOTE =
+  "管网定线将挂起于红线/管线走廊折线——定线·水力计算·平纵图纸随后续管网批（挂起展示，不实现）";
+
 /** 三回调 spy 集（每渲染一份——断言面互不串扰）。 */
 function renderSidebar(selection: RemovableSelection, removeOpen = false) {
   const callbacks = {
@@ -61,16 +67,14 @@ describe("LineSidebar（M3 D1——管网定线挂起位载体注记）", () => 
     renderSidebar(corridor);
     const carrier = screen.getByTestId("wp-pending-network-carrier");
     expect(screen.getByText("管网定线预留")).toBeTruthy();
-    expect(carrier.textContent).toContain(
-      "管网定线将挂起于红线/管线走廊折线——定线·水力计算·平纵图纸随后续管网批（挂起展示，不实现）",
-    );
+    expect(carrier.textContent).toContain(CARRIER_NOTE);
   });
 
-  it("boundary 选中=载体块在场（与 corridor 共用一份文案——红线同载体）", () => {
+  it("boundary 选中=载体块在场（与 corridor 共用一份文案——全文常量同锚）", () => {
     renderSidebar(boundary);
     const carrier = screen.getByTestId("wp-pending-network-carrier");
     expect(screen.getByText("管网定线预留")).toBeTruthy();
-    expect(carrier.textContent).toContain("挂起展示，不实现");
+    expect(carrier.textContent).toContain(CARRIER_NOTE);
   });
 
   it("road 选中=载体块不在场（道路非管线载体——queryByTestId null）", () => {
@@ -79,12 +83,15 @@ describe("LineSidebar（M3 D1——管网定线挂起位载体注记）", () => 
     expect(screen.queryByText("管网定线预留")).toBeNull();
   });
 
-  it("选中标题行身份：corridor #1（序数=索引+1）；boundary 单例文案", () => {
+  it("选中标题行身份：corridor #1（序数=索引+1）；boundary 单例；road #3", () => {
     renderSidebar(corridor);
     expect(screen.getByText("选中管线走廊 #1")).toBeTruthy();
     cleanup();
     renderSidebar(boundary);
     expect(screen.getByText("选中边界红线（单例）")).toBeTruthy();
+    cleanup();
+    renderSidebar(road);
+    expect(screen.getByText("选中道路 #3")).toBeTruthy();
   });
 
   it("删除钮 onRequest 上行携 selection+Popconfirm 确认/取消回调透传（受控 removeOpen）", () => {
