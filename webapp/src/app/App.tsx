@@ -1,11 +1,9 @@
 /**
  * 应用壳：B-1 四区骨架布局+槽路由状态机+Providers 组合（app 层组合面；
  * M1 批 2026-10-06 四区重写——draft-ia-v3 §3 B-1 形态单源+mapping-2b4
- * 落位；M7 批 2026-10-07 AI 席位实装（顶栏对话钮/ChatPane 浮层退役——
- * 对话经右列席位常驻）；M2 批 2026-10-08 Settings 增强收编（单元详情
- * Drawer 退役→focusId 非空右列显 unitDetailPanel——§6 动线③，ParamTabs
- * 双态换显恒挂载零卸载）；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1
- * 四区→M7 席位实装→M2 Settings 收编）。
+ * 落位；M7 批 2026-10-07 AI 席位实装；M2 批 2026-10-08 Settings 增强收编
+ * 〔单元详情 Drawer 退役→focusId 非空右列显 unitDetailPanel——§6 动线③〕
+ * ；沿革 FE3→M3→P2 十页签→P2 解冻→M1 四区→M7 席位→M2 Settings 收编）。
  *
  * 输入:  各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
  *        层）+URL ?project=/（useProjectId）?tab=（两级值域+兼容归一）
@@ -24,10 +22,10 @@
  *     改写+全族刷新幂等）；初值=?tab= 合法〔含兼容归一〕→用之，无 ?tab=
  *     但有 ?task=/?enum=→studio.study（边缘 c 对称），缺省 canvas；
  *   - 左列=模型树+单元库（原件移入 props 面零改；两区各自 overflow:auto
- *     +1px 分隔线）；右列二分=Settings 窗（projectId null=提示；否则挂
- *     ParamTabs〔feasibility 四件 M2〕）+AI 席位容器（M7 批实装：AiSeat
- *     三分页 对话｜任务｜回执——ChatSeat/SeatTaskPage/SeatReceipts 装配，
- *     席位聚焦=?task=/?enum=/opsdebug 深链在 aiSeat 初值解析落位）；
+ *     +1px 分隔线）；右列二分=Settings 窗（M2 批双态换显：focusId 非空挂
+ *     unitDetailPanel；null=projectId null 提示/否则 ParamTabs）+AI 席位
+ *     容器（M7 批实装：AiSeat 三分页 对话｜任务｜回执——席位聚焦=?task=/
+ *     ?enum=/opsdebug 深链在 aiSeat 初值解析落位）；
  *     纵向分隔可拖（Q8 先例：主键判定+pointercancel+卸载清理；位置会话
  *     内不进 URL；下限 360=tokens-2b3 判据/上限=视口净高−席位最小高）；
  *   - selectedUnitId 提升 App（切项目清陈旧 effect——现状 pane 本地态未
@@ -454,13 +452,8 @@ export function App() {
                 <Typography.Text strong>Settings</Typography.Text>
               </div>
               <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "8px 10px" }}>
-                {/* M2 批双态换显（D1 收编面）：libraryFocusId 非空=单元详情
-                    面板（unitDetailPanel——Drawer 收编右窗，不受 projectId 门：
-                    目录数据全局，库浏览无项目语境成立）；null=ParamTabs（现状）。
-                    ParamTabs 双态 display 切换恒挂载零卸载——A5r「双页体恒
-                    挂载+草稿跨页保留」同精神，切详情再回来草稿零丢失（禁
-                    条件卸载）；projectId===null 且 focusId===null=现状「尚未
-                    选择项目」提示不变 */}
+                {/* M2 双态换显：focusId 非空=unitDetailPanel〔Drawer 收编右窗〕；
+                    null=ParamTabs〔display 切换恒挂载——草稿零丢失〕 */}
                 <div
                   style={{ display: libraryFocusId !== null ? "none" : "block", height: "100%" }}
                 >
@@ -471,11 +464,7 @@ export function App() {
                   )}
                 </div>
                 {libraryFocusId !== null ? (
-                  <UnitDetailPanel
-                    unitId={libraryFocusId}
-                    onClose={() => setLibraryFocusId(null)}
-                    onNavigateTab={() => setTab({ slot: "canvas" })}
-                  />
+                  <UnitDetailPanel unitId={libraryFocusId} onClose={() => setLibraryFocusId(null)} onNavigateTab={() => setTab({ slot: "canvas" })} />
                 ) : null}
               </div>
             </section>
