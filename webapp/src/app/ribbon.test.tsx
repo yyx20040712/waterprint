@@ -2,21 +2,28 @@
  * @vitest-environment jsdom
  *
  * Ribbon 命令带 dom 测试（M1 批——D9 裁量下限：四命令在场+主钮 null
- * 禁用+菜单两项开 Modal 成形）。
+ * 禁用+菜单两项开 Modal 成形；M4 批 D1 导出快访接内容——导出钮改
+ * Dropdown 形〔主钮切槽保持+总图直发+子面导航〕，旧导出/三维快访用例
+ * 随形态迁入新 describe〔断言语义零弱化〕）。
  *
  * 输入:  Ribbon（QueryClientProvider 每用例新 client〔retry:false〕）+
  *        vi.mock 边界沿 paneDomainGate 纪律=feature api/store 模块面+
- *        generated 面无害空数据（禁 mock react-query 内部/antd）；提交
- *        逻辑纯函数已由 canvasEditToolbar.test 随迁锁定（不重复测）
+ *        generated 面无害空数据（禁 mock react-query 内部/antd；M4 增
+ *        drawings 面 useConditionOptions/useExportArtifact 两 mock）；
+ *        提交逻辑纯函数已由 canvasEditToolbar.test 随迁锁定（不重复测）
  * 输出:  断言组：①四命令锚在场（data-testid=wp-ribbon-run/validate/
  *        export/viewer3d+data-region=ribbon）；②projectId null=主钮
  *        禁用（title 指引）；③Dropdown 菜单两项（单元枚举…/联合枚举…）
  *        各开 Modal 成形（EnumerateBar「提交枚举」/JointSubmitForm
  *        「提交联合枚举」承载在场）；④projectId null=Modal 内提示不渲染
- *        表单；⑤导出/三维快访=onNavigate 目标（studio.drawings/viewer3d）。
+ *        表单；⑤导出快访 Dropdown 组（M4 D1）：主钮/下拉整体 null 禁用+
+ *        title 指引/下拉两项 testid 两锚在场/主钮点击=onNavigate
+ *        （studio.drawings——迁自旧用例，三维快访 viewer3d 同案保持）/
+ *        无工况态总图直发项禁用+title 引导/有工况点击=真发起
+ *        （unitId 空串 bare POST 总图语义+缺省首工况）。
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -57,6 +64,8 @@ const gate = vi.hoisted(() => {
     units: idle(),
     constraints: idle(),
     catalog: idle(),
+    conditions: idle(),
+    exportMutate: vi.fn(),
     mutation,
     enumOnSuccess: null as ((response: { task_id: string }) => void) | null,
   };
@@ -97,6 +106,18 @@ vi.mock("../shared/api/generated/calc/calc", () => ({
 }));
 vi.mock("../shared/api/generated/solution/solution", () => ({
   useRunJointEnumerationApiSolutionJointEnumeratePost: () => gate.mutation(),
+}));
+// M4 D1：导出快访面——工况源（drawings API）+总图直发 mutation 独立实例
+vi.mock("../features/drawings/api/useExportsQuery", () => ({
+  useConditionOptions: () => gate.conditions,
+}));
+vi.mock("../features/drawings/api/useExportArtifact", () => ({
+  useExportArtifact: () => ({
+    mutate: gate.exportMutate,
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isLoading: false,
+  }),
 }));
 
 /** 每用例新 QueryClient（retry:false——paneDomainGate 同款）。 */
@@ -193,18 +214,82 @@ describe("枚举两轨 Modal（三入口收编一——菜单两项）", () => {
   });
 });
 
-describe("导出/三维快访（槽切换非 feature 命令）", () => {
+describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子面导航）", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 缺省=idle（data undefined→空工况=直发项禁用面——④⑤用例各自覆写）
+    gate.conditions = {
+      data: undefined as unknown,
+      isError: false,
+      error: null as unknown,
+      isPending: true,
+      isLoading: true,
+      isFetching: true,
+      status: "pending",
+      refetch: () => Promise.resolve({}),
+    };
   });
   afterEach(cleanup);
 
-  it("导出→onNavigate({studio, drawings})；三维快访→onNavigate({viewer3d})", () => {
+  it("projectId null=主钮+下拉触发钮整体禁用（title 指引——先在画布槽选择项目）", () => {
+    const view = renderRibbon(null, () => {});
+    const main = view.container.querySelector(
+      'button[data-testid="wp-ribbon-export"]',
+    ) as HTMLButtonElement;
+    expect(main).toBeTruthy();
+    expect(main.disabled).toBe(true);
+    expect(main.title).toBe("先在画布槽选择项目——图纸导出针对最近完成计算的结果集");
+    // 下拉整体禁用（触发钮同禁——run 族 null 态口径对齐）
+    const trigger = view.container.querySelectorAll(
+      "button.ant-dropdown-trigger",
+    )[1] as HTMLButtonElement;
+    expect(trigger).toBeTruthy();
+    expect(trigger.disabled).toBe(true);
+  });
+
+  it("下拉两项在场（容器 wp-ribbon-export-menu+总图直发/子面导航两锚）", () => {
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    const menu = screen.getByTestId("wp-ribbon-export-menu");
+    expect(within(menu).getByTestId("wp-ribbon-export-total-dxf")).toBeTruthy();
+    expect(within(menu).getByTestId("wp-ribbon-export-open-pane")).toBeTruthy();
+  });
+
+  it("主钮点击=onNavigate({studio, drawings})（既有用例随形态迁移——断言语义零弱化；三维快访→viewer3d 同案保持）", () => {
     const onNavigate = vi.fn();
     renderRibbon("p1", onNavigate);
     fireEvent.click(screen.getByTestId("wp-ribbon-export"));
     expect(onNavigate).toHaveBeenCalledWith({ slot: "studio", subface: "drawings" });
     fireEvent.click(screen.getByTestId("wp-ribbon-viewer3d"));
     expect(onNavigate).toHaveBeenCalledWith({ slot: "viewer3d" });
+  });
+
+  it("总图直发项无工况态禁用+title 引导（工况源=最近完成计算的结果集）", () => {
+    gate.conditions = { ...gate.conditions, data: [] };
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    const item = screen.getByTestId("wp-ribbon-export-total-dxf");
+    const li = item.closest("li") as HTMLLIElement;
+    expect(li.getAttribute("aria-disabled")).toBe("true");
+    expect(li.title).toBe("先提交计算——工况源为最近完成计算的结果集");
+    expect(gate.exportMutate).not.toHaveBeenCalled();
+  });
+
+  it("有工况时总图直发项点击=真发起（unitId 空串 bare POST 总图语义+缺省首工况——DoD1 直发链锚）", () => {
+    gate.conditions = { ...gate.conditions, data: ["design", "avg"] };
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    fireEvent.click(screen.getByTestId("wp-ribbon-export-total-dxf"));
+    expect(gate.exportMutate).toHaveBeenCalledTimes(1);
+    expect(gate.exportMutate).toHaveBeenCalledWith(
+      { projectId: "p1", unitId: "", conditionKey: "design", force: false },
+      expect.anything(),
+    );
   });
 });

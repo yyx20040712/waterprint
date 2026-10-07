@@ -52,25 +52,22 @@
  *     按钮（activeTaskId 非空即显——TaskPanel 取消先例形态；恢复态同享）
  *     +cancelError 行内 danger 行+restoreNotice 一次性 info（挂载恢复
  *     失效/未成功提示——非 error 非用户过错）。
+ *   - M4 D1（2026-10-07）：onError 错误链抽共享 lib/exportErrorSurface
+ *     （Ribbon 导出快访与子面两消费面单源——行为等价重构：三分支调度/
+ *     409 二选一四字段/404 domainGate 固定摘要+NO_CALC_HINTS 尾词逐字
+ *     承原位；NO_CALC_HINTS 常量随迁该件本文件删除）。
  */
 import { useEffect, useState } from "react";
 import { Button, Modal, Progress, Select, Space, Typography, message } from "antd";
 
-import { WaterprintApiError } from "../../../shared/api/http";
-import { domainGate } from "../../../shared/api/sourceGate";
 import {
   useExportArtifact,
   type ExportArtifactInput,
   type ExportArtifactResult,
 } from "../api/useExportArtifact";
+import { surfaceExportError } from "../lib/exportErrorSurface";
 import { useExportBatch } from "../api/useExportBatch";
 import { BatchStatusLine } from "./BatchStatusLine";
-
-/** 404 引导（无 done calc——先提交计算；R1-4：按按钮面 kind 化尾词）。 */
-const NO_CALC_HINTS = {
-  dxf: "——请先在工艺画布工具条提交计算，完成后再导出图纸。",
-  ifc: "——请先在工艺画布工具条提交计算，完成后再导出模型。",
-} as const;
 
 /** 批量进度 message 键（同键重开=原位更新——antd message 合同）。 */
 const BATCH_PROGRESS_KEY = "batch-export-progress";
@@ -117,31 +114,14 @@ export function ExportButton({
       // R1-4：预览态仅 dxf 面消费（ifc 无前端投影——成功后 DrawingPreview
       // 保持原态，不落「皆空引导」态；undefined 时 no-op 同 B 批 D5）。
       onSuccess: kind === "dxf" ? onExported : undefined,
+      // M4 D1：三分支错误链抽共享 lib/exportErrorSurface（行为等价重构
+      // ——409 二选一 unitId 覆盖参透传沿原口径：总图面保持空串）。
       onError: (error) => {
-        if (!(error instanceof WaterprintApiError)) {
-          messageApi.error(`导出失败：${error.message}`);
-          return; // 网络错/未知面——不挂误导引导（I-3 分级口径）
-        }
-        if (error.code === "StaleExportError") {
-          Modal.confirm({
-            title: "结果集已过期（stale）",
-            content: error.message,
-            okText: "仍导出旧结果（force）",
-            cancelText: "先重算",
-            onOk: () => {
-              submit(kind, true, unitId); // force 重发（unitId 覆盖参透传——总图面保持空串）
-            },
-          });
-          return;
-        }
-        if (error.code === "ExportSourceNotFoundError") {
-          // 回炉 R2（2A4 UF-59 真面）：404 无 done calc=固定摘要（raw 服务
-          // 端消息含 API 句式不入用户面——domainGate 收口）；kind 化尾词保持
-          const gate = domainGate(error, "ExportSourceNotFoundError", "项目暂无完成的计算结果。");
-          messageApi.error(`${gate.text}${NO_CALC_HINTS[kind]}`);
-          return;
-        }
-        messageApi.error(error.message); // 501 未就绪等——原文诚实透传
+        surfaceExportError(error, kind, {
+          confirm: Modal.confirm,
+          notifyError: messageApi.error,
+          retry: () => submit(kind, true, unitId),
+        });
       },
     });
   };
