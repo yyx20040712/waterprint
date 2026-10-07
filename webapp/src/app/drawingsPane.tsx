@@ -48,7 +48,12 @@
  *     studio.drawings 管网图纸模板位〔平面布置图+纵断面图〕展示「演示
  *     至此止，不实现」）——PendingDrawingTemplates 纯展示子件恒在场
  *     （零业务逻辑零条件渲染，非选中态函数；M3 载体块位置同构=标题行
- *     下第一元素、conditionGate 段上）。
+ *     下第一元素、conditionGate 段上）；
+ *   - M6 P2 合流（2026-10-07）：工况源 empty 分支（200 空工况 wire 形
+ *     ——narrowConditionOptions 空数组放行后可达）→secondary「项目暂无
+ *     完成的计算结果。」+NO_CALC_HINT，与 404 domain 态同语义两 wire
+ *     形态同文案（UF-60① 两态化口径扩展——真无工况两形态同归「先提交
+ *     计算」引导）。
  */
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Alert, Spin, Typography } from "antd";
@@ -140,6 +145,14 @@ export function DrawingsPane() {
   const conditionGate = conditionQuery.isError
     ? domainGate(conditionQuery.error, "CostSourceNotFoundError", "项目暂无完成的计算结果。")
     : null;
+  // M6 P2 合流（2026-10-07）：200 空工况 wire 形（narrowConditionOptions
+  // 空数组放行后 data=[] 可达）——与 404 domain 态同语义两 wire 形态同
+  // 文案（UF-60① 两态化口径扩展）；data!==undefined 守卫=加载期
+  // （data 未到非「无工况」）不误显，空目录引导 R6 同理
+  const conditionEmpty =
+    !conditionQuery.isError &&
+    conditionQuery.data !== undefined &&
+    conditionQuery.data.length === 0;
 
   return (
     <ErrorBoundary label="图纸预览">
@@ -164,6 +177,13 @@ export function DrawingsPane() {
               工况清单取数失败：{conditionGate.text}
             </Typography.Paragraph>
           )
+        ) : conditionEmpty ? (
+          // M6 P2 合流：200 空工况=真无完成计算（语义态非故障）——secondary
+          // 固定摘要+引导，与 404 domain 态同文案（danger 前缀面不涉）
+          <Typography.Paragraph type="secondary">
+            项目暂无完成的计算结果。
+            {NO_CALC_HINT}
+          </Typography.Paragraph>
         ) : null}
         {unitQuery.isError ? (
           <Typography.Paragraph type="danger">

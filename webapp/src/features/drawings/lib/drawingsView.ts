@@ -24,8 +24,9 @@
  *     digest 前 10 位显示层口径（服务端文件名分量同款）；工况空串→
  *     显示层 all 兜底；
  *   - 工况选项投影：cost 同端点响应的 conditions 键面（drawings/api
- *     自封装同键查询的 select 消费——非空字符串数组，空数组/空串
- *     元素拒[工况索引面——calc 结果恒有 design 档，空属服务端异形]）；
+ *     自封装同键查询的 select 消费——非空字符串数组；空数组=无完成计算
+ *     合法态〔M6 P2 合流 2026-10-07——200 空工况 wire 实态，原「空属
+ *     服务端异形」句废止〕，畸形面维持拒）；
  *   - UX1 DS-05：parseDisposition 自 useExportDxf 私有迁出导出（约束
  *     维持：零 antd/零运行期库 import——RegExp+decodeURIComponent 内建
  *     合法；纯字符串进出 node 可测）；
@@ -149,7 +150,11 @@ export function buildSheetRows(metas: ExportMetaView[]): SheetRow[] {
 }
 
 /**
- * D6 工况选项投影：cost 同端点响应 → conditions 索引面（非空字符串数组）。
+ * D6 工况选项投影：cost 同端点响应 → conditions 索引面（非空字符串数组；
+ * 空数组放行〔M6 P2 合流 2026-10-07——200 空工况 wire 实态=项目无完成
+ * 计算的合法服务端形态，非数据畸形〕；畸形面〔非对象/非数组/非 string
+ * 元素/空串元素〕维持拒——真无工况与数据畸形由此可分：空=语义态、
+ * 畸形=错误态）。
  */
 export function narrowConditionOptions(raw: unknown): string[] {
   if (!isRecord(raw)) {
@@ -158,10 +163,9 @@ export function narrowConditionOptions(raw: unknown): string[] {
   const conditions = raw["conditions"];
   if (
     !Array.isArray(conditions) ||
-    conditions.length === 0 ||
     !conditions.every((key) => typeof key === "string" && key !== "")
   ) {
-    reject("conditions 须为非空字符串数组（工况索引面——元素空串拒）");
+    reject("conditions 须为字符串数组（工况索引面——空数组=无完成计算合法态，元素空串拒）");
   }
   return conditions as string[];
 }

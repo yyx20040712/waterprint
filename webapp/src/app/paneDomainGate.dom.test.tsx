@@ -16,7 +16,9 @@
  *        结果。」在场+本行前缀不在场+「raw 服务端句式」不透出（k1-N5
  *        补记：第三断言=自裁 3 增强项，与头同步）；raw 态（真实
  *        new Error「网络中断探针」注入）断言前缀+raw message 在场
- *        （I-3 分级口径）
+ *        （I-3 分级口径）；M6 批 2026-10-07 增⑬ empty 两态扩展用例
+ *        （200 空工况 wire 形同文案——P2 合流；wire 面分流由 drawingsView
+ *        单测锚）
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render } from "@testing-library/react";
@@ -297,5 +299,17 @@ describe("五结果页签 domainGate 分支两态（UF-57 2A7 批——JSX 接�
     gate.validation = rawState();
     renderPane(<TrustPane />);
     expectRawGate("检修观测取数失败：");
+  });
+
+  // M6 D4（P2 空工况口径合流——brief 预裁决记「用例⑦」系 drawings 族内部
+  // 序；现役件 ①~⑫ 已占位，按文件序排 ⑬——编号偏差申报在批档）
+  it("⑬drawingsPane/useConditionOptions empty（M6 P2 合流）：data=[]→「项目暂无完成的计算结果。」+NO_CALC_HINT 在场+「工况清单取数失败：」不在场", () => {
+    gate.conditions = successState([]);
+    renderPane(<DrawingsPane />);
+    expect(document.body.textContent).toContain(NO_CALC_SUMMARY);
+    expect(document.body.textContent).toContain(
+      "——请先在工艺画布工具条提交计算，完成后再回本标签导出图纸。",
+    );
+    expect(document.body.textContent).not.toContain("工况清单取数失败：");
   });
 });

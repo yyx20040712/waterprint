@@ -5,7 +5,9 @@
  * 输入:  solutionsView 五纯函数族（node 环境——零 antd/react-query import 链）
  * 输出:  纯函数契约断言（SolutionPage 顶层逐类拒负例族/列模型 kind 分类与
  *        响应序/apply 载荷仅投影 grid 字段/sort 选项=columns 白名单/
- *        formatSolutionValue 三支规则）
+ *        formatSolutionValue 三支规则；M6 批 2026-10-07 增 UF-63 dim/grid
+ *        单位语境分流组——dim 列 output 面 FLOW→m³/s 清偿锚+grid 列输入面
+ *        回归锁）
  *
  * 规格说明（FE6 批 6b 段四，D4/D5/D6/D7；夹具=golden aao 枚举内联——
  * columns 构造序 grid→dim 输出→margin_min/nan_flag/condition_key（冻结 §一），
@@ -272,6 +274,38 @@ describe("buildTableColumns（D5 动态列模型——响应序直传；B2 grid 
     );
     expect(models[0]?.kind).toBe("grid");
     expect(models[0]?.title).toBe("池数（格）");
+  });
+});
+
+// ═══ M6 D3（UF-63 候选①清偿余点——dim 列 output 面 FLOW→m³/s；grid 列
+// 维持输入面 m³/d=分流判定锚；两语境无分歧键回归）═══
+describe("UF-63 dim 列单位语境分流（M6——buildTableColumns dim 分支清偿）", () => {
+  it("dimFields 含 FLOW 键（q_air 供气量）→ dim 列 unit=m³/s（输出面清偿锚——值恒内核规范 m3/s 零换算）", () => {
+    const models = buildTableColumns(
+      ["q_air"],
+      [],
+      [{ key: "q_air", dim: "FLOW", label_zh: "供气量" }],
+    );
+    expect(models[0]).toMatchObject({ kind: "dim", title: "供气量" });
+    expect(models[0]?.unit).toBe("m³/s");
+  });
+
+  it("gridFields 含 FLOW 键→ grid 列 unit=m³/d（输入面回归锁——grid 分支维持 dimUnitOf 绑定点口径）", () => {
+    const models = buildTableColumns(
+      ["q_in"],
+      [{ key: "q_in", dim: "FLOW", label_zh: "进水流量" }],
+    );
+    expect(models[0]).toMatchObject({ kind: "grid", title: "进水流量" });
+    expect(models[0]?.unit).toBe("m³/d");
+  });
+
+  it("其余 dim 键（VOLUME）output 面同值（两语境无分歧键回归）", () => {
+    const models = buildTableColumns(
+      ["v_o"],
+      [],
+      [{ key: "v_o", dim: "VOLUME", label_zh: "好氧区容积" }],
+    );
+    expect(models[0]?.unit).toBe("m³");
   });
 });
 

@@ -45,12 +45,16 @@
  *     Format("en-US") 三实例（模块级复用）——非手写 toFixed 拼接；负号
  *     ASCII 连字符（U+2212 排版优化记档不采——复制粘贴数据保真优先）；
  *     16 位浮点全精度经组件面 title 悬浮保留；
+ *   - UF-63 清偿（M6 批 2026-10-07，用户裁决候选①同口径）：dim 列族=
+ *     计算派生输出量→dimUnit(dim,"output") 单位段（FLOW→m³/s，值恒内核
+ *     规范 m3/s 零换算——FE 零值面换算纪律）；grid 列维持 dimUnitOf 输入
+ *     参数面绑定点（m³/d）——两消费点全清（M4 CompareMatrix+M6 本点）；
  *   - 零运行期库 import（node 测试不拖 antd/react-query 链——type import
  *     编译期擦除；运行期 import 仅本地零依赖纯件 shared/dimLabels 与
  *     ./solutionsFields——node 测试链零增重；Intl=运行期全局非 import）。
  */
 import type { ApplyRequest } from "../../../shared/api/generated/model";
-import { dimLabel } from "../../../shared/dimLabels";
+import { dimLabel, dimUnit } from "../../../shared/dimLabels";
 import type { GridField } from "./solutionsFields";
 
 /** 方案行（值域四类：grid/dim 数值列、condition_key 字符串、nan_flag 布尔、NaN→null）。 */
@@ -263,12 +267,16 @@ export function buildTableColumns(
     // V2 GOV5 批尾（视觉验收批注②）：dim 列（计算派生输出量）——
     // manifest.out_dims 声明面中文名+单位；未声明键降级 key（B2 PD9
     // 同制：title≠key 时悬浮 title 呈原 key 追溯链）。
+    // UF-63 清偿（M6 批 2026-10-07，用户裁决候选①同口径——M4 已清
+    // CompareMatrix）：dim 列族=计算派生输出量→output 面单位（FLOW→
+    // m³/s；值恒内核规范 m3/s 零换算）；grid 分支（L257 输入参数面
+    // 绑定点）维持 dimUnitOf 不动——两消费点全清。
     const outField = dimByKey.get(key);
     if (outField !== undefined) {
       return {
         key,
         title: outField.label_zh ?? key,
-        unit: dimUnitOf(outField.dim),
+        unit: dimUnit(outField.dim, "output"),
         kind: "dim",
         numeric: true,
         applicable: false,

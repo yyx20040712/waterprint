@@ -171,10 +171,14 @@ describe("narrowConditionOptions 工况选项投影", () => {
     expect(narrowConditionOptions(raw)).toEqual(["avg", "design"]);
   });
 
-  it("缺 conditions/非数组/空数组/空串元素拒", () => {
+  it("M6 P2 合流：空数组放行（200 空工况=项目无完成计算合法态——返回 []）", () => {
+    expect(narrowConditionOptions({ conditions: [] })).toEqual([]);
+  });
+
+  it("畸形面维持拒（缺 conditions/非数组/空串元素——真无工况与数据畸形由此可分）", () => {
     expect(() => narrowConditionOptions({})).toThrow(/conditions/);
     expect(() => narrowConditionOptions({ conditions: "design" })).toThrow(/conditions/);
-    expect(() => narrowConditionOptions({ conditions: [] })).toThrow(/conditions/);
+    expect(() => narrowConditionOptions({ conditions: [42] })).toThrow(/conditions/);
     expect(() => narrowConditionOptions({ conditions: ["design", ""] })).toThrow(
       /conditions/,
     );
