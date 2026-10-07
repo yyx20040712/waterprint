@@ -23,7 +23,19 @@
  *     exportErrorSurface 共享（409 二选一保持不降级——静默弱化禁）；
  *   - 拆件自持 message.useMessage 实例（contextHolder 随件渲染——错误
  *     toast 挂载面独立，ribbon 主实例互不侵；antd message 合同等价）；
- *   - 测试面经 ribbon.test.tsx 集成覆盖（本件=Ribbon 内部段无独立件）。
+ *   - 测试面经 ribbon.test.tsx 集成覆盖（本件=Ribbon 内部段无独立件）；
+ *   - M4 回炉 R1（门一双审 k1-W1+d1-W1 双席共报 2026-10-07）：去
+ *     Dropdown.Button icon prop（antd 合同该 prop=**右触发钮**图标——
+ *     原挂 ExportOutlined 顶替默认 DownOutlined 箭头=下拉可发现性丢失
+ *     且主钮失图标）+主钮 children 复原 `<><ExportOutlined /> 导出</>`
+ *     （M1 视觉形态——旧 ribbon.tsx 主钮 icon 面）；视觉面零新断言
+ *     （icon 面 jsdom 断言脆性——k1-N5 教训，门二真浏览器核验承载）；
+ *   - M4 回炉 R2（k1-W3+d1-W2 双席共报）：工况源三态分流 title——
+ *     isError=「工况源取数失败——请稍后重试或检查服务」（取数失败≠
+ *     无工况：用户或有完成计算仅取数失败，I-3 分级口径禁「先提交计算」
+ *     误导引导）；isPending/empty 维持「先提交计算——工况源为最近完成
+ *     计算的结果集」（空数组=真无工况语义成立；pending 瞬态并入——
+ *     申报）；禁用面三态同（data undefined→[] 恒禁用）。
  */
 import { cloneElement, type ReactElement } from "react";
 import { Dropdown, Modal, message } from "antd";
@@ -46,6 +58,18 @@ export function RibbonExportMenu({
   const conditionsQuery = useConditionOptions(projectId);
   const exportConditions = conditionsQuery.data ?? [];
   const exportDxf = useExportArtifact("dxf");
+  // R2：直发项 title 三态分流——null=菜单整体禁用（组件级 disabled，
+  // title 归主钮指引不重复）；error=取数失败口径（I-3 分级禁误导——
+  // isError≠无工况）；pending/empty=先提交计算引导（data undefined 与
+  // [] 同归空数组面，pending 瞬态并入申报）；有数据=undefined。
+  const totalDxfTitle =
+    projectId === null
+      ? undefined
+      : conditionsQuery.isError
+        ? "工况源取数失败——请稍后重试或检查服务"
+        : exportConditions.length === 0
+          ? "先提交计算——工况源为最近完成计算的结果集"
+          : undefined;
 
   /** 快访直发：全厂总图 DXF（unit_id 置空串=server bare POST 总图语义；
    *  工况源缺省首项；错误链经 surfaceExportError 共享〔409 二选一保持
@@ -73,7 +97,6 @@ export function RibbonExportMenu({
       {contextHolder}
       <Dropdown.Button
         trigger={["click"]}
-        icon={<ExportOutlined />}
         disabled={projectId === null}
         onClick={() => onNavigate({ slot: "studio", subface: "drawings" })}
         popupRender={(menu) => <div data-testid="wp-ribbon-export-menu">{menu}</div>}
@@ -82,10 +105,7 @@ export function RibbonExportMenu({
             {
               key: "total-dxf",
               disabled: projectId === null || exportConditions.length === 0,
-              title:
-                projectId !== null && exportConditions.length === 0
-                  ? "先提交计算——工况源为最近完成计算的结果集"
-                  : undefined,
+              title: totalDxfTitle,
               label: (
                 <span data-testid="wp-ribbon-export-total-dxf">导出全厂总图（DXF）</span>
               ),
@@ -107,7 +127,9 @@ export function RibbonExportMenu({
         }}
         buttonsRender={([left, right]) => [
           // 主钮 wp-ribbon-export 沿用不动（M1 探针 P6 锚零漂移）——title
-          // 在有项目态逐字保持现状；null 态=禁用+指引（run 族口径对齐）
+          // 在有项目态逐字保持现状；null 态=禁用+指引（run 族口径对齐）；
+          // R1：icon prop 已撤（该 prop=右触发钮图标）——主钮图标经
+          // children 复原（见下）
           cloneElement(left as ReactElement<Record<string, unknown>>, {
             "data-testid": "wp-ribbon-export",
             title:
@@ -118,7 +140,7 @@ export function RibbonExportMenu({
           right,
         ]}
       >
-        导出
+        <ExportOutlined /> 导出
       </Dropdown.Button>
     </>
   );

@@ -4,7 +4,12 @@
  * Ribbon 命令带 dom 测试（M1 批——D9 裁量下限：四命令在场+主钮 null
  * 禁用+菜单两项开 Modal 成形；M4 批 D1 导出快访接内容——导出钮改
  * Dropdown 形〔主钮切槽保持+总图直发+子面导航〕，旧导出/三维快访用例
- * 随形态迁入新 describe〔断言语义零弱化〕）。
+ * 随形态迁入新 describe〔断言语义零弱化〕；M4 回炉 R1 轮 2026-10-07：
+ * 用例④补 disabled 项点击后 not called 断言〔d1-W3 禁用不裸发锚——
+ * 原仅读属性恒真〕+新增 R2 取数失败态 title 分流用例〔k1-W3+d1-W2：
+ * isError≠无工况，I-3 分级禁「先提交计算」误导〕+新增 d1-N2 直发
+ * onError→confirm 接线断言〔Modal.confirm spy——409 二选一在快访面
+ * 保持的接线面锚〕）。
  *
  * 输入:  Ribbon（QueryClientProvider 每用例新 client〔retry:false〕）+
  *        vi.mock 边界沿 paneDomainGate 纪律=feature api/store 模块面+
@@ -19,16 +24,20 @@
  *        表单；⑤导出快访 Dropdown 组（M4 D1）：主钮/下拉整体 null 禁用+
  *        title 指引/下拉两项 testid 两锚在场/主钮点击=onNavigate
  *        （studio.drawings——迁自旧用例，三维快访 viewer3d 同案保持）/
- *        无工况态总图直发项禁用+title 引导/有工况点击=真发起
- *        （unitId 空串 bare POST 总图语义+缺省首工况）。
+ *        无工况态总图直发项禁用+title 引导+disabled 项点击不裸发〔R3〕/
+ *        取数失败态禁用+title 取数失败口径〔R2〕/有工况点击=真发起
+ *        （unitId 空串 bare POST 总图语义+缺省首工况）/直发 onError→
+ *        confirm 分支接线四字段〔d1-N2〕。
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Modal } from "antd";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Ribbon } from "./ribbon";
 import type { TabTarget } from "./router";
+import { WaterprintApiError } from "../shared/api/http";
 
 // jsdom 环境缺口补丁（浏览器 API 级——非组件/react-query/antd mock 面）：
 // antd 浮层（Dropdown/Modal/Popover）挂载期消费 ResizeObserver。
@@ -266,7 +275,7 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
     expect(onNavigate).toHaveBeenCalledWith({ slot: "viewer3d" });
   });
 
-  it("总图直发项无工况态禁用+title 引导（工况源=最近完成计算的结果集）", () => {
+  it("总图直发项无工况态禁用+title 引导+disabled 项点击不裸发（工况源=最近完成计算的结果集；R3——点击在先非恒真）", () => {
     gate.conditions = { ...gate.conditions, data: [] };
     const view = renderRibbon("p1", () => {});
     fireEvent.click(
@@ -276,7 +285,22 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
     const li = item.closest("li") as HTMLLIElement;
     expect(li.getAttribute("aria-disabled")).toBe("true");
     expect(li.title).toBe("先提交计算——工况源为最近完成计算的结果集");
+    // R3（d1-W3）：disabled 项点击（rc-menu 对 disabled onClick 抑制——
+    // 真实可测面）→禁用不裸发（DoD 语义两锚之一：菜单抑制+组件守卫）
+    fireEvent.click(item);
     expect(gate.exportMutate).not.toHaveBeenCalled();
+  });
+
+  it("总图直发项取数失败态禁用+title 取数失败口径（R2——isError≠无工况，I-3 分级禁「先提交计算」误导）", () => {
+    gate.conditions = { ...gate.conditions, data: [], isError: true };
+    const view = renderRibbon("p1", () => {});
+    fireEvent.click(
+      view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+    );
+    const li = screen.getByTestId("wp-ribbon-export-total-dxf").closest("li") as HTMLLIElement;
+    expect(li.getAttribute("aria-disabled")).toBe("true");
+    expect(li.title).toBe("工况源取数失败——请稍后重试或检查服务");
+    expect(li.title).not.toContain("先提交计算"); // 误导字样禁入 error 态
   });
 
   it("有工况时总图直发项点击=真发起（unitId 空串 bare POST 总图语义+缺省首工况——DoD1 直发链锚）", () => {
@@ -291,5 +315,35 @@ describe("导出快访 Dropdown（M4 D1——主钮切槽保持+总图直发+子
       { projectId: "p1", unitId: "", conditionKey: "design", force: false },
       expect.anything(),
     );
+  });
+
+  it("直发 onError→surfaceExportError confirm 分支接线（409 二选一在快访面保持——d1-N2：Modal.confirm spy 四字段）", () => {
+    gate.conditions = { ...gate.conditions, data: ["design"] };
+    const confirmSpy = vi
+      .spyOn(Modal, "confirm")
+      .mockImplementation(() => ({ destroy: vi.fn(), update: vi.fn() }));
+    try {
+      const view = renderRibbon("p1", () => {});
+      fireEvent.click(
+        view.container.querySelectorAll("button.ant-dropdown-trigger")[1] as HTMLElement,
+      );
+      fireEvent.click(screen.getByTestId("wp-ribbon-export-total-dxf"));
+      expect(gate.exportMutate).toHaveBeenCalledTimes(1);
+      // 经 mutation mock 触发 onError（StaleExportError 面）→断言 confirm 接线
+      const onError = (gate.exportMutate.mock.calls[0]?.[1] as {
+        onError: (error: unknown) => void;
+      }).onError;
+      act(() => {
+        onError(new WaterprintApiError("StaleExportError", "结果集落后当前设计 2 版"));
+      });
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      const config = confirmSpy.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(config.title).toBe("结果集已过期（stale）");
+      expect(config.content).toBe("结果集落后当前设计 2 版");
+      expect(config.okText).toBe("仍导出旧结果（force）");
+      expect(config.cancelText).toBe("先重算");
+    } finally {
+      confirmSpy.mockRestore();
+    }
   });
 });
