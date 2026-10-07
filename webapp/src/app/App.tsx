@@ -1,16 +1,19 @@
 /**
  * 应用壳：B-1 四区骨架布局+槽路由状态机+Providers 组合（app 层组合面；
  * M1 批 2026-10-06 四区重写——draft-ia-v3 §3 B-1 形态单源+mapping-2b4
- * 落位；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1 四区）。
+ * 落位；M7 批 2026-10-07 AI 席位实装（顶栏对话钮/ChatPane 浮层退役——
+ * 对话经右列席位常驻）；沿革 FE3→M3→P2/ADR-018 十页签→P2 解冻→M1 四区
+ * →M7 席位实装）。
  *
  * 输入:  各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
  *        层）+URL ?project=/（useProjectId）?tab=（两级值域+兼容归一）
  *        ?task=/?enum=（深链意图）?token=（首参引导）
  * 输出:  四区骨架：Header（48px——品牌区+项目徽章｜Ribbon 命令带｜项目
- *        管理/AI 连接/设计对话〔维持至 M7〕/设置）+中部三列（左列
- *        var(--wp-pane-left) 双区+中央五槽 Tabs〔wp-scroll-tabs 承袭〕+
- *        右列 var(--wp-pane-right) 上下二分〔纵向分隔可拖〕）+StatusBar
- *        （24px）——画布常驻挂载隐藏（destroyInactiveTabPane=false）
+ *        管理/AI 连接/设置〔M7 批设计对话钮退役——对话经右列 AI 席位〕）
+ *        +中部三列（左列 var(--wp-pane-left) 双区+中央五槽 Tabs
+ *        〔wp-scroll-tabs 承袭〕+右列 var(--wp-pane-right) 上下二分
+ *        〔纵向分隔可拖〕）+StatusBar（24px）——画布常驻挂载隐藏
+ *        （destroyInactiveTabPane=false）
  *
  * 规格说明（brief D3 逐条）：
  *   - 切槽唯一通道 setTab(target)：槽条/模型树/子面条/Ribbon 全经此；写
@@ -20,7 +23,9 @@
  *     但有 ?task=/?enum=→studio.study（边缘 c 对称），缺省 canvas；
  *   - 左列=模型树+单元库（原件移入 props 面零改；两区各自 overflow:auto
  *     +1px 分隔线）；右列二分=Settings 窗（projectId null=提示；否则挂
- *     ParamTabs〔feasibility 四件 M2〕）+AI 席位容器（M7 占位空态）；
+ *     ParamTabs〔feasibility 四件 M2〕）+AI 席位容器（M7 批实装：AiSeat
+ *     三分页 对话｜任务｜回执——ChatSeat/SeatTaskPage/SeatReceipts 装配，
+ *     席位聚焦=?task=/?enum=/opsdebug 深链在 aiSeat 初值解析落位）；
  *     纵向分隔可拖（Q8 先例：主键判定+pointercancel+卸载清理；位置会话
  *     内不进 URL；下限 360=tokens-2b3 判据/上限=视口净高−席位最小高）；
  *   - selectedUnitId 提升 App（切项目清陈旧 effect——现状 pane 本地态未
@@ -31,14 +36,16 @@
  *     Ribbon/诊断面 M7；兼容映射承载旧深链）；
  *   - 列宽令牌物理落地（tokens-2b3 §A=定义与消费同步）：global.css :root
  *     增 --wp-pane-left/right，本文件 width 经 var() 消费（M1 不拖拽）；
- *   - R2-A 批 2 沿现状：?token= 首参引导/401 自愈回路/四浮层（ChatPane
- *     入口钮维持至 M7——席位常驻后退役）。
+ *   - R2-A 批 2 沿现状：?token= 首参引导/401 自愈回路/三浮层（连接设置/
+ *     AI 接入/项目管理——M7 批 ChatPane 退役：设计对话浮层与顶栏钮随席位
+ *     常驻退役）。
  */
-import { FolderOpenOutlined, MessageOutlined, SettingOutlined } from "@ant-design/icons";
+import { FolderOpenOutlined, SettingOutlined } from "@ant-design/icons";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Button, Layout, Spin, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
+import { AiSeat } from "./aiSeat";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { lazyPaneLoader } from "./lazyPaneLoader";
 import { ModelTree } from "./modelTree";
@@ -60,7 +67,6 @@ import { TokenSettingsModal } from "./tokenSettingsModal";
 import { UnitLibrary } from "./unitLibrary";
 import { AiConnectButton } from "../features/aiconnect/components/AiConnectButton";
 import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal";
-import { ChatPane } from "../features/ai_chat/components/ChatPane";
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
@@ -165,7 +171,6 @@ export function App() {
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiConnectOpen, setAiConnectOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
   const [projectId] = useProjectId();
   const [libraryFocusId, setLibraryFocusId] = useState<string | null>(null);
@@ -342,15 +347,8 @@ export function App() {
               data-testid="wp-open-manager-header"
             />
             <AiConnectButton onClick={() => setAiConnectOpen(true)} />
-            {/* B4-4b：设计对话入口（维持至 M7——席位常驻后退役） */}
-            <Button
-              type="text"
-              icon={<MessageOutlined />}
-              onClick={() => setChatOpen(true)}
-              aria-label="设计对话"
-              title="设计对话（自然语言设计助手）"
-              data-testid="wp-chat-open"
-            />
+            {/* M7 批：设计对话顶栏钮退役（B4-4b 入口随席位常驻终结——对话
+                经右列 AI 席位 ChatSeat 常驻呈现） */}
             <Button
               type="text"
               icon={<SettingOutlined />}
@@ -471,20 +469,13 @@ export function App() {
                 style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 36, height: 3, borderRadius: 2, background: "var(--wp-border)" }}
               />
             </div>
+            {/* M7 批：AI 席位容器实装（M1 占位空态退役）——三分页 对话｜任务｜
+                回执；连接徽标开 AiConnectModal（单一 Modal 面不变） */}
             <section
               data-region="ai-seat"
               style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
             >
-              <div
-                style={{ flex: "none", padding: "6px 10px", borderBottom: "1px solid var(--wp-border-2)", display: "flex", alignItems: "center" }}
-              >
-                <Typography.Text strong>AI 席位</Typography.Text>
-              </div>
-              <div style={{ padding: "8px 10px" }}>
-                <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                  AI 席位（对话/任务/操作回执）随 M7 批实装——当前对话入口在顶栏按钮。
-                </Typography.Paragraph>
-              </div>
+              <AiSeat onOpenAiConnect={() => setAiConnectOpen(true)} />
             </section>
           </aside>
         </Layout>
@@ -492,7 +483,6 @@ export function App() {
       </Layout>
       <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
-      <ChatPane open={chatOpen} onClose={() => setChatOpen(false)} />
       <ProjectManagerModal open={managerOpen} onClose={() => setManagerOpen(false)} />
     </Providers>
   );

@@ -1,25 +1,26 @@
 /**
- * 对话 Drawer 壳（B4-4b 子批 2——浮层形态：零路由破面，aiconnect 先例）。
+ * AI 席位对话分页（M7 批 2026-10-07 ChatPane 退役重造——Drawer 浮层→席位
+ * 常驻，B-4/B-5；壳层逻辑自 ChatPane 全量承袭，仅壳退役）。
  *
- * 输入:  open/onClose（App.tsx 顶栏按钮受控）
- * 输出:  Drawer 壳（ChatPanel 承载——会话/历史/发言 hook 装配+任务 SSE
- *        轮进度聚合[stage 文案]+B-1 刚建会话标记[B-2 polling 降级标记
- *        stage 行]+C-5 failed 横幅 error 摘要补查）
+ * 输入:  无 props（席位常驻——查询门控恒真：useChatSessions(true)/
+ *        useChatHistory(sessionId)；原 open/onClose 随 Drawer 壳退役）
+ * 输出:  ChatPanel 承载体（flex column 满高容器 height:100%——ChatPanel
+ *        会话/历史/发言 hook 装配+任务 SSE 轮进度聚合[stage 文案]+B-1 刚建
+ *        会话标记[B-2 polling 降级标记 stage 行]+C-5 failed 横幅 error
+ *        摘要补查）
  *
- * P0-D（fix-plan 批3）：终态一律清 turnStage=null（done/failed/cancelled
- *        三态旧实现把「轮结束（failed）」文案留在 stage——busy=turnStage!==null
- *        恒真，输入框一次失败即永久锁死）；失败态转 turnError 横幅面（ChatPanel
- *        渲染）。发送回调面透传（onSuccess/onError——草稿保留归 ChatPanel）。
- * F2（e2e-fix-round3 批 R2）：B-1 本轮 POST 返回的客户端建档会话标记
- *        （freshSessionId——history 失败两态文案判据，历史落盘成功退场）；
- *        B-2 SSE 慢探测降级（onConnection 'polling'）→ stage 行「实时
- *        通道不可达——已切换轮询」；C-5 failed 终态补查任务状态 error
- *        摘要（前 120 字——lib/taskError 单源）。
- * 批6f（wave6 §批6f）：非 failed 终态横幅分派单源 terminalTurnText
- *        （cancelled=取消文案——旧实现一律误称「失败」；未知终态「未完成」
- *        兜底带原始态名禁吞）。
+ * 沿革（承 ChatPane 头注逐项——逻辑零变更）：
+ *   - P0-D（fix-plan 批3）：终态一律清 turnStage=null（busy 面归零）；失败
+ *     态转 turnError 横幅面（ChatPanel 渲染）；发送回调面透传（草稿保留归
+ *     ChatPanel）；
+ *   - F2（e2e-fix-round3 批 R2）：B-1 本轮 POST 返回的客户端建档会话标记
+ *     （freshSessionId——history 失败两态文案判据，历史落盘成功退场）；
+ *     B-2 SSE 慢探测降级（onConnection 'polling'）→ stage 行「实时通道
+ *     不可达——已切换轮询」；C-5 failed 终态补查任务状态 error 摘要
+ *     （前 120 字——lib/taskError 单源）；
+ *   - 批6f（wave6 §批6f）：非 failed 终态横幅分派单源 terminalTurnText；
+ *   - 回炉 W4：补查落定校验轮次归属（防陈旧横幅复活覆盖新一轮）。
  */
-import { Drawer } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -35,10 +36,7 @@ import { ChatPanel, type SendMutation } from "./ChatPanel";
 const generateSessionId = () =>
   (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}new`).replace(/-/g, "");
 
-/** Drawer 宽度（显示层单一出处——B4-4b 原值 420 恒等保持）。 */
-const CHAT_DRAWER_WIDTH = 420;
-
-export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ChatSeat() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turnTaskId, setTurnTaskId] = useState<string | null>(null);
   const [turnStage, setTurnStage] = useState<string | null>(null);
@@ -50,8 +48,9 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
   /** 回炉 W4：最新轮任务 ID 镜像（补查落定校验轮次归属防陈旧横幅复活）。 */
   const turnTaskIdRef = useRef<string | null>(null);
   turnTaskIdRef.current = turnTaskId;
-  const sessions = useChatSessions(open);
-  const history = useChatHistory(open ? sessionId : null);
+  // 席位常驻：查询门控恒真（原 Drawer open 门控随壳退役）
+  const sessions = useChatSessions(true);
+  const history = useChatHistory(sessionId);
   const send = useSendChatMessage();
   const client = useQueryClient();
 
@@ -142,19 +141,7 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
   );
 
   return (
-    <Drawer
-      title="设计对话"
-      placement="right"
-      open={open}
-      onClose={onClose}
-      styles={{
-        body: { padding: 12 },
-        // 批6m 邻域裁量：rc Drawer width prop 已弃用（antd v6「Use size
-        // instead」但 size 无 420 档）——styles.wrapper 现行合法键
-        // （unitLibrary.tsx 9b1dc6455 同款迁移，本件漏网面收口）。
-        wrapper: { width: CHAT_DRAWER_WIDTH },
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <ChatPanel
         sessions={sessions}
         history={history}
@@ -166,6 +153,6 @@ export function ChatPane({ open, onClose }: { open: boolean; onClose: () => void
         turnError={turnError}
         freshSessionId={freshSessionId}
       />
-    </Drawer>
+    </div>
   );
 }

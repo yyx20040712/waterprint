@@ -17,8 +17,8 @@
  * 规格说明（mapping-2b4 §D 终核+brief D5；两裁量位〔编辑开关/保存〕留
  *   画布槽内工具条——canvasEditToolbar 解构后两态闭环维持，M1 零增量）：
  *   - 提交计算唯一入口：主钮全项目计算（不依赖选中+dirty——F4 残余根治
- *     承袭）；枚举两轨提交面归菜单 Modal（进度呈现面 M6/M7 接管——
- *     过渡态诚实反馈 message task_id）；
+ *     承袭）；枚举两轨提交面归菜单 Modal（进度呈现面席位接管/结果面 M6
+ *     ——过渡态诚实反馈 message task_id）；
  *   - 单元枚举 Modal=EnumerateBar 原件承载（props 接线复刻 solutionsPane
  *     L162/L323-334 面：useProjectUnits+useConstraints+restoreConstraintKeys
  *     恢复+勾选即 PUT 持久〔mergeGroupSelection 合成全集+乐观回滚〕+
@@ -159,7 +159,7 @@ function EnumerateModalBody({
           new CustomEvent(TASK_EVENT, { detail: response.task_id }),
         );
         messageApi.success(
-          `枚举任务已提交：${response.task_id}（进度与结果呈现随 M6/M7 批接管）`,
+          `枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批）`,
         );
         onDone();
       },

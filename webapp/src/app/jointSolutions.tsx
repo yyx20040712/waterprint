@@ -9,8 +9,8 @@
  *        组件内自取（Modal 开态才挂载——随开随取）
  * 输出:  提交条段（多选 unitIds ≥2——可枚举判据复用 enumerateOptions
  *        单源+提交/清单错误回显；onSuccess=writeTaskParam+TASK_EVENT
- *        派发+message 反馈 task_id〔进度呈现面 M6/M7 接管——过渡态诚实
- *        反馈〕+onSubmitted 关 Modal）
+ *        派发+message 反馈 task_id〔进度呈现面席位接管/结果面 M6——过渡
+ *        态诚实反馈〕+onSubmitted 关 Modal）
  *
  * 规格说明（批2d 简报③ DoD 2；M1 批 brief D5 裁剪面）：
  *   - 提交走 generated useRunJointEnumerationApiSolutionJointEnumeratePost
@@ -74,7 +74,7 @@ export function JointSubmitForm({
             new CustomEvent(TASK_EVENT, { detail: response.task_id }),
           );
           messageApi.success(
-            `联合枚举任务已提交：${response.task_id}（进度与结果呈现随 M6/M7 批接管）`,
+            `联合枚举任务已提交：${response.task_id}（进度见右侧 AI 席位「任务」分页——结果呈现随 M6 批）`,
           );
           onSubmitted();
         },
