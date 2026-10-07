@@ -28,11 +28,13 @@ import { lazyPaneLoader } from "./lazyPaneLoader";
 import type { StudioSubface } from "./router";
 import { useProjectId } from "./useProjectId";
 
-/** 四内容子面懒装载器（FE-2 形态——then 包装取 named export）。 */
-const drawingsLoader = lazyPaneLoader(() => import("./drawingsPane"), (m) => m.DrawingsPane as ComponentType);
-const costLoader = lazyPaneLoader(() => import("./costPane"), (m) => m.CostPane as ComponentType);
-const compareLoader = lazyPaneLoader(() => import("./comparePane"), (m) => m.ComparePane as ComponentType);
-const trustLoader = lazyPaneLoader(() => import("./trustPane"), (m) => m.TrustPane as ComponentType);
+/** 四内容子面懒装载器（FE-2 形态——named export 选件；UF-66 批起=
+ *  lazyPaneLoader 工厂形——chunk 失败重试经 cache-bust 恢复；回炉
+ *  R1/R2：冷却窗限速+chunkHint=specifier 基名归因）。 */
+const drawingsLoader = lazyPaneLoader(() => import("./drawingsPane"), "drawingsPane", (m) => m.DrawingsPane as ComponentType);
+const costLoader = lazyPaneLoader(() => import("./costPane"), "costPane", (m) => m.CostPane as ComponentType);
+const compareLoader = lazyPaneLoader(() => import("./comparePane"), "comparePane", (m) => m.ComparePane as ComponentType);
+const trustLoader = lazyPaneLoader(() => import("./trustPane"), "trustPane", (m) => m.TrustPane as ComponentType);
 
 /** 子面条五项（受控 Segmented——值域=STUDIO_SUBFACES 单源面）。 */
 const SUBFACE_OPTIONS: { label: string; value: StudioSubface }[] = [

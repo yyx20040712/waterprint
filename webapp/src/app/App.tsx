@@ -67,11 +67,12 @@ import { useProjectId } from "./useProjectId";
 
 /** 四非 canvas 槽懒装载器（FE-2——then 包装取 named export；studio 槽
  *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载；UF-66 批
- *  起=lazyPaneLoader 工厂形——chunk 失败重试经 cache-bust 恢复）。 */
-const siteplanLoader = lazyPaneLoader(() => import("./siteplanPane"), (m) => m.SiteplanPane as ComponentType);
-const viewer3dLoader = lazyPaneLoader(() => import("./viewer3dPane"), (m) => m.Viewer3dPane as ComponentType);
-const elevationLoader = lazyPaneLoader(() => import("./elevationPane"), (m) => m.ElevationPane as ComponentType);
-const studioLoader = lazyPaneLoader(() => import("./studioPane"), (m) => m.StudioPane as ComponentType);
+ *  起=lazyPaneLoader 工厂形——chunk 失败重试经 cache-bust 恢复；回炉
+ *  R1/R2：冷却窗限速+chunkHint=specifier 基名归因）。 */
+const siteplanLoader = lazyPaneLoader(() => import("./siteplanPane"), "siteplanPane", (m) => m.SiteplanPane as ComponentType);
+const viewer3dLoader = lazyPaneLoader(() => import("./viewer3dPane"), "viewer3dPane", (m) => m.Viewer3dPane as ComponentType);
+const elevationLoader = lazyPaneLoader(() => import("./elevationPane"), "elevationPane", (m) => m.ElevationPane as ComponentType);
+const studioLoader = lazyPaneLoader(() => import("./studioPane"), "studioPane", (m) => m.StudioPane as ComponentType);
 
 /** 页签装载占位（FE-2——Spin 居中+统一文案，薄组件）。 */
 function PaneLoading() {
