@@ -21,7 +21,10 @@
  *   - 主面=「面板异常（{label}）」+分级摘要+重试钮；raw message/
  *     componentStack 只进原生 details（默认收起，零新依赖）；
  *   - 重试钮语义沿 L84-90 注记口径：onRetry 在场先转调（同一事件批内）
- *     +setState 复位 hasError——子树重挂载（React.lazy 重建先例面）。
+ *     +setState 复位 hasError——子树重挂载（React.lazy 重建先例面）；
+ *   - UF-66 批联动（2026-10-07）：CHUNK_SUMMARY 改文补「或刷新页面」
+ *     ——chunk 摘要断言组逐字随动（21 用例不删不弱化）+新增 1 用例
+ *     专断兜底措辞在场。
  */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -45,7 +48,7 @@ function faceWithoutDetails(): string {
 
 describe("gradeClientError 纯函数（D2 三分级+D3 词典）", () => {
   it("chunk 级：动态模块加载失败族三消息→固定摘要（D2 分支①）", () => {
-    const summary = "页面模块加载失败——多为网络中断或系统刚更新所致，请重试";
+    const summary = "页面模块加载失败——多为网络中断或系统刚更新所致，请重试或刷新页面";
     for (const message of [
       "Loading chunk 12 failed.",
       "Failed to fetch dynamically imported module: http://x/elevationPane.js",
@@ -110,7 +113,7 @@ describe("gradeClientError 纯函数（D2 三分级+D3 词典）", () => {
     );
     expect(graded.grade).toBe("chunk");
     expect(graded.summary).toBe(
-      "页面模块加载失败——多为网络中断或系统刚更新所致，请重试",
+      "页面模块加载失败——多为网络中断或系统刚更新所致，请重试或刷新页面",
     );
   });
 
@@ -151,9 +154,18 @@ describe("ErrorBoundary 降级面（jsdom——D4 主面+折叠）", () => {
     const alert = screen.getByRole("alert");
     expect(alert.textContent).toContain("面板异常（高程纵断）");
     expect(
-      screen.getByText("页面模块加载失败——多为网络中断或系统刚更新所致，请重试"),
+      screen.getByText("页面模块加载失败——多为网络中断或系统刚更新所致，请重试或刷新页面"),
     ).toBeTruthy();
     expect(faceWithoutDetails()).not.toContain("Loading chunk 7 failed.");
+  });
+
+  it("chunk 摘要联动（UF-66）：「或刷新页面」reload 兜底措辞在场", () => {
+    render(
+      <ErrorBoundary label="高程纵断">
+        <Boom error={new Error("Loading chunk 21 failed.")} />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText(/或刷新页面/)).toBeTruthy();
   });
 
   it("词典级崩溃：Minified React error 摘要在场", () => {

@@ -65,9 +65,10 @@ export interface GradedClientError {
   detail: string;
 }
 
-/** chunk 级固定摘要（D2 分支①逐字）。 */
+/** chunk 级固定摘要（D2 分支①逐字；UF-66 批 2026-10-07 联动改文——
+ *  cache-bust 恢复重试有效性外，措辞补「或刷新页面」reload 兜底）。 */
 const CHUNK_SUMMARY =
-  "页面模块加载失败——多为网络中断或系统刚更新所致，请重试";
+  "页面模块加载失败——多为网络中断或系统刚更新所致，请重试或刷新页面";
 
 /** 未知级兜底摘要（D2 分支③逐字）。 */
 const UNKNOWN_SUMMARY =

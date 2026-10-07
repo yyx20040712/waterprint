@@ -24,14 +24,15 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Segmented, Typography } from "antd";
 
+import { lazyPaneLoader } from "./lazyPaneLoader";
 import type { StudioSubface } from "./router";
 import { useProjectId } from "./useProjectId";
 
 /** 四内容子面懒装载器（FE-2 形态——then 包装取 named export）。 */
-const drawingsLoader = () => import("./drawingsPane").then((m) => ({ default: m.DrawingsPane as ComponentType }));
-const costLoader = () => import("./costPane").then((m) => ({ default: m.CostPane as ComponentType }));
-const compareLoader = () => import("./comparePane").then((m) => ({ default: m.ComparePane as ComponentType }));
-const trustLoader = () => import("./trustPane").then((m) => ({ default: m.TrustPane as ComponentType }));
+const drawingsLoader = lazyPaneLoader(() => import("./drawingsPane"), (m) => m.DrawingsPane as ComponentType);
+const costLoader = lazyPaneLoader(() => import("./costPane"), (m) => m.CostPane as ComponentType);
+const compareLoader = lazyPaneLoader(() => import("./comparePane"), (m) => m.ComparePane as ComponentType);
+const trustLoader = lazyPaneLoader(() => import("./trustPane"), (m) => m.TrustPane as ComponentType);
 
 /** 子面条五项（受控 Segmented——值域=STUDIO_SUBFACES 单源面）。 */
 const SUBFACE_OPTIONS: { label: string; value: StudioSubface }[] = [

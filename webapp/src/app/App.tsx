@@ -40,6 +40,7 @@ import { Button, Layout, Spin, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { lazyPaneLoader } from "./lazyPaneLoader";
 import { ModelTree } from "./modelTree";
 import { ParamTabs } from "../features/params/components/ParamTabs";
 import { ProjectManagerModal } from "./projectManagerModal";
@@ -65,11 +66,12 @@ import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
 
 /** 四非 canvas 槽懒装载器（FE-2——then 包装取 named export；studio 槽
- *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载）。 */
-const siteplanLoader = () => import("./siteplanPane").then((m) => ({ default: m.SiteplanPane as ComponentType }));
-const viewer3dLoader = () => import("./viewer3dPane").then((m) => ({ default: m.Viewer3dPane as ComponentType }));
-const elevationLoader = () => import("./elevationPane").then((m) => ({ default: m.ElevationPane as ComponentType }));
-const studioLoader = () => import("./studioPane").then((m) => ({ default: m.StudioPane as ComponentType }));
+ *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载；UF-66 批
+ *  起=lazyPaneLoader 工厂形——chunk 失败重试经 cache-bust 恢复）。 */
+const siteplanLoader = lazyPaneLoader(() => import("./siteplanPane"), (m) => m.SiteplanPane as ComponentType);
+const viewer3dLoader = lazyPaneLoader(() => import("./viewer3dPane"), (m) => m.Viewer3dPane as ComponentType);
+const elevationLoader = lazyPaneLoader(() => import("./elevationPane"), (m) => m.ElevationPane as ComponentType);
+const studioLoader = lazyPaneLoader(() => import("./studioPane"), (m) => m.StudioPane as ComponentType);
 
 /** 页签装载占位（FE-2——Spin 居中+统一文案，薄组件）。 */
 function PaneLoading() {
