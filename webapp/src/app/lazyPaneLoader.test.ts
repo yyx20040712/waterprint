@@ -1,10 +1,12 @@
 /**
- * lazyPaneLoader 工厂单测（UF-66 修复批+回炉 R1/R2——chunk 失败
- * cache-bust 重试恢复+风暴冷却窗+chunkHint 归因）。
+ * lazyPaneLoader 工厂单测（UF-66 修复批+回炉 R1/R2+UF-67 收口批——
+ * chunk 失败 cache-bust 重试恢复+风暴冷却窗+chunkHint 归因+冷却钟源
+ * 单调化）。
  *
  * 输入:  lazyPaneLoader 工厂（node 面直测——零 DOM/react 渲染依赖）；
  *        performance 资源时序以 vi.spyOn 假 entry 桩（jsdom/ndjs 环境无
- *        真资源时序）；冷却窗以 vi.spyOn(Date,"now") 受控时钟桩；
+ *        真资源时序）；冷却窗以 stubClock 受控时钟桩（UF-67 双桩化——
+ *        performance.now 主+Date.now 镜像同值）；
  *        bustImport 以注入桩断言 URL 形态与次数参数
  * 输出:  断言组：既有 7 组（brief D4 ①~⑦——成功包装/失败捕获/鉴别
  *        （link 型·非 .js·旧 entry）/bust URL 形态与参数/无性能 API 回落
@@ -12,16 +14,22 @@
  *        +R1 冷却窗组（冷却内回落 loadModule 零 bust+lastBustAt 不更新/
  *        冷却外 bust 且置 lastBustAt/跨冷却递增参数保持+边界 999/1000）
  *        +R2 chunkHint 组（本槽 entry 捕获/他人槽 entry 不捕获回落）
+ *        +钟源单调性组（UF-67 收口——performance.now 优先：墙钟回拨
+ *        不阉割恢复/墙钟前跳不开风暴窗/performance.now 缺场回落
+ *        Date.now——U-①/U-② 对 HEAD〔Date.now 单源〕红先）
  *
- * 规格说明（UF-66 brief D1/D4+回炉单 R1/R2；红先对回炉前 HEAD 跑红后
- * 实现转绿——red-run-r1.txt 在档）：
+ * 规格说明（UF-66 brief D1/D4+回炉单 R1/R2+UF-67 收口批；红先对回炉前
+ * HEAD 跑红后实现转绿——red-run-r1.txt/red-run-uf67.txt 在档）：
  *   - 时序桩=vi.spyOn(performance,"getEntriesByType") 返回受控 entry
  *     数组（name+initiatorType 二字段=工厂观测面同形）；entry 追加时机
  *     在 loadModule 桩内（快照之后），模拟浏览器失败请求落资源时序；
  *     entry name 采用 prod 形态 /assets/<chunkHint>-HASH.js（R2 过滤
  *     面的命中形态）；
- *   - 时钟桩=vi.spyOn(Date,"now") 返回受控 now（advance 推进——冷却
- *     判定 BUST_COOLDOWN_MS=1000 边界 999 拒/1000 行全钉死）；
+ *   - 时钟桩=stubClock 双桩（UF-67——vi.spyOn(performance,"now") 主+
+ *     vi.spyOn(Date,"now") 镜像同值：advance 同步推两只钟，对旧 Date.now
+ *     单源实现行为等价〔既有用例零改先跑绿=改造自证〕；moveWall 仅操
+ *     墙钟 Date.now〔U-①回拨/U-②前跳——模拟墙钟漂移下单调钟不动〕；
+ *     冷却判定 BUST_COOLDOWN_MS=1000 边界 999 拒/1000 行全钉死）；
  *   - 「原样 rethrow」以错误实例同一性（rejects.toBe(failure)）断言——
  *     非消息匹配（防包装错误混入静默通过）；
  *   - 第四参 bustImport=注入面 seam（brief D1：非 API 面）；既有 7 组
@@ -71,13 +79,24 @@ function stubResourceTiming(): { timeline: FakeEntry[] } {
   return { timeline };
 }
 
-/** 受控时钟（R1 冷却窗桩——vi.spyOn(Date,"now")，advance 推进模拟重试间隔）。 */
-function stubClock(): { advance: (ms: number) => void } {
+/** 受控时钟（R1 冷却窗桩——UF-67 双桩化：vi.spyOn(performance,"now") 主
+ * +vi.spyOn(Date,"now") 镜像同值；advance 同步推两只钟，moveWall 仅操
+ * 墙钟 Date.now——回拨/前跳模拟墙钟漂移下单调钟不动）。 */
+function stubClock(): {
+  advance: (ms: number) => void;
+  moveWall: (ms: number) => void;
+} {
   let current = 1_000_000;
-  vi.spyOn(Date, "now").mockImplementation(() => current);
+  let wall = 1_000_000;
+  vi.spyOn(performance, "now").mockImplementation(() => current);
+  vi.spyOn(Date, "now").mockImplementation(() => wall);
   return {
     advance: (ms: number) => {
       current += ms;
+      wall += ms;
+    },
+    moveWall: (ms: number) => {
+      wall += ms;
     },
   };
 }
@@ -361,5 +380,81 @@ describe("R2 chunkHint 归因（并发/多入口误捕防御——entry.name 含
     await expect(loader()).rejects.toBe(failure); // attempt2：回落 loadModule 复调
     expect(bustImport).not.toHaveBeenCalled(); // 零 bust=无误捕死锁面
     expect(loadModule).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("钟源单调性（UF-67 收口——performance.now 优先）", () => {
+  it("U-① 墙钟回拨不阉割恢复：Date.now 回拨 5000+performance.now 推进 1000→冷却期满照常 bust 放行", async () => {
+    const { timeline } = stubResourceTiming();
+    const { advance, moveWall } = stubClock();
+    const failure = new Error(`Failed to fetch dynamically imported module: ${HINT_URL}`);
+    const loadModule = vi.fn(failingLoad(timeline, HINT_URL, failure));
+    const bustImport = vi.fn(async (): Promise<FakePaneModule> => ({ Pane: paneB }));
+    const loader = lazyPaneLoader(loadModule, HINT, pickPane, bustImport);
+    await expect(loader()).rejects.toBe(failure); // attempt1（捕获在场）
+    const wrapped2 = await loader(); // attempt2：首 bust 置点（lastBustAt=T0）
+    expect(wrapped2.default).toBe(paneB);
+    moveWall(-5000); // 墙钟回拨 5000（仅 Date.now——单调钟不动；回拨后恢复不该被静默阉割）
+    advance(1000); // 单调钟推进 1000（冷却期满 1000>=1000 边界）
+    const outcome3 = await loader().then(
+      () => "resolved",
+      () => "rejected",
+    ); // attempt3：bust 放行→bustImport resolve→resolved（结果非断言面——防未处置拒绝）
+    expect(outcome3).toBe("resolved");
+    expect(bustImport).toHaveBeenCalledTimes(2); // 冷却期满照常 bust（第 2 次调用）——HEAD 红点
+    expect(bustImport).toHaveBeenNthCalledWith(2, `${HINT_URL}?wpRetry=3`);
+  });
+
+  it("U-② 墙钟前跳不开风暴窗：Date.now 前跳 +10000+performance.now 仅推进 100→仍在冷却回落 loadModule", async () => {
+    const { timeline } = stubResourceTiming();
+    const { advance, moveWall } = stubClock();
+    const failure = new Error("Loading chunk 7 failed.");
+    const bustFailure = new Error(`Failed to fetch ${HINT_URL}?wpRetry=2`);
+    const loadModule = vi.fn(failingLoad(timeline, HINT_URL, failure));
+    const bustImport = vi.fn(async (): Promise<FakePaneModule> => {
+      throw bustFailure;
+    });
+    const loader = lazyPaneLoader(loadModule, HINT, pickPane, bustImport);
+    await expect(loader()).rejects.toBe(failure); // attempt1
+    await expect(loader()).rejects.toBe(bustFailure); // attempt2：首 bust 置点（lastBustAt=T0）
+    moveWall(10000); // 墙钟前跳 +10000（仅 Date.now——单调钟不动；前跳不该开 reopen 风暴窗）
+    advance(100); // 单调钟仅推进 100（冷却内 100<1000）
+    await expect(loader()).rejects.toBe(failure); // attempt3：回落 loadModule 复调（同错误实例）——HEAD 红点
+    expect(bustImport).toHaveBeenCalledTimes(1); // 零新 bust=风暴窗未开
+    expect(loadModule).toHaveBeenCalledTimes(2);
+  });
+
+  it("U-③ performance.now 缺场回落 Date.now：冷却判定按墙钟受控推进（冷却内回落/推进 1000 后放行）", async () => {
+    const { timeline } = stubResourceTiming();
+    const { advance } = stubClock();
+    // ⑤(b) 先例形态：defineProperty 置 performance.now=undefined（finally 恢复 descriptor）
+    const descriptor = Object.getOwnPropertyDescriptor(performance, "now");
+    Object.defineProperty(performance, "now", {
+      configurable: true,
+      value: undefined,
+    });
+    try {
+      const failure = new Error("Loading chunk 9 failed.");
+      const bustFailure = new Error("bust reject");
+      const loadModule = vi.fn(failingLoad(timeline, HINT_URL, failure));
+      const bustImport = vi.fn(async (): Promise<FakePaneModule> => {
+        throw bustFailure;
+      });
+      const loader = lazyPaneLoader(loadModule, HINT, pickPane, bustImport);
+      await expect(loader()).rejects.toBe(failure); // attempt1
+      await expect(loader()).rejects.toBe(bustFailure); // attempt2：首 bust 置点（回落域=Date.now）
+      advance(400); // 墙钟域推进 400（冷却内 400<1000）
+      await expect(loader()).rejects.toBe(failure); // attempt3：回落 loadModule（零 bust）
+      expect(bustImport).toHaveBeenCalledTimes(1);
+      advance(600); // 墙钟域累计 1000（自 bust 点）——放行边界
+      await expect(loader()).rejects.toBe(bustFailure); // attempt4：bust 放行
+      expect(bustImport).toHaveBeenCalledTimes(2);
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(performance, "now", descriptor);
+      } else {
+        delete (performance as { now?: unknown }).now;
+      }
+    }
   });
 });

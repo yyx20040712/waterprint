@@ -1,6 +1,7 @@
 /**
  * 懒装载器工厂（UF-66 修复批 2026-10-07+回炉 R1/R2——chunk 失败重试
- * cache-bust 恢复+风暴冷却窗+chunkHint 归因）。
+ * cache-bust 恢复+风暴冷却窗+chunkHint 归因；UF-67 收口批 2026-10-08——
+ * 冷却钟源单调化 performance.now 优先）。
  *
  * 输入:  loadModule=动态模块装载器（() => import("./xPane") 形）；
  *        chunkHint=本槽 chunk 归因基名（=specifier 基名，prod 命名形态
@@ -45,8 +46,11 @@
  *     null（回落管道）；attempt ≥2 bust 失败不更新 capturedUrl（基
  *     URL 稳定，bust 参数随次数递增）；
  *   - getEntriesByType 存在性守卫：缺性能 API 环境=快照 null 同回落
- *     管道（jsdom/ndjs 行为零变）；performance/Date.now 逐调用读取
- *     （非模块加载期缓存——测试桩可注入）；
+ *     管道（jsdom/ndjs 行为零变）；冷却钟源=performance.now 单调优先
+ *     （UF-67 批——墙钟回拨/前跳两风险闭合），缺场回落 Date.now；逐
+ *     调用读取非模块加载期缓存——测试桩可注入。钟源域差边界：
+ *     performance.now=time-origin 域、Date.now=epoch 域——lastBustAt
+ *     同源置读无跨域比较；运行中 performance 缺场切换属理论边界不设防；
  *   - 捕获逻辑挂 loadModule 失败管道（attempt 1 与回落复调同管道）：
  *     消费面可见行为=原样 rethrow 不变，仅闭包内 capturedUrl 记账——
  *     回落路径若真实发出网络请求并失败，同样可被差分捕获（机制一致；
@@ -79,6 +83,18 @@ function resourceTimingScope(): {
   return perf as {
     getEntriesByType: (type: string) => ResourceTimingEntryLike[];
   };
+}
+
+/** 冷却钟源（UF-67——performance.now 单调优先：墙钟回拨〔静默阉割恢复〕/
+ * 前跳〔reopen 风暴窗〕两风险闭合；缺场回落 Date.now——typeof 存在性守卫
+ * 对齐 resourceTimingScope 形态与⑤(b) 测试先例；逐调用读取非模块加载期
+ * 缓存——测试桩可注入）。 */
+function nowMs(): number {
+  const perf = (globalThis as { performance?: { now?: unknown } }).performance;
+  if (typeof perf === "object" && perf !== null && typeof perf.now === "function") {
+    return perf.now() as number;
+  }
+  return Date.now();
 }
 
 /** import 前快照：资源时序 name 集（差分基线——null=无资源时序环境）。 */
@@ -148,7 +164,7 @@ export function lazyPaneLoader<M>(
   };
   return () => {
     attempt += 1;
-    const now = Date.now();
+    const now = nowMs();
     let load: Promise<M>;
     if (attempt >= 2 && capturedUrl !== null) {
       if (lastBustAt === null || now - lastBustAt >= BUST_COOLDOWN_MS) {
