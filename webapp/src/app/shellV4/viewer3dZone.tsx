@@ -65,15 +65,17 @@ export function Viewer3dZone() {
         display: "flex",
         flexDirection: "column",
         position: "relative",
+        // B1 R2/N1+门一 k1-W1：缩放溢出防护挂未缩放祖先——overflow 裁剪
+        // 边界随自身 transform 一并放大（局部坐标系先于变换），挂在带
+        // scale 的包裹面无法裁回其自身放大后的渲染盒；工具簇为 section
+        // 子级 absolute 定位，不受此裁剪影响。
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           flex: 1,
           minHeight: 0,
-          // B1 R2/N1：缩放溢出防护——放大态 scale 变换不溢出邻区（包裹面
-          // 裁剪，工具簇在包裹面外不受裁剪影响）
-          overflow: "hidden",
           transform: `scale(${zoom})`,
           transformOrigin: "center center",
         }}
