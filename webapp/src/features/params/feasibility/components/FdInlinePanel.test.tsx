@@ -30,6 +30,9 @@
  *        clear null——值清空消隐直锚）+请求总数锚（mutateCalls.length
  *        =3 防清除路径多发请求静默）；⑩ 在途 2D+清除竞态帧（清除即令
  *        牌自增→旧 2D onSuccess 晚到被拦截——⑤切轴面外的清除面补锚）。
+ *        2B8 笔1（2b8-20261008 N 级清扫）：⑨⑩ clear 钮查询收域面板域
+ *        （fd-panel-volume 内查——k1-N1/d1-N2）+⑩ 补前置在场锚（k1-dN1
+ *        ——对齐⑨形态，回归丢失时语义断言红）与请求总数锚（d1-dN1′）。
  */
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -227,6 +230,7 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
       expect(screen.getAllByTestId("fd-heatmap").length).toBe(2);
     });
     const callsBefore = gate.mutateCalls.length;
+    // Modal portal 挂 body 面板域外——close 钮 document 为正确域（与⑨⑩ Select clear 钮面板域收域不同）
     const closeBtn = document.querySelector(".ant-modal-close");
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
@@ -307,8 +311,9 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     await pickSecondAxis("水深（depth）");
     flushOnSuccess(1, map2D("volume", "depth"));
     expect(screen.getByTestId("fd-thumb")).toBeTruthy();
-    // allowClear ✕ 在场（antd v6 rc-select clear 按钮——有值时渲染）
-    const clearBtn = document.querySelector(".ant-select-clear");
+    // allowClear ✕ 在场（antd v6 rc-select clear 按钮——有值时渲染；
+    // k1-N1 收域：Select 在面板内，面板域查询防他面误中）
+    const clearBtn = screen.getByTestId("fd-panel-volume").querySelector(".ant-select-clear");
     expect(clearBtn).not.toBeNull();
     // jsdom 实测触发形=click（rc-select clear 按钮 onMouseDown 仅
     // preventDefault 保焦点不开下拉，清除动作挂 onClick——mouseDown 不
@@ -317,8 +322,8 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     fireEvent.click(clearBtn!);
     // d1-W1 补锚——Select 值清空显示态（值清空→✕ 消隐——rc-select
     // useAllowClear 依 displayValues 空即不渲染 clear 按钮，显示态直锚
-    // 非分支推断）
-    expect(document.querySelector(".ant-select-clear")).toBeNull();
+    // 非分支推断；d1-N2 收域同上——面板域查询 null）
+    expect(screen.getByTestId("fd-panel-volume").querySelector(".ant-select-clear")).toBeNull();
     // 清除语义=onChange undefined→全复位重取 1D（与挂载即取同形——元素
     // 形同②mutateCalls[1] 口径：mock 落 push(variables) 对象非数组）
     expect(gate.mutateCalls[2]).toEqual({ axes: [{ field_id: "volume" }] });
@@ -337,8 +342,12 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     await pickSecondAxis("水深（depth）");
     // 清除即发 1D 重取（reqId=3 令牌自增——allowClear 属性本身零加请求；
     // 清除交互=一次 1D 重取，与挂载即取同形）
-    fireEvent.click(document.querySelector(".ant-select-clear")!);
+    const clearBtn = screen.getByTestId("fd-panel-volume").querySelector(".ant-select-clear");
+    expect(clearBtn).not.toBeNull();
+    fireEvent.click(clearBtn!);
     expect(gate.mutateCalls[2]).toEqual({ axes: [{ field_id: "volume" }] });
+    // d1-dN1′ 补锚——请求总数（mount 1D+depth 2D+清除 1D=3 笔整——与⑨同口径）
+    expect(gate.mutateCalls.length).toBe(3);
     // k1-W1 补锚——清除路径晚到拦截帧（⑤锚切轴面，本帧锚清除面）：旧 2D
     // onSuccess（depth 产物）晚到→reqId=2≠3 令牌不匹配被拦截。污染面直
     // 锚=fd-bar 不在场（清除帧 fdSecond 已 null，旧 2D 产物若落地会走 1D
