@@ -710,7 +710,7 @@ body {
   flex-direction: column;
   gap: 2px;
   padding: 4px;
-  background: #ffffff;
+  background: var(--wp-bg-elevated);
   border: 1px solid var(--wp-border-2);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(31, 35, 41, 0.12);

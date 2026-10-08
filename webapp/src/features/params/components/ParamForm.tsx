@@ -39,6 +39,10 @@
  *     Enter 不直提——B1 前行为字面回归）；v4 左栏传 true（Enter/失焦
  *     连带提交启用，且失焦先归一后提交——归一值随载荷发出，闭包旧草稿
  *     不进提交面）。
+ *   - B1 骨架批 R2/M1（2026-10-09）：Enter 通道同款先归一后提交——门控
+ *     开时 drafts 逐字段归一（normalizeDraftText 共享原语）构造
+ *     nextDrafts，setDrafts 后 commitDrafts（旧 submit() 渲染期 changes
+ *     =归一前 raw drafts 路径废止）。
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,6 +103,14 @@ const draftValueOf = (value: number | string | null): string =>
     : typeof value === "number"
       ? trimFloatNoise(value)
       : value;
+
+/** 草稿字段归一原语（失焦/Enter 两通道共享——B1 R2/M1 提取避免复制）：
+ *  可解析→trimFloatNoise 归一串；非数/空原样保留（诚实拒路径——
+ *  invalidFields 判定留在 collectParamChanges 层，本层不吞）。 */
+const normalizeDraftText = (text: string): string => {
+  const parsed = normalizeDraftValue(text);
+  return parsed === null ? text : trimFloatNoise(parsed);
+};
 
 /** 声明面悬浮全量（Q3：MetaLine 常显收敛进 title——dim/默认/范围/档位）。 */
 function metaTooltipText(entry: ParamEntry): string {
@@ -213,9 +225,16 @@ export function ParamForm({
     });
   };
   const submitOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (commitOnBlurAndEnter && event.key === "Enter") {
-      submit();
+    if (!commitOnBlurAndEnter || event.key !== "Enter") {
+      return; // 门控关=M1 面零行为（Enter 不直提——B1 前行为字面回归）
     }
+    // B1 R2/M1：Enter 通道先归一后提交——对齐失焦面（drafts 逐字段归一
+    // 构造 nextDrafts，setDrafts 后 commitDrafts——归一值随载荷发出）。
+    const nextDrafts = Object.fromEntries(
+      Object.entries(drafts).map(([key, text]) => [key, normalizeDraftText(text)]),
+    );
+    setDrafts(nextDrafts);
+    commitDrafts(nextDrafts);
   };
   /** 失焦让位判据：焦点移向提交钮（或其内）→blur 通道跳过（点击通道即提
    *  ——防双发；relatedTarget null=移向不可聚焦面照常失焦提交）。 */
@@ -362,13 +381,15 @@ export function ParamForm({
                         }
                         onKeyDown={submitOnEnter}
                         onBlur={(event) => {
-                          // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
-                          const parsed = normalizeDraftValue(event.target.value);
+                          // F8：失焦归一（可解析→trimFloatNoise；非数/空原样
+                          // 拒路径——归一原语与 Enter 通道共享提取
+                          // normalizeDraftText〔B1 R2〕）
+                          const normalized = normalizeDraftText(event.target.value);
                           const nextDrafts =
-                            parsed !== null
-                              ? { ...drafts, [fieldId]: trimFloatNoise(parsed) }
+                            normalized !== event.target.value
+                              ? { ...drafts, [fieldId]: normalized }
                               : drafts;
-                          if (parsed !== null) {
+                          if (normalized !== event.target.value) {
                             setDrafts(nextDrafts);
                           }
                           // 回炉 R5：门控开=归一后连带提交（归一值随载荷
