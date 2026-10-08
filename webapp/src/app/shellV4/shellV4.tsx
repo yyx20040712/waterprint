@@ -26,7 +26,7 @@
  *   - 回炉 R11：V4_ZONE_LABELS 迁 zoneParam.ts（V4Zone 真源同件——
  *     shellV4↔zoneBand 循环 import 断环；zoneBand 改自 zoneParam 取）。
  */
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ConfigProvider, theme } from "antd";
 import type { ThemeConfig } from "antd";
 
@@ -119,9 +119,14 @@ export function ShellV4() {
   const [projectId] = useProjectId();
 
   // 回炉 R16：切项目清陈旧选中（App.tsx D7 同款——URL 面清 ?node= 由
-  // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治）
+  // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治；
+  // 初挂跳过〔prevRef 门〕——?node= 深链初值不在挂载期被抹）
+  const prevProjectRef = useRef(projectId);
   useEffect(() => {
-    setSelectedUnitId(null);
+    if (prevProjectRef.current !== projectId) {
+      prevProjectRef.current = projectId;
+      setSelectedUnitId(null);
+    }
   }, [projectId]);
 
   /** zone 切换唯一通道（含子页——replaceState 写 ?tab=）。 */
