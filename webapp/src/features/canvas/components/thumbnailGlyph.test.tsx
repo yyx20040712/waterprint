@@ -6,9 +6,10 @@
  *
  * 输入:  thumbnailGlyph.tsx 的 THUMBNAIL_GLYPH_KINDS/hasThumbnailGlyph/
  *        ThumbnailGlyph（jsdom——SVG 渲染面）
- * 输出:  断言族：①键集 36 无重 ②全量 kind 渲染冒烟（svg 根在场+stroke
- *        currentColor 线性形）③未知 kind 回退象形框（hasThumbnailGlyph
- *        false+组件不炸）
+ * 输出:  断言族：①键集 36 无重+GLYPHS 注册键集===THUMBNAIL_GLYPH_KINDS
+ *        （回炉 T2：注册表漏键=渲染走回退象形框静默降级——键集恒等断言
+ *        堵洞）②全量 kind 渲染冒烟（svg 根在场+stroke currentColor 线性
+ *        形）③未知 kind 回退象形框（hasThumbnailGlyph false+组件不炸）
  *
  * 规格说明（B1 任务书 §二.③ 白名单件——目录全量×键集对账在 app 层
  *   catalogCategories.test（分层红线：features 禁 import app）；本件=
@@ -17,12 +18,21 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { hasThumbnailGlyph, THUMBNAIL_GLYPH_KINDS, ThumbnailGlyph } from "./thumbnailGlyph";
+import {
+  GLYPHS,
+  hasThumbnailGlyph,
+  THUMBNAIL_GLYPH_KINDS,
+  ThumbnailGlyph,
+} from "./thumbnailGlyph";
 
 describe("B1 缩略图字形键集", () => {
   it("36 kind 无重（计数+唯一）", () => {
     expect(THUMBNAIL_GLYPH_KINDS).toHaveLength(36);
     expect(new Set(THUMBNAIL_GLYPH_KINDS).size).toBe(36);
+  });
+
+  it("GLYPHS 键集===THUMBNAIL_GLYPH_KINDS（回炉 T2——漏绘即红，堵回退象形框静默降级洞）", () => {
+    expect(Object.keys(GLYPHS).sort()).toEqual([...THUMBNAIL_GLYPH_KINDS].sort());
   });
 
   it("hasThumbnailGlyph 判别（成员 true/未知 false）", () => {

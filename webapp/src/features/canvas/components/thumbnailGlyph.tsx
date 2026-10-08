@@ -79,8 +79,8 @@ const wave = (x: number, y: number, w: number): string => {
   return `M${x} ${y}c${s * 0.5} -4 ${s * 1.5} 4 ${s * 2} 0s${s * 1.5} 4 ${s * 2} 0`;
 };
 
-/** 36 形映射（kind→简笔内件组——svg 根由组件统一供给）。 */
-const GLYPHS: Readonly<Record<string, ReactNode>> = {
+/** 36 形映射（kind→简笔内件组——svg 根由组件统一供给；回炉 R1 批 T2 ：导出面=测试键集恒等断言消费——注册表漏键即红，堵回退象形框静默降级洞）。 */
+export const GLYPHS: Readonly<Record<string, ReactNode>> = {
   // ── 格栅族：渠道框+垂直栅杆（粗疏/细密分异） ──
   municipal_cugeshan: (
     <>
