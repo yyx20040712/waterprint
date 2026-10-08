@@ -15,6 +15,10 @@
 | `queryClient.test.ts` | queryClient 策略+errorReportPayload 纯函数 vitest（node 环境） | 6 用例绿（D6-①③） |
 | `projectParam.ts` | URL project/task/enum/tab 参数解析/合成纯函数（D5 单一真相+deep-link+UX1 S4 路由态+ENG5 D6 双任务轨） | FE3 实装（viewer3dPane 消费）；UX1 增 tabParam 两函数；ENG5 增 enumParam 三函数（?enum= 枚举任务轨——与 ?task= 计算轨并存互不覆盖，I-4 收口）；R2-A 批2 增 tokenParam 两函数（?token= 首参引导——App.tsx 模块顶层消费，写入面唯一无 with 函数） |
 | `projectParam.test.ts` | projectParam 纯函数 vitest（node 环境） | 32 用例绿（FE3 9+FE6 task 组+UX1 tab 组 4+ENG5 enum 组 9[双轨独立往返断言]——以 vitest 实跑为准） |
+| `zoneParam.ts` | v4 zone URL 参数纯函数（B1 骨架批 2026-10-09——?ia=v4 特性开关下六功能区+子页两级值域+旧十值兼容表+?node= 独立通道+?ia= 开关判别：parseZoneParam/withZoneParam/parseNodeParam/withNodeParam/parseIaParam/initialZoneTarget；projectParam 同族形——mount 不改写地址栏/兼容值留址/他键原序保留） | B1 骨架批实装（消费面=App ?ia=v4 分支+shellV4 壳） |
+| `zoneParam.test.ts` | v4 zone 参数纯函数 vitest（node 环境） | B1 骨架批实装（新值域/兼容表 12 行逐行/with 序列化他键保留/?node= 独立通道/?ia= 开关/初值三级——以 vitest 实跑为准） |
+| `catalogCategories.ts` | 分级目录映射纯函数（B1 骨架批 2026-10-09——36 单元×5 一级类+结构节点尾组：CATALOG_CATEGORIES 六类声明序/categoryOfUnit/buildCatalogGroups 服务端序分组；未映射 id 跳过——扩值须同步本表） | B1 骨架批实装（消费面=shellV4/hierarchicalCatalog 右键二级目录） |
+| `catalogCategories.test.ts` | 分级目录映射 vitest（node 环境——app 层因需对账 features 键集） | B1 骨架批实装（映射表全域恰一次/六类计数 11/3/3/8/7/4/服务端序/缩略图键集双向恒等——以 vitest 实跑为准） |
 | `useProjectId.ts` | projectId 跨面板共享 hook（UX1 S3——URL ?project= 单一真相订阅面：PROJECT_EVENT 监听重读同值早退+setter 回写 replaceState 写后派发） | UX1 实装（六 pane 消费：写方 canvas/viewer3d setter、读方四 pane 订阅；薄壳不测裁量见头注） |
 | `projectCreate.ts` | 建项纯函数面（P0-1）：normalizeProjectName（strip+1~100 与 core ViewState.name 同口径）/projectOptionLabel（F3「名称 (id8)」无名回退全 id）/parseProjectJson（导入解析判别联合——结构校验归 server 422 面） | P0-1 实装（2026-09-11）——createProjectModal 消费；测试 projectCreate.test.ts |
 | `createProjectModal.tsx` | 建项 Modal（P0-1——F1/F4-文案面）：空白新建（名称必填）/导入 JSON（File.text 解析）两态+POST {name, project?}+成功 invalidate 列表+onCreated 切入 | P0-1 实装（2026-09-11）——canvasPane/viewer3dPane 空态 CTA 共用件（「两处内联同构挂账 UX 批」就此收口） |

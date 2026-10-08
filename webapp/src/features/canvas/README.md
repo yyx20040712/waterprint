@@ -37,6 +37,8 @@
 | `lib/thumbnailContext.ts` | C2-thumb 实装（2026-09-11）：节点缩略图 context——app 层组合穿线消费面（Viewer3d 域产出经 Provider 注入/缺省空 Map 回退象形；投影 data 零触碰红线维持） |
 | `components/UnitNode.tsx` | 节点卡片（域色象形图标+左域色 bar+中文名+unit_id 等宽副标+kind 徽标+鎏金选中态+域色端口——C2-canvas 重制；C2-thumb 缩略图双态；C2-visual T3：缩略图槽 hover 悬浮大图 160[fixed+createPortal 逃逸 React Flow 裁剪+视口钳位]；C2VD V2：unit_id 副标分隔符 wbr 整词断行[孤字根除——终裁 L1]+overflowWrap 兜底+data-testid 探针锚；P0-3：编辑态 catalog 端口面[IN 左/OUT 右独立计数]+右上删除钮） |
 | `components/PortHandle.tsx` | 方向端口渲染件（target=Left/source=Right Handle 封装+可选域色描边——挂账④兑现；P0-3：connectable 透传——编辑态连线交互） |
+| `components/thumbnailGlyph.tsx` | 缩略图字形件（B1 骨架批 2026-10-09：36 类预绘简笔 SVG——32 包 unit_id+4 builtin kind，线性 currentColor/viewBox 64×40，同类族结构母题+族内分异；THUMBNAIL_GLYPH_KINDS 键集与 app 层映射表全域对账〔app/catalogCategories.test——分层红线本件不持映射表〕；未知 kind 回退虚线象形框） |
+| `components/thumbnailGlyph.test.tsx` | 缩略图字形 vitest（jsdom 4 断言族：36 键无重/hasThumbnailGlyph 判别/全量 kind 渲染冒烟〔svg 根+线性 stroke〕/未知 kind 回退——目录全量×键集对账在 app 层 catalogCategories.test） |
 | `hooks/useConnectionRules.ts` | 连线规则（骨架维持——段二实装，与 core contracts/ports.validate 同源） |
 | `hooks/useAutoLayout.ts` | 自动布局（骨架维持——段二实装，Ctrl+L 拓扑分层） |
 | `store/canvasStore.ts` | 编辑会话 zustand（P0-3 实装：beginEdit 快照摄入[红线⑤隔离]/designWriter 薄壳通道/dirty 四面引用派生/markSaved 自清/selector 带 projectId 守卫——服务端缓存态不进 store §17.2 维持） |
