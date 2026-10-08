@@ -27,9 +27,11 @@
  * 作用域非 :root——R 轮实测零命中，跨组件消费不可走 --ant-*，故轴
  * 保留）。改色红线=双处联动（R 轮 A2-N-01 收口契约）：
  *   --wp-bg-page   ↔ providers colorBgLayout
- *   --wp-bg-container ↔ providers colorBgContainer+components.Layout.siderBg
+ *   --wp-bg-container ↔ providers components.Layout.siderBg（B4 起
+ *     colorBgContainer 升 BG-2 白——轴键仍 BG-1 面板底，对行收窄 siderBg 单侧）
  *   --wp-bg-elevated ↔ providers colorBgElevated（+components.Layout 无）
- *   --wp-bg-deep   ↔ providers components.Layout.headerBg（G1-04 收口）
+ *   --wp-bg-deep    ↔ 轴自持键（B4 起 headerBg 升页面底——深底档仅轴键
+ *     消费〔statusBar〕，token 侧无对行）
  *   --wp-border    ↔ providers colorBorder
  *   --wp-border-2  ↔ providers colorBorderSecondary
  *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
@@ -57,29 +59,32 @@
  * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
  * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
 :root {
-  --wp-bg-page: #0b1526;
-  --wp-bg-container: #12213a;
-  --wp-bg-elevated: #1a2d4d;
-  --wp-bg-deep: #0a1220;
-  --wp-border: #243a5e;
-  --wp-border-2: #1b2c49;
-  --wp-gold: #d9a94a;
-  --wp-gold-soft: rgba(217, 169, 74, 0.65);
+  /* B4 亮色基线（2026-10-09——plan §三分层白色板；值=.wp-v4-root 块
+   * 同值提升：暗期方向 A 值整体退役，scoped 块保留不动〔双定义同值无害，
+   * B7 清点批统一处置〕；scrollbar-hover/dot-color/gold-soft 三键 v4 块
+   * 未覆写=B4 新定值）。 */
+  --wp-bg-page: #f5f6f8;
+  --wp-bg-container: #fafbfc;
+  --wp-bg-elevated: #ffffff;
+  --wp-bg-deep: #eceff3;
+  --wp-border: #d6d9de;
+  --wp-border-2: #e8eaed;
+  --wp-gold: #8a6100;
+  --wp-gold-soft: rgba(138, 97, 0, 0.32);
   /* 域色四轴（--wp-water/sludge/mine/convey）:root 字面量已
    * 退役（批6n UF-53 双轴归一）——启动期经 semanticColors.
    * installDomainColorAxis() 注入（真源=DOMAIN_COLORS，providers.tsx
    * 模块装载期调用先于首帧；CSS 消费面 var(--wp-water) 等照常取值）。 */
-  --wp-text: #e8eef7;
-  --wp-text-2: #9db0c9;
-  --wp-text-3: #5d7290;
-  --wp-success: #3ddc97;
+  --wp-text: #1f2329;
+  --wp-text-2: #646a73;
+  --wp-text-3: #8a93a0;
+  --wp-success: #2e7d32;
   /* C2-ALIGN R 轮（AL-02）：错误色入轴——与 providers colorError 同值
    * 双源（A2-N-01 联动清单扩行：--wp-error ↔ providers colorError）；
-   * 消费面=AssumptionsPanel/ParamForm 页脚错误行（原 #ff6b6b 字面量
-   * 三处+存量一处轴化）。 */
-  --wp-error: #ff6b6b;
-  --wp-scrollbar-hover: #2f4d7d;
-  --wp-dot-color: #1e3153;
+   * 消费面=AssumptionsPanel/ParamForm 页脚错误行。 */
+  --wp-error: #b3261e;
+  --wp-scrollbar-hover: #c3c9d2;
+  --wp-dot-color: #dfe3ea;
   --wp-dot-size: 24px;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
   /* M1 列宽令牌（tokens-2b3 §A 冻结名/默认值——B 线四区骨架左右列物理
@@ -109,7 +114,7 @@ body {
   scrollbar-color: var(--wp-border) transparent;
 }
 
-/* ── WebKit 细滚动条（深色工程系）── */
+/* ── WebKit 细滚动条（亮色工程系——B4）── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -145,14 +150,16 @@ body {
   border-bottom: 1px solid var(--wp-border-2);
   padding: 0 8px;
 }
-/* C2-ALIGN A3：页签选中态=direction-a .tab.active 同构（白字 w500+
- * 鎏金渐变下划线——内缩 12px/2px/上缘圆角/叠于 nav 下边框；渐变三停
- * #b98a35→--wp-gold 45%→#f0cf8a 首尾两停=设计字面量）。实现路线=墨条
- * 隐藏+.ant-tabs-tab-active::after 自绘：antd v6.6.2 墨条位置/宽=inline
- * style（left/width/transform），内缩 12px 逐属性 !important 对抗运行时
- * 定位脆——::after 即设计稿自身机制，确定性优；inkBarColor token 保留
- * （providers——墨条隐藏后为潜在回退面+同值双源清单成员）。tab 态色=
- * providers components.Tabs item* 三 token（JS 面同值双源）。 */
+/* C2-ALIGN A3：页签选中态=direction-a .tab.active 同构（深字 w500+
+ * 鎏金渐变下划线——内缩 12px/2px/上缘圆角/叠于 nav 下边框）。B4 亮底
+ * 鎏金重定值：渐变三停 #a07300→--wp-gold 45%→#6d4e00（暗期浅金渐变
+ * 双端亮底不可见退役；新三停=新 gold 轴的深浅包络，装饰金面
+ * 单源=本轴——选中主指示=AC 蓝墨条/文字，金条品牌点缀非唯一信号）。
+ * 实现路线=墨条隐藏+.ant-tabs-tab-active::after 自绘：antd v6.6.2 墨条
+ * 位置/宽=inline style（left/width/transform），内缩 12px 逐属性
+ * !important 对抗运行时定位脆——::after 即设计稿自身机制，确定性优；
+ * inkBarColor token 保留（providers——墨条隐藏后为潜在回退面）。
+ * tab 态色=providers components.Tabs item* token（JS 面同值双源）。 */
 .ant-tabs.wp-scroll-tabs .ant-tabs-tab {
   position: relative;
 }
@@ -172,9 +179,9 @@ body {
   border-radius: 2px 2px 0 0;
   background: linear-gradient(
     90deg,
-    #b98a35,
+    #a07300,
     var(--wp-gold) 45%,
-    #f0cf8a
+    #6d4e00
   );
   pointer-events: none;
 }
@@ -240,7 +247,7 @@ body {
 /* ── C2-lib 单元库定位光环（库→画布单向联动 U3——用户裁定「仅光环
  * 不压暗」）：命中节点 wrapper（.react-flow__node）外扩水蓝环。水蓝=
  * 定位语义非选中鎏金（交互状态色非语义色）；色值=域色 water 轴 rgba
- * 派生（基准=semanticColors DOMAIN_COLORS.water #4da3ff——注入轴；
+ * 派生（基准=semanticColors DOMAIN_COLORS.water #1677ff——注入轴；
  * 派生字面量联动=R-G3 人工清单面，批6n 双轴归一范围外维持）；命中键=
  * kind ?? unitId（CanvasFlow nodes memo 注入，
  * UnitNode 零触碰）。inset -5px+圆角 10≈卡片 8px+2px 外扩。 */
@@ -249,8 +256,8 @@ body {
   position: absolute;
   inset: -5px;
   border-radius: 10px;
-  border: 2px solid rgba(77, 163, 255, 0.55);
-  box-shadow: 0 0 22px rgba(77, 163, 255, 0.28);
+  border: 2px solid rgba(22, 119, 255, 0.55);
+  box-shadow: 0 0 22px rgba(22, 119, 255, 0.28);
   pointer-events: none;
 }
 
