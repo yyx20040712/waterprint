@@ -12,7 +12,7 @@
 | 测试锁面键数 | 372（core/tests 189 + server/tests 65 + units_lib 包内 92 + agent 26） | `test-lock.manifest.json` |
 | OpenAPI | 39 路径 / 44 操作 | `api-contracts/openapi.json` |
 | ADR 件数 | 26 | `docs/adr/ADR-*.md` |
-| 未定义特性登记 | 总 67（已定义闭合 58 / 临置 0 / 待定义开放 3 / 待拍板 0 / 其他表述 6） | `docs/undefined-features-register.md` 表行 |
+| 未定义特性登记 | 总 67（已定义闭合 59 / 临置 0 / 待定义开放 2 / 待拍板 0 / 其他表述 6） | `docs/undefined-features-register.md` 表行 |
 | 快照锚点 | 5（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |
 | 工艺单元包数 | 32 | `core/waterprint/units_lib/*/*/manifest.py` |
 | webapp 测试文件数 | 108 | `webapp/src/**/*.test.*` |
