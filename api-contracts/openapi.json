@@ -2053,7 +2053,7 @@
         "type": "object"
       },
       "NodeMaintenanceFace": {
-        "description": "单节点×单工况检修观测三面（R5——kb bool 语义升级 A6）。",
+        "description": "单节点×单工况检修观测三面（R5——kb bool 语义升级 A6）。\n\ncondition_key=**工况轴单义**（所属工况键——与聚合面 condition_keys[]\n同轴不同形，非影响面 scope；保留名依据=unit_api.Warning UF-17 冻结\n先例：工况键单义同形同义非双义，spec §1 禁双义入 API 非禁单义\n〔回炉 d1-W5〕）。",
         "properties": {
           "any_fail": {
             "title": "Any Fail",
@@ -3194,6 +3194,197 @@
         "title": "UnitCatalog",
         "type": "object"
       },
+      "UnitDetailResponse": {
+        "description": "单单元结果明细切片（R1~R5——agent #13 形源+服务端联表行模型）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "formula_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Formula Ids",
+            "type": "array"
+          },
+          "outflows": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Outflows",
+            "type": "object"
+          },
+          "outqualities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Outqualities",
+            "type": "object"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/UnitDetailRowModel"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/UnitDetailWarningModel"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "unit_id",
+          "condition_key",
+          "stale",
+          "design_hash",
+          "engine_version",
+          "data_version",
+          "rows",
+          "outflows",
+          "outqualities",
+          "warnings",
+          "formula_ids"
+        ],
+        "title": "UnitDetailResponse",
+        "type": "object"
+      },
+      "UnitDetailRowModel": {
+        "description": "明细行（R2）：out_dims 声明三元组+快照取值（缺值 None 诚实呈现）。",
+        "properties": {
+          "dim": {
+            "title": "Dim",
+            "type": "string"
+          },
+          "field_id": {
+            "title": "Field Id",
+            "type": "string"
+          },
+          "label_zh": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Zh"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "field_id",
+          "label_zh",
+          "dim",
+          "value"
+        ],
+        "title": "UnitDetailRowModel",
+        "type": "object"
+      },
+      "UnitDetailWarningModel": {
+        "description": "警告条目（R3）：Warning 六键+unit_id 定位——trust R3 同形。",
+        "properties": {
+          "affected_unit_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Unit Ids",
+            "type": "array"
+          },
+          "condition_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Key"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "param_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Param Key"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "unit_id": {
+            "title": "Unit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit_id",
+          "severity",
+          "source",
+          "message"
+        ],
+        "title": "UnitDetailWarningModel",
+        "type": "object"
+      },
       "UnitImbalanceModel": {
         "description": "单元×流体进出闭合（contracts.trust.UnitImbalance 直投影）。",
         "properties": {
@@ -3928,6 +4119,89 @@
           }
         ],
         "summary": "Run Enumeration",
+        "tags": [
+          "calc"
+        ]
+      }
+    },
+    "/api/calc/projects/{project_id}/units/{unit_id}/results": {
+      "get": {
+        "description": "单单元结果明细切片（B2 §二.①——最近完成结果集纯投影：行=out_dims\n声明面服务端联表〔FE 零副本〕+端口流量水质段+warnings/formula_ids\n数据面+stale/design_hash 回显〔快照绑定 §17.1——输入变更标 stale\n显式回显禁静默覆盖〕；condition_key 缺省=design）。",
+        "operationId": "get_unit_results_api_calc_projects__project_id__units__unit_id__results_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "unit_id",
+            "required": true,
+            "schema": {
+              "title": "Unit Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在/无结果集（先重算）或工况·单元不在结果快照"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Unit Results",
         "tags": [
           "calc"
         ]

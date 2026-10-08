@@ -99,6 +99,10 @@ from waterprint_server.services.scene import (
 from waterprint_server.services.sensitivity import SensitivitySourceNotFoundError
 from waterprint_server.services.site import InvalidSpacingRequestError
 from waterprint_server.services.trust import TrustSourceNotFoundError
+from waterprint_server.services.unit_detail import (
+    UnitDetailEntryNotFoundError,
+    UnitDetailSourceNotFoundError,
+)
 from waterprint_server.services.validation import ValidationSourceNotFoundError
 from waterprint_server.sse_limits import RateLimitedError
 
@@ -131,6 +135,10 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (CompareSourceNotFoundError, status.HTTP_404_NOT_FOUND),  # P2 第三批 ADR-018 D5
     (SensitivitySourceNotFoundError, status.HTTP_404_NOT_FOUND),  # 批6e wave6 授权
     (ValidationSourceNotFoundError, status.HTTP_404_NOT_FOUND),  # 2A1 消费批
+    # B2 结果与方案批（2026-10-09）：单单元明细 404 两面（源不可得/
+    # 工况·单元不在快照——文案区分）。
+    (UnitDetailSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    (UnitDetailEntryNotFoundError, status.HTTP_404_NOT_FOUND),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),
