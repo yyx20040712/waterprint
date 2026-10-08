@@ -3,7 +3,10 @@
  * M1 批 2026-10-06 四区重写——draft-ia-v3 §3 B-1 形态单源+mapping-2b4
  * 落位；M7 批 2026-10-07 AI 席位实装；M2 批 2026-10-08 Settings 增强收编
  * 〔单元详情 Drawer 退役→focusId 非空右列显 unitDetailPanel——§6 动线③〕
- * ；沿革 FE3→M3→P2 十页签→P2 解冻→M1 四区→M7 席位→M2 Settings 收编）。
+ * ；沿革 FE3→M3→P2 十页签→P2 解冻→M1 四区→M7 席位→M2 Settings 收编→
+ * rootfix-20261008 懒实例提升〔UF-67 根治位——LazyPane lazy 实例按 load
+ * WeakMap 模块级记忆化提升出渲染通道，remount 复调 ctor 消除；诊断档
+ * .workflow/uf67-20261008/diag-uf67-summary.md〕）。
  *
  * 输入:  各 feature 切片与 app 层装配件（app 层是唯一允许组合 features 的
  *        层）+URL ?project=/（useProjectId）?tab=（两级值域+兼容归一）
@@ -41,7 +44,7 @@
  *     常驻退役）。
  */
 import { FolderOpenOutlined, SettingOutlined } from "@ant-design/icons";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type LazyExoticComponent, type ReactNode } from "react";
 import { Button, Layout, Spin, Tabs, Typography } from "antd";
 
 import { CanvasPane } from "./canvasPane";
@@ -93,20 +96,55 @@ function PaneLoading() {
   );
 }
 
+/** 懒装载器签名（LazyPane 消费面统一形——四槽 loader+studio 子面 loader）。 */
+type LazyPaneLoad = () => Promise<{ default: ComponentType }>;
+
+/** 懒实例模块级记忆表（rootfix-20261008——UF-67 根治位）：load→lazy
+ *  实例。load 均模块级单例（四槽 loader+studio 五子面 loader）——表跨
+ *  remount/跨组件树生命周期恒同实例：payload 已定局（Rejected/
+ *  Resolved）即直读不再复调 ctor，拆除「ctor→import 拒绝→调度重试→
+ *  初始化器重跑→新 lazy→再 ctor」自持循环（UF-67 中断源——诊断档
+ *  .workflow/uf67-20261008/diag-uf67-summary.md 三证链；E1c 反事实
+ *  记忆化=本形原型）。WeakMap 形=load 键可回收时实例随键回收零泄漏面。 */
+const lazyByLoad = new WeakMap<LazyPaneLoad, LazyExoticComponent<ComponentType>>();
+
+/** 取件（缺席时构造+入表）——LazyPane 初始化器/渲染通道恒经此。 */
+function getLazy(load: LazyPaneLoad): LazyExoticComponent<ComponentType> {
+  let instance = lazyByLoad.get(load);
+  if (instance === undefined) {
+    instance = lazy(load);
+    lazyByLoad.set(load, instance);
+  }
+  return instance;
+}
+
+/** 显式重试构造器：直接构造新 lazy（现行语义零变——显式用户动作换新
+ *  实例破失败占位+边界复位）+入表（rootfix 择稳形：重试后 remount 取
+ *  最新实例，不回退旧拒绝态实例——不入表形下重试成功后 remount 回归
+ *  降级=回归洞；判据「重试后再 remount 不回归」，lazyPaneHoist.test
+ *  用例③形态锁）。 */
+function retryLazy(load: LazyPaneLoad): LazyExoticComponent<ComponentType> {
+  const instance = lazy(load);
+  lazyByLoad.set(load, instance);
+  return instance;
+}
+
 /** 懒页签隔离壳（R1 F2=viewer3dPane R1 先例泛化；M1 childProps 扩展：
- *  懒件按 props 透传重渲——studio 槽受控面经此下穿）。 */
+ *  懒件按 props 透传重渲——studio 槽受控面经此下穿；rootfix-20261008：
+ *  lazy 实例经模块级记忆表提升出渲染通道——初始化器恒取 getLazy(load)
+ *  记忆实例，remount/未提交渲染重试零新构造）。 */
 function LazyPane({
   label,
   load,
   childProps,
 }: {
   label: string;
-  load: () => Promise<{ default: ComponentType }>;
+  load: LazyPaneLoad;
   childProps?: Record<string, unknown>;
 }) {
-  const [Pane, setPane] = useState(() => lazy(load));
+  const [Pane, setPane] = useState(() => getLazy(load));
   return (
-    <ErrorBoundary label={label} onRetry={() => setPane(lazy(load))}>
+    <ErrorBoundary label={label} onRetry={() => setPane(retryLazy(load))}>
       <Suspense fallback={<PaneLoading />}>
         <Pane {...(childProps ?? {})} />
       </Suspense>
