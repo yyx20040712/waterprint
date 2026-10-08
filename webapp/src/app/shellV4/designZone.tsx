@@ -23,12 +23,15 @@
  *     记忆=B1 全局规则（拖柄 wp-v4-drag）。
  */
 import { useEffect, useRef, useState } from "react";
+import { Button } from "antd";
 
 import { AssumptionsPanel } from "../../features/params/components/AssumptionsPanel";
 import { ParamForm } from "../../features/params/components/ParamForm";
 import { useProjectId } from "../useProjectId";
 import type { DesignSubpage, V4ZoneTarget } from "../zoneParam";
 import { DockBar } from "./dockBar";
+import { ThumbnailFlow } from "./thumbnailFlow";
+import { EnumerateModal } from "./enumerateModal";
 
 /** 左栏空态引导（白名单：空态引导）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
@@ -90,6 +93,7 @@ export function DesignZone({
   const [projectId] = useProjectId();
   const [leftTab, setLeftTab] = useState<"design" | "empirical" | "global">("design");
   const [rightTab, setRightTab] = useState<"unit" | "plant">("unit");
+  const [enumOpen, setEnumOpen] = useState(false);
   // 侧栏宽度+拖宽（拖柄 pointer 主键拖动——宽度记忆 localStorage）
   const [leftWidth, setLeftWidth] = useState(() =>
     readWidth(LEFT_KEY, LEFT_DEFAULT, LEFT_MIN, LEFT_MAX),
@@ -300,7 +304,13 @@ export function DesignZone({
                 >
                   {NO_PROJECT_HINT}
                 </div>
-              ) : null
+              ) : (
+                <ThumbnailFlow
+                  projectId={projectId}
+                  selectedUnitId={selectedUnitId}
+                  onSelectedUnitChange={onSelectedUnitChange}
+                />
+              )
             ) : (
               <div
                 style={{
@@ -355,6 +365,16 @@ export function DesignZone({
                     ? "选中工艺 · 方案"
                     : `${selectedUnitId} · 方案`}
                 </h4>
+                <div style={{ display: "flex", gap: 6, paddingBottom: 4 }}>
+                  <Button
+                    size="small"
+                    onClick={() => setEnumOpen(true)}
+                    data-testid="wp-v4-reenumerate"
+                    disabled={selectedUnitId === null || projectId === null}
+                  >
+                    ⟳ 重新枚举…
+                  </Button>
+                </div>
                 <div
                   style={{
                     border: "1px dashed var(--wp-border-2)",
@@ -403,6 +423,12 @@ export function DesignZone({
           </div>
         </aside>
       </div>
+      <EnumerateModal
+        open={enumOpen}
+        onClose={() => setEnumOpen(false)}
+        projectId={projectId}
+        unitId={selectedUnitId}
+      />
       <DockBar />
     </section>
   );

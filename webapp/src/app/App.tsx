@@ -205,8 +205,8 @@ function initialTarget(): TabTarget {
 }
 
 export function App() {
-  // B1 骨架批（2026-10-09）：?ia=v4 特性开关分支单点——v4 六功能区壳
-  // （shellV4）挂载；缺省路径（无 ?ia=）M1 壳一行不改（分支点唯一例外）。
+  // B1 骨架批（2026-10-09）：?ia=v4 分支单点——v4 壳挂载；缺省（无 ?ia=）
+  // M1 壳一行不改（本分支=唯一例外）。
   if (parseIaParam(window.location.search) === "v4") {
     return (
       <Providers>

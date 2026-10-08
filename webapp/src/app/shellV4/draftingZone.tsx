@@ -17,11 +17,28 @@
  *     区分析视图「高程纵断」同名异物）；
  *   - 图库卡=DrawingsPane 内容复用（导出发起/产物目录/预览元数据）。
  */
+import { lazy, Suspense } from "react";
 import { Tag } from "antd";
 
-import { DrawingsPane } from "../drawingsPane";
-import { SiteplanPane } from "../siteplanPane";
+import { ErrorBoundary } from "../ErrorBoundary";
 import type { DraftingSubpage } from "../zoneParam";
+
+/** 懒装载（M1 槽同制——懒件按 chunk 面隔离；装配引用不改件本体）。 */
+const DrawingsPane = lazy(() =>
+  import("../drawingsPane").then((m) => ({ default: m.DrawingsPane })),
+);
+const SiteplanPane = lazy(() =>
+  import("../siteplanPane").then((m) => ({ default: m.SiteplanPane })),
+);
+
+/** 懒装载占位（薄壳——面板级 Spinner）。 */
+function PaneLoading() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--wp-text-2)" }}>
+      页面加载中…
+    </div>
+  );
+}
 
 /** 树节点（ sheets 子页导航——标签+目标子页；null=仅分组）。 */
 type TreeRow = { key: string; label: string; subpage: DraftingSubpage | null; depth: number; pending?: boolean };
@@ -77,7 +94,11 @@ export function DraftingZone({
           <span style={{ fontSize: 11.5, color: "var(--wp-text)" }}>全厂总平面布置</span>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
-          <SiteplanPane />
+          <ErrorBoundary label="厂区总平面布置">
+            <Suspense fallback={<PaneLoading />}>
+              <SiteplanPane />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </section>
     );
@@ -149,7 +170,11 @@ export function DraftingZone({
         data-region="drafting-gallery"
         style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
       >
-        <DrawingsPane />
+        <ErrorBoundary label="图纸预览">
+          <Suspense fallback={<PaneLoading />}>
+            <DrawingsPane />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </section>
   );

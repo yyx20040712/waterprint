@@ -30,7 +30,11 @@
  *     （1D 条行内常驻+2D 缩略+模态精读——§F.2 ①+②组合；回填经
  *     onBackfill→backfill 草稿同通道）；
  *   - 行为通道零变：D5 apply 原子提交+invalidate+?task= 回写+wp:task
- *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持。
+ *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持；
+ *   - B1 骨架批（2026-10-09）：三式提交补齐——按钮/Enter/失焦三通道同源
+ *     submit 函数（全局规则「输入三式提交」；v4 左栏与 M1 右列同享，
+ *     行为面增量=Enter 直提+失焦连带提交〔pending 有效变更在场才发〕，
+ *     任务轨逐次独立、任务条呈现最新）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -171,6 +175,22 @@ export function ParamForm({
   const changeCount = Object.keys(changes).length;
   const submitDisabled =
     invalidFields.length > 0 || changeCount === 0 || apply.isPending;
+  // B1 骨架批（2026-10-09）：三式提交收敛——按钮/Enter/失焦三通道同源
+  // submit（Enter=输入控件 keydown 直提；失焦=既有归一后连带提交〔有
+  // 效变更在场才发——空变更/无效草稿零动作〕；全局规则「输入三式提交」
+  // 补齐面；v4 左栏消费+M1 右列同享——行为面增量=失焦自动提交，任务轨
+  // 由任务条呈现、后端逐任务独立，最新任务结果为准）。
+  const submit = () => {
+    if (submitDisabled) {
+      return;
+    }
+    apply.mutate({ data: { project_id: projectId, unit_id: unitId, params: changes } });
+  };
+  const submitOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter") {
+      submit();
+    }
+  };
 
   // R2-P1-3（round2 批2 扩）：草稿计数上提提示面——画布工具条「保存」
   // 徽标与 toast 诚实化消费；草稿本体仍本地（D7 边界不变）。卸载/换项目
@@ -278,6 +298,8 @@ export function ParamForm({
                         onChange={(value) =>
                           setDrafts((prev) => ({ ...prev, [fieldId]: draftValueOf(value) }))
                         }
+                        onKeyDown={submitOnEnter}
+                        onBlur={submit}
                       />
                       {dimUnit(entry.dim) ? (
                         <span data-testid={`param-unit-${fieldId}`} style={UNIT_SUFFIX_STYLE}>
@@ -296,12 +318,15 @@ export function ParamForm({
                         onChange={(event) =>
                           setDrafts((prev) => ({ ...prev, [fieldId]: event.target.value }))
                         }
+                        onKeyDown={submitOnEnter}
                         onBlur={(event) => {
                           // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
                           const parsed = normalizeDraftValue(event.target.value);
                           if (parsed !== null) {
                             setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
                           }
+                          // B1 三式：失焦通道连带提交（归一后 pending 变更随失焦落）
+                          submit();
                         }}
                       />
                       {/* 参数面单位批（2026-09-12 用户裁定「入批处理」）：grid
@@ -377,9 +402,7 @@ export function ParamForm({
             loading={apply.isPending}
             disabled={submitDisabled}
             style={{ flex: 1 }}
-            onClick={() =>
-              apply.mutate({ data: { project_id: projectId, unit_id: unitId, params: changes } })
-            }
+            onClick={submit}
           >
             提交重算{changeCount > 0 ? `（${changeCount} 项）` : ""}
           </Button>
