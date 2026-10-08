@@ -11,13 +11,16 @@
  * .workflow/uf67-20261008/diag-uf67-summary.md——三证链正面仪器化/scratch
  * 对照/反事实记忆化 E1c）；本批=rootfix 根治实施+本文件 App 级红先锚。
  *
- * 红先声明：用例①对 HEAD〔无记忆化〕跑红——HEAD 形态下失败首挂即入
- * 「新 lazy→再 ctor」自持循环（vitest mock 工厂失败无缓存=每圈复调桩，
- * 渲染重试环饱和事件环、降级 alert 永不提交）→ 用例超时红；桩内置风暴
- * 遥测（复调达 3/10 次打点——健康形态单用例≤2 次零输出；React 重试
- * 节流〔JND 递增退避〕下 20s 窗计数有界但复调持续=非收敛证据）留计数
- * 证据于
- * 红跑实录（.workflow/rootfix-20261008/red-run-rootfix.txt）。
+ * 红先声明：用例①对 HEAD〔无记忆化〕跑红——HEAD 形态下失败首挂入
+ * 「新 lazy→再 ctor」复调链（vitest mock 工厂失败无缓存=每次动态
+ * import 复调桩；jsdom/HEAD 下 React 重试节流使复调有界——首挂 1+
+ * 复挂 2=3，降级最终提交）→ 红=remount 后计数断言红（AssertionError:
+ * expected 3 to be 1——红跑实录 .workflow/rootfix-20261008/
+ * red-run-rootfix.txt；笔4 r1 勘正：原「重试环饱和事件环、alert 永不
+ * 提交→超时红」预言句与实录不符，改述实录口径〔k1-W1——主控红跑
+ * 日志亲读裁决〕）；桩内置风暴遥测（复调达 5/10 次打点——健康形态
+ * 单用例峰值≤3〔表冷首挂 1+双重试 2〕零输出，门限 5 保持风暴专属
+ * 判别力〔d1-N2 笔4〕）。
  * 实施后同用例转绿=记忆化实例拒绝态直读→ErrorBoundary 即时降级提交。
  *
  * 输入:  App 整树 jsdom 挂载（深链 ?tab=studio.drawings 经
@@ -28,8 +31,9 @@
  *        .resolve 工厂失败不缓存=每次动态 import 复调，桩计数即 ctor
  *        复调计数）+canvasPane 静态桩（xyflow/three 重链评估隔离——
  *        canvas 槽非判据面永不激活）；App 模块单次加载跨用例共享
- *        （记忆表 WeakMap/loaders 模块级单例跨用例持久——断言取基线
- *        相对差值，用例间零序依赖③除外〔见规格末条〕）
+ *        （记忆表 WeakMap/loaders 模块级单例跨用例持久——①~④断言取
+ *        相对差值零序依赖〔表冷/表热两态皆绿——笔4 r1 k1-W1/d1-N3〕；
+ *        ③仍置末位〔翻桩缓存面〕）
  * 输出:  断言组四用例：①remount 不再复调 ctor（核心红先锚：首挂降级
  *        在场→unmount→整树重挂→桩计数不变+降级即时复现）；②显式重试
  *        语义保持（降级后点「重试」→桩复调恰+1+边界复位瞬态+再降级
@@ -50,7 +54,9 @@
  *   - jsdom 无资源时序→lazyPaneLoader capturedUrl=null→无 bust 面——桩
  *     计数与 R1 冷却零耦合（纯 React 层行为面）；
  *   - 用例序注记：③翻桩成功后 mock 模块被缓存（工厂成功即缓存——后续
- *     import 零工厂复调），置末位；①~④桩恒拒无缓存面，次序自由。
+ *     import 零工厂复调），置末位；①②④桩恒拒无缓存面且断言序独立
+ *     （相对差值形——表冷〔本用例首构造 +1〕/表热〔前置用例已入表
+ *     +0〕两态皆绿）。
  */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -158,7 +164,7 @@ vi.mock("./canvasPane", () => ({
 // 计次拒绝桩（核心观测面——工厂失败不缓存=每次动态 import 复调计数）
 vi.mock("./drawingsPane", () => {
   paneStubs.drawings.imports += 1;
-  if (paneStubs.drawings.imports === 3 || paneStubs.drawings.imports === 10) {
+  if (paneStubs.drawings.imports === 5 || paneStubs.drawings.imports === 10) {
     console.log(
       `[drawingsPane 桩] 动态 import 已被复调 ${paneStubs.drawings.imports} 次——渲染通道 ctor 复调风暴形态（UF-67）`,
     );
@@ -201,13 +207,18 @@ afterEach(cleanup);
 
 describe("LazyPane 懒实例提升（rootfix-20261008——remount 复调 ctor 消除）", () => {
   it("①remount 不再复调 ctor（核心红先锚）：首挂降级在场→整树重挂→桩计数不变+降级即时复现", async () => {
+    // 序独立化（笔4 r1 k1-W1/d1-N3）：相对差值形——表冷（本用例首构造）
+    // +1 / 表热（前置用例已入表）+0 两态皆过
+    const base = paneStubs.drawings.imports;
     const first = mountApp();
     await screen.findByText(ALERT_DRAWINGS, {}, { timeout: 5000 });
-    expect(paneStubs.drawings.imports).toBe(1);
+    expect(paneStubs.drawings.imports - base).toBeLessThanOrEqual(1);
+    // 核心红先锚（强断言不弱化）：remount 零复调——HEAD 下复挂 +2≠before 仍红
+    const before = paneStubs.drawings.imports;
     first.unmount();
     const second = mountApp();
     await screen.findByText(ALERT_DRAWINGS, {}, { timeout: 5000 });
-    expect(paneStubs.drawings.imports).toBe(1);
+    expect(paneStubs.drawings.imports).toBe(before);
   }, 20000);
 
   it("②显式重试语义保持：降级后点「重试」→桩复调恰+1+边界复位瞬态→再降级在场", async () => {
