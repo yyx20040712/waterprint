@@ -19,6 +19,15 @@
 | `zoneParam.test.ts` | v4 zone 参数纯函数 vitest（node 环境） | B1 骨架批实装（新值域/兼容表 12 行逐行/with 序列化他键保留/?node= 独立通道/?ia= 开关/初值三级——以 vitest 实跑为准） |
 | `catalogCategories.ts` | 分级目录映射纯函数（B1 骨架批 2026-10-09——36 单元×5 一级类+结构节点尾组：CATALOG_CATEGORIES 六类声明序/categoryOfUnit/buildCatalogGroups 服务端序分组；未映射 id 跳过——扩值须同步本表） | B1 骨架批实装（消费面=shellV4/hierarchicalCatalog 右键二级目录） |
 | `catalogCategories.test.ts` | 分级目录映射 vitest（node 环境——app 层因需对账 features 键集） | B1 骨架批实装（映射表全域恰一次/六类计数 11/3/3/8/7/4/服务端序/缩略图键集双向恒等——以 vitest 实跑为准） |
+| `shellV4/shellV4.tsx` | v4 应用壳根件（B1 骨架批 2026-10-09——?ia=v4 六功能区壳：ZoneBand+zone 体+24px 状态条；亮色基线=scoped ConfigProvider light+global.css .wp-v4-root 变量轴覆写双面〔antd 组件面 light 算法+M1 复用件 var(--wp-*) scoped 翻亮〕；zone 切换唯一通道 setZone〔replaceState 写 ?tab= 他键原序保留〕+?node= 对象选中真相独立键读写+非 design 区 dock 收起状态条入口） | B1 骨架批实装（App.tsx ?ia=v4 分支单点消费——缺省 M1 路径一行不改） |
+| `shellV4/zoneBand.tsx` | v4 顶带 48px（B1：logo 简笔水滴线形+六功能区页签〔.mod.on 形——data-zone 锚〕+语境工具区：保存〔draftProjectRaw+PUT 手动〕/撤销/重做〔引擎无撤销栈——骨架在场禁用〕/校验〔validate POST+message 即时反馈——结论迁 dock-tasks=B2〕/全项目计算〔decideRunCalc 分派链复用——ribbon 导出纯函数 M1 件零改〕） | B1 骨架批实装 |
+| `shellV4/designZone.tsx` | v4 污水厂设计区三栏（B1：左三 tab〔设计=ParamForm 复用/经验=AssumptionsPanel 复用/全局=骨架卡三段空态〕+计算回填空态｜中=工艺画布｜分析表页签｜右两页〔选中工艺=方案壳+⟳重新枚举 Modal 唯一入口/全厂=联合方案壳+分析面入口组〕+侧栏拖宽〔左 160~420/右 200~520+localStorage 宽度记忆〕+DockBar 常驻；画布缩略形态/右键目录=本批笔3 落地） | B1 骨架批实装（双向数据流=B2） |
+| `shellV4/dockBar.tsx` | v4 底栏双区（B1：dock-ai=AI 唯一窗凝缩形〔输入+发送+最近一轮摘要——useChatSessions/useChatHistory/useSendChatMessage 会话通道与 ChatSeat 同源；ChatPanel minHeight 200 与 92px dock 预算不兼容——完整对话流=B2/B3 裁量，理由落 visual-decisions.md〕+dock-tasks=窄任务条〔?task=/?enum= 双轨 task 优先+useTaskFeed SSE+快照凝缩行；校验结论呈现=B2/回执退役=B3〕；高 92px≤98——G3'' 密度 @1440×900 画布净高 706≥700） | B1 骨架批实装 |
+| `shellV4/projectsZone.tsx` | v4 项目区（B1：projectManagerModal 内核升页面——列表+新建/导入〔CreateProjectModal 复用〕+搜索+打开〔useProjectId setter+切 design 区〕/复制/重命名〔生成突变+行内 Modal——normalizeProjectName 复用〕） | B1 骨架批实装 |
+| `shellV4/networkZone.tsx` | v4 管网系统区（B1：未实装占位——诚实说明「管网定线模块 · 规划中（未实装）」+wp-pending-network 锚族承接〔G5 语义沿承〕） | B1 骨架批实装 |
+| `shellV4/draftingZone.tsx` | v4 工程制图区（B1：左树目录〔污水厂▾：全厂总平面图→siteplan 编辑面〔SiteplanPane 复用——v4-2 终裁归制图域〕/高程纵断图/工艺图→图库+管网▸规划中〕+右图库〔DrawingsPane 复用〕；siteplan 子页全幅+返回条） | B1 骨架批实装 |
+| `shellV4/viewer3dZone.tsx` | v4 三维示意区（B1：点击直接全幅——Viewer3dPane 复用装配引用，M1 件内容逻辑零改） | B1 骨架批实装 |
+| `shellV4/reportZone.tsx` | v4 计算说明区（B1：左分类导航骨架+右文档阅读壳空态——内容=B6 公式批） | B1 骨架批实装 |
 | `useProjectId.ts` | projectId 跨面板共享 hook（UX1 S3——URL ?project= 单一真相订阅面：PROJECT_EVENT 监听重读同值早退+setter 回写 replaceState 写后派发） | UX1 实装（六 pane 消费：写方 canvas/viewer3d setter、读方四 pane 订阅；薄壳不测裁量见头注） |
 | `projectCreate.ts` | 建项纯函数面（P0-1）：normalizeProjectName（strip+1~100 与 core ViewState.name 同口径）/projectOptionLabel（F3「名称 (id8)」无名回退全 id）/parseProjectJson（导入解析判别联合——结构校验归 server 422 面） | P0-1 实装（2026-09-11）——createProjectModal 消费；测试 projectCreate.test.ts |
 | `createProjectModal.tsx` | 建项 Modal（P0-1——F1/F4-文案面）：空白新建（名称必填）/导入 JSON（File.text 解析）两态+POST {name, project?}+成功 invalidate 列表+onCreated 切入 | P0-1 实装（2026-09-11）——canvasPane/viewer3dPane 空态 CTA 共用件（「两处内联同构挂账 UX 批」就此收口） |

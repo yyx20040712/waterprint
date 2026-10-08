@@ -253,3 +253,450 @@ body {
   box-shadow: 0 0 22px rgba(77, 163, 255, 0.28);
   pointer-events: none;
 }
+
+/* ════════════════════════════════════════════════════════════════
+ * v4 壳样式段（B1 骨架批 2026-10-09——?ia=v4 特性开关下六功能区壳；
+ * wireframe-d-v4 亮色基线：纸面工程白+分层白）。作用域=.wp-v4-root
+ * 类（非 :root——:root 块被 themeLinkage/domainColorAxis 测试逐字守卫
+ * ，scoped 覆写不触守卫面；域色四轴 water/sludge/mine/convey 保持
+ * 启动期注入值〔B4 前域色亮底复核挂账〕）。
+ * 消费变量轴覆写：M1 复用件（ParamForm/AssumptionsPanel/ChatPanel/
+ * DrawingsPane/SiteplanPane 等）经 var(--wp-*) 消费——v4 作用域内
+ * 覆写为亮值即整体翻亮（B4 全局亮化前的 v4 局部亮色面）。
+ * 忌加粗全局（plan §九.7）：UA 默认 th/strong/h* 复位 400。
+ * ════════════════════════════════════════════════════════════════ */
+.wp-v4-root {
+  /* 亮色变量轴覆写（wireframe-d-v4 色板：BG-0~4/FG-1/2/BD-1/2/AC） */
+  --wp-bg-page: #f5f6f8;
+  --wp-bg-container: #fafbfc;
+  --wp-bg-elevated: #ffffff;
+  --wp-bg-deep: #eceff3;
+  --wp-border: #d6d9de;
+  --wp-border-2: #e8eaed;
+  --wp-text: #1f2329;
+  --wp-text-2: #646a73;
+  --wp-text-3: #8a93a0;
+  --wp-success: #2e7d32;
+  --wp-error: #b3261e;
+  --wp-gold: #8a6100;
+  --wpv4-ac: #1677ff;
+  --wpv4-ac-bg: #eaf1fb;
+  --wpv4-ok: #2e7d32;
+  --wpv4-ok-bg: #e8f5e9;
+  --wpv4-warn: #8a6100;
+  --wpv4-warn-bg: #fdf3d7;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--wp-bg-page);
+  color: var(--wp-text);
+  font-size: 12px;
+  font-weight: 400;
+  overflow: hidden;
+}
+.wp-v4-root strong,
+.wp-v4-root th,
+.wp-v4-root h1,
+.wp-v4-root h2,
+.wp-v4-root h3,
+.wp-v4-root h4,
+.wp-v4-root h5,
+.wp-v4-root h6 {
+  font-weight: 400;
+}
+
+/* 顶带（48px：logo+六功能区页签+语境工具区） */
+.wp-v4-band {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  background: var(--wp-bg-page);
+  border-bottom: 1px solid var(--wp-border-2);
+}
+.wp-v4-mods {
+  display: flex;
+  gap: 2px;
+}
+.wp-v4-mod {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.wp-v4-mod:hover {
+  background: #f0f2f5;
+}
+.wp-v4-mod.on {
+  background: #ffffff;
+  color: var(--wpv4-ac);
+  border-color: var(--wp-border-2);
+}
+.wp-v4-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* 区体（zone 容器通用） */
+.wp-v4-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 污水厂设计区三栏 */
+.wp-v4-design {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.wp-v4-design-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.wp-v4-left,
+.wp-v4-right {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--wp-bg-container);
+}
+.wp-v4-left {
+  border-right: 1px solid var(--wp-border-2);
+}
+.wp-v4-right {
+  border-left: 1px solid var(--wp-border-2);
+}
+/* 拖宽柄（侧栏可拖宽——B1 全局规则） */
+.wp-v4-drag {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wp-border);
+  font-size: 9px;
+  user-select: none;
+}
+.wp-v4-drag:hover,
+.wp-v4-drag.active {
+  background: var(--wpv4-ac-bg);
+}
+.wp-v4-left .wp-v4-drag {
+  right: -4px;
+}
+.wp-v4-right .wp-v4-drag {
+  left: -4px;
+}
+
+/* 面板页签（左三 tab/右两页——分段形） */
+.wp-v4-ptabs {
+  display: flex;
+  gap: 2px;
+  margin: 8px;
+  padding: 2px;
+  border-radius: 5px;
+  background: #f0f2f5;
+  flex: none;
+}
+.wp-v4-ptab {
+  flex: 1;
+  text-align: center;
+  padding: 3px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 11px;
+  cursor: pointer;
+}
+.wp-v4-ptab.on {
+  background: #ffffff;
+  color: var(--wpv4-ac);
+}
+.wp-v4-pbody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 2px 10px 8px;
+}
+.wp-v4-sec {
+  margin: 8px 0;
+  background: #ffffff;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  padding: 8px;
+}
+.wp-v4-sec h4 {
+  font-size: 11px;
+  color: var(--wp-text-2);
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+/* 中列：视图页签条（30px 预算——G3'' 几何账）+画布 */
+.wp-v4-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.wp-v4-vtabs {
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 8px;
+  background: var(--wp-bg-page);
+  border-bottom: 1px solid var(--wp-border-2);
+  box-sizing: border-box;
+}
+.wp-v4-vt {
+  padding: 3px 13px 2px;
+  border: 1px solid var(--wp-border-2);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: var(--wp-bg-container);
+  color: var(--wp-text-2);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.wp-v4-vt.on {
+  background: #ffffff;
+  color: var(--wpv4-ac);
+}
+.wp-v4-canvas {
+  flex: 1;
+  min-height: 0;
+  margin: 0 8px;
+  background: #ffffff;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 0 6px 6px 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 底栏双区（dock：AI 唯一窗+窄任务条——高预算 ≤98px，G3''=706 净高） */
+.wp-v4-dock {
+  height: 92px;
+  flex: none;
+  display: flex;
+  border-top: 1px solid var(--wp-border-2);
+  background: var(--wp-bg-container);
+}
+.wp-v4-dock-ai {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--wp-border-2);
+}
+.wp-v4-dock-tasks {
+  width: 320px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wp-v4-dock-strip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px;
+  border-bottom: 1px solid var(--wp-border-2);
+  color: var(--wp-text-2);
+  font-size: 11px;
+}
+.wp-v4-dock-main {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 10px;
+}
+.wp-v4-task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 11px;
+}
+
+/* 右键分级目录（两级菜单） */
+.wp-v4-menu {
+  position: fixed;
+  z-index: 1200;
+  display: flex;
+  background: #ffffff;
+  border: 1px solid var(--wp-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+.wp-v4-m1,
+.wp-v4-m2 {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+.wp-v4-m1 {
+  min-width: 104px;
+}
+.wp-v4-m2 {
+  min-width: 118px;
+  border-left: 1px solid var(--wp-border-2);
+}
+.wp-v4-m1 li,
+.wp-v4-m2 li {
+  padding: 4px 8px;
+  border-radius: 5px;
+  color: var(--wp-text);
+  font-size: 11.5px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.wp-v4-m2 li {
+  color: var(--wp-text-2);
+  font-size: 11px;
+}
+.wp-v4-m1 li:hover,
+.wp-v4-m2 li:hover {
+  background: #f0f2f5;
+}
+.wp-v4-m2 li:hover {
+  color: var(--wp-text);
+}
+.wp-v4-m1 li.on {
+  background: var(--wpv4-ac-bg);
+  color: var(--wpv4-ac);
+}
+
+/* 缩略图节点（v4 画布节点形态） */
+.wp-v4-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.wp-v4-thumb {
+  background: var(--wp-bg-container);
+  border: 1.5px solid var(--wp-border);
+  border-radius: 8px;
+  padding: 3px 6px;
+  color: var(--wp-text);
+}
+.wp-v4-node.selected .wp-v4-thumb {
+  border-color: var(--wpv4-ac);
+  box-shadow: 0 0 0 3px var(--wpv4-ac-bg);
+  color: var(--wpv4-ac);
+}
+.wp-v4-cap {
+  font-size: 11px;
+  color: var(--wp-text);
+  margin-top: 3px;
+}
+.wp-v4-sub {
+  font-size: 10px;
+  color: var(--wp-text-2);
+}
+
+/* 状态条（24px——沿承 M1 位） */
+.wp-v4-statusbar {
+  height: 24px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  background: var(--wp-bg-page);
+  border-top: 1px solid var(--wp-border-2);
+  color: var(--wp-text-2);
+  font-size: 10.5px;
+  user-select: none;
+}
+.wp-v4-statusbar .r {
+  margin-left: auto;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.wp-v4-statusbar button {
+  border: none;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 10.5px;
+  cursor: pointer;
+  padding: 0;
+}
+.wp-v4-statusbar button:hover {
+  color: var(--wpv4-ac);
+}
+
+/* 占位区（管网未实装——诚实说明面） */
+.wp-v4-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--wp-bg-container);
+  color: var(--wp-text-2);
+}
+
+/* 图库卡（工程制图右区） */
+.wp-v4-gallery {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin: 8px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-content: flex-start;
+}
+.wp-v4-sheet-card {
+  width: 200px;
+}
+.wp-v4-sheet-thumb {
+  height: 120px;
+  background: var(--wp-bg-container);
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wp-text-2);
+  font-size: 11px;
+}
+.wp-v4-sheet-cap {
+  font-size: 11px;
+  text-align: center;
+  padding-top: 4px;
+}

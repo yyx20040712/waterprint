@@ -25,12 +25,12 @@ import {
   buildCatalogGroups,
   CATALOG_CATEGORIES,
   categoryOfUnit,
-  type CatalogGroupUnit,
+  type CatalogUnitEntry,
 } from "./catalogCategories";
 import { THUMBNAIL_GLYPH_KINDS } from "../features/canvas/components/thumbnailGlyph";
 
 /** 目录夹具条目最小面（UnitMetaEntry 消费字段子集——形态对齐生成类型）。 */
-function unit(unitId: string, nameZh: string, kind: "unit" | "builtin" = "unit"): CatalogGroupUnit & {
+function unit(unitId: string, nameZh: string, kind: "unit" | "builtin" = "unit"): CatalogUnitEntry & {
   business_line: string;
 } {
   const line = unitId.startsWith("mine_water")

@@ -74,6 +74,8 @@ import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal"
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
+import { ShellV4 } from "./shellV4/shellV4";
+import { parseIaParam } from "./zoneParam";
 
 /** 四非 canvas 槽懒装载器（FE-2——then 包装取 named export；studio 槽
  *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载；UF-66 批
@@ -203,6 +205,15 @@ function initialTarget(): TabTarget {
 }
 
 export function App() {
+  // B1 骨架批（2026-10-09）：?ia=v4 特性开关分支单点——v4 六功能区壳
+  // （shellV4）挂载；缺省路径（无 ?ia=）M1 壳一行不改（分支点唯一例外）。
+  if (parseIaParam(window.location.search) === "v4") {
+    return (
+      <Providers>
+        <ShellV4 />
+      </Providers>
+    );
+  }
   const [activeTarget, setActiveTarget] = useState<TabTarget>(initialTarget);
   // studio 会话子面记忆（槽条回切 studio 恒带 subface——parse 归一同构）
   const lastStudioSubface = useRef<StudioSubface>(

@@ -108,16 +108,9 @@ export function parseZoneParam(search: string): V4ZoneTarget | null {
  *  <zone>.<subpage>，否则裸 zone 值）。 */
 export function withZoneParam(search: string, target: V4ZoneTarget): string {
   const params = new URLSearchParams(search);
-  params.set(
-    "tab",
-    target.zone === "projects" ||
-      target.zone === "network" ||
-      target.zone === "viewer3d" ||
-      target.zone === "report" ||
-      target.subpage === undefined
-      ? target.zone
-      : `${target.zone}.${target.subpage}`,
-  );
+  const sub =
+    "subpage" in target ? (target as { subpage?: string }).subpage : undefined;
+  params.set("tab", sub === undefined ? target.zone : `${target.zone}.${sub}`);
   return params.toString();
 }
 
