@@ -4,39 +4,38 @@
  * 输入:  子组件树
  * 输出:  QueryClientProvider+ConfigProvider 包裹的子组件树
  *
- * 规格说明（FE3 批 6b 段一 D2 实装；C1 批 2026-09-10 主题骨架重制——
- *   方向 A「深海工程台」冻结值，呈裁通过[用户裁选 2026-09-10]）：
- *   - 深色主题锁定（用户裁选：一期锁定暗色——多层暗底难映射亮色，
- *     亮色切换维持 UX 批挂账；原「亮色经 zustand UI slice」注记同步
- *     挂账化）：algorithm=darkAlgorithm+全量 seed token 覆盖；
- *   - 鎏金双源联动（G1-02/A2-N-02 R 轮契约）：Tabs inkBarColor
- *     #d9a94a 与 global.css --wp-gold 同值双源——antd 组件 token 为
- *     JS 字面量面无法 var() 引用 CSS 变量，改鎏金须两处联动改
- *     （规格 §3a「鎏金不入 antd token」原表述勘误：Tabs 存在
- *     inkBarColor 槽位，组件级可用）；
- *   - token 层级：seed 色（colorPrimary 工程蓝 #3d8bfd）+三层底
- *     （Layout #0b1526 页面/Container #12213a 面板/Elevated #1a2d4d
- *     浮层——纵深层级感）+文字三档（#e8eef7/#9db0c9/#5d7290——对比度
- *     达标）+语义三色（成功/警告/错误——语义色纪律 §19：绿合格/橙警告/
- *     红错误）；鎏金/水线/泥线三色无 antd token 槽位→global.css 变量轴
- *     （--wp-gold/--wp-water/--wp-sludge——inline 消费点经 var() 引用；
- *     批6n UF-53 后域色轴真源=semanticColors.ts 启动期注入，gold 仍
- *     global.css 轴字面量）；
+ * 规格说明（FE3 批 6b 段一 D2 实装；C1 批 2026-09-10 主题骨架——方向 A
+ *   暗色冻结；B4 亮色基线替换批 2026-10-09 全量亮值化〔plan §三分层白
+ *   色板——任务书 D1 逐键表〕；C1 期「亮色切换维持 UX 批挂账」就此闭合
+ *   ——仅亮色无双主题，切换器零建零拆〔D7〕）：
+ *   - 亮色基线（B4）：algorithm=defaultAlgorithm+全量 seed token 覆盖
+ *     （值源=shellV4 v4LightTheme——B1 视觉验收 PASS 面同源）；
+ *   - 鎏金双源契约 B4 更新（G1-02）：Tabs inkBarColor=AC #1677ff
+ *     （亮基线选中指示=AC 蓝）——与 global.css --wp-gold 不再同值，
+ *     装饰金面单源=global.css 轴（改鎏金只动 CSS 侧一处）；
+ *   - token 层级：seed 色（colorPrimary AC #1677ff）+分层白三底
+ *     （Layout #f5f6f8 页面/Container #ffffff 面板/Elevated #ffffff
+ *     浮层〔siderBg #fafbfc 面板底一档〕）+文字三档（#1f2329/#646a73/
+ *     #8a93a0——plan §三 FG-1/FG-2 实测 AA 达标）+语义三色（成功/
+ *     警告/错误——语义色纪律 §19：绿合格/橙警告/红错误，亮底深字值
+ *     #2e7d32/#8a6100/#b3261e）；鎏金/水线/泥线三色无 antd token 槽位
+ *     →global.css 变量轴（--wp-gold/--wp-water/--wp-sludge——inline
+ *     消费点经 var() 引用；批6n UF-53 后域色轴真源=semanticColors.ts
+ *     启动期注入，gold 仍 global.css 轴字面量）；
  *   - 批6n（UF-53 双轴归一 2026-09-29）：域色四轴（--wp-water/sludge/
  *     mine/convey）注入接线在本模块装载期（installDomainColorAxis
  *     模块顶层调用——import 期先于 createRoot 首帧，CSS var() 消费面零
  *     闪烁；入口分层规则禁 main 直引 shared，故样式底座接线随组合根）；
  *   - 度量：fontSize 13（工程密度）/controlHeight 28/borderRadius 6/
  *     fontFamily UI 栈+fontFamilyCode 等宽（工程数值对齐——Cascadia
- *     Code 系）；
+ *     Code 系）——B4 密度冻结值不动（仅换色不换密度）；
  *   - cssVar：antd v6 默认已开 CSS 变量模式（显式 true 的类型面为
  *     {prefix/key} 对象——省略即默认开，运行时样式零重编译）；
- *   - components 微调：Layout 头底分离（headerBg 深一档 #0a1220）+
- *     Tabs 墨条=鎏金（选中指示——品牌点缀）+Table 表头/悬停/固定列阴影
- *     （数据密度面基线；C2 批补 colorSplit=固定列阴影加深 rgba(130,170,
- *     246,.16)——darkAlgorithm 派生 .08 过淡；Table 面 colorSplit 仅消费
- *     于 fix 列阴影+虚拟滚动条[未用]，覆写不泄漏表分割线；列宽/格式化
- *     随 C2 方案表重制落 SolutionsTable 组件）；
+ *   - components 微调：Layout 头底同页面底 #f5f6f8/sider 面板底
+ *     #fafbfc+Tabs 墨条=AC 蓝（选中指示）+Table 表头/悬停 #f0f2f5
+ *     （数据密度面基线；colorSplit=#e8eaed——亮底分割灰，Table 面
+ *     该 token 仅消费于 fix 列阴影+虚拟滚动条[未用]，覆写不泄漏表
+ *     分割线；列宽/格式化随 C2 方案表重制落 SolutionsTable 组件）；
  *   - QueryClient 默认项在 ./queryClient（D3 领域错误 retry 口径）；
  *     StrictMode 双挂载安全：模块级单例（组件外创建）。
  *   - 2A5：themeConfig 导出=联动机检测试消费面〔GR-39 锚〕
@@ -57,24 +56,27 @@ installDomainColorAxis();
 // 模块级唯一实例（D2「组件外创建」——StrictMode 双挂载共享同一 client）
 const queryClient = createQueryClient();
 
-/** C1 主题骨架配置（方向 A「深海工程台」冻结值——视觉稿 c1-design）。 */
+/** 主题骨架配置（B4 亮色基线——plan §三分层白色板；值源=shellV4
+ *  v4LightTheme〔B1 视觉验收 PASS 面〕。C1 期方向 A 暗色冻结值整体退役
+ *  ——仅亮色无双主题。密度三值=fontSize 13/controlHeight 28/
+ *  borderRadius 6 为 M1 冻结值不动。 */
 export const themeConfig: ThemeConfig = {
-  algorithm: theme.darkAlgorithm,
+  algorithm: theme.defaultAlgorithm,
   token: {
-    colorPrimary: "#3d8bfd",
-    colorInfo: "#3d8bfd",
-    colorLink: "#7ab2ff",
-    colorBgLayout: "#0b1526",
-    colorBgContainer: "#12213a",
-    colorBgElevated: "#1a2d4d",
-    colorBorder: "#243a5e",
-    colorBorderSecondary: "#1b2c49",
-    colorText: "#e8eef7",
-    colorTextSecondary: "#9db0c9",
-    colorTextTertiary: "#5d7290",
-    colorSuccess: "#3ddc97",
-    colorWarning: "#f5b544",
-    colorError: "#ff6b6b",
+    colorPrimary: "#1677ff",
+    colorInfo: "#1677ff",
+    colorLink: "#1677ff",
+    colorBgLayout: "#f5f6f8",
+    colorBgContainer: "#ffffff",
+    colorBgElevated: "#ffffff",
+    colorBorder: "#d6d9de",
+    colorBorderSecondary: "#e8eaed",
+    colorText: "#1f2329",
+    colorTextSecondary: "#646a73",
+    colorTextTertiary: "#8a93a0",
+    colorSuccess: "#2e7d32",
+    colorWarning: "#8a6100",
+    colorError: "#b3261e",
     borderRadius: 6,
     controlHeight: 28,
     fontSize: 13,
@@ -85,32 +87,33 @@ export const themeConfig: ThemeConfig = {
   },
   components: {
     Layout: {
-      headerBg: "#0a1220",
+      headerBg: "#f5f6f8",
       headerHeight: 48,
-      siderBg: "#12213a",
-      bodyBg: "#0b1526",
+      siderBg: "#fafbfc",
+      bodyBg: "#f5f6f8",
     },
     Tabs: {
-      inkBarColor: "#d9a94a",
+      // G1-02 B4 更新：墨条=AC 蓝选中指示（原暗期鎏金退役——装饰金面
+      // 单源=global.css 轴）。页签三态（未选=次档灰 #646a73/悬浮按压=
+      // 深文 #1f2329/选中=AC #1677ff）；antd token 为 JS 字面量无法
+      // var() 引轴——itemColor/itemHover/Active 与 global.css
+      // --wp-text-2/--wp-text 同值双源（A2-N-01 联动清单成员），
+      // itemSelectedColor 与 colorPrimary 同值（AC 锚）。渐变下划线/
+      // 选中字重=global.css scoped 面（::after 路线，见彼处注记）。
+      inkBarColor: "#1677ff",
       horizontalItemPadding: "10px 14px",
-      // C2-ALIGN A3：页签三态色=direction-a .tab 同构（未选=次档灰蓝/
-      // 悬浮按压=全白/选中=全白——darkAlgorithm 默认恰与设计互换：默认
-      // 未选=文字白+选中=主蓝；antd token 为 JS 字面量无法 var() 引轴
-      // ——与 global.css --wp-text/--wp-text-2 同值双源，A2-N-01 联动
-      // 清单成员，改色两处联动）。渐变下划线/选中字重=global.css
-      // scoped 面（墨条 inline 定位改写代价高→::after 路线，见彼处注记）。
-      itemColor: "#9db0c9",
-      itemHoverColor: "#e8eef7",
-      itemActiveColor: "#e8eef7",
-      itemSelectedColor: "#e8eef7",
+      itemColor: "#646a73",
+      itemHoverColor: "#1f2329",
+      itemActiveColor: "#1f2329",
+      itemSelectedColor: "#1677ff",
     },
     Table: {
-      headerBg: "#16263f",
-      rowHoverBg: "#1c2f52",
-      // C2：固定列阴影加深（colorSplit 派生暗色 rgba(130,170,246,.08)
-      // 过淡；Table 面该 token 仅消费于 fix 列阴影+
+      // C2 沿革：表头/悬停=BG-3 灰；colorSplit 亮底分割灰（原暗期
+      // 深蓝透明派生退役；Table 面该 token 仅消费于 fix 列阴影+
       // 虚拟滚动条[未用]，组件级覆写不泄漏表分割线）
-      colorSplit: "rgba(130, 170, 246, 0.16)",
+      headerBg: "#f0f2f5",
+      rowHoverBg: "#f0f2f5",
+      colorSplit: "#e8eaed",
     },
   },
 };
