@@ -120,7 +120,10 @@ export function ThumbnailFlow({
   const draft = useDraft(projectId);
   const baseRaw = useEditBaseRaw(projectId);
   const catalog = useListUnitsApiUnitsGet();
-  const { screenToFlowPosition } = useReactFlow();
+  // flow 实例（onInit 捕获——右键目录落点坐标换算；useReactFlow 在本组件
+  // 根不可用〔Provider 外〕——实例 ref 为 xyflow 官方外部消费通道；
+  // 泛型宽松面=仅消费 screenToFlowPosition 几何换算）
+  const flowRef = useRef<{ screenToFlowPosition: (pos: { x: number; y: number }) => { x: number; y: number } } | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
   // 无编辑模式：raw 就绪且无本项目会话→自动 beginEdit（幂等——同项目续会话）
@@ -201,7 +204,7 @@ export function ThumbnailFlow({
     if (store.session?.projectId !== projectId && query.data !== undefined) {
       store.beginEdit(projectId, query.data);
     }
-    const flowPos = screenToFlowPosition(screen);
+    const flowPos = flowRef.current?.screenToFlowPosition(screen) ?? { x: 0, y: 0 };
     const nodeId = useCanvasStore.getState().addUnit(unit.unit_id, unit.kind);
     if (nodeId !== null) {
       useCanvasStore.getState().position(nodeId, flowPos);
@@ -230,6 +233,9 @@ export function ThumbnailFlow({
   return (
     <div style={{ position: "relative", height: "100%", overflow: "hidden" }}>
       <ReactFlow
+        onInit={(instance) => {
+          flowRef.current = instance;
+        }}
         nodes={nodes}
         edges={edges}
         nodeTypes={NODE_TYPES}

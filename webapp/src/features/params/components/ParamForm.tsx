@@ -36,7 +36,7 @@
  *     行为面增量=Enter 直提+失焦连带提交〔pending 有效变更在场才发〕，
  *     任务轨逐次独立、任务条呈现最新）。
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Input, InputNumber, Space, Tag, Typography } from "antd";
 
@@ -191,6 +191,13 @@ export function ParamForm({
       submit();
     }
   };
+  /** 失焦让位判据：焦点移向提交钮（或其内）→blur 通道跳过（点击通道即提
+   *  ——防双发；relatedTarget null=移向不可聚焦面照常失焦提交）。 */
+  const submitRef = useRef<HTMLButtonElement | null>(null);
+  const blurYieldsToClick = (event: React.FocusEvent<HTMLElement>): boolean =>
+    event.relatedTarget instanceof Node &&
+    submitRef.current !== null &&
+    submitRef.current.contains(event.relatedTarget);
 
   // R2-P1-3（round2 批2 扩）：草稿计数上提提示面——画布工具条「保存」
   // 徽标与 toast 诚实化消费；草稿本体仍本地（D7 边界不变）。卸载/换项目
@@ -299,7 +306,11 @@ export function ParamForm({
                           setDrafts((prev) => ({ ...prev, [fieldId]: draftValueOf(value) }))
                         }
                         onKeyDown={submitOnEnter}
-                        onBlur={submit}
+                        onBlur={(event) => {
+                          if (!blurYieldsToClick(event)) {
+                            submit();
+                          }
+                        }}
                       />
                       {dimUnit(entry.dim) ? (
                         <span data-testid={`param-unit-${fieldId}`} style={UNIT_SUFFIX_STYLE}>
@@ -325,8 +336,11 @@ export function ParamForm({
                           if (parsed !== null) {
                             setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
                           }
-                          // B1 三式：失焦通道连带提交（归一后 pending 变更随失焦落）
-                          submit();
+                          // B1 三式：失焦通道连带提交（归一后 pending 变更随失焦
+                          // 随落；焦点移向提交钮时让位点击通道防双发）
+                          if (!blurYieldsToClick(event)) {
+                            submit();
+                          }
                         }}
                       />
                       {/* 参数面单位批（2026-09-12 用户裁定「入批处理」）：grid
@@ -397,12 +411,14 @@ export function ParamForm({
         ) : null}
         <div style={{ padding: 10, display: "flex", gap: 8, alignItems: "center" }}>
           <Button
+            ref={submitRef}
             size="small"
             type="primary"
             loading={apply.isPending}
             disabled={submitDisabled}
             style={{ flex: 1 }}
             onClick={submit}
+            data-testid="wp-param-submit"
           >
             提交重算{changeCount > 0 ? `（${changeCount} 项）` : ""}
           </Button>
