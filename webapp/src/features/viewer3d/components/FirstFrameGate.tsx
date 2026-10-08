@@ -158,11 +158,13 @@ export function FirstFrameOverlay() {
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        background: "rgba(11, 21, 38, 0.92)",
+        // B4/R2 亮底化（主控白名单增补）：暗底遮罩→页面底等位亮罩；
+        // 前景同步深字（暗期亮字 fallback 退役——var 轴亮值+同档 fallback）
+        background: "rgba(245, 246, 248, 0.92)",
       }}
     >
       <Spin />
-      <span style={{ fontSize: 13, color: "var(--wp-text-2, #cfe6ff)" }}>
+      <span style={{ fontSize: 13, color: "var(--wp-text-2, #646a73)" }}>
         正在构建三维场景…
       </span>
     </div>

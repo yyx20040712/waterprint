@@ -56,7 +56,7 @@ describe("semanticColors 语义色真源表", () => {
     );
   });
 
-  it("逐键值冻结：字面 hex 原值迁移（像素零漂移）", () => {
+  it("逐键值冻结：字面 hex 逐键锚（B4 亮底重定值后值面——3D/2D 图元族保持原值）", () => {
     expect(SEMANTIC_COLORS.pool_wall).toBe("#a3a9ad"); // 批3 首族视觉验收迭代调灰
     expect(SEMANTIC_COLORS.partition).toBe("#8f9599");
     expect(SEMANTIC_COLORS.channel).toBe("#7f8a93");
@@ -70,15 +70,15 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.pipe).toBe("#5b8db8");
     expect(SEMANTIC_COLORS.decant).toBe("#5b8db8");
     // C2-3d 管廊：水蓝/泥棕（--wp-water/--wp-sludge 轴同值——domain_* 单源引用）
-    expect(SEMANTIC_COLORS.pipe_water).toBe("#4da3ff");
+    expect(SEMANTIC_COLORS.pipe_water).toBe("#1677ff");
     expect(SEMANTIC_COLORS.pipe_sludge).toBe("#9c6b45");
     // B3-b 四域色+中性（JS 面单源——unitGlyph/domainColorOf 与 streamColorOf
     // 及 CanvasFlow LEGEND_LINES 原字面同值搬家；global.css --wp-* 轴同步
-    // 义务=UF-53）
-    expect(SEMANTIC_COLORS.domain_water).toBe("#4da3ff");
+    // 义务=UF-53。B4 亮底重定值〔任务书 D3〕：water/mine/convey 提对比）
+    expect(SEMANTIC_COLORS.domain_water).toBe("#1677ff");
     expect(SEMANTIC_COLORS.domain_sludge).toBe("#9c6b45");
-    expect(SEMANTIC_COLORS.domain_mine).toBe("#35c9b0");
-    expect(SEMANTIC_COLORS.domain_convey).toBe("#9aa8b8");
+    expect(SEMANTIC_COLORS.domain_mine).toBe("#0e9e88");
+    expect(SEMANTIC_COLORS.domain_convey).toBe("#6b7a8c");
     expect(SEMANTIC_COLORS.domain_neutral).toBe("#595959");
     // 管廊键与域色键同值单源（DOMAIN_COLORS 引用——漂移即红）
     expect(SEMANTIC_COLORS.pipe_water).toBe(SEMANTIC_COLORS.domain_water);
@@ -93,13 +93,16 @@ describe("semanticColors 语义色真源表", () => {
     expect(SEMANTIC_COLORS.corridor_comm).toBe("#9a6dd7");
     expect(SEMANTIC_COLORS.corridor_fallback).toBe("#8c8c8c");
     expect(SEMANTIC_COLORS.selected).toBe("#1668dc");
-    expect(SEMANTIC_COLORS.pending).toBe("#d48806");
+    // B4 亮底复核（D4）：pending 文本级消费面→#8a6100；spacing_warn/
+    // maintenance 图形级→#ad6800/#d46b08（白底对比度实录=批档
+    // contrast-b4.txt；暗值断言→亮值断言=同步，语义不弱化）
+    expect(SEMANTIC_COLORS.pending).toBe("#8a6100");
     expect(SEMANTIC_COLORS.measure).toBe("#2f7fd1");
-    expect(SEMANTIC_COLORS.spacing_warn).toBe("#faad14");
+    expect(SEMANTIC_COLORS.spacing_warn).toBe("#ad6800");
     expect(SEMANTIC_COLORS.spacing_error).toBe("#ff4d4f");
     expect(SEMANTIC_COLORS.boundary_error).toBe("#fa541c");
-    // S11 检修缺位占位警示橙
-    expect(SEMANTIC_COLORS.maintenance).toBe("#fa8c16");
+    // S11 检修缺位占位警示橙（B4 亮底重定值档）
+    expect(SEMANTIC_COLORS.maintenance).toBe("#d46b08");
   });
 
   it("兜底：未登记语义回退 FALLBACK_COLOR（禁抛错打断渲染）", () => {
@@ -124,14 +127,15 @@ describe("UF-53 域色双轴归一（批6n：CSS 轴注入契约——值面机�
 
   it("双轴同值机器断言：CSS 轴逐键===domain_* 键（真源单点派生——漂移即红）", () => {
     // 期望值不引 DOMAIN_COLORS 字面（防自证）——对冻结的 34 键表逐键横断
+    // （B4 亮底重定值：D3 表亮值锚）
     expect(DOMAIN_CSS_VARS["--wp-water"]).toBe(SEMANTIC_COLORS.domain_water);
-    expect(DOMAIN_CSS_VARS["--wp-water"]).toBe("#4da3ff");
+    expect(DOMAIN_CSS_VARS["--wp-water"]).toBe("#1677ff");
     expect(DOMAIN_CSS_VARS["--wp-sludge"]).toBe(SEMANTIC_COLORS.domain_sludge);
     expect(DOMAIN_CSS_VARS["--wp-sludge"]).toBe("#9c6b45");
     expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe(SEMANTIC_COLORS.domain_mine);
-    expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe("#35c9b0");
+    expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe("#0e9e88");
     expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe(SEMANTIC_COLORS.domain_convey);
-    expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe("#9aa8b8");
+    expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe("#6b7a8c");
   });
 
   it("注入契约：documentElement.style 逐键 setProperty（stub document）", () => {
@@ -145,10 +149,10 @@ describe("UF-53 域色双轴归一（批6n：CSS 轴注入契约——值面机�
       .sort();
     expect(calls).toEqual(
       [
-        "--wp-water=#4da3ff",
+        "--wp-water=#1677ff",
         "--wp-sludge=#9c6b45",
-        "--wp-mine=#35c9b0",
-        "--wp-convey=#9aa8b8",
+        "--wp-mine=#0e9e88",
+        "--wp-convey=#6b7a8c",
       ].sort(),
     );
   });

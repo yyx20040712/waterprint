@@ -84,11 +84,13 @@ const THUMB_SIZE = 44;
 const POP_SIZE = 160;
 const POP_VIEWPORT_MARGIN = 8;
 
-/** 选中态鎏金描边/光晕（--wp-gold #d9a94a 派生——交互状态色非语义色；
- * R-G3 联动清单成员：改鎏金须与 global.css --wp-gold 同步）。 */
-const SELECT_BORDER = "rgba(217, 169, 74, 0.75)";
+/** 选中态鎏金描边/光晕（--wp-gold 派生——交互状态色非语义色；R-G3
+ * 联动清单成员：改鎏金须与 global.css --wp-gold 同步。B4/R1-mini：
+ * gold 改基 #8a6100 后派生组 rgb 基同步〔α 档结构保持〕；R2：尾影随
+ * 暗基家族退役换中性软影 .18〔=浮层同档，与默认 .14 保持层次〕）。 */
+const SELECT_BORDER = "rgba(138, 97, 0, 0.75)";
 const SELECT_GLOW =
-  "0 0 0 1px rgba(217,169,74,.35), 0 4px 18px rgba(217,169,74,.14), 0 3px 12px rgba(3,10,22,.45)";
+  "0 0 0 1px rgba(138,97,0,.35), 0 4px 18px rgba(138,97,0,.14), 0 3px 12px rgba(31,35,41,.18)";
 
 /** 端口列垂直排布（首个端口距顶 26px、行距 16px——C2-thumb 卡片升档
  * 同步 +6；多端口均布）。 */
@@ -138,8 +140,8 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
         background: "var(--wp-bg-elevated)",
         border: selected
           ? `1px solid ${SELECT_BORDER}`
-          : "1px solid #2c4568",
-        boxShadow: selected ? SELECT_GLOW : "0 3px 12px rgba(3,10,22,.45)",
+          : "1px solid #6b7a8c",
+        boxShadow: selected ? SELECT_GLOW : "0 3px 12px rgba(31,35,41,.14)",
         borderRadius: 8,
         color: "var(--wp-text)",
       }}
@@ -343,7 +345,7 @@ export function UnitNode({ data, selected }: NodeProps<EditableUnitNode>) {
                 boxSizing: "border-box",
                 borderRadius: 10,
                 border: "1px solid var(--wp-border)",
-                boxShadow: "0 8px 32px rgba(3,10,22,.6)",
+                boxShadow: "0 8px 32px rgba(31,35,41,.18)",
                 background: "var(--wp-bg-page)",
                 zIndex: 1000,
                 pointerEvents: "none",

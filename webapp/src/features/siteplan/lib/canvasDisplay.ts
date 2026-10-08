@@ -37,10 +37,13 @@ export const MEASURE_COUNT = 3;
 /** 滚轮缩放灵敏度（deltaY→指数因子系数）。 */
 export const WHEEL_SENSITIVITY = 0.0015;
 /** 灰阶三常量（结构描边/结构填充/坐标网）——非彩色语义族（彩色族查
- *  shared/ui/semanticColors.ts 真源表），保留本地。 */
+ *  shared/ui/semanticColors.ts 真源表），保留本地。B4 亮底化（工程制图
+ * 白纸面）：描边深灰蓝保持（白底 9.75:1——暗描边=亮底正确形态）；
+ * 填充深底黑→BG-3 浅灰 #f0f2f5（描边内浅填充=工程图例形态）；坐标网
+ * 深灰→浅灰蓝 #dfe3ea（装饰性网格——非信息面）。 */
 export const COLOR_STRUCTURE = "#3a4552";
-export const COLOR_STRUCTURE_FILL = "#1f2933";
-export const COLOR_GRID = "#2c2c2c";
+export const COLOR_STRUCTURE_FILL = "#f0f2f5";
+export const COLOR_GRID = "#dfe3ea";
 /** L4a 边界红线描边宽/虚线节距（boundary 无宽，显示层定值不落盘）。 */
 export const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
 /** 红线选中描边加粗（米·世界单位——结构选中 0.5 同档显示定值，B4 笔③）。 */

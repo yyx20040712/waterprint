@@ -10,7 +10,8 @@
  * 规格说明（C2-3d V1/V2 原位迁移；F5 D1 起 ground 消费 effective
  *   bounds——池组足迹并盒后取景）：
  *   - 灯位/阴影正交半幅/雾档距全对角线派生（bounds 派生面）；
- *   - 草地=可隐藏图层（关=深蓝工程底+蓝网格恒在——Scene 传入 sceneBg）；
+ *   - 草地=可隐藏图层（关=工程底+蓝网格恒在——Scene 传入 sceneBg
+ *     〔B4 亮化：分层白系〕）；
  *   - y 分层避 z-fight：地面 -0.02<次格 -0.012<主格 -0.008；
  *   - 阴影面 D8（F5）：Scene Canvas shadows="basic"——本件 castShadow/
  *     receiveShadow 消费面不变。
@@ -20,8 +21,11 @@ import * as THREE from "three";
 
 import type { GroundPlan } from "../lib/groundPlan";
 
-const GRID_MAJOR = "#3d619c";
-const GRID_MINOR = "#1b2c49";
+/** 双层工程网格两色（B4 亮底重定值；R3 d1-N4：主格 #5c7cae 草底 2.92:1
+ *  边缘→#54719f〔草底 3.41:1/工程底 4.58:1 双底图形级 ≥3〕/次格浅灰蓝
+ *  #d8dee8〔次格=装饰性细分非信息面〕——暗期深蓝两色随场景底亮化退役）。 */
+const GRID_MAJOR = "#54719f";
+const GRID_MINOR = "#d8dee8";
 
 type GroundStageProps = {
   readonly ground: GroundPlan | null;
@@ -78,8 +82,9 @@ export function GroundStage({ ground, sceneBg, showGrass }: GroundStageProps) {
         <directionalLight position={[20, 30, 10]} intensity={1} castShadow />
       )}
       {/* C2-3d V1 地面（V2 阴影承接面——批3 迭代二：草地=可隐藏图层，
-          关=深蓝工程底+蓝网格恒在；y 分层避 z-fight：地面 -0.02<
-          次格 -0.012<主格 -0.008） */}
+          关=工程底+蓝网格恒在；y 分层避 z-fight：地面 -0.02<
+          次格 -0.012<主格 -0.008。B4 亮化：草地材质深绿→亮草绿
+          #c8dcc2〔亮草世界底配档〕） */}
       {ground !== null && showGrass && (
         <mesh
           position={[ground.centerX, -0.02, ground.centerZ]}
@@ -87,7 +92,7 @@ export function GroundStage({ ground, sceneBg, showGrass }: GroundStageProps) {
           receiveShadow
         >
           <planeGeometry args={[ground.size, ground.size]} />
-          <meshStandardMaterial color="#2e5239" />
+          <meshStandardMaterial color="#c8dcc2" />
         </mesh>
       )}
       {ground !== null && (

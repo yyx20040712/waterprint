@@ -30,12 +30,15 @@
  */
 /** 四域色+中性（域色唯一真源——批6n 双轴归一后 CSS 轴四键经
  * installDomainColorAxis() 自本表注入〔neutral=JS 面键不入轴——零
- * var() 消费方〕；改色=改本表一处两轴同步）。 */
+ * var() 消费方〕；改色=改本表一处两轴同步）。
+ * B4 亮底重定值（2026-10-09 任务书 D3）：water/mine/convey 亮底
+ * 提对比（白底 4.10/3.35/4.39:1 图形级≥3 达标——正文禁用同 AC 纪律）；
+ * sludge/neutral 保持（白底 4.56/7.00:1 既达标）。 */
 const DOMAIN_COLORS = {
-  water: "#4da3ff", // 市政水线（municipal）
+  water: "#1677ff", // 市政水线（municipal）
   sludge: "#9c6b45", // 污泥线
-  mine: "#35c9b0", // 矿井水线
-  convey: "#9aa8b8", // 输配水线
+  mine: "#0e9e88", // 矿井水线
+  convey: "#6b7a8c", // 输配水线
   neutral: "#595959", // 未收录/清单未达回退灰
 } as const;
 
@@ -100,16 +103,23 @@ export const SEMANTIC_COLORS = {
   // C2VD V1 剖切帽盖键（缩略图半剖剖面封盖灰——pool_wall #8d99a6 与
   // ground #cfd6dc 之间档；材质区断面封实，水体/空腔区不入[无 writer]）
   section_cap: "#a8b4c2",
-  // 2D 单点彩色语义族（自 SiteCanvas 收编，5 键）
+  // 2D 单点彩色语义族（自 SiteCanvas 收编，5 键；B4 亮底复核
+  // 〔任务书 D4〕：pending 有文本级消费面〔Scene/PlacementBanner
+  // stale 横幅 12px 文本〕→ #8a6100（白底 5.54:1 文本级达标）；
+  // spacing_warn/maintenance 为图形级消费面→白底 ≥3:1 档
+  // 〔#ad6800 4.41:1/#d46b08 3.56:1——暗期 #faad14/#fa8c16 白底
+  // 1.90/2.38:1 不达标退役〕；selected/measure/spacing_error/
+  // boundary_error 白底 5.19/4.14/3.27/3.31:1 保持——对比度实录=
+  // .workflow/b4b5-20261009/contrast-b4.txt）
   selected: "#1668dc",
-  pending: "#d48806",
+  pending: "#8a6100",
   measure: "#2f7fd1",
-  spacing_warn: "#faad14", // L4b 校核 WARN 黄
+  spacing_warn: "#ad6800", // L4b 校核 WARN 黄
   spacing_error: "#ff4d4f", // L4b 校核 ERROR 红（三色并存：pending=未计算）
   boundary_error: "#fa541c", // SPC2 红线越界 ERROR（红族异相橙红——与 spacing_error 语义区分）
   // S11 检修缺位占位（viewer3d 警示面——图示语义警示橙，与 pending
   // 同族暖色档但独立键：池组检修占位非「未计算」语义）
-  maintenance: "#fa8c16",
+  maintenance: "#d46b08",
 } as const;
 
 /** 未登记语义兜底灰阶（禁抛错打断渲染）。 */

@@ -10,11 +10,12 @@
  * 规格说明（FE1 实装 v1；R2 C3 清理面 2026-08-28；C2-3d V3 重制——
  *   briefs/task-C2-3d-plan.md §二 V3+呈裁③「中文名+默认开」）：
  *   - v1 痛点（「无对象命名」+实现截图零标签根因）：文本=
- *     node.id 全串（36 条逐图元噪声）+深色字 #1f1f1f 深底不可见；
+ *     node.id 全串（36 条逐图元噪声）+与底色同调字不可读问题；
  *   - 重制=按单元分组（"unit::" 前缀切分——一条/单元；管廊
  *     pipe::* 与非「::」id 整体跳过：管线/图示语义不标注）；中文名
- *     catalog join；亮色 #e8eef7+深描边（troika outlineWidth——深底
- *     可读）；字号随场景对角线自适应（0.6~6m 钳位）；
+ *     catalog join；B4 亮底重定值：深色字 #1f2329+亮描边（troika
+ *     outlineWidth——亮底可读；暗期亮字深描边形态退役）；字号随场景
+ *     对角线自适应（0.6~6m 钳位）；
  *   - 抬升=分组最高顶+1.2 字号位（标注位摆放，非业务推导）；
  *   - troika Text 持 SDF 纹理/字形图集/后台 worker——useEffect 卸载面
  *     dispose（primitive 不托管外部对象生命周期；工况/项目切换不泄漏，
@@ -28,8 +29,8 @@ import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/uni
 import type { PoolBadge } from "../assemble/poolGroup";
 import type { RenderNode } from "../lib/projectScene";
 
-const LABEL_COLOR = "#e8eef7";
-const LABEL_OUTLINE_COLOR = "#0a1220";
+const LABEL_COLOR = "#1f2329";
+const LABEL_OUTLINE_COLOR = "#ffffff";
 /** 字号随对角线缩放的下/上钳（m/字高——1080p 可读下限/防巨字）。 */
 const FONT_MIN = 0.6;
 const FONT_MAX = 6.0;

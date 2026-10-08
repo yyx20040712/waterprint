@@ -62,7 +62,11 @@ function MessageBubble({ message }: { message: ChatHistoryMessage }) {
           maxWidth: "82%",
           padding: "6px 10px",
           borderRadius: 8,
-          background: mine ? "var(--wp-primary-bg, #1c2540)" : "var(--wp-panel-bg, #141a2e)",
+          /* B4/R1-mini 亮底化：暗底 var fallback 退役（--wp-primary-bg/
+              --wp-panel-bg 两轴键全库从未定义=A2-N-06 死变量面——去 var
+              间接层直书亮值：mine=BG-4 蓝调选中底/对方=BG-3 灰，防
+              fallback 再漂移；主控预裁二择一取「等位亮值」案） */
+          background: mine ? "#eaf1fb" : "#f0f2f5",
           border: "1px solid var(--wp-border)",
         }}
       >

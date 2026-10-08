@@ -92,9 +92,11 @@ export type ParallelChartOption = {
   }[];
 };
 
-/** 前沿/被支配双色（前沿高亮蓝/被支配灰阶）。 */
+/** 前沿/被支配双色（前沿高亮蓝/被支配灰阶。B4 亮底重定值：被支配
+ * 淡灰白底 1.84:1 不可辨→中灰 #8c8c8c〔3.36:1〕——降调语义保持，
+ * 与前沿蓝 5.85:1 分层；三档色白底 3.46/4.10/3.36:1 保持达标）。 */
 const PARETO_FRONT_COLOR = "#2f54eb";
-const PARETO_DOMINATED_COLOR = "#bfbfbf";
+const PARETO_DOMINATED_COLOR = "#8c8c8c";
 
 /** 三档色（优绿/中蓝/差灰——低优量低位=好）。 */
 const BAND_COLORS: Record<ParallelBand, string> = {

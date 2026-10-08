@@ -300,7 +300,7 @@ export function SiteCanvas({
         height: "100%",
         display: "block",
         outline: "none",
-        background: "#141414",
+        background: "#ffffff",
         touchAction: "none",
         cursor: tool === "select" ? "default" : "crosshair",
       }}
@@ -467,7 +467,7 @@ export function SiteCanvas({
         const [sx, sy] = toScreen(entry.x, entry.y - size.h / 2);
         return (
           <text key={`label-${entry.unitId}`} x={sx} y={sy - 4} fontSize={11}
-            fill={entry.footprint === null ? semanticColor("pending") : "#c3ccd6"} textAnchor="middle"
+            fill={entry.footprint === null ? semanticColor("pending") : "#1f2329"} textAnchor="middle"
             pointerEvents="none">
             {entry.footprint === null ? `${entry.unitId} · 未计算` : entry.unitId}
           </text>

@@ -118,22 +118,24 @@ export interface DomainIconStyle {
   fg: string;
 }
 
-/** 域色图标三色组（视觉稿态三冻结——底/边框/前景按域派生；同值
- * 联动面=R-G3 清单：改域色以 domainColorOf 为基准同步）。
+/** 域色图标三色组（底/边框/前景按域派生；同值联动面=R-G3 清单：
+ * 改域色以 domainColorOf 为基准同步）。B4 亮底重定值（2026-10-09）：
+ * 原视觉稿态三冻结值=暗底调校（fg 亮字）——亮底下 fg 全系提深
+ * （白底 ≥3:1 图形级；bg/border 重定 rgb 基=新 DOMAIN_COLORS）。
  * 图标对齐小批（2026-09-12，3d-visual-brief「unitGlyph 同源对齐」）：
  * 本表自 UnitNode.tsx/unitLibrary.tsx 两处同构复制收敛至此单源导出
  * （两消费面 import 消费——第三处复制前收敛的候选已兑现）。 */
 const DOMAIN_ICON_STYLES: Record<string, DomainIconStyle> = {
-  municipal: { bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff" },
-  sludge: { bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273" },
-  mine_water: { bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2" },
-  conveyance: { bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6" },
+  municipal: { bg: "rgba(22,119,255,.10)", border: "rgba(22,119,255,.35)", fg: "#0958d9" },
+  sludge: { bg: "rgba(156,107,69,.14)", border: "rgba(156,107,69,.4)", fg: "#7a5033" },
+  mine_water: { bg: "rgba(14,158,136,.10)", border: "rgba(14,158,136,.35)", fg: "#0a7263" },
+  conveyance: { bg: "rgba(107,122,140,.12)", border: "rgba(107,122,140,.35)", fg: "#4e5a67" },
 };
 
 const NEUTRAL_ICON: DomainIconStyle = {
-  bg: "rgba(89,89,89,.14)",
+  bg: "rgba(89,89,89,.08)",
   border: "rgba(89,89,89,.3)",
-  fg: "#8c8c8c",
+  fg: "#595959",
 };
 
 /** 业务线 → 域色图标三色组（未收录回退中性灰组——画布节点与单元库

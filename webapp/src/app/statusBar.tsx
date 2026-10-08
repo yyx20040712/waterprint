@@ -37,7 +37,9 @@ export function StatusBar() {
         background: "var(--wp-bg-deep)",
         borderTop: "1px solid var(--wp-border-2)",
         fontSize: 11,
-        color: "var(--wp-text-3)",
+        // B4/R1-mini 主控预裁：text-3 于 bg-deep 亮底 2.69:1 不达标→该
+        // 消费点换 text-2（表值不动，仅消费点换档——#646a73 实测达标）
+        color: "var(--wp-text-2)",
         userSelect: "none",
       }}
     >

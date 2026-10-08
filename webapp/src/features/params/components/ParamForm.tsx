@@ -315,7 +315,7 @@ export function ParamForm({
             return (
               <label
                 key={fieldId}
-                style={{ display: "block", padding: "7px 0", borderBottom: "1px solid rgba(27,44,73,.55)" }}
+                style={{ display: "block", padding: "7px 0", borderBottom: "1px solid #e8eaed" }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                   {/* Q3 标签列：label_zh secondary+蓝点+field_id 悬浮+FD 链 */}
@@ -427,7 +427,7 @@ export function ParamForm({
                           paddingInline: 8, borderRadius: 9, cursor: "pointer",
                           flex: "none", fontFamily: "var(--wp-font-mono)",
                           ...(shownStr !== null && shownStr === String(option)
-                            ? { background: "rgba(61,139,253,.18)", color: "#7ab2ff", borderColor: "rgba(61,139,253,.45)" }
+                            ? { background: "rgba(22,119,255,.10)", color: "#0958d9", borderColor: "rgba(22,119,255,.45)" }
                             : {}),
                         }}
                         onClick={() => setDrafts((prev) => ({ ...prev, [fieldId]: String(option) }))}

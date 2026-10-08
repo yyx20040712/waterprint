@@ -95,11 +95,11 @@ describe("unitGlyph：全库字形映射", () => {
 });
 
 describe("domainColorOf：四域+中性回退", () => {
-  it("四域色值（视觉稿冻结——与 global.css 变量轴同值双源）", () => {
-    expect(domainColorOf("municipal")).toBe("#4da3ff");
+  it("四域色值（B4 亮底重定值——与 global.css 变量轴同值双源）", () => {
+    expect(domainColorOf("municipal")).toBe("#1677ff");
     expect(domainColorOf("sludge")).toBe("#9c6b45");
-    expect(domainColorOf("mine_water")).toBe("#35c9b0");
-    expect(domainColorOf("conveyance")).toBe("#9aa8b8");
+    expect(domainColorOf("mine_water")).toBe("#0e9e88");
+    expect(domainColorOf("conveyance")).toBe("#6b7a8c");
   });
 
   it("未知/缺省回退中性灰（不误导域归属）", () => {
@@ -117,8 +117,8 @@ describe("streamColorOf：两色制流色（泥优先/水/中性三态）", () =
   });
 
   it("双端已知非 sludge 即水色（水线内部+跨非泥域）", () => {
-    expect(streamColorOf("municipal", "municipal")).toBe("#4da3ff");
-    expect(streamColorOf("mine_water", "conveyance")).toBe("#4da3ff");
+    expect(streamColorOf("municipal", "municipal")).toBe("#1677ff");
+    expect(streamColorOf("mine_water", "conveyance")).toBe("#1677ff");
   });
 
   it("任一端未知即中性灰（清单未达/自定义键不误导）", () => {
@@ -129,24 +129,24 @@ describe("streamColorOf：两色制流色（泥优先/水/中性三态）", () =
 });
 
 describe("domainIconStyle：域色图标三色组（图标对齐小批单源收敛）", () => {
-  it("四域三键冻结值（原 UnitNode/unitLibrary 两表同值搬家——零视觉变更）", () => {
+  it("四域三键冻结值（B4 亮底重定值——fg 全系提深/底边重定新域色 rgb 基）", () => {
     expect(domainIconStyle("municipal")).toEqual({
-      bg: "rgba(77,163,255,.14)", border: "rgba(77,163,255,.3)", fg: "#7ab2ff",
+      bg: "rgba(22,119,255,.10)", border: "rgba(22,119,255,.35)", fg: "#0958d9",
     });
     expect(domainIconStyle("sludge")).toEqual({
-      bg: "rgba(156,107,69,.16)", border: "rgba(156,107,69,.4)", fg: "#d4a273",
+      bg: "rgba(156,107,69,.14)", border: "rgba(156,107,69,.4)", fg: "#7a5033",
     });
     expect(domainIconStyle("mine_water")).toEqual({
-      bg: "rgba(53,201,176,.12)", border: "rgba(53,201,176,.3)", fg: "#52d8c2",
+      bg: "rgba(14,158,136,.10)", border: "rgba(14,158,136,.35)", fg: "#0a7263",
     });
     expect(domainIconStyle("conveyance")).toEqual({
-      bg: "rgba(154,168,184,.14)", border: "rgba(154,168,184,.3)", fg: "#b8c6d6",
+      bg: "rgba(107,122,140,.12)", border: "rgba(107,122,140,.35)", fg: "#4e5a67",
     });
   });
 
   it("未知/缺省回退中性灰组（bg/border/fg 三键齐）", () => {
     expect(domainIconStyle("future_domain")).toEqual({
-      bg: "rgba(89,89,89,.14)", border: "rgba(89,89,89,.3)", fg: "#8c8c8c",
+      bg: "rgba(89,89,89,.08)", border: "rgba(89,89,89,.3)", fg: "#595959",
     });
     expect(domainIconStyle(null)).toEqual(domainIconStyle(undefined));
   });

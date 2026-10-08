@@ -12,9 +12,10 @@
  *     gl.render 一次即截取（确定性单帧/零持续 GPU 占用）；
  *   - 顺序队列：state index 单元指针——onCapture 推进（每 rAF 一单元，
  *     摊入交互空闲帧——19 单元全批预算 ≤350ms[设计书 V2]）；
- *   - 灯光/底色=C2-3d V2/V1 冻结口径（底色 #0b1526——Scene.tsx 同值双源；
- *     无阴影——小图阴影不可辨省 shadow map；C2-visual T4：光比 0.55/1.6
- *     独立微调[紫外消毒暗构型]——自此与主视图分源非联动）；
+ *   - 灯光/底色=C2-3d V2/V1 冻结口径（底色恒绿世界——B4 亮化 #e2ece0，
+ *     Scene.tsx SCENE_BG_GRASS 同值双源；无阴影——小图阴影不可辨省
+ *     shadow map；C2-visual T4：光比 0.55/1.6 独立微调[紫外消毒暗构型]
+ *     ——自此与主视图分源非联动）；
  *   - C2-visual 迭代（task-c2-visual-plan §二）：T1 纵向对角半剖
  *     （面向相机剖近半露横断面——二轮勘正：水平剖去上半观感=浅池
  *     与未剖无异）；T2 waters 半透明入图（呈裁③ 复核
@@ -49,7 +50,7 @@ import { WaterSurface } from "./WaterSurface";
 /** C2-3d 冻结口径（Scene.tsx 同值双源——V2 光比/V1 底色；C2-visual T4
  * 亮度微调：0.4/1.4→0.55/1.6[紫外消毒暗构型提升]——与 Scene.tsx 主视图
  * 光比自此分源[缩略图小图面独立裁量]，非联动面）。 */
-const SCENE_BG = "#0e2415"; // 绿世界底色（批3 迭代二：主视图草地转可隐藏图层——缩略图台恒绿世界与 PNG 资产同源，不随主视图开关）
+const SCENE_BG = "#e2ece0"; // 绿世界底色（B4 亮化：亮草白；缩略图台恒绿世界，不随主视图图层开关——PNG-first 资产仍暗底渲染=亮化视检疑虑落批档）
 const AMBIENT_INTENSITY = 0.55;
 const DIRECTIONAL_INTENSITY = 1.6;
 

@@ -86,8 +86,11 @@ export function ParamTabs({
         >
           {meta?.name_zh ?? (unitId === null ? "未选中单元" : unitId)}
           {meta ? (
+            /* 单元类别徽标（B4 亮底化：暗期工程蓝透明调字面〔亮蓝字白底
+               2.18:1 不可读〕→AC 淡底/深字/中边三件套——ParamForm chip
+               同族同值；白名单增补面理由见批档 impl-report-b4.md） */
             <span
-              style={{ fontSize: 10, padding: "1px 7px", borderRadius: 8, background: "rgba(61,139,253,.16)", color: "#7ab2ff", border: "1px solid rgba(61,139,253,.35)" }}
+              style={{ fontSize: 10, padding: "1px 7px", borderRadius: 8, background: "rgba(22,119,255,.10)", color: "#0958d9", border: "1px solid rgba(22,119,255,.35)" }}
             >
               {meta.kind === "builtin" ? "内置节点" : LINE_LABELS[meta.business_line] ?? meta.business_line}
             </span>

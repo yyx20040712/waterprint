@@ -319,8 +319,8 @@ export function CanvasFlow({
         height: "100%",
         overflow: "hidden",
         borderRadius: 8,
-        background:
-          "radial-gradient(1100px 500px at 62% 30%, rgba(37,72,128,.16), transparent 70%), var(--wp-bg-page)",
+        // R2：暗蓝晕影退役——亮底平面纸感（plan §三），点阵层承担画布辨识
+        background: "var(--wp-bg-page)",
       }}
     >
       {/* C2-thumb V3：缩略图 context 注入（UnitNode 深树消费——投影
@@ -400,12 +400,12 @@ export function CanvasFlow({
         style={{ backgroundColor: "transparent" }}
       >
         <FitViewOnNodes fitKey={fitKey} />
-        {/* P6 MiniMap（左下——默认右下位覆盖）：域色节点缩略+视口框。
-            C2VD V5：底色 token 化 var(--wp-bg-container) 实底（原
-            rgba(18,33,58,.88) 透点阵糊感收口——D1 面板蓝同语言）。 */}
+        {/* P6 MiniMap（左下）：域色节点缩略+视口框（C2VD V5 实底化）。
+            R2：maskColor 显式亮罩 rgba(31,35,41,.12)——默认中灰罩亮底突兀。 */}
         <MiniMap
           pannable
           zoomable
+          maskColor="rgba(31,35,41,.12)"
           nodeColor={(node) =>
             domainColorOf(lineByNodeId.get(node.id) ?? null)
           }
@@ -430,7 +430,7 @@ export function CanvasFlow({
             border: "1px solid var(--wp-border)",
             borderRadius: 8,
             overflow: "hidden",
-            boxShadow: "0 4px 16px rgba(3,10,22,.5)",
+            boxShadow: "0 4px 16px rgba(31,35,41,.14)",
           }}
         />
       </ReactFlow>
@@ -450,7 +450,7 @@ export function CanvasFlow({
           display: "flex",
           gap: 14,
           alignItems: "center",
-          background: "rgba(18,33,58,.85)",
+          background: "rgba(255,255,255,.92)",
           border: "1px solid var(--wp-border-2)",
           borderRadius: 8,
           padding: "5px 12px",
