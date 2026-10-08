@@ -289,5 +289,24 @@ manifest = load_manifest(
             "mine_water_vxinglvchi.cycle_band",
             "mine_water_vxinglvchi.wash_ratio",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_d", "dim": "DIMENSIONLESS", "label_zh": "日处理量（m3/d）"},
+            {"field_id": "t_w", "dim": "DIMENSIONLESS", "label_zh": "日有效过滤时长（h）"},
+            {"field_id": "f_total", "dim": "AREA", "label_zh": "总过滤面积"},
+            {"field_id": "f_single", "dim": "AREA", "label_zh": "单格过滤面积"},
+            {"field_id": "v_force_act", "dim": "DIMENSIONLESS", "label_zh": "强制滤速（m/h）"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "单格宽（未圆整）"},
+            {"field_id": "l_raw", "dim": "LENGTH", "label_zh": "单格长（未圆整）"},
+            {"field_id": "w_wash", "dim": "DIMENSIONLESS", "label_zh": "单格次反冲洗水量（m3）"},
+            {"field_id": "eta_wash", "dim": "DIMENSIONLESS", "label_zh": "反冲洗耗水率"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "滤池总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+        ],
     }
 )

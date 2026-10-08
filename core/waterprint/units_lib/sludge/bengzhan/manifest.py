@@ -341,5 +341,36 @@ manifest = load_manifest(
             "sludge_bengzhan.well_t_band",
             "sludge_bengzhan.well_depth_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归——本单元公式面全 DIMENSIONLESS 存量，
+        # 工程单位进 label 括注，翻案归 DimKey 扩成员批另裁）；label_zh=
+        # 工程度量名（公式表 meaning 注记起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_h", "dim": "DIMENSIONLESS", "label_zh": "时入流量（m3/h）"},
+            {"field_id": "n_pump_raw", "dim": "DIMENSIONLESS", "label_zh": "泵台数（计算）"},
+            {"field_id": "q_pump_h", "dim": "DIMENSIONLESS", "label_zh": "单泵流量（m3/h）"},
+            {"field_id": "q_pump_si", "dim": "DIMENSIONLESS", "label_zh": "单泵秒流量（m3/s）"},
+            {"field_id": "n_total", "dim": "DIMENSIONLESS", "label_zh": "泵总台数（含备用）"},
+            {"field_id": "d_raw", "dim": "DIMENSIONLESS", "label_zh": "出泥管径（未圆整）"},
+            {"field_id": "v_act", "dim": "DIMENSIONLESS", "label_zh": "实际流速（m/s）"},
+            {"field_id": "h_friction", "dim": "DIMENSIONLESS", "label_zh": "沿程损失（m）"},
+            {"field_id": "h_local", "dim": "DIMENSIONLESS", "label_zh": "局部损失（m）"},
+            {"field_id": "h_loss", "dim": "DIMENSIONLESS",
+             "label_zh": "管路损失（m，污泥修正后）"},
+            {"field_id": "h_pump", "dim": "DIMENSIONLESS", "label_zh": "泵扬程（m）"},
+            {"field_id": "v_well", "dim": "DIMENSIONLESS", "label_zh": "集泥井调节容积（m3）"},
+            {"field_id": "a_well", "dim": "DIMENSIONLESS", "label_zh": "集泥井面积（m2）"},
+            {"field_id": "n_start", "dim": "DIMENSIONLESS", "label_zh": "小时启动次数"},
+            {"field_id": "h_well_total", "dim": "DIMENSIONLESS", "label_zh": "井总高（m）"},
+            {"field_id": "v_concrete", "dim": "DIMENSIONLESS",
+             "label_zh": "井体混凝土量（m3，概算）"},
+            {"field_id": "ds_out", "dim": "DIMENSIONLESS", "label_zh": "出流干固体量（kg/d）"},
+            {"field_id": "p_out", "dim": "DIMENSIONLESS", "label_zh": "出流含水率"},
+            {"field_id": "p_pump", "dim": "DIMENSIONLESS", "label_zh": "泵轴功率（kW）"},
+            {"field_id": "e_pump", "dim": "DIMENSIONLESS", "label_zh": "泵站日耗电（kWh/d）"},
+        ],
     }
 )

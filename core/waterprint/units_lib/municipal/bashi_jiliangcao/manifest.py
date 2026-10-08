@@ -200,5 +200,22 @@ manifest = load_manifest(
             for grade in GRADES
             for check in ("ha_band", "submergence")
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_meas", "dim": "FLOW", "label_zh": "计量流量（平均时水头）"},
+            {"field_id": "ha_design", "dim": "LENGTH", "label_zh": "设计水头"},
+            {"field_id": "ha_avg", "dim": "LENGTH", "label_zh": "平均时水头"},
+            {"field_id": "b1", "dim": "LENGTH", "label_zh": "收缩段上游宽"},
+            {"field_id": "l1", "dim": "LENGTH", "label_zh": "收缩段长"},
+            {"field_id": "b2", "dim": "LENGTH", "label_zh": "扩散段出口宽"},
+            {"field_id": "l_total", "dim": "LENGTH", "label_zh": "槽身总长"},
+            {"field_id": "sigma", "dim": "DIMENSIONLESS", "label_zh": "淹没度 σ"},
+            {"field_id": "h_loss", "dim": "LENGTH", "label_zh": "槽身水头损失"},
+        ],
     }
 )

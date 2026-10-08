@@ -191,5 +191,23 @@ manifest = load_manifest(
             "sludge_shusong.velocity_band",
             "sludge_shusong.gravity_v_min",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归——本单元公式面全 DIMENSIONLESS 存量，
+        # 工程单位进 label 括注，翻案归 DimKey 扩成员批另裁）；label_zh=
+        # 工程度量名（公式表 meaning 注记起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_h", "dim": "DIMENSIONLESS", "label_zh": "时输泥量（m3/h）"},
+            {"field_id": "q_si", "dim": "DIMENSIONLESS", "label_zh": "秒输泥量（m3/s）"},
+            {"field_id": "d_raw", "dim": "DIMENSIONLESS", "label_zh": "输泥管径（未圆整）"},
+            {"field_id": "v_act", "dim": "DIMENSIONLESS", "label_zh": "实际流速（m/s）"},
+            {"field_id": "i_req", "dim": "DIMENSIONLESS", "label_zh": "满流最小坡度"},
+            {"field_id": "v_grav", "dim": "DIMENSIONLESS", "label_zh": "重力流流速（m/s）"},
+            {"field_id": "i_slope", "dim": "DIMENSIONLESS", "label_zh": "整定坡度"},
+            {"field_id": "ds_out", "dim": "DIMENSIONLESS", "label_zh": "出流干固体量（kg/d）"},
+            {"field_id": "p_out", "dim": "DIMENSIONLESS", "label_zh": "出流含水率"},
+        ],
     }
 )

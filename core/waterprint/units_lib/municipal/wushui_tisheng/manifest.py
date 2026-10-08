@@ -347,5 +347,30 @@ manifest = load_manifest(
             "wushui_tisheng.pump.start_band",
             "wushui_tisheng.well.t_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "n_pump_raw", "dim": "DIMENSIONLESS", "label_zh": "水泵台数（计算）"},
+            {"field_id": "q_pump", "dim": "DIMENSIONLESS", "label_zh": "单泵流量（m3/h）"},
+            {"field_id": "n_pump_total", "dim": "DIMENSIONLESS",
+             "label_zh": "水泵总台数（含备用）"},
+            {"field_id": "d_pipe_raw", "dim": "LENGTH", "label_zh": "出水管径（未圆整）"},
+            {"field_id": "v_pipe_act", "dim": "VELOCITY", "label_zh": "出水管实际流速"},
+            {"field_id": "h_friction", "dim": "LENGTH", "label_zh": "沿程损失"},
+            {"field_id": "h_local", "dim": "LENGTH", "label_zh": "局部损失"},
+            {"field_id": "h_loss", "dim": "LENGTH", "label_zh": "管路总损失"},
+            {"field_id": "h_pump", "dim": "LENGTH", "label_zh": "泵扬程"},
+            {"field_id": "v_well", "dim": "VOLUME", "label_zh": "集水井调节容积"},
+            {"field_id": "a_well", "dim": "AREA", "label_zh": "集水井平面面积"},
+            {"field_id": "n_start", "dim": "DIMENSIONLESS", "label_zh": "水泵小时启动次数"},
+            {"field_id": "h_well_total", "dim": "LENGTH", "label_zh": "集水井总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "井体混凝土量（概算）"},
+            {"field_id": "p_pump", "dim": "DIMENSIONLESS", "label_zh": "泵轴功率（kW）"},
+            {"field_id": "e_pump", "dim": "DIMENSIONLESS", "label_zh": "泵站日耗电（kWh/d）"},
+        ],
     }
 )

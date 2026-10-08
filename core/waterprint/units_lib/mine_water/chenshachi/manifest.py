@@ -288,5 +288,24 @@ manifest = load_manifest(
             "mine_water_chenshachi.cell_width",
             "mine_water_chenshachi.weir_load",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "l_cell_raw", "dim": "LENGTH", "label_zh": "池长（未圆整）"},
+            {"field_id": "a_cross", "dim": "AREA", "label_zh": "单格过水断面积"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "单格宽（未圆整）"},
+            {"field_id": "v_h_act", "dim": "VELOCITY", "label_zh": "实际水平流速"},
+            {"field_id": "v_sand", "dim": "VOLUME", "label_zh": "每日沉砂量"},
+            {"field_id": "v_hopper", "dim": "VOLUME", "label_zh": "贮砂斗容积"},
+            {"field_id": "l_weir", "dim": "LENGTH", "label_zh": "出水堰可用堰长"},
+            {"field_id": "q_weir", "dim": "DIMENSIONLESS", "label_zh": "出水堰负荷（L/(m·s)）"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "池总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "ds_bio", "dim": "DIMENSIONLESS", "label_zh": "沉砂股干基量（kg/d）"},
+        ],
     }
 )

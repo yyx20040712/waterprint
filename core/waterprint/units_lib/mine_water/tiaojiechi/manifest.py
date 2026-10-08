@@ -259,5 +259,26 @@ manifest = load_manifest(
             "mine_water_tiaojiechi.depth_band",
             "mine_water_tiaojiechi.ratio_lb_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "v_total", "dim": "VOLUME", "label_zh": "需调节容积"},
+            {"field_id": "v1", "dim": "VOLUME", "label_zh": "单格容积"},
+            {"field_id": "a1", "dim": "AREA", "label_zh": "单格平面面积"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "池宽（未圆整）"},
+            {"field_id": "l_raw", "dim": "LENGTH", "label_zh": "池长（未圆整）"},
+            {"field_id": "a_act", "dim": "AREA", "label_zh": "单格实取平面面积"},
+            {"field_id": "v_act_total", "dim": "VOLUME", "label_zh": "实际调节容积"},
+            {"field_id": "t_reg_act", "dim": "DIMENSIONLESS", "label_zh": "实际调节时间（h）"},
+            {"field_id": "p_stir", "dim": "DIMENSIONLESS", "label_zh": "防沉积搅拌功率（kW）"},
+            {"field_id": "d_out_raw", "dim": "LENGTH", "label_zh": "出水管径（未圆整）"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "池总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "e_stir", "dim": "DIMENSIONLESS", "label_zh": "搅拌日耗电（kWh/d）"},
+        ],
     }
 )

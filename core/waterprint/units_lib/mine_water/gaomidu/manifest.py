@@ -286,5 +286,25 @@ manifest = load_manifest(
             "mine_water_gaomidu.t_mix_band",
             "mine_water_gaomidu.t_floc_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q1h", "dim": "DIMENSIONLESS", "label_zh": "单池流量（m3/h）"},
+            {"field_id": "v_mix", "dim": "VOLUME", "label_zh": "快速混合区容积"},
+            {"field_id": "v_floc", "dim": "VOLUME", "label_zh": "絮凝区容积"},
+            {"field_id": "a_settle", "dim": "AREA", "label_zh": "沉淀面积"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "池宽（未圆整）"},
+            {"field_id": "l_raw", "dim": "LENGTH", "label_zh": "池长（未圆整）"},
+            {"field_id": "q_surf_act", "dim": "DIMENSIONLESS",
+             "label_zh": "实际液面负荷（m3/(m2·h)）"},
+            {"field_id": "v_axial", "dim": "VELOCITY", "label_zh": "斜管内轴向流速"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "池总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "ds_chem", "dim": "DIMENSIONLESS", "label_zh": "泥渣股干基量（kg/d）"},
+        ],
     }
 )

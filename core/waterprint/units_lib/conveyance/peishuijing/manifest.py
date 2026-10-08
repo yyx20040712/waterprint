@@ -285,5 +285,25 @@ manifest = load_manifest(
             "conveyance_peishuijing.v_channel_band",
             "conveyance_peishuijing.depth_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_each", "dim": "FLOW", "label_zh": "每路分配流量"},
+            {"field_id": "a_out", "dim": "AREA", "label_zh": "出流口需要面积"},
+            {"field_id": "d_raw", "dim": "LENGTH", "label_zh": "出流口直径（未圆整）"},
+            {"field_id": "a_act", "dim": "AREA", "label_zh": "出流口实际面积"},
+            {"field_id": "v_act", "dim": "VELOCITY", "label_zh": "实际出流流速"},
+            {"field_id": "h_head", "dim": "LENGTH", "label_zh": "出流口需要水头"},
+            {"field_id": "q_series", "dim": "FLOW", "label_zh": "单路设计流量（含不均匀系数）"},
+            {"field_id": "a_well", "dim": "AREA", "label_zh": "井室需要断面"},
+            {"field_id": "d_well_raw", "dim": "LENGTH", "label_zh": "井室直径（未圆整）"},
+            {"field_id": "a_well_act", "dim": "AREA", "label_zh": "井室实际断面"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "井总深"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "井体混凝土量（概算）"},
+        ],
     }
 )

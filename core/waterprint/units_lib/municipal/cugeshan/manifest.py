@@ -278,5 +278,27 @@ manifest = load_manifest(
             {"target": "n", "rule": "n if pool.all_pools else n - 1"},
         ],
         "constraint_refs": ["cugeshan.velocity_band.v", "cugeshan.velocity_band.v1"],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q", "dim": "FLOW", "label_zh": "单台流量"},
+            {"field_id": "n_gap_ratio", "dim": "DIMENSIONLESS", "label_zh": "栅条间隙数（计算）"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "栅槽宽（未圆整）"},
+            {"field_id": "b1_raw", "dim": "LENGTH", "label_zh": "进水渠宽（未圆整）"},
+            {"field_id": "v_checked", "dim": "VELOCITY", "label_zh": "校核过栅流速"},
+            {"field_id": "v1_checked", "dim": "VELOCITY", "label_zh": "校核栅前流速"},
+            {"field_id": "xi", "dim": "DIMENSIONLESS", "label_zh": "栅条阻力系数 ξ"},
+            {"field_id": "h1", "dim": "LENGTH", "label_zh": "过栅水头损失"},
+            {"field_id": "h_total_raw", "dim": "LENGTH", "label_zh": "栅后总高（未圆整）"},
+            {"field_id": "l_raw", "dim": "LENGTH", "label_zh": "栅槽总长（未圆整）"},
+            {"field_id": "w_slag", "dim": "VOLUME", "label_zh": "日栅渣量"},
+            {"field_id": "mech_margin", "dim": "VOLUME", "label_zh": "机械清渣裕量"},
+            {"field_id": "ds_slag", "dim": "MASS", "label_zh": "日干栅渣量"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "槽体混凝土量（概算）"},
+        ],
     }
 )

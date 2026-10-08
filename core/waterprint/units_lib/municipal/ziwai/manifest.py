@@ -263,5 +263,26 @@ manifest = load_manifest(
             "ziwai.velocity_band",
             "ziwai.t_exp_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_c", "dim": "FLOW", "label_zh": "单渠流量"},
+            {"field_id": "h_w_raw", "dim": "LENGTH", "label_zh": "渠内水深（未圆整）"},
+            {"field_id": "v_channel_act", "dim": "VELOCITY", "label_zh": "渠内实际流速"},
+            {"field_id": "n_lamp_raw", "dim": "DIMENSIONLESS", "label_zh": "灯管数（计算）"},
+            {"field_id": "n_module_raw", "dim": "DIMENSIONLESS", "label_zh": "模块数（计算）"},
+            {"field_id": "n_module_series", "dim": "DIMENSIONLESS", "label_zh": "每渠串列模块数"},
+            {"field_id": "l_lamp_zone", "dim": "LENGTH", "label_zh": "灯区长度"},
+            {"field_id": "l_channel", "dim": "LENGTH", "label_zh": "渠长"},
+            {"field_id": "t_exp", "dim": "TIME", "label_zh": "照射接触时间"},
+            {"field_id": "c_fecal_out", "dim": "DIMENSIONLESS", "label_zh": "出水粪大肠（个/L）"},
+            {"field_id": "h_submerge", "dim": "LENGTH", "label_zh": "模块淹没水深"},
+            {"field_id": "h_channel", "dim": "LENGTH", "label_zh": "渠总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "渠体混凝土量（概算）"},
+        ],
     }
 )

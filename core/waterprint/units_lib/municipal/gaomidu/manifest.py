@@ -369,5 +369,35 @@ manifest = load_manifest(
             "gaomidu.t_floc_band",
             "gaomidu.gt_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q1h", "dim": "DIMENSIONLESS", "label_zh": "单池流量（m3/h）"},
+            {"field_id": "a_incl_req", "dim": "AREA", "label_zh": "需蓄斜管区面积"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "方形池边长（未圆整）"},
+            {"field_id": "a_act", "dim": "AREA", "label_zh": "单池实取斜管区面积"},
+            {"field_id": "q_surface_act", "dim": "DIMENSIONLESS",
+             "label_zh": "实际液面负荷（m3/(m2·h)）"},
+            {"field_id": "v_mix", "dim": "VOLUME", "label_zh": "快速混合区容积"},
+            {"field_id": "v_floc", "dim": "VOLUME", "label_zh": "絮凝区容积"},
+            {"field_id": "p_mix", "dim": "DIMENSIONLESS", "label_zh": "混合搅拌功率（kW）"},
+            {"field_id": "p_floc", "dim": "DIMENSIONLESS", "label_zh": "絮凝搅拌功率（kW）"},
+            {"field_id": "gt_floc", "dim": "DIMENSIONLESS", "label_zh": "絮凝 GT 值"},
+            {"field_id": "q_return", "dim": "DIMENSIONLESS", "label_zh": "污泥回流量（m3/h）"},
+            {"field_id": "s_dry", "dim": "MASS", "label_zh": "全厂干泥量"},
+            {"field_id": "q_sludge", "dim": "VOLUME", "label_zh": "浓缩区排泥量"},
+            {"field_id": "m_pac", "dim": "MASS", "label_zh": "PAC 日投加量"},
+            {"field_id": "m_pam", "dim": "MASS", "label_zh": "PAM 日投加量"},
+            {"field_id": "h_tube_zone", "dim": "LENGTH", "label_zh": "斜管区高度"},
+            {"field_id": "h_settle", "dim": "LENGTH", "label_zh": "沉淀区总高"},
+            {"field_id": "h_total_raw", "dim": "LENGTH", "label_zh": "池总高（未圆整）"},
+            {"field_id": "h_floc_calc", "dim": "LENGTH", "label_zh": "絮凝区折算水深"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "e_stir", "dim": "DIMENSIONLESS", "label_zh": "搅拌日耗电（kWh/d）"},
+        ],
     }
 )

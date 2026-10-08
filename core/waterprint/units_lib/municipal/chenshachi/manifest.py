@@ -329,5 +329,31 @@ manifest = load_manifest(
             "chenshachi.ratio_dh2_band",
             "chenshachi.retention_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q1", "dim": "FLOW", "label_zh": "单池流量"},
+            {"field_id": "d_raw", "dim": "LENGTH", "label_zh": "池径（未圆整）"},
+            {"field_id": "h2", "dim": "LENGTH", "label_zh": "有效水深"},
+            {"field_id": "ratio_dh2", "dim": "DIMENSIONLESS", "label_zh": "径深比"},
+            {"field_id": "v_eff", "dim": "VOLUME", "label_zh": "单池有效容积"},
+            {"field_id": "t_actual", "dim": "TIME", "label_zh": "实际停留时间"},
+            {"field_id": "v_sand", "dim": "VOLUME", "label_zh": "单池日沉砂量"},
+            {"field_id": "v_hopper", "dim": "VOLUME", "label_zh": "砂斗容积"},
+            {"field_id": "d_upper", "dim": "LENGTH", "label_zh": "砂斗上口直径"},
+            {"field_id": "h4", "dim": "LENGTH", "label_zh": "砂斗高度"},
+            {"field_id": "v_cone", "dim": "VOLUME", "label_zh": "砂斗圆台容积"},
+            {"field_id": "h_cyl_raw", "dim": "LENGTH", "label_zh": "圆柱储砂段高（未圆整）"},
+            {"field_id": "h_total_raw", "dim": "LENGTH", "label_zh": "池总高（未圆整）"},
+            {"field_id": "h_channel", "dim": "LENGTH", "label_zh": "进水渠水深"},
+            {"field_id": "l_straight", "dim": "LENGTH", "label_zh": "进水渠直段长"},
+            {"field_id": "b_outlet", "dim": "LENGTH", "label_zh": "出水渠宽"},
+            {"field_id": "ds_grit", "dim": "MASS", "label_zh": "日干砂量（全池）"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+        ],
     }
 )

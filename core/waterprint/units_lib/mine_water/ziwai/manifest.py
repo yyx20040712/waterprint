@@ -265,5 +265,24 @@ manifest = load_manifest(
             "mine_water_ziwai.t254_band",
             "mine_water_ziwai.dose_check",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_ch", "dim": "DIMENSIONLESS", "label_zh": "单渠流量（m3/h）"},
+            {"field_id": "a_ch", "dim": "AREA", "label_zh": "渠断面积"},
+            {"field_id": "v_ch", "dim": "VELOCITY", "label_zh": "渠内流速"},
+            {"field_id": "t_eff", "dim": "DIMENSIONLESS", "label_zh": "有效穿透率"},
+            {"field_id": "i_avg", "dim": "DIMENSIONLESS", "label_zh": "辐照强度（mW/cm2）"},
+            {"field_id": "dose_row", "dim": "DIMENSIONLESS", "label_zh": "单排剂量（mJ/cm2）"},
+            {"field_id": "n_rows", "dim": "DIMENSIONLESS", "label_zh": "灯管排数"},
+            {"field_id": "dose_act", "dim": "DIMENSIONLESS", "label_zh": "实际总剂量（mJ/cm2）"},
+            {"field_id": "t_contact", "dim": "DIMENSIONLESS", "label_zh": "接触时间（s）"},
+            {"field_id": "h_loss", "dim": "LENGTH", "label_zh": "渠内水头损失"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "渠总高"},
+        ],
     }
 )

@@ -275,5 +275,23 @@ manifest = load_manifest(
             "mine_water_cifenli.surface_load_band",
             "mine_water_cifenli.disk_speed",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_1h", "dim": "DIMENSIONLESS", "label_zh": "单台处理流量（m3/h）"},
+            {"field_id": "a_disk", "dim": "AREA", "label_zh": "单盘双面有效面积"},
+            {"field_id": "a_total_req", "dim": "AREA", "label_zh": "单台需盘面总面积"},
+            {"field_id": "n_disks", "dim": "DIMENSIONLESS", "label_zh": "磁盘数量（整台圆整）"},
+            {"field_id": "v_line", "dim": "VELOCITY", "label_zh": "盘缘线速度"},
+            {"field_id": "w_ss", "dim": "DIMENSIONLESS", "label_zh": "日截留干泥量（t/d）"},
+            {"field_id": "q_sludge", "dim": "VOLUME", "label_zh": "磁泥产泥量"},
+            {"field_id": "m_seed_net", "dim": "DIMENSIONLESS", "label_zh": "磁种净耗量（kg/d）"},
+            {"field_id": "e_magnetic", "dim": "DIMENSIONLESS", "label_zh": "分离机日耗电（kWh/d）"},
+            {"field_id": "ds_primary", "dim": "DIMENSIONLESS", "label_zh": "磁泥股干基量（kg/d）"},
+        ],
     }
 )

@@ -240,5 +240,22 @@ manifest = load_manifest(
             "conveyance_jipeishuijing.depth_band",
             "conveyance_jipeishuijing.d_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "v_well", "dim": "VOLUME", "label_zh": "汇流集水有效容积"},
+            {"field_id": "a_well", "dim": "AREA", "label_zh": "需要井平面面积"},
+            {"field_id": "d_raw", "dim": "LENGTH", "label_zh": "井径（未圆整）"},
+            {"field_id": "a_act", "dim": "AREA", "label_zh": "实际井平面面积"},
+            {"field_id": "t_act", "dim": "TIME", "label_zh": "实际停留时间"},
+            {"field_id": "q_each", "dim": "FLOW", "label_zh": "每路分配流量"},
+            {"field_id": "q_series", "dim": "FLOW", "label_zh": "单路设计流量（含不均匀系数）"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "井总深"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "井体混凝土量（概算）"},
+        ],
     }
 )

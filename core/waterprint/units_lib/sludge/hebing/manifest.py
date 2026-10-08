@@ -341,5 +341,29 @@ manifest = load_manifest(
         "constraint_refs": [
             "sludge_hebing.dev_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归——本单元公式面全 DIMENSIONLESS 存量，
+        # 工程单位进 label 括注，翻案归 DimKey 扩成员批另裁）；label_zh=
+        # 工程度量名（公式表 meaning 注记起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_primary", "dim": "DIMENSIONLESS", "label_zh": "初沉股湿泥量（m3/d）"},
+            {"field_id": "q_bio", "dim": "DIMENSIONLESS", "label_zh": "剩余污泥股湿泥量（m3/d）"},
+            {"field_id": "q_chem", "dim": "DIMENSIONLESS", "label_zh": "化学污泥股湿泥量（m3/d）"},
+            {"field_id": "ds_total", "dim": "DIMENSIONLESS", "label_zh": "合并干泥量（kg/d）"},
+            {"field_id": "q_total", "dim": "DIMENSIONLESS", "label_zh": "合并湿泥量（m3/d）"},
+            {"field_id": "w_water", "dim": "DIMENSIONLESS", "label_zh": "合并股水质量（kg/d）"},
+            {"field_id": "p_merged", "dim": "DIMENSIONLESS", "label_zh": "合并含水率"},
+            {"field_id": "s_y", "dim": "DIMENSIONLESS",
+             "label_zh": "经验产率法剩余污泥量（kg/d）"},
+            {"field_id": "k_dt", "dim": "DIMENSIONLESS", "label_zh": "温度修正 Kd（d⁻¹）"},
+            {"field_id": "dx_bio", "dim": "DIMENSIONLESS", "label_zh": "机理互校产率（kg/d）"},
+            {"field_id": "dev_pct", "dim": "DIMENSIONLESS", "label_zh": "产率两法偏差（%）"},
+            {"field_id": "ds_check", "dim": "DIMENSIONLESS",
+             "label_zh": "产率法口径全厂干泥量（kg/d）"},
+            {"field_id": "dev_close", "dim": "DIMENSIONLESS", "label_zh": "合并/产率口径偏差（%）"},
+        ],
     }
 )

@@ -391,5 +391,35 @@ manifest = load_manifest(
             "vxinglvchi.water_above_band",
             "vxinglvchi.cycle_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q_filter", "dim": "DIMENSIONLESS", "label_zh": "过滤流量（m3/h）"},
+            {"field_id": "a_total_req", "dim": "AREA", "label_zh": "需过滤面积"},
+            {"field_id": "a_cell", "dim": "AREA", "label_zh": "单格需过滤面积"},
+            {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "单格宽（未圆整）"},
+            {"field_id": "l_raw", "dim": "LENGTH", "label_zh": "单格长（未圆整）"},
+            {"field_id": "a_cell_act", "dim": "AREA", "label_zh": "单格实取过滤面积"},
+            {"field_id": "a_total_act", "dim": "AREA", "label_zh": "全池实取过滤面积"},
+            {"field_id": "v_filter_act", "dim": "DIMENSIONLESS", "label_zh": "实际滤速（m/h）"},
+            {"field_id": "v_forced_act", "dim": "DIMENSIONLESS", "label_zh": "强制滤速（m/h）"},
+            {"field_id": "q_air", "dim": "FLOW", "label_zh": "单格气冲流量"},
+            {"field_id": "q_wash_sim", "dim": "FLOW", "label_zh": "气水同时冲洗流量"},
+            {"field_id": "q_wash", "dim": "FLOW", "label_zh": "单独水冲流量"},
+            {"field_id": "q_sweep", "dim": "FLOW", "label_zh": "表面扫洗流量"},
+            {"field_id": "v_air_per", "dim": "VOLUME", "label_zh": "单格次耗气量"},
+            {"field_id": "v_wash_per", "dim": "VOLUME", "label_zh": "单格次耗水量"},
+            {"field_id": "v_wash_daily", "dim": "VOLUME", "label_zh": "全厂日冲洗耗水"},
+            {"field_id": "ratio_wash", "dim": "DIMENSIONLESS", "label_zh": "冲洗耗水率"},
+            {"field_id": "h_total", "dim": "LENGTH", "label_zh": "滤池总高"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+            {"field_id": "w_air", "dim": "VOLUME", "label_zh": "全厂日耗气量"},
+            {"field_id": "w_sweep", "dim": "VOLUME", "label_zh": "全厂日扫洗耗水"},
+            {"field_id": "e_backwash", "dim": "DIMENSIONLESS", "label_zh": "反冲洗日耗电（kWh/d）"},
+        ],
     }
 )

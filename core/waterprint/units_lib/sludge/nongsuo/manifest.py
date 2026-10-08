@@ -275,5 +275,28 @@ manifest = load_manifest(
             "sludge_nongsuo.depth_band",
             "sludge_nongsuo.moisture_out_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归——本单元公式面全 DIMENSIONLESS 存量，
+        # 工程单位进 label 括注，翻案归 DimKey 扩成员批另裁）；label_zh=
+        # 工程度量名（公式表 meaning 注记起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "a_load", "dim": "DIMENSIONLESS", "label_zh": "固体通量需要面积（m2）"},
+            {"field_id": "a_time", "dim": "DIMENSIONLESS", "label_zh": "浓缩时间需要面积（m2）"},
+            {"field_id": "a_req", "dim": "DIMENSIONLESS", "label_zh": "需要面积（取大，m2）"},
+            {"field_id": "a_single", "dim": "DIMENSIONLESS", "label_zh": "单池面积（m2）"},
+            {"field_id": "d_raw", "dim": "DIMENSIONLESS", "label_zh": "池径（未圆整）"},
+            {"field_id": "q_solid_act", "dim": "DIMENSIONLESS",
+             "label_zh": "实际固体通量（kg/(m2·d)）"},
+            {"field_id": "ds_out", "dim": "DIMENSIONLESS", "label_zh": "底流干固体量（kg/d）"},
+            {"field_id": "q_thick", "dim": "DIMENSIONLESS", "label_zh": "底流浓缩污泥量（m3/d）"},
+            {"field_id": "q_sup", "dim": "DIMENSIONLESS", "label_zh": "上清液量（m3/d）"},
+            {"field_id": "ds_sup", "dim": "DIMENSIONLESS", "label_zh": "上清液干基量（kg/d）"},
+            {"field_id": "h_total", "dim": "DIMENSIONLESS", "label_zh": "池总高（m）"},
+            {"field_id": "v_concrete", "dim": "DIMENSIONLESS",
+             "label_zh": "池体混凝土量（m3，概算）"},
+        ],
     }
 )

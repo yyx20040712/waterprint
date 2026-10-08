@@ -341,5 +341,32 @@ manifest = load_manifest(
             "chuchenchi.weir_load",
             "chuchenchi.sludge_cycle_band",
         ],
+        # B5 out_dims 补全批（b5-20261009）：计算输出量声明——条目集=
+        # _FORMULAS 输出符号全集（D5 完备性口径）；dim 逐条镜像公式表
+        # output_dim（D3 真源单归）；label_zh=工程度量名（公式表 meaning
+        # 注记/compute 语义起草，待主控追认）。对账门禁=
+        # scripts/check_out_dims_consistency.py；覆盖测试=
+        # core/tests/app/test_out_dims_coverage.py。
+        "out_dims": [
+            {"field_id": "q1h", "dim": "DIMENSIONLESS", "label_zh": "单池流量（m3/h）"},
+            {"field_id": "f_req", "dim": "AREA", "label_zh": "需蓄面积"},
+            {"field_id": "d_raw", "dim": "LENGTH", "label_zh": "池径（未圆整）"},
+            {"field_id": "f_act", "dim": "AREA", "label_zh": "实际单池面积"},
+            {"field_id": "q_prime_act", "dim": "DIMENSIONLESS",
+             "label_zh": "实际表面水力负荷（m3/(m2·h)）"},
+            {"field_id": "h2", "dim": "LENGTH", "label_zh": "有效水深"},
+            {"field_id": "ratio_dh2", "dim": "DIMENSIONLESS", "label_zh": "径深比"},
+            {"field_id": "d_center_raw", "dim": "LENGTH", "label_zh": "中心管直径（未圆整）"},
+            {"field_id": "q_weir", "dim": "DIMENSIONLESS", "label_zh": "出水堰负荷（L/(m·s)）"},
+            {"field_id": "s_dry_1", "dim": "MASS", "label_zh": "单池干泥量"},
+            {"field_id": "s_wet_1", "dim": "VOLUME", "label_zh": "单池湿泥量"},
+            {"field_id": "v_need", "dim": "VOLUME", "label_zh": "需贮泥容积（单池）"},
+            {"field_id": "v1_hopper", "dim": "VOLUME", "label_zh": "泥斗容积"},
+            {"field_id": "h4_raw", "dim": "LENGTH", "label_zh": "池底坡降（未圆整）"},
+            {"field_id": "v2_cone", "dim": "VOLUME", "label_zh": "池底坡锥台容积"},
+            {"field_id": "v_storage", "dim": "VOLUME", "label_zh": "贮泥容积"},
+            {"field_id": "h_total_raw", "dim": "LENGTH", "label_zh": "池总高（未圆整）"},
+            {"field_id": "v_concrete", "dim": "VOLUME", "label_zh": "池体混凝土量（概算）"},
+        ],
     }
 )
