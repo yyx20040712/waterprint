@@ -97,18 +97,29 @@ export function HierarchicalCatalog({
         ))}
       </ul>
       <ul className="wp-v4-m2" data-testid="wp-v4-catalog-level2">
-        {(active?.units ?? []).map((unit) => (
-          <li
-            key={unit.unit_id}
-            data-unit={unit.unit_id}
-            onClick={() => {
-              onPick(unit);
-              onClose();
-            }}
-          >
-            {unit.name_zh}
+        {catalog.isError ? (
+          // 回炉 R9：加载失败显式错误行（静默空菜单收口——白名单错误提示）
+          <li style={{ color: "var(--wp-error)", cursor: "default" }}>
+            目录加载失败——请重试
           </li>
-        ))}
+        ) : catalog.isPending ? (
+          <li style={{ color: "var(--wp-text-2)", cursor: "default" }}>
+            加载中…
+          </li>
+        ) : (
+          (active?.units ?? []).map((unit) => (
+            <li
+              key={unit.unit_id}
+              data-unit={unit.unit_id}
+              onClick={() => {
+                onPick(unit);
+                onClose();
+              }}
+            >
+              {unit.name_zh}
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );

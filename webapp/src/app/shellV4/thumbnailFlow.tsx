@@ -252,6 +252,11 @@ export function ThumbnailFlow({
           event.preventDefault();
           setMenu({ x: event.clientX, y: event.clientY });
         }}
+        onNodeContextMenu={(event) => {
+          // 回炉 R15：节点右键不弹建工艺目录（规约=右键空白落点）——
+          // 吞默认菜单，不落 menu 态
+          event.preventDefault();
+        }}
         onConnect={(connection: Connection) => {
           const { source, sourceHandle, target, targetHandle } = connection;
           if (source == null || sourceHandle == null || target == null || targetHandle == null) {

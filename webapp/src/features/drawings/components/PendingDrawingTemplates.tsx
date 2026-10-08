@@ -7,8 +7,9 @@
  * 输入:  无（纯展示——挂起位展示语义非选中态函数，恒在场零条件渲染）
  * 输出:  容器 div（data-testid="wp-pending-drawing-templates"——门二探针
  *        消费面，与 wp-pending-network 命名族对齐）：antd Tag「管网图纸
- *        预留」（default 色，style 沿树徽标同形 fontSize 11/lineHeight
- *        "16px"）+Typography.Text secondary（fontSize 12）说明行全文
+ *        · 规划中」（回炉 R8——诚实短文案，default 色，style 沿树徽标
+ *        同形 fontSize 11/lineHeight "16px"）+Typography.Text secondary
+ *        （fontSize 12）说明行全文
  *
  * 规格说明（M4 brief D4；mapping-2b4 §A M4 行「管网图纸模板位=挂起位③」）：
  *   - 「纵断面图」用词（B-3 原文「纵剖面图」vs elevation 面既有中文词
@@ -22,9 +23,11 @@ import { Tag, Typography } from "antd";
 export function PendingDrawingTemplates() {
   return (
     <div data-testid="wp-pending-drawing-templates" style={{ marginTop: 8 }}>
-      <Tag style={{ fontSize: 11, lineHeight: "16px" }}>管网图纸预留</Tag>
+      {/* 回炉 R8：诚实短文案（内部口径语「挂起展示，不实现」退场——
+          「管网图纸 · 规划中」级白名单内） */}
+      <Tag style={{ fontSize: 11, lineHeight: "16px" }}>管网图纸 · 规划中</Tag>
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-        管网平面布置图·纵断面图将随后续管网批加入图纸目录（挂起展示，不实现）
+        管网平面布置图·纵断面图将随后续管网批加入图纸目录
       </Typography.Text>
     </div>
   );

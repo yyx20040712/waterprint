@@ -74,8 +74,20 @@ import { AiConnectModal } from "../features/aiconnect/components/AiConnectModal"
 import { setApiToken } from "../shared/api/token";
 import { AUTH_EVENT } from "../shared/events";
 import { useProjectId } from "./useProjectId";
-import { ShellV4 } from "./shellV4/shellV4";
 import { parseIaParam } from "./zoneParam";
+
+/** 回炉 R2：?ia=v4 特性开关=模块加载期定值（会话内不可变前提显式化——
+ *  渲染期不再随 location 读取摆动，早退分支结构不可翻转=Rules of Hooks
+ *  潜伏崩点根除；缺省/测试加载时无 ?ia=v4 → 恒 false，M1 面零行为变）。 */
+const IS_V4 =
+  typeof window !== "undefined" &&
+  parseIaParam(window.location.search) === "v4";
+
+/** 回炉 R3：ShellV4 懒装载（then 取具名导出——缺省 M1 视图不载 v4
+ *  chunk，v4 壳整树入独立异步分片）。 */
+const ShellV4 = lazy(() =>
+  import("./shellV4/shellV4").then((m) => ({ default: m.ShellV4 })),
+);
 
 /** 四非 canvas 槽懒装载器（FE-2——then 包装取 named export；studio 槽
  *  装配件=studioPane，其内部四子面另经注入 LazyPane 懒装载；UF-66 批
@@ -205,12 +217,16 @@ function initialTarget(): TabTarget {
 }
 
 export function App() {
-  // B1 骨架批（2026-10-09）：?ia=v4 分支单点——v4 壳挂载；缺省（无 ?ia=）
-  // M1 壳一行不改（本分支=唯一例外）。
-  if (parseIaParam(window.location.search) === "v4") {
+  // B1 骨架批（2026-10-09）：?ia=v4 分支单点——v4 壳挂载（回炉 R2：IS_V4
+  // 模块级定值=会话内常量，分支不可翻转；回炉 R3：ShellV4 lazy 薄壳+
+  // Suspense 占位——缺省视图不载 v4 chunk）；缺省（无 ?ia=）M1 壳一行
+  // 不改（本分支=唯一例外）。
+  if (IS_V4) {
     return (
       <Providers>
-        <ShellV4 />
+        <Suspense fallback={<PaneLoading />}>
+          <ShellV4 />
+        </Suspense>
       </Providers>
     );
   }

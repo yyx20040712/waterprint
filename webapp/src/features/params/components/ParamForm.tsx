@@ -32,9 +32,13 @@
  *   - 行为通道零变：D5 apply 原子提交+invalidate+?task= 回写+wp:task
  *     派发；D7 草稿 normalizeDraftValue/invalidFields 锁提交保持；
  *   - B1 骨架批（2026-10-09）：三式提交补齐——按钮/Enter/失焦三通道同源
- *     submit 函数（全局规则「输入三式提交」；v4 左栏与 M1 右列同享，
- *     行为面增量=Enter 直提+失焦连带提交〔pending 有效变更在场才发〕，
- *     任务轨逐次独立、任务条呈现最新）。
+ *     submit 函数（全局规则「输入三式提交」；任务轨逐次独立、任务条
+ *     呈现最新）。
+ *   - 回炉 R1 批 R5（2026-10-09）：三式波及面收口=prop 门控——可选 prop
+ *     commitOnBlurAndEnter 缺省 false（M1 面零行为变：失焦仅 F8 归一、
+ *     Enter 不直提——B1 前行为字面回归）；v4 左栏传 true（Enter/失焦
+ *     连带提交启用，且失焦先归一后提交——归一值随载荷发出，闭包旧草稿
+ *     不进提交面）。
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -125,9 +129,13 @@ function OverrideDot() {
 export function ParamForm({
   projectId,
   unitId,
+  commitOnBlurAndEnter = false,
 }: {
   projectId: string;
   unitId: string;
+  /** 三式提交门（回炉 R5）：true=Enter/失焦连带提交通道启用（v4 左栏）；
+   *  缺省 false=M1 面零行为变（失焦仅 F8 归一——B1 前行为字面回归）。 */
+  commitOnBlurAndEnter?: boolean;
 }) {
   const catalogQuery = useUnitCatalog();
   const designQuery = useProjectDesign(projectId);
@@ -178,16 +186,34 @@ export function ParamForm({
   // B1 骨架批（2026-10-09）：三式提交收敛——按钮/Enter/失焦三通道同源
   // submit（Enter=输入控件 keydown 直提；失焦=既有归一后连带提交〔有
   // 效变更在场才发——空变更/无效草稿零动作〕；全局规则「输入三式提交」
-  // 补齐面；v4 左栏消费+M1 右列同享——行为面增量=失焦自动提交，任务轨
-  // 由任务条呈现、后端逐任务独立，最新任务结果为准）。
+  // 补齐面；任务轨由任务条呈现、后端逐任务独立，最新任务结果为准）。
+  // 回炉 R5：Enter/失焦两通道=commitOnBlurAndEnter prop 门控（缺省关=
+  // M1 面零行为变；v4 开=连带提交且失焦先归一后提交）。
   const submit = () => {
     if (submitDisabled) {
       return;
     }
     apply.mutate({ data: { project_id: projectId, unit_id: unitId, params: changes } });
   };
+  /** 门控开失焦通道提交体（回炉 R5——先归一后提交：以 nextDrafts 即时
+   *  求值 changes/invalidFields，归一值随载荷发出——onBlur 闭包内
+   *  setDrafts 未落渲染的旧草稿不进提交面）。 */
+  const commitDrafts = (nextDrafts: Record<string, string>) => {
+    const { changes: nextChanges, invalidFields: nextInvalid } =
+      collectParamChanges(params, values, nextDrafts);
+    if (
+      nextInvalid.length > 0 ||
+      Object.keys(nextChanges).length === 0 ||
+      apply.isPending
+    ) {
+      return;
+    }
+    apply.mutate({
+      data: { project_id: projectId, unit_id: unitId, params: nextChanges },
+    });
+  };
   const submitOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.key === "Enter") {
+    if (commitOnBlurAndEnter && event.key === "Enter") {
       submit();
     }
   };
@@ -307,8 +333,13 @@ export function ParamForm({
                         }
                         onKeyDown={submitOnEnter}
                         onBlur={(event) => {
-                          if (!blurYieldsToClick(event)) {
-                            submit();
+                          // 回炉 R5：门控开=失焦连带提交（onChange 已归一
+                          // ——drafts 即归一面）；缺省关=零行为（无提交）
+                          if (
+                            commitOnBlurAndEnter &&
+                            !blurYieldsToClick(event)
+                          ) {
+                            commitDrafts(drafts);
                           }
                         }}
                       />
@@ -333,13 +364,21 @@ export function ParamForm({
                         onBlur={(event) => {
                           // F8：失焦归一（可解析→trimFloatNoise；非数/空原样拒路径）
                           const parsed = normalizeDraftValue(event.target.value);
+                          const nextDrafts =
+                            parsed !== null
+                              ? { ...drafts, [fieldId]: trimFloatNoise(parsed) }
+                              : drafts;
                           if (parsed !== null) {
-                            setDrafts((prev) => ({ ...prev, [fieldId]: trimFloatNoise(parsed) }));
+                            setDrafts(nextDrafts);
                           }
-                          // B1 三式：失焦通道连带提交（归一后 pending 变更随失焦
-                          // 随落；焦点移向提交钮时让位点击通道防双发）
-                          if (!blurYieldsToClick(event)) {
-                            submit();
+                          // 回炉 R5：门控开=归一后连带提交（归一值随载荷
+                          // 发出——先归一后提交；焦点移向提交钮时让位点击
+                          // 通道防双发）；缺省关=失焦仅归一（M1 零行为变）
+                          if (
+                            commitOnBlurAndEnter &&
+                            !blurYieldsToClick(event)
+                          ) {
+                            commitDrafts(nextDrafts);
                           }
                         }}
                       />

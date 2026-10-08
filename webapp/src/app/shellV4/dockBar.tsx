@@ -2,10 +2,11 @@
  * v4 底栏双区（B1 骨架批 2026-10-09——AI 唯一窗+窄任务条；design 区常驻；
  * 高预算 92px≤98——G3'' 密度判据 @1440×900 画布净高 706≥700 单口径）。
  *
- * 输入:  useChatSessions/useChatHistory/useSendChatMessage（ai_chat 数据
- *        通道——ChatSeat 同 session_id 空间）+?task=/?enum=（任务轨双参
- *        ——task 优先缺省回落 enum）+useTaskFeed（SSE 进度）+任务快照
- *        （useGetTaskStatus）+TASK_EVENT 事件桥
+ * 输入:  useChatHistory/useSendChatMessage（ai_chat 数据通道——ChatSeat
+ *        同 session_id 空间；回炉 R10：useChatSessions 死代码摘除——
+ *        V2 凝缩窗不消费会话列表，错误呈现随 B2 完整对话流批）+?task=/
+ *        ?enum=（任务轨双参——task 优先缺省回落 enum）+useTaskFeed（SSE
+ *        进度）+任务快照（useGetTaskStatus）+TASK_EVENT 事件桥
  * 输出:  dock-ai（输入框+发送钮+最近一轮摘要行——凝缩形）+dock-tasks
  *        （任务行：任务 id+进度条+状态文案——TaskPanel 凝缩形）
  *
@@ -25,7 +26,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import {
   useChatHistory,
-  useChatSessions,
   useSendChatMessage,
 } from "../../features/ai_chat/api/useAiChat";
 import { useTaskFeed } from "../../features/solutions/api/useTaskFeed";
@@ -54,7 +54,6 @@ const generateSessionId = () =>
 function AiDockWindow() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const sessions = useChatSessions(true);
   const history = useChatHistory(sessionId);
   const send = useSendChatMessage();
   const messages = useMemo(() => history.data ?? [], [history.data]);
@@ -87,7 +86,6 @@ function AiDockWindow() {
         {history.isError ? (
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
         ) : null}
-        {sessions.isError ? null : null}
       </div>
       <div
         className="wp-v4-dock-main"

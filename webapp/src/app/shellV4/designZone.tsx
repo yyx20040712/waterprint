@@ -106,8 +106,16 @@ export function DesignZone({
     startX: number;
     startWidth: number;
   } | null>(null);
+  // 拖拽会话最新宽度（回炉 R14——onUp 终值直读源，免 setState updater 副作用）
+  const lastWidthRef = useRef<{ side: "left" | "right"; width: number } | null>(
+    null,
+  );
 
-  // 拖拽 document 级监听（pointermove/up/cancel——卸载清理；GP-N 同款纪律）
+  // 拖拽 document 级监听（pointermove/up/cancel——卸载清理；GP-N 同款纪律）。
+  // 回炉 R1：onUp 不再摘除监听——常挂面恢复（摘除后仅 effect 首跑注册=
+  // 二次拖动失效+光标残留根因；挂/卸对称语义由 return 清理承载）。
+  // 回炉 R14：宽度持久直读拖拽终值（onMove 记录的最新宽度）——
+  // localStorage 写移出 setState updater（副作用面反模式收口）。
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
       const drag = dragRef.current;
@@ -115,14 +123,15 @@ export function DesignZone({
         return;
       }
       const delta = event.clientX - drag.startX;
+      const width =
+        drag.side === "left"
+          ? Math.max(LEFT_MIN, Math.min(LEFT_MAX, drag.startWidth + delta))
+          : Math.max(RIGHT_MIN, Math.min(RIGHT_MAX, drag.startWidth - delta));
+      lastWidthRef.current = { side: drag.side, width };
       if (drag.side === "left") {
-        setLeftWidth(
-          Math.max(LEFT_MIN, Math.min(LEFT_MAX, drag.startWidth + delta)),
-        );
+        setLeftWidth(width);
       } else {
-        setRightWidth(
-          Math.max(RIGHT_MIN, Math.min(RIGHT_MAX, drag.startWidth - delta)),
-        );
+        setRightWidth(width);
       }
     };
     const onUp = () => {
@@ -130,22 +139,22 @@ export function DesignZone({
       if (drag !== null) {
         dragRef.current = null;
         document.body.style.cursor = "";
-        // 宽度记忆：拖放落定持久（localStorage——reload 保持）
+        // 宽度记忆：拖放落定持久（终值=onMove 记录值，零移动回落起点；
+        // cancel 态终值与视觉一致——localStorage 写在 updater 外）
+        const width =
+          lastWidthRef.current !== null &&
+          lastWidthRef.current.side === drag.side
+            ? lastWidthRef.current.width
+            : drag.startWidth;
         if (drag.side === "left") {
-          setLeftWidth((width) => {
-            window.localStorage.setItem(LEFT_KEY, String(Math.round(width)));
-            return width;
-          });
+          setLeftWidth(width);
+          window.localStorage.setItem(LEFT_KEY, String(Math.round(width)));
         } else {
-          setRightWidth((width) => {
-            window.localStorage.setItem(RIGHT_KEY, String(Math.round(width)));
-            return width;
-          });
+          setRightWidth(width);
+          window.localStorage.setItem(RIGHT_KEY, String(Math.round(width)));
         }
+        lastWidthRef.current = null;
       }
-      document.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerup", onUp);
-      document.removeEventListener("pointercancel", onUp);
     };
     // 常挂监听（dragRef 空转零开销——挂/卸对称免漏）
     document.addEventListener("pointermove", onMove);
@@ -224,7 +233,11 @@ export function DesignZone({
               ) : selectedUnitId === null ? (
                 <p style={{ color: "var(--wp-text-2)", margin: 8 }}>{NO_UNIT_HINT}</p>
               ) : (
-                <ParamForm projectId={projectId} unitId={selectedUnitId} />
+                <ParamForm
+                  projectId={projectId}
+                  unitId={selectedUnitId}
+                  commitOnBlurAndEnter
+                />
               )
             ) : leftTab === "empirical" ? (
               projectId === null ? (
@@ -408,7 +421,7 @@ export function DesignZone({
                         border: "none",
                         background: "transparent",
                         color: "var(--wp-text)",
-                        fontSize: 11.5,
+                        fontSize: 12, // 回炉 R12：字号归一三档（12/11/10）
                         padding: "4px 2px",
                         cursor: "pointer",
                       }}

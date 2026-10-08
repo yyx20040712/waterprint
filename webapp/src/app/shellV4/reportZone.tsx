@@ -47,7 +47,11 @@ export function ReportZone() {
         {NAV_SECTIONS.map((label) => (
           <div
             key={label}
-            style={{ padding: "4px 8px", fontSize: 11.5, color: "var(--wp-text)" }}
+            style={{
+              padding: "4px 8px",
+              fontSize: 12, // 回炉 R12：字号归一三档（12/11/10）
+              color: "var(--wp-text)",
+            }}
           >
             {label}
           </div>

@@ -20,9 +20,13 @@
  *   - dock 仅 design 区常驻（其他区收起为状态条内入口——B1 形态=状态条
  *     「任务 ▴」入口切回 design）；
  *   - 亮色面：v4LightTheme（wireframe-d-v4 色板：AC #1677ff+FG-1/2+
- *     BG 分层白+语义色 ok/warn/err 文本值）；状态条 24px 沿承 M1 位。
+ *     BG 分层白+语义色 ok/warn/err 文本值；回炉 R4=components 三族
+ *     显式亮值——嵌套 ConfigProvider 组件级 token 继承渗入防线）；
+ *     状态条 24px 沿承 M1 位。
+ *   - 回炉 R11：V4_ZONE_LABELS 迁 zoneParam.ts（V4Zone 真源同件——
+ *     shellV4↔zoneBand 循环 import 断环；zoneBand 改自 zoneParam 取）。
  */
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { ConfigProvider, theme } from "antd";
 import type { ThemeConfig } from "antd";
 
@@ -32,7 +36,6 @@ import {
   parseNodeParam,
   withNodeParam,
   withZoneParam,
-  type V4Zone,
   type V4ZoneTarget,
 } from "../zoneParam";
 import { ZoneBand } from "./zoneBand";
@@ -43,7 +46,13 @@ import { DraftingZone } from "./draftingZone";
 import { Viewer3dZone } from "./viewer3dZone";
 import { ReportZone } from "./reportZone";
 
-/** v4 亮色主题（wireframe-d-v4 色板——B4 全局亮化前的 v4 局部亮面）。 */
+/** v4 亮色主题（wireframe-d-v4 色板——B4 全局亮化前的 v4 局部亮面）。
+ *  回炉 R4（VB-1）：components 三族显式亮值——antd 嵌套 ConfigProvider
+ *  组件级 token 继承合并，M1 themeConfig（providers.tsx）components.
+ *  {Table/Tabs/Layout} 深值会渗入本 scoped 主题（projects 表头暗色根因）
+ *  ——三族逐键对账覆写为亮值（Table 表头/悬停/分割、Tabs 墨条与四态、
+ *  Layout 三底；M1 Tabs.horizontalItemPadding/Layout.headerHeight 两键
+ *  未覆写=v4 面无 Tabs 消费+48=v4 顶带设计值，非渗入面）。 */
 const v4LightTheme: ThemeConfig = {
   algorithm: theme.defaultAlgorithm,
   token: {
@@ -69,16 +78,25 @@ const v4LightTheme: ThemeConfig = {
     fontFamilyCode:
       '"Cascadia Code", "JetBrains Mono", Consolas, monospace',
   },
-};
-
-/** zone 中文名（状态条/页签单源——zoneBand 同词消费）。 */
-export const V4_ZONE_LABELS: Record<V4Zone, string> = {
-  projects: "项目",
-  design: "污水厂设计",
-  network: "管网系统",
-  drafting: "工程制图",
-  viewer3d: "三维示意",
-  report: "计算说明",
+  components: {
+    Table: {
+      headerBg: "#f0f2f5",
+      rowHoverBg: "#f0f2f5",
+      colorSplit: "#e8eaed",
+    },
+    Tabs: {
+      inkBarColor: "#1677ff",
+      itemColor: "#646a73",
+      itemHoverColor: "#1f2329",
+      itemActiveColor: "#1f2329",
+      itemSelectedColor: "#1677ff",
+    },
+    Layout: {
+      headerBg: "#f5f6f8",
+      siderBg: "#fafbfc",
+      bodyBg: "#f5f6f8",
+    },
+  },
 };
 
 /** replaceState 写查询串（他键原序保留——pathname/hash 不动）。 */
@@ -99,6 +117,12 @@ export function ShellV4() {
     parseNodeParam(window.location.search),
   );
   const [projectId] = useProjectId();
+
+  // 回炉 R16：切项目清陈旧选中（App.tsx D7 同款——URL 面清 ?node= 由
+  // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治）
+  useEffect(() => {
+    setSelectedUnitId(null);
+  }, [projectId]);
 
   /** zone 切换唯一通道（含子页——replaceState 写 ?tab=）。 */
   const setZone = useCallback((next: V4ZoneTarget) => {

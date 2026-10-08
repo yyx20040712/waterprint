@@ -46,8 +46,7 @@ import { TASK_EVENT } from "../../shared/events";
 import { decideRunCalc, paramDraftBlockMessage } from "../ribbon";
 import { writeTaskParam } from "../solutionsUrlState";
 import { useProjectId } from "../useProjectId";
-import { V4_ZONE_LABELS } from "./shellV4";
-import { V4_ZONES, type V4ZoneTarget } from "../zoneParam";
+import { V4_ZONE_LABELS, V4_ZONES, type V4ZoneTarget } from "../zoneParam";
 
 /** logo 简笔水滴线形（wireframe 屏 1 同形——16×16 stroke AC）。 */
 function BandLogo() {

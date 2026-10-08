@@ -59,6 +59,17 @@ export const V4_ZONES: readonly V4Zone[] = [
   "report",
 ];
 
+/** zone 中文名（状态条/页签单源——回炉 R11：自 shellV4 迁入断环
+ *  〔shellV4↔zoneBand 循环 import 根治——V4Zone 真源同件〕）。 */
+export const V4_ZONE_LABELS: Record<V4Zone, string> = {
+  projects: "项目",
+  design: "污水厂设计",
+  network: "管网系统",
+  drafting: "工程制图",
+  viewer3d: "三维示意",
+  report: "计算说明",
+};
+
 /** design/drafting 子页合法值（parse 双段校验源）。 */
 const DESIGN_SUBPAGES: readonly string[] = ["canvas", "analysis"];
 const DRAFTING_SUBPAGES: readonly string[] = ["sheets", "siteplan"];

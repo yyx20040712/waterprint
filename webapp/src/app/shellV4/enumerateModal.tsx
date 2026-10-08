@@ -58,7 +58,8 @@ export function EnumerateModal({
   const [messageApi, contextHolder] = message.useMessage();
   const queryClient = useQueryClient();
   const unitsQuery = useProjectUnits(projectId);
-  const constraintsQuery = useConstraints();
+  // 回炉 R13：约束目录 open 门（与 rawQuery 同制——关闭态免取数）
+  const constraintsQuery = useConstraints(open);
   const rawQuery = useReadProjectApiProjectsProjectIdGet(projectId ?? "", {
     query: { enabled: projectId !== null && open },
   });

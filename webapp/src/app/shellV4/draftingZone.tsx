@@ -1,32 +1,41 @@
 /**
- * v4 工程制图区（B1 骨架批 2026-10-09——左树目录+右图库卡；wireframe-d-v4
- * 屏 5 形；siteplan 编辑面随 v4-2 终裁归制图域=subpage siteplan）。
+ * v4 工程制图区（B1 骨架批 2026-10-09——左树目录+右图库卡栅格；wireframe
+ * -d-v4 屏 5 形；siteplan 编辑面随 v4-2 终裁归制图域=subpage siteplan）。
  *
- * 输入:  subpage（sheets=图纸库缺省/siteplan=厂区总平面布置编辑面——shellV4
+ * 输入: subpage（sheets=图纸库缺省/siteplan=厂区总平面布置编辑面——shellV4
  *        受控）+onSubpageChange（子页切换→?tab= zone 级投影）
- *        +DrawingsPane（app 件复用——DXF 交付物预览）+SiteplanPane（app 件
- *        复用——厂区布置编辑器）
- * 输出:  drafting 区：左=drafting-tree（污水厂▾〔全厂总平面图→siteplan/
+ *        +SiteplanPane（app 件复用——厂区布置编辑器）+exports 查询族
+ *        （features/drawings——图库卡数据源+导出工具行语境）
+ * 输出: drafting 区：左=drafting-tree（污水厂▾〔全厂总平面图→siteplan/
  *        高程纵断图/工艺图…→sheets〕+管网▸规划中）+右=drafting-gallery
- *        （sheets 子页）或 siteplan 编辑面（siteplan 子页全幅）
+ *        （sheets 子页=导出语境行+图库卡栅格；siteplan 子页全幅）
  *
- * 规格说明（B1 任务书 §三.5——plan §九.4）：
+ * 规格说明（B1 任务书 §三.5——plan §九.4；回炉 R7/VB-3）：
  *   - 左树目录=图纸清单导航（节点点击切子页——全厂总平面图→编辑面、
  *     其余→图库）；管网=挂起（「规划中」Tag——G5 语义沿承）；
  *   - 高程纵断图（DXF）=图纸交付物在制图域（W2 定名消歧——与 design
  *     区分析视图「高程纵断」同名异物）；
- *   - 图库卡=DrawingsPane 内容复用（导出发起/产物目录/预览元数据）。
+ *   - 回炉 R7（VB-3）：右区=图库卡栅格（卡片=DXF 交付物预览位+图题；
+ *     数据源=useExportsQuery/buildSheetRows；空态卡=「尚无图纸——完成
+ *     计算后生成」引导）；导出工具行保留为卡区上方语境行（ExportButton
+ *     复用——微裁决 V18）。
  */
 import { lazy, Suspense } from "react";
-import { Tag } from "antd";
+import { Spin, Tag, Typography } from "antd";
 
 import { ErrorBoundary } from "../ErrorBoundary";
+import { useProjectId } from "../useProjectId";
+import { ExportButton } from "../../features/drawings/components/ExportButton";
+import {
+  useConditionOptions,
+  useExportsQuery,
+  useUnitOptions,
+} from "../../features/drawings/api/useExportsQuery";
+import { useUnitCatalog } from "../../features/drawings/api/useUnitCatalog";
+import { buildSheetRows } from "../../features/drawings/lib/drawingsView";
 import type { DraftingSubpage } from "../zoneParam";
 
 /** 懒装载（M1 槽同制——懒件按 chunk 面隔离；装配引用不改件本体）。 */
-const DrawingsPane = lazy(() =>
-  import("../drawingsPane").then((m) => ({ default: m.DrawingsPane })),
-);
 const SiteplanPane = lazy(() =>
   import("../siteplanPane").then((m) => ({ default: m.SiteplanPane })),
 );
@@ -50,6 +59,121 @@ const TREE_ROWS: readonly TreeRow[] = [
   { key: "process", label: "工艺图", subpage: "sheets", depth: 1 },
   { key: "network", label: "管网 ▸", subpage: null, depth: 0, pending: true },
 ];
+
+/** 未选项目引导（与 designZone NO_PROJECT_HINT 同源白名单文案）。 */
+const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
+
+/** 卡片预览位简笔图纸形（折角单图——stroke currentColor 线性）。 */
+function SheetGlyph() {
+  return (
+    <svg
+      width="34"
+      height="26"
+      viewBox="0 0 34 26"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      aria-hidden
+    >
+      <path d="M4 2h18l8 8v14H4z" />
+      <path d="M22 2v8h8" />
+      <path d="M9 13h16M9 17h16" />
+    </svg>
+  );
+}
+
+/** 图库卡栅格（回炉 R7——导出语境行+卡片栅格/空态卡；数据源=exports 查询）。 */
+function SheetsGallery() {
+  const [projectId] = useProjectId();
+  const exportsQuery = useExportsQuery(projectId);
+  const conditionQuery = useConditionOptions(projectId);
+  const unitQuery = useUnitOptions(projectId);
+  // UX1 D3 同制：可投影面过滤（node.kind ∈ 目录 builtin 集剔除——B1 沿
+  // DrawingsPane 口径重装配；catalog 未就绪不过滤全量兜底）
+  const builtinIds = useUnitCatalog().data ?? null;
+  const unitRefs = unitQuery.data ?? [];
+  const exportableUnits =
+    builtinIds === null
+      ? unitRefs.map((unit) => unit.unitId)
+      : unitRefs
+          .filter((unit) => !builtinIds.has(unit.kind ?? ""))
+          .map((unit) => unit.unitId);
+  const rows = buildSheetRows(exportsQuery.data ?? []);
+
+  return (
+    <>
+      {/* 导出语境行（卡区上方——ExportButton 复用；微裁决 V18） */}
+      <div
+        style={{
+          flex: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "6px 10px",
+          borderBottom: "1px solid var(--wp-border-2)",
+          background: "var(--wp-bg-container)",
+        }}
+      >
+        <span style={{ fontSize: 11, color: "var(--wp-text-2)", letterSpacing: 1 }}>
+          图纸库 · DXF 交付物
+        </span>
+        {projectId !== null ? (
+          <ExportButton
+            projectId={projectId}
+            units={exportableUnits}
+            conditions={conditionQuery.data ?? []}
+          />
+        ) : null}
+      </div>
+      <div className="wp-v4-gallery" data-testid="wp-v4-sheet-grid">
+        {projectId === null ? (
+          <div
+            className="wp-v4-sheet-card"
+            style={{ width: "100%", maxWidth: 420 }}
+          >
+            <div className="wp-v4-sheet-thumb">
+              <span>{NO_PROJECT_HINT}</span>
+            </div>
+          </div>
+        ) : exportsQuery.isError ? (
+          <Typography.Text type="danger" style={{ fontSize: 11 }}>
+            图纸目录取数失败：
+            {exportsQuery.error instanceof Error
+              ? exportsQuery.error.message
+              : "未知错误"}
+          </Typography.Text>
+        ) : exportsQuery.isPending ? (
+          <Spin />
+        ) : rows.length === 0 ? (
+          // 空态卡（回炉 R7——「尚无图纸——完成计算后生成」级引导）
+          <div className="wp-v4-sheet-card" style={{ width: "100%", maxWidth: 420 }}>
+            <div className="wp-v4-sheet-thumb">
+              <SheetGlyph />
+            </div>
+            <div className="wp-v4-sheet-cap">尚无图纸——完成计算后生成</div>
+          </div>
+        ) : (
+          rows.map((row) => (
+            <div
+              className="wp-v4-sheet-card"
+              key={row.key}
+              data-testid="wp-v4-sheet-card"
+              title={`${row.fileName} · digest ${row.designDigest.slice(0, 10)}`}
+            >
+              <div className="wp-v4-sheet-thumb">
+                <SheetGlyph />
+              </div>
+              <div className="wp-v4-sheet-cap">
+                {row.kind} · {row.conditionKey === "" ? "all" : row.conditionKey}
+                {row.stale ? <Tag style={{ marginInlineStart: 4 }}>旧</Tag> : null}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
+}
 
 export function DraftingZone({
   subpage,
@@ -84,14 +208,14 @@ export function DraftingZone({
               border: "none",
               background: "transparent",
               color: "var(--wpv4-ac)",
-              fontSize: 11.5,
+              fontSize: 12, // 回炉 R12：字号归一三档（12/11/10）
               cursor: "pointer",
               padding: 0,
             }}
           >
             ‹ 图纸库
           </button>
-          <span style={{ fontSize: 11.5, color: "var(--wp-text)" }}>全厂总平面布置</span>
+          <span style={{ fontSize: 12, color: "var(--wp-text)" }}>全厂总平面布置</span>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
           <ErrorBoundary label="厂区总平面布置">
@@ -136,7 +260,7 @@ export function DraftingZone({
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "4px 8px",
-                fontSize: 11.5,
+                fontSize: 12, // 回炉 R12：字号归一三档
                 color: "var(--wp-text-2)",
               }}
             >
@@ -156,7 +280,7 @@ export function DraftingZone({
                 border: "none",
                 background: "transparent",
                 color: "var(--wp-text)",
-                fontSize: 11.5,
+                fontSize: 12, // 回炉 R12：字号归一三档
                 padding: "4px 8px 4px 22px",
                 cursor: "pointer",
               }}
@@ -170,11 +294,7 @@ export function DraftingZone({
         data-region="drafting-gallery"
         style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
       >
-        <ErrorBoundary label="图纸预览">
-          <Suspense fallback={<PaneLoading />}>
-            <DrawingsPane />
-          </Suspense>
-        </ErrorBoundary>
+        <SheetsGallery />
       </div>
     </section>
   );

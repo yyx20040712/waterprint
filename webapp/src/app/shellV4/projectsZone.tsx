@@ -35,6 +35,7 @@ import {
   projectOptionLabel,
 } from "../projectCreate";
 import { useProjectId } from "../useProjectId";
+import { withNodeParam } from "../zoneParam";
 
 /** 搜索占位（props 键拼接免 grep 特征词——FE3 C3 沿册形）。 */
 const SEARCH_PROPS = { placeholder: "搜索项目…" } as const;
@@ -98,6 +99,21 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
 
   const renameCheck = normalizeProjectName(renameValue);
 
+  /** 打开=切项目+清 ?node=（回炉 R16——切项目幻影选中根治：旧项目节点
+   *  选中键随开清剥，replaceState 他键保留制）+onOpen 切 design 区。 */
+  const openProject = (id: string) => {
+    setProjectId(id);
+    const nextSearch = withNodeParam(window.location.search, null);
+    window.history.replaceState(
+      null,
+      "",
+      nextSearch
+        ? `${window.location.pathname}?${nextSearch}`
+        : window.location.pathname,
+    );
+    onOpen();
+  };
+
   const columns: ColumnsType<ProjectSummaryResponse> = [
     {
       title: "名称",
@@ -139,8 +155,7 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
               disabled={isCurrent}
               data-testid={`wp-v4-proj-open-${record.project_id.slice(0, 8)}`}
               onClick={() => {
-                setProjectId(record.project_id);
-                onOpen();
+                openProject(record.project_id);
               }}
             >
               {isCurrent ? "已打开" : "打开"}
@@ -221,8 +236,7 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
         onClose={() => setCreateOpen(false)}
         onCreated={(created) => {
           setCreateOpen(false);
-          setProjectId(created);
-          onOpen();
+          openProject(created);
         }}
       />
       <Modal
