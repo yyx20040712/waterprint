@@ -22,6 +22,9 @@
  *     本组件卸载/新实例挂载〔ParamForm 条件渲染 fdField===fieldId〕，
  *     全复位重取由卸载/重挂载承载，openFeasibility 同行早退保留在
  *     ParamForm）；切第二轴仍全复位重取（openFeasibility 现状语义不变）；
+ *   - allowClear 清除回 1D（用户裁决④ 2026-10-08——M2 N 级七件之已裁件）：
+ *     第二轴 Select 原生 ✕→onChange undefined→全复位重取 1D（与挂载即取
+ *     同形——2D 缩略消退回 1D 条形）；
  *   - 模态关闭语义更新（预裁决 9——改 R-1/G1-02 行为，申报在批档）：
  *     onCancel=仅关模态，不清产物不重取（fdSecond/fdProduct 保持——
  *     缩略继续在场；R-1 当年「残留 2D 产物使行内条死灰」的病灶随行内
@@ -83,11 +86,18 @@ export function FdInlinePanel({
     runFeasibility([{ field_id: fieldId }]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldId]);
-  const pickSecondAxis = (secondId: string) => {
-    setFdSecond(secondId);
+  // 选轴/清除同通道（用户裁决④ allowClear）：secondId=undefined 即 ✕ 清除
+  // ——全复位重取 1D（与挂载即取同形；runFeasibility 即令牌自增，自动
+  // 拦截旧 2D onSuccess 晚到覆盖）
+  const pickSecondAxis = (secondId: string | undefined) => {
+    setFdSecond(secondId ?? null);
     setFdProduct(null);
-    setModalOpen(false); // 切第二轴=新求值全复位（模态若开着一并复位）
-    runFeasibility([{ field_id: fieldId }, { field_id: secondId }]);
+    setModalOpen(false); // 切/清第二轴=新求值全复位（模态若开着一并复位）
+    runFeasibility(
+      secondId === undefined
+        ? [{ field_id: fieldId }]
+        : [{ field_id: fieldId }, { field_id: secondId }],
+    );
   };
   const fdSecondOptions = params
     .filter(
@@ -105,7 +115,7 @@ export function FdInlinePanel({
           第二轴（2D 热力图）
         </Typography.Text>
         <Select size="small" style={{ minWidth: 180 }} value={fdSecond ?? undefined}
-          options={fdSecondOptions} onChange={pickSecondAxis} data-testid="fd-second-axis"
+          allowClear options={fdSecondOptions} onChange={pickSecondAxis} data-testid="fd-second-axis"
         />
       </div>
       {designMap.isError ? (

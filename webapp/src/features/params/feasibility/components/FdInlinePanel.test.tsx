@@ -22,7 +22,10 @@
  *        溢出 120px 容器；flex 容器 stretch 拉伸根 div 得确定高）；⑦⑧
  *        补 isPending 两分支加载文案锚（R1-b——1D 直渲/2D 第二轴选定产
  *        物未达，既有行为面用例对 HEAD 绿如实记非红面）；⑤注释勘正
- *        （R1-e/k1-N2：「第一轴 depth」→「第二轴 depth」）。
+ *        （R1-e/k1-N2：「第一轴 depth」→「第二轴 depth」）。2B7 批笔1
+ *        （2026-10-08 用户裁决④）：⑨ 第二轴选定后 allowClear ✕ 清除→
+ *        全复位重取 1D（回 1D 条形——mutateCalls[2]=[volume 单轴]+缩略
+ *        消退+1D 产物达后 fd-bar 复现）。
  */
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -292,5 +295,27 @@ describe("FdInlinePanel fd 行内呈现（M2 D2 §F.2 ①+②组合）", () => {
     // 2D 分支（fdSecond 非空）fdProduct 已清→加载文案在场+缩略缺席
     expect(screen.getByText("可行域求值中…")).toBeTruthy();
     expect(screen.queryByTestId("fd-thumb")).toBeNull();
+  });
+
+  it("⑨第二轴选定后 allowClear 清除→回 1D（用户裁决④ 2026-10-08）", async () => {
+    renderPanel();
+    flushOnSuccess(0, map1D("volume"));
+    await pickSecondAxis("水深（depth）");
+    flushOnSuccess(1, map2D("volume", "depth"));
+    expect(screen.getByTestId("fd-thumb")).toBeTruthy();
+    // allowClear ✕ 在场（antd v6 rc-select clear 按钮——有值时渲染）
+    const clearBtn = document.querySelector(".ant-select-clear");
+    expect(clearBtn).not.toBeNull();
+    // jsdom 实测触发形=click（rc-select clear 按钮 onMouseDown 仅
+    // preventDefault 保焦点不开下拉，清除动作挂 onClick——mouseDown 不
+    // 触发 onChange，click 触发〔源码 node_modules/@rc-component/select
+    // SelectInput/index.js clear button 实核〕）
+    fireEvent.click(clearBtn!);
+    // 清除语义=onChange undefined→全复位重取 1D（与挂载即取同形——元素
+    // 形同②mutateCalls[1] 口径：mock 落 push(variables) 对象非数组）
+    expect(gate.mutateCalls[2]).toEqual({ axes: [{ field_id: "volume" }] });
+    expect(screen.queryByTestId("fd-thumb")).toBeNull();
+    flushOnSuccess(2, map1D("volume"));
+    expect(screen.getByTestId("fd-bar")).toBeTruthy();
   });
 });
