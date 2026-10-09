@@ -45,6 +45,43 @@ const JOINT_CARD_LIMIT = 8;
  *  刷新三径均稳；跨项目键隔离=R2b 半面）。 */
 const stickyKeyOf = (projectId: string) => `wp-v4-joint-sticky-${projectId}`;
 
+/** R3 W-B 存储降级内存面（隐私模式/禁存储抛 SecurityError——粘滞为增强
+ *  面，存储不可用则内存 Map 降级承载，禁白屏级崩溃）。 */
+const stickyMemoryFallback = new Map<string, string>();
+const readStickyEntry = (projectId: string | null): string | null => {
+  if (projectId === null) {
+    return null;
+  }
+  const key = stickyKeyOf(projectId);
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return stickyMemoryFallback.get(key) ?? null;
+  }
+};
+const writeStickyEntry = (projectId: string, taskId: string) => {
+  const key = stickyKeyOf(projectId);
+  try {
+    window.sessionStorage.setItem(key, taskId);
+  } catch {
+    stickyMemoryFallback.set(key, taskId);
+  }
+};
+const clearStickyEntry = (projectId: string) => {
+  const key = stickyKeyOf(projectId);
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    /* 存储不可用面——内存键同步清 */
+  }
+  stickyMemoryFallback.delete(key);
+};
+
+/** 粘滞态（R3 W-A：携 owner 域——stickyId 派生=owner===projectId 才生效，
+ *  原位 prop 变更竞态帧旧粘滞自动失效〔drift-clear 不触发〕，换键读
+ *  effect 独立串行）。 */
+type StickyState = { owner: string; taskId: string } | null;
+
 export function JointSolutionCards({
   projectId,
   onApplied,
@@ -67,28 +104,35 @@ export function JointSolutionCards({
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
 
-  // 粘滞态（R2a：sessionStorage 按项目键持久——切右栏页/切 zone 卸载不丢；
-  // R2b：projectId 变化=换键读，天然隔离跨项目残留）
-  const [stickyId, setStickyId] = useState<string | null>(() =>
-    projectId !== null
-      ? window.sessionStorage.getItem(stickyKeyOf(projectId))
-      : null,
-  );
+  // 粘滞态（R2a 持久+R3 W-A owner 域：派生 stickyId 在换键帧自动失效旧
+  // 项目粘滞——drift-clear 不再以旧闭包误删新项目键）
+  const [sticky, setStickyState] = useState<StickyState>(() => {
+    const taskId = readStickyEntry(projectId);
+    return projectId !== null && taskId !== null
+      ? { owner: projectId, taskId }
+      : null;
+  });
+  const stickyId =
+    sticky !== null && sticky.owner === projectId ? sticky.taskId : null;
   const adoptSticky = (taskId: string | null) => {
-    setStickyId(taskId);
-    if (projectId !== null) {
-      if (taskId === null) {
-        window.sessionStorage.removeItem(stickyKeyOf(projectId));
-      } else {
-        window.sessionStorage.setItem(stickyKeyOf(projectId), taskId);
-      }
+    if (projectId === null) {
+      return;
+    }
+    if (taskId === null) {
+      setStickyState(null);
+      clearStickyEntry(projectId);
+    } else {
+      setStickyState({ owner: projectId, taskId });
+      writeStickyEntry(projectId, taskId);
     }
   };
-  // R2b：projectId prop 变化重读本项目键（他项目粘滞不随迁）
+  // R2b/R3 W-A：projectId prop 变化=换键读（独立 effect 串行——换键帧先
+  // 采用新键粘滞，旧项目键不动）
   useEffect(() => {
-    setStickyId(
-      projectId !== null
-        ? window.sessionStorage.getItem(stickyKeyOf(projectId))
+    const taskId = readStickyEntry(projectId);
+    setStickyState(
+      projectId !== null && taskId !== null
+        ? { owner: projectId, taskId }
         : null,
     );
   }, [projectId]);

@@ -141,12 +141,14 @@ def _finite_or_none(raw: Any) -> float | None:
 
 
 def _finite_mapping(raw: Mapping[str, Any]) -> dict[str, float]:
-    """端口段有限性闸（R1 W-NaN+R2d 收紧：非有限值键剔除+非数值类型拒
-    〔bool/字符串 float() 强转面拒——jointView isFiniteNumber 同判〕；
-    schema 面第一道闸外的纵深防御）。"""
+    """端口段有限性闸（R1 W-NaN+R2d 收紧+R3 随手①：非有限值键剔除+非数值
+    类型拒〔bool/字符串 float() 强转面拒——jointView isFiniteNumber 同判；
+    R3 随手③勘正：rows 面 _finite_or_none 为 float() 强转宽容判〔dims 源
+    schema 已类型化——强转无害〕，端口面本闸为类型严格判〔纵深防御〕，
+    两面分叉有意非同判〕；schema 面第一道闸外的纵深防御）。"""
     out: dict[str, float] = {}
     for key, value in sorted(raw.items()):
-        if isinstance(value, bool) or not isinstance(value, int | float):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
         finite = _finite_or_none(value)
         if finite is not None:

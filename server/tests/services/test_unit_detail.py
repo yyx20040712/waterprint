@@ -14,8 +14,11 @@ from waterprint_server.services.unit_detail import _finite_mapping
 
 
 def test_finite_values_pass_through_sorted() -> None:
-    """正常有限值直通（键序 sorted 确定性）。"""
-    assert _finite_mapping({"b": 2.0, "a": 1.5, "c": 0}) == {"a": 1.5, "b": 2.0, "c": 0.0}
+    """正常有限值直通（键序 sorted 确定性——R3 随手②：dict == 忽略键序，
+    list(keys) 显式锚定）。"""
+    out = _finite_mapping({"b": 2.0, "a": 1.5, "c": 0})
+    assert out == {"a": 1.5, "b": 2.0, "c": 0.0}
+    assert list(out.keys()) == ["a", "b", "c"]
 
 
 def test_non_finite_values_dropped() -> None:

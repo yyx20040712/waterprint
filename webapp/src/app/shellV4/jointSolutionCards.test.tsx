@@ -316,3 +316,148 @@ describe("联合方案卡·R2 回炉（粘滞持久/project 守卫/failed 分面
     ).toBeNull();
   });
 });
+
+describe("联合方案卡·R3 回炉（跨项目竞态/存储降级/锚定）", () => {
+  const KEY_P1 = "wp-v4-joint-sticky-p1";
+  const KEY_P2 = "wp-v4-joint-sticky-p2";
+  const JOINT_STATUS_P2 = {
+    ...JOINT_STATUS,
+    task_id: "t-joint-p2",
+    project_id: "p2",
+  };
+
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    gate.statusByTask = { "t-joint-1": JOINT_STATUS };
+  });
+
+  /** 双 props 渲染（原位 projectId 变更径——d1-N6 竞态复现面）。 */
+  function renderForRerender() {
+    const view = render(
+      <QueryClientProvider client={queryClient}>
+        <JointSolutionCards projectId="p1" onApplied={gate.applied} />
+      </QueryClientProvider>,
+    );
+    return {
+      container: view.container,
+      rerender: (nextProject: string) =>
+        view.rerender(
+          <QueryClientProvider client={queryClient}>
+            <JointSolutionCards projectId={nextProject} onApplied={gate.applied} />
+          </QueryClientProvider>,
+        ),
+    };
+  }
+
+  it("R3a/W-A：原位切 projectId p1→p2——p2 合法粘滞键不被删+卡列切 p2 视图", async () => {
+    // p1 粘滞建立
+    const view = renderForRerender();
+    await vi.waitFor(() => {
+      expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+    });
+    expect(window.sessionStorage.getItem(KEY_P1)).toBe("t-joint-1");
+    // p2 侧既有粘滞+状态就位
+    window.sessionStorage.setItem(KEY_P2, "t-joint-p2");
+    gate.statusByTask["t-joint-p2"] = JOINT_STATUS_P2;
+    // 原位 prop 变更（组件不卸载——竞态帧：换键读 vs 漂移清）
+    view.rerender("p2");
+    await vi.waitFor(() => {
+      expect(view.container.textContent).toContain("联合枚举 2");
+    });
+    // 竞态根治证：p2 键不被删（旧实现 drift-clear 以旧粘滞闭包误删新键）
+    expect(window.sessionStorage.getItem(KEY_P2)).toBe("t-joint-p2");
+    // p1 键亦无损（换键≠清理）
+    expect(window.sessionStorage.getItem(KEY_P1)).toBe("t-joint-1");
+    // p2→p1 回切：p1 粘滞回场（双项目交替）
+    view.rerender("p1");
+    await vi.waitFor(() => {
+      expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+    });
+    expect(window.sessionStorage.getItem(KEY_P1)).toBe("t-joint-1");
+    expect(window.sessionStorage.getItem(KEY_P2)).toBe("t-joint-p2");
+  });
+
+  it("R3a/d1-N5：粘滞源 project 漂移=清粘滞且存储键实清（getItem 锚定）", async () => {
+    window.history.replaceState(null, "", "/?task=t-joint-1");
+    const view = renderForRerender();
+    await vi.waitFor(() => {
+      expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+    });
+    expect(window.sessionStorage.getItem(KEY_P1)).toBe("t-joint-1");
+    // 粘滞任务 project 漂移（他项目键残留/任务重建面）——?task= 移开触发
+    // 重读（viewTaskId 落粘滞源=漂移态可判）
+    gate.statusByTask["t-joint-1"] = { ...JOINT_STATUS, project_id: "p9" };
+    window.history.replaceState(null, "", "/?task=t-recalc");
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-recalc" }));
+    await vi.waitFor(() => {
+      expect(view.container.textContent).toContain(NO_JOINT_TEXT);
+    });
+    expect(window.sessionStorage.getItem(KEY_P1)).toBeNull(); // 清键锚定
+  });
+
+  it("R3a/k2-N1 后半：failed 面期间粘滞键保留（不清——?task= 移开后卡列回场）", async () => {
+    window.history.replaceState(null, "", "/?task=t-joint-1");
+    const view = renderForRerender();
+    await vi.waitFor(() => {
+      expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+    });
+    gate.statusByTask["t-joint-f"] = {
+      ...JOINT_STATUS,
+      task_id: "t-joint-f",
+      state: "failed",
+      error: "网格超限",
+      result: null,
+    };
+    window.history.replaceState(null, "", "/?task=t-joint-f");
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-joint-f" }));
+    await vi.waitFor(() => {
+      expect(view.container.querySelector('[data-testid="wp-v4-joint-error"]')).not.toBeNull();
+    });
+    expect(window.sessionStorage.getItem(KEY_P1)).toBe("t-joint-1"); // 粘滞键保留
+  });
+
+  it("R3/k2-N6 锚定：他项目 failed joint=空态面（非 badPayload 错误面）", () => {
+    gate.statusByTask["t-joint-f9"] = {
+      ...JOINT_STATUS,
+      task_id: "t-joint-f9",
+      project_id: "p9",
+      state: "failed",
+      error: "x",
+      result: null,
+    };
+    window.history.replaceState(null, "", "/?task=t-joint-f9");
+    const { container } = renderCards();
+    expect(container.textContent).toContain(NO_JOINT_TEXT);
+    expect(container.querySelector('[data-testid="wp-v4-joint-error"]')).toBeNull();
+  });
+
+  it("R3/W-B：sessionStorage 抛 SecurityError=内存降级不白屏（粘滞增强面可用）", async () => {
+    const original = window.sessionStorage;
+    Object.defineProperty(window, "sessionStorage", {
+      configurable: true,
+      get() {
+        throw new Error("SecurityError");
+      },
+    });
+    try {
+      window.history.replaceState(null, "", "/?task=t-joint-1");
+      const view = renderForRerender();
+      // 不崩（渲染期初始化器直读旧面=白屏级——W-B 修复证）+卡列经内存降级在场
+      await vi.waitFor(() => {
+        expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+      });
+      // 内存降级粘滞：?task= 移开后卡列仍粘滞
+      window.history.replaceState(null, "", "/?task=t-recalc");
+      gate.statusByTask["t-recalc"] = RECALC_STATUS;
+      window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-recalc" }));
+      await vi.waitFor(() => {
+        expect(view.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')).not.toBeNull();
+      });
+    } finally {
+      Object.defineProperty(window, "sessionStorage", {
+        configurable: true,
+        value: original,
+      });
+    }
+  });
+});
