@@ -96,6 +96,8 @@ python -m 也不经 entrypoint）仍绕过校验——裸机部署请一律走
 | `WATERPRINT_MAX_UPLOAD_MB` | 10 | 上传体积闸 |
 | `WATERPRINT_DWG_CONVERTER_PATH` | （空=关） | ODA File Converter 可执行路径（可选 DXF→DWG；详见「导出格式」节） |
 | `WATERPRINT_DWG_CONVERTER_TIMEOUT_S` | 100 | 单次 DWG 转换子进程超时秒（超时=跳过 DWG，DXF 照常交付） |
+| `WATERPRINT_TYPST_PATH` | （空=PATH 发现） | typst CLI 可执行路径（B6 PDF 计算书导出引擎；空=服务进程 PATH 自动发现；详见「导出格式」节） |
+| `WATERPRINT_TYPST_TIMEOUT_S` | 100 | 单次 PDF 编译子进程超时秒（超时=TypstCompileError 显式 500，PDF 未产出） |
 | `WATERPRINT_API_TOKEN` | （空=鉴权关） | API Bearer token（R2A 批1：非空即 21 端点受保，≥16 位；**compose 插值透传自宿主 env/.env**——非 Dockerfile 钉值；强制口径见「安全红线」节） |
 
 > 绑定面两字段 `WATERPRINT_HOST`/`WATERPRINT_PORT`（settings.py，裸机
@@ -159,6 +161,31 @@ AutoCAD 2018+、中望 CAD、浩辰 CAD 均原生打开 DXF R2018——不装任
 **适用形态**：自装主机（Windows/Linux 裸机或内网服务器）与内网部署
 （转换器挂载进容器+设环境变量）。默认容器镜像**不含**转换器=默认关
 （§12.7 许可证隔离原则——转换器属部署侧组件，不进基础镜像）。
+
+## 导出格式：PDF 计算书（Typst 引擎——部署依赖）
+
+**PDF 计算书**（`POST /api/exports/report_pdf`）由 Typst 排版引擎编译产出
+（A4/页眉页脚/页码/表格/数学公式）。该功能**要求服务主机安装 typst CLI**
+（B6 计算说明批部署依赖申报——未安装时该端点返回 500 显式错误消息，其余
+导出功能不受影响）：
+
+1. Windows 主机推荐 winget 安装：`winget install Typst.Typst`——安装后
+   可执行件位于
+   `C:\Users\<用户>\AppData\Local\Microsoft\WinGet\Packages\Typst.Typst_Microsoft.Winget.Source_8wekyb3d8bbwe\typst-x86_64-pc-windows-msvc\typst.exe`
+   （winget 包目录默认不进服务进程 PATH——新 shell 未继承时设
+   `WATERPRINT_TYPST_PATH` 指向上路径，见 env 表）；
+2. Linux/容器部署：从 `typst` 官方渠道安装（GitHub Releases 静态二进制
+   或发行版包），可执行件在 PATH 即自动发现；
+3. 路径解析三级序：`WATERPRINT_TYPST_PATH` 显式值 → 服务进程 PATH
+   （`shutil.which("typst")`）→ 均缺=端点 500 显式消息（含安装指引）；
+4. 字体面：PDF 内嵌 Times New Roman+SimSun——服务主机须具备两款系统
+   字体（Windows 自带；Linux 容器需随镜像安装或映射字体目录）；
+5. 失败语义：编译失败/超时（默认 100 秒，`WATERPRINT_TYPST_TIMEOUT_S`
+   可调）=500 显式消息（stderr 摘要入消息）+临时文件零残留，不落半产物。
+
+引擎中立申报：PDF 渲染器为「AST→排版源」接口的 Typst 实现（公式源=
+sympy 表达式树单源双态打印机）；更换排版引擎（如 LaTeX 系 Tectonic）=
+同接口另一渲染器实现，不影响计算说明书 AST 与 Markdown 通道。
 
 ## 冒烟自检清单（部署后 2 分钟过一遍）
 

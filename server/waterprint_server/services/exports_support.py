@@ -50,13 +50,20 @@ from typing import Any, Final
 
 from waterprint_server.settings import validate_component
 
-_KINDS: Final[tuple[str, ...]] = ("calcbook", "audit", "dxf", "estimate", "ifc")
+_KINDS: Final[tuple[str, ...]] = (
+    "calcbook", "audit", "dxf", "estimate", "ifc", "report_pdf",
+)
+# B6 计算说明批 2026-10-09：report_pdf=Typst PDF 计算书（全厂整厂产物——
+# 编排真源 services/report_pdf.py 独立件承载，非 create_export 通用面）。
 _DIGEST_PREFIX: Final[int] = 10  # 文件名摘要长度（白名单字面量；注记区）
 # FE9 D4：kind→产物后缀映射（dxf→.dxf、ifc→.ifc；其余 Excel 族恒 .xlsx 零漂移）。
 # exp-audit-20260930：audit 后缀勘正 .xlsx→.html（501 占位期的名义后缀收口
 # ——真产物为自包含 HTML；下载白名单 DOWNLOAD_SUFFIXES 派生面自动含 .html）。
 _KIND_SUFFIXES: Final[Mapping[str, str]] = MappingProxyType(
-    {"calcbook": ".xlsx", "audit": ".html", "dxf": ".dxf", "estimate": ".xlsx", "ifc": ".ifc"}
+    {
+        "calcbook": ".xlsx", "audit": ".html", "dxf": ".dxf",
+        "estimate": ".xlsx", "ifc": ".ifc", "report_pdf": ".pdf",
+    }
 )
 # EXPD D1：下载面合法后缀集（_KIND_SUFFIXES 值域派生——不新造字面量集，
 # kind 增删时下载白名单零漂移；大小写敏感=.DXF 天然拒）。

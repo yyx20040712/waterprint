@@ -95,6 +95,7 @@ from waterprint_server.routers import (
     exports,
     projects,
     report,
+    report_pdf,
     scene,
     site,
     solution,
@@ -164,6 +165,9 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 1  # B6 计算说明批：GET /api/calc/projects/{project_id}/report（计算
          # 说明书报告——markdown+sections 两级索引+stale 显式，45→46 破面
          # 〔b6-20261009 任务书 §一.3/§二.④授权〕）
+    + 1  # B6 计算说明批：POST /api/exports/report_pdf（Typst PDF 计算书——
+         # AST→Typst 源→typst CLI 编译，46→47 破面〔b6-20261009 任务书
+         # §一.5/§二.⑥授权〕）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -308,6 +312,11 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     # {pid}/report——路径前缀沿 calc 域，路由件独立挂载：calc 镜像测试端点
     # 集冻结断言=人类锁定面，扩挂 calc.router 必改锁定测试；Bearer 沿册同保）。
     app.include_router(report.router, dependencies=[Depends(verify_token)])
+    # B6 计算说明批（2026-10-09）：Typst PDF 计算书导出（POST /api/exports/
+    # report_pdf——路径前缀沿 exports 域，路由件独立挂载：test_exports 镜像
+    # 测试 exports 路由器恰七件冻结断言=人类锁定面，扩挂 exports.router 必改
+    # 锁定测试；Bearer 沿册同保）。
+    app.include_router(report_pdf.router, dependencies=[Depends(verify_token)])
     # B4-3：联合枚举正门（/api/solution/joint-enumerate——Bearer 沿册同保）。
     app.include_router(solution.router, dependencies=[Depends(verify_token)])
     app.include_router(exports.router, dependencies=[Depends(verify_token)])

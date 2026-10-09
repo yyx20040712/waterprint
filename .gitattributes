@@ -21,3 +21,4 @@
 *.xlsx binary
 *.dwg binary
 *.sh text eol=lf
+*.typst eol=lf

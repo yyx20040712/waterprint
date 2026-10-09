@@ -99,6 +99,12 @@ from waterprint_server.services.report import (
     ReportSourceNotFoundError,
     ReportVerifyError,
 )
+
+# B6 计算说明批（2026-10-09 §二.⑥）：report_pdf 编排异常（500 族显式消息）。
+from waterprint_server.services.report_pdf import (
+    TypstCompileError,
+    TypstUnavailableError,
+)
 from waterprint_server.services.scene import (
     InvalidSceneRequestError,
     SceneSourceNotFoundError,
@@ -151,6 +157,10 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (ReportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ReportEntryNotFoundError, status.HTTP_404_NOT_FOUND),
     (ReportVerifyError, status.HTTP_500_INTERNAL_SERVER_ERROR),
+    # B6 §二.⑥：report_pdf 编译面 500 族（typst 部署依赖缺/编译失败超时
+    # ——stderr 显式消息禁静默；部署依赖申报 docs/deployment.md）。
+    (TypstUnavailableError, status.HTTP_500_INTERNAL_SERVER_ERROR),
+    (TypstCompileError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),

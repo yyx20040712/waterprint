@@ -79,6 +79,7 @@ _FAIL_FAST_FIELDS = (
     "task_sweep_interval_s",  # WP4：间隔 <1 秒=空转热循环（fail fast 不静默）
     "task_registry_cap",  # WP4：上限 <1=任何任务都越限（语义空洞，fail fast）
     "lock_expiry_s",  # WP4：过期窗 <1 秒=新鲜锁即放行（锁面失效，fail fast）
+    "typst_timeout_s",  # B6：超时 <1 秒=闸死 PDF 编译面（fail fast 不静默）
 )
 # 服务层引擎版本标识（可复算三元组成员——与 server/pyproject version 同源同步）。
 ENGINE_VERSION: Final[str] = "waterprint-server 0.1.0"
@@ -187,6 +188,14 @@ class Settings(BaseSettings):
     sse_max_subscribers_per_project: int | None = 10  # 10（白名单值）
     sse_connect_rate_per_second: int | None = 10  # 10/s（突发=2×rate 固定）
     sse_heartbeat_seconds: int | None = 10 * 2 + 10  # 30（300s 读超时的 1/10）
+    # B6 计算说明批（2026-10-09 §二.⑥）：Typst PDF 计算书导出引擎——typst
+    # CLI 可执行路径（空=PATH 自动发现 shutil.which；服务主机部署依赖=须装
+    # typst〔winget 安装 Typst.Typst——安装路径面见 docs/deployment.md
+    # 「导出格式」节，不入源码硬编码〕；env WATERPRINT_TYPST_PATH 覆盖）。
+    typst_path: str = ""
+    # 编译子进程超时秒（超时=TypstCompileError 500 显式——dwg_converter
+    # 同款防御值语义）。
+    typst_timeout_s: int = 10**2  # 100（幂积保白名单字面量集）
 
     @field_validator(
         "sse_max_connections",
