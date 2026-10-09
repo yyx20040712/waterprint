@@ -13,6 +13,7 @@ dependencies = [
     "openpyxl>=3.1",
     "ezdxf>=1.3",
     "ifcopenshell>=0.8.5",
+    "sympy>=1.14.0",
 ]
 
 [dependency-groups]
@@ -152,6 +153,9 @@ include_external_packages = true
 # 之下（cli → flows → app…）——CLI/MCP 两壳共用编排层；flows 禁依赖
 # server/cli（root_package 外天然不可见）。structure-graph §1a 节点表
 # 双源同步与 file-contracts 登记归集成批（禁改文件，时序记档任务书 §1）。
+# B6 计算说明批（2026-10-09）：waterprint.report 说明书管线自 agent 移植
+# core 插层 flows 之下（L4 消费位——依赖=app 正门+contracts+registry 只读；
+# server 服务/agent 工具两侧消费，core 内无上位消费面）。
 # L5c 2026-09-03：waterprint.ifc_export 并入 L3 行（BIM 互操作投影与
 # drafting/geometry 同层消费面）；其对 geometry 的场景图消费边为同层
 # 边，经下方 ignore_imports 显式豁免登记（SERVER D1 同款忠实意图条款
@@ -162,6 +166,7 @@ type = "layers"
 layers = [
     "waterprint.cli",
     "waterprint.flows",
+    "waterprint.report",
     "waterprint.app | waterprint.app_enumeration | waterprint.app_export | waterprint.app_export_options | waterprint.app_enumeration_gates",
     "waterprint.project | waterprint.trace",
     "waterprint.graph | waterprint.solution | waterprint.elevation | waterprint.cost | waterprint.drafting | waterprint.geometry | waterprint.ifc_export | waterprint.network",
@@ -323,5 +328,8 @@ source_modules = [
     # AI1 集成批（2026-09-13）：flows 用例流层纳入 pint 禁令 source 面
     # （轨道甲报告疑虑 1 收口——flows 与 cli/app 同层同守 ADR-002 边界）。
     "waterprint.flows",
+    # B6 计算说明批（2026-10-09）：report 说明书管线自 agent 移植 core
+    # （L4.report 消费位——同层同守 ADR-002 pint 边界）。
+    "waterprint.report",
 ]
 forbidden_modules = ["pint"]

@@ -1,14 +1,18 @@
 """说明书块类型定义与装配辅助（预算拆分件——自 build.py 纯搬迁）。
 
-路径:   waterprint_agent/report/blocks.py
+路径:   waterprint/report/blocks.py
 职责:   ReportAST 的块类型族（TableBlock/NumberLine/NarrativeSlot/
         FigureRef/NoteLine/Section/Chapter）+EstimateRowLike/
         EstimateSheetLike 协议+纯投影辅助（单元显示名/工况标签/锚定
         索引/dims 字段排序/单元展示序）——章节装配（build.py）的消费面。
-禁区:   禁 import server／fastmcp／core L1-L3（只许 waterprint.app 正门
-        与 waterprint.contracts.*）；禁 IO——纯函数，不读不写文件。
+输入:   contracts 类型面（UnitManifest/ProjectFile/PlantResult——只读）。
+输出:   块类型族与纯投影辅助（build/render_md 消费；__init__ 再导出）。
+禁区:   禁 import server／fastmcp／waterprint_agent 与内核 L3/L2 子系统
+        （本件只许 waterprint.contracts.*——连 app 都不消费）；禁 IO
+        ——纯函数，不读不写文件。
 参照:   v2 设计书 D5①/D5④；AI1-INTEG-2026-09-13 §3 预裁决①（拆分
-        零行为变化——既有 62 测试不动全绿为验收门）。
+        零行为变化——既有 62 测试不动全绿为验收门）；B6 移植 core
+        （import 路径重写零逻辑改动）。
 """
 
 from __future__ import annotations

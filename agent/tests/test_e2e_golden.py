@@ -247,6 +247,6 @@ def test_golden_full_chain_mcp(  # noqa: PLR0913, PLR0915, PLR0917  # 参数化�
              "narrative_fills": {"layout_narrative": "厂区占地约 3.5 公顷。"}},
         )
         assert bad["rejected_narratives"]["layout_narrative"]
-        from waterprint_agent.report.anchors import validate_narrative
+        from waterprint.report.anchors import validate_narrative
 
         assert validate_narrative("第 3 章所述工序组合") == []  # 序号豁免形态

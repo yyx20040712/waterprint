@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 import pytest
+
 from waterprint.contracts.result_schema import PlantResult, deserialize
 from waterprint.contracts.trust import DiagnosticsReport, deserialize_diag
 

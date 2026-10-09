@@ -7,6 +7,7 @@ municipal_34760（一次性 result.json——缺失 skip）。
 from __future__ import annotations
 
 import pytest
+
 from waterprint.app import load_project
 from waterprint.contracts.result_schema import (
     PlantResult,
@@ -15,8 +16,7 @@ from waterprint.contracts.result_schema import (
     UnitResultSnapshot,
 )
 from waterprint.contracts.trust import DiagnosticsReport
-
-from waterprint_agent.report.build import (
+from waterprint.report.build import (
     Chapter,
     NarrativeSlot,
     NumberLine,

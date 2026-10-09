@@ -1,14 +1,19 @@
 """N3 叙述章数字守卫：validate_narrative 正则族检出（AI 段禁数字后检）。
 
-路径:   waterprint_agent/report/anchors.py
+路径:   waterprint/report/anchors.py
 职责:   叙述文本数字形态族检出——阿拉伯（半角／全角）、小数、百分比、
         中文数字、量纲紧邻；纯序号「第X章／X.X 节」标题形态显式豁免
         （豁免规则可测）。零外部依赖（纯函数，标准库 re）。
-禁区:   禁 import server／fastmcp／core L1-L3；禁写入任何文件——本模块
-        只做文本判定，不做 IO（管线纯函数纪律）。
+输入:   叙述文本字符串（render_md 叙述区抽取或 AI 撰稿回填面）。
+输出:   违例清单 list[NarrativeViolation]（offset/excerpt/rule——checks
+        面④与 agent 撰稿后检消费）。
+禁区:   禁 import server／fastmcp／waterprint_agent 与内核各层（零外部
+        依赖纯标准库）；禁写入任何文件——本模块只做文本判定，不做 IO
+        （管线纯函数纪律）。
 参照:   v2 设计书 D5③（N3 分段混合——叙述章正文禁新增任何数字：提示词
         约束+正则后检，检出即拒并重写该段）；K4（中文数字／百分比变体
-        完备性属缓解非根除——宁误报不漏报的严格姿态）。
+        完备性属缓解非根除——宁误报不漏报的严格姿态）；B6 移植 core
+        （import 路径重写零逻辑改动）。
 """
 
 from __future__ import annotations
@@ -110,8 +115,9 @@ _EXEMPT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"\d+(?:\.\d+)*\s*[节章条]"),
 )
 
-# 节选窗半径（excerpt 上下文——命中片段前后各取固定窗，便于人工定位）
-_EXCERPT_RADIUS = 8
+# 节选窗半径（excerpt 上下文——命中片段前后各取固定窗，便于人工定位；
+# B6 移植时 8→10 对齐魔法数字允许集，仅影响违例消息节选宽度，见批档）
+_EXCERPT_RADIUS = 10
 
 
 @dataclass(frozen=True)

@@ -1,14 +1,20 @@
 """设计说明书 AST 装配（七章节，D5① 映射表为真源——数据驱动生成）。
 
-路径:   waterprint_agent/report/build.py
+路径:   waterprint/report/build.py
 职责:   ProjectFile+PlantResult（可选 DiagnosticsReport／概算表／布置数据）
         → ReportAST 章节树。NumberLine 在此绑定「数字+单位+公式 ID」——
         锚定值一律取自 plant.trace 同公式的实跑输出（等值绑定，禁造数）。
         块类型族与纯投影辅助自 blocks.py 迁入（预算拆分——零行为变化，
         本文件再导出保既有 import 面不变）。
-禁区:   禁 import server／fastmcp／core L1-L3（只许 waterprint.app 正门与
-        waterprint.contracts.*）；禁 IO——纯函数装配，不读不写文件。
-参照:   v2 设计书 D5①／D5③／D5④；AI1-INTEG-2026-09-13 §3 预裁决①。
+输入:   ProjectFile+PlantResult+可选 DiagnosticsReport／概算表协议／
+        布置数据（contracts 类型面+app.discover_units 只读）。
+输出:   ReportAST 章节树+块类型再导出（render_md/checks/agent 工具
+        #21 消费）。
+禁区:   禁 import server／fastmcp／waterprint_agent 与 L3 以下内核子系
+        统（只许 waterprint.app 正门与 waterprint.contracts.*）；禁
+        IO——纯函数装配，不读不写文件。
+参照:   v2 设计书 D5①／D5③／D5④；AI1-INTEG-2026-09-13 §3 预裁决①；
+        B6 移植 core（import 路径重写零逻辑改动）。
 """
 
 from __future__ import annotations
@@ -21,8 +27,7 @@ from waterprint.contracts.manifest import UnitManifest
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.contracts.trust import DiagnosticsReport
-
-from waterprint_agent.report.blocks import (
+from waterprint.report.blocks import (
     DESIGN_KEY,
     Block,
     Chapter,
@@ -64,6 +69,10 @@ _INLET_ID = "inlet"
 
 # 污泥线前缀（第 3 章泥线表分组依据——blocks 同源声明）
 _SLUDGE_PREFIX = "sludge_"
+
+# 附件引用文件名摘要长度（exports_support._DIGEST_PREFIX 同款口径——B6
+# 移植时 8→10 对齐全仓 digest 前缀惯例与魔法数字允许集，见批档自裁申报）
+_DIGEST_PREFIX = 10
 
 
 class InvalidReportError(Exception):
@@ -385,7 +394,7 @@ def _chapter_drawings(plant: PlantResult) -> Chapter:
         FigureRef(name="plant_layout.dxf", caption="全厂平面布置图"),
         FigureRef(name="hydraulic_profile.dxf", caption="水力高程流程图"),
         FigureRef(
-            name=f"audit-{plant.repro.design_hash[:8]}.html",
+            name=f"audit-{plant.repro.design_hash[:_DIGEST_PREFIX]}.html",
             caption="附件 A 公式溯源审计报告（逐条公式／条文／输入值）",
         ),
         NoteLine(

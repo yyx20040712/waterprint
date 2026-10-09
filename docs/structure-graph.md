@@ -29,6 +29,7 @@
 | `waterprint_server.settings` | L5.settings | `server/waterprint_server/settings.py` |
 | `waterprint.cli` | L4.cli | `core/waterprint/cli.py` |
 | `waterprint.flows` | L4.flows | `core/waterprint/flows` |
+| `waterprint.report` | L4.report | `core/waterprint/report` |
 | `waterprint.app` | L4.app | `core/waterprint/app.py` |
 | `waterprint.app_enumeration` | L4.app | `core/waterprint/app_enumeration.py` |
 | `waterprint.app_export` | L4.app | `core/waterprint/app_export.py` |
@@ -54,7 +55,9 @@
 > 层序（自上而下）：L6（webapp / waterprint_agent——内核的两种客户端：
 > 浏览器与 MCP 宿主，AI1 集成批）→ L5.main → L5.routers → L5.services →
 > L5.jobs → L5.settings → L4.cli → L4.flows（CLI 与 agent 共享用例流层，
-> ADR-022）→ L4.app（app 与 app_enumeration 同层伴生，SERVER
+> ADR-022）→ L4.report（设计说明书管线消费位——B6 计算说明批 2026-10-09
+> 自 agent 移植 core：依赖=app 正门+contracts+registry 只读，server 服务与
+> agent 工具两侧消费）→ L4.app（app 与 app_enumeration 同层伴生，SERVER
 > D1 2026-08-26——app 再导出保持 server 单入口，方向单一 app→
 > app_enumeration 防环）→ L4.project-trace → L3 → L2 → L1 → L0 →
 > DATA → CONTRACT。依赖边只许沿层序向下（§1b 由门禁强制；同层伴生边
@@ -69,6 +72,7 @@
 | from | to | 关系 |
 |------|----|------|
 | `waterprint_agent` | `waterprint.flows` | MCP 工具经 flows 用例流正门（ADR-020/022——AI1 集成批） |
+| `waterprint_agent` | `waterprint.report` | MCP 工具 #21 说明书管线消费（B6 起 report 居 core——import 路径改指，API 面零变化） |
 | `waterprint_agent` | `waterprint.app` | 知识/项目工具经内核正门（discover_units/load_project 再导出面） |
 | `waterprint_agent` | `waterprint.contracts` | 结果/诊断 schema 类型面（serialize/deserialize） |
 | `waterprint_agent` | `waterprint_server.services` | 进程内复用服务层（零 web 框架实证——ADR-021 D2 装配） |
@@ -98,6 +102,9 @@
 | `waterprint_server.jobs` | `waterprint_server.settings` | 池大小/队列等配置 |
 | `waterprint.cli` | `waterprint.flows` | CLI 壳经 flows 用例流编排（ADR-022 两壳分工——AI1 集成批） |
 | `waterprint.flows` | `waterprint.app` | 用例流只经内核正门（ADR-022 D1） |
+| `waterprint.report` | `waterprint.app` | 说明书 AST 装配经内核正门（discover_units manifest 面——B6 移植自 agent，依赖现实：web 阅读面需 server 供 md，agent→server 单向禁路使 report 必居 core） |
+| `waterprint.report` | `waterprint.contracts` | ProjectFile/PlantResult/DiagnosticsReport 类型面（说明书装配输入——B6 随迁） |
+| `waterprint.report` | `waterprint.registry` | 公式溯源附录/双打印机经 by_id 只读取 spec（B6 计算说明批） |
 | `waterprint.flows` | `waterprint.contracts` | RunEnv/条件集/结果序列化类型面（ADR-022） |
 | `waterprint.flows` | `waterprint.trace` | audit 渲染包装例外通道（trace.audit 直调——ADR-020 D2 正门）；est-20261001 起 estimate 渲染流同通道消费 trace.estimate_sheet（xlsx 直写渲染件）与经其间接消费 xlsx_save 共享件 |
 | `waterprint.flows` | `waterprint.cost` | 概算流直取 cost 四模块链（estimate_summary_flow——ADR-022 D2） |

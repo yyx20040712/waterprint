@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from waterprint_agent.report.anchors import validate_narrative
+from waterprint.report.anchors import validate_narrative
 
 # 多命中排序断言的下限（三处独立形态：阿拉伯/百分比/量纲紧邻）
 _MIN_MULTI_HITS = 3

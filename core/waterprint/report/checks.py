@@ -1,6 +1,6 @@
 """verify_report 数值锚定断言件（D8③——集成批 e2e 消费面）。
 
-路径:   waterprint_agent/report/checks.py
+路径:   waterprint/report/checks.py
 职责:   渲染文本 → CheckReport：①全部〔公式ID〕可在 plant.trace 查到；
         ②锚定数值与该公式 trace 输出逐项相等（round(x,10) 同口径）；
         ③未锚定数值行的值必落 serialize 值域（dims／outflows／
@@ -8,9 +8,14 @@
         抽取）validate_narrative 零违例；⑤表格数值面（门一 FIX-1
         收口）：管道表行数值进断言——带锚表值同面②、plant 数据源表
         （见 _PLANT_TABLE_TITLES）无锚表值同面③。纯函数、零 IO。
-禁区:   禁 import server／fastmcp／core L1-L3（只许 waterprint.contracts.*）。
+输入:   Markdown 渲染文本+PlantResult（contracts 类型面——trace/serialize
+        值域投影）。
+输出:   CheckReport（ok+失败明细+统计面——服务面生成前过闸消费）。
+禁区:   禁 import server／fastmcp／waterprint_agent 与内核 L3/L2/L1
+        （本件只许 waterprint.contracts.*+包内 anchors）。
 参照:   v2 设计书 D8③（说明书断言——仅 municipal_34760 口径）；任务书
-        预裁决「数值锚定断言件」；门一审查 C2（表格数值盲区）FIX-1。
+        预裁决「数值锚定断言件」；门一审查 C2（表格数值盲区）FIX-1；
+        B6 移植 core（import 路径重写零逻辑改动）。
 """
 
 from __future__ import annotations
@@ -20,8 +25,7 @@ from dataclasses import dataclass
 from typing import final
 
 from waterprint.contracts.result_schema import PlantResult
-
-from waterprint_agent.report.anchors import validate_narrative
+from waterprint.report.anchors import validate_narrative
 
 __all__ = ["CheckReport", "verify_report"]
 

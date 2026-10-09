@@ -11,10 +11,9 @@ from waterprint.contracts.result_schema import (
     TraceNode,
     UnitResultSnapshot,
 )
-
-from waterprint_agent.report.build import build_report_ast
-from waterprint_agent.report.checks import CheckReport, verify_report
-from waterprint_agent.report.render_md import render_markdown
+from waterprint.report.build import build_report_ast
+from waterprint.report.checks import CheckReport, verify_report
+from waterprint.report.render_md import render_markdown
 
 # 断言下限常量（合成例统计面 / golden 实测锚定面 243）
 _MIN_ANCHORS = 1

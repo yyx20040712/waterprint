@@ -3,9 +3,9 @@
 测试面，经 agent job 的 --check 步消费）。
 
 产物（三件套，均锁面外快照资产——check_readonly/lock_tests 双忽略目录）：
-    agent/tests/report/__snapshots__/result.json               # PlantResult serialize
-    agent/tests/report/__snapshots__/diag.json                 # DiagnosticsReport serialize_diag
-    agent/tests/report/__snapshots__/municipal_34760.sample.md # render_markdown 渲染样例
+    core/tests/report/__snapshots__/result.json                # PlantResult serialize
+    core/tests/report/__snapshots__/diag.json                  # DiagnosticsReport serialize_diag
+    core/tests/report/__snapshots__/municipal_34760.sample.md  # render_markdown 渲染样例
 
 装配口径=agent 工具 #8 同径（flows.build_env_flow/build_condition_flow/
 build_standards_flow → app.run_full_calc → serialize/serialize_diag →
@@ -15,11 +15,11 @@ checked_units）。历史注记：2026-09-28 一次性脚本产物未装 standar
 （diag effluent 面 空）且 engine_version 用 server 串——本脚本按 #8 正门
 口径入库，与彼时产物非逐字节同源（summary/trace 全等在案）。
 
-用法（仓根锚定，脚本自定位；agent venv 或任一装得下 waterprint 的 venv）：
-    uv run --project agent python tools/report_golden.py --check
+用法（仓根锚定，脚本自定位；core venv——B6 起 report 管线居 core）：
+    uv run --project core python tools/report_golden.py --check
         # 漂移检测：重生成双跑（进程内字节恒等断言）与入库件逐字节比对，
         # 漂移即 exit 1（CI 面）
-    uv run --project agent python tools/report_golden.py --write
+    uv run --project core python tools/report_golden.py --write
         # 重录入库：coefficients/模板/引擎面变更后（重录时机清单见
         # tools/report_golden.md）
 
@@ -48,7 +48,7 @@ _GOLDEN_CASE = REPO / "core" / "tests" / "golden" / "golden_data" / "municipal_3
 _GOLDEN_PROJECT = _GOLDEN_CASE / "input_project.json"
 _GOLDEN_EXPECTED = _GOLDEN_CASE / "expected_summary.json"
 _DATA_DIR = REPO / "data"
-_SNAP_DIR = REPO / "agent" / "tests" / "report" / "__snapshots__"
+_SNAP_DIR = REPO / "core" / "tests" / "report" / "__snapshots__"
 _RESULT_OUT = _SNAP_DIR / "result.json"
 _DIAG_OUT = _SNAP_DIR / "diag.json"
 _SAMPLE_OUT = _SNAP_DIR / "municipal_34760.sample.md"
@@ -67,8 +67,8 @@ def _build_artifacts() -> tuple[bytes, bytes, bytes]:
     from waterprint.app import load_project, run_full_calc
     from waterprint.contracts.result_schema import deserialize, serialize
     from waterprint.contracts.trust import deserialize_diag, serialize_diag
-    from waterprint_agent.report.build import build_report_ast
-    from waterprint_agent.report.render_md import render_markdown
+    from waterprint.report.build import build_report_ast
+    from waterprint.report.render_md import render_markdown
 
     project = load_project(_GOLDEN_PROJECT)
     checked = json.loads(_GOLDEN_EXPECTED.read_text(encoding="utf-8"))[

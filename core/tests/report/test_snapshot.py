@@ -11,12 +11,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from waterprint.app import load_project
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.trust import DiagnosticsReport
-
-from waterprint_agent.report.build import build_report_ast
-from waterprint_agent.report.render_md import render_markdown
+from waterprint.report.build import build_report_ast
+from waterprint.report.render_md import render_markdown
 
 _SAMPLE = (
     Path(__file__).resolve().parent

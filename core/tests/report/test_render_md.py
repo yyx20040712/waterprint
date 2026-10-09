@@ -11,8 +11,7 @@ from waterprint.contracts.result_schema import (
     TraceNode,
     UnitResultSnapshot,
 )
-
-from waterprint_agent.report.build import (
+from waterprint.report.build import (
     Chapter,
     NarrativeSlot,
     NumberLine,
@@ -20,7 +19,7 @@ from waterprint_agent.report.build import (
     TableBlock,
     build_report_ast,
 )
-from waterprint_agent.report.render_md import render_markdown
+from waterprint.report.render_md import render_markdown
 
 
 def _mini_plant() -> PlantResult:

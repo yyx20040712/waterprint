@@ -1,21 +1,26 @@
 """ReportAST → Markdown 渲染器（两段式管线第二段——标准库拼装，零依赖）。
 
-路径:   waterprint_agent/report/render_md.py
+路径:   waterprint/report/render_md.py
 职责:   章节树渲染为 Markdown 说明书：NumberLine →「{label}：{value}
         {unit}〔{formula_id}〕」；NarrativeSlot → 撰稿回填或占位；末尾
         自动生成「溯源索引」表（数字 → 公式 ID → 首现位置）。确定性输出
         （无时钟／无随机——同 AST 双渲染字节级相同）。
-禁区:   禁 import server／fastmcp／core 任何层（渲染器只消费本包 AST 类型，
-        连 contracts 都不需要）；禁引 Markdown 三方库（标准库字符串拼装）。
+输入:   ReportAST+narrative_fills（本包 build 的 AST 类型——无外部依赖）。
+输出:   Markdown 全文字符串（agent 工具 #21/server 报告端点/golden 快照
+        消费）。
+禁区:   禁 import server／fastmcp／waterprint_agent 与内核任何层（渲染器
+        只消费本包 AST 类型，连 contracts 都不需要）；禁引 Markdown 三方
+        库（标准库字符串拼装——KaTeX 渲染在前端，md 生产面零三方）。
 参照:   v2 设计书 D5②（F1 起步——AST→渲染器两段式，docx 为未来升级位）／
-        D5④（数值〔公式ID〕形态＋溯源索引＋审计附件 A 衔接）。
+        D5④（数值〔公式ID〕形态＋溯源索引＋审计附件 A 衔接）；B6 移植
+        core（import 路径重写零逻辑改动）。
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 
-from waterprint_agent.report.build import (
+from waterprint.report.build import (
     FigureRef,
     NarrativeSlot,
     NoteLine,

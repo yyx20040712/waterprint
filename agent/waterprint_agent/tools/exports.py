@@ -155,10 +155,10 @@ def _export_report_impl(
 
     from waterprint_server.services import cost as cost_service
 
-    from waterprint_agent.report.anchors import validate_narrative
-    from waterprint_agent.report.build import build_report_ast
-    from waterprint_agent.report.checks import verify_report
-    from waterprint_agent.report.render_md import render_markdown
+    from waterprint.report.anchors import validate_narrative
+    from waterprint.report.build import build_report_ast
+    from waterprint.report.checks import verify_report
+    from waterprint.report.render_md import render_markdown
 
     loaded = _load_fresh(ctx, project_id)
     if isinstance(loaded, dict):
