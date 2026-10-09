@@ -18,8 +18,13 @@
     "antd": "^6.6.2",
     "dxf-parser": "^1.1.2",
     "echarts": "^6.1.0",
+    "katex": "^0.16.47",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "three": "^0.185.1",
     "troika-three-text": "^0.52.0",
     "zustand": "^5.0.0"

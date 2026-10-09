@@ -173,12 +173,46 @@ class TestMathBlocks:
         md = render_markdown((Chapter("c", "样章", (line,)),))
         assert "$$" not in md  # 目录外公式不渲染展示块（附录亦无此行）
 
+    def test_appendix_pipe_latex_substituted_as_vert(self) -> None:
+        """B6 笔5 主控裁定修正锚：含竖线 LaTeX 附录单元格=\\vert 替代形。
+
+        \\| 表格转义在 LaTeX 数学域=‖ 双竖线（范数形）——绝对值渲染失真
+        （HB-F11/HB-F13 两式实录）；\\vert 数学语义与 | 恒等。首现 $$ 展示
+        块在表格外保持裸 | 原形（零转义面——KaTeX 直渲染正确）。
+        """
+        from waterprint.report.blocks import FormulaCatalog, FormulaSource
+
+        catalog = FormulaCatalog(
+            rows=(
+                FormulaSource(
+                    formula_id="P-1",
+                    latex=r"x = \left|{a - b}\right|",
+                    norm_ref="合成 §2",
+                    symbols_note="a：甲；b：乙",
+                ),
+            )
+        )
+        line = NumberLine(label="甲", value=1.0, unit="", formula_id="P-1")
+        md = render_markdown((Chapter("c", "样章", (line, catalog)),))
+        row = next(t for t in md.splitlines() if t.startswith("| P-1 |"))
+        assert r"\left\vert" in row and r"\right\vert" in row  # 附录替代形
+        assert r"\left\|" not in row  # ‖ 失真形禁现
+        block = next(
+            t for t in md.splitlines() if t.startswith("x = \\left|")
+        )
+        assert block == r"x = \left|{a - b}\right|"  # 展示块裸 | 原形保持
+
     def test_appendix_table_rendered(self, golden_project_path: Path) -> None:
         md = render_markdown(_mini_ast(golden_project_path))
         assert "| 公式 ID | LaTeX | 条文号 | 符号释义 |" in md
         row = next(line for line in md.splitlines() if line.startswith("| TS-F4 |"))
-        assert r"\sqrt" in row  # TS-F4 实式含根式（LaTeX 打印机输出）
-        assert "d_{pipe" in row  # 多词符号下标级联（LaTeX 形态契约）
+        # B6 笔5 主控裁定修正：附录 LaTeX 列=行内数学定界（$...$——与
+        # render_typst 附录 math 列同源同形；裸串形态退役，源码级溯源归
+        # audit HTML 承载）
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        assert cells[1].startswith("$") and cells[1].endswith("$")
+        assert r"\sqrt" in cells[1]  # TS-F4 实式含根式（LaTeX 打印机输出）
+        assert "d_{pipe" in cells[1]  # 多词符号下标级联（LaTeX 形态契约）
         assert "单泵流量" in row  # 符号释义（symbols 中文含义）
 
 

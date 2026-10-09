@@ -1,0 +1,1806 @@
+[
+  {
+    "formula_id": "AO-F1",
+    "latex": "v_{o} = \\frac{86400 bod_{5 in} q_{avg daily}}{ns x_{mlss}}"
+  },
+  {
+    "formula_id": "AO-F10",
+    "latex": "o_{2 nit} = 394.848 q_{avg daily} \\left(tkn_{in} - tn_{eff}\\right)"
+  },
+  {
+    "formula_id": "AO-F11",
+    "latex": "o_{2 denit} = 247.104 q_{avg daily} \\left(tkn_{in} - tn_{eff}\\right)"
+  },
+  {
+    "formula_id": "AO-F12",
+    "latex": "o_{2 total} = o_{2 carbon} - o_{2 denit} + o_{2 nit}"
+  },
+  {
+    "formula_id": "AO-F13",
+    "latex": "q_{return} = q_{design h} r_{external}"
+  },
+  {
+    "formula_id": "AO-F14",
+    "latex": "q_{internal} = q_{avg h} r_{internal}"
+  },
+  {
+    "formula_id": "AO-F15",
+    "latex": "a_{pool} = \\frac{v_{total}}{h_{2}}"
+  },
+  {
+    "formula_id": "AO-F16",
+    "latex": "h_{pool} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "AO-F17",
+    "latex": "l_{pool raw} = \\sqrt{a_{pool} ratio_{lb}}"
+  },
+  {
+    "formula_id": "AO-F18",
+    "latex": "b_{pool raw} = \\sqrt{\\frac{a_{pool}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "AO-F19",
+    "latex": "v_{pool} = b_{pool} h_{2} l_{pool}"
+  },
+  {
+    "formula_id": "AO-F2",
+    "latex": "t_{o} = \\frac{v_{o}}{3600 q_{avg daily}}"
+  },
+  {
+    "formula_id": "AO-F20",
+    "latex": "n_{aerator raw} = \\frac{v_{o series}}{f_{aerator service} h_{2}}"
+  },
+  {
+    "formula_id": "AO-F21",
+    "latex": "q_{air} = \\frac{f_{sor} o_{2 total}}{86400 ea o_{2 per air}}"
+  },
+  {
+    "formula_id": "AO-F22",
+    "latex": "p_{blower} = \\frac{p_{pressure} q_{air}}{\\eta_{blower}}"
+  },
+  {
+    "formula_id": "AO-F23",
+    "latex": "e_{aeration} = 24 p_{blower}"
+  },
+  {
+    "formula_id": "AO-F24",
+    "latex": "p_{stir} = \\frac{w_{stir bio} \\left(v_{anaerobic} + v_{anoxic}\\right)}{1000}"
+  },
+  {
+    "formula_id": "AO-F25",
+    "latex": "e_{stir} = 24 p_{stir}"
+  },
+  {
+    "formula_id": "AO-F3",
+    "latex": "v_{anaerobic} = 3600 q_{avg daily} t_{p}"
+  },
+  {
+    "formula_id": "AO-F4",
+    "latex": "v_{anoxic} = \\frac{86400 \\delta_{n} q_{avg daily}}{k_{denit} x_{mlss}}"
+  },
+  {
+    "formula_id": "AO-F5",
+    "latex": "t_{n} = \\frac{v_{anoxic}}{3600 q_{avg daily}}"
+  },
+  {
+    "formula_id": "AO-F6",
+    "latex": "s_{y} = \\frac{432 q_{avg daily} y_{yield} \\left(bod_{5 in} - bod_{5 out}\\right)}{5}"
+  },
+  {
+    "formula_id": "AO-F7",
+    "latex": "q_{wet} = \\frac{s_{y}}{1000 - 1000 p_{moisture}}"
+  },
+  {
+    "formula_id": "AO-F8",
+    "latex": "\\theta_{c} = \\frac{v_{o} x_{mlss}}{1000 s_{y}}"
+  },
+  {
+    "formula_id": "AO-F9",
+    "latex": "o_{2 carbon} = \\frac{432 a_{prime} q_{avg daily} \\left(bod_{5 in} - bod_{5 out}\\right)}{5} + \\frac{b_{prime} v_{o} x_{vss}}{1000}"
+  },
+  {
+    "formula_id": "BL-F1",
+    "latex": "q_{meas} = c_{coef} ha^{n_{exp}}"
+  },
+  {
+    "formula_id": "BL-F2",
+    "latex": "ha_{design} = \\left(\\frac{1000 q_{design}}{c_{coef}}\\right)^{\\frac{1}{n_{exp}}}"
+  },
+  {
+    "formula_id": "BL-F3",
+    "latex": "ha_{avg} = \\left(\\frac{1000 q_{avg daily}}{c_{coef}}\\right)^{\\frac{1}{n_{exp}}}"
+  },
+  {
+    "formula_id": "BL-F4",
+    "latex": "b_{1} = 1.2 b_{throat} + 0.48"
+  },
+  {
+    "formula_id": "BL-F5",
+    "latex": "l_{1} = 0.5 b_{throat} + 1.2"
+  },
+  {
+    "formula_id": "BL-F6",
+    "latex": "b_{2} = b_{throat} + 0.3"
+  },
+  {
+    "formula_id": "BL-F7",
+    "latex": "l_{total} = l_{1} + l_{diffuse} + l_{throat}"
+  },
+  {
+    "formula_id": "BL-F8",
+    "latex": "\\sigma = \\frac{hb_{design}}{ha_{design}}"
+  },
+  {
+    "formula_id": "BL-F9",
+    "latex": "h_{loss} = ha_{design} loss_{ratio}"
+  },
+  {
+    "formula_id": "BZ-F1",
+    "latex": "q_{h} = \\frac{q_{wet}}{24}"
+  },
+  {
+    "formula_id": "BZ-F10",
+    "latex": "h_{loss} = k_{sludge} \\left(h_{friction} + h_{\\mathcal{lo}}\\right)"
+  },
+  {
+    "formula_id": "BZ-F11",
+    "latex": "h_{pump} = h_{free} + h_{loss} + h_{static}"
+  },
+  {
+    "formula_id": "BZ-F12",
+    "latex": "v_{well} = 60 q_{pump si} t_{well}"
+  },
+  {
+    "formula_id": "BZ-F13",
+    "latex": "a_{well} = \\frac{v_{well}}{h_{well}}"
+  },
+  {
+    "formula_id": "BZ-F14",
+    "latex": "n_{start} = \\frac{900 q_{pump si}}{v_{well}}"
+  },
+  {
+    "formula_id": "BZ-F15",
+    "latex": "h_{well total} = h_{super} + h_{well}"
+  },
+  {
+    "formula_id": "BZ-F16",
+    "latex": "v_{concrete} = a_{well} h_{well total} wall_{coef}"
+  },
+  {
+    "formula_id": "BZ-F17",
+    "latex": "ds_{out} = ds_{in}"
+  },
+  {
+    "formula_id": "BZ-F18",
+    "latex": "p_{out} = p_{in}"
+  },
+  {
+    "formula_id": "BZ-F19",
+    "latex": "p_{pump} = \\frac{g_{gravity} h_{pump} q_{pump si} \\rho_{water}}{1000 \\eta_{pump}}"
+  },
+  {
+    "formula_id": "BZ-F2",
+    "latex": "n_{pump raw} = \\frac{q_{h}}{q_{per pump}}"
+  },
+  {
+    "formula_id": "BZ-F20",
+    "latex": "e_{pump} = \\frac{g_{gravity} h_{pump} q_{wet} \\rho_{water}}{3600000 \\eta_{pump}}"
+  },
+  {
+    "formula_id": "BZ-F3",
+    "latex": "q_{pump h} = \\frac{q_{h}}{n_{pump duty}}"
+  },
+  {
+    "formula_id": "BZ-F4",
+    "latex": "q_{pump si} = \\frac{q_{pump h}}{3600}"
+  },
+  {
+    "formula_id": "BZ-F5",
+    "latex": "n_{total} = n_{pump duty} + n_{standby}"
+  },
+  {
+    "formula_id": "BZ-F6",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{q_{pump si}}{\\pi v_{pipe}}}"
+  },
+  {
+    "formula_id": "BZ-F7",
+    "latex": "v_{act} = \\frac{4 q_{pump si}}{d_{pipe}^{2} \\pi}"
+  },
+  {
+    "formula_id": "BZ-F8",
+    "latex": "h_{friction} = \\frac{0.0509683995922528 l_{pipe} \\lambda_{f} v_{act}^{2}}{d_{pipe}}"
+  },
+  {
+    "formula_id": "BZ-F9",
+    "latex": "h_{\\mathcal{lo}} = 0.0509683995922528 v_{act}^{2} \\zeta_{total}"
+  },
+  {
+    "formula_id": "CA-F1",
+    "latex": "n_{cycle} = \\frac{24}{t_{cycle}}"
+  },
+  {
+    "formula_id": "CA-F10",
+    "latex": "h_{draw} = \\frac{v_{draw}}{a_{pool}}"
+  },
+  {
+    "formula_id": "CA-F11",
+    "latex": "v_{pool} = a_{pool} h_{2}"
+  },
+  {
+    "formula_id": "CA-F12",
+    "latex": "v_{plant} = n_{pool} v_{pool}"
+  },
+  {
+    "formula_id": "CA-F13",
+    "latex": "t_{phase sum} = t_{draw} + t_{react} + t_{settle}"
+  },
+  {
+    "formula_id": "CA-F14",
+    "latex": "q_{decant} = \\frac{v_{draw}}{t_{draw}}"
+  },
+  {
+    "formula_id": "CA-F15",
+    "latex": "n_{decant raw} = \\frac{q_{decant}}{q_{per decant}}"
+  },
+  {
+    "formula_id": "CA-F16",
+    "latex": "s_{y} = \\frac{432 q_{avg daily} y_{yield} \\left(bod_{5 in} - bod_{5 out}\\right)}{5}"
+  },
+  {
+    "formula_id": "CA-F17",
+    "latex": "q_{wet} = \\frac{s_{y}}{1000 - 1000 p_{moisture}}"
+  },
+  {
+    "formula_id": "CA-F18",
+    "latex": "\\theta_{c} = \\frac{v_{load} x_{mlss}}{1000 s_{y}}"
+  },
+  {
+    "formula_id": "CA-F19",
+    "latex": "o_{2 carbon} = \\frac{432 a_{prime} q_{avg daily} \\left(bod_{5 in} - bod_{5 out}\\right)}{5} + \\frac{b_{prime} v_{load} x_{vss}}{1000}"
+  },
+  {
+    "formula_id": "CA-F2",
+    "latex": "v_{draw} = \\frac{86400 q_{avg daily}}{n_{cycle} n_{pool}}"
+  },
+  {
+    "formula_id": "CA-F20",
+    "latex": "o_{2 nit} = 394.848 q_{avg daily} \\left(tkn_{in} - tn_{eff}\\right)"
+  },
+  {
+    "formula_id": "CA-F21",
+    "latex": "o_{2 denit} = 247.104 q_{avg daily} \\left(tkn_{in} - tn_{eff}\\right)"
+  },
+  {
+    "formula_id": "CA-F22",
+    "latex": "o_{2 total} = o_{2 carbon} - o_{2 denit} + o_{2 nit}"
+  },
+  {
+    "formula_id": "CA-F23",
+    "latex": "ns_{act} = \\frac{ns v_{bio}}{v_{plant}}"
+  },
+  {
+    "formula_id": "CA-F24",
+    "latex": "h_{pool} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "CA-F25",
+    "latex": "l_{pool raw} = \\sqrt{a_{pool} ratio_{lb}}"
+  },
+  {
+    "formula_id": "CA-F26",
+    "latex": "b_{pool raw} = \\sqrt{\\frac{a_{pool}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "CA-F27",
+    "latex": "v_{concrete} = a_{pool} h_{pool} n_{pool} wall_{coef}"
+  },
+  {
+    "formula_id": "CA-F28",
+    "latex": "n_{aerator raw} = \\frac{a_{pool} - \\frac{v_{selector}}{h_{2} n_{pool}}}{f_{aerator service}}"
+  },
+  {
+    "formula_id": "CA-F29",
+    "latex": "q_{air} = \\frac{f_{sor} o_{2 total}}{86400 ea o_{2 per air}}"
+  },
+  {
+    "formula_id": "CA-F3",
+    "latex": "v_{load} = \\frac{86400 bod_{5 in} q_{avg daily}}{ns x_{mlss}}"
+  },
+  {
+    "formula_id": "CA-F30",
+    "latex": "p_{blower} = \\frac{p_{pressure} q_{air}}{\\eta_{blower}}"
+  },
+  {
+    "formula_id": "CA-F31",
+    "latex": "e_{aeration} = 24 duty_{ratio} p_{blower}"
+  },
+  {
+    "formula_id": "CA-F32",
+    "latex": "p_{stir} = \\frac{v_{selector} w_{stir}}{1000}"
+  },
+  {
+    "formula_id": "CA-F33",
+    "latex": "e_{stir} = 24 p_{stir}"
+  },
+  {
+    "formula_id": "CA-F4",
+    "latex": "v_{selector} = 3600 q_{avg daily} t_{selector}"
+  },
+  {
+    "formula_id": "CA-F5",
+    "latex": "v_{bio} = v_{load} + v_{selector}"
+  },
+  {
+    "formula_id": "CA-F6",
+    "latex": "h_{draw max} = \\frac{h_{2}}{3}"
+  },
+  {
+    "formula_id": "CA-F7",
+    "latex": "a_{draw} = \\frac{v_{draw}}{h_{draw max}}"
+  },
+  {
+    "formula_id": "CA-F8",
+    "latex": "a_{load} = \\frac{v_{bio}}{h_{2} n_{pool}}"
+  },
+  {
+    "formula_id": "CA-F9",
+    "latex": "a_{pool} = \\max\\left(a_{draw}, a_{load}\\right)"
+  },
+  {
+    "formula_id": "CC-F1",
+    "latex": "q1h = \\frac{3600 q_{design}}{n}"
+  },
+  {
+    "formula_id": "CC-F10",
+    "latex": "s_{dry 1} = \\frac{432 q_{avg daily} \\left(ss_{in} - ss_{out}\\right)}{5 n}"
+  },
+  {
+    "formula_id": "CC-F11",
+    "latex": "s_{wet 1} = \\frac{s_{dry 1}}{1000 - 1000 p_{moisture}}"
+  },
+  {
+    "formula_id": "CC-F12",
+    "latex": "v_{need} = s_{wet 1} t_{sludge}"
+  },
+  {
+    "formula_id": "CC-F13",
+    "latex": "v_{1 hopper} = \\frac{h_{5} \\pi \\left(r_{1}^{2} + r_{1} r_{2} + r_{2}^{2}\\right)}{3}"
+  },
+  {
+    "formula_id": "CC-F14",
+    "latex": "h_{4 raw} = i_{slope} \\left(\\frac{D}{2} - r_{1}\\right)"
+  },
+  {
+    "formula_id": "CC-F15",
+    "latex": "v_{2 cone} = \\frac{h_{4} \\pi \\left(\\frac{D^{2}}{4} + \\frac{D r_{1}}{2} + r_{1}^{2}\\right)}{3}"
+  },
+  {
+    "formula_id": "CC-F16",
+    "latex": "v_{storage} = v_{1 hopper} + v_{2 cone}"
+  },
+  {
+    "formula_id": "CC-F17",
+    "latex": "h_{total raw} = h_{2} + h_{4} + h_{5} + h_{buf} + h_{super}"
+  },
+  {
+    "formula_id": "CC-F18",
+    "latex": "v_{concrete} = \\frac{D^{2} h_{total} n \\pi wall_{coef}}{4}"
+  },
+  {
+    "formula_id": "CC-F2",
+    "latex": "f_{req} = \\frac{q1h}{q_{prime}}"
+  },
+  {
+    "formula_id": "CC-F3",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{f_{req}}{\\pi}}"
+  },
+  {
+    "formula_id": "CC-F4",
+    "latex": "f_{act} = \\frac{D^{2} \\pi}{4}"
+  },
+  {
+    "formula_id": "CC-F5",
+    "latex": "q_{prime act} = \\frac{q1h}{f_{act}}"
+  },
+  {
+    "formula_id": "CC-F6",
+    "latex": "h_{2} = q_{prime act} t_{settle}"
+  },
+  {
+    "formula_id": "CC-F7",
+    "latex": "ratio_{dh2} = \\frac{D}{h_{2}}"
+  },
+  {
+    "formula_id": "CC-F8",
+    "latex": "d_{center raw} = 2 \\sqrt{\\frac{q_{1}}{\\pi v_{center}}}"
+  },
+  {
+    "formula_id": "CC-F9",
+    "latex": "q_{weir} = \\frac{500 q_{1}}{\\pi \\left(D - 1\\right)}"
+  },
+  {
+    "formula_id": "CG-F1",
+    "latex": "q = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "CG-F10",
+    "latex": "l_{raw} = l_{3 fixed} + l_{4 fixed} + \\frac{3 \\left(B - b_{1}\\right)}{4 tan_{\\alpha}} + \\frac{drop_{constant} + h}{tan_{\\alpha}}"
+  },
+  {
+    "formula_id": "CG-F11",
+    "latex": "w_{slag} = \\frac{432 q_{design} w_{1}}{5 kz}"
+  },
+  {
+    "formula_id": "CG-F12",
+    "latex": "mech_{margin} = - mech_{clean threshold} + w_{slag}"
+  },
+  {
+    "formula_id": "CG-F13",
+    "latex": "ds_{slag} = 1000 w_{slag} \\left(1 - moisture\\right)"
+  },
+  {
+    "formula_id": "CG-F14",
+    "latex": "v_{concrete} = B H L n wall_{coef}"
+  },
+  {
+    "formula_id": "CG-F2",
+    "latex": "n_{gap ratio} = \\frac{q sqrt_{sin \\alpha}}{b h v}"
+  },
+  {
+    "formula_id": "CG-F3",
+    "latex": "b_{raw} = b n_{gap} + margin + s \\left(n_{gap} - 1\\right)"
+  },
+  {
+    "formula_id": "CG-F4",
+    "latex": "b_{1 raw} = \\frac{q}{h v_{1}}"
+  },
+  {
+    "formula_id": "CG-F5",
+    "latex": "v_{checked} = \\frac{q sqrt_{sin \\alpha}}{b h n_{gap}}"
+  },
+  {
+    "formula_id": "CG-F6",
+    "latex": "v_{1 checked} = \\frac{q}{b_{1} h}"
+  },
+  {
+    "formula_id": "CG-F7",
+    "latex": "\\xi = \\beta s_{over b}^{\\frac{4}{3}}"
+  },
+  {
+    "formula_id": "CG-F8",
+    "latex": "h_{1} = \\frac{k_{headloss} sin_{\\alpha} v_{checked}^{2} \\xi}{2 g}"
+  },
+  {
+    "formula_id": "CG-F9",
+    "latex": "h_{total raw} = h + h_{1} + superheight"
+  },
+  {
+    "formula_id": "CS-F1",
+    "latex": "q_{1} = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "CS-F10",
+    "latex": "h_{4} = \\frac{- d_{r} + d_{upper}}{2 tan_{\\theta}}"
+  },
+  {
+    "formula_id": "CS-F11",
+    "latex": "v_{cone} = \\frac{h_{4} \\pi \\left(\\frac{d_{r}^{2}}{4} + \\frac{d_{r} d_{upper}}{4} + \\frac{d_{upper}^{2}}{4}\\right)}{3}"
+  },
+  {
+    "formula_id": "CS-F12",
+    "latex": "h_{cyl raw} = \\frac{4 \\left(- v_{cone} + v_{hopper}\\right)}{d_{upper}^{2} \\pi}"
+  },
+  {
+    "formula_id": "CS-F13",
+    "latex": "h_{total raw} = h_{1 super} + h_{2} + h_{3 buffer} + h_{4} + h_{cyl}"
+  },
+  {
+    "formula_id": "CS-F14",
+    "latex": "h_{channel} = \\frac{q_{1}}{b_{channel} v_{channel}}"
+  },
+  {
+    "formula_id": "CS-F15",
+    "latex": "l_{straight} = \\max\\left(straight_{min}, b_{channel} straight_{mult}\\right)"
+  },
+  {
+    "formula_id": "CS-F16",
+    "latex": "b_{outlet} = b_{channel} outlet_{mult}"
+  },
+  {
+    "formula_id": "CS-F17",
+    "latex": "ds_{grit} = grit_{density} n v_{sand} \\left(1 - moisture\\right)"
+  },
+  {
+    "formula_id": "CS-F18",
+    "latex": "v_{concrete} = \\frac{d^{2} h_{total} n \\pi wall_{coef}}{4}"
+  },
+  {
+    "formula_id": "CS-F2",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{q_{1} sec_{per hour}}{\\pi q_{surf}}}"
+  },
+  {
+    "formula_id": "CS-F3",
+    "latex": "h_{2} = \\frac{q_{surf} t_{retention}}{3600}"
+  },
+  {
+    "formula_id": "CS-F4",
+    "latex": "ratio_{dh2} = \\frac{d}{h_{2}}"
+  },
+  {
+    "formula_id": "CS-F5",
+    "latex": "v_{eff} = \\frac{d^{2} h_{2} \\pi}{4}"
+  },
+  {
+    "formula_id": "CS-F6",
+    "latex": "t_{actual} = \\frac{v_{eff}}{q_{1}}"
+  },
+  {
+    "formula_id": "CS-F7",
+    "latex": "v_{sand} = \\frac{54 q_{avg daily} x_{sand}}{625 n}"
+  },
+  {
+    "formula_id": "CS-F8",
+    "latex": "v_{hopper} = safety t_{clean} v_{sand}"
+  },
+  {
+    "formula_id": "CS-F9",
+    "latex": "d_{upper} = d upper_{ratio}"
+  },
+  {
+    "formula_id": "EC-F1",
+    "latex": "q1h = \\frac{3600 q_{design}}{n}"
+  },
+  {
+    "formula_id": "EC-F10",
+    "latex": "x_{r} = \\frac{x_{mlss} \\left(r_{external} + 1\\right)}{r_{external}}"
+  },
+  {
+    "formula_id": "EC-F11",
+    "latex": "q_{weir} = \\frac{500 q_{1}}{D \\pi}"
+  },
+  {
+    "formula_id": "EC-F12",
+    "latex": "d_{center raw} = \\sqrt{\\frac{q_{1} \\left(4 r_{external} + 4\\right)}{\\pi v_{center}}}"
+  },
+  {
+    "formula_id": "EC-F13",
+    "latex": "h_{4 raw} = i_{slope} \\left(\\frac{D}{2} - r_{pit}\\right)"
+  },
+  {
+    "formula_id": "EC-F14",
+    "latex": "h_{total raw} = h_{2} + h_{4} + h_{buf} + h_{super}"
+  },
+  {
+    "formula_id": "EC-F15",
+    "latex": "v_{concrete} = \\frac{D^{2} h_{total} n \\pi wall_{coef}}{4}"
+  },
+  {
+    "formula_id": "EC-F2",
+    "latex": "a_{q} = \\frac{q1h}{q_{nom}}"
+  },
+  {
+    "formula_id": "EC-F3",
+    "latex": "m_{solid} = \\frac{3 q1h x_{mlss} \\left(r_{external} + 1\\right)}{125}"
+  },
+  {
+    "formula_id": "EC-F4",
+    "latex": "a_{solid} = \\frac{m_{solid}}{g_{max}}"
+  },
+  {
+    "formula_id": "EC-F5",
+    "latex": "a_{tank} = \\max\\left(a_{q}, a_{solid}\\right)"
+  },
+  {
+    "formula_id": "EC-F6",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{a_{tank}}{\\pi}}"
+  },
+  {
+    "formula_id": "EC-F7",
+    "latex": "a_{act} = \\frac{D^{2} \\pi}{4}"
+  },
+  {
+    "formula_id": "EC-F8",
+    "latex": "q_{act} = \\frac{q1h}{a_{act}}"
+  },
+  {
+    "formula_id": "EC-F9",
+    "latex": "g_{act} = \\frac{m_{solid}}{a_{act}}"
+  },
+  {
+    "formula_id": "EL-F1",
+    "latex": "h_{f} = \\frac{8 flow^{2} \\lambda_{friction} length}{diameter^{5} g \\pi^{2}}"
+  },
+  {
+    "formula_id": "EL-F2",
+    "latex": "h_{z} = \\frac{8 flow^{2} \\zeta}{diameter^{4} g \\pi^{2}}"
+  },
+  {
+    "formula_id": "EL-F3",
+    "latex": "h_{w} = \\left(\\frac{flow}{weir_{coefficient} weir_{width}}\\right)^{\\frac{2}{3}}"
+  },
+  {
+    "formula_id": "EL-F4",
+    "latex": "h_{o} = \\frac{8 flow^{2}}{diameter^{4} g orifice_{coefficient}^{2} \\pi^{2}}"
+  },
+  {
+    "formula_id": "GH-F1",
+    "latex": "m_{in} = \\frac{ds_{in}}{1 - p_{in}}"
+  },
+  {
+    "formula_id": "GH-F2",
+    "latex": "w_{evap} = ds_{in} \\left(\\frac{p_{in}}{1 - p_{in}} - \\frac{p_{out}}{1 - p_{out}}\\right)"
+  },
+  {
+    "formula_id": "GH-F3",
+    "latex": "q_{out} = \\frac{ds_{in}}{1000 - 1000 p_{out}}"
+  },
+  {
+    "formula_id": "GH-F4",
+    "latex": "m_{out} = \\frac{ds_{in}}{1 - p_{out}}"
+  },
+  {
+    "formula_id": "GH-F5",
+    "latex": "m_{check} = m_{in} - w_{evap}"
+  },
+  {
+    "formula_id": "GH-F6",
+    "latex": "q_{heat} = \\frac{h_{evap} w_{evap}}{\\eta_{thermal}}"
+  },
+  {
+    "formula_id": "GH-F7",
+    "latex": "w_{fuel} = \\frac{q_{heat}}{q_{cal fuel}}"
+  },
+  {
+    "formula_id": "GH-F8",
+    "latex": "a_{dry} = \\frac{w_{evap}}{r_{evap} t_{op}}"
+  },
+  {
+    "formula_id": "GM-F1",
+    "latex": "q1h = \\frac{3600 q_{design}}{n}"
+  },
+  {
+    "formula_id": "GM-F10",
+    "latex": "gt_{floc} = 60 g_{floc} t_{floc}"
+  },
+  {
+    "formula_id": "GM-F11",
+    "latex": "q_{return} = q_{design h} r_{sludge}"
+  },
+  {
+    "formula_id": "GM-F12",
+    "latex": "s_{dry} = \\frac{432 q_{avg daily} \\left(ss_{in} - ss_{out}\\right)}{5}"
+  },
+  {
+    "formula_id": "GM-F13",
+    "latex": "q_{sludge} = \\frac{s_{dry}}{c_{sludge}}"
+  },
+  {
+    "formula_id": "GM-F14",
+    "latex": "m_{pac} = \\frac{432 dose_{pac} q_{avg daily}}{5}"
+  },
+  {
+    "formula_id": "GM-F15",
+    "latex": "m_{pam} = \\frac{432 dose_{pam} q_{avg daily}}{5}"
+  },
+  {
+    "formula_id": "GM-F16",
+    "latex": "h_{tube zone} = 0.8660254 l_{tube}"
+  },
+  {
+    "formula_id": "GM-F17",
+    "latex": "h_{settle} = h_{buffer} + h_{clear} + h_{thick} + h_{tube zone}"
+  },
+  {
+    "formula_id": "GM-F18",
+    "latex": "h_{total raw} = h_{settle} + h_{super}"
+  },
+  {
+    "formula_id": "GM-F19",
+    "latex": "h_{floc calc} = \\frac{v_{floc}}{a_{act}}"
+  },
+  {
+    "formula_id": "GM-F2",
+    "latex": "a_{incl req} = \\frac{q1h}{q_{surface}}"
+  },
+  {
+    "formula_id": "GM-F20",
+    "latex": "v_{concrete} = a_{act} h_{total} n wall_{coef}"
+  },
+  {
+    "formula_id": "GM-F21",
+    "latex": "e_{stir} = 24 p_{floc} + 24 p_{mix}"
+  },
+  {
+    "formula_id": "GM-F3",
+    "latex": "b_{raw} = \\sqrt{a_{incl req}}"
+  },
+  {
+    "formula_id": "GM-F4",
+    "latex": "a_{act} = B^{2}"
+  },
+  {
+    "formula_id": "GM-F5",
+    "latex": "q_{surface act} = \\frac{q1h}{a_{act}}"
+  },
+  {
+    "formula_id": "GM-F6",
+    "latex": "v_{mix} = \\frac{q1h t_{mix}}{60}"
+  },
+  {
+    "formula_id": "GM-F7",
+    "latex": "v_{floc} = \\frac{q1h t_{floc}}{60}"
+  },
+  {
+    "formula_id": "GM-F8",
+    "latex": "p_{mix} = 1 \\cdot 10^{-06} g_{mix}^{2} v_{mix}"
+  },
+  {
+    "formula_id": "GM-F9",
+    "latex": "p_{floc} = 1 \\cdot 10^{-06} g_{floc}^{2} v_{floc}"
+  },
+  {
+    "formula_id": "HB-F1",
+    "latex": "q_{primary} = \\frac{ds_{primary}}{1000 - 1000 p_{primary}}"
+  },
+  {
+    "formula_id": "HB-F10",
+    "latex": "dx_{bio} = - \\frac{k_{dt} v_{bio} x_{vss}}{1000} + \\frac{q_{avg daily} y_{syn} \\left(s_{0 bod} - se_{bod}\\right)}{1000}"
+  },
+  {
+    "formula_id": "HB-F11",
+    "latex": "dev_{pct} = \\frac{100 \\left|{dx_{bio} - s_{y}}\\right|}{s_{y}}"
+  },
+  {
+    "formula_id": "HB-F12",
+    "latex": "ds_{check} = ds_{chem} + ds_{primary} + s_{y}"
+  },
+  {
+    "formula_id": "HB-F13",
+    "latex": "dev_{close} = \\frac{100 \\left|{ds_{check} - ds_{total}}\\right|}{ds_{total}}"
+  },
+  {
+    "formula_id": "HB-F2",
+    "latex": "q_{bio} = \\frac{ds_{bio}}{1000 - 1000 p_{bio}}"
+  },
+  {
+    "formula_id": "HB-F3",
+    "latex": "q_{chem} = \\frac{ds_{chem}}{1000 - 1000 p_{chem}}"
+  },
+  {
+    "formula_id": "HB-F4",
+    "latex": "ds_{total} = ds_{bio} + ds_{chem} + ds_{primary}"
+  },
+  {
+    "formula_id": "HB-F5",
+    "latex": "q_{total} = q_{bio} + q_{chem} + q_{primary}"
+  },
+  {
+    "formula_id": "HB-F6",
+    "latex": "w_{water} = \\frac{ds_{bio} p_{bio}}{1 - p_{bio}} + \\frac{ds_{chem} p_{chem}}{1 - p_{chem}} + \\frac{ds_{primary} p_{primary}}{1 - p_{primary}}"
+  },
+  {
+    "formula_id": "HB-F7",
+    "latex": "p_{merged} = \\frac{w_{water}}{ds_{total} + w_{water}}"
+  },
+  {
+    "formula_id": "HB-F8",
+    "latex": "s_{y} = \\frac{q_{avg daily} y_{yield} \\left(s_{0 bod} - se_{bod}\\right)}{1000}"
+  },
+  {
+    "formula_id": "HB-F9",
+    "latex": "k_{dt} = k_{d20} \\theta_{kd}^{t_{design} - 20}"
+  },
+  {
+    "formula_id": "JP-F1",
+    "latex": "v_{well} = 60 q_{design} t_{well}"
+  },
+  {
+    "formula_id": "JP-F2",
+    "latex": "a_{well} = \\frac{v_{well}}{h_{well}}"
+  },
+  {
+    "formula_id": "JP-F3",
+    "latex": "d_{raw} = 1.128379167740193 \\sqrt{a_{well}}"
+  },
+  {
+    "formula_id": "JP-F4",
+    "latex": "a_{act} = 0.7853981625 d^{2}"
+  },
+  {
+    "formula_id": "JP-F5",
+    "latex": "t_{act} = \\frac{a_{act} h_{well}}{q_{design}}"
+  },
+  {
+    "formula_id": "JP-F6",
+    "latex": "q_{each} = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "JP-F7",
+    "latex": "q_{series} = k_{uneven} q_{each}"
+  },
+  {
+    "formula_id": "JP-F8",
+    "latex": "h_{total} = h_{super} + h_{well}"
+  },
+  {
+    "formula_id": "JP-F9",
+    "latex": "v_{concrete} = a_{act} h_{total} wall_{coef}"
+  },
+  {
+    "formula_id": "JS-F1",
+    "latex": "v_{well} = 60 q_{design} t_{well}"
+  },
+  {
+    "formula_id": "JS-F2",
+    "latex": "a_{well} = \\frac{v_{well}}{h_{well}}"
+  },
+  {
+    "formula_id": "JS-F3",
+    "latex": "d_{raw} = 1.128379167740193 \\sqrt{a_{well}}"
+  },
+  {
+    "formula_id": "JS-F4",
+    "latex": "a_{act} = 0.7853981625 d^{2}"
+  },
+  {
+    "formula_id": "JS-F5",
+    "latex": "t_{act} = \\frac{a_{act} h_{well}}{q_{design}}"
+  },
+  {
+    "formula_id": "JS-F6",
+    "latex": "h_{total} = h_{super} + h_{well}"
+  },
+  {
+    "formula_id": "JS-F7",
+    "latex": "v_{concrete} = a_{act} h_{total} wall_{coef}"
+  },
+  {
+    "formula_id": "KC-F1",
+    "latex": "l_{cell raw} = t_{stay} v_{h}"
+  },
+  {
+    "formula_id": "KC-F10",
+    "latex": "v_{concrete} = b h_{total} l_{cell} n wall_{coef}"
+  },
+  {
+    "formula_id": "KC-F2",
+    "latex": "a_{cross} = \\frac{q_{design}}{n v_{h}}"
+  },
+  {
+    "formula_id": "KC-F3",
+    "latex": "b_{raw} = \\frac{a_{cross}}{h_{2}}"
+  },
+  {
+    "formula_id": "KC-F4",
+    "latex": "v_{h act} = \\frac{q_{design}}{b h_{2} n}"
+  },
+  {
+    "formula_id": "KC-F5",
+    "latex": "v_{sand} = \\frac{54 q_{avg daily} x_{sand}}{625}"
+  },
+  {
+    "formula_id": "KC-F6",
+    "latex": "v_{hopper} = safety t_{clean} v_{sand}"
+  },
+  {
+    "formula_id": "KC-F7",
+    "latex": "l_{weir} = n \\left(2 b + l_{cell}\\right)"
+  },
+  {
+    "formula_id": "KC-F8",
+    "latex": "q_{weir} = \\frac{1000 q_{design}}{l_{weir}}"
+  },
+  {
+    "formula_id": "KC-F9",
+    "latex": "h_{total} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "KG-F1",
+    "latex": "q1h = \\frac{3600 q_{design}}{n}"
+  },
+  {
+    "formula_id": "KG-F10",
+    "latex": "v_{concrete} = b h_{total} l n wall_{coef}"
+  },
+  {
+    "formula_id": "KG-F2",
+    "latex": "v_{mix} = \\frac{q1h t_{mix}}{60}"
+  },
+  {
+    "formula_id": "KG-F3",
+    "latex": "v_{floc} = \\frac{q1h t_{floc}}{60}"
+  },
+  {
+    "formula_id": "KG-F4",
+    "latex": "a_{settle} = \\frac{q1h}{q_{surf}}"
+  },
+  {
+    "formula_id": "KG-F5",
+    "latex": "b_{raw} = \\sqrt{\\frac{a_{settle}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "KG-F6",
+    "latex": "l_{raw} = \\frac{a_{settle}}{b}"
+  },
+  {
+    "formula_id": "KG-F7",
+    "latex": "q_{surf act} = \\frac{q1h}{b l}"
+  },
+  {
+    "formula_id": "KG-F8",
+    "latex": "v_{axial} = 0.0003207501509514361 q_{surf}"
+  },
+  {
+    "formula_id": "KG-F9",
+    "latex": "h_{total} = h_{clear} + h_{dist} + h_{super} + h_{thick} + 0.8660254 l_{tube}"
+  },
+  {
+    "formula_id": "KI-F1",
+    "latex": "q_{design} = \\frac{kz q_{avg daily}}{86400}"
+  },
+  {
+    "formula_id": "KI-F2",
+    "latex": "q_{avg h} = \\frac{q_{avg daily}}{24}"
+  },
+  {
+    "formula_id": "KI-F3",
+    "latex": "v_{inlet} = \\frac{1250 q_{avg daily}}{27 dn_{inlet}^{2} \\pi}"
+  },
+  {
+    "formula_id": "KI-F4",
+    "latex": "z_{pipe bottom} = - \\frac{dn_{inlet}}{1000} + z_{water inlet}"
+  },
+  {
+    "formula_id": "KI-F5",
+    "latex": "z_{water} = - h_{loss} + z_{water inlet}"
+  },
+  {
+    "formula_id": "KI-F6",
+    "latex": "z_{bottom} = - h_{pool} + z_{water}"
+  },
+  {
+    "formula_id": "KI-F7",
+    "latex": "freeboard = z_{ground} - z_{water}"
+  },
+  {
+    "formula_id": "KN-F1",
+    "latex": "v_{1} = \\frac{60 q_{design} t_{mix}}{n}"
+  },
+  {
+    "formula_id": "KN-F10",
+    "latex": "gt_{total} = 60 g_{floc} t_{floc} + 60 g_{mix} t_{mix} + 60 g_{ripen} t_{ripen} + 60 g_{seed} t_{seed}"
+  },
+  {
+    "formula_id": "KN-F11",
+    "latex": "m_{pac} = \\frac{432 dose_{pac} q_{avg daily}}{5}"
+  },
+  {
+    "formula_id": "KN-F12",
+    "latex": "m_{pam} = \\frac{432 dose_{pam} q_{avg daily}}{5}"
+  },
+  {
+    "formula_id": "KN-F13",
+    "latex": "m_{seed} = \\frac{432 dose_{seed} q_{avg daily}}{5}"
+  },
+  {
+    "formula_id": "KN-F14",
+    "latex": "h_{total} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "KN-F15",
+    "latex": "v_{concrete} = \\frac{h_{total} n wall_{coef} \\left(v_{1} + v_{2} + v_{3} + v_{4}\\right)}{h_{2}}"
+  },
+  {
+    "formula_id": "KN-F16",
+    "latex": "e_{stir} = 24 p_{total}"
+  },
+  {
+    "formula_id": "KN-F2",
+    "latex": "v_{2} = \\frac{60 q_{design} t_{seed}}{n}"
+  },
+  {
+    "formula_id": "KN-F3",
+    "latex": "v_{3} = \\frac{60 q_{design} t_{floc}}{n}"
+  },
+  {
+    "formula_id": "KN-F4",
+    "latex": "v_{4} = \\frac{60 q_{design} t_{ripen}}{n}"
+  },
+  {
+    "formula_id": "KN-F5",
+    "latex": "t_{total} = \\frac{n \\left(60 v_{1} + 60 v_{2} + 60 v_{3} + 60 v_{4}\\right)}{3600 q_{design}}"
+  },
+  {
+    "formula_id": "KN-F6",
+    "latex": "p_{i} = 1 \\cdot 10^{-06} g_{i}^{2} v_{i}"
+  },
+  {
+    "formula_id": "KN-F7",
+    "latex": "a_{i} = \\frac{v_{i}}{h_{2}}"
+  },
+  {
+    "formula_id": "KN-F8",
+    "latex": "b_{raw} = \\sqrt{\\frac{a_{max}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "KN-F9",
+    "latex": "l_{i} = \\frac{a_{i}}{b}"
+  },
+  {
+    "formula_id": "KS-F1",
+    "latex": "q_{1h} = \\frac{3600 q_{design}}{n_{units}}"
+  },
+  {
+    "formula_id": "KS-F2",
+    "latex": "a_{disk} = \\frac{d_{disk}^{2} \\eta_{im} \\pi}{2}"
+  },
+  {
+    "formula_id": "KS-F3",
+    "latex": "a_{total req} = \\frac{q_{1h}}{q_{surf}}"
+  },
+  {
+    "formula_id": "KS-F4",
+    "latex": "n_{disks} = \\frac{a_{total req}}{a_{disk}}"
+  },
+  {
+    "formula_id": "KS-F5",
+    "latex": "v_{line} = \\frac{d_{disk} \\omega \\pi}{60}"
+  },
+  {
+    "formula_id": "KS-F6",
+    "latex": "w_{ss} = \\frac{54 \\eta_{ss} q_{avg daily} ss_{in}}{625}"
+  },
+  {
+    "formula_id": "KS-F7",
+    "latex": "q_{sludge} = \\frac{1000 w_{ss}}{\\rho_{sludge} \\left(1 - p_{sludge}\\right)}"
+  },
+  {
+    "formula_id": "KS-F8",
+    "latex": "m_{seed net} = m_{seed} \\left(1 - \\eta_{recover}\\right)"
+  },
+  {
+    "formula_id": "KS-F9",
+    "latex": "e_{magnetic} = 24 n_{units} p_{drive}"
+  },
+  {
+    "formula_id": "KT-F1",
+    "latex": "v_{total} = 3600 q_{avg daily} t_{reg}"
+  },
+  {
+    "formula_id": "KT-F10",
+    "latex": "d_{out raw} = 2 \\sqrt{\\frac{q_{avg daily}}{\\pi v_{out}}}"
+  },
+  {
+    "formula_id": "KT-F11",
+    "latex": "h_{total} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "KT-F12",
+    "latex": "v_{concrete} = a_{act} h_{total} n wall_{coef}"
+  },
+  {
+    "formula_id": "KT-F13",
+    "latex": "e_{stir} = 24 p_{stir}"
+  },
+  {
+    "formula_id": "KT-F2",
+    "latex": "v_{1} = \\frac{v_{total}}{n}"
+  },
+  {
+    "formula_id": "KT-F3",
+    "latex": "a_{1} = \\frac{v_{1}}{h_{2}}"
+  },
+  {
+    "formula_id": "KT-F4",
+    "latex": "b_{raw} = \\sqrt{\\frac{a_{1}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "KT-F5",
+    "latex": "l_{raw} = \\frac{a_{1}}{B}"
+  },
+  {
+    "formula_id": "KT-F6",
+    "latex": "a_{act} = B L"
+  },
+  {
+    "formula_id": "KT-F7",
+    "latex": "v_{act total} = a_{act} h_{2} n"
+  },
+  {
+    "formula_id": "KT-F8",
+    "latex": "t_{reg act} = \\frac{v_{act total}}{3600 q_{avg daily}}"
+  },
+  {
+    "formula_id": "KT-F9",
+    "latex": "p_{stir} = \\frac{v_{act total} w_{stir}}{1000}"
+  },
+  {
+    "formula_id": "KV-F1",
+    "latex": "q_{d} = 86400 k_{self} q_{avg daily}"
+  },
+  {
+    "formula_id": "KV-F10",
+    "latex": "h_{total} = h_{media} + h_{plate} + h_{super} + h_{under} + h_{water}"
+  },
+  {
+    "formula_id": "KV-F11",
+    "latex": "v_{concrete} = b h_{total} l n wall_{coef}"
+  },
+  {
+    "formula_id": "KV-F2",
+    "latex": "t_{w} = - \\frac{2 t_{bw}}{5 t_{filter}} + 24"
+  },
+  {
+    "formula_id": "KV-F3",
+    "latex": "f_{total} = \\frac{q_{d}}{t_{w} v_{filter}}"
+  },
+  {
+    "formula_id": "KV-F4",
+    "latex": "f_{single} = \\frac{f_{total}}{n}"
+  },
+  {
+    "formula_id": "KV-F5",
+    "latex": "v_{force act} = \\frac{n v_{filter}}{n - 1}"
+  },
+  {
+    "formula_id": "KV-F6",
+    "latex": "b_{raw} = \\sqrt{\\frac{f_{single}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "KV-F7",
+    "latex": "l_{raw} = \\frac{f_{single}}{b}"
+  },
+  {
+    "formula_id": "KV-F8",
+    "latex": "w_{wash} = \\frac{3 q_{sweep} t_{bw}}{50} + \\frac{3 q_{w} t_{water}}{50} + \\frac{3 q_{w sim} t_{sim}}{50}"
+  },
+  {
+    "formula_id": "KV-F9",
+    "latex": "\\eta_{wash} = \\frac{24 n w_{wash}}{q_{d} t_{filter}}"
+  },
+  {
+    "formula_id": "KZ-F1",
+    "latex": "q_{ch} = \\frac{3600 q_{design}}{n}"
+  },
+  {
+    "formula_id": "KZ-F10",
+    "latex": "h_{loss} = \\max\\left(loss_{min}, 0.0509683995922528 v_{ch}^{2} \\xi_{total}\\right)"
+  },
+  {
+    "formula_id": "KZ-F11",
+    "latex": "h_{total} = h_{channel} + h_{super}"
+  },
+  {
+    "formula_id": "KZ-F2",
+    "latex": "a_{ch} = b_{channel} h_{channel}"
+  },
+  {
+    "formula_id": "KZ-F3",
+    "latex": "v_{ch} = \\frac{q_{ch}}{3600 a_{ch}}"
+  },
+  {
+    "formula_id": "KZ-F4",
+    "latex": "t_{eff} = \\left(\\frac{t_{254}}{100}\\right)^{n_{t}}"
+  },
+  {
+    "formula_id": "KZ-F5",
+    "latex": "i_{avg} = \\frac{\\eta_{geo} f_{aging} f_{fouling} n_{layer} p_{lamp} t_{eff}}{10 a_{ch}}"
+  },
+  {
+    "formula_id": "KZ-F6",
+    "latex": "dose_{row} = \\frac{d_{long} i_{avg}}{v_{ch}}"
+  },
+  {
+    "formula_id": "KZ-F7",
+    "latex": "n_{rows} = \\frac{dose}{dose_{row}}"
+  },
+  {
+    "formula_id": "KZ-F8",
+    "latex": "dose_{act} = dose_{row} n_{rows}"
+  },
+  {
+    "formula_id": "KZ-F9",
+    "latex": "t_{contact} = \\frac{d_{long} n_{rows}}{v_{ch}}"
+  },
+  {
+    "formula_id": "MS-F1",
+    "latex": "ds_{primary} = 1000 w_{ss}"
+  },
+  {
+    "formula_id": "MS-F2",
+    "latex": "ds_{bio} = 1000 \\rho_{sand wet} v_{sand} \\left(1 - p_{sand}\\right)"
+  },
+  {
+    "formula_id": "MS-F3",
+    "latex": "ds_{chem} = \\frac{q_{avg daily} \\left(ss_{in gm} - ss_{out gm}\\right)}{1000}"
+  },
+  {
+    "formula_id": "NM-F1",
+    "latex": "v_{full} = \\frac{2^{\\frac{2}{3}} d^{\\frac{2}{3}} s^{0.5}}{4 n}"
+  },
+  {
+    "formula_id": "NM-F2-A",
+    "latex": "a_{part} = 0.7853981625 \\alpha d^{2}"
+  },
+  {
+    "formula_id": "NM-F2-Q",
+    "latex": "q_{part} = 0.7853981625 \\alpha d^{2} v_{part}"
+  },
+  {
+    "formula_id": "NM-F2-R",
+    "latex": "r_{part} = \\frac{\\beta d}{4}"
+  },
+  {
+    "formula_id": "NM-F2-V",
+    "latex": "v_{part} = \\frac{2^{\\frac{2}{3}} s^{0.5} \\left(\\beta d\\right)^{\\frac{2}{3}}}{4 n}"
+  },
+  {
+    "formula_id": "NM-F3",
+    "latex": "r_{part} = \\frac{a_{part}}{p_{part}}"
+  },
+  {
+    "formula_id": "NM-F5-DEPTH",
+    "latex": "margin_{depth} = depth_{max} - ground + invert"
+  },
+  {
+    "formula_id": "NM-F5-FILL",
+    "latex": "margin_{fill} = fill_{limit} - h_{d}"
+  },
+  {
+    "formula_id": "NM-F5-V",
+    "latex": "margin_{v} = \\min\\left(v_{band max} - v_{part}, - v_{band min} + v_{part}\\right)"
+  },
+  {
+    "formula_id": "NS-F1",
+    "latex": "a_{load} = \\frac{ds_{in}}{q_{solid}}"
+  },
+  {
+    "formula_id": "NS-F10",
+    "latex": "ds_{sup} = ds_{in} - ds_{out}"
+  },
+  {
+    "formula_id": "NS-F11",
+    "latex": "h_{total} = h_{cone} + h_{eff} + h_{super}"
+  },
+  {
+    "formula_id": "NS-F12",
+    "latex": "v_{concrete} = a_{single} h_{total} n wall_{coef}"
+  },
+  {
+    "formula_id": "NS-F2",
+    "latex": "a_{time} = \\frac{q_{wet} t_{thicken}}{24 h_{eff}}"
+  },
+  {
+    "formula_id": "NS-F3",
+    "latex": "a_{req} = \\max\\left(a_{load}, a_{time}\\right)"
+  },
+  {
+    "formula_id": "NS-F4",
+    "latex": "a_{single} = \\frac{a_{req}}{n}"
+  },
+  {
+    "formula_id": "NS-F5",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{a_{single}}{\\pi}}"
+  },
+  {
+    "formula_id": "NS-F6",
+    "latex": "q_{solid act} = \\frac{ds_{in}}{a_{req}}"
+  },
+  {
+    "formula_id": "NS-F7",
+    "latex": "ds_{out} = ds_{in} \\eta_{capture}"
+  },
+  {
+    "formula_id": "NS-F8",
+    "latex": "q_{thick} = \\frac{ds_{out}}{1000 - 1000 p_{out}}"
+  },
+  {
+    "formula_id": "NS-F9",
+    "latex": "q_{sup} = - q_{thick} + q_{wet}"
+  },
+  {
+    "formula_id": "PJ-F1",
+    "latex": "q_{each} = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "PJ-F10",
+    "latex": "a_{well act} = 0.7853981625 d_{well}^{2}"
+  },
+  {
+    "formula_id": "PJ-F11",
+    "latex": "h_{total} = h_{super} + h_{well}"
+  },
+  {
+    "formula_id": "PJ-F12",
+    "latex": "v_{concrete} = a_{well act} h_{total} wall_{coef}"
+  },
+  {
+    "formula_id": "PJ-F2",
+    "latex": "a_{out} = \\frac{q_{each}}{v_{out}}"
+  },
+  {
+    "formula_id": "PJ-F3",
+    "latex": "d_{raw} = 1.128379167740193 \\sqrt{a_{out}}"
+  },
+  {
+    "formula_id": "PJ-F4",
+    "latex": "a_{act} = 0.7853981625 d^{2}"
+  },
+  {
+    "formula_id": "PJ-F5",
+    "latex": "v_{act} = \\frac{q_{each}}{a_{act}}"
+  },
+  {
+    "formula_id": "PJ-F6",
+    "latex": "h_{head} = \\frac{v_{act}^{2}}{2 g_{gravity} \\mu_{out}^{2}}"
+  },
+  {
+    "formula_id": "PJ-F7",
+    "latex": "q_{series} = k_{uneven} q_{each}"
+  },
+  {
+    "formula_id": "PJ-F8",
+    "latex": "a_{well} = \\frac{q_{design}}{v_{channel}}"
+  },
+  {
+    "formula_id": "PJ-F9",
+    "latex": "d_{well raw} = 1.128379167740193 \\sqrt{a_{well}}"
+  },
+  {
+    "formula_id": "PQ-F1",
+    "latex": "q_{each} = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "PQ-F2",
+    "latex": "a_{channel} = \\frac{q_{design}}{v_{channel}}"
+  },
+  {
+    "formula_id": "PQ-F3",
+    "latex": "h_{water} = \\frac{a_{channel}}{b_{channel}}"
+  },
+  {
+    "formula_id": "PQ-F4",
+    "latex": "h_{weir} = 0.7937005250671809 \\left(\\frac{q_{each}}{b \\sqrt{g_{gravity}} m_{weir}}\\right)^{0.66666667}"
+  },
+  {
+    "formula_id": "PQ-F5",
+    "latex": "q_{series} = k_{uneven} q_{each}"
+  },
+  {
+    "formula_id": "PQ-F6",
+    "latex": "h_{total} = h_{super} + h_{water}"
+  },
+  {
+    "formula_id": "PQ-F7",
+    "latex": "v_{end} = \\frac{q_{each}}{a_{channel}}"
+  },
+  {
+    "formula_id": "ST-F1",
+    "latex": "q_{h} = \\frac{q_{wet}}{24}"
+  },
+  {
+    "formula_id": "ST-F2",
+    "latex": "q_{si} = \\frac{q_{h}}{3600}"
+  },
+  {
+    "formula_id": "ST-F3",
+    "latex": "d_{raw} = 2 \\sqrt{\\frac{q_{si}}{\\pi v_{press}}}"
+  },
+  {
+    "formula_id": "ST-F4",
+    "latex": "v_{act} = \\frac{4 q_{si}}{d_{pipe}^{2} \\pi}"
+  },
+  {
+    "formula_id": "ST-F5",
+    "latex": "i_{req} = \\frac{6.349604266555602 n_{manning}^{2} v_{grav min}^{2}}{d_{grav}^{1.33333334}}"
+  },
+  {
+    "formula_id": "ST-F6",
+    "latex": "v_{grav} = \\frac{0.39685026115821226 d_{grav}^{0.66666667} \\sqrt{i_{slope}}}{n_{manning}}"
+  },
+  {
+    "formula_id": "ST-F7",
+    "latex": "i_{slope} = \\max\\left(i_{req}, slope_{min}\\right)"
+  },
+  {
+    "formula_id": "ST-F8",
+    "latex": "ds_{out} = ds_{in}"
+  },
+  {
+    "formula_id": "ST-F9",
+    "latex": "p_{out} = p_{in}"
+  },
+  {
+    "formula_id": "TJ-F1",
+    "latex": "v_{total} = 3600 q_{avg daily} t_{reg}"
+  },
+  {
+    "formula_id": "TJ-F10",
+    "latex": "q_{pump1} = \\frac{3600 q_{avg daily}}{n_{pump duty}}"
+  },
+  {
+    "formula_id": "TJ-F11",
+    "latex": "d_{overflow raw} = 2 \\sqrt{\\frac{q_{design}}{\\pi v_{overflow}}}"
+  },
+  {
+    "formula_id": "TJ-F12",
+    "latex": "h_{total} = h_{2} + h_{super}"
+  },
+  {
+    "formula_id": "TJ-F13",
+    "latex": "v_{concrete} = a_{act} h_{total} n wall_{coef}"
+  },
+  {
+    "formula_id": "TJ-F14",
+    "latex": "e_{stir} = 24 p_{stir}"
+  },
+  {
+    "formula_id": "TJ-F2",
+    "latex": "v_{1} = \\frac{v_{total}}{n}"
+  },
+  {
+    "formula_id": "TJ-F3",
+    "latex": "a_{1} = \\frac{v_{1}}{h_{2}}"
+  },
+  {
+    "formula_id": "TJ-F4",
+    "latex": "b_{raw} = \\sqrt{\\frac{a_{1}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "TJ-F5",
+    "latex": "l_{raw} = \\frac{a_{1}}{B}"
+  },
+  {
+    "formula_id": "TJ-F6",
+    "latex": "a_{act} = B L"
+  },
+  {
+    "formula_id": "TJ-F7",
+    "latex": "v_{act total} = a_{act} h_{2} n"
+  },
+  {
+    "formula_id": "TJ-F8",
+    "latex": "t_{reg act} = \\frac{v_{act total}}{3600 q_{avg daily}}"
+  },
+  {
+    "formula_id": "TJ-F9",
+    "latex": "p_{stir} = \\frac{v_{act total} w_{stir}}{1000}"
+  },
+  {
+    "formula_id": "TS-F1",
+    "latex": "n_{pump raw} = \\frac{q_{design h}}{q_{per pump}}"
+  },
+  {
+    "formula_id": "TS-F10",
+    "latex": "v_{well} = 60 q_{pump si} t_{well}"
+  },
+  {
+    "formula_id": "TS-F11",
+    "latex": "a_{well} = \\frac{v_{well}}{h_{well}}"
+  },
+  {
+    "formula_id": "TS-F12",
+    "latex": "n_{start} = \\frac{900 q_{pump si}}{v_{well}}"
+  },
+  {
+    "formula_id": "TS-F13",
+    "latex": "h_{well total} = h_{super} + h_{well}"
+  },
+  {
+    "formula_id": "TS-F14",
+    "latex": "v_{concrete} = a_{well} h_{well total} wall_{coef}"
+  },
+  {
+    "formula_id": "TS-F15",
+    "latex": "p_{pump} = \\frac{g_{gravity} h_{pump} q_{pump si} \\rho_{water}}{1000 \\eta_{pump}}"
+  },
+  {
+    "formula_id": "TS-F16",
+    "latex": "e_{pump} = \\frac{3 g_{gravity} h_{pump} q_{avg daily} \\rho_{water}}{125 \\eta_{pump}}"
+  },
+  {
+    "formula_id": "TS-F2",
+    "latex": "q_{pump} = \\frac{q_{design h}}{n_{pump duty}}"
+  },
+  {
+    "formula_id": "TS-F3",
+    "latex": "n_{pump total} = n_{pump duty} + n_{standby}"
+  },
+  {
+    "formula_id": "TS-F4",
+    "latex": "d_{pipe raw} = 1.128379167740193 \\sqrt{\\frac{q_{pump si}}{v_{pipe}}}"
+  },
+  {
+    "formula_id": "TS-F5",
+    "latex": "v_{pipe act} = \\frac{1.273239546190051 q_{pump si}}{d_{pipe}^{2}}"
+  },
+  {
+    "formula_id": "TS-F6",
+    "latex": "h_{friction} = a_{pipe} l_{pipe} q_{pump si}^{2}"
+  },
+  {
+    "formula_id": "TS-F7",
+    "latex": "h_{\\mathcal{lo}} = \\frac{v_{pipe act}^{2} \\zeta_{total}}{2 g_{gravity}}"
+  },
+  {
+    "formula_id": "TS-F8",
+    "latex": "h_{loss} = h_{friction} + h_{\\mathcal{lo}}"
+  },
+  {
+    "formula_id": "TS-F9",
+    "latex": "h_{pump} = h_{free} + h_{loss} + h_{static}"
+  },
+  {
+    "formula_id": "TU-F1",
+    "latex": "w_{pam} = \\frac{dose_{pam} ds_{in}}{1000}"
+  },
+  {
+    "formula_id": "TU-F2",
+    "latex": "q_{in h} = \\frac{q_{wet}}{24}"
+  },
+  {
+    "formula_id": "TU-F3",
+    "latex": "n_{machine raw} = \\frac{q_{in h}}{q_{machine}}"
+  },
+  {
+    "formula_id": "TU-F4",
+    "latex": "n_{machine total} = n_{machine duty} + n_{standby}"
+  },
+  {
+    "formula_id": "TU-F5",
+    "latex": "ds_{cake} = ds_{in} \\eta_{capture}"
+  },
+  {
+    "formula_id": "TU-F6",
+    "latex": "q_{cake} = \\frac{ds_{cake}}{1000 - 1000 p_{cake}}"
+  },
+  {
+    "formula_id": "TU-F7",
+    "latex": "q_{filtrate} = - q_{cake} + q_{wet}"
+  },
+  {
+    "formula_id": "TU-F8",
+    "latex": "ds_{filtrate} = - ds_{cake} + ds_{in}"
+  },
+  {
+    "formula_id": "XG-F1",
+    "latex": "q = \\frac{q_{design}}{n}"
+  },
+  {
+    "formula_id": "XG-F10",
+    "latex": "l_{raw} = l_{3 fixed} + l_{4 fixed} + \\frac{3 \\left(B - b_{1}\\right)}{4 tan_{\\alpha}} + \\frac{drop_{constant} + h}{tan_{\\alpha}}"
+  },
+  {
+    "formula_id": "XG-F11",
+    "latex": "w_{slag} = \\frac{432 q_{design} w_{1}}{5 kz}"
+  },
+  {
+    "formula_id": "XG-F12",
+    "latex": "mech_{margin} = - mech_{clean threshold} + w_{slag}"
+  },
+  {
+    "formula_id": "XG-F13",
+    "latex": "ds_{slag} = 1000 w_{slag} \\left(1 - moisture\\right)"
+  },
+  {
+    "formula_id": "XG-F14",
+    "latex": "v_{concrete} = B H L n wall_{coef}"
+  },
+  {
+    "formula_id": "XG-F2",
+    "latex": "n_{gap ratio} = \\frac{q sqrt_{sin \\alpha}}{b h v}"
+  },
+  {
+    "formula_id": "XG-F3",
+    "latex": "b_{raw} = b n_{gap} + margin + s \\left(n_{gap} - 1\\right)"
+  },
+  {
+    "formula_id": "XG-F4",
+    "latex": "b_{1 raw} = \\frac{q}{h v_{1}}"
+  },
+  {
+    "formula_id": "XG-F5",
+    "latex": "v_{checked} = \\frac{q sqrt_{sin \\alpha}}{b h n_{gap}}"
+  },
+  {
+    "formula_id": "XG-F6",
+    "latex": "v_{1 checked} = \\frac{q}{b_{1} h}"
+  },
+  {
+    "formula_id": "XG-F7",
+    "latex": "\\xi = \\beta s_{over b}^{\\frac{4}{3}}"
+  },
+  {
+    "formula_id": "XG-F8",
+    "latex": "h_{1} = \\frac{k_{headloss} sin_{\\alpha} v_{checked}^{2} \\xi}{2 g}"
+  },
+  {
+    "formula_id": "XG-F9",
+    "latex": "h_{total raw} = h + h_{1} + superheight"
+  },
+  {
+    "formula_id": "XH-F1",
+    "latex": "w_{vs} = ds_{in} f_{vs}"
+  },
+  {
+    "formula_id": "XH-F10",
+    "latex": "d_{raw} = 1.587401044632849 \\left(\\frac{v_{single}}{\\pi r_{dh}}\\right)^{0.33333333}"
+  },
+  {
+    "formula_id": "XH-F11",
+    "latex": "v_{concrete} = v_{total} wall_{coef}"
+  },
+  {
+    "formula_id": "XH-F2",
+    "latex": "v_{total} = q_{wet} t_{digest}"
+  },
+  {
+    "formula_id": "XH-F3",
+    "latex": "v_{single} = \\frac{v_{total}}{n}"
+  },
+  {
+    "formula_id": "XH-F4",
+    "latex": "w_{vs deg} = \\eta_{vs} w_{vs}"
+  },
+  {
+    "formula_id": "XH-F5",
+    "latex": "v_{biogas} = r_{biogas} w_{vs deg}"
+  },
+  {
+    "formula_id": "XH-F6",
+    "latex": "l_{vs} = \\frac{w_{vs}}{v_{total}}"
+  },
+  {
+    "formula_id": "XH-F7",
+    "latex": "ds_{out} = ds_{in} - w_{vs deg}"
+  },
+  {
+    "formula_id": "XH-F8",
+    "latex": "q_{out} = q_{wet} - \\frac{w_{vs deg}}{1000}"
+  },
+  {
+    "formula_id": "XH-F9",
+    "latex": "p_{out} = - \\frac{ds_{out}}{1000 q_{out}} + 1"
+  },
+  {
+    "formula_id": "XL-F1",
+    "latex": "q_{filter} = 3600 q_{design} selfuse_{coef}"
+  },
+  {
+    "formula_id": "XL-F10",
+    "latex": "q_{air} = \\frac{a_{cell act} w_{air}}{1000}"
+  },
+  {
+    "formula_id": "XL-F11",
+    "latex": "q_{wash sim} = \\frac{a_{cell act} w_{water sim}}{1000}"
+  },
+  {
+    "formula_id": "XL-F12",
+    "latex": "q_{wash} = \\frac{a_{cell act} w_{water}}{1000}"
+  },
+  {
+    "formula_id": "XL-F13",
+    "latex": "q_{sweep} = \\frac{a_{cell act} w_{sweep}}{1000}"
+  },
+  {
+    "formula_id": "XL-F14",
+    "latex": "v_{air per} = 60 q_{air} \\left(t_{air} + t_{sim}\\right)"
+  },
+  {
+    "formula_id": "XL-F15",
+    "latex": "v_{wash per} = 60 q_{sweep} \\left(t_{air} + t_{sim} + t_{water}\\right) + 60 q_{wash} t_{water} + 60 q_{wash sim} t_{sim}"
+  },
+  {
+    "formula_id": "XL-F16",
+    "latex": "v_{wash daily} = \\frac{24 n v_{wash per}}{t_{cycle}}"
+  },
+  {
+    "formula_id": "XL-F17",
+    "latex": "ratio_{wash} = \\frac{v_{wash daily}}{86400 q_{avg daily}}"
+  },
+  {
+    "formula_id": "XL-F18",
+    "latex": "h_{total} = h_{bottom} + h_{sand} + h_{super} + h_{water above}"
+  },
+  {
+    "formula_id": "XL-F19",
+    "latex": "v_{concrete} = a_{total act} h_{total} wall_{coef}"
+  },
+  {
+    "formula_id": "XL-F2",
+    "latex": "a_{total req} = \\frac{q_{filter}}{v_{filter}}"
+  },
+  {
+    "formula_id": "XL-F20",
+    "latex": "w_{air} = \\frac{24 n v_{air per}}{t_{cycle}}"
+  },
+  {
+    "formula_id": "XL-F21",
+    "latex": "w_{sweep} = \\frac{1440 n q_{sweep} \\left(t_{air} + t_{sim} + t_{water}\\right)}{t_{cycle}}"
+  },
+  {
+    "formula_id": "XL-F22",
+    "latex": "e_{backwash} = air_{specific energy} w_{air} + v_{wash daily} water_{specific energy}"
+  },
+  {
+    "formula_id": "XL-F3",
+    "latex": "a_{cell} = \\frac{a_{total req}}{n}"
+  },
+  {
+    "formula_id": "XL-F4",
+    "latex": "b_{raw} = \\sqrt{\\frac{a_{cell}}{ratio_{lb}}}"
+  },
+  {
+    "formula_id": "XL-F5",
+    "latex": "l_{raw} = \\frac{a_{cell}}{B}"
+  },
+  {
+    "formula_id": "XL-F6",
+    "latex": "a_{cell act} = B L"
+  },
+  {
+    "formula_id": "XL-F7",
+    "latex": "a_{total act} = a_{cell act} n"
+  },
+  {
+    "formula_id": "XL-F8",
+    "latex": "v_{filter act} = \\frac{q_{filter}}{a_{total act}}"
+  },
+  {
+    "formula_id": "XL-F9",
+    "latex": "v_{forced act} = \\frac{q_{filter}}{- a_{cell act} + a_{total act}}"
+  },
+  {
+    "formula_id": "ZW-F1",
+    "latex": "q_{c} = \\frac{q_{design}}{n_{channel}}"
+  },
+  {
+    "formula_id": "ZW-F10",
+    "latex": "c_{\\mathcal{fe} out} = 10^{- n_{log}} c_{\\mathcal{fe} in}"
+  },
+  {
+    "formula_id": "ZW-F11",
+    "latex": "h_{submerge} = - h_{module} + h_{w}"
+  },
+  {
+    "formula_id": "ZW-F12",
+    "latex": "h_{channel} = h_{super} + h_{w}"
+  },
+  {
+    "formula_id": "ZW-F13",
+    "latex": "v_{concrete} = b_{c} h_{channel} l_{channel} n_{channel} wall_{coef}"
+  },
+  {
+    "formula_id": "ZW-F2",
+    "latex": "h_{w raw} = \\frac{q_{c}}{b_{c} v_{channel}}"
+  },
+  {
+    "formula_id": "ZW-F3",
+    "latex": "v_{channel act} = \\frac{q_{c}}{b_{c} h_{w}}"
+  },
+  {
+    "formula_id": "ZW-F4",
+    "latex": "n_{lamp raw} = \\frac{3600 q_{design}}{f_{aging} q_{per lamp}}"
+  },
+  {
+    "formula_id": "ZW-F5",
+    "latex": "n_{module raw} = \\frac{n_{lamp}}{n_{lamp module}}"
+  },
+  {
+    "formula_id": "ZW-F6",
+    "latex": "n_{module series} = \\frac{n_{module}}{n_{channel}}"
+  },
+  {
+    "formula_id": "ZW-F7",
+    "latex": "l_{lamp zone} = l_{module} n_{module series}"
+  },
+  {
+    "formula_id": "ZW-F8",
+    "latex": "l_{channel} = l_{lamp zone} + 2 l_{stab}"
+  },
+  {
+    "formula_id": "ZW-F9",
+    "latex": "t_{exp} = \\frac{b_{c} h_{w} l_{lamp zone}}{q_{c}}"
+  }
+]

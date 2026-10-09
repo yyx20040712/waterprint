@@ -127,8 +127,23 @@ def _render_math_block(source: FormulaSource) -> list[str]:
     ]
 
 
+def _appendix_math_cell(latex: str) -> str:
+    """附录行内数学单元格（B6 笔5 主控裁定修正）。
+
+    竖线→\\vert 等价替换：裸 | 经 _cell 表格转义为 \\|——而 \\| 在 LaTeX
+    数学域=‖ 双竖线（范数形），绝对值 \\left|…\\right| 渲染失真（HB-F11/
+    HB-F13 两式实录）；\\vert 数学语义与 | 恒等（竖线符号本体），替身后
+    表格转义零触发+KaTeX 渲染单竖线正确形。
+    """
+    return f"${latex.replace('|', r'\vert')}$"
+
+
 def _render_catalog(block: FormulaCatalog) -> str:
-    """FormulaCatalog → 公式溯源全表（附录章主体——四列管道表）。"""
+    """FormulaCatalog → 公式溯源全表（附录章主体——四列管道表）。
+
+    B6 笔5 主控裁定：LaTeX 列=行内数学定界（$…$——web KaTeX 数学形呈现，
+    与 render_typst 附录 math 列同源同形；源码级溯源归 audit HTML 承载）。
+    """
     return _render_table(
         TableBlock(
             title="公式溯源全表（项目公式全集）",
@@ -136,7 +151,7 @@ def _render_catalog(block: FormulaCatalog) -> str:
             rows=tuple(
                 (
                     row.formula_id,
-                    row.latex,
+                    _appendix_math_cell(row.latex),
                     row.norm_ref,
                     row.symbols_note,
                 )
