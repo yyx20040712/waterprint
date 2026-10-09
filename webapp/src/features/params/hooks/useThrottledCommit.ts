@@ -5,7 +5,8 @@
  * 输入:  fire（提交通道——payload 取尾发时点最新草稿）+mirror（草稿镜像
  *        同步——onChange→render 后 ref 恒新）
  * 输出:  useThrottledCommit → { schedule, mirror }——leading 即发+trailing
- *        最新合并（commitThrottle 单源；卸载 cancel）
+ *        最新合并（commitThrottle 单源；卸载 flush——R1 W-V10：挂尾
+ *        立即发不静默丢）
  */
 import { useEffect, useRef } from "react";
 

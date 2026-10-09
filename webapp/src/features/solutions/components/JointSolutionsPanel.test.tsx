@@ -112,6 +112,9 @@ async function render(result: JointResultView): Promise<string> {
 
 describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
   it("combos 表：三行排名+四键列+score 列+降权标记（千分位格式）", async () => {
+    // B2 R4 稳化：renderToPipeableStream+lazy echarts chunk 满载并行下
+    // onAllReady 偶发>30s（B2 期实录 2/5 发生率、单跑恒绿）——per-test
+    // timeout 90s 廉价稳化（M1 瞬态族不复发面）
     const html = await render(RESULT);
     expect(html).toContain("排名"); // 列头
     expect(html).toContain("综合得分");
@@ -120,7 +123,7 @@ describe("JointSolutionsPanel（combos 表+三图 Tabs 装配）", () => {
     expect(html).toContain("（缺失）"); // score null 诚实呈现
     expect(html).toContain("敏感工况失守"); // 降权标记
     expect(html).toContain("unitA: p1=1, p2=2"); // 参数摘要列
-  });
+  }, 90_000);
 
   it("三图 Tabs 页签文案在场（forceRender——SSR 全页签渲染）", async () => {
     const html = await render(RESULT);

@@ -67,3 +67,23 @@ describe("buildSolutionCards（数据流②偏差重排）", () => {
     expect(a.map((c) => c.no)).toEqual(b.map((c) => c.no));
   });
 });
+
+describe("tie-break 锚定（B2 R4 核实项——ds 图3 误读驳回的证据面）", () => {
+  it("等偏差和并列=服务端序稳定（★首位排前——重排不架空服务端序）", () => {
+    // 构造真并列：current {srt:13,n:2}——S01{srt12,n3} 偏差 1+1=2、
+    // S02{srt14,n1} 偏差 1+1=2（等和）→ tie-break=serverRank 升序
+    const cards = buildSolutionCards(
+      [row(12, 3), row(14, 1)],
+      GRID,
+      { srt: 13, n: 2 },
+    );
+    expect(cards.length).toBe(2);
+    expect(cards[0]?.no).toBe("S01"); // 服务端序首位（★推荐卡）列首
+    expect(cards[0]?.recommended).toBe(true);
+    expect(cards[1]?.no).toBe("S02");
+    expect(cards[1]?.recommended).toBe(false);
+    // 双方偏差和相等（真并列非近似）：|12−13|+|3−2|=2、|14−13|+|1−2|=2
+    expect(cards[0]?.deviationSum).toBe(cards[1]?.deviationSum);
+    expect(cards[0]?.deviationSum).toBe(2);
+  });
+});
