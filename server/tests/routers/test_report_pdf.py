@@ -222,7 +222,7 @@ async def test_report_pdf_200_compile_list_download(
     )
     assert response.status_code == status.HTTP_200_OK
     payload = response.content
-    assert payload[:8] == b"%PDF-1.7"
+    assert payload[:5] == b"%PDF-"  # d1-N-10：五字节与服务闸 _PDF_MAGIC 同宽（引擎升版防误红）
     assert _pdf_pages(payload) >= 1
     # kind 面板：产物列表含 report_pdf 行+边车在场
     listed = (await client.get("/api/exports", params={"project_id": project_id})).json()
@@ -234,7 +234,7 @@ async def test_report_pdf_200_compile_list_download(
     # 下载通道（后缀白名单派生含 .pdf——EXPD D1 面）
     download = await client.get(f"/api/exports/{file_name}")
     assert download.status_code == status.HTTP_200_OK
-    assert download.content[:8] == b"%PDF-1.7"
+    assert download.content[:5] == b"%PDF-"  # d1-N-10：五字节同宽
 
 
 @pytest.mark.skipif(
@@ -254,7 +254,7 @@ async def test_report_pdf_force_stale_labeled(client: httpx.AsyncClient) -> None
         "/api/exports/report_pdf", params={"force": True}, json={"project_id": project_id}
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.content[:8] == b"%PDF-1.7"
+    assert response.content[:5] == b"%PDF-"  # d1-N-10：五字节同宽
     listed = (await client.get("/api/exports", params={"project_id": project_id})).json()
     rows = [row for row in listed if row["kind"] == "report_pdf"]
     assert rows[0]["stale_labeled"] is True  # 产物永不冒充（R1）
@@ -302,7 +302,7 @@ async def test_stale_verdict_identical_across_channels_fresh_side(
         "/api/exports/report_pdf", json={"project_id": project_id}
     )
     assert pdf.status_code == status.HTTP_200_OK
-    assert pdf.content[:8] == b"%PDF-1.7"
+    assert pdf.content[:5] == b"%PDF-"  # d1-N-10：五字节同宽
 
 
 @pytest.mark.anyio

@@ -362,3 +362,36 @@ class TestSympifyClosedWorld:
         symbols 声明集，闭世界仅施 RHS 侧）。"""
         out = typst_of_expression("y = 2 * q", {"q": Symbol("q")})
         assert out == "y = 2 q"
+
+
+class TestClosedWorldNameTokens:
+    """d1-W-1（B6 R2 微收尾）：源表达式 AST Name 记号白名单——free_symbols
+    差集拦不住 sympy 命名空间常量/函数（E/I/oo 经默认全局命名空间静默解析
+    不产自由符号——d1 实证边界），AST 层在 sympify 前收口：允许集=
+    声明符号 ∪ FUNC_MAP 键 ∪ {pi}（registry 惯用常量），其余 Name 记号
+    =显式 InvalidFormulaError。施加面=RHS 侧（LHS 输出符号豁免——分野
+    与 W-E 同律）。红先实录见 red-run-b6.txt「R2」节。"""
+
+    def test_euler_e_rejected(self) -> None:
+        """E（欧拉数）=sympy 全局常量静默解析面（free_symbols 空——W-E
+        差集拦不住），AST 记号层显式拒。"""
+        with pytest.raises(InvalidFormulaError, match="未声明记号"):
+            typst_of_expression("y = q * E", {"q": Symbol("q")})
+
+    def test_imaginary_i_rejected(self) -> None:
+        """I（虚数单位）同族——闭世界禁虚数域静默入场。"""
+        with pytest.raises(InvalidFormulaError, match="未声明记号"):
+            typst_of_expression("y = q + I", {"q": Symbol("q")})
+
+    def test_infinity_oo_rejected(self) -> None:
+        """oo（无穷）静默解析更吞语义（min(q, oo) 折叠为 q——值面失真），
+        AST 记号层显式拒。"""
+        with pytest.raises(InvalidFormulaError, match="未声明记号"):
+            typst_of_expression("y = min(q, oo)", {"q": Symbol("q")})
+
+    def test_pi_constant_allowed(self) -> None:
+        """pi=registry 惯用常量（451 全量在用——CC-F3/KS-F5 等声明面+
+        允许集白名单双通道），正例锚定免误伤。"""
+        assert typst_of_expression(
+            "y = 2*pi*r", {"r": Symbol("r")}
+        ) == "y = 2 pi r"

@@ -30,7 +30,11 @@
 #      MCP 侧语义）→server services.report.assemble_report 共享真源
 #      （narrative_fills 参数化上移；diag/cost/layout 装配与 md/PDF
 #      端点单源；layout 投影复制件退役）→verify 全绿（服务闸）才落盘
-#      reports/{pid}-report-{digest10}.md（落盘语义与返回键面不变）。
+#      reports/{pid}-report-{digest10}.md。返回面如实（d1-W-2 注释
+#      勘正——B6 R2 微收尾）：成功面键零变化（{path, verify_summary,
+#      rejected_narratives}）；verify 失败面 failures 结构化键已退役
+#      （R1 自裁申报④——现返 {"error","hint"} 平面，失败明细经服务闸
+#      异常消息承载）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

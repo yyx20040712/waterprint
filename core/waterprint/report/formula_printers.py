@@ -26,6 +26,7 @@
 
 from __future__ import annotations
 
+import ast
 from collections.abc import Mapping
 from typing import Any, Final
 
@@ -66,6 +67,12 @@ __all__ = [
 # 幂底包裹阈值（字符数超此值即加括号防邻接歧义——原型 451 条编译实证口径；
 # Final 常量化解 PLR2004，值 2 在宪法 §3 允许集 {0,1,2,10} 内——spec.py 先例）
 _POW_BASE_WRAP_ABOVE: Final[int] = 2
+
+# AST 记号白名单额外常量（d1-W-1——B6 R2 微收尾）：pi=registry 惯用常量
+# （451 全量在用——CC-F3/KS-F5 等以 spec.symbols 声明面承载，此处允许集
+# 兜底=表达式级入口未声明 pi 时的白名单通道；其余 sympy 命名空间常量/函数
+# 记号（E/I/oo/nan/zoo/exp 等）一律拒——闭世界禁默认全局命名空间静默解析）。
+_NAME_TOKEN_EXTRA_ALLOW: Final[frozenset[str]] = frozenset({"pi"})
 
 # 原生词表（W-A——B6 R1 回炉 2026-10-09）：Typst math 原生标识符=希腊
 # 字母全族+函数词（451 全量扫描命中面：pi 31 处/eta 14/rho 6/sin 6/
@@ -123,6 +130,38 @@ def _sympify_side(text: str, symbols: Mapping[str, Any]) -> sympy.Expr:
             f"公式表达式非 sympy 表达式节点：{text!r} → {type(expr).__name__}"
         )
     return expr
+
+
+def _assert_name_tokens_closed(
+    text: str, symbols: Mapping[str, Any]
+) -> None:
+    """AST Name 记号白名单（d1-W-1——B6 R2 微收尾）：sympify 前对源
+    表达式做 ast 解析，RHS 侧全部 Name 记号必须 ⊆ 声明符号 ∪ FUNC_MAP
+    键 ∪ {pi}。
+
+    动机：free_symbols 差集拦不住 sympy 命名空间常量/函数——E/I/oo/
+    nan/zoo/exp 等经默认全局命名空间静默解析为对应对象（不产自由符号，
+    W-E 差集恒空；min(q, oo) 更折叠为 q=值面失真）。AST 记号层在
+    sympify 前收口=劫持通道显式化。语法不可解析=静默放行（解析错误面
+    由 _sympify_side 包装 InvalidFormulaError 承载——本闸只施记号校验）。
+    """
+    try:
+        tree = ast.parse(text, mode="eval")
+    except SyntaxError:
+        return  # 解析错误面归 _sympify_side（包装 InvalidFormulaError）
+    allowed = set(symbols) | set(FUNC_MAP) | _NAME_TOKEN_EXTRA_ALLOW
+    undeclared = {
+        node.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load)
+    } - allowed
+    if undeclared:
+        raise InvalidFormulaError(
+            f"公式表达式含未声明记号 {sorted(undeclared)}"
+            f"（闭世界——未声明记号——防 sympy 命名空间劫持："
+            f"E/I/oo 等全局常量禁静默解析，须入 symbols 声明）："
+            f"{text!r}"
+        )
 
 
 def _assert_closed_world(
@@ -291,8 +330,11 @@ class TypstMathPrinter(Printer):  # type: ignore[misc]  # sympy 无 stubs 基类
 
 
 def _eq_of(expression: str, symbols: Mapping[str, Any]) -> sympy.Expr:
-    """表达式 → Eq（含输出符号）或裸 RHS（RHS 侧闭世界校验——W-E）。"""
+    """表达式 → Eq（含输出符号）或裸 RHS（RHS 侧双重闭世界——d1-W-1
+    AST 记号白名单在 sympify 前收口+W-E free_symbols 差集在解析后兜底；
+    LHS 输出符号豁免同律）。"""
     lhs, rhs = _split(expression)
+    _assert_name_tokens_closed(rhs, symbols)
     rhs_expr = _sympify_side(rhs, symbols)
     _assert_closed_world(rhs_expr, symbols, rhs)
     if lhs is None:
