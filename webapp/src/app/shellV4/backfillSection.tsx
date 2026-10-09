@@ -22,6 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatSolutionValue } from "../../features/solutions/lib/solutionsView";
 import { useGetUnitResultsApiCalcProjectsProjectIdUnitsUnitIdResultsGet } from "../../shared/api/generated/calc/calc";
 import { TASK_EVENT } from "../../shared/events";
+import { unitResultsKeyPredicate } from "./analysisView";
 
 /** 回填行上限（首 N 行——面板高度预算；满行面=中区分析表）。 */
 const BACKFILL_ROW_LIMIT = 6;
@@ -29,6 +30,8 @@ const BACKFILL_ROW_LIMIT = 6;
 /** 空态引导文案（白名单：空态引导）。 */
 const NO_UNIT_HINT = "选择单元后，计算值在此回填";
 const NO_RESULT_HINT = "自动值在计算后回填";
+/** R1 W-失败面族：查询错误与空态文案区分（白名单：错误提示）。 */
+const LOAD_ERROR_PREFIX = "单元结果读取失败";
 
 export function BackfillSection({
   projectId,
@@ -48,14 +51,15 @@ export function BackfillSection({
   );
   const detail = query.data ?? null;
 
-  // TASK_EVENT 事件桥（apply/重算后失效 unit-detail 前缀键——回填随动；
-  // PlantFace 同制双挂载幂等）
+  // TASK_EVENT 事件桥（apply/重算后失效 unit-results 生成键——回填随动；
+  // R1a：predicate 域命中 orval 键〔旧前缀字符串键=死键根治〕；与
+  // analysisPane 根级监听双挂载幂等）
   const queryClient = useQueryClient();
   useEffect(() => {
     const onTaskParam = () => {
       if (projectId !== null) {
         void queryClient.invalidateQueries({
-          queryKey: [`/api/calc/projects/${projectId}/units`],
+          predicate: unitResultsKeyPredicate(projectId),
         });
       }
     };
@@ -96,9 +100,15 @@ export function BackfillSection({
       {unitId === null ? (
         <span style={{ color: "var(--wp-text-2)", fontSize: 11 }}>{NO_UNIT_HINT}</span>
       ) : query.isError ? (
-        <span style={{ color: "var(--wp-text-2)", fontSize: 11 }}>{NO_RESULT_HINT}</span>
+        // R1 W-失败面族：错误与空态分面（不同 testid——错误=白名单错误提示）
+        <span data-testid="wp-v4-backfill-error" style={{ color: "var(--wp-error)", fontSize: 11 }}>
+          {LOAD_ERROR_PREFIX}：
+          {query.error instanceof Error ? query.error.message : "未知错误"}
+        </span>
       ) : rowsWithValue.length === 0 ? (
-        <span style={{ color: "var(--wp-text-2)", fontSize: 11 }}>{NO_RESULT_HINT}</span>
+        <span data-testid="wp-v4-backfill-empty" style={{ color: "var(--wp-text-2)", fontSize: 11 }}>
+          {NO_RESULT_HINT}
+        </span>
       ) : (
         rowsWithValue.slice(0, BACKFILL_ROW_LIMIT).map((row) => (
           <div

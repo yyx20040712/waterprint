@@ -280,3 +280,49 @@ describe("分析表态·选中单元明细（§二.③）", () => {
     expect(face?.textContent).toContain("不在工况");
   });
 });
+
+describe("分析表态·R1 W-effluent（列并集+缺值占位）", () => {
+  it("缺值=「—」占位（禁伪 0）——指标行单工况覆盖时他列诚实缺省", () => {
+    gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
+    gate.trust = {
+      data: {
+        ...TRUST_REPORT,
+        effluent: [
+          // CODCR 仅 avg——design 列=—（旧实现 ?? 0 伪值面）
+          { condition_key: "avg", standard_id: "s", indicator: "CODCR", value: 38, limit: 50, margin: 12 },
+          { condition_key: "design", standard_id: "s", indicator: "NH3N", value: 4, limit: 5, margin: 1 },
+        ],
+      },
+      isError: false,
+      error: null,
+    };
+    const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    const table = container.querySelector('[data-testid="wp-v4-effluent-table"]');
+    expect(table).not.toBeNull();
+    const rows = table?.querySelectorAll("tbody tr") ?? [];
+    // 列集=全行并集：avg+design 两列均在（首行截断旧面=design 列丢）
+    const headerText = table?.querySelector("thead")?.textContent ?? "";
+    expect(headerText).toContain("基准 avg");
+    expect(headerText).toContain("设计 design");
+    // CODCR 行：avg=38/design=—（design 单元格精确断言——非伪 0）
+    const codRow = Array.from(rows).find((r) => r.textContent?.includes("CODCR"));
+    const cells = Array.from(codRow?.querySelectorAll("td") ?? []);
+    expect(cells[1]?.textContent).toBe("38");
+    expect(cells[2]?.textContent).toBe("—");
+  });
+
+  it("trust 取数失败=错误提示面（白名单）——矩阵面仍在不阻断", () => {
+    gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
+    gate.trust = {
+      data: undefined,
+      isError: true,
+      error: new Error("可信度报告取数失败"),
+    };
+    const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    const plant = container.querySelector('[data-testid="wp-v4-analysis-plant"]');
+    expect(plant?.textContent).toContain("出水指标读取失败");
+    expect(
+      container.querySelector('[data-testid="wp-compare-matrix-stub"]'),
+    ).not.toBeNull(); // 矩阵面不阻断
+  });
+});

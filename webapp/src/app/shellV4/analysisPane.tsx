@@ -33,7 +33,7 @@ import {
 } from "../../shared/api/generated/calc/calc";
 import { domainGate } from "../../shared/api/sourceGate";
 import { TASK_EVENT } from "../../shared/events";
-import { effluentRows } from "./analysisView";
+import { analysisFacesPredicate, effluentRows } from "./analysisView";
 import { writeTaskParam } from "../solutionsUrlState";
 
 /** 空态引导文案（白名单：空态引导）。 */
@@ -48,12 +48,24 @@ const GATE_TEXT = {
   unitEntry: "该单元不在当前结果快照（未计算或已移除）",
 } as const;
 
-/** 出水指标表（effluent 聚合行——指标×工况值+限值+判定）。 */
+/** 出水指标表（effluent 聚合行——指标×工况值+限值+判定；R1 W-effluent：
+ *  列集=全行 keys 并集〔非首行截断〕+缺值「—」占位禁伪 0）。 */
 function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>[0] }) {
   const rows = effluentRows(effluent);
-  const conditionKeys = rows.length > 0 ? Object.keys(rows[0]!.values) : [];
+  // R1 W-effluent：列集=全行并集（首见序——行间工况覆盖面不一不丢列）
+  const keySet = new Set<string>();
+  for (const row of rows) {
+    for (const key of Object.keys(row.values)) {
+      keySet.add(key);
+    }
+  }
+  const conditionKeys = [...keySet];
   if (rows.length === 0) {
-    return null; // 无出水指标行（诊断缺席/纯提升类项目）——矩阵面仍在
+    return (
+      <div style={{ fontSize: 11, color: "var(--wp-text-2)", marginBottom: 10 }}>
+        无出水指标数据（诊断缺席或纯提升类项目）
+      </div>
+    );
   }
   return (
     <table
@@ -75,9 +87,20 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
         {rows.map((row) => (
           <tr key={row.indicator}>
             <td style={{ textAlign: "left" }}>{row.indicator}</td>
-            {conditionKeys.map((key) => (
-              <td key={key}>{formatSolutionValue(row.values[key] ?? 0)}</td>
-            ))}
+            {conditionKeys.map((key) => {
+              const value = row.values[key];
+              return (
+                <td key={key}>
+                  {value === undefined ? (
+                    <span style={{ color: "var(--wp-text-2)" }}>—</span>
+                  ) : (
+                    <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatSolutionValue(value)}
+                    </span>
+                  )}
+                </td>
+              );
+            })}
             <td>{formatSolutionValue(row.limit)}</td>
             <td>
               <span
@@ -101,28 +124,10 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
 
 /** 全厂指标面（未选单元=默认态——非空态）。 */
 function PlantFace({ projectId }: { projectId: string }) {
-  const queryClient = useQueryClient();
   const query = useCompareQuery(projectId);
   const trustQuery = useTrustQuery(projectId);
   const report = query.data ?? null;
   const trust = trustQuery.data ?? null;
-
-  // TASK_EVENT 事件桥（apply 重算后失效本面三键——comparePane 同制）
-  useEffect(() => {
-    const onTaskParam = () => {
-      void queryClient.invalidateQueries({
-        queryKey: [`/api/calc/compare/${projectId}`],
-      });
-      void queryClient.invalidateQueries({
-        queryKey: [`/api/calc/trust/${projectId}`],
-      });
-      void queryClient.invalidateQueries({
-        queryKey: [`/api/calc/projects/${projectId}/units`],
-      });
-    };
-    window.addEventListener(TASK_EVENT, onTaskParam);
-    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
-  }, [projectId, queryClient]);
 
   if (query.isError) {
     // 领域 404=固定摘要+重算引导；网络/窄化错=raw 透出（错误提示白名单）
@@ -146,7 +151,15 @@ function PlantFace({ projectId }: { projectId: string }) {
   return (
     <div data-testid="wp-v4-analysis-plant" style={{ padding: "10px 12px", overflow: "auto" }}>
       {report.stale ? <StaleBanner projectId={projectId} /> : null}
-      <EffluentTable effluent={trust?.effluent ?? []} />
+      {/* R1 W-trust：取数失败=错误提示（白名单）+加载静默——矩阵面仍在不阻断 */}
+      {trustQuery.isError ? (
+        <div style={{ fontSize: 11, color: "var(--wp-error)", marginBottom: 8 }}>
+          出水指标读取失败：
+          {trustQuery.error instanceof Error ? trustQuery.error.message : "未知错误"}
+        </div>
+      ) : trustQuery.isPending ? null : (
+        <EffluentTable effluent={trust?.effluent ?? []} />
+      )}
       <CompareMatrix report={report} pinned={null} />
     </div>
   );
@@ -332,6 +345,23 @@ export function AnalysisPane({
   /** ?node= 对象选中真相（null=全厂面默认态——§二.⑤ 非空态注记）。 */
   selectedUnitId: string | null;
 }) {
+  // R1a/d1-N6：TASK_EVENT 事件桥自挂（analysisPane 根级——两态〔全厂/
+  // 选中单元〕均生效，不依赖 backfillSection 旁路）；失效键=生成键
+  // predicate（analysisFacesPredicate 单源——前缀字符串死键根治）。
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (projectId === null) {
+      return;
+    }
+    const onTaskParam = () => {
+      void queryClient.invalidateQueries({
+        predicate: analysisFacesPredicate(projectId),
+      });
+    };
+    window.addEventListener(TASK_EVENT, onTaskParam);
+    return () => window.removeEventListener(TASK_EVENT, onTaskParam);
+  }, [projectId, queryClient]);
+
   if (projectId === null) {
     return (
       <div
