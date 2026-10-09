@@ -20,6 +20,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportZone, exportFailText } from "./reportZone";
 import { WaterprintApiError } from "../../shared/api/http";
+import { TASK_EVENT } from "../../shared/events";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -406,5 +407,31 @@ describe("计算说明区·exportFailText 纯函数（PDF 显式错误面白名�
     expect(text).toContain("项目暂无完成的计算结果");
     expect(text).toContain("先提交计算");
     expect(text).not.toContain("/api/calc/run");
+  });
+});
+
+
+describe("计算说明区·TASK_EVENT 事件桥失效谓词（R1 回炉 W-G）", () => {
+  it("真 orval queryKey 形集成：事件后恰本项目报告缓存键失效", async () => {
+    // orval 生成件经 vi.importActual 取真实模块（本文件模块替身仅盖
+    // hook 面——键构造器真实形=被断言对象，orval 再生成漂移即本锚红）
+    const actual = await vi.importActual<
+      typeof import("../../shared/api/generated/calc/calc")
+    >("../../shared/api/generated/calc/calc");
+    const keyOf = (pid: string) =>
+      actual.getGetProjectReportApiCalcProjectsProjectIdReportGetQueryKey(pid, {
+        condition_key: "design",
+      });
+    const keyP1 = keyOf("p1");
+    const keyP2 = keyOf("p2");
+    queryClient.setQueryData(keyP1, REPORT_OK);
+    queryClient.setQueryData(keyP2, REPORT_OK);
+    renderZone(); // projectId=p1 → TASK_EVENT 监听挂载（stale 横幅效应同源）
+    expect(queryClient.getQueryState(keyP1)?.isInvalidated).toBe(false);
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t1" }));
+    expect(queryClient.getQueryState(keyP1)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(keyP2)?.isInvalidated).toBe(false);
+    queryClient.removeQueries({ queryKey: keyP1 });
+    queryClient.removeQueries({ queryKey: keyP2 });
   });
 });
