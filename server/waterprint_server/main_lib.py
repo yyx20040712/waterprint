@@ -92,6 +92,13 @@ from waterprint_server.services.projects import (
     ProjectLockedError,
     ProjectNotFoundError,
 )
+
+# B6 计算说明批（2026-10-09）：报告服务面异常（404 两面+verify 500 面）。
+from waterprint_server.services.report import (
+    ReportEntryNotFoundError,
+    ReportSourceNotFoundError,
+    ReportVerifyError,
+)
 from waterprint_server.services.scene import (
     InvalidSceneRequestError,
     SceneSourceNotFoundError,
@@ -139,6 +146,11 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     # 工况·单元不在快照——文案区分）。
     (UnitDetailSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (UnitDetailEntryNotFoundError, status.HTTP_404_NOT_FOUND),
+    # B6 计算说明批（2026-10-09）：报告 404 两面（源不可得/工况不在结果集）
+    # +verify 未全绿 500 面（服务端数据完整性显式消息——禁静默）。
+    (ReportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
+    (ReportEntryNotFoundError, status.HTTP_404_NOT_FOUND),
+    (ReportVerifyError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),

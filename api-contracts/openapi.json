@@ -2517,6 +2517,90 @@
         "title": "RenameProjectRequest",
         "type": "object"
       },
+      "ReportGeneratedFromModel": {
+        "description": "生成来源摘要（R5）：digest10=结果件 design_hash 前 10 位。",
+        "properties": {
+          "digest10": {
+            "title": "Digest10",
+            "type": "string"
+          }
+        },
+        "required": [
+          "digest10"
+        ],
+        "title": "ReportGeneratedFromModel",
+        "type": "object"
+      },
+      "ReportResponse": {
+        "description": "计算说明书报告响应（R1~R5——markdown 含 $$ 数学块与公式溯源附录）。",
+        "properties": {
+          "condition_key": {
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "design_hash": {
+            "title": "Design Hash",
+            "type": "string"
+          },
+          "generated_from": {
+            "$ref": "#/components/schemas/ReportGeneratedFromModel"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSectionModel"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_id",
+          "condition_key",
+          "stale",
+          "design_hash",
+          "markdown",
+          "sections",
+          "generated_from"
+        ],
+        "title": "ReportResponse",
+        "type": "object"
+      },
+      "ReportSectionModel": {
+        "description": "章节索引条目（R4）：id 确定性+两级 level（1=章/2=unit_calc 小节）。",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "level"
+        ],
+        "title": "ReportSectionModel",
+        "type": "object"
+      },
       "ReproModel": {
         "description": "可复算三元组（core ReproTriple 序列化形状）。",
         "properties": {
@@ -4119,6 +4203,80 @@
           }
         ],
         "summary": "Run Enumeration",
+        "tags": [
+          "calc"
+        ]
+      }
+    },
+    "/api/calc/projects/{project_id}/report": {
+      "get": {
+        "description": "计算说明书报告（B6 §二.④——markdown〔$$ 数学块+公式溯源附录〕\n+sections 两级索引〔章 level=1/unit_calc 单元小节 level=2——前端\n导航数据源〕+stale/design_hash 显式回显〔快照绑定 §17.1——输入\n变更标 stale 禁静默覆盖〕；verify_report 全绿才返；condition_key\n缺省=design）。",
+        "operationId": "get_project_report_api_calc_projects__project_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "condition_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Condition Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在/无结果集（先重算）或工况不在结果集"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "httpBearer": []
+          }
+        ],
+        "summary": "Get Project Report",
         "tags": [
           "calc"
         ]

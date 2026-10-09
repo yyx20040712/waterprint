@@ -96,6 +96,7 @@
 | `waterprint_server.services` | `waterprint.elevation` | 高程纵断用例直取（FE7 D1——build_profile/evaluate_pumping/head_losses 不在 app.py 再导出面；FE7 总控裁决 2026-08-29 补登） |
 | `waterprint_server.services` | `waterprint.cost` | 概算用例直取（FE8 D1——takeoff/estimate/prices/indicators 四模块不在 app.py 再导出面；FE8 D9 预登记 2026-08-29） |
 | `waterprint_server.services` | `waterprint.geometry` | 间距校核用例直取（L4b 2026-09-03——core geometry/spacing spacing_report 裁判不在 app.py 再导出面；总控预裁 6 装配器补登） |
+| `waterprint_server.services` | `waterprint.report` | 计算说明书报告服务消费 report 包正门（B6 计算说明批 2026-10-09——build_report_ast/render_markdown/verify_report 装配链；跨包正门 25 名单入口，registry 经包内间接消费零直连） |
 | `waterprint_server.jobs` | `waterprint.app` | worker 进程执行内核用例（序列化边界；P2 次批出水标准装载经 app 再导出单入口——ADR-012 D6，jobs→registry 直连被 UF-33 契约拒 CI 实证） |
 | `waterprint_server.jobs` | `waterprint.flows` | export 渲染分流件消费 flows 用例流（jobs/export_render._render_artifact：audit→audit_render_flow——exp-audit-20260930 audit 501 收口批；flows 不在 server UF-33 forbidden 面，cli 先例） |
 | `waterprint_server.jobs` | `waterprint.contracts` | worker 契约类型（结果序列化/RunEnv/工况/诊断序列化——P2 次批 trust 扩）——ENG2 B3 补登 |

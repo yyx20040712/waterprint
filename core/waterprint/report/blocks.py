@@ -190,22 +190,44 @@ ReportAST = tuple[Chapter, ...]
 
 
 class EstimateRowLike(Protocol):
-    """概算明细行协议（core cost EstimateRow 的最小消费面）。"""
+    """概算明细行协议（core cost EstimateRow 的最小消费面——只读消费）。
 
-    price_key: str
-    name_zh: str
-    unit: str
-    quantity: float
-    unit_price: float
-    amount: float
+    成员=只读 property 形（B6 段2 勘正：变量成员=mypy 可写面，而一切真源
+    〔core EstimateRow 冻结 dataclass/server EstimateSheetModel pydantic
+    frozen〕皆只读——消费面纯读取，协议如实化只读契约）。
+    """
+
+    @property
+    def price_key(self) -> str: ...
+
+    @property
+    def name_zh(self) -> str: ...
+
+    @property
+    def unit(self) -> str: ...
+
+    @property
+    def quantity(self) -> float: ...
+
+    @property
+    def unit_price(self) -> float: ...
+
+    @property
+    def amount(self) -> float: ...
 
 
 class EstimateSheetLike(Protocol):
-    """概算表协议（core cost EstimateSheet 的最小消费面——集成批接线）。"""
+    """概算表协议（core cost EstimateSheet 的最小消费面——集成批接线，
+    只读消费契约同 EstimateRowLike 勘正）。"""
 
-    detail_rows: Sequence[EstimateRowLike]
-    subtotal: float
-    grand_total: float
+    @property
+    def detail_rows(self) -> Sequence[EstimateRowLike]: ...
+
+    @property
+    def subtotal(self) -> float: ...
+
+    @property
+    def grand_total(self) -> float: ...
 
 
 def unit_zh(unit_id: str) -> str:

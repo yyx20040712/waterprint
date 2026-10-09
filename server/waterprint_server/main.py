@@ -94,6 +94,7 @@ from waterprint_server.routers import (
     events,
     exports,
     projects,
+    report,
     scene,
     site,
     solution,
@@ -160,6 +161,9 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 1  # B2 结果与方案批：GET /api/calc/projects/{project_id}/units/{unit_id}/
          # results（单单元明细切片——行模型=out_dims 服务端联表，44→45 破面
          # 〔b2-20261009 任务书 §二.①授权〕）
+    + 1  # B6 计算说明批：GET /api/calc/projects/{project_id}/report（计算
+         # 说明书报告——markdown+sections 两级索引+stale 显式，45→46 破面
+         # 〔b6-20261009 任务书 §一.3/§二.④授权〕）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -300,6 +304,10 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     # 挂载：calc 镜像测试端点集冻结断言=人类锁定面，扩挂 calc.router 必
     # 改锁定测试；Bearer 沿册同保）。
     app.include_router(unit_detail.router, dependencies=[Depends(verify_token)])
+    # B6 计算说明批（2026-10-09）：计算说明书报告（GET /api/calc/projects/
+    # {pid}/report——路径前缀沿 calc 域，路由件独立挂载：calc 镜像测试端点
+    # 集冻结断言=人类锁定面，扩挂 calc.router 必改锁定测试；Bearer 沿册同保）。
+    app.include_router(report.router, dependencies=[Depends(verify_token)])
     # B4-3：联合枚举正门（/api/solution/joint-enumerate——Bearer 沿册同保）。
     app.include_router(solution.router, dependencies=[Depends(verify_token)])
     app.include_router(exports.router, dependencies=[Depends(verify_token)])
