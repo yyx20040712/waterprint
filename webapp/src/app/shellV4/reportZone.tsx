@@ -290,6 +290,10 @@ function ReportFace({ projectId }: { projectId: string }) {
             borderRadius: 6,
             color: "var(--wp-text-2)",
             fontSize: 12,
+            // R1 C8（视觉回炉）：空态/错误态=卡内居中引导（LOADING 态同形）
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           {gate.domain
@@ -451,6 +455,10 @@ export function ReportZone() {
             borderRadius: 6,
             color: "var(--wp-text-2)",
             fontSize: 12,
+            // R1 C8（视觉回炉）：无项目空态同形收编（居中引导——卡面三态一致）
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           {NO_PROJECT_HINT}
