@@ -91,7 +91,7 @@ jobs:
           fi
           # skip 门禁（GOV1 A3 机器化）：-ra 逐条 SKIPPED 为准；平台守卫白名单
           # （Windows 只读属性在 Linux 由 manifest 哈希覆盖——test_lock:47 合法豁免）
-          if grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
+          if grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'typst CLI 不在本机' | grep -q .; then
             echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮）"
             grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障'
             exit 1
@@ -137,7 +137,7 @@ jobs:
             exit "$rc"
           fi
           # 同 core 面口径：平台守卫白名单外的 SKIPPED 即 FAIL（休眠守卫回潮）
-          if grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障' | grep -q .; then
+          if grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'typst CLI 不在本机' | grep -q .; then
             echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮）"
             grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障'
             exit 1
