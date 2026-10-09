@@ -268,7 +268,16 @@ export function ThumbnailFlow({
           );
         }}
         onNodesDelete={(deleted) => {
-          useCanvasStore.getState().deleteNodes(deleted.map((node) => node.id));
+          const deletedIds = deleted.map((node) => node.id);
+          useCanvasStore.getState().deleteNodes(deletedIds);
+          // B2 P3 k1-N8：删后选中滞留清理——被删集含 ?node= 选中真相时
+          // 解除选中（剥 ?node=），防幻影选中（左栏参数/右栏方案面悬空）。
+          if (
+            selectedUnitId !== null &&
+            deletedIds.includes(selectedUnitId)
+          ) {
+            onSelectedUnitChange(null);
+          }
         }}
         onNodesChange={(changes: NodeChange[]) => {
           for (const change of changes) {

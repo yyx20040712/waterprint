@@ -19,6 +19,9 @@
 | `lib/assumptionLabels.ts` | C2-ALIGN A5r 新件 | 22 键→中文物理意义字典（registry note 语义提炼；fail-open 回退 key；dimLabels 同款显示层纪律——core label_zh 化挂账；assumptionScope 11+11 分类案随用户澄清取缔[裁量史=brief §六]） |
 | `components/ConstraintPicker.tsx` | 占位维持 | 约束勾选——数据通道待 constraint_kb 迁移批（D3：空槽+无读取端点） |
 | `store/paramsStore.ts` | R2-P1-3 实装（E2E-2 批2 2026-09-25） | 参数编辑态 slice：draftHint 计数提示面（projectId→未提交草稿数——canvasEditToolbar 保存徽标/toast 消费）；草稿本体仍 ParamForm 本地 useState（D7 边界不变——本 store 是提示面不是草稿面；服务端校验结果不落地 §17.2 维持） |
+| `lib/commitThrottle.ts` | B2 P3 V10 实装（2026-10-09） | 失焦连跳提交节流纯函数层：createCommitThrottle——leading 即发+trailing 最新合并（窗 1500ms=V10_COMMIT_WINDOW_MS；连发 N 任务→≤2；timer 注入面；卸载 cancel=尾发消解）；M1 缺省路径零消费=零行为变（消费面=ParamForm 失焦通道〔commitOnBlurAndEnter 门内〕；Enter/按钮显式意图不走节流） |
+| `hooks/useThrottledCommit.ts` | B2 P3 V10 实装（2026-10-09） | 节流 hook 壳：payload 镜像（mirror——尾发取时点最新草稿）+schedule（latest 即时覆盖——归一值即时面）+卸载 cancel；ParamForm 行数预算面（commitDrafts 闭包经 fireRef 直连零复制） |
+| `lib/commitThrottle.test.ts` | B2 P3 V10 实装 | node 直测 5 用例（fake timers）：leading 即发/窗内连发尾发合并最新载荷/窗过新 leading/cancel 消解/窗口重计两轮 |
 
 ## 规格要点（FE5 批 6b 段三口径）
 

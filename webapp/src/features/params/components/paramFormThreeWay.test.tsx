@@ -233,4 +233,37 @@ describe("B1 ParamForm 三式提交（回炉 R5 门控双态——DoD §四.3 js
     fireEvent.click(getByRole("button", { name: /提交重算/ }));
     expect(gate.mutate).not.toHaveBeenCalled();
   });
+
+  it("Enter 回显断言（B2 P3 §二.⑦.6——k1 mini-R2 N-2 盲区补齐）：Enter 提交后输入框回显归一值", () => {
+    const { container } = renderForm({ commitOnBlurAndEnter: true });
+    const free = freeInput(container);
+    fireEvent.change(free, { target: { value: "0.30000000000000004" } });
+    fireEvent.keyDown(free, { key: "Enter" });
+    expect(gate.mutate).toHaveBeenCalledTimes(1);
+    // 值回显面：drafts 已归一——显示值=归一串（非 raw 18 位噪声）
+    expect(free.value).toBe("0.3");
+  });
+
+  it("失焦连跳节流（B2 P3 V10）：窗内二连失焦合并——首次即发+尾发恰一次（最新载荷）", () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = renderForm({ commitOnBlurAndEnter: true });
+      const input = paramInput(container);
+      fireEvent.change(input, { target: { value: "1500" } });
+      fireEvent.blur(input); // leading 即发
+      fireEvent.change(input, { target: { value: "1600" } });
+      fireEvent.blur(input); // 窗内挂尾（合并）
+      expect(gate.mutate).toHaveBeenCalledTimes(1); // 连发中间态不逐任务
+      expect(gate.mutate).toHaveBeenCalledWith({
+        data: { project_id: "p1", unit_id: "u1", params: { volume: 1500 } },
+      });
+      vi.advanceTimersByTime(1600); // 尾窗到点
+      expect(gate.mutate).toHaveBeenCalledTimes(2); // 尾发恰一次
+      expect(gate.mutate).toHaveBeenLastCalledWith({
+        data: { project_id: "p1", unit_id: "u1", params: { volume: 1600 } }, // 最新载荷
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

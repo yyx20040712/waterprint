@@ -64,6 +64,7 @@ import {
 import { deriveStep, isContinuousParam } from "../lib/deriveStep";
 import { formatBackfill } from "../feasibility/lib/feasibility";
 import { FdInlinePanel } from "../feasibility/components/FdInlinePanel";
+import { useThrottledCommit } from "../hooks/useThrottledCommit";
 import { useParamsStore } from "../store/paramsStore";
 
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
@@ -224,6 +225,10 @@ export function ParamForm({
       data: { project_id: projectId, unit_id: unitId, params: nextChanges },
     });
   };
+  // B2 V10（P3 §二.⑦.5）：失焦连跳提交节流（leading 即发+trailing 最新合并
+  // ——连发 N 任务→≤2；Enter/按钮显式意图不走节流；M1 缺省门关零消费）。
+  const blurCommit = useThrottledCommit(commitDrafts);
+  useEffect(() => blurCommit.mirror(drafts), [drafts, blurCommit]);
   const submitOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
     if (!commitOnBlurAndEnter || event.key !== "Enter") {
       return; // 门控关=M1 面零行为（Enter 不直提——B1 前行为字面回归）
@@ -353,12 +358,10 @@ export function ParamForm({
                         onKeyDown={submitOnEnter}
                         onBlur={(event) => {
                           // 回炉 R5：门控开=失焦连带提交（onChange 已归一
-                          // ——drafts 即归一面）；缺省关=零行为（无提交）
-                          if (
-                            commitOnBlurAndEnter &&
-                            !blurYieldsToClick(event)
-                          ) {
-                            commitDrafts(drafts);
+                          // ——drafts 即归一面）；缺省关=零行为（无提交）。
+                          // B2 V10：经节流通道（leading 即发+trailing 合并）。
+                          if (commitOnBlurAndEnter && !blurYieldsToClick(event)) {
+                            blurCommit.schedule(null);
                           }
                         }}
                       />
@@ -393,13 +396,10 @@ export function ParamForm({
                             setDrafts(nextDrafts);
                           }
                           // 回炉 R5：门控开=归一后连带提交（归一值随载荷
-                          // 发出——先归一后提交；焦点移向提交钮时让位点击
-                          // 通道防双发）；缺省关=失焦仅归一（M1 零行为变）
-                          if (
-                            commitOnBlurAndEnter &&
-                            !blurYieldsToClick(event)
-                          ) {
-                            commitDrafts(nextDrafts);
+                          // 发出；焦点移向提交钮让位点击防双发）；缺省关=
+                          // 失焦仅归一。B2 V10：经节流（latest=归一值镜像）。
+                          if (commitOnBlurAndEnter && !blurYieldsToClick(event)) {
+                            blurCommit.schedule(nextDrafts);
                           }
                         }}
                       />
