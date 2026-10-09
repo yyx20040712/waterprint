@@ -86,3 +86,27 @@ describe("createCommitThrottle（V10 连发合并）", () => {
     throttle.cancel();
   });
 });
+
+describe("flush（R1 W-V10 卸载面——失焦即提交承诺窗内不损）", () => {
+  it("挂尾未发即 flush=立即尾发（最新载荷——非 cancel 静默丢）", () => {
+    const fire = vi.fn();
+    const throttle = createCommitThrottle({ windowMs: 1500 });
+    throttle.schedule(fire); // leading
+    vi.advanceTimersByTime(200);
+    const latest = vi.fn();
+    throttle.schedule(latest); // 挂尾
+    throttle.flush(); // 卸载面：立即发
+    expect(fire).toHaveBeenCalledTimes(1);
+    expect(latest).toHaveBeenCalledTimes(1); // 尾发不丢
+    vi.advanceTimersByTime(2000); // 原 timer 到点零重发
+    expect(latest).toHaveBeenCalledTimes(1);
+  });
+
+  it("无挂尾 flush=零动作（幂等）", () => {
+    const fire = vi.fn();
+    const throttle = createCommitThrottle({ windowMs: 1500 });
+    throttle.schedule(fire); // leading 即发
+    throttle.flush();
+    expect(fire).toHaveBeenCalledTimes(1);
+  });
+});

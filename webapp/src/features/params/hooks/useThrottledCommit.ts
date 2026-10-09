@@ -20,8 +20,9 @@ export function useThrottledCommit<P>(fire: (payload: P) => void) {
   fireRef.current = fire;
   const throttleRef = useRef<CommitThrottle | null>(null);
 
-  // 卸载清理：挂尾消解（陈旧提交面随组件消亡——commitThrottle 头注口径）
-  useEffect(() => () => throttleRef.current?.cancel(), []);
+  // 卸载面（R1 W-V10）：flush 挂尾立即发（「失焦即提交」三式承诺窗内不
+  // 损——旧 cancel 静默丢；陈旧提交风险经 payload 时点最新镜像消解）
+  useEffect(() => () => throttleRef.current?.flush(), []);
 
   return {
     /** 草稿镜像同步（effect 面——payload 取时点最新）。 */

@@ -36,7 +36,7 @@ const gate = vi.hoisted(() => ({
       stage: "rows",
       condition_key: null,
       stale: false,
-      error: null,
+      error: null as string | null,
       error_type: null,
       result: {
         unit_id: "municipal_aao",
@@ -63,9 +63,9 @@ const gate = vi.hoisted(() => ({
         { srt: 14, n: 3, margin_min: 0.4 },
       ],
       unit_id: "municipal_aao",
-    },
+    } as unknown,
     isError: false,
-    error: null,
+    error: null as unknown,
   },
   design: {
     data: { nodeParams: { municipal_aao: { srt: 15, n: 3 } }, nodeKinds: {} },
@@ -193,6 +193,48 @@ describe("方案卡·数据流②（当前参数→重排+Δ）", () => {
       isError: false,
       error: null,
     };
+  });
+});
+
+describe("方案卡·R1 W-失败面族（错误≠恒加载中）", () => {
+  it("枚举 failed 终态=错误面（wp-v4-solution-error）+⟳ 引导", () => {
+    const savedStatus = gate.status;
+    gate.status = {
+      data: {
+        ...savedStatus.data!,
+        kind: "enumerate",
+        state: "failed",
+        error: "可行域为空：约束冲突",
+      },
+      isError: false,
+      error: null,
+    };
+    try {
+      const { container } = renderCards();
+      const error = container.querySelector('[data-testid="wp-v4-solution-error"]');
+      expect(error).not.toBeNull();
+      expect(error?.textContent).toContain("约束冲突");
+      expect(error?.textContent).toContain("重新枚举");
+    } finally {
+      gate.status = savedStatus;
+    }
+  });
+
+  it("方案分页取数失败=错误面（非恒「方案加载中…」）", () => {
+    const saved = gate.solutions;
+    gate.solutions = {
+      data: undefined,
+      isError: true,
+      error: new Error("分页服务不可达"),
+    };
+    try {
+      const { container } = renderCards();
+      const error = container.querySelector('[data-testid="wp-v4-solution-error"]');
+      expect(error).not.toBeNull();
+      expect(error?.textContent).toContain("分页服务不可达");
+    } finally {
+      gate.solutions = saved;
+    }
   });
 });
 

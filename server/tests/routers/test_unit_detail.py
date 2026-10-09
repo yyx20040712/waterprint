@@ -86,13 +86,14 @@ async def _project_with_result(client) -> tuple[str, str]:  # type: ignore[no-un
 
 def test_router_exposes_unit_detail_endpoint_wiring() -> None:
     """unit_detail 路由件端点集恰一件（44→45 增量无漂移——路由件独立挂载：
-    calc 镜像测试端点集冻结断言=人类锁定面，故本端点不入 calc.router）。"""
+    calc 镜像测试端点集冻结断言=人类锁定面，故本端点不入 calc.router；
+    R1 W-断言：>= 收敛为恰等——与「恰一件」注释及 calc 镜像冻结制式一致）。"""
     observed = {
         (method.lower(), route.path)
         for route in unit_detail_router.router.routes
         for method in route.methods  # type: ignore[union-attr]
     }
-    assert observed >= _EXPECTED_UNIT_DETAIL
+    assert observed == _EXPECTED_UNIT_DETAIL
 
 
 @pytest.mark.anyio

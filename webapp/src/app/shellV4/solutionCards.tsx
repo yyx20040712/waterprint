@@ -107,7 +107,7 @@ function CardRow({
       {card.deviationTexts.map((text) => (
         <span
           key={text}
-          title="与当前参数的偏差（数据流②）"
+          title="按当前参数偏差重排"
           style={{
             flex: "none",
             fontSize: 10,
@@ -159,6 +159,9 @@ export function SolutionCards({
   const statusResult = status?.result ?? null;
   const enumerateDone =
     status !== null && status.kind === "enumerate" && status.state === "done";
+  // R1 W-失败面族：枚举 failed 终态=错误面（kind 同门内先行判定）
+  const enumFailed =
+    status !== null && status.kind === "enumerate" && status.state === "failed";
   const enumUnitId =
     enumerateDone &&
     typeof (statusResult as Record<string, unknown> | null)?.["unit_id"] ===
@@ -302,10 +305,43 @@ export function SolutionCards({
         >
           {noSolutions}
         </div>
+      ) : enumFailed ? (
+        // R1 W-失败面族：枚举 failed=错误提示+⟳ 引导（非恒「方案加载中…」）
+        <div
+          data-testid="wp-v4-solution-error"
+          style={{
+            border: "1px dashed var(--wp-border-2)",
+            borderRadius: 6,
+            padding: "10px 8px",
+            color: "var(--wp-error)",
+            fontSize: 11,
+          }}
+        >
+          枚举任务失败：
+          {status?.error ?? "未知错误"}——⟳ 重新枚举可重提
+        </div>
+      ) : solutionsQuery.isError ? (
+        // R1 W-失败面族：方案分页取数失败=错误提示（白名单）
+        <div data-testid="wp-v4-solution-error" style={{ fontSize: 11, color: "var(--wp-error)" }}>
+          方案集读取失败：
+          {solutionsQuery.error instanceof Error
+            ? solutionsQuery.error.message
+            : "未知错误"}
+        </div>
       ) : cards.length === 0 ? (
         <div style={{ color: "var(--wp-text-2)", fontSize: 11 }}>方案加载中…</div>
       ) : (
-        cards.map((card) => <CardRow key={card.no} card={card} onPick={pick} />)
+        <>
+          {cards.map((card) => (
+            <CardRow key={card.no} card={card} onPick={pick} />
+          ))}
+          {pageView !== null && pageView.total > pageView.rows.length ? (
+            // N2 截断提示（R1：首 50 行截断诚实呈现）
+            <div style={{ fontSize: 10, color: "var(--wp-text-2)" }}>
+              共 {pageView.total} 项 · 显示前 {pageView.rows.length}
+            </div>
+          ) : null}
+        </>
       )}
       {apply.isError ? (
         <div style={{ fontSize: 11, color: "var(--wp-error)" }}>

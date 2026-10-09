@@ -140,6 +140,17 @@ def _finite_or_none(raw: Any) -> float | None:
     return value if math.isfinite(value) else None
 
 
+def _finite_mapping(raw: Mapping[str, Any]) -> dict[str, float]:
+    """端口段有限性闸（R1 W-NaN：非有限值键剔除——rows 面 _finite_or_none
+    同口径；schema 面第一道闸外的纵深防御）。"""
+    out: dict[str, float] = {}
+    for key, value in sorted(raw.items()):
+        finite = _finite_or_none(value)
+        if finite is not None:
+            out[key] = finite
+    return out
+
+
 def _rows_of(unit_id: str, dims: Mapping[str, Any]) -> tuple[UnitDetailRowModel, ...]:
     """行模型投影（R2）：manifest out_dims 声明面 × dims 取值——超集键不呈现。"""
     entry = core.discover_units().get(unit_id)
@@ -194,10 +205,10 @@ def build_unit_detail(
         engine_version=plant.repro.engine_version,
         data_version=plant.repro.data_version,
         rows=_rows_of(unit_id, snap.dims),
-        outflows={key: float(value) for key, value in sorted(snap.outflows.items())},
-        outqualities={
-            key: float(value) for key, value in sorted(snap.outqualities.items())
-        },
+        # R1 W-NaN：端口段与 rows 面同口径过有限性闸（NaN/Inf 不入响应防
+        # 500——schema 面已拒非有限值为第一道闸，此处纵深防御）
+        outflows=_finite_mapping(snap.outflows),
+        outqualities=_finite_mapping(snap.outqualities),
         warnings=tuple(
             UnitDetailWarningModel(
                 unit_id=unit_id,

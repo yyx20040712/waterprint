@@ -267,3 +267,28 @@ describe("B1 ParamForm 三式提交（回炉 R5 门控双态——DoD §四.3 js
     }
   });
 });
+
+describe("B2 R1 W-V10：卸载 flush 挂尾提交（失焦即提交承诺窗内不损）", () => {
+  it("窗内二连失焦〔尾挂未发〕→卸载=尾发立即执行（最新载荷——非静默丢）", async () => {
+    vi.useFakeTimers();
+    try {
+      const view = renderForm({ commitOnBlurAndEnter: true });
+      const input = paramInput(view.container);
+      fireEvent.change(input, { target: { value: "1500" } });
+      fireEvent.blur(input); // leading 即发
+      fireEvent.change(input, { target: { value: "1600" } });
+      fireEvent.blur(input); // 窗内挂尾
+      expect(gate.mutate).toHaveBeenCalledTimes(1);
+      view.unmount(); // R1 W-V10：卸载=flush（旧实现 cancel 静默丢）
+      await vi.advanceTimersByTimeAsync(0); // flush 同步尾发面收敛
+      expect(gate.mutate).toHaveBeenCalledTimes(2);
+      expect(gate.mutate).toHaveBeenLastCalledWith({
+        data: { project_id: "p1", unit_id: "u1", params: { volume: 1600 } }, // 最新载荷
+      });
+      vi.advanceTimersByTime(1600); // 原 timer 到点零重发
+      expect(gate.mutate).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
