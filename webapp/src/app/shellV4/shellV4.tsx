@@ -157,6 +157,13 @@ export function ShellV4() {
           onSubpageChange={(subpage) =>
             setZone({ zone: "design", subpage })
           }
+          onDockNavigate={(unitId) => {
+            // B2 完成直达（§一.4）：done 任务→中区切分析表+相关单元选中
+            setZone({ zone: "design", subpage: "analysis" });
+            if (unitId !== null) {
+              handleSelectedUnitChange(unitId);
+            }
+          }}
         />
       );
       break;

@@ -50,9 +50,17 @@ const STATE_TEXT: Record<string, string> = {
 const generateSessionId = () =>
   (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}new`).replace(/-/g, "");
 
+/** 会话续接持久键（P3 d1-N7——dock-ai 会话跨 zone 切换〔卸载/重挂〕与
+ *  刷新两径恢复：sessionStorage 持久〔会话生命周期=标签页——侧栏宽度
+ *  localStorage 记忆 B1 全局规则同族但会话面不入长期存储〕）。 */
+const DOCK_SESSION_KEY = "wp-v4-dock-session";
+
 /** AI 凝缩窗：输入行+发送+最近一轮摘要（会话通道与 ChatSeat 同源）。 */
 function AiDockWindow() {
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  // B2 会话续接（d1-N7）：初值=sessionStorage 持久面（无则 null 首发建档）
+  const [sessionId, setSessionId] = useState<string | null>(() =>
+    window.sessionStorage.getItem(DOCK_SESSION_KEY),
+  );
   const [draft, setDraft] = useState("");
   const history = useChatHistory(sessionId);
   const send = useSendChatMessage();
@@ -69,6 +77,7 @@ function AiDockWindow() {
     const sid = sessionId ?? generateSessionId();
     if (sessionId === null) {
       setSessionId(sid);
+      window.sessionStorage.setItem(DOCK_SESSION_KEY, sid);
     }
     send.mutate(
       { sessionId: sid, message: text },
@@ -149,8 +158,15 @@ function AiDockWindow() {
   );
 }
 
-/** 窄任务条：?task=/?enum= 双轨（task 优先）+SSE 进度凝缩行。 */
-function TaskStrip() {
+/** 窄任务条：?task=/?enum= 双轨（task 优先）+SSE 进度凝缩行。
+ *  B2（§一.4）：done 任务行点击→onTaskNavigate 直达分析表（枚举任务携
+ *  result.unit_id=相关单元选中；calc 任务 unitId=null）；failed=错误
+ *  提示行（白名单——快照 error 透出）。 */
+function TaskStrip({
+  onTaskNavigate,
+}: {
+  onTaskNavigate?: (target: { state: string; unitId: string | null }) => void;
+}) {
   const [taskId, setTaskId] = useState<string | null>(() =>
     parseTaskParam(window.location.search) ??
     parseEnumParam(window.location.search),
@@ -206,7 +222,26 @@ function TaskStrip() {
             尚无进行中任务
           </div>
         ) : (
-          <div className="wp-v4-task-row" data-testid="wp-v4-task-row">
+          <div
+            className="wp-v4-task-row"
+            data-testid="wp-v4-task-row"
+            // B2 完成直达：done 行可点（title 述义——枚举任务携相关单元）
+            title={state === "done" ? "点击查看分析表" : undefined}
+            style={{ cursor: state === "done" ? "pointer" : undefined }}
+            onClick={() => {
+              if (state !== "done" || onTaskNavigate === undefined) {
+                return;
+              }
+              const result = statusQuery.data?.result;
+              const unitId =
+                typeof result === "object" &&
+                result !== null &&
+                typeof (result as Record<string, unknown>)["unit_id"] === "string"
+                  ? String((result as Record<string, unknown>)["unit_id"])
+                  : null;
+              onTaskNavigate({ state: "done", unitId });
+            }}
+          >
             <span title={taskId} style={{ fontFamily: "var(--wp-font-mono)" }}>
               任务 {taskId.slice(0, 8)}
             </span>
@@ -249,16 +284,39 @@ function TaskStrip() {
             </span>
           </div>
         )}
+        {/* failed=错误提示行（白名单：错误提示——SSE 快照组合 error 面） */}
+        {state === "failed" && effective?.error != null ? (
+          <div
+            data-testid="wp-v4-task-error"
+            style={{
+              fontSize: 11,
+              color: "var(--wp-error)",
+              padding: "2px 0 1px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+            title={effective.error}
+          >
+            {effective.error}
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export function DockBar() {
+export function DockBar({
+  onTaskNavigate,
+}: {
+  /** B2 完成直达（§一.4）：done 任务行点击上抛——designZone→shellV4 承接
+   *  （切 ?tab=design.analysis+相关单元选中）。 */
+  onTaskNavigate?: (target: { state: string; unitId: string | null }) => void;
+}) {
   return (
     <div className="wp-v4-dock" data-testid="wp-v4-dock">
       <AiDockWindow />
-      <TaskStrip />
+      <TaskStrip onTaskNavigate={onTaskNavigate} />
     </div>
   );
 }

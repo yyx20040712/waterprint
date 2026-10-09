@@ -23,7 +23,6 @@
  *     记忆=B1 全局规则（拖柄 wp-v4-drag）。
  */
 import { useEffect, useRef, useState } from "react";
-import { Button } from "antd";
 
 import { AssumptionsPanel } from "../../features/params/components/AssumptionsPanel";
 import { ParamForm } from "../../features/params/components/ParamForm";
@@ -33,6 +32,9 @@ import { DockBar } from "./dockBar";
 import { ThumbnailFlow } from "./thumbnailFlow";
 import { EnumerateModal } from "./enumerateModal";
 import { AnalysisPane } from "./analysisPane";
+import { SolutionCards } from "./solutionCards";
+import { JointSolutionCards } from "./jointSolutionCards";
+import { BackfillSection } from "./backfillSection";
 
 /** 左栏空态引导（白名单：空态引导）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
@@ -82,6 +84,7 @@ export function DesignZone({
   selectedUnitId,
   onSelectedUnitChange,
   onSubpageChange,
+  onDockNavigate,
 }: {
   target: Extract<V4ZoneTarget, { zone: "design" }>;
   /** ?node= 对象选中真相（画布选中→左栏参数随动——B2 批扩右栏方案）。 */
@@ -90,11 +93,18 @@ export function DesignZone({
   onSelectedUnitChange: (unitId: string | null) => void;
   /** 中列子页切换（canvas↔analysis——?tab= zone 级投影）。 */
   onSubpageChange: (subpage: DesignSubpage) => void;
+  /** dock 完成直达承接（B2 §一.4——shellV4 实现：切分析表+相关单元选中）。 */
+  onDockNavigate: (unitId: string | null) => void;
 }) {
   const [projectId] = useProjectId();
   const [leftTab, setLeftTab] = useState<"design" | "empirical" | "global">("design");
   const [rightTab, setRightTab] = useState<"unit" | "plant">("unit");
   const [enumOpen, setEnumOpen] = useState(false);
+  // 方案驱动来源（数据流① 上抛态——左栏计算回填区标注消费；B2 §三.2）
+  const [appliedSource, setAppliedSource] = useState<{
+    unitId: string;
+    no: string;
+  } | null>(null);
   // 侧栏宽度+拖宽（拖柄 pointer 主键拖动——宽度记忆 localStorage）
   const [leftWidth, setLeftWidth] = useState(() =>
     readWidth(LEFT_KEY, LEFT_DEFAULT, LEFT_MIN, LEFT_MAX),
@@ -257,31 +267,12 @@ export function DesignZone({
               ))
             )}
           </div>
-          {/* 计算回填区（自动值——B1 空态；B2 批方案驱动回填） */}
-          <section
-            style={{
-              flex: "none",
-              borderTop: "1px solid var(--wp-border-2)",
-              padding: "6px 10px 8px",
-              maxHeight: "40%",
-              overflow: "auto",
-            }}
-            data-testid="wp-v4-backfill"
-          >
-            <h4
-              style={{
-                fontSize: 11,
-                color: "var(--wp-text-2)",
-                letterSpacing: 1,
-                margin: "2px 0 4px",
-              }}
-            >
-              计算回填 · 自动
-            </h4>
-            <span style={{ color: "var(--wp-text-2)", fontSize: 11 }}>
-              自动值在计算后回填
-            </span>
-          </section>
+          {/* 计算回填区（B2 接真：自动值回填+方案驱动标注——数据流① 落点） */}
+          <BackfillSection
+            projectId={projectId}
+            unitId={selectedUnitId}
+            appliedSource={appliedSource}
+          />
         </aside>
 
         {/* 中列：视图页签+画布/分析表 */}
@@ -363,42 +354,18 @@ export function DesignZone({
           </div>
           <div className="wp-v4-pbody">
             {rightTab === "unit" ? (
-              <div className="wp-v4-sec">
-                <h4>
-                  {selectedUnitId === null
-                    ? "选中工艺 · 方案"
-                    : `${selectedUnitId} · 方案`}
-                </h4>
-                <div style={{ display: "flex", gap: 6, paddingBottom: 4 }}>
-                  <Button
-                    size="small"
-                    onClick={() => setEnumOpen(true)}
-                    data-testid="wp-v4-reenumerate"
-                    disabled={selectedUnitId === null || projectId === null}
-                  >
-                    ⟳ 重新枚举…
-                  </Button>
-                </div>
-                <div
-                  style={{
-                    border: "1px dashed var(--wp-border-2)",
-                    borderRadius: 6,
-                    padding: "10px 8px",
-                    color: "var(--wp-text-2)",
-                    fontSize: 11,
-                  }}
-                >
-                  方案在枚举计算后呈现
-                </div>
-              </div>
+              <SolutionCards
+                projectId={projectId}
+                unitId={selectedUnitId}
+                onOpenEnumerate={() => setEnumOpen(true)}
+                onApplied={setAppliedSource}
+              />
             ) : (
               <>
-                <div className="wp-v4-sec">
-                  <h4>全厂 · 联合方案</h4>
-                  <span style={{ color: "var(--wp-text-2)", fontSize: 11 }}>
-                    联合方案在联合枚举后呈现
-                  </span>
-                </div>
+                <JointSolutionCards
+                  projectId={projectId}
+                  onApplied={setAppliedSource}
+                />
                 <div className="wp-v4-sec">
                   <h4>分析面</h4>
                   {ANALYSIS_ENTRIES.map((label) => (
@@ -433,7 +400,13 @@ export function DesignZone({
         projectId={projectId}
         unitId={selectedUnitId}
       />
-      <DockBar />
+      <DockBar
+        onTaskNavigate={(target) => {
+          if (target.state === "done") {
+            onDockNavigate(target.unitId);
+          }
+        }}
+      />
     </section>
   );
 }
