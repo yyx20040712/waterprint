@@ -32,6 +32,7 @@ import type { DesignSubpage, V4ZoneTarget } from "../zoneParam";
 import { DockBar } from "./dockBar";
 import { ThumbnailFlow } from "./thumbnailFlow";
 import { EnumerateModal } from "./enumerateModal";
+import { AnalysisPane } from "./analysisPane";
 
 /** 左栏空态引导（白名单：空态引导）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
@@ -325,17 +326,7 @@ export function DesignZone({
                 />
               )
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                  color: "var(--wp-text-2)",
-                }}
-              >
-                分析表在完成计算后呈现
-              </div>
+              <AnalysisPane projectId={projectId} selectedUnitId={selectedUnitId} />
             )}
           </div>
         </section>

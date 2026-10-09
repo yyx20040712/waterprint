@@ -549,6 +549,25 @@ body {
   font-size: 11px;
 }
 
+/* 分析表只读表格（B2 结果与方案批——wireframe 屏 3 .rt 形；亮色面：
+   表头浅底+细分割+数字右对齐由 td 内联承载） */
+.wp-v4-rt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.wp-v4-rt th,
+.wp-v4-rt td {
+  border-bottom: 1px solid var(--wp-border-2);
+  padding: 4px 10px;
+  text-align: right;
+  font-weight: 400; /* 忌加粗全局——UA 表头粗体复位 */
+}
+.wp-v4-rt th {
+  background: #f0f2f5;
+  color: var(--wp-text-2);
+}
+
 /* 右键分级目录（两级菜单） */
 .wp-v4-menu {
   position: fixed;
