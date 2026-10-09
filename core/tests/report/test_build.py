@@ -26,10 +26,10 @@ from waterprint.report.build import (
 
 # golden municipal_34760 实测下限（dims 总量 325、锚定量 243——主尺寸扩面
 # 只增不减的钳制值，见 expected_summary.json design_dims 覆盖面）
-_CHAPTER_COUNT = 7
+_CHAPTER_COUNT = 8
 _MIN_GOLDEN_DIM_LINES = 240
 _MIN_GOLDEN_ANCHORED = 230
-# 合成例锚定值（UF-F1 输出）
+# 合成例锚定值（TS-F4 输出）
 _ANCHOR_VALUE = 5.0
 
 
@@ -54,14 +54,14 @@ def _mini_plant() -> PlantResult:
         outqualities={"u_fake.out.BOD5": 12.0},
         dims={"d_len": 5.0, "d_ratio": 0.25},
         warnings=(),
-        formula_ids=("UF-F1",),
+        formula_ids=("TS-F4",),
     )
     return PlantResult(
         conditions={"design": {"u_fake": snapshot}},
         summary={"design": {"BOD5": 12.0}},
         trace=(
             TraceNode(
-                formula_id="UF-F1",
+                formula_id="TS-F4",
                 inputs={"x": 2.5},
                 output=5.0,
                 norm_ref="GB 合成 §1",
@@ -76,9 +76,9 @@ def _mini_plant() -> PlantResult:
 
 
 class TestSevenChapters:
-    """七章节结构契约。"""
+    """章节结构契约（B6 起八章：七章主体+附录 公式溯源）。"""
 
-    def test_mini_build_has_seven_chapters_in_order(
+    def test_mini_build_has_eight_chapters_in_order(
         self, golden_project_path: object
     ) -> None:
         project = load_project(golden_project_path)  # type: ignore[arg-type]
@@ -93,10 +93,48 @@ class TestSevenChapters:
             "layout",
             "estimate",
             "drawings",
+            "formula_appendix",
         ]
         titles = [chapter.title for chapter in ast]
         assert titles[0] == "设计依据"
         assert titles[3] == "构筑物逐单元计算"
+        assert titles[7] == "公式溯源"
+
+
+class TestFormulaAppendix:
+    """附录 公式溯源（B6）：项目公式全集表+LaTeX/条文号/符号释义。"""
+
+    def test_appendix_catalog_covers_trace_formula_ids(
+        self, golden_project_path: object
+    ) -> None:
+        from waterprint.report.blocks import FormulaCatalog
+
+        project = load_project(golden_project_path)  # type: ignore[arg-type]
+        plant = _mini_plant()
+        ast = build_report_ast(project, plant)
+        appendix = ast[7]
+        catalogs = [
+            block for block in appendix.blocks if isinstance(block, FormulaCatalog)
+        ]
+        assert len(catalogs) == 1
+        catalog_ids = {row.formula_id for row in catalogs[0].rows}
+        trace_ids = {node.formula_id for node in plant.trace}
+        assert catalog_ids == trace_ids  # 项目公式全集（trace 去重）
+
+    def test_appendix_row_fields(self, golden_project_path: object) -> None:
+        project = load_project(golden_project_path)  # type: ignore[arg-type]
+        ast = build_report_ast(project, _mini_plant())
+        appendix = ast[7]
+        from waterprint.report.blocks import FormulaCatalog
+
+        catalog = next(
+            block for block in appendix.blocks if isinstance(block, FormulaCatalog)
+        )
+        row = catalog.rows[0]
+        assert row.formula_id == "TS-F4"
+        assert row.latex and "=" in row.latex  # LaTeX 展示式
+        assert row.norm_ref  # 条文号非空（registry R2 面沿承）
+        assert row.symbols_note  # 符号释义（中文含义聚合）
 
     def test_every_chapter_has_blocks(
         self, golden_project_path: object
@@ -115,9 +153,9 @@ class TestNumberLineAnchoring:
         ast = build_report_ast(project, _mini_plant())
         lines = _all_number_lines(ast)
         assert "d_len" in {line.label for line in lines}
-        assert any(line.formula_id == "UF-F1" for line in lines)
+        assert any(line.formula_id == "TS-F4" for line in lines)
         # 锚定值必与 trace 输出相等（同一公式）
-        hit = next(line for line in lines if line.formula_id == "UF-F1")
+        hit = next(line for line in lines if line.formula_id == "TS-F4")
         assert hit.value == pytest.approx(_ANCHOR_VALUE)
         # 合成例 u_fake 无 manifest 声明面 → 未知量纲回落空单位（不猜量纲）
         assert hit.unit == ""

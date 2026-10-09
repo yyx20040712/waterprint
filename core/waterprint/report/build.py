@@ -1,20 +1,23 @@
-"""设计说明书 AST 装配（七章节，D5① 映射表为真源——数据驱动生成）。
+"""设计说明书 AST 装配（七章主体+附录 公式溯源，D5① 映射表为真源——数据驱动生成）。
 
 路径:   waterprint/report/build.py
 职责:   ProjectFile+PlantResult（可选 DiagnosticsReport／概算表／布置数据）
         → ReportAST 章节树。NumberLine 在此绑定「数字+单位+公式 ID」——
         锚定值一律取自 plant.trace 同公式的实跑输出（等值绑定，禁造数）。
         块类型族与纯投影辅助自 blocks.py 迁入（预算拆分——零行为变化，
-        本文件再导出保既有 import 面不变）。
+        本文件再导出保既有 import 面不变）。B6 增附录章「公式溯源」：
+        trace 公式全集×registry 规格（LaTeX/条文号/符号释义——双打印
+        机单源经 formula_printers）。
 输入:   ProjectFile+PlantResult+可选 DiagnosticsReport／概算表协议／
-        布置数据（contracts 类型面+app.discover_units 只读）。
+        布置数据（contracts 类型面+app.discover_units 只读+registry
+        by_id 只读——附录溯源面）。
 输出:   ReportAST 章节树+块类型再导出（render_md/checks/agent 工具
         #21 消费）。
 禁区:   禁 import server／fastmcp／waterprint_agent 与 L3 以下内核子系
-        统（只许 waterprint.app 正门与 waterprint.contracts.*）；禁
-        IO——纯函数装配，不读不写文件。
+        统（只许 waterprint.app 正门、waterprint.contracts.* 与 registry
+        只读）；禁 IO——纯函数装配，不读不写文件。
 参照:   v2 设计书 D5①／D5③／D5④；AI1-INTEG-2026-09-13 §3 预裁决①；
-        B6 移植 core（import 路径重写零逻辑改动）。
+        B6 移植 core（import 路径重写零逻辑改动）+B6 计算说明批附录扩面。
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ from waterprint.contracts.manifest import UnitManifest
 from waterprint.contracts.project_schema import ProjectFile
 from waterprint.contracts.result_schema import PlantResult, UnitResultSnapshot
 from waterprint.contracts.trust import DiagnosticsReport
+from waterprint.registry import by_id
 from waterprint.report.blocks import (
     DESIGN_KEY,
     Block,
@@ -34,6 +38,8 @@ from waterprint.report.blocks import (
     EstimateRowLike,
     EstimateSheetLike,
     FigureRef,
+    FormulaCatalog,
+    FormulaSource,
     NarrativeSlot,
     NoteLine,
     NumberLine,
@@ -48,12 +54,15 @@ from waterprint.report.blocks import (
     ordered_units,
     unit_zh,
 )
+from waterprint.report.formula_printers import latex_of_expression
 
 __all__ = [
     "Chapter",
     "EstimateRowLike",
     "EstimateSheetLike",
     "FigureRef",
+    "FormulaCatalog",
+    "FormulaSource",
     "InvalidReportError",
     "NarrativeSlot",
     "NoteLine",
@@ -405,6 +414,39 @@ def _chapter_drawings(plant: PlantResult) -> Chapter:
     return Chapter(id="drawings", title="附图", blocks=blocks)
 
 
+def _chapter_formula_appendix(plant: PlantResult) -> Chapter:
+    """附录 公式溯源（B6）：项目公式全集表——LaTeX 展示式/条文号/符号释义。
+
+    公式集=plant.trace 公式 ID 去重升序（项目实际消费面，非 registry 全库）；
+    逐条经 registry by_id 取 spec（trace 公式按构造必在登记表——缺席即
+    InvalidFormulaError 显式暴露，禁静默跳行）；LaTeX 经双打印机单源。
+    """
+    rows = tuple(
+        FormulaSource(
+            formula_id=formula_id,
+            latex=latex_of_expression(spec.expression, spec.symbols),
+            norm_ref=spec.norm_ref,
+            symbols_note="；".join(
+                f"{name}＝{meaning}"
+                for name, (_dim, meaning) in spec.symbols.items()
+            ),
+        )
+        for formula_id in sorted({node.formula_id for node in plant.trace})
+        for spec in (by_id(formula_id),)
+    )
+    blocks: tuple[Block, ...] = (
+        FormulaCatalog(rows=rows),
+        NoteLine(
+            "本附录由程序自项目计算迹（trace）公式全集与公式登记表"
+            "（registry）自动汇编：公式呈现为 LaTeX 展示式（前端 KaTeX"
+            " 渲染），条文号与符号释义逐条对应该公式的登记规格。"
+        ),
+    )
+    return Chapter(
+        id="formula_appendix", title="公式溯源", blocks=blocks, numbered=False
+    )
+
+
 def build_report_ast(
     project: ProjectFile,
     plant: PlantResult,
@@ -413,14 +455,15 @@ def build_report_ast(
     estimate: EstimateSheetLike | None = None,
     layout: Mapping[str, Any] | None = None,
 ) -> ReportAST:
-    """两段式管线第一段：七章节 AST 装配（纯函数，无 IO）。
+    """两段式管线第一段：章节 AST 装配（纯函数，无 IO）。
 
-    章节与数据源映射（D5① 真源）：1 设计依据＝metadata＋trace 条文／
-    2 设计水量水质＝进水快照＋工况＋裕度／3 工艺流程比选＝工序结论表
-    ＋AI 槽／4 构筑物逐单元计算＝dims 锚定行（NumberLine 主体）／
-    5 平面与高程布置＝AI 槽＋水力闭合＋布置块／6 工程概算＝概算表／
-    7 附图＝产物引用。diagnostics／estimate／layout 允许 None（集成批
-    接线，渲染层留「数据待接线」占位）。
+    章节与数据源映射（D5① 真源+B6 附录扩面）：1 设计依据＝metadata＋
+    trace 条文／2 设计水量水质＝进水快照＋工况＋裕度／3 工艺流程比选＝
+    工序结论表＋AI 槽／4 构筑物逐单元计算＝dims 锚定行（NumberLine
+    主体）／5 平面与高程布置＝AI 槽＋水力闭合＋布置块／6 工程概算＝
+    概算表／7 附图＝产物引用／附录 公式溯源＝trace 公式全集×registry
+    规格（LaTeX/条文号/符号释义——B6，不占章号）。diagnostics／
+    estimate／layout 允许 None（集成批接线，渲染层留「数据待接线」占位）。
     """
     if DESIGN_KEY not in plant.conditions:
         raise InvalidReportError(
@@ -435,4 +478,5 @@ def build_report_ast(
         _chapter_layout(diagnostics, layout),
         _chapter_estimate(estimate),
         _chapter_drawings(plant),
+        _chapter_formula_appendix(plant),
     )

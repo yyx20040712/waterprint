@@ -29,14 +29,14 @@ def _mini_plant() -> PlantResult:
         outqualities={"u_fake.out.BOD5": 12.0},
         dims={"d_len": 5.0},
         warnings=(),
-        formula_ids=("UF-F1",),
+        formula_ids=("TS-F4",),
     )
     return PlantResult(
         conditions={"design": {"u_fake": snapshot}},
         summary={"design": {"BOD5": 12.0}},
         trace=(
             TraceNode(
-                formula_id="UF-F1",
+                formula_id="TS-F4",
                 inputs={},
                 output=5.0,
                 norm_ref="GB 合成 §1",
@@ -106,7 +106,7 @@ class TestTraceIndex:
         md = render_markdown(_mini_ast(golden_project_path))
         assert "溯源索引" in md
         appendix = md.split("溯源索引", 1)[1]
-        assert "UF-F1" in appendix
+        assert "TS-F4" in appendix
         assert "5.0" in appendix
 
     def test_table_renders_pipe_rows(self) -> None:
@@ -131,6 +131,55 @@ class TestDeterminism:
         md = render_markdown(_mini_ast(golden_project_path))
         assert "## 第 1 章 设计依据" in md
         assert "## 第 7 章 附图" in md
+        assert "## 附录 公式溯源" in md  # B6：附录章不占章号
+
+
+class TestMathBlocks:
+    """B6 数学块：NumberLine 首现公式处「$$LaTeX$$」展示块+条文中号。"""
+
+    def test_math_display_block_at_first_occurrence(
+        self, golden_project_path: Path
+    ) -> None:
+        md = render_markdown(_mini_ast(golden_project_path))
+        assert "$$" in md
+        # 展示块配对：$$ 行计数为偶
+        fences = [line for line in md.splitlines() if line.strip() == "$$"]
+        assert len(fences) >= 2 and len(fences) % 2 == 0
+        # 条文中号随展示块在场（norm_ref 来自 registry spec——非 trace 合成值）
+        assert "（公式 TS-F4" in md
+
+    def test_first_occurrence_dedup(self) -> None:
+        from waterprint.report.blocks import FormulaCatalog, FormulaSource
+
+        catalog = FormulaCatalog(
+            rows=(
+                FormulaSource(
+                    formula_id="F-1", latex="a = b + c", norm_ref="合成 §1",
+                    symbols_note="a：甲；b：乙",
+                ),
+            )
+        )
+        line1 = NumberLine(label="甲", value=1.0, unit="m", formula_id="F-1")
+        line2 = NumberLine(label="乙", value=2.0, unit="m", formula_id="F-1")
+        plain = NumberLine(label="丙", value=3.0, unit="", formula_id="")
+        md = render_markdown(
+            (Chapter("c", "样章", (line1, line2, plain, catalog)),)
+        )
+        assert md.count("（公式 F-1") == 1  # 首现去重：展示块恰一次
+        assert md.count("$$") == 2  # 恰一对围栏（附录表内 LaTeX 不算块）
+
+    def test_unknown_formula_gets_no_math_block(self) -> None:
+        line = NumberLine(label="甲", value=1.0, unit="", formula_id="GHOST-F9")
+        md = render_markdown((Chapter("c", "样章", (line,)),))
+        assert "$$" not in md  # 目录外公式不渲染展示块（附录亦无此行）
+
+    def test_appendix_table_rendered(self, golden_project_path: Path) -> None:
+        md = render_markdown(_mini_ast(golden_project_path))
+        assert "| 公式 ID | LaTeX | 条文号 | 符号释义 |" in md
+        row = next(line for line in md.splitlines() if line.startswith("| TS-F4 |"))
+        assert r"\sqrt" in row  # TS-F4 实式含根式（LaTeX 打印机输出）
+        assert "d_{pipe" in row  # 多词符号下标级联（LaTeX 形态契约）
+        assert "单泵流量" in row  # 符号释义（symbols 中文含义）
 
 
 class TestPlaceholderChapters:

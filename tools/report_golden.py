@@ -2,10 +2,12 @@
 产物生成脚本化入库」闭项；oda_smoke 先例位=testpaths 外工具，不入常规 CI
 测试面，经 agent job 的 --check 步消费）。
 
-产物（三件套，均锁面外快照资产——check_readonly/lock_tests 双忽略目录）：
+产物（五件套，均锁面外快照资产——check_readonly/lock_tests 双忽略目录）：
     core/tests/report/__snapshots__/result.json                # PlantResult serialize
     core/tests/report/__snapshots__/diag.json                  # DiagnosticsReport serialize_diag
-    core/tests/report/__snapshots__/municipal_34760.sample.md  # render_markdown 渲染样例
+    core/tests/report/__snapshots__/municipal_34760.sample.md  # render_markdown 渲染样例（B6 起含数学块+公式溯源附录）
+    core/tests/report/__snapshots__/formula_printers.latex.txt # 公式双打印机全量快照（B6——LaTeX 态）
+    core/tests/report/__snapshots__/formula_printers.typst.txt # 公式双打印机全量快照（B6——Typst 态）
 
 装配口径=agent 工具 #8 同径（flows.build_env_flow/build_condition_flow/
 build_standards_flow → app.run_full_calc → serialize/serialize_diag →
@@ -52,6 +54,8 @@ _SNAP_DIR = REPO / "core" / "tests" / "report" / "__snapshots__"
 _RESULT_OUT = _SNAP_DIR / "result.json"
 _DIAG_OUT = _SNAP_DIR / "diag.json"
 _SAMPLE_OUT = _SNAP_DIR / "municipal_34760.sample.md"
+_FORMULA_LATEX_OUT = _SNAP_DIR / "formula_printers.latex.txt"
+_FORMULA_TYPST_OUT = _SNAP_DIR / "formula_printers.typst.txt"
 
 
 def _build_artifacts() -> tuple[bytes, bytes, bytes]:
@@ -86,6 +90,46 @@ def _build_artifacts() -> tuple[bytes, bytes, bytes]:
     diag_rt = deserialize_diag(diag_bytes)
     ast = build_report_ast(project, plant_rt, diagnostics=diag_rt)
     return result_bytes, diag_bytes, render_markdown(ast).encode("utf-8")
+
+
+def _build_formula_snapshots() -> tuple[bytes, bytes]:
+    """B6：公式双打印机全量快照——registry 装载面（units_lib 四线 manifest
+    +elevation.losses+network.manning 副作用登记）逐条双态打印。
+
+    装载 import 住本函数（tools 面——report 节点边域不含 units_lib/
+    elevation/network 顶层 import，生产模块零此依赖；451 条×2 态字节）。
+    """
+    import io
+    from contextlib import redirect_stdout
+
+    from waterprint.report.formula_printers import (
+        latex_of_expression,
+        typst_of_expression,
+    )
+
+    with redirect_stdout(io.StringIO()):
+        from waterprint.units_lib import discover_units
+
+        discover_units()
+        import waterprint.elevation.losses  # noqa: F401  # 登记副作用
+        import waterprint.network.manning  # noqa: F401  # 登记副作用
+
+    from waterprint.registry.formulas.store import _REGISTRY
+
+    lines_latex = []
+    lines_typst = []
+    for fid in sorted(_REGISTRY):
+        spec = _REGISTRY[fid].spec
+        lines_latex.append(
+            f"{fid}\t{latex_of_expression(spec.expression, spec.symbols)}"
+        )
+        lines_typst.append(
+            f"{fid}\t{typst_of_expression(spec.expression, spec.symbols)}"
+        )
+    return (
+        ("\n".join(lines_latex) + "\n").encode("utf-8"),
+        ("\n".join(lines_typst) + "\n").encode("utf-8"),
+    )
 
 
 def _write_atomic(path: Path, payload: bytes) -> None:
@@ -130,16 +174,21 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
+    first_formula_latex, first_formula_typst = _build_formula_snapshots()
 
     if args.write:
         _SNAP_DIR.mkdir(parents=True, exist_ok=True)
         _write_atomic(_RESULT_OUT, first_result)
         _write_atomic(_DIAG_OUT, first_diag)
         _write_atomic(_SAMPLE_OUT, first_sample)
+        _write_atomic(_FORMULA_LATEX_OUT, first_formula_latex)
+        _write_atomic(_FORMULA_TYPST_OUT, first_formula_typst)
         print(
             f"[OK] 重录入库：{_RESULT_OUT.name} {len(first_result)} 字节 + "
             f"{_DIAG_OUT.name} {len(first_diag)} 字节 + "
-            f"{_SAMPLE_OUT.name} {len(first_sample)} 字节（双跑恒等）"
+            f"{_SAMPLE_OUT.name} {len(first_sample)} 字节（双跑恒等）+ "
+            f"{_FORMULA_LATEX_OUT.name} {len(first_formula_latex)} 字节 + "
+            f"{_FORMULA_TYPST_OUT.name} {len(first_formula_typst)} 字节"
         )
         return 0
 
@@ -148,6 +197,8 @@ def main() -> int:
         (_RESULT_OUT, first_result),
         (_DIAG_OUT, first_diag),
         (_SAMPLE_OUT, first_sample),
+        (_FORMULA_LATEX_OUT, first_formula_latex),
+        (_FORMULA_TYPST_OUT, first_formula_typst),
     ):
         if not path.is_file():
             drifts.append(f"{path.name}：入库件缺失（先跑 --write）")
@@ -167,7 +218,9 @@ def main() -> int:
     print(
         f"[OK] report golden 产物零漂移（双跑恒等+入库逐字节一致："
         f"result.json {len(first_result)} 字节 / diag.json {len(first_diag)} 字节"
-        f" / { _SAMPLE_OUT.name} {len(first_sample)} 字节）"
+        f" / {_SAMPLE_OUT.name} {len(first_sample)} 字节 / "
+        f"{_FORMULA_LATEX_OUT.name} {len(first_formula_latex)} 字节 / "
+        f"{_FORMULA_TYPST_OUT.name} {len(first_formula_typst)} 字节）"
     )
     return 0
 

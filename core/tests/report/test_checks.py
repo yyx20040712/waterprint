@@ -28,14 +28,14 @@ def _mini_plant() -> PlantResult:
         outqualities={"u_fake.out.BOD5": 12.0},
         dims={"d_len": 5.0, "d_ratio": 0.25},
         warnings=(),
-        formula_ids=("UF-F1",),
+        formula_ids=("TS-F4",),
     )
     return PlantResult(
         conditions={"design": {"u_fake": snapshot}},
         summary={"design": {"BOD5": 12.0}},
         trace=(
             TraceNode(
-                formula_id="UF-F1",
+                formula_id="TS-F4",
                 inputs={"x": 2.5},
                 output=5.0,
                 norm_ref="GB 合成 §1",
@@ -81,17 +81,17 @@ class TestAnchorTamper:
 
     def test_value_tamper_detected(self, golden_project_path: Path) -> None:
         md = _rendered(golden_project_path)
-        assert "〔UF-F1〕" in md
-        tampered = md.replace("5.0〔UF-F1〕", "5.5〔UF-F1〕", 1)
+        assert "〔TS-F4〕" in md
+        tampered = md.replace("5.0〔TS-F4〕", "5.5〔TS-F4〕", 1)
         if tampered == md:  # 形态兜底：不带单位的锚定行
             tampered = md.replace("：5.0 ", "：5.5 ", 1)
         report = verify_report(tampered, _mini_plant())
         assert not report.ok
-        assert any("UF-F1" in failure for failure in report.failures)
+        assert any("TS-F4" in failure for failure in report.failures)
 
     def test_unknown_formula_detected(self, golden_project_path: Path) -> None:
         md = _rendered(golden_project_path)
-        tampered = md.replace("〔UF-F1〕", "〔GHOST-F9〕", 1)
+        tampered = md.replace("〔TS-F4〕", "〔GHOST-F9〕", 1)
         report = verify_report(tampered, _mini_plant())
         assert not report.ok
         assert any("GHOST-F9" in failure for failure in report.failures)
@@ -117,7 +117,7 @@ class TestTableTamper:
 
     _ANCHORED_TABLE = (
         "\n**合成锚定表**\n\n| 值 | 备注 |\n| --- | --- |\n"
-        "| 5.0〔UF-F1〕 | 通过 |\n"
+        "| 5.0〔TS-F4〕 | 通过 |\n"
     )
 
     def test_table_anchored_value_tamper_detected(
@@ -125,18 +125,18 @@ class TestTableTamper:
     ) -> None:
         """红证①：表内锚定值篡改（5.0→5.5 同公式 ID）必红。"""
         md = _rendered(golden_project_path) + self._ANCHORED_TABLE
-        assert "| 5.0〔UF-F1〕 |" in md
-        tampered = md.replace("| 5.0〔UF-F1〕 |", "| 5.5〔UF-F1〕 |", 1)
+        assert "| 5.0〔TS-F4〕 |" in md
+        tampered = md.replace("| 5.0〔TS-F4〕 |", "| 5.5〔TS-F4〕 |", 1)
         report = verify_report(tampered, _mini_plant())
         assert not report.ok
-        assert any("UF-F1" in failure and "表" in failure for failure in report.failures)
+        assert any("TS-F4" in failure and "表" in failure for failure in report.failures)
 
     def test_table_anchored_unknown_formula_detected(
         self, golden_project_path: Path
     ) -> None:
         """红证①附：表内锚点引未知公式 ID 必红。"""
         md = _rendered(golden_project_path) + self._ANCHORED_TABLE
-        tampered = md.replace("〔UF-F1〕 |", "〔GHOST-F9〕 |", 1)
+        tampered = md.replace("〔TS-F4〕 |", "〔GHOST-F9〕 |", 1)
         report = verify_report(tampered, _mini_plant())
         assert not report.ok
         assert any("GHOST-F9" in failure for failure in report.failures)

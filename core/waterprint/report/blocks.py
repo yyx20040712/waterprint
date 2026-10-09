@@ -2,7 +2,8 @@
 
 路径:   waterprint/report/blocks.py
 职责:   ReportAST 的块类型族（TableBlock/NumberLine/NarrativeSlot/
-        FigureRef/NoteLine/Section/Chapter）+EstimateRowLike/
+        FigureRef/NoteLine/Section/Chapter/FormulaSource/FormulaCatalog
+        ——后二件 B6 公式溯源附录与首现数学块承载）+EstimateRowLike/
         EstimateSheetLike 协议+纯投影辅助（单元显示名/工况标签/锚定
         索引/dims 字段排序/单元展示序）——章节装配（build.py）的消费面。
 输入:   contracts 类型面（UnitManifest/ProjectFile/PlantResult——只读）。
@@ -32,6 +33,8 @@ __all__ = [
     "EstimateRowLike",
     "EstimateSheetLike",
     "FigureRef",
+    "FormulaCatalog",
+    "FormulaSource",
     "NarrativeSlot",
     "NoteLine",
     "NumberLine",
@@ -136,6 +139,29 @@ class NoteLine:
 
 @dataclass(frozen=True)
 @final
+class FormulaSource:
+    """公式溯源条目（B6）：formula_id＋LaTeX 展示式＋条文号＋符号释义。
+
+    附录表格数据源与首现数学块渲染面双消费（build 装配、render_md 消费
+    ——LaTeX/条文号取自 registry spec，锚定真源单一流向 AST）。
+    """
+
+    formula_id: str
+    latex: str
+    norm_ref: str
+    symbols_note: str
+
+
+@dataclass(frozen=True)
+@final
+class FormulaCatalog:
+    """公式溯源目录块（B6）：项目公式全集（trace 去重升序）。"""
+
+    rows: tuple[FormulaSource, ...]
+
+
+@dataclass(frozen=True)
+@final
 class Section:
     """章内小节（第 4 章逐单元分组）。"""
 
@@ -143,17 +169,21 @@ class Section:
     blocks: tuple[Block, ...]
 
 
-Block = TableBlock | NumberLine | NarrativeSlot | FigureRef | NoteLine | Section
+Block = (
+    TableBlock | NumberLine | NarrativeSlot | FigureRef | NoteLine | Section
+    | FormulaCatalog
+)
 
 
 @dataclass(frozen=True)
 @final
 class Chapter:
-    """章节：id（稳定标识）＋标题＋块序列。"""
+    """章节：id（稳定标识）＋标题＋块序列＋编号形态（附录章不占章号）。"""
 
     id: str
     title: str
     blocks: tuple[Block, ...]
+    numbered: bool = True
 
 
 ReportAST = tuple[Chapter, ...]
