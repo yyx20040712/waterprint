@@ -21,7 +21,10 @@
 #   R1 stale 守门（§17.1 导出行——create_export 同口径）：最近结果集
 #      三元组 vs 当前项目 hash 不一致且未 force → StaleExportError
 #      （409）；force 导出产物边车显式标注旧三元组（产物永不冒充）。
-#      守门先于装配/编译（重活拒在前）。
+#      守门先于装配/编译（重活拒在前）。R1 回炉 W-B：判定单源化=
+#      result_is_stale（projects 共享件——GET report 通道同口径，双通道
+#      对同一 digest 判定恒等）；latest 缺 design_hash 键=显式
+#      ExportSourceNotFoundError（禁静默 "" 入命名/边车）。
 #   R2 装配（§二.⑥）：services.report.assemble_report 共享真源（diag/
 #      cost/layout 装配+verify_report 全绿——md/PDF 两产物同一闸）→
 #      core render_typst（AST→Typst 源——确定性，公式=Typst math 打印机
@@ -75,7 +78,7 @@ from waterprint_server.services.exports_support import (
     _deterministic_name,
     _unit_id_of,
 )
-from waterprint_server.services.projects import read_project
+from waterprint_server.services.projects import read_project, result_is_stale
 from waterprint_server.services.report import assemble_report
 
 __all__ = [
@@ -90,6 +93,8 @@ _KIND: Final[str] = "report_pdf"
 _DEFAULT_CONDITION: Final[str] = "design"
 # stderr 入消息长度上限（幂积式 200——worker _FAILURE_TEXT_LIMIT 同款口径）
 _STDERR_LIMIT: Final[int] = 2 * 10**2
+# PDF 魔数（d1-N1 产物闸——头 5 字节探针）
+_PDF_MAGIC: Final[bytes] = b"%PDF-"
 
 
 class TypstUnavailableError(RuntimeError):
@@ -125,6 +130,8 @@ def _typst_compile(typst_bin: str, source: str, out: Path, timeout_s: int) -> No
 
     失败/超时=TypstCompileError（stderr 尾段入消息）+tmp 零残留
     （try/finally 清理——成功路径产物 os.replace 后源 tmp 即清）。
+    产物非 %PDF 魔数=TypstCompileError（R1 回炉 d1-N1——非 PDF 文件
+    禁冒充计算书落盘）。
     """
     tag = uuid.uuid4().hex
     src_tmp = out.with_name(f"{out.name}.{tag}.typ")
@@ -158,6 +165,12 @@ def _typst_compile(typst_bin: str, source: str, out: Path, timeout_s: int) -> No
             raise TypstCompileError(
                 f"typst 编译声称成功但产物缺席：{pdf_tmp.name!r}（引擎行为异常）"
             )
+        with pdf_tmp.open("rb") as probe:  # d1-N1 魔数闸（头 5 字节）
+            if probe.read(len(_PDF_MAGIC)) != _PDF_MAGIC:
+                raise TypstCompileError(
+                    f"typst 编译产物非 PDF（魔数缺席）：{pdf_tmp.name!r}"
+                    "（引擎/可执行异常——禁非 PDF 文件冒充计算书落盘）"
+                )
         out.parent.mkdir(parents=True, exist_ok=True)
         os.replace(pdf_tmp, out)  # GR-38 原子落盘
     finally:
@@ -182,12 +195,18 @@ def create_report_pdf_export(  # 五参=exports.create_export 同款编排豁免
             "audit/estimate 同族 422 拒）"
         )
     condition = condition_key.strip() or _DEFAULT_CONDITION
-    # R1 stale 守门（先于装配/编译——重活拒在前；§17.1 导出行同口径）
+    # R1 stale 守门（先于装配/编译——重活拒在前；§17.1 导出行同口径；
+    # W-B：判定=result_is_stale 单源〔GET report 通道共享〕+缺键显式报错）
     _, latest = latest_calc_result(ctx, project_id, not_found=ExportSourceNotFoundError)
-    result_digest = str(latest.get("design_hash", ""))
+    result_digest = latest.get("design_hash")
+    if not isinstance(result_digest, str) or not result_digest:
+        raise ExportSourceNotFoundError(
+            f"项目 {project_id!r} 最近结果集缺 design_hash（旧版/异源结果"
+            "——先重算后再导出；禁静默空摘要入命名/边车）"
+        )
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
     current_digest = core.design_hash(project.design)
-    stale = result_digest != current_digest
+    stale = result_is_stale(latest, project)
     if stale and not force:
         raise StaleExportError(result_digest, current_digest)
     # R2 装配+渲染+编译（verify 全绿同一闸；工况不在结果集=404 面）

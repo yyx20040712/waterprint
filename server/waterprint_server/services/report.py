@@ -13,14 +13,19 @@
 # 【公开接口】
 #   build_report(ctx, project_id, condition_key) -> ReportResponse
 #       （报告数据通道服务面正门——GET /api/calc/projects/{pid}/report）
-#   assemble_report(ctx, project_id, condition_key) -> AssembledReport
+#   assemble_report(ctx, project_id, condition_key, *,
+#                   narrative_fills=None) -> AssembledReport
 #       （装配正门：AST+markdown+verify 全绿——exports report_pdf 路
-#       共享消费，两产物同一装配真源）
+#       与 agent wp_export_report 共享消费，两产物同一装配真源；
+#       narrative_fills 参数化上移=R1 回炉 W-F：叙述回填经 render_markdown
+#       注入——守卫〔validate_narrative 拒绝/接受〕留调用方 MCP 侧语义）
 #   ReportResponse/ReportSectionModel/ReportGeneratedFromModel（响应
 #       模型面——routers response_model 直用，unit_detail 先例：禁协议
 #       层重复声明漂移面）
 #   ReportSourceNotFoundError/ReportEntryNotFoundError（404 两面：源
 #       不可得 / 工况不在——文案区分，unit_detail 惯例）
+#   ReportConditionUnsupportedError（422 面——R1 回炉 W-C：报告锚定
+#      =design 单工况，非 design 报告=后续批——端点显式拒禁静默锚定）
 #   ReportVerifyError（500 面——verify 未全绿禁出件，显式消息禁静默）
 #
 # 【行为规格】
@@ -32,8 +37,12 @@
 #      同款：缺失/损坏→None 显式降级禁伪造）→cost（services.cost 同
 #      通道：EstimateSheetModel 结构满足 EstimateSheetLike 协议——
 #      name_zh 单一真源）→layout（elevation+scene 服务聚合→压缩投影行，
-#      agent _report_layout_rows 同源）→core build_report_ast
-#      （narrative_fills 缺省 None 占位形态——AI 撰稿回填不在本批）。
+#      单源投影〔agent 侧复制件退役——R1 回炉 W-F layout 收敛〕）→core
+#      build_report_ast（narrative_fills 缺省 None 占位形态——AI 撰稿
+#      回填不在本批）。
+#   R2b 工况闸（R1 回炉 W-C）：工况缺席结果集=404（文案区分）；工况在
+#      而非 design=422（build_report_ast 数值锚定恒取 design——非 design
+#      键静默走 design 锚定=语义陷阱，显式拒+文案注明后续批）。
 #   R3 出件闸：render_markdown+verify_report 全绿才返（§五值锚定纪律
 #      ——未全绿=ReportVerifyError 显式消息，md/PDF 两产物同一闸）。
 #   R4 sections：AST 章+Section 两级投影（章 level=1/unit_calc 单元
@@ -86,6 +95,7 @@ from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
     "AssembledReport",
+    "ReportConditionUnsupportedError",
     "ReportEntryNotFoundError",
     "ReportGeneratedFromModel",
     "ReportResponse",
@@ -109,6 +119,11 @@ class ReportSourceNotFoundError(Exception):
 
 class ReportEntryNotFoundError(Exception):
     """报告目标不在（工况缺席结果集）——404 面（文案区分）。"""
+
+
+class ReportConditionUnsupportedError(Exception):
+    """非 design 工况报告暂不支持——422 面（W-C：报告锚定=design 单工况，
+    build_report_ast 数值锚定恒取 design；非 design 报告=后续批）。"""
 
 
 class ReportVerifyError(RuntimeError):
@@ -214,9 +229,17 @@ def _sections_of(ast: ReportAST) -> tuple[ReportSectionModel, ...]:
 
 
 def assemble_report(
-    ctx: ServiceContext, project_id: str, condition_key: str | None
+    ctx: ServiceContext,
+    project_id: str,
+    condition_key: str | None,
+    *,
+    narrative_fills: Mapping[str, str] | None = None,
 ) -> AssembledReport:
-    """装配正门（R1~R3）：取数 →diag/cost/layout 装配 →render+verify 全绿。"""
+    """装配正门（R1~R3）：取数 →工况闸 →diag/cost/layout 装配 →render+verify。
+
+    narrative_fills（W-F 参数化上移）：slot_id → 回填文本（守卫在调用
+    方——MCP 侧 validate_narrative 拒绝/接受流；缺省 None=占位形态）。
+    """
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
     _, latest = latest_calc_result(ctx, project_id, not_found=ReportSourceNotFoundError)
     try:
@@ -230,6 +253,11 @@ def assemble_report(
         raise ReportEntryNotFoundError(
             f"工况 {chosen!r} 不在结果集（合法 {sorted(plant.conditions)}）"
         )
+    if chosen != _DESIGN_KEY:  # R2b 工况闸（W-C）
+        raise ReportConditionUnsupportedError(
+            f"报告锚定=design 工况（condition_key={chosen!r} 非 design"
+            "——说明书数值锚定恒取 design 单工况，非 design 报告=后续批）"
+        )
     diagnostics = _load_diagnostics(latest)
     cost = cost_service.build_cost_for_project(ctx, project_id, chosen)
     elevation = elevation_service.build_elevation_for_project(ctx, project_id, chosen)
@@ -241,7 +269,7 @@ def assemble_report(
         estimate=cost.sheet,
         layout=_layout_rows(elevation, scene),
     )
-    markdown = render_markdown(ast)  # narrative_fills 缺省 None（占位形态）
+    markdown = render_markdown(ast, narrative_fills=narrative_fills)
     check = verify_report(markdown, plant)
     if not check.ok:
         sample = "；".join(check.failures[:_VERIFY_SAMPLE])

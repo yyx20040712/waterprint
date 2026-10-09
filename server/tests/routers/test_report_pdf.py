@@ -258,3 +258,64 @@ async def test_report_pdf_force_stale_labeled(client: httpx.AsyncClient) -> None
     listed = (await client.get("/api/exports", params={"project_id": project_id})).json()
     rows = [row for row in listed if row["kind"] == "report_pdf"]
     assert rows[0]["stale_labeled"] is True  # 产物永不冒充（R1）
+
+
+# ── B6 R1 回炉（2026-10-09 拨4）：W-B 双通道 stale 判定恒等 ──
+
+
+@pytest.mark.anyio
+async def test_stale_verdict_identical_across_channels_stale_side(
+    client: httpx.AsyncClient,
+) -> None:
+    """W-B：同一 digest 下 GET report 与 POST report_pdf 判定恒等——
+    stale 侧（typst 无关）：GET stale=True 显式回显 + POST 409 拒出件
+    （两通道共用 result_is_stale 单源，判定漂移即本锚红）。"""
+    project_id = await _project_with_result(client)
+    saved = (await client.get(f"/api/projects/{project_id}")).json()
+    project = dict(saved)
+    project["design"]["nodes"]["municipal_cass"]["n"] = 3.0
+    put = await client.put(f"/api/projects/{project_id}", json=project)
+    assert put.status_code == status.HTTP_200_OK
+    report = await client.get(f"/api/calc/projects/{project_id}/report")
+    assert report.status_code == status.HTTP_200_OK
+    assert report.json()["stale"] is True  # GET 通道：显式回显禁静默
+    pdf = await client.post(
+        "/api/exports/report_pdf", json={"project_id": project_id}
+    )
+    assert pdf.status_code == status.HTTP_409_CONFLICT  # POST 通道：同判定拒
+
+
+@pytest.mark.skipif(
+    _typst_binary() is None,
+    reason="typst CLI 不在本机（fresh 侧恒等断言含真编译 200——部署依赖"
+    "同前；禁静默绿）",
+)
+@pytest.mark.anyio
+async def test_stale_verdict_identical_across_channels_fresh_side(
+    client: httpx.AsyncClient,
+) -> None:
+    """W-B fresh 侧：GET stale=False + POST 200（同 digest 双通道零分歧）。"""
+    project_id = await _project_with_result(client)
+    report = await client.get(f"/api/calc/projects/{project_id}/report")
+    assert report.json()["stale"] is False
+    pdf = await client.post(
+        "/api/exports/report_pdf", json={"project_id": project_id}
+    )
+    assert pdf.status_code == status.HTTP_200_OK
+    assert pdf.content[:8] == b"%PDF-1.7"
+
+
+@pytest.mark.anyio
+async def test_report_pdf_non_design_condition_422(
+    client: httpx.AsyncClient,
+) -> None:
+    """W-C 双端点面：report_pdf 对非 design 工况同 422（assemble_report
+    工况闸共享——报告锚定=design 单工况，非 design 报告=后续批）。"""
+    project_id = await _project_with_result(client)
+    response = await client.post(
+        "/api/exports/report_pdf",
+        json={"project_id": project_id, "condition_key": "avg"},
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    detail = response.json()["detail"]
+    assert "design" in detail and "后续批" in detail

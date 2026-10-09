@@ -93,8 +93,10 @@ from waterprint_server.services.projects import (
     ProjectNotFoundError,
 )
 
-# B6 计算说明批（2026-10-09）：报告服务面异常（404 两面+verify 500 面）。
+# B6 计算说明批（2026-10-09）：报告服务面异常（404 两面+verify 500 面；
+# R1 回炉 W-C：非 design 工况 422 面——报告锚定=design 单工况显式拒）。
 from waterprint_server.services.report import (
+    ReportConditionUnsupportedError,
     ReportEntryNotFoundError,
     ReportSourceNotFoundError,
     ReportVerifyError,
@@ -156,6 +158,8 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     # +verify 未全绿 500 面（服务端数据完整性显式消息——禁静默）。
     (ReportSourceNotFoundError, status.HTTP_404_NOT_FOUND),
     (ReportEntryNotFoundError, status.HTTP_404_NOT_FOUND),
+    # R1 回炉 W-C：非 design 工况报告=后续批（锚定语义显式化——422）。
+    (ReportConditionUnsupportedError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (ReportVerifyError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     # B6 §二.⑥：report_pdf 编译面 500 族（typst 部署依赖缺/编译失败超时
     # ——stderr 显式消息禁静默；部署依赖申报 docs/deployment.md）。

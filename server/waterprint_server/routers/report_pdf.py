@@ -35,17 +35,44 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, Final
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, status
 from fastapi.responses import FileResponse
 
+from waterprint_server.errors import ErrorResponse
 from waterprint_server.routers.exports import ExportRequest, _ctx
 from waterprint_server.services.report_pdf import create_report_pdf_export
 
 router = APIRouter(prefix="/api/exports", tags=["exports"])
 
+# PL-03 契约枚举（R1 回炉 N5-k2——routers/report.py _REPORT_RESPONSES
+# 同形）：本端点实际 4xx/5xx 面（404 源不可得/409 stale 守门/422
+# unit_id 拒与非 design 工况/500 typst 编译族——行为面 test_report_pdf
+# .py 各用例），responses 声明使 openapi 与行为一致。
+_REPORT_PDF_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorResponse,
+        "description": "项目不存在/无结果集（先重算）或缺 design_hash",
+    },
+    status.HTTP_409_CONFLICT: {
+        "model": ErrorResponse,
+        "description": "结果集过期（?force=1 可携旧三元组标注导出）",
+    },
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {
+        "model": ErrorResponse,
+        "description": "unit_id 不适用（全厂整厂产物）或非 design 工况"
+        "（报告锚定=design 单工况；非 design 报告=后续批）",
+    },
+    status.HTTP_500_INTERNAL_SERVER_ERROR: {
+        "model": ErrorResponse,
+        "description": "typst 编译失败/超时或部署依赖缺"
+        "（WATERPRINT_TYPST_PATH——docs/deployment.md「导出格式」节）",
+    },
+}
 
-@router.post("/report_pdf")
+
+@router.post("/report_pdf", responses=_REPORT_PDF_RESPONSES)
 async def export_report_pdf(
     body: ExportRequest, request: Request, force: bool = False
 ) -> Response:

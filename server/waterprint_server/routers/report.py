@@ -44,13 +44,20 @@ from waterprint_server.services.report import ReportResponse, build_report
 
 router = APIRouter(prefix="/api/calc", tags=["calc"])
 
-# PL-03 契约枚举（B6 计算说明批 2026-10-09）：report 端点实际 404
-# （未知项目/无结果集/工况不在结果集——行为面 test_report.py 404 家族）
-# ——responses 声明使 openapi 与行为一致（unit_detail 同制）。
+# PL-03 契约枚举（B6 计算说明批 2026-10-09；R1 回炉 W-C 增 422 面）：
+# report 端点实际 404（未知项目/无结果集/工况不在结果集——行为面
+# test_report.py 404 家族）+422（非 design 工况——报告锚定=design 单
+# 工况，非 design 报告=后续批）——responses 声明使 openapi 与行为一致
+# （unit_detail 同制）。
 _REPORT_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
     status.HTTP_404_NOT_FOUND: {
         "model": ErrorResponse,
         "description": "项目不存在/无结果集（先重算）或工况不在结果集",
+    },
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {
+        "model": ErrorResponse,
+        "description": "非 design 工况（报告锚定=design 单工况；"
+        "非 design 报告=后续批）",
     },
 }
 

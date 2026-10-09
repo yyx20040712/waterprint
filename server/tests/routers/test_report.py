@@ -136,14 +136,17 @@ async def test_report_200_payload_shape_and_math_blocks(client) -> None:  # type
 
 @pytest.mark.anyio
 async def test_report_condition_key_param_and_404_condition(client) -> None:  # type: ignore[no-untyped-def]
-    """?condition_key=avg 显式工况可用；未知工况 404（文案含合法面）。"""
+    """W-C（R1 回炉）：非 design 工况显式 422（报告锚定=design 单工况
+    ——build_report_ast 数值锚定恒取 design，非 design 报告=后续批）；
+    未知工况仍 404（工况不在结果集——文案含工况面）。"""
     project_id, _ = await _project_with_result(client)
     response = await client.get(
         f"/api/calc/projects/{project_id}/report",
         params={"condition_key": "avg"},
     )
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["condition_key"] == "avg"
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    detail = response.json()["detail"]
+    assert "design" in detail and "后续批" in detail  # W-C 指定文案面
     response = await client.get(
         f"/api/calc/projects/{project_id}/report",
         params={"condition_key": "nosuch"},

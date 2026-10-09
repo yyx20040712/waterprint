@@ -25,10 +25,12 @@
 #      audit→.xlsx 对 HTML 不诚实，记档偏离）。
 #   R3 边车：ExportMeta 八键 {file_name}.meta.json 原子写
 #      （stale_labeled 恒 False——stale 已被 R1 拒）。
-#   R4 #21 管线：narrative_fills 逐段 validate_narrative（违例拒该段
-#      入 rejected_narratives）→build_report_ast（estimate=services.cost
-#      投影[name_zh 单一真源]，layout=#16 压缩投影）→render_markdown
-#      →verify_report 全绿才落盘 reports/{pid}-report-{digest10}.md。
+#   R4 #21 管线（R1 回炉 W-F 收敛）：stale 门→narrative_fills 逐段
+#      validate_narrative（违例拒该段入 rejected_narratives——守卫留
+#      MCP 侧语义）→server services.report.assemble_report 共享真源
+#      （narrative_fills 参数化上移；diag/cost/layout 装配与 md/PDF
+#      端点单源；layout 投影复制件退役）→verify 全绿（服务闸）才落盘
+#      reports/{pid}-report-{digest10}.md（落盘语义与返回键面不变）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -42,7 +44,7 @@ if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律�
     from waterprint_agent.context import AgentContext
 
 from waterprint_agent.tools.calc import atomic_write_bytes
-from waterprint_agent.tools.results import _layout_impl, _load_diag, _load_fresh
+from waterprint_agent.tools.results import _SandboxResultView, _load_fresh
 
 __all__ = [
     "register",
@@ -129,53 +131,34 @@ def _default_assumptions() -> tuple[Any, ...]:
     return tuple(DEFAULT_ASSUMPTIONS)
 
 
-def _report_layout_rows(layout: dict[str, Any]) -> dict[str, Any]:
-    """#16 压缩投影 → 说明书第 5 章布置数据块行（D5③ 程序注入结论）。"""
-    stations = layout["stations"]
-    pumps = layout["pump_stations"]
-    return {
-        "高程工况": layout["condition_key"],
-        "基准面注记": layout["datum_note"],
-        "纵断站位数": len(stations),
-        "首站水面标高（m）": stations[0]["water_level"] if stations else None,
-        "末站水面标高（m）": stations[-1]["water_level"] if stations else None,
-        "最大埋深（m）": max((s["bury_depth"] for s in stations), default=None),
-        "提升泵站": "、".join(p["unit_id"] for p in pumps) or "全程自流",
-        "场景节点数": layout["scene"]["node_count"],
-    }
-
-
 def _export_report_impl(
     ctx: AgentContext, project_id: str, condition_key: str,
     narrative_fills: dict[str, str] | None,
 ) -> dict[str, Any]:
-    """#21：说明书管线（D5）——narrative 守卫→AST（estimate/layout 接线）
-    →渲染→verify 全绿→落盘 reports/。"""
+    """#21：说明书管线（W-F 收敛）——stale 门→叙述守卫→server 装配共享
+    真源（narrative_fills 参数化）→verify 全绿（服务闸）→落盘 reports/。"""
     import dataclasses
 
-    from waterprint_server.services import cost as cost_service
-
     from waterprint.report.anchors import validate_narrative
-    from waterprint.report.build import build_report_ast
-    from waterprint.report.checks import verify_report
-    from waterprint.report.render_md import render_markdown
+    from waterprint_server.services import report as report_service
+    from waterprint_server.services.cost import (
+        CostSourceNotFoundError,
+        InvalidCostRequestError,
+    )
+    from waterprint_server.services.elevation import (
+        ElevationSourceNotFoundError,
+        InvalidElevationRequestError,
+    )
+    from waterprint_server.services.scene import (
+        InvalidSceneRequestError,
+        SceneSourceNotFoundError,
+    )
 
-    loaded = _load_fresh(ctx, project_id)
+    loaded = _load_fresh(ctx, project_id)  # R1 stale 门（MCP 侧语义保持）
     if isinstance(loaded, dict):
         return loaded
     project, plant, result_path = loaded
-    diagnostics = _load_diag(result_path)
-    # 概算（services.cost 投影——name_zh 单一真源；适配器同 #16 通道）。
-    from waterprint_agent.tools.results import _SandboxResultView
-
-    view = _SandboxResultView(project_id, plant, result_path)
-    cost = cost_service.build_cost_for_project(
-        dataclasses.replace(ctx.service_ctx, manager=view),
-        project_id, condition_key,
-    )
-    layout = _layout_impl(ctx, project_id, condition_key)
-    if "error" in layout:  # 布置聚合错误面（#16 同源）
-        return layout
+    # 叙述守卫（MCP 侧语义——拒绝/接受流留本面，装配消费 accepted）
     rejected: dict[str, list[dict[str, str]]] = {}
     accepted: dict[str, str] = {}
     for slot_id, text in (narrative_fills or {}).items():
@@ -186,23 +169,38 @@ def _export_report_impl(
             ]
         else:
             accepted[str(slot_id)] = str(text)
-    ast = build_report_ast(
-        project, plant, diagnostics=diagnostics,
-        estimate=cost.sheet, layout=_report_layout_rows(layout),
-    )
-    markdown = render_markdown(ast, narrative_fills=accepted)
-    check = verify_report(markdown, plant)
-    if not check.ok:
-        return {
-            "error": "说明书数值锚定断言未全绿（禁落盘）",
-            "hint": _HINT_REPORT,
-            "failures": list(check.failures),
-        }
+    # 装配单源（services.report.assemble_report——diag/cost/layout 与
+    # md/PDF 端点同真源；view 携 diag_file 伴生键喂诊断取数面）
+    view = _SandboxResultView(project_id, plant, result_path)
+    service_ctx = dataclasses.replace(ctx.service_ctx, manager=view)
+    try:
+        assembled = report_service.assemble_report(
+            service_ctx, project_id, condition_key or None,
+            narrative_fills=accepted,
+        )
+    except report_service.ReportSourceNotFoundError as exc:
+        return {"error": str(exc), "hint": _HINT_EXPORT}
+    except report_service.ReportEntryNotFoundError as exc:
+        return {"error": str(exc), "hint": _HINT_EXPORT}
+    except report_service.ReportConditionUnsupportedError as exc:
+        return {"error": str(exc), "hint": _HINT_REPORT}
+    except report_service.ReportVerifyError as exc:
+        return {"error": str(exc), "hint": _HINT_REPORT}
+    except (
+        CostSourceNotFoundError,
+        InvalidCostRequestError,
+        ElevationSourceNotFoundError,
+        InvalidElevationRequestError,
+        SceneSourceNotFoundError,
+        InvalidSceneRequestError,
+    ) as exc:  # 装配子服务错误面（原 #16 布置聚合 error dict 通道的异常形）
+        return {"error": str(exc), "hint": _HINT_EXPORT}
+    check = assembled.check
     out = ctx.guard.resolve_in(
-        Path(f"{project_id}-report-{plant.repro.design_hash[:_DIGEST10]}.md"),
+        Path(f"{project_id}-report-{assembled.design_hash[:_DIGEST10]}.md"),
         area="reports",
     )
-    atomic_write_bytes(out, markdown.encode("utf-8"))
+    atomic_write_bytes(out, assembled.markdown.encode("utf-8"))
     return {
         "path": str(out),
         "verify_summary": {

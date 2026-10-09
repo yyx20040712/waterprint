@@ -4264,11 +4264,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "非 design 工况（报告锚定=design 单工况；非 design 报告=后续批）"
           }
         },
         "security": [
@@ -5495,15 +5495,45 @@
             },
             "description": "Successful Response"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "项目不存在/无结果集（先重算）或缺 design_hash"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "结果集过期（?force=1 可携旧三元组标注导出）"
+          },
           "422": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "unit_id 不适用（全厂整厂产物）或非 design 工况（报告锚定=design 单工况；非 design 报告=后续批）"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "typst 编译失败/超时或部署依赖缺（WATERPRINT_TYPST_PATH——docs/deployment.md「导出格式」节）"
           }
         },
         "security": [

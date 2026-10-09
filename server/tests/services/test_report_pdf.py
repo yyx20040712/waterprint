@@ -90,3 +90,74 @@ def test_typst_compile_error_face_and_tmp_cleanup(tmp_path: Path) -> None:
         _typst_compile(binary, '= #("标题"\n$ 未闭合', out, 2 * 10)
     leftovers = list(tmp_path.iterdir())
     assert leftovers == [], f"编译失败须清 tmp（实测残留：{leftovers}）"
+
+
+# ── B6 R1 回炉（2026-10-09 拨4）：W-B stale 单源化+d1-N1 魔数校验 ──
+
+
+class _ResultView:
+    """status() 桩视角（latest_calc_result 消费面：kind/state/result）。"""
+
+    def __init__(self, result: dict[str, object]) -> None:
+        self.kind = "calc"
+        self.state = "done"
+        self.result = result
+
+
+class _StubManager:
+    """缺键结果集桩（task_ids_for_project+status 两面——确定性守门测试）。"""
+
+    def __init__(self, project_id: str, result: dict[str, object]) -> None:
+        self._project_id = project_id
+        self._result = result
+
+    def task_ids_for_project(self, project_id: str) -> tuple[str, ...]:
+        return ("t-x",) if project_id == self._project_id else ()
+
+    def status(self, task_id: str) -> _ResultView:  # type: ignore[override]
+        if task_id != "t-x":
+            raise KeyError(task_id)
+        return _ResultView(self._result)
+
+
+@pytest.mark.anyio
+async def test_missing_design_hash_explicit_error(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """W-B：latest 缺 design_hash 键=显式 ExportSourceNotFoundError（禁
+    静默 "" 入命名/边车——命名面摘要空串=产物永不冒充纪律破口）。"""
+    from typing import cast
+
+    from waterprint_server.jobs.manager import Manager
+    from waterprint_server.services import ServiceContext
+    from waterprint_server.services.projects import create_project
+    from waterprint_server.services.report_pdf import (
+        ExportSourceNotFoundError,
+        create_report_pdf_export,
+    )
+
+    project_id = create_project(service_ctx, {}).project_id
+    bad_ctx = ServiceContext(
+        settings=service_ctx.settings,
+        manager=cast(
+            Manager,
+            _StubManager(
+                project_id,
+                {"result_file": "x.result.json"},  # design_hash 键缺席
+            ),
+        ),
+    )
+    with pytest.raises(ExportSourceNotFoundError, match="design_hash"):
+        create_report_pdf_export(bad_ctx, project_id)
+
+
+def test_typst_compile_pdf_magic_enforced(tmp_path: Path) -> None:
+    """d1-N1：编译声称成功但产物非 %PDF 魔数=TypstCompileError（禁非
+    PDF 文件冒充计算书落盘——假 typst 桩回显非 PDF 字节）。"""
+    stub = tmp_path / "fake-typst.bat"
+    stub.write_text(
+        "@echo off\r\necho not-a-pdf> \"%~3\"\r\nexit /b 0\r\n",
+        encoding="ascii",
+    )
+    out = tmp_path / "x-report.pdf"
+    with pytest.raises(TypstCompileError):
+        _typst_compile(str(stub), "= ok", out, 10)
+    assert not out.is_file()  # 非法产物禁落盘

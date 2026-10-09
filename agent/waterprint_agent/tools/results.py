@@ -345,6 +345,11 @@ class _SandboxResultView:  # Manager 鸭子面（仅查询两法——R2 适配�
                 "design_hash": plant.repro.design_hash,
                 "engine_version": plant.repro.engine_version,
                 "data_version": plant.repro.data_version,
+                # 诊断件伴生键（R1 回炉 W-F）：worker status.result 同键——
+                # services.report._load_diagnostics 消费面，视图对齐使
+                # assemble_report 共享真源在沙箱取到诊断件（值=diag_path_of
+                # 约定路径，与 #16 通道一致；缺失/损坏由服务侧降级面处理）
+                "diag_file": str(diag_path_of(result_file)),
             },
             project_id=project_id,
         )
