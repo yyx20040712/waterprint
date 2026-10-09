@@ -28,7 +28,6 @@ import {
   Handle,
   Position,
   ReactFlow,
-  useNodesInitialized,
   useReactFlow,
   type Connection,
   type Edge,
@@ -89,18 +88,26 @@ function ThumbnailNode({ data, selected }: NodeProps) {
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: ThumbnailNode };
 
-/** 视口收敛子件（CanvasFlow FitViewOnNodes 同制——nodesInitialized 门控）。 */
+/** 视口收敛子件（B2 P3 k1-N10 修复版：fitKey 变更 refit——首键跳过
+ *  〔mount 拟合=ReactFlow fitView prop 承担〕。CanvasFlow 原制的
+ *  useNodesInitialized 门在受控 nodes prop 下恒 false〔store 聚合旗不
+ *  翻转——B2 探针实录 fitKey 1:→2: 期恒 skip、includeHiddenNodes 形
+ *  同滞〕，refit 链死路；改自足键序门=节点增删确定性 refit，
+ *  includeHiddenNodes 未测量节点按位置零尺寸纳入）。 */
 function FitViewOnNodes({ fitKey }: { fitKey: string }) {
   const { fitView } = useReactFlow();
-  const nodesReady = useNodesInitialized();
-  const fittedRef = useRef("");
+  const prevKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!nodesReady || fitKey === "" || fittedRef.current === fitKey) {
+    if (fitKey === "" || prevKeyRef.current === fitKey) {
       return;
     }
-    fittedRef.current = fitKey;
+    const isFirstKey = prevKeyRef.current === null;
+    prevKeyRef.current = fitKey;
+    if (isFirstKey) {
+      return; // mount 拟合归 fitView prop（受控面 nodesInitialized 门不可依赖）
+    }
     void fitView({ padding: 0.12, duration: 200, includeHiddenNodes: true });
-  }, [nodesReady, fitKey, fitView]);
+  }, [fitKey, fitView]);
   return null;
 }
 
