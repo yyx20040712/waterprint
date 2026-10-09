@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 
 from waterprint.report.blocks import (
@@ -128,14 +129,24 @@ def _render_math_block(source: FormulaSource) -> list[str]:
 
 
 def _appendix_math_cell(latex: str) -> str:
-    """附录行内数学单元格（B6 笔5 主控裁定修正）。
+    """附录行内数学单元格（B6 笔5 主控裁定修正；R1 N5-d1 精确化）。
 
-    竖线→\\vert 等价替换：裸 | 经 _cell 表格转义为 \\|——而 \\| 在 LaTeX
-    数学域=‖ 双竖线（范数形），绝对值 \\left|…\\right| 渲染失真（HB-F11/
-    HB-F13 两式实录）；\\vert 数学语义与 | 恒等（竖线符号本体），替身后
-    表格转义零触发+KaTeX 渲染单竖线正确形。
+    竖线族三形精确替换（禁盲替换）：\\left|/\\right|→\\left\\vert/
+    \\right\\vert（绝对值定界——数学恒等，与既有盲替换输出逐字节同——
+    现行 golden 零漂）；裸 |→"\\vert "（符号本体带分隔——盲 str.replace
+    产 \\vertx\\vert 粘连畸变）；\\|（范数双竖线）→"\\Vert " 语义形（盲
+    替换产 \\\\vert=LaTeX 行断裂畸变——未来 \\| 入库面防，N5-d1）。替身
+    后单元格零裸竖线字符——_cell 表格转义零触发+KaTeX 单竖线正确形
+    （HB-F11/HB-F13 实录口径）。
     """
-    return f"${latex.replace('|', r'\vert')}$"
+    out = latex.replace(r"\left|", r"\left\vert").replace(
+        r"\right|", r"\right\vert"
+    )
+    # 裸 |/‖ 两形：前后空白归一+token 单空格包裹（开/闭定界对称——
+    # 盲 str.replace 的粘连畸变对照：'|x|'→'\\vertx\\vert'）。
+    out = re.sub(r"\s*\\\|\s*", r" \\Vert ", out)
+    out = re.sub(r"\s*(?<!\\)\|\s*", r" \\vert ", out)
+    return f"${out.strip()}$"
 
 
 def _render_catalog(block: FormulaCatalog) -> str:

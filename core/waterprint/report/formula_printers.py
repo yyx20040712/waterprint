@@ -67,6 +67,25 @@ __all__ = [
 # Final 常量化解 PLR2004，值 2 在宪法 §3 允许集 {0,1,2,10} 内——spec.py 先例）
 _POW_BASE_WRAP_ABOVE: Final[int] = 2
 
+# 原生词表（W-A——B6 R1 回炉 2026-10-09）：Typst math 原生标识符=希腊
+# 字母全族+函数词（451 全量扫描命中面：pi 31 处/eta 14/rho 6/sin 6/
+# alpha 10/max 5/min 5/tan 3/xi 3/zeta 3/beta 4/theta 2/lambda 2/
+# mu 1/omega 1/delta 1/log 1——cos 零命中入表为对称面）。词表内整词
+# 直出（不再字符空格拆分——"pi"拆作"p i"=三变量积语义错值）；词表外
+# 多词保持既有字符空格拆分（bod→"b o d"——KaTeX 渲染形同构面零动）。
+# 注记申报：LaTeX 侧 sympy 自动 \mathcal 吞名（h_lo→h_{\mathcal{lo}}
+# 二字母下标族）=接受现状（LaTeX 快照零动锚定；Typst 侧无对应脚本字
+# 形，h_(l o) 普通斜体形与 LaTeX \mathcal 呈排版面分歧——数学语义同
+# 竖线/字形族恒等，双席审报备口径）。
+_NATIVE_WORDS: Final[frozenset[str]] = frozenset({
+    # 希腊字母（Typst math 原生符号——与 sympy LaTeX \alpha 族同构）
+    "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta",
+    "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "pi",
+    "rho", "sigma", "tau", "phi", "chi", "psi", "omega",
+    # 函数词（Typst math 原生函数名——正体呈现，与 LaTeX \tan 族对应）
+    "sin", "cos", "tan", "log", "min", "max",
+})
+
 FUNC_MAP: dict[str, Any] = {
     "min": Min,
     "max": Max,
@@ -106,6 +125,25 @@ def _sympify_side(text: str, symbols: Mapping[str, Any]) -> sympy.Expr:
     return expr
 
 
+def _assert_closed_world(
+    expr: sympy.Expr, symbols: Mapping[str, Any], text: str
+) -> None:
+    """闭世界校验（W-E）：解析后自由符号 ⊆ 声明符号集。
+
+    sympify 对未知裸名自动造 Symbol（命名空间劫持面）——声明集外符号
+    非空=显式 InvalidFormulaError（防漏声明静默自由变量：RHS 拼写漂移
+    即「ghost」形）。施加面=RHS 侧（LHS 输出符号=等式自身声明，DSL
+    惯例 451 全量 LHS 均不在 symbols 声明集——闭世界仅施输入面）。
+    """
+    undeclared = {s.name for s in expr.free_symbols} - set(symbols)
+    if undeclared:
+        raise InvalidFormulaError(
+            f"公式表达式含未声明符号 {sorted(undeclared)}"
+            f"（闭世界——自由符号必须 ⊆ 声明符号集，防命名空间静默造符）："
+            f"{text!r}"
+        )
+
+
 def _float_shortest(value: sympy.Float) -> str:
     """Float 最短往返表示（DoD②——str(Float) 产 247.104000000000 尾噪，
     repr(float(...)) 取最短双精度往返串）。"""
@@ -143,8 +181,18 @@ class TypstMathPrinter(Printer):  # type: ignore[misc]  # sympy 无 stubs 基类
     """
 
     def _spaced(self, text: str) -> str:
-        """多词段字符空格分隔（"bod"→"b o d"；下划线段同律）。"""
-        return " ".join(ch for ch in text.replace("_", " "))
+        """多词段字符空格分隔（"bod"→"b o d"；下划线段同律）。
+
+        W-A：下划线分段后词表内整词直出原生标识符（"sin_alpha"→
+        "sin   alpha"/"pi"→"pi"——与 sympy LaTeX \\alpha 族翻译层同构），
+        词表外段保持字符拆分；段间三空格=既有字符流形态（Typst 数学
+        域空白不敏感——呈现零变）。
+        """
+        mapped = [
+            part if part in _NATIVE_WORDS else " ".join(part)
+            for part in text.split("_")
+        ]
+        return "   ".join(mapped)
 
     def _print_str(self, s: str) -> str:
         base, *subs = str(s).split("_", 1)
@@ -182,12 +230,26 @@ class TypstMathPrinter(Printer):  # type: ignore[misc]  # sympy 无 stubs 基类
                 chunks.append(f"- {body}" if negative else f"+ {body}")
         return " ".join(chunks)
 
+    def _print_product(self, factors: tuple[sympy.Expr, ...]) -> str:
+        """乘积因子串接（B1——B6 R1 回炉）：Add 因子统一括号分组。
+
+        Typst 乘积域=邻接即乘，Add 因子不分组即「w v_a + v_n」形——
+        分配陷阱使 39 式 PDF 静默错值（k2+d1 双席互证）；num 乘积路与
+        den 递归路（_print(den)→_print_Mul）共享本件。
+        """
+        parts: list[str] = []
+        for factor in factors:
+            text = self._print(factor)
+            if isinstance(factor, sympy.Add):
+                text = f"({text})"
+            parts.append(text)
+        return " ".join(parts) if len(parts) > 1 else (parts[0] if parts else "")
+
     def _print_Mul(self, expr: sympy.Expr) -> str:  # noqa: N802  # sympy 打印机协议方法名（_print_<Type>）
         num, den = expr.as_numer_denom()
         negative = num.could_extract_minus_sign()
-        factors = list(sympy.Mul.make_args(-num if negative else num))
-        parts = [self._print(t) for t in factors]
-        out = " ".join(parts) if len(parts) > 1 else (parts[0] if parts else "")
+        factors = sympy.Mul.make_args(-num if negative else num)
+        out = self._print_product(factors)
         if negative:
             out = f"- {out}"
         if den != 1:
@@ -229,11 +291,13 @@ class TypstMathPrinter(Printer):  # type: ignore[misc]  # sympy 无 stubs 基类
 
 
 def _eq_of(expression: str, symbols: Mapping[str, Any]) -> sympy.Expr:
-    """表达式 → Eq（含输出符号）或裸 RHS。"""
+    """表达式 → Eq（含输出符号）或裸 RHS（RHS 侧闭世界校验——W-E）。"""
     lhs, rhs = _split(expression)
+    rhs_expr = _sympify_side(rhs, symbols)
+    _assert_closed_world(rhs_expr, symbols, rhs)
     if lhs is None:
-        return _sympify_side(rhs, symbols)
-    return Eq(_sympify_side(lhs, symbols), _sympify_side(rhs, symbols))
+        return rhs_expr
+    return Eq(_sympify_side(lhs, symbols), rhs_expr)
 
 
 def latex_of_expression(

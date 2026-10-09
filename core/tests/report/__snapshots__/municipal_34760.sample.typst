@@ -456,7 +456,7 @@ $ h_(f r i c t i o n) = a_(p i p e) l_(p i p e) (q_(p u m p   s i))^2 $
 
 - #"沿程损失：0.2063730176 m〔TS-F6〕"
 
-$ h_(l o c a l) = frac(z e t a_(t o t a l) (v_(p i p e   a c t))^2, 2 g_(g r a v i t y)) $
+$ h_(l o c a l) = frac(zeta_(t o t a l) (v_(p i p e   a c t))^2, 2 g_(g r a v i t y)) $
 
 #"（公式 TS-F7——条文出处：《给水排水设计手册（第 5 册 城镇排水）》泵站章（docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认））"
 
@@ -504,13 +504,13 @@ $ v_(c o n c r e t e) = a_(w e l l) h_(w e l l   t o t a l) w a l l_(c o e f) $
 
 - #"井体混凝土量（概算）：73.9268359375 m3〔TS-F14〕"
 
-$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) r h o_(w a t e r), 1000 e t a_(p u m p)) $
+$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) rho_(w a t e r), 1000 eta_(p u m p)) $
 
 #"（公式 TS-F15——条文出处：《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认；/1000=W→kW；电机效率/装机裕度挂账 B4-2b））"
 
 - #"泵轴功率（kW）：44.0537479172〔TS-F15〕"
 
-$ e_(p u m p) = frac(3 g_(g r a v i t y) h_(p u m p) q_(a v g   d a i l y) r h o_(w a t e r), 125 e t a_(p u m p)) $
+$ e_(p u m p) = frac(3 g_(g r a v i t y) h_(p u m p) q_(a v g   d a i l y) rho_(w a t e r), 125 eta_(p u m p)) $
 
 #"（公式 TS-F16——条文出处：泵站日耗电能量法：日提升水量×扬程（ρg·Q_avg·H/η×24h——流量按平均日、扬程按设计点双口径注记；间歇启停由能量法自然消化；B4-2a 能耗面起草——计算逻辑经用户审查 R-B42a-1，待领域专家追认））"
 
@@ -555,7 +555,7 @@ $ q = frac(q_(d e s i g n), n) $
 
 - #"单台流量：0.1877506944 m3/s〔CG-F1〕"
 
-$ v_(c h e c k e d) = frac(q s q r t_(s i n   a l p h a), b h n_(g a p)) $
+$ v_(c h e c k e d) = frac(q s q r t_(sin   alpha), b h n_(g a p)) $
 
 #"（公式 CG-F5——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23））"
 
@@ -567,13 +567,13 @@ $ v 1_(c h e c k e d) = frac(q, b 1 h) $
 
 - #"校核栅前流速：0.6258356481 m/s〔CG-F6〕"
 
-$ x i = b e t a (s_(o v e r   b))^(frac(4, 3)) $
+$ xi = beta (s_(o v e r   b))^(frac(4, 3)) $
 
 #"（公式 CG-F7——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23））"
 
 - #"栅条阻力系数 ξ：0.1994944833〔CG-F7〕"
 
-$ h 1 = frac(k_(h e a d l o s s) s i n_(a l p h a) x i (v_(c h e c k e d))^2, 2 g) $
+$ h 1 = frac(k_(h e a d l o s s) sin_(alpha) xi (v_(c h e c k e d))^2, 2 g) $
 
 #"（公式 CG-F8——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23））"
 
@@ -585,7 +585,7 @@ $ w_(s l a g) = frac(432 q_(d e s i g n) w 1, 5 k z) $
 
 - #"日栅渣量：0.695214 m3〔CG-F11〕"
 
-$ d s_(s l a g) = 1000 w_(s l a g) 1 - m o i s t u r e $
+$ d s_(s l a g) = 1000 w_(s l a g) (1 - m o i s t u r e) $
 
 #"（公式 CG-F13——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23））"
 
@@ -640,7 +640,7 @@ $ q = frac(q_(d e s i g n), n) $
 
 - #"单台流量：0.1877506944 m3/s〔XG-F1〕"
 
-$ v_(c h e c k e d) = frac(q s q r t_(s i n   a l p h a), b h n_(g a p)) $
+$ v_(c h e c k e d) = frac(q s q r t_(sin   alpha), b h n_(g a p)) $
 
 #"（公式 XG-F5——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23））"
 
@@ -652,13 +652,13 @@ $ v 1_(c h e c k e d) = frac(q, b 1 h) $
 
 - #"校核栅前流速：0.6258356481 m/s〔XG-F6〕"
 
-$ x i = b e t a (s_(o v e r   b))^(frac(4, 3)) $
+$ xi = beta (s_(o v e r   b))^(frac(4, 3)) $
 
 #"（公式 XG-F7——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23））"
 
 - #"栅条阻力系数 ξ：0.6544207425〔XG-F7〕"
 
-$ h 1 = frac(k_(h e a d l o s s) s i n_(a l p h a) x i (v_(c h e c k e d))^2, 2 g) $
+$ h 1 = frac(k_(h e a d l o s s) sin_(alpha) xi (v_(c h e c k e d))^2, 2 g) $
 
 #"（公式 XG-F8——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23））"
 
@@ -670,7 +670,7 @@ $ w_(s l a g) = frac(432 q_(d e s i g n) w 1, 5 k z) $
 
 - #"日栅渣量：2.780856 m3〔XG-F11〕"
 
-$ d s_(s l a g) = 1000 w_(s l a g) 1 - m o i s t u r e $
+$ d s_(s l a g) = 1000 w_(s l a g) (1 - m o i s t u r e) $
 
 #"（公式 XG-F13——条文出处：GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23））"
 
@@ -737,7 +737,7 @@ $ r a t i o_(d h 2) = frac(d, h 2) $
 
 - #"径深比：2.4〔CS-F4〕"
 
-$ v_(e f f) = frac(h 2 p i d^2, 4) $
+$ v_(e f f) = frac(h 2 pi d^2, 4) $
 
 #"（公式 CS-F5——条文出处：GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
@@ -767,13 +767,13 @@ $ d_(u p p e r) = d u p p e r_(r a t i o) $
 
 - #"砂斗上口直径：1.5 m〔CS-F9〕"
 
-$ h 4 = frac(- d_(r) - d_(u p p e r), 2 t a n_(t h e t a)) $
+$ h 4 = frac(- (d_(r) - d_(u p p e r)), 2 tan_(theta)) $
 
 #"（公式 CS-F10——条文出处：中期报告 §3.3 式(3-27)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
 - #"砂斗高度：0.3501037691 m〔CS-F10〕"
 
-$ v_(c o n e) = frac(h 4 p i (d_(r))^2 + d_(r) d_(u p p e r) + (d_(u p p e r))^2, 12) $
+$ v_(c o n e) = frac(h 4 pi ((d_(r))^2 + d_(r) d_(u p p e r) + (d_(u p p e r))^2), 12) $
 
 #"（公式 CS-F11——条文出处：GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
@@ -785,7 +785,7 @@ $ h_(c h a n n e l) = frac(q 1, b_(c h a n n e l) v_(c h a n n e l)) $
 
 - #"进水渠水深：0.3520325521 m〔CS-F14〕"
 
-$ l_(s t r a i g h t) = max(s t r a i g h t_(m i n), b_(c h a n n e l) s t r a i g h t_(m u l t)) $
+$ l_(s t r a i g h t) = max(s t r a i g h t_(min), b_(c h a n n e l) s t r a i g h t_(m u l t)) $
 
 #"（公式 CS-F15——条文出处：中期报告 §3.3 式(4-28)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
@@ -797,13 +797,13 @@ $ b_(o u t l e t) = b_(c h a n n e l) o u t l e t_(m u l t) $
 
 - #"出水渠宽：1.6 m〔CS-F16〕"
 
-$ d s_(g r i t) = g r i t_(d e n s i t y) n v_(s a n d) 1 - m o i s t u r e $
+$ d s_(g r i t) = g r i t_(d e n s i t y) n v_(s a n d) (1 - m o i s t u r e) $
 
 #"（公式 CS-F17——条文出处：GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
 - #"日干砂量（全池）：667.40544 kg〔CS-F17〕"
 
-$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) d^2, 4) $
+$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) d^2, 4) $
 
 #"（公式 CS-F18——条文出处：GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23））"
 
@@ -862,13 +862,13 @@ $ f_(r e q) = frac(q 1 h, q_(p r i m e)) $
 
 - #"需蓄面积：440.8059782609 m2〔CC-F2〕"
 
-$ d_(r a w) = 2 sqrt(frac(f_(r e q), p i)) $
+$ d_(r a w) = 2 sqrt(frac(f_(r e q), pi)) $
 
 #"（公式 CC-F3——条文出处：GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
 - #"池径（未圆整）：23.6907493144 m〔CC-F3〕"
 
-$ f_(a c t) = frac(p i D^2, 4) $
+$ f_(a c t) = frac(pi D^2, 4) $
 
 #"（公式 CC-F4——条文出处：GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
@@ -892,13 +892,13 @@ $ r a t i o_(d h 2) = frac(D, h 2) $
 
 - #"径深比：8.924153846〔CC-F7〕"
 
-$ q_(w e i r) = frac(500 q 1, p i D - 1) $
+$ q_(w e i r) = frac(500 q 1, pi (D - 1)) $
 
 #"（公式 CC-F9——条文出处：GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；堰构造口径=周边双侧出水堰（堰长 L=2π(D−1)），待领域专家追认）"
 
 - #"出水堰负荷（L/(m·s)）：1.9487902885〔CC-F9〕"
 
-$ s_(d r y   1) = frac(432 q_(a v g   d a i l y) s s_(i n) - s s_(o u t), 5 n) $
+$ s_(d r y   1) = frac(432 q_(a v g   d a i l y) (s s_(i n) - s s_(o u t)), 5 n) $
 
 #"（公式 CC-F10——条文出处：GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
@@ -916,13 +916,13 @@ $ v_(n e e d) = s_(w e t   1) t_(s l u d g e) $
 
 - #"需贮泥容积（单池）：85.4461456875 m3〔CC-F12〕"
 
-$ v 1_(h o p p e r) = frac(h 5 p i (r 1)^2 + r 1 r 2 + (r 2)^2, 3) $
+$ v 1_(h o p p e r) = frac(h 5 pi ((r 1)^2 + r 1 r 2 + (r 2)^2), 3) $
 
 #"（公式 CC-F13——条文出处：《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
 - #"泥斗容积：8.3566364585 m3〔CC-F13〕"
 
-$ v 2_(c o n e) = frac(h 4 p i D^2 + 2 D r 1 + 4 (r 1)^2, 12) $
+$ v 2_(c o n e) = frac(h 4 pi (D^2 + 2 D r 1 + 4 (r 1)^2), 12) $
 
 #"（公式 CC-F15——条文出处：《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
@@ -934,7 +934,7 @@ $ v_(s t o r a g e) = v 1_(h o p p e r) + v 2_(c o n e) $
 
 - #"贮泥容积：114.441937185 m3〔CC-F16〕"
 
-$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) D^2, 4) $
+$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) D^2, 4) $
 
 #"（公式 CC-F18——条文出处：《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认））"
 
@@ -995,7 +995,7 @@ $ v_(a n a e r o b i c) = 3600 q_(a v g   d a i l y) t_(p) $
 
 - #"厌氧区容积：2172.54375 m3〔AO-F3〕"
 
-$ v_(a n o x i c) = frac(86400 d e l t a_(n) q_(a v g   d a i l y), k_(d e n i t) x_(m l s s)) $
+$ v_(a n o x i c) = frac(86400 delta_(n) q_(a v g   d a i l y), k_(d e n i t) x_(m l s s)) $
 
 #"（公式 AO-F4——条文出处：《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认））"
 
@@ -1037,13 +1037,13 @@ $ v_(p o o l) = b_(p o o l) h 2 l_(p o o l) $
 
 - #"池体容积（构造）：18050.0 m3〔AO-F19〕"
 
-$ t h e t a_(c) = frac(v_(o) x_(m l s s), 1000 s_(y)) $
+$ theta_(c) = frac(v_(o) x_(m l s s), 1000 s_(y)) $
 
 #"（公式 AO-F8——条文出处：GB 50014-2021 §7.6（AAO 泥龄 11~23d；判断口径=好氧泥龄，全池口径备考注记见 docs/norms/aao.md——待领域专家追认））"
 
 - #"污泥龄：22.2222222222 d〔AO-F8〕"
 
-$ s_(y) = frac(432 q_(a v g   d a i l y) y_(y i e l d) b o d 5_(i n) - b o d 5_(o u t), 5) $
+$ s_(y) = frac(432 q_(a v g   d a i l y) y_(y i e l d) (b o d 5_(i n) - b o d 5_(o u t)), 5) $
 
 #"（公式 AO-F6——条文出处：GB 50014-2021 §8.1.4 表 5（AAO 污泥产率 0.4~0.6；docs/norms/aao.md 起草表 2026-08-25，待追认））"
 
@@ -1061,19 +1061,19 @@ $ o 2_(t o t a l) = o 2_(c a r b o n) - o 2_(d e n i t) + o 2_(n i t) $
 
 - #"总需氧量：6859.4679738 kg〔AO-F12〕"
 
-$ o 2_(c a r b o n) = frac(432 a_(p r i m e) q_(a v g   d a i l y) b o d 5_(i n) - b o d 5_(o u t), 5) + frac(b_(p r i m e) v_(o) x_(v s s), 1000) $
+$ o 2_(c a r b o n) = frac(432 a_(p r i m e) q_(a v g   d a i l y) (b o d 5_(i n) - b o d 5_(o u t)), 5) + frac(b_(p r i m e) v_(o) x_(v s s), 1000) $
 
 #"（公式 AO-F9——条文出处：《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认））"
 
 - #"碳化需氧量：5195.1256578 kg〔AO-F9〕"
 
-$ o 2_(n i t) = 394.848 q_(a v g   d a i l y) t k n_(i n) - t n_(e f f) $
+$ o 2_(n i t) = 394.848 q_(a v g   d a i l y) (t k n_(i n) - t n_(e f f)) $
 
 #"（公式 AO-F10——条文出处：《给水排水设计手册（第 5 册 城镇排水）》硝化氧当量 4.57（docs/norms/aao.md 起草表 2026-08-25，待追认））"
 
 - #"硝化需氧量：4447.979172 kg〔AO-F10〕"
 
-$ o 2_(d e n i t) = 247.104 q_(a v g   d a i l y) t k n_(i n) - t n_(e f f) $
+$ o 2_(d e n i t) = 247.104 q_(a v g   d a i l y) (t k n_(i n) - t n_(e f f)) $
 
 #"（公式 AO-F11——条文出处：《给水排水设计手册（第 5 册 城镇排水）》反硝化氧当量 2.86（docs/norms/aao.md 起草表 2026-08-25，待追认））"
 
@@ -1095,7 +1095,7 @@ $ q_(a i r) = frac(f_(s o r) o 2_(t o t a l), 86400 e a o 2_(p e r   a i r)) $
 
 - #"曝气供气量：1.8855597729 m3/s〔AO-F21〕"
 
-$ p_(b l o w e r) = frac(p_(p r e s s u r e) q_(a i r), e t a_(b l o w e r)) $
+$ p_(b l o w e r) = frac(p_(p r e s s u r e) q_(a i r), eta_(b l o w e r)) $
 
 #"（公式 AO-F22——条文出处：《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；P=Q·Δp/η（m3/s×kPa=kW 直读）；Δp=有效水深+管损裕量档）"
 
@@ -1107,7 +1107,7 @@ $ e_(a e r a t i o n) = 24 p_(b l o w e r) $
 
 - #"曝气日耗电（kWh/d）：4525.3434549375〔AO-F23〕"
 
-$ p_(s t i r) = frac(w_(s t i r   b i o) v_(a n a e r o b i c) + v_(a n o x i c), 1000) $
+$ p_(s t i r) = frac(w_(s t i r   b i o) (v_(a n a e r o b i c) + v_(a n o x i c)), 1000) $
 
 #"（公式 AO-F24——条文出处：《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；缺氧/厌氧区潜水搅拌（密度带同 tiaojiechi TJ-F9 族；好氧区曝气混合不另计；/1000=W→kW））"
 
@@ -1184,13 +1184,13 @@ $ a_(q) = frac(q 1 h, q_(n o m)) $
 
 - #"清水负荷需蓄面积：844.878125 m2〔EC-F2〕"
 
-$ m_(s o l i d) = frac(3 q 1 h x_(m l s s) r_(e x t e r n a l) + 1, 125) $
+$ m_(s o l i d) = frac(3 q 1 h x_(m l s s) (r_(e x t e r n a l) + 1), 125) $
 
 #"（公式 EC-F3——条文出处：GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
 - #"单池固体负荷：194659.92 kg〔EC-F3〕"
 
-$ a_(s o l i d) = frac(m_(s o l i d), g_(m a x)) $
+$ a_(s o l i d) = frac(m_(s o l i d), g_(max)) $
 
 #"（公式 EC-F4——条文出处：GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
@@ -1198,13 +1198,13 @@ $ a_(s o l i d) = frac(m_(s o l i d), g_(m a x)) $
 
 - #"主控面积（双控取大）：1297.7328 m2〔EC-F4〕"
 
-$ d_(r a w) = 2 sqrt(frac(a_(t a n k), p i)) $
+$ d_(r a w) = 2 sqrt(frac(a_(t a n k), pi)) $
 
 #"（公式 EC-F6——条文出处：GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
 - #"池径（未圆整）：40.6487972695 m〔EC-F6〕"
 
-$ a_(a c t) = frac(p i D^2, 4) $
+$ a_(a c t) = frac(pi D^2, 4) $
 
 #"（公式 EC-F7——条文出处：GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
@@ -1222,19 +1222,19 @@ $ g_(a c t) = frac(m_(s o l i d), a_(a c t)) $
 
 - #"实际固体面积负荷（kg/(m2·d)）：147.4412301719〔EC-F9〕"
 
-$ x_(r) = frac(x_(m l s s) r_(e x t e r n a l) + 1, r_(e x t e r n a l)) $
+$ x_(r) = frac(x_(m l s s) (r_(e x t e r n a l) + 1), r_(e x t e r n a l)) $
 
 #"（公式 EC-F10——条文出处：《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
 - #"回流污泥浓度：8000.0 mg/L〔EC-F10〕"
 
-$ q_(w e i r) = frac(500 q 1, D p i) $
+$ q_(w e i r) = frac(500 q 1, D pi) $
 
 #"（公式 EC-F11——条文出处：GB 50014-2021（沉淀池堰负荷，二沉档）；堰构造口径=周边双侧出水堰（堰长 L=2πD），待领域专家追认）"
 
 - #"出水堰负荷（L/(m·s)）：1.0932238204〔EC-F11〕"
 
-$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) D^2, 4) $
+$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) D^2, 4) $
 
 #"（公式 EC-F15——条文出处：《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认））"
 
@@ -1351,7 +1351,7 @@ $ q_(r e t u r n) = q_(d e s i g n   h) r_(s l u d g e) $
 
 - #"污泥回流量（m3/h）：81.1083〔GM-F11〕"
 
-$ s_(d r y) = frac(432 q_(a v g   d a i l y) s s_(i n) - s s_(o u t), 5) $
+$ s_(d r y) = frac(432 q_(a v g   d a i l y) (s s_(i n) - s s_(o u t)), 5) $
 
 #"（公式 GM-F12——条文出处：《给水排水设计手册（第 5 册 城镇排水）》混合/絮凝 G 值法与斜管沉淀常用值（docs/norms/gaomidu.md 起草表 2026-08-25，待追认））"
 
@@ -1522,13 +1522,13 @@ $ q_(s w e e p) = frac(a_(c e l l   a c t) w_(s w e e p), 1000) $
 
 - #"表面扫洗流量：0.081 m3/s〔XL-F13〕"
 
-$ v_(a i r   p e r) = 60 q_(a i r) t_(a i r) + t_(s i m) $
+$ v_(a i r   p e r) = 60 q_(a i r) (t_(a i r) + t_(s i m)) $
 
 #"（公式 XL-F14——条文出处：GB 50013-2018 §9.5（滤池：均质滤料滤速/强制滤速与气水反冲洗强度；docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认））"
 
 - #"单格次耗气量：243.0 m3〔XL-F14〕"
 
-$ v_(w a s h   p e r) = 60 q_(s w e e p) t_(a i r) + t_(s i m) + t_(w a t e r) + 60 q_(w a s h) t_(w a t e r) + 60 q_(w a s h   s i m) t_(s i m) $
+$ v_(w a s h   p e r) = 60 q_(s w e e p) (t_(a i r) + t_(s i m) + t_(w a t e r)) + 60 q_(w a s h) t_(w a t e r) + 60 q_(w a s h   s i m) t_(s i m) $
 
 #"（公式 XL-F15——条文出处：《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认））"
 
@@ -1564,7 +1564,7 @@ $ w_(a i r) = frac(24 n v_(a i r   p e r), t_(c y c l e)) $
 
 - #"全厂日耗气量：1458.0 m3〔XL-F20〕"
 
-$ w_(s w e e p) = frac(1440 n q_(s w e e p) t_(a i r) + t_(s i m) + t_(w a t e r), t_(c y c l e)) $
+$ w_(s w e e p) = frac(1440 n q_(s w e e p) (t_(a i r) + t_(s i m) + t_(w a t e r)), t_(c y c l e)) $
 
 #"（公式 XL-F21——条文出处：《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认））"
 
@@ -1659,7 +1659,7 @@ $ t_(e x p) = frac(b_(c) h_(w) l_(l a m p   z o n e), q_(c)) $
 
 - #"照射接触时间：6.1357962132 s〔ZW-F9〕"
 
-$ c_(f e c a l   o u t) = frac(c_(f e c a l   i n), 10^(n_(l o g))) $
+$ c_(f e c a l   o u t) = frac(c_(f e c a l   i n), 10^(n_(log))) $
 
 #"（公式 ZW-F10——条文出处：GB 50014-2021 消毒章节（紫外线消毒一般规定；docs/norms/ziwai.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》紫外剂量选档/灯管概算/渠道设计常用值（docs/norms/ziwai.md 起草表 2026-08-25，待追认））"
 
@@ -1756,7 +1756,7 @@ $ l_(t o t a l) = l 1 + l_(d i f f u s e) + l_(t h r o a t) $
 
 - #"槽身总长：3.095 m〔BL-F7〕"
 
-$ s i g m a = frac(h b_(d e s i g n), h a_(d e s i g n)) $
+$ sigma = frac(h b_(d e s i g n), h a_(d e s i g n)) $
 
 #"（公式 BL-F8——条文出处：《给水排水设计手册（第 5 册 城镇排水）》巴歇尔槽自由流/淹没流判别（σ=Hb/Ha ≤ 临界淹没度 scrit；起草表待追认））"
 
@@ -1831,31 +1831,31 @@ $ n_(t o t a l) = n_(p u m p   d u t y) + n_(s t a n d b y) $
 
 - #"泵总台数（含备用）：3.0〔BZ-F5〕"
 
-$ d_(r a w) = 2 sqrt(frac(q_(p u m p   s i), p i v_(p i p e))) $
+$ d_(r a w) = 2 sqrt(frac(q_(p u m p   s i), pi v_(p i p e))) $
 
 #"（公式 BZ-F6——条文出处：GB 50014-2021 §6.1（泵站集水池容积/备用泵一般要求）与 §8（污泥章——污泥管道流速/泵扬程，条号待核对；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认））"
 
 - #"出泥管径（未圆整）：0.0448412635〔BZ-F6〕"
 
-$ v_(a c t) = frac(4 q_(p u m p   s i), p i (d_(p i p e))^2) $
+$ v_(a c t) = frac(4 q_(p u m p   s i), pi (d_(p i p e))^2) $
 
 #"（公式 BZ-F7——条文出处：GB 50014-2021 §6.1（泵站集水池容积/备用泵一般要求）与 §8（污泥章——污泥管道流速/泵扬程，条号待核对；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认））"
 
 - #"实际流速（m/s）：1.2064433449〔BZ-F7〕"
 
-$ h_(f r i c t i o n) = frac(0.0509683995922528 l_(p i p e) l a m b d a_(f) (v_(a c t))^2, d_(p i p e)) $
+$ h_(f r i c t i o n) = frac(0.0509683995922528 l_(p i p e) lambda_(f) (v_(a c t))^2, d_(p i p e)) $
 
 #"（公式 BZ-F8——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认））"
 
 - #"沿程损失（m）：3.7092394101〔BZ-F8〕"
 
-$ h_(l o c a l) = 0.0509683995922528 z e t a_(t o t a l) (v_(a c t))^2 $
+$ h_(l o c a l) = 0.0509683995922528 zeta_(t o t a l) (v_(a c t))^2 $
 
 #"（公式 BZ-F9——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认））"
 
 - #"局部损失（m）：0.370923941〔BZ-F9〕"
 
-$ h_(l o s s) = k_(s l u d g e) h_(f r i c t i o n) + h_(l o c a l) $
+$ h_(l o s s) = k_(s l u d g e) (h_(f r i c t i o n) + h_(l o c a l)) $
 
 #"（公式 BZ-F10——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认））"
 
@@ -1909,13 +1909,13 @@ $ p_(o u t) = p_(i n) $
 
 - #"出流含水率：0.9870363041〔BZ-F18〕"
 
-$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) r h o_(w a t e r), 1000 e t a_(p u m p)) $
+$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) rho_(w a t e r), 1000 eta_(p u m p)) $
 
 #"（公式 BZ-F19——条文出处：《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认；/1000=W→kW））"
 
 - #"泵轴功率（kW）：0.5443157378〔BZ-F19〕"
 
-$ e_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(w e t) r h o_(w a t e r), 3600000 e t a_(p u m p)) $
+$ e_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(w e t) rho_(w a t e r), 3600000 eta_(p u m p)) $
 
 #"（公式 BZ-F20——条文出处：污泥泵站日耗电能量法（ρg·q_wet·H/η→J/d÷3.6e6→kWh/d——间歇运行由能量法自然消化；B4-2a 能耗面起草——计算逻辑经用户审查R-B42a-1，待领域专家追认））"
 
@@ -1945,7 +1945,7 @@ $ m_(i n) = frac(d s_(i n), 1 - p_(i n)) $
 
 - #"进泥湿质量（kg/d）：14590.8057042614〔GH-F1〕"
 
-$ w_(e v a p) = frac(d s_(i n) p_(i n) 1 - p_(o u t) - p_(o u t) 1 - p_(i n), 1 - p_(i n) 1 - p_(o u t)) $
+$ w_(e v a p) = frac(d s_(i n) (p_(i n) (1 - p_(o u t)) - p_(o u t) (1 - p_(i n))), (1 - p_(i n)) (1 - p_(o u t))) $
 
 #"（公式 GH-F2——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥干化章（干化后含水率档/蒸发潜热近似/热效率/传热面积蒸发强度常用带；docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认））"
 
@@ -1965,7 +1965,7 @@ $ m_(o u t) = frac(d s_(i n), 1 - p_(o u t)) $
 
 - #"质量守恒校核（kg/d）：4279.96967325〔GH-F4〕"
 
-$ q_(h e a t) = frac(h_(e v a p) w_(e v a p), e t a_(t h e r m a l)) $
+$ q_(h e a t) = frac(h_(e v a p) w_(e v a p), eta_(t h e r m a l)) $
 
 #"（公式 GH-F6——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥干化章（干化后含水率档/蒸发潜热近似/热效率/传热面积蒸发强度常用带；docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认））"
 
@@ -2041,19 +2041,19 @@ $ p_(m e r g e d) = frac(w_(w a t e r), d s_(t o t a l) + w_(w a t e r)) $
 
 - #"合并含水率：0.9870363041〔HB-F7〕"
 
-$ s_(y) = frac(q_(a v g   d a i l y) y_(y i e l d) s 0_(b o d) - s e_(b o d), 1000) $
+$ s_(y) = frac(q_(a v g   d a i l y) y_(y i e l d) (s 0_(b o d) - s e_(b o d)), 1000) $
 
 #"（公式 HB-F8——条文出处：GB 50014-2021 §8.1（污泥量计算——§8.1.4 表 5 污泥产率 y，ADR-008 ④ 拍板口径；条号随追认核对；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认））"
 
 - #"经验产率法剩余污泥量（kg/d）：1928.691182574〔HB-F8〕"
 
-$ k_(d t) = k_(d 2 0) (t h e t a_(k d))^(t_(d e s i g n) - 20) $
+$ k_(d t) = k_(d 2 0) (theta_(k d))^(t_(d e s i g n) - 20) $
 
 #"（公式 HB-F9——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥处理章（污泥量衡算/含水率换算/活性污泥动力学；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认））"
 
 - #"温度修正 Kd（d⁻¹）：0.0328770843〔HB-F9〕"
 
-$ d x_(b i o) = - frac(k_(d t) v_(b i o) x_(v s s), 1000) + frac(q_(a v g   d a i l y) y_(s y n) s 0_(b o d) - s e_(b o d), 1000) $
+$ d x_(b i o) = - frac(k_(d t) v_(b i o) x_(v s s), 1000) + frac(q_(a v g   d a i l y) y_(s y n) (s 0_(b o d) - s e_(b o d)), 1000) $
 
 #"（公式 HB-F10——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥处理章（污泥量衡算/含水率换算/活性污泥动力学；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认））"
 
@@ -2103,7 +2103,7 @@ $ a_(s i n g l e) = frac(a_(r e q), n) $
 
 - #"单池面积（m2）：53.06515〔NS-F4〕"
 
-$ d_(r a w) = 2 sqrt(frac(a_(s i n g l e), p i)) $
+$ d_(r a w) = 2 sqrt(frac(a_(s i n g l e), pi)) $
 
 #"（公式 NS-F5——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥浓缩章（底流含固/固体截留率/圆形池构造常用带；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认））"
 
@@ -2115,7 +2115,7 @@ $ q_(s o l i d   a c t) = frac(d s_(i n), a_(r e q)) $
 
 - #"实际固体通量（kg/(m2·d)）：50.0〔NS-F6〕"
 
-$ d s_(o u t) = d s_(i n) e t a_(c a p t u r e) $
+$ d s_(o u t) = d s_(i n) eta_(c a p t u r e) $
 
 #"（公式 NS-F7——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥浓缩章（底流含固/固体截留率/圆形池构造常用带；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认））"
 
@@ -2181,19 +2181,19 @@ $ q_(s i) = frac(q_(h), 3600) $
 
 - #"秒输泥量（m3/s）：0.0047376919〔ST-F2〕"
 
-$ d_(r a w) = 2 sqrt(frac(q_(s i), p i v_(p r e s s))) $
+$ d_(r a w) = 2 sqrt(frac(q_(s i), pi v_(p r e s s))) $
 
 #"（公式 ST-F3——条文出处：GB 50014-2021 §8（污泥章——污泥管道压力流速，条号待核对；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认））"
 
 - #"输泥管径（未圆整）：0.0634151229〔ST-F3〕"
 
-$ v_(a c t) = frac(4 q_(s i), p i (d_(p i p e))^2) $
+$ v_(a c t) = frac(4 q_(s i), pi (d_(p i p e))^2) $
 
 #"（公式 ST-F4——条文出处：GB 50014-2021 §8（污泥章——污泥管道压力流速，条号待核对；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认））"
 
 - #"实际流速（m/s）：1.0723940844〔ST-F4〕"
 
-$ i_(r e q) = frac(6.349604266555602 (n_(m a n n i n g))^2 (v_(g r a v   m i n))^2, (d_(g r a v))^1.33333334) $
+$ i_(r e q) = frac(6.349604266555602 (n_(m a n n i n g))^2 (v_(g r a v   min))^2, (d_(g r a v))^1.33333334) $
 
 #"（公式 ST-F5——条文出处：《给水排水设计手册（第 1 册 常用资料）》管渠水力（曼宁糙率与满流公式；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认））"
 
@@ -2205,7 +2205,7 @@ $ v_(g r a v) = frac(0.39685026115821226 (d_(g r a v))^0.66666667 sqrt(i_(s l o 
 
 - #"重力流流速（m/s）：0.8618085957〔ST-F6〕"
 
-$ i_(s l o p e) = max(i_(r e q), s l o p e_(m i n)) $
+$ i_(s l o p e) = max(i_(r e q), s l o p e_(min)) $
 
 #"（公式 ST-F7——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥管道章（输泥量/重力自流最小坡度；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认））"
 
@@ -2263,7 +2263,7 @@ $ n_(m a c h i n e   t o t a l) = n_(m a c h i n e   d u t y) + n_(s t a n d b y
 
 - #"脱水机总台数（含备用）：2.0〔TU-F4〕"
 
-$ d s_(c a k e) = d s_(i n) e t a_(c a p t u r e) $
+$ d s_(c a k e) = d s_(i n) eta_(c a p t u r e) $
 
 #"（公式 TU-F5——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥脱水章（带式/离心机型档/固体回收率/加药量常用带；docs/norms/sludge_tuoshui.md 起草表 2026-08-27，待追认））"
 
@@ -2325,7 +2325,7 @@ $ v_(s i n g l e) = frac(v_(t o t a l), n) $
 
 - #"单池容积（m3）：1193.965875〔XH-F3〕"
 
-$ w_(v s   d e g) = e t a_(v s) w_(v s) $
+$ w_(v s   d e g) = eta_(v s) w_(v s) $
 
 #"（公式 XH-F4——条文出处：GB 50014-2021 §8（污泥章——消化时间/挥发分降解率/产气率，条号待核对；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认））"
 
@@ -2361,7 +2361,7 @@ $ p_(o u t) = - frac(d s_(o u t), 1000 q_(o u t)) + 1 $
 
 - #"出泥含水率：0.9713649702〔XH-F9〕"
 
-$ d_(r a w) = 1.587401044632849 (frac(v_(s i n g l e), p i r_(d h)))^0.33333333 $
+$ d_(r a w) = 1.587401044632849 (frac(v_(s i n g l e), pi r_(d h)))^0.33333333 $
 
 #"（公式 XH-F10——条文出处：《给水排水设计手册（第 5 册 城镇排水）》污泥消化章（中温消化参数带/沼气产率/池型构造常用值；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认））"
 
@@ -2491,11 +2491,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §7.6.10（容积公式；docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s（×86400 转 m3/d 口径）；bod5_in＝进流 BOD5 mg/L；ns＝BOD5 污泥负荷 kgBOD5/(kgMLSS·d)（参数 ns）；x_mlss＝设计 MLSS mg/L（参数 x_mlss）",
   "AO-F10",
-  [$ o 2_(n i t) = 394.848 q_(a v g   d a i l y) t k n_(i n) - t n_(e f f) $],
+  [$ o 2_(n i t) = 394.848 q_(a v g   d a i l y) (t k n_(i n) - t n_(e f f)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》硝化氧当量 4.57（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s；tkn_in＝进水 TN mg/L（凯氏氮口径）；tn_eff＝设计出水 TN mg/L（参数 tn_eff，出水标准数据条目）",
   "AO-F11",
-  [$ o 2_(d e n i t) = 247.104 q_(a v g   d a i l y) t k n_(i n) - t n_(e f f) $],
+  [$ o 2_(d e n i t) = 247.104 q_(a v g   d a i l y) (t k n_(i n) - t n_(e f f)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》反硝化氧当量 2.86（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s；tkn_in＝进水 TN mg/L；tn_eff＝设计出水 TN mg/L（参数 tn_eff）",
   "AO-F12",
@@ -2543,7 +2543,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；Gs=O2/(0.28·EA) 手册口径（86400=d→s 换算；AOR→SOR 五系数分列修正挂账 B4-2b——综合折算系数 f_sor 承载）",
   "o2_total＝总需氧量 kg/d（AO-F12）；f_sor＝AOR→SOR 折算系数（factor.aao.blower.sor_factor）；o2_per_air＝标态空气含氧质量浓度 kg/m3（factor.aao.blower.o2_per_air）；ea＝微孔曝气氧利用率（factor.aao.blower.oxygen_transfer_eff）",
   "AO-F22",
-  [$ p_(b l o w e r) = frac(p_(p r e s s u r e) q_(a i r), e t a_(b l o w e r)) $],
+  [$ p_(b l o w e r) = frac(p_(p r e s s u r e) q_(a i r), eta_(b l o w e r)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；P=Q·Δp/η（m3/s×kPa=kW 直读）；Δp=有效水深+管损裕量档",
   "q_air＝供气量 m3/s（AO-F21）；p_pressure＝风机出口压力 kPa（factor.aao.blower.pressure_kpa）；eta_blower＝罗茨风机综合效率（factor.aao.blower.efficiency）",
   "AO-F23",
@@ -2551,7 +2551,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；连续曝气 24 h/d 满时口径（AAO 连续流，电机变频跟踪负荷；kW×h=kWh/d）",
   "p_blower＝风机轴功率 kW（AO-F22）",
   "AO-F24",
-  [$ p_(s t i r) = frac(w_(s t i r   b i o) v_(a n a e r o b i c) + v_(a n o x i c), 1000) $],
+  [$ p_(s t i r) = frac(w_(s t i r   b i o) (v_(a n a e r o b i c) + v_(a n o x i c)), 1000) $],
   "《给水排水设计手册（第 5 册 城镇排水）》供气量法与风机轴功率（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认）；缺氧/厌氧区潜水搅拌（密度带同 tiaojiechi TJ-F9 族；好氧区曝气混合不另计；/1000=W→kW）",
   "v_anoxic＝缺氧区容积 m3（AO-F4）；v_anaerobic＝厌氧区容积 m3（AO-F3）；w_stir_bio＝潜水搅拌功率密度 W/m3（factor.aao.stir.power_density）",
   "AO-F25",
@@ -2563,7 +2563,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §7.6.39（厌氧区 HRT 1~2h；docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s；t_p＝厌氧区 HRT h（参数 t_p）",
   "AO-F4",
-  [$ v_(a n o x i c) = frac(86400 d e l t a_(n) q_(a v g   d a i l y), k_(d e n i t) x_(m l s s)) $],
+  [$ v_(a n o x i c) = frac(86400 delta_(n) q_(a v g   d a i l y), k_(d e n i t) x_(m l s s)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s；delta_n＝反硝化脱氮量 mg/L（=TN_in−tn_eff）；k_denit＝反硝化速率 Kde（factor.aao.k_denit）；x_mlss＝设计 MLSS mg/L（参数 x_mlss）",
   "AO-F5",
@@ -2571,7 +2571,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "v_anoxic＝缺氧区容积 m3；q_avg_daily＝平均日流量 m3/s",
   "AO-F6",
-  [$ s_(y) = frac(432 q_(a v g   d a i l y) y_(y i e l d) b o d 5_(i n) - b o d 5_(o u t), 5) $],
+  [$ s_(y) = frac(432 q_(a v g   d a i l y) y_(y i e l d) (b o d 5_(i n) - b o d 5_(o u t)), 5) $],
   "GB 50014-2021 §8.1.4 表 5（AAO 污泥产率 0.4~0.6；docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s；bod5_in＝进流 BOD5 mg/L；bod5_out＝出流 BOD5 mg/L（=bod5_in×(1−removal.aao.bod5)）；y_yield＝污泥产率 y（factor.aao.yield.y）",
   "AO-F7",
@@ -2579,11 +2579,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "s_y＝剩余污泥干固体 kg/d；p_moisture＝剩余污泥含水率（factor.aao.sludge.moisture）",
   "AO-F8",
-  [$ t h e t a_(c) = frac(v_(o) x_(m l s s), 1000 s_(y)) $],
+  [$ theta_(c) = frac(v_(o) x_(m l s s), 1000 s_(y)) $],
   "GB 50014-2021 §7.6（AAO 泥龄 11~23d；判断口径=好氧泥龄，全池口径备考注记见 docs/norms/aao.md——待领域专家追认）",
   "v_o＝好氧区容积 m3；x_mlss＝设计 MLSS mg/L；s_y＝剩余污泥干固体 kg/d",
   "AO-F9",
-  [$ o 2_(c a r b o n) = frac(432 a_(p r i m e) q_(a v g   d a i l y) b o d 5_(i n) - b o d 5_(o u t), 5) + frac(b_(p r i m e) v_(o) x_(v s s), 1000) $],
+  [$ o 2_(c a r b o n) = frac(432 a_(p r i m e) q_(a v g   d a i l y) (b o d 5_(i n) - b o d 5_(o u t)), 5) + frac(b_(p r i m e) v_(o) x_(v s s), 1000) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/aao.md 起草表 2026-08-25，待追认）",
   "a_prime＝碳化需氧系数 a′（factor.aao.o2.a_prime）；q_avg_daily＝平均日流量 m3/s；bod5_in＝进流 BOD5 mg/L；bod5_out＝出流 BOD5 mg/L；b_prime＝内源耗氧系数 b′（factor.aao.o2.b_prime）；v_o＝好氧区容积 m3；x_vss＝MLVSS mg/L（=vss_ratio×x_mlss）",
   "BL-F1",
@@ -2615,7 +2615,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》量水堰槽章（docs/norms/bashi_jiliangcao.md 起草表 2026-08-26，待追认；CJ/T 3008.3-1993 正式文本核对归追认点——business-logic §10 Q3）",
   "l1＝收缩段长 m；l_throat＝喉道段长 m（factor...geometry.l_throat，标准型常数）；l_diffuse＝扩散段长 m（factor...geometry.l_diffuse，常数）",
   "BL-F8",
-  [$ s i g m a = frac(h b_(d e s i g n), h a_(d e s i g n)) $],
+  [$ sigma = frac(h b_(d e s i g n), h a_(d e s i g n)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》巴歇尔槽自由流/淹没流判别（σ=Hb/Ha ≤ 临界淹没度 scrit；起草表待追认）",
   "hb_design＝下游（淹没）水深设计假定 m（factor.bashi_jiliangcao.hb_design）；ha_design＝设计水头 m",
   "BL-F9",
@@ -2627,7 +2627,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "q_wet＝泵站入流 m³/d（shusong 出流实值，24 h 连续提升）",
   "BZ-F10",
-  [$ h_(l o s s) = k_(s l u d g e) h_(f r i c t i o n) + h_(l o c a l) $],
+  [$ h_(l o s s) = k_(s l u d g e) (h_(f r i c t i o n) + h_(l o c a l)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "h_friction＝沿程损失 m（BZ-F8）；h_local＝局部损失 m（BZ-F9）；k_sludge＝污泥粘度修正系数（factor.bengzhan.k_sludge——清水水损放大）",
   "BZ-F11",
@@ -2663,7 +2663,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "contracts.sludge R1（含水率穿流显式）",
   "p_in＝入流含水率（穿流——泵送不改泥质）",
   "BZ-F19",
-  [$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) r h o_(w a t e r), 1000 e t a_(p u m p)) $],
+  [$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) rho_(w a t e r), 1000 eta_(p u m p)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认；/1000=W→kW）",
   "rho_water＝污泥密度按水计 kg/m3（factor.bengzhan.pump.water_density）；g_gravity＝重力加速度 m/s2（factor.bengzhan.pump.gravity）；q_pump_si＝最大一台泵秒流量 m3/s（BZ-F4）；h_pump＝泵扬程 m（BZ-F11）；eta_pump＝污泥泵组效率（factor.bengzhan.pump.efficiency）",
   "BZ-F2",
@@ -2671,7 +2671,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "q_h＝时入流量 m³/h（BZ-F1）；q_per_pump＝单泵流量概算锚 m³/h（factor.bengzhan.pump.q_per_unit）",
   "BZ-F20",
-  [$ e_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(w e t) r h o_(w a t e r), 3600000 e t a_(p u m p)) $],
+  [$ e_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(w e t) rho_(w a t e r), 3600000 eta_(p u m p)) $],
   "污泥泵站日耗电能量法（ρg·q_wet·H/η→J/d÷3.6e6→kWh/d——间歇运行由能量法自然消化；B4-2a 能耗面起草——计算逻辑经用户审查R-B42a-1，待领域专家追认）",
   "rho_water＝污泥密度按水计 kg/m3（factor.bengzhan.pump.water_density）；g_gravity＝重力加速度 m/s2（factor.bengzhan.pump.gravity）；q_wet＝日湿泥量 m3/d（入流 q_wet——泵站全天输送量）；h_pump＝泵扬程 m（BZ-F11）；eta_pump＝污泥泵组效率（factor.bengzhan.pump.efficiency）",
   "BZ-F3",
@@ -2687,19 +2687,19 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.1（泵站集水池容积/备用泵一般要求）与 §8（污泥章——污泥管道流速/泵扬程，条号待核对；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "n_pump_duty＝工作泵台数（取整后）；n_standby＝备用泵台数（参数 n_standby，1 用 1 备/2 用 1 备档）",
   "BZ-F6",
-  [$ d_(r a w) = 2 sqrt(frac(q_(p u m p   s i), p i v_(p i p e))) $],
+  [$ d_(r a w) = 2 sqrt(frac(q_(p u m p   s i), pi v_(p i p e))) $],
   "GB 50014-2021 §6.1（泵站集水池容积/备用泵一般要求）与 §8（污泥章——污泥管道流速/泵扬程，条号待核对；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "q_pump_si＝单泵秒流量 m³/s（BZ-F4）；pi＝圆周率（math.pi 绑定，表内联 3.14159265 等价形态）；v_pipe＝出泥管名义流速 m/s（参数 v_pipe）",
   "BZ-F7",
-  [$ v_(a c t) = frac(4 q_(p u m p   s i), p i (d_(p i p e))^2) $],
+  [$ v_(a c t) = frac(4 q_(p u m p   s i), pi (d_(p i p e))^2) $],
   "GB 50014-2021 §6.1（泵站集水池容积/备用泵一般要求）与 §8（污泥章——污泥管道流速/泵扬程，条号待核对；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "q_pump_si＝单泵秒流量 m³/s（BZ-F4）；pi＝圆周率（math.pi 绑定）；d_pipe＝出泥管径 m（d_raw 经 0.025 m 档向上取整）",
   "BZ-F8",
-  [$ h_(f r i c t i o n) = frac(0.0509683995922528 l_(p i p e) l a m b d a_(f) (v_(a c t))^2, d_(p i p e)) $],
+  [$ h_(f r i c t i o n) = frac(0.0509683995922528 l_(p i p e) lambda_(f) (v_(a c t))^2, d_(p i p e)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "lambda_f＝沿程阻力系数 λ（factor.bengzhan.friction_lambda——污泥管细管档 λ 式承载）；l_pipe＝出泥管长 m（参数 l_pipe）；d_pipe＝出泥管径 m（取整后）；v_act＝实际流速 m/s（BZ-F7）",
   "BZ-F9",
-  [$ h_(l o c a l) = 0.0509683995922528 z e t a_(t o t a l) (v_(a c t))^2 $],
+  [$ h_(l o c a l) = 0.0509683995922528 zeta_(t o t a l) (v_(a c t))^2 $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥泵站章（泵组选型/集泥井/管路损失常用值；docs/norms/sludge_bengzhan.md 起草表 2026-08-27，待追认）",
   "zeta_total＝局部损失系数和（factor.bengzhan.pipe.zeta_total）；v_act＝实际流速 m/s（BZ-F7）",
   "CC-F1",
@@ -2707,7 +2707,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "q_design＝最高时设计流量 m3/s；n＝池数",
   "CC-F10",
-  [$ s_(d r y   1) = frac(432 q_(a v g   d a i l y) s s_(i n) - s s_(o u t), 5 n) $],
+  [$ s_(d r y   1) = frac(432 q_(a v g   d a i l y) (s s_(i n) - s s_(o u t)), 5 n) $],
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s（×86400 转 m3/d 口径）；ss_in＝进流 SS mg/L；ss_out＝出流 SS mg/L（=ss_in×(1−removal.chuchenchi.ss)）；n＝池数",
   "CC-F11",
@@ -2719,15 +2719,15 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "s_wet_1＝单池湿泥量 m3/d；t_sludge＝贮泥（排泥）周期 d（参数 t_sludge）",
   "CC-F13",
-  [$ v 1_(h o p p e r) = frac(h 5 p i (r 1)^2 + r 1 r 2 + (r 2)^2, 3) $],
+  [$ v 1_(h o p p e r) = frac(h 5 pi ((r 1)^2 + r 1 r 2 + (r 2)^2), 3) $],
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；h5＝泥斗高 m（参数 h5）；r1＝泥斗上口半径 m（参数 r1）；r2＝泥斗下口半径 m（参数 r2）",
   "CC-F14",
-  [$ h 4_(r a w) = frac(i_(s l o p e) D - 2 r 1, 2) $],
+  [$ h 4_(r a w) = frac(i_(s l o p e) (D - 2 r 1), 2) $],
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "i_slope＝池底坡度（factor.chuchenchi.bottom_slope）；D＝池径 m；r1＝泥斗上口半径 m",
   "CC-F15",
-  [$ v 2_(c o n e) = frac(h 4 p i D^2 + 2 D r 1 + 4 (r 1)^2, 12) $],
+  [$ v 2_(c o n e) = frac(h 4 pi (D^2 + 2 D r 1 + 4 (r 1)^2), 12) $],
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；h4＝池底坡降（0.1 m 档 ceil 后）m；D＝池径 m；r1＝泥斗上口半径 m",
   "CC-F16",
@@ -2739,7 +2739,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "h_super＝超高 m（factor.chuchenchi.superheight）；h2＝有效水深 m；h_buf＝缓冲层 m（factor.chuchenchi.buffer_h3）；h4＝池底坡降（ceil 后）m；h5＝泥斗高 m（参数 h5）",
   "CC-F18",
-  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) D^2, 4) $],
+  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) D^2, 4) $],
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；D＝池径（ceil 后）m；h_total＝总高（ceil 后）m；n＝池数；wall_coef＝壁厚系数（factor.chuchenchi.wall_thickness_coef，概算口径）",
   "CC-F2",
@@ -2747,11 +2747,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "q1h＝单池流量 m3/h；q_prime＝表面水力负荷 m3/(m2.h)（参数 q_prime）",
   "CC-F3",
-  [$ d_(r a w) = 2 sqrt(frac(f_(r e q), p i)) $],
+  [$ d_(r a w) = 2 sqrt(frac(f_(r e q), pi)) $],
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "f_req＝需蓄面积 m2；pi＝圆周率（math.pi 绑定）",
   "CC-F4",
-  [$ f_(a c t) = frac(p i D^2, 4) $],
+  [$ f_(a c t) = frac(pi D^2, 4) $],
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；D＝池径（0.5 m 档 ceil 后）m",
   "CC-F5",
@@ -2767,11 +2767,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "D＝池径 m；h2＝有效水深 m",
   "CC-F8",
-  [$ d_(c e n t e r   r a w) = 2 sqrt(frac(q 1, p i v_(c e n t e r))) $],
+  [$ d_(c e n t e r   r a w) = 2 sqrt(frac(q 1, pi v_(c e n t e r))) $],
   "《给水排水设计手册（第 5 册 城镇排水）》初次沉淀池章（docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）",
   "q1＝单池流量 m3/s；pi＝圆周率（math.pi 绑定）；v_center＝中心管流速 m/s（factor.chuchenchi.center_velocity）",
   "CC-F9",
-  [$ q_(w e i r) = frac(500 q 1, p i D - 1) $],
+  [$ q_(w e i r) = frac(500 q 1, pi (D - 1)) $],
   "GB 50014-2021 §6.5（沉淀池；docs/norms/chuchenchi.md 起草表 2026-08-25，待追认）；堰构造口径=周边双侧出水堰（堰长 L=2π(D−1)），待领域专家追认",
   "q1＝单池流量 m3/s；pi＝圆周率（math.pi 绑定）；D＝池径（0.5 m 档 ceil 后）m",
   "CG-F1",
@@ -2779,7 +2779,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "q_design＝最大设计流量 m3/s；n＝格栅台数",
   "CG-F10",
-  [$ l_(r a w) = l 3_(f i x e d) + l 4_(f i x e d) + frac(3 B - 3 b 1, 4 t a n_(a l p h a)) + frac(d r o p_(c o n s t a n t) + h, t a n_(a l p h a)) $],
+  [$ l_(r a w) = l 3_(f i x e d) + l 4_(f i x e d) + frac((3 B - 3 b 1), 4 tan_(alpha)) + frac((d r o p_(c o n s t a n t) + h), tan_(alpha)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "B＝栅槽宽（ceil 后）m；b1＝进水渠宽 B1（ceil 后）m；tan_alpha＝tanα 预处理值；l3_fixed＝固定段一 m（factor.screen.trough_length.l3_fixed）；l4_fixed＝固定段二 m（factor.screen.trough_length.l4_fixed）；drop_constant＝渐窄段起算常数 m（…drop_constant）；h＝栅前水深 m",
   "CG-F11",
@@ -2791,7 +2791,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "w_slag＝日栅渣量 m3/d；mech_clean_threshold＝机械清渣阈值 m3/d（…mech_clean_threshold）",
   "CG-F13",
-  [$ d s_(s l a g) = 1000 w_(s l a g) 1 - m o i s t u r e $],
+  [$ d s_(s l a g) = 1000 w_(s l a g) (1 - m o i s t u r e) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "w_slag＝日栅渣量 m3/d；moisture＝栅渣含水率 P（factor.screen.slag.moisture）",
   "CG-F14",
@@ -2799,11 +2799,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "L＝栅槽总长（ceil 后）m；B＝栅槽宽（ceil 后）m；H＝栅后总高（ceil 后）m；n＝格栅台数；wall_coef＝壁厚系数（factor.screen.wall_thickness_coef，概算口径）",
   "CG-F2",
-  [$ n_(g a p   r a t i o) = frac(q s q r t_(s i n   a l p h a), b h v) $],
+  [$ n_(g a p   r a t i o) = frac(q s q r t_(sin   alpha), b h v) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；sqrt_sin_alpha＝√(sinα) 预处理值；b＝栅条间隙 m；h＝栅前水深 m；v＝过栅流速设计值 m/s",
   "CG-F3",
-  [$ b_(r a w) = b n_(g a p) + m a r g i n + s n_(g a p) - 1 $],
+  [$ b_(r a w) = b n_(g a p) + m a r g i n + s (n_(g a p) - 1) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "s＝栅条宽 m；n_gap＝栅条间隙数（ceil 后）；b＝栅条间隙 m；margin＝栅槽宽构造裕量 m（factor.screen.trough_width_margin）",
   "CG-F4",
@@ -2811,7 +2811,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；h＝栅前水深 m；v1＝栅前流速 m/s",
   "CG-F5",
-  [$ v_(c h e c k e d) = frac(q s q r t_(s i n   a l p h a), b h n_(g a p)) $],
+  [$ v_(c h e c k e d) = frac(q s q r t_(sin   alpha), b h n_(g a p)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；sqrt_sin_alpha＝√(sinα) 预处理值；b＝栅条间隙 m；h＝栅前水深 m；n_gap＝栅条间隙数（ceil 后）",
   "CG-F6",
@@ -2819,11 +2819,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；h＝栅前水深 m；b1＝进水渠宽 B1（ceil 后）m",
   "CG-F7",
-  [$ x i = b e t a (s_(o v e r   b))^(frac(4, 3)) $],
+  [$ xi = beta (s_(o v e r   b))^(frac(4, 3)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "beta＝栅条形状系数 β（factor.screen.beta.*）；s_over_b＝s/b 同单位比值",
   "CG-F8",
-  [$ h 1 = frac(k_(h e a d l o s s) s i n_(a l p h a) x i (v_(c h e c k e d))^2, 2 g) $],
+  [$ h 1 = frac(k_(h e a d l o s s) sin_(alpha) xi (v_(c h e c k e d))^2, 2 g) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/cugeshan.md 签字表 2026-08-23）",
   "k_headloss＝水头损失安全系数 k（factor.screen.headloss.k）；xi＝栅条阻力系数 ξ；v_checked＝校核过栅流速 m/s；g＝重力加速度 m/s2（参数 g_gravity）；sin_alpha＝sinα 预处理值",
   "CG-F9",
@@ -2835,15 +2835,15 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "q_design＝最大设计流量 m3/s；n＝池数",
   "CS-F10",
-  [$ h 4 = frac(- d_(r) - d_(u p p e r), 2 t a n_(t h e t a)) $],
+  [$ h 4 = frac(- (d_(r) - d_(u p p e r)), 2 tan_(theta)) $],
   "中期报告 §3.3 式(3-27)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "d_upper＝砂斗上口直径 m；d_r＝排砂口直径 m；tan_theta＝tanθ 预处理值",
   "CS-F11",
-  [$ v_(c o n e) = frac(h 4 p i (d_(r))^2 + d_(r) d_(u p p e r) + (d_(u p p e r))^2, 12) $],
+  [$ v_(c o n e) = frac(h 4 pi ((d_(r))^2 + d_(r) d_(u p p e r) + (d_(u p p e r))^2), 12) $],
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "pi＝圆周率（math.pi 绑定）；h4＝砂斗高度 m；d_upper＝砂斗上口直径 m；d_r＝排砂口直径 m",
   "CS-F12",
-  [$ h_(c y l   r a w) = frac(- 4 v_(c o n e) - 4 v_(h o p p e r), p i (d_(u p p e r))^2) $],
+  [$ h_(c y l   r a w) = frac(- (4 v_(c o n e) - 4 v_(h o p p e r)), pi (d_(u p p e r))^2) $],
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "v_hopper＝砂斗容积 m3；v_cone＝圆台容积 m3；pi＝圆周率（math.pi 绑定）；d_upper＝砂斗上口直径 m",
   "CS-F13",
@@ -2855,7 +2855,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "中期报告 §3.3 式(4-26)~(4-27)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "q1＝单池流量 m3/s；v_channel＝进水流速 m/s；b_channel＝进水渠宽 m",
   "CS-F15",
-  [$ l_(s t r a i g h t) = max(s t r a i g h t_(m i n), b_(c h a n n e l) s t r a i g h t_(m u l t)) $],
+  [$ l_(s t r a i g h t) = max(s t r a i g h t_(min), b_(c h a n n e l) s t r a i g h t_(m u l t)) $],
   "中期报告 §3.3 式(4-28)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "straight_mult＝直段长宽比（factor.chenshachi.channel.straight_mult）；b_channel＝进水渠宽 m；straight_min＝直段最小长 m（factor.chenshachi.channel.straight_min）",
   "CS-F16",
@@ -2863,15 +2863,15 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "中期报告 §3.3 式(4-29)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "outlet_mult＝出水渠宽比（factor.chenshachi.channel.outlet_mult）；b_channel＝进水渠宽 m",
   "CS-F17",
-  [$ d s_(g r i t) = g r i t_(d e n s i t y) n v_(s a n d) 1 - m o i s t u r e $],
+  [$ d s_(g r i t) = g r i t_(d e n s i t y) n v_(s a n d) (1 - m o i s t u r e) $],
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "v_sand＝单池日沉砂量 m3/d；moisture＝沉砂含水率 P（factor.chenshachi.grit.moisture）；grit_density＝沉砂密度 kg/m3（factor.chenshachi.grit.density）；n＝池数",
   "CS-F18",
-  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) d^2, 4) $],
+  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) d^2, 4) $],
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "pi＝圆周率（math.pi 绑定）；d＝池径（ceil 后）m；h_total＝总高（ceil 后）m；n＝池数；wall_coef＝壁厚系数（factor.chenshachi.wall_thickness_coef，概算口径）",
   "CS-F2",
-  [$ d_(r a w) = 2 sqrt(frac(q 1 s e c_(p e r   h o u r), p i q_(s u r f))) $],
+  [$ d_(r a w) = 2 sqrt(frac(q 1 s e c_(p e r   h o u r), pi q_(s u r f))) $],
   "中期报告 §3.3 式(3-21)（毕业设计内部资料，待核对映射条文）；GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "q1＝单池流量 m3/s；sec_per_hour＝时换算系数 s/h（参数 sec_per_hour）；pi＝圆周率（math.pi 绑定）；q_surf＝表面负荷 m3/(m2.h)",
   "CS-F3",
@@ -2883,7 +2883,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "d＝池径（ceil 后）m；h2＝有效水深 m",
   "CS-F5",
-  [$ v_(e f f) = frac(h 2 p i d^2, 4) $],
+  [$ v_(e f f) = frac(h 2 pi d^2, 4) $],
   "GB 50014-2021 §6.4（条文号待核对原文；docs/norms/chenshachi.md 签字表 2026-08-23）",
   "pi＝圆周率（math.pi 绑定）；d＝池径（ceil 后）m；h2＝有效水深 m",
   "CS-F6",
@@ -2907,19 +2907,19 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "q_design＝最高时设计流量 m3/s（清水口径，不含回流）；n＝池数",
   "EC-F10",
-  [$ x_(r) = frac(x_(m l s s) r_(e x t e r n a l) + 1, r_(e x t e r n a l)) $],
+  [$ x_(r) = frac(x_(m l s s) (r_(e x t e r n a l) + 1), r_(e x t e r n a l)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "x_mlss＝MLSS mg/L；r_external＝外回流比",
   "EC-F11",
-  [$ q_(w e i r) = frac(500 q 1, D p i) $],
+  [$ q_(w e i r) = frac(500 q 1, D pi) $],
   "GB 50014-2021（沉淀池堰负荷，二沉档）；堰构造口径=周边双侧出水堰（堰长 L=2πD），待领域专家追认",
   "q1＝单池流量 m3/s；pi＝圆周率（math.pi 绑定）；D＝池径（0.5 m 档 ceil 后）m",
   "EC-F12",
-  [$ d_(c e n t e r   r a w) = sqrt(frac(q 1 4 r_(e x t e r n a l) + 4, p i v_(c e n t e r))) $],
+  [$ d_(c e n t e r   r a w) = sqrt(frac(q 1 (4 r_(e x t e r n a l) + 4), pi v_(c e n t e r))) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "r_external＝外回流比（含回流流量口径）；q1＝单池流量 m3/s；pi＝圆周率（math.pi 绑定）；v_center＝中心配水筒流速 m/s（factor.erchunchi.center_velocity）",
   "EC-F13",
-  [$ h 4_(r a w) = frac(i_(s l o p e) D - 2 r_(p i t), 2) $],
+  [$ h 4_(r a w) = frac(i_(s l o p e) (D - 2 r_(p i t)), 2) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "i_slope＝池底坡度（factor.erchunchi.bottom_slope）；D＝池径 m；r_pit＝中心配水井半径 m（参数 r_pit）",
   "EC-F14",
@@ -2927,7 +2927,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "h_super＝超高 m（factor.erchunchi.superheight）；h2＝池边有效水深 m（参数 h2）；h_buf＝缓冲层 m（factor.erchunchi.buffer_h3）；h4＝池底坡降（0.1 m 档 ceil 后）m",
   "EC-F15",
-  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n p i w a l l_(c o e f) D^2, 4) $],
+  [$ v_(c o n c r e t e) = frac(h_(t o t a l) n pi w a l l_(c o e f) D^2, 4) $],
   "《给水排水设计手册（第 5 册 城镇排水）》（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；D＝池径（ceil 后）m；h_total＝总高（ceil 后）m；n＝池数；wall_coef＝壁厚系数（factor.erchunchi.wall_thickness_coef，概算口径）",
   "EC-F2",
@@ -2935,11 +2935,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "q1h＝单池流量 m3/h；q_nom＝名义清水表面负荷 m3/(m2.h)（参数 q_nom）",
   "EC-F3",
-  [$ m_(s o l i d) = frac(3 q 1 h x_(m l s s) r_(e x t e r n a l) + 1, 125) $],
+  [$ m_(s o l i d) = frac(3 q 1 h x_(m l s s) (r_(e x t e r n a l) + 1), 125) $],
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "r_external＝外回流比（参数 r_external，联动 AAO 表）；q1h＝单池流量 m3/h；x_mlss＝MLSS mg/L（参数 x_mlss，联动 AAO 表）",
   "EC-F4",
-  [$ a_(s o l i d) = frac(m_(s o l i d), g_(m a x)) $],
+  [$ a_(s o l i d) = frac(m_(s o l i d), g_(max)) $],
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "m_solid＝单池固体负荷 kg/d；g_max＝固体面积负荷上限 kg/(m2.d)（factor.erchunchi.solid_load.center_inlet）",
   "EC-F5",
@@ -2947,11 +2947,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 表 7.5.1 + §7.6.15/§7.6.16（清水负荷与固体负荷双控取大）",
   "a_q＝清水负荷需蓄面积 m2；a_solid＝固体负荷需蓄面积 m2",
   "EC-F6",
-  [$ d_(r a w) = 2 sqrt(frac(a_(t a n k), p i)) $],
+  [$ d_(r a w) = 2 sqrt(frac(a_(t a n k), pi)) $],
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "a_tank＝主控面积 m2；pi＝圆周率（math.pi 绑定）",
   "EC-F7",
-  [$ a_(a c t) = frac(p i D^2, 4) $],
+  [$ a_(a c t) = frac(pi D^2, 4) $],
   "GB 50014-2021 表 7.5.1+§7.6.15/§7.6.16（docs/norms/erchunchi.md 起草表 2026-08-25，待追认）",
   "pi＝圆周率（math.pi 绑定）；D＝池径（0.5 m 档 ceil 后）m",
   "EC-F8",
@@ -2967,7 +2967,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥干化章（干化后含水率档/蒸发潜热近似/热效率/传热面积蒸发强度常用带；docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d（tuoshui 泥饼出流实值——DS 不变）；p_in＝入流含水率（泥饼）",
   "GH-F2",
-  [$ w_(e v a p) = frac(d s_(i n) p_(i n) 1 - p_(o u t) - p_(o u t) 1 - p_(i n), 1 - p_(i n) 1 - p_(o u t)) $],
+  [$ w_(e v a p) = frac(d s_(i n) (p_(i n) (1 - p_(o u t)) - p_(o u t) (1 - p_(i n))), (1 - p_(i n)) (1 - p_(o u t))) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥干化章（干化后含水率档/蒸发潜热近似/热效率/传热面积蒸发强度常用带；docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d；p_in＝入流含水率；p_out＝干化后含水率（参数 p_out）",
   "GH-F3",
@@ -2983,7 +2983,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "contracts.sludge R1 镜像（质量守恒校核=m_out，差 0——DS 不变·水量差=蒸发量）",
   "m_in＝进泥湿质量 kg/d（GH-F1）；w_evap＝蒸发水量 kg/d（GH-F2）",
   "GH-F6",
-  [$ q_(h e a t) = frac(h_(e v a p) w_(e v a p), e t a_(t h e r m a l)) $],
+  [$ q_(h e a t) = frac(h_(e v a p) w_(e v a p), eta_(t h e r m a l)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥干化章（干化后含水率档/蒸发潜热近似/热效率/传热面积蒸发强度常用带；docs/norms/sludge_ganhua.md 起草表 2026-08-27，待追认）",
   "w_evap＝蒸发水量 kg/d（GH-F2）；h_evap＝蒸发潜热工程近似 kJ/kg（factor.ganhua.h_evap）；eta_thermal＝干化系统热效率（factor.ganhua.eta_thermal）",
   "GH-F7",
@@ -3007,7 +3007,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB/T 50335-2016 §5.4.3（污水再生利用：高密斜管清水区液面负荷；docs/norms/gaomidu.md 起草表 2026-08-25，待追认）；GB 50013-2018 §9.4.24（给水侧同型池成套参数，ADR-008 双源标记；docs/norms/gaomidu.md 起草表 2026-08-25，待追认）",
   "r_sludge＝污泥回流比（参数 r_sludge，浓缩区→快速混合器）；q_design_h＝全厂最高时流量 m3/h（=q1h×n 导出量）",
   "GM-F12",
-  [$ s_(d r y) = frac(432 q_(a v g   d a i l y) s s_(i n) - s s_(o u t), 5) $],
+  [$ s_(d r y) = frac(432 q_(a v g   d a i l y) (s s_(i n) - s s_(o u t)), 5) $],
   "《给水排水设计手册（第 5 册 城镇排水）》混合/絮凝 G 值法与斜管沉淀常用值（docs/norms/gaomidu.md 起草表 2026-08-25，待追认）",
   "q_avg_daily＝平均日流量 m3/s（×86400 转 m3/d 口径）；ss_in＝进流 SS mg/L；ss_out＝出流 SS mg/L（=ss_in×(1−removal.gaomidu.ss)）",
   "GM-F13",
@@ -3083,7 +3083,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥处理章（污泥量衡算/含水率换算/活性污泥动力学；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认）",
   "ds_primary＝初沉股干泥 kg/d（参数——市政表 CC-F10 衔接实值）；p_primary＝初沉污泥含水率（参数 p_primary）",
   "HB-F10",
-  [$ d x_(b i o) = - frac(k_(d t) v_(b i o) x_(v s s), 1000) + frac(q_(a v g   d a i l y) y_(s y n) s 0_(b o d) - s e_(b o d), 1000) $],
+  [$ d x_(b i o) = - frac(k_(d t) v_(b i o) x_(v s s), 1000) + frac(q_(a v g   d a i l y) y_(s y n) (s 0_(b o d) - s e_(b o d)), 1000) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥处理章（污泥量衡算/含水率换算/活性污泥动力学；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认）",
   "y_syn＝合成产率 Y（factor.hebing.yield_syn）；q_avg_daily＝平均日流量 m³/d；s0_bod＝生物池进水 BOD5 mg/L；se_bod＝生物池出水 BOD5 mg/L；k_dt＝温度修正 Kd d⁻¹（HB-F9）；v_bio＝生物池容积 m³（参数，aao 表主算例值）；x_vss＝MLVSS mg/L（参数，aao 表主算例值）",
   "HB-F11",
@@ -3123,11 +3123,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "contracts.sludge.mix P4 镜像（含水率干基反解——非简单平均）",
   "w_water＝合并股水质量 kg/d（HB-F6）；ds_total＝合并干泥量 kg/d（HB-F4）",
   "HB-F8",
-  [$ s_(y) = frac(q_(a v g   d a i l y) y_(y i e l d) s 0_(b o d) - s e_(b o d), 1000) $],
+  [$ s_(y) = frac(q_(a v g   d a i l y) y_(y i e l d) (s 0_(b o d) - s e_(b o d)), 1000) $],
   "GB 50014-2021 §8.1（污泥量计算——§8.1.4 表 5 污泥产率 y，ADR-008 ④ 拍板口径；条号随追认核对；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认）",
   "q_avg_daily＝平均日流量 m³/d（参数——全厂水线口径）；s0_bod＝生物池进水 BOD5 mg/L（参数，aao 表衔接式）；se_bod＝生物池出水 BOD5 mg/L（参数）；y_yield＝污泥产率 y（factor.hebing.yield.y——GB §8.1.4 表 5）",
   "HB-F9",
-  [$ k_(d t) = k_(d 2 0) (t h e t a_(k d))^(t_(d e s i g n) - 20) $],
+  [$ k_(d t) = k_(d 2 0) (theta_(k d))^(t_(d e s i g n) - 20) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥处理章（污泥量衡算/含水率换算/活性污泥动力学；docs/norms/sludge_hebing.md 起草表 2026-08-27，待追认）",
   "k_d20＝自身氧化率 Kd@20℃ d⁻¹（factor.hebing.k_decay20）；theta_kd＝Kd 温度修正系数 θ（factor.hebing.theta_kd）；t_design＝设计水温 ℃（参数 t_design，20=修正基准）",
   "NS-F1",
@@ -3159,7 +3159,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥浓缩章（底流含固/固体截留率/圆形池构造常用带；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认）",
   "a_req＝需要面积全厂 m²（NS-F3 取大）；n＝池数（参数 n，≥2）",
   "NS-F5",
-  [$ d_(r a w) = 2 sqrt(frac(a_(s i n g l e), p i)) $],
+  [$ d_(r a w) = 2 sqrt(frac(a_(s i n g l e), pi)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥浓缩章（底流含固/固体截留率/圆形池构造常用带；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认）",
   "a_single＝单池面积 m²（NS-F4）；pi＝圆周率（math.pi 绑定，表内联 3.14159265 等价形态）",
   "NS-F6",
@@ -3167,7 +3167,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §8（污泥章——重力浓缩固体负荷/浓缩时间/有效水深，旧 mod 引 §8.2.1 口径待核对；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d；a_req＝需要面积全厂 m²（NS-F3）",
   "NS-F7",
-  [$ d s_(o u t) = d s_(i n) e t a_(c a p t u r e) $],
+  [$ d s_(o u t) = d s_(i n) eta_(c a p t u r e) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥浓缩章（底流含固/固体截留率/圆形池构造常用带；docs/norms/sludge_nongsuo.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d；eta_capture＝固体截留率（factor.nongsuo.eta_capture）",
   "NS-F8",
@@ -3187,15 +3187,15 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥管道章（输泥量/重力自流最小坡度；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "q_h＝时输泥量 m³/h（ST-F1）",
   "ST-F3",
-  [$ d_(r a w) = 2 sqrt(frac(q_(s i), p i v_(p r e s s))) $],
+  [$ d_(r a w) = 2 sqrt(frac(q_(s i), pi v_(p r e s s))) $],
   "GB 50014-2021 §8（污泥章——污泥管道压力流速，条号待核对；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "q_si＝秒输泥量 m³/s（ST-F2）；pi＝圆周率（math.pi 绑定，表内联 3.14159265 等价形态）；v_press＝压力流设计流速 m/s（参数 v_press）",
   "ST-F4",
-  [$ v_(a c t) = frac(4 q_(s i), p i (d_(p i p e))^2) $],
+  [$ v_(a c t) = frac(4 q_(s i), pi (d_(p i p e))^2) $],
   "GB 50014-2021 §8（污泥章——污泥管道压力流速，条号待核对；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "q_si＝秒输泥量 m³/s（ST-F2）；pi＝圆周率（math.pi 绑定）；d_pipe＝压力段管径 m（d_raw 经 0.025 m 档向上取整）",
   "ST-F5",
-  [$ i_(r e q) = frac(6.349604266555602 (n_(m a n n i n g))^2 (v_(g r a v   m i n))^2, (d_(g r a v))^1.33333334) $],
+  [$ i_(r e q) = frac(6.349604266555602 (n_(m a n n i n g))^2 (v_(g r a v   min))^2, (d_(g r a v))^1.33333334) $],
   "《给水排水设计手册（第 1 册 常用资料）》管渠水力（曼宁糙率与满流公式；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "v_grav_min＝重力流最小流速 m/s（factor.shusong.gravity_v_min）；n_manning＝曼宁糙率（factor.shusong.n_manning）；d_grav＝重力段管径 m（参数 d_grav，满流水力半径 d/4）",
   "ST-F6",
@@ -3203,7 +3203,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 1 册 常用资料）》管渠水力（曼宁糙率与满流公式；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "n_manning＝曼宁糙率（factor.shusong.n_manning）；d_grav＝重力段管径 m（参数 d_grav）；i_slope＝整定坡度（ST-F7 max(i_req, slope_min)）",
   "ST-F7",
-  [$ i_(s l o p e) = max(i_(r e q), s l o p e_(m i n)) $],
+  [$ i_(s l o p e) = max(i_(r e q), s l o p e_(min)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥管道章（输泥量/重力自流最小坡度；docs/norms/sludge_shusong.md 起草表 2026-08-27，待追认）",
   "i_req＝满流最小坡度需求（ST-F5 曼宁反解）；slope_min＝重力输泥管最小坡度（factor.shusong.slope_min）",
   "ST-F8",
@@ -3239,11 +3239,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》泵站章（docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认）",
   "a_well＝集水井平面面积 m2；h_well_total＝集水井总高 m；wall_coef＝壁厚系数（factor.wushui_tisheng.wall_thickness_coef，概算口径）",
   "TS-F15",
-  [$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) r h o_(w a t e r), 1000 e t a_(p u m p)) $],
+  [$ p_(p u m p) = frac(g_(g r a v i t y) h_(p u m p) q_(p u m p   s i) rho_(w a t e r), 1000 eta_(p u m p)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》泵轴功率 P=ρgQH/η（B4-2a 能耗面起草 2026-09-19，计算逻辑经用户审查 R-B42a-1——待领域专家追认；/1000=W→kW；电机效率/装机裕度挂账 B4-2b）",
   "rho_water＝水的密度 kg/m3（factor.wushui_tisheng.pump.water_density）；g_gravity＝重力加速度 m/s2（参数 g_gravity）；q_pump_si＝单泵流量 m3/s；h_pump＝泵扬程 m（TS-F9）；eta_pump＝泵组效率（factor.wushui_tisheng.pump.efficiency）",
   "TS-F16",
-  [$ e_(p u m p) = frac(3 g_(g r a v i t y) h_(p u m p) q_(a v g   d a i l y) r h o_(w a t e r), 125 e t a_(p u m p)) $],
+  [$ e_(p u m p) = frac(3 g_(g r a v i t y) h_(p u m p) q_(a v g   d a i l y) rho_(w a t e r), 125 eta_(p u m p)) $],
   "泵站日耗电能量法：日提升水量×扬程（ρg·Q_avg·H/η×24h——流量按平均日、扬程按设计点双口径注记；间歇启停由能量法自然消化；B4-2a 能耗面起草——计算逻辑经用户审查 R-B42a-1，待领域专家追认）",
   "rho_water＝水的密度 kg/m3（factor.wushui_tisheng.pump.water_density）；g_gravity＝重力加速度 m/s2（参数 g_gravity）；q_avg_daily＝平均日流量 m3/s；h_pump＝泵扬程 m（TS-F9——设计点扬程口径）；eta_pump＝泵组效率（factor.wushui_tisheng.pump.efficiency）",
   "TS-F2",
@@ -3267,7 +3267,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 1 册 常用资料）》水管比阻表（舍维列夫）（docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认）",
   "a_pipe＝比阻 s2/m6（factor.wushui_tisheng.pipe.resistance.dn*，DN 档键）；l_pipe＝出水管长 m（参数 l_pipe）；q_pump_si＝单泵流量 m3/s",
   "TS-F7",
-  [$ h_(l o c a l) = frac(z e t a_(t o t a l) (v_(p i p e   a c t))^2, 2 g_(g r a v i t y)) $],
+  [$ h_(l o c a l) = frac(zeta_(t o t a l) (v_(p i p e   a c t))^2, 2 g_(g r a v i t y)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》泵站章（docs/norms/wushui_tisheng.md 起草表 2026-08-26，待追认）",
   "zeta_total＝局部损失系数和 ζ（factor.wushui_tisheng.pipe.zeta_total）；v_pipe_act＝实际流速 m/s；g_gravity＝重力加速度 m/s2（参数 g_gravity，M1a 字段复用）",
   "TS-F8",
@@ -3295,7 +3295,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥脱水章（带式/离心机型档/固体回收率/加药量常用带；docs/norms/sludge_tuoshui.md 起草表 2026-08-27，待追认）",
   "n_machine_duty＝工作台数（n_machine_raw 整台向上取整 ≥1）；n_standby＝备用台数（参数 n_standby，1 备档）",
   "TU-F5",
-  [$ d s_(c a k e) = d s_(i n) e t a_(c a p t u r e) $],
+  [$ d s_(c a k e) = d s_(i n) eta_(c a p t u r e) $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥脱水章（带式/离心机型档/固体回收率/加药量常用带；docs/norms/sludge_tuoshui.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d；eta_capture＝固体回收率（factor.tuoshui.eta_capture）",
   "TU-F6",
@@ -3315,7 +3315,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "q_design＝最大设计流量 m3/s；n＝格栅台数",
   "XG-F10",
-  [$ l_(r a w) = l 3_(f i x e d) + l 4_(f i x e d) + frac(3 B - 3 b 1, 4 t a n_(a l p h a)) + frac(d r o p_(c o n s t a n t) + h, t a n_(a l p h a)) $],
+  [$ l_(r a w) = l 3_(f i x e d) + l 4_(f i x e d) + frac((3 B - 3 b 1), 4 tan_(alpha)) + frac((d r o p_(c o n s t a n t) + h), tan_(alpha)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "B＝栅槽宽（ceil 后）m；b1＝进水渠宽 B1（ceil 后）m；tan_alpha＝tanα 预处理值；l3_fixed＝固定段一 m（factor.screen.trough_length.l3_fixed）；l4_fixed＝固定段二 m（factor.screen.trough_length.l4_fixed）；drop_constant＝渐窄段起算常数 m（…drop_constant）；h＝栅前水深 m",
   "XG-F11",
@@ -3327,7 +3327,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "w_slag＝日栅渣量 m3/d；mech_clean_threshold＝机械清渣阈值 m3/d（…mech_clean_threshold）",
   "XG-F13",
-  [$ d s_(s l a g) = 1000 w_(s l a g) 1 - m o i s t u r e $],
+  [$ d s_(s l a g) = 1000 w_(s l a g) (1 - m o i s t u r e) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "w_slag＝日栅渣量 m3/d；moisture＝栅渣含水率 P（factor.screen.slag.moisture）",
   "XG-F14",
@@ -3335,11 +3335,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "L＝栅槽总长（ceil 后）m；B＝栅槽宽（ceil 后）m；H＝栅后总高（ceil 后）m；n＝格栅台数；wall_coef＝壁厚系数（factor.screen.wall_thickness_coef，概算口径）",
   "XG-F2",
-  [$ n_(g a p   r a t i o) = frac(q s q r t_(s i n   a l p h a), b h v) $],
+  [$ n_(g a p   r a t i o) = frac(q s q r t_(sin   alpha), b h v) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；sqrt_sin_alpha＝√(sinα) 预处理值；b＝栅条间隙 m；h＝栅前水深 m；v＝过栅流速设计值 m/s",
   "XG-F3",
-  [$ b_(r a w) = b n_(g a p) + m a r g i n + s n_(g a p) - 1 $],
+  [$ b_(r a w) = b n_(g a p) + m a r g i n + s (n_(g a p) - 1) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "s＝栅条宽 m；n_gap＝栅条间隙数（ceil 后）；b＝栅条间隙 m；margin＝栅槽宽构造裕量 m（factor.screen.trough_width_margin）",
   "XG-F4",
@@ -3347,7 +3347,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；h＝栅前水深 m；v1＝栅前流速 m/s",
   "XG-F5",
-  [$ v_(c h e c k e d) = frac(q s q r t_(s i n   a l p h a), b h n_(g a p)) $],
+  [$ v_(c h e c k e d) = frac(q s q r t_(sin   alpha), b h n_(g a p)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；sqrt_sin_alpha＝√(sinα) 预处理值；b＝栅条间隙 m；h＝栅前水深 m；n_gap＝栅条间隙数（ceil 后）",
   "XG-F6",
@@ -3355,11 +3355,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "q＝单台流量 m3/s；h＝栅前水深 m；b1＝进水渠宽 B1（ceil 后）m",
   "XG-F7",
-  [$ x i = b e t a (s_(o v e r   b))^(frac(4, 3)) $],
+  [$ xi = beta (s_(o v e r   b))^(frac(4, 3)) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "beta＝栅条形状系数 β（factor.screen.beta.*）；s_over_b＝s/b 同单位比值",
   "XG-F8",
-  [$ h 1 = frac(k_(h e a d l o s s) s i n_(a l p h a) x i (v_(c h e c k e d))^2, 2 g) $],
+  [$ h 1 = frac(k_(h e a d l o s s) sin_(alpha) xi (v_(c h e c k e d))^2, 2 g) $],
   "GB 50014-2021 §6.3（条文号待核对原文；docs/norms/xigeshan.md 签字表 2026-08-23）",
   "k_headloss＝水头损失安全系数 k（factor.screen.headloss.k）；xi＝栅条阻力系数 ξ；v_checked＝校核过栅流速 m/s；g＝重力加速度 m/s2（参数 g_gravity）；sin_alpha＝sinα 预处理值",
   "XG-F9",
@@ -3371,7 +3371,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥消化章（中温消化参数带/沼气产率/池型构造常用值；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认）",
   "ds_in＝入流干固体量 kg/d（nongsuo 底流出流实值）；f_vs＝进泥挥发分占 DS 比（factor.xiaohua.f_vs）",
   "XH-F10",
-  [$ d_(r a w) = 1.587401044632849 (frac(v_(s i n g l e), p i r_(d h)))^0.33333333 $],
+  [$ d_(r a w) = 1.587401044632849 (frac(v_(s i n g l e), pi r_(d h)))^0.33333333 $],
   "《给水排水设计手册（第 5 册 城镇排水）》污泥消化章（中温消化参数带/沼气产率/池型构造常用值；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认）",
   "v_single＝单池容积 m³（XH-F3）；pi＝圆周率（math.pi 绑定，表内联 3.14159265 等价形态）；r_dh＝圆柱高径比 H/D（factor.xiaohua.ratio_dh）",
   "XH-F11",
@@ -3387,7 +3387,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》污泥消化章（中温消化参数带/沼气产率/池型构造常用值；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认）",
   "v_total＝消化池总容积 m³（XH-F2）；n＝池数（参数 n，≥2）",
   "XH-F4",
-  [$ w_(v s   d e g) = e t a_(v s) w_(v s) $],
+  [$ w_(v s   d e g) = eta_(v s) w_(v s) $],
   "GB 50014-2021 §8（污泥章——消化时间/挥发分降解率/产气率，条号待核对；docs/norms/sludge_xiaohua.md 起草表 2026-08-27，待追认）",
   "w_vs＝进泥挥发分 kgVS/d（XH-F1）；eta_vs＝挥发分降解率（参数 eta_vs）",
   "XH-F5",
@@ -3431,11 +3431,11 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）",
   "a_cell_act＝单格实取过滤面积 m2；w_sweep＝表面扫洗强度（factor.vxinglvchi.wash.sweep，V 型槽进水扫洗）",
   "XL-F14",
-  [$ v_(a i r   p e r) = 60 q_(a i r) t_(a i r) + t_(s i m) $],
+  [$ v_(a i r   p e r) = 60 q_(a i r) (t_(a i r) + t_(s i m)) $],
   "GB 50013-2018 §9.5（滤池：均质滤料滤速/强制滤速与气水反冲洗强度；docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）",
   "q_air＝单格气冲流量 m3/s；t_air＝气冲历时 min（factor.vxinglvchi.wash.t_air）；t_sim＝气水同时历时 min（factor.vxinglvchi.wash.t_sim）",
   "XL-F15",
-  [$ v_(w a s h   p e r) = 60 q_(s w e e p) t_(a i r) + t_(s i m) + t_(w a t e r) + 60 q_(w a s h) t_(w a t e r) + 60 q_(w a s h   s i m) t_(s i m) $],
+  [$ v_(w a s h   p e r) = 60 q_(s w e e p) (t_(a i r) + t_(s i m) + t_(w a t e r)) + 60 q_(w a s h) t_(w a t e r) + 60 q_(w a s h   s i m) t_(s i m) $],
   "《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）",
   "q_wash_sim＝气水同时冲洗水流量 m3/s；q_wash＝单独水冲流量 m3/s；q_sweep＝表面扫洗流量 m3/s；t_air＝气冲历时 min（factor.vxinglvchi.wash.t_air）；t_sim＝气水同时历时 min（factor.vxinglvchi.wash.t_sim）；t_water＝水冲历时 min（factor.vxinglvchi.wash.t_water）",
   "XL-F16",
@@ -3463,7 +3463,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）",
   "v_air_per＝单格次耗气 m3（XL-F14）；n＝分格数；t_cycle＝过滤周期 h（参数 t_cycle）",
   "XL-F21",
-  [$ w_(s w e e p) = frac(1440 n q_(s w e e p) t_(a i r) + t_(s i m) + t_(w a t e r), t_(c y c l e)) $],
+  [$ w_(s w e e p) = frac(1440 n q_(s w e e p) (t_(a i r) + t_(s i m) + t_(w a t e r)), t_(c y c l e)) $],
   "《给水排水设计手册（第 5 册 城镇排水）》V 型滤池构造常用值（docs/norms/vxinglvchi.md 起草表 2026-08-25，待追认）",
   "q_sweep＝表面扫洗流量 m3/s；t_air＝气冲历时 min（factor.vxinglvchi.wash.t_air）；t_sim＝气水同时历时 min（factor.vxinglvchi.wash.t_sim）；t_water＝水冲历时 min（factor.vxinglvchi.wash.t_water）；n＝分格数；t_cycle＝过滤周期 h（参数 t_cycle）",
   "XL-F22",
@@ -3503,7 +3503,7 @@ $ v_(c o n c r e t e) = v_(t o t a l) w a l l_(c o e f) $
   "《给水排水设计手册（第 5 册 城镇排水）》紫外剂量选档/灯管概算/渠道设计常用值（docs/norms/ziwai.md 起草表 2026-08-25，待追认）",
   "q_design＝最高时设计流量 m3/s；n_channel＝渠道数（参数 n_channel，双渠并联各半过流——R1 口径）",
   "ZW-F10",
-  [$ c_(f e c a l   o u t) = frac(c_(f e c a l   i n), 10^(n_(l o g))) $],
+  [$ c_(f e c a l   o u t) = frac(c_(f e c a l   i n), 10^(n_(log))) $],
   "GB 50014-2021 消毒章节（紫外线消毒一般规定；docs/norms/ziwai.md 起草表 2026-08-25，待追认）；《给水排水设计手册（第 5 册 城镇排水）》紫外剂量选档/灯管概算/渠道设计常用值（docs/norms/ziwai.md 起草表 2026-08-25，待追认）",
   "c_fecal_in＝进水粪大肠 个/L（factor.ziwai.fecal.c_in_design，设计假定）；n_log＝log 去除对数级（factor.ziwai.fecal.log_removal）",
   "ZW-F11",

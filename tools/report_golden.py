@@ -175,6 +175,19 @@ def main() -> int:
         )
         return 2
     first_formula_latex, first_formula_typst = _build_formula_snapshots()
+    # N10-k2（R1 回炉 2026-10-09）：公式双快照双跑恒等（三产物同律——
+    # registry 装载/迭代序确定性对账，此前单跑漏此门）。
+    second_formula_latex, second_formula_typst = _build_formula_snapshots()
+    if (
+        first_formula_latex != second_formula_latex
+        or first_formula_typst != second_formula_typst
+    ):
+        print(
+            "[FAIL] 公式双打印机快照双跑字节不一致（确定性破坏——"
+            "registry 装载/迭代序面回归）",
+            file=sys.stderr,
+        )
+        return 2
 
     if args.write:
         _SNAP_DIR.mkdir(parents=True, exist_ok=True)
@@ -189,6 +202,7 @@ def main() -> int:
             f"{_SAMPLE_OUT.name} {len(first_sample)} 字节（双跑恒等）+ "
             f"{_FORMULA_LATEX_OUT.name} {len(first_formula_latex)} 字节 + "
             f"{_FORMULA_TYPST_OUT.name} {len(first_formula_typst)} 字节"
+            "（双跑恒等）"
         )
         return 0
 
@@ -216,7 +230,7 @@ def main() -> int:
         )
         return 1
     print(
-        f"[OK] report golden 产物零漂移（双跑恒等+入库逐字节一致："
+        f"[OK] report golden 产物零漂移（双跑恒等〔五件套全量〕+入库逐字节一致："
         f"result.json {len(first_result)} 字节 / diag.json {len(first_diag)} 字节"
         f" / {_SAMPLE_OUT.name} {len(first_sample)} 字节 / "
         f"{_FORMULA_LATEX_OUT.name} {len(first_formula_latex)} 字节 / "

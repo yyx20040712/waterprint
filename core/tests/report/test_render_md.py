@@ -222,3 +222,36 @@ class TestPlaceholderChapters:
     def test_estimate_layout_placeholders(self, golden_project_path: Path) -> None:
         md = render_markdown(_mini_ast(golden_project_path))
         assert "数据待接线" in md
+
+
+class TestAppendixVertPrecise:
+    """N5-d1（R1 采纳廉价件）：\\vert 盲替换改精确——\\left|/\\right|/裸 |
+    三形各归其位；\\|（范数双竖线）→\\Vert 语义形（禁盲替换产行断裂
+    畸变——未来 \\| 入库面防）。"""
+
+    def test_left_right_delimiters(self) -> None:
+        from waterprint.report.render_md import _appendix_math_cell
+
+        assert (
+            _appendix_math_cell(r"x = \left|{a - b}\right|")
+            == r"$x = \left\vert{a - b}\right\vert$"
+        )
+
+    def test_bare_pipe(self) -> None:
+        from waterprint.report.render_md import _appendix_math_cell
+
+        assert _appendix_math_cell(r"|x|") == r"$\vert x \vert$"
+
+    def test_double_pipe_norm_not_distorted(self) -> None:
+        from waterprint.report.render_md import _appendix_math_cell
+
+        assert _appendix_math_cell(r"\|x\|") == r"$\Vert x \Vert$"
+
+    def test_three_forms_combined(self) -> None:
+        from waterprint.report.render_md import _appendix_math_cell
+
+        out = _appendix_math_cell(r"\left| a \right| + \|b\| + |c|")
+        assert (
+            out == r"$\left\vert a \right\vert + \Vert b \Vert + \vert c \vert$"
+        )
+        assert "|" not in out  # 替身后单元格零裸竖线（表格转义零触发）

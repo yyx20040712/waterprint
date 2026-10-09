@@ -236,3 +236,129 @@ class TestErrorFace:
     def test_bad_expression_wrapped_as_invalid_formula(self) -> None:
         with pytest.raises(InvalidFormulaError):
             latex_of_expression("x = = 1", {})
+
+
+# ══════════════════════════════════════════════════════════════════
+# B6 R1 回炉锚定（2026-10-09 拨4）：B1 Mul-Add 括号分组+W-A 原生词表
+# +W-E sympify 闭世界——红先实录见 .workflow/b6-20261009/red-run-b6.txt
+# 「R1」节。
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestMulAddFactorGrouping:
+    """B1（必修）：_print_Mul 对 Add 因子不包括号——乘积域邻接歧义使
+    39 式 PDF 静默错值（k2+d1 双席互证）。修复=Add 因子统一括号分组
+    （num 乘积路与 den 递归路共享 _print_product）。"""
+
+    def test_typst_mul_add_factor_parenthesized(self) -> None:
+        """单元锚定：q·y·(a-b)/5 → 分子 Add 因子括号分组（禁分配陷阱）。"""
+        out = TypstMathPrinter().doprint(sympify("q*y*(a-b)/5"))
+        assert out == "frac(q y (a - b), 5)"
+
+    def test_typst_negative_mul_add_factor(self) -> None:
+        """负号路径：-x(a+b) → 符号提出后 Add 因子整组括号（Rational
+        系数×Add 在 sympy 构造期已分配展开——负号+Add 因子组合需符号
+        系数承载，此为 _print_Add 负项经 Mul 时的同洞位）。"""
+        out = TypstMathPrinter().doprint(sympify("-x*(a+b)"))
+        assert out == "- x (a + b)"
+
+    def test_typst_mixed_product_add_factor(self) -> None:
+        """符号因子×Rational×Add：c·2(a-b) 规范序（Rational 分配入 Add）。"""
+        out = TypstMathPrinter().doprint(sympify("2*(a-b)*c"))
+        assert out == "c (2 a - 2 b)"
+
+    def test_typst_ao_f24_registry_anchor(self) -> None:
+        """registry 锚定（主控亲证形态）：AO-F24 搅拌功率——Add 因子
+        (v_aerobic + v_anoxic) 整组括号（修复前=分子裸并号静默错值）。"""
+        assert to_typst_math("AO-F24") == (
+            "p_(s t i r) = frac(w_(s t i r   b i o) "
+            "(v_(a n a e r o b i c) + v_(a n o x i c)), 1000)"
+        )
+
+    def test_typst_affected_formulas_semantic_equivalence(self) -> None:
+        """双态语义等价（d1）：受影响 39 式抽样 6 式——Typst 串含与
+        LaTeX 结构对应的括号分组（形态正确性断言，非漂移对账）。"""
+        expected = {
+            # LaTeX: \frac{432 q y \left(bod_{5 in} - bod_{5 out}\right)}{5}
+            "AO-F6": "432 q_(a v g   d a i l y) y_(y i e l d) "
+            "(b o d 5_(i n) - b o d 5_(o u t))",
+            # LaTeX: i_{slope} \left(\frac{D}{2} - r_{1}\right)（隐蔽分配陷阱）
+            "CC-F14": "frac(i_(s l o p e) (D - 2 r 1), 2)",
+            # LaTeX: \frac{x_{mlss} \left(r_{external} + 1\right)}{r_{external}}
+            "EC-F10": "frac(x_(m l s s) (r_(e x t e r n a l) + 1), "
+            "r_(e x t e r n a l))",
+            # LaTeX: \frac{h n \left(v_1+v_2+v_3+v_4\right)}{h_2}
+            "KN-F15": "frac(h_(t o t a l) n w a l l_(c o e f) "
+            "(v 1 + v 2 + v 3 + v 4), h 2)",
+            # LaTeX: \frac{q \left(ss_{in gm} - ss_{out gm}\right)}{1000}
+            "MS-F3": "frac(q_(a v g   d a i l y) "
+            "(s s_(i n   g m) - s s_(o u t   g m)), 1000)",
+            # LaTeX: \frac{1000 w_{ss}}{\rho_{sludge} \left(1 - p_{sludge}\right)}
+            # （分母侧 Mul×Add 因子——den 递归路共享分组；rho=W-A 原生词）
+            "KS-F7": "frac(1000 w_(s s), "
+            "rho_(s l u d g e) (1 - p_(s l u d g e)))",
+        }
+        for fid, fragment in expected.items():
+            assert fragment in to_typst_math(fid), f"{fid} 缺 Add 因子括号分组"
+
+
+class TestNativeWordIdentifiers:
+    """W-A（应修）：希腊/函数词直出原生标识符——不再字符空格拆分
+    （pi→"p i" 三变量积=语义错值；eta/alpha/…/tan/sin 同族）。"""
+
+    def test_typst_pi_native(self) -> None:
+        assert TypstMathPrinter().doprint(Symbol("pi")) == "pi"
+
+    def test_typst_greek_compound_base(self) -> None:
+        """希腊词基座+普通下标：eta_pump → eta_(p u m p)（η 原生形）。"""
+        assert TypstMathPrinter().doprint(Symbol("eta_pump")) == "eta_(p u m p)"
+
+    def test_typst_function_word_base_and_greek_sub(self) -> None:
+        """函数词基座+希腊下标：tan_theta → tan_(theta)。"""
+        assert TypstMathPrinter().doprint(Symbol("tan_theta")) == "tan_(theta)"
+
+    def test_typst_sub_word_function_tag(self) -> None:
+        """下标段函数词：n_log → n_(log)（原生标识符）。"""
+        assert TypstMathPrinter().doprint(Symbol("n_log")) == "n_(log)"
+
+    def test_typst_nonvocab_word_unchanged(self) -> None:
+        """词表外多词保持字符空格拆分（bod 三变量——既有语义面零动）。"""
+        assert TypstMathPrinter().doprint(Symbol("bod")) == "b o d"
+        assert TypstMathPrinter().doprint(Symbol("bod5_in")) == "b o d 5_(i n)"
+
+    def test_typst_registry_greek_anchors(self) -> None:
+        """registry 实样：451 命中面抽样——原生词直出（LaTeX 侧对照形）。"""
+        assert to_typst_math("CC-F3") == "d_(r a w) = 2 sqrt(frac(f_(r e q), pi))"
+        assert to_typst_math("NM-F2-Q") == (
+            "q_(p a r t) = 0.7853981625 alpha v_(p a r t) d^2"
+        )
+        assert to_typst_math("KS-F5") == (
+            "v_(l i n e) = frac(d_(d i s k) omega pi, 60)"
+        )
+        assert to_typst_math("XH-F4") == "w_(v s   d e g) = eta_(v s) w_(v s)"
+
+
+class TestSympifyClosedWorld:
+    """W-E（应修）：sympify 闭世界校验——RHS 解析后 free_symbols 与声明
+    符号集求差非空=显式 InvalidFormulaError（防命名空间劫持/漏声明静默
+    造符——"q+tiny" 的 tiny 拼写漂移即静默自由变量）。"""
+
+    def test_undeclared_rhs_symbol_rejected(self) -> None:
+        with pytest.raises(InvalidFormulaError, match="ghost"):
+            typst_of_expression("y = q + ghost", {"q": Symbol("q")})
+
+    def test_undeclared_bare_rhs_rejected(self) -> None:
+        with pytest.raises(InvalidFormulaError):
+            latex_of_expression("q * oops", {"q": Symbol("q")})
+
+    def test_declared_symbols_pass(self) -> None:
+        out = typst_of_expression(
+            "y = q * r", {"q": Symbol("q"), "r": Symbol("r")}
+        )
+        assert out == "y = q r"
+
+    def test_lhs_output_symbol_exempt(self) -> None:
+        """LHS 输出符号=等式自身声明（DSL 惯例——451 全量 LHS 均不在
+        symbols 声明集，闭世界仅施 RHS 侧）。"""
+        out = typst_of_expression("y = 2 * q", {"q": Symbol("q")})
+        assert out == "y = 2 q"
