@@ -97,6 +97,8 @@ const JOINT_STATUS = {
   },
   project_id: "p1",
 };
+/** 空态引导文案（组件内 NO_JOINT_HINT 镜像——断言用）。 */
+const NO_JOINT_TEXT = "联合方案在联合枚举后呈现";
 const RECALC_STATUS = {
   task_id: "t-recalc",
   kind: "calc",
@@ -224,5 +226,93 @@ describe("联合方案卡·R1b 修复面", () => {
     const error = container.querySelector('[data-testid="wp-v4-joint-error"]');
     expect(error).not.toBeNull();
     expect(error?.textContent).toContain("载荷");
+  });
+});
+
+describe("联合方案卡·R2 回炉（粘滞持久/project 守卫/failed 分面）", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
+  it("R2a：apply 后 ?task= 已变 recalc→卸载重挂（右栏切页同径）→卡列仍粘滞在场", async () => {
+    const first = renderCards();
+    fireEvent.click(first.container.querySelector('[data-testid="wp-v4-joint-card-J01"]')!);
+    await vi.waitFor(() => {
+      expect(new URLSearchParams(window.location.search).get("task")).toBe("t-recalc");
+    });
+    first.unmount(); // 右栏切「选中工艺」页=卸载（designZone 条件渲染）
+    gate.statusByTask["t-recalc"] = RECALC_STATUS;
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-recalc" }));
+    // 切回「全厂」页重挂——?task= 仍指 recalc（非 joint）：粘滞须跨卸载持久
+    const second = renderCards();
+    await vi.waitFor(() => {
+      expect(
+        second.container.querySelector('[data-testid="wp-v4-joint-card-J01"]'),
+      ).not.toBeNull();
+    });
+    expect(
+      second.container.querySelector('[data-testid="wp-v4-joint-card-J02"]'),
+    ).not.toBeNull();
+    second.unmount();
+  });
+
+  it("R2b：发现通道 project_id≠prop 不收养（防跨项目误粘）", () => {
+    gate.statusByTask["t-joint-9"] = {
+      ...JOINT_STATUS,
+      task_id: "t-joint-9",
+      project_id: "p9", // 他项目任务——不得收养为本项目粘滞
+    };
+    window.history.replaceState(null, "", "/?task=t-joint-9");
+    const { container } = renderCards();
+    expect(
+      container.querySelector('[data-testid="wp-v4-joint-card-J01"]'),
+    ).toBeNull(); // 不出卡（空态面）
+    expect(container.textContent).toContain(NO_JOINT_TEXT);
+    // 粘滞未收养：sessionStorage 无本项目键
+    expect(window.sessionStorage.getItem("wp-v4-joint-sticky-p1")).toBeNull();
+  });
+
+  it("R2b：粘滞视图 project_id 漂移（他项目键残留）不渲染且清粘滞", () => {
+    // 预置他项目来源的粘滞（跨项目键残留面——守卫须拒）
+    window.sessionStorage.setItem("wp-v4-joint-sticky-p1", "t-joint-9");
+    gate.statusByTask["t-joint-9"] = {
+      ...JOINT_STATUS,
+      task_id: "t-joint-9",
+      project_id: "p9",
+    };
+    window.history.replaceState(null, "", "/"); // 无 ?task=——纯粘滞通道
+    const { container } = renderCards();
+    expect(
+      container.querySelector('[data-testid="wp-v4-joint-card-J01"]'),
+    ).toBeNull();
+    expect(container.textContent).toContain(NO_JOINT_TEXT);
+  });
+
+  it("R2c：?task= 指向 failed joint 任务=错误面（不得以旧粘滞卡列冒充当前结果）", () => {
+    // 先建立粘滞（成功 joint 在册）
+    window.history.replaceState(null, "", "/?task=t-joint-1");
+    const warm = renderCards();
+    expect(
+      warm.container.querySelector('[data-testid="wp-v4-joint-card-J01"]'),
+    ).not.toBeNull();
+    warm.unmount();
+    // ?task= 切向 failed joint——错误面优先于粘滞卡列
+    gate.statusByTask["t-joint-f"] = {
+      ...JOINT_STATUS,
+      task_id: "t-joint-f",
+      state: "failed",
+      error: "联合网格超限（>1e6 组合）",
+      result: null,
+    };
+    window.history.replaceState(null, "", "/?task=t-joint-f");
+    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t-joint-f" }));
+    const { container } = renderCards();
+    const error = container.querySelector('[data-testid="wp-v4-joint-error"]');
+    expect(error).not.toBeNull();
+    expect(error?.textContent).toContain("联合网格超限");
+    // 旧粘滞卡列不冒充当前结果（failed 为当前面）
+    expect(
+      container.querySelector('[data-testid="wp-v4-joint-card-J01"]'),
+    ).toBeNull();
   });
 });

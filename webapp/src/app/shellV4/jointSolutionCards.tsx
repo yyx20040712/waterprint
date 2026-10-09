@@ -41,6 +41,10 @@ const NO_JOINT_HINT = "联合方案在联合枚举后呈现";
 const BAD_PAYLOAD_HINT = "联合枚举结果载荷非法——重新联合枚举生成";
 const JOINT_CARD_LIMIT = 8;
 
+/** R2a 粘滞持久键（按项目键——sessionStorage：跨右栏切页卸载/zone 切换/
+ *  刷新三径均稳；跨项目键隔离=R2b 半面）。 */
+const stickyKeyOf = (projectId: string) => `wp-v4-joint-sticky-${projectId}`;
+
 export function JointSolutionCards({
   projectId,
   onApplied,
@@ -63,34 +67,80 @@ export function JointSolutionCards({
     return () => window.removeEventListener(TASK_EVENT, onTaskParam);
   }, []);
 
-  // 发现通道：?task= 指向的 done joint 任务 → 粘滞 id（R1b：此后 ?task= 变
-  // recalc 等不塌卡面；?task= 再指另一 done joint 则切换）
+  // 粘滞态（R2a：sessionStorage 按项目键持久——切右栏页/切 zone 卸载不丢；
+  // R2b：projectId 变化=换键读，天然隔离跨项目残留）
+  const [stickyId, setStickyId] = useState<string | null>(() =>
+    projectId !== null
+      ? window.sessionStorage.getItem(stickyKeyOf(projectId))
+      : null,
+  );
+  const adoptSticky = (taskId: string | null) => {
+    setStickyId(taskId);
+    if (projectId !== null) {
+      if (taskId === null) {
+        window.sessionStorage.removeItem(stickyKeyOf(projectId));
+      } else {
+        window.sessionStorage.setItem(stickyKeyOf(projectId), taskId);
+      }
+    }
+  };
+  // R2b：projectId prop 变化重读本项目键（他项目粘滞不随迁）
+  useEffect(() => {
+    setStickyId(
+      projectId !== null
+        ? window.sessionStorage.getItem(stickyKeyOf(projectId))
+        : null,
+    );
+  }, [projectId]);
+
+  // 发现通道：?task= 指向的 done joint 任务 → 粘滞 id（R1b+R2b：project_id
+  // 守卫——他项目任务不收养；?task= 再指另一 done joint 则切换）
   const urlStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(urlTaskId ?? "", {
     query: { enabled: urlTaskId !== null },
   });
-  const [stickyId, setStickyId] = useState<string | null>(null);
   const urlStatus = urlStatusQuery.data ?? null;
+  // R2c：?task= 指向的 failed joint 任务=当前错误面（优先于粘滞卡列——
+  // 不得以旧结果冒充当前；project_id 守卫同 R2b）
+  const urlJointFailed =
+    urlStatus !== null &&
+    urlStatus.kind === "joint_enumerate" &&
+    urlStatus.state === "failed" &&
+    projectId !== null &&
+    urlStatus.project_id === projectId;
   useEffect(() => {
     if (
       urlStatus !== null &&
       urlStatus.kind === "joint_enumerate" &&
       urlStatus.state === "done" &&
+      projectId !== null &&
+      urlStatus.project_id === projectId &&
       urlStatus.task_id !== stickyId
     ) {
-      setStickyId(urlStatus.task_id);
+      adoptSticky(urlStatus.task_id);
     }
-  }, [urlStatus, stickyId]);
+  }, [urlStatus, stickyId, projectId]);
 
-  // 视图通道：粘滞 id 优先（缓存共享——与发现通道同键单次取数）
+  // 视图通道：粘滞 id 优先（缓存共享——与发现通道同键单次取数；R2b：
+  // project 守卫统一辖两源〔粘滞/URL 兜底〕——他项目任务拒渲染）
   const viewTaskId = stickyId ?? urlTaskId;
   const viewStatusQuery = useGetTaskStatusApiCalcTasksTaskIdGet(viewTaskId ?? "", {
     query: { enabled: viewTaskId !== null },
   });
   const viewStatus = viewStatusQuery.data ?? null;
+  const viewProjectMismatch =
+    viewStatus !== null &&
+    (projectId === null || viewStatus.project_id !== projectId);
+  useEffect(() => {
+    // 粘滞源漂移=清粘滞（他项目键残留/任务重建面）；URL 兜底源不落粘滞
+    if (stickyId !== null && viewProjectMismatch) {
+      adoptSticky(null);
+    }
+  }, [stickyId, viewProjectMismatch]);
   const jointDone =
     viewStatus !== null &&
     viewStatus.kind === "joint_enumerate" &&
-    viewStatus.state === "done";
+    viewStatus.state === "done" &&
+    !viewProjectMismatch;
   // 窄化门（非法载荷→错误面标记——jointView 单源；memo 内零副作用）
   const { view, badPayload } = useMemo<{
     view: JointResultView | null;
@@ -167,7 +217,16 @@ export function JointSolutionCards({
         全厂 · 联合方案
         {combos.length > 0 ? `（联合枚举 ${combos.length}）` : ""}
       </h4>
-      {badPayload ? (
+      {urlJointFailed ? (
+        // R2c：failed joint=当前错误面（优先于粘滞卡列——旧结果不冒充当前）
+        <div
+          data-testid="wp-v4-joint-error"
+          style={{ fontSize: 11, color: "var(--wp-error)" }}
+        >
+          联合枚举任务失败：
+          {urlStatus?.error ?? "未知错误"}——重新联合枚举可重提
+        </div>
+      ) : badPayload ? (
         <div
           data-testid="wp-v4-joint-error"
           style={{ fontSize: 11, color: "var(--wp-error)" }}
