@@ -87,6 +87,7 @@ export function DesignZone({
   onSelectedUnitChange,
   onSubpageChange,
   onDockNavigate,
+  onOpenSettings,
 }: {
   target: Extract<V4ZoneTarget, { zone: "design" }>;
   /** ?node= 对象选中真相（画布选中→左栏参数随动——B2 批扩右栏方案）。 */
@@ -97,6 +98,8 @@ export function DesignZone({
   onSubpageChange: (subpage: DesignSubpage) => void;
   /** dock 完成直达承接（B2 §一.4——shellV4 实现：切分析表+相关单元选中）。 */
   onDockNavigate: (unitId: string | null) => void;
+  /** 连接设置开态上抛（R1-W1——shellV4 恒挂载层承载 Modal，dockBar 透传）。 */
+  onOpenSettings: () => void;
 }) {
   const [projectId] = useProjectId();
   const [leftTab, setLeftTab] = useState<"design" | "empirical" | "global">("design");
@@ -444,6 +447,7 @@ export function DesignZone({
             onDockNavigate(target.unitId);
           }
         }}
+        onOpenSettings={onOpenSettings}
       />
     </section>
   );

@@ -4,19 +4,24 @@
  * v4 底栏双区测试（B2 结果与方案批——完成直达〔§一.4 done 任务行→分析表
  * 直达+相关单元选中〕+failed 错误提示面+dock-ai 会话续接〔P3 d1-N7——
  * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕；B3 入口批——AI 连接
- * 钮/连接设置钮在场+设置 Modal 开+AUTH_EVENT 401 自愈回路）。
+ * 钮/连接设置钮在场；B3 R1 回炉——设置 Modal/AUTH_EVENT 自愈监听上提
+ * shellV4 恒挂载层〔R1-W1——本件改断言 onOpenSettings 透传；自愈例迁
+ * settingsSelfHeal.test.tsx 新缝〕+AiConnectModal 开态最小断言〔R1-N4a
+ * ——取数面 stub〕）。
  *
- * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身）+done/failed 任务夹具
+ * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身+aiconnect 取数面
+ *        useAiConnection/useAiConfig 模块替身）+done/failed 任务夹具
  * 输出:  断言族：①done 任务行点击→onTaskNavigate({state:"done",unitId})
  *        〔unitId=枚举任务 result.unit_id 透传〕②done 且无 unit_id=null
  *        透传 ③failed=错误提示行在场（白名单）④会话续接：发送建档后
- *        sessionStorage 持久→重挂恢复同 sessionId
+ *        sessionStorage 持久→重挂恢复同 sessionId ⑤连接设置钮→
+ *        onOpenSettings 调用（Modal 承载在 shellV4）⑥AI 接入钮→
+ *        AiConnectModal 开（标题「AI 接入」）
  */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AUTH_EVENT } from "../../shared/events";
 import { DockBar } from "./dockBar";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
@@ -51,6 +56,7 @@ const gate = vi.hoisted(() => ({
   chatHistoryLastSession: null as string | null,
   send: { mutate: vi.fn(), isPending: false },
   navigate: vi.fn(),
+  openSettings: vi.fn(),
 }));
 
 vi.mock("../../features/ai_chat/api/useAiChat", () => ({
@@ -66,6 +72,34 @@ vi.mock("../../features/solutions/api/useTaskFeed", () => ({
 vi.mock("../../shared/api/generated/calc/calc", () => ({
   useGetTaskStatusApiCalcTasksTaskIdGet: () => gate.task,
 }));
+// R1-N4a：aiconnect 取数面模块替身（AiConnectModal.test 共享件先例——
+// useAiConnection/useAiConfig 两薄封装整体 stub；开态=Modal 壳断言面，
+// 面板内数据面不在本缝辖）
+vi.mock("../../features/aiconnect/api/useAiConnection", () => ({
+  useAiConnection: () => ({
+    statusQuery: { data: undefined, isLoading: true, isError: false, error: null },
+    setupMutation: {
+      mutate: vi.fn(),
+      isPending: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      reset: vi.fn(),
+    },
+  }),
+}));
+vi.mock("../../features/aiconnect/api/useAiConfig", () => ({
+  useAiConfig: () => ({
+    configQuery: { data: undefined, isLoading: true, isError: false, error: null },
+    saveMutation: {
+      mutate: vi.fn(),
+      isPending: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+    },
+  }),
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -75,7 +109,7 @@ function renderDock() {
   window.history.replaceState(null, "", "/?task=t-done-1&ia=v4");
   return render(
     <QueryClientProvider client={queryClient}>
-      <DockBar onTaskNavigate={gate.navigate} />
+      <DockBar onTaskNavigate={gate.navigate} onOpenSettings={gate.openSettings} />
     </QueryClientProvider>,
   );
 }
@@ -83,6 +117,7 @@ function renderDock() {
 beforeEach(() => {
   gate.navigate.mockClear();
   gate.send.mutate.mockClear();
+  gate.openSettings.mockClear();
   gate.feed = null;
   window.sessionStorage.clear();
 });
@@ -144,7 +179,7 @@ describe("failed 错误提示面（白名单）", () => {
   });
 });
 
-describe("AI 连接+连接设置+401 自愈回路（B3 U3）", () => {
+describe("AI 连接+连接设置入口（B3 U3——R1-W1 透传制）", () => {
   it("AI 接入钮+连接设置钮在场（dock AI 窗头行右缀——wp-ai-connect-open/wp-v4-open-settings）", () => {
     const { container } = renderDock();
     expect(
@@ -155,44 +190,31 @@ describe("AI 连接+连接设置+401 自愈回路（B3 U3）", () => {
     ).not.toBeNull();
   });
 
-  it("点连接设置→TokenSettingsModal 开（密码框+保存/清除/关闭三钮）", async () => {
+  it("点连接设置→onOpenSettings 调用（R1-W1：Modal/自愈监听上提 shellV4 恒挂载层——本件仅入口透传契约）", () => {
     const { container } = renderDock();
     fireEvent.click(
       container.querySelector<HTMLButtonElement>(
         '[data-testid="wp-v4-open-settings"]',
       ) as HTMLButtonElement,
     );
-    await waitFor(() => {
-      expect(document.querySelector(".ant-modal")).not.toBeNull();
-    });
-    expect(document.querySelector(".ant-input-password")).not.toBeNull();
-    // 三钮（antd 两字钮默认插空格——去空白比对；测试树无 v4 scoped
-    // ConfigProvider，autoInsertSpace 缺省 true 形如实兼容）
-    const modalButtons = Array.from(
-      document.querySelectorAll(".ant-modal button"),
-    );
-    for (const label of ["保存", "清除", "关闭"]) {
-      expect(
-        modalButtons.find(
-          (b) => (b.textContent ?? "").replace(/\s/g, "") === label,
-        ),
-      ).toBeTruthy();
-    }
+    expect(gate.openSettings).toHaveBeenCalledTimes(1);
+    // Modal 承载已上提：本缝零 Modal 断言（自愈/承载面归
+    // settingsSelfHeal.test.tsx）
   });
 
-  it("dispatch AUTH_EVENT→连接设置 Modal 自动开（401 自愈回路 parity）", async () => {
+  it("点 AI 接入→AiConnectModal 开（R1-N4a 最小断言——取数面 stub：标题「AI 接入」）", async () => {
     const { container } = renderDock();
-    // 关闭态起点：Modal 不在场
-    expect(document.querySelector(".ant-modal")).toBeNull();
-    window.dispatchEvent(new Event(AUTH_EVENT));
+    fireEvent.click(
+      container.querySelector<HTMLButtonElement>(
+        '[data-testid="wp-ai-connect-open"]',
+      ) as HTMLButtonElement,
+    );
     await waitFor(() => {
       expect(document.querySelector(".ant-modal")).not.toBeNull();
-      expect(document.querySelector(".ant-input-password")).not.toBeNull();
     });
-    // 自愈态与手动入口同源（连接设置 Modal 单一承载）
-    expect(
-      container.querySelector('[data-testid="wp-v4-open-settings"]'),
-    ).not.toBeNull();
+    const title = document.querySelector(".ant-modal-title")?.textContent;
+    expect(title).toBe("AI 接入");
+    expect(gate.openSettings).not.toHaveBeenCalled(); // 两入口互不串扰
   });
 });
 

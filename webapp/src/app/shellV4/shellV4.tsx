@@ -25,12 +25,16 @@
  *     状态条 24px 沿承 M1 位。
  *   - 回炉 R11：V4_ZONE_LABELS 迁 zoneParam.ts（V4Zone 真源同件——
  *     shellV4↔zoneBand 循环 import 断环；zoneBand 改自 zoneParam 取）。
+ *   - B3 R1 回炉 R1-W1：连接设置自愈层恒挂载（useSettingsSelfHeal+
+ *     TokenSettingsModal 在 ConfigProvider 内常驻——AUTH_EVENT 401 自愈
+ *     五区可达；dockBar 设置钮经 onOpenSettings 透传开同一 state）。
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ConfigProvider, theme } from "antd";
 import type { ThemeConfig } from "antd";
 
 import { useProjectId } from "../useProjectId";
+import { TokenSettingsModal } from "../tokenSettingsModal";
 import {
   initialZoneTarget,
   parseNodeParam,
@@ -38,6 +42,7 @@ import {
   withZoneParam,
   type V4ZoneTarget,
 } from "../zoneParam";
+import { useSettingsSelfHeal } from "./settingsSelfHeal";
 import { ZoneBand } from "./zoneBand";
 import { DesignZone } from "./designZone";
 import { ProjectsZone } from "./projectsZone";
@@ -117,6 +122,9 @@ export function ShellV4() {
     parseNodeParam(window.location.search),
   );
   const [projectId] = useProjectId();
+  // R1-W1：连接设置自愈层（恒挂载——zone 切换不卸载；手动入口经
+  // DesignZone→DockBar onOpenSettings 透传，AUTH_EVENT 自愈同 state）
+  const { settingsOpen, openSettings, closeSettings } = useSettingsSelfHeal();
 
   // 回炉 R16：切项目清陈旧选中（App.tsx D7 同款——URL 面清 ?node= 由
   // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治；
@@ -164,6 +172,7 @@ export function ShellV4() {
               handleSelectedUnitChange(unitId);
             }
           }}
+          onOpenSettings={openSettings}
         />
       );
       break;
@@ -213,6 +222,9 @@ export function ShellV4() {
             <span>ia=v4</span>
           </span>
         </footer>
+        {/* R1-W1：连接设置自愈层恒挂载（ConfigProvider 内常驻——zone 切换
+            不卸载，AUTH_EVENT 401 自愈五区可达；dockBar 仅入口上抛） */}
+        <TokenSettingsModal open={settingsOpen} onClose={closeSettings} />
       </div>
     </ConfigProvider>
   );

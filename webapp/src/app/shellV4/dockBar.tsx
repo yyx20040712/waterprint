@@ -21,8 +21,10 @@
  *   - SSE 终态→失效任务快照+TASK_EVENT 派发（seatTaskPage 同链——本条
  *     自监听经 URL 重读同值早退幂等）；
  *   - B3 U3：AI 窗头行右缀 AI 接入+连接设置两入口（legacy Header 右侧
- *     同族迁 v4）+AUTH_EVENT 401 自愈回路 parity（App.tsx:305-307 同款
- *     ——customInstance 401 派发→自动开 TokenSettingsModal）。
+ *     同族迁 v4）。B3 R1 回炉 R1-W1：AUTH_EVENT 监听+TokenSettingsModal
+ *     上提 shellV4 恒挂载层（zone 切换不卸载——五区自愈可达），本件设置
+ *     钮改调 onOpenSettings 上抛（DesignZone 透传）；AiConnectButton/
+ *     AiConnectModal 留本件（点击作用域，无恒在需求）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,8 +43,7 @@ import {
   type TaskView,
 } from "../../features/solutions/lib/taskFeed";
 import { useGetTaskStatusApiCalcTasksTaskIdGet } from "../../shared/api/generated/calc/calc";
-import { AUTH_EVENT, TASK_EVENT } from "../../shared/events";
-import { TokenSettingsModal } from "../tokenSettingsModal";
+import { TASK_EVENT } from "../../shared/events";
 import { parseEnumParam, parseTaskParam } from "../projectParam";
 
 /** 任务状态文案（TaskPanel STATE_LABELS 凝缩面子集）。 */
@@ -63,8 +64,10 @@ const generateSessionId = () =>
  *  localStorage 记忆 B1 全局规则同族但会话面不入长期存储〕）。 */
 const DOCK_SESSION_KEY = "wp-v4-dock-session";
 
-/** AI 凝缩窗：输入行+发送+最近一轮摘要（会话通道与 ChatSeat 同源）。 */
-function AiDockWindow() {
+/** AI 凝缩窗：输入行+发送+最近一轮摘要（会话通道与 ChatSeat 同源）。
+ *  R1-W1：连接设置开态经 onOpenSettings 上抛（Modal 承载在 shellV4 恒
+ *  挂载层）；AiConnectModal 开态本件自持（点击作用域）。 */
+function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
   // B2 会话续接（d1-N7）：初值=sessionStorage 持久面（无则 null 首发建档）
   const [sessionId, setSessionId] = useState<string | null>(() =>
     window.sessionStorage.getItem(DOCK_SESSION_KEY),
@@ -76,17 +79,8 @@ function AiDockWindow() {
   // 最近一轮摘要（用户末问+助手末答各一行——超长截断）
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const lastAssistant = [...messages].reverse().find((m) => m.role !== "user");
-  // B3 U3：AI 接入/连接设置两 Modal 开态（窗头行右缀入口）
+  // B3 U3：AI 接入 Modal 开态（窗头行右缀入口）
   const [aiConnectOpen, setAiConnectOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  // 401 自愈回路 parity（B3 U3）：AUTH_EVENT→自动开连接设置（legacy
-  // App.tsx:305-307 同款——customInstance 401 派发面；卸载移除监听）。
-  useEffect(() => {
-    const openSettings = () => setSettingsOpen(true);
-    window.addEventListener(AUTH_EVENT, openSettings);
-    return () => window.removeEventListener(AUTH_EVENT, openSettings);
-  }, []);
 
   const submit = () => {
     const text = draft.trim();
@@ -114,14 +108,15 @@ function AiDockWindow() {
         {history.isError ? (
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
         ) : null}
-        {/* B3 U3：窗头行右缀两入口（AI 接入=共享件；连接设置=wp-v4-open-settings） */}
+        {/* B3 U3：窗头行右缀两入口（AI 接入=共享件；连接设置=wp-v4-open-settings
+            ——R1-W1：onClick 上抛 onOpenSettings，Modal 在 shellV4 承载） */}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2, flex: "none" }}>
           <AiConnectButton onClick={() => setAiConnectOpen(true)} />
           <Button
             type="text"
             size="small"
             icon={<SettingOutlined />}
-            onClick={() => setSettingsOpen(true)}
+            onClick={onOpenSettings}
             aria-label="连接设置"
             title="连接设置"
             data-testid="wp-v4-open-settings"
@@ -186,10 +181,10 @@ function AiDockWindow() {
           发送
         </button>
       </div>
-      {/* B3 U3：AI 接入+连接设置两 Modal（共享件零改复用；关态零请求扰动
-          ——useAiConnection enabled=open 门控/tokenSettings 零即时校验） */}
+      {/* B3 U3：AI 接入 Modal（共享件零改复用；关态零请求扰动——
+          useAiConnection enabled=open 门控）。连接设置 Modal=R1-W1 上提
+          shellV4 恒挂载层（本件经 onOpenSettings 开） */}
       <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
-      <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
@@ -344,14 +339,18 @@ function TaskStrip({
 
 export function DockBar({
   onTaskNavigate,
+  onOpenSettings,
 }: {
   /** B2 完成直达（§一.4）：done 任务行点击上抛——designZone→shellV4 承接
    *  （切 ?tab=design.analysis+相关单元选中）。 */
   onTaskNavigate?: (target: { state: string; unitId: string | null }) => void;
+  /** R1-W1：连接设置开态上抛（designZone 透传——shellV4 恒挂载层承载
+   *  TokenSettingsModal/AUTH_EVENT 自愈监听）。 */
+  onOpenSettings: () => void;
 }) {
   return (
     <div className="wp-v4-dock" data-testid="wp-v4-dock">
-      <AiDockWindow />
+      <AiDockWindow onOpenSettings={onOpenSettings} />
       <TaskStrip onTaskNavigate={onTaskNavigate} />
     </div>
   );

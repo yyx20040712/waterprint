@@ -129,6 +129,7 @@ function renderDesign() {
         onSelectedUnitChange={() => {}}
         onSubpageChange={() => {}}
         onDockNavigate={() => {}}
+        onOpenSettings={() => {}}
       />
     </QueryClientProvider>,
   );
