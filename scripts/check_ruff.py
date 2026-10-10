@@ -65,11 +65,13 @@ def emit(text: str) -> None:
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     failed = False
+    skipped: list[str] = []
     for name, root in SCAN_ROOTS:
         python = locate_venv_python(root)
         if python is None:
             print(f"[SKIP] check_ruff：{name}（venv 缺失——CI 零依赖 job 预期路径；"
                   f"本地运行请在 {name}/ 下 uv sync 安装 dev 依赖）")
+            skipped.append(name)
             continue
         print(f"[INFO] 解释器 {python.relative_to(REPO).as_posix()}（透传 ruff）")
         # SC1 D9①：OSError 现实异常族显式枚举兜底（venv 解释器在但不可执行/
@@ -94,6 +96,11 @@ def main() -> int:
             failed = True
         else:
             print(f"[OK] check_ruff：{name}")
+    # SKIP 静默豁免护栏（cifix-R1 delta k2-W1）：有根被跳过时强制明示实际
+    # 覆盖面——防「venv 未装的根零扫描+门禁绿」的本地绿≠CI 绿复发链。
+    if skipped:
+        print(f"[WARN] 本次实际覆盖面={'+'.join(n for n, _ in SCAN_ROOTS if n not in skipped)}"
+              f"（SKIP：{'+'.join(skipped)}——零扫描，CI 对应面未本地验证）")
     return 1 if failed else 0
 
 
