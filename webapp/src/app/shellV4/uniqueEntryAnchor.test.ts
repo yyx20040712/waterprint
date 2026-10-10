@@ -16,7 +16,16 @@
  *        SolutionJointEnumeratePost 全名锚——注释中缀提及不误中）恰=
  *        [app/jointSolutions.tsx]（JointSubmitForm 承载件）④
  *        wp-v4-joint-open 恰=[app/shellV4/designZone.tsx]（联合提交唯一
- *        触发）——多源/零源即红（提交通道旁路防回归）。
+ *        触发）——多源/零源即红（提交通道旁路防回归）；⑤AUTH_EVENT
+ *        消费面第五锚（B7 收口批 U6——裁决 R-1 预案形态：**代码形态
+ *        匹配非裸串**——行级正则四选一〔import 解构/add(Event)?Listener/
+ *        removeEventListener/dispatchEvent 与 AUTH_EVENT 组合〕，注释面
+ *        4 件同含 AUTH_EVENT 串〔dockBar/shellV4/statusBar/
+ *        tokenSettingsModal 头注与 JSDoc——B3 迁移留痕〕裸串锚出生即红
+ *        ——代码形态锚对注释自然出局）：命中恰=[app/App.tsx〔legacy
+ *        冻结监听〕, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts
+ *        〔派发侧〕]（shared/events.ts=const 定义面不匹配模式自然出局）
+ *        ——第二消费监听出现即红。
  *
  * 扫描语义边界声明〔R1-W2 兼收 k2-N2/d1-N1——已知脆性在案〕：本锚=
  * 源文本「串面命中」计数，非 AST「引用面」——注释/字符串字面量中的
@@ -97,5 +106,27 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
   it("wp-v4-joint-open：全树恰=[app/shellV4/designZone.tsx] 一源（联合提交唯一触发）", () => {
     const hits = filesContaining("wp-v4-joint-open");
     expect(hits).toEqual(["app/shellV4/designZone.tsx"]);
+  });
+
+  it("AUTH_EVENT 消费面第五锚（B7——代码形态匹配非裸串）：行级正则命中恰=[app/App.tsx, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts]", () => {
+    // 裁决 R-1 预案形态逐字实现（任务书 §二.U6）：行级正则=import 解构
+    // /add(Event)?Listener/removeEventListener/dispatchEvent 与 AUTH_EVENT
+    // 组合四选一——注释面 4 件（dockBar/shellV4/statusBar/
+    // tokenSettingsModal 头注 JSDoc 迁移留痕）同含 AUTH_EVENT 裸串但不
+    // 匹配代码形态自然出局；shared/events.ts=const 定义面同样出局。第二
+    // 消费监听出现（新 import/新监听/新派发）即红——自愈回路单消费面锁。
+    const AUTH_CODE_FORM =
+      /import\s*\{[^}]*AUTH_EVENT|add(Event)?Listener\(AUTH_EVENT|removeEventListener\(AUTH_EVENT|dispatchEvent\([^)]*AUTH_EVENT/;
+    const hits = scanProductionSources(SRC_DIR)
+      .filter((source) =>
+        source.text.split(/\r?\n/).some((line) => AUTH_CODE_FORM.test(line)),
+      )
+      .map((source) => source.rel)
+      .sort(); // 跨目录枚举序平台差异归一（命中集=集合语义）
+    expect(hits).toEqual([
+      "app/App.tsx",
+      "app/shellV4/settingsSelfHeal.ts",
+      "shared/api/http.ts",
+    ]);
   });
 });
