@@ -12,5 +12,10 @@
     "build": "pnpm -C webapp build",
     "test": "pnpm -C webapp test",
     "gates": "python scripts/run_gates.py"
+  },
+  "pnpm": {
+    "overrides": {
+      "katex": "^0.18.11"
+    }
   }
 }
