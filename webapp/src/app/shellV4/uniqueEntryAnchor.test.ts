@@ -128,8 +128,13 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
     // 常态+单引号旁路同锚）：期望恰=[shared/events.ts]（const 定义处=
     // "wp:auth" 字面全树唯一在场——定义面恰一处的自证）。第二消费监听
     // 出现（新 import/新监听/新派发/字面直用）即红——自愈回路单消费面锁。
+    // B7 R1 主控补笔（k2-delta-W1）：四支 \b 词边界（AUTH_EVENT_V2 类兄弟
+    // 标识符子串误命中=假绿方向收口）。残余面声明（d1-delta-K1 主控裁定
+    // =本锚定位「防回归」非「防规避」）：命名空间访问/动态 import 解构/
+    // 别名 const/模板串与拼接字面=蓄意规避形态不在锚内——内部防误用
+    // 锚语义，规避级防护=代码评审面承载。
     const AUTH_CODE_FORM =
-      /import\s*\{[^}]*AUTH_EVENT|add(Event)?Listener\(\s*AUTH_EVENT|removeEventListener\(\s*AUTH_EVENT|dispatchEvent\(\s*[^)]*AUTH_EVENT/;
+      /import\s*\{[^}]*\bAUTH_EVENT\b|add(Event)?Listener\(\s*\bAUTH_EVENT\b|removeEventListener\(\s*\bAUTH_EVENT\b|dispatchEvent\(\s*[^)]*\bAUTH_EVENT\b/;
     const codeHits = scanProductionSources(SRC_DIR)
       .filter((source) => AUTH_CODE_FORM.test(source.text)) // R1：整文件施正则
       .map((source) => source.rel)
