@@ -5,21 +5,25 @@
  * 冻结点语义申报〔头注〕：本测试=B7 主控盘存值域的契约快照（行为级
  * 冻结——非源扫描）。**值域变更=用户裁决位**：任何增删值域键、键序
  * 漂移、zone 标签改动都须先经用户裁决再同步本冻结集——未同步即红即
- * 违约。兼容归一表（LEGACY_ZONE_COMPAT）为模块私有面，其冻结经 11
- * 键行为断言承载（表内键逐一断言 parse 语义；表外新键=非法样本面
- * null 断言族锁边界）。
+ * 违约。兼容归一表（LEGACY_ZONE_COMPAT）B7 R1-C 起导出（仅加 export
+ * 关键字——冻结同源机检导出，值域/逻辑零触碰），其冻结=11 键行为
+ * 断言+键集同源机检（R1-C 新例：Object.keys 恰等冻结表兼容 11 键集
+ * ——双源集合相等）双承载。
  *
- * 输入:  zoneParam.ts 导出面（parseZoneParam/V4_ZONES/V4_ZONE_LABELS
- *        ——node 环境纯函数直测，零渲染）
+ * 输入:  zoneParam.ts 导出面（parseZoneParam/V4_ZONES/V4_ZONE_LABELS/
+ *        LEGACY_ZONE_COMPAT〔R1-C 导出〕——node 环境纯函数直测，零渲染）
  * 输出:  断言族：①21 键逐一 parseZoneParam(`?tab=${v}`) 恰回期望
  *        target（新值域 10 值含双段子页+兼容归一 11 键含 subpage 归一）
  *        ②非法样本 null（未知裸值/空串/子页错挂 design.sheets 等/三段
  *        以上）③导出面冻结：V4_ZONES 键序值域恰等冻结数组+
- *        V4_ZONE_LABELS 键序恰循 V4_ZONES 且标签值逐键冻结
+ *        V4_ZONE_LABELS 键序恰循 V4_ZONES 且标签值逐键冻结 ④兼容表
+ *        同源机检（R1-C）：LEGACY_ZONE_COMPAT 键集恰等冻结表兼容 11
+ *        键集（手列冻结表↔导出面常量双源——新增/删减兼容键即红）
  */
 import { describe, expect, it } from "vitest";
 
 import {
+  LEGACY_ZONE_COMPAT,
   parseZoneParam,
   V4_ZONE_LABELS,
   V4_ZONES,
@@ -129,5 +133,18 @@ describe("G2 ?tab= 值域冻结点（B7——行为级契约快照）", () => {
         throw new Error(`子页键 ${sub} 缺席冻结表（表体与导出面不同步）`);
       }
     }
+  });
+
+  it("兼容表同源机检（R1-C）：LEGACY_ZONE_COMPAT 键集恰等冻结表兼容 11 键集（手列冻结表↔导出常量双源——增删兼容键即红）", () => {
+    // R1-C（k2-N-1+d1-C4）：表体完备性锚升级双源——手列冻结表
+    // （FROZEN_KEYS 末 11 行=兼容归一族）↔ zoneParam.ts 导出面常量。
+    // 集合相等双向锁：新增兼容键漏同步冻结表 / 删减兼容键漏清冻结表行，
+    // 任一侧漂移即红（键序不作断言面——集合语义，sort 归一比对）。
+    const frozenCompatKeys = FROZEN_KEYS.slice(FROZEN_KEYS.length - 11).map(
+      (row) => row.value,
+    );
+    expect(frozenCompatKeys).toHaveLength(11);
+    const exportedKeys = Object.keys(LEGACY_ZONE_COMPAT);
+    expect(exportedKeys.sort()).toEqual([...frozenCompatKeys].sort());
   });
 });

@@ -18,14 +18,20 @@
  *        wp-v4-joint-open 恰=[app/shellV4/designZone.tsx]（联合提交唯一
  *        触发）——多源/零源即红（提交通道旁路防回归）；⑤AUTH_EVENT
  *        消费面第五锚（B7 收口批 U6——裁决 R-1 预案形态：**代码形态
- *        匹配非裸串**——行级正则四选一〔import 解构/add(Event)?Listener/
+ *        匹配非裸串**——正则四选一〔import 解构/add(Event)?Listener/
  *        removeEventListener/dispatchEvent 与 AUTH_EVENT 组合〕，注释面
  *        4 件同含 AUTH_EVENT 串〔dockBar/shellV4/statusBar/
  *        tokenSettingsModal 头注与 JSDoc——B3 迁移留痕〕裸串锚出生即红
  *        ——代码形态锚对注释自然出局）：命中恰=[app/App.tsx〔legacy
  *        冻结监听〕, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts
- *        〔派发侧〕]（shared/events.ts=const 定义面不匹配模式自然出局）
- *        ——第二消费监听出现即红。
+ *        〔派发侧〕]——第二消费监听出现即红。B7 R1 回炉硬化
+ *        （k2-W-1+d1-C3/W3 2026-10-10）三改：①listener 两支+dispatch 支
+ *        `(` 后空白容差（`\s*`——换行/缩进调用形态不逃锚）；②匹配形态
+ *        改**全文件整体匹配**（原逐行 split——多行 import/调用形态逃锚
+ *        面；行定位仅报告用不参与判定）；③新增字面串支 `"wp:auth"`
+ *        （事件名字面形态——d1-W3 绕过面：不 import 常量直用字面即第二
+ *        消费面）：该支期望恰=[shared/events.ts]（常量定义处="wp:auth"
+ *        字面全树唯一在场——定义面恰一处的自证，期望集更新+本注申报）。
  *
  * 扫描语义边界声明〔R1-W2 兼收 k2-N2/d1-N1——已知脆性在案〕：本锚=
  * 源文本「串面命中」计数，非 AST「引用面」——注释/字符串字面量中的
@@ -108,25 +114,36 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
     expect(hits).toEqual(["app/shellV4/designZone.tsx"]);
   });
 
-  it("AUTH_EVENT 消费面第五锚（B7——代码形态匹配非裸串）：行级正则命中恰=[app/App.tsx, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts]", () => {
-    // 裁决 R-1 预案形态逐字实现（任务书 §二.U6）：行级正则=import 解构
-    // /add(Event)?Listener/removeEventListener/dispatchEvent 与 AUTH_EVENT
-    // 组合四选一——注释面 4 件（dockBar/shellV4/statusBar/
-    // tokenSettingsModal 头注 JSDoc 迁移留痕）同含 AUTH_EVENT 裸串但不
-    // 匹配代码形态自然出局；shared/events.ts=const 定义面同样出局。第二
-    // 消费监听出现（新 import/新监听/新派发）即红——自愈回路单消费面锁。
+  it("AUTH_EVENT 消费面第五锚（B7——代码形态匹配非裸串+字面串支）：全文件整体匹配命中恰=[app/App.tsx, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts]+字面支恰=[shared/events.ts]", () => {
+    // 裁决 R-1 预案形态逐字实现（任务书 §二.U6）+B7 R1 回炉三改
+    // （k2-W-1+d1-C3/W3）：①正则=import 解构/add(Event)?Listener/
+    // removeEventListener/dispatchEvent 与 AUTH_EVENT 组合四选一，listener
+    // 两支与 dispatch 支 `(` 后 `\s*` 空白容差（换行/缩进调用形态不逃锚
+    // ——注入样本自证见批档 red-run-b7.txt R1 节）；②**全文件整体匹配**
+    // 非逐行（多行 import/跨行调用形态覆盖；行定位仅报告用不参与判定）
+    // ——注释面 4 件（dockBar/shellV4/statusBar/tokenSettingsModal 头注
+    // JSDoc 迁移留痕）同含 AUTH_EVENT 裸串但不匹配代码形态自然出局；
+    // ③字面串支 "wp:auth"（事件名字面——d1-W3 绕过面：不 import 常量
+    // 直用字面绕代码形态锚），双引号/单引号两形同收（prettier 双引号
+    // 常态+单引号旁路同锚）：期望恰=[shared/events.ts]（const 定义处=
+    // "wp:auth" 字面全树唯一在场——定义面恰一处的自证）。第二消费监听
+    // 出现（新 import/新监听/新派发/字面直用）即红——自愈回路单消费面锁。
     const AUTH_CODE_FORM =
-      /import\s*\{[^}]*AUTH_EVENT|add(Event)?Listener\(AUTH_EVENT|removeEventListener\(AUTH_EVENT|dispatchEvent\([^)]*AUTH_EVENT/;
-    const hits = scanProductionSources(SRC_DIR)
-      .filter((source) =>
-        source.text.split(/\r?\n/).some((line) => AUTH_CODE_FORM.test(line)),
-      )
+      /import\s*\{[^}]*AUTH_EVENT|add(Event)?Listener\(\s*AUTH_EVENT|removeEventListener\(\s*AUTH_EVENT|dispatchEvent\(\s*[^)]*AUTH_EVENT/;
+    const codeHits = scanProductionSources(SRC_DIR)
+      .filter((source) => AUTH_CODE_FORM.test(source.text)) // R1：整文件施正则
       .map((source) => source.rel)
       .sort(); // 跨目录枚举序平台差异归一（命中集=集合语义）
-    expect(hits).toEqual([
+    expect(codeHits).toEqual([
       "app/App.tsx",
       "app/shellV4/settingsSelfHeal.ts",
       "shared/api/http.ts",
     ]);
+    const AUTH_LITERAL_FORM = /["']wp:auth["']/;
+    const literalHits = scanProductionSources(SRC_DIR)
+      .filter((source) => AUTH_LITERAL_FORM.test(source.text))
+      .map((source) => source.rel)
+      .sort();
+    expect(literalHits).toEqual(["shared/events.ts"]);
   });
 });

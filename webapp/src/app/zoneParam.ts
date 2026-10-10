@@ -74,8 +74,10 @@ export const V4_ZONE_LABELS: Record<V4Zone, string> = {
 const DESIGN_SUBPAGES: readonly string[] = ["canvas", "analysis"];
 const DRAFTING_SUBPAGES: readonly string[] = ["sheets", "siteplan"];
 
-/** 兼容归一表（旧十值→新值——新值域优先；viewer3d 同名直通不入表）。 */
-const LEGACY_ZONE_COMPAT: Readonly<Record<string, V4ZoneTarget>> = {
+/** 兼容归一表（旧十值→新值——新值域优先；viewer3d 同名直通不入表）。
+ *  B7 R1-C 冻结同源机检导出（仅加 export 关键字——值域/逻辑零触碰；
+ *  导出面供 zoneParamFreeze.test.ts 键集同源断言消费）。 */
+export const LEGACY_ZONE_COMPAT: Readonly<Record<string, V4ZoneTarget>> = {
   canvas: { zone: "design" },
   solutions: { zone: "design" },
   studio: { zone: "design" },
