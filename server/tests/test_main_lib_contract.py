@@ -43,10 +43,13 @@ _WHITELIST: frozenset[str] = frozenset({
     "waterprint_server.services.joint_enumeration",
     "waterprint_server.services.project_lifecycle",
     "waterprint_server.services.projects",
+    "waterprint_server.services.report",  # B6（2026-10-09）计算书 Markdown 装配——白名单同步=J 项用户授权 2026-10-10
+    "waterprint_server.services.report_pdf",  # B6（2026-10-09）Typst PDF 计算书导出——同上
     "waterprint_server.services.scene",
     "waterprint_server.services.sensitivity",
     "waterprint_server.services.site",
     "waterprint_server.services.trust",
+    "waterprint_server.services.unit_detail",  # B2（2026-10-09）逐单元结果端点服务——白名单同步=J 项用户授权 2026-10-10
     "waterprint_server.services.validation",
     "waterprint_server.sse_limits",
 })

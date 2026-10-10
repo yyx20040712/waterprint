@@ -41,7 +41,12 @@ pytestmark = pytest.mark.skipif(
 # delete3——openapi 28→31 破面[常设指令推荐序沿册 2026-09-12]；ADR-018
 # +calc/compare1——多工况对比矩阵，32→33 破面[常设指令推荐序沿册
 # 2026-09-12]；AI2 +ai/connection1 +ai/connection/setup1——MCP 一键
-# 接入面，33→35 破面[AI2 任务书预裁决授权 2026-09-13]）。
+# 接入面，33→35 破面[AI2 任务书预裁决授权 2026-09-13]；B2
+# +calc/projects/{}/units/{}/results GET——逐单元结果端点 44→45 破面
+# [b2-20261009 任务书 §二.① 授权 2026-10-09]；B6
+# +calc/projects/{}/report GET +exports/report_pdf POST——计算书
+# Markdown/PDF 双通道 45→47 破面[b6-20261009 批授权 2026-10-09]；锁定面
+# 冻结集同步=J 项用户授权[2026-10-10]）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put", "delete"},
@@ -59,12 +64,15 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/calc/compare/{project_id}": {"get"},  # ADR-018 D5 2026-09-12
     "/api/calc/sensitivity/{project_id}": {"get"},  # 批6e 2026-09-26——全工况投影（wave6 授权 42→43）  # P2 第三批（2026-09-12）：多工况对比矩阵 ADR-018 D5
     "/api/calc/validation/{project_id}": {"get"},  # 2A1 消费批 2026-10-05——校验观测+聚合（warning-aggregation.md 实现接线 43→44）
+    "/api/calc/projects/{project_id}/units/{unit_id}/results": {"get"},  # B2（2026-10-09）逐单元结果端点（44→45）——冻结集同步=J 项授权 2026-10-10
+    "/api/calc/projects/{project_id}/report": {"get"},  # B6（2026-10-09）计算书 Markdown（45→46）——冻结集同步=J 项授权 2026-10-10
     "/api/solution/joint-enumerate": {"post"},  # B4-3（2026-09-20）：全厂联合枚举新正门（ADR-006）
     "/api/exports": {"get"},
     "/api/exports/calcbook": {"post"},
     "/api/exports/audit": {"post"},
     "/api/exports/dxf": {"post"},
     "/api/exports/estimate": {"post"},
+    "/api/exports/report_pdf": {"post"},  # B6（2026-10-09）Typst PDF 计算书导出（46→47）——冻结集同步=J 项授权 2026-10-10
     "/api/exports/ifc": {"post"},  # SC1 D7——BIM 模型（ifc_export 正门）
     "/api/exports/{file_name}": {"get"},  # EXPD D3——产物下载（resolve 闸在 service）
     "/api/events/tasks/{task_id}": {"get"},
@@ -94,7 +102,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 44  # 5+7+7+2+1+1+2+1+1+1+1（B4-3 +solution/joint-enumerate 2026-09-20——36→37 破面[R-B43-5 默认授权记档]）（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①；B4-4b +ai/sessions 三操作 37→40 破面 2026-09-24[R-B43-5 默认授权同制记档]）；F1 +ai/config 两操作 40→42 破面 2026-09-25[brief-F1-ai-config.md §二授权]；批6e +calc/sensitivity GET 42→43 破面 2026-09-26[wave6-master-plan §批6e 授权]；2A1 +calc/validation GET 43→44 破面 2026-10-05[2a1-20261005 任务书 §3 D3/D4 授权——warning-aggregation.md 冻结规格实现接线]
+    assert sum(len(methods) for methods in observed.values()) == 47  # 5+7+7+2+1+1+2+1+1+1+1（B4-3 +solution/joint-enumerate 2026-09-20——36→37 破面[R-B43-5 默认授权记档]）（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①；B4-4b +ai/sessions 三操作 37→40 破面 2026-09-24[R-B43-5 默认授权同制记档]）；F1 +ai/config 两操作 40→42 破面 2026-09-25[brief-F1-ai-config.md §二授权]；批6e +calc/sensitivity GET 42→43 破面 2026-09-26[wave6-master-plan §批6e 授权]；2A1 +calc/validation GET 43→44 破面 2026-10-05[2a1-20261005 任务书 §3 D3/D4 授权——warning-aggregation.md 冻结规格实现接线]；B2 +units/{}/results GET 44→45 破面 2026-10-09[b2-20261009 任务书 §二.① 授权]；B6 +report GET +report_pdf POST 45→47 破面 2026-10-09[b6-20261009 批授权]——冻结集/计数同步=J 项用户授权 2026-10-10
 
 
 @pytest.mark.anyio
