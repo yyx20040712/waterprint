@@ -15,7 +15,7 @@
 | 未定义特性登记 | 总 67（已定义闭合 59 / 临置 0 / 待定义开放 2 / 待拍板 0 / 其他表述 6） | `docs/undefined-features-register.md` 表行 |
 | 快照锚点 | 5（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |
 | 工艺单元包数 | 32 | `core/waterprint/units_lib/*/*/manifest.py` |
-| webapp 测试文件数 | 127 | `webapp/src/**/*.test.*` |
+| webapp 测试文件数 | 130 | `webapp/src/**/*.test.*` |
 | 数据包版本·assumptions | 1.0.0 | `data/assumptions/manifest.yaml` |
 | 数据包版本·coefficients | 1.8.0 | `data/coefficients/manifest.yaml` |
 | 数据包版本·constraint_kb | 2.1.0 | `data/constraint_kb/manifest.yaml` |
