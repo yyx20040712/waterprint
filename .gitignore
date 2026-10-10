@@ -56,3 +56,8 @@ docs/task-handover-prompt.md
 # 用户项目数据（server 工作区运行时产物，不入库；根锚定防全层级吞目录）
 /projects/
 /server/projects/
+
+# 本地运行面（收编批 2026-10-10：沙箱草稿/npm 误生物/视检工具状态——根锚定防全层级吞目录）
+/ai-sandbox/
+webapp/package-lock.json
+/.visual-check-state.json
