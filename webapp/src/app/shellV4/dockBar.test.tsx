@@ -3,7 +3,8 @@
  *
  * v4 底栏双区测试（B2 结果与方案批——完成直达〔§一.4 done 任务行→分析表
  * 直达+相关单元选中〕+failed 错误提示面+dock-ai 会话续接〔P3 d1-N7——
- * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕）。
+ * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕；B3 入口批——AI 连接
+ * 钮/连接设置钮在场+设置 Modal 开+AUTH_EVENT 401 自愈回路）。
  *
  * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身）+done/failed 任务夹具
  * 输出:  断言族：①done 任务行点击→onTaskNavigate({state:"done",unitId})
@@ -11,10 +12,11 @@
  *        透传 ③failed=错误提示行在场（白名单）④会话续接：发送建档后
  *        sessionStorage 持久→重挂恢复同 sessionId
  */
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AUTH_EVENT } from "../../shared/events";
 import { DockBar } from "./dockBar";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
@@ -139,6 +141,58 @@ describe("failed 错误提示面（白名单）", () => {
     const face = container.querySelector('[data-testid="wp-v4-task-error"]');
     expect(face).not.toBeNull();
     expect(face?.textContent).toContain("收敛失败");
+  });
+});
+
+describe("AI 连接+连接设置+401 自愈回路（B3 U3）", () => {
+  it("AI 接入钮+连接设置钮在场（dock AI 窗头行右缀——wp-ai-connect-open/wp-v4-open-settings）", () => {
+    const { container } = renderDock();
+    expect(
+      container.querySelector('[data-testid="wp-ai-connect-open"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="wp-v4-open-settings"]'),
+    ).not.toBeNull();
+  });
+
+  it("点连接设置→TokenSettingsModal 开（密码框+保存/清除/关闭三钮）", async () => {
+    const { container } = renderDock();
+    fireEvent.click(
+      container.querySelector<HTMLButtonElement>(
+        '[data-testid="wp-v4-open-settings"]',
+      ) as HTMLButtonElement,
+    );
+    await waitFor(() => {
+      expect(document.querySelector(".ant-modal")).not.toBeNull();
+    });
+    expect(document.querySelector(".ant-input-password")).not.toBeNull();
+    // 三钮（antd 两字钮默认插空格——去空白比对；测试树无 v4 scoped
+    // ConfigProvider，autoInsertSpace 缺省 true 形如实兼容）
+    const modalButtons = Array.from(
+      document.querySelectorAll(".ant-modal button"),
+    );
+    for (const label of ["保存", "清除", "关闭"]) {
+      expect(
+        modalButtons.find(
+          (b) => (b.textContent ?? "").replace(/\s/g, "") === label,
+        ),
+      ).toBeTruthy();
+    }
+  });
+
+  it("dispatch AUTH_EVENT→连接设置 Modal 自动开（401 自愈回路 parity）", async () => {
+    const { container } = renderDock();
+    // 关闭态起点：Modal 不在场
+    expect(document.querySelector(".ant-modal")).toBeNull();
+    window.dispatchEvent(new Event(AUTH_EVENT));
+    await waitFor(() => {
+      expect(document.querySelector(".ant-modal")).not.toBeNull();
+      expect(document.querySelector(".ant-input-password")).not.toBeNull();
+    });
+    // 自愈态与手动入口同源（连接设置 Modal 单一承载）
+    expect(
+      container.querySelector('[data-testid="wp-v4-open-settings"]'),
+    ).not.toBeNull();
   });
 });
 
