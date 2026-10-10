@@ -320,10 +320,8 @@ def _estimate_impl(
 
 class _SandboxResultView:  # Manager 鸭子面（仅查询两法——R2 适配器）
     """#16 Manager 结果视图适配器：沙箱最近结果集呈现为 done calc 任务。
-
-    server services elevation/scene 取数面=task_ids_for_project→status
-    （两查询方法）——私有 Manager 无任务提交（E2/A3），本适配器以只读
-    视图喂养；不写注册表、不提交任务、不改 server 代码。"""
+    server services elevation/scene 取数面=task_ids_for_project→status（两查询法）
+    ——E2/A3 只读语义；不写注册表、不提交任务、不改 server 代码。"""
 
     def __init__(self, project_id: str, plant: PlantResult, result_file: Path) -> None:
         from waterprint_server.services.calculation import TaskStatus
@@ -345,10 +343,7 @@ class _SandboxResultView:  # Manager 鸭子面（仅查询两法——R2 适配�
                 "design_hash": plant.repro.design_hash,
                 "engine_version": plant.repro.engine_version,
                 "data_version": plant.repro.data_version,
-                # 诊断件伴生键（R1 回炉 W-F）：worker status.result 同键——
-                # services.report._load_diagnostics 消费面，视图对齐使
-                # assemble_report 共享真源在沙箱取到诊断件（值=diag_path_of
-                # 约定路径，与 #16 通道一致；缺失/损坏由服务侧降级面处理）
+                # 诊断件伴生键（R1 W-F）：worker status.result 同键——_load_diagnostics 消费面（缺失/损坏服务侧降级）
                 "diag_file": str(diag_path_of(result_file)),
             },
             project_id=project_id,
