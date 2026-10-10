@@ -1,8 +1,9 @@
-"""check_ruff 门禁脚本镜像直测：四态（双 SKIP/全 OK/单 FAIL/OSError 兜底）。
+"""check_ruff 门禁脚本镜像直测：四态（全 SKIP/全 OK/单 FAIL/OSError 兜底）。
 
 输入:  scripts/check_ruff.py（脚本 REPO 写死不可注入——sys.path 注入
        import+monkeypatch venv 定位/子进程；真实脚本冒烟一跑走子进程）
-输出:  四态断言（输出文案+main() 返回值——SC1 D9③）
+输出:  四态断言（输出文案+main() 返回值——SC1 D9③；三根口径=cifix-20261010
+       R1 agent 根扩入——计数断言随根数走）
 """
 
 from __future__ import annotations
@@ -36,12 +37,13 @@ def fake_python(module):  # type: ignore[no-untyped-def]
 
 
 def test_double_skip_returns_zero(module, monkeypatch, capsys) -> None:
-    """双 SKIP=0（CI 零依赖 job 预期路径——SKIP 语义红线不破）。"""
+    """全 SKIP=0（CI 零依赖 job 预期路径——SKIP 语义红线不破）。"""
     monkeypatch.setattr(module, "locate_venv_python", lambda root: None)
     assert module.main() == 0
     out = capsys.readouterr().out
-    assert out.count("[SKIP] check_ruff") == 2
+    assert out.count("[SKIP] check_ruff") == len(module.SCAN_ROOTS)  # 三根=cifix-R1 扩 agent
     assert "uv sync" in out  # D9②：SKIP 引导语（本地运行请 uv sync）
+    assert "[WARN] 本次实际覆盖面" in out  # cifix-R2：SKIP 静默豁免可见化护栏
 
 
 def test_all_ok_returns_zero(module, monkeypatch, capsys, fake_python) -> None:
@@ -53,7 +55,9 @@ def test_all_ok_returns_zero(module, monkeypatch, capsys, fake_python) -> None:
         lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=b"", stderr=b""),
     )
     assert module.main() == 0
-    assert capsys.readouterr().out.count("[OK] check_ruff") == 2
+    out = capsys.readouterr().out
+    assert out.count("[OK] check_ruff") == len(module.SCAN_ROOTS)
+    assert "[WARN]" not in out  # 全在位零噪音（SKIP 护栏不触发）
 
 
 def test_single_fail_returns_one(module, monkeypatch, capsys, fake_python) -> None:
@@ -61,6 +65,7 @@ def test_single_fail_returns_one(module, monkeypatch, capsys, fake_python) -> No
     monkeypatch.setattr(module, "locate_venv_python", lambda root: fake_python)
     runs = iter([
         SimpleNamespace(returncode=1, stdout=b"", stderr=b"lint boom\n"),
+        SimpleNamespace(returncode=0, stdout=b"", stderr=b""),
         SimpleNamespace(returncode=0, stdout=b"", stderr=b""),
     ])
     monkeypatch.setattr(module.subprocess, "run", lambda *args, **kwargs: next(runs))
@@ -82,13 +87,13 @@ def test_oserror_fallback_returns_one(module, monkeypatch, capsys, fake_python) 
     out = capsys.readouterr().out
     assert "子进程不可用" in out  # 兜底文案（含异常与重建引导）
     assert "uv sync" in out
-    assert out.count("[FAIL] check_ruff") == 2  # 双根皆 OSError=双 FAIL 行
+    assert out.count("[FAIL] check_ruff") == len(module.SCAN_ROOTS)  # 三根皆 OSError=三 FAIL 行
 
 
 def test_real_script_smoke() -> None:
-    """冒烟：真实脚本子进程一跑（本机双 [OK]/CI 双 [SKIP] 皆绿——断言=退出码
+    """冒烟：真实脚本子进程一跑（本机三 [OK]/CI 三 [SKIP] 皆绿——断言=退出码
     0+每根恰一行 [OK]/[SKIP] 且零 [FAIL]；R1-1：无条件 [OK] 断言在 CI
-    零依赖 job（双 venv 缺=双 SKIP）必红——预拦；SC1R-01：推导段收紧为
+    零依赖 job（三 venv 缺=全 SKIP）必红——预拦；SC1R-01：推导段收紧为
     逐根行计数断言——ok/skip/fail 三计数锁，非存在性推导）。"""
     result = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "check_ruff.py")],
@@ -99,7 +104,11 @@ def test_real_script_smoke() -> None:
     text = result.stdout.decode("utf-8", errors="replace")
     assert result.returncode == 0, text + result.stderr.decode("utf-8", errors="replace")
     assert "[FAIL]" not in text
-    for name, _root in (("core", REPO_ROOT / "core"), ("server", REPO_ROOT / "server")):
+    for name, _root in (
+        ("core", REPO_ROOT / "core"),
+        ("server", REPO_ROOT / "server"),
+        ("agent", REPO_ROOT / "agent"),
+    ):
         # SC1R-01 逐根行计数（startswith 判定保精确——含 check_ruff：{name}
         # 的非判定行[进度/引导语]不入三计数；脚本现实输出=判定行恒带前缀）。
         lines = [ln for ln in text.splitlines() if f"check_ruff：{name}" in ln]

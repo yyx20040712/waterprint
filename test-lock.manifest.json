@@ -46,7 +46,7 @@
   "core/tests/app/test_params_guard.py": "dec35d7f82f74150e299a1519c08b8f35f6444eeacaea69634726588953929a4",
   "core/tests/app/test_unit_params_projection.py": "644113c95720e5c3c87f91ed98ab8150f843c6c8e5d5aad236f32e06ab072c5a",
   "core/tests/app/test_validate_design_structure.py": "6d4c507288db83611ee55410e395fcd49bf939f6f920333f4173976d6fd39b90",
-  "core/tests/arch/test_check_ruff.py": "45de8399d4cdc8bae792212f791c55a44b96f7167ac342eee5ff0743ae0c2945",
+  "core/tests/arch/test_check_ruff.py": "a64e05e1a7fb709f88182be31befc36fa70c725af44be37ceadad9acc47e8357",
   "core/tests/arch/test_deprecation_gate.py": "0feeed46f28aed6994c2ac9cf4f06c60ac640d858b6588ee5e5463975e4b6464",
   "core/tests/arch/test_file_budgets.py": "1e662e6830adc5e4a015c0a92c617784d6bc174a066d1efa64dd57f15571e49e",
   "core/tests/arch/test_hygiene.py": "63952694d7748b431dabcebc6f3b0c4291b116b97c4bfc2dd6cb1b791638e2d5",
