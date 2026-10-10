@@ -343,7 +343,7 @@ class _SandboxResultView:  # Manager 鸭子面（仅查询两法——R2 适配�
                 "design_hash": plant.repro.design_hash,
                 "engine_version": plant.repro.engine_version,
                 "data_version": plant.repro.data_version,
-                # 诊断件伴生键（R1 W-F）：worker status.result 同键——_load_diagnostics 消费面（缺失/损坏服务侧降级）
+                # 诊断件伴生键（R1 W-F）：worker status.result 同键；_load_diagnostics 消费
                 "diag_file": str(diag_path_of(result_file)),
             },
             project_id=project_id,

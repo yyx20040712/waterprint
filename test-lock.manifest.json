@@ -12,7 +12,7 @@
   "agent/tests/test_sandbox.py": "213da0fb009656b37afca44d8993155823686c0c12969e9dcb03b61b1a52483b",
   "agent/tests/test_sessionlog.py": "a00a0b38313edef88024eacf51ece90ec6e198fa448005df278367c73236a6aa",
   "agent/tests/test_tools_calc.py": "da30ca8692f2f3ac79ba4e70c61032c28a73631dc8eb6a668874194c0b3e07c6",
-  "agent/tests/test_tools_exports.py": "ad32b04ce0c99c010f712359a885b5e9dcd7a3dab2fe5bbba7b678d818016d1f",
+  "agent/tests/test_tools_exports.py": "fbe984ff4aed708769e5011b8c2a0cf9e96af9110d0916b10116bf30e51c2a4a",
   "agent/tests/test_tools_knowledge.py": "8fa613a4d7f65c82dea0c29cfd1894e1900f963a8455e25993821ab917e6536b",
   "agent/tests/test_tools_projects.py": "55d77933c9687296b7538bb33b8a794623210ca716ebe7b506614c1bc84d6534",
   "agent/tests/test_tools_results.py": "22b9bc437c08bdc650a70d2ddff4f33cea3575959e6ceadaf95ef46b6768c8bd",

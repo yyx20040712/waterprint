@@ -11,9 +11,9 @@ import json
 from pathlib import Path
 
 import pytest
+from waterprint.report.anchors import validate_narrative
 
 from waterprint_agent import context
-from waterprint.report.anchors import validate_narrative
 from waterprint_agent.tools import calc, exports, projects
 
 _META_KEYS = {

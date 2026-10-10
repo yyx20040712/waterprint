@@ -48,7 +48,7 @@ if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律�
     from waterprint_agent.context import AgentContext
 
 from waterprint_agent.tools.calc import atomic_write_bytes
-from waterprint_agent.tools.results import _SandboxResultView, _load_fresh
+from waterprint_agent.tools.results import _load_fresh, _SandboxResultView
 
 __all__ = [
     "register",
@@ -161,7 +161,7 @@ def _export_report_impl(
     loaded = _load_fresh(ctx, project_id)  # R1 stale 门（MCP 侧语义保持）
     if isinstance(loaded, dict):
         return loaded
-    project, plant, result_path = loaded
+    _, plant, result_path = loaded
     # 叙述守卫（MCP 侧语义——拒绝/接受流留本面，装配消费 accepted）
     rejected: dict[str, list[dict[str, str]]] = {}
     accepted: dict[str, str] = {}
@@ -182,13 +182,15 @@ def _export_report_impl(
             service_ctx, project_id, condition_key or None,
             narrative_fills=accepted,
         )
-    except report_service.ReportSourceNotFoundError as exc:
+    except (
+        report_service.ReportSourceNotFoundError,
+        report_service.ReportEntryNotFoundError,
+    ) as exc:  # 两源门同体（结果集缺席/工况单元不在——同 HINT_EXPORT 引导）
         return {"error": str(exc), "hint": _HINT_EXPORT}
-    except report_service.ReportEntryNotFoundError as exc:
-        return {"error": str(exc), "hint": _HINT_EXPORT}
-    except report_service.ReportConditionUnsupportedError as exc:
-        return {"error": str(exc), "hint": _HINT_REPORT}
-    except report_service.ReportVerifyError as exc:
+    except (
+        report_service.ReportConditionUnsupportedError,
+        report_service.ReportVerifyError,
+    ) as exc:  # 报告面同体（非 design 工况/verify 闸——同 HINT_REPORT 引导）
         return {"error": str(exc), "hint": _HINT_REPORT}
     except (
         CostSourceNotFoundError,
