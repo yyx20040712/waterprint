@@ -93,3 +93,33 @@
 上表「R」行=legacy 物理删除候选全集（用户终验后后续批执行）；删除批
 须同批退役对应 legacy 测试件（本账「测试引用」列即清单）并回读本账
 销项。v4 侧「迁」行全部落锚后，本账由 B3 收口（V-3 销项）。
+
+### 共享件豁免清单（B3 R1 回炉 R1-W3——k2-W3 销项）
+
+legacy 物理删除批的豁免面=v4 import 图全量（v4 壳仍在消费的 app/
+features 共享件——删除批不得连带退役）。首版清单（主控 grep 实证
+2026-10-10）：
+
+- `app/jointSolutions.tsx`（JointSubmitForm——designZone 联合 Modal 承载）
+- `app/tokenSettingsModal.tsx`（shellV4 自愈层承载——B3 R1-W1 上提后
+  恒挂载消费）
+- `app/enumerateBar.tsx`（enumerateModal imports EnumerateBar 实证）
+- `features/aiconnect/*`（AiConnectButton/AiConnectModal——dockBar 入口）
+- `features/params/*`（ParamForm/AssumptionsPanel——designZone 左栏）
+- `features/solutions/*`、`features/canvas/*`（取数/画布面）
+
+删除批执行前须以 `grep -rn "from.*\.\./" shellV4/` 实跑核验 v4 import
+面并回读本账（新增消费面即时入豁免清单——本清单非冻结面）。R1 回炉
+批执行者实跑补注（2026-10-10，同一命令）：全量 import 面另含
+features/{ai_chat, compare, drawings, trust}/* 与 app 层
+{solutionsUrlState, ErrorBoundary, createProjectModal, projectCreate,
+catalogCategories, projectParam, useProjectId, zoneParam}——**ribbon.tsx
+例外双面**：zoneBand.tsx:46 仍 import 其纯函数 decideRunCalc/
+paramDraftBlockMessage（M1 件零改红线下的复用），ribbon 本身=组1 退役
+候选——删除批须先拆该纯函数面（提取或改迁）再删件，本行为删除批前置
+条件。
+
+附注（端点真源备注行——兼收 k2-N5）：联合枚举端点
+`/api/solution/joint-enumerate` 的前端真源=orval 生成件
+`shared/api/generated/solution`（生成面=R1-W2 唯一入口锚的扫描排除面，
+定义面非消费面）。
