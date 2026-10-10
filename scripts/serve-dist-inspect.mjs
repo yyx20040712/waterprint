@@ -30,18 +30,24 @@ const MIME = {
 };
 
 function streamFile(res, file, status, type) {
-  res.writeHead(status, { "content-type": type });
-  // 读流错误（删除竞态/权限）不得演化为进程退出：头已发则断连，头未发则 404
-  createReadStream(file).on("error", () => {
+  // 先开流后写头：open 前失败（删除竞态/权限/入口缺失）头未发可回 404；
+  // open 后中途失败头已发只能断连——两态都不演化为进程退出
+  const stream = createReadStream(file);
+  stream.on("open", () => { res.writeHead(status, { "content-type": type }); stream.pipe(res); });
+  stream.on("error", () => {
     if (res.headersSent) res.destroy();
     else { res.writeHead(404, { "content-type": "text/plain" }); res.end("Not Found"); }
-  }).pipe(res);
+  });
+  res.on("close", () => { if (!res.writableFinished) stream.destroy(); }); // 客户端早断回收读流（不空跑到 EOF）
 }
 
 function handle(req, res) {
-  if (req.url === "/api" || req.url.startsWith("/api/")) {
+  const pathOnly = req.url.split("?")[0];
+  if (pathOnly === "/api" || pathOnly.startsWith("/api/")) {
+    // hop-by-hop 头双向不转述：请求侧剔除后转发（TE 由本端 req.pipe 重构帧，原样转述会致上游错帧）
+    const { connection, "keep-alive": keepAlive, "proxy-connection": proxyConn, "transfer-encoding": te, ...reqHeaders } = req.headers;
     const proxy = httpRequest(
-      { ...API_TARGET, path: req.url, method: req.method, headers: { ...req.headers, host: "127.0.0.1:8000" } },
+      { ...API_TARGET, path: req.url, method: req.method, headers: { ...reqHeaders, host: "127.0.0.1:8000" } },
       (up) => {
         // hop-by-hop 头不由代理转述（Connection 族由本端连接自理）
         const { connection, "keep-alive": keepAlive, "transfer-encoding": te, ...headers } = up.headers;
@@ -49,14 +55,14 @@ function handle(req, res) {
         res.flushHeaders(); // SSE：响应头随 flush 下发，不必等首个事件块
         up.pipe(res);
         up.on("error", () => { if (res.headersSent) res.destroy(); });
-      },
-    );
+        up.on("aborted", () => res.destroy()); // 上游半截断流（非 error 路径）幂等兜底
+    });
     proxy.on("error", (e) => {
-      if (res.headersSent) { res.destroy(); return; } // 中途断流守卫：不得对已发头响应重写 502
+      if (res.destroyed || res.writableEnded || res.headersSent) { res.destroy(); return; } // 已毁/已发头守卫：不得重写状态行
       res.writeHead(502, { "content-type": "application/json" });
       res.end(JSON.stringify({ detail: `backend unreachable: ${e.code ?? "unknown"}` }));
     });
-    res.on("close", () => proxy.destroy()); // 客户端断开（关 SSE 页签）即时回收上游连接
+    res.on("close", () => { if (!res.writableFinished) proxy.destroy(); }); // 异常早断才回收（正常完成不误杀——连接可复用）
     req.pipe(proxy);
     return;
   }
@@ -84,6 +90,12 @@ const server = createServer((req, res) => {
     if (res.headersSent) res.destroy();
     else { res.writeHead(500, { "content-type": "application/json" }); res.end(JSON.stringify({ detail: "internal error" })); }
   }
+});
+
+// listen 失败（端口占用等）显式退出，与启动期预检同风格——不带栈崩溃
+server.on("error", (e) => {
+  console.error(`[FAIL] 监听失败: ${e.code ?? e.message}（端口 ${PORT}）`);
+  process.exit(1);
 });
 
 server.listen(PORT, "127.0.0.1", () => {
