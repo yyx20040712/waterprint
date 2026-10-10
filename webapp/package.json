@@ -18,7 +18,7 @@
     "antd": "^6.6.2",
     "dxf-parser": "^1.1.2",
     "echarts": "^6.1.0",
-    "katex": "^0.16.47",
+    "katex": "^0.18.11",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",
