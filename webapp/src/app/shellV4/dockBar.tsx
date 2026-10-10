@@ -19,22 +19,30 @@
  *   - 任务条=TaskPanel 凝缩形：单行进度（bar+percent+状态文案）；校验
  *     结论呈现=B2 处置（校验钮→任务条）；回执页退役=B3；
  *   - SSE 终态→失效任务快照+TASK_EVENT 派发（seatTaskPage 同链——本条
- *     自监听经 URL 重读同值早退幂等）。
+ *     自监听经 URL 重读同值早退幂等）；
+ *   - B3 U3：AI 窗头行右缀 AI 接入+连接设置两入口（legacy Header 右侧
+ *     同族迁 v4）+AUTH_EVENT 401 自愈回路 parity（App.tsx:305-307 同款
+ *     ——customInstance 401 派发→自动开 TokenSettingsModal）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { SettingOutlined } from "@ant-design/icons";
+import { Button } from "antd";
 
 import {
   useChatHistory,
   useSendChatMessage,
 } from "../../features/ai_chat/api/useAiChat";
+import { AiConnectButton } from "../../features/aiconnect/components/AiConnectButton";
+import { AiConnectModal } from "../../features/aiconnect/components/AiConnectModal";
 import { useTaskFeed } from "../../features/solutions/api/useTaskFeed";
 import {
   taskStatusToView,
   type TaskView,
 } from "../../features/solutions/lib/taskFeed";
 import { useGetTaskStatusApiCalcTasksTaskIdGet } from "../../shared/api/generated/calc/calc";
-import { TASK_EVENT } from "../../shared/events";
+import { AUTH_EVENT, TASK_EVENT } from "../../shared/events";
+import { TokenSettingsModal } from "../tokenSettingsModal";
 import { parseEnumParam, parseTaskParam } from "../projectParam";
 
 /** 任务状态文案（TaskPanel STATE_LABELS 凝缩面子集）。 */
@@ -68,6 +76,17 @@ function AiDockWindow() {
   // 最近一轮摘要（用户末问+助手末答各一行——超长截断）
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const lastAssistant = [...messages].reverse().find((m) => m.role !== "user");
+  // B3 U3：AI 接入/连接设置两 Modal 开态（窗头行右缀入口）
+  const [aiConnectOpen, setAiConnectOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // 401 自愈回路 parity（B3 U3）：AUTH_EVENT→自动开连接设置（legacy
+  // App.tsx:305-307 同款——customInstance 401 派发面；卸载移除监听）。
+  useEffect(() => {
+    const openSettings = () => setSettingsOpen(true);
+    window.addEventListener(AUTH_EVENT, openSettings);
+    return () => window.removeEventListener(AUTH_EVENT, openSettings);
+  }, []);
 
   const submit = () => {
     const text = draft.trim();
@@ -95,6 +114,19 @@ function AiDockWindow() {
         {history.isError ? (
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
         ) : null}
+        {/* B3 U3：窗头行右缀两入口（AI 接入=共享件；连接设置=wp-v4-open-settings） */}
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2, flex: "none" }}>
+          <AiConnectButton onClick={() => setAiConnectOpen(true)} />
+          <Button
+            type="text"
+            size="small"
+            icon={<SettingOutlined />}
+            onClick={() => setSettingsOpen(true)}
+            aria-label="连接设置"
+            title="连接设置"
+            data-testid="wp-v4-open-settings"
+          />
+        </span>
       </div>
       <div
         className="wp-v4-dock-main"
@@ -154,6 +186,10 @@ function AiDockWindow() {
           发送
         </button>
       </div>
+      {/* B3 U3：AI 接入+连接设置两 Modal（共享件零改复用；关态零请求扰动
+          ——useAiConnection enabled=open 门控/tokenSettings 零即时校验） */}
+      <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
+      <TokenSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

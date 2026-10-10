@@ -9,8 +9,8 @@
  * 输出:  design-workspace 三栏+dock：左=ParamForm/AssumptionsPanel 复用+
  *        全局骨架卡（B2 扩完整卡）+计算回填空态；中=ThumbnailFlow 缩略
  *        画布（笔3）｜分析表空态（B2 实装）；右=方案区壳（★/Δ 徽标=B2）
- *        +⟳重新枚举 Modal 唯一入口+全厂入口组；底=dockBar（AI 唯一窗+
- *        窄任务条）
+ *        +⟳重新枚举 Modal 唯一入口+全厂入口组（B3：联合枚举 Modal 唯一
+ *        入口=全厂页 wp-v4-joint-open）；底=dockBar（AI 唯一窗+窄任务条）
  *
  * 规格说明（B1 任务书 §三.3——plan §九.1）：
  *   - 左栏三 tab：设计=选中单元输入参数（ParamForm 复用+三式提交 Enter
@@ -23,9 +23,11 @@
  *     记忆=B1 全局规则（拖柄 wp-v4-drag）。
  */
 import { useEffect, useRef, useState } from "react";
+import { Button, Modal } from "antd";
 
 import { AssumptionsPanel } from "../../features/params/components/AssumptionsPanel";
 import { ParamForm } from "../../features/params/components/ParamForm";
+import { JointSubmitForm } from "../jointSolutions";
 import { useProjectId } from "../useProjectId";
 import type { DesignSubpage, V4ZoneTarget } from "../zoneParam";
 import { DockBar } from "./dockBar";
@@ -100,6 +102,8 @@ export function DesignZone({
   const [leftTab, setLeftTab] = useState<"design" | "empirical" | "global">("design");
   const [rightTab, setRightTab] = useState<"unit" | "plant">("unit");
   const [enumOpen, setEnumOpen] = useState(false);
+  // 联合枚举 Modal 开态（B3 U2——全厂页唯一提交入口）
+  const [jointOpen, setJointOpen] = useState(false);
   // 方案驱动来源（数据流① 上抛态——左栏计算回填区标注消费；B2 §三.2）
   const [appliedSource, setAppliedSource] = useState<{
     unitId: string;
@@ -362,6 +366,18 @@ export function DesignZone({
               />
             ) : (
               <>
+                {/* 联合枚举唯一提交入口（B3 U2——JointSubmitForm 复用件承载，
+                    提交回路零新写：生成钩子/TASK_EVENT 派发均在复用件内） */}
+                <div style={{ display: "flex", gap: 6, paddingBottom: 4 }}>
+                  <Button
+                    size="small"
+                    onClick={() => setJointOpen(true)}
+                    data-testid="wp-v4-joint-open"
+                    disabled={projectId === null}
+                  >
+                    联合枚举…
+                  </Button>
+                </div>
                 <JointSolutionCards
                   projectId={projectId}
                   onApplied={setAppliedSource}
@@ -400,6 +416,28 @@ export function DesignZone({
         projectId={projectId}
         unitId={selectedUnitId}
       />
+      {/* 联合枚举 Modal（B3 U2——enumerateModal 先例制式：v4 scoped 主题下
+          antd Modal+无项目态引导；JointSubmitForm 自取清单/判据/提交） */}
+      <Modal
+        title="联合枚举"
+        open={jointOpen}
+        onCancel={() => setJointOpen(false)}
+        footer={null}
+        width={760}
+        destroyOnHidden
+        data-testid="wp-v4-joint-modal"
+      >
+        {projectId === null ? (
+          <span style={{ color: "var(--wp-text-2)", fontSize: 12 }}>
+            尚未选择项目——先在「项目」区打开或新建
+          </span>
+        ) : (
+          <JointSubmitForm
+            projectId={projectId}
+            onSubmitted={() => setJointOpen(false)}
+          />
+        )}
+      </Modal>
       <DockBar
         onTaskNavigate={(target) => {
           if (target.state === "done") {
