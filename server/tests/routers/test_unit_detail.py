@@ -29,7 +29,7 @@ _EXPECTED_UNIT_DETAIL = {
 
 
 def _aao_project_payload() -> dict[str, object]:
-    """inlet→AAO 项目载荷（AAO=out_dims 29 条声明面——test_compare 同源）。"""
+    """inlet→AAO 项目载荷（AAO=out_dims 33 条声明面——test_compare 同源；D1 批+4）。"""
     return {
         "project": {
             "format_version": "1.0",
