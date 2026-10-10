@@ -12,7 +12,7 @@
 > 批同步退役**（B3 冻结不动——在场=正常绿，非欠账）；v4 侧新锚测试在
 > 本批 U4/U5 落位。
 
-## 组1 Ribbon 族（legacy 顶栏——App.tsx:404 挂载）
+## 组1 Ribbon 族（legacy 顶栏——App.tsx:404 挂载；B7 拆件行勘正：挂载点随 JSX 主体迁 legacyShell.tsx:232〔Ribbon〕——行号引用按 2026-10-10 HEAD，受影响行局部勘正非整表重写）
 
 | 入口 id | 源组件:行 | 去向 | 测试引用与同步态 | 备注 |
 |---|---|---|---|---|
@@ -22,11 +22,11 @@
 | wp-ribbon-validate「校验」 | ribbon.tsx:419 | 迁=zoneBand wp-v4-validate〔zoneBand.tsx:300〕 | ribbon.test.tsx:157-162 在场 | Popover 报告→v4 message 即时反馈（B2 挂账收口） |
 | wp-ribbon-export+菜单两锚（total-dxf/open-pane） | ribbonExportMenu.tsx:122/130/136 | 迁=draftingZone ExportButton 复用〔draftingZone.tsx:105〕+树导航 | ribbon.test.tsx:232-278 在场 | 导出域=制图区（v4-2 终裁） |
 | wp-ribbon-viewer3d「三维快访」 | ribbon.tsx:454（行勘正：prep 记 453-460 区段） | 迁=zoneBand 页签 wp-v4-zone-viewer3d | ribbon.test.tsx:157-162,275 在场 | viewer3dZone 全幅 |
-| wp-open-manager-header「项目管理」 | App.tsx:413 | 迁=projectsZone wp-v4-proj-open-*〔projectsZone.tsx:156〕 | projectManagerModal.test.tsx 在场（复用件内核） | 新建/导入/复制/重命名四动作齐 |
-| AiConnectButton「AI 接入」 | App.tsx:415 | 迁=dockBar AI 窗头行〔dockBar.tsx——B3 U3 补面〕 | AiConnectButton.test.tsx/AiConnectModal.test.tsx 在场（共享件） | 共享件 import 复用零改 |
-| 「连接设置」钮（SettingOutlined） | App.tsx:418-424 | 迁=dockBar wp-v4-open-settings〔dockBar.tsx——B3 U3 补面〕 | tokenSettings 语义面由 dockBar 新测试承载（U5） | TokenSettingsModal 共享件复用；AUTH_EVENT 401 自愈 parity |
+| wp-open-manager-header「项目管理」 | App.tsx:413（B7 拆件行勘正：→legacyShell.tsx:241） | 迁=projectsZone wp-v4-proj-open-*〔projectsZone.tsx:156〕 | projectManagerModal.test.tsx 在场（复用件内核） | 新建/导入/复制/重命名四动作齐 |
+| AiConnectButton「AI 接入」 | App.tsx:415（B7 拆件行勘正：→legacyShell.tsx:243） | 迁=dockBar AI 窗头行〔dockBar.tsx——B3 U3 补面〕 | AiConnectButton.test.tsx/AiConnectModal.test.tsx 在场（共享件） | 共享件 import 复用零改 |
+| 「连接设置」钮（SettingOutlined） | App.tsx:418-424（B7 拆件行勘正：→legacyShell.tsx:246-252） | 迁=dockBar wp-v4-open-settings〔dockBar.tsx——B3 U3 补面〕 | tokenSettings 语义面由 dockBar 新测试承载（U5） | TokenSettingsModal 共享件复用；AUTH_EVENT 401 自愈 parity |
 
-## 组2 AI 席位三分页（aiSeat.tsx——App.tsx:549-553 data-region=ai-seat）
+## 组2 AI 席位三分页（aiSeat.tsx——App.tsx:549-553 data-region=ai-seat；B7 拆件行勘正：→legacyShell.tsx:376-381）
 
 | 入口 id | 源组件:行 | 去向 | 测试引用与同步态 | 备注 |
 |---|---|---|---|---|
