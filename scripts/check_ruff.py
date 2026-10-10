@@ -12,9 +12,9 @@
 # 规格说明（出处：CI .github/workflows/ci.yml core/server quality job
 # 同款命令 `uv run ruff check .`；T7a 曾因本地门禁不含 ruff 致 C416
 # 漏网至 R2——本脚本补齐本地聚合口径，消灭"本地绿、CI 红"盲区）。
-# 双根三态口径（ENG1-R1 SKIP 语义修复 + ENG6 扩面 server——L5 CI 事故
+# 三根三态口径（ENG1-R1 SKIP 语义修复 + ENG6 扩面 server——L5 CI 事故
 # 后 server 面本地盲区销账）：
-#   a) SCAN_ROOTS 双根（core/server）：逐根定位各自虚拟环境解释器
+#   a) SCAN_ROOTS 三根（core/server/agent）：逐根定位各自虚拟环境解释器
 #      （win=`<root>/.venv/Scripts/python.exe`、posix=`<root>/.venv/bin/
 #      python`）；缺失根 = 该根单行 [SKIP] 退出码不计失败——CI「架构门禁
 #      （零依赖，系统 Python）」job 不装 venv，双 SKIP=退出码 0 属预期
@@ -34,10 +34,14 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 
-# 双根扫描面（根名, 根路径）——ruff 按 cwd 取各自 pyproject 配置。
+# 三根扫描面（根名, 根路径）——ruff 按 cwd 取各自 pyproject 配置。
+# agent 根扩入（cifix-20261010——CI 智能体套件 job 含 uv run ruff check .
+# 而本地双根域不含=本地绿≠CI 盲区，2026-10-10 CI 红复发根因；三根对齐
+# CI 全域后该域差销账）。
 SCAN_ROOTS: tuple[tuple[str, Path], ...] = (
     ("core", REPO / "core"),
     ("server", REPO / "server"),
+    ("agent", REPO / "agent"),
 )
 
 
