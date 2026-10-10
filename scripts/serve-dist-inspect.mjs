@@ -29,13 +29,38 @@ const MIME = {
   ".ico": "image/x-icon", ".woff2": "font/woff2", ".map": "application/json",
 };
 
+// RFC 7230 §6.1 hop-by-hop 头全集（固定族）+ Connection 值点名头（动态族）
+const HOP_BY_HOP = new Set([
+  "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+  "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade",
+]);
+
+function stripHopByHop(headers) {
+  const { connection, ...rest } = headers;
+  const named = new Set(
+    String(Array.isArray(connection) ? connection.join(",") : connection ?? "")
+      .split(",").map((t) => t.trim().toLowerCase()).filter(Boolean),
+  );
+  const out = {};
+  for (const [k, v] of Object.entries(rest)) {
+    if (HOP_BY_HOP.has(k) || named.has(k)) continue; // Node 入站头已小写化
+    out[k] = v;
+  }
+  return out;
+}
+
 function streamFile(res, file, status, type) {
   // 先开流后写头：open 前失败（删除竞态/权限/入口缺失）头未发可回 404；
   // open 后中途失败头已发只能断连——两态都不演化为进程退出
   const stream = createReadStream(file);
-  stream.on("open", () => { res.writeHead(status, { "content-type": type }); stream.pipe(res); });
-  stream.on("error", () => {
-    if (res.headersSent) res.destroy();
+  stream.on("open", () => {
+    if (res.destroyed || res.writableEnded) { stream.destroy(); return; } // open 前客户端已断
+    res.writeHead(status, { "content-type": type });
+    stream.pipe(res);
+  });
+  stream.on("error", (err) => {
+    console.error(`[serve-dist-inspect] 读流失败 ${err.code ?? err.message}`);
+    if (res.destroyed || res.writableEnded || res.headersSent) res.destroy();
     else { res.writeHead(404, { "content-type": "text/plain" }); res.end("Not Found"); }
   });
   res.on("close", () => { if (!res.writableFinished) stream.destroy(); }); // 客户端早断回收读流（不空跑到 EOF）
@@ -44,20 +69,24 @@ function streamFile(res, file, status, type) {
 function handle(req, res) {
   const pathOnly = req.url.split("?")[0];
   if (pathOnly === "/api" || pathOnly.startsWith("/api/")) {
-    // hop-by-hop 头双向不转述：请求侧剔除后转发（TE 由本端 req.pipe 重构帧，原样转述会致上游错帧）
-    const { connection, "keep-alive": keepAlive, "proxy-connection": proxyConn, "transfer-encoding": te, ...reqHeaders } = req.headers;
+    // hop-by-hop 头双向不转述（固定族+Connection 点名动态族）；帧由本端 pipe 重构
     const proxy = httpRequest(
-      { ...API_TARGET, path: req.url, method: req.method, headers: { ...reqHeaders, host: "127.0.0.1:8000" } },
+      { ...API_TARGET, path: req.url, method: req.method, headers: { ...stripHopByHop(req.headers), host: "127.0.0.1:8000" } },
       (up) => {
-        // hop-by-hop 头不由代理转述（Connection 族由本端连接自理）
-        const { connection, "keep-alive": keepAlive, "transfer-encoding": te, ...headers } = up.headers;
-        res.writeHead(up.statusCode, headers);
+        res.writeHead(up.statusCode, stripHopByHop(up.headers));
         res.flushHeaders(); // SSE：响应头随 flush 下发，不必等首个事件块
         up.pipe(res);
         up.on("error", () => { if (res.headersSent) res.destroy(); });
-        up.on("aborted", () => res.destroy()); // 上游半截断流（非 error 路径）幂等兜底
+        // 上游未竟关闭（SSE 中途死等非 error 路径）——close+!complete 判据（aborted 事件已弃用不依赖）
+        up.on("close", () => {
+          if (!up.complete) {
+            console.error("[serve-dist-inspect] 上游提前断流（close 未竟）");
+            if (!res.writableEnded) res.destroy();
+          }
+        });
     });
     proxy.on("error", (e) => {
+      console.error(`[serve-dist-inspect] 反代失败 ${e.code ?? e.message}`);
       if (res.destroyed || res.writableEnded || res.headersSent) { res.destroy(); return; } // 已毁/已发头守卫：不得重写状态行
       res.writeHead(502, { "content-type": "application/json" });
       res.end(JSON.stringify({ detail: `backend unreachable: ${e.code ?? "unknown"}` }));
