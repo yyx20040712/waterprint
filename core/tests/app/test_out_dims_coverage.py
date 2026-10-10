@@ -34,11 +34,10 @@ from waterprint.units_lib import discover_units
 # 输出键（均经 drawing_projection dim_of 声明——消费面键）且缺 4 个公式
 # 输出键（raw 几何×2+内回流×2）；cass 含 5 个非公式输出键（同 projection
 # 声明）、公式输出全量在册。语义详注=impl-report-b5.md 自裁申报 R-2。
-_FROZEN_MISSING: Mapping[str, frozenset[str]] = MappingProxyType({
-    "municipal_aao": frozenset(
-        {"b_pool_raw", "l_pool_raw", "q_internal", "q_return"}
-    ),
-})
+# D1 翻案批（2026-10-10 用户裁决 B 项）：aao 补 4 缺键（AO-F17/F18
+# b_pool_raw/l_pool_raw LENGTH+AO-F13/F14 q_return/q_internal 翻案
+# FLOW_H）——_FROZEN_MISSING aao 行销项（空集=全包公式输出零缺口基线）。
+_FROZEN_MISSING: Mapping[str, frozenset[str]] = MappingProxyType({})
 _FROZEN_EXTRA: Mapping[str, frozenset[str]] = MappingProxyType({
     "municipal_aao": frozenset(
         {"b_pool", "delta_n", "l_pool", "n", "n_aerator", "t_total",

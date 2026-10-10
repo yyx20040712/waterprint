@@ -67,6 +67,9 @@ _L = DimKey.LENGTH
 _F = DimKey.FLOW
 _A = DimKey.AREA
 _V = DimKey.VELOCITY
+# D1 翻案批（2026-10-10）：单灯功率 W 刻度档（p_lamp 参数+KZ-F5 输入
+# 注记与 dimensions 注册表三面同批翻案——R1a 对账零漂移）
+_P = DimKey.POWER
 
 _FORMULAS: tuple[FormulaSpec, ...] = (
     FormulaSpec(
@@ -116,7 +119,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
         "KZ-F5",
         "i_avg = p_lamp * n_layer * eta_geo * t_eff * f_aging * f_fouling / (10 * a_ch)",
         {
-            "p_lamp": (_D, "单灯功率 W（参数 p_lamp）"),
+            "p_lamp": (_P, "单灯功率 W（参数 p_lamp——D1 翻案 POWER）"),
             "n_layer": (_D, "每排灯数（参数 n_layer）"),
             "eta_geo": (_D, "几何效率（factor.mine_ziwai.eta_geo）"),
             "t_eff": (_D, "有效穿透率（KZ-F4）"),
@@ -221,7 +224,9 @@ manifest = load_manifest(
             {
                 "field_id": "p_lamp",
                 "label_zh": "单灯功率",
-                "dim": "DIMENSIONLESS",
+                # D1 翻案批（2026-10-10）：DIMENSIONLESS→POWER（R1a 与
+                # dimensions 注册表同步翻案——值语义 W 恒等零换算）
+                "dim": "POWER",
                 "default": 250.0,
             },
             {"field_id": "n_layer", "label_zh": "每排灯数", "dim": "DIMENSIONLESS", "default": 6.0},

@@ -219,7 +219,12 @@ DIMENSION_SPECS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     # M1A；h_channel=1.2/p_lamp=250 W/n_layer=6/d_long=0.12/xi_total=3/
     # n_t=1.5/t254=65 % 百分数口径新增）
     ("h_channel", "LENGTH", "m", "units.fields.h_channel", "geometry"),
-    ("p_lamp", "DIMENSIONLESS", "", "units.fields.p_lamp", "equipment"),
+    # D1 翻案批（2026-10-10 用户裁决）：p_lamp 值语义本就是 W（灯管功率，
+    # DimKey.POWER 规范单位恒等）——DIMENSIONLESS 裸值登记翻案归位；
+    # 同批评估的 q_avg_daily（m³/d）/dn_inlet（mm）因 FLOW 规范刻度=m3/s、
+    # LENGTH=m 与值语义错位（值换算跨 manifest/消费面=越权）申报遗留
+    # （新 DimKey 量类成员=用户裁决位）。
+    ("p_lamp", "POWER", "W", "units.fields.p_lamp", "equipment"),
     ("n_layer", "DIMENSIONLESS", "", "units.fields.n_layer", "equipment"),
     ("d_long", "LENGTH", "m", "units.fields.d_long", "equipment"),
     ("xi_total", "DIMENSIONLESS", "", "units.fields.xi_total", "load"),

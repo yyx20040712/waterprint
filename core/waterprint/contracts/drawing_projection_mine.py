@@ -58,6 +58,9 @@ _F = DimKey.FLOW
 _A = DimKey.AREA
 _V = DimKey.VOLUME
 _VEL = DimKey.VELOCITY
+# D1 翻案批（2026-10-10 用户裁决 C1）：t_total min 刻度档——
+# ningjiao t_total DIMENSIONLESS 裸值翻案 TIME_MIN（对账三写面同批）。
+_TMIN = DimKey.TIME_MIN
 
 # ── 矿井水线 8 单元取数表（2026-08-27 全链单点图实跑提取 107 键逐键
 #    归位；AI 起草待追认。分类原则=几何上图量入取数类，校核/过程/衡算
@@ -128,7 +131,7 @@ MINE_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "b_raw": _L, "gt_total": _D, "h_total": _L, "l1": _L,
                 "l2": _L, "l3": _L, "l4": _L, "m_pac": _D, "m_pam": _D,
                 "m_seed": _D, "p1": _D, "p2": _D, "p3": _D, "p4": _D,
-                "p_total": _D, "t_total": _D, "v1": _V, "v2": _V,
+                "p_total": _D, "t_total": _TMIN, "v1": _V, "v2": _V,
                 "v3": _V, "v4": _V, "v_concrete": _V, "e_stir": _D,},
     ),
     # 磁分离：n_disks 磁盘盘片数→实例数（disk 语义标签——scene

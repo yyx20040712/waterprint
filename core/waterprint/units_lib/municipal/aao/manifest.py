@@ -67,6 +67,8 @@ _AREA = DimKey.AREA
 # 选择（无贴切档）终结，翻案归位真刻度。
 _TH = DimKey.TIME_H
 _TD = DimKey.TIME_D
+# D1 翻案批（2026-10-10）：AO-F13/F14 回流量翻案 FLOW_H（m3/h 值语义恒等）
+_FH = DimKey.FLOW_H
 # L7 池体图元批几何族出处（CASS CA-F8/F24~F26/F11 同族平移——非三表行，
 # 总控 L7 D3/D5 裁定；待领域专家追认）
 _GEO_HB = (
@@ -215,7 +217,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "r_external": (_D, "外回流比（参数 r_external）"),
             "q_design_h": (_D, "最高时流量 m3/h（=q_design×sec_per_hour）"),
         },
-        _D,
+        _FH,
         "《给水排水设计手册（第 5 册 城镇排水）》AAO 外回流常用带；"
         "外回流泵按最高时流量口径（与二沉最高时水力联动配套，双口径"
         "注记见 docs/norms/aao.md——待领域专家追认）",
@@ -227,7 +229,7 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "r_internal": (_D, "内回流比（参数 r_internal）"),
             "q_avg_h": (_D, "平均时流量 m3/h（=q_avg_daily×sec_per_hour）"),
         },
-        _D,
+        _FH,
         "《给水排水设计手册（第 5 册 城镇排水）》AAO 内回流常用带；"
         "内回流泵按平均时流量口径（平均日运行+变频调节，双口径"
         "注记见 docs/norms/aao.md——待领域专家追认）",
@@ -354,20 +356,10 @@ manifest = load_manifest(
                 "default": 1.5,
                 "range": {"min": 1.0, "max": 2.0},
             },
-            {
-                "field_id": "r_external",
-                "label_zh": "外回流比",
-                "dim": "DIMENSIONLESS",
-                "default": 1.0,
-                "range": {"min": 0.5, "max": 1.0},
-            },
-            {
-                "field_id": "r_internal",
-                "label_zh": "内回流比",
-                "dim": "DIMENSIONLESS",
-                "default": 2.0,
-                "range": {"min": 1.0, "max": 3.0},
-            },
+            {"field_id": "r_external", "label_zh": "外回流比", "dim": "DIMENSIONLESS",
+             "default": 1.0, "range": {"min": 0.5, "max": 1.0}},
+            {"field_id": "r_internal", "label_zh": "内回流比", "dim": "DIMENSIONLESS",
+             "default": 2.0, "range": {"min": 1.0, "max": 3.0}},
             # tn_eff 双口径并存记档（NP2）：池容 AO-F4 设计目标 tn_eff=15
             # （AO-F4 入参 delta_n=TN_in−tn_eff，辖池容机理链）与出流水质
             # 键族 TN=TN_in×(1−removal.aao.tn)（辖出流水质链）双口径并行
@@ -475,6 +467,8 @@ manifest = load_manifest(
             {"field_id": "a_pool", "dim": "AREA", "label_zh": "池体水面总面积"},
             {"field_id": "b_pool", "dim": "LENGTH", "label_zh": "池宽（圆整）"},
             {"field_id": "l_pool", "dim": "LENGTH", "label_zh": "池长（圆整）"},
+            {"field_id": "b_pool_raw", "dim": "LENGTH", "label_zh": "池宽（未圆整）"},
+            {"field_id": "l_pool_raw", "dim": "LENGTH", "label_zh": "池长（未圆整）"},
             {"field_id": "h_pool", "dim": "LENGTH", "label_zh": "池深（构造）"},
             {"field_id": "v_pool", "dim": "VOLUME", "label_zh": "池体容积（构造）"},
             {"field_id": "theta_c", "dim": "TIME_D", "label_zh": "污泥龄"},
@@ -490,6 +484,8 @@ manifest = load_manifest(
             {"field_id": "n_aerator", "dim": "DIMENSIONLESS",
              "label_zh": "曝气头个数（单池好氧区）"},
             {"field_id": "q_air", "dim": "FLOW", "label_zh": "曝气供气量"},
+            {"field_id": "q_return", "dim": "FLOW_H", "label_zh": "外回流流量（最高时）"},
+            {"field_id": "q_internal", "dim": "FLOW_H", "label_zh": "内回流流量（平均时）"},
             {"field_id": "p_blower", "dim": "DIMENSIONLESS", "label_zh": "风机轴功率（kW）"},
             {"field_id": "e_aeration", "dim": "DIMENSIONLESS", "label_zh": "曝气日耗电（kWh/d）"},
             {"field_id": "p_stir", "dim": "DIMENSIONLESS", "label_zh": "缺氧厌氧搅拌功率（kW）"},

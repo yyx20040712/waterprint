@@ -120,7 +120,10 @@ _FORMULAS: tuple[FormulaSpec, ...] = (
             "q_design": (_F, "最高时设计流量 m3/s（×3600 转 m3/h 口径）"),
             "n": (_D, "池数"),
         },
-        _D,
+        # D1 翻案批（2026-10-10 用户裁决 C1）：t_total 值语义=min（×60 折算
+        # 在式内——量纲恒等）——DIMENSIONLESS 裸值登记翻案 TIME_MIN，
+        # 与 aao t_total TIME_H（h 档）同归时序真刻度（单位分裂终结）。
+        _TMIN,
         _HB,
     ),
     FormulaSpec(
@@ -358,7 +361,7 @@ manifest = load_manifest(
             {"field_id": "v2", "dim": "VOLUME", "label_zh": "磁种混合区容积"},
             {"field_id": "v3", "dim": "VOLUME", "label_zh": "絮凝区容积"},
             {"field_id": "v4", "dim": "VOLUME", "label_zh": "熟化区容积"},
-            {"field_id": "t_total", "dim": "DIMENSIONLESS", "label_zh": "总停留时间（min）"},
+            {"field_id": "t_total", "dim": "TIME_MIN", "label_zh": "总停留时间（min）"},
             {"field_id": "p_i", "dim": "DIMENSIONLESS", "label_zh": "各区搅拌功率（kW）"},
             {"field_id": "a_i", "dim": "AREA", "label_zh": "各区平面面积"},
             {"field_id": "b_raw", "dim": "LENGTH", "label_zh": "池宽（未圆整）"},

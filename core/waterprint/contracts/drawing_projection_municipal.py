@@ -168,7 +168,7 @@ MUNICIPAL_PROJECTIONS: Final[Mapping[str, UnitProjection]] = MappingProxyType({
                 "h2": _L, "h_pool": _L, "l_pool": _L, "l_pool_raw": _L,
                 "n": _D, "n_aerator": _D, "n_aerator_raw": _D,
                 "o2_carbon": _M, "o2_denit": _M, "o2_nit": _M, "o2_total": _M,
-                "q_internal": _D, "q_return": _D, "q_wet": _V, "s_y": _M,
+                "q_internal": _FH, "q_return": _FH, "q_wet": _V, "s_y": _M,
                 "t_n": _TH, "t_o": _TH, "t_total": _TH, "theta_c": _TD,
                 "v_anaerobic": _V, "v_anoxic": _V, "v_o": _V,
                 "v_o_series": _V, "v_pool": _V, "v_total": _V, "x_vss": _C,

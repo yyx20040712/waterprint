@@ -144,13 +144,9 @@ _SOLO_CASS: dict[str, str] = {
 
 # 镜像层例外（族对 ID→豁免输出键，逐条述因）：out_dims=消费投影非
 # 义务全集（B4-2a W-3② 口径）——两侧投影面差异是知情差异，非公式分叉。
-_MIRROR_EXEMPT: dict[str, tuple[str, ...]] = {
-    # AAO 侧仅投影圆整后 b_pool/l_pool（不暴露 raw 中间键）；CASS 侧
-    # raw+圆整四键全投影——消费投影面差异；AAO 补键将胀 l7 non_drawn
-    # 锁面期望（B4-2a W-3② 挂账：raw 键消费面立项时随批登记）。
-    "AO-F17": ("l_pool_raw",),
-    "AO-F18": ("b_pool_raw",),
-}
+# D1 翻案批（2026-10-10 用户裁决 B 项）：aao 补 raw 两键销 AO-F17/F18
+# 豁免（aao/cass raw+圆整四键全投影对齐——B4-2a W-3② 挂账闭账）。
+_MIRROR_EXEMPT: dict[str, tuple[str, ...]] = {}
 
 # ── 比对层 ─────────────────────────────────────────────────────────
 
