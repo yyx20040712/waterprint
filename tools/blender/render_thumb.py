@@ -49,9 +49,11 @@ SUN_ENERGY = 3.3
 FILL_ENERGY = 1.2
 # 2026-10-14 三跳迁移勘正：HDRI env 覆盖制式（旧默认 D:\ 盘资产未随迁——
 # 缺文件走既有 FALLBACK 纯色降级；素材拷入后 export HDRI_PATH=<exr 绝对路径>）。
+# 同日销账：HDRI 已自 Windows 侧拷入（4 文件 SHA256 两侧核对一致）——
+# 默认路径实存，render 冒烟 17s 出图无 FALLBACK（辐流族实录）。
 HDRI_PATH = os.environ.get(
     "HDRI_PATH",
-    "/home/yyx/work/智水蓝图/blender_work/HDRI/studio_small_08_4k.exr",  # 用户指定库（待承办落位）
+    "/home/yyx/work/智水蓝图/blender_work/HDRI/studio_small_08_4k.exr",  # 用户指定库
 )
 HDRI_STRENGTH = 0.50          # HDRI=环境反射/补光（0.55 辐流峰 92.4% 微超
                               # 0.92 带→0.50 复验；批4 曾试 0.45——门一 W7
