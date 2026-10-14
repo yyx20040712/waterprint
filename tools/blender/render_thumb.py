@@ -47,7 +47,12 @@ EXPOSURE_EV = -0.85           # Cycles 物理光照提档（Eevee -1.15 实测�
                               # 44/38/36 低于带——+0.3EV 复验 48~58 带内）
 SUN_ENERGY = 3.3
 FILL_ENERGY = 1.2
-HDRI_PATH = r"D:\blender_work\HDRI\studio_small_08_4k.exr"  # 用户指定库
+# 2026-10-14 三跳迁移勘正：HDRI env 覆盖制式（旧默认 D:\ 盘资产未随迁——
+# 缺文件走既有 FALLBACK 纯色降级；素材拷入后 export HDRI_PATH=<exr 绝对路径>）。
+HDRI_PATH = os.environ.get(
+    "HDRI_PATH",
+    "/home/yyx/work/智水蓝图/blender_work/HDRI/studio_small_08_4k.exr",  # 用户指定库（待承办落位）
+)
 HDRI_STRENGTH = 0.50          # HDRI=环境反射/补光（0.55 辐流峰 92.4% 微超
                               # 0.92 带→0.50 复验；批4 曾试 0.45——门一 W7
                               # 全局档影响面（既往三族基线漂移）回滚，grit

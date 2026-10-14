@@ -8,9 +8,13 @@
 > 前任交接：`E:/zcode_md/治理批-复杂度治理-2026-09-18/00-交接文档-新会话继续.md`
 > （2026-09-18 同日建立——内容已并入本板首批批次日志，克隆者以本板为准）。
 
-> **标准注入词（rev5 口径 2026-09-26——workflow 通道）**：
-> - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板）：「接任交接：你是 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
-> - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 E:\class\智水蓝图\waterprint\docs\handoff\relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 E:\class\智水蓝图\waterprint，相对路径以此为基。禁止创建任何新自动化。」
+> **标准注入词（rev5 口径 2026-09-26——workflow 通道；2026-10-14 路径
+> 勘正：工作区根 E:\class\智水蓝图\waterprint → /home/yyx/work/智水蓝图/
+> waterprint〔三跳迁移 Windows→WSL→VMware 后 Linux 实况〕——注入词
+> 语义零变，仅路径勘正；板 DONE 态不升 protocol_rev）**：
+> - 调度员窗口（迁火/接任用，工作区不限；布火为重活允许载技能，此后每班只读板调度）：「接任交接：你是 /home/yyx/work/智水蓝图/waterprint/docs/handoff/relay.md 的当班 hub 总调度员——读板头+protocol 段（现行 rev）→ 按 batch-relay 技能 references/ops-manual.md 换防协议迁火并回填 automation_id → 提交推送 → 随即按 protocol 段开批通道 rev5（CreateWorkflow saved batch-relay-executor）发布执行者并原子写 last_dispatch_utc+workflow_run_id → 此后每班火只读板调度，禁执行禁重活禁载技能」
+> - 执行者窗口（手动兜底发布用；常规发布=执行工作流子代理，无需此窗）：「基于 /home/yyx/work/智水蓝图/waterprint/docs/handoff/relay.md 交接文档继续开发——读板（板头字段区+protocol 段+执行路由+执行清单+批次日志末 3 条）按 protocol 段执行者条款认领并执行本批；组织主干优先 Skill 加载 ai-dev-org，无 Skill 工具则直接读工作区根 AGENTS.md 与 .zcode/org-ledger.jsonl 等价替代；板 protocol 段缺失/预检失败才加载技能 batch-relay 兜底。无人值守：不等待人工答疑，用户域阻塞按停止事由 HOLD(stop_matter) 收口。工作区根 /home/yyx/work/智水蓝图/waterprint，相对路径以此为基。禁止创建任何新自动化。」
+> - 环境差异注记（2026-10-14）：①ADR-021 D3 沙箱默认根的「E:\class\智水蓝图\ai-sandbox（须 Windows 原生路径）」为 Windows 时代记载——Linux 实测 sandbox_root() 相对解析正确（仓库上一级/ai-sandbox）；env WATERPRINT_AI_SANDBOX 以 POSIX 路径覆盖的静默回落行为未实测（挂账，启用 agent 面批次时门二实证）；②Blender=/opt/blender-5.0.1-linux-x64/blender（软链 ~/.local/bin/blender）；③HDRI 素材未随迁（render_thumb FALLBACK 纯色降级，画质受损非阻塞）——三维渲染批前宜用户承办拷入。
 
 - status: DONE <!-- 2026-09-30T00:18Z 板面终态 DONE（增补七十三）：用户裁决「清理挂账中竞赛与软著描述」→⑤b 撤项勾选（撤项非工程完成），`grep -cE '^[[:space:]]*- \[ \]'` 计 0=收口判定①命中；旧值 HOLD（2026-09-29T13:38:30Z 批6o stop_matter） -->
 - automation_id: automation-51612b27-4593-49de-bcbb-2cecf1a03e0a <!-- 2026-09-29 二次换防迁火回填（*/20 节律维持——用户显式再启接任交接）；旧值 automation-a23ac2a7…（10 班轮转后 paused 清场删除——批6i/6j 两批经此火发布） -->

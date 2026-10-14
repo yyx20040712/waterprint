@@ -5,7 +5,9 @@
 # 映射（aao_corridor→build_aao.py / cass_batch→build_cass.py）。
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-BLENDER="${BLENDER:-D:/blender5.0/blender.exe}"
+# 2026-10-14 三跳迁移勘正：默认值 Windows D:/blender5.0 → 本机 Linux 装位
+# （/opt/blender-5.0.1-linux-x64；软链 ~/.local/bin/blender）。env 覆盖制式不变。
+BLENDER="${BLENDER:-/opt/blender-5.0.1-linux-x64/blender}"
 WEBAPP="$(cd "$HERE/../.." && pwd)/webapp"
 
 build_script() {

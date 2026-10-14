@@ -58,8 +58,10 @@
 - **外部派发通道单源**（2026-09-12 用户 Ruling「以 skills 为信源，
   调用本地脚本」）：模型路由规则信源=ai-dev-org 技能（org-config
   声明路由+ds-call-v2.mjs 标准派发器+org-ledger 账本；密钥仓恒=
-  zcode v2/config.json，org-config 零密钥）；项目 `.workflow/ds_review.py`
-  /`dispatch.py`=历史审计通道存量（保留运行不新增同功能件）；**禁止
+  zcode v2/config.json，org-config 零密钥）；项目 `.workflow/
+  dispatch.py`/`ds_review.py`=历史审计通道存量，**2026-10-14 三跳迁移
+  收口批起归档失效**（旧机 Windows 路径硬编码不可运行，移
+  `.workflow/archives/`——承载归会话内绑定子代理）；**禁止
   散放根部一次性派发脚本**（3d_dispatch.py 案 2026-09-12 已退役——
   一次性外部派发走 ds-call-v2 --role，项目专属通道按 dispatch.py 头注
   「另立具名脚本」位增件）；派发盘点须登记所用通道（标准/存量/降级）。
@@ -200,6 +202,10 @@
 - `core/tests/` 与 `server/tests/` 下所有文件只读：文件系统只读属性
   （Windows 本地写屏障）+ 根目录 `test-lock.manifest.json`（sha256，
   跨平台内容真相——CI/Linux 上由它承担完整性校验）。
+  （2026-10-14 Linux 现状口径：Linux 开发机本地**无属性写屏障**
+  〔check_readonly 的 ATTR_BARRIER_ACTIVE=win32-only——设计内差异〕，
+  完整性由 manifest 哈希**事后检测**承担：改写会被 check_readonly/
+  CI 抓到，但无写入阻止；AI 禁改锁定面纪律不因平台弱化。）
 - 校验入口：本地 `scripts/check_readonly.py`；CI 与 pytest 侧
   `core/tests/arch/test_lock.py`。
 - AI **禁止**：修改/删除/新增上述两目录下任何文件；运行 lock_tests.py；修改 manifest。
@@ -366,6 +372,10 @@ units_lib/<line>/<unit>/
 - 会话内子代理无 model 参数=环境限制：欠账行如实记「环境限制统一档」，
   禁伪装已定档；绑定岗免欠账行。
 - 回炉轮数（项目可裁项）：本项目=≤5 轮、R≤3 续用原实现者（WP 先例）。
+- **审查派发优先序（用户裁决 2026-10-14，逐字原文=账本 runId
+  ruling-20261014-k2zipoo 行）**：本项目审查类批（门一审包/隔离审计）
+  默认派 ops-gate1-k2（zipoo 源）；额度不足回退 ops-gate1-k1；
+  回退一旦发生=**会话粘性**——当前会话后续审查批恒直接派 k1。
 - 成本账本=.zcode/org-ledger.jsonl（行 schema 单源=技能 references/02
   §9，禁内联）；收口前跑技能 scripts/health-scan.mjs（RED=0 方可收口）。
 - 组织差异回灌=.zcode/org-delta.jsonl（技能 05 §6 协议）。

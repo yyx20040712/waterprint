@@ -21,7 +21,9 @@
   重锁动作本身仍=人类执行 lock_tests.py+独立 [HUMAN-LOCK] commit）；
 - 红绿纪律：每个测试先失败一次再通过；skip 数随里程碑归零（CI `-ra`；
   **平台守卫白名单外的 SKIPPED 即 CI FAIL——GOV1 A3 机器化**，白名单=
-  「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest 哈希覆盖]）；
+  「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest 哈希覆盖——
+  2026-10-14 注：Linux 开发机本地无属性屏障（win32-only），完整性=
+  哈希事后检测，AGENTS.md §7 现状口径]）；
 - 快照回归：`tests/snapshots/`（syrupy）锚三导出产物内容哈希
   （xlsx/DXF/HTML——ADR-010）；快照红≠自动更新，先人审定性（预期漂移
   `--snapshot-update` 重录+diff 入批注记；非预期=回归缺陷走修复）；

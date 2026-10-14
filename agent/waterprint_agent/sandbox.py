@@ -15,7 +15,8 @@
 #
 # 【公开接口】
 #   sandbox_root() -> Path：env WATERPRINT_AI_SANDBOX 覆盖 → 绝对化；
-#       缺省=repo_root().parent/"ai-sandbox"（默认 E:\\class\\智水蓝图\\ai-sandbox）。
+#       缺省=repo_root().parent/"ai-sandbox"（平台无关相对解析——
+#       本机=仓库上一级/ai-sandbox；2026-10-14 前 Windows 机注记已废止）。
 #   repo_root() / data_asset_root() -> Path：仓库根=agent 可编辑安装位上溯；
 #       data 资产根=仓库/data（constraint_kb/coefficients 真源）。
 #   init_workspace(root=None) -> Path：五区建树+workspace.toml（幂等——
