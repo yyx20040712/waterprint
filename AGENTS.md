@@ -57,14 +57,15 @@
   派发结论不缓存跨批复用。
 - **外部派发通道单源**（2026-09-12 用户 Ruling「以 skills 为信源，
   调用本地脚本」）：模型路由规则信源=ai-dev-org 技能（org-config
-  声明路由+ds-call-v2.mjs 标准派发器+org-ledger 账本；密钥仓恒=
-  zcode v2/config.json，org-config 零密钥）；项目 `.workflow/
-  dispatch.py`/`ds_review.py`=历史审计通道存量，**2026-10-14 三跳迁移
-  收口批起归档失效**（旧机 Windows 路径硬编码不可运行，移
-  `.workflow/archives/`——承载归会话内绑定子代理）；**禁止
-  散放根部一次性派发脚本**（3d_dispatch.py 案 2026-09-12 已退役——
-  一次性外部派发走 ds-call-v2 --role，项目专属通道按 dispatch.py 头注
-  「另立具名脚本」位增件）；派发盘点须登记所用通道（标准/存量/降级）。
+  声明路由+org-ledger 账本；密钥仓恒=zcode v2/config.json，org-config
+  零密钥）；项目 `.workflow/dispatch.py`/`ds_review.py`=历史审计通道
+  存量，**2026-10-14 三跳迁移收口批起归档失效**（旧机 Windows 路径
+  硬编码不可运行，移 `.workflow/archives/`——头注制式仅作历史参考，
+  不再为增件指引）；岗位承载=会话内 ops-* 绑定子代理（主承载——
+  外部派发器已随技能 2026-10-03 派发器退役批删除，应急启用须新
+  用户裁决）；**禁止散放根部一次性派发脚本**（3d_dispatch.py 案
+  2026-09-12 已退役）；派发盘点须登记所用通道（标准/降级——
+  「存量」类随归档退役）。
   已知环境档：本机 Node 25.2.1 派发器退出阶段 libuv 崩溃（ai-dev-org
   RESIDUALS/HOST-node25）——外部派发一律用 Node 24 跑（派发器启动时
   带版本守卫）；产物先落盘，崩溃不视为失败。会话内岗优先派 ops-*
@@ -204,8 +205,9 @@
   跨平台内容真相——CI/Linux 上由它承担完整性校验）。
   （2026-10-14 Linux 现状口径：Linux 开发机本地**无属性写屏障**
   〔check_readonly 的 ATTR_BARRIER_ACTIVE=win32-only——设计内差异〕，
-  完整性由 manifest 哈希**事后检测**承担：改写会被 check_readonly/
-  CI 抓到，但无写入阻止；AI 禁改锁定面纪律不因平台弱化。）
+  完整性由 manifest 哈希事后检测承担：改写会在**下一次
+  check_readonly/CI 运行时**被抓到，但无写入阻止；AI 禁改锁定面
+  纪律不因平台弱化。）
 - 校验入口：本地 `scripts/check_readonly.py`；CI 与 pytest 侧
   `core/tests/arch/test_lock.py`。
 - AI **禁止**：修改/删除/新增上述两目录下任何文件；运行 lock_tests.py；修改 manifest。
@@ -365,9 +367,10 @@ units_lib/<line>/<unit>/
   **ai-dev-org**；本宪法为 WaterPrint 特化实例，冲突时以本宪法为准。
 - 供应商路由事实唯一真相源=org-config（技能默认件兜底；项目覆盖件
   .zcode/org-config.json 按需逐字段覆盖）。
-- **承载现状（2026-09-16 起）**：实现者/门二/SRE 诊断/门一
+- **承载现状（2026-09-16 起；2026-10-14 勘正）**：实现者/门二/SRE 诊断/门一
   双源已挂 ops-* 绑定子代理=**主承载**（现役名单单源=技能 references/07
-  §4 补遗）；外部派发器 ds-call-v2=健康探针+后备通道（迁移期双承载）；
+  §4 补遗）；外部派发器 ds-call-v2 已随技能 2026-10-03 派发器退役批
+  删除（原「迁移期双承载」形态终结——应急外部通道启用须新用户裁决）；
   岗位失败接续纪律真源=技能 references/06 §6 补遗二。
 - 会话内子代理无 model 参数=环境限制：欠账行如实记「环境限制统一档」，
   禁伪装已定档；绑定岗免欠账行。
