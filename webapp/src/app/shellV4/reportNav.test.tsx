@@ -92,21 +92,26 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("计算说明区·V4 导航剥 id 括注（P5——显示面）", () => {
-  it("stripIdParenthetical 纯函数（全/半角·中文括注不动·仅尾注·边界）", () => {
+  it("stripIdParenthetical 纯函数（d1-W2 小写起首标识形·d1-N6 空串回退）", () => {
     const cases: Array<[string, string]> = [
-      ["AAO 生物池（municipal_aao）", "AAO 生物池"], // 全角服务端形
+      ["AAO 生物池（municipal_aao）", "AAO 生物池"], // 全角服务端形（小写起首命中）
       ["AAO 生物池(municipal_aao)", "AAO 生物池"], // 半角同剥
+      ["某工况（design_offline_municipal_aao）", "某工况"], // 小写蛇形全族命中
       ["进出水水质（design 工况，mg/L）", "进出水水质（design 工况，mg/L）"], // 中文括注不动
       ["设计原始资料", "设计原始资料"], // 无括注
-      ["（municipal_aao）", ""], // 全括注=剥后空
       ["中段（id）尾注", "中段（id）尾注"], // 仅剥尾部
+      ["（municipal_aao）", "（municipal_aao）"], // d1-N6：剥后空串回退原串
+      ["去除率（CODcr）", "去除率（CODcr）"], // d1-W2 负例：大写起首=限定词
+      ["参数（BOD5）", "参数（BOD5）"], // d1-W2 负例
+      ["悬浮物（SS）", "悬浮物（SS）"], // d1-W2 负例
+      ["设备（A）", "设备（A）"], // d1-W2 负例：大写单字母
     ];
     for (const [input, want] of cases) {
       expect(stripIdParenthetical(input)).toBe(want);
     }
   });
 
-  it("条目显示=剥尾部全 ASCII 括注+title 悬浮全称（中文括注/无括注零扰动）", () => {
+  it("条目显示=剥尾部 id 括注+title 悬浮全称（中文括注/限定词/全括注零扰动）", () => {
     gate.report = {
       data: {
         ...REPORT_BASE,
@@ -114,6 +119,8 @@ describe("计算说明区·V4 导航剥 id 括注（P5——显示面）", () =>
           { id: "uc-aao", title: "AAO 生物池（municipal_aao）", level: 1 },
           { id: "qual", title: "进出水水质（design 工况，mg/L）", level: 2 },
           { id: "plain", title: "设计原始资料", level: 1 },
+          { id: "rate", title: "去除率（CODcr）", level: 2 },
+          { id: "bare", title: "（municipal_input）", level: 1 },
         ],
       },
       isError: false,
@@ -123,12 +130,15 @@ describe("计算说明区·V4 导航剥 id 括注（P5——显示面）", () =>
     const items = container.querySelectorAll<HTMLElement>(
       '[data-testid="wp-v4-report-nav-item"]',
     );
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(5);
     expect(items[0]?.textContent).toBe("AAO 生物池"); // 剥 id 括注
     expect(items[1]?.textContent).toBe("进出水水质（design 工况，mg/L）"); // 中文括注不动
     expect(items[2]?.textContent).toBe("设计原始资料");
+    expect(items[3]?.textContent).toBe("去除率（CODcr）"); // d1-W2：大写起首限定词不剥
+    expect(items[4]?.textContent).toBe("（municipal_input）"); // d1-N6：剥后空=原串回退（条目不隐形）
     expect(items[0]?.getAttribute("title")).toBe("AAO 生物池（municipal_aao）"); // 悬浮全称
     expect(items[1]?.getAttribute("title")).toBe("进出水水质（design 工况，mg/L）");
+    expect(items[4]?.getAttribute("title")).toBe("（municipal_input）");
   });
 });
 
