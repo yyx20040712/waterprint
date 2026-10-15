@@ -366,10 +366,16 @@ export function ThumbnailFlow({
               useCanvasStore.getState().position(change.id, change.position);
             }
           }
-          // dimensions 变更回写（V3 W-A 回炉——受控测量路径补全）
+          // dimensions 变更回写（V3 W-A 回炉——受控测量路径补全；R2 k2-N3：
+          // 等值短路——全同值批返回 prev 引用，免无谓 nodes memo 重算）
           const dims = pickMeasured(changes);
           if (dims !== null) {
-            setMeasuredById((prev) => ({ ...prev, ...dims }));
+            setMeasuredById((prev) => {
+              const unchanged = Object.entries(dims).every(
+                ([id, d]) => prev[id]?.width === d.width && prev[id]?.height === d.height,
+              );
+              return unchanged ? prev : { ...prev, ...dims };
+            });
           }
         }}
         proOptions={{ hideAttribution: true }}

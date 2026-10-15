@@ -304,6 +304,7 @@ describe("分析表态·R1 W-effluent（列并集+缺值占位）", () => {
     const headerText = table?.querySelector("thead")?.textContent ?? "";
     expect(headerText).toContain("基准");
     expect(headerText).toContain("设计");
+    expect(headerText).not.toMatch(/avg|design/i); // R2 d1-W1：表头纯中文守卫（回退「基准 avg」即红）
     // CODCR 行：单位=mg/L/avg=38/design=—（design 单元格精确断言——非伪 0；
     // V3 D2 列序=指标/单位/〔工况列〕/限值/判定——单位列后工况格索引+1）
     const codRow = Array.from(rows).find((r) => r.textContent?.includes("CODCR"));
@@ -339,11 +340,9 @@ describe("分析表态·V3 单位列（D2——冻结六指标 mg/L+未知回退
     const headerCells = Array.from(
       table?.querySelectorAll("thead th") ?? [],
     ).map((cell) => cell.textContent);
-    // 列序冻结锚：指标→单位→工况列→限值→判定
-    expect(headerCells[0]).toBe("指标");
-    expect(headerCells[1]).toBe("单位");
-    expect(headerCells[headerCells.length - 2]).toBe("限值");
-    expect(headerCells[headerCells.length - 1]).toBe("判定");
+    // 列序冻结锚：指标→单位→工况列→限值→判定（R2 k2-N6：全列 toEqual 钉死
+    // ——avg/design 对调即红；工况列序=夹具 effluent 首见序 avg→design）
+    expect(headerCells).toEqual(["指标", "单位", "基准", "设计", "限值", "判定"]);
     const nh3nRow = Array.from(table?.querySelectorAll("tbody tr") ?? []).find(
       (row) => row.textContent?.includes("NH3N"),
     );

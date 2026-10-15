@@ -177,6 +177,8 @@ describe("计算说明区·空态与错误面（§二.⑤）", () => {
     const empty = container.querySelector('[data-testid="wp-v4-report-empty"]');
     expect(empty).not.toBeNull();
     expect(empty?.textContent).toContain("计算说明在完成计算后生成");
+    // R2 k2-N2/d1-N3：三态居中第三态锚（404 面——margin 断言补齐）
+    expect((empty as HTMLElement).style.margin).toBe("8px auto");
   });
 
   it("非领域错误=取数失败原文透出（错误提示白名单）", () => {
@@ -191,6 +193,8 @@ describe("计算说明区·空态与错误面（§二.⑤）", () => {
     expect(face).not.toBeNull();
     expect(face?.textContent).toContain("取数失败");
     expect(face?.textContent).toContain("服务暂不可用");
+    // R2 k2-N2/d1-N3：三态居中第四面锚（错误面卡）
+    expect((face as HTMLElement).style.margin).toBe("8px auto");
   });
 
   it("加载中=加载占位（非空态壳）", () => {

@@ -148,10 +148,10 @@ describe("工艺画布·V3 MiniMap（D1——左下+pannable/zoomable+卡片壳�
     expect(minimap?.querySelector(".react-flow__minimap-svg")).not.toBeNull();
   });
 
-  it("pannable/zoomable 结构锚（行为面 panZoom 绑定无 DOM 痕迹——?raw 源结构）", () => {
+  it("pannable/zoomable 行锚（R2 k2-W1：裸 prop 行锚定——注释字样不兜底；?raw 源结构）", () => {
     expect(thumbnailFlowSource).toContain("<MiniMap");
-    expect(thumbnailFlowSource).toMatch(/<MiniMap[^]*?pannable/m);
-    expect(thumbnailFlowSource).toMatch(/<MiniMap[^]*?zoomable/m);
+    expect(thumbnailFlowSource).toMatch(/^\s+pannable$/m);
+    expect(thumbnailFlowSource).toMatch(/^\s+zoomable$/m);
   });
 
   it("Controls 右下对角共存（W-B 回炉位锁锚——两件同屏+Controls 类含 bottom/right）", () => {
