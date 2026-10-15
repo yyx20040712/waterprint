@@ -15,7 +15,10 @@
  *     计算=decideRunCalc 分派链复用（runCalcPolicy 导出纯函数——v1 批拆迁单源）；
  *     撤销/重做=画布引擎无撤销栈（B1 骨架在场禁用态——实装挂账后续批）；
  *   - logo=简笔水滴线形 SVG（wireframe 屏 1 同形——stroke AC 色线性）；
- *   - 页签次序=V4_ZONES 单源（项目→计算说明）；切换经 onZoneChange 单通道。
+ *   - 页签次序=V4_ZONES 单源（项目→计算说明）；切换经 onZoneChange 单通道；
+ *   - 工具区五钮可见中文文字标签（v2 笔4——Button children 文本+fontSize
+ *     11 字号三档内；图标/Tooltip/disabled/loading 语义全保持；撤销/
+ *     重做恒禁用态加标签——撤销栈实装=在册挂账不在本批）。
  */
 import { useEffect, useState } from "react";
 import {
@@ -252,38 +255,48 @@ export function ZoneBand({
             type="text"
             size="small"
             icon={<SaveOutlined />}
+            style={{ fontSize: 11 }} // v2 笔4：可见文字标签（字号三档内）
             aria-label="保存"
             data-testid="wp-v4-save"
             disabled={projectId === null || !dirty || body === null}
             loading={save.isPending}
             onClick={handleSave}
-          />
+          >
+            保存
+          </Button>
         </Tooltip>
         <Tooltip title="撤销">
           <Button
             type="text"
             size="small"
             icon={<UndoOutlined />}
+            style={{ fontSize: 11 }} // v2 笔4：恒禁用态加标签（撤销栈实装=在册挂账）
             aria-label="撤销"
             disabled
             data-testid="wp-v4-undo"
-          />
+          >
+            撤销
+          </Button>
         </Tooltip>
         <Tooltip title="重做">
           <Button
             type="text"
             size="small"
             icon={<RedoOutlined />}
+            style={{ fontSize: 11 }} // v2 笔4：恒禁用态加标签（重做栈实装=在册挂账）
             aria-label="重做"
             disabled
             data-testid="wp-v4-redo"
-          />
+          >
+            重做
+          </Button>
         </Tooltip>
         <Tooltip title="校验">
           <Button
             type="text"
             size="small"
             icon={<SafetyCertificateOutlined />}
+            style={{ fontSize: 11 }} // v2 笔4：可见文字标签（字号三档内）
             aria-label="校验"
             data-testid="wp-v4-validate"
             disabled={
@@ -292,19 +305,24 @@ export function ZoneBand({
             }
             loading={validate.isPending || validatePending}
             onClick={handleValidate}
-          />
+          >
+            校验
+          </Button>
         </Tooltip>
         <Tooltip title="全项目计算">
           <Button
             type="primary"
             size="small"
             icon={<PlayCircleOutlined />}
+            style={{ fontSize: 11 }} // v2 笔4：可见文字标签（字号三档内）
             aria-label="全项目计算"
             data-testid="wp-v4-run"
             disabled={projectId === null}
             loading={run.isPending || rawQuery.isLoading}
             onClick={() => void handleRunCalc()}
-          />
+          >
+            全项目计算
+          </Button>
         </Tooltip>
       </span>
     </header>

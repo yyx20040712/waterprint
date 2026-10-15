@@ -222,4 +222,25 @@ describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", ()
       document.querySelector(".wp-v4-statusbar")?.textContent,
     ).toContain("项目：未选择");
   });
+
+  it("工具区五钮文字标签（v2 笔4）：保存/撤销/重做/校验/全项目计算可见+撤销重做恒禁用", () => {
+    renderShell();
+    const band = document.querySelector('[data-region="zone-band"]');
+    const labelOf = (testid: string): string =>
+      band?.querySelector(`[data-testid="${testid}"]`)?.textContent ?? "";
+    expect(labelOf("wp-v4-save")).toContain("保存");
+    expect(labelOf("wp-v4-undo")).toContain("撤销");
+    expect(labelOf("wp-v4-redo")).toContain("重做");
+    expect(labelOf("wp-v4-validate")).toContain("校验");
+    expect(labelOf("wp-v4-run")).toContain("全项目计算");
+    // 撤销/重做恒禁用态保持（引擎无撤销栈——实装挂账后续批）
+    expect(
+      (band?.querySelector('[data-testid="wp-v4-undo"]') as HTMLButtonElement)
+        ?.disabled,
+    ).toBe(true);
+    expect(
+      (band?.querySelector('[data-testid="wp-v4-redo"]') as HTMLButtonElement)
+        ?.disabled,
+    ).toBe(true);
+  });
 });
