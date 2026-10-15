@@ -196,6 +196,7 @@ export function ShellV4() {
           onSubpageChange={(subpage) =>
             setZone({ zone: "drafting", subpage })
           }
+          onGoCalc={() => setZone({ zone: "design" })}
         />
       );
       break;

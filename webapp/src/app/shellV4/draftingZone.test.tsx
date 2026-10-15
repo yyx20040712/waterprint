@@ -13,8 +13,11 @@
  *        拖柄 wp-v4-drag-drafting-left（title/⟷）+初始宽 190px②拖拽往返：
  *        down(buttons:1)+move(+50)→240px+onUp 持久写键 wp-v4-drafting-left-w
  *        ③siteplan 分支：无左树/无拖柄（子页全幅现状保持——返回条在场）
+ *        ④V3 D5：空态「去计算」钮〔onGoCalc 调用〕+SheetsGallery→Export
+ *        Button disabled 接线〔props 捕获〕+ExportButton 真件 disabled 并入
+ *        三钮两 Select〔importActual 真件渲染——内部 hook 替身〕
  */
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DraftingZone } from "./draftingZone";
@@ -37,21 +40,50 @@ vi.stubGlobal("localStorage", {
 });
 
 /** 替身受控位（vi.hoisted——mock 工厂闭包同源读写）。 */
-const gate = vi.hoisted(() => ({ projectId: "p1" as string | null }));
+const gate = vi.hoisted(() => ({
+  projectId: "p1" as string | null,
+  exportsRows: [] as unknown[],
+  exportProps: [] as Array<{ disabled?: boolean }>,
+}));
 
 vi.mock("../useProjectId", () => ({
   useProjectId: () => [gate.projectId],
 }));
 vi.mock("../../features/drawings/api/useExportsQuery", () => ({
-  useExportsQuery: () => ({ data: [], isError: false, isPending: false }),
+  useExportsQuery: () => ({ data: gate.exportsRows, isError: false, isPending: false }),
   useConditionOptions: () => ({ data: [] }),
   useUnitOptions: () => ({ data: [] }),
 }));
 vi.mock("../../features/drawings/api/useUnitCatalog", () => ({
   useUnitCatalog: () => ({ data: null }),
 }));
+// V3 D5：props 捕获替身（SheetsGallery→ExportButton disabled 接线锚）
 vi.mock("../../features/drawings/components/ExportButton", () => ({
-  ExportButton: () => null,
+  ExportButton: (props: { disabled?: boolean }) => {
+    gate.exportProps.push(props);
+    return null;
+  },
+}));
+// V3 D5：真件渲染面内部依赖替身（importActual 取真 ExportButton 时其
+// 内部 hook/回溯行模块走替身——vi.mock 工厂不拦 importActual 路径上的
+// 依赖解析，两替身各自生效）
+vi.mock("../../features/drawings/api/useExportArtifact", () => ({
+  useExportArtifact: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("../../features/drawings/api/useExportBatch", () => ({
+  useExportBatch: () => ({
+    submitBatch: vi.fn(),
+    cancelActive: vi.fn(),
+    progress: null,
+    lastOutcome: null,
+    activeTaskId: null,
+    cancelPending: false,
+    cancelError: null,
+    restoreNotice: null,
+  }),
+}));
+vi.mock("../../features/drawings/components/BatchStatusLine", () => ({
+  BatchStatusLine: () => null,
 }));
 // siteplan 懒件替身（siteplan 分支锚不载重编辑器 chunk）
 vi.mock("../siteplanPane", () => ({
@@ -60,13 +92,19 @@ vi.mock("../siteplanPane", () => ({
 
 function mountZone(subpage: "sheets" | "siteplan") {
   return render(
-    <DraftingZone subpage={subpage} onSubpageChange={() => {}} />,
+    <DraftingZone
+      subpage={subpage}
+      onSubpageChange={() => {}}
+      onGoCalc={() => {}}
+    />,
   );
 }
 
 beforeEach(() => {
   storageBack.clear();
   gate.projectId = "p1";
+  gate.exportsRows = [];
+  gate.exportProps = [];
 });
 afterEach(cleanup);
 
@@ -117,5 +155,117 @@ describe("工程制图区·siteplan 分支（无左树现状保持）", () => {
     expect(
       container.querySelector('[data-testid="wp-v4-drafting-back-sheets"]'),
     ).not.toBeNull();
+  });
+});
+
+describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业度）", () => {
+  it("空态卡「去计算」钮：点击=onGoCalc 调用（testid+type=button）", () => {
+    const onGoCalc = vi.fn();
+    const { container } = render(
+      <DraftingZone
+        subpage="sheets"
+        onSubpageChange={() => {}}
+        onGoCalc={onGoCalc}
+      />,
+    );
+    const grid = container.querySelector('[data-testid="wp-v4-sheet-grid"]');
+    expect(grid?.textContent).toContain("尚无图纸");
+    const goCalc = container.querySelector<HTMLButtonElement>(
+      '[data-testid="wp-v4-drafting-go-calc"]',
+    );
+    expect(goCalc).not.toBeNull();
+    expect(goCalc?.type).toBe("button");
+    fireEvent.click(goCalc as HTMLButtonElement);
+    expect(onGoCalc).toHaveBeenCalledTimes(1);
+  });
+
+  it("SheetsGallery→ExportButton disabled 接线：空态（rows=0）传 disabled=true", () => {
+    render(
+      <DraftingZone
+        subpage="sheets"
+        onSubpageChange={() => {}}
+        onGoCalc={() => {}}
+      />,
+    );
+    expect(gate.exportProps.length).toBeGreaterThan(0);
+    expect(gate.exportProps[gate.exportProps.length - 1]?.disabled).toBe(true);
+  });
+
+  it("有图纸（rows>0）disabled 不置位（导出可用）", () => {
+    gate.exportsRows = [
+      {
+        project_id: "p1",
+        kind: "dxf",
+        condition_key: "design",
+        file_name: "p1-unit-design.dxf",
+        design_digest: "abcdef1234567890",
+        engine_version: "e",
+        data_version: "d",
+        stale_labeled: false,
+      },
+    ];
+    const { container } = render(
+      <DraftingZone
+        subpage="sheets"
+        onSubpageChange={() => {}}
+        onGoCalc={() => {}}
+      />,
+    );
+    expect(
+      container.querySelector('[data-testid="wp-v4-sheet-card"]'),
+    ).not.toBeNull();
+    expect(gate.exportProps[gate.exportProps.length - 1]?.disabled).toBeFalsy();
+  });
+});
+
+describe("工程制图区·V3 ExportButton disabled 并入（D5——真件渲染）", () => {
+  /** 真件装载（模块替身不拦 importActual 依赖解析——内部 hook 走上方替身）。 */
+  async function realExportButton() {
+    return (
+      await vi.importActual<
+        typeof import("../../features/drawings/components/ExportButton")
+      >("../../features/drawings/components/ExportButton")
+    ).ExportButton;
+  }
+
+  it("disabled=true：三导出钮+两 Select 全禁用（enable 门 AND——空态整组禁用）", async () => {
+    const RealExportButton = await realExportButton();
+    const { container } = render(
+      <RealExportButton
+        projectId="p1"
+        units={["municipal_aao"]}
+        conditions={["design"]}
+        disabled
+      />,
+    );
+    // 两 Select：antd 禁用态类
+    const selects = container.querySelectorAll(".ant-select-disabled");
+    expect(selects.length).toBe(2);
+    // 三导出钮：disabled 属性在场（ready 闸本应放行——disabled 恒禁用证）
+    const buttons = Array.from(container.querySelectorAll("button")).filter(
+      (button) => button.textContent?.includes("导出"),
+    );
+    expect(buttons.length).toBe(3);
+    for (const button of buttons) {
+      expect(button.hasAttribute("disabled")).toBe(true);
+    }
+  });
+
+  it("disabled 缺省+选项齐备：三钮可用（既有 ready 闸语义零改）", async () => {
+    const RealExportButton = await realExportButton();
+    const { container } = render(
+      <RealExportButton
+        projectId="p1"
+        units={["municipal_aao"]}
+        conditions={["design"]}
+      />,
+    );
+    const buttons = Array.from(container.querySelectorAll("button")).filter(
+      (button) => button.textContent?.includes("导出"),
+    );
+    expect(buttons.length).toBe(3);
+    for (const button of buttons) {
+      expect(button.hasAttribute("disabled")).toBe(false);
+    }
   });
 });

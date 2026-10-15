@@ -85,8 +85,9 @@ function SheetGlyph() {
   );
 }
 
-/** 图库卡栅格（回炉 R7——导出语境行+卡片栅格/空态卡；数据源=exports 查询）。 */
-function SheetsGallery() {
+/** 图库卡栅格（回炉 R7——导出语境行+卡片栅格/空态卡；数据源=exports 查询；
+ *  V3 D5：空态卡「去计算」引导钮+空态导出钮禁用〔disabled={rows=0}〕）。 */
+function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
   const [projectId] = useProjectId();
   const exportsQuery = useExportsQuery(projectId);
   const conditionQuery = useConditionOptions(projectId);
@@ -125,6 +126,7 @@ function SheetsGallery() {
             projectId={projectId}
             units={exportableUnits}
             conditions={conditionQuery.data ?? []}
+            disabled={rows.length === 0}
           />
         ) : null}
       </div>
@@ -148,12 +150,31 @@ function SheetsGallery() {
         ) : exportsQuery.isPending ? (
           <Spin />
         ) : rows.length === 0 ? (
-          // 空态卡（回炉 R7——「尚无图纸——完成计算后生成」级引导）
+          // 空态卡（回炉 R7——「尚无图纸——完成计算后生成」级引导；
+          // V3 D5：去计算钮=design 区直达动线）
           <div className="wp-v4-sheet-card" style={{ width: "100%", maxWidth: 420 }}>
             <div className="wp-v4-sheet-thumb">
               <SheetGlyph />
             </div>
             <div className="wp-v4-sheet-cap">尚无图纸——完成计算后生成</div>
+            <button
+              type="button"
+              data-testid="wp-v4-drafting-go-calc"
+              onClick={onGoCalc}
+              style={{
+                border: "1px solid var(--wpv4-ac)",
+                borderRadius: 4,
+                background: "var(--wp-bg-container, #ffffff)",
+                color: "var(--wpv4-ac)",
+                fontSize: 11,
+                padding: "1px 10px",
+                cursor: "pointer",
+                margin: "6px auto 4px",
+                display: "block",
+              }}
+            >
+              去计算
+            </button>
           </div>
         ) : (
           rows.map((row) => (
@@ -181,9 +202,12 @@ function SheetsGallery() {
 export function DraftingZone({
   subpage,
   onSubpageChange,
+  onGoCalc,
 }: {
   subpage: DraftingSubpage;
   onSubpageChange: (subpage: DraftingSubpage) => void;
+  /** V3 D5：空态「去计算」动线（shellV4 传 setZone design——跨区引导）。 */
+  onGoCalc: () => void;
 }) {
   // 左树栏宽+拖宽（v2 笔2：usePaneWidth 接入——顶层恒调，siteplan 分支
   // 无左栏不消费〔rules-of-hooks——子页分支不卸 hook〕）
@@ -315,7 +339,7 @@ export function DraftingZone({
         data-region="drafting-gallery"
         style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
       >
-        <SheetsGallery />
+        <SheetsGallery onGoCalc={onGoCalc} />
       </div>
     </section>
   );

@@ -72,17 +72,22 @@ import { BatchStatusLine } from "./BatchStatusLine";
 /** 批量进度 message 键（同键重开=原位更新——antd message 合同）。 */
 const BATCH_PROGRESS_KEY = "batch-export-progress";
 
-/** 导出发起（单元多选+工况选+批量循环+总图按钮+stale 二选一交互+成功回调）。 */
+/** 导出发起（单元多选+工况选+批量循环+总图按钮+stale 二选一交互+成功回调；
+ *  V3 D5：disabled 可选 prop——并入三钮两 Select 禁用条件〔enable 门 AND〕
+ *  ——空态（尚无图纸）由消费面〔SheetsGallery rows=0〕整组禁用）。 */
 export function ExportButton({
   projectId,
   units,
   conditions,
   onExported,
+  disabled = false,
 }: {
   projectId: string;
   units: string[];
   conditions: string[];
   onExported?: (result: ExportArtifactResult) => void;
+  /** V3 D5：硬禁用面（与既有 ready 闸 AND——true 恒禁用）。 */
+  disabled?: boolean;
 }) {
   const [selectedUnits, setSelectedUnits] = useState<string[] | null>(null);
   const [conditionKey, setConditionKey] = useState<string | null>(null);
@@ -211,7 +216,7 @@ export function ExportButton({
         value={chosenUnits}
         options={units.map((id) => ({ value: id, label: id }))}
         onChange={(next) => setSelectedUnits(next)}
-        disabled={units.length === 0}
+        disabled={disabled || units.length === 0}
         allowClear
         maxTagCount="responsive"
       />
@@ -221,12 +226,12 @@ export function ExportButton({
         value={chosenCondition === "" ? undefined : chosenCondition}
         options={conditions.map((key) => ({ value: key, label: key }))}
         onChange={(next) => setConditionKey(next)}
-        disabled={conditions.length === 0}
+        disabled={disabled || conditions.length === 0}
       />
       <Button
         type="primary"
         loading={dxfMutation.isPending || batching}
-        disabled={!ready}
+        disabled={disabled || !ready}
         onClick={submitDxf}
       >
         导出图纸（DXF）
@@ -234,7 +239,7 @@ export function ExportButton({
       <Button
         type="primary"
         loading={ifcMutation.isPending || batching}
-        disabled={!conditionOnlyReady}
+        disabled={disabled || !conditionOnlyReady}
         onClick={() => submit("ifc", false)}
       >
         导出模型（IFC）
@@ -242,7 +247,7 @@ export function ExportButton({
       <Button
         type="default"
         loading={dxfMutation.isPending || batching}
-        disabled={!conditionOnlyReady}
+        disabled={disabled || !conditionOnlyReady}
         onClick={() => submit("dxf", false, "")}
       >
         导出全厂总图（DXF）
