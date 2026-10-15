@@ -13,12 +13,14 @@
  *        +bottom-left 位+白底卡片壳同 Controls 制式+pannable/zoomable
  *        结构锚（行为面 panZoom 绑定无 DOM 痕迹——?raw 源结构锚承载）
  *        ③Controls 右下对角共存④空态互斥：nodes=0 图例缺席+空态提示在场
+ *        ⑤V4 P1：副标 id 移除——.wp-v4-sub 零命中+CSS 规则随删（防回潮）
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThumbnailFlow, pickMeasured } from "./thumbnailFlow";
 import thumbnailFlowSource from "./thumbnailFlow.tsx?raw";
+import globalCssSource from "../global.css?raw";
 import { SEMANTIC_COLORS } from "../../shared/ui/semanticColors";
 import type { NodeChange } from "@xyflow/react";
 
@@ -199,5 +201,23 @@ describe("工艺画布·V3 图例空态互斥（D1——同槽 nodes>0 才渲染
       container.querySelector('[data-testid="wp-v4-flow-legend"]'),
     ).toBeNull();
     expect(container.textContent).toContain("画布为空");
+  });
+});
+
+describe("工艺画布·V4 副标 id 移除（uiglobal P1——用户裁决「避免显示id副标」）", () => {
+  it("节点卡=图题唯一：.wp-v4-sub 零命中+图题/锚定 testid 在场（防回潮）", () => {
+    const { container } = mountFlow();
+    expect(container.querySelectorAll(".wp-v4-sub").length).toBe(0);
+    const caps = container.querySelectorAll(".wp-v4-cap");
+    expect(caps.length).toBeGreaterThan(0);
+    expect(caps[0]?.textContent).toContain("进水"); // 图题=中文名（目录替身）
+    // data-node-id 保留（探针/测试锚定面——删的只是显示面副标）
+    expect(container.querySelectorAll("[data-node-id]").length).toBe(2);
+  });
+
+  it("CSS 规则随删：global.css 无 .wp-v4-sub 规则（死样式零残留）", () => {
+    expect(globalCssSource).not.toMatch(/\.wp-v4-sub\s*\{/);
+    // 源结构锚：组件源不再渲染副标 span
+    expect(thumbnailFlowSource).not.toContain('className="wp-v4-sub"');
   });
 });

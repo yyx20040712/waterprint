@@ -527,10 +527,6 @@ body {
   color: var(--wp-text);
   margin-top: 3px;
 }
-.wp-v4-sub {
-  font-size: 10px;
-  color: var(--wp-text-2);
-}
 
 /* 状态条（24px——沿承 M1 位；回炉 R12：字号归一三档——密排元 10） */
 .wp-v4-statusbar {

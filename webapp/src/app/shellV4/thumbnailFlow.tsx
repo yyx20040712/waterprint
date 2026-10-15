@@ -7,9 +7,11 @@
  * 输入:  projectId+selectedUnitId（受控 ?node= 选中）+onSelectedUnitChange
  *        （选中上抛）+useProjectQuery（raw）+canvasStore（编辑会话——自动
  *        beginEdit）+useListUnitsApiUnitsGet（图题/端口表）
- * 输出:  缩略图画布：ThumbnailNode 域色缩略卡〔glyph+图题+ nodeId 副标+
+ * 输出:  缩略图画布：ThumbnailNode 域色缩略卡〔glyph+图题+
  *        左右锚点 Handle〕+连线（streamColorOf 域流色）+fitView+Controls
- *        +右键空白=HierarchicalCatalog 落点（screenToFlowPosition）
+ *        +右键空白=HierarchicalCatalog 落点（screenToFlowPosition）；
+ *        V4 P1：nodeId 副标行移除（用户裁决——id 显示无意义；data-node-id
+ *        属性保留=探针/测试锚定面）
  *
  * 规格说明（B1 任务书 §三.3——plan §九.1）：
  *   - 引擎复用：projectFlow 投影+draftProjectRaw 草稿合成+canvasStore 五
@@ -77,7 +79,6 @@ function ThumbnailNode({ data, selected }: NodeProps) {
         <ThumbnailGlyph kind={thumb.kind ?? thumb.unitId} />
       </span>
       <span className="wp-v4-cap">{thumb.nameZh ?? title}</span>
-      <span className="wp-v4-sub">{title}</span>
       <Handle
         type="source"
         position={Position.Right}
