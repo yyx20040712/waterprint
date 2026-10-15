@@ -55,6 +55,9 @@
  *     try/catch 归 lib projectSiteSafe（本层 useMemo 零分支）；红线 polygon
  *     段归 SiteCanvas 挂 BoundaryLayer 子件（三新件详见各文件头）。
  *   - 组件只渲染零业务推导：几何/吸附/测距全在 lib/projectSite。
+ *   - V4 P3（2026-10-15）：待摆列表/选中侧栏单元显示名中文化——
+ *     useUnitDisplayNames（catalog name_zh 单源，查表键=kind ?? unitId）
+ *     一处供给两子件；键集/拖拽载荷/title 悬浮原 id 零改。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -75,6 +78,7 @@ import {
   type StructurePlacement,
 } from "../lib/projectSite";
 import { sameSite } from "../lib/siteDraftDiff";
+import { useUnitDisplayNames } from "../lib/unitDisplayNames";
 import {
   BOUNDARY_MIN_VERTICES,
   insertVertex,
@@ -171,6 +175,9 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   // L4b 间距校核（GET /api/site/spacing——未计算=降级全量非拒；查询失败≠致命，
   // 无数据即无标示。组件层 join 预裁 9：projectSite/store 零改动不抽纯函数）
   const spacingQuery = useGetSpacingApiSiteSpacingGet({ project_id: projectId });
+  // V4 P3：单元显示名（catalog name_zh 单源——待摆/已摆面同映射；查表键
+  // =kind ?? unitId 归 lib/unitDisplayNames，title 悬浮原 id 归子件）
+  const nameOf = useUnitDisplayNames(raw);
   const severityByUnit = new Map<string, "WARN" | "ERROR">();
   for (const row of spacingQuery.data?.violations ?? []) {
     for (const unitId of [row.a, row.b]) {
@@ -440,6 +447,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
         <PendingPanel
           pendingUnitIds={model.designUnitIds.filter((id) => !(id in draft.structures))}
           placedCount={Object.keys(draft.structures).length}
+          nameOf={nameOf}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <SiteCanvas
@@ -466,6 +474,7 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
             boundaryRows={selectedBoundaryViolations}
             onElev={handlers.onElev}
             onRemove={handlers.onRemove}
+            nameOf={nameOf}
           />
         ) : null}
         {/* B4 笔② R2/B4 笔③：选中道路/走廊/红线删除侧栏——按钮与画布

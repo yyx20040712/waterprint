@@ -5,8 +5,10 @@
  *
  * 输入:  props 单向穿隧——selection（store 选中面）/structure（选中摆放）/
  *        spacingRows（该结构间距违规行）/boundaryRows（该结构红线越界行）/
- *        onElev/onRemove（编辑回调——unitId 随selection 携带）
- * 输出:  aside 侧栏 JSX（零业务推导——行数据全部由 SiteplanPane 预聚合）
+ *        onElev/onRemove（编辑回调——unitId 随selection 携带）+nameOf?
+ *        （V4 P3 显示名单源——catalog name_zh；缺省=id 透传）
+ * 输出:  aside 侧栏 JSX（零业务推导——行数据全部由 SiteplanPane 预聚合；
+ *        V4 P3 选中头/间距行对端=中文名〔title 悬浮原 id〕）
  */
 
 import { Button, InputNumber, Typography } from "antd";
@@ -29,10 +31,12 @@ export type StructureSidebarProps = {
   boundaryRows: BoundaryViolationEntry[];
   onElev: (unitId: string, elevation: number | null) => void;
   onRemove: (unitId: string) => void;
+  /** V4 P3：unit_id → 中文名（catalog 单源——缺省 id 透传，键/载荷零改）。 */
+  nameOf?: (unitId: string) => string;
 };
 
 export function StructureSidebar({
-  selection, structure, spacingRows, boundaryRows, onElev, onRemove,
+  selection, structure, spacingRows, boundaryRows, onElev, onRemove, nameOf,
 }: StructureSidebarProps) {
   const selectedId = selection.kind === "structure" ? selection.id : "";
   return (
@@ -48,8 +52,15 @@ export function StructureSidebar({
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         选中构筑物
       </Typography.Text>
-      <div style={{ fontFamily: "monospace", fontSize: 12, margin: "4px 0" }}>
-        {selection.kind === "structure" ? selection.id : ""}
+      <div
+        title={selectedId || undefined}
+        style={{ fontFamily: "monospace", fontSize: 12, margin: "4px 0" }}
+      >
+        {selectedId !== ""
+          ? nameOf !== undefined
+            ? nameOf(selectedId)
+            : selectedId
+          : ""}
       </div>
       <div style={{ fontSize: 12, color: "#8c8c8c" }}>
         x {structure.x} m · y {structure.y} m · 旋转{" "}
@@ -75,7 +86,13 @@ export function StructureSidebar({
           </Typography.Text>
           {spacingRows.map((row) => (
             <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
-              {row.a === selectedId ? row.b : row.a}：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
+              <span title={row.a === selectedId ? row.b : row.a}>
+                {(() => {
+                  const other = row.a === selectedId ? row.b : row.a;
+                  return nameOf !== undefined ? nameOf(other) : other;
+                })()}
+              </span>
+              ：净距 {row.clearance_m.toFixed(1)} m ＜ 阈值 {row.threshold_m} m（{row.severity === "ERROR" ? "错误" : "警告"}）
             </div>
           ))}
         </div>

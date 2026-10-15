@@ -2,8 +2,10 @@
  * 待摆区：design.nodes 有而 site.structures 无的单元列表（拖入画布即摆放）。
  *
  * 输入:  pendingUnitIds（projectSite 产物——字典序）+已摆数（提示面）
+ *        +nameOf?（V4 P3 显示名单源——catalog name_zh；缺省=id 透传）
  * 输出:  可拖单元清单（原生 DnD：dataTransfer 携 unit_id——落点换算与
- *        snap 归 SiteCanvas onDrop；零 antd 拖拽库）
+ *        snap 归 SiteCanvas onDrop；零 antd 拖拽库；V4 P3 条目=中文名
+ *        〔title 悬浮原 id——载荷/键集零改〕）
  *
  * 规格说明（M3 批 L2b，简报 §三交互面）：
  *   - unit_id 直用（core D3 悬空校验镜像面：摆入=structures 增键、移除
@@ -31,9 +33,12 @@ const ITEM_STYLE: React.CSSProperties = {
 export function PendingPanel({
   pendingUnitIds,
   placedCount,
+  nameOf,
 }: {
   pendingUnitIds: string[];
   placedCount: number;
+  /** V4 P3：unit_id → 中文名（catalog 单源——缺省 id 透传，键/载荷零改）。 */
+  nameOf?: (unitId: string) => string;
 }) {
   return (
     <aside
@@ -52,13 +57,14 @@ export function PendingPanel({
         <div
           key={unitId}
           draggable
+          title={unitId}
           onDragStart={(event) => {
             event.dataTransfer.setData("text/plain", unitId);
             event.dataTransfer.effectAllowed = "copy";
           }}
           style={ITEM_STYLE}
         >
-          {unitId}
+          {nameOf !== undefined ? nameOf(unitId) : unitId}
         </div>
       ))}
       {pendingUnitIds.length === 0 ? (

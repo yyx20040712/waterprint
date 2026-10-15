@@ -15,7 +15,9 @@
  *        ③siteplan 分支：无左树/无拖柄（子页全幅现状保持——返回条在场）
  *        ④V3 D5：空态「去计算」钮〔onGoCalc 调用〕+SheetsGallery→Export
  *        Button disabled 接线〔props 捕获〕+ExportButton 真件 disabled 并入
- *        三钮两 Select〔importActual 真件渲染——内部 hook 替身〕
+ *        三钮两 Select〔importActual 真件渲染——内部 hook 替身〕⑤V4 P2
+ *        中文化：双 Select option 回显中文（title=原值）+图库卡语境行
+ *        中文（design→最高日最高时/空工况→全部工况）
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -56,6 +58,12 @@ vi.mock("../../features/drawings/api/useExportsQuery", () => ({
 }));
 vi.mock("../../features/drawings/api/useUnitCatalog", () => ({
   useUnitCatalog: () => ({ data: null }),
+}));
+// V4 P2 中文化面：catalog 目录替身（select=unitNameIndex 投影后形态）
+vi.mock("../../shared/api/generated/units/units", () => ({
+  useListUnitsApiUnitsGet: () => ({
+    data: { municipal_aao: "AAO 生物池", municipal_input: "市政输入" },
+  }),
 }));
 // V3 D5：props 捕获替身（SheetsGallery→ExportButton disabled 接线锚）
 vi.mock("../../features/drawings/components/ExportButton", () => ({
@@ -98,6 +106,16 @@ function mountZone(subpage: "sheets" | "siteplan") {
       onGoCalc={() => {}}
     />,
   );
+}
+
+/** 真件装载（模块替身不拦 importActual 依赖解析——内部 hook 走上方替身；
+ *  V4 P2 提模块级——两 describe 共用）。 */
+async function realExportButton() {
+  return (
+    await vi.importActual<
+      typeof import("../../features/drawings/components/ExportButton")
+    >("../../features/drawings/components/ExportButton")
+  ).ExportButton;
 }
 
 beforeEach(() => {
@@ -219,15 +237,6 @@ describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业
 });
 
 describe("工程制图区·V3 ExportButton disabled 并入（D5——真件渲染）", () => {
-  /** 真件装载（模块替身不拦 importActual 依赖解析——内部 hook 走上方替身）。 */
-  async function realExportButton() {
-    return (
-      await vi.importActual<
-        typeof import("../../features/drawings/components/ExportButton")
-      >("../../features/drawings/components/ExportButton")
-    ).ExportButton;
-  }
-
   it("disabled=true：三导出钮+两 Select 全禁用（enable 门 AND——空态整组禁用）", async () => {
     const RealExportButton = await realExportButton();
     const { container } = render(
@@ -267,5 +276,96 @@ describe("工程制图区·V3 ExportButton disabled 并入（D5——真件渲�
     for (const button of buttons) {
       expect(button.hasAttribute("disabled")).toBe(false);
     }
+  });
+});
+
+describe("工程制图区·V4 中文化（P2——双 Select option 文案+图库卡语境行）", () => {
+  it("单元下拉 option=unitNameIndex 中文名+title=原 id（value 不变）", async () => {
+    const RealExportButton = await realExportButton();
+    const { container } = render(
+      <RealExportButton
+        projectId="p1"
+        units={["municipal_aao"]}
+        conditions={["design"]}
+      />,
+    );
+    const selects = container.querySelectorAll(".ant-select");
+    expect(selects.length).toBe(2);
+    // 开下拉（jsdom 无布局——maxTagCount responsive 闭合态收拢，option 面
+    // 才是可锚定文案；antd v6 开面=根元素 mouseDown）
+    fireEvent.mouseDown(selects[0] as HTMLElement, { button: 0 });
+    const options = document.querySelectorAll<HTMLElement>(".ant-select-item-option");
+    expect(options.length).toBe(1);
+    expect(options[0]?.querySelector(".ant-select-item-option-content")?.textContent)
+      .toContain("AAO 生物池"); // catalog name_zh 单源
+    expect(options[0]?.getAttribute("title")).toBe("municipal_aao"); // 悬浮=原 id
+  });
+
+  it("工况下拉回显=conditionLabel 工程全称+悬浮 title=原始键（value 不变）", async () => {
+    const RealExportButton = await realExportButton();
+    const { container } = render(
+      <RealExportButton
+        projectId="p1"
+        units={["municipal_aao"]}
+        conditions={["design", "design_offline_municipal_aao"]}
+      />,
+    );
+    const selects = container.querySelectorAll(".ant-select");
+    // antd v6 闭合回显面=.ant-select-content（title=原始键——option title 透传）
+    const conditionItem = selects[1]?.querySelector<HTMLElement>(".ant-select-content");
+    expect(conditionItem?.textContent).toContain("最高日最高时"); // design 基线词典
+    expect(conditionItem?.getAttribute("title")).toBe("design"); // 悬浮=原始键
+  });
+
+  it("图库卡语境行：kind 中文名 · 工况中文名（design→最高日最高时）", () => {
+    gate.exportsRows = [
+      {
+        project_id: "p1",
+        kind: "dxf",
+        condition_key: "design",
+        file_name: "p1-aao-design.dxf",
+        design_digest: "abcdef1234567890",
+        engine_version: "e",
+        data_version: "d",
+        stale_labeled: false,
+      },
+    ];
+    const { container } = render(
+      <DraftingZone
+        subpage="sheets"
+        onSubpageChange={() => {}}
+        onGoCalc={() => {}}
+      />,
+    );
+    const card = container.querySelector('[data-testid="wp-v4-sheet-card"]');
+    expect(card?.querySelector(".wp-v4-sheet-cap")?.textContent).toContain(
+      "图纸 · 最高日最高时",
+    );
+    expect(card?.querySelector(".wp-v4-sheet-cap")?.textContent).not.toContain("design");
+  });
+
+  it("图库卡语境行：工况空串=all→「全部工况」（中文兜底）", () => {
+    gate.exportsRows = [
+      {
+        project_id: "p1",
+        kind: "dxf",
+        condition_key: "",
+        file_name: "p1-all.dxf",
+        design_digest: "abcdef1234567890",
+        engine_version: "e",
+        data_version: "d",
+        stale_labeled: false,
+      },
+    ];
+    const { container } = render(
+      <DraftingZone
+        subpage="sheets"
+        onSubpageChange={() => {}}
+        onGoCalc={() => {}}
+      />,
+    );
+    const cap = container.querySelector('[data-testid="wp-v4-sheet-card"] .wp-v4-sheet-cap');
+    expect(cap?.textContent).toContain("全部工况");
+    expect(cap?.textContent).not.toMatch(/\ball\b/i); // 英文 all 兜底退役
   });
 });

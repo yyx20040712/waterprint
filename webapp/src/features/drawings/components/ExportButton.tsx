@@ -56,7 +56,13 @@
  *     （Ribbon 导出快访与子面两消费面单源——行为等价重构：三分支调度/
  *     409 二选一四字段/404 domainGate 固定摘要+NO_CALC_HINTS 尾词逐字
  *     承原位；NO_CALC_HINTS 常量随迁该件本文件删除）。
+ *   - V4 P2（2026-10-15 中文化）：双 Select option 文案走既有单源——单元=
+ *     unitNameIndex 中文名（catalog name_zh，title=id）/工况=conditionLabel
+ *     工程全称（title=原始键）；value 恒原值（提交面零改动——CompareMatrix
+ *     同制）。
  */
+import { conditionLabel, unitNameIndex } from "../../../shared/conditionLabels";
+import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/units";
 import { useEffect, useState } from "react";
 import { Button, Modal, Progress, Select, Space, Typography, message } from "antd";
 
@@ -96,6 +102,10 @@ export function ExportButton({
   const dxfMutation = useExportArtifact("dxf");
   const ifcMutation = useExportArtifact("ifc");
   const batchApi = useExportBatch("dxf", projectId); // SVRB D6②+SVRB2 D3（projectId=恢复键维度）
+  // V4 P2：中文名索引（catalog name_zh 单源——模块级 select 稳定引用；
+  // 未收录回退 id 透传=conditionLabels 同口径）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
 
   // 受控回显口径沿承：未交互=首单元预选（null 兜底）；交互后 []=显式清空。
   const chosenUnits = selectedUnits ?? units.slice(0, 1);
@@ -214,7 +224,11 @@ export function ExportButton({
         mode="multiple"
         style={{ minWidth: 240 }}
         value={chosenUnits}
-        options={units.map((id) => ({ value: id, label: id }))}
+        options={units.map((id) => ({
+          value: id,
+          label: unitNames[id] ?? id,
+          title: id,
+        }))}
         onChange={(next) => setSelectedUnits(next)}
         disabled={disabled || units.length === 0}
         allowClear
@@ -224,7 +238,11 @@ export function ExportButton({
       <Select
         style={{ minWidth: 120 }}
         value={chosenCondition === "" ? undefined : chosenCondition}
-        options={conditions.map((key) => ({ value: key, label: key }))}
+        options={conditions.map((key) => ({
+          value: key,
+          label: conditionLabel(key, unitNames),
+          title: key,
+        }))}
         onChange={(next) => setConditionKey(next)}
         disabled={disabled || conditions.length === 0}
       />

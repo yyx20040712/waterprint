@@ -21,6 +21,8 @@
  *     复用——微裁决 V18）；
  *   - 左树栏可拖宽（v2 笔2：usePaneWidth 接入——默认 190/140~420/
  *     键 wp-v4-drafting-left-w；siteplan 子页无左栏现状保持）。
+ *   - V4 P2（2026-10-15）：图库卡语境行中文化——kind 显示名常量+工况
+ *     conditionLabel 工程全称（""/all→全部工况；单源=shared/conditionLabels）。
  */
 import { lazy, Suspense } from "react";
 import { Spin, Tag, Typography } from "antd";
@@ -35,6 +37,8 @@ import {
 } from "../../features/drawings/api/useExportsQuery";
 import { useUnitCatalog } from "../../features/drawings/api/useUnitCatalog";
 import { buildSheetRows } from "../../features/drawings/lib/drawingsView";
+import { conditionLabel, unitNameIndex } from "../../shared/conditionLabels";
+import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 import type { DraftingSubpage } from "../zoneParam";
 import { usePaneWidth } from "./usePaneWidth";
 
@@ -66,6 +70,10 @@ const TREE_ROWS: readonly TreeRow[] = [
 /** 未选项目引导（与 designZone NO_PROJECT_HINT 同源白名单文案）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
 
+/** 图库卡 kind 显示名（V4 P2 语境行中文化——值域=dxf 单值，显示层常量
+ *  非查表映射；未知 kind 原样透传=dimLabels 诚实呈现同口径）。 */
+const SHEET_KIND_LABELS: Record<string, string> = { dxf: "图纸" };
+
 /** 卡片预览位简笔图纸形（折角单图——stroke currentColor 线性）。 */
 function SheetGlyph() {
   return (
@@ -92,6 +100,10 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
   const exportsQuery = useExportsQuery(projectId);
   const conditionQuery = useConditionOptions(projectId);
   const unitQuery = useUnitOptions(projectId);
+  // V4 P2 语境行中文化：工况工程全称（conditionLabel 单源；offline 拆段
+  // 消费 unitNames——catalog 未就绪退 id 透传非阻塞）
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
   // UX1 D3 同制：可投影面过滤（node.kind ∈ 目录 builtin 集剔除——B1 沿
   // DrawingsPane 口径重装配；catalog 未就绪不过滤全量兜底）
   const builtinIds = useUnitCatalog().data ?? null;
@@ -188,7 +200,10 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
                 <SheetGlyph />
               </div>
               <div className="wp-v4-sheet-cap">
-                {row.kind} · {row.conditionKey === "" ? "all" : row.conditionKey}
+                {SHEET_KIND_LABELS[row.kind] ?? row.kind} ·{" "}
+                {row.conditionKey === "" || row.conditionKey === "all"
+                  ? "全部工况"
+                  : conditionLabel(row.conditionKey, unitNames)}
                 {row.stale ? <Tag style={{ marginInlineStart: 4 }}>旧</Tag> : null}
               </div>
             </div>
