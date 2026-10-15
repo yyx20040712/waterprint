@@ -100,9 +100,9 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
     expect(hits).toEqual([]);
   });
 
-  it("扫描面非空守卫：shellV4 生产件恰 20 件（扫描根漂移=静默绿防线）", () => {
+  it("扫描面非空守卫：shellV4 生产件恰 21 件（扫描根漂移=静默绿防线；v2 笔1：usePaneWidth.ts 新入扫描面——拖宽 hook 提取件随动锚）", () => {
     const sources = scanShellV4Sources(SCAN_DIR);
-    expect(sources.length).toBe(20);
+    expect(sources.length).toBe(21);
     expect(sources.map((s) => s.rel).sort()).toEqual(
       [
         "analysisPane.tsx",
@@ -123,6 +123,7 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
         "solutionCards.tsx",
         "solutionDeviation.ts",
         "thumbnailFlow.tsx",
+        "usePaneWidth.ts",
         "viewer3dZone.tsx",
         "zoneBand.tsx",
       ].sort(),

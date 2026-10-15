@@ -22,7 +22,7 @@
  *   - 侧栏宽度：左 225/右 250 默认（wireframe 值），拖宽+localStorage
  *     记忆=B1 全局规则（拖柄 wp-v4-drag）。
  */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button, Modal } from "antd";
 
 import { AssumptionsPanel } from "../../features/params/components/AssumptionsPanel";
@@ -37,6 +37,7 @@ import { AnalysisPane } from "./analysisPane";
 import { SolutionCards } from "./solutionCards";
 import { JointSolutionCards } from "./jointSolutionCards";
 import { BackfillSection } from "./backfillSection";
+import { usePaneWidth } from "./usePaneWidth";
 
 /** 左栏空态引导（白名单：空态引导）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
@@ -58,28 +59,8 @@ const ANALYSIS_ENTRIES: readonly string[] = [
   "高程纵断（分析视图）",
 ];
 
-/** 拖宽限界（左 160~420/右 200~520——窄侧保画布可读，宽侧防吞画布）。 */
-const LEFT_MIN = 160;
-const LEFT_MAX = 420;
-const RIGHT_MIN = 200;
-const RIGHT_MAX = 520;
-const LEFT_DEFAULT = 225;
-const RIGHT_DEFAULT = 250;
-const LEFT_KEY = "wp-v4-left-w";
-const RIGHT_KEY = "wp-v4-right-w";
-
-/** 宽度持久读（localStorage——非法值/越界钳回默认）。 */
-function readWidth(key: string, fallback: number, min: number, max: number): number {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-  const raw = window.localStorage.getItem(key);
-  const value = raw === null ? NaN : Number(raw);
-  if (!Number.isFinite(value)) {
-    return fallback;
-  }
-  return Math.max(min, Math.min(max, value));
-}
+/** 拖宽限界（左 160~420/右 200~520——窄侧保画布可读，宽侧防吞画布；
+ *  v2 笔1：拖宽制式提取为 usePaneWidth 单源，键名/限界原样）。 */
 
 export function DesignZone({
   target,
@@ -112,95 +93,22 @@ export function DesignZone({
     unitId: string;
     no: string;
   } | null>(null);
-  // 侧栏宽度+拖宽（拖柄 pointer 主键拖动——宽度记忆 localStorage）
-  const [leftWidth, setLeftWidth] = useState(() =>
-    readWidth(LEFT_KEY, LEFT_DEFAULT, LEFT_MIN, LEFT_MAX),
-  );
-  const [rightWidth, setRightWidth] = useState(() =>
-    readWidth(RIGHT_KEY, RIGHT_DEFAULT, RIGHT_MIN, RIGHT_MAX),
-  );
-  const dragRef = useRef<{
-    side: "left" | "right";
-    startX: number;
-    startWidth: number;
-  } | null>(null);
-  // 拖拽会话最新宽度（回炉 R14——onUp 终值直读源，免 setState updater 副作用）
-  const lastWidthRef = useRef<{ side: "left" | "right"; width: number } | null>(
-    null,
-  );
-
-  // 拖拽 document 级监听（pointermove/up/cancel——卸载清理；GP-N 同款纪律）。
-  // 回炉 R1：onUp 不再摘除监听——常挂面恢复（摘除后仅 effect 首跑注册=
-  // 二次拖动失效+光标残留根因；挂/卸对称语义由 return 清理承载）。
-  // 回炉 R14：宽度持久直读拖拽终值（onMove 记录的最新宽度）——
-  // localStorage 写移出 setState updater（副作用面反模式收口）。
-  useEffect(() => {
-    const onMove = (event: PointerEvent) => {
-      const drag = dragRef.current;
-      if (drag === null) {
-        return;
-      }
-      const delta = event.clientX - drag.startX;
-      const width =
-        drag.side === "left"
-          ? Math.max(LEFT_MIN, Math.min(LEFT_MAX, drag.startWidth + delta))
-          : Math.max(RIGHT_MIN, Math.min(RIGHT_MAX, drag.startWidth - delta));
-      lastWidthRef.current = { side: drag.side, width };
-      if (drag.side === "left") {
-        setLeftWidth(width);
-      } else {
-        setRightWidth(width);
-      }
-    };
-    const onUp = () => {
-      const drag = dragRef.current;
-      if (drag !== null) {
-        dragRef.current = null;
-        document.body.style.cursor = "";
-        // 宽度记忆：拖放落定持久（终值=onMove 记录值，零移动回落起点；
-        // cancel 态终值与视觉一致——localStorage 写在 updater 外）
-        const width =
-          lastWidthRef.current !== null &&
-          lastWidthRef.current.side === drag.side
-            ? lastWidthRef.current.width
-            : drag.startWidth;
-        if (drag.side === "left") {
-          setLeftWidth(width);
-          window.localStorage.setItem(LEFT_KEY, String(Math.round(width)));
-        } else {
-          setRightWidth(width);
-          window.localStorage.setItem(RIGHT_KEY, String(Math.round(width)));
-        }
-        lastWidthRef.current = null;
-      }
-    };
-    // 常挂监听（dragRef 空转零开销——挂/卸对称免漏）
-    document.addEventListener("pointermove", onMove);
-    document.addEventListener("pointerup", onUp);
-    document.addEventListener("pointercancel", onUp);
-    return () => {
-      document.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerup", onUp);
-      document.removeEventListener("pointercancel", onUp);
-      document.body.style.cursor = "";
-    };
-  }, []);
-
-  /** 拖柄按下（仅主键——启动会话拖拽）。 */
-  const onDragStart = (
-    side: "left" | "right",
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
-    if (event.button !== 0) {
-      return;
-    }
-    dragRef.current = {
-      side,
-      startX: event.clientX,
-      startWidth: side === "left" ? leftWidth : rightWidth,
-    };
-    document.body.style.cursor = "col-resize";
-  };
+  // 侧栏宽度+拖宽（拖柄 pointer 主键拖动——宽度记忆 localStorage；
+  // v2 笔1：拖宽制式提取 usePaneWidth 单源，常量/键名原样零行为变）
+  const leftPane = usePaneWidth({
+    key: "wp-v4-left-w",
+    fallback: 225,
+    min: 160,
+    max: 420,
+    side: "left",
+  });
+  const rightPane = usePaneWidth({
+    key: "wp-v4-right-w",
+    fallback: 250,
+    min: 200,
+    max: 520,
+    side: "right",
+  });
 
   const subpage: DesignSubpage = target.subpage ?? "canvas";
 
@@ -211,13 +119,13 @@ export function DesignZone({
         <aside
           className="wp-v4-left"
           data-region="design-left"
-          style={{ width: leftWidth }}
+          style={{ width: leftPane.width }}
         >
           <div
             className="wp-v4-drag"
             data-testid="wp-v4-drag-left"
             title="拖拽调整宽度"
-            onPointerDown={(event) => onDragStart("left", event)}
+            onPointerDown={leftPane.onDragStart}
           >
             ⟷
           </div>
@@ -333,13 +241,13 @@ export function DesignZone({
         <aside
           className="wp-v4-right"
           data-region="design-right"
-          style={{ width: rightWidth }}
+          style={{ width: rightPane.width }}
         >
           <div
             className="wp-v4-drag"
             data-testid="wp-v4-drag-right"
             title="拖拽调整宽度"
-            onPointerDown={(event) => onDragStart("right", event)}
+            onPointerDown={rightPane.onDragStart}
           >
             ⟷
           </div>
