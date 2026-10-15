@@ -12,7 +12,7 @@
  *   - 语境工具区四活一骨架：保存=手动（draftProjectRaw+PUT——CanvasEdit
  *     Toolbar 同链；草稿自动暂存 paramsStore 沿承）；校验=validate POST
  *     （结论呈现迁 dock-tasks=B2 处置——B1 message 即时反馈）；全项目
- *     计算=decideRunCalc 分派链复用（ribbon 导出纯函数——M1 件零改）；
+ *     计算=decideRunCalc 分派链复用（runCalcPolicy 导出纯函数——v1 批拆迁单源）；
  *     撤销/重做=画布引擎无撤销栈（B1 骨架在场禁用态——实装挂账后续批）；
  *   - logo=简笔水滴线形 SVG（wireframe 屏 1 同形——stroke AC 色线性）；
  *   - 页签次序=V4_ZONES 单源（项目→计算说明）；切换经 onZoneChange 单通道。
@@ -43,7 +43,11 @@ import {
 } from "../../shared/api/generated/projects/projects";
 import type { WaterprintApiError } from "../../shared/api/http";
 import { TASK_EVENT } from "../../shared/events";
-import { decideRunCalc, paramDraftBlockMessage } from "../ribbon";
+import {
+  decideRunCalc,
+  paramDraftBlockMessage,
+  rawCheckedUnits,
+} from "../runCalcPolicy";
 import { writeTaskParam } from "../solutionsUrlState";
 import { useProjectId } from "../useProjectId";
 import { V4_ZONE_LABELS, V4_ZONES, type V4ZoneTarget } from "../zoneParam";
@@ -70,22 +74,6 @@ function BandLogo() {
       </svg>
     </span>
   );
-}
-
-/** raw design.checked_units 宽容读取（ribbon 同口径小件——M1 件零改红线
- *  下的重声明；checked_units=工况过滤面）。 */
-function rawCheckedUnits(raw: unknown): string[] {
-  if (typeof raw !== "object" || raw === null) {
-    return [];
-  }
-  const design = (raw as Record<string, unknown>)["design"];
-  if (typeof design !== "object" || design === null) {
-    return [];
-  }
-  const checked = (design as Record<string, unknown>)["checked_units"];
-  return Array.isArray(checked)
-    ? checked.filter((id): id is string => typeof id === "string")
-    : [];
 }
 
 export function ZoneBand({

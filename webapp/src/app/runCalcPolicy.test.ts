@@ -1,5 +1,6 @@
 /**
- * canvasEditToolbar 决策面测试（P0-B——fix-plan 批2 落地件；F3 扩参数草稿闸）。
+ * runCalcPolicy 决策面测试（v1-20261015 批自 canvasEditToolbar.test.ts 随迁
+ * ——被测件拆迁至 runCalcPolicy.ts，断言零改零弱化）。
  *
  * 输入:  decideRunCalc(dirty, body, paramDraftCount) 纯函数（提交计算动作
  *        分派）+ paramDraftBlockMessage(count) 拦截文案
@@ -11,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { decideRunCalc, paramDraftBlockMessage } from "./ribbon";
+import { decideRunCalc, paramDraftBlockMessage } from "./runCalcPolicy";
 
 describe("decideRunCalc（P0-B 只读态提交计算复活）", () => {
   it("只读态（dirty=false）body=null 恒放行——draft===null 属正常态", () => {
