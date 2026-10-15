@@ -53,7 +53,6 @@ function sceneOf(solids: RenderNode[], internals: RenderNode[] = []): RenderScen
     boundaries: [],
     routes: [],
     bounds: null,
-    modelBounds: null,
   };
 }
 

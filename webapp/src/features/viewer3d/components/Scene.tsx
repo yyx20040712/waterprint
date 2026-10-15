@@ -23,11 +23,12 @@
  *     scene.bounds, groupExtents(池组足迹))——机位/地面/网格/灯位/雾/
  *     阴影幅全消费 effective（core bounds 不知情的前端分池入镜；空池组
  *     零漂移回退 scene.bounds）；
- *   - V4 P8（2026-10-15）取景盒=模型簇：取景锚改 framingBounds=union(
- *     scene.modelBounds, 池组足迹)——solids/waters/internals 足迹聚合
- *     （地面/场界/条带不入盒；紧致拟合吃 effective 场地框=模型簇 3~5%
- *     占屏根因）；空簇回退 effectiveBounds（现行为）。地面/网格/灯位/
- *     雾/阴影幅/剖切上限仍 effective 分工不变；
+ *   - V4 P8（2026-10-15；迭代二同日）取景盒=渲染真形簇：取景锚
+ *     framingBounds=modelClusterBounds(scene, claims)∪已摆池组槽
+ *     （includeMissing=false）——图足迹减地面/减 claimed 族多实例兜底
+ *     方阵（渲染死码，golden 实证 aerator 方阵把盒 z 撑 3.4 倍=08 帧
+ *     簇显小根因）；空簇回退 effectiveBounds。地面/网格/灯位/雾/阴影
+ *     幅/剖切上限仍 effective 分工不变；
  *   - V4 P7（2026-10-15）画布铺满：canvas 高=height:"100%" 容器填充制
  *     （外层 flex:1/minHeight:0 链：zone 包裹 flex 列→本件 relative div
  *     flex:1；CANVAS_MIN_HEIGHT 保底沿承）——视口减 220px 公式制退役
@@ -77,6 +78,7 @@ import { groupExtents } from "../assemble/poolGroup";
 import { attachGlInfo, registerProbe } from "../assemble/probe";
 import {
   SceneProjectionError,
+  modelClusterBounds,
   projectScene,
   type RenderNode,
   type RenderScene,
@@ -283,16 +285,19 @@ export function Scene({
     () => unionBounds(projection.scene?.bounds ?? null, poolExtents),
     [projection.scene, poolExtents],
   );
-  // V4 P8：取景盒=模型簇（scene.modelBounds ∪ 池组足迹——solids/waters/
-  // internals 足迹聚合，地面/场界/条带不入盒）；空簇回退 effectiveBounds
-  // （现行为——机位/地面/灯位三面 effective 分工不变，仅取景改簇盒：
-  // 紧致拟合吃场地框=模型簇 3~5% 占屏的根因）
-  const framingBounds = useMemo(
-    () =>
-      unionBounds(projection.scene?.modelBounds ?? null, poolExtents)
-      ?? effectiveBounds,
-    [projection.scene, poolExtents, effectiveBounds],
-  );
+  // V4 P8 迭代二：取景盒=渲染真形簇（modelClusterBounds=图足迹减地面/减
+  // claimed 族兜底阵列〔渲染死码——golden 实证方阵把盒 z 撑 3.4 倍〕∪
+  // 已摆池组槽〔includeMissing=false——缺位槽=预留格非模型簇〕）；空簇
+  // （scene 空或簇足迹空集）回退 effectiveBounds 现行为——d1-W3 显式分支
+  const framingBounds = useMemo(() => {
+    if (projection.scene === null) {
+      return effectiveBounds;
+    }
+    return unionBounds(
+      modelClusterBounds(projection.scene, templateClaims.keys()),
+      groupExtents(poolPlans, templateClaims, { includeMissing: false }),
+    ) ?? effectiveBounds;
+  }, [projection.scene, poolPlans, templateClaims, effectiveBounds]);
 
   // 回炉 W7（门一 d1）：剖切面高度与控件读数统一 clamp 到取景上界——
   // 防陈旧大值「滑条显示半高而画面不剖」的控件/渲染失联（须在

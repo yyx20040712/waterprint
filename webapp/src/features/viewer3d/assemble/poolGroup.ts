@@ -262,6 +262,7 @@ export type PoolBadge = {
 export function groupExtents(
   plans: ReadonlyMap<string, PoolGroupPlan>,
   claims: ReadonlyMap<string, PoolClaim>,
+  options?: { includeMissing?: boolean },
 ): SceneBounds | null {
   let minX = Number.NaN;
   let minY = Number.NaN;
@@ -295,9 +296,14 @@ export function groupExtents(
       Math.abs(cos) * (plan.cellL / 2) + Math.abs(sin) * (plan.cellW / 2);
     const halfZ =
       Math.abs(sin) * (plan.cellL / 2) + Math.abs(cos) * (plan.cellW / 2);
+    // V4 P8 迭代二：includeMissing=false=取景盒口径（已摆 cell 簇——缺位
+    // 槽=预留格非模型簇）；缺省 true=F5 D1 原语义（地面/灯位面覆盖缺位槽
+    // 区——MissingSlotPlaceholder 可见区仍在场地上）
     const slots = [
       ...plan.activeSlots,
-      ...plan.missing.map((slot) => slot.position),
+      ...((options?.includeMissing ?? true)
+        ? plan.missing.map((slot) => slot.position)
+        : []),
     ];
     for (const anchor of anchors) {
       for (const [offsetX, , offsetZ] of slots) {

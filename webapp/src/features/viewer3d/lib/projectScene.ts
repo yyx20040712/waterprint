@@ -130,10 +130,6 @@ export type RenderScene = {
   routes: RouteNode[];
   /** 全 placements∪红线顶点 AABB（空场景=null——机位回退）。 */
   bounds: SceneBounds | null;
-  /** V4 P8 模型簇 AABB：solids/waters/internals 足迹聚合（地面 semantic=
-   *  ground 排除——场界/条带两独立组天然不入；空簇=null，消费面回退
-   *  bounds——取景盒供给锚，机位紧致拟合的对象=模型簇非场地）。 */
-  modelBounds: SceneBounds | null;
 };
 
 /** 投影非法（版本漂移/未知 kind/root 悬空/红线顶点不完整/条带角点不完整）
@@ -409,11 +405,6 @@ export function projectScene(scene: SceneResponse): RenderScene {
         route.points.map(([x, z]): Vec3 => [x, 0, z]),
       ),
     ];
-  // V4 P8：模型簇=三组足迹减地面（GroundStage/场界/条带不入取景盒——
-  // 空簇 null 由消费面回退 bounds）
-  const modelNodes = [...solids, ...waters, ...internals].filter(
-    (node) => node.semantic !== GROUND_SEMANTIC,
-  );
   return {
     sceneVersion: scene.scene_version,
     conditionKey: scene.condition_key,
@@ -424,6 +415,37 @@ export function projectScene(scene: SceneResponse): RenderScene {
     boundaries,
     routes,
     bounds: boundsOfPoints(boundPoints),
-    modelBounds: boundsOfPoints(modelNodes.flatMap(footprintOfNode)),
   };
+}
+
+/**
+ * V4 P8 迭代二：模型簇 AABB（渲染真形口径）——取景盒供给锚。簇=solids/
+ * waters/internals 足迹聚合，排除面：①semantic=ground 大平面；②claimed
+ * 模板族的多实例节点（instanceCount>1）——其 placements 是 projectScene
+ * placementsOf 兜底方阵（渲染死码：Scene 渲染层 claimed 族 internals 不
+ * 渲染，真形=TemplateUnit 池内实例，落在 dimNode 盒+池组槽内——golden
+ * 实证 aerator 2165 实例方阵把图口径 z 撑到 ±70.5 vs 真形 ±20.5）；③
+ * boundaries/routes 两独立组天然不入（场界/条带=场地框非模型簇）。空集
+ * =null（消费面回退 bounds 现行为）。claimedUnitIds=claimTemplateUnits
+ * 键集（claim 盲调用=纯图口径——registry 未命中族的方阵是真实渲染面
+ * 保留）。
+ */
+export function modelClusterBounds(
+  scene: RenderScene,
+  claimedUnitIds: Iterable<string>,
+): SceneBounds | null {
+  const claimed = new Set(claimedUnitIds);
+  const points: Vec3[] = [];
+  for (const node of [...scene.solids, ...scene.waters, ...scene.internals]) {
+    if (node.semantic === GROUND_SEMANTIC) {
+      continue;
+    }
+    const separator = node.id.indexOf("::");
+    const unitId = separator > 0 ? node.id.slice(0, separator) : null;
+    if (unitId !== null && claimed.has(unitId) && node.instanceCount > 1) {
+      continue;
+    }
+    points.push(...footprintOfNode(node));
+  }
+  return boundsOfPoints(points);
 }
