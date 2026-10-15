@@ -154,12 +154,13 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("计算说明区·空态与错误面（§二.⑤）", () => {
-  it("无项目=区级空态引导（B1 壳文案语义同源）", () => {
+  it("无项目=区级空态引导（B1 壳文案语义同源；V3 D3 空态卡同形居中）", () => {
     gate.projectId = null;
     const { container } = renderZone();
     const empty = container.querySelector('[data-testid="wp-v4-report-empty"]');
     expect(empty).not.toBeNull();
     expect(empty?.textContent).toContain("项目");
+    expect((empty as HTMLElement).style.margin).toBe("8px auto"); // R1 C8 三态同形沿承
   });
 
   it("无完成计算（report 404 领域面）=B1 壳文案空态", () => {
@@ -220,6 +221,7 @@ describe("计算说明区·md 渲染（react-markdown+KaTeX）", () => {
     expect(table).not.toBeNull();
     expect(table?.querySelector("th")?.textContent).toContain("指标");
     expect(table?.textContent).toContain("350");
+    expect((doc as HTMLElement).style.margin).toBe("8px auto"); // V3 D3 阅读卡居中（maxWidth 640 保留）
   });
 
   it("叙述槽 HTML 注释不渲染为正文（md 契约——占位正文保留）", () => {
@@ -341,19 +343,22 @@ describe("计算说明区·卡头副行（项目名·数据集·生成来源）"
 });
 
 describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
-  it("三钮在场：计算书 xlsx/审计 HTML/PDF 计算书", () => {
+  it("三钮在场：计算书 xlsx/审计 HTML/PDF 计算书（V3 D3：calcbook 主色化+audit 保持灰描边）", () => {
     const { container } = renderZone();
     const row = container.querySelector('[data-region="report-export"]');
     expect(row?.textContent).toContain("计算书 xlsx");
     expect(row?.textContent).toContain("审计 HTML");
     expect(row?.textContent).toContain("PDF 计算书");
+    // V3 D3 导出主钮主色：AC 底+白字（jsdom 色归一 rgb 形）；audit 现状保持
+    const calcbook = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
+    expect(calcbook?.style.background).toBe("var(--wpv4-ac)");
+    expect(calcbook?.style.color).toBe("rgb(255, 255, 255)");
+    expect(container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]')?.style.background).toBe("var(--wp-bg-elevated)");
   });
 
   it("calcbook 钮→POST /api/exports/calcbook（design 工况+空 unit_id 总图语义）", () => {
     const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>(
-      '[data-testid="wp-v4-report-export-calcbook"]',
-    );
+    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
     fireEvent.click(btn as HTMLButtonElement);
     expect(gate.exportMutate).toHaveBeenCalledTimes(1);
     const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
@@ -368,9 +373,7 @@ describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
 
   it("audit 钮→condition_key 空（audit 全厂单份跨工况——服务端 422 闸对齐）", () => {
     const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>(
-      '[data-testid="wp-v4-report-export-audit"]',
-    );
+    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]');
     fireEvent.click(btn as HTMLButtonElement);
     const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
     expect(kind).toBe("audit");
@@ -384,9 +387,7 @@ describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
 
   it("PDF 钮→report_pdf（design 工况）", () => {
     const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>(
-      '[data-testid="wp-v4-report-export-pdf"]',
-    );
+    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-pdf"]');
     fireEvent.click(btn as HTMLButtonElement);
     const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
     expect(kind).toBe("report_pdf");
@@ -419,7 +420,6 @@ describe("计算说明区·exportFailText 纯函数（PDF 显式错误面白名�
     expect(text).not.toContain("/api/calc/run");
   });
 });
-
 
 describe("计算说明区·TASK_EVENT 事件桥失效谓词（R1 回炉 W-G）", () => {
   it("真 orval queryKey 形集成：事件后恰本项目报告缓存键失效", async () => {

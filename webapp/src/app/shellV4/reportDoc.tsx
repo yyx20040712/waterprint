@@ -9,7 +9,9 @@
  * 输出:  正文卡内容：KaTeX 数学块（display 居中/inline 随行——katex.min.css
  *        模块级 import）+GFM 表格+叙述槽〔HTML 注释形态——react-markdown
  *        缺省不渲染 raw HTML 节点=注释不落正文，占位正文保留〕+h2/h3 携
- *        sections id 锚（左导航点击→getElementById 滚动定位）
+ *        sections id 锚（左导航点击→getElementById 滚动定位）+元数据段
+ *        后置 details 折叠（splitReportMeta 导出纯函数摘出「项目标识与
+ *        版本三元组」标记段——V3 D3 信息专业度批；标记缺席零改）
  *
  * 规格说明（B6 任务书 §一.4/§二.⑤——视觉基线 wireframe-d-v4 屏 6）：
  *   - 渲染错误面=不可达（registry 451 条 fixture 门全量零错）但组件层
@@ -24,7 +26,7 @@
  *   - 视觉规则：字号 12/11/10 三档+FG-1/FG-2 两档+忌加粗（.wp-v4-root
  *     全局复位承载）；公式块排版=KaTeX 默认（微调须视觉微裁决申报）。
  */
-import { createElement, type HTMLAttributes } from "react";
+import { createElement, useMemo, type HTMLAttributes } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -158,7 +160,87 @@ const headingComponents: Components = {
   h3: headingOf("h3", 12),
 };
 
-/** 计算说明正文（md→KaTeX 阅读态；ErrorBoundary=渲染意外面的面板级降级）。 */
+/** 元数据段标记（服务端 render_md 契约——md 首章「项目标识与版本三元组」
+ *  段；V3 D3 摘出面锚，标记缺席=零改行为〔旧报告兼容〕）。 */
+const META_MARKER = "**项目标识与版本三元组**";
+
+/** splitReportMeta 结果（meta=null=标记缺席/异常形态——零改渲染）。 */
+export type SplitReportMeta = { body: string; meta: string | null };
+
+/** GFM 表分隔行判形（| --- |: 形——管道+冒号+横线+空白字符集）。 */
+function isTableDelimiterLine(line: string): boolean {
+  return /^\|?[\s:|-]+\|?$/.test(line) && line.includes("-");
+}
+
+/** md 元数据段摘出（字符串级标记匹配——V3 D3）：标记行起至其后首个空行
+ *  界定的 GFM 表块末整段摘为 meta（标记段+紧随表）；body=前后文接缝收束
+ *  （恰一空行衔接）。标记缺席/标记后无表块=零改（{body:原文, meta:null}
+ *  ——旧报告与异常形态兼容；meta 段无 heading——摘出不移 h2/h3 序，
+ *  sections 锚对齐前提保持）。 */
+export function splitReportMeta(markdown: string): SplitReportMeta {
+  const lines = markdown.split("\n");
+  const markerAt = lines.findIndex((line) => line.trim() === META_MARKER);
+  if (markerAt === -1) {
+    return { body: markdown, meta: null };
+  }
+  // 标记后跳空行找首个表行；非管道行=异常形态（零改保守）
+  let tableAt = -1;
+  for (let index = markerAt + 1; index < lines.length; index += 1) {
+    const line = lines[index] as string;
+    if (line.trim() === "") {
+      continue;
+    }
+    if (line.trim().startsWith("|")) {
+      tableAt = index;
+    }
+    break;
+  }
+  if (tableAt === -1 || tableAt + 1 >= lines.length) {
+    return { body: markdown, meta: null };
+  }
+  // 表块=连续管道行（空行界定）；次行须为分隔行（GFM 表判形）
+  if (!isTableDelimiterLine((lines[tableAt + 1] as string).trim())) {
+    return { body: markdown, meta: null };
+  }
+  let tableEnd = tableAt + 1;
+  while (
+    tableEnd + 1 < lines.length &&
+    (lines[tableEnd + 1] as string).trim().startsWith("|")
+  ) {
+    tableEnd += 1;
+  }
+  const meta = lines.slice(markerAt, tableEnd + 1).join("\n");
+  // 接缝收束：前后段各去贴边空行，双非空=恰一空行衔接
+  const before = lines.slice(0, markerAt);
+  while (before.length > 0 && (before[before.length - 1] as string).trim() === "") {
+    before.pop();
+  }
+  const after = lines.slice(tableEnd + 1);
+  while (after.length > 0 && (after[0] as string).trim() === "") {
+    after.shift();
+  }
+  const body =
+    before.length === 0 || after.length === 0
+      ? [...before, ...after].join("\n")
+      : [...before, "", ...after].join("\n");
+  return { body, meta };
+}
+
+/** 折叠区排版（details 后置——正文流末尾；summary 11 档次级色）。 */
+const META_DETAILS_STYLE = {
+  marginTop: 14,
+  borderTop: "1px solid var(--wp-border-2)",
+  paddingTop: 8,
+} as const;
+const META_SUMMARY_STYLE = {
+  fontSize: 11,
+  color: "var(--wp-text-2)",
+  cursor: "pointer",
+} as const;
+
+/** 计算说明正文（md→KaTeX 阅读态；ErrorBoundary=渲染意外面的面板级降级；
+ *  V3 D3：元数据段摘出后置 details 折叠渲染——正文阅读流不被机器可读的
+ *  哈希/版本行占据首屏）。 */
 export function ReportDoc({
   markdown,
   sections,
@@ -166,6 +248,7 @@ export function ReportDoc({
   markdown: string;
   sections: readonly ReportSection[];
 }) {
+  const { body, meta } = useMemo(() => splitReportMeta(markdown), [markdown]);
   return (
     <ErrorBoundary label="计算说明书正文">
       <div data-testid="wp-v4-report-doc" style={DOC_STYLE}>
@@ -177,8 +260,16 @@ export function ReportDoc({
           ]}
           components={{ ...headingComponents, ...mdComponents }}
         >
-          {markdown}
+          {body}
         </ReactMarkdown>
+        {meta !== null ? (
+          <details data-testid="wp-v4-report-meta" style={META_DETAILS_STYLE}>
+            <summary style={META_SUMMARY_STYLE}>项目标识与版本（元数据）</summary>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+              {meta}
+            </ReactMarkdown>
+          </details>
+        ) : null}
       </div>
     </ErrorBoundary>
   );

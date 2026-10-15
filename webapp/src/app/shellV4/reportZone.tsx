@@ -249,15 +249,29 @@ function ExportContextRow({ projectId }: { projectId: string }) {
           data-testid={row.testid}
           disabled={mutations[row.kind].isPending}
           onClick={() => submitExport(row.kind, false)}
-          style={{
-            border: "1px solid var(--wp-border)",
-            borderRadius: 4,
-            background: "var(--wp-bg-elevated)",
-            color: "var(--wp-text)",
-            fontSize: 11,
-            padding: "1px 8px",
-            cursor: mutations[row.kind].isPending ? "default" : "pointer",
-          }}
+          style={
+            row.kind === "calcbook"
+              ? {
+                  // V3 D3：主钮主色化（AC 底+白字+同色描边——三键等权灰描边
+                  // 的对症=建立主次；audit/PDF 两钮保持现状）
+                  border: "1px solid var(--wpv4-ac)",
+                  borderRadius: 4,
+                  background: "var(--wpv4-ac)",
+                  color: "#ffffff",
+                  fontSize: 11,
+                  padding: "1px 8px",
+                  cursor: mutations[row.kind].isPending ? "default" : "pointer",
+                }
+              : {
+                  border: "1px solid var(--wp-border)",
+                  borderRadius: 4,
+                  background: "var(--wp-bg-elevated)",
+                  color: "var(--wp-text)",
+                  fontSize: 11,
+                  padding: "1px 8px",
+                  cursor: mutations[row.kind].isPending ? "default" : "pointer",
+                }
+          }
         >
           {row.label}
         </button>
@@ -301,7 +315,7 @@ function ReportFace({ projectId }: { projectId: string }) {
           style={{
             flex: 1,
             minWidth: 0,
-            margin: 8,
+            margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
             padding: "20px 26px",
             maxWidth: 640,
             background: "#ffffff",
@@ -385,7 +399,7 @@ function ReportFace({ projectId }: { projectId: string }) {
           data-region="report-doc"
           style={{
             flex: "none",
-            margin: 8,
+            margin: "8px auto", // V3 D3：阅读卡居中（宽视口空带收束——maxWidth 640 保留）
             padding: "20px 26px",
             maxWidth: 640, // wireframe 屏 6：阅读卡 max-width 640px
             background: "#ffffff",
@@ -425,7 +439,7 @@ export function ReportZone() {
           style={{
             flex: 1,
             minWidth: 0,
-            margin: 8,
+            margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
             padding: "20px 26px",
             maxWidth: 640,
             background: "#ffffff",
