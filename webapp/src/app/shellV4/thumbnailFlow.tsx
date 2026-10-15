@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Controls,
   Handle,
+  MiniMap,
   Position,
   ReactFlow,
   useReactFlow,
@@ -36,6 +37,8 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+
+import { SEMANTIC_COLORS } from "../../shared/ui/semanticColors";
 
 import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 import { useProjectQuery } from "../../features/canvas/api/useProjectQuery";
@@ -87,6 +90,55 @@ function ThumbnailNode({ data, selected }: NodeProps) {
 
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: ThumbnailNode };
+
+/** 画布图例行（V3 D1——连线域色图例：水线/泥线；色值单源
+ *  SEMANTIC_COLORS.domain_*〔shared/ui/semanticColors 真源，禁字面 hex〕；
+ *  12×3px 色条+11px 标签；空态提示同槽互斥——nodes>0 才渲染）。 */
+function FlowLegend() {
+  const rows = [
+    {
+      key: "water",
+      testid: "wp-v4-flow-legend-water",
+      label: "水线",
+      color: SEMANTIC_COLORS.domain_water,
+    },
+    {
+      key: "sludge",
+      testid: "wp-v4-flow-legend-sludge",
+      label: "泥线",
+      color: SEMANTIC_COLORS.domain_sludge,
+    },
+  ] as const;
+  return (
+    <div
+      data-testid="wp-v4-flow-legend"
+      style={{
+        position: "absolute",
+        left: 14,
+        top: 10,
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+        pointerEvents: "none",
+        zIndex: 4,
+      }}
+    >
+      {rows.map((row) => (
+        <div
+          key={row.key}
+          data-testid={row.testid}
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <span
+            aria-hidden
+            style={{ width: 12, height: 3, background: row.color, borderRadius: 1 }}
+          />
+          <span style={{ fontSize: 11, color: "var(--wp-text-2)" }}>{row.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /** 视口收敛子件（B2 P3 k1-N10 修复版：fitKey 变更 refit——首键跳过
  *  〔mount 拟合=ReactFlow fitView prop 承担〕。CanvasFlow 原制的
@@ -299,7 +351,21 @@ export function ThumbnailFlow({
         <FitViewOnNodes fitKey={sig} />
         <Controls
           showInteractive={false}
-          position="bottom-right"
+          position="bottom-left"
+          style={{
+            background: "#ffffff",
+            border: "1px solid var(--wp-border-2)",
+            borderRadius: 8,
+            overflow: "hidden",
+            boxShadow: "0 2px 10px rgba(31,35,41,.12)",
+          }}
+        />
+        {/* V3 D1：MiniMap 左下（与 Controls 右下对角；pannable/zoomable
+            +卡片壳同 Controls 制式） */}
+        <MiniMap
+          position="bottom-left"
+          pannable
+          zoomable
           style={{
             background: "#ffffff",
             border: "1px solid var(--wp-border-2)",
@@ -323,7 +389,9 @@ export function ThumbnailFlow({
         >
           画布为空——右键空白处选择工艺单元
         </div>
-      ) : null}
+      ) : (
+        <FlowLegend />
+      )}
       {menu !== null ? (
         <HierarchicalCatalog
           x={menu.x}
