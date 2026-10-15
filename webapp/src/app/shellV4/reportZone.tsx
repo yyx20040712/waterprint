@@ -34,6 +34,7 @@ import { Modal, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectId } from "../useProjectId";
+import { rawProjectName } from "../useProjectName";
 import { ReportDoc, type ReportSection } from "./reportDoc";
 import { usePaneWidth } from "./usePaneWidth";
 import { useExportArtifact } from "../../features/drawings/api/useExportArtifact";
@@ -70,19 +71,6 @@ const EXPORT_CONDITION: Record<ReportExportKind, string> = {
   audit: "",
   report_pdf: "design",
 };
-
-/** raw 项目读宽容取项目名（zoneBand rawCheckedUnits 同款形态）。 */
-function rawProjectName(raw: unknown): string | null {
-  if (typeof raw !== "object" || raw === null) {
-    return null;
-  }
-  const view = (raw as Record<string, unknown>)["view"];
-  if (typeof view !== "object" || view === null) {
-    return null;
-  }
-  const name = (view as Record<string, unknown>)["name"];
-  return typeof name === "string" && name.trim() ? name.trim() : null;
-}
 
 /** 导出失败文案（纯函数——PDF 面显式「PDF 计算书导出失败」前缀；404=
  *  domainGate 固定摘要+先提交计算引导，raw API 句式不入用户面）。 */

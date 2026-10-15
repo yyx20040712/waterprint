@@ -209,4 +209,17 @@ describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", ()
     const title = document.querySelector(".ant-modal-title")?.textContent;
     expect(title).toBe("连接设置");
   });
+
+  it("状态条项目名（v2 笔3）：取数未就绪=未命名项目回退+hex 裸露退役/未选=未选择", () => {
+    renderShell();
+    const bar = document.querySelector(".wp-v4-statusbar");
+    expect(bar?.textContent).toContain("项目：未命名项目");
+    expect(bar?.textContent).not.toContain("p1"); // hex 前缀不再裸露
+    cleanup();
+    gate.projectId = null;
+    renderShell();
+    expect(
+      document.querySelector(".wp-v4-statusbar")?.textContent,
+    ).toContain("项目：未选择");
+  });
 });

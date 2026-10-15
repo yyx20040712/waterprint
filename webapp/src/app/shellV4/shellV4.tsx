@@ -36,6 +36,7 @@ import { ConfigProvider, theme } from "antd";
 import type { ThemeConfig } from "antd";
 
 import { useProjectId } from "../useProjectId";
+import { useProjectName } from "../useProjectName";
 import { TokenSettingsModal } from "../tokenSettingsModal";
 import {
   initialZoneTarget,
@@ -128,6 +129,9 @@ export function ShellV4() {
     parseNodeParam(window.location.search),
   );
   const [projectId] = useProjectId();
+  // 状态条项目名（v2 笔3——useProjectName 单源：未选=null 显「未选择」；
+  // 空白/缺名/pending/失败=「未命名项目」回退，项目 hex 裸露消除）
+  const projectName = useProjectName();
   // R1-W1：连接设置自愈层（恒挂载——zone 切换不卸载；手动入口经
   // DesignZone→DockBar onOpenSettings 透传，AUTH_EVENT 自愈同 state）
   const { settingsOpen, openSettings, closeSettings } = useSettingsSelfHeal();
@@ -213,7 +217,7 @@ export function ShellV4() {
           <span>已连接</span>
           <span>
             项目：
-            {projectId === null ? "未选择" : projectId.slice(0, 16)}
+            {projectId === null ? "未选择" : projectName}
           </span>
           <span className="r">
             {target.zone !== "design" ? (
