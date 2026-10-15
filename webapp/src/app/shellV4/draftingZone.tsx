@@ -290,7 +290,10 @@ export function DraftingZone({
           background: "var(--wp-bg-container)",
           borderRight: "1px solid var(--wp-border-2)",
           padding: "6px 4px",
-          overflow: "auto",
+          // 回炉 R1：overflow auto 双轴下 3px 幻影横滚（同 report 侧栏——
+          // 子元素无实外溢实测在档）→ 横轴裁剪、纵滚保留
+          overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
         <div

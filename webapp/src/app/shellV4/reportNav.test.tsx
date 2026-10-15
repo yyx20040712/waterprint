@@ -163,4 +163,21 @@ describe("计算说明区·V4 侧栏横向溢出修复（P6——uiglobal B5）"
     expect(item?.style.textOverflow).toBe("ellipsis");
     expect(item?.style.whiteSpace).toBe("nowrap");
   });
+
+  // 主控回炉 R1：柄缘内化+条目省略后实测仍余 3px 幻影横滚
+  // （scrollWidth 201>clientWidth 198——分数舍入/纵滚条互作，非实内容
+  // 外溢：全部子元素 bounding 右缘 ≤ 内容缘实测在档）。修法=横轴裁剪：
+  // overflowX hidden（overflowY auto 保留——导航长列表滚动面不受牵连）。
+  it("侧栏横轴裁剪锚：aside overflowX=hidden+overflowY=auto（幻影 3px 横滚退役）", () => {
+    gate.report = {
+      data: { ...REPORT_BASE, sections: [{ id: "s1", title: "设计依据", level: 1 }] },
+      isError: false,
+      isPending: false,
+    };
+    const { container } = renderZone();
+    const aside = container.querySelector<HTMLElement>('[data-region="report-nav"]');
+    expect(aside).not.toBeNull();
+    expect(aside?.style.overflowX).toBe("hidden");
+    expect(aside?.style.overflowY).toBe("auto");
+  });
 });
