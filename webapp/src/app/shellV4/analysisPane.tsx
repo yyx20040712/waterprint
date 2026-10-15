@@ -48,8 +48,26 @@ const GATE_TEXT = {
   unitEntry: "该单元不在当前结果快照（未计算或已移除）",
 } as const;
 
-/** 出水指标表（effluent 聚合行——指标×工况值+限值+判定；R1 W-effluent：
- *  列集=全行 keys 并集〔非首行截断〕+缺值「—」占位禁伪 0）。 */
+/** 出水指标单位映射（V3 D2——冻结六指标恒 mg/L：出处=GB 18918 一级 A
+ *  常规污染物口径+core waterprint/contracts/quality.py INDICATORS 冻结域
+ *  {BOD5,CODCR,SS,NH3N,TN,TP}；服务端无 unit 字段=本表局部单源）。 */
+const EFFLUENT_UNITS: Readonly<Record<string, string>> = {
+  BOD5: "mg/L",
+  CODCR: "mg/L",
+  SS: "mg/L",
+  NH3N: "mg/L",
+  TN: "mg/L",
+  TP: "mg/L",
+};
+
+/** 指标→单位列取值（冻结域外=「—」回退——禁伪单位）。 */
+function effluentUnitOf(indicator: string): string {
+  return EFFLUENT_UNITS[indicator] ?? "—";
+}
+
+/** 出水指标表（effluent 聚合行——指标×单位×工况值+限值+判定；R1
+ *  W-effluent：列集=全行 keys 并集〔非首行截断〕+缺值「—」占位禁伪 0；
+ *  V3 D2：单位列〔指标后〕+表头纯中文+判定徽标全词）。 */
 function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>[0] }) {
   const rows = effluentRows(effluent);
   // R1 W-effluent：列集=全行并集（首见序——行间工况覆盖面不一不丢列）
@@ -76,8 +94,9 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
       <thead>
         <tr>
           <th>指标</th>
+          <th>单位</th>
           {conditionKeys.map((key) => (
-            <th key={key}>{key === "avg" ? "基准 avg" : key === "design" ? "设计 design" : key}</th>
+            <th key={key}>{key === "avg" ? "基准" : key === "design" ? "设计" : key}</th>
           ))}
           <th>限值</th>
           <th>判定</th>
@@ -87,6 +106,7 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
         {rows.map((row) => (
           <tr key={row.indicator}>
             <td style={{ textAlign: "left" }}>{row.indicator}</td>
+            <td style={{ color: "var(--wp-text-2)" }}>{effluentUnitOf(row.indicator)}</td>
             {conditionKeys.map((key) => {
               const value = row.values[key];
               return (
@@ -112,7 +132,7 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
                   background: row.compliant ? "var(--wpv4-ok-bg)" : "#fdeceb",
                 }}
               >
-                {row.compliant ? "达" : "超"}
+                {row.compliant ? "达标" : "超标"}
               </span>
             </td>
           </tr>

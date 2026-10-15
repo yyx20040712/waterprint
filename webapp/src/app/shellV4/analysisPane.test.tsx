@@ -192,7 +192,7 @@ describe("分析表态·空态三态（§二.⑤）", () => {
 });
 
 describe("分析表态·全厂指标面（§二.③）", () => {
-  it("出水指标行：avg/design 值+限值+判定（margin>=0=达）", () => {
+  it("出水指标行：avg/design 值+限值+判定（margin>=0=达标——V3 D2 徽标全词）", () => {
     gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
     gate.trust = { data: TRUST_REPORT, isError: false, error: null };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
@@ -200,8 +200,8 @@ describe("分析表态·全厂指标面（§二.③）", () => {
     expect(effluent).not.toBeNull();
     expect(effluent?.textContent).toContain("CODCR");
     expect(effluent?.textContent).toContain("NH3N");
-    expect(effluent?.textContent).toContain("达");
-    expect(effluent?.textContent).toContain("超");
+    expect(effluent?.textContent).toContain("达标");
+    expect(effluent?.textContent).toContain("超标");
   });
 
   it("stale=true=原因微文案+重算入口（点击发 POST run 载荷）", () => {
@@ -302,13 +302,15 @@ describe("分析表态·R1 W-effluent（列并集+缺值占位）", () => {
     const rows = table?.querySelectorAll("tbody tr") ?? [];
     // 列集=全行并集：avg+design 两列均在（首行截断旧面=design 列丢）
     const headerText = table?.querySelector("thead")?.textContent ?? "";
-    expect(headerText).toContain("基准 avg");
-    expect(headerText).toContain("设计 design");
-    // CODCR 行：avg=38/design=—（design 单元格精确断言——非伪 0）
+    expect(headerText).toContain("基准");
+    expect(headerText).toContain("设计");
+    // CODCR 行：单位=mg/L/avg=38/design=—（design 单元格精确断言——非伪 0；
+    // V3 D2 列序=指标/单位/〔工况列〕/限值/判定——单位列后工况格索引+1）
     const codRow = Array.from(rows).find((r) => r.textContent?.includes("CODCR"));
     const cells = Array.from(codRow?.querySelectorAll("td") ?? []);
-    expect(cells[1]?.textContent).toBe("38");
-    expect(cells[2]?.textContent).toBe("—");
+    expect(cells[1]?.textContent).toBe("mg/L");
+    expect(cells[2]?.textContent).toBe("38");
+    expect(cells[3]?.textContent).toBe("—");
   });
 
   it("trust 取数失败=错误提示面（白名单）——矩阵面仍在不阻断", () => {
@@ -324,5 +326,49 @@ describe("分析表态·R1 W-effluent（列并集+缺值占位）", () => {
     expect(
       container.querySelector('[data-testid="wp-compare-matrix-stub"]'),
     ).not.toBeNull(); // 矩阵面不阻断
+  });
+});
+
+describe("分析表态·V3 单位列（D2——冻结六指标 mg/L+未知回退「—」）", () => {
+  it("表头含「单位」列（列序=指标/单位/工况/限值/判定）+冻结域指标行=mg/L", () => {
+    gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
+    gate.trust = { data: TRUST_REPORT, isError: false, error: null };
+    const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    const table = container.querySelector('[data-testid="wp-v4-effluent-table"]');
+    expect(table).not.toBeNull();
+    const headerCells = Array.from(
+      table?.querySelectorAll("thead th") ?? [],
+    ).map((cell) => cell.textContent);
+    // 列序冻结锚：指标→单位→工况列→限值→判定
+    expect(headerCells[0]).toBe("指标");
+    expect(headerCells[1]).toBe("单位");
+    expect(headerCells[headerCells.length - 2]).toBe("限值");
+    expect(headerCells[headerCells.length - 1]).toBe("判定");
+    const nh3nRow = Array.from(table?.querySelectorAll("tbody tr") ?? []).find(
+      (row) => row.textContent?.includes("NH3N"),
+    );
+    const cells = Array.from(nh3nRow?.querySelectorAll("td") ?? []);
+    expect(cells[1]?.textContent).toBe("mg/L");
+  });
+
+  it("冻结域外指标（如 TEMP）=「—」回退（禁伪单位）", () => {
+    gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
+    gate.trust = {
+      data: {
+        ...TRUST_REPORT,
+        effluent: [
+          { condition_key: "design", standard_id: "s", indicator: "TEMP", value: 20, limit: 25, margin: 5 },
+        ],
+      },
+      isError: false,
+      error: null,
+    };
+    const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    const table = container.querySelector('[data-testid="wp-v4-effluent-table"]');
+    const row = Array.from(table?.querySelectorAll("tbody tr") ?? []).find(
+      (target) => target.textContent?.includes("TEMP"),
+    );
+    const cells = Array.from(row?.querySelectorAll("td") ?? []);
+    expect(cells[1]?.textContent).toBe("—");
   });
 });
