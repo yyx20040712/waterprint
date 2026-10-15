@@ -8,7 +8,9 @@
  * 输入:  Viewer3dZone（../viewer3dPane 懒件替身——场景面归探针）+三钮夹具
  * 输出:  断言族：①三钮在场（锚=放大/缩小/重置视图）②放大=包裹变换
  *        scale(1)→scale(1.15)（ZOOM_STEP 0.15）③缩小回落 ④重置=复位
- *        scale(1)+场景重挂（mountKey 换键——pane 实例重建证）
+ *        scale(1)+场景重挂（mountKey 换键——pane 实例重建证）⑤V4 P7：
+ *        包裹 div 立 flex 列（Scene Fragment 扁平子的弹性父——画布容器
+ *        填充制链首）
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -87,5 +89,17 @@ describe("viewer3d 工具簇正分支（P3 R6）", () => {
     );
     expect(transformOf(container)).toBe("scale(1)");
     expect(paneMounts.count).toBeGreaterThan(before); // 重挂证（实例重建）
+  });
+
+  it("V4 P7 包裹 div=flex 列（画布容器填充制链首——Scene 扁平子弹性父）", async () => {
+    const { container, findByTestId } = render(<Viewer3dZone />);
+    await findByTestId("viewer3d-pane-stub");
+    const section = container.querySelector('[data-region="viewer3d-full"]');
+    const wrapper = section?.firstElementChild as HTMLElement;
+    expect(wrapper.style.display).toBe("flex");
+    expect(wrapper.style.flexDirection).toBe("column");
+    // 既有弹性锚沿承（flex:1+minHeight:0 不变）
+    expect(wrapper.style.flex).toBe("1 1 0%"); // jsdom 归一 flex:1
+    expect(wrapper.style.minHeight).toBe("0px");
   });
 });

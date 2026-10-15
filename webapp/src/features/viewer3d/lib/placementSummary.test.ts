@@ -44,6 +44,7 @@ function sceneOf(
     boundaries: [],
     routes: [],
     bounds: null,
+    modelBounds: null,
   };
 }
 

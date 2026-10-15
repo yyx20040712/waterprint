@@ -13,6 +13,8 @@
  *     =缩放复位+场景重挂载（mountKey 换键）——微裁决 V17：真 3D 相机
  *     dolly/preset 接线随 v4 viewer3d 功能批（B1 骨架态=可见可用的
  *     zone 层最小面，不深入 Scene 内部）。
+ *   - V4 P7（2026-10-15）：包裹 div 立 flex 列——Scene Fragment 扁平子
+ *     （横幅/工具条/画布段）的弹性父，画布容器填充制链首（B-空带收口）。
  */
 import { lazy, Suspense, useState } from "react";
 
@@ -76,6 +78,8 @@ export function Viewer3dZone() {
         style={{
           flex: 1,
           minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
           transform: `scale(${zoom})`,
           transformOrigin: "center center",
         }}

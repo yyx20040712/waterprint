@@ -62,6 +62,9 @@ const KNOWN_KINDS = new Set([
 const WATER_KIND = "water_surface";
 const BOUNDARY_KIND = "polyline";
 const STRIP_KIND = "strip";
+/** 地面图元语义（V4 P8 模型簇取景盒排除面——平面 kind 大延展节点，
+ *  GroundStage 同语义不入取景盒；boundaries/routes 组天然不入簇面）。 */
+const GROUND_SEMANTIC = "ground";
 /** 池体足迹语义族（多实例=模板取数位——S5 相邻排布角起点契约面；
  *  池面随池壁同口径防分叉。F5 D2 居中仅设备阵列路径启用）。 */
 const POOL_FOOTPRINT_SEMANTICS = new Set(["pool_wall", "water_surface"]);
@@ -127,6 +130,10 @@ export type RenderScene = {
   routes: RouteNode[];
   /** 全 placements∪红线顶点 AABB（空场景=null——机位回退）。 */
   bounds: SceneBounds | null;
+  /** V4 P8 模型簇 AABB：solids/waters/internals 足迹聚合（地面 semantic=
+   *  ground 排除——场界/条带两独立组天然不入；空簇=null，消费面回退
+   *  bounds——取景盒供给锚，机位紧致拟合的对象=模型簇非场地）。 */
+  modelBounds: SceneBounds | null;
 };
 
 /** 投影非法（版本漂移/未知 kind/root 悬空/红线顶点不完整/条带角点不完整）
@@ -402,6 +409,11 @@ export function projectScene(scene: SceneResponse): RenderScene {
         route.points.map(([x, z]): Vec3 => [x, 0, z]),
       ),
     ];
+  // V4 P8：模型簇=三组足迹减地面（GroundStage/场界/条带不入取景盒——
+  // 空簇 null 由消费面回退 bounds）
+  const modelNodes = [...solids, ...waters, ...internals].filter(
+    (node) => node.semantic !== GROUND_SEMANTIC,
+  );
   return {
     sceneVersion: scene.scene_version,
     conditionKey: scene.condition_key,
@@ -412,5 +424,6 @@ export function projectScene(scene: SceneResponse): RenderScene {
     boundaries,
     routes,
     bounds: boundsOfPoints(boundPoints),
+    modelBounds: boundsOfPoints(modelNodes.flatMap(footprintOfNode)),
   };
 }

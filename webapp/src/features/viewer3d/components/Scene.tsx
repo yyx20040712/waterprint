@@ -23,6 +23,15 @@
  *     scene.bounds, groupExtents(池组足迹))——机位/地面/网格/灯位/雾/
  *     阴影幅全消费 effective（core bounds 不知情的前端分池入镜；空池组
  *     零漂移回退 scene.bounds）；
+ *   - V4 P8（2026-10-15）取景盒=模型簇：取景锚改 framingBounds=union(
+ *     scene.modelBounds, 池组足迹)——solids/waters/internals 足迹聚合
+ *     （地面/场界/条带不入盒；紧致拟合吃 effective 场地框=模型簇 3~5%
+ *     占屏根因）；空簇回退 effectiveBounds（现行为）。地面/网格/灯位/
+ *     雾/阴影幅/剖切上限仍 effective 分工不变；
+ *   - V4 P7（2026-10-15）画布铺满：canvas 高=height:"100%" 容器填充制
+ *     （外层 flex:1/minHeight:0 链：zone 包裹 flex 列→本件 relative div
+ *     flex:1；CANVAS_MIN_HEIGHT 保底沿承）——视口减 220px 公式制退役
+ *     （底缘空带根因）；
  *   - 漫游（L5b 预裁 6）：OrbitControls 挂载（three 包内 examples/jsm——
  *     零新 npm 依赖）+三 preset 并存：preset 点击=设相机 position+target
  *     一次（CameraRig effect），用户随后可自由拖拽/缩放/平移（controls
@@ -116,9 +125,9 @@ declare module "@react-three/fiber" {
 const SCENE_BG_GRASS = "#e2ece0";
 const SCENE_BG_DARK = "#f5f6f8";
 
-/** 画布高度：视口减页头/页签/内边距铬件（L5R 探针 B2 修复——R3F Canvas
- *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
-const CANVAS_HEIGHT = "calc(100vh - 220px)";
+/** 画布保底高（V4 P7 容器填充制：canvas 高=height:"100%" 沿外层
+ *  flex:1/minHeight:0 链铺满〔zone 包裹 flex 列→relative div flex:1〕，
+ *  视口减 220px 公式制退役——底缘空带根因；短视口保底沿承）。 */
 const CANVAS_MIN_HEIGHT = 420;
 
 /** 两盒并集（任一 null=取另一侧——F5 D1 effective bounds 组合核）。 */
@@ -264,15 +273,25 @@ export function Scene({
   );
 
   // F5 D1：effective bounds=scene.bounds ∪ 池组足迹（cell 域分池/缺位槽
-  // 世界 AABB）——机位/地面/网格/灯位/雾/阴影幅/剖切上限全消费本值；
+  // 世界 AABB）——地面/网格/灯位/雾/阴影幅/剖切上限全消费本值；
   // 空池组（plans 空/全 unit 域）groupExtents=null → 零行为漂移回退
+  const poolExtents = useMemo(
+    () => groupExtents(poolPlans, templateClaims),
+    [poolPlans, templateClaims],
+  );
   const effectiveBounds = useMemo(
+    () => unionBounds(projection.scene?.bounds ?? null, poolExtents),
+    [projection.scene, poolExtents],
+  );
+  // V4 P8：取景盒=模型簇（scene.modelBounds ∪ 池组足迹——solids/waters/
+  // internals 足迹聚合，地面/场界/条带不入盒）；空簇回退 effectiveBounds
+  // （现行为——机位/地面/灯位三面 effective 分工不变，仅取景改簇盒：
+  // 紧致拟合吃场地框=模型簇 3~5% 占屏的根因）
+  const framingBounds = useMemo(
     () =>
-      unionBounds(
-        projection.scene?.bounds ?? null,
-        groupExtents(poolPlans, templateClaims),
-      ),
-    [projection.scene, poolPlans, templateClaims],
+      unionBounds(projection.scene?.modelBounds ?? null, poolExtents)
+      ?? effectiveBounds,
+    [projection.scene, poolExtents, effectiveBounds],
   );
 
   // 回炉 W7（门一 d1）：剖切面高度与控件读数统一 clamp 到取景上界——
@@ -353,10 +372,16 @@ export function Scene({
       {firstFrameTimedOut ? (
         <FirstFrameTimeoutPanel onRetry={() => setAttempt((a) => a + 1)} />
       ) : (
-        <div style={{ position: "relative" }}>
+        <div
+          style={{
+            position: "relative",
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
           {!firstFrameDone ? <FirstFrameOverlay /> : null}
           <Canvas
-            camera={{ position: frameCamera(cameraPreset, effectiveBounds, 1).position, fov: V_FOV_DEG }}
+            camera={{ position: frameCamera(cameraPreset, framingBounds, 1).position, fov: V_FOV_DEG }}
             shadows="percentage"
             gl={{ localClippingEnabled: clippingEnabled }}
             onCreated={({ gl }) => {
@@ -365,7 +390,7 @@ export function Scene({
               attachGlInfo(gl);
             }}
             style={{
-              height: CANVAS_HEIGHT,
+              height: "100%",
               minHeight: CANVAS_MIN_HEIGHT,
               background: sceneBg,
             }}
@@ -377,7 +402,7 @@ export function Scene({
             {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件 GroundStage——effective
                 bounds 派生面：雾档距/灯位/阴影正交半幅/网格中心全随池组并盒） */}
             <GroundStage ground={ground} sceneBg={sceneBg} showGrass={showGrass} />
-            <CameraRig preset={cameraPreset} bounds={effectiveBounds} />
+            <CameraRig preset={cameraPreset} bounds={framingBounds} />
             {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
                 （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
                 [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/
