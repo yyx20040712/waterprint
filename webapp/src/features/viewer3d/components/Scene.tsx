@@ -15,12 +15,14 @@
  *     唯一围栏）；
  *   - 剖切：store（clippingEnabled/Height）→ THREE.Plane → 材质
  *     clippingPlanes（Y-up 高度面，§12.3 view 态）；
- *   - UX2 D5 取景自适应：机位=preset 方向归一×（对角线×1.25）+bounds
- *     中心（投影层 bounds 全 placements∪红线顶点 AABB——机位薄壳不测，
- *     app 层惯例；空场景回退原绝对坐标；fov 50 不变）；F5 D1：取景
- *     锚升为 effective bounds=union(scene.bounds, groupExtents(池组
- *     足迹))——机位/地面/网格/灯位/雾/阴影幅全消费 effective（core
- *     bounds 不知情的前端分池入镜；空池组零漂移回退 scene.bounds）；
+ *   - UX2 D5 取景自适应（v2 笔5 改制）：机位=lib/cameraFrame
+ *     frameCamera(preset,bounds,aspect)——AABB 投影紧致拟合（屏面半延展
+ *     投影 max/tan25°×1.15 margin+深度支撑项 extD；两处 D5 公式修正项
+ *     见 cameraFrame 头注——冻结式过不了自身 NDC 验收线）；空场景回退
+ *     原绝对坐标；fov 50 不变；F5 D1：取景锚=effective bounds=union(
+ *     scene.bounds, groupExtents(池组足迹))——机位/地面/网格/灯位/雾/
+ *     阴影幅全消费 effective（core bounds 不知情的前端分池入镜；空池组
+ *     零漂移回退 scene.bounds）；
  *   - 漫游（L5b 预裁 6）：OrbitControls 挂载（three 包内 examples/jsm——
  *     零新 npm 依赖）+三 preset 并存：preset 点击=设相机 position+target
  *     一次（CameraRig effect），用户随后可自由拖拽/缩放/平移（controls
@@ -52,7 +54,7 @@
  *     面实锚，R3 F1'' 五 pane 同模式同源）；网络错/其他错保 raw 透出
  *     （I-3 分级口径——禁误导引导）。
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Canvas, extend, useThree, type ThreeElement } from "@react-three/fiber";
@@ -71,6 +73,7 @@ import {
   type RenderScene,
   type SceneBounds,
 } from "../lib/projectScene";
+import { frameCamera } from "../lib/cameraFrame";
 import { groundPlan } from "../lib/groundPlan";
 import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
@@ -96,21 +99,15 @@ function unitIdOf(nodeId: string): string | null {
 }
 
 // L5b 漫游：three 包内 OrbitControls 经 extend 注册为 R3F 元素——
-// 零新 npm 依赖（预裁 6）；类型经 ThreeElements 声明合并进 R3F 命名空间
-// （makeDefault=R3F 运行时通用 prop——置入 state.controls 供 CameraRig 取）。
+// 零新 npm 依赖（预裁 6）；类型经 ThreeElements 声明合并进 R3F 命名空间。
+// v2 笔5：makeDefault 退役——R3F v9 内核无该 prop 处理（drei 外置特性，
+// state.controls 恒 null 实录）——controls 挂接改 CameraRig 内 ref+set。
 extend({ OrbitControls });
 declare module "@react-three/fiber" {
   interface ThreeElements {
-    orbitControls: ThreeElement<typeof OrbitControls> & { makeDefault?: boolean };
+    orbitControls: ThreeElement<typeof OrbitControls>;
   }
 }
-
-const CAMERA_PRESETS = {
-  // C2-3d V4（呈裁④「更近更俯」）：iso 俯角 25→30（俯瞰厂区感）
-  iso: [30, 30, 30] as [number, number, number],
-  top: [0, 60, 1] as [number, number, number],
-  side: [40, 5, 0] as [number, number, number],
-};
 
 /** C2-3d V1 地面/雾色——批3 迭代二（用户批注 b-①）：绿草地可隐藏图层，
  * 关=回工程底（页面 --wp-bg-page 同值——B4 亮化 #f5f6f8）。B4 亮底
@@ -123,19 +120,6 @@ const SCENE_BG_DARK = "#f5f6f8";
  *  无内在尺寸，父链 auto 高度下塌缩 150px；SVG viewBox 自适应族不同）。 */
 const CANVAS_HEIGHT = "calc(100vh - 220px)";
 const CANVAS_MIN_HEIGHT = 420;
-
-/** 取景中心（bounds AABB 中心；空场景=原点——零场景零尺度基准；
- *  F5 D1：入参升为 effective bounds（池组足迹并盒）。 */
-function sceneCenter(bounds: SceneBounds | null): [number, number, number] {
-  if (bounds === null) {
-    return [0, 0, 0];
-  }
-  return [
-    (bounds.min[0] + bounds.max[0]) / 2,
-    (bounds.min[1] + bounds.max[1]) / 2,
-    (bounds.min[2] + bounds.max[2]) / 2,
-  ];
-}
 
 /** 两盒并集（任一 null=取另一侧——F5 D1 effective bounds 组合核）。 */
 function unionBounds(a: SceneBounds | null, b: SceneBounds | null): SceneBounds | null {
@@ -160,59 +144,42 @@ function unionBounds(a: SceneBounds | null, b: SceneBounds | null): SceneBounds 
 }
 
 /**
- * UX2 D5 取景自适应机位：preset 方向向量归一化×（对角线长×1.25）+
- * bounds 中心（三 preset 方向语义保持——iso 斜视/top 近俯视微倾防正射
- * 退化/side 侧视；fov 50 不变；固定机位不随场景尺度的 FE3 质量观察①
- * 收口）。空场景（bounds=null）回退原绝对坐标——零场景零尺度基准。
- * F5 D1：入参升为 effective bounds（池组足迹并盒——取景不缺池组）。
- */
-function cameraPosition(
-  preset: keyof typeof CAMERA_PRESETS,
-  bounds: SceneBounds | null,
-): [number, number, number] {
-  const direction = CAMERA_PRESETS[preset];
-  if (bounds === null) {
-    return direction;
-  }
-  const center = sceneCenter(bounds);
-  const length = Math.hypot(direction[0], direction[1], direction[2]);
-  const unit: [number, number, number] =
-    length > 0
-      ? [direction[0] / length, direction[1] / length, direction[2] / length]
-      : [0, 1, 0];
-  const diagonal = Math.hypot(
-    bounds.max[0] - bounds.min[0],
-    bounds.max[1] - bounds.min[1],
-    bounds.max[2] - bounds.min[2],
-  );
-  // C2-3d V4（呈裁④）：距离系数 1.5→1.25（更近一档——「偏远」感收口）
-  const distance = diagonal * 1.25;
-  return [
-    center[0] + unit[0] * distance,
-    center[1] + unit[1] * distance,
-    center[2] + unit[2] * distance,
-  ];
-}
-
-/**
- * 相机漫游座（L5b）：OrbitControls 常驻挂载（makeDefault——state.controls
- * 可达）+preset 点击=设相机 position+target 一次（effect 依赖仅
- * preset/bounds/controls 引用——用户随后拖拽/缩放/平移不重置机位；
- * F5 D1：bounds=effective（池组并盒））。
+ * 相机漫游座（L5b；v2 笔5 取景数学迁 lib/cameraFrame——AABB 投影紧致
+ * 拟合，aspect 自 useThree size）：OrbitControls 常驻挂载+preset 点击=
+ * 设相机 position+target 一次（effect 依赖仅 preset/bounds/controls 引用
+ * ——用户随后拖拽/缩放/平移/改窗幅不重置机位；F5 D1：bounds=effective
+ * 池组并盒）。v2 笔5 controls 挂接修复：R3F v9 无 makeDefault 内核支持
+ * （state.controls 恒 null——probe.controls/target 路径失联实录），改
+ * ref+set 挂接 state.controls（组件卸载复位 null）。
  */
 function CameraRig({ preset, bounds }: { preset: CameraPreset; bounds: SceneBounds | null }) {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
+  const size = useThree((state) => state.size);
+  const set = useThree((state) => state.set);
   const controls = useThree((state) => state.controls) as OrbitControls | null;
+  const orbitRef = useRef<OrbitControls | null>(null);
+  // aspect 最新值 ref（不入 frame effect 依赖——「一次」语义：窗幅变更
+  // 不重置用户漫游机位）
+  const aspectRef = useRef(size.width / size.height);
   useEffect(() => {
-    const position = cameraPosition(preset, bounds);
-    const center = sceneCenter(bounds);
-    camera.position.set(position[0], position[1], position[2]);
+    aspectRef.current = size.width / size.height;
+  }, [size]);
+  // controls 挂接（makeDefault 退役面——R3F v9 由组件侧自行 set）
+  useEffect(() => {
+    if (orbitRef.current !== null) {
+      set({ controls: orbitRef.current });
+      return () => set({ controls: null });
+    }
+  }, [set]);
+  useEffect(() => {
+    const frame = frameCamera(preset, bounds, aspectRef.current);
+    camera.position.set(frame.position[0], frame.position[1], frame.position[2]);
     if (controls !== null) {
-      controls.target.set(center[0], center[1], center[2]);
+      controls.target.set(frame.center[0], frame.center[1], frame.center[2]);
       controls.update();
     } else {
-      camera.lookAt(center[0], center[1], center[2]);
+      camera.lookAt(frame.center[0], frame.center[1], frame.center[2]);
     }
   }, [preset, bounds, camera, controls]);
   // 观测面（段二 r3 补正诊断——零生产消费）：camera/controls 引用入 probe
@@ -228,7 +195,7 @@ function CameraRig({ preset, bounds }: { preset: CameraPreset; bounds: SceneBoun
       }
     }
   }, [camera, controls]);
-  return <orbitControls args={[camera, gl.domElement]} makeDefault />;
+  return <orbitControls ref={orbitRef} args={[camera, gl.domElement]} />;
 }
 
 /** 404 引导（无最近完成结果集——先提交计算；UX1 D5 与 elevation/cost/
@@ -389,7 +356,7 @@ export function Scene({
         <div style={{ position: "relative" }}>
           {!firstFrameDone ? <FirstFrameOverlay /> : null}
           <Canvas
-            camera={{ position: cameraPosition(cameraPreset, effectiveBounds), fov: 50 }}
+            camera={{ position: frameCamera(cameraPreset, effectiveBounds, 1).position, fov: 50 }}
             shadows="percentage"
             gl={{ localClippingEnabled: clippingEnabled }}
             onCreated={({ gl }) => {
