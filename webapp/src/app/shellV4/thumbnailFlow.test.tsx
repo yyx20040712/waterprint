@@ -17,9 +17,10 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ThumbnailFlow } from "./thumbnailFlow";
+import { ThumbnailFlow, pickMeasured } from "./thumbnailFlow";
 import thumbnailFlowSource from "./thumbnailFlow.tsx?raw";
 import { SEMANTIC_COLORS } from "../../shared/ui/semanticColors";
+import type { NodeChange } from "@xyflow/react";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -153,10 +154,40 @@ describe("工艺画布·V3 MiniMap（D1——左下+pannable/zoomable+卡片壳�
     expect(thumbnailFlowSource).toMatch(/<MiniMap[^]*?zoomable/m);
   });
 
-  it("Controls 右下对角共存（两件同屏——.react-flow__controls 在场）", () => {
+  it("Controls 右下对角共存（W-B 回炉位锁锚——两件同屏+Controls 类含 bottom/right）", () => {
     const { container } = mountFlow();
-    expect(container.querySelector(".react-flow__controls")).not.toBeNull();
+    const controls = container.querySelector<HTMLElement>(".react-flow__controls");
+    expect(controls).not.toBeNull();
+    expect(controls?.className).toContain("bottom");
+    expect(controls?.className).toContain("right");
     expect(container.querySelector(".react-flow__minimap")).not.toBeNull();
+  });
+});
+
+describe("工艺画布·V3 W-A 受控测量回写（MiniMap 零 rect 缺陷修复面）", () => {
+  it("pickMeasured：从变更流析出各节点 dimensions（position 变更旁路）", () => {
+    const changes = [
+      { id: "n1", type: "dimensions", dimensions: { width: 47, height: 53 } },
+      { id: "n2", type: "position", position: { x: 1, y: 2 } },
+      { id: "n3", type: "dimensions", dimensions: { width: 78, height: 53 } },
+    ] as NodeChange[];
+    expect(pickMeasured(changes)).toEqual({
+      n1: { width: 47, height: 53 },
+      n3: { width: 78, height: 53 },
+    });
+  });
+
+  it("pickMeasured：无 dimensions 变更=null（不触发 setState 面）", () => {
+    const changes = [
+      { id: "n2", type: "position", position: { x: 1, y: 2 } },
+      { id: "n4", type: "select", selected: true },
+    ] as NodeChange[];
+    expect(pickMeasured(changes)).toBeNull();
+  });
+
+  it("接线锚：onNodesChange 吃 dimensions+nodes 注入 measured（?raw 源结构）", () => {
+    expect(thumbnailFlowSource).toContain("pickMeasured(changes)");
+    expect(thumbnailFlowSource).toMatch(/measured: measuredById\[node\.id\]/);
   });
 });
 

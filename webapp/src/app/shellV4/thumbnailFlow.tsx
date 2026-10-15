@@ -140,6 +140,23 @@ function FlowLegend() {
   );
 }
 
+/** 受控测量回写析出（V3 W-A 回炉）：受控 nodes prop 下 xyflow 内部测量
+ *  链不落外部 state（node.measured 永不填充——MiniMap 的
+ *  nodeHasDimensions 门恒 null，缩略面板零节点 rect，probe-mm*.json
+ *  实证），dimensions 变更须宿主回写。纯函数：从变更流析出各节点
+ *  测量值（无 dimensions 变更=-null 不触发 setState）。 */
+export function pickMeasured(
+  changes: NodeChange[],
+): Record<string, { width: number; height: number }> | null {
+  let picked: Record<string, { width: number; height: number }> | null = null;
+  for (const change of changes) {
+    if (change.type === "dimensions" && change.dimensions != null) {
+      (picked ??= {})[change.id] = change.dimensions;
+    }
+  }
+  return picked;
+}
+
 /** 视口收敛子件（B2 P3 k1-N10 修复版：fitKey 变更 refit——首键跳过
  *  〔mount 拟合=ReactFlow fitView prop 承担〕。CanvasFlow 原制的
  *  useNodesInitialized 门在受控 nodes prop 下恒 false〔store 聚合旗不
@@ -184,6 +201,10 @@ export function ThumbnailFlow({
   // 泛型宽松面=仅消费 screenToFlowPosition 几何换算）
   const flowRef = useRef<{ screenToFlowPosition: (pos: { x: number; y: number }) => { x: number; y: number } } | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  // 受控测量回写（V3 W-A 回炉）：dimensions 变更累积 map——注入 node.measured
+  const [measuredById, setMeasuredById] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
 
   // 无编辑模式：raw 就绪且无本项目会话→自动 beginEdit（幂等——同项目续会话）
   useEffect(() => {
@@ -228,10 +249,11 @@ export function ThumbnailFlow({
         return {
           ...node,
           selected: node.id === selectedUnitId,
+          measured: measuredById[node.id],
           data: { ...node.data, nameZh: meta?.nameZh, inPort: meta?.inPort, outPort: meta?.outPort },
         };
       }),
-    [projection, selectedUnitId, metaByUnit],
+    [projection, selectedUnitId, metaByUnit, measuredById],
   );
 
   const edges = useMemo<Edge[]>(() => {
@@ -344,14 +366,21 @@ export function ThumbnailFlow({
               useCanvasStore.getState().position(change.id, change.position);
             }
           }
+          // dimensions 变更回写（V3 W-A 回炉——受控测量路径补全）
+          const dims = pickMeasured(changes);
+          if (dims !== null) {
+            setMeasuredById((prev) => ({ ...prev, ...dims }));
+          }
         }}
         proOptions={{ hideAttribution: true }}
         style={{ backgroundColor: "transparent" }}
       >
         <FitViewOnNodes fitKey={sig} />
+        {/* W-B 回炉：复位右下（V2 基线位——笔1 擅改 bottom-left 与 MiniMap
+            叠压且右下按钮组丢失，probe-minimap.json 实证嵌压；一行还原） */}
         <Controls
           showInteractive={false}
-          position="bottom-left"
+          position="bottom-right"
           style={{
             background: "#ffffff",
             border: "1px solid var(--wp-border-2)",
@@ -361,7 +390,9 @@ export function ThumbnailFlow({
           }}
         />
         {/* V3 D1：MiniMap 左下（与 Controls 右下对角；pannable/zoomable
-            +卡片壳同 Controls 制式） */}
+            +卡片壳同 Controls 制式）。W-C 注记：浮动面板遮画布左下节点
+            （golden 布局 2 节点）=浮动控件常态（fitView 动态视口可平移
+            避让，导航价值大于遮挡代价）——保留不移位。 */}
         <MiniMap
           position="bottom-left"
           pannable
