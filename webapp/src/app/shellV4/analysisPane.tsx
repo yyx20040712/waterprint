@@ -16,6 +16,8 @@
  * 规格说明（B2 任务书 §二.③/§二.⑤）：
  *   - 只读呈现（无编辑模式——分析表数据面零回写）；
  *   - 行模型=服务端联表满行直渲染（行集==载荷 rows——对账断言在测试面）；
+ *     V4 P4：单位列=dimUnit(dim,"output") 映射值（shared/dimLabels 单源
+ *     ——CompareMatrix 同款；空串=「—」禁伪单位）；
  *   - 空态/错误文案白名单：空态引导/错误提示/stale 原因——零教学性文字；
  *   - stale=提示性（不阻断阅读）；重算入口=POST /api/calc/run 直发
  *     （分析态无画布草稿面——apply 已落盘；zoneBand 顶带钮同链另一入口）。
@@ -32,6 +34,7 @@ import {
   useRunCalculationApiCalcRunPost,
 } from "../../shared/api/generated/calc/calc";
 import { domainGate } from "../../shared/api/sourceGate";
+import { dimUnit } from "../../shared/dimLabels";
 import { TASK_EVENT } from "../../shared/events";
 import { analysisFacesPredicate, effluentRows } from "./analysisView";
 import { writeTaskParam } from "../solutionsUrlState";
@@ -252,7 +255,9 @@ function UnitFace({
                   </span>
                 )}
               </td>
-              <td style={{ color: "var(--wp-text-2)" }}>{row.dim}</td>
+              <td style={{ color: "var(--wp-text-2)" }}>
+                {dimUnit(row.dim, "output") || "—"}
+              </td>
             </tr>
           ))}
         </tbody>

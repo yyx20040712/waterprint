@@ -18,11 +18,20 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ThumbnailFlow, pickMeasured } from "./thumbnailFlow";
 import thumbnailFlowSource from "./thumbnailFlow.tsx?raw";
-import globalCssSource from "../global.css?raw";
 import { SEMANTIC_COLORS } from "../../shared/ui/semanticColors";
 import type { NodeChange } from "@xyflow/react";
+
+/** global.css 源文（vitest 的 css 管线将 .css?raw 桩为空串——node fs
+ *  直读承载 CSS 断言面；zeroPedagogyGate.test 同制路径构造）。 */
+const globalCssSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), "../global.css"),
+  "utf-8",
+);
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {

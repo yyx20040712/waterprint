@@ -85,6 +85,18 @@ export function exportFailText(kind: ReportExportKind, error: unknown): string {
   return `${label}导出失败：${reason}`;
 }
 
+/** V4 P5：尾部全 ASCII 标识符括注（服务端 Section title=「单元名（unit_id）」
+ *  形〔core report build.py Section title f 串〕）——显示面剥除，title 悬浮
+ *  全称归消费面。仅剥尾注：内容全 [A-Za-z0-9_]（全/半角括号对均可——中文
+ *  括注如「（design 工况，mg/L）」含空格/中文不动；中段括注不动）。 */
+const ID_PARENTHETICAL_RE = /[（(]([A-Za-z0-9_]+)[)）]\s*$/;
+
+/** 剥尾部 id 括注（纯函数——无括注/中文括注原样返回）。 */
+export function stripIdParenthetical(title: string): string {
+  const match = title.match(ID_PARENTHETICAL_RE);
+  return match === null ? title : title.slice(0, match.index).trimEnd();
+}
+
 /** 左导航 aside（v2 笔2：三态 nav 去重为局部组件——拖宽 hook+柄+
  *  「说明书导航」头；children=章按钮（数据态）/空（无项目/错误态）。
  *  data-region="report-nav" 与既有 testid 语义原样保持）。 */
@@ -357,6 +369,7 @@ function ReportFace({ projectId }: { projectId: string }) {
             data-testid="wp-v4-report-nav-item"
             data-section-id={section.id}
             data-active={selectedId === section.id ? "true" : "false"}
+            title={section.title}
             onClick={() => {
               setSelectedId(section.id);
               document.getElementById(section.id)?.scrollIntoView({
@@ -379,9 +392,15 @@ function ReportFace({ projectId }: { projectId: string }) {
               padding:
                 section.level === 1 ? "4px 8px" : "3px 8px 3px 22px", // 小节缩进（两级树）
               cursor: "pointer",
+              // V4 P6：省略三件套+minWidth:0（长文不撑宽侧栏——scrollWidth
+              // 守卫；条目全称经 title 悬浮）
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            {section.title}
+            {stripIdParenthetical(section.title)}
           </button>
         ))}
       </ReportNav>

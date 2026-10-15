@@ -130,6 +130,8 @@ const UNIT_DETAIL = {
   rows: [
     { field_id: "v_o", label_zh: "好氧区容积", dim: "VOLUME", value: 19460 },
     { field_id: "hrt", label_zh: "水力停留时间", dim: "TIME_H", value: null },
+    { field_id: "q_air", label_zh: "需气量", dim: "FLOW", value: 0.805 },
+    { field_id: "回收率", label_zh: "回流比", dim: "DIMENSIONLESS", value: 1.2 },
   ],
   outflows: { "municipal_aao.out.q_design": 0.805 },
   outqualities: { "municipal_aao.out.CODCR": 40 },
@@ -278,6 +280,24 @@ describe("分析表态·选中单元明细（§二.③）", () => {
     const face = container.querySelector('[data-testid="wp-v4-analysis-error"]');
     expect(face).not.toBeNull();
     expect(face?.textContent).toContain("不在工况");
+  });
+
+  it("V4 P4 单位列=dimUnit(dim,\"output\") 映射值（与矩阵面同源；空串=—）", () => {
+    gate.unit = { data: UNIT_DETAIL, isError: false, error: null };
+    const { container } = renderPane({
+      projectId: "p1",
+      selectedUnitId: "municipal_aao",
+    });
+    const rows = container.querySelectorAll('[data-testid="wp-v4-unit-row"]');
+    const cellOf = (row: Element, index: number): string =>
+      row.querySelectorAll("td")[index]?.textContent ?? "";
+    expect(cellOf(rows[0] as Element, 2)).toBe("m³"); // VOLUME→m³（上标美化）
+    expect(cellOf(rows[1] as Element, 2)).toBe("h"); // TIME_H→h
+    expect(cellOf(rows[2] as Element, 2)).toBe("m³/s"); // FLOW 输出面语境（UF-63）
+    expect(cellOf(rows[3] as Element, 2)).toBe("—"); // DIMENSIONLESS 空串→—
+    // 裸枚举名禁现（旧实现直出 VOLUME/TIME_H）
+    expect(rows[0]?.textContent).not.toContain("VOLUME");
+    expect(rows[1]?.textContent).not.toContain("TIME_H");
   });
 });
 

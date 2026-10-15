@@ -12,7 +12,9 @@
  *        数学块/inline 数学/表格/HTML 注释不渲染为正文）④导航两级+锚定位
  *        （scrollIntoView）⑤stale 横幅+重算 ⑥卡头副行（项目名·数据集 R-
  *        digest10）⑦导出三钮载荷（audit 空 condition_key 面）⑧exportFailText
- *        纯函数（PDF 显式错误面白名单微文案）
+ *        纯函数（PDF 显式错误面白名单微文案）⑨V4 P5 导航剥 id 括注
+ *        （stripIdParenthetical 纯函数+title 全称）⑩V4 P6 侧栏溢出修复锚
+ *        （拖柄缘内+条目省略三件套）
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

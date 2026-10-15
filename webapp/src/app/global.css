@@ -290,12 +290,14 @@ body {
 .wp-v4-right .wp-v4-drag {
   left: -4px;
 }
-/* v2 笔2：侧栏拖宽（drafting 左树/report 导航 aside——沿 .wp-v4-left 同款两规则） */
+/* v2 笔2：侧栏拖宽（drafting 左树/report 导航 aside——沿 .wp-v4-left 同款两规则）；
+   V4 P6：柄改缘内 right:0（原 -4px 外溢——aside overflow:auto 下 4px 涨
+   scrollWidth 横滚面；柄热区仍在缘，拖拽手感零变更） */
 .wp-v4-sider {
   position: relative;
 }
 .wp-v4-sider .wp-v4-drag {
-  right: -4px;
+  right: 0;
 }
 
 /* 面板页签（左三 tab/右两页——分段形） */
