@@ -41,7 +41,7 @@
  *   --wp-font-mono ↔ providers fontFamilyCode
  * （2A5 机检化：本清单同值对经 app/themeLinkage.test.ts 断言——改色漏改任一侧即红）
  * 以下为 antd 无槽位色，分两族（批6n UF-53 双轴归一后口径）：gold=
- * 轴真源字面量（本文件唯一自持真源色——dot/scrollbar-hover 两键零消费
+ * 轴真源字面量（本文件唯一自持真源色——scrollbar-hover 单键零消费
  * 方字面量同族）；water/sludge/mine/convey=域色四轴——:root
  * 字面量已退役，启动期经 semanticColors.installDomainColorAxis() 自
  * DOMAIN_COLORS 注入（真源=webapp/src/shared/ui/semanticColors.ts，

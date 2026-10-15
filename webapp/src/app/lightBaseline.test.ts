@@ -7,7 +7,7 @@
  *        ../shared/ui/semanticColors DOMAIN_CSS_VARS/SEMANTIC_COLORS
  * 输出:  六判定面——①暗算法字面零命中（全域含测试）；②providers
  *        themeConfig 暗值清单（D1 表左列）零命中；③global.css :root
- *        15 色键亮值冻结+暗值零命中+规则体 D5 字面量零命中+全文件
+ *        14 色键亮值冻结+暗值零命中+规则体 D5 字面量零命中+全文件
  *        深底 hex（RGB 亮度<0.35，注释剥除）零命中；④内联暗值文件
  *        清单（D5 实测集+R-G3 派生面）逐文件零命中；⑤prefers-
  *        color-scheme 媒体查询零基线；⑥色板冻结锚（D1/D2/D3 亮值
