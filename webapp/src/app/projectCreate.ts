@@ -2,11 +2,14 @@
  * 建项入口纯函数面（P0-1——F1/F3/F4-文案面收口）。
  *
  * 输入:  项目显示名+project_id（下拉 label 格式化）/导入 JSON 文本（解析）
- * 输出:  下拉 label「名称 (id 前 8)」（无名回退全 id）/解析结果判别联合
+ * 输出:  下拉 label「名称 (id 前 8)」（无名回退「未命名项目 (id 前 8)」
+ *        ——V3 D4）/解析结果判别联合
  *
- * 规格说明（op-chain-fix-plan §一——2026-09-11 用户裁定批）：
+ * 规格说明（op-chain-fix-plan §一——2026-09-11 用户裁定批；V3-20261015
+ *   D4 回退语更新）：
  *   - F3 显示面：项目下拉「名称 (id8)」——name 非空=`名称 (id 前 8 位)`；
- *     空 name（历史项目/未命名）=回退全 id（裸 hex 诚实显示，禁猜默认名）；
+ *     空 name（历史项目/未命名）=「未命名项目 (id 前 8)」（V3 D4：裸 hex
+ *     消除——诚实占位不伪名，id 前 8 保可辨识）；
  *   - 导入面：JSON.parse 包裹为判别联合（ok: parsed / error: 用户语消息）
  *     ——Modal 消费；文件体校验（schema/版本门）归 server parse_project
  *     422（InvalidProjectPayloadError——FE 不做第二业务源，红线②）；
@@ -23,15 +26,22 @@ export function normalizeProjectName(raw: string): { name: string; valid: boolea
   return { name, valid: name.length > 0 && name.length <= PROJECT_NAME_MAX };
 }
 
-/** 项目下拉 label：`名称 (id 前 8)`；无名回退全 id（F3 显示面——
- * id=null 守备面返回名称裸值，列表契约 id 恒非空实际不可达）。 */
+/** 项目下拉 label：`名称 (id 前 8)`；无名回退「未命名项目 (id 前 8)」
+ * （V3 D4——裸 hex 消除，历史项目诚实占位；id=null 守备面返回名称裸值，
+ * 列表契约 id 恒非空实际不可达）。 */
 export function projectOptionLabel(
   name: string,
   projectId: string | null,
 ): string {
   const id = projectId ?? "";
   const trimmed = name.trim();
-  return trimmed && id ? `${trimmed} (${id.slice(0, 8)})` : id || trimmed;
+  if (trimmed && id) {
+    return `${trimmed} (${id.slice(0, 8)})`;
+  }
+  if (trimmed === "" && id !== "") {
+    return `未命名项目 (${id.slice(0, 8)})`;
+  }
+  return id || trimmed;
 }
 
 /** 导入 JSON 解析结果（判别联合——错误消息为用户语）。 */

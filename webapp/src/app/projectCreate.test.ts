@@ -45,9 +45,11 @@ describe("projectOptionLabel（F3 显示面——名称 (id 前 8)）", () => {
     );
   });
 
-  it("无名（历史项目）=回退全 id（裸 hex 诚实显示——含 .wp 尾缀原样）", () => {
-    expect(projectOptionLabel("", "ab12cd34ef56wp.json")).toBe("ab12cd34ef56wp.json");
-    expect(projectOptionLabel("  ", "ab12cd34ef56")).toBe("ab12cd34ef56");
+  it("无名（历史项目）=回退「未命名项目 (id 前 8)」（V3 D4——裸 hex 消除）", () => {
+    expect(projectOptionLabel("", "ab12cd34ef56wp.json")).toBe(
+      "未命名项目 (ab12cd34)",
+    );
+    expect(projectOptionLabel("  ", "ab12cd34ef56")).toBe("未命名项目 (ab12cd34)");
   });
 
   it("id=null 守备面=名称裸值（列表契约 id 恒非空实际不可达）", () => {

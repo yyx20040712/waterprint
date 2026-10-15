@@ -25,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   getListProjectsApiProjectsGetQueryKey,
   useCopyProjectApiProjectsProjectIdCopyPost,
+  useDeleteProjectApiProjectsProjectIdDelete,
   useListProjectsApiProjectsGet,
   useRenameProjectApiProjectsProjectIdRenamePost,
 } from "../../shared/api/generated/projects/projects";
@@ -96,6 +97,35 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
         messageApi.error(`重命名失败：${error instanceof Error ? error.message : "未知错误"}`),
     },
   });
+  // V3 D4：删除突变——onSuccess 刷新列表；删当前项目=解除选择留本区
+  //（shellV4 R16 选中清理经 projectId 变更自动联动）。
+  const remove = useDeleteProjectApiProjectsProjectIdDelete<WaterprintApiError>({
+    mutation: {
+      onSuccess: (_outcome, variables) => {
+        invalidateList();
+        messageApi.success("项目已删除");
+        if (variables.projectId === projectId) {
+          setProjectId(null);
+        }
+      },
+      onError: (error) =>
+        messageApi.error(`删除失败：${error instanceof Error ? error.message : "未知错误"}`),
+    },
+  });
+
+  /** 删除确认（V3 D4——危险动作显式确认：标题+项目名〔无名=未命名回退〕）。 */
+  const confirmRemove = (record: ProjectSummaryResponse) => {
+    Modal.confirm({
+      title: "删除项目",
+      content: `将删除「${projectOptionLabel(record.name ?? "", record.project_id)}」及其全部数据，删除后不可恢复。`,
+      okText: "删除",
+      okButtonProps: { danger: true },
+      cancelText: "取消",
+      onOk: () => {
+        remove.mutate({ projectId: record.project_id });
+      },
+    });
+  };
 
   const renameCheck = normalizeProjectName(renameValue);
 
@@ -184,6 +214,18 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
               }}
             >
               重命名
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              danger
+              data-testid={`wp-v4-proj-delete-${record.project_id.slice(0, 8)}`}
+              loading={
+                remove.isPending && remove.variables?.projectId === record.project_id
+              }
+              onClick={() => confirmRemove(record)}
+            >
+              删除
             </Button>
           </span>
         );
