@@ -106,12 +106,16 @@ const v4LightTheme: ThemeConfig = {
   },
 };
 
-/** replaceState 写查询串（他键原序保留——pathname/hash 不动）。 */
+/** replaceState 写查询串（他键原序保留——pathname 不动；回炉 R1：hash
+ *  拼回补齐〔d1-W1——App.tsx ?token= 引导 G1-03 同口径，原实现切 zone/
+ *  写 ?node= 会静默清 hash〕）。 */
 function replaceSearch(next: string): void {
   window.history.replaceState(
     null,
     "",
-    next ? `${window.location.pathname}?${next}` : window.location.pathname,
+    next
+      ? `${window.location.pathname}?${next}${window.location.hash}`
+      : `${window.location.pathname}${window.location.hash}`,
   );
 }
 

@@ -4,8 +4,9 @@
  * 职责: body 底色/字体栈/document 滚动根除（需求①骨架面）+WebKit 滚动条
  *       +项目色变量轴（鎏金/水线/泥线——antd 无对应 token 槽位的自建轴；
  *       其余同值色与 providers token 双源联动——见变量轴节契约）
- *       +antd Tabs 内容滚动域结构微调（v6 类名 body-holder——v5 的
- *       content-holder 在 v6 DOM 零命中，R 轮实测勘正）+画布点阵工具类。
+ *       +wp-full-bleed 满铺回收工具类（siteplanPane 消费）+v4 壳样式段
+ *       （.wp-v4-root scoped——回炉 R1 头注勘正：legacy Tabs 定制段/画布
+ *       点阵工具类/pane 令牌已随 v1 转正批删除）。
  * 输入: 无（静态样式；色值=方向 A 视觉稿冻结值——.workflow/c1-design）
  * 输出: 全局样式（main.tsx 引入一次；组件层经 var(--wp-*) 消费变量轴）
  *
@@ -30,8 +31,9 @@
  *   --wp-bg-container ↔ providers components.Layout.siderBg（B4 起
  *     colorBgContainer 升 BG-2 白——轴键仍 BG-1 面板底，对行收窄 siderBg 单侧）
  *   --wp-bg-elevated ↔ providers colorBgElevated（+components.Layout 无）
- *   --wp-bg-deep    ↔ 轴自持键（B4 起 headerBg 升页面底——深底档仅轴键
- *     消费〔statusBar〕，token 侧无对行）
+ *   --wp-bg-deep    ↔ 轴自持键（B4 起 headerBg 升页面底——轴自持无 tsx
+ *     消费方，themeLinkage 轴自持键在册〔v1 转正批勘注：原唯一消费面
+ *     statusBar 已随 legacy 退役〕，token 侧无对行）
  *   --wp-border    ↔ providers colorBorder
  *   --wp-border-2  ↔ providers colorBorderSecondary
  *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
@@ -61,8 +63,8 @@
 :root {
   /* B4 亮色基线（2026-10-09——plan §三分层白色板；值=.wp-v4-root 块
    * 同值提升：暗期方向 A 值整体退役，scoped 块保留不动〔双定义同值无害，
-   * B7 清点批统一处置〕；scrollbar-hover/dot-color/gold-soft 三键 v4 块
-   * 未覆写=B4 新定值）。 */
+   * B7 清点批统一处置〕；scrollbar-hover/gold-soft 两键 v4 块未覆写
+   * =B4 新定值；dot-color 键已随 v1 转正批退役）。 */
   --wp-bg-page: #f5f6f8;
   --wp-bg-container: #fafbfc;
   --wp-bg-elevated: #ffffff;

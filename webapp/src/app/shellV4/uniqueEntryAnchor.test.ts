@@ -9,8 +9,8 @@
  * 输入:  webapp/src 生产源树（*.ts/*.tsx——排除测试/夹具/生成面）
  * 输出:  断言族（全树口径——相对 src 的 posix 路径，命中集恰等）：
  *        ①单元枚举 hook（useRunEnumerationApiCalcEnumeratePost）消费面
- *        恰=[app/ribbon.tsx, app/shellV4/enumerateModal.tsx]（ribbon=
- *        legacy 冻结面合法消费——legacy 物理删除批随批更新本锚期望集）
+ *        恰=[app/shellV4/enumerateModal.tsx]（v1-20261015 转正批——
+ *        ribbon.tsx 消费面随 legacy 退役收缩，期望集已随批更新）
  *        ②wp-v4-reenumerate 恰=[app/shellV4/solutionCards.tsx]（开枚举
  *        Modal 唯一触发）③联合枚举 hook（useRunJointEnumerationApi
  *        SolutionJointEnumeratePost 全名锚——注释中缀提及不误中）恰=
@@ -20,11 +20,12 @@
  *        消费面第五锚（B7 收口批 U6——裁决 R-1 预案形态：**代码形态
  *        匹配非裸串**——正则四选一〔import 解构/add(Event)?Listener/
  *        removeEventListener/dispatchEvent 与 AUTH_EVENT 组合〕，注释面
- *        4 件同含 AUTH_EVENT 串〔dockBar/shellV4/statusBar/
- *        tokenSettingsModal 头注与 JSDoc——B3 迁移留痕〕裸串锚出生即红
- *        ——代码形态锚对注释自然出局）：命中恰=[app/App.tsx〔legacy
- *        冻结监听〕, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts
- *        〔派发侧〕]——第二消费监听出现即红。B7 R1 回炉硬化
+ *        3 件同含 AUTH_EVENT 串〔dockBar/shellV4/tokenSettingsModal
+ *        头注与 JSDoc——B3 迁移留痕；v1 转正批=statusBar 已删〕裸串锚
+ *        出生即红——代码形态锚对注释自然出局）：命中恰=[
+ *        app/shellV4/settingsSelfHeal.ts, shared/api/http.ts〔派发侧〕]
+ *        （v1-20261015 转正批——App.tsx legacy 浮层监听退役收缩）
+ *        ——第二消费监听出现即红。B7 R1 回炉硬化
  *        （k2-W-1+d1-C3/W3 2026-10-10）三改：①listener 两支+dispatch 支
  *        `(` 后空白容差（`\s*`——换行/缩进调用形态不逃锚）；②匹配形态
  *        改**全文件整体匹配**（原逐行 split——多行 import/调用形态逃锚
@@ -120,7 +121,7 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
     // 两支与 dispatch 支 `(` 后 `\s*` 空白容差（换行/缩进调用形态不逃锚
     // ——注入样本自证见批档 red-run-b7.txt R1 节）；②**全文件整体匹配**
     // 非逐行（多行 import/跨行调用形态覆盖；行定位仅报告用不参与判定）
-    // ——注释面 4 件（dockBar/shellV4/statusBar/tokenSettingsModal 头注
+    // ——注释面 3 件（dockBar/shellV4/tokenSettingsModal 头注
     // JSDoc 迁移留痕）同含 AUTH_EVENT 裸串但不匹配代码形态自然出局；
     // ③字面串支 "wp:auth"（事件名字面——d1-W3 绕过面：不 import 常量
     // 直用字面绕代码形态锚），双引号/单引号两形同收（prettier 双引号

@@ -126,7 +126,7 @@ describe("判定面②：providers themeConfig 暗值清单（D1 表左列）零
 });
 
 describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命中", () => {
-  it(":root 15 色键=D2 亮值表（逐键冻结锚）", () => {
+  it(":root 14 色键=D2 亮值表（逐键冻结锚——v1 转正批：dot-color 键退役 15→14）", () => {
     const lightAxis: Record<string, string> = {
       "--wp-bg-page": "#f5f6f8",
       "--wp-bg-container": "#fafbfc",
@@ -227,9 +227,10 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
 
   it("R2 暗基 rgb 家族零命中（主控终裁视觉回炉——三族非测试源面零残留）", () => {
     // 家族=rgba 基 18,33,58 / 11,21,38 / 3,10,22（暗期深底调色基——
-    // 豁免：App.tsx 品牌图形 rgba(29,95,208,·) 不在族内；rgba(0,0,0,·)
-    // 纯黑软影非暗基调色）。needle 拼接构造防本件自匹配；扫描面=非测试
-    // .ts/.tsx/.css（注释同计——历史注记须改写非存留）。
+    // 豁免：rgba(0,0,0,·) 纯黑软影非暗基调色；legacy 品牌图形豁免注随
+    // v1 转正批退役——现 App.tsx 无任何 rgba 品牌字面）。needle 拼接构造
+    // 防本件自匹配；扫描面=非测试 .ts/.tsx/.css（注释同计——历史注记须
+    // 改写非存留）。
     const darkBases = [
       ["18", "33", "58"],
       ["11", "21", "38"],
