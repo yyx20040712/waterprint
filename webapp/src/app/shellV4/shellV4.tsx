@@ -215,7 +215,16 @@ export function ShellV4() {
         <footer className="wp-v4-statusbar">
           <span style={{ color: "var(--wpv4-ok)" }}>●</span>
           <span>已连接</span>
-          <span>
+          {/* R1-N3 项目名截断防护：长名省略号+title 全名悬停（短名零影响） */}
+          <span
+            title={projectName ?? undefined}
+            style={{
+              maxWidth: 200,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             项目：
             {projectId === null ? "未选择" : projectName}
           </span>

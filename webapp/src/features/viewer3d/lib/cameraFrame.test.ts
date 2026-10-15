@@ -7,7 +7,8 @@
  * 输出:  断言族：①三 preset 机位方向=归一 preset 向量（top 近俯视微倾
  *        防正射退化注记保持）②空场景（bounds=null）回退绝对坐标+中心
  *        原点③紧致拟合距离=公式解析值且对宽扁盒显著小于对角线×1.25
- *        ④AABB 八角 NDC 投影在 [-1.1,1.1]（margin 不裁切数学断言）
+ *        ④AABB 八角 NDC 投影 |NDC|≤1（margin 不裁切数学断言——R1-N1
+ *        收紧 1.1→1：margin×1.15 下理论上界 1/1.15≈0.870，判别力升）
  */
 import { describe, expect, it } from "vitest";
 
@@ -159,7 +160,7 @@ describe("cameraFrame·紧致拟合距离", () => {
 
 describe("cameraFrame·margin 不裁切（AABB 八角 NDC 投影）", () => {
   it.each(["iso", "top", "side"] as const)(
-    "%s 八角 NDC 在 [-1.1,1.1]（lookAt 基——x=up×z/y=z×x 投影解析）",
+    "%s 八角 NDC |NDC|≤1（lookAt 基——x=up×z/y=z×x 投影解析；R1-N1 收紧）",
     (preset) => {
       const aspect = 2.9567;
       const { position, center } = frameCamera(preset, FLAT, aspect);
@@ -195,8 +196,8 @@ describe("cameraFrame·margin 不裁切（AABB 八角 NDC 投影）", () => {
             expect(depth).toBeGreaterThan(0); // 全角在相机前方
             const ndcX = dot3(d, xAxis) / (depth * TAN_HALF * aspect);
             const ndcY = dot3(d, yAxis) / (depth * TAN_HALF);
-            expect(Math.abs(ndcX)).toBeLessThanOrEqual(1.1);
-            expect(Math.abs(ndcY)).toBeLessThanOrEqual(1.1);
+            expect(Math.abs(ndcX)).toBeLessThanOrEqual(1);
+            expect(Math.abs(ndcY)).toBeLessThanOrEqual(1);
           }
         }
       }
@@ -217,4 +218,17 @@ describe("cameraFrame·margin 不裁切（AABB 八角 NDC 投影）", () => {
     // 深度项非零（golden 宽扁盒 iso 对角深度支撑≈126.9）
     expect(want.extD).toBeCloseTo(126.86, 1);
   });
+});
+
+
+describe("cameraFrame·aspect 守卫（R1-W1——非有限/≤0 回退 1）", () => {
+  it.each([0, Number.NaN, Infinity, -2])(
+    "aspect=%s → 输出与 aspect=1 全等（纯函数层钳位）",
+    (bad) => {
+      const ref = frameCamera("iso", FLAT, 1);
+      const out = frameCamera("iso", FLAT, bad);
+      expect(out.position).toEqual(ref.position);
+      expect(out.center).toEqual(ref.center);
+    },
+  );
 });

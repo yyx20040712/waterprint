@@ -4,7 +4,8 @@
  * 样板：常挂监听/onUp 不摘监听/终值=onMove 记录值直读/持久写在 updater 外）。
  *
  * 输入:  config（key=localStorage 键/fallback=缺省宽/min~max=钳位域/
- *        side=left|right——left 宽度=startWidth+delta、right=startWidth−delta）
+ *        side=left|right——left 宽度=startWidth+delta、right=startWidth−delta；
+ *        R1-W2 窗外释放终结+R1-N6 存储访问降级〔读抛回退/写抛吞〕）
  * 输出:  { width, onDragStart }——width=当前栏宽（style width 消费）；
  *        onDragStart=拖柄 onPointerDown 接线（仅主键启动会话+body cursor
  *        =col-resize；拖拽终值 onUp 落定持久）
@@ -30,7 +31,14 @@ function readWidth(key: string, fallback: number, min: number, max: number): num
   if (typeof window === "undefined") {
     return fallback;
   }
-  const raw = window.localStorage.getItem(key);
+  let raw: string | null;
+  try {
+    raw = window.localStorage.getItem(key);
+  } catch {
+    // R1-N6 存储访问降级（隐私模式/禁存储 SecurityError——jointSolutionCards
+    // R2 W-B 先例同款）：读抛错回退 fallback
+    return fallback;
+  }
   const value = raw === null ? NaN : Number(raw);
   if (!Number.isFinite(value)) {
     return fallback;
@@ -61,6 +69,14 @@ export function usePaneWidth(config: PaneWidthConfig): {
   // 不摘监听：常挂面语义，二次拖动即用；卸载清理含 body cursor 复位）。
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
+      // R1-W2 窗外释放终结：指针在窗口外释放后回归的无按键移动（buttons=0）
+      // 按 onUp 同路径终结会话（终值持久+cursor 复位+清 dragRef）——不残留
+      // col-resize/不再改宽（onUp 本身不判 buttons：pointerup 事件 buttons
+      // 恒 0 属正常路径）
+      if (event.buttons === 0) {
+        onUp();
+        return;
+      }
       const drag = dragRef.current;
       if (drag === null) {
         return;
@@ -82,8 +98,11 @@ export function usePaneWidth(config: PaneWidthConfig): {
         // cancel 态终值与视觉一致——localStorage 写在 setState 外）
         const finalWidth = lastWidthRef.current ?? drag.startWidth;
         setWidth(finalWidth);
-        window.localStorage.setItem(key, String(Math.round(finalWidth)));
-        
+        try {
+          window.localStorage.setItem(key, String(Math.round(finalWidth)));
+        } catch {
+          // R1-N6 存储访问降级：写抛错忽略（宽度状态面不受损）
+        }
         lastWidthRef.current = null;
       }
     };

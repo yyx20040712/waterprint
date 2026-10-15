@@ -73,7 +73,7 @@ import {
   type RenderScene,
   type SceneBounds,
 } from "../lib/projectScene";
-import { frameCamera } from "../lib/cameraFrame";
+import { frameCamera, V_FOV_DEG } from "../lib/cameraFrame";
 import { groundPlan } from "../lib/groundPlan";
 import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
@@ -356,7 +356,7 @@ export function Scene({
         <div style={{ position: "relative" }}>
           {!firstFrameDone ? <FirstFrameOverlay /> : null}
           <Canvas
-            camera={{ position: frameCamera(cameraPreset, effectiveBounds, 1).position, fov: 50 }}
+            camera={{ position: frameCamera(cameraPreset, effectiveBounds, 1).position, fov: V_FOV_DEG }}
             shadows="percentage"
             gl={{ localClippingEnabled: clippingEnabled }}
             onCreated={({ gl }) => {

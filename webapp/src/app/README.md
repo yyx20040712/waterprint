@@ -48,6 +48,7 @@
 | `shellV4/designZoneJointEntry.test.tsx` | v4 联合枚举入口组件 vitest（jsdom——designZone 子面全替身+JointSubmitForm 真件〔生成钩子/两查询替身〕：全厂页→wp-v4-joint-open→Modal 开+表单在场零选态/选两单元→mutate 载荷+TASK_EVENT 派发+Modal 关〔离场 motion 类证——jsdom 无 transition 事件〕/无项目态禁用） | B3 入口与按钮清点批实装（U5——3 用例） |
 | `shellV4/usePaneWidth.ts` | v4 侧栏拖宽 hook（v2-20261015 笔1 自 designZone 61-203 提取单源——{key,fallback,min,max,side}→{width,onDragStart}；语义七条照抄样板：读宽钳位/常挂 document 监听/onUp 不摘/终值=onMove 记录直读/持久写只在 onUp/仅主键+col-resize/left=+delta·right=−delta） | v2 笔1 实装（消费面=designZone 双侧栏〔键名限界原样〕+drafting 左树+report 导航〔笔2 接入〕） |
 | `shellV4/usePaneWidth.test.tsx` | v4 侧栏拖宽 hook vitest（jsdom——MouseEvent 带 pointer* 类型串派发〔jsdom 无 PointerEvent 构造器〕：钳位三态/非法值回退+空串 Number 语义零漂移锚/左右往返+拖中钳位+持久终值/零移动回落/cancel 一致/非主键忽略/卸载清理三摘+cursor 复位） | v2 笔1 实装（8 用例——以 vitest 实跑为准） |
+| `shellV4/draftingZone.test.tsx` | v4 工程制图区 vitest（jsdom，v2 R1-N5 主控扩权新件——制式沿 reportZone.test 拖拽锚：sheets 态左树 wp-v4-sider+拖柄在场+初始 190px/拖拽往返 190→240+持久写键〔事件补 buttons:1——R1-W2 语义〕/siteplan 分支无左树无拖柄锚） | v2 R1 实装（3 用例——以 vitest 实跑为准） |
 | `runCalcPolicy.ts` | 提交计算决策纯函数（v1-20261015 笔1 自 ribbon.tsx 拆迁：decideRunCalc 三轴分派〔P0-B 只读态放行/F3-A-1 参数草稿闸〕+paramDraftBlockMessage 拦截文案+rawCheckedUnits 受检单元宽读——语义逐字保持，ribbon 本体随 legacy 退役） | v1 转正批实装（消费面=zoneBand 工具区） |
 | `runCalcPolicy.test.ts` | runCalcPolicy 决策面 vitest（断言自 canvasEditToolbar.test 随迁零弱化——7 用例） | v1 转正批实装 |
 | `useProjectId.ts` | projectId 跨面板共享 hook（UX1 S3——URL ?project= 单一真相订阅面：PROJECT_EVENT 监听重读同值早退+setter 回写 replaceState 写后派发） | UX1 实装（六 pane 消费：写方 canvas/viewer3d setter、读方四 pane 订阅；薄壳不测裁量见头注） |

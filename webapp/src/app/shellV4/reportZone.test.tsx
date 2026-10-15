@@ -475,7 +475,7 @@ describe("计算说明区·左导航拖宽（v2 笔2——ReportNav 去重+usePa
     ).toContain("说明书导航");
   });
 
-  it("拖拽往返：document pointermove 会话宽度变+onUp 持久写键（jsdom 无 PointerEvent——MouseEvent 带类型串派发）", () => {
+  it("拖拽往返：document pointermove 会话宽度变+onUp 持久写键（jsdom 无 PointerEvent——MouseEvent 带类型串派发补 buttons:1〔R1-W2 语义〕）", () => {
     storageBack.clear();
     const { container } = renderZone();
     const handle = container.querySelector<HTMLDivElement>(
@@ -483,11 +483,11 @@ describe("计算说明区·左导航拖宽（v2 笔2——ReportNav 去重+usePa
     ) as HTMLDivElement;
     act(() => {
       handle.dispatchEvent(
-        new MouseEvent("pointerdown", { button: 0, clientX: 300, bubbles: true }),
+        new MouseEvent("pointerdown", { button: 0, buttons: 1, clientX: 300, bubbles: true }),
       );
     });
     act(() => {
-      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 350 }));
+      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 350, buttons: 1 }));
     });
     const nav = container.querySelector('[data-region="report-nav"]') as HTMLElement;
     expect(nav.style.width).toBe("240px"); // 190+50

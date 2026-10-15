@@ -19,11 +19,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { usePaneWidth, type PaneWidthConfig } from "./usePaneWidth";
 
-/** localStorage 存根（jsdom 面无原生方法族——Map 薄壳三函数足量）。 */
+/** localStorage 存根（jsdom 面无原生方法族——Map 薄壳三函数足量；
+ *  broken 门=R1-N6 SecurityError 降级用例的受控抛错位）。 */
 const storageBack = new Map<string, string>();
+const storageCtl = { broken: false };
 vi.stubGlobal("localStorage", {
-  getItem: (key: string) => storageBack.get(key) ?? null,
-  setItem: (key: string, value: string) => void storageBack.set(key, value),
+  getItem: (key: string) => {
+    if (storageCtl.broken) {
+      throw new DOMException("The document is not permitted access", "SecurityError");
+    }
+    return storageBack.get(key) ?? null;
+  },
+  setItem: (key: string, value: string) => {
+    if (storageCtl.broken) {
+      throw new DOMException("The document is not permitted access", "SecurityError");
+    }
+    storageBack.set(key, value);
+  },
   removeItem: (key: string) => void storageBack.delete(key),
 });
 
@@ -59,18 +71,19 @@ function mount(config: PaneWidthConfig = CONFIG) {
  *  （button/clientX 经 MouseEvent init 真携带；designZone 拖拽面同口径）。 */
 function pointerDownOn(
   el: Element,
-  opts: { button?: number; clientX?: number },
+  opts: { button?: number; clientX?: number; buttons?: number },
 ): void {
   el.dispatchEvent(
     new MouseEvent("pointerdown", {
       button: opts.button ?? 0,
+      buttons: opts.buttons ?? 1,
       clientX: opts.clientX ?? 0,
       bubbles: true,
     }),
   );
 }
-function docMove(clientX: number): void {
-  document.dispatchEvent(new MouseEvent("pointermove", { clientX }));
+function docMove(clientX: number, buttons = 1): void {
+  document.dispatchEvent(new MouseEvent("pointermove", { clientX, buttons }));
 }
 function docUp(): void {
   document.dispatchEvent(new MouseEvent("pointerup"));
@@ -81,6 +94,7 @@ function docCancel(): void {
 
 beforeEach(() => {
   storageBack.clear();
+  storageCtl.broken = false;
   document.body.style.cursor = "";
 });
 afterEach(cleanup);
@@ -208,5 +222,50 @@ describe("usePaneWidth·拖拽面（D1 ②③④⑤⑥⑦）", () => {
       .filter((type) => type.startsWith("pointer"));
     expect(removed.sort()).toEqual(["pointercancel", "pointermove", "pointerup"]);
     removeSpy.mockRestore();
+  });
+});
+
+
+describe("usePaneWidth·窗外释放与存储降级（R1-W2/R1-N6）", () => {
+  it("窗外释放终结：move buttons=0 → 会话终结+持久终值=最后持按宽度+其后移动零效果", () => {
+    const ui = mount();
+    act(() => {
+      pointerDownOn(ui.handle(), { clientX: 300 });
+    });
+    act(() => {
+      docMove(350); // 190+50=240（持按中）
+    });
+    expect(ui.pane().style.width).toBe("240px");
+    expect(document.body.style.cursor).toBe("col-resize");
+    act(() => {
+      docMove(500, 0); // 指针窗外释放后回归——无按键移动=终结会话
+    });
+    expect(document.body.style.cursor).toBe("");
+    expect(storageBack.get(CONFIG.key)).toBe("240"); // 终值=最后持按宽度
+    expect(ui.pane().style.width).toBe("240px");
+    act(() => {
+      docMove(600); // 会话已清——零效果
+    });
+    expect(ui.pane().style.width).toBe("240px");
+    expect(storageBack.get(CONFIG.key)).toBe("240");
+  });
+
+  it("存储访问降级：读抛 SecurityError=初始宽回退 fallback/写抛错被吞不炸", () => {
+    storageCtl.broken = true;
+    storageBack.set(CONFIG.key, "260"); // 读路径抛错——存储值不可达
+    const ui = mount();
+    expect(ui.pane().style.width).toBe("190px");
+    act(() => {
+      pointerDownOn(ui.handle(), { clientX: 100 });
+    });
+    act(() => {
+      docMove(160); // 190+60=250
+    });
+    expect(ui.pane().style.width).toBe("250px");
+    act(() => {
+      docUp(); // setItem 抛错被吞——宽度状态面不受损
+    });
+    expect(ui.pane().style.width).toBe("250px");
+    expect(storageBack.get(CONFIG.key)).toBe("260"); // 写未落（预置值未被 250 覆写）
   });
 });

@@ -4,7 +4,8 @@
  * 机位距离按视锥实际需要的半延展求值，模型簇不再偏远）。
  *
  * 输入:  preset（iso/top/side）+bounds（取景 AABB——Scene effective bounds；
- *        null=空场景）+aspect（画布宽高比——CameraRig 自 useThree size 取）
+ *        null=空场景）+aspect（画布宽高比——CameraRig 自 useThree size 取；
+ *        非有限/≤0 回退 1——R1-W1 纯函数层钳位）
  * 输出:  {position, center}——position=机位（center+方向×距离）；center=
  *        取景中心（bounds AABB 中心；空场景=原点——零场景零尺度基准沿
  *        sceneCenter 先例）；空场景回退 preset 方向绝对坐标（制式不变）
@@ -22,8 +23,8 @@ const CAMERA_PRESETS: Record<CameraPresetKey, readonly [number, number, number]>
   side: [40, 5, 0],
 };
 
-/** 垂直视场角（Scene Canvas fov=50 不变——投影三角半角 25°）。 */
-const V_FOV_DEG = 50;
+/** 垂直视场角（Scene Canvas fov 消费单源——投影三角半角 25°；R1-N2 导出）。 */
+export const V_FOV_DEG = 50;
 
 /** 紧致拟合余量（全盒入画安全边——拟合距离上浮 15%）。 */
 const MARGIN = 1.15;
@@ -72,6 +73,9 @@ export function frameCamera(
   bounds: SceneBounds | null,
   aspect: number,
 ): { position: [number, number, number]; center: [number, number, number] } {
+  // aspect 守卫（R1-W1）：非有限（NaN/Infinity）或 ≤0 回退 1（纯函数层
+  // 钳位——除零/负宽高比面不入距离公式）
+  const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 1;
   const direction = CAMERA_PRESETS[preset];
   if (bounds === null) {
     return { position: [direction[0], direction[1], direction[2]], center: [0, 0, 0] };
@@ -95,7 +99,7 @@ export function frameCamera(
   const tanHalf = Math.tan(((V_FOV_DEG / 2) * Math.PI) / 180);
   const extU = projectedExtent(e, yAxis);
   const extR = projectedExtent(e, right);
-  const fitting = Math.max(extU / tanHalf, extR / (tanHalf * aspect)) * MARGIN;
+  const fitting = Math.max(extU / tanHalf, extR / (tanHalf * safeAspect)) * MARGIN;
   const distance = fitting + projectedExtent(e, dir);
   return {
     position: [
