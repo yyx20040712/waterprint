@@ -8,6 +8,8 @@
 > 提交面=Ribbon 两 Modal、进度面=席位任务分页——本族组件/纯函数零改纯
 > 挂载）。
 
+> v1-20261015 转正批：方案表族（SolutionsTable/RankingControls/DiagnosisPanel/ApplySolutionButton/TaskPanel/三图组件）与 applyGates/jointTaskNotice/tornadoCharts/solutionsStore/useSensitivityQuery 随 legacy study 子面退役删除——v4 消费面=solutionCards/jointSolutionCards/analysisPane/dockBar，保留=taskFeed/useTaskFeed/jointView/jointCharts/solutionsView/solutionsFields/useProjectUnits。
+
 ## 文件清单（M0.5 骨架；FE6 批 6b 段四实装数据通道与组件）
 
 | 文件 | 状态 | 职责 |

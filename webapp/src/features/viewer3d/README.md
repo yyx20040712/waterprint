@@ -35,6 +35,8 @@
 > 142~187〕+Scene chunk 同窗 0 请求——App 级槽不自旋+pane 内层无
 > 自动重试零放大）。
 
+> v1-20261015 转正批：ThumbnailStage/SectionCap 随 legacy canvasPane 画布缩略图退役删除——几何规格单源=lib/thumbnailStage.ts（PoolBox 渲染链在位）。
+
 ## 文件清单（FE1 实装；规格见各文件头契约块）
 
 | 文件 | 职责 |

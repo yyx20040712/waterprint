@@ -25,6 +25,8 @@
 > view.layout——P0-3 会话内拖拽已落，持久化挂账）；⑧ 节点 kv 参数
 > 摘要行（领域知识面，与 margin_ 裕度同族）。
 
+> v1-20261015 转正批：CanvasFlow/UnitNode/PortHandle/useAutoLayout/useConnectionRules/thumbnailContext 随 legacy 画布槽退役删除——v4 画布=shellV4/thumbnailFlow（缩略形态），保留=projectFlow/designWriter/unitGlyph/thumbnailGlyph/canvasStore 数据与投影层。
+
 ## 文件清单（FE4 段一实装+C2-canvas 重制；规格见各文件头契约块）
 
 | 文件 | 职责 |

@@ -4,6 +4,8 @@
 D8：回路收敛统计/水量平衡闭合审计/出水达标裕度/校核警告汇总四件套，
 全工况聚合）。
 
+> v1-20261015 转正批：MaintenanceObservationView/TrustReportView/maintenanceView/useValidationQuery 随 legacy trust 子面退役删除——v4 消费=analysisPane（useTrustQuery+trustView）。
+
 ## 文件清单（P2 次批实装 2026-09-12）
 
 | 文件 | 职责 | 状态 |

@@ -5,6 +5,8 @@
 计数）+工况校核（受检单元集合）；溯源=P2 第三批 ADR-018 D1/D3/D4/D5+
 工况面 UX 反馈批 2026-09-12 件 1/件 2。
 
+> v1-20261015 转正批：CheckedUnitsPanel/checkedUnits 随 legacy study 子面退役删除——保留=CompareMatrix/compareView（v4 分析表消费）。
+
 ## 文件清单（P2 第三批 ADR-018 实装 2026-09-12）
 
 | 文件 | 职责 | 状态 |

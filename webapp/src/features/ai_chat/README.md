@@ -4,6 +4,8 @@
 ——aiconnect 先例），消费 /api/ai/sessions 三端点（清单/历史/发言→ai_chat 任务）；
 对话编排真源=agent 环（server 薄中继+子进程桥，ADR-019 只编排不算数）。
 
+> v1-20261015 转正批：ChatPanel/ChatSeat/ToolCallCard 与 lib 三件（chatEvent/historyRetry/taskError）随 legacy 壳退役删除——v4 的 AI 对话=dockBar 凝缩窗直用 api 层 hooks（会话/历史/发言），本族保留=api/hooks 数据层。
+
 ## 文件清单（B4-4b 子批 2 实装 2026-09-24；F2 批 R2 增补 2026-09-25）
 
 | 文件 | 职责 | 状态 |

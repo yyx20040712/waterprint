@@ -94,6 +94,16 @@
 须同批退役对应 legacy 测试件（本账「测试引用」列即清单）并回读本账
 销项。v4 侧「迁」行全部落锚后，本账由 B3 收口（V-3 销项）。
 
+> **v1-20261015 转正批销项回读**：用户裁决「就是v4版本…旧壳层废弃」
+> ——legacy 壳整面物理删除已执行（app 层 26 件+features 孤儿 41 件+
+> 测试 32 件，import 图可达性核算制式）：本账全部「R」行与「迁」行
+> 的 legacy 侧承载件随之消项（ribbon 本体/aiSeat 族/unitLibrary 族/
+> canvasEditToolbar/statusBar/回执页 等）；ribbon 例外双面前置已履
+> （decideRunCalc/paramDraftBlockMessage 迁 app/runCalcPolicy.ts 单源）；
+> 共享件豁免清单核验方式=main.tsx import 图可达性（删除面即豁免面
+> 反集），projectSceneFixtures 豁免=三保留测试消费。本账自此=历史
+> 清点档案（现役入口真源=shellV4 树 testid 锚族）。
+
 ### 共享件豁免清单（B3 R1 回炉 R1-W3——k2-W3 销项）
 
 legacy 物理删除批的豁免面=v4 import 图全量（v4 壳仍在消费的 app/

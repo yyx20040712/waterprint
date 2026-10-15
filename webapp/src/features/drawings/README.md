@@ -2,6 +2,8 @@
 
 DXF 图纸导出（下载/元数据预览+线稿渲染）+ 导出发起 + 图纸目录（FE9 批 6b 段七实装；B 批 Ruling B 落地线稿渲染 2026-08-30）。
 
+> v1-20261015 转正批：SheetList/DrawingPreview/DxfSvg/PendingDrawingTemplates/useExportDownload/drawingsStore 随 legacy drawings 子面退役删除——v4 图库=draftingZone 自装配，保留=ExportButton/useExportsQuery/useExportArtifact/useExportBatch/useUnitCatalog 数据与发起层。
+
 ## 文件清单（M0.5 骨架+FE9/B 批实装；规格见各文件头）
 
 | 文件 | 职责 |

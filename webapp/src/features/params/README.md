@@ -2,6 +2,8 @@
 
 选中对象的参数编辑 + 约束选择 + 假设清单查看（左侧面板，§19.2）。
 
+> v1-20261015 转正批：ParamTabs 双分页壳随 legacy Settings 窗退役删除——v4 designZone 左栏直用 ParamForm/AssumptionsPanel。
+
 ## 文件清单（M0.5 结构接线创建骨架；FE5 批 6b 段三实装参数/假设两面；UX2 批假设编辑化 2026-08-30）
 
 | 文件 | 状态 | 职责 |
