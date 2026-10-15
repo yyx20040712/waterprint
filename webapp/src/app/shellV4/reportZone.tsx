@@ -24,14 +24,18 @@
  *     跨工况，服务端 422 闸对齐）/report_pdf（design 缺省归一）；unitId
  *     空串=bare POST 全厂整厂语义；409 stale=二选一 force 支线沿仓惯例；
  *   - 404 无完成计算=空态（ReportSourceNotFoundError 领域码门控——raw
- *     API 句式不入用户面）。
+ *     API 句式不入用户面）；
+ *   - 左导航三态去重为局部 ReportNav 组件（v2 笔2：无项目/错误/数据三
+ *     态同形 aside——拖宽 usePaneWidth 默认 190/140~420/键 wp-v4-report
+ *     -left-w；data-region="report-nav" 与既有 testid 语义原样保持）。
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Modal, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectId } from "../useProjectId";
 import { ReportDoc, type ReportSection } from "./reportDoc";
+import { usePaneWidth } from "./usePaneWidth";
 import { useExportArtifact } from "../../features/drawings/api/useExportArtifact";
 import {
   useGetProjectReportApiCalcProjectsProjectIdReportGet,
@@ -91,6 +95,54 @@ export function exportFailText(kind: ReportExportKind, error: unknown): string {
   );
   const reason = gate.domain ? `${gate.text}——先提交计算后再导出` : gate.text;
   return `${label}导出失败：${reason}`;
+}
+
+/** 左导航 aside（v2 笔2：三态 nav 去重为局部组件——拖宽 hook+柄+
+ *  「说明书导航」头；children=章按钮（数据态）/空（无项目/错误态）。
+ *  data-region="report-nav" 与既有 testid 语义原样保持）。 */
+function ReportNav({ children }: { children?: ReactNode }) {
+  // 左导航栏宽+拖宽（默认 190/140~420/键 wp-v4-report-left-w）
+  const pane = usePaneWidth({
+    key: "wp-v4-report-left-w",
+    fallback: 190,
+    min: 140,
+    max: 420,
+    side: "left",
+  });
+  return (
+    <aside
+      className="wp-v4-sider"
+      data-region="report-nav"
+      style={{
+        width: pane.width,
+        flex: "none",
+        background: "var(--wp-bg-container)",
+        borderRight: "1px solid var(--wp-border-2)",
+        padding: "6px 4px",
+        overflow: "auto",
+      }}
+    >
+      <div
+        className="wp-v4-drag"
+        data-testid="wp-v4-drag-report-left"
+        title="拖拽调整宽度"
+        onPointerDown={pane.onDragStart}
+      >
+        ⟷
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          color: "var(--wp-text-2)",
+          letterSpacing: 1,
+          padding: "4px 8px 6px",
+        }}
+      >
+        说明书导航
+      </div>
+      {children}
+    </aside>
+  );
 }
 
 /** stale 横幅（B2 analysisPane 同形——原因微文案+重算入口直发 run）。 */
@@ -254,28 +306,7 @@ function ReportFace({ projectId }: { projectId: string }) {
     );
     return (
       <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
-        <aside
-          data-region="report-nav"
-          style={{
-            width: 190,
-            flex: "none",
-            background: "var(--wp-bg-container)",
-            borderRight: "1px solid var(--wp-border-2)",
-            padding: "6px 4px",
-            overflow: "auto",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              color: "var(--wp-text-2)",
-              letterSpacing: 1,
-              padding: "4px 8px 6px",
-            }}
-          >
-            说明书导航
-          </div>
-        </aside>
+        <ReportNav />
         <div
           data-testid={gate.domain ? "wp-v4-report-empty" : "wp-v4-report-error"}
           data-region="report-doc"
@@ -316,27 +347,7 @@ function ReportFace({ projectId }: { projectId: string }) {
     rawProjectName(projectQuery.data) ?? projectId.slice(0, 10);
   return (
     <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
-      <aside
-        data-region="report-nav"
-        style={{
-          width: 190,
-          flex: "none",
-          background: "var(--wp-bg-container)",
-          borderRight: "1px solid var(--wp-border-2)",
-          padding: "6px 4px",
-          overflow: "auto",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            color: "var(--wp-text-2)",
-            letterSpacing: 1,
-            padding: "4px 8px 6px",
-          }}
-        >
-          说明书导航
-        </div>
+      <ReportNav>
         {sections.map((section) => (
           <button
             key={section.id}
@@ -371,7 +382,7 @@ function ReportFace({ projectId }: { projectId: string }) {
             {section.title}
           </button>
         ))}
-      </aside>
+      </ReportNav>
       <div
         style={{
           flex: 1,
@@ -419,28 +430,7 @@ export function ReportZone() {
   if (projectId === null) {
     return (
       <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
-        <aside
-          data-region="report-nav"
-          style={{
-            width: 190,
-            flex: "none",
-            background: "var(--wp-bg-container)",
-            borderRight: "1px solid var(--wp-border-2)",
-            padding: "6px 4px",
-            overflow: "auto",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              color: "var(--wp-text-2)",
-              letterSpacing: 1,
-              padding: "4px 8px 6px",
-            }}
-          >
-            说明书导航
-          </div>
-        </aside>
+        <ReportNav />
         <div
           data-testid="wp-v4-report-empty"
           data-region="report-doc"

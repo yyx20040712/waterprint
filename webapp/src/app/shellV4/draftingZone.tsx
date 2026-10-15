@@ -18,7 +18,9 @@
  *   - 回炉 R7（VB-3）：右区=图库卡栅格（卡片=DXF 交付物预览位+图题；
  *     数据源=useExportsQuery/buildSheetRows；空态卡=「尚无图纸——完成
  *     计算后生成」引导）；导出工具行保留为卡区上方语境行（ExportButton
- *     复用——微裁决 V18）。
+ *     复用——微裁决 V18）；
+ *   - 左树栏可拖宽（v2 笔2：usePaneWidth 接入——默认 190/140~420/
+ *     键 wp-v4-drafting-left-w；siteplan 子页无左栏现状保持）。
  */
 import { lazy, Suspense } from "react";
 import { Spin, Tag, Typography } from "antd";
@@ -34,6 +36,7 @@ import {
 import { useUnitCatalog } from "../../features/drawings/api/useUnitCatalog";
 import { buildSheetRows } from "../../features/drawings/lib/drawingsView";
 import type { DraftingSubpage } from "../zoneParam";
+import { usePaneWidth } from "./usePaneWidth";
 
 /** 懒装载（M1 槽同制——懒件按 chunk 面隔离；装配引用不改件本体）。 */
 const SiteplanPane = lazy(() =>
@@ -182,6 +185,15 @@ export function DraftingZone({
   subpage: DraftingSubpage;
   onSubpageChange: (subpage: DraftingSubpage) => void;
 }) {
+  // 左树栏宽+拖宽（v2 笔2：usePaneWidth 接入——顶层恒调，siteplan 分支
+  // 无左栏不消费〔rules-of-hooks——子页分支不卸 hook〕）
+  const navPane = usePaneWidth({
+    key: "wp-v4-drafting-left-w",
+    fallback: 190,
+    min: 140,
+    max: 420,
+    side: "left",
+  });
   if (subpage === "siteplan") {
     return (
       <section
@@ -231,9 +243,10 @@ export function DraftingZone({
   return (
     <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
       <aside
+        className="wp-v4-sider"
         data-region="drafting-tree"
         style={{
-          width: 190,
+          width: navPane.width,
           flex: "none",
           background: "var(--wp-bg-container)",
           borderRight: "1px solid var(--wp-border-2)",
@@ -241,6 +254,14 @@ export function DraftingZone({
           overflow: "auto",
         }}
       >
+        <div
+          className="wp-v4-drag"
+          data-testid="wp-v4-drag-drafting-left"
+          title="拖拽调整宽度"
+          onPointerDown={navPane.onDragStart}
+        >
+          ⟷
+        </div>
         <div
           style={{
             fontSize: 11,

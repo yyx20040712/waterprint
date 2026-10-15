@@ -16,11 +16,21 @@
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportZone, exportFailText } from "./reportZone";
 import { WaterprintApiError } from "../../shared/api/http";
 import { TASK_EVENT } from "../../shared/events";
+
+/** localStorage 存根（v2 笔2 随动：ReportNav 拖宽 usePaneWidth 消费面——
+ *  本环境 jsdom 面无原生方法族，designZoneJointEntry.test 先例）。 */
+const storageBack = new Map<string, string>();
+vi.stubGlobal("localStorage", {
+  getItem: (key: string) => storageBack.get(key) ?? null,
+  setItem: (key: string, value: string) => void storageBack.set(key, value),
+  removeItem: (key: string) => void storageBack.delete(key),
+});
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -433,5 +443,57 @@ describe("计算说明区·TASK_EVENT 事件桥失效谓词（R1 回炉 W-G）",
     expect(queryClient.getQueryState(keyP2)?.isInvalidated).toBe(false);
     queryClient.removeQueries({ queryKey: keyP1 });
     queryClient.removeQueries({ queryKey: keyP2 });
+  });
+});
+
+describe("计算说明区·左导航拖宽（v2 笔2——ReportNav 去重+usePaneWidth 接线锚）", () => {
+  it("数据态：nav aside 拖柄在场+初始宽 190px+data-region 原样", () => {
+    storageBack.clear();
+    const { container } = renderZone();
+    const nav = container.querySelector('[data-region="report-nav"]');
+    expect(nav).not.toBeNull();
+    expect((nav as HTMLElement).style.width).toBe("190px");
+    const handle = container.querySelector<HTMLDivElement>(
+      '[data-testid="wp-v4-drag-report-left"]',
+    );
+    expect(handle).not.toBeNull();
+    expect(handle?.title).toBe("拖拽调整宽度");
+    expect(handle?.textContent).toContain("⟷");
+    // 去重零弱化证：章按钮仍在 nav 内（ReportNav children 承载）
+    expect(nav?.querySelectorAll('[data-testid="wp-v4-report-nav-item"]').length)
+      .toBe(REPORT_OK.sections.length);
+  });
+
+  it("无项目空态：同一 ReportNav 在场（三态同形去重——柄+头均在）", () => {
+    gate.projectId = null;
+    const { container } = renderZone();
+    expect(
+      container.querySelector('[data-testid="wp-v4-drag-report-left"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-region="report-nav"]')?.textContent,
+    ).toContain("说明书导航");
+  });
+
+  it("拖拽往返：document pointermove 会话宽度变+onUp 持久写键（jsdom 无 PointerEvent——MouseEvent 带类型串派发）", () => {
+    storageBack.clear();
+    const { container } = renderZone();
+    const handle = container.querySelector<HTMLDivElement>(
+      '[data-testid="wp-v4-drag-report-left"]',
+    ) as HTMLDivElement;
+    act(() => {
+      handle.dispatchEvent(
+        new MouseEvent("pointerdown", { button: 0, clientX: 300, bubbles: true }),
+      );
+    });
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointermove", { clientX: 350 }));
+    });
+    const nav = container.querySelector('[data-region="report-nav"]') as HTMLElement;
+    expect(nav.style.width).toBe("240px"); // 190+50
+    act(() => {
+      document.dispatchEvent(new MouseEvent("pointerup"));
+    });
+    expect(storageBack.get("wp-v4-report-left-w")).toBe("240");
   });
 });
