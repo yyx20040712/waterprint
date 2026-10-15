@@ -87,12 +87,11 @@ function filesContaining(needle: string): string[] {
 }
 
 describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全树口径）", () => {
-  it("单元枚举 hook：全树消费面恰=[app/ribbon.tsx, app/shellV4/enumerateModal.tsx]（ribbon=legacy 冻结面合法消费——legacy 删除批随批更新期望集）", () => {
-    // v4 面内第二消费面（绕过 EnumerateBar 直发）即红；ribbon=legacy
-    // 冻结面（B3 边界裁定零触碰）合法在场，legacy 物理删除批须同批
-    // 更新本锚期望集并回读清点账（docs/ui-entry-ledger.md）
+  it("单元枚举 hook：全树消费面恰=[app/shellV4/enumerateModal.tsx]（v1 转正批——ribbon.tsx 随 legacy 退役删除，期望集随批收缩）", () => {
+    // v4 面内第二消费面（绕过 EnumerateBar 直发）即红；ribbon 消费面
+    // 已随 legacy 物理删除（本批），回读清点账=docs/ui-entry-ledger.md
     const hits = filesContaining("useRunEnumerationApiCalcEnumeratePost");
-    expect(hits).toEqual(["app/ribbon.tsx", "app/shellV4/enumerateModal.tsx"]);
+    expect(hits).toEqual(["app/shellV4/enumerateModal.tsx"]);
   });
 
   it("wp-v4-reenumerate：全树恰=[app/shellV4/solutionCards.tsx] 一源（开枚举 Modal 唯一触发）", () => {
@@ -114,7 +113,7 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
     expect(hits).toEqual(["app/shellV4/designZone.tsx"]);
   });
 
-  it("AUTH_EVENT 消费面第五锚（B7——代码形态匹配非裸串+字面串支）：全文件整体匹配命中恰=[app/App.tsx, app/shellV4/settingsSelfHeal.ts, shared/api/http.ts]+字面支恰=[shared/events.ts]", () => {
+  it("AUTH_EVENT 消费面第五锚（B7；v1 转正批：App.tsx legacy 浮层监听退役——期望集收缩至两消费面）+字面串支", () => {
     // 裁决 R-1 预案形态逐字实现（任务书 §二.U6）+B7 R1 回炉三改
     // （k2-W-1+d1-C3/W3）：①正则=import 解构/add(Event)?Listener/
     // removeEventListener/dispatchEvent 与 AUTH_EVENT 组合四选一，listener
@@ -140,7 +139,6 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
       .map((source) => source.rel)
       .sort(); // 跨目录枚举序平台差异归一（命中集=集合语义）
     expect(codeHits).toEqual([
-      "app/App.tsx",
       "app/shellV4/settingsSelfHeal.ts",
       "shared/api/http.ts",
     ]);

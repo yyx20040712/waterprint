@@ -1,14 +1,15 @@
 /**
- * 方案比选三图纯函数单测（批2d——帕累托前沿/平行坐标/龙卷风；沿
- * profileChart 投影层承载全部契约的先例：node 直测 option 纯对象）。
+ * 方案比选两图纯函数单测（批2d；v1-20261015 转正批：tornadoCharts 族
+ * 〔tornadoBars/buildTornadoOption/sensitivitySeries〕随 legacy 孤儿
+ * 物理删除——本件 tornado/sensitivity 用例组同步退役，jointCharts 面
+ * 断言零弱化）。
  *
  * 输入:  features/solutions/lib/jointCharts.ts 公开符号（node 环境）
  * 输出:  断言：paretoFront 非支配排序（全 minimize/相等向量同前沿/缺键与
  *        不可行不参与）/parallelAxesData 五轴+分档+入线资格（四真键+
  *        score 全 finite——sparse 不入线/轴域只按入线组合/全门外空面）/
- *        buildParetoOption 非资格不入被支配系列/tornadoBars 三键 avg 对
- *        变化率+design=0 诚实跳过+失守标签解析后按标签去重/三 buildOption
- *        纯对象（系列名/数据/轴名/反向/虚线）
+ *        buildParetoOption 非资格不入被支配系列/buildParallelOption
+ *        纯对象（系列名/数据/轴名/反向/虚线）/tooltip 与参数摘要纯文本
  */
 import { describe, expect, it } from "vitest";
 
@@ -22,12 +23,6 @@ import {
   paretoTooltipLines,
   parallelAxesData,
 } from "./jointCharts";
-import {
-  buildTornadoOption,
-  sensitivitySeries,
-  tornadoBars,
-} from "./tornadoCharts";
-import type { SensitivityReportView } from "./sensitivityView";
 
 /** combo 构造（四真键覆盖——dominance 断言载体）。 */
 const comboOf = (
@@ -154,64 +149,7 @@ describe("parallelAxesData（四键+score 五轴——分档线数据）", () =>
   });
 });
 
-describe("tornadoBars（avg vs design 指标漂移+失守工况标签）", () => {
-  it("三键 avg 对：(avg-design)/design 双向变化率；capex 无 avg 对不入", () => {
-    const combo = comboOf([100, 50, 0.5, 1000]);
-    const data = tornadoBars(combo);
-    expect(data.bars.map((bar) => bar.designKey)).toEqual([
-      "cost_opex_yuan_a",
-      "power_total_kwh_d",
-      "carbon_intensity_kgco2e_m3",
-    ]);
-    expect(data.bars[0]?.ratio).toBeCloseTo(0.1, 12); // (110-100)/100
-    expect(data.bars[1]?.ratio).toBeCloseTo(-0.1, 12); // (45-50)/50
-    expect(data.bars[2]?.ratio).toBeCloseTo(0, 12);
-    expect(data.skipped).toEqual([]);
-  });
-
-  it("design=0 或 avg 对缺席 → 诚实跳过（skipped 记键不造假数据）", () => {
-    const zeroDesign = comboOf([0, 50, 0.5, 1000]);
-    const data0 = tornadoBars(zeroDesign);
-    expect(data0.bars.map((bar) => bar.designKey)).toEqual([
-      "power_total_kwh_d",
-      "carbon_intensity_kgco2e_m3",
-    ]);
-    expect(data0.skipped).toEqual(["cost_opex_yuan_a"]);
-    const noAvg = comboOf([100, 50, 0.5, 1000]);
-    delete (noAvg.metrics as Record<string, number>)["avg.power_total_kwh_d"];
-    const dataAvg = tornadoBars(noAvg);
-    expect(dataAvg.skipped).toEqual(["power_total_kwh_d"]);
-  });
-
-  it("failed_conditions 解析去重：三段式出水失守+两段式 opex 缺席", () => {
-    const combo = comboOf([100, 50, 0.5, 1000], {
-      failed_conditions: [
-        "design:gb18918.level_a:BOD5+SS",
-        "design:gb18918.level_a:BOD5+SS", // 重复条目
-        "offline_wet:gb18918.level_b:NH3N",
-        "design:opex_absent",
-      ],
-    });
-    const data = tornadoBars(combo);
-    expect(data.failedLabels).toEqual([
-      "design（gb18918.level_a）：BOD5+SS",
-      "offline_wet（gb18918.level_b）：NH3N",
-      "design：opex_absent",
-    ]);
-  });
-
-  it("失守标签解析后按标签去重（不同原文同标签只呈现一次）", () => {
-    const combo = comboOf([100, 50, 0.5, 1000], {
-      failed_conditions: [
-        "design:opex_absent", // 两段式
-        "design:opex_absent:", // 空尾三段式——解析得同标签
-      ],
-    });
-    expect(tornadoBars(combo).failedLabels).toEqual(["design：opex_absent"]);
-  });
-});
-
-describe("三图 option 纯对象（投影层承载全部契约）", () => {
+describe("两图 option 纯对象（投影层承载全部契约）", () => {
   it("buildParetoOption：前沿/被支配双系列+轴名标签+缺轴键组合跳过", () => {
     const a = comboOf([100, 50, 0.5, 1000], { score: 1 }); // 前沿
     const b = comboOf([120, 60, 0.6, 1200], { score: 2 }); // 被 a 支配
@@ -266,145 +204,6 @@ describe("三图 option 纯对象（投影层承载全部契约）", () => {
     expect(normal.series[0]?.data[0]).toEqual({ value: [100, 50, 0.5, 1000, 1] });
   });
 
-  it("buildTornadoOption：水平双向条（类目=指标标签+值=变化率）", () => {
-    const combo = comboOf([100, 50, 0.5, 1000]);
-    const data = tornadoBars(combo);
-    const option = buildTornadoOption(data);
-    expect(option.yAxis.data).toEqual(data.bars.map((bar) => bar.label));
-    expect(option.series[0]?.data).toEqual(data.bars.map((bar) => bar.ratio));
-    expect(option.xAxis.name).toContain("相对变化率");
-    expect(option.series).toHaveLength(1); // sensitivity 缺席=avg 单系列旧观
-    expect(option.legend).toBeUndefined();
-  });
-});
-
-/** sensitivity 报告视图构造（批6e——窄化产物形状）。 */
-const reportOf = (
-  rows: Array<{
-    field_id: string;
-    design_value: number;
-    values?: Record<string, number>;
-    deltas?: Record<string, number>;
-  }>,
-  conditionKeys: string[] = ["design_offline_unitA", "design_offline_unitB"],
-): SensitivityReportView => ({
-  stale: false,
-  design_hash: "hash0",
-  condition_keys: conditionKeys,
-  rows: rows.map((row) => ({
-    field_id: row.field_id,
-    design_value: row.design_value,
-    values: row.values ?? {},
-    deltas: row.deltas ?? {},
-  })),
-});
-
-describe("sensitivitySeries（批6e——检修工况幅度系列）", () => {
-  const designKeys = ["cost_opex_yuan_a", "power_total_kwh_d", "carbon_intensity_kgco2e_m3"];
-
-  it("相对率=deltas/design_value；系列序=condition_keys 序；标签前缀剥离", () => {
-    const report = reportOf([
-      { field_id: "cost_opex_yuan_a", design_value: 100,
-        values: { design_offline_unitA: 110 }, deltas: { design_offline_unitA: 10 } },
-      { field_id: "power_total_kwh_d", design_value: 50,
-        values: { design_offline_unitA: 45 }, deltas: { design_offline_unitA: -5 } },
-      { field_id: "carbon_intensity_kgco2e_m3", design_value: 0.5,
-        values: { design_offline_unitA: 0.5 }, deltas: { design_offline_unitA: 0 } },
-    ]);
-    const { series, skipped } = sensitivitySeries(report, designKeys);
-    expect(series).toHaveLength(1); // unitB 全键缺席→系列不呈现（全空面）
-    expect(series[0]?.conditionKey).toBe("design_offline_unitA");
-    expect(series[0]?.label).toBe("检修 unitA");
-    expect(series[0]?.ratios).toEqual([0.1, -0.1, 0]);
-    expect(skipped.join("；")).toContain("检修 unitB：全键缺席（系列不呈现）");
-  });
-
-  it("design=0/行缺席/工况值缺席 → null+skipped 注记（诚实跳过不造假）", () => {
-    const report = reportOf(
-      [
-        { field_id: "cost_opex_yuan_a", design_value: 0,
-          values: { design_offline_unitA: 5 }, deltas: { design_offline_unitA: 5 } },
-        { field_id: "power_total_kwh_d", design_value: 50 },
-      ],
-      ["design_offline_unitA"],
-    );
-    const { series, skipped } = sensitivitySeries(report, [
-      ...designKeys.slice(0, 2), "carbon_intensity_kgco2e_m3",
-    ]);
-    expect(series).toEqual([]); // 全键缺席工况→系列不呈现（全空面）
-    expect(skipped).toEqual([
-      "检修 unitA：运行成本（元/年） design 近零",
-      "检修 unitA：能耗（kWh/d） 工况值缺席",
-      "检修 unitA：碳强度（kgCO₂e/m³） 行缺席",
-      "检修 unitA：全键缺席（系列不呈现）",
-    ]);
-  });
-
-  it("近零基线守卫（|design|<1e-9 → null+skipped——放大爆炸防御）", () => {
-    const tiny = 5e-10; // 低于 eps 的正基线（非零但相对率无意义）
-    const report = reportOf(
-      [
-        { field_id: "cost_opex_yuan_a", design_value: tiny,
-          values: { design_offline_unitA: tiny * 2 },
-          deltas: { design_offline_unitA: tiny } },
-      ],
-      ["design_offline_unitA"],
-    );
-    const { series, skipped } = sensitivitySeries(report, ["cost_opex_yuan_a"]);
-    expect(series).toEqual([]);
-    expect(skipped).toEqual([
-      "检修 unitA：运行成本（元/年） design 近零",
-      "检修 unitA：全键缺席（系列不呈现）",
-    ]);
-  });
-
-  it("多检修工况系列序=报告序（服务端字典序——确定性）", () => {
-    const report = reportOf([
-      { field_id: "cost_opex_yuan_a", design_value: 100,
-        values: { design_offline_unitA: 120, design_offline_unitB: 90 },
-        deltas: { design_offline_unitA: 20, design_offline_unitB: -10 } },
-    ]);
-    const { series } = sensitivitySeries(report, ["cost_opex_yuan_a"]);
-    expect(series.map((item) => item.conditionKey)).toEqual([
-      "design_offline_unitA",
-      "design_offline_unitB",
-    ]);
-    expect(series[0]?.ratios).toEqual([0.2]);
-    expect(series[1]?.ratios).toEqual([-0.1]);
-  });
-});
-
-describe("buildTornadoOption 全工况幅度（批6e——多系列升级）", () => {
-  it("sensitivity 在场→avg+检修系列+legend；条色区分（avg 主色+灰阶循环）", () => {
-    const combo = comboOf([100, 50, 0.5, 1000]);
-    const data = tornadoBars(combo);
-    const report = reportOf([
-      { field_id: "cost_opex_yuan_a", design_value: 100,
-        values: { design_offline_unitA: 110 }, deltas: { design_offline_unitA: 10 } },
-      { field_id: "power_total_kwh_d", design_value: 50,
-        values: { design_offline_unitA: 55 }, deltas: { design_offline_unitA: 5 } },
-      { field_id: "carbon_intensity_kgco2e_m3", design_value: 0.5,
-        values: { design_offline_unitA: 0.5 }, deltas: { design_offline_unitA: 0 } },
-    ]);
-    const option = buildTornadoOption(data, report);
-    expect(option.series).toHaveLength(2);
-    expect(option.series[0]?.name).toBe("avg 相对 design 变化率");
-    expect(option.series[1]?.name).toBe("检修 unitA");
-    expect(option.series[1]?.data).toEqual([0.1, 0.1, 0]);
-    expect(option.legend?.data).toEqual([
-      "avg 相对 design 变化率",
-      "检修 unitA",
-    ]);
-    expect(option.series[1]?.itemStyle.color).not.toBe(option.series[0]?.itemStyle.color);
-  });
-
-  it("sensitivity 无检修工况（condition_keys 空）→单系列旧观（向后兼容）", () => {
-    const combo = comboOf([100, 50, 0.5, 1000]);
-    const data = tornadoBars(combo);
-    const option = buildTornadoOption(data, reportOf([], []));
-    expect(option.series).toHaveLength(1);
-    expect(option.legend).toBeUndefined();
-  });
 });
 
 describe("tooltip 与参数摘要（纯文本面）", () => {

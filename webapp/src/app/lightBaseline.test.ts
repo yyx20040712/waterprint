@@ -16,9 +16,12 @@
  * 形态说明：判定集正则零命中+域色双轴同值+色板冻结锚——B6 收口批
  *   复扫引用同一件（残留回归常设门）。暗算法字面在断言侧以
  *   ["dark","Algorithm"].join("") 拼接构造（防本文件自匹配伪红）。
- * dxfScene ACI 1-7 色不在 ④ 判定集：DXF 预览底 #fafafa 亮面既成
- *   （DrawingPreview PREVIEW_BACKGROUND——ACI 深灰/纯色调色为亮底
- *   适配值非暗期残留；键值冻结=dxfScene.test 既有锚）。
+ * v1-20261015 转正批：legacy 壳物理退役——④ 内联清单随被删件收缩
+ *   （ParamTabs/UnitNode/ChatPanel/statusBar/ThumbnailStage/tornadoCharts
+ *   行撤除）；鎏金下划线三停（#a07300/--wp-gold 45%/#6d4e00）与
+ *   .wp-lib-hit 光环双 rgba 由「在场冻结」翻为「零复入」（CSS 段已删，
+ *   复辟即红）；--wp-dot-color/--wp-dot-size 死变量随 .wp-dotgrid 退役
+ *   出 ③ 亮值表；R2 六修锚收缩至在位件（FirstFrameGate）。
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -139,7 +142,6 @@ describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命�
       "--wp-success": "#2e7d32",
       "--wp-error": "#b3261e",
       "--wp-scrollbar-hover": "#c3c9d2",
-      "--wp-dot-color": "#dfe3ea",
     };
     for (const [key, value] of Object.entries(lightAxis)) {
       expect(cssVars.get(key), `轴键 ${key} 非亮值`).toBe(value);
@@ -153,8 +155,13 @@ describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命�
       "#3ddc97", "#ff6b6b", "#2f4d7d", "#1e3153",
       "rgba(217, 169, 74", "rgba(217,169,74",
     ];
+    // v1 转正批扩面：legacy 槽条鎏金下划线三停双端+lib-hit 光环双 rgba
+    // （wp-scroll-tabs/wp-lib-hit 段已删——复辟即红）
     const d5RuleLiterals = [
       "#b98a35", "#f0cf8a", "rgba(77, 163, 255", "rgba(77,163,255",
+      "#a07300", "#6d4e00",
+      "rgba(22, 119, 255, 0.55)", "rgba(22,119,255,0.55)",
+      "rgba(22, 119, 255, 0.28)", "rgba(22,119,255,0.28)",
     ];
     const hits = [...darkValues, ...d5RuleLiterals].filter((lit) =>
       globalCss.includes(lit),
@@ -182,12 +189,6 @@ describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命�
     expect(darkHits, `深底 hex 残留：${[...new Set(darkHits)].join(", ")}`).toEqual([]);
   });
 
-  it("D5 规则体亮值冻结锚：鎏金渐变三停+定位光环双 rgba", () => {
-    expect(globalCss).toContain("#a07300");
-    expect(globalCss).toContain("#6d4e00");
-    expect(globalCss).toContain("rgba(22, 119, 255, 0.55)");
-    expect(globalCss).toContain("rgba(22, 119, 255, 0.28)");
-  });
 });
 
 describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测集+R-G3 派生面）", () => {
@@ -201,21 +202,12 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
         "rgba(27, 44, 73", "rgba(27,44,73",
         "rgba(61, 139, 253", "rgba(61,139,253", "#7ab2ff",
       ],
-      "features/params/components/ParamTabs.tsx": [
-        "rgba(61, 139, 253", "rgba(61,139,253", "#7ab2ff",
-      ],
       "features/viewer3d/components/Scene.tsx": ["#0e2415", "#0b1526"],
-      "features/viewer3d/components/ThumbnailStage.tsx": [
-        "#0e2415", "#0b1526",
-      ],
       "features/viewer3d/components/GroundStage.tsx": [
         "#1b2c49", "#2e5239", "#3d619c",
       ],
       "features/viewer3d/components/Annotations.tsx": [
         "#e8eef7", "#0a1220", "#1f1f1f",
-      ],
-      "features/solutions/lib/tornadoCharts.ts": [
-        "#bfbfbf", "#d9d9d9", "#a3a3a3",
       ],
       "features/solutions/lib/jointCharts.ts": ["#bfbfbf"],
       "features/siteplan/lib/canvasDisplay.ts": ["#1f2933", "#2c2c2c"],
@@ -225,32 +217,12 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
         "rgba(53, 201, 176", "rgba(53,201,176", "#52d8c2",
         "rgba(154, 168, 184", "rgba(154,168,184", "#b8c6d6", "#d4a273",
       ],
-      // R1-mini 补强（主控预裁）：rgba 系扫描盲区两组+statusBar 换档面
-      "features/canvas/components/UnitNode.tsx": [
-        "rgba(217, 169, 74", "rgba(217,169,74", "#2c4568",
-      ],
-      "features/ai_chat/components/ChatPanel.tsx": ["#1c2540", "#141a2e"],
-      "app/statusBar.tsx": ["var(--wp-text-3)"],
     };
     for (const [rel, literals] of Object.entries(inlineDark)) {
       const text = readSrc(rel);
       const hits = literals.filter((lit) => text.includes(lit));
       expect(hits, `${rel} 暗期字面残留：${hits.join(", ")}`).toEqual([]);
     }
-  });
-
-  it("R1 补强锚：UnitNode/ChatPanel/statusBar 现值冻结（rgba 盲区防复辟）", () => {
-    // 主控预裁回炉（R1-mini 2026-10-09）：鎏金派生组新 rgb 基+气泡亮值
-    // +状态条换档——现值冻结锚（复辟即红）
-    const unitNode = readSrc("features/canvas/components/UnitNode.tsx");
-    expect(unitNode).toContain("rgba(138, 97, 0, 0.75)");
-    expect(unitNode).toContain("rgba(138,97,0,.35)");
-    expect(unitNode).toContain("rgba(138,97,0,.14)");
-    expect(unitNode).toContain("#6b7a8c");
-    const chatPanel = readSrc("features/ai_chat/components/ChatPanel.tsx");
-    expect(chatPanel).toContain("#eaf1fb");
-    expect(chatPanel).toContain("#f0f2f5");
-    expect(readSrc("app/statusBar.tsx")).toContain("var(--wp-text-2)");
   });
 
   it("R2 暗基 rgb 家族零命中（主控终裁视觉回炉——三族非测试源面零残留）", () => {
@@ -278,15 +250,7 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
     expect(hits, `暗基家族残留：${hits.join("; ")}`).toEqual([]);
   });
 
-  it("R2 六修值点冻结锚（视觉验收残面处方值——复辟即红）", () => {
-    const canvasFlow = readSrc("features/canvas/components/CanvasFlow.tsx");
-    expect(canvasFlow).toContain("rgba(255,255,255,.92)"); // 图例条亮底
-    expect(canvasFlow).toContain("rgba(31,35,41,.14)"); // Controls 亮影
-    expect(canvasFlow).toContain("maskColor"); // MiniMap 显式亮罩
-    expect(canvasFlow, "暗蓝晕影=已退役").not.toContain("radial-gradient");
-    const unitNode = readSrc("features/canvas/components/UnitNode.tsx");
-    expect(unitNode).toContain("rgba(31,35,41,.14)"); // 默认影亮化
-    expect(unitNode).toContain("rgba(31,35,41,.18)"); // 菜单影+选中尾影
+  it("R2 值点冻结锚（视觉验收残面处方值——v1 转正批收缩至在位件）", () => {
     const gate = readSrc(
       "features/viewer3d/components/FirstFrameGate.tsx",
     );
@@ -294,14 +258,16 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
     expect(gate).toContain("#646a73"); // 前景深字（fallback 同翻）
   });
 
-  it("R3 锚：.wp-gold-edge 规则体零 hex/rgb 字面（全 var() 消费——:root 轴提升自动亮化，字面复辟即红）", () => {
-    // 门二 W1 处置落档：鎏金收边=border-image 渐变停点 var(--wp-gold-soft)
-    // ×2 全轴消费——B4 零改动面（主控亲证 2026-10-09 grep 现值）。
-    const block = globalCss.match(/\.wp-gold-edge\s*\{([^}]*)\}/);
-    expect(block, ".wp-gold-edge 规则块缺席").not.toBeNull();
-    const body = block?.[1] ?? "";
-    expect(body, "规则体 hex 字面复辟").not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    expect(body, "规则体 rgb 字面复辟").not.toMatch(/rgba?\(/);
+  it("R3 锚：.wp-gold-edge/.wp-lib-hit/.wp-dotgrid/.ant-tabs.wp-scroll-tabs 段零复入（v1 转正批——legacy CSS 段已删，复辟即红）", () => {
+    // 门二 W1 处置沿革：鎏金收边原为 border-image var(--wp-gold-soft) 全轴
+    // 消费——legacy Header 退役后整段删除，锚由「在场形态」翻「零复入」。
+    for (const legacyClass of ["wp-gold-edge", "wp-lib-hit", "wp-dotgrid"]) {
+      expect(
+        globalCss.includes(legacyClass),
+        `${legacyClass} 段复辟`,
+      ).toBe(false);
+    }
+    expect(globalCss.includes("wp-scroll-tabs"), "wp-scroll-tabs 段复辟").toBe(false);
   });
 });
 

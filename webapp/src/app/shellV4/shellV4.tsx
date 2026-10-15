@@ -1,5 +1,6 @@
 /**
- * v4 应用壳根件（B1 骨架批 2026-10-09——?ia=v4 特性开关下六功能区壳：
+ * v4 应用壳根件（B1 骨架批 2026-10-09——六功能区壳；v1-20261015 转正
+ * 批=唯一壳（?ia= 开关退役）：
  * 顶带 zoneBand+zone 体+24px 状态条；亮色基线〔起即亮色——B4 前新样式
  * 按亮色基线写〕经 scoped ConfigProvider light+global.css .wp-v4-root
  * 变量轴覆写双面达成——antd 组件面 light 算法、M1 复用件 var(--wp-*)
@@ -9,7 +10,8 @@
  *        +?node=（对象选中真相——独立键读写）+?project=（useProjectId 订阅）
  * 输出:  v4 壳：ZoneBand（zone 切换唯一通道 setZone——replaceState 写
  *        ?tab= 他键原序保留）+六 zone 分区渲染+v4 状态条（连接/项目/
- *        计算态+?ia=v4 迁移期指示+非 design 区 dock 收起入口）
+ *        计算态+非 design 区 dock 收起入口——「ia=v4」迁移期水印随
+ *        转正批摘除）
  *
  * 规格说明（B1 任务书 §一/§二.①/§三——plan.md §九 v4 布局定稿）：
  *   - zone 切换唯一通道 setZone：zoneBand 页签经此——withZoneParam
@@ -219,7 +221,6 @@ export function ShellV4() {
                 任务 ▴
               </button>
             ) : null}
-            <span>ia=v4</span>
           </span>
         </footer>
         {/* R1-W1：连接设置自愈层恒挂载（ConfigProvider 内常驻——zone 切换

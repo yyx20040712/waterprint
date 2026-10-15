@@ -84,15 +84,7 @@
    * 消费面=AssumptionsPanel/ParamForm 页脚错误行。 */
   --wp-error: #b3261e;
   --wp-scrollbar-hover: #c3c9d2;
-  --wp-dot-color: #dfe3ea;
-  --wp-dot-size: 24px;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
-  /* M1 列宽令牌（tokens-2b3 §A 冻结名/默认值——B 线四区骨架左右列物理
-   * 落地；预算总规则 left+right ≤ 652px〔=232+420 恒等〕；消费面=App.tsx
-   * 左右列 width var()〔定义与消费同步纪律——A2-N-06 防死变量，机检面=
-   * app/paneTokens.test〕；左列拖宽+右列随动=后续批裁量，M1 不拖拽）。 */
-  --wp-pane-left: 232px;
-  --wp-pane-right: 420px;
 }
 
 /* ── 高度链与 document 滚动根除（需求①骨架面）── */
@@ -132,133 +124,16 @@ body {
   background: transparent;
 }
 
-/* ── antd Tabs 内容滚动域（每标签统一滚动——v6 类名：body-holder）── */
-.ant-tabs.wp-scroll-tabs {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-/* C2-visual D1：页签行=方案 A 面板蓝（direction-a .tabbar 同构——底色
- * --colorBgContainer+下边框 BorderSecondary+水平内距 8px；用户反馈
- * 「上方的选择栏应用浅蓝」即此面板蓝——原透明底浮于页面底被读作深色）。
- * 8px 内距+tab 文字 14px 内距=首页签文字距 Sider 右缘 22px（设计稿
- * 同构——gutter 根因主修面）。 */
-.ant-tabs.wp-scroll-tabs > .ant-tabs-nav {
-  flex: none;
-  margin-bottom: 0;
-  background: var(--wp-bg-container);
-  border-bottom: 1px solid var(--wp-border-2);
-  padding: 0 8px;
-}
-/* C2-ALIGN A3：页签选中态=direction-a .tab.active 同构（深字 w500+
- * 鎏金渐变下划线——内缩 12px/2px/上缘圆角/叠于 nav 下边框）。B4 亮底
- * 鎏金重定值：渐变三停 #a07300→--wp-gold 45%→#6d4e00（暗期浅金渐变
- * 双端亮底不可见退役；新三停=新 gold 轴的深浅包络，装饰金面
- * 单源=本轴——选中主指示=AC 蓝墨条/文字，金条品牌点缀非唯一信号）。
- * 实现路线=墨条隐藏+.ant-tabs-tab-active::after 自绘：antd v6.6.2 墨条
- * 位置/宽=inline style（left/width/transform），内缩 12px 逐属性
- * !important 对抗运行时定位脆——::after 即设计稿自身机制，确定性优；
- * inkBarColor token 保留（providers——墨条隐藏后为潜在回退面）。
- * tab 态色=providers components.Tabs item* token（JS 面同值双源）。 */
-.ant-tabs.wp-scroll-tabs .ant-tabs-tab {
-  position: relative;
-}
-.ant-tabs.wp-scroll-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-  font-weight: 500;
-}
-.ant-tabs.wp-scroll-tabs .ant-tabs-ink-bar {
-  display: none;
-}
-.ant-tabs.wp-scroll-tabs .ant-tabs-tab-active::after {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(
-    90deg,
-    #a07300,
-    var(--wp-gold) 45%,
-    #6d4e00
-  );
-  pointer-events: none;
-}
-.ant-tabs.wp-scroll-tabs > .ant-tabs-body-holder {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-/* C2-canvas P2 满高链：body/content 亦 100%（C2-visual 勘正：v6 现版
- * DOM 实测=content 直挂 pane 子节点、.ant-tabs-tabpane 包装层零命中
- * ——C2-canvas 时注记的四层链已随 v6 演进退役，原 tabpane 规则死码
- * 删除；满高链经 body/content 两层达成）——满高类标签（画布）随视口
- * 撑满；自然高类标签（表单/表）内容超出仍溢出可见，body-holder 滚动
- * 范围含溢出面不回归。GC-08 记档沿册：后代选择器（非 >）——pane 内
- * 嵌套 antd Tabs 将被误拉满高，嵌套 Tabs 属禁用面（全库零嵌套实证）。 */
-.ant-tabs.wp-scroll-tabs .ant-tabs-body,
-.ant-tabs.wp-scroll-tabs .ant-tabs-content {
-  height: 100%;
-}
-
-/* C2-visual D2：主区 gutter 分策——内容流 pane（solutions/viewer3d/
- * elevation/drawings/cost）水平 16px+顶 12px 内距（文字/表格与 Sider
- * 呼吸位——n+36 勘正补笔根因收口；v6 单 pane 直挂→内距落 content 层
- * ——活性 pane 子节点即 content 唯一子）；编辑器类 pane（canvas/
- * siteplan）根元素加 wp-full-bleed 精确逆收满铺（设计稿同构——params
- * 面板+画布点阵自含呈现）。viewer3d 裁量走 gutter：3D 视口损 32px 换
- * 横幅/工具条与页签行文字对齐。height 恒 100%（border-box 含内距——
- * 满高链不破）。 */
-.ant-tabs.wp-scroll-tabs .ant-tabs-content {
-  padding: 12px 16px;
-  box-sizing: border-box;
-}
+/* v1-20261015 转正批：legacy 槽条 Tabs 定制段（nav 面板蓝/鎏金下划线/
+ * 满高链/gutter 内距——类名=wp-scroll 与 -tabs 拼接，锚面禁裸串）随
+ * legacy 壳退役删除——v4 各 zone 自管滚动与内距；wp-full-bleed 保留
+ * （siteplanPane 满铺回收消费面在位）。 */
 /* 满铺回收：margin 逆收水平+垂直，height 补回内距双倍（content 的
  * height:100% 系 border-box 含内距——子元素 100% 只得净高，须 calc
  * 补偿才与 content 盒同高，否则底部短 24px）。 */
 .wp-full-bleed {
   margin: -12px -16px;
   height: calc(100% + 24px);
-}
-
-/* ── 顶栏鎏金收边线（品牌点缀——原神式分寸）── */
-.wp-gold-edge {
-  border-bottom: 1px solid transparent;
-  border-image: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--wp-gold-soft) 18%,
-      var(--wp-gold-soft) 82%,
-      transparent 100%
-    )
-    1;
-}
-
-/* ── 画布点阵背景工具类（二期画布标签重制消费面）── */
-.wp-dotgrid {
-  background-image: radial-gradient(
-    var(--wp-dot-color) 1.1px,
-    transparent 1.1px
-  );
-  background-size: var(--wp-dot-size) var(--wp-dot-size);
-}
-
-/* ── C2-lib 单元库定位光环（库→画布单向联动 U3——用户裁定「仅光环
- * 不压暗」）：命中节点 wrapper（.react-flow__node）外扩水蓝环。水蓝=
- * 定位语义非选中鎏金（交互状态色非语义色）；色值=域色 water 轴 rgba
- * 派生（基准=semanticColors DOMAIN_COLORS.water #1677ff——注入轴；
- * 派生字面量联动=R-G3 人工清单面，批6n 双轴归一范围外维持）；命中键=
- * kind ?? unitId（CanvasFlow nodes memo 注入，
- * UnitNode 零触碰）。inset -5px+圆角 10≈卡片 8px+2px 外扩。 */
-.react-flow__node.wp-lib-hit::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border-radius: 10px;
-  border: 2px solid rgba(22, 119, 255, 0.55);
-  box-shadow: 0 0 22px rgba(22, 119, 255, 0.28);
-  pointer-events: none;
 }
 
 /* ════════════════════════════════════════════════════════════════

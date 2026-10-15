@@ -1,12 +1,12 @@
 /**
- * v4 zone URL 参数纯函数（B1 骨架批 2026-10-09——?ia=v4 特性开关下六功能
- * 区+子页两级值域+旧十值兼容表+?node= 独立通道；projectParam 同族形）。
+ * v4 zone URL 参数纯函数（B1 骨架批 2026-10-09——六功能区+子页两级值域+
+ * 旧十值兼容表+?node= 独立通道；projectParam 同族形。v1-20261015 转正批：
+ * ?ia= 特性开关退役——v4=唯一壳）。
  *
  * 输入:  查询串（location.search 原样或裸 search）+ 目标 zone（或 node 值）
  * 输出:  parseZoneParam → V4ZoneTarget（两级值域+兼容归一）或 null；
  *        withZoneParam → 写入 tab 键的新查询串；parseNodeParam/withNodeParam
- *        → ?node= 独立通道读写；parseIaParam → "v4" | null（特性开关）；
- *        initialZoneTarget → 初值三级解析
+ *        → ?node= 独立通道读写；initialZoneTarget → 初值三级解析
  *
  * 规格说明（B1 任务书 §二.① URL 映射表——单源）：
  *   - 新值域语法=?tab=<zone> 或 <zone>.<subpage>（点分复合——子页仅
@@ -144,16 +144,12 @@ export function withNodeParam(search: string, nodeId: string | null): string {
   return params.toString();
 }
 
-/** ?ia= 特性开关（"v4"=新壳；其余/缺失=M1 现行壳）。 */
-export function parseIaParam(search: string): "v4" | null {
-  const value = new URLSearchParams(search).get("ia");
-  return value === "v4" ? "v4" : null;
-}
-
 /** 初值三级解析（合法 tab→深链 design→缺省 design——mount 不改写）。
  *  v4 深链层（?node=/?task=/?enum= 无 ?tab=→design）与缺省层同落 design
  *  （新壳默认区≠canvas 裸值——M1 边缘语义 c 对称形在此坍缩为同值；两层
- *  语义保留注记=未来缺省层改值时深链层须独立求值）。 */
+ *  语义保留注记=未来缺省层改值时深链层须独立求值）。
+ *  v1-20261015 转正批：parseIaParam 特性开关退役删除（?ia= 参数失效——
+ *  v4=唯一壳，无开关面）。 */
 export function initialZoneTarget(search: string): V4ZoneTarget {
   const target = parseZoneParam(search);
   if (target !== null) {

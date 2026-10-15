@@ -1,15 +1,15 @@
 /**
- * v4 zone URL 参数纯函数单测（B1 骨架批 2026-10-09——?ia=v4 特性开关下
- * 六功能区+子页两级值域+旧十值兼容表+?node= 独立通道）。
+ * v4 zone URL 参数纯函数单测（B1 骨架批 2026-10-09——六功能区+子页两级
+ * 值域+旧十值兼容表+?node= 独立通道。v1-20261015 转正批：?ia= 开关组
+ * 随特性开关退役删除）。
  *
  * 输入:  zoneParam.ts 的 parseZoneParam/withZoneParam/parseNodeParam/
- *        withNodeParam/parseIaParam/initialZoneTarget（node 环境——纯函数面）
+ *        withNodeParam/initialZoneTarget（node 环境——纯函数面）
  * 输出:  断言族：①新值域（六 zone 裸值/design 与 drafting 双段子页/非法值
  *        null——坏值/错配子页/三段）②旧值兼容表逐行（十二行——旧十值含
  *        studio 族展开形）③withZoneParam 序列化（裸 zone/带子页/他键原序
- *        保留）④?node= 独立通道（parse/with/clear 语义+他键保留）⑤?ia=
- *        开关（v4/其余 null）⑥initialZoneTarget 三级解析（合法→深链→缺省
- *        design）
+ *        保留）④?node= 独立通道（parse/with/clear 语义+他键保留）
+ *        ⑤initialZoneTarget 三级解析（合法→深链→缺省 design）
  *
  * 规格说明（B1 任务书 §二.① URL 映射表——逐行对账）：
  *   - 新值域语法=<zone> 或 <zone>.<subpage>（点分复合——design.subpage∈
@@ -32,7 +32,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   initialZoneTarget,
-  parseIaParam,
   parseNodeParam,
   parseZoneParam,
   withNodeParam,
@@ -147,15 +146,6 @@ describe("B1 ?node= 独立通道（对象选中真相——与 task/enum 互不�
     expect(withNodeParam("?project=p1&node=u1", null)).toBe("project=p1");
     // 已有键覆写+他键原序保留
     expect(withNodeParam("?node=u1&task=t1", "u2")).toBe("node=u2&task=t1");
-  });
-});
-
-describe("B1 ?ia= 特性开关", () => {
-  it("v4 识别+其余值/null 关闭（缺省=M1 现行壳）", () => {
-    expect(parseIaParam("?ia=v4")).toBe("v4");
-    expect(parseIaParam("?ia=v3")).toBeNull();
-    expect(parseIaParam("?project=p1")).toBeNull();
-    expect(parseIaParam("")).toBeNull();
   });
 });
 
