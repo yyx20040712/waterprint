@@ -181,6 +181,19 @@ describe("ReportDoc 渲染（元数据折叠后置——V3 D3）", () => {
 });
 
 describe("golden 样本回放（零改守卫——V5 P5）", () => {
+  it("⓪样本结构自检（R2 d1-N7——未来裁样守卫：关键结构缺席即红）", () => {
+    // 裁样代表性前提：标记行/GFM 表/数学定界/叙述注释/章标题五类结构
+    // 齐备——后续任何人裁剪样本（如删数学块）本例红，守卫面显式化。
+    const lines = GOLDEN_SAMPLE.split("\n");
+    const count = (pred: (line: string) => boolean) =>
+      lines.filter(pred).length;
+    expect(lines.filter((l) => l.trim() === "**项目标识与版本三元组**").length).toBe(1);
+    expect(count((l) => l.trim() === "| 项目 | 值 |")).toBeGreaterThanOrEqual(1);
+    expect(count((l) => l.trim() === "$$")).toBeGreaterThanOrEqual(2); // 数学块定界成对
+    expect(count((l) => l.trim().startsWith("<!--"))).toBeGreaterThanOrEqual(2); // 叙述注释对
+    expect(count((l) => l.startsWith("## "))).toBeGreaterThanOrEqual(3); // 章标题
+  });
+
   it("①标记在场路径：meta 以标记行起头含元数据表；body 差集⊆标记段+原行序子序列+无三连空行", () => {
     const { body, meta } = splitReportMeta(GOLDEN_SAMPLE);
     expect(meta).not.toBeNull();
@@ -190,14 +203,39 @@ describe("golden 样本回放（零改守卫——V5 P5）", () => {
     expect(body).not.toContain("**项目标识与版本三元组**"); // 零残留
     const lines = GOLDEN_SAMPLE.split("\n");
     const { markerAt, tableEnd } = goldenMetaSection();
-    const metaLineSet = new Set(lines.slice(markerAt, tableEnd + 1));
-    // 行级差集⊆标记段（unique 行集差——样本被摘除的行只许来自标记段）
-    const bodyLineSet = new Set(body.split("\n"));
-    const missing = [...new Set(lines.filter((line) => !bodyLineSet.has(line)))];
-    expect(missing.length).toBeGreaterThan(0); // 摘出真发生（非平凡守卫）
-    for (const line of missing) {
-      expect(metaLineSet.has(line)).toBe(true);
+    // 行级差集⊆标记段（multiset 计数差——R2 d1-N6：unique 集差对重复行
+    // 不敏感〔off-by-one 恰留重复行在 body 的回归漏检面收口〕）
+    const countOf = (source: string[]) => {
+      const map = new Map<string, number>();
+      for (const line of source) {
+        map.set(line, (map.get(line) ?? 0) + 1);
+      }
+      return map;
+    };
+    const originCounts = countOf(lines);
+    const bodyCounts = countOf(body.split("\n"));
+    // 逐行精确闭合（multiset 计数差——R2 d1-N6）：每行被摘数=其在标记段内
+    // 的出现数（段内行全数离场、段外非空行零丢失——「段内重复行〔如
+    // | --- | 分隔行〕在正文别处的额外丢失」漏检面一并收口）；空行容差=
+    // 接缝收束（贴边空行归一恰一份——splitReportMeta 既有契约语义）
+    const segmentCounts = countOf(lines.slice(markerAt, tableEnd + 1));
+    let missingNonBlank = 0;
+    for (const [line, n] of originCounts) {
+      if (line.trim() === "") {
+        continue;
+      }
+      const dropped = n - (bodyCounts.get(line) ?? 0);
+      const expected = segmentCounts.get(line) ?? 0;
+      expect(dropped).toBe(expected);
+      missingNonBlank += expected;
     }
+    expect(missingNonBlank).toBeGreaterThan(0); // 摘出真发生（非平凡守卫）
+    // 行数闭合（seam 感知）：body=原−标记段−接缝收束（收束面=摘出点两侧
+    // 贴边空行归一，至多回收 2 行——超出即有额外增删行）
+    const segmentLen = tableEnd - markerAt + 1;
+    const bodyLen = body.split("\n").length;
+    expect(bodyLen).toBeLessThanOrEqual(lines.length - segmentLen);
+    expect(bodyLen).toBeGreaterThanOrEqual(lines.length - segmentLen - 2);
     // body=原行序子序列（双指针单调推进——摘出不移行序）
     const bodyLines = body.split("\n");
     let cursor = 0;

@@ -195,8 +195,10 @@ describe("viewer3d·V4 迭代二（渲染真形口径——08 帧回炉逃逸面
   it("claimed 含无 plan id=盒口径零改（d1-W2——排除域×槽覆盖域交叉负例）", () => {
     // no_plan_unit=场景零节点的 claimed id（claimTemplateUnits 键与场景
     // 节点集非同域）：Set 查询天然容纳未知 id——不贡献幻影盒也不抛错；
-    // 与不含该 id 的盒口径逐值相等（守卫锚：实现若改走 plan 键集过滤或
-    // 对未知 id throw 即本例红）
+    // 与不含该 id 的盒口径逐值相等（守卫锚敏感面=对未知 id throw〔变异 D
+    // 实证红〕或为其造幻影盒；R2 d1-N5 勘正：实现改走 plan 键集过滤或
+    // 完全忽略 claimed 参数时本例不红——该盲区由「claim 盲/知双口径」例
+    // 与 Scene 源锚分段承载）
     const out = projectScene(ARRAY_SCENE as never);
     const withUnknown = modelClusterBounds(out, ["municipal_aao", "no_plan_unit"]);
     const baseline = modelClusterBounds(out, ["municipal_aao"]);

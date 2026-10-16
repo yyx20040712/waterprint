@@ -13,10 +13,12 @@
  *        ReactFlow 为捕获 props 的桩 div（children 照渲染）；测试树包
  *        <ReactFlowProvider>（FitViewOnNodes 顶层 useReactFlow 上下文供给）
  * 输出:  断言族：①dimensions 变更→桩收 nodes prop 中对应 node.measured
- *        注入 ②position/select 变更旁路=不注入（measured 缺席）③两次
- *        不同 id dimensions=累积并存（两 node.measured 同在）④MiniMap
- *        块窗口行锚（开标签 <MiniMap 至该元素闭合 /> 窗口内含裸 pannable、
- *        zoomable+position="bottom-left"——?raw 源结构）
+ *        注入+再渲染计数证据〔R2 d1-N1——flowProps 捕获增长〕②position/
+ *        select 变更旁路=不注入（measured 缺席）+position 透传 store
+ *        〔R2 d1-N2——旁路≠吞〕③两次不同 id dimensions=累积并存（两
+ *        node.measured 同在）④MiniMap 块窗口行锚（开标签 <MiniMap 至该
+ *        元素闭合 /> 窗口内含裸 pannable、zoomable+position="bottom-left"
+ *        ——?raw 源结构）
  */
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -45,6 +47,7 @@ if (typeof window.matchMedia !== "function") {
 const gate = vi.hoisted(() => ({
   projectRaw: undefined as unknown,
   flowProps: [] as Array<Record<string, unknown>>,
+  storePositionCalls: [] as Array<{ id: string; pos: { x: number; y: number } }>,
 }));
 
 vi.mock("@xyflow/react", async (importOriginal) => {
@@ -62,13 +65,16 @@ vi.mock("@xyflow/react", async (importOriginal) => {
 vi.mock("../../features/canvas/api/useProjectQuery", () => ({
   useProjectQuery: () => ({ data: gate.projectRaw, isError: false }),
 }));
-// 画布 store 替身：已有会话（editing 真值）——beginEdit 自动面不触发
+// 画布 store 替身：已有会话（editing 真值）——beginEdit 自动面不触发；
+// position 调用记录入 gate（R2 d1-N2：position 透传断言面）
 vi.mock("../../features/canvas/store/canvasStore", () => ({
   useCanvasStore: {
     getState: () => ({
       beginEdit: vi.fn(),
       addUnit: () => null,
-      position: vi.fn(),
+      position: (id: string, pos: { x: number; y: number }) => {
+        gate.storePositionCalls.push({ id, pos });
+      },
       connect: vi.fn(),
       deleteNodes: vi.fn(),
       session: { projectId: "p1" },
@@ -136,6 +142,7 @@ function mountFlow() {
 beforeEach(() => {
   gate.projectRaw = PROJECT_RAW;
   gate.flowProps = [];
+  gate.storePositionCalls = [];
 });
 afterEach(cleanup);
 
@@ -145,11 +152,14 @@ describe("工艺画布·受控测量回写接线（行为级——V5 P2）", () 
     driveNodesChange([
       { id: "n1", type: "dimensions", dimensions: { width: 47, height: 53 } },
     ] as NodeChange[]);
+    // R2 d1-N1：再渲染证据——setState 后必有第二次桩捕获（原地改数组不
+    // 重渲染的假绿面在此红）
+    expect(gate.flowProps.length).toBeGreaterThan(1);
     const n1 = stubNodes().find((node) => node.id === "n1");
     expect(n1?.measured).toEqual({ width: 47, height: 53 });
   });
 
-  it("position/select 变更旁路=不注入（measured 缺席）", () => {
+  it("position/select 变更旁路=不注入（measured 缺席）+position 透传 store（R2 d1-N2）", () => {
     mountFlow();
     driveNodesChange([
       { id: "n1", type: "position", position: { x: 1, y: 2 } },
@@ -158,6 +168,10 @@ describe("工艺画布·受控测量回写接线（行为级——V5 P2）", () 
     for (const node of stubNodes()) {
       expect(node.measured).toBeUndefined();
     }
+    // 透传契约：position 变更落 canvasStore（非整体丢弃——旁路≠吞）
+    expect(gate.storePositionCalls).toEqual([
+      { id: "n1", pos: { x: 1, y: 2 } },
+    ]);
   });
 
   it("两次不同 id dimensions=累积并存（两 node.measured 同在）", () => {
