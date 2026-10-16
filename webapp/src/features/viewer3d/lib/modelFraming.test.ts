@@ -14,7 +14,8 @@
  *        单轴达标）+八角不裁切③空簇 null（Scene 回退现行为——源锚）
  *        ④迭代二逃逸面：兜底方阵把盒 z 撑 3.4 倍 vs 真形盒（claim 盲/
  *        claim 知双口径对照）⑤稀疏槽格+紧凑实体簇：取景吃已摆 cell
- *        不吃缺位槽大盒
+ *        不吃缺位槽大盒⑥claimed 含无 plan id=盒口径零改（V4 d1-W2——
+ *        排除域×槽覆盖域交叉负例守卫锚）
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -189,6 +190,20 @@ describe("viewer3d·V4 迭代二（渲染真形口径——08 帧回炉逃逸面
     const zSpanGraph = (graph?.max[2] ?? 0) - (graph?.min[2] ?? 0);
     const zSpanRendered = (rendered?.max[2] ?? 0) - (rendered?.min[2] ?? 0);
     expect(zSpanGraph / zSpanRendered).toBeGreaterThanOrEqual(3);
+  });
+
+  it("claimed 含无 plan id=盒口径零改（d1-W2——排除域×槽覆盖域交叉负例）", () => {
+    // no_plan_unit=场景零节点的 claimed id（claimTemplateUnits 键与场景
+    // 节点集非同域）：Set 查询天然容纳未知 id——不贡献幻影盒也不抛错；
+    // 与不含该 id 的盒口径逐值相等（守卫锚：实现若改走 plan 键集过滤或
+    // 对未知 id throw 即本例红）
+    const out = projectScene(ARRAY_SCENE as never);
+    const withUnknown = modelClusterBounds(out, ["municipal_aao", "no_plan_unit"]);
+    const baseline = modelClusterBounds(out, ["municipal_aao"]);
+    expect(baseline).not.toBeNull();
+    expect(withUnknown).not.toBeNull();
+    expect(withUnknown?.min).toEqual(baseline?.min);
+    expect(withUnknown?.max).toEqual(baseline?.max);
   });
 
   it("稀疏槽格+紧凑实体簇：取景盒吃已摆 cell 不吃缺位槽大盒（includeMissing）", () => {
