@@ -379,12 +379,15 @@ describe("工程制图区·左树条目省略三件套（V4 d1-W1/N8——长文
     );
     const plantRow = rows.find((row) => row.textContent?.includes("污水厂"));
     expect(plantRow).toBeDefined();
+    // 省略实效前提：父行 flex 容器（inline 子项块化——text-overflow 生效面）
+    expect(plantRow?.style.display).toBe("flex");
     const label = plantRow?.querySelector<HTMLElement>("span");
     expect(label).not.toBeNull();
     expect(label?.style.overflow).toBe("hidden");
     expect(label?.style.whiteSpace).toBe("nowrap");
     expect(label?.style.textOverflow).toBe("ellipsis");
     expect(label?.style.minWidth).toBe("0px"); // flex 行内收缩前提（不撑宽）
+    expect(label?.style.flexGrow).toBe("1"); // R1 回炉 d1-W1：链全锚（删 flex:1 即红）
   });
 
   it("子页 button 文本：ellipsis 三件套（长条目省略号而非静默裁切）", () => {
