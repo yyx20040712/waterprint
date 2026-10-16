@@ -11,18 +11,18 @@
  * 输出:  断言族：①无项目/无完成计算空态 ②非领域错误面 ③md 渲染（display
  *        数学块/inline 数学/表格/HTML 注释不渲染为正文）④导航两级+锚定位
  *        （scrollIntoView）⑤stale 横幅+重算 ⑥卡头副行（项目名·数据集 R-
- *        digest10）⑦导出三钮载荷（audit 空 condition_key 面）⑧exportFailText
- *        纯函数（PDF 显式错误面白名单微文案）⑨⑩V4 P5/P6 断言族拆件承载
- *        于 reportNav.test.tsx（预算墙 500——k2-W1 头注勘正：本文件不承载）
+ *        digest10）⑦左导航拖宽（v2 笔2）⑧⑨导出面断言族（导出三钮/
+ *        exportFailText/TASK_EVENT 事件桥）拆件承载于 reportExport.test.tsx
+ *        （V5 P1——498 行贴预算墙）⑩V4 P5/P6 断言族承载于 reportNav.
+ *        test.tsx（k2-W1 头注勘正：本文件不承载）
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ReportZone, exportFailText } from "./reportZone";
+import { ReportZone } from "./reportZone";
 import { WaterprintApiError } from "../../shared/api/http";
-import { TASK_EVENT } from "../../shared/events";
 
 /** localStorage 存根（v2 笔2 随动：ReportNav 拖宽 usePaneWidth 消费面——
  *  本环境 jsdom 面无原生方法族，designZoneJointEntry.test 先例）。 */
@@ -342,110 +342,6 @@ describe("计算说明区·卡头副行（项目名·数据集·生成来源）"
     const sub = container.querySelector('[data-testid="wp-v4-report-subline"]');
     expect(sub?.textContent).toContain("p1");
     expect(sub?.textContent).toContain("R-abc123def0");
-  });
-});
-
-describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
-  it("三钮在场：计算书 xlsx/审计 HTML/PDF 计算书（V3 D3：calcbook 主色化+audit 保持灰描边）", () => {
-    const { container } = renderZone();
-    const row = container.querySelector('[data-region="report-export"]');
-    expect(row?.textContent).toContain("计算书 xlsx");
-    expect(row?.textContent).toContain("审计 HTML");
-    expect(row?.textContent).toContain("PDF 计算书");
-    // V3 D3 导出主钮主色：AC 底+白字（jsdom 色归一 rgb 形）；audit 现状保持
-    const calcbook = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
-    expect(calcbook?.style.background).toBe("var(--wpv4-ac)");
-    expect(calcbook?.style.color).toBe("rgb(255, 255, 255)");
-    expect(container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]')?.style.background).toBe("var(--wp-bg-elevated)");
-  });
-
-  it("calcbook 钮→POST /api/exports/calcbook（design 工况+空 unit_id 总图语义）", () => {
-    const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
-    fireEvent.click(btn as HTMLButtonElement);
-    expect(gate.exportMutate).toHaveBeenCalledTimes(1);
-    const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
-    expect(kind).toBe("calcbook");
-    expect(input).toEqual({
-      projectId: "p1",
-      unitId: "",
-      conditionKey: "design",
-      force: false,
-    });
-  });
-
-  it("audit 钮→condition_key 空（audit 全厂单份跨工况——服务端 422 闸对齐）", () => {
-    const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]');
-    fireEvent.click(btn as HTMLButtonElement);
-    const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
-    expect(kind).toBe("audit");
-    expect(input).toEqual({
-      projectId: "p1",
-      unitId: "",
-      conditionKey: "",
-      force: false,
-    });
-  });
-
-  it("PDF 钮→report_pdf（design 工况）", () => {
-    const { container } = renderZone();
-    const btn = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-pdf"]');
-    fireEvent.click(btn as HTMLButtonElement);
-    const [kind, input] = gate.exportMutate.mock.calls[0] as [string, unknown];
-    expect(kind).toBe("report_pdf");
-    expect(input).toEqual({
-      projectId: "p1",
-      unitId: "",
-      conditionKey: "design",
-      force: false,
-    });
-  });
-});
-
-describe("计算说明区·exportFailText 纯函数（PDF 显式错误面白名单）", () => {
-  it("PDF 编译失败=显式「PDF 计算书导出失败」前缀+原文", () => {
-    expect(
-      exportFailText("report_pdf", new WaterprintApiError("TypstCompileError", "typst 编译失败（returncode 1）")),
-    ).toContain("PDF 计算书导出失败");
-    expect(
-      exportFailText("report_pdf", new WaterprintApiError("TypstCompileError", "typst 编译失败（returncode 1）")),
-    ).toContain("typst 编译失败（returncode 1）");
-  });
-
-  it("404 无完成计算=固定摘要+先提交计算引导（raw API 句式不入用户面）", () => {
-    const text = exportFailText(
-      "calcbook",
-      new WaterprintApiError("ExportSourceNotFoundError", "项目 'p1' 无最近完成结果集（先 POST /api/calc/run）"),
-    );
-    expect(text).toContain("项目暂无完成的计算结果");
-    expect(text).toContain("先提交计算");
-    expect(text).not.toContain("/api/calc/run");
-  });
-});
-
-describe("计算说明区·TASK_EVENT 事件桥失效谓词（R1 回炉 W-G）", () => {
-  it("真 orval queryKey 形集成：事件后恰本项目报告缓存键失效", async () => {
-    // orval 生成件经 vi.importActual 取真实模块（本文件模块替身仅盖
-    // hook 面——键构造器真实形=被断言对象，orval 再生成漂移即本锚红）
-    const actual = await vi.importActual<
-      typeof import("../../shared/api/generated/calc/calc")
-    >("../../shared/api/generated/calc/calc");
-    const keyOf = (pid: string) =>
-      actual.getGetProjectReportApiCalcProjectsProjectIdReportGetQueryKey(pid, {
-        condition_key: "design",
-      });
-    const keyP1 = keyOf("p1");
-    const keyP2 = keyOf("p2");
-    queryClient.setQueryData(keyP1, REPORT_OK);
-    queryClient.setQueryData(keyP2, REPORT_OK);
-    renderZone(); // projectId=p1 → TASK_EVENT 监听挂载（stale 横幅效应同源）
-    expect(queryClient.getQueryState(keyP1)?.isInvalidated).toBe(false);
-    window.dispatchEvent(new CustomEvent(TASK_EVENT, { detail: "t1" }));
-    expect(queryClient.getQueryState(keyP1)?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(keyP2)?.isInvalidated).toBe(false);
-    queryClient.removeQueries({ queryKey: keyP1 });
-    queryClient.removeQueries({ queryKey: keyP2 });
   });
 });
 
