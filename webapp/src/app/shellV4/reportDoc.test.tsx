@@ -9,10 +9,17 @@
  *        真件（jsdom 渲染——details/summary 在场+表入折叠区+正文保留）
  * 输出:  断言族：①纯函数：标准在（摘出+正文接缝收束）/标记缺席（零改返回
  *        原文+meta=null）/表后正文保留（后续章节不误吞）②渲染：details
- *        testid+summary 文案+meta 表在折叠区内+正文区不含标记段
+ *        testid+summary 文案+meta 表在折叠区内+正文区不含标记段③golden
+ *        样本回放守卫（V5 P5——V3 d1-N8）：真实报告 verbatim 样本上标记
+ *        在场路径（meta 以标记行起头/body 行级差集⊆标记段/原行序子序列/
+ *        无三连空行）+零改静默路径（标记段后全部行拼串逐字节零改）+
+ *        异常形态真实头片段复证
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { ReportDoc, splitReportMeta } from "./reportDoc";
 
@@ -47,6 +54,47 @@ const MD_NO_META = [
   "",
   "正文无标记段。",
 ].join("\n");
+
+/** golden 样本（主控落盘 golden 项目 design 工况真实报告 verbatim 五段
+ *  裁样——readFileSync 直读〔css?raw 同制〕；标记行/元数据表/依据表/
+ *  narrative 注释对/数学块/尾章齐备；样本即数据面照读）。 */
+const GOLDEN_SAMPLE = readFileSync(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    "__fixtures__/golden-report-sample.md",
+  ),
+  "utf-8",
+);
+
+/** 测试侧标记段定位（简单切片）：标记行+其后首个连续管道行块——非
+ *  splitReportMeta 复刻（无接缝收束/无分隔行判形，仅样本内定位）。 */
+function goldenMetaSection(): { markerAt: number; tableEnd: number } {
+  const lines = GOLDEN_SAMPLE.split("\n");
+  const markerAt = lines.findIndex(
+    (line) => line.trim() === "**项目标识与版本三元组**",
+  );
+  expect(markerAt).toBeGreaterThanOrEqual(0);
+  let tableAt = -1;
+  for (let index = markerAt + 1; index < lines.length; index += 1) {
+    const line = (lines[index] as string).trim();
+    if (line === "") {
+      continue;
+    }
+    if (line.startsWith("|")) {
+      tableAt = index;
+    }
+    break;
+  }
+  expect(tableAt).toBeGreaterThanOrEqual(0);
+  let tableEnd = tableAt;
+  while (
+    tableEnd + 1 < lines.length &&
+    (lines[tableEnd + 1] as string).trim().startsWith("|")
+  ) {
+    tableEnd += 1;
+  }
+  return { markerAt, tableEnd };
+}
 
 afterEach(cleanup);
 
@@ -129,5 +177,60 @@ describe("ReportDoc 渲染（元数据折叠后置——V3 D3）", () => {
       container.querySelector('[data-testid="wp-v4-report-meta"]'),
     ).toBeNull();
     expect(container.textContent).toContain("正文无标记段。");
+  });
+});
+
+describe("golden 样本回放（零改守卫——V5 P5）", () => {
+  it("①标记在场路径：meta 以标记行起头含元数据表；body 差集⊆标记段+原行序子序列+无三连空行", () => {
+    const { body, meta } = splitReportMeta(GOLDEN_SAMPLE);
+    expect(meta).not.toBeNull();
+    expect(meta?.startsWith("**项目标识与版本三元组**")).toBe(true);
+    expect(meta).toContain("| 项目 | 值 |");
+    expect(meta).toContain("waterprint-server 0.1.0");
+    expect(body).not.toContain("**项目标识与版本三元组**"); // 零残留
+    const lines = GOLDEN_SAMPLE.split("\n");
+    const { markerAt, tableEnd } = goldenMetaSection();
+    const metaLineSet = new Set(lines.slice(markerAt, tableEnd + 1));
+    // 行级差集⊆标记段（unique 行集差——样本被摘除的行只许来自标记段）
+    const bodyLineSet = new Set(body.split("\n"));
+    const missing = [...new Set(lines.filter((line) => !bodyLineSet.has(line)))];
+    expect(missing.length).toBeGreaterThan(0); // 摘出真发生（非平凡守卫）
+    for (const line of missing) {
+      expect(metaLineSet.has(line)).toBe(true);
+    }
+    // body=原行序子序列（双指针单调推进——摘出不移行序）
+    const bodyLines = body.split("\n");
+    let cursor = 0;
+    for (const line of bodyLines) {
+      while (cursor < lines.length && lines[cursor] !== line) {
+        cursor += 1;
+      }
+      expect(cursor).toBeLessThan(lines.length);
+      cursor += 1;
+    }
+    // 接缝收束：摘出点不残留三连空行
+    expect(body).not.toContain("\n\n\n");
+  });
+
+  it("②零改静默路径：标记段之后全部行拼串→body 逐字节相等+meta=null", () => {
+    const { tableEnd } = goldenMetaSection();
+    const tail = GOLDEN_SAMPLE.split("\n").slice(tableEnd + 1).join("\n");
+    expect(tail).toContain("规范与条文依据"); // 真实结构正文（非平凡串）
+    expect(tail).toContain("## 第 4 章");
+    const result = splitReportMeta(tail);
+    expect(result.meta).toBeNull();
+    expect(result.body).toBe(tail); // 逐字节零改（真实结构多样性守卫）
+  });
+
+  it("③异常形态：真实样本头片段标记行后紧跟非管道行=零改（可并②口径）", () => {
+    const { markerAt } = goldenMetaSection();
+    const head = [
+      ...GOLDEN_SAMPLE.split("\n").slice(0, markerAt + 1),
+      "",
+      "正文直接续。",
+    ].join("\n");
+    const result = splitReportMeta(head);
+    expect(result.meta).toBeNull();
+    expect(result.body).toBe(head);
   });
 });
