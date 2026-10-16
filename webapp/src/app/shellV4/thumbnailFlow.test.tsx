@@ -10,8 +10,9 @@
  * 输出:  断言族：①图例在场：wp-v4-flow-legend+行子 -water/-sludge+文案
  *        「水线」「泥线」+色条色值=SEMANTIC_COLORS.domain_* 单源（hex→rgb
  *        换算对拍——禁字面 hex 双源）②MiniMap 在场：.react-flow__minimap
- *        +bottom-left 位+白底卡片壳同 Controls 制式+pannable/zoomable
- *        结构锚（行为面 panZoom 绑定无 DOM 痕迹——?raw 源结构锚承载）
+ *        +bottom-left 位+白底卡片壳同 Controls 制式（pannable/zoomable
+ *        块窗口行锚 V5 P2 升级迁件 thumbnailWiring.test.tsx 承载——全文件
+ *        域裸行锚 /^\s+pannable$/m 误配面退役）
  *        ③Controls 右下对角共存④空态互斥：nodes=0 图例缺席+空态提示在场
  *        ⑤V4 P1：副标 id 移除——.wp-v4-sub 零命中+CSS 规则随删（防回潮）
  */
@@ -157,12 +158,6 @@ describe("工艺画布·V3 MiniMap（D1——左下+pannable/zoomable+卡片壳�
     expect(minimap?.style.border).toBe("1px solid var(--wp-border-2)");
     expect(minimap?.style.borderRadius).toBe("8px");
     expect(minimap?.querySelector(".react-flow__minimap-svg")).not.toBeNull();
-  });
-
-  it("pannable/zoomable 行锚（R2 k2-W1：裸 prop 行锚定——注释字样不兜底；?raw 源结构）", () => {
-    expect(thumbnailFlowSource).toContain("<MiniMap");
-    expect(thumbnailFlowSource).toMatch(/^\s+pannable$/m);
-    expect(thumbnailFlowSource).toMatch(/^\s+zoomable$/m);
   });
 
   it("Controls 右下对角共存（W-B 回炉位锁锚——两件同屏+Controls 类含 bottom/right）", () => {
