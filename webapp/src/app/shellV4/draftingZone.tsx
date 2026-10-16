@@ -327,7 +327,20 @@ export function DraftingZone({
                 color: "var(--wp-text-2)",
               }}
             >
-              <span>{row.label}</span>
+              {/* V4 d1-W1/N8：省略三件套+minWidth:0/flex:1 链——flex 行内
+                  span 不收缩则撑宽侧栏；长文省略号而非静默裁切（reportNav
+                  条目同制） */}
+              <span
+                style={{
+                  minWidth: 0,
+                  flex: 1,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {row.label}
+              </span>
               {row.pending ? <Tag style={{ marginInlineEnd: 0 }}>规划中</Tag> : null}
             </div>
           ) : (
@@ -346,6 +359,11 @@ export function DraftingZone({
                 fontSize: 12, // 回炉 R12：字号归一三档
                 padding: "4px 8px 4px 22px",
                 cursor: "pointer",
+                // V4 d1-W1/N8：省略三件套（block 满宽条目——长文省略号
+                // 而非静默裁切；reportNav 条目同制）
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
               }}
             >
               {row.label}

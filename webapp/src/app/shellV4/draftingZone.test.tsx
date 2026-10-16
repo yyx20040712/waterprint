@@ -369,3 +369,39 @@ describe("工程制图区·V4 中文化（P2——双 Select option 文案+图�
     expect(cap?.textContent).not.toMatch(/\ball\b/i); // 英文 all 兜底退役
   });
 });
+
+describe("工程制图区·左树条目省略三件套（V4 d1-W1/N8——长文省略号非静默裁切）", () => {
+  it("组标题行 span：ellipsis 三件套+minWidth:0/flex:1 链（条目不撑宽侧栏）", () => {
+    const { container } = mountZone("sheets");
+    const aside = container.querySelector('[data-region="drafting-tree"]') as HTMLElement;
+    const rows = Array.from(aside.children).filter(
+      (el): el is HTMLElement => el instanceof HTMLElement,
+    );
+    const plantRow = rows.find((row) => row.textContent?.includes("污水厂"));
+    expect(plantRow).toBeDefined();
+    const label = plantRow?.querySelector<HTMLElement>("span");
+    expect(label).not.toBeNull();
+    expect(label?.style.overflow).toBe("hidden");
+    expect(label?.style.whiteSpace).toBe("nowrap");
+    expect(label?.style.textOverflow).toBe("ellipsis");
+    expect(label?.style.minWidth).toBe("0px"); // flex 行内收缩前提（不撑宽）
+  });
+
+  it("子页 button 文本：ellipsis 三件套（长条目省略号而非静默裁切）", () => {
+    const { container } = mountZone("sheets");
+    const btn = container.querySelector<HTMLElement>(
+      '[data-testid="wp-v4-drafting-siteplan"]',
+    );
+    expect(btn).not.toBeNull();
+    expect(btn?.style.overflow).toBe("hidden");
+    expect(btn?.style.whiteSpace).toBe("nowrap");
+    expect(btn?.style.textOverflow).toBe("ellipsis");
+  });
+
+  it("aside 回归锚：overflowX=hidden+overflowY=auto（k2-N4 柄 −4px 横滚收口——report 侧同款）", () => {
+    const { container } = mountZone("sheets");
+    const aside = container.querySelector<HTMLElement>('[data-region="drafting-tree"]');
+    expect(aside?.style.overflowX).toBe("hidden");
+    expect(aside?.style.overflowY).toBe("auto");
+  });
+});
