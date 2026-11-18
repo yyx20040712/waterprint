@@ -41,7 +41,8 @@
 #   R1 全厂真值唯一源=execute_graph（W6 终裁：直调既有编排不新写拓扑
 #      序不构成双轨）；逐组合全工况一次。
 #   R2 纯投影：summary 消费既有聚合器（app_energy/app_influent/
-#      app_opex/app_carbon §1a 外根伴生件——UF-33 挂账维持）。
+#      app_opex/app_carbon——b23 2026-11-18 迁入 solution 同节点
+#      伴生件，L3→L4 上行 import 盲区就此消除）。
 #   R3 确定性：同输入同 ComboResult（可复算）。
 #
 # 【测试要求】经 beam 全链测试覆盖（本件拆件非独立规格面）。
@@ -56,10 +57,6 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Final, final
 
-from waterprint.app_carbon import carbon_summary_of
-from waterprint.app_energy import energy_summary_of
-from waterprint.app_influent import influent_summary_of
-from waterprint.app_opex import opex_summary_of
 from waterprint.contracts.condition import ConditionSet, OperatingCondition
 from waterprint.contracts.ports import Edge
 from waterprint.contracts.project_schema import DesignState, ProjectFile
@@ -78,6 +75,10 @@ from waterprint.cost import (  # 包根再导出面（批2b 同层边 import 收
     takeoff_quantities,
 )
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS, assumption
+from waterprint.solution.app_carbon import carbon_summary_of
+from waterprint.solution.app_energy import energy_summary_of
+from waterprint.solution.app_influent import influent_summary_of
+from waterprint.solution.app_opex import opex_summary_of
 from waterprint.solution.joint_enumeration.ranking import plant_objective
 from waterprint.solution.joint_enumeration.stage import (
     AssembledView,

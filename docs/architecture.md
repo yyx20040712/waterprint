@@ -359,7 +359,9 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 审计治理（2026-11-18，34 项）定档后的在册挂账如下表——本表为仓内挂账
 唯一权威载体（编号=审计议题号；重启触发条件未发生即不重启）。#5/#26 为
 用户裁决不改（接受设计，非开放债）；#10 为独立产品/schema 需求（未立项）；
-#22 状态随 #1 不独立挂账；#2（compute 双形态）已随 ADR-011 豁免定案
+#22 状态随 #1 不独立挂账——#1/#22 已随 b23（2026-11-18）四伴生件迁
+solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入校验覆盖，
+表行随之退役）；#2（compute 双形态）已随 ADR-011 豁免定案
 收口（现行口径见 §3.8，AAO N==1 守卫排期 b26，不构成在册开放面）。
 
 | AUDIT | 类型 | 当前决定 | 重启触发条件 | 代码锚 |
@@ -370,7 +372,6 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 | #12 | 接受设计 | 批量导出 _ITEM_FAILURES 宽族=H2 项级隔离策略（单项失败不株连批内他项，批终态 done+failures） | 出现 core 缺陷被折叠为项级 failures 的实际事故，或重新裁定项级/批共因边界 | server/waterprint_server/jobs/worker.py:342-344,450 |
 | #15 | 开放债（P3） | elevation 纵断 water_depth 缺键静默 0（depth_key=None 分支有 INFO 警告——不对称） | 该输入路径成为用户可达或诊断缺失造成实际问题 | core/waterprint/elevation/profile.py:136 |
 | #19 | 接受设计 | async 阻塞策略两制：design-map 进程内 asyncio.to_thread 同步直返例外（~1s 级 CPU 防阻塞），其余同步端点内联轻投影（§2.1 注记） | CPU profiling 证明事件循环阻塞，或新增重 CPU 端点 | server/waterprint_server/routers/calc.py:298-300 |
-| #22 | 随 #1（不独立挂账） | check_module_graph 非 §1a 节点盲区与 #1（L3→L4 上行依赖）同根，随 b23 四伴生件架构迁移同批处置 | #1 架构方案改变时随同更新 | scripts/check_module_graph.py:344-353,433-435 |
 | #24 | 开放语义债 | manifest 容错两制：unit_prices 装载 fail-fast vs data_version 聚合读 manifest 缺失/畸形静默跳过——本轮不归一 | 部署确定「无 manifest 必须 fail-fast」或确认容忍为公开契约 | core/waterprint/app.py:321-325；core/waterprint/cost/prices.py:69-78 |
 | #25 | 开放债（P3） | _design_scale_of 多进水 sorted 取首快照无警告（无输入节点流量已有 InvalidFlowError 兜底） | 多进水成为受支持场景或出现误用 | core/waterprint/flows/__init__.py:363-380 |
 | #26 | 接受设计（裁决不改） | executor 恒等再导出壳（noqa F401）=锁名设计，镜像测试 `is` 恒等断言有意钉死；SLUDGE 初值 mm×mm 借用派生有注释+golden 锚 | 锁名意图本身被新架构裁决撤销 | core/waterprint/graph/executor.py:123-140,161-163 |
@@ -386,11 +387,11 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
   冒烟（Linux AppImage 形态）；软著申请与开源准备；专家经验表第三建议
   来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）；
   前端警告聚合视图接线（服务端聚合 API 已落地，webapp 无消费面）。
-- **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：
-  joint_enumeration 上行消费 app_* 伴生件四处（AUDIT-#1/#22，UF-33
-  挂账，未入结构图谱声明面）；assumptions 数据包不在启动校验面且不走
-  WATERPRINT_DATA_DIR（AUDIT-#3，其余四包在校验面内）；二沉池与 AAO
-  同值参数双包独立声明、无一致性校核（AUDIT-#6）。
+- **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：AUDIT-#1/
+  #22（joint_enumeration 上行 import）已随 b23 迁移收口；assumptions
+  数据包不在启动校验面且不走 WATERPRINT_DATA_DIR（AUDIT-#3，其余四包
+  在校验面内，b24 处置）；二沉池与 AAO 同值参数双包独立声明、无一致
+  性校核（AUDIT-#6，b26 处置）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"

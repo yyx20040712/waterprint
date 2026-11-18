@@ -9,8 +9,9 @@
 # ══════════════════════════════════════════════════════════════════
 # 规格（B4-2b 终裁定案 .workflow/briefs/b4-2b-master-ruling-r2.md §三；
 #   镜像测试 tests/app/test_app_opex.py；app_energy.py 拆分先例同构
-#   第六例——根模块聚合投影件，不进 import-linter layers 契约
-#   （app_trust 同款 unconstrained）。
+#   第六例——全厂聚合投影伴生件（b23 2026-11-18 自根模块迁
+#   solution 同节点：消除 final_eval L3→L4 上行 import 盲区；归
+#   import-linter layers 契约 solution 行）。
 #
 # 【公开接口】
 #   opex_summary_of(base, coefficients) -> dict[工况→dict[平键→float]]

@@ -14,8 +14,9 @@
 #   增碳范围一 C-F10~F12——批3.5 追认已签〔b35-research §五〕实装面+
 #   AUD-W4 能耗上游联动）；镜像测试
 #   tests/app/test_app_carbon.py；app_opex.py 拆分先例同构第八例
-#   ——根模块聚合投影件，不进 import-linter layers 契约（app_trust
-#   同款 unconstrained）。
+#   ——全厂聚合投影伴生件（b23 2026-11-18 自根模块迁 solution
+#   同节点：消除 final_eval L3→L4 上行 import 盲区；归 import-linter
+#   layers 契约 solution 行）。
 #
 # 【公开接口】
 #   carbon_summary_of(base, coefficients) -> dict[工况→dict[平键→float]]

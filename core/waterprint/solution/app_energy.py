@@ -9,8 +9,9 @@
 
 # ══════════════════════════════════════════════════════════════════
 # 规格（ADR-024 D2/D3；镜像测试 tests/app/test_app_energy.py；
-#   app_trust.py 拆分先例同构第五例——根模块聚合投影件，不进
-#   import-linter layers 契约（app_trust 同款 unconstrained）。
+#   app_trust.py 拆分先例同构第五例——全厂聚合投影伴生件（b23
+#   2026-11-18 自根模块迁 solution 同节点：消除 final_eval L3→L4
+#   上行 import 盲区；归 import-linter layers 契约 solution 行）。
 #
 # 【公开接口】
 #   energy_summary_of(plant) -> dict[工况→dict[平键→float]]

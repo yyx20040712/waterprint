@@ -171,8 +171,6 @@ from waterprint.app_assembly import (
 from waterprint.app_assembly import (
     completed_env as _completed_env,  # 批5 迁装配域单源（本模块 run_full_calc/run_design_map 消费）
 )
-from waterprint.app_carbon import _with_carbon, carbon_summary_of
-from waterprint.app_energy import energy_summary_of
 from waterprint.app_enumeration import (
     ArtifactKindNotReady,
     Constraint,
@@ -187,10 +185,8 @@ from waterprint.app_enumeration import (
 # 伴生件再导出（消费面 from waterprint.app import 零改动；run_design_map 留守
 # =锁定测试 monkeypatch 耦合 app 模块命名空间——迁移须随锁面工序呈批）。
 from waterprint.app_enumeration_gates import run_enumeration, run_joint_enumerate
-from waterprint.app_influent import _with_influent, influent_summary_of
 from waterprint.app_kbgate import assert_kb_gate
 from waterprint.app_maintenance import _with_maintenance, maintenance_summary_of
-from waterprint.app_opex import _with_opex, opex_summary_of
 from waterprint.app_trust import DiagCollector, TrustContext, build_diagnostics
 from waterprint.app_validation import validation_summary_of
 from waterprint.contracts.condition import ConditionSet
@@ -216,6 +212,12 @@ from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 # 质量拦——本地门禁盲区记档）
 from waterprint.registry.coefficients import load_coefficients
 from waterprint.registry.effluent import load_effluent_standards
+
+# b23 2026-11-18（议题 #1+#22）：四聚合投影伴生件迁 solution 再导出（边沿 §1b 既有 app→solution）。
+from waterprint.solution.app_carbon import _with_carbon, carbon_summary_of
+from waterprint.solution.app_energy import energy_summary_of
+from waterprint.solution.app_influent import _with_influent, influent_summary_of
+from waterprint.solution.app_opex import _with_opex, opex_summary_of
 from waterprint.solution.constraints import KbConstraint, apply_constraints, load_kb_constraints
 from waterprint.solution.design_map import (
     DesignMap,
