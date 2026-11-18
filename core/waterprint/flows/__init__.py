@@ -32,7 +32,8 @@
 #       result_path/design_digest）= run_full_calc 直通（constraints kb
 #       注入透传——kbwire 批）；result_out 给定→persist。
 #   result_persist_flow(plant, out) -> Path   serialize 原子落盘（GR-38
-#       同目录唯一 tmp→os.replace——worker K-01 并发双写收口同款）。
+#       同目录唯一 tmp→os.replace——worker K-01 并发双写收口同款；b27
+#       AUDIT-#17 起三处原子写定式经 _atomic_write 单源，H5 全异常清理）。
 #   validate_flow(project) -> tuple[str, ...] validate_design_structure
 #       直通（清单式不拒——退出码语义归 CLI 壳）。
 #   export_flow(kind, project, plant, *, template_dir, out, unit_id=None,
@@ -50,8 +51,8 @@
 #       单一真源=单价包 name——additive 字段，.sheet/.report 消费面不受扰）。
 #   estimate_render_flow(project, plant, out, *, condition_key, data_dir)
 #       -> Path   概算 xlsx 渲染流（est-20261001）：estimate_summary_flow
-#       单源复用→render_estimate_xlsx→tmp+os.replace 原子落盘（audit_
-#       render_flow 定式含 H5 全异常清理）；cost 四域异常（InvalidTakeoff/
+#       单源复用→render_estimate_xlsx→_atomic_write 原子落盘（audit_
+#       render_flow 同款定式含 H5 全异常清理）；cost 四域异常（InvalidTakeoff/
 #       Price/Estimate/Indicator）包装上抛 InvalidFlowError from exc（消息
 #       透传——工况不在结果集=takeoff 消息含可用工况集，禁静默取首档；
 #       回炉轮1 R7：渲染域族 InvalidEstimateRenderError 并入包装
@@ -89,10 +90,10 @@ import contextlib
 import os
 import uuid
 import warnings
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final, final
+from typing import Any, Final, final
 
 from waterprint.app import (  # app 门面（许可面①——UF-33 单入口）
     DesignMap,
@@ -241,17 +242,7 @@ def result_persist_flow(plant: PlantResult, out: Path) -> Path:
     父目录缺失则建（network --out 语义对齐——CLI/MCP 两壳同径）。"""
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
-    try:
-        tmp.write_bytes(serialize(plant))
-        os.replace(tmp, out)
-    # H5（exp-hygiene-20260930）：全异常清理——非 OSError 落盘期异常半写
-    # .tmp 曾残留（清理后 re-raise；BaseException 选形=任务书 P5 预裁决
-    # 授权〔回炉轮1 d1-N3 补注：re-raise 保传播，避开宪法 §3 过宽捕获
-    # 字面禁令〕）。
-    except BaseException:
-        with contextlib.suppress(OSError):
-            os.remove(tmp)  # 半写 .tmp 不留（清理失败不遮蔽原异常）
-        raise
+    _atomic_write(tmp, out, lambda p: p.write_bytes(serialize(plant)))
     return out
 
 
@@ -272,6 +263,22 @@ def _flow_out(out: Path) -> Path:
                 f"输出路径含越界分量 '..'：{out!r}（§18 路径安全——audit._validate_out 同款）"
             )
     return resolved.resolve()
+
+
+def _atomic_write(tmp: Path, target: Path, write: Callable[[Path], Any]) -> None:
+    """原子落盘定式单源（b27 AUDIT-#17 三处收敛）：write 直写 tmp →
+    os.replace 原子替换；H5（exp-hygiene-20260930）全异常清理——任何
+    异常先删半写 tmp 再 re-raise（清理失败不遮蔽原异常；BaseException
+    选形=任务书 P5 预裁决授权〔回炉轮1 d1-N3 补注：re-raise 保传播，
+    避开宪法 §3 过宽捕获字面禁令〕）。tmp 命名归调用方（uuid 唯一/
+    固定 .tmp 两制保留——并发双写防护语义不随本件归一）。"""
+    try:
+        write(tmp)
+        os.replace(tmp, target)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.remove(tmp)  # 半写 tmp 不留（清理失败不遮蔽原异常）
+        raise
 
 
 def export_flow(  # noqa: PLR0913  # 签名冻结选项面（§3——export_artifact 豁免先例）
@@ -332,16 +339,7 @@ def audit_render_flow(project: ProjectFile, plant: PlantResult, out: Path) -> Pa
     discover_units()  # 迹公式反查的注册表前置（app.assemble 内部同款装载）
     target = _flow_out(out)
     tmp = target.with_name(target.name + ".tmp")
-    try:
-        render_audit_html(plant.trace, plant, tmp)
-        os.replace(tmp, target)
-    # H5（exp-hygiene-20260930）：全异常清理——渲染期非 OSError 异常半写
-    # .tmp 曾残留（清理后 re-raise；与 result_persist_flow 同族两处一致；
-    # BaseException 选形=任务书 P5 预裁决授权〔回炉轮1 d1-N3 补注〕）。
-    except BaseException:
-        with contextlib.suppress(OSError):
-            os.remove(tmp)
-        raise
+    _atomic_write(tmp, target, lambda p: render_audit_html(plant.trace, plant, p))
     return target
 
 
@@ -438,30 +436,27 @@ def estimate_render_flow(
 ) -> Path:
     """estimate 渲染流：计算链单源复用 → xlsx 直写渲染 → 原子落盘。
 
-    tmp+os.replace 定式=audit_render_flow（H5 全异常清理 BaseException
-    授权同款）；project 形参=冻结签名占位（audit 先例——抬头三元组经
+    _atomic_write 定式=audit_render_flow 同款（H5 全异常清理含在共享件
+    ）；project 形参=冻结签名占位（audit 先例——抬头三元组经
     sheet.repro 自证）。"""
     target = _flow_out(out)
     tmp = target.with_name(target.name + ".tmp")
     try:
-        try:
-            # 回炉轮1 R7：渲染调用并入包装 try 范围（cost 四域经
-            # _estimate_outcome 先包装；渲染域族在此收口——单一真源）。
-            render_estimate_xlsx(
+        # 回炉轮1 R7：渲染调用并入包装 try 范围（cost 四域经
+        # _estimate_outcome 先包装；渲染域族在此收口——单一真源）。
+        # b27 AUDIT-#17：写+替换+H5 清理三步经 _atomic_write 单源——
+        # 清理先于本层 _RENDER_ERRORS 包装（与旧嵌套两try 终态等价）。
+        _atomic_write(
+            tmp, target,
+            lambda p: render_estimate_xlsx(
                 _estimate_outcome(
                     plant, condition_key=condition_key, data_dir=data_dir
                 ),
-                tmp,
-            )
-            os.replace(tmp, target)
-        except _RENDER_ERRORS as exc:
-            raise InvalidFlowError(f"概算流失败：{exc}") from exc
-    # H5（同 result_persist_flow/audit_render_flow 两处一致族）：
-    # 全异常清理——渲染期异常半写 .tmp 不留（清理后 re-raise）。
-    except BaseException:
-        with contextlib.suppress(OSError):
-            os.remove(tmp)
-        raise
+                p,
+            ),
+        )
+    except _RENDER_ERRORS as exc:
+        raise InvalidFlowError(f"概算流失败：{exc}") from exc
     return target
 
 

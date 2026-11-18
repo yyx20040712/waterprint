@@ -38,7 +38,10 @@
 #      错误消息含字段路径）；一切拒绝经 InvalidProjectError（from exc
 #      保链，GR-12）；永不 pickle。
 #   R4 保存原子性（GR-38）：同目录临时文件 path.name + ".tmp" 写入
-#      UTF-8（newline="\n" 防 Windows 漂移）→ os.replace 原子替换。
+#      UTF-8（newline="\n" 防 Windows 漂移）→ os.replace 原子替换；
+#      b27（AUDIT-#17）补 H5 全异常清理——写失败删半写 .tmp 再 re-raise
+#      （与 flows._atomic_write 同语义；跨包不共享件——写入参数与分层
+#      归属不同，清理语义归一）。
 #   R5 文件锁（§17.3，R5 最低成本）：path.with_suffix(".lock") 存在
 #      → InvalidProjectError（消息含锁路径+"另一会话可能正在编辑"）。
 #   R6 dumps_design 头部携带当前 format_version（b25 AUDIT-#8 起自
@@ -63,6 +66,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from collections.abc import Mapping, Sequence
@@ -236,11 +240,20 @@ def dumps_design(design: DesignState) -> str:
 
 
 def save_project(project: ProjectFile, path: Path) -> None:
-    """原子落盘：同目录 .tmp 写入 → os.replace（GR-38，R4）。"""
+    """原子落盘：同目录 .tmp 写入 → os.replace（GR-38，R4）。
+
+    b27（AUDIT-#17）：补 H5 全异常清理——写失败删半写 .tmp 再 re-raise
+    （BaseException 选形与清理失败不遮蔽原异常=flows._atomic_write 同款；
+    原目标不触碰——os.replace 未达即原文件完整）。"""
     text = dumps(project)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8", newline="\n")
-    os.replace(tmp, path)
+    try:
+        tmp.write_text(text, encoding="utf-8", newline="\n")
+        os.replace(tmp, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.remove(tmp)  # 半写 .tmp 不留（清理失败不遮蔽原异常）
+        raise
 
 
 def read_project_text(path: Path) -> str:
