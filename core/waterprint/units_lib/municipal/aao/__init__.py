@@ -10,7 +10,8 @@
 # 【身份】UNIT_ID = "municipal_aao"；业务线：市政污水线；
 #   旧系统对应 mod：aao（迁移交叉对照，非依据）。
 # 【工艺位置】上游：chuchenchi 初沉池或 tiaojiechi 调节池；下游：
-#   erchunchi 辐流二沉池（回流比/MLSS 联动——各包独立声明同值参数）。
+#   erchunchi 辐流二沉池（回流比/MLSS 联动——各包独立声明同值参数；
+#   同图装配经装配层校核同值——AUDIT-#6/b26，包间互不 import）。
 # 【实现约定】本包结构由 _template 冻结（AGENTS.md §11）：
 #   - 包外只经本 __init__ 白名单访问；禁 import 其他单元包；
 #   - 公式 AO-F1~F14 与参数数值真源=docs/norms/aao.md 起草表

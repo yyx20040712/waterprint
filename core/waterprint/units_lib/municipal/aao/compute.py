@@ -12,6 +12,10 @@
 #   标量=N=1 退化；守卫层/warnings/ceil=N=1 边界件；N>1=批 D 引擎正门）
 #
 # 【批 MINOR(2026-09-08)重复清理】type _Array 收口 _unit_compute.Array（import as 保名；四锚恒等）。
+# 【AUDIT-#2 守卫（b26，ADR-011 豁免定案附带裁决）】批量首元素语义四处
+#   （池长/池宽、曝气器数、好氧泥龄、缺氧 HRT——ceil 与警告带取首）经
+#   _first 在取首前显式拒绝 N>1（域错误，消息注明「批量=逐行调用
+#   （N==1）」前提）；N==1 数值与消息零变化（golden 锚钉）。
 # 【公式组】AO-F1~F25（docs/norms/aao.md 起草表+L7 池体图元批几何族+曝气头数据面批
 #   +B4-2a 能耗族 AO-F21~F25——声明住 formulas_energy.py/计算段住 energy.py；
 #   manifest.py 登记）——
@@ -100,6 +104,20 @@ def _validate(params: dict[str, float]) -> None:
         value = params.get(key)
         if value is None or not value > 0:
             raise InvalidUnitConfig(f"单元 {_UNIT_ID!r} 参数 {key!r} 必须 > 0：得到 {value!r}")
+
+
+def _first(raw: _Array, label: str) -> float:
+    """N==1 守卫取首（AUDIT-#2，b26）：批量首元素语义在取首前显式拒绝
+    N>1——ADR-011 豁免定案前提「批量=逐行调用（N==1）」，N>1 非受支持
+    输入形态（静默取首=丢行，域错误响亮拒）；N==1 返回 float(raw[0])
+    与旧径恒等。"""
+    if len(raw) != 1:
+        raise InvalidUnitConfig(
+            f"单元 {_UNIT_ID!r} {label} 向量输入 N={len(raw)} 非受支持形态——"
+            "批量=逐行调用（N==1）为成文前提（ADR-011 豁免定案），"
+            "取首元素前显式拒绝 N>1（防静默丢行）"
+        )
+    return float(raw[0])
 
 
 def _volumes(
@@ -220,8 +238,8 @@ def _geometry(
     l_raw = _apply_batch(ctx, "AO-F17", binds)
     b_raw = _apply_batch(ctx, "AO-F18", binds)
     step = p["side_disc_step"]
-    l_pool = math.ceil(float(l_raw[0]) / step) * step
-    b_pool = math.ceil(float(b_raw[0]) / step) * step
+    l_pool = math.ceil(_first(l_raw, "池长 l_pool_raw") / step) * step
+    b_pool = math.ceil(_first(b_raw, "池宽 b_pool_raw") / step) * step
     binds20 = {"v_o_series": v_o_series, "h2": h2, "f_aerator_service": _vec(
         _factor(p, "factor.aao.aerator.service_area", _UNIT_ID))}
     n_aerator_raw = _apply_batch(ctx, "AO-F20", binds20)
@@ -240,7 +258,7 @@ def _geometry(
             ctx, "AO-F19", {"l_pool": _vec(l_pool), "b_pool": _vec(b_pool), "h2": h2}
         ),
         "n_aerator_raw": n_aerator_raw,
-        "n_aerator": _vec(math.ceil(float(n_aerator_raw[0]))),
+        "n_aerator": _vec(math.ceil(_first(n_aerator_raw, "曝气器数 n_aerator_raw"))),
     }
 
 
@@ -271,7 +289,7 @@ def _warnings(
         _factor(p, "factor.aao.sludge_age_band.min", _UNIT_ID),
         _factor(p, "factor.aao.sludge_age_band.max", _UNIT_ID),
     )
-    theta_c = float(sludge["theta_c"][0])
+    theta_c = _first(sludge["theta_c"], "好氧泥龄 theta_c")
     if not age[0] <= theta_c <= age[1]:
         found.append(
             _warn(
@@ -286,7 +304,7 @@ def _warnings(
         _factor(p, "factor.aao.hrt_anoxic_band.min", _UNIT_ID),
         _factor(p, "factor.aao.hrt_anoxic_band.max", _UNIT_ID),
     )
-    t_n = float(volumes["t_n"][0])
+    t_n = _first(volumes["t_n"], "缺氧区 HRT t_n")
     if not hrt[0] <= t_n <= hrt[1]:
         found.append(
             _warn(

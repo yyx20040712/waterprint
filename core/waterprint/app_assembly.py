@@ -40,7 +40,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from math import isclose
 from types import MappingProxyType
-from typing import final
+from typing import Final, final
 
 from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.ports import (
@@ -196,6 +196,7 @@ def assemble(project: ProjectFile, env: RunEnv) -> AssembledGraph:
             )
     _checked_units_eligibility(project.design, units)
     _check_grid_hits(project.design, units)
+    _check_linked_param_defaults(units)
     return AssembledGraph(
         design=project.design, units=units, edges=_edges(project.design.edges)
     )
@@ -218,6 +219,49 @@ def _check_grid_hits(design: DesignState, units: Mapping[str, Unit]) -> None:
                     "浮点容差 math.isclose 默认相对 1e-9；系数投影键 factor.* "
                     "不在此面）"
                 )
+
+
+# 【AUDIT-#6 校核（b26，用户裁决 D6）】erchunchi 与 aao 双 manifest 独立声明
+# 同值联动参数（x_mlss/r_external——erchunchi manifest 注记「与 AAO 表联动
+# 同值——各包独立声明」），此前无一致性校核；共同装配点（本 assemble=两包
+# 同图唯一现场）校核声明默认值同值，异值明确拒绝不静默选一边；单包独立
+# 装载不校核（对方缺席不得致败）——包间禁互 import 不破（校核在本层，
+# 两包互不感知）。
+_LINKED_PARAM_PAIRS: Final[tuple[tuple[str, str], ...]] = (
+    ("municipal_aao", "municipal_erchunchi"),
+)
+_LINKED_PARAM_FIELDS: Final[tuple[str, ...]] = ("x_mlss", "r_external")
+
+
+def _declared_default(unit: Unit, field_id: str) -> float | None:
+    """manifest params 声明默认值取值（field_id 未声明=None）。"""
+    for spec in unit.manifest.params:
+        if spec.field_id == field_id:
+            return spec.default
+    return None
+
+
+def _check_linked_param_defaults(units: Mapping[str, Unit]) -> None:
+    """联动参数双包声明同值校核（AUDIT-#6）：两包同图装配时 x_mlss/
+    r_external 声明默认值须同值——异值 InvalidAssemblyError（消息含两包名
+    +两参数名+漂移参数两值）；任一包不在图=单包独立装载，不校核。"""
+    for first_id, second_id in _LINKED_PARAM_PAIRS:
+        if first_id not in units or second_id not in units:
+            continue
+        drift: list[str] = []
+        for field_id in _LINKED_PARAM_FIELDS:
+            first_value = _declared_default(units[first_id], field_id)
+            second_value = _declared_default(units[second_id], field_id)
+            if first_value != second_value:
+                drift.append(
+                    f"{field_id}：{first_id}={first_value!r}、{second_id}={second_value!r}"
+                )
+        if drift:
+            raise InvalidAssemblyError(
+                f"联动参数双包声明异值：{first_id} 与 {second_id} 同图装配，"
+                f"联动参数 {list(_LINKED_PARAM_FIELDS)} 须双包声明同值——"
+                f"{'；'.join(drift)}（异值明确拒绝，不静默选一边——AUDIT-#6）"
+            )
 
 
 def validate_design_structure(design: DesignState) -> tuple[str, ...]:

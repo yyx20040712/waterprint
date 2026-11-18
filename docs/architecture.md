@@ -215,8 +215,9 @@ units_lib/<line>/<unit>/
 豁免定案 2026-11-18）：municipal 13 包 = `_apply_batch` 同源向量路径，
 其余三线 19 包 = `_apply` 标量路径——批量=逐行调用（19 包逐行 `_apply`
 驱动、13 包 N=1 退化形态），非逐元素向量语义；向量包 N>1 批量的首元素
-离散口径（aao/compute.py 四处取首）为已知边界，显式 N==1 拒绝守卫排期
-审计治理批 b26。新单元用
+离散口径（aao/compute.py 四处取首）为已知边界，显式 N==1 拒绝守卫已随
+审计治理批 b26 落地（`_first` 取首前域错误拒绝，消息注明成文前提；
+N==1 数值与消息零变化）。新单元用
 `uv run python -m waterprint.cli new-unit <line> <name>`（core 目录执行；
 wp console script 未注册）从 `_template` 生成，先登记 structure-graph §3
 与 file-contracts §3 再实现。预算墙拆件配方（ADR-024）：manifest 顶墙立
@@ -368,7 +369,7 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 #22 状态随 #1 不独立挂账——#1/#22 已随 b23（2026-11-18）四伴生件迁
 solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入校验覆盖，
 表行随之退役）；#2（compute 双形态）已随 ADR-011 豁免定案
-收口（现行口径见 §3.8，AAO N==1 守卫排期 b26，不构成在册开放面）。
+收口（现行口径见 §3.8，AAO N==1 守卫已随 b26 落地，不构成在册开放面）。
 
 | AUDIT | 类型 | 当前决定 | 重启触发条件 | 代码锚 |
 |---|---|---|---|---|
@@ -406,7 +407,11 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   loop 键四引用同一对象（恒等钉同向兼容）；升版口径=当前版字面量
   单源于 project_schema，升版动作=改该常量+migration._FORMAT_HISTORY
   前缀追加旧当前版（两动作，迁移链不丢版）；二沉池
-  与 AAO 同值参数双包独立声明、无一致性校核（AUDIT-#6，b26 处置）。
+  与 AAO 同值参数双包独立声明、无一致性校核（AUDIT-#6）已随 b26
+  （2026-11-18）收口——共同装配点 app_assembly.assemble 增
+  `_check_linked_param_defaults`（两包同图装配时校核 x_mlss/r_external
+  声明默认值同值，异值 InvalidAssemblyError 明确拒绝不静默选边；单包
+  独立装载不校核，包间禁互 import 不破——校核在装配层，两包互不感知）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"

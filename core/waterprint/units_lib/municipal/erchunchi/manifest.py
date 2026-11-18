@@ -25,7 +25,8 @@
 # 【追认口径按表冻结】EC-F11 周边双侧出水堰堰圈取 D（堰长 L=2πD；与
 #   chuchenchi 表取 D−1 口径不对称系起草取舍，互换不翻转合格性——
 #   待领域专家追认）；EC-F3/F10 与 AAO 表回流比/MLSS 联动（三表注记
-#   联动 factor.aao.r_external_band——各包独立声明同值参数）。
+#   联动 factor.aao.r_external_band——各包独立声明同值参数；同图装配
+#   经装配层校核同值——AUDIT-#6/b26，包间互不 import）。
 # 【DSL 单输出导出量】q1（=q_design/n 清水口径单池秒流量）、v_check
 #   （=a_act×h2 校核容积）/t_hrt（=v_check/q1h 校核 HRT）/q_return_sludge
 #   （=r_external×q1h 回流污泥量）在 compute 以符号算术合成（零字面量）。
@@ -212,7 +213,9 @@ manifest = load_manifest(
         "version": "1.0",
         "business_line": "municipal",
         # 默认值=三表算例 1 逐字（出处 docs/norms/erchunchi.md 参数档/算例输入行；
-        # x_mlss/r_external 与 AAO 表联动同值——各包独立声明）；range 五条=
+        # x_mlss/r_external 与 AAO 表联动同值——各包独立声明，同图装配经
+        # app_assembly._check_linked_param_defaults 校核同值——AUDIT-#6/b26）；
+        # range 五条=
         # 三条出处带（surface_load_band 0.6~1.5/depth_band 2.5~3.5/
         # r_external_band 0.5~1.0[联动 AAO 带出处]）+两圆整步长工程常用范围
         # 起草待追认（FZ-2 批 2026-09-30——length_disc_step 对称防御挂账例
