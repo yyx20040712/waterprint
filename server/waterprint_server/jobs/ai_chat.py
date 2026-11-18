@@ -30,7 +30,10 @@
 #      跳过不计败（容错解析）。b28（AUDIT-#13 2026-11-18）：三处
 #      process.wait 宽限超时→AiChatBridgeTimeoutError（DOMAIN_ERROR_CODES
 #      名义族成员——failed 任务 error_code 非 None，不再裸穿 TimeoutExpired
-#      的 error_code=None 形态）。
+#      的 error_code=None 形态）。b28 回炉（reviewer major）：收割账本
+#      _ReapLedger 防重入——kill 本轮至多一次，已 kill 未退（poll 恒 None
+#      顽固形态）时 finally 不再开第二次 wait+kill 全窗，在途领域错误
+#      原样透传；终报文案如实（kill 后仍未退="未收割"，不谎报已收割）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -40,7 +43,6 @@ import os
 import subprocess
 import uuid
 from collections.abc import Mapping
-from contextlib import suppress
 from pathlib import Path
 from shutil import which
 from typing import Any
@@ -60,18 +62,50 @@ class AiChatBridgeTimeoutError(RuntimeError):
     """
 
 
-def _wait_child(process: Any, stage: str) -> int:
+class _ReapLedger:
+    """本轮收割账本（b28 回炉：kill 防重发单源+finally 兜底防重入闸）。
+
+    reviewer major：终态/取消收割超时且 kill 后仍不退（poll() 恒 None
+    的顽固形态）时，finally 兜底对已 kill 未退进程重复完整收割——实测
+    4 wait/3 kill 占四个宽限窗，且终报文案谎报"已 kill 收割"。账本语义：
+    killed=True 即本轮 kill 已发、收割尝试已在册——finally 据此不再开
+    第二次 wait+kill 全窗，在途领域错误原样透传（不被"兜底收割"替换）。
+    """
+
+    def __init__(self, process: Any) -> None:
+        self._process = process
+        self.killed = False
+
+    def kill_once(self) -> None:
+        """kill 单源（本轮至多一次——finally 兜底与 _wait_child 超时枝共用）。"""
+        if not self.killed:
+            self._process.kill()  # SIGKILL 强收防僵尸（kill 已发则不再补刀）
+            self.killed = True
+
+    def kill_and_grace(self) -> bool:
+        """kill（防重发）+二段宽限收割：宽限内退出=True（已收割）；仍不退
+        =False（顽固进程——收割失败如实上返，不伪造收割成功）。"""
+        self.kill_once()
+        try:
+            self._process.wait(timeout=_MAX_WAIT_S)
+        except subprocess.TimeoutExpired:
+            return False
+        return True
+
+
+def _wait_child(process: Any, stage: str, reap: _ReapLedger) -> int:
     """process.wait 单源包装（三处 wait 同源——b28 AUDIT-#13）：
-    TimeoutExpired→kill 兜底收割后转 AiChatBridgeTimeoutError（失败形态
-    error_type 入映射族，error_code 不再 None 游离）。"""
+    TimeoutExpired→kill（账本防重发）+二段宽限收割后转
+    AiChatBridgeTimeoutError（失败形态 error_type 入映射族，error_code
+    不再 None 游离）。b28 回炉：二段宽限仍不退=已 kill 未退，终报文案
+    如实（"已 kill 但未收割（进程未退出）"——不谎报已收割）。"""
     try:
         return int(process.wait(timeout=_MAX_WAIT_S))  # int 收口：process=Any 面 no-any-return 防线
     except subprocess.TimeoutExpired as exc:
-        process.kill()  # SIGTERM 宽限已尽——SIGKILL 强收防僵尸
-        with suppress(subprocess.TimeoutExpired):
-            process.wait(timeout=_MAX_WAIT_S)
+        reaped = reap.kill_and_grace()
+        detail = "已 kill 收割" if reaped else "已 kill 但未收割（进程未退出）"
         raise AiChatBridgeTimeoutError(
-            f"对话子进程{stage}超时（{_MAX_WAIT_S}s 宽限后仍未退出——已 kill 收割）"
+            f"对话子进程{stage}超时（{_MAX_WAIT_S}s 宽限后仍未退出——{detail}）"
         ) from exc
 
 _STATIC_LABELS: Mapping[str, str] = {
@@ -145,11 +179,12 @@ def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple
 
 
 def _stream_events(
-    process: Any, task_id: str, cancel_token: object, progress: Any
+    process: Any, task_id: str, cancel_token: object, progress: Any, reap: _ReapLedger
 ) -> tuple[int | None, dict[str, Any]]:
     """R2/R3：stdout JSONL→进度上报与终态收割（返回 (退出码|None, summary)）。
 
-    取消协作=行边界轮询（置位返回退出码 None——调用方翻译 cancelled）。"""
+    取消协作=行边界轮询（置位返回退出码 None——调用方翻译 cancelled）；
+    两处 wait 均经 _wait_child+收割账本（b28 回炉防重入单源）。"""
     from waterprint_server.jobs.worker import (  # noqa: PLC0415  # 懒 import 破环（worker 装载期先 import 本件）
         _cancelled,
         _report,
@@ -162,7 +197,7 @@ def _stream_events(
     for raw in process.stdout:
         if _cancelled(cancel_token):  # R3：行边界取消协作
             process.terminate()
-            _wait_child(process, "终止宽限")  # b28：超时→AiChatBridgeTimeoutError
+            _wait_child(process, "终止宽限", reap)  # b28：超时→AiChatBridgeTimeoutError
             return None, summary
         text = raw.strip()
         if not text:
@@ -178,7 +213,7 @@ def _stream_events(
             summary = {key: value for key, value in event.items() if key != "type"}
             continue
         _report(task_id, _StagePoint(_stage_label(event), seen, seen + 10), progress)
-    return _wait_child(process, "终态收割"), summary  # b28：超时→领域错误
+    return _wait_child(process, "终态收割", reap), summary  # b28：超时→领域错误
 
 
 def _run_ai_chat(
@@ -209,22 +244,26 @@ def _run_ai_chat(
     if uv is None:
         raise InvalidTaskPayloadError("未找到 uv 可执行（agent CLI 子进程桥不可用）")
     process, message_file = _spawn_bridge(payload, uv, session_id)
+    reap = _ReapLedger(process)  # 收割账本：kill 防重发+finally 防重入（b28 回炉）
     try:
         return_code, summary = _stream_events(
             process,
             str(payload["task_id"]),
             cancel_token,
             progress,  # manager 注入
+            reap,
         )
     finally:
         message_file.unlink(missing_ok=True)  # 消息文件即用即清（不留敏感面）
-        if process.poll() is None:  # 异常路径兜底收割
-            process.kill()
-            # b28（AUDIT-#13）：此处 wait 超时同样转领域错误（三处收编）——
-            # kill 后仍不退=比在途原异常更严重的收割失败面，领域错误替换
-            # 上抛（raise from TimeoutExpired 保留因果链；本枝仅在异常
-            # 在途时可达——成功/取消路径 wait 已收割，poll() 非 None 不入）。
-            _wait_child(process, "兜底收割")
+        # b28（AUDIT-#13）：收割从未发生（异常早于收割位）→单次 kill+宽限
+        # 收割，超时经 _wait_child 转"兜底收割"领域错误替换在途原异常上抛
+        # （raise from TimeoutExpired 保留因果链）。b28 回炉（防重入闸）：
+        # kill 已发仍未退（终态/取消收割超时路径——账本在册）→不再开第二
+        # 次 wait+kill 全窗（顽固进程 4 wait/3 kill 缺陷闭口），在途领域
+        # 错误原样透传。
+        if process.poll() is None and not reap.killed:
+            reap.kill_once()
+            _wait_child(process, "兜底收割", reap)
     if return_code is None:
         return {"state": "cancelled"}
     # b28 起 _stream_events 返回 int|None——None 守卫后窄化 int，旧 type: ignore 退役
