@@ -322,9 +322,10 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 - 门禁覆盖面（AUDIT-#20，b30 2026-11-18）：grep 三查（占位/宽族 except/
   乱码）SCAN_DIRS 全域含 `agent/`（tests/skills 一并在扫，.venv 排除）；
   宽族 except 精确豁免登记=`gate_patterns.WIDE_EXCEPT_WAIVERS`（键=文件+
-  函数限定名+异常族，理由非空强制，行号不作键——check_grep_gates 按 AST
-  定位违规行所在函数匹配）。豁免失效条件：函数改名/异常族变化/兜底删除
-  （未消费豁免=腐烂报警）时该处立即转红触发审查；第四处宽族不在表必红，
+  函数限定名〔含类链〕+异常族〔AST 精确类型名，前缀连写不冒充〕+理由
+  非空，行号不作键；一条豁免至多消费一个处理器，同键第二处必红——
+  b30 回炉收 blocker/major）。豁免失效条件：函数改名/异常族变化/兜底
+  删除（未消费豁免=腐烂报警）即转红触发审查；第四处宽族不在表必红，
   豁免无整文件/整目录排除形态。
 - 红绿纪律：每个测试先失败一次再通过才算数。
 - 前端：vitest（webapp/src/**/*.test.*）；计数以 `docs/status.md` 生成值为准。
@@ -463,7 +464,9 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   undo 快照守护/tools.solution._run_joint_enumeration_impl 护栏族统一收敛〕
   按"文件+函数限定名+异常族+理由非空"精确豁免登记（WIDE_EXCEPT_WAIVERS，
   行号不作键；未消费豁免=腐烂报警——函数改名/异常族变化/兜底删除即转红
-  触发审查；第四处宽族必红，红绿探针实录在案，覆盖面注记见 §4.6）；
+  触发审查；第四处宽族必红，红绿探针实录在案，覆盖面注记见 §4.6。
+  b30 回炉（reviewer FAIL 1 blocker+1 major，同日）：豁免改单处理器精确
+  消费+限定名入类链+异常族 AST 精确名（原前缀可冒充消费），回归探针）；
   #21：两门禁单元包计数口径明示——check_structure 33=实业务单元 32+
   _template 模板登记行 1、check_module_graph EXPECTED_UNIT_COUNT=32=
   登记 33 剔模板行（模板不注册，登记不删不凑数）。

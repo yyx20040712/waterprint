@@ -10,7 +10,7 @@ python scripts/run_gates.py     # 一键跑全部门禁
 |------|----------|----------|
 | check_file_budgets.py | 文件 ≤500 行；units_lib compute.py ≤400 | AGENTS 硬约束 |
 | check_contract_headers.py | 每个 .py 契约头含 职责/输入/输出 | AGENTS 启动约束 / 硬约束 |
-| check_grep_gates.py | grep 门禁：占位/裸 except/乱码 = 0；UTF-8 合法；compose 端口守卫（8000 不出容器网桥）。AUDIT-#20（b30）agent/ 全量纳管；宽族 except 精确豁免=gate_patterns.WIDE_EXCEPT_WAIVERS（键=文件+函数限定名+异常族，reason 非空强制，行号不作键；未消费豁免=腐烂报警；第四处宽族不在表必红，无整文件/整目录排除形态） | AGENTS 硬约束 |
+| check_grep_gates.py | grep 门禁：占位/裸 except/乱码 = 0；UTF-8 合法；compose 端口守卫（8000 不出容器网桥）。AUDIT-#20（b30）agent/ 全量纳管；宽族 except 精确豁免=gate_patterns.WIDE_EXCEPT_WAIVERS（键=文件+函数限定名〔含类链〕+异常族〔AST 精确类型名，前缀连写不冒充〕，reason 非空强制，行号不作键；未消费豁免=腐烂报警；一条豁免至多消费一个处理器〔同键第二处必红〕；第四处宽族不在表必红，无整文件/整目录排除形态） | AGENTS 硬约束 |
 | check_structure.py | 源码树 ↔ docs/file-contracts.md 双向同步；单元包固定结构（包计数 33 含 _template 模板登记行——实单元 32 口径见 check_module_graph.EXPECTED_UNIT_COUNT，AUDIT-#21 b30） | AGENTS 硬约束 |
 | check_readonly.py | 测试只读（manifest 哈希 + 只读属性 + 无未登记文件） | AGENTS 硬约束（测试只读） |
 | check_trust_root.py | 信任根守卫：三信任根（manifest/lock_tests/check_readonly）变更必带 [HUMAN-LOCK]（CI 查 push range；本地查工作树+HEAD） | AGENTS 硬约束（测试只读；外审整改#3 H1） |

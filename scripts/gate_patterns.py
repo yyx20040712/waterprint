@@ -95,9 +95,12 @@ EXCLUDED_DIR_NAMES: frozenset[str] = frozenset(
 # 宽族 except 精确豁免登记（AUDIT-#20，b30 2026-11-18，用户裁决 D7：
 # agent 全量纳管 + 三处精确豁免——登记不窄化兜底本体，agent 源零改动）。
 # 键 = 文件路径（仓库相对 posix）+ 函数限定名（check_grep_gates 按 AST
-# 定位违规行所在函数，嵌套取最内层链；模块级=“<module>”）+ 异常族
-# （"Exception"=捕获 Exception 基类形态 / "bare"=except 后直接冒号形态）；
-# 行号不作键——豁免不随代码行漂移失效。
+# 定位违规行所在函数，嵌套取最内层链且含类链 Class.method——不同类
+# 同名方法不共享键；模块级=“<module>”）+ 异常族（"Exception"=捕获
+# Exception 基类形态 / "bare"=except 后直接冒号形态；族名取处理器异常
+# 类型精确名——前缀连写形态如 ExceptionGroup 不冒充 Exception）；
+# 行号不作键——豁免不随代码行漂移失效。一条豁免至多消费一个处理器
+# （同函数/同类方法第二处同键宽族=红，豁免不得批量放行——b30 回炉）。
 # reason 非空强制（check_grep_gates 启动校验——空理由=无审查依据），
 # 内容转录自兜底注释在案的设计意图。
 # 失效条件（任一触发该处立即转红=审查信号）：函数改名（键漂移）、

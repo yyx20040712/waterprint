@@ -88,29 +88,45 @@ def validate_waivers() -> tuple[list[str], set[WaiverKey]]:
     return problems, keys
 
 
-def symbol_map(text: str) -> dict[int, str]:
-    """行号 → 最内层函数限定名（嵌套取链；模块级无键——按“<module>”处理）。
+def parse_code_map(text: str) -> tuple[dict[int, str], dict[int, str]]:
+    """AST 解析 →（行号→限定名, 行号→except 处理器族名）。
 
-    豁免键定位专用（AUDIT-#20）：违规行所在函数即豁免 symbol，行号不作键。
+    豁免键定位专用（AUDIT-#20；b30 回炉 blocker/major 两收）：
+    - 限定名含类链（Class.method——不同类同名方法不得共享豁免键），
+      嵌套取最内层链；模块级无键——按“<module>”处理；
+    - 族名=处理器异常类型精确名（ast.Name 之 id；无类型=“bare”）——
+      前缀形态（如 ExceptionGroup）不得冒充 Exception 族消费豁免。
+    SyntaxError → 两空映射（该文件另由 ruff/mypy 门禁兜底；此处无
+    AST 信息时族判定走行文本完整 token 回退）。
     """
     try:
         tree = ast.parse(text)
     except SyntaxError:
-        return {}
+        return {}, {}
     symbols: dict[int, str] = {}
+    families: dict[int, str] = {}
 
     def visit(node: ast.AST, prefix: str) -> None:
         for child in ast.iter_child_nodes(node):
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 name = f"{prefix}.{child.name}" if prefix else child.name
                 for line in range(child.lineno, (child.end_lineno or child.lineno) + 1):
                     symbols[line] = name  # 后写覆盖=最内层
                 visit(child, name)
+            elif isinstance(child, ast.ExceptHandler):
+                t = child.type
+                if t is None:
+                    families[child.lineno] = "bare"
+                elif isinstance(t, ast.Name):
+                    families[child.lineno] = t.id
+                else:  # Tuple/Attribute 复合形态：主正则不产生候选，防御归宽族
+                    families[child.lineno] = "Exception"
+                visit(child, prefix)
             else:
                 visit(child, prefix)
 
     visit(tree, "")
-    return symbols
+    return symbols, families
 
 
 def check_file(path: Path, waiver_keys: set[WaiverKey], used: set[WaiverKey]) -> list[str]:
@@ -127,15 +143,34 @@ def check_file(path: Path, waiver_keys: set[WaiverKey], used: set[WaiverKey]) ->
                 problems.append(f"{rel}: 含未完成标记（grep 门禁特征）")
         if path.suffix == ".py":
             symbols: dict[int, str] | None = None  # 懒建：仅有命中时才解析 AST
+            families: dict[int, str] = {}
+            lines: list[str] = []
             for match in BARE_EXCEPT_RE.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
-                family = "Exception" if "Exception" in match.group(0) else "bare"
                 if symbols is None:
-                    symbols = symbol_map(text)
-                symbol = symbols.get(line, "<module>")
+                    symbols, families = parse_code_map(text)
+                    lines = text.splitlines()
+                # 族判定（b30 回炉 major）：AST 处理器精确类型名优先——
+                # Exception 前缀连写形态（ExceptionGroup 类）不得冒充
+                # Exception 族消费豁免；无处理器（注释/字符串内文本命中）
+                # 走行文本完整 token 回退，无类型捕获形态=bare
+                family = families.get(line)
+                if family is None:
+                    token = re.match(r"\s*except\s+([A-Za-z_]\w*)", lines[line - 1])
+                    family = token.group(1) if token else "bare"
+                symbol = (symbols or {}).get(line, "<module>")
                 key = (rel, symbol, family)
                 if key in waiver_keys:
-                    used.add(key)
+                    # b30 回炉 blocker：一条豁免至多消费一个处理器——
+                    # 同键第二处必红（豁免不得批量放行同函数多处宽族）
+                    if key in used:
+                        problems.append(
+                            f"{rel}:{line}: 裸/过宽 except（豁免键 {rel}#{symbol}"
+                            f"[{family}] 已被消费——同键第二处宽族未登记，"
+                            "须逐处审查登记或收窄）"
+                        )
+                    else:
+                        used.add(key)
                     continue
                 problems.append(
                     f"{rel}:{line}: 裸/过宽 except（用领域异常；豁免面"
