@@ -39,7 +39,8 @@ def test_new_unit_refuses_existing_target_wiring(tmp_path: Path) -> None:
     """R2 接线断言（NET2 填真实现）：目标单元包已存在 = 拒绝（防误覆盖）。
 
     --root 指向 tmp 复制的模板根：首次生成成功（0）；同参再生成同一
-    'test_demo' 目标 → 第二次拒绝（非 0——幂等保护）。
+    'test_demo' 目标 → 第二次拒绝（3——校验族，b29 AUDIT-#23a 退码
+    4→3 后钉面；用户输入面非计算失败族）。
     """
     import shutil
 
@@ -50,7 +51,7 @@ def test_new_unit_refuses_existing_target_wiring(tmp_path: Path) -> None:
     assert first == 0
     assert (root / "municipal" / "test_demo").is_dir()
     second = main(["new-unit", "municipal", "test_demo", "--root", str(root)])
-    assert second != 0
+    assert second == 3  # b29 AUDIT-#23a：重名拒绝=校验族（原 4）
 
 
 def _golden_result(golden_data_dir: Path, tmp_path: Path) -> tuple[Path, Path, Any]:

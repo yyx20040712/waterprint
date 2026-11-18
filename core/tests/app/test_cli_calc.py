@@ -155,6 +155,30 @@ def test_cli_kb_block_exits_calculation(
     assert "kb.stub.cli-block" in stderr  # violated key 透出（消息含逐条 key）
 
 
+def test_cli_conditions_rejects_empty_segment_and_unknown_unit(
+    golden_data_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """⑤--conditions 输入校验面（b29 AUDIT-#23b）：空段与未知单元键→
+    退出码 3+stderr 校验失败——原空段静默吞（"aao,,x" 静默降级、","
+    静默等价缺省）、未知键静默白算与基线全同的敏感性帧，两态改显式
+    拒绝（拒绝先于计算与落盘）。"""
+    copied = _copy_project(golden_data_dir, tmp_path)
+    out = tmp_path / "r.json"
+    # 空段三形态：中缀/尾随/全空
+    for bad in ("municipal_aao,,municipal_erchunchi", "municipal_aao,", ","):
+        assert main([
+            "calc", str(copied), "--conditions", bad, "--out", str(out),
+        ]) == 3
+        assert "空段" in capsys.readouterr().err
+    # 未知单元键：GR-26 字符集合法但不在 design.nodes（图外键）
+    assert main([
+        "calc", str(copied), "--conditions", "no_such_unit", "--out", str(out),
+    ]) == 3
+    stderr = capsys.readouterr().err
+    assert "不在图中的单元键" in stderr and "no_such_unit" in stderr
+    assert not out.exists()  # 拒绝先于计算与结果落盘
+
+
 def test_calc_failures_family_real_classes_quantified() -> None:
     """errmap E2 族锚：_CALC_FAILURES 六真类绑定全量化。
 
