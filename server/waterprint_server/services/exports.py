@@ -320,7 +320,11 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     names = [
         _deterministic_name(
             project_id,
-            (item_kind := str(item.get("kind", ""))),  # G1-02：kind 已归一——白名单外仍 422
+            # G1-02：kind 已归一——白名单外仍 422。b29 AUDIT-#27a：原 walrus
+            # （item_kind := …）泄漏循环变量入函数域——与下方单产物段
+            # item_kind = items[0] 重取同名互掩（读来似承接实则两源），
+            # walrus 退役改就地取值（纯 dict 投影，双取零语义差）。
+            str(item.get("kind", "")),
             # HH7（1A7 批）：or-归一——显式 null 不物化 "None" 入命名分量
             # （三态 null/缺省/空串同口径，_batch_items_payload 同步收口）。
             str(item.get("condition_key") or ""),
@@ -330,7 +334,10 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
             # 逐项 unit（D1 归一——批内 unit 一致小闸保 ifc 命名唯一）。
             # exp-audit-20260930：audit 同族（预校验拒显式 unit 后归一层
             # 置空→自然 None，零特判——_deterministic_name 现逻辑无需改）。
-            unit_id=None if item_kind == "ifc" else (str(item.get("unit_id") or "") or None),
+            unit_id=(
+                None if str(item.get("kind", "")) == "ifc"
+                else (str(item.get("unit_id") or "") or None)
+            ),
             # PROFILE3（PD2）：命名逐项化（批级 sheet_option 曾致混装批量
             # 非 sheet 项错带 -profile 段——解锁前置修复）。
             sheet=str(item.get("sheet") or "") or None,
@@ -431,6 +438,8 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
     # kind 仅 _KINDS 白名单校验；与批量路径逐项按 item kind 渲染的既有
     # 语义统一——渲染按端点 kind 而命名按 item kind=跨 kind 静默错产物
     # 缺陷收口；calcbook item 模板存在性闸随 kind 对齐在此面触发）。
+    # b29 AUDIT-#27a：本行=函数内 item_kind 唯一绑定（上方 walrus 退役后
+    # 不再与命名推导段同名互掩）。
     item_kind = str(items[0].get("kind", ""))
     item_template = str(_template_for(ctx, item_kind))
     # FE9 D3/R3：options 透传（空串归一 None；unit_id 严格化 _unit_id_of）。
