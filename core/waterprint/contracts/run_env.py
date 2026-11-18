@@ -40,10 +40,11 @@
 #      重新导出（SENS-B 2026-08-23 UF-31）。
 #   R2 引擎技术参数（loop 阻尼/容差/缓存上限，UF-08 项）以"带调节
 #      影响元数据的引擎默认"条目入 engine_params 字段——数值真源为
-#      registry/assumptions 的 loop.* 条目（T7a D2 冻结：tolerance=
-#      1e-10 / max_iterations=200 / damping=0.8），app 装配（T7b）
-#      提取 loop.* 三键投影 EngineParam 构造 engine_params——本
-#      文件只落类型与投影口径，禁散落代码字面量（GR-15 同向）。
+#      data/assumptions/engine.yaml 的 loop.* 条目（T7a D2 冻结口径，
+#      经 registry/assumptions 装载；数值以该数据包为准，本规格头
+#      不复述），app 装配（T7b）提取 loop.* 三键投影 EngineParam 构造
+#      engine_params——本文件只落类型与投影口径，禁散落代码字面量
+#      （GR-15 同向）。
 #   R3 不可变：装配一次、执行期只读；执行期改写 = FrozenInstanceError
 #      （frozen 数据类自然防护；程序缺陷不包装——GR-08，与
 #      test_run_env.py 镜像断言一致；SENS-R1 SA-02 口径统一）。

@@ -12,9 +12,11 @@
 #   class WaterQuality(不可变)：按字段 ID 存浓度（mg/L 裸值），
 #       支持缺项（None）——缺项在传播中按"不参与混合"处理并记录警告
 #   class EffluentStandard(不可变)：standard_id、名称、限值 dict[字段ID→float]
-#   STANDARDS: 出水标准库（数据驱动加载自 data/coefficients，构造时注入）
-#       ——装载机制见 UF-39，挂起（P1）：T2 只交付类型 + margin + WaterQuality，
-#       禁止内联任何标准限值数值（魔法数字门禁 + golden"不内联限值"）
+#   出水标准库不在本文件公开面：原 STANDARDS 挂起项（P1）已由装载面
+#       落地=registry/effluent.py load_effluent_standards（UF-39，ADR-012
+#       D6——quality.py 零 I/O 纪律保持，STANDARDS 符号不进 contracts，
+#       server 装配调用）；本文件禁止内联任何标准限值数值
+#       （魔法数字门禁 + golden"不内联限值"）
 #   margin(value: float, standard: EffluentStandard, indicator: str) -> float
 #       裕度 = (限值 − 计算值) / 限值；>=0 达标，负值即超限幅度
 #
@@ -27,8 +29,9 @@
 #      标准库数据同步，不改本契约代码。
 #
 # 【T2 预裁决注记】（总控 2026-08-23）
-#   P1 STANDARDS 挂起（UF-39）：装载者/注入形态/与 GR-36"L0 禁 I/O"的
-#      调和待数据工作包或 T4 定义；本文件零标准数值、零 I/O。
+#   P1 STANDARDS 挂起项已闭合（UF-39 落地）：装载面=registry/
+#      effluent.py load_effluent_standards（ADR-012 D6——L0 禁 I/O 经
+#      装载器外置调和）；本文件零标准数值、零 I/O。
 #   P6 WaterQuality 形态：构造收 dict[字段ID→float]（键 ⊆ INDICATORS，
 #      未知键 → InvalidQualityError，消息注明扩展路径走 dimensions 注册）；
 #      按字段 ID 属性访问（缺项返回 None 非 0）；未知属性正常 AttributeError。

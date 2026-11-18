@@ -10,7 +10,7 @@
 # 【零依赖铁律】本包内文件禁止 import 任何其他内部层；quantity.py 是全库
 #   唯一允许 import pint 的文件（import-linter 强制）。
 #
-# 【聚合口径】包根聚合 15 个已实现子模块中 14 个的公开面（符号=各子模块
+# 【聚合口径】包根聚合 25 个子模块中 14 个的公开面（符号=各子模块
 #   规格头【公开接口】/file-contracts 输出列；__all__ 显式枚举——
 #   manifest.py 再导出先例，mypy no-implicit-reexport 与 ruff F401 经
 #   __all__ 认可）：
@@ -38,13 +38,18 @@
 #                  异常族公共核心单源）
 #   不直接聚合：manifest_validation（内部文件，其公开符号
 #   InvalidUnitConfig/bind_dimension_lookup 经 manifest 再导出已可达）；
-#   run_env（规格骨架，待 T7 装配实现后随其公开面冻结再聚合）。
+#   run_env（T7a 已实现冻结——RunEnv/EngineParam 经模块路径与 app
+#   装配层再导出消费，未入包根正门）；validation/trust/trust_serde
+#   （校验警告/信任诊断域契约，经各自模块路径消费）；drawing_projection
+#   六件（UF-32 出图取数对照，分线表聚合正门在 drawing_projection.py）。
 #   全库零 `from waterprint.contracts import` 包根消费（深查 B5 实证），
 #   本聚合为纯增量正门，不改变任何既有 import 路径的语义；加载副作用
 #   除外（ARCH1 二审 I-1 实录 2026-08-24）：包 __init__ 随任何子模块
 #   import 先行执行——`from waterprint.contracts.<sub> import X` 现会
-#   加载全部聚合子模块（BASE 面=quantity 单面 3 模块/无 pydantic →
-#   HEAD 面=15 模块/pydantic 39 子模块，一次性启动开销 ~0.1s 量级）；
+#   加载全部聚合子模块（ARCH1 实测口径：BASE 面=quantity 单面 3 模块/
+#   无 pydantic → HEAD 面=当时 15 模块/pydantic 39 子模块，一次性启动
+#   开销 ~0.1s 量级；现行子模块 25 件、聚合面 14 件，开销量级未随计数
+#   增长重测）；
 #   pydantic/pint/numpy 均为既有核心依赖，无新增第三方。若未来出现
 #   "仅 quantity"的轻量消费方，再议惰性聚合（PEP 562 __getattr__）。
 #   白名单外的新导出名必须先更新 docs/file-contracts.md。
