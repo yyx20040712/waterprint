@@ -7,7 +7,8 @@
 # data_version=版本槽补声明（1A1 批 2026-10-03）："1.0.0"=B2-4 批数值等价
 # 搬家零升版的初版槽位声明（条目数值零变更——非数值升版，呈报用户知情）；
 # 装载器非空 str 校验+模块级 DATA_VERSION 只读暴露（coefficients 同款形态）；
-# 不入 UF-10 data_version 聚合串（assumptions 数值变更随 engine_version 联动）。
+# b24 起入 UF-10 data_version 聚合串（app.load_run_env 经 registry.resolved_version_for
+# 取实际装载版本——AUDIT-#4 回炉）；数值变更仍随 engine_version 联动，版本槽抬版系人工义务。
 data_version: "1.0.0"
 ordered_files:
   - safety.yaml

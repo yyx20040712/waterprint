@@ -25,7 +25,7 @@
 #       （UF-46 收口批6l 2026-09-29：RunEnv 装配用例正门——server 侧
 #       装配归一单源；系数经 registry.load_coefficients 真源装载
 #       〔worker CoefficientsView 协议适配器退役〕，data_version=
-#       UF-10 聚合（coefficients 恒在+assumptions/unit_prices 并入，b24 三包），
+#       UF-10 聚合（coefficients 恒在+assumptions 实际装载+unit_prices 并入；混合根 fail-fast），
 #       assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_
 #       overrides 覆盖合成；engine_version 缺省=core 包根 __version__
 #       〔ADR-004 三元组语义正身〕，server 部署串经覆写位传入=现行
@@ -205,7 +205,7 @@ from waterprint.project.io import InvalidProjectError
 from waterprint.project.io import load_project as _io_load
 from waterprint.project.io import save_project as _project_save
 from waterprint.project.migration import SUPPORTED_VERSIONS, migrate
-from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
+from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS, resolved_version_for
 
 # 再导出专用（CI 补笔 2026-09-10）：FD services env 直算消费面——server
 # 单入口；直连 registry 违 UF-33 server 面 import-linter 契约（CI 服务层
@@ -306,13 +306,13 @@ def load_run_env(
 ) -> RunEnv:
     """RunEnv 装配用例正门（UF-46 收口批6l）：调用方装配归一单源。
 
-    装配口径：coefficients 经 registry.load_coefficients 真源（数据包
-    目录 manifest.yaml 版本头+条目装载，全量严格校验）；data_version=
-    UF-10 版本聚合（coefficients 恒在+assumptions/unit_prices manifest
-    在场时并入——AUDIT-#4 b24 三包，name@version 排序拼接，抬版仍人工）；
-    assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_overrides
-    覆盖（合成视图优先序）；price_book 空（M3 单价包装载后收紧——GR-21
-    注记）；engine_params 空（completed_env 按缺 loop.* 补齐——UF-08 投影）。
+    装配口径：coefficients 经 registry.load_coefficients 真源（数据包目录
+    manifest.yaml 版本头+条目装载，全量严格校验）；data_version=UF-10 版本
+    聚合（coefficients 恒在+assumptions 实际装载版本+unit_prices manifest 在场
+    并入——b24 三包，混合数据根相异=fail-fast，name@version 排序拼接，抬版仍
+    人工）；assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_overrides
+    覆盖（合成视图优先序）；price_book 空（M3 单价包装载后收紧——GR-21 注记）；
+    engine_params 空（completed_env 按缺 loop.* 补齐——UF-08 投影）。
 
     engine_version 覆写位：缺省=core 包根 __version__（可复算三元组
     语义正身，ADR-004）；server 部署串经参传入（现行 server 正门口径
@@ -320,13 +320,13 @@ def load_run_env(
     """
     coefficients = load_coefficients(data_dir / "coefficients")
     versions: dict[str, str] = {"coefficients": coefficients.data_version}
-    # AUDIT-#4（b24 D4）：两 manifest 包版本槽同式读法（#24 容忍；抬版仍人工）。
-    for name, key in (("assumptions", "data_version"), ("unit_prices", "price_data_version")):
-        manifest = data_dir / name / "manifest.yaml"
-        if manifest.is_file():
-            raw = yaml.safe_load(manifest.read_text(encoding="utf-8"))
-            if isinstance(raw, Mapping) and isinstance(raw.get(key), str):
-                versions[name] = raw[key]
+    # AUDIT-#4 回炉：assumptions 槽=实际装载版本（registry 单源——混合数据根相异=fail-fast）。
+    versions["assumptions"] = resolved_version_for(data_dir)
+    manifest = data_dir / "unit_prices" / "manifest.yaml"  # 槽读法保持（#24 容忍；抬版仍人工）
+    if manifest.is_file():
+        raw = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+        if isinstance(raw, Mapping) and isinstance(raw.get("price_data_version"), str):
+            versions["unit_prices"] = raw["price_data_version"]
     assumptions = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     return RunEnv(

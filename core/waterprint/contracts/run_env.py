@@ -1,6 +1,6 @@
 """执行环境上下文契约：RunEnv——装配一次、执行期只读（UF-31 下沉 L0）。
 
-输入:  引擎版本 + 数据包聚合版本（系数/单价）+ 假设/系数/单价 + 迹收集器
+输入:  引擎版本 + 数据包聚合版本（assumptions/coefficients/unit_prices）+ 假设/系数/单价 + 迹收集器
 输出:  RunEnv（不可变）——执行期参与可复算三元组的一切只读上下文；
        CoefficientsView/CoefficientValueView 协议与 EngineParam（本文件
        定义，L0 不 import L1——依赖倒置先例 manifest._DimensionSpec）
@@ -13,7 +13,7 @@
 #   @dataclass(frozen=True) class RunEnv 恰七字段（锁定集，多一少一=
 #       规格漂移——锁定用例 dataclasses.fields 全集断言）：
 #       engine_version: str（引擎版本，非空）
-#       data_version: str（系数+单价聚合——ARCH1 D4 定稿：包集=
+#       data_version: str（assumptions+coefficients+unit_prices 三包聚合——ARCH1 D4 定稿：包集=
 #           {assumptions, coefficients, unit_prices} 三包（AUDIT-#4 b24
 #           起 assumptions 版本槽并入）、name=目录实名，UF-10 T4 冻结：
 #           包名排序后 name@version 以 + 拼接；app 装配层生成）

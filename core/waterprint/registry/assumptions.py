@@ -10,8 +10,9 @@
 # 时本地开发零 env 行为不变）；四注册表互不 import、禁写 data/**。
 # 1A1 批（2026-10-03）：manifest 增 data_version 版本槽（非空 str——coefficients
 # 同款三守卫）+模块级 DATA_VERSION 只读暴露；AUDIT-#4（b24，D4 裁决）起版本槽入
-# UF-10 data_version 聚合串（app.load_run_env 读 manifest 版本槽——通道对称化；
-# 数值变更仍随 engine_version 联动，版本槽抬版系人工义务）。
+# UF-10 data_version 聚合串（app.load_run_env 经 resolved_version_for 取实际
+# 装载版本——AUDIT-#4 回炉；数值变更仍随 engine_version 联动，版本槽抬版系
+# 人工义务）。
 
 from __future__ import annotations
 
@@ -204,9 +205,30 @@ def _load_manifest() -> tuple[str, list[str]]:
 _MANIFEST_LOADED: Final[tuple[str, list[str]]] = _load_manifest()
 # 数据包版本只读暴露（1A1 批 2026-10-03）：coefficients.Coefficients.data_version
 # 形态的模块级读法（本包单例装载无对象面）；AUDIT-#4（b24）起入 UF-10
-# data_version 聚合串（app.load_run_env 读 manifest 版本槽；数值变更随
-# engine_version 联动，版本槽抬版系人工义务）。
+# data_version 聚合串（app.load_run_env 经下方 resolved_version_for 取实际
+# 装载版本——回炉后不复读 data_dir manifest；数值变更随 engine_version 联动，
+# 版本槽抬版系人工义务）。
 DATA_VERSION: Final[str] = _MANIFEST_LOADED[0]
+
+
+def resolved_version_for(data_dir: Path) -> str:
+    """AUDIT-#4 回炉：UF-10 聚合槽取实际装载版本；data_dir 内 manifest 在场
+    且版本相异（混合数据根）=fail-fast（DATA_VERSION 调用时解析——测试可
+    monkeypatch 模块全局）。"""
+    local = data_dir / "assumptions" / "manifest.yaml"
+    if local.is_file():
+        raw = yaml.safe_load(local.read_text(encoding="utf-8"))
+        if (
+            isinstance(raw, Mapping)
+            and isinstance(raw.get("data_version"), str)
+            and raw["data_version"] != DATA_VERSION
+        ):
+            raise InvalidAssumptionError(
+                f"混合数据根：assumptions 实际装载 @{DATA_VERSION}"
+                f"（WATERPRINT_DATA_DIR 优先）与 data_dir manifest"
+                f" @{raw['data_version']} 相异（{local}）——核对数据根一致性"
+            )
+    return DATA_VERSION
 
 
 def _parse_entry(where: str, raw: object) -> Assumption:
