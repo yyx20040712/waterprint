@@ -364,8 +364,8 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 
 | AUDIT | 类型 | 当前决定 | 重启触发条件 | 代码锚 |
 |---|---|---|---|---|
-| #5 | 接受设计（裁决不改） | condition_key 双载体保留现名：PlantWarning.condition_key=影响面、unit_api.Warning.condition_key=工况键（§3.7 映射为定案） | core 公共契约准备做版本化迁移且旧 artifact 有处置方案 | core/waterprint/contracts/validation.py:79；contracts/unit_api.py:113 |
-| #9 | 开放债（P3） | compareView 三格式化函数本层复刻 solutionsView 配方（12 行；features 互禁 import 的显式替代，注记在案） | 出现第三份复刻、格式规则漂移或 shared 层有明确通用归属 | webapp/src/features/compare/lib/compareView.ts:189-210 |
+| #5 | 接受设计（裁决不改） | condition_key 双载体保留现名：PlantWarning.condition_key=影响面、unit_api.Warning.condition_key=工况键（§3.7 映射为定案） | core 公共契约准备做版本化迁移且旧 artifact 有处置方案 | core/waterprint/contracts/validation.py:80；contracts/unit_api.py:113 |
+| #9 | 开放债（P3） | compareView 三格式化函数本层复刻 solutionsView 配方（12 行；features 互禁 import 的显式替代，注记在案） | 出现第三份复刻、格式规则漂移或 shared 层有明确通用归属 | webapp/src/features/compare/lib/compareView.ts:190-204 |
 | #10 | 产品需求（未立项） | Constraint.source 存 kb 键、来源文本装载即弃；Suggestion.basis 只能引键，不扩 schema | 产品明确需要 Suggestion.basis 展示完整来源文本并批准 schema/ADR 涟漪 | core/waterprint/solution/constraints.py:412 |
 | #12 | 接受设计 | 批量导出 _ITEM_FAILURES 宽族=H2 项级隔离策略（单项失败不株连批内他项，批终态 done+failures） | 出现 core 缺陷被折叠为项级 failures 的实际事故，或重新裁定项级/批共因边界 | server/waterprint_server/jobs/worker.py:342-344,450 |
 | #15 | 开放债（P3） | elevation 纵断 water_depth 缺键静默 0（depth_key=None 分支有 INFO 警告——不对称） | 该输入路径成为用户可达或诊断缺失造成实际问题 | core/waterprint/elevation/profile.py:136 |
