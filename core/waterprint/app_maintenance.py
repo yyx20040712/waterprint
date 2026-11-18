@@ -21,7 +21,7 @@
 #       双方在场才发键（sparse——缺席=空面不造键）。
 #   _with_maintenance(base, extra) -> dict[...]
 #       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
-#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       merge_summary_fields，本件赋值再导出保名（锁定测试 import 面恒等）——同工况字典
 #       update、base 键族优先，两族键集无交集由 maint.* 命名域保证）。
 #
 # 【三面口径】
@@ -182,4 +182,3 @@ def maintenance_summary_of(
             node, units[node].manifest.unit_id, constraints,
         )
     return out
-

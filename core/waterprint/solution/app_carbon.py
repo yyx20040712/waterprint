@@ -24,7 +24,7 @@
 #       C-F10 燃料 CO₂/C-F11 燃烧次要/C-F12 消化净 CH₄ 三式）。
 #   _with_carbon(base, extra) -> dict[...]
 #       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
-#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       merge_summary_fields，本件赋值再导出保名（锁定测试 import 面恒等）——同工况字典
 #       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【公式（C-F1~F12，逐工况 sparse——键有则录无则略；单位换算与因子
@@ -257,4 +257,3 @@ def carbon_summary_of(
                 out[_INTENSITY] = out[_TOTAL] / flow
         summary[condition_key] = out
     return summary
-

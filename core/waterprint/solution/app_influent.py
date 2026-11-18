@@ -20,7 +20,7 @@
 #       纯投影：逐工况从进水声明节点投 Q/负荷平键（sparse）。
 #   _with_influent(base, extra) -> dict[...]
 #       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
-#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       merge_summary_fields，本件赋值再导出保名（锁定测试 import 面恒等）——同工况字典
 #       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【进水声明节点识别（终裁 D3 路①）】无入边（不在 edges dst 集）且
@@ -116,4 +116,3 @@ def influent_summary_of(
                     fields[_EFFLUENT_TN_LOAD] = tn_eff * flow * conv
         summary[condition_key] = fields
     return summary
-

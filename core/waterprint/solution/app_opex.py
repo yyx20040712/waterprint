@@ -18,7 +18,7 @@
 #       纯投影：逐工况按 F1~F3 合成年运行成本键（sparse）。
 #   _with_opex(base, extra) -> dict[...]
 #       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
-#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       merge_summary_fields，本件赋值再导出保名（锁定测试 import 面恒等）——同工况字典
 #       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【公式（F1~F3，逐工况 sparse——键有则录无则略）】
@@ -110,4 +110,3 @@ def opex_summary_of(
             costs[_COST_OPEX] = sum(parts)
         summary[condition_key] = costs
     return summary
-
