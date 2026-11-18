@@ -1,8 +1,9 @@
 """ai_chat runner 镜像测试：子进程桥解析面（仿进程——B4-4b CI 覆盖率补；
-b28 AUDIT-#13：三处 process.wait 超时→AiChatBridgeTimeoutError 领域化钉面）。
+b28 AUDIT-#13：三处 process.wait 超时→AiChatBridgeTimeoutError 领域化钉面；
+b28 回炉：顽固进程收割防重入钉面）。
 
 输入:  仿 Popen（stdout=JSONL 事件流/退出码可控）+载荷
-输出:  事件收割/终态/失败分类/非法行容错/宽限超时领域错误断言
+输出:  事件收割/终态/失败分类/非法行容错/宽限超时领域错误/防重入断言
 """
 
 from __future__ import annotations
@@ -165,6 +166,44 @@ def test_cleanup_wait_timeout_maps_domain_error(monkeypatch, tmp_path: Path) -> 
         runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
             payload, None, None)
     assert isinstance(caught.value.__cause__, subprocess.TimeoutExpired)  # 因果链在
+
+
+class _StubbornAfterEof(_FakeProcess):
+    """顽固子进程（reviewer b28 回炉实测形态）：kill 后 poll() 恒 None
+    不退——旧码 finally 对其重复完整收割（4 wait/3 kill）且文案谎报已收割。"""
+
+    def __init__(self, lines: list[str]) -> None:
+        super().__init__(lines)
+        self.wait_calls = 0
+        self.kill_calls = 0
+
+    def wait(self, timeout: float = 0) -> int:
+        self.wait_calls += 1
+        raise subprocess.TimeoutExpired(cmd="uv", timeout=timeout)
+
+    def kill(self) -> None:
+        self.kill_calls += 1  # 信号被吞——poll 仍 None（顽固面）
+
+    def poll(self) -> int | None:
+        return None
+
+
+def test_stubborn_child_reap_no_reentry(monkeypatch, tmp_path: Path) -> None:
+    """b28 回炉（reviewer major）：kill 后 poll 恒 None 的顽固进程——终态
+    收割超时后 finally 不得重复完整收割（旧缺陷 4 wait/3 kill 占四个宽限
+    窗且终报谎报"已 kill 收割"）；防重入后恰 2 wait（首收割+kill 后宽限
+    各一）/1 kill，在途"终态收割"领域错误原样透传且文案如实未收割。"""
+    stubborn = _StubbornAfterEof([json.dumps({"type": "turn_summary", "session_id": "s"})])
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *a, **k: stubborn)
+    payload = {**_BASE_PAYLOAD, "artifacts_dir": str(tmp_path)}
+    with pytest.raises(runner.AiChatBridgeTimeoutError, match="终态收割超时") as caught:
+        runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
+            payload, None, None)
+    assert stubborn.wait_calls == 2  # 首收割 1+kill 后宽限 1——finally 零加窗
+    assert stubborn.kill_calls == 1  # kill 单源——finally 不再补刀（旧形态 3 kill）
+    message = str(caught.value)
+    assert "已 kill 收割" not in message  # 未收割不谎报（旧文案失实）
+    assert "未收割" in message  # 文案如实指认 kill 后进程未退
 
 
 def test_payload_gate_rejects_bad_session(monkeypatch, tmp_path: Path) -> None:

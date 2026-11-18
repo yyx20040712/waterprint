@@ -313,7 +313,7 @@
   "core/waterprint/units_lib/sludge/xiaohua/tests/test_compute.py": "f706fa031a8bce1510d7d8e41130ca7cf990fd4a2aea753856c368dce2294b31",
   "server/tests/conftest.py": "8a0b46937011db0d5a5c58881ec9ad9975042ed480f0f2f2710a71525cd67a30",
   "server/tests/jobs/conftest.py": "dc7c7763f7fdd8ee75eb53b540bb1970c8fd44c127c32569aaca7f9612c27e2f",
-  "server/tests/jobs/test_ai_chat.py": "981777e7c5982c51a272411b33a3f08ad3f97b6e8318b0299ca007a877489dc9",
+  "server/tests/jobs/test_ai_chat.py": "b450fa76e2159ca6566024ce61bb053a5b03849ae28bbdedafccd3d06fdeb6d8",
   "server/tests/jobs/test_calc_inputs.py": "209d0f352194d908b817707a250cd610a0c54c15d65d16b288eb766e16a8b21d",
   "server/tests/jobs/test_manager.py": "e13535270032f84cfaec7ae211dc25de6b003244a3fcc01f891b7a419aa63dda",
   "server/tests/jobs/test_spawn_smoke.py": "009a4f88416fbd75982cebd2fb05d5d1d15c779703c0fb180a893cde3e4faaf3",
