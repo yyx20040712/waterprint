@@ -25,7 +25,7 @@
 #       （UF-46 收口批6l 2026-09-29：RunEnv 装配用例正门——server 侧
 #       装配归一单源；系数经 registry.load_coefficients 真源装载
 #       〔worker CoefficientsView 协议适配器退役〕，data_version=
-#       UF-10 聚合（coefficients 恒在+unit_prices manifest 在场时并入），
+#       UF-10 聚合（coefficients 恒在+assumptions/unit_prices 并入，b24 三包），
 #       assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_
 #       overrides 覆盖合成；engine_version 缺省=core 包根 __version__
 #       〔ADR-004 三元组语义正身〕，server 部署串经覆写位传入=现行
@@ -308,11 +308,11 @@ def load_run_env(
 
     装配口径：coefficients 经 registry.load_coefficients 真源（数据包
     目录 manifest.yaml 版本头+条目装载，全量严格校验）；data_version=
-    UF-10 版本聚合（coefficients 恒在+unit_prices manifest 在场时并入，
-    包名排序后 name@version 以 + 拼接）；assumptions=DEFAULT_ASSUMPTIONS
-    全量默认+design.assumption_overrides 覆盖（合成视图优先序）；
-    price_book 空（M3 单价包装载后收紧——GR-21 注记）；engine_params 空
-    （completed_env 按缺 loop.* 补齐——UF-08 投影）。
+    UF-10 版本聚合（coefficients 恒在+assumptions/unit_prices manifest
+    在场时并入——AUDIT-#4 b24 三包，name@version 排序拼接，抬版仍人工）；
+    assumptions=DEFAULT_ASSUMPTIONS 全量默认+design.assumption_overrides
+    覆盖（合成视图优先序）；price_book 空（M3 单价包装载后收紧——GR-21
+    注记）；engine_params 空（completed_env 按缺 loop.* 补齐——UF-08 投影）。
 
     engine_version 覆写位：缺省=core 包根 __version__（可复算三元组
     语义正身，ADR-004）；server 部署串经参传入（现行 server 正门口径
@@ -320,18 +320,18 @@ def load_run_env(
     """
     coefficients = load_coefficients(data_dir / "coefficients")
     versions: dict[str, str] = {"coefficients": coefficients.data_version}
-    price_manifest = data_dir / "unit_prices" / "manifest.yaml"
-    if price_manifest.is_file():
-        raw = yaml.safe_load(price_manifest.read_text(encoding="utf-8"))
-        if isinstance(raw, Mapping) and isinstance(raw.get("price_data_version"), str):
-            versions["unit_prices"] = raw["price_data_version"]
+    # AUDIT-#4（b24 D4）：两 manifest 包版本槽同式读法（#24 容忍；抬版仍人工）。
+    for name, key in (("assumptions", "data_version"), ("unit_prices", "price_data_version")):
+        manifest = data_dir / name / "manifest.yaml"
+        if manifest.is_file():
+            raw = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+            if isinstance(raw, Mapping) and isinstance(raw.get(key), str):
+                versions[name] = raw[key]
     assumptions = {entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS}
     assumptions.update(project.design.assumption_overrides)
     return RunEnv(
         engine_version=_engine_version if engine_version is None else engine_version,
-        data_version="+".join(
-            f"{name}@{versions[name]}" for name in sorted(versions)
-        ),
+        data_version="+".join(f"{n}@{versions[n]}" for n in sorted(versions)),
         assumptions=assumptions,
         coefficients=coefficients,
         price_book={},

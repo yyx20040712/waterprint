@@ -6,13 +6,16 @@
 
 # 规格说明（批次: b2-s1-assumptions-yaml；镜像测试 tests/registry/test_assumptions.py）；
 # 守卫语义/签名/R1~R4=改造前 500 行版（git 史）；口径/哨兵/版本=定案 §4.3/§4.6/§4.7；数据包
-# 目录=源树回溯优先+CWD 上溯兜底（非 editable 装载面）；四注册表互不 import、禁写 data/**。
+# 目录=WATERPRINT_DATA_DIR 前置+源树回溯/CWD 上溯兜底（AUDIT-#3 b24——未设 env
+# 时本地开发零 env 行为不变）；四注册表互不 import、禁写 data/**。
 # 1A1 批（2026-10-03）：manifest 增 data_version 版本槽（非空 str——coefficients
-# 同款三守卫）+模块级 DATA_VERSION 只读暴露；不入 UF-10 聚合串（assumptions 数值
-# 变更随 engine_version 联动——manifest D3 版本语义，预裁决④）。
+# 同款三守卫）+模块级 DATA_VERSION 只读暴露；AUDIT-#4（b24，D4 裁决）起版本槽入
+# UF-10 data_version 聚合串（app.load_run_env 读 manifest 版本槽——通道对称化；
+# 数值变更仍随 engine_version 联动，版本槽抬版系人工义务）。
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from math import isfinite
@@ -31,6 +34,16 @@ class InvalidAssumptionError(Exception):
 
 
 def _data_dir() -> Path:
+    # AUDIT-#3（b24）：部署数据根 env 前置——与 server settings.data_dir 同一
+    # 部署契约（Dockerfile ENV /app/data），设而缺包=fail-fast（不静默回落
+    # 源树掩盖部署错配）；未设（本地开发零 env）源树回溯+CWD 上溯兜底不变。
+    if root := os.environ.get("WATERPRINT_DATA_DIR"):
+        probe = Path(root) / "assumptions"
+        if (probe / "manifest.yaml").is_file():
+            return probe
+        raise InvalidAssumptionError(
+            f"假设数据包未找到或残缺（WATERPRINT_DATA_DIR={root}）：{probe}"
+        )
     for base in (Path(__file__).resolve().parents[2].parent, Path.cwd(), *Path.cwd().parents):
         probe = base / "data" / "assumptions"
         if (probe / "manifest.yaml").is_file():
@@ -190,8 +203,9 @@ def _load_manifest() -> tuple[str, list[str]]:
 # manifest 单次装载快照（版本+装载序——DEFAULT_ASSUMPTIONS 装配与版本暴露同源）
 _MANIFEST_LOADED: Final[tuple[str, list[str]]] = _load_manifest()
 # 数据包版本只读暴露（1A1 批 2026-10-03）：coefficients.Coefficients.data_version
-# 形态的模块级读法（本包单例装载无对象面）；不入 UF-10 data_version 聚合串
-# （assumptions 数值变更随 engine_version 联动——manifest D3 版本语义）。
+# 形态的模块级读法（本包单例装载无对象面）；AUDIT-#4（b24）起入 UF-10
+# data_version 聚合串（app.load_run_env 读 manifest 版本槽；数值变更随
+# engine_version 联动，版本槽抬版系人工义务）。
 DATA_VERSION: Final[str] = _MANIFEST_LOADED[0]
 
 

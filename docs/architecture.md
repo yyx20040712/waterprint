@@ -254,7 +254,13 @@ check_module_graph L6 节点校验（ADR-020）。
 「导出格式」节）。
 
 数据卷：`waterprint_wp-projects`（项目 *.wp.json）与 `waterprint_wp-exports`
-（导出产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验）。
+（导出产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验：
+`python -m` 启动块+容器 entrypoint；校验面=五包
+assumptions/coefficients/constraint_kb/templates/unit_prices，AUDIT-#3 b24
+起 assumptions 收口进校验面，core 装载同走 `WATERPRINT_DATA_DIR`）。
+data_version 聚合串=三包 `assumptions@…+coefficients@…+unit_prices@…`
+（包名排序拼接；assumptions 版本槽入聚合系 AUDIT-#4 b24，版本槽抬版
+仍需人工——改数不抬版不会被机器识别）。
 服务重启不续跑任务：崩溃/强杀残留的排队与运行中任务转 failed
 （InterruptedByRestart），优雅停机时排队任务转 cancelled；终态任务
 记录可查。
@@ -271,7 +277,7 @@ check_module_graph L6 节点校验（ADR-020）。
 | 变量 | 默认 | 说明 |
 |---|---|---|
 | `WATERPRINT_PROJECTS_DIR` / `WATERPRINT_EXPORTS_DIR` | /app/projects、/app/exports | 项目/导出根（卷挂载点）；裸机缺省两基点不对称——projects_dir 保持 CWD 相对形态、exports_dir 构造期 resolve() 绝对化（接受设计，见 §6.1 #32） |
-| `WATERPRINT_DATA_DIR` | /app/data | 数据包根（assumptions 包除外，见 §6.1） |
+| `WATERPRINT_DATA_DIR` | /app/data | 数据包根（五包同根；AUDIT-#3 b24 起 assumptions 亦走本 env——core registry 装载与 server 启动校验同源） |
 | `WATERPRINT_CALC_WORKERS` | max(1, CPU 数−1) | 计算进程池大小 |
 | `WATERPRINT_API_TOKEN` | 空=鉴权关 | Bearer token，非空即生效，≥16 位 |
 | `WATERPRINT_HOST` / `WATERPRINT_PORT` | 127.0.0.1:8000 | 裸机绑定面（容器内不生效） |
@@ -372,7 +378,7 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
 | #12 | 接受设计 | 批量导出 _ITEM_FAILURES 宽族=H2 项级隔离策略（单项失败不株连批内他项，批终态 done+failures） | 出现 core 缺陷被折叠为项级 failures 的实际事故，或重新裁定项级/批共因边界 | server/waterprint_server/jobs/worker.py:342-344,450 |
 | #15 | 开放债（P3） | elevation 纵断 water_depth 缺键静默 0（depth_key=None 分支有 INFO 警告——不对称） | 该输入路径成为用户可达或诊断缺失造成实际问题 | core/waterprint/elevation/profile.py:136 |
 | #19 | 接受设计 | async 阻塞策略两制：design-map 进程内 asyncio.to_thread 同步直返例外（~1s 级 CPU 防阻塞），其余同步端点内联轻投影（§2.1 注记） | CPU profiling 证明事件循环阻塞，或新增重 CPU 端点 | server/waterprint_server/routers/calc.py:298-300 |
-| #24 | 开放语义债 | manifest 容错两制：unit_prices 装载 fail-fast vs data_version 聚合读 manifest 缺失/畸形静默跳过——本轮不归一 | 部署确定「无 manifest 必须 fail-fast」或确认容忍为公开契约 | core/waterprint/app.py:321-325；core/waterprint/cost/prices.py:69-78 |
+| #24 | 开放语义债 | manifest 容错两制：unit_prices 装载 fail-fast vs data_version 聚合读 manifest 缺失/畸形静默跳过——本轮不归一 | 部署确定「无 manifest 必须 fail-fast」或确认容忍为公开契约 | core/waterprint/app.py:324-330；core/waterprint/cost/prices.py:69-78 |
 | #25 | 开放债（P3） | _design_scale_of 多进水 sorted 取首快照无警告（无输入节点流量已有 InvalidFlowError 兜底） | 多进水成为受支持场景或出现误用 | core/waterprint/flows/__init__.py:363-380 |
 | #26 | 接受设计（裁决不改） | executor 恒等再导出壳（noqa F401）=锁名设计，镜像测试 `is` 恒等断言有意钉死；SLUDGE 初值 mm×mm 借用派生有注释+golden 锚 | 锁名意图本身被新架构裁决撤销 | core/waterprint/graph/executor.py:123-140,161-163 |
 | #27b | 开放债 | 导出 stale 409 先于路由选项 422 校验的次序维持现状（#27a walrus 清理归 b29 小项批） | API 明确要统一错误优先级并批准锁测/契约变化 | server/waterprint_server/services/exports.py:299-315 |
@@ -388,10 +394,11 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）；
   前端警告聚合视图接线（服务端聚合 API 已落地，webapp 无消费面）。
 - **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：AUDIT-#1/
-  #22（joint_enumeration 上行 import）已随 b23 迁移收口；assumptions
-  数据包不在启动校验面且不走 WATERPRINT_DATA_DIR（AUDIT-#3，其余四包
-  在校验面内，b24 处置）；二沉池与 AAO 同值参数双包独立声明、无一致
-  性校核（AUDIT-#6，b26 处置）。
+  #22（joint_enumeration 上行 import）已随 b23 迁移收口；AUDIT-#3/#4
+  （assumptions 数据包启动校验+WATERPRINT_DATA_DIR 通道+版本槽入
+  data_version 聚合）已随 b24（2026-11-18）收口——五包入校验面、core
+  registry 探测序 env 前置、聚合串三包化（版本槽抬版仍人工）；二沉池
+  与 AAO 同值参数双包独立声明、无一致性校核（AUDIT-#6，b26 处置）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"

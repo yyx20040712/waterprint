@@ -30,7 +30,8 @@ FROM python:3.12-slim AS runtime
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY server/waterprint_server/ ./waterprint_server/
-# 数据包（coefficients/unit_prices/templates/constraint_kb，9.5M）打入镜像：
+# 数据包（assumptions/coefficients/unit_prices/templates/constraint_kb 五包，
+# COPY data/ 整目录）打入镜像：
 # 版本化资产随镜像走，项目/导出走卷（见 compose.yml）
 COPY data/ ./data/
 

@@ -23,8 +23,9 @@
 #   ensure_directories(settings)：基点目录存在或可创建（fail fast）
 #   default_data_dir() -> Path：数据包根缺省解析（E2E-1 P0-A 自愈——
 #      包定位上溯仓库根，与 CWD 解耦）
-#   validate_data_packages(settings)：四数据包 manifest.yaml 在场校验
-#      （E2E-1 P0-A fail fast——缺包 raise RuntimeError 可执行文案）
+#   validate_data_packages(settings)：五数据包 manifest.yaml 在场校验
+#      （E2E-1 P0-A fail fast——缺包 raise RuntimeError 可执行文案；
+#      AUDIT-#3 b24 起 assumptions 入校验面——五包与 data/ 一一对应）
 #
 # 【行为规格】
 #   R1 一切路径类配置只作基点：业务路径 = 基点内拼接 + 分量校验
@@ -301,10 +302,14 @@ def ensure_directories(settings: Settings) -> None:
         ) from exc
 
 
-# E2E-1（e2e-audit 2026-09-24 P0-A）：数据包四目录清单——启动在场校验面
-# （coefficients 系数/constraint_kb 约束库/templates 模板/unit_prices 单价，
-# 各以 manifest.yaml 为完整性判据；与 data/ 目录现状一一对应）。
+# E2E-1（e2e-audit 2026-09-24 P0-A）：数据包五目录清单——启动在场校验面
+# （assumptions 假设/coefficients 系数/constraint_kb 约束库/templates 模板/
+# unit_prices 单价，各以 manifest.yaml 为完整性判据；与 data/ 目录现状一一
+# 对应。AUDIT-#3 b24：assumptions 收口进校验面——core 装载
+# registry/assumptions 探测序同批前置 WATERPRINT_DATA_DIR，部署数据根
+# 通道五包同根）。
 _DATA_PACKAGES: Final[tuple[str, ...]] = (
+    "assumptions",
     "coefficients",
     "constraint_kb",
     "templates",
