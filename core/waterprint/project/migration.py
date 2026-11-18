@@ -64,9 +64,9 @@
 #   - 版本常量单源（b25 AUDIT-#8 收敛，原 T7a-R1b 双源互注退役）：
 #     io._FORMAT_VERSION（dumps_design 版本头）与本文件
 #     SUPPORTED_VERSIONS[-1] 均引 contracts.project_schema.
-#     CURRENT_FORMAT_VERSION 同一常量——升版只改 project_schema
-#     一处（原双源漂移面=未来版哈希失效语义静默漂移，由 migrate
-#     未来版拒路径兜底——该拒路径仍守）。
+#     CURRENT_FORMAT_VERSION 同一常量——升版两动作：改该常量+向本文件
+#     _FORMAT_HISTORY 前缀追加旧当前版（漏追加=旧版掉链；原双源漂移
+#     面由 migrate 未来版拒路径兜底——该拒路径仍守）。
 #   - 数值纪律：本文件零数值面（inlet-m3d 批 v3→v4 迁移器的 86400 换算
 #     经 contracts.quantity parse 派生常量承载——非手写字面量，口径同
 #     graph/nodes._SECS_PER_DAY 先例）。

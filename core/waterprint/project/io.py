@@ -91,8 +91,9 @@ _MAX_DEPTH: Final[int] = 10**2
 # 当前版 format_version（R6：dumps_design 头）自 project_schema.
 # CURRENT_FORMAT_VERSION 单源引；确定性 JSON 参数自纪律母本
 # result_schema.JSON_KWARGS 单源引（b25 AUDIT-#7/#8 收敛——原与本文件
-# 双源互注的 migration.SUPPORTED_VERSIONS[-1] 同引 project_schema 一处，
-# 升版只改 project_schema；版本史注记随常量迁 project_schema）。
+# 双源互注的 migration.SUPPORTED_VERSIONS[-1] 同引 project_schema 当前版
+# 常量；升版两动作=改该常量+migration._FORMAT_HISTORY 追加旧当前版；
+# 版本史注记随常量迁 project_schema）。
 
 
 class InvalidProjectError(Exception):

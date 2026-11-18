@@ -155,8 +155,9 @@ class ValidationReport:
 
 # ── design 摘要（UF-47 收口批6l 2026-09-29：design_digest 双胞胎退役，
 #    一律经 core.design_hash〔app 再导出面——P0-2 在册〕；_normalize/
-#    _ROUND_DIGITS 随双胞胎删除，_JSON_KWARGS/_DESIGN_FORMAT_VERSION
-#    留驻〔exports 序列化 kwargs 外部 import+新建项目 format_version 面〕）──
+#    _ROUND_DIGITS 随双胞胎删除；b25 回炉后 _JSON_KWARGS 已退役
+#    〔exports 直引 result_schema.JSON_KWARGS〕、_DESIGN_FORMAT_VERSION
+#    import-as 保名〔新建项目 format_version 面——core 单源〕）──
 
 
 def result_is_stale(latest: Mapping[str, Any], project: ProjectFile) -> bool:

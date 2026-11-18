@@ -90,8 +90,9 @@ _BOUNDARY_MIN_POINTS: Final[int] = 1 + 2
 
 # 当前项目文件格式版本（R5"本 schema 永远只描述当前版"的当前版值
 # 载体）。b25 AUDIT-#8 收敛：原 project/io.py._FORMAT_VERSION（dumps_
-# design 版本头）与 project/migration.SUPPORTED_VERSIONS 末位双源互注
-# 收编本处单源——两消费方同引，升版只改本处。版本史：L4a boundary
+# design 版本头）、migration.SUPPORTED_VERSIONS 末位与 server projects
+# _DESIGN_FORMAT_VERSION 三源收编本处单源——三消费方同引；升版两动作：
+# 改本常量+migration._FORMAT_HISTORY 前缀追加旧当前版。版本史：L4a boundary
 # 红线键入 schema（GR-21 只增）"2.0"→"3.0"；inlet-m3d 批 2026-10-02
 # 进水参数面 m³/s→m³/d 换轴（v3→v4 迁移器 municipal_input q_avg_daily
 # ×86400）"3.0"→"4.0"（旧哈希自然失效语义同 L4a；值逐字不变）。
