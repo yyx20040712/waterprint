@@ -262,3 +262,32 @@ def test_load_run_env_equivalent_to_flows_shell(golden_data_dir: Path) -> None:
     direct = load_run_env(_REPO_DATA, project)
     via_flow = flows.build_env_flow(_REPO_DATA, project)
     assert direct == via_flow  # RunEnv 不可变值语义（dataclass eq）
+
+
+def test_load_run_env_mixed_data_roots_rejected(
+    golden_data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """AUDIT-#4 回炉：混合数据根 fail-fast——assumptions 实际装载版本与
+    data_dir manifest 版本相异=InvalidAssumptionError（消息含「混合数据根」；
+    patch 模拟 WATERPRINT_DATA_DIR 异根实载 9.9.9，app 经 resolved_version_for
+    调用时解析模块全局——patch 生效）。"""
+    from waterprint.registry.assumptions import InvalidAssumptionError
+
+    assumptions_mod = importlib.import_module("waterprint.registry.assumptions")
+    project = load_project(golden_data_dir / "municipal_34760" / "input_project.json")
+    monkeypatch.setattr(assumptions_mod, "DATA_VERSION", "9.9.9")
+    with pytest.raises(InvalidAssumptionError, match="混合数据根"):
+        load_run_env(_REPO_DATA, project)
+
+
+def test_load_run_env_consistent_root_uses_loaded_version(
+    golden_data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """AUDIT-#4 回炉：一致根不受扰——DATA_VERSION 与仓库 manifest 同值
+    （1.0.0）时聚合串正常含 assumptions@1.0.0（实际装载版本直取，
+    无假阳性 fail-fast）。"""
+    assumptions_mod = importlib.import_module("waterprint.registry.assumptions")
+    project = load_project(golden_data_dir / "municipal_34760" / "input_project.json")
+    monkeypatch.setattr(assumptions_mod, "DATA_VERSION", "1.0.0")
+    env = load_run_env(_REPO_DATA, project)
+    assert "assumptions@1.0.0" in env.data_version
