@@ -67,7 +67,7 @@ from waterprint.graph.nodes import (
     inlet_physics_errors,
 )
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
-from waterprint.units_lib import discover_units
+from waterprint.units_lib import UNIT_LINES, discover_units
 
 # loop.* 引擎参数键集自 run_env.LOOP_KEYS 单源（b25 AUDIT-#8 收敛——
 # 原 4 处手工镜像之一；值逐字不变）
@@ -134,9 +134,10 @@ _FACTOR_SHARED_PREFIX = "factor.screen."
 def _unit_params(unit_id: str, coefficients: CoefficientsView) -> dict[str, float]:
     """D4 系数投影：单元短名过滤 factor.*/removal.* + factor.screen.* 共用键。"""
     # 短名=业务线全前缀感知剥离（M3a1 D1 修正：线名含下划线——单段 split 对
-    # mine_water_* 只剥 "mine" 系 M2c R1-a 矛盾复发点；线名表硬编码函数内、
-    # 禁 import units_lib 私有 _LINES——跨包 "_" 前缀访问违宪 §1）。
-    lines = ("municipal_", "mine_water_", "sludge_", "conveyance_")
+    # mine_water_* 只剥 "mine" 系 M2c R1-a 矛盾复发点；b29 AUDIT-#23c：线名
+    # 表改引 units_lib.UNIT_LINES 公开单源派生——原函数内硬编码镜像退役；
+    # "_" 前缀私有访问违宪 §1 之忧随常量公开化解除）。
+    lines = tuple(f"{line}_" for line in UNIT_LINES)
     line = next((p for p in lines if unit_id.startswith(p)), "")
     short = unit_id[len(line):]
     # 矿井水线键名带 mine_ 限定=§14.3 物理隔离在数据键面的镜像（防市政同名

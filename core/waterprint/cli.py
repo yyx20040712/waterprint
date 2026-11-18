@@ -25,7 +25,9 @@ kbwire-20261003 拆件记档：calc 命令域（_run_calc/_CALC_*）迁 cli_calc
 CLI 共享底座（_EXIT_*/_DATA_DIR_DEFAULT/_user_out/_data_dir）迁 cli_common.py
 ——本件经 import 保引用连续，分发表零改动（cli.py 500/500 贴墙拆件）。
 b29 审计治理（2026-11-18）：AUDIT-#23a new-unit 重名拒绝退出码 4→3
-（用户输入校验族正身——非计算失败族；报文不变）。
+（用户输入校验族正身——非计算失败族；报文不变）；AUDIT-#23c 本件
+_UNIT_LINES 硬编码退役——new-unit choices 改引 units_lib.UNIT_LINES
+单源（第三处人工同步点消除）。
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -106,14 +108,12 @@ from waterprint.network.solver import build_design_options, design_pipes, load_n
 from waterprint.registry.coefficients import InvalidCoefficientError
 from waterprint.trace.audit import InvalidAuditError, InvalidAuditPathError
 from waterprint.trace.calcbook import InvalidTemplateError
-from waterprint.units_lib import discover_units
+from waterprint.units_lib import UNIT_LINES, discover_units
 
 __all__ = ["main"]
 
 # 管材键名口径（coefficients network.roughness.*——choices 同源）。
 _PIPE_TYPES: Final[tuple[str, ...]] = ("concrete", "plastic")
-# 四业务线（units_lib 目录名——结构图谱 §1a 同口径）。
-_UNIT_LINES: Final[tuple[str, ...]] = ("municipal", "mine_water", "sludge", "conveyance")
 # export 面失败收编族（无计算——R5 全收 3）。
 _EXPORT_FAILURES: Final[tuple[type[BaseException], ...]] = (
     ArtifactKindNotReady, InvalidTemplateError, InvalidAuditError,
@@ -146,7 +146,9 @@ def _build_parser() -> argparse.ArgumentParser:
                          help="管材糙率键（默认 concrete）")
     new_unit = subparsers.add_parser("new-unit",
                                      help="从 units_lib/_template 生成单元骨架（重名拒绝）")
-    new_unit.add_argument("line", choices=_UNIT_LINES, help="业务线")
+    # b29 AUDIT-#23c：业务线 choices=units_lib.UNIT_LINES 单源（原本件
+    # _UNIT_LINES 硬编码=第三处人工同步点——镜像退役）。
+    new_unit.add_argument("line", choices=UNIT_LINES, help="业务线")
     new_unit.add_argument("name", help="单元包名（snake_case）")
     new_unit.add_argument("--root", default=None,
                           help="units_lib 根路径（默认内核包内；测试用临时根）")

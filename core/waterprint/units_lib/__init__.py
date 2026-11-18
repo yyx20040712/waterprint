@@ -11,6 +11,9 @@
 #   discover_units() -> Mapping[unit_id → (UnitManifest, Unit 工厂)]
 #       扫描四条线各包的 __init__ 白名单导出（不 exec 任意代码；
 #       发现失败/重复 unit_id = 启动失败）
+#   UNIT_LINES: Final[tuple[str, ...]]（四业务线名单——b29 AUDIT-#23c
+#       公开单源：cli new-unit choices 与 app_assembly 线名前缀投影
+#       引用此常量，第三处人工同步点消除）
 #
 # 【T7b D6 最小实现注记】（2026-08-25）
 #   - 骨架包无导出 = 跳过不报错——**空注册表合法**（M1 各单元实装后
@@ -56,7 +59,10 @@ from typing import Final
 from waterprint.contracts.manifest import UnitManifest
 from waterprint.contracts.unit_api import Unit
 
-_LINES: Final[tuple[str, ...]] = ("municipal", "mine_water", "sludge", "conveyance")
+# 四业务线单源（b29 AUDIT-#23c 公开化：原私有 _LINES——cli._UNIT_LINES 与
+# app_assembly._unit_params 两处手工镜像收编引用同一对象；LOOP_KEYS b25
+# AUDIT-#8 先例同款。目录名口径，结构图谱 §1a 同源）。
+UNIT_LINES: Final[tuple[str, ...]] = ("municipal", "mine_water", "sludge", "conveyance")
 # 白名单导出面（manifest + make_unit 两名——见【T7b D6 最小实现注记】）。
 _UNIT_EXPORTS: Final[frozenset[str]] = frozenset({"manifest", "make_unit"})
 
@@ -95,7 +101,7 @@ def _register(
 def discover_units() -> Mapping[str, tuple[UnitManifest, Callable[[], Unit]]]:
     """扫描四线各包 __init__ 白名单导出 → 单元注册表（骨架无导出=空表合法）。"""
     registry: dict[str, tuple[UnitManifest, Callable[[], Unit]]] = {}
-    for line in _LINES:
+    for line in UNIT_LINES:
         package = importlib.import_module(f"waterprint.units_lib.{line}")
         for module_info in pkgutil.iter_modules(package.__path__):
             module = importlib.import_module(
