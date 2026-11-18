@@ -14,7 +14,8 @@ project 原始声明 × kb 求值。
 #   预裁决；镜像测试 tests/app/test_app_validation.py+伴生件
 #   test_app_validation_mass_balance.py+test_app_validation_param_band.py；
 #   app_maintenance.py 家族先例同构第十例——根模块聚合投影件，不进
-#   import-linter layers 契约（app_trust/app_carbon 同款 unconstrained）。）
+#   import-linter layers 契约（app_trust 同款 unconstrained；app_carbon
+#   等四伴生件已 b23 迁 solution 归契约）。）
 #
 # 【公开接口】
 #   INPUT_BAND_KIND: Final[str]（="input_band"）：选条判据 kind 符号单源。
