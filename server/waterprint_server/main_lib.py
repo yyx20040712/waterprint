@@ -52,7 +52,8 @@ from waterprint.contracts.manifest import InvalidUnitConfig
 from waterprint_server.auth import AuthError
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import UnknownTaskError
-from waterprint_server.services.ai_connection import UvNotFoundError
+from waterprint_server.services.ai_chat import AiChatReadError
+from waterprint_server.services.ai_connection import UvNotFoundError, WorkspaceLayoutError
 from waterprint_server.services.calculation import InvalidSolutionRefError
 from waterprint_server.services.compare import CompareSourceNotFoundError
 from waterprint_server.services.cost import (
@@ -135,6 +136,14 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (InvalidUnitConfig, status.HTTP_400_BAD_REQUEST),
     # AI2（2026-09-13）：uv 不在 PATH=一键接入前置依赖缺（用户环境面）→400。
     (UvNotFoundError, status.HTTP_400_BAD_REQUEST),
+    # b28（AUDIT-#14 2026-11-18）：布局锚点校验失败/agent 不可导入→400。
+    # WorkspaceLayoutError 原继承 UvNotFoundError 借 MRO 承接本码——拆基后
+    # 显式注册（目标码不变，except UvNotFoundError 误捕面消除）。
+    (WorkspaceLayoutError, status.HTTP_400_BAD_REQUEST),
+    # b28（AUDIT-#11 2026-11-18）：会话只读面 agent CLI 失败/超时→502
+    # （上游依赖失败非本服务缺陷；ai_chat 路由直抛 HTTPException 破例
+    # 收编——错误体经统一 handler 带 error_type）。
+    (AiChatReadError, status.HTTP_502_BAD_GATEWAY),
     (core.InvalidAssemblyError, status.HTTP_400_BAD_REQUEST),
     (core.InvalidProjectError, status.HTTP_400_BAD_REQUEST),
     (ProjectNotFoundError, status.HTTP_404_NOT_FOUND),
@@ -225,6 +234,10 @@ DOMAIN_ERROR_CODES: Final[dict[str, int]] = {
     "InvalidExecutionError": status.HTTP_422_UNPROCESSABLE_CONTENT,
     # kbblock 批 D6（2026-10-06）：kb 阻断门违规→422（契约零改论证见 ADR-026）
     "KbBlockError": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    # b28（AUDIT-#13 2026-11-18）：对话子进程桥超时（ai_chat runner 三处
+    # process.wait 宽限超时）→502（上游依赖失败族——与只读面 AiChatReadError
+    # 同码；TimeoutExpired 裸穿的 error_code=None 形态收编）。
+    "AiChatBridgeTimeoutError": status.HTTP_502_BAD_GATEWAY,
 }
 
 

@@ -3,7 +3,8 @@
 输入:  ServiceContext（settings.data_dir 上溯推导工作区路径）+ 运行环境
       （shutil.which 解析 uv/PathFinder 探测 agent 包）
 输出:  AiConnectionStatus/AiConnectionSetupResult（server 侧 pydantic 冻结
-      模型——routers 直用）+UvNotFoundError（400 面）
+      模型——routers 直用）+UvNotFoundError/WorkspaceLayoutError（各自
+      独立基类——400 面经 main_lib 映射表显式两行，b28 拆基）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -86,11 +87,13 @@ class UvNotFoundError(Exception):
     """uv 可执行文件不在 PATH（一键接入前置依赖缺——404/422 皆非，400 面）。"""
 
 
-class WorkspaceLayoutError(UvNotFoundError):
+class WorkspaceLayoutError(Exception):
     """工作区推导锚点校验失败/agent 包不可导入（回炉 FIX-3·CONFIRMED-3——400 面）。
 
-    继承 UvNotFoundError 承接其 400 handler 映射（Starlette 按类 MRO 解析
-    handler——一键接入环境前置缺失族同面；error_type 按本类名上报）。
+    b28（AUDIT-#14 2026-11-18）：不再继承 UvNotFoundError（原继承仅为承接
+    其 400 handler——except UvNotFoundError 会误捕布局错误，误捕面拆分）；
+    400 映射在 main_lib._EXCEPTION_STATUS 显式注册（目标码不变，error_type
+    仍按本类名上报）。
     """
 
 

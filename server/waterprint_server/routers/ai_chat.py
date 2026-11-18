@@ -15,12 +15,16 @@
 #
 # 【行为规格】
 #   R1 薄协议转换（routers 禁业务——只读/提交全在 services）。
-#   R2 只读面 502：AiChatReadError（子进程超时/退出码）映射 502（上游
-#      依赖失败——非本服务缺陷）；分量校验 ValueError→422。
+#   R2 只读面 502：AiChatReadError（子进程超时/退出码）经 main_lib 映射表
+#      →502（上游依赖失败——非本服务缺陷）；分量校验 ValueError→422 同经
+#      映射表兜底行。b28（AUDIT-#11 2026-11-18）：两处直抛 HTTPException
+#      收编——错误体经统一 handler 生成（{detail, error_type}），状态码
+#      502/422 不变（唯一翻译处恢复全真，architecture §4.4 破例注记撤除）。
 #   R3 同步 def 端点（只读两面）——FastAPI 线程池承载（子进程阻塞不让
 #      事件环饿死）；POST 为 async（manager.submit await）。
-# 【禁止事项】禁解析会话文件；禁对话逻辑入 router。
-# 【测试要求】三端点形态+502/422 映射+任务句柄 kind。
+# 【禁止事项】禁解析会话文件；禁对话逻辑入 router；禁直抛 HTTPException
+#      （异常一律上抛经 main_lib 唯一翻译处）。
+# 【测试要求】三端点形态+502/422 映射（统一错误体 error_type）+任务句柄 kind。
 # 【参照】.workflow/b4-4b/design-final.md §四
 # ══════════════════════════════════════════════════════════════════
 
@@ -28,12 +32,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
 from waterprint_server.routers.calc import TaskIdResponse, _ctx
 from waterprint_server.services import ai_chat as chat_service
-from waterprint_server.services.ai_chat import AiChatReadError
 
 router = APIRouter(prefix="/api/ai", tags=["ai-chat"])
 
@@ -67,33 +70,18 @@ class ChatHistoryMessage(BaseModel):
 @router.get("/sessions", response_model=list[ChatSessionSummary])
 def list_sessions(request: Request) -> list[ChatSessionSummary]:
     """会话清单（同步 def——线程池承载子进程阻塞）。"""
-    try:
-        return [ChatSessionSummary(**item) for item in chat_service.list_sessions(_ctx(request))]
-    except AiChatReadError as exc:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    return [ChatSessionSummary(**item) for item in chat_service.list_sessions(_ctx(request))]
 
 
 @router.get("/sessions/{session_id}/messages", response_model=list[ChatHistoryMessage])
 def read_messages(session_id: str, request: Request) -> list[ChatHistoryMessage]:
     """会话历史（R2——ID 分量校验 422 面）。"""
-    try:
-        items = chat_service.read_history(_ctx(request), session_id)
-    except AiChatReadError as exc:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
-        ) from exc
+    items = chat_service.read_history(_ctx(request), session_id)
     return [ChatHistoryMessage(**item) for item in items]
 
 
 @router.post("/sessions/{session_id}/messages", response_model=TaskIdResponse)
 async def send_message(session_id: str, body: ChatMessageIn, request: Request) -> TaskIdResponse:
     """发言（异步对话轮——task_id 走既有任务端点族+SSE）。"""
-    try:
-        handle = await chat_service.submit_ai_chat_turn(_ctx(request), session_id, body.message)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
-        ) from exc
+    handle = await chat_service.submit_ai_chat_turn(_ctx(request), session_id, body.message)
     return TaskIdResponse(task_id=handle.task_id)

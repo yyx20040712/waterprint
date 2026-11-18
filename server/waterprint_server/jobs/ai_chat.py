@@ -27,7 +27,10 @@
 #      {"state":"cancelled"}（不写半途结果——R4 同构）。
 #   R4 失败：uv 缺失/载荷缺件→InvalidTaskPayloadError（422 面）；子进程
 #      非零退出→RuntimeError（500 面——门一 W4 分类解耦）；stdout 非法行
-#      跳过不计败（容错解析）。
+#      跳过不计败（容错解析）。b28（AUDIT-#13 2026-11-18）：三处
+#      process.wait 宽限超时→AiChatBridgeTimeoutError（DOMAIN_ERROR_CODES
+#      名义族成员——failed 任务 error_code 非 None，不再裸穿 TimeoutExpired
+#      的 error_code=None 形态）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -37,6 +40,7 @@ import os
 import subprocess
 import uuid
 from collections.abc import Mapping
+from contextlib import suppress
 from pathlib import Path
 from shutil import which
 from typing import Any
@@ -45,6 +49,30 @@ __all__ = ["_run_ai_chat"]
 
 _MAX_WAIT_S = 10  # terminate 后 join 宽限（秒——子进程收 SIGTERM 收尾窗）
 _TAIL_CHARS = 2 * 10**2  # 失败面 stderr 摘要长度 200（诊断最小面——幂积保白名单）
+
+
+class AiChatBridgeTimeoutError(RuntimeError):
+    """对话子进程桥超时（终止宽限/终态收割超时——上游依赖失败 502 族）。
+
+    b28（AUDIT-#13）：原 TimeoutExpired 裸穿=failed 任务 error_type
+    游离 DOMAIN_ERROR_CODES 映射族（error_code=None）；收编后按类名入
+    名义表（502 与只读面 AiChatReadError 同族同码）。
+    """
+
+
+def _wait_child(process: Any, stage: str) -> int:
+    """process.wait 单源包装（三处 wait 同源——b28 AUDIT-#13）：
+    TimeoutExpired→kill 兜底收割后转 AiChatBridgeTimeoutError（失败形态
+    error_type 入映射族，error_code 不再 None 游离）。"""
+    try:
+        return int(process.wait(timeout=_MAX_WAIT_S))  # int 收口：process=Any 面 no-any-return 防线
+    except subprocess.TimeoutExpired as exc:
+        process.kill()  # SIGTERM 宽限已尽——SIGKILL 强收防僵尸
+        with suppress(subprocess.TimeoutExpired):
+            process.wait(timeout=_MAX_WAIT_S)
+        raise AiChatBridgeTimeoutError(
+            f"对话子进程{stage}超时（{_MAX_WAIT_S}s 宽限后仍未退出——已 kill 收割）"
+        ) from exc
 
 _STATIC_LABELS: Mapping[str, str] = {
     "turn_start": "对话开始",
@@ -118,7 +146,7 @@ def _spawn_bridge(payload: Mapping[str, Any], uv: str, session_id: str) -> tuple
 
 def _stream_events(
     process: Any, task_id: str, cancel_token: object, progress: Any
-) -> tuple[str | None, dict[str, Any]]:
+) -> tuple[int | None, dict[str, Any]]:
     """R2/R3：stdout JSONL→进度上报与终态收割（返回 (退出码|None, summary)）。
 
     取消协作=行边界轮询（置位返回退出码 None——调用方翻译 cancelled）。"""
@@ -134,7 +162,7 @@ def _stream_events(
     for raw in process.stdout:
         if _cancelled(cancel_token):  # R3：行边界取消协作
             process.terminate()
-            process.wait(timeout=_MAX_WAIT_S)
+            _wait_child(process, "终止宽限")  # b28：超时→AiChatBridgeTimeoutError
             return None, summary
         text = raw.strip()
         if not text:
@@ -150,7 +178,7 @@ def _stream_events(
             summary = {key: value for key, value in event.items() if key != "type"}
             continue
         _report(task_id, _StagePoint(_stage_label(event), seen, seen + 10), progress)
-    return process.wait(timeout=_MAX_WAIT_S), summary
+    return _wait_child(process, "终态收割"), summary  # b28：超时→领域错误
 
 
 def _run_ai_chat(
@@ -192,10 +220,15 @@ def _run_ai_chat(
         message_file.unlink(missing_ok=True)  # 消息文件即用即清（不留敏感面）
         if process.poll() is None:  # 异常路径兜底收割
             process.kill()
-            process.wait(timeout=_MAX_WAIT_S)
+            # b28（AUDIT-#13）：此处 wait 超时同样转领域错误（三处收编）——
+            # kill 后仍不退=比在途原异常更严重的收割失败面，领域错误替换
+            # 上抛（raise from TimeoutExpired 保留因果链；本枝仅在异常
+            # 在途时可达——成功/取消路径 wait 已收割，poll() 非 None 不入）。
+            _wait_child(process, "兜底收割")
     if return_code is None:
         return {"state": "cancelled"}
-    if return_code != 0:  # type: ignore[comparison-overlap]  # narrows below None-guard; mypy literal drift
+    # b28 起 _stream_events 返回 int|None——None 守卫后窄化 int，旧 type: ignore 退役
+    if return_code != 0:
         tail = process.stderr.read()[-_TAIL_CHARS:] if process.stderr else "（空）"
         raise RuntimeError(  # 门一 W4：运行期失败≠载荷非法（500 面——分类解耦）
             f"对话子进程退出码 {return_code}（agent CLI 桥失败——stderr 摘要 {tail}）"

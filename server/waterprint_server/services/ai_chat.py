@@ -92,7 +92,7 @@ def _run_readonly(ctx: ServiceContext, *args: str) -> str:
 
 
 def list_sessions(ctx: ServiceContext) -> list[dict[str, Any]]:
-    """会话清单（R1——JSON 数组解析，异常面 502 由 router 映射）。"""
+    """会话清单（R1——JSON 数组解析；异常面 502 经 main_lib 映射表统一翻译）。"""
     raw = _run_readonly(ctx, "--list-sessions")
     try:
         parsed = json.loads(raw.strip().splitlines()[-1])

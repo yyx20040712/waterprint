@@ -300,8 +300,8 @@ pint 只存在于边界；内核裸数组（m³/s、mg/L、m）；落盘"数值 
 领域异常（InvalidUnitConfig/LoopDivergence 等）与程序缺陷二分；内核禁抛
 HTTP 语义异常；server 层唯一翻译处按映射表注册 exception handler
 （异常→状态码映射单源=server main_lib `_EXCEPTION_STATUS`，状态集以该表
-为准；429 附 Retry-After 头。现行破例：routers/ai_chat.py 两处直抛
-HTTPException，未入映射表）。
+为准；429 附 Retry-After 头。b28 起 ai_chat 路由直抛 HTTPException 破例
+收编——全部路由异常经统一翻译处，错误体统一 {detail, error_type}）。
 禁止裸 except 与错误静默通过；捕获后三选一（处理/转换再抛/终止）。
 
 ### 4.5 日志
@@ -424,7 +424,16 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   （flows 三处抽件内 _atomic_write 单源，project/io save_project 补
   全异常清理——半写 .tmp 不残留；result_persist_flow 的 uuid 唯一
   tmp 名=K-01 并发双写防护故意语义保留，io 与 flows 跨包不共享件
-  记为例外非强行统一）。
+  记为例外非强行统一）；AUDIT-#11/#13/#14（AI 面异常族收编映射单源）
+  已随 b28（2026-11-18）收口——ai_chat 路由两处直抛 HTTPException
+  (502/422) 收编经 main_lib 类基表〔AiChatReadError→502 入表、
+  ValueError→422 走兜底行，状态码不变、错误体统一带 error_type——
+  §4.4 破例注记随之撤除〕；ai_chat runner 三处 process.wait 宽限
+  超时 TimeoutExpired 领域化〔_wait_child 单源包装转
+  AiChatBridgeTimeoutError 入 DOMAIN_ERROR_CODES 名义族（502）——
+  failed 任务 error_code 不再 None 游离〕；WorkspaceLayoutError 拆基
+  〔不再继承 UvNotFoundError——except UvNotFoundError 误捕布局错误面
+  消除，400 经类基表显式注册、响应 400+error_type 不变〕。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
