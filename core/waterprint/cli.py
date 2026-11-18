@@ -24,6 +24,8 @@ calc 面 _CALC_* 声明面）。
 kbwire-20261003 拆件记档：calc 命令域（_run_calc/_CALC_*）迁 cli_calc.py，
 CLI 共享底座（_EXIT_*/_DATA_DIR_DEFAULT/_user_out/_data_dir）迁 cli_common.py
 ——本件经 import 保引用连续，分发表零改动（cli.py 500/500 贴墙拆件）。
+b29 审计治理（2026-11-18）：AUDIT-#23a new-unit 重名拒绝退出码 4→3
+（用户输入校验族正身——非计算失败族；报文不变）。
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -48,7 +50,8 @@ CLI 共享底座（_EXIT_*/_DATA_DIR_DEFAULT/_user_out/_data_dir）迁 cli_commo
 #   R1 argparse（标准库）；stdout 结构化消息，退出码 0=成功 2=用法错误
 #      3=校验失败 4=计算失败（诊断进 stderr；3/4 经基值推导——字面量
 #      白名单 {0,1,2,10} 外须来自语义源，R1 语义链即真源）。
-#   R2 new-unit 幂等保护：目标包已存在=拒绝；生成后打印"下一步清单"。
+#   R2 new-unit 幂等保护：目标包已存在=拒绝（3——b29 AUDIT-#23a 校验族）；
+#       生成后打印"下一步清单"。
 #   R3 calc 输出走 result_schema 确定性序列化（脚本化 diff 友好）。
 #   R4 Windows 兼容：显式 encoding="utf-8" 读写；--help 尾注 PYTHONUTF8。
 #   R5 export 产物落盘：GR-38 原子写（audit 单一真源=flows.
@@ -237,7 +240,8 @@ def _run_new_unit(line: str, name: str, root: str | None) -> int:
     target = units / line / name
     if target.exists():
         print(f"[拒绝] 目标单元包已存在：{target}（R2 幂等保护——防误覆盖，改名或删除后重试）")
-        return _EXIT_CALCULATION
+        # b29 AUDIT-#23a：重名拒绝=用户输入校验族（3），非计算失败族（4）。
+        return _EXIT_VALIDATION
     if not template.is_dir():
         print(f"[校验失败] 模板包缺失：{template}", file=sys.stderr)
         return _EXIT_VALIDATION
