@@ -382,7 +382,7 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
 | #24 | 开放语义债 | manifest 容错两制：unit_prices 装载 fail-fast vs data_version 聚合读 manifest 缺失/畸形静默跳过——本轮不归一 | 部署确定「无 manifest 必须 fail-fast」或确认容忍为公开契约 | core/waterprint/app.py:324-330；core/waterprint/cost/prices.py:69-78 |
 | #25 | 开放债（P3） | _design_scale_of 多进水 sorted 取首快照无警告（无输入节点流量已有 InvalidFlowError 兜底） | 多进水成为受支持场景或出现误用 | core/waterprint/flows/__init__.py:363-380 |
 | #26 | 接受设计（裁决不改） | executor 恒等再导出壳（noqa F401）=锁名设计，镜像测试 `is` 恒等断言有意钉死；SLUDGE 初值 mm×mm 借用派生有注释+golden 锚 | 锁名意图本身被新架构裁决撤销 | core/waterprint/graph/executor.py:123-140,161-163 |
-| #27b | 开放债 | 导出 stale 409 先于路由选项 422 校验的次序维持现状（#27a walrus 清理归 b29 小项批） | API 明确要统一错误优先级并批准锁测/契约变化 | server/waterprint_server/services/exports.py:299-315 |
+| #27b | 开放债 | 导出 stale 409 先于路由选项 422 校验的次序维持现状（#27a walrus 泄漏清理已随 b29 2026-11-18 收口——仅剩本次序开放面） | API 明确要统一错误优先级并批准锁测/契约变化 | server/waterprint_server/services/exports.py:299-315 |
 | #31 | 开放债（P3） | formulas_kernel.evaluate_batch 空映射裸 StopIteration（正门 apply_batch 已拦，仅绕正门可达） | formulas_kernel 成为直接公共入口 | core/waterprint/registry/formulas_kernel.py:240 |
 | #32 | 接受设计 | create_app AI 四键 os.environ.setdefault=B4-4b W1-k2 裁决的进程级注入点（worker 子进程桥只读 env）；路径基点不对称（§4.2 注记）仅注记 | 部署合同要统一 CWD/resolve 基点语义 | server/waterprint_server/settings.py:120,125；server/waterprint_server/main.py:235-244 |
 | #33 | 开放债（P3） | drafting plan_view 零尺寸/gap_count 未守卫（max(count,1) 防除零，未防零长度分格产物） | 零/负尺寸成为合法输入或实际出现空分格产物 | core/waterprint/drafting/plan_view.py:124-139 |
@@ -434,6 +434,21 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   failed 任务 error_code 不再 None 游离〕；WorkspaceLayoutError 拆基
   〔不再继承 UvNotFoundError——except UvNotFoundError 误捕布局错误面
   消除，400 经类基表显式注册、响应 400+error_type 不变〕。
+  AUDIT-#23 三小项+#27a+#28+#29a/#29b（CLI/导出/agent/OpenAPI 小项）
+  已随 b29（2026-11-18）收口——CLI：new-unit 重名拒绝退码 4→3
+  （#23a 校验族正身）、calc --conditions 空段/未知单元键本地拒绝
+  退出码 3（#23b——原空段静默吞、未知键静默白算敏感性帧；仅 CLI
+  面，server worker/agent 各经 build_condition_set/API 不受影响）、
+  四业务线名单单源化 units_lib.UNIT_LINES 公开常量（#23c——cli
+  choices 与 app_assembly 线名前缀投影改引同源，第三处人工同步点
+  消除；contracts.manifest_validation._BUSINESS_LINES 为 L0 分层
+  隔离的独立声明面不随收编）；导出：批量命名推导段 walrus 泄漏
+  循环变量清理（#27a——行为零变，stale 409 次序开放面见 #27b 行）；
+  agent：run_tool 成功载荷不再物化 {"error": null} 入会话 JSONL
+  （#28——失败载荷错误语义不变）；server：_safe_out_name docstring
+  归位真 docstring 位（#29a——help() 可见，懒 import 语义零变）、
+  GET /api/constraints 描述去冻「18 条」数量口径（#29b——openapi
+  合法再生 diff 仅 description 一行，orval 生成面同步仅注释一行变）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
