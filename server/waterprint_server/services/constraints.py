@@ -35,7 +35,7 @@
 #      运行期守卫（未知字段即拒 InvalidConstraintError——枚举行字段命名
 #      空间无静态注册表，加载期不重复校验；kb README 差异记档同面）。
 #
-# 【测试要求】真源投影（18 条/两类 kind/unit_kinds 面/key 唯一）、
+# 【测试要求】真源投影（条数随数据包约束库、两类 kind/unit_kinds 面/key 唯一）、
 #   fail-visible 四路（缺失/损坏/缺键/重复）、缓存单例、双跑字节同、
 #   路由 200 形态（client 面）。
 #

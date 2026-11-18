@@ -16,7 +16,7 @@ import { useListConstraintsApiConstraintsGet } from "../../../shared/api/generat
 
 import { narrowConstraintCatalog } from "../lib/constraintPicker";
 
-/** 约束目录查询（静态 kb——18 条两类整发，D6 不分页）。 */
+/** 约束目录查询（静态 kb——两类 kind 整发、条数以数据包约束库为准，D6 不分页）。 */
 export function useConstraints(enabled = true) {
   return useListConstraintsApiConstraintsGet({
     query: {
