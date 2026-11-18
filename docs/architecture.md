@@ -259,9 +259,9 @@ check_module_graph L6 节点校验（ADR-020）。
 `python -m` 启动块+容器 entrypoint；校验面=五包
 assumptions/coefficients/constraint_kb/templates/unit_prices，AUDIT-#3 b24
 起 assumptions 收口进校验面，core 装载同走 `WATERPRINT_DATA_DIR`）。
+本地开发注记：server venv 的 waterprint-core 为非 editable 拷贝安装——core 改动后须 `uv sync --reinstall-package waterprint-core` 刷新再跑 server 测试（CI fresh sync 无此问题）。
 data_version 聚合串=三包 `assumptions@…+coefficients@…+unit_prices@…`
-（包名排序拼接；assumptions 版本槽入聚合系 AUDIT-#4 b24，版本槽抬版
-仍需人工——改数不抬版不会被机器识别）。
+（包名排序拼接；assumptions 版本槽入聚合系 AUDIT-#4 b24，抬版仍需人工）。
 服务重启不续跑任务：崩溃/强杀残留的排队与运行中任务转 failed
 （InterruptedByRestart），优雅停机时排队任务转 cancelled；终态任务
 记录可查。
