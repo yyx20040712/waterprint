@@ -41,7 +41,7 @@
 | 系统 | 路径 | 职责 | 边界 |
 |---|---|---|---|
 | 计算内核 | `core/waterprint/` | 纯 Python：单元库、图引擎、枚举、导出 | 禁 import 服务层依赖（fastapi/structlog）；数值零字面量 |
-| 服务层 | `server/waterprint_server/` | FastAPI：routers → services → jobs，计算进程池、任务注册表、导出 | 不含工艺计算逻辑（例外：FD design-map 同步直返在进程内 to_thread）；统一异常映射 |
+| 服务层 | `server/waterprint_server/` | FastAPI：routers → services → jobs，计算进程池、任务注册表、导出 | 不含工艺计算逻辑（例外：FD design-map 可行域求值在进程内 asyncio.to_thread 同步直返——~1s 级 CPU 防阻塞，非计算进程池；其余同步端点内联执行轻投影面，async 阻塞策略两制为接受设计，见 §6.1 #19）；统一异常映射 |
 | 前端 | `webapp/src/` | React + R3F 三维（feature 切片）；交互画布在 app 层（shellV4/thumbnailFlow），canvas 片承载投影/数据层 | API 客户端由 OpenAPI 生成（orval），禁手写 |
 | 数据包 | `data/` | 版本化数值资产（assumptions/coefficients/constraint_kb/templates/unit_prices） | 全部带出处；随镜像分发，不占运行卷 |
 | 契约源 | `api-contracts/openapi.json` | OpenAPI 契约 | 前端客户端唯一生成源 |
@@ -191,9 +191,10 @@ design 态变更 + 新 content-hash，不允许后台自调。
 影响面。服务端聚合按去重键三元组 **(code, param_key, scope)** 跨工况聚合：
 scope=影响面（"plant" 或节点 ID），命中=越门实例，severity 取最严重，
 命中工况键清单按 ConditionSet 迭代序；API 字段名硬约束 `scope` +
-`condition_keys[]`（客户端零去重逻辑）。core 两载体字段语义映射：
-PlantWarning.condition_key 载荷=影响面，unit_api.Warning.condition_key=
-所属工况键。契约两处：单条警告=`core/waterprint/contracts/validation.py`
+`condition_keys[]`（客户端零去重逻辑）。core 两载体字段语义映射
+（AUDIT-#5 裁决定案 2026-11-18：维持现名不改，接受设计非开放债，
+见 §6.1）：PlantWarning.condition_key 载荷=影响面，
+unit_api.Warning.condition_key=所属工况键。契约两处：单条警告=`core/waterprint/contracts/validation.py`
 （PlantWarning），聚合响应行=`server/waterprint_server/services/validation.py`
 （AggregatedWarning）。前端聚合视图尚未接线（开放面见 §6.1）。
 
@@ -210,9 +211,12 @@ units_lib/<line>/<unit>/
 ```
 
 单元对外只暴露 `UNIT_ID`、`make_unit`、`manifest` 三名（装配消费面按
-两名铁律校验 manifest+make_unit）。compute 形态两态并存：municipal 13 包
-= `_apply_batch` 同源向量路径（ADR-011），其余三线 19 包 = `_apply`
-标量路径（批量=逐行调用；收口状态见 §6.1）。新单元用
+两名铁律校验 manifest+make_unit）。compute 形态两态为受支持路径（ADR-011
+豁免定案 2026-11-18）：municipal 13 包 = `_apply_batch` 同源向量路径，
+其余三线 19 包 = `_apply` 标量路径——批量=逐行调用（19 包逐行 `_apply`
+驱动、13 包 N=1 退化形态），非逐元素向量语义；向量包 N>1 批量的首元素
+离散口径（aao/compute.py 四处取首）为已知边界，显式 N==1 拒绝守卫排期
+审计治理批 b26。新单元用
 `uv run python -m waterprint.cli new-unit <line> <name>`（core 目录执行；
 wp console script 未注册）从 `_template` 生成，先登记 structure-graph §3
 与 file-contracts §3 再实现。预算墙拆件配方（ADR-024）：manifest 顶墙立
@@ -266,7 +270,7 @@ check_module_graph L6 节点校验（ADR-020）。
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `WATERPRINT_PROJECTS_DIR` / `WATERPRINT_EXPORTS_DIR` | /app/projects、/app/exports | 项目/导出根（卷挂载点） |
+| `WATERPRINT_PROJECTS_DIR` / `WATERPRINT_EXPORTS_DIR` | /app/projects、/app/exports | 项目/导出根（卷挂载点）；裸机缺省两基点不对称——projects_dir 保持 CWD 相对形态、exports_dir 构造期 resolve() 绝对化（接受设计，见 §6.1 #32） |
 | `WATERPRINT_DATA_DIR` | /app/data | 数据包根（assumptions 包除外，见 §6.1） |
 | `WATERPRINT_CALC_WORKERS` | max(1, CPU 数−1) | 计算进程池大小 |
 | `WATERPRINT_API_TOKEN` | 空=鉴权关 | Bearer token，非空即生效，≥16 位 |
@@ -352,17 +356,43 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 
 ### 6.1 已知风险与在册开放面
 
+审计治理（2026-11-18，34 项）定档后的在册挂账如下表——本表为仓内挂账
+唯一权威载体（编号=审计议题号；重启触发条件未发生即不重启）。#5/#26 为
+用户裁决不改（接受设计，非开放债）；#10 为独立产品/schema 需求（未立项）；
+#22 状态随 #1 不独立挂账；#2（compute 双形态）已随 ADR-011 豁免定案
+收口（现行口径见 §3.8，AAO N==1 守卫排期 b26，不构成在册开放面）。
+
+| AUDIT | 类型 | 当前决定 | 重启触发条件 | 代码锚 |
+|---|---|---|---|---|
+| #5 | 接受设计（裁决不改） | condition_key 双载体保留现名：PlantWarning.condition_key=影响面、unit_api.Warning.condition_key=工况键（§3.7 映射为定案） | core 公共契约准备做版本化迁移且旧 artifact 有处置方案 | core/waterprint/contracts/validation.py:79；contracts/unit_api.py:113 |
+| #9 | 开放债（P3） | compareView 三格式化函数本层复刻 solutionsView 配方（12 行；features 互禁 import 的显式替代，注记在案） | 出现第三份复刻、格式规则漂移或 shared 层有明确通用归属 | webapp/src/features/compare/lib/compareView.ts:189-210 |
+| #10 | 产品需求（未立项） | Constraint.source 存 kb 键、来源文本装载即弃；Suggestion.basis 只能引键，不扩 schema | 产品明确需要 Suggestion.basis 展示完整来源文本并批准 schema/ADR 涟漪 | core/waterprint/solution/constraints.py:412 |
+| #12 | 接受设计 | 批量导出 _ITEM_FAILURES 宽族=H2 项级隔离策略（单项失败不株连批内他项，批终态 done+failures） | 出现 core 缺陷被折叠为项级 failures 的实际事故，或重新裁定项级/批共因边界 | server/waterprint_server/jobs/worker.py:342-344,450 |
+| #15 | 开放债（P3） | elevation 纵断 water_depth 缺键静默 0（depth_key=None 分支有 INFO 警告——不对称） | 该输入路径成为用户可达或诊断缺失造成实际问题 | core/waterprint/elevation/profile.py:136 |
+| #19 | 接受设计 | async 阻塞策略两制：design-map 进程内 asyncio.to_thread 同步直返例外（~1s 级 CPU 防阻塞），其余同步端点内联轻投影（§2.1 注记） | CPU profiling 证明事件循环阻塞，或新增重 CPU 端点 | server/waterprint_server/routers/calc.py:298-300 |
+| #22 | 随 #1（不独立挂账） | check_module_graph 非 §1a 节点盲区与 #1（L3→L4 上行依赖）同根，随 b23 四伴生件架构迁移同批处置 | #1 架构方案改变时随同更新 | scripts/check_module_graph.py:344-353,433-435 |
+| #24 | 开放语义债 | manifest 容错两制：unit_prices 装载 fail-fast vs data_version 聚合读 manifest 缺失/畸形静默跳过——本轮不归一 | 部署确定「无 manifest 必须 fail-fast」或确认容忍为公开契约 | core/waterprint/app.py:321-325；core/waterprint/cost/prices.py:69-78 |
+| #25 | 开放债（P3） | _design_scale_of 多进水 sorted 取首快照无警告（无输入节点流量已有 InvalidFlowError 兜底） | 多进水成为受支持场景或出现误用 | core/waterprint/flows/__init__.py:363-380 |
+| #26 | 接受设计（裁决不改） | executor 恒等再导出壳（noqa F401）=锁名设计，镜像测试 `is` 恒等断言有意钉死；SLUDGE 初值 mm×mm 借用派生有注释+golden 锚 | 锁名意图本身被新架构裁决撤销 | core/waterprint/graph/executor.py:123-140,161-163 |
+| #27b | 开放债 | 导出 stale 409 先于路由选项 422 校验的次序维持现状（#27a walrus 清理归 b29 小项批） | API 明确要统一错误优先级并批准锁测/契约变化 | server/waterprint_server/services/exports.py:299-315 |
+| #31 | 开放债（P3） | formulas_kernel.evaluate_batch 空映射裸 StopIteration（正门 apply_batch 已拦，仅绕正门可达） | formulas_kernel 成为直接公共入口 | core/waterprint/registry/formulas_kernel.py:240 |
+| #32 | 接受设计 | create_app AI 四键 os.environ.setdefault=B4-4b W1-k2 裁决的进程级注入点（worker 子进程桥只读 env）；路径基点不对称（§4.2 注记）仅注记 | 部署合同要统一 CWD/resolve 基点语义 | server/waterprint_server/settings.py:120,125；server/waterprint_server/main.py:235-244 |
+| #33 | 开放债（P3） | drafting plan_view 零尺寸/gap_count 未守卫（max(count,1) 防除零，未防零长度分格产物） | 零/负尺寸成为合法输入或实际出现空分格产物 | core/waterprint/drafting/plan_view.py:124-139 |
+| #34 | 接受设计 | flows 包内循环依赖以函数内懒 import 破环（export_batch_lib 先例，注记在案） | 循环依赖阻碍新功能或出现可简化的既有 errors 叶件 | core/waterprint/flows/params_guard.py:187-190 |
+
+其余在册开放面（非上表审计编号体系）：
+
 - **在册功能面**：厂级纵断图真实站距（现按站序排布）；ODA DWG 转换端到端
   冒烟（Linux AppImage 形态）；软著申请与开源准备；专家经验表第三建议
   来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）；
   前端警告聚合视图接线（服务端聚合 API 已落地，webapp 无消费面）。
-- **架构在档挂账**：compute 双形态并存（municipal 13 包向量化 vs 其余
-  19 包标量，ADR-011 禁长期并存，收口方向待裁决）；joint_enumeration
-  上行消费 app_* 伴生件四处（UF-33 挂账，未入结构图谱声明面）；
-  assumptions 数据包不在启动校验面且不走 WATERPRINT_DATA_DIR
-  （其余四包在校验面内）。
+- **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：
+  joint_enumeration 上行消费 app_* 伴生件四处（AUDIT-#1/#22，UF-33
+  挂账，未入结构图谱声明面）；assumptions 数据包不在启动校验面且不走
+  WATERPRINT_DATA_DIR（AUDIT-#3，其余四包在校验面内）；二沉池与 AAO
+  同值参数双包独立声明、无一致性校核（AUDIT-#6）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
-  规划语义）；二沉池与 AAO 同值参数双包独立声明、无一致性校核。
+  规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
   （removal_rates.yaml、factors.yaml 等），待专家按 §4.3 三类准入口径核定。
 - **领域待确认**：浓缩上清液/脱水滤液回流是否纳入 golden 案例（决定回路
