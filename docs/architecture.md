@@ -411,7 +411,20 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   （2026-11-18）收口——共同装配点 app_assembly.assemble 增
   `_check_linked_param_defaults`（两包同图装配时校核 x_mlss/r_external
   声明默认值同值，异值 InvalidAssemblyError 明确拒绝不静默选边；单包
-  独立装载不校核，包间禁互 import 不破——校核在装配层，两包互不感知）。
+  独立装载不校核，包间禁互 import 不破——校核在装配层，两包互不感知）。；AUDIT-#16/#17/#18（复制/惯式
+  收敛）已随 b27（2026-11-18）收口——server 四份逐字复制
+  _load_diagnostics〔trust/ops_debug/report/validation〕+site 取数降级
+  变体收编 services/_shared/latest_calc 既有件（load_diagnostics/
+  latest_done_result_or_none——行为对照表六态恒等 None 后机械合并，
+  三态降级语义零变；site「无结果返 None 不抛」故意的降级语义保留为
+  变体而非改正门）；core 五份同构 summary 合并 helper〔app._with_energy
+  +四伴生件 _with_*〕单源=app_energy.merge_summary_fields（五消费面
+  保名再导出——锁定测试 import 面恒等，合并前后结果树逐字节恒等，
+  app.py 500→495 行预算减压）；原子写惯式四处按 H5 最严清理归一
+  （flows 三处抽件内 _atomic_write 单源，project/io save_project 补
+  全异常清理——半写 .tmp 不残留；result_persist_flow 的 uuid 唯一
+  tmp 名=K-01 并发双写防护故意语义保留，io 与 flows 跨包不共享件
+  记为例外非强行统一）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
