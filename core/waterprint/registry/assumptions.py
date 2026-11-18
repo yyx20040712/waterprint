@@ -213,14 +213,19 @@ DATA_VERSION: Final[str] = _MANIFEST_LOADED[0]
 
 def resolved_version_for(data_dir: Path) -> str:
     """AUDIT-#4 回炉：UF-10 聚合槽取实际装载版本；data_dir 内 manifest 在场
-    且版本相异（混合数据根）=fail-fast（DATA_VERSION 调用时解析——测试可
-    monkeypatch 模块全局）。"""
+    且版本为非空 str 且相异（混合数据根）=fail-fast（DATA_VERSION 调用时
+    解析——测试可 monkeypatch 模块全局）；manifest 缺席/不可读/语法畸形/
+    非映射/版本空串=容忍回落实载版本（#24 容错口径，不泄漏解析异常）。"""
     local = data_dir / "assumptions" / "manifest.yaml"
     if local.is_file():
-        raw = yaml.safe_load(local.read_text(encoding="utf-8"))
+        try:
+            raw = yaml.safe_load(local.read_text(encoding="utf-8"))
+        except (yaml.YAMLError, OSError, UnicodeDecodeError):
+            return DATA_VERSION
         if (
             isinstance(raw, Mapping)
             and isinstance(raw.get("data_version"), str)
+            and raw["data_version"]
             and raw["data_version"] != DATA_VERSION
         ):
             raise InvalidAssumptionError(
