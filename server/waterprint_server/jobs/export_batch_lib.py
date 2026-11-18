@@ -39,14 +39,16 @@ _LOGGER = structlog.get_logger(__name__)  # 边车登记失败告警面（迁移
 
 
 def _safe_out_name(name: str, kind: str) -> str:
-    from waterprint_server.jobs.worker import (  # noqa: PLC0415  # 懒 import 破环（worker 装载期先 import 本件）
-        InvalidTaskPayloadError,
-    )
-
     """R1-1 二道闸：产物文件名防逃逸（无分隔符/无 .. /非空——payload 直注
     IPC 面防线；服务面已过白名单，本闸防绕过服务层直构 payload，§18）。
     D-02（R-1）：kind=dxf 强制 .dxf 后缀——防 out_name="foo.dwg" 时转换
     产物 with_suffix 同路径覆盖已交付 DXF；SVRB D3：ifc 同款单特判。"""
+    # b29 AUDIT-#29a：docstring 归位函数体首语句（原悬于懒 import 之后——
+    # help()/_license 面不可见；懒 import 破环位置与语义零变）。
+    from waterprint_server.jobs.worker import (  # noqa: PLC0415  # 懒 import 破环（worker 装载期先 import 本件）
+        InvalidTaskPayloadError,
+    )
+
     if (
         not name
         or "/" in name
