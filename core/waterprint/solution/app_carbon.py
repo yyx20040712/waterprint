@@ -23,8 +23,9 @@
 #       纯投影：逐工况按 C-F1~F12 合成碳排平键（sparse——批6b 增
 #       C-F10 燃料 CO₂/C-F11 燃烧次要/C-F12 消化净 CH₄ 三式）。
 #   _with_carbon(base, extra) -> dict[...]
-#       summary 合并注入（_with_opex 同语义——同工况字典 update、
-#       base 键族优先，两族键集无交集由命名域保证）。
+#       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
+#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【公式（C-F1~F12，逐工况 sparse——键有则录无则略；单位换算与因子
 #   全经 factor.carbon.* 键——魔法数字门禁：数值字面量零）】
@@ -88,6 +89,11 @@ from collections.abc import Mapping
 from typing import Final
 
 from waterprint.contracts.run_env import CoefficientsView
+from waterprint.solution.app_energy import merge_summary_fields
+
+# b27 AUDIT-#18：五份同构合并 helper 单源=app_energy（赋值再导出保名——
+# tests/app/test_app_carbon 直 import 面恒等，合并语义逐字同源零行为变化）。
+_with_carbon = merge_summary_fields
 
 _CARBON_PREFIX: Final[str] = "factor.carbon."
 _KEY_GRID: Final[str] = "factor.carbon.grid_co2"
@@ -252,13 +258,3 @@ def carbon_summary_of(
         summary[condition_key] = out
     return summary
 
-
-def _with_carbon(
-    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
-) -> dict[str, dict[str, float]]:
-    """summary 合并注入：既有平键族 + carbon_* 碳排键（B4-2c 终裁——同工况
-    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
-    for condition_key, fields in extra.items():
-        if condition_key in base:
-            base[condition_key].update(fields)
-    return base

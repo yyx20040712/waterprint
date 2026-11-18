@@ -216,6 +216,9 @@ from waterprint.registry.effluent import load_effluent_standards
 # b23 2026-11-18（议题 #1+#22）：四聚合投影伴生件迁 solution 再导出（边沿 §1b 既有 app→solution）。
 from waterprint.solution.app_carbon import _with_carbon, carbon_summary_of
 from waterprint.solution.app_energy import energy_summary_of
+from waterprint.solution.app_energy import (  # b27 AUDIT-#18：五份同构单源保名（import as）
+    merge_summary_fields as _with_energy,
+)
 from waterprint.solution.app_influent import _with_influent, influent_summary_of
 from waterprint.solution.app_opex import _with_opex, opex_summary_of
 from waterprint.solution.constraints import KbConstraint, apply_constraints, load_kb_constraints
@@ -358,17 +361,9 @@ class ResultBundle:
 
 # D10（B4-3 迁移 2026-09-20）：_summary_of 定义面迁 joint_enumeration.
 # final_eval.terminal_summary（末段复验同源消费——双胞胎禁令单源化）。
-
-
-def _with_energy(
-    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
-) -> dict[str, dict[str, float]]:
-    """summary 合并注入：六指标族 + 能耗药耗平键（ADR-024 D2——同工况
-    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
-    for condition_key, fields in extra.items():
-        if condition_key in base:
-            base[condition_key].update(fields)
-    return base
+# b27（AUDIT-#18 2026-11-18）：_with_energy 本地 def 退役——五份同构
+# 合并 helper 单源=app_energy.merge_summary_fields（本件 import as 保名，
+# 调用点零变；四伴生件 _with_* 同批保名再导出）。
 
 
 def run_full_calc(

@@ -19,8 +19,9 @@
 #       -> dict[工况→dict[平键→float]]
 #       纯投影：逐工况从进水声明节点投 Q/负荷平键（sparse）。
 #   _with_influent(base, extra) -> dict[...]
-#       summary 合并注入（_with_opex 同语义——同工况字典 update、
-#       base 键族优先，两族键集无交集由命名域保证）。
+#       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
+#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【进水声明节点识别（终裁 D3 路①）】无入边（不在 edges dst 集）且
 #   outflows 含 f"{unit_id}.out.q_avg_daily" 键的单元——q_avg_daily 为
@@ -59,6 +60,11 @@ from typing import Final
 from waterprint.contracts.ports import Edge
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.contracts.run_env import CoefficientsView
+from waterprint.solution.app_energy import merge_summary_fields
+
+# b27 AUDIT-#18：五份同构合并 helper 单源=app_energy（赋值再导出保名——
+# tests/app/test_app_influent 直 import 面恒等，合并语义逐字同源零行为变化）。
+_with_influent = merge_summary_fields
 
 _KEY_S_PER_D: Final[str] = "factor.influent.s_per_d"
 _KEY_CONV: Final[str] = "factor.carbon.conv_mg_l_kg_m3"
@@ -111,13 +117,3 @@ def influent_summary_of(
         summary[condition_key] = fields
     return summary
 
-
-def _with_influent(
-    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
-) -> dict[str, dict[str, float]]:
-    """summary 合并注入：既有平键族 + influent_* 负荷键（B4-2c 终裁——同工况
-    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
-    for condition_key, fields in extra.items():
-        if condition_key in base:
-            base[condition_key].update(fields)
-    return base

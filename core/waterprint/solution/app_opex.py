@@ -17,8 +17,9 @@
 #   opex_summary_of(base, coefficients) -> dict[工况→dict[平键→float]]
 #       纯投影：逐工况按 F1~F3 合成年运行成本键（sparse）。
 #   _with_opex(base, extra) -> dict[...]
-#       summary 合并注入（_with_energy 同语义——同工况字典 update、
-#       base 键族优先，两族键集无交集由命名域保证）。
+#       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
+#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       update、base 键族优先，两族键集无交集由命名域保证）。
 #
 # 【公式（F1~F3，逐工况 sparse——键有则录无则略）】
 #   F1 cost_electricity_yuan_a = power_total_kwh_d
@@ -59,6 +60,11 @@ from collections.abc import Mapping
 from typing import Final
 
 from waterprint.contracts.run_env import CoefficientsView
+from waterprint.solution.app_energy import merge_summary_fields
+
+# b27 AUDIT-#18：五份同构合并 helper 单源=app_energy（赋值再导出保名——
+# tests/app/test_app_opex 直 import 面恒等，合并语义逐字同源零行为变化）。
+_with_opex = merge_summary_fields
 
 _OPX_PREFIX: Final[str] = "factor.opex."
 _KEY_ELECTRICITY: Final[str] = "factor.opex.electricity"
@@ -105,13 +111,3 @@ def opex_summary_of(
         summary[condition_key] = costs
     return summary
 
-
-def _with_opex(
-    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
-) -> dict[str, dict[str, float]]:
-    """summary 合并注入：既有平键族 + cost_* 年成本键（B4-2b 终裁——同工况
-    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
-    for condition_key, fields in extra.items():
-        if condition_key in base:
-            base[condition_key].update(fields)
-    return base

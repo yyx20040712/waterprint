@@ -4,7 +4,8 @@
        键名约定；批6b 增碳上游供数族 fuel_gas_nm3_d/vs_degraded_kg_d/
        biogas_m3_d——app_carbon C-F10~F12 消费面）
 输出:  energy_summary_of（app.run_full_calc 与 _summary_of 六指标族合并注入
-       summary——开放映射槽位，result_schema 零改）
+       summary——开放映射槽位，result_schema 零改）+ merge_summary_fields
+       （summary 合并注入单源——b27 AUDIT-#18 五份 _with_* 同构收敛）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -16,6 +17,12 @@
 # 【公开接口】
 #   energy_summary_of(plant) -> dict[工况→dict[平键→float]]
 #       纯投影：逐工况 Σ 全部单元 dims 中的能耗/药耗键。
+#   merge_summary_fields(base, extra) -> dict[...]
+#       summary 合并注入单源（b27 AUDIT-#18 2026-11-18：五份同构
+#       _with_energy/_with_opex/_with_influent/_with_carbon/
+#       _with_maintenance 收敛——同工况字典 update、base 键族优先、
+#       两族键集无交集由命名域保证；五消费面保名再导出 import 面
+#       恒等，逻辑体逐字同源零行为变化）。
 #
 # 【键名约定聚合（D2）】零单元耦合表——单元以标准键名自报消耗：
 #   能耗：e_aeration（kWh/d，AAO AO-F23/CASS CA-F31）、e_pump（TS-F16/
@@ -108,3 +115,14 @@ def energy_summary_of(plant: PlantResult) -> dict[str, dict[str, float]]:
             totals[_POWER_TOTAL] = sum(totals[k] for k in power_keys)
         summary[condition_key] = totals
     return summary
+
+
+def merge_summary_fields(
+    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
+) -> dict[str, dict[str, float]]:
+    """summary 合并注入（b27 AUDIT-#18 五份 _with_* 同构单源）：同工况
+    字典 update；base 键族优先，两族键集无交集由命名域保证。"""
+    for condition_key, fields in extra.items():
+        if condition_key in base:
+            base[condition_key].update(fields)
+    return base

@@ -20,8 +20,9 @@
 #       sensitivity 工况（offline_unit 非 None）×目标单元；目标单元快照
 #       双方在场才发键（sparse——缺席=空面不造键）。
 #   _with_maintenance(base, extra) -> dict[...]
-#       summary 合并注入（_with_carbon 同语义——同工况字典 update、
-#       base 键族优先，两族键集无交集由 maint.* 命名域保证）。
+#       summary 合并注入（b27 AUDIT-#18 起单源=app_energy.
+#       merge_summary_fields，本件 import as 保名再导出——同工况字典
+#       update、base 键族优先，两族键集无交集由 maint.* 命名域保证）。
 #
 # 【三面口径】
 #   观测面（轴③）maint.<node>.ratio.<field> = offline/design——分化键集：
@@ -80,12 +81,17 @@ import pandas  # type: ignore[import-untyped]  # pandas-stubs 未随包分发（
 from waterprint.contracts.condition import ConditionSet
 from waterprint.contracts.result_schema import PlantResult
 from waterprint.graph.executor_assembly import UnitRegistry
+from waterprint.solution.app_energy import merge_summary_fields
 from waterprint.solution.constraints import (
     BOUNDARY_CHECK_KIND,
     KbConstraint,
     apply_constraints,
     expression_fields,
 )
+
+# b27 AUDIT-#18：五份同构合并 helper 单源=app_energy（赋值再导出保名——
+# tests/app/test_app_maintenance 直 import 面恒等，合并语义逐字同源零行为变化）。
+_with_maintenance = merge_summary_fields
 
 _KEY_PREFIX: str = "maint."
 _RATIO_INFIX: str = ".ratio."
@@ -177,13 +183,3 @@ def maintenance_summary_of(
         )
     return out
 
-
-def _with_maintenance(
-    base: dict[str, dict[str, float]], extra: dict[str, dict[str, float]]
-) -> dict[str, dict[str, float]]:
-    """summary 合并注入：既有平键族 + maint.* 检修观测键（UF-61——同工况
-    字典 update；base 键族优先，两族键集无交集由命名域保证）。"""
-    for condition_key, fields in extra.items():
-        if condition_key in base:
-            base[condition_key].update(fields)
-    return base
