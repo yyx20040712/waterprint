@@ -27,7 +27,7 @@
   "引擎版本（engine_version）",
   "0.1.2",
   "数据版本（data_version）",
-  "coefficients@1.8.0+unit_prices@1.2.0",
+  "assumptions@1.0.0+coefficients@1.8.0+unit_prices@1.2.0",
   "项目文件格式版本（format_version）",
   "4.0",
   "工艺单元数",

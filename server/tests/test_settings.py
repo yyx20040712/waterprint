@@ -78,7 +78,7 @@ def test_path_component_whitelist_rejects_traversal() -> None:
 #     2026-09-26 用户「全部追认」授权落地；R4 C-3 八用例（test_r4_draft.py
 #     C-3 节单源）同笔并落——E2E-1 呈批件 2026-09-25 追加节工序）══
 
-import shutil  # noqa: E402 （域内追加——C-3 四包全拷用）
+import shutil  # noqa: E402 （域内追加——C-3 五包全拷用）
 
 import yaml  # noqa: E402 （域内追加——C-3 路径锁定断言用）
 
@@ -86,7 +86,7 @@ default_data_dir = getattr(_mod, "default_data_dir", None)
 validate_data_packages = getattr(_mod, "validate_data_packages", None)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]  # conftest 同名常量镜像自持
-_PACKAGES = ("coefficients", "constraint_kb", "templates", "unit_prices")
+_PACKAGES = ("assumptions", "coefficients", "constraint_kb", "templates", "unit_prices")
 
 
 def test_data_dir_default_resolves_repo_root_cwd_independent(
@@ -129,7 +129,7 @@ def test_data_dir_env_overrides_default_factory(
 
 
 def _c3_make_settings(data_dir: Path, tmp_path: Path):
-    """四包齐备 data_dir 的 Settings（C-3 判据载体——tmp 三基点隔离）。"""
+    """五包齐备 data_dir 的 Settings（C-3 判据载体——tmp 三基点隔离；b24 五包）。"""
     return Settings(  # type: ignore[misc]
         projects_dir=tmp_path / "projects",
         exports_dir=tmp_path / "exports",
@@ -140,14 +140,14 @@ def _c3_make_settings(data_dir: Path, tmp_path: Path):
 
 
 def _c3_copy_full_packages(target: Path) -> Path:
-    """四包全拷（与仓库真包逐字节一致）。"""
+    """五包全拷（与仓库真包逐字节一致；AUDIT-#3 b24 assumptions 入列）。"""
     for name in _PACKAGES:
         shutil.copytree(REPO_ROOT / "data" / name, target / name)
     return target
 
 
 def test_c3_real_packages_pass(tmp_path: Path) -> None:
-    """C-3 判据对仓库真包 PASS（防过度拒绝回归锚——四包 manifest 均非空映射）。"""
+    """C-3 判据对仓库真包 PASS（防过度拒绝回归锚——五包 manifest 均非空映射）。"""
     data_dir = _c3_copy_full_packages(tmp_path / "data")
     validate_data_packages(_c3_make_settings(data_dir, tmp_path))  # type: ignore[misc]
 

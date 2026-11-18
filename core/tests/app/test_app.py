@@ -240,7 +240,10 @@ def test_load_run_env_composes_and_overrides(golden_data_dir: Path) -> None:
     env = load_run_env(_REPO_DATA, patched)
     assert isinstance(env.coefficients, Coefficients)  # registry 真源（适配器退役面）
     assert env.engine_version == core_version  # 缺省=core 包根 __version__
-    assert env.data_version.startswith("coefficients@") and "unit_prices@" in env.data_version
+    # AUDIT-#4 b24：三包成员行为断言（排序首位=assumptions——非计数钉死）
+    assert env.data_version.startswith("assumptions@") and (
+        "coefficients@" in env.data_version and "unit_prices@" in env.data_version
+    )
     assert env.assumptions["loop.damping"] == pytest.approx(0.5)  # design 覆盖合成
     assert env.price_book == {} and env.trace_sink is None and env.engine_params == {}
     overridden = load_run_env(_REPO_DATA, patched, engine_version="waterprint-server 0.1.0")

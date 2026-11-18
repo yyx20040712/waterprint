@@ -387,7 +387,7 @@ def test_conveyance_jishuijing_checked_rejected(golden_data_dir: Path) -> None:
     )
     env = RunEnv(
         engine_version="waterprint-server 0.1.0",
-        data_version="coefficients@1.8.0+unit_prices@1.2.0",
+        data_version="assumptions@1.0.0+coefficients@1.8.0+unit_prices@1.2.0",  # b24
         assumptions={entry.key: entry.default for entry in DEFAULT_ASSUMPTIONS},
         coefficients=load_coefficients(_REPO_DATA),
         price_book={}, trace_sink=None, engine_params={},

@@ -10,7 +10,7 @@
 | --- | --- |
 | 设计内容哈希（content_hash） | 95a3313a4ee2a361a9f63b779b6a22147553925fc728fec13dd53c426c2e7108 |
 | 引擎版本（engine_version） | 0.1.2 |
-| 数据版本（data_version） | coefficients@1.8.0+unit_prices@1.2.0 |
+| 数据版本（data_version） | assumptions@1.0.0+coefficients@1.8.0+unit_prices@1.2.0 |
 | 项目文件格式版本（format_version） | 4.0 |
 | 工艺单元数 | 19 |
 | 单元连接数 | 17 |

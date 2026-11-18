@@ -516,10 +516,10 @@
     }
   },
   "generated": {
-    "data_version": "coefficients@1.8.0+unit_prices@1.2.0",
+    "data_version": "assumptions@1.0.0+coefficients@1.8.0+unit_prices@1.2.0",
     "engine_version": "waterprint-server 0.1.0",
-    "serialize_bytes": 110509,
-    "serialize_sha256_head": "4d5e399e3a2bd312",
+    "serialize_bytes": 110527,
+    "serialize_sha256_head": "e5f244a8def00c60",
     "source": "inlet-m3d 批锁面重录 2026-10-02（claim=executor-inlet-m3d-20261002；市政三案 inlet 0.4023229167 m³/s→34760.7 m³/d+format_version 4.0——serialize 含 v4 版本头 design_hash 与流量比例数值面；effluent 六指标浓度/键集零变；mine_43836 输入零触碰，serialize sha 漂=v3→v4 读时迁移版本头（数值面零漂，字节长度恒等））"
   },
   "m3_deferred": {
