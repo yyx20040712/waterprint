@@ -17,7 +17,7 @@
 # 【行为规格】
 #   R1 生成物只经本模块入库（README 规则：禁手改——orval 生成物的
 #      单一事实源）；CI contract-drift job 不启用（挂账 M3 前与 orval
-#      一起收口——undefined-features-register 登记）。
+#      一起收口——docs/archive/undefined-features-register.md 登记）。
 #   R2 确定性：同 app 双跑字节相同（dump 双跑 diff 探针实录）。
 # ══════════════════════════════════════════════════════════════════
 

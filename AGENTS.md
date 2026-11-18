@@ -1,385 +1,72 @@
-# AGENTS.md —— WaterPrint 项目宪法
+# AGENTS.md —— WaterPrint
 
-> 适用于所有人类开发者与 AI 协作者。全部规则由 CI 机器强制（scripts/ + .github/workflows/），
-> 不依赖自觉。规则来源：《AI辅助开发经验教训.md》与《重写计划》§6/§13/§14/§17。
-> 本文件 ≤500 行（门禁检查）。与重写计划冲突时，以计划最新修订为准并更新本文件。
+> 规则的执行权威是门禁脚本（`scripts/run_gates.py` 一键全跑，逐门说明
+> 见 `scripts/README.md`）。本文件只载启动约束、硬约束、常用命令与文档路由。
 
-<!-- VOCAB-MAP:BEGIN 2026-09-10 -->
-### 词汇映射表（本项目词汇 ↔ 技能 ai-dev-org 通用词；历史原文零改动——本表是桥，不是改写令）
+## 启动约束
 
-| 本项目词汇 | 技能通用词 |
+1. 读 `docs/architecture.md` 了解工程现状；
+2. 动代码前查两表：`docs/file-contracts.md`（文件职责）与
+   `docs/structure-graph.md`（模块依赖与调用链）；
+3. 读目标文件头部"规格说明"与对应镜像测试（`core/tests/**/test_*.py`，
+   正确行为的定义）；
+4. 规格与 `docs/architecture.md` 横切约定均无答案时停下来问，
+   不就地自创语义。
+
+## 硬约束
+
+以下条目后果重或需人类流程，未跑门禁也应知悉；其余代码规则
+（分层依赖、行数预算、占位实现、裸 except、魔法数字、模型代号）
+由门禁强制，细则见 `scripts/README.md`。
+
+- 测试目录由 `test-lock.manifest.json` 哈希锁定（`core/tests/`、
+  `server/tests/`、units_lib 包内 `tests/`、`agent/tests/`）：修改测试
+  与 manifest 属人类显式流程（`scripts/lock_tests.py`）。
+- 生成物禁手编：`docs/status.md`（`gen_status.py` 单源）、structure-graph
+  节点表与同层边声明块、file-contracts 的路径与导名列。
+- 新源码文件先登记 `docs/file-contracts.md` 职责表（CI 双向校验）。
+- 全部文件 UTF-8；Python 写文件显式 `encoding="utf-8"`。
+- 提交信息中文、一个 commit 一个目的、首行完整一句话。
+
+## 常用命令
+
+```bash
+# 计算内核（uv）
+cd core && uv sync && uv run pytest
+
+# 门禁全跑（零依赖，系统 Python 直跑）
+python3 scripts/run_gates.py
+
+# 服务（默认只听 127.0.0.1:8000；数据包缺省自动定位 <仓库根>/data）
+cd server && uv sync && uv run python -m waterprint_server.main
+
+# 前端（pnpm）
+pnpm install && pnpm -C webapp dev
+
+# 部署（Docker 双容器，唯一对外入口 http://localhost:8080）
+docker compose -f deploy/compose.yml up -d --build
+
+# 状态计数再生成与校验（docs/status.md 为生成物）
+python3 scripts/gen_status.py --check
+```
+
+## 文档路由
+
+| 文档 | 内容 |
 |---|---|
-| 闸/闸 2 授权 | 门审/授权批次 |
-| R 轮 | 回炉轮 |
-| 晨报/handover | 交接书 |
-| 门禁（12 项，pnpm gates） | verify 全链 |
-| 冻结提取（E） | SRE 诊断岗·冻结提取 |
-| 总控 | 主控 |
-| 双审（D 一审/A 二审） | 门一/门二 |
-| 五层规约 | 任务书六段模板（技能 references/02 §4） |
-| 简报（briefs/ 形态） | 任务书/工单 |
-| 拟定/设计书（路线级） | 拟定者 drafter 岗（三段通道，技能 02 §8.6） |
-| ds 审（ds_review 通道） | 审核者 auditor-readonly 岗承载 |
+| `docs/architecture.md` | 当前工程现状（架构/横切约定/部署/质量与风险） |
+| `docs/file-contracts.md` | 逐文件职责表（机器校验） |
+| `docs/structure-graph.md` | 模块依赖/调用链/单元业务身份（机器校验） |
+| `docs/adr/` | 决策记录 |
+| `docs/norms/` | 规范摘录与手算对照表（测试期望唯一合法来源） |
+| `docs/status.md` | 项目计数（生成物，`gen_status.py` 单源） |
+| `docs/archive/` | 历史文档与被替代材料（默认不读；`archive/README.md` 有新旧映射与旧宪法节号对照） |
 
-（来源：适配任务书 §4 初稿 7 行+实扫增补 2 行；用户裁决 2026-09-10 全部确认。
-新写文档引用历史词汇时按技能 08 §3 用本表括注。）
-<!-- VOCAB-MAP:END -->
+行为或约束变化时，同批更新受影响的活文档。
 
-## 0. 阅读顺序（每次会话开始前）
+## 多代理协作
 
-0. **启动 ai-dev-org 技能（通用标准化工作流程——先于一切项目记录）**
-   （2026-09-12 用户 Ruling「skills 先启动再到文件夹找项目记录」）：
-   ①Skill 实际调用 ai-dev-org（非纸面引用）；②`org-config resolve`
-   （模型路由/源序/额度——派发前提）+外部派发前健康检查
-   （`log-triage --health` 出门一双源派发推荐）；③按批次类型取管道模板
-   （references/02：批次/工单/呈裁/收口模板）+岗位定档（07 卡）；
-   ④§0.1 盘点件=以上执行记录（非技能清单罗列）——**顺序不可倒置**
-   （倒置=技能沦为盘点件里的引用文献，执行漂移 n+52 实录根因）；
-1. 本文件；2. `docs/file-contracts.md`（你要动的文件职责）；
-3. `docs/structure-graph.md`（依赖与调用链）与 `docs/business-logic.md`
-   （单元间业务规则：参数链/耦合归属/守恒/可行解流程）；
-4. 目标文件头部"规格说明"；5. 对应镜像测试 `core/tests/**/test_*.py`
-   （正确行为的定义，只读）；6. `docs/engineering-conventions.md`
-   （规格沉默处的默认答案）与 `docs/undefined-features-register.md`
-   （未定义特性登记——发现新项先登记，禁止就地自创语义）。
-
-### 0.1 技能与智能体盘点（任何工作启动时，先于一切执行动作）
-
-- 会话/任务启动后、写第一行代码或第一份产物前，必须先枚举当前环境
-  **全部可用技能清单**（skills），逐项标注"**用 / 不用 + 一句理由**"，
-  落盘到 `.workflow/skills-inventory-<任务ID>.md`（仓库外会话工作区，
-  防宪法膨胀；宪法只载规则本身）。
-- **模型调用面同件盘点**（2026-09-02 用户 Ruling——技能调用纪律推广）：
-  同一件盘点件内枚举本批全部智能体/模型派发决定，同样逐项
-  "用 / 不用 + 一句理由"——E/I/A 承载选型（Agent 类型）、D 一审通道
-  （跨基座可用性**每批重测**，回退决定即记档）、零派发角色及理由。
-  不新设盘点文件类（防流程产出膨胀，外审 2026-09-01 M3）；
-  派发结论不缓存跨批复用。
-- **外部派发通道单源**（2026-09-12 用户 Ruling「以 skills 为信源，
-  调用本地脚本」）：模型路由规则信源=ai-dev-org 技能（org-config
-  声明路由+org-ledger 账本；密钥仓恒=zcode v2/config.json，org-config
-  零密钥）；项目 `.workflow/dispatch.py`/`ds_review.py`=历史审计通道
-  存量，**2026-10-14 三跳迁移收口批起归档失效**（旧机 Windows 路径
-  硬编码不可运行，移 `.workflow/archives/`——头注制式仅作历史参考，
-  不再为增件指引）；岗位承载=会话内 ops-* 绑定子代理（主承载——
-  外部派发器已随技能 2026-10-03 派发器退役批删除，应急启用须新
-  用户裁决）；**禁止散放根部一次性派发脚本**（3d_dispatch.py 案
-  2026-09-12 已退役）；派发盘点须登记所用通道（标准=ops-* 会话内
-  派发；降级=经新用户裁决的应急通道——「存量」类随归档退役）。
-  已知环境档：本机 Node 25.2.1 派发器退出阶段 libuv 崩溃（ai-dev-org
-  RESIDUALS/HOST-node25）——外部派发一律用 Node 24 跑（派发器启动时
-  带版本守卫）；产物先落盘，崩溃不视为失败。会话内岗优先派 ops-*
-  绑定子代理（主承载，见 ORG-SEG 段），外部派发器=后备通道；承载
-  变更（绑定↔外部的主后备关系调整）随技能版本与用户裁决，项目
-  会话不自裁。
-- 未完成盘点不得开工；盘点结论与实际执行不符时（临时起用某技能，
-  或计划外派发/通道回退），事后补记理由。
-- **审查/设计类技能弃用须用户裁定**（2026-09-12 用户 Ruling「视觉面
-  执行漂移根因=盘点自裁」——批3 首族两审未过教训）：技能清单中的
-  审查监督类（ai-dev-org 设计岗 glm-look 三段流/code-review 类/
-  verification 类）在对应面（视觉资产/UI/发布物）**默认必用**；
-  盘点件标「不用」=越权自裁，须先呈用户裁。盘点是自报纸面件——
-  本条款把高误用成本面的「不用」决定权收归用户（机器面无法判内容
-  质量，判定权上收是最小可靠防线）。
-- **视觉资产批五步门**（同 Ruling——与代码批「规划前调研+多模型
-  双审」同构，落地 tools/blender/README.md 工序表+check_templates.mjs
-  机器门）：①建模前参考调研（多模态读真实照片/图纸→部件清单落
-  STYLE-BASE.md）→②风格基准提案过 glm-look 三段流（glm 判读→ds
-  异见→glm 终裁）→③实现→④出图后三段流复审（报告入 tools/blender/
-  reviews/）→⑤用户视觉验收必发必答。机器门=registry 声明
-  designReview≥built（缺/旧=CI WARN 记债，隐瞒声明=数据病拒）。
-- 目的：防止重复造轮子（已有技能能做的事不手搓）、防止漏用高价值
-  技能（TDD/调试/评审/验证类），省掉走弯路的成本；模型调用面同理
-  ——派发决定可追溯，通道降级不静默。
-- 技能清单随环境变化，盘点以**当次会话实际可见的清单为准**，
-  不缓存旧结论跨任务复用。
-
-## 1. 分层与依赖（import-linter 强制，违反即 CI 失败）
-
-- 只许向下依赖：L4 按装配顺序细分子层——L4.cli → L4.app →
-  L4.project-trace（project 与 trace 同子层）→
-  L3 graph/solution/elevation/cost/drafting/geometry/network
-  → L2 units_lib → L1 registry → L0 contracts。依赖只许沿层序（含 L4
-  子层序）向下：cli→app 合法；app→cli、project↔trace 等同/逆子层依赖
-  与一切向上依赖 = 失败。
-- L3 子系统之间互相独立（elevation/cost/drafting/geometry/graph/solution/network 互不 import），
-  它们只消费 L0 的 result_schema，互不感知。
-- 工艺单元包之间互相独立：units_lib 内任意两个单元包禁止互相 import。
-- 跨包只走正门：只 import 目标包 `__init__.py` 暴露的名字；访问他包 `_` 前缀 = 失败。
-- 装配点唯一：graph/executor.py 只依赖 contracts.unit_api 协议，禁止 import 任何具体单元；
-  单元的发现/实例化只发生在 app.py。
-- 计算内核（core/）禁止 import fastapi/structlog 等服务层依赖；network/ 不共享厂区图引擎。
-
-## 2. 文件与规模（scripts/check_file_budgets.py 强制）
-
-- 任何文件 ≤500 行；units_lib 的 compute.py ≤400 行（超限拆文件，无豁免
-  清单；拆法有定式：单元包走 §11 拆件配方，门禁脚本走 `<名>_lib.py`
-  共享库拆解析层——same_layer_lib/family_parity_lib 先例）。
-- 行数/语句数预算以 **HEAD 终态实测**为准（改文件前 `wc -l` 复核），
-  禁沿设计书预估值直接累加——PROFILE3 批 app_enumeration 522>500
-  计划外拆分实录（REWORK 审查条款⑤，2026-09-09 入册）。
-- 一个文件一个主概念：文件名 = 概念名；出现第二个主概念当天拆分。
-- 每个新文件必须先登记 `docs/file-contracts.md` 职责表（CI 双向校验：表多=失败，表少=失败）。
-- webapp 源文件的契约头（/** 职责/输入/输出 */）与 features 互不 import 分层
-  由 `scripts/check_webapp.py` 强制（细则=file-contracts §5，M0.5 起）。
-- 死代码即删：未被引用的文件/组件不提交；方案切换 = 删除旧方案，禁止并存。
-- 不提交运行时产物（.recent_projects、缓存、构建输出、虚拟环境）。
-
-## 3. 代码硬规则（scripts/check_grep_gates.py + ruff 强制）
-
-- 禁止占位实现与未完成标记：`not implemented` / `placeholder` / `TODO` / `FIXME`
-  + 中文硬封族 `未实现/待实现/待实装/暂不实现/留空待/待接入`，计数 = 0
-  （GOV1 2026-09-12 审计裁决 A1：六词入库时源码零命中，封中文存根盲区）。
-  未完成的功能不写存根，留空并更新职责表归属里程碑。`占位/未就绪/挂起`
-  为过载域词（模板占位符/限流槽/loading 态/挂起态流——337 处合法用法）
-  **不入封禁表**：诚实拒绝面靠 UF 登记+归属注记+领域异常→501 映射+
-  端点确定性测试四重保障（ADR-013 裁决记录）。
-- 禁止裸 `except:` 与 `except Exception`；可预期错误用领域异常（InvalidUnitConfig /
-  LoopDivergence 等）或 Result 风格返回；禁止让错误静默通过。
-- 内核禁止抛 HTTP 语义异常；server 层统一 exception handler 做映射。
-- compute.py 内禁止工况 if 分支：工况对参数的影响只走 manifest 声明式映射（ADR-007）。
-- 单位规则（ADR-002）：pint 只存在于边界（输入/输出/schema/序列化）；内核热路径用规范单位
-  裸数组（流量 m³/s、浓度 mg/L、几何 m），代码不出现换算逻辑；落盘一律"数值 + 显式 unit 字段"。
-- 全部源码/文档 UTF-8；写文件显式 `encoding="utf-8"`；Windows 开发设 `PYTHONUTF8=1`。
-  提交前验证中文可读（乱码特征串计数 = 0）。
-- 严禁魔法数字（`scripts/check_magic_numbers.py` 强制）：内核/服务代码数值
-  字面量仅允许 0/1/2/10，其余数值只许出现在 `registry/**`、
-  `contracts/quantity.py` 与 `units_lib/**/manifest.py` 真源区（白名单按
-  "前缀+文件名"双条件精确命中——manifest.py 默认值 = 带出处的声明式真源；
-  同前缀下 compute.py 等其余 units_lib 文件继续严管），或经假设清单/
-  系数库注入（每条带出处与调节影响元数据，见 `docs/business-logic.md`
-  §1/§4/§9）。
-- ruff 复杂度预算：圈复杂度 ≤10（C901）、语句 ≤40（PLR0915）、参数 ≤5（PLR0913）、分支 ≤12（PLR0912）。
-- int()/float() 求值面（外部输入派生值）恒 **isdecimal 判域（禁 isdigit
-  ——"②"/"²"等 Unicode 数字 isdigit 真而 int 炸）+ try/except ValueError
-  收编或长度短路**（超长串 ≥3.11 int 4300 位上限同族）——先例：
-  app_export._scale_denom_of / migration._version_key（REWORK 审查
-  条款①，2026-09-09 入册）。
-- options 类字典闸判恒**判值非 None**，禁键存在判（`"k" in options`）——
-  调用方占位传参（恒传 `k=None`）会打爆闸（PROFILE3 R 轮八用例红
-  实录；REWORK 审查条款②，2026-09-09 入册）。
-- 每个模块契约头（§5 格式）不可省略，CI 检查存在性。
-
-## 4. 类型与契约（单一事实源）
-
-- 类型只从单一源头生成，禁止手写双份：前端客户端由 OpenAPI 经 orval 生成
-  （webapp/src/shared/api/，生成物禁止手改）；内核输出契约 = result_schema 字段 ID，
-  中文名只存在于 i18n 显示层。
-- 概算/图纸/三维按字段 ID 取数，禁止中文模糊匹配。
-- result_schema 变更必须走 ADR + 契约测试 + 前端重新生成三步。
-- 文档不手写测试数/覆盖率等数字，一律"以 CI 输出为准"；实现者自报数字
-  （行数/用例数/文件数/计数）同律——终裁亲验实跑对账（FE4/FE5 自报
-  10 项错 5 实录；GOV2 B3 并档）。
-
-## 5. 模块契约头格式（每个 .py 文件第一行 docstring，CI 检查）
-
-```python
-"""[一句话职责——这个文件存在的唯一理由]
-
-输入:  <消费什么：类型/来源>
-输出:  <产出什么：类型/去向>
-"""
-```
-
-头部之后紧跟"规格说明"节（公开接口签名 / 行为规格 / 错误与边界 / 禁止事项 / 测试要求 / 参照），
-实现前冻结，实现必须满足规格。
-
-## 6. 测试纪律（红-绿 + 只读）
-
-- 每个测试必须"先失败一次再通过"才算数；新功能必须自带测试。
-- 镜像命名：`topo.py` ↔ `test_topo.py`；性质测试独立 `properties_topo.py`。
-- 骨架期休眠测试：测试文件内用 `getattr(module, 符号, None)` 判定，符号缺失 = skip
-  （理由注明缺什么）；实现合入后 skip 数必须归零——**CI 机器拦截**（ci.yml
-  core/server 两 pytest 步骤：`-ra` 逐条 SKIPPED 中**平台守卫白名单外**
-  即 FAIL——白名单=「Windows 本地写屏障」只读属性豁免[CI/Linux 由 manifest
-  哈希覆盖，test_lock 先例]，GOV1 A3+CI 修复笔定版）。
-- 公式数值基准来自 docs/norms 手算对照表（数据策略 v2，§14：AI 按工程常用
-  范围起草 + 领域专家批量追认），不得编造数字；
-  golden 端到端期望值只存放在 `core/tests/golden/golden_data/`（数据文件，非代码）。
-- 同输入双跑 diff=0、序列化往返无损、incremental==全量重算（字节级）是常驻测试。
-
-## 7. 测试只读机制（防投机取巧）
-
-- `core/tests/` 与 `server/tests/` 下所有文件只读：文件系统只读属性
-  （Windows 本地写屏障）+ 根目录 `test-lock.manifest.json`（sha256，
-  跨平台内容真相——CI/Linux 上由它承担完整性校验）。
-  （2026-10-14 Linux 现状口径：Linux 开发机本地**无属性写屏障**
-  〔check_readonly 的 ATTR_BARRIER_ACTIVE=win32-only——设计内差异〕，
-  完整性由 manifest 哈希事后检测承担：改写会在**下一次
-  check_readonly/CI 运行时**被抓到，但无写入阻止；AI 禁改锁定面
-  纪律不因平台弱化。）
-- 校验入口：本地 `scripts/check_readonly.py`；CI 与 pytest 侧
-  `core/tests/arch/test_lock.py`。
-- AI **禁止**：修改/删除/新增上述两目录下任何文件；运行 lock_tests.py；修改 manifest。
-- units_lib 包内各单元 `tests/` 目录同受只读约束：manifest 逐条哈希校验 +
-  `check_readonly.py` 常驻扫描「未登记即 FAIL」（外审整改#3 H2 扩根——
-  新单元 2 文件在人类锁定前 FAIL 属预期流程闸，见 §11）。
-- **[HUMAN-LOCK] 信任根守卫**：三信任根=`test-lock.manifest.json`、
-  `scripts/lock_tests.py`、`scripts/check_readonly.py`——触碰三者的
-  commit message 必带 `[HUMAN-LOCK]` 标签（人类批准标记）。守卫双面：
-  CI `scripts/check_trust_root.py` 逐 commit 查 push range；本地门禁
-  查工作树（三件改动/未跟踪即 FAIL）+ HEAD commit 标签。AI 只能起草
-  此类变更并呈报批准，不得自行提交。
-- 只有人类可以：解锁（清除只读属性）→ 修改/新增测试 → 重新运行
-  `python scripts/lock_tests.py`（新增单元测试后可带路径参数追加）→
-  该变更作为独立 commit 接受审查。测试变更是显式事件，不是顺手行为。
-- **锁面草稿器**（GOV4/ADR-015）：`scripts/draft_lock_manifest.py`
-  =只读投影（差异三类清单+全根清单重锁命令，绝不写出 manifest）——
-  AI 可跑（本地预检/CI gates 红面自动输出）；重锁动作本身仍是
-  上面的纯人类流程，§7 边界不因草稿器放开。
-- 新增测试文件=**三连锁同批闭合**（新键入 manifest+文件只读位设置+
-  core 侧镜像件义务——文件名全树匹配规则会连带触发）；[HUMAN-LOCK]
-  锁面笔 commit message 必带逐文件修改动机（B3/B6 实录，GOV2 B3 并档）。
-
-## 8. 修改与提交
-
-- 每次改动一个逻辑单元；完成后 `git diff --stat` 自查范围蔓延（只应包含任务相关文件）。
-- 改核心模块（graph/registry/contracts）前先跑其镜像测试；快照回归已
-  落地（批 14/ADR-010：tests/snapshots/ 锚三产物 xlsx/DXF/HTML 内容哈希
-  ——渲染面/模板/依赖升级改动=快照红，先人审定性：预期漂移按 syrupy
-  `--snapshot-update` 重录+diff 入批注记；非预期漂移=回归缺陷走修复，
-  禁改快照遮蔽）。两处非内容噪声已产品层修复（批 14-FIX）：xlsx
-  core.xml modified 时钟（openpyxl save 无条件刷新——显式赋值被覆盖，
-  落盘后载荷归一固定纪元）+DXF CLASSES 记录序（ezdxf 1.4.4 类注册序
-  随进程熵翻转，落盘后字典序归一；OBJECTS 段实证稳定不归一）——测试
-  层规范化吸收保留为双保险；ezdxf 新翻转面出现时按预期漂移处置并扩
-  归一规则。
-- 项目文件序列化必须确定性：键排序、round(x,10) 浮点定点、无随机 ID、保存两次字节级相同；
-  content_hash 只覆盖 design 态。
-- 提交信息中文描述意图；一个 commit 一个目的。首行=人类可读完整一句话
-  （什么批做了什么——主谓宾齐备，不依赖项目内部缩写）；细节以电报体
-  附录段补充（外审 #8 人类可治理性——2026-09-02 WP5 起生效）。
-- 多步迁移/改写脚本的幂等哨兵 = **改动点标记**（每步独立可验证的锚），
-  禁以「产出串是否已存在」为哨兵——后增步骤产出串重叠会误跳过先导步
-  （PROFILE3 七步脚本实录；REWORK 审查条款③，2026-09-09 入册）。
-- 大段 Edit 替换的 old/new 边界必须**含完整语法单元**（函数头尾成对），
-  落地后即跑 collect/ruff 验证——半语法单元边界会吃掉相邻函数头
-  （app_enumeration def 行实录；REWORK 审查条款④，2026-09-09 入册）。
-
-## 9. 并行协作（多代理/多人）
-
-- 写不同文件 = 可并行；写同一文件或共享状态（docs/file-contracts.md、__init__.py、
-  pyproject.toml、manifest）= 串行。
-- 派发 AI 任务用五层规约模板（行为/接口/架构/生命周期/文化）+ 完成定义清单，见
-  `docs/index.md` 附录；规约里写全文件路径与关键签名，不让实现者自行探索。
-
-## 10. 完成定义（DoD，逐项打勾后才算完成）
-
-- [ ] 功能代码 + 测试提交；全量测试通过（pytest / vitest，以 CI 为准）
-- [ ] 占位符/裸 except/乱码门禁 = 0（`scripts/run_gates.py` 绿）
-- [ ] 新文件已登记 file-contracts.md；`git diff --stat` 无范围蔓延
-- [ ] 无死代码、无重复资产、无运行时产物入库
-- [ ] 中文内容工具验证可读；文件 ≤500 行
-- [ ] M2 起工艺单元四件套齐备：计算 + 测试 + 三维组件 + 图纸模板
-
-## 11. 单元包固定结构（脚手架生成，禁止自由发挥）
-
-```
-units_lib/<line>/<unit>/
-├─ manifest.py        # 声明式清单：参数/端口/去除率/规范引用/工况映射（唯一对外）
-├─ compute.py         # 唯一计算源：批量=同源向量路径（formulas 批量正门，标量=N=1 退化
-│                     # ——禁第二实现，ADR-011 D1）；向量化载体=GR-37 强制，≤400 行
-│                     # 向量接线共享件（_vec/_apply_batch/_make_ceil_vec/Array 别名）
-│                     # = units_lib/_unit_compute 单源（批 MINOR 2026-09-08 收口）
-├─ constraints.py     # 声明式约束定义
-├─ README.md          # 一段话职责 + 输入输出
-└─ tests/             # test_compute.py（golden 数值）+ properties.py（结构预留件——不参与收集；真物理不变性测试命名 properties_*.py 纳入收集，R2D 口径）
-```
-
-- **预算墙拆件配方**（撞墙即用，拆法禁即兴；ADR-024 D1 定型，首例
-  aao/cass——2026-09-19 用户直排治理工单②入宪）：单元包文件将顶 §2
-  预算墙时（墙值与实测口径单源 §2）：
-  - 声明面拆件（manifest 顶墙）：新公式族立兄弟声明件
-    `formulas_<族名>.py`，manifest 并组注册
-    `_FORMULAS = (*_FORMULAS, *FORMULAS_<族名>)`——单注册口不变量：
-    条目仍住单元包内（B2-5 D1-B「条目留 manifest 原位」的单元包
-    原位读法），注册表 dump 序与集仍由 manifest 唯一汇出；兄弟声明件
-    自动入同族一致性门禁扫描面（scripts/check_family_parity.py 消费
-    manifest+formulas_* 全表，现辖 aao/cass——新单元接入需登记进
-    该门禁声明面，静默分叉仍响红）。
-  - 计算段拆件（compute 顶墙）：主题连续的计算段整体迁兄弟件
-    `<段名>.py`（首例 energy.py 持 _oxygen+能耗——O2→供气→风机
-    功率链不拦腰切），compute 并组合成 dims；compute.py 仍是唯一
-    计算正门（ADR-011 D1 批量同源路径不破——拆文件≠第二实现）。
-  - 拆件义务四条：①兄弟件规格头注记拆件依据（撞墙实测行数+ADR
-    溯源）；②单元对外三名白名单不变（兄弟件=包内私有不新增导出）；
-    ③兄弟件仅由本包 manifest/compute 单向消费，兄弟件间禁互
-    import（段间数据经 compute 编排传递）；④包内测试 formula_ids
-    计数/键集面随拆件同步——涉 tests/** 照 §7 锁面工序。
-  - 兜底：配方未覆盖的撞墙形态（constraints/README/tests 顶墙、
-    params/out_dims 声明面溢出、单元包外模块）不在本配方内——停批
-    呈裁定拆法，禁即兴。
-
-- 导出面：dxf 图纸形态路由 options `sheet=profile`=厂级纵断图独立 DXF（PROFILE2 2026-09-08——白名单成员，与 unit_id 互斥；实现在 app_enumeration 的 export_artifact/_export_dxf）。
-- 单元对外只暴露 `UNIT_ID`、`make_unit` 与 `manifest` 三名（包 `__init__.py` 白名单；M3a2 终裁 yI-1 canonical 口径，2026-08-28 用户授权修订——原"manifest 与 compute 两名"表述与 32 包 de facto 标准的文字差收口）。
-- 新单元用 `wp new-unit <line> <name>`（core 的 cli.py）从 `_template` 生成。
-- 单元测试完成后由人类执行锁定（`python scripts/lock_tests.py <路径>`）——
-  锁定前新单元 tests/ 2 文件被 check_readonly 判「未登记」FAIL 属预期（§7 扩根）。
-
-## 12. 业务语义冻结项（违反 = 评审拒绝）
-
-- 工况语义按 ADR-007：flow_case 全局 2 档（design/avg）× pool 逐单元检修敏感性，
-  运行次数 = 2 + k；禁止 2^n 全组合。
-- 汇流加权使用**当前工况流量**（design 用 Q_design、avg 用 Q_avg），Kz 取 max（ADR-005/§14.2）。
-- 污泥线 DS（干固体）守恒进性质测试；出水标准是数据不是代码分支。
-- 枚举语义：单单元枚举 + 全厂传播；全厂联合枚举为远期研究，禁止伪装成本轮功能。
-- 可复算三元组：结果 = f(design_hash, engine_version, data_version)；缓存只是优化不参与语义。
-- 运行中任务结果落地即绑定快照 hash；输入变更后旧结果标 stale，禁止静默覆盖。
-
-## 13. 结构图谱规则（scripts/check_module_graph.py 强制）
-
-- 三层关系的单一事实源是 `docs/structure-graph.md`：§1 模块依赖图
-  （节点表 + 依赖边表 + 层序）、§2 端到端调用链、§3 业务单元总表。
-- **改依赖先改图谱**：新增/调整模块依赖必须先改 §1 边表再写代码；
-  实现期真实 import 必须是 §1 声明边的子集（评审 + 门禁对照）。
-- **同层边唯一声明面=§1c 机器声明块**（ADR-014）：同层边不入 §1b 边表
-  （"严格向下"规则不放开）；新增同层边=编辑 §1c 块 → 跑
-  `scripts/gen_same_layer_edges.py` 展开 pyproject → 门禁绿——pyproject
-  两契约 ignore_imports 标记段是生成物，标记段内禁手编（门禁双向对照，
-  漂移即红）。
-- **§1a 节点表=生成物**（ADR-017）：数据行由
-  `scripts/gen_structure_nodes.py` 自两 pyproject 的 layers 契约+固定
-  三叶节点展开；工序=改契约 → 跑生成器 → 门禁绿（标记段内禁手编，
-  check_module_graph 渲染比对面拦截漂移）。
-- **新单元三步**：先在图谱 §3 与 file-contracts.md §3 登记 → 再建包目录
-  （_template 固定结构）→ 最后实现；三方一致性由门禁强制。业务线扩充时
-  同步更新脚本内 EXPECTED_UNIT_COUNT 断言。
-- 调用链 §2 引用的每个仓库路径必须真实存在（防链路指向幽灵文件）。
-
-## 14. 数值与数据策略（数据策略 v2，2026-08-25 用户 Ruling 修订）
-
-- 单元默认值/参数范围按**工程常用范围**（GB 国标 + 行业标准
-  [CJJ 131-2009 等，I3 九裁② 2026-08-28 纳入]+《给水排水设计手册》）
-  起草；领域专家实行**批量追认/抽验**制（手算对照表表尾签字栏保留，
-  非前置签字供数）。
-- 出处标记**仅三类**：GB 国标、行业标准（CJJ 131-2009 等，I3 九裁②
-  2026-08-28 纳入）与《给水排水设计手册》；其余来源
-  （中期报告/论文/旧系统交叉等）一律不标。
-- 统一管理不变：数值真源唯一 = registry 数据包（assumptions/coefficients）
-  + 单元 manifest 声明面；compute 零数值字面量红线不变。
-- 手算对照表仍是测试期望唯一合法来源（可 AI 起草，工程常用范围口径）；
-  golden 未录案例的数据槽位不造（不编造未验证数据）。
-
-<!-- ORG-SEG:BEGIN v2 -->
-### 组织协作通用层（技能 ai-dev-org——2026-09-10 起；v2 对齐绑定子承载）
-
-- 跨项目组织规范（岗位×模型路由×部门墙×成本账本）=用户全局技能
-  **ai-dev-org**；本宪法为 WaterPrint 特化实例，冲突时以本宪法为准。
-- 供应商路由事实唯一真相源=org-config（技能默认件兜底；项目覆盖件
-  .zcode/org-config.json 按需逐字段覆盖）。
-- **承载现状（2026-09-16 起；2026-10-14 勘正）**：实现者/门二/SRE 诊断/门一
-  双源已挂 ops-* 绑定子代理=**主承载**（现役名单单源=技能 references/07
-  §4 补遗）；外部派发器 ds-call-v2 已随技能 2026-10-03 派发器退役批
-  删除（原「迁移期双承载」形态终结——应急外部通道启用须新用户裁决）；
-  岗位失败接续纪律真源=技能 references/06 §6 补遗二。
-- 会话内子代理无 model 参数=环境限制：欠账行如实记「环境限制统一档」，
-  禁伪装已定档；绑定岗免欠账行。
-- 回炉轮数（项目可裁项）：本项目=≤5 轮、R≤3 续用原实现者（WP 先例）。
-- **审查派发优先序（用户裁决 2026-10-14，逐字原文=账本 runId
-  ruling-20261014-k2zipoo 行）**：本项目审查类批（门一审包/隔离审计）
-  默认派 ops-gate1-k2（zipoo 源）；额度不足回退 ops-gate1-k1；
-  回退一旦发生=**会话粘性**——当前会话后续审查批恒直接派 k1。
-- 成本账本=.zcode/org-ledger.jsonl（行 schema 单源=技能 references/02
-  §9，禁内联）；收口前跑技能 scripts/health-scan.mjs（RED=0 方可收口）。
-- 组织差异回灌=.zcode/org-delta.jsonl（技能 05 §6 协议）。
-<!-- ORG-SEG:END -->
+协作系统=dev-troupe（五岗：research/planner/executor/reviewer/vision）。
+工作区目录地图与环境事实见工作区根 `AGENTS.md`
+（`/home/yyx/work/智水蓝图/AGENTS.md`）；过程文档放工作区
+`.zcode/dev-troupe/<task>/`，不入本仓。

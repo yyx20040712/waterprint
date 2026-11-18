@@ -162,7 +162,7 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (ReportConditionUnsupportedError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     (ReportVerifyError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     # B6 §二.⑥：report_pdf 编译面 500 族（typst 部署依赖缺/编译失败超时
-    # ——stderr 显式消息禁静默；部署依赖申报 docs/deployment.md）。
+    # ——stderr 显式消息禁静默；部署依赖申报 docs/architecture.md §4）。
     (TypstUnavailableError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (TypstCompileError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (ProjectLockedError, status.HTTP_409_CONFLICT),

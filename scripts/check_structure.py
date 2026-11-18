@@ -71,7 +71,7 @@ def check_unit_package(pkg_rel: str) -> list[str]:
     problems = []
     for required in UNIT_REQUIRED:
         if not (pkg / required).is_file():
-            problems.append(f"{pkg_rel}: 缺固定结构文件 {required}（AGENTS §11）")
+            problems.append(f"{pkg_rel}: 缺固定结构文件 {required}（docs/architecture.md §3.8 单元包结构）")
     return problems
 
 

@@ -47,7 +47,7 @@ jobs:
       # 锁面草稿（GOV4 B1-1/ADR-015）：gates 红面时输出「工作树实测 →
       # 应然 manifest」差异草稿+全根清单重锁命令（只读投影，不写
       # manifest）。人审工序不变：重锁仍=人类跑 lock_tests.py+独立
-      # [HUMAN-LOCK] commit（AGENTS §7）；绿面零噪声（step 跳过）。
+      # [HUMAN-LOCK] commit（AGENTS 硬约束·测试只读）；绿面零噪声（step 跳过）。
       - name: 锁面草稿（漂移时的机器草稿——人审重锁工序不变）
         if: failure()
         run: python scripts/draft_lock_manifest.py
@@ -92,7 +92,7 @@ jobs:
           # skip 门禁（GOV1 A3 机器化）：-ra 逐条 SKIPPED 为准；平台守卫白名单
           # （Windows 只读属性在 Linux 由 manifest 哈希覆盖——test_lock:47 合法豁免）
           if grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'typst CLI 不在本机' | grep -q .; then
-            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮）"
+            echo "::error::skip 门禁（architecture.md §4.6 红绿纪律：实现合入后 skip 数必须为 0——休眠守卫回潮）"
             grep -E '^SKIPPED \[' /tmp/pytest-core.log | grep -v -F 'Windows 本地写屏障'
             exit 1
           fi
@@ -138,7 +138,7 @@ jobs:
           fi
           # 同 core 面口径：平台守卫白名单外的 SKIPPED 即 FAIL（休眠守卫回潮）
           if grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'typst CLI 不在本机' | grep -q .; then
-            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮）"
+            echo "::error::skip 门禁（architecture.md §4.6 红绿纪律：实现合入后 skip 数必须为 0——休眠守卫回潮）"
             grep -E '^SKIPPED \[' /tmp/pytest-server.log | grep -v -F 'Windows 本地写屏障'
             exit 1
           fi
@@ -231,7 +231,7 @@ jobs:
           # 共有短语+agent 自有短语（junction 面 _winapi 守卫=Linux 恒 skip 的
           # 平台事实，批6k 回炉落地——CI Linux 首跑显形）。
           if grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'Windows 平台守卫' | grep -q .; then
-            echo "::error::skip 门禁（AGENTS §6：实现合入后 skip 数必须为 0——休眠守卫回潮；report 产物缺失亦经此面红显）"
+            echo "::error::skip 门禁（architecture.md §4.6 红绿纪律：实现合入后 skip 数必须为 0——休眠守卫回潮；report 产物缺失亦经此面红显）"
             grep -E '^SKIPPED \[' /tmp/pytest-agent.log | grep -v -F 'Windows 本地写屏障' | grep -v -F 'Windows 平台守卫'
             exit 1
           fi

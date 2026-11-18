@@ -18,8 +18,8 @@
 #   sensitivity「服务层 pydantic 冻结模型」先例：禁协议层重复声明漂移面）
 #   ValidationSourceNotFoundError（404 面）
 #
-# 【行为规格】（实现契约=docs/warning-aggregation.md 冻结规格——§1~§4
-#   十一条款逐条绑定，规格冲突=本件返工）：
+# 【行为规格】（实现契约=docs/archive/warning-aggregation.md 冻结规格
+#   ——§1~§4 十一条款逐条绑定，规格冲突=本件返工）：
 #   R1 取数（最近完成结果集，零重算）：read_project→latest_calc_result
 #      （not_found=ValidationSourceNotFoundError——trust 404 家族同制，
 #      main 域错误类名义表登记）；plant 件缺失/损坏同归 404 面（裸 500
@@ -74,7 +74,7 @@
 #   kb_injected None/序=迭代序）+B-only 合成两形态+行排序+观测三面
 #   投影+三态降级+200/404 家族+AU-1+双跑确定性（test_validation.py）。
 #
-# 【参照】docs/warning-aggregation.md（冻结实现契约）；services/trust.py
+# 【参照】docs/archive/warning-aggregation.md（冻结实现契约）；services/trust.py
 #   （降级三态/404 家族先例）；services/sensitivity.py（服务同构先例）；
 #   services/constraints.py（kb 目录真源）；core app_maintenance.py
 #   （maint.* 键族产出面——本件消费不重算）

@@ -65,7 +65,7 @@
 #   四键+kb 8 条 1.0+fixgeom −1.0）+双跑 serialize 字节同+空 sensitivity
 #   零键+run_full_calc 接线（缺省 () 零 kb 键/baseline 帧零 maint 键）。
 #
-# 【参照】UF-61（undefined-features-register）；app_carbon.py（先例）；
+# 【参照】UF-61（docs/archive/undefined-features-register.md）；app_carbon.py（先例）；
 #   solution.constraints（DSL 单源+kb 装载器）
 # ══════════════════════════════════════════════════════════════════
 

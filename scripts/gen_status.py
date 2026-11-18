@@ -1,8 +1,8 @@
 """docs/status.md 生成器：全项目计数指标单一生成源（禁手编）。
 
 输入:  仓库内文件派生事实源（run_gates.py GATES 元组/test-lock.manifest.json/
-       api-contracts/openapi.json/docs/adr/、undefined-features-register.md 表行/
-       data/*/manifest.yaml data_version 行/快照 ambr name 标记/webapp 测试文件 glob）
+       api-contracts/openapi.json/docs/adr/、data/*/manifest.yaml data_version 行/
+       快照 ambr name 标记/webapp 测试文件 glob）
 输出:  docs/status.md（确定性输出——无时间戳、行序固定、UTF-8；--check 模式
        重生成与入库件字节比对，漂移即退 1——CI status 零漂移步骤消费）
 """
@@ -17,7 +17,6 @@
 #     须同批重生成入库件）。
 #   - 参照：复杂度治理方案四（2026-09-18 用户裁决）；同族先例=ADR-016
 #     行数注记生成化（生成物纪律非门禁——不进 run_gates.py GATES）。
-#   - UF 桶判定=处置列起头形态闭集词表（`_UF_DISPOSITION_RULES`）+行形状守卫（恰 5 列），违规 fail-fast 退 1（genbucket 批 2026-10-06）。
 
 from __future__ import annotations
 
@@ -92,59 +91,6 @@ def count_units(root: Path) -> int:
     return len(units)
 
 
-_UF_DISPOSITION_RULES: tuple[tuple[str, str], ...] = (
-    # 桶判定显式化（genbucket 批 2026-10-06）：处置列起头形态闭集
-    # 枚举，序敏感（首中即定桶）。未登记形态 SystemExit fail-fast
-    # ——措辞改写静默漂桶通道根除（2A7 门一二审 N4）。历史形态族
-    # （已收口/已闭合/已冻结/部分已定义/显式不做/疑似）维持「其他
-    # 表述」桶——语义归桶重构=另行编辑批，不折生成器加固批。
-    ("已定义", "已定义（闭合）"),
-    ("**已收口", "其他表述"),
-    ("**已闭合", "其他表述"),
-    ("**已冻结", "其他表述"),
-    ("**部分已定义", "其他表述"),
-    ("**显式不做", "其他表述"),
-    ("**疑似", "其他表述"),
-    ("临置", "临置"),
-    ("待定义", "待定义（开放）"),
-    ("待拍板", "待拍板"),
-)
-
-
-def count_ufs(root: Path) -> dict[str, int]:
-    """UF 表行处置列分桶（词表闭集+行形状守卫，违规 fail-fast 退 1）。
-
-    切分=转义感知（单元格内 "\\|" 为字面管道不切列——UF-42 形态）；
-    行形状=恰 5 列（7 个切分片），裸管道幻影列即拒；起头形态不在
-    词表即拒（消息含行号锚与词表指引）。
-    """
-    text = (root / "docs" / "undefined-features-register.md").read_text(encoding="utf-8")
-    out = {"登记总数": 0, "已定义（闭合）": 0, "临置": 0, "待定义（开放）": 0,
-           "待拍板": 0, "其他表述": 0}
-    for lineno, line in enumerate(text.splitlines(), 1):
-        if not line.startswith("| UF-"):
-            continue
-        cols = [c.strip() for c in re.split(r"(?<!\\)\|", line)]
-        uf_id = cols[1] if len(cols) > 1 else line[:12]
-        if len(cols) != 7:
-            raise SystemExit(
-                f"gen_status: 第 {lineno} 行（{uf_id}）形状不合规——应恰 5 列，"
-                f"实得 {len(cols) - 2} 列；单元格内管道须转义为 \\|"
-            )
-        out["登记总数"] += 1
-        status = cols[4]
-        for prefix, bucket in _UF_DISPOSITION_RULES:
-            if status.startswith(prefix):
-                out[bucket] += 1
-                break
-        else:
-            raise SystemExit(
-                f"gen_status: 第 {lineno} 行（{uf_id}）处置列起头形态未登记"
-                f"（{status[:12]}…）——新形态须先扩 _UF_DISPOSITION_RULES 词表"
-            )
-    return out
-
-
 def data_versions(root: Path) -> dict[str, str]:
     """各数据包版本字段（data_version 或包实名变体如 price_data_version）。"""
     out: dict[str, str] = {}
@@ -171,7 +117,6 @@ def render(root: Path) -> str:
     lock = count_lock_keys(root)
     paths_n, ops_n = count_openapi(root)
     adrs = count_adrs(root)
-    ufs = count_ufs(root)
     dvers = data_versions(root)
     snaps = count_snapshot_anchors(root)
     webapp_tests = count_webapp_test_files(root)
@@ -192,7 +137,6 @@ def render(root: Path) -> str:
         f"| 测试锁面键数 | {lock['总键数']}（core/tests {lock['core/tests']} + server/tests {lock['server/tests']} + units_lib 包内 {lock['units_lib 包内']} + agent {lock['agent']}） | `test-lock.manifest.json` |",
         f"| OpenAPI | {paths_n} 路径 / {ops_n} 操作 | `api-contracts/openapi.json` |",
         f"| ADR 件数 | {adrs} | `docs/adr/ADR-*.md` |",
-        f"| 未定义特性登记 | 总 {ufs['登记总数']}（已定义闭合 {ufs['已定义（闭合）']} / 临置 {ufs['临置']} / 待定义开放 {ufs['待定义（开放）']} / 待拍板 {ufs['待拍板']} / 其他表述 {ufs['其他表述']}） | `docs/undefined-features-register.md` 表行 |",
         f"| 快照锚点 | {snaps}（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |",
         f"| 工艺单元包数 | {units_n} | `core/waterprint/units_lib/*/*/manifest.py` |",
         f"| webapp 测试文件数 | {webapp_tests} | `webapp/src/**/*.test.*` |",

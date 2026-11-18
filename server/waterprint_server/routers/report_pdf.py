@@ -67,7 +67,7 @@ _REPORT_PDF_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
     status.HTTP_500_INTERNAL_SERVER_ERROR: {
         "model": ErrorResponse,
         "description": "typst 编译失败/超时或部署依赖缺"
-        "（WATERPRINT_TYPST_PATH——docs/deployment.md「导出格式」节）",
+        "（WATERPRINT_TYPST_PATH——docs/architecture.md §4.2 环境变量表）",
     },
 }
 
@@ -78,7 +78,7 @@ async def export_report_pdf(
 ) -> Response:
     """Typst PDF 计算书（B6 §二.⑥——AST→Typst 源→typst CLI 编译；全厂
     整厂产物 unit_id 422 拒；stale 409/?force=1 旧三元组标注同族；部署
-    依赖=服务主机 typst CLI 必在〔docs/deployment.md「导出格式」节〕）。"""
+    依赖=服务主机 typst CLI 必在〔docs/architecture.md §4〕）。"""
     handle = create_report_pdf_export(
         _ctx(request),
         body.project_id,

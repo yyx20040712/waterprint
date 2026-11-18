@@ -5,7 +5,7 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（B3-c 批 2c 收敛 2026-09-19，三段通道定案=docs/design/
+# 规格说明（B3-c 批 2c 收敛 2026-09-19，三段通道定案=docs/archive/design/
 #   2026-09-19_b4-twins-convergence-design.md）：
 #   executor._DOMAIN_EXCEPTIONS 与 enumerate._ROW_DOMAIN_EXCEPTIONS
 #   两份人工同步收敛——交集四族（全部 contracts 层定义）单源于此；

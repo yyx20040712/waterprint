@@ -5,7 +5,7 @@
 """
 
 # ══════════════════════════════════════════════════════════════════
-# 规格说明（B3-c 批 2c 收敛 2026-09-19，三段通道定案=docs/design/
+# 规格说明（B3-c 批 2c 收敛 2026-09-19，三段通道定案=docs/archive/design/
 #   2026-09-19_b4-twins-convergence-design.md）：
 #   app_assembly._endpoint/_edges 与 executor_assembly._endpoint/
 #   _edges_from_design 双胞胎收敛——校验/消息/遍历结构单源于此，

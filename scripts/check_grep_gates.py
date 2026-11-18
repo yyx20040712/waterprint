@@ -31,8 +31,8 @@ from gate_patterns import (
 REPO = Path(__file__).resolve().parent.parent
 
 # WP1 挂账顺收（外审整改#5 同批）：compose 端口直映守卫——server 8000 禁
-# 出容器网桥（24 端点零鉴权，暴露即全权；nginx=唯一入口），违规处置见
-# docs/deployment.md「安全红线：暴露即全权」节。定点单文件规则，不入
+# 出容器网桥（token 空=鉴权关，暴露即全权；nginx=唯一入口），违规处置见
+# docs/architecture.md §4.1 安全红线。定点单文件规则，不入
 # gate_patterns 扫描面（deploy/ 不属 SCAN_DIRS）。R-1（G1-01 强化）：
 # 短格式列表项 `- [IP:]HOSTPORT:8000`（正则匹配任意宿主端口→容器 8000
 # 发布形态，非仅字面直映）+ 长格式 `target: 8000`；行内 # 注释先剥离
@@ -95,8 +95,8 @@ def check_compose_port_mirror() -> list[str]:
         if COMPOSE_PORT_PUBLISH_RE.search(code):
             problems.append(
                 f"{COMPOSE_GUARD_FILE}:{lineno}: 发布容器端口 8000"
-                "（安全红线：8000 不出容器网桥——处置见 docs/deployment.md"
-                "「安全红线」节；WP1 收口回潮防护）"
+                "（安全红线：8000 不出容器网桥——处置见 docs/architecture.md"
+                " §4.1 安全红线；WP1 收口回潮防护）"
             )
     return problems
 

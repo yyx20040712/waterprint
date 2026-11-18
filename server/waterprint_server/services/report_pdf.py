@@ -32,7 +32,7 @@
 #      GR-38）→边车登记（_write_meta 沿既有）。
 #   R3 typst 路径三级解析：settings 覆盖〔env WATERPRINT_TYPST_PATH〕
 #      →PATH shutil.which→显式 TypstUnavailableError（部署依赖缺——
-#      winget 路径不入硬编码源码，安装路径面仅落 docs/deployment.md）。
+#      winget 路径不入硬编码源码，安装路径面仅落 docs/archive/deployment.md）。
 #   R4 编译错误面：非零退出/超时（settings.typst_timeout_s）/可执行缺
 #      =TypstCompileError（stderr 尾段入消息——500 族显式）+tmp 零残留。
 #   R5 全厂整厂产物：options.unit_id 显式 422 拒（audit/estimate 同族
@@ -120,7 +120,7 @@ def resolve_typst_path(typst_path: str) -> str:
     raise TypstUnavailableError(
         "typst CLI 不在 PATH 且未配置 WATERPRINT_TYPST_PATH（PDF 计算书"
         "导出的部署依赖——服务主机须安装 typst〔winget 安装 Typst.Typst〕"
-        "或设该环境变量指向 typst 可执行件；安装路径面见 docs/deployment.md"
+        "或设该环境变量指向 typst 可执行件；安装路径面见 docs/archive/deployment.md"
         "「导出格式」节）"
     )
 

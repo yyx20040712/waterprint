@@ -91,7 +91,7 @@ API_TOKEN_MIN_LENGTH: Final[int] = 2 ** (2 * 2)  # 16
 # R2A 批1（终裁 R-6）：回环绑定集合——token 空+host 出集合=构造即拒
 #（fail fast，uvicorn.run 之前不留半启动态）。机器防线（绑定判定）为
 # best-effort（容器内绑定经 CMD 旗标不经本字段），真红线=入口语义
-#（docs/deployment.md「安全红线」节——反代/端口映射对外可达必须配 token）。
+#（docs/architecture.md §4.1「安全红线」——反代/端口映射对外可达必须配 token）。
 _LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
@@ -151,13 +151,13 @@ class Settings(BaseSettings):
     page_size_default: int = 2 * 10**2  # 200（§12.2 分页默认页大小）
     # WP0（ODA-A 形态 A 2026-09-02）：可选 DXF→DWG 外挂转换器——默认空串=关
     #（容器内不随镜像分发转换器=默认关，零行为漂移）；路径指向用户自装的
-    # ODA File Converter 可执行件（docs/deployment.md「导出格式」节）。
+    # ODA File Converter 可执行件（docs/architecture.md §4.2 环境变量表）。
     dwg_converter_path: str = ""
     # 转换子进程超时秒（超时=warning+跳过 DWG——DXF 交付承诺不可破）。
     dwg_converter_timeout_s: int = 10**2  # 100（幂积保白名单字面量集，注记见规格头）
     # WP1（部署面安全收口 2026-09-02）：绑定面代码化——裸机/开发态默认只听
     # 本地回环（24 端点零鉴权，暴露即全权——对外绑定=WATERPRINT_HOST 显式
-    # 覆盖=信任决策，见 docs/deployment.md「安全红线」节）。容器内绑定由
+    # 覆盖=信任决策，见 docs/architecture.md §4.1「安全红线」）。容器内绑定由
     # Dockerfile CMD 旗标决定（0.0.0.0 供 nginx 跨容器反代，8000 不发布宿主）。
     host: str = "127.0.0.1"
     port: int = 2 * 2 * 2 * 10 * 10 * 10  # 8000（幂积保白名单字面量集）
@@ -190,7 +190,7 @@ class Settings(BaseSettings):
     sse_heartbeat_seconds: int | None = 10 * 2 + 10  # 30（300s 读超时的 1/10）
     # B6 计算说明批（2026-10-09 §二.⑥）：Typst PDF 计算书导出引擎——typst
     # CLI 可执行路径（空=PATH 自动发现 shutil.which；服务主机部署依赖=须装
-    # typst〔winget 安装 Typst.Typst——安装路径面见 docs/deployment.md
+    # typst〔winget 安装 Typst.Typst——安装路径面见 docs/archive/deployment.md
     # 「导出格式」节，不入源码硬编码〕；env WATERPRINT_TYPST_PATH 覆盖）。
     typst_path: str = ""
     # 编译子进程超时秒（超时=TypstCompileError 500 显式——dwg_converter
@@ -248,7 +248,7 @@ class Settings(BaseSettings):
                 "配置非法：api_token 为空且 host 非 {127.0.0.1, ::1, localhost}"
                 " 回环集合——对外绑定必须配置 WATERPRINT_API_TOKEN"
                 "（R2A R-6 fail fast，机器防线 best-effort；入口红线见"
-                " docs/deployment.md「安全红线」节）"
+                " docs/architecture.md §4.1「安全红线」）"
             )
         return self
 

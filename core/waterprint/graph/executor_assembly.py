@@ -30,7 +30,7 @@
 #   solve_loop 四参锁零触碰，executor 消费（跨件私有引用同先例）。
 #   B3-c 批 2c 收敛（2026-09-19）：_endpoint/_edges_from_design 校验/
 #   消息逻辑单源化至 contracts.edge_parsing（endpoint_from/edges_from，
-#   error=InvalidExecutionError 绑定件——定案 docs/design/2026-09-19_
+#   error=InvalidExecutionError 绑定件——定案 docs/archive/design/2026-09-19_
 #   b4-twins-convergence-design.md）；私有名与定义位不动=镜像恒等钉
 #   零扰动；executor 侧 _endpoint 消息两处补「得到」分隔词（app 版
 #   对齐，J3 呈案 A——状态码契约面经类型注入恒等）。
