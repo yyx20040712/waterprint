@@ -1,13 +1,15 @@
-"""ai_chat runner 镜像测试：子进程桥解析面（仿进程——B4-4b CI 覆盖率补）。
+"""ai_chat runner 镜像测试：子进程桥解析面（仿进程——B4-4b CI 覆盖率补；
+b28 AUDIT-#13：三处 process.wait 超时→AiChatBridgeTimeoutError 领域化钉面）。
 
 输入:  仿 Popen（stdout=JSONL 事件流/退出码可控）+载荷
-输出:  事件收割/终态/失败分类/非法行容错断言
+输出:  事件收割/终态/失败分类/非法行容错/宽限超时领域错误断言
 """
 
 from __future__ import annotations
 
 import io
 import json
+import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -102,6 +104,67 @@ def test_stream_nonzero_exit_runtime_error(monkeypatch, tmp_path: Path) -> None:
         runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
 
             payload, None, None)
+
+
+class _ZombieProcess(_FakeProcess):
+    """僵尸子进程（wait 恒超时——terminate/kill 后仍不退的极端面仿体）。"""
+
+    def wait(self, timeout: float = 0) -> int:
+        raise subprocess.TimeoutExpired(cmd="uv", timeout=timeout)
+
+
+def test_final_wait_timeout_maps_domain_error(monkeypatch, tmp_path: Path) -> None:
+    """b28（AUDIT-#13）：终态收割 process.wait 超时→AiChatBridgeTimeoutError
+    （错误形态 error_type 入 DOMAIN_ERROR_CODES 名义族——error_code 非 None；
+    旧形态 TimeoutExpired 裸穿=error_code None 游离）。"""
+    from fastapi import status as http_status
+
+    from waterprint_server.main_lib import DOMAIN_ERROR_CODES
+
+    zombie = _ZombieProcess([json.dumps({"type": "turn_summary", "session_id": "s"})])
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *a, **k: zombie)
+    payload = {**_BASE_PAYLOAD, "artifacts_dir": str(tmp_path)}
+    with pytest.raises(runner.AiChatBridgeTimeoutError, match="终态收割超时"):
+        runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
+            payload, None, None)
+    # 名义族接线：502=上游依赖失败族（与只读面 AiChatReadError 同码）
+    assert DOMAIN_ERROR_CODES["AiChatBridgeTimeoutError"] == http_status.HTTP_502_BAD_GATEWAY
+
+
+def test_cancel_wait_timeout_maps_domain_error(monkeypatch, tmp_path: Path) -> None:
+    """b28（AUDIT-#13）三处之②：取消路径 terminate 后宽限 wait 超时→同款
+    领域错误（R3 行边界取消协作面同收编）。"""
+    zombie = _ZombieProcess([json.dumps({"type": "turn_start", "session_id": "s"})])
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *a, **k: zombie)
+    token = tmp_path / "t-1.cancel"  # 取消令牌=标记文件在场
+    token.write_text("", encoding="utf-8")
+    payload = {**_BASE_PAYLOAD, "artifacts_dir": str(tmp_path)}
+    with pytest.raises(runner.AiChatBridgeTimeoutError, match="终止宽限超时"):
+        runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
+            payload, token, None)
+
+
+def test_cleanup_wait_timeout_maps_domain_error(monkeypatch, tmp_path: Path) -> None:
+    """b28（AUDIT-#13）三处之③：异常路径兜底收割 wait 超时→同款领域错误
+    （kill 后仍不退的极端面——领域错误替换在途原异常上抛，raise from
+    TimeoutExpired 保留收割失败因果链；本枝仅在异常在途时可达）。"""
+
+    class _BrokenStdout:
+        def __iter__(self):  # type: ignore[no-untyped-def]
+            raise ValueError("stdout 通道断裂（注入）")
+
+    class _BrokenPipeProcess(_ZombieProcess):
+        def __init__(self) -> None:  # stdout 断裂在迭代首步（先于任何 wait）
+            super().__init__([])
+            self.stdout = _BrokenStdout()  # type: ignore[assignment]
+
+    broken = _BrokenPipeProcess()
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *a, **k: broken)
+    payload = {**_BASE_PAYLOAD, "artifacts_dir": str(tmp_path)}
+    with pytest.raises(runner.AiChatBridgeTimeoutError, match="兜底收割超时") as caught:
+        runner._run_ai_chat(  # noqa: SLF001  # runner 私有面直测（仿进程单测）
+            payload, None, None)
+    assert isinstance(caught.value.__cause__, subprocess.TimeoutExpired)  # 因果链在
 
 
 def test_payload_gate_rejects_bad_session(monkeypatch, tmp_path: Path) -> None:

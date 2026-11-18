@@ -32,6 +32,7 @@ _WHITELIST: frozenset[str] = frozenset({
     "waterprint_server.auth",
     "waterprint_server.jobs",
     "waterprint_server.jobs.manager",
+    "waterprint_server.services.ai_chat",  # b28（AUDIT-#11 2026-11-18）AiChatReadError→502 入表（异常类基=A3 语义口合规）——白名单同步=审计治理批 b28 方案内授权
     "waterprint_server.services.ai_connection",
     "waterprint_server.services.calculation",
     "waterprint_server.services.compare",

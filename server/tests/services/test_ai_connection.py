@@ -143,6 +143,25 @@ async def test_status_rejects_unexpected_data_dir_layout(
         _mod.connection_status(ctx)
 
 
+def test_workspace_layout_error_base_split_from_uv_not_found() -> None:
+    """b28（AUDIT-#14）：WorkspaceLayoutError 不再继承 UvNotFoundError。
+
+    旧形态：继承仅为承接 400 handler 映射——except UvNotFoundError 会误捕
+    布局错误（误捕面在场）；拆基后 400 在 main_lib._EXCEPTION_STATUS 显式
+    注册（路由面 400+error_type 不变=routers/test_ai_connection.py 既有钉）。
+    """
+    from fastapi import status as http_status
+
+    from waterprint_server.main_lib import _EXCEPTION_STATUS
+
+    assert not issubclass(_mod.WorkspaceLayoutError, _mod.UvNotFoundError)  # 误捕面消除
+    layout = _mod.WorkspaceLayoutError("布局错")
+    assert not isinstance(layout, _mod.UvNotFoundError)  # isinstance 探针同款
+    assert dict(_EXCEPTION_STATUS)[_mod.WorkspaceLayoutError] == (
+        http_status.HTTP_400_BAD_REQUEST  # 目标 400 映射显式在册（不借 MRO）
+    )
+
+
 async def test_setup_writes_both_configs_merge_semantics(
     tmp_path, manager_stub, monkeypatch
 ) -> None:  # type: ignore[no-untyped-def]
