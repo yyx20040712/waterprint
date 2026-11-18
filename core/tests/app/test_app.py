@@ -291,3 +291,30 @@ def test_load_run_env_consistent_root_uses_loaded_version(
     monkeypatch.setattr(assumptions_mod, "DATA_VERSION", "1.0.0")
     env = load_run_env(_REPO_DATA, project)
     assert "assumptions@1.0.0" in env.data_version
+
+
+def test_resolved_version_for_tolerates_malformed_local_manifest(tmp_path: Path) -> None:
+    """AUDIT-#4 回炉二（reviewer 二轮）：data_dir 内 assumptions manifest
+    语法畸形=容忍回落实载版本（#24 容错口径——不泄漏 yaml ParserError）。"""
+    from waterprint.registry.assumptions import resolved_version_for
+
+    assumptions_mod = importlib.import_module("waterprint.registry.assumptions")
+    (tmp_path / "assumptions").mkdir()
+    (tmp_path / "assumptions" / "manifest.yaml").write_text(
+        "data_version: [unclosed", encoding="utf-8"
+    )
+    assert resolved_version_for(tmp_path) == assumptions_mod.DATA_VERSION
+
+
+def test_resolved_version_for_tolerates_empty_version_slot(tmp_path: Path) -> None:
+    """AUDIT-#4 回炉二（reviewer 二轮）：data_dir manifest data_version 为
+    空串=容忍回落实载版本（非空 str 才构成混合根判据——空值不触发
+    fail-fast 假阳性）。"""
+    from waterprint.registry.assumptions import resolved_version_for
+
+    assumptions_mod = importlib.import_module("waterprint.registry.assumptions")
+    (tmp_path / "assumptions").mkdir()
+    (tmp_path / "assumptions" / "manifest.yaml").write_text(
+        'data_version: ""\n', encoding="utf-8"
+    )
+    assert resolved_version_for(tmp_path) == assumptions_mod.DATA_VERSION
