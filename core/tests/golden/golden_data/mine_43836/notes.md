@@ -47,7 +47,7 @@
    零水质指标（outqualities 空 WaterQuality 单元元）——键族不变。
 2. **I1（GB 3838 III 类从严）**：案例标准=地表水 III 类（GB 3838），
    环评从严口径 v2 起以 **standard_binding 实绑**承载——
-   `{"effluent": "std.gb3838_iii"}`（golden-cases.md Step1
+   `{"effluent": "std.gb3838_iii"}`（docs/archive/golden-cases.md Step1
    "std.<数据包键>"指引形态；coefficients 1.1.0 std 键族五键
    [GOLDEN3 D3 补建——v1 旧口径"sync 键族补建归数据批挂账"就此
    收口兑现]）。绑定面透传 calc 零消费（只入 content_hash）；e2e

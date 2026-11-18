@@ -19,7 +19,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any
 
-from waterprint.app_influent import _with_influent, influent_summary_of
+from waterprint.solution.app_influent import _with_influent, influent_summary_of
 
 
 class _StubCoefficients:

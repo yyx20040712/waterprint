@@ -1,6 +1,6 @@
 # mine_43836 —— 矿井水 golden 案例（43,836 m³/d，地表水 III 类）
 
-三件套（录入要求见 `docs/golden-cases.md`）：
+三件套（录入要求见 `docs/archive/golden-cases.md`）：
 
 1. `input_project.json`——**v2 全图 11 节点**（8 主线+污泥线 3，MSLUDGE2
    段二 2026-08-28：input→调节池→沉砂→凝聚→磁分离→高密→V 型滤池→

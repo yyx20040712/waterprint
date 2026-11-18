@@ -2,7 +2,7 @@
 
 > 本目录全部文件**只读**（`test-lock.manifest.json` 哈希 + 只读属性，
 > 见 AGENTS.md §7）。修改/新增测试 = 人类执行的显式解锁流程。
-> 文档导航页：`docs/testing.md`（摘要，以本文件为准）。
+> 文档导航页：`docs/archive/testing.md`（摘要，以本文件为准）。
 
 ## 结构与分层
 

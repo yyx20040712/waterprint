@@ -25,7 +25,7 @@ from typing import Any
 
 import pytest
 
-from waterprint.app_carbon import _with_carbon, carbon_summary_of
+from waterprint.solution.app_carbon import _with_carbon, carbon_summary_of
 
 
 class _StubCoefficients:

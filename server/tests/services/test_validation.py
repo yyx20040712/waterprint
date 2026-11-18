@@ -2,14 +2,14 @@
 
 输入:  waterprint_server.services.validation 公开符号（build_validation_
        observation+模型面）+合成 PlantResult/val/diag/catalog 桩
-输出:  服务契约断言（2A1 消费批——聚合规格 warning-aggregation.md §1~§4
+输出:  服务契约断言（2A1 消费批——聚合规格 docs/archive/warning-aggregation.md §1~§4
        十一条款逐条绑定+观测投影+降级三态；端点面=E2E 归伴生件
        test_validation_endpoint.py——500 行预算墙拆分，1A4 契约伴生件先例）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 规格：2A1 消费批（2a1-20261005）§3 D3——聚合实现契约=docs/
-#   warning-aggregation.md 冻结规格；本件=服务语义面（monkeypatch 定点
+#   archive/warning-aggregation.md 冻结规格；本件=服务语义面（monkeypatch 定点
 #   合成件——test_sensitivity 服务面同款模式）。
 #
 # 覆盖用例（§3 十语义逐条）：

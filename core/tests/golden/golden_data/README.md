@@ -8,7 +8,7 @@
 golden_data/
 ├─ README.md                          # 本文件
 ├─ municipal_34760/                   # 市政案例（M2 验收）
-│  ├─ README.md                       # 数据整理要求（三件套见 docs/golden-cases.md）
+│  ├─ README.md                       # 数据整理要求（三件套见 docs/archive/golden-cases.md）
 │  ├─ input_project.json              # 待领域专家整理（进水/标准/工艺图/参数/工况）
 │  ├─ expected_summary.json           # 待整理（每项标注来源与容差）
 │  └─ notes.md                        # 原始设计资料口径注记

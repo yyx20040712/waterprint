@@ -18,12 +18,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from waterprint.app_energy import energy_summary_of
 from waterprint.contracts.result_schema import (
     PlantResult,
     ReproTriple,
     UnitResultSnapshot,
 )
+from waterprint.solution.app_energy import energy_summary_of
 
 
 def _snapshot(dims: dict[str, float]) -> UnitResultSnapshot:

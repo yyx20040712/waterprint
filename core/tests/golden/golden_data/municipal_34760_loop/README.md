@@ -1,6 +1,6 @@
 # municipal_34760_loop —— 市政真环 golden 案例（34,760 m³/d+产泥真边+真回流 SCC）
 
-四件套（录入要求见 `docs/golden-cases.md`；GOLDEN4b D1~D5 起草 2026-08-28）：
+四件套（录入要求见 `docs/archive/golden-cases.md`；GOLDEN4b D1~D5 起草 2026-08-28）：
 
 1. `input_project.json`——主线 19 节点（=municipal_34760 基例：水线 12+
    污泥链 7）+2 `recycle_junction` 转换节点+17+7 边（24 边）：**3 产泥

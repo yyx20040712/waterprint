@@ -1,6 +1,6 @@
 # municipal_34760 —— 市政污水 golden 案例（34,760 m³/d，一级 A）
 
-三件套（录入要求见 `docs/golden-cases.md`）：
+三件套（录入要求见 `docs/archive/golden-cases.md`）：
 
 1. `input_project.json`——完整 design 态（进水水质六指标、出水标准绑定
    一级A数据条目、13 单元工艺图与参数、工况受检单元勾选、假设覆盖）；

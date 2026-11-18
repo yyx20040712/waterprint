@@ -18,7 +18,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any
 
-from waterprint.app_opex import _with_opex, opex_summary_of
+from waterprint.solution.app_opex import _with_opex, opex_summary_of
 
 
 class _StubCoefficients:
