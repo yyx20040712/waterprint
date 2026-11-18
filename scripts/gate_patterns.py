@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 # 占位与未完成标记（AGENTS.md §3；命中数必须为 0）
 # 命名避开特征词本身，防扫描自匹配
@@ -59,11 +60,14 @@ SOURCE_SUFFIXES: tuple[str, ...] = (".py", ".ts", ".tsx")
 DOC_SUFFIXES: tuple[str, ...] = (".md", ".json", ".yaml", ".yml", ".toml", ".txt")
 
 # 扫描范围（相对仓库根；运行时产物与生成物排除）
+# AUDIT-#20（b30，用户裁决 D7）：agent/ 全量纳管（tests/skills 一并在扫，
+# .venv 由 EXCLUDED_DIR_NAMES 排除）——纳管前 agent 面为三查盲区。
 SCAN_DIRS: tuple[str, ...] = (
     "core/waterprint",
     "core/tests",
     "server",
     "webapp/src",
+    "agent",
     "scripts",
 )
 
@@ -85,4 +89,63 @@ EXCLUDED_DIR_NAMES: frozenset[str] = frozenset(
         "generated",
         ".mimosa",
     }
+)
+
+# ══════════════════════════════════════════════════════════════════
+# 宽族 except 精确豁免登记（AUDIT-#20，b30 2026-11-18，用户裁决 D7：
+# agent 全量纳管 + 三处精确豁免——登记不窄化兜底本体，agent 源零改动）。
+# 键 = 文件路径（仓库相对 posix）+ 函数限定名（check_grep_gates 按 AST
+# 定位违规行所在函数，嵌套取最内层链；模块级=“<module>”）+ 异常族
+# （"Exception"=捕获 Exception 基类形态 / "bare"=except 后直接冒号形态）；
+# 行号不作键——豁免不随代码行漂移失效。
+# reason 非空强制（check_grep_gates 启动校验——空理由=无审查依据），
+# 内容转录自兜底注释在案的设计意图。
+# 失效条件（任一触发该处立即转红=审查信号）：函数改名（键漂移）、
+# 异常族变化（收窄/换族）、兜底删除（登记未被消费=腐烂报警）；
+# 审查后重登记或收窄兜底，不得改为整文件/整目录排除形态。
+# 第四处宽族不在表内必红。
+# ══════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True)
+class WaiverEntry:
+    """单条宽族 except 豁免（四字段缺一即门禁红）。"""
+
+    file: str
+    symbol: str
+    family: str
+    reason: str
+
+
+WIDE_EXCEPT_WAIVERS: tuple[WaiverEntry, ...] = (
+    WaiverEntry(
+        file="agent/waterprint_agent/context.py",
+        symbol="run_tool",
+        family="Exception",
+        reason=(
+            "run_tool 工具运行兜底面：run 抛任何异常一律转 {error, hint} "
+            "错误 dict 返回 MCP 客户端（禁 raise 裸异常穿透——AGENTS §3 "
+            "工具条款；session_log 同 span 记账失败）"
+        ),
+    ),
+    WaiverEntry(
+        file="agent/waterprint_agent/tools/projects.py",
+        symbol="_update_params_impl",
+        family="Exception",
+        reason=(
+            "undo 快照守护（门一 FIX-3/C1）：save_project 失败（锁冲突/"
+            "深度闸族）时半写 undo 快照 best-effort 清理后原样重抛，"
+            "交 run_tool 兜底转错误 dict"
+        ),
+    ),
+    WaiverEntry(
+        file="agent/waterprint_agent/tools/solution.py",
+        symbol="_run_joint_enumeration_impl",
+        family="Exception",
+        reason=(
+            "联合枚举护栏族统一收敛（R3）：core 正门 TooLarge/Invalid 等"
+            "护栏异常不穿透 MCP 面，统一转 rejected dict（调用方按 "
+            "status=rejected 处理）"
+        ),
+    ),
 )

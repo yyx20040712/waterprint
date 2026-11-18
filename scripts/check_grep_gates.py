@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from gate_patterns import (
     SCAN_DIRS,
     SOURCE_SUFFIXES,
     UNFINISHED_MARKERS,
+    WIDE_EXCEPT_WAIVERS,
 )
 
 REPO = Path(__file__).resolve().parent.parent
@@ -59,7 +61,59 @@ def iter_files() -> list[Path]:
     return found
 
 
-def check_file(path: Path) -> list[str]:
+# AUDIT-#20（b30，D7）：宽族 except 豁免键形态（与 gate_patterns
+# WIDE_EXCEPT_WAIVERS 登记一致）；族名取值见该文件注释。
+VALID_FAMILIES = ("Exception", "bare")
+WaiverKey = tuple[str, str, str]
+
+
+def validate_waivers() -> tuple[list[str], set[WaiverKey]]:
+    """豁免登记面自身校验：四字段非空（reason 空理由=无审查依据）+ 族合法 + 键唯一。
+
+    返回（问题清单, 登记键集）。
+    """
+    problems: list[str] = []
+    keys: set[WaiverKey] = set()
+    for idx, entry in enumerate(WIDE_EXCEPT_WAIVERS):
+        tag = f"WIDE_EXCEPT_WAIVERS[{idx}]（{entry.file}）"
+        for field in ("file", "symbol", "family", "reason"):
+            if not getattr(entry, field).strip():
+                problems.append(f"{tag}: 字段 {field} 为空（豁免登记不完整——reason 非空强制）")
+        if entry.family not in VALID_FAMILIES:
+            problems.append(f"{tag}: 异常族 {entry.family!r} 非法（合法={VALID_FAMILIES}）")
+        key = (entry.file, entry.symbol, entry.family)
+        if key in keys:
+            problems.append(f"{tag}: 键重复 {key[0]}#{key[1]}[{key[2]}]")
+        keys.add(key)
+    return problems, keys
+
+
+def symbol_map(text: str) -> dict[int, str]:
+    """行号 → 最内层函数限定名（嵌套取链；模块级无键——按“<module>”处理）。
+
+    豁免键定位专用（AUDIT-#20）：违规行所在函数即豁免 symbol，行号不作键。
+    """
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return {}
+    symbols: dict[int, str] = {}
+
+    def visit(node: ast.AST, prefix: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                name = f"{prefix}.{child.name}" if prefix else child.name
+                for line in range(child.lineno, (child.end_lineno or child.lineno) + 1):
+                    symbols[line] = name  # 后写覆盖=最内层
+                visit(child, name)
+            else:
+                visit(child, prefix)
+
+    visit(tree, "")
+    return symbols
+
+
+def check_file(path: Path, waiver_keys: set[WaiverKey], used: set[WaiverKey]) -> list[str]:
     problems: list[str] = []
     rel = path.relative_to(REPO).as_posix()
     try:
@@ -72,9 +126,22 @@ def check_file(path: Path) -> list[str]:
             if token.lower() in lowered:
                 problems.append(f"{rel}: 含未完成标记（grep 门禁特征）")
         if path.suffix == ".py":
+            symbols: dict[int, str] | None = None  # 懒建：仅有命中时才解析 AST
             for match in BARE_EXCEPT_RE.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
-                problems.append(f"{rel}:{line}: 裸/过宽 except（用领域异常）")
+                family = "Exception" if "Exception" in match.group(0) else "bare"
+                if symbols is None:
+                    symbols = symbol_map(text)
+                symbol = symbols.get(line, "<module>")
+                key = (rel, symbol, family)
+                if key in waiver_keys:
+                    used.add(key)
+                    continue
+                problems.append(
+                    f"{rel}:{line}: 裸/过宽 except（用领域异常；豁免面"
+                    f" gate_patterns.WIDE_EXCEPT_WAIVERS 键 {rel}#{symbol}"
+                    f"[{family}] 未登记）"
+                )
     for token in MOJIBAKE_TOKENS:
         if token in text:
             problems.append(f"{rel}: 含乱码特征串")
@@ -103,12 +170,21 @@ def check_compose_port_mirror() -> list[str]:
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    violations: list[str] = []
+    # AUDIT-#20：登记面校验先行（fail-fast——豁免表自身残缺时先红登记面）
+    violations, waiver_keys = validate_waivers()
+    used: set[WaiverKey] = set()
     count = 0
     for path in iter_files():
         count += 1
-        violations.extend(check_file(path))
+        violations.extend(check_file(path, waiver_keys, used))
     violations.extend(check_compose_port_mirror())
+    for key in sorted(waiver_keys - used):
+        # 豁免腐烂检测：登记未被任何违规消费=兜底已删除/函数改名/异常族
+        # 变化——登记失效（键不是摆设），审查后清理或重登记。
+        violations.append(
+            f"宽族 except 豁免未消费：{key[0]}#{key[1]}[{key[2]}]"
+            "（兜底已删除/函数改名/异常族变化——登记失效，审查后清理或重登记）"
+        )
     if violations:
         print(f"[FAIL] grep 门禁（占位/裸异常/乱码/compose 端口）违规 {len(violations)} 处：")
         for item in violations:
@@ -116,7 +192,8 @@ def main() -> int:
         return 1
     print(
         f"[OK] grep 门禁：占位/裸 except/乱码计数 = 0 + compose 端口守卫通过"
-        f"（扫描 {count} 个文件）"
+        f"（扫描 {count} 个文件；宽族豁免消费 {len(used)}/{len(waiver_keys)}"
+        "——登记面 gate_patterns.WIDE_EXCEPT_WAIVERS）"
     )
     return 0
 

@@ -319,6 +319,13 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 - 只读锁：`core/tests/`、`server/tests/`、units_lib 包内 `tests/` 全部文件
   由 `test-lock.manifest.json`（sha256）锁定；改测试 = 人类显式流程
   （`scripts/lock_tests.py`），触碰三信任根的 commit 须带 `[HUMAN-LOCK]`。
+- 门禁覆盖面（AUDIT-#20，b30 2026-11-18）：grep 三查（占位/宽族 except/
+  乱码）SCAN_DIRS 全域含 `agent/`（tests/skills 一并在扫，.venv 排除）；
+  宽族 except 精确豁免登记=`gate_patterns.WIDE_EXCEPT_WAIVERS`（键=文件+
+  函数限定名+异常族，理由非空强制，行号不作键——check_grep_gates 按 AST
+  定位违规行所在函数匹配）。豁免失效条件：函数改名/异常族变化/兜底删除
+  （未消费豁免=腐烂报警）时该处立即转红触发审查；第四处宽族不在表必红，
+  豁免无整文件/整目录排除形态。
 - 红绿纪律：每个测试先失败一次再通过才算数。
 - 前端：vitest（webapp/src/**/*.test.*）；计数以 `docs/status.md` 生成值为准。
 
@@ -449,6 +456,14 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   归位真 docstring 位（#29a——help() 可见，懒 import 语义零变）、
   GET /api/constraints 描述去冻「18 条」数量口径（#29b——openapi
   合法再生 diff 仅 description 一行，orval 生成面同步仅注释一行变）。
+  AUDIT-#20/#21（门禁覆盖与计数口径）已随 b30（2026-11-18）收口——
+  #20：agent/ 全量纳入 grep 三查 SCAN_DIRS（D7 裁决：纳管+精确豁免，
+  不窄化兜底本体，agent 源零改动），三处注释在案的故意宽族兜底
+  〔context.run_tool 工具错误 dict 兜底/tools.projects._update_params_impl
+  undo 快照守护/tools.solution._run_joint_enumeration_impl 护栏族统一收敛〕
+  按"文件+函数限定名+异常族+理由非空"精确豁免登记（WIDE_EXCEPT_WAIVERS，
+  行号不作键；未消费豁免=腐烂报警——函数改名/异常族变化/兜底删除即转红
+  触发审查；第四处宽族必红，红绿探针实录在案，覆盖面注记见 §4.6）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
