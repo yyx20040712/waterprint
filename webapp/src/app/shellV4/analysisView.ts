@@ -10,7 +10,8 @@
  *        「指标|基准 avg|设计 design|限值|判定」形的数据面）；
  *        analysisFacesPredicate/unitResultsKeyPredicate → invalidateQueries
  *        predicate 面（R1a：orval 生成键〔url, params?〕首元素=完整 URL
- *        字符串——旧前缀字符串键打不中=死键根治）
+ *        字符串——旧前缀字符串键打不中=死键根治；T3 批增 validation 精确键
+ *        ——警告聚合副数据面随 TASK_EVENT 同失效）
  *
  * 规格说明（B2 任务书 §二.③——数据源定形：compare=关键容积行矩阵+
  * trust effluent=出水指标限值判定行，双现行端点复用零新 server 面）：
@@ -19,9 +20,9 @@
  *   - 限值/判定=design 工况条目（design 缺席=首见条目兜底）；判定口径
  *     =margin>=0（达/超——trust ADR-012 effluent 同源语义）；
  *   - 行序=indicator 首见序（确定性——载荷序稳定）。
- *   - R1a：predicate 只认键首元素=完整生成 URL——compare/trust 精确等值
- *     +unit-results〈/api/calc/projects/{pid}/units/ 前缀且 /results 尾〉
- *     （他项目/项目读键不误伤——测试断言面）。
+ *   - R1a：predicate 只认键首元素=完整生成 URL——compare/trust/validation
+ *     精确等值+unit-results〈/api/calc/projects/{pid}/units/ 前缀且 /results
+ *     尾〉（他项目/项目读键不误伤——测试断言面；validation=T3 批入列）。
  */
 import type { Query } from "@tanstack/react-query";
 
@@ -88,7 +89,8 @@ export function unitResultsKeyPredicate(projectId: string): (query: Query) => bo
   };
 }
 
-/** 分析面三键失效 predicate（R1a：compare/trust 精确键+unit-results 域）。 */
+/** 分析面失效 predicate（R1a：compare/trust/validation 精确键+unit-results
+ *  域——T3 批 validation 入列，全厂面副数据随 TASK_EVENT 同失效）。 */
 export function analysisFacesPredicate(projectId: string): (query: Query) => boolean {
   const unitResults = unitResultsKeyPredicate(projectId);
   return (query) => {
@@ -96,6 +98,7 @@ export function analysisFacesPredicate(projectId: string): (query: Query) => boo
     return (
       head === `/api/calc/compare/${projectId}` ||
       head === `/api/calc/trust/${projectId}` ||
+      head === `/api/calc/validation/${projectId}` ||
       unitResults(query)
     );
   };

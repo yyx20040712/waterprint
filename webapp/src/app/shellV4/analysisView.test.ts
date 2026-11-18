@@ -9,7 +9,8 @@
  * 输出:  断言族：①indicator 去重聚合+值按工况键 ②限值/判定=design 条目
  *        ③design 缺席=首见兜底 ④超限判定（margin<0=超）⑤空载荷=空行集
  *        ⑥R1a：predicate 失效命中生成 unit-results 键+compare/trust 精确键
- *        ⑦R1a：他项目键不误伤（前缀字符串死键根治证）
+ *        ⑦R1a：他项目键不误伤（前缀字符串死键根治证）⑧T3：validation
+ *        生成键失效命中+他项目不误伤（警告聚合副数据入 TASK_EVENT 桥）
  */
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
@@ -18,6 +19,7 @@ import {
   getGetCompareReportApiCalcCompareProjectIdGetQueryKey,
   getGetTrustReportApiCalcTrustProjectIdGetQueryKey,
   getGetUnitResultsApiCalcProjectsProjectIdUnitsUnitIdResultsGetQueryKey,
+  getGetValidationObservationApiCalcValidationProjectIdGetQueryKey,
 } from "../../shared/api/generated/calc/calc";
 import { analysisFacesPredicate, effluentRows, type EffluentEntry } from "./analysisView";
 
@@ -118,5 +120,23 @@ describe("analysisFacesPredicate（R1a 失效键面——生成键断言）", ()
     expect(qc.getQueryCache().find({ queryKey: [...projectReadKey], exact: true })?.state.isInvalidated).toBe(
       false,
     );
+  });
+
+  it("T3：validation 生成键失效命中（全厂面警告聚合副数据——TASK_EVENT 桥覆盖面）", async () => {
+    const qc = clientWith();
+    const validationKey =
+      getGetValidationObservationApiCalcValidationProjectIdGetQueryKey("p1");
+    const otherProjectKey =
+      getGetValidationObservationApiCalcValidationProjectIdGetQueryKey("p2");
+    qc.setQueryData(validationKey, { warnings: [] });
+    qc.setQueryData(otherProjectKey, { warnings: [] });
+    await qc.invalidateQueries({ predicate: analysisFacesPredicate("p1") });
+    expect(
+      qc.getQueryCache().find({ queryKey: validationKey, exact: true })?.state.isInvalidated,
+    ).toBe(true);
+    // 他项目 validation 键不误伤（精确等值——前缀误伤对照证）
+    expect(
+      qc.getQueryCache().find({ queryKey: otherProjectKey, exact: true })?.state.isInvalidated,
+    ).toBe(false);
   });
 });

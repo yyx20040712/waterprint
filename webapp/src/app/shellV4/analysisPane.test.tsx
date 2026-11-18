@@ -6,8 +6,9 @@
  * 明细〔unit_detail 新端点满行〕/stale 态〔原因微文案+重算入口〕/空态三态
  * 〔无项目/无结果/无选中单元=全厂面默认〕）。
  *
- * 输入:  AnalysisPane（compare/trust/unit_detail 三数据 hook 模块替身+
- *        CompareMatrix 呈现件替身——隔离 M1 组件面）+三态夹具
+ * 输入:  AnalysisPane（compare/trust/unit_detail/validation 四数据 hook
+ *        模块替身+CompareMatrix 呈现件替身——隔离 M1 组件面；validation
+ *        接线断言归 analysisPane.validation.test.tsx——T3 批独立件）+三态夹具
  * 输出:  断言族：①无项目空态 ②全厂面 effluent 行+判定 ③全厂面 stale
  *        横幅+重算钮 ④无结果空态（引导「全项目计算」）⑤选中单元满行
  *        （行集==载荷 rows——行模型对账 FE 面）+端口段+warnings ⑥选中
@@ -45,6 +46,11 @@ const gate = vi.hoisted(() => ({
     isError: false,
     error: null as unknown,
   },
+  validation: {
+    data: undefined as unknown,
+    isError: false,
+    error: null as unknown,
+  },
   runMutate: vi.fn(),
 }));
 
@@ -53,6 +59,11 @@ vi.mock("../../features/compare/api/useCompareQuery", () => ({
 }));
 vi.mock("../../features/trust/api/useTrustQuery", () => ({
   useTrustQuery: () => gate.trust,
+}));
+// T3 警告聚合副数据面替身（全厂面新增数据依赖——接线断言归
+// analysisPane.validation.test.tsx 独立件，本件仅替身化保持既有面隔离）
+vi.mock("../../features/validation/api/useValidationQuery", () => ({
+  useValidationQuery: () => gate.validation,
 }));
 vi.mock("../../features/compare/components/CompareMatrix", () => ({
   CompareMatrix: () => <div data-testid="wp-compare-matrix-stub">矩阵替身</div>,
@@ -153,6 +164,7 @@ beforeEach(() => {
   gate.compare = { data: undefined, isError: false, error: null };
   gate.trust = { data: undefined, isError: false, error: null };
   gate.unit = { data: undefined, isError: false, error: null };
+  gate.validation = { data: undefined, isError: false, error: null };
   gate.runMutate.mockClear();
 });
 afterEach(cleanup);

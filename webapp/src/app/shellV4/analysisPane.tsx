@@ -4,12 +4,14 @@
  * 行+全厂对比矩阵〕；选中单元（?node= 生效）=逐单元结果明细满行。
  *
  * 输入:  projectId（useProjectId 单一真相）+selectedUnitId（?node= 对象选中
- *        真相——shellV4 受控）+useCompareQuery/useTrustQuery（全厂面双现行
- *        端点：compare=关键容积行矩阵〔CompareMatrix 呈现件复用〕+trust
- *        effluent=出水指标限值判定行——数据源定形落批档）+unit_detail 新
- *        端点 hook（选中单元满行）+TASK_EVENT 事件桥（apply 重算后失效）
+ *        真相——shellV4 受控）+useCompareQuery/useTrustQuery/useValidationQuery
+ *        （全厂面三数据面：compare=关键容积行矩阵〔CompareMatrix 呈现件复用〕
+ *        主数据+trust effluent=出水指标限值判定行+validation warnings=警告
+ *        聚合三分区〔T3 批——warning-aggregation.md §3〕两副数据）+unit_detail
+ *        新端点 hook（选中单元满行）+TASK_EVENT 事件桥（apply 重算后失效）
  * 输出:  分析表面板：空态三态（无项目/无结果——引导顶带「全项目计算」钮/
  *        无选中单元=全厂面默认非空态）+stale 横幅（原因微文案+重算入口）
+ *        +警告聚合面板（T3：stale 后/出水指标前——违规面优先于指标阅读）
  *        +effluent 指标表+CompareMatrix｜选中单元 rows 满行+端口流量水质段
  *        +warnings 行（formula_ids 数据面不渲染——公式呈现=B6 批）
  *
@@ -20,7 +22,10 @@
  *     ——CompareMatrix 同款；空串=「—」禁伪单位）；
  *   - 空态/错误文案白名单：空态引导/错误提示/stale 原因——零教学性文字；
  *   - stale=提示性（不阻断阅读）；重算入口=POST /api/calc/run 直发
- *     （分析态无画布草稿面——apply 已落盘；zoneBand 顶带钮同链另一入口）。
+ *     （分析态无画布草稿面——apply 已落盘；zoneBand 顶带钮同链另一入口）；
+ *   - T3 警告聚合副数据面（validation）：错误局部呈现不阻断 compare 主面
+ *     （trust 副数据同制）；404=compare 同一固定摘要+重算引导（不新增第二
+ *     文案口径）；pending 静默。
  */
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +33,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCompareQuery } from "../../features/compare/api/useCompareQuery";
 import { CompareMatrix } from "../../features/compare/components/CompareMatrix";
 import { useTrustQuery } from "../../features/trust/api/useTrustQuery";
+import { useValidationQuery } from "../../features/validation/api/useValidationQuery";
+import { WarningsPanel } from "../../features/validation/components/WarningsPanel";
 import { formatSolutionValue } from "../../features/solutions/lib/solutionsView";
 import {
   useGetUnitResultsApiCalcProjectsProjectIdUnitsUnitIdResultsGet,
@@ -50,6 +57,9 @@ const GATE_TEXT = {
   unitSource: "项目暂无完成的计算结果",
   unitEntry: "该单元不在当前结果快照（未计算或已移除）",
 } as const;
+// T3 validation 404（ValidationSourceNotFoundError）复用 compare 同一固定
+// 摘要+重算引导——compare/validation 同取「最近完成结果集」，404 语义同源
+// 不新增第二文案口径（降级路径要求）。
 
 /** 出水指标单位映射（V3 D2——冻结六指标恒 mg/L：出处=GB 18918 一级 A
  *  常规污染物口径+core waterprint/contracts/quality.py INDICATORS 冻结域
@@ -145,12 +155,21 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
   );
 }
 
+/** validation 副数据面错误文案（T3：404=compare 同口径固定摘要+重算引导；
+ *  网络/窄化错=raw 透出——主数据错态三分支同制）。 */
+function validationErrorText(error: unknown): string {
+  const gate = domainGate(error, "ValidationSourceNotFoundError", GATE_TEXT.compare);
+  return gate.domain ? `${gate.text}——${NO_RESULT_HINT}` : `取数失败：${gate.text}`;
+}
+
 /** 全厂指标面（未选单元=默认态——非空态）。 */
 function PlantFace({ projectId }: { projectId: string }) {
   const query = useCompareQuery(projectId);
   const trustQuery = useTrustQuery(projectId);
+  const validationQuery = useValidationQuery(projectId);
   const report = query.data ?? null;
   const trust = trustQuery.data ?? null;
+  const validation = validationQuery.data ?? null;
 
   if (query.isError) {
     // 领域 404=固定摘要+重算引导；网络/窄化错=raw 透出（错误提示白名单）
@@ -174,6 +193,19 @@ function PlantFace({ projectId }: { projectId: string }) {
   return (
     <div data-testid="wp-v4-analysis-plant" style={{ padding: "10px 12px", overflow: "auto" }}>
       {report.stale ? <StaleBanner projectId={projectId} /> : null}
+      {/* T3 警告聚合副数据面（stale 横幅后/出水指标前——违规面优先于指标
+          阅读）：错误局部呈现不阻断 compare 主面（trust 副数据同制）、
+          pending 静默、空警告面板自不渲染（薄壳三态归 WarningsPanel） */}
+      {validationQuery.isError ? (
+        <div
+          data-testid="wp-v4-validation-error"
+          style={{ fontSize: 11, color: "var(--wp-error)", marginBottom: 8 }}
+        >
+          {validationErrorText(validationQuery.error)}
+        </div>
+      ) : validationQuery.isPending ? null : validation !== null ? (
+        <WarningsPanel observation={validation} />
+      ) : null}
       {/* R1 W-trust：取数失败=错误提示（白名单）+加载静默——矩阵面仍在不阻断 */}
       {trustQuery.isError ? (
         <div style={{ fontSize: 11, color: "var(--wp-error)", marginBottom: 8 }}>
