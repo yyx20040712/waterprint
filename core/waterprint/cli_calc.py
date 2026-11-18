@@ -24,6 +24,10 @@
 #   _CONSTRAINTS_FILE 私有引用（executor_dsl 跨件私有引用先例——禁路径
 #   字面量双源）。装载入 try 段（kb 装载异常收编 3 族）。
 #
+# 【b29 AUDIT-#23b】--conditions 解析与成员校验（读入校验族=3）：
+#   空段拒绝（"aao,,cass"/"," 不再静默吞）；未知单元键（不在
+#   design.nodes）本地拒绝（原静默白算与基线全同的敏感性帧）。
+#
 # 【禁止事项】不持有其余子命令（归 cli.py）；零数值字面量。
 # 【参照】cli_common.py（共享底座）；flows（用例流层）
 # ══════════════════════════════════════════════════════════════════
@@ -75,10 +79,28 @@ def run_calc_command(project_path: str, conditions: str | None,
     target = _user_out(out, source.with_suffix(".result.json"))
     if target is None:
         return _EXIT_VALIDATION
-    keys = None if conditions is None else [k for k in conditions.split(",") if k]
+    keys: list[str] | None = None
+    if conditions is not None:
+        # b29 AUDIT-#23b：空段拒绝（原 if k 过滤静默吞——"aao,,cass" 静默
+        # 降级两键、"," 静默等价缺省，用户输入面应显式校验族错误）。
+        segments = conditions.split(",")
+        if any(not k for k in segments):
+            print(
+                f"[校验失败] --conditions 含空段：{conditions!r}"
+                "（逗号分隔的受检单元清单不得有空段）", file=sys.stderr)
+            return _EXIT_VALIDATION
+        keys = segments
     pack = _data_dir(data_dir)
     try:
         project = load_project(source)
+        # b29 AUDIT-#23b：未知单元键本地校验（原静默放过——离线目标不在
+        # 图中时敏感性工况与基线 design 全同、白算一帧且无任何告警）。
+        unknown = [k for k in (keys or ()) if k not in project.design.nodes]
+        if unknown:
+            print(
+                f"[校验失败] --conditions 含不在图中的单元键：{unknown}"
+                "（受检单元须为 design.nodes 既有节点）", file=sys.stderr)
+            return _EXIT_VALIDATION
         env = flows.build_env_flow(pack, project)
         cond = flows.build_condition_flow(project, keys)
         standards = flows.build_standards_flow(pack)
