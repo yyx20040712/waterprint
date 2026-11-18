@@ -398,12 +398,14 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   （assumptions 数据包启动校验+WATERPRINT_DATA_DIR 通道+版本槽入
   data_version 聚合）已随 b24（2026-11-18）收口——五包入校验面、core
   registry 探测序 env 前置、聚合串三包化（版本槽抬版仍人工）；
-  AUDIT-#7/#8（确定性 JSON 参数 5 处与 loop.* 键集 4 处手工镜像+
-  format_version 双源）已随 b25（2026-11-18）收编既有 L0 契约单源
+  AUDIT-#7/#8（确定性 JSON 参数 5+1 处与 loop.* 键集 4 处手工镜像+
+  format_version 三源）已随 b25（2026-11-18）收编既有 L0 契约单源
   （result_schema.JSON_KWARGS / run_env.LOOP_KEYS /
-  project_schema.CURRENT_FORMAT_VERSION——零新文件零新依赖边）——
-  值逐字搬移序列化字节零漂、loop 键四引用同一对象（恒等钉同向
-  兼容）、升版只改 project_schema 单处；二沉池
+  project_schema.CURRENT_FORMAT_VERSION，server projects.py 两镜像同批
+  import as 退役——零新文件零新依赖边）——值逐字搬移序列化字节零漂、
+  loop 键四引用同一对象（恒等钉同向兼容）；升版口径=当前版字面量
+  单源于 project_schema，升版动作=改该常量+migration._FORMAT_HISTORY
+  前缀追加旧当前版（两动作，迁移链不丢版）；二沉池
   与 AAO 同值参数双包独立声明、无一致性校核（AUDIT-#6，b26 处置）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。

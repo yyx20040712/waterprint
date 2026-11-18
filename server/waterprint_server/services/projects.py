@@ -74,6 +74,9 @@ from typing import Any, Final
 from pydantic import ValidationError
 from waterprint import app as core
 from waterprint.contracts.project_schema import (
+    CURRENT_FORMAT_VERSION as _DESIGN_FORMAT_VERSION,
+)
+from waterprint.contracts.project_schema import (
     DesignState,
     Metadata,
     ProjectFile,
@@ -88,14 +91,9 @@ _PROJECT_SUFFIX: Final[str] = ".wp.json"
 # 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68；
 # P2 生命周期批提升公开：project_lifecycle 副本名截断共用单源）
 PROJECT_NAME_MAX: Final[int] = 10**2
-# 与 core io._FORMAT_VERSION 同源（L4a 随行先例；inlet-m3d 批 2026-10-02
-# 随 core "3.0"→"4.0"——空白新建项目直落当前版，免装载迁移面）。
-_DESIGN_FORMAT_VERSION: Final[str] = "4.0"
-_JSON_KWARGS: Final[dict[str, Any]] = {
-    "sort_keys": True,
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-}
+# _DESIGN_FORMAT_VERSION 自 core L0 单源 import as 保名（b25 回炉：原
+# server 第三镜像字面量退役——空白新建项目直落当前版，免装载迁移面；
+# 序列化参数单源 result_schema.JSON_KWARGS 由消费方 exports 直接引）。
 
 
 class ProjectNotFoundError(KeyError):

@@ -149,7 +149,7 @@ from typing import Any, Final
 
 import structlog
 from waterprint import app as core
-from waterprint.contracts.result_schema import InvalidResultError, deserialize
+from waterprint.contracts.result_schema import JSON_KWARGS, InvalidResultError, deserialize
 
 from waterprint_server.jobs.export_render import _render_artifact
 from waterprint_server.jobs.manager import TaskRequest
@@ -183,7 +183,7 @@ from waterprint_server.services.exports_support import (
     _station_text_of,
     _unit_id_of,
 )
-from waterprint_server.services.projects import _JSON_KWARGS, read_project
+from waterprint_server.services.projects import read_project
 
 # ENG7：拆分后公开面显式声明（jobs/records.py __all__ 再导出先例——mypy
 # no-implicit-reexport 下透传名 ExportMeta/InvalidExportRequestError 需入册；
@@ -362,7 +362,7 @@ async def create_export(  # noqa: PLR0913  # 规格冻结五参签名+ctx 首参
         # 参数 {kind, condition_key, options}（force 不入键）；digest 沿 design_digest 口径。
         digest = sha256(
             json.dumps(
-                {"kind": kind, "condition_key": condition_key, "options": chosen}, **_JSON_KWARGS
+                {"kind": kind, "condition_key": condition_key, "options": chosen}, **JSON_KWARGS
             ).encode("utf-8")
         ).hexdigest()
         handle = await ctx.manager.submit(

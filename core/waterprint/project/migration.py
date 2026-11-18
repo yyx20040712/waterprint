@@ -94,10 +94,13 @@ from waterprint.contracts.project_schema import (
 from waterprint.contracts.quantity import DimKey, parse
 from waterprint.project.io import InvalidProjectError
 
-# 支持版本链（历史序）；末位=当前版自 project_schema.CURRENT_FORMAT_
-# VERSION 单源（b25 AUDIT-#8——io._FORMAT_VERSION 同引一处，值不变）。
+# 支持版本链（历史序）=冻结历史前缀+当前版末位（自 project_schema.
+# CURRENT_FORMAT_VERSION 单源派生——b25 回炉：末位直替会使旧当前版掉链，
+# 升版流程=改 project_schema 常量 + 本前缀追加旧当前版两动作，迁移链不丢版）。
+_FORMAT_HISTORY: Final[tuple[str, ...]] = ("1.0", "2.0", "3.0")
 SUPPORTED_VERSIONS: Final[tuple[str, ...]] = (
-    "1.0", "2.0", "3.0", CURRENT_FORMAT_VERSION
+    *_FORMAT_HISTORY,
+    CURRENT_FORMAT_VERSION,
 )
 
 # 秒/日（=86400，m³/s→m³/d 换算乘子）——经 pint 正门派生（R2 禁手写
