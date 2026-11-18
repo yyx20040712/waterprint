@@ -33,16 +33,11 @@
 |------|------|
 | `lib/projectFlow.ts` | 投影层纯函数（design JSON→React Flow nodes/edges：D6 窄化门/D3 布局[波次分层+R-1 S 形折行]/D1 端口方向聚合+recycle 虚线——零运行期库 import）；R2-P1-1（E2E-4 批 2026-09-25）：fallbackLayout X 起点=LAYOUT_X_ORIGIN 80（活动区避开画布左缘覆盖面——节点卡被侧栏盖住无法选中；右下小地图覆盖面由批2 编辑态自动 fitView 缓解） |
 | `lib/projectFlow.test.ts` | 投影层 vitest（node 环境 32 用例：版本轻门/形状逐类拒/悬空边/kind 徽标/端口聚合/虚线/布局优先与兜底折行确定性） |
+| `lib/projectFlow.guards.test.ts` | projectFlow 窄化门守卫负例（AUDIT2 FIX2 I-8 独立件） |
 | `lib/unitGlyph.ts` | 象形图标+域色纯函数（32 unit_id+4 内置 kind → Unicode 字形；business_line → 节点域色/边流色两色制——C2-canvas P3/P4；B3-b：四域色+中性色值单源=shared/ui/semanticColors domain_* 键〔本件持 business_line→键映射+图标三色组+流色规则〕） |
 | `lib/unitGlyph.test.ts` | 字形/域色 vitest（9 用例：32 键全枚举防漏+聚类抽样+回退 ▢+域色五值+流色三态） |
-| `components/CanvasFlow.tsx` | React Flow 画布容器（只读渲染：nodeTypes 注册/fitView/投影错误薄壳+点阵底/满高/边着色聚合/图例/MiniMap/Controls——C2-canvas；C2VD V5：MiniMap 底色实底 token 化 var(--wp-bg-container)；P0-3：编辑态投影切 draftProjectRaw 合成体+三关开闭+onConnect/onNodesDelete/onEdgesDelete/onNodesChange[position] 五通道+catalogPorts 渲染层注入+空图编辑态照常渲染；B3-b：图例线色=semanticColors domain_* 键单源引用；R2-P1-2②（E2E-2 批2 2026-09-25）：fitKey 编辑态前缀——进入编辑重拟合全图（连线句柄视口外暗坑；加节点自动拟合已由节点数签名覆盖） |
-| `lib/thumbnailContext.ts` | C2-thumb 实装（2026-09-11）：节点缩略图 context——app 层组合穿线消费面（Viewer3d 域产出经 Provider 注入/缺省空 Map 回退象形；投影 data 零触碰红线维持） |
-| `components/UnitNode.tsx` | 节点卡片（域色象形图标+左域色 bar+中文名+unit_id 等宽副标+kind 徽标+鎏金选中态+域色端口——C2-canvas 重制；C2-thumb 缩略图双态；C2-visual T3：缩略图槽 hover 悬浮大图 160[fixed+createPortal 逃逸 React Flow 裁剪+视口钳位]；C2VD V2：unit_id 副标分隔符 wbr 整词断行[孤字根除——终裁 L1]+overflowWrap 兜底+data-testid 探针锚；P0-3：编辑态 catalog 端口面[IN 左/OUT 右独立计数]+右上删除钮） |
-| `components/PortHandle.tsx` | 方向端口渲染件（target=Left/source=Right Handle 封装+可选域色描边——挂账④兑现；P0-3：connectable 透传——编辑态连线交互） |
 | `components/thumbnailGlyph.tsx` | 缩略图字形件（B1 骨架批 2026-10-09：36 类预绘简笔 SVG——32 包 unit_id+4 builtin kind，线性 currentColor/viewBox 64×40，同类族结构母题+族内分异；THUMBNAIL_GLYPH_KINDS 键集与 app 层映射表全域对账〔app/catalogCategories.test——分层红线本件不持映射表〕；未知 kind 回退虚线象形框） |
 | `components/thumbnailGlyph.test.tsx` | 缩略图字形 vitest（jsdom 4 断言族：36 键无重/hasThumbnailGlyph 判别/全量 kind 渲染冒烟〔svg 根+线性 stroke〕/未知 kind 回退——目录全量×键集对账在 app 层 catalogCategories.test） |
-| `hooks/useConnectionRules.ts` | 连线规则（骨架维持——段二实装，与 core contracts/ports.validate 同源） |
-| `hooks/useAutoLayout.ts` | 自动布局（骨架维持——段二实装，Ctrl+L 拓扑分层） |
 | `store/canvasStore.ts` | 编辑会话 zustand（P0-3 实装：beginEdit 快照摄入[红线⑤隔离]/designWriter 薄壳通道/dirty 四面引用派生/markSaved 自清/selector 带 projectId 守卫——服务端缓存态不进 store §17.2 维持） |
 | `store/canvasStore.test.ts` | 编辑会话流转 vitest（6 用例：快照摄入/同项目幂等/异项目顶替/dirty 派生与 markSaved 自清/position 视图态不致 dirty/endEdit 后动作空转） |
 | `lib/designWriter.ts` | design 写侧纯函数（P0-3：nextInstanceId `_2` 后缀③/addUnit 零默认填充③/connectEdge 同对幂等/deleteNodes 级联清/deleteEdge/draftViewLayout 三级合成/draftProjectRaw 草稿合成体——投影层只读红线①分面） |

@@ -90,7 +90,7 @@ function filesContaining(needle: string): string[] {
 describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全树口径）", () => {
   it("单元枚举 hook：全树消费面恰=[app/shellV4/enumerateModal.tsx]（v1 转正批——ribbon.tsx 随 legacy 退役删除，期望集随批收缩）", () => {
     // v4 面内第二消费面（绕过 EnumerateBar 直发）即红；ribbon 消费面
-    // 已随 legacy 物理删除（本批），回读清点账=docs/ui-entry-ledger.md
+    // 已随 legacy 物理删除（本批），回读清点账=docs/archive/ui-entry-ledger.md
     const hits = filesContaining("useRunEnumerationApiCalcEnumeratePost");
     expect(hits).toEqual(["app/shellV4/enumerateModal.tsx"]);
   });

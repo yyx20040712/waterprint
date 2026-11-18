@@ -23,10 +23,10 @@ manifest 默认值（带条文出处，units_lib 各包声明）
 
 | 耦合量 | 唯一归属 | 其他单元如何获得 |
 |--------|----------|------------------|
-| 外回流比 R、MLSS、污泥负荷 Ns、内回流比 Ri | AAO/CASS manifest（可枚举自由参数） | 二沉池经 UnitContext 接收（只读） |
+| 外回流比 R、MLSS、污泥负荷 Ns、内回流比 Ri | AAO manifest（可枚举自由参数；CASS 仅 ns/x_mlss） | 二沉池独立声明同值参数 x_mlss/r_external（双 manifest 声明，无一致性校核——开放面） |
 | 二沉池固体负荷 | 二沉池派生量（由 R、MLSS 计算） | 不反向影响 AAO，仅出校核警告 |
 | 高密池污泥回流比 3%~5% | 高密池 manifest（单元内部变量） | 泥量入污泥衡算 |
-| 化学除磷药剂摩尔比 | data/coefficients（§7.10.5） | 化学泥量公式引用键取值 |
+| 化学除磷 PAC 投加量（mg/L） | data/coefficients（§7.10.5） | 化学泥量公式引用键取值 |
 | 汇流 Kz | 取 max（graph/propagate 语义） | 各支流只提供自身量 |
 | 泥量含水率链 | 各单元 manifest 改写并产出新 SludgeFlow | 禁原地修改（无状态传播） |
 | 工况键 condition_key | 图引擎分配 | 全链路只读 |

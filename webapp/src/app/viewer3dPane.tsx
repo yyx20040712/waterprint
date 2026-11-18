@@ -12,8 +12,8 @@
  *     一步收敛，S3 六 pane 订阅联动；deep-link 初值与 Select 选项共用
  *     normalizeProjectId 归一[.wp 尾缀——真服务探针实证 /api/scene/<id>.wp
  *     422；服务端根治挂账 C1]）；列表空/查询失败=指引文案（先经 CLI/API
- *     建项目——docs/user-manual.md §3 五步链「建项目→提交计算→看方案→
- *     三维场景→出审计报告」）；P0-1（2026-09-11）：空态 CTA 化——
+ *     建项目——docs/archive/user-manual.md §3 五步链「建项目→提交计算→
+ *     看方案→三维场景→出审计报告」）；P0-1（2026-09-11）：空态 CTA 化——
  *     「新建项目」Modal（与 canvasPane 同件）+下拉「名称 (id 前 8)」；
  *   - 懒加载+chunk 失败重试（R1/一审 I-1）：React.lazy 的 thenable 跨挂载
  *     持久——动态 import 一旦 reject，复位边界重挂载不会重执行 import；

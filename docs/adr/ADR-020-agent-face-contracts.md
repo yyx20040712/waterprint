@@ -13,7 +13,7 @@
 
 | # | 决策 | 理由 |
 |---|------|------|
-| D1 | **agent 面 import 白名单**：`waterprint.app`、`waterprint.flows`（ADR-022）、`waterprint.contracts.*`（L0 类型面）、`waterprint_server.{services,settings,jobs.manager}`；禁 core L1~L3 直连、禁 fastapi/starlette、禁 waterprint.cli | 与 server 同款"只经正门"纪律；services 层实证零 web 框架依赖可进程内复用（grep 全目录无 fastapi/starlette import） |
+| D1 | **agent 面 import 白名单**：`waterprint.app`、`waterprint.flows`（ADR-022）、`waterprint.report`（B6 批 report 移居 core 后补入——tools/exports.py 消费 anchors）、`waterprint.contracts.*`（L0 类型面）、`waterprint_server.{services,settings,jobs.manager}`；禁 core L1~L3 直连、禁 fastapi/starlette、禁 waterprint.cli | 与 server 同款"只经正门"纪律；services 层实证零 web 框架依赖可进程内复用（grep 全目录无 fastapi/starlette import） |
 | D2 | **audit 例外通道**：audit HTML 渲染的正门=`flows.audit_render_flow`/`flows.export_flow("audit")`（core 内部调 trace.audit 天然合法）；agent 面直连 waterprint.trace.audit 仅作后备例外，须在本 ADR 登记（agent/pyproject.toml 的 ignore_imports 挂起注记随导出批落地恢复——正门已通则豁免保持注释态） | 单一真源优先；CLI 先例（export audit 直调 trace.audit）在 flows 落地后收敛为 flows 单源 |
 | D3 | **契约机器化**：agent/pyproject.toml import-linter 双根（waterprint_agent+waterprint，SERVER D7 先例）+ forbidden 契约两条（L1-L3/cli/fastapi 面；trace 面）+ allow_indirect_imports=true（直查口径） | 无机器强制的边界=纸面边界；负向探针实证（注入 waterprint.graph import→exit 1） |
 | D4 | **共享编排落 core.flows 而非"core 之外的共享层"**：CLI（core 内最高层）与 agent 面均向上 import flows——消除 cli→外层包的倒置环 | 对抗审核 B1 终裁；E4 实证 |

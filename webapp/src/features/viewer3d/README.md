@@ -41,6 +41,20 @@
 
 | 文件 | 职责 |
 |------|------|
+| `lib/projectScene.ts` | 投影层纯函数本体：SceneResponse JSON → 渲染描述对象（组件薄壳唯一数据源；SCENE_VERSION 门/六 kind/变换门/bounds 聚合） |
+| `lib/groundPlan.ts` | C2-3d V1/V2 地面/网格/灯位数据派生（Scene 抽离件——500 行预算门） |
+| `lib/usePoolGroups.ts` | S11 池组计划/徽标数据通道（Scene 抽离件——500 行预算门） |
+| `assemble/missingSlots.ts` | 检修缺位占位数据派生（spec.md §11 S11——数据源=params/结果面） |
+| `assemble/missingSlots.test.ts` | 检修缺位占位冻结单测（spec.md §11 S11 机器锚） |
+| `assemble/poolGroup.ts` | 池组排布计划（S11 接线批——数据源=params/结果面零推导） |
+| `assemble/poolGroup.test.ts` | 池组排布计划冻结单测（S11 接线批机器锚） |
+| `assemble/strippedClone.ts` | inst 原型克隆剥离（段二门二 P0 修复面单源） |
+| `assemble/instAsset.test.ts` | inst 布局资产级端到端测试（门二 P0 复审——真实量化 glb 驱动） |
+| `components/GroundStage.tsx` | 地面/灯光台（C2-3d V1/V2——Scene.tsx 预算墙拆件 F5 D1） |
+| `components/MissingSlotPlaceholder.tsx` | 检修缺位警示占位（S11 接线批渲染层） |
+| `components/PlacementBanner.tsx` | 摆放态解释横幅（F9——C2-visual 批 Scene 抽离件） |
+| `components/FirstFrameGate.dom.test.tsx` | 首帧门 overlay jsdom 面测试 |
+| `components/ViewerToolbar.test.tsx` | ViewerToolbar 剖切控件测试（F5 D3——工具条剖切入口） |
 | `assemble/spec.md` | 批3 首件（2026-09-12）：模板归一化与变换矩阵规格——S1~S12 采纳清单全落规格（统一归一化空间/列矢量统一公式/轴映射表/数值极端算例/equipment 数据链/比例域/剖切 stencil 条款/水密 CI 规格/registry schema v1 草案/命名规约/裁定记录）；状态=**已签核**（2026-09-12 批3 启动会七裁全按推荐序——P2~P7/S11/预算裁定记录 §11）——批3 主体可动工 |
 | `assemble/types.ts` | 批3 首件：装配词汇层（Vec3/GroupKind/AxisMask/TargetDims/TemplateSize/TemplateNodeMeta/EquipmentSpec/GroupTransform/RatioDomainEntry/DeviationResult+DEFAULT_TRIM_STRETCH 冻结常量）——零 three 依赖 |
 | `assemble/computeTransforms.ts` | 批3 首件：分组变换数学核（sceneDimsToTarget 轴对应/shellScale 壳缩放[grouped glTF 轴序]/groupTransform 统一公式 M=T(anchor⊙(s−σ))·diag(σ)——S1 唯一定法位置缩放+截面逆缩放抵消/transformDeterminant S6 断言；AssembleSpecError 显式拒防线） |
@@ -65,8 +79,6 @@
 | `lib/thumbnailStage.test.ts` | C2-thumb 实装；C2-visual/C2VD 扩 | 纯函数族（分组/AABB/取景/缓存键+waters 分组+sectionPlane 对角剖面派生+C2VD：solidGeometry 三分支/sectionCapQuad 中心在面+过幅+微构型钳/hasCapWriters 三态） |
 | `lib/placementSummary.ts` | C2-visual F9 实装（2026-09-11） | 摆放态汇总纯函数：countPlacedUnits（scene 单元组在场数——首段去重/pipe 排除）/designNodesCount（design.nodes 可布置窄化——内置 kind 节点排除）/siteStructuresCount（structures 键数）/placementSummary（横幅判据——structures 非空且 placed<total，兜底满场不挂） |
 | `lib/placementSummary.test.ts` | C2-visual F9 实装 | 纯函数 node 测试（计数/窄化防御/横幅判据三族） |
-| `components/ThumbnailStage.tsx` | C2-thumb 实装（2026-09-11；C2-visual 迭代同日；C2VD V1 帽盖接线同日）：缩略图离屏舞台——192=2x 物理（T3 hover 大图 160 近原生）viewport 外定位+frameloop never 单帧手渲+顺序 rAF 队列[V2 预算]+队列态随 scene 复位（GD-01）+PoolBox/WaterSurface 构型直用[构型真源单点；T2 waters 半透明入图]+纵向对角半剖（T1 clippingPlanes+localClippingEnabled）+光比 0.55/1.6（T4 独立微调——与主视图分源）+C2VD：SectionCap 剖切帽盖挂载（hasCapWriters 门控）+gl 显式 stencil:true+Canvas camera/gl 配置常量外提（CV-N-01 R2——重渲引用漂移防线）；app 层 canvasPane 组合穿线——features 互不依赖红线 |
-| `components/SectionCap.tsx` | C2VD V1 新件（2026-09-11）：剖切帽盖——stencil 双 writer（背面 IncrementWrap/正面 DecrementWrap，depthTest/colorWrite/depthWrite 全关+同剖切面）+单元共享帽盖面片（stencilRef 0/NotEqual/Replace 三 op，MeshBasic 平涂——工程剖面恒色惯例）；模板语义=stencil+1 区=剖切面∩实体材质区（水体/空腔无 writer 不入——断面蓝保持）；单元级合成制（单剖切面多封闭实体；单帧渲染 autoClear 清 stencil 零复位簿记）；几何=solidGeometry 单源规格 |
 | `lib/cameraFrame.ts` | 取景机位纯函数（v2-20261015 笔5 自 Scene.tsx 169-195 拆迁——frameCamera(preset,bounds,aspect)→{position,center}：AABB 投影紧致拟合〔fitting=max(extU/extR 投影半延展÷tan25°·aspect)×1.15+深度支撑项 extD；extU 沿相机 yAxis——两处 D5 公式修正项见头注与批档自裁申报〕；三 preset 方向/空场景回退/中心语义不变） | v2 笔5 实装（消费面=Scene CameraRig+Canvas 初始位；测试 cameraFrame.test.ts） |
 | `lib/modelFraming.test.ts` | 取景盒=模型簇纯函数 vitest（node 直测——V4 P8 先红后绿+迭代二回炉：golden 形状夹具〔两池 110m 主线+640×420 地面+±320/±210 红线+条带〕簇排除面断言+bounds 对照锚/NDC 主轴跨≥0.6〔线性主线单轴达标〕+八角不裁切/空簇 null；迭代二=渲染真形口径：claimed 族兜底方阵不入簇盒〔claim 盲/知双口径对照——方阵把盒 z 撑 3.4 倍〕+稀疏槽格吃已摆 cell 不吃缺位槽〔includeMissing〕+空簇显式回退源锚〔d1-W3〕） | V4 前端信息面批 P8+迭代二（8 用例——以 vitest 实跑为准） |
 | `components/Scene.test.ts` | Canvas 铺满容器源锚 vitest（node 直读源文——V4 P7：height:"100%" 容器填充制+视口公式退役+CANVAS_MIN_HEIGHT 保底+relative div flex:1/minHeight:0 链中段+zone 包裹 flex 列链首；Canvas 真渲染需 WebGL 不入 jsdom〔FirstFrameGate.dom 先例〕） | V4 前端信息面批 P7（3 用例——以 vitest 实跑为准） |

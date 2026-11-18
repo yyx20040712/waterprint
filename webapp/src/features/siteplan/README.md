@@ -31,6 +31,7 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `components/SiteplanPane.test.tsx` | 组装件 vitest jsdom（V4 P3 先红后绿：useSiteData/保存/间距/目录四模块替身+golden 夹具〔inlet 已摆+aao1 待摆〕——待摆条目中文名+title 原 id；查表键=kind 口径实证〔节点 id≠catalog 键〕+选中侧栏头同映射） |
 | `lib/vertexEditing.test.ts` | 顶点编辑纯函数 vitest（node 环境先红后绿：命中内外·最近优先·半径防御/投影 clamp·零长·wrap 段/最近段路由/插入索引位·wrap 尾插·非法直通/删至 3 拒删 null+不变性/移点 immutable/双轴吸附/sameSite 拒删不翻 dirty+增点翻 dirty） |
 | `components/LineSidebar.tsx` | 选中折线删除侧栏纯展示子件（B4 笔② R2——ENG6 先例第三例：danger 按钮+受控 Popconfirm 确认门，侧栏按钮与画布 Delete 键汇父层 removeRequest 同一挂起态；取消/外点=零动作；B4 笔③泛化 RemovableSelection 面——boundary 分支=清空通路文案族） |
+| `components/LineSidebar.test.tsx` | LineSidebar jsdom vitest（确认门/零动作分支源锚） |
 | `components/BoundaryLayer.tsx` | 红线层子件（B4 笔③ R1——自 SiteCanvas polygon 段子件化）：选中态加粗描边+顶点把手（r=1.0 世界单位·随 zoom）pointerdown 拖拽会话+双击顶点删点/双击线段增点（TapAnchor 通用双击判定，顶点优先歧义序）；描边可命中 fill=none（非 select 工具=装饰态） |
 | `lib/windRoseGeometry.ts` | 风玫瑰纯计算面（B4 笔① R3）：WIND_DIRS 八方位罗盘序+windRoseSpokes 辐条/标注点相对向量——数据计算镜像 core site_plan.py:288-323（未知键跳过/负钳 0/None·空·全零=空数组/sorted 序）；Y 翻转内置（dy 负=屏幕向上），落位语义归 WindRose |
 | `lib/windRoseGeometry.test.ts` | 风玫瑰纯计算 vitest（node 环境先红后绿：八方位序/None·空·全零=空/未知键跳过+sorted/比例缩径/负钳 0/标注点满径未缩放/N 朝上 dy<0/半径防御） |

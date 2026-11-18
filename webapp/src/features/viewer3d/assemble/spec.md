@@ -2,10 +2,9 @@
 
 > 状态：**已签核（2026-09-12 批3 启动会·用户两轮七裁全按推荐序）——
 > 批3 主体件可动工**。裁定记录见 §11；呈裁余面零残留。
-> 真源链：brief（.workflow/packages/3d-visual-brief.md）→ 设计规划
-> （规划档）→ 双源审查（审查档两轮）
-> → 总裁采纳清单 S1~S12（reports/3d-visual-plan-summary.md §四）→ **本件**。
-> 本件与 S1~S12 冲突时以 summary §四 为准并记档呈裁。
+> 历史链（2026-09-12）：brief→设计规划→双源审查两轮→总裁采纳清单
+> S1~S12→**本件**。brief/规划总档原件均为会话工作区易失件、未随仓留存；
+> S1~S12 已全量落本件（裁定记录见 §11）——本件即唯一存续真源。
 > 机器锚：本件 §4 数值算例与 `computeTransforms.test.ts`/`deviation.test.ts`
 > 冻结值**逐数一致**（规格变更=测试同步翻案，§12 纪律）。
 
@@ -282,7 +281,7 @@ type FamilyEntry = {
   `computeTransforms.ts`/`deviation.ts`+`computeTransforms.test.ts`/
   `deviation.test.ts`（vitest 27 例）——数值算例 §4 与测试冻结值逐数
   一致是**双向锁**：改规格必同步翻案测试、改测试必记档规格变更动机；
-- **规格沉默处默认答案**：engineering-conventions GR 族+viewer3d README
-  规格要点（语义色查表/InstancedMesh/预算口径）；新歧义先入
-  undefined-features-register 禁就地自创语义；
+- **规格沉默处默认答案**：docs/archive/engineering-conventions.md GR 族
+  +viewer3d README 规格要点（语义色查表/InstancedMesh/预算口径）；新歧义
+  按 AGENTS.md 启动约束停下来问，禁就地自创语义；
 - 本件 ≤500 行（file budgets 门禁）；修订沿台账记档+批3 启动会追认制。

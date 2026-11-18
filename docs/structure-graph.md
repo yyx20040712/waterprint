@@ -113,15 +113,15 @@
 | `waterprint_server.services` | `waterprint.flows` | apply 参数守护转调 params_guard（守护真源收敛 flows——ADR-022 D2） |
 | `waterprint.cli` | `waterprint.app` | 命令编排调用用例（经唯一装配点） |
 | `waterprint.cli` | `waterprint.contracts` | 参数与项目 schema 校验 |
-| `waterprint.cli` | `waterprint.drafting` | export 命令出图 |
+| `waterprint.cli` | `waterprint.drafting` | export 命令出图（经 flows.export_flow→app_export 间接抵达，类型面直连） |
 | `waterprint.cli` | `waterprint.network` | 管网子工具命令 |
 | `waterprint.cli` | `waterprint.registry` | network 命令系数装载异常映射（同 app 装载语义）——NET2 补登 |
-| `waterprint.cli` | `waterprint.trace` | export audit 命令审计报告渲染（render_audit_html 直连——无模板通道）——M4a 补登 |
+| `waterprint.cli` | `waterprint.trace` | audit 异常族两枚直连（渲染经 flows.audit_render_flow）——M4a 补登、AI1 改道 |
 | `waterprint.cli` | `waterprint.units_lib` | export audit 渲染前公式注册表装载（discover_units——app.assemble 同款；冷进程消费面）——M4a 修复轮补登 |
 | `waterprint.app` | `waterprint.units_lib` | 唯一装配点：单元发现/实例化/注入 |
 | `waterprint.app` | `waterprint.graph` | 图执行编排 |
 | `waterprint.app` | `waterprint.solution` | 方案枚举用例 |
-| `waterprint.app` | `waterprint.elevation` | 高程用例 |
+| `waterprint.app` | `waterprint.elevation` | 高程用例（消费实现在 app_export.py 纵断装配与 server services；app.py 为门面） |
 | `waterprint.app_enumeration_gates` | `waterprint.solution` | 枚举用例正门族：过滤/排序/诊断/联合枚举消费（批5 拆件自 app——语义随迁） |
 | `waterprint.app_enumeration_gates` | `waterprint.graph` | 枚举正门全厂基线执行（execute_graph——批5 随 run_enumeration 迁入） |
 | `waterprint.app_enumeration_gates` | `waterprint.contracts` | ProjectFile/ConditionSet/RunEnv 类型面（批5 随迁） |
@@ -141,14 +141,14 @@
 | `waterprint.app_export` | `waterprint.ifc_export` | BIM 模型构造正门——PROFILE3 拆分（SC1 边随迁） |
 | `waterprint.app_export` | `waterprint.trace` | calcbook/audit 渲染正门——PROFILE3 拆分（calcbook 边随迁） |
 | `waterprint.app_export` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设视图——PROFILE3 拆分（registry 边随迁） |
-| `waterprint.app_enumeration` | `waterprint.registry` | DEFAULT_ASSUMPTIONS 假设合成——ENG2 B3 补登 |
+| `waterprint.app_enumeration` | `waterprint.registry` | 假设面经装配注入（DEFAULT_ASSUMPTIONS 现住 app_assembly.py）——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.solution` | 网格/约束/诊断用例——ENG2 B3 补登 |
 | `waterprint.app_enumeration` | `waterprint.trace` | TraceCollector 注入与计算书渲染——ENG2 B3 补登 |
 | `waterprint.project` | `waterprint.contracts` | 项目 schema 校验 |
 | `waterprint.trace` | `waterprint.contracts` | 结果与迹节点 schema |
 | `waterprint.trace` | `waterprint.cost` | 概算 xlsx 直写渲染件消费 cost 类型面（trace.estimate_sheet→EstimateSheet/FeeLine/IndicatorReport/PriceBook——L4.project-trace→L3 向下合法；est-20261001 estimate 501 收口批 D2） |
 | `waterprint.trace` | `waterprint.registry` | 公式溯源查询（条文号） |
-| `waterprint.trace` | `data` | Excel 计算书模板（templates 数据包） |
+| `waterprint.trace` | `data` | Excel 计算书模板（templates 数据包——模板路径由 flows 传入，数据来源语义边） |
 | `waterprint.graph` | `waterprint.contracts` | unit_api 协议与量/水质契约 |
 | `waterprint.solution` | `waterprint.contracts` | manifest 离散配置与结果契约 |
 | `waterprint.solution` | `waterprint.registry` | 网格维度/假设默认值/公式面——ENG2 B3 补登 |
@@ -163,11 +163,11 @@
 | `waterprint.network` | `waterprint.contracts` | 仅共享量与单位（独立域） |
 | `waterprint.network` | `waterprint.registry` | 假设默认值与公式注册表（NM-F* 曼宁公式族/求根容差/Excel 护栏）——NET2 补登 |
 | `waterprint.units_lib` | `waterprint.contracts` | 端口/工况/manifest 契约 |
-| `waterprint.units_lib` | `waterprint.registry` | 假设默认值与公式注册表 |
+| `waterprint.units_lib` | `waterprint.registry` | 公式注册表（假设经装配注入面、系数仅测试面消费） |
 | `waterprint.registry` | `waterprint.contracts` | 量纲签名静态校验 |
 | `waterprint.registry` | `data` | 去除率/经验系数（coefficients 数据包） |
 
-> L3 七个子系统互不依赖（independence 契约），各自只消费 L0 契约；
+> L3 八个子系统互不依赖（independence 契约），主消费面 L0 契约（registry/data 例外边见表）；
 > 单元包互相独立；pint 只在 contracts.quantity 出现——三条铁律由
 > import-linter 强制，本图谱与之一致（门禁双源对照）。
 
