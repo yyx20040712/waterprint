@@ -13,9 +13,10 @@
 #                          manifest 字段渲染与 canvas 流体色/中文名/摘要
 #                          数据面前置）
 #   GET /api/assumptions   设计假设清单（21 条——registry 代码即数据投影）
-#   GET /api/constraints    约束知识库目录（18 条=过滤 6+出水参考 12——kb
-#                          1.0.0 起草态装载投影，CP1 D4：ConstraintPicker
-#                          数据面；data_dir 经 app.state.ctx[settings 真源]）
+#   GET /api/constraints    约束知识库目录（kb 装载投影——条目数以数据包
+#                          约束库为准不冻数量口径，b29 AUDIT-#29b；CP1 D4：
+#                          ConstraintPicker 数据面；data_dir 经
+#                          app.state.ctx[settings 真源]）
 #
 # 【行为规格】
 #   R1 静态只读：units/assumptions 无请求参数无 ctx；constraints 经
@@ -58,6 +59,6 @@ async def list_assumptions() -> AssumptionCatalog:
 
 @router.get("/constraints", response_model=ConstraintCatalog)
 async def list_constraints(request: Request) -> ConstraintCatalog:
-    """约束知识库目录（18 条 kb 声明序——CP1 D4/D6；data_dir 经 ctx）。"""
+    """约束知识库目录（kb 声明序——CP1 D4/D6；data_dir 经 ctx；条目数以数据包约束库为准）。"""
     ctx = request.app.state.ctx
     return constraints_service.list_constraints(ctx.settings.data_dir)
