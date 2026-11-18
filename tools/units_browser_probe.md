@@ -18,7 +18,7 @@
 python tools/units_browser_probe.py   # 仓根执行；exit 0=PASS / 1=FAIL
 ```
 
-产物：`.workflow/b6m-probe-out/b6m-probe-report.json`（断言明细+oracle
+产物：`tools/.probe-out/b6m-probe-report.json`（断言明细+oracle
 推导值）+三截图（Drawer 抽样/搜索/聊天 Drawer 宽度）。
 
 ## 三、断言族（P0~P10b——探针 docstring 为单源，此处摘要）

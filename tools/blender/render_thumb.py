@@ -6,8 +6,8 @@
 输出:  build/<family>.png（1024² RGBA——资产落位归资产工序）
 
 规格说明（STYLE-BASE §二 v1.1——冻结面变更批：引擎/分辨率/环境/取景
-  四项经用户裁定，三族重渲+三段流+验收随批；曝光档 EV −1.15+AgX 沿
-  v1.0 基准数值，目标主体中位 48~58%/峰值 ≤0.92 复验口径不变）。
+  四项经用户裁定，三族重渲+三段流+验收随批；曝光档 EV −0.85+AgX，目标
+  主体中位 48~58%/峰值 ≤0.95 复验口径——常量区为现行真值）。
 """
 
 from __future__ import annotations
@@ -87,8 +87,8 @@ def render() -> None:
     cam_obj.rotation_euler = rot_quat.to_euler()
     scene.camera = cam_obj
 
-    # 布光：日光源（阴影定义）+HDRI 世界环境（用户指定 D:\blender_work
-    # \HDRI——金属反射/环境光真实来源[材质拟真裁定①]）
+    # 布光：日光源（阴影定义）+HDRI 世界环境（用户指定库
+    # blender_work/HDRI——金属反射/环境光真实来源[材质拟真裁定①]）
     sun = bpy.data.lights.new("thumb_sun", "SUN")
     sun.energy = SUN_ENERGY
     sun.angle = math.radians(6.0)

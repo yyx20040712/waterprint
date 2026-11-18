@@ -18,8 +18,8 @@ services:
     # WP1 安全收口 + R2A 批1（token 鉴权）：不发布 ports——8000 不出容器
     # 网桥，nginx（webapp）=唯一入口；容器内绑定 0.0.0.0（CMD 旗标，不经
     # settings.host——机器回环防线不适用，真红线=入口语义，见 docs/
-    # deployment.md「安全红线」节）。token 经 env 插值透传（N-6：空=鉴权
-    # 关——容器网桥内零信任假设下仍应配置，升级注记见 deployment.md）。
+    # architecture.md §4.1 安全红线）。token 经 env 插值透传（N-6：空=鉴权
+    # 关——容器网桥内零信任假设下仍应配置）。
     environment:
       WATERPRINT_API_TOKEN: ${WATERPRINT_API_TOKEN:-}
     healthcheck:

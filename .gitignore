@@ -45,6 +45,9 @@ webapp/src/shared/api/generated/
 # 工作流产物（会话工作区在仓库外；防误入库）
 .workflow/
 
+# 单元库探针产物（tools/units_browser_probe.py 手动验收输出，不入库）
+tools/.probe-out/
+
 # 组织运营件（org-config 覆盖件/org-delta/org-ledger；技能 05 §6 协议，默认不入库）
 .zcode/
 

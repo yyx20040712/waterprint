@@ -5,8 +5,9 @@
 
 | 目录 | 内容 | 消费方 |
 |------|------|--------|
+| `assumptions/` | 设计假设条目（六键带出处；引擎/安全/高程/管网四域） | registry/assumptions.py |
 | `unit_prices/` | 定额单价（YAML，每条带出处；2019 黑龙江迁移，抽验 10%） | cost/prices.py |
-| `constraint_kb/` | 约束知识库（旧 constraint_hints 51 条迁移） | solution/constraints.py |
+| `constraint_kb/` | 约束知识库 | solution/constraints.py |
 | `coefficients/` | 去除率/经验系数/指标带（随规范版本演进） | registry/coefficients.py |
 | `templates/` | Excel 模板（计算书/管网，禁公式） | trace/calcbook.py、network/excel_io.py |
 

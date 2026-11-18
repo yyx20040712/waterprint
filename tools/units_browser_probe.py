@@ -51,7 +51,7 @@ from playwright.sync_api import sync_playwright
 BASE = "http://localhost:5173"
 API = "http://127.0.0.1:8000/api/units"
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / ".workflow" / "b6m-probe-out"
+OUT = ROOT / "tools" / ".probe-out"
 OUT.mkdir(parents=True, exist_ok=True)
 
 LINE_ORDER = ["municipal", "conveyance", "mine_water", "sludge"]

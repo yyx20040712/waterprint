@@ -25,9 +25,9 @@
   抬高制）/`eq_basin_cell`（调节池单池 53×22×5.5——CASS 制式复用）。
   初沉池 chuchenchi=registry 复用条目同辐流 glb 零新建模。
 
-- 环境：Blender 5.0.0=`D:\blender5.0\blender.exe`（无头 `-b -P`；
-  脚本内绝对路径免 PATH 依赖）；PNG 量化=系统 Python Pillow；
-  gltf-transform=`npx gltf-transform`（webapp devDependency）。
+- 环境：Blender 可执行经 `BLENDER` 环境变量注入（pipeline.sh 缺省
+  /opt/blender-5.0.1-linux-x64/blender——绝对路径免 PATH 依赖；无头 `-b -P`）；
+  PNG 量化=系统 Python Pillow；gltf-transform=`npx gltf-transform`（webapp devDependency）。
 - 量化重定心：meshopt+quantize 会把网格重定心到自身原点、节点 TRS
   补偿——世界位不变；扫描层锚点/inst 基座一律用**世界 AABB** 派生，
   勿读节点 translation 裸值（实测 post 节点 y=4.67≠基座 4.12）。
