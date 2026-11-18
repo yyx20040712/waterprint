@@ -8,8 +8,9 @@
  * 输出:  vitest 断言组：①三分区各归其区（声明级/工况聚合/单工况——分区
  *        标题+行 testid 锚）②空分区不渲染 ③severity 徽标语义色 token
  *        ④行 meta=影响面·code·工况键（聚合区清单+计数/直通区单键/声明级
- *        无工况段）⑤validation_available=false=降级提示条无数据行
- *        ⑥空 warnings=整体不渲染
+ *        无工况段）⑤validation_available=false=降级条与源 B 警告行并行
+ *        （源 A val 件缺席不吞聚合面——server 锁测「源 B 面仍在」同口径；
+ *        零警告时=仅降级条）⑥空 warnings+有 val 件=整体不渲染
  */
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -127,18 +128,35 @@ describe("WarningsPanel 三分区（warning-aggregation.md §3）", () => {
 });
 
 describe("WarningsPanel 降级与空态", () => {
-  it("validation_available=false=降级提示条（旧版本结果——重算后生成）无数据行", () => {
+  it("validation_available=false+源 B 警告在场=降级条与三分区并行（源 A val 件缺席不吞聚合面——server 锁测「源 B 面仍在」同口径）", () => {
     const html = renderToString(
       <WarningsPanel observation={observation(MIXED, false)} />,
     );
     const text = textOf(html);
+    // 降级条在场（源 A 缺席如实提示）
     expect(html).toContain('data-testid="wp-v4-validation-unavailable"');
     expect(text).toContain("结果集无校验观测（旧版本结果）——重算后生成");
-    expect(html).not.toContain('data-testid="wp-v4-warning-row"');
-    expect(html).not.toContain('data-testid="wp-v4-warnings-panel"');
+    // 源 B 聚合面照常渲染：面板壳+三分区+数据行均在（不因降级早退）
+    expect(html).toContain('data-testid="wp-v4-warnings-panel"');
+    expect(html).toContain('data-testid="wp-v4-warnings-declaration"');
+    expect(html).toContain('data-testid="wp-v4-warnings-aggregated"');
+    expect(html).toContain('data-testid="wp-v4-warnings-single"');
+    expect(html.match(/data-testid="wp-v4-warning-row"/g)?.length).toBe(3);
+    expect(text).toContain("N=28 越门");
   });
 
-  it("空 warnings=整体不渲染（零警告不打扰——输出空）", () => {
+  it("validation_available=false+零警告=仅降级条（无面板壳无数据行）", () => {
+    const html = renderToString(
+      <WarningsPanel observation={observation([], false)} />,
+    );
+    const text = textOf(html);
+    expect(html).toContain('data-testid="wp-v4-validation-unavailable"');
+    expect(text).toContain("结果集无校验观测（旧版本结果）——重算后生成");
+    expect(html).not.toContain('data-testid="wp-v4-warnings-panel"');
+    expect(html).not.toContain('data-testid="wp-v4-warning-row"');
+  });
+
+  it("空 warnings+有 val 件=整体不渲染（零警告不打扰——输出空）", () => {
     const html = renderToString(<WarningsPanel observation={observation([])} />);
     expect(html).toBe("");
   });

@@ -11,8 +11,9 @@
  *        紧凑文案（中列窄面板单行 meta）
  *
  * 规格说明（warning-aggregation.md §3/§5——分区与聚合归属条款）：
- *   - 窄化门逐字段校验（顶层 11 键+warnings 行键域/severity 三值域）——
- *     非法形状→查询 error 态呈现（trustView 窄化门同构先例，禁带病渲染）；
+ *   - 窄化门逐字段校验（顶层 11 键+warnings 行对象形/键域/severity 三值域
+ *     ——null/裸标量行同拒带 index 定位）——非法形状→查询 error 态呈现
+ *     （trustView 窄化门同构先例，禁带病渲染）；
  *   - 分区判据（§3）：condition_keys=∅（源 A 声明级哨兵）→声明级区，不与
  *     工况区混排；命中工况 ≥2 →工况聚合区；单工况命中=直通行（同 schema，
  *     视图位次在聚合区后）；
@@ -106,14 +107,19 @@ export function narrowValidationObservation(raw: unknown): ValidationObservation
   if (!Array.isArray(raw["warnings"])) {
     throw new ValidationViewError("warnings 非数组");
   }
-  const warnings = raw["warnings"] as Record<string, unknown>[];
+  const warnings = raw["warnings"] as unknown[];
   warnings.forEach((item, index) => {
+    // 先守对象形再取键（null/裸标量行禁裸 TypeError——窄化门契约：
+    // 一切非法形状抛 ValidationViewError 带定位）
+    if (!isRecord(item)) {
+      throw new ValidationViewError(`warnings[${index}] 非对象`);
+    }
     if (
-      typeof item.code !== "string" || typeof item.param_key !== "string" ||
-      typeof item.scope !== "string" || typeof item.message !== "string" ||
-      !Array.isArray(item.condition_keys) ||
-      (item.condition_keys as unknown[]).some((key) => typeof key !== "string") ||
-      !SEVERITIES.includes(item.severity as WarningSeverity)
+      typeof item["code"] !== "string" || typeof item["param_key"] !== "string" ||
+      typeof item["scope"] !== "string" || typeof item["message"] !== "string" ||
+      !Array.isArray(item["condition_keys"]) ||
+      (item["condition_keys"] as unknown[]).some((key) => typeof key !== "string") ||
+      !SEVERITIES.includes(item["severity"] as WarningSeverity)
     ) {
       throw new ValidationViewError(`warnings[${index}] 键域非法`);
     }

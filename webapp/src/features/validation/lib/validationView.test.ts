@@ -4,7 +4,8 @@
  *
  * 输入:  validationView 纯函数（零 DOM 零 antd import）+聚合行夹具
  *        （∅ 哨兵/双工况/单工况三形态——warning-aggregation.md §3）
- * 输出:  投影契约断言：窄化门逐类拒带键定位/三分区判据（∅→声明级、
+ * 输出:  投影契约断言：窄化门逐类拒带键定位（含 warnings null/标量行
+ *        非对象拒——b2 回炉 Minor 3 回归）/三分区判据（∅→声明级、
  *        ≥2→工况聚合、单工况→直通）/服务端序稳定过滤/语义色三映射/
  *        影响面与工况键文案词典
  */
@@ -131,6 +132,20 @@ describe("narrowValidationObservation", () => {
       { code: "c", param_key: "p", scope: "plant", message: "m", condition_keys: ["design", 2], severity: "INFO" },
     ];
     expect(() => narrowValidationObservation(badMember)).toThrow("warnings[0]");
+  });
+
+  it("warnings 行非对象拒（null/裸标量——ValidationViewError 带 index 定位非裸 TypeError）", () => {
+    const badNull = healthy();
+    badNull["warnings"] = [null];
+    expect(() => narrowValidationObservation(badNull)).toThrow(ValidationViewError);
+    expect(() => narrowValidationObservation(badNull)).toThrow("warnings[0]");
+    const badScalar = healthy();
+    badScalar["warnings"] = ["kb.x"];
+    expect(() => narrowValidationObservation(badScalar)).toThrow(ValidationViewError);
+    expect(() => narrowValidationObservation(badScalar)).toThrow("warnings[0]");
+    const badDeep = healthy();
+    badDeep["warnings"] = [{ code: "c", param_key: "p", scope: "plant", message: "m", condition_keys: [], severity: "WARN" }, null];
+    expect(() => narrowValidationObservation(badDeep)).toThrow("warnings[1]");
   });
 });
 

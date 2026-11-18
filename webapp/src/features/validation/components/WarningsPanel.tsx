@@ -3,12 +3,14 @@
  * 渲染（声明级/工况聚合/单工况直通——warning-aggregation.md §3 分区）。
  *
  * 输入:  observation（useValidationQuery 窄化产物——validationView 单源类型）
- * 输出:  纯展示面板三态：validation_available=false →旧结果降级提示条
- *        （无数据行）；warnings 空=整体不渲染（null——零警告不打扰）；
- *        非空=「警告聚合」块+三分区（空分区不渲染）——行=severity 徽标
- *        （语义色 token）+message 全文+meta 行（影响面·code〔mono 小字〕
- *        ·工况键——中列窄面板紧凑单行）；零交互零取数（错误/pending 态
- *        归接线面 analysisPane 副数据分支）
+ * 输出:  纯展示面板：warnings 非空=「警告聚合」块+三分区（空分区不渲染）
+ *        ——行=severity 徽标（语义色 token）+message 全文+meta 行（影响面·
+ *        code〔mono 小字〕·工况键——中列窄面板紧凑单行）；validation_
+ *        available=false=降级提示条与警告行并行呈现（源 A val 件缺席不吞
+ *        源 B 聚合面——server services.validation 降级时仍聚合源 B，锁测
+ *        test_validation「源 B 面仍在」同口径）；warnings 空且有 val 件=
+ *        整体不渲染（null——零警告不打扰）、空且无 val 件=仅降级条；
+ *        零交互零取数（错误/pending 态归接线面 analysisPane 副数据分支）
  */
 import {
   conditionKeysText,
@@ -78,32 +80,38 @@ function WarningZone({
   );
 }
 
+/** 降级提示条（源 A val 件缺席=如实提示，禁伪造空警告——与源 B 警告行
+ *  并行呈现，不吞聚合面）。 */
+function UnavailableBar() {
+  return (
+    <div
+      data-testid="wp-v4-validation-unavailable"
+      style={{
+        fontSize: 11,
+        color: "var(--wp-text-2)",
+        border: "1px solid var(--wp-border-2)",
+        borderRadius: 6,
+        padding: "4px 10px",
+        marginBottom: 8,
+      }}
+    >
+      结果集无校验观测（旧版本结果）——重算后生成
+    </div>
+  );
+}
+
 /** 警告聚合面板（纯展示——接线面=analysisPane 全厂指标面 PlantFace）。 */
 export function WarningsPanel({ observation }: { observation: ValidationObservation }) {
-  if (!observation.validation_available) {
-    // 降级（ADR-012 R1 同精神）：旧结果无 val 件=如实提示，禁伪造空警告
-    return (
-      <div
-        data-testid="wp-v4-validation-unavailable"
-        style={{
-          fontSize: 11,
-          color: "var(--wp-text-2)",
-          border: "1px solid var(--wp-border-2)",
-          borderRadius: 6,
-          padding: "4px 10px",
-          marginBottom: 8,
-        }}
-      >
-        结果集无校验观测（旧版本结果）——重算后生成
-      </div>
-    );
-  }
   if (observation.warnings.length === 0) {
-    return null; // 零警告不打扰（区块整体不渲染）
+    // 零警告：有 val 件=整体不渲染（不打扰）；无 val 件=仅降级条（源 B
+    // 亦零警告——降级事实仍如实提示，无数据行可渲染）
+    return observation.validation_available ? null : <UnavailableBar />;
   }
   const zones = partitionWarnings(observation.warnings);
   return (
     <div data-testid="wp-v4-warnings-panel" style={{ marginBottom: 10 }}>
+      {/* 降级条与警告行并行（源 A 缺席≠源 B 缺席——降级不吞源 B 聚合面） */}
+      {observation.validation_available ? null : <UnavailableBar />}
       <div style={{ fontSize: 11, color: "var(--wp-text-2)", letterSpacing: 1 }}>
         警告聚合 {observation.warnings.length}
       </div>

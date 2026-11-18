@@ -10,10 +10,12 @@
  *        CompareMatrix 呈现件替身——隔离 M1 组件面；WarningsPanel 真件渲染
  *        ——三分区呈现归本断言面）+validation 观测各态夹具
  * 输出:  断言族：①三分区渲染+摆放位次（stale 横幅→警告聚合→出水指标）
- *        ②validation_available=false=旧结果降级提示条（无数据行）
- *        ③空 warnings=区块整体不渲染 ④取数 pending=静默 ⑤404
- *        （ValidationSourceNotFoundError）=compare 同口径摘要+重算引导
- *        ——局部错误行不阻断主面 ⑥非域错误=raw 透出
+ *        ②validation_available=false=降级条与源 B 警告行并行（源 A val 件
+ *        缺席不吞聚合面——server 降级仍聚合源 B，锁测同口径；零警告=
+ *        仅降级条）③空 warnings+有 val 件=区块整体不渲染 ④取数 pending=
+ *        静默（替身显式 isPending 位——与 data=undefined 普通态可分辨）
+ *        ⑤404（ValidationSourceNotFoundError）=compare 同口径摘要+重算
+ *        引导——局部错误行不阻断主面 ⑥非域错误=raw 透出
  */
 import { cleanup, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -46,6 +48,10 @@ const gate = vi.hoisted(() => ({
     data: undefined as unknown,
     isError: false,
     error: null as unknown,
+    // b2 回炉 Minor 2：显式 isPending 位——替身缺该键时 undefined=falsy
+    // 与真 pending 态无差别（pending 分支删掉仍绿=假绿），故默认 false、
+    // pending 用例显式置 true
+    isPending: false,
   },
 }));
 
@@ -167,7 +173,7 @@ const VALIDATION_REPORT = {
 beforeEach(() => {
   gate.compare = { data: COMPARE_REPORT, isError: false, error: null };
   gate.trust = { data: TRUST_REPORT, isError: false, error: null };
-  gate.validation = { data: undefined, isError: false, error: null };
+  gate.validation = { data: undefined, isError: false, error: null, isPending: false };
 });
 afterEach(cleanup);
 
@@ -178,7 +184,7 @@ describe("分析表态·T3 警告聚合面（warning-aggregation.md §3 三分�
       isError: false,
       error: null,
     };
-    gate.validation = { data: VALIDATION_REPORT, isError: false, error: null };
+    gate.validation = { data: VALIDATION_REPORT, isError: false, error: null, isPending: false };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
     const panel = container.querySelector('[data-testid="wp-v4-warnings-panel"]');
     expect(panel).not.toBeNull();
@@ -203,43 +209,72 @@ describe("分析表态·T3 警告聚合面（warning-aggregation.md §3 三分�
     );
   });
 
-  it("validation_available=false=旧结果降级提示条（无数据行；主面不阻断）", () => {
+  it("validation_available=false+源 B 警告在场=降级条与警告行并行呈现（源 A val 件缺席不吞聚合面；主面不阻断）", () => {
     gate.validation = {
       data: { ...VALIDATION_REPORT, validation_available: false },
       isError: false,
       error: null,
+      isPending: false,
     };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    // 降级条在场（源 A 缺席如实提示）+源 B 聚合行照常渲染（并行非早退）
     expect(
       container.querySelector('[data-testid="wp-v4-validation-unavailable"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("结果集无校验观测（旧版本结果）");
-    expect(container.querySelector('[data-testid="wp-v4-warning-row"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wp-v4-warnings-panel"]'),
+    ).not.toBeNull();
+    expect(container.querySelectorAll('[data-testid="wp-v4-warning-row"]').length).toBe(3);
     expect(
       container.querySelector('[data-testid="wp-compare-matrix-stub"]'),
     ).not.toBeNull();
   });
 
-  it("空 warnings=区块整体不渲染（零警告不打扰；他面不受扰）", () => {
+  it("validation_available=false+零警告=仅降级条（无面板壳无数据行）", () => {
+    gate.validation = {
+      data: { ...VALIDATION_REPORT, validation_available: false, warnings: [] },
+      isError: false,
+      error: null,
+      isPending: false,
+    };
+    const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
+    expect(
+      container.querySelector('[data-testid="wp-v4-validation-unavailable"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="wp-v4-warnings-panel"]'),
+    ).toBeNull();
+    expect(container.querySelector('[data-testid="wp-v4-warning-row"]')).toBeNull();
+  });
+
+  it("空 warnings+有 val 件=区块整体不渲染（零警告不打扰；他面不受扰）", () => {
     gate.validation = {
       data: { ...VALIDATION_REPORT, warnings: [] },
       isError: false,
       error: null,
+      isPending: false,
     };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
     expect(
       container.querySelector('[data-testid="wp-v4-warnings-panel"]'),
     ).toBeNull();
     expect(
+      container.querySelector('[data-testid="wp-v4-validation-unavailable"]'),
+    ).toBeNull();
+    expect(
       container.querySelector('[data-testid="wp-v4-effluent-table"]'),
     ).not.toBeNull();
   });
 
-  it("取数 pending=静默（面板与错误行均不在场——trust 副数据同制）", () => {
-    gate.validation = { data: undefined, isError: false, error: null };
+  it("取数 pending=静默（面板/降级条/错误行均不在场——trust 副数据同制）", () => {
+    gate.validation = { data: undefined, isError: false, error: null, isPending: true };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
     expect(
       container.querySelector('[data-testid="wp-v4-warnings-panel"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wp-v4-validation-unavailable"]'),
     ).toBeNull();
     expect(
       container.querySelector('[data-testid="wp-v4-validation-error"]'),
@@ -254,6 +289,7 @@ describe("分析表态·T3 警告聚合面（warning-aggregation.md §3 三分�
         "ValidationSourceNotFoundError",
         "项目 'p1' 无最近完成结果集（先 POST /api/calc/run）",
       ),
+      isPending: false,
     };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
     const errorFace = container.querySelector('[data-testid="wp-v4-validation-error"]');
@@ -275,6 +311,7 @@ describe("分析表态·T3 警告聚合面（warning-aggregation.md §3 三分�
       data: undefined,
       isError: true,
       error: new Error("校验观测形状非法：warnings 非数组"),
+      isPending: false,
     };
     const { container } = renderPane({ projectId: "p1", selectedUnitId: null });
     const errorFace = container.querySelector('[data-testid="wp-v4-validation-error"]');
