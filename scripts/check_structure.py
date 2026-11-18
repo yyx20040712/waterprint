@@ -36,7 +36,12 @@ UNIT_REQUIRED = (
 )
 
 def listed_paths() -> tuple[set[str], set[str]]:
-    """返回（文件路径集，包目录集）。"""
+    """返回（文件路径集，包目录集）。
+
+    包目录集含 _template 模板登记行（AUDIT-#21，b30 口径明示：本门禁
+    计 33=实业务单元 32 + 模板 1；模板不注册不进图谱——实单元口径见
+    check_module_graph.EXPECTED_UNIT_COUNT=32，两数并存为设计而非漂移）。
+    """
     files: set[str] = set()
     packages: set[str] = set()
     for line in CONTRACTS_MD.read_text(encoding="utf-8").splitlines():
@@ -101,7 +106,19 @@ def main() -> int:
         for item in problems:
             print(f"  - {item}")
         return 1
-    print(f"[OK] 结构同步：源文件 {len(files)} 项 + 单元包 {len(packages)} 项与职责表一致")
+    # AUDIT-#21（b30）口径明示：包计数含 _template 模板登记行（M0 行，
+    # 模板不注册）；实业务单元 = 包计数剔模板行，与 check_module_graph
+    # EXPECTED_UNIT_COUNT 同口径。不以删模板登记行凑两门禁同数。
+    template_rows = sum(
+        1 for pkg in packages if pkg == "core/waterprint/units_lib/_template"
+    )
+    real_units = len(packages) - template_rows
+    print(
+        f"[OK] 结构同步：源文件 {len(files)} 项 + 单元包 {len(packages)} 项与职责表一致"
+        f"（单元包 {len(packages)} = 实业务单元 {real_units}"
+        f" + _template 模板登记行 {template_rows}；实单元口径同"
+        " check_module_graph.EXPECTED_UNIT_COUNT）"
+    )
     return 0
 
 

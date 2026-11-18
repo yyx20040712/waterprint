@@ -87,6 +87,10 @@ HEADING = re.compile(r"^#{2,3}\s+(.*)$")
 # 层序与内核层 token 映射自 structure_nodes_lib 单源导入（GOV4/ADR-017：
 # §1a 数据行=生成物，校验端与生成端共用取数/渲染）；EXPECTED_UNIT_COUNT
 # 为本脚本既定断言（业务线扩充时同步——AGENTS §13）。
+# AUDIT-#21（b30）计数来源明示：32 = 实业务单元包数；职责表 §3 包登记
+# 行 33 = 32 + _template 模板行（模板不注册不进图谱，contracts_packages
+# 显式剔之）。check_structure 包计数 33 与本断言 32 口径差一即模板行，
+# 非漂移——不以删模板登记行凑同数。
 EXPECTED_UNIT_COUNT = 32
 UNIT_LINE_DIRS = ("municipal", "mine_water", "sludge", "conveyance")
 
@@ -474,7 +478,9 @@ def main() -> int:
         return 1
     print(
         f"[OK] 结构图谱：{len(nodes)} 节点 / {len(edges)} 依赖边全部沿层序向下、"
-        f"无环、与 import-linter 一致；单元包三方一致（{EXPECTED_UNIT_COUNT} 包）"
+        f"无环、与 import-linter 一致；单元包三方一致（实单元 {EXPECTED_UNIT_COUNT} 包"
+        f"=职责表登记 33 剔 _template 模板行——口径见 EXPECTED_UNIT_COUNT 注记，"
+        f"AUDIT-#21）"
         f"且 independence 契约逐包吻合；调用链路径全部存在；"
         f"同层边声明块 {len(same_layer)} 条（§1c 唯一声明面）与 pyproject"
         f" ignore_imports 双向一致；"

@@ -273,8 +273,8 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `scripts/check_constraint_sync.py` | 约束同源三向对拍门禁（批6h AUD-W9 闭项）：units_lib 各包 CONSTRAINTS 声明↔manifest constraint_refs↔factors.yaml 键在场+kb value_basis 数值投影恒等——死声明静默分叉变响红（受限静态求值零依赖，bashi 动态构造面在内；红探针 P1~P3 实录批6h） |
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0（AUDIT-#20 b30：宽族 except 豁免匹配=AST 定位违规行所在函数+异常族查 WIDE_EXCEPT_WAIVERS；未消费豁免=腐烂报警；登记面校验先行 fail-fast） |
-| `scripts/check_structure.py` | 目录结构与本表双向同步门禁 |
-| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014；§1a 数据行=生成物渲染比对[GOV4 h 面，ADR-017——手编/忘跑即红]） |
+| `scripts/check_structure.py` | 目录结构与本表双向同步门禁（AUDIT-#21 b30：包计数口径明示——33=实业务单元 32+_template 模板登记行 1，模板不删登记不凑数） |
+| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014；§1a 数据行=生成物渲染比对[GOV4 h 面，ADR-017——手编/忘跑即红]；AUDIT-#21 b30：EXPECTED_UNIT_COUNT=32 来源注记=职责表登记 33 剔 _template 模板行） |
 | `scripts/same_layer_lib.py` | 同层边声明块共享库：§1c 解析+展开+两面校验单源（check_module_graph 与 gen_same_layer_edges 共用，防两套解析漂移——ADR-014） |
 | `scripts/structure_nodes_lib.py` | §1a 节点表共享库：两 pyproject layers 契约+固定三叶取数·渲染·标记段单源（check_module_graph 与 gen_structure_nodes 共用——ADR-017；层 token 组序映射=层重构同步点） |
 | `scripts/gen_structure_nodes.py` | §1a 节点表生成器：两 pyproject layers 契约 → structure-graph §1a STRUCT-NODES 标记段重写（幂等；标记段内禁手编——ADR-017；忘跑检测器=check_module_graph 渲染比对面） |

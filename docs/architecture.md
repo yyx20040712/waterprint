@@ -463,7 +463,10 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
   undo 快照守护/tools.solution._run_joint_enumeration_impl 护栏族统一收敛〕
   按"文件+函数限定名+异常族+理由非空"精确豁免登记（WIDE_EXCEPT_WAIVERS，
   行号不作键；未消费豁免=腐烂报警——函数改名/异常族变化/兜底删除即转红
-  触发审查；第四处宽族必红，红绿探针实录在案，覆盖面注记见 §4.6）。
+  触发审查；第四处宽族必红，红绿探针实录在案，覆盖面注记见 §4.6）；
+  #21：两门禁单元包计数口径明示——check_structure 33=实业务单元 32+
+  _template 模板登记行 1、check_module_graph EXPECTED_UNIT_COUNT=32=
+  登记 33 剔模板行（模板不注册，登记不删不凑数）。
 - **文档登记债**：constraint_kb 无跨单元联动条目（§3.4 联动链示例为
   规划语义）。
 - **数值溯源债务**：data/coefficients 部分条目仍为旧系统基线/"出处待核对"
