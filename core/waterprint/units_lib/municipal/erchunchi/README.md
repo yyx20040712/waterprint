@@ -14,7 +14,7 @@
 - 系数通道：factor.erchunchi.\*（data/coefficients 0.2.0+0.2.1，经
   app._unit_params 投影；Xr 带/HRT 带=0.2.1 前置键）；去除率
   removal.erchunchi.\*.mod_default；R/X 与 aao 表联动（各包独立声明同值）
-- 物理不变性（归后续批进 tests/properties.py）：固体通量≥0、回流污泥
+- 物理不变性（tests/properties.py，GOV3 已实装）：固体通量≥0、回流污泥
   DS 与生物池排泥守恒
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

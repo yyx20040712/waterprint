@@ -16,7 +16,7 @@
 - 系数通道：factor.vxinglvchi.\*（data/coefficients 0.3.0，经
   app._unit_params 投影）；去除率 removal.vxinglvchi.\*.mod_default
   （出水质=入质×(1−r) 三指标，同 M1a 形态）
-- 物理不变性（归后续批进 tests/properties.py）：强制滤速≤限值、
+- 物理不变性（tests/properties.py，GOV3 已实装）：强制滤速≤限值、
   反冲洗强度在设计带内
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

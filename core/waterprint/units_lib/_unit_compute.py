@@ -17,7 +17,8 @@
 #   bengzhan/compute.py（B10 笔①——AST 普查 6 泥线包 _inflow 本体
 #   同构实证；edge_note 尾注入同款最小扩展）。
 # 【R-2 消费面】**B10 终态：32 包 compute.py 全部单源收敛**（外审 #7
-#   清零）——_factor/_apply 32/32 包（B8 两笔 19+B10 两笔 13）；_inflow
+#   清零）——_factor/_apply 现消费 19/32 包（批 13-A 起 municipal 13 包
+#   改 _apply_batch 向量路径；_inflow
 #   面 30 包（水线 _inflow 24：B8 17[municipal 10+mine_water 7——
 #   input/hebing 两非消费者不入计]+族2 三+族1 四股包 conveyance/
 #   jipeishuijing、jishuijing、peishuijing、peishuiqu；泥线
@@ -37,7 +38,7 @@
 #   SludgeFlow/ConditionSet/formulas——L2→L1/L0）；批 13-A 增
 #   _vec/_apply_batch 两件（向量化重写单元接线：符号算术与公式绑定以
 #   ndarray 流动+批量正门 N=1 退化——task-13A-batch-plan §五；_apply
-#   标量件服务未重写 28 包接口零变沿承）。
+#   标量件服务未向量化 19 包接口零变沿承）。
 # 【批 MINOR(2026-09-08)】批 13 向量化遗留重复清理两件：①_ceil_vec
 #   八包 def 拷贝下沉=_make_ceil_vec 闭包工厂（签名分叉由 *extra 透传
 #   吸收——三参包 unit_id 经 ctx 语境实参透传语义保真[基线锚消息

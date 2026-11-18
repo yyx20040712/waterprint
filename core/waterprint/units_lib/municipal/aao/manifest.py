@@ -3,7 +3,8 @@
 输入:  三表起草真源（docs/norms/aao.md，2026-08-25，数据策略 v2 待追认）+
        data/coefficients 0.2.0 键名；L7 池体图元批几何族五式=CASS 公式族
        平移（总控 L7 D3/D5 裁定——非 aao.md 三表行，待领域专家追认）
-输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）+ AO-F1~F19 公式登记
+输出:  UnitManifest 实例（load_manifest 静态校验通过才算合法）
+       + AO-F1~F25 公式登记（B4-2a 能耗批 F20~F25 并组 formulas_energy）
 """
 
 # ══════════════════════════════════════════════════════════════════

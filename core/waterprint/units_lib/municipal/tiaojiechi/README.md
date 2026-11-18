@@ -15,7 +15,7 @@
 - 系数通道：factor.tiaojiechi.\*（data/coefficients 0.3.0，经
   app._unit_params 投影）；去除率 removal.tiaojiechi.\*.mod_default
   全 0.0（物理均化无去除——出水质=入水质逐键透传，不经 apply）
-- 物理不变性（归后续批进 tests/properties.py）：容积≥时段累积水量、
+- 物理不变性（tests/properties.py，GOV3 已实装）：容积≥时段累积水量、
   水位非负
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

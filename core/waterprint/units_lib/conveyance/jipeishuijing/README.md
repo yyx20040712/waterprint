@@ -18,7 +18,7 @@ peishuijing 分流主线的单节点合并形态）。
   分流/不均匀余量/总深/概算）
 - 物理不变性：流量守恒（分流守恒 Σ口=入流——golden 断言+D3 探针锚）、
   容积/停留非负（性质归 contracts 传播面锁定——包内 properties.py
-  维持结构预留注记，hebing 先例同型）
+  properties 已实装（GOV3）注记，hebing 先例同型）
 
 本包七固定件全实装（M0.5 骨架 → M3c 交付）；包内结构遵守
 AGENTS.md §11 固定七件套，禁自由发挥。

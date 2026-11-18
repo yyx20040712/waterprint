@@ -19,11 +19,11 @@
 #      round(x,10) 定点浮点 + format_version 头）再 sha256——对象
 #      构造顺序无关；同设计两次哈希相同。头部 format_version 保证
 #      未来版本迁移后哈希自然失效（防旧哈希冒充新语义，T7a D5）。
-#   R3 参与项完备：DesignState 七字段全量（nodes/edges/
+#   R3 参与项完备：DesignState 八字段全量（nodes/edges/
 #      constraint_choices/checked_units/assumption_overrides/
-#      influent/standard_binding——model_dump 全量；"单元版本"经
-#      nodes 值结构携带，后续收紧 GR-21——T7a 注记修正）。清单
-#      变更必须同步本规格与测试。
+#      influent/standard_binding/site——model_dump 全量，site 自 M5 批
+#      加入；"单元版本"经 nodes 值结构携带，后续收紧 GR-21——T7a 注记
+#      修正）。清单变更必须同步本规格与测试。
 #   R4 哈希是重算与 stale 判定的唯一依据：编辑 → 新 hash → 运行中
 #      任务结果落地即标 stale（§17.1）；缓存键含 design_hash（§17.2）。
 #

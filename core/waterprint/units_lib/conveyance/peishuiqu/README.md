@@ -17,7 +17,7 @@
   余量/渠深/渠末流速校核）
 - 物理不变性：流量守恒（分流守恒 Σ口=入流——golden 断言+D3 探针锚）、
   流速≥最小防淤流速（v_end 带校核面——副算例 Warning 路径）；性质归
-  contracts 传播面锁定——包内 properties.py 维持结构预留注记
+  contracts 传播面锁定——包内 properties.py properties 已实装（GOV3）注记
 
 本包七固定件全实装（M0.5 骨架 → M3c 交付）；包内结构遵守
 AGENTS.md §11 固定七件套，禁自由发挥。

@@ -20,7 +20,7 @@
   低流速修正未计归起草表追认点 3）；去除率 removal.wushui_tisheng.\*
   .mod_default 全 0.0（提升单元无处理——出水质=入水质逐键透传不经
   apply，扬程指标经 dims 的 h_pump 承载）
-- 物理不变性（归后续批进 tests/properties.py）：扬程 ≥0、备用满足
+- 物理不变性（tests/properties.py，GOV3 已实装）：扬程 ≥0、备用满足
   n+1 规则、流量守恒（水量不衰减）
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

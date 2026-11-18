@@ -21,7 +21,7 @@ PAM+斜管沉淀/清水区+污泥浓缩区+污泥回流）。
 - 系数通道：factor.gaomidu.\*（data/coefficients 0.3.0，经
   app._unit_params 投影）；去除率 removal.gaomidu.\*.mod_default
   （出水质=入质×(1−r) 三指标，同 M1a 形态）
-- 物理不变性（归后续批进 tests/properties.py）：上升流速≤限值、
+- 物理不变性（tests/properties.py，GOV3 已实装）：上升流速≤限值、
   药剂量≥0（与矿井水高密各自独立成包）
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

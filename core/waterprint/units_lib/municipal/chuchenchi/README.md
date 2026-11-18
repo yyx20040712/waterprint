@@ -17,7 +17,7 @@
 - 系数通道：factor.chuchenchi.\*（data/coefficients 0.2.0+0.2.1，经
   app._unit_params 投影；排泥周期带=0.2.1 前置键）；去除率
   removal.chuchenchi.\*.mod_default
-- 物理不变性（归后续批进 tests/properties.py）：去除率∈(0,1)、池容≥0、
+- 物理不变性（tests/properties.py，GOV3 已实装）：去除率∈(0,1)、池容≥0、
   排泥 DS 与 SS 去除量守恒
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

@@ -14,7 +14,7 @@
 - 公式组（已冻结）：JS-F1~F7（汇流容积/面积/井径/实际面积/停留校核/
   总深/概算）
 - 物理不变性：容积≥0、停留非负（性质归 contracts 传播面锁定——包内
-  properties.py 维持结构预留注记，hebing 先例同型）
+  properties.py properties 已实装（GOV3）注记，hebing 先例同型）
 
 本包七固定件全实装（M0.5 骨架 → M3c 交付）；包内结构遵守
 AGENTS.md §11 固定七件套，禁自由发挥。

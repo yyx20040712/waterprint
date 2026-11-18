@@ -19,7 +19,7 @@
   "CJ/T 3008.3-1993 正式文本核对"降级为追认点注记[Q3 挂账口径]）；
   去除率 removal.bashi_jiliangcao.\*.mod_default 全 0.0（计量单元无
   处理——出水质=入水质逐键透传不经 apply，ziwai 零去除形态同款）
-- 物理不变性（归后续批进 tests/properties.py）：流量-水头关系单调
+- 物理不变性（tests/properties.py，GOV3 已实装）：流量-水头关系单调
   （C>0、n>1）、喉宽取标准档位（非档位域拒）
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py

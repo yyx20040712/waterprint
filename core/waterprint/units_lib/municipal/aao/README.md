@@ -21,7 +21,9 @@
   语义）/h_pool=h_super+h2/l_pool_raw=sqrt(a_pool×ratio_lb)/
   b_pool_raw=sqrt(a_pool÷ratio_lb)/v_pool=圆整边长×h2；dims 新增 8 键
   （h2/a_pool/l_pool/b_pool/h_pool/l_pool_raw/b_pool_raw/v_pool——
-  ceil 0.5 m 档收口在 compute，v_pool≥v_total 圆整裕量诚实呈现）
+  ceil 0.5 m 档收口在 compute，v_pool≥v_total 圆整裕量诚实呈现）；
+  B4-2a 能耗批扩 AO-F20（曝气头）与 AO-F21~F25 能耗族（formulas_energy.py
+  并组登记，见 manifest）
 - 系数通道：factor.aao.\*（data/coefficients 0.2.0，经 app._unit_params
   投影；L7 扩 superheight 0.3——GB 50014 超高一般要求，与
   safety.superheight 假设键同源同值）；去除率 removal.aao.\*.
@@ -29,7 +31,7 @@
   tn_eff，非本表系数）；L7 几何形态参数三件（manifest params：
   h2 有效水深 5.0[4~6]/ratio_lb 长宽比 2.5[2~3]/side_disc_step 边长
   圆整档 0.5——CASS 同值同 range 平移）
-- 物理不变性（归后续批进 tests/properties.py）：分区容积和=总容积、
+- 物理不变性（tests/properties.py，GOV3 已实装）：分区容积和=总容积、
   需氧量≥0、回流比>0、剩余污泥≥0
 
 包内结构遵守 AGENTS.md §11 固定七件套，禁自由发挥；tests/test_compute.py
