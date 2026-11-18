@@ -32,6 +32,8 @@
 #      tasks/ 子树；不调 start()、不提交任务（装配填充语义）。
 #   R3 工具包装：tool_call/tool_result 事件自动记录；run 内抛异常或返回
 #      含 "error" 键的 dict → 记 ok=False 并透传错误 dict（+hint）。
+#      b29 AUDIT-#28：ok=True 的 tool_result summary 只含 count 摘要键
+#      （无 count=空映射——不再物化 {"error": null} 入会话 JSONL）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -176,12 +178,15 @@ def run_tool(
             ctx.session_id, tool, ok=False, summary={"error": f"{type(exc).__name__}: {exc}"}
         )
         return {"error": f"{type(exc).__name__}: {exc}", "hint": hint}
+    # b29 AUDIT-#28：ok 载荷不再物化 {"error": null} 入会话 JSONL（原
+    # summary or {"error": …} 兜底使无 count 键的成功结果带 error=None 键
+    # ——成功面无错误语义，summary 保持空映射）；失败载荷语义不变。
     summary: dict[str, Any] = {}
     if ok and "count" in result:
         summary["count"] = result["count"]
-    ctx.session_log.tool_result(
-        ctx.session_id, tool, ok=ok, summary=summary or {"error": result.get("error")}
-    )
+    elif not ok:
+        summary["error"] = str(result.get("error", "未知错误"))
+    ctx.session_log.tool_result(ctx.session_id, tool, ok=ok, summary=summary)
     if ok:
         return result
     return {"error": str(result.get("error", "未知错误")), "hint": str(result.get("hint", hint))}
