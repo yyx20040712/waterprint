@@ -20,6 +20,10 @@
 #   R 修复轮补强三用例：几何参数域拒绝（h2=0/side_disc_step=0——ceil
 #   除档不除零唯一防线）+ ceil 落档边界例（raw 恰=档倍数零进位，
 #   覆盖补强非红先行）。
+#   b26 增 AUDIT-#2 守卫用例（ADR-011 豁免定案附带裁决）：批量首元素
+#   语义四处（池长/池宽、曝气器数[ceil 面]；好氧泥龄、缺氧 HRT[警告带
+#   面]）N>1 取首前显式拒（参数化逐一钉点）+ N==1 守卫径与主算例锚
+#   恒等（零变化）。
 # 【口径注记】入流水质=三表衔接式值（BOD5 123.2996/COD 199.9362/
 #   SS 93.2121，上游=初沉池出流）；出流=衔接 erchunchi 表值；q_return
 #   按最高时口径（引擎精确 Q_design 与表 5 位舍入差 <0.01，容差覆盖）。
@@ -33,8 +37,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy
 import pytest
 
+import waterprint.units_lib.municipal.aao.compute as aao_compute
 from waterprint.contracts.condition import ConditionSet, FlowCase, OperatingCondition
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.manifest import InvalidUnitConfig
@@ -43,6 +49,7 @@ from waterprint.contracts.quality import WaterQuality
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.unit_api import Severity, UnitContext
 from waterprint.registry import formulas
+from waterprint.units_lib._unit_compute import _apply_batch as _real_apply_batch
 from waterprint.units_lib.municipal.aao import make_unit, manifest
 
 # ── 算例 1 入参（三表逐字：Q_avg_daily=34760.7 m³/d、Kz=1.4；入流水质=
@@ -361,3 +368,107 @@ def test_sludge_out_port() -> None:
     assert stock.q_wet * 86400 == pytest.approx(321.4483333333, abs=1e-3)  # =HB-F2 口径
     assert stock.moisture == pytest.approx(0.994, abs=1e-12)
     assert result.outqualities[ref].concentrations == {}  # 空 WaterQuality（GR-04）
+
+
+# ── AUDIT-#2 守卫（b26，ADR-011 豁免定案附带裁决）：批量首元素语义
+#    四处（池长/池宽、曝气器数=ceil 面；好氧泥龄、缺氧 HRT=警告带面）
+#    取首前显式拒 N>1；N==1 数值与消息零变化（golden 锚钉）─────────
+
+
+def _geometry_run(
+    monkeypatch: pytest.MonkeyPatch, n2_formula: str | None
+) -> dict[str, numpy.ndarray]:
+    """_geometry 私有面驱动：n2_formula 公式恒返 N=2 数组（行 1=行 0×0.9
+    可区分——静默取首时赢家=行 0）；None=全真核 N==1 径。"""
+    real = _real_apply_batch  # 定义件直 import（aao.compute 同款——模块属性隐式再导出面 mypy 拒）
+
+    def _n2(
+        ctx: UnitContext, formula_id: str, bindings: dict[str, numpy.ndarray]
+    ) -> numpy.ndarray:
+        sliced = {key: numpy.asarray([value[0]]) for key, value in bindings.items()}
+        single = real(ctx, formula_id, sliced)
+        return numpy.asarray([single[0], single[0] * 0.9])
+
+    def _patched(
+        ctx: UnitContext, formula_id: str, bindings: dict[str, numpy.ndarray]
+    ) -> numpy.ndarray:
+        if formula_id == n2_formula:
+            return _n2(ctx, formula_id, bindings)
+        return real(ctx, formula_id, bindings)
+
+    if n2_formula is not None:
+        monkeypatch.setattr(aao_compute, "_apply_batch", _patched)
+    return aao_compute._geometry(  # noqa: SLF001  # 同上
+        _ctx(_params()),
+        _params(),
+        numpy.asarray([17753.992764299997]),
+        numpy.asarray([5357.475507149999]),
+    )
+
+
+@pytest.mark.parametrize(
+    ("n2_formula", "label"),
+    [
+        ("AO-F17", "池长 l_pool_raw"),
+        ("AO-F18", "池宽 b_pool_raw"),
+        ("AO-F20", "曝气器数 n_aerator_raw"),
+    ],
+)
+def test_n1_guard_geometry_rejects_n_gt1(
+    monkeypatch: pytest.MonkeyPatch, n2_formula: str, label: str
+) -> None:
+    """AUDIT-#2 守卫（ceil 面）：N=2 到达池长/池宽/曝气器数三取首点——
+    取首前 InvalidUnitConfig（消息含位点名+N+成文前提）。"""
+    with pytest.raises(InvalidUnitConfig) as excinfo:
+        _geometry_run(monkeypatch, n2_formula)
+    message = str(excinfo.value)
+    assert label in message
+    assert "N=2" in message
+    assert "批量=逐行调用（N==1）" in message
+
+
+@pytest.mark.parametrize(
+    ("volumes", "sludge", "label"),
+    [
+        (
+            {"t_n": numpy.asarray([3.36])},
+            {"theta_c": numpy.asarray([22.22, 5.0])},
+            "好氧泥龄 theta_c",
+        ),
+        (
+            {"t_n": numpy.asarray([3.36, 9.99])},
+            {"theta_c": numpy.asarray([22.22])},
+            "缺氧区 HRT t_n",
+        ),
+    ],
+)
+def test_n1_guard_warnings_rejects_n_gt1(
+    volumes: dict[str, numpy.ndarray], sludge: dict[str, numpy.ndarray], label: str
+) -> None:
+    """AUDIT-#2 守卫（警告带面）：N=2 到达好氧泥龄/缺氧 HRT 两取首点——
+    取首前 InvalidUnitConfig（守卫前=行 1 越带事实被静默丢弃）。"""
+    with pytest.raises(InvalidUnitConfig) as excinfo:
+        aao_compute._warnings(_params(), volumes, sludge)  # noqa: SLF001  # 包内 tests 私有面直证
+    message = str(excinfo.value)
+    assert label in message
+    assert "N=2" in message
+    assert "批量=逐行调用（N==1）" in message
+
+
+def test_n1_guard_n1_behavior_unchanged(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AUDIT-#2 守卫 N==1 零变化：守卫径 ceil 三值/警告带判定与主算例锚恒等
+    （test_main_case_geometry/test_main_case_sludge_and_oxygen 同值）。"""
+    geometry = _geometry_run(monkeypatch, None)
+    assert float(geometry["l_pool"][0]) == 94.5  # ceil 0.5 m 档（主算例锚）
+    assert float(geometry["b_pool"][0]) == 38.0
+    assert float(geometry["n_aerator"][0]) == 2143.0  # 整台 ceil
+    in_band = aao_compute._warnings(  # noqa: SLF001  # 同上
+        _params(), {"t_n": numpy.asarray([3.36])}, {"theta_c": numpy.asarray([22.22222222222222])}
+    )
+    assert in_band == ()  # 带内=零警告（主算例口径不变）
+    out_band = aao_compute._warnings(  # noqa: SLF001  # 同上
+        _params(), {"t_n": numpy.asarray([3.36])}, {"theta_c": numpy.asarray([7.4])}
+    )
+    assert [(warn.param_key, "sludge_age_band" in warn.source) for warn in out_band] == [
+        ("ns", True)
+    ]  # 泥龄带越界警告归因 ns（好氧泥龄口径——旧径不变）
