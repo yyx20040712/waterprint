@@ -33,6 +33,10 @@
 #       source: str / note: str（GR-15 出处门槛同向：source/note
 #       非空、value 非 bool 且有限 GR-02）
 #   class InvalidRunEnvError(Exception)（GR-11 Invalid* 族）
+#   LOOP_KEYS: Final[tuple[str, ...]]（loop.* 引擎参数键集恰三键——
+#       b25 AUDIT-#8 单源：原 4 处 _LOOP_KEYS 手工镜像收编；四消费方
+#       〔executor_assembly/app_assembly/app_trust/final_eval〕同引
+#       同一对象）
 #
 # 【行为规格】
 #   R1 类型家：RunEnv 定义于本契约（L0）——graph/executor.py(L3) 与
@@ -45,7 +49,8 @@
 #      经 registry/assumptions 装载；数值以该数据包为准，本规格头
 #      不复述），app 装配（T7b）提取 loop.* 三键投影 EngineParam 构造
 #      engine_params——本文件只落类型与投影口径，禁散落代码字面量
-#      （GR-15 同向）。
+#      （GR-15 同向）；键名集=LOOP_KEYS 常量（b25 AUDIT-#8 单源，
+#      原 4 处消费方镜像收编）。
 #   R3 不可变：装配一次、执行期只读；执行期改写 = FrozenInstanceError
 #      （frozen 数据类自然防护；程序缺陷不包装——GR-08，与
 #      test_run_env.py 镜像断言一致；SENS-R1 SA-02 口径统一）。
@@ -79,9 +84,19 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from math import isfinite
 from types import MappingProxyType
-from typing import Any, Protocol, final
+from typing import Any, Final, Protocol, final
 
 from waterprint.contracts.trace_api import TraceSink
+
+# loop.* 引擎参数键集（恰三键——R2 引擎技术参数域的键名面；数值真源=
+# data/assumptions/engine.yaml 条目经 registry 装载，本常量只锁键名集）。
+# b25 AUDIT-#8 收敛：原 4 处 _LOOP_KEYS 手工镜像（graph.executor_assembly/
+# app_assembly/app_trust/solution.joint_enumeration.final_eval）收编本处
+# 单源——值逐字不变，四消费方引用同一对象（executor 恒等钉 is 断言
+# 同向兼容）。
+LOOP_KEYS: Final[tuple[str, ...]] = (
+    "loop.tolerance", "loop.max_iterations", "loop.damping"
+)
 
 
 class InvalidRunEnvError(Exception):

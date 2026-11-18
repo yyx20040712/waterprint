@@ -47,16 +47,18 @@ from waterprint.contracts.edge_parsing import edges_from, endpoint_from
 from waterprint.contracts.flow import WaterFlow
 from waterprint.contracts.ports import Direction, Edge, FluidKind, Port, PortRef
 from waterprint.contracts.quality import WaterQuality
-from waterprint.contracts.run_env import RunEnv
+from waterprint.contracts.run_env import LOOP_KEYS, RunEnv
 from waterprint.contracts.sludge import SludgeFlow
 from waterprint.contracts.trace_api import TraceNodeSpec
 from waterprint.contracts.unit_api import Unit
 from waterprint.graph.executor_dsl import InvalidExecutionError
 from waterprint.graph.loop import LoopConfig
 
-_LOOP_KEYS: Final[tuple[str, ...]] = (
-    "loop.tolerance", "loop.max_iterations", "loop.damping"
-)
+# loop.* 引擎参数键集自 run_env.LOOP_KEYS 单源（b25 AUDIT-#8 收敛——
+# 原 4 处手工镜像之一；赋值绑定而非 import-as：同一对象且经本件定义
+# 面再导出（executor.py 引用连续专用 import 在 mypy no-implicit-
+# reexport 下仍成立），恒等钉 test_executor_assembly 的 is 断言不受扰动）。
+_LOOP_KEYS: Final[tuple[str, ...]] = LOOP_KEYS
 # 动态实例口后缀解析（口级合规——uf61-axes 批；注记勘正 kbwire C1）：
 # declared OUT 口 p 的 f"{p}_{k}" 形态，k≥2 纯整数。"out_2_3" 命中本
 # regex（base="out_2"）——拒判落在 base∉declared_out；"out_2.5"/"out_x"

@@ -51,13 +51,14 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Final, final
+from typing import final
 
 from waterprint.app_assembly import AssembledGraph
 from waterprint.contracts.condition import ConditionSet, FlowCase, OperatingCondition
 from waterprint.contracts.ports import Direction, Edge, FluidKind
 from waterprint.contracts.quality import EffluentStandard, margin
 from waterprint.contracts.result_schema import PlantResult
+from waterprint.contracts.run_env import LOOP_KEYS as _LOOP_KEYS
 from waterprint.contracts.run_env import RunEnv
 from waterprint.contracts.trust import (
     ClosureLine,
@@ -69,9 +70,8 @@ from waterprint.contracts.trust import (
 )
 from waterprint.graph.executor_dsl import InvalidExecutionError
 
-_LOOP_KEYS: Final[tuple[str, ...]] = (
-    "loop.tolerance", "loop.max_iterations", "loop.damping"
-)
+# loop.* 引擎参数键集自 run_env.LOOP_KEYS 单源（b25 AUDIT-#8 收敛——
+# 原 4 处手工镜像之一；值逐字不变）
 
 
 @final

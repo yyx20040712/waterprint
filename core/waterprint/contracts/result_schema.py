@@ -79,16 +79,21 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from math import isfinite
 from types import MappingProxyType
-from typing import Any, final
+from typing import Any, Final, final
 
 from waterprint.contracts.unit_api import Severity, Warning
 
-_ROUND_DIGITS: int = 10
-_JSON_KWARGS: dict[str, Any] = {
+# 确定性 JSON 序列化参数（sort_keys 键序噪声消除+非 ASCII 透传+紧致
+# 分隔符——ADR-004）。本文件=确定性序列化纪律母本（trust_serde/
+# validation/project.io/graph.incremental 同款纪律的参照面），b25
+# AUDIT-#7 收敛：原 5 处 _JSON_KWARGS 手工镜像收编本常量单源——
+# 值逐字搬移，序列化字节零变。
+JSON_KWARGS: Final[dict[str, Any]] = {
     "sort_keys": True,
     "ensure_ascii": False,
     "separators": (",", ":"),
 }
+_ROUND_DIGITS: int = 10
 # 各节点合法键集（deserialize 未知键拒的判据——与上文 dataclass 字段一一对应）
 _ROOT_KEYS: frozenset[str] = frozenset({"conditions", "summary", "trace", "repro"})
 _TRACE_NODE_KEYS: frozenset[str] = frozenset(
@@ -257,7 +262,7 @@ def serialize(result: PlantResult) -> bytes:
         "trace": _to_json(result.trace, "trace"),
         "repro": _to_json(result.repro, "repro"),
     }
-    return json.dumps(tree, **_JSON_KWARGS).encode("utf-8")
+    return json.dumps(tree, **JSON_KWARGS).encode("utf-8")
 
 
 def _reject_constant(token: str) -> float:

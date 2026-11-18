@@ -41,10 +41,10 @@
 #      UTF-8（newline="\n" 防 Windows 漂移）→ os.replace 原子替换。
 #   R5 文件锁（§17.3，R5 最低成本）：path.with_suffix(".lock") 存在
 #      → InvalidProjectError（消息含锁路径+"另一会话可能正在编辑"）。
-#   R6 dumps_design 头部携带当前 format_version（与 migration.
-#      SUPPORTED_VERSIONS[-1] 同源同步义务——本文件不 import
-#      migration（migration→io 单向），版本常量各自持有、双源一致性
-#      由 migrate 未来版拒路径守住）。
+#   R6 dumps_design 头部携带当前 format_version（b25 AUDIT-#8 起自
+#      project_schema.CURRENT_FORMAT_VERSION 单源——migration.
+#      SUPPORTED_VERSIONS 末位同引一处，双源互注义务退役；本文件
+#      仍不 import migration（migration→io 单向不变））。
 #
 # 【T7a 冻结注记】
 #   - 上限常量幂积表达式：_MAX_BYTES = 10**2 * 10**2 * 10**2 * 10
@@ -73,10 +73,14 @@ from typing import Any, Final, NoReturn
 from pydantic import ValidationError
 
 from waterprint.contracts.project_schema import (
+    CURRENT_FORMAT_VERSION as _FORMAT_VERSION,
+)
+from waterprint.contracts.project_schema import (
     DesignState,
     ProjectFile,
     parse_project,
 )
+from waterprint.contracts.result_schema import JSON_KWARGS as _JSON_KWARGS
 
 _ROUND_DIGITS: Final[int] = 10
 # 大小上限：10**2 * 10**2 * 10**2 * 10 = 10^7 字节（10MB——§18 上传面
@@ -84,18 +88,11 @@ _ROUND_DIGITS: Final[int] = 10
 _MAX_BYTES: Final[int] = 10**2 * 10**2 * 10**2 * 10
 # 深度上限：嵌套 >100 层拒（递归归一时计数；探针②以 >100 层构造实证）。
 _MAX_DEPTH: Final[int] = 10**2
-# 当前版 format_version（R6：dumps_design 头；与 migration.
-# SUPPORTED_VERSIONS[-1] 同源同步——双源一致性由门禁+migrate 拒路径守）。
-# L4a：boundary 红线键入 schema（GR-21 只增）→ "2.0"→"3.0"（旧哈希自然失效）。
-# inlet-m3d 批 2026-10-02：进水参数面 m³/s→m³/d 换轴（v3→v4 迁移器
-# municipal_input q_avg_daily ×86400）→ "3.0"→"4.0"（双源同笔——
-# migration.SUPPORTED_VERSIONS 追加 "4.0"；旧哈希自然失效语义同 L4a）。
-_FORMAT_VERSION: Final[str] = "4.0"
-_JSON_KWARGS: Final[dict[str, Any]] = {
-    "sort_keys": True,
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-}
+# 当前版 format_version（R6：dumps_design 头）自 project_schema.
+# CURRENT_FORMAT_VERSION 单源引；确定性 JSON 参数自纪律母本
+# result_schema.JSON_KWARGS 单源引（b25 AUDIT-#7/#8 收敛——原与本文件
+# 双源互注的 migration.SUPPORTED_VERSIONS[-1] 同引 project_schema 一处，
+# 升版只改 project_schema；版本史注记随常量迁 project_schema）。
 
 
 class InvalidProjectError(Exception):

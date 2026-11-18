@@ -61,11 +61,12 @@
 #     project 包内 migration→io import 合法，§1b 零新边）；校验
 #     拒绝的 ValidationError 转换与 io._build 同款消息拼接（B4
 #     双胞胎，禁跨模块私有 import）。
-#   - 双源同步对侧互注（T7a-R1b 2026-08-25，二审 M-2+T7aG-1 补齐）：
+#   - 版本常量单源（b25 AUDIT-#8 收敛，原 T7a-R1b 双源互注退役）：
 #     io._FORMAT_VERSION（dumps_design 版本头）与本文件
-#     SUPPORTED_VERSIONS[-1] 双源同值——升版必同笔改两处（io 侧
-#     规格 R6 已注，本行为对侧注记使"互注"成真；漂移后果=未来版
-#     哈希失效语义静默漂移，由 migrate 未来版拒路径兜底）。
+#     SUPPORTED_VERSIONS[-1] 均引 contracts.project_schema.
+#     CURRENT_FORMAT_VERSION 同一常量——升版只改 project_schema
+#     一处（原双源漂移面=未来版哈希失效语义静默漂移，由 migrate
+#     未来版拒路径兜底——该拒路径仍守）。
 #   - 数值纪律：本文件零数值面（inlet-m3d 批 v3→v4 迁移器的 86400 换算
 #     经 contracts.quantity parse 派生常量承载——非手写字面量，口径同
 #     graph/nodes._SECS_PER_DAY 先例）。
@@ -85,11 +86,19 @@ from typing import Any, Final
 
 from pydantic import ValidationError
 
-from waterprint.contracts.project_schema import ProjectFile, parse_project
+from waterprint.contracts.project_schema import (
+    CURRENT_FORMAT_VERSION,
+    ProjectFile,
+    parse_project,
+)
 from waterprint.contracts.quantity import DimKey, parse
 from waterprint.project.io import InvalidProjectError
 
-SUPPORTED_VERSIONS: Final[tuple[str, ...]] = ("1.0", "2.0", "3.0", "4.0")
+# 支持版本链（历史序）；末位=当前版自 project_schema.CURRENT_FORMAT_
+# VERSION 单源（b25 AUDIT-#8——io._FORMAT_VERSION 同引一处，值不变）。
+SUPPORTED_VERSIONS: Final[tuple[str, ...]] = (
+    "1.0", "2.0", "3.0", CURRENT_FORMAT_VERSION
+)
 
 # 秒/日（=86400，m³/s→m³/d 换算乘子）——经 pint 正门派生（R2 禁手写
 # 86400 系数；graph/nodes._SECS_PER_DAY 同源同式——两处非同一份字面量，

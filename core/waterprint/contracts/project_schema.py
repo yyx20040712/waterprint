@@ -39,6 +39,8 @@
 #       metadata（顶层 format_version 为权威源；metadata.format_version
 #       缺省回填自顶层、冲突拒绝——双写单源，测试锁定 hasattr 面）
 #   parse_project(data: Mapping[str, Any]) -> ProjectFile   严格校验正门
+#   CURRENT_FORMAT_VERSION: Final[str]（当前版格式版本常量——b25 AUDIT-#8
+#       单源：io dumps_design 头与 migration.SUPPORTED_VERSIONS 末位同引）
 #
 # 【行为规格】
 #   R1 双态分界是 R10 病灶的根除：view 任何变化不算 dirty、不触发重算、
@@ -50,7 +52,8 @@
 #   R4 项目内禁止随机 ID/时间戳进入 design 态（确定性序列化前提，
 #      序列化规则在 project/io.py 执行，本文件只定义 schema）。
 #   R5 format_version 迁移由 project/migration.py 链式处理，本 schema
-#      永远只描述当前版。
+#      永远只描述当前版（当前版值=CURRENT_FORMAT_VERSION 常量——b25
+#      AUDIT-#8 收敛，io 头/migration 链尾双源互注退役）。
 #
 # 【T3 冻结注记】（总控简报 D7 裁决，2026-08-23）
 #   - 全模型 ConfigDict(strict=True, extra="forbid")——类型不 coerce、
@@ -84,6 +87,15 @@ _STRICT_FORBID = ConfigDict(strict=True, extra="forbid")
 # ARCH1 D1d 同款先例；1+2 算术形态=值 3 进白名单操作数——API_TOKEN_
 # MIN_LENGTH 幂积同款绕字面量门禁法，validator 比较面零字面量）。
 _BOUNDARY_MIN_POINTS: Final[int] = 1 + 2
+
+# 当前项目文件格式版本（R5"本 schema 永远只描述当前版"的当前版值
+# 载体）。b25 AUDIT-#8 收敛：原 project/io.py._FORMAT_VERSION（dumps_
+# design 版本头）与 project/migration.SUPPORTED_VERSIONS 末位双源互注
+# 收编本处单源——两消费方同引，升版只改本处。版本史：L4a boundary
+# 红线键入 schema（GR-21 只增）"2.0"→"3.0"；inlet-m3d 批 2026-10-02
+# 进水参数面 m³/s→m³/d 换轴（v3→v4 迁移器 municipal_input q_avg_daily
+# ×86400）"3.0"→"4.0"（旧哈希自然失效语义同 L4a；值逐字不变）。
+CURRENT_FORMAT_VERSION: Final[str] = "4.0"
 
 
 class SitePoint(BaseModel):

@@ -100,19 +100,15 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Final, final
+from typing import Any, final
 
 from waterprint.contracts.ports import Edge, InvalidConnection, PortRef
 from waterprint.contracts.project_schema import DesignState
+from waterprint.contracts.result_schema import JSON_KWARGS as _JSON_KWARGS
 from waterprint.graph.topo import split_graph
 
-# 规范化 JSON 参数（io.py/B6 design_digest 同款纪律本文件自写——跨模块
-# 私有件禁引，B4 双胞胎代价先例）：sort_keys 消键序噪声+紧致分隔符。
-_JSON_KWARGS: Final[dict[str, Any]] = {
-    "sort_keys": True,
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-}
+# 规范化 JSON 参数自纪律母本 result_schema 单源（b25 AUDIT-#7 收敛——
+# 原 5 处手工镜像之一；io.py/design_digest 同款纪律同引一处，值逐字不变）。
 
 
 @dataclass(frozen=True)

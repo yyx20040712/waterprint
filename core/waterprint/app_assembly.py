@@ -51,7 +51,14 @@ from waterprint.contracts.ports import (
     validate_edge,
 )
 from waterprint.contracts.project_schema import DesignState, ProjectFile
-from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
+from waterprint.contracts.run_env import (
+    LOOP_KEYS as _LOOP_KEYS,
+)
+from waterprint.contracts.run_env import (
+    CoefficientsView,
+    EngineParam,
+    RunEnv,
+)
 from waterprint.contracts.unit_api import Unit, UnitContext, UnitResult
 from waterprint.graph.nodes import (
     InvalidNodeError,
@@ -62,7 +69,8 @@ from waterprint.graph.nodes import (
 from waterprint.registry.assumptions import DEFAULT_ASSUMPTIONS
 from waterprint.units_lib import discover_units
 
-_LOOP_KEYS: tuple[str, ...] = ("loop.tolerance", "loop.max_iterations", "loop.damping")
+# loop.* 引擎参数键集自 run_env.LOOP_KEYS 单源（b25 AUDIT-#8 收敛——
+# 原 4 处手工镜像之一；值逐字不变）
 
 
 class InvalidAssemblyError(Exception):

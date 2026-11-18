@@ -66,6 +66,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Final, final
 
+from waterprint.contracts.result_schema import JSON_KWARGS as _JSON_KWARGS
 from waterprint.contracts.unit_api import Severity
 
 KB_CODE_PREFIX: Final[str] = "kb."
@@ -114,13 +115,10 @@ def is_kb_code(code: str) -> bool:
 
 
 # ── serde 段（2A1 批 D1——server calc-val artifact 数据源契约）──
+# 确定性 JSON 参数（_JSON_KWARGS）自纪律母本 result_schema 单源（b25
+# AUDIT-#7 收敛——原 5 处手工镜像之一；值逐字不变，trust_serde 同源
+# 纪律同引一处）。
 
-# 确定性 JSON 参数（result_schema/trust_serde 同源——R4）
-_JSON_KWARGS: dict[str, Any] = {
-    "sort_keys": True,
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-}
 # 严格键集判据（R4——与 PlantWarning 字段一一对应）
 _ROOT_KEYS: frozenset[str] = frozenset({"warnings"})
 _WARNING_KEYS: frozenset[str] = frozenset(

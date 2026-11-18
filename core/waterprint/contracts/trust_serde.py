@@ -53,14 +53,16 @@ from collections.abc import Mapping, Sequence
 from math import isfinite
 from typing import Any
 
-from waterprint.contracts.result_schema import ReproTriple
+from waterprint.contracts.result_schema import (
+    JSON_KWARGS as _JSON_KWARGS,
+)
+from waterprint.contracts.result_schema import (
+    ReproTriple,
+)
 
+# 确定性 JSON 参数自纪律母本 result_schema 单源（b25 AUDIT-#7 收敛——
+# 原 5 处手工镜像之一；值逐字不变）。
 _ROUND_DIGITS: int = 10
-_JSON_KWARGS: dict[str, Any] = {
-    "sort_keys": True,
-    "ensure_ascii": False,
-    "separators": (",", ":"),
-}
 # 各节点合法键集（deserialize 严格键集判据——与 dataclass 字段一一对应）
 _ROOT_KEYS: frozenset[str] = frozenset(
     {"convergence", "loop_params", "mass_balance", "effluent", "repro",

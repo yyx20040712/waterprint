@@ -62,7 +62,14 @@ from waterprint.contracts.ports import Edge
 from waterprint.contracts.project_schema import DesignState, ProjectFile
 from waterprint.contracts.quality import EffluentStandard
 from waterprint.contracts.result_schema import PlantResult
-from waterprint.contracts.run_env import CoefficientsView, EngineParam, RunEnv
+from waterprint.contracts.run_env import (
+    LOOP_KEYS as _LOOP_KEYS,
+)
+from waterprint.contracts.run_env import (
+    CoefficientsView,
+    EngineParam,
+    RunEnv,
+)
 from waterprint.cost import (  # 包根再导出面（批2b 同层边 import 收敛——§1c 声明承载）
     EstimateSheet,
     FeeRule,
@@ -100,9 +107,9 @@ _KEY_W_CARBON: Final[str] = "solution.joint.objective_weight_carbon"
 _KEY_W_CAPEX: Final[str] = "solution.joint.objective_weight_capex"
 _KEY_VALIDATION: Final[str] = "solution.joint.validation_conditions"
 _ALL_OUTER: Final[float] = 1.0  # validation_conditions 选择阈值（0=all/1=all_outer）
-_LOOP_KEYS: Final[tuple[str, ...]] = (
-    "loop.tolerance", "loop.max_iterations", "loop.damping",
-)
+# loop.* 引擎参数键集（_LOOP_KEYS）自 run_env.LOOP_KEYS 单源（b25
+# AUDIT-#8 收敛——原 4 处手工镜像之一；值逐字不变，registry 键段其余
+# 常量仍本文件持）
 _UNIT_PRICES_DIR: Final[str] = "unit_prices"  # 单价包目录名（services/cost.py R3 同款）
 _FIELD_MAPPING_NAME: Final[str] = "field_mapping.yaml"  # 装配 DSL 文件名（同款）
 # W12+批2b 真键映射（排序别名→指标键；avg 工况附带面用平键前缀；capex 键
