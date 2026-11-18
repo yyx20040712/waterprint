@@ -33,7 +33,9 @@
 #      → latest_calc=None（诊断面语义=200 空面——时间线本体仍有效；与
 #      trust 端点消费面 404 语义不同源不同判）。
 #   R3 诊断摘要：diag 件读取降级面同 trust（缺文件/损坏→
-#      diagnostics_available=False 空摘要，禁伪造——ADR-012 R2 精神）；
+#      diagnostics_available=False 空摘要，禁伪造——ADR-012 R2 精神；
+#      b27 AUDIT-#16 起读取经 _shared.latest_calc load_diagnostics 单源
+#      ——原 trust._load_diagnostics 同判不同件复制退役）；
 #      摘要=计数+极值（明细面走 GET /api/calc/trust 端点，本件不复制
 #      LoopRunModel 全量投影）。kb_injected（kbflag 批 2026-10-03）：
 #      降级=None 不可知——禁伪造 False（trust R2 同口径）。
@@ -64,14 +66,13 @@ from waterprint.contracts.result_schema import (
     InvalidResultError,
     deserialize,
 )
-from waterprint.contracts.trust import (
-    DiagnosticsReport,
-    InvalidDiagnosticsError,
-    deserialize_diag,
-)
+from waterprint.contracts.trust import DiagnosticsReport
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services._shared.latest_calc import latest_calc_result
+from waterprint_server.services._shared.latest_calc import (
+    latest_calc_result,
+    load_diagnostics,
+)
 from waterprint_server.services.calculation import task_status
 from waterprint_server.services.projects import read_project, result_is_stale
 
@@ -248,18 +249,6 @@ def _trace_summary(nodes: tuple[Any, ...]) -> TraceSummaryModel:
     )
 
 
-def _load_diagnostics(latest: Mapping[str, Any]) -> DiagnosticsReport | None:
-    """诊断件读取（R3 降级面——trust._load_diagnostics 同判不同件：本件为
-    观测摘要消费方，判据逐字同源〔缺键/缺文件/损坏→None〕）。"""
-    diag_file = latest.get("diag_file")
-    if not isinstance(diag_file, str) or not diag_file:
-        return None
-    try:
-        return deserialize_diag(Path(diag_file).read_bytes())
-    except (OSError, InvalidDiagnosticsError):
-        return None
-
-
 def _latest_calc_block(
     ctx: ServiceContext, project_id: str
 ) -> LatestCalcBlockModel | None:
@@ -280,7 +269,7 @@ def _latest_calc_block(
         design_hash=plant.repro.design_hash,
         engine_version=plant.repro.engine_version,
         data_version=plant.repro.data_version,
-        diagnostics=_diag_summary(_load_diagnostics(latest)),
+        diagnostics=_diag_summary(load_diagnostics(latest)),
         warning_counts=_warning_counts(plant.conditions),
         trace=_trace_summary(plant.trace),
     )

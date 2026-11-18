@@ -34,7 +34,8 @@
 #      结果文件损坏=ReportSourceNotFoundError（404，消息含 /api/calc/run
 #      引导）。
 #   R2 装配（agent #21 同序）：diag（latest.diag_file——trust R2 降级面
-#      同款：缺失/损坏→None 显式降级禁伪造）→cost（services.cost 同
+#      同款：缺失/损坏→None 显式降级禁伪造；b27 AUDIT-#16 起读取经
+#      _shared.latest_calc load_diagnostics 单源）→cost（services.cost 同
 #      通道：EstimateSheetModel 结构满足 EstimateSheetLike 协议——
 #      name_zh 单一真源）→layout（elevation+scene 服务聚合→压缩投影行，
 #      单源投影〔agent 侧复制件退役——R1 回炉 W-F layout 收敛〕）→core
@@ -72,11 +73,6 @@ from waterprint.contracts.result_schema import (
     InvalidResultError,
     deserialize,
 )
-from waterprint.contracts.trust import (
-    DiagnosticsReport,
-    InvalidDiagnosticsError,
-    deserialize_diag,
-)
 from waterprint.report import (
     CheckReport,
     ReportAST,
@@ -90,7 +86,10 @@ from waterprint_server.services import ServiceContext
 from waterprint_server.services import cost as cost_service
 from waterprint_server.services import elevation as elevation_service
 from waterprint_server.services import scene as scene_service
-from waterprint_server.services._shared.latest_calc import latest_calc_result
+from waterprint_server.services._shared.latest_calc import (
+    latest_calc_result,
+    load_diagnostics,
+)
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -174,21 +173,6 @@ class AssembledReport:
     check: CheckReport
 
 
-def _load_diagnostics(latest: Mapping[str, Any]) -> DiagnosticsReport | None:
-    """诊断件读取（R2——trust._load_diagnostics 同款降级面）。
-
-    缺键/缺文件/损坏 → None 显式降级（说明书第 2/5 章呈现「数据待接线」
-    占位——禁伪造空诊断冒充，ADR-012 R1 同口径）。
-    """
-    diag_file = latest.get("diag_file")
-    if not isinstance(diag_file, str) or not diag_file:
-        return None
-    try:
-        return deserialize_diag(Path(diag_file).read_bytes())
-    except (OSError, InvalidDiagnosticsError):
-        return None
-
-
 def _layout_rows(elevation: Any, scene: Any) -> dict[str, Any]:
     """布置数据块行（R2——elevation+scene 服务聚合压缩投影，agent #16 同源）。"""
     stations = elevation.stations
@@ -258,7 +242,10 @@ def assemble_report(
             f"报告锚定=design 工况（condition_key={chosen!r} 非 design"
             "——说明书数值锚定恒取 design 单工况，非 design 报告=后续批）"
         )
-    diagnostics = _load_diagnostics(latest)
+    # b27 AUDIT-#16：诊断件读取经 _shared.latest_calc load_diagnostics 单源
+    # （原 trust 同款复制 def 退役——缺键/缺文件/损坏 → None 显式降级，
+    # 说明书第 2/5 章呈现「数据待接线」占位，ADR-012 R1 同口径不变）。
+    diagnostics = load_diagnostics(latest)
     cost = cost_service.build_cost_for_project(ctx, project_id, chosen)
     elevation = elevation_service.build_elevation_for_project(ctx, project_id, chosen)
     scene = scene_service.build_scene_for_project(ctx, project_id, chosen)

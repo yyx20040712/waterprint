@@ -23,7 +23,8 @@
 #      result bag 不含 task_id 键）；无结果集=not_found 注入
 #      TrustSourceNotFoundError（404，消息含"先 POST /api/calc/run"）；
 #      结果文件缺失/损坏同归 404 面（FE1 M4 路径安全族——裸 500 禁）。
-#   R2 诊断降级（ADR-012 R1）：旧结果无 diag 文件（task result 缺
+#   R2 诊断降级（ADR-012 R1；b27 AUDIT-#16 起读取经 _shared.latest_calc
+#      load_diagnostics 单源）：旧结果无 diag 文件（task result 缺
 #      diag_file 键或文件不可读/损坏）→ diagnostics_available=False +
 #      convergence/mass_balance/effluent 空面（禁止伪造空诊断冒充——
 #      布尔显式区分"已算但无数据"与"未算"）；warnings 面恒给
@@ -51,7 +52,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from waterprint.contracts.result_schema import (
@@ -59,15 +59,13 @@ from waterprint.contracts.result_schema import (
     UnitResultSnapshot,
     deserialize,
 )
-from waterprint.contracts.trust import (
-    DiagnosticsReport,
-    InvalidDiagnosticsError,
-    deserialize_diag,
-)
 from waterprint.contracts.unit_api import Severity
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services._shared.latest_calc import latest_calc_result
+from waterprint_server.services._shared.latest_calc import (
+    latest_calc_result,
+    load_diagnostics,
+)
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -179,20 +177,6 @@ class TrustReportResponse(BaseModel):
     warning_counts: dict[str, int]
 
 
-_NO_DIAGNOSTICS: DiagnosticsReport | None = None
-
-
-def _load_diagnostics(latest: Mapping[str, Any]) -> DiagnosticsReport | None:
-    """诊断件读取（R2 降级面：缺键/缺文件/损坏 → None 显式降级）。"""
-    diag_file = latest.get("diag_file")
-    if not isinstance(diag_file, str) or not diag_file:
-        return _NO_DIAGNOSTICS
-    try:
-        return deserialize_diag(Path(diag_file).read_bytes())
-    except (OSError, InvalidDiagnosticsError):
-        return _NO_DIAGNOSTICS
-
-
 def _warnings_of(
     plant_conditions: Mapping[str, Mapping[str, UnitResultSnapshot]],
 ) -> tuple[TrustWarningModel, ...]:
@@ -228,7 +212,7 @@ def build_trust_for_project(ctx: ServiceContext, project_id: str) -> TrustReport
         raise TrustSourceNotFoundError(
             f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
         ) from exc
-    diagnostics = _load_diagnostics(latest)
+    diagnostics = load_diagnostics(latest)
     warnings = _warnings_of(plant.conditions)
     counts: dict[str, int] = {}
     for entry in warnings:

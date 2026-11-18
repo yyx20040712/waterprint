@@ -24,7 +24,9 @@
 #      （not_found=ValidationSourceNotFoundError——trust 404 家族同制，
 #      main 域错误类名义表登记）；plant 件缺失/损坏同归 404 面（裸 500
 #      禁）；val 件三态降级（缺键/缺文件/损坏→validation_available=
-#      False——trust _load_diagnostics 同款，禁伪造空报告冒充）；diag
+#      False——trust _load_diagnostics 同款，禁伪造空报告冒充；b27
+#      AUDIT-#16 起本件 diag/val 两读取中 diag 面经 _shared.latest_calc
+#      load_diagnostics 单源——val 面仍为本件私有〔消费面唯一〕）；diag
 #      件缺席→kb_injected=None（禁伪造 False——trust 先例）。
 #   R2 kb 推导真源=list_constraints(data_dir)（路径缓存单例——与 GET
 #      /api/constraints 同源；calc 后 kb 升版=推导随现库，响应携 plant.
@@ -93,11 +95,6 @@ from waterprint.contracts.result_schema import (
     PlantResult,
     deserialize,
 )
-from waterprint.contracts.trust import (
-    DiagnosticsReport,
-    InvalidDiagnosticsError,
-    deserialize_diag,
-)
 from waterprint.contracts.unit_api import Severity
 from waterprint.contracts.validation import (
     InvalidValidationError,
@@ -108,7 +105,10 @@ from waterprint.contracts.validation import (
 )
 
 from waterprint_server.services import ServiceContext
-from waterprint_server.services._shared.latest_calc import latest_calc_result
+from waterprint_server.services._shared.latest_calc import (
+    latest_calc_result,
+    load_diagnostics,
+)
 from waterprint_server.services.constraints import ConstraintEntry, list_constraints
 from waterprint_server.services.projects import read_project, result_is_stale
 
@@ -205,20 +205,6 @@ class ValidationObservationResponse(BaseModel):
     conditions: tuple[str, ...]  # 序轴投影（record 迭代序+summary-only 尾 append）
     nodes: tuple[NodeObservation, ...]
     warnings: tuple[AggregatedWarning, ...]
-
-
-_NO_DIAGNOSTICS: DiagnosticsReport | None = None
-
-
-def _load_diagnostics(latest: Mapping[str, Any]) -> DiagnosticsReport | None:
-    """诊断件读取（trust 同款三态降级：缺键/缺文件/损坏 → None）。"""
-    diag_file = latest.get("diag_file")
-    if not isinstance(diag_file, str) or not diag_file:
-        return _NO_DIAGNOSTICS
-    try:
-        return deserialize_diag(Path(diag_file).read_bytes())
-    except (OSError, InvalidDiagnosticsError):
-        return _NO_DIAGNOSTICS
 
 
 def _load_validation(latest: Mapping[str, Any]) -> ValidationReport | None:
@@ -472,7 +458,7 @@ def build_validation_observation(
             f"项目 {project_id!r} 最近结果集不可读（文件缺失/损坏——先重算）：{exc}"
         ) from exc
     val_report = _load_validation(latest)
-    diagnostics = _load_diagnostics(latest)
+    diagnostics = load_diagnostics(latest)
     condition_order = _condition_order(latest, plant)
     catalog = {
         entry.key: entry for entry in list_constraints(ctx.settings.data_dir).entries

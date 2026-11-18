@@ -72,6 +72,7 @@ from waterprint.geometry import spacing as core_spacing
 
 from waterprint_server.services import ServiceContext
 from waterprint_server.services import constraints as constraints_service
+from waterprint_server.services._shared.latest_calc import latest_done_result_or_none
 from waterprint_server.services.projects import read_project, result_is_stale
 
 __all__ = [
@@ -130,16 +131,6 @@ class SpacingReportResponse(BaseModel):
 
 class InvalidSpacingRequestError(ValueError):
     """间距校核请求非法（工况不在结果）——422 面（透传合法工况集）。"""
-
-
-def _latest_done_result(ctx: ServiceContext, project_id: str) -> Mapping[str, Any] | None:
-    """最近完成计算结果集（无= None——scene 同款取数模式的降级变体 R2）。"""
-    latest: Mapping[str, Any] | None = None
-    for task_id in ctx.manager.task_ids_for_project(project_id):
-        status = ctx.manager.status(task_id)
-        if status.kind == "calc" and status.state == "done" and status.result:
-            latest = status.result
-    return latest
 
 
 def _load_plant(latest: Mapping[str, Any]) -> PlantResult | None:
@@ -253,7 +244,10 @@ def build_spacing_for_project(
         for unit_id, structure in project.design.site.structures.items()
     }
     uncalculated_full = tuple(sorted(placements))
-    latest = _latest_done_result(ctx, project_id)
+    # b27 AUDIT-#16：取数经 _shared.latest_calc latest_done_result_or_none
+    # 单源（原 scene 同款取数模式降级变体 def 退役——无 done calc=None
+    # 不抛，R2 降级不拒语义保持）。
+    latest = latest_done_result_or_none(ctx, project_id)
     plant = _load_plant(latest) if latest is not None else None
     if plant is None:
         return SpacingReportResponse(
