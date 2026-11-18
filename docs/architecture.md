@@ -196,7 +196,8 @@ scope=影响面（"plant" 或节点 ID），命中=越门实例，severity 取�
 见 §6.1）：PlantWarning.condition_key 载荷=影响面，
 unit_api.Warning.condition_key=所属工况键。契约两处：单条警告=`core/waterprint/contracts/validation.py`
 （PlantWarning），聚合响应行=`server/waterprint_server/services/validation.py`
-（AggregatedWarning）。前端聚合视图尚未接线（开放面见 §6.1）。
+（AggregatedWarning）。前端聚合视图已接线（webapp `features/validation`
+切片消费，analysisPane 全厂面内嵌——T3 2026-11-19）。
 
 ### 3.8 单元包结构（脚手架生成，禁自由发挥）
 
@@ -400,8 +401,7 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
 
 - **在册功能面**：厂级纵断图真实站距（现按站序排布）；ODA DWG 转换端到端
   冒烟（Linux AppImage 形态）；软著申请与开源准备；专家经验表第三建议
-  来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）；
-  前端警告聚合视图接线（服务端聚合 API 已落地，webapp 无消费面）。
+  来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）。
 - **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：AUDIT-#1/
   #22（joint_enumeration 上行 import）已随 b23 迁移收口；AUDIT-#3/#4
   （assumptions 数据包启动校验+WATERPRINT_DATA_DIR 通道+版本槽入

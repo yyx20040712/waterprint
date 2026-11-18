@@ -154,6 +154,11 @@ unit_kinds 单源推导——与源 A 同一推导链（§2 键元单源列）�
   硬约束（scope+condition_keys[] 形，禁 condition_key 双义入 API）
   对 2A1 批生效。**2A1 现状锚（2026-10-05）**：server 消费面已落地
   （§5 落地注记同笔）；FE 面本批仅观测投影，聚合行展示=T3 待。
+  **T3 现状锚（2026-11-19）**：聚合行 FE 渲染已落地——webapp
+  `features/validation` 切片（窄化门+三分区纯函数+WarningsPanel）
+  接线 analysisPane 全厂面；v1 仅消费 warnings 聚合行，nodes 三面
+  观测（UF-61①）FE 消费面仍未接线（后续批按需）；§1 命名硬约束
+  在视图层同构遵守（scope+condition_keys 直用，零第二键口径）。
 - 断路器分级行为面归 P1 后续批（§3 前向兼容条款预留）。
 - UF 登记：`undefined-features-register.md` UF-18 行随本件落盘闭合
   （本件=其规格载体）。
