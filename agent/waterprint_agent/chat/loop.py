@@ -20,8 +20,11 @@
 #   R2 降级：三键未配置=直接降级；连续 2 次 LlmUnavailableError=
 #      降级——两路均走 _run_fallback（关键词直译：建项+计算+可选报告）。
 #   R3 上下文：system（prompts.system_prompt）+window(config.window_turns)
-#      投影（近 20 轮全文，窗口外丢弃无摘要——设计终裁 W2）；工具结果
-#      回填截断 4000 字符（设计终裁 §二）。
+#      投影（近 20 轮全文，窗口外丢弃无摘要——设计终裁 W2）；决策纪要=
+#      确定性拼装注入 system（W2『无摘要调用』终裁不破——无 LLM 摘要
+#      调用）+字符预算=token 代理（接受设计：chat 零三方依赖纪律，无
+#      tokenizer）；工具结果回填截断总预算 4000 字符（头 2800+尾 1000
+#      头尾保留——设计终裁 §二，治理批 2026-11-19 头尾化）。
 #   R4 事件：emit 回调逐事件调用（turn_start/llm_step/tool_start/
 #      tool_result/assistant_text/fallback/turn_end）——CLI 印 stdout、
 #      worker 桥转 SSE、测试收集。
@@ -46,7 +49,11 @@ __all__ = ["run_turn", "single_shot"]
 
 Emit = Callable[[dict[str, Any]], None]
 LlmFn = Callable[[ChatConfig, list[dict[str, Any]], list[dict[str, Any]]], "LlmReply"]
-_RESULT_PREVIEW_CHARS = 4000  # 工具结果回填截断（设计终裁 §二推导标注）
+_RESULT_PREVIEW_CHARS = 4000  # 工具结果回填截断总预算（设计终裁 §二推导标注）
+# 截断头保留（2800+1000+省略标记≈4000 总预算——治理批 2026-11-19 头尾化）
+_RESULT_KEEP_HEAD_CHARS = 2800
+_RESULT_KEEP_TAIL_CHARS = 1000  # 截断尾保留（hint 类线索常驻结果尾部）
+_SESSION_BOUND_TOOLS = frozenset({"wp_record_decision", "wp_draft_narrative"})
 _DEGRADE_AFTER_FAILURES = 2  # 连续不可用降级阈（社区「优雅收敛」纪律）
 
 
@@ -64,11 +71,17 @@ def _no_emit(_event: dict[str, Any]) -> None:
 
 
 def _truncate(result: dict[str, Any]) -> dict[str, Any]:
-    """工具结果回填预览（超长=截断+标记——防上下文爆容）。"""
+    """工具结果回填预览（超长=头尾保留截断+标记——防上下文爆容）。"""
     text = json.dumps(result, ensure_ascii=False, default=str)
     if len(text) <= _RESULT_PREVIEW_CHARS:
         return result
-    return {"_truncated": True, "preview": text[:_RESULT_PREVIEW_CHARS]}
+    omitted = len(text) - _RESULT_KEEP_HEAD_CHARS - _RESULT_KEEP_TAIL_CHARS
+    preview = (
+        text[:_RESULT_KEEP_HEAD_CHARS]
+        + f"……〔中间截去 {omitted} 字符〕……"
+        + text[-_RESULT_KEEP_TAIL_CHARS:]
+    )
+    return {"_truncated": True, "preview": preview}
 
 
 def _next_turn(ctx: AgentContext, session: ChatSession) -> int:
@@ -83,10 +96,14 @@ def _context_messages(
     config: ChatConfig,
     user_text: str,
     project_id: str | None,
+    decisions: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """R3：system+窗口投影+本轮 user（窗口取于 user 落盘前——防双计）。"""
     messages: list[dict[str, Any]] = [
-        {"role": "system", "content": prompts.system_prompt(project_id, degraded=False)}
+        {
+            "role": "system",
+            "content": prompts.system_prompt(project_id, degraded=False, decisions=decisions),
+        }
     ]
     for item in window_items:
         content = str(item["text"])
@@ -145,7 +162,10 @@ def run_turn(  # noqa: PLR0913  # 编排注入面（llm/config/emit 三可注入
             emit,
             note="未配置AI 接口三键（base_url/api_key/model）——关键词直译模式",
         )
-    messages = _context_messages(base_window, config, user_text, session.project_id)
+    decisions = sessions.read_decisions(ctx, session.session_id)
+    messages = _context_messages(
+        base_window, config, user_text, session.project_id, decisions
+    )
     tools = toolspec.tools_schema()
     tool_steps: list[dict[str, Any]] = []
     failures = 0
@@ -170,6 +190,8 @@ def run_turn(  # noqa: PLR0913  # 编排注入面（llm/config/emit 三可注入
         if reply.tool_calls:
             messages.append(_tool_call_messages(reply))
             for call in reply.tool_calls:
+                if call.name in _SESSION_BOUND_TOOLS:
+                    call.arguments["session_id"] = session.session_id  # 强制覆盖（防跨会话写）
                 emit({"type": "tool_start", "name": call.name, "arguments": call.arguments})
                 result = toolspec.dispatch(ctx, call.name, call.arguments)
                 ok = "error" not in result

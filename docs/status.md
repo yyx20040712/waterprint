@@ -9,7 +9,7 @@
 | 指标 | 值 | 事实源 |
 |---|---|---|
 | CI 门禁数 | 18 | `scripts/run_gates.py` GATES 元组 |
-| 测试锁面键数 | 380（core/tests 201 + server/tests 69 + units_lib 包内 92 + agent 18） | `test-lock.manifest.json` |
+| 测试锁面键数 | 381（core/tests 201 + server/tests 69 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
 | OpenAPI | 40 路径 / 45 操作 | `api-contracts/openapi.json` |
 | ADR 件数 | 27 | `docs/adr/ADR-*.md` |
 | 快照锚点 | 5（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |

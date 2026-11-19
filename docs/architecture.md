@@ -45,7 +45,7 @@
 | 前端 | `webapp/src/` | React + R3F 三维（feature 切片）；交互画布在 app 层（shellV4/thumbnailFlow），canvas 片承载投影/数据层 | API 客户端由 OpenAPI 生成（orval），禁手写 |
 | 数据包 | `data/` | 版本化数值资产（assumptions/coefficients/constraint_kb/templates/unit_prices） | 全部带出处；随镜像分发，不占运行卷 |
 | 契约源 | `api-contracts/openapi.json` | OpenAPI 契约 | 前端客户端唯一生成源 |
-| agent 面 | `agent/waterprint_agent/` | 本地 chat CLI：LLM 对话经 toolspec 23 工具操作项目与计算（ADR-027），沙箱隔离 | 经 core.flows 共享编排层（ADR-022），不旁路内核；无 MCP/外部宿主面 |
+| agent 面 | `agent/waterprint_agent/` | 本地 chat CLI：LLM 对话经 toolspec 25 工具操作项目与计算（ADR-027；含决策纪要链跨滑窗持久），沙箱隔离 | 经 core.flows 共享编排层（ADR-022），不旁路内核；无 MCP/外部宿主面 |
 
 ### 2.2 关键方案策略
 
@@ -228,7 +228,7 @@ compute.py 仍是唯一计算正门。
 ### 3.9 agent 面
 
 `agent/waterprint_agent/`：本地 chat CLI（`python -m waterprint_agent.chat`），经 server
-ai_chat 子进程桥供 webapp 对话；工具面=chat/toolspec 23 工具 schema+dispatch
+ai_chat 子进程桥供 webapp 对话；工具面=chat/toolspec 25 工具 schema+dispatch
 直调 impl（ADR-027 去 harness 化后的唯一工具真源）；沙箱五区+PathGuard
 与会话审计链沿承（原 ADR-021 D2~D4 语义继续适用）；用例编排复用 core.flows
 层（ADR-022）；数值溯源第一铁律（ADR-019）。分层契约由 import-linter 与 check_module_graph L6 节点校验（ADR-020）。

@@ -9,8 +9,10 @@
 # 契约头（B4-4b 子批 3 2026-09-24）
 #   路径：agent/waterprint_agent/chat/narrative.py
 #   职责：对话决策纪要模板化组装为设计说明书 process_selection 章
-#       叙述建议（终裁 §五：环内函数非工具；承接章=process_selection
-#       ——七章节唯一工艺叙事槽，审 W6 处置）。
+#       叙述建议（承接章=process_selection——七章节唯一工艺叙事槽，
+#       审 W6 处置；supersession：旧终裁 §五「环内函数非工具」随
+#       2026-11-19 治理批调整为工具面暴露——tools/decisions.py 的
+#       wp_draft_narrative 经本件纯模板组装，环内直调口径失效）。
 #   禁区：禁数值计算/编造数字（纯文案；草稿若含数字由叙述槽守卫
 #       validate_narrative 在导出面拒——宁误报不漏报，人工改写后采用）；
 #       禁直写报告文件（产物仅文本，落盘决策归 wp_export_report）。

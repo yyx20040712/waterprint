@@ -23,7 +23,10 @@
 #   R3 绑定：bind_project 追加 binding 记录（后读生效覆盖语义）；
 #       会话-项目 1:1（设计终裁 §二）。
 #   R4 决策：append_decision 四键（topic/conclusion/rationale/turn）
-#       ——轨道丙 decisions 素材真源（叙述草稿经 narrative_fills 采用）。
+#       ——轨道丙 decisions 素材真源（叙述草稿经 narrative_fills 采用）；
+#       消费面=tools/decisions 决策组（wp_record_decision 落盘/
+#       wp_draft_narrative 回读）+loop system 注入（治理批 2026-11-19
+#       接线——原挂空无运行期消费者状态收束）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

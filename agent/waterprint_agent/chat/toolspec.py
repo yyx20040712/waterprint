@@ -1,4 +1,4 @@
-"""工具清单（LLM function-calling schema 表——23 工具唯一声明面）。
+"""工具清单（LLM function-calling schema 表——25 工具唯一声明面）。
 
 输入:  AgentContext+工具调用（name+arguments dict）
 输出:  OpenAI tools schema 列表+dispatch（经 context.run_tool 记账+错误兜底）
@@ -7,17 +7,18 @@
 # ══════════════════════════════════════════════════════════════════
 # 契约头（B4-4b 子批 1 2026-09-24）
 #   路径：agent/waterprint_agent/chat/toolspec.py
-#   职责：编排环工具面唯一清单——23 工具的 JSON schema
+#   职责：编排环工具面唯一清单——25 工具的 JSON schema
 #       声明+懒加载分发（impl 直调——ADR-019 工具面唯一，审 B1 处置）。
 #   禁区：禁顶层 import tools 各模块（懒加载铁律——dispatch 时经
 #       importlib 触达）；禁在本层新增计算逻辑（只编排）；禁改各 impl
-#       签名（工具面=23 件原样复用，导出组经 extra 固定 kwargs
+#       签名（工具面=25 件原样复用，导出组经 extra 固定 kwargs
 #       适配通用 _export_impl 的 kind 面）。
 #
 # 【行为规格】
 #   R1 清单：_SPEC 表=(名称,模块,impl 名,参数键序,固定 kwargs,一句话
-#      描述)——23 工具唯一真源（新增工具=表加行+schema 段；原 MCP 面
-#      同源镜像关系已随 ADR-027 退役消失）。
+#      描述)——25 工具唯一真源（新增工具=表加行+schema 段；#24/#25
+#      决策组=治理批 2026-11-19 轨道丙接线；原 MCP 面同源镜像关系
+#      已随 ADR-027 退役消失）。
 #   R2 分发：dispatch(ctx,name,arguments)→kwargs=参数键序取值（缺省
 #      None 透传）∪固定 kwargs；经 run_tool 包装（会话日志 span+异常/
 #      error 键兜底）；未知工具=错误 dict 不 raise。
@@ -222,6 +223,22 @@ _SPEC: tuple[tuple[str, str, str, tuple[str, ...], dict[str, Any], str], ...] = 
         {},
         "跨项目操作概览（最近结果+stale 计数+诊断摘要）",
     ),
+    (
+        "wp_record_decision",
+        "decisions",
+        "_record_decision_impl",
+        ("session_id", "topic", "conclusion", "rationale"),
+        {},
+        "记录设计决策纪要（跨轮持久——session_id 系统自动注入）",
+    ),
+    (
+        "wp_draft_narrative",
+        "decisions",
+        "_draft_narrative_impl",
+        ("session_id",),
+        {},
+        "由决策纪要生成说明书叙述草稿（供 narrative_fills 采用）",
+    ),
 )
 
 _TOOL_HINT = "参数以工具 schema 为准；错误返回含 error+hint 两键，按 hint 调整后重试。"
@@ -257,6 +274,10 @@ _PARAMS: dict[str, dict[str, Any]] = {
     "sheet": {"type": ["string", "null"], "description": "DXF 图纸形态（profile=纵断）"},
     "h_scale": {"type": ["string", "null"], "description": "DXF 横向比例"},
     "v_scale": {"type": ["string", "null"], "description": "DXF 纵向比例"},
+    "session_id": {"type": "string", "description": "会话 ID（系统自动注入，无需填写）"},
+    "topic": {"type": "string", "description": "决策主题（中文短语）"},
+    "conclusion": {"type": "string", "description": "决策结论（中文短语）"},
+    "rationale": {"type": "string", "description": "决策依据（中文短语）"},
 }
 
 _BY_NAME: dict[str, tuple[str, str, tuple[str, ...], dict[str, Any], str]] = {

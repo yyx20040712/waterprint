@@ -4,7 +4,7 @@
        get_diagnostics→export_calcbook+audit→（仅 municipal_34760）
        export_report（verify 全绿+validate_narrative 抽查）
 锚:    expected_summary.json 的 checked_units（→2+k 工况集）与 summary
-       六指标（rel/abs 1e-12——golden 真值）；toolspec._SPEC 清单计数 23；
+       六指标（rel/abs 1e-12——golden 真值）；toolspec._SPEC 清单计数 25；
        stale 断言（改参后旧 result 提示重算）。
 驱动:  MCP 面退役（main.py 删除）后 e2e 与 chat 面同源——toolspec.dispatch
        →importlib 直调 tools 各 _*_impl（经 context.run_tool 记账+错误兜底），
@@ -85,9 +85,10 @@ def test_golden_full_chain_local(  # noqa: PLR0913, PLR0915, PLR0917  # 参数�
     """四用例全链路：本地生产路径驱动+golden 六指标锚+stale+导出闭环。"""
     expected = _expected(case_dir)
     default_n = _param_default(unit, "n")
-    # 清单锚（原 MCP tools/list 计数面）：chat 面唯一工具清单=23 工具
-    # （B4-4b 子批 3：#22/#23 增——原 21 满座计数随批更新；满座计数每用例常驻）
-    assert len(toolspec._SPEC) == 23
+    # 清单锚（原 MCP tools/list 计数面）：chat 面唯一工具清单=25 工具
+    # （治理批 2026-11-19：#24/#25 决策组增——B4-4b 子批 3 的 23 计数随批
+    # 更新；满座计数每用例常驻）
+    assert len(toolspec._SPEC) == 25
 
     created = _call(
         "wp_create_project", {"name": f"e2e-{seed}", "seed": seed}

@@ -164,3 +164,106 @@ def test_fallback_rejects_out_of_domain(sandbox_env: Path) -> None:
     assert "降级" in result["assistant"]
     history = sessions.read_history(ctx, session.session_id)
     assert len(history) == 2  # user+assistant（零工具步）
+
+
+def test_truncate_keeps_head_and_tail() -> None:
+    """_truncate 头尾保留：总预算 4000，头 2800+尾 1000+中间省略标记（含字符数）。"""
+    import json
+
+    from waterprint_agent.chat.loop import (
+        _RESULT_KEEP_HEAD_CHARS,
+        _RESULT_KEEP_TAIL_CHARS,
+        _truncate,
+    )
+
+    payload = {"blob": "甲" * 9000}
+    preview = _truncate(payload)
+    assert preview["_truncated"] is True
+    text = preview["preview"]
+    raw = json.dumps(payload, ensure_ascii=False, default=str)
+    omitted = len(raw) - _RESULT_KEEP_HEAD_CHARS - _RESULT_KEEP_TAIL_CHARS
+    assert text == (
+        raw[:_RESULT_KEEP_HEAD_CHARS]
+        + f"……〔中间截去 {omitted} 字符〕……"
+        + raw[-_RESULT_KEEP_TAIL_CHARS:]
+    )
+
+
+def test_record_decision_call_injects_session(sandbox_env: Path) -> None:
+    """LLM 发 wp_record_decision（session_id 传错值）：环强制覆盖+落决策+不跨会话写。"""
+    events: list[dict] = []
+
+    def fake_llm(config: ChatConfig, messages: list[dict], tools: list[dict]) -> LlmReply:
+        if not any(e["type"] == "tool_result" for e in events):
+            return LlmReply(
+                content="",
+                tool_calls=(
+                    ToolCall(
+                        id="c1",
+                        name="wp_record_decision",
+                        arguments={
+                            "session_id": "attacker-other-session",
+                            "topic": "工艺路线",
+                            "conclusion": "AAO",
+                            "rationale": "脱氮需求",
+                        },
+                    ),
+                ),
+            )
+        return LlmReply(content="决策已记录。", tool_calls=())
+
+    ctx = context.get_context()
+    session = sessions.create_session(ctx, title="决策注入")
+    result = run_turn(
+        ctx, session, "把这轮取舍记成决策", llm=fake_llm, config=_config(),
+        emit=events.append,
+    )
+    assert result["assistant"] == "决策已记录。"
+    tool_evt = next(e for e in events if e["type"] == "tool_result")
+    assert tool_evt["ok"] is True  # 覆盖注入生效（若按错误 ID 分发则 error）
+    decisions = sessions.read_decisions(ctx, session.session_id)
+    assert decisions == [
+        {"topic": "工艺路线", "conclusion": "AAO", "rationale": "脱氮需求", "turn": 1}
+    ]
+    # 跨会话写未发生（伪造 ID 无会话文件产生）
+    assert not (sandbox_env / "sessions" / "chat" / "attacker-other-session.jsonl").exists()
+
+
+def test_system_message_carries_decisions(sandbox_env: Path) -> None:
+    """有历史决策的会话：LLM 收到的首条 system 含决策块与「跨轮持久」字样。"""
+    ctx = context.get_context()
+    session = sessions.create_session(ctx)
+    sessions.append_message(session, "user", "上一轮问题", turn=1)
+    sessions.append_message(session, "assistant", "上一轮回答", turn=1)
+    sessions.append_decision(session, "工艺路线", "AAO", "脱氮需求", turn=1)
+    seen: list[list[dict]] = []
+
+    def fake_llm(config: ChatConfig, messages: list[dict], tools: list[dict]) -> LlmReply:
+        seen.append(list(messages))
+        return LlmReply(content="好的", tool_calls=())
+
+    run_turn(ctx, session, "新问题", llm=fake_llm, config=_config(), emit=lambda e: None)
+    system = seen[0][0]["content"]
+    assert "〔决策纪要（跨轮持久）〕" in system
+    assert "工艺路线：AAO（依据：脱氮需求）" in system
+
+
+def test_system_decisions_capped_at_eight(sandbox_env: Path) -> None:
+    """决策超 8 条：system 只列前 8 条+尾注「另有 N 条更早决策未列出」。"""
+    ctx = context.get_context()
+    session = sessions.create_session(ctx)
+    for index in range(10):
+        sessions.append_decision(
+            session, f"主题{index}", f"结论{index}", f"依据{index}", turn=1
+        )
+    seen: list[list[dict]] = []
+
+    def fake_llm(config: ChatConfig, messages: list[dict], tools: list[dict]) -> LlmReply:
+        seen.append(list(messages))
+        return LlmReply(content="好的", tool_calls=())
+
+    run_turn(ctx, session, "新问题", llm=fake_llm, config=_config(), emit=lambda e: None)
+    system = seen[0][0]["content"]
+    assert "主题7：结论7（依据：依据7）" in system  # 第 8 条仍在场
+    assert "主题8" not in system and "主题9" not in system  # 第 9/10 条不列
+    assert "另有 2 条更早决策未列出——wp_draft_narrative 可取全量草稿" in system

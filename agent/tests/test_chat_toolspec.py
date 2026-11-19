@@ -1,4 +1,4 @@
-"""test_chat_toolspec——工具清单：23 工具 schema+dispatch（经 run_tool 记账）。
+"""test_chat_toolspec——工具清单：25 工具 schema+dispatch（经 run_tool 记账）。
 
 输入:  tmp_path 沙箱+清单表
 输出:  覆盖计数/唯一性/schema 形态/分发冒烟/未知工具拒绝
@@ -23,12 +23,14 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
     context.reset_context()
 
 
-def test_schema_covers_23_unique() -> None:
-    """清单恰 23 工具（唯一清单面——B4-4b 子批 3 扩 #22/#23）；名字唯一。"""
+def test_schema_covers_25_unique() -> None:
+    """清单恰 25 工具（唯一清单面——治理批 2026-11-19 扩 #24/#25）；名字唯一。"""
     schema = toolspec.tools_schema()
     names = [entry["function"]["name"] for entry in schema]
-    assert len(names) == 23
-    assert len(set(names)) == 23
+    assert len(names) == 25
+    assert len(set(names)) == 25
+    assert "wp_record_decision" in toolspec.TOOL_NAMES
+    assert "wp_draft_narrative" in toolspec.TOOL_NAMES
     for entry in schema:
         assert entry["type"] == "function"
         assert entry["function"]["description"]
