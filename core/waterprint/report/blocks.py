@@ -8,7 +8,7 @@
         索引/dims 字段排序/单元展示序）——章节装配（build.py）的消费面。
 输入:   contracts 类型面（UnitManifest/ProjectFile/PlantResult——只读）。
 输出:   块类型族与纯投影辅助（build/render_md 消费；__init__ 再导出）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与内核 L3/L2 子系统
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与内核 L3/L2 子系统
         （本件只许 waterprint.contracts.*——连 app 都不消费）；禁 IO
         ——纯函数，不读不写文件。
 参照:   v2 设计书 D5①/D5④；AI1-INTEG-2026-09-13 §3 预裁决①（拆分

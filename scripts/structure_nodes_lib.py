@@ -52,7 +52,7 @@ SERVER_TOKEN_OF_GROUP: tuple[str, ...] = (
 FIXED_NODES: tuple[tuple[str, str, str], ...] = (
     ("webapp", "L6", "webapp/src"),
     # AI1 集成批（2026-09-13）：agent 面（AI 智能体接口）与 webapp 同层 L6
-    # （内核的两种客户端形态：浏览器 / MCP 宿主）
+    # （内核的两种客户端形态：浏览器 / 本地 chat CLI）
     ("waterprint_agent", "L6", "agent/waterprint_agent"),
     ("data", "DATA", "data"),
     ("api-contracts", "CONTRACT", "api-contracts"),

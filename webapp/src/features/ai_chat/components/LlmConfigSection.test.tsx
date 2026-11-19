@@ -7,9 +7,10 @@
  *        输入不发送——防误清除既有密钥）+enabled 门控穿线；③has_api_key
  *        占位符回显不回明文（base_url/model/timeout 回填口径）
  *
- * 形态说明（沿 AiConnectModal.test.tsx SSR 先例——零 jsdom 红线：
- * renderToString 服务端渲染真 antd 树，HTML 串包含断言；按钮点击流归
- * 无头 E2E，本件锁渲染面文案/回填口径与载荷构造纯函数）。
+ * 形态说明（SSR 先例——零 jsdom 红线：renderToString 服务端渲染真 antd
+ * 树，HTML 串包含断言；按钮点击流归无头 E2E，本件锁渲染面文案/回填口径
+ * 与载荷构造纯函数）。迁入注记（2026-11-19）：随本区自 aiconnect 误删
+ * 恢复迁入 ai_chat——断言面零变化。
  */
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";

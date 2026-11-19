@@ -201,7 +201,7 @@ def _validate_apply_params(
     """AUDIT2 C-4：apply 参数域服务端守护（提交面 422 先于异步失败）。
 
     AI1 轨道甲（2026-09-13）提取：守护逻辑迁 core.waterprint.flows.
-    params_guard（纯函数——CLI/MCP 共用；批3b 拆件迁 flows/params_guard.py
+    params_guard（纯函数——CLI/agent 共用；批3b 拆件迁 flows/params_guard.py
     再导出签名零变），本函数转调并保持 server 版整批拒语义=任一
     verdict.accepted 为 False 即 raise InvalidSolutionRefError（消息含全部
     拒绝项）；目录外单元的 InvalidFlowError 同消息映射 422。守护四面

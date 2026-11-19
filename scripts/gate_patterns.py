@@ -127,7 +127,7 @@ WIDE_EXCEPT_WAIVERS: tuple[WaiverEntry, ...] = (
         family="Exception",
         reason=(
             "run_tool 工具运行兜底面：run 抛任何异常一律转 {error, hint} "
-            "错误 dict 返回 MCP 客户端（禁 raise 裸异常穿透——AGENTS §3 "
+            "错误 dict 返回工具调用方（禁 raise 裸异常穿透——AGENTS §3 "
             "工具条款；session_log 同 span 记账失败）"
         ),
     ),
@@ -147,7 +147,7 @@ WIDE_EXCEPT_WAIVERS: tuple[WaiverEntry, ...] = (
         family="Exception",
         reason=(
             "联合枚举护栏族统一收敛（R3）：core 正门 TooLarge/Invalid 等"
-            "护栏异常不穿透 MCP 面，统一转 rejected dict（调用方按 "
+            "护栏异常不穿透工具面，统一转 rejected dict（调用方按 "
             "status=rejected 处理）"
         ),
     ),

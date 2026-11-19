@@ -9,7 +9,7 @@
 #   路径：agent/waterprint_agent/chat/llm.py
 #   职责：对话编排 LLM 单步调用面——urllib.request 直连（禁第三方 http
 #       库=依赖零破面，审 W1 处置）；ChatConfig 三中性键 env 装载。
-#   禁区：禁 import core/server/fastmcp（纯 stdlib）；禁密钥落任何异常
+#   禁区：禁 import core/server（纯 stdlib）；禁密钥落任何异常
 #       消息/日志（HTTP 错误只回显状态码——响应体不透传，N3 值级脱敏
 #       前置）；禁流式协议（环按步请求，流式由桥层承载——设计终裁 §一）。
 #

@@ -11,7 +11,7 @@
 输入:   Markdown 渲染文本+PlantResult（contracts 类型面——trace/serialize
         值域投影）。
 输出:   CheckReport（ok+失败明细+统计面——服务面生成前过闸消费）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与内核 L3/L2/L1
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与内核 L3/L2/L1
         （本件只许 waterprint.contracts.*+包内 anchors）。
 参照:   v2 设计书 D8③（说明书断言——仅 municipal_34760 口径）；任务书
         预裁决「数值锚定断言件」；门一审查 C2（表格数值盲区）FIX-1；

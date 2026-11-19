@@ -1,6 +1,6 @@
 """导出组工具（权威表 #17~#21）：产物导出+设计说明书管线入口。
 
-输入:  MCP 工具调用参数（project_id/unit_id/condition_key/sheet/比例/叙述回填）
+输入:  工具调用参数（project_id/unit_id/condition_key/sheet/比例/叙述回填）
 输出:  {file_name, path}（导出）/{path, verify_summary, rejected_narratives}
        （说明书）；错误={"error","hint"} 不 raise
 """
@@ -8,11 +8,12 @@
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-INTEG-2026-09-13）
 #   路径：agent/waterprint_agent/tools/exports.py
-#   职责：wp_export_calcbook/#18 audit/wp_export_dxf/wp_export_ifc
-#       （flows.export_flow 单一真源+exports_support 确定性命名+八键
-#       边车原子写）+wp_export_report（#21 说明书管线——estimate/
-#       layout 接线收口 v2 D5① 第 5/6 章）。
-#   禁区：顶层禁 import core/server/fastmcp（懒加载铁律）；工具签名
+#   职责：_export_impl（#17 calcbook/#18 audit/#19 dxf/#20 ifc 共体
+#       ——flows.export_flow 单一真源+exports_support 确定性命名+八键
+#       边车原子写）+_export_report_impl（#21 说明书管线——estimate/
+#       layout 接线收口 v2 D5① 第 5/6 章）——chat toolspec.dispatch
+#       的 impl 真源（MCP wp_* 包装随 main.py 退役批剥除 2026-11-19）。
+#   禁区：顶层禁 import core/server（懒加载铁律）；impl 签名
 #       冻结（v2 D3 权威表）；禁直连 trace.audit（ADR-020 例外通道
 #       保持挂起——audit 经 flows.export_flow("audit") 正门）。
 #
@@ -27,7 +28,7 @@
 #      （stale_labeled 恒 False——stale 已被 R1 拒）。
 #   R4 #21 管线（R1 回炉 W-F 收敛）：stale 门→narrative_fills 逐段
 #      validate_narrative（违例拒该段入 rejected_narratives——守卫留
-#      MCP 侧语义）→server services.report.assemble_report 共享真源
+#      agent 侧语义）→server services.report.assemble_report 共享真源
 #      （narrative_fills 参数化上移；diag/cost/layout 装配与 md/PDF
 #      端点单源；layout 投影复制件退役）→verify 全绿（服务闸）才落盘
 #      reports/{pid}-report-{digest10}.md。返回面如实（d1-W-2 注释
@@ -43,28 +44,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
-
     from waterprint_agent.context import AgentContext
 
 from waterprint_agent.tools.calc import atomic_write_bytes
 from waterprint_agent.tools.results import _load_fresh, _SandboxResultView
 
-__all__ = [
-    "register",
-    "wp_export_audit",
-    "wp_export_calcbook",
-    "wp_export_dxf",
-    "wp_export_ifc",
-    "wp_export_report",
-]
-
 _DIGEST10 = 10
 _HINT_EXPORT = "先 wp_run_calc 产出新鲜结果（改参后旧结果会被拒——重算后再导出）。"
-_HINT_DXF = (
-    "全厂总图（缺省）或 unit_id 单单元图；sheet=profile 纵断图与 unit_id 互斥；"
-    " h/v_scale 为正整数比例分母字符串（如 2000）。"
-)
 _HINT_REPORT = (
     "narrative_fills 键=slot_id（process_selection/layout_narrative），正文禁数字"
     "（检出即拒该段）；计算章数值由程序锚定，verify 全绿才落盘。"
@@ -158,11 +144,11 @@ def _export_report_impl(
         SceneSourceNotFoundError,
     )
 
-    loaded = _load_fresh(ctx, project_id)  # R1 stale 门（MCP 侧语义保持）
+    loaded = _load_fresh(ctx, project_id)  # R1 stale 门（agent 侧语义保持）
     if isinstance(loaded, dict):
         return loaded
     _, plant, result_path = loaded
-    # 叙述守卫（MCP 侧语义——拒绝/接受流留本面，装配消费 accepted）
+    # 叙述守卫（agent 侧语义——拒绝/接受流留本面，装配消费 accepted）
     rejected: dict[str, list[dict[str, str]]] = {}
     accepted: dict[str, str] = {}
     for slot_id, text in (narrative_fills or {}).items():
@@ -217,89 +203,3 @@ def _export_report_impl(
         },
         "rejected_narratives": rejected,
     }
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_export_calcbook)
-    mcp.tool(wp_export_audit)
-    mcp.tool(wp_export_dxf)
-    mcp.tool(wp_export_ifc)
-    mcp.tool(wp_export_report)
-
-
-async def wp_export_calcbook(project_id: str) -> dict[str, Any]:
-    """导出计算书（xlsx——正式模板渲染）落沙箱 exports/。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_export_calcbook", {"project_id": project_id},
-        lambda: _export_impl(ctx, project_id, "calcbook"), hint=_HINT_EXPORT,
-    )
-
-
-async def wp_export_audit(project_id: str) -> dict[str, Any]:
-    """导出公式溯源审计报告（HTML——flows.audit_render_flow 正门）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_export_audit", {"project_id": project_id},
-        lambda: _export_impl(ctx, project_id, "audit"), hint=_HINT_EXPORT,
-    )
-
-
-async def wp_export_dxf(  # noqa: PLR0913  # dxf 选项透传面（server 同款五选项）
-    project_id: str, *, unit_id: str | None = None,
-    condition_key: str = "design", sheet: str | None = None,
-    h_scale: str | None = None, v_scale: str | None = None,
-) -> dict[str, Any]:
-    """导出 DXF 图纸（全厂总图缺省/单单元/纵断 profile——site 装配）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_export_dxf",
-        {"project_id": project_id, "unit_id": unit_id,
-         "condition_key": condition_key, "sheet": sheet,
-         "h_scale": h_scale, "v_scale": v_scale},
-        lambda: _export_impl(
-            ctx, project_id, "dxf", unit_id=unit_id,
-            condition_key=condition_key, sheet=sheet,
-            h_scale=h_scale, v_scale=v_scale,
-        ),
-        hint=_HINT_DXF,
-    )
-
-
-async def wp_export_ifc(
-    project_id: str, condition_key: str = "design"
-) -> dict[str, Any]:
-    """导出 IFC BIM 模型（全厂三维——假设合成+site 装配）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_export_ifc",
-        {"project_id": project_id, "condition_key": condition_key},
-        lambda: _export_impl(ctx, project_id, "ifc", condition_key=condition_key),
-        hint=_HINT_EXPORT,
-    )
-
-
-async def wp_export_report(
-    project_id: str, condition_key: str = "design",
-    narrative_fills: dict[str, str] | None = None,
-) -> dict[str, Any]:
-    """生成设计说明书（Markdown）：计算章程序锚定+叙述槽守卫+verify 全绿才落盘。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_export_report",
-        {"project_id": project_id, "condition_key": condition_key,
-         "narrative_fills": narrative_fills},
-        lambda: _export_report_impl(ctx, project_id, condition_key, narrative_fills),
-        hint=_HINT_REPORT,
-    )

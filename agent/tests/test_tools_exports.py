@@ -1,25 +1,31 @@
 """test_tools_exports——导出组 #17~#21：产物+边车+说明书管线。
 
 输入:  tmp_path 沙箱（模块级单例——一次 wp_run_calc 供五工具复读）
-输出:  确定性命名/八键边车/说明书 verify 全绿+叙述拒绝面断言
+输出:  确定性命名/八键边车/说明书 verify 全绿+叙述拒绝面断言；驱动=chat
+       面生产路径 toolspec.dispatch（MCP 退役后测试与本地面同源）
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from waterprint.report.anchors import validate_narrative
 
 from waterprint_agent import context
-from waterprint_agent.tools import calc, exports, projects
+from waterprint_agent.chat import toolspec
 
 _META_KEYS = {
     "project_id", "kind", "condition_key", "file_name",
     "design_digest", "engine_version", "data_version", "stale_labeled",
 }
+
+
+def _call(tool: str, **arguments: Any) -> dict[str, Any]:
+    """工具驱动（chat 生产路径）：toolspec.dispatch→impl 直调（经 run_tool 记账）。"""
+    return toolspec.dispatch(context.get_context(), tool, dict(arguments))
 
 
 @pytest.fixture(scope="module")
@@ -31,8 +37,8 @@ def sandbox() -> Path:
     patch = pytest.MonkeyPatch()
     patch.setenv("WATERPRINT_AI_SANDBOX", str(root))
     context.reset_context()
-    created = asyncio.run(projects.wp_create_project(name="导出组", seed="municipal_34760"))
-    outcome = asyncio.run(calc.wp_run_calc(created["project_id"]))
+    created = _call("wp_create_project", name="导出组", seed="municipal_34760")
+    outcome = _call("wp_run_calc", project_id=created["project_id"])
     assert "error" not in outcome, outcome
     yield root
     patch.undo()
@@ -54,7 +60,7 @@ def _meta_of(sandbox: Path, file_name: str) -> dict:
 
 def test_export_calcbook(sandbox: Path, pid: str) -> None:
     """#17：计算书 xlsx——确定性命名 {pid}-calcbook-all-{digest10}+八键边车。"""
-    data = asyncio.run(exports.wp_export_calcbook(pid))
+    data = _call("wp_export_calcbook", project_id=pid)
     assert "error" not in data, data
     name = data["file_name"]
     assert name.startswith(f"{pid}-calcbook-all-") and name.endswith(".xlsx")
@@ -66,7 +72,7 @@ def test_export_calcbook(sandbox: Path, pid: str) -> None:
 
 def test_export_audit(sandbox: Path, pid: str) -> None:
     """#18：审计 HTML（flows.export_flow("audit") 正门）+.audit.html 诚实后缀。"""
-    data = asyncio.run(exports.wp_export_audit(pid))
+    data = _call("wp_export_audit", project_id=pid)
     assert "error" not in data, data
     name = data["file_name"]
     assert name.startswith(f"{pid}-audit-all-") and name.endswith(".audit.html")
@@ -78,7 +84,7 @@ def test_export_audit(sandbox: Path, pid: str) -> None:
 
 def test_export_dxf_plant_level(sandbox: Path, pid: str) -> None:
     """#19：DXF 总图（design 工况+site 装配）——{pid}-dxf-design-{digest10}.dxf。"""
-    data = asyncio.run(exports.wp_export_dxf(pid))
+    data = _call("wp_export_dxf", project_id=pid, condition_key="design")
     assert "error" not in data, data
     name = data["file_name"]
     assert name.startswith(f"{pid}-dxf-design-") and name.endswith(".dxf")
@@ -88,8 +94,9 @@ def test_export_dxf_plant_level(sandbox: Path, pid: str) -> None:
 
 def test_export_dxf_unit_level(sandbox: Path, pid: str) -> None:
     """#19 单元图：unit 分量进名（{pid}-dxf-{unit}-design-…）。"""
-    data = asyncio.run(
-        exports.wp_export_dxf(pid, unit_id="municipal_aao", condition_key="avg")
+    data = _call(
+        "wp_export_dxf",
+        project_id=pid, unit_id="municipal_aao", condition_key="avg",
     )
     assert "error" not in data, data
     assert data["file_name"].startswith(f"{pid}-dxf-municipal_aao-avg-")
@@ -97,7 +104,7 @@ def test_export_dxf_unit_level(sandbox: Path, pid: str) -> None:
 
 def test_export_ifc(sandbox: Path, pid: str) -> None:
     """#20：IFC 模型——{pid}-ifc-design-{digest10}.ifc+边车。"""
-    data = asyncio.run(exports.wp_export_ifc(pid))
+    data = _call("wp_export_ifc", project_id=pid, condition_key="design")
     assert "error" not in data, data
     name = data["file_name"]
     assert name.startswith(f"{pid}-ifc-design-") and name.endswith(".ifc")
@@ -107,26 +114,26 @@ def test_export_ifc(sandbox: Path, pid: str) -> None:
 
 def test_export_requires_fresh_result(sandbox: Path) -> None:
     """导出组错误面：未算项目→错误 dict（先 wp_run_calc）。"""
-    created = asyncio.run(projects.wp_create_project(name="未算导出", seed="blank"))
-    data = asyncio.run(exports.wp_export_calcbook(created["project_id"]))
+    created = _call("wp_create_project", name="未算导出", seed="blank")
+    data = _call("wp_export_calcbook", project_id=created["project_id"])
     assert "error" in data
 
 
 def test_export_stale_refused(sandbox: Path, pid: str) -> None:
     """导出组 stale 门：改参后旧结果→拒导出（提示重算）+复原。"""
-    asyncio.run(
-        projects.wp_update_params(
-            pid, patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 4.0}]
-        )
+    _call(
+        "wp_update_params",
+        project_id=pid,
+        patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 4.0}],
     )
-    data = asyncio.run(exports.wp_export_calcbook(pid))
+    data = _call("wp_export_calcbook", project_id=pid)
     assert "error" in data and "重算" in data["error"]
-    asyncio.run(
-        projects.wp_update_params(
-            pid, patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 2.0}]
-        )
+    _call(
+        "wp_update_params",
+        project_id=pid,
+        patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 2.0}],
     )
-    assert "error" not in asyncio.run(calc.wp_run_calc(pid))
+    assert "error" not in _call("wp_run_calc", project_id=pid)
 
 
 def test_export_report_green_with_narrative(sandbox: Path, pid: str) -> None:
@@ -139,7 +146,9 @@ def test_export_report_green_with_narrative(sandbox: Path, pid: str) -> None:
         "生化区居中，深度处理与消毒出水居末；高程设计尽量自流衔接以减少提升"
         "能耗，并预留远期扩建用地与检修通道。",
     }
-    data = asyncio.run(exports.wp_export_report(pid, narrative_fills=fills))
+    data = _call(
+        "wp_export_report", project_id=pid, condition_key="design", narrative_fills=fills
+    )
     assert "error" not in data, data
     path = Path(data["path"])
     assert path.is_file() and path.parent.name == "reports"  # normcase 归一比较
@@ -156,7 +165,9 @@ def test_export_report_green_with_narrative(sandbox: Path, pid: str) -> None:
 def test_export_report_rejects_digit_bearing_narrative(sandbox: Path, pid: str) -> None:
     """#21 叙述守卫：含数字回填被拒入 rejected_narratives（该槽回落占位）。"""
     bad = {"layout_narrative": "厂区占地约 3.5 公顷，日处理能力 34760 吨。"}
-    data = asyncio.run(exports.wp_export_report(pid, narrative_fills=bad))
+    data = _call(
+        "wp_export_report", project_id=pid, condition_key="design", narrative_fills=bad
+    )
     assert "error" not in data, data
     rejected = data["rejected_narratives"]
     assert list(rejected) == ["layout_narrative"]
@@ -170,7 +181,7 @@ def test_export_report_rejects_digit_bearing_narrative(sandbox: Path, pid: str) 
 
 def test_export_report_name_digest(sandbox: Path, pid: str) -> None:
     """#21 落盘名：reports/{pid}-report-{digest10}.md（digest 与结果一致）。"""
-    data = asyncio.run(exports.wp_export_report(pid))
+    data = _call("wp_export_report", project_id=pid, condition_key="design")
     assert "error" not in data, data
     # mtime 序取最新（calc.latest_result 同口径——字典序在多 digest 并存时
     # 与最新错位，inlet-m3d 批 digest 轮换揭穿的既有缺陷修正）

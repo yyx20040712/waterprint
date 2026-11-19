@@ -53,7 +53,7 @@
 <!-- STRUCT-NODES:END -->
 
 > 层序（自上而下）：L6（webapp / waterprint_agent——内核的两种客户端：
-> 浏览器与 MCP 宿主，AI1 集成批）→ L5.main → L5.routers → L5.services →
+> 浏览器与本地 chat CLI，ADR-027 起 agent 面仅本地对话）→ L5.main → L5.routers → L5.services →
 > L5.jobs → L5.settings → L4.cli → L4.flows（CLI 与 agent 共享用例流层，
 > ADR-022）→ L4.report（设计说明书管线消费位——B6 计算说明批 2026-10-09
 > 自 agent 移植 core：依赖=app 正门+contracts+registry 只读，server 服务与
@@ -71,13 +71,13 @@
 
 | from | to | 关系 |
 |------|----|------|
-| `waterprint_agent` | `waterprint.flows` | MCP 工具经 flows 用例流正门（ADR-020/022——AI1 集成批） |
-| `waterprint_agent` | `waterprint.report` | MCP 工具 #21 说明书管线消费（B6 起 report 居 core——import 路径改指，API 面零变化） |
+| `waterprint_agent` | `waterprint.flows` | chat 工具经 flows 用例流正门（ADR-020/022——AI1 集成批） |
+| `waterprint_agent` | `waterprint.report` | chat 工具 #21 说明书管线消费（B6 起 report 居 core——import 路径改指，API 面零变化） |
 | `waterprint_agent` | `waterprint.app` | 知识/项目工具经内核正门（discover_units/load_project 再导出面） |
 | `waterprint_agent` | `waterprint.contracts` | 结果/诊断 schema 类型面（serialize/deserialize） |
-| `waterprint_agent` | `waterprint_server.services` | 进程内复用服务层（零 web 框架实证——ADR-021 D2 装配） |
+| `waterprint_agent` | `waterprint_server.services` | 进程内复用服务层（零 web 框架实证——沿承原 ADR-021 D2 装配，见 ADR-027） |
 | `waterprint_agent` | `waterprint_server.settings` | 私有 Settings 绝对路径装配（cwd 钉死） |
-| `waterprint_agent` | `waterprint_server.jobs` | 私有 Manager 装配填充（不提交任务——ADR-021 D2） |
+| `waterprint_agent` | `waterprint_server.jobs` | 私有 Manager 装配填充（不提交任务——沿承原 ADR-021 D2，见 ADR-027） |
 | `webapp` | `api-contracts` | orval 自 OpenAPI 生成 TS 客户端（类型单源，禁手写） |
 | `waterprint_server.main` | `waterprint_server.routers` | 应用工厂挂载路由 |
 | `waterprint_server.main` | `waterprint_server.services` | 依赖注入装配服务 |

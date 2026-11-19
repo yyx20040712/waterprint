@@ -5,13 +5,16 @@
  * 输出:  { configQuery, saveMutation }（生成面直通；保存成功后 invalidate
  *        config 查询键——configured 状态行/回填面即时反映服务端真值）
  *
- * 规格说明（F1 批；useAiConnection 薄封装先例）：
- *   - aiconnect 自有封装（features 互禁 import）；config 查询键恒
+ * 规格说明（F1 批）：
+ *   - ai_chat 自有封装（features 互禁 import）；config 查询键恒
  *     ['/api/ai/config']（生成键函数同源——invalidate 复用）；
  *   - mutation onSuccess invalidate：PUT 200 后配置面复查（服务端返回
  *     GET 同构投影——状态行翻绿一致性）；
- *   - enabled 门控：App 常驻挂载态下 Modal 未开不发请求（tokenSettings
- *     「零请求扰动」同款纪律）。
+ *   - enabled 门控：壳常驻挂载态下 Modal 未开不发请求（tokenSettings
+ *     「零请求扰动」同款纪律）；
+ *   - 迁移注记（2026-11-19）：aiconnect 切片整目录退役时本件属本地
+ *     chat LLM 三键配置（消费保留端点 /api/ai/config）被连带误删——
+ *     恢复迁入 ai_chat（挂载=dockBar AI 对话窗模型配置入口）。
  */
 import { useQueryClient } from "@tanstack/react-query";
 

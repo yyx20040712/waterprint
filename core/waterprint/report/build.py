@@ -13,7 +13,7 @@
         by_id 只读——附录溯源面）。
 输出:   ReportAST 章节树+块类型再导出（render_md/checks/agent 工具
         #21 消费）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与 L3 以下内核子系
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与 L3 以下内核子系
         统（只许 waterprint.app 正门、waterprint.contracts.* 与 registry
         只读）；禁 IO——纯函数装配，不读不写文件。
 参照:   v2 设计书 D5①／D5③／D5④；AI1-INTEG-2026-09-13 §3 预裁决①；

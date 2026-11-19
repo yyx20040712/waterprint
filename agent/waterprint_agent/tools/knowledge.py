@@ -1,16 +1,18 @@
 """知识组工具（权威表 #1~#3）：单元目录/单单元清单/知识检索。
 
-输入:  MCP 工具调用参数（category/unit_id/query/source）
+输入:  工具调用参数（category/unit_id/query/source）
 输出:  投影 dict（JSON schema 友好；错误={"error","hint"} 不 raise）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-TRACK-B 2026-09-13）
 #   路径：agent/waterprint_agent/tools/knowledge.py
-#   职责：wp_list_units（#1 目录投影）/wp_get_unit_manifest（#2 manifest
-#       裁剪投影）/wp_query_knowledge（#3 constraint_kb+coefficients 检索）。
-#   禁区：顶层禁 import core/server/fastmcp（懒加载铁律——重依赖一律
-#       函数体内）；工具签名冻结（技能文档按此写，勿改形）。
+#   职责：_list_units_impl（#1 目录投影）/_get_unit_manifest_impl（#2
+#       manifest 裁剪投影）/_query_knowledge_impl（#3 constraint_kb+
+#       coefficients 检索）——chat toolspec.dispatch 的 impl 真源
+#       （MCP wp_* 包装随 main.py 退役批剥除 2026-11-19）。
+#   禁区：顶层禁 import core/server（懒加载铁律——重依赖一律
+#       函数体内）；impl 签名冻结（dispatch 参数键序按此写，勿改形）。
 #
 # 【行为规格】
 #   R1 数据真源：#1/#2 经 server services.units（manifest 逐字投影）+
@@ -26,20 +28,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
-
     from waterprint_agent.context import AgentContext
 
-__all__ = ["register", "wp_get_unit_manifest", "wp_list_units", "wp_query_knowledge"]
-
 _KNOWLEDGE_LIMIT: int = 2 * 10  # 20（命中上限——token 友好口径，§3 预裁决）
-_HINT_LIST = (
-    "用 wp_list_units 无参调用查看全量 36 单元目录；category 取业务线"
-    "（municipal/mine_water/sludge/conveyance）。"
-)
 _HINT_MANIFEST = (
     "unit_id 以 wp_list_units 返回的目录为准；内置 kind（municipal_input/junction/"
     "quality_edit/recycle_junction）亦可查。"
@@ -48,13 +42,6 @@ _HINT_QUERY = (
     "source 取 constraints（约束知识库）/coefficients（经验系数库）/assumptions"
     "（护栏假设键——如 solution.joint.*）；query 建议用单元名/参数名/指标名片段。"
 )
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_list_units)
-    mcp.tool(wp_get_unit_manifest)
-    mcp.tool(wp_query_knowledge)
 
 
 def _list_units_impl(category: str | None) -> dict[str, Any]:
@@ -198,36 +185,3 @@ def _query_knowledge_impl(
             "hits": entries[:_KNOWLEDGE_LIMIT],
         }
     return {"error": f"未知 source：{source!r}", "hint": _HINT_QUERY}
-
-
-async def wp_list_units(category: str | None = None) -> dict[str, Any]:
-    """单元目录（36 基线，可按业务线 category 过滤；行={unit_id,name_zh,line}）。"""
-    from waterprint_agent import context as agent_context
-
-    return agent_context.run_tool(
-        agent_context.get_context(), "wp_list_units", {"category": category},
-        lambda: _list_units_impl(category), hint=_HINT_LIST,
-    )
-
-
-async def wp_get_unit_manifest(unit_id: str) -> dict[str, Any]:
-    """单单元参数清单（参数键/单位/grid 档位/规范与约束引用——内部键已裁剪）。"""
-    from waterprint_agent import context as agent_context
-
-    return agent_context.run_tool(
-        agent_context.get_context(), "wp_get_unit_manifest", {"unit_id": unit_id},
-        lambda: _get_unit_manifest_impl(unit_id), hint=_HINT_MANIFEST,
-    )
-
-
-async def wp_query_knowledge(
-    query: str, source: Literal["constraints", "coefficients"] = "constraints"
-) -> dict[str, Any]:
-    """知识检索（constraints=约束知识库键/内容检索；coefficients=经验系数键检索）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_query_knowledge", {"query": query, "source": source},
-        lambda: _query_knowledge_impl(ctx, query, source), hint=_HINT_QUERY,
-    )

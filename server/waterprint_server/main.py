@@ -86,7 +86,6 @@ from waterprint_server.main_lib import DOMAIN_ERROR_CODES, _register_exception_h
 from waterprint_server.routers import (
     ai_chat,
     ai_config,
-    ai_connection,
     calc,
     cost,
     debug,
@@ -127,7 +126,9 @@ from waterprint_server.sse_limits import SseLimiter
 # +1=P2 第三批 compare（GET /api/calc/compare/{project_id}——ADR-018 D5，
 # 2026-09-12：多工况对比矩阵，32→33 破面[常设指令推荐序沿册]）
 # +1+1=AI2（GET /api/ai/connection + POST /api/ai/connection/setup——MCP
-# 一键接入面，2026-09-13：33→35 破面[AI2 任务书预裁决授权]）
+# 一键接入面，2026-09-13：33→35 破面[AI2 任务书预裁决授权]；两端点已随
+# ZCode 接入退役批摘除〔2026-11-19 用户裁决彻底取消与 ZCode 等 harness
+# 联动——下式 -2 现值回落〕）
 # +1=B4-1（GET /api/debug/ops-chain/{project_id}——操作链集中 debug 观测面，
 # 《裁决书》方案五①，2026-09-19：35→36 破面[裁决书批次编排批 4 授权]）
 _EXPECTED_ENDPOINTS: Final[int] = (
@@ -168,6 +169,9 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     + 1  # B6 计算说明批：POST /api/exports/report_pdf（Typst PDF 计算书——
          # AST→Typst 源→typst CLI 编译，46→47 破面〔b6-20261009 任务书
          # §一.5/§二.⑥授权〕）
+    - 2  # ZCode 接入退役批（2026-11-19）：AI2 两端点摘除（GET /api/ai/
+         # connection + POST /api/ai/connection/setup——用户裁决彻底取消
+         # 与 ZCode 等 harness 联动，47→45）
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -332,8 +336,6 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
 
     # B4-1：操作链观测面（GET /api/debug/ops-chain——35→36，《裁决书》方案五①）
     app.include_router(debug.router, dependencies=[Depends(verify_token)])
-    # AI2（2026-09-13）：AI 接入面挂载（状态检查+一键接入——Bearer 沿册同保）
-    app.include_router(ai_connection.router, dependencies=[Depends(verify_token)])
     # B4-4b 子批 2（2026-09-24）：对话 pane 中继面挂载（会话清单/历史/发言
     # ——37→40 破面=.workflow/b4-4b/design-final.md §四授权）。
     app.include_router(ai_chat.router, dependencies=[Depends(verify_token)])

@@ -13,7 +13,7 @@
         by_id 只读——公式 Typst math 经 formula_printers 单源打印机）。
 输出:   Typst 源字符串（server exports report_pdf 编排消费→typst CLI
         编译 PDF；golden 快照=Typst 源字节对账面）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与内核 L3/L2/L1
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与内核 L3/L2/L1
         （只许包内 blocks/formula_printers+registry 只读——build.py 同边域）；
         禁 IO——纯函数；禁时钟/随机（确定性纪律）。
 引擎中立申报（任务书 §二.⑥ DoD）：本件=「AST→排版源」渲染器接口的

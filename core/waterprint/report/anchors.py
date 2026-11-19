@@ -7,7 +7,7 @@
 输入:   叙述文本字符串（render_md 叙述区抽取或 AI 撰稿回填面）。
 输出:   违例清单 list[NarrativeViolation]（offset/excerpt/rule——checks
         面④与 agent 撰稿后检消费）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与内核各层（零外部
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与内核各层（零外部
         依赖纯标准库）；禁写入任何文件——本模块只做文本判定，不做 IO
         （管线纯函数纪律）。
 参照:   v2 设计书 D5③（N3 分段混合——叙述章正文禁新增任何数字：提示词

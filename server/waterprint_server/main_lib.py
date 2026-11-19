@@ -53,7 +53,6 @@ from waterprint_server.auth import AuthError
 from waterprint_server.jobs import worker
 from waterprint_server.jobs.manager import UnknownTaskError
 from waterprint_server.services.ai_chat import AiChatReadError
-from waterprint_server.services.ai_connection import UvNotFoundError, WorkspaceLayoutError
 from waterprint_server.services.calculation import InvalidSolutionRefError
 from waterprint_server.services.compare import CompareSourceNotFoundError
 from waterprint_server.services.cost import (
@@ -134,12 +133,6 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     # openapi 零字节破面）。
     (RateLimitedError, status.HTTP_429_TOO_MANY_REQUESTS),
     (InvalidUnitConfig, status.HTTP_400_BAD_REQUEST),
-    # AI2（2026-09-13）：uv 不在 PATH=一键接入前置依赖缺（用户环境面）→400。
-    (UvNotFoundError, status.HTTP_400_BAD_REQUEST),
-    # b28（AUDIT-#14 2026-11-18）：布局锚点校验失败/agent 不可导入→400。
-    # WorkspaceLayoutError 原继承 UvNotFoundError 借 MRO 承接本码——拆基后
-    # 显式注册（目标码不变，except UvNotFoundError 误捕面消除）。
-    (WorkspaceLayoutError, status.HTTP_400_BAD_REQUEST),
     # b28（AUDIT-#11 2026-11-18）：会话只读面 agent CLI 失败/超时→502
     # （上游依赖失败非本服务缺陷；ai_chat 路由直抛 HTTPException 破例
     # 收编——错误体经统一 handler 带 error_type）。

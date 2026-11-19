@@ -8,9 +8,10 @@
         断言件——集成批 e2e 面）；formula_printers（公式双打印机——
         LaTeX/Typst math 双态，引擎中立单源）。
 输入:   无（纯再导出聚合面——消费包内七子模块公开名）。
-输出:   说明书管线公开接口二十六名（agent MCP 工具 #21 与 server 服务面
+输出:   说明书管线公开接口二十六名（agent chat 工具 #21 与 server 服务面
         消费——B6 起 report 居 core，agent 改 import 本包；跨包只走正门）。
-禁区:   包内禁 import server／fastmcp／waterprint_agent（L4 消费位只向
+禁区:   包内禁 import server／waterprint_agent（fastmcp 已随 MCP 面退役
+        ——ADR-027 禁回潮；L4 消费位只向
         下：waterprint.app 正门+waterprint.contracts.*+registry 只读
         ——ADR-020/022 分层契约沿承，B6 移植改写 core 视角）。
 """

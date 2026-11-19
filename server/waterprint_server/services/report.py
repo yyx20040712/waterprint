@@ -18,7 +18,7 @@
 #       （装配正门：AST+markdown+verify 全绿——exports report_pdf 路
 #       与 agent wp_export_report 共享消费，两产物同一装配真源；
 #       narrative_fills 参数化上移=R1 回炉 W-F：叙述回填经 render_markdown
-#       注入——守卫〔validate_narrative 拒绝/接受〕留调用方 MCP 侧语义）
+#       注入——守卫〔validate_narrative 拒绝/接受〕留调用方 agent 侧语义）
 #   ReportResponse/ReportSectionModel/ReportGeneratedFromModel（响应
 #       模型面——routers response_model 直用，unit_detail 先例：禁协议
 #       层重复声明漂移面）
@@ -222,7 +222,7 @@ def assemble_report(
     """装配正门（R1~R3）：取数 →工况闸 →diag/cost/layout 装配 →render+verify。
 
     narrative_fills（W-F 参数化上移）：slot_id → 回填文本（守卫在调用
-    方——MCP 侧 validate_narrative 拒绝/接受流；缺省 None=占位形态）。
+    方——agent 侧 validate_narrative 拒绝/接受流；缺省 None=占位形态）。
     """
     project = read_project(ctx, project_id)  # 项目不存在=ProjectNotFoundError（404）
     _, latest = latest_calc_result(ctx, project_id, not_found=ReportSourceNotFoundError)

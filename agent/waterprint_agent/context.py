@@ -9,11 +9,10 @@
 #   路径：agent/waterprint_agent/context.py
 #   职责：工具运行装配（PathGuard 守卫+server Settings/ServiceContext
 #       私有实例+SessionLog）；run_tool 工具包装（会话日志 span+错误
-#       兜底 dict——禁 raise 裸异常给 MCP 客户端）。
+#       兜底 dict——禁 raise 裸异常给工具调用方）。
 #   禁区：本模块顶层 import server 面（Settings/Manager/ServiceContext）
-#       ——故 main 顶层禁 import 本模块（懒加载铁律：工具函数体内经
-#       get_context 触达）；禁提交任何后台任务（Manager 仅装配填充，
-#       E2/A3——与 webapp 互不互通）。
+#       ——懒加载铁律：工具函数体内经 get_context 触达；禁提交任何
+#       后台任务（Manager 仅装配填充，E2/A3——与 webapp 互不互通）。
 #
 # 【公开接口】
 #   AgentContext(guard, settings, service_ctx, session_log[, session_id])
@@ -86,7 +85,7 @@ class _AgentSettings(Settings):
 
 @dataclass(frozen=True)
 class AgentContext:
-    """工具运行装配束（每 MCP 进程一份；四冻结字段+会话标识）。"""
+    """工具运行装配束（每 agent 进程一份；四冻结字段+会话标识）。"""
 
     guard: PathGuard
     settings: Settings
@@ -167,7 +166,7 @@ def run_tool(
     """工具运行包装：会话日志 span（tool_call/tool_result）+错误兜底 dict。
 
     run 抛异常或返回含 "error" 键的 dict → ok=False 记账并以
-    {"error", "hint"} 形态返回客户端（禁 raise 裸异常——§3 工具条款）。
+    {"error", "hint"} 形态返回调用方（禁 raise 裸异常——§3 工具条款）。
     """
     ctx.session_log.tool_call(ctx.session_id, tool, arguments)
     try:

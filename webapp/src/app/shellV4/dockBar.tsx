@@ -20,23 +20,25 @@
  *     结论呈现=B2 处置（校验钮→任务条）；回执页退役=B3；
  *   - SSE 终态→失效任务快照+TASK_EVENT 派发（seatTaskPage 同链——本条
  *     自监听经 URL 重读同值早退幂等）；
- *   - B3 U3：AI 窗头行右缀 AI 接入+连接设置两入口（legacy Header 右侧
- *     同族迁 v4）。B3 R1 回炉 R1-W1：AUTH_EVENT 监听+TokenSettingsModal
- *     上提 shellV4 恒挂载层（zone 切换不卸载——五区自愈可达），本件设置
- *     钮改调 onOpenSettings 上抛（DesignZone 透传）；AiConnectButton/
- *     AiConnectModal 留本件（点击作用域，无恒在需求）。
+ *   - B3 U3：AI 窗头行右缀连接设置入口（legacy Header 右侧同族迁 v4；
+ *     原 AI 接入入口〔AiConnectButton/AiConnectModal〕随 Zcode 接入退役
+ *     批摘除——2026-11-19）。B3 R1 回炉 R1-W1：AUTH_EVENT 监听+
+ *     TokenSettingsModal 上提 shellV4 恒挂载层（zone 切换不卸载——五区
+ *     自愈可达），本件设置钮改调 onOpenSettings 上抛（DesignZone 透传）。
+ *   - 本地 chat LLM 配置回挂（2026-11-19）：AI 窗头行增设「模型配置」
+ *     钮（RobotOutlined）——LlmConfigSection 自 aiconnect 误删恢复迁
+ *     ai_chat 后重挂本窗（本地对话可达面；MCP 接入面已退役不复挂）。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SettingOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import { RobotOutlined, SettingOutlined } from "@ant-design/icons";
+import { Button, Modal } from "antd";
 
 import {
   useChatHistory,
   useSendChatMessage,
 } from "../../features/ai_chat/api/useAiChat";
-import { AiConnectButton } from "../../features/aiconnect/components/AiConnectButton";
-import { AiConnectModal } from "../../features/aiconnect/components/AiConnectModal";
+import { LlmConfigSection } from "../../features/ai_chat/components/LlmConfigSection";
 import { useTaskFeed } from "../../features/solutions/api/useTaskFeed";
 import {
   taskStatusToView,
@@ -66,21 +68,21 @@ const DOCK_SESSION_KEY = "wp-v4-dock-session";
 
 /** AI 凝缩窗：输入行+发送+最近一轮摘要（会话通道与 ChatSeat 同源）。
  *  R1-W1：连接设置开态经 onOpenSettings 上抛（Modal 承载在 shellV4 恒
- *  挂载层）；AiConnectModal 开态本件自持（点击作用域）。 */
+ *  挂载层）；模型配置（本地 chat LLM 三键）开态本窗自持——Modal 就地
+ *  承载（LlmConfigSection enabled 门控=开态，零挂载期请求扰动）。 */
 function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
   // B2 会话续接（d1-N7）：初值=sessionStorage 持久面（无则 null 首发建档）
   const [sessionId, setSessionId] = useState<string | null>(() =>
     window.sessionStorage.getItem(DOCK_SESSION_KEY),
   );
   const [draft, setDraft] = useState("");
+  const [llmOpen, setLlmOpen] = useState(false);
   const history = useChatHistory(sessionId);
   const send = useSendChatMessage();
   const messages = useMemo(() => history.data ?? [], [history.data]);
   // 最近一轮摘要（用户末问+助手末答各一行——超长截断）
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const lastAssistant = [...messages].reverse().find((m) => m.role !== "user");
-  // B3 U3：AI 接入 Modal 开态（窗头行右缀入口）
-  const [aiConnectOpen, setAiConnectOpen] = useState(false);
 
   const submit = () => {
     const text = draft.trim();
@@ -108,10 +110,21 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
         {history.isError ? (
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
         ) : null}
-        {/* B3 U3：窗头行右缀两入口（AI 接入=共享件；连接设置=wp-v4-open-settings
-            ——R1-W1：onClick 上抛 onOpenSettings，Modal 在 shellV4 承载） */}
+        {/* 连接设置入口（wp-v4-open-settings——R1-W1：onClick 上抛
+            onOpenSettings，Modal 在 shellV4 承载；原 AI 接入入口随 ZCode
+            接入退役批摘除 2026-11-19） */}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2, flex: "none" }}>
-          <AiConnectButton onClick={() => setAiConnectOpen(true)} />
+          {/* 模型配置入口（wp-v4-llm-config——本地 chat LLM 三键面：
+              LlmConfigSection 恢复迁 ai_chat 后挂本窗，Modal 就地承载） */}
+          <Button
+            type="text"
+            size="small"
+            icon={<RobotOutlined />}
+            onClick={() => setLlmOpen(true)}
+            aria-label="模型配置"
+            title="模型配置"
+            data-testid="wp-v4-llm-config"
+          />
           <Button
             type="text"
             size="small"
@@ -181,10 +194,17 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
           发送
         </button>
       </div>
-      {/* B3 U3：AI 接入 Modal（共享件零改复用；关态零请求扰动——
-          useAiConnection enabled=open 门控）。连接设置 Modal=R1-W1 上提
-          shellV4 恒挂载层（本件经 onOpenSettings 开） */}
-      <AiConnectModal open={aiConnectOpen} onClose={() => setAiConnectOpen(false)} />
+      {/* 模型配置 Modal（本地 chat LLM 三键——LlmConfigSection 迁 ai_chat
+          恢复件；footer=null=区块自带「保存并生效」钮；open 门控查询零扰动） */}
+      <Modal
+        title="模型配置"
+        open={llmOpen}
+        onCancel={() => setLlmOpen(false)}
+        footer={null}
+        width={520}
+      >
+        <LlmConfigSection enabled={llmOpen} />
+      </Modal>
     </div>
   );
 }

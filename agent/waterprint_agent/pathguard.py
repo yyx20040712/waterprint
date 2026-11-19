@@ -12,7 +12,7 @@
 #       只读装载（open_readonly_external）经 external_roots 白名单根
 #       前缀校验（门一审查§九：正式区语义收口——任何绝对路径可过的
 #       缺口闭合，缺省 ()=全拒 fail-closed）。
-#   禁区：本模块禁 import core/server/fastmcp（纯 stdlib——main 顶层
+#   禁区：本模块禁 import core/server（纯 stdlib——工具面
 #       懒加载链的一环）；禁在此读写文件（守卫只做解析与判定）；禁
 #       硬编码绝对路径（白名单根由 context 装配注入）。
 #

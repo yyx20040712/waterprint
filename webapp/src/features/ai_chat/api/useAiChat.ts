@@ -19,7 +19,7 @@ import type { ChatMessageIn } from "../../../shared/api/generated/model";
 /** 会话历史/清单失效键（发言终态后刷新——调用方 invalidate）。 */
 export const CHAT_HISTORY_KEY = getReadMessagesApiAiSessionsSessionIdMessagesGetQueryKey;
 
-/** 会话清单（Drawer 开态门控查询——aiconnect 同制）。 */
+/** 会话清单（Drawer 开态门控查询——开态门控同制）。 */
 export function useChatSessions(enabled: boolean) {
   return useQuery({
     queryKey: getListSessionsApiAiSessionsGetQueryKey(),

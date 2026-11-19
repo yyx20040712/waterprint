@@ -11,7 +11,7 @@
 #       重建①，B4-4a 三话术口径）/交互多轮（stdin）/worker 桥模式
 #       （--turn：JSONL 事件流 stdout，server ai_chat 子进程消费）/
 #       历史与清单（--history/--list-sessions，前端只读面）。
-#   禁区：禁顶层 import context（懒加载铁律同 main.py——server 依赖
+#   禁区：禁顶层 import context（懒加载铁律——server 依赖
 #       在函数体内触达）；退出码=0 成功/1 失败（桥层据此判终态）；
 #       禁密钥打印（config 只进 llm 调用）。
 #

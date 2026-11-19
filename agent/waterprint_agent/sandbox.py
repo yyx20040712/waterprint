@@ -10,7 +10,7 @@
 #   职责：沙箱根唯一解析面（默认=仓库上一级/ai-sandbox，env 可覆盖）；
 #       init_workspace 幂等建五区目录+workspace.toml（记录 data 资产根
 #       与创建时间——预裁决条款）。
-#   禁区：禁 import core/server/fastmcp（纯 stdlib——main 顶层懒加载链）；
+#   禁区：禁 import core/server（纯 stdlib——工具面懒加载链）；
 #       禁写沙箱之外的任何位置（data 资产根只读引用）。
 #
 # 【公开接口】

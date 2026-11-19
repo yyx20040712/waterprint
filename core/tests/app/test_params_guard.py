@@ -58,7 +58,7 @@ def test_params_guard_accepts_known_finite_on_grid(golden_data_dir: Path) -> Non
 
 
 def test_params_guard_rejects_each_face(golden_data_dir: Path) -> None:
-    """guard 三面逐条拒（清单式不拒整批——CLI/MCP 共用口径）。"""
+    """guard 三面逐条拒（清单式不拒整批——CLI/agent 共用口径）。"""
     project = _load_municipal(golden_data_dir)
     specs = {p.field_id: p for p in _catalog_params("municipal_aao")}
     grid_key, grid_value = _first_grid_entry(specs)

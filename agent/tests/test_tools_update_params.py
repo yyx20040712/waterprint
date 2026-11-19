@@ -1,20 +1,21 @@
 """test_tools_update_params——#7 wp_update_params：批量改参三面守护+undo 快照+种子扩展。
 
 输入:  tmp_path 沙箱（env 覆盖）+ golden 四种子（正式区只读装载）
-输出:  清单式接受/拒绝断言+digest 变化+undo 落 sessions/（AI1-INTEG §3 #7）
+输出:  清单式接受/拒绝断言+digest 变化+undo 落 sessions/（AI1-INTEG §3 #7；
+       驱动=chat 面生产路径 toolspec.dispatch——MCP 退役后测试与本地面同源）
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from waterprint_agent import context
-from waterprint_agent.tools import projects
+from waterprint_agent.chat import toolspec
 
 _GOLDEN_SEEDS = (
     ("municipal_34760", "municipal_34760"),
@@ -33,12 +34,17 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
     context.reset_context()
 
 
+def _call(tool: str, **arguments: Any) -> dict[str, Any]:
+    """工具驱动（chat 生产路径）：toolspec.dispatch→impl 直调（经 run_tool 记账）。"""
+    return toolspec.dispatch(context.get_context(), tool, dict(arguments))
+
+
 @pytest.mark.parametrize(("seed", "case_dir"), _GOLDEN_SEEDS)
 def test_create_project_all_golden_seeds(
     sandbox_env: Path, seed: str, case_dir: str
 ) -> None:
     """种子扩展（预裁决②）：四 golden 种子皆可建项，节点数与真源一致。"""
-    result = asyncio.run(projects.wp_create_project(name=seed, seed=seed))  # type: ignore[arg-type]
+    result = _call("wp_create_project", name=seed, seed=seed)
     assert set(result) == {"project_id", "name", "design_digest"}
     source = json.loads(
         (
@@ -64,17 +70,16 @@ def context_repo_root() -> Path:
 
 def test_update_params_mixed_accept_and_reject(sandbox_env: Path) -> None:
     """#7 清单式：grid 档内接受+档外拒+未知键拒——不拒整批，结果三键形态。"""
-    created = asyncio.run(projects.wp_create_project(name="改参", seed="municipal_34760"))
-    result = asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[
-                {"unit_id": "municipal_chenshachi", "key": "n", "value": 2.0},
-                {"unit_id": "municipal_chenshachi", "key": "n", "value": 7.0},
-                {"unit_id": "municipal_chenshachi", "key": "__nope__", "value": 1.0},
-                {"unit_id": "inlet", "key": "q_avg_daily", "value": "0.5"},
-            ],
-        )
+    created = _call("wp_create_project", name="改参", seed="municipal_34760")
+    result = _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[
+            {"unit_id": "municipal_chenshachi", "key": "n", "value": 2.0},
+            {"unit_id": "municipal_chenshachi", "key": "n", "value": 7.0},
+            {"unit_id": "municipal_chenshachi", "key": "__nope__", "value": 1.0},
+            {"unit_id": "inlet", "key": "q_avg_daily", "value": "0.5"},
+        ],
     )
     assert set(result) == {"results", "accepted_count", "design_digest"}
     assert result["accepted_count"] == 1
@@ -95,15 +100,14 @@ def test_update_params_mixed_accept_and_reject(sandbox_env: Path) -> None:
 
 def test_update_params_undo_snapshot_in_sessions(sandbox_env: Path) -> None:
     """#7 undo 快照：接受项写入前旧项目字节落 sessions/ 旁挂 .undo.json。"""
-    created = asyncio.run(projects.wp_create_project(name="快照", seed="municipal_34760"))
+    created = _call("wp_create_project", name="快照", seed="municipal_34760")
     old_bytes = (
         sandbox_env / "projects" / f"{created['project_id']}.wp.json"
     ).read_bytes()
-    asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 3.0}],
-        )
+    _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 3.0}],
     )
     undos = list((sandbox_env / "sessions").glob(f"{created['project_id']}-*.undo.json"))
     assert len(undos) == 1
@@ -115,12 +119,11 @@ def test_update_params_undo_snapshot_in_sessions(sandbox_env: Path) -> None:
 
 def test_update_params_all_rejected_keeps_digest(sandbox_env: Path) -> None:
     """#7 全拒：项目零改动（无 undo 产物），digest 原样回显。"""
-    created = asyncio.run(projects.wp_create_project(name="全拒", seed="municipal_34760"))
-    result = asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[{"unit_id": "municipal_aao", "key": "n", "value": 7.0}],
-        )
+    created = _call("wp_create_project", name="全拒", seed="municipal_34760")
+    result = _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[{"unit_id": "municipal_aao", "key": "n", "value": 7.0}],
     )
     assert result["accepted_count"] == 0
     assert result["design_digest"] == created["design_digest"]
@@ -129,12 +132,11 @@ def test_update_params_all_rejected_keeps_digest(sandbox_env: Path) -> None:
 
 def test_update_params_unknown_unit_rejected(sandbox_env: Path) -> None:
     """#7 未知单元：params_guard 前置结构错误入清单（不拒整批）。"""
-    created = asyncio.run(projects.wp_create_project(name="未知单元", seed="municipal_34760"))
-    result = asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[{"unit_id": "ghost_unit", "key": "n", "value": 2.0}],
-        )
+    created = _call("wp_create_project", name="未知单元", seed="municipal_34760")
+    result = _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[{"unit_id": "ghost_unit", "key": "n", "value": 2.0}],
     )
     assert result["accepted_count"] == 0
     assert "不在项目" in result["results"][0]["reason"]
@@ -142,24 +144,19 @@ def test_update_params_unknown_unit_rejected(sandbox_env: Path) -> None:
 
 def test_update_params_error_faces(sandbox_env: Path) -> None:
     """#7 错误面：未知项目/路径注入→错误 dict（不 raise 裸异常）。"""
-    missing = asyncio.run(
-        projects.wp_update_params("deadbeef", patches=[])
-    )
+    missing = _call("wp_update_params", project_id="deadbeef", patches=[])
     assert "error" in missing and "hint" in missing
-    injected = asyncio.run(
-        projects.wp_update_params("../../etc", patches=[])
-    )
+    injected = _call("wp_update_params", project_id="../../etc", patches=[])
     assert "error" in injected
 
 
 def test_update_params_bad_patch_shape(sandbox_env: Path) -> None:
     """#7 patch 形态非法（unit_id/key 非字符串）→该条入拒绝清单。"""
-    created = asyncio.run(projects.wp_create_project(name="形态", seed="municipal_34760"))
-    result = asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[{"unit_id": 123, "key": "n", "value": 2.0}],  # type: ignore[dict-item]
-        )
+    created = _call("wp_create_project", name="形态", seed="municipal_34760")
+    result = _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[{"unit_id": 123, "key": "n", "value": 2.0}],
     )
     assert result["accepted_count"] == 0
     assert result["results"][0]["accepted"] is False
@@ -172,7 +169,7 @@ def test_update_params_save_failure_cleans_undo(
     """门一 FIX-3/C1：save_project 抛异常→undo 快照 best-effort 清理（无孤儿）。"""
     from waterprint_server.services import projects as projects_service
 
-    created = asyncio.run(projects.wp_create_project(name="孤儿", seed="municipal_34760"))
+    created = _call("wp_create_project", name="孤儿", seed="municipal_34760")
     old_bytes = (
         sandbox_env / "projects" / f"{created['project_id']}.wp.json"
     ).read_bytes()
@@ -181,11 +178,10 @@ def test_update_params_save_failure_cleans_undo(
         raise RuntimeError("模拟保存失败（锁冲突/深度闸）")
 
     monkeypatch.setattr(projects_service, "save_project", _boom)
-    result = asyncio.run(
-        projects.wp_update_params(
-            created["project_id"],
-            patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 3.0}],
-        )
+    result = _call(
+        "wp_update_params",
+        project_id=created["project_id"],
+        patches=[{"unit_id": "municipal_chenshachi", "key": "n", "value": 3.0}],
     )
     assert "error" in result and "hint" in result  # run_tool 兜底错误 dict
     assert "RuntimeError" in result["error"]

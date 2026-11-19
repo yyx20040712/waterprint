@@ -9,7 +9,7 @@
 #   路径：server/waterprint_server/jobs/ai_chat.py
 #   职责：ai_chat 任务 kind 执行体——spawn agent CLI 桥模式
 #       （uv run --directory agent python -m waterprint_agent.chat
-#       --turn <sid> --message-file <f>，ai_connection R5 同款命令面），
+#       --turn <sid> --message-file <f>，uv 绝对路径+仓库根推导命令面），
 #       stdout JSONL 事件→进度上报；取消=行边界轮询+子进程终止。
 #   禁区：禁 import waterprint_agent（server→agent 禁向——子进程是唯一
 #       通道，审 B2 处置）；禁 LLM/对话逻辑入 server（智能在 agent 环，

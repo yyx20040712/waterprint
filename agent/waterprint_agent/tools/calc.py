@@ -1,18 +1,19 @@
 """计算组工具（权威表 #8~#10）：全厂计算+单单元枚举+可行域图。
 
-输入:  MCP 工具调用参数（project_id/conditions/unit_id/top_n）
+输入:  工具调用参数（project_id/conditions/unit_id/top_n）
 输出:  投影 dict（摘要≤1.5k token+artifact_path；错误={"error","hint"}）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-INTEG-2026-09-13）
 #   路径：agent/waterprint_agent/tools/calc.py
-#   职责：wp_run_calc（#8 flows 全链+结果/诊断落沙箱 results/——digest
-#       命名）/wp_run_enumeration（#9 Top-N 摘要+全量行落盘）/
-#       wp_run_design_map（#10 可行比例+边界摘要+payload 落盘）。
-#       本模块兼结果簿记真源（digest10 命名/最近结果集/stale 门）——
-#       结果组与导出组经此共享（单一真源禁双胞胎）。
-#   禁区：顶层禁 import core/server/fastmcp（懒加载铁律）；工具签名
+#   职责：_run_calc_impl（#8 flows 全链+结果/诊断落沙箱 results/——digest
+#       命名）/_run_enumeration_impl（#9 Top-N 摘要+全量行落盘）/
+#       _run_design_map_impl（#10 可行比例+边界摘要+payload 落盘）——
+#       chat toolspec.dispatch 的 impl 真源（MCP wp_* 包装随 main.py
+#       退役批剥除 2026-11-19）。本模块兼结果簿记真源（digest10 命名/
+#       最近结果集/stale 门）——结果组与导出组经此共享（单一真源禁双胞胎）。
+#   禁区：顶层禁 import core/server（懒加载铁律）；impl 签名
 #       冻结（v2 D3 权威表）；数值永不出自编排层（ADR-019——只编排 flows）。
 #
 # 【行为规格】
@@ -39,7 +40,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
     from waterprint.contracts.project_schema import ProjectFile
     from waterprint.contracts.result_schema import PlantResult
 
@@ -53,10 +53,6 @@ __all__ = [
     "find_latest_result",
     "fresh_gate",
     "read_project",
-    "register",
-    "wp_run_calc",
-    "wp_run_design_map",
-    "wp_run_enumeration",
 ]
 
 RESULT_SUFFIX = ".result.json"
@@ -66,11 +62,6 @@ _DESIGN_KEY = "design"
 _WATER_FLUID = "WATER"
 _MAX_AXES = 2  # 可行域轴上限（FD 契约 _MAX_AXES 同源——1D 区间条/2D 热力图）
 
-_HINT_CALC = (
-    "先 wp_create_project 建项；conditions 缺省=项目 checked_units（2+k 工况），"
-    "显式清单=受检单元 unit_id 列表。计算完成后再读结果/诊断/导出。"
-)
-_HINT_ENUM = "unit_id 须为项目内在册单元（wp_get_project_outline 查）；top_n 为摘要行数上限。"
 _HINT_DMAP = "unit_id 须为项目内在册单元；可行域图覆盖其 grid 参数轴（无 grid 轴=错误面）。"
 
 
@@ -296,49 +287,3 @@ def _run_design_map_impl(ctx: AgentContext, project_id: str, unit_id: str) -> di
         "constraint_coverage": outcome.constraint_coverage,
         "artifact_path": str(out),
     }
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_run_calc)
-    mcp.tool(wp_run_enumeration)
-    mcp.tool(wp_run_design_map)
-
-
-async def wp_run_calc(
-    project_id: str, conditions: list[str] | None = None
-) -> dict[str, Any]:
-    """全厂计算（同步 <5s）：design_digest+摘要（六指标+warnings+质量闭合）+结果路径。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_run_calc", {"project_id": project_id, "conditions": conditions},
-        lambda: _run_calc_impl(ctx, project_id, conditions), hint=_HINT_CALC,
-    )
-
-
-async def wp_run_enumeration(
-    project_id: str, unit_id: str, top_n: int = 10
-) -> dict[str, Any]:
-    """单单元枚举：Top-N 行摘要+全量行落 results/（可行方案空间）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_run_enumeration",
-        {"project_id": project_id, "unit_id": unit_id, "top_n": top_n},
-        lambda: _run_enumeration_impl(ctx, project_id, unit_id, top_n),
-        hint=_HINT_ENUM,
-    )
-
-
-async def wp_run_design_map(project_id: str, unit_id: str) -> dict[str, Any]:
-    """可行域图：可行比例+边界摘要+全量 payload 落 results/。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_run_design_map", {"project_id": project_id, "unit_id": unit_id},
-        lambda: _run_design_map_impl(ctx, project_id, unit_id), hint=_HINT_DMAP,
-    )

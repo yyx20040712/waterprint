@@ -1,15 +1,17 @@
 """项目组工具（权威表 #4~#6）：种子/空白建项+outline 摘要+结构校验。
 
-输入:  MCP 工具调用参数（name/seed/project_id）
+输入:  工具调用参数（name/seed/project_id）
 输出:  投影 dict（JSON schema 友好；错误={"error","hint"} 不 raise）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-TRACK-B 2026-09-13）
 #   路径：agent/waterprint_agent/tools/projects.py
-#   职责：wp_create_project（#4 种子白名单+空白新建）/wp_get_project_outline
-#       （#5 token 友好摘要）/wp_validate_design（#6 结构校验直通）。
-#   禁区：顶层禁 import core/server/fastmcp（懒加载铁律）；工具签名
+#   职责：_create_impl（#4 种子白名单+空白新建）/_outline_impl（#5 token
+#       友好摘要）/_validate_impl（#6 结构校验直通）/_update_params_impl
+#       （#7 清单式改参）——chat toolspec.dispatch 的 impl 真源（MCP
+#       wp_* 包装随 main.py 退役批剥除 2026-11-19）。
+#   禁区：顶层禁 import core/server（懒加载铁律）；impl 签名
 #       冻结；golden 种子只读装载（PathGuard 正式区门——禁写正式区）。
 #
 # 【行为规格】
@@ -31,20 +33,10 @@ from __future__ import annotations
 import contextlib
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
-
     from waterprint_agent.context import AgentContext
-
-__all__ = [
-    "register",
-    "wp_create_project",
-    "wp_get_project_outline",
-    "wp_update_params",
-    "wp_validate_design",
-]
 
 # 种子白名单（预裁决②）：blank=空白骨架；余四者=golden 四用例种子
 # （正式区只读门装载同款 input_project.json）。
@@ -63,17 +55,6 @@ _SEED_CASES: dict[str, str] = {
     "municipal_recycle_34760": "municipal_34760_recycle",
     "mine_43836": "mine_43836",
 }
-
-_HINT_CREATE = (
-    "seed 取 blank（空白骨架）或 golden 四种子（municipal_34760／"
-    "municipal_loop_34760／municipal_recycle_34760／mine_43836）；name 为项目显示名。"
-)
-_HINT_OUTLINE = "project_id 以 wp_create_project 返回值为准；用 ../ 等路径注入会被拒绝。"
-_HINT_VALIDATE = "先 wp_create_project 建项（或用既有 project_id），再校验；结构校验为零计算清单。"
-_HINT_UPDATE = (
-    "patches 逐条 {unit_id, key, value}；清单式部分接受（拒绝项看 results 内"
-    " reason——含 grid 档位与未知键），改后 design_digest 变化即旧结果作废（先重算）。"
-)
 
 
 def _golden_seed_path(seed: str) -> Path:
@@ -237,68 +218,3 @@ def _update_params_impl(
             raise
         digest = outcome.content_hash
     return {"results": results, "accepted_count": accepted_count, "design_digest": digest}
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_create_project)
-    mcp.tool(wp_get_project_outline)
-    mcp.tool(wp_validate_design)
-    mcp.tool(wp_update_params)
-
-
-_Seed = Literal[
-    "blank",
-    "municipal_34760",
-    "municipal_loop_34760",
-    "municipal_recycle_34760",
-    "mine_43836",
-]
-
-
-async def wp_create_project(
-    name: str, seed: _Seed = "blank"
-) -> dict[str, Any]:
-    """建项目（blank=零节点骨架；golden 四种子=市政/回路/回流/矿井模板）落沙箱 projects/。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_create_project", {"name": name, "seed": seed},
-        lambda: _create_impl(ctx, name, seed), hint=_HINT_CREATE,
-    )
-
-
-async def wp_get_project_outline(project_id: str) -> dict[str, Any]:
-    """项目摘要（节点清单+边清单+进水+工况勾选——token 友好）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_project_outline", {"project_id": project_id},
-        lambda: _outline_impl(ctx, project_id), hint=_HINT_OUTLINE,
-    )
-
-
-async def wp_validate_design(project_id: str) -> dict[str, Any]:
-    """设计结构校验（清单式零计算——边端点/端口/方向流体三查）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_validate_design", {"project_id": project_id},
-        lambda: _validate_impl(ctx, project_id), hint=_HINT_VALIDATE,
-    )
-
-
-async def wp_update_params(
-    project_id: str, patches: list[dict[str, Any]]
-) -> dict[str, Any]:
-    """批量改参（清单式部分接受：results 逐条 accepted/reason+accepted_count+新 digest）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_update_params", {"project_id": project_id, "patches": patches},
-        lambda: _update_params_impl(ctx, project_id, patches), hint=_HINT_UPDATE,
-    )

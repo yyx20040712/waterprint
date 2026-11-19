@@ -1,16 +1,20 @@
 # ai_chat —— 设计对话
 
 自然语言设计助手 pane（B4-4b 子批 2 2026-09-24）：浮层 Drawer 形态（零路由破面
-——aiconnect 先例），消费 /api/ai/sessions 三端点（清单/历史/发言→ai_chat 任务）；
+——浮层先例），消费 /api/ai/sessions 三端点（清单/历史/发言→ai_chat 任务）；
 对话编排真源=agent 环（server 薄中继+子进程桥，ADR-019 只编排不算数）。
 
 > v1-20261015 转正批：ChatPanel/ChatSeat/ToolCallCard 与 lib 三件（chatEvent/historyRetry/taskError）随 legacy 壳退役删除——v4 的 AI 对话=dockBar 凝缩窗直用 api 层 hooks（会话/历史/发言），本族保留=api/hooks 数据层。
+>
+> 2026-11-19：aiconnect 切片整目录退役时 LlmConfigSection/useAiConfig（本地 chat LLM 三键配置，消费保留端点 /api/ai/config）被连带误删——恢复迁入本族（挂载=dockBar AI 对话窗「模型配置」Modal），components/ 面随恢复重建。
 
 ## 文件清单（B4-4b 子批 2 实装 2026-09-24；F2 批 R2 增补 2026-09-25）
 
 | 文件 | 职责 | 状态 |
 |------|------|------|
 | `api/useAiChat.ts` | orval 生成 hook 薄封装：useChatSessions（Drawer 开态门控）/useChatHistory（会话选中态门控）/useSendChatMessage（发言 mutation——sessionId 显式入参防态竞态） | B4-4b 实装 |
+| `api/useAiConfig.ts` | LLM 配置面封装：config 查询+保存 mutation（enabled=Modal 开态门控；保存成功 invalidate config 键） | F1 批实装（原 aiconnect）；2026-11-19 误删恢复迁入 |
+| `components/LlmConfigSection.tsx` | 聊天模型接入（LLM）配置区：三键+超时表单/状态行两态文案/保存载荷构造（api_key 空输入不发送防误清除） | F1 批实装（原 aiconnect）；2026-11-19 误删恢复迁入（宿主=dockBar 模型配置 Modal） |
 | `lib/chatEvent.ts` | 聊天任务 SSE 事件解读（Event 五键→TaskEventReading 三态：terminal=state 终名/progress=stage 文案外送/畸形 drop） | B4-4b 实装（门二 P0 修复件） |
 | `lib/historyRetry.ts` | 会话历史退避重试（F2 B-1）：history 失败且刚建会话（freshSessionId 命中）时 500ms 起指数 ×3 refetch 调度（定时链自持，耗尽即停——两态文案归 ChatPanel 渲染） | F2 批 R2 实装（e2e-fix-round3 B-1） |
 | `lib/taskError.ts` | 聊天失败轮错误摘要（F2 C-5）：任务状态端点补查 error 字段摘要（前 120 字）+failed 横幅文案单源（补查失败/无值回落通用横幅） | F2 批 R2 实装（e2e-fix-round3 C-5） |

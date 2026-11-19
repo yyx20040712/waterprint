@@ -49,7 +49,7 @@ class AiChatReadError(RuntimeError):
 
 
 def _agent_cli_command(ctx: ServiceContext, *args: str) -> list[str] | None:
-    """agent CLI 命令面（uv run --directory <repo>/agent——ai_connection 同款）。"""
+    """agent CLI 命令面（uv run --directory <repo>/agent——uv 绝对路径+仓库根推导）。"""
     uv = which("uv")
     if uv is None:
         return None

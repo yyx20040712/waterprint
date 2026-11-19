@@ -1,4 +1,4 @@
-"""用例流编排层（AI1 轨道甲 2026-09-13）：CLI/MCP 两壳共用的纯 core 编排。
+"""用例流编排层（AI1 轨道甲 2026-09-13）：CLI 与 agent chat 两壳共用的纯 core 编排。
 
 输入:  ProjectFile/ConditionSet/RunEnv/PlantResult 既有契约对象 + data_dir 数据包根
 输出:  冻结签名 flows 函数族（env/conditions/standards/calc/persist/validate/
@@ -65,7 +65,7 @@
 #       （kind 通道同款）③grid 声明时须命中档位④range 声明时须落闭区间
 #       （批3b face④——audit §一收口）+builtin 面 q_avg_daily 带 A-1~A-3
 #       （拒收/提示——warn 不阻塞）。与 server 版差异：server 版整批拒
-#       （raise），本版逐条判定不拒整批——CLI/MCP 共用。**批3b 拆件**：
+#       （raise），本版逐条判定不拒整批——CLI/agent 共用。**批3b 拆件**：
 #       实现迁驻兄弟件 flows/params_guard.py（主控裁定 B-3b-1 案甲——
 #       499/500 预算墙；本件再导出签名零变，镜像测试导入面不动）。
 #
@@ -194,7 +194,7 @@ def build_standards_flow(data_dir: Path) -> tuple[EffluentStandard, ...]:
     if not path.is_file():
         warnings.warn(
             f"出水标准文件缺失：{path}（诊断 effluent 面空元组合法——"
-            "ADR-012 fail-fast 的 CLI/MCP 宽容面，先补数据包）",
+            "ADR-012 fail-fast 的 CLI/agent 宽容面，先补数据包）",
             stacklevel=2,
         )
         return ()
@@ -239,7 +239,7 @@ def run_calc_flow(  # noqa: PLR0913  # 签名冻结面+kbwire constraints 注入
 def result_persist_flow(plant: PlantResult, out: Path) -> Path:
     """persist 流：serialize 字节 GR-38 原子落盘（唯一 tmp 防并发互覆）。
 
-    父目录缺失则建（network --out 语义对齐——CLI/MCP 两壳同径）。"""
+    父目录缺失则建（network --out 语义对齐——CLI/agent 两壳同径）。"""
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_name(f"{out.name}.{uuid.uuid4().hex}.tmp")
     _atomic_write(tmp, out, lambda p: p.write_bytes(serialize(plant)))

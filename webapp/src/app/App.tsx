@@ -5,7 +5,7 @@
  * 唯一壳（宪法§2 方案切换=删除旧方案禁止并存）；legacy 状态编排面
  * 〔槽路由/右列拖拽/三浮层/AUTH_EVENT 监听〕随旧壳物理退役——v4 等价
  * 物在位：zoneParam zone 路由/designZone 侧栏拖宽/settingsSelfHeal 401
- * 自愈+TokenSettingsModal 恒挂载/dockBar AiConnectModal/projectsZone。
+ * 自愈+TokenSettingsModal 恒挂载/projectsZone。
  * 拆迁史注：runCalcPolicy 自 ribbon 拆迁单源〔笔1〕；?token= 首参引导
  * 与 ShellV4 懒装载语义逐字保持）。
  *

@@ -7,9 +7,11 @@
 # ══════════════════════════════════════════════════════════════════
 # 契约头（B4-4b 子批 3 2026-09-24）
 #   路径：agent/waterprint_agent/tools/overview.py
-#   职责：wp_get_ops_overview（#23）——agent 沙箱自有 results/*.result.json
-#       聚合视图（最近 N 件+counts{total,stale}+诊断摘要）；results.py
-#       500/500 顶墙故立独立模块（chat/ 同款新模块先例）。
+#   职责：_overview_impl（#23）——agent 沙箱自有 results/*.result.json
+#       聚合视图（最近 N 件+counts{total,stale}+诊断摘要）——chat
+#       toolspec.dispatch 的 impl 真源（MCP wp_* 包装随 main.py 退役
+#       批剥除 2026-11-19）；results.py 500/500 顶墙故立独立模块
+#       （chat/ 同款新模块先例）。
 #   禁区：禁 import server 侧 build_ops_chain（agent 沙箱任务表恒空——
 #       勘察事实 #5，本工具只聚合 agent 自有件）；禁逐操作事件流语义
 #       （粒度=逐结果文件——server ops-chain 互补非替代）。
@@ -32,18 +34,9 @@ import json
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
-
     from waterprint_agent.context import AgentContext
 
-__all__ = ["register", "wp_get_ops_overview"]
-
 _DEFAULT_LIMIT = 20  # knowledge 检索上限同锚（既有先例值）
-
-_HINT_OVERVIEW = (
-    "跨项目概览（最近结果+stale 计数+诊断摘要）；单项目细节用"
-    " wp_get_result_summary/wp_get_diagnostics；limit 缺省 20。"
-)
 
 
 def _stale_of(ctx: AgentContext, result_path: Any, result_digest: str) -> bool:
@@ -107,22 +100,3 @@ def _overview_impl(ctx: AgentContext, limit: int = _DEFAULT_LIMIT) -> dict[str, 
         "results": items[:bounded],
         "scope": "agent-sandbox（跨项目概览；单项目细节走 summary/diagnostics）",
     }
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_get_ops_overview)
-
-
-async def wp_get_ops_overview(limit: int = _DEFAULT_LIMIT) -> dict[str, Any]:
-    """跨项目操作概览（最近结果清单+stale 计数+诊断摘要——观测面聚合）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx,
-        "wp_get_ops_overview",
-        {"limit": limit},
-        lambda: _overview_impl(ctx, limit),
-        hint=_HINT_OVERVIEW,
-    )

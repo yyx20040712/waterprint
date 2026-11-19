@@ -8,10 +8,10 @@
 # 契约头（B4-4b 子批 1 2026-09-24）
 #   路径：agent/waterprint_agent/chat/__init__.py
 #   职责：编排面包门面——环入口（loop.run_turn/single_shot）+会话面
-#       （sessions.*）再导出；顶层零 core/server/fastmcp import
-#       （懒加载铁律——与 main.py 同构，测试断言 sys.modules 干净）。
-#   禁区：禁在本层加逻辑（纯门面）；禁 MCP 注册（chat 非 MCP 工具，
-#       面向 CLI/webapp 中继）。
+#       （sessions.*）再导出；顶层零 core/server import
+#       （懒加载铁律——测试断言 sys.modules 干净）。
+#   禁区：禁在本层加逻辑（纯门面）；chat 非工具注册面
+#       （面向 CLI/webapp 中继）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations

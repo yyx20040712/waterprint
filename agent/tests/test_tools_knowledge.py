@@ -1,18 +1,19 @@
 """test_tools_knowledge——知识组三工具：list_units 36 口径/manifest 投影/知识检索。
 
 输入:  tmp_path 沙箱（env 覆盖）+ 真实 data 资产（只读）
-输出:  投影断言（AI1-TRACK-B §3 工具 #1~#3）
+输出:  投影断言（AI1-TRACK-B §3 工具 #1~#3；驱动=chat 面生产路径
+       toolspec.dispatch——MCP 退役后测试与本地面同源）
 """
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from waterprint_agent import context
-from waterprint_agent.tools import knowledge
+from waterprint_agent.chat import toolspec
 
 
 @pytest.fixture
@@ -24,9 +25,14 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
     context.reset_context()
 
 
+def _call(tool: str, **arguments: Any) -> dict[str, Any]:
+    """工具驱动（chat 生产路径）：toolspec.dispatch→impl 直调（经 run_tool 记账）。"""
+    return toolspec.dispatch(context.get_context(), tool, dict(arguments))
+
+
 def test_list_units_36_baseline(sandbox_env: Path) -> None:
     """基线口径：无过滤恰 36 条（32 包+4 builtin），行三键。"""
-    result = asyncio.run(knowledge.wp_list_units())
+    result = _call("wp_list_units")
     assert result["count"] == 36
     assert len(result["units"]) == 36
     first = result["units"][0]
@@ -36,17 +42,17 @@ def test_list_units_36_baseline(sandbox_env: Path) -> None:
 
 def test_list_units_category_filter(sandbox_env: Path) -> None:
     """category 过滤：municipal=13 包+4 builtin=17；未知 category→错误 dict。"""
-    result = asyncio.run(knowledge.wp_list_units(category="municipal"))
+    result = _call("wp_list_units", category="municipal")
     assert result["count"] == 17
     assert all(u["line"] == "municipal" for u in result["units"])
-    bad = asyncio.run(knowledge.wp_list_units(category="nonsense"))
+    bad = _call("wp_list_units", category="nonsense")
     assert "error" in bad and "hint" in bad
 
 
 def test_get_unit_manifest_projection(sandbox_env: Path) -> None:
     """manifest 裁剪投影：参数键/单位/grid 档位在，内部键（i18n_key/removal_refs/
     condition_mappings）去。"""
-    result = asyncio.run(knowledge.wp_get_unit_manifest("municipal_aao"))
+    result = _call("wp_get_unit_manifest", unit_id="municipal_aao")
     assert result["unit_id"] == "municipal_aao"
     assert result["name_zh"] == "AAO 生物池"
     assert result["kind"] == "unit"
@@ -63,17 +69,17 @@ def test_get_unit_manifest_projection(sandbox_env: Path) -> None:
 
 def test_get_unit_manifest_builtin_and_unknown(sandbox_env: Path) -> None:
     """builtin kind 投影可取；未知 unit_id→错误 dict（不 raise）。"""
-    result = asyncio.run(knowledge.wp_get_unit_manifest("junction"))
+    result = _call("wp_get_unit_manifest", unit_id="junction")
     assert result["kind"] == "builtin"
     assert result["params"] == []
     assert len(result["ports"]) == 3  # in_1/in_2+out
-    unknown = asyncio.run(knowledge.wp_get_unit_manifest("no_such_unit"))
+    unknown = _call("wp_get_unit_manifest", unit_id="no_such_unit")
     assert "error" in unknown and "hint" in unknown
 
 
 def test_query_knowledge_constraints(sandbox_env: Path) -> None:
     """constraints 检索：键/标签/表达式命中，八键条目+limit 口径。"""
-    by_label = asyncio.run(knowledge.wp_query_knowledge("滤速", source="constraints"))
+    by_label = _call("wp_query_knowledge", query="滤速", source="constraints")
     assert by_label["source"] == "constraints"
     assert by_label["total_hits"] >= 1
     keys = {h["key"] for h in by_label["hits"]}
@@ -85,18 +91,18 @@ def test_query_knowledge_constraints(sandbox_env: Path) -> None:
 
 def test_query_knowledge_coefficients_limit(sandbox_env: Path) -> None:
     """coefficients 键检索：命中含 value/unit/source（来源键），limit 20+截断标记。"""
-    result = asyncio.run(knowledge.wp_query_knowledge("", source="coefficients"))
+    result = _call("wp_query_knowledge", query="", source="coefficients")
     assert result["source"] == "coefficients"
     assert len(result["hits"]) == 20
     assert result["truncated"] is True
     assert result["total_hits"] > 20
     hit = result["hits"][0]
     assert {"key", "value", "unit", "source", "note"} <= set(hit)
-    targeted = asyncio.run(knowledge.wp_query_knowledge("mlss_band", source="coefficients"))
+    targeted = _call("wp_query_knowledge", query="mlss_band", source="coefficients")
     assert any("mlss_band" in h["key"] for h in targeted["hits"])
 
 
 def test_query_knowledge_invalid_source(sandbox_env: Path) -> None:
     """非法 source→错误 dict（不 raise）。"""
-    result = asyncio.run(knowledge.wp_query_knowledge("x", source="bogus"))  # type: ignore[arg]
+    result = _call("wp_query_knowledge", query="x", source="bogus")
     assert "error" in result and "hint" in result

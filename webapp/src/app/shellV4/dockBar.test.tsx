@@ -3,22 +3,23 @@
  *
  * v4 底栏双区测试（B2 结果与方案批——完成直达〔§一.4 done 任务行→分析表
  * 直达+相关单元选中〕+failed 错误提示面+dock-ai 会话续接〔P3 d1-N7——
- * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕；B3 入口批——AI 连接
- * 钮/连接设置钮在场；B3 R1 回炉——设置 Modal/AUTH_EVENT 自愈监听上提
+ * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕；B3 入口批——连接
+ * 设置钮在场〔原 AI 接入钮/AiConnectModal 断言随 ZCode 接入退役批摘除
+ * ——2026-11-19〕；B3 R1 回炉——设置 Modal/AUTH_EVENT 自愈监听上提
  * shellV4 恒挂载层〔R1-W1——本件改断言 onOpenSettings 透传；自愈例迁
- * settingsSelfHeal.test.tsx 新缝〕+AiConnectModal 开态最小断言〔R1-N4a
- * ——取数面 stub〕）。
+ * settingsSelfHeal.test.tsx 新缝〕）。
  *
- * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身+aiconnect 取数面
- *        useAiConnection/useAiConfig 模块替身）+done/failed 任务夹具
+ * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身+useAiConfig 替身）+
+ *        done/failed 任务夹具
  * 输出:  断言族：①done 任务行点击→onTaskNavigate({state:"done",unitId})
  *        〔unitId=枚举任务 result.unit_id 透传〕②done 且无 unit_id=null
  *        透传 ③failed=错误提示行在场（白名单）④会话续接：发送建档后
  *        sessionStorage 持久→重挂恢复同 sessionId ⑤连接设置钮→
- *        onOpenSettings 调用（Modal 承载在 shellV4）⑥AI 接入钮→
- *        AiConnectModal 开（标题「AI 接入」）
+ *        onOpenSettings 调用（Modal 承载在 shellV4）⑥模型配置钮→
+ *        LLM 配置 Modal 开（本地 chat LLM 三键面恢复迁 ai_chat——
+ *        useAiConfig enabled 门控随开态翻转）
  */
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -55,6 +56,7 @@ const gate = vi.hoisted(() => ({
   chatHistory: { data: undefined, isError: false, error: null },
   chatHistoryLastSession: null as string | null,
   send: { mutate: vi.fn(), isPending: false },
+  llmEnabledLog: [] as boolean[],
   navigate: vi.fn(),
   openSettings: vi.fn(),
 }));
@@ -66,39 +68,27 @@ vi.mock("../../features/ai_chat/api/useAiChat", () => ({
   },
   useSendChatMessage: () => gate.send,
 }));
+vi.mock("../../features/ai_chat/api/useAiConfig", () => ({
+  useAiConfig: (enabled: boolean) => {
+    gate.llmEnabledLog.push(enabled);
+    return {
+      configQuery: { data: undefined, isLoading: true, isError: false, error: null },
+      saveMutation: {
+        mutate: vi.fn(),
+        isPending: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        reset: vi.fn(),
+      },
+    };
+  },
+}));
 vi.mock("../../features/solutions/api/useTaskFeed", () => ({
   useTaskFeed: () => gate.feed,
 }));
 vi.mock("../../shared/api/generated/calc/calc", () => ({
   useGetTaskStatusApiCalcTasksTaskIdGet: () => gate.task,
-}));
-// R1-N4a：aiconnect 取数面模块替身（AiConnectModal.test 共享件先例——
-// useAiConnection/useAiConfig 两薄封装整体 stub；开态=Modal 壳断言面，
-// 面板内数据面不在本缝辖）
-vi.mock("../../features/aiconnect/api/useAiConnection", () => ({
-  useAiConnection: () => ({
-    statusQuery: { data: undefined, isLoading: true, isError: false, error: null },
-    setupMutation: {
-      mutate: vi.fn(),
-      isPending: false,
-      isSuccess: false,
-      isError: false,
-      error: null,
-      reset: vi.fn(),
-    },
-  }),
-}));
-vi.mock("../../features/aiconnect/api/useAiConfig", () => ({
-  useAiConfig: () => ({
-    configQuery: { data: undefined, isLoading: true, isError: false, error: null },
-    saveMutation: {
-      mutate: vi.fn(),
-      isPending: false,
-      isSuccess: false,
-      isError: false,
-      error: null,
-    },
-  }),
 }));
 
 const queryClient = new QueryClient({
@@ -118,6 +108,7 @@ beforeEach(() => {
   gate.navigate.mockClear();
   gate.send.mutate.mockClear();
   gate.openSettings.mockClear();
+  gate.llmEnabledLog.length = 0;
   gate.feed = null;
   window.sessionStorage.clear();
 });
@@ -179,12 +170,12 @@ describe("failed 错误提示面（白名单）", () => {
   });
 });
 
-describe("AI 连接+连接设置入口（B3 U3——R1-W1 透传制）", () => {
-  it("AI 接入钮+连接设置钮在场（dock AI 窗头行右缀——wp-ai-connect-open/wp-v4-open-settings）", () => {
+describe("连接设置入口（B3 U3——R1-W1 透传制）", () => {
+  it("连接设置钮在场（dock AI 窗头行右缀——wp-v4-open-settings；原 AI 接入钮已随 ZCode 接入退役批摘除）", () => {
     const { container } = renderDock();
     expect(
       container.querySelector('[data-testid="wp-ai-connect-open"]'),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(
       container.querySelector('[data-testid="wp-v4-open-settings"]'),
     ).not.toBeNull();
@@ -201,20 +192,28 @@ describe("AI 连接+连接设置入口（B3 U3——R1-W1 透传制）", () => {
     // Modal 承载已上提：本缝零 Modal 断言（自愈/承载面归
     // settingsSelfHeal.test.tsx）
   });
+});
 
-  it("点 AI 接入→AiConnectModal 开（R1-N4a 最小断言——取数面 stub：标题「AI 接入」）", async () => {
+describe("模型配置入口（本地 chat LLM 三键——LlmConfigSection 恢复迁 ai_chat）", () => {
+  it("点模型配置→LLM 配置 Modal 开（LlmConfigSection 在场+enabled 翻 true）", () => {
     const { container } = renderDock();
     fireEvent.click(
       container.querySelector<HTMLButtonElement>(
-        '[data-testid="wp-ai-connect-open"]',
+        '[data-testid="wp-v4-llm-config"]',
       ) as HTMLButtonElement,
     );
-    await waitFor(() => {
-      expect(document.querySelector(".ant-modal")).not.toBeNull();
-    });
-    const title = document.querySelector(".ant-modal-title")?.textContent;
-    expect(title).toBe("AI 接入");
-    expect(gate.openSettings).not.toHaveBeenCalled(); // 两入口互不串扰
+    // Modal 门户挂 document.body——标题+区块标题在场证开态
+    expect(document.body.textContent).toContain("模型配置");
+    expect(document.body.textContent).toContain("聊天模型接入（LLM）");
+    expect(gate.llmEnabledLog.at(-1)).toBe(true);
+  });
+
+  it("挂载期 Modal 未开→useAiConfig 零消费（开态门控——关态零请求扰动）", () => {
+    // antd Modal 关态不挂内容（首开才渲染 children）：挂载渲染后
+    // useAiConfig 零调用=关态零查询面（关态回落的重渲染受 jsdom 下
+    // Modal 离场动画冻结影响不可稳定断言——开态门控即本缝契约核心）。
+    renderDock();
+    expect(gate.llmEnabledLog).toEqual([]);
   });
 });
 

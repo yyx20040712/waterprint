@@ -7,10 +7,10 @@
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-TRACK-B 2026-09-13）
 #   路径：agent/waterprint_agent/sessionlog.py
-#   职责：MCP 会话事件溯源（指令→工具调用→结果→参数补丁）；
+#   职责：会话事件溯源（指令→工具调用→结果→参数补丁）；
 #       脱敏三条款（正式区绝对路径→哈希、沙箱内绝对路径→相对、
 #       环境变量值→占位）——payload 落盘前一律过 _sanitize。
-#   禁区：禁 import core/server/fastmcp（纯 stdlib——main 顶层懒加载链）；
+#   禁区：禁 import core/server（纯 stdlib——工具面懒加载链）；
 #       禁写 sessions/ 之外（沙箱内唯一落点）。
 #
 # 【公开接口】
@@ -118,7 +118,7 @@ class _Sanitizer:
 
 
 class SessionLog:
-    """会话 jsonl 日志（同步追加——MCP 同步调用模型下无异步缓冲窗口）。"""
+    """会话 jsonl 日志（同步追加——工具同步调用模型下无异步缓冲窗口）。"""
 
     def __init__(self, root: Path) -> None:
         self._root = Path(root)

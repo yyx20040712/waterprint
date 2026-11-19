@@ -10,7 +10,7 @@
 #   职责：多轮对话会话态唯一存储面——append-only JSONL（禁改写既有行，
 #       绑定/注记以新记录形态追加后读生效）；滑动窗口投影（近 N 轮全文，
 #       设计终裁 W2：无摘要调用）；决策纪要段（轨道丙回填素材）。
-#   禁区：禁 import core/server/fastmcp（纯 stdlib）；禁 LLM/工具调用
+#   禁区：禁 import core/server（纯 stdlib）；禁 LLM/工具调用
 #       （本件只管存储投影，编排在 loop.py）；禁写 sessions/chat/ 之外
 #       任何位置（PathGuard sessions 区门）。
 #

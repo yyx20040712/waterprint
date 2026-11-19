@@ -8,7 +8,7 @@
 输入:   ReportAST+narrative_fills（本包 build 的 AST 类型——无外部依赖）。
 输出:   Markdown 全文字符串（agent 工具 #21/server 报告端点/golden 快照
         消费）。
-禁区:   禁 import server／fastmcp／waterprint_agent 与内核任何层（渲染器
+禁区:   禁 import server／waterprint_agent（fastmcp 已退役禁回潮 ADR-027）与内核任何层（渲染器
         只消费本包 AST 类型，连 contracts 都不需要）；禁引 Markdown 三方
         库（标准库字符串拼装——KaTeX 渲染在前端，md 生产面零三方）。
 参照:   v2 设计书 D5②（F1 起步——AST→渲染器两段式，docx 为未来升级位）／

@@ -201,7 +201,7 @@ jobs:
   # mypy 暂不入（35 错存量+waterprint-core 轮内缺 py.typed 面——欠账登记
   # 归后续硬化批，非本批静默降级面）。
   agent:
-    name: 智能体套件（MCP+说明书管线）
+    name: 智能体套件（chat CLI+说明书管线）
     runs-on: ubuntu-latest
     defaults:
       run:

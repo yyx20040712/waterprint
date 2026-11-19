@@ -1,17 +1,20 @@
 """方案/观测组工具镜像测试：#22 联合枚举+#23 概览+第三源假设（B4-4b 子批 3 TDD）。
 
 输入:  tmp_path 沙箱+两单元项目（联合枚举载体）
-输出:  护栏拒绝回显/top-N 投影/概览聚合/assumptions 检索断言
+输出:  护栏拒绝回显/top-N 投影/概览聚合/assumptions 检索断言；工具级用例
+       驱动=chat 面生产路径 toolspec.dispatch（MCP 退役后测试与本地面同源）
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from waterprint_agent import context
+from waterprint_agent.chat import toolspec
 from waterprint_agent.tools import knowledge, overview, solution
 
 
@@ -22,6 +25,11 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
     context.reset_context()
     yield root
     context.reset_context()
+
+
+def _call(tool: str, **arguments: Any) -> dict[str, Any]:
+    """工具驱动（chat 生产路径）：toolspec.dispatch→impl 直调（经 run_tool 记账）。"""
+    return toolspec.dispatch(context.get_context(), tool, dict(arguments))
 
 
 def _two_unit_payload() -> dict[str, object]:
@@ -62,7 +70,7 @@ def _two_unit_payload() -> dict[str, object]:
     }
 
 
-async def _project_id(sandbox_env: Path, payload: dict[str, object]) -> str:
+def _project_id(sandbox_env: Path, payload: dict[str, object]) -> str:
     """经 services.create_project 全量建项（content_hash 由服务计算——
     不变量保真；直写文件绕过哈希会令 stale 判定失真）。"""
     from waterprint_server.services import projects as projects_service
@@ -91,13 +99,12 @@ def test_joint_unknown_project_guarded(sandbox_env: Path) -> None:
         )
 
 
-@pytest.mark.anyio
-async def test_joint_full_chain_top_n(sandbox_env: Path) -> None:
+def test_joint_full_chain_top_n(sandbox_env: Path) -> None:
     """全链：两单元联合枚举（缺省网格档）→ok 投影 top/budget/semantics。"""
-    pid = await _project_id(sandbox_env, _two_unit_payload())
-    ctx = context.get_context()
-    result = solution._run_joint_enumeration_impl(
-        ctx, pid, ["municipal_aao", "municipal_cass"], top_n=3
+    pid = _project_id(sandbox_env, _two_unit_payload())
+    result = _call(
+        "wp_run_joint_enumeration",
+        project_id=pid, unit_ids=["municipal_aao", "municipal_cass"], top_n=3,
     )
     assert result.get("status") == "ok", result
     assert 0 < len(result["top"]) <= 3
@@ -106,13 +113,10 @@ async def test_joint_full_chain_top_n(sandbox_env: Path) -> None:
         assert "params" in combo and "feasible" in combo
 
 
-@pytest.mark.anyio
-async def test_overview_aggregates_results(sandbox_env: Path) -> None:
+def test_overview_aggregates_results(sandbox_env: Path) -> None:
     """#23 概览：计算落盘后 results 聚合（计数+stale+scope 面在场）。"""
-    from waterprint_agent.tools import calc
-
-    pid = await _project_id(sandbox_env, _two_unit_payload())
-    calc_result = await calc.wp_run_calc(project_id=pid, conditions=None)
+    pid = _project_id(sandbox_env, _two_unit_payload())
+    calc_result = _call("wp_run_calc", project_id=pid, conditions=None)
     assert "error" not in calc_result
     ctx = context.get_context()
     result = overview._overview_impl(ctx, limit=5)

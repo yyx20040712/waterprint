@@ -24,7 +24,7 @@ def sandbox_env(tmp_path: Path, monkeypatch) -> Path:
 
 
 def test_schema_covers_23_unique() -> None:
-    """清单恰 23 工具（MCP 面同源——B4-4b 子批 3 扩 #22/#23）；名字唯一。"""
+    """清单恰 23 工具（唯一清单面——B4-4b 子批 3 扩 #22/#23）；名字唯一。"""
     schema = toolspec.tools_schema()
     names = [entry["function"]["name"] for entry in schema]
     assert len(names) == 23

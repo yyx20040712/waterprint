@@ -72,18 +72,6 @@ vi.mock("../../features/ai_chat/api/useAiChat", () => ({
 vi.mock("../../features/solutions/api/useTaskFeed", () => ({
   useTaskFeed: () => null,
 }));
-vi.mock("../../features/aiconnect/api/useAiConnection", () => ({
-  useAiConnection: () => ({
-    statusQuery: { data: undefined, isLoading: true, isError: false, error: null },
-    setupMutation: { mutate: () => {}, isPending: false, isError: false, error: null, reset: () => {} },
-  }),
-}));
-vi.mock("../../features/aiconnect/api/useAiConfig", () => ({
-  useAiConfig: () => ({
-    configQuery: { data: undefined, isLoading: true, isError: false, error: null },
-    saveMutation: { mutate: () => {}, isPending: false, isError: false, error: null },
-  }),
-}));
 // 生成 hook 替身（dockBar 任务快照+zoneBand 项目读/存/校验/计算四族——
 // 真壳渲染所需取数面全空态）
 vi.mock("../../shared/api/generated/calc/calc", () => ({

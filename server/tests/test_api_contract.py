@@ -46,7 +46,9 @@ pytestmark = pytest.mark.skipif(
 # [b2-20261009 任务书 §二.① 授权 2026-10-09]；B6
 # +calc/projects/{}/report GET +exports/report_pdf POST——计算书
 # Markdown/PDF 双通道 45→47 破面[b6-20261009 批授权 2026-10-09]；锁定面
-# 冻结集同步=J 项用户授权[2026-10-10]）。
+# 冻结集同步=J 项用户授权[2026-10-10]；agent 面 MCP 去耦合批
+# −ai/connection 两端点 47→45 破面[ZCode 接入退役——AI 接入面随 MCP
+# 退役批删除 2026-11-19]）。
 EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/projects": {"post", "get"},
     "/api/projects/{project_id}": {"get", "put", "delete"},
@@ -84,8 +86,6 @@ EXPECTED_ENDPOINTS: dict[str, set[str]] = {
     "/api/assumptions": {"get"},
     "/api/constraints": {"get"},  # CP1 D5——kb 装载投影（META1 静态目录族）
     "/api/site/spacing": {"get"},  # L4b——间距校核（scene 同构取数端点族）
-    "/api/ai/connection": {"get"},  # AI2——MCP 接入状态四项检查（2026-09-13）
-    "/api/ai/connection/setup": {"post"},  # AI2——一键接入配置写入（2026-09-13）
     "/api/ai/sessions": {"get"},  # B4-4b 子批 2——会话清单（2026-09-24）
     "/api/ai/sessions/{session_id}/messages": {"get", "post"},  # B4-4b 子批 2——历史/发言
     "/api/debug/ops-chain/{project_id}": {"get"},  # B4-1——操作链观测面（《裁决书》方案五①，2026-09-19）
@@ -102,7 +102,7 @@ async def test_openapi_endpoint_set(client) -> None:  # type: ignore[no-untyped-
         for path, methods in schema["paths"].items()
     }
     assert observed == EXPECTED_ENDPOINTS
-    assert sum(len(methods) for methods in observed.values()) == 47  # 5+7+7+2+1+1+2+1+1+1+1（B4-3 +solution/joint-enumerate 2026-09-20——36→37 破面[R-B43-5 默认授权记档]）（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①；B4-4b +ai/sessions 三操作 37→40 破面 2026-09-24[R-B43-5 默认授权同制记档]）；F1 +ai/config 两操作 40→42 破面 2026-09-25[brief-F1-ai-config.md §二授权]；批6e +calc/sensitivity GET 42→43 破面 2026-09-26[wave6-master-plan §批6e 授权]；2A1 +calc/validation GET 43→44 破面 2026-10-05[2a1-20261005 任务书 §3 D3/D4 授权——docs/archive/warning-aggregation.md 冻结规格实现接线]；B2 +units/{}/results GET 44→45 破面 2026-10-09[b2-20261009 任务书 §二.① 授权]；B6 +report GET +report_pdf POST 45→47 破面 2026-10-09[b6-20261009 批授权]——冻结集/计数同步=J 项用户授权 2026-10-10
+    assert sum(len(methods) for methods in observed.values()) == 45  # 5+7+7+2+1+1+2+1+1+1+1（B4-3 +solution/joint-enumerate 2026-09-20——36→37 破面[R-B43-5 默认授权记档]）（projects8[P2 +copy/rename/delete——2026-09-12 生命周期治理批]/calc9[P2 次批 +trust 2026-09-12——ADR-012 D8；+compare 2026-09-12——ADR-018 D5]/exports7/events2/scene1/elevation1/units2/cost1/constraints1/site1——EXPD +exports/{file_name} GET；AI2 +ai/connection 两端点 2026-09-13；B4-1 +debug/ops-chain 2026-09-19——《裁决书》方案五①；B4-4b +ai/sessions 三操作 37→40 破面 2026-09-24[R-B43-5 默认授权同制记档]）；F1 +ai/config 两操作 40→42 破面 2026-09-25[brief-F1-ai-config.md §二授权]；批6e +calc/sensitivity GET 42→43 破面 2026-09-26[wave6-master-plan §批6e 授权]；2A1 +calc/validation GET 43→44 破面 2026-10-05[2a1-20261005 任务书 §3 D3/D4 授权——docs/archive/warning-aggregation.md 冻结规格实现接线]；B2 +units/{}/results GET 44→45 破面 2026-10-09[b2-20261009 任务书 §二.① 授权]；B6 +report GET +report_pdf POST 45→47 破面 2026-10-09[b6-20261009 批授权]——冻结集/计数同步=J 项用户授权 2026-10-10；agent 面 MCP 去耦合批 −ai/connection 两操作 47→45 破面[ZCode 接入退役——AI 接入面随 MCP 退役批删除 2026-11-19]
 
 
 @pytest.mark.anyio

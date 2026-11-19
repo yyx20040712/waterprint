@@ -9,12 +9,12 @@
 | 指标 | 值 | 事实源 |
 |---|---|---|
 | CI 门禁数 | 18 | `scripts/run_gates.py` GATES 元组 |
-| 测试锁面键数 | 383（core/tests 201 + server/tests 71 + units_lib 包内 92 + agent 19） | `test-lock.manifest.json` |
-| OpenAPI | 42 路径 / 47 操作 | `api-contracts/openapi.json` |
-| ADR 件数 | 26 | `docs/adr/ADR-*.md` |
+| 测试锁面键数 | 380（core/tests 201 + server/tests 69 + units_lib 包内 92 + agent 18） | `test-lock.manifest.json` |
+| OpenAPI | 40 路径 / 45 操作 | `api-contracts/openapi.json` |
+| ADR 件数 | 27 | `docs/adr/ADR-*.md` |
 | 快照锚点 | 5（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |
 | 工艺单元包数 | 32 | `core/waterprint/units_lib/*/*/manifest.py` |
-| webapp 测试文件数 | 112 | `webapp/src/**/*.test.*` |
+| webapp 测试文件数 | 110 | `webapp/src/**/*.test.*` |
 | 数据包版本·assumptions | 1.0.0 | `data/assumptions/manifest.yaml` |
 | 数据包版本·coefficients | 1.8.0 | `data/coefficients/manifest.yaml` |
 | 数据包版本·constraint_kb | 2.1.0 | `data/constraint_kb/manifest.yaml` |

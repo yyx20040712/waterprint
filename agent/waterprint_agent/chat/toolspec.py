@@ -1,4 +1,4 @@
-"""工具清单（LLM function-calling schema 表——23 工具与 MCP 面同源）。
+"""工具清单（LLM function-calling schema 表——23 工具唯一声明面）。
 
 输入:  AgentContext+工具调用（name+arguments dict）
 输出:  OpenAI tools schema 列表+dispatch（经 context.run_tool 记账+错误兜底）
@@ -7,16 +7,17 @@
 # ══════════════════════════════════════════════════════════════════
 # 契约头（B4-4b 子批 1 2026-09-24）
 #   路径：agent/waterprint_agent/chat/toolspec.py
-#   职责：编排环工具面唯一清单——23 工具（MCP 面同源）的 JSON schema
+#   职责：编排环工具面唯一清单——23 工具的 JSON schema
 #       声明+懒加载分发（impl 直调——ADR-019 工具面唯一，审 B1 处置）。
 #   禁区：禁顶层 import tools 各模块（懒加载铁律——dispatch 时经
 #       importlib 触达）；禁在本层新增计算逻辑（只编排）；禁改各 impl
-#       签名（工具面=MCP 既有 23 件原样复用，导出组经 extra 固定 kwargs
+#       签名（工具面=23 件原样复用，导出组经 extra 固定 kwargs
 #       适配通用 _export_impl 的 kind 面）。
 #
 # 【行为规格】
 #   R1 清单：_SPEC 表=(名称,模块,impl 名,参数键序,固定 kwargs,一句话
-#      描述)——与 MCP 七组 23 工具一一对应（新增工具=表加行+schema 段）。
+#      描述)——23 工具唯一真源（新增工具=表加行+schema 段；原 MCP 面
+#      同源镜像关系已随 ADR-027 退役消失）。
 #   R2 分发：dispatch(ctx,name,arguments)→kwargs=参数键序取值（缺省
 #      None 透传）∪固定 kwargs；经 run_tool 包装（会话日志 span+异常/
 #      error 键兜底）；未知工具=错误 dict 不 raise。

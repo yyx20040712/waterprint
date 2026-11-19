@@ -1,18 +1,19 @@
 """结果组工具（权威表 #11~#16）：结果摘要/诊断回喂/单单元/迹切片/概算/布置。
 
-输入:  MCP 工具调用参数（project_id/unit_id/condition_key/formula_id/limit）
+输入:  工具调用参数（project_id/unit_id/condition_key/formula_id/limit）
 输出:  投影 dict（压缩面+按需回取；错误={"error","hint"} 不 raise）
 """
 
 # ══════════════════════════════════════════════════════════════════
 # 契约头（AI1-INTEG-2026-09-13）
 #   路径：agent/waterprint_agent/tools/results.py
-#   职责：wp_get_result_summary（#11 压缩核心）/wp_get_diagnostics
-#       （#12 三源回喂）/wp_get_unit_detail（#13 单单元全量）/
-#       wp_get_trace_excerpt（#14 迹切片）/wp_get_estimate_summary
-#       （#15 概算内存投影——flows.estimate_summary_flow）/
-#       wp_get_layout_summary（#16 elevation/scene 聚合压缩——K8）。
-#   禁区：顶层禁 import core/server/fastmcp（懒加载铁律）；工具签名
+#   职责：_summary_impl（#11 压缩核心）/_diagnostics_impl（#12 三源
+#       回喂）/_unit_detail_impl（#13 单单元全量）/_trace_impl（#14
+#       迹切片）/_estimate_impl（#15 概算内存投影——flows.
+#       estimate_summary_flow）/_layout_impl（#16 elevation/scene 聚合
+#       压缩——K8）——chat toolspec.dispatch 的 impl 真源（MCP wp_*
+#       包装随 main.py 退役批剥除 2026-11-19）。
+#   禁区：顶层禁 import core/server（懒加载铁律）；impl 签名
 #       冻结（v2 D3 权威表）；禁 core L1-L3 直连（契约面）。
 #
 # 【行为规格】
@@ -33,7 +34,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # 仅类型面——运行期零重依赖（懒加载铁律）
-    from fastmcp import FastMCP
     from waterprint.contracts.project_schema import ProjectFile
     from waterprint.contracts.result_schema import PlantResult
     from waterprint.contracts.trust import DiagnosticsReport
@@ -47,23 +47,9 @@ from waterprint_agent.tools.calc import (
     read_project,
 )
 
-__all__ = [
-    "register",
-    "wp_get_diagnostics",
-    "wp_get_estimate_summary",
-    "wp_get_layout_summary",
-    "wp_get_result_summary",
-    "wp_get_trace_excerpt",
-    "wp_get_unit_detail",
-]
-
 _DESIGN_KEY = "design"
 _HINT_RESULT = "先 wp_run_calc 产出结果集，再读摘要；改参后旧结果会提示重算。"
-_HINT_DIAG = "warnings 含调节方向（param_key/affected_unit_ids）；迭代调参见 wp_update_params。"
 _HINT_UNIT = "unit_id 以 wp_get_result_summary 的 units 清单为准；condition_key 缺省=design。"
-_HINT_TRACE = "unit_id/formula_id 任选其一或组合；limit 控制回取行数（迹全量在审计附件）。"
-_HINT_EST = "condition_key 缺省=design（概算基线档）；内存投影无文件面（T4）。"
-_HINT_LAYOUT = "condition_key 缺省=design；数据经高程/场景聚合压缩（说明书第 5 章数据源）。"
 
 
 def _load_fresh(
@@ -406,95 +392,3 @@ def _layout_impl(
             "root": list(scene.root),
         },
     }
-
-
-def register(mcp: FastMCP) -> None:
-    """工具注册面（main.get_mcp 装配调用）。"""
-    mcp.tool(wp_get_result_summary)
-    mcp.tool(wp_get_diagnostics)
-    mcp.tool(wp_get_unit_detail)
-    mcp.tool(wp_get_trace_excerpt)
-    mcp.tool(wp_get_estimate_summary)
-    mcp.tool(wp_get_layout_summary)
-
-
-async def wp_get_result_summary(project_id: str) -> dict[str, Any]:
-    """结果压缩核心：达标判定+逐单元一行+质量闭合（≤1.5k token 口径）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_result_summary", {"project_id": project_id},
-        lambda: _summary_impl(ctx, project_id), hint=_HINT_RESULT,
-    )
-
-
-async def wp_get_diagnostics(project_id: str) -> dict[str, Any]:
-    """诊断回喂：warnings 六键清单（含调节方向）+convergence/mass_balance/effluent。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_diagnostics", {"project_id": project_id},
-        lambda: _diagnostics_impl(ctx, project_id), hint=_HINT_DIAG,
-    )
-
-
-async def wp_get_unit_detail(
-    project_id: str, unit_id: str, condition_key: str | None = None
-) -> dict[str, Any]:
-    """单单元全量结果切片（端口流量/水质/尺寸/警告/公式集）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_unit_detail",
-        {"project_id": project_id, "unit_id": unit_id, "condition_key": condition_key},
-        lambda: _unit_detail_impl(ctx, project_id, unit_id, condition_key),
-        hint=_HINT_UNIT,
-    )
-
-
-async def wp_get_trace_excerpt(
-    project_id: str, unit_id: str | None = None, formula_id: str | None = None,
-    limit: int = 50,
-) -> dict[str, Any]:
-    """计算迹切片（按单元/公式 ID 抽取，limit 截断）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_trace_excerpt",
-        {"project_id": project_id, "unit_id": unit_id, "formula_id": formula_id,
-         "limit": limit},
-        lambda: _trace_impl(ctx, project_id, unit_id, formula_id, limit),
-        hint=_HINT_TRACE,
-    )
-
-
-async def wp_get_estimate_summary(
-    project_id: str, condition_key: str = "design"
-) -> dict[str, Any]:
-    """工程概算摘要：grand_total+分级小计+指标校核（内存投影）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_estimate_summary",
-        {"project_id": project_id, "condition_key": condition_key},
-        lambda: _estimate_impl(ctx, project_id, condition_key), hint=_HINT_EST,
-    )
-
-
-async def wp_get_layout_summary(
-    project_id: str, condition_key: str | None = None
-) -> dict[str, Any]:
-    """高程/场景聚合摘要（纵断站位+提升泵站+场景节点——说明书第 5 章数据源）。"""
-    from waterprint_agent import context as agent_context
-
-    ctx = agent_context.get_context()
-    return agent_context.run_tool(
-        ctx, "wp_get_layout_summary",
-        {"project_id": project_id, "condition_key": condition_key},
-        lambda: _layout_impl(ctx, project_id, condition_key), hint=_HINT_LAYOUT,
-    )

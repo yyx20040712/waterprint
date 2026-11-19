@@ -10,7 +10,7 @@
 core/           计算内核（纯 Python，分层 L0~L4）
 server/         FastAPI 服务（routers → services → jobs）
 webapp/         React 前端（feature 切片，React Flow 画布 + R3F 三维）
-agent/          MCP server（AI 宿主接入面）
+agent/          本地 chat CLI（AI 对话面，经 server 子进程桥供 webapp）
 data/           版本化数据包（assumptions/coefficients/constraint_kb/templates/unit_prices，全部带出处）
 api-contracts/  OpenAPI 契约源（前端客户端由此生成）
 docs/           工程文档（architecture/adr/结构图谱/文件职责表/规范摘录）

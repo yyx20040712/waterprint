@@ -7,7 +7,7 @@
  *        api_key 空输入不发送防误清除；成功 message「已写入 .env 并即时
  *        生效（无需重启）」+draft 重同步）+状态行（configured 两态文案）
  *
- * 规格说明（F1 批；AiConnectPanel 纯展示先例+ExportButton message 口径）：
+ * 规格说明（F1 批）：
  *   - 回填口径：base_url/model/llm_timeout_s 自 GET 回显（draft 覆盖式
  *     受控——未交互=服务端真值，交互后=用户草稿）；api_key 永不回显，
  *     has_api_key=true 时密码框占位符「已配置（不回显）」；
@@ -15,7 +15,11 @@
  *     base_url/model 恒发送（回显值原样重写无副作用；清空=显式清除）；
  *     config 未加载=空载荷且保存钮禁用（未知现值上禁盲写）；
  *   - 状态行文案冻结：✓「已配置——对话将调用模型」/✗「未配置——对话
- *     运行在降级模式（仅设计类话术模板回应）」（语义误导 R2 修复面）。
+ *     运行在降级模式（仅设计类话术模板回应）」（语义误导 R2 修复面）；
+ *   - 迁移注记（2026-11-19）：原挂 AiConnectModal（aiconnect 切片随
+ *     Zcode 接入退役批整目录删除——本区属本地 chat LLM 配置被连带误删）；
+ *     恢复迁入 ai_chat，宿主=dockBar AI 对话窗「模型配置」Modal（与
+ *     Zcode MCP 接入面的互斥声明随 MCP 面退役一并撤销）。
  */
 import { Button, Input, InputNumber, Typography, message } from "antd";
 import { useState } from "react";
@@ -101,13 +105,15 @@ export function LlmConfigSection({ enabled }: { enabled: boolean }) {
   };
 
   return (
-    <section style={{ marginTop: 24 }}>
+    {/* 迁 ai_chat 独立 Modal 首块：顶距自 aiconnect 分区形态 24 收敛为 8（ADR-027 批） */}
+    <section style={{ marginTop: 8 }}>
       <Typography.Title level={5} style={{ marginTop: 0 }}>
         聊天模型接入（LLM）
       </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 8 }}>
-        对话面板的模型调用配置（OpenAI 兼容端点三键）。与上方 Zcode 工具接入（MCP）
-        相互独立；保存即写入服务端 .env 并即时生效，无需重启。
+        对话窗口的模型调用配置（OpenAI 兼容端点三键）；保存即写入服务端
+        .env 并即时生效，无需重启。未配置时对话运行在降级模式（仅设计类
+        话术模板回应）。
       </Typography.Paragraph>
       {contextHolder}
       {configQuery.isError ? (

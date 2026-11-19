@@ -150,7 +150,7 @@ include_external_packages = true
 # app→app_enumeration 防环由伴生件规格头【依赖足迹】承载，该唯一边经
 # 下方 ignore_imports 显式豁免登记，反向 app_enumeration→app 仍被禁）。
 # AI1 轨道甲（2026-09-13，ADR-022/E4）：waterprint.flows 用例流层插入 cli
-# 之下（cli → flows → app…）——CLI/MCP 两壳共用编排层；flows 禁依赖
+# 之下（cli → flows → app…）——CLI 与 agent chat 两壳共用编排层；flows 禁依赖
 # server/cli（root_package 外天然不可见）。structure-graph §1a 节点表
 # 双源同步与 file-contracts 登记归集成批（禁改文件，时序记档任务书 §1）。
 # B6 计算说明批（2026-10-09）：waterprint.report 说明书管线自 agent 移植

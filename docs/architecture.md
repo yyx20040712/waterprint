@@ -45,7 +45,7 @@
 | 前端 | `webapp/src/` | React + R3F 三维（feature 切片）；交互画布在 app 层（shellV4/thumbnailFlow），canvas 片承载投影/数据层 | API 客户端由 OpenAPI 生成（orval），禁手写 |
 | 数据包 | `data/` | 版本化数值资产（assumptions/coefficients/constraint_kb/templates/unit_prices） | 全部带出处；随镜像分发，不占运行卷 |
 | 契约源 | `api-contracts/openapi.json` | OpenAPI 契约 | 前端客户端唯一生成源 |
-| agent 面 | `agent/waterprint_agent/` | MCP server：AI 宿主经同步调用操作项目与计算（ADR-021），沙箱隔离 | 经 core.flows 共享编排层（ADR-022），不旁路内核 |
+| agent 面 | `agent/waterprint_agent/` | 本地 chat CLI：LLM 对话经 toolspec 23 工具操作项目与计算（ADR-027），沙箱隔离 | 经 core.flows 共享编排层（ADR-022），不旁路内核；无 MCP/外部宿主面 |
 
 ### 2.2 关键方案策略
 
@@ -76,7 +76,7 @@
 层序（依赖只许向下，双向校验见 `docs/structure-graph.md` §1）：
 
 ```
-L6  webapp / waterprint_agent        内核的两种客户端（浏览器 / MCP 宿主）
+L6  webapp / waterprint_agent        内核的两种客户端（浏览器 / 本地 chat CLI）
 L5  server：main → routers → services → jobs → settings
 L4  cli → flows → report → app(app_enumeration/app_export...) → project/trace
 L3  graph / solution / elevation / cost / drafting / geometry / ifc_export / network
@@ -227,12 +227,11 @@ compute.py 仍是唯一计算正门。
 
 ### 3.9 agent 面
 
-`agent/waterprint_agent/`：MCP server，同步调用 + 私有 Manager + 沙箱隔离
-（ADR-021）；用例编排复用 core.flows 层（ADR-022，CLI 与 agent 共享）；
-另有 chat CLI 第二入口（`python -m waterprint_agent.chat`，经 server
-ai_chat 子进程桥供 webapp 对话）；
-数值溯源第一铁律（ADR-019）。分层契约由 import-linter 与
-check_module_graph L6 节点校验（ADR-020）。
+`agent/waterprint_agent/`：本地 chat CLI（`python -m waterprint_agent.chat`），经 server
+ai_chat 子进程桥供 webapp 对话；工具面=chat/toolspec 23 工具 schema+dispatch
+直调 impl（ADR-027 去 harness 化后的唯一工具真源）；沙箱五区+PathGuard
+与会话审计链沿承（原 ADR-021 D2~D4 语义继续适用）；用例编排复用 core.flows
+层（ADR-022）；数值溯源第一铁律（ADR-019）。分层契约由 import-linter 与 check_module_graph L6 节点校验（ADR-020）。
 
 ## 4. 部署与横切约定
 
@@ -321,7 +320,7 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
   由 `test-lock.manifest.json`（sha256）锁定；改测试 = 人类显式流程
   （`scripts/lock_tests.py`），触碰三信任根的 commit 须带 `[HUMAN-LOCK]`。
 - 门禁覆盖面（AUDIT-#20，b30 2026-11-18）：grep 三查（占位/宽族 except/
-  乱码）SCAN_DIRS 全域含 `agent/`（tests/skills 一并在扫，.venv 排除）；
+  乱码）SCAN_DIRS 全域含 `agent/`（tests 一并在扫，.venv 排除）；
   宽族 except 精确豁免登记=`gate_patterns.WIDE_EXCEPT_WAIVERS`（键=文件+
   函数限定名〔含类链〕+异常族〔AST 精确类型名，前缀连写不冒充〕+理由
   非空，行号不作键；一条豁免至多消费一个处理器，同键第二处必红——
@@ -361,12 +360,13 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 | [ADR-018](adr/ADR-018-multi-condition-compare-lock.md) | 多工况对比与锁定 |
 | [ADR-019](adr/ADR-019-numeric-provenance.md) | 数值溯源（agent 面第一铁律） |
 | [ADR-020](adr/ADR-020-agent-face-contracts.md) | agent 面分层契约 |
-| [ADR-021](adr/ADR-021-mcp-sync-sandbox.md) | agent 面运行模型（MCP 同步 + 沙箱隔离） |
+| [ADR-021](adr/ADR-021-mcp-sync-sandbox.md) | agent 面运行模型（MCP 同步 + 沙箱隔离）〔superseded by ADR-027〕 |
 | [ADR-022](adr/ADR-022-core-flows-layer.md) | core.flows 用例流共享层 |
 | [ADR-023](adr/ADR-023-status-generator-sunset.md) | status.md 计数生成源 |
 | [ADR-024](adr/ADR-024-energy-dose-calculation-face.md) | 能耗药耗计算面（单元级输出 + 全厂聚合） |
 | [ADR-025](adr/ADR-025-joint-enumeration.md) | 全厂联合枚举（分层 beam） |
 | [ADR-026](adr/ADR-026-kb-block-gate.md) | kb 断路器运行时执法（design 帧阻断门） |
+| [ADR-027](adr/ADR-027-agent-local-chat-only.md) | agent 面去 harness 化（MCP 面退役，只留本地 chat） |
 
 ## 6. 质量目标、已知风险与术语
 

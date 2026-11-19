@@ -1,7 +1,8 @@
 # ADR-021：agent 面运行模型（MCP 同步调用 + 私有 Manager + 沙箱隔离）
 
-- 状态：**已接受**（同 ADR-019 授权链；用户裁决 R1 复用 ZCode/R4
-  沙箱隔离/U1 fastmcp 依赖批准/U3 沙箱默认根）。
+- 状态：**已 superseded**（ADR-027，2026-11-19 用户裁决取消外部 harness
+  联动：MCP 面（D1/D5）随退役作废；D2~D4（私有 Manager/沙箱隔离/会话
+  追溯链）在本地 chat 面继续适用，语义沿承见替代者）。
 - 背景：
   - server 侧异步任务面（Manager 进程池+SSE）为 webapp 多用户设计；
   agent 面单用户本机场景下引入进程池+SSE 是纯成本。
