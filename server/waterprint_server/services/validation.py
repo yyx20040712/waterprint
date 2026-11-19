@@ -1,8 +1,8 @@
-"""validation 服务用例：最近完成结果集 → 校验观测（maint.* 三面投影）+两源警告聚合。
+"""validation 服务用例：最近完成结果集 → 校验观测（maint.* 三面投影）+三源警告聚合。
 
 输入:  项目 id（路径）——plant 件（summary maint.* 键族=源 B+conditions
-       offline dims）+val 件（源 A 声明级报告）+diag 件（kb_injected）+
-       kb 目录（读时推导真源——list_constraints 缓存单例）
+       快照 warnings=源 C）+val 件（源 A 声明级报告）+diag 件
+       （kb_injected）+kb 目录（读时推导真源——list_constraints 缓存单例）
 输出:  ValidationObservationResponse（server 侧 pydantic 冻结模型——routers 直用）
 """
 
@@ -48,8 +48,14 @@
 #      /回炉 d1-W3 测试锁定）；any_fail 汇总键不入去重键族（§4）；kb 条目
 #      缺席（版本漂移）不入聚合行、观测面保留原值（fail-visible——A2）；
 #      B-only 行 message 合成（A1：三要素=条目键+表达式原文+首命中工况
-#      offline dims 实际值；字段缺席无值形态）；unit_api.Warning 第三
-#      警告面不入聚合（§4 v1 边界冻结——本件零消费快照 warnings）；
+#      offline dims 实际值；字段缺席无值形态）；**源 C（计算期单元快照
+#      warnings——unit_api.Warning）入聚合**（F4 扩源批 2026-11-19：
+#      v1 边界冻结解除〔archive/warning-aggregation.md §4「另批扩源」
+#      条款的本批落地〕——e2e-audit 证实 6 条真警告在聚合面全丢失；
+#      并入面=validation_snapshots.merge_snapshot_warnings〔全局行数预算墙
+#      伴生拆件〕，码=unit_warning_code 派生〔"unit." 前缀与 kb 码域
+#      结构性不撞〕、scope=unit_id、命中清单=快照工况（序轴序）、
+#      message=首例、severity=max、param_key None→空串哨兵）；
 #      响应行排序=(scope,code,param_key) 确定性冻结（A3——视图分区/
 #      重排归 FE）。
 #   R5 观测投影（UF-61① FE 面数据源）：nodes 逐节点×逐工况三面——kb:
@@ -74,12 +80,15 @@
 # 【测试要求】§3 十语义逐条（∅ 哨兵/≥2 入聚/单工况直通/同键双源
 #   message 取源 A/1.0 不入/any_fail 不入/kb 缺席降级/val 缺席降级/
 #   kb_injected None/序=迭代序）+B-only 合成两形态+行排序+观测三面
-#   投影+三态降级+200/404 家族+AU-1+双跑确定性（test_validation.py）。
+#   投影+三态降级+200/404 家族+AU-1+双跑确定性（test_validation.py）
+#   +源 C 六面（F4：快照 warnings 入聚合/跨工况命中清单序/首例 message
+#   /severity max/param_key None 空串/同 unit 同 param_key 双模板不吞）。
 #
 # 【参照】docs/archive/warning-aggregation.md（冻结实现契约）；services/trust.py
 #   （降级三态/404 家族先例）；services/sensitivity.py（服务同构先例）；
 #   services/constraints.py（kb 目录真源）；core app_maintenance.py
-#   （maint.* 键族产出面——本件消费不重算）
+#   （maint.* 键族产出面——本件消费不重算）；services/validation_
+#   snapshots.py（源 C 伴生件——F4 扩源批）
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -111,6 +120,10 @@ from waterprint_server.services._shared.latest_calc import (
 )
 from waterprint_server.services.constraints import ConstraintEntry, list_constraints
 from waterprint_server.services.projects import read_project, result_is_stale
+from waterprint_server.services.validation_snapshots import (
+    max_severity,
+    merge_snapshot_warnings,
+)
 
 __all__ = [
     "AggregatedWarning",
@@ -134,8 +147,9 @@ _FAIL_VALUE: float = 0.0  # kb 越门极性（core _FAIL 语义常量镜像）
 # _FAIL_VALUE——域外值（0.5 等）core 不产（app_maintenance _PASS/_FAIL
 # 常量单源两值域）；node_id 无点约定（全仓 unit_id 命名域——GR-26 字符
 # 集）为 _split_maint_key 三段解析的前提绑定，core 键构造面同约定。
-# severity max 分级序（§3——ERROR>WARN>INFO；元组 index 承载零数值字面量）
-_SEVERITY_ASC: tuple[Severity, ...] = (Severity.INFO, Severity.WARN, Severity.ERROR)
+# severity max 分级序与源 C 并入面=validation_snapshots 伴生件单源
+# （F4 扩源批迁出——全局行数预算墙；本件消费 max_severity/
+# merge_snapshot_warnings）
 # DSL 首子句字段头镜像（core solution.constraints._CLAUSE 的 field+op 段
 # ——server 禁 import solution〔lint_imports 层序〕，解析面镜像注记：site.py
 # kb expression 服务面解析先例同制；镜像面=首子句 field_id，形态越界
@@ -280,14 +294,6 @@ def _kb_context(
     return _expression_first_field(entry), Severity(entry.severity)
 
 
-def _max_severity(left: Severity, right: Severity) -> Severity:
-    """severity 分级取最严重（§3：max over 命中实例——ERROR>WARN>INFO；
-    元组 index 分级，零数值字面量）。"""
-    if _SEVERITY_ASC.index(left) >= _SEVERITY_ASC.index(right):
-        return left
-    return right
-
-
 def _observations(
     plant: PlantResult, condition_order: tuple[str, ...]
 ) -> tuple[NodeObservation, ...]:
@@ -397,8 +403,11 @@ def _aggregated_warnings(
                 "hits": [], "a_severity": warning.severity,
             }
         else:  # 回炉 d1-W2：同键多实例=首例保序（§2 message 按首例）+severity 累积 max
-            record["a_severity"] = _max_severity(record["a_severity"], warning.severity)
+            record["a_severity"] = max_severity(record["a_severity"], warning.severity)
     _merge_source_b(plant, condition_order, catalog, grouped)
+    # 源 C 并入（F4 扩源批）：计算期单元快照 warnings——跨工况聚合的
+    # 现役载体（"unit." 码域与 kb 码结构性不撞，桶字段 snapshot_message）
+    merge_snapshot_warnings(plant, condition_order, grouped)
     warnings: list[AggregatedWarning] = []
     # A3 响应行排序=(scope,code,param_key) 确定性冻结（≠去重键序——视图
     # 分区/重排归 FE；scope=元组第 3 位，显式 key 重排）
@@ -408,15 +417,19 @@ def _aggregated_warnings(
         source_a: PlantWarning | None = record["source_a"]
         hits: list[str] = record["hits"]
         hit_entry: ConstraintEntry | None = record["entry"]
+        snapshot_message: str | None = record.get("snapshot_message")
         if source_a is not None:
             message = source_a.message  # ⑦同键双源现取源 A 实例（序轴前置）
             severity = record["a_severity"]  # 回炉 d1-W2：源 A 实例累积 max（非末例覆盖）
+        elif snapshot_message is not None:
+            message = snapshot_message  # 源 C 行：首例 message（§2——序轴首命中实例）
+            severity = record["severity"]  # 源 C 累积 max（§3）
         else:
             assert hit_entry is not None  # B-only 行必有 kb 条目（A2 缺席不入行）
             message = _synthesized_message(plant, record["node"], hit_entry, hits[0])
             severity = record["severity"]
         if hit_entry is not None and source_a is not None:
-            severity = _max_severity(severity, Severity(hit_entry.severity))
+            severity = max_severity(severity, Severity(hit_entry.severity))
         warnings.append(
             AggregatedWarning(
                 code=code,

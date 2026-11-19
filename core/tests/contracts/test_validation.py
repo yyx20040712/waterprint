@@ -30,6 +30,7 @@ import pytest
 from waterprint.contracts.unit_api import Severity
 from waterprint.contracts.validation import (
     KB_CODE_PREFIX,
+    UNIT_CODE_PREFIX,
     InvalidValidationError,
     PlantWarning,
     ValidationReport,
@@ -37,6 +38,7 @@ from waterprint.contracts.validation import (
     is_kb_code,
     kb_warning_code,
     serialize_validation,
+    unit_warning_code,
 )
 from waterprint.solution.constraints import load_kb_constraints
 
@@ -97,6 +99,24 @@ def test_kb_code_rule_single_source_roundtrip() -> None:
     assert not is_kb_code("maint.x.kb.any_fail")  # 码位在尾非前缀——非 kb 派生码
     code = kb_warning_code("inlet.quality_upper.cod")
     assert code[len(KB_CODE_PREFIX):] == "inlet.quality_upper.cod"  # 剥离可逆
+
+
+def test_unit_code_rule_source_digest_family() -> None:
+    """unit 码族四面（F4 扩源批 2026-11-19）：前缀冻结+确定性（同 source
+    同码）+判别力（异 source 异码——同 unit 同 param_key 多检查模板不吞）+
+    kb 前缀域不相交（同键碰撞结构性不可能）。"""
+    assert UNIT_CODE_PREFIX == "unit."
+    first = unit_warning_code("municipal_ziwai", "室外排水设计标准；zw.velocity.min~max")
+    same = unit_warning_code("municipal_ziwai", "室外排水设计标准；zw.velocity.min~max")
+    other = unit_warning_code("municipal_ziwai", "室外排水设计标准；ZW-F11 灯管淹没校核")
+    other_unit = unit_warning_code("municipal_cugeshan", "室外排水设计标准；zw.velocity.min~max")
+    assert first == same  # 确定性：同 (unit,source) 双调同码
+    assert first != other  # 判别力：同 unit 异 source（流速带 vs 淹没校核）异码
+    assert first != other_unit  # 判别力：异 unit 同 source 异码
+    assert first.startswith(UNIT_CODE_PREFIX)  # 前缀冻结
+    assert not is_kb_code(first)  # kb 前缀域不相交（双向）
+    assert not first.startswith(KB_CODE_PREFIX)
+    assert kb_warning_code("municipal_ziwai") != first  # 两码族同键位不撞
 
 
 def test_validation_report_codes_dedupe_preserve_order() -> None:

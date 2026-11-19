@@ -185,13 +185,7 @@ design 态变更 + 新 content-hash，不允许后台自调。
 影响面。服务端聚合按去重键三元组 **(code, param_key, scope)** 跨工况聚合：
 scope=影响面（"plant" 或节点 ID），命中=越门实例，severity 取最严重，
 命中工况键清单按 ConditionSet 迭代序；API 字段名硬约束 `scope` +
-`condition_keys[]`（客户端零去重逻辑）。core 两载体字段语义映射
-（AUDIT-#5 裁决定案 2026-11-18：维持现名不改，接受设计非开放债，
-见 §6.1）：PlantWarning.condition_key 载荷=影响面，
-unit_api.Warning.condition_key=所属工况键。契约两处：单条警告=`core/waterprint/contracts/validation.py`
-（PlantWarning），聚合响应行=`server/waterprint_server/services/validation.py`
-（AggregatedWarning）。前端聚合视图已接线（webapp `features/validation`
-切片消费，analysisPane 全厂面内嵌——T3 2026-11-19）。
+`condition_keys[]`（客户端零去重逻辑）。聚合三源（F4 扩源批 2026-11-19——v1 第三警告面排除解除）：A=val 件（∅ 哨兵）、B=maint.* kb 键（越门 0.0）、C=计算期快照 unit_api.Warning（码=unit_warning_code 派生）。core 两载体字段语义映射（AUDIT-#5 定案 2026-11-18：维持现名，接受设计非开放债，见 §6.1）：PlantWarning.condition_key 载荷=影响面，unit_api.Warning.condition_key=所属工况键。契约：单条警告=contracts/validation.py（PlantWarning）；聚合响应行=services/validation.py（源 C 并入面=伴生件 validation_snapshots.py）；前端聚合视图=webapp features/validation 切片（analysisPane 内嵌——T3 2026-11-19）。
 
 ### 3.8 单元包结构（脚手架生成，禁自由发挥）
 

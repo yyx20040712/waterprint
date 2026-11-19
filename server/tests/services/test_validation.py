@@ -22,7 +22,10 @@
 #   - ⑦同键双源现→message 取源 A 实例+清单=源 B 工况清单；
 #   - ⑧去重键=(code,param_key,scope) 三元组、message/severity 不入键；
 #   - ⑨any_fail 汇总键不进去重键族（不入聚合）；
-#   - ⑩unit_api.Warning 第三警告面不入聚合（plant 快照 warnings 在场不入行）；
+#   - ⑩源 C：unit_api.Warning 快照 warnings 入聚合（F4 扩源批 2026-11-19
+#     反转 v1 排除——码=unit_warning_code 派生/scope=unit_id/命中清单=
+#     快照工况序轴序/param_key None→空串/首例 message/severity max/
+#     同 unit 同 param_key 双模板不吞）；
 #   - ⑪kb 条目缺席（版本漂移）不入聚合行、观测面保留原值；
 #   - B-only 行 message 合成（A1：三要素=条目键+表达式原文+首命中工况实际值；
 #     字段缺席无值形态）；
@@ -48,6 +51,7 @@ from waterprint.contracts.validation import (
     PlantWarning,
     ValidationReport,
     serialize_validation,
+    unit_warning_code,
 )
 
 from waterprint_server.services import validation as validation_module
@@ -421,12 +425,14 @@ def test_validation_legacy_record_dict_order_fallback(monkeypatch, tmp_path) -> 
     assert row.condition_keys == ("design_offline_aao", "design_offline_aao2")  # 兜底序
 
 
-def test_validation_third_warning_face_excluded(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
-    """⑩unit_api.Warning 第三警告面不入聚合（v1 两源边界冻结）：快照级
-    warnings 在场（合成植入）而聚合行零该码。"""
+def test_validation_third_warning_face_aggregated(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """⑩源 C 入聚合（F4 扩源批 2026-11-19 反转 v1 排除——e2e-audit 6 条
+    真警告丢失的根因面）：快照级 warnings 在场（合成植入）→聚合行在场
+    （码=unit_warning_code 派生/scope=unit_id/命中清单=快照工况/param_key
+    None→空串哨兵）；全通过 kb 面不添行（源间零串扰）。"""
     snapshot = UnitResultSnapshot(
         unit_id="municipal_aao", outflows={}, outqualities={}, dims={"n": 2.0},
-        warnings=(  # 第三警告面（UF-17 冻结六字段——合成最小桩）
+        warnings=(  # 源 C（UF-17 冻结六字段——param_key 缺席形态最小桩）
             Warning(severity=Severity.WARN, source="test", message="第三警告面桩"),
         ),
         formula_ids=(),
@@ -441,7 +447,13 @@ def test_validation_third_warning_face_excluded(monkeypatch, tmp_path) -> None: 
         monkeypatch, tmp_path, plant, _catalog(_entry("param.n.positive", "n > 0")),
         None, None, ["design", "design_offline_aao"],
     )
-    assert report.warnings == ()  # 快照 warnings 不入（全通过 kb 面亦零行）
+    assert len(report.warnings) == 1  # 快照 warnings 入聚合（kb 全通过零行）
+    row = report.warnings[0]
+    assert row.code == unit_warning_code("municipal_aao", "test")  # 码派生单源
+    assert row.scope == "municipal_aao"  # 影响面=单元级
+    assert row.param_key == ""  # None→空串哨兵（无调节方向如实）
+    assert row.condition_keys == ("design_offline_aao",)  # 命中清单=快照工况
+    assert row.message == "第三警告面桩" and row.severity is Severity.WARN
     assert report.nodes[0].faces[0].kb == {"param.n.positive": True}
 
 

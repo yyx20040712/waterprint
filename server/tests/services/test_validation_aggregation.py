@@ -4,7 +4,8 @@
        warnings/_expression_first_field）+合成桩+真 kb 目录（仓库 data 面）
 输出:  门一回炉轮 1 锚（d1-W2 首例保序+severity 累积/d1-W4 排序对抗桩/
        k1-N1·d1-N6c severity 反向与同级并列/k1-W1·d1-U3 真库推导链探针）
-       ——500 行预算墙伴生拆分（主件 test_validation.py，1A4 契约伴生件先例）
+       +F4 扩源批 2026-11-19 源 C 跨工况聚合锚（命中清单序轴序/首例
+       message/severity 累积 max/双模板不吞——自主件迁入平衡行数预算）
 """
 
 # ══════════════════════════════════════════════════════════════════
@@ -23,11 +24,12 @@ from waterprint.contracts.result_schema import (
     ReproTriple,
     UnitResultSnapshot,
 )
-from waterprint.contracts.unit_api import Severity
+from waterprint.contracts.unit_api import Severity, Warning
 from waterprint.contracts.validation import (
     PlantWarning,
     ValidationReport,
     serialize_validation,
+    unit_warning_code,
 )
 
 from waterprint_server.services import validation as validation_module
@@ -204,3 +206,51 @@ def test_rework_w1_malformed_expression_fail_visible() -> None:
     )
     with pytest.raises(RuntimeError, match="首子句形态非法"):
         validation_module._expression_first_field(bad)  # noqa: SLF001  # 同上私有直测
+
+
+def test_validation_source_c_cross_condition_aggregation(monkeypatch, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """源 C 跨工况聚合（F4 核心语义——审计 6 条=2 检查×3 工况形态）：
+    同 (unit,source) 跨工况并桶——命中清单序=序轴迭代序+message=首例
+    （§2——工况值差不双消息）+severity 累积 max（§3）；同 unit 同
+    param_key 双模板（异 source）不吞行。"""
+    def _snap(warnings: tuple[Warning, ...]) -> UnitResultSnapshot:
+        return UnitResultSnapshot(
+            unit_id="municipal_ziwai", outflows={}, outqualities={}, dims={},
+            warnings=warnings, formula_ids=(),
+        )
+
+    velocity = ("规范；zw.velocity.min~max", "流速越带")
+    submerge = ("规范；ZW-F11 灯管淹没校核", "灯管露出水面")
+    plant = PlantResult(
+        conditions={
+            "design": {},
+            "avg": {"municipal_ziwai": _snap((
+                Warning(severity=Severity.WARN, source=velocity[0],
+                        message=f"{velocity[1]}（avg 值）", param_key="v_channel"),
+                Warning(severity=Severity.WARN, source=submerge[0],
+                        message=submerge[1], param_key="v_channel"),
+            ))},
+            "design_offline_ziwai": {"municipal_ziwai": _snap((
+                Warning(severity=Severity.ERROR, source=velocity[0],
+                        message=f"{velocity[1]}（design 值）", param_key="v_channel"),
+            ))},
+        },
+        summary={"design": {}, "avg": {}, "design_offline_ziwai": {}},
+        trace=(), repro=ReproTriple("h1", "e1", "d1"),
+    )
+    report = _report_of(  # 伴生件装配面（六参——diag/val 降级归主件）
+        monkeypatch, tmp_path, plant, (), None,
+        ["design", "avg", "design_offline_ziwai"],  # 序轴：design 前置
+    )
+    rows = {row.code: row for row in report.warnings}
+    assert set(rows) == {  # 双模板不吞：同 param_key 两 source 两行
+        unit_warning_code("municipal_ziwai", velocity[0]),
+        unit_warning_code("municipal_ziwai", submerge[0]),
+    }
+    velocity_row = rows[unit_warning_code("municipal_ziwai", velocity[0])]
+    assert velocity_row.condition_keys == ("avg", "design_offline_ziwai")  # 序轴序
+    assert velocity_row.message == f"{velocity[1]}（avg 值）"  # 首例（序轴首命中）
+    assert velocity_row.severity is Severity.ERROR  # 累积 max（WARN→ERROR）
+    assert velocity_row.scope == "municipal_ziwai" and velocity_row.param_key == "v_channel"
+    submerge_row = rows[unit_warning_code("municipal_ziwai", submerge[0])]
+    assert submerge_row.condition_keys == ("avg",)  # 单工况直通行同 schema

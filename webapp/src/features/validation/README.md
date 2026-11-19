@@ -1,14 +1,15 @@
 # validation —— 警告聚合视图
 
 前端警告聚合切片（T3 批 2026-11-19）：消费 GET /api/calc/validation/{project_id}
-响应的 warnings 聚合行（server services/validation 两源聚合投影——
-docs/archive/warning-aggregation.md §1~§3 冻结规格；服务端已按
+响应的 warnings 聚合行（server services/validation 三源聚合投影——
+docs/archive/warning-aggregation.md §1~§3 冻结规格+F4 扩源批 2026-11-19
+源 C 计算期单元快照警告入聚合；服务端已按
 (scope,code,param_key) 聚合排序，客户端零去重零重排），三分区呈现
 （声明级 ∅ 哨兵/工况聚合 ≥2/单工况直通）；v1 不消费 nodes 观测面
 （用户定案）。输入=projectId（orval hook 薄封装+窄化门），输出=纯展示
 面板（三分区 severity 徽标+message 全文+影响面·code·工况键 meta 行；
-validation_available=false=降级提示条与源 B 警告行**并行**呈现——源 A
-val 件缺席不吞服务端源 B 聚合面，零警告时仅降级条；空警告+有 val 件=
+validation_available=false=降级提示条与源 B/C 警告行**并行**呈现——源 A
+val 件缺席不吞服务端源 B/C 聚合面，零警告时仅降级条；空警告+有 val 件=
 整体不渲染）；接线面=app/shellV4/analysisPane 全厂指标面（stale 横幅
 后、出水指标前——违规面优先于指标阅读，错误局部呈现不阻断 compare
 主面）。

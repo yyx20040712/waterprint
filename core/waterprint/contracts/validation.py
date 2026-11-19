@@ -26,6 +26,13 @@
 #   KB_CODE_PREFIX: Final[str]（="kb."：kb 派生检查码冻结前缀）
 #   kb_warning_code(key) -> str：kb 派生码构造（前缀+constraint_key 单源）
 #   is_kb_code(code) -> bool：kb 派生码判别（前缀+非空键段——空键段 False）
+#   UNIT_CODE_PREFIX: Final[str]（="unit."：unit 派生检查码冻结前缀——
+#       F4 扩源批 2026-11-19；与 kb 前缀域恒不相交）
+#   unit_warning_code(unit_id, source) -> str：unit 派生警告码构造
+#       （前缀+unit_id+source 摘要段——UF-17 六字段无码位禁改，码位由
+#       消费面派生、规则单源本模块；source=检查条目出处标识，同检查
+#       跨工况恒定——判别语义等价 kb constraint_key；摘要=sha1 前 10
+#       hex，码不可逆〔无 catalog 反查消费面，别于 kb 码可逆〕）
 #   serialize_validation(report) -> bytes：确定性序列化正门（R4——2A1 批
 #       server val artifact 数据源；根单键 {"warnings": [五字段对象…]}）
 #   deserialize_validation(data: bytes) -> ValidationReport：严格反序列化
@@ -35,7 +42,10 @@
 #
 # 【行为规格】
 #   R1 码规则单源：kb 派生检查码恒为 KB_CODE_PREFIX+constraint_key——
-#      键↔码双向可逆（前缀剥离还原），禁在其他模块复刻码拼接。
+#      键↔码双向可逆（前缀剥离还原），禁在其他模块复刻码拼接。unit
+#      派生检查码恒为 UNIT_CODE_PREFIX+unit_id+"."+source 摘要段（F4
+#      扩源批——同 source 同码、异 source 异码；两前缀域不相交故同
+#      键碰撞结构性不可能），拼接同禁他处复刻。
 #   R2 值对象不可变：两 dataclass 均 frozen（T3A-01 快照语义同族）。
 #   R3 零警告语义：ValidationReport 布尔假=「无违规」（消费面 if 直判；
 #      codes() 空元组同义——码面而非计数面承载）。
@@ -53,7 +63,8 @@
 # 【测试要求】五字段冻结面/severity 枚举复用/码规则可逆/键族存在断言
 #   （input_band 恰 7 条→7 码稳定集）/codes() 去重保序/__bool__/serde
 #   七面（2A1：往返无损/双跑字节同/未知键拒/缺键拒/空报告/序保序恒等/
-#   严格面三拒）。
+#   严格面三拒）/unit 码族四面（F4：前缀+确定性〔同 source 同码〕+
+#   判别力〔异 source 异码〕+kb 前缀域不相交）。
 #
 # 【参照】1a2-20261004 任务书 §3.1；2a1-20261005 任务书 §3 D1；
 #   contracts/unit_api.py（Severity）；contracts/trust_serde.py（serde
@@ -62,6 +73,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from typing import Any, Final, final
@@ -70,6 +82,7 @@ from waterprint.contracts.result_schema import JSON_KWARGS as _JSON_KWARGS
 from waterprint.contracts.unit_api import Severity
 
 KB_CODE_PREFIX: Final[str] = "kb."
+UNIT_CODE_PREFIX: Final[str] = "unit."
 
 
 @dataclass(frozen=True)
@@ -112,6 +125,21 @@ def kb_warning_code(key: str) -> str:
 def is_kb_code(code: str) -> bool:
     """kb 派生码判别：前缀 KB_CODE_PREFIX+非空键段（键↔码可逆判别面）。"""
     return code.startswith(KB_CODE_PREFIX) and len(code) > len(KB_CODE_PREFIX)
+
+
+def unit_warning_code(unit_id: str, source: str) -> str:
+    """unit 派生警告码构造（R1 扩族——F4 扩源批 2026-11-19）。
+
+    UF-17 冻结 Warning 六字段无码位（禁改），聚合去重键 (code,param_key,
+    scope) 需稳定码位 → 码由消费面派生、规则单源本模块：前缀
+    UNIT_CODE_PREFIX+unit_id+"."+source 的 sha1 摘要前 10 hex。source=
+    检查条目出处标识（规范引用+系数键族——同检查跨工况恒定），判别语义
+    等价 kb constraint_key；同 unit 同 param_key 多检查模板（如 ziwai
+    流速带与灯管淹没校核同指 v_channel）经 source 段得异码不吞行。
+    码不可逆：无 catalog 反查消费面（别于 kb 码键↔码双向可逆——maint
+    键中段还原需要；unit 警告无键可逆面）。"""
+    digest = hashlib.sha1(source.encode("utf-8")).hexdigest()[:10]
+    return f"{UNIT_CODE_PREFIX}{unit_id}.{digest}"
 
 
 # ── serde 段（2A1 批 D1——server calc-val artifact 数据源契约）──

@@ -3,7 +3,8 @@
  * 标签（消费 /api/calc/validation 响应——T3 前端警告聚合批）。
  *
  * 输入:  orval 生成 ValidationObservationResponse（server services.validation
- *        两源聚合投影——docs/archive/warning-aggregation.md §1~§3 冻结规格）
+ *        三源聚合投影——docs/archive/warning-aggregation.md §1~§3 冻结规格
+ *        +F4 扩源批 2026-11-19 源 C 计算期单元快照警告入聚合）
  * 输出:  narrowValidationObservation 窄化门（非法形状抛 ValidationViewError）+
  *        partitionWarnings 三分区纯函数（声明级 ∅ 哨兵/工况聚合 ≥2/单工况
  *        直通——§3 分区规则逐条绑定）+severityTone/severityLabel 警告级
@@ -131,7 +132,8 @@ export function narrowValidationObservation(raw: unknown): ValidationObservation
 export type WarningZones = {
   /** 声明级区（源 A ∅ 哨兵行——与工况区不混排）。 */
   declaration: AggregatedWarningRow[];
-  /** 工况聚合区（源 B 命中工况 ≥2——去重价值面恰在重复）。 */
+  /** 工况聚合区（工况命中 ≥2——源 B kb 越门与源 C 快照警告同判据，
+   *  去重价值面恰在重复）。 */
   aggregated: AggregatedWarningRow[];
   /** 单工况直通区（命中工况=1——位次在聚合区后）。 */
   single: AggregatedWarningRow[];
