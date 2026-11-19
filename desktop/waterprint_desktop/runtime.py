@@ -130,8 +130,9 @@ class RuntimeSupervisor:
 
     def _apply(self, plan: AssemblyPlan) -> None:
         """按方案装到目标态（引擎全量重启语义 R2+壳按需起停）。"""
-        if self._current_plan is not None and self._current_plan == plan:
-            return  # 同方案幂等（重复 setNetworkRole 同角色）
+        engine_alive = self._engine is not None and self._engine.is_running
+        if self._current_plan is not None and self._current_plan == plan and engine_alive:
+            return  # 同方案幂等（重复 setNetworkRole 同角色；引擎已死不算幂等——走全量重启）
         # 引擎面：目标态不起引擎→停；起引擎→全量重启（绑定/token 变更面）
         if plan.engine_bind_host is None:
             self._stop_engine()

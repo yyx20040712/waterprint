@@ -142,7 +142,7 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
                   borderRadius: 3,
                   padding: "0 5px",
                   color: row.compliant ? "var(--wp-success)" : "var(--wp-error)",
-                  background: row.compliant ? "var(--wp-success-soft)" : "#fdeceb",
+                  background: row.compliant ? "var(--wp-success-soft)" : "var(--wp-error-soft)",
                 }}
               >
                 {row.compliant ? "达标" : "超标"}
