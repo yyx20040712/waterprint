@@ -6,7 +6,8 @@
  *        唯一通道——shellV4 setZone）+useProjectId（工具区项目门）
  * 输出:  顶带：logo+六页签（button 元素 data-zone 锚——探针 N1 逐区单点
  *        可达）+工具区（保存/撤销/重做/校验/全项目计算——简笔线性图标
- *        antd icons 线性族）
+ *        antd icons 线性族；b1 主题地基批：区尾+主题切换器
+ *        ThemeSwitch〔三钮组正常/护眼/夜间〕）
  *
  * 规格说明（B1 任务书 §三.1——plan §九.1）：
  *   - 语境工具区四活一骨架：保存=手动（draftProjectRaw+PUT——CanvasEdit
@@ -54,6 +55,7 @@ import {
 import { writeTaskParam } from "../solutionsUrlState";
 import { useProjectId } from "../useProjectId";
 import { V4_ZONE_LABELS, V4_ZONES, type V4ZoneTarget } from "../zoneParam";
+import { ThemeSwitch } from "./themeSwitch";
 
 /** logo 简笔水滴线形（wireframe 屏 1 同形——16×16 stroke AC）。 */
 function BandLogo() {
@@ -63,7 +65,7 @@ function BandLogo() {
       style={{
         width: 26,
         height: 26,
-        border: "1.5px solid var(--wpv4-ac)",
+        border: "1.5px solid var(--wp-accent)",
         borderRadius: 6,
         display: "flex",
         alignItems: "center",
@@ -71,7 +73,7 @@ function BandLogo() {
         flex: "none",
       }}
     >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--wpv4-ac)" strokeWidth="1.4">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--wp-accent)" strokeWidth="1.4">
         <path d="M2 12c2-4 4-4 6-8 2 4 4 4 6 8" />
         <path d="M5 12h6" />
       </svg>
@@ -324,6 +326,8 @@ export function ZoneBand({
             全项目计算
           </Button>
         </Tooltip>
+        {/* b1 主题地基批：三主题切换器（工具区尾——b2 壳重组批再挪） */}
+        <ThemeSwitch />
       </span>
     </header>
   );

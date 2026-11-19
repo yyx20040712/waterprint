@@ -95,11 +95,11 @@ describe("unitGlyph：全库字形映射", () => {
 });
 
 describe("domainColorOf：四域+中性回退", () => {
-  it("四域色值（B4 亮底重定值——与 global.css 变量轴同值双源）", () => {
-    expect(domainColorOf("municipal")).toBe("#1677ff");
-    expect(domainColorOf("sludge")).toBe("#9c6b45");
-    expect(domainColorOf("mine_water")).toBe("#0e9e88");
-    expect(domainColorOf("conveyance")).toBe("#6b7a8c");
+  it("四域色值（b1 主题地基批——设计稿亮档域色，与注入轴同值双源）", () => {
+    expect(domainColorOf("municipal")).toBe("#286b86");
+    expect(domainColorOf("sludge")).toBe("#7d573e");
+    expect(domainColorOf("mine_water")).toBe("#3f7d6a");
+    expect(domainColorOf("conveyance")).toBe("#64788a");
   });
 
   it("未知/缺省回退中性灰（不误导域归属）", () => {
@@ -111,19 +111,19 @@ describe("domainColorOf：四域+中性回退", () => {
 
 describe("streamColorOf：两色制流色（泥优先/水/中性三态）", () => {
   it("任一端 sludge 即泥色（剩余污泥/回流混合边归泥）", () => {
-    expect(streamColorOf("municipal", "sludge")).toBe("#9c6b45");
-    expect(streamColorOf("sludge", "municipal")).toBe("#9c6b45");
-    expect(streamColorOf("sludge", "sludge")).toBe("#9c6b45");
+    expect(streamColorOf("municipal", "sludge")).toBe("#7d573e");
+    expect(streamColorOf("sludge", "municipal")).toBe("#7d573e");
+    expect(streamColorOf("sludge", "sludge")).toBe("#7d573e");
   });
 
   it("双端已知非 sludge 即水色（水线内部+跨非泥域）", () => {
-    expect(streamColorOf("municipal", "municipal")).toBe("#1677ff");
-    expect(streamColorOf("mine_water", "conveyance")).toBe("#1677ff");
+    expect(streamColorOf("municipal", "municipal")).toBe("#286b86");
+    expect(streamColorOf("mine_water", "conveyance")).toBe("#286b86");
   });
 
   it("任一端未知即中性灰（清单未达/自定义键不误导）", () => {
     expect(streamColorOf("municipal", null)).toBe(NEUTRAL_DOMAIN);
-    expect(streamColorOf(undefined, "sludge")).toBe("#9c6b45");
+    expect(streamColorOf(undefined, "sludge")).toBe("#7d573e");
     expect(streamColorOf(null, undefined)).toBe(NEUTRAL_DOMAIN);
   });
 });

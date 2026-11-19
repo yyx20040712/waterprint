@@ -1,29 +1,33 @@
 /**
- * GR-39 双源联动清单机检化守卫（2A5——A 线色值单源批）。
+ * GR-39 双源联动清单机检化守卫（2A5——A 线色值单源批；b1 主题地基批
+ * 2026-11-19 三态扩面：同值断言自单亮基线扩为 light/warm/dark 三模逐对）。
  *
- * 输入:  ./global.css 原文（node:fs 直读）+./providers themeConfig
- *        （静态 import——2A5 起导出；模块装载期求值，与
- *        domainColorAxis.test 先例同径）
- * 输出:  三守卫面——①:root 变量轴解析（--wp-* 声明抽取+hex 小写归一）；
- *        ②同值对断言全集（头注 A2-N-01 清单对+扩展对〔bodyBg/Tabs 四
- *        态色——providers 自注清单成员，头注未列〕：改任一侧不同步即
- *        红）；③清单↔测试互证（头注联动清单逐行锚在场——头注删行即红）。
+ * 输入:  ./global.css 原文（node:fs 直读——三主题块 ：root=light 基线+
+ *        html[data-theme="warm"/"dark"] 两覆写块）+./themeModes
+ *        globalThemeConfigFor（静态 import——三模 antd 配置单源）
+ * 输出:  四守卫面——①三主题块变量轴解析（--wp-* 声明抽取+hex 小写归一
+ *        ——解析面自证锚）；②同值对断言三模全集（GR-39 清单对逐模：
+ *        改任一侧任一模不同步即红）；③清单↔测试互证（global.css 头注
+ *        联动清单逐行锚在场——删行即红）；④作用域机制守卫（.wp-v4-root
+ *        scoped 块零 --wp- 声明〔防继承遮蔽三主题块〕+data-theme 选择器
+ *        三块在场）。
  *
- * B4 亮色基线（2026-10-09 任务书 D8）：全部同值断言两侧亮值化；D1/D2
- *   表 deliberate 背离两对（bg-container/bg-deep）收窄或转值锚，G1-02
- *   鎏金对更新为 inkBar↔colorPrimary（AC 锚）——断言数不降、语义同强度
- *   （暗值断言→亮值断言=同步），逐条对账=批档 impl-report-b4.md。
+ * B4 沿革（2026-10-09）：全部同值断言亮值化；b1 主题地基批：色板整体
+ *   换为已批准设计稿三主题值（正常/护眼/夜间），断言面三模化——
+ *   单模漂移（如只改 dark 块漏改 antd 侧）即红。
  *
  * 形态说明（范式=domainColorAxis.test.ts：node:fs 读 CSS 原文+静态
- *   import JS 模块，node 直测零 jsdom）。antd 无槽位自持真源/设计字面量
- *   （--wp-scrollbar-hover/--wp-dot-color/--wp-gold-soft/渐变三停）不入
- *   对表——global.css 头注口径（A2-N-06/UF-53 批6n 注记节）。
+ *   import JS 模块，node 直测零 jsdom）。antd 无槽位自持真源
+ *   （--wp-gold/-soft/--wp-scrollbar-hover/--wp-canvas/--wp-shadow/
+ *   soft 三键）不入对表——global.css 头注口径；其逐模冻结锚在
+ *   lightBaseline.test（色板冻结面）。
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { themeConfig } from "./providers";
+import { THEME_MODES, type ThemeMode } from "../shared/store/themeStore";
+import { globalThemeConfigFor } from "./themeModes";
 
 const globalCss = readFileSync(join(__dirname, "global.css"), "utf-8");
 
@@ -32,12 +36,18 @@ function norm(value: string | undefined): string {
   return (value ?? "").trim().toLowerCase();
 }
 
-/** :root 块内 --wp-* 声明抽取 → Map（值侧已归一——供同值对断言消费）。
- *  回炉 R1（d1-W1）：抽取前剥 /* *\/ 注释——防头注注释含「:root {」伪块
- *  劫持首匹配/注释内伪声明覆盖真值（方向=解析面加固，漏抽=假红非假绿）。 */
-function parseRootVars(css: string): Map<string, string> {
+/** 主题块选择器（light=：root 基线；warm/dark=html[data-theme] 覆写）。 */
+function themeSelector(mode: ThemeMode): string {
+  return mode === "light" ? ":root" : `html[data-theme="${mode}"]`;
+}
+
+/** 指定主题块内 --wp-* 声明抽取 → Map（值侧已归一——供同值对断言消费）。
+ *  沿 R1（d1-W1）剥注释口径：防头注注释含伪块劫持/伪声明覆盖真值。 */
+function parseThemeVars(css: string, mode: ThemeMode): Map<string, string> {
   const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const block = noComments.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
+  const selector = themeSelector(mode).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const block =
+    noComments.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
   const vars = new Map<string, string>();
   for (const m of block.matchAll(/(--wp-[\w-]+)\s*:\s*([^;]+);/g)) {
     const [, name, value] = m;
@@ -48,141 +58,201 @@ function parseRootVars(css: string): Map<string, string> {
   return vars;
 }
 
-const cssVars = parseRootVars(globalCss);
+const cssVars: Record<ThemeMode, Map<string, string>> = {
+  light: parseThemeVars(globalCss, "light"),
+  warm: parseThemeVars(globalCss, "warm"),
+  dark: parseThemeVars(globalCss, "dark"),
+};
 
-describe("GR-39 双源联动清单机检化（2A5）", () => {
-  it(":root 解析：变量轴声明可抽取（解析面自证——锚键实值在场）", () => {
-    // 防正则腐化前置拦：解析坏=同值对断言面全红的前置信号（锚值字面自证
-    // ——B4 亮值锚〔D2 表〕）
-    expect(cssVars.get("--wp-bg-page")).toBe("#f5f6f8");
-    expect(cssVars.get("--wp-gold")).toBe("#8a6100");
-    expect(cssVars.get("--wp-error")).toBe("#b3261e");
-    // 回炉 R2（d1-W2）：成对键在场断言——双侧同步缺失（""=="" 静默绿）
-    // 通道收口：CSS 侧键在场先立，则 token 侧缺配置必在值断言面红
-    const pairedKeys = [
-      "--wp-bg-page",
-      "--wp-bg-container",
-      "--wp-bg-elevated",
-      "--wp-bg-deep",
-      "--wp-border",
-      "--wp-border-2",
-      "--wp-text",
-      "--wp-text-2",
-      "--wp-text-3",
-      "--wp-success",
-      "--wp-error",
-      "--wp-font-mono",
-      "--wp-gold",
-    ];
-    for (const key of pairedKeys) {
-      expect(cssVars.has(key), `轴键缺失：${key}`).toBe(true);
-      // d1 复审 N1 补强：值非空——空白值+对侧同缺的 ""=="" 窄子案收口
-      expect(norm(cssVars.get(key)), `轴键空白值：${key}`).not.toBe("");
+/** 双源契约成对键（三模块各须齐——双侧同步缺失的静默绿通道收口）。 */
+const PAIRED_KEYS = [
+  "--wp-bg-page",
+  "--wp-bg-container",
+  "--wp-bg-elevated",
+  "--wp-bg-deep",
+  "--wp-border",
+  "--wp-border-2",
+  "--wp-text",
+  "--wp-text-2",
+  "--wp-text-3",
+  "--wp-accent",
+  "--wp-success",
+  "--wp-warning",
+  "--wp-error",
+  "--wp-font-mono",
+  "--wp-accent-soft",
+  "--wp-success-soft",
+  "--wp-warning-soft",
+  "--wp-error-soft",
+  "--wp-canvas",
+  "--wp-shadow",
+  "--wp-gold",
+  "--wp-gold-soft",
+  "--wp-scrollbar-hover",
+] as const;
+
+describe("GR-39 双源联动清单机检化（2A5·b1 三态扩面）", () => {
+  it("三主题块解析：变量轴声明可抽取（解析面自证——三模锚键实值在场）", () => {
+    // 防正则腐化前置拦：解析坏=同值对断言面全红的前置信号（三模各取
+    // 代表键设计稿值字面自证）
+    expect(cssVars.light.get("--wp-bg-page")).toBe("#f2f5f3");
+    expect(cssVars.warm.get("--wp-bg-page")).toBe("#eee9dd");
+    expect(cssVars.dark.get("--wp-bg-page")).toBe("#161b1a");
+    expect(cssVars.light.get("--wp-accent")).toBe("#246b63");
+    expect(cssVars.dark.get("--wp-accent")).toBe("#7bb9ac");
+    for (const mode of THEME_MODES) {
+      for (const key of PAIRED_KEYS) {
+        expect(cssVars[mode].has(key), `${mode} 轴键缺失：${key}`).toBe(true);
+        expect(
+          cssVars[mode].get(key),
+          `${mode} 轴键空白值：${key}`,
+        ).not.toBe("");
+      }
     }
   });
 
-  it("同值对·头注清单全集：--wp-* 轴 ↔ antd token（改任一侧不同步即红）", () => {
-    expect(cssVars.get("--wp-bg-page")).toBe(
-      norm(themeConfig.token?.colorBgLayout),
-    );
-    // B4（D1/D2 表背离收窄）：colorBgContainer 升 BG-2 白——轴键仍
-    // BG-1 面板底，对行收窄为 siderBg 单侧；container token 侧改值锚
-    expect(cssVars.get("--wp-bg-container")).toBe(
-      norm(themeConfig.components?.Layout?.siderBg),
-    );
-    expect(themeConfig.token?.colorBgContainer).toBe("#ffffff");
-    expect(cssVars.get("--wp-bg-container")).toBe("#fafbfc");
-    expect(cssVars.get("--wp-bg-elevated")).toBe(
-      norm(themeConfig.token?.colorBgElevated),
-    );
-    // B4（D1/D2 表背离）：headerBg 升页面底——--wp-bg-deep 轴自持键
-    // （消费面=statusBar），token 侧无对行→值锚
-    expect(cssVars.get("--wp-bg-deep")).toBe("#eceff3");
-    expect(cssVars.get("--wp-border")).toBe(
-      norm(themeConfig.token?.colorBorder),
-    );
-    expect(cssVars.get("--wp-border-2")).toBe(
-      norm(themeConfig.token?.colorBorderSecondary),
-    );
-    expect(cssVars.get("--wp-text")).toBe(norm(themeConfig.token?.colorText));
-    expect(cssVars.get("--wp-text-2")).toBe(
-      norm(themeConfig.token?.colorTextSecondary),
-    );
-    expect(cssVars.get("--wp-text-3")).toBe(
-      norm(themeConfig.token?.colorTextTertiary),
-    );
-    expect(cssVars.get("--wp-success")).toBe(
-      norm(themeConfig.token?.colorSuccess),
-    );
-    expect(cssVars.get("--wp-error")).toBe(
-      norm(themeConfig.token?.colorError),
-    );
-    // 字体串逐字同值（归一口径下字符级比对——mono 栈两侧漂移即红）
-    expect(cssVars.get("--wp-font-mono")).toBe(
-      norm(themeConfig.token?.fontFamilyCode),
-    );
-    // 鎏金：G1-02 B4 更新——墨条=AC 蓝（↔colorPrimary 同值锚），装饰金
-    // 单源=global.css 轴（--wp-gold 与 inkBar 不再同值=任务书 D1 注记）
-    expect(themeConfig.components?.Tabs?.inkBarColor).toBe(
-      themeConfig.token?.colorPrimary,
-    );
-    expect(cssVars.get("--wp-gold")).toBe("#8a6100");
+  it("同值对·三模全集：--wp-* 轴 ↔ antd token（改任一侧任一模不同步即红）", () => {
+    for (const mode of THEME_MODES) {
+      const vars = cssVars[mode];
+      const config = globalThemeConfigFor(mode);
+      const t = config.token ?? {};
+      const layout = config.components?.Layout ?? {};
+      const tabs = config.components?.Tabs ?? {};
+      const table = config.components?.Table ?? {};
+      // 四档底
+      expect(vars.get("--wp-bg-page"), `${mode} bg-page`).toBe(
+        norm(t.colorBgLayout),
+      );
+      expect(vars.get("--wp-bg-page"), `${mode} headerBg`).toBe(
+        norm(layout.headerBg),
+      );
+      expect(vars.get("--wp-bg-page"), `${mode} bodyBg`).toBe(
+        norm(layout.bodyBg),
+      );
+      expect(vars.get("--wp-bg-container"), `${mode} bg-container`).toBe(
+        norm(layout.siderBg),
+      );
+      // 稿 paper=阅读面：container/elevated 两 token 同值 bg-elevated 轴
+      expect(vars.get("--wp-bg-elevated"), `${mode} colorBgContainer`).toBe(
+        norm(t.colorBgContainer),
+      );
+      expect(vars.get("--wp-bg-elevated"), `${mode} colorBgElevated`).toBe(
+        norm(t.colorBgElevated),
+      );
+      expect(vars.get("--wp-bg-deep"), `${mode} Table.headerBg`).toBe(
+        norm(table.headerBg),
+      );
+      expect(vars.get("--wp-bg-deep"), `${mode} Table.rowHoverBg`).toBe(
+        norm(table.rowHoverBg),
+      );
+      // 边线两档
+      expect(vars.get("--wp-border"), `${mode} border`).toBe(
+        norm(t.colorBorder),
+      );
+      expect(vars.get("--wp-border-2"), `${mode} border-2`).toBe(
+        norm(t.colorBorderSecondary),
+      );
+      expect(vars.get("--wp-border-2"), `${mode} Table.colorSplit`).toBe(
+        norm(table.colorSplit),
+      );
+      // 文字三档
+      expect(vars.get("--wp-text"), `${mode} text`).toBe(norm(t.colorText));
+      expect(vars.get("--wp-text-2"), `${mode} text-2`).toBe(
+        norm(t.colorTextSecondary),
+      );
+      expect(vars.get("--wp-text-3"), `${mode} text-3`).toBe(
+        norm(t.colorTextTertiary),
+      );
+      // 操作色（AC 族四 token+Tabs 选中两键）
+      expect(vars.get("--wp-accent"), `${mode} colorPrimary`).toBe(
+        norm(t.colorPrimary),
+      );
+      expect(t.colorInfo, `${mode} colorInfo`).toBe(t.colorPrimary);
+      expect(t.colorLink, `${mode} colorLink`).toBe(t.colorPrimary);
+      expect(vars.get("--wp-accent"), `${mode} inkBar`).toBe(
+        norm(tabs.inkBarColor),
+      );
+      expect(vars.get("--wp-accent"), `${mode} itemSelected`).toBe(
+        norm(tabs.itemSelectedColor),
+      );
+      // 语义三色
+      expect(vars.get("--wp-success"), `${mode} success`).toBe(
+        norm(t.colorSuccess),
+      );
+      expect(vars.get("--wp-warning"), `${mode} warning`).toBe(
+        norm(t.colorWarning),
+      );
+      expect(vars.get("--wp-error"), `${mode} error`).toBe(norm(t.colorError));
+      // Tabs 未选/悬浮按压两态=文字轴同值（providers 自注清单成员）
+      expect(vars.get("--wp-text-2"), `${mode} itemColor`).toBe(
+        norm(tabs.itemColor),
+      );
+      expect(vars.get("--wp-text"), `${mode} itemHover`).toBe(
+        norm(tabs.itemHoverColor),
+      );
+      expect(vars.get("--wp-text"), `${mode} itemActive`).toBe(
+        norm(tabs.itemActiveColor),
+      );
+      // 字体串逐字同值（mono 栈两侧漂移即红）
+      expect(vars.get("--wp-font-mono"), `${mode} font-mono`).toBe(
+        norm(t.fontFamilyCode),
+      );
+    }
   });
 
-  it("同值对·扩展对（A1）：bodyBg/Tabs 四态色——providers 自注清单成员（头注未列）", () => {
-    // 同值事实入机检面=覆盖既有契约自述（providers components.Tabs 自注）
-    // B4：itemSelectedColor=AC 锚（D1 表——与 colorPrimary 同值替代原
-    // --wp-text 对行；未选/悬浮按压两态仍轴同值）
-    expect(cssVars.get("--wp-bg-page")).toBe(
-      norm(themeConfig.components?.Layout?.bodyBg),
-    );
-    expect(cssVars.get("--wp-text-2")).toBe(
-      norm(themeConfig.components?.Tabs?.itemColor),
-    );
-    expect(cssVars.get("--wp-text")).toBe(
-      norm(themeConfig.components?.Tabs?.itemHoverColor),
-    );
-    expect(cssVars.get("--wp-text")).toBe(
-      norm(themeConfig.components?.Tabs?.itemActiveColor),
-    );
-    expect(themeConfig.components?.Tabs?.itemSelectedColor).toBe(
-      themeConfig.token?.colorPrimary,
-    );
+  it("作用域机制守卫：data-theme 三块在场+.wp-v4-root scoped 块零 --wp- 声明", () => {
+    // 三主题块选择器在场（删块=该模断联即红——解析面兜底）
+    expect(globalCss).toContain(':root {');
+    expect(globalCss).toContain('html[data-theme="warm"] {');
+    expect(globalCss).toContain('html[data-theme="dark"] {');
+    // B7 清点批兑现（b1）：scoped 块若持 --wp- 声明=继承遮蔽 html 级
+    // 主题值（最近祖先胜出与特异性无关），三主题换肤必被钉死——零声明
+    const scoped = globalCss.match(/\.wp-v4-root\s*\{([^}]*)\}/)?.[1] ?? "";
+    const scopedVars = [...scoped.matchAll(/--wp[\w-]*\s*:/g)];
+    expect(scopedVars, "scoped 块 --wp- 声明复入").toEqual([]);
   });
 
   it("清单↔测试互证：头注联动清单逐行锚在场（防清单腐化——删行即红）", () => {
-    // global.css 头注 A2-N-01 清单行（逐字锚——含对齐空格）+error 扩行
+    // global.css 头注 GR-39 三态清单行（逐字锚）——稿 token 对应注记随行
     expect(globalCss).toContain(
-      "--wp-bg-page   ↔ providers colorBgLayout",
+      "--wp-bg-page     ↔ providers colorBgLayout（+Layout.headerBg/bodyBg——稿 bg）",
     );
     expect(globalCss).toContain(
-      "--wp-bg-container ↔ providers components.Layout.siderBg",
+      "--wp-bg-container ↔ providers components.Layout.siderBg（稿 surface）",
     );
     expect(globalCss).toContain(
-      "--wp-bg-elevated ↔ providers colorBgElevated",
+      "--wp-bg-elevated ↔ providers colorBgContainer/colorBgElevated（稿 paper 阅读面）",
     );
     expect(globalCss).toContain(
-      "--wp-bg-deep    ↔ 轴自持键",
-    );
-    expect(globalCss).toContain("--wp-border    ↔ providers colorBorder");
-    expect(globalCss).toContain(
-      "--wp-border-2  ↔ providers colorBorderSecondary",
+      "--wp-bg-deep     ↔ providers components.Table.headerBg/rowHoverBg（稿 surface-2）",
     );
     expect(globalCss).toContain(
-      "--wp-text/2/3  ↔ providers colorText/Secondary/Tertiary",
+      "--wp-border      ↔ providers colorBorder（稿 line）",
     );
     expect(globalCss).toContain(
-      "--wp-success   ↔ providers colorSuccess",
+      "--wp-border-2    ↔ providers colorBorderSecondary（+Table.colorSplit——稿 line-soft）",
     );
     expect(globalCss).toContain(
-      "--wp-font-mono ↔ providers fontFamilyCode",
+      "--wp-text/2/3    ↔ providers colorText/Secondary/Tertiary（稿 ink/muted/faint）",
     );
     expect(globalCss).toContain(
-      "A2-N-01 联动清单扩行：--wp-error ↔ providers colorError",
+      "--wp-accent      ↔ providers colorPrimary/Info/Link（+Tabs inkBar/itemSelected——稿 accent）",
     );
-    // D3 机检化注记锚（global.css 联动清单节尾注记行——删注记即红）
     expect(globalCss).toContain(
-      "2A5 机检化：本清单同值对经 app/themeLinkage.test.ts 断言",
+      "--wp-success     ↔ providers colorSuccess（稿 ok）",
+    );
+    expect(globalCss).toContain(
+      "--wp-warning     ↔ providers colorWarning（稿 warn）",
+    );
+    expect(globalCss).toContain(
+      "--wp-error       ↔ providers colorError（稿 error）",
+    );
+    expect(globalCss).toContain(
+      "--wp-font-mono   ↔ providers fontFamilyCode",
+    );
+    // 机检化注记锚（清单节尾注记行——删注记即红）
+    expect(globalCss).toContain(
+      "themeLinkage.test 三态断言",
     );
   });
 });

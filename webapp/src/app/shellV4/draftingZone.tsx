@@ -174,10 +174,10 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
               data-testid="wp-v4-drafting-go-calc"
               onClick={onGoCalc}
               style={{
-                border: "1px solid var(--wpv4-ac)",
+                border: "1px solid var(--wp-accent)",
                 borderRadius: 4,
                 background: "var(--wp-bg-container, #ffffff)",
-                color: "var(--wpv4-ac)",
+                color: "var(--wp-accent)",
                 fontSize: 11,
                 padding: "1px 10px",
                 cursor: "pointer",
@@ -258,7 +258,7 @@ export function DraftingZone({
             style={{
               border: "none",
               background: "transparent",
-              color: "var(--wpv4-ac)",
+              color: "var(--wp-accent)",
               fontSize: 12, // 回炉 R12：字号归一三档（12/11/10）
               cursor: "pointer",
               padding: 0,

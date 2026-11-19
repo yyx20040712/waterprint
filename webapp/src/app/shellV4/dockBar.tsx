@@ -105,7 +105,7 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
       <div className="wp-v4-dock-strip">
         <span>AI 对话</span>
         {send.isPending ? (
-          <span style={{ color: "var(--wpv4-ac)" }}>发送中…</span>
+          <span style={{ color: "var(--wp-accent)" }}>发送中…</span>
         ) : null}
         {history.isError ? (
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
@@ -186,7 +186,7 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
             borderRadius: 4,
             padding: "2px 10px",
             fontSize: 11,
-            background: "var(--wpv4-ac)",
+            background: "var(--wp-accent)",
             color: "#ffffff",
             cursor: send.isPending ? "default" : "pointer",
           }}
@@ -264,7 +264,7 @@ function TaskStrip({
       <div className="wp-v4-dock-strip">
         <span>任务 · 校验</span>
         {effective?.stale === true ? (
-          <span style={{ color: "var(--wpv4-warn)" }}>结果已过期（参数已变更）</span>
+          <span style={{ color: "var(--wp-warning)" }}>结果已过期（参数已变更）</span>
         ) : null}
       </div>
       <div className="wp-v4-dock-main">
@@ -301,7 +301,7 @@ function TaskStrip({
               style={{
                 width: 110,
                 height: 6,
-                background: "#f0f2f5",
+                background: "var(--wp-bg-deep)",
                 borderRadius: 3,
                 overflow: "hidden",
                 flex: "none",
@@ -312,7 +312,7 @@ function TaskStrip({
                   display: "block",
                   height: "100%",
                   width: `${percent ?? 0}%`,
-                  background: "var(--wpv4-ac)",
+                  background: "var(--wp-accent)",
                 }}
               />
             </span>
@@ -322,13 +322,13 @@ function TaskStrip({
                 fontSize: 10,
                 borderRadius: 3,
                 padding: "0 5px",
-                color: state === "done" ? "var(--wpv4-ok)" : state === "failed" ? "var(--wp-error)" : "var(--wp-text-2)",
+                color: state === "done" ? "var(--wp-success)" : state === "failed" ? "var(--wp-error)" : "var(--wp-text-2)",
                 background:
                   state === "done"
-                    ? "var(--wpv4-ok-bg)"
+                    ? "var(--wp-success-soft)"
                     : state === "failed"
-                      ? "#fdeceb"
-                      : "#f0f2f5",
+                      ? "var(--wp-error-soft)"
+                      : "var(--wp-bg-deep)",
               }}
             >
               {STATE_TEXT[state] ?? state}

@@ -179,11 +179,11 @@ describe("partitionWarnings 三分区（§3 判据）", () => {
 });
 
 describe("语义色与标签词典", () => {
-  it("severityTone：ERROR=--wp-error/WARN=--wpv4-warn/INFO=次级灰", () => {
+  it("severityTone：ERROR=--wp-error/WARN=--wp-warning/INFO=次级灰", () => {
     expect(severityTone("ERROR").color).toBe("var(--wp-error)");
-    expect(severityTone("WARN").color).toBe("var(--wpv4-warn)");
+    expect(severityTone("WARN").color).toBe("var(--wp-warning)");
     expect(severityTone("INFO").color).toBe("var(--wp-text-2)");
-    expect(severityTone("WARN").background).toContain("wpv4-warn-bg");
+    expect(severityTone("WARN").background).toContain("wp-warning-soft");
   });
 
   it("severityLabel：错误/警告/提示（域值不进正文）", () => {

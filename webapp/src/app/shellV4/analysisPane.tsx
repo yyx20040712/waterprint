@@ -141,8 +141,8 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
                   fontSize: 10,
                   borderRadius: 3,
                   padding: "0 5px",
-                  color: row.compliant ? "var(--wpv4-ok)" : "var(--wp-error)",
-                  background: row.compliant ? "var(--wpv4-ok-bg)" : "#fdeceb",
+                  color: row.compliant ? "var(--wp-success)" : "var(--wp-error)",
+                  background: row.compliant ? "var(--wp-success-soft)" : "#fdeceb",
                 }}
               >
                 {row.compliant ? "达标" : "超标"}
@@ -330,7 +330,7 @@ function UnitFace({
           {detail.warnings.map((warning, index) => (
             <div
               key={`${warning.source}-${index}`}
-              style={{ fontSize: 11, color: "var(--wpv4-warn)", lineHeight: 1.7 }}
+              style={{ fontSize: 11, color: "var(--wp-warning)", lineHeight: 1.7 }}
             >
               {warning.message}
             </div>
@@ -352,8 +352,8 @@ function StaleBanner({ projectId }: { projectId: string }) {
         alignItems: "center",
         gap: 10,
         fontSize: 11,
-        color: "var(--wpv4-warn)",
-        background: "var(--wpv4-warn-bg, rgba(138, 97, 0, 0.08))",
+        color: "var(--wp-warning)",
+        background: "var(--wp-warning-soft, rgba(138, 97, 0, 0.08))",
         border: "1px solid var(--wp-border-2)",
         borderRadius: 6,
         padding: "4px 10px",
@@ -382,7 +382,7 @@ function StaleBanner({ projectId }: { projectId: string }) {
           border: "1px solid var(--wp-border)",
           borderRadius: 4,
           background: "var(--wp-bg-container, #ffffff)",
-          color: "var(--wpv4-ac)",
+          color: "var(--wp-accent)",
           fontSize: 11,
           padding: "1px 8px",
           cursor: run.isPending ? "default" : "pointer",

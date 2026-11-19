@@ -164,7 +164,7 @@ describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
     expect(row?.textContent).toContain("PDF 计算书");
     // V3 D3 导出主钮主色：AC 底+白字（jsdom 色归一 rgb 形）；audit 现状保持
     const calcbook = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
-    expect(calcbook?.style.background).toBe("var(--wpv4-ac)");
+    expect(calcbook?.style.background).toBe("var(--wp-accent)");
     expect(calcbook?.style.color).toBe("rgb(255, 255, 255)");
     expect(container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]')?.style.background).toBe("var(--wp-bg-elevated)");
   });

@@ -116,7 +116,7 @@ const CELL_STYLE = {
 } as const;
 const HEAD_CELL_STYLE = {
   ...CELL_STYLE,
-  background: "#f0f2f5",
+  background: "var(--wp-bg-deep)",
   color: "var(--wp-text-2)",
 } as const;
 

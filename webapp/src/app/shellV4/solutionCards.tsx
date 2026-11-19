@@ -97,8 +97,8 @@ function CardRow({
             fontSize: 10,
             borderRadius: 3,
             padding: "0 5px",
-            color: "var(--wpv4-ok)",
-            background: "var(--wpv4-ok-bg)",
+            color: "var(--wp-success)",
+            background: "var(--wp-success-soft)",
           }}
         >
           ★推荐
@@ -113,8 +113,8 @@ function CardRow({
             fontSize: 10,
             borderRadius: 3,
             padding: "0 5px",
-            color: "var(--wpv4-warn)",
-            background: "var(--wpv4-warn-bg)",
+            color: "var(--wp-warning)",
+            background: "var(--wp-warning-soft)",
             fontFamily: "var(--wp-font-mono)",
           }}
         >

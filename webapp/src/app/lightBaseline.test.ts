@@ -1,38 +1,34 @@
 /**
- * B4 亮色基线守卫（暗色残留=0 断言常设门——任务书 D6 判定集六面；
+ * 三主题基线守卫（b1 主题地基批 2026-11-19 重定位——原 B4 亮色基线
+ * 常设门随三主题体系扩面：light 默认基线+按模值域冻结+退役色零复入。
  * 纯 node 读源扫描：node:fs 读 webapp/src 原文+静态 import 真源模块，
  * domainColorAxis/themeLinkage 同径零 jsdom）。
  *
- * 输入:  webapp/src 全域源文（.ts/.tsx/.css）+./providers themeConfig+
- *        ../shared/ui/semanticColors DOMAIN_CSS_VARS/SEMANTIC_COLORS
- * 输出:  六判定面——①暗算法字面零命中（全域含测试）；②providers
- *        themeConfig 暗值清单（D1 表左列）零命中；③global.css :root
- *        14 色键亮值冻结+暗值零命中+规则体 D5 字面量零命中+全文件
- *        深底 hex（RGB 亮度<0.35，注释剥除）零命中；④内联暗值文件
- *        清单（D5 实测集+R-G3 派生面）逐文件零命中；⑤prefers-
- *        color-scheme 媒体查询零基线；⑥色板冻结锚（D1/D2/D3 亮值
- *        逐键+域色双轴同值+核心同值对）。
+ * 输入:  webapp/src 全域源文（.ts/.tsx/.css）+./themeModes 两配置构建器
+ *        +MODE_COLORS+../shared/ui/semanticColors 域色三模记录
+ * 输出:  六判定面——①暗算法字面收容（暗算法拼接字面仅三主题定义面
+ *        〔themeModes.ts+其测试〕可持有，余域零命中）；②退役色板
+ *        （C1 暗期+B4 亮期）零复入（三主题定义面两文件）；③global.css
+ *        三主题块轴自持键逐模冻结（gold/gold-soft 恒值+scrollbar-hover
+ *        派生三值+soft/canvas/shadow===MODE_COLORS）+规则体深底 hex 零
+ *        命中+全 src v4 旧轴键零残留（b1 并轴改名完备性）；④内联
+ *        暗值文件清单逐文件零命中（D5 实测集）+R2/R3 锚；⑤prefers-
+ *        color-scheme 媒体查询零基线（手动切换制）；⑥域色三模冻结
+ *        （domainCssVarsFor 逐模===DOMAIN_COLORS+设计稿值）。
  *
- * 形态说明：判定集正则零命中+域色双轴同值+色板冻结锚——B6 收口批
- *   复扫引用同一件（残留回归常设门）。暗算法字面在断言侧以
+ * 形态说明：判定集正则零命中+冻结锚——暗算法字面在断言侧以
  *   ["dark","Algorithm"].join("") 拼接构造（防本文件自匹配伪红）。
- * v1-20261015 转正批：legacy 壳物理退役——④ 内联清单随被删件收缩
- *   （ParamTabs/UnitNode/ChatPanel/statusBar/ThumbnailStage/tornadoCharts
- *   行撤除）；鎏金下划线三停（#a07300/--wp-gold 45%/#6d4e00）与
- *   .wp-lib-hit 光环双 rgba 由「在场冻结」翻为「零复入」（CSS 段已删，
- *   复辟即红）；--wp-dot-color/--wp-dot-size 死变量随 .wp-dotgrid 退役
- *   出 ③ 亮值表；R2 六修锚收缩至在位件（FirstFrameGate）。
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { theme } from "antd";
 
-import { themeConfig } from "./providers";
+import { THEME_MODES, type ThemeMode } from "../shared/store/themeStore";
 import {
-  DOMAIN_CSS_VARS,
-  SEMANTIC_COLORS,
+  DOMAIN_COLORS,
+  domainCssVarsFor,
 } from "../shared/ui/semanticColors";
+import { MODE_COLORS } from "./themeModes";
 
 const SRC_ROOT = join(__dirname, "..");
 const readSrc = (rel: string): string =>
@@ -54,8 +50,7 @@ function collectSrcFiles(dir: string, prefix = ""): string[] {
 }
 const srcFiles = collectSrcFiles(SRC_ROOT);
 
-/** 行内注释剥除（//与块注释——lum 扫描与字面判定的注释甄别面；
- *  块注释跨行态按逐行前缀 * 粗剥=本仓注释书写惯例覆盖）。 */
+/** 行内注释剥除（//与块注释——lum 扫描与字面判定的注释甄别面）。 */
 function stripComments(text: string): string {
   return text
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -65,8 +60,7 @@ function stripComments(text: string): string {
     .join("\n");
 }
 
-/** RGB 简单亮度（D6③ 判定口径：0.2126R+0.7152G+0.0722B 线性权和
- *  ——深底 hex=<0.35；与批档 scan-dark-b4.cjs 同式）。 */
+/** RGB 简单亮度（深底 hex=<0.35——D6③ 判定口径沿承）。 */
 function rgbLuminance(hex: string): number | null {
   const full =
     hex.length === 3
@@ -82,10 +76,14 @@ function rgbLuminance(hex: string): number | null {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** :root 块内 --wp-* 声明抽取 → Map（themeLinkage.test 同式剥注释）。 */
-function parseRootVars(css: string): Map<string, string> {
+/** 指定主题块内 --wp-* 声明抽取 → Map（themeLinkage.test 同式）。 */
+function parseThemeVars(css: string, mode: ThemeMode): Map<string, string> {
   const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const block = noComments.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
+  const selector =
+    mode === "light" ? ":root" : `html[data-theme="${mode}"]`;
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const block =
+    noComments.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
   const vars = new Map<string, string>();
   for (const m of block.matchAll(/(--wp-[\w-]+)\s*:\s*([^;]+);/g)) {
     const [, name, value] = m;
@@ -97,90 +95,97 @@ function parseRootVars(css: string): Map<string, string> {
 }
 
 const globalCss = readSrc("app/global.css");
-const cssVars = parseRootVars(globalCss);
+const cssVars: Record<ThemeMode, Map<string, string>> = {
+  light: parseThemeVars(globalCss, "light"),
+  warm: parseThemeVars(globalCss, "warm"),
+  dark: parseThemeVars(globalCss, "dark"),
+};
 
-describe("B4 亮色基线·判定面①：暗算法字面零命中（全域含测试）", () => {
-  // 口径注（R3）：源文件面=.ts/.tsx/.css（collectSrcFiles 收集域）——
-  // .md 叙述面（README/批档）不在扫描域，叙述词不构成残留。
-  it("src 全域零 dark+Algorithm 拼接串（拼接构造防本件自匹配）", () => {
+/** 三主题定义面（暗算法/全量色板字面唯一合法居所）。 */
+const THEME_DEF_FILES = new Set(["app/themeModes.ts", "app/themeModes.test.ts"]);
+
+describe("三主题基线·判定面①：暗算法字面收容", () => {
+  it("src 全域零 dark+Algorithm 拼接串（拼接构造防本件自匹配；三主题定义面豁免）", () => {
     const needle = ["dark", "Algorithm"].join("");
-    const hits = srcFiles.filter((rel) =>
-      readSrc(rel).includes(needle),
+    const hits = srcFiles.filter(
+      (rel) => !THEME_DEF_FILES.has(rel) && readSrc(rel).includes(needle),
     );
-    expect(hits, `暗算法字面残留：${hits.join(", ")}`).toEqual([]);
+    expect(hits, `暗算法字面越界：${hits.join(", ")}`).toEqual([]);
+    // 定义面在场自证（收容≠缺失——暗算法必须在 themeModes 使用）
+    expect(readSrc("app/themeModes.ts").includes(needle)).toBe(true);
   });
 });
 
-describe("判定面②：providers themeConfig 暗值清单（D1 表左列）零命中", () => {
-  it("providers.tsx 全文（含注释）零 D1 左列暗值字面", () => {
-    const providers = readSrc("app/providers.tsx");
-    const darkLiterals = [
+describe("判定面②：退役色板（C1 暗期+B4 亮期）零复入（三主题定义面）", () => {
+  it("themeModes.ts+providers.tsx 零退役色板字面", () => {
+    // C1 暗期值+B4 亮期值（三主题稿值整体替换退役——复入=漂移）
+    const retiredLiterals = [
+      // C1 暗期（方向 A）
       "#3d8bfd", "#7ab2ff", "#0b1526", "#12213a", "#1a2d4d",
       "#243a5e", "#1b2c49", "#e8eef7", "#9db0c9", "#5d7290",
       "#3ddc97", "#f5b544", "#ff6b6b", "#0a1220", "#d9a94a",
       "#16263f", "#1c2f52", "rgba(130, 170, 246", "rgba(130,170,246",
+      // B4 亮期（工程蓝 AC+分层白——稿青绿操作色整体替换）
+      "#1677ff", "#f5f6f8", "#fafbfc", "#eceff3", "#f0f2f5",
+      "#d6d9de", "#e8eaed", "#1f2329", "#646a73", "#8a93a0",
+      "#2e7d32", "#8a6100", "#b3261e",
     ];
-    const hits = darkLiterals.filter((lit) => providers.includes(lit));
-    expect(hits, `providers 暗值残留：${hits.join(", ")}`).toEqual([]);
+    for (const rel of ["app/themeModes.ts", "app/providers.tsx"]) {
+      const hits = retiredLiterals.filter((lit) => readSrc(rel).includes(lit));
+      expect(hits, `${rel} 退役色板残留：${hits.join(", ")}`).toEqual([]);
+    }
   });
 });
 
-describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命中", () => {
-  it(":root 14 色键=D2 亮值表（逐键冻结锚——v1 转正批：dot-color 键退役 15→14）", () => {
-    const lightAxis: Record<string, string> = {
-      "--wp-bg-page": "#f5f6f8",
-      "--wp-bg-container": "#fafbfc",
-      "--wp-bg-elevated": "#ffffff",
-      "--wp-bg-deep": "#eceff3",
-      "--wp-border": "#d6d9de",
-      "--wp-border-2": "#e8eaed",
-      "--wp-gold": "#8a6100",
-      "--wp-gold-soft": "rgba(138, 97, 0, 0.32)",
-      "--wp-text": "#1f2329",
-      "--wp-text-2": "#646a73",
-      "--wp-text-3": "#8a93a0",
-      "--wp-success": "#2e7d32",
-      "--wp-error": "#b3261e",
-      "--wp-scrollbar-hover": "#c3c9d2",
-    };
-    for (const [key, value] of Object.entries(lightAxis)) {
-      expect(cssVars.get(key), `轴键 ${key} 非亮值`).toBe(value);
+describe("判定面③：global.css 轴自持键逐模冻结+深底/旧轴键零命中", () => {
+  it("轴自持键逐模：gold 恒值+scrollbar-hover 派生三值+soft/canvas/shadow===MODE_COLORS", () => {
+    for (const mode of THEME_MODES) {
+      const vars = cssVars[mode];
+      const c = MODE_COLORS[mode];
+      // gold 族：稿无鎏金（开放问题 5 裁决前恒值——装饰金面单源=本轴）
+      expect(vars.get("--wp-gold"), `${mode} gold`).toBe("#8a6100");
+      expect(vars.get("--wp-gold-soft"), `${mode} gold-soft`).toBe(
+        "rgba(138, 97, 0, 0.32)",
+      );
+      // scrollbar-hover：稿无此键=border 档派生（亮/暖深一档、暗浅一档）
+      const scrollbarHover = {
+        light: "#c3c9d2",
+        warm: "#beb49e",
+        dark: "#4a5751",
+      } as const;
+      expect(vars.get("--wp-scrollbar-hover"), `${mode} scrollbar-hover`).toBe(
+        scrollbarHover[mode],
+      );
+      // 稿自持键（无 antd 槽位）与 JS 色板记录同值
+      expect(vars.get("--wp-accent-soft"), `${mode} accent-soft`).toBe(
+        c.accentSoft.toLowerCase(),
+      );
+      expect(vars.get("--wp-success-soft"), `${mode} success-soft`).toBe(
+        c.successSoft.toLowerCase(),
+      );
+      expect(vars.get("--wp-warning-soft"), `${mode} warning-soft`).toBe(
+        c.warningSoft.toLowerCase(),
+      );
+      expect(vars.get("--wp-error-soft"), `${mode} error-soft`).toBe(
+        c.errorSoft.toLowerCase(),
+      );
+      expect(vars.get("--wp-canvas"), `${mode} canvas`).toBe(
+        c.canvas.toLowerCase(),
+      );
+      expect(vars.get("--wp-shadow"), `${mode} shadow`).toBe(
+        c.shadow.toLowerCase(),
+      );
     }
   });
 
-  it(":root 旧 15 暗值零复入+规则体 D5 字面量零命中", () => {
-    const darkValues = [
-      "#0b1526", "#12213a", "#1a2d4d", "#0a1220", "#243a5e",
-      "#1b2c49", "#d9a94a", "#e8eef7", "#9db0c9", "#5d7290",
-      "#3ddc97", "#ff6b6b", "#2f4d7d", "#1e3153",
-      "rgba(217, 169, 74", "rgba(217,169,74",
-    ];
-    // v1 转正批扩面：legacy 槽条鎏金下划线三停双端+lib-hit 光环双 rgba
-    // （wp-scroll-tabs/wp-lib-hit 段已删——复辟即红）
-    const d5RuleLiterals = [
-      "#b98a35", "#f0cf8a", "rgba(77, 163, 255", "rgba(77,163,255",
-      "#a07300", "#6d4e00",
-      "rgba(22, 119, 255, 0.55)", "rgba(22,119,255,0.55)",
-      "rgba(22, 119, 255, 0.28)", "rgba(22,119,255,0.28)",
-    ];
-    const hits = [...darkValues, ...d5RuleLiterals].filter((lit) =>
-      globalCss.includes(lit),
-    );
-    expect(hits, `global.css 暗值/D5 残留：${hits.join(", ")}`).toEqual([]);
-  });
-
-  it("全文件深底 hex 零命中（背景族声明 RGB 亮度<0.35 判定——注释剥除后）", () => {
-    // 甄别口径（D6③）：深底=background 族声明位的暗 hex（暗面板/暗底
-    // 复辟面）；深字/深墨水值（--wp-text #1f2329、--wp-error、鎏金渐变
-    // 停点等前景/墨色）=亮色正确形态非深底——不入判定（渐变停点=下行
-    // D5 冻结锚另行机器断言）。
+  it("全文件深底 hex 零命中（规则体 background 族声明——注释剥除后；主题块为自定义属性非 background 声明不入判定）", () => {
     const code = stripComments(globalCss);
     const darkHits: string[] = [];
     for (const m of code.matchAll(
       /background(?:-color)?\s*:\s*([^;]*#[0-9a-fA-F]{3,6}[^;]*);/g,
     )) {
       const decl = m[1] ?? "";
-      if (decl.includes("gradient")) continue; // 渐变=墨色面（D5 冻结锚）
+      if (decl.includes("gradient")) continue;
       for (const h of decl.matchAll(/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g)) {
         const lum = rgbLuminance(h[1] ?? "");
         if (lum !== null && lum < 0.35) darkHits.push(`#${h[1]}`);
@@ -189,12 +194,16 @@ describe("判定面③：global.css :root 亮值冻结+暗值/深底 hex 零命�
     expect(darkHits, `深底 hex 残留：${[...new Set(darkHits)].join(", ")}`).toEqual([]);
   });
 
+  it("全 src v4 旧轴键零残留（b1 并轴改名完备性——六键并入 --wp-* 轴；拼接构造防本件自匹配）", () => {
+    const needle = ["--wpv", "4-"].join("");
+    const hits = srcFiles.filter((rel) => readSrc(rel).includes(needle));
+    expect(hits, `旧轴键残留：${hits.join(", ")}`).toEqual([]);
+  });
 });
 
 describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测集+R-G3 派生面）", () => {
   it("各文件旧暗期字面量零残留（含注释——注释面同步改写）", () => {
     const inlineDark: Record<string, string[]> = {
-      "app/themeLinkage.test.ts": ["#0b1526", "#d9a94a", "#ff6b6b"],
       "features/params/components/AssumptionsPanel.tsx": [
         "rgba(27, 44, 73", "rgba(27,44,73", "#8c8c8c",
       ],
@@ -225,12 +234,7 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
     }
   });
 
-  it("R2 暗基 rgb 家族零命中（主控终裁视觉回炉——三族非测试源面零残留）", () => {
-    // 家族=rgba 基 18,33,58 / 11,21,38 / 3,10,22（暗期深底调色基——
-    // 豁免：rgba(0,0,0,·) 纯黑软影非暗基调色；legacy 品牌图形豁免注随
-    // v1 转正批退役——现 App.tsx 无任何 rgba 品牌字面）。needle 拼接构造
-    // 防本件自匹配；扫描面=非测试 .ts/.tsx/.css（注释同计——历史注记须
-    // 改写非存留）。
+  it("R2 暗基 rgb 家族零命中（三族非测试源面零残留）", () => {
     const darkBases = [
       ["18", "33", "58"],
       ["11", "21", "38"],
@@ -259,9 +263,7 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
     expect(gate).toContain("#646a73"); // 前景深字（fallback 同翻）
   });
 
-  it("R3 锚：.wp-gold-edge/.wp-lib-hit/.wp-dotgrid/.ant-tabs.wp-scroll-tabs 段零复入（v1 转正批——legacy CSS 段已删，复辟即红）", () => {
-    // 门二 W1 处置沿革：鎏金收边原为 border-image var(--wp-gold-soft) 全轴
-    // 消费——legacy Header 退役后整段删除，锚由「在场形态」翻「零复入」。
+  it("R3 锚：.wp-gold-edge/.wp-lib-hit/.wp-dotgrid/.wp-scroll-tabs 段零复入", () => {
     for (const legacyClass of ["wp-gold-edge", "wp-lib-hit", "wp-dotgrid"]) {
       expect(
         globalCss.includes(legacyClass),
@@ -273,83 +275,38 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
 });
 
 describe("判定面⑤：系统配色偏好媒体查询零基线", () => {
-  it("src 全域零该媒体查询面（无双主题查询——拼接构造防本件自匹配）", () => {
+  it("src 全域零该媒体查询面（手动三态制——拼接构造防本件自匹配）", () => {
     const needle = ["prefers", "color", "scheme"].join("-");
     const hits = srcFiles.filter((rel) => readSrc(rel).includes(needle));
     expect(hits, `媒体查询残留：${hits.join(", ")}`).toEqual([]);
   });
 });
 
-describe("判定面⑥：色板冻结锚（D1/D3 亮值+域色双轴同值+核心同值对）", () => {
-  it("themeConfig=D1 亮值表（algorithm+seed+components 逐键）+密度冻结值", () => {
-    expect(themeConfig.algorithm).toBe(theme.defaultAlgorithm);
-    const t = themeConfig.token ?? {};
-    expect(t.colorPrimary).toBe("#1677ff");
-    expect(t.colorInfo).toBe("#1677ff");
-    expect(t.colorLink).toBe("#1677ff");
-    expect(t.colorBgLayout).toBe("#f5f6f8");
-    expect(t.colorBgContainer).toBe("#ffffff");
-    expect(t.colorBgElevated).toBe("#ffffff");
-    expect(t.colorBorder).toBe("#d6d9de");
-    expect(t.colorBorderSecondary).toBe("#e8eaed");
-    expect(t.colorText).toBe("#1f2329");
-    expect(t.colorTextSecondary).toBe("#646a73");
-    expect(t.colorTextTertiary).toBe("#8a93a0");
-    expect(t.colorSuccess).toBe("#2e7d32");
-    expect(t.colorWarning).toBe("#8a6100");
-    expect(t.colorError).toBe("#b3261e");
-    const layout = themeConfig.components?.Layout ?? {};
-    expect(layout.headerBg).toBe("#f5f6f8");
-    expect(layout.siderBg).toBe("#fafbfc");
-    expect(layout.bodyBg).toBe("#f5f6f8");
-    const tabs = themeConfig.components?.Tabs ?? {};
-    expect(tabs.inkBarColor).toBe("#1677ff");
-    expect(tabs.itemColor).toBe("#646a73");
-    expect(tabs.itemHoverColor).toBe("#1f2329");
-    expect(tabs.itemActiveColor).toBe("#1f2329");
-    expect(tabs.itemSelectedColor).toBe("#1677ff");
-    const table = themeConfig.components?.Table ?? {};
-    expect(table.headerBg).toBe("#f0f2f5");
-    expect(table.rowHoverBg).toBe("#f0f2f5");
-    expect(table.colorSplit).toBe("#e8eaed");
-    // M1 密度冻结值（B4 仅换色不换密度——任务书 D1 引言）
-    expect(t.borderRadius).toBe(6);
-    expect(t.controlHeight).toBe(28);
-    expect(t.fontSize).toBe(13);
-  });
-
-  it("域色双轴同值：DOMAIN_CSS_VARS=D3 亮值表且===domain_* 键", () => {
-    const lightDomains: Record<string, string> = {
-      "--wp-water": "#1677ff",
-      "--wp-sludge": "#9c6b45",
-      "--wp-mine": "#0e9e88",
-      "--wp-convey": "#6b7a8c",
-    };
-    for (const [key, value] of Object.entries(lightDomains)) {
-      expect(DOMAIN_CSS_VARS[key as keyof typeof DOMAIN_CSS_VARS]).toBe(value);
+describe("判定面⑥：域色三模冻结（b1——稿域色三态入 DOMAIN_COLORS）", () => {
+  it("domainCssVarsFor 逐模===DOMAIN_COLORS 且=设计稿域色三态字面", () => {
+    const draftDomains = {
+      light: { water: "#286b86", sludge: "#7d573e", mine: "#3f7d6a", convey: "#64788a" },
+      warm: { water: "#456a72", sludge: "#765239", mine: "#65775c", convey: "#77766e" },
+      dark: { water: "#78acc0", sludge: "#c09a78", mine: "#83b49c", convey: "#9aabb9" },
+    } as const;
+    for (const mode of THEME_MODES) {
+      const vars = domainCssVarsFor(mode);
+      expect(Object.keys(vars).sort()).toEqual(
+        ["--wp-convey", "--wp-mine", "--wp-sludge", "--wp-water"].sort(),
+      );
+      for (const [key, value] of Object.entries(draftDomains[mode])) {
+        expect(vars[`--wp-${key}` as keyof typeof vars], `${mode} ${key}`).toBe(
+          value,
+        );
+        expect(
+          DOMAIN_COLORS[mode][key as keyof (typeof DOMAIN_COLORS)["light"]],
+          `${mode} DOMAIN_COLORS.${key}`,
+        ).toBe(value);
+      }
     }
-    expect(DOMAIN_CSS_VARS["--wp-water"]).toBe(SEMANTIC_COLORS.domain_water);
-    expect(DOMAIN_CSS_VARS["--wp-sludge"]).toBe(SEMANTIC_COLORS.domain_sludge);
-    expect(DOMAIN_CSS_VARS["--wp-mine"]).toBe(SEMANTIC_COLORS.domain_mine);
-    expect(DOMAIN_CSS_VARS["--wp-convey"]).toBe(SEMANTIC_COLORS.domain_convey);
-    // 管廊派生跟随（D3：pipe_* 随域色单源）
-    expect(SEMANTIC_COLORS.pipe_water).toBe(DOMAIN_CSS_VARS["--wp-water"]);
-    expect(SEMANTIC_COLORS.pipe_sludge).toBe(
-      DOMAIN_CSS_VARS["--wp-sludge"],
-    );
-    expect(SEMANTIC_COLORS.domain_neutral).toBe("#595959");
-  });
-
-  it("核心同值对（CSS 轴↔antd token——themeLinkage 双源契约的锚集）", () => {
-    const t = themeConfig.token ?? {};
-    expect(cssVars.get("--wp-bg-page")).toBe(t.colorBgLayout);
-    expect(cssVars.get("--wp-bg-elevated")).toBe(t.colorBgElevated);
-    expect(cssVars.get("--wp-bg-container")).toBe(
-      themeConfig.components?.Layout?.siderBg,
-    );
-    expect(cssVars.get("--wp-border")).toBe(t.colorBorder);
-    expect(cssVars.get("--wp-text")).toBe(t.colorText);
-    expect(cssVars.get("--wp-success")).toBe(t.colorSuccess);
-    expect(cssVars.get("--wp-error")).toBe(t.colorError);
+    // neutral 三模恒值（稿无中性键——回退灰沿承）
+    for (const mode of THEME_MODES) {
+      expect(DOMAIN_COLORS[mode].neutral).toBe("#595959");
+    }
   });
 });

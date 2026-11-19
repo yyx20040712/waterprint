@@ -334,7 +334,7 @@ export function JointSolutionCards({
                     style={{
                       flex: "none",
                       fontSize: 10,
-                      color: "var(--wpv4-ok)",
+                      color: "var(--wp-success)",
                     }}
                   >
                     ★
@@ -384,7 +384,7 @@ export function JointSolutionCards({
                   border: "1px solid var(--wp-border)",
                   borderRadius: 4,
                   background: "var(--wp-bg-container, #ffffff)",
-                  color: "var(--wpv4-ac)",
+                  color: "var(--wp-accent)",
                   fontSize: 11,
                   padding: "1px 8px",
                   cursor: busy ? "default" : "pointer",

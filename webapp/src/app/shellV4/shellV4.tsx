@@ -1,10 +1,10 @@
 /**
  * v4 应用壳根件（B1 骨架批 2026-10-09——六功能区壳；v1-20261015 转正
- * 批=唯一壳（?ia= 开关退役）：
- * 顶带 zoneBand+zone 体+24px 状态条；亮色基线〔起即亮色——B4 前新样式
- * 按亮色基线写〕经 scoped ConfigProvider light+global.css .wp-v4-root
- * 变量轴覆写双面达成——antd 组件面 light 算法、M1 复用件 var(--wp-*)
- * 消费面 scoped 覆写翻亮）。
+ * 批=唯一壳（?ia= 开关退役）；b1 主题地基批 2026-11-19 三主题化：
+ * 顶带 zoneBand+zone 体+24px 状态条；主题面=scoped ConfigProvider
+ * v4ThemeConfigFor(mode)〔三模色板+antd 面〕+global.css html[data-theme]
+ * 三块〔--wp-* 轴 CSS 面——.wp-v4-root scoped 轴覆写已随并轴删除〕，
+ * 模式真源=shared/store/themeStore）。
  *
  * 输入:  URL ?tab=（zoneParam 两级值域+兼容归一——mount 不改写地址栏）
  *        +?node=（对象选中真相——独立键读写）+?project=（useProjectId 订阅）
@@ -21,9 +21,8 @@
  *     独立互不覆盖——ENG5 D6 双轨形承袭）；?node= 变更不改 zone；
  *   - dock 仅 design 区常驻（其他区收起为状态条内入口——B1 形态=状态条
  *     「任务 ▴」入口切回 design）；
- *   - 亮色面：v4LightTheme（wireframe-d-v4 色板：AC #1677ff+FG-1/2+
- *     BG 分层白+语义色 ok/warn/err 文本值；回炉 R4=components 三族
- *     显式亮值——嵌套 ConfigProvider 组件级 token 继承渗入防线）；
+ *   - 主题面（b1）：v4ThemeConfigFor(mode)（三模色板+密度 12/26；
+ *     回炉 R4 渗入防线语义由构建器 components 三族显式覆写承袭）；
  *     状态条 24px 沿承 M1 位。
  *   - 回炉 R11：V4_ZONE_LABELS 迁 zoneParam.ts（V4Zone 真源同件——
  *     shellV4↔zoneBand 循环 import 断环；zoneBand 改自 zoneParam 取）。
@@ -32,12 +31,13 @@
  *     五区可达；dockBar 设置钮经 onOpenSettings 透传开同一 state）。
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ConfigProvider, theme } from "antd";
-import type { ThemeConfig } from "antd";
+import { ConfigProvider } from "antd";
 
+import { useThemeStore } from "../../shared/store/themeStore";
 import { useProjectId } from "../useProjectId";
 import { useProjectName } from "../useProjectName";
 import { TokenSettingsModal } from "../tokenSettingsModal";
+import { v4ThemeConfigFor } from "../themeModes";
 import {
   initialZoneTarget,
   parseNodeParam,
@@ -54,59 +54,9 @@ import { DraftingZone } from "./draftingZone";
 import { Viewer3dZone } from "./viewer3dZone";
 import { ReportZone } from "./reportZone";
 
-/** v4 亮色主题（wireframe-d-v4 色板——B4 全局亮化前的 v4 局部亮面）。
- *  回炉 R4（VB-1）：components 三族显式亮值——antd 嵌套 ConfigProvider
- *  组件级 token 继承合并，M1 themeConfig（providers.tsx）components.
- *  {Table/Tabs/Layout} 深值会渗入本 scoped 主题（projects 表头暗色根因）
- *  ——三族逐键对账覆写为亮值（Table 表头/悬停/分割、Tabs 墨条与四态、
- *  Layout 三底；M1 Tabs.horizontalItemPadding/Layout.headerHeight 两键
- *  未覆写=v4 面无 Tabs 消费+48=v4 顶带设计值，非渗入面）。 */
-const v4LightTheme: ThemeConfig = {
-  algorithm: theme.defaultAlgorithm,
-  token: {
-    colorPrimary: "#1677ff",
-    colorInfo: "#1677ff",
-    colorLink: "#1677ff",
-    colorBgLayout: "#f5f6f8",
-    colorBgContainer: "#ffffff",
-    colorBgElevated: "#ffffff",
-    colorBorder: "#d6d9de",
-    colorBorderSecondary: "#e8eaed",
-    colorText: "#1f2329",
-    colorTextSecondary: "#646a73",
-    colorTextTertiary: "#8a93a0",
-    colorSuccess: "#2e7d32",
-    colorWarning: "#8a6100",
-    colorError: "#b3261e",
-    borderRadius: 6,
-    controlHeight: 26,
-    fontSize: 12,
-    fontFamily:
-      '"Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif',
-    fontFamilyCode:
-      '"Cascadia Code", "JetBrains Mono", Consolas, monospace',
-  },
-  components: {
-    Table: {
-      headerBg: "#f0f2f5",
-      rowHoverBg: "#f0f2f5",
-      colorSplit: "#e8eaed",
-    },
-    Tabs: {
-      inkBarColor: "#1677ff",
-      itemColor: "#646a73",
-      itemHoverColor: "#1f2329",
-      itemActiveColor: "#1f2329",
-      itemSelectedColor: "#1677ff",
-    },
-    Layout: {
-      headerBg: "#f5f6f8",
-      siderBg: "#fafbfc",
-      bodyBg: "#f5f6f8",
-    },
-  },
-};
-
+/** v4 scoped 主题：b1 主题地基批——v4LightTheme 字面块退役，改
+ *  v4ThemeConfigFor(mode)（app/themeModes——同三模色板+v4 密度 12/26；
+ *  回炉 R4 components 三族显式覆写防渗入语义由构建器承袭）。 */
 /** replaceState 写查询串（他键原序保留——pathname 不动；回炉 R1：hash
  *  拼回补齐〔d1-W1——App.tsx ?token= 引导 G1-03 同口径，原实现切 zone/
  *  写 ?node= 会静默清 hash〕）。 */
@@ -135,6 +85,9 @@ export function ShellV4() {
   // R1-W1：连接设置自愈层（恒挂载——zone 切换不卸载；手动入口经
   // DesignZone→DockBar onOpenSettings 透传，AUTH_EVENT 自愈同 state）
   const { settingsOpen, openSettings, closeSettings } = useSettingsSelfHeal();
+  // b1 三主题：scoped ConfigProvider 按模重建（CSS 轴面=store setMode
+  // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
+  const themeMode = useThemeStore((state) => state.mode);
 
   // 回炉 R16：切项目清陈旧选中（App.tsx D7 同款——URL 面清 ?node= 由
   // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治；
@@ -209,12 +162,15 @@ export function ShellV4() {
   }
 
   return (
-    <ConfigProvider theme={v4LightTheme} button={{ autoInsertSpace: false }}>
+    <ConfigProvider
+      theme={v4ThemeConfigFor(themeMode)}
+      button={{ autoInsertSpace: false }}
+    >
       <div className="wp-v4-root">
         <ZoneBand target={target} onZoneChange={setZone} />
         <div className="wp-v4-body">{body}</div>
         <footer className="wp-v4-statusbar">
-          <span style={{ color: "var(--wpv4-ok)" }}>●</span>
+          <span style={{ color: "var(--wp-success)" }}>●</span>
           <span>已连接</span>
           {/* R1-N3 项目名截断防护：长名省略号+title 全名悬停（短名零影响） */}
           <span

@@ -106,11 +106,11 @@ describe("WarningsPanel 三分区（warning-aggregation.md §3）", () => {
     expect(html).toContain("var(--wp-font-mono)");
   });
 
-  it("severity 徽标语义色 token（ERROR=--wp-error/WARN=--wpv4-warn）+中文徽标", () => {
+  it("severity 徽标语义色 token（ERROR=--wp-error/WARN=--wp-warning）+中文徽标", () => {
     const html = renderToString(<WarningsPanel observation={observation(MIXED)} />);
     const text = textOf(html);
     expect(html).toContain("var(--wp-error)");
-    expect(html).toContain("var(--wpv4-warn)");
+    expect(html).toContain("var(--wp-warning)");
     expect(text).toContain("错误");
     expect(text).toContain("警告");
   });

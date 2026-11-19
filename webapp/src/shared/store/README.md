@@ -1,9 +1,16 @@
 # shared/store —— zustand slices
 
-每 feature 一个 slice 文件（features/*/store/*.ts）。本目录当前无共享件
-（M0.5 期 `persist.ts`/`devtools.ts` 结构预留骨架已于复杂度治理清理批
-2026-09-18 删除——预留功能从未实装且零引用）；未来跨 feature 的 store
-公共工具按「同层晋升准入五条」晋升至此（复杂度治理方案二）。
+每 feature 一个 slice 文件（features/*/store/*.ts）。共享件准入=「同层晋升
+准入五条」（复杂度治理方案二）；b1 主题地基批（2026-11-19）首件晋升：
+主题模式为全应用横切 UI 态（app 壳+providers+后续 features 消费面），
+落位本目录。
+
+## 文件清单
+
+| 文件 | 职责 |
+|------|------|
+| `themeStore.ts` | 三主题模式真源（b1 主题地基批——值域 light/warm/dark 源自已批准设计稿三主题体系）：ThemeMode 类型+THEME_MODES/THEME_MODE_LABELS+isThemeMode；readStoredThemeMode（localStorage `waterprint.theme` 读+值域校验+缺席/非法回退 light——api token 键同款 try/catch 守卫）；applyThemeMode（documentElement data-theme 属性+域色四轴按模重注入——semanticColors installDomainColorAxis(mode)）；useThemeStore（zustand——init 同步读存储零闪烁，setMode=set 状态+写 localStorage+applyThemeMode 三面联动） | b1 主题地基批实装（消费面=app/providers+shellV4/themeSwitch） |
+| `themeStore.test.ts` | 主题 store vitest（jsdom——读存储三态〔缺席 light/合法值/非法回退〕+setMode 三面联动〔状态/localStorage/data-theme+域色轴〕+持久化键冻结） | b1 主题地基批实装（以 vitest 实跑为准） |
 
 ## 规则
 

@@ -156,17 +156,17 @@ export function partitionWarnings(
 }
 
 /** 警告级语义色（EffluentTable 判定徽标/StaleBanner 黄条同款 token：
- *  ERROR=--wp-error+浅红底/WARN=--wpv4-warn+黄底/INFO=次级灰）。 */
+ *  ERROR=--wp-error+浅红底/WARN=--wp-warning+黄底/INFO=次级灰）。 */
 export function severityTone(
   severity: WarningSeverity,
 ): { color: string; background: string } {
   if (severity === "ERROR") {
-    return { color: "var(--wp-error)", background: "#fdeceb" };
+    return { color: "var(--wp-error)", background: "var(--wp-error-soft)" };
   }
   if (severity === "WARN") {
     return {
-      color: "var(--wpv4-warn)",
-      background: "var(--wpv4-warn-bg, rgba(138, 97, 0, 0.08))",
+      color: "var(--wp-warning)",
+      background: "var(--wp-warning-soft, rgba(138, 97, 0, 0.08))",
     };
   }
   return { color: "var(--wp-text-2)", background: "transparent" };

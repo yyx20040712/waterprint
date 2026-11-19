@@ -1,13 +1,15 @@
 /**
- * 全局样式底座（C1 主题骨架——全库首个 CSS 文件；此前纯 inline style）。
+ * 全局样式底座（C1 主题骨架——全库首个 CSS 文件；b1 主题地基批
+ * 2026-11-19 三主题化：值=已批准设计稿 .zcode/dev-troupe/frontend-
+ * redesign/index.html 三主题色板）。
  *
  * 职责: body 底色/字体栈/document 滚动根除（需求①骨架面）+WebKit 滚动条
- *       +项目色变量轴（鎏金/水线/泥线——antd 无对应 token 槽位的自建轴；
- *       其余同值色与 providers token 双源联动——见变量轴节契约）
+ *       +项目色变量轴三主题块（--wp-*——antd 无对应 token 槽位的自建轴；
+ *       其余同值色与 providers 侧 antd token 双源联动——见变量轴节契约）
  *       +wp-full-bleed 满铺回收工具类（siteplanPane 消费）+v4 壳样式段
- *       （.wp-v4-root scoped——回炉 R1 头注勘正：legacy Tabs 定制段/画布
- *       点阵工具类/pane 令牌已随 v1 转正批删除）。
- * 输入: 无（静态样式；色值=方向 A 视觉稿冻结值——.workflow/c1-design）
+ *       （.wp-v4-root scoped——b1：scoped 轴覆写删除〔并入 :root 三态〕，
+ *       布局属性保留）+主题切换器样式段（.wp-theme-switch）
+ * 输入: 无（静态样式；色值=已批准设计稿三主题冻结值）
  * 输出: 全局样式（main.tsx 引入一次；组件层经 var(--wp-*) 消费变量轴）
  *
  * 规格（task-C1-plan.md §3b；check_webapp/file_budgets 均不扫 .css——
@@ -15,77 +17,138 @@
  *   - html/body/#root 高度链 100%——document 级滚动根除，滚动域下放
  *     Tabs 内容层（.ant-tabs 结构微调）与 Sider 自滚；
  *   - 变量轴命名 --wp-*（waterprint 项目色）——与 antd v6 cssVar 的
- *     --ant-* 命名空间不冲突；鎏金限品牌点缀（选中描边/收边线），
- *     水线/泥线=连线语义色（二期画布重制消费面）；
+ *     --ant-* 命名空间不冲突；
+ *   - 三主题机制：html data-theme 属性作用域（light=：root 基线缺省，
+ *     warm/dark=html[data-theme] 覆写块——特异性 (0,1,1)>(0,1,0) 天然
+ *     有序；属性由 shared/store/themeStore applyThemeMode 写入，切换
+ *     即时生效零重载）；护眼=亮算法+暖 token 覆盖、夜间=暗算法
+ *     （antd 面同模映射=app/themeModes）；
  *   - Tabs 滚动域：.ant-tabs 高 100% flex 化+content-holder 滚动——
  *     antd v6 DOM 类名沿 v5（nav/content-holder 两级）；
- *   - 滚动条：WebKit 细滚动条（深色系）；Firefox 用 scrollbar-width
- *     窄版兜底（细样式不苛求）。
+ *   - 滚动条：WebKit 细滚动条；Firefox 用 scrollbar-width 窄版兜底
+ *     （细样式不苛求）。
  */
 
-/* ── 项目色变量轴（单一真相源——A2-N-01 R 轮双源联动契约）──
- * 本轴与 providers.tsx antd token 存在同值双源（antd cssVar 变量挂组件
- * 作用域非 :root——R 轮实测零命中，跨组件消费不可走 --ant-*，故轴
- * 保留）。改色红线=双处联动（R 轮 A2-N-01 收口契约）：
- *   --wp-bg-page   ↔ providers colorBgLayout
- *   --wp-bg-container ↔ providers components.Layout.siderBg（B4 起
- *     colorBgContainer 升 BG-2 白——轴键仍 BG-1 面板底，对行收窄 siderBg 单侧）
- *   --wp-bg-elevated ↔ providers colorBgElevated（+components.Layout 无）
- *   --wp-bg-deep    ↔ 轴自持键（B4 起 headerBg 升页面底——轴自持无 tsx
- *     消费方，themeLinkage 轴自持键在册〔v1 转正批勘注：原唯一消费面
- *     statusBar 已随 legacy 退役〕，token 侧无对行）
- *   --wp-border    ↔ providers colorBorder
- *   --wp-border-2  ↔ providers colorBorderSecondary
- *   --wp-text/2/3  ↔ providers colorText/Secondary/Tertiary
- *   --wp-success   ↔ providers colorSuccess
- *   --wp-font-mono ↔ providers fontFamilyCode
- * （2A5 机检化：本清单同值对经 app/themeLinkage.test.ts 断言——改色漏改任一侧即红）
- * 以下为 antd 无槽位色，分两族（批6n UF-53 双轴归一后口径）：gold=
- * 轴真源字面量（本文件唯一自持真源色——scrollbar-hover 单键零消费
- * 方字面量同族）；water/sludge/mine/convey=域色四轴——:root
- * 字面量已退役，启动期经 semanticColors.installDomainColorAxis() 自
- * DOMAIN_COLORS 注入（真源=webapp/src/shared/ui/semanticColors.ts，
- * providers.tsx 模块装载期调用；CSS var() 消费面照常，双轴同值机器断言=
- * semanticColors.test 冻结锚 CSS 侧）。
- * C2-canvas 批（R-G3 联动清单——GC-02/03 处置，R2-4 拆两段）：
- * ①四域色同值面：water/sludge/mine/convey 与 unitGlyph.ts
- * （domainColorOf/streamColorOf——SVG 面技术根因 var() 不可用）+
- * CanvasFlow LEGEND_LINES 同值多源，改色红线=N 处联动（unitGlyph
- * 主源为比对基准）〔批6n UF-53 双轴归一后修订：同值多源已单源化=
- * semanticColors.ts DOMAIN_COLORS——JS 面 domain_* 键与 CSS 轴启动期
- * 注入同源（见下「antd 无槽位色」注），改色=改 DOMAIN_COLORS 一处〕；
- * ②同族派生面（非同值）：UnitNode SELECT_* 鎏金
- * 派生组[基准=--wp-gold]与 DOMAIN_ICON_STYLES 图标底/边/前景派生组
- * [基准=四域色]——改基准色须同步复核派生组（派生字面量=R-G3 人工
- * 联动面，批6n 范围外维持）。
- * 已删（A2-N-06 死变量清理）：--wp-bg-panel/--wp-bg-hover（零消费+
- * hover 值与 Table.rowHoverBg 漂移——rowHoverBg 唯一真相在 providers）。 */
+/* ── 项目色变量轴（单一真相源——A2-N-01 R 轮双源联动契约；b1 三态扩面）
+ * 本轴与 providers 侧 antd token（app/themeModes globalThemeConfigFor
+ * 按模构建）存在同值双源（antd cssVar 变量挂组件作用域非 :root——R 轮
+ * 实测零命中，跨组件消费不可走 --ant-*，故轴保留）。改色红线=双处
+ * 联动（三模任一漏改即红）：
+ *   --wp-bg-page     ↔ providers colorBgLayout（+Layout.headerBg/bodyBg——稿 bg）
+ *   --wp-bg-container ↔ providers components.Layout.siderBg（稿 surface）
+ *   --wp-bg-elevated ↔ providers colorBgContainer/colorBgElevated（稿 paper 阅读面）
+ *   --wp-bg-deep     ↔ providers components.Table.headerBg/rowHoverBg（稿 surface-2）
+ *   --wp-border      ↔ providers colorBorder（稿 line）
+ *   --wp-border-2    ↔ providers colorBorderSecondary（+Table.colorSplit——稿 line-soft）
+ *   --wp-text/2/3    ↔ providers colorText/Secondary/Tertiary（稿 ink/muted/faint）
+ *   --wp-accent      ↔ providers colorPrimary/Info/Link（+Tabs inkBar/itemSelected——稿 accent）
+ *   --wp-success     ↔ providers colorSuccess（稿 ok）
+ *   --wp-warning     ↔ providers colorWarning（稿 warn）
+ *   --wp-error       ↔ providers colorError（稿 error）
+ *   --wp-font-mono   ↔ providers fontFamilyCode
+ * （b1 机检化：本清单同值对经 app/themeLinkage.test 三态断言——改色漏改
+ * 任一侧任一模即红）
+ * 以下为 antd 无槽位色，轴自持三态（不入对表——本头注口径）：
+ *   --wp-accent-soft/--wp-success-soft/--wp-warning-soft/--wp-error-soft
+ *   （稿 *-soft 四键——徽标/悬停/警示软底消费面）；--wp-canvas（稿
+ *   canvas 画布底）；--wp-shadow（稿 shadow 浮层软影）。gold 族：稿无
+ *   鎏金（开放问题 5
+ *   裁决前）→三模恒值轴自持（装饰金面单源=本轴，消费面=画布选中族）；
+ *   --wp-scrollbar-hover：稿无此键=border 档派生（亮/暖深一档、暗浅一档
+ *   ——派生非稿值，冻结锚=lightBaseline.test）。
+ * 域色四轴（--wp-water/sludge/mine/convey）：三模值=semanticColors
+ * DOMAIN_COLORS 按模记录，启动期+切换期经 themeStore.applyThemeMode→
+ * installDomainColorAxis(mode) 注入（真源=webapp/src/shared/ui/
+ * semanticColors.ts；CSS 面不得在此声明字面量——inline 恒压防静默遮蔽）。
+ * 已删（b1 并轴改名）：v4 scoped 轴六键（ac/ac-bg/ok/ok-bg/warn/
+ * warn-bg）并入 --wp-accent/accent-soft/success/success-soft/warning/
+ * warning-soft（v4 scoped 轴与全局轴双轨归一）；.wp-v4-root scoped 轴
+ * 覆写块删除（B4 期「双定义同值无害」注记的 B7 清点兑现——scoped 声明
+ * 会继承遮蔽 html 级主题值，三主题下必钉死换肤）。 */
 :root {
-  /* B4 亮色基线（2026-10-09——plan §三分层白色板；值=.wp-v4-root 块
-   * 同值提升：暗期方向 A 值整体退役，scoped 块保留不动〔双定义同值无害，
-   * B7 清点批统一处置〕；scrollbar-hover/gold-soft 两键 v4 块未覆写
-   * =B4 新定值；dot-color 键已随 v1 转正批退役）。 */
-  --wp-bg-page: #f5f6f8;
-  --wp-bg-container: #fafbfc;
-  --wp-bg-elevated: #ffffff;
-  --wp-bg-deep: #eceff3;
-  --wp-border: #d6d9de;
-  --wp-border-2: #e8eaed;
+  /* b1 亮档（正常模式——设计稿 :root 块） */
+  color-scheme: light;
+  --wp-bg-page: #f2f5f3;
+  --wp-bg-container: #fafcfa;
+  --wp-bg-elevated: #fdfefc;
+  --wp-bg-deep: #f5f7f5;
+  --wp-border: #d4dcd7;
+  --wp-border-2: #e5eae6;
+  --wp-accent: #246b63;
+  --wp-accent-soft: #e2eeea;
+  --wp-text: #202826;
+  --wp-text-2: #5c6965;
+  --wp-text-3: #65716b;
+  --wp-success: #2f7151;
+  --wp-success-soft: #e4efe7;
+  --wp-warning: #87600f;
+  --wp-warning-soft: #f4ecd9;
+  --wp-error: #a3453d;
+  --wp-error-soft: #f5e6e3;
+  --wp-canvas: #edf2f0;
+  --wp-shadow: rgba(39, 55, 49, 0.08);
+  /* gold 族三模恒值（稿无鎏金——开放问题 5 裁决前维持） */
   --wp-gold: #8a6100;
   --wp-gold-soft: rgba(138, 97, 0, 0.32);
-  /* 域色四轴（--wp-water/sludge/mine/convey）:root 字面量已
-   * 退役（批6n UF-53 双轴归一）——启动期经 semanticColors.
-   * installDomainColorAxis() 注入（真源=DOMAIN_COLORS，providers.tsx
-   * 模块装载期调用先于首帧；CSS 消费面 var(--wp-water) 等照常取值）。 */
-  --wp-text: #1f2329;
-  --wp-text-2: #646a73;
-  --wp-text-3: #8a93a0;
-  --wp-success: #2e7d32;
-  /* C2-ALIGN R 轮（AL-02）：错误色入轴——与 providers colorError 同值
-   * 双源（A2-N-01 联动清单扩行：--wp-error ↔ providers colorError）；
-   * 消费面=AssumptionsPanel/ParamForm 页脚错误行。 */
-  --wp-error: #b3261e;
   --wp-scrollbar-hover: #c3c9d2;
+  --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+}
+
+/* b1 暖档（护眼模式——设计稿 html[data-theme="warm"] 块：低饱和羊皮纸
+ * 底+灰绿文字；亮算法+暖 token 覆盖〔antd 面 themeModes 同模映射〕） */
+html[data-theme="warm"] {
+  color-scheme: light;
+  --wp-bg-page: #eee9dd;
+  --wp-bg-container: #f7f2e7;
+  --wp-bg-elevated: #fbf7ee;
+  --wp-bg-deep: #f1ebdf;
+  --wp-border: #d7cebc;
+  --wp-border-2: #e6ddcc;
+  --wp-accent: #76613d;
+  --wp-accent-soft: #eae0cd;
+  --wp-text: #302f29;
+  --wp-text-2: #666459;
+  --wp-text-3: #6b675b;
+  --wp-success: #52704c;
+  --wp-success-soft: #e7eadb;
+  --wp-warning: #765214;
+  --wp-warning-soft: #eee2c8;
+  --wp-error: #8b493e;
+  --wp-error-soft: #eee0d7;
+  --wp-canvas: #eae3d5;
+  --wp-shadow: rgba(74, 61, 39, 0.08);
+  --wp-gold: #8a6100;
+  --wp-gold-soft: rgba(138, 97, 0, 0.32);
+  --wp-scrollbar-hover: #beb49e;
+  --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+}
+
+/* b1 暗档（夜间模式——设计稿 html[data-theme="dark"] 块：非纯黑绿黑
+ * 底+浅字；antd 面=dark algorithm〔themeModes 同模映射〕） */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --wp-bg-page: #161b1a;
+  --wp-bg-container: #1e2423;
+  --wp-bg-elevated: #242b29;
+  --wp-bg-deep: #1a201f;
+  --wp-border: #39433f;
+  --wp-border-2: #2c3532;
+  --wp-accent: #7bb9ac;
+  --wp-accent-soft: #263c36;
+  --wp-text: #e3e9e6;
+  --wp-text-2: #aab6b1;
+  --wp-text-3: #8b9892;
+  --wp-success: #88bb96;
+  --wp-success-soft: #24382b;
+  --wp-warning: #d2ae6b;
+  --wp-warning-soft: #3b3323;
+  --wp-error: #df9289;
+  --wp-error-soft: #402b29;
+  --wp-canvas: #131817;
+  --wp-shadow: rgba(0, 0, 0, 0.18);
+  --wp-gold: #8a6100;
+  --wp-gold-soft: rgba(138, 97, 0, 0.32);
+  --wp-scrollbar-hover: #4a5751;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
@@ -108,7 +171,7 @@ body {
   scrollbar-color: var(--wp-border) transparent;
 }
 
-/* ── WebKit 细滚动条（亮色工程系——B4）── */
+/* ── WebKit 细滚动条（三主题随轴换肤）── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -126,10 +189,8 @@ body {
   background: transparent;
 }
 
-/* v1-20261015 转正批：legacy 槽条 Tabs 定制段（nav 面板蓝/鎏金下划线/
- * 满高链/gutter 内距——类名=wp-scroll 与 -tabs 拼接，锚面禁裸串）随
- * legacy 壳退役删除——v4 各 zone 自管滚动与内距；wp-full-bleed 保留
- * （siteplanPane 满铺回收消费面在位）。 */
+/* v1-20261015 转正批：legacy 槽条 Tabs 定制段随 legacy 壳退役删除；
+ * wp-full-bleed 保留（siteplanPane 满铺回收消费面在位）。 */
 /* 满铺回收：margin 逆收水平+垂直，height 补回内距双倍（content 的
  * height:100% 系 border-box 含内距——子元素 100% 只得净高，须 calc
  * 补偿才与 content 盒同高，否则底部短 24px）。 */
@@ -139,36 +200,13 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════════
- * v4 壳样式段（B1 骨架批 2026-10-09——?ia=v4 特性开关下六功能区壳；
- * wireframe-d-v4 亮色基线：纸面工程白+分层白）。作用域=.wp-v4-root
- * 类（非 :root——:root 块被 themeLinkage/domainColorAxis 测试逐字守卫
- * ，scoped 覆写不触守卫面；域色四轴 water/sludge/mine/convey 保持
- * 启动期注入值〔B4 前域色亮底复核挂账〕）。
- * 消费变量轴覆写：M1 复用件（ParamForm/AssumptionsPanel/ChatPanel/
- * DrawingsPane/SiteplanPane 等）经 var(--wp-*) 消费——v4 作用域内
- * 覆写为亮值即整体翻亮（B4 全局亮化前的 v4 局部亮色面）。
+ * v4 壳样式段（B1 骨架批 2026-10-09；b1 主题地基批 2026-11-19 三主题
+ * 化：scoped 变量轴覆写块删除（轴归 :root/html[data-theme] 三块——
+ * scoped 声明继承遮蔽 html 级主题值故必删）；规则体色字面量全数
+ * 并轴 var() 化（纸面/悬停/选中/浮层/软影——三主题即时换肤）。
  * 忌加粗全局（plan §九.7）：UA 默认 th/strong/h* 复位 400。
  * ════════════════════════════════════════════════════════════════ */
 .wp-v4-root {
-  /* 亮色变量轴覆写（wireframe-d-v4 色板：BG-0~4/FG-1/2/BD-1/2/AC） */
-  --wp-bg-page: #f5f6f8;
-  --wp-bg-container: #fafbfc;
-  --wp-bg-elevated: #ffffff;
-  --wp-bg-deep: #eceff3;
-  --wp-border: #d6d9de;
-  --wp-border-2: #e8eaed;
-  --wp-text: #1f2329;
-  --wp-text-2: #646a73;
-  --wp-text-3: #8a93a0;
-  --wp-success: #2e7d32;
-  --wp-error: #b3261e;
-  --wp-gold: #8a6100;
-  --wpv4-ac: #1677ff;
-  --wpv4-ac-bg: #eaf1fb;
-  --wpv4-ok: #2e7d32;
-  --wpv4-ok-bg: #e8f5e9;
-  --wpv4-warn: #8a6100;
-  --wpv4-warn-bg: #fdf3d7;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -215,11 +253,11 @@ body {
   cursor: pointer;
 }
 .wp-v4-mod:hover {
-  background: #f0f2f5;
+  background: var(--wp-bg-deep);
 }
 .wp-v4-mod.on {
-  background: #ffffff;
-  color: var(--wpv4-ac);
+  background: var(--wp-bg-elevated);
+  color: var(--wp-accent);
   border-color: var(--wp-border-2);
 }
 .wp-v4-tools {
@@ -282,7 +320,7 @@ body {
 }
 .wp-v4-drag:hover,
 .wp-v4-drag.active {
-  background: var(--wpv4-ac-bg);
+  background: var(--wp-accent-soft);
 }
 .wp-v4-left .wp-v4-drag {
   right: -4px;
@@ -290,9 +328,10 @@ body {
 .wp-v4-right .wp-v4-drag {
   left: -4px;
 }
-/* v2 笔2：侧栏拖宽（drafting 左树/report 导航 aside——沿 .wp-v4-left 同款两规则）；
-   V4 P6：柄改缘内 right:0（原 -4px 外溢——aside overflow:auto 下 4px 涨
-   scrollWidth 横滚面；柄热区仍在缘，拖拽手感零变更） */
+/* v2 笔2：侧栏拖宽（drafting 左树/report 导航 aside——沿 .wp-v4-left
+   同款两规则）；V4 P6：柄改缘内 right:0（原 -4px 外溢——aside
+   overflow:auto 下 4px 涨 scrollWidth 横滚面；柄热区仍在缘，拖拽
+   手感零变更） */
 .wp-v4-sider {
   position: relative;
 }
@@ -307,7 +346,7 @@ body {
   margin: 8px;
   padding: 2px;
   border-radius: 5px;
-  background: #f0f2f5;
+  background: var(--wp-bg-deep);
   flex: none;
 }
 .wp-v4-ptab {
@@ -322,8 +361,8 @@ body {
   cursor: pointer;
 }
 .wp-v4-ptab.on {
-  background: #ffffff;
-  color: var(--wpv4-ac);
+  background: var(--wp-bg-elevated);
+  color: var(--wp-accent);
 }
 .wp-v4-pbody {
   flex: 1;
@@ -333,7 +372,7 @@ body {
 }
 .wp-v4-sec {
   margin: 8px 0;
-  background: #ffffff;
+  background: var(--wp-bg-elevated);
   border: 1px solid var(--wp-border-2);
   border-radius: 6px;
   padding: 8px;
@@ -375,14 +414,14 @@ body {
   cursor: pointer;
 }
 .wp-v4-vt.on {
-  background: #ffffff;
-  color: var(--wpv4-ac);
+  background: var(--wp-bg-elevated);
+  color: var(--wp-accent);
 }
 .wp-v4-canvas {
   flex: 1;
   min-height: 0;
   margin: 0 8px;
-  background: #ffffff;
+  background: var(--wp-canvas);
   border: 1px solid var(--wp-border-2);
   border-radius: 0 6px 6px 6px;
   position: relative;
@@ -435,8 +474,8 @@ body {
   font-size: 11px;
 }
 
-/* 分析表只读表格（B2 结果与方案批——wireframe 屏 3 .rt 形；亮色面：
-   表头浅底+细分割+数字右对齐由 td 内联承载） */
+/* 分析表只读表格（B2 结果与方案批——wireframe 屏 3 .rt 形；表头浅底+
+   细分割+数字右对齐由 td 内联承载） */
 .wp-v4-rt {
   width: 100%;
   border-collapse: collapse;
@@ -450,7 +489,7 @@ body {
   font-weight: 400; /* 忌加粗全局——UA 表头粗体复位 */
 }
 .wp-v4-rt th {
-  background: #f0f2f5;
+  background: var(--wp-bg-deep);
   color: var(--wp-text-2);
 }
 
@@ -459,10 +498,10 @@ body {
   position: fixed;
   z-index: 1200;
   display: flex;
-  background: #ffffff;
+  background: var(--wp-bg-elevated);
   border: 1px solid var(--wp-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 4px 16px var(--wp-shadow);
 }
 .wp-v4-m1,
 .wp-v4-m2 {
@@ -493,14 +532,14 @@ body {
 }
 .wp-v4-m1 li:hover,
 .wp-v4-m2 li:hover {
-  background: #f0f2f5;
+  background: var(--wp-bg-deep);
 }
 .wp-v4-m2 li:hover {
   color: var(--wp-text);
 }
 .wp-v4-m1 li.on {
-  background: var(--wpv4-ac-bg);
-  color: var(--wpv4-ac);
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
 }
 
 /* 缩略图节点（v4 画布节点形态） */
@@ -520,9 +559,9 @@ body {
   color: var(--wp-text);
 }
 .wp-v4-node.selected .wp-v4-thumb {
-  border-color: var(--wpv4-ac);
-  box-shadow: 0 0 0 3px var(--wpv4-ac-bg);
-  color: var(--wpv4-ac);
+  border-color: var(--wp-accent);
+  box-shadow: 0 0 0 3px var(--wp-accent-soft);
+  color: var(--wp-accent);
 }
 .wp-v4-cap {
   font-size: 11px;
@@ -559,7 +598,7 @@ body {
   padding: 0;
 }
 .wp-v4-statusbar button:hover {
-  color: var(--wpv4-ac);
+  color: var(--wp-accent);
 }
 
 /* 占位区（管网未实装——诚实说明面） */
@@ -581,7 +620,7 @@ body {
   overflow: auto;
   margin: 8px;
   padding: 12px;
-  background: #ffffff;
+  background: var(--wp-bg-elevated);
   border: 1px solid var(--wp-border-2);
   border-radius: 6px;
   display: flex;
@@ -621,7 +660,7 @@ body {
   background: var(--wp-bg-elevated);
   border: 1px solid var(--wp-border-2);
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(31, 35, 41, 0.12);
+  box-shadow: 0 2px 10px var(--wp-shadow);
   z-index: 8;
 }
 .wp-v4-view-tools button {
@@ -637,6 +676,49 @@ body {
   cursor: pointer;
 }
 .wp-v4-view-tools button:hover {
-  background: var(--wpv4-ac-bg);
-  color: var(--wpv4-ac);
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+
+/* 主题切换器（b1 主题地基批——三钮组；形态=设计稿 .theme-switch：
+ * 分段容器+示意 chip+文字标签；消费 --wp-* 轴自换肤〔夜间下容器随
+ * 暗档轴〕；chip 三恒值=各模底色示意〔组件 inline 承载〕） */
+.wp-theme-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  margin-left: 8px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  background: var(--wp-bg-deep);
+}
+.wp-theme-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wp-theme-opt:hover {
+  color: var(--wp-text);
+}
+.wp-theme-opt.on {
+  background: var(--wp-bg-elevated);
+  color: var(--wp-accent);
+  box-shadow: 0 1px 3px var(--wp-shadow);
+  font-weight: 600;
+}
+.wp-theme-chip {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border: 1px solid var(--wp-border);
+  border-radius: 2px;
 }

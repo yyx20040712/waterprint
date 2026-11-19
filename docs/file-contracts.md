@@ -304,8 +304,11 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 - 逐文件职责见 `webapp/src/app/README.md` 与各 feature/shared README 的
   文件清单（M0.5 已全部落地为规格骨架）；硬规则（≤500 行、类型单源）
   另由行数门禁与 CI 构建强制；
-- **样式底座（C1 2026-09-10）**：`webapp/src/app/global.css` 为全库唯一
-  全局 CSS（变量轴 `--wp-*`+滚动骨架+滚动条——职责登记在 app/README）；
+- **样式底座（C1 2026-09-10；b1 主题地基批 2026-11-19 三主题化）**：
+  `webapp/src/app/global.css` 为全库唯一全局 CSS（变量轴 `--wp-*` 三主题
+  块——`:root`=正常·亮色基线+`html[data-theme="warm"/"dark"]` 护眼/夜间
+  覆写+滚动骨架+滚动条——职责登记在 app/README；模式真源=
+  `webapp/src/shared/store/themeStore.ts`，antd 配置面=app/themeModes）；
   .css 不入契约头/行数门禁扫描面（check_webapp/check_file_budgets 均只
   扫 .ts/.tsx/.py/.md）——新 CSS 文件的准入判据=GR-39 变量轴纪律+app
   清单登记，禁止绕过 token/变量轴另起散写样式面。

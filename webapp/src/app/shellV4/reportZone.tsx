@@ -165,8 +165,8 @@ function StaleBanner({ projectId }: { projectId: string }) {
         alignItems: "center",
         gap: 10,
         fontSize: 11,
-        color: "var(--wpv4-warn)",
-        background: "var(--wpv4-warn-bg, rgba(138, 97, 0, 0.08))",
+        color: "var(--wp-warning)",
+        background: "var(--wp-warning-soft, rgba(138, 97, 0, 0.08))",
         border: "1px solid var(--wp-border-2)",
         borderRadius: 6,
         padding: "4px 10px",
@@ -195,7 +195,7 @@ function StaleBanner({ projectId }: { projectId: string }) {
           border: "1px solid var(--wp-border)",
           borderRadius: 4,
           background: "var(--wp-bg-container, #ffffff)",
-          color: "var(--wpv4-ac)",
+          color: "var(--wp-accent)",
           fontSize: 11,
           padding: "1px 8px",
           cursor: run.isPending ? "default" : "pointer",
@@ -275,9 +275,9 @@ function ExportContextRow({ projectId }: { projectId: string }) {
               ? {
                   // V3 D3：主钮主色化（AC 底+白字+同色描边——三键等权灰描边
                   // 的对症=建立主次；audit/PDF 两钮保持现状）
-                  border: "1px solid var(--wpv4-ac)",
+                  border: "1px solid var(--wp-accent)",
                   borderRadius: 4,
-                  background: "var(--wpv4-ac)",
+                  background: "var(--wp-accent)",
                   color: "#ffffff",
                   fontSize: 11,
                   padding: "1px 8px",
@@ -394,7 +394,7 @@ function ReportFace({ projectId }: { projectId: string }) {
               fontSize: section.level === 1 ? 12 : 11, // 字号归一三档（章 12/小节 11）
               color:
                 selectedId === section.id
-                  ? "var(--wpv4-ac)"
+                  ? "var(--wp-accent)"
                   : section.level === 1
                     ? "var(--wp-text)"
                     : "var(--wp-text-2)",

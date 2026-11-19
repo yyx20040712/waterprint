@@ -5,9 +5,10 @@
  * 输入:  语义 token 字符串（渲染描述/组件携带的 semantic 键）
  * 输出:  SEMANTIC_COLORS（34 键字面表——B3-b 增 domain_* 五键）+
  *        FALLBACK_COLOR（未登记兜底灰阶）+semanticColor()（查表函数
- *        ——未登记语义回退兜底，禁抛错打断渲染）+DOMAIN_CSS_VARS/
- *        installDomainColorAxis()（批6n UF-53 双轴归一——域色 CSS 变量
- *        轴注入面，providers.tsx 组合根模块装载期调用一次）
+ *        ——未登记语义回退兜底，禁抛错打断渲染）+DOMAIN_COLORS/
+ *        domainCssVarsFor(mode)/installDomainColorAxis(mode)（批6n UF-53
+ *        双轴归一+b1 三模化——域色 CSS 变量轴按模注入面，经
+ *        shared/store/themeStore applyThemeMode 调用：装载期+切换期）
  *
  * 迁移口径（SC1 D1/D2）：3D 图元色族 12 键自 PoolBox 本地表迁移、
  * 2D 场面色族 7 键自 SiteRoutes/SiteBoundary/SiteCanvas 平行拷贝收编、
@@ -28,40 +29,67 @@
  * 根因面零改动（本就消费 JS 键）；双轴同值机器断言=semanticColors.test
  * 冻结锚扩 CSS 侧。
  */
+import type { ThemeMode } from "../store/themeStore";
+
 /** 四域色+中性（域色唯一真源——批6n 双轴归一后 CSS 轴四键经
- * installDomainColorAxis() 自本表注入〔neutral=JS 面键不入轴——零
- * var() 消费方〕；改色=改本表一处两轴同步）。
- * B4 亮底重定值（2026-10-09 任务书 D3）：water/mine/convey 亮底
- * 提对比（白底 4.10/3.35/4.39:1 图形级≥3 达标——正文禁用同 AC 纪律）；
- * sludge/neutral 保持（白底 4.56/7.00:1 既达标）。 */
-const DOMAIN_COLORS = {
-  water: "#1677ff", // 市政水线（municipal）
-  sludge: "#9c6b45", // 污泥线
-  mine: "#0e9e88", // 矿井水线
-  convey: "#6b7a8c", // 输配水线
-  neutral: "#595959", // 未收录/清单未达回退灰
-} as const;
+ * installDomainColorAxis(mode) 自本表按模注入〔neutral=JS 面键不入轴
+ * ——零 var() 消费方〕；改色=改本表一处两轴同步）。
+ * b1 主题地基批（2026-11-19）：扩三模记录——值=已批准设计稿域色三态
+ * （稿口径「水线与泥线始终可区分」——暗色提亮/暖色降饱和各自校准；
+ * 稿无 neutral 键→回退灰三模恒值）。JS 面 domain_* 键冻结 light 档
+ * 〔SVG/Canvas 属性面不能 var() 且不随 store 重渲染——三态随画布
+ * 重涂批接管〕。 */
+export const DOMAIN_COLORS = {
+  light: {
+    water: "#286b86", // 市政水线（municipal）
+    sludge: "#7d573e", // 污泥线
+    mine: "#3f7d6a", // 矿井水线
+    convey: "#64788a", // 输配水线
+    neutral: "#595959", // 未收录/清单未达回退灰
+  },
+  warm: {
+    water: "#456a72",
+    sludge: "#765239",
+    mine: "#65775c",
+    convey: "#77766e",
+    neutral: "#595959",
+  },
+  dark: {
+    water: "#78acc0",
+    sludge: "#c09a78",
+    mine: "#83b49c",
+    convey: "#9aabb9",
+    neutral: "#595959",
+  },
+} as const satisfies Record<ThemeMode, Record<string, string>>;
 
-/** 域色 CSS 变量轴注入映射（批6n UF-53——`--wp-<域>` 键自 DOMAIN_COLORS
- * 单源派生；global.css :root 域色字面量已退役，CSS 消费面 var(--wp-*)
- * 经启动期注入取值。键集=实际 CSS 消费面四键〔水/泥/矿/输配〕——
- * neutral 零 var() 消费方不入轴〔A2-N-06 死变量纪律——门一回炉双席
- * W 共指处置〕；键集冻结锚=semanticColors.test；as const satisfies=
- * 键名字面量类型校验〔d1-N2〕）。 */
-export const DOMAIN_CSS_VARS = {
-  "--wp-water": DOMAIN_COLORS.water,
-  "--wp-sludge": DOMAIN_COLORS.sludge,
-  "--wp-mine": DOMAIN_COLORS.mine,
-  "--wp-convey": DOMAIN_COLORS.convey,
-} as const satisfies Readonly<Record<string, string>>;
+/** 域色 CSS 变量轴注入映射（批6n UF-53——`--wp-<域>` 键自
+ * DOMAIN_COLORS[mode] 单源派生；global.css :root 域色字面量已退役，
+ * CSS 消费面 var(--wp-*) 经注入取值。键集=实际 CSS 消费面四键〔水/泥/
+ * 矿/输配〕——neutral 零 var() 消费方不入轴〔A2-N-06 死变量纪律——
+ * 门一回炉双席 W 共指处置〕；键集冻结锚=semanticColors.test。 */
+export const domainCssVarsFor = (
+  mode: ThemeMode,
+): {
+  "--wp-water": string;
+  "--wp-sludge": string;
+  "--wp-mine": string;
+  "--wp-convey": string;
+} => ({
+  "--wp-water": DOMAIN_COLORS[mode].water,
+  "--wp-sludge": DOMAIN_COLORS[mode].sludge,
+  "--wp-mine": DOMAIN_COLORS[mode].mine,
+  "--wp-convey": DOMAIN_COLORS[mode].convey,
+});
 
-/** 启动期注入域色 CSS 变量轴（providers.tsx 组合根模块装载期调用一次
- * ——import 期先于 createRoot 首帧无 FOUC；document 缺席〔SSR/纯
- * node 测试〕=守卫 no-op——本项目纯 CSR，缺席面仅测试环境；接线行为
- * 级守卫=src/app/domainColorAxis.test〔装载即注入〕）。 */
-export const installDomainColorAxis = (): void => {
+/** 注入域色 CSS 变量轴（批6n=providers 装载期一次；b1 按模化=经
+ * shared/store/themeStore applyThemeMode 调用——装载期首模+切换期
+ * 重注入，import 期先于 createRoot 首帧无 FOUC；document 缺席〔SSR/
+ * 纯 node 测试〕=守卫 no-op——本项目纯 CSR，缺席面仅测试环境；接线
+ * 行为级守卫=src/app/domainColorAxis.test。缺省参=light 兼容面）。 */
+export const installDomainColorAxis = (mode: ThemeMode = "light"): void => {
   if (typeof document === "undefined") return;
-  for (const [name, value] of Object.entries(DOMAIN_CSS_VARS))
+  for (const [name, value] of Object.entries(domainCssVarsFor(mode)))
     document.documentElement.style.setProperty(name, value);
 };
 
@@ -91,15 +119,16 @@ export const SEMANTIC_COLORS = {
   corridor_fallback: "#8c8c8c",
   // C2-3d 管廊两键（三维管线两色制——值=域色轴 water/sludge 单源引用，
   // R-G3 联动清单成员，改色以 DOMAIN_COLORS 为基准）
-  pipe_water: DOMAIN_COLORS.water,
-  pipe_sludge: DOMAIN_COLORS.sludge,
+  pipe_water: DOMAIN_COLORS.light.water,
+  pipe_sludge: DOMAIN_COLORS.light.sludge,
   // B3-b 四域色 JS 面（unitGlyph 域色/stream 色+CanvasFlow 图例线色收编
-  // ——同值搬家零漂移；CSS 轴 --wp-* 联动义务见 UF-53）
-  domain_water: DOMAIN_COLORS.water,
-  domain_sludge: DOMAIN_COLORS.sludge,
-  domain_mine: DOMAIN_COLORS.mine,
-  domain_convey: DOMAIN_COLORS.convey,
-  domain_neutral: DOMAIN_COLORS.neutral,
+  // ——同值搬家；CSS 轴 --wp-* 联动义务见 UF-53；b1：JS 面冻结 light
+  // 档——SVG/Canvas 消费面三态随画布重涂批）
+  domain_water: DOMAIN_COLORS.light.water,
+  domain_sludge: DOMAIN_COLORS.light.sludge,
+  domain_mine: DOMAIN_COLORS.light.mine,
+  domain_convey: DOMAIN_COLORS.light.convey,
+  domain_neutral: DOMAIN_COLORS.light.neutral,
   // C2VD V1 剖切帽盖键（缩略图半剖剖面封盖灰——pool_wall #8d99a6 与
   // ground #cfd6dc 之间档；材质区断面封实，水体/空腔区不入[无 writer]）
   section_cap: "#a8b4c2",
