@@ -2,7 +2,11 @@
 name = "waterprint-desktop"
 version = "0.1.0"
 description = "WaterPrint 桌面壳：pywebview 窗口 + 三角色装配（单机/服务端/客户端——联机第七批 ADR-028）"
-requires-python = ">=3.12"
+# 上界 <3.13：Linux 窗口后端依赖系统 python3-gi（PyGObject）——PyPI 仅发
+# sdist（本机无 GNOME dev 头件编不动），venv 须基于系统 Python 3.12 建
+# （uv python pin /usr/bin/python3.12 + uv venv --system-site-packages）
+# 才能复用 apt 的 python3-gi；3.13/3.14 无系统 gi 可用。README「前置」同口径。
+requires-python = ">=3.12,<3.13"
 dependencies = [
     # 引擎面整包引入（fastapi/uvicorn/starlette 经其传递；显式钉 uvicorn=
     # 本包直接消费的显式声明，防上游收敛即断——server pyyaml 先例口径）

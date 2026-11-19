@@ -93,7 +93,9 @@ def main() -> int:
         print(
             f"桌面窗口启动失败：{exc}\n"
             "Linux 需要 webkit2gtk（如 Debian/Ubuntu：sudo apt install "
-            "python3-gi gir1.2-webkit2-4.1）；详见 desktop/packaging/README.md",
+            "python3-gi gir1.2-webkit2-4.1）且 venv 须基于系统 Python 3.12 建"
+            "（裸 uv sync 重建会丢 system-site-packages——请跑 desktop/bootstrap.sh"
+            " 引导）；详见 desktop/packaging/README.md",
             file=sys.stderr,
         )
         return 1

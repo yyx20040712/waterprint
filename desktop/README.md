@@ -22,16 +22,23 @@
 ## 运行与测试
 
 ```bash
-# 测试（无头——窗口面永不 create window）
-cd desktop && uv sync && uv run pytest
+# 环境引导（唯一正确建法——一次性；前置 sudo apt install python3-gi gir1.2-webkit2-4.1）
+# 为什么不能裸 uv sync：窗口后端 gi（PyGObject）仅系统 Python 3.12 可用（PyPI
+# 只发 sdist），venv 须 --system-site-packages 基于系统解释器建——裸 sync 自建
+# 的 venv 开关=false，gi 不可见，启动即"QT or GTK ..."失败（bootstrap.sh 头注同口径）
+cd desktop && ./bootstrap.sh
 
-# 桌面应用（需 Linux webkit2gtk，如 sudo apt install python3-gi gir1.2-webkit2-4.1）
+# 测试（无头——窗口面永不 create window）
+cd desktop && uv run pytest
+
+# 桌面应用
 cd desktop && uv run python -m waterprint_desktop.main
 ```
 
 注：uv 路径依赖为非 editable 快照安装——server/core 改动后须
 `uv sync --reinstall-package waterprint-server --reinstall-package waterprint-core`
-刷新再跑测试（architecture §4.1 同族注记）。
+刷新再跑测试（architecture §4.1 同族注记；日常 uv sync 不会动 venv 开关，
+venv 被删后重跑 bootstrap.sh 而非裸 sync）。
 
 ## 三角色模型（ADR-028）
 
