@@ -1,6 +1,6 @@
 """模型代号门禁（草案验证版；T4 扩 .md 面——清洗批 2026-09-16）。
 
-源码面：py/ts/tsx，五 SCAN_DIRS，排除 tests（test-lock 另守）。
+源码面：py/ts/tsx，六 SCAN_DIRS，排除 tests（test-lock 另守）。
 md 面：仓库级 *.md，排除治理目录（.workflow/.zcode/.mimosa——非提交
 材料，终裁 N3 冻结）与白名单 AGENTS.md（AI 组织宪法——N3 保留件，
 不进提交材料）。词表/豁免/词边界两口与源码面恒同。
@@ -14,7 +14,7 @@ from __future__ import annotations
 import re, sys
 from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
-SCAN_DIRS = ("core/waterprint","server/waterprint_server","agent/waterprint_agent","webapp/src","tools")
+SCAN_DIRS = ("core/waterprint","server/waterprint_server","agent/waterprint_agent","desktop/waterprint_desktop","webapp/src","tools")
 SCAN_SUFFIXES = (".py",".ts",".tsx")
 MODEL_TOKENS = ("g"+"lm","deep"+"seek","ki"+"mi","chat"+"gpt","co"+"pilot","clau"+"de","大"+"模型")
 EXEMPT_PATTERNS = (re.compile(r"\bcursor_x\b"),re.compile(r"\.full\s*match\b"),re.compile(r"\bfullmatch\b"),re.compile(r"\bisinstance\b"),re.compile(r"\bcursor\b"))

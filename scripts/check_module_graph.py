@@ -76,6 +76,10 @@ SCAN_PY_ROOTS: tuple[Path, ...] = (
     REPO / "server" / "waterprint_server",
     # AI1 集成批（2026-09-13）：agent 面纳入真实 import 子集校验
     REPO / "agent" / "waterprint_agent",
+    # 联机第七批（b7 2026-11-19，ADR-028）：desktop 面纳入真实 import
+    # 子集校验（分层执法面=本门禁 §1b 边声明，desktop 不另设 import-linter
+    # 契约——单消费面包，边表已机器强制）
+    REPO / "desktop" / "waterprint_desktop",
 )
 
 NODE_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([A-Za-z0-9.\-]+)\s*\|\s*`([^`]+)`")

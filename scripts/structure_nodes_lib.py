@@ -54,6 +54,10 @@ FIXED_NODES: tuple[tuple[str, str, str], ...] = (
     # AI1 集成批（2026-09-13）：agent 面（AI 智能体接口）与 webapp 同层 L6
     # （内核的两种客户端形态：浏览器 / 本地 chat CLI）
     ("waterprint_agent", "L6", "agent/waterprint_agent"),
+    # 联机第七批（b7 2026-11-19，ADR-028）：desktop 面（pywebview 桌面壳）
+    # 同层 L6——内核的第三种客户端形态（桌面窗口；经 server 应用工厂与
+    # settings 装配引擎，绑定面=角色派生单源）
+    ("waterprint_desktop", "L6", "desktop/waterprint_desktop"),
     ("data", "DATA", "data"),
     ("api-contracts", "CONTRACT", "api-contracts"),
 )

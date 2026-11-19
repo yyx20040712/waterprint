@@ -14,7 +14,9 @@
 #      （manifest.py/compute.py/constraints.py/README.md/tests/ 两测试）；
 #   c) scripts/*.py 必须登记于第 4 节；
 #   d) agent/waterprint_agent 下每个非 __init__.py 必须登记（AI1 集成批
-#      2026-09-13——agent 面纳入与 core/server 同款双向机器强制）。
+#      2026-09-13——agent 面纳入与 core/server 同款双向机器强制）；
+#   e) desktop/waterprint_desktop 下每个非 __init__.py 必须登记（联机
+#      第七批 b7 2026-11-19，ADR-028——desktop 桌面壳面同款双向强制）。
 # ══════════════════════════════════════════════════════════════════
 
 from __future__ import annotations
@@ -90,6 +92,8 @@ def main() -> int:
     actual |= actual_py_files(REPO / "scripts", packages)
     # AI1 集成批：agent 面纳入双向校验（规则 d）
     actual |= actual_py_files(REPO / "agent" / "waterprint_agent", packages)
+    # 联机第七批（b7）：desktop 面纳入双向校验（规则 e）
+    actual |= actual_py_files(REPO / "desktop" / "waterprint_desktop", packages)
 
     unlisted = sorted(actual - files)
     for rel in unlisted:

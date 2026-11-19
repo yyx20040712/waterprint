@@ -69,6 +69,9 @@ SCAN_DIRS: tuple[str, ...] = (
     "webapp/src",
     "agent",
     "scripts",
+    # 联机第七批（b7 2026-11-19，ADR-028）：desktop 面全量纳管
+    # （tests 一并在扫，.venv 由 EXCLUDED_DIR_NAMES 排除——agent 纳管先例）
+    "desktop",
 )
 
 # 目录排除名（任何层级）
@@ -149,6 +152,17 @@ WIDE_EXCEPT_WAIVERS: tuple[WaiverEntry, ...] = (
             "联合枚举护栏族统一收敛（R3）：core 正门 TooLarge/Invalid 等"
             "护栏异常不穿透工具面，统一转 rejected dict（调用方按 "
             "status=rejected 处理）"
+        ),
+    ),
+    WaiverEntry(
+        file="desktop/waterprint_desktop/main.py",
+        symbol="main",
+        family="Exception",
+        reason=(
+            "桌面窗口 GUI 后端失败族宽（联机第七批 b7，ADR-028）："
+            "pywebview 各后端初始化异常异构（Linux 缺 webkit2gtk/DISPLAY "
+            "缺席等系统面），main 层 R4 诚实提示出口——stderr 明确指引+"
+            "退出码 1 非静默；逻辑层六件零宽族（本豁免唯一消费面）"
         ),
     ),
 )

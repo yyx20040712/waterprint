@@ -10,11 +10,11 @@ python scripts/run_gates.py     # 一键跑全部门禁
 |------|----------|----------|
 | check_file_budgets.py | 文件 ≤500 行；units_lib compute.py ≤400 | AGENTS 硬约束 |
 | check_contract_headers.py | 每个 .py 契约头含 职责/输入/输出 | AGENTS 启动约束 / 硬约束 |
-| check_grep_gates.py | grep 门禁：占位/裸 except/乱码 = 0；UTF-8 合法；compose 端口守卫（8000 不出容器网桥）。AUDIT-#20（b30）agent/ 全量纳管；宽族 except 精确豁免=gate_patterns.WIDE_EXCEPT_WAIVERS（键=文件+函数限定名〔含类链〕+异常族〔AST 精确类型名，前缀连写不冒充〕，reason 非空强制，行号不作键；未消费豁免=腐烂报警；一条豁免至多消费一个处理器〔同键第二处必红〕；第四处宽族不在表必红，无整文件/整目录排除形态） | AGENTS 硬约束 |
-| check_structure.py | 源码树 ↔ docs/file-contracts.md 双向同步；单元包固定结构（包计数 33 含 _template 模板登记行——实单元 32 口径见 check_module_graph.EXPECTED_UNIT_COUNT，AUDIT-#21 b30） | AGENTS 硬约束 |
+| check_grep_gates.py | grep 门禁：占位/裸 except/乱码 = 0；UTF-8 合法；compose 端口守卫（8000 不出容器网桥）。AUDIT-#20（b30）agent/ 全量纳管；联机第七批 b7 desktop/ 全量纳管；宽族 except 精确豁免=gate_patterns.WIDE_EXCEPT_WAIVERS（键=文件+函数限定名〔含类链〕+异常族〔AST 精确类型名，前缀连写不冒充〕，reason 非空强制，行号不作键；未消费豁免=腐烂报警；一条豁免至多消费一个处理器〔同键第二处必红〕；第四处宽族不在表必红，无整文件/整目录排除形态） | AGENTS 硬约束 |
+| check_structure.py | 源码树 ↔ docs/file-contracts.md 双向同步；单元包固定结构（包计数 33 含 _template 模板登记行——实单元 32 口径见 check_module_graph.EXPECTED_UNIT_COUNT，AUDIT-#21 b30）；b7 起 desktop/waterprint_desktop 同款双向强制（规则 e） | AGENTS 硬约束 |
 | check_readonly.py | 测试只读（manifest 哈希 + 只读属性 + 无未登记文件） | AGENTS 硬约束（测试只读） |
 | check_trust_root.py | 信任根守卫：三信任根（manifest/lock_tests/check_readonly）变更必带 [HUMAN-LOCK]（CI 查 push range；本地查工作树+HEAD） | AGENTS 硬约束（测试只读；外审整改#3 H1） |
-| check_module_graph.py | 结构图谱：依赖沿层序向下/无环/与 import-linter 双源一致/单元包三方互验/调用链路径存在 | AGENTS 硬约束（分层依赖）/ docs/structure-graph.md |
+| check_module_graph.py | 结构图谱：依赖沿层序向下/无环/与 import-linter 双源一致/单元包三方互验/调用链路径存在（b7 起 SCAN_PY_ROOTS 含 desktop 面——desktop 分层执法=§1b 边声明子集校验） | AGENTS 硬约束（分层依赖）/ docs/structure-graph.md |
 | check_webapp.py | webapp 结构：TS 契约头（/** 职责/输入/输出 */）+ features 互不依赖分层 | file-contracts §5 |
 | check_magic_numbers.py | 魔法数字：代码数值字面量仅限 registry/quantity 真源区（白名单值 0/1/2/10） | AGENTS 硬约束 / business-logic §9 |
 | check_constraint_sync.py | 约束键同步：constraint_kb 键集与单元消费面一致 | file-contracts §4 |
@@ -25,7 +25,7 @@ python scripts/run_gates.py     # 一键跑全部门禁
 | check_model_names.py | 仓内 markdown 禁 AI 模型代号 | AGENTS 硬约束 |
 | check_mypy.py | mypy strict 包装器（venv 工具链） | — |
 | check_out_dims_consistency.py | 单元 manifest out_dims 声明与实际输出键一致 | file-contracts §3 |
-| check_ruff.py | ruff 包装器（venv 工具链） | — |
+| check_ruff.py | ruff 包装器（venv 工具链；三根 core/server/agent——desktop 暂不入：锁面迭代器钉三根，扩面随锁面解锁批） | — |
 | run_gates.py | 门禁聚合入口（一键跑全部，CI gates job 同口径） | — |
 | lock_tests.py | **仅人类执行**：生成锁定清单并设置只读属性（键集只增不减守卫：漏根挤出既有条目 → 拒写 return 2；`--prune` 显式放行） | AGENTS 硬约束（测试只读） |
 | draft_lock_manifest.py | 锁面草稿器（只读，AI 可跑）：工作树实测 vs manifest 三类差异+全根清单重锁命令；CI gates 红面时自动输出 | ADR-015 |

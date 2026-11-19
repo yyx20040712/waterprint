@@ -1,0 +1,59 @@
+[project]
+name = "waterprint-desktop"
+version = "0.1.0"
+description = "WaterPrint 桌面壳：pywebview 窗口 + 三角色装配（单机/服务端/客户端——联机第七批 ADR-028）"
+requires-python = ">=3.12"
+dependencies = [
+    # 引擎面整包引入（fastapi/uvicorn/starlette 经其传递；显式钉 uvicorn=
+    # 本包直接消费的显式声明，防上游收敛即断——server pyyaml 先例口径）
+    "waterprint-server",
+    "uvicorn>=0.30",
+    "pywebview>=5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.6",
+]
+
+[tool.uv.sources]
+waterprint-server = { path = "../server" }
+
+# 镜像源（同 core/server/agent pyproject 口径）
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["waterprint_desktop"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "PL", "RUF"]
+# 全角中文标点是本项目文档与注释的规范写法（同 core/server/agent 策略）。
+# PLC0415（import 不在顶层）全局面豁免：main.py 的 pywebview 惰性导入是
+# 窗口装配薄层设计（GUI 依赖不进逻辑层 import 面——无头测试可导入本包
+# 其余模块），agent 面懒加载先例同款口径。
+ignore = ["RUF001", "RUF002", "RUF003", "PLC0415"]
+
+[tool.ruff.lint.per-file-ignores]
+# 测试面豁免（agent/server tests 同款先例）：PLR2004=基线数字字面量
+# （端口约定 8620/8621 等）属测试期望真源；E501=注释长锚路径。
+"tests/**" = ["PLR2004", "E501"]
+# 桥方法名豁免：getConfig/setNetworkRole 保持 camelCase 与 webapp
+# desktopBridge.ts 冻结契约逐名对齐（联机第五批签名冻结——pywebview
+# js_api 按方法名直投 JS，snake_case 会破坏桥契约）。
+"waterprint_desktop/bridge.py" = ["N802"]

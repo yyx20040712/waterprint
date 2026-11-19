@@ -1,0 +1,13 @@
+Package: waterprint-desktop
+Version: 0.1.0
+Section: science
+Priority: optional
+Architecture: amd64
+Depends: python3 (>= 3.12), python3-gi, gir1.2-webkit2-4.1
+# 打包批工作项（诚实标注：未冒烟，见 packaging/README.md）：
+# - python 依赖面（uv export requirements 或内置 venv 形态待定）
+# - webkit2gtk 版本段按目标发行版核对（4.0/4.1 API 段差异）
+Maintainer: WaterPrint <dev@waterprint.local>
+Description: WaterPrint 桌面壳（污水处理工艺设计计算平台）
+ 桌面窗口 + 联机三角色装配：单机（本地引擎回环）/ 服务端（0.0.0.0+
+ token 配对）/ 客户端（本地 UI+远程 API——厚客户端）。

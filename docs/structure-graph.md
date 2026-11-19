@@ -22,6 +22,7 @@
 |------|----|----------|
 | `webapp` | L6 | `webapp/src` |
 | `waterprint_agent` | L6 | `agent/waterprint_agent` |
+| `waterprint_desktop` | L6 | `desktop/waterprint_desktop` |
 | `waterprint_server.main` | L5.main | `server/waterprint_server/main.py` |
 | `waterprint_server.routers` | L5.routers | `server/waterprint_server/routers` |
 | `waterprint_server.services` | L5.services | `server/waterprint_server/services` |
@@ -52,8 +53,9 @@
 | `api-contracts` | CONTRACT | `api-contracts` |
 <!-- STRUCT-NODES:END -->
 
-> 层序（自上而下）：L6（webapp / waterprint_agent——内核的两种客户端：
-> 浏览器与本地 chat CLI，ADR-027 起 agent 面仅本地对话）→ L5.main → L5.routers → L5.services →
+> 层序（自上而下）：L6（webapp / waterprint_agent / waterprint_desktop
+> ——内核的三种客户端：浏览器、本地 chat CLI（ADR-027 起仅本地对话）、
+> pywebview 桌面壳（b7/ADR-028——三角色装配，经 server 工厂内嵌引擎））→ L5.main → L5.routers → L5.services →
 > L5.jobs → L5.settings → L4.cli → L4.flows（CLI 与 agent 共享用例流层，
 > ADR-022）→ L4.report（设计说明书管线消费位——B6 计算说明批 2026-10-09
 > 自 agent 移植 core：依赖=app 正门+contracts+registry 只读，server 服务与
@@ -79,6 +81,8 @@
 | `waterprint_agent` | `waterprint_server.settings` | 私有 Settings 绝对路径装配（cwd 钉死） |
 | `waterprint_agent` | `waterprint_server.jobs` | 私有 Manager 装配填充（不提交任务——沿承原 ADR-021 D2，见 ADR-027） |
 | `webapp` | `api-contracts` | orval 自 OpenAPI 生成 TS 客户端（类型单源，禁手写） |
+| `waterprint_desktop` | `waterprint_server.main` | 桌面壳引擎装配消费应用工厂 create_app+UI 静态面同源挂载（联机第七批 b7 2026-11-19，ADR-028——standalone/server 角色内嵌引擎） |
+| `waterprint_desktop` | `waterprint_server.settings` | 桌面壳角色化 Settings 覆写装配（host/port/api_token/projects·exports·data 基点——绑定面=角色派生单源，token 沿 WATERPRINT_API_TOKEN 通道；b7/ADR-028） |
 | `waterprint_server.main` | `waterprint_server.routers` | 应用工厂挂载路由 |
 | `waterprint_server.main` | `waterprint_server.services` | 依赖注入装配服务 |
 | `waterprint_server.main` | `waterprint_server.jobs` | 生命周期内创建/销毁进程池 |
@@ -303,6 +307,8 @@ glob = true
 | 操作链观测（B4-1；v1-20261015 转正批：webapp 消费面〔features/opsdebug〕随 legacy 退役删除——本链 server 侧在册，端点可达性=API 面） | `server/waterprint_server/routers/debug.py` → `server/waterprint_server/services/ops_debug.py` → `server/waterprint_server/services/_shared/latest_calc.py`（最近结果集槽位）+`server/waterprint_server/services/calculation.py`（task_status 状态正门）→ `server/waterprint_server/jobs/manager.py`（注册表查询面）→ `core/waterprint/contracts/result_schema.py`（plant 反序列化+trace 聚合）+`core/waterprint/contracts/trust.py`（diag 件读取——《裁决书》方案五①） |
 
 | 运行时信息与配对（联机架构第五批 2026-11-19——用户裁决 Minecraft 式开关模型） | `webapp/src/app/shellV4/statusBar.tsx`（+workbenchZone.tsx 运行方式卡/runtimeSettingsModal.tsx 配对卡——useGetRuntimeApiRuntimeGet 同键缓存） → `server/waterprint_server/routers/meta.py` → `server/waterprint_server/services/runtime.py` （role 派生=绑定地址即角色〔settings.is_loopback_host〕；token_reveal 仅请求者 socket 回环） → `core/waterprint/app.py`（load_run_env 空 project——UF-10/b24 三包 data_version 聚合面单源复用，服务层零第二聚合源） + `core/waterprint/contracts/project_schema.py`（空项目载体）；webapp 绑定切换控件经 `webapp/src/app/desktopBridge.ts` 接口约定→desktop 壳（b7 批实装） |
+
+| 桌面壳三角色装配（联机第七批 b7 2026-11-19——ADR-028） | `webapp/src/app/desktopBridge.ts`（TS 契约）+`webapp/src/app/onboardingGate.tsx`（首启三选） → `desktop/waterprint_desktop/bridge.py`（getConfig/setNetworkRole——活体重启壳侧承担） → `desktop/waterprint_desktop/runtime.py`（RuntimeSupervisor 生命周期编排） → `desktop/waterprint_desktop/roles.py`（plan_for 决策单源）+`desktop/waterprint_desktop/config.py`（desktop.json+token secrets 生成）；引擎态（standalone/server）：`desktop/waterprint_desktop/engine.py` → `server/waterprint_server/main.py`（create_app+UI 同源挂载）+`server/waterprint_server/settings.py`（角色化覆写） → `desktop/waterprint_desktop/server_thread.py`（uvicorn 显式启停）；客户端/引导态：`desktop/waterprint_desktop/static_shell.py`（127.0.0.1:8620 serve webapp 构建产物——dist 不入仓，运行期经 resolve_webapp_dist 解析）；窗口装配薄层=`desktop/waterprint_desktop/main.py`（不进测试——用户手测面） |
 
 | 客户端模式通路（联机架构第六批 2026-11-19——用户裁决厚客户端模型：界面本地加载，数据/计算全走远程服务器） | `webapp/src/app/clientConnectionPanel.tsx`（连接测试+握手阻断）+`webapp/src/app/remoteHandshake.ts`（performHandshake 三步探测〔meta 豁免面→projects 受保面 Bearer 探针→版本比对——期望值 `webapp/src/shared/api/clientProtocol.ts` 构建期常量，clientProtocol.test 自 data/ 三 manifest 重算锚定〕） → 远程服务器 GET /api/meta+GET /api/projects（跨 origin fetch）；运行期全量 API 经 `webapp/src/shared/api/http.ts`+`webapp/src/shared/api/sseUrl.ts`（基址切换实现层=orval mutator 单点——getRemoteBaseUrl 前拼，token 沿 waterprint.api_token Bearer 通道）；状态机驱动 `webapp/src/app/useClientConnection.ts`（supervisor——meta 查询+queryCache 401/恢复）→`webapp/src/app/clientConnectionStore.ts`（六态）→ 消费面 statusBar/projectsZone（四态）/workbenchRuntimeCard；CORS 生产通道 `server/waterprint_server/main.py`（开发白名单 ∪ settings.allowed_origins〔`server/waterprint_server/settings.py`——缺省桌面壳 127.0.0.1:8620〕，token 门禁独立） |
 

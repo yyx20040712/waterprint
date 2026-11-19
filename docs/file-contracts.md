@@ -267,14 +267,14 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 
 | 路径 | 唯一职责 |
 |------|----------|
-| `scripts/gate_patterns.py` | 占位（英文四词+中文硬封族六词，GOV1/ADR-013）/裸异常/乱码特征串集中定义（拼接构造避免自匹配）+扫描范围 SCAN_DIRS（AUDIT-#20 b30：agent/ 全量纳管）+宽族 except 精确豁免登记面 WIDE_EXCEPT_WAIVERS（键=文件+函数限定名+异常族+理由非空，行号不作键；登记不窄化兜底本体） |
+| `scripts/gate_patterns.py` | 占位（英文四词+中文硬封族六词，GOV1/ADR-013）/裸异常/乱码特征串集中定义（拼接构造避免自匹配）+扫描范围 SCAN_DIRS（AUDIT-#20 b30：agent/ 全量纳管；联机第七批 b7：desktop/ 全量纳管）+宽族 except 精确豁免登记面 WIDE_EXCEPT_WAIVERS（键=文件+函数限定名+异常族+理由非空，行号不作键；登记不窄化兜底本体） |
 | `scripts/check_file_budgets.py` | 文件行数 ≤500（compute.py ≤400）门禁+90% 提前告警（[WARN] 档零退出码变化——ENG8）+file-contracts 行数注记一致性面（GOV4 起兼作 gen_contract_lines 忘跑检测器——注记漂移即红，ADR-016） |
 | `scripts/gen_contract_lines.py` | 行数注记生成器：表内「N 行」数字刷新为实体实数（幂等；在场/缺席仍人审——ADR-016；解析口径单源=check_file_budgets） |
 | `scripts/check_constraint_sync.py` | 约束同源三向对拍门禁（批6h AUD-W9 闭项）：units_lib 各包 CONSTRAINTS 声明↔manifest constraint_refs↔factors.yaml 键在场+kb value_basis 数值投影恒等——死声明静默分叉变响红（受限静态求值零依赖，bashi 动态构造面在内；红探针 P1~P3 实录批6h） |
 | `scripts/check_contract_headers.py` | 模块契约头（职责/输入/输出三段）存在性门禁 |
 | `scripts/check_grep_gates.py` | grep 门禁：占位/裸 except/乱码计数 = 0（AUDIT-#20 b30：宽族 except 豁免匹配=AST 定位违规行所在函数〔限定名含类链〕+异常族精确名查 WIDE_EXCEPT_WAIVERS〔前缀连写形态不冒充〕；一条豁免至多消费一个处理器；未消费豁免=腐烂报警；登记面校验先行 fail-fast） |
-| `scripts/check_structure.py` | 目录结构与本表双向同步门禁（AUDIT-#21 b30：包计数口径明示——33=实业务单元 32+_template 模板登记行 1，模板不删登记不凑数） |
-| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014；§1a 数据行=生成物渲染比对[GOV4 h 面，ADR-017——手编/忘跑即红]；AUDIT-#21 b30：EXPECTED_UNIT_COUNT=32 来源注记=职责表登记 33 剔 _template 模板行） |
+| `scripts/check_structure.py` | 目录结构与本表双向同步门禁（AUDIT-#21 b30：包计数口径明示——33=实业务单元 32+_template 模板登记行 1，模板不删登记不凑数；联机第七批 b7：规则 e=desktop/waterprint_desktop 纳入双向强制） |
+| `scripts/check_module_graph.py` | 结构图谱门禁（层序/无环/双源一致/单元三方互验/调用链路径/§1c 同层边声明块解析+pyproject 双向对照——ADR-014；§1a 数据行=生成物渲染比对[GOV4 h 面，ADR-017——手编/忘跑即红]；AUDIT-#21 b30：EXPECTED_UNIT_COUNT=32 来源注记=职责表登记 33 剔 _template 模板行；联机第七批 b7：SCAN_PY_ROOTS+desktop 面——desktop 分层执法=§1b 边声明子集校验，不另设 import-linter 契约） |
 | `scripts/same_layer_lib.py` | 同层边声明块共享库：§1c 解析+展开+两面校验单源（check_module_graph 与 gen_same_layer_edges 共用，防两套解析漂移——ADR-014） |
 | `scripts/structure_nodes_lib.py` | §1a 节点表共享库：两 pyproject layers 契约+固定三叶取数·渲染·标记段单源（check_module_graph 与 gen_structure_nodes 共用——ADR-017；层 token 组序映射=层重构同步点） |
 | `scripts/gen_structure_nodes.py` | §1a 节点表生成器：两 pyproject layers 契约 → structure-graph §1a STRUCT-NODES 标记段重写（幂等；标记段内禁手编——ADR-017；忘跑检测器=check_module_graph 渲染比对面） |
@@ -284,12 +284,12 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `scripts/check_readonly.py` | 测试只读 manifest 与属性校验 |
 | `scripts/check_trust_root.py` | 信任根守卫：触碰三信任根（manifest/lock_tests/check_readonly）的 commit 必带 [HUMAN-LOCK]（外审整改#3 H1） |
 | `scripts/check_deprecation_gate.py` | GR-21 弃用到期门禁：file-contracts 弃用登记（弃用: 旧 -> 新, 移除: YYYY-MM-DD）逾期/格式错即 FAIL（TD1 2026-09-09 机制就绪件——零登记首检绿） |
-| `scripts/check_ruff.py` | ruff 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1） |
+| `scripts/check_ruff.py` | ruff 门禁：多根（core+server+agent）各自 venv 解释器跑 CI 同款 ruff check（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1；agent 根扩入=cifix-20261010；desktop 根暂不入——锁面 test_check_ruff runs 迭代器钉三根，扩面随锁面解锁批，b7 注记在脚本头） |
 | `scripts/check_lint_imports.py` | lint-imports 门禁：双根（core+server）各自 venv 的 lint-imports 控制台脚本跑 CI 同款 import-linter 契约（透传；三态口径同 check_ruff——GOV2 门禁 11→12，n+42 UF-33 本地盲区销账） |
 | `scripts/check_mypy.py` | mypy 门禁：双根（core+server）各自 venv 解释器跑 CI 同款 mypy strict（透传；逐根 venv 缺失=SKIP[附 uv sync 引导]，解释器在但子进程不可用[OSError 族]=FAIL 兜底，任一 FAIL 即 1——conv-golden 批 2026-10-02 executor.py:280 arg-type 逃逸至 CI 三处红的防线闭口，check_ruff/check_lint_imports 同制第三例，门禁数基线 17→18；表内 venv 门禁族三行[check_ruff/check_lint_imports/check_mypy]相邻成组编排——非门禁序数序，mypy-gate 批门一 k2-W2 明示） |
 | `scripts/check_out_dims_consistency.py` | out_dims.dim 三写面对账门禁：manifest 声明必须=①公式表 output_dim/②projection dim_of 镜像（AST 静态实读零依赖；真源单归——工况面 UX 反馈批件 4，门禁 12→13） |
 | `scripts/check_dim_labels_mirror.py` | dimLabels 镜像门禁：FE DIM_LABELS 键集 ↔ core DimKey 枚举成员双向对账（新增枚举漏同步词典即拦——同批件 4 缺口②，门禁 13→14） |
-| `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx，排除 tests 与 scripts 自身）+ 仓库级 md 面不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配；md 面排除治理目录（.workflow/.zcode/.mimosa）+白名单 AGENTS.md（终裁 N3 保留件）（清洗批 2026-09-16 门禁 14→15；T4 扩 .md 面同批） |
+| `scripts/check_model_names.py` | 模型代号门禁：源码（py/ts/tsx 六 SCAN_DIRS 含 desktop 面，排除 tests 与 scripts 自身）+ 仓库级 md 面不得出现外部模型代号——与「独立开发」口径冲突的过程痕迹；词表拼接构造防自匹配；md 面排除治理目录（.workflow/.zcode/.mimosa）+白名单 AGENTS.md（终裁 N3 保留件）（清洗批 2026-09-16 门禁 14→15；T4 扩 .md 面同批） |
 | `scripts/check_family_parity.py` | aao/cass 同族一致性门禁：同族公式族（需氧量/曝气/污泥/能耗+几何/容积平移族）结构恒等机器断言+显式 delta/独有清单（完整性反向断言——新增/删除公式必须同步声明区；静默分叉变响红；AST 静态实读零依赖——G-1 治理小批 2026-09-19 用户直排工单①，门禁 15→16） |
 | `scripts/family_parity_lib.py` | 同族一致性门禁共享库：声明面 AST 解析层（公式全表+平账计数/out_dims 表+条目计数，same_layer_lib 共享库先例拆件——解析与「跳过形状」计数同库） |
 | `scripts/lock_tests.py` | 生成/刷新只读 manifest 并设置只读属性（仅人类执行） |
@@ -340,3 +340,18 @@ check_structure 按 AGENTS §11 校验，不逐文件登记。
 | `agent/waterprint_agent/tools/calc.py` | 计算组 #8~#10+结果簿记真源（全厂计算/枚举/可行域；digest 命名落盘+.diag；stale 门） | project_id | 摘要+产物路径 |
 | `agent/waterprint_agent/tools/results.py` | 结果组 #11~#16（压缩摘要/三源诊断/单元切片/迹切片/概算摘要/布置摘要——_SandboxResultView 服务聚合适配器） | project_id | 摘要 dict |
 | `agent/waterprint_agent/tools/exports.py` | 导出组 #17~#21（flows.export_flow 单一真源+确定性命名+八键边车；#21 说明书管线入口） | project_id/options | 产物路径+verify |
+
+
+## 7. desktop 面（联机第七批 b7 2026-11-19，ADR-028；机器检查=check_structure 规则 e+check_module_graph 真实 import 面+gate_patterns SCAN_DIRS）
+
+| 路径 | 唯一职责 | 输入 | 输出 |
+|------|----------|------|------|
+| `desktop/waterprint_desktop/__init__.py` | 包聚合门面（版本串） | 无 | `__version__` |
+| `desktop/waterprint_desktop/config.py` | 角色配置持久化正门：desktop.json 读写（原子写+UTF-8+确定性形态）+配对 token 生成保管（secrets≥16，重启稳定）+配置/数据根路径解析（WATERPRINT_DESKTOP_CONFIG/DATA_DIR env 覆盖） | 配置文件路径+角色/token | DesktopConfig、ConfigStore（load/save/ensure_server_token）、generate_api_token、default_config_path、default_data_root、VALID_ROLES、SCHEMA_VERSION |
+| `desktop/waterprint_desktop/roles.py` | 三角色装配决策单源（纯逻辑）：四角色→引擎绑定/静态壳/UI 挂载/token 门槛五槽方案；端口约定常量（壳 8620=CORS 契约值/引擎缺省 8621） | DesktopRole | AssemblyPlan、plan_for、SHELL_BIND_HOST、SHELL_PORT、DEFAULT_ENGINE_PORT、ENGINE_LOOPBACK_BIND、ENGINE_LAN_BIND |
+| `desktop/waterprint_desktop/server_thread.py` | uvicorn 显式启停线程件（引擎与静态壳共用句柄）：守护线程承载 Server.serve()+started 就绪轮询+should_exit 优雅停+actual_port 探测（port=0 临时端口形态） | ASGI app+host/port | UvicornServeHandle（start/stop/actual_port/is_running） |
+| `desktop/waterprint_desktop/engine.py` | 引擎装配件：角色化 Settings 构造（绑定/token=角色派生；数据基点=桌面数据根+五数据包根 env 通道）+server 应用工厂消费+UI 静态面同源挂载（dist 缺席=API-only 诚实降级） | AssemblyPlan+token+端口+数据基点+dist | build_engine_settings、build_engine_app、resolve_engine_port、resolve_data_dir |
+| `desktop/waterprint_desktop/static_shell.py` | 客户端模式静态壳：webapp dist 本地静态服务（127.0.0.1:8620 固定绑定；零 waterprint_server import——客户端「本地不起引擎」由 import 面结构保证） | webapp dist 目录 | build_static_app、serve_static、resolve_webapp_dist |
+| `desktop/waterprint_desktop/runtime.py` | 运行监督件：角色→引擎/静态壳生命周期编排（首启装配/角色切换活体重启〔引擎角色间=全量重启换绑定〕/停机幂等）+origin 探询面（桥与窗口导航消费）+测试注入位（临时端口/tmp 数据根/线程池替身） | ConfigStore+dist+端口/基点参数 | RuntimeSupervisor（start/apply_role/shutdown/engine_origin/shell_origin） |
+| `desktop/waterprint_desktop/bridge.py` | 桌面壳桥（pywebview js_api——方法名 camelCase 与 webapp desktopBridge.ts 冻结契约逐名对齐）：getConfig 四角色快照/setNetworkRole 三合法角色切换（活体重启壳侧承担；装配失败=ok False+restartRequired True 诚实信号） | ConfigStore+RuntimeSupervisor+on_role_applied 回调 | DesktopBridge（getConfig/setNetworkRole）、SWITCHABLE_ROLES |
+| `desktop/waterprint_desktop/main.py` | 薄窗口层（不进测试——pywebview 装配+角色切换窗口导航回调+GUI 后端缺席诚实退出；全部逻辑在上述六件） | 无（模块入口） | 进程退出码、bootstrap_origin（起始 origin 决策纯函数） |

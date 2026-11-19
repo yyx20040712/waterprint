@@ -48,7 +48,7 @@ def count_gates(root: Path) -> tuple[int, list[str]]:
 def count_lock_keys(root: Path) -> dict[str, int]:
     manifest = json.loads((root / "test-lock.manifest.json").read_text(encoding="utf-8"))
     out = {"总键数": len(manifest), "core/tests": 0, "server/tests": 0,
-           "units_lib 包内": 0, "agent": 0, "其他": 0}
+           "units_lib 包内": 0, "agent": 0, "desktop": 0, "其他": 0}
     for key in manifest:
         if key.startswith("core/tests"):
             out["core/tests"] += 1
@@ -58,6 +58,8 @@ def count_lock_keys(root: Path) -> dict[str, int]:
             out["units_lib 包内"] += 1
         elif key.startswith("agent"):
             out["agent"] += 1
+        elif key.startswith("desktop"):
+            out["desktop"] += 1
         else:
             out["其他"] += 1
     return out
@@ -134,7 +136,7 @@ def render(root: Path) -> str:
         "| 指标 | 值 | 事实源 |",
         "|---|---|---|",
         f"| CI 门禁数 | {gates_n} | `scripts/run_gates.py` GATES 元组 |",
-        f"| 测试锁面键数 | {lock['总键数']}（core/tests {lock['core/tests']} + server/tests {lock['server/tests']} + units_lib 包内 {lock['units_lib 包内']} + agent {lock['agent']}） | `test-lock.manifest.json` |",
+        f"| 测试锁面键数 | {lock['总键数']}（core/tests {lock['core/tests']} + server/tests {lock['server/tests']} + units_lib 包内 {lock['units_lib 包内']} + agent {lock['agent']} + desktop {lock['desktop']}） | `test-lock.manifest.json` |",
         f"| OpenAPI | {paths_n} 路径 / {ops_n} 操作 | `api-contracts/openapi.json` |",
         f"| ADR 件数 | {adrs} | `docs/adr/ADR-*.md` |",
         f"| 快照锚点 | {snaps}（syrupy `# name:` 标记） | `core/tests/snapshots/__snapshots__/*.ambr` |",

@@ -9,7 +9,8 @@
  *        改写地址栏）+?node=（对象选中真相——独立键读写）+?project=
  *        （useProjectId 订阅）
  * 输出:  v4 壳：TopBar+〔NavRail+入口体〕+状态条+TokenSettingsModal 恒
- *        挂载（连接设置自愈层）；导航切换唯一通道 setNav——replaceState
+ *        挂载（连接设置自愈层）+OnboardingGate 恒挂载（联机第七批首启
+ *        三选遮罩——桥在场且角色未配置才渲染）；导航切换唯一通道 setNav——replaceState
  *        写 ?tab= 他键原序保留）
  *
  * 规格说明（b2 任务书——八入口装配+URL 迁移）：
@@ -45,6 +46,7 @@ import {
   withTabParam,
   type NavTarget,
 } from "../zoneParam";
+import { OnboardingGate } from "../onboardingGate";
 import { useClientConnectionSupervisor } from "../useClientConnection";
 import { useSettingsSelfHeal } from "./settingsSelfHeal";
 import { TopBar } from "./topBar";
@@ -191,6 +193,9 @@ export function ShellV4() {
       button={{ autoInsertSpace: false }}
     >
       <div className="wp-v4-root">
+        {/* 联机第七批：首启三选遮罩（桥在场且角色未配置才渲染——浏览器态
+            getDesktopBridge null 恒不拦壳） */}
+        <OnboardingGate />
         <TopBar />
         <div className="wp-v4-frame">
           <NavRail target={target} onNavChange={setNav} />

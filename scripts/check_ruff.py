@@ -42,6 +42,10 @@ SCAN_ROOTS: tuple[tuple[str, Path], ...] = (
     ("core", REPO / "core"),
     ("server", REPO / "server"),
     ("agent", REPO / "agent"),
+    # 联机第七批（b7 2026-11-19，ADR-028）注记：desktop 根暂不入本门禁
+    # ——锁面 core/tests/arch/test_check_ruff.py 的 runs 迭代器钉三根
+    # （cifix-R3 动态化未及此件），扩面须随锁面解锁批同办；desktop ruff
+    # 现行口径=desktop/pyproject 配置+本地 uv run ruff check .（已绿）。
 )
 
 

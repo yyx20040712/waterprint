@@ -46,6 +46,7 @@
 | 数据包 | `data/` | 版本化数值资产（assumptions/coefficients/constraint_kb/templates/unit_prices） | 全部带出处；随镜像分发，不占运行卷 |
 | 契约源 | `api-contracts/openapi.json` | OpenAPI 契约 | 前端客户端唯一生成源 |
 | agent 面 | `agent/waterprint_agent/` | 本地 chat CLI：LLM 对话经 toolspec 25 工具操作项目与计算（ADR-027；含决策纪要链跨滑窗持久），沙箱隔离 | 经 core.flows 共享编排层（ADR-022），不旁路内核；无 MCP/外部宿主面 |
+| 桌面壳 | `desktop/waterprint_desktop/` | pywebview 窗口+联机三角色装配（ADR-028）：单机/服务端=内嵌引擎〔127.0.0.1/0.0.0.0:8621+token〕UI 同源；客户端=不起引擎、静态壳 127.0.0.1:8620 供 UI、API 走远程（b6 通路）；桥 getConfig/setNetworkRole 与 webapp desktopBridge 契约对齐；首启三选向导（onboardingGate） | 窗口装配薄 main 层不进测试（前台焦点红线）；绑定面=角色派生单源（WATERPRINT_HOST 壳内忽略）；分层执法=structure-graph §1b 边两条（→server.main/settings），不另设 import-linter |
 
 ### 2.2 关键方案策略
 
@@ -76,7 +77,7 @@
 层序（依赖只许向下，双向校验见 `docs/structure-graph.md` §1）：
 
 ```
-L6  webapp / waterprint_agent        内核的两种客户端（浏览器 / 本地 chat CLI）
+L6  webapp / agent / desktop         内核的三种客户端（浏览器 / 本地 chat CLI / pywebview 桌面壳 ADR-028）
 L5  server：main → routers → services → jobs → settings
 L4  cli → flows → report → app(app_enumeration/app_export...) → project/trace
 L3  graph / solution / elevation / cost / drafting / geometry / ifc_export / network
@@ -213,17 +214,11 @@ units_lib/<line>/<unit>/
 
 单元对外只暴露 `UNIT_ID`、`make_unit`、`manifest` 三名（装配消费面按
 两名铁律校验 manifest+make_unit）。compute 形态两态为受支持路径（ADR-011
-豁免定案 2026-11-18）：municipal 13 包 = `_apply_batch` 同源向量路径，
-其余三线 19 包 = `_apply` 标量路径——批量=逐行调用（19 包逐行 `_apply`
-驱动、13 包 N=1 退化形态），非逐元素向量语义；向量包 N>1 批量的首元素
-离散口径（aao/compute.py 四处取首）为已知边界，显式 N==1 拒绝守卫已随
-审计治理批 b26 落地（`_first` 取首前域错误拒绝，消息注明成文前提；
-N==1 数值与消息零变化）。新单元用
-`uv run python -m waterprint.cli new-unit <line> <name>`（core 目录执行；
-wp console script 未注册）从 `_template` 生成，先登记 structure-graph §3
-与 file-contracts §3 再实现。预算墙拆件配方（ADR-024）：manifest 顶墙立
-`formulas_<族名>.py` 兄弟声明件；compute 顶墙迁 `<段名>.py` 计算段；
-compute.py 仍是唯一计算正门。
+豁免定案 2026-11-18）：municipal 13 包 = `_apply_batch` 同源向量路径， 其余三线 19 包 = `_apply` 标量路径——批量=逐行调用（19 包逐行 `_apply` 驱动、13 包 N=1 退化形态），非逐元素向量语义；向量包 N>1 批量的首元素
+离散口径（aao/compute.py 四处取首）为已知边界，显式 N==1 拒绝守卫已随 审计治理批 b26 落地（`_first` 取首前域错误拒绝，消息注明成文前提；
+N==1 数值与消息零变化）。新单元用 `uv run python -m waterprint.cli new-unit <line> <name>`（core 目录执行；
+wp console script 未注册）从 `_template` 生成，先登记 structure-graph §3 与 file-contracts §3 再实现。预算墙拆件配方（ADR-024）：manifest 顶墙立
+`formulas_<族名>.py` 兄弟声明件；compute 顶墙迁 `<段名>.py` 计算段； compute.py 仍是唯一计算正门。
 
 ### 3.9 agent 面
 
@@ -254,6 +249,11 @@ origin fetch——CORS=开发白名单 ∪ `WATERPRINT_ALLOWED_ORIGINS`；连接
 （`POST /api/exports/report_pdf`）要求服务主机具备 typst（PATH 发现或
 `WATERPRINT_TYPST_PATH` 指定）及系统字体 Times New Roman + SimSun，缺失时端点
 显式报错（安装细目见 [docs/archive/deployment.md](archive/deployment.md)「导出格式」节）。
+桌面壳（ADR-028，联机第七批）：`desktop/` uv 包（pywebview+uvicorn，path 引
+waterprint-server）——单进程多线程（uvicorn Server 显式启停，角色切换活体重启）；
+配置 `~/.config/waterprint/desktop.json`（token 首启 server 角色生成≥16 持久化）；
+端口约定：静态壳 127.0.0.1:8620（=CORS 缺省白名单值）、引擎缺省 8621
+（WATERPRINT_PORT 覆盖）；打包面 AppImage/deb 仅骨架未冒烟（desktop/packaging）。
 
 数据卷：`waterprint_wp-projects`（项目 *.wp.json）与 `waterprint_wp-exports`（导出
 产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验：`python -m`
@@ -367,6 +367,7 @@ structlog JSON 行（容器内 /app/waterprint-server.log）；日志是结构�
 | [ADR-025](adr/ADR-025-joint-enumeration.md) | 全厂联合枚举（分层 beam） |
 | [ADR-026](adr/ADR-026-kb-block-gate.md) | kb 断路器运行时执法（design 帧阻断门） |
 | [ADR-027](adr/ADR-027-agent-local-chat-only.md) | agent 面去 harness 化（MCP 面退役，只留本地 chat） |
+| [ADR-028](adr/ADR-028-desktop-online.md) | 桌面壳（pywebview）与联机三角色装配（单机/服务端/客户端） |
 
 ## 6. 质量目标、已知风险与术语
 
@@ -399,12 +400,11 @@ solution 收口（L3→L4 上行 import 消除、伴生件入图谱节点进入�
 
 其余在册开放面（非上表审计编号体系）：
 
-- **在册功能面**：厂级纵断图真实站距（现按站序排布）；ODA DWG 转换端到端
-  冒烟（Linux AppImage 形态）；软著申请与开源准备；专家经验表第三建议
-  来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）。
+- **在册功能面**：厂级纵断图真实站距（现按站序排布）；ODA DWG 转换端到端 冒烟（Linux AppImage 形态）；软著申请与开源准备；专家经验表第三建议
+  来源接入（solution/diagnose.py 现仅消费约束条目与 grid 统计）；桌面打包面 AppImage/deb 未冒烟（desktop/packaging 骨架在案，ADR-028 挂账）与桌面窗口
+  面用户手测、CI 桌面套件 job 未接线（b7 报告在案）。
 - **架构在档挂账（审计执行修复项，随审计治理执行批处置）**：AUDIT-#1/
-  #22（joint_enumeration 上行 import）已随 b23 迁移收口；AUDIT-#3/#4
-  （assumptions 数据包启动校验+WATERPRINT_DATA_DIR 通道+版本槽入
+  #22（joint_enumeration 上行 import）已随 b23 迁移收口；AUDIT-#3/#4 （assumptions 数据包启动校验+WATERPRINT_DATA_DIR 通道+版本槽入
   data_version 聚合）已随 b24（2026-11-18）收口——五包入校验面、core
   registry 探测序 env 前置、聚合串三包化（版本槽抬版仍人工）；
   AUDIT-#7/#8（确定性 JSON 参数 5+1 处与 loop.* 键集 4 处手工镜像+

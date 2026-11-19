@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=WaterPrint
+GenericName=污水处理工艺设计计算平台
+Comment=桌面壳：单机/服务端/客户端三角色（联机开关）
+Exec=waterprint-desktop
+Icon=waterprint
+Terminal=false
+Categories=Engineering;Science;
+# 打包批工作项：Icon 资产与 Exec 包装脚本（AppImage AppRun）未落——
+# 本文件为骨架（诚实标注：未冒烟，见 packaging/README.md）
