@@ -35,6 +35,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 
 from waterprint_desktop.config import ConfigStore, default_config_path
@@ -62,6 +63,12 @@ def bootstrap_origin(supervisor: RuntimeSupervisor) -> str:
 
 def main() -> int:
     """桌面应用入口：装配监督件+桥→开窗口→随窗口生命周期停机。"""
+    # R5 WebKitGTK VM 白屏规避（2.42+ DMABUF 硬件渲染路径在 VMware/VBox
+    # 产出空白页——无头复现已排除服务端因素）：DMABUF+合成双禁走软件渲染；
+    # 真机/已修环境可显式置空覆盖恢复硬件路径。setdefault 须先于 webview
+    # 后端拉起（renderer 进程继承本进程 env）。
+    os.environ.setdefault("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
+    os.environ.setdefault("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
     import webview  # 惰性导入：pywebview=GUI 依赖，不进逻辑层 import 面
 
     config_store = ConfigStore(default_config_path())
