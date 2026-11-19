@@ -27,6 +27,9 @@
  *     各自独立互不覆盖——ENG5 D6 双轨形承袭）；?node= 变更不改导航；
  *   - B2 完成直达（§一.4）：ai 页任务条 done→analysis 入口+相关单元
  *     选中；
+ *   - F1（业务缺陷批 2026-11-19）：useTaskTerminalFaceRefresh 恒挂载层
+ *     ——任务终态 done 失效分析面域（提交时刻失效拉回旧轮值后终态二次
+ *     点火翻新；任何 tab 在场——停留参数页场景由此承接）；
  *   - 主题面（b1）：v4ThemeConfigFor(mode)（三模色板+密度 12/26）；
  *   - B3 R1 回炉 R1-W1：连接设置自愈层恒挂载（useSettingsSelfHeal+
  *     TokenSettingsModal 在 ConfigProvider 内常驻——AUTH_EVENT 401 自愈
@@ -54,6 +57,7 @@ import {
 } from "../onboardingGate";
 import { useClientConnectionSupervisor } from "../useClientConnection";
 import { useSettingsSelfHeal } from "./settingsSelfHeal";
+import { useTaskTerminalFaceRefresh } from "./taskTerminalRefresh";
 import { TopBar } from "./topBar";
 import { NavRail } from "./navRail";
 import { StatusBar } from "./statusBar";
@@ -95,6 +99,10 @@ export function ShellV4() {
   const [runtimeOpen, setRuntimeOpen] = useState(false);
   // 联机第六批：客户端连接状态机 supervisor（单例装配——本地态零副作用）
   useClientConnectionSupervisor();
+  // F1（业务缺陷批 2026-11-19）：任务终态 done 失效分析面域（恒挂载层
+  // 单点——提交时刻失效拉回旧轮值后终态二次点火翻新；TaskStrip 仅 ai
+  // 页挂载，停留参数页场景由此承接）
+  useTaskTerminalFaceRefresh();
   // b1 三主题：scoped ConfigProvider 按模重建（CSS 轴面=store setMode
   // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
   const themeMode = useThemeStore((state) => state.mode);
