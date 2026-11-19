@@ -124,6 +124,8 @@ vi.mock("../../features/compare/api/useCompareQuery", () => ({
 vi.mock("../../features/ai_chat/api/useAiChat", () => ({
   useChatHistory: () => ({ data: undefined, isError: false, error: null }),
   useSendChatMessage: () => ({ mutate: () => {}, isPending: false }),
+  // b4 会话清单（AiSessionsPane/标题面）——空清单空态
+  useChatSessions: () => ({ data: [], isPending: false, isError: false }),
 }));
 vi.mock("../../features/solutions/api/useTaskFeed", () => ({
   useTaskFeed: () => null,

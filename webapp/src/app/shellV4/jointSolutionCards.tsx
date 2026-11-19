@@ -298,7 +298,7 @@ export function JointSolutionCards({
                   textAlign: "left",
                   border: "1px solid var(--wp-border-2)",
                   borderRadius: 6,
-                  background: "var(--wp-bg-container, #ffffff)",
+                  background: "var(--wp-bg-container)",
                   padding: "6px 8px",
                   marginBottom: 6,
                   // N10：busy=disabled 视觉态（antd 形——禁用降不透明度）
@@ -383,7 +383,7 @@ export function JointSolutionCards({
                   flex: "none",
                   border: "1px solid var(--wp-border)",
                   borderRadius: 4,
-                  background: "var(--wp-bg-container, #ffffff)",
+                  background: "var(--wp-bg-container)",
                   color: "var(--wp-accent)",
                   fontSize: 11,
                   padding: "1px 8px",

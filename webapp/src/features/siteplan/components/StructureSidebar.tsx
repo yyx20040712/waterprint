@@ -62,7 +62,7 @@ export function StructureSidebar({
             : selectedId
           : ""}
       </div>
-      <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+      <div style={{ fontSize: 12, color: "var(--wp-text-2)" }}>
         x {structure.x} m · y {structure.y} m · 旋转{" "}
         {structure.rotation}°
       </div>
@@ -85,7 +85,7 @@ export function StructureSidebar({
             间距校核（越限 {spacingRows.length}）
           </Typography.Text>
           {spacingRows.map((row) => (
-            <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "#ff4d4f" : "#faad14" }}>
+            <div key={`${row.a}:${row.b}:${row.threshold_m}:${row.severity}`} style={{ fontSize: 12, marginTop: 4, color: row.severity === "ERROR" ? "var(--wp-error)" : "var(--wp-warning)" }}>
               <span title={row.a === selectedId ? row.b : row.a}>
                 {(() => {
                   const other = row.a === selectedId ? row.b : row.a;
@@ -125,7 +125,7 @@ export function StructureSidebar({
           移出布置（回待摆区）
         </Button>
       </div>
-      <div style={{ marginTop: 10, fontSize: 12, color: "#8c8c8c" }}>
+      <div style={{ marginTop: 10, fontSize: 12, color: "var(--wp-text-2)" }}>
         拖拽移动=坐标网吸附；旋转把手=90° 吸附（Shift 自由）；画布双击
         构筑物=移出。
       </div>

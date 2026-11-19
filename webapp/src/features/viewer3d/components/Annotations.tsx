@@ -13,8 +13,10 @@
  *     node.id 全串（36 条逐图元噪声）+与底色同调字不可读问题；
  *   - 重制=按单元分组（"unit::" 前缀切分——一条/单元；管廊
  *     pipe::* 与非「::」id 整体跳过：管线/图示语义不标注）；中文名
- *     catalog join；B4 亮底重定值：深色字 #1f2329+亮描边（troika
- *     outlineWidth——亮底可读；暗期亮字深描边形态退役）；字号随场景
+ *     catalog join；B4 亮底重定值：深色字+亮描边（troika outlineWidth
+ *     ——亮底可读）；b4 功能面重涂 II 批三主题化：字/描边色=Scene 经
+ *     lib/sceneTheme 按模下传 props（--wp-text/--wp-bg-page 轴真源——
+ *     旧单值字面退役）；字号随场景
  *     对角线自适应（0.6~6m 钳位）；
  *   - 抬升=分组最高顶+1.2 字号位（标注位摆放，非业务推导）；
  *   - troika Text 持 SDF 纹理/字形图集/后台 worker——useEffect 卸载面
@@ -29,8 +31,6 @@ import { useListUnitsApiUnitsGet } from "../../../shared/api/generated/units/uni
 import type { PoolBadge } from "../assemble/poolGroup";
 import type { RenderNode } from "../lib/projectScene";
 
-const LABEL_COLOR = "#1f2329";
-const LABEL_OUTLINE_COLOR = "#ffffff";
 /** 字号随对角线缩放的下/上钳（m/字高——1080p 可读下限/防巨字）。 */
 const FONT_MIN = 0.6;
 const FONT_MAX = 6.0;
@@ -55,9 +55,19 @@ type AnnotationsProps = {
   diagonal?: number;
   /** 池组徽标（unit_id→池数/检修态——缺省/未收录=零徽标）。 */
   poolBadges?: Readonly<Record<string, PoolBadge>>;
+  /** 标注字色（b4 三主题——Scene 经 sceneTheme 按模下传；缺省=轴亮档）。 */
+  labelColor?: string;
+  /** 标注描边色（b4 三主题——同上）。 */
+  labelOutlineColor?: string;
 };
 
-export function Annotations({ nodes, diagonal = 0, poolBadges }: AnnotationsProps) {
+export function Annotations({
+  nodes,
+  diagonal = 0,
+  poolBadges,
+  labelColor = "#202826",
+  labelOutlineColor = "#f2f5f3",
+}: AnnotationsProps) {
   const catalog = useListUnitsApiUnitsGet();
   const fontSize = useMemo(
     () => Math.min(FONT_MAX, Math.max(FONT_MIN, diagonal * FONT_PER_DIAGONAL)),
@@ -114,6 +124,8 @@ export function Annotations({ nodes, diagonal = 0, poolBadges }: AnnotationsProp
             text={`${nameByUnit.get(label.unitId) ?? label.unitId}${suffix}`}
             position={label.position}
             fontSize={fontSize}
+            color={labelColor}
+            outlineColor={labelOutlineColor}
           />
         );
       })}
@@ -125,23 +137,27 @@ function LabelMesh({
   text,
   position,
   fontSize,
+  color,
+  outlineColor,
 }: {
   text: string;
   position: [number, number, number];
   fontSize: number;
+  color: string;
+  outlineColor: string;
 }) {
   const label = useMemo(() => {
     const instance = new Text();
     instance.text = text;
     instance.fontSize = fontSize;
-    instance.color = LABEL_COLOR;
+    instance.color = color;
     instance.outlineWidth = fontSize * 0.18;
-    instance.outlineColor = LABEL_OUTLINE_COLOR;
+    instance.outlineColor = outlineColor;
     instance.anchorX = "center";
     instance.anchorY = "bottom";
     instance.sync();
     return instance;
-  }, [text, fontSize]);
+  }, [text, fontSize, color, outlineColor]);
   // R2 C3：卸载/换文案即 dispose 旧实例（SDF 纹理/字形图集/worker 释放——
   // primitive 不托管外部对象生命周期，缺此面则工况切换累积泄漏）。
   useEffect(() => () => label.dispose(), [label]);

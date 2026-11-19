@@ -14,7 +14,7 @@
 | `lib/compareView.ts` | 纯函数层：narrowCompareResponse 窄化门（顶层 9 键+指标/警告条目键域逐项校验，非法抛 CompareViewError）+锁定基准三件 pinOf/isPinStale/filterLivePins（D3 语义）+metricRowKey/metricLabel/rowExtremes/formatMetricValue 矩阵行模型与数值格式化（D1）；零运行期库 import | P2 第三批实装 |
 | `lib/compareView.test.ts` | 投影层纯函数 vitest（窄化正负例族+锁定判定+行模型/格式化对照） | P2 第三批实装 |
 | `api/useCompareQuery.ts` | orval 生成 hook 薄封装：queryKey ['/api/calc/compare/${projectId}']+select 窄化收口（projectId=null 禁用不取数——useTrustQuery 同构先例） | P2 第三批实装 |
-| `components/CompareMatrix.tsx` | 指标矩阵表+警告计数表：行=单元×out_dims 字段、列=工况（行内 max 加粗/min 下划线差异标注——全等行零标注）；pinned 键 ★ 标+失效键灰显「已移除」；工况列头/单元列中文化（conditionLabel/unitNameIndex） | P2 第三批实装 |
+| `components/CompareMatrix.tsx` | 指标矩阵表+警告计数表：行=单元×out_dims 字段、列=工况（行内 max 加粗+操作色/min 下划线差异标注——全等行零标注；b4 稿 compare.html：单元列 rowspan 分组+中文名/mono id 副行）；pinned 键 ★ 标+失效键灰显「已移除」；工况列头/单元列中文化（conditionLabel/unitNameIndex） | P2 第三批实装+b4 稿矩阵重涂 |
 | `components/CompareMatrix.test.tsx` | 矩阵失效列头呈现 vitest（SSR renderToString 零 jsdom——HC25-F4 可达面；灰显令牌断言锚=UF-64 承接批联动面） | P2 第三批实装 |
 
 ## 规格要点（P2 第三批实况）

@@ -30,7 +30,10 @@
  *     design_offline_<unit> 检修系列（sensitivity 报告快照投影——相对率
  *     =deltas/design_value，design=0/行缺席=null 诚实跳过）与 avg 系列
  *     同图多系列呈现（buildTornadoOption 可选第二参）；
- *   - 零运行期库 import（node 测试零增重——jointView 同款纪律）。
+ *   - 零运行期库 import（node 测试零增重——jointView 同款纪律；
+ *     b4 图表色三态化：色值改自 shared/ui/semanticColors DOMAIN_COLORS
+ *     按模取值〔chartPaletteFor——echarts canvas 面不能 var()〕，
+ *     ThemeMode 为 type-only import 编译期擦除，运行期零增重）。
  */
 import type { JointComboView } from "./jointView";
 import { AVG_METRIC_KEYS, TRUE_METRIC_KEYS, metricLabel } from "./jointView";
@@ -38,6 +41,8 @@ import {
   OFFLINE_PREFIX,
   type SensitivityReportView,
 } from "./sensitivityView";
+import { DOMAIN_COLORS } from "../../../shared/ui/semanticColors";
+import type { ThemeMode } from "../../../shared/store/themeStore";
 
 /** 帕累托轴键（四真键——投影显示面可换轴）。 */
 export type ParetoAxisKey = (typeof TRUE_METRIC_KEYS)[number];
@@ -92,18 +97,30 @@ export type ParallelChartOption = {
   }[];
 };
 
-/** 前沿/被支配双色（前沿高亮蓝/被支配灰阶。B4 亮底重定值：被支配
- * 淡灰白底 1.84:1 不可辨→中灰 #8c8c8c〔3.36:1〕——降调语义保持，
- * 与前沿蓝 5.85:1 分层；三档色白底 3.46/4.10/3.36:1 保持达标）。 */
-const PARETO_FRONT_COLOR = "#2f54eb";
-const PARETO_DOMINATED_COLOR = "#8c8c8c";
-
-/** 三档色（优绿/中蓝/差灰——低优量低位=好）。 */
-const BAND_COLORS: Record<ParallelBand, string> = {
-  best: "#389e0d",
-  mid: "#1677ff",
-  worst: "#8c8c8c",
+/** 图表色板（b4 功能面重涂 II 批三态化——echarts 面为 canvas 渲染不能
+ *  var() 消费 CSS 轴，故色值自 DOMAIN_COLORS 按模取值：前沿=水线蓝/
+ *  优档=矿线绿/中档=水线蓝/被支配与差档=中性灰（域色轴单源——三主题
+ *  随模换肤；light 档对比度分层语义保持：前沿/优档对被支配/差档可辨）。
+ *  旧亮期字面 #2f54eb/#389e0d/#1677ff/#8c8c8c 退役。 */
+export type ChartPalette = {
+  front: string;
+  dominated: string;
+  bandBest: string;
+  bandMid: string;
+  bandWorst: string;
 };
+
+/** 模式 → 图表色板（默认 light=node 测试基线；渲染面传 themeStore mode）。 */
+export function chartPaletteFor(mode: ThemeMode = "light"): ChartPalette {
+  const domain = DOMAIN_COLORS[mode];
+  return {
+    front: domain.water,
+    dominated: domain.neutral,
+    bandBest: domain.mine,
+    bandMid: domain.water,
+    bandWorst: domain.neutral,
+  };
+}
 
 /** combo 排序资格：feasible 且四真键齐（sparse/不可行防御——不参与支配判定）。 */
 function frontEligible(combo: JointComboView): boolean {
@@ -166,7 +183,9 @@ export function buildParetoOption(
   xKey: ParetoAxisKey,
   yKey: ParetoAxisKey,
   front: ReadonlySet<number>,
+  mode: ThemeMode = "light",
 ): ParetoChartOption {
+  const palette = chartPaletteFor(mode);
   const pointOf = (combo: JointComboView): ParetoPoint | null => {
     const x = combo.metrics[xKey];
     const y = combo.metrics[yKey];
@@ -202,14 +221,14 @@ export function buildParetoOption(
         type: "scatter",
         data: frontPoints,
         symbolSize: 12,
-        itemStyle: { color: PARETO_FRONT_COLOR },
+        itemStyle: { color: palette.front },
       },
       {
         name: "被支配方案",
         type: "scatter",
         data: dominatedPoints,
         symbolSize: 7,
-        itemStyle: { color: PARETO_DOMINATED_COLOR },
+        itemStyle: { color: palette.dominated },
       },
     ],
   };
@@ -278,7 +297,14 @@ export function parallelAxesData(
 export function buildParallelOption(
   data: ParallelAxesData,
   invert: boolean,
+  mode: ThemeMode = "light",
 ): ParallelChartOption {
+  const palette = chartPaletteFor(mode);
+  const bandColorOf: Record<ParallelBand, string> = {
+    best: palette.bandBest,
+    mid: palette.bandMid,
+    worst: palette.bandWorst,
+  };
   const bands: ParallelBand[] = ["best", "mid", "worst"];
   const bandNames: Record<ParallelBand, string> = {
     best: "优档",
@@ -304,7 +330,7 @@ export function buildParallelOption(
           value: line.values,
           ...(line.degraded ? { lineStyle: { type: "dashed" as const } } : {}),
         })),
-      lineStyle: { width: 1.5, color: BAND_COLORS[band] },
+      lineStyle: { width: 1.5, color: bandColorOf[band] },
       smooth: false as const,
     })),
   };

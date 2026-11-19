@@ -413,6 +413,10 @@ export function ThumbnailFlow({
                 ? "var(--wp-water)"
                 : "var(--wp-border)"
           }
+          /* b4 留观收口（暖档 MiniMap 饱和度）：遮罩色并 canvas 轴〔暖档
+             不再套亮灰默认遮罩——三主题随轴〕，节点描边并 elevated 阅读面 */
+          maskColor="color-mix(in srgb, var(--wp-canvas) 72%, transparent)"
+          nodeStrokeColor="var(--wp-bg-elevated)"
         />
       </ReactFlow>
       {nodes.length === 0 ? (

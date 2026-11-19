@@ -42,6 +42,7 @@
  *   --wp-border-2    ↔ providers colorBorderSecondary（+Table.colorSplit——稿 line-soft）
  *   --wp-text/2/3    ↔ providers colorText/Secondary/Tertiary（稿 ink/muted/faint）
  *   --wp-accent      ↔ providers colorPrimary/Info/Link（+Tabs inkBar/itemSelected——稿 accent）
+ *   --wp-on-accent   ↔ providers colorTextLightSolid（稿 on-accent——主操作面文字）
  *   --wp-success     ↔ providers colorSuccess（稿 ok）
  *   --wp-warning     ↔ providers colorWarning（稿 warn）
  *   --wp-error       ↔ providers colorError（稿 error）
@@ -79,6 +80,7 @@
   --wp-border-2: #e5eae6;
   --wp-accent: #246b63;
   --wp-accent-soft: #e2eeea;
+  --wp-on-accent: #f7fbfa;
   --wp-text: #202826;
   --wp-text-2: #5c6965;
   --wp-text-3: #65716b;
@@ -112,6 +114,7 @@ html[data-theme="warm"] {
   --wp-border-2: #e6ddcc;
   --wp-accent: #76613d;
   --wp-accent-soft: #eae0cd;
+  --wp-on-accent: #fffaf0;
   --wp-text: #302f29;
   --wp-text-2: #666459;
   --wp-text-3: #6b675b;
@@ -143,6 +146,7 @@ html[data-theme="dark"] {
   --wp-border-2: #2c3532;
   --wp-accent: #7bb9ac;
   --wp-accent-soft: #263c36;
+  --wp-on-accent: #112823;
   --wp-text: #e3e9e6;
   --wp-text-2: #aab6b1;
   --wp-text-3: #8b9892;
@@ -740,6 +744,20 @@ body {
   font-size: 11px;
   text-align: center;
   padding-top: 4px;
+}
+
+/* viewer3d 画布左上浮动工具卡（b4 功能面重涂批——稿 viewer3d.html
+   .viewer-toolbar：轴色底+边线+软影，取景容器内 absolute 挂载） */
+.wp-v4-viewer-toolbar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 6;
+  padding: 6px 8px;
+  border: 1px solid var(--wp-border);
+  border-radius: 6px;
+  background: var(--wp-bg-elevated);
+  box-shadow: 0 2px 10px var(--wp-shadow);
 }
 
 /* viewer3d 浮动视图工具簇（回炉 R6——wireframe 屏 7a 右下角圆角浮层） */

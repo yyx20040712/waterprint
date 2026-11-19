@@ -97,6 +97,23 @@ export function CompareMatrix({
     values: metric.values,
   }));
 
+  // b4 稿 compare.html 单元列 rowspan 分组（同单元连续行合一格——中文名+
+  // mono id 副行；分组界=相邻行同 unit_id，非连续同单元各自成格）
+  const unitSpanOf = new Map<string, number>();
+  rows.forEach((row, index) => {
+    const prev = rows[index - 1];
+    if (prev === undefined || prev.unit_id !== row.unit_id) {
+      let span = 1;
+      for (let scan = index + 1; scan < rows.length; scan += 1) {
+        if (rows[scan]?.unit_id !== row.unit_id) break;
+        span += 1;
+      }
+      unitSpanOf.set(row.key, span);
+    } else {
+      unitSpanOf.set(row.key, 0);
+    }
+  });
+
   // HC25-F4（P3-A）：失效键=pinned 不在当前 condition_keys——列集=
   // condition_keys ∪ 失效键（原实现列遍历 condition_keys 而失效判定按
   // 「不在 condition_keys」恒 false——D3 灰显+「已移除」标注不可达死码）。
@@ -109,9 +126,28 @@ export function CompareMatrix({
       dataIndex: "unit_id",
       key: "unit_id",
       width: 160,
-      ellipsis: true,
+      onCell: (row) => ({
+        rowSpan: unitSpanOf.get(row.key) ?? 1,
+        // 长分组跨行格顶对齐（antd 缺省 middle——33 行大组的名居底缘
+        // 首屏不可见；顶对齐=首行邻位可扫读）
+        style: { verticalAlign: "top" },
+      }),
       render: (unitId: string) => (
-        <span title={unitId}>{unitNames[unitId] ?? unitId}</span>
+        <span title={unitId}>
+          {unitNames[unitId] ?? unitId}
+          {unitNames[unitId] !== undefined ? (
+            <span
+              style={{
+                display: "block",
+                color: "var(--wp-text-3)",
+                fontFamily: "var(--wp-font-mono)",
+                fontSize: 10,
+              }}
+            >
+              {unitId}
+            </span>
+          ) : null}
+        </span>
       ),
     },
     {
@@ -147,8 +183,11 @@ export function CompareMatrix({
           <span
             style={{
               ...MATRIX_VALUE_STYLE,
+              // b4 稿 .max/.min：行内最大=加粗+操作色、最小=下划线（全等行零标注）
               fontWeight: key === maxKey ? 700 : undefined,
+              color: key === maxKey ? "var(--wp-accent)" : undefined,
               textDecoration: key === minKey ? "underline" : undefined,
+              textUnderlineOffset: key === minKey ? 3 : undefined,
             }}
           >
             {formatMetricValue(value)}

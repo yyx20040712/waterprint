@@ -76,6 +76,7 @@ const PAIRED_KEYS = [
   "--wp-text-2",
   "--wp-text-3",
   "--wp-accent",
+  "--wp-on-accent",
   "--wp-success",
   "--wp-warning",
   "--wp-error",
@@ -175,6 +176,10 @@ describe("GR-39 双源联动清单机检化（2A5·b1 三态扩面）", () => {
       expect(vars.get("--wp-accent"), `${mode} itemSelected`).toBe(
         norm(tabs.itemSelectedColor),
       );
+      // 主操作面文字（稿 on-accent）——b4 增对（aiZone 发送钮/报告导出主钮消费）
+      expect(vars.get("--wp-on-accent"), `${mode} on-accent`).toBe(
+        norm(t.colorTextLightSolid),
+      );
       // 语义三色
       expect(vars.get("--wp-success"), `${mode} success`).toBe(
         norm(t.colorSuccess),
@@ -237,6 +242,9 @@ describe("GR-39 双源联动清单机检化（2A5·b1 三态扩面）", () => {
     );
     expect(globalCss).toContain(
       "--wp-accent      ↔ providers colorPrimary/Info/Link（+Tabs inkBar/itemSelected——稿 accent）",
+    );
+    expect(globalCss).toContain(
+      "--wp-on-accent   ↔ providers colorTextLightSolid（稿 on-accent——主操作面文字）",
     );
     expect(globalCss).toContain(
       "--wp-success     ↔ providers colorSuccess（稿 ok）",

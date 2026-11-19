@@ -1,24 +1,30 @@
 /**
- * v4 三维示意区（B1 骨架批 2026-10-09——点击直接全幅：Viewer3dPane 复用
- * 迁入〔lazy 装配——M1 槽同制，装配引用不改件本体〕；wireframe-d-v4
- * 屏 7a 形）。
+ * v4 三维示意区（B1 骨架批点击直接全幅→b4 功能面重涂 II 批 2026-11-19
+ * 稿 viewer3d.html 两栏重制：左=场景结构〔厂区总装单元树+场地与管线
+ * 分组+取景说明〕+右=Viewer3dPane 全幅〔ErrorBoundary+Suspense 薄壳〕
+ * +右下角浮动视图工具簇〔放大/缩小/重置〕；未选项目=全幅空态选择面
+ * 〔Viewer3dPane 自持〕——结构栏不挂）。
  *
- * 输入: Viewer3dPane（app 件 lazy 装配——空态项目选择/Scene 懒装载由
- *        viewer3d feature 自持）
- * 输出: viewer3d 全幅区（ErrorBoundary+Suspense 薄壳）+右下角浮动视图
- *        工具簇（回炉 R6/VB-2：放大/缩小/重置视图——简笔线性图标）
+ * 输入:  useProjectId（结构栏挂载门）+useProjectDesign（单元清单——
+ *        params 通道同键缓存共享零额外请求）+useListUnitsApiUnitsGet
+ *        （unitNameIndex 中文名）+Viewer3dPane（app 件 lazy 装配）
+ * 输出:  viewer3d 区：两栏〔scene-structure 结构栏/全幅视口〕+浮动缩放
+ *        工具簇（回炉 R6：zone 层 scale 变换+重挂载）
  *
- * 规格说明（B1 任务书 §三.6——plan §九.5：点击直接展示=全幅视口）。
- *   - 回炉 R6（VB-2）浮动工具簇：缩放±=zone 层包裹 scale 变换；重置视图
- *     =缩放复位+场景重挂载（mountKey 换键）——微裁决 V17：真 3D 相机
- *     dolly/preset 接线随 v4 viewer3d 功能批（B1 骨架态=可见可用的
- *     zone 层最小面，不深入 Scene 内部）。
- *   - V4 P7（2026-10-15）：包裹 div 立 flex 列——Scene Fragment 扁平子
- *     （横幅/工具条/画布段）的弹性父，画布容器填充制链首（B-空带收口）。
+ * 规格说明（b4 批准稿 viewer3d.html 左栏段——信息组织重造，数据流零变）：
+ *   - 结构栏=场景构成只读信息（厂区总装=设计节点单元行〔中文名+id〕；
+ *     场地与管线=管廊/道路/红线静态分组行——图示语义不虚造交互）；
+ *   - 未摆放或未计算单元不进入场景（稿 notice 原文——诚实呈现）；
+ *   - 缩放工具簇沿承（R6/VB-2：zone 层包裹 scale 变换；重置=缩放复位
+ *     +场景重挂载 mountKey 换键——真 3D 相机 dolly/preset 接线挂账）。
  */
 import { lazy, Suspense, useState } from "react";
 
 import { ErrorBoundary } from "../ErrorBoundary";
+import { useProjectId } from "../useProjectId";
+import { useProjectDesign } from "../../features/params/api/useProjectDesign";
+import { unitNameIndex } from "../../shared/conditionLabels";
+import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 
 const Viewer3dPane = lazy(() =>
   import("../viewer3dPane").then((m) => ({ default: m.Viewer3dPane })),
@@ -28,6 +34,19 @@ const Viewer3dPane = lazy(() =>
 const ZOOM_STEP = 0.15;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.5;
+
+/** 结构栏底注（稿 viewer3d.html notice——白名单：说明文案）。 */
+const STRUCTURE_NOTICE =
+  "未摆放或未计算单元不进入场景。取景以模型簇与红线顶点为边界。";
+
+/** 场地与管线分组行（场景构成静态行——图示语义非交互面；域色轴标注
+ *  水线/泥线两管廊）。 */
+const SITE_GROUP_ROWS: ReadonlyArray<readonly [string, string, string]> = [
+  ["≋", "水线管廊", "var(--wp-water)"],
+  ["≋", "泥线管廊", "var(--wp-sludge)"],
+  ["▦", "道路与走廊", "var(--wp-text-3)"],
+  ["▭", "场地红线", "var(--wp-text-3)"],
+];
 
 /** 简笔线性图标（+／−／home——stroke currentColor，全局规则简笔线性）。 */
 function ToolIcon({ kind }: { kind: "in" | "out" | "home" }) {
@@ -53,7 +72,81 @@ function ToolIcon({ kind }: { kind: "in" | "out" | "home" }) {
   );
 }
 
+/** 场景结构栏（稿 viewer3d.html 左栏：厂区总装+场地与管线两分组）。 */
+function SceneStructurePane() {
+  const [projectId] = useProjectId();
+  const designQuery = useProjectDesign(projectId ?? "");
+  const unitNames =
+    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
+  const unitIds = Object.keys(designQuery.data?.nodeKinds ?? {}).sort((a, b) =>
+    (unitNames[a] ?? a).localeCompare(unitNames[b] ?? b, "zh-Hans-CN"),
+  );
+  return (
+    <aside className="wp-v4-pane left" data-region="scene-structure" style={{ width: 186 }}>
+      <div className="wp-v4-pane-head">
+        <h3>场景结构</h3>
+        <span className="wp-v4-badge">{unitIds.length} 单元</span>
+      </div>
+      <div className="wp-v4-pane-body">
+        <div className="wp-v4-tree">
+          <div className="wp-v4-tree-group">
+            <span aria-hidden className="chev">▾</span>
+            <strong style={{ fontWeight: 400 }}>厂区总装</strong>
+          </div>
+          {unitIds.length === 0 ? (
+            <p style={{ padding: "2px 8px 6px 22px", color: "var(--wp-text-2)", fontSize: 11 }}>
+              设计无已摆单元
+            </p>
+          ) : (
+            unitIds.map((unitId) => (
+              <div
+                key={unitId}
+                data-testid="wp-v4-scene-unit-row"
+                className="wp-v4-tree-row"
+                style={{ cursor: "default" }}
+                title={unitId}
+              >
+                <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", width: 13, textAlign: "center" }}>
+                  ◻
+                </span>
+                <span
+                  style={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {unitNames[unitId] ?? unitId}
+                </span>
+              </div>
+            ))
+          )}
+          <div className="wp-v4-tree-group" style={{ marginTop: 8 }}>
+            <span aria-hidden className="chev">▾</span>
+            <strong style={{ fontWeight: 400 }}>场地与管线</strong>
+          </div>
+          {SITE_GROUP_ROWS.map(([icon, label, color]) => (
+            <div
+              key={label}
+              className="wp-v4-tree-row"
+              style={{ cursor: "default" }}
+            >
+              <span aria-hidden style={{ flex: "none", color, width: 13, textAlign: "center" }}>
+                {icon}
+              </span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="wp-v4-pane-foot">{STRUCTURE_NOTICE}</div>
+      </div>
+    </aside>
+  );
+}
+
 export function Viewer3dZone() {
+  const [projectId] = useProjectId();
   // zone 层视图态（回炉 R6——缩放=包裹变换；重置=缩放复位+重挂载）
   const [zoom, setZoom] = useState(1);
   const [mountKey, setMountKey] = useState(0);
@@ -64,8 +157,8 @@ export function Viewer3dZone() {
       style={{
         flex: 1,
         minWidth: 0,
+        // b4 两栏：行向（结构栏+视口）——缩放包裹列态在自身样式承载
         display: "flex",
-        flexDirection: "column",
         position: "relative",
         // B1 R2/N1+门一 k1-W1：缩放溢出防护挂未缩放祖先——overflow 裁剪
         // 边界随自身 transform 一并放大（局部坐标系先于变换），挂在带
@@ -74,6 +167,7 @@ export function Viewer3dZone() {
         overflow: "hidden",
       }}
     >
+      {projectId !== null ? <SceneStructurePane /> : null}
       <div
         style={{
           flex: 1,

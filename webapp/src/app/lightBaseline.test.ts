@@ -219,12 +219,14 @@ describe("判定面④：内联暗值文件清单逐文件零命中（D5 实测�
         "rgba(27, 44, 73", "rgba(27,44,73",
         "rgba(61, 139, 253", "rgba(61,139,253", "#7ab2ff",
       ],
-      "features/viewer3d/components/Scene.tsx": ["#0e2415", "#0b1526"],
+      "features/viewer3d/components/Scene.tsx": [
+        "#0e2415", "#0b1526", "#e2ece0", "#f5f6f8",
+      ],
       "features/viewer3d/components/GroundStage.tsx": [
-        "#1b2c49", "#2e5239", "#3d619c",
+        "#1b2c49", "#2e5239", "#3d619c", "#54719f", "#d8dee8", "#c8dcc2",
       ],
       "features/viewer3d/components/Annotations.tsx": [
-        "#e8eef7", "#0a1220", "#1f1f1f",
+        "#e8eef7", "#0a1220", "#1f1f1f", "#1f2329", "#ffffff",
       ],
       "features/solutions/lib/jointCharts.ts": ["#bfbfbf"],
       "features/siteplan/lib/canvasDisplay.ts": ["#1f2933", "#2c2c2c"],

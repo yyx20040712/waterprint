@@ -102,11 +102,13 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
     expect(hits).toEqual([]);
   });
 
-  it("扫描面非空守卫：shellV4 生产件恰 29 件（扫描根漂移=静默绿防线；b2 壳重组批 26 件；b3 功能面重涂批 +unitLibraryPane/unitInspector/thumbnailNode 三件——工艺入口三栏与节点卡拆件）", () => {
+  it("扫描面非空守卫：shellV4 生产件恰 32 件（扫描根漂移=静默绿防线；b2 壳重组批 26 件；b3 功能面重涂批 +unitLibraryPane/unitInspector/thumbnailNode 三件；b4 功能面重涂 II 批 +aiChatFace/aiSessionsPane/reportExports 三件——AI 三栏与导出拆件）", () => {
     const sources = scanShellV4Sources(SCAN_DIR);
-    expect(sources.length).toBe(29);
+    expect(sources.length).toBe(32);
     expect(sources.map((s) => s.rel).sort()).toEqual(
       [
+        "aiChatFace.tsx",
+        "aiSessionsPane.tsx",
         "aiZone.tsx",
         "analysisPane.tsx",
         "analysisView.ts",
@@ -121,6 +123,7 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
         "processZone.tsx",
         "projectsZone.tsx",
         "reportDoc.tsx",
+        "reportExports.tsx",
         "reportZone.tsx",
         "settingsSelfHeal.ts",
         "shellV4.tsx",

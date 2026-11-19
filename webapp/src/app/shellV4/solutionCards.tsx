@@ -70,7 +70,7 @@ function CardRow({
         textAlign: "left",
         border: "1px solid var(--wp-border-2)",
         borderRadius: 6,
-        background: "var(--wp-bg-container, #ffffff)",
+        background: "var(--wp-bg-container)",
         padding: "6px 8px",
         marginBottom: 6,
         cursor: "pointer",

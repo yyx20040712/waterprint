@@ -102,12 +102,21 @@ function rehypeHeadingIds(options: { sections: readonly ReportSection[] }) {
   };
 }
 
-/** GFM 表格形（wireframe .rt：浅底表头+细分割+左对齐；字号 11 档）。 */
+/** 衬线正文栈（稿 deliverables.html --font-serif——说明书稿纸形态；
+ *  非主题差分面=静态字面）。 */
+const FONT_SERIF_STACK =
+  '"Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", SimSun, serif';
+const FONT_SANS_STACK =
+  '"Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif';
+
+/** GFM 表格形（wireframe .rt：浅底表头+细分割+左对齐；字号 11 档——
+ *  b4 稿 .report-paper table=衬线正文内的无衬线表格面沿承）。 */
 const TABLE_STYLE = {
   width: "100%",
   borderCollapse: "collapse",
   fontSize: 11,
   margin: "8px 0",
+  fontFamily: FONT_SANS_STACK,
 } as const;
 const CELL_STYLE = {
   border: "1px solid var(--wp-border-2)",
@@ -127,37 +136,48 @@ const mdComponents: Components = {
   td: ({ children }) => <td style={CELL_STYLE}>{children}</td>,
 };
 
-/** 正文容器排版（wireframe 屏 6 阅读卡内文：12px/行高 2/FG-1）。 */
+/** 正文容器排版（b4 稿 .report-paper p：衬线 14px/行高 2——wireframe 屏 6
+ *  的 12px 无衬线形态退役；KaTeX 公式块排版=KaTeX 默认沿承）。 */
 const DOC_STYLE = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: 2,
   color: "var(--wp-text)",
+  fontFamily: FONT_SERIF_STACK,
 } as const;
 const HEADING_STYLE = {
   fontWeight: 400, // 忌加粗——.wp-v4-root 复位之外的内联双保险（卡内独立字号档）
-  margin: "14px 0 6px",
+  margin: "18px 0 8px",
+  fontFamily: FONT_SERIF_STACK, // b4 稿 .report-paper h1~h3 衬线标题族
 } as const;
 
 /** 标题件 props（id 等透传面+react-markdown 的 node 元数据——node 剥离不入 DOM）。 */
 type MdHeadingProps = HTMLAttributes<HTMLHeadingElement> & { node?: unknown };
 
-/** 标题件（h1=文档题 16/h2=章 14/h3=小节 12——字号三档制内正文扩展档；
- *  id 锚由 rehype 插件注入 hast properties→props 透传直出）。 */
-function headingOf(tag: "h1" | "h2" | "h3", fontSize: number) {
+/** 标题件（h1=文档题 22 居中/h2=章 18 带底分割/h3=小节 15——b4 稿
+ *  .report-paper h1~h3 衬线字号档；id 锚由 rehype 插件注入 hast
+ *  properties→props 透传直出）。 */
+function headingOf(
+  tag: "h1" | "h2" | "h3",
+  fontSize: number,
+  extraStyle?: Record<string, string | number>,
+) {
   return function MdHeading(props: MdHeadingProps) {
     const { children, node: _node, ...rest } = props;
     return createElement(
       tag,
-      { ...rest, style: { ...HEADING_STYLE, fontSize } },
+      { ...rest, style: { ...HEADING_STYLE, fontSize, ...extraStyle } },
       children,
     );
   };
 }
 
 const headingComponents: Components = {
-  h1: headingOf("h1", 16),
-  h2: headingOf("h2", 14),
-  h3: headingOf("h3", 12),
+  h1: headingOf("h1", 22, { textAlign: "center" }),
+  h2: headingOf("h2", 18, {
+    borderBottom: "1px solid var(--wp-border-2)",
+    paddingBottom: 7,
+  }),
+  h3: headingOf("h3", 15),
 };
 
 /** 元数据段标记（服务端 render_md 契约——md 首章「项目标识与版本三元组」

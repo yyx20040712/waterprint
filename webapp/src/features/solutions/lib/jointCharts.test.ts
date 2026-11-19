@@ -18,6 +18,7 @@ import { TRUE_METRIC_KEYS, metricLabel } from "./jointView";
 import {
   buildParallelOption,
   buildParetoOption,
+  chartPaletteFor,
   comboSummaryText,
   paretoFront,
   paretoTooltipLines,
@@ -204,6 +205,33 @@ describe("两图 option 纯对象（投影层承载全部契约）", () => {
     expect(normal.series[0]?.data[0]).toEqual({ value: [100, 50, 0.5, 1000, 1] });
   });
 
+});
+
+describe("图表色三态化（b4——chartPaletteFor 域色轴按模取值）", () => {
+  it("chartPaletteFor：light=水线/中性/矿线三源；dark 提亮档换肤", () => {
+    const light = chartPaletteFor("light");
+    expect(light.front).toBe("#286b86"); // DOMAIN_COLORS.light.water
+    expect(light.dominated).toBe("#595959"); // domain_neutral
+    expect(light.bandBest).toBe("#3f7d6a"); // domain_mine
+    expect(light.bandMid).toBe("#286b86");
+    expect(light.bandWorst).toBe("#595959");
+    const dark = chartPaletteFor("dark");
+    expect(dark.front).toBe("#78acc0"); // dark.water 提亮档
+    expect(dark.bandBest).toBe("#83b49c"); // dark.mine
+  });
+
+  it("buildParetoOption/buildParallelOption 随 mode 取色（缺省 light 基线）", () => {
+    const a = comboOf([100, 50, 0.5, 1000], { score: 1 });
+    const b = comboOf([90, 70, 0.4, 1100], { score: 2 });
+    const front = paretoFront([a, b]);
+    const lightOpt = buildParetoOption([a, b], "cost_capex_yuan", "cost_opex_yuan_a", front);
+    const darkOpt = buildParetoOption([a, b], "cost_capex_yuan", "cost_opex_yuan_a", front, "dark");
+    expect(lightOpt.series[0]?.itemStyle.color).toBe("#286b86");
+    expect(darkOpt.series[0]?.itemStyle.color).toBe("#78acc0");
+    const data = parallelAxesData([a, b]);
+    const darkParallel = buildParallelOption(data, false, "dark");
+    expect(darkParallel.series[0]?.lineStyle.color).toBe("#83b49c");
+  });
 });
 
 describe("tooltip 与参数摘要（纯文本面）", () => {

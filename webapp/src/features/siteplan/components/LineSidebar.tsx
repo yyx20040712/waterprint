@@ -80,7 +80,7 @@ export function LineSidebar({
           </Button>
         </Popconfirm>
       </div>
-      <div style={{ marginTop: 10, fontSize: 12, color: "#8c8c8c" }}>
+      <div style={{ marginTop: 10, fontSize: 12, color: "var(--wp-text-2)" }}>
         画布聚焦按 Delete/Backspace 同效（汇同一确认门）；取消=零动作。
       </div>
     </aside>

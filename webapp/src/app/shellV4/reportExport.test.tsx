@@ -156,16 +156,16 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("计算说明区·导出语境区三钮（§二.⑤）", () => {
-  it("三钮在场：计算书 xlsx/审计 HTML/PDF 计算书（V3 D3：calcbook 主色化+audit 保持灰描边）", () => {
+  it("三钮在场：导出计算书 XLSX/导出审计包/导出 PDF 计算书（b4 稿下载动词形；V3 D3 calcbook 主色化沿承）", () => {
     const { container } = renderZone();
     const row = container.querySelector('[data-region="report-export"]');
-    expect(row?.textContent).toContain("计算书 xlsx");
-    expect(row?.textContent).toContain("审计 HTML");
-    expect(row?.textContent).toContain("PDF 计算书");
+    expect(row?.textContent).toContain("导出计算书 XLSX");
+    expect(row?.textContent).toContain("导出审计包");
+    expect(row?.textContent).toContain("导出 PDF 计算书");
     // V3 D3 导出主钮主色：AC 底+白字（jsdom 色归一 rgb 形）；audit 现状保持
     const calcbook = container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-calcbook"]');
     expect(calcbook?.style.background).toBe("var(--wp-accent)");
-    expect(calcbook?.style.color).toBe("rgb(255, 255, 255)");
+    expect(calcbook?.style.color).toBe("var(--wp-on-accent)"); // b4：白字面→on-accent 轴（夜间暗字随主题）
     expect(container.querySelector<HTMLButtonElement>('[data-testid="wp-v4-report-export-audit"]')?.style.background).toBe("var(--wp-bg-elevated)");
   });
 

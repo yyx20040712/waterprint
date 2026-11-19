@@ -21,6 +21,11 @@
  * unitGlyph.domainColorOf/streamColorOf 与 CanvasFlow LEGEND_LINES 的
  * 域色字面量收敛至 domain_* 键（同值搬家零漂移；global.css --wp-* 轴
  * 保留——SVG 属性面不能 var() 的 CSS/JS 双轴根因性债=UF-53 另立挂账）。
+ * b4 功能面重涂 II 批（2026-11-19）管廊键三态收口：域派生键
+ * （pipe_ 与 domain_ 前缀族）运行期查表改按当前模读 DOMAIN_COLORS——
+ * CSS 轴注入（installDomainColorAxis）同步记录 JS 面当前模，Three.js
+ * 管廊图元色随主题换肤；静态表值=light 档参照锚（semanticColors.test
+ * 冻结）不变。
  * 批6n 增补（UF-53 双轴归一收口——2026-09-29，设计裁量二案取
  * CSS-in-JS 注入案，卷宗=.workflow/backend-calc-complete/b6n-design.md）：
  * 域色 CSS 变量轴改为本表启动期注入（global.css :root 域色字面量退役）
@@ -82,12 +87,22 @@ export const domainCssVarsFor = (
   "--wp-convey": DOMAIN_COLORS[mode].convey,
 });
 
+/** 域色 JS 面当前模（b4 功能面重涂 II 批 2026-11-19——管廊 pipe_* 键
+ *  三态收口）：Three.js/Canvas 图元不能 var() 消费注入轴，故 CSS 轴
+ *  注入时同步记录当前模，semanticColor 对域派生键（pipe_ 与 domain_ 族）
+ *  按模查 DOMAIN_COLORS——启动期 installDomainColorAxis 首模+切换期
+ *  重注入双径覆盖；缺省 light=纯 node 测试基线（semanticColors.test
+ *  冻结锚 light 档值保持）。 */
+let activeDomainMode: ThemeMode = "light";
+
 /** 注入域色 CSS 变量轴（批6n=providers 装载期一次；b1 按模化=经
  * shared/store/themeStore applyThemeMode 调用——装载期首模+切换期
- * 重注入，import 期先于 createRoot 首帧无 FOUC；document 缺席〔SSR/
- * 纯 node 测试〕=守卫 no-op——本项目纯 CSR，缺席面仅测试环境；接线
- * 行为级守卫=src/app/domainColorAxis.test。缺省参=light 兼容面）。 */
+ * 重注入，import 期先于 createRoot 首帧无 FOUC；b4：同步记录 JS 面
+ * 当前模；document 缺席〔SSR/纯 node 测试〕=守卫 no-op——本项目纯
+ * CSR，缺席面仅测试环境；接线行为级守卫=src/app/domainColorAxis.test。
+ * 缺省参=light 兼容面）。 */
 export const installDomainColorAxis = (mode: ThemeMode = "light"): void => {
+  activeDomainMode = mode;
   if (typeof document === "undefined") return;
   for (const [name, value] of Object.entries(domainCssVarsFor(mode)))
     document.documentElement.style.setProperty(name, value);
@@ -157,6 +172,26 @@ export const SEMANTIC_COLORS = {
 /** 未登记语义兜底灰阶（禁抛错打断渲染）。 */
 export const FALLBACK_COLOR = "#9aa5b1";
 
-/** 语义 token → 色值（未登记语义=灰阶兜底——禁抛错打断渲染）。 */
-export const semanticColor = (semantic: string): string =>
-  SEMANTIC_COLORS[semantic as keyof typeof SEMANTIC_COLORS] ?? FALLBACK_COLOR;
+/** 域派生键集（b4 三态收口——查表按当前模改读 DOMAIN_COLORS：管廊
+ *  pipe_water/pipe_sludge〔Three.js 面消费〕+domain_* 五键〔JS 非达
+ *  消费面参照值〕；表内静态值=light 档参照锚〔semanticColors.test
+ *  冻结〕，运行期取值以本映射为准）。 */
+const DOMAIN_DERIVED_KEYS: Record<string, keyof (typeof DOMAIN_COLORS)["light"]> = {
+  pipe_water: "water",
+  pipe_sludge: "sludge",
+  domain_water: "water",
+  domain_sludge: "sludge",
+  domain_mine: "mine",
+  domain_convey: "convey",
+  domain_neutral: "neutral",
+};
+
+/** 语义 token → 色值（未登记语义=灰阶兜底——禁抛错打断渲染；域派生键
+ *  按当前模查 DOMAIN_COLORS〔b4——CSS 轴注入同步记录的 activeDomainMode〕）。 */
+export const semanticColor = (semantic: string): string => {
+  const domainKey = DOMAIN_DERIVED_KEYS[semantic];
+  if (domainKey !== undefined) {
+    return DOMAIN_COLORS[activeDomainMode][domainKey];
+  }
+  return SEMANTIC_COLORS[semantic as keyof typeof SEMANTIC_COLORS] ?? FALLBACK_COLOR;
+};

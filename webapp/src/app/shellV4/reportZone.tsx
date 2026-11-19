@@ -1,7 +1,10 @@
 /**
- * v4 计算说明区（B6 计算说明批段3 2026-10-09——B1 空态壳实装化：左导航
- * 190px 两级数据驱动〔sections〕+右阅读卡 max-width 640px〔react-markdown
- * +KaTeX——reportDoc〕+导出语境区三钮；wireframe-d-v4 屏 6 形）。
+ * v4 计算说明区（B6 计算说明批段3 2026-10-09——左导航 190px 两级数据
+ * 驱动〔sections〕+右阅读卡〔react-markdown+KaTeX——reportDoc〕+导出
+ * 语境区三钮；b4 功能面重涂 II 批 2026-11-19 稿 deliverables.html 阅读
+ * 面重制：稿纸幅 760px+衬线标题〔reportDoc〕+居中元信息行+导出三钮
+ * 下载动词形〔拆件 reportExports——行数预算〕；wireframe-d-v4 屏 6 形
+ * →稿 .report-paper 形）。
  *
  * 输入:  useProjectId（项目单一真相）+useGetProjectReportApiCalcProjects
  *        ProjectIdReportGet（?condition_key=design——markdown+sections 两级
@@ -30,20 +33,19 @@
  *     -left-w；data-region="report-nav" 与既有 testid 语义原样保持）。
  */
 import { useEffect, useState, type ReactNode } from "react";
-import { Modal, message } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectId } from "../useProjectId";
 import { rawProjectName } from "../useProjectName";
 import { ReportDoc, type ReportSection } from "./reportDoc";
 import { usePaneWidth } from "./usePaneWidth";
-import { useExportArtifact } from "../../features/drawings/api/useExportArtifact";
+import { ExportContextRow } from "./reportExports";
+export { exportFailText, type ReportExportKind } from "./reportExports";
 import {
   useGetProjectReportApiCalcProjectsProjectIdReportGet,
   useRunCalculationApiCalcRunPost,
 } from "../../shared/api/generated/calc/calc";
 import { useReadProjectApiProjectsProjectIdGet } from "../../shared/api/generated/projects/projects";
-import { WaterprintApiError } from "../../shared/api/http";
 import { domainGate } from "../../shared/api/sourceGate";
 import { TASK_EVENT } from "../../shared/events";
 import { writeTaskParam } from "../solutionsUrlState";
@@ -53,37 +55,6 @@ const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新�
 const NO_CALC_TEXT = "计算说明在完成计算后生成";
 const STALE_TEXT = "说明书已过期（参数已变更）——重算后更新";
 const LOADING_TEXT = "正在加载计算说明…";
-
-/** 导出语境区三钮（label=白名单微文案——wireframe 屏 6 注记「计算书
- *  xlsx/审计 HTML」+B6 增 PDF 计算书）。 */
-const REPORT_EXPORTS = [
-  { kind: "calcbook", label: "计算书 xlsx", testid: "wp-v4-report-export-calcbook" },
-  { kind: "audit", label: "审计 HTML", testid: "wp-v4-report-export-audit" },
-  { kind: "report_pdf", label: "PDF 计算书", testid: "wp-v4-report-export-pdf" },
-] as const;
-
-/** 导出 kind 三值（useExportArtifact 泛化通道——既有 POST /api/exports/{kind}）。 */
-export type ReportExportKind = (typeof REPORT_EXPORTS)[number]["kind"];
-
-/** 各 kind 的工况载荷（audit 空=全厂单份跨工况；其余随报告工况 design）。 */
-const EXPORT_CONDITION: Record<ReportExportKind, string> = {
-  calcbook: "design",
-  audit: "",
-  report_pdf: "design",
-};
-
-/** 导出失败文案（纯函数——PDF 面显式「PDF 计算书导出失败」前缀；404=
- *  domainGate 固定摘要+先提交计算引导，raw API 句式不入用户面）。 */
-export function exportFailText(kind: ReportExportKind, error: unknown): string {
-  const label = REPORT_EXPORTS.find((row) => row.kind === kind)?.label ?? kind;
-  const gate = domainGate(
-    error,
-    "ExportSourceNotFoundError",
-    "项目暂无完成的计算结果",
-  );
-  const reason = gate.domain ? `${gate.text}——先提交计算后再导出` : gate.text;
-  return `${label}导出失败：${reason}`;
-}
 
 /** V4 P5：尾部 id 括注（服务端 Section title=「单元名（unit_id）」形〔core
  *  report build.py Section title f 串〕）——显示面剥除，title 悬浮全称归
@@ -194,7 +165,7 @@ function StaleBanner({ projectId }: { projectId: string }) {
         style={{
           border: "1px solid var(--wp-border)",
           borderRadius: 4,
-          background: "var(--wp-bg-container, #ffffff)",
+          background: "var(--wp-bg-container)",
           color: "var(--wp-accent)",
           fontSize: 11,
           padding: "1px 8px",
@@ -203,100 +174,6 @@ function StaleBanner({ projectId }: { projectId: string }) {
       >
         重算
       </button>
-    </div>
-  );
-}
-
-/** 导出语境区（三钮——下载反馈沿仓惯例：成功 message+409 二选一 force
- *  支线〔surfaceExportError 同语义本地面——该 lib kind 域钉 dxf|ifc〕）。 */
-function ExportContextRow({ projectId }: { projectId: string }) {
-  const calcbook = useExportArtifact("calcbook");
-  const audit = useExportArtifact("audit");
-  const reportPdf = useExportArtifact("report_pdf");
-  const [messageApi, contextHolder] = message.useMessage();
-  const mutations = { calcbook, audit, report_pdf: reportPdf };
-
-  const submitExport = (kind: ReportExportKind, force: boolean) => {
-    mutations[kind].mutate(
-      { projectId, unitId: "", conditionKey: EXPORT_CONDITION[kind], force },
-      {
-        onSuccess: (outcome) => {
-          messageApi.success(`已导出：${outcome.fileName}`);
-        },
-        onError: (error) => {
-          // 409 stale=二选一（仍导出旧结果 force）——静默弱化禁
-          if (
-            error instanceof WaterprintApiError &&
-            error.code === "StaleExportError"
-          ) {
-            Modal.confirm({
-              title: "结果集已过期（stale）",
-              content: error.message,
-              okText: "仍导出旧结果（force）",
-              cancelText: "先重算",
-              onOk: () => {
-                submitExport(kind, true);
-              },
-            });
-            return;
-          }
-          messageApi.error(exportFailText(kind, error));
-        },
-      },
-    );
-  };
-
-  return (
-    <div
-      data-region="report-export"
-      style={{
-        flex: "none",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "6px 10px",
-        borderBottom: "1px solid var(--wp-border-2)",
-        background: "var(--wp-bg-container)",
-      }}
-    >
-      {contextHolder}
-      <span style={{ fontSize: 11, color: "var(--wp-text-2)", letterSpacing: 1 }}>
-        计算说明书 · 导出
-      </span>
-      {REPORT_EXPORTS.map((row) => (
-        <button
-          key={row.kind}
-          type="button"
-          data-testid={row.testid}
-          disabled={mutations[row.kind].isPending}
-          onClick={() => submitExport(row.kind, false)}
-          style={
-            row.kind === "calcbook"
-              ? {
-                  // V3 D3：主钮主色化（AC 底+白字+同色描边——三键等权灰描边
-                  // 的对症=建立主次；audit/PDF 两钮保持现状）
-                  border: "1px solid var(--wp-accent)",
-                  borderRadius: 4,
-                  background: "var(--wp-accent)",
-                  color: "#ffffff",
-                  fontSize: 11,
-                  padding: "1px 8px",
-                  cursor: mutations[row.kind].isPending ? "default" : "pointer",
-                }
-              : {
-                  border: "1px solid var(--wp-border)",
-                  borderRadius: 4,
-                  background: "var(--wp-bg-elevated)",
-                  color: "var(--wp-text)",
-                  fontSize: 11,
-                  padding: "1px 8px",
-                  cursor: mutations[row.kind].isPending ? "default" : "pointer",
-                }
-          }
-        >
-          {row.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -337,9 +214,9 @@ function ReportFace({ projectId }: { projectId: string }) {
             flex: 1,
             minWidth: 0,
             margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
-            padding: "20px 26px",
-            maxWidth: 640,
-            background: "#ffffff",
+            padding: "32px 44px",
+            maxWidth: 760,
+            background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border-2)",
             borderRadius: 6,
             color: "var(--wp-text-2)",
@@ -427,10 +304,10 @@ function ReportFace({ projectId }: { projectId: string }) {
           data-region="report-doc"
           style={{
             flex: "none",
-            margin: "8px auto", // V3 D3：阅读卡居中（宽视口空带收束——maxWidth 640 保留）
-            padding: "20px 26px",
-            maxWidth: 640, // wireframe 屏 6：阅读卡 max-width 640px
-            background: "#ffffff",
+            margin: "8px auto", // V3 D3：阅读卡居中沿承（b4 稿 .report-paper 幅面 760）
+            padding: "32px 44px",
+            maxWidth: 760, // b4 稿 deliverables.html .report-paper 稿纸幅
+            background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border-2)",
             borderRadius: 6,
           }}
@@ -440,9 +317,10 @@ function ReportFace({ projectId }: { projectId: string }) {
             style={{
               color: "var(--wp-text-2)",
               fontSize: 11,
+              textAlign: "center",
               paddingBottom: 10,
               borderBottom: "1px solid var(--wp-border-2)",
-              marginBottom: 10,
+              marginBottom: 14,
             }}
           >
             {projectName} · 数据集 R-{report.generated_from.digest10} · 生成于最近完成计算
@@ -468,9 +346,9 @@ export function ReportZone() {
             flex: 1,
             minWidth: 0,
             margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
-            padding: "20px 26px",
-            maxWidth: 640,
-            background: "#ffffff",
+            padding: "32px 44px",
+            maxWidth: 760,
+            background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border-2)",
             borderRadius: 6,
             color: "var(--wp-text-2)",

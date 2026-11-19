@@ -73,6 +73,7 @@ import { useSceneQuery } from "../api/useSceneQuery";
 import { useReadProjectApiProjectsProjectIdGet } from "../../../shared/api/generated/projects/projects";
 import { domainGate } from "../../../shared/api/sourceGate";
 import { semanticColor } from "../../../shared/ui/semanticColors";
+import { useThemeStore } from "../../../shared/store/themeStore";
 import { claimTemplateUnits } from "../assemble/templateAssembly";
 import { groupExtents } from "../assemble/poolGroup";
 import { attachGlInfo, registerProbe } from "../assemble/probe";
@@ -86,6 +87,7 @@ import {
 } from "../lib/projectScene";
 import { frameCamera, V_FOV_DEG } from "../lib/cameraFrame";
 import { groundPlan } from "../lib/groundPlan";
+import { resolveSceneTheme } from "../lib/sceneTheme";
 import { usePoolGroups } from "../lib/usePoolGroups";
 import { useViewer3dStore, type CameraPreset } from "../store/viewer3dStore";
 import { Annotations } from "./Annotations";
@@ -120,12 +122,9 @@ declare module "@react-three/fiber" {
   }
 }
 
-/** C2-3d V1 地面/雾色——批3 迭代二（用户批注 b-①）：绿草地可隐藏图层，
- * 关=回工程底（页面 --wp-bg-page 同值——B4 亮化 #f5f6f8）。B4 亮底
- * 重定值：绿世界底暗绿→亮草白 #e2ece0；SCENE_BG_DARK 名承暗期史
- * （值已亮化）。网格两色分层/缩略图台恒绿世界——不随本图层开关。 */
-const SCENE_BG_GRASS = "#e2ece0";
-const SCENE_BG_DARK = "#f5f6f8";
+/** C2-3d V1 地面/雾色（批3 迭代二：草地可隐藏——关=回工程底）；b4
+ *  三主题化：两底色/网格/标注四族色经 lib/sceneTheme 按模解析〔开放
+ *  问题 9 裁决「随主题」〕——旧单值字面退役。 */
 
 /** 画布保底高（V4 P7 容器填充制：canvas 高=height:"100%" 沿外层
  *  flex:1/minHeight:0 链铺满〔zone 包裹 flex 列→relative div flex:1〕，
@@ -254,7 +253,10 @@ export function Scene({
   const showWater = useViewer3dStore((state) => state.showWater);
   const showInternals = useViewer3dStore((state) => state.showInternals);
   const showAnnotations = useViewer3dStore((state) => state.showAnnotations);
-  const sceneBg = showGrass ? SCENE_BG_GRASS : SCENE_BG_DARK;
+  // b4 三主题：场景调色板按模解析（两底色+网格/标注色 props 下传）
+  const themeMode = useThemeStore((state) => state.mode);
+  const sceneTheme = resolveSceneTheme(themeMode);
+  const sceneBg = showGrass ? sceneTheme.grassWorld : sceneTheme.engineer;
 
   // C2-3d V1/V2 地面/网格/灯位数据面（F5 D1：effective bounds 派生——
   // 池组足迹并盒后取景；空场景 bounds=null 零地面：零场景零尺度基准沿
@@ -353,8 +355,7 @@ export function Scene({
   }
   return (
     <>
-      {/* AUDIT2 FIX2（C-1 闭环）：结果集过期显式提示（服务端 stale 旗标）——
-          fragment 同级横幅，Canvas 父子关系与尺寸零扰动。 */}
+      {/* AUDIT2 FIX2：结果集过期显式提示（stale 旗标——同级横幅零扰动） */}
       {query.data?.stale ? (
         <div
           role="status"
@@ -366,11 +367,6 @@ export function Scene({
       {/* F9（C2-visual 批）：摆放态解释横幅（抽件 PlacementBanner——
           placementSummary 判据收口见该件头注） */}
       <PlacementBanner scene={scene} projectDetail={projectQuery.data ?? null} />
-      {/* ENG6 工具条（preset 按钮组+图层开关面+剖切入口——批3 迭代二
-          抽件 ViewerToolbar[行数预算门 500]；图层开关=用户批注 b-① 草地
-          可隐藏+水面/内部/标注 store 三键同制补 UI 调用方；F5 D3 剖切
-          Switch+Slider 接 store 两动作——高度上限=取景 bounds 高度） */}
-      <ViewerToolbar clippingMaxHeight={effectiveBounds?.max[1] ?? 0} />
       {/* UF-56（2A4）超时降级：timedOut 先判——面板替代 Canvas 块（卸载=
           释放坏 GL 上下文；attempt+1 复位重试=子树重挂天然重建 GL）；
           非超时=现行 relative+overlay+Canvas 块零改 */}
@@ -385,6 +381,9 @@ export function Scene({
           }}
         >
           {!firstFrameDone ? <FirstFrameOverlay /> : null}
+          {/* b4 稿 viewer3d.html：工具条=画布左上浮动卡（取景容器内
+              absolute 挂载——wp-v4-viewer-toolbar 轴色底+软影） */}
+          <ViewerToolbar clippingMaxHeight={effectiveBounds?.max[1] ?? 0} />
           <Canvas
             camera={{ position: frameCamera(cameraPreset, framingBounds, 1).position, fov: V_FOV_DEG }}
             shadows="percentage"
@@ -400,18 +399,20 @@ export function Scene({
               background: sceneBg,
             }}
           >
-            {/* FE-4 首帧信号：useFrame 首帧回调一次触发（R2 F1'/B1：key=
-                projectId——缓存命中 Canvas 不重挂时 fired ref 随重挂归零，
-                新 cell 在新场景首帧被 signal；signal 幂等兜底） */}
+            {/* FE-4 首帧信号：useFrame 首帧一次触发（key=projectId——
+                重挂归零+signal 幂等兜底） */}
             <FirstFrameSignal onFirstFrame={firstFrameSignal} key={projectId} />
-            {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件 GroundStage——effective
-                bounds 派生面：雾档距/灯位/阴影正交半幅/网格中心全随池组并盒） */}
-            <GroundStage ground={ground} sceneBg={sceneBg} showGrass={showGrass} />
+            {/* C2-3d V1/V2 地面/雾/灯光（F5 D1 拆件——bounds 派生面；
+                b4：草地/网格色经 palette 按模下传） */}
+            <GroundStage
+              ground={ground}
+              sceneBg={sceneBg}
+              showGrass={showGrass}
+              palette={sceneTheme}
+            />
             <CameraRig preset={cameraPreset} bounds={framingBounds} />
-            {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族承载
-                （取数节点=kind 匹配 dimSource[辐流=cylinder]；单元其余构型件
-                [::channel 深度退化柱等]由模板承载不重复渲染；加载中/失败/
-                出域降级链归 TemplateUnit 内部——原语/盒体保持不白屏） */}
+            {/* 批3 主体：模板族装配分支——registry ready 条目按单元整族
+                承载〔dimSource 匹配取数节点；降级链归 TemplateUnit〕 */}
             {scene.solids.map((node) => {
               const unitId = unitIdOf(node.id);
               const claim = unitId !== null ? templateClaims.get(unitId) : undefined;
@@ -437,8 +438,7 @@ export function Scene({
                 <PoolBox key={node.id} node={node} clippingPlanes={clippingPlanes} edges />
               );
             })}
-            {/* S11 分池水面（PoolWaterSurfaces——cell 域在用槽各一份；
-                unit 域/无池组=现状单份） */}
+            {/* S11 分池水面（cell 域在用槽各一份；unit 域=单份） */}
             {showWater &&
               scene.waters.map((node) => {
                 const unitId = unitIdOf(node.id);
@@ -487,6 +487,8 @@ export function Scene({
                 nodes={scene.solids}
                 diagonal={ground?.diagonal ?? 0}
                 poolBadges={poolBadges}
+                labelColor={sceneTheme.label}
+                labelOutlineColor={sceneTheme.labelOutline}
               />
             )}
           </Canvas>

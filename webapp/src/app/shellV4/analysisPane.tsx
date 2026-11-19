@@ -382,7 +382,7 @@ export function StaleBanner({ projectId }: { projectId: string }) {
         style={{
           border: "1px solid var(--wp-border)",
           borderRadius: 4,
-          background: "var(--wp-bg-container, #ffffff)",
+          background: "var(--wp-bg-container)",
           color: "var(--wp-accent)",
           fontSize: 11,
           padding: "1px 8px",

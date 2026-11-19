@@ -50,7 +50,19 @@ const gate = vi.hoisted(() => ({
     error: null,
   },
   feed: null as { state: string; percent: number | null; stage: string; error: string | null; stale: boolean } | null,
-  chatHistory: { data: undefined, isError: false, error: null },
+  chatHistory: {
+    data: undefined as
+      | Array<{
+          role: string;
+          text: string;
+          turn?: number;
+          truncated?: boolean;
+          tool_steps?: Array<{ name: string; ok: boolean }>;
+        }>
+      | undefined,
+    isError: false,
+    error: null,
+  },
   chatHistoryLastSession: null as string | null,
   send: { mutate: vi.fn(), isPending: false },
   llmEnabledLog: [] as boolean[],
@@ -64,6 +76,30 @@ vi.mock("../../features/ai_chat/api/useAiChat", () => ({
     return gate.chatHistory;
   },
   useSendChatMessage: () => gate.send,
+  useChatSessions: () => ({
+    data: [
+      {
+        session_id: "s1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6",
+        project_id: "p1",
+        title: "出水指标与 AAO 方案",
+        turns: 2,
+      },
+      {
+        session_id: "s2a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6",
+        project_id: "p1",
+      },
+      {
+        session_id: "s3a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6",
+        project_id: "other",
+        title: "他项目会话",
+      },
+    ],
+    isPending: false,
+    isError: false,
+  }),
+}));
+vi.mock("../useProjectName", () => ({
+  useProjectName: () => "城南污水处理厂扩建工程",
 }));
 vi.mock("../../features/ai_chat/api/useAiConfig", () => ({
   useAiConfig: (enabled: boolean) => {
@@ -92,8 +128,8 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 });
 
-function renderAiZone() {
-  window.history.replaceState(null, "", "/?task=t-done-1&tab=ai");
+function renderAiZone(url = "/?task=t-done-1&tab=ai") {
+  window.history.replaceState(null, "", url);
   return render(
     <QueryClientProvider client={queryClient}>
       <AiZone onTaskNavigate={gate.navigate} onOpenSettings={gate.openSettings} />
@@ -212,8 +248,8 @@ describe("模型配置入口（本地 chat LLM 三键——LlmConfigSection 恢�
 describe("dock-ai 会话续接（P3 d1-N7）", () => {
   it("发送建档 sessionId→sessionStorage 持久→重挂恢复同会话", () => {
     const first = renderAiZone();
-    const input = first.container.querySelector<HTMLInputElement>(
-      'input[data-testid="wp-v4-ai-input"]',
+    const input = first.container.querySelector<HTMLTextAreaElement>(
+      'textarea[data-testid="wp-v4-ai-input"]',
     );
     expect(input).not.toBeNull();
     if (input !== null) {
@@ -231,8 +267,8 @@ describe("dock-ai 会话续接（P3 d1-N7）", () => {
     // 重挂（入口切换卸载/重挂同径——组件态消亡后恢复）
     first.unmount();
     const second = renderAiZone();
-    const input2 = second.container.querySelector<HTMLInputElement>(
-      'input[data-testid="wp-v4-ai-input"]',
+    const input2 = second.container.querySelector<HTMLTextAreaElement>(
+      'textarea[data-testid="wp-v4-ai-input"]',
     );
     if (input2 !== null) {
       fireEvent.change(input2, { target: { value: "再算一次" } });
@@ -243,5 +279,98 @@ describe("dock-ai 会话续接（P3 d1-N7）", () => {
     const call2 = gate.send.mutate.mock.calls[1];
     expect(call2?.[0]?.sessionId).toBe(sessionId); // 同会话续接
     second.unmount();
+  });
+});
+
+describe("b4 三栏会话面（稿 ai.html——会话清单/消息流/语境栏）", () => {
+  it("会话清单：当前项目两行（标题+轮次副行）+他项目会话不入列；点击切换会话", () => {
+    const { container } = renderAiZone("/?project=p1&tab=ai");
+    const rows = container.querySelectorAll('[data-testid="wp-v4-ai-session-row"]');
+    expect(rows.length).toBe(2);
+    expect(rows[0]?.textContent).toContain("出水指标与 AAO 方案");
+    expect(rows[0]?.textContent).toContain("2 轮对话");
+    expect(rows[1]?.textContent).toContain("未命名会话"); // title 缺席回退
+    expect(container.textContent).not.toContain("他项目会话");
+    fireEvent.click(rows[0] as HTMLElement);
+    expect(window.sessionStorage.getItem("wp-v4-dock-session")).toBe(
+      "s1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6",
+    );
+    // 切换后 useChatHistory 收到该会话 id（AiToolSummary/AiChatFace 同键）
+    expect(gate.chatHistoryLastSession).toBe("s1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6");
+  });
+
+  it("新建会话=视图态复位（sessionStorage 清键——下次发送重新建档）", () => {
+    const { container, getByTestId } = renderAiZone("/?project=p1&tab=ai");
+    fireEvent.click(getByTestId("wp-v4-ai-new-session"));
+    expect(window.sessionStorage.getItem("wp-v4-dock-session")).toBeNull();
+    // 新建后发送 → 新建档（sessionId 非空且写入存储）
+    const input = container.querySelector<HTMLTextAreaElement>(
+      'textarea[data-testid="wp-v4-ai-input"]',
+    );
+    if (input !== null) {
+      fireEvent.change(input, { target: { value: "新会话首条" } });
+    }
+    fireEvent.click(getByTestId("wp-v4-ai-send"));
+    const call = gate.send.mutate.mock.calls.at(-1);
+    expect(typeof call?.[0]?.sessionId).toBe("string");
+    expect(window.sessionStorage.getItem("wp-v4-dock-session")).toBe(call?.[0]?.sessionId);
+  });
+
+  it("消息流：用户泡/助手卡+工具调用卡（ok 两态）+截断徽标——全量历史呈现", () => {
+    gate.chatHistory = {
+      data: [
+        { role: "user", text: "帮我检查出水指标" },
+        {
+          role: "assistant",
+          text: "已读取可信度报告。",
+          turn: 1,
+          tool_steps: [
+            { name: "读取可信度报告", ok: true },
+            { name: "读取警告聚合", ok: false },
+          ],
+        },
+        { role: "assistant", text: "长回复", turn: 2, truncated: true },
+      ],
+      isError: false,
+      error: null,
+    };
+    const { container } = renderAiZone("/?project=p1&tab=ai");
+    fireEvent.click(
+      container.querySelector<HTMLButtonElement>(
+        '[data-testid="wp-v4-ai-session-row"]',
+      ) as HTMLButtonElement,
+    );
+    const log = container.querySelector('[data-testid="wp-v4-ai-log"]');
+    expect(log?.querySelectorAll('[data-testid="wp-v4-ai-msg-user"]').length).toBe(1);
+    const assistants = log?.querySelectorAll('[data-testid="wp-v4-ai-msg-assistant"]');
+    expect(assistants?.length).toBe(2);
+    const tools = log?.querySelectorAll('[data-testid="wp-v4-ai-tool-call"]');
+    expect(tools?.length).toBe(2);
+    expect(tools?.[0]?.textContent).toContain("读取可信度报告");
+    expect(tools?.[0]?.textContent).toContain("完成");
+    expect(tools?.[1]?.textContent).toContain("失败"); // 失败不伪装成功
+    expect(log?.textContent).toContain("已截断"); // truncated 徽标
+    gate.chatHistory = { data: undefined, isError: false, error: null };
+  });
+
+  it("语境栏：当前项目名+选中单元投影+本轮工具节", () => {
+    gate.chatHistory = {
+      data: [
+        {
+          role: "assistant",
+          text: "完成",
+          tool_steps: [{ name: "枚举方案", ok: true }],
+        },
+      ],
+      isError: false,
+      error: null,
+    };
+    const { container } = renderAiZone("/?project=p1&node=municipal_aao&tab=ai");
+    const context = container.querySelector('[data-region="ai-context"]');
+    expect(context?.textContent).toContain("城南污水处理厂扩建工程");
+    expect(context?.textContent).toContain("municipal_aao");
+    expect(context?.textContent).toContain("枚举方案");
+    expect(context?.textContent).toContain("1 次调用");
+    gate.chatHistory = { data: undefined, isError: false, error: null };
   });
 });

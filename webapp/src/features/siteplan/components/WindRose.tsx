@@ -25,8 +25,8 @@ export const WIND_ROSE_RADIUS = 44;
 /** 距画布右/上缘边距（像素——含标注文字外伸余量：标注落基准半径处，
  *  textAnchor=middle 水平半宽内收）。 */
 export const WIND_ROSE_MARGIN = 18;
-/** 角标色（沿 SiteCanvas 屏幕标注层字色 #c3ccd6——同层同族不另设色）。 */
-const WIND_ROSE_COLOR = "#c3ccd6";
+/** 角标色（b4 三态化：--wp-text-2 轴——画布标注同族随主题换肤）。 */
+const WIND_ROSE_COLOR = "var(--wp-text-2)";
 /** 标注字号（沿 SiteCanvas 屏幕标注层 fontSize=11 同值）。 */
 const WIND_ROSE_FONT_SIZE = 11;
 

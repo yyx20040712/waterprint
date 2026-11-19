@@ -58,16 +58,24 @@ function PaneLoading() {
   );
 }
 
-/** 树节点（sheets 子页导航——标签+目标子页；null=仅分组）。 */
-type TreeRow = { key: string; label: string; subpage: DeliverablesSubpage | null; depth: number; pending?: boolean };
+/** 树节点（sheets 子页导航——标签+目标子页+图标；null=仅分组）。b4 稿
+ *  deliverables.html .tree 形：级行图标+缩进+当前子页高亮。 */
+type TreeRow = {
+  key: string;
+  label: string;
+  subpage: DeliverablesSubpage | null;
+  depth: number;
+  icon: string;
+  pending?: boolean;
+};
 
 const TREE_ROWS: readonly TreeRow[] = [
-  { key: "plant", label: "污水厂 ▾", subpage: null, depth: 0 },
-  { key: "siteplan", label: "全厂总平面图", subpage: "siteplan", depth: 1 },
-  { key: "profile", label: "高程纵断图", subpage: "sheets", depth: 1 },
-  { key: "process", label: "工艺图", subpage: "sheets", depth: 1 },
-  { key: "report", label: "计算说明书", subpage: "report", depth: 1 },
-  { key: "network", label: "管网 ▸", subpage: null, depth: 0, pending: true },
+  { key: "plant", label: "污水厂 ▾", subpage: null, depth: 0, icon: "▾" },
+  { key: "siteplan", label: "全厂总平面图", subpage: "siteplan", depth: 1, icon: "▦" },
+  { key: "profile", label: "高程纵断图", subpage: "sheets", depth: 1, icon: "▥" },
+  { key: "process", label: "工艺图", subpage: "sheets", depth: 1, icon: "▤" },
+  { key: "report", label: "计算说明书", subpage: "report", depth: 1, icon: "▧" },
+  { key: "network", label: "管网 ▸", subpage: null, depth: 0, icon: "▸", pending: true },
 ];
 
 /** 未选项目引导（与 parametersZone NO_PROJECT_HINT 同源白名单文案）。 */
@@ -179,7 +187,7 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
               style={{
                 border: "1px solid var(--wp-accent)",
                 borderRadius: 4,
-                background: "var(--wp-bg-container, #ffffff)",
+                background: "var(--wp-bg-container)",
                 color: "var(--wp-accent)",
                 fontSize: 11,
                 padding: "1px 10px",
@@ -344,6 +352,9 @@ export function DeliverablesZone({
               {/* V4 d1-W1/N8：省略三件套+minWidth:0/flex:1 链——flex 行内
                   span 不收缩则撑宽侧栏；长文省略号而非静默裁切（reportNav
                   条目同制） */}
+              <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", fontSize: 10 }}>
+                {row.icon}
+              </span>
               <span
                 style={{
                   minWidth: 0,
@@ -362,25 +373,44 @@ export function DeliverablesZone({
               key={row.key}
               type="button"
               data-testid={`wp-v4-drafting-${row.key}`}
+              data-active={row.subpage === "sheets" ? "true" : "false"}
               onClick={() => onSubpageChange(row.subpage ?? "sheets")}
+              title={row.label}
               style={{
-                display: "block",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 width: "100%",
                 textAlign: "left",
                 border: "none",
+                borderRadius: 4,
                 background: "transparent",
                 color: "var(--wp-text)",
                 fontSize: 12, // 回炉 R12：字号归一三档
-                padding: "4px 8px 4px 22px",
+                padding: "4px 8px",
+                margin: "1px 4px",
                 cursor: "pointer",
-                // V4 d1-W1/N8：省略三件套（block 满宽条目——长文省略号
-                // 而非静默裁切；reportNav 条目同制）
+                // V4 d1-W1/N8：省略三件套（长文省略号而非静默裁切；
+                // b4：flex 行+label span 承载省略——图标/标签列稳定）
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
               }}
             >
-              {row.label}
+              <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", fontSize: 11, width: 14, textAlign: "center" }}>
+                {row.icon}
+              </span>
+              <span
+                style={{
+                  minWidth: 0,
+                  flex: 1,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {row.label}
+              </span>
             </button>
           ),
         )}
@@ -389,6 +419,58 @@ export function DeliverablesZone({
         data-region="drafting-gallery"
         style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
       >
+        {/* b4 稿 deliverables.html 中栏 .underline-tabs：图纸库（当前）|
+            计算说明书（左树同通道切子页——onSubpageChange 单源） */}
+        <div
+          data-testid="wp-v4-deliverables-tabs"
+          style={{
+            flex: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 18,
+            padding: "0 12px",
+            borderBottom: "1px solid var(--wp-border-2)",
+            background: "var(--wp-bg-container)",
+          }}
+        >
+          <span
+            aria-current="page"
+            style={{
+              position: "relative",
+              padding: "8px 1px 7px",
+              color: "var(--wp-accent)",
+              fontSize: 12.5,
+            }}
+          >
+            图纸库
+            <span
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: -1,
+                height: 2,
+                background: "var(--wp-accent)",
+              }}
+            />
+          </span>
+          <button
+            type="button"
+            data-testid="wp-v4-deliverables-tab-report"
+            onClick={() => onSubpageChange("report")}
+            style={{
+              border: "none",
+              background: "transparent",
+              padding: "8px 1px 7px",
+              color: "var(--wp-text-2)",
+              fontSize: 12.5,
+              cursor: "pointer",
+            }}
+          >
+            计算说明书
+          </button>
+        </div>
         <SheetsGallery onGoCalc={onGoCalc} />
       </div>
     </section>

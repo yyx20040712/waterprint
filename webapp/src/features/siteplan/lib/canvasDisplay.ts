@@ -38,12 +38,15 @@ export const MEASURE_COUNT = 3;
 export const WHEEL_SENSITIVITY = 0.0015;
 /** 灰阶三常量（结构描边/结构填充/坐标网）——非彩色语义族（彩色族查
  *  shared/ui/semanticColors.ts 真源表），保留本地。B4 亮底化（工程制图
- * 白纸面）：描边深灰蓝保持（白底 9.75:1——暗描边=亮底正确形态）；
- * 填充深底黑→BG-3 浅灰 #f0f2f5（描边内浅填充=工程图例形态）；坐标网
- * 深灰→浅灰蓝 #dfe3ea（装饰性网格——非信息面）。 */
-export const COLOR_STRUCTURE = "#3a4552";
-export const COLOR_STRUCTURE_FILL = "#f0f2f5";
-export const COLOR_GRID = "#dfe3ea";
+ *  白纸面）：描边深灰蓝保持（白底 9.75:1——暗描边=亮底正确形态）；
+ *  填充深底黑→浅灰（描边内浅填充=工程图例形态）；坐标网深灰→浅灰蓝
+ *  （装饰性网格——非信息面）。b4 功能面重涂 II 批（2026-11-19）三主题
+ *  化：三值并 --wp-* 轴 var() 串（描边=text/填充=bg-deep/坐标网=
+ *  border-2——SVG 属性可解析 CSS 变量，三主题即时换肤；旧亮期字面
+ *  #3a4552/#f0f2f5/#dfe3ea 退役——lightBaseline 冻结防复入）。 */
+export const COLOR_STRUCTURE = "var(--wp-text)";
+export const COLOR_STRUCTURE_FILL = "var(--wp-bg-deep)";
+export const COLOR_GRID = "var(--wp-border-2)";
 /** L4a 边界红线描边宽/虚线节距（boundary 无宽，显示层定值不落盘）。 */
 export const BOUNDARY_STROKE = 0.3, BOUNDARY_DASH = "2.5 1";
 /** 红线选中描边加粗（米·世界单位——结构选中 0.5 同档显示定值，B4 笔③）。 */

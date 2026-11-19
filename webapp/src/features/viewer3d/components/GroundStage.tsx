@@ -21,19 +21,26 @@ import * as THREE from "three";
 
 import type { GroundPlan } from "../lib/groundPlan";
 
-/** 双层工程网格两色（B4 亮底重定值；R3 d1-N4：主格 #5c7cae 草底 2.92:1
- *  边缘→#54719f〔草底 3.41:1/工程底 4.58:1 双底图形级 ≥3〕/次格浅灰蓝
- *  #d8dee8〔次格=装饰性细分非信息面〕——暗期深蓝两色随场景底亮化退役）。 */
-const GRID_MAJOR = "#54719f";
-const GRID_MINOR = "#d8dee8";
+/** 地面/网格/草地三族色（b4 三主题化——Scene 经 lib/sceneTheme 按模
+ *  解析后 props 下传；本件零字面色。R3 d1-N4 对比度口径注记沿承：
+ *  light 档主格双底图形级 ≥3，暗期档随轴亮度带同分层）。 */
+export type GroundStagePalette = {
+  /** 草地材质色。 */
+  readonly grass: string;
+  /** 主格（10m）网格色。 */
+  readonly gridMajor: string;
+  /** 次格（2m）网格色。 */
+  readonly gridMinor: string;
+};
 
 type GroundStageProps = {
   readonly ground: GroundPlan | null;
   readonly sceneBg: string;
   readonly showGrass: boolean;
+  readonly palette: GroundStagePalette;
 };
 
-export function GroundStage({ ground, sceneBg, showGrass }: GroundStageProps) {
+export function GroundStage({ ground, sceneBg, showGrass, palette }: GroundStageProps) {
   // V2 方向光 target（bounds 中心——阴影相机随场景中心覆盖；primitive
   // 挂载进场景使 target 变换生效）
   const lightTarget = useMemo(() => new THREE.Object3D(), []);
@@ -83,8 +90,8 @@ export function GroundStage({ ground, sceneBg, showGrass }: GroundStageProps) {
       )}
       {/* C2-3d V1 地面（V2 阴影承接面——批3 迭代二：草地=可隐藏图层，
           关=工程底+蓝网格恒在；y 分层避 z-fight：地面 -0.02<
-          次格 -0.012<主格 -0.008。B4 亮化：草地材质深绿→亮草绿
-          #c8dcc2〔亮草世界底配档〕） */}
+          次格 -0.012<主格 -0.008。b4 三主题：草地材质色=palette.grass
+          按模取值〔light 档现值沿承零漂移〕） */}
       {ground !== null && showGrass && (
         <mesh
           position={[ground.centerX, -0.02, ground.centerZ]}
@@ -92,17 +99,17 @@ export function GroundStage({ ground, sceneBg, showGrass }: GroundStageProps) {
           receiveShadow
         >
           <planeGeometry args={[ground.size, ground.size]} />
-          <meshStandardMaterial color="#c8dcc2" />
+          <meshStandardMaterial color={palette.grass} />
         </mesh>
       )}
       {ground !== null && (
         <>
           <gridHelper
-            args={[ground.size, ground.majorDivisions, GRID_MAJOR, GRID_MAJOR]}
+            args={[ground.size, ground.majorDivisions, palette.gridMajor, palette.gridMajor]}
             position={[ground.centerX, -0.008, ground.centerZ]}
           />
           <gridHelper
-            args={[ground.size, ground.minorDivisions, GRID_MINOR, GRID_MINOR]}
+            args={[ground.size, ground.minorDivisions, palette.gridMinor, palette.gridMinor]}
             position={[ground.centerX, -0.012, ground.centerZ]}
           />
         </>

@@ -422,7 +422,9 @@ describe("图纸报告区·左树条目省略三件套（V4 d1-W1/N8——长文
     expect(plantRow).toBeDefined();
     // 省略实效前提：父行 flex 容器（inline 子项块化——text-overflow 生效面）
     expect(plantRow?.style.display).toBe("flex");
-    const label = plantRow?.querySelector<HTMLElement>("span");
+    // b4：组行首 span=图标（aria-hidden 非省略面）——标签 span=第二枚
+    const spans = plantRow?.querySelectorAll<HTMLElement>("span");
+    const label = spans?.[1];
     expect(label).not.toBeNull();
     expect(label?.style.overflow).toBe("hidden");
     expect(label?.style.whiteSpace).toBe("nowrap");

@@ -112,6 +112,25 @@ describe("semanticColors 语义色真源表", () => {
     expect(semanticColor("__nope__")).toBe(FALLBACK_COLOR);
   });
 
+  it("域派生键按模取值（b4 三态收口——installDomainColorAxis 记录当前模后 semanticColor 读 DOMAIN_COLORS 对应档；静态表=light 参照锚不动）", () => {
+    // 基线=light（模块缺省模）
+    expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.light.water);
+    expect(semanticColor("pipe_sludge")).toBe(DOMAIN_COLORS.light.sludge);
+    expect(semanticColor("domain_neutral")).toBe(DOMAIN_COLORS.light.neutral);
+    // 切 dark（document 缺席的 node 面=只记录模不注入 CSS——JS 面语义仍生效）
+    installDomainColorAxis("dark");
+    expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.dark.water);
+    expect(semanticColor("pipe_sludge")).toBe(DOMAIN_COLORS.dark.sludge);
+    expect(semanticColor("domain_mine")).toBe(DOMAIN_COLORS.dark.mine);
+    // 切 warm 后回落；非域派生键不受模影响
+    installDomainColorAxis("warm");
+    expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.warm.water);
+    expect(semanticColor("pool_wall")).toBe(SEMANTIC_COLORS.pool_wall);
+    // 复位 light（后续用例基线稳定）
+    installDomainColorAxis("light");
+    expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.light.water);
+  });
+
   it("三导出存在性：SEMANTIC_COLORS/semanticColor/FALLBACK_COLOR", () => {
     expect(typeof SEMANTIC_COLORS).toBe("object");
     expect(semanticColor).toBeTypeOf("function");

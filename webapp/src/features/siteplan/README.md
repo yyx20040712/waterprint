@@ -24,7 +24,7 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `lib/siteGeometry.test.ts` | 纯几何原语 vitest（node 环境：黄金角 0/30/45/90° 解析值容差 1e-9[跨语言 IEEE754 镜像口径]/归零族[相交·全含]/零长退化/凹多边形·顶点序无关·贴边归内/测距排序+多目标矩形对数值例+90° 真形净距[B4 笔②自 projectSite.test.ts 迁入去重]） |
 | `lib/siteDraftDiff.ts` | 深比较纯函数（sameSite 键序无关——draft dirty 派生真源；SC1 D9④ 自 SiteplanPane 私有迁 lib） |
 | `lib/siteDraftDiff.test.ts` | 深比较 vitest（三例：[]vs[] 同/[]vs 非[]异/键序无关深比较同） |
-| `lib/canvasDisplay.ts` | 画布显示层常量与纯显示函数（B3 R7 自 SiteCanvas 模块级外搬：PX_PER_M/UNCALC_SIZE/坐标网窗/把手/双击窗/测距数/滚轮灵敏度/灰阶三色/BOUNDARY_* 常量族+DragSession/DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine 纯函数；B4 笔②增键盘删除判定段 svgOwnsKeyTarget/lineDeleteTarget——结构化类型零 DOM 可测；B4 笔③增红线选中加粗/顶点把手半径常量+TapAnchor/isDoubleTapAt 通用双击判定） |
+| `lib/canvasDisplay.ts` | 画布显示层常量与纯显示函数（B3 R7 自 SiteCanvas 模块级外搬：PX_PER_M/UNCALC_SIZE/坐标网窗/把手/双击窗/测距数/滚轮灵敏度/灰阶三色/BOUNDARY_* 常量族+DragSession/DoubleTapAnchor/MeasurePair 交互类型+pointsAttr/isSelectedLine 纯函数；B4 笔②增键盘删除判定段 svgOwnsKeyTarget/lineDeleteTarget——结构化类型零 DOM 可测；B4 笔③增红线选中加粗/顶点把手半径常量+TapAnchor/isDoubleTapAt 通用双击判定；b4 功能面重涂 II 批灰阶三色并轴 var()〔描边 text/填充 bg-deep/坐标网 border-2——SVG 属性可解析 CSS 变量三主题随轴〕） |
 | `lib/canvasDisplay.test.ts` | 键盘删除判定 vitest（B4 笔② node 直测先红后绿：svg 本体/直接子元素消费面/输入框不消费/Delete·Backspace 双键/road·corridor 目标产出/structure·无选中·他键 null；B4 笔③增 boundary 选中删除目标产出例） |
 | `lib/vertexEditing.ts` | 红线逐点编辑纯函数面（B4 笔③ R1+R5——仓内首顶点级编辑面）：顶点命中/线段投影（含闭合 wrap 段）/最近段路由/增删移点 immutable copy-on-write+snapVertexPoint 吸附归本层（Pane 收净值）；BOUNDARY_MIN_VERTICES 删至 3 拒删返 null（core ≥3 门镜像） |
 | `lib/unitDisplayNames.ts` | 待摆/已摆单元显示名 hook（V4 P3 中文化：catalog name_zh 单源——select=unitNameIndex 投影同键缓存零额外请求；查表键=node kind ?? unitId〔thumbnailFlow metaByUnit 同口径——inlet→municipal_input→市政输入〕；未收录回退 id 透传） |
@@ -37,7 +37,7 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `lib/windRoseGeometry.test.ts` | 风玫瑰纯计算 vitest（node 环境先红后绿：八方位序/None·空·全零=空/未知键跳过+sorted/比例缩径/负钳 0/标注点满径未缩放/N 朝上 dy<0/半径防御） |
 | `lib/windRoseForm.ts` | 风玫瑰值表单纯逻辑面（B5 D5）：mergeWindRose 合并写回——未知键（WIND_DIRS 外）原样保留+八方位非空非负有限值覆盖；全空+有未知键→仅未知键、全空+无未知键→null（全量丢弃唯组件「清空」确认门）；WIND_DIRS 单源 import 自 windRoseGeometry |
 | `lib/windRoseForm.test.ts` | 风玫瑰表单纯逻辑 vitest（B5 D5 node 先红后绿四例：全空无未知键→null[含原对象已知方位不隐式携带]/全空有未知键→仅未知键保留/负值·NaN·Infinity 过滤/部分值+未知键合并不丢） |
-| `components/WindRose.tsx` | 风玫瑰画布角标（B4 笔① R3 仅渲染）：嵌套 svg x="100%" 锚右缘屏幕空间 overlay——零测量零视口态；pointerEvents=none 装饰面；None=返回 null；B5 D6 数据源改吃 draft.options.wind_rose（值编辑即时联动——面板 B5 销账） |
+| `components/WindRose.tsx` | 风玫瑰画布角标（B4 笔① R3 仅渲染）：嵌套 svg x="100%" 锚右缘屏幕空间 overlay——零测量零视口态；pointerEvents=none 装饰面；None=返回 null；B5 D6 数据源改吃 draft.options.wind_rose（值编辑即时联动——面板 B5 销账）；b4 功能面重涂 II 批：角标色并 --wp-text-2 轴〔三主题随轴〕 |
 | `components/WindRose.test.tsx` | 角标组件冒烟（零 jsdom 红线内 node 直调元素树断言本 feature 首例：None/空/全零=null、有值=辐条+sorted 标注、N 朝上+标注未缩放满径） |
 | `components/WindRosePanel.tsx` | 风玫瑰值编辑面板（B5 D5——右侧栏常驻[无选中时显示区]）：四行两列八方位 InputNumber[min=0 禁负]+相对频率口径提示语+清空 Popconfirm 确认门→onClear 上行 null；受控零本地态，onChange 上行 mergeWindRose 合并写回值；antd 薄壳不测（纯逻辑归 windRoseForm） |
 | `store/siteplanStore.ts` | 视图 slice（zustand 纯 view 态：pan/zoom 夹紧/snap·grid 开关/选中[structure id/road·corridor 索引/B4 笔③ boundary 单例无 id]/工具+折线点序列机——业务数据零入 store） |
