@@ -104,8 +104,8 @@ export function LlmConfigSection({ enabled }: { enabled: boolean }) {
     );
   };
 
+  // 迁 ai_chat 独立 Modal 首块：顶距自 aiconnect 分区形态 24 收敛为 8（ADR-027 批）
   return (
-    {/* 迁 ai_chat 独立 Modal 首块：顶距自 aiconnect 分区形态 24 收敛为 8（ADR-027 批） */}
     <section style={{ marginTop: 8 }}>
       <Typography.Title level={5} style={{ marginTop: 0 }}>
         聊天模型接入（LLM）
