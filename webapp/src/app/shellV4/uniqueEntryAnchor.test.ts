@@ -15,8 +15,9 @@
  *        Modal 唯一触发）③联合枚举 hook（useRunJointEnumerationApi
  *        SolutionJointEnumeratePost 全名锚——注释中缀提及不误中）恰=
  *        [app/jointSolutions.tsx]（JointSubmitForm 承载件）④
- *        wp-v4-joint-open 恰=[app/shellV4/designZone.tsx]（联合提交唯一
- *        触发）——多源/零源即红（提交通道旁路防回归）；⑤AUTH_EVENT
+ *        wp-v4-joint-open 恰=[app/shellV4/parametersZone.tsx]（联合提交
+ *        唯一触发——b2 壳重组批自 designZone 迁参数方案区右栏）——多源/
+ *        零源即红（提交通道旁路防回归）；⑤AUTH_EVENT
  *        消费面第五锚（B7 收口批 U6——裁决 R-1 预案形态：**代码形态
  *        匹配非裸串**——正则四选一〔import 解构/add(Event)?Listener/
  *        removeEventListener/dispatchEvent 与 AUTH_EVENT 组合〕，注释面
@@ -109,9 +110,9 @@ describe("⟳枚举=唯一提交入口·结构锚（源扫描——R1-W2 src 全
     expect(hits).toEqual(["app/jointSolutions.tsx"]);
   });
 
-  it("wp-v4-joint-open：全树恰=[app/shellV4/designZone.tsx] 一源（联合提交唯一触发）", () => {
+  it("wp-v4-joint-open：全树恰=[app/shellV4/parametersZone.tsx] 一源（联合提交唯一触发——b2 壳重组批自 designZone 迁参数方案区右栏）", () => {
     const hits = filesContaining("wp-v4-joint-open");
-    expect(hits).toEqual(["app/shellV4/designZone.tsx"]);
+    expect(hits).toEqual(["app/shellV4/parametersZone.tsx"]);
   });
 
   it("AUTH_EVENT 消费面第五锚（B7；v1 转正批：App.tsx legacy 浮层监听退役——期望集收缩至两消费面）+字面串支", () => {

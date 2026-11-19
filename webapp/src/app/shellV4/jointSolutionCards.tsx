@@ -91,7 +91,7 @@ export function JointSolutionCards({
    *  N3 声明：序列终态=末单元〔对象语义=末写胜出——落批档〕）。 */
   onApplied: (source: { unitId: string; no: string }) => void;
 }) {
-  // ?task= 任务轨（TASK_EVENT 重读——URL 单一真相；dockBar 同制）
+  // ?task= 任务轨（TASK_EVENT 重读——URL 单一真相；aiZone 任务条同制）
   const [urlTaskId, setUrlTaskId] = useState<string | null>(() =>
     parseTaskParam(window.location.search),
   );

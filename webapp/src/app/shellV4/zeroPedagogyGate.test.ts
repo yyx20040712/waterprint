@@ -13,14 +13,16 @@
  * 白名单（功能微文案豁免——预扫实证与禁词族零交叠）：空态引导（「尚未
  * 选择项目——在「项目」区打开或新建」族）/错误提示（「…失败」族）/
  * stale 原因（「旧」Tag）/校验结论（「校验…」族）/挂起说明（「规划中
- * （未实装）」族——networkZone 诚实文案，非教学性）。白名单实现形态=
+ * （未实装）」族——workbenchZone 诚实文案〔b2 自 networkZone 迁入〕，
+ * 非教学性）。白名单实现形态=
  * 禁词族与白名单词零交叠的词表定形（预扫实录承载），非行号锚定——
  * 行号随源演进漂移，词表交叠检查为不变量。
  *
  * 输入:  app/shellV4 生产源树（node:fs 读源——零渲染零 jsdom）
  * 输出:  断言族：①教学性禁词族（22 模式）命中数恰 0（现况 0 命中=绿
  *        出生；注入自证红实录在批档）②扫描面非空守卫（扫描根漂移/
- *        通配失效导致零文件扫描=静默绿防线——恰 20 件〔B7 时点〕）
+ *        通配失效导致零文件扫描=静默绿防线——恰 26 件〔b2 壳重组批
+ *        时点〕）
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -100,21 +102,23 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
     expect(hits).toEqual([]);
   });
 
-  it("扫描面非空守卫：shellV4 生产件恰 22 件（扫描根漂移=静默绿防线；v2 笔1：usePaneWidth.ts 新入扫描面——拖宽 hook 提取件随动锚；b1 主题地基批：themeSwitch.tsx 新入——三主题切换器）", () => {
+  it("扫描面非空守卫：shellV4 生产件恰 26 件（扫描根漂移=静默绿防线；b2 壳重组批：zoneBand/designZone/networkZone/draftingZone/dockBar 五件退役〔→topBar/processZone/workbenchZone/deliverablesZone/aiZone〕+navRail/statusBar/parametersZone/compareZone 新入——八入口壳）", () => {
     const sources = scanShellV4Sources(SCAN_DIR);
-    expect(sources.length).toBe(22);
+    expect(sources.length).toBe(26);
     expect(sources.map((s) => s.rel).sort()).toEqual(
       [
+        "aiZone.tsx",
         "analysisPane.tsx",
         "analysisView.ts",
         "backfillSection.tsx",
-        "designZone.tsx",
-        "dockBar.tsx",
-        "draftingZone.tsx",
+        "compareZone.tsx",
+        "deliverablesZone.tsx",
         "enumerateModal.tsx",
         "hierarchicalCatalog.tsx",
         "jointSolutionCards.tsx",
-        "networkZone.tsx",
+        "navRail.tsx",
+        "parametersZone.tsx",
+        "processZone.tsx",
         "projectsZone.tsx",
         "reportDoc.tsx",
         "reportZone.tsx",
@@ -122,11 +126,13 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
         "shellV4.tsx",
         "solutionCards.tsx",
         "solutionDeviation.ts",
+        "statusBar.tsx",
         "themeSwitch.tsx",
         "thumbnailFlow.tsx",
+        "topBar.tsx",
         "usePaneWidth.ts",
         "viewer3dZone.tsx",
-        "zoneBand.tsx",
+        "workbenchZone.tsx",
       ].sort(),
     );
   });

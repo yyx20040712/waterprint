@@ -2,7 +2,7 @@
  * URL project/task/enum/token 参数解析/合成纯函数（D5 单一真相+deep-link
  * 态面。v1-20261015 转正批：parseTabParam/withTabParam/LEGACY_TAB_COMPAT
  * 随 legacy 槽路由退役删除——tab 键现归 zoneParam（V4ZoneTarget 两级值域
- * +LEGACY_ZONE_COMPAT 旧链归一）单源；project/task/enum/token 四通道
+ * +LEGACY_TAB_COMPAT 旧链归一〔b2 更名〕）单源；project/task/enum/token 四通道
  * v4 全消费语义零变）。
  *
  * 输入:  查询串（location.search 原样或裸 search）+ 目标 project/task/

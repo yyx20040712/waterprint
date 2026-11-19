@@ -1,33 +1,30 @@
 /**
- * v4 底栏双区（B1 骨架批 2026-10-09——AI 唯一窗+窄任务条；design 区常驻；
- * 高预算 92px≤98——G3'' 密度判据 @1440×900 画布净高 706≥700 单口径）。
+ * v4 AI 助手区（b2 壳重组批 2026-11-19——八入口「AI 助手」：AI 会话窗+
+ * 窄任务条整页；沿革 B1 dockBar〔design 区底栏 92px 常驻〕→b2 升独立
+ * 入口〔AiDockWindow/TaskStrip 两件逻辑零改——仅父容器由底栏换整页
+ * flex；稿 ai.html 全页形——完整对话流/会话列表=后续功能批，本批凝缩
+ * 窗语义沿承〕）。
  *
  * 输入:  useChatHistory/useSendChatMessage（ai_chat 数据通道——ChatSeat
- *        同 session_id 空间；回炉 R10：useChatSessions 死代码摘除——
- *        V2 凝缩窗不消费会话列表，错误呈现随 B2 完整对话流批）+?task=/
- *        ?enum=（任务轨双参——task 优先缺省回落 enum）+useTaskFeed（SSE
- *        进度）+任务快照（useGetTaskStatus）+TASK_EVENT 事件桥
- * 输出:  dock-ai（输入框+发送钮+最近一轮摘要行——凝缩形）+dock-tasks
- *        （任务行：任务 id+进度条+状态文案——TaskPanel 凝缩形）
+ *        同 session_id 空间）+?task=/?enum=（任务轨双参——task 优先缺省
+ *        回落 enum）+useTaskFeed（SSE 进度）+任务快照
+ *        （useGetTaskStatus）+TASK_EVENT 事件桥
+ * 输出:  ai 页整幅：左=dock-ai（输入框+发送钮+最近一轮摘要行——凝缩形
+ *        〔整页高度下摘要区自滚——.wp-v4-dock-main overflow 承袭〕）+
+ *        右=dock-tasks（任务行：任务 id+进度条+状态文案）
  *
- * 规格说明（B1 任务书 §三.8——plan §九.1；v4-1 终裁）：
- *   - AI 窗=全软件唯一 AI 窗（v4 壳内）：凝缩形态=B1 视觉微裁决——
- *     ChatPanel 消息区 minHeight 200 与 92px dock 预算不兼容，B1 取
- *     输入行+最近一轮摘要（会话通道与 ChatSeat 同源——session_id/历史/
- *     发言 hook 复用）；完整对话流呈现=B2/B3 批裁量（理由落批档
- *     visual-decisions.md）；
- *   - 任务条=TaskPanel 凝缩形：单行进度（bar+percent+状态文案）；校验
- *     结论呈现=B2 处置（校验钮→任务条）；回执页退役=B3；
+ * 规格说明（B1 任务书 §三.8 承袭+b2 位置裁决；v4-1 终裁）：
+ *   - AI 窗=全软件唯一 AI 窗（v4 壳内）：凝缩形态沿承（输入行+最近一轮
+ *     摘要——会话通道与 ChatSeat 同源：session_id/历史/发言 hook 复用）；
+ *     完整对话流呈现=后续功能批裁量；
+ *   - 任务条=TaskPanel 凝缩形：单行进度（bar+percent+状态文案）；状态条
+ *     「任务 ▴」快速入口=本页（非 AI 页在场）；
  *   - SSE 终态→失效任务快照+TASK_EVENT 派发（seatTaskPage 同链——本条
  *     自监听经 URL 重读同值早退幂等）；
- *   - B3 U3：AI 窗头行右缀连接设置入口（legacy Header 右侧同族迁 v4；
- *     原 AI 接入入口〔AiConnectButton/AiConnectModal〕随 Zcode 接入退役
- *     批摘除——2026-11-19）。B3 R1 回炉 R1-W1：AUTH_EVENT 监听+
- *     TokenSettingsModal 上提 shellV4 恒挂载层（zone 切换不卸载——五区
- *     自愈可达），本件设置钮改调 onOpenSettings 上抛（DesignZone 透传）。
- *   - 本地 chat LLM 配置回挂（2026-11-19）：AI 窗头行增设「模型配置」
- *     钮（RobotOutlined）——LlmConfigSection 自 aiconnect 误删恢复迁
- *     ai_chat 后重挂本窗（本地对话可达面；MCP 接入面已退役不复挂）。
+ *   - B3 U3：AI 窗头行右缀连接设置入口；R1-W1：设置钮经 onOpenSettings
+ *     上抛（Modal/AUTH_EVENT 自愈在 shellV4 恒挂载层）；
+ *   - 本地 chat LLM 配置回挂（2026-11-19）：「模型配置」钮
+ *     （RobotOutlined）——LlmConfigSection 迁 ai_chat 后重挂本窗。
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -61,9 +58,8 @@ const STATE_TEXT: Record<string, string> = {
 const generateSessionId = () =>
   (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}new`).replace(/-/g, "");
 
-/** 会话续接持久键（P3 d1-N7——dock-ai 会话跨 zone 切换〔卸载/重挂〕与
- *  刷新两径恢复：sessionStorage 持久〔会话生命周期=标签页——侧栏宽度
- *  localStorage 记忆 B1 全局规则同族但会话面不入长期存储〕）。 */
+/** 会话续接持久键（P3 d1-N7——AI 窗会话跨入口切换〔卸载/重挂〕与刷新
+ *  两径恢复：sessionStorage 持久〔会话生命周期=标签页〕）。 */
 const DOCK_SESSION_KEY = "wp-v4-dock-session";
 
 /** AI 凝缩窗：输入行+发送+最近一轮摘要（会话通道与 ChatSeat 同源）。
@@ -111,8 +107,7 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
           <span style={{ color: "var(--wp-error)" }}>会话读取失败（中继不可达）</span>
         ) : null}
         {/* 连接设置入口（wp-v4-open-settings——R1-W1：onClick 上抛
-            onOpenSettings，Modal 在 shellV4 承载；原 AI 接入入口随 ZCode
-            接入退役批摘除 2026-11-19） */}
+            onOpenSettings，Modal 在 shellV4 承载） */}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2, flex: "none" }}>
           {/* 模型配置入口（wp-v4-llm-config——本地 chat LLM 三键面：
               LlmConfigSection 恢复迁 ai_chat 后挂本窗，Modal 就地承载） */}
@@ -152,7 +147,7 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
           </div>
         ) : null}
       </div>
-      <div style={{ display: "flex", gap: 6, padding: "4px 10px 6px", borderTop: "1px solid var(--wp-border-2)" }}>
+      <div style={{ display: "flex", gap: 6, padding: "4px 10px 6px", borderTop: "1px solid var(--wp-border-2)", flex: "none" }}>
         <input
           data-testid="wp-v4-ai-input"
           aria-label="AI 消息输入"
@@ -171,7 +166,7 @@ function AiDockWindow({ onOpenSettings }: { onOpenSettings: () => void }) {
             borderRadius: 12,
             padding: "2px 10px",
             fontSize: 11,
-            background: "#ffffff",
+            background: "var(--wp-bg-elevated)",
             color: "var(--wp-text)",
             outline: "none",
           }}
@@ -357,21 +352,28 @@ function TaskStrip({
   );
 }
 
-export function DockBar({
+/** AI 助手整页（AiDockWindow+TaskStrip 两件零改——父容器=整页 flex
+ *  〔左会话窗伸展/右任务条 320px 固定，稿 ai.html 两栏位〕）。 */
+export function AiZone({
   onTaskNavigate,
   onOpenSettings,
 }: {
-  /** B2 完成直达（§一.4）：done 任务行点击上抛——designZone→shellV4 承接
-   *  （切 ?tab=design.analysis+相关单元选中）。 */
+  /** B2 完成直达（§一.4）：done 任务行点击上抛——shellV4 承接（切分析
+   *  入口+相关单元选中）。 */
   onTaskNavigate?: (target: { state: string; unitId: string | null }) => void;
-  /** R1-W1：连接设置开态上抛（designZone 透传——shellV4 恒挂载层承载
-   *  TokenSettingsModal/AUTH_EVENT 自愈监听）。 */
+  /** R1-W1：连接设置开态上抛（shellV4 恒挂载层承载 TokenSettingsModal/
+   *  AUTH_EVENT 自愈监听）。 */
   onOpenSettings: () => void;
 }) {
   return (
-    <div className="wp-v4-dock" data-testid="wp-v4-dock">
+    <section
+      className="wp-v4-ai-zone"
+      data-region="ai-workspace"
+      data-testid="wp-v4-ai-zone"
+      style={{ flex: 1, minWidth: 0, display: "flex" }}
+    >
       <AiDockWindow onOpenSettings={onOpenSettings} />
       <TaskStrip onTaskNavigate={onTaskNavigate} />
-    </div>
+    </section>
   );
 }

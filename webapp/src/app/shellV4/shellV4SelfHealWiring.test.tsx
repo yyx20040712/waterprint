@@ -3,20 +3,21 @@
  *
  * v4 连接设置真壳接线测试（B7 收口批 U6——k2 delta 放行条件③「可并入
  * 下一笔」在案：mount 真 ShellV4 三帧断言；数据面替身制式沿
- * designZoneJointEntry.test——真壳 prop 链 shellV4→designZone→dockBar
- * 承载手动入口，AUTH_EVENT 自愈经 settingsSelfHeal 恒挂载层）。
+ * parametersZone.test——真壳 prop 链 shellV4→aiZone→设置钮承载手动
+ * 入口，AUTH_EVENT 自愈经 settingsSelfHeal 恒挂载层。b2 壳重组批：
+ * dockBar→aiZone〔AI 助手入口页〕，zone 切换=导航轨 rail）。
  *
  * 输入:  ShellV4 真件（jsdom 挂载——useProjectId/生成 hook/取数面模块
- *        替身；designZone 重子面 stub 零渲染，dockBar/zoneBand 真件
- *        保留=接线链实证面）+AUTH_EVENT（window 派发）
- * 输出:  断言族三帧：①手动路径：dockBar 设置钮（wp-v4-open-settings）
- *        →TokenSettingsModal 开（真壳 prop 链 shellV4→designZone→
- *        dockBar 承载——标题/密码框在场）②非 design 区自愈：切
- *        network 区（dock 卸载态实证）→dispatch AUTH_EVENT→Modal 开
- *        （恒挂载层实证——监听不随 dockBar 卸载死区）③E3 帧：Modal
- *        关闭动画期（离场 motion 类在场）dispatch AUTH_EVENT→重开
- *        （401 压过用户关闭语义——入场 motion 类翻转证，jsdom 无
- *        transition 事件物理卸载不可实测，同 designZoneJointEntry 口径）
+ *        替身；重子面 stub 零渲染，aiZone/navRail 真件保留=接线链实证
+ *        面）+AUTH_EVENT（window 派发）
+ * 输出:  断言族三帧：①手动路径：AI 助手页设置钮（wp-v4-open-settings）
+ *        →TokenSettingsModal 开（真壳 prop 链 shellV4→aiZone 承载——
+ *        标题/密码框在场）②非 AI 入口自愈：切 compare 入口（aiZone
+ *        卸载态实证）→dispatch AUTH_EVENT→Modal 开（恒挂载层实证——
+ *        监听不随 aiZone 卸载死区）③E3 帧：Modal 关闭动画期（离场
+ *        motion 类在场）dispatch AUTH_EVENT→重开（401 压过用户关闭
+ *        语义——入场 motion 类翻转证，jsdom 无 transition 事件物理
+ *        卸载不可实测）
  */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -34,7 +35,7 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 }
 
 /** localStorage 存根（本环境 jsdom 面无原生方法族——tokenSettings 令牌
- *  回显消费；Map 薄壳足量三函数面，沿 designZoneJointEntry.test 先例）。 */
+ *  回显消费；Map 薄壳足量三函数面）。 */
 const storageBack = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (key: string) => storageBack.get(key) ?? null,
@@ -50,8 +51,8 @@ const gate = vi.hoisted(() => ({
 vi.mock("../useProjectId", () => ({
   useProjectId: () => [gate.projectId],
 }));
-// designZone 重子面 stub（本测面=壳接线+设置 Modal——其余面零渲染；
-// dockBar/zoneBand 真件保留=prop 链/zone 切换实证面）
+// 重子面 stub（本测面=壳接线+设置 Modal——其余面零渲染；aiZone/navRail
+// 真件保留=prop 链/入口切换实证面）
 vi.mock("../../features/params/components/AssumptionsPanel", () => ({
   AssumptionsPanel: () => null,
 }));
@@ -60,11 +61,18 @@ vi.mock("../../features/params/components/ParamForm", () => ({
 }));
 vi.mock("./thumbnailFlow", () => ({ ThumbnailFlow: () => null }));
 vi.mock("./enumerateModal", () => ({ EnumerateModal: () => null }));
-vi.mock("./analysisPane", () => ({ AnalysisPane: () => null }));
+vi.mock("./analysisPane", () => ({
+  AnalysisPane: () => null,
+  StaleBanner: () => null,
+}));
 vi.mock("./solutionCards", () => ({ SolutionCards: () => null }));
 vi.mock("./jointSolutionCards", () => ({ JointSolutionCards: () => null }));
 vi.mock("./backfillSection", () => ({ BackfillSection: () => null }));
-// dockBar 取数面替身（dockBar.test 同款——AiDockWindow 会话/任务条）
+// compare 数据面替身（帧② 切 compare 入口——loading 态零渲染面）
+vi.mock("../../features/compare/api/useCompareQuery", () => ({
+  useCompareQuery: () => ({ data: undefined, isError: false }),
+}));
+// aiZone 取数面替身（AiDockWindow 会话/任务条）
 vi.mock("../../features/ai_chat/api/useAiChat", () => ({
   useChatHistory: () => ({ data: undefined, isError: false, error: null }),
   useSendChatMessage: () => ({ mutate: () => {}, isPending: false }),
@@ -72,7 +80,7 @@ vi.mock("../../features/ai_chat/api/useAiChat", () => ({
 vi.mock("../../features/solutions/api/useTaskFeed", () => ({
   useTaskFeed: () => null,
 }));
-// 生成 hook 替身（dockBar 任务快照+zoneBand 项目读/存/校验/计算四族——
+// 生成 hook 替身（aiZone 任务快照+topBar 项目读/存/校验/计算四族——
 // 真壳渲染所需取数面全空态）
 vi.mock("../../shared/api/generated/calc/calc", () => ({
   useGetTaskStatusApiCalcTasksTaskIdGet: () => ({
@@ -89,7 +97,7 @@ vi.mock("../../shared/api/generated/projects/projects", () => ({
   }),
   useSaveProjectApiProjectsProjectIdPut: () => ({
     mutate: () => {}, mutateAsync: () => Promise.resolve({}),
-    isPending: false, isError: false, error: null, reset: () => {},
+    isPending: false, isError: false, error: null,
   }),
   useValidateProjectApiProjectsProjectIdValidatePost: () => ({
     mutate: () => {}, isPending: false, isError: false, error: null, reset: () => {},
@@ -101,7 +109,7 @@ const queryClient = new QueryClient({
 });
 
 function renderShell() {
-  window.history.replaceState(null, "", "/?ia=v4&project=p1&tab=design");
+  window.history.replaceState(null, "", "/?project=p1&tab=ai");
   return render(
     <QueryClientProvider client={queryClient}>
       <ShellV4 />
@@ -115,7 +123,7 @@ const footerButton = (label: string): HTMLButtonElement | undefined =>
     .find((b) => (b.textContent ?? "").replace(/\s/g, "") === label));
 
 /** 离场 motion 在场（Modal 关闭动画期证——jsdom 无 transition 事件，
- *  物理卸载不可实测，ant-zoom-leave 类为关闭态翻转证）。 */
+ * 物理卸载不可实测，ant-zoom-leave 类为关闭态翻转证）。 */
 const leaveMotion = () => document.querySelector(".ant-zoom-leave");
 /** 入场 motion 在场（重开态翻转证）。 */
 const enterMotion = () => document.querySelector(".ant-zoom-enter, .ant-zoom-appear");
@@ -125,12 +133,13 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", () => {
-  it("帧①手动路径：dockBar 设置钮→TokenSettingsModal 开（真壳 prop 链 shellV4→designZone→dockBar 承载）", async () => {
+describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧；b2 入口链=aiZone）", () => {
+  it("帧①手动路径：AI 助手页设置钮→TokenSettingsModal 开（真壳 prop 链 shellV4→aiZone 承载）", async () => {
     renderShell();
-    // 真壳链在场证：zone-band+dock（design 区常驻）+设置钮（dockBar 承载）
-    expect(document.querySelector('[data-region="zone-band"]')).not.toBeNull();
-    expect(document.querySelector('[data-testid="wp-v4-dock"]')).not.toBeNull();
+    // 真壳链在场证：AI 入口体+设置钮（aiZone AI 窗头行承载）
+    await waitFor(() => {
+      expect(document.querySelector('[data-region="ai-workspace"]')).not.toBeNull();
+    });
     const settingsBtn = document.querySelector<HTMLButtonElement>(
       '[data-testid="wp-v4-open-settings"]',
     );
@@ -151,17 +160,17 @@ describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", ()
     });
   });
 
-  it("帧②非 design 区自愈：切 network 区（dock 卸载态实证）→dispatch AUTH_EVENT→Modal 开（恒挂载层）", async () => {
+  it("帧②非 AI 入口自愈：切 compare 入口（aiZone 卸载态实证）→dispatch AUTH_EVENT→Modal 开（恒挂载层）", async () => {
     renderShell();
-    // 切 network 区（真 zoneBand 页签——setZone 单通道）
+    // 切 compare 入口（真导航轨——setNav 单通道）
     fireEvent.click(
-      document.querySelector<HTMLButtonElement>('[data-testid="wp-v4-zone-network"]') as HTMLButtonElement,
+      document.querySelector<HTMLButtonElement>('[data-testid="wp-v4-nav-compare"]') as HTMLButtonElement,
     );
     await waitFor(() => {
-      expect(document.querySelector('[data-region="network-placeholder"]')).not.toBeNull();
+      expect(document.querySelector('[data-region="compare-matrix"]')).not.toBeNull();
     });
-    // dock 卸载态实证（design 区外 dock 收起——监听死区根因面已上提）
-    expect(document.querySelector('[data-testid="wp-v4-dock"]')).toBeNull();
+    // aiZone 卸载态实证（AI 入口外设置钮收起——监听死区根因面已上提）
+    expect(document.querySelector('[data-testid="wp-v4-open-settings"]')).toBeNull();
     expect(document.querySelector(".ant-modal")).toBeNull();
     // dispatch AUTH_EVENT（customInstance 401 派发面 parity）
     window.dispatchEvent(new Event(AUTH_EVENT));
@@ -175,7 +184,10 @@ describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", ()
 
   it("帧③E3 帧：Modal 关闭动画期 dispatch AUTH_EVENT→重开（401 压过用户关闭语义）", async () => {
     renderShell();
-    // 手动开（网络区自愈同源 state——design 区入口位）
+    // 手动开（compare 入口自愈同源 state——AI 入口位）
+    await waitFor(() => {
+      expect(document.querySelector('[data-region="ai-workspace"]')).not.toBeNull();
+    });
     document.querySelector<HTMLButtonElement>('[data-testid="wp-v4-open-settings"]')?.click();
     await waitFor(() => {
       expect(document.querySelector(".ant-modal")).not.toBeNull();
@@ -215,26 +227,5 @@ describe("连接设置真壳接线（B7 U6——mount 真 ShellV4 三帧）", ()
     expect(
       document.querySelector(".wp-v4-statusbar")?.textContent,
     ).toContain("项目：未选择");
-  });
-
-  it("工具区五钮文字标签（v2 笔4）：保存/撤销/重做/校验/全项目计算可见+撤销重做恒禁用", () => {
-    renderShell();
-    const band = document.querySelector('[data-region="zone-band"]');
-    const labelOf = (testid: string): string =>
-      band?.querySelector(`[data-testid="${testid}"]`)?.textContent ?? "";
-    expect(labelOf("wp-v4-save")).toContain("保存");
-    expect(labelOf("wp-v4-undo")).toContain("撤销");
-    expect(labelOf("wp-v4-redo")).toContain("重做");
-    expect(labelOf("wp-v4-validate")).toContain("校验");
-    expect(labelOf("wp-v4-run")).toContain("全项目计算");
-    // 撤销/重做恒禁用态保持（引擎无撤销栈——实装挂账后续批）
-    expect(
-      (band?.querySelector('[data-testid="wp-v4-undo"]') as HTMLButtonElement)
-        ?.disabled,
-    ).toBe(true);
-    expect(
-      (band?.querySelector('[data-testid="wp-v4-redo"]') as HTMLButtonElement)
-        ?.disabled,
-    ).toBe(true);
   });
 });

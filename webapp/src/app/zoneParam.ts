@@ -1,129 +1,164 @@
 /**
- * v4 zone URL 参数纯函数（B1 骨架批 2026-10-09——六功能区+子页两级值域+
- * 旧十值兼容表+?node= 独立通道；projectParam 同族形。v1-20261015 转正批：
- * ?ia= 特性开关退役——v4=唯一壳）。
+ * v4 壳导航 URL 参数纯函数（B1 骨架批六功能区→b2 壳重组批 2026-11-19
+ * 八入口导航：窄导航轨键值域+deliverables 子页+旧值兼容表〔v4 六 zone
+ * 值+旧十值〕+?node= 独立通道；值域变更=用户裁决〔批准稿 frontend-
+ * redesign index.html/workbench.html 八入口序〕，沿革沿 zoneParam 名）。
  *
- * 输入:  查询串（location.search 原样或裸 search）+ 目标 zone（或 node 值）
- * 输出:  parseZoneParam → V4ZoneTarget（两级值域+兼容归一）或 null；
- *        withZoneParam → 写入 tab 键的新查询串；parseNodeParam/withNodeParam
- *        → ?node= 独立通道读写；initialZoneTarget → 初值三级解析
+ * 输入:  查询串（location.search 原样或裸 search）+ 目标导航（或 node 值）
+ * 输出:  parseTabParam → NavTarget（八键+deliverables 子页+兼容归一）或
+ *        null；withTabParam → 写入 tab 键的新查询串；parseNodeParam/
+ *        withNodeParam → ?node= 独立通道读写；initialNavTarget → 初值
+ *        四级解析（合法 tab→node 深链→task/enum 深链→缺省 workbench）
  *
- * 规格说明（B1 任务书 §二.① URL 映射表——单源）：
- *   - 新值域语法=?tab=<zone> 或 <zone>.<subpage>（点分复合——子页仅
- *     design（canvas/analysis）与 drafting（sheets/siteplan）两 zone 可带，
- *     挂错 zone=非法；三段以上 null）；六 zone=projects/design/network/
- *     drafting/viewer3d/report；
- *   - 兼容归一=解析期单点收口（新值域优先于兼容表——防未来扩值歧义）：
- *     canvas/solutions/studio/studio.study/opsdebug→design；studio.cost/
- *     compare/trust/elevation→design.analysis（高程纵断=分析视图——定名
- *     消歧 W2）；siteplan→drafting.siteplan；studio.drawings→drafting；
- *     viewer3d→viewer3d（同名直通经新值域命中，不入表）；
- *   - mount 不改写地址栏（兼容值留 URL 至下次切 zone——M1 边缘语义 a
- *     同口径；本文件纯读恒不改 URL）；
+ * 规格说明（b2 壳重组批——批准稿 workbench.html 八入口序）：
+ *   - 八入口键=workbench 工作台/process 工艺/parameters 参数方案/
+ *     analysis 分析/compare 工况/deliverables 图纸报告/viewer3d 三维/
+ *     ai AI 助手；子页仅 deliverables 可带（sheets 图纸库缺省/siteplan
+ *     厂区总平面/report 计算说明——deliverables 三面合一），挂错入口=
+ *     非法；三段以上 null；
+ *   - 兼容归一=解析期单点收口（新值域优先于兼容表；mount 不改写地址栏
+ *     ——旧值留 URL 至下次切换，M1 边缘语义 a 同口径；本文件纯读恒不
+ *     改 URL）：
+ *     projects→workbench；design〔.canvas〕→process（旧 design 区画布
+ *     子页=新工艺入口）；design.analysis→analysis；network→workbench
+ *     （旧管网占位区退役——「规划中」诚实说明面迁工作台，不设伪入口）；
+ *     drafting〔.sheets〕→deliverables；drafting.siteplan→
+ *     deliverables.siteplan；report→deliverables.report；canvas/
+ *     solutions/studio/studio.study→process/parameters/process/process
+ *     （solutions=方案面归参数方案）；studio.cost/studio.trust/
+ *     elevation→analysis（概算/可信度/高程纵断=分析视图——W2 定名消歧
+ *     沿承）；studio.compare→compare（工况对比=独立工况入口）；
+ *     siteplan→deliverables.siteplan；studio.drawings→deliverables；
+ *     opsdebug→process（视图不变语义沿 M1 口径）；
  *   - 双写主从：?node= 为对象选中真相（独立键读写互不覆盖——ENG5 D6
- *     双轨形承袭：node/task/enum 三键各自独立）；?tab= 仅 zone 级投影；
- *   - 初值三级：?tab= 合法〔含兼容归一〕→用之；无 ?tab= 但有 ?node=/
- *     ?task=/?enum=→design（深链意图——M1 边缘语义 c 对称）；缺省
- *     design（新壳默认区≠canvas 裸值——design.zone 为着陆常态）；
+ *     双轨形承袭：node/task/enum 三键各自独立）；?tab= 仅导航级投影；
+ *   - 初值四级：?tab= 合法〔含兼容归一〕→用之；无 ?tab= 但有 ?node=
+ *     →process（画布选中语境）；有 ?task=/?enum=→parameters（方案/
+ *     联合卡消费面）；缺省 workbench（新壳着陆=工作台——首屏答「当前
+ *     哪个项目、下一步去哪」，旧缺省 design 迁移映射=process）；
  *   - 产出无 "?" 前缀查询串（replaceState 拼接面在消费方——projectParam
  *     同族口径）。
  */
+import { parseEnumParam, parseTaskParam } from "./projectParam";
 
-/** v4 六功能区（任务书 §二.① zone 值域）。 */
-export type V4Zone =
-  | "projects"
-  | "design"
-  | "network"
-  | "drafting"
+/** 八入口导航键（b2 壳重组——批准稿八入口序真源）。 */
+export type NavKey =
+  | "workbench"
+  | "process"
+  | "parameters"
+  | "analysis"
+  | "compare"
+  | "deliverables"
   | "viewer3d"
-  | "report";
+  | "ai";
 
-/** design 子页（工艺画布=缺省/分析表）。 */
-export type DesignSubpage = "canvas" | "analysis";
-/** drafting 子页（图纸库=缺省/厂区总平面布置编辑面——v4-2 终裁归制图域）。 */
-export type DraftingSubpage = "sheets" | "siteplan";
+/** deliverables 子页（图纸库=缺省/厂区总平面/计算说明——三面合一入口）。 */
+export type DeliverablesSubpage = "sheets" | "siteplan" | "report";
 
-/** ?tab= 解析终态：subpage 仅 design/drafting 可带（parse 已归一）。 */
-export type V4ZoneTarget =
-  | { zone: "design"; subpage?: DesignSubpage }
-  | { zone: "drafting"; subpage?: DraftingSubpage }
-  | { zone: "projects" | "network" | "viewer3d" | "report" };
+/** ?tab= 解析终态：subpage 仅 deliverables 可带（parse 已归一）。 */
+export type NavTarget =
+  | { nav: "deliverables"; subpage?: DeliverablesSubpage }
+  | {
+      nav:
+        | "workbench"
+        | "process"
+        | "parameters"
+        | "analysis"
+        | "compare"
+        | "viewer3d"
+        | "ai";
+    };
 
-/** zone 声明序（zone-band 页签序单源——项目→计算说明）。 */
-export const V4_ZONES: readonly V4Zone[] = [
-  "projects",
-  "design",
-  "network",
-  "drafting",
+/** 导航键声明序（窄导航轨条目序单源——工作台→AI 助手）。 */
+export const NAV_KEYS: readonly NavKey[] = [
+  "workbench",
+  "process",
+  "parameters",
+  "analysis",
+  "compare",
+  "deliverables",
   "viewer3d",
+  "ai",
+];
+
+/** 导航键中文名（窄导航轨/状态条单源）。 */
+export const NAV_LABELS: Record<NavKey, string> = {
+  workbench: "工作台",
+  process: "工艺",
+  parameters: "参数方案",
+  analysis: "分析",
+  compare: "工况",
+  deliverables: "图纸报告",
+  viewer3d: "三维",
+  ai: "AI 助手",
+};
+
+/** deliverables 子页合法值（parse 双段校验源）。 */
+const DELIVERABLES_SUBPAGES: readonly string[] = [
+  "sheets",
+  "siteplan",
   "report",
 ];
 
-/** zone 中文名（状态条/页签单源——回炉 R11：自 shellV4 迁入断环
- *  〔shellV4↔zoneBand 循环 import 根治——V4Zone 真源同件〕）。 */
-export const V4_ZONE_LABELS: Record<V4Zone, string> = {
-  projects: "项目",
-  design: "污水厂设计",
-  network: "管网系统",
-  drafting: "工程制图",
-  viewer3d: "三维示意",
-  report: "计算说明",
-};
-
-/** design/drafting 子页合法值（parse 双段校验源）。 */
-const DESIGN_SUBPAGES: readonly string[] = ["canvas", "analysis"];
-const DRAFTING_SUBPAGES: readonly string[] = ["sheets", "siteplan"];
-
-/** 兼容归一表（旧十值→新值——新值域优先；viewer3d 同名直通不入表）。
- *  B7 R1-C 冻结同源机检导出（仅加 export 关键字——值域/逻辑零触碰；
- *  导出面供 zoneParamFreeze.test.ts 键集同源断言消费）。 */
-export const LEGACY_ZONE_COMPAT: Readonly<Record<string, V4ZoneTarget>> = {
-  canvas: { zone: "design" },
-  solutions: { zone: "design" },
-  studio: { zone: "design" },
-  "studio.study": { zone: "design" },
-  "studio.cost": { zone: "design", subpage: "analysis" },
-  "studio.compare": { zone: "design", subpage: "analysis" },
-  "studio.trust": { zone: "design", subpage: "analysis" },
-  elevation: { zone: "design", subpage: "analysis" }, // 高程纵断=分析视图（W2 消歧）
-  siteplan: { zone: "drafting", subpage: "siteplan" },
-  "studio.drawings": { zone: "drafting" },
-  opsdebug: { zone: "design" }, // 视图不变语义沿 M1 口径
+/** 兼容归一表（旧值→新导航——新值域优先；viewer3d 同名直通不入表）。
+ *  旧值两代：v4 六 zone 值〔projects/design 族/network/drafting 族/
+ *  report〕+更早十值〔canvas/solutions/studio 族/elevation/siteplan/
+ *  opsdebug〕。导出面供 zoneParamFreeze.test 键集同源断言消费。 */
+export const LEGACY_TAB_COMPAT: Readonly<Record<string, NavTarget>> = {
+  // v4 六 zone 值（b1 及以前 ?tab= 深链）
+  projects: { nav: "workbench" },
+  design: { nav: "process" },
+  "design.canvas": { nav: "process" },
+  "design.analysis": { nav: "analysis" },
+  network: { nav: "workbench" }, // 旧管网占位区退役——规划中说明面在工作台
+  drafting: { nav: "deliverables" },
+  "drafting.sheets": { nav: "deliverables" },
+  "drafting.siteplan": { nav: "deliverables", subpage: "siteplan" },
+  report: { nav: "deliverables", subpage: "report" },
+  // 更早十值（legacy 槽路由期）
+  canvas: { nav: "process" },
+  solutions: { nav: "parameters" }, // 方案面归参数方案入口
+  studio: { nav: "process" },
+  "studio.study": { nav: "process" },
+  "studio.cost": { nav: "analysis" },
+  "studio.compare": { nav: "compare" },
+  "studio.trust": { nav: "analysis" },
+  elevation: { nav: "analysis" }, // 高程纵断=分析视图（W2 消歧沿承）
+  siteplan: { nav: "deliverables", subpage: "siteplan" },
+  "studio.drawings": { nav: "deliverables" },
+  opsdebug: { nav: "process" }, // 视图不变语义沿 M1 口径
 };
 
 /** ?tab= 两级解析（新值域→兼容表；任一不合法→null）。 */
-export function parseZoneParam(search: string): V4ZoneTarget | null {
+export function parseTabParam(search: string): NavTarget | null {
   const value = new URLSearchParams(search).get("tab");
   if (value === null || value === "") {
     return null;
   }
   const parts = value.split(".");
   if (parts.length === 1) {
-    if ((V4_ZONES as readonly string[]).includes(value)) {
-      return { zone: value as V4Zone };
+    if ((NAV_KEYS as readonly string[]).includes(value)) {
+      return { nav: value as NavKey };
     }
-    return LEGACY_ZONE_COMPAT[value] ?? null;
+    return LEGACY_TAB_COMPAT[value] ?? null;
   }
   if (parts.length === 2) {
     const [head, sub] = [parts[0] ?? "", parts[1] ?? ""];
-    if (head === "design" && DESIGN_SUBPAGES.includes(sub)) {
-      return { zone: "design", subpage: sub as DesignSubpage };
+    if (head === "deliverables" && DELIVERABLES_SUBPAGES.includes(sub)) {
+      return { nav: "deliverables", subpage: sub as DeliverablesSubpage };
     }
-    if (head === "drafting" && DRAFTING_SUBPAGES.includes(sub)) {
-      return { zone: "drafting", subpage: sub as DraftingSubpage };
-    }
-    return LEGACY_ZONE_COMPAT[value] ?? null;
+    return LEGACY_TAB_COMPAT[value] ?? null;
   }
   return null;
 }
 
 /** 回写 tab 键（只动 tab——project/node/task 等他键原序保留；带子页→
- *  <zone>.<subpage>，否则裸 zone 值）。 */
-export function withZoneParam(search: string, target: V4ZoneTarget): string {
+ *  <nav>.<subpage>，否则裸 nav 值）。 */
+export function withTabParam(search: string, target: NavTarget): string {
   const params = new URLSearchParams(search);
   const sub =
     "subpage" in target ? (target as { subpage?: string }).subpage : undefined;
-  params.set("tab", sub === undefined ? target.zone : `${target.zone}.${sub}`);
+  params.set("tab", sub === undefined ? target.nav : `${target.nav}.${sub}`);
   return params.toString();
 }
 
@@ -144,16 +179,20 @@ export function withNodeParam(search: string, nodeId: string | null): string {
   return params.toString();
 }
 
-/** 初值三级解析（合法 tab→深链 design→缺省 design——mount 不改写）。
- *  v4 深链层（?node=/?task=/?enum= 无 ?tab=→design）与缺省层同落 design
- *  （新壳默认区≠canvas 裸值——M1 边缘语义 c 对称形在此坍缩为同值；两层
- *  语义保留注记=未来缺省层改值时深链层须独立求值）。
- *  v1-20261015 转正批：parseIaParam 特性开关退役删除（?ia= 参数失效——
- *  v4=唯一壳，无开关面）。 */
-export function initialZoneTarget(search: string): V4ZoneTarget {
-  const target = parseZoneParam(search);
+/** 初值四级解析（合法 tab→node 深链 process→task/enum 深链 parameters
+ *  →缺省 workbench——mount 不改写地址栏）。b1 及以前深链层/缺省层同落
+ *  design 已坍缩；b2 拆分后三层各归其主（node=画布选中语境/task·enum=
+ *  方案与任务消费面），语义在位非新增。 */
+export function initialNavTarget(search: string): NavTarget {
+  const target = parseTabParam(search);
   if (target !== null) {
     return target;
   }
-  return { zone: "design" };
+  if (parseNodeParam(search) !== null) {
+    return { nav: "process" };
+  }
+  if (parseTaskParam(search) !== null || parseEnumParam(search) !== null) {
+    return { nav: "parameters" };
+  }
+  return { nav: "workbench" };
 }

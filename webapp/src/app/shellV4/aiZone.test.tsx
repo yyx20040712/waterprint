@@ -1,29 +1,26 @@
 /**
  * @vitest-environment jsdom
  *
- * v4 底栏双区测试（B2 结果与方案批——完成直达〔§一.4 done 任务行→分析表
- * 直达+相关单元选中〕+failed 错误提示面+dock-ai 会话续接〔P3 d1-N7——
- * zone 切换卸载/重挂与刷新两径 sessionId 持久恢复〕；B3 入口批——连接
- * 设置钮在场〔原 AI 接入钮/AiConnectModal 断言随 ZCode 接入退役批摘除
- * ——2026-11-19〕；B3 R1 回炉——设置 Modal/AUTH_EVENT 自愈监听上提
- * shellV4 恒挂载层〔R1-W1——本件改断言 onOpenSettings 透传；自愈例迁
- * settingsSelfHeal.test.tsx 新缝〕）。
+ * v4 AI 助手区测试（b2 壳重组批——B1 底栏 dockBar 升整页 AI 入口：
+ * 完成直达〔§一.4 done 任务行→分析面直达+相关单元选中〕+failed 错误
+ * 提示面+dock-ai 会话续接〔P3 d1-N7——入口切换卸载/重挂与刷新两径
+ * sessionId 持久恢复〕+连接设置钮在场+模型配置钮〔LlmConfigSection
+ * 恢复迁 ai_chat〕。dockBar.test.tsx 断言面原样迁入——挂载件换 AiZone）。
  *
- * 输入:  DockBar（任务态/SSE/会话三 hook 模块替身+useAiConfig 替身）+
+ * 输入:  AiZone（任务态/SSE/会话三 hook 模块替身+useAiConfig 替身）+
  *        done/failed 任务夹具
  * 输出:  断言族：①done 任务行点击→onTaskNavigate({state:"done",unitId})
  *        〔unitId=枚举任务 result.unit_id 透传〕②done 且无 unit_id=null
  *        透传 ③failed=错误提示行在场（白名单）④会话续接：发送建档后
  *        sessionStorage 持久→重挂恢复同 sessionId ⑤连接设置钮→
  *        onOpenSettings 调用（Modal 承载在 shellV4）⑥模型配置钮→
- *        LLM 配置 Modal 开（本地 chat LLM 三键面恢复迁 ai_chat——
- *        useAiConfig enabled 门控随开态翻转）
+ *        LLM 配置 Modal 开（useAiConfig enabled 门控随开态翻转）
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DockBar } from "./dockBar";
+import { AiZone } from "./aiZone";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -95,11 +92,11 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 });
 
-function renderDock() {
-  window.history.replaceState(null, "", "/?task=t-done-1&ia=v4");
+function renderAiZone() {
+  window.history.replaceState(null, "", "/?task=t-done-1&tab=ai");
   return render(
     <QueryClientProvider client={queryClient}>
-      <DockBar onTaskNavigate={gate.navigate} onOpenSettings={gate.openSettings} />
+      <AiZone onTaskNavigate={gate.navigate} onOpenSettings={gate.openSettings} />
     </QueryClientProvider>,
   );
 }
@@ -116,7 +113,7 @@ afterEach(cleanup);
 
 describe("完成直达（§一.4）", () => {
   it("done 任务行点击→onTaskNavigate({state:'done', unitId=枚举 result 透传})", () => {
-    const { container } = renderDock();
+    const { container } = renderAiZone();
     const row = container.querySelector<HTMLDivElement>(
       '[data-testid="wp-v4-task-row"]',
     );
@@ -128,7 +125,7 @@ describe("完成直达（§一.4）", () => {
     });
   });
 
-  it("done 且 result 无 unit_id→unitId=null 透传（calc 任务——切分析表不选单元）", () => {
+  it("done 且 result 无 unit_id→unitId=null 透传（calc 任务——切分析面不选单元）", () => {
     gate.task = {
       ...gate.task,
       data: {
@@ -138,7 +135,7 @@ describe("完成直达（§一.4）", () => {
       },
     };
     try {
-      const { container } = renderDock();
+      const { container } = renderAiZone();
       container.querySelector<HTMLDivElement>('[data-testid="wp-v4-task-row"]')?.click();
       expect(gate.navigate).toHaveBeenCalledWith({ state: "done", unitId: null });
     } finally {
@@ -163,7 +160,7 @@ describe("failed 错误提示面（白名单）", () => {
       error: "收敛失败：LoopDivergence",
       stale: false,
     };
-    const { container } = renderDock();
+    const { container } = renderAiZone();
     const face = container.querySelector('[data-testid="wp-v4-task-error"]');
     expect(face).not.toBeNull();
     expect(face?.textContent).toContain("收敛失败");
@@ -171,8 +168,8 @@ describe("failed 错误提示面（白名单）", () => {
 });
 
 describe("连接设置入口（B3 U3——R1-W1 透传制）", () => {
-  it("连接设置钮在场（dock AI 窗头行右缀——wp-v4-open-settings；原 AI 接入钮已随 ZCode 接入退役批摘除）", () => {
-    const { container } = renderDock();
+  it("连接设置钮在场（AI 窗头行右缀——wp-v4-open-settings）", () => {
+    const { container } = renderAiZone();
     expect(
       container.querySelector('[data-testid="wp-ai-connect-open"]'),
     ).toBeNull();
@@ -182,21 +179,19 @@ describe("连接设置入口（B3 U3——R1-W1 透传制）", () => {
   });
 
   it("点连接设置→onOpenSettings 调用（R1-W1：Modal/自愈监听上提 shellV4 恒挂载层——本件仅入口透传契约）", () => {
-    const { container } = renderDock();
+    const { container } = renderAiZone();
     fireEvent.click(
       container.querySelector<HTMLButtonElement>(
         '[data-testid="wp-v4-open-settings"]',
       ) as HTMLButtonElement,
     );
     expect(gate.openSettings).toHaveBeenCalledTimes(1);
-    // Modal 承载已上提：本缝零 Modal 断言（自愈/承载面归
-    // settingsSelfHeal.test.tsx）
   });
 });
 
 describe("模型配置入口（本地 chat LLM 三键——LlmConfigSection 恢复迁 ai_chat）", () => {
   it("点模型配置→LLM 配置 Modal 开（LlmConfigSection 在场+enabled 翻 true）", () => {
-    const { container } = renderDock();
+    const { container } = renderAiZone();
     fireEvent.click(
       container.querySelector<HTMLButtonElement>(
         '[data-testid="wp-v4-llm-config"]',
@@ -209,17 +204,14 @@ describe("模型配置入口（本地 chat LLM 三键——LlmConfigSection 恢�
   });
 
   it("挂载期 Modal 未开→useAiConfig 零消费（开态门控——关态零请求扰动）", () => {
-    // antd Modal 关态不挂内容（首开才渲染 children）：挂载渲染后
-    // useAiConfig 零调用=关态零查询面（关态回落的重渲染受 jsdom 下
-    // Modal 离场动画冻结影响不可稳定断言——开态门控即本缝契约核心）。
-    renderDock();
+    renderAiZone();
     expect(gate.llmEnabledLog).toEqual([]);
   });
 });
 
 describe("dock-ai 会话续接（P3 d1-N7）", () => {
   it("发送建档 sessionId→sessionStorage 持久→重挂恢复同会话", () => {
-    const first = renderDock();
+    const first = renderAiZone();
     const input = first.container.querySelector<HTMLInputElement>(
       'input[data-testid="wp-v4-ai-input"]',
     );
@@ -236,9 +228,9 @@ describe("dock-ai 会话续接（P3 d1-N7）", () => {
     const sessionId = call?.[0]?.sessionId as string;
     expect(sessionId).toBeTruthy();
     expect(window.sessionStorage.getItem("wp-v4-dock-session")).toBe(sessionId);
-    // 重挂（zone 切换卸载/重挂同径——组件态消亡后恢复）
+    // 重挂（入口切换卸载/重挂同径——组件态消亡后恢复）
     first.unmount();
-    const second = renderDock();
+    const second = renderAiZone();
     const input2 = second.container.querySelector<HTMLInputElement>(
       'input[data-testid="wp-v4-ai-input"]',
     );

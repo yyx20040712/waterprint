@@ -227,7 +227,8 @@ body {
   font-weight: 400;
 }
 
-/* 顶带（48px：logo+六功能区页签+语境工具区） */
+/* 顶栏（48px：logo+品牌+项目面包屑+语境工具区——b2 壳重组批：六功能区
+   页签迁窄导航轨） */
 .wp-v4-band {
   height: 48px;
   flex: none;
@@ -238,27 +239,18 @@ body {
   background: var(--wp-bg-page);
   border-bottom: 1px solid var(--wp-border-2);
 }
-.wp-v4-mods {
+.wp-v4-brand {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.wp-v4-crumbs {
   display: flex;
-  gap: 2px;
-}
-.wp-v4-mod {
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--wp-text-2);
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--wp-text);
   font-size: 12px;
-  font-weight: 400;
-  cursor: pointer;
-}
-.wp-v4-mod:hover {
-  background: var(--wp-bg-deep);
-}
-.wp-v4-mod.on {
-  background: var(--wp-bg-elevated);
-  color: var(--wp-accent);
-  border-color: var(--wp-border-2);
 }
 .wp-v4-tools {
   margin-left: auto;
@@ -267,7 +259,51 @@ body {
   align-items: center;
 }
 
-/* 区体（zone 容器通用） */
+/* 壳框架（b2：窄导航轨+入口体横排——.wp-v4-body 承入口体） */
+.wp-v4-frame {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+.wp-v4-rail {
+  width: 74px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 7px;
+  background: var(--wp-bg-deep);
+  border-right: 1px solid var(--wp-border-2);
+  overflow-y: auto;
+}
+.wp-v4-rail-link {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 10px; /* 回炉 R12：字号归一三档（密排元 10） */
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wp-v4-rail-link:hover {
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+.wp-v4-rail-link.on {
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+
+/* 区体（入口体容器通用） */
 .wp-v4-body {
   flex: 1;
   min-height: 0;
@@ -384,38 +420,14 @@ body {
   margin-bottom: 5px;
 }
 
-/* 中列：视图页签条（30px 预算——G3'' 几何账）+画布 */
+/* 中列（b2：design 中列画布/分析页签退役——参数方案回填区/工艺画布槽
+   复用本列容器形） */
 .wp-v4-center {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-.wp-v4-vtabs {
-  height: 30px;
-  flex: none;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 0 8px;
-  background: var(--wp-bg-page);
-  border-bottom: 1px solid var(--wp-border-2);
-  box-sizing: border-box;
-}
-.wp-v4-vt {
-  padding: 3px 13px 2px;
-  border: 1px solid var(--wp-border-2);
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  background: var(--wp-bg-container);
-  color: var(--wp-text-2);
-  font-size: 12px; /* 回炉 R12：字号归一三档（12/11/10） */
-  cursor: pointer;
-}
-.wp-v4-vt.on {
-  background: var(--wp-bg-elevated);
-  color: var(--wp-accent);
 }
 .wp-v4-canvas {
   flex: 1;
@@ -428,19 +440,14 @@ body {
   overflow: hidden;
 }
 
-/* 底栏双区（dock：AI 唯一窗+窄任务条——高预算 ≤98px，G3''=706 净高） */
-.wp-v4-dock {
-  height: 92px;
-  flex: none;
-  display: flex;
-  border-top: 1px solid var(--wp-border-2);
-  background: var(--wp-bg-container);
-}
+/* AI 助手页两件（b2：B1 底栏 dock 升整页——dock-ai 会话窗伸展/dock-
+   tasks 任务条 320px；父容器=aiZone 整页 flex，92px 底栏形态退役） */
 .wp-v4-dock-ai {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  background: var(--wp-bg-container);
   border-right: 1px solid var(--wp-border-2);
 }
 .wp-v4-dock-tasks {
@@ -449,6 +456,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--wp-bg-container);
 }
 .wp-v4-dock-strip {
   flex: none;
@@ -569,9 +577,10 @@ body {
   margin-top: 3px;
 }
 
-/* 状态条（24px——沿承 M1 位；回炉 R12：字号归一三档——密排元 10） */
+/* 状态条（b2 壳重组批 30px——主题切换器入驻增高 6px；沿承 M1 位；
+   回炉 R12：字号归一三档——密排元 10） */
 .wp-v4-statusbar {
-  height: 24px;
+  height: 30px;
   flex: none;
   display: flex;
   align-items: center;
@@ -600,17 +609,16 @@ body {
 .wp-v4-statusbar button:hover {
   color: var(--wp-accent);
 }
-
-/* 占位区（管网未实装——诚实说明面） */
-.wp-v4-placeholder {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* 单机标识槽（b2 视觉槽——联机逻辑后续批；中性灰徽标形非交互） */
+.wp-v4-standalone {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--wp-bg-container);
+  padding: 1px 8px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 9px;
+  background: var(--wp-bg-deep);
   color: var(--wp-text-2);
+  white-space: nowrap;
 }
 
 /* 图库卡（工程制图右区） */
@@ -680,14 +688,14 @@ body {
   color: var(--wp-accent);
 }
 
-/* 主题切换器（b1 主题地基批——三钮组；形态=设计稿 .theme-switch：
- * 分段容器+示意 chip+文字标签；消费 --wp-* 轴自换肤〔夜间下容器随
- * 暗档轴〕；chip 三恒值=各模底色示意〔组件 inline 承载〕） */
+/* 主题切换器（b1 主题地基批三钮组；b2 壳重组批自顶带工具区迁状态条右
+ * 端；形态=设计稿 .theme-switch：分段容器+示意 chip+文字标签；消费
+ * --wp-* 轴自换肤〔夜间下容器随暗档轴〕；chip 三恒值=各模底色示意
+ * 〔组件 inline 承载〕） */
 .wp-theme-switch {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  margin-left: 8px;
   border: 1px solid var(--wp-border-2);
   border-radius: 6px;
   background: var(--wp-bg-deep);

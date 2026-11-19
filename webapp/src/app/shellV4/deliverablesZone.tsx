@@ -1,28 +1,29 @@
 /**
- * v4 工程制图区（B1 骨架批 2026-10-09——左树目录+右图库卡栅格；wireframe
- * -d-v4 屏 5 形；siteplan 编辑面随 v4-2 终裁归制图域=subpage siteplan）。
+ * v4 图纸报告区（b2 壳重组批 2026-11-19——八入口「图纸报告」：图纸库/
+ * 厂区总平面/计算说明三面合一入口〔稿 deliverables.html——浏览与导出
+ * 合并裁决〕；沿革 B1 draftingZone〔sheets/siteplan 两子页〕+reportZone
+ * 〔独立 zone〕→b2 合并〔两 zone 件逻辑零改——ReportZone 原件挂 report
+ * 子页全幅〕）。
  *
- * 输入: subpage（sheets=图纸库缺省/siteplan=厂区总平面布置编辑面——shellV4
- *        受控）+onSubpageChange（子页切换→?tab= zone 级投影）
- *        +SiteplanPane（app 件复用——厂区布置编辑器）+exports 查询族
- *        （features/drawings——图库卡数据源+导出工具行语境）
- * 输出: drafting 区：左=drafting-tree（污水厂▾〔全厂总平面图→siteplan/
- *        高程纵断图/工艺图…→sheets〕+管网▸规划中）+右=drafting-gallery
- *        （sheets 子页=导出语境行+图库卡栅格；siteplan 子页全幅）
+ * 输入: subpage（sheets=图纸库缺省/siteplan=厂区总平面编辑面/report=
+ *        计算说明——shellV4 受控）+onSubpageChange（子页切换→?tab=
+ *        deliverables.<subpage>）+onGoCalc（空态「去计算」动线——
+ *        shellV4 setNav process）+SiteplanPane/exports 查询族（图纸库
+ *        数据源+导出工具行语境）
+ * 输出: deliverables 区：左=drafting-tree（污水厂▾〔全厂总平面图→
+ *        siteplan/高程纵断图/工艺图→sheets〕+计算说明书→report+管网▸
+ *        规划中）+右=sheets 子页=导出语境行+图库卡栅格；siteplan 子页
+ *        全幅（SiteplanPane）；report 子页全幅（ReportZone 自持左导航
+ *        与阅读卡）
  *
- * 规格说明（B1 任务书 §三.5——plan §九.4；回炉 R7/VB-3）：
- *   - 左树目录=图纸清单导航（节点点击切子页——全厂总平面图→编辑面、
- *     其余→图库）；管网=挂起（「规划中」Tag——G5 语义沿承）；
- *   - 高程纵断图（DXF）=图纸交付物在制图域（W2 定名消歧——与 design
- *     区分析视图「高程纵断」同名异物）；
- *   - 回炉 R7（VB-3）：右区=图库卡栅格（卡片=DXF 交付物预览位+图题；
- *     数据源=useExportsQuery/buildSheetRows；空态卡=「尚无图纸——完成
- *     计算后生成」引导）；导出工具行保留为卡区上方语境行（ExportButton
- *     复用——微裁决 V18）；
- *   - 左树栏可拖宽（v2 笔2：usePaneWidth 接入——默认 190/140~420/
- *     键 wp-v4-drafting-left-w；siteplan 子页无左栏现状保持）。
- *   - V4 P2（2026-10-15）：图库卡语境行中文化——kind 显示名常量+工况
- *     conditionLabel 工程全称（""/all→全部工况；单源=shared/conditionLabels）。
+ * 规格说明（B1 任务书 §三.5 承袭+b2 合并裁决；回炉 R7/VB-3）：
+ *   - 左树目录=交付物导航（节点点击切子页——图纸/总平面/计算说明）；
+ *     管网=挂起（「规划中」Tag——G5 语义沿承，锚族在工作台条）；
+ *   - 高程纵断图（DXF）=图纸交付物在本区（W2 定名消歧——分析视图的
+ *     「高程纵断」在分析入口）；
+ *   - siteplan 子页无左栏现状保持（全幅编辑面+返回条）；report 子页
+ *     =ReportZone 全幅（返回图纸库=导航轨点「图纸报告」回缺省 sheets）；
+ *   - 左树栏可拖宽（键 wp-v4-drafting-left-w 沿承——宽度记忆不丢）。
  */
 import { lazy, Suspense } from "react";
 import { Spin, Tag, Typography } from "antd";
@@ -39,7 +40,8 @@ import { useUnitCatalog } from "../../features/drawings/api/useUnitCatalog";
 import { buildSheetRows } from "../../features/drawings/lib/drawingsView";
 import { conditionLabel, unitNameIndex } from "../../shared/conditionLabels";
 import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
-import type { DraftingSubpage } from "../zoneParam";
+import type { DeliverablesSubpage } from "../zoneParam";
+import { ReportZone } from "./reportZone";
 import { usePaneWidth } from "./usePaneWidth";
 
 /** 懒装载（M1 槽同制——懒件按 chunk 面隔离；装配引用不改件本体）。 */
@@ -56,19 +58,20 @@ function PaneLoading() {
   );
 }
 
-/** 树节点（ sheets 子页导航——标签+目标子页；null=仅分组）。 */
-type TreeRow = { key: string; label: string; subpage: DraftingSubpage | null; depth: number; pending?: boolean };
+/** 树节点（sheets 子页导航——标签+目标子页；null=仅分组）。 */
+type TreeRow = { key: string; label: string; subpage: DeliverablesSubpage | null; depth: number; pending?: boolean };
 
 const TREE_ROWS: readonly TreeRow[] = [
   { key: "plant", label: "污水厂 ▾", subpage: null, depth: 0 },
   { key: "siteplan", label: "全厂总平面图", subpage: "siteplan", depth: 1 },
   { key: "profile", label: "高程纵断图", subpage: "sheets", depth: 1 },
   { key: "process", label: "工艺图", subpage: "sheets", depth: 1 },
+  { key: "report", label: "计算说明书", subpage: "report", depth: 1 },
   { key: "network", label: "管网 ▸", subpage: null, depth: 0, pending: true },
 ];
 
-/** 未选项目引导（与 designZone NO_PROJECT_HINT 同源白名单文案）。 */
-const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
+/** 未选项目引导（与 parametersZone NO_PROJECT_HINT 同源白名单文案）。 */
+const NO_PROJECT_HINT = "尚未选择项目——在「工作台」打开或新建";
 
 /** 图库卡 kind 显示名（V4 P2 语境行中文化——值域=dxf 单值，显示层常量
  *  非查表映射；未知 kind 原样透传=dimLabels 诚实呈现同口径）。 */
@@ -163,7 +166,7 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
           <Spin />
         ) : rows.length === 0 ? (
           // 空态卡（回炉 R7——「尚无图纸——完成计算后生成」级引导；
-          // V3 D5：去计算钮=design 区直达动线）
+          // V3 D5：去计算钮=工艺入口直达动线）
           <div className="wp-v4-sheet-card" style={{ width: "100%", maxWidth: 420 }}>
             <div className="wp-v4-sheet-thumb">
               <SheetGlyph />
@@ -214,18 +217,18 @@ function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
   );
 }
 
-export function DraftingZone({
+export function DeliverablesZone({
   subpage,
   onSubpageChange,
   onGoCalc,
 }: {
-  subpage: DraftingSubpage;
-  onSubpageChange: (subpage: DraftingSubpage) => void;
-  /** V3 D5：空态「去计算」动线（shellV4 传 setZone design——跨区引导）。 */
+  subpage: DeliverablesSubpage;
+  onSubpageChange: (subpage: DeliverablesSubpage) => void;
+  /** V3 D5：空态「去计算」动线（shellV4 传 setNav process——跨入口引导）。 */
   onGoCalc: () => void;
 }) {
-  // 左树栏宽+拖宽（v2 笔2：usePaneWidth 接入——顶层恒调，siteplan 分支
-  // 无左栏不消费〔rules-of-hooks——子页分支不卸 hook〕）
+  // 左树栏宽+拖宽（v2 笔2：usePaneWidth 接入——顶层恒调，siteplan/report
+  // 分支无左栏不消费〔rules-of-hooks——子页分支不卸 hook〕）
   const navPane = usePaneWidth({
     key: "wp-v4-drafting-left-w",
     fallback: 190,
@@ -278,7 +281,18 @@ export function DraftingZone({
       </section>
     );
   }
-
+  if (subpage === "report") {
+    // 计算说明子页：ReportZone 全幅（自持左导航+阅读卡+导出区——B6 件
+    // 零改；返回图纸库=导航轨点「图纸报告」回缺省 sheets）
+    return (
+      <section
+        data-region="deliverables-report"
+        style={{ flex: 1, minWidth: 0, display: "flex" }}
+      >
+        <ReportZone />
+      </section>
+    );
+  }
   return (
     <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
       <aside
@@ -312,7 +326,7 @@ export function DraftingZone({
             padding: "4px 8px 6px",
           }}
         >
-          图纸目录
+          交付目录
         </div>
         {TREE_ROWS.map((row) =>
           row.subpage === null ? (

@@ -8,7 +8,8 @@
  *        --wp-* 轴自主题换肤）
  *
  * 规格说明：
- *   - 位置=v4 顶带工具区尾（zoneBand wp-v4-tools 内——b2 壳重组批再挪）；
+ *   - 位置=v4 状态条右端（statusBar .r 内——b2 壳重组批自 zoneBand
+ *     工具区尾迁入）；
  *   - 点击=setMode（store 内三面联动：React 状态/localStorage 持久化/
  *     DOM data-theme+域色轴）——本组件零自有状态；
  *   - 示意 chip 三恒值=设计稿 --chip-light/warm/dark（展示各模底色，

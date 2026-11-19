@@ -1,22 +1,21 @@
 /**
- * v4 顶带（B1 骨架批 2026-10-09——48px：logo 简笔水滴线形+六功能区页签
- * 〔选中=白底+AC 色字+描边——wireframe .mod.on 形〕+右语境工具区）。
+ * v4 顶栏（b2 壳重组批 2026-11-19——48px：品牌区+项目面包屑+右语境工具
+ * 区；沿革 B1 顶带 zoneBand〔logo+六功能区页签+工具区〕——页签迁窄导航
+ * 轨 navRail，工具区五钮逻辑逐字保持）。
  *
- * 输入:  target（当前 zone——V4_ZONES 声明序渲染）+onZoneChange（切换
- *        唯一通道——shellV4 setZone）+useProjectId（工具区项目门）
- * 输出:  顶带：logo+六页签（button 元素 data-zone 锚——探针 N1 逐区单点
- *        可达）+工具区（保存/撤销/重做/校验/全项目计算——简笔线性图标
- *        antd icons 线性族；b1 主题地基批：区尾+主题切换器
- *        ThemeSwitch〔三钮组正常/护眼/夜间〕）
+ * 输入:  useProjectId（工具区项目门）+useProjectName（面包屑项目名单源）
+ * 输出:  顶栏：logo+WaterPrint 品牌+项目面包屑+工具区（保存/撤销/重做/
+ *        校验/全项目计算——zoneBand 同链零改；data-region=top-bar）
  *
- * 规格说明（B1 任务书 §三.1——plan §九.1）：
+ * 规格说明（B1 任务书 §三.1 语境工具区——b2 批沿承；稿 topbar 段）：
  *   - 语境工具区四活一骨架：保存=手动（draftProjectRaw+PUT——CanvasEdit
  *     Toolbar 同链；草稿自动暂存 paramsStore 沿承）；校验=validate POST
- *     （结论呈现迁 dock-tasks=B2 处置——B1 message 即时反馈）；全项目
- *     计算=decideRunCalc 分派链复用（runCalcPolicy 导出纯函数——v1 批拆迁单源）；
- *     撤销/重做=画布引擎无撤销栈（B1 骨架在场禁用态——实装挂账后续批）；
+ *     （结论呈现 message 即时反馈）；全项目计算=decideRunCalc 分派链
+ *     复用（runCalcPolicy 导出纯函数——v1 批拆迁单源）；撤销/重做=画布
+ *     引擎无撤销栈（骨架在场禁用态——实装挂账后续批）；
  *   - logo=简笔水滴线形 SVG（wireframe 屏 1 同形——stroke AC 色线性）；
- *   - 页签次序=V4_ZONES 单源（项目→计算说明）；切换经 onZoneChange 单通道；
+ *   - 面包屑=项目 › 项目名（useProjectName 单源——未选=「未选择」，
+ *     长名省略号+title 悬停全名；稿 .crumbs 形）；
  *   - 工具区五钮可见中文文字标签（v2 笔4——Button children 文本+fontSize
  *     11 字号三档内；图标/Tooltip/disabled/loading 语义全保持；撤销/
  *     重做恒禁用态加标签——撤销栈实装=在册挂账不在本批）。
@@ -54,8 +53,7 @@ import {
 } from "../runCalcPolicy";
 import { writeTaskParam } from "../solutionsUrlState";
 import { useProjectId } from "../useProjectId";
-import { V4_ZONE_LABELS, V4_ZONES, type V4ZoneTarget } from "../zoneParam";
-import { ThemeSwitch } from "./themeSwitch";
+import { useProjectName } from "../useProjectName";
 
 /** logo 简笔水滴线形（wireframe 屏 1 同形——16×16 stroke AC）。 */
 function BandLogo() {
@@ -81,15 +79,11 @@ function BandLogo() {
   );
 }
 
-export function ZoneBand({
-  target,
-  onZoneChange,
-}: {
-  target: V4ZoneTarget;
-  /** zone 切换唯一通道（shellV4 setZone——replaceState 写 ?tab=）。 */
-  onZoneChange: (next: V4ZoneTarget) => void;
-}) {
+export function TopBar() {
   const [projectId] = useProjectId();
+  // v2 笔3 同源：面包屑项目名单源（未选=null 显「未选择」；空白/缺名/
+  // pending/失败=「未命名项目」回退——项目 hex 裸露消除）
+  const projectName = useProjectName();
   const dirty = useDirty(projectId);
   const draft = useDraft(projectId);
   const rawQuery = useReadProjectApiProjectsProjectIdGet(projectId ?? "", {
@@ -228,29 +222,29 @@ export function ZoneBand({
   };
 
   return (
-    <header className="wp-v4-band" data-region="zone-band">
+    <header className="wp-v4-band" data-region="top-bar">
       {contextHolder}
       <BandLogo />
-      <nav className="wp-v4-mods">
-        {V4_ZONES.map((zone) => (
-          <button
-            key={zone}
-            type="button"
-            className={`wp-v4-mod${target.zone === zone ? " on" : ""}`}
-            data-zone={zone}
-            data-testid={`wp-v4-zone-${zone}`}
-            onClick={() =>
-              onZoneChange(
-                zone === target.zone
-                  ? target
-                  : ({ zone } as V4ZoneTarget),
-              )
-            }
-          >
-            {V4_ZONE_LABELS[zone]}
-          </button>
-        ))}
-      </nav>
+      <span className="wp-v4-brand">WaterPrint</span>
+      <div className="wp-v4-crumbs" data-testid="wp-v4-crumbs">
+        <span style={{ color: "var(--wp-text-2)" }}>项目</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden style={{ color: "var(--wp-text-3)", flex: "none" }}>
+          <path d="m8 10 4 4 4-4" />
+        </svg>
+        <strong
+          title={projectName ?? undefined}
+          style={{
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: 320,
+            fontWeight: 400,
+          }}
+        >
+          {projectId === null ? "未选择" : projectName}
+        </strong>
+      </div>
       <span className="wp-v4-tools">
         <Tooltip title="保存">
           <Button
@@ -326,8 +320,6 @@ export function ZoneBand({
             全项目计算
           </Button>
         </Tooltip>
-        {/* b1 主题地基批：三主题切换器（工具区尾——b2 壳重组批再挪） */}
-        <ThemeSwitch />
       </span>
     </header>
   );

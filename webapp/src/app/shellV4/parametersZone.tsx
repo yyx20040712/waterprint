@@ -1,26 +1,30 @@
 /**
- * v4 污水厂设计区（B1 骨架批 2026-10-09——核心域三栏：左三 tab〔设计/
- * 经验/全局〕+计算回填区｜中=页签〔工艺画布｜分析表〕+缩略图画布｜右两页
- * 〔选中工艺/全厂〕+底栏双区 dock 常驻；wireframe-d-v4 屏 1 形）。
+ * v4 参数方案区（b2 壳重组批 2026-11-19——八入口「参数方案」：语境侧栏
+ * 〔参数三 tab〕+主工作区〔计算回填〕+inspector 位〔方案两页〕；沿革
+ * B1 designZone 三栏〔左参数/中画布·分析/右方案〕——b2 画布拆「工艺」
+ * 入口、分析拆「分析」入口后本区=参数+回填+方案合一面〔稿 parameters
+ * .html〕，左/右栏件与拖宽键名原样承袭）。
  *
- * 输入:  target（zone+subpage——shellV4 受控）+selectedUnitId（?node= 对象
- *        选中真相）+onSelectedUnitChange（画布选中上抛）+onSubpageChange
- *        （中列页签切换→?tab= zone 级投影）+useProjectId
- * 输出:  design-workspace 三栏+dock：左=ParamForm/AssumptionsPanel 复用+
- *        全局骨架卡（B2 扩完整卡）+计算回填空态；中=ThumbnailFlow 缩略
- *        画布（笔3）｜分析表空态（B2 实装）；右=方案区壳（★/Δ 徽标=B2）
- *        +⟳重新枚举 Modal 唯一入口+全厂入口组（B3：联合枚举 Modal 唯一
- *        入口=全厂页 wp-v4-joint-open）；底=dockBar（AI 唯一窗+窄任务条）
+ * 输入:  selectedUnitId（?node= 对象选中真相——工艺页画布选中跨页随动）
+ *        +onOpenAnalysis/onOpenCompare（分析面入口组跨入口导航——
+ *        shellV4 setNav）+onOpenSettings（连接设置开态上抛——shellV4
+ *        恒挂载层承载 Modal）+useProjectId
+ * 输出:  三栏：左=ParamForm/AssumptionsPanel 复用+全局骨架卡（wp-v4-
+ *        left 拖宽键原样）；中=BackfillSection 计算回填（B2 §三.2 件
+ *        原样——位置自左栏底迁主工作区）；右=方案区壳（SolutionCards/
+ *        JointSolutionCards+⟳重新枚举 Modal 唯一入口+全厂联合枚举
+ *        Modal 唯一入口+分析面入口组）
  *
- * 规格说明（B1 任务书 §三.3——plan §九.1）：
- *   - 左栏三 tab：设计=选中单元输入参数（ParamForm 复用+三式提交 Enter
- *     补齐）/经验=经验取值（AssumptionsPanel 复用）/全局=项目级输入骨架
- *     卡（进水水质水量/出水标准/工况定义——空态引导微文案白名单内）；
- *     计算回填区=自动值 B1 空态；
- *   - 双向数据流=B2 批（B1 只留结构——右栏方案卡壳与左栏回填区空态）；
- *   - dock 仅本区常驻（其他区收起为状态条内入口——shellV4 状态条）；
- *   - 侧栏宽度：左 225/右 250 默认（wireframe 值），拖宽+localStorage
- *     记忆=B1 全局规则（拖柄 wp-v4-drag）。
+ * 规格说明（B1 任务书 §三.3 承袭+b2 拆解裁决）：
+ *   - 左栏三 tab：设计=选中单元输入参数（ParamForm 复用）/经验=经验
+ *     取值（AssumptionsPanel 复用）/全局=项目级输入骨架卡（空态引导）；
+ *   - 单元选择=工艺页画布（?node= 共享真相——本区无画布，未选=空态
+ *     引导；稿 parameters.html 左栏对象树=后续功能批不新建）；
+ *   - 右栏两页：选中工艺=SolutionCards（点卡 apply 回填+方案驱动来源
+ *     上抛）；全厂=JointSolutionCards+联合枚举+分析面入口组（工况对比
+ *     →compare 入口；灵敏度/概算/可信度/高程纵断→analysis 入口）；
+ *   - 侧栏宽度：左 225/右 250 默认（B1 键名 wp-v4-left-w/right-w 沿承
+ *     ——已存宽度记忆不丢）。
  */
 import { useState } from "react";
 import { Button, Modal } from "antd";
@@ -29,58 +33,44 @@ import { AssumptionsPanel } from "../../features/params/components/AssumptionsPa
 import { ParamForm } from "../../features/params/components/ParamForm";
 import { JointSubmitForm } from "../jointSolutions";
 import { useProjectId } from "../useProjectId";
-import type { DesignSubpage, V4ZoneTarget } from "../zoneParam";
-import { DockBar } from "./dockBar";
-import { ThumbnailFlow } from "./thumbnailFlow";
 import { EnumerateModal } from "./enumerateModal";
-import { AnalysisPane } from "./analysisPane";
 import { SolutionCards } from "./solutionCards";
 import { JointSolutionCards } from "./jointSolutionCards";
 import { BackfillSection } from "./backfillSection";
 import { usePaneWidth } from "./usePaneWidth";
 
 /** 左栏空态引导（白名单：空态引导）。 */
-const NO_PROJECT_HINT = "尚未选择项目——在「项目」区打开或新建";
-const NO_UNIT_HINT = "在画布中选择单元后，参数在此编辑";
+const NO_PROJECT_HINT = "尚未选择项目——在「工作台」打开或新建";
+const NO_UNIT_HINT = "在「工艺」画布中选择单元后，参数在此编辑";
 
-/** 全局骨架卡三段（B1 空态——B2 扩完整卡）。 */
+/** 全局骨架卡三段（空态——完整卡=后续功能批）。 */
 const GLOBAL_CARDS: readonly { key: string; title: string; hint: string }[] = [
   { key: "influent", title: "进水水质水量", hint: "设计进水水质与水量在此定义" },
   { key: "effluent", title: "出水标准", hint: "执行标准与限值在此选择" },
   { key: "conditions", title: "工况定义", hint: "计算工况在此增改" },
 ];
 
-/** 分析面入口组（全厂页——点击切中列分析表；wireframe 屏 3 同族）。 */
-const ANALYSIS_ENTRIES: readonly string[] = [
-  "工况对比",
-  "灵敏度",
-  "概算",
-  "可信度",
-  "高程纵断（分析视图）",
+/** 分析面入口组（全厂页——跨入口导航；b2：工况对比→compare，余→
+ *  analysis〔概算/可信度/高程纵断=分析视图，W2 沿承〕）。 */
+const ANALYSIS_ENTRIES: readonly { label: string; target: "analysis" | "compare" }[] = [
+  { label: "工况对比", target: "compare" },
+  { label: "灵敏度", target: "analysis" },
+  { label: "概算", target: "analysis" },
+  { label: "可信度", target: "analysis" },
+  { label: "高程纵断（分析视图）", target: "analysis" },
 ];
 
-/** 拖宽限界（左 160~420/右 200~520——窄侧保画布可读，宽侧防吞画布；
- *  v2 笔1：拖宽制式提取为 usePaneWidth 单源，键名/限界原样）。 */
-
-export function DesignZone({
-  target,
+export function ParametersZone({
   selectedUnitId,
-  onSelectedUnitChange,
-  onSubpageChange,
-  onDockNavigate,
-  onOpenSettings,
+  onOpenAnalysis,
+  onOpenCompare,
 }: {
-  target: Extract<V4ZoneTarget, { zone: "design" }>;
-  /** ?node= 对象选中真相（画布选中→左栏参数随动——B2 批扩右栏方案）。 */
+  /** ?node= 对象选中真相（工艺页画布选中——参数/方案/回填随动）。 */
   selectedUnitId: string | null;
-  /** 选中写入回调（ThumbnailFlow onNodeClick 上抛——shellV4 单源）。 */
-  onSelectedUnitChange: (unitId: string | null) => void;
-  /** 中列子页切换（canvas↔analysis——?tab= zone 级投影）。 */
-  onSubpageChange: (subpage: DesignSubpage) => void;
-  /** dock 完成直达承接（B2 §一.4——shellV4 实现：切分析表+相关单元选中）。 */
-  onDockNavigate: (unitId: string | null) => void;
-  /** 连接设置开态上抛（R1-W1——shellV4 恒挂载层承载 Modal，dockBar 透传）。 */
-  onOpenSettings: () => void;
+  /** 分析面入口组→「分析」入口（shellV4 setNav analysis）。 */
+  onOpenAnalysis: () => void;
+  /** 分析面入口组「工况对比」→「工况」入口（shellV4 setNav compare）。 */
+  onOpenCompare: () => void;
 }) {
   const [projectId] = useProjectId();
   const [leftTab, setLeftTab] = useState<"design" | "empirical" | "global">("design");
@@ -88,13 +78,12 @@ export function DesignZone({
   const [enumOpen, setEnumOpen] = useState(false);
   // 联合枚举 Modal 开态（B3 U2——全厂页唯一提交入口）
   const [jointOpen, setJointOpen] = useState(false);
-  // 方案驱动来源（数据流① 上抛态——左栏计算回填区标注消费；B2 §三.2）
+  // 方案驱动来源（数据流① 上抛态——回填区标注消费；B2 §三.2）
   const [appliedSource, setAppliedSource] = useState<{
     unitId: string;
     no: string;
   } | null>(null);
-  // 侧栏宽度+拖宽（拖柄 pointer 主键拖动——宽度记忆 localStorage；
-  // v2 笔1：拖宽制式提取 usePaneWidth 单源，常量/键名原样零行为变）
+  // 侧栏宽度+拖宽（B1 键名/限界原样——已存宽度记忆承袭）
   const leftPane = usePaneWidth({
     key: "wp-v4-left-w",
     fallback: 225,
@@ -110,15 +99,13 @@ export function DesignZone({
     side: "right",
   });
 
-  const subpage: DesignSubpage = target.subpage ?? "canvas";
-
   return (
-    <section className="wp-v4-design" data-region="design-workspace">
+    <section className="wp-v4-design" data-region="parameters-workspace">
       <div className="wp-v4-design-row">
-        {/* 左栏：三 tab+计算回填 */}
+        {/* 语境侧栏：参数三 tab（B1 左栏原件——样式/键名承袭） */}
         <aside
           className="wp-v4-left"
-          data-region="design-left"
+          data-region="parameters-left"
           style={{ width: leftPane.width }}
         >
           <div
@@ -182,65 +169,21 @@ export function DesignZone({
               ))
             )}
           </div>
-          {/* 计算回填区（B2 接真：自动值回填+方案驱动标注——数据流① 落点） */}
+        </aside>
+
+        {/* 主工作区：计算回填（B2 §三.2 件原样——位置自左栏底迁中列） */}
+        <section className="wp-v4-center" data-region="parameters-center">
           <BackfillSection
             projectId={projectId}
             unitId={selectedUnitId}
             appliedSource={appliedSource}
           />
-        </aside>
-
-        {/* 中列：视图页签+画布/分析表 */}
-        <section className="wp-v4-center">
-          <div className="wp-v4-vtabs" data-testid="wp-v4-view-tabs">
-            <button
-              type="button"
-              className={`wp-v4-vt${subpage === "canvas" ? " on" : ""}`}
-              data-subpage="canvas"
-              onClick={() => onSubpageChange("canvas")}
-            >
-              工艺画布
-            </button>
-            <button
-              type="button"
-              className={`wp-v4-vt${subpage === "analysis" ? " on" : ""}`}
-              data-subpage="analysis"
-              onClick={() => onSubpageChange("analysis")}
-            >
-              分析表
-            </button>
-          </div>
-          <div className="wp-v4-canvas" data-region="design-canvas">
-            {subpage === "canvas" ? (
-              projectId === null ? (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "100%",
-                    color: "var(--wp-text-2)",
-                  }}
-                >
-                  {NO_PROJECT_HINT}
-                </div>
-              ) : (
-                <ThumbnailFlow
-                  projectId={projectId}
-                  selectedUnitId={selectedUnitId}
-                  onSelectedUnitChange={onSelectedUnitChange}
-                />
-              )
-            ) : (
-              <AnalysisPane projectId={projectId} selectedUnitId={selectedUnitId} />
-            )}
-          </div>
         </section>
 
-        {/* 右栏：两页（选中工艺/全厂） */}
+        {/* inspector 位：方案两页（B1 右栏原件——样式/键名承袭） */}
         <aside
           className="wp-v4-right"
-          data-region="design-right"
+          data-region="parameters-right"
           style={{ width: rightPane.width }}
         >
           <div
@@ -295,10 +238,11 @@ export function DesignZone({
                 />
                 <div className="wp-v4-sec">
                   <h4>分析面</h4>
-                  {ANALYSIS_ENTRIES.map((label) => (
+                  {ANALYSIS_ENTRIES.map((entry) => (
                     <button
-                      key={label}
+                      key={entry.label}
                       type="button"
+                      data-entry-target={entry.target}
                       style={{
                         display: "block",
                         width: "100%",
@@ -310,9 +254,13 @@ export function DesignZone({
                         padding: "4px 2px",
                         cursor: "pointer",
                       }}
-                      onClick={() => onSubpageChange("analysis")}
+                      onClick={() =>
+                        entry.target === "compare"
+                          ? onOpenCompare()
+                          : onOpenAnalysis()
+                      }
                     >
-                      {label} ›
+                      {entry.label} ›
                     </button>
                   ))}
                 </div>
@@ -340,7 +288,7 @@ export function DesignZone({
       >
         {projectId === null ? (
           <span style={{ color: "var(--wp-text-2)", fontSize: 12 }}>
-            尚未选择项目——先在「项目」区打开或新建
+            尚未选择项目——先在「工作台」打开或新建
           </span>
         ) : (
           <JointSubmitForm
@@ -349,14 +297,6 @@ export function DesignZone({
           />
         )}
       </Modal>
-      <DockBar
-        onTaskNavigate={(target) => {
-          if (target.state === "done") {
-            onDockNavigate(target.unitId);
-          }
-        }}
-        onOpenSettings={onOpenSettings}
-      />
     </section>
   );
 }

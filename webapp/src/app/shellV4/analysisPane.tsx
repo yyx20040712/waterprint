@@ -341,8 +341,9 @@ function UnitFace({
   );
 }
 
-/** stale 横幅（原因微文案+重算入口——分析态直发 run）。 */
-function StaleBanner({ projectId }: { projectId: string }) {
+/** stale 横幅（原因微文案+重算入口——分析态直发 run。b2 壳重组批起
+ *  导出：compareZone 复用同件——stale 呈现/重算链单源不复制）。 */
+export function StaleBanner({ projectId }: { projectId: string }) {
   const run = useRunCalculationApiCalcRunPost();
   return (
     <div

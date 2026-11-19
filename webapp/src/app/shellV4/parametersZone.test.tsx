@@ -1,26 +1,28 @@
 /**
  * @vitest-environment jsdom
  *
- * v4 联合枚举入口组件测试（B3 任务书 §三.U5——designZone jointEntry 流：
- * 全厂页→wp-v4-joint-open→Modal 开+JointSubmitForm 在场〔生成钩子替身〕
- * →提交流→TASK_EVENT 派发+Modal 关）。
+ * v4 参数方案区联合枚举入口测试（b2 壳重组批——designZone 联合入口流
+ * 迁 parametersZone：全厂页→wp-v4-joint-open→Modal 开+JointSubmitForm
+ * 在场〔生成钩子替身〕→提交流→TASK_EVENT 派发+Modal 关。断言面沿
+ * designZoneJointEntry.test.tsx 原样——挂载件换 ParametersZone）。
  *
- * 输入:  DesignZone（子面/取数面全替身——枚举 Modal/方案卡/画布/dock 等
- *        stub 零渲染）+JointSubmitForm 真件（生成钩子+两查询替身——
- *        mutate 即触发 onSuccess 模拟成功回合）
+ * 输入:  ParametersZone（子面/取数面全替身——枚举 Modal/方案卡/参数
+ *        面板/回填区 stub 零渲染）+JointSubmitForm 真件（生成钩子+两
+ *        查询替身——mutate 即触发 onSuccess 模拟成功回合）
  * 输出:  断言族：①全厂页 wp-v4-joint-open 在场+点击→wp-v4-joint-modal
  *        开+JointSubmitForm 在场（Select+提交钮 disabled 零选态）②选
  *        两单元→提交→mutate 载荷 {project_id,unit_ids}+TASK_EVENT 派发
  *        （detail=task_id）+Modal 关（jsdom 无 transition 事件——离场
  *        motion 类为开态翻转证）③无项目态=入口钮 disabled（⟳ 钮同款
- *        守卫 parity）
+ *        守卫 parity）④分析面入口组跨入口导航（工况对比→compare/
+ *        其余→analysis——onOpenCompare/onOpenAnalysis 调用）
  */
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TASK_EVENT } from "../../shared/events";
-import { DesignZone } from "./designZone";
+import { ParametersZone } from "./parametersZone";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -30,9 +32,8 @@ if (typeof globalThis.ResizeObserver === "undefined") {
   } as unknown as typeof ResizeObserver;
 }
 
-/** localStorage 存根（本环境 jsdom 面无原生方法族——designZone 侧栏宽度
- *  持久读+tokenSettings 令牌回显消费；Map 薄壳足量三函数面，沿
- *  useExportArtifact.test 先例）。 */
+/** localStorage 存根（本环境 jsdom 面无原生方法族——侧栏宽度持久读
+ *  +tokenSettings 令牌回显消费；Map 薄壳足量三函数面）。 */
 const storageBack = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (key: string) => storageBack.get(key) ?? null,
@@ -49,25 +50,24 @@ const gate = vi.hoisted(() => ({
     } | null,
     mutateCalls: [] as unknown[],
   },
+  openAnalysis: vi.fn(),
+  openCompare: vi.fn(),
 }));
 
 vi.mock("../useProjectId", () => ({
   useProjectId: () => [gate.projectId],
 }));
-// designZone 子面 stub（本测面=右栏联合入口+Modal——其余面零渲染）
+// parametersZone 子面 stub（本测面=右栏联合入口+Modal——其余面零渲染）
 vi.mock("../../features/params/components/AssumptionsPanel", () => ({
   AssumptionsPanel: () => null,
 }));
 vi.mock("../../features/params/components/ParamForm", () => ({
   ParamForm: () => null,
 }));
-vi.mock("./thumbnailFlow", () => ({ ThumbnailFlow: () => null }));
 vi.mock("./enumerateModal", () => ({ EnumerateModal: () => null }));
-vi.mock("./analysisPane", () => ({ AnalysisPane: () => null }));
 vi.mock("./solutionCards", () => ({ SolutionCards: () => null }));
 vi.mock("./jointSolutionCards", () => ({ JointSolutionCards: () => null }));
 vi.mock("./backfillSection", () => ({ BackfillSection: () => null }));
-vi.mock("./dockBar", () => ({ DockBar: () => null }));
 // JointSubmitForm 依赖面（生成钩子替身——mutate 即 onSuccess 成功回合）
 vi.mock("../../features/solutions/api/useProjectUnits", () => ({
   useProjectUnits: () => ({
@@ -120,16 +120,13 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 });
 
-function renderDesign() {
+function renderParameters() {
   return render(
     <QueryClientProvider client={queryClient}>
-      <DesignZone
-        target={{ zone: "design", subpage: "canvas" }}
+      <ParametersZone
         selectedUnitId="municipal_aao"
-        onSelectedUnitChange={() => {}}
-        onSubpageChange={() => {}}
-        onDockNavigate={() => {}}
-        onOpenSettings={() => {}}
+        onOpenAnalysis={gate.openAnalysis}
+        onOpenCompare={gate.openCompare}
       />
     </QueryClientProvider>,
   );
@@ -138,7 +135,7 @@ function renderDesign() {
 /** 全厂页+开联合枚举 Modal（Select 交互沿 FdInlinePanel 先例：mouseDown
  *  .ant-select 开下拉+点 option 文本）。 */
 async function openJointModal() {
-  const view = renderDesign();
+  const view = renderParameters();
   fireEvent.click(screen.getByRole("button", { name: "全厂" }));
   fireEvent.click(screen.getByTestId("wp-v4-joint-open"));
   const modal = await waitFor(() => {
@@ -153,10 +150,12 @@ beforeEach(() => {
   gate.projectId = "p1";
   gate.joint.config = null;
   gate.joint.mutateCalls.length = 0;
+  gate.openAnalysis.mockClear();
+  gate.openCompare.mockClear();
 });
 afterEach(cleanup);
 
-describe("联合枚举入口（B3 U2）", () => {
+describe("联合枚举入口（B3 U2——b2 迁 parametersZone）", () => {
   it("全厂页→wp-v4-joint-open→Modal 开+JointSubmitForm 在场（零选态提交钮 disabled）", async () => {
     await openJointModal();
     const submit = screen.getByRole("button", { name: "提交联合枚举" });
@@ -187,7 +186,7 @@ describe("联合枚举入口（B3 U2）", () => {
           },
         },
       ]);
-      // 事件桥：TASK_EVENT 派发（detail=task_id——v4 任务条/联合卡承接面）
+      // 事件桥：TASK_EVENT 派发（detail=task_id——任务条/联合卡承接面）
       expect(taskSpy).toHaveBeenCalledTimes(1);
       const firstCall = taskSpy.mock.calls[0] as [CustomEvent<string>] | undefined;
       expect(firstCall?.[0].detail).toBe("t-joint-b3");
@@ -207,9 +206,38 @@ describe("联合枚举入口（B3 U2）", () => {
 
   it("无项目态=入口钮 disabled（⟳ 钮同款守卫 parity）", () => {
     gate.projectId = null;
-    renderDesign();
+    renderParameters();
     fireEvent.click(screen.getByRole("button", { name: "全厂" }));
     const open = screen.getByTestId("wp-v4-joint-open") as HTMLButtonElement;
     expect(open.disabled).toBe(true);
+  });
+});
+
+describe("分析面入口组（b2——跨入口导航接线）", () => {
+  it("工况对比→onOpenCompare；灵敏度/概算/可信度/高程纵断→onOpenAnalysis", () => {
+    renderParameters();
+    fireEvent.click(screen.getByRole("button", { name: "全厂" }));
+    const entries = document.querySelectorAll<HTMLButtonElement>(
+      '[data-region="parameters-right"] [data-entry-target]',
+    );
+    expect(entries.length).toBe(5);
+    const byLabel = (label: string): HTMLButtonElement => {
+      const hit = Array.from(entries).find((entry) =>
+        entry.textContent?.includes(label),
+      );
+      if (hit === undefined) {
+        throw new Error(`入口 ${label} 缺席`);
+      }
+      return hit;
+    };
+    fireEvent.click(byLabel("工况对比"));
+    expect(gate.openCompare).toHaveBeenCalledTimes(1);
+    expect(gate.openAnalysis).not.toHaveBeenCalled();
+    fireEvent.click(byLabel("灵敏度"));
+    fireEvent.click(byLabel("概算"));
+    fireEvent.click(byLabel("可信度"));
+    fireEvent.click(byLabel("高程纵断"));
+    expect(gate.openAnalysis).toHaveBeenCalledTimes(4);
+    expect(gate.openCompare).toHaveBeenCalledTimes(1);
   });
 });

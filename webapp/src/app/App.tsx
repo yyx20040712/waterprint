@@ -10,8 +10,9 @@
  * 与 ShellV4 懒装载语义逐字保持）。
  *
  * 输入:  URL ?project=/（useProjectId——ShellV4 内消费）?tab=（zoneParam
- *        两级值域+LEGACY_ZONE_COMPAT 旧链归一）?task=/?enum=（深链意图）
- *        ?token=（首参引导——模块加载期剥离）
+ *        八入口导航键+LEGACY_TAB_COMPAT 旧链归一〔b2 壳重组批〕）?task=/
+ *        ?enum=（深链意图）?node=（对象选中）?token=（首参引导——模块
+ *        加载期剥离）
  * 输出:  Providers＞Suspense＞ShellV4（lazy 独立异步分片——then 取具名
  *        导出）；装载占位 PaneLoading
  */

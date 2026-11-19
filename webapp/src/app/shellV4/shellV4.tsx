@@ -1,65 +1,63 @@
 /**
- * v4 应用壳根件（B1 骨架批 2026-10-09——六功能区壳；v1-20261015 转正
- * 批=唯一壳（?ia= 开关退役）；b1 主题地基批 2026-11-19 三主题化：
- * 顶带 zoneBand+zone 体+24px 状态条；主题面=scoped ConfigProvider
- * v4ThemeConfigFor(mode)〔三模色板+antd 面〕+global.css html[data-theme]
- * 三块〔--wp-* 轴 CSS 面——.wp-v4-root scoped 轴覆写已随并轴删除〕，
- * 模式真源=shared/store/themeStore）。
+ * v4 应用壳根件（B1 骨架批六功能区壳→b2 壳重组批 2026-11-19 八入口：
+ * 顶栏 TopBar〔品牌+面包屑+语境工具区〕+窄导航轨 NavRail〔八入口〕+
+ * 入口体+状态条 StatusBar〔主题切换器+单机标识槽〕；沿革 v1-20261015
+ * 转正唯一壳→b1 三主题化→b2 布局=「窄导航轨+语境侧栏+主工作区+按需
+ * inspector」〔批准稿 workbench/network.html〕）。
  *
- * 输入:  URL ?tab=（zoneParam 两级值域+兼容归一——mount 不改写地址栏）
- *        +?node=（对象选中真相——独立键读写）+?project=（useProjectId 订阅）
- * 输出:  v4 壳：ZoneBand（zone 切换唯一通道 setZone——replaceState 写
- *        ?tab= 他键原序保留）+六 zone 分区渲染+v4 状态条（连接/项目/
- *        计算态+非 design 区 dock 收起入口——「ia=v4」迁移期水印随
- *        转正批摘除）
+ * 输入:  URL ?tab=（八入口键+deliverables 子页+旧值兼容归一——mount 不
+ *        改写地址栏）+?node=（对象选中真相——独立键读写）+?project=
+ *        （useProjectId 订阅）
+ * 输出:  v4 壳：TopBar+〔NavRail+入口体〕+状态条+TokenSettingsModal 恒
+ *        挂载（连接设置自愈层）；导航切换唯一通道 setNav——replaceState
+ *        写 ?tab= 他键原序保留）
  *
- * 规格说明（B1 任务书 §一/§二.①/§三——plan.md §九 v4 布局定稿）：
- *   - zone 切换唯一通道 setZone：zoneBand 页签经此——withZoneParam
- *     replaceState（他键原序保留——UX1 D2 承袭）；子页切换（design
- *     canvas↔analysis/drafting sheets↔siteplan）同经 setZone 带 subpage；
- *   - ?node= 双写主从：画布选中→withNodeParam 独立写（task/enum 各自
- *     独立互不覆盖——ENG5 D6 双轨形承袭）；?node= 变更不改 zone；
- *   - dock 仅 design 区常驻（其他区收起为状态条内入口——B1 形态=状态条
- *     「任务 ▴」入口切回 design）；
- *   - 主题面（b1）：v4ThemeConfigFor(mode)（三模色板+密度 12/26；
- *     回炉 R4 渗入防线语义由构建器 components 三族显式覆写承袭）；
- *     状态条 24px 沿承 M1 位。
- *   - 回炉 R11：V4_ZONE_LABELS 迁 zoneParam.ts（V4Zone 真源同件——
- *     shellV4↔zoneBand 循环 import 断环；zoneBand 改自 zoneParam 取）。
+ * 规格说明（b2 任务书——八入口装配+URL 迁移）：
+ *   - 入口体映射：workbench=WorkbenchZone〔项目列表+规划中条〕/process=
+ *     ProcessZone〔工艺画布〕/parameters=ParametersZone〔参数+回填+方案
+ *     三栏〕/analysis=AnalysisPane〔警告/出水/可信度/单元明细〕/compare=
+ *     CompareZone〔工况矩阵〕/deliverables=DeliverablesZone〔图纸/总平面
+ *     /计算说明〕/viewer3d=Viewer3dZone/ai=AiZone〔AI 窗+任务条〕；
+ *   - setNav 单通道：NavRail 经此——withTabParam replaceState（他键原序
+ *     保留）；deliverables 子页切换同经 setNav 带 subpage；
+ *   - ?node= 双写主从：工艺画布选中→withNodeParam 独立写（task/enum
+ *     各自独立互不覆盖——ENG5 D6 双轨形承袭）；?node= 变更不改导航；
+ *   - B2 完成直达（§一.4）：ai 页任务条 done→analysis 入口+相关单元
+ *     选中；
+ *   - 主题面（b1）：v4ThemeConfigFor(mode)（三模色板+密度 12/26）；
  *   - B3 R1 回炉 R1-W1：连接设置自愈层恒挂载（useSettingsSelfHeal+
  *     TokenSettingsModal 在 ConfigProvider 内常驻——AUTH_EVENT 401 自愈
- *     五区可达；dockBar 设置钮经 onOpenSettings 透传开同一 state）。
+ *     八入口可达；AI 窗设置钮经 onOpenSettings 透传开同一 state）。
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ConfigProvider } from "antd";
 
 import { useThemeStore } from "../../shared/store/themeStore";
 import { useProjectId } from "../useProjectId";
-import { useProjectName } from "../useProjectName";
 import { TokenSettingsModal } from "../tokenSettingsModal";
 import { v4ThemeConfigFor } from "../themeModes";
 import {
-  initialZoneTarget,
+  initialNavTarget,
   parseNodeParam,
   withNodeParam,
-  withZoneParam,
-  type V4ZoneTarget,
+  withTabParam,
+  type NavTarget,
 } from "../zoneParam";
 import { useSettingsSelfHeal } from "./settingsSelfHeal";
-import { ZoneBand } from "./zoneBand";
-import { DesignZone } from "./designZone";
-import { ProjectsZone } from "./projectsZone";
-import { NetworkZone } from "./networkZone";
-import { DraftingZone } from "./draftingZone";
+import { TopBar } from "./topBar";
+import { NavRail } from "./navRail";
+import { StatusBar } from "./statusBar";
+import { WorkbenchZone } from "./workbenchZone";
+import { ProcessZone } from "./processZone";
+import { ParametersZone } from "./parametersZone";
+import { AnalysisPane } from "./analysisPane";
+import { CompareZone } from "./compareZone";
+import { DeliverablesZone } from "./deliverablesZone";
 import { Viewer3dZone } from "./viewer3dZone";
-import { ReportZone } from "./reportZone";
+import { AiZone } from "./aiZone";
 
-/** v4 scoped 主题：b1 主题地基批——v4LightTheme 字面块退役，改
- *  v4ThemeConfigFor(mode)（app/themeModes——同三模色板+v4 密度 12/26；
- *  回炉 R4 components 三族显式覆写防渗入语义由构建器承袭）。 */
 /** replaceState 写查询串（他键原序保留——pathname 不动；回炉 R1：hash
- *  拼回补齐〔d1-W1——App.tsx ?token= 引导 G1-03 同口径，原实现切 zone/
- *  写 ?node= 会静默清 hash〕）。 */
+ *  拼回补齐〔d1-W1——App.tsx ?token= 引导 G1-03 同口径〕）。 */
 function replaceSearch(next: string): void {
   window.history.replaceState(
     null,
@@ -71,27 +69,24 @@ function replaceSearch(next: string): void {
 }
 
 export function ShellV4() {
-  const [target, setTargetState] = useState<V4ZoneTarget>(() =>
-    initialZoneTarget(window.location.search),
+  const [target, setTargetState] = useState<NavTarget>(() =>
+    initialNavTarget(window.location.search),
   );
-  // ?node= 对象选中真相（画布选中→左栏参数/右栏方案随动——B2 批数据流）
+  // ?node= 对象选中真相（画布选中→参数/分析/方案面随动——B2 批数据流）
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(() =>
     parseNodeParam(window.location.search),
   );
   const [projectId] = useProjectId();
-  // 状态条项目名（v2 笔3——useProjectName 单源：未选=null 显「未选择」；
-  // 空白/缺名/pending/失败=「未命名项目」回退，项目 hex 裸露消除）
-  const projectName = useProjectName();
-  // R1-W1：连接设置自愈层（恒挂载——zone 切换不卸载；手动入口经
-  // DesignZone→DockBar onOpenSettings 透传，AUTH_EVENT 自愈同 state）
+  // R1-W1：连接设置自愈层（恒挂载——入口切换不卸载；手动入口经
+  // AiZone→onOpenSettings 透传，AUTH_EVENT 自愈同 state）
   const { settingsOpen, openSettings, closeSettings } = useSettingsSelfHeal();
   // b1 三主题：scoped ConfigProvider 按模重建（CSS 轴面=store setMode
   // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
   const themeMode = useThemeStore((state) => state.mode);
 
-  // 回炉 R16：切项目清陈旧选中（App.tsx D7 同款——URL 面清 ?node= 由
-  // projectsZone openProject 承载，状态面在此同步清，幻影选中双面根治；
-  // 初挂跳过〔prevRef 门〕——?node= 深链初值不在挂载期被抹）
+  // 回炉 R16：切项目清陈旧选中（URL 面清 ?node= 由 projectsZone
+  //  openProject 承载，状态面在此同步清，幻影选中双面根治；初挂跳过
+  // 〔prevRef 门〕——?node= 深链初值不在挂载期被抹）
   const prevProjectRef = useRef(projectId);
   useEffect(() => {
     if (prevProjectRef.current !== projectId) {
@@ -100,64 +95,79 @@ export function ShellV4() {
     }
   }, [projectId]);
 
-  /** zone 切换唯一通道（含子页——replaceState 写 ?tab=）。 */
-  const setZone = useCallback((next: V4ZoneTarget) => {
+  /** 导航切换唯一通道（含子页——replaceState 写 ?tab=）。 */
+  const setNav = useCallback((next: NavTarget) => {
     setTargetState(next);
-    replaceSearch(withZoneParam(window.location.search, next));
+    replaceSearch(withTabParam(window.location.search, next));
   }, []);
 
-  /** 画布选中写 ?node=（独立键——不改 zone/?tab=；null=解除选中剥键）。 */
+  /** 画布选中写 ?node=（独立键——不改导航/?tab=；null=解除选中剥键）。 */
   const handleSelectedUnitChange = useCallback((unitId: string | null) => {
     setSelectedUnitId(unitId);
     replaceSearch(withNodeParam(window.location.search, unitId));
   }, []);
 
   let body: ReactNode = null;
-  switch (target.zone) {
-    case "projects":
+  switch (target.nav) {
+    case "workbench":
       body = (
-        <ProjectsZone onOpen={() => setZone({ zone: "design" })} />
+        <WorkbenchZone onOpenProject={() => setNav({ nav: "process" })} />
       );
       break;
-    case "design":
+    case "process":
       body = (
-        <DesignZone
-          target={target}
+        <ProcessZone
           selectedUnitId={selectedUnitId}
           onSelectedUnitChange={handleSelectedUnitChange}
-          onSubpageChange={(subpage) =>
-            setZone({ zone: "design", subpage })
-          }
-          onDockNavigate={(unitId) => {
-            // B2 完成直达（§一.4）：done 任务→中区切分析表+相关单元选中
-            setZone({ zone: "design", subpage: "analysis" });
-            if (unitId !== null) {
-              handleSelectedUnitChange(unitId);
-            }
-          }}
-          onOpenSettings={openSettings}
         />
       );
       break;
-    case "network":
-      body = <NetworkZone />;
-      break;
-    case "drafting":
+    case "parameters":
       body = (
-        <DraftingZone
+        <ParametersZone
+          selectedUnitId={selectedUnitId}
+          onOpenAnalysis={() => setNav({ nav: "analysis" })}
+          onOpenCompare={() => setNav({ nav: "compare" })}
+        />
+      );
+      break;
+    case "analysis":
+      body = (
+        <AnalysisPane projectId={projectId} selectedUnitId={selectedUnitId} />
+      );
+      break;
+    case "compare":
+      body = <CompareZone />;
+      break;
+    case "deliverables":
+      body = (
+        <DeliverablesZone
           subpage={target.subpage ?? "sheets"}
           onSubpageChange={(subpage) =>
-            setZone({ zone: "drafting", subpage })
+            setNav({ nav: "deliverables", subpage })
           }
-          onGoCalc={() => setZone({ zone: "design" })}
+          onGoCalc={() => setNav({ nav: "process" })}
         />
       );
       break;
     case "viewer3d":
       body = <Viewer3dZone />;
       break;
-    case "report":
-      body = <ReportZone />;
+    case "ai":
+      body = (
+        <AiZone
+          onTaskNavigate={(taskTarget) => {
+            // B2 完成直达（§一.4）：done 任务→分析入口+相关单元选中
+            if (taskTarget.state === "done") {
+              setNav({ nav: "analysis" });
+              if (taskTarget.unitId !== null) {
+                handleSelectedUnitChange(taskTarget.unitId);
+              }
+            }
+          }}
+          onOpenSettings={openSettings}
+        />
+      );
       break;
   }
 
@@ -167,38 +177,14 @@ export function ShellV4() {
       button={{ autoInsertSpace: false }}
     >
       <div className="wp-v4-root">
-        <ZoneBand target={target} onZoneChange={setZone} />
-        <div className="wp-v4-body">{body}</div>
-        <footer className="wp-v4-statusbar">
-          <span style={{ color: "var(--wp-success)" }}>●</span>
-          <span>已连接</span>
-          {/* R1-N3 项目名截断防护：长名省略号+title 全名悬停（短名零影响） */}
-          <span
-            title={projectName ?? undefined}
-            style={{
-              maxWidth: 200,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            项目：
-            {projectId === null ? "未选择" : projectName}
-          </span>
-          <span className="r">
-            {target.zone !== "design" ? (
-              <button
-                type="button"
-                title="任务与 AI 对话在「污水厂设计」区底栏"
-                onClick={() => setZone({ zone: "design" })}
-              >
-                任务 ▴
-              </button>
-            ) : null}
-          </span>
-        </footer>
-        {/* R1-W1：连接设置自愈层恒挂载（ConfigProvider 内常驻——zone 切换
-            不卸载，AUTH_EVENT 401 自愈五区可达；dockBar 仅入口上抛） */}
+        <TopBar />
+        <div className="wp-v4-frame">
+          <NavRail target={target} onNavChange={setNav} />
+          <div className="wp-v4-body">{body}</div>
+        </div>
+        <StatusBar nav={target.nav} onTaskEntry={() => setNav({ nav: "ai" })} />
+        {/* R1-W1：连接设置自愈层恒挂载（ConfigProvider 内常驻——入口切换
+            不卸载，AUTH_EVENT 401 自愈八入口可达；AI 窗仅入口上抛） */}
         <TokenSettingsModal open={settingsOpen} onClose={closeSettings} />
       </div>
     </ConfigProvider>

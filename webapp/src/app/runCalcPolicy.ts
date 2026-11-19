@@ -7,7 +7,7 @@
  *        参数草稿计数三轴；paramDraftBlockMessage(count)——拦截文案；
  *        rawCheckedUnits(raw)——项目 raw 的 design.checked_units 宽容读取
  * 输出:  提交计算动作分派（"block-param-draft"|"save-run"|"run"|
- *        "block-unready"）+拦截文案+受检单元宽读——消费面 zoneBand.tsx
+ *        "block-unready"）+拦截文案+受检单元宽读——消费面 topBar.tsx（b2 前=zoneBand.tsx）
  *        （v4 顶带工具区唯一消费方）；runCalcPolicy.test.ts 锁三轴判定
  *        与文案三要素（断言自 canvasEditToolbar.test 随迁零弱化）
  */

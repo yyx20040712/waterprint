@@ -1,28 +1,32 @@
 /**
  * @vitest-environment jsdom
  *
- * v4 工程制图区测试（v2-20261015 R1-N5 主控扩权新件——拖宽接入锚：
- * sheets 态左树侧栏 wp-v4-sider+拖柄在场+初始 190px+拖拽往返持久；
- * siteplan 分支无左树锚〔hook 顶层恒调不消费〕）。制式沿 reportZone.test
- * 拖拽锚（vi.mock 族+localStorage 存根+MouseEvent 带类型串派发补
- * buttons:1〔R1-W2 语义〕）。
+ * v4 图纸报告区测试（b2 壳重组批——draftingZone 断言面迁 deliverables
+ * Zone〔sheets/siteplan 两态+report 子页新增〕：sheets 态左树侧栏
+ * wp-v4-sider+拖柄在场+初始 190px+拖拽往返持久；siteplan 分支无左树锚
+ * 〔hook 顶层恒调不消费〕；report 子页=ReportZone 全幅挂载。制式沿
+ * reportZone.test 拖拽锚（vi.mock 族+localStorage 存根+MouseEvent 带
+ * 类型串派发补 buttons:1〔R1-W2 语义〕）。
  *
- * 输入:  DraftingZone（sheets/siteplan 两态——drawings 取数面/siteplanPane
- *        懒件模块替身零渲染）+localStorage Map 存根
- * 输出:  断言族：①sheets 态：aside.wp-v4-sider+data-region=drafting-tree+
- *        拖柄 wp-v4-drag-drafting-left（title/⟷）+初始宽 190px②拖拽往返：
- *        down(buttons:1)+move(+50)→240px+onUp 持久写键 wp-v4-drafting-left-w
- *        ③siteplan 分支：无左树/无拖柄（子页全幅现状保持——返回条在场）
- *        ④V3 D5：空态「去计算」钮〔onGoCalc 调用〕+SheetsGallery→Export
- *        Button disabled 接线〔props 捕获〕+ExportButton 真件 disabled 并入
- *        三钮两 Select〔importActual 真件渲染——内部 hook 替身〕⑤V4 P2
- *        中文化：双 Select option 回显中文（title=原值）+图库卡语境行
- *        中文（design→最高日最高时/空工况→全部工况）
+ * 输入:  DeliverablesZone（sheets/siteplan/report 三态——drawings 取数
+ *        面/siteplanPane 懒件/reportZone 模块替身零渲染）+localStorage
+ *        Map 存根
+ * 输出:  断言族：①sheets 态：aside.wp-v4-sider+data-region=drafting-tree
+ *        +拖柄 wp-v4-drag-drafting-left（title/⟷）+初始宽 190px+树含
+ *        「计算说明书」条目②拖拽往返：down(buttons:1)+move(+50)→240px
+ *        +onUp 持久写键 wp-v4-drafting-left-w ③siteplan 分支：无左树/
+ *        无拖柄（子页全幅现状保持——返回条在场）④report 子页：
+ *        ReportZone 挂载+无左树 ⑤V3 D5：空态「去计算」钮〔onGoCalc
+ *        调用〕+SheetsGallery→ExportButton disabled 接线〔props 捕获〕
+ *        +ExportButton 真件 disabled 并入三钮两 Select〔importActual
+ *        真件渲染——内部 hook 替身〕⑥V4 P2 中文化：双 Select option
+ *        回显中文（title=原值）+图库卡语境行中文（design→最高日最高时/
+ *        空工况→全部工况）
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DraftingZone } from "./draftingZone";
+import { DeliverablesZone } from "./deliverablesZone";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -32,8 +36,7 @@ if (typeof globalThis.ResizeObserver === "undefined") {
   } as unknown as typeof ResizeObserver;
 }
 
-/** localStorage 存根（usePaneWidth 消费面——jsdom 无原生方法族，
- *  designZoneJointEntry.test 先例）。 */
+/** localStorage 存根（usePaneWidth 消费面——jsdom 无原生方法族）。 */
 const storageBack = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (key: string) => storageBack.get(key) ?? null,
@@ -97,10 +100,14 @@ vi.mock("../../features/drawings/components/BatchStatusLine", () => ({
 vi.mock("../siteplanPane", () => ({
   SiteplanPane: () => null,
 }));
+// report 子页替身（reportZone 自有 27 用例测试面——本件仅挂载锚）
+vi.mock("./reportZone", () => ({
+  ReportZone: () => <section data-testid="wp-v4-report-stub" />,
+}));
 
-function mountZone(subpage: "sheets" | "siteplan") {
+function mountZone(subpage: "sheets" | "siteplan" | "report") {
   return render(
-    <DraftingZone
+    <DeliverablesZone
       subpage={subpage}
       onSubpageChange={() => {}}
       onGoCalc={() => {}}
@@ -108,8 +115,7 @@ function mountZone(subpage: "sheets" | "siteplan") {
   );
 }
 
-/** 真件装载（模块替身不拦 importActual 依赖解析——内部 hook 走上方替身；
- *  V4 P2 提模块级——两 describe 共用）。 */
+/** 真件装载（模块替身不拦 importActual 依赖解析——内部 hook 走上方替身）。 */
 async function realExportButton() {
   return (
     await vi.importActual<
@@ -126,8 +132,8 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("工程制图区·sheets 态左树拖宽（v2 笔2+R1-N5 锚）", () => {
-  it("左树在场：aside.wp-v4-sider+拖柄（testid/title/⟷）+初始宽 190px", () => {
+describe("图纸报告区·sheets 态左树拖宽（v2 笔2+R1-N5 锚——b2 迁件）", () => {
+  it("左树在场：aside.wp-v4-sider+拖柄（testid/title/⟷）+初始宽 190px+计算说明书条目", () => {
     const { container } = mountZone("sheets");
     const aside = container.querySelector('[data-region="drafting-tree"]');
     expect(aside).not.toBeNull();
@@ -139,6 +145,10 @@ describe("工程制图区·sheets 态左树拖宽（v2 笔2+R1-N5 锚）", () =>
     expect(handle).not.toBeNull();
     expect(handle?.title).toBe("拖拽调整宽度");
     expect(handle?.textContent).toContain("⟷");
+    // b2：计算说明书条目在场（report 子页导航——点击切子页）
+    expect(
+      container.querySelector('[data-testid="wp-v4-drafting-report"]'),
+    ).not.toBeNull();
   });
 
   it("拖拽往返：down(buttons:1)+move(+50)→240px+onUp 持久写键", () => {
@@ -161,9 +171,26 @@ describe("工程制图区·sheets 态左树拖宽（v2 笔2+R1-N5 锚）", () =>
     });
     expect(storageBack.get("wp-v4-drafting-left-w")).toBe("240");
   });
+
+  it("树条目点击→onSubpageChange（计算说明书→report）", () => {
+    const onSubpageChange = vi.fn();
+    const { container } = render(
+      <DeliverablesZone
+        subpage="sheets"
+        onSubpageChange={onSubpageChange}
+        onGoCalc={() => {}}
+      />,
+    );
+    fireEvent.click(
+      container.querySelector<HTMLButtonElement>(
+        '[data-testid="wp-v4-drafting-report"]',
+      ) as HTMLButtonElement,
+    );
+    expect(onSubpageChange).toHaveBeenCalledWith("report");
+  });
 });
 
-describe("工程制图区·siteplan 分支（无左树现状保持）", () => {
+describe("图纸报告区·siteplan 分支（无左树现状保持）", () => {
   it("siteplan 子页：无左树/无拖柄（返回条在场——子页全幅）", () => {
     const { container } = mountZone("siteplan");
     expect(container.querySelector('[data-region="drafting-tree"]')).toBeNull();
@@ -176,11 +203,25 @@ describe("工程制图区·siteplan 分支（无左树现状保持）", () => {
   });
 });
 
-describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业度）", () => {
+describe("图纸报告区·report 子页（b2 新增——三面合一）", () => {
+  it("report 子页：ReportZone 挂载+无左树/无拖柄", () => {
+    const { container } = mountZone("report");
+    expect(
+      container.querySelector('[data-region="deliverables-report"]'),
+    ).not.toBeNull();
+    expect(container.querySelector('[data-testid="wp-v4-report-stub"]')).not.toBeNull();
+    expect(container.querySelector('[data-region="drafting-tree"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wp-v4-drag-drafting-left"]'),
+    ).toBeNull();
+  });
+});
+
+describe("图纸报告区·V3 空态引导与导出禁用（D5——信息专业度）", () => {
   it("空态卡「去计算」钮：点击=onGoCalc 调用（testid+type=button）", () => {
     const onGoCalc = vi.fn();
     const { container } = render(
-      <DraftingZone
+      <DeliverablesZone
         subpage="sheets"
         onSubpageChange={() => {}}
         onGoCalc={onGoCalc}
@@ -199,7 +240,7 @@ describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业
 
   it("SheetsGallery→ExportButton disabled 接线：空态（rows=0）传 disabled=true", () => {
     render(
-      <DraftingZone
+      <DeliverablesZone
         subpage="sheets"
         onSubpageChange={() => {}}
         onGoCalc={() => {}}
@@ -223,7 +264,7 @@ describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业
       },
     ];
     const { container } = render(
-      <DraftingZone
+      <DeliverablesZone
         subpage="sheets"
         onSubpageChange={() => {}}
         onGoCalc={() => {}}
@@ -236,7 +277,7 @@ describe("工程制图区·V3 空态引导与导出禁用（D5——信息专业
   });
 });
 
-describe("工程制图区·V3 ExportButton disabled 并入（D5——真件渲染）", () => {
+describe("图纸报告区·V3 ExportButton disabled 并入（D5——真件渲染）", () => {
   it("disabled=true：三导出钮+两 Select 全禁用（enable 门 AND——空态整组禁用）", async () => {
     const RealExportButton = await realExportButton();
     const { container } = render(
@@ -279,7 +320,7 @@ describe("工程制图区·V3 ExportButton disabled 并入（D5——真件渲�
   });
 });
 
-describe("工程制图区·V4 中文化（P2——双 Select option 文案+图库卡语境行）", () => {
+describe("图纸报告区·V4 中文化（P2——双 Select option 文案+图库卡语境行）", () => {
   it("单元下拉 option=unitNameIndex 中文名+title=原 id（value 不变）", async () => {
     const RealExportButton = await realExportButton();
     const { container } = render(
@@ -331,7 +372,7 @@ describe("工程制图区·V4 中文化（P2——双 Select option 文案+图�
       },
     ];
     const { container } = render(
-      <DraftingZone
+      <DeliverablesZone
         subpage="sheets"
         onSubpageChange={() => {}}
         onGoCalc={() => {}}
@@ -358,7 +399,7 @@ describe("工程制图区·V4 中文化（P2——双 Select option 文案+图�
       },
     ];
     const { container } = render(
-      <DraftingZone
+      <DeliverablesZone
         subpage="sheets"
         onSubpageChange={() => {}}
         onGoCalc={() => {}}
@@ -370,7 +411,7 @@ describe("工程制图区·V4 中文化（P2——双 Select option 文案+图�
   });
 });
 
-describe("工程制图区·左树条目省略三件套（V4 d1-W1/N8——长文省略号非静默裁切）", () => {
+describe("图纸报告区·左树条目省略三件套（V4 d1-W1/N8——长文省略号非静默裁切）", () => {
   it("组标题行 span：ellipsis 三件套+minWidth:0/flex:1 链（条目不撑宽侧栏）", () => {
     const { container } = mountZone("sheets");
     const aside = container.querySelector('[data-region="drafting-tree"]') as HTMLElement;
