@@ -16,7 +16,8 @@
 #       （sessions.append_decision/read_decisions 与 draft 原挂空无运行期
 #       消费者——治理批接线）。
 #   禁区：禁顶层 import chat 包各模块（懒加载铁律——函数体内首触；
-#       tools→chat 包内边经 import-linter 契约豁免面合法）；禁数值计算
+#       tools→chat 包内边无契约禁止——agent/pyproject 契约仅限 core
+#       L1-L3 子包与 web 框架）；禁数值计算
 #       与编造数字（叙述真源=narrative 纯模板）；禁直写报告文件
 #       （落盘决策归 sessions，导出归 wp_export_report）。
 #

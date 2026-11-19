@@ -2,7 +2,7 @@
   "agent/tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "agent/tests/test_chat_fallback.py": "92d869df5d068bd5b018599a4d7b6c6f59f28bd79bd23d6db4680969c1365c66",
   "agent/tests/test_chat_llm.py": "51e9fe0fab0944e39d267139254a191b2af5d32a5f5ae21678e8ddd6a6dc1959",
-  "agent/tests/test_chat_loop.py": "6055c1e9d72d96221cd05a9f63f6924607506954b685958b18f6f94dd9535c70",
+  "agent/tests/test_chat_loop.py": "b11892b2f5c95d6c4b57e56fb7e1166253c475a40c79336091aafe675ec9063a",
   "agent/tests/test_chat_narrative.py": "034e91109097488baff58034c1ac2a51c06565fd036050a953f2e18c81013af3",
   "agent/tests/test_chat_sessions.py": "43e75d58bab9fef2f1cc7de9e557622598bfb74c500c70dc896bcd6052c369c9",
   "agent/tests/test_chat_toolspec.py": "ef8538e5aad3d8a940ba8fcc88722f662b9b19b48c4b02468b4bf7d4600dc9f8",

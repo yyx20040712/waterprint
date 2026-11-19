@@ -188,10 +188,12 @@ def run_turn(  # noqa: PLR0913  # 编排注入面（llm/config/emit 三可注入
             continue
         failures = 0
         if reply.tool_calls:
-            messages.append(_tool_call_messages(reply))
+            # 注入先于 assistant 消息序列化（历史保真：记录的参数=实际执行参数）
             for call in reply.tool_calls:
                 if call.name in _SESSION_BOUND_TOOLS:
                     call.arguments["session_id"] = session.session_id  # 强制覆盖（防跨会话写）
+            messages.append(_tool_call_messages(reply))
+            for call in reply.tool_calls:
                 emit({"type": "tool_start", "name": call.name, "arguments": call.arguments})
                 result = toolspec.dispatch(ctx, call.name, call.arguments)
                 ok = "error" not in result

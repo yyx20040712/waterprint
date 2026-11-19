@@ -65,9 +65,9 @@ def _decision_line(item: dict[str, Any]) -> str:
 
 
 def _decisions_block(decisions: list[dict[str, Any]]) -> str:
-    """决策纪要块（R1——最多 N 条+超限尾注，纯中文零数字主张）。"""
+    """决策纪要块（R1——保留最新 N 条+超限尾注，纯中文零数字主张）。"""
     lines = [_DECISIONS_HEADER]
-    for item in decisions[:_DECISIONS_MAX_ITEMS]:
+    for item in decisions[-_DECISIONS_MAX_ITEMS:]:
         lines.append(_decision_line(item))
     hidden = len(decisions) - _DECISIONS_MAX_ITEMS
     if hidden > 0:

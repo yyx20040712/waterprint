@@ -182,6 +182,10 @@ def test_truncate_keeps_head_and_tail() -> None:
     text = preview["preview"]
     raw = json.dumps(payload, ensure_ascii=False, default=str)
     omitted = len(raw) - _RESULT_KEEP_HEAD_CHARS - _RESULT_KEEP_TAIL_CHARS
+    # 独立性质锚：头部前缀/尾部后缀原样在场+省略计数（不依赖实现同款公式）
+    assert text.startswith(raw[:200])
+    assert text.endswith(raw[-200:])
+    assert f"〔中间截去 {omitted} 字符〕" in text
     assert text == (
         raw[:_RESULT_KEEP_HEAD_CHARS]
         + f"……〔中间截去 {omitted} 字符〕……"
@@ -192,8 +196,10 @@ def test_truncate_keeps_head_and_tail() -> None:
 def test_record_decision_call_injects_session(sandbox_env: Path) -> None:
     """LLM 发 wp_record_decision（session_id 传错值）：环强制覆盖+落决策+不跨会话写。"""
     events: list[dict] = []
+    seen: list[list[dict]] = []
 
     def fake_llm(config: ChatConfig, messages: list[dict], tools: list[dict]) -> LlmReply:
+        seen.append([dict(m) for m in messages])
         if not any(e["type"] == "tool_result" for e in events):
             return LlmReply(
                 content="",
@@ -227,6 +233,13 @@ def test_record_decision_call_injects_session(sandbox_env: Path) -> None:
     ]
     # 跨会话写未发生（伪造 ID 无会话文件产生）
     assert not (sandbox_env / "sessions" / "chat" / "attacker-other-session.jsonl").exists()
+    # 历史保真：assistant 工具调用消息记录注入后的参数（=实际执行参数）
+    assistant_calls = seen[1][2]["tool_calls"]
+    import json as _json
+
+    recorded_args = _json.loads(assistant_calls[0]["function"]["arguments"])
+    assert recorded_args["session_id"] == session.session_id
+    assert recorded_args["session_id"] != "attacker-other-session"
 
 
 def test_system_message_carries_decisions(sandbox_env: Path) -> None:
@@ -249,7 +262,7 @@ def test_system_message_carries_decisions(sandbox_env: Path) -> None:
 
 
 def test_system_decisions_capped_at_eight(sandbox_env: Path) -> None:
-    """决策超 8 条：system 只列前 8 条+尾注「另有 N 条更早决策未列出」。"""
+    """决策超 8 条：system 保留最新 8 条（最早隐去）+尾注「另有 N 条更早决策未列出」。"""
     ctx = context.get_context()
     session = sessions.create_session(ctx)
     for index in range(10):
@@ -264,6 +277,26 @@ def test_system_decisions_capped_at_eight(sandbox_env: Path) -> None:
 
     run_turn(ctx, session, "新问题", llm=fake_llm, config=_config(), emit=lambda e: None)
     system = seen[0][0]["content"]
-    assert "主题7：结论7（依据：依据7）" in system  # 第 8 条仍在场
-    assert "主题8" not in system and "主题9" not in system  # 第 9/10 条不列
+    assert "主题9：结论9（依据：依据9）" in system  # 最新条在场（被推翻性新决策不丢）
+    assert "主题2：结论2（依据：依据2）" in system  # 保留窗内最早一条
+    assert "主题0" not in system and "主题1" not in system  # 最早两条隐去
     assert "另有 2 条更早决策未列出——wp_draft_narrative 可取全量草稿" in system
+
+
+def test_decisions_block_boundaries() -> None:
+    """决策块边界：恰 8 条无尾注；空依据省括号；超长行 120 字符确定性截断。"""
+    from waterprint_agent.chat import prompts
+
+    def item(topic: str, conclusion: str, rationale: str) -> dict:
+        return {"topic": topic, "conclusion": conclusion, "rationale": rationale}
+
+    eight = [item(f"t{i}", f"c{i}", f"r{i}") for i in range(8)]
+    block8 = prompts.system_prompt(None, False, eight)
+    assert "t7：c7（依据：r7）" in block8
+    assert "另有" not in block8  # 恰 8 条=无尾注
+    no_rationale = prompts.system_prompt(None, False, [item("t", "c", "")])
+    assert "t：c" in no_rationale
+    assert "（依据：" not in no_rationale  # 空依据省括号
+    long_line = prompts.system_prompt(None, False, [item("甲" * 200, "c", "")])
+    kept = next(ln for ln in long_line.splitlines() if ln.startswith("甲"))
+    assert len(kept) == 122  # 120 字符+省略号 2 字符（确定性截断）
