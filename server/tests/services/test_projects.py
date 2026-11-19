@@ -301,3 +301,76 @@ async def test_registry_v3_project_loads_migrated_read_time(service_ctx) -> None
             blob_b = blob
     assert blob_a is not None and blob_b is not None
     assert blob_a == blob_b  # v3 迁移装载计算 == v4 直存装载计算（DoD④ 等值）
+
+
+# ══ F2 并发丢更新批（2026-11-20）：save_project 条件保存（乐观锁）══
+# 设计：base_hash=客户端读时 content_hash；非空且≠存档现行值→
+# ProjectConcurrentWriteError（409 面）；缺省 None=无条件直写（兼容期）。
+
+
+def _with_node(project, node_id: str, params: dict):  # type: ignore[no-untyped-def]
+    """design 增一节点的 model_copy（并发写模拟载体）。"""
+    return project.model_copy(
+        update={
+            "design": project.design.model_copy(
+                update={"nodes": {**project.design.nodes, node_id: params}}
+            )
+        }
+    )
+
+
+async def test_conditional_save_matching_base_writes_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """态①基线符：base_hash=现行 content_hash → 照常保存（新哈希随写更新）。"""
+    outcome0 = create_project(service_ctx, {})
+    project_id = outcome0.project_id
+    raw = read_project(service_ctx, project_id)
+    updated = _with_node(raw, "inlet", {"kind": "municipal_input"})
+    outcome = save_project(service_ctx, project_id, updated, base_hash=outcome0.content_hash)
+    assert outcome.design_changed is True
+    assert outcome.content_hash != outcome0.content_hash
+    assert read_project(service_ctx, project_id).design.nodes["inlet"]["kind"] == "municipal_input"
+
+
+async def test_conditional_save_stale_base_raises_conflict_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """态②基线不符：base_hash=旧值≠存档现行 → 409 面异常带现行标识+零写。"""
+    outcome0 = create_project(service_ctx, {})
+    project_id = outcome0.project_id
+    save_project(
+        service_ctx, project_id, _with_node(read_project(service_ctx, project_id), "a", {})
+    )  # 他处先保存（存档现行哈希前移）
+    stale_body = _with_node(read_project(service_ctx, project_id), "b", {})
+    with pytest.raises(_mod.ProjectConcurrentWriteError) as exc_info:
+        save_project(service_ctx, project_id, stale_body, base_hash=outcome0.content_hash)
+    assert exc_info.value.base_hash == outcome0.content_hash
+    assert exc_info.value.current_hash != outcome0.content_hash  # 错误体携带现行版本标识
+    assert exc_info.value.current_hash == read_project(service_ctx, project_id).metadata.content_hash
+    assert "b" not in read_project(service_ctx, project_id).design.nodes  # 零写入铁证
+
+
+async def test_conditional_save_absent_base_writes_directly_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """态③无基线兼容：base_hash 缺省 → 陈旧也直写（旧客户端兼容期）。"""
+    outcome0 = create_project(service_ctx, {})
+    project_id = outcome0.project_id
+    save_project(
+        service_ctx, project_id, _with_node(read_project(service_ctx, project_id), "a", {})
+    )  # 存档已前移，客户端仍持旧读
+    stale_body = _with_node(read_project(service_ctx, project_id), "b", {})
+    outcome = save_project(service_ctx, project_id, stale_body)  # base_hash=None
+    assert outcome.design_changed is True  # 维持现状直写（LWW 兼容期注记）
+    assert "b" in read_project(service_ctx, project_id).design.nodes
+
+
+async def test_conditional_save_concurrent_sequence_ab_wiring(service_ctx) -> None:  # type: ignore[no-untyped-def]
+    """并发序（审计 F2 场景服务面）：A/B 同基线开档→A 提交 200→B 旧基线必 409。"""
+    outcome0 = create_project(service_ctx, {})
+    project_id = outcome0.project_id
+    shared_base = read_project(service_ctx, project_id)  # A/B 同读（同基线）
+    a_body = _with_node(shared_base, "municipal_cugeshan", {})
+    b_body = _with_node(shared_base, "municipal_aao", {})
+    save_project(service_ctx, project_id, a_body, base_hash=outcome0.content_hash)  # A 先提交
+    with pytest.raises(_mod.ProjectConcurrentWriteError):
+        save_project(  # B 旧基线→409（B 的写入不再静默覆盖 A）
+            service_ctx, project_id, b_body, base_hash=outcome0.content_hash
+        )
+    assert "municipal_cugeshan" in read_project(service_ctx, project_id).design.nodes  # A 存续
+    assert "municipal_aao" not in read_project(service_ctx, project_id).design.nodes

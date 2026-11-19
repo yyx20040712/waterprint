@@ -13,6 +13,10 @@
  *     （结论呈现 message 即时反馈）；全项目计算=decideRunCalc 分派链
  *     复用（runCalcPolicy 导出纯函数——v1 批拆迁单源）；撤销/重做=画布
  *     引擎无撤销栈（骨架在场禁用态——实装挂账后续批）；
+ *   - F2 并发丢更新批（2026-11-20）：保存/保存即算两链携带读时基线
+ *     （?base_hash=metadata.content_hash）；409 条件保存冲突→三选对话
+ *     （shared/ui/saveConflictModal 单源——覆盖=新基线重发/放弃=弃草稿
+ *     重拉/稍后=留本地）；
  *   - logo=简笔水滴线形 SVG（wireframe 屏 1 同形——stroke AC 色线性）；
  *   - 面包屑=项目 › 项目名（useProjectName 单源——未选=「未选择」，
  *     长名省略号+title 悬停全名；稿 .crumbs 形）；
@@ -40,12 +44,19 @@ import {
 import { useParamsStore } from "../../features/params/store/paramsStore";
 import { useRunCalculationApiCalcRunPost } from "../../shared/api/generated/calc/calc";
 import {
+  getReadProjectApiProjectsProjectIdGetQueryOptions,
   useReadProjectApiProjectsProjectIdGet,
   useSaveProjectApiProjectsProjectIdPut,
   useValidateProjectApiProjectsProjectIdValidatePost,
 } from "../../shared/api/generated/projects/projects";
 import type { WaterprintApiError } from "../../shared/api/http";
 import { TASK_EVENT } from "../../shared/events";
+import {
+  baseHashOf,
+  confirmSaveConflict,
+  surfaceSaveConflict,
+  type SaveConflictLatest,
+} from "../../shared/ui/saveConflictModal";
 import {
   decideRunCalc,
   paramDraftBlockMessage,
@@ -119,12 +130,54 @@ export function TopBar() {
       ? draftProjectRaw(rawQuery.data, draft)
       : null;
 
-  const handleSave = () => {
-    if (body === null || projectId === null) {
+  // F2 条件保存（2026-11-20）：读时基线 content_hash（raw 未就绪=不携
+  // 基线——服务端无条件直写兼容面；正常 GET 产物恒非空）
+  const baseHash = baseHashOf(rawQuery.data);
+  const saveParams = baseHash !== null ? { base_hash: baseHash } : undefined;
+
+  /** 冲突三选调度（F2）：覆盖=重拉→新基线重发；放弃=弃本地草稿重拉最新。 */
+  const surfaceConflict = (
+    error: unknown,
+    onOverwrite: (latest: SaveConflictLatest) => void,
+  ): boolean =>
+    surfaceSaveConflict(error, {
+      confirm: confirmSaveConflict,
+      refetchLatest: async () => {
+        if (projectId === null) {
+          return null;
+        }
+        const fresh = await queryClient.fetchQuery(
+          getReadProjectApiProjectsProjectIdGetQueryOptions(projectId),
+        );
+        const freshHash = baseHashOf(fresh);
+        return freshHash !== null ? { raw: fresh, baseHash: freshHash } : null;
+      },
+      onOverwrite,
+      onDiscard: () => {
+        void (async () => {
+          // 次序敏感：先重拉（会话在场=auto-beginEdit 不抢先以陈旧缓存
+          // 重开快照——thumbnailFlow 红线⑤幂等面），再弃置本地草稿——
+          // endEdit 后 auto-beginEdit 以最新 raw 重开只读会话
+          await queryClient.invalidateQueries({
+            queryKey: [`/api/projects/${projectId}`],
+          });
+          store.getState().endEdit();
+          messageApi.info("已放弃本地改动——已重拉最新项目");
+        })();
+      },
+    });
+
+  /** 保存发送（含 409 冲突接手；重发体自最新 raw 重导出——design 面=本地草稿）。 */
+  const sendSave = (
+    data: Record<string, unknown>,
+    params: { base_hash: string } | undefined,
+    after?: { afterSaved?: () => void; errorNote?: string },
+  ): void => {
+    if (projectId === null) {
       return;
     }
     save.mutate(
-      { projectId, data: body },
+      { projectId, data, params },
       {
         onSuccess: () => {
           store.getState().markSaved();
@@ -132,14 +185,36 @@ export function TopBar() {
             queryKey: [`/api/projects/${projectId}`],
           });
           messageApi.success("图面已保存");
+          after?.afterSaved?.();
         },
         onError: (error) => {
+          if (
+            surfaceConflict(error, (latest) => {
+              const retry =
+                draft !== null ? draftProjectRaw(latest.raw, draft) : data;
+              sendSave(
+                retry,
+                { base_hash: latest.baseHash },
+                after,
+              ); // 窗口内又他写=再 409→对话再现（自然循环禁静默）
+            })
+          ) {
+            return;
+          }
           messageApi.error(
-            error instanceof Error ? error.message : "保存失败",
+            after?.errorNote ??
+              (error instanceof Error ? error.message : "保存失败"),
           );
         },
       },
     );
+  };
+
+  const handleSave = () => {
+    if (body === null || projectId === null) {
+      return;
+    }
+    sendSave(body, saveParams);
   };
 
   const handleValidate = () => {
@@ -170,7 +245,36 @@ export function TopBar() {
     );
   };
 
-  const handleRunCalc = async () => {
+  /** 计算提交（save-run 链的收尾——保存成功后触发；条件面沿承原链）。 */
+  const submitRun = () => {
+    if (projectId === null) {
+      return;
+    }
+    run.mutate(
+      {
+        data: {
+          project_id: projectId,
+          ...(draft !== null
+            ? draft.checkedUnits.length > 0
+              ? { conditions: draft.checkedUnits }
+              : {}
+            : rawQuery.data !== undefined &&
+                rawCheckedUnits(rawQuery.data).length > 0
+              ? { conditions: rawCheckedUnits(rawQuery.data) }
+              : {}),
+        },
+      },
+      {
+        onError: (error: WaterprintApiError) => {
+          messageApi.error(
+            error instanceof Error ? error.message : "提交计算失败",
+          );
+        },
+      },
+    );
+  };
+
+  const handleRunCalc = () => {
     if (projectId === null) {
       return;
     }
@@ -183,42 +287,18 @@ export function TopBar() {
       messageApi.error("项目数据未就绪——稍候重试");
       return;
     }
-    try {
-      if (decision === "save-run") {
-        if (body === null) {
-          return;
-        }
-        await save.mutateAsync({ projectId, data: body });
-        store.getState().markSaved();
-        void queryClient.invalidateQueries({
-          queryKey: [`/api/projects/${projectId}`],
-        });
+    if (decision === "save-run") {
+      if (body === null) {
+        return;
       }
-      run.mutate(
-        {
-          data: {
-            project_id: projectId,
-            ...(draft !== null
-              ? draft.checkedUnits.length > 0
-                ? { conditions: draft.checkedUnits }
-                : {}
-              : rawQuery.data !== undefined &&
-                  rawCheckedUnits(rawQuery.data).length > 0
-                ? { conditions: rawCheckedUnits(rawQuery.data) }
-                : {}),
-          },
-        },
-        {
-          onError: (error: WaterprintApiError) => {
-            messageApi.error(
-              error instanceof Error ? error.message : "提交计算失败",
-            );
-          },
-        },
-      );
-    } catch {
-      messageApi.error("保存失败——未提交计算（请检查网络/锁冲突后重试）");
+      // F2：保存步携带读时基线——409 冲突对话接手（覆盖后经 afterSaved 续跑）
+      sendSave(body, saveParams, {
+        afterSaved: submitRun,
+        errorNote: "保存失败——未提交计算（请检查网络/锁冲突后重试）",
+      });
+      return;
     }
+    submitRun();
   };
 
   return (
@@ -315,7 +395,7 @@ export function TopBar() {
             data-testid="wp-v4-run"
             disabled={projectId === null}
             loading={run.isPending || rawQuery.isLoading}
-            onClick={() => void handleRunCalc()}
+            onClick={handleRunCalc}
           >
             全项目计算
           </Button>

@@ -9,7 +9,9 @@
 #
 # 【公开接口】
 #   create_project(payload) / list_projects() / read_project(id) /
-#   save_project(id, project) -> SaveOutcome（新 hash + design_changed）
+#   save_project(id, project, base_hash=None) -> SaveOutcome（新 hash +
+#   design_changed；F2 批 2026-11-20：base_hash 条件保存——非空且≠存档
+#   现行 content_hash → ProjectConcurrentWriteError 409）
 #   validate_project(id) -> ValidationReport
 #   import_legacy(payload) -> ImportReport（M4，best-effort 映射清单）
 #   refresh_lock_mtime(id) -> bool（K-5 心跳原语：touch 已存锁 mtime）
@@ -91,6 +93,10 @@ _PROJECT_SUFFIX: Final[str] = ".wp.json"
 # 显示名上限（P0-1——core ViewState._NAME_MAX 同口径；幂底式先例 L68；
 # P2 生命周期批提升公开：project_lifecycle 副本名截断共用单源）
 PROJECT_NAME_MAX: Final[int] = 10**2
+# 摘要展示前缀长度（F2 批：ProjectConcurrentWriteError 消息内嵌摘要的
+# 截断口径——exports_support._DIGEST_PREFIX 同值同款先例〔10，白名单
+# 字面量〕，跨件私名禁引故本地声明）
+_DIGEST_PREFIX: Final[int] = 10
 # _DESIGN_FORMAT_VERSION 自 core L0 单源 import as 保名（b25 回炉：原
 # server 第三镜像字面量退役——空白新建项目直落当前版，免装载迁移面；
 # 序列化参数单源 result_schema.JSON_KWARGS 由消费方 exports 直接引）。
@@ -109,6 +115,27 @@ class ProjectLockedError(RuntimeError):
             "（§17.3 并发打开防护；持有者信息=锁文件路径）"
         )
         self.lock_path = lock_path
+
+
+class ProjectConcurrentWriteError(RuntimeError):
+    """条件保存基线不符（F2 并发丢更新批 2026-11-20）——409 面。
+
+    客户端携带的 base_hash（读时 content_hash）≠ 服务端存档现行
+    content_hash = 存档已被他处修改——禁静默覆盖（LWW 缺陷收口）。
+    风格沿 StaleExportError 先例：消息内嵌双方摘要（展示前缀），全值
+    经属性携带（current_hash 供客户端「带新基线重试」消费——经
+    GET 重拉取当前哈希同源可得，错误体保持 {detail, error_type}
+    冻结形态不加字段）。
+    """
+
+    def __init__(self, base_hash: str, current_hash: str) -> None:
+        super().__init__(
+            f"项目已被其他窗口/机器修改：你基于 {base_hash[:_DIGEST_PREFIX]}…，"
+            f"服务端现行 {current_hash[:_DIGEST_PREFIX]}…（条件保存基线不符——"
+            "禁止静默覆盖；选择用我的覆盖/放弃我的改动/稍后处理）"
+        )
+        self.base_hash = base_hash
+        self.current_hash = current_hash
 
 
 class ImportNotReadyError(RuntimeError):
@@ -372,7 +399,9 @@ def read_project(ctx: ServiceContext, project_id: str) -> ProjectFile:
     return core.load_project(path)
 
 
-def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> SaveOutcome:
+def save_project(
+    ctx: ServiceContext, project_id: str, project: ProjectFile, base_hash: str | None = None
+) -> SaveOutcome:
     """保存（原子写经 app.save_project；深度闸+锁前置探测 409；stale 标记）。
 
     R2：design_changed=design 态对比（view-only 保存=False——保存只写
@@ -380,6 +409,12 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
     （UF-37：守门在消费侧实时比对，本标记仅 UI 提示）。WP4：入口深度
     闸（修3）+锁过期放行（修4）。K-5（R2-C 修1）：陈旧锁清除=双快照
     一致才 unlink（见 clear_stale_lock——窗口内换锁/心跳=409）。
+    F2（2026-11-20）：base_hash 条件保存（乐观锁）——客户端读时
+    content_hash 非空且≠存档现行值 → ProjectConcurrentWriteError 409
+    （并发静默丢更新收口）；base_hash=None（缺省）=无条件直写（旧
+    客户端/进程内调用方兼容期——agent tools 与 solution apply 等
+    内部读改写面零改动）。基线=content_hash（design 态摘要）：view-only
+    并发保存仍 LWW（无 design 变更无冲突语义——记档边界）。
     """
     _check_project_depth(project, ctx.settings.max_json_depth)  # 修3：PUT 深度闸接线
     path = project_path(ctx, project_id)
@@ -389,6 +424,8 @@ def save_project(ctx: ServiceContext, project_id: str, project: ProjectFile) -> 
     if lock.exists():
         clear_stale_lock(lock, ctx.settings.lock_expiry_s)  # K-5：新鲜/活性 409，陈旧清除放行
     old = core.load_project(path)
+    if base_hash is not None and base_hash != old.metadata.content_hash:
+        raise ProjectConcurrentWriteError(base_hash, old.metadata.content_hash)
     digest = core.design_hash(project.design)
     core.save_project(with_hash(project, digest), path)
     if old.design != project.design:

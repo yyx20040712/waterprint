@@ -28,6 +28,7 @@ design.site 厂区布置编辑（原生 SVG 自绘零新依赖：待摆区拖放
 | `lib/canvasDisplay.test.ts` | 键盘删除判定 vitest（B4 笔② node 直测先红后绿：svg 本体/直接子元素消费面/输入框不消费/Delete·Backspace 双键/road·corridor 目标产出/structure·无选中·他键 null；B4 笔③增 boundary 选中删除目标产出例） |
 | `lib/vertexEditing.ts` | 红线逐点编辑纯函数面（B4 笔③ R1+R5——仓内首顶点级编辑面）：顶点命中/线段投影（含闭合 wrap 段）/最近段路由/增删移点 immutable copy-on-write+snapVertexPoint 吸附归本层（Pane 收净值）；BOUNDARY_MIN_VERTICES 删至 3 拒删返 null（core ≥3 门镜像） |
 | `lib/unitDisplayNames.ts` | 待摆/已摆单元显示名 hook（V4 P3 中文化：catalog name_zh 单源——select=unitNameIndex 投影同键缓存零额外请求；查表键=node kind ?? unitId〔thumbnailFlow metaByUnit 同口径——inlet→municipal_input→市政输入〕；未收录回退 id 透传） |
+| `lib/siteEditHandlers.ts` | 厂区编辑回调族工厂（F2 并发丢更新批 2026-11-20 自 SiteplanPane 拆出——组件 500 行顶墙拆件 ADR-024 同构，行为零变）：buildSiteEditHandlers(deps) 产十一回调（结构放置/移动/旋转/删/高程+折线收笔/删+确认门上行+红线顶点三操作——copy-on-write 落 draft）；FinishedLine/BOUNDARY_REJECT_HINT 随迁单源；deps 注入 setState 族+notifyBoundaryReject（本层零 antd） |
 | `components/SiteplanPane.test.tsx` | 组装件 vitest jsdom（V4 P3 先红后绿：useSiteData/保存/间距/目录四模块替身+golden 夹具〔inlet 已摆+aao1 待摆〕——待摆条目中文名+title 原 id；查表键=kind 口径实证〔节点 id≠catalog 键〕+选中侧栏头同映射） |
 | `lib/vertexEditing.test.ts` | 顶点编辑纯函数 vitest（node 环境先红后绿：命中内外·最近优先·半径防御/投影 clamp·零长·wrap 段/最近段路由/插入索引位·wrap 尾插·非法直通/删至 3 拒删 null+不变性/移点 immutable/双轴吸附/sameSite 拒删不翻 dirty+增点翻 dirty） |
 | `components/LineSidebar.tsx` | 选中折线删除侧栏纯展示子件（B4 笔② R2——ENG6 先例第三例：danger 按钮+受控 Popconfirm 确认门，侧栏按钮与画布 Delete 键汇父层 removeRequest 同一挂起态；取消/外点=零动作；B4 笔③泛化 RemovableSelection 面——boundary 分支=清空通路文案族） |

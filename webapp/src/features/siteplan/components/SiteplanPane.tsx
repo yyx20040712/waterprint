@@ -63,28 +63,33 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 
-import { useSaveProjectApiProjectsProjectIdPut } from "../../../shared/api/generated/projects/projects";
+import {
+  getReadProjectApiProjectsProjectIdGetQueryOptions,
+  useSaveProjectApiProjectsProjectIdPut,
+} from "../../../shared/api/generated/projects/projects";
 import { useGetSpacingApiSiteSpacingGet } from "../../../shared/api/generated/site/site";
 import type { BoundaryViolationEntry, SpacingViolationEntry } from "../../../shared/api/generated/model";
 import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
+import {
+  baseHashOf,
+  confirmSaveConflict,
+  surfaceSaveConflict,
+  type SaveConflictLatest,
+} from "../../../shared/ui/saveConflictModal";
 import { useSiteData } from "../api/useSiteData";
 import {
   narrowSiteDesign,
   projectSiteSafe,
-  removeLineAt,
   withSite,
   type SiteDesignShape,
-  type SitePoint,
-  type StructurePlacement,
 } from "../lib/projectSite";
+import {
+  BOUNDARY_REJECT_HINT,
+  buildSiteEditHandlers,
+  type FinishedLine,
+} from "../lib/siteEditHandlers";
 import { sameSite } from "../lib/siteDraftDiff";
 import { useUnitDisplayNames } from "../lib/unitDisplayNames";
-import {
-  BOUNDARY_MIN_VERTICES,
-  insertVertex,
-  moveVertex,
-  removeVertex,
-} from "../lib/vertexEditing";
 import { useSiteplanStore, type RemovableSelection } from "../store/siteplanStore";
 import { LineFinishForm } from "./LineFinishForm";
 import { PendingPanel } from "./PendingPanel";
@@ -94,13 +99,8 @@ import { StructureSidebar } from "./StructureSidebar";
 import { SiteplanToolbar } from "./SiteplanToolbar";
 import { WindRosePanel } from "./WindRosePanel";
 
-/** 红线拒删提示文案（B4 笔③——BOUNDARY_MIN_VERTICES 单源插值不硬编码数字；
- *  整体清空另有「清空红线」Popconfirm 入口）。 */
-const BOUNDARY_REJECT_HINT =
-  `红线至少需 ${BOUNDARY_MIN_VERTICES} 个顶点，不能再删（整体移除请用「清空红线」）`;
-
-/** 收笔挂起面（折线已成立、宽度/kind 待补）。 */
-type FinishedLine = { kind: "road" | "corridor"; points: SitePoint[] };
+// 红线拒删提示文案与收笔挂起面（F2 批 2026-11-20 迁 lib/siteEditHandlers
+// ——BOUNDARY_REJECT_HINT/FinishedLine 单源再导入，组件顶墙拆件 ADR-024 同构）
 
 export function SiteplanPane({ projectId }: { projectId: string }) {
   const { projectQuery, sceneQuery } = useSiteData(projectId);
@@ -196,115 +196,18 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   const boundaryOf = (unitId: string): BoundaryViolationEntry[] =>
     boundaryRows.filter((row) => row.unit_id === unitId);
 
-  // ── 编辑回调（copy-on-write——draft 永不原位突变） ──
-
-  const updateStructure = (unitId: string, patch: Partial<StructurePlacement>) => {
-    setDraft((prev) => {
-      const current = prev === null ? undefined : prev.structures[unitId];
-      if (prev === null || current === undefined) {
-        return prev;
-      }
-      return {
-        ...prev,
-        structures: {
-          ...prev.structures,
-          [unitId]: { ...current, ...patch },
-        },
-      };
-    });
-  };
-
-  const handlers = {
-    onPlace: (unitId: string, x: number, y: number) => {
-      setDraft((prev) => {
-        if (prev === null) {
-          return prev;
-        }
-        return {
-          ...prev,
-          structures: {
-            ...prev.structures,
-            [unitId]: {
-              x,
-              y,
-              rotation: 0,
-              ground_elevation: prev.structures[unitId]?.ground_elevation ?? null,
-            },
-          },
-        };
-      });
-    },
-    onMove: (unitId: string, x: number, y: number) => updateStructure(unitId, { x, y }),
-    onRotate: (unitId: string, rotation: number) => updateStructure(unitId, { rotation }),
-    onRemove: (unitId: string) => {
-      setDraft((prev) => {
-        if (prev === null || prev.structures[unitId] === undefined) {
-          return prev;
-        }
-        const structures = { ...prev.structures };
-        delete structures[unitId];
-        return { ...prev, structures };
-      });
-      setSelection(null); // 选中面随移除收口
-    },
-    onElev: (unitId: string, elevation: number | null) =>
-      updateStructure(unitId, { ground_elevation: elevation }),
-    onCommitLine: (points: SitePoint[]) => {
-      if (tool === "boundary") {
-        // L4a 红线：无宽度/kind 面板（boundary 无宽）——≥3 点即闭合收笔
-        // 直接落 draft.boundary；红线只有一个（schema 单多边形），重画=替换。
-        setDraft((prev) => (prev === null ? prev : { ...prev, boundary: points }));
-        return;
-      }
-      if (tool !== "road" && tool !== "corridor") {
-        return;
-      }
-      setFinishedLine({ kind: tool, points });
-    },
-    // B4 笔② R2：immutable splice 删除+setSelection(null) 收口（索引前移
-    // ——选中索引随删除失效，onRemove 先例同式）
-    onRemoveLine: (kind: "road" | "corridor", index: number) => {
-      setDraft((prev) => {
-        if (prev === null) {
-          return prev;
-        }
-        return kind === "road"
-          ? { ...prev, roads: removeLineAt(prev.roads, index) }
-          : { ...prev, corridors: removeLineAt(prev.corridors, index) };
-      });
-      setSelection(null);
-    },
-    // 画布 Delete 键上行——汇侧栏同一确认门（不直删：仓内无 undo）；
-    // B4 笔③ 泛化 RemovableSelection 签名（boundary 上行=清空通路分支）
-    onRemoveRequest: (target: RemovableSelection) => setRemoveRequest(target),
-    // B4 笔③ R5 顶点三回调（BoundaryLayer 上行——吸附净值已归 vertexEditing
-    // 层完成，本层 copy-on-write 落 draft.boundary；顶点增删后 boundary 单例
-    // selection 保持——身份不随顶点数变，简报 R5）
-    onMoveVertex: (index: number, p: SitePoint) => {
-      setDraft((prev) => (prev === null ? prev : { ...prev, boundary: moveVertex(prev.boundary, index, p) }));
-    },
-    onInsertVertex: (segIndex: number, p: SitePoint) => {
-      setDraft((prev) => (prev === null ? prev : { ...prev, boundary: insertVertex(prev.boundary, segIndex, p) }));
-    },
-    // 删点：删至 <BOUNDARY_MIN_VERTICES 拒删=message 提示+零动作（draft/
-    // selection 不变——简报 R1；拒删判定先行，副作用不进 setState updater）
-    onRemoveVertex: (index: number) => {
-      if (draft === null) {
-        return;
-      }
-      if (removeVertex(draft.boundary, index) === null) {
-        messageApi.warning(BOUNDARY_REJECT_HINT); // 拒删=提示+零动作
-        return;
-      }
-      setDraft((prev) => {
-        if (prev === null) {
-          return prev;
-        }
-        const next = removeVertex(prev.boundary, index);
-        return next === null ? prev : { ...prev, boundary: next };
-      });
-    },
-  };
+  // ── 编辑回调（copy-on-write——draft 永不原位突变）──
+  // F2 批 2026-11-20：回调族迁 lib/siteEditHandlers 工厂（deps 注入，
+  // 行为零变——组件顶墙拆件 ADR-024 同构）；拒删提示经 notify 上行。
+  const handlers = buildSiteEditHandlers({
+    draft,
+    setDraft,
+    setSelection,
+    tool,
+    setFinishedLine,
+    setRemoveRequest,
+    notifyBoundaryReject: () => messageApi.warning(BOUNDARY_REJECT_HINT),
+  });
 
   // 确认门 confirm=执行删除/清空+关闭；取消/外部点击=零动作（状态不变）
   const confirmRemoveLine = () => {
@@ -368,11 +271,59 @@ export function SiteplanPane({ projectId }: { projectId: string }) {
   // B5 D5/D7：风玫瑰值编辑上行——合并写回值 copy-on-write 落 draft.options.wind_rose（onMoveVertex 单行同式）
   const setWindRose = (next: Record<string, number> | null) => setDraft((prev) => (prev === null ? prev : { ...prev, options: { ...prev.options, wind_rose: next } }));
 
+  /** F2 冲突三选（2026-11-20）：覆盖=最新 raw 重合成布置+新基线重发；放弃=重拉（draft 随 loadedSite 效应同步）。 */
+  const surfaceConflict = (
+    error: unknown,
+    bodyDraft: SiteDesignShape,
+  ): boolean =>
+    surfaceSaveConflict(error, {
+      confirm: confirmSaveConflict,
+      refetchLatest: async () => {
+        const fresh = await queryClient.fetchQuery(
+          getReadProjectApiProjectsProjectIdGetQueryOptions(projectId),
+        );
+        const freshHash = baseHashOf(fresh);
+        return freshHash !== null ? { raw: fresh, baseHash: freshHash } : null;
+      },
+      onOverwrite: (latest: SaveConflictLatest) => {
+        save.mutate(
+          {
+            projectId,
+            data: withSite(latest.raw, bodyDraft),
+            params: { base_hash: latest.baseHash },
+          },
+          {
+            onError: (retryError) => {
+              surfaceConflict(retryError, bodyDraft); // 窗口内又他写=对话再现
+            },
+          },
+        );
+      },
+      onDiscard: () => {
+        // 重拉最新——draft 经 loadedSite useEffect 同步回退（onSuccess 同链注记）
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/projects/${projectId}`],
+        });
+      },
+    });
+
   const saveDraft = () => {
     if (raw === undefined || draft === null) {
       return;
     }
-    save.mutate({ projectId, data: withSite(raw as Record<string, unknown>, draft) });
+    const baseHash = baseHashOf(raw as Record<string, unknown>); // F2：读时基线
+    save.mutate(
+      {
+        projectId,
+        data: withSite(raw as Record<string, unknown>, draft),
+        ...(baseHash !== null ? { params: { base_hash: baseHash } } : {}),
+      },
+      {
+        onError: (error) => {
+          surfaceConflict(error, draft); // 409→三选对话；其余走 isError 行内分级
+        },
+      },
+    );
   };
 
   const saveErrorText = save.isError

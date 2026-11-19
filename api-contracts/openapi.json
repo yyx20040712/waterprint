@@ -5726,7 +5726,7 @@
         ]
       },
       "put": {
-        "description": "保存（R3：新 hash+design_changed 区分；R4 锁 409 在 service→异常映射）。",
+        "description": "保存（R3：新 hash+design_changed 区分；R4 锁 409 在 service→异常映射）。\n\nF2（2026-11-20）：base_hash 条件保存（乐观锁）——携带读时\ncontent_hash 且与存档不符 → 409 ProjectConcurrentWriteError\n（错误体 detail 内嵌现行摘要；客户端经 GET 重拉取全值重试）；\n缺省 None=无条件直写（旧客户端兼容期）。",
         "operationId": "save_project_api_projects__project_id__put",
         "parameters": [
           {
@@ -5736,6 +5736,24 @@
             "schema": {
               "title": "Project Id",
               "type": "string"
+            }
+          },
+          {
+            "description": "读时基线 content_hash",
+            "in": "query",
+            "name": "base_hash",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "读时基线 content_hash",
+              "title": "Base Hash"
             }
           }
         ],
@@ -5761,6 +5779,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "写锁冲突或并发保存基线不符（base_hash≠存档现行 content_hash）"
           },
           "422": {
             "content": {

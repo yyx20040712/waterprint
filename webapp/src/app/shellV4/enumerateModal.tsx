@@ -33,12 +33,19 @@ import { withConstraintChoices } from "../../features/params/lib/designParams";
 import { useProjectUnits } from "../../features/solutions/api/useProjectUnits";
 import { useRunEnumerationApiCalcEnumeratePost } from "../../shared/api/generated/calc/calc";
 import {
+  getReadProjectApiProjectsProjectIdGetQueryOptions,
   useReadProjectApiProjectsProjectIdGet,
   useSaveProjectApiProjectsProjectIdPut,
 } from "../../shared/api/generated/projects/projects";
 import type { WaterprintApiError } from "../../shared/api/http";
 import { isLockConflict, LOCK_HINT } from "../../shared/api/http";
 import { TASK_EVENT } from "../../shared/events";
+import {
+  baseHashOf,
+  confirmSaveConflict,
+  surfaceSaveConflict,
+  type SaveConflictLatest,
+} from "../../shared/ui/saveConflictModal";
 import { writeEnumParam, writeTaskParam } from "../solutionsUrlState";
 
 export function EnumerateModal({
@@ -89,6 +96,52 @@ export function EnumerateModal({
     },
   });
 
+  /** F2 冲突三选（2026-11-20）：覆盖=最新 raw 重合成勾选+新基线重发；放弃=回读最新勾选。 */
+  const surfaceConflict = (
+    error: unknown,
+    mergedKeys: string[],
+    prevKeys: string[],
+  ): boolean =>
+    surfaceSaveConflict(error, {
+      confirm: confirmSaveConflict,
+      refetchLatest: async () => {
+        if (projectId === null) {
+          return null;
+        }
+        const fresh = await queryClient.fetchQuery(
+          getReadProjectApiProjectsProjectIdGetQueryOptions(projectId),
+        );
+        const freshHash = baseHashOf(fresh);
+        return freshHash !== null ? { raw: fresh, baseHash: freshHash } : null;
+      },
+      onOverwrite: (latest: SaveConflictLatest) => {
+        if (projectId === null) {
+          return;
+        }
+        saveConstraints.mutate(
+          {
+            projectId,
+            data: withConstraintChoices(latest.raw, mergedKeys),
+            params: { base_hash: latest.baseHash },
+          },
+          {
+            onError: (retryError) => {
+              surfaceConflict(retryError, mergedKeys, prevKeys); // 窗口内又他写=对话再现
+            },
+          },
+        );
+      },
+      onDiscard: () => {
+        if (projectId === null) {
+          return;
+        }
+        setConstraintKeys(prevKeys); // 本组勾选回退（与既有失败回退同语义）
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/projects/${projectId}`],
+        });
+      },
+    });
+
   const enumerate = useRunEnumerationApiCalcEnumeratePost<WaterprintApiError>({
     mutation: {
       onSuccess: (response) => {
@@ -126,10 +179,18 @@ export function EnumerateModal({
       messageApi.warning("项目数据未就绪，勾选暂未保存");
       return;
     }
+    const baseHash = baseHashOf(raw); // F2：读时基线（未就绪=不携直写兼容面）
     saveConstraints.mutate(
-      { projectId, data: withConstraintChoices(raw, mergedKeys) },
+      {
+        projectId,
+        data: withConstraintChoices(raw, mergedKeys),
+        ...(baseHash !== null ? { params: { base_hash: baseHash } } : {}),
+      },
       {
         onError: (error) => {
+          if (surfaceConflict(error, mergedKeys, prevKeys)) {
+            return; // 409→三选对话接手（勾选回退随分支裁量）
+          }
           setConstraintKeys(prevKeys);
           messageApi.error(
             isLockConflict(error)

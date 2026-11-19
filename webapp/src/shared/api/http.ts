@@ -27,6 +27,9 @@
  *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改；
  *   - B15 增 409 锁冲突判定面（LOCK_HINT/isLockConflict——自
  *     solutionsFields 上移单源；口径源=UX2 AssumptionsPanel D3）；
+ *   - F2 并发丢更新批（2026-11-20）增条件保存冲突判定面
+ *     isSaveConflict（error_type=ProjectConcurrentWriteError——与锁
+ *     冲突分立，无 HTTP_409 兜底；呈现面=shared/ui/saveConflictModal）；
  *   - 联机第六批（客户端模式）：请求基底=本地恒空 ∪ 远程 origin 前拼
  *     （getRemoteBaseUrl 同步现读——null=零行为变；非 null=全部生成
  *     调用走远程，token 仍沿 getApiToken Bearer 通道不变）。
@@ -129,5 +132,18 @@ export function isLockConflict(error: unknown): boolean {
   return (
     error instanceof WaterprintApiError &&
     (error.code === "ProjectLockedError" || error.code === "HTTP_409")
+  );
+}
+
+/**
+ * 409 面=条件保存基线不符（F2 并发丢更新批 2026-11-20；server
+ * error_type=ProjectConcurrentWriteError——?base_hash≠存档现行
+ * content_hash）。与 isLockConflict 分立判定：本 code 精确，无 HTTP_409
+ * 兜底（兜底族归锁冲突提示面）；消费面先判本函数再落锁冲突回退。
+ */
+export function isSaveConflict(error: unknown): boolean {
+  return (
+    error instanceof WaterprintApiError &&
+    error.code === "ProjectConcurrentWriteError"
   );
 }

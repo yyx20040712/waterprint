@@ -35,12 +35,19 @@ import { Button, InputNumber, Space, Typography } from "antd";
 
 import { useRunCalculationApiCalcRunPost } from "../../../shared/api/generated/calc/calc";
 import {
+  getReadProjectApiProjectsProjectIdGetQueryOptions,
   useReadProjectApiProjectsProjectIdGet,
   useSaveProjectApiProjectsProjectIdPut,
 } from "../../../shared/api/generated/projects/projects";
-import { LOCK_HINT, WaterprintApiError, isLockConflict } from "../../../shared/api/http";
+import { LOCK_HINT, WaterprintApiError, isLockConflict, isSaveConflict } from "../../../shared/api/http";
 import { dimUnit } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
+import {
+  baseHashOf,
+  confirmSaveConflict,
+  surfaceSaveConflict,
+  type SaveConflictLatest,
+} from "../../../shared/ui/saveConflictModal";
 import { useAssumptionCatalog } from "../api/useUnitCatalog";
 import { useProjectDesign } from "../api/useProjectDesign";
 import {
@@ -237,6 +244,43 @@ export function AssumptionsPanel({ projectId }: { projectId: string }) {
     },
   });
 
+  /** F2 冲突三选（2026-11-20）：覆盖=最新 raw 重应用覆盖面+新基线重发；放弃=清编辑态重拉。 */
+  const surfaceConflict = (
+    error: unknown,
+    overrides: Record<string, number>,
+  ): boolean =>
+    surfaceSaveConflict(error, {
+      confirm: confirmSaveConflict,
+      refetchLatest: async () => {
+        const fresh = await queryClient.fetchQuery(
+          getReadProjectApiProjectsProjectIdGetQueryOptions(projectId),
+        );
+        const freshHash = baseHashOf(fresh);
+        return freshHash !== null ? { raw: fresh, baseHash: freshHash } : null;
+      },
+      onOverwrite: (latest: SaveConflictLatest) => {
+        save.mutate(
+          {
+            projectId,
+            data: withAssumptionOverrides(latest.raw, overrides),
+            params: { base_hash: latest.baseHash },
+          },
+          {
+            onError: (retryError) => {
+              surfaceConflict(retryError, overrides); // 窗口内又他写=对话再现
+            },
+          },
+        );
+      },
+      onDiscard: () => {
+        setDrafts({});
+        setResets({});
+        void queryClient.invalidateQueries({
+          queryKey: [`/api/projects/${projectId}`],
+        });
+      },
+    });
+
   // AL-03（D 一审 R 轮）：useMemo 恢复——原面板纪律沿袭（query data
   // 引用已稳+22 行规模无实害，但纪律面零回退）
   const rows = useMemo(
@@ -333,7 +377,9 @@ export function AssumptionsPanel({ projectId }: { projectId: string }) {
           <div style={{ padding: "0 14px", paddingTop: 8, fontSize: 11, color: "var(--wp-error)" }}>
             {isLockConflict(save.error)
               ? LOCK_HINT
-              : `假设保存失败：${save.error instanceof Error ? save.error.message : "未知错误"}`}
+              : isSaveConflict(save.error)
+                ? "项目已在其他窗口/机器被修改——请在弹窗中选择覆盖/放弃"
+                : `假设保存失败：${save.error instanceof Error ? save.error.message : "未知错误"}`}
           </div>
         ) : null}
         {save.isSuccess && run.isPending ? (
@@ -366,10 +412,19 @@ export function AssumptionsPanel({ projectId }: { projectId: string }) {
               if (raw === undefined) {
                 return; // 原始体未就绪（同键缓存随清单同步——防御面）
               }
-              save.mutate({
-                projectId,
-                data: withAssumptionOverrides(raw, edits.overrides),
-              });
+              const baseHash = baseHashOf(raw); // F2：读时基线（未就绪=不携直写兼容面）
+              save.mutate(
+                {
+                  projectId,
+                  data: withAssumptionOverrides(raw, edits.overrides),
+                  ...(baseHash !== null ? { params: { base_hash: baseHash } } : {}),
+                },
+                {
+                  onError: (error) => {
+                    surfaceConflict(error, edits.overrides); // 409→三选对话；其余走 isError 行内分级
+                  },
+                },
+              );
             }}
           >
             提交修改

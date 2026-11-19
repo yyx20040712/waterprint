@@ -140,7 +140,12 @@ _PL03_DECLARED: dict[str, dict[str, set[str]]] = {
     },
     "/api/projects/{project_id}/copy": {"post": {"200", "404", "409", "422"}},
     "/api/projects/{project_id}/rename": {"post": {"200", "404", "409", "422"}},
-    "/api/projects/{project_id}": {"delete": {"200", "404", "409", "422"}},
+    # F2 并发丢更新批（2026-11-20）：PUT 409 声明入列（锁冲突既有行为
+    # +条件保存基线不符新增面——行为测试见 tests/routers/test_projects.py）。
+    "/api/projects/{project_id}": {
+        "put": {"200", "409", "422"},
+        "delete": {"200", "404", "409", "422"},
+    },
 }
 
 

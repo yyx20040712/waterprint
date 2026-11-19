@@ -89,6 +89,7 @@ from waterprint_server.services.projects import (
     ImportNotReadyError,
     InvalidProjectPayloadError,
     PayloadTooLargeError,
+    ProjectConcurrentWriteError,
     ProjectLockedError,
     ProjectNotFoundError,
 )
@@ -168,6 +169,9 @@ _EXCEPTION_STATUS: Final[tuple[tuple[type[Exception], int], ...]] = (
     (TypstUnavailableError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (TypstCompileError, status.HTTP_500_INTERNAL_SERVER_ERROR),
     (ProjectLockedError, status.HTTP_409_CONFLICT),
+    # F2 并发丢更新批（2026-11-20）：条件保存基线不符（?base_hash≠存档
+    # 现行 content_hash）→409（风格沿 StaleExportError——错误体内嵌摘要）。
+    (ProjectConcurrentWriteError, status.HTTP_409_CONFLICT),
     # P2 生命周期批（2026-09-12）：删除守卫③在途任务→409（C3）。
     (ProjectBusyError, status.HTTP_409_CONFLICT),
     (StaleExportError, status.HTTP_409_CONFLICT),

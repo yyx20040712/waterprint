@@ -12,7 +12,9 @@
 #   GET    /api/projects                    列表（名称/哈希/时间元数据）
 #   GET    /api/projects/{id}               读取（完整 ProjectFile）
 #   PUT    /api/projects/{id}               保存（design+view，返回新
-#                                          content_hash 与 dirty 状态）
+#                                          content_hash 与 dirty 状态；
+#                                          F2 批 2026-11-20：?base_hash=
+#                                          读时基线——不符 409 条件保存）
 #   POST   /api/projects/{id}/validate      校验（零计算快速反馈）
 #   POST   /api/projects/{id}/copy          复制（P2——新 id 落盘，design
 #                                          不动同 digest）
@@ -43,7 +45,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from pydantic import BaseModel
 from waterprint.contracts.project_schema import parse_project
 
@@ -175,17 +177,41 @@ async def read_project(project_id: str, request: Request) -> dict[str, Any]:
     return service.read_project(_ctx(request), project_id).model_dump(mode="json")
 
 
+# F2 并发丢更新批（2026-11-20）：保存端点 409 声明（锁冲突 R4 既有行为
+# +条件保存基线不符新增面——PL-03 同款声明使 openapi 与行为一致；行为面
+# 测试见 tests/routers/test_projects.py 409 家族）。
+_SAVE_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_409_CONFLICT: {
+        "model": ErrorResponse,
+        "description": "写锁冲突或并发保存基线不符（base_hash≠存档现行 content_hash）",
+    },
+}
+
+
 @router.put(
     "/{project_id}",
     response_model=SaveOutcomeResponse,
     dependencies=[Depends(_reject_oversized_body)],
+    responses=_SAVE_RESPONSES,
 )
 async def save_project(
-    project_id: str, body: dict[str, Any], request: Request
+    project_id: str,
+    body: dict[str, Any],
+    request: Request,
+    base_hash: str | None = Query(default=None, description="读时基线 content_hash"),
 ) -> SaveOutcomeResponse:
-    """保存（R3：新 hash+design_changed 区分；R4 锁 409 在 service→异常映射）。"""
+    """保存（R3：新 hash+design_changed 区分；R4 锁 409 在 service→异常映射）。
+
+    F2（2026-11-20）：base_hash 条件保存（乐观锁）——携带读时
+    content_hash 且与存档不符 → 409 ProjectConcurrentWriteError
+    （错误体 detail 内嵌现行摘要；客户端经 GET 重拉取全值重试）；
+    缺省 None=无条件直写（旧客户端兼容期）。
+    """
     outcome = service.save_project(
-        _ctx(request), project_id, parse_project(body)  # 422 带：ValidationError 映射
+        _ctx(request),
+        project_id,
+        parse_project(body),  # 422 带：ValidationError 映射
+        base_hash=base_hash,
     )
     return SaveOutcomeResponse(
         project_id=outcome.project_id,

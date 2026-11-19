@@ -129,3 +129,74 @@ async def test_read_project_response_no_store(client, cass_payload) -> None:  # 
     resp = await client.get(f"/api/projects/{project_id}")
     assert resp.status_code == 200
     assert resp.headers["cache-control"] == "no-store"
+
+
+# ══ F2 并发丢更新批（2026-11-20）：PUT 条件保存（?base_hash 三态+并发序）══
+
+
+@pytest.mark.anyio
+async def test_conditional_put_three_states_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """条件 PUT 三态：基线符 200 / 基线不符 409 带现行标识 / 无基线直写 200。"""
+    created = await client.post("/api/projects", json={"name": "并发治理"})
+    assert created.status_code == 200, created.text
+    project_id = created.json()["project_id"]
+    base_hash = created.json()["content_hash"]
+    body = (await client.get(f"/api/projects/{project_id}")).json()
+    body["design"]["nodes"]["inlet"] = {"kind": "municipal_input"}
+
+    # 态①基线符 → 200
+    ok = await client.put(
+        f"/api/projects/{project_id}", json=body, params={"base_hash": base_hash}
+    )
+    assert ok.status_code == 200, ok.text
+    current_hash = ok.json()["content_hash"]
+    assert current_hash != base_hash  # 版本标识随写更新
+
+    # 态②基线不符（旧基线）→ 409 统一错误体带现行摘要
+    body["design"]["nodes"]["inlet"]["q_avg_daily"] = 0.4
+    conflict = await client.put(
+        f"/api/projects/{project_id}", json=body, params={"base_hash": base_hash}
+    )
+    assert conflict.status_code == 409, conflict.text
+    error = conflict.json()
+    assert error["error_type"] == "ProjectConcurrentWriteError"
+    assert current_hash[:10] in error["detail"]  # 错误体携带当前版本标识
+    assert "q_avg_daily" not in (
+        (await client.get(f"/api/projects/{project_id}")).json()["design"]["nodes"].get(
+            "inlet", {}
+        )
+    )  # 零写入
+
+    # 态③无基线（兼容期）→ 200 直写
+    direct = await client.put(f"/api/projects/{project_id}", json=body)
+    assert direct.status_code == 200, direct.text
+    latest = (await client.get(f"/api/projects/{project_id}")).json()
+    assert latest["design"]["nodes"]["inlet"].get("q_avg_daily") == 0.4
+
+
+@pytest.mark.anyio
+async def test_conditional_put_concurrent_ab_sequence_wiring(client) -> None:  # type: ignore[no-untyped-def]
+    """并发序（审计 F2 HTTP 面）：A/B 双端同基线→A 保存 200→B 保存必 409。"""
+    created = await client.post("/api/projects", json={"name": "双上下文"})
+    project_id = created.json()["project_id"]
+    base_hash = created.json()["content_hash"]
+    shared = (await client.get(f"/api/projects/{project_id}")).json()
+
+    body_a = {**shared, "design": {**shared["design"], "nodes": {
+        **shared["design"]["nodes"], "municipal_cugeshan": {}}}}
+    body_b = {**shared, "design": {**shared["design"], "nodes": {
+        **shared["design"]["nodes"], "municipal_aao": {}}}}
+
+    resp_a = await client.put(
+        f"/api/projects/{project_id}", json=body_a, params={"base_hash": base_hash}
+    )
+    assert resp_a.status_code == 200, resp_a.text
+    resp_b = await client.put(  # B 无提示覆盖的静默通道就此关闭
+        f"/api/projects/{project_id}", json=body_b, params={"base_hash": base_hash}
+    )
+    assert resp_b.status_code == 409
+    assert resp_b.json()["error_type"] == "ProjectConcurrentWriteError"
+    final_nodes = set(
+        (await client.get(f"/api/projects/{project_id}")).json()["design"]["nodes"]
+    )
+    assert final_nodes == {"municipal_cugeshan"}  # A 存续、B 未落（显式选择前不覆盖）

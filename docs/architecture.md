@@ -297,6 +297,9 @@ HTTP 语义异常；server 层唯一翻译处按映射表注册 exception handle
 为准；429 附 Retry-After 头。b28 起 ai_chat 路由直抛 HTTPException 破例
 收编——全部路由异常经统一翻译处，错误体统一 {detail, error_type}）。
 禁止裸 except 与错误静默通过；捕获后三选一（处理/转换再抛/终止）。
+项目保存条件 PUT（F2 并发丢更新批 2026-11-20）：`PUT /api/projects/{id}
+?base_hash=` 携读时 content_hash，与存档不符→409（FE 三选对话：覆盖/
+放弃/稍后；缺省不携基线=直写兼容期——view-only 并发保存仍 LWW 记档）。
 
 ### 4.5 日志
 
