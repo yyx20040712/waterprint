@@ -76,7 +76,77 @@ class TestCleanPass:
         assert verify_report(md, _mini_plant()).ok
 
 
-class TestAnchorTamper:
+class TestNegativeAnchor:
+    """负值锚定行（F3：e2e-audit run-20261119——值线词法曾吞负号致面②
+    误报「锚定值 0.3 与 ZW-F11 不等」，实况 trace/渲染值=-0.3）。"""
+
+    def _negative_plant(self) -> PlantResult:
+        """淹没裕量为负的合成厂（ZW-F11 语义=norms/ziwai.md：h_w-h_module
+        可为负——灯管露出水面即警告在场，报告须诚实呈现负值）。d_margin
+        带锚（trace 同值）；d_drop 无锚（面③未锚定负值行载体）。"""
+        snapshot = UnitResultSnapshot(
+            unit_id="u_fake",
+            outflows={"u_fake.out.q": 0.5},
+            outqualities={"u_fake.out.BOD5": 12.0},
+            dims={"d_margin": -0.3, "d_drop": -0.7, "d_len": 5.0},
+            warnings=(),
+            formula_ids=("TS-F4",),
+        )
+        return PlantResult(
+            conditions={"design": {"u_fake": snapshot}},
+            summary={"design": {"BOD5": 12.0}},
+            trace=(
+                TraceNode(
+                    formula_id="TS-F4",
+                    inputs={"x": -0.3},
+                    output=-0.3,
+                    norm_ref="GB 合成 §1",
+                    unit_id="u_fake",
+                    condition_key="design",
+                ),
+            ),
+            repro=ReproTriple(
+                design_hash="hash", engine_version="eng", data_version="dat"
+            ),
+        )
+
+    def test_negative_anchored_value_verifies(self, golden_project_path: Path) -> None:
+        """红绿证（修前红/修后绿）：-0.3〔TS-F4〕与 trace=-0.3 等值。"""
+        plant = self._negative_plant()
+        project = load_project(golden_project_path)
+        md = render_markdown(build_report_ast(project, plant))
+        assert "：-0.3" in md  # 负值行在场（渲染 _fmt=str(float) 带号）
+        report = verify_report(md, plant)
+        assert report.ok, report.failures
+
+    def test_negative_anchor_tamper_sign_flip_detected(
+        self, golden_project_path: Path
+    ) -> None:
+        """严格性守恒：负锚定值去号篡改（-0.3→0.3）必红（禁把修正做成摆设）。"""
+        plant = self._negative_plant()
+        project = load_project(golden_project_path)
+        md = render_markdown(build_report_ast(project, plant))
+        tampered = md.replace("：-0.3", "：0.3", 1)
+        assert tampered != md
+        report = verify_report(tampered, plant)
+        assert not report.ok
+        assert any("TS-F4" in failure for failure in report.failures)
+
+    def test_negative_unanchored_value_face(self, golden_project_path: Path) -> None:
+        """面③同口径：未锚定负值行按带号值比对——dims 负值（-0.7）绿、
+        幽灵负值（-7.7）红（值域伪造拒收面）。"""
+        plant = self._negative_plant()
+        project = load_project(golden_project_path)
+        md = render_markdown(build_report_ast(project, plant))
+        assert "：-0.7" in md and "〔" not in md.split("：-0.7", 1)[1].split("\n", 1)[0]
+        assert verify_report(md, plant).ok
+        tampered = md.replace("：-0.7", "：-7.7", 1)
+        report = verify_report(tampered, plant)
+        assert not report.ok
+        assert any("serialize 值域" in failure for failure in report.failures)
+
+
+
     """锚点篡改——逐面拒绝。"""
 
     def test_value_tamper_detected(self, golden_project_path: Path) -> None:

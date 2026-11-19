@@ -15,7 +15,8 @@
         （本件只许 waterprint.contracts.*+包内 anchors）。
 参照:   v2 设计书 D8③（说明书断言——仅 municipal_34760 口径）；任务书
         预裁决「数值锚定断言件」；门一审查 C2（表格数值盲区）FIX-1；
-        B6 移植 core（import 路径重写零逻辑改动）。
+        B6 移植 core（import 路径重写零逻辑改动）；F3（e2e-audit
+        run-20261119：值线词法负号面补齐——表格两形同口径）。
 """
 
 from __future__ import annotations
@@ -38,11 +39,14 @@ _NARRATIVE_ZONE = re.compile(
 # 锚点对：行内〔公式ID〕（〔〕为全角括号——渲染形态契约）
 _ANCHOR = re.compile(r"〔([^〕]+)〕")
 
-# 数值词法（半角，含科学计数法；前置词字符排斥——单位记号 m3/s 的 3
-# 不算数值）：「数字前不得是字母／数字／下划线／点」确保取到的是值本身
-# 而非单位内数字。
+# 数值词法（半角，含科学计数法与可选负号；前置词字符排斥——单位记号
+# m3/s 的 3 不算数值）：「数字（连同其负号）前不得是字母／数字／下划线
+# ／点」确保取到的是值本身而非单位内数字。负号面与表格两形
+# （_PLAIN_NUMBER/_ANCHORED_CELL）同口径——F3（e2e-audit 2026-11-19）：
+# 负值锚定行「：-0.3 m〔ZW-F11〕」曾按无符号 0.3 提取致锚定等值面②
+# 误报；连字负号（n-1 池／GB 50014-2021）仍被前置词字符排斥不吞号。
 _NUMBER_TOKEN = re.compile(
-    r"(?<![A-Za-z0-9_.])(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)"
+    r"(?<![A-Za-z0-9_.])(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)"
 )
 
 # 数值行形态：列表行 + 全角冒号（NumberLine 渲染形态契约）
@@ -102,7 +106,8 @@ def _serialize_universe(plant: PlantResult) -> set[float]:
 
 
 def _last_number(segment: str) -> float | None:
-    """段内最末数值词法（锚点前的值提取——排斥单位内数字）。"""
+    """段内最末数值词法（锚点前的值提取——排斥单位内数字；负值带号，
+    _NUMBER_TOKEN 负号面——F3 误报修正）。"""
     matches = _NUMBER_TOKEN.findall(segment)
     if not matches:
         return None

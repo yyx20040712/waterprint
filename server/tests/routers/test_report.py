@@ -77,6 +77,50 @@ def _cass_project_payload() -> dict[str, object]:
     }
 
 
+def _audit_plant_payload() -> dict[str, object]:
+    """审计同款三单元厂（e2e-audit run-20261119：市政进水 10000 m3/d、
+    kz=1.3 + 粗格栅 4 台 + 紫外默认参）——F3 复现载体。"""
+    return {
+        "project": {
+            "format_version": "1.0",
+            "design": {
+                "nodes": {
+                    "inlet": {
+                        "kind": "municipal_input",
+                        "q_avg_daily": 10000.0 / 86400,
+                        "kz": 1.3,
+                        "CODCR": 400.0,
+                        "BOD5": 200.0,
+                        "SS": 250.0,
+                        "NH3N": 25.0,
+                        "TN": 40.0,
+                        "TP": 5.0,
+                    },
+                    "municipal_cugeshan": {"n": 4},
+                    "municipal_ziwai": {},
+                },
+                "edges": [
+                    {
+                        "src": {"unit_id": "inlet", "port_id": "out"},
+                        "dst": {"unit_id": "municipal_cugeshan", "port_id": "in"},
+                    },
+                    {
+                        "src": {"unit_id": "municipal_cugeshan", "port_id": "out"},
+                        "dst": {"unit_id": "municipal_ziwai", "port_id": "in"},
+                    },
+                ],
+            },
+            "view": {},
+            "metadata": {
+                "format_version": "1.0",
+                "content_hash": "0",
+                "engine_version": "0",
+                "data_version": "0",
+            },
+        }
+    }
+
+
 async def _project_with_result(client) -> tuple[str, str]:  # type: ignore[no-untyped-def]
     """创建 CASS 项目并跑一次计算（结果集就绪——test_unit_detail 同款轮询）。"""
     created = await client.post("/api/projects", json=_cass_project_payload())
@@ -170,6 +214,38 @@ async def test_report_error_faces(client) -> None:  # type: ignore[no-untyped-de
     for probe in ("../escape", "..%2fescape", "x/../../escape"):
         response = await client.get(f"/api/calc/projects/{probe}/report")
         assert response.status_code < 500
+
+
+@pytest.mark.anyio
+async def test_report_negative_anchor_audit_plant_200(client) -> None:  # type: ignore[no-untyped-def]
+    """F3 回归（e2e-audit run-20261119）：审计三单元厂报告 200 且负值锚定全绿。
+
+    修前红证：值线词法吞负号——「模块淹没水深：-0.3 m〔ZW-F11〕」按 0.3
+    提取，与 design trace -0.3 不等 → ReportVerifyError 500（禁出件闸）。
+    期望值来源=docs/norms/ziwai.md ZW-F11 手算面：q_design=(10000/86400)
+    ×1.3=0.150463 m3/s → q_c=0.075231 → h_w_raw=0.075231/(0.4×1.2)
+    =0.156732 → 0.1 m 档 ceil=0.2 m；h_submerge=0.2−0.5（默认模块高）
+    = **-0.3 m**（灯管露出水面=警告在场，报告须诚实呈现负裕量）。"""
+    created = await client.post("/api/projects", json=_audit_plant_payload())
+    assert created.status_code == status.HTTP_200_OK
+    project_id = created.json()["project_id"]
+    task_id = (await client.post(
+        "/api/calc/run",
+        json={"project_id": project_id, "conditions": []},
+    )).json()["task_id"]
+    body: dict[str, object] = {}
+    for _ in range(300):
+        body = (await client.get(f"/api/calc/tasks/{task_id}")).json()
+        if body.get("state") in {"done", "failed"}:
+            break
+        await asyncio.sleep(0.1)
+    assert body["state"] == "done"
+    response = await client.get(f"/api/calc/projects/{project_id}/report")
+    assert response.status_code == status.HTTP_200_OK, response.text
+    markdown: str = response.json()["markdown"]
+    # 负值锚定行诚实在场（带号渲染+锚定等值面②绿）
+    assert "：-0.3 m〔ZW-F11〕" in markdown
+    assert "模块淹没水深" in markdown  # manifest 标签（h_submerge dims 行）
 
 
 @pytest.mark.anyio
