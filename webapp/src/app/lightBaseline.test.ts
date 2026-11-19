@@ -10,7 +10,8 @@
  *        〔themeModes.ts+其测试〕可持有，余域零命中）；②退役色板
  *        （C1 暗期+B4 亮期）零复入（三主题定义面两文件）；③global.css
  *        三主题块轴自持键逐模冻结（gold/gold-soft 恒值+scrollbar-hover
- *        派生三值+soft/canvas/shadow===MODE_COLORS）+规则体深底 hex 零
+ *        派生三值+soft/canvas/shadow/info-soft/grid-dot===MODE_COLORS
+ *        〔b3 增两键〕）+规则体深底 hex 零
  *        命中+全 src v4 旧轴键零残留（b1 并轴改名完备性）；④内联
  *        暗值文件清单逐文件零命中（D5 实测集）+R2/R3 锚；⑤prefers-
  *        color-scheme 媒体查询零基线（手动切换制）；⑥域色三模冻结
@@ -174,6 +175,13 @@ describe("判定面③：global.css 轴自持键逐模冻结+深底/旧轴键零
       );
       expect(vars.get("--wp-shadow"), `${mode} shadow`).toBe(
         c.shadow.toLowerCase(),
+      );
+      // b3 功能面重涂批两自持键（稿 info-soft/grid-dot——水线徽标软底/画布点阵）
+      expect(vars.get("--wp-info-soft"), `${mode} info-soft`).toBe(
+        c.infoSoft.toLowerCase(),
+      );
+      expect(vars.get("--wp-grid-dot"), `${mode} grid-dot`).toBe(
+        c.gridDot.toLowerCase(),
       );
     }
   });

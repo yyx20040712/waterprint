@@ -13,11 +13,12 @@
  *        写 ?tab= 他键原序保留）
  *
  * 规格说明（b2 任务书——八入口装配+URL 迁移）：
- *   - 入口体映射：workbench=WorkbenchZone〔项目列表+规划中条〕/process=
- *     ProcessZone〔工艺画布〕/parameters=ParametersZone〔参数+回填+方案
- *     三栏〕/analysis=AnalysisPane〔警告/出水/可信度/单元明细〕/compare=
- *     CompareZone〔工况矩阵〕/deliverables=DeliverablesZone〔图纸/总平面
- *     /计算说明〕/viewer3d=Viewer3dZone/ai=AiZone〔AI 窗+任务条〕；
+ *   - 入口体映射：workbench=WorkbenchZone〔b3 重涂：页头+指标带+当前工艺
+ *     +项目列表+右列四卡〕/process=ProcessZone〔b3 重涂：单元库目录/画布/
+ *     inspector 三栏〕/parameters=ParametersZone〔b3 重涂：对象树/参数+
+ *     回填/方案 三栏〕/analysis=AnalysisPane〔警告/出水/可信度/单元明细〕
+ *     /compare=CompareZone〔工况矩阵〕/deliverables=DeliverablesZone〔图纸
+ *     /总平面/计算说明〕/viewer3d=Viewer3dZone/ai=AiZone〔AI 窗+任务条〕；
  *   - setNav 单通道：NavRail 经此——withTabParam replaceState（他键原序
  *     保留）；deliverables 子页切换同经 setNav 带 subpage；
  *   - ?node= 双写主从：工艺画布选中→withNodeParam 独立写（task/enum
@@ -111,7 +112,10 @@ export function ShellV4() {
   switch (target.nav) {
     case "workbench":
       body = (
-        <WorkbenchZone onOpenProject={() => setNav({ nav: "process" })} />
+        <WorkbenchZone
+          onNavigate={setNav}
+          onOpenSettings={openSettings}
+        />
       );
       break;
     case "process":
@@ -119,6 +123,7 @@ export function ShellV4() {
         <ProcessZone
           selectedUnitId={selectedUnitId}
           onSelectedUnitChange={handleSelectedUnitChange}
+          onOpenParameters={() => setNav({ nav: "parameters" })}
         />
       );
       break;
@@ -126,6 +131,8 @@ export function ShellV4() {
       body = (
         <ParametersZone
           selectedUnitId={selectedUnitId}
+          onSelectedUnitChange={handleSelectedUnitChange}
+          onOpenProcess={() => setNav({ nav: "process" })}
           onOpenAnalysis={() => setNav({ nav: "analysis" })}
           onOpenCompare={() => setNav({ nav: "compare" })}
         />

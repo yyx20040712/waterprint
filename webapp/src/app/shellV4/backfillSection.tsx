@@ -1,16 +1,17 @@
 /**
- * v4 左栏计算回填区（B2 结果与方案批 2026-10-09——任务书 §三.2：B1 空态
- * 接真=计算后自动值回填+方案驱动回填标注〔数据流① 落点〕；wireframe 屏 1
- * 「计算回填 · 自动」形）。
+ * v4 计算回填区（B2 结果与方案批 2026-10-09；b2 壳重组批迁参数方案入口
+ * 主工作区；b3 功能面重涂批 2026-11-19——稿 parameters.html 计算回填表形
+ * 重制：.wp-v4-rt 四列表〔输出/值/单位/来源〕——取数/失效/方案驱动标注
+ * 逻辑零改）。
  *
  * 输入:  projectId+unitId（?node= 选中）+appliedSource（方案驱动来源——
  *        SolutionCards/JointSolutionCards onApplied 上抛态）+unit_detail
  *        端点（与 AnalysisPane 同键缓存共享——单次取数两面板消费）
  * 输出:  回填区：标题〔计算回填 · 自动｜方案驱动 · S07〕+选中单元计算派生
- *        值行族〔out_dims 满行取值面首 N 行——数据驱动非硬编码〕+空态
+ *        值表〔out_dims 满行取值面首 N 行——数据驱动非硬编码〕+空态
  *        （无结果/未选单元/加载中——白名单：空态引导）
  *
- * 规格说明（B2 任务书 §三.2+§二.③）：
+ * 规格说明（B2 任务书 §三.2+§二.③；b3 表形）：
  *   - 自动值回填=unit_detail rows 值面（value 非 null 行——首 6 行）；
  *   - 方案驱动标注=appliedSource.unitId 命中选中单元（S/J 编号随行）；
  *     未命中/无来源=「自动」态（计算后回填语义）；
@@ -81,6 +82,7 @@ export function BackfillSection({
       style={{
         flex: "none",
         borderTop: "1px solid var(--wp-border-2)",
+        background: "var(--wp-bg-container)",
         padding: "6px 10px 8px",
         maxHeight: "40%",
         overflow: "auto",
@@ -110,33 +112,46 @@ export function BackfillSection({
           {NO_RESULT_HINT}
         </span>
       ) : (
-        rowsWithValue.slice(0, BACKFILL_ROW_LIMIT).map((row) => (
-          <div
-            key={row.field_id}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 11,
-              lineHeight: 1.8,
-            }}
-          >
-            <span
-              title={row.field_id}
-              style={{ color: "var(--wp-text-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-            >
-              {row.label_zh ?? row.field_id}
-            </span>
-            <span
-              style={{
-                fontVariantNumeric: "tabular-nums",
-                fontFamily: "var(--wp-font-mono)",
-              }}
-            >
-              {formatSolutionValue(row.value ?? 0)}
-              <span style={{ color: "var(--wp-text-2)", marginLeft: 4 }}>{row.dim}</span>
-            </span>
-          </div>
-        ))
+        <table className="wp-v4-rt" style={{ fontSize: 11 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left" }}>输出</th>
+              <th>值</th>
+              <th style={{ textAlign: "left" }}>单位</th>
+              <th style={{ textAlign: "left" }}>来源</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rowsWithValue.slice(0, BACKFILL_ROW_LIMIT).map((row) => (
+              <tr key={row.field_id}>
+                <td style={{ textAlign: "left" }} title={row.field_id}>
+                  {row.label_zh ?? row.field_id}
+                </td>
+                <td
+                  style={{
+                    fontVariantNumeric: "tabular-nums",
+                    fontFamily: "var(--wp-font-mono)",
+                  }}
+                >
+                  {formatSolutionValue(row.value ?? 0)}
+                </td>
+                <td style={{ textAlign: "left", color: "var(--wp-text-2)" }}>
+                  {row.dim}
+                </td>
+                <td
+                  style={{
+                    textAlign: "left",
+                    color: "var(--wp-text-3)",
+                    fontFamily: "var(--wp-font-mono)",
+                    fontSize: 10,
+                  }}
+                >
+                  {row.field_id}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </section>
   );

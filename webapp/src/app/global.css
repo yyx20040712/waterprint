@@ -51,7 +51,10 @@
  * 以下为 antd 无槽位色，轴自持三态（不入对表——本头注口径）：
  *   --wp-accent-soft/--wp-success-soft/--wp-warning-soft/--wp-error-soft
  *   （稿 *-soft 四键——徽标/悬停/警示软底消费面）；--wp-canvas（稿
- *   canvas 画布底）；--wp-shadow（稿 shadow 浮层软影）。gold 族：稿无
+ *   canvas 画布底）；--wp-shadow（稿 shadow 浮层软影）；b3 功能面重涂批
+ *   增 --wp-info-soft（稿 info-soft——水线徽标软底）+--wp-grid-dot（稿
+ *   grid-dot——画布点阵格点）两自持键（逐模冻结锚=lightBaseline.test）。
+ *   gold 族：稿无
  *   鎏金（开放问题 5
  *   裁决前）→三模恒值轴自持（装饰金面单源=本轴，消费面=画布选中族）；
  *   --wp-scrollbar-hover：稿无此键=border 档派生（亮/暖深一档、暗浅一档
@@ -87,6 +90,9 @@
   --wp-error-soft: #f5e6e3;
   --wp-canvas: #edf2f0;
   --wp-shadow: rgba(39, 55, 49, 0.08);
+  /* b3 功能面重涂批两自持键（稿 info-soft/grid-dot——水线徽标软底/画布点阵） */
+  --wp-info-soft: #e4edf1;
+  --wp-grid-dot: #cbd5d0;
   /* gold 族三模恒值（稿无鎏金——开放问题 5 裁决前维持） */
   --wp-gold: #8a6100;
   --wp-gold-soft: rgba(138, 97, 0, 0.32);
@@ -117,6 +123,8 @@ html[data-theme="warm"] {
   --wp-error-soft: #eee0d7;
   --wp-canvas: #eae3d5;
   --wp-shadow: rgba(74, 61, 39, 0.08);
+  --wp-info-soft: #e4e5dc;
+  --wp-grid-dot: #d3c8b4;
   --wp-gold: #8a6100;
   --wp-gold-soft: rgba(138, 97, 0, 0.32);
   --wp-scrollbar-hover: #beb49e;
@@ -146,6 +154,8 @@ html[data-theme="dark"] {
   --wp-error-soft: #402b29;
   --wp-canvas: #131817;
   --wp-shadow: rgba(0, 0, 0, 0.18);
+  --wp-info-soft: #26363c;
+  --wp-grid-dot: #35413c;
   --wp-gold: #8a6100;
   --wp-gold-soft: rgba(138, 97, 0, 0.32);
   --wp-scrollbar-hover: #4a5751;
@@ -550,31 +560,107 @@ body {
   color: var(--wp-accent);
 }
 
-/* 缩略图节点（v4 画布节点形态） */
+/* 缩略图节点（b3 功能面重涂批——稿 network.html .flow-node 形：标题行
+   〔域色字形+中文名〕+id 行〔mono〕+域线 meta 行；水/泥线语义=域色轴） */
 .wp-v4-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: relative;
   background: transparent;
   border: none;
   padding: 0;
 }
-.wp-v4-thumb {
-  background: var(--wp-bg-container);
-  border: 1.5px solid var(--wp-border);
-  border-radius: 8px;
-  padding: 3px 6px;
+.wp-v4-node-card {
+  min-width: 128px;
+  max-width: 168px;
+  padding: 7px 9px;
+  background: var(--wp-bg-elevated);
+  border: 1px solid var(--wp-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 5px var(--wp-shadow);
   color: var(--wp-text);
+  text-align: left;
 }
-.wp-v4-node.selected .wp-v4-thumb {
-  border-color: var(--wp-accent);
+.wp-v4-node.selected .wp-v4-node-card {
+  border: 2px solid var(--wp-accent);
+  padding: 6px 8px;
   box-shadow: 0 0 0 3px var(--wp-accent-soft);
-  color: var(--wp-accent);
 }
-.wp-v4-cap {
-  font-size: 11px;
+.wp-v4-node.sludge .wp-v4-node-card {
+  border-color: color-mix(in srgb, var(--wp-sludge) 48%, var(--wp-border));
+}
+.wp-v4-node.selected.sludge .wp-v4-node-card {
+  border-color: var(--wp-accent);
+}
+.wp-v4-node-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--wp-water);
+}
+.wp-v4-node.sludge .wp-v4-node-title {
+  color: var(--wp-sludge);
+}
+.wp-v4-node-name {
   color: var(--wp-text);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wp-v4-node-id {
+  display: block;
   margin-top: 3px;
+  color: var(--wp-text-2);
+  font-family: var(--wp-font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wp-v4-node-meta {
+  display: block;
+  margin-top: 2px;
+  color: var(--wp-text-3);
+  font-size: 10px;
+}
+
+/* 画布图例（b3——稿 .flow-legend 横排单行：水线/泥线色条+虚线回流注；
+   色值=域色注入轴 var() 串，三主题随轴换肤） */
+.wp-v4-flow-legend {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 9px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 4px;
+  background: var(--wp-bg-elevated);
+  color: var(--wp-text-2);
+  font-size: 11px;
+  pointer-events: none;
+  z-index: 4;
+  box-shadow: 0 1px 4px var(--wp-shadow);
+}
+.wp-v4-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.wp-v4-legend-item > span {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+.wp-v4-legend-note {
+  color: var(--wp-text-3);
+}
+
+/* 画布点阵底（b3——稿 .dot-grid：--wp-canvas 底+--wp-grid-dot 点阵） */
+.wp-v4-dotgrid {
+  background-color: var(--wp-canvas);
+  background-image: radial-gradient(var(--wp-grid-dot) 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
 }
 
 /* 状态条（b2 壳重组批 30px——主题切换器入驻增高 6px；沿承 M1 位；
@@ -729,4 +815,430 @@ body {
   flex: none;
   border: 1px solid var(--wp-border);
   border-radius: 2px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * b3 功能面重涂批样式段（2026-11-19——三入口：工作台/工艺画布/参数
+ * 方案；值全数并轴 var()〔禁新字面色——lightBaseline/themeLinkage 守卫〕。
+ * ════════════════════════════════════════════════════════════════ */
+
+/* 徽标（稿 .badge 形——面板头/任务态/域线计数消费面） */
+.wp-v4-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: 3px;
+  background: var(--wp-bg-deep);
+  color: var(--wp-text-2);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.wp-v4-badge.accent {
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+.wp-v4-badge.ok {
+  background: var(--wp-success-soft);
+  color: var(--wp-success);
+}
+.wp-v4-badge.warn {
+  background: var(--wp-warning-soft);
+  color: var(--wp-warning);
+}
+.wp-v4-badge.error {
+  background: var(--wp-error-soft);
+  color: var(--wp-error);
+}
+.wp-v4-badge.water {
+  background: var(--wp-info-soft);
+  color: var(--wp-water);
+}
+.wp-v4-badge.sludge {
+  background: var(--wp-warning-soft);
+  color: var(--wp-sludge);
+}
+
+/* 列表行（稿 .list-row——继续工作/任务/对象树/端口行消费面；按钮形=
+   左对齐可点整行） */
+.wp-v4-list {
+  display: grid;
+}
+.wp-v4-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--wp-border-2);
+  font-size: 12px;
+}
+.wp-v4-list .wp-v4-row:last-child {
+  border-bottom: none;
+}
+button.wp-v4-row {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--wp-text);
+}
+.wp-v4-row:hover {
+  background: var(--wp-bg-deep);
+}
+.wp-v4-row.selected {
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+.wp-v4-row .main {
+  flex: 1;
+  min-width: 0;
+}
+.wp-v4-row .t {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wp-v4-row .s {
+  display: block;
+  margin-top: 1px;
+  color: var(--wp-text-2);
+  font-size: 10.5px;
+  font-family: var(--wp-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wp-v4-row.selected .s {
+  color: var(--wp-accent);
+}
+
+/* 侧栏搜索框（稿 .search——目录/对象树过滤） */
+.wp-v4-search {
+  margin: 8px;
+  flex: none;
+}
+.wp-v4-search input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 27px;
+  padding: 2px 8px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 4px;
+  background: var(--wp-bg-elevated);
+  color: var(--wp-text);
+  font-size: 11px;
+  outline: none;
+}
+.wp-v4-search input:focus {
+  border-color: var(--wp-accent);
+}
+
+/* 键位提示 chip（稿 .kbd——inspector 底注消费面） */
+.wp-v4-kbd {
+  display: inline-block;
+  padding: 0 4px;
+  border: 1px solid var(--wp-border-2);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--wp-bg-deep);
+  color: var(--wp-text-2);
+  font-family: var(--wp-font-mono);
+  font-size: 10px;
+}
+
+/* ── 工艺入口三栏（稿 network.html .three-pane.network-layout：左单元库
+   目录/中画布/右选中 inspector——常驻形〔滑出 vs 常驻判据=稿三栏并置〕） ── */
+.wp-v4-net {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+.wp-v4-pane {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--wp-bg-container);
+}
+.wp-v4-pane.left {
+  width: 198px;
+  border-right: 1px solid var(--wp-border-2);
+}
+.wp-v4-pane.right {
+  width: 262px;
+  border-left: 1px solid var(--wp-border-2);
+}
+.wp-v4-pane-head {
+  min-height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--wp-border-2);
+}
+.wp-v4-pane-head h3 {
+  font-size: 12.5px;
+  color: var(--wp-text);
+}
+.wp-v4-pane-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.wp-v4-pane-foot {
+  flex: none;
+  padding: 8px 12px;
+  border-top: 1px solid var(--wp-border-2);
+  color: var(--wp-text-3);
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+
+/* 单元库目录树（稿 .tree——一级类折叠组+二级单元行；点行=落画布） */
+.wp-v4-tree {
+  padding: 4px 6px;
+}
+.wp-v4-tree-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wp-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.wp-v4-tree-group:hover {
+  background: var(--wp-bg-deep);
+}
+.wp-v4-tree-group .chev {
+  color: var(--wp-text-3);
+  font-size: 9px;
+  line-height: 1;
+}
+.wp-v4-tree-group .cnt {
+  margin-left: auto;
+  color: var(--wp-text-3);
+  font-size: 10px;
+}
+.wp-v4-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 27px;
+  padding: 3px 8px 3px 22px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wp-text-2);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.wp-v4-tree-row:hover {
+  background: var(--wp-accent-soft);
+  color: var(--wp-accent);
+}
+.wp-v4-tree-row .plus {
+  margin-left: auto;
+  color: var(--wp-text-3);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* inspector 区块行（稿 .section——键值行/端口行/操作组消费面） */
+.wp-v4-insp-sec {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--wp-border-2);
+}
+.wp-v4-insp-sec h4 {
+  font-size: 11.5px;
+  color: var(--wp-text-2);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.wp-v4-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  line-height: 1.9;
+}
+.wp-v4-kv .k {
+  color: var(--wp-text-2);
+}
+.wp-v4-kv .v {
+  font-family: var(--wp-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.wp-v4-portrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--wp-border-2);
+  font-size: 11.5px;
+}
+.wp-v4-portrow:last-child {
+  border-bottom: none;
+}
+.wp-v4-portbar {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--wp-water);
+  flex: none;
+}
+.wp-v4-portbar.sludge {
+  background: var(--wp-sludge);
+}
+.wp-v4-portrow .pid {
+  margin-left: auto;
+  color: var(--wp-text-3);
+  font-family: var(--wp-font-mono);
+  font-size: 10.5px;
+}
+
+/* ── 工作台页（稿 workbench.html：页头+指标带+当前工艺+项目列表主列与
+   继续工作/任务/运行方式/规划能力右列） ── */
+.wp-wb {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wp-wb-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 18px 22px;
+}
+.wp-wb-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.wp-wb-head h1 {
+  font-size: 20px;
+  line-height: 1.3;
+}
+.wp-wb-sub {
+  margin-top: 4px;
+  color: var(--wp-text-2);
+  font-size: 12px;
+}
+.wp-wb-actions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  align-items: center;
+}
+.wp-wb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.7fr);
+  gap: 16px;
+  align-items: start;
+}
+.wp-wb-col {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  align-content: start;
+}
+.wp-wb-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  background: var(--wp-bg-container);
+  overflow: hidden;
+}
+.wp-wb-metric {
+  padding: 11px 13px;
+  border-right: 1px solid var(--wp-border-2);
+  min-width: 0;
+}
+.wp-wb-metric:last-child {
+  border-right: none;
+}
+.wp-wb-metric .label {
+  color: var(--wp-text-2);
+  font-size: 11px;
+}
+.wp-wb-metric .value {
+  margin-top: 3px;
+  font-family: var(--wp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.wp-wb-metric .note {
+  margin-top: 3px;
+  color: var(--wp-text-3);
+  font-size: 10.5px;
+}
+.wp-wb-panel {
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  background: var(--wp-bg-container);
+  overflow: hidden;
+}
+.wp-wb-panel-head {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--wp-border-2);
+  flex-wrap: wrap;
+}
+.wp-wb-panel-head h3 {
+  font-size: 13px;
+}
+.wp-wb-panel-head .aux {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.wp-wb-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--wp-text-2);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.wp-wb-strip .arr {
+  color: var(--wp-water);
+  font-size: 10px;
+}
+.wp-wb-strip .arr.sludge {
+  color: var(--wp-sludge);
+}
+@media (max-width: 1100px) {
+  .wp-wb-grid {
+    grid-template-columns: 1fr;
+  }
 }

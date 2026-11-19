@@ -1,19 +1,24 @@
 /**
- * v4 工艺画布缩略形态（B1 骨架批 2026-10-09——现行画布引擎复用、节点呈现
- * 换缩略图形态：react-flow 投影/草稿通道全沿 CanvasFlow 链，节点=预绘简笔
- * SVG+图题+左右锚点；无编辑模式——数据就绪自动 beginEdit，右键/拖拽/连线/
- * 删除均常规交互直开；wireframe-d-v4 屏 1 形）。
+ * v4 工艺画布缩略形态（B1 骨架批 2026-10-09；b3 功能面重涂批 2026-11-19
+ * ——节点卡按批准稿 network.html .flow-node 形重制〔b3 拆件 thumbnailNode：
+ * 标题行〔域色字形+中文名〕+id 行〔mono〕+域线 meta 行〕；水/泥线语义=CSS 轴
+ * var(--wp-water/sludge)——随主题注入轴换肤〕；连线/图例/MiniMap 全数
+ * 并轴 var() 化〔b1 遗留「JS 域色恒 light 档」收口〕；左树点选落画布
+ * 通道=addRequest 受控 prop〔screenToFlowPosition 画布中心落点〕）。
  *
- * 输入:  projectId+selectedUnitId（受控 ?node= 选中）+onSelectedUnitChange
- *        （选中上抛）+useProjectQuery（raw）+canvasStore（编辑会话——自动
- *        beginEdit）+useListUnitsApiUnitsGet（图题/端口表）
- * 输出:  缩略图画布：ThumbnailNode 域色缩略卡〔glyph+图题+
- *        左右锚点 Handle〕+连线（streamColorOf 域流色）+fitView+Controls
- *        +右键空白=HierarchicalCatalog 落点（screenToFlowPosition）；
- *        V4 P1：nodeId 副标行移除（用户裁决——id 显示无意义；data-node-id
- *        属性保留=探针/测试锚定面）
+ * 输入: projectId+selectedUnitId（受控 ?node= 选中）+onSelectedUnitChange
+ *        （选中上抛）+addRequest（左树点选落点请求——ProcessZone 上抛，
+ *        本件换算画布中心坐标落节点后 onAddHandled 回执）+useProjectQuery
+ *        （raw）+canvasStore（编辑会话——自动 beginEdit）+
+ *        useListUnitsApiUnitsGet（图题/端口表/业务线）
+ * 输出: 缩略图画布：ThumbnailNode 卡〔glyph+图题+id+域线 meta+左右锚点
+ *        Handle〕+连线（streamColorOf 域流色=轴变量串）+fitView+Controls
+ *        +MiniMap〔域色 nodeColor〕+图例〔水线/泥线/虚线为回流〕+右键
+ *        空白=HierarchicalCatalog 落点；V4 P1 id 副标移除裁决由 b3 批准
+ *        稿推翻（稿 .flow-node-id 行在场——id 显示恢复，data-node-id
+ *        探针锚保留）
  *
- * 规格说明（B1 任务书 §三.3——plan §九.1）：
+ * 规格说明（B1 任务书 §三.3+b3 批准稿 network.html 画布段）：
  *   - 引擎复用：projectFlow 投影+draftProjectRaw 草稿合成+canvasStore 五
  *     通道（connect/deleteNodes/position——M1 编辑链同源，v4 常开）；
  *   - 无编辑模式：raw 就绪且无会话→自动 beginEdit（快照红线⑤沿袭——
@@ -22,29 +27,28 @@
  *     store.addUnit+position 落右键坐标（新节点即在视线处）；
  *   - 锚点端口=目录首 IN/OUT 端口（catalog 未就绪/无端口回退 in/out 泛键
  *     ——B1 骨架口径；全端口面=B2 批裁量）；
- *   - 亮色：colorMode=light+白底（v4 亮色基线——CanvasFlow 深色面不复用）。
+ *   - b3 主题面：colorMode 随 themeStore（dark=暗档）+浮层底/边全轴色；
+ *     域色消费=var(--wp-*) 注入轴（零 JS hex——三主题即时换肤）。
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Controls,
-  Handle,
   MiniMap,
-  Position,
   ReactFlow,
   useReactFlow,
   type Connection,
   type Edge,
+  type Node,
   type NodeChange,
-  type NodeProps,
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { SEMANTIC_COLORS } from "../../shared/ui/semanticColors";
+import { useThemeStore } from "../../shared/store/themeStore";
 
 import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 import { useProjectQuery } from "../../features/canvas/api/useProjectQuery";
-import { projectFlow, type UnitFlowNode } from "../../features/canvas/lib/projectFlow";
+import { projectFlow } from "../../features/canvas/lib/projectFlow";
 import { draftProjectRaw } from "../../features/canvas/lib/designWriter";
 import { streamColorOf } from "../../features/canvas/lib/unitGlyph";
 import {
@@ -53,90 +57,56 @@ import {
   useEditBaseRaw,
   useEditing,
 } from "../../features/canvas/store/canvasStore";
-import { ThumbnailGlyph } from "../../features/canvas/components/thumbnailGlyph";
 import { HierarchicalCatalog } from "./hierarchicalCatalog";
+import { ThumbnailNode, type ThumbData } from "./thumbnailNode";
 
-/** 缩略图节点 data（渲染层聚合注入——投影 data 零触碰，M1 editData 同制）。 */
-type ThumbData = UnitFlowNode["data"] & {
-  nameZh?: string;
-  inPort?: string;
-  outPort?: string;
-};
-
-/** 缩略图节点（glyph+图题+左右锚点——selected 经 node.selected 驱动描边）。 */
-function ThumbnailNode({ data, selected }: NodeProps) {
-  const thumb = data as ThumbData;
-  const title = thumb.unitId;
-  return (
-    <div className={`wp-v4-node${selected ? " selected" : ""}`} data-node-id={title}>
-      <Handle
-        type="target"
-        position={Position.Left}
-        id={thumb.inPort ?? "in"}
-        style={{ background: "#ffffff", borderColor: "var(--wp-text-2)" }}
-      />
-      <span className="wp-v4-thumb">
-        <ThumbnailGlyph kind={thumb.kind ?? thumb.unitId} />
-      </span>
-      <span className="wp-v4-cap">{thumb.nameZh ?? title}</span>
-      <Handle
-        type="source"
-        position={Position.Right}
-        id={thumb.outPort ?? "out"}
-        style={{ background: "#ffffff", borderColor: "var(--wp-text-2)" }}
-      />
-    </div>
-  );
+/** 左树点选落点请求（ProcessZone 受控 prop——seq 变更即落一次）。 */
+export interface CanvasAddRequest {
+  unitId: string;
+  kind: "unit" | "builtin";
+  seq: number;
 }
 
 /** 自定义节点注册（模块级常量——引用稳定）。 */
 const NODE_TYPES: NodeTypes = { unit: ThumbnailNode };
 
-/** 画布图例行（V3 D1——连线域色图例：水线/泥线；色值单源
- *  SEMANTIC_COLORS.domain_*〔shared/ui/semanticColors 真源，禁字面 hex〕；
- *  12×3px 色条+11px 标签；空态提示同槽互斥——nodes>0 才渲染）。 */
+/** 画布图例行（V3 D1+b3 稿 .flow-leg形重制：横排单行 chip——水线/泥线
+ *  色条+「虚线为回流」注；色值=--wp-* 注入轴 var() 串〔b1 遗留 JS 域色
+ *  三态收口——随主题换肤零重渲染〕；空态提示同槽互斥——nodes>0 才渲染）。 */
 function FlowLegend() {
   const rows = [
     {
       key: "water",
       testid: "wp-v4-flow-legend-water",
       label: "水线",
-      color: SEMANTIC_COLORS.domain_water,
+      color: "var(--wp-water)",
     },
     {
       key: "sludge",
       testid: "wp-v4-flow-legend-sludge",
       label: "泥线",
-      color: SEMANTIC_COLORS.domain_sludge,
+      color: "var(--wp-sludge)",
     },
   ] as const;
   return (
     <div
+      className="wp-v4-flow-legend"
       data-testid="wp-v4-flow-legend"
-      style={{
-        position: "absolute",
-        left: 14,
-        top: 10,
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
-        pointerEvents: "none",
-        zIndex: 4,
-      }}
     >
       {rows.map((row) => (
-        <div
+        <span
           key={row.key}
           data-testid={row.testid}
-          style={{ display: "flex", alignItems: "center", gap: 6 }}
+          className="wp-v4-legend-item"
         >
           <span
             aria-hidden
-            style={{ width: 12, height: 3, background: row.color, borderRadius: 1 }}
+            style={{ background: row.color }}
           />
-          <span style={{ fontSize: 11, color: "var(--wp-text-2)" }}>{row.label}</span>
-        </div>
+          {row.label}
+        </span>
       ))}
+      <span className="wp-v4-legend-note">虚线为回流</span>
     </div>
   );
 }
@@ -185,27 +155,37 @@ export function ThumbnailFlow({
   projectId,
   selectedUnitId = null,
   onSelectedUnitChange,
+  addRequest = null,
+  onAddHandled,
 }: {
   projectId: string;
   /** ?node= 对象选中真相（受控——node.selected 驱动缩略卡描边）。 */
   selectedUnitId?: string | null;
   /** 选中写入回调（node 点击上抛——shellV4 写 ?node=）。 */
   onSelectedUnitChange: (unitId: string | null) => void;
+  /** 左树点选落点请求（seq 变更触发——null/同 seq 零动作）。 */
+  addRequest?: CanvasAddRequest | null;
+  /** 落点回执（addRequest 处理完成——ProcessZone 清请求态）。 */
+  onAddHandled?: () => void;
 }) {
   const query = useProjectQuery(projectId);
   const editing = useEditing(projectId);
   const draft = useDraft(projectId);
   const baseRaw = useEditBaseRaw(projectId);
   const catalog = useListUnitsApiUnitsGet();
-  // flow 实例（onInit 捕获——右键目录落点坐标换算；useReactFlow 在本组件
-  // 根不可用〔Provider 外〕——实例 ref 为 xyflow 官方外部消费通道；
+  const themeMode = useThemeStore((state) => state.mode);
+  // flow 实例（onInit 捕获——右键目录落点坐标换算+树点选中心落点；本组件
+  // 根在 Provider 外不可用 useReactFlow〔实例 ref=xyflow 官方外部消费通道〕
   // 泛型宽松面=仅消费 screenToFlowPosition 几何换算）
   const flowRef = useRef<{ screenToFlowPosition: (pos: { x: number; y: number }) => { x: number; y: number } } | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   // 受控测量回写（V3 W-A 回炉）：dimensions 变更累积 map——注入 node.measured
   const [measuredById, setMeasuredById] = useState<
     Record<string, { width: number; height: number }>
   >({});
+  // 树点选落点请求序（已处理 seq——同请求幂等跳过）
+  const handledAddSeqRef = useRef<number>(-1);
 
   // 无编辑模式：raw 就绪且无本项目会话→自动 beginEdit（幂等——同项目续会话）
   useEffect(() => {
@@ -232,13 +212,13 @@ export function ThumbnailFlow({
     }
   }, [projectionRaw]);
 
-  // 目录聚合：图题+锚点端口（查表键=kind ?? unitId——内置归 kind 键）
+  // 目录聚合：图题+锚点端口+业务线（查表键=kind ?? unitId——内置归 kind 键）
   const metaByUnit = useMemo(() => {
-    const map = new Map<string, { nameZh: string; inPort?: string; outPort?: string }>();
+    const map = new Map<string, { nameZh: string; inPort?: string; outPort?: string; line?: string | null }>();
     for (const unit of catalog.data?.units ?? []) {
       const inPort = (unit.ports ?? []).find((p) => p.direction === "IN")?.port_id;
       const outPort = (unit.ports ?? []).find((p) => p.direction === "OUT")?.port_id;
-      map.set(unit.unit_id, { nameZh: unit.name_zh, inPort, outPort });
+      map.set(unit.unit_id, { nameZh: unit.name_zh, inPort, outPort, line: unit.business_line ?? null });
     }
     return map;
   }, [catalog.data]);
@@ -251,32 +231,34 @@ export function ThumbnailFlow({
           ...node,
           selected: node.id === selectedUnitId,
           measured: measuredById[node.id],
-          data: { ...node.data, nameZh: meta?.nameZh, inPort: meta?.inPort, outPort: meta?.outPort },
+          data: { ...node.data, nameZh: meta?.nameZh, inPort: meta?.inPort, outPort: meta?.outPort, line: meta?.line },
         };
       }),
     [projection, selectedUnitId, metaByUnit, measuredById],
   );
 
-  const edges = useMemo<Edge[]>(() => {
-    const lineByNode = new Map<string, string | null>();
+  const lineByNode = useMemo(() => {
+    const map = new Map<string, string | null>();
     for (const node of projection?.nodes ?? []) {
-      const entry = (catalog.data?.units ?? []).find(
-        (unit) => unit.unit_id === (node.data.kind ?? node.data.unitId),
-      );
-      lineByNode.set(node.id, entry?.business_line ?? null);
+      map.set(node.id, metaByUnit.get(node.data.kind ?? node.data.unitId)?.line ?? null);
     }
+    return map;
+  }, [projection, metaByUnit]);
+
+  const edges = useMemo<Edge[]>(() => {
     return (projection?.edges ?? []).map((edge) => {
+      // b3：域流色=轴变量串（var(--wp-water/sludge)——随主题注入轴换肤）
       const color = streamColorOf(
         lineByNode.get(edge.source),
         lineByNode.get(edge.target),
       );
       return {
         ...edge,
-        style: { ...edge.style, stroke: color, strokeWidth: 1.6 },
+        style: { ...edge.style, stroke: color, strokeWidth: 1.8 },
         markerEnd: { type: "arrowclosed", color },
       };
     });
-  }, [projection, catalog.data]);
+  }, [projection, lineByNode]);
 
   const sig = nodes.length > 0 ? `${nodes.length}:${nodes[0]?.id ?? ""}` : "";
 
@@ -292,6 +274,21 @@ export function ThumbnailFlow({
       useCanvasStore.getState().position(nodeId, flowPos);
     }
   };
+
+  // b3 左树点选落点（画布中心 screenToFlowPosition——请求 seq 门幂等）
+  useEffect(() => {
+    if (addRequest === null || addRequest.seq === handledAddSeqRef.current) {
+      return;
+    }
+    handledAddSeqRef.current = addRequest.seq;
+    const rect = stageRef.current?.getBoundingClientRect();
+    const screen =
+      rect === undefined
+        ? { x: 0, y: 0 }
+        : { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    addFromCatalog({ unit_id: addRequest.unitId, kind: addRequest.kind }, screen);
+    onAddHandled?.();
+  }, [addRequest, onAddHandled]);
 
   if (query.isError) {
     return (
@@ -312,8 +309,16 @@ export function ThumbnailFlow({
     );
   }
 
+  const floatingStyle = {
+    background: "var(--wp-bg-elevated)",
+    border: "1px solid var(--wp-border-2)",
+    borderRadius: 8,
+    overflow: "hidden",
+    boxShadow: "0 2px 10px var(--wp-shadow)",
+  };
+
   return (
-    <div style={{ position: "relative", height: "100%", overflow: "hidden" }}>
+    <div ref={stageRef} style={{ position: "relative", height: "100%", overflow: "hidden" }}>
       <ReactFlow
         onInit={(instance) => {
           flowRef.current = instance;
@@ -323,7 +328,7 @@ export function ThumbnailFlow({
         nodeTypes={NODE_TYPES}
         fitView
         minZoom={0.1}
-        colorMode="light"
+        colorMode={themeMode === "dark" ? "dark" : "light"}
         nodesDraggable
         nodesConnectable
         elementsSelectable
@@ -384,33 +389,30 @@ export function ThumbnailFlow({
       >
         <FitViewOnNodes fitKey={sig} />
         {/* W-B 回炉：复位右下（V2 基线位——笔1 擅改 bottom-left 与 MiniMap
-            叠压且右下按钮组丢失，probe-minimap.json 实证嵌压；一行还原） */}
+            叠压且右下按钮组丢失，probe-minimap.json 实证嵌压；一行还原；
+            b3：底/边/影并轴 var() 化（三主题随轴换肤） */}
         <Controls
           showInteractive={false}
           position="bottom-right"
-          style={{
-            background: "#ffffff",
-            border: "1px solid var(--wp-border-2)",
-            borderRadius: 8,
-            overflow: "hidden",
-            boxShadow: "0 2px 10px rgba(31,35,41,.12)",
-          }}
+          style={floatingStyle}
         />
         {/* V3 D1：MiniMap 左下（与 Controls 右下对角；pannable/zoomable
-            +卡片壳同 Controls 制式）。W-C 注记：浮动面板遮画布左下节点
-            （golden 布局 2 节点）=浮动控件常态（fitView 动态视口可平移
-            避让，导航价值大于遮挡代价）——保留不移位。 */}
+            +卡片壳同 Controls 制式；b3：nodeColor=域色轴变量串〔水/泥线
+            语义延伸至缩略图〕+底色并轴）。W-C 注记：浮动面板遮画布左下
+            节点（golden 布局 2 节点）=浮动控件常态（fitView 动态视口可
+            平移避让，导航价值大于遮挡代价）——保留不移位。 */}
         <MiniMap
           position="bottom-left"
           pannable
           zoomable
-          style={{
-            background: "#ffffff",
-            border: "1px solid var(--wp-border-2)",
-            borderRadius: 8,
-            overflow: "hidden",
-            boxShadow: "0 2px 10px rgba(31,35,41,.12)",
-          }}
+          style={floatingStyle}
+          nodeColor={(node: Node) =>
+            lineByNode.get(node.id) === "sludge"
+              ? "var(--wp-sludge)"
+              : lineByNode.has(node.id)
+                ? "var(--wp-water)"
+                : "var(--wp-border)"
+          }
         />
       </ReactFlow>
       {nodes.length === 0 ? (

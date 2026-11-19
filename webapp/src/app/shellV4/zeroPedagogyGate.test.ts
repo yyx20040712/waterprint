@@ -102,9 +102,9 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
     expect(hits).toEqual([]);
   });
 
-  it("扫描面非空守卫：shellV4 生产件恰 26 件（扫描根漂移=静默绿防线；b2 壳重组批：zoneBand/designZone/networkZone/draftingZone/dockBar 五件退役〔→topBar/processZone/workbenchZone/deliverablesZone/aiZone〕+navRail/statusBar/parametersZone/compareZone 新入——八入口壳）", () => {
+  it("扫描面非空守卫：shellV4 生产件恰 29 件（扫描根漂移=静默绿防线；b2 壳重组批 26 件；b3 功能面重涂批 +unitLibraryPane/unitInspector/thumbnailNode 三件——工艺入口三栏与节点卡拆件）", () => {
     const sources = scanShellV4Sources(SCAN_DIR);
-    expect(sources.length).toBe(26);
+    expect(sources.length).toBe(29);
     expect(sources.map((s) => s.rel).sort()).toEqual(
       [
         "aiZone.tsx",
@@ -130,6 +130,9 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
         "themeSwitch.tsx",
         "thumbnailFlow.tsx",
         "topBar.tsx",
+        "unitInspector.tsx",
+        "unitLibraryPane.tsx",
+        "thumbnailNode.tsx",
         "usePaneWidth.ts",
         "viewer3dZone.tsx",
         "workbenchZone.tsx",

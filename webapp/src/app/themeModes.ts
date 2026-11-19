@@ -60,6 +60,8 @@ export const MODE_COLORS = {
     errorSoft: "#f5e6e3", // 稿 error-soft（轴自持）
     canvas: "#edf2f0", // 稿 canvas（画布底——轴自持）
     shadow: "rgba(39, 55, 49, 0.08)", // 稿 shadow（轴自持）
+    infoSoft: "#e4edf1", // 稿 info-soft（水线徽标软底——轴自持；b3 功能面重涂批）
+    gridDot: "#cbd5d0", // 稿 grid-dot（画布点阵格点——轴自持；b3 功能面重涂批）
   },
   warm: {
     bgPage: "#eee9dd",
@@ -82,6 +84,8 @@ export const MODE_COLORS = {
     errorSoft: "#eee0d7",
     canvas: "#eae3d5",
     shadow: "rgba(74, 61, 39, 0.08)",
+    infoSoft: "#e4e5dc",
+    gridDot: "#d3c8b4",
   },
   dark: {
     bgPage: "#161b1a",
@@ -104,6 +108,8 @@ export const MODE_COLORS = {
     errorSoft: "#402b29",
     canvas: "#131817",
     shadow: "rgba(0, 0, 0, 0.18)",
+    infoSoft: "#26363c",
+    gridDot: "#35413c",
   },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 

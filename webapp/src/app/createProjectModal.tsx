@@ -48,6 +48,7 @@ export function CreateProjectModal({
   open,
   onClose,
   onCreated,
+  initialMode = "blank",
 }: {
   /** 开态（写方 pane 持有）。 */
   open: boolean;
@@ -55,8 +56,11 @@ export function CreateProjectModal({
   onClose: () => void;
   /** 建项成功回调（projectId=新项目 id——写方回写 ?project=）。 */
   onCreated: (projectId: string) => void;
+  /** 初始模式（b3 功能面重涂批——工作台页头「导入项目」钮直开导入态；
+   *  缺省 blank=M1 面零行为变）。 */
+  initialMode?: CreateMode;
 }) {
-  const [mode, setMode] = useState<CreateMode>("blank");
+  const [mode, setMode] = useState<CreateMode>(initialMode);
   const [name, setName] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileText, setFileText] = useState<string | null>(null);
@@ -96,7 +100,7 @@ export function CreateProjectModal({
 
   /** 重置表单态并关弹窗（成功/取消统一面——二次打开零残留）。 */
   function resetAndClose() {
-    setMode("blank");
+    setMode(initialMode);
     setName("");
     setFileName(null);
     setFileText(null);
@@ -107,7 +111,7 @@ export function CreateProjectModal({
 
   return (
     <Modal
-      title="新建项目"
+      title={mode === "import" ? "导入项目" : "新建项目"}
       open={open}
       onCancel={resetAndClose}
       footer={null}

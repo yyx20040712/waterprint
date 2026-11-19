@@ -36,9 +36,9 @@ import type { ThemeMode } from "../store/themeStore";
  * ——零 var() 消费方〕；改色=改本表一处两轴同步）。
  * b1 主题地基批（2026-11-19）：扩三模记录——值=已批准设计稿域色三态
  * （稿口径「水线与泥线始终可区分」——暗色提亮/暖色降饱和各自校准；
- * 稿无 neutral 键→回退灰三模恒值）。JS 面 domain_* 键冻结 light 档
- * 〔SVG/Canvas 属性面不能 var() 且不随 store 重渲染——三态随画布
- * 重涂批接管〕。 */
+ * 稿无 neutral 键→回退灰三模恒值）。b3 功能面重涂批（2026-11-19）：
+ * DOM/SVG 消费面经注入轴 var(--wp-*) 三态取值〔unitGlyph
+ * DOMAIN_COLOR_VARS〕——本表=轴注入单源，画布/图例/连线随主题换肤。 */
 export const DOMAIN_COLORS = {
   light: {
     water: "#286b86", // 市政水线（municipal）
@@ -122,8 +122,11 @@ export const SEMANTIC_COLORS = {
   pipe_water: DOMAIN_COLORS.light.water,
   pipe_sludge: DOMAIN_COLORS.light.sludge,
   // B3-b 四域色 JS 面（unitGlyph 域色/stream 色+CanvasFlow 图例线色收编
-  // ——同值搬家；CSS 轴 --wp-* 联动义务见 UF-53；b1：JS 面冻结 light
-  // 档——SVG/Canvas 消费面三态随画布重涂批）
+  // ——同值搬家；CSS 轴 --wp-* 联动义务见 UF-53；b3 功能面重涂批
+  // 2026-11-19：DOM/SVG 消费面改经 unitGlyph DOMAIN_COLOR_VARS 取注入轴
+  // 〔var(--wp-*)——三态随 installDomainColorAxis 换肤〕；本组键=非 DOM
+  // JS 消费面（Canvas/Three 等不能 var() 的图元）light 档参照值保留，
+  // 三态接管真源=DOMAIN_COLORS 按模记录）
   domain_water: DOMAIN_COLORS.light.water,
   domain_sludge: DOMAIN_COLORS.light.sludge,
   domain_mine: DOMAIN_COLORS.light.mine,

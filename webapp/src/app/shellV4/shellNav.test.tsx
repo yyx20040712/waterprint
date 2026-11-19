@@ -77,6 +77,28 @@ vi.mock("../viewer3dPane", () => ({
 vi.mock("./projectsZone", () => ({
   ProjectsZone: () => <section data-testid="wp-v4-projects-stub" />,
 }));
+// b3 工作台重涂面 stub（建项 Modal/校验聚合/对象树清单——工作台专测件
+// workbenchZone.test 承载真件断言）
+vi.mock("../createProjectModal", () => ({
+  CreateProjectModal: () => null,
+}));
+vi.mock("../../features/validation/api/useValidationQuery", () => ({
+  useValidationQuery: () => ({
+    data: undefined,
+    isError: false,
+    error: null,
+  }),
+}));
+vi.mock("../../features/solutions/api/useProjectUnits", () => ({
+  useProjectUnits: () => ({
+    data: [
+      { unitId: "municipal_aao", kind: null },
+      { unitId: "municipal_cass", kind: null },
+    ],
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../../features/drawings/api/useExportsQuery", () => ({
   useExportsQuery: () => ({ data: [], isError: false, isPending: false }),
   useConditionOptions: () => ({ data: [] }),

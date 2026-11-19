@@ -27,7 +27,7 @@ const DRAFT_PALETTES = {
     success: "#2f7151", successSoft: "#e4efe7",
     warning: "#87600f", warningSoft: "#f4ecd9",
     error: "#a3453d", errorSoft: "#f5e6e3", canvas: "#edf2f0",
-    shadow: "rgba(39, 55, 49, 0.08)",
+    shadow: "rgba(39, 55, 49, 0.08)", infoSoft: "#e4edf1", gridDot: "#cbd5d0",
   },
   warm: {
     bgPage: "#eee9dd", bgContainer: "#f7f2e7", bgElevated: "#fbf7ee",
@@ -37,7 +37,7 @@ const DRAFT_PALETTES = {
     success: "#52704c", successSoft: "#e7eadb",
     warning: "#765214", warningSoft: "#eee2c8",
     error: "#8b493e", errorSoft: "#eee0d7", canvas: "#eae3d5",
-    shadow: "rgba(74, 61, 39, 0.08)",
+    shadow: "rgba(74, 61, 39, 0.08)", infoSoft: "#e4e5dc", gridDot: "#d3c8b4",
   },
   dark: {
     bgPage: "#161b1a", bgContainer: "#1e2423", bgElevated: "#242b29",
@@ -47,12 +47,12 @@ const DRAFT_PALETTES = {
     success: "#88bb96", successSoft: "#24382b",
     warning: "#d2ae6b", warningSoft: "#3b3323",
     error: "#df9289", errorSoft: "#402b29", canvas: "#131817",
-    shadow: "rgba(0, 0, 0, 0.18)",
+    shadow: "rgba(0, 0, 0, 0.18)", infoSoft: "#26363c", gridDot: "#35413c",
   },
 } as const;
 
 describe("themeModes 三主题 antd 配置面（b1 主题地基批）", () => {
-  it("三模色板=设计稿字面（逐键逐模冻结——19 键）", () => {
+  it("三模色板=设计稿字面（逐键逐模冻结——21 键；b3 增 info-soft/grid-dot 两自持键）", () => {
     expect([...THEME_MODES].sort()).toEqual(["dark", "light", "warm"]);
     for (const mode of THEME_MODES) {
       expect(MODE_COLORS[mode], `色板键集 ${mode}`).toEqual({

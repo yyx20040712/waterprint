@@ -1,18 +1,21 @@
 /**
- * v4 项目区（B1 骨架批 2026-10-09——projectManagerModal 内核升页面：列表+
- * 新建/导入/搜索+打开/复制/重命名；wireframe-d-v4 屏 4 形）。
+ * v4 项目区（B1 骨架批 2026-10-09——projectManagerModal 内核升页面；b3
+ * 功能面重涂批 2026-11-19——稿 workbench.html .panel 项目列表面板形：面板
+ * 头〔标题+计数徽标+搜索〕+项目表；新建/导入钮上提工作台页头〔CreateProject
+ * Modal 随迁——本区仅列表逻辑〕）。
  *
- * 输入:  useListProjectsApiProjectsGet 项目列表+CreateProjectModal（新建/
- *        导入两态复用件）+copy/rename 生成突变（projectManagerModal 同链）
- *        +useProjectId（打开=切项目+切 design 区）
- * 输出:  projects 区：工具行（新建项目/导入 JSON/搜索框）+项目表（名称/
- *        ID/更新时间/操作〔打开/复制/重命名〕）+重命名行内 Modal
+ * 输入:  useListProjectsApiProjectsGet 项目列表+copy/rename/delete 生成
+ *        突变（projectManagerModal 同链）+useProjectId（打开=切项目+落
+ *        工艺页）
+ * 输出:  projects 面板：面板头（项目列表+本地项目/N 个项目徽标+搜索框）
+ *        +项目表（名称/更新时间/操作〔打开/复制/重命名/删除〕）+重命名
+ *        行内 Modal
  *
- * 规格说明（B1 任务书 §三.2——逻辑复用 projectManagerModal 内核升页面）：
- *   - 打开=useProjectId setter（?project= 单一真相回写）+onOpen 切 design
- *     区（打开即进设计工作台——wireframe 屏 4 动线）；
- *   - 复制/重命名=服务端突变+列表 invalidate（Modal 内核同链；重命名
- *     入参校验=normalizeProjectName 纯函数复用）；
+ * 规格说明（B1 任务书 §三.2；b3 面板形——逻辑零改）：
+ *   - 打开=useProjectId setter（?project= 单一真相回写）+onOpen 落工艺
+ *     入口（b2 迁移动线沿承——切项目清 ?node= 幻影选中双面根治）；
+ *   - 复制/重命名/删除=服务端突变+列表 invalidate（Modal 内核同链；重命名
+ *     入参校验=normalizeProjectName 纯函数复用；删除=V3 D4 显式确认）；
  *   - 搜索=名称/ID 前端过滤（本地过滤零新端点）；
  *   - 空态/错误态=空态引导/错误提示（微文案白名单）。
  */
@@ -30,7 +33,6 @@ import {
   useRenameProjectApiProjectsProjectIdRenamePost,
 } from "../../shared/api/generated/projects/projects";
 import type { WaterprintApiError } from "../../shared/api/http";
-import { CreateProjectModal } from "../createProjectModal";
 import {
   normalizeProjectName,
   projectOptionLabel,
@@ -47,7 +49,6 @@ const NAME_MAX = 100;
 export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
   const [projectId, setProjectId] = useProjectId();
   const [search, setSearch] = useState("");
-  const [createOpen, setCreateOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<{
     projectId: string;
     current: string;
@@ -130,7 +131,7 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
   const renameCheck = normalizeProjectName(renameValue);
 
   /** 打开=切项目+清 ?node=（回炉 R16——切项目幻影选中根治：旧项目节点
-   *  选中键随开清剥，replaceState 他键保留制）+onOpen 切 design 区。 */
+   *  选中键随开清剥，replaceState 他键保留制）+onOpen 落工艺入口。 */
   const openProject = (id: string) => {
     setProjectId(id);
     const nextSearch = withNodeParam(window.location.search, null);
@@ -234,18 +235,14 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
   ];
 
   return (
-    <section
-      data-region="projects"
-      style={{ flex: 1, minWidth: 0, overflow: "auto", padding: "14px 18px" }}
-    >
+    <section className="wp-wb-panel" data-region="projects">
       {contextHolder}
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <Button type="primary" onClick={() => setCreateOpen(true)} data-testid="wp-v4-proj-create">
-          新建项目
-        </Button>
-        <Button onClick={() => setCreateOpen(true)} data-testid="wp-v4-proj-import">
-          导入 JSON
-        </Button>
+      <div className="wp-wb-panel-head">
+        <div className="aux">
+          <h3>项目列表</h3>
+          <span className="wp-v4-badge">本地项目</span>
+          <span className="wp-v4-badge">{projects.length} 个项目</span>
+        </div>
         <Input
           {...SEARCH_PROPS}
           allowClear
@@ -272,14 +269,6 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
         pagination={false}
         locale={{ emptyText: "暂无项目——点击「新建项目」创建或导入 JSON" }}
         data-testid="wp-v4-proj-table"
-      />
-      <CreateProjectModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={(created) => {
-          setCreateOpen(false);
-          openProject(created);
-        }}
       />
       <Modal
         title={`重命名项目${

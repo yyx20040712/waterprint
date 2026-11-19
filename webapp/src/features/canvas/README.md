@@ -34,8 +34,8 @@
 | `lib/projectFlow.ts` | 投影层纯函数（design JSON→React Flow nodes/edges：D6 窄化门/D3 布局[波次分层+R-1 S 形折行]/D1 端口方向聚合+recycle 虚线——零运行期库 import）；R2-P1-1（E2E-4 批 2026-09-25）：fallbackLayout X 起点=LAYOUT_X_ORIGIN 80（活动区避开画布左缘覆盖面——节点卡被侧栏盖住无法选中；右下小地图覆盖面由批2 编辑态自动 fitView 缓解） |
 | `lib/projectFlow.test.ts` | 投影层 vitest（node 环境 32 用例：版本轻门/形状逐类拒/悬空边/kind 徽标/端口聚合/虚线/布局优先与兜底折行确定性） |
 | `lib/projectFlow.guards.test.ts` | projectFlow 窄化门守卫负例（AUDIT2 FIX2 I-8 独立件） |
-| `lib/unitGlyph.ts` | 象形图标+域色纯函数（32 unit_id+4 内置 kind → Unicode 字形；business_line → 节点域色/边流色两色制——C2-canvas P3/P4；B3-b：四域色+中性色值单源=shared/ui/semanticColors domain_* 键〔本件持 business_line→键映射+图标三色组+流色规则〕） |
-| `lib/unitGlyph.test.ts` | 字形/域色 vitest（9 用例：32 键全枚举防漏+聚类抽样+回退 ▢+域色五值+流色三态） |
+| `lib/unitGlyph.ts` | 象形图标+域色纯函数（32 unit_id+4 内置 kind → Unicode 字形；business_line → 节点域色/边流色两色制——C2-canvas P3/P4；B3-b 域色单源收编；b3 功能面重涂批 2026-11-19：domainColorOf/streamColorOf/domainIconStyle 改 CSS 变量串输出〔DOMAIN_COLOR_VARS→注入轴 --wp-water/sludge/mine/convey——随主题换肤零重渲染；b1 遗留「JS 域色恒 light 档」收口；图标三色组=color-mix 自轴派生 rgba 组退役〕） |
+| `lib/unitGlyph.test.ts` | 字形/域色 vitest（32 键全枚举防漏+聚类抽样+回退 ▢+域色五值〔b3：轴变量串断言〕+图标三色组派生+流色三态——9 用例） |
 | `components/thumbnailGlyph.tsx` | 缩略图字形件（B1 骨架批 2026-10-09：36 类预绘简笔 SVG——32 包 unit_id+4 builtin kind，线性 currentColor/viewBox 64×40，同类族结构母题+族内分异；THUMBNAIL_GLYPH_KINDS 键集与 app 层映射表全域对账〔app/catalogCategories.test——分层红线本件不持映射表〕；未知 kind 回退虚线象形框） |
 | `components/thumbnailGlyph.test.tsx` | 缩略图字形 vitest（jsdom 4 断言族：36 键无重/hasThumbnailGlyph 判别/全量 kind 渲染冒烟〔svg 根+线性 stroke〕/未知 kind 回退——目录全量×键集对账在 app 层 catalogCategories.test） |
 | `store/canvasStore.ts` | 编辑会话 zustand（P0-3 实装：beginEdit 快照摄入[红线⑤隔离]/designWriter 薄壳通道/dirty 四面引用派生/markSaved 自清/selector 带 projectId 守卫——服务端缓存态不进 store §17.2 维持） |
