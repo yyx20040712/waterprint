@@ -61,11 +61,11 @@ import {
 import { assumptionLabel } from "../lib/assumptionLabels";
 import { CONTROL_WIDTH, UNIT_SUFFIX_STYLE } from "./ParamForm";
 
-const SELECT_BLUE = "#1668dc";
-/* GRAY_SMALL 小字灰（UX2 沿袭存量——antd 灰非 --wp 轴色；AL-N-03 R2
- * 注记存量例外。B4 亮底复核：暗期中灰白底 3.36:1 低于正文 4.5:1
- * →FG-2 同值档 #646a73〔5.45:1〕微裁决改值）。 */
-const GRAY_SMALL = { color: "#646a73", fontSize: 11 };
+/* 美感抛光批 #1：硬编码蓝点/灰字入轴——SELECT_BLUE #1668dc→
+ * var(--wp-accent)、GRAY_SMALL #646a73→var(--wp-text-2)（三主题随轴
+ * 换肤，夜间亮白分隔线/冷蓝杂点根除；ParamForm 同批同改）。 */
+const SELECT_MARKER = "var(--wp-accent)";
+const GRAY_SMALL = { color: "var(--wp-text-2)", fontSize: 11 };
 
 /** 展开钮（左侧——用户口径；约束参数面板行无此钮=两页唯一形态差）。 */
 function ExpandToggle({
@@ -117,29 +117,28 @@ function AssumptionLine({
   const effective =
     draft !== undefined ? draft : reset ? row.defaultValue : row.value;
   return (
-    // 行分隔 #e8eaed=--wp-border-2 亮值同值（B4 亮底化——暗期深蓝
-    // 透明派生字面量随批退役）——ParamForm 参数行存量同值（格式对齐
-    // 复制；AL-N-02 R2 注记）
+    // 行分隔=--wp-border-2 轴（美感抛光批 #1——#e8eaed 亮值字面量退役，
+    // 夜间不再显亮白扫描线；ParamForm 参数行同批同改）
     <div
       data-testid={`assumption-row-${row.key}`}
-      style={{ display: "flex", gap: 4, padding: "7px 0", borderBottom: "1px solid #e8eaed" }}
+      style={{ display: "flex", gap: 4, padding: "7px 0", borderBottom: "1px solid var(--wp-border-2)" }}
     >
       <div style={{ flex: "none", paddingTop: 3 }}>
         <ExpandToggle expanded={expanded} onToggle={onToggleExpand} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          {/* 标签列=ParamForm Q3 同构（中文物理意义 12.5 text-2+蓝点+
+          {/* 标签列=ParamForm Q3 同构（中文物理意义 13 text-2+覆盖点+
               key 悬浮追溯） */}
           <span
             title={row.key}
-            style={{ fontSize: 12.5, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}
+            style={{ fontSize: 13, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}
           >
             {assumptionLabel(row.key)}
             {row.overridden ? (
               <span
                 title="项目覆盖值（design.assumption_overrides）"
-                style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: SELECT_BLUE }}
+                style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: SELECT_MARKER }}
               />
             ) : null}
           </span>

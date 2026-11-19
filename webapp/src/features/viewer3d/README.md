@@ -43,7 +43,7 @@
 |------|------|
 | `lib/projectScene.ts` | 投影层纯函数本体：SceneResponse JSON → 渲染描述对象（组件薄壳唯一数据源；SCENE_VERSION 门/六 kind/变换门/bounds 聚合） |
 | `lib/groundPlan.ts` | C2-3d V1/V2 地面/网格/灯位数据派生（Scene 抽离件——500 行预算门） |
-| `lib/sceneTheme.ts` | 三维场景三主题调色板（b4 功能面重涂 II 批——开放问题 9 裁决「随主题」：草地/网格四键逐模派生字面〔light=现值零漂移锚〕+轴三键〔工程底 --wp-canvas/标注字 --wp-text/描边 --wp-bg-page〕运行期 getComputedStyle 真源读取〔缺席=纯表回退〕——Three.js 材质不能 var() 的 JS 面形态） |
+| `lib/sceneTheme.ts` | 三维场景三主题调色板（b4 功能面重涂 II 批——开放问题 9 裁决「随主题」：草地/网格四键逐模派生字面+轴三键〔工程底 --wp-canvas/标注字 --wp-text/描边 --wp-bg-page〕运行期 getComputedStyle 真源读取〔缺席=纯表回退〕——Three.js 材质不能 var() 的 JS 面形态；美感抛光批 2026-11-20 #10：网格降权——light 主格 #54719f→#8b9aa9 蓝饱和度收口/次格弱一档，不透明度分层〔主 0.6/次 0.4——GroundStage 材质面〕，草地值零漂移） |
 | `lib/sceneTheme.test.ts` | sceneTheme vitest（node——草地/网格四键逐模冻结+轴三键真源读取/回退两径+三模键集完备） |
 | `lib/usePoolGroups.ts` | S11 池组计划/徽标数据通道（Scene 抽离件——500 行预算门） |
 | `assemble/missingSlots.ts` | 检修缺位占位数据派生（spec.md §11 S11——数据源=params/结果面） |

@@ -121,7 +121,7 @@ function TaskStrip({
           marginBottom: 6,
         }}
       >
-        <h4 style={{ fontSize: 11.5, color: "var(--wp-text-2)", letterSpacing: 0.5 }}>
+        <h4 style={{ fontSize: 12, color: "var(--wp-text-2)", letterSpacing: 0.5 }}>
           任务 · 校验
         </h4>
         {effective?.stale === true ? (
@@ -136,9 +136,16 @@ function TaskStrip({
         <div
           className="wp-v4-task-row"
           data-testid="wp-v4-task-row"
-          // B2 完成直达：done 行可点（title 述义——枚举任务携相关单元）
+          // B2 完成直达：done 行可点（title 述义——枚举任务携相关单元）；
+          // 美感抛光批 #11：flexWrap——窄栏空间不足时进度条/百分比换行，
+          // 状态徽标 nowrap 不再竖断
           title={state === "done" ? "点击查看分析表" : undefined}
-          style={{ cursor: state === "done" ? "pointer" : undefined, padding: "3px 0" }}
+          style={{
+            cursor: state === "done" ? "pointer" : undefined,
+            padding: "3px 0",
+            flexWrap: "wrap",
+            rowGap: 4,
+          }}
           onClick={() => {
             if (state !== "done" || onTaskNavigate === undefined) {
               return;
@@ -182,6 +189,7 @@ function TaskStrip({
               fontSize: 10,
               borderRadius: 3,
               padding: "0 5px",
+              whiteSpace: "nowrap",
               color: state === "done" ? "var(--wp-success)" : state === "failed" ? "var(--wp-error)" : "var(--wp-text-2)",
               background:
                 state === "done"
@@ -238,14 +246,20 @@ function AiContextPane({
       <div className="wp-v4-pane-body">
         <div className="wp-v4-insp-sec">
           <h4>当前项目</h4>
-          <strong style={{ fontSize: 12 }}>{projectName ?? "未选择项目"}</strong>
-          <div className="wp-v4-kv" style={{ marginTop: 6 }}>
-            <span className="k">项目 id</span>
-            <span className="v" title={projectId ?? undefined}>
+          <strong style={{ fontSize: 13 }}>{projectName ?? "未选择项目"}</strong>
+          {/* 美感抛光批 #11：长项目 id=独立块级 code（11px mono+任意断行，
+              不与标签做左右 flex 挤占——右栏窄空间网格修复） */}
+          <div style={{ marginTop: 6 }}>
+            <span style={{ color: "var(--wp-text-2)" }}>项目 id</span>
+            <code
+              className="wp-v4-mono-id"
+              title={projectId ?? undefined}
+              data-testid="wp-v4-ai-project-id"
+            >
               {projectId ?? "—"}
-            </span>
+            </code>
           </div>
-          <div className="wp-v4-kv">
+          <div className="wp-v4-kv" style={{ marginTop: 6 }}>
             <span className="k">选中单元</span>
             <span className="v" title={selectedUnit ?? undefined}>
               {selectedUnit ?? "—"}
@@ -255,10 +269,10 @@ function AiContextPane({
         <AiToolSummary sessionId={sessionId} />
         <div className="wp-v4-insp-sec">
           <h4>模型与降级</h4>
-          <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11, lineHeight: 1.7 }}>
+          <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12, lineHeight: 1.7 }}>
             {CONTEXT_MODEL_NOTE}
           </p>
-          <p style={{ margin: "8px 0 0", color: "var(--wp-text-3)", fontSize: 10.5, lineHeight: 1.7 }}>
+          <p style={{ margin: "8px 0 0", color: "var(--wp-text-3)", fontSize: 11, lineHeight: 1.7 }}>
             配置入口在会话头「模型配置」钮。
           </p>
         </div>
@@ -302,7 +316,7 @@ function AiToolSummary({ sessionId }: { sessionId: string | null }) {
         ) : null}
       </h4>
       {lastTools.length === 0 ? (
-        <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11 }}>尚无工具调用</p>
+        <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12 }}>尚无工具调用</p>
       ) : (
         <div className="wp-v4-list">
           {lastTools.map((step, index) => (
@@ -313,7 +327,7 @@ function AiToolSummary({ sessionId }: { sessionId: string | null }) {
               >
                 {step["ok"] === true ? "✓" : "✕"}
               </span>
-              <span style={{ minWidth: 0, fontSize: 11.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ minWidth: 0, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {typeof step["name"] === "string" ? step["name"] : "工具调用"}
               </span>
             </div>

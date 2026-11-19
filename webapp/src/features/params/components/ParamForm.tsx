@@ -81,8 +81,8 @@ import { useThrottledCommit } from "../hooks/useThrottledCommit";
 import { useParamsStore } from "../store/paramsStore";
 import { RequiredFieldsGuide } from "./RequiredFieldsGuide";
 
-/** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
-const SELECT_BLUE = "#1668dc";
+/** 覆盖标记点色（美感抛光批 #1：#1668dc 入轴=--wp-accent 随主题换肤）。 */
+const SELECT_MARKER = "var(--wp-accent)";
 
 /** 控件列宽（视觉稿 A num-input 122px 级——flex none 右对齐）。
  * C2-ALIGN A5r 导出共享：AssumptionsPanel（经验取值页）行格式对齐
@@ -110,12 +110,12 @@ export const UNIT_SUFFIX_STYLE: React.CSSProperties = {
   borderBottomRightRadius: 4,
 };
 
-/** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
+/** 覆盖标记点（design 值存在——非语义色，交互反馈面）。 */
 function OverrideDot() {
   return (
     <span
       title="design 覆盖值（非 manifest 默认）"
-      style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: SELECT_BLUE }}
+      style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: SELECT_MARKER }}
     />
   );
 }
@@ -315,14 +315,14 @@ export function ParamForm({
             return (
               <label
                 key={fieldId}
-                style={{ display: "block", padding: "7px 0", borderBottom: "1px solid #e8eaed" }}
+                style={{ display: "block", padding: "7px 0", borderBottom: "1px solid var(--wp-border-2)" }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                   {/* Q3 标签列：label_zh secondary+蓝点+field_id 悬浮+FD 链 */}
                   <span style={{ minWidth: 0, flex: 1 }}>
                     <span
                       title={fieldId}
-                      style={{ fontSize: 12.5, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6 }}
+                      style={{ fontSize: 13, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       {/* F5 必填星标（required 面——目录驱动，非 FE 硬编码） */}
                       {entry.required ? (
@@ -333,7 +333,7 @@ export function ParamForm({
                     </span>
                     {continuous ? (
                       <Button size="small" type="link"
-                        style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 11.5 }}
+                        style={{ padding: 0, marginLeft: 8, height: "auto", fontSize: 12 }}
                         data-testid={`fd-entry-${fieldId}`}
                         onClick={() => openFeasibility(fieldId)}
                       >
@@ -422,11 +422,12 @@ export function ParamForm({
                       <Tag
                         key={String(option)}
                         style={{
-                          marginInlineEnd: 0, fontSize: 10.5, lineHeight: "17px",
+                          marginInlineEnd: 0, fontSize: 11, lineHeight: "17px",
                           paddingInline: 8, borderRadius: 9, cursor: "pointer",
                           flex: "none", fontFamily: "var(--wp-font-mono)",
+                          // 美感抛光批 #1：高亮三件套入轴（#0958d9 族退役）
                           ...(shownStr !== null && shownStr === String(option)
-                            ? { background: "rgba(22,119,255,.10)", color: "#0958d9", borderColor: "rgba(22,119,255,.45)" }
+                            ? { background: "var(--wp-accent-soft)", color: "var(--wp-accent)", borderColor: "color-mix(in srgb, var(--wp-accent) 45%, transparent)" }
                             : {}),
                         }}
                         onClick={() => setDrafts((prev) => ({ ...prev, [fieldId]: String(option) }))}

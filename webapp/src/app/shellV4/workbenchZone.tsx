@@ -276,7 +276,7 @@ export function WorkbenchZone({
                 </div>
                 <div className="wp-wb-panel-body">
                   {stats === null ? (
-                    <p style={{ color: "var(--wp-text-2)", fontSize: 11 }}>
+                    <p style={{ color: "var(--wp-text-2)", fontSize: 12 }}>
                       工艺图读取中…
                     </p>
                   ) : (
@@ -297,7 +297,7 @@ export function WorkbenchZone({
                         style={{
                           margin: "8px 0 0",
                           color: "var(--wp-text-2)",
-                          fontSize: 11,
+                          fontSize: 12,
                         }}
                       >
                         {stats.sludge.length > 0 ? (
@@ -374,7 +374,7 @@ export function WorkbenchZone({
                   style={{
                     margin: "8px 0 0",
                     color: "var(--wp-text-2)",
-                    fontSize: 11,
+                    fontSize: 12,
                   }}
                 >
                   不设置虚假入口。现有工艺画布和厂区总平面保持可用。
@@ -428,7 +428,7 @@ function WorkbenchTaskCard() {
               margin: 0,
               padding: "10px 12px",
               color: "var(--wp-text-2)",
-              fontSize: 11,
+              fontSize: 12,
             }}
           >
             暂无任务记录——计算与枚举任务在「AI 助手」页跟踪

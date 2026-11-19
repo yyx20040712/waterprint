@@ -55,11 +55,17 @@
  *   canvas 画布底）；--wp-shadow（稿 shadow 浮层软影）；b3 功能面重涂批
  *   增 --wp-info-soft（稿 info-soft——水线徽标软底）+--wp-grid-dot（稿
  *   grid-dot——画布点阵格点）两自持键（逐模冻结锚=lightBaseline.test）。
- *   gold 族：稿无
- *   鎏金（开放问题 5
- *   裁决前）→三模恒值轴自持（装饰金面单源=本轴，消费面=画布选中族）；
  *   --wp-scrollbar-hover：稿无此键=border 档派生（亮/暖深一档、暗浅一档
  *   ——派生非稿值，冻结锚=lightBaseline.test）。
+ * 美感抛光批（aesthetic-polish 2026-11-20，动因=美观性专项评估改进清单
+ *   #3/#9/#14，观感复核后定稿）：dark 表面阶梯重调——page/container/
+ *   elevated/border2 拉开（page/container 1.10→1.24、container/elevated
+ *   1.09→1.25、border2/container 1.25→1.42；elevated 向亮一档略中性
+ *   炭灰、container 保绿灰，「灰泥」感收口）；warm elevated 向中性米白
+ *   移+container/elevated 1.04→1.14（泛黄旧纸感收口，低饱和方向不变）；
+ *   gold 族退役（稿 index.html 裁决注「青绿操作色，鎏金退出常规选中
+ *   态」且全库零消费——开放问题 5 闭合，lightBaseline/themeLinkage
+ *   两守卫同步收口，警账色 semanticColors.pending 另源不动）。
  * 域色四轴（--wp-water/sludge/mine/convey）：三模值=semanticColors
  * DOMAIN_COLORS 按模记录，启动期+切换期经 themeStore.applyThemeMode→
  * installDomainColorAxis(mode) 注入（真源=webapp/src/shared/ui/
@@ -95,23 +101,22 @@
   /* b3 功能面重涂批两自持键（稿 info-soft/grid-dot——水线徽标软底/画布点阵） */
   --wp-info-soft: #e4edf1;
   --wp-grid-dot: #cbd5d0;
-  /* gold 族三模恒值（稿无鎏金——开放问题 5 裁决前维持） */
-  --wp-gold: #8a6100;
-  --wp-gold-soft: rgba(138, 97, 0, 0.32);
   --wp-scrollbar-hover: #c3c9d2;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
 /* b1 暖档（护眼模式——设计稿 html[data-theme="warm"] 块：低饱和羊皮纸
- * 底+灰绿文字；亮算法+暖 token 覆盖〔antd 面 themeModes 同模映射〕） */
+ * 底+灰绿文字；亮算法+暖 token 覆盖〔antd 面 themeModes 同模映射〕；
+ * 美感抛光批 #9：elevated 向中性米白移、面差 1.04→1.14〔泛黄旧纸感
+ * 收口——page 保暖灰、低饱和方向不变〕） */
 html[data-theme="warm"] {
   color-scheme: light;
-  --wp-bg-page: #eee9dd;
-  --wp-bg-container: #f7f2e7;
-  --wp-bg-elevated: #fbf7ee;
-  --wp-bg-deep: #f1ebdf;
+  --wp-bg-page: #eae4d3;
+  --wp-bg-container: #f3ecda;
+  --wp-bg-elevated: #fcfbf8;
+  --wp-bg-deep: #eee6d2;
   --wp-border: #d7cebc;
-  --wp-border-2: #e6ddcc;
+  --wp-border-2: #e2d8c3;
   --wp-accent: #76613d;
   --wp-accent-soft: #eae0cd;
   --wp-on-accent: #fffaf0;
@@ -128,22 +133,22 @@ html[data-theme="warm"] {
   --wp-shadow: rgba(74, 61, 39, 0.08);
   --wp-info-soft: #e4e5dc;
   --wp-grid-dot: #d3c8b4;
-  --wp-gold: #8a6100;
-  --wp-gold-soft: rgba(138, 97, 0, 0.32);
   --wp-scrollbar-hover: #beb49e;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
 /* b1 暗档（夜间模式——设计稿 html[data-theme="dark"] 块：非纯黑绿黑
- * 底+浅字；antd 面=dark algorithm〔themeModes 同模映射〕） */
+ * 底+浅字；antd 面=dark algorithm〔themeModes 同模映射〕；美感抛光批
+ * #3：表面阶梯重调——page 下探/elevated 提亮偏中性/border2 拉开，文字
+ * 三档不动〔text2/container 7.3、text3/container 5.1 保持〕） */
 html[data-theme="dark"] {
   color-scheme: dark;
-  --wp-bg-page: #161b1a;
-  --wp-bg-container: #1e2423;
-  --wp-bg-elevated: #242b29;
-  --wp-bg-deep: #1a201f;
-  --wp-border: #39433f;
-  --wp-border-2: #2c3532;
+  --wp-bg-page: #0d1211;
+  --wp-bg-container: #1f2725;
+  --wp-bg-elevated: #2e3735;
+  --wp-bg-deep: #171d1b;
+  --wp-border: #3d4743;
+  --wp-border-2: #36403c;
   --wp-accent: #7bb9ac;
   --wp-accent-soft: #263c36;
   --wp-on-accent: #112823;
@@ -160,8 +165,6 @@ html[data-theme="dark"] {
   --wp-shadow: rgba(0, 0, 0, 0.18);
   --wp-info-soft: #26363c;
   --wp-grid-dot: #35413c;
-  --wp-gold: #8a6100;
-  --wp-gold-soft: rgba(138, 97, 0, 0.32);
   --wp-scrollbar-hover: #4a5751;
   --wp-font-mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
@@ -218,7 +221,10 @@ body {
  * 化：scoped 变量轴覆写块删除（轴归 :root/html[data-theme] 三块——
  * scoped 声明继承遮蔽 html 级主题值故必删）；规则体色字面量全数
  * 并轴 var() 化（纸面/悬停/选中/浮层/软影——三主题即时换肤）。
- * 忌加粗全局（plan §九.7）：UA 默认 th/strong/h* 复位 400。
+ * 字级字重（美感抛光批 #2——撤 B1 对 h1–h6 与 th、strong 一刀切 400 复位）：
+ *   基础 12→13px；页标题 22/600、面板头 14/600、段题 14/600、表头
+ *   600、strong 600、密排元数据 10→11——层级=字级+字重双轴，不再全
+ *   局压平（各消费面按行级规则局部设 600，导航密排行保持 400）。
  * ════════════════════════════════════════════════════════════════ */
 .wp-v4-root {
   height: 100%;
@@ -226,19 +232,20 @@ body {
   flex-direction: column;
   background: var(--wp-bg-page);
   color: var(--wp-text);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   overflow: hidden;
 }
-.wp-v4-root strong,
-.wp-v4-root th,
+.wp-v4-root strong {
+  font-weight: 600;
+}
 .wp-v4-root h1,
 .wp-v4-root h2,
 .wp-v4-root h3,
 .wp-v4-root h4,
 .wp-v4-root h5,
 .wp-v4-root h6 {
-  font-weight: 400;
+  font-weight: 600;
 }
 
 /* 顶栏（48px：logo+品牌+项目面包屑+语境工具区——b2 壳重组批：六功能区
@@ -303,7 +310,7 @@ body {
   border-radius: 6px;
   background: transparent;
   color: var(--wp-text-2);
-  font-size: 10px; /* 回炉 R12：字号归一三档（密排元 10） */
+  font-size: 11px; /* 美感抛光批 #2：密排元 10→11（可读下限） */
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
@@ -407,7 +414,7 @@ body {
   border-radius: 4px;
   background: transparent;
   color: var(--wp-text-2);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 .wp-v4-ptab.on {
@@ -428,7 +435,7 @@ body {
   padding: 8px;
 }
 .wp-v4-sec h4 {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--wp-text-2);
   letter-spacing: 1px;
   margin-bottom: 5px;
@@ -497,22 +504,28 @@ body {
 }
 
 /* 分析表只读表格（B2 结果与方案批——wireframe 屏 3 .rt 形；表头浅底+
-   细分割+数字右对齐由 td 内联承载） */
+   细分割+数字右对齐由 td 内联承载；美感抛光批 #5：13px+cell 6px 12px
+   〔行高≈30–32〕+全列 tabular-nums lining-nums+表头 600——工程读数
+   密度（文本/单位列左对齐由消费面内联覆写）） */
 .wp-v4-rt {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
 }
 .wp-v4-rt th,
 .wp-v4-rt td {
   border-bottom: 1px solid var(--wp-border-2);
-  padding: 4px 10px;
+  padding: 6px 12px;
   text-align: right;
-  font-weight: 400; /* 忌加粗全局——UA 表头粗体复位 */
+  font-variant-numeric: tabular-nums lining-nums;
 }
 .wp-v4-rt th {
   background: var(--wp-bg-deep);
   color: var(--wp-text-2);
+  font-weight: 600;
+  position: sticky; /* #5：长表 sticky 表头维持扫读（滚动祖先=pane/pbody） */
+  top: 0;
+  z-index: 1;
 }
 
 /* 右键分级目录（两级菜单） */
@@ -615,7 +628,7 @@ body {
   margin-top: 3px;
   color: var(--wp-text-2);
   font-family: var(--wp-font-mono);
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -624,7 +637,7 @@ body {
   display: block;
   margin-top: 2px;
   color: var(--wp-text-3);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* 画布图例（b3——稿 .flow-legend 横排单行：水线/泥线色条+虚线回流注；
@@ -668,7 +681,7 @@ body {
 }
 
 /* 状态条（b2 壳重组批 30px——主题切换器入驻增高 6px；沿承 M1 位；
-   回炉 R12：字号归一三档——密排元 10） */
+   美感抛光批 #2：密排元 10→11） */
 .wp-v4-statusbar {
   height: 30px;
   flex: none;
@@ -679,7 +692,7 @@ body {
   background: var(--wp-bg-page);
   border-top: 1px solid var(--wp-border-2);
   color: var(--wp-text-2);
-  font-size: 10px;
+  font-size: 11px;
   user-select: none;
 }
 .wp-v4-statusbar .r {
@@ -692,7 +705,7 @@ body {
   border: none;
   background: transparent;
   color: var(--wp-text-2);
-  font-size: 10px;
+  font-size: 11px;
   cursor: pointer;
   padding: 0;
 }
@@ -741,13 +754,13 @@ body {
   background: var(--wp-bg-deep);
 }
 .wp-v4-runtime-row strong {
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .wp-v4-runtime-sub {
   margin-top: 2px;
   color: var(--wp-text-2);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.6;
 }
 .wp-v4-runtime-mono {
   font-family: var(--wp-font-mono);
@@ -770,7 +783,7 @@ body {
 }
 .wp-v4-pair-head h4 {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .wp-v4-pair-line {
   display: flex;
@@ -829,7 +842,7 @@ body {
   flex-direction: column;
   gap: 4px;
   color: var(--wp-text-2);
-  font-size: 11.5px;
+  font-size: 13px; /* 美感抛光批 #12：Modal 表单标签阅读尺寸 */
 }
 .wp-v4-client-input {
   font-family: var(--wp-font-mono);
@@ -841,8 +854,8 @@ body {
   border-radius: 4px;
   background: var(--wp-bg-deep);
   color: var(--wp-text-2);
-  font-size: 11.5px;
-  line-height: 1.5;
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 .wp-v4-remote-state {
   display: flex;
@@ -857,7 +870,7 @@ body {
 }
 .wp-v4-remote-state h4 {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--wp-text);
 }
 
@@ -990,7 +1003,8 @@ body {
  * 方案；值全数并轴 var()〔禁新字面色——lightBaseline/themeLinkage 守卫〕。
  * ════════════════════════════════════════════════════════════════ */
 
-/* 徽标（稿 .badge 形——面板头/任务态/域线计数消费面） */
+/* 徽标（稿 .badge 形——面板头/任务态/域线计数消费面；美感抛光批 #2：
+   10.5→11 可读档） */
 .wp-v4-badge {
   display: inline-flex;
   align-items: center;
@@ -1000,7 +1014,7 @@ body {
   border-radius: 3px;
   background: var(--wp-bg-deep);
   color: var(--wp-text-2);
-  font-size: 10.5px;
+  font-size: 11px;
   white-space: nowrap;
 }
 .wp-v4-badge.accent {
@@ -1074,7 +1088,7 @@ button.wp-v4-row {
   display: block;
   margin-top: 1px;
   color: var(--wp-text-2);
-  font-size: 10.5px;
+  font-size: 11px;
   font-family: var(--wp-font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1084,7 +1098,8 @@ button.wp-v4-row {
   color: var(--wp-accent);
 }
 
-/* 侧栏搜索框（稿 .search——目录/对象树过滤） */
+/* 侧栏搜索框（稿 .search——目录/对象树过滤；美感抛光批 #12：27→30
+   阅读高度+12px） */
 .wp-v4-search {
   margin: 8px;
   flex: none;
@@ -1092,13 +1107,13 @@ button.wp-v4-row {
 .wp-v4-search input {
   width: 100%;
   box-sizing: border-box;
-  height: 27px;
+  height: 30px;
   padding: 2px 8px;
   border: 1px solid var(--wp-border-2);
   border-radius: 4px;
   background: var(--wp-bg-elevated);
   color: var(--wp-text);
-  font-size: 11px;
+  font-size: 12px;
   outline: none;
 }
 .wp-v4-search input:focus {
@@ -1115,7 +1130,7 @@ button.wp-v4-row {
   background: var(--wp-bg-deep);
   color: var(--wp-text-2);
   font-family: var(--wp-font-mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* ── 工艺入口三栏（稿 network.html .three-pane.network-layout：左单元库
@@ -1153,7 +1168,8 @@ button.wp-v4-row {
   border-bottom: 1px solid var(--wp-border-2);
 }
 .wp-v4-pane-head h3 {
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--wp-text);
 }
 .wp-v4-pane-body {
@@ -1166,7 +1182,7 @@ button.wp-v4-row {
   padding: 8px 12px;
   border-top: 1px solid var(--wp-border-2);
   color: var(--wp-text-3);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -1200,7 +1216,7 @@ button.wp-v4-row {
 .wp-v4-tree-group .cnt {
   margin-left: auto;
   color: var(--wp-text-3);
-  font-size: 10px;
+  font-size: 11px;
 }
 .wp-v4-tree-row {
   display: flex;
@@ -1228,13 +1244,14 @@ button.wp-v4-row {
   line-height: 1;
 }
 
-/* inspector 区块行（稿 .section——键值行/端口行/操作组消费面） */
+/* inspector 区块行（稿 .section——键值行/端口行/操作组消费面；美感
+   抛光批 #2：段题 12/600+键值行 12） */
 .wp-v4-insp-sec {
   padding: 10px 12px;
   border-bottom: 1px solid var(--wp-border-2);
 }
 .wp-v4-insp-sec h4 {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--wp-text-2);
   letter-spacing: 0.5px;
   margin-bottom: 6px;
@@ -1243,7 +1260,7 @@ button.wp-v4-row {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.9;
 }
 .wp-v4-kv .k {
@@ -1259,7 +1276,7 @@ button.wp-v4-row {
   gap: 8px;
   padding: 5px 0;
   border-bottom: 1px solid var(--wp-border-2);
-  font-size: 11.5px;
+  font-size: 12px;
 }
 .wp-v4-portrow:last-child {
   border-bottom: none;
@@ -1306,13 +1323,14 @@ button.wp-v4-row {
   margin-bottom: 16px;
 }
 .wp-wb-head h1 {
-  font-size: 20px;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1.3;
 }
 .wp-wb-sub {
   margin-top: 4px;
   color: var(--wp-text-2);
-  font-size: 12px;
+  font-size: 13px;
 }
 .wp-wb-actions {
   display: flex;
@@ -1350,7 +1368,7 @@ button.wp-v4-row {
 }
 .wp-wb-metric .label {
   color: var(--wp-text-2);
-  font-size: 11px;
+  font-size: 12px;
 }
 .wp-wb-metric .value {
   margin-top: 3px;
@@ -1362,7 +1380,7 @@ button.wp-v4-row {
 .wp-wb-metric .note {
   margin-top: 3px;
   color: var(--wp-text-3);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 .wp-wb-panel {
   border: 1px solid var(--wp-border-2);
@@ -1371,17 +1389,18 @@ button.wp-v4-row {
   overflow: hidden;
 }
 .wp-wb-panel-head {
-  min-height: 42px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--wp-border-2);
   flex-wrap: wrap;
 }
 .wp-wb-panel-head h3 {
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
 }
 .wp-wb-panel-head .aux {
   display: flex;
@@ -1389,13 +1408,20 @@ button.wp-v4-row {
   gap: 6px;
   flex-wrap: wrap;
 }
+/* 面板体（美感抛光批 #4——此前无定义：正文贴边拉低完成度；12px 上下/
+   14px 左右与面板头共享左缘；项目列表等表格态不加本类〔表格自带
+   cell padding 不重复叠壳〕） */
+.wp-wb-panel-body {
+  padding: 12px 14px;
+  line-height: 1.6;
+}
 .wp-wb-strip {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 7px;
   color: var(--wp-text-2);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
 }
 .wp-wb-strip .arr {
@@ -1409,4 +1435,30 @@ button.wp-v4-row {
   .wp-wb-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── 美感抛光批新增类（aesthetic-polish 2026-11-20）── */
+
+/* 长标识块级 code（#11——AI 右栏项目 id 等窄栏长串：11px mono+任意断行，
+   不与标签做左右 flex 挤占） */
+.wp-v4-mono-id {
+  display: block;
+  margin-top: 2px;
+  color: var(--wp-text-2);
+  font-family: var(--wp-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* 数据面段题（#6——分析/对比页排版分段：14/600+留白，不恢复卡片堆叠） */
+.wp-v4-face-sec {
+  margin: 18px 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wp-text);
+}
+.wp-v4-face-sec:first-child {
+  margin-top: 0;
 }

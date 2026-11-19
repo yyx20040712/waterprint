@@ -37,6 +37,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useProjectId } from "../useProjectId";
 import { rawProjectName } from "../useProjectName";
+import { EmptyState } from "./emptyState";
 import { ReportDoc, type ReportSection } from "./reportDoc";
 import { usePaneWidth } from "./usePaneWidth";
 import { ExportContextRow } from "./reportExports";
@@ -71,7 +72,29 @@ export function stripIdParenthetical(title: string): string {
     return title;
   }
   const stripped = title.slice(0, match.index).trimEnd();
-  return stripped === "" ? title : stripped; // d1-N6：禁不可见导航条目
+  // d1-N6：剥后空串（全括注标题）回退原串渲染——禁不可见导航条目
+  return stripped === "" ? title : stripped;
+}
+
+/** 空/错态大图标（美感抛光批 #7——说明书页形 44px 单线档）。 */
+function ReportGlyphLarge() {
+  return (
+    <svg
+      width="44"
+      height="46"
+      viewBox="0 0 40 42"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M8 3h17l8 8v28H8z" />
+      <path d="M25 3v8h8" />
+      <path d="M14 19h12M14 24h12M14 29h8" />
+    </svg>
+  );
 }
 
 /** 左导航 aside（v2 笔2：三态 nav 去重为局部组件——拖宽 hook+柄+
@@ -137,7 +160,7 @@ function StaleBanner({ projectId }: { projectId: string }) {
         gap: 10,
         fontSize: 11,
         color: "var(--wp-warning)",
-        background: "var(--wp-warning-soft, rgba(138, 97, 0, 0.08))",
+        background: "var(--wp-warning-soft)",
         border: "1px solid var(--wp-border-2)",
         borderRadius: 6,
         padding: "4px 10px",
@@ -207,6 +230,9 @@ function ReportFace({ projectId }: { projectId: string }) {
     return (
       <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
         <ReportNav />
+        {/* 美感抛光批 #7：空/错态居中配方（EmptyState——错误态标题+可展开
+            技术详情两层，长原始错误句不再充当唯一正文；外层纸卡与三态
+            同形居中锚沿承〔margin 8px auto——测试锚〕） */}
         <div
           data-testid={gate.domain ? "wp-v4-report-empty" : "wp-v4-report-error"}
           data-region="report-doc"
@@ -214,22 +240,23 @@ function ReportFace({ projectId }: { projectId: string }) {
             flex: 1,
             minWidth: 0,
             margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
-            padding: "32px 44px",
             maxWidth: 760,
             background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border-2)",
             borderRadius: 6,
             color: "var(--wp-text-2)",
-            fontSize: 12,
-            // R1 C8（视觉回炉）：空态/错误态=卡内居中引导（LOADING 态同形）
+            fontSize: 13,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {gate.domain
-            ? NO_CALC_TEXT
-            : `取数失败：${gate.text}`}
+          <EmptyState
+            icon={<ReportGlyphLarge />}
+            title={gate.domain ? "尚无计算结果" : "取数失败"}
+            description={gate.domain ? NO_CALC_TEXT : undefined}
+            detail={gate.domain ? undefined : gate.text}
+          />
         </div>
       </section>
     );
@@ -339,6 +366,8 @@ export function ReportZone() {
     return (
       <section style={{ flex: 1, minWidth: 0, display: "flex" }}>
         <ReportNav />
+        {/* 美感抛光批 #7：无项目空态=EmptyState 居中配方（白名单文案拆
+            title/description 两层；纸卡三态同形锚沿承） */}
         <div
           data-testid="wp-v4-report-empty"
           data-region="report-doc"
@@ -346,20 +375,22 @@ export function ReportZone() {
             flex: 1,
             minWidth: 0,
             margin: "8px auto", // V3 D3：阅读卡三态同形居中（R1 C8 不变量沿承）
-            padding: "32px 44px",
             maxWidth: 760,
             background: "var(--wp-bg-elevated)",
             border: "1px solid var(--wp-border-2)",
             borderRadius: 6,
             color: "var(--wp-text-2)",
-            fontSize: 12,
-            // R1 C8（视觉回炉）：无项目空态同形收编（居中引导——卡面三态一致）
+            fontSize: 13,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {NO_PROJECT_HINT}
+          <EmptyState
+            icon={<ReportGlyphLarge />}
+            title="尚未选择项目"
+            description="在「项目」区打开或新建"
+          />
         </div>
       </section>
     );

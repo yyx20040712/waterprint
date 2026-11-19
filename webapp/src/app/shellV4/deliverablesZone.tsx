@@ -12,9 +12,10 @@
  *        数据源+导出工具行语境）
  * 输出: deliverables 区：左=drafting-tree（污水厂▾〔全厂总平面图→
  *        siteplan/高程纵断图/工艺图→sheets〕+计算说明书→report+管网▸
- *        规划中）+右=sheets 子页=导出语境行+图库卡栅格；siteplan 子页
- *        全幅（SiteplanPane）；report 子页全幅（ReportZone 自持左导航
- *        与阅读卡）
+ *        规划中）+右=sheets 子页=导出语境行+图库卡栅格〔美感抛光批
+ *        2026-11-20 拆件 deliverablesGallery——行数预算，空错态=
+ *        EmptyState 共享配方〕；siteplan 子页全幅（SiteplanPane）；
+ *        report 子页全幅（ReportZone 自持左导航与阅读卡）
  *
  * 规格说明（B1 任务书 §三.5 承袭+b2 合并裁决；回炉 R7/VB-3）：
  *   - 左树目录=交付物导航（节点点击切子页——图纸/总平面/计算说明）；
@@ -26,21 +27,13 @@
  *   - 左树栏可拖宽（键 wp-v4-drafting-left-w 沿承——宽度记忆不丢）。
  */
 import { lazy, Suspense } from "react";
-import { Spin, Tag, Typography } from "antd";
+import { Tag } from "antd";
 
 import { ErrorBoundary } from "../ErrorBoundary";
 import { useProjectId } from "../useProjectId";
-import { ExportButton } from "../../features/drawings/components/ExportButton";
-import {
-  useConditionOptions,
-  useExportsQuery,
-  useUnitOptions,
-} from "../../features/drawings/api/useExportsQuery";
-import { useUnitCatalog } from "../../features/drawings/api/useUnitCatalog";
-import { buildSheetRows } from "../../features/drawings/lib/drawingsView";
-import { conditionLabel, unitNameIndex } from "../../shared/conditionLabels";
-import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 import type { DeliverablesSubpage } from "../zoneParam";
+import { SheetsGallery } from "./deliverablesGallery";
+import { NavGlyph, type NavGlyphKind } from "./navGlyphs";
 import { ReportZone } from "./reportZone";
 import { usePaneWidth } from "./usePaneWidth";
 
@@ -59,169 +52,51 @@ function PaneLoading() {
 }
 
 /** 树节点（sheets 子页导航——标签+目标子页+图标；null=仅分组）。b4 稿
- *  deliverables.html .tree 形：级行图标+缩进+当前子页高亮。 */
+ *  deliverables.html .tree 形：级行图标+缩进+当前子页高亮；美感抛光批
+ *  #13：几何文本字形 ▦/▥/▤/▧→NavGlyph 单线 SVG（分组 ▾/▸ 折角保持）。 */
 type TreeRow = {
   key: string;
   label: string;
   subpage: DeliverablesSubpage | null;
   depth: number;
-  icon: string;
+  icon: NavGlyphKind | "chevDown" | "chevRight";
   pending?: boolean;
 };
 
 const TREE_ROWS: readonly TreeRow[] = [
-  { key: "plant", label: "污水厂 ▾", subpage: null, depth: 0, icon: "▾" },
-  { key: "siteplan", label: "全厂总平面图", subpage: "siteplan", depth: 1, icon: "▦" },
-  { key: "profile", label: "高程纵断图", subpage: "sheets", depth: 1, icon: "▥" },
-  { key: "process", label: "工艺图", subpage: "sheets", depth: 1, icon: "▤" },
-  { key: "report", label: "计算说明书", subpage: "report", depth: 1, icon: "▧" },
-  { key: "network", label: "管网 ▸", subpage: null, depth: 0, icon: "▸", pending: true },
+  { key: "plant", label: "污水厂 ▾", subpage: null, depth: 0, icon: "chevDown" },
+  { key: "siteplan", label: "全厂总平面图", subpage: "siteplan", depth: 1, icon: "site" },
+  { key: "profile", label: "高程纵断图", subpage: "sheets", depth: 1, icon: "profile" },
+  { key: "process", label: "工艺图", subpage: "sheets", depth: 1, icon: "flow" },
+  { key: "report", label: "计算说明书", subpage: "report", depth: 1, icon: "doc" },
+  { key: "network", label: "管网 ▸", subpage: null, depth: 0, icon: "chevRight", pending: true },
 ];
 
 /** 未选项目引导（与 parametersZone NO_PROJECT_HINT 同源白名单文案）。 */
 const NO_PROJECT_HINT = "尚未选择项目——在「工作台」打开或新建";
 
-/** 图库卡 kind 显示名（V4 P2 语境行中文化——值域=dxf 单值，显示层常量
- *  非查表映射；未知 kind 原样透传=dimLabels 诚实呈现同口径）。 */
-const SHEET_KIND_LABELS: Record<string, string> = { dxf: "图纸" };
-
-/** 卡片预览位简笔图纸形（折角单图——stroke currentColor 线性）。 */
-function SheetGlyph() {
+/** 树行图标（NavGlyph 单线形；分组折角 ▾/▸ 保持文本形——美学抛光批 #13；
+ *  组行图标=单枚 span〔省略三件套测试锚 spans[0]=图标/spans[1]=标签〕）。 */
+function TreeIcon({ icon }: { icon: TreeRow["icon"] }) {
+  if (icon === "chevDown" || icon === "chevRight") {
+    return (
+      <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", fontSize: 10 }}>
+        {icon === "chevDown" ? "▾" : "▸"}
+      </span>
+    );
+  }
   return (
-    <svg
-      width="34"
-      height="26"
-      viewBox="0 0 34 26"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.3"
+    <span
       aria-hidden
+      style={{
+        flex: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        color: "var(--wp-text-3)",
+      }}
     >
-      <path d="M4 2h18l8 8v14H4z" />
-      <path d="M22 2v8h8" />
-      <path d="M9 13h16M9 17h16" />
-    </svg>
-  );
-}
-
-/** 图库卡栅格（回炉 R7——导出语境行+卡片栅格/空态卡；数据源=exports 查询；
- *  V3 D5：空态卡「去计算」引导钮+空态导出钮禁用〔disabled={rows=0}〕）。 */
-function SheetsGallery({ onGoCalc }: { onGoCalc: () => void }) {
-  const [projectId] = useProjectId();
-  const exportsQuery = useExportsQuery(projectId);
-  const conditionQuery = useConditionOptions(projectId);
-  const unitQuery = useUnitOptions(projectId);
-  // V4 P2 语境行中文化：工况工程全称（conditionLabel 单源；offline 拆段
-  // 消费 unitNames——catalog 未就绪退 id 透传非阻塞）
-  const unitNames =
-    useListUnitsApiUnitsGet({ query: { select: unitNameIndex } }).data ?? {};
-  // UX1 D3 同制：可投影面过滤（node.kind ∈ 目录 builtin 集剔除——B1 沿
-  // DrawingsPane 口径重装配；catalog 未就绪不过滤全量兜底）
-  const builtinIds = useUnitCatalog().data ?? null;
-  const unitRefs = unitQuery.data ?? [];
-  const exportableUnits =
-    builtinIds === null
-      ? unitRefs.map((unit) => unit.unitId)
-      : unitRefs
-          .filter((unit) => !builtinIds.has(unit.kind ?? ""))
-          .map((unit) => unit.unitId);
-  const rows = buildSheetRows(exportsQuery.data ?? []);
-
-  return (
-    <>
-      {/* 导出语境行（卡区上方——ExportButton 复用；微裁决 V18） */}
-      <div
-        style={{
-          flex: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "6px 10px",
-          borderBottom: "1px solid var(--wp-border-2)",
-          background: "var(--wp-bg-container)",
-        }}
-      >
-        <span style={{ fontSize: 11, color: "var(--wp-text-2)", letterSpacing: 1 }}>
-          图纸库 · DXF 交付物
-        </span>
-        {projectId !== null ? (
-          <ExportButton
-            projectId={projectId}
-            units={exportableUnits}
-            conditions={conditionQuery.data ?? []}
-            disabled={rows.length === 0}
-          />
-        ) : null}
-      </div>
-      <div className="wp-v4-gallery" data-testid="wp-v4-sheet-grid">
-        {projectId === null ? (
-          <div
-            className="wp-v4-sheet-card"
-            style={{ width: "100%", maxWidth: 420 }}
-          >
-            <div className="wp-v4-sheet-thumb">
-              <span>{NO_PROJECT_HINT}</span>
-            </div>
-          </div>
-        ) : exportsQuery.isError ? (
-          <Typography.Text type="danger" style={{ fontSize: 11 }}>
-            图纸目录取数失败：
-            {exportsQuery.error instanceof Error
-              ? exportsQuery.error.message
-              : "未知错误"}
-          </Typography.Text>
-        ) : exportsQuery.isPending ? (
-          <Spin />
-        ) : rows.length === 0 ? (
-          // 空态卡（回炉 R7——「尚无图纸——完成计算后生成」级引导；
-          // V3 D5：去计算钮=工艺入口直达动线）
-          <div className="wp-v4-sheet-card" style={{ width: "100%", maxWidth: 420 }}>
-            <div className="wp-v4-sheet-thumb">
-              <SheetGlyph />
-            </div>
-            <div className="wp-v4-sheet-cap">尚无图纸——完成计算后生成</div>
-            <button
-              type="button"
-              data-testid="wp-v4-drafting-go-calc"
-              onClick={onGoCalc}
-              style={{
-                border: "1px solid var(--wp-accent)",
-                borderRadius: 4,
-                background: "var(--wp-bg-container)",
-                color: "var(--wp-accent)",
-                fontSize: 11,
-                padding: "1px 10px",
-                cursor: "pointer",
-                margin: "6px auto 4px",
-                display: "block",
-              }}
-            >
-              去计算
-            </button>
-          </div>
-        ) : (
-          rows.map((row) => (
-            <div
-              className="wp-v4-sheet-card"
-              key={row.key}
-              data-testid="wp-v4-sheet-card"
-              title={`${row.fileName} · digest ${row.designDigest.slice(0, 10)}`}
-            >
-              <div className="wp-v4-sheet-thumb">
-                <SheetGlyph />
-              </div>
-              <div className="wp-v4-sheet-cap">
-                {SHEET_KIND_LABELS[row.kind] ?? row.kind} ·{" "}
-                {row.conditionKey === "" || row.conditionKey === "all"
-                  ? "全部工况"
-                  : conditionLabel(row.conditionKey, unitNames)}
-                {row.stale ? <Tag style={{ marginInlineStart: 4 }}>旧</Tag> : null}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </>
+      <NavGlyph kind={icon} size={13} />
+    </span>
   );
 }
 
@@ -352,9 +227,7 @@ export function DeliverablesZone({
               {/* V4 d1-W1/N8：省略三件套+minWidth:0/flex:1 链——flex 行内
                   span 不收缩则撑宽侧栏；长文省略号而非静默裁切（reportNav
                   条目同制） */}
-              <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", fontSize: 10 }}>
-                {row.icon}
-              </span>
+              <TreeIcon icon={row.icon} />
               <span
                 style={{
                   minWidth: 0,
@@ -397,9 +270,7 @@ export function DeliverablesZone({
                 textOverflow: "ellipsis",
               }}
             >
-              <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", fontSize: 11, width: 14, textAlign: "center" }}>
-                {row.icon}
-              </span>
+              <TreeIcon icon={row.icon} />
               <span
                 style={{
                   minWidth: 0,

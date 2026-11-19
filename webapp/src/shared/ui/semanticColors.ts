@@ -68,6 +68,33 @@ export const DOMAIN_COLORS = {
   },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
+/** 三维构筑物材质坡道（美感抛光批 #10——主题化覆盖面自草地/网格扩至
+ *  构筑物：pool_wall/partition/channel/ground 四材质键按模取值，静态表
+ *  SEMANTIC_COLORS 同键=light 档参照锚〔semanticColors.test 冻结〕，
+ *  运行期真源=本记录〔semanticColor 按当前模查表——DOMAIN_DERIVED_KEYS
+ *  同机制〕；light 档=原静态值像素零漂移，warm=向暖灰阶轻移、dark=
+ *  降至与暗世界同带的中灰——固定亮灰构筑物与新底色脱节根除）。 */
+export const MATERIAL_COLORS = {
+  light: {
+    pool_wall: "#a3a9ad",
+    partition: "#8f9599",
+    channel: "#7f8a93",
+    ground: "#cfd6dc",
+  },
+  warm: {
+    pool_wall: "#a9a89a",
+    partition: "#909083",
+    channel: "#808379",
+    ground: "#d1ccbc",
+  },
+  dark: {
+    pool_wall: "#5d6865",
+    partition: "#4d5755",
+    channel: "#424c4e",
+    ground: "#303a37",
+  },
+} as const satisfies Record<ThemeMode, Record<string, string>>;
+
 /** 域色 CSS 变量轴注入映射（批6n UF-53——`--wp-<域>` 键自
  * DOMAIN_COLORS[mode] 单源派生；global.css :root 域色字面量已退役，
  * CSS 消费面 var(--wp-*) 经注入取值。键集=实际 CSS 消费面四键〔水/泥/
@@ -186,12 +213,26 @@ const DOMAIN_DERIVED_KEYS: Record<string, keyof (typeof DOMAIN_COLORS)["light"]>
   domain_neutral: "neutral",
 };
 
+/** 三维材质派生键集（美感抛光批 #10——同 DOMAIN_DERIVED_KEYS 机制：
+ *  四构筑物材质键按当前模查 MATERIAL_COLORS；静态表值=light 档参照锚）。 */
+const MATERIAL_DERIVED_KEYS: Record<string, keyof (typeof MATERIAL_COLORS)["light"]> = {
+  pool_wall: "pool_wall",
+  partition: "partition",
+  channel: "channel",
+  ground: "ground",
+};
+
 /** 语义 token → 色值（未登记语义=灰阶兜底——禁抛错打断渲染；域派生键
- *  按当前模查 DOMAIN_COLORS〔b4——CSS 轴注入同步记录的 activeDomainMode〕）。 */
+ *  按当前模查 DOMAIN_COLORS〔b4——CSS 轴注入同步记录的 activeDomainMode〕；
+ *  三维材质键按模查 MATERIAL_COLORS〔美感抛光批 #10〕）。 */
 export const semanticColor = (semantic: string): string => {
   const domainKey = DOMAIN_DERIVED_KEYS[semantic];
   if (domainKey !== undefined) {
     return DOMAIN_COLORS[activeDomainMode][domainKey];
+  }
+  const materialKey = MATERIAL_DERIVED_KEYS[semantic];
+  if (materialKey !== undefined) {
+    return MATERIAL_COLORS[activeDomainMode][materialKey];
   }
   return SEMANTIC_COLORS[semantic as keyof typeof SEMANTIC_COLORS] ?? FALLBACK_COLOR;
 };

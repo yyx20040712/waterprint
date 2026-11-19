@@ -20,10 +20,12 @@
  *     运行期读取——亮期旧字面 #f5f6f8/#1f2329/#ffffff 由轴档替换；
  *     纯表回退值=轴亮档字面，providers 装载期注入先于首帧故运行期
  *     不可达，仅 node/jsdom 无注入面确定性路径）；
- *   - 草地/网格稿无对应轴键=派生字面：light 档沿承现值（像素零漂移
- *     ——#e2ece0/#c8dcc2/#54719f/#d8dee8）；warm 档=草地降饱和微暖
- *     移、网格向暖灰阶收敛；dark 档=草地/网格降至暗档亮度带（非纯黑
- *     ——与稿 surface 族同带），主格保持与底可辨分层。
+ *   - 草地/网格稿无对应轴键=派生字面：light 档草地沿承现值（像素零
+ *     漂移——#e2ece0/#c8dcc2）；美感抛光批 #10 网格降权：light 主格
+ *     #54719f→#8b9aa9（蓝饱和度收口）、次格 #d8dee8→#dee3e9；warm
+ *     档=草地降饱和微暖移、网格向暖灰阶收敛（#878571/#e2ddce）；dark
+ *     档=草地/网格降至暗档亮度带（非纯黑——与稿 surface 族同带），
+ *     主格保持与底可辨分层（#4a5a72）。
  */
 import type { ThemeMode } from "../../../shared/store/themeStore";
 
@@ -53,14 +55,17 @@ const AXIS_FALLBACK = {
   bgPage: "#f2f5f3",
 } as const;
 
-/** 三模纯表（草地/网格四键=派生字面冻结锚；轴三键=回退值）。 */
+/** 三模纯表（草地/网格四键=派生字面冻结锚；轴三键=回退值。美感抛光
+ *  批 #10：网格降权——gridMajor 蓝饱和度收口〔构筑物轮廓为第一对比，
+ *  网格不再覆盖全屏抢眼〕+gridMinor 再弱一档；不透明度分层在
+ *  GroundStage 材质面承载）。 */
 const SCENE_THEMES: Record<ThemeMode, SceneTheme> = {
   light: {
     grassWorld: "#e2ece0",
     grass: "#c8dcc2",
     engineer: AXIS_FALLBACK.canvas,
-    gridMajor: "#54719f",
-    gridMinor: "#d8dee8",
+    gridMajor: "#8b9aa9",
+    gridMinor: "#dee3e9",
     label: AXIS_FALLBACK.text,
     labelOutline: AXIS_FALLBACK.bgPage,
   },
@@ -70,8 +75,8 @@ const SCENE_THEMES: Record<ThemeMode, SceneTheme> = {
     grassWorld: "#eae4cf",
     grass: "#d2cdaa",
     engineer: AXIS_FALLBACK.canvas,
-    gridMajor: "#6d6b5c",
-    gridMinor: "#ddd8c8",
+    gridMajor: "#878571",
+    gridMinor: "#e2ddce",
     label: AXIS_FALLBACK.text,
     labelOutline: AXIS_FALLBACK.bgPage,
   },
@@ -79,7 +84,7 @@ const SCENE_THEMES: Record<ThemeMode, SceneTheme> = {
     grassWorld: "#1d2622",
     grass: "#2a3530",
     engineer: AXIS_FALLBACK.canvas,
-    gridMajor: "#46628c",
+    gridMajor: "#4a5a72",
     gridMinor: "#2c3532",
     label: AXIS_FALLBACK.text,
     labelOutline: AXIS_FALLBACK.bgPage,

@@ -9,9 +9,10 @@
  * 输出:  六判定面——①暗算法字面收容（暗算法拼接字面仅三主题定义面
  *        〔themeModes.ts+其测试〕可持有，余域零命中）；②退役色板
  *        （C1 暗期+B4 亮期）零复入（三主题定义面两文件）；③global.css
- *        三主题块轴自持键逐模冻结（gold/gold-soft 恒值+scrollbar-hover
+ *        三主题块轴自持键逐模冻结（scrollbar-hover
  *        派生三值+soft/canvas/shadow/info-soft/grid-dot===MODE_COLORS
- *        〔b3 增两键〕）+规则体深底 hex 零
+ *        〔b3 增两键〕；gold 族已随美感抛光批 #14 退役——三块零声明
+ *        即冻结面）+规则体深底 hex 零
  *        命中+全 src v4 旧轴键零残留（b1 并轴改名完备性）；④内联
  *        暗值文件清单逐文件零命中（D5 实测集）+R2/R3 锚；⑤prefers-
  *        color-scheme 媒体查询零基线（手动切换制）；⑥域色三模冻结
@@ -139,15 +140,14 @@ describe("判定面②：退役色板（C1 暗期+B4 亮期）零复入（三主
 });
 
 describe("判定面③：global.css 轴自持键逐模冻结+深底/旧轴键零命中", () => {
-  it("轴自持键逐模：gold 恒值+scrollbar-hover 派生三值+soft/canvas/shadow===MODE_COLORS", () => {
+  it("轴自持键逐模：scrollbar-hover 派生三值+soft/canvas/shadow===MODE_COLORS+gold 族零复入", () => {
     for (const mode of THEME_MODES) {
       const vars = cssVars[mode];
       const c = MODE_COLORS[mode];
-      // gold 族：稿无鎏金（开放问题 5 裁决前恒值——装饰金面单源=本轴）
-      expect(vars.get("--wp-gold"), `${mode} gold`).toBe("#8a6100");
-      expect(vars.get("--wp-gold-soft"), `${mode} gold-soft`).toBe(
-        "rgba(138, 97, 0, 0.32)",
-      );
+      // gold 族退役锚（美感抛光批 #14——稿裁决鎏金退出且全库零消费；
+      // 三主题块零声明即冻结，复入=漂移红）
+      expect(vars.has("--wp-gold"), `${mode} gold 复入`).toBe(false);
+      expect(vars.has("--wp-gold-soft"), `${mode} gold-soft 复入`).toBe(false);
       // scrollbar-hover：稿无此键=border 档派生（亮/暖深一档、暗浅一档）
       const scrollbarHover = {
         light: "#c3c9d2",

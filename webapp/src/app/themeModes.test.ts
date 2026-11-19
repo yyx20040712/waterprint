@@ -3,12 +3,12 @@
  *
  * 输入:  ./themeModes 三导出（MODE_COLORS/globalThemeConfigFor/
  *        v4ThemeConfigFor）+../shared/store/themeStore THEME_MODES
- * 输出:  三断言面——①三模色板=已批准设计稿字面（bg 四档/border 两档/
- *        text 三档/accent+onAccent/语义三色+soft 三键/canvas/shadow——
- *        逐键逐模冻结）；②globalThemeConfigFor：algorithm 映射
- *        （light·warm=default/dark=dark）+seed/components 逐键=色板值
- *        +密度冻结 13/28/6；③v4ThemeConfigFor：同色板+密度 12/26/6
- *        （scoped 面密度差=既有 v4 形）。
+ * 输出:  三断言面——①三模色板冻结（bg 四档/border 两档/text 三档/
+ *        accent+onAccent/语义三色+soft 三键/canvas/shadow——light=稿
+ *        字面，warm/dark 表面族=美感抛光批重调值）；②globalTheme
+ *        ConfigFor：algorithm 映射（light·warm=default/dark=dark）
+ *        +seed/components 逐键=色板值+密度 13/32/6；③v4ThemeConfigFor：
+ *        同色板+密度 13/30/6（scoped 面密度差=2px 阅读档）。
  */
 import { theme } from "antd";
 import { describe, expect, it } from "vitest";
@@ -16,8 +16,9 @@ import { describe, expect, it } from "vitest";
 import { THEME_MODES } from "../shared/store/themeStore";
 import { MODE_COLORS, globalThemeConfigFor, v4ThemeConfigFor } from "./themeModes";
 
-/** 已批准设计稿三主题色板字面（.zcode/dev-troupe/frontend-redesign/
- *  index.html :root/warm/dark 三块——改值须对账设计稿裁决）。 */
+/** 三主题色板字面（light=已批准设计稿字面；warm/dark 表面族=美感
+ *  抛光批 2026-11-20 重调值——暗色表面阶梯/暖色面差，动因与观感复核
+ *  见 .zcode/dev-troupe/aesthetic-polish/；改值须对账该批记录）。 */
 const DRAFT_PALETTES = {
   light: {
     bgPage: "#f2f5f3", bgContainer: "#fafcfa", bgElevated: "#fdfefc",
@@ -30,8 +31,8 @@ const DRAFT_PALETTES = {
     shadow: "rgba(39, 55, 49, 0.08)", infoSoft: "#e4edf1", gridDot: "#cbd5d0",
   },
   warm: {
-    bgPage: "#eee9dd", bgContainer: "#f7f2e7", bgElevated: "#fbf7ee",
-    bgDeep: "#f1ebdf", border: "#d7cebc", border2: "#e6ddcc",
+    bgPage: "#eae4d3", bgContainer: "#f3ecda", bgElevated: "#fcfbf8",
+    bgDeep: "#eee6d2", border: "#d7cebc", border2: "#e2d8c3",
     accent: "#76613d", accentSoft: "#eae0cd", onAccent: "#fffaf0",
     text: "#302f29", text2: "#666459", text3: "#6b675b",
     success: "#52704c", successSoft: "#e7eadb",
@@ -40,8 +41,8 @@ const DRAFT_PALETTES = {
     shadow: "rgba(74, 61, 39, 0.08)", infoSoft: "#e4e5dc", gridDot: "#d3c8b4",
   },
   dark: {
-    bgPage: "#161b1a", bgContainer: "#1e2423", bgElevated: "#242b29",
-    bgDeep: "#1a201f", border: "#39433f", border2: "#2c3532",
+    bgPage: "#0d1211", bgContainer: "#1f2725", bgElevated: "#2e3735",
+    bgDeep: "#171d1b", border: "#3d4743", border2: "#36403c",
     accent: "#7bb9ac", accentSoft: "#263c36", onAccent: "#112823",
     text: "#e3e9e6", text2: "#aab6b1", text3: "#8b9892",
     success: "#88bb96", successSoft: "#24382b",
@@ -86,9 +87,9 @@ describe("themeModes 三主题 antd 配置面（b1 主题地基批）", () => {
       expect(t.colorError).toBe(c.error);
       // 主操作面文字=稿 on-accent（夜间浅青底配深字——非默认纯白）
       expect(t.colorTextLightSolid).toBe(c.onAccent);
-      // M1 密度冻结值（仅换色不换密度）
+      // 密度阅读档（美感抛光批 #2/#12：controlHeight 28→32）
       expect(t.fontSize).toBe(13);
-      expect(t.controlHeight).toBe(28);
+      expect(t.controlHeight).toBe(32);
       expect(t.borderRadius).toBe(6);
       const layout = config.components?.Layout ?? {};
       expect(layout.headerBg).toBe(c.bgPage);
@@ -108,7 +109,7 @@ describe("themeModes 三主题 antd 配置面（b1 主题地基批）", () => {
     }
   });
 
-  it("v4ThemeConfigFor：同色板+密度 12/26/6（scoped 面密度差=既有 v4 形）", () => {
+  it("v4ThemeConfigFor：同色板+密度 13/30/6（美感抛光批阅读档——scoped 面与全局保持 2px 级差）", () => {
     for (const mode of THEME_MODES) {
       const config = v4ThemeConfigFor(mode);
       const c = DRAFT_PALETTES[mode];
@@ -120,8 +121,8 @@ describe("themeModes 三主题 antd 配置面（b1 主题地基批）", () => {
       expect(t.colorPrimary).toBe(c.accent);
       expect(t.colorBgLayout).toBe(c.bgPage);
       expect(t.colorText).toBe(c.text);
-      expect(t.fontSize).toBe(12);
-      expect(t.controlHeight).toBe(26);
+      expect(t.fontSize).toBe(13);
+      expect(t.controlHeight).toBe(30);
       expect(config.components?.Layout?.siderBg).toBe(c.bgContainer);
       expect(config.components?.Table?.headerBg).toBe(c.bgDeep);
     }

@@ -160,7 +160,7 @@ export function ParametersZone({
             ⟷
           </div>
           <div className="wp-v4-pane-head">
-            <h3 style={{ fontSize: 12.5 }}>工艺对象</h3>
+            <h3>工艺对象</h3>
             <span className="wp-v4-badge">{unitsQuery.data?.length ?? "—"}</span>
           </div>
           <div className="wp-v4-search">
@@ -180,7 +180,7 @@ export function ParametersZone({
             ) : unitsQuery.isError ? (
               <p
                 role="alert"
-                style={{ color: "var(--wp-error)", fontSize: 11, margin: 8 }}
+                style={{ color: "var(--wp-error)", fontSize: 12, margin: 8 }}
               >
                 单元清单读取失败：
                 {unitsQuery.error instanceof Error
@@ -190,7 +190,7 @@ export function ParametersZone({
             ) : (
               <div className="wp-v4-list" data-testid="wp-v4-obj-list">
                 {visibleUnits.length === 0 ? (
-                  <p style={{ color: "var(--wp-text-2)", fontSize: 11, padding: 8 }}>
+                  <p style={{ color: "var(--wp-text-2)", fontSize: 12, padding: 8 }}>
                     {(unitsQuery.data ?? []).length === 0
                       ? "项目无单元——在「工艺」画布添加"
                       : "无匹配单元"}
@@ -231,12 +231,12 @@ export function ParametersZone({
         <section className="wp-v4-center" data-region="parameters-center">
           <div className="wp-v4-pane-head" style={{ background: "var(--wp-bg-container)" }}>
             <div style={{ minWidth: 0 }}>
-              <h3 style={{ fontSize: 13 }}>
+              <h3>
                 {projectId === null || selectedUnitId === null
                   ? "未选单元"
                   : (nameByUnit.get(selectedUnitId) ?? selectedUnitId)}
               </h3>
-              <span style={{ color: "var(--wp-text-2)", fontSize: 10.5 }}>
+              <span style={{ color: "var(--wp-text-2)", fontSize: 11.5 }}>
                 选中单元的设计参数，提交后自动重算
               </span>
             </div>

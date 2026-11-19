@@ -120,6 +120,17 @@ export function CompareMatrix({
   const expiredKeys =
     pinned?.filter((key) => !report.condition_keys.includes(key)) ?? [];
 
+  // 美感抛光批 #5：单元分组边界加强——分组首行（rowspan 起始行）上缘
+  // 1px var(--wp-border) 组线（非首数据行），扫读时单元块边界可辨。
+  const groupStartKeys = new Set(
+    rows.filter((row) => (unitSpanOf.get(row.key) ?? 1) > 0).map((row) => row.key),
+  );
+  const firstRowKey = rows[0]?.key ?? null;
+  const rowPropsOf = (row: MatrixRow) =>
+    groupStartKeys.has(row.key) && row.key !== firstRowKey
+      ? { style: { borderTop: "1px solid var(--wp-border)" } }
+      : {};
+
   const columns: ColumnsType<MatrixRow> = [
     {
       title: "单元",
@@ -141,7 +152,7 @@ export function CompareMatrix({
                 display: "block",
                 color: "var(--wp-text-3)",
                 fontFamily: "var(--wp-font-mono)",
-                fontSize: 10,
+                fontSize: 11,
               }}
             >
               {unitId}
@@ -205,6 +216,7 @@ export function CompareMatrix({
         columns={columns}
         dataSource={rows}
         pagination={false}
+        onRow={(row) => rowPropsOf(row)}
         locale={{ emptyText: "暂无对比指标（单元尚未声明 out_dims 输出量——随批扩面）" }}
       />
       {report.warnings.length > 0 ? (
@@ -234,10 +246,13 @@ export function CompareMatrix({
                   align: "right" as const,
                   render: (_, row) => {
                     const count = row.counts[key];
+                    // 美感抛光批 #5：警告计数并入表格数字口径（tabular-nums）
                     return typeof count === "number" && count > 0 ? (
-                      <Typography.Text type="warning">{count}</Typography.Text>
+                      <Typography.Text type="warning" style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {count}
+                      </Typography.Text>
                     ) : (
-                      <span style={{ color: "var(--wp-text-2)" }}>0</span>
+                      <span style={{ color: "var(--wp-text-2)", fontVariantNumeric: "tabular-nums" }}>0</span>
                     );
                   },
                 }),

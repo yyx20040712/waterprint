@@ -128,6 +128,11 @@ export function pickMeasured(
   return picked;
 }
 
+/** fitView 参数（美感抛光批 #8：maxZoom=1+padding 0.18——少节点不再
+ *  放大到越界裁切、多节点按节点卡原生 128–168px 尺度体系缩放；大图
+ *  全入镜缩小的承接面=MiniMap 导航，不靠缩放制造字号）。 */
+const FIT_OPTIONS = { maxZoom: 1, padding: 0.18 } as const;
+
 /** 视口收敛子件（B2 P3 k1-N10 修复版：fitKey 变更 refit——首键跳过
  *  〔mount 拟合=ReactFlow fitView prop 承担〕。CanvasFlow 原制的
  *  useNodesInitialized 门在受控 nodes prop 下恒 false〔store 聚合旗不
@@ -146,7 +151,7 @@ function FitViewOnNodes({ fitKey }: { fitKey: string }) {
     if (isFirstKey) {
       return; // mount 拟合归 fitView prop（受控面 nodesInitialized 门不可依赖）
     }
-    void fitView({ padding: 0.12, duration: 200, includeHiddenNodes: true });
+    void fitView({ ...FIT_OPTIONS, duration: 200, includeHiddenNodes: true });
   }, [fitKey, fitView]);
   return null;
 }
@@ -327,6 +332,7 @@ export function ThumbnailFlow({
         edges={edges}
         nodeTypes={NODE_TYPES}
         fitView
+        fitViewOptions={FIT_OPTIONS}
         minZoom={0.1}
         colorMode={themeMode === "dark" ? "dark" : "light"}
         nodesDraggable

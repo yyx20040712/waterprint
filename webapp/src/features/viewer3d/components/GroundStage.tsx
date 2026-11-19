@@ -104,13 +104,19 @@ export function GroundStage({ ground, sceneBg, showGrass, palette }: GroundStage
       )}
       {ground !== null && (
         <>
+          {/* 美感抛光批 #10：网格不透明度分层（主 0.6/次 0.4）——网格
+              降权让构筑物轮廓成为第一对比（色彩降饱和在 sceneTheme 纯表） */}
           <gridHelper
             args={[ground.size, ground.majorDivisions, palette.gridMajor, palette.gridMajor]}
             position={[ground.centerX, -0.008, ground.centerZ]}
+            material-transparent
+            material-opacity={0.6}
           />
           <gridHelper
             args={[ground.size, ground.minorDivisions, palette.gridMinor, palette.gridMinor]}
             position={[ground.centerX, -0.012, ground.centerZ]}
+            material-transparent
+            material-opacity={0.4}
           />
         </>
       )}

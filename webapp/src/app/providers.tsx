@@ -10,7 +10,8 @@
  *   light/护眼 warm/夜间 dark〕）：
  *   - 三主题双面换肤：antd 面=globalThemeConfigFor(mode)（app/themeModes
  *     ——algorithm light·warm=default/dark=dark+全量 seed 覆写+Layout/
- *     Tabs/Table components；密度 13/28/6 M1 冻结值不动）；CSS 轴面=
+ *     Tabs/Table components；密度 13/32/6 阅读档——美感抛光批 #12）；
+ *     CSS 轴面=
  *     global.css html[data-theme] 三块（--wp-* 变量轴）——模式切换=store
  *     setMode 三面联动〔状态/持久化/data-theme 属性+域色轴重注入〕；
  *   - 无闪烁初始化：本模块装载期 applyThemeMode(store 初始模)——import
@@ -19,7 +20,8 @@
  *     入口分层规则禁 main 直引 shared，故样式底座接线随组合根；
  *   - token 映射切分（b1 裁量）：antd 有槽位色进 ConfigProvider（值=
  *     MODE_COLORS）+global.css 轴同值对〔themeLinkage.test 三态契约〕；
- *     鎏金/soft 三键/canvas/shadow 无 antd 槽位→global.css 轴自持；
+ *     soft 三键/canvas/shadow 无 antd 槽位→global.css 轴自持（gold 族
+ *     已随美感抛光批 #14 退役——稿裁决鎏金退出，全库零消费）；
  *   - cssVar：antd v6 默认已开 CSS 变量模式（省略即默认开，运行时样式
  *     零重编译）；
  *   - QueryClient 默认项在 ./queryClient（D3 领域错误 retry 口径）；

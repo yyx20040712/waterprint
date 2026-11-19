@@ -7,13 +7,13 @@
  * 输入:  ThemeMode（shared/store/themeStore 模式真源）
  * 输出:  MODE_COLORS（三模色板记录——antd 槽位色 18 键/模；CSS 轴
  *        global.css 三块同值联动=themeLinkage.test 三态契约）+
- *        globalThemeConfigFor(mode)（providers 全局面——密度 13/28/6
- *        M1 冻结值）+v4ThemeConfigFor(mode)（v4 壳 scoped 面——密度
- *        12/26/6 既有 v4 形）
+ *        globalThemeConfigFor(mode)（providers 全局面——密度 13/32/6
+ *        阅读档）+v4ThemeConfigFor(mode)（v4 壳 scoped 面——密度
+ *        13/30/6 阅读档）
  *
  * 规格说明（稿 token→antd/--wp-* 轴映射切分裁量——沿双源联动契约分界：
  *   antd 有槽位者进 ConfigProvider token+轴同值对，无槽位者
- *   〔accent-soft/success-soft/warning-soft/canvas/shadow/gold 族〕
+ *   〔accent-soft/success-soft/warning-soft/canvas/shadow〕
  *   留 global.css 轴自持）：
  *   - 稿 bg/surface/paper/surface-2 四层底 → colorBgLayout/Layout.siderBg/
  *     colorBgContainer·Elevated/Table.headerBg·rowHoverBg（--wp-bg-*
@@ -27,9 +27,13 @@
  *   - 稿 ok/warn/error → colorSuccess/colorWarning/colorError；
  *   - algorithm：light·warm=defaultAlgorithm（护眼=亮算法+暖 token
  *     覆盖——稿 warm color-scheme:light 同义）、dark=darkAlgorithm；
- *   - 密度两冻结值不动（仅换色不换密度——B4 口径沿承）：全局
- *     fontSize 13/controlHeight 28/borderRadius 6；v4 scoped 12/26/6；
+ *   - 密度（美感抛光批 #2/#12——字级与控件阅读尺寸上调）：全局
+ *     fontSize 13/controlHeight 32/borderRadius 6；v4 scoped 13/30/6；
  *   - 字体栈沿承现值（稿 font 栈非主题差分面——字体改革随后续批次）。
+ * 美感抛光批（aesthetic-polish 2026-11-20）：warm/dark 表面色板随
+ *   global.css 轴同值联动重调（#3/#9——暗色表面阶梯/暖色面差，双源
+ *   联动契约 themeLinkage.test 三态断言同步）；gold 族轴退役（#14，
+ *   本文件本无 gold 键）。
  */
 import { theme } from "antd";
 import type { ThemeConfig } from "antd";
@@ -64,12 +68,13 @@ export const MODE_COLORS = {
     gridDot: "#cbd5d0", // 稿 grid-dot（画布点阵格点——轴自持；b3 功能面重涂批）
   },
   warm: {
-    bgPage: "#eee9dd",
-    bgContainer: "#f7f2e7",
-    bgElevated: "#fbf7ee",
-    bgDeep: "#f1ebdf",
+    // 美感抛光批 #9：elevated 向中性米白移+面差 1.04→1.14（泛黄收口）
+    bgPage: "#eae4d3",
+    bgContainer: "#f3ecda",
+    bgElevated: "#fcfbf8",
+    bgDeep: "#eee6d2",
     border: "#d7cebc",
-    border2: "#e6ddcc",
+    border2: "#e2d8c3",
     accent: "#76613d",
     accentSoft: "#eae0cd",
     onAccent: "#fffaf0",
@@ -88,12 +93,14 @@ export const MODE_COLORS = {
     gridDot: "#d3c8b4",
   },
   dark: {
-    bgPage: "#161b1a",
-    bgContainer: "#1e2423",
-    bgElevated: "#242b29",
-    bgDeep: "#1a201f",
-    border: "#39433f",
-    border2: "#2c3532",
+    // 美感抛光批 #3：表面阶梯重调（page/container 1.24、container/
+    // elevated 1.25、border2/container 1.42——文字三档不动）
+    bgPage: "#0d1211",
+    bgContainer: "#1f2725",
+    bgElevated: "#2e3735",
+    bgDeep: "#171d1b",
+    border: "#3d4743",
+    border2: "#36403c",
     accent: "#7bb9ac",
     accentSoft: "#263c36",
     onAccent: "#112823",
@@ -123,7 +130,7 @@ function algorithmFor(mode: ThemeMode): ThemeConfig["algorithm"] {
   return mode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
 }
 
-/** antd 全局面主题（providers.tsx 消费——密度 13/28/6 M1 冻结值）。 */
+/** antd 全局面主题（providers.tsx 消费——密度 13/32/6 阅读档）。 */
 export function globalThemeConfigFor(mode: ThemeMode): ThemeConfig {
   const c = MODE_COLORS[mode];
   return {
@@ -145,7 +152,7 @@ export function globalThemeConfigFor(mode: ThemeMode): ThemeConfig {
       colorError: c.error,
       colorTextLightSolid: c.onAccent,
       borderRadius: 6,
-      controlHeight: 28,
+      controlHeight: 32,
       fontSize: 13,
       fontFamily: FONT_SANS,
       fontFamilyCode: FONT_MONO,
@@ -176,7 +183,7 @@ export function globalThemeConfigFor(mode: ThemeMode): ThemeConfig {
   };
 }
 
-/** v4 壳 scoped 面主题（shellV4.tsx 消费——密度 12/26/6 既有 v4 形；
+/** v4 壳 scoped 面主题（shellV4.tsx 消费——密度 13/30/6 阅读档；
  *  回炉 R4 沿承：components 三族显式覆写防外层组件级 token 渗入）。 */
 export function v4ThemeConfigFor(mode: ThemeMode): ThemeConfig {
   const c = MODE_COLORS[mode];
@@ -199,8 +206,8 @@ export function v4ThemeConfigFor(mode: ThemeMode): ThemeConfig {
       colorError: c.error,
       colorTextLightSolid: c.onAccent,
       borderRadius: 6,
-      controlHeight: 26,
-      fontSize: 12,
+      controlHeight: 30,
+      fontSize: 13,
       fontFamily: FONT_SANS,
       fontFamilyCode: FONT_MONO,
     },

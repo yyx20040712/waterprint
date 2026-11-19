@@ -15,11 +15,15 @@
  * B4 沿革（2026-10-09）：全部同值断言亮值化；b1 主题地基批：色板整体
  *   换为已批准设计稿三主题值（正常/护眼/夜间），断言面三模化——
  *   单模漂移（如只改 dark 块漏改 antd 侧）即红。
+ * 美感抛光批（aesthetic-polish 2026-11-20）：warm/dark 表面族值随轴
+ *   重调（暗色阶梯/暖色面差）——解析面自证锚同步；gold 族轴退役
+ *   （#14：稿裁决「青绿操作色，鎏金退出常规选中态」且全库零消费
+ *   ——PAIRED_KEYS 两键移除，开放问题 5 闭合）。
  *
  * 形态说明（范式=domainColorAxis.test.ts：node:fs 读 CSS 原文+静态
  *   import JS 模块，node 直测零 jsdom）。antd 无槽位自持真源
- *   （--wp-gold/-soft/--wp-scrollbar-hover/--wp-canvas/--wp-shadow/
- *   soft 三键）不入对表——global.css 头注口径；其逐模冻结锚在
+ *   （-soft 四键/--wp-scrollbar-hover/--wp-canvas/--wp-shadow）不入
+ *   对表——global.css 头注口径；其逐模冻结锚在
  *   lightBaseline.test（色板冻结面）。
  */
 import { readFileSync } from "node:fs";
@@ -87,18 +91,16 @@ const PAIRED_KEYS = [
   "--wp-error-soft",
   "--wp-canvas",
   "--wp-shadow",
-  "--wp-gold",
-  "--wp-gold-soft",
   "--wp-scrollbar-hover",
 ] as const;
 
 describe("GR-39 双源联动清单机检化（2A5·b1 三态扩面）", () => {
   it("三主题块解析：变量轴声明可抽取（解析面自证——三模锚键实值在场）", () => {
     // 防正则腐化前置拦：解析坏=同值对断言面全红的前置信号（三模各取
-    // 代表键设计稿值字面自证）
+    // 代表键值字面自证——warm/dark 为美感抛光批重调值）
     expect(cssVars.light.get("--wp-bg-page")).toBe("#f2f5f3");
-    expect(cssVars.warm.get("--wp-bg-page")).toBe("#eee9dd");
-    expect(cssVars.dark.get("--wp-bg-page")).toBe("#161b1a");
+    expect(cssVars.warm.get("--wp-bg-page")).toBe("#eae4d3");
+    expect(cssVars.dark.get("--wp-bg-page")).toBe("#0d1211");
     expect(cssVars.light.get("--wp-accent")).toBe("#246b63");
     expect(cssVars.dark.get("--wp-accent")).toBe("#7bb9ac");
     for (const mode of THEME_MODES) {

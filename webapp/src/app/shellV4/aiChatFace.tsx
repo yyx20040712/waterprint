@@ -34,6 +34,7 @@ import {
 } from "../../features/ai_chat/api/useAiChat";
 import { LlmConfigSection } from "../../features/ai_chat/components/LlmConfigSection";
 import type { ChatHistoryMessage } from "../../shared/api/generated/model/chatHistoryMessage";
+import { EmptyState } from "./emptyState";
 
 /** 头行副题（稿 ai.html——白名单：说明文案）。 */
 const CENTER_SUBTITLE = "本地设计助手，工具调用可见";
@@ -70,7 +71,7 @@ function ToolCallCard({ step }: { step: Record<string, unknown> }) {
           gap: 7,
           padding: "5px 9px",
           color: "var(--wp-text-2)",
-          fontSize: 11,
+          fontSize: 12, /* 美感抛光批 #11：工具卡标题 12（紧凑面最低阅读档） */
         }}
       >
         <span aria-hidden style={{ color: ok ? "var(--wp-success)" : "var(--wp-error)" }}>
@@ -88,16 +89,17 @@ function ToolCallCard({ step }: { step: Record<string, unknown> }) {
   );
 }
 
-/** 单条消息（user=右对齐泡；assistant=头像+meta+正文+工具卡）。 */
+/** 单条消息（user=右对齐泡；assistant=头像+meta+正文+工具卡；美感抛光批
+ *  #11：正文 13/1.7、双方泡 max-width 74%——窄栏网格不被长行撑破）。 */
 function ChatMessage({ message }: { message: ChatHistoryMessage }) {
   if (message.role === "user") {
     return (
       <div
         data-testid="wp-v4-ai-msg-user"
-        style={{ display: "flex", justifyContent: "flex-end", maxWidth: "78%", marginLeft: "auto" }}
+        style={{ display: "flex", justifyContent: "flex-end", maxWidth: "74%", marginLeft: "auto" }}
       >
         <div>
-          <div style={{ marginBottom: 3, color: "var(--wp-text-3)", fontSize: 10.5, textAlign: "right" }}>
+          <div style={{ marginBottom: 3, color: "var(--wp-text-3)", fontSize: 11, textAlign: "right" }}>
             你
           </div>
           <div
@@ -106,7 +108,7 @@ function ChatMessage({ message }: { message: ChatHistoryMessage }) {
               borderRadius: 6,
               background: "var(--wp-accent-soft)",
               color: "var(--wp-text)",
-              fontSize: 12,
+              fontSize: 13,
               lineHeight: 1.7,
               whiteSpace: "pre-wrap",
               overflowWrap: "anywhere",
@@ -122,7 +124,7 @@ function ChatMessage({ message }: { message: ChatHistoryMessage }) {
   const body: ReactNode[] = [];
   if (message.text !== "") {
     body.push(
-      <p key="text" style={{ margin: 0, fontSize: 12, lineHeight: 1.75, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+      <p key="text" style={{ margin: 0, fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
         {message.text}
       </p>,
     );
@@ -140,7 +142,9 @@ function ChatMessage({ message }: { message: ChatHistoryMessage }) {
     );
   }
   return (
-    <div data-testid="wp-v4-ai-msg-assistant" style={{ display: "flex", gap: 9, maxWidth: "92%" }}>
+    <div data-testid="wp-v4-ai-msg-assistant" style={{ display: "flex", gap: 9, maxWidth: "76%" }}>
+      {/* 美感抛光批 #13：头像 ◉ 文本字形→AntD RobotOutlined（与顶栏
+          模型配置钮同图标族——跨平台字重/基线漂移根除） */}
       <span
         aria-hidden
         style={{
@@ -153,17 +157,17 @@ function ChatMessage({ message }: { message: ChatHistoryMessage }) {
           borderRadius: "50%",
           color: "var(--wp-accent)",
           background: "var(--wp-bg-elevated)",
-          fontSize: 12,
+          fontSize: 13,
         }}
       >
-        ◉
+        <RobotOutlined style={{ fontSize: 13 }} />
       </span>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ marginBottom: 3, color: "var(--wp-text-2)", fontSize: 10.5 }}>
+        <div style={{ marginBottom: 3, color: "var(--wp-text-2)", fontSize: 11 }}>
           {ASSISTANT_NAME}
           {message.turn !== undefined ? ` · 第 ${message.turn} 轮` : ""}
         </div>
-        {body.length > 0 ? body : <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12 }}>（空回复）</p>}
+        {body.length > 0 ? body : <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 13 }}>（空回复）</p>}
       </div>
     </div>
   );
@@ -213,7 +217,7 @@ export function AiChatFace({
       <div className="wp-v4-pane-head">
         <div style={{ minWidth: 0 }}>
           <h3>{sessionTitle ?? "新会话"}</h3>
-          <span style={{ display: "block", color: "var(--wp-text-2)", fontSize: 10.5 }}>
+          <span style={{ display: "block", color: "var(--wp-text-2)", fontSize: 11 }}>
             {CENTER_SUBTITLE}
           </span>
         </div>
@@ -239,7 +243,8 @@ export function AiChatFace({
           />
         </div>
       </div>
-      {/* 会话流（完整历史——b2 凝缩摘要面退役） */}
+      {/* 会话流（完整历史——b2 凝缩摘要面退役；美感抛光批 #7：空态居中
+          于消息流垂直中心——不再缩在顶部一行小字） */}
       <div
         className="wp-v4-dock-main"
         data-testid="wp-v4-ai-log"
@@ -256,8 +261,35 @@ export function AiChatFace({
           </div>
         ) : null}
         {messages.length === 0 && !history.isError ? (
-          <div style={{ color: "var(--wp-text-2)", fontSize: 11.5, padding: "12px 0" }}>
-            {EMPTY_CHAT_HINT}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <EmptyState
+              icon={
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 40 40"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  aria-hidden
+                >
+                  <path d="M6 8h22a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-7 6v-6H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" />
+                  <path d="M12 15h14M12 20h9" />
+                </svg>
+              }
+              title="开始对话"
+              description={EMPTY_CHAT_HINT}
+            />
           </div>
         ) : null}
         {messages.map((message, index) => (
@@ -298,7 +330,7 @@ export function AiChatFace({
               resize: "vertical",
               background: "transparent",
               color: "var(--wp-text)",
-              fontSize: 12,
+              fontSize: 13,
               lineHeight: 1.6,
               padding: "8px 11px",
               minHeight: 56,
@@ -313,7 +345,7 @@ export function AiChatFace({
               padding: "6px 9px 8px",
             }}
           >
-            <span style={{ color: "var(--wp-text-3)", fontSize: 10.5 }}>{COMPOSER_HINT}</span>
+            <span style={{ color: "var(--wp-text-3)", fontSize: 11 }}>{COMPOSER_HINT}</span>
             <button
               type="button"
               data-testid="wp-v4-ai-send"
@@ -322,8 +354,8 @@ export function AiChatFace({
               style={{
                 border: "1px solid var(--wp-accent)",
                 borderRadius: 4,
-                padding: "3px 12px",
-                fontSize: 11,
+                padding: "6px 16px",
+                fontSize: 12.5,
                 background: send.isPending ? "var(--wp-bg-deep)" : "var(--wp-accent)",
                 color: send.isPending ? "var(--wp-text-3)" : "var(--wp-on-accent)",
                 cursor: send.isPending ? "default" : "pointer",

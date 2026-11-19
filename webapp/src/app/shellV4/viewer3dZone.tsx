@@ -25,6 +25,7 @@ import { useProjectId } from "../useProjectId";
 import { useProjectDesign } from "../../features/params/api/useProjectDesign";
 import { unitNameIndex } from "../../shared/conditionLabels";
 import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
+import { NavGlyph, type NavGlyphKind } from "./navGlyphs";
 
 const Viewer3dPane = lazy(() =>
   import("../viewer3dPane").then((m) => ({ default: m.Viewer3dPane })),
@@ -40,12 +41,16 @@ const STRUCTURE_NOTICE =
   "未摆放或未计算单元不进入场景。取景以模型簇与红线顶点为边界。";
 
 /** 场地与管线分组行（场景构成静态行——图示语义非交互面；域色轴标注
- *  水线/泥线两管廊）。 */
-const SITE_GROUP_ROWS: ReadonlyArray<readonly [string, string, string]> = [
-  ["≋", "水线管廊", "var(--wp-water)"],
-  ["≋", "泥线管廊", "var(--wp-sludge)"],
-  ["▦", "道路与走廊", "var(--wp-text-3)"],
-  ["▭", "场地红线", "var(--wp-text-3)"],
+ *  水线/泥线两管廊；美感抛光批 #13：文本字形 ≋/▦/▭→NavGlyph 单线 SVG）。 */
+const SITE_GROUP_ROWS: ReadonlyArray<{
+  glyph: NavGlyphKind;
+  label: string;
+  color: string;
+}> = [
+  { glyph: "wave", label: "水线管廊", color: "var(--wp-water)" },
+  { glyph: "wave", label: "泥线管廊", color: "var(--wp-sludge)" },
+  { glyph: "grid", label: "道路与走廊", color: "var(--wp-text-3)" },
+  { glyph: "rect", label: "场地红线", color: "var(--wp-text-3)" },
 ];
 
 /** 简笔线性图标（+／−／home——stroke currentColor，全局规则简笔线性）。 */
@@ -91,7 +96,7 @@ function SceneStructurePane() {
         <div className="wp-v4-tree">
           <div className="wp-v4-tree-group">
             <span aria-hidden className="chev">▾</span>
-            <strong style={{ fontWeight: 400 }}>厂区总装</strong>
+            <strong style={{ fontWeight: 600 }}>厂区总装</strong>
           </div>
           {unitIds.length === 0 ? (
             <p style={{ padding: "2px 8px 6px 22px", color: "var(--wp-text-2)", fontSize: 11 }}>
@@ -106,8 +111,8 @@ function SceneStructurePane() {
                 style={{ cursor: "default" }}
                 title={unitId}
               >
-                <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", width: 13, textAlign: "center" }}>
-                  ◻
+                <span aria-hidden style={{ flex: "none", color: "var(--wp-text-3)", width: 14, display: "inline-flex", alignItems: "center" }}>
+                  <NavGlyph kind="unit" size={13} />
                 </span>
                 <span
                   style={{
@@ -124,18 +129,18 @@ function SceneStructurePane() {
           )}
           <div className="wp-v4-tree-group" style={{ marginTop: 8 }}>
             <span aria-hidden className="chev">▾</span>
-            <strong style={{ fontWeight: 400 }}>场地与管线</strong>
+            <strong style={{ fontWeight: 600 }}>场地与管线</strong>
           </div>
-          {SITE_GROUP_ROWS.map(([icon, label, color]) => (
+          {SITE_GROUP_ROWS.map((row) => (
             <div
-              key={label}
+              key={row.label}
               className="wp-v4-tree-row"
               style={{ cursor: "default" }}
             >
-              <span aria-hidden style={{ flex: "none", color, width: 13, textAlign: "center" }}>
-                {icon}
+              <span aria-hidden style={{ flex: "none", color: row.color, width: 14, display: "inline-flex", alignItems: "center" }}>
+                <NavGlyph kind={row.glyph} size={13} />
               </span>
-              <span>{label}</span>
+              <span>{row.label}</span>
             </div>
           ))}
         </div>

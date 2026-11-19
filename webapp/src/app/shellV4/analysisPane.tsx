@@ -102,12 +102,12 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
     <table
       className="wp-v4-rt"
       data-testid="wp-v4-effluent-table"
-      style={{ marginBottom: 10 }}
+      style={{ marginBottom: 12 }}
     >
       <thead>
         <tr>
-          <th>指标</th>
-          <th>单位</th>
+          <th style={{ textAlign: "left" }}>指标</th>
+          <th style={{ textAlign: "left" }}>单位</th>
           {conditionKeys.map((key) => (
             <th key={key}>{key === "avg" ? "基准" : key === "design" ? "设计" : key}</th>
           ))}
@@ -119,7 +119,7 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
         {rows.map((row) => (
           <tr key={row.indicator}>
             <td style={{ textAlign: "left" }}>{row.indicator}</td>
-            <td style={{ color: "var(--wp-text-2)" }}>{effluentUnitOf(row.indicator)}</td>
+            <td style={{ textAlign: "left", color: "var(--wp-text-2)" }}>{effluentUnitOf(row.indicator)}</td>
             {conditionKeys.map((key) => {
               const value = row.values[key];
               return (
@@ -134,6 +134,7 @@ function EffluentTable({ effluent }: { effluent: Parameters<typeof effluentRows>
                 </td>
               );
             })}
+            {/* 美感抛光批 #5：限值列并入表格数字口径（表级 tabular-nums 锚） */}
             <td>{formatSolutionValue(row.limit)}</td>
             <td>
               <span
@@ -191,7 +192,7 @@ function PlantFace({ projectId }: { projectId: string }) {
     );
   }
   return (
-    <div data-testid="wp-v4-analysis-plant" style={{ padding: "10px 12px", overflow: "auto" }}>
+    <div data-testid="wp-v4-analysis-plant" style={{ padding: "16px 20px", overflow: "auto" }}>
       {report.stale ? <StaleBanner projectId={projectId} /> : null}
       {/* T3 警告聚合副数据面（stale 横幅后/出水指标前——违规面优先于指标
           阅读）：错误局部呈现不阻断 compare 主面（trust 副数据同制）、
@@ -206,6 +207,11 @@ function PlantFace({ projectId }: { projectId: string }) {
       ) : validationQuery.isPending ? null : validation !== null ? (
         <WarningsPanel observation={validation} />
       ) : null}
+      {/* 美感抛光批 #6：排版分段——段题 14/600+留白建立两张长表间的层级
+          （不恢复结构稿卡片堆叠，保留全宽工程表） */}
+      {trustQuery.isPending ? null : (
+        <h4 className="wp-v4-face-sec">出水指标</h4>
+      )}
       {/* R1 W-trust：取数失败=错误提示（白名单）+加载静默——矩阵面仍在不阻断 */}
       {trustQuery.isError ? (
         <div style={{ fontSize: 11, color: "var(--wp-error)", marginBottom: 8 }}>
@@ -215,6 +221,7 @@ function PlantFace({ projectId }: { projectId: string }) {
       ) : trustQuery.isPending ? null : (
         <EffluentTable effluent={trust?.effluent ?? []} />
       )}
+      <h4 className="wp-v4-face-sec">全厂对比矩阵</h4>
       <CompareMatrix report={report} pinned={null} />
     </div>
   );
@@ -354,7 +361,7 @@ export function StaleBanner({ projectId }: { projectId: string }) {
         gap: 10,
         fontSize: 11,
         color: "var(--wp-warning)",
-        background: "var(--wp-warning-soft, rgba(138, 97, 0, 0.08))",
+        background: "var(--wp-warning-soft)",
         border: "1px solid var(--wp-border-2)",
         borderRadius: 6,
         padding: "4px 10px",

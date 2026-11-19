@@ -13,24 +13,24 @@ import { describe, expect, it } from "vitest";
 import { resolveSceneTheme, sceneThemeFor } from "./sceneTheme";
 
 describe("sceneTheme 纯表逐模冻结（b4——三维场景随主题）", () => {
-  it("草地/网格四键 light 档=现值零漂移锚（像素级沿承）", () => {
+  it("草地/网格四键 light 档=现值锚（草地零漂移；网格=美感抛光批 #10 降权值——蓝饱和度收口，构筑物轮廓为第一对比）", () => {
     const light = sceneThemeFor("light");
     expect(light.grassWorld).toBe("#e2ece0");
     expect(light.grass).toBe("#c8dcc2");
-    expect(light.gridMajor).toBe("#54719f");
-    expect(light.gridMinor).toBe("#d8dee8");
+    expect(light.gridMajor).toBe("#8b9aa9");
+    expect(light.gridMinor).toBe("#dee3e9");
   });
 
   it("草地/网格四键 warm/dark 档派生值冻结（改值须同步本锚）", () => {
     const warm = sceneThemeFor("warm");
     expect(warm.grassWorld).toBe("#eae4cf");
     expect(warm.grass).toBe("#d2cdaa");
-    expect(warm.gridMajor).toBe("#6d6b5c");
-    expect(warm.gridMinor).toBe("#ddd8c8");
+    expect(warm.gridMajor).toBe("#878571");
+    expect(warm.gridMinor).toBe("#e2ddce");
     const dark = sceneThemeFor("dark");
     expect(dark.grassWorld).toBe("#1d2622");
     expect(dark.grass).toBe("#2a3530");
-    expect(dark.gridMajor).toBe("#46628c");
+    expect(dark.gridMajor).toBe("#4a5a72");
     expect(dark.gridMinor).toBe("#2c3532");
   });
 

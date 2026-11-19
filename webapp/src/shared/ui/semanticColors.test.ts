@@ -9,7 +9,8 @@
  *        双轴同值逐键===domain_* 键/注入契约 stub document 按模/缺席
  *        守卫〕——CSS 侧文件面守卫〔退役+接线〕在 app 层
  *        domainColorAxis.test〔同层读 global.css/providers.tsx——门一
- *        回炉 d1-W5 反向耦合处置〕）
+ *        回炉 d1-W5 反向耦合处置〕；美感抛光批 #10 增三维材质键按模
+ *        取值面〔MATERIAL_COLORS 四键三模〕）
  *
  * 键集 34 键（SC1 迁移 24 键全数原值零漂移+SPC2 boundary_error+B3-b
  * domain_* 五键〔同值搬家——unitGlyph/LEGEND_LINES 收编〕）——
@@ -24,6 +25,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DOMAIN_COLORS,
   FALLBACK_COLOR,
+  MATERIAL_COLORS,
   SEMANTIC_COLORS,
   domainCssVarsFor,
   installDomainColorAxis,
@@ -122,13 +124,32 @@ describe("semanticColors 语义色真源表", () => {
     expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.dark.water);
     expect(semanticColor("pipe_sludge")).toBe(DOMAIN_COLORS.dark.sludge);
     expect(semanticColor("domain_mine")).toBe(DOMAIN_COLORS.dark.mine);
-    // 切 warm 后回落；非域派生键不受模影响
+    // 切 warm 后回落；非派生键不受模影响
     installDomainColorAxis("warm");
     expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.warm.water);
-    expect(semanticColor("pool_wall")).toBe(SEMANTIC_COLORS.pool_wall);
+    expect(semanticColor("water_surface")).toBe(SEMANTIC_COLORS.water_surface);
     // 复位 light（后续用例基线稳定）
     installDomainColorAxis("light");
     expect(semanticColor("pipe_water")).toBe(DOMAIN_COLORS.light.water);
+  });
+
+  it("三维材质键按模取值（美感抛光批 #10——pool_wall/partition/channel/ground 查 MATERIAL_COLORS 对应档；light 档=静态表同值像素零漂移锚）", () => {
+    // 基线=light：派生值与静态表（light 参照锚）同值
+    for (const key of ["pool_wall", "partition", "channel", "ground"] as const) {
+      expect(semanticColor(key)).toBe(SEMANTIC_COLORS[key]);
+      expect(semanticColor(key)).toBe(MATERIAL_COLORS.light[key]);
+    }
+    installDomainColorAxis("dark");
+    expect(semanticColor("pool_wall")).toBe(MATERIAL_COLORS.dark.pool_wall);
+    expect(semanticColor("partition")).toBe(MATERIAL_COLORS.dark.partition);
+    expect(semanticColor("channel")).toBe(MATERIAL_COLORS.dark.channel);
+    expect(semanticColor("ground")).toBe(MATERIAL_COLORS.dark.ground);
+    installDomainColorAxis("warm");
+    expect(semanticColor("pool_wall")).toBe(MATERIAL_COLORS.warm.pool_wall);
+    expect(semanticColor("ground")).toBe(MATERIAL_COLORS.warm.ground);
+    // 复位 light（后续用例基线稳定）
+    installDomainColorAxis("light");
+    expect(semanticColor("pool_wall")).toBe(MATERIAL_COLORS.light.pool_wall);
   });
 
   it("三导出存在性：SEMANTIC_COLORS/semanticColor/FALLBACK_COLOR", () => {

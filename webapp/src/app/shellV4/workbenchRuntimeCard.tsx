@@ -71,7 +71,7 @@ export function WorkbenchRuntimeCard({
       <div className="wp-wb-panel-body">
         {isClient ? (
           <>
-            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11 }}>
+            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12 }}>
               本地 UI，远程数据与计算——项目与产物全部来自所连服务器。
             </p>
             <div
@@ -81,7 +81,7 @@ export function WorkbenchRuntimeCard({
                 justifyContent: "space-between",
                 gap: 8,
                 marginTop: 8,
-                fontSize: 11,
+                fontSize: 12,
               }}
             >
               <span style={{ color: "var(--wp-text-2)" }}>远程来源</span>
@@ -103,7 +103,7 @@ export function WorkbenchRuntimeCard({
           </>
         ) : runtime?.role === "server" ? (
           <>
-            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11 }}>
+            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12 }}>
               本地引擎照常，项目仍在本机；局域网客户端凭地址与配对 token
               加入。
             </p>
@@ -114,7 +114,7 @@ export function WorkbenchRuntimeCard({
                 justifyContent: "space-between",
                 gap: 8,
                 marginTop: 8,
-                fontSize: 11,
+                fontSize: 12,
               }}
             >
               <span style={{ color: "var(--wp-text-2)" }}>局域网可被发现</span>
@@ -136,7 +136,7 @@ export function WorkbenchRuntimeCard({
           </>
         ) : (
           <>
-            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11 }}>
+            <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 12 }}>
               本地引擎与本地项目。联机开关关闭——不向局域网开放项目，也不连接远程服务器。
             </p>
             <Button

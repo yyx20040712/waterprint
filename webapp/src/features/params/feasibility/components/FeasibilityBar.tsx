@@ -86,7 +86,8 @@ export function FeasibilityBar({
           />
         ))}
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", ...({ color: "#8c8c8c", fontSize: 11 } as const) }}>
+      {/* 美感抛光批 #1：端值/统计行 #8c8c8c→--wp-text-3 轴（夜间随轴换肤） */}
+      <div style={{ display: "flex", justifyContent: "space-between", ...({ color: "var(--wp-text-3)", fontSize: 11 } as const) }}>
         <span>{low}</span>
         <span>
           可行 {product.stats.feasible}/{product.stats.total}（
