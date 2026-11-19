@@ -102,9 +102,9 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
     expect(hits).toEqual([]);
   });
 
-  it("扫描面非空守卫：shellV4 生产件恰 34 件（扫描根漂移=静默绿防线；b2 壳重组批 26 件；b3 功能面重涂批 +unitLibraryPane/unitInspector/thumbnailNode 三件；b4 功能面重涂 II 批 +aiChatFace/aiSessionsPane/reportExports 三件——AI 三栏与导出拆件；联机第五批 +runtimeFace 运行角色面纯函数层+workbenchRuntimeCard 运行方式卡拆件）", () => {
+  it("扫描面非空守卫：shellV4 生产件恰 35 件（扫描根漂移=静默绿防线；b2 壳重组批 26 件；b3 功能面重涂批 +unitLibraryPane/unitInspector/thumbnailNode 三件；b4 功能面重涂 II 批 +aiChatFace/aiSessionsPane/reportExports 三件——AI 三栏与导出拆件；联机第五批 +runtimeFace 运行角色面纯函数层+workbenchRuntimeCard 运行方式卡拆件；联机第六批 +remoteListStates 远程列表态卡）", () => {
     const sources = scanShellV4Sources(SCAN_DIR);
-    expect(sources.length).toBe(34);
+    expect(sources.length).toBe(35);
     expect(sources.map((s) => s.rel).sort()).toEqual(
       [
         "aiChatFace.tsx",
@@ -123,6 +123,7 @@ describe("零教学性文字门（B7——v4 生产树禁词族命中恰 0）", 
         "processZone.tsx",
         "projectsZone.tsx",
         "reportDoc.tsx",
+        "remoteListStates.tsx",
         "reportExports.tsx",
         "runtimeFace.ts",
         "workbenchRuntimeCard.tsx",

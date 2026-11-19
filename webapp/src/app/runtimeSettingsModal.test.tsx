@@ -3,7 +3,7 @@
  *
  * 运行方式与联机 Modal vitest（联机架构第五批 2026-11-19——稿
  * connection.html 服务端态：真实角色呈现/配对卡 token 门/桥缺席诚实
- * 降级/客户端模式下一批占位）。
+ * 降级/客户端模式实装入口〔联机第六批——面板细测在 clientConnectionPanel.test〕）。
  *
  * 输入:  RuntimeSettingsModal（Harness 关态挂载→事件开——settingsSelfHeal
  *        .test 同制式；runtime 查询模块替身 gate 受控数据；jsdom 无
@@ -11,7 +11,7 @@
  * 输出:  断言五组：①standalone 态：单机说明+开关关+桥缺席降级注记
  *        ②server 态+回环 reveal：配对卡地址行+token 明文+监听中徽标
  *        ③server 态+非回环（reveal=null）：token 不展示+仅本机可见提示
- *        ④客户端模式=下一批占位（说明行非虚假入口）⑤读失败警示行
+ *        ④客户端模式=实装入口（地址+token+测试连接在场）⑤读失败警示行
  */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -160,13 +160,20 @@ describe("运行方式与联机 Modal（联机第五批）", () => {
     expect(document.body.textContent).not.toContain("WATERPRINT_SECRET");
   });
 
-  it("客户端模式=下一批占位说明行（不设虚假入口）", async () => {
+  it("客户端模式=实装入口（地址+token+测试连接在场——联机第六批，非占位）", async () => {
     await renderOpenedModal();
-    const row = document.querySelector(
-      '[data-testid="wp-v4-runtime-client-next"]',
-    );
-    expect(row?.textContent).toContain("客户端模式");
-    expect(row?.textContent).toContain("下一批");
+    const panel = document.querySelector('[data-testid="wp-v4-client-panel"]');
+    expect(panel).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="wp-v4-client-address"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="wp-v4-client-token"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-testid="wp-v4-client-test"]'),
+    ).not.toBeNull();
+    expect(document.body.textContent).not.toContain("下一批");
   });
 
   it("runtime 读失败=警示行（诚实降级按单机显示）", async () => {

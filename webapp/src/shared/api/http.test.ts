@@ -15,7 +15,9 @@
  *   - R2-A 批2：token 空=零 Authorization 注入零行为变化；token 非空=
  *     Bearer 头注入；401 先派发 AUTH_EVENT（"wp:auth"）再走既有 throw
  *     （错误语义零变化；次序锁 R 轮 G1-04——dispatch/throw 时序标记
- *     断言）；非 401 零派发；node 无 localStorage 视同未配置。
+ *     断言）；非 401 零派发；node 无 localStorage 视同未配置；
+ *   - 联机第六批（2026-11-19）：客户端模式远程 origin 前拼面（远程档案
+ *     在场 → 全部请求 URL 前拼——本地缺席零前拼回归锚即 C1 既有例）。
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -75,6 +77,21 @@ describe("customInstance 路径锁定（C1 防回归）", () => {
       method: "GET",
     });
     expect(mock.mock.calls[0]?.[0]).toBe("/api/scene/p1?condition_key=design");
+  });
+
+  it("客户端模式：远程档案在场 → 全部请求前拼远程 origin（联机第六批）", async () => {
+    stubLocalStorage();
+    localStorage.setItem(
+      "waterprint.remote_server",
+      JSON.stringify({ base_url: "http://127.0.0.1:8100" }),
+    );
+    const mock = stubFetch(new Response("{}", { status: 200 }));
+    await customInstance<unknown>("/api/scene/p1?condition_key=design", {
+      method: "GET",
+    });
+    expect(mock.mock.calls[0]?.[0]).toBe(
+      "http://127.0.0.1:8100/api/scene/p1?condition_key=design",
+    );
   });
 });
 

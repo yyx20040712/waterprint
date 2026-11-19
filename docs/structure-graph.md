@@ -304,6 +304,8 @@ glob = true
 
 | 运行时信息与配对（联机架构第五批 2026-11-19——用户裁决 Minecraft 式开关模型） | `webapp/src/app/shellV4/statusBar.tsx`（+workbenchZone.tsx 运行方式卡/runtimeSettingsModal.tsx 配对卡——useGetRuntimeApiRuntimeGet 同键缓存） → `server/waterprint_server/routers/meta.py` → `server/waterprint_server/services/runtime.py` （role 派生=绑定地址即角色〔settings.is_loopback_host〕；token_reveal 仅请求者 socket 回环） → `core/waterprint/app.py`（load_run_env 空 project——UF-10/b24 三包 data_version 聚合面单源复用，服务层零第二聚合源） + `core/waterprint/contracts/project_schema.py`（空项目载体）；webapp 绑定切换控件经 `webapp/src/app/desktopBridge.ts` 接口约定→desktop 壳（b7 批实装） |
 
+| 客户端模式通路（联机架构第六批 2026-11-19——用户裁决厚客户端模型：界面本地加载，数据/计算全走远程服务器） | `webapp/src/app/clientConnectionPanel.tsx`（连接测试+握手阻断）+`webapp/src/app/remoteHandshake.ts`（performHandshake 三步探测〔meta 豁免面→projects 受保面 Bearer 探针→版本比对——期望值 `webapp/src/shared/api/clientProtocol.ts` 构建期常量，clientProtocol.test 自 data/ 三 manifest 重算锚定〕） → 远程服务器 GET /api/meta+GET /api/projects（跨 origin fetch）；运行期全量 API 经 `webapp/src/shared/api/http.ts`+`webapp/src/shared/api/sseUrl.ts`（基址切换实现层=orval mutator 单点——getRemoteBaseUrl 前拼，token 沿 waterprint.api_token Bearer 通道）；状态机驱动 `webapp/src/app/useClientConnection.ts`（supervisor——meta 查询+queryCache 401/恢复）→`webapp/src/app/clientConnectionStore.ts`（六态）→ 消费面 statusBar/projectsZone（四态）/workbenchRuntimeCard；CORS 生产通道 `server/waterprint_server/main.py`（开发白名单 ∪ settings.allowed_origins〔`server/waterprint_server/settings.py`——缺省桌面壳 127.0.0.1:8620〕，token 门禁独立） |
+
 ## 3. 业务单元总表（32 包；与 file-contracts.md §3、units_lib 目录三方互验）
 
 > 参数级中文名真源=各单元 manifest.py params 的 `label_zh`（B2 起，233 条全量——本表"中文名"列是单元级映射，参数级不入本表防双源）。

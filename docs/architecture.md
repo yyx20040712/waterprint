@@ -237,43 +237,42 @@ ai_chat 子进程桥供 webapp 对话；工具面=chat/toolspec 25 工具 schema
 
 ### 4.1 部署形态（Docker 双容器）
 
-`docker compose -f deploy/compose.yml up -d --build`：server（FastAPI/uvicorn，
-容器内 0.0.0.0:8000，**不发布宿主**）+ webapp（nginx 承载前端静态产物并反代
-`/api`）。对外唯一入口 = http://localhost:8080，只应在可信内网/防火墙后暴露。
+`docker compose -f deploy/compose.yml up -d --build`：server（FastAPI/uvicorn，容器内
+0.0.0.0:8000，**不发布宿主**）+ webapp（nginx 承载前端静态产物并反代 `/api`）。
+对外唯一入口 = http://localhost:8080，只应在可信内网/防火墙后暴露。
 
 **安全红线**：任何经反代/端口映射对外可达的部署形态，无论绑定地址，必须配置
-`WATERPRINT_API_TOKEN`（Bearer token，≥16 位；除三个公开只读 GET
-〔assumptions/constraints/units〕外全部操作受保，受保面以
-`api-contracts/openapi.json` 的 security 字段为准；token 空=鉴权关）。
-机器防线：token 空且 `WATERPRINT_HOST` 不在回环集合时启动即失败。服务单进程
-契约（api replicas=1 + calc workers=N），不可水平扩副本。
+`WATERPRINT_API_TOKEN`（Bearer token，≥16 位；除三个公开只读 GET〔assumptions/
+constraints/units〕外全部操作受保，受保面以 `api-contracts/openapi.json` 的
+security 字段为准；token 空=鉴权关）。机器防线：token 空且 `WATERPRINT_HOST` 不在回环集合时启动即失败。服务单进程契约（api replicas=1 + calc workers=N），不可
+水平扩副本。客户端模式（联机第六批）：厚客户端（本地 UI+数据计算全走远程 API）跨
+origin fetch——CORS=开发白名单 ∪ `WATERPRINT_ALLOWED_ORIGINS`；连接前版本握手
+（/api/meta api/data 不匹配=阻断，期望值=clientProtocol.ts 构建期常量）；客户端档案
+=localStorage `waterprint.remote_server`（token 沿既有 Bearer 通道）。
 
 **PDF 计算书前置**：默认 server 镜像不安装 typst CLI 与 PDF 字体；PDF 导出
 （`POST /api/exports/report_pdf`）要求服务主机具备 typst（PATH 发现或
-`WATERPRINT_TYPST_PATH` 指定）及系统字体 Times New Roman + SimSun，缺失时
-端点显式报错（安装细目见 [docs/archive/deployment.md](archive/deployment.md)
-「导出格式」节）。
+`WATERPRINT_TYPST_PATH` 指定）及系统字体 Times New Roman + SimSun，缺失时端点
+显式报错（安装细目见 [docs/archive/deployment.md](archive/deployment.md)「导出格式」节）。
 
-数据卷：`waterprint_wp-projects`（项目 *.wp.json）与 `waterprint_wp-exports`
-（导出产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验：
-`python -m` 启动块+容器 entrypoint；校验面=五包
-assumptions/coefficients/constraint_kb/templates/unit_prices，AUDIT-#3 b24
-起 assumptions 收口进校验面，core 装载同走 `WATERPRINT_DATA_DIR`）。
-本地开发注记：server venv 的 waterprint-core 为非 editable 拷贝安装——core 改动后须 `uv sync --reinstall-package waterprint-core` 刷新再跑 server 测试（CI fresh sync 无此问题）。
-data_version 聚合串=三包 `assumptions@…+coefficients@…+unit_prices@…`
-（包名排序拼接；assumptions 版本槽入聚合系 AUDIT-#4 b24，抬版仍需人工）。
-服务重启不续跑任务：崩溃/强杀残留的排队与运行中任务转 failed
-（InterruptedByRestart），优雅停机时排队任务转 cancelled；终态任务
-记录可查。
+数据卷：`waterprint_wp-projects`（项目 *.wp.json）与 `waterprint_wp-exports`（导出
+产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验：`python -m`
+启动块+容器 entrypoint；校验面=五包 assumptions/coefficients/constraint_kb/
+templates/unit_prices，AUDIT-#3 b24 起 assumptions 收口进校验面，core 装载同走
+`WATERPRINT_DATA_DIR`）。本地开发注记：server venv 的 waterprint-core 为非
+editable 拷贝安装——core 改动后须 `uv sync --reinstall-package waterprint-core`
+刷新再跑 server 测试（CI fresh sync 无此问题）。data_version 聚合串=三包
+`assumptions@…+coefficients@…+unit_prices@…`（包名排序拼接；assumptions 版本槽
+入聚合系 AUDIT-#4 b24，抬版仍需人工）。服务重启不续跑任务：崩溃/强杀残留的排队
+与运行中任务转 failed（InterruptedByRestart），优雅停机时排队任务转 cancelled；终态任务记录可查。
 
-开发态：`cd server && uv run python -m waterprint_server.main` 默认只听
-127.0.0.1:8000；数据包缺省自动定位 `<仓库根>/data`。
+开发态：`cd server && uv run python -m waterprint_server.main` 默认只听 127.0.0.1:8000；
+数据包缺省自动定位 `<仓库根>/data`。
 
 ### 4.2 环境变量（WATERPRINT_ 前缀）
 
-仅列部署关键面；全字段与裸机缺省值见 `server/waterprint_server/settings.py`。
-表中 /app/* 默认值为容器口径（Dockerfile ENV）；裸机缺省 projects/exports
-为 CWD 相对、data 为包定位。
+仅列部署关键面；全字段与裸机缺省值见 `server/waterprint_server/settings.py`。表中
+/app/* 默认值为容器口径（Dockerfile ENV）；裸机缺省 projects/exports 为 CWD 相对、data 为包定位。
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
@@ -281,6 +280,7 @@ data_version 聚合串=三包 `assumptions@…+coefficients@…+unit_prices@…`
 | `WATERPRINT_DATA_DIR` | /app/data | 数据包根（五包同根；AUDIT-#3 b24 起 assumptions 亦走本 env——core registry 装载与 server 启动校验同源） |
 | `WATERPRINT_CALC_WORKERS` | max(1, CPU 数−1) | 计算进程池大小 |
 | `WATERPRINT_API_TOKEN` | 空=鉴权关 | Bearer token，非空即生效，≥16 位 |
+| `WATERPRINT_ALLOWED_ORIGINS` | http://127.0.0.1:8620 | 客户端模式 CORS 配置面（联机第六批 2026-11-19）：逗号分隔 origin〔scheme://host[:port]，形态 fail fast〕——厚客户端（桌面壳本地静态源/自托管静态源）跨 origin 访问 API 的白名单；CORS 面=开发白名单 ∪ 本配置面，token 门禁独立（Bearer 非 cookie 无 CSRF 面） |
 | `WATERPRINT_HOST` / `WATERPRINT_PORT` | 127.0.0.1:8000 | 裸机绑定面（容器内不生效） |
 | `WATERPRINT_DWG_CONVERTER_PATH` / `..._TIMEOUT_S` | 空=关 / 100 | ODA DXF→DWG 可选转换 |
 | `WATERPRINT_TYPST_PATH` / `..._TIMEOUT_S` | 空=PATH 发现 / 100 | PDF 计算书引擎 |
@@ -289,11 +289,11 @@ data_version 聚合串=三包 `assumptions@…+coefficients@…+unit_prices@…`
 
 ### 4.3 单位制与数值
 
-pint 只存在于边界；内核裸数组（m³/s、mg/L、m）；落盘"数值 + 显式 unit
-字段"。数值真源唯一 = registry 数据包 + manifest 声明面；假设条目六字段
-（键/默认值/量纲 dim/出处/备注 note/调节影响）。出处准入口径三类：GB 国标、行业标准
-（CJJ 131-2009 等）、《给水排水设计手册》；现存数据包尚有旧系统基线与
-"出处待核对"条目未按此口径收口（见 §6.1）。
+pint 只存在于边界；内核裸数组（m³/s、mg/L、m）；落盘"数值 + 显式 unit 字段"。
+数值真源唯一 = registry 数据包 + manifest 声明面；假设条目六字段（键/默认值/
+量纲 dim/出处/备注 note/调节影响）。出处准入口径三类：GB 国标、行业标准
+（CJJ 131-2009 等）、《给水排水设计手册》；现存数据包尚有旧系统基线与"出处待核对"
+条目未按此口径收口（见 §6.1）。
 
 ### 4.4 错误处理
 

@@ -45,6 +45,7 @@ import {
   withTabParam,
   type NavTarget,
 } from "../zoneParam";
+import { useClientConnectionSupervisor } from "../useClientConnection";
 import { useSettingsSelfHeal } from "./settingsSelfHeal";
 import { TopBar } from "./topBar";
 import { NavRail } from "./navRail";
@@ -85,6 +86,8 @@ export function ShellV4() {
   // 联机第五批：运行方式与联机 Modal 开态（状态栏运行标识/工作台运行
   // 方式卡两入口单 state——AUTH_EVENT 自愈面属 TokenSettingsModal 不混流）
   const [runtimeOpen, setRuntimeOpen] = useState(false);
+  // 联机第六批：客户端连接状态机 supervisor（单例装配——本地态零副作用）
+  useClientConnectionSupervisor();
   // b1 三主题：scoped ConfigProvider 按模重建（CSS 轴面=store setMode
   // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
   const themeMode = useThemeStore((state) => state.mode);

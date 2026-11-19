@@ -28,7 +28,8 @@ import { useProjectId } from "../useProjectId";
 import { useProjectName } from "../useProjectName";
 import { useGetRuntimeApiRuntimeGet } from "../../shared/api/generated/meta/meta";
 import type { NavKey } from "../zoneParam";
-import { runtimeModeLabel } from "./runtimeFace";
+import { useClientConnectionStore } from "../clientConnectionStore";
+import { clientStatusLabel, remoteHostLabel, runtimeModeLabel } from "./runtimeFace";
 import { ThemeSwitch } from "./themeSwitch";
 
 export function StatusBar({
@@ -47,6 +48,10 @@ export function StatusBar({
   // 联机第五批：真实运行角色（读不到=undefined→runtimeModeLabel 降级单机）
   const runtimeQuery = useGetRuntimeApiRuntimeGet();
   const isServer = runtimeQuery.data?.role === "server";
+  // 联机第六批：客户端模式标识优先（phase!==local——本地/服务端态零变）
+  const clientPhase = useClientConnectionStore((state) => state.phase);
+  const remoteBase = useClientConnectionStore((state) => state.remoteBase);
+  const isClient = clientPhase !== "local";
   return (
     <footer className="wp-v4-statusbar" data-region="status-bar">
       <span style={{ color: "var(--wp-success)" }}>●</span>
@@ -64,15 +69,18 @@ export function StatusBar({
         项目：
         {projectId === null ? "未选择" : projectName}
       </span>
-      {/* 运行标识（真实态按钮——点击开运行方式与联机设置；失败降级单机） */}
+      {/* 运行标识（真实态按钮——点击开运行方式与联机设置；失败降级单机；
+          客户端模式=clientStatusLabel 六态+client 色轴变体〔联机第六批〕） */}
       <button
         type="button"
-        className={`wp-v4-standalone${isServer ? " server" : ""}`}
+        className={`wp-v4-standalone${isServer ? " server" : isClient ? " client" : ""}`}
         data-testid="wp-v4-runtime-mode"
         title="运行角色与联机设置"
         onClick={onOpenRuntime}
       >
-        {runtimeModeLabel(runtimeQuery.data)}
+        {isClient
+          ? clientStatusLabel(clientPhase, remoteHostLabel(remoteBase ?? ""))
+          : runtimeModeLabel(runtimeQuery.data)}
       </button>
       <span className="r">
         {nav !== "ai" ? (

@@ -12,9 +12,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CLIENT_BADGE_LABELS,
   RUNTIME_FALLBACK_LABEL,
   RUNTIME_MODE_LABELS,
+  clientStatusLabel,
   pairingAddressUrl,
+  remoteHostLabel,
   runtimeModeLabel,
   runtimePrimaryAddress,
 } from "./runtimeFace";
@@ -84,5 +87,41 @@ describe("runtimeFace（运行角色面纯函数——联机第五批）", () =>
         token_reveal: "",
       }),
     ).toBeNull();
+  });
+});
+
+describe("runtimeFace 客户端模式面（联机第六批）", () => {
+  it("clientStatusLabel 五态：online 带 @ 主机/其余显因（稿 statusbar 段）", () => {
+    expect(clientStatusLabel("online", "design-server")).toBe(
+      "客户端 · 远程 @ design-server",
+    );
+    expect(clientStatusLabel("offline", "design-server")).toBe(
+      "客户端 · 远程不可达",
+    );
+    expect(clientStatusLabel("token_invalid", "design-server")).toBe(
+      "客户端 · token 失效",
+    );
+    expect(clientStatusLabel("version_mismatch", "design-server")).toBe(
+      "客户端 · 版本不匹配",
+    );
+    expect(clientStatusLabel("connecting", "design-server")).toBe(
+      "客户端 · 连接中",
+    );
+  });
+
+  it("CLIENT_BADGE_LABELS 值域=客户端五态（local 不入徽标域）+remoteHostLabel 主机名", () => {
+    expect(Object.keys(CLIENT_BADGE_LABELS).sort()).toEqual([
+      "connecting",
+      "offline",
+      "online",
+      "token_invalid",
+      "version_mismatch",
+    ]);
+    expect(CLIENT_BADGE_LABELS.online).toBe("客户端 · 在线");
+    expect(remoteHostLabel("http://127.0.0.1:8100")).toBe("127.0.0.1");
+    expect(remoteHostLabel("https://design-server.example")).toBe(
+      "design-server.example",
+    );
+    expect(remoteHostLabel("非 URL 形态")).toBe("非 URL 形态"); // 不抛原样回显
   });
 });

@@ -39,15 +39,34 @@ import {
 } from "../projectCreate";
 import { useProjectId } from "../useProjectId";
 import { withNodeParam } from "../zoneParam";
+import { useClientConnectionStore } from "../clientConnectionStore";
+import { CLIENT_BADGE_LABELS, remoteHostLabel } from "./runtimeFace";
+import { RemoteListNotice, RemoteListStateCard } from "./remoteListStates";
 
 /** 搜索占位（props 键拼接免 grep 特征词——FE3 C3 沿册形）。 */
 const SEARCH_PROPS = { placeholder: "搜索项目…" } as const;
 
+/** 客户端模式搜索占位（稿 workbench-remote——搜索所连服务器的项目）。 */
+const REMOTE_SEARCH_PROPS = { placeholder: "搜索所连服务器的项目" } as const;
+
 /** 名称上限（projectCreate 同源常量重声明——导出面未含常量）。 */
 const NAME_MAX = 100;
 
-export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
+export function ProjectsZone({
+  onOpen,
+  onOpenRuntimeSettings,
+}: {
+  onOpen: () => void;
+  /** 连接设置入口（客户端阻断态引导——联机第六批；本地态零消费）。 */
+  onOpenRuntimeSettings?: () => void;
+}) {
   const [projectId, setProjectId] = useProjectId();
+  // 客户端模式四态面（联机第六批——本地态 local 零行为变）
+  const clientPhase = useClientConnectionStore((state) => state.phase);
+  const remoteBase = useClientConnectionStore((state) => state.remoteBase);
+  const mismatch = useClientConnectionStore((state) => state.mismatch);
+  const isClient = clientPhase !== "local";
+  const hostLabel = remoteHostLabel(remoteBase ?? "");
   const [search, setSearch] = useState("");
   const [renameTarget, setRenameTarget] = useState<{
     projectId: string;
@@ -149,8 +168,20 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
     {
       title: "名称",
       dataIndex: "name",
-      render: (_value, record) =>
-        projectOptionLabel(record.name ?? "", record.project_id),
+      render: (_value, record) => (
+        <span>
+          {projectOptionLabel(record.name ?? "", record.project_id)}
+          {isClient && clientPhase === "online" ? (
+            <span
+              className="wp-v4-badge accent"
+              style={{ marginLeft: 6 }}
+              title={`项目与计算来自远程服务器 ${hostLabel}`}
+            >
+              {`远程 @ ${hostLabel}`}
+            </span>
+          ) : null}
+        </span>
+      ),
     },
     {
       title: "ID",
@@ -234,17 +265,34 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
     },
   ];
 
+  // 阻断态徽标类（在线绿/连接中 water/阻断红——与运行方式卡同色语义）
+  const clientBadgeClass =
+    clientPhase === "online"
+      ? " ok"
+      : clientPhase === "connecting"
+        ? " water"
+        : " error";
+
   return (
     <section className="wp-wb-panel" data-region="projects">
       {contextHolder}
       <div className="wp-wb-panel-head">
         <div className="aux">
           <h3>项目列表</h3>
-          <span className="wp-v4-badge">本地项目</span>
+          {isClient ? (
+            <span
+              className={`wp-v4-badge${clientBadgeClass}`}
+              data-testid="wp-v4-remote-badge"
+            >
+              {`远程项目 · ${CLIENT_BADGE_LABELS[clientPhase]}`}
+            </span>
+          ) : (
+            <span className="wp-v4-badge">本地项目</span>
+          )}
           <span className="wp-v4-badge">{projects.length} 个项目</span>
         </div>
         <Input
-          {...SEARCH_PROPS}
+          {...(isClient ? REMOTE_SEARCH_PROPS : SEARCH_PROPS)}
           allowClear
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -252,7 +300,24 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
           data-testid="wp-v4-proj-search"
         />
       </div>
-      {projectsQuery.isError ? (
+      {isClient && clientPhase === "online" ? (
+        <RemoteListNotice host={hostLabel} />
+      ) : null}
+      {isClient &&
+      (clientPhase === "offline" ||
+        clientPhase === "token_invalid" ||
+        clientPhase === "version_mismatch") ? (
+        <RemoteListStateCard
+          phase={clientPhase}
+          hostLabel={hostLabel}
+          mismatch={mismatch}
+          onRetry={() => {
+            void queryClient.invalidateQueries();
+          }}
+          onOpenSettings={() => onOpenRuntimeSettings?.()}
+        />
+      ) : null}
+      {!isClient && projectsQuery.isError ? (
         <Typography.Text type="danger">
           项目列表加载失败：
           {projectsQuery.error instanceof Error
@@ -260,6 +325,10 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
             : "未知错误"}
         </Typography.Text>
       ) : null}
+      {isClient &&
+      (clientPhase === "offline" ||
+        clientPhase === "token_invalid" ||
+        clientPhase === "version_mismatch") ? null : (
       <Table
         size="small"
         rowKey="project_id"
@@ -270,6 +339,7 @@ export function ProjectsZone({ onOpen }: { onOpen: () => void }) {
         locale={{ emptyText: "暂无项目——点击「新建项目」创建或导入 JSON" }}
         data-testid="wp-v4-proj-table"
       />
+      )}
       <Modal
         title={`重命名项目${
           renameTarget === null

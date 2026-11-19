@@ -27,6 +27,7 @@ import { Button, Modal, Switch, Typography } from "antd";
 import { useState } from "react";
 
 import { useGetRuntimeApiRuntimeGet } from "../shared/api/generated/meta/meta";
+import { ClientConnectionPanel } from "./clientConnectionPanel";
 import { getDesktopBridge } from "./desktopBridge";
 import { pairingAddressUrl } from "./shellV4/runtimeFace";
 
@@ -218,17 +219,10 @@ export function RuntimeSettingsModal({
           </Typography.Paragraph>
         </div>
       ) : null}
-      {/* 客户端模式（下一批）——诚实说明行非虚假入口 */}
-      <div className="wp-v4-runtime-row" data-testid="wp-v4-runtime-client-next">
-        <div>
-          <strong>客户端模式</strong>
-          <div className="wp-v4-runtime-sub">
-            连接远程服务器（本地不起引擎，项目与计算经远程 API）——下一批
-            提供
-          </div>
-        </div>
-        <span className="wp-v4-badge">下一批</span>
-      </div>
+      {/* 客户端模式（联机第六批实装——稿 connection.html 客户端段：
+          地址+token 录入+测试连接+版本握手结果；拆件
+          clientConnectionPanel〔行数预算〕） */}
+      <ClientConnectionPanel />
       {runtime !== undefined ? (
         <Typography.Paragraph
           type="secondary"

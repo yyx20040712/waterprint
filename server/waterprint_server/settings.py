@@ -19,6 +19,8 @@
 #       task_queue_priorities（FIFO 优先级 §17.1）
 #       log_level / log_file
 #   get_settings() -> Settings（lru_cache，测试可覆盖）
+#   parse_allowed_origins(raw) -> tuple[str, ...]：逗号分隔 origin 列表
+#      解析（联机第六批客户端 CORS 配置面——消费方 main.py CORS 装配）
 #   safe_child(base, name) -> Path：R1 路径基点分量校验工具
 #   ensure_directories(settings)：基点目录存在或可创建（fail fast）
 #   default_data_dir() -> Path：数据包根缺省解析（E2E-1 P0-A 自愈——
@@ -62,6 +64,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Final
+from urllib.parse import urlparse
 
 import yaml
 from pydantic import Field, ValidationError, field_validator, model_validator
@@ -94,6 +97,16 @@ API_TOKEN_MIN_LENGTH: Final[int] = 2 ** (2 * 2)  # 16
 # best-effort（容器内绑定经 CMD 旗标不经本字段），真红线=入口语义
 #（docs/architecture.md §4.1「安全红线」——反代/端口映射对外可达必须配 token）。
 _LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
+
+
+def parse_allowed_origins(raw: str) -> tuple[str, ...]:
+    """客户端 CORS 配置面解析（联机架构第六批 2026-11-19）。
+
+    逗号分隔 origin 列表 → strip + 空段剔除（尾逗号/多余空白=配置容错，
+    不 fail fast）；消费面=main CORS 装配（开发白名单 ∪ 本配置面——R5
+    开发语义不破）。形态校验在 Settings 字段 validator（构造即拒）。
+    """
+    return tuple(item.strip() for item in raw.split(",") if item.strip())
 
 
 def is_loopback_host(host: str) -> bool:
@@ -188,6 +201,13 @@ class Settings(BaseSettings):
     # 非空=21 端点受保（19 非事件仅认 Bearer 头+events 两端点认头或
     # ？token=），units 三静态只读端点豁免。见 auth.py 依赖面。
     api_token: str = ""
+    # 联机架构第六批（2026-11-19）：客户端模式 CORS 配置面——厚客户端
+    # （桌面壳本地静态源/自托管静态源）跨 origin 访问 API 的显式白名单；
+    # 逗号分隔 origin（scheme://host[:port]，禁 path/query/fragment——
+    # validator fail fast）。缺省=桌面壳 b7 约定端口本地静态源。CORS 面
+    # =main._DEV_ORIGINS 开发白名单 ∪ 本配置面（R5 语义不破）。token
+    # 门禁独立于 CORS（Bearer 非 cookie 无 CSRF 面）。
+    allowed_origins: str = "http://127.0.0.1:8620"
     # B6（SSE 治理 2026-09-06，简报 D5）：四维限流+心跳旋钮（int|None——
     # None=该维不启用，沿 WP4 task_registry_cap 先例；默认启用=治理默认态，
     # 阈值保守不触碰既有测试/正常用）。阈值锚（D4 总控补证）：全局 100=
@@ -251,6 +271,31 @@ class Settings(BaseSettings):
                 f"配置非法：api_token 长度 {len(value)} < {API_TOKEN_MIN_LENGTH}"
                 "（字母数字 62 字符集 16 位熵≈4.8×10²⁸ 下界——R2A R-7 fail fast）"
             )
+        return value
+
+    @field_validator("allowed_origins")
+    @classmethod
+    def _allowed_origins_shape(cls, value: str) -> str:
+        """联机第六批 fail fast：origin 形态=scheme://host[:port]（禁 path/query）。
+
+        逐条 urlparse 校验：scheme 限 http/https、netloc 非空、path 空或
+        "/"、无 params/query/fragment——"127.0.0.1:8620"（无 scheme）与
+        "http://h/p"（带 path）均构造即拒（不静默截断）。
+        """
+        for origin in parse_allowed_origins(value):
+            parsed = urlparse(origin)
+            if (
+                parsed.scheme not in ("http", "https")
+                or not parsed.netloc
+                or parsed.path not in ("", "/")
+                or parsed.params
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError(
+                    f"配置非法：allowed_origins 条目 {origin!r} 须为 "
+                    "scheme://host[:port] origin 形态（联机第六批 fail fast）"
+                )
         return value
 
     @model_validator(mode="after")

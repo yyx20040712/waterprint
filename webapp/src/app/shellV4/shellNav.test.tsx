@@ -16,7 +16,8 @@
  *        ?node=→工艺/?task=→参数方案/缺省→工作台 ⑤状态条：运行标识
  *        （读不到=降级单机文案）+主题切换器在场（三钮）+任务 ▴→AI 入口
  *        ⑤b 运行标识 server 态真实文案+点击开运行方式与联机 Modal
- *        （联机第五批） ⑥deliverables 子页切换：树条目→?tab=
+ *        （联机第五批） ⑤c 客户端态标识+当前连接卡（联机第六批）
+ *        ⑥deliverables 子页切换：树条目→?tab=
  *        deliverables.report；点轨当前入口=子页重置缺省 sheets
  */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
@@ -123,10 +124,17 @@ vi.mock("../../features/drawings/components/ExportButton", () => ({
 vi.mock("../../shared/api/generated/units/units", () => ({
   useListUnitsApiUnitsGet: () => ({ data: {} }),
 }));
-// 联机第五批：运行时角色面替身（缺省 undefined=读不到→状态栏降级单机标识）
+// 联机第五批：运行时角色面替身（缺省 undefined=读不到→状态栏降级单机标识）；
+// 联机第六批：+meta 握手替身（本地态 supervisor disabled——data 恒 undefined）
 vi.mock("../../shared/api/generated/meta/meta", () => ({
   useGetRuntimeApiRuntimeGet: () => ({
     data: gate.runtime,
+    isError: false,
+    error: null,
+  }),
+  useGetMetaApiMetaGet: () => ({
+    data: undefined,
+    isPending: false,
     isError: false,
     error: null,
   }),
@@ -361,6 +369,45 @@ describe("b2 八入口导航壳（mount 真 ShellV4）", () => {
       document.querySelector('[data-testid="wp-v4-runtime-token"]')
         ?.textContent,
     ).toContain("b5-shellnav-token-0123456789");
+  });
+
+  it("状态条运行标识：客户端态 clientStatusLabel+点击开 Modal 当前连接卡（联机第六批）", async () => {
+    const { useClientConnectionStore } = await import("../clientConnectionStore");
+    useClientConnectionStore.setState({
+      phase: "online",
+      remoteBase: "http://127.0.0.1:8100",
+      serverMeta: {
+        app_version: "waterprint-server 0.1.0",
+        data_version: "assumptions@1.0.0+coefficients@1.8.0+unit_prices@1.2.0",
+        api_version: "1.0",
+      },
+      mismatch: null,
+    });
+    try {
+      renderShell();
+      const modeButton = document.querySelector<HTMLButtonElement>(
+        '[data-testid="wp-v4-runtime-mode"]',
+      );
+      expect(modeButton?.textContent).toContain("客户端 · 远程 @ 127.0.0.1");
+      expect(modeButton?.className).toContain("client");
+      fireEvent.click(modeButton as HTMLButtonElement);
+      await waitFor(() => {
+        expect(
+          document.querySelector('[data-testid="wp-v4-client-current"]'),
+        ).not.toBeNull();
+      });
+      expect(
+        document.querySelector('[data-testid="wp-v4-client-current"]')
+          ?.textContent,
+      ).toContain("http://127.0.0.1:8100");
+    } finally {
+      useClientConnectionStore.setState({
+        phase: "local",
+        remoteBase: null,
+        serverMeta: null,
+        mismatch: null,
+      });
+    }
   });
 
   it("deliverables 子页切换：树条目→?tab=deliverables.report；点轨当前入口=子页重置缺省", async () => {

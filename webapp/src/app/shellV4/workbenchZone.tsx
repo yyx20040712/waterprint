@@ -303,7 +303,10 @@ export function WorkbenchZone({
               </section>
             ) : null}
             {/* 项目列表（ProjectsZone 逻辑件——列表/搜索/打开/复制/重命名/删除） */}
-            <ProjectsZone onOpen={() => onNavigate({ nav: "process" })} />
+            <ProjectsZone
+              onOpen={() => onNavigate({ nav: "process" })}
+              onOpenRuntimeSettings={onOpenRuntime}
+            />
           </div>
           <div className="wp-wb-col">
             {/* 继续工作（稿 .list——跨入口导航三行） */}

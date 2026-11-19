@@ -3,17 +3,34 @@
 - `generated/`：orval 生成的 TS 类型 + TanStack Query hooks
   （**生成物禁手改、不入库**；重新生成：服务端导出 openapi.json → `pnpm orval`）；
 - `http.ts`：请求实例（baseURL /api、错误归一化 WaterprintApiError）——
-  orval mutator 引用此处，是本目录唯一允许手写的文件；
+  orval mutator 引用此处，是本目录唯一允许手写的文件；联机第六批
+  （2026-11-19）：客户端模式请求基底=远程 origin 前拼（getRemoteBaseUrl
+  同步现读——null=本地同源零行为变；基址切换实现层=mutator 单点裁量，
+  全部生成调用同经此处）；
 - `token.ts`：API token 存取（R2-A 批2）——localStorage 单键
   `waterprint.api_token` 三函数（getApiToken/setApiToken/clearApiToken，
   同步现读+node 环境守卫）；消费方=http.ts（Bearer 注入）+
   useTaskEventSource（SSE ？token=——连接级现取）+tokenSettingsModal
   （设置页）+App（首参引导写入）；
-- `sseUrl.ts`：SSE 订阅 URL 单源（B6 批 D8，2026-09-06）——
+- `sseUrl.ts`：SSE 订阅 URL 单源（B6 批 D8，2026-09-06；联机第六批
+  客户端模式远程 origin 前拼——与 http.ts 请求面同源切换）——
   buildTaskStreamUrl(taskId, token)（useTaskFeed/useExportBatch 双实现
   下沉；taskId 路径段编码+token 非空 ？token= 查询通道——EventSource
   无法自定义头的现实通道）；消费方=useTaskEventSource 单点
   （B3-b 起 EventSource 建连唯一处）；
+- `remoteBase.ts`：客户端模式远程基址存取（联机第六批 2026-11-19）——
+  localStorage 单键 `waterprint.remote_server` v1 单服务器档案
+  （JSON {base_url}——多服务器列表是稿开放问题 8 缺省单档案）；
+  normalizeRemoteBaseUrl 归一化纯函数（仅认 http(s)://host[:port]——
+  path/query/fragment/credentials 拒）+get/set/clear 三函数（token.ts
+  同制式同步现读）；消费方=http.ts（请求基址）+sseUrl.ts（SSE 基址）
+  +app 连接态面（store 水合/设置面板）；
+- `clientProtocol.ts`：客户端协议期望值（联机第六批 2026-11-19——版本
+  握手比对面）：EXPECTED_API_VERSION（镜像 server API_SEMANTIC_VERSION
+  同源常量策略）+EXPECTED_DATA_VERSION（三包聚合串形态镜像——core
+  load_run_env 同形）；漂移防线=clientProtocol.test.ts 自仓库 data/
+  三 manifest 重算对拍（数据包抬版未同步常量即红）；消费方=
+  remoteHandshake.compareServerVersions；
 - `useTaskEventSource.ts`：任务 SSE EventSource 生命周期单源（B3-b
   《裁决书》方案二 2b——useTaskFeed/useExportBatch 双实现收敛）——
   useTaskEventSource 长订阅 hook（退避/慢探测恢复态机+onConnection

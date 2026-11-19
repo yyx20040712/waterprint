@@ -23,7 +23,8 @@
 #   R4 结构化日志：structlog 配置（事件带 project_hash/unit_id/
 #      condition/formula_id 字段，可反查计算迹 §15 工程细节 2）；
 #      只落本地文件、脱敏（§18）。
-#   R5 中间件：CORS（仅开发期白名单）、请求 ID；SSE 路由注册
+#   R5 中间件：CORS（开发期白名单 ∪ 客户端配置面〔联机第六批
+#      allowed_origins——厚客户端生产通道〕）、请求 ID；SSE 路由注册
 #      （X-Accel-Buffering: no 头，R5 反代缓冲对策）。
 #   R6 单进程假设（§16 A5）：部署契约 api replicas=1 + calc workers=N，
 #      多副本=失忆——部署文档明示。
@@ -107,6 +108,7 @@ from waterprint_server.settings import (
     Settings,
     ensure_directories,
     get_settings,
+    parse_allowed_origins,
     validate_data_packages,
 )
 from waterprint_server.sse_limits import SseLimiter
@@ -362,7 +364,13 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     app.include_router(meta.router)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=list(_DEV_ORIGINS),  # R5 开发期白名单
+        # R5 开发期白名单 ∪ 客户端配置面（联机第六批 2026-11-19）：开发
+        # 语义不破——厚客户端生产通道（桌面壳本地静态源缺省+env 增补）
+        # 并入白名单；token 门禁独立（Bearer 非 cookie 无 CSRF 面）。
+        allow_origins=[
+            *_DEV_ORIGINS,
+            *parse_allowed_origins(settings.allowed_origins),
+        ],
         allow_methods=["*"],
         # N-2（R2A 批1）：Authorization 已覆盖——["*"] 通配回显预检 Headers（dev 5173 不断）。
         allow_headers=["*"],

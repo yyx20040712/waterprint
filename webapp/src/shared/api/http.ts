@@ -26,10 +26,14 @@
  *     不变；token 面由 useTaskFeed 以 ？token= 查询参数对齐）；
  *   - 本文件是 shared/api 中唯一允许手写的文件；generated/ 禁手改；
  *   - B15 增 409 锁冲突判定面（LOCK_HINT/isLockConflict——自
- *     solutionsFields 上移单源；口径源=UX2 AssumptionsPanel D3）。
+ *     solutionsFields 上移单源；口径源=UX2 AssumptionsPanel D3）；
+ *   - 联机第六批（客户端模式）：请求基底=本地恒空 ∪ 远程 origin 前拼
+ *     （getRemoteBaseUrl 同步现读——null=零行为变；非 null=全部生成
+ *     调用走远程，token 仍沿 getApiToken Bearer 通道不变）。
  */
 
 import { AUTH_EVENT } from "../events";
+import { getRemoteBaseUrl } from "./remoteBase";
 import { getApiToken } from "./token";
 
 /** 领域错误（结构面冻结：code/message/detail——结构化消费，禁散落判断）。 */
@@ -46,10 +50,14 @@ export class WaterprintApiError extends Error {
 }
 
 // 请求基底恒空（R2 C1）：orval 生成 url 已含 /api 前缀——禁二次前拼。
+// 联机第六批：客户端模式（getRemoteBaseUrl 非 null）基底=远程服务器
+// origin（归一化无尾斜线——url 以 /api 起无缝前拼）；本地模式恒空=
+// 同源零行为变。基址切换实现层=mutator 单点（全部 orval 生成调用同经
+// 此处，无第二拦截面；SSE 面在 sseUrl.ts 同源切换）。
 const BASE_URL = "";
 
 export const customInstance = <T>(url: string, init: RequestInit): Promise<T> => {
-  const path = `${BASE_URL}${url}`;
+  const path = `${getRemoteBaseUrl() ?? BASE_URL}${url}`;
   // R2-A 批2 D3：token 同步现读——非空拼 Bearer（空=零注入零行为变化）；
   // 生成侧 headers 已含 Content-Type 等静态面（plain object 形态直并）
   const apiToken = getApiToken();
