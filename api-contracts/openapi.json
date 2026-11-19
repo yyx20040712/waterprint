@@ -2202,7 +2202,7 @@
         "type": "object"
       },
       "ParamEntry": {
-        "description": "单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；\nlabel_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面）。",
+        "description": "单参数条目：七字段全出（D3+B2+R5——dim=DimKey 枚举名，不建工程单位映射；\nlabel_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面；\nrequired=builtin 构造期必填镜像[manifest 包恒 False]——审计 F5 批）。",
         "properties": {
           "default": {
             "anyOf": [
@@ -2257,6 +2257,11 @@
                 "type": "null"
               }
             ]
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
           }
         },
         "required": [

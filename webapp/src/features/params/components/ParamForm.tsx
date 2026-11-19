@@ -43,15 +43,22 @@
  *     开时 drafts 逐字段归一（normalizeDraftText 共享原语）构造
  *     nextDrafts，setDrafts 后 commitDrafts（旧 submit() 渲染期 changes
  *     =归一前 raw drafts 路径废止）。
+ *   - F5 批（2026-11-20，E2E 审计 F5+F8 遗面）：进水必填门——目录
+ *     required 面（ParamEntry 第七字段，服务端 builtin 构造期必填集
+ *     镜像）驱动：必填缺失（草稿非数/缺 design 值）=提交钮锁+
+ *     RequiredFieldsGuide 引导条（空态指路替代 422 撞墙）；失焦/Enter
+ *     连带提交同门（多字段录入部分态零请求——中途 422 根除；校验前置
+ *     到表单，物理域检仍归 server 显式提交面）；本批同步抽件：
+ *     draftValueOf/normalizeDraftText/metaTooltipText 迁
+ *     lib/paramFormView.ts（行为零变——本件行数预算）。
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Input, InputNumber, Space, Tag, Typography } from "antd";
 
 import { useApplySolutionApiCalcSolutionsApplyPost } from "../../../shared/api/generated/calc/calc";
-import type { ParamEntry } from "../../../shared/api/generated/model";
 import { WaterprintApiError } from "../../../shared/api/http";
-import { dimLabel, dimUnit } from "../../../shared/dimLabels";
+import { dimUnit } from "../../../shared/dimLabels";
 import { TASK_EVENT } from "../../../shared/events";
 import { useProjectDesign } from "../api/useProjectDesign";
 import { useUnitCatalog } from "../api/useUnitCatalog";
@@ -61,11 +68,18 @@ import {
   normalizeDraftValue,
   trimFloatNoise,
 } from "../lib/designParams";
+import {
+  draftValueOf,
+  metaTooltipText,
+  missingRequiredFields,
+  normalizeDraftText,
+} from "../lib/paramFormView";
 import { deriveStep, isContinuousParam } from "../lib/deriveStep";
 import { formatBackfill } from "../feasibility/lib/feasibility";
 import { FdInlinePanel } from "../feasibility/components/FdInlinePanel";
 import { useThrottledCommit } from "../hooks/useThrottledCommit";
 import { useParamsStore } from "../store/paramsStore";
+import { RequiredFieldsGuide } from "./RequiredFieldsGuide";
 
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
 const SELECT_BLUE = "#1668dc";
@@ -95,39 +109,6 @@ export const UNIT_SUFFIX_STYLE: React.CSSProperties = {
   borderTopRightRadius: 4,
   borderBottomRightRadius: 4,
 };
-
-/** F8 通道口归一（InputNumber onChange——步进/键入值 trimFloatNoise；
- * 非数值形态[防御]原样走 invalid 诚实拒路径）。 */
-const draftValueOf = (value: number | string | null): string =>
-  value === null || value === ""
-    ? ""
-    : typeof value === "number"
-      ? trimFloatNoise(value)
-      : value;
-
-/** 草稿字段归一原语（失焦/Enter 两通道共享——B1 R2/M1 提取避免复制）：
- *  可解析→trimFloatNoise 归一串；非数/空原样保留（诚实拒路径——
- *  invalidFields 判定留在 collectParamChanges 层，本层不吞）。 */
-const normalizeDraftText = (text: string): string => {
-  const parsed = normalizeDraftValue(text);
-  return parsed === null ? text : trimFloatNoise(parsed);
-};
-
-/** 声明面悬浮全量（Q3：MetaLine 常显收敛进 title——dim/默认/范围/档位）。 */
-function metaTooltipText(entry: ParamEntry): string {
-  const parts = [dimLabel(entry.dim)];
-  if (entry.default !== null && entry.default !== undefined) {
-    parts.push(`默认 ${entry.default}`);
-  }
-  if (entry.range) {
-    parts.push(`范围 [${entry.range.min}, ${entry.range.max}]`);
-  }
-  if (entry.grid) {
-    parts.push(`档位 [${entry.grid.join(", ")}]`);
-  }
-  parts.push(`field_id: ${entry.field_id}`);
-  return parts.join(" · ");
-}
 
 /** 覆盖标记蓝点（design 值存在——非语义色，交互反馈面）。 */
 function OverrideDot() {
@@ -194,8 +175,16 @@ export function ParamForm({
     [params, values, drafts],
   );
   const changeCount = Object.keys(changes).length;
+  // F5 进水必填门：必填缺失=提交锁+引导条（多字段录入部分态零请求）
+  const requiredMissing = useMemo(
+    () => missingRequiredFields(params, values, drafts),
+    [params, values, drafts],
+  );
   const submitDisabled =
-    invalidFields.length > 0 || changeCount === 0 || apply.isPending;
+    invalidFields.length > 0 ||
+    changeCount === 0 ||
+    apply.isPending ||
+    requiredMissing.length > 0;
   // B1 骨架批（2026-10-09）：三式提交收敛——按钮/Enter/失焦三通道同源
   // submit（Enter=输入控件 keydown 直提；失焦=既有归一后连带提交〔有
   // 效变更在场才发——空变更/无效草稿零动作〕；全局规则「输入三式提交」
@@ -210,12 +199,14 @@ export function ParamForm({
   };
   /** 门控开失焦通道提交体（回炉 R5——先归一后提交：以 nextDrafts 即时
    *  求值 changes/invalidFields，归一值随载荷发出——onBlur 闭包内
-   *  setDrafts 未落渲染的旧草稿不进提交面）。 */
+   *  setDrafts 未落渲染的旧草稿不进提交面；F5：必填门同守——部分态
+   *  零请求，中途 422 根除）。 */
   const commitDrafts = (nextDrafts: Record<string, string>) => {
     const { changes: nextChanges, invalidFields: nextInvalid } =
       collectParamChanges(params, values, nextDrafts);
     if (
       nextInvalid.length > 0 ||
+      missingRequiredFields(params, values, nextDrafts).length > 0 ||
       Object.keys(nextChanges).length === 0 ||
       apply.isPending
     ) {
@@ -289,6 +280,10 @@ export function ParamForm({
 
       {/* Q1 body 滚动域 */}
       <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 14px 12px" }}>
+        {/* F5 必填引导条（缺失态常显——空态指路替代 422 撞墙） */}
+        {requiredMissing.length > 0 ? (
+          <RequiredFieldsGuide missing={requiredMissing} />
+        ) : null}
         {errorText !== null ? (
           <Typography.Text type="danger">{errorText}</Typography.Text>
         ) : loading ? (
@@ -329,6 +324,10 @@ export function ParamForm({
                       title={fieldId}
                       style={{ fontSize: 12.5, color: "var(--wp-text-2)", display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
+                      {/* F5 必填星标（required 面——目录驱动，非 FE 硬编码） */}
+                      {entry.required ? (
+                        <span data-testid={`wp-required-star-${fieldId}`} title="必填——无默认值，提交计算前须填写" style={{ color: "var(--wp-error)", fontWeight: 600 }}>＊</span>
+                      ) : null}
                       {entry.label_zh ?? fieldId}
                       {overridden ? <OverrideDot /> : null}
                     </span>

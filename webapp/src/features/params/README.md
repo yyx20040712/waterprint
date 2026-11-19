@@ -12,7 +12,11 @@
 | `lib/designParams.test.ts` | FE5 实装+UX2 扩 | 纯函数 node 测试（golden 内联节选+负例族+UX2 假设编辑 9 用例）；trimFloatNoise 用例=独立件 trimFloatNoise.test.ts（本件行数预算拆分——C2-visual F8） |
 | `api/useUnitCatalog.ts` | FE5 实装 | 单元目录/假设清单查询薄封装（静态键） |
 | `api/useProjectDesign.ts` | FE5 实装 | 项目 design 参数面查询（select 窄化；read 键 invalidate 面） |
-| `components/ParamForm.tsx` | FE5 实装+C2-params 重制；M2 批（2026-10-08）fd 段抽出；B1 骨架批（2026-10-09）三式提交补齐 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit[C2VD V6 迁移 Space.Compact+自样式后缀 span——addonAfter 弃用根除]+grid 档位 chips 点击回填+重置钮；「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填）；R2-P1-3（E2E-2 批2 2026-09-25）：changeCount 上提 paramsStore.draftHint（卸载/换项目清零）；M2 Settings 增强批（2026-10-08）：fd 段全量抽出 FdInlinePanel（本件距 500 行墙仅 5 行——抽出为唯一解，495→399 行）；本件保留 fdField 态+fd-entry 蓝链+条件渲染〔fdField===fieldId——切参数行=卸载/新实例挂载全复位重取；同行早退保留〕+backfill 草稿通道（onBackfill→formatBackfill→drafts）；蓝链 loading 转圈退役（加载反馈收敛面板内文案——申报在批档）；B1 骨架批（2026-10-09）：三式提交——按钮/Enter/失焦三通道同源 submit（Enter=控件 keydown 直提+失焦连带提交〔pending 有效变更在场才发〕——全局规则「输入三式提交」，v4 左栏与 M1 右列同享；证面=components/paramFormThreeWay.test.tsx+probe-b1 N7） |
+| `components/ParamForm.tsx` | FE5 实装+C2-params 重制；M2 批（2026-10-08）fd 段抽出；B1 骨架批（2026-10-09）三式提交补齐；F5 批（2026-11-20）必填门+抽件 | 参数表单：manifest 参数面+design 覆盖值→草稿→apply 提交重算——**表单化重制 Q1~Q7**（flex 三层骨架[head/body 滚/foot 固定]+单行 field[标签 secondary+field_id 悬浮隐藏]+单位入控件 dimUnit[C2VD V6 迁移 Space.Compact+自样式后缀 span——addonAfter 弃用根除]+grid 档位 chips 点击回填+重置钮；「开发者表单」痛点收口，2026-09-10）；C2-visual F8：trimFloatNoise 五通道消费（显示/onChange/onBlur/步长喂入/回填）；R2-P1-3（E2E-2 批2 2026-09-25）：changeCount 上提 paramsStore.draftHint（卸载/换项目清零）；M2 Settings 增强批（2026-10-08）：fd 段全量抽出 FdInlinePanel；B1 骨架批（2026-10-09）：三式提交——按钮/Enter/失焦三通道同源 submit（Enter=控件 keydown 直提+失焦连带提交〔pending 有效变更在场才发〕——全局规则「输入三式提交」，v4 左栏与 M1 右列同享；证面=components/paramFormThreeWay.test.tsx+probe-b1 N7）；**F5 批（2026-11-20，E2E 审计 F5+F8 遗面）**：进水必填门——目录 required 面（ParamEntry 第七字段）驱动：必填缺失=提交钮锁+RequiredFieldsGuide 引导条+行内＊星标（空态指路替代 422 撞墙），失焦/Enter 连带提交同门（多字段录入部分态零请求——中途 422 根除；物理域检仍归 server 显式提交面）；证面=components/paramFormRequired.test.tsx；同批抽件：draftValueOf/normalizeDraftText/metaTooltipText 迁 lib/paramFormView.ts（行为零变——本件行数预算） |
+| `lib/paramFormView.ts` | F5 批新件（2026-11-20） | 参数表单纯函数层：draftValueOf/normalizeDraftText 草稿文本归一原语+metaTooltipText 声明面悬浮文本（三件自 ParamForm 迁驻行为零变）+effectiveRequiredValue/missingRequiredFields 进水必填门判定（F5：草稿→design→default 回退序——required 条目有效值 null 即缺失，提交门前置到表单） |
+| `lib/paramFormView.test.ts` | F5 批新件（2026-11-20） | 必填门纯函数 node 测试（回退序五态/缺失清单六例含 required 缺席向后兼容+迁驻原语回归锚三例） |
+| `components/RequiredFieldsGuide.tsx` | F5 批新件（2026-11-20） | 必填缺失引导条（进水空态：缺项中文名清单+项目基础资料口径+可选指标缺项透传语义；warning 级信息条非错误条——缺项是待办不是违例；ParamForm 消费非空渲染） |
+| `components/paramFormRequired.test.tsx` | F5 批新件（2026-11-20） | ParamForm 必填门 jsdom 测试（空态引导/部分态三通道零提交/补齐后单次提交/历史项目零扰动/非必填单元零扰动——F5 红绿 jsdom 证面） |
 | `components/paramFormThreeWay.test.tsx` | B1 骨架批新件（2026-10-09） | ParamForm 三式提交 vitest（jsdom 4 用例：按钮/Enter/失焦三通道 apply 载荷恒等+空变更零提交——DoD §四.3 jsdom 证面；另一面=probe-b1 N7 真浏览器实录） |
 | `feasibility/components/FdInlinePanel.tsx` | M2 批新件（2026-10-08） | fd 行内可行域面板（fd 段自 ParamForm 抽出+mapping-2b4 §F.2 呈裁①+②组合实装）：props={projectId,unitId,fieldId,params,onBackfill}；第二轴未选=1D FeasibilityBar 行内常驻〔现状保持〕；选定=行内 2D 热力缩略〔fd-thumb 高 120 定值+内层 pointerEvents=none 阻断格点击+FeasibilityHeatmap 原件零改 viewBox 自适应〕+点击缩略模态放大精读〔720：格点击回填两键/吸附/统计行；模态与缩略 fd-heatmap DOM 双实例〕；模态关闭=仅关不清产物不重取〔预裁决 9 语义更新——R-1「残留产物死灰」病灶随行内 2D 面消失〕；fdReqId 请求令牌随迁（R-1 A2-N-04——旧 onSuccess 晚到比对拦截） |
 | `feasibility/components/FdInlinePanel.test.tsx` | M2 批新件（2026-10-08） | FdInlinePanel 组件 vitest（jsdom——useDesignMap 模块桩〔mutate 实录+onSuccess 队列受控〕，FeasibilityBar/Heatmap/Modal/Select 原件真渲染）：6 用例（1D 常驻+挂载即取/fd-thumb+pointerEvents+缩略开模态/双实例+可行格两键回填/模态关不重取/请求令牌晚到拦截/错误两态——以 vitest 实跑为准） |
@@ -30,7 +34,10 @@
 - 参数编辑走"草稿→提交"：draft 归一（string→number|null，null=禁提交态）
   与脏比较（design 覆盖 ?? manifest 默认为基准，等值不产空写）在
   `lib/designParams.ts` 纯函数收口；**前端零校验规则复制**（range/grid
-  纯展示——range 无执行点，语义校验经 calc 任务 failed 回流挂账 solutions 批）；
+  纯展示——range 无执行点，语义校验经 calc 任务 failed 回流挂账 solutions 批；
+  F5 批（2026-11-20）注记：进水必填门非规则复制——required 面来自目录
+  第七字段〔服务端 builtin 构造期必填集镜像〕，前端只做"在场性"判定，
+  物理域检〔q>0/kz≥1/NH3N≤TN〕仍归 server 显式提交面）；
 - 提交通道=POST /api/calc/solutions/apply（服务端原子样板借用：merged.update
   →save→自动重算→失败回滚）；成功后 invalidate read 键
   （['/api/projects/&lt;id&gt;']——canvas/params/假设三面同步刷新）；

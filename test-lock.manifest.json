@@ -378,7 +378,7 @@
   "server/tests/services/test_sensitivity.py": "5d30b79e5d4aa28fbc6dd4f2477bd51cca48399be1558fb147f45412420b52ad",
   "server/tests/services/test_site.py": "424f058090b1e9765df4ff6b1866765b0b345c0837ba1a701e343f06faad4f05",
   "server/tests/services/test_unit_detail.py": "07ba12c9af36fd4d42e8e7d7e2f4bf0d04b06461110bb029015841246ae2f778",
-  "server/tests/services/test_units.py": "26e86a3190f9052d5e0a6d09aa87ab46e47bee55256baee00da3919d7676b8a6",
+  "server/tests/services/test_units.py": "4ffe827c4a4406c962c48d6969c3294ce1b426267760084c9197fa1dfc8b3f1c",
   "server/tests/services/test_validation.py": "a39ddd46bf82b10f4b0278f42daf51233d2b4fce63f79aa2acfc22cbe09a23c0",
   "server/tests/services/test_validation_aggregation.py": "4f07169d51262db1bc3c820f27de7eee057e71135b36e1cef249699a07bc3eef",
   "server/tests/services/test_validation_endpoint.py": "c0363cf7399d6c151ab4bd6fd1d6aa1cf98e2be8878760f1df8d73e0eb678e40",

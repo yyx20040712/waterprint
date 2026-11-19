@@ -30,6 +30,15 @@
 #      null 诚实缺省）；端口表按冻结 §二常量（municipal_input=out；
 #      junction=in_1/in_2+out；quality_edit=in+out；recycle_junction=
 #      in SLUDGE+out WATER 泥进水出）。
+#      R5 required 面（E2E 审计 F5 批 2026-11-20）：ParamEntry 第七字段
+#      required（bool）——builtin 构造期必填集镜像（真源=core
+#      graph/nodes.py _MunicipalInput.__init__ required={"q_avg_daily",
+#      "kz"}——GR-09 缺必需参数构造拒）；manifest 包参数恒
+#      required=False（ParamSpec.default 必填字段——值恒有默认回落）。
+#      语义=进水参数属项目基础资料无默认值（审计 F5 定型 B：设计流量/
+#      水质为项目特定输入，不虚构典型值预填——ADR-009 默认值面是单元
+#      级系数，docs/norms 无市政进水典型值对照表）；前端消费面=必填
+#      引导+提交门（空态指引替代 422 撞墙）。
 #   R3 assumptions 投影：DEFAULT_ASSUMPTIONS 六字段取五（tuning_direction
 #      =tuning_impact.direction；constraint_keys 不交付——constraint_kb
 #      0.0.0 空槽无数据，D2）。
@@ -47,6 +56,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
 from typing import Final, Literal
 
@@ -123,6 +133,17 @@ _BUILTIN_KINDS: Final[tuple[str, ...]] = (
     "quality_edit",
     "recycle_junction",
 )
+# builtin 构造期必填集镜像（R5——审计 F5 批）：真源=core graph/nodes.py
+# _MunicipalInput.__init__ required={"q_avg_daily","kz"}（GR-09 构造期缺必
+# 需参数拒）；quality_edit 指标全可选（_QualityEdit 空覆写合法——单位元
+# 透传 R5 语义）；junction/recycle_junction 零参数。镜像测试键集钳制
+# （test_units.py R5 断言——漂移即红）。
+_BUILTIN_REQUIRED_PARAMS: Final[Mapping[str, frozenset[str]]] = {
+    "municipal_input": frozenset(("q_avg_daily", "kz")),
+    "quality_edit": frozenset(),
+    "junction": frozenset(),
+    "recycle_junction": frozenset(),
+}
 _BUILTIN_PARAM_DIMS: Final[dict[str, tuple[tuple[str, str], ...]]] = {
     "municipal_input": (
         ("q_avg_daily", "FLOW"),
@@ -182,8 +203,9 @@ class RangeEntry(BaseModel):
 
 
 class ParamEntry(BaseModel):
-    """单参数条目：六字段全出（D3+B2——dim=DimKey 枚举名，不建工程单位映射；
-    label_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面）。"""
+    """单参数条目：七字段全出（D3+B2+R5——dim=DimKey 枚举名，不建工程单位映射；
+    label_zh=manifest 中文真源投影，builtin=_BUILTIN_PARAM_LABELS 声明面；
+    required=builtin 构造期必填镜像[manifest 包恒 False]——审计 F5 批）。"""
 
     model_config = ConfigDict(frozen=True)
 
@@ -193,6 +215,8 @@ class ParamEntry(BaseModel):
     range: RangeEntry | None = None
     grid: tuple[float, ...] | None = None
     label_zh: str | None = None  # builtin=_BUILTIN_PARAM_LABELS 映射缺席键 null 诚实缺省（B2 扩面）
+    # 构造期必填（R5——manifest 包 default 恒在场故恒 False；builtin 镜像 nodes.py）
+    required: bool = False
 
 
 class PortEntry(BaseModel):
@@ -249,7 +273,7 @@ class AssumptionCatalog(BaseModel):
 
 
 def _param_entry(spec: ParamSpec) -> ParamEntry:
-    """manifest ParamSpec → ParamEntry（六字段逐字——R1+B2 label_zh 投影）。"""
+    """manifest ParamSpec → ParamEntry（七字段逐字——R1+B2 label_zh+R5 required 投影）。"""
     return ParamEntry(
         field_id=spec.field_id,
         dim=str(spec.dim),
@@ -257,6 +281,7 @@ def _param_entry(spec: ParamSpec) -> ParamEntry:
         range=None if spec.range is None else RangeEntry(min=spec.range[0], max=spec.range[1]),
         grid=spec.grid,
         label_zh=spec.label_zh,
+        required=False,  # manifest default 恒在场（ParamSpec 必填字段）——值必有默认回落
     )
 
 
@@ -283,7 +308,8 @@ def _unit_entry(unit_id: str, manifest: UnitManifest) -> UnitMetaEntry:
 
 
 def _builtin_entry(kind: str) -> UnitMetaEntry:
-    """内置 kind → UnitMetaEntry（D7 声明面投影；unit_id=kind=design.nodes 值键同面）。"""
+    """内置 kind → UnitMetaEntry（D7 声明面投影+R5 required 镜像；
+    unit_id=kind=design.nodes 值键同面）。"""
     return UnitMetaEntry(
         unit_id=kind,
         name_zh=_UNIT_NAMES[kind],
@@ -294,6 +320,7 @@ def _builtin_entry(kind: str) -> UnitMetaEntry:
                 field_id=field_id,
                 dim=dim,
                 label_zh=_BUILTIN_PARAM_LABELS[kind].get(field_id),
+                required=field_id in _BUILTIN_REQUIRED_PARAMS[kind],
             )
             for field_id, dim in _BUILTIN_PARAM_DIMS[kind]
         ),
