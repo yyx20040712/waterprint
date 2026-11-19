@@ -12,19 +12,15 @@
 污水处理工艺设计计算平台：用户在节点画布上布置工艺单元、连线成流程图，
 平台完成全厂水力/水质/泥量计算、方案枚举与约束校核，产出概算、图纸
 （DXF/IFC）、三维布置与计算说明书。覆盖市政污水与矿井水两条工艺线，
-工艺单元库分 municipal / mine_water / sludge / conveyance 四线
-（在役包数见 `docs/status.md`）。
+工艺单元库分 municipal / mine_water / sludge / conveyance 四线（在役包数见 `docs/status.md`）。
 
 ### 1.2 质量目标
 
-- **确定性**：同输入双跑字节级一致；序列化往返无损；incremental 结果与
-  全量重算字节级一致（常驻测试）。
+- **确定性**：同输入双跑字节级一致；序列化往返无损；incremental 结果与全量重算字节级一致（常驻测试）。
 - **可复算**：结果 = f(design_hash, engine_version, data_version)；缓存只是
   优化不参与语义；输入变更后旧结果标 stale，不静默覆盖。
-- **防双轨**：每个耦合量、每类数值只有一个真源（manifest 声明 / registry
-  数据包 / 结果契约字段 ID）。
-- **可审计**：数值带出处（GB 国标/行业标准/设计手册三类）；警告必带来源
-  条文与调节方向；计算迹可回放。
+- **防双轨**：每个耦合量、每类数值只有一个真源（manifest 声明 / registry数据包 / 结果契约字段 ID）。
+- **可审计**：数值带出处（GB 国标/行业标准/设计手册三类）；警告必带来源条文与调节方向；计算迹可回放。
 
 ### 1.3 工程硬约束（CI 门禁强制）
 
@@ -67,8 +63,7 @@
 - **单位制三层**：pint 只在边界（输入/输出/schema/序列化）；内核热路径用
   规范单位裸数组（流量 m³/s、浓度 mg/L、几何 m）。落盘口径分两形：
   数据包与边界 Quantity = 数值 + 显式 unit/dim 字段；结果树/诊断/项目
-  文件 = 规范单位裸值，单位语义经字段 ID → registry 单位元数据恢复
-  （ADR-002）。
+  文件 = 规范单位裸值，单位语义经字段 ID → registry 单位元数据恢复（ADR-002）。
 
 ## 3. 模块结构与关键运行流程
 
@@ -119,8 +114,7 @@ manifest 默认值（带条文出处）
   → compute 消费
 ```
 
-初始参数不保证可行是设计预期：第一次计算允许约束失败，失败是方案空间
-探索的入口（§3.5）。
+初始参数不保证可行是设计预期：第一次计算允许约束失败，失败是方案空间探索的入口（§3.5）。
 
 ### 3.4 单元间业务规则
 
@@ -137,8 +131,7 @@ manifest 默认值（带条文出处）
 
 **汇流派生式**（WATER 股多股汇入同一 dst 端口）：q_avg_total=Σ（按 PortRef
 排序求和）；Kz_total=max；q_design_total=q_avg_total×Kz_total（派生属性，
-无双轨）；水质按当前工况流量负荷加权（非浓度平均）；SLUDGE 股独立走
-sludge.mix（湿量/DS 双守恒）。
+无双轨）；水质按当前工况流量负荷加权（非浓度平均）；SLUDGE 股独立走sludge.mix（湿量/DS 双守恒）。
 
 **缺项指标三层语义**：mix 层按在场股加权（全缺=键不存在）；零依赖面缺项
 透传不伪值；公式依赖面进水缺项=InvalidUnitConfig 领域异常（不跳过不默认 0）。
@@ -254,6 +247,13 @@ waterprint-server）——单进程多线程（uvicorn Server 显式启停，角
 配置 `~/.config/waterprint/desktop.json`（token 首启 server 角色生成≥16 持久化）；
 端口约定：静态壳 127.0.0.1:8620（=CORS 缺省白名单值）、引擎缺省 8621
 （WATERPRINT_PORT 覆盖）；打包面 AppImage/deb 仅骨架未冒烟（desktop/packaging）。
+Linux 运维面（2026-11-19 运维批，ADR-028 补记）：venv 唯一正确建法=
+`desktop/bootstrap.sh`（系统 Python 3.12+`--system-site-packages`——gi/PyGObject
+仅系统 apt 源可用〔PyPI 只发 sdist 且缺 GNOME dev 头件不可编，requires-python
+上界 <3.13〕；裸 `uv sync` 重建丢该开关即白屏化失败）；WebKitGTK 在 VM
+（VMware/VBox）的 DMABUF 渲染路径白屏/渲染进程 SIGTRAP——main.py R5 以
+setdefault 注入 `WEBKIT_DISABLE_DMABUF_RENDERER/COMPOSITING_MODE` 双禁走软件
+渲染（真机可显式覆盖恢复）；启动入口 `desktop/launch.sh`（gi 自检+同口径 env）。
 
 数据卷：`waterprint_wp-projects`（项目 *.wp.json）与 `waterprint_wp-exports`（导出
 产物）；数据包打入镜像不占卷。缺数据包=启动即拒绝（双入口校验：`python -m`

@@ -110,3 +110,25 @@
   首启向导）；一个安装包三形态，用户无需理解部署概念。
 - webapp 桥契约自 b5 冻结后首次扩面（+client 联合成员+getConfig），
   两面（TS 类型/Python 实现）逐名对齐并有镜像测试互锚。
+
+## 运维补记（2026-11-19 晚，用户实机三连修复）
+
+用户实机（Ubuntu 24.04 @ VMware，X11）首启连续三障，处置与定案如下：
+
+- **D11 venv 建法（Linux）**：窗口后端 gi/PyGObject 仅系统 apt 源可用
+  （python3-gi 绑系统 Python 3.12；PyPI 只发 sdist，本机无 GNOME dev
+  头件不可编）——venv 唯一正确建法=`bootstrap.sh`（`/usr/bin/python3.12`
+  +`--system-site-packages`，末验 gi+WebKit2 链非零退出）。**裸 `uv sync`
+  重建丢该开关**（实测坐实）→ gi 不可见 → 启动即"QT or GTK"失败；
+  requires-python 上界钉 `<3.13`（3.13/3.14 无系统 gi 可用），pyproject
+  头注+README 同口径。
+- **D12 WebKitGTK VM 渲染规避（main.py R5）**：WebKitGTK ≥2.42 的
+  DMABUF 硬件渲染路径在 VMware/VBox 产出白页，渲染进程可 SIGTRAP
+  （用户实机崩溃实录：WebKitWebProcess SIGTRAP in libjavascriptcore，
+  apport 在案）——setdefault 注入 `WEBKIT_DISABLE_DMABUF_RENDERER`/
+  `WEBKIT_DISABLE_COMPOSITING_MODE` 双禁走软件渲染（真机可显式置空
+  恢复硬件路径）；launch.sh 同口径双保险。验证链：Xvfb 裸 WebView/
+  Xvfb 全栈 30s/真显示器裸 WebView/真显示器完整 main 20s 四面存活，
+  页面标题加载实证。
+- **D13 启动入口**：`launch.sh`（gi 自检+env 同口径+exec main）=
+  .desktop 图标 Exec 面；用户本地桌面 .desktop 为环境件不入仓。
