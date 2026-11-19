@@ -24,9 +24,14 @@
  *     两空态同件共用——「两处内联同构挂账 UX 批」的公共抽取在 P0 批
  *     就此收口）；
  *   - 文件读取=File.text()（现代 API——jsdom 零依赖红线维持，SSR 测试
- *     面不触达文件 IO 分支）。
+ *     面不触达文件 IO 分支）；
+ *   - e2e-fix-r3 批 2026-11-19 两修：F7=initialMode 开态同步（open 翻
+ *     转真值时 setMode(initialMode)——useState 初值只在首挂载消费，工
+ *     作台「导入项目」钮首次开弹窗曾仍停 blank 态、须点两次才对）；
+ *     F6=提交期 in-flight ref 防抖（连点创建钮只发一次 POST——loading
+ *     视觉态经 re-render 生效，快于渲染时序的第二击由同步 ref 拦截）。
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Input, Modal, Radio, Typography, Upload, message } from "antd";
 
@@ -67,6 +72,14 @@ export function CreateProjectModal({
   const [fileError, setFileError] = useState<string | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const queryClient = useQueryClient();
+
+  // F7：开态同步 initialMode（useState 初值只在首挂载消费——弹窗开着
+  // 换 initialMode 或首开时，模式以本次开态为准）
+  useEffect(() => {
+    if (open) {
+      setMode(initialMode);
+    }
+  }, [open, initialMode]);
 
   const nameCheck = normalizeProjectName(name);
   const parsed = fileText === null ? null : parseProjectJson(fileText);
@@ -109,6 +122,27 @@ export function CreateProjectModal({
     onClose();
   }
 
+  // F6：提交在飞同步标记（ref 现读——快于 re-render 时序的第二击直接
+  // 拦截，onSettled 复位允许失败后重试）
+  const submitInFlight = useRef(false);
+  /** 提交体（门=canSubmit+在飞防抖——双击/连点只发一次 POST）。 */
+  function submit() {
+    if (!canSubmit || submitInFlight.current) {
+      return;
+    }
+    submitInFlight.current = true;
+    create.mutate(
+      {
+        data: {
+          name: nameCheck.valid ? nameCheck.name : undefined,
+          project:
+            mode === "import" && parsed?.ok ? parsed.project : undefined,
+        },
+      },
+      { onSettled: () => (submitInFlight.current = false) },
+    );
+  }
+
   return (
     <Modal
       title={mode === "import" ? "导入项目" : "新建项目"}
@@ -129,7 +163,7 @@ export function CreateProjectModal({
       <div style={{ marginBottom: 12 }}>
         <Typography.Text type="secondary">
           {mode === "blank"
-            ? "创建空项目（单元参数用默认值——在画布中添加单元与连线的编辑面建设中）"
+            ? "创建空项目（单元参数用默认值——单元与连线在「工艺」画布中添加）"
             : "选择已导出的项目 JSON 文件导入（结构校验在服务端完成）"}
         </Typography.Text>
       </div>
@@ -203,18 +237,7 @@ export function CreateProjectModal({
           type="primary"
           loading={create.isPending}
           disabled={!canSubmit}
-          onClick={() => {
-            if (!canSubmit) {
-              return;
-            }
-            create.mutate({
-              data: {
-                name: nameCheck.valid ? nameCheck.name : undefined,
-                project:
-                  mode === "import" && parsed?.ok ? parsed.project : undefined,
-              },
-            });
-          }}
+          onClick={submit}
         >
           创建项目
         </Button>

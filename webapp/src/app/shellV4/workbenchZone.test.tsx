@@ -21,6 +21,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorkbenchZone } from "./workbenchZone";
+import { WaterprintApiError } from "../../shared/api/http";
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
@@ -45,6 +46,9 @@ const gate = vi.hoisted(() => ({
         token_reveal: string | null;
       }
     | undefined,
+  validation: {
+    warnings: [{}, {}, {}],
+  } as { warnings: unknown[] } | { isError: true; error: unknown },
   createProps: null as {
     open: boolean;
     initialMode?: string;
@@ -97,11 +101,14 @@ vi.mock("../../shared/api/generated/calc/calc", () => ({
   }),
 }));
 vi.mock("../../features/validation/api/useValidationQuery", () => ({
-  // enabled 门语义替身：projectId=null=禁用零数据（真 hook 同口径）
+  // enabled 门语义替身：projectId=null=禁用零数据（真 hook 同口径）；
+  // gate.validation 受控——{isError,error} 形=错误面（F9-③ 口径断言）
   useValidationQuery: (projectId: string | null) =>
     projectId === null
       ? { data: undefined, isError: false, error: null }
-      : { data: { warnings: [{}, {}, {}] }, isError: false, error: null },
+      : "isError" in gate.validation
+        ? { data: undefined, isError: true, error: gate.validation.error }
+        : { data: gate.validation, isError: false, error: null },
 }));
 
 const queryClient = new QueryClient({
@@ -119,6 +126,7 @@ function renderZone() {
 beforeEach(() => {
   gate.projectId = "p1";
   gate.runtime = undefined;
+  gate.validation = { warnings: [{}, {}, {}] };
   gate.setProjectId.mockClear();
   gate.navigate.mockClear();
   gate.openRuntime.mockClear();
@@ -172,6 +180,27 @@ describe("工作台·信息面锚（b3 稿 workbench.html 段）", () => {
     expect(
       container.querySelector('[data-region="workbench-process"]'),
     ).toBeNull();
+  });
+
+  it("聚合警告 note 三态（F9-③）：404=暂无计算结果空态口径，他错=失败口径", async () => {
+    // 404（ValidationSourceNotFoundError——未算过项目）=诚实空态，非「读取失败」
+    gate.validation = {
+      isError: true,
+      error: new WaterprintApiError(
+        "ValidationSourceNotFoundError",
+        "no completed result set",
+      ),
+    };
+    const { container } = renderZone();
+    const notes = container.querySelectorAll(".wp-wb-metric .note");
+    expect(notes[2]?.textContent).toBe("暂无计算结果");
+    // 其他错误（网络/网关）=失败口径保留（诊断诚实）
+    gate.validation = { isError: true, error: new Error("gateway 502") };
+    const second = renderZone();
+    const secondNotes = second.container.querySelectorAll(
+      ".wp-wb-metric .note",
+    );
+    expect(secondNotes[2]?.textContent).toBe("聚合面读取失败");
   });
 
   it("继续工作三行→onNavigate（parameters/analysis/deliverables.report）", () => {

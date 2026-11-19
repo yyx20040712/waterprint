@@ -33,13 +33,17 @@
  *     +局域网地址行+「地址与配对 token」入口——稿 workbench-server
  *     运行方式段；standalone/读不到=单机说明零变承袭 b3 文案）；
  *   - 规划能力条=诚实说明（微文案白名单挂起说明族）；管网定线不进
- *     八入口导航（不设虚假入口）。
+ *     八入口导航（不设虚假入口）；
+ *   - e2e-fix-r3 批（F9-③）：聚合警告格 note 的 404 口径对齐分析页
+ *     ——ValidationSourceNotFoundError=「暂无计算结果」（未算过的诚实
+ *     空态，非「读取失败」）；其余错误保留失败口径（诊断诚实）。
  */
 import { useMemo, useState } from "react";
 import { Button } from "antd";
 
 import { useValidationQuery } from "../../features/validation/api/useValidationQuery";
 import { projectFlow } from "../../features/canvas/lib/projectFlow";
+import { domainGate } from "../../shared/api/sourceGate";
 import { useListUnitsApiUnitsGet } from "../../shared/api/generated/units/units";
 import { useGetTaskStatusApiCalcTasksTaskIdGet } from "../../shared/api/generated/calc/calc";
 import { useReadProjectApiProjectsProjectIdGet } from "../../shared/api/generated/projects/projects";
@@ -154,6 +158,21 @@ export function WorkbenchZone({
       ? validationQuery.data.warnings.length
       : null;
 
+  // F9-③：聚合警告格 note 三态——无项目/未算过（404=暂无结果空态口径，
+  // 与分析页 GATE_TEXT 同语义）/真错误（失败口径，诊断诚实）
+  const warningNote =
+    projectId === null
+      ? "打开项目后统计"
+      : validationQuery.isError
+        ? domainGate(
+            validationQuery.error,
+            "ValidationSourceNotFoundError",
+            "暂无计算结果",
+          ).domain
+          ? "暂无计算结果"
+          : "聚合面读取失败"
+        : "声明级、跨工况与单工况";
+
   /** 建项成功=打开项目（切项目+清 ?node=+落工艺页——projectsZone 同链）。 */
   const openProject = (id: string) => {
     setProjectId(id);
@@ -231,11 +250,7 @@ export function WorkbenchZone({
                   {warningCount ?? "—"}
                 </div>
                 <div className="note">
-                  {projectId === null
-                    ? "打开项目后统计"
-                    : validationQuery.isError
-                      ? "聚合面读取失败"
-                      : "声明级、跨工况与单工况"}
+                  {warningNote}
                 </div>
               </div>
             </div>

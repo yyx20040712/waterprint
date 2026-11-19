@@ -9,9 +9,10 @@
  *        改写地址栏）+?node=（对象选中真相——独立键读写）+?project=
  *        （useProjectId 订阅）
  * 输出:  v4 壳：TopBar+〔NavRail+入口体〕+状态条+TokenSettingsModal 恒
- *        挂载（连接设置自愈层）+OnboardingGate 恒挂载（联机第七批首启
- *        三选遮罩——桥在场且角色未配置才渲染）；导航切换唯一通道 setNav——replaceState
- *        写 ?tab= 他键原序保留）
+ *        挂载（连接设置自愈层）；导航切换唯一通道 setNav——replaceState
+ *        写 ?tab= 他键原序保留；e2e-fix-r3 批：首启 gate（useBootstrapGate
+ *        桥探测三相）probing/unconfigured 相整壳换页〔独立三选页/
+ *        探测占位——壳面不挂载=gate 期后台 API 查询零发出，F9〕
  *
  * 规格说明（b2 任务书——八入口装配+URL 迁移）：
  *   - 入口体映射：workbench=WorkbenchZone〔b3 重涂：页头+指标带+当前工艺
@@ -46,7 +47,11 @@ import {
   withTabParam,
   type NavTarget,
 } from "../zoneParam";
-import { OnboardingGate } from "../onboardingGate";
+import {
+  BootstrapProbePane,
+  OnboardingGate,
+  useBootstrapGate,
+} from "../onboardingGate";
 import { useClientConnectionSupervisor } from "../useClientConnection";
 import { useSettingsSelfHeal } from "./settingsSelfHeal";
 import { TopBar } from "./topBar";
@@ -94,6 +99,13 @@ export function ShellV4() {
   // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
   const themeMode = useThemeStore((state) => state.mode);
 
+  // e2e-fix-r3 批（F9）：首启 gate 三相——probing/unconfigured 整壳换页
+  // （独立三选页/探测占位）：壳面〔TopBar/NavRail/入口体/状态条〕不挂载
+  // =gate 期 projects/runtime/units 等后台查询零发出；本组件全部 hooks
+  // （自愈/连接监督等）恒定调用先于换页 return 且 gate 期均无请求
+  // （remoteBase=null 门+纯监听）——hook 顺序稳定合规
+  const bootstrap = useBootstrapGate();
+
   // 回炉 R16：切项目清陈旧选中（URL 面清 ?node= 由 projectsZone
   //  openProject 承载，状态面在此同步清，幻影选中双面根治；初挂跳过
   // 〔prevRef 门〕——?node= 深链初值不在挂载期被抹）
@@ -116,6 +128,20 @@ export function ShellV4() {
     setSelectedUnitId(unitId);
     replaceSearch(withNodeParam(window.location.search, unitId));
   }, []);
+
+  const gatePane =
+    bootstrap === "probing" ? (
+      <BootstrapProbePane />
+    ) : bootstrap === "unconfigured" ? (
+      <OnboardingGate />
+    ) : null;
+  if (gatePane !== null) {
+    return (
+      <ConfigProvider theme={v4ThemeConfigFor(themeMode)} button={{ autoInsertSpace: false }}>
+        <div className="wp-v4-root">{gatePane}</div>
+      </ConfigProvider>
+    );
+  }
 
   let body: ReactNode = null;
   switch (target.nav) {
@@ -193,9 +219,6 @@ export function ShellV4() {
       button={{ autoInsertSpace: false }}
     >
       <div className="wp-v4-root">
-        {/* 联机第七批：首启三选遮罩（桥在场且角色未配置才渲染——浏览器态
-            getDesktopBridge null 恒不拦壳） */}
-        <OnboardingGate />
         <TopBar />
         <div className="wp-v4-frame">
           <NavRail target={target} onNavChange={setNav} />

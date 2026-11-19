@@ -84,6 +84,9 @@ src/
 └─ shared/       api（orval 生成，禁手改）/ store / ui / events.ts
                 （TASK_EVENT/PROJECT_EVENT 跨面板事件名常量——AUDIT2
                 FIX2 S12 内联收敛+UX1 S3 project 面）
+
+public/favicon.svg  站点图标（e2e-fix-r3 批——index.html link 引用，
+                   SVG monoline 水滴同稿 i-drop；消除 /favicon.ico 404）
 ```
 
 ## 命令（环境就绪后，见根 README 环境待办）
