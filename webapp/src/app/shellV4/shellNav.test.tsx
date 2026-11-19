@@ -13,10 +13,11 @@
  * 输出:  断言族：①轨八条目声明序+中文名+aria-current 选中语义 ②点击切
  *        换：入口体 region 翻转+URL ?tab= 写入（他键保留）③旧值深链：
  *        ?tab=design.analysis→分析面挂载且地址栏不改写 ④初值四级：
- *        ?node=→工艺/?task=→参数方案/缺省→工作台 ⑤状态条：单机标识
- *        在场+主题切换器在场（三钮）+任务 ▴→AI 入口 ⑥deliverables
- *        子页切换：树条目→?tab=deliverables.report；点轨当前入口=
- *        子页重置缺省 sheets
+ *        ?node=→工艺/?task=→参数方案/缺省→工作台 ⑤状态条：运行标识
+ *        （读不到=降级单机文案）+主题切换器在场（三钮）+任务 ▴→AI 入口
+ *        ⑤b 运行标识 server 态真实文案+点击开运行方式与联机 Modal
+ *        （联机第五批） ⑥deliverables 子页切换：树条目→?tab=
+ *        deliverables.report；点轨当前入口=子页重置缺省 sheets
  */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -44,6 +45,15 @@ vi.stubGlobal("localStorage", {
 /** 替身受控位（vi.hoisted——mock 工厂闭包同源读写）。 */
 const gate = vi.hoisted(() => ({
   projectId: "p1" as string | null,
+  runtime: undefined as
+    | {
+        role: "standalone" | "server";
+        bind_host: string;
+        lan_addresses: string[];
+        token_configured: boolean;
+        token_reveal: string | null;
+      }
+    | undefined,
 }));
 
 vi.mock("../useProjectId", () => ({
@@ -113,6 +123,14 @@ vi.mock("../../features/drawings/components/ExportButton", () => ({
 vi.mock("../../shared/api/generated/units/units", () => ({
   useListUnitsApiUnitsGet: () => ({ data: {} }),
 }));
+// 联机第五批：运行时角色面替身（缺省 undefined=读不到→状态栏降级单机标识）
+vi.mock("../../shared/api/generated/meta/meta", () => ({
+  useGetRuntimeApiRuntimeGet: () => ({
+    data: gate.runtime,
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../siteplanPane", () => ({
   SiteplanPane: () => null,
 }));
@@ -172,6 +190,7 @@ const railButton = (nav: string): HTMLButtonElement | null =>
 
 beforeEach(() => {
   gate.projectId = "p1";
+  gate.runtime = undefined;
   storageBack.clear();
 });
 afterEach(cleanup);
@@ -286,12 +305,12 @@ describe("b2 八入口导航壳（mount 真 ShellV4）", () => {
     expect(document.querySelector('[data-region="workbench"]')).not.toBeNull();
   });
 
-  it("状态条：单机标识+主题切换器（三钮）在场+任务 ▴→AI 入口", async () => {
+  it("状态条：运行标识（降级单机）+主题切换器（三钮）在场+任务 ▴→AI 入口", async () => {
     renderShell();
     const bar = document.querySelector('[data-region="status-bar"]');
     expect(bar).not.toBeNull();
     expect(
-      bar?.querySelector('[data-testid="wp-v4-standalone-mode"]')?.textContent,
+      bar?.querySelector('[data-testid="wp-v4-runtime-mode"]')?.textContent,
     ).toContain("单机模式 · 本地引擎");
     // 主题切换器三钮（b1 件迁状态条）
     const themeButtons = bar?.querySelectorAll("[data-theme-mode]");
@@ -314,6 +333,34 @@ describe("b2 八入口导航壳（mount 真 ShellV4）", () => {
           ?.querySelectorAll("button") ?? [],
       ).find((button) => button.textContent?.includes("任务")),
     ).toBeUndefined();
+  });
+
+  it("状态条运行标识：server 态真实文案+点击开运行方式与联机 Modal（联机第五批）", async () => {
+    gate.runtime = {
+      role: "server",
+      bind_host: "0.0.0.0",
+      lan_addresses: ["192.168.50.24"],
+      token_configured: true,
+      token_reveal: "b5-shellnav-token-0123456789",
+    };
+    renderShell();
+    const modeButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="wp-v4-runtime-mode"]',
+    );
+    expect(modeButton?.textContent).toContain("服务端 · 局域网可被发现");
+    expect(modeButton?.className).toContain("server");
+    fireEvent.click(modeButton as HTMLButtonElement);
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-testid="wp-v4-runtime-pairing"]'),
+      ).not.toBeNull();
+    });
+    // 配对卡真实态：地址行+token 明文（回环 reveal 替身值）
+    expect(document.body.textContent).toContain("http://192.168.50.24");
+    expect(
+      document.querySelector('[data-testid="wp-v4-runtime-token"]')
+        ?.textContent,
+    ).toContain("b5-shellnav-token-0123456789");
   });
 
   it("deliverables 子页切换：树条目→?tab=deliverables.report；点轨当前入口=子页重置缺省", async () => {

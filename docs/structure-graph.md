@@ -302,6 +302,8 @@ glob = true
 | 管网水力子工具 | `core/waterprint/cli.py`（独立命令）→ `core/waterprint/network/excel_io.py` → `core/waterprint/network/solver.py` → `core/waterprint/network/manning.py`（不共享厂区图引擎） |
 | 操作链观测（B4-1；v1-20261015 转正批：webapp 消费面〔features/opsdebug〕随 legacy 退役删除——本链 server 侧在册，端点可达性=API 面） | `server/waterprint_server/routers/debug.py` → `server/waterprint_server/services/ops_debug.py` → `server/waterprint_server/services/_shared/latest_calc.py`（最近结果集槽位）+`server/waterprint_server/services/calculation.py`（task_status 状态正门）→ `server/waterprint_server/jobs/manager.py`（注册表查询面）→ `core/waterprint/contracts/result_schema.py`（plant 反序列化+trace 聚合）+`core/waterprint/contracts/trust.py`（diag 件读取——《裁决书》方案五①） |
 
+| 运行时信息与配对（联机架构第五批 2026-11-19——用户裁决 Minecraft 式开关模型） | `webapp/src/app/shellV4/statusBar.tsx`（+workbenchZone.tsx 运行方式卡/runtimeSettingsModal.tsx 配对卡——useGetRuntimeApiRuntimeGet 同键缓存） → `server/waterprint_server/routers/meta.py` → `server/waterprint_server/services/runtime.py` （role 派生=绑定地址即角色〔settings.is_loopback_host〕；token_reveal 仅请求者 socket 回环） → `core/waterprint/app.py`（load_run_env 空 project——UF-10/b24 三包 data_version 聚合面单源复用，服务层零第二聚合源） + `core/waterprint/contracts/project_schema.py`（空项目载体）；webapp 绑定切换控件经 `webapp/src/app/desktopBridge.ts` 接口约定→desktop 壳（b7 批实装） |
+
 ## 3. 业务单元总表（32 包；与 file-contracts.md §3、units_lib 目录三方互验）
 
 > 参数级中文名真源=各单元 manifest.py params 的 `label_zh`（B2 起，233 条全量——本表"中文名"列是单元级映射，参数级不入本表防双源）。

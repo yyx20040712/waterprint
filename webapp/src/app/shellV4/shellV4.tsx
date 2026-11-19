@@ -36,6 +36,7 @@ import { ConfigProvider } from "antd";
 import { useThemeStore } from "../../shared/store/themeStore";
 import { useProjectId } from "../useProjectId";
 import { TokenSettingsModal } from "../tokenSettingsModal";
+import { RuntimeSettingsModal } from "../runtimeSettingsModal";
 import { v4ThemeConfigFor } from "../themeModes";
 import {
   initialNavTarget,
@@ -81,6 +82,9 @@ export function ShellV4() {
   // R1-W1：连接设置自愈层（恒挂载——入口切换不卸载；手动入口经
   // AiZone→onOpenSettings 透传，AUTH_EVENT 自愈同 state）
   const { settingsOpen, openSettings, closeSettings } = useSettingsSelfHeal();
+  // 联机第五批：运行方式与联机 Modal 开态（状态栏运行标识/工作台运行
+  // 方式卡两入口单 state——AUTH_EVENT 自愈面属 TokenSettingsModal 不混流）
+  const [runtimeOpen, setRuntimeOpen] = useState(false);
   // b1 三主题：scoped ConfigProvider 按模重建（CSS 轴面=store setMode
   // 内 applyThemeMode；mode 变更本组件重渲染即 antd 面换肤）
   const themeMode = useThemeStore((state) => state.mode);
@@ -114,7 +118,7 @@ export function ShellV4() {
       body = (
         <WorkbenchZone
           onNavigate={setNav}
-          onOpenSettings={openSettings}
+          onOpenRuntime={() => setRuntimeOpen(true)}
         />
       );
       break;
@@ -189,10 +193,20 @@ export function ShellV4() {
           <NavRail target={target} onNavChange={setNav} />
           <div className="wp-v4-body">{body}</div>
         </div>
-        <StatusBar nav={target.nav} onTaskEntry={() => setNav({ nav: "ai" })} />
+        <StatusBar
+          nav={target.nav}
+          onTaskEntry={() => setNav({ nav: "ai" })}
+          onOpenRuntime={() => setRuntimeOpen(true)}
+        />
         {/* R1-W1：连接设置自愈层恒挂载（ConfigProvider 内常驻——入口切换
             不卸载，AUTH_EVENT 401 自愈八入口可达；AI 窗仅入口上抛） */}
         <TokenSettingsModal open={settingsOpen} onClose={closeSettings} />
+        {/* 联机第五批：运行方式与联机 Modal 恒挂载（状态栏/工作台两入口；
+            服务端配对卡按 /api/runtime 真实态呈现） */}
+        <RuntimeSettingsModal
+          open={runtimeOpen}
+          onClose={() => setRuntimeOpen(false)}
+        />
       </div>
     </ConfigProvider>
   );

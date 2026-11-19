@@ -1842,6 +1842,30 @@
         "title": "LoopRunModel",
         "type": "object"
       },
+      "MetaInfo": {
+        "description": "GET /api/meta 载荷：应用版本+数据包版本聚合+API 语义版本。",
+        "properties": {
+          "api_version": {
+            "title": "Api Version",
+            "type": "string"
+          },
+          "app_version": {
+            "title": "App Version",
+            "type": "string"
+          },
+          "data_version": {
+            "title": "Data Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "app_version",
+          "data_version",
+          "api_version"
+        ],
+        "title": "MetaInfo",
+        "type": "object"
+      },
       "Node": {
         "description": "场景节点（不可变）：图元 + 语义 + 局部变换 + 实例数 + 假设来源键。",
         "properties": {
@@ -2544,6 +2568,54 @@
           "project_id"
         ],
         "title": "RunRequest",
+        "type": "object"
+      },
+      "RuntimeInfo": {
+        "description": "GET /api/runtime 载荷：运行角色/绑定面/配对面（token 仅回环可见）。",
+        "properties": {
+          "bind_host": {
+            "title": "Bind Host",
+            "type": "string"
+          },
+          "lan_addresses": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lan Addresses",
+            "type": "array"
+          },
+          "role": {
+            "enum": [
+              "standalone",
+              "server"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "token_configured": {
+            "title": "Token Configured",
+            "type": "boolean"
+          },
+          "token_reveal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Reveal"
+          }
+        },
+        "required": [
+          "role",
+          "bind_host",
+          "lan_addresses",
+          "token_configured",
+          "token_reveal"
+        ],
+        "title": "RuntimeInfo",
         "type": "object"
       },
       "SaveOutcomeResponse": {
@@ -5439,6 +5511,29 @@
         ]
       }
     },
+    "/api/meta": {
+      "get": {
+        "description": "版本握手信息（应用版本+数据包三包聚合+API 语义版本）。",
+        "operationId": "get_meta_api_meta_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [],
+        "summary": "Get Meta",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
     "/api/projects": {
       "get": {
         "description": "列表（元数据来自文件读取，无独立索引库）。",
@@ -5898,6 +5993,29 @@
         "summary": "Validate Project",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/runtime": {
+      "get": {
+        "description": "运行角色与配对面（token_reveal 仅回环请求者——headers 不参判）。",
+        "operationId": "get_runtime_api_runtime_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [],
+        "summary": "Get Runtime",
+        "tags": [
+          "meta"
         ]
       }
     },

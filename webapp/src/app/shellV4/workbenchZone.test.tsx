@@ -6,12 +6,15 @@
  * 规划能力锚族+建项成功 openProject 动线。ProjectsZone/CreateProjectModal
  * 子面 stub（各自专测件承载真件断言——Modal 以 props 捕获替身参与流）。
  *
- * 输入:  WorkbenchZone（useProjectId/项目读/units 目录/校验聚合/任务快照
- *        模块替身+ProjectsZone/CreateProjectModal stub——onCreated 可触发）
+ * 输入:  WorkbenchZone（useProjectId/项目读/units 目录/校验聚合/任务快照/
+ *        运行时角色（联机第五批）模块替身+ProjectsZone/CreateProjectModal
+ *        stub——onCreated 可触发）
  * 输出:  断言族：①页头两钮：新建=initialMode blank/导入=import 开 Modal
  *        ②onCreated=切项目+清 ?node=+onNavigate process ③指标带 region
  *        在场+无项目三格「—」占位④继续工作三行→onNavigate 对应入口
  *        ⑤规划能力条 wp-pending-network 锚族在场⑥任务卡空态引导
+ *        ⑦运行方式卡两态：读不到=单机文案+设置钮→onOpenRuntime；
+ *        server=服务端徽标+地址行+「地址与配对 token」入口（联机第五批）
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,7 +35,16 @@ const gate = vi.hoisted(() => ({
   projectId: "p1" as string | null,
   setProjectId: vi.fn(),
   navigate: vi.fn(),
-  openSettings: vi.fn(),
+  openRuntime: vi.fn(),
+  runtime: undefined as
+    | {
+        role: "standalone" | "server";
+        bind_host: string;
+        lan_addresses: string[];
+        token_configured: boolean;
+        token_reveal: string | null;
+      }
+    | undefined,
   createProps: null as {
     open: boolean;
     initialMode?: string;
@@ -68,6 +80,14 @@ vi.mock("../../shared/api/generated/projects/projects", () => ({
 vi.mock("../../shared/api/generated/units/units", () => ({
   useListUnitsApiUnitsGet: () => ({ data: { units: [] }, isError: false }),
 }));
+// 联机第五批：运行时角色面替身（缺省 undefined=读不到→运行方式卡单机态）
+vi.mock("../../shared/api/generated/meta/meta", () => ({
+  useGetRuntimeApiRuntimeGet: () => ({
+    data: gate.runtime,
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../../shared/api/generated/calc/calc", () => ({
   useGetTaskStatusApiCalcTasksTaskIdGet: () => ({
     data: undefined,
@@ -91,16 +111,17 @@ const queryClient = new QueryClient({
 function renderZone() {
   return render(
     <QueryClientProvider client={queryClient}>
-      <WorkbenchZone onNavigate={gate.navigate} onOpenSettings={gate.openSettings} />
+      <WorkbenchZone onNavigate={gate.navigate} onOpenRuntime={gate.openRuntime} />
     </QueryClientProvider>,
   );
 }
 
 beforeEach(() => {
   gate.projectId = "p1";
+  gate.runtime = undefined;
   gate.setProjectId.mockClear();
   gate.navigate.mockClear();
-  gate.openSettings.mockClear();
+  gate.openRuntime.mockClear();
   gate.createProps = null;
   window.history.replaceState(null, "", "/");
 });
@@ -173,5 +194,46 @@ describe("工作台·信息面锚（b3 稿 workbench.html 段）", () => {
       container.querySelector('[data-testid="wp-pending-network"]')?.textContent,
     ).toContain("规划中，未实装");
     expect(container.textContent).toContain("暂无任务记录");
+  });
+
+  it("运行方式卡：读不到角色=单机态（b3 文案承袭）+设置钮→onOpenRuntime", () => {
+    const { container } = renderZone();
+    expect(
+      container.querySelector('[data-testid="wp-v4-wb-runtime-badge"]')
+        ?.textContent,
+    ).toBe("单机模式");
+    expect(container.textContent).toContain(
+      "联机开关关闭——不向局域网开放项目",
+    );
+    fireEvent.click(
+      document.querySelector('[data-testid="wp-v4-wb-settings"]') as HTMLElement,
+    );
+    expect(gate.openRuntime).toHaveBeenCalledTimes(1);
+  });
+
+  it("运行方式卡：server 态=服务端徽标+局域网地址行+配对入口（联机第五批）", () => {
+    gate.runtime = {
+      role: "server",
+      bind_host: "0.0.0.0",
+      lan_addresses: ["192.168.50.24"],
+      token_configured: true,
+      token_reveal: null,
+    };
+    const { container } = renderZone();
+    expect(
+      container.querySelector('[data-testid="wp-v4-wb-runtime-badge"]')
+        ?.textContent,
+    ).toBe("服务端模式");
+    expect(
+      container.querySelector('[data-testid="wp-v4-wb-runtime-address"]')
+        ?.textContent,
+    ).toContain("192.168.50.24");
+    expect(container.textContent).toContain("局域网客户端凭地址与配对");
+    const entry = container.querySelector(
+      '[data-testid="wp-v4-wb-settings"]',
+    ) as HTMLButtonElement;
+    expect(entry.textContent).toContain("地址与配对 token");
+    fireEvent.click(entry);
+    expect(gate.openRuntime).toHaveBeenCalledTimes(1);
   });
 });

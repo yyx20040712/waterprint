@@ -6,18 +6,21 @@
  * b3 信息组织重造〔ProjectsZone 逻辑件保留=列表/搜索/打开/复制/重命名/
  * 删除——B1/V3 D4 逻辑零改；建项 Modal 上提本区页头〕）。
  *
- * 输入:  onNavigate（跨入口导航——shellV4 setNav 单通道）+onOpenSettings
- *        （运行方式卡设置钮——shellV4 自愈层 TokenSettingsModal）+
+ * 输入:  onNavigate（跨入口导航——shellV4 setNav 单通道）+onOpenRuntime
+ *        （运行方式卡设置/配对钮——shellV4 运行方式与联机 Modal）+
  *        useProjectId（建项成功=openProject：切项目+清 ?node=+落工艺页）
  *        +useReadProject（当前项目 raw→projectFlow 投影统计——canvas
  *        通道同键缓存共享）+useValidationQuery（聚合警告计数）+
+ *        useGetRuntimeApiRuntimeGet（运行方式卡真实角色——联机第五批）+
  *        parseTaskParam/parseEnumParam+useGetTaskStatus（最新任务态）
  * 输出:  工作台页：指标带（工艺单元/单元连接/聚合警告）+当前工艺（水线
  *        序列条+泥线注+打开画布钮）+ProjectsZone（项目列表面板）+右列四
- *        卡（继续工作三行/最新任务行/单机运行方式/规划能力条〔wp-
- *        pending-network 锚族沿承——G5 在场断言面〕）
+ *        卡（继续工作三行/最新任务行/运行方式〔真实角色：单机/服务端
+ *        两态——联机第五批接真〕/规划能力条〔wp-pending-network 锚族
+ *        沿承——G5 在场断言面〕）
  *
- * 规格说明（b3 批准稿 workbench.html——视觉与信息组织重造，数据流零变）：
+ * 规格说明（b3 批准稿 workbench.html+workbench-server.html——视觉与信息
+ *   组织重造，数据流零变；联机第五批 2026-11-19 运行方式卡接真）：
  *   - 指标带=当前项目投影统计（projectFlow nodes/edges 计数+validation
  *     聚合警告数——既有 GET 通道消费，无项目/未算=「—」占位不虚造）；
  *   - 当前工艺=水线单元拓扑序条（layout 坐标排序）+泥线独立注——水/泥
@@ -26,6 +29,9 @@
  *     本体零行为变）；成功=openProject 同链（切项目+清选中+落工艺页）；
  *   - 任务卡=?task=/?enum= 最新任务快照（无任务=空态引导——任务历史
  *     面在「AI 助手」页，本卡单行现状）；
+ *   - 运行方式卡=真实角色（/api/runtime：server 态=「服务端模式」徽标
+ *     +局域网地址行+「地址与配对 token」入口——稿 workbench-server
+ *     运行方式段；standalone/读不到=单机说明零变承袭 b3 文案）；
  *   - 规划能力条=诚实说明（微文案白名单挂起说明族）；管网定线不进
  *     八入口导航（不设虚假入口）。
  */
@@ -44,6 +50,7 @@ import { useProjectId } from "../useProjectId";
 import { withNodeParam } from "../zoneParam";
 import type { NavTarget } from "../zoneParam";
 import { ProjectsZone } from "./projectsZone";
+import { WorkbenchRuntimeCard } from "./workbenchRuntimeCard";
 
 /** 任务状态文案（aiZone STATE_TEXT 同源子集——单行现状卡消费面）。 */
 const STATE_TEXT: Record<string, string> = {
@@ -83,12 +90,12 @@ const CONTINUE_ENTRIES: readonly {
 
 export function WorkbenchZone({
   onNavigate,
-  onOpenSettings,
+  onOpenRuntime,
 }: {
   /** 跨入口导航（shellV4 setNav 单通道）。 */
   onNavigate: (target: NavTarget) => void;
-  /** 运行方式卡设置钮（shellV4 自愈层承载 TokenSettingsModal）。 */
-  onOpenSettings: () => void;
+  /** 运行方式卡设置/配对钮（shellV4 承载 RuntimeSettingsModal——联机第五批）。 */
+  onOpenRuntime: () => void;
 }) {
   const [projectId, setProjectId] = useProjectId();
   const [createOpen, setCreateOpen] = useState(false);
@@ -324,26 +331,8 @@ export function WorkbenchZone({
             </section>
             {/* 任务（最新任务单行——历史面在「AI 助手」页） */}
             <WorkbenchTaskCard />
-            {/* 运行方式（稿 .panel 运行方式段——单机说明+设置入口） */}
-            <section className="wp-wb-panel">
-              <div className="wp-wb-panel-head">
-                <h3>运行方式</h3>
-                <span className="wp-v4-badge">单机模式</span>
-              </div>
-              <div className="wp-wb-panel-body">
-                <p style={{ margin: 0, color: "var(--wp-text-2)", fontSize: 11 }}>
-                  本地引擎与本地项目。联机开关关闭——不向局域网开放项目，也不连接远程服务器。
-                </p>
-                <Button
-                  size="small"
-                  style={{ marginTop: 8 }}
-                  onClick={onOpenSettings}
-                  data-testid="wp-v4-wb-settings"
-                >
-                  运行角色与联机设置
-                </Button>
-              </div>
-            </section>
+            {/* 运行方式（联机第五批拆件 workbenchRuntimeCard——真实角色两态） */}
+            <WorkbenchRuntimeCard onOpenRuntime={onOpenRuntime} />
             {/* 规划能力条（旧 networkZone 占位语义迁入——锚族沿承） */}
             <section className="wp-wb-panel">
               <div className="wp-wb-panel-head">

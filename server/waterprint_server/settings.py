@@ -96,6 +96,18 @@ API_TOKEN_MIN_LENGTH: Final[int] = 2 ** (2 * 2)  # 16
 _LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
+def is_loopback_host(host: str) -> bool:
+    """回环判定（集合单源公开消费面——联机架构第五批 2026-11-19）。
+
+    消费面=services.runtime 两处：role 派生（绑定地址即角色：回环=
+    standalone、对外=server——用户裁决无需第二配置面）与 token_reveal
+    请求者门（对端 socket 地址回环才放行明文——headers 不参判防伪装）。
+    请求者面经 socket 对端 IP 到达（"localhost" 字符串形态天然不在场，
+    集合含它只为绑定面兼容，判定语义两处同源）。
+    """
+    return host in _LOOPBACK_HOSTS
+
+
 def default_data_dir() -> Path:
     """数据包根缺省解析（E2E-1 P0-A 自愈）：包定位上溯，CWD 无关。
 

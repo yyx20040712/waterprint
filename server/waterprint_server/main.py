@@ -92,6 +92,7 @@ from waterprint_server.routers import (
     elevation,
     events,
     exports,
+    meta,
     projects,
     report,
     report_pdf,
@@ -172,6 +173,9 @@ _EXPECTED_ENDPOINTS: Final[int] = (
     - 2  # ZCode 接入退役批（2026-11-19）：AI2 两端点摘除（GET /api/ai/
          # connection + POST /api/ai/connection/setup——用户裁决彻底取消
          # 与 ZCode 等 harness 联动，47→45）
+    + 2  # 联机架构第五批（2026-11-19）：GET /api/meta + GET /api/runtime——
+         # 版本握手+运行角色/配对面（token_reveal 仅回环请求者），45→47 破面
+         # 〔用户裁决 Minecraft 式开关模型第五批任务书授权〕
 )
 _SHUTDOWN_TIMEOUT: Final[float] = 10.0  # 优雅停机等待（秒；白名单字面量 10）
 # R5 开发期 CORS 白名单（部署面经反代域名收敛——产品内网工具约束）。
@@ -349,6 +353,13 @@ def create_app(  # noqa: PLR0915  # 装配根语句数=路由挂载面声明式�
     for units_route in (route for route in units.router.routes if isinstance(route, APIRoute)):
         units_route.openapi_extra = {"security": []}
     app.include_router(units.router)
+    # 联机架构第五批（2026-11-19）：运行时信息两端点豁免面（units 先例）——
+    # 只读自省无项目数据；显式 security[]=本机 UI 无 token 冷启动可达（配对
+    # 卡读 token 的鸡-蛋面）；token_reveal 门=对端 socket 回环判定（services/
+    # runtime R3——headers 不参判，非回环恒 null），与鉴权开关无耦合。
+    for meta_route in (route for route in meta.router.routes if isinstance(route, APIRoute)):
+        meta_route.openapi_extra = {"security": []}
+    app.include_router(meta.router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(_DEV_ORIGINS),  # R5 开发期白名单

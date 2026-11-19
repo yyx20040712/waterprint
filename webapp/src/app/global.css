@@ -699,7 +699,9 @@ body {
 .wp-v4-statusbar button:hover {
   color: var(--wp-accent);
 }
-/* 单机标识槽（b2 视觉槽——联机逻辑后续批；中性灰徽标形非交互） */
+/* 运行标识槽（b2 单机视觉槽→联机第五批 2026-11-19 接真：真实角色可点
+   钮——standalone 中性灰承袭；server=water 色轴变体〔稿 connection-
+   status.server〕；按钮形态覆写状态条通用钮规则〔边框/内距复原徽标形〕） */
 .wp-v4-standalone {
   display: inline-flex;
   align-items: center;
@@ -709,6 +711,102 @@ body {
   background: var(--wp-bg-deep);
   color: var(--wp-text-2);
   white-space: nowrap;
+}
+.wp-v4-standalone.server {
+  border-color: color-mix(in srgb, var(--wp-water) 45%, var(--wp-border-2));
+  color: var(--wp-water);
+}
+.wp-v4-statusbar button.wp-v4-standalone {
+  border: 1px solid var(--wp-border-2);
+  border-radius: 9px;
+  background: var(--wp-bg-deep);
+  padding: 1px 8px;
+}
+.wp-v4-statusbar button.wp-v4-standalone.server {
+  border-color: color-mix(in srgb, var(--wp-water) 45%, var(--wp-border-2));
+  color: var(--wp-water);
+}
+
+/* 运行方式与联机 Modal（联机第五批——稿 connection.html 服务端态；
+   全部 var(--wp-*) 轴消费零字面色，antd Modal 内容区组合面） */
+.wp-v4-runtime-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  background: var(--wp-bg-deep);
+}
+.wp-v4-runtime-row strong {
+  font-size: 12.5px;
+}
+.wp-v4-runtime-sub {
+  margin-top: 2px;
+  color: var(--wp-text-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.wp-v4-runtime-mono {
+  font-family: var(--wp-font-mono);
+  color: var(--wp-text-2);
+  white-space: nowrap;
+}
+.wp-v4-pair-card {
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--wp-border-2);
+  border-radius: 6px;
+  background: var(--wp-bg-elevated);
+}
+.wp-v4-pair-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.wp-v4-pair-head h4 {
+  margin: 0;
+  font-size: 12.5px;
+}
+.wp-v4-pair-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.wp-v4-pair-code {
+  font-family: var(--wp-font-mono);
+  font-size: 13px;
+  color: var(--wp-text);
+  overflow-wrap: anywhere;
+}
+.wp-v4-divider {
+  height: 1px;
+  background: var(--wp-border-2);
+  margin: 12px 0;
+}
+.wp-v4-token-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--wp-border);
+  border-radius: 4px;
+  background: var(--wp-bg-deep);
+}
+.wp-v4-token-value code {
+  font-family: var(--wp-font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--wp-text);
+  overflow-wrap: anywhere;
 }
 
 /* 图库卡（工程制图右区） */
